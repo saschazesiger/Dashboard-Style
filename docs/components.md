@@ -5,6 +5,43 @@ returns ([icons.md](icons.md)). Behaviour (opening a dialog, filtering a combobo
 and attributes below are the contract the styles expect. The [styleguide](../styleguide/index.html) shows every
 component live.
 
+## Which component for which need
+
+| Need | Use |
+|---|---|
+| The page frame: top bar, navigation, one scrolling content panel | [App frame](#app-frame): `.ds-app`, `.ds-topbar`, `.ds-drawer`, `.ds-panel` |
+| Switch between two or three modes of the app | `.ds-segmented` in the top bar ([App frame](#app-frame)) |
+| Page title, lead and the column layout of cards | [Page](#page): `.ds-page-head`, `.ds-stack` (one column), `.ds-grid-2` (two) |
+| A block of related content | [Card](#card) `.ds-card`; a quieter block inside one: `.ds-card--filled` |
+| Any action | [Button](#button) `.ds-btn` with one variant; an action inside text or a table cell: `.ds-link-btn` |
+| A view option that stays on or off (filter, compact view) | `.ds-btn--quiet` with `aria-pressed` ([Button](#button)) |
+| Key figures at the top of a page | [Tiles](#tiles) `.ds-tiles`, `.ds-tile` |
+| Label and value pairs | `.ds-kv-list` (rows) or `.ds-facts` (a grid, best with four) ([Lists](#lists)) |
+| A run of short counts ("3 new · 1 updated") | `.ds-parts` ([Lists](#lists)) |
+| Nothing to show yet | [Empty state](#empty-state) `.ds-empty` |
+| The state of one item (synced, failed, running) | [Status chip](#status-chip) `.ds-status` |
+| A message about a page or section that stays | [Alert](#alert) `.ds-alert`; a list of errors to open: `.ds-errors` |
+| Short feedback after an action | [Snackbar](#snackbar) `.ds-toast` in `.ds-toasts` |
+| Records in rows and columns | [Table](#table) `.ds-table` in `.ds-table-wrap` |
+| Data entry | [Form](#form): `.ds-form`, `.ds-form-grid`, `.ds-field`, `.ds-input`, `.ds-form-actions` |
+| One choice from a short list | `<select class="ds-input">`; with an explanation per option: `.ds-radios` ([Form](#form)) |
+| One choice from a long list, by typing | [Combobox](#combobox) `.ds-combo` |
+| A yes/no value saved with the form | `.ds-check` ([Form](#form)) |
+| A setting that applies at once | [Switch](#switch) `.ds-switch` |
+| Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
+| Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog` |
+| Details or editing of one record next to its list | [Side sheet](#side-sheet) `.ds-sheet` |
+| Name an icon button, or say why a control is disabled | [Tooltip](#tooltip) `.ds-tooltip` |
+| Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |
+| A long job with a known or unknown share | [Progress](#progress) `.ds-progress` (`--indeterminate`) |
+| Content that opens and closes | `<details class="ds-collapsible">` ([Motion classes](#motion-classes)) |
+| Something new appearing, a view's first render | [Motion classes](#motion-classes) and `DS.motion` ([motion.md](motion.md)) |
+| An icon | `DS.icons` ([icons.md](icons.md)); brand logos stay in the project |
+
+Nothing fits? If any dashboard could use it, add it to Dashboard-Style ([AGENTS.md](../AGENTS.md#making-a-change))
+and update the copy; otherwise build it in the project with the project's own class prefix, from the tokens only
+([rules.md](rules.md#code)).
+
 Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card](#card) · [Tiles](#tiles) ·
 [Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
 [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Dialog](#dialog) ·
@@ -385,7 +422,8 @@ The native input stays in the form and the tab order; a selected chip shows the 
 ```
 
 Update the state word when it flips (screen readers announce the switch state themselves). Toggle in place; never
-re-render the switch to change it.
+re-render the switch to change it. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
+title next to the switch already names the setting.
 
 ## Combobox
 
@@ -461,7 +499,8 @@ Set `data-scrolled` on the panel while the body is scrolled (the head's hairline
 - Place the region right after `.ds-app`. It sits at the bottom left of the content panel: next to a persistent
   drawer by itself, full width on phones. If your panel starts elsewhere, set `--ds-toast-left` on the region to the
   panel's left edge plus 24px (`region.style.setProperty('--ds-toast-left', panel.getBoundingClientRect().left + 24 + 'px')`).
-- Remove with `DS.motion.leave(toast)`. Mark a message that already played its entrance `.ds-toast--shown` before
+- A confirmation leaves after about 4s (`setTimeout(() => DS.motion.leave(toast), 4000)`); an error has a close
+  button and stays until closed. Mark a message that already played its entrance `.ds-toast--shown` before
   moving it (into a side sheet), so it does not replay. To let it glide instead of jump, set `--ds-toast-shift` and
   `--ds-toast-shift-y` to the offset from its old place with `transition: none`, force a style flush, then remove
   both.

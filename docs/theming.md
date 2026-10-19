@@ -153,6 +153,6 @@ position ([motion](motion.md)), and
 
 ## Checking a theme
 
-Open `styleguide/index.html`, choose "Load theme file..." and pick your CSS: every component re-renders with it.
+Open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component re-renders with it.
 Check text contrast with your browser's accessibility tools and look at the page with
 `prefers-reduced-motion: reduce` and with forced colors emulated (DevTools, Rendering panel).

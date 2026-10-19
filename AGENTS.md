@@ -1,0 +1,170 @@
+# AGENTS.md
+
+Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Dashboard-Style. User documentation:
+[README.md](README.md) and the [docs](README.md#documentation).
+
+## In brief
+
+- A **generic, themeable design system** for admin dashboards in the Material 3 / Google console style: CSS tokens
+  (`--ds-*`), components (`.ds-*`), motion, 82 outline icons and Google Sans. Plain CSS and dependency-free JS, MIT.
+- **Project-neutral.** Nothing in the repository names a project, organisation, place, brand colour or brand font
+  that uses it; `test/repo.test.js` fails on a list of such names. Examples use generic content (devices, tickets,
+  "Product", Ada Lovelace). Anything specific to one product stays in that product's repository.
+- **English** everywhere: code, comments, docs, commit messages.
+- `src/` is the source, `dist/` is what projects vendor. `dist/` is built by `npm run build` and **committed**.
+
+## Commands
+
+| Command | Purpose |
+|---|---|
+| `npm run check` | tests + verify that `dist/` matches `src/` (CI runs this); run it before every commit |
+| `npm test` | tests only (`node --test`, no dependencies, Node 22+) |
+| `npm run build` | rebuild `dist/` after any change to `src/`, `fonts/`, `LICENSE` or the version |
+| `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
+| `sh scripts/vendor.sh --from . /tmp/ds && sh scripts/vendor.sh --check /tmp/ds` | the vendor round trip CI runs after `npm run check` |
+| open `styleguide/index.html` | every component, token, motion demo and icon, works from disk; "Load theme file ..." tries a theme |
+
+## Files
+
+| Path | What |
+|---|---|
+| `src/tokens.css` | all tokens on `.ds-theme`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the reduced-motion switch at the end |
+| `src/motion.css` | every `@keyframes` and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`) |
+| `src/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
+| `src/components/*.css` | one file per component; the header comment sketches markup, modifiers, hooks and "Progressive:" features |
+| `src/index.css` | `@import` list = cascade order of `ds.css`; every stylesheet must be listed |
+| `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `icons`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` |
+| `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
+| `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
+| `styleguide/` | living styleguide on top of `dist/` (`styleguide.js` holds the demos and the component count tile) |
+| `docs/` | `install`, `tokens`, `theming`, `components`, `motion`, `icons`, `rules` |
+| `scripts/` | `build.mjs` (deterministic, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects) |
+| `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
+| `test/` | `css`, `tokens`, `motion`, `js`, `repo` tests; `helpers.js` |
+| `.github/workflows/check.yml` | CI on every push and pull request: `npm run check` and the vendor round trip |
+
+## Conventions
+
+- English; comments explain *why*, not what. Follow the style of the surrounding file.
+- Keep each file's header comment (markup, modifiers, hooks, "Progressive:" features) in step with the code; the
+  tests read the "Progressive:" notes.
+
+## Non-negotiables
+
+The tests in `test/` enforce most of these; do not weaken a test to make a change pass.
+
+- **Tokens on `.ds-theme`, never `:root`**, so the system can run inside someone else's page. Only the `ds-` prefix
+  for classes, custom properties and keyframes; no bare element selector outside a `.ds-` scope.
+- **Three token layers.** 1 scales (motion, spacing, state layers, z) are the same in every theme; 2 roles (palette,
+  type, radii, elevation, focus, links, layout) are what a theme overrides; 3 hooks (`--ds-btn-*`, `--ds-card-*` ...)
+  are read by one component with a fallback (`var(--ds-btn-height, 36px)`). Themes never set motion tokens.
+- **No literals in components**: colours, radii, shadows, type (`font` roles), durations, curves, opacities
+  (`--ds-state-*`) and z-indices (`--ds-z-*`) come from tokens. Literal values live only in `src/tokens.css` and
+  theme files. A missing value becomes a token (with docs), never a literal.
+- **Safari 14.** Everything in `src/` may be loaded by an embedded widget on an old browser: no `@layer`, no
+  nesting, no `inset` shorthand; focus rings on `:focus`, removed by a separate `:focus:not(:focus-visible)` rule;
+  never `:focus-visible` or `:has()` in a selector list with other selectors. Newer features (`:has()`, container
+  queries, `color-mix()`, `interpolate-size`, `linear()`, `svh`) only as graceful refinements, named under
+  "Progressive:" in the file header. JS is ES2020 without destructuring and without imports, exports only as
+  `export const` / `export function`.
+- **Motion.** `@keyframes` only in `src/motion.css`, each name once (entrances define only `from`, exits only
+  `to`). Durations and curves only from `--ds-dur-*` / `--ds-ease-*`; curves stay within [0, 1]; animate only
+  `transform`, `opacity`, colours, `box-shadow`, `clip-path` (exceptions: the sliding indicator in position and
+  size, `.ds-collapsible` height behind `interpolate-size`); never scale up on hover, never scale on press
+  (tested). Updated data never animates; never re-render an animating element (`DS.dom.morphHtml`).
+- **Reduced motion through one switch**: `@media (prefers-reduced-motion: reduce)` on
+  `.ds-theme:not(.ds-motion-full)` at the end of `tokens.css` sets durations to 1ms (end events still fire),
+  distances to 0 and only slows the loader loops. Never fake it with a tiny duration on an endless animation.
+- **State layers.** Hover and press lay `currentColor` (or the hook) over the control at `--ds-state-hover` /
+  `--ds-state-pressed` via `::before`; hover rules only inside `@media (hover: hover)`; focus is an instant 2px
+  ring (`--ds-focus-outline`), never animated.
+- **Every action is a pill** (`--ds-radius-action`). One filled button per area, no red buttons.
+- **Status never by colour alone**: icon and word on status chips and alerts, a check on selected chips, the
+  label weight or `aria-*` on active items.
+- **Forced colors** (`@media (forced-colors: active)`): floating layers keep a transparent outline that becomes
+  their edge, selects get their native arrow back, spinner, switch, progress and loading bar use system colours.
+- **Accessibility**: text roles pass WCAG AA (the default palette is tested), field text 16px on phones
+  (`--ds-font-input`), labels above fields, icons `aria-hidden`.
+
+## Making a change
+
+Work in `src/`, never in `dist/`. Every change follows the same path:
+**src → docs → styleguide demo → tests → CHANGELOG → version in `package.json` → `npm run build` →
+`npm run check`**, and `src/` and `dist/` are committed together.
+
+- **Component**: a new `src/components/<name>.css` with the usual header comment; `@import` it in `src/index.css`
+  at its place in the cascade; a section in `docs/components.md` (markup, modifiers, behaviour the page must add)
+  plus a row in its "Which component for which need" table; new hooks in the table of `docs/theming.md` and
+  commented in `themes/example.css`; a demo in `styleguide/styleguide.js` (raise the `Components` tile, a test
+  counts the files); forced-colors and reduced-motion behaviour checked. Every `.ds-*` class must appear in
+  `docs/components.md` (tested).
+- **Token**: a role goes after the `── 2. Palette` marker in `src/tokens.css`, into `docs/tokens.md` and
+  `themes/example.css` (tested); a new text colour pair gets a contrast check in `test/tokens.test.js`. A scale goes
+  before the marker; a motion scale also needs its reduced-motion value in the switch. Every `--ds-*` name must
+  appear in `docs/` (tested).
+- **Icon**: a named export in `src/js/icons.js` (24px grid, flat shapes, no `stroke`, `fill`, `class` or colour of
+  their own; tested) and its name in the glyph table of `docs/icons.md`. The styleguide lists glyphs by itself.
+- **Keyframe**: only in `src/motion.css` with the `ds-` prefix, a row in the keyframe table of `docs/motion.md`;
+  use it through tokens so reduced motion applies.
+- **JS export**: in `src/js/*.js`, documented in `docs/motion.md` or `docs/icons.md` (tested). A new module also
+  goes into `MODULES` in `scripts/build.mjs`, the `dist/` table in `docs/install.md` and the module imports of
+  `test/js.test.js`.
+
+## Releases
+
+- **`main` is always releasable and every push ships.** Projects vendor the latest `main`, and their nightly
+  workflow (`templates/update-dashboard-style.yml`, 02:30 UTC) picks up any new commit, runs their checks, commits
+  the copy and deploys. A push to `main` reaches every project within about 24 hours without anyone reviewing it
+  there, so `npm run check` must pass and the styleguide must look right before pushing.
+- **The nightly does not wait for this repo's CI.** Push to `main` only what passed `npm run check` locally, or
+  work on a branch and merge it once its CI is green.
+- **Never break a project.** Prefer additive changes: a new class, modifier, hook or token instead of changing
+  what an existing one means. A rename is an addition that keeps the old name working:
+  - role: keep `--ds-old: <value>` and add `--ds-new: var(--ds-old)` on `.ds-theme`, so a theme that sets either
+    name still works (both appear in `themes/example.css` and `docs/tokens.md`);
+  - hook: components read `var(--ds-new, var(--ds-old, <fallback>))`;
+  - class: list both selectors; keyframe or JS export: keep both names.
+
+  Mark the old name deprecated in the docs and the changelog. Remove it only in a later major version, once
+  projects have moved.
+- **Semver** in `package.json` and `CHANGELOG.md` is information, not protection: projects vendor `main` whatever
+  the number says. The build writes the version into the banners and `DS.version`, and a test keeps them in step.
+  Every change to what `dist/` does or offers gets a new version and a `## x.y.z` section at the top of the
+  changelog: patch for fixes, minor for additions and deprecations, major for removing a deprecated name, with a
+  migration note (old name, new name, what a project has to change).
+
+## Using Dashboard-Style in a project
+
+Copy this block into the project's own `AGENTS.md` and fill in the placeholders (`<dest>`, `<prefix>`,
+`<theme file>`, `<check command>`, `<update command>`):
+
+```markdown
+## Design system: Dashboard-Style
+
+- The UI is built on [Dashboard-Style](https://github.com/saschazesiger/Dashboard-Style), vendored in `<dest>`
+  (tokens `--ds-*`, components `.ds-*`, `DS.motion`, `DS.indicator`, `DS.dom`, `DS.icons`).
+- Never edit `<dest>`: it is checksummed (`<dest>/SHA256SUMS`, checked by `<check command>`) and replaced by the
+  nightly `.github/workflows/update-dashboard-style.yml` (by hand: `<update command>`). A fix or a component every
+  dashboard could use goes to Dashboard-Style itself (project-neutral, English), then the copy is updated.
+- When the nightly update fails at "Verify", nothing was committed and the site keeps the old copy: run
+  `<update command>` and `<check command>` locally, read Dashboard-Style's `CHANGELOG.md` for deprecations and
+  removals, and commit the new copy together with the project's fix (or fix Dashboard-Style; the next run picks it
+  up). Then Actions → "Update Dashboard-Style" → *Run workflow*. More in its `docs/install.md`, "When the update
+  fails".
+- Reach for an existing component first. The docs are not part of the vendored copy: the table "Which component
+  for which need" and the markup of every component are in
+  https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md; for live examples clone the
+  repository and open `styleguide/index.html` (works from disk). Copy the documented markup and attributes
+  exactly; behaviour (opening, closing, filtering) is the project's own script.
+- Theme only through tokens in `<theme file>`, on `.ds-theme`, loaded after `ds.css`: roles (`--ds-primary`,
+  `--ds-accent`, `--ds-font` ...), component hooks (`--ds-btn-*`, `--ds-card-*` ...), the project's own
+  `--<prefix>-*` tokens and `@font-face`. Never set motion tokens (`--ds-dur-*`, `--ds-ease-*`).
+- Never change the look of a `.ds-*` component in project CSS (colour, radius, type, motion); set its hooks
+  instead, in the theme or on the element. Placing a `.ds-*` element inside a project container is fine; document
+  any deliberate deviation with its reason.
+- Local components use the project prefix `<prefix>-` and read tokens only (`--ds-*` and `--<prefix>-*`): no
+  colour, radius, font, shadow, duration or curve literals, no own `@keyframes` (use the `ds-*` keyframes and
+  motion tokens).
+- Icons only from `DS.icons` / `js/icons.js`; status never by colour alone; actions are pills; respect
+  `prefers-reduced-motion` (the tokens do it when you use them).
+```

@@ -113,7 +113,8 @@ in your theme and skip `fonts.css`.
 ## Updating
 
 1. Read [CHANGELOG.md](../CHANGELOG.md) since the version in your `VERSION` file. Versions follow semver: a minor
-   version adds tokens, classes or hooks; renaming or removing any of them is a major version.
+   version adds tokens, classes or hooks or deprecates one; a renamed name keeps working under its old name until a
+   later major version removes it. The number does not hold anything back: `main` is what you get.
 2. Vendor again over the old copy (`vendor.sh vendor/dashboard-style` fetches the latest `main`); the CDN's `@main`
    URLs update by themselves.
 3. Open your pages and the styleguide with your theme loaded; run your tests (including the checksum check).
@@ -134,3 +135,13 @@ Dashboard-Style, the run ends there. Otherwise it vendors `main`, runs `VERIFY`,
 on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
 started explicitly; the build workflow needs `on: workflow_dispatch`. The template asks for `contents: write` and
 `actions: write`; a branch protection rule that blocks direct pushes also blocks the update.
+
+#### When the update fails
+
+- **Compare** or **Vendor main**: a network or GitHub API problem; run it again.
+- **Verify**: nothing was committed and the site keeps the old copy. Reproduce it locally (vendor `main` as in step 2,
+  then run `VERIFY`), look in [CHANGELOG.md](../CHANGELOG.md) for deprecations and removals, and commit the new copy
+  together with your fix. If the fault is in Dashboard-Style, fix it there; the next run picks it up.
+- **Commit and push**: usually branch protection (above).
+
+Afterwards start it again under Actions → "Update Dashboard-Style" → *Run workflow*, or wait for the next night.

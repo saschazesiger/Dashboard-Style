@@ -74,8 +74,12 @@ describe('repository', () => {
     for (const name of ['icon', 'iconElement', 'ICON_SIZE']) assert.ok(read('docs/icons.md').includes(name), name);
   });
 
+  it('points CLAUDE.md at AGENTS.md, the one set of contributor notes', () => {
+    assert.equal(read('CLAUDE.md'), '@AGENTS.md\n');
+  });
+
   it('keeps links between the docs working', () => {
-    for (const file of ['README.md', ...filesIn('docs', (path) => path.endsWith('.md'))]) {
+    for (const file of ['README.md', 'AGENTS.md', ...filesIn('docs', (path) => path.endsWith('.md'))]) {
       for (const match of read(file).matchAll(/\]\((?!https?:|#)([^)#]+)(#[^)]*)?\)/g)) {
         const base = file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : '';
         const target = join(ROOT, base, match[1]);

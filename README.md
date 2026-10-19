@@ -96,7 +96,7 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 | [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy |
 | [Tokens](docs/tokens.md) | the three layers and every token |
 | [Theming](docs/theming.md) | writing a project theme, component hooks |
-| [Components](docs/components.md) | copy-paste markup for every component |
+| [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
 | [Motion](docs/motion.md) | durations, curves, utilities, `DS.motion`, indicator, morph |
 | [Icons](docs/icons.md) | the outline set and its helpers |
 | [Rules](docs/rules.md) | the design rules the components follow |
@@ -112,6 +112,8 @@ styleguide/      living styleguide (open index.html)
 scripts/         build.mjs, vendor.sh, vendor.ps1
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test, no dependencies
+docs/            the documentation above
+AGENTS.md        how to work on the system (CLAUDE.md points to it)
 ```
 
 ## Browser support
@@ -131,7 +133,10 @@ Node 22 or later, nothing to install.
 ```sh
 npm test          # guardrails: tokens, literals, motion, docs, dist up to date
 npm run build     # rebuild dist/ after changing src/ or fonts/
-npm run check     # both, as CI does
+npm run check     # tests and a check that dist/ matches src/, as CI does
 ```
 
 Change `src/`, run the build, commit `src/` and `dist/` together, note the change in [CHANGELOG.md](CHANGELOG.md).
+`main` is always releasable: projects that use the nightly update workflow receive every push within a day,
+whatever the version number says, so a rename keeps the old name working and only a later major version removes it. The full checklist for components, tokens, icons
+and keyframes is in [AGENTS.md](AGENTS.md).
