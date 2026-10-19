@@ -110,6 +110,7 @@ fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template
 styleguide/      living styleguide (open index.html)
 scripts/         build.mjs, vendor.sh, vendor.ps1
+templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test, no dependencies
 ```
 

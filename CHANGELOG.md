@@ -23,7 +23,8 @@ First release.
   `icon()`, `iconElement()`).
 - Google Sans (OFL 1.1) with `fonts.css`; theme template `themes/example.css`; living styleguide.
 - `scripts/vendor.sh` and `scripts/vendor.ps1` for checksummed copies of the latest `main` (or any branch, tag or
-  commit), recording the exact commit.
+  commit), recording the exact commit; `templates/update-dashboard-style.yml`, a nightly GitHub Actions workflow
+  that vendors `main` when it changed, verifies, commits and starts the project's build.
 - Focus rings sit on `:focus` and come off with a separate `:focus:not(:focus-visible)` rule, so browsers without
   `:focus-visible` (Safari 14.1 to 15.3) keep them; no selector list mixes `:focus-visible` or `:has()` with other
   selectors (a test enforces both).

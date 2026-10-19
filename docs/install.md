@@ -117,3 +117,20 @@ in your theme and skip `fonts.css`.
 2. Vendor again over the old copy (`vendor.sh vendor/dashboard-style` fetches the latest `main`); the CDN's `@main`
    URLs update by themselves.
 3. Open your pages and the styleguide with your theme loaded; run your tests (including the checksum check).
+
+### Automatic updates (GitHub Actions)
+
+[templates/update-dashboard-style.yml](../templates/update-dashboard-style.yml) does step 2 every night. Copy it to
+`.github/workflows/` and set three values under `env`:
+
+| Value | Meaning |
+|---|---|
+| `DEST` | path of the copy, e.g. `vendor/dashboard-style` |
+| `VERIFY` | command that must pass before the update is committed (`npm ci && npm test`); empty to skip |
+| `BUILD_WORKFLOW` | workflow file that builds and deploys, started with `workflow_dispatch`; empty if your build starts on push by itself (Cloudflare Pages, Netlify, Vercel) |
+
+It runs daily at 02:30 UTC and on demand (*Run workflow*). If the commit in `DEST/VERSION` equals `main` of
+Dashboard-Style, the run ends there. Otherwise it vendors `main`, runs `VERIFY`, commits the copy to the branch it runs
+on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
+started explicitly; the build workflow needs `on: workflow_dispatch`. The template asks for `contents: write` and
+`actions: write`; a branch protection rule that blocks direct pushes also blocks the update.
