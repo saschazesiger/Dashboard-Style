@@ -1,0 +1,26 @@
+[
+  {
+    "type": "animation",
+    "name": "ds-fade-in",
+    "pseudoElement": null,
+    "duration": 600,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
+  },
+  {
+    "type": "animation",
+    "name": "ds-fill-x",
+    "pseudoElement": null,
+    "duration": 600,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
+  }
+]

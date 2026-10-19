@@ -1,0 +1,14 @@
+[
+  {
+    "type": "animation",
+    "name": "ds-fade-out",
+    "pseudoElement": null,
+    "duration": 100,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.3, 0, 1, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "forwards"
+  }
+]

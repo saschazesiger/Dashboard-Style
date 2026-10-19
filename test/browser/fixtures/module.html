@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modules · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+</head>
+<body>
+<!-- The four ES modules of dist/js/ load on their own and export what
+     dist/ds.js exposes as window.DS.<name>. The result lands in
+     window.moduleResult ({ ok, modules: { name: [exports] }, missing }). -->
+<div class="ds-theme"><p id="result">Loading ...</p></div>
+<script src="/dist/ds.js"></script>
+<script type="module">
+  const names = ['motion', 'indicator', 'dom', 'icons'];
+  const result = { ok: true, modules: {}, missing: {} };
+  try {
+    const loaded = await Promise.all(names.map((name) => import(`/dist/js/${name}.js`)));
+    names.forEach((name, i) => {
+      const exported = Object.keys(loaded[i]).sort();
+      result.modules[name] = exported;
+      const missing = Object.keys(window.DS[name]).filter((key) => !exported.includes(key));
+      if (missing.length) { result.missing[name] = missing; result.ok = false; }
+    });
+  } catch (error) {
+    result.ok = false;
+    result.error = String(error);
+  }
+  window.moduleResult = result;
+  document.getElementById('result').textContent = result.ok ? 'All modules loaded.' : 'Failed.';
+</script>
+</body>
+</html>

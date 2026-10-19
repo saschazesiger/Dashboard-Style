@@ -1,0 +1,26 @@
+[
+  {
+    "type": "transition",
+    "name": "opacity",
+    "pseudoElement": null,
+    "duration": 200,
+    "delay": 0,
+    "easing": "cubic-bezier(0.3, 0, 1, 1)",
+    "keyframeEasing": "linear",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
+  },
+  {
+    "type": "transition",
+    "name": "visibility",
+    "pseudoElement": null,
+    "duration": 0,
+    "delay": 200,
+    "easing": "linear",
+    "keyframeEasing": "linear",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
+  }
+]

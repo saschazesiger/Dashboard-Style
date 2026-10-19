@@ -1,0 +1,14 @@
+[
+  {
+    "type": "transition",
+    "name": "transform",
+    "pseudoElement": null,
+    "duration": 350,
+    "delay": 0,
+    "easing": "linear(0.00 0%, 0.00 2%, 0.01 4%, 0.03 6%, 0.06 8%, 0.09 10%, 0.15 12%, 0.22 14%, 0.34 16%, 0.52 18%, 0.64 20%, 0.71 22%, 0.77 25%, 0.84 30%, 0.88 35%, 0.91 40%, 0.95 50%, 0.97 60%, 0.99 70%, 0.99 80%, 1.00 90%, 1.00 100%)",
+    "keyframeEasing": "linear",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
+  }
+]

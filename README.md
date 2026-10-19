@@ -111,7 +111,7 @@ themes/          example.css, the theme template
 styleguide/      living styleguide (open index.html)
 scripts/         build.mjs, vendor.sh, vendor.ps1
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
-test/            node --test, no dependencies
+test/            node --test unit tests, no dependencies; test/browser/ Playwright tests (three engines)
 docs/            the documentation above
 AGENTS.md        how to work on the system (CLAUDE.md points to it)
 ```
@@ -128,13 +128,23 @@ loses flex gaps.
 
 ## Develop
 
-Node 22 or later, nothing to install.
+Node 22 or later. The unit tests, the build and `npm run check` need nothing installed. The browser tests
+(Chromium, Firefox and WebKit, through the one pinned devDependency `@playwright/test`) need `npm ci` and the
+Playwright browsers once.
 
 ```sh
 npm test          # guardrails: tokens, literals, motion, docs, dist up to date
 npm run build     # rebuild dist/ after changing src/ or fonts/
 npm run check     # tests and a check that dist/ matches src/, as CI does
+
+npm ci                                                # once, for the browser tests only
+npx playwright install --with-deps chromium firefox webkit   # when the pinned browsers are not cached
+npm run test:browser                                  # motion, layout and screenshots in three engines
+npm run test:browser:update                           # rewrite screenshots and timelines, then review the diff
 ```
+
+How the browser tests work, the screenshot environment and the known-bug markers:
+[test/browser/README.md](test/browser/README.md).
 
 Change `src/`, run the build, commit `src/` and `dist/` together, note the change in [CHANGELOG.md](CHANGELOG.md).
 `main` is always releasable: projects that use the nightly update workflow receive every push within a day,

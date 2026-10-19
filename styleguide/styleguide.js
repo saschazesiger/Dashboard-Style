@@ -4,6 +4,14 @@
  * icon set. A classic script on top of dist/ds.js, so it runs from disk.
  * The small behaviours here (dialogs, sheets, snackbars, tooltips) are
  * demo code, not part of the system: projects bring their own.
+ *
+ * Hooks for the browser tests (test/browser/), harmless when opened by hand:
+ *   html[data-sg-ready]   set once render, navigation, demos and themes are
+ *                         set up and a saved theme has loaded
+ *   html[data-sg-theme]   the theme last applied, set once its values and
+ *                         the three indicators were updated
+ *   ?speed=0.1            slow motion (a factor of 1 or less), marked
+ *                         html[data-sg-speed]
  */
 (function () {
   'use strict';
@@ -15,6 +23,25 @@
   var $ = function (selector, root) { return (root || document).querySelector(selector); };
   var $$ = function (selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); };
   var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+
+  /* ── Slow motion: ?speed=<factor> ─────────────────────────────────── */
+
+  // Interim bridge until a time-scale token exists: every animation and
+  // transition plays at `factor`. The capture-phase listeners catch CSS
+  // motion as it starts; the sweep each frame also catches el.animate().
+  // JS timing (timeouts, countUp) keeps its pace.
+  var speed = Number(new URLSearchParams(location.search).get('speed'));
+  if (speed > 0 && speed < 1) {
+    document.documentElement.setAttribute('data-sg-speed', String(speed));
+    var slow = function () {
+      document.getAnimations().forEach(function (animation) {
+        if (animation.playbackRate !== speed) animation.playbackRate = speed;
+      });
+    };
+    document.addEventListener('animationstart', slow, true);
+    document.addEventListener('transitionrun', slow, true);
+    (function sweep() { slow(); requestAnimationFrame(sweep); }());
+  }
 
   /* ── Sections ─────────────────────────────────────────────────────── */
 
@@ -556,22 +583,58 @@
     dim: '.ds-theme {\n  --ds-disabled-opacity: var(--ds-state-disabled); --ds-disabled-fill: initial; --ds-disabled-ink: initial;\n  --ds-font-body: var(--ds-weight-regular) 13px/18px var(--ds-font);\n  --ds-font-dense: var(--ds-weight-regular) 13px/18px var(--ds-font);\n  --ds-font-label: var(--ds-weight-label) 13px/18px var(--ds-font);\n  --ds-btn-height: 32px;\n}',
   };
 
-  function applyTheme(value) {
-    var link = $('#sg-theme-link');
-    var style = $('#sg-theme-style');
-    link.disabled = value !== 'example';
-    if (value === 'example') link.href = '../themes/example.css';
-    style.textContent = PRESETS[value] || '';
-    try { localStorage.setItem('ds-styleguide-theme', value === 'file' ? 'default' : value); } catch (e) { /* storage may be blocked */ }
-    setTimeout(function () { readValues(); if (indicator) indicator.update(); if (segmented) segmented.update(); if (track) track.update(); }, 120);
+  /* Counts theme changes: a slow load that a newer choice overtook still
+     calls its `done`, but never updates or marks the page. */
+  var themeRun = 0;
+
+  /* Once a theme's rules apply: refresh the shown values, re-place the
+     three indicators, then mark the theme for the tests. */
+  function afterThemeChange(value) {
+    readValues();
+    if (indicator) indicator.update();
+    if (segmented) segmented.update();
+    if (track) track.update();
+    document.documentElement.setAttribute('data-sg-theme', value);
   }
 
-  function setupThemes() {
+  /* Calls back once the theme link has its sheet: at once when the href is
+     unchanged and the sheet is there (no load event follows), otherwise on
+     the link's load or error event. */
+  function whenLinkLoaded(link, href, callback) {
+    if (link.href === new URL(href, document.baseURI).href && link.sheet) { callback(); return; }
+    var finish = function () {
+      link.removeEventListener('load', finish);
+      link.removeEventListener('error', finish);
+      callback();
+    };
+    link.addEventListener('load', finish);
+    link.addEventListener('error', finish);
+    link.href = href;
+  }
+
+  /* Applies a theme (a value of the select), then calls `done`. */
+  function applyTheme(value, done) {
+    var link = $('#sg-theme-link');
+    var style = $('#sg-theme-style');
+    var run = themeRun += 1;
+    var finish = function () {
+      if (run === themeRun) afterThemeChange(value);
+      if (done) done();
+    };
+    try { localStorage.setItem('ds-styleguide-theme', value === 'file' ? 'default' : value); } catch (e) { /* storage may be blocked */ }
+    style.textContent = PRESETS[value] || '';
+    link.disabled = value !== 'example';
+    if (value === 'example') { whenLinkLoaded(link, '../themes/example.css', finish); return; }
+    // A <style> preset applies synchronously: one frame for layout.
+    requestAnimationFrame(finish);
+  }
+
+  /* Wires the switcher and applies the saved theme, then calls `done`. */
+  function setupThemes(done) {
     var select = $('#sg-theme-select');
     var file = $('#sg-theme-file');
     var saved = 'default';
     try { saved = localStorage.getItem('ds-styleguide-theme') || 'default'; } catch (e) { saved = 'default'; }
-    if (saved !== 'default' && saved !== 'file') { select.value = saved; applyTheme(saved); }
     select.addEventListener('change', function () {
       if (select.value === 'file') { file.click(); return; }
       applyTheme(select.value);
@@ -581,19 +644,29 @@
       if (!chosen) { select.value = 'default'; applyTheme('default'); return; }
       var reader = new FileReader();
       reader.onload = function () {
+        var run = themeRun += 1;
         $('#sg-theme-link').disabled = true;
         $('#sg-theme-style').textContent = String(reader.result);
-        setTimeout(readValues, 120);
+        requestAnimationFrame(function () { if (run === themeRun) afterThemeChange('file'); });
         toast('Theme loaded: ' + chosen.name);
       };
       reader.readAsText(chosen);
     });
+    if (saved !== 'default' && saved !== 'file') {
+      select.value = saved;
+      applyTheme(saved, done);
+    } else {
+      done();
+    }
   }
 
   render();
   setupNavigation();
   setupDemos();
-  setupThemes();
+  setupThemes(function () {
+    // Tests wait for this instead of racing the first stagger.
+    document.documentElement.setAttribute('data-sg-ready', '');
+  });
   // First render: the page staggers in and the key figures count up once.
   M.stagger($$('#sg-page > .sg-section'));
   $('#sg-page').classList.add('ds-stagger');

@@ -1,0 +1,26 @@
+[
+  {
+    "type": "animation",
+    "name": "ds-fade-in",
+    "pseudoElement": null,
+    "duration": 350,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
+  },
+  {
+    "type": "animation",
+    "name": "ds-shift-in",
+    "pseudoElement": null,
+    "duration": 350,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "linear(0 0%, 0.003 2%, 0.013 4%, 0.03 6%, 0.056 8%, 0.093 10%, 0.146 12%, 0.222 14%, 0.341 16%, 0.52 18%, 0.636 20%, 0.706 22%, 0.773 25%, 0.84 30%, 0.883 35%, 0.912 40%, 0.951 50%, 0.973 60%, 0.987 70%, 0.995 80%, 0.999 90%, 1 100%)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
+  }
+]

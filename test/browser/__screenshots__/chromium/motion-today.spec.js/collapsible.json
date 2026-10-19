@@ -1,0 +1,26 @@
+[
+  {
+    "name": "transition-property",
+    "value": "height, content-visibility"
+  },
+  {
+    "name": "transition-duration",
+    "value": "0.25s, 0.25s"
+  },
+  {
+    "name": "transition-delay",
+    "value": "0s, 0s"
+  },
+  {
+    "name": "transition-timing-function",
+    "value": "cubic-bezier(0.2, 0, 0, 1), ease"
+  },
+  {
+    "name": "transition-behavior",
+    "value": "normal, allow-discrete"
+  },
+  {
+    "name": "interpolate-size",
+    "value": "allow-keywords"
+  }
+]

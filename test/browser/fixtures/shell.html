@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shell · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- The app frame with top bar, drawer, indicator, scrim and panel. Tests
+     use it at 1000px (docked drawer) and at 800px (modal drawer). The menu
+     button and the scrim open and close the modal drawer. -->
+<div class="ds-theme">
+  <div class="ds-app ds-app--drawer" id="app">
+    <a class="ds-skip" href="#main">Skip to content</a>
+    <div class="ds-topbar">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" id="menu" aria-label="Menu" aria-expanded="false" aria-controls="drawer"><span data-icon="menu" data-size="20"></span></button>
+      <a class="ds-brand" href="#overview"><span class="ds-brand__name">Product</span></a>
+      <div class="ds-account">
+        <div class="ds-account__text"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
+        <span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org">A</span>
+        <button class="ds-btn ds-btn--text" type="button">Sign out</button>
+      </div>
+    </div>
+    <div class="ds-scrim" id="scrim"></div>
+    <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+      <div class="ds-drawer__head" aria-hidden="true"><span class="ds-brand__name">Product</span></div>
+      <div class="ds-drawer__list" id="drawer-list" data-indicator='[aria-current="page"]' data-indicator-class="ds-drawer__indicator">
+        <div class="ds-drawer__group">
+          <p class="ds-drawer__heading">Inventory</p>
+          <a class="ds-drawer__item" href="#overview" aria-current="page"><span data-icon="overview" data-size="20"></span><span class="ds-drawer__label">Overview</span></a>
+          <a class="ds-drawer__item" href="#devices"><span data-icon="laptop" data-size="20"></span><span class="ds-drawer__label">Devices</span></a>
+          <a class="ds-drawer__item" href="#tickets"><span data-icon="ticket" data-size="20"></span><span class="ds-drawer__label">Tickets</span></a>
+          <a class="ds-drawer__item" href="#owners"><span data-icon="users" data-size="20"></span><span class="ds-drawer__label">Owners</span></a>
+          <a class="ds-drawer__item" href="#settings"><span data-icon="settings" data-size="20"></span><span class="ds-drawer__label">Settings</span></a>
+        </div>
+      </div>
+    </nav>
+    <div class="ds-panel">
+      <main class="ds-view" id="main" tabindex="-1">
+        <div class="ds-content"><div class="ds-page">
+          <header class="ds-page-head">
+            <h1 class="ds-page-head__title" tabindex="-1">Devices</h1>
+            <p class="ds-page-head__lead">Every laptop and desktop, synced nightly.</p>
+          </header>
+          <div class="ds-stack">
+            <section class="ds-card"><h2 class="ds-card__title">Building A</h2><p class="ds-muted">12 devices, 1 tickets open.</p></section>
+            <section class="ds-card"><h2 class="ds-card__title">Building B</h2><p class="ds-muted">24 devices, 2 tickets open.</p></section>
+            <section class="ds-card"><h2 class="ds-card__title">Building C</h2><p class="ds-muted">36 devices, 3 tickets open.</p></section>
+            <section class="ds-card"><h2 class="ds-card__title">Building D</h2><p class="ds-muted">48 devices, 4 tickets open.</p></section>
+            <section class="ds-card"><h2 class="ds-card__title">Building E</h2><p class="ds-muted">60 devices, 5 tickets open.</p></section>
+            <section class="ds-card"><h2 class="ds-card__title">Building F</h2><p class="ds-muted">72 devices, 6 tickets open.</p></section>
+          </div>
+        </div></div>
+      </main>
+    </div>
+  </div>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  // Page script, as a project would write it: the modal drawer and the
+  // scrolled hairline.
+  (function () {
+    var app = document.getElementById('app');
+    var menu = document.getElementById('menu');
+    var view = document.getElementById('main');
+    function openDrawer(open) {
+      if (open) app.setAttribute('data-drawer-open', '');
+      else app.removeAttribute('data-drawer-open');
+      menu.setAttribute('aria-expanded', String(open));
+    }
+    menu.addEventListener('click', function () { openDrawer(!app.hasAttribute('data-drawer-open')); });
+    document.getElementById('scrim').addEventListener('click', function () { openDrawer(false); });
+    view.addEventListener('scroll', function () {
+      if (view.scrollTop > 0) app.setAttribute('data-scrolled', '');
+      else app.removeAttribute('data-scrolled');
+    }, { passive: true });
+  }());
+</script>
+</body>
+</html>

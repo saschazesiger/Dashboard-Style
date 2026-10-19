@@ -7,7 +7,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import * as icons from '../src/js/icons.js';
-import { ROOT, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, read, rules, stripComments } from './helpers.js';
+import {
+  ROOT, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, read, rules, stripComments, withoutAtRuleBlocks,
+} from './helpers.js';
 
 const ALL_CSS = [...filesIn('src', (path) => path.endsWith('.css')), 'fonts/fonts.css', ...filesIn('themes', (path) => path.endsWith('.css'))];
 const SRC_CSS = filesIn('src', (path) => path.endsWith('.css'));
@@ -26,6 +28,21 @@ function splitSelectors(selector) {
   }
   parts.push(current.trim());
   return parts;
+}
+
+/**
+ * :hover selectors allowed outside `@media (hover: hover)`, each with its
+ * reason. Forced-colours blocks are exempt as a whole (structurally, below).
+ */
+const HOVER_EXEMPT = new Map([
+  ['.ds-drawer__list:hover', 'shows the scrollbar of a scrolling drawer list, no choreography'],
+]);
+
+/** The :hover selectors outside hover and forced-colours blocks, minus HOVER_EXEMPT. */
+function hoverOutsideHoverBlocks(css) {
+  const outside = withoutAtRuleBlocks(withoutAtRuleBlocks(css, /@media\s*\(hover:\s*hover\)/), /@media\s*\(forced-colors:\s*active\)/);
+  return rules(outside).flatMap((rule) => splitSelectors(rule.selector))
+    .filter((selector) => /:hover/.test(selector) && !HOVER_EXEMPT.has(selector));
 }
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
@@ -449,16 +466,13 @@ describe('accessibility details', () => {
   });
 
   it('hover choreography only for devices that hover', () => {
-    const offenders = [];
-    for (const file of COMPONENT_CSS) {
-      const css = stripComments(read(file));
-      // Remove hover media blocks, then look for leftover :hover rules.
-      const outside = css.replace(/@media \(hover: hover\) \{[\s\S]*?\n\}/g, '');
-      for (const { selector } of rules(outside)) {
-        if (/:hover/.test(selector) && !/:where\(:hover/.test(selector) && !/\.ds-drawer__list:hover/.test(selector) && !/forced/.test(selector)) offenders.push(`${file}: ${selector}`);
-      }
-    }
-    assert.deepEqual(offenders.filter((entry) => !entry.includes('.ds-switch:hover input:not(:checked) + .ds-switch__track::after')), []);
+    const offenders = COMPONENT_CSS.flatMap((file) => hoverOutsideHoverBlocks(read(file)).map((selector) => `${file}: ${selector}`));
+    assert.deepEqual(offenders, []);
+    // The scanner must see a :hover rule outside a hover block, also when nested.
+    const planted = '@media (hover: hover) { .ds-a:hover { color: red; } }\n'
+      + '@supports (display: grid) { @media (min-width: 1px) { .ds-b:hover, .ds-c { color: red; } } }\n'
+      + '.ds-d:hover { color: red; }';
+    assert.deepEqual(hoverOutsideHoverBlocks(planted), ['.ds-b:hover', '.ds-d:hover']);
   });
 });
 

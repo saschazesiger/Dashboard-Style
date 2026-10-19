@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feedback · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- Progress, loaders, status chips, alerts, a clickable tile and a card
+     link. Loaders fade in after the loader delay by themselves. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section fx-narrow" aria-labelledby="progress-title">
+    <h2 id="progress-title">Progress</h2>
+    <div class="ds-progress" id="progress-05" style="--ds-progress: 0.05">
+      <div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="5"><div class="ds-progress__bar"></div></div>
+      <p class="ds-progress__label">5%</p>
+    </div>
+    <div class="ds-progress" id="progress-40" style="--ds-progress: 0.4">
+      <div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><div class="ds-progress__bar"></div></div>
+      <p class="ds-progress__label">40%</p>
+    </div>
+    <div class="ds-progress" id="progress-100" style="--ds-progress: 1">
+      <div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><div class="ds-progress__bar"></div></div>
+      <p class="ds-progress__label">100%</p>
+    </div>
+    <div class="ds-progress ds-progress--indeterminate" id="progress-indeterminate">
+      <div class="ds-progress__track" role="progressbar" aria-label="Import"><div class="ds-progress__bar"></div></div>
+      <p class="ds-progress__label">Preparing the import ...</p>
+    </div>
+    <div class="ds-progress ds-progress--waiting" id="progress-waiting">
+      <div class="ds-progress__track" role="progressbar" aria-label="Import"><div class="ds-progress__bar"></div></div>
+      <p class="ds-progress__label">Waiting for the server ...</p>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="loaders-title">
+    <h2 id="loaders-title">Loaders</h2>
+    <div class="fx-row">
+      <span class="ds-spinner" id="spinner" aria-hidden="true"></span>
+      <span class="ds-spinner ds-spinner--sm" id="spinner-sm" aria-hidden="true"></span>
+      <span class="ds-status ds-status--running" id="status-spinner"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Importing</span></span>
+    </div>
+    <div class="ds-loading" role="status" id="loading"><span class="ds-spinner" aria-hidden="true"></span>Loading more devices ...</div>
+    <div class="ds-skeleton fx-narrow" role="status" id="skeleton" style="position: relative">
+      <span class="ds-sr">Loading the page ...</span>
+      <span class="ds-loadbar" id="loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
+      <span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span>
+      <span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>
+      <div class="ds-skeleton__card">
+        <span class="ds-skeleton__line ds-skeleton__line--title"></span>
+        <span class="ds-skeleton__line"></span>
+        <span class="ds-skeleton__line ds-skeleton__line--short"></span>
+        <span class="ds-skeleton__line ds-skeleton__line--mid"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="status-title">
+    <h2 id="status-title">Status chips</h2>
+    <div class="fx-row" id="statuses">
+      <span class="ds-status ds-status--ok"><span data-icon="check" data-size="16"></span><span>Synced</span></span>
+      <span class="ds-status ds-status--warning"><span data-icon="alert" data-size="16"></span><span>Expires soon</span></span>
+      <span class="ds-status ds-status--error"><span data-icon="alert" data-size="16"></span><span>Failed</span></span>
+      <span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Running</span></span>
+    </div>
+    <div class="fx-row">
+      <span class="ds-status ds-status--ok" id="status-live"><span data-icon="check" data-size="16"></span><span>Synced</span></span>
+      <button class="ds-btn ds-btn--sm" type="button" id="status-toggle" data-toggle-class="ds-status--ok ds-status--error" data-target="#status-live">Toggle status</button>
+    </div>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="alerts-title">
+    <h2 id="alerts-title">Alerts</h2>
+    <div class="ds-alert" role="status" id="alert-info"><span data-icon="info" data-size="20"></span><span class="ds-alert__text">The nightly sync runs at 02:00.</span></div>
+    <div class="ds-alert ds-alert--success" id="alert-success"><span data-icon="checkCircle" data-size="20"></span><span class="ds-alert__text">All 128 devices are up to date.</span></div>
+    <div class="ds-alert ds-alert--warning" id="alert-warning"><span data-icon="alert" data-size="20"></span><span class="ds-alert__text">The certificate expires in 5 days.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>
+    <div class="ds-alert ds-alert--error" role="alert" id="alert-error"><span data-icon="alertCircle" data-size="20"></span><span class="ds-alert__text">Could not load the tickets.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Try again</button></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="tiles-title">
+    <h2 id="tiles-title">Tile and card link</h2>
+    <div class="ds-tiles">
+      <button class="ds-tile" type="button" id="tile"><span class="ds-tile__label"><span data-icon="alert" data-size="20"></span><span>Overdue</span></span><span class="ds-tile__value">7</span><span class="ds-tile__note">3 more than last week</span></button>
+    </div>
+    <section class="ds-card fx-narrow" id="card">
+      <h3 class="ds-card__title">LAPTOP-0042</h3>
+      <p class="ds-muted">Issued to Ada Lovelace.</p>
+      <nav class="ds-card__links" aria-label="Related"><a class="ds-btn ds-btn--text ds-card__link" id="card-link" href="#history">History <span data-icon="arrowRight" data-size="16"></span></a></nav>
+    </section>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

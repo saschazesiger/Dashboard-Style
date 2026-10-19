@@ -1,0 +1,15 @@
+[
+  {
+    "type": "animation",
+    "name": "ds-indeterminate",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "div.ds-progress__bar"
+  }
+]

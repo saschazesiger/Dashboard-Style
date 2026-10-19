@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Capability spike · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<!--
+  Test bed of the capability spike (spike.spec.js): one numbered block per
+  capability a later phase relies on. The styles here are spike-only (spike-
+  prefix, literal values on purpose): they probe the engines, not the
+  system. Animations start only when a test adds the --run class, so every
+  test controls its own clock.
+-->
+<style>
+  @property --spike-scale {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+
+  @property --spike-local {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 1;
+  }
+
+  @keyframes spike-move {
+    from { translate: 0 0; opacity: 0; }
+    to { translate: 200px 0; opacity: 1; }
+  }
+
+  @keyframes spike-rise {
+    from { translate: 0 40px; }
+  }
+
+  @keyframes spike-pseudo {
+    from { opacity: 0; translate: 0 0; }
+    to { opacity: 1; translate: 100px 0; }
+  }
+
+  @keyframes spike-fade {
+    from { opacity: 0; }
+  }
+
+  @keyframes spike-fade-out {
+    to { opacity: 0; }
+  }
+
+  @keyframes spike-row {
+    from { translate: 0 40px; }
+  }
+
+  @keyframes spike-wave {
+    from { background-position: 0 0; }
+    to { background-position: 400px 0; }
+  }
+
+  @keyframes spike-enter {
+    from { translate: 0 24px; }
+  }
+
+  .spike-block {
+    position: relative;
+    margin: 0 0 24px;
+    padding: 8px;
+    border: 1px dashed var(--ds-line);
+  }
+
+  .spike-block > h2 {
+    margin: 0 0 8px;
+    font: var(--ds-font-label);
+  }
+
+  .spike-box {
+    width: 64px;
+    height: 32px;
+    background: var(--ds-primary);
+  }
+
+  /* 1, 2: a CSS animation to interrupt (translate and opacity) */
+  .spike-move--run {
+    animation: spike-move 1000ms linear both;
+  }
+
+  /* 3: a keyframe on `translate` over an inline `transform` */
+  .spike-anchored {
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  .spike-anchored.spike-rise--run {
+    animation: spike-rise 1000ms linear both;
+  }
+
+  /* 4: animations on pseudo-elements */
+  .spike-pseudo {
+    position: relative;
+    height: 32px;
+  }
+
+  .spike-pseudo::before,
+  .spike-pseudo::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--ds-primary);
+  }
+
+  .spike-pseudo::after {
+    top: 0;
+    left: 160px;
+    background: var(--ds-accent);
+  }
+
+  .spike-pseudo--run::before {
+    animation: spike-pseudo 1000ms linear infinite;
+  }
+
+  .spike-pseudo--run::after {
+    animation: spike-pseudo 1000ms linear both;
+  }
+
+  /* 5: appearance: none checkbox and radio drawn on the 18px input */
+  .spike-check {
+    appearance: none;
+    position: relative;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid var(--ds-text-2);
+    border-radius: 2px;
+    box-sizing: border-box;
+    vertical-align: middle;
+  }
+
+  .spike-check[type="radio"] {
+    border-radius: 50%;
+  }
+
+  .spike-check::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background: var(--ds-primary);
+  }
+
+  .spike-check::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--ds-accent);
+    opacity: .5;
+  }
+
+  .spike-check--halo {
+    box-shadow: 0 0 0 10px var(--ds-accent);
+  }
+
+  /* 6: rows that move and contain an absolutely positioned child */
+  .spike-row {
+    position: relative;
+  }
+
+  .spike-row--run {
+    animation: spike-row 1000ms linear both;
+  }
+
+  .spike-row__ripple {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    background: var(--ds-primary);
+  }
+
+  /* 7: registered properties multiply durations and delays */
+  .spike-scale-parent--slow {
+    --spike-scale: 10;
+    --spike-local: 10;
+  }
+
+  .spike-scale-child--run {
+    animation: spike-fade calc(250ms * var(--spike-scale)) linear calc(100ms * var(--spike-scale)) both;
+  }
+
+  /* 8: focus snap: a solid ring from the first frame, the offset glides */
+  .spike-focus {
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    transition: outline-offset 150ms linear;
+  }
+
+  .spike-focus:focus-visible {
+    outline-color: var(--ds-focus);
+    outline-offset: 2px;
+  }
+
+  .spike-focus--entering {
+    animation: spike-enter 2000ms linear both;
+  }
+
+  /* 9: a closing <dialog> keeps painting above a sticky element */
+  .spike-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: 120px;
+    background: var(--ds-error);
+  }
+
+  .spike-dialog {
+    width: 200px;
+    height: 120px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--ds-primary);
+  }
+
+  .spike-dialog.spike-dialog--closing {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    animation: spike-fade-out 200ms linear forwards;
+  }
+
+  /* 10: one wave across bones (fixed attachment), also in a moving parent */
+  .spike-bones {
+    display: flex;
+    gap: 80px;
+  }
+
+  .spike-bone {
+    width: 120px;
+    height: 24px;
+    background-image: linear-gradient(90deg, #dddddd 0, #888888 200px, #dddddd 400px);
+    background-size: 400px 100%;
+    background-attachment: fixed;
+  }
+
+  .spike-bones--run .spike-bone {
+    animation: spike-wave 2000ms linear infinite;
+  }
+
+  /* No transform at rest: the parent is transformed only while it enters. */
+  .spike-transformed--run {
+    animation: spike-enter 2000ms linear both;
+  }
+</style>
+</head>
+<body>
+<div class="ds-theme fx-root">
+  <section class="spike-block" id="spike-1" aria-label="1 Interruption">
+    <h2>1. Interruption: cancel() then animate() from the current values</h2>
+    <div class="spike-box" id="spike-move"></div>
+  </section>
+
+  <section class="spike-block" id="spike-2" aria-label="2 setKeyframes">
+    <h2>2. setKeyframes() and updateTiming() on a running CSSAnimation</h2>
+    <div class="spike-box" id="spike-css-animation"></div>
+  </section>
+
+  <section class="spike-block" id="spike-3" aria-label="3 Individual properties">
+    <h2>3. translate keyframes over an inline transform</h2>
+    <div class="spike-box spike-anchored" id="spike-anchored" style="transform: translate(600px, 120px)"></div>
+    <div class="spike-box" id="spike-composite"></div>
+  </section>
+
+  <section class="spike-block" id="spike-4" aria-label="4 Pseudo-elements">
+    <h2>4. Animations on ::before and ::after</h2>
+    <div class="spike-pseudo" id="spike-pseudo"></div>
+  </section>
+
+  <section class="spike-block" id="spike-5" aria-label="5 Drawn checkbox">
+    <h2>5. appearance: none checkbox and radio</h2>
+    <div class="fx-row" id="spike-checks">
+      <input class="spike-check spike-check--halo" type="checkbox" id="spike-check" aria-label="Checkbox" checked>
+      <input class="spike-check spike-check--halo" type="radio" id="spike-radio" aria-label="Radio" checked>
+    </div>
+    <div class="ds-table-wrap" id="spike-check-wrap">
+      <table class="ds-table">
+        <caption class="ds-sr">Devices</caption>
+        <thead><tr><th scope="col"><input class="spike-check spike-check--halo" type="checkbox" id="spike-check-table" aria-label="Select all"></th><th scope="col">Device</th></tr></thead>
+        <tbody><tr><td><input class="spike-check" type="checkbox" aria-label="Select LAPTOP-0042" checked></td><td>LAPTOP-0042</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="spike-block" id="spike-6" aria-label="6 Rows">
+    <h2>6. Rows: translate on a tr, position: relative on a tr</h2>
+    <table class="ds-table" id="spike-table">
+      <caption class="ds-sr">Tickets</caption>
+      <tbody>
+        <tr class="spike-row" id="spike-row"><td id="spike-row-cell">Ticket 42<span class="spike-row__ripple" id="spike-row-ripple"></span></td><td>Printer on floor 2</td></tr>
+        <tr><td>Ticket 43</td><td>Dock not charging</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="spike-block" id="spike-7" aria-label="7 Registered properties">
+    <h2>7. Registered properties in durations and delays</h2>
+    <div id="spike-scale-parent">
+      <div class="spike-box" id="spike-scale-child"></div>
+      <div class="spike-box" id="spike-local-child"></div>
+    </div>
+  </section>
+
+  <section class="spike-block" id="spike-8" aria-label="8 Focus snap">
+    <h2>8. Focus snap: outline-offset transition next to an animation</h2>
+    <button class="ds-btn" type="button" id="spike-focus-before">Before</button>
+    <button class="ds-btn spike-focus" type="button" id="spike-focus">Focus me</button>
+  </section>
+
+  <section class="spike-block" id="spike-9" aria-label="9 Closing dialog">
+    <h2>9. A closing dialog above a sticky element</h2>
+    <div class="spike-sticky" id="spike-sticky"></div>
+    <dialog class="spike-dialog" id="spike-dialog" aria-label="Spike dialog"></dialog>
+  </section>
+
+  <section class="spike-block" id="spike-10" aria-label="10 Skeleton wave">
+    <h2>10. One wave phase across bones</h2>
+    <div class="spike-bones" id="spike-bones">
+      <span class="spike-bone" id="spike-bone-a"></span>
+      <span class="spike-bone" id="spike-bone-b"></span>
+    </div>
+    <div class="spike-transformed" id="spike-transformed">
+      <div class="spike-bones" id="spike-bones-moving">
+        <span class="spike-bone" id="spike-bone-c"></span>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

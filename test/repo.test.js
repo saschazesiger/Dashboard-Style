@@ -1,17 +1,43 @@
 /**
  * The repository as a whole: dist/ is what src/ builds, nothing names a
- * particular project, licences travel with the files, and the docs cover
- * every class and custom property.
+ * particular project, licences travel with the files, the docs cover
+ * every class and custom property, and the test tooling stays in its lane
+ * (unit tests without dependencies, Playwright pinned and matched by the CI
+ * container, known bugs as test.fail with an id and a phase).
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import { diffDist } from '../scripts/build.mjs';
 import { ROOT, filesIn, read, rules, stripComments } from './helpers.js';
 
 const TEXT = /\.(css|js|mjs|md|html|json|txt|sh|ps1)$|(^|\/)(LICENSE|SHA256SUMS|\.gitignore|\.gitattributes)$/;
-const ALL_FILES = filesIn('.', (path) => !/(^|\/)(\.git|node_modules)\//.test(path)).map((path) => path.replace(/^\.\//, ''));
+const SKIP_DIRS = /^(\.git|node_modules|test-results|playwright-report|blob-report|__screenshots-local__)$/;
+const ALL_FILES = filesIn('.', () => true, SKIP_DIRS).map((path) => path.replace(/^\.\//, ''));
+
+/** JS source without block comments and whole-line comments (headers may quote code). */
+const code = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+/** Module specifiers of static imports, re-exports and dynamic import() with a string. */
+function importsOf(source) {
+  return [...code(source).matchAll(/^\s*(?:import|export)\b[^'"`;]*?\bfrom\s*['"]([^'"]+)['"]|^\s*import\s*['"]([^'"]+)['"]|\bimport\(\s*['"]([^'"]+)['"]\s*\)/gm)]
+    .map((match) => match[1] ?? match[2] ?? match[3]);
+}
+
+/** The argument text of every call that `opener` (ending in its `(`) finds, by paren depth. */
+function callArguments(source, opener) {
+  return [...source.matchAll(opener)].map((match) => {
+    let depth = 1;
+    let end = match.index + match[0].length;
+    while (depth > 0 && end < source.length) {
+      if (source[end] === '(') depth += 1;
+      else if (source[end] === ')') depth -= 1;
+      end += 1;
+    }
+    return source.slice(match.index + match[0].length, end - 1);
+  });
+}
 
 describe('repository', () => {
   it('has dist/ up to date with src/ (run npm run build)', () => {
@@ -76,6 +102,59 @@ describe('repository', () => {
 
   it('points CLAUDE.md at AGENTS.md, the one set of contributor notes', () => {
     assert.equal(read('CLAUDE.md'), '@AGENTS.md\n');
+  });
+
+  it('keeps the unit tests dependency-free', () => {
+    // npm test and npm run check must run without npm ci: node:* or files of this repository only.
+    const unit = ALL_FILES.filter((path) => /^test\/[^/]+\.test\.js$/.test(path) || path === 'test/helpers.js' || /^test\/browser\/helpers\/[^/]+\.js$/.test(path));
+    assert.ok(unit.includes('test/browser/helpers/motion.js') && unit.includes('test/helpers.js'), 'the walk finds the helpers');
+    const offenders = [];
+    for (const file of unit) {
+      for (const specifier of importsOf(read(file))) {
+        if (specifier.startsWith('node:')) continue;
+        const target = posix.join(posix.dirname(file), specifier);
+        if (!/^\.\.?\//.test(specifier) || !/^(src|scripts|test)\//.test(target)) offenders.push(`${file}: ${specifier}`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+    // Playwright itself only in the specs and the config, which node --test never loads.
+    const playwright = ALL_FILES.filter((path) => /\.(js|mjs)$/.test(path) && path.startsWith('test/'))
+      .filter((path) => importsOf(read(path)).some((specifier) => specifier.startsWith('@playwright/')));
+    assert.deepEqual(playwright.filter((path) => !/^test\/browser\/([^/]+\.spec\.js|playwright\.config\.js)$/.test(path)), []);
+  });
+
+  it('pins Playwright as the only devDependency', () => {
+    const pkg = JSON.parse(read('package.json'));
+    assert.equal(pkg.dependencies, undefined, 'no dependencies: nothing reaches projects');
+    assert.deepEqual(Object.keys(pkg.devDependencies || {}), ['@playwright/test']);
+    assert.match(pkg.devDependencies['@playwright/test'], /^\d+\.\d+\.\d+$/, 'an exact version, no ^ or ~');
+    const lock = JSON.parse(read('package-lock.json'));
+    assert.equal(lock.packages['node_modules/@playwright/test'].version, pkg.devDependencies['@playwright/test'], 'package-lock.json');
+    assert.deepEqual(pkg.files, ['dist', 'LICENSE', 'README.md']);
+    for (const target of Object.values(pkg.exports)) assert.match(target, /^\.\/dist\//);
+  });
+
+  it('runs CI in the Playwright container of the pinned version', () => {
+    const version = JSON.parse(read('package.json')).devDependencies['@playwright/test'];
+    const tags = [...read('.github/workflows/check.yml').matchAll(/mcr\.microsoft\.com\/playwright:v([\w.-]+)/g)].map((match) => match[1]);
+    assert.ok(tags.length > 0, 'check.yml runs the browser tests in the Playwright container');
+    assert.deepEqual([...new Set(tags)], [`${version}-noble`]);
+  });
+
+  it('marks known bugs with test.fail', () => {
+    const specs = ALL_FILES.filter((path) => path.startsWith('test/browser/') && /\.(js|mjs)$/.test(path));
+    const reason = /^[A-Za-z0-9-]+(, [A-Za-z0-9-]+)*: fixed in P[1-8]$|^spike: /;
+    const offenders = [];
+    for (const file of specs) {
+      const source = code(read(file));
+      if (/\btest\.fixme\s*\(/.test(source)) offenders.push(`${file}: test.fixme never runs`);
+      for (const args of callArguments(source, /\btest\.fail\s*\(/g)) {
+        const strings = [...args.matchAll(/'([^'\\]*)'|"([^"\\]*)"|`([^`\\$]*)`/g)].map((match) => match[1] ?? match[2] ?? match[3]);
+        const last = strings.at(-1);
+        if (last === undefined || !reason.test(last)) offenders.push(`${file}: test.fail(${args.replace(/\s+/g, ' ')})`);
+      }
+    }
+    assert.deepEqual(offenders, []);
   });
 
   it('keeps links between the docs working', () => {

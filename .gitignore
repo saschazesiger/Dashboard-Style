@@ -1,2 +1,6 @@
 node_modules/
 .DS_Store
+test-results/
+playwright-report/
+blob-report/
+test/browser/__screenshots-local__/

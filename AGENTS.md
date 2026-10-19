@@ -22,7 +22,10 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `npm run build` | rebuild `dist/` after any change to `src/`, `fonts/`, `LICENSE` or the version |
 | `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
 | `sh scripts/vendor.sh --from . /tmp/ds && sh scripts/vendor.sh --check /tmp/ds` | the vendor round trip CI runs after `npm run check` |
-| open `styleguide/index.html` | every component, token, motion demo and icon, works from disk; "Load theme file ..." tries a theme |
+| `npm ci` | once, for the browser tests only (installs the pinned `@playwright/test`, the only devDependency); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
+| `npm run test:browser` | browser tests in Chromium, Firefox and WebKit (`test/browser/`); run it before every push. Outside the Playwright container (other fonts and rasteriser) run `DS_SHOTS=local npm run test:browser`: screenshots then compare against the gitignored `__screenshots-local__/`, generated from the parent commit (`test/browser/README.md`, "CI"). `DS_TEST_PORT` picks another port for a second run or a worktree |
+| `npm run test:browser:update` | rewrite screenshots and JSON timelines, then review the diff. The committed `__screenshots__/` set is only ever rewritten from the CI container (Actions → check → Run workflow → "update screenshots"); elsewhere update with `DS_SHOTS=local`, see `test/browser/README.md` |
+| open `styleguide/index.html` | every component, token, motion demo and icon, works from disk; "Load theme file ..." tries a theme; `?speed=0.1` slows its motion tenfold |
 
 ## Files
 
@@ -40,8 +43,10 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `docs/` | `install`, `tokens`, `theming`, `components`, `motion`, `icons`, `rules` |
 | `scripts/` | `build.mjs` (deterministic, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects) |
 | `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
-| `test/` | `css`, `tokens`, `motion`, `js`, `repo` tests; `helpers.js` |
-| `.github/workflows/check.yml` | CI on every push and pull request: `npm run check` and the vendor round trip |
+| `test/` | `css`, `tokens`, `motion`, `js`, `repo`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
+| `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, known bugs as `test.fail` markers) and the committed `__screenshots__/`; `README.md` explains them |
+| `plans/` | working plans (Motion 2); kept outside `docs/` so the docs tests do not count them |
+| `.github/workflows/check.yml` | CI on every push, pull request and by hand: `check` (Node 22 and 24: `npm run check` and the vendor round trip), then `browser` (Playwright in `mcr.microsoft.com/playwright:v<pinned>-noble`, one job per engine); Run workflow with "update screenshots" uploads a new screenshot set |
 
 ## Conventions
 
@@ -89,8 +94,8 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
 ## Making a change
 
 Work in `src/`, never in `dist/`. Every change follows the same path:
-**src → docs → styleguide demo → tests → CHANGELOG → version in `package.json` → `npm run build` →
-`npm run check`**, and `src/` and `dist/` are committed together.
+**src → docs → styleguide demo → unit tests → browser tests → CHANGELOG → version in `package.json` →
+`npm run build` → `npm run check` → `npm run test:browser`**, and `src/` and `dist/` are committed together.
 
 - **Component**: a new `src/components/<name>.css` with the usual header comment; `@import` it in `src/index.css`
   at its place in the cascade; a section in `docs/components.md` (markup, modifiers, behaviour the page must add)
@@ -116,8 +121,9 @@ Work in `src/`, never in `dist/`. Every change follows the same path:
   workflow (`templates/update-dashboard-style.yml`, 02:30 UTC) picks up any new commit, runs their checks, commits
   the copy and deploys. A push to `main` reaches every project within about 24 hours without anyone reviewing it
   there, so `npm run check` must pass and the styleguide must look right before pushing.
-- **The nightly does not wait for this repo's CI.** Push to `main` only what passed `npm run check` locally, or
-  work on a branch and merge it once its CI is green.
+- **The nightly does not wait for this repo's CI.** Push to `main` only what passed `npm run check` and
+  `npm run test:browser` locally (`DS_SHOTS=local` outside the Playwright container), or work on a branch and merge
+  it once its CI is green.
 - **Never break a project.** Prefer additive changes: a new class, modifier, hook or token instead of changing
   what an existing one means. A rename is an addition that keeps the old name working:
   - role: keep `--ds-old: <value>` and add `--ds-new: var(--ds-old)` on `.ds-theme`, so a theme that sets either

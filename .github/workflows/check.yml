@@ -1,12 +1,66 @@
 name: check
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      update-screenshots:
+        description: Rewrite the screenshots in the Playwright container and upload them (download and commit them by hand)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  # Every commit on main ships and needs its own result: never cancel those runs.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   check:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
+      # No npm ci: the unit tests and the build need nothing installed (test/repo.test.js keeps it so).
       - run: npm run check
       - run: sh scripts/vendor.sh --from . "$RUNNER_TEMP/vendor" && sh scripts/vendor.sh --check "$RUNNER_TEMP/vendor"
+
+  browser:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    # The official image of the pinned @playwright/test version (test/repo.test.js keeps the tag in step), so the
+    # committed screenshots come from the same fonts and rasteriser on every run.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v5
+      - run: npm ci
+      - run: npx playwright test --config test/browser/playwright.config.js --project=${{ matrix.browser }} ${{ inputs.update-screenshots && '--update-snapshots' || '' }}
+      # The job never commits: the engineer downloads the screenshots and commits them.
+      - if: ${{ always() && inputs.update-screenshots }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots-${{ matrix.browser }}
+          path: test/browser/__screenshots__/
+          if-no-files-found: error
+      - if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

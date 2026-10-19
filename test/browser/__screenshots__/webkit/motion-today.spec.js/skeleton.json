@@ -1,0 +1,93 @@
+[
+  {
+    "type": "animation",
+    "name": "ds-indeterminate",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span.ds-loadbar__bar"
+  },
+  {
+    "type": "animation",
+    "name": "ds-pulse",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span.ds-skeleton__line.ds-skeleton__line--heading"
+  },
+  {
+    "type": "animation",
+    "name": "ds-pulse",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span.ds-skeleton__line.ds-skeleton__line--lead"
+  },
+  {
+    "type": "animation",
+    "name": "ds-pulse",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span.ds-skeleton__line.ds-skeleton__line--title"
+  },
+  {
+    "type": "animation",
+    "name": "ds-pulse",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span.ds-skeleton__line"
+  },
+  {
+    "type": "animation",
+    "name": "ds-pulse",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span.ds-skeleton__line.ds-skeleton__line--short"
+  },
+  {
+    "type": "animation",
+    "name": "ds-pulse",
+    "pseudoElement": null,
+    "duration": 2000,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span.ds-skeleton__line.ds-skeleton__line--mid"
+  }
+]

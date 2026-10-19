@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controls · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- Every button variant and state, chips, switches, check and radio cards,
+     a table with a checkbox column, fields, search, a segmented control and
+     a scrolling drawer list with its indicator, .ds-parts, .ds-link-btn and
+     .ds-errors. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="buttons-title">
+    <h2 id="buttons-title">Buttons</h2>
+    <div class="fx-row" id="buttons">
+      <button class="ds-btn" type="button" id="btn-outlined">Export</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="btn-primary">Save</button>
+      <button class="ds-btn ds-btn--tonal" type="button" id="btn-tonal">Add entry</button>
+      <button class="ds-btn ds-btn--text" type="button" id="btn-text">Details</button>
+      <button class="ds-btn ds-btn--quiet" type="button" id="btn-quiet"><span data-icon="filter" data-size="16"></span>Filter</button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="btn-icon" aria-label="Settings"><span data-icon="settings" data-size="20"></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--disc" type="button" id="btn-disc" aria-label="More actions"><span data-icon="moreVertical" data-size="20"></span></button>
+      <button class="ds-btn ds-btn--sm" type="button" id="btn-sm"><span data-icon="plus" data-size="16"></span>Add</button>
+      <button class="ds-btn ds-btn--quiet" type="button" id="btn-pressed" aria-pressed="true"><span data-icon="filter" data-size="16"></span>Only active</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="btn-disabled" disabled>Save</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="btn-aria-disabled" aria-disabled="true">Publish</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="btn-busy" aria-disabled="true" aria-busy="true"><span class="ds-btn__swap"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>Saving</span></button>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="chips-title">
+    <h2 id="chips-title">Chips</h2>
+    <fieldset class="ds-chips fx-narrow" id="chips">
+      <legend class="ds-sr">Status</legend>
+      <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="status" checked><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>Active</span></span></label>
+      <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="status"><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>In storage</span></span></label>
+      <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="status"><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>Archived</span></span></label>
+      <span class="ds-chips__divider" aria-hidden="true"></span>
+      <label class="ds-chip"><input class="ds-chip__input" type="radio" name="age"><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>Older than 4 years</span></span></label>
+      <label class="ds-chip"><input class="ds-chip__input" type="radio" name="age" checked><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>Newer than 1 year</span></span></label>
+      <label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="status" disabled><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>Unavailable</span></span></label>
+    </fieldset>
+  </section>
+
+  <section class="fx-section" aria-labelledby="switch-title">
+    <h2 id="switch-title">Switch</h2>
+    <div class="fx-row" id="switches">
+      <label class="ds-switch"><input type="checkbox" role="switch" id="switch-off"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Email summary</span><span class="ds-switch__state" aria-hidden="true">Off</span></label>
+      <label class="ds-switch"><input type="checkbox" role="switch" id="switch-on" checked><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Nightly sync</span><span class="ds-switch__state" aria-hidden="true">On</span></label>
+      <label class="ds-switch"><input type="checkbox" role="switch" id="switch-disabled-off" disabled><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Locked by policy</span><span class="ds-switch__state" aria-hidden="true">Off</span></label>
+      <label class="ds-switch"><input type="checkbox" role="switch" id="switch-disabled-on" checked disabled><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Required by policy</span><span class="ds-switch__state" aria-hidden="true">On</span></label>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="checks-title">
+    <h2 id="checks-title">Checkboxes and radio cards</h2>
+    <div class="fx-narrow" id="checks">
+      <label class="ds-check"><input type="checkbox" id="check-on" checked><span>Managed by device management</span></label>
+      <label class="ds-check ds-check--sm"><input type="checkbox" id="check-off"><span>Delete the saved recovery key</span></label>
+      <label class="ds-check"><input type="checkbox" id="check-disabled" disabled><span>Locked by policy</span></label>
+      <div class="ds-radios" role="radiogroup" aria-label="Plan">
+        <label class="ds-radio"><input type="radio" name="plan" id="radio-standard" checked><span><strong>Standard</strong><small>Replaced after four years.</small></span></label>
+        <label class="ds-radio"><input type="radio" name="plan" id="radio-extended"><span><strong>Extended</strong><small>Replaced after six years.</small></span></label>
+        <label class="ds-radio ds-radio--disabled"><input type="radio" name="plan" id="radio-leasing" disabled><span><strong>Leasing</strong><small class="ds-radio__note"><span data-icon="alert" data-size="16"></span>Needs a contract first.</small></span></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="table-title">
+    <h2 id="table-title">Table</h2>
+    <div class="ds-table-wrap" id="table-wrap">
+      <table class="ds-table" id="table">
+        <caption class="ds-sr">Devices</caption>
+        <thead><tr>
+          <th scope="col"><input type="checkbox" aria-label="Select all devices"></th>
+          <th scope="col" aria-sort="ascending"><button class="ds-table__sort" type="button">Device<span data-icon="arrowUp" data-size="16"></span></button></th>
+          <th scope="col" class="ds-col--secondary">Owner</th>
+          <th scope="col" class="ds-num"><button class="ds-table__sort" type="button">Age (y)</button></th>
+          <th scope="col">Status</th>
+        </tr></thead>
+        <tbody>
+          <tr data-ds-key="LAPTOP-0042"><td><input type="checkbox" aria-label="Select LAPTOP-0042"></td><td class="ds-nowrap"><button class="ds-link-btn" type="button">LAPTOP-0042</button></td><td class="ds-col--secondary">Ada Lovelace</td><td class="ds-num">3.2</td><td><span class="ds-status ds-status--ok"><span data-icon="check" data-size="16"></span><span>Active</span></span></td></tr>
+          <tr data-ds-key="LAPTOP-0043"><td><input type="checkbox" aria-label="Select LAPTOP-0043" checked></td><td class="ds-nowrap"><button class="ds-link-btn" type="button">LAPTOP-0043</button></td><td class="ds-col--secondary">Alan Turing</td><td class="ds-num">1.4</td><td><span class="ds-status ds-status--ok"><span data-icon="check" data-size="16"></span><span>Active</span></span></td></tr>
+          <tr data-ds-key="DESKTOP-0107"><td><input type="checkbox" aria-label="Select DESKTOP-0107"></td><td class="ds-nowrap"><button class="ds-link-btn" type="button">DESKTOP-0107</button></td><td class="ds-col--secondary"><span class="ds-muted">Not issued</span></td><td class="ds-num">5.8</td><td><span class="ds-status ds-status--error"><span data-icon="alert" data-size="16"></span><span>Replacement overdue</span></span></td></tr>
+          <tr data-ds-key="LAPTOP-0051"><td><input type="checkbox" aria-label="Select LAPTOP-0051"></td><td class="ds-nowrap"><button class="ds-link-btn" type="button">LAPTOP-0051</button></td><td class="ds-col--secondary">Grace Hopper</td><td class="ds-num">4.1</td><td><span class="ds-status ds-status--warning"><span data-icon="alert" data-size="16"></span><span>Warranty ends</span></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="fields-title">
+    <h2 id="fields-title">Fields</h2>
+    <div class="ds-form-grid" id="fields">
+      <div class="ds-field"><label class="ds-field__label" for="field-name">Name</label><input class="ds-input" id="field-name" value="LAPTOP-0042" aria-describedby="field-name-hint"><small class="ds-field__hint" id="field-name-hint">As printed on the label.</small></div>
+      <div class="ds-field"><label class="ds-field__label" for="field-serial">Serial number</label><input class="ds-input" id="field-serial" value="5CD1234XYZ" aria-invalid="true" aria-describedby="field-serial-error"><small class="ds-field__hint ds-field__hint--error" id="field-serial-error"><span data-icon="alertCircle" data-size="16"></span>Already used by LAPTOP-0017.</small></div>
+      <div class="ds-field"><label class="ds-field__label" for="field-retired">Retired on</label><input class="ds-input" id="field-retired" type="date" disabled></div>
+    </div>
+    <div class="ds-search fx-narrow" id="search"><span data-icon="search" data-size="20"></span><input class="ds-input" id="search-input" type="search" aria-label="Search devices" placeholder="Search devices"></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="nav-title">
+    <h2 id="nav-title">Segmented and drawer list</h2>
+    <nav class="ds-segmented" id="segmented" aria-label="Mode" data-indicator='[aria-current="true"]' data-indicator-class="ds-segmented__indicator">
+      <a class="ds-segmented__option" href="#live" aria-current="true">Live</a>
+      <a class="ds-segmented__option" href="#admin">Admin</a>
+      <a class="ds-segmented__option" href="#reports">Reports</a>
+    </nav>
+    <nav class="ds-drawer fx-drawer" id="drawer" aria-label="Sections">
+      <div class="ds-drawer__list" id="drawer-list" data-indicator='[aria-current="page"]' data-indicator-class="ds-drawer__indicator">
+        <div class="ds-drawer__group">
+          <p class="ds-drawer__heading">Inventory</p>
+          <a class="ds-drawer__item" href="#overview" aria-current="page"><span data-icon="overview" data-size="20"></span><span class="ds-drawer__label">Overview</span></a>
+          <a class="ds-drawer__item" href="#devices"><span data-icon="laptop" data-size="20"></span><span class="ds-drawer__label">Devices</span></a>
+          <a class="ds-drawer__item" href="#tickets"><span data-icon="ticket" data-size="20"></span><span class="ds-drawer__label">Tickets</span></a>
+          <a class="ds-drawer__item" href="#owners"><span data-icon="users" data-size="20"></span><span class="ds-drawer__label">Owners</span></a>
+          <a class="ds-drawer__item" href="#rooms"><span data-icon="building" data-size="20"></span><span class="ds-drawer__label">Rooms</span></a>
+          <a class="ds-drawer__item" href="#licences"><span data-icon="key" data-size="20"></span><span class="ds-drawer__label">Licences</span></a>
+          <a class="ds-drawer__item" href="#printers"><span data-icon="file" data-size="20"></span><span class="ds-drawer__label">Printers</span></a>
+          <a class="ds-drawer__item" href="#reports"><span data-icon="barChart" data-size="20"></span><span class="ds-drawer__label">Reports</span></a>
+          <a class="ds-drawer__item" href="#settings"><span data-icon="settings" data-size="20"></span><span class="ds-drawer__label">Settings</span></a>
+        </div>
+      </div>
+    </nav>
+  </section>
+
+  <section class="fx-section" aria-labelledby="text-title">
+    <h2 id="text-title">Parts, link button, errors</h2>
+    <p><span class="ds-parts" id="parts"><span class="ds-parts__list"><span><a href="#new">3 new</a></span><span><a href="#updated">1 updated</a></span><span><a href="#unchanged">250 unchanged</a></span></span></span></p>
+    <p><button class="ds-link-btn" type="button" id="link-btn">Printer on floor 2</button></p>
+    <details class="ds-errors" id="errors"><summary><span data-icon="alertCircle" data-size="16"></span>2 rows were skipped<span data-icon="chevronDown" data-size="16" data-class="ds-errors__chevron"></span></summary><ul><li>Row 4: unknown model</li><li>Row 9: duplicate serial number</li></ul></details>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

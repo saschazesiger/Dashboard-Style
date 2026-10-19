@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- Every .ds-enter and .ds-leave variant on its own element, plus the
+     motion utilities. Entrances play on load; the buttons replay them.
+     Leaves play only on their button and end hidden (fill: forwards). -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="enter-title">
+    <h2 id="enter-title">Enter</h2>
+    <div class="fx-grid">
+      <div class="fx-demo">
+        <div class="fx-box ds-enter" id="enter-default">default</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-default" data-classes="ds-enter">Replay enter</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box ds-enter ds-enter--fade" id="enter-fade">fade</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-fade" data-classes="ds-enter ds-enter--fade">Replay fade</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box ds-enter ds-enter--scale" id="enter-scale">scale</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-scale" data-classes="ds-enter ds-enter--scale">Replay scale</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box ds-enter ds-enter--slide" id="enter-slide">slide</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-slide" data-classes="ds-enter ds-enter--slide">Replay slide</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box ds-enter ds-enter--swap" id="enter-swap">swap</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-swap" data-classes="ds-enter ds-enter--swap">Replay swap</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box ds-enter ds-enter--delayed" id="enter-delayed">delayed</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-delayed" data-classes="ds-enter ds-enter--delayed">Replay delayed</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box ds-enter ds-enter--pop" id="enter-pop">pop</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-pop" data-classes="ds-enter ds-enter--pop">Replay pop</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-bar ds-enter ds-enter--fill-x" id="enter-fill-x" style="transform: scaleX(.7)"></div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-fill-x" data-classes="ds-enter ds-enter--fill-x">Replay fill-x</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box ds-enter ds-enter--fill-y" id="enter-fill-y" style="transform: scaleY(.8); transform-origin: center bottom">Column</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#enter-fill-y" data-classes="ds-enter ds-enter--fill-y">Replay fill-y</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="leave-title">
+    <h2 id="leave-title">Leave</h2>
+    <div class="fx-grid">
+      <div class="fx-demo">
+        <div class="fx-box" id="leave-default">default</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#leave-default" data-classes="ds-leave">Play leave</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box" id="leave-sink">sink</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#leave-sink" data-classes="ds-leave ds-leave--sink">Play leave sink</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box" id="leave-scale">scale</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#leave-scale" data-classes="ds-leave ds-leave--scale">Play leave scale</button>
+      </div>
+      <div class="fx-demo">
+        <div class="fx-box" id="leave-slide">slide</div>
+        <button class="ds-btn ds-btn--sm" type="button" data-replay="#leave-slide" data-classes="ds-leave ds-leave--slide">Play leave slide</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="stagger-title">
+    <h2 id="stagger-title">Stagger</h2>
+    <div class="fx-row ds-stagger" id="stagger">
+      <div class="fx-box">Devices</div>
+      <div class="fx-box">Tickets</div>
+      <div class="fx-box">Owners</div>
+      <div class="fx-box">Rooms</div>
+      <div class="fx-box">Licences</div>
+      <div class="fx-box">Printers</div>
+      <div class="fx-box">Monitors</div>
+      <div class="fx-box">Docks</div>
+    </div>
+    <button class="ds-btn ds-btn--sm" type="button" data-replay="#stagger" data-classes="ds-stagger">Replay stagger</button>
+  </section>
+
+  <section class="fx-section" aria-labelledby="reveal-title">
+    <h2 id="reveal-title">Reveal</h2>
+    <div class="ds-reveal" id="reveal">
+      <p>Freshly loaded content.</p>
+      <div class="fx-box ds-enter ds-enter--slide" id="reveal-child">Slides in</div>
+    </div>
+    <button class="ds-btn ds-btn--sm" type="button" data-replay="#reveal" data-classes="ds-reveal">Replay reveal</button>
+  </section>
+
+  <section class="fx-section" aria-labelledby="collapsible-title">
+    <h2 id="collapsible-title">Collapsible</h2>
+    <details class="ds-collapsible" id="collapsible">
+      <summary>Show the device details</summary>
+      <div id="collapsible-content"><button class="ds-btn" type="button" id="collapsible-action">Assign to Ada Lovelace</button></div>
+    </details>
+  </section>
+
+  <section class="fx-section" aria-labelledby="misc-title">
+    <h2 id="misc-title">Delayed spinner and SVG</h2>
+    <div class="fx-row">
+      <span class="ds-spinner ds-enter ds-enter--delayed" id="delayed-spinner" aria-hidden="true"></span>
+      <svg id="svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path id="svg-path" pathLength="1" d="M20 6 9 17l-5-5"/></svg>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>DS.motion.stagger(document.querySelectorAll('#stagger > *'));</script>
+</body>
+</html>

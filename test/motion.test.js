@@ -2,7 +2,7 @@
  * js/motion.js without a DOM: a fake element with classList, style and
  * events is enough for the helpers.
  */
-import { describe, it, mock } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   COUNT_UP_MS,
@@ -81,20 +81,17 @@ describe('js/motion', () => {
     assert.equal(done, true);
   });
 
-  it('settles after the timeout when no animation runs (hidden or detached elements)', async () => {
-    mock.timers.enable({ apis: ['setTimeout'] });
-    try {
-      let done = false;
-      const promise = settled(new FakeElement(), { timeout: 300 }).then(() => { done = true; });
-      mock.timers.tick(299);
-      await Promise.resolve();
-      assert.equal(done, false);
-      mock.timers.tick(1);
-      await promise;
-      assert.equal(done, true);
-    } finally {
-      mock.timers.reset();
-    }
+  it('settles after the timeout when no animation runs (hidden or detached elements)', async (t) => {
+    // The test context resets the mocked timers, also when an assertion fails.
+    t.mock.timers.enable({ apis: ['setTimeout'] });
+    let done = false;
+    const promise = settled(new FakeElement(), { timeout: 300 }).then(() => { done = true; });
+    t.mock.timers.tick(299);
+    await Promise.resolve();
+    assert.equal(done, false);
+    t.mock.timers.tick(1);
+    await promise;
+    assert.equal(done, true);
   });
 
   it('enter() plays the variant and cleans its classes up afterwards', async () => {
@@ -145,29 +142,25 @@ describe('js/motion', () => {
   });
 
   describe('settleLoader', () => {
-    it('resolves at once when the indicator never became visible', async () => {
+    it('resolves at once when the indicator never became visible', async (t) => {
       const startedAt = 10_000;
-      const timer = mock.method(globalThis, 'setTimeout');
+      // The test context restores the spy, also when an assertion fails.
+      const timer = t.mock.method(globalThis, 'setTimeout');
       await settleLoader(startedAt, startedAt + LOADER_DELAY_MS - 1);
       assert.equal(timer.mock.callCount(), 0);
-      timer.mock.restore();
     });
 
-    it('keeps a visible indicator up for the minimum time', async () => {
-      mock.timers.enable({ apis: ['setTimeout'] });
-      try {
-        const startedAt = 10_000;
-        let done = false;
-        const promise = settleLoader(startedAt, startedAt + LOADER_DELAY_MS + 50).then(() => { done = true; });
-        mock.timers.tick(LOADER_MIN_VISIBLE_MS - 51);
-        await Promise.resolve();
-        assert.equal(done, false);
-        mock.timers.tick(1);
-        await promise;
-        assert.equal(done, true);
-      } finally {
-        mock.timers.reset();
-      }
+    it('keeps a visible indicator up for the minimum time', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout'] });
+      const startedAt = 10_000;
+      let done = false;
+      const promise = settleLoader(startedAt, startedAt + LOADER_DELAY_MS + 50).then(() => { done = true; });
+      t.mock.timers.tick(LOADER_MIN_VISIBLE_MS - 51);
+      await Promise.resolve();
+      assert.equal(done, false);
+      t.mock.timers.tick(1);
+      await promise;
+      assert.equal(done, true);
     });
 
     it('resolves at once when the indicator was visible long enough', async () => {

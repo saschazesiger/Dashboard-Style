@@ -35,6 +35,11 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test \"test/*.test.js\"",
-    "check": "node --test \"test/*.test.js\" && node scripts/build.mjs --check"
+    "check": "node --test \"test/*.test.js\" && node scripts/build.mjs --check",
+    "test:browser": "playwright test --config test/browser/playwright.config.js",
+    "test:browser:update": "playwright test --config test/browser/playwright.config.js --update-snapshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
   }
 }

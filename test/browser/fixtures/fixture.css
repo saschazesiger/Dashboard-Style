@@ -1,0 +1,71 @@
+/*
+ * Layout of the browser-test fixtures only (fx- prefix). The fixtures embed
+ * the system like a widget: .ds-theme on a wrapper, no .ds-base, so this
+ * wrapper sets the text the page base would otherwise set.
+ */
+body {
+  margin: 0;
+}
+
+.fx-root {
+  min-height: 100vh;
+  padding: var(--ds-space-6);
+  box-sizing: border-box;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  font: var(--ds-font-body);
+}
+
+.fx-section {
+  margin: 0 0 var(--ds-space-6);
+}
+
+.fx-section > h2 {
+  margin: 0 0 var(--ds-space-3);
+  font: var(--ds-font-subtitle);
+}
+
+.fx-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.fx-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--ds-space-4);
+}
+
+.fx-demo {
+  display: grid;
+  gap: var(--ds-space-2);
+  justify-items: start;
+}
+
+.fx-box {
+  width: 160px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface-high);
+}
+
+.fx-narrow {
+  max-width: 360px;
+}
+
+.fx-bar {
+  width: 160px;
+  height: 12px;
+  border-radius: var(--ds-radius-xs);
+  background: var(--ds-primary);
+  transform-origin: left center;
+}
+
+.fx-drawer {
+  width: 280px;
+  height: 220px;
+}

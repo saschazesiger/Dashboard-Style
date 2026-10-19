@@ -1,0 +1,41 @@
+[
+  {
+    "type": "animation",
+    "name": "ds-fade-in",
+    "pseudoElement": null,
+    "duration": 200,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards",
+    "target": "div.ds-dialog__backdrop"
+  },
+  {
+    "type": "animation",
+    "name": "ds-fade-in",
+    "pseudoElement": null,
+    "duration": 250,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards",
+    "target": "div.ds-dialog__box"
+  },
+  {
+    "type": "animation",
+    "name": "ds-grow-in",
+    "pseudoElement": null,
+    "duration": 250,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards",
+    "target": "div.ds-dialog__box"
+  }
+]
