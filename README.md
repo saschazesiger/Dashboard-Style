@@ -1,0 +1,136 @@
+# Dashboard-Style
+
+A neutral, themeable design system for admin dashboards and internal tools, in the style of the Google admin consoles
+(Material 3): white panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions, calm motion.
+
+- **Plain CSS and dependency-free JS.** No build step needed: one stylesheet, one optional script.
+- **Themeable from one file.** Every colour, radius, font and shadow comes from a `--ds-*` token. A project theme
+  overrides tokens; it never touches components.
+- **Accessible by default.** WCAG AA text contrast, visible instant focus, reduced motion, forced colors (Windows
+  contrast themes), status never by colour alone.
+- **Embeddable.** Tokens live on `.ds-theme`, not `:root`, so the system can run inside someone else's page.
+
+MIT licensed. The bundled Google Sans font is under the SIL Open Font License 1.1; the icon shapes come from Lucide
+(ISC) and Feather (MIT), see [LICENSE](LICENSE). There is no dark theme: the default is light, and dark mode is not
+designed yet.
+
+## Quick start
+
+Copy `dist/` into your project (or use the CDN, see below) and write:
+
+```html
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Devices</title>
+  <link rel="stylesheet" href="dist/fonts/fonts.css">
+  <link rel="stylesheet" href="dist/ds.css">
+</head>
+<body>
+  <div class="ds-content"><div class="ds-page">
+    <header class="ds-page-head"><h1 class="ds-page-head__title">Devices</h1></header>
+    <section class="ds-card">
+      <h2 class="ds-card__title">Inventory</h2>
+      <p class="ds-muted">128 devices, 3 need attention.</p>
+      <button class="ds-btn ds-btn--primary" type="button">Add device</button>
+    </section>
+  </div></div>
+  <script src="dist/ds.js"></script>
+</body>
+</html>
+```
+
+`ds-theme` turns the tokens on, `ds-base` (optional) styles the page itself: backdrop, body text, links, focus.
+`ds.js` is only needed for the motion helpers, the sliding indicator, the DOM morph and the icons
+(`window.DS`); every component works without it.
+
+Open [`styleguide/index.html`](styleguide/index.html) in a browser (works from disk) to see every component, the
+tokens, the motion and the icons, and to try a theme file.
+
+## Install
+
+**Vendor a copy (recommended).** The script copies `dist/` of the latest `main` into your project and writes `VERSION`
+(with the exact commit) and `SHA256SUMS` next to it, so a test or CI step can prove nobody edited the copy. To update,
+run it again.
+
+```sh
+curl -fsSLO https://raw.githubusercontent.com/saschazesiger/Dashboard-Style/main/scripts/vendor.sh
+sh vendor.sh vendor/dashboard-style             # copy the latest main (or: vendor.sh <ref> <dest>)
+sh vendor.sh --check vendor/dashboard-style     # verify (exit 1 if anything changed)
+```
+
+Windows PowerShell: `scripts/vendor.ps1` with the same arguments (`-From`, `-Check`).
+
+**CDN.** jsDelivr serves the repository (`@main`, or a commit hash to pin):
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/fonts/fonts.css">
+<script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.js"></script>
+```
+
+**Bundlers.** `dist/css/` and `dist/js/` hold the single stylesheets and ES modules; import only what you need.
+Details, updates and integrity checks: [docs/install.md](docs/install.md).
+
+## Theming
+
+Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector:
+
+```css
+.ds-theme {
+  --ds-primary: #006a6a;
+  --ds-accent: #cce8e7;
+  --ds-on-accent: #002020;
+  --ds-font: 'Inter', system-ui, sans-serif;
+}
+```
+
+[`themes/example.css`](themes/example.css) is a template listing every role. Guide: [docs/theming.md](docs/theming.md).
+
+## Documentation
+
+| Topic | |
+|---|---|
+| [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy |
+| [Tokens](docs/tokens.md) | the three layers and every token |
+| [Theming](docs/theming.md) | writing a project theme, component hooks |
+| [Components](docs/components.md) | copy-paste markup for every component |
+| [Motion](docs/motion.md) | durations, curves, utilities, `DS.motion`, indicator, morph |
+| [Icons](docs/icons.md) | the outline set and its helpers |
+| [Rules](docs/rules.md) | the design rules the components follow |
+
+## Files
+
+```
+dist/            what you ship (built, committed): ds.css, ds.js, css/, js/, fonts/, LICENSE, SHA256SUMS
+src/             sources: tokens.css, motion.css, base.css, components/*.css, js/*.js, index.css (order)
+fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
+themes/          example.css, the theme template
+styleguide/      living styleguide (open index.html)
+scripts/         build.mjs, vendor.sh, vendor.ps1
+test/            node --test, no dependencies
+```
+
+## Browser support
+
+Current Chrome, Edge, Firefox and Safari, and Safari 14.1 and later: the CSS uses no `@layer`, no nesting and no
+`inset` shorthand, and the JS is ES2020 without destructuring. Refinements that need newer browsers degrade
+gracefully: `:has()`, container queries, `color-mix()`, `interpolate-size`, `linear()` easing and `svh`/`dvh`
+(each file names them under "Progressive:" in its header); `:focus-visible` (rings sit on `:focus` and come off on
+`:focus:not(:focus-visible)`, so browsers without it keep them);
+`accent-color`, `text-wrap`, `overflow-wrap: anywhere` and the `translate` property. Safari 14.0 also works but
+loses flex gaps.
+
+## Develop
+
+Node 22 or later, nothing to install.
+
+```sh
+npm test          # guardrails: tokens, literals, motion, docs, dist up to date
+npm run build     # rebuild dist/ after changing src/ or fonts/
+npm run check     # both, as CI does
+```
+
+Change `src/`, run the build, commit `src/` and `dist/` together, note the change in [CHANGELOG.md](CHANGELOG.md).

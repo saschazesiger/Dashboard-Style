@@ -1,0 +1,164 @@
+/*
+ * Theme template. Copy this file into your project, rename it, change the
+ * values and load it after ds.css:
+ *
+ *   <link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+ *   <link rel="stylesheet" href="css/theme.css">
+ *
+ * It lists every role a theme may set (layer 2), with a neutral example
+ * palette (slate and teal) so you can see a theme at work in the
+ * styleguide. Delete the lines you do not change: unset roles keep the
+ * default. Component hooks (layer 3) are listed at the end, commented out.
+ *
+ * Rules:
+ * - Set everything on .ds-theme, the element that carries the class (for a
+ *   full app: <html>). Roles derived from others (type roles from --ds-font,
+ *   --ds-link from --ds-primary, the focus ring) are resolved there.
+ * - Never set motion tokens (--ds-dur-*, --ds-ease-*, --ds-distance-*,
+ *   --ds-loop-*, --ds-stagger, --ds-delay-*, --ds-scale-*): the
+ *   reduced-motion switch in tokens.css depends on them.
+ * - Keep text roles at 4.5:1 against the surfaces they sit on.
+ */
+
+.ds-theme {
+  /* ── Surfaces ── */
+  --ds-backdrop: #edf2f2;
+  --ds-surface: #ffffff;
+  --ds-surface-low: #f6fafa;
+  --ds-surface-high: #e3eaea;
+  --ds-surface-highest: #d9e1e1;
+
+  /* ── Text and lines ── */
+  --ds-text: #191c1c;
+  --ds-text-2: #3f4948;
+  --ds-text-3: #6f7979;
+  --ds-line: #d9e1e1;
+  --ds-line-2: #bec9c8;
+  --ds-outline: #6f7979;
+
+  /* ── Primary and tint ── */
+  --ds-primary: #006a6a;
+  --ds-on-primary: #ffffff;
+  --ds-primary-hover: #147575;
+  --ds-primary-pressed: #005a5a;
+  --ds-accent: #cce8e7;
+  --ds-on-accent: #002020;
+  --ds-on-accent-icon: var(--ds-on-accent);
+  --ds-action-ink: var(--ds-primary);
+
+  /* ── Status ── */
+  --ds-error: #ba1a1a;
+  --ds-error-container: #ffdad6;
+  --ds-on-error-container: #93000a;
+  --ds-success: #146c2e;
+  --ds-success-container: #c4eed0;
+  --ds-on-success-container: #0f5223;
+  --ds-warning: #8f4e06;
+  --ds-warning-container: #feefc3;
+  --ds-on-warning-container: #8f4e06;
+  --ds-warning-surface: #fdf6e7;
+
+  /* ── Inverse, scrim, fills ── */
+  --ds-inverse: #2d3131;
+  --ds-on-inverse: #eff1f1;
+  --ds-inverse-primary: #4cdada;
+  --ds-scrim: rgba(0, 0, 0, .32);
+  --ds-fill-round: rgba(25, 28, 28, .08);
+  --ds-code-bg: var(--ds-surface-low);
+
+  /* ── Disabled controls ──
+     Dim the whole control instead: --ds-disabled-opacity:
+     var(--ds-state-disabled); --ds-disabled-fill: initial;
+     --ds-disabled-ink: initial; */
+  --ds-disabled-opacity: 1;
+  --ds-disabled-fill: rgba(25, 28, 28, .12);
+  --ds-disabled-ink: rgba(25, 28, 28, .38);
+  --ds-spinner-sm-track: rgba(0, 0, 0, .18);
+
+  /* ── Links and focus ── */
+  --ds-link: var(--ds-primary);
+  --ds-link-underline: rgba(0, 106, 106, .4);
+  --ds-link-underline-hover: var(--ds-link);
+  --ds-link-underline-thickness: 1px;
+  --ds-link-underline-offset: 3px;
+  --ds-focus: var(--ds-primary);
+  --ds-focus-width: 2px;
+  --ds-focus-offset: 2px;
+  --ds-focus-outline: var(--ds-focus-width) solid var(--ds-focus);
+  --ds-focus-ring: 0 0 0 2px var(--ds-surface), 0 0 0 4px var(--ds-focus);
+
+  /* ── Radii ──
+     Square containers: set xs ... 2xl to 0 and keep --ds-radius-action. */
+  --ds-radius-xs: 4px;
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 16px;
+  --ds-radius-xl: 20px;
+  --ds-radius-2xl: 28px;
+  --ds-radius-action: 9999px;
+  --ds-radius-panel: var(--ds-radius-xl);
+  --ds-radius-card: var(--ds-radius-md);
+  --ds-radius-dialog: var(--ds-radius-lg);
+  --ds-radius-chip: var(--ds-radius-sm);
+  --ds-radius-field: var(--ds-radius-sm);
+
+  /* ── Type ──
+     Changing --ds-font or a weight here (on .ds-theme) updates every role.
+     Sizes in px. Keep --ds-font-input at 16px (iOS zoom). */
+  --ds-font: 'Google Sans', Roboto, 'Segoe UI', system-ui, sans-serif;
+  --ds-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --ds-weight-regular: 400;
+  --ds-weight-title: 400;
+  --ds-weight-label: 500;
+  --ds-size-display: 36px;
+  --ds-font-headline: var(--ds-weight-title) 24px/32px var(--ds-font);
+  --ds-font-title: var(--ds-weight-title) 22px/28px var(--ds-font);
+  --ds-font-subtitle: var(--ds-weight-label) 16px/24px var(--ds-font);
+  --ds-font-reading: var(--ds-weight-regular) 16px/24px var(--ds-font);
+  --ds-font-input: var(--ds-font-reading);
+  --ds-font-body: var(--ds-weight-regular) 14px/20px var(--ds-font);
+  --ds-font-dense: var(--ds-weight-regular) 14px/20px var(--ds-font);
+  --ds-font-label: var(--ds-weight-label) 14px/20px var(--ds-font);
+  --ds-font-chip: var(--ds-weight-label) 14px/20px var(--ds-font);
+  --ds-font-meta: var(--ds-weight-regular) 12px/16px var(--ds-font);
+  --ds-font-caption: var(--ds-weight-label) 12px/16px var(--ds-font);
+  --ds-font-display: var(--ds-weight-regular) var(--ds-size-display)/44px var(--ds-font);
+  --ds-font-code: var(--ds-weight-regular) 13px/20px var(--ds-font-mono);
+
+  /* ── Elevation ──
+     Flat look: --ds-elev-hover: none; --ds-elev-overlay: none (dialogs then
+     rely on the scrim; give them --ds-dialog-border). */
+  --ds-elev-1: 0 1px 2px 0 rgba(60, 64, 67, .3), 0 1px 3px 1px rgba(60, 64, 67, .15);
+  --ds-elev-2: 0 1px 2px 0 rgba(60, 64, 67, .3), 0 2px 6px 2px rgba(60, 64, 67, .15);
+  --ds-elev-3: 0 1px 3px 0 rgba(60, 64, 67, .3), 0 4px 8px 3px rgba(60, 64, 67, .15);
+  --ds-elev-hover: var(--ds-elev-1);
+  --ds-elev-popover: var(--ds-elev-2);
+  --ds-elev-overlay: var(--ds-elev-3);
+
+  /* ── Layout ── */
+  --ds-topbar-height: 64px;
+  --ds-drawer-width: 256px;
+  --ds-content-max: 1280px;
+  --ds-measure: 76ch;
+  --ds-toast-room: 64px;
+
+  /* ── Component hooks (layer 3), with their defaults ──
+  --ds-btn-height: 36px;               --ds-btn-padding-x: var(--ds-space-4);
+  --ds-btn-padding-start: (padding-x)  --ds-btn-radius: var(--ds-radius-action);
+  --ds-btn-font: var(--ds-font-label); --ds-btn-bg / -color / -border (per variant)
+  --ds-btn-state: currentColor;        --ds-btn-state-opacity: var(--ds-state-hover);
+  --ds-btn-state-pressed-opacity: var(--ds-state-pressed);
+  --ds-btn-hover-color / -hover-border / -hover-shadow / -hover-decoration
+  --ds-btn-icon-size: 40px;            --ds-btn-quiet-color: var(--ds-text-2);
+  --ds-btn-disabled-bg / -disabled-border
+  --ds-input-font: (body; input role up to 600px)
+  --ds-card-padding: var(--ds-space-6); --ds-card-padding-sm: var(--ds-space-4);
+  --ds-card-padding-filled: var(--ds-space-5);
+  --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);
+  --ds-status-radius: var(--ds-radius-md);
+  --ds-spinner-track: var(--ds-line);  --ds-spinner-color: var(--ds-primary);
+  --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
+  --ds-dialog-shadow: var(--ds-elev-overlay);
+  --ds-sheet-width: 560px;             --ds-sheet-width-wide: 720px;
+  */
+}

@@ -1,0 +1,40 @@
+{
+  "name": "dashboard-style",
+  "version": "0.1.0",
+  "description": "A neutral, themeable design system for admin dashboards in the Material 3 / Google console style: CSS tokens, components, motion and icons, without dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://github.com/saschazesiger/Dashboard-Style",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saschazesiger/Dashboard-Style.git"
+  },
+  "keywords": [
+    "design-system",
+    "css",
+    "material-3",
+    "dashboard",
+    "admin",
+    "tokens"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "exports": {
+    "./ds.css": "./dist/ds.css",
+    "./ds.js": "./dist/ds.js",
+    "./css/*": "./dist/css/*",
+    "./js/*": "./dist/js/*",
+    "./fonts/*": "./dist/fonts/*"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test \"test/*.test.js\"",
+    "check": "node --test \"test/*.test.js\" && node scripts/build.mjs --check"
+  }
+}

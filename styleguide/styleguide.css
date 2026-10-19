@@ -1,0 +1,329 @@
+/*
+ * Layout of the styleguide page only (sg- prefix). It reads tokens like any
+ * project stylesheet; components come from dist/ds.css unchanged.
+ */
+
+/* ── Top bar extras ─────────────────────────────── */
+
+.sg-mark {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ds-radius-sm);
+  background:
+    linear-gradient(135deg, var(--ds-primary) 0 50%, transparent 50%) top left / 16px 16px no-repeat,
+    linear-gradient(var(--ds-accent), var(--ds-accent));
+  box-shadow: inset 0 0 0 1px var(--ds-line);
+}
+
+.sg-version {
+  margin-left: var(--ds-space-1);
+  white-space: nowrap;
+}
+
+.sg-theme {
+  margin-left: auto;
+  width: min(240px, 46vw);
+}
+
+@media (max-width: 600px) {
+  .ds-topbar .ds-brand__name,
+  .sg-version {
+    display: none;
+  }
+}
+
+/* ── Sections ───────────────────────────────────── */
+
+.sg-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ds-space-5);
+  scroll-margin-top: var(--ds-space-6);
+}
+
+.sg-section + .sg-section {
+  margin-top: var(--ds-space-5);
+  padding-top: var(--ds-space-10);
+  border-top: 1px solid var(--ds-line);
+}
+
+.sg-section > .ds-page-head .ds-page-head__title {
+  font: var(--ds-font-title);
+}
+
+.sg-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.sg-label {
+  color: var(--ds-text-2);
+  font: var(--ds-font-caption);
+}
+
+/* A label sits close above the row it names. */
+.ds-card > .sg-label + .sg-row {
+  margin-top: var(--ds-space-2);
+}
+
+.sg-hero {
+  display: grid;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-8);
+  border-radius: var(--ds-radius-panel);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+}
+
+.sg-hero h1 {
+  margin: 0;
+  font: var(--ds-font-headline);
+}
+
+.sg-hero p {
+  margin: 0;
+  max-width: var(--ds-measure);
+  font: var(--ds-font-reading);
+}
+
+.sg-hero .sg-row {
+  margin-top: var(--ds-space-3);
+}
+
+@media (max-width: 600px) {
+  .sg-hero {
+    padding: var(--ds-space-5);
+  }
+}
+
+/* ── Foundations ────────────────────────────────── */
+
+.sg-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.sg-swatch {
+  display: grid;
+  gap: var(--ds-space-1);
+  min-width: 0;
+}
+
+.sg-swatch__chip {
+  height: 56px;
+  margin-bottom: var(--ds-space-1);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-card);
+}
+
+/* Token names as labels: a little air inside the code box (inline code in
+   running text hugs its glyphs, see base.css). */
+.sg-swatch code,
+.sg-type code,
+.sg-token code {
+  justify-self: start;
+  padding-block: 1px;
+  overflow-wrap: anywhere;
+}
+
+.sg-type {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--ds-space-1) var(--ds-space-4);
+  padding: var(--ds-space-3) 0;
+  border-top: 1px solid var(--ds-line);
+}
+
+.sg-type:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sg-type > p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 600px) {
+  .sg-type {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.sg-spaces {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--ds-space-4);
+}
+
+.sg-space {
+  display: grid;
+  justify-items: center;
+  gap: var(--ds-space-1);
+}
+
+.sg-space__bar {
+  width: var(--ds-space-4);
+  border-radius: var(--ds-radius-xs);
+  background: var(--ds-accent);
+}
+
+.sg-shapes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--ds-space-4);
+}
+
+.sg-shape {
+  display: grid;
+  place-items: center;
+  gap: var(--ds-space-1);
+  min-height: 96px;
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  background: var(--ds-surface);
+  text-align: center;
+}
+
+.sg-shape--raised {
+  border-color: transparent;
+}
+
+/* ── Demos ──────────────────────────────────────── */
+
+.sg-stage {
+  display: grid;
+  place-items: center;
+  min-height: 168px;
+  padding: var(--ds-space-5);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface-low);
+  overflow: hidden;
+}
+
+.sg-stage__card {
+  width: min(100%, 320px);
+}
+
+.sg-stagger-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: var(--ds-space-2);
+  width: 100%;
+}
+
+.sg-stagger-list > span {
+  height: 40px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-accent);
+}
+
+/* The fill demo grows each item from its left edge (.ds-enter--fill-x). */
+.sg-stagger-list.sg-fill > span {
+  transform-origin: left center;
+}
+
+/* A track for the indicator demo: options in a pill. */
+.sg-track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1);
+  border: 1px solid var(--ds-outline);
+  border-radius: var(--ds-radius-action);
+}
+
+.sg-track > .ds-btn {
+  --ds-btn-border: transparent;
+}
+
+.sg-track > .ds-btn[aria-pressed="true"] {
+  --ds-btn-color: var(--ds-on-accent);
+  font: var(--ds-font-label);
+}
+
+.sg-track__indicator {
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-accent);
+}
+
+/* Overlays shown in place (not over the page) so they can be inspected. */
+.sg-inline-overlay {
+  --ds-sheet-width: 78%;
+  position: relative;
+  min-height: 300px;
+  overflow: hidden;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface-low);
+}
+
+.sg-inline-overlay > .ds-sheet,
+.sg-inline-overlay > .ds-dialog {
+  position: absolute;
+}
+
+.sg-inline-overlay .ds-sheet__panel {
+  animation: none;
+}
+
+.sg-tooltip-demo {
+  position: static;
+  width: max-content;
+  animation: none;
+}
+
+.sg-toast-demo {
+  animation: none;
+}
+
+.sg-shell-preview {
+  position: relative;
+  height: 360px;
+  overflow: hidden;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-card);
+}
+
+.sg-shell-preview > .ds-app {
+  height: 100%;
+}
+
+/* ── Icons ──────────────────────────────────────── */
+
+.sg-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+  gap: var(--ds-space-1) var(--ds-space-4);
+}
+
+.sg-icon {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  min-width: 0;
+  padding: var(--ds-space-2) 0;
+  color: var(--ds-text);
+  font: var(--ds-font-meta);
+}
+
+.sg-icon > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sg-code {
+  margin: 0;
+  padding: var(--ds-space-4);
+  overflow-x: auto;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface-low);
+  color: var(--ds-text);
+  font: var(--ds-font-code);
+  white-space: pre;
+}
