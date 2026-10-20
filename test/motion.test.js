@@ -735,19 +735,20 @@ describe('js/motion', () => {
       const written = () => [panel.style.getPropertyValue('--ds-motion-origin'), panel.style.getPropertyValue('--ds-clip-from')];
 
       assert.deepEqual(originFrom(trigger, panel), { origin: '70px 0px', side: 'bottom' });
-      assert.deepEqual(written(), ['70px 0px', 'inset(0 0 100% 0 round 12px)']);
+      const bleed = 'calc(-1 * var(--ds-space-6, 24px))';
+      assert.deepEqual(written(), ['70px 0px', `inset(${bleed} ${bleed} 100% ${bleed} round 12px)`]);
 
       anchor = rect(100, 300, 100, 40);
       assert.deepEqual(originFrom(trigger, panel), { origin: '70px 200px', side: 'top' });
-      assert.equal(written()[1], 'inset(100% 0 0 0 round 12px)');
+      assert.equal(written()[1], `inset(100% ${bleed} ${bleed} ${bleed} round 12px)`);
 
       anchor = rect(0, 100, 40, 40);
       assert.deepEqual(originFrom(trigger, panel), { origin: '0px 72px', side: 'right' });
-      assert.equal(written()[1], 'inset(0 100% 0 0 round 12px)');
+      assert.equal(written()[1], `inset(${bleed} 100% ${bleed} ${bleed} round 12px)`);
 
       anchor = rect(400, 100, 40, 40);
       assert.deepEqual(originFrom(trigger, panel), { origin: '200px 72px', side: 'left' });
-      assert.equal(written()[1], 'inset(0 0 0 100% round 12px)');
+      assert.equal(written()[1], `inset(${bleed} ${bleed} ${bleed} 100% round 12px)`);
 
       // A point (a context menu at the pointer), and a panel over its trigger.
       box = rect(10, 20, 100, 100);

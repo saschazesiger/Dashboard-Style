@@ -246,7 +246,7 @@ test.describe('exits', () => {
     }
   });
 
-  test('a closing dialog fades and drops its box; a closing sheet fades and shifts its panel on the exit curve', async ({ page }) => {
+  test('a closing dialog fades and shrinks its box; a closing sheet slides its opaque panel off, both on the exit curve', async ({ page }) => {
     await open(page, 'controls.html');
     await inject(page, `
       <div class="ds-dialog" id="x-dialog"><div class="ds-dialog__backdrop"></div>
@@ -260,10 +260,12 @@ test.describe('exits', () => {
       for (const animation of document.getAnimations()) animation.pause();
     });
     const box = await animations(page.locator('#x-dialog .ds-dialog__box'));
-    expect(box.map((entry) => entry.name)).toEqual(['ds-fade-out', 'ds-drop-out']);
+    expect(box.map((entry) => entry.name)).toEqual(['ds-fade-out', 'ds-shrink-out']);
+    expect(box[1].keyframeEasing).toBe('cubic-bezier(0.3, 0, 0.8, 0.15)');
+    // The full-width slide of an opaque panel is the one exit without a fade (D16).
     const panel = await animations(page.locator('#x-sheet .ds-sheet__panel'));
-    expect(panel.map((entry) => entry.name)).toEqual(['ds-fade-out', 'ds-shift-out']);
-    expect(panel[1].keyframeEasing).toBe('cubic-bezier(0.3, 0, 0.8, 0.15)');
+    expect(panel.map((entry) => entry.name)).toEqual(['ds-shift-out']);
+    expect(panel[0].keyframeEasing).toBe('cubic-bezier(0.3, 0, 0.8, 0.15)');
   });
 });
 

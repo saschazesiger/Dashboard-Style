@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menus and popups · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  .fx-end { position: absolute; top: 24px; right: 8px; }
+  .fx-low { position: fixed; left: 24px; bottom: 8px; }
+  .fx-low-combo { position: fixed; left: 320px; bottom: 16px; width: 280px; }
+  .fx-field { width: 280px; }
+  .fx-presence { padding: var(--ds-space-4); background: var(--ds-surface); box-shadow: var(--ds-elev-popover); }
+</style>
+</head>
+<body>
+<!-- .ds-menu and the combobox list through DS.overlay: a menu under a
+     trigger, one at the window's right edge (it opens towards the start
+     edge) and one at the bottom edge (it opens above), a combobox, one at
+     the bottom edge (it flips above where the script places it), a native
+     dialog whose last field is a combobox (the list must not be clipped by
+     the dialog's scrolling box), and .ds-presence on a [hidden] element and
+     on a [popover]. The page script wires the triggers as the docs show. -->
+<div class="ds-theme fx-root" id="theme">
+  <main id="page" tabindex="-1">
+    <p class="fx-row">
+      <button class="ds-btn" type="button" id="before">Before</button>
+      <button class="ds-btn" type="button" id="trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" data-menu>Actions</button>
+      <button class="ds-btn" type="button" id="after">After</button>
+      <button class="ds-btn" type="button" id="open-dialog">Replace</button>
+      <button class="ds-btn" type="button" id="toggle-presence">Toggle note</button>
+      <button class="ds-btn" type="button" id="popover-presence" popovertarget="presence-popover">Popover</button>
+    </p>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon fx-end" type="button" id="end-trigger" aria-label="More" aria-haspopup="menu" aria-expanded="false" aria-controls="end-menu" data-menu><span data-icon="moreVertical" data-size="20"></span></button>
+
+    <div class="ds-field fx-field">
+      <label class="ds-field__label" for="combo-input">Owner</label>
+      <div class="ds-combo" id="combo" data-combo>
+        <input class="ds-input ds-combo__input" id="combo-input" role="combobox" aria-expanded="false" aria-controls="combo-list" aria-autocomplete="list" autocomplete="off">
+        <button class="ds-combo__toggle" id="combo-toggle" type="button" tabindex="-1" aria-label="Show all"><span data-icon="chevronDown" data-size="20"></span></button>
+        <div class="ds-combo__popup" id="combo-popup" hidden>
+          <ul class="ds-combo__list" id="combo-list" role="listbox">
+            <li class="ds-combo__option" id="combo-a" role="option" aria-selected="false"><span class="ds-combo__name">Ada Lovelace</span></li>
+            <li class="ds-combo__option" id="combo-b" role="option" aria-selected="true"><span class="ds-combo__name">Grace Hopper</span></li>
+            <li class="ds-combo__option" id="combo-c" role="option" aria-selected="false"><span class="ds-combo__name">Katherine Johnson</span></li>
+          </ul>
+          <p class="ds-combo__status">3 owners</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="fx-presence ds-presence" id="presence" hidden>A note that comes and goes.</div>
+    <div class="fx-presence ds-presence" id="presence-popover" popover>A popover note.</div>
+
+    <button class="ds-btn fx-low" type="button" id="low-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="low-menu" data-menu>Low</button>
+    <div class="ds-field fx-low-combo">
+      <div class="ds-combo" id="low-combo" data-combo>
+        <input class="ds-input ds-combo__input" id="low-combo-input" role="combobox" aria-label="Model" aria-expanded="false" aria-controls="low-combo-list" aria-autocomplete="list" autocomplete="off">
+        <div class="ds-combo__popup" id="low-combo-popup" hidden>
+          <ul class="ds-combo__list" id="low-combo-list" role="listbox">
+            <li class="ds-combo__option" id="low-a" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 5430</span></li>
+            <li class="ds-combo__option" id="low-b" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 7440</span></li>
+            <li class="ds-combo__option" id="low-c" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 9450</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="ds-menu" role="menu" id="menu" aria-labelledby="trigger" hidden>
+    <button class="ds-menu__item" role="menuitem" type="button" id="item-edit"><span data-icon="pencil" data-size="20"></span><span class="ds-menu__label">Edit</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" id="item-rename" aria-disabled="true"><span data-icon="fileText" data-size="20"></span><span class="ds-menu__label">Rename</span></button>
+    <button class="ds-menu__item" role="menuitemcheckbox" type="button" id="item-pin" aria-checked="false"><span data-icon="check" data-size="20" data-class="ds-menu__check"></span><span class="ds-menu__label">Pinned</span></button>
+    <div class="ds-menu__divider" role="separator"></div>
+    <button class="ds-menu__item" role="menuitem" type="button" id="item-archive"><span data-icon="archive" data-size="20"></span><span class="ds-menu__label">Archive</span></button>
+  </div>
+
+  <div class="ds-menu" role="menu" id="end-menu" aria-labelledby="end-trigger" hidden>
+    <button class="ds-menu__item" role="menuitem" type="button" id="end-a"><span class="ds-menu__label">Duplicate the device</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" id="end-b"><span class="ds-menu__label">Move to another site</span></button>
+  </div>
+
+  <div class="ds-menu" role="menu" id="low-menu" aria-labelledby="low-trigger" hidden>
+    <button class="ds-menu__item" role="menuitem" type="button" id="low-item-a"><span class="ds-menu__label">First</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" id="low-item-b"><span class="ds-menu__label">Second</span></button>
+    <button class="ds-menu__item" role="menuitem" type="button" id="low-item-c"><span class="ds-menu__label">Third</span></button>
+  </div>
+
+  <dialog class="ds-dialog" id="dialog" aria-labelledby="dialog-title">
+    <div class="ds-dialog__backdrop" data-close></div>
+    <div class="ds-dialog__box">
+      <h2 class="ds-dialog__title" id="dialog-title">Replace the device</h2>
+      <p class="ds-dialog__text">Choose the model that takes over. Its owner and location stay.</p>
+      <div class="ds-field">
+        <label class="ds-field__label" for="dialog-combo-input">New model</label>
+        <div class="ds-combo" id="dialog-combo" data-combo>
+          <input class="ds-input ds-combo__input" id="dialog-combo-input" role="combobox" aria-expanded="false" aria-controls="dialog-combo-list" aria-autocomplete="list" autocomplete="off">
+          <div class="ds-combo__popup" id="dialog-combo-popup" hidden>
+            <ul class="ds-combo__list" id="dialog-combo-list" role="listbox">
+              <li class="ds-combo__option" id="dialog-a" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 5430</span></li>
+              <li class="ds-combo__option" id="dialog-b" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 7440</span></li>
+              <li class="ds-combo__option" id="dialog-c" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 9450</span></li>
+              <li class="ds-combo__option" id="dialog-d" role="option" aria-selected="false"><span class="ds-combo__name">Precision 3581</span></li>
+              <li class="ds-combo__option" id="dialog-e" role="option" aria-selected="false"><span class="ds-combo__name">OptiPlex 7010</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="ds-dialog__actions">
+        <button class="ds-btn ds-btn--text" type="button" data-close id="dialog-cancel">Cancel</button>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    'use strict';
+    // As docs/components.md shows: the trigger toggles its menu, ArrowDown
+    // and ArrowUp open it; the comboboxes open from their field and the
+    // chevron. Clicks on items are counted (window.activated) while the
+    // menu is still open.
+    window.activated = [];
+    document.querySelectorAll('[data-menu]').forEach(function (trigger) {
+      var menu = document.getElementById(trigger.getAttribute('aria-controls'));
+      trigger.addEventListener('click', function () {
+        if (trigger.getAttribute('aria-expanded') === 'true') DS.overlay.close(menu);
+        else DS.overlay.open(menu, { opener: trigger });
+      });
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+        event.preventDefault();
+        DS.overlay.open(menu, { opener: trigger });
+      });
+      menu.addEventListener('click', function (event) {
+        var item = event.target.closest('.ds-menu__item');
+        if (item) window.activated.push([item.id, menu.getAttribute('data-state')]);
+      });
+    });
+    document.querySelectorAll('[data-combo]').forEach(function (combo) {
+      var input = combo.querySelector('.ds-combo__input');
+      var popup = combo.querySelector('.ds-combo__popup');
+      var toggle = combo.querySelector('.ds-combo__toggle');
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowDown' && input.getAttribute('aria-expanded') !== 'true') DS.overlay.open(popup, { opener: input });
+      });
+      if (toggle) {
+        toggle.addEventListener('mousedown', function (event) { event.preventDefault(); });
+        toggle.addEventListener('click', function () {
+          if (input.getAttribute('aria-expanded') === 'true') DS.overlay.close(popup);
+          else { input.focus(); DS.overlay.open(popup, { opener: input }); }
+        });
+      }
+    });
+    document.getElementById('open-dialog').addEventListener('click', function (event) {
+      DS.overlay.open(document.getElementById('dialog'), { opener: event.currentTarget });
+    });
+    document.getElementById('toggle-presence').addEventListener('click', function () {
+      var note = document.getElementById('presence');
+      note.hidden = !note.hidden;
+    });
+  }());
+</script>
+</body>
+</html>

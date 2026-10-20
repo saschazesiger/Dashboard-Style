@@ -7,8 +7,8 @@ the tests in `test/`.
 
 - **Tinted backdrop, white panels.** The page, top bar and drawer sit on `--ds-backdrop` without lines or shadows;
   content lives on one white panel (the only scroller) and in white cards.
-- **Hairlines, not shadows.** Cards are outlined with `--ds-line`. Only floating layers (menus, dialogs, sheets,
-  snackbars) cast a shadow; a filled button lifts to level 1 on hover.
+- **Hairlines, not shadows.** Cards are outlined with `--ds-line`. Only floating layers (menus, the combobox list,
+  dialogs, sheets, snackbars) cast a shadow; a filled button lifts to level 1 on hover.
 - **One tint.** `--ds-primary` for the strongest action, focus, switches, progress and links; `--ds-accent` is the
   only tint (active navigation, selected chips, the tonal button, tracks). No extra accent colours; neutral notices
   use the quiet surface with a primary icon.
@@ -74,9 +74,10 @@ the tests in `test/`.
   labels, the keyboard and screen readers work as without CSS.
 - A busy button (`aria-busy`) and its done face change only what is seen: announce the result yourself (an
   `aria-live` region or a snackbar).
-- Forced colors (Windows contrast themes) drop backgrounds and shadows: floating layers carry a transparent outline
-  that becomes their edge, selects get their native arrow back, and the spinner, switch, progress and loading bar use
-  system colours. Keep these when you build your own floating layers.
+- Forced colors (Windows contrast themes) drop backgrounds and shadows: floating layers (dialogs, sheets, the modal
+  drawer, snackbars, tooltips, menus and the combobox list) carry a transparent outline that becomes their edge, a
+  selected option shows `SelectedItem`, selects get their native arrow back, and the spinner, switch, progress and
+  loading bar use system colours. Keep these when you build your own floating layers.
 - Hover effects only for devices that hover (`@media (hover: hover)`).
 - A skip link before the navigation; one `<h1>` per page that can take focus (`tabindex="-1"`) after a page change;
   no `<header>` inside dialogs or sheets (it would be a second banner landmark).

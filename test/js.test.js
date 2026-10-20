@@ -11,6 +11,7 @@ import * as motion from '../src/js/motion.js';
 import * as indicator from '../src/js/indicator.js';
 import * as dom from '../src/js/dom.js';
 import * as ripple from '../src/js/ripple.js';
+import * as overlay from '../src/js/overlay.js';
 import { filesIn, read } from './helpers.js';
 import { sample as curveSample, SPATIAL, springFunction } from '../scripts/motion-curves.mjs';
 
@@ -78,12 +79,55 @@ describe('icons', () => {
   });
 });
 
-describe('indicator, dom and ripple', () => {
+describe('indicator, dom, ripple and overlay', () => {
   it('exports the documented functions', () => {
     assert.equal(typeof indicator.createIndicator, 'function');
     assert.equal(typeof dom.morphHtml, 'function');
     assert.equal(typeof dom.morphChildren, 'function');
     assert.equal(typeof ripple.attach, 'function');
+    for (const name of ['open', 'close', 'toast', 'tooltips', 'lockScroll', 'unlockScroll']) assert.equal(typeof overlay[name], 'function', name);
+    // The fallbacks outside a theme (the timing itself comes from the tokens).
+    assert.deepEqual(
+      [overlay.TOAST_MS, overlay.TOAST_MAX_MS, overlay.TOAST_LIMIT, overlay.TOOLTIP_DELAY_MS, overlay.TOOLTIP_SKIP_MS, overlay.TOOLTIP_HIDE_MS],
+      [4000, 10000, 3, 500, 300, 100],
+    );
+  });
+
+  it('counts the scroll lock and keeps the room of a scrollbar that the lock removed', () => {
+    /** A page whose body scrollbar (`bar` px) goes while body.ds-no-scroll is set. */
+    function stubPage(bar, gutter) {
+      const classes = new Set();
+      const root = { style: { scrollbarGutter: '' }, get clientWidth() { return 1000 - (classes.has('ds-no-scroll') ? 0 : bar); } };
+      const body = { style: { paddingRight: '' }, classList: { add: (name) => classes.add(name), remove: (name) => classes.delete(name), contains: (name) => classes.has(name) } };
+      const view = { innerWidth: 1000, CSS: { supports: () => gutter }, getComputedStyle: () => ({ paddingRight: '8px' }) };
+      return { body, documentElement: root, defaultView: view };
+    }
+    const saved = Object.getOwnPropertyDescriptor(globalThis, 'document');
+    try {
+      for (const [bar, gutter, expected] of [[0, true, ['', '']], [15, true, ['stable', '']], [15, false, ['', '23px']]]) {
+        const doc = stubPage(bar, gutter);
+        Object.defineProperty(globalThis, 'document', { value: doc, configurable: true, writable: true });
+        const locked = () => doc.body.classList.contains('ds-no-scroll');
+        const room = () => [doc.documentElement.style.scrollbarGutter, doc.body.style.paddingRight];
+        overlay.lockScroll();
+        assert.equal(locked(), true);
+        assert.deepEqual(room(), expected, `bar ${bar}, gutter ${gutter}`);
+        overlay.lockScroll();
+        overlay.unlockScroll();
+        assert.equal(locked(), true, 'the class toggles only on 0 <-> 1');
+        overlay.unlockScroll();
+        assert.equal(locked(), false);
+        assert.deepEqual(room(), ['', '']);
+        overlay.unlockScroll();
+        overlay.lockScroll();
+        assert.equal(locked(), true, 'an unbalanced unlock never goes below 0');
+        overlay.unlockScroll();
+        assert.equal(locked(), false);
+      }
+    } finally {
+      if (saved) Object.defineProperty(globalThis, 'document', saved);
+      else delete globalThis.document;
+    }
   });
 
   it('morphChildren keeps equal nodes and only inserts or removes what changed', () => {
@@ -974,7 +1018,7 @@ describe('classic-script build (dist/ds.js)', () => {
     runInNewContext(read('dist/ds.js'), sandbox);
     const DS = sandbox.DS;
     assert.equal(DS.version, JSON.parse(read('package.json')).version);
-    for (const [name, module] of Object.entries({ motion, indicator, dom, ripple, icons })) {
+    for (const [name, module] of Object.entries({ motion, indicator, dom, ripple, icons, overlay })) {
       assert.deepEqual(Object.keys(DS[name]).sort(), Object.keys(module).sort(), name);
     }
     assert.equal(DS.icons.icon(DS.icons.plus, 16), icons.icon(icons.plus, 16));
@@ -1066,6 +1110,12 @@ describe('timing in src/js', () => {
       ['src/js/motion.js: DEFAULT_TIMEOUT_MS = 1000', 'settled() without getAnimations(), stretched by --ds-time-scale'],
       ['src/js/motion.js: CEILING_MARGIN_MS = 100', 'the margin behind a derived ceiling, not a motion'],
       ['src/js/motion.js: hold ?? 2000', 'the canonical default of flip() (D7)'],
+      ['src/js/overlay.js: TOAST_MS = 4000', 'the snackbar fallback outside a theme, stretched by --ds-time-scale'],
+      ['src/js/overlay.js: TOAST_MAX_MS = 10000', 'the cap of the snackbar fallback'],
+      ['src/js/overlay.js: TOAST_CHAR_MS = 50', 'reading time per character of a long snackbar, stretched by --ds-time-scale'],
+      ['src/js/overlay.js: TOOLTIP_DELAY_MS = 500', 'mirrors --ds-delay-tooltip (fallback outside a theme)'],
+      ['src/js/overlay.js: TOOLTIP_SKIP_MS = 300', 'mirrors --ds-delay-tooltip-skip (fallback outside a theme)'],
+      ['src/js/overlay.js: TOOLTIP_HIDE_MS = 100', 'mirrors --ds-delay-tooltip-hide (fallback outside a theme)'],
     ]);
     const found = [];
     for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {

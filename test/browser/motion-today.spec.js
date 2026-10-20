@@ -221,10 +221,10 @@ test.describe('overlays', () => {
 
   test('the tooltip shows and hides', async ({ page }) => {
     await open(page, STYLEGUIDE);
-    // The demo shows the tooltip 500ms after mouseover: pause the page in
-    // the task that unhides it.
+    // DS.overlay.tooltips() shows it --ds-delay-tooltip after a mouse rests
+    // on the trigger: pause the page in the task that unhides it.
     await page.evaluate(() => new Promise((resolve) => {
-      const tip = document.getElementById('sg-tooltip');
+      const tip = document.querySelector('.ds-tooltip[role="tooltip"]');
       const observer = new MutationObserver(() => {
         if (tip.hidden) return;
         observer.disconnect();
@@ -232,14 +232,26 @@ test.describe('overlays', () => {
         resolve();
       });
       observer.observe(tip, { attributes: true, attributeFilter: ['hidden'] });
-      document.querySelector('#overlays [data-tip]').dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      document.querySelector('#overlays [data-tip]').dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
     }));
-    const tip = page.locator('#sg-tooltip');
+    const tip = page.locator('.ds-tooltip[role="tooltip"]');
     await expectTimeline(tip, 'tooltip-show');
     await resume(page);
     await settle(page);
-    await act(page, (selector) => document.querySelector(selector).dispatchEvent(new MouseEvent('mouseout', { bubbles: true })), '#overlays [data-tip]');
+    // Escape hides it at once (leaving the trigger waits the hoverable grace).
+    await act(page, () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
     await expectTimeline(tip, 'tooltip-hide');
+  });
+
+  test('the combobox list opens and closes', async ({ page }) => {
+    await open(page, STYLEGUIDE);
+    const popup = page.locator('#selection .ds-combo__popup');
+    await act(page, click, '#selection .ds-combo__toggle');
+    await expectTimeline(popup, 'combobox-open');
+    await resume(page);
+    await settle(page);
+    await act(page, () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
+    await expectTimeline(popup, 'combobox-close');
   });
 });
 

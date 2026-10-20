@@ -139,6 +139,95 @@ test('dialog: the dialog opens and closes', async ({ page }) => {
   await expect(dialog).toHaveCount(0, { timeout: SETTLE.timeout });
 });
 
+test('dialog-div: the dialog in div markup opens on Cancel and closes', async ({ page }) => {
+  await press(page.locator('[data-sg="dialog-div"]'));
+  const dialog = page.locator('body > .ds-dialog');
+  await expect(dialog).toHaveCount(1);
+  await expect(page.locator('body > .ds-dialog .ds-dialog__actions [data-close]').first()).toBeFocused();
+  await settle(page, SETTLE);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0, { timeout: SETTLE.timeout });
+  await expect(page.locator('[data-sg="dialog-div"]')).toBeFocused();
+});
+
+test('dialog-combo: the list at the bottom of a dialog opens, Escape closes it first', async ({ page }) => {
+  await press(page.locator('[data-sg="dialog-combo"]'));
+  const dialog = page.locator('body > .ds-dialog');
+  await settle(page, SETTLE);
+  await dialog.locator('.ds-combo__input').focus();
+  await page.keyboard.press('ArrowDown');
+  const popup = dialog.locator('.ds-combo__popup');
+  await expect(popup).toHaveAttribute('data-state', 'open');
+  await settle(page, SETTLE);
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(popup).toBeHidden({ timeout: SETTLE.timeout });
+  await expect(dialog.locator('.ds-combo__input')).toHaveValue('Latitude 5430');
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0, { timeout: SETTLE.timeout });
+});
+
+test('dialog-nested: a dialog over the side sheet takes the nested scrim; Escape closes one at a time', async ({ page }) => {
+  await press(page.locator('[data-sg="sheet"]'));
+  const sheet = page.locator('body > .ds-sheet');
+  await settle(page, SETTLE);
+  await sheet.locator('[data-sg="dialog-nested"]').click();
+  // Over the native sheet the native dialog sits inside it while it shows (its exit then stays above the panel).
+  const dialog = page.locator('#sg-dialog-nested');
+  await expect(dialog).toHaveClass(/ds-dialog--nested/);
+  await expect(sheet.locator('#sg-dialog-nested')).toHaveCount(1);
+  await settle(page, SETTLE);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0, { timeout: SETTLE.timeout });
+  await expect(sheet).toHaveCount(1);
+  await expect(sheet.locator('[data-sg="dialog-nested"]')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0, { timeout: SETTLE.timeout });
+});
+
+test('toast-many: four messages, never more than three, the error stays', async ({ page }) => {
+  await press(page.locator('[data-sg="toast-many"]'));
+  const toasts = page.locator('#sg-toasts > .ds-toast:not(.ds-leave)');
+  await expect(page.locator('#sg-toasts > .ds-toast').filter({ hasText: 'Exported the list as CSV.' })).toHaveCount(1, { timeout: SETTLE.timeout });
+  await settle(page, SETTLE);
+  await expect(toasts).toHaveCount(3);
+  await expect(toasts.filter({ hasText: 'Imported 128 devices.' })).toHaveCount(0);
+  await expect(page.locator('#sg-toasts > .ds-toast--error')).toHaveCount(1);
+});
+
+test('menu: the overflow menu opens from its button, an item says what it did', async ({ page }) => {
+  const trigger = page.locator('[data-sg-menu]');
+  await press(trigger);
+  const menu = page.locator('#sg-menu');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await settle(page, SETTLE);
+  await menu.getByRole('menuitem', { name: 'Duplicate' }).click();
+  await expect(menu).toBeHidden({ timeout: SETTLE.timeout });
+  await expect(page.locator('#sg-toasts > .ds-toast').filter({ hasText: 'Duplicated' })).toHaveCount(1);
+});
+
+test('presence: the popover fades in and closes on Escape', async ({ page }) => {
+  await press(page.locator('[popovertarget="sg-presence"]'));
+  await expect(page.locator('#sg-presence')).toBeVisible();
+  await settle(page, SETTLE);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#sg-presence')).toBeHidden({ timeout: SETTLE.timeout });
+});
+
+test('combo: typing filters the list, the chevron opens and closes it', async ({ page }) => {
+  const input = page.locator('#f-combo');
+  await press(input);
+  await page.keyboard.type('lat');
+  const popup = page.locator('#selection .ds-combo__popup');
+  await expect(popup).toHaveAttribute('data-state', 'open');
+  await expect(page.locator('#selection .ds-combo__status')).toHaveText('3 of 6 models');
+  await settle(page, SETTLE);
+  await page.locator('#selection .ds-combo__toggle').click();
+  await expect(input).toHaveAttribute('aria-expanded', 'false');
+  await expect(popup).toBeHidden({ timeout: SETTLE.timeout });
+});
+
 test('progress: the bar advances', async ({ page }) => {
   const label = page.locator('#sg-progress .ds-progress__label');
   await expect(label).toHaveText('40%');

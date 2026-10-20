@@ -187,21 +187,29 @@ export function seek(page, time) {
 /**
  * Freezes the page, seeks to each of `times` (ms or `{ progress }`) and
  * reads the requested keys of the element (or of `pseudo`, e.g. '::before').
+ * One evaluate does the whole list (freeze, then seek and read per time, as
+ * freeze() and seek() do), so a long list costs one round trip, and no
+ * event or frame of the page runs between two samples.
  * @returns {Promise<Array<Record<string, number>>>} one entry per time, with `time`
  */
-export async function sample(locator, props, times, { pseudo } = {}) {
-  const page = locator.page();
-  await freeze(page);
-  const out = [];
-  for (const time of times) {
-    await seek(page, time);
-    const values = await locator.evaluate((el, args) => {
-      const read = new Function(`return (${args.source})`)();
-      return read(el, args.props, args.pseudo);
-    }, { source: READ_SOURCE, props, pseudo: pseudo || null });
-    out.push({ time: typeof time === 'number' ? time : time.progress, ...values });
-  }
-  return out;
+export function sample(locator, props, times, { pseudo } = {}) {
+  return locator.evaluate((el, args) => {
+    const read = new Function(`return (${args.source})`)();
+    for (const animation of document.getAnimations()) animation.pause();
+    return args.times.map((at) => {
+      for (const animation of document.getAnimations()) {
+        if (typeof at === 'number') {
+          animation.currentTime = at;
+        } else {
+          const computed = animation.effect.getComputedTiming();
+          const delay = animation.effect.getTiming().delay || 0;
+          const iterations = Number.isFinite(computed.iterations) ? computed.iterations : 1;
+          animation.currentTime = delay + at.progress * Number(computed.duration) * iterations;
+        }
+      }
+      return { time: typeof at === 'number' ? at : at.progress, ...read(el, args.props, args.pseudo) };
+    });
+  }, { source: READ_SOURCE, props, pseudo: pseudo || null, times });
 }
 
 /**
@@ -229,7 +237,8 @@ export function rafSample(locator, props, ms, { pseudo } = {}) {
 /**
  * Waits until every finite animation of the document has finished
  * (Promise.allSettled of their `finished` promises, repeated while new ones
- * start); infinite loops are ignored. Rejects after `timeout` and names
+ * start, and one frame more once none runs, so computed styles are fresh);
+ * infinite loops are ignored. Rejects after `timeout` and names
  * what still runs, so a test never measures a half-played state.
  */
 export async function settle(page, { timeout = 3000 } = {}) {
@@ -239,9 +248,16 @@ export async function settle(page, { timeout = 3000 } = {}) {
       const iterations = animation.effect && animation.effect.getComputedTiming().iterations;
       return Number.isFinite(iterations) && animation.playState !== 'finished' && animation.playState !== 'idle';
     });
+    const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
     for (;;) {
-      const list = running();
-      if (!list.length) return [];
+      let list = running();
+      if (!list.length) {
+        // One frame more, so an engine that just ended a transition has
+        // refreshed its computed style (and nothing new started meanwhile).
+        await frame();
+        list = running();
+        if (!list.length) return [];
+      }
       if (performance.now() >= deadline) {
         return list.map((a) => `${a.animationName || a.transitionProperty || a.id || 'script'} (${a.playState})`);
       }
@@ -251,7 +267,7 @@ export async function settle(page, { timeout = 3000 } = {}) {
         new Promise((resolve) => setTimeout(resolve, left)),
       ]);
       // One frame for animations the finished ones hand over to.
-      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+      await frame();
     }
   }, timeout);
   if (pending.length) throw new Error(`Animations did not settle within ${timeout}ms: ${pending.join(', ')}`);

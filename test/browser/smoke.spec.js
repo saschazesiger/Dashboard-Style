@@ -56,7 +56,7 @@ test('the styleguide reaches data-sg-ready without a console error and runs this
 
 test('every fixture loads without a console error', async ({ page }) => {
   const errors = collectErrors(page);
-  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'module', 'reset', 'reset-layered', 'spike']) {
+  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'overlay', 'module', 'reset', 'reset-layered', 'spike']) {
     await page.goto(`${FIXTURES}${name}.html`);
     // module.html has no fixture.js: it reports through window.moduleResult.
     if (name === 'module') await page.waitForFunction(() => window.moduleResult);
@@ -65,12 +65,12 @@ test('every fixture loads without a console error', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('module.html imports the five ES modules and they export what window.DS exposes', async ({ page }) => {
+test('module.html imports the six ES modules and they export what window.DS exposes', async ({ page }) => {
   await page.goto(`${FIXTURES}module.html`);
   const result = await page.waitForFunction(() => window.moduleResult).then((handle) => handle.jsonValue());
   expect(result.error).toBeUndefined();
   expect(result.missing).toEqual({});
-  expect(Object.keys(result.modules).sort()).toEqual(['dom', 'icons', 'indicator', 'motion', 'ripple']);
+  expect(Object.keys(result.modules).sort()).toEqual(['dom', 'icons', 'indicator', 'motion', 'overlay', 'ripple']);
   expect(result.ok).toBe(true);
 });
 

@@ -115,7 +115,6 @@ test.describe('fixed in P2', () => {
 
 test.describe('fixed in P5', () => {
   test('after Escape or Cancel, focus is back on the opener within one frame', async ({ page }) => {
-    test.fail(true, 'overlay-focus-during-exit: fixed in P5');
     await open(page);
     const opener = page.locator('[data-sg="dialog"]');
     for (const how of ['Escape', 'Cancel']) {
@@ -124,7 +123,8 @@ test.describe('fixed in P5', () => {
       await expect(pageDialog(page)).toBeVisible();
       await settle(page);
       // Two frames after the key or the click, wherever focus is then. The
-      // listener on window runs after the page's own handlers and holds the
+      // listener on window runs after the page's own handlers (DS.overlay
+      // takes Escape on the document in the bubble phase) and holds the
       // dialog's exit until focus is read, so the read always falls inside
       // the exit, however long the frames take.
       await page.evaluate((type) => {
@@ -153,7 +153,6 @@ test.describe('fixed in P5', () => {
   });
 
   test('tabbing from one [data-tip] button to the next keeps the tooltip shown', async ({ page }) => {
-    test.fail(true, 'overlay-tooltip-demo-interrupt, js-tooltip-refocus: fixed in P5');
     await open(page);
     // One Tab from the control before it, so no other tooltip is still leaving.
     const settings = page.locator('[data-tip="Settings"]').first();
@@ -173,7 +172,6 @@ test.describe('fixed in P5', () => {
   });
 
   test('moving the pointer onto the icon inside a tooltip button keeps the tooltip', async ({ page }) => {
-    test.fail(true, 'js-tooltip-mouseout-child: fixed in P5');
     await open(page);
     const button = page.locator('[data-tip="Settings"]').first();
     await button.scrollIntoViewIfNeeded();
@@ -190,7 +188,6 @@ test.describe('fixed in P5', () => {
   });
 
   test('closing an error snackbar does not drop focus to the page body', async ({ page }) => {
-    test.fail(true, 'overlay-toast-close-focus-loss: fixed in P5');
     await open(page);
     await page.locator('[data-sg="toast-error"]').click();
     const close = page.locator('.ds-toast--error:not(.sg-toast-demo)').getByRole('button', { name: 'Close' });
@@ -205,12 +202,12 @@ test.describe('fixed in P5', () => {
   });
 
   test('reopening a closing dialog continues from its current opacity', async ({ page }) => {
-    test.fail(true, 'overlay-keyframes-not-interruptible: fixed in P5');
     await open(page);
     await page.locator('[data-sg="dialog"]').click();
     await expect(pageDialog(page)).toBeVisible();
     await settle(page);
-    // Cancel, hold the exit 40 % of the way through, open the dialog again
+    // Cancel, hold the exit 25 % of the way through (the fade runs on the
+    // standard curve, which has done most of its way by 40 %), open the dialog again
     // and read the shown box's opacity before and after, all in one task:
     // no frame timing decides what is measured.
     const reopen = await page.evaluate(() => {
@@ -222,7 +219,7 @@ test.describe('fixed in P5', () => {
       for (const animation of exit) {
         animation.pause();
         const delay = animation.effect.getTiming().delay || 0;
-        animation.currentTime = delay + 0.4 * Number(animation.effect.getComputedTiming().duration);
+        animation.currentTime = delay + 0.25 * Number(animation.effect.getComputedTiming().duration);
       }
       const before = Number(getComputedStyle(box).opacity);
       document.querySelector('[data-sg="dialog"]').click();

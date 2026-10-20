@@ -3,21 +3,35 @@
  * the bottom left of the content panel. Icon and text, never colour alone.
  * Place the region right after .ds-app: next to a persistent drawer it
  * then starts at the panel's edge by itself.
- * Enters with a fade and a short rise, leaves with a quick fade (add
- * .ds-leave, see motion.css).
+ * Enters with a fade and a short rise on the spatial spring, leaves with a
+ * quick fade in place while the messages around it close the gap.
  *
- *   <div class="ds-toasts" role="status" aria-live="polite">
- *     <div class="ds-toast [ds-toast--error]">
- *       <svg ...>(checkCircle, 20)</svg>
- *       <span class="ds-toast__text">Saved.</span>
- *       <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">(close)</button>
+ *   <div class="ds-toasts"></div>
+ *   DS.overlay.toast(region, 'Saved.');                      // or { kind: 'error' }, { persistent: true }
+ *
+ *   <div class="ds-toast [ds-toast--error | ds-toast--info]">  what toast() builds from a string
+ *     <svg ...>(checkCircle | alertCircle, 20)</svg>
+ *     <span class="ds-toast__text">Saved.</span>
+ *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">(close)</button>
+ *
+ * DS.overlay.toast() (js/overlay.js) stacks at most three with FLIP, evicts
+ * the oldest message that would close by itself or queues one behind three
+ * that stay, pauses the timers on hover, focus and a hidden tab, announces
+ * the text through two .ds-sr live regions next to the region (the region
+ * and the messages are not live, so their buttons stay reachable), keeps
+ * focus off <body> when a focused message leaves, and moves the region
+ * into an open dialog (in place) or side sheet (with the panel's edge,
+ * data-follow), so messages stay above its scrim and usable.
+ * Deprecated: the region with role="status" aria-live="polite" and
+ * role="alert" on error messages (toast() then adds no announcers), and
+ * the hand recipe of --ds-toast-shift below.
  *
  * Runtime properties a page may set: --ds-toast-left (the region's left
  * edge; set it when the panel starts elsewhere), --ds-toast-bottom (its
  * distance from the bottom edge; set it to stay above a bar pinned there),
  * --ds-toast-shift and --ds-toast-shift-y (glide it from where it stood
- * when it moves, e.g. between the page and a side sheet), and
- * --ds-toast-reserve (room kept for an open message, with
+ * when it moves; deprecated for side sheets, which toast() follows by
+ * itself), and --ds-toast-reserve (room kept for an open message, with
  * data-toast-reserve on .ds-view or .ds-sheet__body).
  */
 
@@ -34,6 +48,9 @@
     z-index: var(--ds-z-toast);
     display: grid;
     justify-items: start;
+    /* The stack keeps to the bottom edge: while a leaving message holds the
+       region's height (DS.motion.flip()), the others stay where they are. */
+    align-content: end;
     gap: var(--ds-space-2);
     max-width: min(560px, calc(100vw - var(--ds-toast-left, var(--ds-space-6)) - var(--ds-space-6)));
     pointer-events: none;
@@ -42,6 +59,18 @@
        one style flush). */
     translate: var(--ds-toast-shift, 0px) var(--ds-toast-shift-y, 0px);
     transition: translate var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
+
+  /* Following a side sheet (DS.overlay.open / close): the messages arrive
+     with the panel's edge, on the sheet's own timing. */
+  .ds-toasts[data-follow="enter"] {
+    transition-duration: var(--ds-dur-long);
+    transition-timing-function: var(--ds-ease-spatial);
+  }
+
+  .ds-toasts[data-follow="exit"] {
+    transition-duration: var(--ds-dur-base);
+    transition-timing-function: var(--ds-ease-exit);
   }
 
   /* Beside the persistent drawer (above 900px, shell.css): the panel's
@@ -71,12 +100,13 @@
     --ds-leave-duration: var(--ds-dur-fast);
     animation:
       ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
-      ds-lift-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
+      ds-lift-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
   }
 
-  /* Played once (mark it .ds-toast--shown): moving the region into or out
-     of a side sheet re-inserts the message, which would restart it, so a
-     message already on screen would blink out and rise again. enter() and
+  /* Played once (mark it .ds-toast--shown; toast() does after the
+     entrance): moving the region into or out of a side sheet re-inserts
+     the message where moveBefore() is missing, which would restart it, so
+     a message already on screen would blink out and rise again. enter() and
      .ds-leave still play: the motion utilities sit in the ds.utilities
      layer, which beats this rule whatever its specificity. */
   .ds-toast--shown:not(.ds-leave) {

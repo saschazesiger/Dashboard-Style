@@ -5,9 +5,9 @@ Everything a project needs is in `dist/`:
 | Path | What |
 |---|---|
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
-| `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, ripple, icons }` (see "Two copies on one page") |
+| `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, ripple, icons, overlay }` (see "Two copies on one page") |
 | `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
-| `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`) |
+| `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |

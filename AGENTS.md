@@ -37,7 +37,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `src/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
 | `src/components/*.css` | one file per component; the header comment sketches markup, modifiers, hooks and "Progressive:" features |
 | `src/index.css` | the layer order statement, then the `@import` list = cascade order of `ds.css`; every stylesheet must be listed |
-| `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `ripple`, `icons`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
+| `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `ripple`, `icons`, `overlay`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
 | `styleguide/` | living styleguide on top of `dist/` (`styleguide.js` holds the demos and the component count tile) |
@@ -119,12 +119,22 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   (inset rings: 0) and only `outline-offset` transitions, on `--ds-dur-fast` (never a keyframe, never its colour or
   width), with the focus layer (`--ds-state-focus`) at once. The switch handle is the only thing that scales on
   press (never above 1). Disabled is one model: `--ds-disabled-*`, faded on `--ds-dur-fast`.
+- **Overlays.** Dialogs, side sheets, the modal drawer, menus, the combobox list, tooltips and snackbars open and
+  close through `DS.overlay` (`open`, `close`, `tooltips`, `toast`) or follow its contract (docs/motion.md). The
+  overlay lives inside `.ds-theme`. During the exit only the box or panel is inert; the backdrop keeps catching
+  pointer input, so nothing reaches the page through it. Focus returns to the opener as soon as the close starts.
+  Escape closes only the top layer, after the page's own handlers (bubble phase: `preventDefault()` keeps it open).
+  Snackbars stay above every modal, usable and announced. The scroll lock is reference-counted (`lockScroll` /
+  `unlockScroll`). Motion is state-driven: transitions keyed on `data-state` reverse from the current value;
+  keyframes only on `:not([data-state])` (the hand path).
 - **Every action is a pill** (`--ds-radius-action`). One filled button per area, no red buttons. Inline text links
   (`.ds-link-btn`, links in text) are the exception to ripple and morph.
 - **Status never by colour alone**: icon and word on status chips and alerts, a check on selected chips, the
   label weight or `aria-*` on active items.
-- **Forced colors** (`@media (forced-colors: active)`): floating layers keep a transparent outline that becomes
-  their edge, selects get their native arrow back, spinner, switch, progress and loading bar use system colours.
+- **Forced colors** (`@media (forced-colors: active)`): floating layers (dialogs, sheets, the modal drawer,
+  snackbars, tooltips, menus and the combobox list) keep a transparent outline or border that becomes their edge,
+  selected options show `SelectedItem` / `SelectedItemText`, selects get their native arrow back, spinner, switch,
+  progress and loading bar use system colours.
 - **Accessibility**: text roles pass WCAG AA (the default palette is tested), field text 16px on phones
   (`--ds-font-input`), labels above fields, icons `aria-hidden`.
 
@@ -186,8 +196,11 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
 ## Design system: Dashboard-Style
 
 - The UI is built on [Dashboard-Style](https://github.com/saschazesiger/Dashboard-Style), vendored in `<dest>`
-  (tokens `--ds-*`, components `.ds-*`, `DS.motion`, `DS.indicator`, `DS.dom`, `DS.ripple`, `DS.icons`). Call
-  `DS.ripple.attach(document)` once at start-up: every action gets the pointer ripple.
+  (tokens `--ds-*`, components `.ds-*`, `DS.motion`, `DS.indicator`, `DS.dom`, `DS.ripple`, `DS.icons`,
+  `DS.overlay`). Call `DS.ripple.attach(document)` once at start-up: every action gets the pointer ripple. Open and
+  close dialogs, side sheets, the modal drawer, menus and the combobox list with `DS.overlay.open(el, { opener })` /
+  `DS.overlay.close(el)`, show snackbars with `DS.overlay.toast(region, text)` and tooltips with one
+  `DS.overlay.tooltips(document)`; every overlay sits inside the `.ds-theme` element.
 - Never edit `<dest>`: it is checksummed (`<dest>/SHA256SUMS`, checked by `<check command>`) and replaced by the
   nightly `.github/workflows/update-dashboard-style.yml` (by hand: `<update command>`). A fix or a component every
   dashboard could use goes to Dashboard-Style itself (project-neutral, English), then the copy is updated.
@@ -200,7 +213,8 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   for which need" and the markup of every component are in
   https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md; for live examples clone the
   repository and open `styleguide/index.html` (works from disk). Copy the documented markup and attributes
-  exactly; behaviour (opening, closing, filtering) is the project's own script.
+  exactly; behaviour (wiring the triggers, filtering, choosing) is the project's own script, and opening and
+  closing go through `DS.overlay`.
 - Theme only through tokens in `<theme file>`, on `.ds-theme`, loaded after `ds.css`: roles (`--ds-primary`,
   `--ds-accent`, `--ds-font` ...), component hooks (`--ds-btn-*`, `--ds-card-*` ...), the project's own
   `--<prefix>-*` tokens and `@font-face`. Never set motion tokens or hooks (`--ds-dur-*`, `--ds-ease-*`,

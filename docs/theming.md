@@ -114,7 +114,10 @@ zoom into smaller text. `--ds-input-font` forces one role everywhere:
 **Embedded in someone else's page.** Put `ds-theme` on your root element instead of `<html>`, leave out `ds-base`,
 and use `.ds-dialog--contained` for dialogs that should cover only your panel. Every token and rule is scoped to
 `.ds-` classes, so a page without Dashboard-Style is not affected. Inside `.ds-theme` every element is
-`box-sizing: border-box` (zero specificity, so your own sizing rules still win).
+`box-sizing: border-box` (zero specificity, so your own sizing rules still win). Overlays (dialogs, side sheets,
+snackbar regions, tooltips, menus) must sit inside the `.ds-theme` element too, not at the end of the host's
+`<body>`: outside it they get neither the tokens nor the motion. `DS.overlay` warns once in the console when it opens
+an overlay outside `.ds-theme` (and `tooltips()` when its root has none).
 
 The host page may use Dashboard-Style itself (`<html class="ds-theme">`), possibly another version or theme. Then
 both copies share their selectors, and `tokens.css` on bare `.ds-theme` would reset the host's theme to your
@@ -169,12 +172,14 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-dialog-width` | 400px | dialog |
 | `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
 | `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
+| `--ds-dialog-scrim` | `--ds-scrim` | the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested` |
 | `--ds-sheet-width`, `--ds-sheet-width-wide` | 560px, 720px | side sheet |
 
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not
 set it. Runtime properties (set by scripts, not themes) are documented with their components: `--ds-progress`
 ([progress](components.md#progress)), `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`,
-`--ds-toast-shift-y`, `--ds-toast-reserve` ([snackbar](components.md#snackbar)), `--ds-i`, the indicator's box
+`--ds-toast-shift-y`, `--ds-toast-reserve` ([snackbar](components.md#snackbar)), `--ds-tooltip-x`, `--ds-tooltip-y`
+([tooltip](components.md#tooltip)), `--ds-menu-x`, `--ds-menu-y` ([menu](components.md#menu)), `--ds-i`, the indicator's box
 (`--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h`), its clip edges (`--ds-indicator-t`,
 `--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l`) and its travel time on the track (`--ds-indicator-dur`)
 ([motion](motion.md#dsindicator-jsindicatorjs)), and `--ds-drawer-icon-axis` (set by `.ds-app--drawer`, aligns the

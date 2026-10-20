@@ -115,7 +115,7 @@ const FOCUS_EXEMPT = [
 ];
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
-const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-indicator-dur', '--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-chips-backdrop']);
+const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-indicator-dur', '--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-tooltip-x', '--ds-tooltip-y', '--ds-menu-x', '--ds-menu-y', '--ds-chips-backdrop']);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
@@ -125,6 +125,10 @@ const DEPRECATED_EXITS = ['ds-sink-out', 'ds-scale-out', 'ds-slide-out'];
 const LOOPS = ['ds-spin', 'ds-pulse', 'ds-indeterminate'];
 /** Keyframes that may rotate: spinners (P3 to P6 add loaders, chevrons and icon swaps). */
 const ROTATE = ['ds-spin'];
+/** Selectors whose transition may animate `rotate`, each with its reason (the named exceptions of the animate list). */
+const ROTATE_TRANSITIONS = new Map([
+  ['.ds-combo__toggle svg', 'disclosure chevrons: the combobox chevron turns 180deg with its list (D25)'],
+]);
 /** Keyframes that may name both ends, each with its reason; every other one is from-only, or to-only for ds-*-out. */
 const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-clip-in', 'clip-path does not interpolate to none, so both ends are named'],
@@ -135,8 +139,14 @@ const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-scan', 'a loop: the band travels from above the frame to below it'],
   ['ds-ripple', 'a ring that grows and fades from a set start (--ds-ripple-opacity)'],
 ]);
-/** Movement exits that may run without ds-fade-out (selector → reason). P5 adds the opaque side sheet panel (D16). */
-const EXIT_UNPAIRED = new Map();
+/**
+ * Movement exits that may run without ds-fade-out (selector → reason). Each
+ * rule must set --ds-motion-distance: var(--ds-distance-sheet) itself: only
+ * a full-distance slide leaves the screen without a fade.
+ */
+const EXIT_UNPAIRED = new Map([
+  ['.ds-sheet--closing:not([data-state]) .ds-sheet__panel', 'the opaque side sheet panel slides its full width off screen (D16); phones: down'],
+]);
 
 /** Properties every transition and keyframe may animate (plus the registered --ds-* properties). */
 const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color', 'background-color', 'border-color', 'outline-color',
@@ -234,11 +244,16 @@ const RATIOS = [
   ['--scale', [[M, '.ds-enter--scale', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--scale', ['--ds-leave-duration']], LEAVE_BASE]],
   ['--slide', [[M, '.ds-enter--slide', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--slide', ['--ds-leave-duration']], LEAVE_BASE]],
   ['--pop', [[M, '.ds-enter--pop', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--pop', ['--ds-leave-duration']], LEAVE_BASE]],
-  ['dialog', [['src/components/dialog.css', '.ds-dialog__box', ['animation']]], [['src/components/dialog.css', '.ds-dialog--closing .ds-dialog__box', ['animation']]]],
-  ['side sheet', [['src/components/sheet.css', '.ds-sheet__panel', ['animation']]], [['src/components/sheet.css', '.ds-sheet--closing .ds-sheet__panel', ['animation']]]],
+  ['dialog', [['src/components/dialog.css', '.ds-dialog[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['dialog (keyframes)', [['src/components/dialog.css', '.ds-dialog:not([data-state]) .ds-dialog__box', ['animation']]], [['src/components/dialog.css', '.ds-dialog--closing:not([data-state]) .ds-dialog__box', ['animation']]]],
+  ['side sheet', [['src/components/sheet.css', '.ds-sheet[data-state] .ds-sheet__panel', ['transition']]], [['src/components/sheet.css', '.ds-sheet[data-state="closed"] .ds-sheet__panel', ['transition']]]],
+  ['side sheet (keyframes)', [['src/components/sheet.css', '.ds-sheet:not([data-state]) .ds-sheet__panel', ['animation']]], [['src/components/sheet.css', '.ds-sheet--closing:not([data-state]) .ds-sheet__panel', ['animation']]]],
   ['modal drawer', [['src/components/shell.css', '.ds-app[data-drawer-open] .ds-drawer', ['transition']]], [['src/components/shell.css', '.ds-drawer', ['transition']]]],
   ['snackbar', [['src/components/toast.css', '.ds-toast', ['animation']]], [['src/components/toast.css', '.ds-toast', ['--ds-leave-duration']]]],
-  ['tooltip', [['src/components/tooltip.css', '.ds-tooltip', ['animation']]], [['src/components/tooltip.css', '.ds-tooltip', ['--ds-leave-duration']]]],
+  ['tooltip', [['src/components/tooltip.css', '.ds-tooltip[data-state]', ['transition']]], [['src/components/tooltip.css', '.ds-tooltip[data-state="closed"]', ['transition']]]],
+  ['tooltip (keyframes)', [['src/components/tooltip.css', '.ds-tooltip:not([data-state])', ['animation']]], [['src/components/tooltip.css', '.ds-tooltip:not([data-state])', ['--ds-leave-duration']]]],
+  ['combobox list', [['src/components/combobox.css', '.ds-combo__popup[data-state]', ['transition']]], [['src/components/combobox.css', '.ds-combo__popup[data-state="closed"]', ['transition']]]],
+  ['menu', [['src/components/menu.css', '.ds-menu[data-state]', ['transition']]], [['src/components/menu.css', '.ds-menu[data-state="closed"]', ['transition']]]],
 ];
 /**
  * The control marks of 1.1.0: what leaves takes 0.4-0.67 of what enters
@@ -446,7 +461,9 @@ describe('motion in CSS', () => {
           else if (property === 'animation-name' || property === '--ds-leave-keyframes') names = splitSelectors(fallbackOf(value));
           else continue;
           const moves = names.filter((name) => /^ds-[\w-]+-out$/.test(name) && name !== 'ds-fade-out');
-          if (moves.length && !names.includes('ds-fade-out') && !EXIT_UNPAIRED.has(selector)) offenders.push(`${file}: ${selector}: ${moves.join(', ')} without ds-fade-out`);
+          if (!moves.length || names.includes('ds-fade-out')) continue;
+          if (!EXIT_UNPAIRED.has(selector)) offenders.push(`${file}: ${selector}: ${moves.join(', ')} without ds-fade-out`);
+          else if (!/(^|;\s*)--ds-motion-distance:\s*var\(--ds-distance-sheet\)/.test(body)) offenders.push(`${file}: ${selector}: an unpaired exit must travel --ds-distance-sheet`);
         }
       }
     }
@@ -470,7 +487,7 @@ describe('motion in CSS', () => {
     }
     // The table reads what the docs promise.
     assert.deepEqual(RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
-      ['250/150', '250/200', '350/200', '250/150', '250/150', '350/200', '450/200', '250/150', '150/100']);
+      ['250/150', '250/200', '350/200', '250/150', '350/200', '250/200', '450/200', '450/200', '450/200', '250/150', '250/100', '150/100', '250/100', '250/100']);
     for (const [name, entrance, exit] of CONTROL_RATIOS) {
       const enter = resolveDuration(entrance);
       const leave = resolveDuration(exit);
@@ -541,7 +558,9 @@ describe('motion in CSS', () => {
             else if (/^(visibility|display|content-visibility|overlay)$/.test(animated)) {
               // A discrete property flips: as a 0ms step, or with allow-discrete.
               if (!(entry.times[0] === 0 || entry.words.includes('allow-discrete'))) offenders.push(`${file}: ${selector}: ${animated} must step`);
-            } else if (animated === 'rotate') offenders.push(`${file}: ${selector}: rotate only in the ROTATE keyframes`);
+            } else if (animated === 'rotate') {
+              if (!ROTATE_TRANSITIONS.has(selector)) offenders.push(`${file}: ${selector}: rotate only in the ROTATE keyframes and ROTATE_TRANSITIONS`);
+            }
             else if (!allowed(selector, animated)) offenders.push(`${file}: ${selector}: ${animated}`);
           }
         }
@@ -739,10 +758,10 @@ describe('CSS for the baseline', () => {
     assert.doesNotMatch(utilities, /@keyframes/);
     assert.deepEqual(rules(motion).filter((rule) => !/^(from|to|\d+%)$/.test(rule.selector)), []);
     const selectors = rules(utilities).flatMap((rule) => splitSelectors(rule.selector));
-    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible', '.ds-swap', '.ds-icon-swap']) {
+    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible', '.ds-swap', '.ds-icon-swap', '.ds-presence']) {
       assert.ok(selectors.includes(utility), utility);
     }
-    assert.deepEqual(selectors.filter((selector) => !/^\.ds-(enter|leave|stagger|reveal|collapsible|swap|icon-swap(__[ab])?)\b/.test(selector)), []);
+    assert.deepEqual(selectors.filter((selector) => !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {
@@ -885,11 +904,19 @@ describe('accessibility details', () => {
       ['src/components/toast.css', '.ds-toast'],
       ['src/components/tooltip.css', '.ds-tooltip'],
       ['src/components/shell.css', '.ds-drawer'],
+      ['src/components/combobox.css', '.ds-combo__popup'],
+      ['src/components/menu.css', '.ds-menu'],
     ];
     for (const [file, selector] of cases) {
       const outline = declarationsOf(read(file), selector).find((entry) => entry.property === 'outline');
       assert.match(outline?.value || '', /solid transparent$/, `${file}: ${selector}`);
     }
+    // The combobox list keeps that edge (no CanvasText outline of its own), and the
+    // chosen option shows the system's selection colours, not a forced Canvas.
+    const combo = forcedColorBlocks(read('src/components/combobox.css'));
+    assert.deepEqual(combo.flatMap((block) => declarationsOf(block, '.ds-combo__popup')).filter((entry) => entry.property === 'outline'), []);
+    const selected = Object.fromEntries(combo.flatMap((block) => declarationsOf(block, '.ds-combo__option[aria-selected="true"]')).map((entry) => [entry.property, entry.value]));
+    assert.deepEqual([selected['forced-color-adjust'], selected.background, selected.color], ['none', 'SelectedItem', 'SelectedItemText']);
     const border = declarationsOf(read('src/components/dialog.css'), '.ds-dialog__box').find((entry) => entry.property === 'border');
     assert.equal(border?.value, 'var(--ds-dialog-border, 1px solid transparent)');
   });
@@ -1307,6 +1334,103 @@ describe('navigation (1.2.0)', () => {
     const items = modal.filter((rule) => splitSelectors(rule.selector).some((part) => /^\.ds-drawer (\.ds-has-indicator )?\.ds-drawer__item/.test(part)));
     assert.ok(items.length >= 3, 'item, pressed item and icon rules in the modal drawer');
     for (const rule of items) assert.equal(animated(rule.body).includes('color'), false, rule.selector);
+  });
+});
+
+describe('overlays (1.3.0)', () => {
+  /** The overlays whose motion is keyed on data-state, with the class of their root. */
+  const STATEFUL = [
+    ['src/components/dialog.css', /\.ds-dialog(?![\w-])/],
+    ['src/components/sheet.css', /\.ds-sheet(?![\w-])/],
+    ['src/components/tooltip.css', /\.ds-tooltip(?![\w-])/],
+    ['src/components/combobox.css', /\.ds-combo__popup(?![\w-])/],
+    ['src/components/menu.css', /\.ds-menu(?![\w-])/],
+  ];
+
+  /**
+   * Every @starting-style block of a comment-free stylesheet with the
+   * preludes of the blocks around it (outermost first).
+   */
+  function startingStyles(css) {
+    const found = [];
+    const stack = [];
+    let from = 0;
+    for (let index = 0; index < css.length; index += 1) {
+      if (css[index] === ';') from = index + 1;
+      else if (css[index] === '{') {
+        const prelude = css.slice(from, index).replace(/\s+/g, ' ').trim();
+        if (prelude === '@starting-style') found.push([...stack]);
+        stack.push(prelude);
+        from = index + 1;
+      } else if (css[index] === '}') {
+        stack.pop();
+        from = index + 1;
+      }
+    }
+    return found;
+  }
+
+  it('hides a closed native dialog or sheet (display outranks the UA rule) and keeps its ::backdrop transparent', () => {
+    for (const [file, block] of [['src/components/dialog.css', 'ds-dialog'], ['src/components/sheet.css', 'ds-sheet']]) {
+      const css = read(file);
+      const selector = `dialog.${block}:not([open]):not(.${block}--closing):not([data-state="open"])`;
+      const hidden = declarationsAt(css, selector);
+      assert.equal(hidden.find((entry) => entry.property === 'display')?.value, 'none', `${file}: ${selector} { display: none }`);
+      const backdrop = declarationsAt(css, `dialog.${block}::backdrop`);
+      assert.equal(backdrop.find((entry) => entry.property === 'background')?.value, 'transparent', `${file}: the scrim is the __backdrop child`);
+    }
+  });
+
+  it('runs keyframes on dialog, sheet, tooltip, combobox list and menu only without data-state', () => {
+    const offenders = [];
+    let keyframed = 0;
+    for (const [file, root] of STATEFUL) {
+      for (const { selector, body } of rules(read(file))) {
+        const names = declarations(`${body};`).flatMap(({ property, value }) => {
+          if (property === 'animation') return entriesOf(value).map((entry) => entry.name);
+          if (property === 'animation-name') return splitSelectors(value);
+          return [];
+        }).filter((name) => name !== 'none');
+        if (!names.length) continue;
+        for (const part of splitSelectors(selector).filter((text) => root.test(text))) {
+          keyframed += 1;
+          if (!part.includes(':not([data-state])')) offenders.push(`${file}: ${part}: ${names.join(', ')}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, [], 'a keyframe on a data-state path cannot reverse from where it is');
+    assert.ok(keyframed >= STATEFUL.length, 'each overlay keeps its keyframe path for markup driven by hand');
+  });
+
+  it('places @starting-style outside style rules, only in files that name it under "Progressive:"', () => {
+    let count = 0;
+    for (const file of SRC_CSS) {
+      const source = read(file);
+      const blocks = startingStyles(stripComments(source));
+      if (!blocks.length) continue;
+      const header = source.match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
+      const note = header.includes('Progressive:') ? header.slice(header.indexOf('Progressive:')) : '';
+      assert.ok(note.includes('@starting-style'), `${file}: name @starting-style under "Progressive:"`);
+      for (const around of blocks) {
+        count += 1;
+        assert.ok(around.every((prelude) => /^@(layer|media|supports)\b/.test(prelude)), `${file}: @starting-style inside ${around.join(' > ')}`);
+      }
+    }
+    assert.ok(count >= 4, 'dialog, sheet, presence and the validation room use it');
+  });
+
+  it('keeps :popover-open in rules of one selector (an engine without it drops only that rule)', () => {
+    const offenders = [];
+    for (const file of SRC_CSS) {
+      for (const { selector } of rules(read(file))) {
+        if (selector.includes(':popover-open') && splitSelectors(selector).length > 1) offenders.push(`${file}: ${selector}`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('exempts only the full-distance side sheet slide from the fade pairing', () => {
+    assert.deepEqual([...EXIT_UNPAIRED.keys()], ['.ds-sheet--closing:not([data-state]) .ds-sheet__panel']);
   });
 });
 

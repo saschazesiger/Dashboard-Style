@@ -6,7 +6,7 @@
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
  * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-swap,
- * .ds-icon-swap) in ds.utilities. That layer comes after ds.components,
+ * .ds-icon-swap, .ds-presence) in ds.utilities. That layer comes after ds.components,
  * so a utility wins over a component's own animation by layer order, not
  * by specificity.
  *
@@ -28,7 +28,11 @@
  * supports interpolate-size and ::details-content, with content-visibility
  * as an allow-discrete transition (elsewhere it simply toggles);
  * sibling-index() numbers the children of .ds-stagger where it exists
- * (elsewhere stagger() in js/motion.js does).
+ * (elsewhere stagger() in js/motion.js does); .ds-presence animates
+ * toggled elements with @starting-style (the entry state), allow-discrete
+ * transitions of display and overlay (it stays rendered and in the top
+ * layer while it leaves) and :popover-open (a popover's exit state, in a
+ * rule of its own); without them it shows and hides at once.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -231,19 +235,20 @@
   }
 
   /* ── Keyframes: popup reveal ───────────────────── */
-  /* A popup (menu, listbox) uncovers itself from the edge of its trigger:
-     --ds-clip-from is the hidden state (DS.motion.originFrom() writes it,
-     default: closed towards the top edge). clip-path does not interpolate
-     to `none`, so both keyframes name both ends; the open end reaches
-     --ds-space-4 beyond the box, so the popup's shadow stays visible while
-     the animation runs. */
+  /* A popup (menu, combobox list) uncovers itself from the edge of its
+     trigger: --ds-clip-from is the hidden state (DS.motion.originFrom()
+     writes it, default: closed towards the top edge). clip-path does not
+     interpolate to `none`, so both keyframes name both ends; the open end
+     reaches --ds-space-6 beyond the box, the resting clip of .ds-menu and
+     .ds-combo__popup, so the popup's shadow stays visible while the
+     animation runs and nothing snaps when it ends. */
   @keyframes ds-clip-in {
     from { clip-path: var(--ds-clip-from, inset(0 0 100% 0)); }
-    to { clip-path: inset(calc(-1 * var(--ds-space-4))); }
+    to { clip-path: inset(calc(-1 * var(--ds-space-6))); }
   }
 
   @keyframes ds-clip-out {
-    from { clip-path: inset(calc(-1 * var(--ds-space-4))); }
+    from { clip-path: inset(calc(-1 * var(--ds-space-6))); }
     to { clip-path: var(--ds-clip-from, inset(0 0 100% 0)); }
   }
 
@@ -502,6 +507,74 @@
 
     .ds-collapsible[open]::details-content {
       height: auto;
+    }
+  }
+
+  /*
+   * Presence: a project element that is toggled with the hidden attribute,
+   * as a [popover] or as a <dialog> without DS.overlay fades in and grows
+   * from --ds-motion-scale (default --ds-scale-popup) on the spring, its
+   * clip opening from --ds-clip-from (DS.motion.originFrom() writes it;
+   * by default the clip stays open), and leaves faster, accelerating.
+   * display and overlay step with allow-discrete, so it stays rendered (and
+   * in the top layer) until its exit ends. Plain transitions retarget by
+   * themselves: open, close, open continues from where it is. The exit
+   * state is three separate rules, so an engine that does not know
+   * :popover-open drops only its own rule. Elsewhere: an instant toggle.
+   */
+  @supports (transition-behavior: allow-discrete) {
+    .ds-presence {
+      clip-path: inset(calc(-1 * var(--ds-space-6)));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-medium) var(--ds-ease-spatial),
+        clip-path var(--ds-dur-medium) var(--ds-ease-spatial),
+        display var(--ds-dur-medium) allow-discrete,
+        overlay var(--ds-dur-medium) allow-discrete;
+    }
+
+    @starting-style {
+      .ds-presence {
+        opacity: 0;
+        scale: var(--ds-motion-scale, var(--ds-scale-popup));
+        clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      }
+    }
+
+    .ds-presence[hidden] {
+      opacity: 0;
+      scale: var(--ds-motion-scale, var(--ds-scale-popup));
+      clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-fast) var(--ds-ease-in),
+        clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        display var(--ds-dur-fast) allow-discrete,
+        overlay var(--ds-dur-fast) allow-discrete;
+    }
+
+    dialog.ds-presence:not([open]) {
+      opacity: 0;
+      scale: var(--ds-motion-scale, var(--ds-scale-popup));
+      clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-fast) var(--ds-ease-in),
+        clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        display var(--ds-dur-fast) allow-discrete,
+        overlay var(--ds-dur-fast) allow-discrete;
+    }
+
+    .ds-presence[popover]:not(:popover-open) {
+      opacity: 0;
+      scale: var(--ds-motion-scale, var(--ds-scale-popup));
+      clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-fast) var(--ds-ease-in),
+        clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        display var(--ds-dur-fast) allow-discrete,
+        overlay var(--ds-dur-fast) allow-discrete;
     }
   }
 }

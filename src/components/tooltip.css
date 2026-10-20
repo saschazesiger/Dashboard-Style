@@ -1,19 +1,44 @@
 /*
- * Plain tooltip (Material 3): the inverse surface, the meta role, placed
- * below its control by the page's script with top and left. It only fades
- * in and grows from just under full size around its centre (no rise: it is
- * anchored to the control), and leaves with a quick fade. Let the pointer
- * move onto it (WCAG 1.4.13: a magnifier user can read it there) and keep
- * it open meanwhile.
+ * Plain tooltip (Material 3): the inverse surface, the meta role, below its
+ * control (above it when there is no room). It fades in and grows from
+ * --ds-scale-tooltip at the side of its anchor (no rise: it is anchored to
+ * the control), and leaves with a quick fade only. The pointer may move
+ * onto it (WCAG 1.4.13: a magnifier user can read it there); it stays open
+ * meanwhile.
  *
- * A transform placement still composes with the entrance (it animates the
- * separate scale property), but that scale also shrinks the transform's
- * offset, so the tooltip starts (1 - scale) x offset towards the page
- * origin and drifts into place. A script that keeps a transform sets
- * transform-origin: calc(50% + Xpx) calc(50% + Ypx) with it.
+ * DS.overlay.tooltips(root) (js/overlay.js) does everything for
+ * [data-tip] triggers: it creates the one tooltip of the theme, shows it
+ * after --ds-delay-tooltip on hover (mouse and pen) and at once on keyboard
+ * focus, warms up along a toolbar (--ds-delay-tooltip-skip), hides after
+ * the --ds-delay-tooltip-hide grace, on Escape and on any pointerdown, and
+ * places it:
  *
- *   <div class="ds-tooltip" role="tooltip" id="tip" hidden>Copy link</div>
- *   tip.style.left = '120px'; tip.style.top = '48px';
+ *   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">(link)</button>
+ *   DS.overlay.tooltips(document);
+ *
+ *   <div class="ds-tooltip" role="tooltip" id="..." hidden data-state="open | closed" [data-warm] [data-placement="top"] [data-anchored]>Copy link</div>
+ *
+ * Placement API: --ds-tooltip-x and --ds-tooltip-y (left and top, px) on
+ * the tooltip. Inline top / left and a transform of the page still work:
+ * the motion animates the separate scale property, so it composes. With a
+ * transform, set transform-origin with it, or the scale shrinks the offset
+ * too and the tooltip drifts in.
+ *
+ * Motion: tooltips() drives data-state ("closed", flushed, then "open";
+ * "closed" again to hide), so a show taken back mid-way continues from
+ * where it is (transitions retarget). The origin is --ds-motion-origin,
+ * which DS.motion.originFrom() puts at the anchor side; data-warm (a show
+ * during the warm-up) keeps the scale at rest, so the next tooltip only
+ * fades in. Without data-state (a page that drives it by hand: remove
+ * hidden, leave with DS.motion.leave(tip, '', { then: 'hide' })) the
+ * keyframe entrance and .ds-leave still play.
+ *
+ * Progressive: popover (popover="manual" puts the tooltip into the top
+ * layer, over a modal dialog) and CSS anchor positioning (anchor-name on
+ * the trigger, position-anchor, position-area, position-try-fallbacks
+ * on the tooltip), behind @supports (position-area: block-end); data-
+ * anchored marks that path. Elsewhere the script writes --ds-tooltip-x/-y
+ * and flips the tooltip above the trigger (data-placement="top").
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -21,8 +46,8 @@
 @layer ds.components {
   .ds-tooltip {
     position: fixed;
-    top: 0;
-    left: 0;
+    left: var(--ds-tooltip-x, 0px);
+    top: var(--ds-tooltip-y, 0px);
     z-index: var(--ds-z-toast);
     /* Its own width wherever it was last placed (measure it before moving
        it), wrapping only past the maximum. */
@@ -38,6 +63,20 @@
     overflow-wrap: anywhere;
     /* Invisible; forced colors paint it, so the tooltip keeps an edge. */
     outline: 1px solid transparent;
+    /* Grows at the side of its anchor: originFrom() writes the origin;
+       below the trigger that is its top edge. */
+    --ds-motion-scale: var(--ds-scale-tooltip);
+    transform-origin: var(--ds-motion-origin, 50% 0%);
+  }
+
+  /* Above the trigger: it grows from its bottom edge. */
+  .ds-tooltip[data-placement="top"] {
+    transform-origin: var(--ds-motion-origin, 50% 100%);
+  }
+
+  /* Driven by hand (no data-state): the one-shot entrance; leave with
+     .ds-leave, a quick fade. */
+  .ds-tooltip:not([data-state]) {
     --ds-motion-distance: 0px;
     --ds-leave-duration: var(--ds-dur-instant);
     animation:
@@ -45,7 +84,58 @@
       ds-grow-in var(--ds-dur-fast) var(--ds-ease-out) backwards;
   }
 
+  /* Driven by DS.overlay.tooltips(): transitions keyed on data-state, so a
+     hide taken back continues from the current opacity. The entrance fades
+     in over --ds-dur-fast and springs to full size over --ds-dur-medium. */
+  .ds-tooltip[data-state] {
+    animation: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* The exit only fades, in --ds-dur-instant; the scale goes back to its
+     start once the tooltip is invisible, ready for the next entrance. It
+     takes no pointer while it fades or rests hidden. */
+  .ds-tooltip[data-state="closed"] {
+    opacity: 0;
+    scale: var(--ds-motion-scale, var(--ds-scale-tooltip));
+    pointer-events: none;
+    transition:
+      opacity var(--ds-dur-instant) var(--ds-ease-in-out),
+      scale 0ms var(--ds-ease-in-out) var(--ds-dur-instant);
+  }
+
+  /* Warm-up: the next tooltip of a toolbar only fades in. */
+  .ds-tooltip[data-state][data-warm] {
+    scale: none;
+  }
+
   .ds-tooltip[hidden] {
     display: none;
+  }
+
+  /* The UA box of a popover (centred by auto margins over the whole
+     window, a border, its own scrolling) goes: it is the same tooltip. */
+  .ds-tooltip[popover] {
+    inset: var(--ds-tooltip-y, 0px) auto auto var(--ds-tooltip-x, 0px);
+    width: max-content;
+    height: auto;
+    margin: 0;
+    border: 0;
+    overflow: visible;
+  }
+
+  /* Anchor positioning: below the trigger, centred on it, above it when
+     there is no room (the margin flips with it); the side margins keep it
+     8px from the viewport edges, like the script's placement. */
+  @supports (position-area: block-end) {
+    .ds-tooltip[data-anchored] {
+      position-area: block-end;
+      position-try-fallbacks: flip-block;
+      margin: var(--ds-space-2) var(--ds-space-2) 0;
+      left: auto;
+      top: auto;
+    }
   }
 }

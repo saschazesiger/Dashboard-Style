@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.2.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.3.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Dashboard-Style: every stylesheet in cascade order. scripts/build.mjs
  * inlines these imports into dist/ds.css; a bundler can import this file
@@ -127,8 +127,12 @@
      * staggered items (at most six, first render only), the delays before
      * loading indicators may show (fast loads show nothing; js/motion.js
      * LOADER_DELAY_MS mirrors --ds-delay-loader), how long a loader that
-     * showed stays at least (LOADER_MIN_VISIBLE_MS mirrors --ds-hold-loader)
-     * and how long a button shows its success face (DS.motion.busy()).
+     * showed stays at least (LOADER_MIN_VISIBLE_MS mirrors --ds-hold-loader),
+     * how long a button shows its success face (DS.motion.busy()) and the
+     * tooltip delays of DS.overlay.tooltips(): the wait before one shows,
+     * the window after a hide in which the next shows at once (warm-up) and
+     * the grace before one hides, so the pointer can move onto it
+     * (js/overlay.js TOOLTIP_DELAY_MS, TOOLTIP_SKIP_MS, TOOLTIP_HIDE_MS).
      */
     --ds-distance-sm: 4px;
     --ds-distance-md: 8px;
@@ -144,6 +148,9 @@
     --ds-delay-boot: calc(400ms * var(--ds-time-scale, 1));
     --ds-hold-loader: calc(450ms * var(--ds-time-scale, 1));
     --ds-hold-success: calc(600ms * var(--ds-time-scale, 1));
+    --ds-delay-tooltip: calc(500ms * var(--ds-time-scale, 1));
+    --ds-delay-tooltip-skip: calc(300ms * var(--ds-time-scale, 1));
+    --ds-delay-tooltip-hide: calc(100ms * var(--ds-time-scale, 1));
 
     /* Loops of loading indicators: they always run at their token speed. */
     --ds-loop-spin: calc(1s * var(--ds-time-scale, 1));
@@ -255,8 +262,11 @@
     --ds-on-inverse: #f2f2f2;
     --ds-inverse-primary: #a8c7fa;
 
-    /* Scrim behind dialogs and sheets, never blurred. */
+    /* Scrim behind dialogs and sheets, never blurred. A dialog over another
+       open modal (a sheet, the modal drawer) adds the lighter nested one, so
+       the two together come to about 43% instead of 54%. */
     --ds-scrim: rgba(0, 0, 0, .32);
+    --ds-scrim-nested: rgba(0, 0, 0, .16);
 
     /* The disc behind round icon buttons (.ds-btn--disc). */
     --ds-fill-round: rgba(31, 31, 31, .08);
@@ -426,7 +436,7 @@
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
  * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-swap,
- * .ds-icon-swap) in ds.utilities. That layer comes after ds.components,
+ * .ds-icon-swap, .ds-presence) in ds.utilities. That layer comes after ds.components,
  * so a utility wins over a component's own animation by layer order, not
  * by specificity.
  *
@@ -448,7 +458,11 @@
  * supports interpolate-size and ::details-content, with content-visibility
  * as an allow-discrete transition (elsewhere it simply toggles);
  * sibling-index() numbers the children of .ds-stagger where it exists
- * (elsewhere stagger() in js/motion.js does).
+ * (elsewhere stagger() in js/motion.js does); .ds-presence animates
+ * toggled elements with @starting-style (the entry state), allow-discrete
+ * transitions of display and overlay (it stays rendered and in the top
+ * layer while it leaves) and :popover-open (a popover's exit state, in a
+ * rule of its own); without them it shows and hides at once.
  */
 
 /*
@@ -649,19 +663,20 @@
   }
 
   /* ── Keyframes: popup reveal ───────────────────── */
-  /* A popup (menu, listbox) uncovers itself from the edge of its trigger:
-     --ds-clip-from is the hidden state (DS.motion.originFrom() writes it,
-     default: closed towards the top edge). clip-path does not interpolate
-     to `none`, so both keyframes name both ends; the open end reaches
-     --ds-space-4 beyond the box, so the popup's shadow stays visible while
-     the animation runs. */
+  /* A popup (menu, combobox list) uncovers itself from the edge of its
+     trigger: --ds-clip-from is the hidden state (DS.motion.originFrom()
+     writes it, default: closed towards the top edge). clip-path does not
+     interpolate to `none`, so both keyframes name both ends; the open end
+     reaches --ds-space-6 beyond the box, the resting clip of .ds-menu and
+     .ds-combo__popup, so the popup's shadow stays visible while the
+     animation runs and nothing snaps when it ends. */
   @keyframes ds-clip-in {
     from { clip-path: var(--ds-clip-from, inset(0 0 100% 0)); }
-    to { clip-path: inset(calc(-1 * var(--ds-space-4))); }
+    to { clip-path: inset(calc(-1 * var(--ds-space-6))); }
   }
 
   @keyframes ds-clip-out {
-    from { clip-path: inset(calc(-1 * var(--ds-space-4))); }
+    from { clip-path: inset(calc(-1 * var(--ds-space-6))); }
     to { clip-path: var(--ds-clip-from, inset(0 0 100% 0)); }
   }
 
@@ -920,6 +935,74 @@
 
     .ds-collapsible[open]::details-content {
       height: auto;
+    }
+  }
+
+  /*
+   * Presence: a project element that is toggled with the hidden attribute,
+   * as a [popover] or as a <dialog> without DS.overlay fades in and grows
+   * from --ds-motion-scale (default --ds-scale-popup) on the spring, its
+   * clip opening from --ds-clip-from (DS.motion.originFrom() writes it;
+   * by default the clip stays open), and leaves faster, accelerating.
+   * display and overlay step with allow-discrete, so it stays rendered (and
+   * in the top layer) until its exit ends. Plain transitions retarget by
+   * themselves: open, close, open continues from where it is. The exit
+   * state is three separate rules, so an engine that does not know
+   * :popover-open drops only its own rule. Elsewhere: an instant toggle.
+   */
+  @supports (transition-behavior: allow-discrete) {
+    .ds-presence {
+      clip-path: inset(calc(-1 * var(--ds-space-6)));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-medium) var(--ds-ease-spatial),
+        clip-path var(--ds-dur-medium) var(--ds-ease-spatial),
+        display var(--ds-dur-medium) allow-discrete,
+        overlay var(--ds-dur-medium) allow-discrete;
+    }
+
+    @starting-style {
+      .ds-presence {
+        opacity: 0;
+        scale: var(--ds-motion-scale, var(--ds-scale-popup));
+        clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      }
+    }
+
+    .ds-presence[hidden] {
+      opacity: 0;
+      scale: var(--ds-motion-scale, var(--ds-scale-popup));
+      clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-fast) var(--ds-ease-in),
+        clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        display var(--ds-dur-fast) allow-discrete,
+        overlay var(--ds-dur-fast) allow-discrete;
+    }
+
+    dialog.ds-presence:not([open]) {
+      opacity: 0;
+      scale: var(--ds-motion-scale, var(--ds-scale-popup));
+      clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-fast) var(--ds-ease-in),
+        clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        display var(--ds-dur-fast) allow-discrete,
+        overlay var(--ds-dur-fast) allow-discrete;
+    }
+
+    .ds-presence[popover]:not(:popover-open) {
+      opacity: 0;
+      scale: var(--ds-motion-scale, var(--ds-scale-popup));
+      clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-fast) var(--ds-ease-in),
+        clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        display var(--ds-dur-fast) allow-discrete,
+        overlay var(--ds-dur-fast) allow-discrete;
     }
   }
 }
@@ -4675,24 +4758,52 @@
 /* ── components/combobox.css ── */
 /*
  * Combobox: a searchable list under an outlined field (ARIA combobox
- * pattern; the page provides the behaviour). The field keeps its look, a
- * chevron at the end says there is a list, and the list opens as a white
- * surface on the popover elevation. Each entry shows a name and, quieter,
- * a line of meta. The active entry (keyboard or pointer, data-active) gets
- * the hover layer, the chosen one (aria-selected) the tint and the label
- * weight, never colour alone.
+ * pattern; the page filters and chooses, DS.overlay opens and closes). The
+ * field keeps its look, a chevron at the end says there is a list, and the
+ * list opens as a white surface on the popover elevation. Each entry shows
+ * a name and, quieter, a line of meta. The active entry (keyboard or
+ * pointer, data-active) gets the hover layer, the chosen one
+ * (aria-selected) the tint and the label weight, never colour alone.
  *
- *   <div class="ds-combo" [data-open]>
- *     <input class="ds-input ds-combo__input" role="combobox" aria-expanded="true" aria-controls="list" aria-activedescendant="opt-2">
+ *   <div class="ds-combo">
+ *     <input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-controls="list" aria-activedescendant="opt-2">
  *     <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show list">(chevronDown)</button>
- *     <div class="ds-combo__popup">
+ *     <div class="ds-combo__popup" hidden data-state="open | closed" [data-placement="top"] [data-anchored]>
  *       <ul class="ds-combo__list" id="list" role="listbox">
  *         <li class="ds-combo__option" id="opt-2" role="option" aria-selected="true" data-active>
  *           <span class="ds-combo__name">Name</span><span class="ds-combo__meta">Meta</span>
  *       <p class="ds-combo__status">12 of 240</p>
  *
- * Close the list with the hidden attribute on .ds-combo__popup; it works
- * without .ds-base.
+ *   DS.overlay.open(popup, { opener: input });   DS.overlay.close(popup);
+ *
+ * Motion (D17): the list grows out of the field. It fades in over
+ * --ds-dur-fast while its clip opens from the field's edge (clip-path from
+ * --ds-clip-from) and it grows from --ds-scale-popup at the field
+ * (--ds-motion-origin), both over --ds-dur-medium on the spring;
+ * DS.motion.originFrom() writes both hooks. The resting clip reaches
+ * --ds-space-6 beyond the box, so the shadow is there from the first
+ * frame. It leaves with a fade only (--ds-dur-instant). DS.overlay drives
+ * data-state ("closed", flushed, "open"; "closed" to hide), so a list
+ * closed mid-way turns back from where it is. Without data-state (a page
+ * that only toggles hidden) the list plays ds-fade-in and ds-clip-in once
+ * when it shows. Closed, the list takes no pointer.
+ *
+ * The chevron follows aria-expanded on the field (DS.overlay sets it) and
+ * turns 180deg on the spring with the list (the disclosure rotation of
+ * the motion rules). data-open on .ds-combo still turns it (deprecated).
+ * The active entry's layer fades in over --ds-dur-micro and goes at once,
+ * so a held arrow key leaves no trail; pointer and keyboard share
+ * data-active, there is no separate hover layer.
+ *
+ * Placement: below the field. When it does not fit below and there is
+ * more room above (in the viewport, narrowed by every clipping box around
+ * the field), DS.overlay sets data-placement="top" and the list opens
+ * above it, revealed from its bottom edge. It is never taller than the
+ * room on its side (the list scrolls inside, the status line stays), so
+ * it never covers the field being typed into. Inside a scrolling box (a
+ * dialog's box, a sheet's body) the absolute list is clipped by that box
+ * where the progressive path below is missing: there the room is that
+ * box's, so keep a combobox off the very end of a dialog.
  *
  * The toggle is a round 40px target: a state layer in its colour (hover,
  * press in --ds-dur-micro), the ripple (js/ripple.js) and the press morph
@@ -4700,8 +4811,18 @@
  * back on the spatial spring). It stays tabindex="-1", so it has no ring.
  * Options have no ripple: a press selects and closes the list.
  *
+ * Forced colours: the list keeps an edge (its transparent outline), the
+ * chosen option is SelectedItem / SelectedItemText, the active one has a
+ * Highlight outline.
+ *
  * Progressive: scrollbar-color and scrollbar-width (a thin, quiet
  * scrollbar in the list); without them the platform scrollbar shows.
+ * popover and CSS anchor positioning (anchor-name on the field,
+ * position-anchor, position-area, position-try-fallbacks and
+ * anchor-size() on the list), behind @supports: DS.overlay opens the list
+ * as popover="manual" in the top layer with data-anchored, as wide as the
+ * field, below it or flipped above, so a scrolling dialog never clips it;
+ * elsewhere the absolute list with the script's upward flip.
  */
 
 @layer ds.components {
@@ -4772,9 +4893,16 @@
     transition: border-radius var(--ds-dur-micro) var(--ds-ease-out);
   }
 
-  /* The chevron flips without turning (no rotation in the motion system). */
+  /* The chevron turns over with the list (a disclosure rotation, D25):
+     it follows aria-expanded on the field, on the spatial spring. */
+  .ds-combo__toggle svg {
+    transition: rotate var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* data-open on .ds-combo: deprecated (removed in 2.0). */
+  .ds-combo__input[aria-expanded="true"] ~ .ds-combo__toggle svg,
   .ds-combo[data-open] .ds-combo__toggle svg {
-    transform: scaleY(-1);
+    rotate: 180deg;
   }
 
   .ds-combo__popup {
@@ -4783,20 +4911,94 @@
     left: 0;
     right: 0;
     z-index: var(--ds-z-popover);
-    display: grid;
+    /* A column: under a cap (the room on its side) the list scrolls inside
+       it and the status line stays. */
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     border-radius: var(--ds-radius-xs);
     background: var(--ds-surface);
     box-shadow: var(--ds-elev-popover);
+    /* Invisible; forced colors paint it, so the list keeps an edge. */
+    outline: 1px solid transparent;
+    /* Grows at the field (originFrom() writes the origin); its clip rests
+       --ds-space-6 beyond the box, room for the shadow. */
+    transform-origin: var(--ds-motion-origin, 50% 0%);
+    clip-path: inset(calc(-1 * var(--ds-space-6)));
+  }
+
+  /* Above the field: it is revealed from its bottom edge. */
+  .ds-combo__popup[data-placement="top"] {
+    top: auto;
+    bottom: calc(100% + var(--ds-space-1));
+    transform-origin: var(--ds-motion-origin, 50% 100%);
+  }
+
+  /* Shown by hand (no data-state): the reveal plays once. */
+  .ds-combo__popup:not([data-state]) {
+    animation:
+      ds-fade-in var(--ds-dur-fast) var(--ds-ease-in-out) backwards,
+      ds-clip-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
+  }
+
+  /* Driven by DS.overlay: transitions keyed on data-state, so a list
+     closed mid-way continues from where it is. */
+  .ds-combo__popup[data-state] {
+    animation: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-medium) var(--ds-ease-spatial),
+      clip-path var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* The exit only fades, in --ds-dur-instant; scale and clip go back to
+     their start once the list is invisible, ready for the next entrance. */
+  .ds-combo__popup[data-state="closed"] {
+    opacity: 0;
+    scale: var(--ds-motion-scale, var(--ds-scale-popup));
+    clip-path: var(--ds-clip-from, inset(0 0 100% 0));
+    pointer-events: none;
+    transition:
+      opacity var(--ds-dur-instant) var(--ds-ease-in-out),
+      scale 0ms var(--ds-ease-in-out) var(--ds-dur-instant),
+      clip-path 0ms var(--ds-ease-in-out) var(--ds-dur-instant);
   }
 
   .ds-combo__popup[hidden] {
     display: none;
   }
 
+  /* Anchor positioning: in the top layer (popover="manual"), as wide as
+     the field, below it or above it (data-placement="top", the side
+     DS.overlay chose; the margins flip with it), never taller than the
+     room on that side: its position-area is its containing block, so the
+     cap follows the field while a dialog scrolls. The UA box of a popover
+     (inset 0, auto margins, a border, padding, its own colour) goes. */
+  @supports (position-area: block-end) and (width: anchor-size(width)) {
+    .ds-combo__popup[data-anchored] {
+      position: fixed;
+      inset: auto;
+      width: anchor-size(width);
+      height: auto;
+      max-height: calc(100% - 2 * var(--ds-space-1));
+      margin: var(--ds-space-1) 0;
+      padding: 0;
+      border: 0;
+      color: inherit;
+      position-area: block-end span-inline-end;
+      position-try-fallbacks: flip-block;
+    }
+
+    .ds-combo__popup[data-anchored][data-placement="top"] {
+      position-area: block-start span-inline-end;
+    }
+  }
+
   .ds-combo__list {
     /* The offset parent of the options (scrolling to the active one). */
     position: relative;
+    flex: 0 1 auto;
+    min-height: 0;
     max-height: 320px;
     margin: 0;
     padding: var(--ds-space-2) 0;
@@ -4814,7 +5016,9 @@
     cursor: pointer;
   }
 
-  /* State layer of the active entry, as in the drawer. */
+  /* State layer of the active entry, as in the drawer: it fades in over
+     --ds-dur-micro and goes at once, so a held arrow key leaves no trail
+     (keyboard and pointer share data-active; no separate hover layer). */
   .ds-combo__option::before {
     content: '';
     position: absolute;
@@ -4825,7 +5029,11 @@
     background: var(--ds-text);
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+    transition: opacity var(--ds-dur-micro) var(--ds-ease-in-out);
+  }
+
+  .ds-combo__option:not([data-active])::before {
+    transition-duration: 0ms;
   }
 
   .ds-combo__option[data-active]::before {
@@ -4864,6 +5072,7 @@
   }
 
   .ds-combo__status {
+    flex: none;
     margin: 0;
     padding: var(--ds-space-2) var(--ds-space-4);
     border-top: 1px solid var(--ds-line);
@@ -4876,14 +5085,288 @@
   }
 
   @media (forced-colors: active) {
-    .ds-combo__popup {
-      outline: 1px solid CanvasText;
-    }
-
     .ds-combo__option[data-active] {
       outline: 2px solid Highlight;
       outline-offset: -2px;
     }
+
+    /* The chosen option in the system's selection colours (the tint is
+       gone); name and meta follow it. */
+    .ds-combo__option[aria-selected="true"] {
+      forced-color-adjust: none;
+      background: SelectedItem;
+      color: SelectedItemText;
+    }
+
+    .ds-combo__option[aria-selected="true"] .ds-combo__name,
+    .ds-combo__option[aria-selected="true"] .ds-combo__meta {
+      color: inherit;
+    }
+  }
+}
+
+/* ── components/menu.css ── */
+/*
+ * Menu (Material 3): actions for one item or the overflow of a toolbar, on
+ * the popover elevation, opened from a button. Each item is an icon and a
+ * label; a checkable item shows a check when checked (aria-checked, never
+ * colour alone); a divider separates groups.
+ *
+ *   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="More actions"
+ *           aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu">(moreVertical)</button>
+ *   <div class="ds-menu" role="menu" id="row-menu" aria-label="Actions" hidden data-state="open | closed" [data-placement="top"] [data-anchored]>
+ *     <button class="ds-menu__item" role="menuitem" type="button">(pencil) <span class="ds-menu__label">Edit</span></button>
+ *     <button class="ds-menu__item" role="menuitemcheckbox" type="button" aria-checked="true">(check, .ds-menu__check) <span class="ds-menu__label">Pinned</span></button>
+ *     <div class="ds-menu__divider" role="separator"></div>
+ *     <button class="ds-menu__item" role="menuitem" type="button" aria-disabled="true">(trash) <span class="ds-menu__label">Delete</span></button>
+ *   </div>
+ *
+ *   DS.overlay.open(menu, { opener: button });   DS.overlay.close(menu);
+ *
+ * DS.overlay (js/overlay.js) places it below the trigger, aligned with its
+ * start edge (towards the start edge without room; above it when it does
+ * not fit below and there is more room above; never taller than the room
+ * on its side, so it never covers its trigger: it scrolls inside),
+ * focuses the first enabled item (the last one when opened from ArrowUp),
+ * moves focus with ArrowUp, ArrowDown, Home and End (wrapping), closes on
+ * Escape (focus back on the trigger), on Tab, after an item's click
+ * handlers ran, and on a pointerdown outside (focus stays where the pointer
+ * put it), and sets aria-expanded on the trigger.
+ *
+ * Placement API: --ds-menu-x and --ds-menu-y (left and top, px, written by
+ * DS.overlay where anchor positioning is missing).
+ *
+ * Motion (D17): as the combobox list, it grows out of its trigger. It fades
+ * in over --ds-dur-fast while its clip opens from the trigger's edge
+ * (--ds-clip-from) and it grows from --ds-scale-popup at the trigger
+ * (--ds-motion-origin), both over --ds-dur-medium on the spring; the
+ * resting clip reaches --ds-space-6 beyond the box, so the shadow is there
+ * from the first frame. It leaves with a fade only (--ds-dur-instant).
+ * Transitions keyed on data-state (DS.overlay), so a menu closed mid-way
+ * turns back from where it is; without data-state (a page that toggles
+ * hidden by hand) it plays ds-fade-in and ds-clip-in once.
+ *
+ * Items: a 48px row in the body role, a state layer in the content colour
+ * (hover, press in --ds-dur-micro, the focus layer and an inset ring that
+ * snaps in), the ripple (js/ripple.js) and no press morph (a menu row is
+ * not a pill). aria-disabled items stay focusable (their name is read) but
+ * show the disabled ink and take no press.
+ *
+ * Forced colours: the menu keeps an edge (its transparent outline), the
+ * focused item its ring.
+ *
+ * Progressive: popover and CSS anchor positioning (anchor-name on the
+ * trigger, position-anchor, position-area and position-try-fallbacks on
+ * the menu), behind @supports: DS.overlay opens the menu as
+ * popover="manual" in the top layer with data-anchored, below the trigger,
+ * flipped above or towards the start edge when there is no room; elsewhere
+ * the script writes --ds-menu-x/-y and sets data-placement="top" above.
+ * scrollbar-color and scrollbar-width (a thin scrollbar in a long menu).
+ */
+
+@layer ds.components {
+  /* Fixed, so no scrolling or clipping box cuts it off. inset, margin and
+     border double as the reset of the UA box of a popover. */
+  .ds-menu {
+    position: fixed;
+    inset: var(--ds-menu-y, 0px) auto auto var(--ds-menu-x, 0px);
+    z-index: var(--ds-z-popover);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-width: 112px;
+    max-width: min(280px, calc(100vw - 2 * var(--ds-space-2)));
+    max-height: calc(100vh - 2 * var(--ds-space-2));
+    margin: 0;
+    padding: var(--ds-space-2) 0;
+    overflow-y: auto;
+    border: 0;
+    border-radius: var(--ds-radius-xs);
+    background: var(--ds-surface);
+    color: var(--ds-text);
+    box-shadow: var(--ds-elev-popover);
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-line-2) transparent;
+    /* Invisible; forced colors paint it, so the menu keeps an edge. */
+    outline: 1px solid transparent;
+    /* Grows at its trigger (originFrom() writes the origin); its clip rests
+       --ds-space-6 beyond the box, room for the shadow. */
+    transform-origin: var(--ds-motion-origin, 0% 0%);
+    clip-path: inset(calc(-1 * var(--ds-space-6)));
+  }
+
+  /* Above the trigger: it is revealed from its bottom edge. */
+  .ds-menu[data-placement="top"] {
+    transform-origin: var(--ds-motion-origin, 0% 100%);
+  }
+
+  /* Shown by hand (no data-state): the reveal plays once. */
+  .ds-menu:not([data-state]) {
+    animation:
+      ds-fade-in var(--ds-dur-fast) var(--ds-ease-in-out) backwards,
+      ds-clip-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
+  }
+
+  /* Driven by DS.overlay: transitions keyed on data-state, so a menu closed
+     mid-way continues from where it is. */
+  .ds-menu[data-state] {
+    animation: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-medium) var(--ds-ease-spatial),
+      clip-path var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* The exit only fades, in --ds-dur-instant; scale and clip go back to
+     their start once the menu is invisible. Closed, it takes no pointer. */
+  .ds-menu[data-state="closed"] {
+    opacity: 0;
+    scale: var(--ds-motion-scale, var(--ds-scale-popup));
+    clip-path: var(--ds-clip-from, inset(0 0 100% 0));
+    pointer-events: none;
+    transition:
+      opacity var(--ds-dur-instant) var(--ds-ease-in-out),
+      scale 0ms var(--ds-ease-in-out) var(--ds-dur-instant),
+      clip-path 0ms var(--ds-ease-in-out) var(--ds-dur-instant);
+  }
+
+  .ds-menu[hidden] {
+    display: none;
+  }
+
+  /* Anchor positioning: in the top layer (popover="manual"), below the
+     trigger from its start edge or above it (data-placement="top", the
+     side DS.overlay chose), towards the start edge without room (the
+     margins flip with it); never taller than the room on its side, its
+     position-area being its containing block. */
+  @supports (position-area: block-end) {
+    .ds-menu[data-anchored] {
+      inset: auto;
+      max-height: calc(100% - 2 * var(--ds-space-1));
+      margin: var(--ds-space-1) 0;
+      position-area: block-end span-inline-end;
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+    }
+
+    .ds-menu[data-anchored][data-placement="top"] {
+      position-area: block-start span-inline-end;
+    }
+  }
+
+  .ds-menu__item {
+    position: relative;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--ds-space-3);
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 0 var(--ds-space-3);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ds-text);
+    font: var(--ds-font-body);
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    /* An inset ring (the scrolling menu clips anything outside): it rests
+       on the edge and snaps inward. */
+    outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-menu__item svg {
+    flex-shrink: 0;
+    color: var(--ds-text-2);
+  }
+
+  .ds-menu__label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The check of a checkable item keeps its room when unchecked, so the
+     labels line up; it shows only with aria-checked="true". */
+  .ds-menu__item:not([aria-checked="true"]) .ds-menu__check {
+    visibility: hidden;
+  }
+
+  /* State layer in the content colour. */
+  .ds-menu__item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  @media (hover: hover) {
+    .ds-menu__item:hover::before {
+      opacity: var(--ds-state-hover);
+    }
+  }
+
+  .ds-menu__item:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  .ds-menu__item:focus-visible::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
+  }
+
+  /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it). */
+  .ds-menu__item:active::before,
+  .ds-menu__item.ds-pressed::before {
+    opacity: var(--ds-state-pressed);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  /* Cannot be chosen: the disabled ink, no hover and no press (no ripple
+     either); the focus layer stays, so keyboard users find it. */
+  .ds-menu__item[aria-disabled="true"],
+  .ds-menu__item:disabled {
+    opacity: var(--ds-disabled-opacity, var(--ds-state-disabled));
+    color: var(--ds-disabled-ink, var(--ds-text));
+    cursor: default;
+  }
+
+  .ds-menu__item[aria-disabled="true"] svg,
+  .ds-menu__item:disabled svg {
+    color: inherit;
+  }
+
+  @media (hover: hover) {
+    .ds-menu__item[aria-disabled="true"]:hover::before {
+      opacity: 0;
+    }
+  }
+
+  .ds-menu__item[aria-disabled="true"]:is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  .ds-menu__item[aria-disabled="true"]:focus-visible::before {
+    opacity: var(--ds-state-focus);
+  }
+
+  .ds-menu__divider {
+    flex-shrink: 0;
+    height: 1px;
+    margin: var(--ds-space-2) 0;
+    background: var(--ds-line);
   }
 }
 
@@ -4971,16 +5454,27 @@
 /* ── components/sheet.css ── */
 /*
  * Modal side sheet (Material 3): white, rounded on its leading corners, on
- * the overlay elevation, over a plain scrim (never blurred). It fades in
- * from the side on the emphasized curve and leaves faster than it came,
- * fading while it shifts away on the emphasized accelerate curve: add
- * .ds-sheet--closing, wait for the panel's animationend (or
- * DS.motion.settled), then remove or hide the sheet. During the exit the
- * panel ignores the pointer and the backdrop swallows clicks, so nothing
- * reaches the page under it. The hidden attribute hides the sheet, also
- * without .ds-base.
+ * the overlay elevation, over a plain scrim (never blurred). The panel is
+ * opaque throughout: it slides its full width in from the edge on the
+ * spatial spring while the scrim fades (D16), and leaves faster than it
+ * came, back to the edge, accelerating, without a fade; the scrim fades out
+ * with it. At 600px and below it rises from the bottom and falls back down;
+ * there it fills the screen, so it rises on --ds-ease-out: a spring would
+ * carry its head past the top edge. A strip of its own background past its
+ * outer edge (the bleed) covers the spring's overshoot, so the scrim never
+ * shows at the screen edge. A close taken back mid-way continues from
+ * where the panel is.
  *
- *   <div class="ds-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+ * Native markup (preferred): showModal() makes the page inert and gives
+ * the sheet its modal semantics.
+ *
+ *   <dialog class="ds-sheet" aria-labelledby="sheet-title">
+ *     <div class="ds-sheet__backdrop" data-close></div>
+ *     <section class="ds-sheet__panel"> ... (as below)
+ *
+ * Div markup (fallback), hidden until it opens:
+ *
+ *   <div class="ds-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
  *     <div class="ds-sheet__backdrop" data-close></div>
  *     <section class="ds-sheet__panel [ds-sheet__panel--wide]">
  *       <div class="ds-sheet__head">
@@ -4989,11 +5483,36 @@
  *       </div>
  *       <div class="ds-sheet__body" tabindex="0"> ... </div>
  *
+ * Open and close both with DS.overlay.open(sheet, { opener }) and
+ * DS.overlay.close(sheet) (js/overlay.js): focus, trap, Escape, the
+ * scroll lock and data-state ("closed", then "open"; "closed" again to
+ * leave). The motion runs on transitions keyed on data-state, so a
+ * reversal continues from the current value in every engine.
+ *
+ *   .ds-sheet--closing   the exit by hand, without data-state (keyframes):
+ *                        release the trap and focus the opener first, add
+ *                        the class, and after DS.motion.settled(panel) hide
+ *                        the sheet and remove the class in the same task.
+ *                        On a native sheet it keeps the element shown and
+ *                        stacked after close() took it out of the top
+ *                        layer. During the exit the panel ignores the
+ *                        pointer and the backdrop swallows clicks, so
+ *                        nothing reaches the page under it.
+ *
+ * The hidden attribute hides the div sheet, also without .ds-base.
+ *
  * Set data-scrolled on the panel while its body is scrolled: the head's
  * hairline shows then. Do not use <header> in the head: outside main
  * content it would be a second banner landmark.
  *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px).
+ *
+ * Progressive: @starting-style, transition-behavior: allow-discrete and
+ * the overlay property. A native sheet driven by hand (showModal() and
+ * close() of the page, without DS.overlay) then plays the same
+ * transitions, also on close(); Chromium keeps a sheet in the top layer
+ * through every exit, DS.overlay's included. Without them it enters with
+ * the keyframes and closes at once.
  */
 
 @layer ds.components {
@@ -5006,6 +5525,36 @@
     z-index: var(--ds-z-drawer);
     display: flex;
     justify-content: flex-end;
+    /* The bleed past the panel's outer edge never makes anything scroll. */
+    overflow: clip;
+  }
+
+  /* A native <dialog> loses the UA box: it is the same full-window frame
+     as the div. */
+  dialog.ds-sheet {
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    overflow: clip;
+  }
+
+  dialog.ds-sheet::backdrop {
+    background: transparent;
+  }
+
+  /* display: flex above outranks the UA rule that hides a closed dialog.
+     --closing keeps it shown while its exit plays outside the top layer;
+     data-state="open" keeps it shown when the page closes it natively
+     (close(), a <form method="dialog">), until the close event, a task
+     later, starts the exit from where it stands. */
+  dialog.ds-sheet:not([open]):not(.ds-sheet--closing):not([data-state="open"]) {
+    display: none;
   }
 
   .ds-sheet__backdrop {
@@ -5015,7 +5564,6 @@
     bottom: 0;
     left: 0;
     background: var(--ds-scrim);
-    animation: ds-fade-in var(--ds-dur-base) var(--ds-ease-in-out) backwards;
   }
 
   /* With viewport-fit=cover the sheet keeps clear of the notch, the status
@@ -5032,9 +5580,21 @@
     box-shadow: var(--ds-elev-overlay);
     /* Invisible; forced colors paint it, so the sheet keeps its edge. */
     outline: 1px solid transparent;
-    animation:
-      ds-fade-in var(--ds-dur-slow) var(--ds-ease-in-out) backwards,
-      ds-shift-in var(--ds-dur-slow) var(--ds-ease-emphasized) backwards;
+  }
+
+  /* Bleed: the spring carries the panel a little past its resting edge
+     (about 3 % of the travel, at most 5 %: 36px of a 720px panel); this
+     strip of its own background beyond the outer edge keeps the scrim from
+     showing at the screen edge. Off screen at rest, clipped by the sheet. */
+  .ds-sheet__panel::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 100%;
+    width: var(--ds-space-12);
+    background: inherit;
+    pointer-events: none;
   }
 
   .ds-sheet__panel--wide {
@@ -5045,19 +5605,105 @@
     display: none;
   }
 
-  .ds-sheet--closing .ds-sheet__backdrop {
-    animation: ds-fade-out var(--ds-dur-base) var(--ds-ease-in) forwards;
+  /* Only the panel lets clicks through while it leaves; the backdrop
+     swallows them until the sheet is hidden or removed. */
+  .ds-sheet--closing .ds-sheet__panel,
+  .ds-sheet[data-state="closed"] .ds-sheet__panel {
+    pointer-events: none;
   }
 
-  /* Interim pair until the overlay rework: the panel fades while it shifts
-     away (the full-width slide of an opaque panel, without a fade, comes
-     later). Only the panel lets clicks through; the backdrop swallows them
-     until the sheet is hidden or removed. */
-  .ds-sheet--closing .ds-sheet__panel {
-    pointer-events: none;
-    animation:
-      ds-fade-out var(--ds-dur-base) var(--ds-ease-in) forwards,
-      ds-shift-out var(--ds-dur-base) var(--ds-ease-exit) forwards;
+  /* State-driven (DS.overlay): transitions, so a reversal continues from
+     the current value. A transition takes the timing of the state it moves
+     to. The panel only slides (opaque, no fade); the scrim fades out over
+     the panel's exit time, so both end together. */
+  .ds-sheet[data-state] .ds-sheet__backdrop {
+    animation: none;
+    transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
+
+  .ds-sheet[data-state] .ds-sheet__panel {
+    animation: none;
+    transition: translate var(--ds-dur-long) var(--ds-ease-spatial);
+  }
+
+  .ds-sheet[data-state="closed"] .ds-sheet__backdrop {
+    opacity: 0;
+    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+  }
+
+  .ds-sheet[data-state="closed"] .ds-sheet__panel {
+    translate: var(--ds-distance-sheet) 0;
+    transition: translate var(--ds-dur-base) var(--ds-ease-exit);
+  }
+
+  /* Keyframes: markup driven by hand, without data-state. The full-width
+     slide of the opaque panel is the one exit without ds-fade-out: it
+     leaves the screen. */
+  .ds-sheet:not([data-state]) .ds-sheet__backdrop {
+    animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards;
+  }
+
+  .ds-sheet:not([data-state]) .ds-sheet__panel {
+    --ds-motion-distance: var(--ds-distance-sheet);
+    animation: ds-shift-in var(--ds-dur-long) var(--ds-ease-spatial) backwards;
+  }
+
+  .ds-sheet--closing:not([data-state]) .ds-sheet__backdrop {
+    animation: ds-fade-out var(--ds-dur-base) var(--ds-ease-in-out) forwards;
+  }
+
+  .ds-sheet--closing:not([data-state]) .ds-sheet__panel {
+    --ds-motion-distance: var(--ds-distance-sheet);
+    animation: ds-shift-out var(--ds-dur-base) var(--ds-ease-exit) forwards;
+  }
+
+  /* A native sheet driven by hand: the same transitions, keyed on [open].
+     display and overlay step at the end of the exit, so close() animates
+     and Chromium keeps the sheet in the top layer meanwhile. Under
+     DS.overlay only overlay steps: --closing keeps display, and the sheet
+     must not linger, invisible, once it is done. */
+  @supports (transition-behavior: allow-discrete) {
+    dialog.ds-sheet:not([data-state]) {
+      transition:
+        display var(--ds-dur-base) allow-discrete,
+        overlay var(--ds-dur-base) allow-discrete;
+    }
+
+    dialog.ds-sheet[data-state] {
+      transition: overlay var(--ds-dur-base) allow-discrete;
+    }
+
+    dialog.ds-sheet:not([data-state]) .ds-sheet__backdrop {
+      animation: none;
+      transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
+    }
+
+    dialog.ds-sheet:not([data-state]) .ds-sheet__panel {
+      animation: none;
+      transition: translate var(--ds-dur-long) var(--ds-ease-spatial);
+    }
+
+    dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__backdrop {
+      opacity: 0;
+      transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+    }
+
+    dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__panel {
+      translate: var(--ds-distance-sheet) 0;
+      transition: translate var(--ds-dur-base) var(--ds-ease-exit);
+    }
+  }
+
+  /* Where the sheet enters from when showModal() shows it (a rule of its
+     own, not nested; engines without it play the keyframes). */
+  @starting-style {
+    dialog.ds-sheet[open]:not([data-state]) .ds-sheet__backdrop {
+      opacity: 0;
+    }
+
+    dialog.ds-sheet[open]:not([data-state]) .ds-sheet__panel {
+      translate: var(--ds-distance-sheet) 0;
+    }
   }
 
   /* Header: 64px; its hairline shows only while the body scrolls under it. */
@@ -5142,6 +5788,37 @@
       border-radius: 0;
     }
 
+    /* Phones: the sheet rises from the bottom and falls back down; the
+       bleed sits below it. As tall as the screen, it rises on
+       --ds-ease-out (every path), so the spring's overshoot never cuts
+       off its head at the top edge; the exit keeps its tokens. */
+    .ds-sheet__panel::after {
+      top: 100%;
+      left: 0;
+      right: 0;
+      bottom: auto;
+      width: auto;
+      height: var(--ds-space-12);
+    }
+
+    .ds-sheet[data-state="open"] .ds-sheet__panel {
+      transition: translate var(--ds-dur-long) var(--ds-ease-out);
+    }
+
+    .ds-sheet[data-state="closed"] .ds-sheet__panel {
+      translate: 0 var(--ds-distance-sheet);
+    }
+
+    .ds-sheet:not([data-state]) .ds-sheet__panel {
+      --ds-motion-distance: var(--ds-distance-sheet);
+      animation: ds-lift-in var(--ds-dur-long) var(--ds-ease-out) backwards;
+    }
+
+    .ds-sheet--closing:not([data-state]) .ds-sheet__panel {
+      --ds-motion-distance: var(--ds-distance-sheet);
+      animation: ds-drop-out var(--ds-dur-base) var(--ds-ease-exit) forwards;
+    }
+
     .ds-sheet__head {
       padding-left: max(var(--ds-space-4), env(safe-area-inset-left));
     }
@@ -5150,39 +5827,97 @@
       padding-inline: max(var(--ds-space-4), env(safe-area-inset-left)) max(var(--ds-space-4), env(safe-area-inset-right));
     }
   }
+
+  @supports (transition-behavior: allow-discrete) {
+    @media (max-width: 600px) {
+      dialog.ds-sheet[open]:not([data-state]) .ds-sheet__panel {
+        transition: translate var(--ds-dur-long) var(--ds-ease-out);
+      }
+
+      dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__panel {
+        translate: 0 var(--ds-distance-sheet);
+      }
+    }
+  }
+
+  @media (max-width: 600px) {
+    @starting-style {
+      dialog.ds-sheet[open]:not([data-state]) .ds-sheet__panel {
+        translate: 0 var(--ds-distance-sheet);
+      }
+    }
+  }
 }
 
 /* ── components/dialog.css ── */
 /*
- * Dialog (confirmation): a modal sheet over the whole window, above an open
- * side sheet (it may ask from inside one) and below snackbars. It enters
- * with a fading scrim and a sheet that rises from just below full size; it
- * leaves faster than it came, fading and dropping a little. No blur, no
- * spring.
+ * Dialog (confirmation): a modal box over the whole window, above an open
+ * side sheet (it may ask from inside one) and below snackbars. The scrim
+ * fades in while the box fades, grows from just below full size and rises
+ * a little on the spatial spring, from an origin towards its opener. It
+ * leaves faster than it came, the same way back, accelerating. A close
+ * taken back mid-way continues from where the box is.
  *
- *   <div class="ds-dialog">
+ * Native markup (preferred): showModal() makes the page inert and gives
+ * the dialog its modal semantics, so the box carries no role.
+ *
+ *   <dialog class="ds-dialog" role="alertdialog" aria-labelledby="d-title" aria-describedby="d-text">
  *     <div class="ds-dialog__backdrop" data-close></div>
- *     <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="d-title" aria-describedby="d-text">
+ *     <div class="ds-dialog__box">
  *       <h2 class="ds-dialog__title" id="d-title">Delete 3 devices?</h2>
  *       <p class="ds-dialog__text" id="d-text">They are removed for everyone.</p>
  *       <div class="ds-dialog__actions">
- *         <button class="ds-btn ds-btn--text" type="button">Cancel</button>
+ *         <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
  *         <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
+ *
+ * Div markup (fallback): the same tree in a div; the box takes the role.
+ *
+ *   <div class="ds-dialog" hidden>
+ *     <div class="ds-dialog__backdrop" data-close></div>
+ *     <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="d-title" aria-describedby="d-text">
+ *
+ * Open and close both with DS.overlay.open(dialog, { opener }) and
+ * DS.overlay.close(dialog) (js/overlay.js): focus, trap, Escape, the
+ * scroll lock and data-state. The motion runs on transitions keyed on
+ * data-state ("closed", then "open"; "closed" again to leave), so a
+ * reversal continues from the current value in every engine. The scrim is
+ * the __backdrop child; a native dialog's ::backdrop stays transparent.
  *
  *   .ds-dialog--hidden     not shown (or use the hidden attribute; it works
  *                          without .ds-base)
- *   .ds-dialog--closing    plays the exit; remove or hide after animationend.
- *                          The box ignores the pointer during the exit, the
- *                          backdrop still catches clicks, so nothing reaches
- *                          the page under it.
+ *   .ds-dialog--closing    the exit by hand, without data-state (keyframes):
+ *                          release the trap and focus the opener first, add
+ *                          the class, and after DS.motion.settled(box) hide
+ *                          the dialog and remove the class in the same task.
+ *                          On a native dialog it keeps the element shown and
+ *                          stacked (position: fixed, --ds-z-dialog) after
+ *                          close() took it out of the top layer. The box
+ *                          ignores the pointer during the exit, the backdrop
+ *                          still catches clicks, so nothing reaches the page
+ *                          under it.
+ *   .ds-dialog--nested     over another open modal (a sheet, the modal
+ *                          drawer): the lighter --ds-scrim-nested, so the
+ *                          scrims add up to about 43%. DS.overlay sets it.
  *   .ds-dialog--contained  covers its positioned container instead of the
- *                          window (a dialog inside an embedded panel)
+ *                          window (div markup only: a dialog inside an
+ *                          embedded panel)
+ *
+ * At 600px and below the box moves on --ds-ease-out: a box nearly as wide
+ * as the window never overshoots past it.
  *
  * There are no red buttons: the main action names the consequence.
  *
  * Hooks: --ds-dialog-width (400px), --ds-dialog-border (an invisible
  * hairline that forced colors paint, so the dialog keeps its edge once
- * shadow and scrim are gone), --ds-dialog-shadow.
+ * shadow and scrim are gone), --ds-dialog-shadow, --ds-dialog-scrim
+ * (--ds-scrim).
+ *
+ * Progressive: @starting-style, transition-behavior: allow-discrete and
+ * the overlay property. A native dialog driven by hand (showModal() and
+ * close() of the page, without DS.overlay) then plays the same
+ * transitions, also on close(); Chromium keeps a dialog in the top layer
+ * through every exit, DS.overlay's included. Without them it enters with
+ * the keyframes and closes at once.
  */
 
 @layer ds.components {
@@ -5198,6 +5933,33 @@
     padding: var(--ds-space-4);
   }
 
+  /* A native <dialog> loses the UA box: it is the same full-window grid
+     as the div, and the box inside is the surface. */
+  dialog.ds-dialog {
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    overflow: visible;
+  }
+
+  dialog.ds-dialog::backdrop {
+    background: transparent;
+  }
+
+  /* display: grid above outranks the UA rule that hides a closed dialog.
+     --closing keeps it shown while its exit plays outside the top layer;
+     data-state="open" keeps it shown when the page closes it natively
+     (close(), a <form method="dialog">), until the close event, a task
+     later, starts the exit from where it stands. */
+  dialog.ds-dialog:not([open]):not(.ds-dialog--closing):not([data-state="open"]) {
+    display: none;
+  }
+
   .ds-dialog--contained {
     position: absolute;
     z-index: var(--ds-z-popover);
@@ -5208,14 +5970,17 @@
     display: none;
   }
 
+  .ds-dialog--nested {
+    --ds-dialog-scrim: var(--ds-scrim-nested);
+  }
+
   .ds-dialog__backdrop {
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
     left: 0;
-    background: var(--ds-scrim);
-    animation: ds-fade-in var(--ds-dur-base) var(--ds-ease-in-out) backwards;
+    background: var(--ds-dialog-scrim, var(--ds-scrim));
   }
 
   .ds-dialog__box {
@@ -5231,23 +5996,128 @@
     background: var(--ds-surface);
     box-shadow: var(--ds-dialog-shadow, var(--ds-elev-overlay));
     text-align: left;
-    animation:
-      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
-      ds-grow-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
-  }
-
-  .ds-dialog--closing .ds-dialog__backdrop {
-    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) forwards;
   }
 
   /* Only the box lets clicks through while it leaves; the backdrop swallows
      them until the dialog is hidden or removed. */
-  .ds-dialog--closing .ds-dialog__box {
-    --ds-motion-distance: var(--ds-distance-sm);
+  .ds-dialog--closing .ds-dialog__box,
+  .ds-dialog[data-state="closed"] .ds-dialog__box {
     pointer-events: none;
+  }
+
+  /* State-driven (DS.overlay): transitions, so a reversal continues from
+     the current value. A transition takes the timing of the state it moves
+     to: the entrance from these rules, the exit from the closed ones. The
+     opacity is opaque within --ds-dur-fast, before the spring has settled. */
+  .ds-dialog[data-state] .ds-dialog__backdrop {
+    animation: none;
+    transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
+
+  .ds-dialog[data-state] .ds-dialog__box {
+    animation: none;
+    transform-origin: var(--ds-motion-origin, 50% 50%);
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-slow) var(--ds-ease-spatial),
+      translate var(--ds-dur-slow) var(--ds-ease-spatial);
+  }
+
+  .ds-dialog[data-state="closed"] .ds-dialog__backdrop {
+    opacity: 0;
+    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+  }
+
+  .ds-dialog[data-state="closed"] .ds-dialog__box {
+    opacity: 0;
+    scale: var(--ds-scale-enter);
+    translate: 0 var(--ds-distance-sm);
+    transition:
+      opacity var(--ds-dur-base) var(--ds-ease-in-out),
+      scale var(--ds-dur-base) var(--ds-ease-exit),
+      translate var(--ds-dur-base) var(--ds-ease-exit);
+  }
+
+  /* Keyframes: markup driven by hand, without data-state. The exit mirrors
+     the entrance, movement-only plus the fade. */
+  .ds-dialog:not([data-state]) .ds-dialog__backdrop {
+    animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards;
+  }
+
+  .ds-dialog:not([data-state]) .ds-dialog__box {
     animation:
-      ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) forwards,
-      ds-drop-out var(--ds-dur-fast) var(--ds-ease-in) forwards;
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
+      ds-grow-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
+  }
+
+  .ds-dialog--closing:not([data-state]) .ds-dialog__backdrop {
+    animation: ds-fade-out var(--ds-dur-base) var(--ds-ease-in-out) forwards;
+  }
+
+  .ds-dialog--closing:not([data-state]) .ds-dialog__box {
+    --ds-motion-distance: var(--ds-distance-sm);
+    animation:
+      ds-fade-out var(--ds-dur-base) var(--ds-ease-in-out) forwards,
+      ds-shrink-out var(--ds-dur-base) var(--ds-ease-exit) forwards;
+  }
+
+  /* A native dialog driven by hand: the same transitions, keyed on [open].
+     display and overlay step at the end of the exit, so close() animates
+     and Chromium keeps the dialog in the top layer meanwhile. Under
+     DS.overlay only overlay steps: --closing keeps display, and the dialog
+     must not linger, invisible, once it is done. */
+  @supports (transition-behavior: allow-discrete) {
+    dialog.ds-dialog:not([data-state]) {
+      transition:
+        display var(--ds-dur-base) allow-discrete,
+        overlay var(--ds-dur-base) allow-discrete;
+    }
+
+    dialog.ds-dialog[data-state] {
+      transition: overlay var(--ds-dur-base) allow-discrete;
+    }
+
+    dialog.ds-dialog:not([data-state]) .ds-dialog__backdrop {
+      animation: none;
+      transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
+    }
+
+    dialog.ds-dialog:not([data-state]) .ds-dialog__box {
+      animation: none;
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-slow) var(--ds-ease-spatial),
+        translate var(--ds-dur-slow) var(--ds-ease-spatial);
+    }
+
+    dialog.ds-dialog:not([data-state]):not([open]) .ds-dialog__backdrop {
+      opacity: 0;
+      transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+    }
+
+    dialog.ds-dialog:not([data-state]):not([open]) .ds-dialog__box {
+      opacity: 0;
+      scale: var(--ds-scale-enter);
+      translate: 0 var(--ds-distance-sm);
+      transition:
+        opacity var(--ds-dur-base) var(--ds-ease-in-out),
+        scale var(--ds-dur-base) var(--ds-ease-exit),
+        translate var(--ds-dur-base) var(--ds-ease-exit);
+    }
+  }
+
+  /* Where the dialog enters from when showModal() shows it (a rule of its
+     own, not nested; engines without it play the keyframes). */
+  @starting-style {
+    dialog.ds-dialog[open]:not([data-state]) .ds-dialog__backdrop {
+      opacity: 0;
+    }
+
+    dialog.ds-dialog[open]:not([data-state]) .ds-dialog__box {
+      opacity: 0;
+      scale: var(--ds-scale-enter);
+      translate: 0 var(--ds-distance-sm);
+    }
   }
 
   .ds-dialog__title {
@@ -5277,6 +6147,42 @@
     gap: var(--ds-space-2);
     margin-top: var(--ds-space-2);
   }
+
+  /* Phones: a box nearly as wide as the window never overshoots past it;
+     the movement decelerates instead of springing (every path). */
+  @media (max-width: 600px) {
+    .ds-dialog[data-state="open"] .ds-dialog__box {
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-slow) var(--ds-ease-out),
+        translate var(--ds-dur-slow) var(--ds-ease-out);
+    }
+
+    .ds-dialog:not([data-state]) .ds-dialog__box {
+      animation:
+        ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
+        ds-grow-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
+    }
+
+    /* The rule above matches a closing dialog too; the exit stays the
+       exit (it accelerates and cannot overshoot). */
+    .ds-dialog--closing:not([data-state]) .ds-dialog__box {
+      animation:
+        ds-fade-out var(--ds-dur-base) var(--ds-ease-in-out) forwards,
+        ds-shrink-out var(--ds-dur-base) var(--ds-ease-exit) forwards;
+    }
+  }
+
+  @supports (transition-behavior: allow-discrete) {
+    @media (max-width: 600px) {
+      dialog.ds-dialog[open]:not([data-state]) .ds-dialog__box {
+        transition:
+          opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+          scale var(--ds-dur-slow) var(--ds-ease-out),
+          translate var(--ds-dur-slow) var(--ds-ease-out);
+      }
+    }
+  }
 }
 
 /* ── components/toast.css ── */
@@ -5285,21 +6191,35 @@
  * the bottom left of the content panel. Icon and text, never colour alone.
  * Place the region right after .ds-app: next to a persistent drawer it
  * then starts at the panel's edge by itself.
- * Enters with a fade and a short rise, leaves with a quick fade (add
- * .ds-leave, see motion.css).
+ * Enters with a fade and a short rise on the spatial spring, leaves with a
+ * quick fade in place while the messages around it close the gap.
  *
- *   <div class="ds-toasts" role="status" aria-live="polite">
- *     <div class="ds-toast [ds-toast--error]">
- *       <svg ...>(checkCircle, 20)</svg>
- *       <span class="ds-toast__text">Saved.</span>
- *       <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">(close)</button>
+ *   <div class="ds-toasts"></div>
+ *   DS.overlay.toast(region, 'Saved.');                      // or { kind: 'error' }, { persistent: true }
+ *
+ *   <div class="ds-toast [ds-toast--error | ds-toast--info]">  what toast() builds from a string
+ *     <svg ...>(checkCircle | alertCircle, 20)</svg>
+ *     <span class="ds-toast__text">Saved.</span>
+ *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">(close)</button>
+ *
+ * DS.overlay.toast() (js/overlay.js) stacks at most three with FLIP, evicts
+ * the oldest message that would close by itself or queues one behind three
+ * that stay, pauses the timers on hover, focus and a hidden tab, announces
+ * the text through two .ds-sr live regions next to the region (the region
+ * and the messages are not live, so their buttons stay reachable), keeps
+ * focus off <body> when a focused message leaves, and moves the region
+ * into an open dialog (in place) or side sheet (with the panel's edge,
+ * data-follow), so messages stay above its scrim and usable.
+ * Deprecated: the region with role="status" aria-live="polite" and
+ * role="alert" on error messages (toast() then adds no announcers), and
+ * the hand recipe of --ds-toast-shift below.
  *
  * Runtime properties a page may set: --ds-toast-left (the region's left
  * edge; set it when the panel starts elsewhere), --ds-toast-bottom (its
  * distance from the bottom edge; set it to stay above a bar pinned there),
  * --ds-toast-shift and --ds-toast-shift-y (glide it from where it stood
- * when it moves, e.g. between the page and a side sheet), and
- * --ds-toast-reserve (room kept for an open message, with
+ * when it moves; deprecated for side sheets, which toast() follows by
+ * itself), and --ds-toast-reserve (room kept for an open message, with
  * data-toast-reserve on .ds-view or .ds-sheet__body).
  */
 
@@ -5314,6 +6234,9 @@
     z-index: var(--ds-z-toast);
     display: grid;
     justify-items: start;
+    /* The stack keeps to the bottom edge: while a leaving message holds the
+       region's height (DS.motion.flip()), the others stay where they are. */
+    align-content: end;
     gap: var(--ds-space-2);
     max-width: min(560px, calc(100vw - var(--ds-toast-left, var(--ds-space-6)) - var(--ds-space-6)));
     pointer-events: none;
@@ -5322,6 +6245,18 @@
        one style flush). */
     translate: var(--ds-toast-shift, 0px) var(--ds-toast-shift-y, 0px);
     transition: translate var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
+
+  /* Following a side sheet (DS.overlay.open / close): the messages arrive
+     with the panel's edge, on the sheet's own timing. */
+  .ds-toasts[data-follow="enter"] {
+    transition-duration: var(--ds-dur-long);
+    transition-timing-function: var(--ds-ease-spatial);
+  }
+
+  .ds-toasts[data-follow="exit"] {
+    transition-duration: var(--ds-dur-base);
+    transition-timing-function: var(--ds-ease-exit);
   }
 
   /* Beside the persistent drawer (above 900px, shell.css): the panel's
@@ -5351,12 +6286,13 @@
     --ds-leave-duration: var(--ds-dur-fast);
     animation:
       ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
-      ds-lift-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
+      ds-lift-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
   }
 
-  /* Played once (mark it .ds-toast--shown): moving the region into or out
-     of a side sheet re-inserts the message, which would restart it, so a
-     message already on screen would blink out and rise again. enter() and
+  /* Played once (mark it .ds-toast--shown; toast() does after the
+     entrance): moving the region into or out of a side sheet re-inserts
+     the message where moveBefore() is missing, which would restart it, so
+     a message already on screen would blink out and rise again. enter() and
      .ds-leave still play: the motion utilities sit in the ds.utilities
      layer, which beats this rule whatever its specificity. */
   .ds-toast--shown:not(.ds-leave) {
@@ -5416,28 +6352,53 @@
 
 /* ── components/tooltip.css ── */
 /*
- * Plain tooltip (Material 3): the inverse surface, the meta role, placed
- * below its control by the page's script with top and left. It only fades
- * in and grows from just under full size around its centre (no rise: it is
- * anchored to the control), and leaves with a quick fade. Let the pointer
- * move onto it (WCAG 1.4.13: a magnifier user can read it there) and keep
- * it open meanwhile.
+ * Plain tooltip (Material 3): the inverse surface, the meta role, below its
+ * control (above it when there is no room). It fades in and grows from
+ * --ds-scale-tooltip at the side of its anchor (no rise: it is anchored to
+ * the control), and leaves with a quick fade only. The pointer may move
+ * onto it (WCAG 1.4.13: a magnifier user can read it there); it stays open
+ * meanwhile.
  *
- * A transform placement still composes with the entrance (it animates the
- * separate scale property), but that scale also shrinks the transform's
- * offset, so the tooltip starts (1 - scale) x offset towards the page
- * origin and drifts into place. A script that keeps a transform sets
- * transform-origin: calc(50% + Xpx) calc(50% + Ypx) with it.
+ * DS.overlay.tooltips(root) (js/overlay.js) does everything for
+ * [data-tip] triggers: it creates the one tooltip of the theme, shows it
+ * after --ds-delay-tooltip on hover (mouse and pen) and at once on keyboard
+ * focus, warms up along a toolbar (--ds-delay-tooltip-skip), hides after
+ * the --ds-delay-tooltip-hide grace, on Escape and on any pointerdown, and
+ * places it:
  *
- *   <div class="ds-tooltip" role="tooltip" id="tip" hidden>Copy link</div>
- *   tip.style.left = '120px'; tip.style.top = '48px';
+ *   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">(link)</button>
+ *   DS.overlay.tooltips(document);
+ *
+ *   <div class="ds-tooltip" role="tooltip" id="..." hidden data-state="open | closed" [data-warm] [data-placement="top"] [data-anchored]>Copy link</div>
+ *
+ * Placement API: --ds-tooltip-x and --ds-tooltip-y (left and top, px) on
+ * the tooltip. Inline top / left and a transform of the page still work:
+ * the motion animates the separate scale property, so it composes. With a
+ * transform, set transform-origin with it, or the scale shrinks the offset
+ * too and the tooltip drifts in.
+ *
+ * Motion: tooltips() drives data-state ("closed", flushed, then "open";
+ * "closed" again to hide), so a show taken back mid-way continues from
+ * where it is (transitions retarget). The origin is --ds-motion-origin,
+ * which DS.motion.originFrom() puts at the anchor side; data-warm (a show
+ * during the warm-up) keeps the scale at rest, so the next tooltip only
+ * fades in. Without data-state (a page that drives it by hand: remove
+ * hidden, leave with DS.motion.leave(tip, '', { then: 'hide' })) the
+ * keyframe entrance and .ds-leave still play.
+ *
+ * Progressive: popover (popover="manual" puts the tooltip into the top
+ * layer, over a modal dialog) and CSS anchor positioning (anchor-name on
+ * the trigger, position-anchor, position-area, position-try-fallbacks
+ * on the tooltip), behind @supports (position-area: block-end); data-
+ * anchored marks that path. Elsewhere the script writes --ds-tooltip-x/-y
+ * and flips the tooltip above the trigger (data-placement="top").
  */
 
 @layer ds.components {
   .ds-tooltip {
     position: fixed;
-    top: 0;
-    left: 0;
+    left: var(--ds-tooltip-x, 0px);
+    top: var(--ds-tooltip-y, 0px);
     z-index: var(--ds-z-toast);
     /* Its own width wherever it was last placed (measure it before moving
        it), wrapping only past the maximum. */
@@ -5453,6 +6414,20 @@
     overflow-wrap: anywhere;
     /* Invisible; forced colors paint it, so the tooltip keeps an edge. */
     outline: 1px solid transparent;
+    /* Grows at the side of its anchor: originFrom() writes the origin;
+       below the trigger that is its top edge. */
+    --ds-motion-scale: var(--ds-scale-tooltip);
+    transform-origin: var(--ds-motion-origin, 50% 0%);
+  }
+
+  /* Above the trigger: it grows from its bottom edge. */
+  .ds-tooltip[data-placement="top"] {
+    transform-origin: var(--ds-motion-origin, 50% 100%);
+  }
+
+  /* Driven by hand (no data-state): the one-shot entrance; leave with
+     .ds-leave, a quick fade. */
+  .ds-tooltip:not([data-state]) {
     --ds-motion-distance: 0px;
     --ds-leave-duration: var(--ds-dur-instant);
     animation:
@@ -5460,8 +6435,59 @@
       ds-grow-in var(--ds-dur-fast) var(--ds-ease-out) backwards;
   }
 
+  /* Driven by DS.overlay.tooltips(): transitions keyed on data-state, so a
+     hide taken back continues from the current opacity. The entrance fades
+     in over --ds-dur-fast and springs to full size over --ds-dur-medium. */
+  .ds-tooltip[data-state] {
+    animation: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* The exit only fades, in --ds-dur-instant; the scale goes back to its
+     start once the tooltip is invisible, ready for the next entrance. It
+     takes no pointer while it fades or rests hidden. */
+  .ds-tooltip[data-state="closed"] {
+    opacity: 0;
+    scale: var(--ds-motion-scale, var(--ds-scale-tooltip));
+    pointer-events: none;
+    transition:
+      opacity var(--ds-dur-instant) var(--ds-ease-in-out),
+      scale 0ms var(--ds-ease-in-out) var(--ds-dur-instant);
+  }
+
+  /* Warm-up: the next tooltip of a toolbar only fades in. */
+  .ds-tooltip[data-state][data-warm] {
+    scale: none;
+  }
+
   .ds-tooltip[hidden] {
     display: none;
+  }
+
+  /* The UA box of a popover (centred by auto margins over the whole
+     window, a border, its own scrolling) goes: it is the same tooltip. */
+  .ds-tooltip[popover] {
+    inset: var(--ds-tooltip-y, 0px) auto auto var(--ds-tooltip-x, 0px);
+    width: max-content;
+    height: auto;
+    margin: 0;
+    border: 0;
+    overflow: visible;
+  }
+
+  /* Anchor positioning: below the trigger, centred on it, above it when
+     there is no room (the margin flips with it); the side margins keep it
+     8px from the viewport edges, like the script's placement. */
+  @supports (position-area: block-end) {
+    .ds-tooltip[data-anchored] {
+      position-area: block-end;
+      position-try-fallbacks: flip-block;
+      margin: var(--ds-space-2) var(--ds-space-2) 0;
+      left: auto;
+      top: auto;
+    }
   }
 }
 
@@ -6517,14 +7543,14 @@
  * Hosts: .ds-btn, .ds-chip (the ripple goes into .ds-chip__body),
  * .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile,
  * .ds-table__sort, .ds-radio (radio cards), .ds-combo__toggle,
- * .ds-errors summary and [data-ds-ripple] (any element, made positioned
- * here); inline links, the switch, checkbox and radio inputs (their halo
- * is the press), combobox options and native field parts have none;
- * data-ds-ripple="off" on a host or an ancestor opts out. Each host gets
- * position: relative, and while a ripple is inside also overflow: clip and
- * isolation: isolate, all with zero specificity: a ripple never escapes its
- * host, a host's own position still wins, and a host at rest looks as
- * without .ds-ripples.
+ * .ds-menu__item, .ds-errors summary and [data-ds-ripple] (any element,
+ * made positioned here); inline links, the switch, checkbox and radio
+ * inputs (their halo is the press), combobox options and native field
+ * parts have none; data-ds-ripple="off" on a host or an ancestor opts out.
+ * Each host gets position: relative, and while a ripple is inside also
+ * overflow: clip and isolation: isolate, all with zero specificity: a
+ * ripple never escapes its host, a host's own position still wins, and a
+ * host at rest looks as without .ds-ripples.
  *
  * .ds-press-ripple--out   the release: the ripple fades, then the script removes it
  *
@@ -6547,7 +7573,7 @@
  */
 
 @layer ds.components {
-  :where(.ds-ripples :is(.ds-btn, .ds-chip__body, .ds-segmented__option, .ds-drawer__item, button.ds-tile, a.ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-errors summary, [data-ds-ripple]:not([data-ds-ripple="off"]))) {
+  :where(.ds-ripples :is(.ds-btn, .ds-chip__body, .ds-segmented__option, .ds-drawer__item, button.ds-tile, a.ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]:not([data-ds-ripple="off"]))) {
     position: relative;
   }
 
@@ -6608,6 +7634,7 @@
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
   :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
     opacity: 0;
   }
@@ -6621,6 +7648,7 @@
     :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover);
     }
@@ -6641,6 +7669,7 @@
   :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);
   }

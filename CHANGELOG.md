@@ -3,6 +3,115 @@
 All notable changes. Versions follow [semver](https://semver.org): renaming or removing a token, class, hook or JS
 export is a major change; adding one is a minor change.
 
+## 1.3.0
+
+Motion 2, the overlays: a new `DS.overlay` module opens and closes dialogs, side sheets, the modal drawer, menus and
+the combobox list (native `<dialog>` with `showModal()` first, the div markup as fallback), shows snackbars and
+tooltips. Every overlay is interruptible: its motion runs on transitions keyed on `data-state`, so a close taken back
+continues from where it is. Side sheets slide their full width on the spring, popups and tooltips grow out of their
+trigger, snackbars stack. New `.ds-menu` and `.ds-presence`. Additive: no class, token, hook or export was removed or
+renamed, and no migration is required. Screenshots of the overlays change (see "Changed").
+
+### Added
+
+- `DS.overlay` (`js/overlay.js`, `window.DS.overlay`): `open(el, { opener })`, `close(el)`, `lockScroll()`,
+  `unlockScroll()`, `toast(region, content, { kind, persistent, timeout, closeLabel })` and `tooltips(root)`, plus the
+  fallback constants `TOAST_MS` (4000), `TOAST_MAX_MS` (10000), `TOAST_LIMIT` (3), `TOOLTIP_DELAY_MS` (500),
+  `TOOLTIP_SKIP_MS` (300) and `TOOLTIP_HIDE_MS` (100). Focus moves in at once (`autofocus` first) and is back on the
+  opener as soon as the close starts; the div markup makes the page inert, a native dialog uses `showModal()`; only the
+  box or panel is inert during the exit, so the backdrop keeps catching clicks; Escape closes only the top layer (one
+  document listener in the bubble phase, after the page's own handlers: a widget inside that calls `preventDefault()`
+  keeps the overlay open; a native `cancel` plays the exit); closing a dialog, sheet or the drawer closes the menus
+  and lists open inside it; overlays over each other compose (the div trap follows the stack, so a dialog from a div
+  sheet or from the modal drawer takes input while the overlay under it stays inert, and a menu, dialog or sheet (div
+  or native) opened over a native dialog or sheet moves inside it while it shows, so a native dialog leaving a native
+  sheet stays above its panel and a click on its scrim never closes the sheet); `[data-close]` closes; a press on a
+  leaving backdrop or the drawer's scrim keeps focus on the opener; the scroll lock
+  is reference-counted and
+  keeps the room of a scrollbar it removes (`scrollbar-gutter`, else `padding-right`); a modal drawer acts only at 900px
+  and below and handles the breakpoint by itself; an overlay outside `.ds-theme` logs one warning. Docs: motion.md,
+  "DS.overlay".
+- Native markup for the dialog and the side sheet: `<dialog class="ds-dialog">` and `<dialog class="ds-sheet">` with the
+  same inner tree as the div markup (UA box reset, transparent `::backdrop`, hidden while closed). Driven by hand
+  (`showModal()`, `close()`), they play the same transitions where `@starting-style` and `allow-discrete` exist.
+- `.ds-menu` (`menu.css`): `.ds-menu__item` (48px rows with icon, state layer, inset ring and ripple; a ripple host),
+  `.ds-menu__label`, `.ds-menu__check` (the check of a `menuitemcheckbox`), `.ds-menu__divider`; `DS.overlay` places
+  it, moves focus with the arrows, Home and End and closes on Escape, Tab, an item and a pointerdown outside.
+- `.ds-presence` (`motion.css`, `ds.utilities`): a project element toggled with `hidden`, as a `[popover]` or as a
+  `<dialog>` of its own fades in and grows on the spring, leaves faster, and a toggle mid-way continues from where it
+  is (progressive; elsewhere an instant toggle).
+- `.ds-dialog--nested` (set by `DS.overlay` for a dialog over another modal) with the role `--ds-scrim-nested`
+  (`rgba(0, 0, 0, .16)`) and the hook `--ds-dialog-scrim` (default `--ds-scrim`).
+- Tooltip delays (layer 1, time-scaled): `--ds-delay-tooltip` (500ms), `--ds-delay-tooltip-skip` (300ms, the warm-up
+  along a toolbar) and `--ds-delay-tooltip-hide` (100ms, the grace that lets the pointer cross onto the tooltip).
+- Runtime placement properties: `--ds-tooltip-x` / `--ds-tooltip-y` on `.ds-tooltip` and `--ds-menu-x` / `--ds-menu-y`
+  on `.ds-menu`, written where CSS anchor positioning is missing. Where popover and anchor positioning exist, menus,
+  the combobox list and the tooltip open as `popover="manual"` in the top layer (`data-anchored`), so a scrolling
+  dialog or sheet never clips them.
+- Snackbars: `kind: 'info'` (`.ds-toast--info`), a stack of at most three, two `.ds-sr` live regions that `toast()`
+  adds (polite, assertive for errors), and the regions move into an open dialog or side sheet (in a sheet they glide
+  with the panel's edge, `data-follow`), so a message shown meanwhile is above its scrim, announced and usable (also
+  through the exit: they glide back inside the leaving overlay and return to the page once it ended); the div trap
+  and the modal drawer never make the regions or their announcers inert.
+- Tooltips (`tooltips(root)`): one tooltip per root, delay, warm-up, swap in place, hoverable and dismissable
+  (WCAG 1.4.13), `aria-describedby` only when the tip adds to the trigger's name, re-placed on scroll and resize,
+  `data-placement` on the side it really sits on (anchored: read again after a swap);
+  like the snackbar regions, the div trap and the modal drawer never make it inert, so a trigger inside them shows
+  a tooltip that is hoverable and heard.
+
+### Changed
+
+- **Side sheet** (D16): the panel is opaque throughout and slides its full width in from the edge on the spatial
+  spring over `--ds-dur-long` while the scrim fades; it leaves back to the edge in `--ds-dur-base` on `--ds-ease-exit`
+  without a fade (was a 24px slide with a fade over `--ds-dur-slow`). At 600px and below it rises from the bottom on
+  `--ds-ease-out` (as tall as the screen, a spring would carry its head past the top edge) and falls back down. A
+  48px strip of its background past the outer edge covers the spring's overshoot.
+- **Dialog**: the box fades over `--ds-dur-fast` while it grows from `--ds-scale-enter` and rises `--ds-distance-sm`
+  on the spring over `--ds-dur-slow`, from an origin towards its opener; the exit mirrors it in `--ds-dur-base`
+  (opacity on `--ds-ease-in-out`, movement on `--ds-ease-exit`). The keyframe path (div markup by hand) leaves with
+  `ds-fade-out` plus `ds-shrink-out`. At 600px and below the box decelerates instead of springing.
+- **Tooltip**: fades in and grows from `--ds-scale-tooltip` at the side of its trigger (was around its centre; no
+  rise), springing to full size over `--ds-dur-medium`, and leaves with a fade only in `--ds-dur-instant`; a
+  `transform` placement still composes.
+- **Popups**: the combobox list (and the new menu) fades in while its `clip-path` opens from the trigger's edge and it
+  grows from `--ds-scale-popup` at the trigger, on the spring over `--ds-dur-medium`; the shadow is there from the
+  first frame (the clip keeps `--ds-space-6` of room on the other edges; `originFrom()` writes `--ds-clip-from` with
+  that room, and `ds-clip-in` / `ds-clip-out` open to `--ds-space-6` beyond the box). It leaves with a fade only in
+  `--ds-dur-instant`. It opens below its trigger when it fits, else on the side with more room (`data-placement="top"`
+  above), and never taller than the room on that side (it scrolls inside), so it never covers its trigger or the
+  field being typed into.
+- **Combobox chevron**: follows `aria-expanded` on the field and turns 180deg on the spring with the list.
+- **Combobox active option**: its layer fades in over `--ds-dur-micro` and goes at once (no trail on a held arrow
+  key, no separate hover layer).
+- **Snackbars**: the rise runs on the spring; insertions and removals glide through `DS.motion.flip()`, so the other
+  messages never jump; the timer grows with the text length and pauses on hover, focus and a hidden tab.
+- **Forced colours**: the combobox list and the menu keep their edge (a transparent outline, no `CanvasText` outline
+  of their own), and the chosen option shows `SelectedItem` / `SelectedItemText`.
+
+### Fixed
+
+- Focus is on the opener in the same task as Escape, Cancel or a backdrop click, and nothing behind an exiting
+  overlay is clickable through it.
+- Reopening a dialog or sheet mid-close continues from its current opacity and scale in every engine (no jump to
+  full opacity, no restarted entrance).
+- Tabbing between tooltip triggers keeps the tooltip and swaps it in place; moving onto the icon inside a trigger
+  keeps it.
+- Closing a focused snackbar never drops focus to `<body>`; five messages in a row never show more than three.
+- The scroll lock no longer shifts a body-scrolling page sideways.
+- A combobox at the bottom of a dialog is no longer clipped where popover and anchor positioning exist (elsewhere
+  its list flips above). In a short window the list (and a menu) fits the room on its side instead of covering the
+  field (or its trigger), and every option stays reachable.
+- `DS.motion.flip()`: a removed item keeps its measured size while it fades out of flow (a `max-width: 100%` item of
+  a shrink-wrapped container collapsed before).
+
+### Deprecated (removed in 2.0)
+
+- The snackbar region `<div class="ds-toasts" role="status" aria-live="polite">` with `role="alert"` on errors: use the
+  region without role (`toast()` announces through its own live regions).
+- The manual `--ds-toast-shift` / `--ds-toast-shift-y` recipe for moving snackbars into a side sheet (`toast()` follows
+  the sheet by itself), and closing snackbars with `setTimeout(..., 4000)`.
+- `data-open` on `.ds-combo`: `aria-expanded="true"` on the field turns the chevron.
+
 ## 1.2.0
 
 Motion 2, the navigation: the sliding indicator stretches toward its target and lands on the spring, follows its

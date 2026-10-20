@@ -193,44 +193,44 @@ When a phase finishes, its ids are done or moved explicitly here (definition of 
 | repo-drawer-enter-axis | repo | P4 | **Done (P4):** Drawer and modal drawer: drawer coming back: X-axis rule on the spring done here. The panel glide is moved to P7 (layout-drawer-hidden-jump, container morph): a `translate`-only FLIP cannot animate the 256px width change and would open a gap at the right edge. |
 | repo-indicator-glide-constant | repo | P4 | **Done (P4):** Indicator: glide decision; Tests (tokens.test.js): No exported constant is needed: timing comes from computed tokens; the source-text pin becomes a no-literal check plus browser tests. |
 | repo-missed-8 | repo | P4 | **Done (P4):** Drawer and modal drawer: open and close: Close is `--ds-dur-base` (200ms, the authority's duration for exits of panels) against the 450ms entrance: 0.44, inside the authority's 0.3-0.8 band; the coverage note's 250ms/420ms pair came from superseded tokens and the old 0.5 floor. Row added to P1's ratio test. |
-| core-css-starting-style | core | P5 | Presence utility; Dialog (native by hand): `.ds-presence`, top-level `@starting-style`, `[popover]:not(:popover-open)` in its own rule; the choosing rule in motion.md |
-| overlay-closing-class-lifecycle | overlay | P5 | DS.overlay module (close order); Docs (Dialog): DS.overlay owns the lifecycle; the docs give the hide-and-remove-in-one-task order for the hand path; `settled()` from P2 |
-| overlay-focus-during-exit | overlay | P5 | DS.overlay module (open, close, Escape stack): inert box only, focus back at once, Escape stack, siblings inert as the div trap, `showModal()` as the native trap |
-| overlay-toast-close-focus-loss | overlay | P5 | Snackbars (focus on close): uses P2 `leave(..., { focus })` fallback; never `<body>` |
-| overlay-tooltip-demo-interrupt | overlay | P5 | Tooltip (`tooltips()`): relatedTarget check, hoverable grace, Escape, cancellable hide, in-place swap |
-| overlay-keyframes-not-interruptible | overlay | P5 | Dialog / Side sheet / Tooltip / Combobox state paths: `[data-state]` transitions with the closed→flush→open sequence; keyframes only on `:not([data-state])` |
-| overlay-native-dialog-starting-style | overlay | P5 | Dialog and Side sheet native markup; progressive block: the same inner markup, transparent `::backdrop`, `@starting-style` and `display`/`overlay` allow-discrete as progressive |
-| overlay-sheet-entry-curve | overlay | P5 | Side sheet (state path): `--ds-ease-spatial` over `--ds-dur-long`; the canonical names replace the draft's `--ds-ease-spatial-slow` |
-| overlay-sheet-translucent-panel | overlay | P5 | Side sheet (state path, old path, bleed): D16: opaque panel, no fade, bleed for the overshoot; the pairing-test exemption for the full-distance slide |
-| overlay-sheet-exit-distance | overlay | P5 | Side sheet: the exit mirrors the full width, `--ds-dur-base` on `--ds-ease-exit` (ratio .44, like P4's modal drawer) |
-| overlay-sheet-phone-entry | overlay | P5 | Side sheet (phones): rises from the bottom, falls on exit; old path `ds-lift-in`/`ds-drop-out` |
-| overlay-dialog-exit-symmetry | overlay | P5 | Dialog (state path, old path): the exit mirrors the entrance; the old path uses `ds-fade-out` + `ds-shrink-out` |
-| overlay-dialog-nested-scrim | overlay | P5 | Dialog (nested scrim): `--ds-scrim-nested`, `--ds-dialog-scrim`, `.ds-dialog--nested` set by DS.overlay |
-| overlay-dialog-origin-aware | overlay | P5 | Dialog (state path); DS.overlay open step 7: origin from `originFrom(opener, box)` via `--ds-motion-origin`. The scale is `--ds-scale-enter` (.98), as the authority sets for dialogs, not the .95 of the coverage note. No `--ds-dialog-origin` hook (the canonical `originFrom` writes `--ds-motion-origin`). Container transform in P7 P7 part: Side sheet: container transform. |
-| overlay-toast-reflow-jump | overlay | P5 | Snackbars (`toast()`): D19 stack of 3 with `flip()` (P2) for entering and leaving |
-| overlay-toast-timer-pause | overlay | P5 | Snackbars (timer): hover, focus and hidden-tab pause, length-based timeout, time scale |
-| overlay-toast-shift-choreography | overlay | P5 | Snackbars (following a side sheet): the region's own transition with the sheet's tokens (`data-follow`); `flip()` is not used here because the canonical signature has no timing option |
-| overlay-tooltip-origin-scale | overlay | P5 | Tooltip (CSS): D17: fade plus `--ds-scale-tooltip` from the anchor side via `--ds-motion-origin` (no `--ds-tooltip-origin` hook) |
-| overlay-tooltip-delays-warmup | overlay | P5 | Tooltip (`tooltips()`): delay tokens added here (Tooltip), read through `motionDuration`; warm-up and in-place swap |
-| overlay-tooltip-anchor-positioning | overlay | P5 | Tooltip (placement): progressive anchor positioning and `popover="manual"`; the JS fallback flips and clamps |
-| overlay-combo-popup-no-motion | overlay | P5 | Combobox popup; Menu: D17 clip reveal plus `--ds-scale-popup` from the trigger with negative inset room for the shadow; shared by `.ds-menu`; `ds-clip-in` on the hand path (no `ds-unclip-*` keyframes) |
-| overlay-combo-active-trail | overlay | P5 | Combobox (active trail): fade-in at `--ds-dur-micro`, instant fade-out, no `:hover` layer |
-| overlay-combo-chevron-state | overlay | P5 | Combobox (chevron): `aria-expanded` selector; D25 `rotate: 180deg` on `--ds-ease-spatial` |
-| overlay-combo-forced-colors | overlay | P5 | Combobox (forced colours): transparent outline, `SelectedItem`; the forced-colours test is added here (P1 deferred it) |
-| overlay-combo-clipped-in-dialog | overlay | P5 | Combobox (clipping): `popover="manual"` plus anchor positioning, the JS upward flip, a docs note |
-| overlay-scroll-lock-shift | overlay | P5 | DS.overlay module (scroll lock): reference-counted; gutter or padding only when the body actually scrolls |
-| overlay-missed-2 | overlay | P5 | DS.overlay open step 1; Docs (theming.md Embedded, components.md): overlays inside `.ds-theme`; one warning |
-| overlay-missed-4 | overlay | P5 | Snackbars (live regions): region without role, polite and assertive announcers on the existing `.ds-sr` (no new `.ds-sr-only` class); the old pattern deprecated |
-| overlay-missed-5 | overlay | P5 | DS.overlay open step 8; Docs (Dialog): `autofocus` documented and honoured; the misleading selector removed |
-| js-tooltip-transform-fly | js | P5 | Tooltip (CSS); Docs (Tooltip): the fly-in itself is fixed in P1 (individual `scale`); P5 adds the `--ds-tooltip-x/-y` API, fixes docs/components.md:520, and adds the 10%-frame browser test |
-| js-tooltip-refocus | js | P5 | Tooltip (`tooltips()`): focus between triggers cancels the hide and swaps in place |
-| js-tooltip-mouseout-child | js | P5 | Tooltip (`tooltips()`): relatedTarget containment; hoverable with the `--ds-delay-tooltip-hide` grace |
-| js-toast-stack | js | P5 | Snackbars: one API `DS.overlay.toast` (no `showSnackbar`); the timeout formula as stated |
-| js-overlay-demo | js | P5 | DS.overlay module; Modal drawer mode; Styleguide: close order per the authority (native `close()` first); the drawer returns focus to the menu button |
-| js-toast-live-region | js | P5 | Snackbars (live regions); Styleguide (index.html:49): the same fix as overlay-missed-4 |
-| js-missed-3 | js | P5 | Tooltip (placement): repositions on scroll or resize (anchor path or rAF fallback), Escape dismisses |
-| repo-opp-interruptible-overlays | repo | P5 | State paths of every overlay; Presence utility: origin hooks are the canonical `--ds-motion-origin` / `--ds-clip-from`, not per-component hooks |
-| repo-missed-6 | repo | P5 | Combobox (forced colours); Tests (css.test.js floating layers): the floating-layer test gains `.ds-combo__popup` and `.ds-menu`; dialog and snackbar are already covered |
+| core-css-starting-style | core | P5 | **Done (P5):** Presence utility; Dialog (native by hand): `.ds-presence`, top-level `@starting-style`, `[popover]:not(:popover-open)` in its own rule; the choosing rule in motion.md |
+| overlay-closing-class-lifecycle | overlay | P5 | **Done (P5):** DS.overlay module (close order); Docs (Dialog): DS.overlay owns the lifecycle; the docs give the hide-and-remove-in-one-task order for the hand path; `settled()` from P2 |
+| overlay-focus-during-exit | overlay | P5 | **Done (P5):** DS.overlay module (open, close, Escape stack): inert box only, focus back at once, Escape stack, siblings inert as the div trap, `showModal()` as the native trap |
+| overlay-toast-close-focus-loss | overlay | P5 | **Done (P5):** Snackbars (focus on close): uses P2 `leave(..., { focus })` fallback; never `<body>` |
+| overlay-tooltip-demo-interrupt | overlay | P5 | **Done (P5):** Tooltip (`tooltips()`): relatedTarget check, hoverable grace, Escape, cancellable hide, in-place swap |
+| overlay-keyframes-not-interruptible | overlay | P5 | **Done (P5):** Dialog / Side sheet / Tooltip / Combobox state paths: `[data-state]` transitions with the closed→flush→open sequence; keyframes only on `:not([data-state])` |
+| overlay-native-dialog-starting-style | overlay | P5 | **Done (P5):** Dialog and Side sheet native markup; progressive block: the same inner markup, transparent `::backdrop`, `@starting-style` and `display`/`overlay` allow-discrete as progressive |
+| overlay-sheet-entry-curve | overlay | P5 | **Done (P5):** Side sheet (state path): `--ds-ease-spatial` over `--ds-dur-long`; the canonical names replace the draft's `--ds-ease-spatial-slow` |
+| overlay-sheet-translucent-panel | overlay | P5 | **Done (P5):** Side sheet (state path, old path, bleed): D16: opaque panel, no fade, bleed for the overshoot; the pairing-test exemption for the full-distance slide |
+| overlay-sheet-exit-distance | overlay | P5 | **Done (P5):** Side sheet: the exit mirrors the full width, `--ds-dur-base` on `--ds-ease-exit` (ratio .44, like P4's modal drawer) |
+| overlay-sheet-phone-entry | overlay | P5 | **Done (P5):** Side sheet (phones): rises from the bottom, falls on exit; old path `ds-lift-in`/`ds-drop-out` |
+| overlay-dialog-exit-symmetry | overlay | P5 | **Done (P5):** Dialog (state path, old path): the exit mirrors the entrance; the old path uses `ds-fade-out` + `ds-shrink-out` |
+| overlay-dialog-nested-scrim | overlay | P5 | **Done (P5):** Dialog (nested scrim): `--ds-scrim-nested`, `--ds-dialog-scrim`, `.ds-dialog--nested` set by DS.overlay |
+| overlay-dialog-origin-aware | overlay | P5 | **Done (P5):** Dialog (state path); DS.overlay open step 7: origin from `originFrom(opener, box)` via `--ds-motion-origin`. The scale is `--ds-scale-enter` (.98), as the authority sets for dialogs, not the .95 of the coverage note. No `--ds-dialog-origin` hook (the canonical `originFrom` writes `--ds-motion-origin`). Container transform in P7 P7 part: Side sheet: container transform. |
+| overlay-toast-reflow-jump | overlay | P5 | **Done (P5):** Snackbars (`toast()`): D19 stack of 3 with `flip()` (P2) for entering and leaving |
+| overlay-toast-timer-pause | overlay | P5 | **Done (P5):** Snackbars (timer): hover, focus and hidden-tab pause, length-based timeout, time scale |
+| overlay-toast-shift-choreography | overlay | P5 | **Done (P5):** Snackbars (following a side sheet): the region's own transition with the sheet's tokens (`data-follow`); `flip()` is not used here because the canonical signature has no timing option |
+| overlay-tooltip-origin-scale | overlay | P5 | **Done (P5):** Tooltip (CSS): D17: fade plus `--ds-scale-tooltip` from the anchor side via `--ds-motion-origin` (no `--ds-tooltip-origin` hook) |
+| overlay-tooltip-delays-warmup | overlay | P5 | **Done (P5):** Tooltip (`tooltips()`): delay tokens added here (Tooltip), read through `motionDuration`; warm-up and in-place swap |
+| overlay-tooltip-anchor-positioning | overlay | P5 | **Done (P5):** Tooltip (placement): progressive anchor positioning and `popover="manual"`; the JS fallback flips and clamps |
+| overlay-combo-popup-no-motion | overlay | P5 | **Done (P5):** Combobox popup; Menu: D17 clip reveal plus `--ds-scale-popup` from the trigger with negative inset room for the shadow; shared by `.ds-menu`; `ds-clip-in` on the hand path (no `ds-unclip-*` keyframes) |
+| overlay-combo-active-trail | overlay | P5 | **Done (P5):** Combobox (active trail): fade-in at `--ds-dur-micro`, instant fade-out, no `:hover` layer |
+| overlay-combo-chevron-state | overlay | P5 | **Done (P5):** Combobox (chevron): `aria-expanded` selector; D25 `rotate: 180deg` on `--ds-ease-spatial` |
+| overlay-combo-forced-colors | overlay | P5 | **Done (P5):** Combobox (forced colours): transparent outline, `SelectedItem`; the forced-colours test is added here (P1 deferred it) |
+| overlay-combo-clipped-in-dialog | overlay | P5 | **Done (P5):** Combobox (clipping): `popover="manual"` plus anchor positioning, the JS upward flip, a docs note |
+| overlay-scroll-lock-shift | overlay | P5 | **Done (P5):** DS.overlay module (scroll lock): reference-counted; gutter or padding only when the body actually scrolls |
+| overlay-missed-2 | overlay | P5 | **Done (P5):** DS.overlay open step 1; Docs (theming.md Embedded, components.md): overlays inside `.ds-theme`; one warning |
+| overlay-missed-4 | overlay | P5 | **Done (P5):** Snackbars (live regions): region without role, polite and assertive announcers on the existing `.ds-sr` (no new `.ds-sr-only` class); the old pattern deprecated |
+| overlay-missed-5 | overlay | P5 | **Done (P5):** DS.overlay open step 8; Docs (Dialog): `autofocus` documented and honoured; the misleading selector removed |
+| js-tooltip-transform-fly | js | P5 | **Done (P5):** Tooltip (CSS); Docs (Tooltip): the fly-in itself is fixed in P1 (individual `scale`); P5 adds the `--ds-tooltip-x/-y` API, fixes docs/components.md:520, and adds the 10%-frame browser test |
+| js-tooltip-refocus | js | P5 | **Done (P5):** Tooltip (`tooltips()`): focus between triggers cancels the hide and swaps in place |
+| js-tooltip-mouseout-child | js | P5 | **Done (P5):** Tooltip (`tooltips()`): relatedTarget containment; hoverable with the `--ds-delay-tooltip-hide` grace |
+| js-toast-stack | js | P5 | **Done (P5):** Snackbars: one API `DS.overlay.toast` (no `showSnackbar`); the timeout formula as stated |
+| js-overlay-demo | js | P5 | **Done (P5):** DS.overlay module; Modal drawer mode; Styleguide: close order per the authority (native `close()` first); the drawer returns focus to the menu button |
+| js-toast-live-region | js | P5 | **Done (P5):** Snackbars (live regions); Styleguide (index.html:49): the same fix as overlay-missed-4 |
+| js-missed-3 | js | P5 | **Done (P5):** Tooltip (placement): repositions on scroll or resize (anchor path or rAF fallback), Escape dismisses |
+| repo-opp-interruptible-overlays | repo | P5 | **Done (P5):** State paths of every overlay; Presence utility: origin hooks are the canonical `--ds-motion-origin` / `--ds-clip-from`, not per-component hooks |
+| repo-missed-6 | repo | P5 | **Done (P5):** Combobox (forced colours); Tests (css.test.js floating layers): the floating-layer test gains `.ds-combo__popup` and `.ds-menu`; dialog and snackbar are already covered |
 | core-css-collapsible-clip | core | P6 | Collapsible and chevron: `overflow-clip-margin` covers the ring at its P3 start offset; elevation 2/3 clipping accepted; listed under Progressive with a padding fallback. |
 | core-css-collapsible-polish | core | P6 | Collapsible and chevron: Asymmetric open and close (ease-out open per D29), content fade, `.ds-chevron`, Progressive header. Also covers the merged layout-collapsible-asymmetric. |
 | core-css-loops | core | P6 | Generator; Keyframes: Canonical names replace the draft's (`ds-skeleton-wave`, `ds-progress-head/-tail`, `ds-spinner-arc`, `ds-loader-morph/-turn`). The pulse literal becomes `--ds-state-pulse`, because opacities come from `--ds-state-*`. No travelling wave keyframe. |

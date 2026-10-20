@@ -108,8 +108,12 @@
      * staggered items (at most six, first render only), the delays before
      * loading indicators may show (fast loads show nothing; js/motion.js
      * LOADER_DELAY_MS mirrors --ds-delay-loader), how long a loader that
-     * showed stays at least (LOADER_MIN_VISIBLE_MS mirrors --ds-hold-loader)
-     * and how long a button shows its success face (DS.motion.busy()).
+     * showed stays at least (LOADER_MIN_VISIBLE_MS mirrors --ds-hold-loader),
+     * how long a button shows its success face (DS.motion.busy()) and the
+     * tooltip delays of DS.overlay.tooltips(): the wait before one shows,
+     * the window after a hide in which the next shows at once (warm-up) and
+     * the grace before one hides, so the pointer can move onto it
+     * (js/overlay.js TOOLTIP_DELAY_MS, TOOLTIP_SKIP_MS, TOOLTIP_HIDE_MS).
      */
     --ds-distance-sm: 4px;
     --ds-distance-md: 8px;
@@ -125,6 +129,9 @@
     --ds-delay-boot: calc(400ms * var(--ds-time-scale, 1));
     --ds-hold-loader: calc(450ms * var(--ds-time-scale, 1));
     --ds-hold-success: calc(600ms * var(--ds-time-scale, 1));
+    --ds-delay-tooltip: calc(500ms * var(--ds-time-scale, 1));
+    --ds-delay-tooltip-skip: calc(300ms * var(--ds-time-scale, 1));
+    --ds-delay-tooltip-hide: calc(100ms * var(--ds-time-scale, 1));
 
     /* Loops of loading indicators: they always run at their token speed. */
     --ds-loop-spin: calc(1s * var(--ds-time-scale, 1));
@@ -236,8 +243,11 @@
     --ds-on-inverse: #f2f2f2;
     --ds-inverse-primary: #a8c7fa;
 
-    /* Scrim behind dialogs and sheets, never blurred. */
+    /* Scrim behind dialogs and sheets, never blurred. A dialog over another
+       open modal (a sheet, the modal drawer) adds the lighter nested one, so
+       the two together come to about 43% instead of 54%. */
     --ds-scrim: rgba(0, 0, 0, .32);
+    --ds-scrim-nested: rgba(0, 0, 0, .16);
 
     /* The disc behind round icon buttons (.ds-btn--disc). */
     --ds-fill-round: rgba(31, 31, 31, .08);

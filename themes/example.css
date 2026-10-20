@@ -67,6 +67,7 @@
   --ds-on-inverse: #eff1f1;
   --ds-inverse-primary: #4cdada;
   --ds-scrim: rgba(0, 0, 0, .32);
+  --ds-scrim-nested: rgba(0, 0, 0, .16);   /* a dialog over an open sheet or drawer */
   --ds-fill-round: rgba(25, 28, 28, .08);
   --ds-code-bg: var(--ds-surface-low);
 
@@ -179,7 +180,7 @@
   --ds-ripple-color: currentColor;
   --ds-spinner-track: var(--ds-line);  --ds-spinner-color: var(--ds-primary);
   --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
-  --ds-dialog-shadow: var(--ds-elev-overlay);
+  --ds-dialog-shadow: var(--ds-elev-overlay); --ds-dialog-scrim: var(--ds-scrim);
   --ds-sheet-width: 560px;             --ds-sheet-width-wide: 720px;
   */
 }

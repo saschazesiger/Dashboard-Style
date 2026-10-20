@@ -48,7 +48,7 @@ DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one vide
 
 | Spec | Engines | Asserts |
 |---|---|---|
-| `smoke.spec.js` | all | the server (types, no listings, nothing outside the root); the styleguide reaches `data-sg-ready` with no console error and runs the `DS.version` of `package.json`; every fixture loads cleanly; `module.html` imports the five ES modules; a theme switch sets `data-sg-theme` and re-places the three indicators; a saved theme loads before `data-sg-ready`; `?speed=0.1` slows the styleguide and the fixtures |
+| `smoke.spec.js` | all | the server (types, no listings, nothing outside the root); the styleguide reaches `data-sg-ready` with no console error and runs the `DS.version` of `package.json`; every fixture loads cleanly; `module.html` imports the six ES modules; a theme switch sets `data-sg-theme` and re-places the three indicators; a saved theme loads before `data-sg-ready`; `?speed=0.1` slows the styleguide and the fixtures |
 | `spike.spec.js` | all | the ten capabilities of the spike ("Capability spike") |
 | `baseline.spec.js` | all (phone, themes, forced colours: Chromium) | settled screenshots ("Baselines") |
 | `motion-today.spec.js` | all | JSON timelines of every motion utility and animated component; smoke checks for `ds-spin` and `.ds-enter` |
@@ -63,6 +63,9 @@ DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one vide
 | `controls.spec.js` | all, `fallback` (forced colours: Chromium; touch: WebKit) | the 1.1.0 controls: a held press reaches the 12px pressed radius and the layer within 100ms, the release springs back (peak at most 1.05, none in `fallback`) and settles within `--ds-dur-medium` + 50ms, `.ds-pressed` holds a 30ms click for `--ds-dur-instant`, blocked buttons show no press, the disc never scales; one clipped ripple on the combobox toggle, errors summary and table sort, layer and ripple never add up; the focus ring solid from the first frame snapping 4 to 2px in `--ds-dur-fast`, the focus layer at .10, a focused `.ds-enter` button runs both, inset rings unclipped; chips (slot to 18px without overshoot, the check drawn and reversed in order, a radio pair keeps its width, nothing on first render, a wrap glides by FLIP from where the chip was, on an opaque backing that goes after the glide, the toggled chip never overlapping its neighbour and its label gliding, both ways); the switch (travel peak, scale at most 1, the halo follows, press grow, disabled, the two words); checkboxes and radios (pseudo-elements render, nothing on load, the wipe, check to dash, the dot's spring, the row hover halo, the halo unclipped in a table, a switch and a chip in a table cell keep their hidden inputs, a WebKit tap grows it from 0, a forced-colours screenshot); fields (label tint in the first focus frame, the error message fade and, in Chromium, its height while focus is in the field; a message in the markup keeps its height from the first frame on load); busy faces (no running loop at rest, constant width, nothing for fast work, the done hold) and the icon swap; a disabled fieldset fades every control; the drawer item and its pill morph, and with `attach()` a click on another item still glides the pill |
 | `indicator.spec.js` | all, `fallback` | `DS.indicator` (1.2.0), read from computed values with the motion paused in the task that starts it: a glide stretches lead-first (only the leading edge moves during `--ds-dur-micro`), passes its target by more than 0 and at most 5 % of the travel (never in `fallback`) while the trailing edge never passes its target (the pill never gets shorter than the item) and lands in the rest state; in real time (nothing finished or seeked) the collapse to rest comes within `--ds-indicator-dur` + lag + 50ms of the edges' start (on the document timeline; a late frame only adds its own lateness); its time is `travelDuration()` (a neighbour hop near `--ds-dur-medium`, a long jump up to `--ds-dur-slow`, both ten times longer at `?speed=0.1`); a second target mid-glide continues from the painted pill; the first placement and a window resize start no transition; `aria-current` moves the pill without `update()` (not with `observe: false`); after `DS.dom.morphHtml()` the span stays, the next change glides by itself and replaced items stay observed; an empty state contracts the pill in `--ds-dur-fast` and the next item grows it from its centre, while an item that comes back mid-contraction turns the pill from where it is painted (continuous edges, the fade only rises); a project class's `border-radius` is copied into `--ds-indicator-radius`; `destroy()` then `loadingdone` writes nothing. No screenshots of a running glide in WebKit: Playwright's WebKit screenshot ends running custom-property transitions (a video shows them) |
 | `shell.spec.js` | all, `fallback` | the app frame of 1.2.0: `enter(drawer)` and `enter(drawer, 'slide')` play the same timeline on the x axis only; the modal drawer opens over `--ds-dur-long` (peak above 0 and at most 5 % of its width, none in `fallback`, drawer or bleed at x = 0 in every seeked frame), closes on `--ds-dur-base` and `--ds-ease-exit` and turns back from where it is; drawer labels and icons change colour on the track's `--ds-indicator-dur` with no `font` transition, in one frame without the indicator and at once in the modal drawer; a segmented switch with `data-label` keeps its width, and options without it keep icon, text and badge in a row at the old height; the top bar tints to `--ds-surface-high` over `--ds-dur-fast`, and filled toolbar fields (search, filled select) in it stay distinct from the tint (a focused search keeps `--ds-surface`); `.ds-view` keeps a stable gutter; the documented view swap never shows the new view at full opacity before its entrance (read by a `MutationObserver` in the microtask after the swap, so a late frame cannot matter) and ends on the latest; a styleguide nav click changes `aria-current` once and glides the pill once |
+| `overlay.spec.js` | all, `fallback` (forced colours: Chromium) | `DS.overlay` (1.3.0) on the dialog and the side sheet in both markups, the modal drawer and the popups: focus moves in at once (`autofocus` first) and is on the opener in the same task as Escape, Cancel or a backdrop click; Tab and Shift+Tab never reach the page; the div trap makes the page inert and gives back exactly what it took, only the box is inert during the exit and a double click on the backdrop (dialog and sheet, both markups) then never reaches the page and leaves focus on the opener, as on the modal drawer's scrim; a native dialog over a native sheet moves into it and, leaving, stays above the sheet's panel and takes the clicks (a double click on its scrim never closes the sheet); Escape closes only the top (a dialog from the sheet is `--nested`), after the page's own handlers (a widget inside that prevents it keeps the overlay open); the scroll lock counts and nothing shifts sideways (no gutter in the shell app); a close taken back ends open and five toggles leave nothing behind; one warning outside `.ds-theme`; a closing native dialog or sheet stays above a sticky element and is gone when its exit ends; snackbars stay usable over the modal drawer. Motion, paused in the task that starts it and seeked: the entrance and exit tracks match the choreography (properties, durations, curves as the engine serialises the tokens; exit shorter), the sheet panel never fades, its spring peaks at most 1.05 and settles, and at the deepest frame the screen edge shows the panel (the bleed; right column; phones rise on `--ds-ease-out`, the top never past 0, bottom row); the hand paths (no `data-state`) leave with their exit keyframes at 1000px and 400px; a reopen at 50 % of the exit is continuous in opacity and scale; `reducedMotion: 'reduce'` gives the same tracks. Forced colours: each overlay keeps its edge (screenshots) |
+| `toast-tooltip.spec.js` | all, `fallback` | `DS.overlay.toast()` and `DS.overlay.tooltips()` (1.3.0): never more than three messages, the others start their glide where they stood, the oldest message that would close by itself is replaced and a fourth waits behind three that stay (`close()` drops a waiting one); the timer pauses on hover, focus and a hidden tab; errors, persistent and action messages stay; a focused message that leaves hands focus to the next close button, then back where it came from, then the view; the polite and assertive announcers (a repeated text again; none for a `role="status"` region); an open side sheet takes the region in, which glides on the sheet's timing and comes back. Tooltips: the delay, `aria-describedby` only when it adds to the name, the entrance (opacity and scale from `--ds-scale-tooltip` at the anchor side, below and above, clamped 8px from the edge) and the fade-only exit, a tooltip that the page places with an inline `transform` is at its anchor at 10 % of the entrance (keyframes and `data-state`), the trigger's icon and a crossing onto the tooltip keep it, Escape in a dialog hides only the tooltip, Tab and the warm-up swap or show at once, a warm swap marks the side the tooltip really sits on (also from a trigger in a scrolled box), anchor positioning where the engine has it (else the script's place), scroll moves or hides it, pointerdown hides it, touch never shows it. Over a modal: while a dialog (native, div) or side sheet is open, a new error sits in it, above its scrim, announced (never inert), and its close button closes only the message |
+| `popups.spec.js` | all, `fallback` | `.ds-menu` and the combobox list through `DS.overlay` (1.3.0): a menu focuses its first enabled item (the last from ArrowUp), the arrows, Home and End move and wrap, Escape gives focus back to the trigger, Tab closes and moves on, an item closes it after its click handlers ran (a disabled one does not), an outside pointerdown leaves focus where it went; it sits under its trigger from the start edge, towards the start edge at the window's edge and above at the bottom edge; the entrance starts closed at the trigger edge (`clip-path` from `--ds-clip-from` with the 24px room, `scale` .95, opacity 0) and the exit is opacity alone in `--ds-dur-instant`, for the menu and the combobox list, below and above the trigger, with the shadow from the first frame; a close taken back continues from the current opacity. The combobox chevron turns to 180deg with `aria-expanded`, on the spring (rising to its peak, at most 5 % past, settling) and back; the list is as wide as its field; it opens above at the window's bottom edge; at the bottom of a dialog it is not clipped where anchor positioning exists (else it flips to the side with more room in the box); Escape closes the list before the dialog, and closing the dialog closes its open list (not expanded, off the Escape stack); the active option's layer goes at once. `.ds-presence`: a toggle taken back mid-way continues from where it is, in opacity and scale (where the engine transitions `display`; Firefox exits at once, `fallback` toggles) |
 | `fallback.spec.js` | `fallback` only | the floor engine itself: `--ds-ease-spatial` computes to its cubic, `startViewTransition`, `showPopover` and `moveBefore` are gone, `el.animate()` rejects `linear()` |
 | `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs"); a fixed bug's test stays and passes |
 
@@ -80,9 +83,12 @@ embedded-widget path is the default under test. The styleguide covers the `html.
 | `feedback.html` | `.ds-progress` at .05, .4 and 1, `--indeterminate`, `--waiting`; loading bar, skeleton, spinners, the four status chips and one whose class a button toggles on the live node, alerts, a clickable tile and a card link |
 | `data.html` | data that changes: a tile figure with a `.ds-progress` bar (`#figure`, `#progress`), an empty keyed list (`#list`) and table body (`#rows`), a form container (`#form`) and a `.ds-segmented` with an indicator; `window.fxData` renders keyed items and rows (`list(names, values)`, `rows(names)`) for `morphHtml` |
 | `shell.html` | the `.ds-app.ds-app--drawer` frame with top bar, drawer, indicator, scrim and panel; use it at 1000px (docked) and 800px (modal drawer; the menu button and the scrim toggle `data-drawer-open`); its page script runs the breakpoint snippet of `docs/components.md` (`.ds-drawer--instant` while the window crosses 900px) |
-| `module.html` | imports the five ES modules of `dist/js/`; `window.moduleResult` says whether they export everything `window.DS` exposes |
+| `module.html` | imports the six ES modules of `dist/js/`; `window.moduleResult` says whether they export everything `window.DS` exposes |
 | `reset.html` | a normalize-like reset without a layer before `ds.css`; it changed in P1 on purpose (the unlayered reset now wins: the `@layer` break of the 1.0.0 migration note) |
 | `reset-layered.html` | the same reset in `@layer reset`, declared before `ds.css`; kept its P0 screenshot through P1 |
+| `overlay.html` | `.ds-theme` on `<body>` (the body scrolls, for the scroll lock): openers for a div dialog, a native `<dialog>` with `autofocus` on Cancel, a div side sheet (whose button opens the div dialog nested), a native side sheet and a menu, and a combobox; the page script only wires the openers to `DS.overlay` |
+| `popups.html` | `.ds-theme` on a wrapper: a menu trigger with a four-item menu (one `aria-disabled`, one `menuitemcheckbox`, a divider), a trigger at the right edge and one fixed at the bottom edge with their menus, a combobox with a chevron, one fixed at the bottom edge, a native dialog whose last field is a combobox, `.ds-presence` on a `[hidden]` note and on a `[popover]`; the triggers are wired as `docs/components.md` shows, item clicks are recorded in `window.activated` |
+| `toast-tooltip.html` | `.ds-theme` on a wrapper: a `.ds-toasts` region without role and one with the deprecated `role="status"`, a toolbar of five `[data-tip]` icon buttons (one whose tip equals its name), a trigger fixed at the bottom edge, a native dialog with a trigger, a div side sheet; `DS.overlay.tooltips(document)` as `window.tips` |
 | `spike.html` | the test bed of the capability spike, one numbered block per capability; animations start when a test adds the `--run` class |
 
 `fixture.js` fills `[data-icon]` placeholders from `DS.icons`, wires `[data-replay]` buttons
@@ -169,14 +175,14 @@ relying on frame timing, so a loaded machine cannot make it pass or time out by 
 | P3 (fixed, marker deleted) | 50ms after blur a field shows no primary border without its inset shadow | controls-form-blur-ghost | all |
 | P3 (fixed, marker deleted) | the focus ring of a `.ds-parts` link is not clipped | controls-list-parts-clip | all |
 | P3 (fixed, marker deleted) | `.ds-link-btn` and `.ds-errors summary` show the `--ds-focus-outline` ring without `.ds-base` | layout-linkbtn-focus, layout-errors-summary-focus | all |
-| P4 | `DS.motion.enter(drawer)` moves along x only, starting left | layout-drawer-enter-axis, repo-drawer-enter-axis | all |
-| P4 | 1000px to 800px starts no transition on `.ds-drawer` (no `transitionrun` event) | layout-drawer-resize-slide | all |
+| P4 (fixed, marker deleted) | `DS.motion.enter(drawer)` moves along x only, starting left | layout-drawer-enter-axis, repo-drawer-enter-axis | all |
+| P4 (fixed, marker deleted) | 1000px to 800px starts no transition on `.ds-drawer` (no `transitionrun` event) | layout-drawer-resize-slide | all |
 | P4 (fixed, marker deleted) | the indicator follows a growing active label and a badge on an earlier item | controls-indicator-item-resize | all |
-| P5 | focus is on the opener two frames after Escape or Cancel (the exit is held until then) | overlay-focus-during-exit | all |
-| P5 | tabbing between `[data-tip]` buttons keeps the tooltip shown | overlay-tooltip-demo-interrupt, js-tooltip-refocus | all |
-| P5 | the pointer moving onto the icon inside a tooltip button keeps the tooltip | js-tooltip-mouseout-child | all |
-| P5 | closing an error snackbar does not drop focus to `<body>` | overlay-toast-close-focus-loss | all |
-| P5 | reopening a closing dialog continues from its opacity (the exit held at 40 %, read in one task) | overlay-keyframes-not-interruptible | all |
+| P5 (fixed, marker deleted) | focus is on the opener two frames after Escape or Cancel (the exit is held until then) | overlay-focus-during-exit | all |
+| P5 (fixed, marker deleted) | tabbing between `[data-tip]` buttons keeps the tooltip shown | overlay-tooltip-demo-interrupt, js-tooltip-refocus | all |
+| P5 (fixed, marker deleted) | the pointer moving onto the icon inside a tooltip button keeps the tooltip | js-tooltip-mouseout-child | all |
+| P5 (fixed, marker deleted) | closing an error snackbar does not drop focus to `<body>` | overlay-toast-close-focus-loss | all |
+| P5 (fixed, marker deleted) | reopening a closing dialog continues from its opacity (the exit held at 40 %, read in one task) | overlay-keyframes-not-interruptible | all |
 | P6 | indeterminate to determinate at .3, set in a frame callback 40 to 60 % into the loop's cycle: the bar stays within 30 % from the left edge | layout-progress-handoff | Firefox (the others jump to the share) |
 | P6 | a status class change: the icon runs on the container's timing | layout-status-data-crossfade | all |
 | P6 | the focus ring of a control flush with an open `.ds-collapsible` is not clipped | core-css-collapsible-clip | Chromium (the clip is gated on `interpolate-size`) |
@@ -304,19 +310,23 @@ annotations.
 `controls.spec.js` keeps shots of its own: in Chromium only, the drawn checkboxes and radios of `controls.html`
 (`forced-checks.png`) and a checked, an indeterminate and a radio input (`forced-boxes.png`) with
 `forcedColors: 'active'`; in the three engines, a chip row 40ms into a glide across a wrap (`wrap-glide.png`,
-seeked: the moving chip covers the one it crosses).
+seeked: the moving chip covers the one it crosses). `overlay.spec.js` shoots the open overlays of its fixtures with
+`forcedColors: 'active'`, in Chromium only (one baseline), each clipped 8px around it: the div and the native dialog,
+the side sheet, the menu, the combobox list with a selected option, a stack of three snackbars and the tooltip
+(`forced-*.png`, 7 files); each test first checks that the overlay's transparent outline or border is painted.
 
-Size in the committed container set: 440 PNG files, 7.9 MB (Chromium 158 files, 3.1 MB; Firefox and WebKit 141
-files each, 2.4 MB each). The 45 section shots are 3.2 MB of it; the state crops are 1 to 5 kB each. With the
-mid-animation frames (40 files, 1.8 MB) and the JSON timelines (97 files, 0.4 MB) the whole `__screenshots__/`
-folder is 11 MB.
+Size in the committed container set (1.3.0): 449 settled PNG files, 9.2 MB (Chromium 167 files, 3.9 MB; Firefox and
+WebKit 141 files each, 2.7 MB each). The 62 section-sized shots (sections, phone sections, theme presets and the
+forced-colours sections) are 6.1 MB of it; the state crops are 1 to 5 kB each. With the mid-animation frames (53
+files, 1.9 MB) and the JSON timelines (103 files, 0.1 MB) the whole `__screenshots__/` folder is 11 MB.
 
 ### Motion timelines: `motion-today.spec.js`
 
 `timeline()` of every motion, stored as JSON snapshots (one set per engine,
 `__screenshots__/<project>/motion-today.spec.js/<name>.json`): every `.ds-enter` and `.ds-leave` variant,
 `.ds-stagger > *`, `.ds-reveal`, the spinner, the skeleton, the loading bar, indeterminate progress, the dialog and
-the side sheet opening and closing, a snackbar entering and leaving, the tooltip showing and hiding, the drawer
+the side sheet opening and closing, a snackbar entering and leaving, the tooltip showing and hiding (from 1.3.0
+through `DS.overlay.tooltips()`: a mouse `pointerover`, hidden by Escape), the combobox list opening and closing, the drawer
 indicator gliding and the modal drawer (and its scrim) opening and closing. A snapshot holds the timing contract
 only (type, name, pseudo-element, target, duration, delay, easing, keyframe easing, iterations, direction, fill),
 never the current time or play state. Each motion is started and paused in the same task, so nothing finishes
@@ -333,14 +343,15 @@ before it is read. In P1 these files show exactly what the new token system chan
 ### Mid-animation frames: `frames.spec.js`
 
 Chromium only, to keep the set small: the side sheet (1280 and 390px) and the dialog opening and closing, a snackbar
-entering and leaving, the tooltip showing and hiding (clips), the drawer entrance (`DS.motion.enter(drawer)` at
-1000px) and the modal drawer opening and closing at 800px, each at 0, 50 % and the end: 40 PNG files. The motion is
+entering and leaving, the tooltip showing and hiding and the combobox list opening and closing (clips), the drawer
+entrance (`DS.motion.enter(drawer)` at 1000px) and the modal drawer opening and closing at 800px, each at 0, 50 % and
+the end: 45 PNG files. The motion is
 started and paused in the same task, then every animation is seeked to one time (so a `visibility` flip at the end
-of a slide stays at the end). The demos' 1000ms `settled()` timeout and the snackbar's 4s auto-close are dropped
-for the test, so an exit stays on screen while it is seeked; seeking into the after phase still fires
-`animationend`, so an exit's end frame shows what the demo leaves behind. The combobox has no entrance today (the
-list appears at once; the test asserts that nothing animates), so it has one frame. These are the before-images of
-P4, P5 and P8.
+of a slide stays at the end). The demos' 1000ms `settled()` timeout and the snackbar's auto-close (4s and more)
+are dropped for the test, so an exit stays on screen while it is seeked; seeking into the after phase still fires
+`animationend`, so an exit's end frame shows what the demo leaves behind. Until 1.3.0 the combobox had no entrance
+(one frame); since then its list grows out of the field like every popup. These are the before-images of P4, P5
+and P8.
 
 From 1.2.0 also the indicator's glide (`glideFrames()`): a click in the drawer list (Overview to Settings, 1000px)
 and in the segmented switch (Live to Admin), paused in the same task and shot at its start, at `--ds-dur-micro`
@@ -352,8 +363,9 @@ animations and seeks only before their end, so it can go back to 0 (a paused tra
 ### Demo walk-through: `demos.spec.js`
 
 One test per styleguide demo: the `[data-sg]` buttons (`toggle`, `switch`, `menu` at 800px, `toast`,
-`toast-error`, `stagger`, `fill`, `count`, `sheet`, `dialog`, `progress`, `dense`, `busy`), the enter and leave
-buttons of the Motion card, the track and segmented options and the disclosure. Each checks what the demo did and
+`toast-error`, `toast-many`, `stagger`, `fill`, `count`, `sheet`, `dialog`, `dialog-div`, `dialog-combo`,
+`dialog-nested`, `progress`, `dense`, `busy`), the overflow menu, the `.ds-presence` popover, the combobox, the enter
+and leave buttons of the Motion card, the track and segmented options and the disclosure. Each checks what the demo did and
 must end settled with no console error.
 
 `DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium` records one video per demo at `?speed=0.1`

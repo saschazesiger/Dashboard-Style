@@ -67,6 +67,9 @@ export const MOTION_FALLBACKS = Object.freeze({
   '--ds-delay-boot': 400,
   '--ds-hold-loader': 450,
   '--ds-hold-success': 600,
+  '--ds-delay-tooltip': 500,
+  '--ds-delay-tooltip-skip': 300,
+  '--ds-delay-tooltip-hide': 100,
   '--ds-ease-in-out': 'cubic-bezier(.2, 0, 0, 1)',
   '--ds-ease-out': 'cubic-bezier(.05, .7, .1, 1)',
   '--ds-ease-in': 'cubic-bezier(.3, 0, 1, 1)',
@@ -1356,15 +1359,31 @@ function edges(rect) {
   return { left: rect.left, top: rect.top, right: rect.right ?? rect.left + rect.width, bottom: rect.bottom ?? rect.top + rect.height };
 }
 
+/**
+ * The room a popup's clip keeps beyond its box on the sides that do not
+ * move (--ds-space-6, the shadow of --ds-elev-popover), the same as its
+ * resting clip-path: inset(calc(-1 * var(--ds-space-6))). Both ends are
+ * then inset() shapes with the same side insets, so a clip-path
+ * transition between them only moves the edge at the trigger and the
+ * shadow never snaps on.
+ */
+const CLIP_BLEED = 'calc(-1 * var(--ds-space-6, 24px))';
+
 /** The hidden end of ds-clip-in / ds-clip-out per side: closed towards the trigger. */
-const CLIP_FROM = { bottom: '0 0 100% 0', top: '100% 0 0 0', right: '0 100% 0 0', left: '0 0 0 100%' };
+const CLIP_FROM = {
+  bottom: `${CLIP_BLEED} ${CLIP_BLEED} 100% ${CLIP_BLEED}`,
+  top: `100% ${CLIP_BLEED} ${CLIP_BLEED} ${CLIP_BLEED}`,
+  right: `${CLIP_BLEED} 100% ${CLIP_BLEED} ${CLIP_BLEED}`,
+  left: `${CLIP_BLEED} ${CLIP_BLEED} ${CLIP_BLEED} 100%`,
+};
 
 /**
  * Where a popup grows from: writes `--ds-motion-origin` (the trigger's
  * centre projected onto the panel's border box and clamped to it, in px)
  * and `--ds-clip-from` (the panel closed towards the trigger, with its
- * computed radius) on the panel through the CSSOM. Call it once the panel
- * is laid out at its place, before its entrance plays.
+ * computed radius; its other three edges stay --ds-space-6 beyond the box,
+ * like a popup's resting clip) on the panel through the CSSOM. Call it
+ * once the panel is laid out at its place, before its entrance plays.
  * @param {Element|{ x: number, y: number }} trigger  an element, or a point (a context menu at the pointer)
  * @param {Element} panel
  * @returns {{ origin: string, side: 'bottom'|'top'|'right'|'left' }} side: where the panel lies from the trigger
@@ -1644,6 +1663,9 @@ function liftable(node) {
  * Takes a removed item out of flow where it was (position: absolute at its
  * measured rect, the container relative and held at its First height while
  * needed), so its neighbours close the gap while it fades inside the list.
+ * Its size is the measured one, whatever its own limits say: a
+ * `max-width: 100%` item of a shrink-wrapped container (the snackbar
+ * region, once its last message leaves) would otherwise collapse.
  */
 function lift(container, node, rect, frame, state) {
   const style = computed(container);
@@ -1664,6 +1686,10 @@ function lift(container, node, rect, frame, state) {
     top: `${round(top)}px`,
     width: `${round(box.right - box.left)}px`,
     height: `${round(box.bottom - box.top)}px`,
+    'min-width': '0',
+    'max-width': 'none',
+    'min-height': '0',
+    'max-height': 'none',
     margin: '0',
     'box-sizing': 'border-box',
   });

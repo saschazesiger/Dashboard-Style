@@ -8,13 +8,13 @@
 <link rel="stylesheet" href="/dist/ds.css">
 </head>
 <body>
-<!-- The five ES modules of dist/js/ load on their own and export what
+<!-- The six ES modules of dist/js/ load on their own and export what
      dist/ds.js exposes as window.DS.<name>. The result lands in
      window.moduleResult ({ ok, modules: { name: [exports] }, missing }). -->
 <div class="ds-theme"><p id="result">Loading ...</p></div>
 <script src="/dist/ds.js"></script>
 <script type="module">
-  const names = ['motion', 'indicator', 'dom', 'ripple', 'icons'];
+  const names = ['motion', 'indicator', 'dom', 'ripple', 'icons', 'overlay'];
   const result = { ok: true, modules: {}, missing: {} };
   try {
     const loaded = await Promise.all(names.map((name) => import(`/dist/js/${name}.js`)));

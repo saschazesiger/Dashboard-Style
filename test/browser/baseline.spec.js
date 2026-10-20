@@ -34,7 +34,7 @@ const SECTIONS = ['overview', ...[...readFileSync(new URL('../../styleguide/styl
 
 /** Tall enough for the tallest section, so an element shot is never cut by the scrolling view. */
 const TALL = { width: 1280, height: 2200 };
-const PHONE_TALL = { width: 390, height: 1700 };
+const PHONE_TALL = { width: 390, height: 2400 };
 
 function annotate(...anchors) {
   for (const anchor of anchors) test.info().annotations.push({ type: 'src', description: anchor });
@@ -361,10 +361,10 @@ test.describe('overlays', () => {
 
   test('two snackbars, the tooltip and the open combobox', async ({ page }) => {
     await open(page, STYLEGUIDE);
-    // The demo closes a plain snackbar after 4s: keep it for the shot.
+    // DS.overlay.toast() closes a plain snackbar after 4s and more: keep it for the shot.
     await page.evaluate(() => {
       const later = window.setTimeout;
-      window.setTimeout = (fn, ms, ...args) => (ms === 4000 ? 0 : later(fn, ms, ...args));
+      window.setTimeout = (fn, ms, ...args) => (ms >= 4000 ? 0 : later(fn, ms, ...args));
     });
     await page.locator('[data-sg="toast"]').click();
     await page.locator('[data-sg="toast-error"]').click();
@@ -376,9 +376,9 @@ test.describe('overlays', () => {
 
     const anchor = page.locator('#overlays [data-tip]').first();
     await pointAt(anchor);
-    await expect(page.locator('#sg-tooltip')).toBeVisible();
+    await expect(page.locator('.ds-tooltip[role="tooltip"]')).toBeVisible();
     await settle(page);
-    const tip = await page.locator('#sg-tooltip').boundingBox();
+    const tip = await page.locator('.ds-tooltip[role="tooltip"]').boundingBox();
     const box = await anchor.boundingBox();
     const x = Math.floor(Math.min(tip.x, box.x) - 8);
     const y = Math.floor(Math.min(tip.y, box.y) - 8);
@@ -392,7 +392,24 @@ test.describe('overlays', () => {
     await expect.soft(page, 'overlay-tooltip.png').toHaveScreenshot('overlay-tooltip.png', { clip, animations: 'allow' });
     await park(page);
 
-    await shoot(page.locator('.ds-card:has(.ds-combo[data-open])'), 'overlay-combobox.png');
+    // The combobox list, opened from its chevron: the field and the list.
+    await page.locator('#selection .ds-combo').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await page.locator('#selection .ds-combo__toggle').click();
+    await park(page);
+    await expect(page.locator('#selection .ds-combo__input')).toHaveAttribute('aria-expanded', 'true');
+    await settle(page);
+    await pauseLoops(page, 0);
+    const field = await page.locator('#selection .ds-field:has(.ds-combo)').boundingBox();
+    const list = await page.locator('#selection .ds-combo__popup').boundingBox();
+    const left = Math.floor(Math.min(field.x, list.x) - 16);
+    const top = Math.floor(Math.min(field.y, list.y) - 16);
+    const listClip = {
+      x: left,
+      y: top,
+      width: Math.ceil(Math.max(field.x + field.width, list.x + list.width) + 16) - left,
+      height: Math.ceil(Math.max(field.y + field.height, list.y + list.height) + 16) - top,
+    };
+    await expect.soft(page, 'overlay-combobox.png').toHaveScreenshot('overlay-combobox.png', { clip: listClip, animations: 'allow' });
   });
 });
 

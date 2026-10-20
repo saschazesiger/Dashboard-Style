@@ -1,7 +1,7 @@
 /**
  * Mid-animation frames of today's state (P0 baseline), Chromium only to
  * keep the set small: the overlay entrances and exits (dialog, side sheet
- * at 1280px and 390px, snackbar, tooltip, combobox), the drawer entrance
+ * at 1280px and 390px, snackbar, tooltip, the combobox list), the drawer entrance
  * and the modal drawer. Each motion is started and paused in the same task,
  * then every animation of the page is seeked to 0, 50 % and the end of its
  * active phase (helpers/motion.js `seek()`) and shot with
@@ -40,11 +40,14 @@ async function open(page, path) {
   await settle(page);
 }
 
-/** Drops the page's 1000ms (settled()) and 4000ms (snackbar) timeouts. */
+/**
+ * Drops the page's 1000ms (settled()) timeouts and the snackbar's
+ * auto-close (DS.overlay.toast: 4000ms and up).
+ */
 function holdTimers(page) {
   return page.evaluate(() => {
     const later = window.setTimeout;
-    window.setTimeout = (fn, ms, ...args) => (ms === 1000 || ms === 4000 ? 0 : later(fn, ms, ...args));
+    window.setTimeout = (fn, ms, ...args) => (ms === 1000 || ms >= 4000 ? 0 : later(fn, ms, ...args));
   });
 }
 
@@ -165,9 +168,10 @@ test('tooltip shows and hides', async ({ page }) => {
   await holdTimers(page);
   const anchor = page.locator('#overlays [data-tip]').first();
   await anchor.scrollIntoViewIfNeeded();
-  // The demo shows the tooltip 500ms after mouseover: pause in the task that unhides it.
+  // DS.overlay.tooltips() shows it --ds-delay-tooltip after a mouse rests
+  // on the trigger: pause in the task that unhides it.
   end = await page.evaluate(() => new Promise((resolve) => {
-    const tip = document.getElementById('sg-tooltip');
+    const tip = document.querySelector('.ds-tooltip[role="tooltip"]');
     const observer = new MutationObserver(() => {
       if (tip.hidden) return;
       observer.disconnect();
@@ -177,27 +181,29 @@ test('tooltip shows and hides', async ({ page }) => {
         .filter((timing) => Number.isFinite(timing.iterations)).map((timing) => Number(timing.endTime))));
     });
     observer.observe(tip, { attributes: true, attributeFilter: ['hidden'] });
-    document.querySelector('#overlays [data-tip]').dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    document.querySelector('#overlays [data-tip]').dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
   }));
-  const tip = page.locator('#sg-tooltip');
+  const tip = page.locator('.ds-tooltip[role="tooltip"]');
   await clipFrames(page, tip, 'tooltip-show', end, { pad: 8, also: [anchor] });
   await resume(page);
   await settle(page);
-  end = await act(page, (selector) => document.querySelector(selector).dispatchEvent(new MouseEvent('mouseout', { bubbles: true })), '#overlays [data-tip]');
+  // Escape hides it at once (leaving the trigger waits the hoverable grace).
+  end = await act(page, () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
   await clipFrames(page, tip, 'tooltip-hide', end, { pad: 8, also: [anchor], restAt: 0 });
 });
 
-test('combobox list opens (no entrance today: one frame)', async ({ page }) => {
+test('combobox list grows out of its field', async ({ page }) => {
+  let end;
   await open(page, STYLEGUIDE);
-  const combo = page.locator('.ds-combo[data-open]');
-  const card = page.locator('.ds-card:has(.ds-combo)');
-  await card.scrollIntoViewIfNeeded();
-  await combo.evaluate((el) => el.removeAttribute('data-open'));
+  const combo = page.locator('#selection .ds-combo');
+  const popup = combo.locator('.ds-combo__popup');
+  await combo.scrollIntoViewIfNeeded();
+  end = await act(page, click, '#selection .ds-combo__toggle');
+  await clipFrames(page, popup, 'combobox-open', end, { also: [combo] });
+  await resume(page);
   await settle(page);
-  await act(page, () => document.querySelector('.ds-combo').setAttribute('data-open', ''));
-  // Today the list appears at once: nothing in the combobox animates.
-  expect(await page.locator('.ds-combo').evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0);
-  await expect.soft(card, 'combobox open').toHaveScreenshot('frame-combobox-open.png', { animations: 'allow' });
+  end = await act(page, () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
+  await clipFrames(page, popup, 'combobox-close', end, { also: [combo], restAt: 0 });
 });
 
 /* ── Navigation (shell.html) ───────────────────────────────────────── */

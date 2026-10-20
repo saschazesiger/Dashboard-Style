@@ -7,6 +7,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { COUNT_UP_MS, LOADER_DELAY_MS, LOADER_MIN_VISIBLE_MS, MOTION_FALLBACKS } from '../src/js/motion.js';
+import { TOOLTIP_DELAY_MS, TOOLTIP_HIDE_MS, TOOLTIP_SKIP_MS } from '../src/js/overlay.js';
 import { emphasizedCurve, SPATIAL, springCurve, springFunction, TOLERANCE } from '../scripts/motion-curves.mjs';
 import { filesIn, ms, read, stripComments, token } from './helpers.js';
 
@@ -97,6 +98,9 @@ describe('tokens', () => {
     assert.equal(ms('--ds-delay-loader'), LOADER_DELAY_MS);
     assert.equal(ms('--ds-dur-glide'), COUNT_UP_MS);
     assert.equal(ms('--ds-hold-loader'), LOADER_MIN_VISIBLE_MS);
+    assert.equal(ms('--ds-delay-tooltip'), TOOLTIP_DELAY_MS);
+    assert.equal(ms('--ds-delay-tooltip-skip'), TOOLTIP_SKIP_MS);
+    assert.equal(ms('--ds-delay-tooltip-hide'), TOOLTIP_HIDE_MS);
     // The indicator takes its timing from the tokens alone (travelDuration,
     // running transitions): no clock, no timer, no literal of two digits or more.
     const indicator = stripComments(read('src/js/indicator.js'));

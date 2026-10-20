@@ -1,8 +1,9 @@
 # Components
 
 Copy-paste markup for every component. `[icon check 16]` stands for the SVG that `DS.icons.icon(DS.icons.check, 16)`
-returns ([icons.md](icons.md)). Behaviour (opening a dialog, filtering a combobox) is up to your scripts; the classes
-and attributes below are the contract the styles expect. The [styleguide](../styleguide/index.html) shows every
+returns ([icons.md](icons.md)). Behaviour (filtering a combobox, what an action does) is up to your scripts; opening
+and closing overlays is `DS.overlay`'s ([motion.md](motion.md#dsoverlay-jsoverlayjs)). The classes and attributes
+below are the contract the styles expect. The [styleguide](../styleguide/index.html) shows every
 component live.
 
 ## Which component for which need
@@ -32,6 +33,7 @@ component live.
 | A checkbox without a label row (a table column, a list item) | `.ds-checkbox` ([Form](#form)); in a `.ds-table` any bare checkbox is drawn the same |
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
 | Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
+| Actions for one item or a toolbar overflow | [Menu](#menu) `.ds-menu` |
 | Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog` |
 | Details or editing of one record next to its list | [Side sheet](#side-sheet) `.ds-sheet` |
 | Name an icon button, or say why a control is disabled | [Tooltip](#tooltip) `.ds-tooltip` |
@@ -48,7 +50,7 @@ and update the copy; otherwise build it in the project with the project's own cl
 
 Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card](#card) · [Tiles](#tiles) ·
 [Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
-[Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Dialog](#dialog) ·
+[Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) ·
 [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Loading](#loading) ·
 [Progress](#progress) · [Ripple](#ripple) · [Utilities](#utilities) · [Motion classes](#motion-classes)
 
@@ -157,10 +159,15 @@ is the only scroller. At 900px and below the drawer becomes modal.
   symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
   scrollbars need no room; Safari before 18.2 ignores it.
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px.
-- While the modal drawer is open, add `.ds-no-scroll` to `<body>` (with `.ds-base`).
+- Open and close the modal drawer with `DS.overlay.open(drawer, { opener: menu })` and `DS.overlay.close(drawer)`
+  ([motion.md](motion.md#dsoverlay-jsoverlayjs)): it sets `data-drawer-open` and `aria-expanded`, makes the rest of
+  the app inert (not the scrim), locks the scroll (`.ds-no-scroll` on `<body>`, counted), closes on Escape and a scrim
+  click and gives focus back to the menu button; it acts only at 900px and below. By hand as before: toggle
+  `data-drawer-open` and add `.ds-no-scroll` to `<body>` (with `.ds-base`) while the modal drawer is open.
 - When the window crosses 900px the drawer changes between docked and modal in place: add `.ds-drawer--instant` to
   the drawer for two frames, so it neither slides nor fades its scrim, and close a modal drawer that the wider
-  window no longer shows:
+  window no longer shows. `DS.overlay` does both by itself for a drawer it opened or closed once; a page that drives
+  the drawer by hand uses this snippet:
 
   ```js
   const modal = matchMedia('(max-width: 900px)');
@@ -596,11 +603,11 @@ title next to the switch already names the setting.
 ## Combobox
 
 ```html
-<div class="ds-combo" data-open>
-  <input class="ds-input ds-combo__input" role="combobox" aria-expanded="true" aria-controls="model-list"
+<div class="ds-combo">
+  <input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-controls="model-list"
          aria-autocomplete="list" aria-activedescendant="model-2" value="lat">
   <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">[icon chevronDown 20]</button>
-  <div class="ds-combo__popup">
+  <div class="ds-combo__popup" hidden>
     <ul class="ds-combo__list" id="model-list" role="listbox">
       <li class="ds-combo__option" id="model-1" role="option" aria-selected="false">
         <span class="ds-combo__name">Latitude 5430</span><span class="ds-combo__meta">14", 2022</span></li>
@@ -612,41 +619,153 @@ title next to the switch already names the setting.
 </div>
 ```
 
-`data-open` flips the chevron, `data-active` marks the keyboard or pointer option, `aria-selected="true"` the chosen
-one. Hide the popup (`hidden`; it works without `.ds-base`) when closed.
+```js
+DS.overlay.open(popup, { opener: input });   // shows the list; aria-expanded="true" on the field
+DS.overlay.close(popup);                     // Escape closes it too; focus stays in the field
+```
+
+`data-active` marks the keyboard or pointer option (its layer fades in over `--ds-dur-micro` and goes at once, so a
+held arrow key leaves no trail), `aria-selected="true"` the chosen one (the tint and the label weight; in forced
+colours `SelectedItem`). `aria-expanded="true"` on the field turns the chevron 180deg on the spatial spring;
+`DS.overlay` sets it. `data-open` on `.ds-combo` still turns it but is **deprecated** (removed in 2.0).
+
+- **Open and close** with `DS.overlay` ([motion.md](motion.md#dsoverlay-jsoverlayjs)). The page filters and chooses:
+  filtering never re-creates or re-hides the list, and when nothing matches the list keeps showing with the status
+  line (`.ds-combo__list` `hidden`, the status says "No match") instead of closing. Closing on blur and on a choice
+  is the page's script (`DS.overlay.close(popup)`).
+- **Motion.** The list grows out of the field: it fades in (`--ds-dur-fast`) while its clip opens from the field's
+  edge and it grows from `--ds-scale-popup` at the field, both on the spatial spring (`--ds-dur-medium`); the shadow
+  is there from the first frame. It leaves with a fade only (`--ds-dur-instant`). The motion runs on transitions
+  keyed on `data-state`, so a list closed mid-way turns back from where it is. A page that only drops `hidden`
+  (no `DS.overlay`) gets the same reveal once, as keyframes.
+- **Placement.** Below the field when the list fits there, else on the side with more room (`data-placement="top"`
+  above), and never taller than the room on that side: the list scrolls inside while the status line stays, so it
+  never covers the field being typed into, even in a short window. Where popover and CSS anchor positioning exist, the
+  list opens as a `popover="manual"` in the top layer, anchored to the field and as wide as it (`data-anchored`), so a
+  scrolling dialog or sheet never clips it. Elsewhere it stays absolute under the field, its room counted in the
+  window narrowed by every box around the field that clips (a dialog's box, a sheet's body), with an inline
+  `max-height` while it is open. There such a box still clips the list, so keep a combobox off the very end of a
+  dialog.
 
 The toggle is a round 40px target with a state layer (hover, press in `--ds-dur-micro`), the ripple and the press
 morph of every pill; it stays `tabindex="-1"` (the field opens the list from the keyboard), so it has no ring.
 Options get no ripple: pressing one selects it and closes the list, and the state layer is the feedback.
 
-## Dialog
+## Menu
+
+Actions for one item, or the overflow of a toolbar, opened from a button:
 
 ```html
-<div class="ds-dialog">
-  <div class="ds-dialog__backdrop" data-close></div>
-  <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="del-title" aria-describedby="del-text">
-    <h2 class="ds-dialog__title" id="del-title">Delete 3 devices?</h2>
-    <p class="ds-dialog__text" id="del-text">They disappear from every list. This cannot be undone.</p>
-    <div class="ds-dialog__actions">
-      <button class="ds-btn ds-btn--text" type="button">Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
-    </div>
-  </div>
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="More actions"
+        aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu">[icon moreVertical 20]</button>
+<div class="ds-menu" role="menu" id="row-menu" aria-label="Actions" hidden>
+  <button class="ds-menu__item" role="menuitem" type="button">[icon pencil 20]<span class="ds-menu__label">Edit</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button">[icon copy 20]<span class="ds-menu__label">Duplicate</span></button>
+  <button class="ds-menu__item" role="menuitemcheckbox" type="button" aria-checked="true">
+    [icon check 20 ds-menu__check]<span class="ds-menu__label">Pinned</span></button>
+  <div class="ds-menu__divider" role="separator"></div>
+  <button class="ds-menu__item" role="menuitem" type="button" aria-disabled="true">[icon trash 20]<span class="ds-menu__label">Delete</span></button>
 </div>
 ```
 
-- Show: insert it, or drop `.ds-dialog--hidden` or the `hidden` attribute (it hides the dialog without `.ds-base`
-  too); move focus into the box and trap it; Escape closes.
-- Close: add `.ds-dialog--closing`, wait for the box's `animationend` (`DS.motion.settled(box)`), then hide or remove.
-  During the exit only the box lets clicks through: the backdrop swallows them until the dialog is hidden or removed,
-  so a click meant for the backdrop never reaches the page under it.
+```js
+trigger.addEventListener('click', () => {
+  if (trigger.getAttribute('aria-expanded') === 'true') DS.overlay.close(menu);
+  else DS.overlay.open(menu, { opener: trigger });
+});
+trigger.addEventListener('keydown', (event) => {
+  // ArrowDown opens on the first item, ArrowUp on the last.
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+  event.preventDefault();
+  DS.overlay.open(menu, { opener: trigger });
+});
+```
+
+- **Keyboard and focus** (`DS.overlay`, [motion.md](motion.md#dsoverlay-jsoverlayjs)): opening focuses the first
+  enabled item (the last one when an ArrowUp keydown opened it); ArrowUp, ArrowDown, Home and End move focus, wrapping;
+  Escape closes and focuses the trigger; Tab closes and moves on from the trigger. Activating an item (a click, Enter
+  or Space) closes the menu once the item's own `click` handlers ran; focus goes back to the trigger unless a handler
+  moved it (a dialog it opened). A `pointerdown` outside the menu and its trigger closes it without moving focus.
+  `aria-expanded` on the trigger follows.
+- **Items.** `.ds-menu__item` is a 48px row: an icon (`--ds-text-2`) and `.ds-menu__label` (one line, ellipsis), a
+  state layer for hover, press and focus, an inset focus ring and the ripple. `role="menuitemcheckbox"` with
+  `aria-checked`: the check (`.ds-menu__check` on its icon) shows only when checked and keeps its room otherwise, so
+  the labels line up; your click handler flips `aria-checked`. `aria-disabled="true"` keeps an item focusable (its name
+  is read) with the disabled ink, no hover, no press and no ripple; `DS.overlay` ignores its clicks.
+  `.ds-menu__divider` separates groups.
+- **Placement.** Below the trigger from its start edge, flipped towards the start edge when there is no room; above
+  the trigger when it does not fit below and there is more room above; 112px to 280px wide, and never taller than the
+  room on its side (it scrolls inside), so it never covers its trigger. Where popover and CSS anchor positioning
+  exist the menu is a `popover="manual"` in the top layer, anchored to the trigger (`data-anchored`); elsewhere
+  `DS.overlay` writes `--ds-menu-x` and `--ds-menu-y` (`position: fixed`, plus an inline `max-height` when it is
+  capped), sets `data-placement="top"` above and follows scrolling and resizing.
+- **Inside a dialog or sheet.** A native dialog or sheet opened with `showModal()` makes everything outside it inert,
+  top-layer popovers included. A menu used from inside one goes inside it in the markup; a menu that sits elsewhere
+  (at the end of the `.ds-theme`, as above) is moved into the open native dialog or sheet by `DS.overlay.open()` and
+  put back once it closed.
+- **Motion.** As the combobox list: it fades in while its clip opens from the trigger's edge and it grows from
+  `--ds-scale-popup` at the trigger on the spatial spring, and leaves with a quick fade; a menu closed mid-way turns
+  back from where it is. Shown by hand (dropping `hidden` without `DS.overlay`) it reveals itself once.
+- The menu sits inside the `.ds-theme` element, like every overlay. Forced colours keep its edge.
+
+## Dialog
+
+Native markup (preferred): `showModal()` makes the page inert and gives the dialog its modal semantics, so the box
+carries no role.
+
+```html
+<dialog class="ds-dialog" role="alertdialog" aria-labelledby="del-title" aria-describedby="del-text">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="del-title">Delete 3 devices?</h2>
+    <p class="ds-dialog__text" id="del-text">They disappear from every list. This cannot be undone.</p>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
+    </div>
+  </div>
+</dialog>
+```
+
+Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same tree in
+`<div class="ds-dialog" hidden>`, with `role="alertdialog" aria-modal="true" aria-labelledby aria-describedby` on
+`.ds-dialog__box`.
+
+- Open and close with `DS.overlay.open(dialog, { opener: button })` and `DS.overlay.close(dialog)`
+  ([motion.md](motion.md#dsoverlay-jsoverlayjs)): focus moves in at once (`autofocus` marks the intended first focus,
+  Cancel in a destructive `alertdialog`; else the first focusable element), the page is inert, Escape and
+  `[data-close]` close, the scroll lock counts, and focus is back on the opener in the frame of the close. The dialog
+  must sit inside the `.ds-theme` element (`DS.overlay` warns otherwise).
+- Motion: the scrim fades while the box fades, grows from `--ds-scale-enter` and rises `--ds-distance-sm` on the
+  spatial spring (`--ds-dur-slow`), from an origin towards its opener; it leaves the same way back in `--ds-dur-base`,
+  accelerating. It runs on transitions keyed on `data-state`, so a close taken back mid-way continues from where the
+  box is. At 600px and below the box decelerates instead of springing (no overshoot past the window).
+- **Over another overlay.** A dialog opened from a side sheet, from the modal drawer or from another dialog takes input
+  while the overlay under it stays inert (the div trap follows the stack). Over an open native dialog or sheet, which
+  makes everything outside it inert, a dialog or sheet (div or native, and a menu) must sit inside it:
+  `DS.overlay.open()` moves it in while it shows and back once it closed. A native one needs it for its exit:
+  `dialog.close()` runs at once, so the sheet under it is the top modal again; inside the sheet the leaving dialog
+  stays above the sheet's panel and its scrim keeps catching clicks (a double click on it never closes the sheet).
+- `.ds-dialog--nested` (set by `DS.overlay` when another modal is open, a dialog from inside a side sheet) uses the
+  lighter `--ds-scrim-nested`, so the two scrims add up to about 43% instead of 54%. The hook `--ds-dialog-scrim`
+  sets the scrim of one dialog.
+- By hand (div markup, no `data-state`; keyframes): show it by dropping `hidden` (it hides the dialog without
+  `.ds-base` too) or `.ds-dialog--hidden`, trap focus, close on Escape. To close, release the trap and focus the
+  opener first, then add `.ds-dialog--closing`; after `DS.motion.settled(box)` add `hidden` (or `--hidden`) and
+  remove `--closing` in the same task. During the exit only the box lets clicks through: the backdrop swallows them
+  until the dialog is hidden, so a click meant for the backdrop never reaches the page under it. A native dialog
+  driven by hand (`showModal()`, `close()`) plays the same transitions where `@starting-style` and
+  `transition-behavior: allow-discrete` exist; elsewhere it enters with the keyframes and closes at once.
 - `.ds-dialog--contained` covers the nearest positioned ancestor instead of the window (a dialog inside an embedded
-  panel).
+  panel; div markup only).
 
 ## Side sheet
 
+Native markup (preferred), or the same tree in `<div class="ds-sheet" role="dialog" aria-modal="true"
+aria-labelledby="sheet-title" hidden>`:
+
 ```html
-<div class="ds-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+<dialog class="ds-sheet" aria-labelledby="sheet-title">
   <div class="ds-sheet__backdrop" data-close></div>
   <section class="ds-sheet__panel">                      <!-- ds-sheet__panel--wide: 720px -->
     <div class="ds-sheet__head">
@@ -655,49 +774,109 @@ Options get no ripple: pressing one selects it and closes the list, and the stat
     </div>
     <div class="ds-sheet__body" tabindex="0"> ... </div>
   </section>
-</div>
+</dialog>
 ```
 
-Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears). Close like the dialog with
-`.ds-sheet--closing`: the panel lets clicks through while it leaves, the backdrop swallows them until the sheet is
-hidden or removed. The `hidden` attribute hides the sheet without `.ds-base` too. Use a `<div>` for the head, not `<header>` (a second banner landmark).
+Open and close it like the dialog, with `DS.overlay.open(sheet, { opener })` and `DS.overlay.close(sheet)`. The panel
+is opaque throughout: it slides its full width in from the edge on the spatial spring (`--ds-dur-long`) while the
+scrim fades, and goes back to the edge in `--ds-dur-base`, accelerating, without a fade. At 600px and below it rises
+from the bottom and falls back down. A strip of the panel's background past its outer edge covers the spring's
+overshoot, so the scrim never shows at the screen edge. By hand, close it like the dialog with `.ds-sheet--closing`
+(`DS.motion.settled(panel)`, then hide and remove the class in one task): the panel lets clicks through while it
+leaves, the backdrop swallows them until the sheet is hidden. The `hidden` attribute hides the div sheet without
+`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears). Use a
+`<div>` for the head, not `<header>` (a second banner landmark).
 
 ## Snackbar
 
 ```html
-<div class="ds-toasts" role="status" aria-live="polite">
-  <div class="ds-toast">[icon checkCircle 20]<span class="ds-toast__text">Saved.</span></div>
-  <div class="ds-toast ds-toast--error" role="alert">[icon alertCircle 20]<span class="ds-toast__text">Could not save.</span>
-    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">[icon close 20]</button></div>
-</div>
+<div class="ds-toasts"></div>                                   <!-- right after .ds-app, inside .ds-theme -->
+```
+
+```js
+DS.overlay.toast(region, 'Saved.');                                 // closes by itself
+DS.overlay.toast(region, 'Could not save.', { kind: 'error' });     // stays until closed
+const message = DS.overlay.toast(region, 'Export ready.', { persistent: true });
+message.close();                                                    // message.closed resolves once it is gone
+```
+
+What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toast` element):
+
+```html
+<div class="ds-toast [ds-toast--error | ds-toast--info]">[icon checkCircle | alertCircle | info 20]<span class="ds-toast__text">Saved.</span>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">[icon close 20]</button></div>
 ```
 
 - Place the region right after `.ds-app`. It sits at the bottom left of the content panel: next to a persistent
   drawer by itself, full width on phones. If your panel starts elsewhere, set `--ds-toast-left` on the region to the
   panel's left edge plus 24px (`region.style.setProperty('--ds-toast-left', panel.getBoundingClientRect().left + 24 + 'px')`).
-- A confirmation leaves after about 4s (`setTimeout(() => DS.motion.leave(toast), 4000)`); an error has a close
-  button and stays until closed. Mark a message that already played its entrance `.ds-toast--shown` before
-  moving it (into a side sheet), so it does not replay. To let it glide instead of jump, set `--ds-toast-shift` and
-  `--ds-toast-shift-y` to the offset from its old place with `transition: none`, force a style flush, then remove
-  both.
+- **Stack.** At most three show at once (`TOAST_LIMIT`), the newest at the bottom; the others glide to their places
+  (`DS.motion.flip()`) while a message rises in or fades out where it was. A fourth replaces the oldest message that
+  would close by itself; when all three stay (errors, `persistent`), it waits and enters when one closes. `close()`
+  on a waiting message takes it out of the queue.
+- **Timer.** A message closes after `timeout` ms: by default 4s plus 50ms for each character past 40, at most 10s,
+  all stretched by `--ds-time-scale`. Errors, `persistent: true` and messages with another button or a link (an
+  action such as Undo) never close by themselves: the close button (`closeLabel`, default "Close") or your action
+  does. The timers pause while a pointer is over a message, while focus is in the region and while the tab is
+  hidden, and go on with the time they had left.
+- **Focus.** A focused message that leaves hands focus to the next message's close button, else back to where focus
+  came from into the region, else to the view (`.ds-view` with `tabindex="-1"`), never to `<body>`.
+- **Screen readers.** The region and the messages are not live regions, so their buttons stay usable. On first use
+  `toast()` adds two `.ds-sr` live regions next to the region (polite, and assertive for errors) and writes each
+  message's text there.
+- **Dialogs and side sheets.** While a dialog or side sheet is open (`DS.overlay.open()`), the regions of its theme
+  move into it, so a message shown meanwhile (an error from the dialog's action) is above the scrim, announced and
+  usable: in the top layer of a native one, outside the inert page of the div markup. In a sheet the messages glide
+  with the panel's edge (`data-follow="enter"` and `"exit"` time the glide like the sheet); in a dialog they keep
+  their place. Closing brings them back: they glide to their place while still inside the leaving dialog or sheet
+  (so they stay above its scrim and panel through the exit) and return to the page once it ended. The modal drawer leaves the regions and their announcers usable where they
+  are. A region placed inside another element of the page (not next to `.ds-app`) is inert under a div dialog that
+  does not take it in, so keep it in the documented place.
 - A bar pinned to the bottom edge (a save bar): set `--ds-toast-bottom` on the region to its height plus a gap while
   it shows, so messages stay above it.
 - An error that stays until closed: give `.ds-view` (or `.ds-sheet__body`) `data-toast-reserve` and set
   `--ds-toast-reserve` to the message's height, so the last actions can scroll clear of it.
 - `.ds-toast--info` uses the plain text colour for its icon, like `--error`.
+- **Deprecated** (still working, removed in 2.0): the region `<div class="ds-toasts" role="status" aria-live="polite">`
+  with `role="alert"` on error messages (on such a region `toast()` adds no announcers, so nothing is read twice);
+  showing messages by hand with `setTimeout(() => DS.motion.leave(toast), 4000)`; and the hand recipe for moving
+  messages into a side sheet: mark them `.ds-toast--shown`, set `--ds-toast-shift` and `--ds-toast-shift-y` to the
+  offset from the old place with `transition: none`, force a style flush, then remove both.
 
 ## Tooltip
 
 ```html
-<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" aria-describedby="tip">[icon copy 20]</button>
-<div class="ds-tooltip" role="tooltip" id="tip" hidden>Copy link</div>
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">[icon link 20]</button>
 ```
 
-Your script places it (`position: fixed`, set `top` and `left`; the entrance grows it around its centre), shows it
-after a short delay on hover and at once on keyboard focus, keeps it open while the pointer is on it, and hides it with `DS.motion.leave(tip, '', { then: 'hide' })`.
-A `transform` placement composes with the entrance, but its scale shrinks the offset too, so the tooltip drifts in by
-(1 - scale) × offset; a script that keeps a `transform: translate(Xpx, Ypx)` also sets
-`transform-origin: calc(50% + Xpx) calc(50% + Ypx)`.
+```js
+const tips = DS.overlay.tooltips(document);   // one call per page (or per root element); tips.destroy() undoes it
+```
+
+`tooltips(root)` serves every `[data-tip]` inside `root` with one `<div class="ds-tooltip" role="tooltip">` that it
+creates inside the `.ds-theme` (it warns once when `root` has none):
+
+- **Delay.** A mouse or pen that rests on a trigger shows the tooltip after `--ds-delay-tooltip` (500ms); keyboard
+  focus (`:focus-visible`) shows it at once. Touch never shows one.
+- **Warm-up.** While a tooltip is visible, or within `--ds-delay-tooltip-skip` (300ms) of the last hide, the next
+  trigger shows at once: a visible tooltip swaps its text and place without leaving, a hidden one only fades in.
+- **Hoverable and persistent** (WCAG 1.4.13). It hides `--ds-delay-tooltip-hide` (100ms) after the pointer or focus
+  left the trigger; the pointer may cross onto the tooltip meanwhile, and it stays while the pointer is on it or the
+  trigger keeps keyboard focus.
+- **Dismissable.** Escape hides it, and only then is the key the tooltip's (an open dialog under it stays open). Any
+  pointerdown, `DS.overlay.open()` and a trigger scrolled out of view hide it too.
+- **Description.** While it shows, the trigger gets `aria-describedby` pointing at it, unless the trigger's accessible
+  name already says the same (an icon button whose `aria-label` equals the tip is not described twice).
+- **Placement.** Below the trigger and centred on it, above it when there is no room, 8px from the viewport edges.
+  Where popover and CSS anchor positioning exist, the tooltip is a `popover="manual"` in the top layer, anchored to
+  the trigger (`data-anchored`); elsewhere the script writes `--ds-tooltip-x` and `--ds-tooltip-y` and sets
+  `data-placement="top"` above. It fades in and grows from `--ds-scale-tooltip` at the side of the trigger, and
+  leaves with a quick fade.
+
+Placing a `.ds-tooltip` yourself: set `--ds-tooltip-x` and `--ds-tooltip-y` (or `top` and `left`) on it, remove
+`hidden` (the entrance plays) and hide it with `DS.motion.leave(tip, '', { then: 'hide' })`. A `transform` placement
+composes with the entrance, but its scale shrinks the offset too, so the tooltip drifts in by (1 - scale) × offset;
+a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-origin: calc(50% + Xpx) calc(50% + Ypx)`.
 
 ## Loading
 
@@ -759,7 +938,8 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 
 - Hosts (`DS.ripple.RIPPLE_HOSTS`): `.ds-btn`, `.ds-chip` (the ripple goes into `.ds-chip__body`),
   `.ds-segmented__option`, `.ds-drawer__item`, `:is(button, a).ds-tile`, `.ds-table__sort`, `.ds-radio` (a radio
-  card, also when its own input is pressed), `.ds-combo__toggle`, `.ds-errors summary` and `[data-ds-ripple]`;
+  card, also when its own input is pressed), `.ds-combo__toggle`, `.ds-menu__item`, `.ds-errors summary` and
+  `[data-ds-ripple]`;
   `data-ds-ripple="off"` on a host or an ancestor opts out. Not hosts, by design: inline links (`.ds-link-btn`,
   links in text), the switch, `.ds-check` rows and checkbox or radio inputs (their halo is the press), combobox
   options (pointer-down selects and closes the list; the state layer is the feedback) and native field parts. Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
@@ -791,7 +971,7 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 | `.ds-num` | right-aligned tabular figures |
 | `.ds-center` | centred text |
 | `.ds-nowrap` | keeps a value and its unit together |
-| `.ds-no-scroll` | on `<body>` while a modal layer is open (with `.ds-base`) |
+| `.ds-no-scroll` | on `<body>` while a modal layer is open (with `.ds-base`); `DS.overlay` sets it, reference-counted |
 
 Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
@@ -799,7 +979,15 @@ Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
 `.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
-`.ds-stagger`; `.ds-reveal`; `.ds-collapsible`; `.ds-swap` (the slot of `DS.motion.roll()` and
+`.ds-stagger`; `.ds-reveal`; `.ds-collapsible`; `.ds-presence` (toggled elements); `.ds-swap` (the slot of `DS.motion.roll()` and
 `DS.motion.crossfade()`); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
 [Button](#button)); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
 `.ds-indicator--instant`.
+
+One-shot content (a card that appears once, a row that goes) uses `.ds-enter` / `.ds-leave` or `DS.motion`.
+Something that is shown and hidden again and again uses `DS.overlay` (dialogs, sheets, menus, the combobox list)
+or, for a project element toggled with `hidden`, as a `[popover]` or as a `<dialog>` of its own, `.ds-presence`:
+it fades in and grows from `--ds-scale-popup` on the spring, leaves faster, and a toggle mid-way continues from where
+it is (progressive: where `@starting-style` and `transition-behavior: allow-discrete` exist; elsewhere it toggles at
+once). Never both on one element. A `[popover]` is centred by the browser's `margin: auto`; inside a container that
+spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` again or place it outside.

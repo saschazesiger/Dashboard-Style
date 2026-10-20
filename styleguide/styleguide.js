@@ -2,8 +2,10 @@
  * The living styleguide: every component with the markup of
  * docs/components.md, the tokens of the active theme, motion demos and the
  * icon set. A classic script on top of dist/ds.js, so it runs from disk.
- * The small behaviours here (dialogs, sheets, snackbars, tooltips) are
- * demo code, not part of the system: projects bring their own.
+ * Overlays (dialogs, sheets, the modal drawer, menus, the combobox list,
+ * snackbars and tooltips) run through DS.overlay; the rest of the small
+ * behaviours here (filtering the combobox, what a menu item does) is demo
+ * code, not part of the system: projects bring their own.
  *
  * Hooks for the browser tests (test/browser/), harmless when opened by hand:
  *   html[data-sg-ready]   set once render, navigation, demos and themes are
@@ -64,7 +66,7 @@
       '<p>White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and quiet motion. Every value comes from a token, so one theme file restyles everything below.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="../README.md">Get started</a><a class="ds-btn" href="../docs/theming.md">Theming guide</a><a class="ds-btn ds-btn--text" href="../docs/components.md">Component markup ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +
-      tile('Components', '24', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
+      tile('Components', '25', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
       '</div></section>';
   }
 
@@ -299,29 +301,59 @@
         '<label class="ds-switch"><input type="checkbox" role="switch" data-sg="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Weekly report (one word)</span><span class="ds-switch__state" aria-hidden="true">Off</span></label>' +
         switchRow('Locked by policy', 'disabled') + switchRow('Required by policy', 'checked disabled') + '</div>') +
       '</div>' +
-      card('Combobox', '<div class="ds-field" style="max-width:420px"><label class="ds-field__label" for="f-combo">Model</label>' +
-        '<div class="ds-combo" data-open><input class="ds-input ds-combo__input" id="f-combo" role="combobox" aria-expanded="true" aria-controls="f-combo-list" aria-activedescendant="f-combo-2" value="lat">' +
-        '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all" data-sg="combo-toggle">' + icon('chevronDown', 20) + '</button>' +
-        '<div class="ds-combo__popup"><ul class="ds-combo__list" id="f-combo-list" role="listbox">' +
-        '<li class="ds-combo__option" id="f-combo-1" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 5430</span><span class="ds-combo__meta">14 inch · 2022</span></li>' +
-        '<li class="ds-combo__option" id="f-combo-2" role="option" aria-selected="false" data-active><span class="ds-combo__name">Latitude 7440</span><span class="ds-combo__meta">14 inch · 2023</span></li>' +
-        '<li class="ds-combo__option" id="f-combo-3" role="option" aria-selected="true"><span class="ds-combo__name">Latitude 9450</span><span class="ds-combo__meta">14 inch · 2024</span></li>' +
-        '</ul><p class="ds-combo__status" role="status">3 of 38 models</p></div></div></div><div style="height:212px"></div>'));
+      card('Combobox', '<p class="ds-muted">Type or use the chevron: the list grows out of the field, the chevron turns with it, and arrow keys move the active option.</p>' +
+        '<div class="ds-field" style="max-width:420px">' + comboMarkup('f-combo', 'Model') + '</div>'));
+  }
+
+  /* The models of the combobox demos. */
+  var MODELS = [['Latitude 5430', '14 inch · 2022'], ['Latitude 7440', '14 inch · 2023'], ['Latitude 9450', '14 inch · 2024'], ['Precision 3581', '15 inch · 2023'], ['OptiPlex 7010', 'Desktop · 2023'], ['Surface Laptop 5', '13 inch · 2022']];
+
+  /* A closed combobox (docs/components.md, Combobox); setupCombo() wires it. */
+  function comboMarkup(id, name) {
+    return '<label class="ds-field__label" for="' + id + '">' + name + '</label>' +
+      '<div class="ds-combo" data-sg-combo><input class="ds-input ds-combo__input" id="' + id + '" role="combobox" aria-expanded="false" aria-controls="' + id + '-list" aria-autocomplete="list" autocomplete="off">' +
+      '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">' + icon('chevronDown', 20) + '</button>' +
+      '<div class="ds-combo__popup" hidden><ul class="ds-combo__list" id="' + id + '-list" role="listbox">' +
+      MODELS.map(function (model, index) {
+        return '<li class="ds-combo__option" id="' + id + '-' + index + '" role="option" aria-selected="false"><span class="ds-combo__name">' + model[0] + '</span><span class="ds-combo__meta">' + model[1] + '</span></li>';
+      }).join('') +
+      '</ul><p class="ds-combo__status" role="status">' + MODELS.length + ' models</p></div></div>';
   }
 
   /* Overlays */
   function overlays() {
-    return section('overlays', 'Overlays', 'Dialogs, side sheets, snackbars and tooltips float on the overlay elevation over a plain scrim. Open the real ones or inspect them in place.',
-      card('Try them', '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-sg="dialog">Open dialog</button><button class="ds-btn" type="button" data-sg="sheet">Open side sheet</button><button class="ds-btn" type="button" data-sg="toast">Show snackbar</button><button class="ds-btn" type="button" data-sg="toast-error">Show error</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">' + icon('link', 20) + '</button></div>') +
+    var tipButton = function (glyph, name) {
+      return '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="' + name + '" data-tip="' + name + '">' + icon(glyph, 20) + '</button>';
+    };
+    return section('overlays', 'Overlays', 'Dialogs, side sheets, menus, snackbars and tooltips float over the page and open through DS.overlay: focus moves in and back at once, Escape closes the top one, and every motion turns back from where it is. Open the real ones or inspect them in place.',
+      card('Try them', '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-sg="dialog">Open dialog</button><button class="ds-btn" type="button" data-sg="dialog-div">Dialog (div markup)</button><button class="ds-btn" type="button" data-sg="dialog-combo">Dialog with a list</button><button class="ds-btn" type="button" data-sg="sheet">Open side sheet</button></div>' +
+        '<div class="sg-row"><button class="ds-btn" type="button" data-sg="toast">Show snackbar</button><button class="ds-btn" type="button" data-sg="toast-error">Show error</button><button class="ds-btn" type="button" data-sg="toast-many">4 messages</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">' + icon('link', 20) + '</button>' +
+        '<button class="ds-btn ds-btn--text" type="button" popovertarget="sg-presence">A popover (.ds-presence)</button></div>' +
+        '<div class="ds-presence sg-presence" id="sg-presence" popover><p class="ds-card__title">A plain popover</p><p class="ds-muted">Toggled by popovertarget, no script: .ds-presence fades it in and out. Escape or a click outside closes it.</p></div>') +
       '<div class="ds-grid-2">' +
       card('Dialog', '<div class="sg-inline-overlay">' + dialogMarkup(true) + '</div>') +
       card('Side sheet', '<div class="sg-inline-overlay">' + sheetMarkup(true) + '</div>') +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Actions for LAPTOP-0042" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-menu" data-sg-menu>' + icon('moreVertical', 20) + '</button></div>' +
+        '<p class="ds-muted">An overflow menu: it grows out of its button, the arrow keys move through it, Escape gives focus back.</p>' +
+        '<div class="ds-menu" role="menu" id="sg-menu" aria-label="Actions for LAPTOP-0042" hidden>' +
+        '<button class="ds-menu__item" role="menuitem" type="button" data-sg-item="Opened the record.">' + icon('pencil', 20) + '<span class="ds-menu__label">Edit</span></button>' +
+        '<button class="ds-menu__item" role="menuitem" type="button" data-sg-item="Duplicated as LAPTOP-0043.">' + icon('copy', 20) + '<span class="ds-menu__label">Duplicate</span></button>' +
+        '<button class="ds-menu__item" role="menuitemcheckbox" type="button" aria-checked="true">' + icon('check', 20, 'ds-menu__check') + '<span class="ds-menu__label">Pinned to the top</span></button>' +
+        '<div class="ds-menu__divider" role="separator"></div>' +
+        '<button class="ds-menu__item" role="menuitem" type="button" data-sg-item="Archived. Undo from the archive.">' + icon('archive', 20) + '<span class="ds-menu__label">Archive</span></button>' +
+        '<button class="ds-menu__item" role="menuitem" type="button" aria-disabled="true">' + icon('trash', 20) + '<span class="ds-menu__label">Delete (needs admin rights)</span></button>' +
+        '</div></section>' +
+      card('Tooltips along a toolbar', '<p class="ds-muted">Rest on one button: its tooltip comes after a moment. Then move along the row: the next ones show at once and swap in place.</p>' +
+        '<div class="sg-row" role="toolbar" aria-label="Device actions">' + tipButton('sync', 'Sync now') + tipButton('download', 'Download report') + tipButton('history', 'Show history') + tipButton('lock', 'Lock device') + tipButton('settings', 'Device settings') + '</div>') +
       '</div>' +
       card('Snackbar and tooltip', '<div class="ds-stack"><div class="ds-toast sg-toast-demo">' + icon('checkCircle', 20) + '<span class="ds-toast__text">Saved. The record is visible to everyone now.</span><button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">' + icon('close', 20) + '</button></div>' +
         '<div class="ds-toast ds-toast--error sg-toast-demo">' + icon('alertCircle', 20) + '<span class="ds-toast__text">Could not save. Check the connection and try again.</span></div>' +
         '<div class="ds-tooltip sg-tooltip-demo">Copy link</div></div>'));
   }
 
+  /* The inline dialog (inspected in place, .ds-dialog--contained). */
   function dialogMarkup(inline) {
     return '<div class="ds-dialog' + (inline ? ' ds-dialog--contained' : '') + '"><div class="ds-dialog__backdrop" data-close></div>' +
       '<div class="ds-dialog__box" role="' + (inline ? 'group' : 'alertdialog') + '"' + (inline ? '' : ' aria-modal="true" aria-labelledby="sg-d-title" aria-describedby="sg-d-text"') + '>' +
@@ -329,12 +361,42 @@
       '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button><button class="ds-btn ds-btn--primary" type="button" data-close>Delete devices</button></div></div></div>';
   }
 
+  /* The page dialogs (docs/components.md, Dialog). The native markup is
+     the preferred one: showModal() makes the page inert; autofocus puts
+     the first focus on Cancel, the safe choice of a destructive dialog. */
+  function nativeDialogMarkup(id, title, text, action) {
+    return '<dialog class="ds-dialog" id="' + id + '" role="alertdialog" aria-labelledby="' + id + '-title" aria-describedby="' + id + '-text"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="' + id + '-title">' + title + '</h2><p class="ds-dialog__text" id="' + id + '-text">' + text + '</p>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button><button class="ds-btn ds-btn--primary" type="button" data-close>' + action + '</button></div></div></dialog>';
+  }
+
+  /* The div markup: the same tree, the role on the box. */
+  function divDialogMarkup() {
+    return '<div class="ds-dialog" id="sg-dialog-div" hidden><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="sg-dd-title" aria-describedby="sg-dd-text">' +
+      '<h2 class="ds-dialog__title" id="sg-dd-title">Archive 3 devices?</h2><p class="ds-dialog__text" id="sg-dd-text">They leave the active lists and stay in the archive for a year.</p>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button><button class="ds-btn ds-btn--primary" type="button" data-close>Archive devices</button></div></div></div>';
+  }
+
+  /* A dialog whose last field is a combobox: its list opens in the top
+     layer (anchor positioning), so the dialog's scrolling box never clips it. */
+  function comboDialogMarkup() {
+    return '<dialog class="ds-dialog" id="sg-dialog-combo" aria-labelledby="sg-dc-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-dc-title">Replace the device</h2><p class="ds-dialog__text">Choose the model that takes over LAPTOP-0042. Its owner and location stay.</p>' +
+      '<div class="ds-field">' + comboMarkup('sg-dc-model', 'New model') + '</div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button><button class="ds-btn ds-btn--primary" type="button" data-close>Replace</button></div></div></dialog>';
+  }
+
+  /* The side sheet: inline (div, inspected in place) or the page's native
+     one, with a button that opens a dialog over it (the nested scrim). */
   function sheetMarkup(inline) {
-    return '<div class="ds-sheet"' + (inline ? '' : ' role="dialog" aria-modal="true" aria-labelledby="sg-s-title"') + '><div class="ds-sheet__backdrop" data-close></div><section class="ds-sheet__panel">' +
+    var tag = inline ? 'div' : 'dialog';
+    return '<' + tag + ' class="ds-sheet"' + (inline ? '' : ' id="sg-sheet" aria-labelledby="sg-s-title"') + '><div class="ds-sheet__backdrop" data-close></div><section class="ds-sheet__panel">' +
       '<div class="ds-sheet__head"><h2 class="ds-sheet__title"' + (inline ? '' : ' id="sg-s-title"') + '>LAPTOP-0042</h2><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>' + icon('close', 20) + '</button></div>' +
       '<div class="ds-sheet__body" tabindex="0"><dl class="ds-facts"><div><dt>Owner</dt><dd>Ada Lovelace</dd></div><div><dt>Location</dt><dd>Building A, 1st floor</dd></div></dl>' +
       '<div class="ds-field"><label class="ds-field__label" for="sg-sheet-note' + (inline ? '-i' : '') + '">Note</label><input class="ds-input" id="sg-sheet-note' + (inline ? '-i' : '') + '" placeholder="Add a note"></div>' +
-      '<div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="button" data-close>Save</button><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div></section></div>';
+      '<div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="button" data-close>Save</button><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>' +
+      (inline ? '' : '<button class="ds-btn ds-btn--text" type="button" data-sg="dialog-nested">Retire the device</button>') + '</div></div></section></' + tag + '>';
   }
 
   /* Loading and progress */
@@ -549,12 +611,12 @@
     });
   }
 
+  /* The modal drawer through DS.overlay: the scroll lock, the inert page,
+     Escape, the scrim, and focus back on the menu button at once. */
   function openDrawer(open) {
-    if (open) app.setAttribute('data-drawer-open', '');
-    else app.removeAttribute('data-drawer-open');
-    $('[data-sg="menu"]').setAttribute('aria-expanded', String(open));
-    document.body.classList.toggle('ds-no-scroll', open);
-    if (open) $('#sg-drawer').focus();
+    var drawer = $('#sg-drawer');
+    if (open) DS.overlay.open(drawer, { opener: $('[data-sg="menu"]') });
+    else DS.overlay.close(drawer);
   }
 
   /* Scroll-spy with a programmatic smooth scroll: a drawer link sets its
@@ -637,11 +699,8 @@
       if (modal.matches) openDrawer(false);
     });
     setupBreakpoint();
+    // The scrim and Escape close the drawer by themselves (DS.overlay).
     $('[data-sg="menu"]').addEventListener('click', function () { openDrawer(!app.hasAttribute('data-drawer-open')); });
-    $('[data-sg="close-drawer"]').addEventListener('click', function () { openDrawer(false); });
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && app.hasAttribute('data-drawer-open')) openDrawer(false);
-    });
 
     segmented = DS.indicator.createIndicator($('#sg-segmented'), { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
     $('#sg-segmented').addEventListener('click', function (event) {
@@ -732,43 +791,160 @@
 
   /* ── Demo behaviours ──────────────────────────────────────────────── */
 
-  function openOverlay(markup, boxSelector, closingClass) {
-    var holder = document.createElement('div');
-    holder.innerHTML = markup;
-    var overlay = holder.firstChild;
-    var opener = document.activeElement;
-    document.body.appendChild(overlay);
-    document.body.classList.add('ds-no-scroll');
-    var focusable = $('.ds-btn--primary, .ds-btn', $(boxSelector, overlay));
-    if (focusable) focusable.focus();
-    function close() {
-      overlay.classList.add(closingClass);
-      document.removeEventListener('keydown', onKey);
-      M.settled($(boxSelector, overlay)).then(function () {
+  /* The page overlays exist while they show: built on the first open,
+     taken back by a second open while they close (DS.overlay continues
+     the motion from where it is), and removed once DS.overlay has hidden
+     them again (it drops data-state then). */
+  var shownOverlays = {};
+
+  function showOverlay(name, markup, opener) {
+    var overlay = shownOverlays[name];
+    if (!overlay || !overlay.isConnected) {
+      var holder = document.createElement('div');
+      holder.innerHTML = markup;
+      overlay = shownOverlays[name] = holder.firstChild;
+      document.body.appendChild(overlay);
+      $$('[data-sg-combo]', overlay).forEach(setupCombo);
+      new MutationObserver(function (records, observer) {
+        if (overlay.hasAttribute('data-state')) return;
+        observer.disconnect();
         overlay.remove();
-        document.body.classList.remove('ds-no-scroll');
-        if (opener) opener.focus();
-      });
+      }).observe(overlay, { attributes: true, attributeFilter: ['data-state'] });
     }
-    function onKey(event) { if (event.key === 'Escape') close(); }
-    overlay.addEventListener('click', function (event) { if (event.target.closest('[data-close]')) close(); });
-    document.addEventListener('keydown', onKey);
+    return DS.overlay.open(overlay, { opener: opener });
   }
 
-  function toast(text, error) {
+  /* Snackbars through DS.overlay.toast(): at most three, the others glide;
+     an error stays until it is closed. */
+  function toast(text, kind) {
     var region = $('#sg-toasts');
-    // Align the snackbars with the content panel (the drawer is beside it).
-    var panel = $('.ds-panel').getBoundingClientRect();
-    region.style.setProperty('--ds-toast-left', Math.round(panel.left + 24) + 'px');
-    var el = document.createElement('div');
-    el.className = 'ds-toast' + (error ? ' ds-toast--error' : '');
-    if (error) el.setAttribute('role', 'alert');
-    el.innerHTML = icon(error ? 'alertCircle' : 'checkCircle', 20) + '<span class="ds-toast__text">' + esc(text) + '</span>' +
-      (error ? '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">' + icon('close', 20) + '</button>' : '');
-    region.appendChild(el);
-    var close = function () { M.leave(el); };
-    if (error) $('.ds-toast__close', el).addEventListener('click', close);
-    else setTimeout(close, 4000);
+    // Aligned with the content panel (the drawer is beside it); while a
+    // side sheet has taken the region in, DS.overlay sets the edge.
+    if (region.parentNode === document.body) region.style.setProperty('--ds-toast-left', Math.round($('.ds-panel').getBoundingClientRect().left + 24) + 'px');
+    return DS.overlay.toast(region, text, { kind: kind === true ? 'error' : kind || 'success' });
+  }
+
+  /* "4 messages": an error that waits for its close button, then three
+     that close by themselves; the fourth message replaces the oldest of
+     those, and the others glide to make room. */
+  function manyToasts() {
+    var messages = [
+      ['Could not reach the directory server. Owners may be out of date.', 'error'],
+      ['Imported 128 devices.', 'success'],
+      ['Synced LAPTOP-0042.', 'info'],
+      ['Exported the list as CSV.', 'success'],
+    ];
+    var step = speed > 0 && speed < 1 ? 250 / speed : 250;
+    messages.forEach(function (message, index) {
+      setTimeout(function () { toast(message[0], message[1]); }, index * step);
+    });
+  }
+
+  /*
+   * The combobox demos: the page filters and chooses, DS.overlay opens
+   * and closes the list (the chevron follows aria-expanded). Focus stays
+   * in the field: a press in the list or on the chevron keeps it there.
+   */
+  function setupCombo(combo) {
+    var input = $('.ds-combo__input', combo);
+    var popup = $('.ds-combo__popup', combo);
+    var list = $('.ds-combo__list', combo);
+    var status = $('.ds-combo__status', combo);
+    var options = $$('.ds-combo__option', list);
+    var isOpen = function () { return input.getAttribute('aria-expanded') === 'true'; };
+    var shown = function () { return options.filter(function (option) { return !option.hidden; }); };
+    var activeOption = function () { return options.filter(function (option) { return option.hasAttribute('data-active'); })[0] || null; };
+    var nameOf = function (option) { return $('.ds-combo__name', option).textContent; };
+
+    function setActive(option) {
+      options.forEach(function (each) { if (each !== option) each.removeAttribute('data-active'); });
+      if (!option) { input.removeAttribute('aria-activedescendant'); return; }
+      option.setAttribute('data-active', '');
+      input.setAttribute('aria-activedescendant', option.id);
+      if (isOpen()) option.scrollIntoView({ block: 'nearest' });
+    }
+
+    // Filtering never re-creates or re-hides the list: without a match the
+    // list part hides and the status says so.
+    function filter() {
+      var query = input.value.trim().toLowerCase();
+      options.forEach(function (option) { option.hidden = query !== '' && nameOf(option).toLowerCase().indexOf(query) === -1; });
+      var count = shown().length;
+      list.hidden = count === 0;
+      status.textContent = count === 0 ? 'No model matches' : count === options.length ? options.length + ' models' : count + ' of ' + options.length + ' models';
+      if (activeOption() && activeOption().hidden) setActive(null);
+    }
+
+    function open() { if (!isOpen()) DS.overlay.open(popup, { opener: input }); }
+    function close() { if (isOpen()) DS.overlay.close(popup); }
+
+    function choose(option) {
+      options.forEach(function (each) { each.setAttribute('aria-selected', String(each === option)); });
+      input.value = nameOf(option);
+      close();
+      filter();
+    }
+
+    function move(step) {
+      var visible = shown();
+      if (!visible.length) return;
+      var index = visible.indexOf(activeOption());
+      setActive(visible[index < 0 ? (step > 0 ? 0 : visible.length - 1) : (index + step + visible.length) % visible.length]);
+    }
+
+    input.addEventListener('input', function () { filter(); open(); });
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (!isOpen()) { open(); return; }
+        move(event.key === 'ArrowDown' ? 1 : -1);
+      } else if (event.key === 'Enter' && isOpen() && activeOption()) {
+        event.preventDefault();
+        choose(activeOption());
+      }
+    });
+    input.addEventListener('blur', close);
+    // Presses in the list and on the chevron keep focus in the field.
+    [popup, $('.ds-combo__toggle', combo)].forEach(function (part) {
+      part.addEventListener('mousedown', function (event) { event.preventDefault(); });
+    });
+    $('.ds-combo__toggle', combo).addEventListener('click', function () {
+      if (isOpen()) { close(); return; }
+      input.focus();
+      open();
+    });
+    list.addEventListener('pointermove', function (event) {
+      var option = event.target.closest('.ds-combo__option');
+      if (option && option !== activeOption()) setActive(option);
+    });
+    list.addEventListener('click', function (event) {
+      var option = event.target.closest('.ds-combo__option');
+      if (option) choose(option);
+    });
+  }
+
+  /* The overflow menu: the trigger toggles it, ArrowDown and ArrowUp open
+     it on the first or last item; DS.overlay does the rest. Items say what
+     they did in a snackbar; the checkable one flips its check. */
+  function setupMenus() {
+    $$('[data-sg-menu]').forEach(function (trigger) {
+      var menu = document.getElementById(trigger.getAttribute('aria-controls'));
+      trigger.addEventListener('click', function () {
+        if (trigger.getAttribute('aria-expanded') === 'true') DS.overlay.close(menu);
+        else DS.overlay.open(menu, { opener: trigger });
+      });
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+        event.preventDefault();
+        DS.overlay.open(menu, { opener: trigger });
+      });
+      menu.addEventListener('click', function (event) {
+        var item = event.target.closest('.ds-menu__item');
+        if (!item || item.getAttribute('aria-disabled') === 'true') return;
+        if (item.getAttribute('role') === 'menuitemcheckbox') item.setAttribute('aria-checked', String(item.getAttribute('aria-checked') !== 'true'));
+        if (item.hasAttribute('data-sg-item')) toast(item.getAttribute('data-sg-item'));
+      });
+    });
   }
 
   /* The faces of a button that works (button.css): the label, the busy
@@ -809,47 +985,22 @@
     }, M.motionDuration(button, '--ds-hold-success'));
   }
 
-  var tip = $('#sg-tooltip');
-  var tipTimer = 0;
-  function showTip(target, delay) {
-    clearTimeout(tipTimer);
-    tipTimer = setTimeout(function () {
-      tip.textContent = target.getAttribute('data-tip');
-      tip.hidden = false;
-      var r = target.getBoundingClientRect();
-      var w = tip.offsetWidth;
-      // top/left, not a transform: the entrance's scale would shrink a
-      // transform offset too and drift the tooltip in (tooltip.css).
-      tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
-      tip.style.top = (r.bottom + 8) + 'px';
-    }, delay);
-  }
-  function hideTip() {
-    clearTimeout(tipTimer);
-    if (!tip.hidden) M.leave(tip, '', { then: 'hide' });
-  }
-
   function setupDemos() {
     document.addEventListener('click', function (event) {
       var el = event.target.closest('[data-sg], [data-enter], [data-leave]');
       if (!el) return;
       var action = el.getAttribute('data-sg');
-      if (action === 'dialog') openOverlay(dialogMarkup(false), '.ds-dialog__box', 'ds-dialog--closing');
-      if (action === 'sheet') openOverlay(sheetMarkup(false), '.ds-sheet__panel', 'ds-sheet--closing');
+      if (action === 'dialog') showOverlay('dialog', nativeDialogMarkup('sg-dialog', 'Delete 3 devices?', 'They disappear from every list. This cannot be undone.', 'Delete devices'), el);
+      if (action === 'dialog-div') showOverlay('dialog-div', divDialogMarkup(), el);
+      if (action === 'dialog-combo') showOverlay('dialog-combo', comboDialogMarkup(), el);
+      if (action === 'dialog-nested') showOverlay('dialog-nested', nativeDialogMarkup('sg-dialog-nested', 'Retire LAPTOP-0042?', 'It leaves the active lists; its history stays.', 'Retire device'), el);
+      if (action === 'sheet') showOverlay('sheet', sheetMarkup(false), el);
       if (action === 'toast') toast('Saved. The record is visible to everyone now.');
       if (action === 'toast-error') toast('Could not save. Check the connection and try again.', true);
+      if (action === 'toast-many') manyToasts();
       if (action === 'busy') busy(el);
       if (action === 'busy-fail') busyFail(el);
       if (action === 'copy') copied(el);
-      if (action === 'combo-toggle') {
-        // Demo code: the toggle opens and closes the list (its press is the
-        // layer, the morph and the ripple).
-        var combo = el.closest('.ds-combo');
-        var open = !combo.hasAttribute('data-open');
-        combo.toggleAttribute('data-open', open);
-        $('.ds-combo__popup', combo).hidden = !open;
-        $('.ds-combo__input', combo).setAttribute('aria-expanded', String(open));
-      }
       if (action === 'stagger') {
         // enterAll(): one batch, each square scales in one step after the
         // other; the classes and --ds-i go once each one landed.
@@ -919,10 +1070,11 @@
     // The mixed state exists only as a property.
     $$('[data-sg="indeterminate"]').forEach(function (input) { input.indeterminate = true; });
     syncSelectAll();
-    document.addEventListener('mouseover', function (event) { var t = event.target.closest('[data-tip]'); if (t) showTip(t, 500); });
-    document.addEventListener('mouseout', function (event) { if (event.target.closest('[data-tip]')) hideTip(); });
-    document.addEventListener('focusin', function (event) { var t = event.target.closest('[data-tip]'); if (t && t.matches(':focus-visible')) showTip(t, 0); });
-    document.addEventListener('focusout', function (event) { if (event.target.closest('[data-tip]')) hideTip(); });
+    // Every [data-tip] of the page: delay, warm-up along a toolbar,
+    // hoverable, Escape (DS.overlay.tooltips creates its own tooltip).
+    DS.overlay.tooltips(document);
+    $$('#sg-page [data-sg-combo]').forEach(setupCombo);
+    setupMenus();
   }
 
   /* The header checkbox of the table: checked, mixed or empty by its rows. */

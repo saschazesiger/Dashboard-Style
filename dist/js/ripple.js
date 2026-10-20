@@ -13,9 +13,9 @@
  * ripple on a focused host. Hosts: .ds-btn, .ds-chip (the ripple goes into
  * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
  * :is(button, a).ds-tile, .ds-table__sort, .ds-radio (a radio card, also
- * when its own input is pressed), .ds-combo__toggle, .ds-errors summary
- * and [data-ds-ripple]; data-ds-ripple="off" on a host or an ancestor
- * opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
+ * when its own input is pressed), .ds-combo__toggle, .ds-menu__item,
+ * .ds-errors summary and [data-ds-ripple]; data-ds-ripple="off" on a host
+ * or an ancestor opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
  * card whose input is disabled, .ds-radio--disabled), switch, checkbox and
  * radio inputs (their halo is the press), and presses other than the
  * primary button get none. Not hosts, by design: inline links
@@ -60,7 +60,7 @@
 import { MOTION_FALLBACKS, flip, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
 
 /** The actions that get a ripple (P5 and P6 add more). */
-export const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-errors summary, [data-ds-ripple]';
+export const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]';
 
 /** Hosts whose own input is part of the host: pressing the input ripples the host. */
 const OWNS_INPUT = '.ds-chip, .ds-radio';

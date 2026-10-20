@@ -28,8 +28,11 @@ distances, Material curves and a gentle spring for movement that floats. All tim
    fade-through, `--ds-dur-instant` on `--ds-ease-in`) are the reference examples of a leaving effect.
 3. Exits take 0.3-0.8 of their entrance, measured on the longest track: 250 to 150ms, 350 to 200ms. Popups may
    exit in `--ds-dur-instant`.
-4. Distances 4-12px, 24px for side sheets, the full width for sheets that cover the screen. Scales: .98 for
-   content and dialogs, .95 for popups, .9 for tooltips, .6 for small markers; `ds-ripple` widens to 1.6.
+4. Distances 4-12px, 24px for a panel that slides in by hand (`.ds-enter--slide`). Side sheets and the modal drawer
+   slide their full width (`--ds-distance-sheet`; on phones the side sheet rises from the bottom). Scales: .98 for
+   content and dialogs (`--ds-scale-enter`), .95 for popups (`--ds-scale-popup`: menus, the combobox list), .9 for
+   tooltips (`--ds-scale-tooltip`), each from an origin at its trigger (`originFrom()`), .6 for small markers;
+   `ds-ripple` widens to 1.6.
    Rotation only for spinners, loaders, disclosure chevrons and icon swaps. Nothing scales on press except the
    switch handle.
 5. Hover never moves anything: state layer, colour and the documented shadow only, inside
@@ -49,6 +52,12 @@ distances, Material curves and a gentle spring for movement that floats. All tim
 11. Focus rings are solid from the first frame: only their offset moves, snapping from offset + width (4px) to the
     offset (2px) in `--ds-dur-fast` (a transition, never a keyframe, so it never takes over an element's
     `animation`); their colour and width never animate. Fields show their inset ring at once.
+
+Choosing: one-shot content (a card that appears once, a row that goes) uses `.ds-enter` / `.ds-leave` or
+`DS.motion.enter()` / `leave()`. Layers that are toggled again and again or live in the top layer use `DS.overlay`
+(dialogs, side sheets, the modal drawer, menus, the combobox list, tooltips, snackbars) or, for a project element of
+their own, `.ds-presence`. Never both on one element: the keyframes of `.ds-enter` would take over the transitions
+that let a toggle turn back from where it is.
 
 For slow motion, the styleguide and the tests set the registered
 `--ds-time-scale` (`?speed=0.1` multiplies every duration and delay by 10); pages never set it.
@@ -96,6 +105,7 @@ on load, and a rapid toggle turns back from where it is.
 | `.ds-stagger` | its children fade in and rise 4px one after the other (`--ds-i` x 30ms); where `sibling-index()` exists, CSS-only lists number themselves |
 | `.ds-reveal` | fade-through with the smallest rise, for freshly loaded content |
 | `.ds-collapsible` | on `<details>`: animates the height where supported |
+| `.ds-presence` | a project element toggled with `hidden`, as a `[popover]` or as a `<dialog>` without `DS.overlay`: fades in (`--ds-dur-fast`) and grows from `--ds-motion-scale` (default `--ds-scale-popup`) on the spring (`--ds-dur-medium`), its clip opening from `--ds-clip-from` when set (`originFrom()`); leaves in `--ds-dur-fast`, accelerating; `display` and `overlay` step with `allow-discrete`, so it stays rendered (and in the top layer) through its exit. Transitions, so a toggle mid-way continues from where it is. Progressive: `@starting-style`, `allow-discrete`, `:popover-open`; elsewhere an instant toggle |
 | `.ds-view--leaving` | quick fade-out of a view's children before a swap (`--ds-dur-instant`, accelerating). The swap sequence without a helper: add it, `await DS.motion.settled(view.firstElementChild, { event: 'transitionend', property: 'opacity' })`, return if a newer swap started meanwhile (a counter), replace the content, then in the same task remove the class and `DS.motion.enter(newContent, 'swap')`, so the new view never shows at full opacity for a frame ([App frame](components.md#app-frame)) |
 | `.ds-swap` | a slot whose children share one grid cell (`inline-grid`, clipped), so outgoing and incoming content cross without a width jump; `DS.motion.roll()` and `crossfade()` make it |
 | `.ds-icon-swap` | two icons in one cell, `.ds-icon-swap__a` and `.ds-icon-swap__b`: `data-swap="b"` (or, without `data-swap`, an ancestor with `aria-pressed="true"`) shows b. The incoming icon fades in (`--ds-dur-fast`) and springs up from `--ds-scale-small` (`--ds-dur-medium`), a `pathLength="1"` glyph in b draws itself (`stroke-dashoffset`, `--ds-ease-out`); the outgoing one only fades (`--ds-dur-instant`, accelerating). Transitions: nothing plays on the first render, a rapid toggle turns back from where it is. A crossfade with a scale, not a path morph; `crossfade(el, icon, { kind: 'icon' })` makes it |
@@ -119,20 +129,21 @@ Unregistered (they inherit): `--ds-scan-from`, `--ds-scan-to`, `--ds-ripple-opac
 Entrances define only `from` (the element animates to its own styles), exits only `to`; `ds-clip-in` and
 `ds-clip-out` name both ends, because `clip-path` does not interpolate to `none`. Movement keyframes animate the
 individual `translate` and `scale` properties, so they compose with an element's own or inline `transform` (a
-placed tooltip, a bar's `scaleX()`). Exits are movement-only and always pair with `ds-fade-out`.
+placed tooltip, a bar's `scaleX()`). Exits are movement-only and always pair with `ds-fade-out`, with one exception: the
+opaque side sheet panel slides its full width (`--ds-distance-sheet`) off the screen without a fade.
 
 | Name | Movement | Use |
 |---|---|---|
 | `ds-fade-in` / `ds-fade-out` | opacity | scrims, loaders, every entrance's and every exit's fade |
 | `ds-lift-in` | `translate`: rise (`--ds-motion-distance`, default 8px) | snackbars, swapped content; with `ds-fade-in` |
 | `ds-grow-in` | `translate` + `scale`: rise from `--ds-motion-scale` (default `--ds-scale-enter`) | dialogs, tooltips (with distance 0) |
-| `ds-shift-in` | `translate`: from the side (default 24px) | side sheets |
+| `ds-shift-in` | `translate`: from the side (default 24px) | side sheets (their full width, `--ds-distance-sheet`) |
 | `ds-pop-in` | `scale` from `--ds-motion-scale` (default `--ds-scale-small`) | badges, counters |
 | `ds-drop-out` | `translate`: down (default 8px) | small exits; with `ds-fade-out` |
 | `ds-shrink-out` | `translate` + `scale`: down (default 4px) to `--ds-motion-scale` (default `--ds-scale-enter`) | dialogs, cards leaving |
-| `ds-shift-out` | `translate`: sideways (default 12px) | side sheets, drawers leaving |
+| `ds-shift-out` | `translate`: sideways (default 12px) | side sheets (full width, no fade), drawers leaving |
 | `ds-pop-out` | `scale` to `--ds-motion-scale` (default `--ds-scale-small`) | badges, counters leaving |
-| `ds-clip-in` / `ds-clip-out` | `clip-path` from / to `--ds-clip-from` (default: closed towards the top edge), open `--ds-space-4` beyond the box so the shadow shows | a popup revealed from its trigger edge |
+| `ds-clip-in` / `ds-clip-out` | `clip-path` from / to `--ds-clip-from` (default: closed towards the top edge), open `--ds-space-6` beyond the box (the resting clip of the popups) so the shadow shows | a popup revealed from its trigger edge: the combobox list and the menu shown by hand (`DS.overlay` uses transitions) |
 | `ds-draw` | `stroke-dashoffset` from `--ds-draw-length` (default 1): the glyph carries `pathLength="1"` (e.g. `check`) and the element sets `stroke-dasharray: 1` | a check after success |
 | `ds-fill-x` / `ds-fill-y` | `scale: 0 1` / `scale: 1 0`, multiplying the element's own `scaleX()` / `scaleY()` | bars and columns filling on first render |
 | `ds-roll-in` / `ds-roll-out` | `translate`: one line up into / out of its slot | a status line that changes |
@@ -195,7 +206,7 @@ movement curve (the spring for an entrance without one); nothing snaps.
 | `countUp(el, to, { from, format, duration, win })` | counts a key figure from the value it shows (0 on the first call, or `from`) to `to`, up or down, on `--ds-ease-value` over `--ds-dur-glide` (`COUNT_UP_MS` outside a theme), on a clock animation of the element (id `ds-count`, no keyframes) that starts in the same frame as a CSS transition set with it, so a figure and its progress bar land together (and pausing or seeking the page's animations holds the figure). A new call takes over from the shown value (one count per element); the same value changes nothing. While it counts the element is `aria-busy`, keeps the width of its wider string and shows tabular figures (kept). `duration: 0`, a non-finite value or no animation frames show the value at once; a disconnected element gets the final value. Returns `{ cancel, finished }`: `cancel()` writes the final value, `finished` resolves once it is written (or a later call took over) |
 | `COUNT_UP_MS` | 600, equals `--ds-dur-glide` |
 | `easeOutCubic(t)` | **deprecated** (removed in 2.0), no longer used: `countUp` runs on `--ds-ease-value` |
-| `originFrom(trigger, panel)` | where a popup grows from: writes `--ds-motion-origin` (the trigger's centre projected onto the panel, clamped, in px) and `--ds-clip-from` (the panel closed towards the trigger, with its radius) on the panel; `trigger` is an element or a `{ x, y }` point (a context menu). Call it once the panel is laid out. Returns `{ origin, side }`, `side` being where the panel lies: `'bottom'`, `'top'`, `'right'` or `'left'` |
+| `originFrom(trigger, panel)` | where a popup grows from: writes `--ds-motion-origin` (the trigger's centre projected onto the panel, clamped, in px) and `--ds-clip-from` (the panel closed towards the trigger, with its radius; the other three edges `--ds-space-6` beyond the box, like a popup's resting clip) on the panel; `trigger` is an element or a `{ x, y }` point (a context menu). Call it once the panel is laid out. Returns `{ origin, side }`, `side` being where the panel lies: `'bottom'`, `'top'`, `'right'` or `'left'` |
 | `roll(el, text)` | a status line that changes: `el` becomes a `.ds-swap` slot, the old line rolls up and out (`ds-fade-out`, `ds-roll-out`, `--ds-dur-fast`, accelerating), the new one rolls in from below (`ds-fade-in`, `ds-roll-in` on the spring, `--ds-dur-medium`). A roll during a roll continues from where each line is; only the last text stays. Returns a Promise |
 | `crossfade(el, next, { kind })` | `kind: 'text'` (the default): swaps the content of `el` (a `.ds-swap` slot) for `next` (a node or a string): the new content fades in over `--ds-dur-fast`, the old one fades out over `--ds-dur-instant` and is removed; no movement, no width measuring. Safe to call again mid-swap. `kind: 'icon'` (1.1): `el` becomes a `.ds-icon-swap` (its current content is face a), `next` (an element such as `DS.icons.iconElement(...)`, or the markup of `DS.icons.icon(...)`) goes into the hidden face unless it already holds that icon, and `data-swap` flips to it; the CSS transitions do the motion. Pass an element where a policy forbids parsing markup. Any other kind throws a `TypeError`. Returns a Promise that resolves when the swap settled |
 | `flip(container, mutate, { items, live, max, hold })` | glides reordered items (FLIP): measures the items (`items` selector, default the element children; never `data-ds-keep` or leaving nodes), calls `mutate({ holdOrder, onInsert, onRemove })` (pass it to `DS.dom.morphHtml` as its options), measures again and moves each item from its old place on `translate` (`composite: 'add'`) on the spring for `travelDuration()`. While they glide, the moving items paint above the others, the farthest travel on top, so an item never passes under the items it crosses (inline `z-index` from `--ds-z-raised`, `position: relative` where the item is static, `isolation: isolate` on the container so no rank reaches past it; all restored when the glide ends). A call during a glide continues from where each item is, so a typing filter may call it per keystroke. Inserted items fade in, removed items fade out of flow where they were while the others close the gap (table rows go at once); meanwhile the container keeps its height (an inline `min-height`, restored afterwards), then glides down to its new height on `--ds-ease-out`, so what follows the list never jumps and leaving items stay inside it. Items outside the viewport before and after jump; above `max` (50) moving items the update lands without motion. `live: true`: while a mouse or pen is over the container or focus is in an item, values update at once (`holdOrder: true`) and the reorder waits until the pointer or focus leaves, at most `hold` (2000) ms; touch never holds; a call without `live` (a user's sort) runs the held reorder at once. Returns a Promise of this call's motion |
@@ -345,3 +356,146 @@ chip on its line: a body that grew opens from its old width with that chip's gli
 from where it was (`translate`), so the two never overlap; a body that shrank cannot paint its old width, so only
 its label glides back. A script that sets `checked` fires no `change`:
 then the CSS alone runs, and a chip that wraps jumps to its new line.
+
+## DS.overlay (js/overlay.js)
+
+`open(el, { opener })` and `close(el)` drive every floating layer the same way: the dialog and the side sheet (a
+native `<dialog class="ds-dialog | ds-sheet">` opened with `showModal()`, or the div markup), the modal drawer
+(`.ds-drawer`) and the popups (`.ds-menu`, `.ds-combo__popup`). The overlay must sit inside the `.ds-theme` element;
+`open()` warns once per page otherwise. Both return a Promise: `open()` resolves when the entrance has settled,
+`close()` once the overlay is hidden again. Every overlay is interruptible: its motion runs on CSS transitions keyed
+on `data-state` (never keyframes while `data-state` is set), so an `open()` during the exit, or a `close()` during
+the entrance, turns the motion back from its current value in every engine, with the curve of the new direction.
+
+| Export | |
+|---|---|
+| `open(el, { opener })` | shows `el` and moves focus into it at once; `opener` (default: the focused element) gets focus back on close |
+| `close(el)` | plays the exit and hides `el`; a second call during the exit returns the same promise |
+| `lockScroll()` / `unlockScroll()` | the reference-counted scroll lock that the modal kinds take; a page may take it for a layer of its own |
+| `toast(region, content, { kind, persistent, timeout, closeLabel })` | shows a snackbar in a `.ds-toasts` region; returns `{ el, close(), closed }` (below) |
+| `tooltips(root = document)` | tooltips for every `[data-tip]` in `root`; returns `{ destroy() }` (below) |
+| `TOAST_MS`, `TOAST_MAX_MS`, `TOAST_LIMIT` | snackbar fallbacks: 4000ms, at most 10000ms, at most 3 at once |
+| `TOOLTIP_DELAY_MS`, `TOOLTIP_SKIP_MS`, `TOOLTIP_HIDE_MS` | tooltip fallbacks: 500, 300 and 100ms |
+
+The constants are fallbacks only (outside a `.ds-theme`): JS timing comes from the computed tokens through
+`motionDuration()`, so `--ds-time-scale` slows the overlays' JS and CSS together.
+
+`open()`, in order:
+
+1. hides any visible tooltip;
+2. takes back a close in progress (a generation token: the pending close promise resolves without acting, and the
+   motion reverses from where it is by flipping `data-state`); an overlay that is already open stays as it is;
+3. records the opener;
+4. modal kinds (dialog, sheet, drawer) take the scroll lock; every overlay joins the Escape stack. A dialog opened
+   while another modal is open gets `.ds-dialog--nested`;
+5. shows it: native `showModal()`, which traps focus and makes the page inert; div markup drops `hidden` (or
+   `.ds-dialog--hidden`) and sets `inert` on every sibling of the overlay and of each of its ancestors up to `<body>`,
+   `.ds-scrim`, the `.ds-toasts` regions, their announcers and the tooltips of `tooltips()` excepted. The inert
+   follows the stack: an element a trap took stays usable while it holds an overlay opened above that trap (a dialog
+   from a div sheet or from the modal drawer, which the lower trap took as a sibling, takes input; the sheet under it
+   stays inert), and overlays over each other close in any order. A dialog or sheet takes the snackbar regions of its
+   theme in first (below). Over an open native dialog or sheet, which makes everything outside it inert (top-layer
+   popovers included), a menu, a dialog or a sheet (div or native) moves inside that native one before it shows and
+   goes back to its place once its close settled; a combobox list stays with its field. A native dialog needs it for
+   its exit: `close()` takes it out of the top layer at once, which would make it inert under the sheet below and
+   draw it under that sheet's panel; inside the sheet it stays above the panel and its scrim keeps catching clicks;
+6. sets `data-state="closed"` (already before step 5, so a native dialog never meets the rules for dialogs driven by
+   hand), flushes style, writes the origin (`originFrom(opener, box)` for dialogs and popups) and
+   sets `data-state="open"`: the entrance runs on the transitions keyed on `data-state` in every engine;
+7. moves focus: `[autofocus]` inside, else the first focusable element (a menu: its first enabled item; a combobox
+   keeps focus in its input);
+8. popups set `aria-expanded="true"` on the opener.
+
+`close()`, the same for the dialog, the sheet and the modal drawer: the trap goes first (native `dialog.close()` at
+once plus `.ds-dialog--closing` / `.ds-sheet--closing`, which keep it displayed and stacked outside the top layer;
+div markup gets its page back), focus is on the opener in the same frame (an opener that is gone: the nearest
+`tabindex="-1"` landmark, never `<body>`), only the box or panel turns `inert` (the backdrop keeps swallowing clicks,
+so nothing reaches the page through the exit; a press on it, or on the modal drawer's scrim, has its `mousedown`
+prevented while the overlay closes, so the second click of a double click leaves focus on the opener), `data-state="closed"` plays the exit, and once it settled the overlay
+is hidden (`hidden`, or the native dialog drops `--closing`), loses `.ds-dialog--nested`, releases the lock and
+leaves the stack, all in one task. Closing a dialog, sheet or the drawer first closes the menus and combobox lists
+open inside it (or opened from a trigger inside it) and hides the tooltip, so no popup outlives its overlay. Popups
+return focus to their opener only for Escape or when focus was inside them, never for a click outside, and set
+`aria-expanded="false"`.
+
+Popups: a menu or a combobox list is placed before it enters, at rest size, and grows from its trigger:
+`originFrom(opener, popup)` writes `--ds-motion-origin` and `--ds-clip-from` (closed at the trigger's edge, the other
+edges `--ds-space-6` beyond the box like the resting clip, so only one edge moves). With `showPopover` and CSS anchor
+positioning (and `anchor-size()` for a combobox list) it opens as `popover="manual"` in the top layer with
+`data-anchored`: its anchor (the trigger; for a combobox the `.ds-combo` field) gets an inline `anchor-name`
+(`--ds-anchor-<n>`, removed on close unless it had one) and the popup `position-anchor`, so no scrolling box clips
+it. Elsewhere a menu is placed by `--ds-menu-x` / `--ds-menu-y` (below the trigger from its start edge, towards the
+start edge without room, 8px from the window's edges, following scroll and resize within a frame) and a combobox list
+stays absolute under its field. Either way a popup opens below its trigger when it fits there, else on the side with
+more room (`data-placement="top"` above; for a combobox list the room is the window's narrowed by every box around
+the field that clips its overflow), and it is never taller than the room on that side: anchored, the CSS caps it to
+its `position-area`; placed by the script, an inline `max-height` (removed on close). The list or the menu scrolls
+inside, so it never covers its trigger or the field being typed into. A menu focuses its first enabled item (the last when an ArrowUp keydown opened it), moves focus with ArrowUp,
+ArrowDown, Home and End (wrapping) and closes a task after an item's `click` (its handlers run first; disabled
+items close nothing). On close the popup leaves the top layer once its fade ended.
+
+Escape stack: one `keydown` listener on the document in the bubble phase (installed by the first `open()`) closes
+only the topmost overlay that is not already closing, and only when no tooltip took the key. A widget inside the
+overlay that handles Escape itself (an inline edit, a picker) runs first: when it calls `preventDefault()`, the
+overlay stays open, as with a plain `<dialog>`. The listener calls `preventDefault()` itself (which also keeps a
+native dialog from its own `cancel`) but does not stop the event. A native dialog's `cancel` is turned into
+`close()`, so Escape plays its exit. A click on `[data-close]` inside an overlay closes it (ignored while it
+closes). A menu also closes on Tab (focus returns to its trigger and Tab moves on from there) and on a
+`pointerdown` outside the menu and its trigger.
+
+Scroll lock: `lockScroll()` / `unlockScroll()` count; `body.ds-no-scroll` (with `.ds-base`) toggles only on the
+0 to 1 and 1 to 0 steps, and an unbalanced unlock never goes below 0. When the lock removes a classic scrollbar of
+the page, its room stays: `scrollbar-gutter: stable` on `<html>` where supported, else a `padding-right` on
+`<body>`. In the app frame, where `.ds-view` scrolls, nothing is reserved.
+
+Modal drawer: `open(drawer, { opener })` acts only while `(max-width: 900px)` matches (wider, it resolves at once).
+It sets `data-drawer-open` on `.ds-app` and `aria-expanded` on the menu button, focuses the drawer, makes its
+siblings inert (not `.ds-scrim`, nor the snackbar regions, their announcers and the tooltips), takes the lock, joins the Escape stack and closes on a click on the scrim.
+`close(drawer)` returns focus to the menu button at once. From the first `open(drawer)` or `close(drawer)` on, a
+window crossing 900px sets `.ds-drawer--instant` for two frames, and a window that widens closes a stale open state
+without motion; the breakpoint recipe of the App frame may stay (both together do no harm). Without the helper, the
+CSS and the page recipe keep working.
+
+Snackbars: `toast(region, content, options)` takes a `.ds-toast` element or builds one from a string (`kind`
+`'success'`, `'error'` or `'info'` picks the icon and the modifier; a message that stays gets a close button) and
+returns `{ el, close(), closed }`; `closed` resolves once the message is gone (also when it never showed). Every
+insertion and removal runs inside `DS.motion.flip(region, ...)`: the messages on screen glide on `--ds-ease-spatial`
+while a new one rises in (`--ds-dur-medium`) or a closed one fades out in place (`--ds-dur-fast`, out of flow) and the
+gap closes. At most `TOAST_LIMIT` (3) show; a further one replaces the oldest message that would close by itself, or
+waits in a queue (first in, first out) behind three that stay. A message closes after `timeout` ms, by default
+`min(TOAST_MAX_MS, TOAST_MS + 50ms × max(0, characters − 40))`, multiplied by the computed `--ds-time-scale`; errors,
+`persistent: true` and messages with another button or a link never close by themselves. The timers pause while a
+pointer is over a message (`pointerover` / `pointerout`, checked against the region), while focus is in the region
+and while `document.hidden`, and resume with the time left. A focused message that leaves first hands focus to the
+next message's close button, else to the element focused before focus entered the region, else to the view
+(`tabindex="-1"`); never `<body>`. The text is announced through two `.ds-sr` live regions that `toast()` adds next to
+the region (polite; assertive for errors): cleared, then written on the next frame, so the same text is announced
+again. A region with `role` or `aria-live` (the deprecated markup) announces by itself and gets none. `open()` of a
+dialog or sheet moves every `.ds-toasts` region of its theme, with its announcers, into the overlay (`moveBefore`
+where it exists), before the div trap makes the page inert: a message shown while it is open sits above its scrim,
+in the top layer of a native one, announced and usable. In a dialog the region keeps its place (`--ds-toast-left`
+holds the left edge it had). In a sheet `--ds-toast-left` becomes the panel's resting left edge plus `--ds-space-6`;
+the messages glide there through the region's own `translate` transition (`--ds-toast-shift` set, flushed, cleared)
+timed by `data-follow="enter"` (`--ds-dur-long`, `--ds-ease-spatial`); `close(sheet)` brings the region back with
+`data-follow="exit"` (`--ds-dur-base`, `--ds-ease-exit`). Nothing glides where the place does not change (phones, a
+dialog). Overlays over each other nest: each gives the regions back to the one it took them from.
+
+Tooltips: `tooltips(root)` installs one set of delegated listeners for the `[data-tip]` triggers in `root` and creates
+one `.ds-tooltip` inside the `.ds-theme` around it (a tooltip of a trigger inside a dialog or sheet moves into that
+overlay while it shows, so it is never under the top layer; the div trap and the modal drawer never make it inert,
+so it stays hoverable and heard). It shows after `--ds-delay-tooltip` for a
+mouse or pen resting on a trigger (`pointerover` / `pointerout` with a `relatedTarget` check, so the trigger's own
+icon changes nothing; touch never) and at once on `focusin` with `:focus-visible`. While one is visible, or within
+`--ds-delay-tooltip-skip` of the last hide, the next trigger shows at once: a visible tooltip swaps text and place
+in place (a fade under way turns back from its current opacity), a hidden one opens with `data-warm` and only fades
+in. It hides after `--ds-delay-tooltip-hide`, unless the pointer crossed onto it or the trigger keeps keyboard
+focus; Escape hides it (with `preventDefault()` and `stopPropagation()`, only when one was visible), as do any
+`pointerdown`, `open()` and a trigger that scrolls out of view. Timing reads the tokens through `motionDuration()`,
+so `--ds-time-scale` stretches the delays too. Motion runs on the `data-state` transitions of tooltip.css; the origin
+comes from `originFrom(trigger, tip)`. Placement: with `showPopover` and CSS anchor positioning the tooltip is a
+`popover="manual"` with `data-anchored`, the trigger gets an inline `anchor-name` (`--ds-anchor-<n>`, removed again
+unless it had one) and the tooltip `position-anchor`, and `data-placement` follows the side the engine chose (read
+again two frames after a show or swap: Chromium lays a swap out with the scroll offset of the previous anchor's
+scrolling box until the next rendering); elsewhere a capture-phase scroll listener and `resize`
+re-place it within one frame through `--ds-tooltip-x` / `--ds-tooltip-y`, flipped above (`data-placement="top"`) and
+clamped 8px from the viewport edges.

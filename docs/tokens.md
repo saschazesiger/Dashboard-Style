@@ -34,7 +34,7 @@ enforce it), so a theme reaches every value.
 | `--ds-ease-value` | `var(--ds-ease-in-out)` | progress bars and `countUp()`, so figures and bars land together |
 | `--ds-ease` | `var(--ds-ease-emphasized)` | **deprecated** (removed in 2.0): use `--ds-ease-emphasized` |
 | `--ds-distance-sm`, `--ds-distance-md`, `--ds-distance-lg`, `--ds-distance-xl` | 4, 8, 12, 24px | travel of entering things (swap, default, sheet exit, sheet entry) |
-| `--ds-distance-sheet` | 100% | a sheet that covers the screen (modal drawer) |
+| `--ds-distance-sheet` | 100% | side sheet and modal drawer (full width; the side sheet on phones: full height, from the bottom) |
 | `--ds-scale-enter` | .98 | start scale of content and dialogs |
 | `--ds-scale-popup` | .95 | start scale of menus and the combobox list |
 | `--ds-scale-tooltip` | .9 | start scale of tooltips |
@@ -44,6 +44,9 @@ enforce it), so a theme reaches every value.
 | `--ds-delay-boot` | 400ms | the app start screen waits this long |
 | `--ds-hold-loader` | 450ms | a loader that showed stays at least this long (`LOADER_MIN_VISIBLE_MS`, `settleLoader()`) |
 | `--ds-hold-success` | 600ms | how long a button shows its success face (`.ds-btn--done`, `DS.motion.busy()`) |
+| `--ds-delay-tooltip` | 500ms | a tooltip shows after the pointer rested this long on its trigger (`TOOLTIP_DELAY_MS`, `DS.overlay.tooltips()`) |
+| `--ds-delay-tooltip-skip` | 300ms | within this of the last hide, the next tooltip shows at once (warm-up along a toolbar; `TOOLTIP_SKIP_MS`) |
+| `--ds-delay-tooltip-hide` | 100ms | the grace before a tooltip hides, so the pointer can cross onto it (WCAG 1.4.13; `TOOLTIP_HIDE_MS`) |
 | `--ds-loop-spin`, `--ds-loop-spin-fast` | 1s, .8s | spinner / spinner in a status chip |
 | `--ds-loop-indeterminate`, `--ds-loop-pulse` | 2s, 2s | indeterminate progress / skeleton pulse |
 | `--ds-time-scale` | 1 (registered with `@property`, never declared) | slow motion: multiplies every duration, delay and loop above; set only by the styleguide and the tests, on the `.ds-theme` element or above |
@@ -79,7 +82,7 @@ The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `
 | `--ds-space-1`, `--ds-space-2`, `--ds-space-3`, `--ds-space-4`, `--ds-space-5`, `--ds-space-6`, `--ds-space-7`, `--ds-space-8`, `--ds-space-10`, `--ds-space-12` | 4, 8, 12, 16, 20, 24, 28, 32, 40, 48px (4px grid) |
 | `--ds-z-raised` | 1 (sticky table parts, loading bar; the base of the items `DS.motion.flip()` raises while they glide) |
 | `--ds-z-sticky` | 20 (top bar, scroll edge) |
-| `--ds-z-popover` | 40 (menus, listboxes, a dialog contained in a panel) |
+| `--ds-z-popover` | 40 (menus (`.ds-menu`), the combobox list and other listboxes, a dialog contained in a panel) |
 | `--ds-z-drawer` | 50 (side sheet, modal drawer) |
 | `--ds-z-dialog` | drawer + 1 (dialogs, above an open sheet) |
 | `--ds-z-toast` | 60 (snackbar, tooltip, skip link) |
@@ -112,6 +115,7 @@ The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `
 | `--ds-warning-surface` | `#fdf6e7` | full-width warning banners (quieter than the chip) |
 | `--ds-inverse`, `--ds-on-inverse`, `--ds-inverse-primary` | `#303030`, `#f2f2f2`, `#a8c7fa` | snackbar, tooltip |
 | `--ds-scrim` | `rgba(0,0,0,.32)` | behind dialogs, sheets, the modal drawer; never blurred |
+| `--ds-scrim-nested` | `rgba(0,0,0,.16)` | behind a dialog over another open modal (`.ds-dialog--nested`): about 43% together instead of 54% |
 | `--ds-fill-round` | `rgba(31,31,31,.08)` | disc of `.ds-btn--disc` |
 | `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`) |
 | `--ds-disabled-opacity` | 1 | opacity of every disabled control (buttons, chips, the switch, checkboxes and radios) |
@@ -206,5 +210,7 @@ page) are listed with their component in [components.md](components.md) and [mot
 `--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l` (its clip edges), `--ds-indicator-radius` (its corners, copied
 from a project class's `border-radius` when no class sets it), `--ds-indicator-dur` (the travel time, on the track),
 `--ds-progress`, `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`,
+`--ds-tooltip-x`, `--ds-tooltip-y` (the tooltip's place, written by `DS.overlay.tooltips()` where anchor positioning is missing),
+`--ds-menu-x`, `--ds-menu-y` (a menu's place, written by `DS.overlay.open()` where anchor positioning is missing),
 and the per-element motion settings `--ds-motion-distance`, `--ds-motion-scale`, `--ds-draw-length`, `--ds-enter-*`,
 `--ds-leave-*`, `--ds-scan-*`, `--ds-ripple-*`, `--ds-indicator-lag` (themes never set these).

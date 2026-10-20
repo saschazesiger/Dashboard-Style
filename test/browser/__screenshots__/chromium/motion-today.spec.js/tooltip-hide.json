@@ -1,14 +1,26 @@
 [
   {
-    "type": "animation",
-    "name": "ds-fade-out",
+    "type": "transition",
+    "name": "opacity",
     "pseudoElement": null,
     "duration": 100,
     "delay": 0,
-    "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.3, 0, 1, 1)",
+    "easing": "cubic-bezier(0.2, 0, 0, 1)",
+    "keyframeEasing": "linear",
     "iterations": 1,
     "direction": "normal",
-    "fill": "forwards"
+    "fill": "backwards"
+  },
+  {
+    "type": "transition",
+    "name": "scale",
+    "pseudoElement": null,
+    "duration": 0,
+    "delay": 100,
+    "easing": "cubic-bezier(0.2, 0, 0, 1)",
+    "keyframeEasing": "linear",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards"
   }
 ]

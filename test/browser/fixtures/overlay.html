@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" class="ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlays · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  /* The body scrolls (no app frame), so the scroll lock has a page
+     scrollbar to keep room for where scrollbars take room. */
+  .fx-tall { height: 2400px; }
+</style>
+</head>
+<body class="ds-theme">
+<!-- DS.overlay on every kind it drives: a div dialog, a native <dialog>
+     with autofocus, a div side sheet that opens a nested dialog, a native
+     side sheet that opens the native dialog, a menu and a combobox popup.
+     Tests open and close them through DS.overlay; the page script only
+     wires the triggers. -->
+<main class="ds-page" id="page" tabindex="-1">
+  <p>
+    <button class="ds-btn" type="button" id="open-dialog">Delete devices</button>
+    <button class="ds-btn" type="button" id="open-native">Delete (native)</button>
+    <button class="ds-btn" type="button" id="open-sheet">Details</button>
+    <button class="ds-btn" type="button" id="open-native-sheet">Details (native)</button>
+    <button class="ds-btn" type="button" id="open-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">More</button>
+  </p>
+  <div class="ds-combo" id="combo">
+    <input class="ds-input ds-combo__input" id="combo-input" role="combobox" aria-expanded="false" aria-controls="combo-list" aria-autocomplete="list" aria-label="Owner">
+    <div class="ds-combo__popup" id="combo-popup" hidden>
+      <div class="ds-combo__list" id="combo-list" role="listbox" aria-label="Owners">
+        <div class="ds-combo__option" role="option" id="combo-a" aria-selected="false"><span class="ds-combo__name">Ada Lovelace</span></div>
+        <div class="ds-combo__option" role="option" id="combo-b" aria-selected="false"><span class="ds-combo__name">Grace Hopper</span></div>
+      </div>
+    </div>
+  </div>
+  <p><button class="ds-btn" type="button" id="after-menu">After the menu</button></p>
+  <div class="fx-tall"></div>
+</main>
+
+<div class="ds-menu" role="menu" id="menu" aria-labelledby="open-menu" hidden>
+  <button class="ds-menu__item" role="menuitem" type="button" id="menu-a" aria-disabled="true">Rename</button>
+  <button class="ds-menu__item" role="menuitem" type="button" id="menu-b">Duplicate</button>
+  <button class="ds-menu__item" role="menuitem" type="button" id="menu-c">Archive</button>
+</div>
+
+<div class="ds-dialog" id="dialog" hidden>
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="dialog-title">
+    <h2 class="ds-dialog__title" id="dialog-title">Delete 3 devices?</h2>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" id="dialog-cancel" data-close>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="dialog-ok" data-close>Delete devices</button>
+    </div>
+  </div>
+</div>
+
+<dialog class="ds-dialog" id="native" role="alertdialog" aria-labelledby="native-title">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="native-title">Delete 3 devices?</h2>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" id="native-cancel" data-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="native-ok" data-close>Delete devices</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="ds-sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+  <div class="ds-sheet__backdrop" data-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="sheet-title">LAPTOP-0042</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="sheet-close" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+    </div>
+    <div class="ds-sheet__body" tabindex="0">
+      <button class="ds-btn" type="button" id="sheet-delete">Delete device</button>
+    </div>
+  </section>
+</div>
+
+<dialog class="ds-sheet" id="native-sheet" aria-labelledby="native-sheet-title">
+  <div class="ds-sheet__backdrop" data-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="native-sheet-title">LAPTOP-0043</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="native-sheet-close" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+    </div>
+    <div class="ds-sheet__body" tabindex="0">
+      <p>Synced nightly.</p>
+      <button class="ds-btn" type="button" id="native-sheet-retire">Retire the device</button>
+    </div>
+  </section>
+</dialog>
+
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var O = DS.overlay;
+    $('open-dialog').addEventListener('click', function () { O.open($('dialog'), { opener: this }); });
+    $('open-native').addEventListener('click', function () { O.open($('native'), { opener: this }); });
+    $('open-sheet').addEventListener('click', function () { O.open($('sheet'), { opener: this }); });
+    $('open-native-sheet').addEventListener('click', function () { O.open($('native-sheet'), { opener: this }); });
+    $('sheet-delete').addEventListener('click', function () { O.open($('dialog'), { opener: this }); });
+    $('native-sheet-retire').addEventListener('click', function () { O.open($('native'), { opener: this }); });
+    $('open-menu').addEventListener('click', function () {
+      if ($('menu').hidden) O.open($('menu'), { opener: this });
+      else O.close($('menu'));
+    });
+  }());
+</script>
+</body>
+</html>
