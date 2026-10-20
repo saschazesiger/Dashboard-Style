@@ -1,6 +1,7 @@
 /**
- * Icons, the indicator, the DOM morph (on a tiny fake DOM), the ripple, the
- * classic-script build and the timing literals of src/js.
+ * Icons, the indicator (on a fake track), the DOM morph (on a tiny fake
+ * DOM), the ripple, the classic-script build and the timing literals of
+ * src/js.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,6 +12,7 @@ import * as indicator from '../src/js/indicator.js';
 import * as dom from '../src/js/dom.js';
 import * as ripple from '../src/js/ripple.js';
 import { filesIn, read } from './helpers.js';
+import { sample as curveSample, SPATIAL, springFunction } from '../scripts/motion-curves.mjs';
 
 const GLYPHS = Object.entries(icons).filter(([, value]) => typeof value === 'string' && value.startsWith('<'));
 
@@ -465,6 +467,506 @@ function miniDom() {
   return { h, text: (value) => new FakeText(value), doc };
 }
 
+/** The clip edges of the indicator, top, right, bottom, left (indicator.css). */
+const EDGES = ['--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l'];
+const INSTANT = 'ds-indicator--instant';
+const tick = () => new Promise((resolve) => setImmediate(resolve));
+
+/**
+ * A vertical track for createIndicator() on miniDom, with every browser part
+ * indicator.js touches stubbed: rects, scroll metrics, computed style,
+ * getAnimations(), both observers, frames and fonts. The track sits at
+ * (10, 20) in the viewport; item i is 200 x 40 at (8, 8 + 48i) in the
+ * track. `el.computed` overrides a computed value (an edge mid-glide, a
+ * radius); every style flush of step 1 is recorded in `flushes`.
+ */
+function indicatorTrack({ count = 4, current = 0, overflow = 'visible' } = {}) {
+  const { h, doc } = miniDom();
+  const frames = new Map();
+  let nextFrame = 1;
+  const cancelled = [];
+  const resizeObservers = [];
+  const mutationObservers = [];
+  const listeners = new Map();
+  const flushes = [];
+  let resolveFonts;
+  const fonts = {
+    ready: new Promise((resolve) => { resolveFonts = resolve; }),
+    addEventListener(type, listener) { listeners.set(type, listener); },
+    removeEventListener(type, listener) { if (listeners.get(type) === listener) listeners.delete(type); },
+  };
+  const rect = (left, top, width, height) => ({ left, top, width, height, right: left + width, bottom: top + height });
+  const value = (el, name, fallback) => el.computed?.[name] ?? (el.style.getPropertyValue(name) || fallback);
+  const view = {
+    requestAnimationFrame(callback) {
+      const id = nextFrame;
+      nextFrame += 1;
+      frames.set(id, callback);
+      return id;
+    },
+    cancelAnimationFrame(id) {
+      cancelled.push(id);
+      frames.delete(id);
+    },
+    ResizeObserver: class {
+      constructor(callback) { this.callback = callback; this.observed = new Set(); this.connected = true; resizeObservers.push(this); }
+
+      observe(element) { this.observed.add(element); }
+
+      unobserve(element) { this.observed.delete(element); }
+
+      disconnect() { this.observed.clear(); this.connected = false; }
+    },
+    MutationObserver: class {
+      constructor(callback) { this.callback = callback; this.connected = false; mutationObservers.push(this); }
+
+      observe(target, options) { this.target = target; this.options = options; this.connected = true; }
+
+      disconnect() { this.connected = false; }
+    },
+    getComputedStyle(el) {
+      return {
+        getPropertyValue(name) {
+          // Step 1 of a motion ends with this read: record what it froze.
+          if (name === EDGES[0] && el.classList.contains(INSTANT) && 'glide' in el.dataset) flushes.push(snapshot(el));
+          return value(el, name, EDGES.includes(name) || name === '--ds-indicator-radius' ? '0px' : '');
+        },
+        get borderTopLeftRadius() { return el.computed?.borderTopLeftRadius ?? '0px'; },
+        get overflowX() { return el.overflow ?? 'visible'; },
+        get overflowY() { return el.overflow ?? 'visible'; },
+      };
+    },
+  };
+  doc.defaultView = view;
+  doc.fonts = fonts;
+
+  const items = Array.from({ length: count }, (_, index) => {
+    const item = h('a', { class: 'ds-drawer__item' });
+    item.rect = rect(18, 28 + index * 48, 200, 40);
+    return item;
+  });
+  const track = h('nav', { class: 'ds-drawer__list' }, ...items);
+  track.rect = rect(10, 20, 216, 400);
+  Object.assign(track, { clientLeft: 0, clientTop: 0, scrollLeft: 0, scrollTop: 0, scrollWidth: 216, scrollHeight: 400, overflow });
+
+  // What miniDom leaves out and indicator.js reads.
+  const proto = Object.getPrototypeOf(track);
+  proto.getBoundingClientRect = function boundingRect() { return this.rect ?? rect(0, 0, 0, 0); };
+  proto.getAnimations = function animations() { return this.animations ?? []; };
+  proto.closest = function closest(selector) {
+    const attribute = /^\[([\w-]+)\]$/.exec(selector);
+    for (let element = this; element?.nodeType === 1; element = element.parentNode) {
+      if (attribute ? element.hasAttribute(attribute[1]) : element.classList.contains(selector.slice(1))) return element;
+    }
+    return null;
+  };
+  Object.defineProperty(proto, 'children', { configurable: true, get() { return this.childNodes.filter((node) => node.nodeType === 1); } });
+
+  const setCurrent = (index) => items.forEach((item, at) => (at === index ? item.setAttribute('aria-current', 'page') : item.removeAttribute('aria-current')));
+  setCurrent(current);
+
+  /** Box and painted pill of the indicator from its inline style, in track coordinates. */
+  function geometry(el) {
+    const read = (name) => parseFloat(el.style.getPropertyValue(name));
+    const box = { left: read('--ds-indicator-x'), top: read('--ds-indicator-y') };
+    box.right = box.left + read('--ds-indicator-w');
+    box.bottom = box.top + read('--ds-indicator-h');
+    const [t, r, b, l] = EDGES.map(read);
+    return { box, insets: { t, r, b, l }, painted: { left: box.left + l, top: box.top + t, right: box.right - r, bottom: box.bottom - b } };
+  }
+  function snapshot(el) {
+    return { ...geometry(el), instant: el.classList.contains(INSTANT), dataset: { ...el.dataset } };
+  }
+
+  return {
+    h,
+    doc,
+    view,
+    track,
+    items,
+    frames,
+    cancelled,
+    resizeObservers,
+    mutationObservers,
+    listeners,
+    flushes,
+    resolveFonts: () => resolveFonts(),
+    setCurrent,
+    geometry,
+    /** The item `index` in track coordinates. */
+    slot: (index) => ({ left: 8, top: 8 + index * 48, right: 208, bottom: 48 + index * 48 }),
+    /** Runs the pending frame callbacks. */
+    runFrames() {
+      const pending = [...frames.values()];
+      frames.clear();
+      pending.forEach((callback) => callback());
+    },
+    /**
+     * Edge transitions on `el` until the returned function lands them. Like
+     * real ones they run only while the edges transition (no --instant):
+     * the next motion starts them, a pill at rest has none.
+     */
+    run(el) {
+      const settle = [];
+      const running = EDGES.map((transitionProperty) => ({ transitionProperty, finished: new Promise((resolve) => settle.push(resolve)) }));
+      let landed = false;
+      Object.defineProperty(el, 'animations', { configurable: true, get: () => (landed || el.classList.contains(INSTANT) ? [] : running) });
+      return async () => {
+        landed = true;
+        settle.forEach((resolve) => resolve());
+        await tick();
+      };
+    },
+  };
+}
+
+describe('createIndicator on a fake track', () => {
+  const create = (env, options = {}) => {
+    const handle = indicator.createIndicator(env.track, { active: '[aria-current="page"]', ...options });
+    return { handle, span: env.track.childNodes[0] };
+  };
+  const zero = { t: 0, r: 0, b: 0, l: 0 };
+
+  it('places the first item without a glide: the box is the item, insets 0', () => {
+    const env = indicatorTrack({ current: 1 });
+    const { handle, span } = create(env);
+    assert.ok(span.classList.contains('ds-indicator') && span.classList.contains(INSTANT));
+    assert.equal('glide' in span.dataset, false);
+    assert.equal(env.geometry(span).insets.t, 0);
+    assert.deepEqual(env.geometry(span).box, env.slot(1));
+    assert.deepEqual(env.geometry(span).insets, zero);
+    assert.equal(env.track.style.getPropertyValue('--ds-indicator-dur'), '', 'no travel time without a glide');
+    assert.ok(env.track.classList.contains('ds-has-indicator'));
+    handle.destroy();
+  });
+
+  it('glides to a new item: data-dir, travel time, union box with the overshoot margin', async () => {
+    const env = indicatorTrack();
+    const { handle, span } = create(env);
+    const land = env.run(span);
+    env.setCurrent(2);
+    handle.update();
+    const from = env.slot(0);
+    const to = env.slot(2);
+    const distance = to.top - from.top;
+    // Step 1 froze the pill where it was, inside the union box.
+    const [step1] = env.flushes;
+    assert.ok(step1.instant && 'glide' in step1.dataset, 'step 1 runs with --instant and data-glide');
+    assert.deepEqual(step1.painted, from);
+    const margin = Math.ceil(indicator.OVERSHOOT * distance) + 1;
+    const box = { left: 8, top: from.top, right: 208, bottom: to.bottom + margin };
+    assert.deepEqual(step1.box, box, 'the union, widened only where the lead edge travels');
+    // Step 2: the edges run to the target, the trailing edge per data-dir.
+    assert.equal(span.classList.contains(INSTANT), false);
+    assert.equal(span.dataset.dir, 'down');
+    assert.deepEqual(env.geometry(span).box, box);
+    assert.deepEqual(env.geometry(span).painted, to);
+    assert.equal(span.style.getPropertyValue('border-radius'), '0px', 'no own radius on the union');
+    assert.equal(env.track.style.getPropertyValue('--ds-indicator-dur'), `${motion.travelDuration(env.track, distance)}ms`);
+    // Landed: the plain pill on the item again.
+    await land();
+    assert.ok(span.classList.contains(INSTANT));
+    assert.equal('glide' in span.dataset, false);
+    assert.equal('dir' in span.dataset, false);
+    assert.deepEqual(env.geometry(span).box, to);
+    assert.deepEqual(env.geometry(span).insets, zero);
+    assert.equal(span.style.getPropertyValue('border-radius'), '');
+    handle.destroy();
+  });
+
+  it('points data-dir along the dominant axis of the travel', () => {
+    const env = indicatorTrack({ current: 3 });
+    const { handle, span } = create(env);
+    env.run(span);
+    env.setCurrent(1);
+    handle.update();
+    assert.equal(span.dataset.dir, 'up');
+    // Horizontal: the items side by side.
+    const row = indicatorTrack({ count: 3 });
+    row.items.forEach((item, index) => { item.rect = { left: 18 + index * 100, top: 28, width: 90, height: 40, right: 108 + index * 100, bottom: 68 }; });
+    const across = create(row);
+    row.run(across.span);
+    row.setCurrent(2);
+    across.handle.update();
+    assert.equal(across.span.dataset.dir, 'right');
+    row.setCurrent(0);
+    across.handle.update();
+    assert.equal(across.span.dataset.dir, 'left');
+    handle.destroy();
+    across.handle.destroy();
+  });
+
+  it('keeps the glide box inside the scroll area of a track that clips', () => {
+    const env = indicatorTrack({ overflow: 'auto' });
+    env.track.scrollHeight = env.slot(2).bottom;
+    const { handle, span } = create(env);
+    env.run(span);
+    env.setCurrent(2);
+    handle.update();
+    const { box, painted } = env.geometry(span);
+    assert.ok(box.bottom <= env.track.scrollHeight, `box bottom ${box.bottom}`);
+    assert.ok(box.top >= 0 && box.left >= 0 && box.right <= env.track.scrollWidth);
+    assert.deepEqual(painted, env.slot(2));
+    handle.destroy();
+  });
+
+  it('does not glide when the item stays, and jumps on a resize at rest', () => {
+    const env = indicatorTrack({ current: 1 });
+    const { handle, span } = create(env);
+    handle.update();
+    assert.equal(env.flushes.length, 0, 'no glide for the same item');
+    assert.equal(env.track.style.getPropertyValue('--ds-indicator-dur'), '');
+    // The item grows (a wrap): the resize observer places the pill at once.
+    env.items[1].rect = { ...env.items[1].rect, height: 60, bottom: env.items[1].rect.top + 60 };
+    env.resizeObservers[0].callback([]);
+    assert.equal(env.flushes.length, 0, 'a resize with nothing running does not glide');
+    assert.ok(span.classList.contains(INSTANT));
+    assert.deepEqual(env.geometry(span).box, { ...env.slot(1), bottom: env.slot(1).top + 60 });
+    assert.deepEqual(env.geometry(span).insets, zero);
+    handle.destroy();
+  });
+
+  it('retargets from the painted edges while they run (a second target, a resize mid-glide)', () => {
+    const env = indicatorTrack();
+    const { handle, span } = create(env);
+    env.run(span);
+    env.setCurrent(3);
+    handle.update();
+    const firstBox = env.geometry(span).box;
+    // Mid-glide the computed edges are between start and target.
+    span.computed = { '--ds-indicator-t': '60px', '--ds-indicator-r': '0px', '--ds-indicator-b': '50px', '--ds-indicator-l': '0px' };
+    const painted = { left: firstBox.left, top: firstBox.top + 60, right: firstBox.right, bottom: firstBox.bottom - 50 };
+    env.setCurrent(1);
+    handle.update();
+    const step1 = env.flushes.at(-1);
+    assert.equal(env.flushes.length, 2);
+    assert.deepEqual(step1.painted, painted, 'continues from where the pill is painted');
+    assert.equal(span.dataset.dir, 'up');
+    assert.deepEqual(env.geometry(span).painted, env.slot(1));
+    // A placement on the same running target keeps gliding.
+    handle.update();
+    assert.equal(env.flushes.length, 2);
+    // A resize mid-glide: the same item moves, the pill retargets from where it is.
+    span.computed = { '--ds-indicator-t': '20px', '--ds-indicator-r': '0px', '--ds-indicator-b': '30px', '--ds-indicator-l': '0px' };
+    const box = env.geometry(span).box;
+    env.items[1].rect = { ...env.items[1].rect, top: env.items[1].rect.top + 10, bottom: env.items[1].rect.bottom + 10 };
+    env.resizeObservers[0].callback([]);
+    assert.equal(env.flushes.length, 3);
+    assert.deepEqual(env.flushes.at(-1).painted, { left: box.left, top: box.top + 20, right: box.right, bottom: box.bottom - 30 });
+    assert.deepEqual(env.geometry(span).painted, { ...env.slot(1), top: env.slot(1).top + 10, bottom: env.slot(1).bottom + 10 });
+    handle.destroy();
+  });
+
+  it('contracts to the centre without an active item and grows from the centre of the next one', async () => {
+    const env = indicatorTrack({ current: 1 });
+    const { handle, span } = create(env);
+    const half = (env.slot(1).right - env.slot(1).left) / 2;
+    let land = env.run(span);
+    env.setCurrent(-1);
+    handle.update();
+    assert.equal(span.dataset.empty, '');
+    assert.equal('glide' in span.dataset, true);
+    assert.deepEqual(env.geometry(span).insets, { t: 0, r: half, b: 0, l: half }, 'the inline insets close to the centre');
+    await land();
+    assert.equal(span.dataset.empty, '', 'stays hidden');
+    assert.ok(span.classList.contains(INSTANT));
+    assert.equal('glide' in span.dataset, false);
+    // An item after the empty state: from its centre, on --ds-dur-medium.
+    land = env.run(span);
+    env.setCurrent(2);
+    handle.update();
+    const step1 = env.flushes.at(-1);
+    const slotHalf = (env.slot(2).right - env.slot(2).left) / 2;
+    assert.deepEqual(step1.box, env.slot(2));
+    assert.deepEqual(step1.insets, { t: 0, r: slotHalf, b: 0, l: slotHalf }, 'starts with the inline insets at half its width');
+    assert.equal(step1.dataset.empty, '', 'starts transparent');
+    assert.equal('empty' in span.dataset, false);
+    assert.deepEqual(env.geometry(span).insets, zero);
+    assert.equal(env.track.style.getPropertyValue('--ds-indicator-dur'), `${motion.motionDuration(env.track, '--ds-dur-medium')}ms`);
+    await land();
+    assert.deepEqual(env.geometry(span).box, env.slot(2));
+    handle.destroy();
+  });
+
+  it('turns a pill that still contracts from where it is painted when an item comes back', async () => {
+    const env = indicatorTrack({ current: 1 });
+    const { handle, span } = create(env);
+    const land = env.run(span);
+    env.setCurrent(-1);
+    handle.update();
+    assert.equal(span.dataset.empty, '');
+    // Mid-contraction: 40px of each inline inset are painted.
+    span.computed = { [EDGES[0]]: '0px', [EDGES[1]]: '40px', [EDGES[2]]: '0px', [EDGES[3]]: '40px' };
+    const slot = env.slot(1);
+    env.setCurrent(1);
+    handle.update();
+    const step1 = env.flushes.at(-1);
+    assert.deepEqual(step1.painted, { left: slot.left + 40, top: slot.top, right: slot.right - 40, bottom: slot.bottom }, 'continues from the painted pill');
+    assert.equal('empty' in step1.dataset, false, 'the fade turns back');
+    assert.equal('dir' in span.dataset, false, 'the same centre: a size change');
+    assert.equal('glide' in span.dataset, true);
+    delete span.computed;
+    assert.deepEqual(env.geometry(span).painted, slot);
+    await land();
+    assert.deepEqual(env.geometry(span).box, slot);
+    assert.equal('glide' in span.dataset, false);
+    handle.destroy();
+  });
+
+  it('ignores its own writes and data-ds-keep nodes; several records give one frame', () => {
+    const env = indicatorTrack();
+    const { handle, span } = create(env);
+    const [observer] = env.mutationObservers;
+    assert.equal(observer.target, env.track);
+    assert.deepEqual(observer.options, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-current', 'aria-pressed', 'aria-selected', 'aria-checked'] });
+    env.runFrames();
+    const ripple = env.h('span', { 'data-ds-keep': '' }, env.h('span'));
+    env.items[0].append(ripple);
+    observer.callback([
+      { type: 'attributes', target: span },
+      { type: 'childList', target: env.items[0], addedNodes: [ripple], removedNodes: [] },
+      { type: 'childList', target: ripple, addedNodes: [ripple.childNodes[0]], removedNodes: [] },
+    ]);
+    assert.equal(env.frames.size, 0, 'nothing to place');
+    observer.callback([{ type: 'attributes', target: env.items[1] }, { type: 'attributes', target: env.items[0] }]);
+    observer.callback([{ type: 'childList', target: env.track, addedNodes: [env.h('a')], removedNodes: [] }]);
+    assert.equal(env.frames.size, 1, 'one frame for every record');
+    handle.destroy();
+  });
+
+  it('follows its items inside a wrapper that the page keeps (data-ds-keep outside the track)', () => {
+    const env = indicatorTrack();
+    env.h('div', { 'data-ds-keep': '' }, env.track);
+    const { handle } = create(env);
+    const [observer] = env.mutationObservers;
+    env.runFrames();
+    observer.callback([{ type: 'attributes', target: env.items[1] }]);
+    assert.equal(env.frames.size, 1, 'an aria change in the track is placed');
+    env.runFrames();
+    env.track.setAttribute('data-ds-keep', '');
+    observer.callback([{ type: 'attributes', target: env.items[2] }]);
+    assert.equal(env.frames.size, 1, 'also when the track itself is kept');
+    handle.destroy();
+  });
+
+  it('follows aria changes in the frame and re-syncs the observed elements', () => {
+    const env = indicatorTrack();
+    const { handle, span } = create(env);
+    const [resize] = env.resizeObservers;
+    assert.deepEqual([...resize.observed].sort((a, b) => env.items.indexOf(a) - env.items.indexOf(b)), [env.track, ...env.items]);
+    assert.equal(resize.observed.has(span), false, 'never the indicator itself');
+    env.runFrames();
+    env.run(span);
+    env.setCurrent(2);
+    env.mutationObservers[0].callback([{ type: 'attributes', target: env.items[2] }]);
+    env.runFrames();
+    assert.equal(span.dataset.dir, 'down', 'moved without update()');
+    // Items replaced: the new ones are observed, the old ones no longer.
+    const added = env.h('a', { 'aria-current': 'page' });
+    added.rect = env.items[0].rect;
+    env.items[2].remove();
+    env.track.append(added);
+    env.mutationObservers[0].callback([{ type: 'childList', target: env.track, addedNodes: [added], removedNodes: [env.items[2]] }]);
+    env.runFrames();
+    // The placement in that frame made the new item the placed one; the next frame follows it.
+    env.runFrames();
+    assert.ok(resize.observed.has(added));
+    assert.equal(resize.observed.has(env.items[2]), false);
+    handle.destroy();
+  });
+
+  it('creates no MutationObserver with observe: false (resizes still place the pill)', () => {
+    const env = indicatorTrack();
+    const { handle, span } = create(env, { observe: false });
+    assert.equal(env.mutationObservers.length, 0);
+    assert.equal(env.resizeObservers.length, 1);
+    env.items[0].rect = { ...env.items[0].rect, height: 44, bottom: env.items[0].rect.top + 44 };
+    env.resizeObservers[0].callback([]);
+    assert.equal(env.geometry(span).box.bottom, env.slot(0).top + 44);
+    handle.destroy();
+  });
+
+  it('destroy() disconnects, cancels the frame, removes listener, span and class; late callbacks write nothing', async () => {
+    const env = indicatorTrack();
+    const { handle, span } = create(env);
+    env.run(span);
+    env.setCurrent(1);
+    handle.update();
+    const pending = [...env.frames.keys()];
+    assert.equal(pending.length, 1, 'a frame is pending (the placed item changed)');
+    const loadingdone = env.listeners.get('loadingdone');
+    assert.equal(typeof loadingdone, 'function');
+    handle.destroy();
+    assert.equal(env.resizeObservers[0].connected, false);
+    assert.equal(env.mutationObservers[0].connected, false);
+    assert.deepEqual(env.cancelled, pending);
+    assert.equal(env.listeners.has('loadingdone'), false);
+    assert.equal(span.parentNode, null);
+    assert.equal(env.track.childNodes.includes(span), false);
+    assert.equal(env.track.classList.contains('ds-has-indicator'), false);
+    assert.equal(env.track.style.getPropertyValue('--ds-indicator-dur'), '');
+    // Late callbacks: fonts, a resize, an update.
+    const style = span.getAttribute('style');
+    env.resolveFonts();
+    await tick();
+    loadingdone();
+    env.resizeObservers[0].callback([]);
+    handle.update();
+    handle.destroy();
+    assert.equal(env.frames.size, 0, 'no frame requested');
+    assert.equal(span.getAttribute('style'), style, 'nothing written');
+    assert.equal(span.parentNode, null);
+  });
+
+  it('copies a computed border radius into --ds-indicator-radius only when the variable is 0px', () => {
+    const own = indicatorTrack();
+    own.doc.createElement = ((make) => (tag) => Object.assign(make(tag), { computed: { borderTopLeftRadius: '12px' } }))(own.doc.createElement);
+    const a = create(own);
+    assert.equal(a.span.style.getPropertyValue('--ds-indicator-radius'), '12px');
+    a.handle.destroy();
+    // A pill radius (9999px) is capped at half the item's smaller side.
+    const pill = indicatorTrack();
+    pill.doc.createElement = ((make) => (tag) => Object.assign(make(tag), { computed: { borderTopLeftRadius: '9999px' } }))(pill.doc.createElement);
+    const b = create(pill);
+    assert.equal(b.span.style.getPropertyValue('--ds-indicator-radius'), '20px');
+    b.handle.destroy();
+    // The component sets the variable: nothing is copied.
+    const set = indicatorTrack();
+    set.doc.createElement = ((make) => (tag) => Object.assign(make(tag), { computed: { borderTopLeftRadius: '12px', '--ds-indicator-radius': '24px' } }))(set.doc.createElement);
+    const c = create(set);
+    assert.equal(c.span.style.getPropertyValue('--ds-indicator-radius'), '');
+    c.handle.destroy();
+  });
+
+  it('retimes label colour transitions that just started on the previous travel time', () => {
+    const env = indicatorTrack();
+    const { handle, span } = create(env);
+    const medium = motion.motionDuration(env.track, '--ds-dur-medium');
+    const timing = (duration, currentTime) => {
+      const effect = { target: env.items[0], duration, getTiming() { return { duration: this.duration }; }, updateTiming(next) { this.duration = next.duration; } };
+      return { transitionProperty: 'color', currentTime, effect };
+    };
+    const fresh = timing(medium, 0);
+    const late = timing(medium, motion.motionDuration(env.track, '--ds-dur-micro') + 1);
+    env.track.animations = [fresh, late];
+    env.run(span);
+    env.setCurrent(3);
+    handle.update();
+    const travel = motion.travelDuration(env.track, env.slot(3).top - env.slot(0).top);
+    assert.ok(travel > medium);
+    assert.equal(fresh.effect.duration, travel, 'a label that just started lands with its pill');
+    assert.equal(late.effect.duration, medium, 'one already under way keeps its time');
+    handle.destroy();
+  });
+
+  it('allows an overshoot at least as large as the peak of --ds-ease-spatial', () => {
+    const peak = Math.max(...curveSample(springFunction(SPATIAL)).map((stop) => stop.value));
+    assert.ok(peak > 1, `peak ${peak}`);
+    assert.ok(indicator.OVERSHOOT >= peak - 1, `OVERSHOOT ${indicator.OVERSHOOT} < ${peak - 1}`);
+    assert.ok(indicator.OVERSHOOT <= 0.05, 'the 1.05 peak contract');
+  });
+});
+
 describe('classic-script build (dist/ds.js)', () => {
   it('exposes the same exports as the modules under window.DS', () => {
     const sandbox = { window: undefined };
@@ -564,7 +1066,6 @@ describe('timing in src/js', () => {
       ['src/js/motion.js: DEFAULT_TIMEOUT_MS = 1000', 'settled() without getAnimations(), stretched by --ds-time-scale'],
       ['src/js/motion.js: CEILING_MARGIN_MS = 100', 'the margin behind a derived ceiling, not a motion'],
       ['src/js/motion.js: hold ?? 2000', 'the canonical default of flip() (D7)'],
-      ['src/js/indicator.js: now + 600', 'the indicator retargets while it glides; tokens in P4 (test/tokens.test.js pins it)'],
     ]);
     const found = [];
     for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {

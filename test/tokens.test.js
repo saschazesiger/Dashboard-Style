@@ -12,7 +12,7 @@ import { filesIn, ms, read, stripComments, token } from './helpers.js';
 
 const tokens = stripComments(read('src/tokens.css'));
 /** Motion tokens and per-element motion hooks: no theme sets one, no role matches. */
-const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length)[\w-]*\s*:/;
+const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|indicator-lag|indicator-dur)[\w-]*\s*:/;
 /** Duration-like scales: written as calc(<n>ms * var(--ds-time-scale, 1)). */
 const TIMED = /^--ds-(dur-[\w-]+|loop-[\w-]+|delay-[\w-]+|hold-[\w-]+|stagger)$/;
 
@@ -97,9 +97,11 @@ describe('tokens', () => {
     assert.equal(ms('--ds-delay-loader'), LOADER_DELAY_MS);
     assert.equal(ms('--ds-dur-glide'), COUNT_UP_MS);
     assert.equal(ms('--ds-hold-loader'), LOADER_MIN_VISIBLE_MS);
-    // The indicator retargets for 600ms while it glides (js/indicator.js, until P4).
-    assert.match(read('src/js/indicator.js'), /glideUntil = now \+ 600/);
-    assert.ok(ms('--ds-dur-medium') < 600);
+    // The indicator takes its timing from the tokens alone (travelDuration,
+    // running transitions): no clock, no timer, no literal of two digits or more.
+    const indicator = stripComments(read('src/js/indicator.js'));
+    assert.doesNotMatch(indicator, /Date\.now|setTimeout/);
+    assert.doesNotMatch(indicator, /(?<![\w.])\d{2,}/);
   });
 
   it('keeps every MOTION_FALLBACKS entry equal to its token in tokens.css', () => {

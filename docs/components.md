@@ -66,8 +66,8 @@ is the only scroller. At 900px and below the drawer becomes modal.
     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false">[icon menu 20]</button>
     <a class="ds-brand" href="/">[logo 32px] <span class="ds-brand__name">Product</span></a>
     <nav class="ds-segmented" aria-label="Mode">
-      <a class="ds-segmented__option" href="/live" aria-current="true">Live</a>
-      <a class="ds-segmented__option" href="/admin">Admin</a>
+      <a class="ds-segmented__option" href="/live" aria-current="true" data-label="Live">Live</a>
+      <a class="ds-segmented__option" href="/admin" data-label="Admin">Admin</a>
     </nav>
     <div class="ds-account">
       <div class="ds-account__text"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
@@ -96,13 +96,36 @@ is the only scroller. At 900px and below the drawer becomes modal.
 
 - `.ds-app--drawer` adds the drawer column; without it the panel takes the full width.
 - State attributes on `.ds-app`: `data-drawer-open` (modal drawer shown), `data-drawer-hidden` (this view has no
-  drawer), `data-scrolled` (the view is scrolled; a hairline appears at the panel's top edge).
+  drawer), `data-scrolled` (the view is scrolled; a hairline appears at the panel's top edge and the top bar tints to
+  `--ds-topbar-scrolled-bg`, default `--ds-surface-high`, over `--ds-dur-fast`; a theme sets the hook to
+  `transparent` for a flat bar). Filled toolbar fields in the bar (`.ds-input--filled`, `.ds-search`) share that
+  fill, so they step up to `--ds-surface-highest` while it is tinted and keep their container.
 - A drawer item may be a `<button class="ds-drawer__item">` when it shows a section in place instead of loading a
   page; it loses the browser's button look. The active one also carries `aria-current="page"`.
 - `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible.
 - Sliding pills: `DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })`
-  and the same on `.ds-segmented` with `className: 'ds-segmented__indicator'`; call `update()` after the active item
-  changes.
+  and the same on `.ds-segmented` with `className: 'ds-segmented__indicator'`. The pill follows `aria-current` and
+  the size of the items by itself ([motion](motion.md#dsindicator-jsindicatorjs)); no `update()` is needed. While it
+  glides, the labels change colour on its timing (`--ds-indicator-dur`): the new label turns `--ds-on-accent` as its
+  pill arrives, the old one fades back. The weight switches at once. Without the script the active item paints its
+  own tint, and tint and label change in one frame.
+- `data-label` on a segmented option (its text again) reserves the width of the heavier current weight, so the
+  switch keeps its width when the current option changes. The option then stacks its content and the reserved copy
+  in a column, so use it on an option whose content is its text (or wrap icon and text in one element); without it
+  the switch behaves as before.
+- Scroll-spy with a programmatic smooth scroll: when a drawer link scrolls the view to its section, set the item
+  current at once and ignore the scroll-spy (an `IntersectionObserver`) until the scroll ends: `scrollend` on the
+  view where it exists, otherwise once no `scroll` event came for `DS.motion.motionDuration(view, '--ds-dur-fast')`
+  (start that wait at the first `scroll` and restart it on each one: a busy page may start the smooth scroll late).
+  A link to where the view already is mutes nothing, since no scroll follows. Otherwise the pill walks through every
+  section on the way.
+- The drawer coming back (a view that has it, after one without): remove `data-drawer-hidden`, then
+  `DS.motion.enter(drawer)`. It slides in 24px from the left with a fade, like `.ds-enter--slide` (the same as
+  `enter(drawer, 'slide')`).
+- The modal drawer is an opaque sheet: it opens on the spatial spring over `--ds-dur-long` while the scrim fades in,
+  and closes accelerating over `--ds-dur-base` (`--ds-ease-exit`). A strip of its background left of it covers the
+  spring's overshoot, so the scrim never shows at the screen edge. Opening or closing again mid-way continues from
+  where it is.
 - Press: drawer items and segmented options take their state layer in `--ds-dur-micro` and, with
   `DS.ripple.attach(document)`, the ripple ([Ripple](#ripple)). A drawer item turns squarer while pressed
   (`--ds-radius-action-pressed`) and springs back on release; under the active item the pill morphs with it, and
@@ -112,9 +135,45 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - Focus: drawer items and segmented options draw an inset ring (the list and the pill clip anything outside),
   solid from the first frame, that snaps inward from their edge in `--ds-dur-fast`, with the focus layer
   (`--ds-state-focus`).
-- `.ds-view--leaving` fades the current view out quickly before you swap it (fade-through).
+- `.ds-view--leaving` fades the current view out quickly before you swap it (fade-through). Without a helper, swap
+  in this order, so the new view never shows at full opacity for a frame and a second navigation during a swap ends
+  on the latest content:
+
+  ```js
+  let swaps = 0;
+  async function swapView(view, html) {
+    const run = ++swaps;
+    view.classList.add('ds-view--leaving');
+    // The fade sits on the children; settled() derives its own ceiling.
+    await DS.motion.settled(view.firstElementChild, { event: 'transitionend', property: 'opacity' });
+    if (run !== swaps) return;                       // a newer swap took over
+    view.innerHTML = html;                           // or DS.dom.morphHtml(view, html, { replace: true })
+    view.classList.remove('ds-view--leaving');       // in the same task as the entrance
+    DS.motion.enter(view.firstElementChild, 'swap');
+  }
+  ```
+
+- `.ds-view` keeps a stable scrollbar gutter (`--ds-view-scrollbar-gutter`, default `stable`; `stable both-edges` for
+  symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
+  scrollbars need no room; Safari before 18.2 ignores it.
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px.
 - While the modal drawer is open, add `.ds-no-scroll` to `<body>` (with `.ds-base`).
+- When the window crosses 900px the drawer changes between docked and modal in place: add `.ds-drawer--instant` to
+  the drawer for two frames, so it neither slides nor fades its scrim, and close a modal drawer that the wider
+  window no longer shows:
+
+  ```js
+  const modal = matchMedia('(max-width: 900px)');
+  modal.addEventListener('change', () => {
+    drawer.classList.add('ds-drawer--instant');
+    if (!modal.matches) {
+      app.removeAttribute('data-drawer-open');
+      document.body.classList.remove('ds-no-scroll');
+      menu.setAttribute('aria-expanded', 'false');
+    }
+    requestAnimationFrame(() => requestAnimationFrame(() => drawer.classList.remove('ds-drawer--instant')));
+  });
+  ```
 
 ## Page
 
@@ -172,6 +231,9 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   "Delete 3 devices").
 - A leading icon pulls the start padding to 12px (where `:has()` exists).
 - A toggle that is on carries `aria-pressed="true"` and shows the tint (forced colors: the selection colours).
+  Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
+  the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
+  changes colour on the pill's timing (`--ds-indicator-dur`).
 - `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why; your script
   must ignore its clicks. `disabled` and `aria-busy="true"` block the pointer.
 - Press: the state layer comes in `--ds-dur-micro` and the shape turns squarer (`--ds-radius-action-pressed`, 12px;

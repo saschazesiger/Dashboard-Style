@@ -34,8 +34,8 @@ function readMotion(el) {
  * watches, so a slow round trip cannot let the handoff run ahead of it.
  */
 function sampleFrames(el, ms) {
-  const read = () => readMotion(el);
   const start = performance.now();
+  const read = () => ({ ...readMotion(el), t: performance.now() - start });
   const out = [read()];
   return new Promise((resolve) => {
     const frame = (now) => {
@@ -50,8 +50,18 @@ function sampleFrames(el, ms) {
 /** Source for the page: `new Function(TOOLS)()` gives { read, frames }. */
 const TOOLS = `${readMotion}\n${sampleFrames}\nreturn { read: readMotion, frames: sampleFrames };`;
 
-/** The largest step between neighbouring values. */
-const largestStep = (values) => Math.max(...values.slice(1).map((value, index) => Math.abs(value - values[index])));
+/**
+ * The largest step between neighbouring samples, per frame (1/60 s): a busy
+ * machine that drops frames takes a larger step over a longer gap, a snap is
+ * a large step within one frame. `samples` from sampleFrames(), led by the
+ * value read in the task of the interruption (time 0, like the first sample).
+ */
+function largestStep(before, samples, key) {
+  const values = [before[key], ...series(samples, key)];
+  const times = [0, ...series(samples, 't')];
+  const frame = 1000 / 60;
+  return Math.max(...values.slice(1).map((value, index) => Math.abs(value - values[index]) / Math.max(1, (times[index + 1] - times[index]) / frame)));
+}
 
 test.describe('interruption (D21)', () => {
   test('leave() halfway through enter() continues from the current opacity and position', async ({ page }) => {
@@ -74,7 +84,7 @@ test.describe('interruption (D21)', () => {
     expect(Math.abs(opacity[1] - before.opacity)).toBeLessThan(0.05);
     expectMonotonic(opacity, { direction: 'down', tolerance: 1e-3 });
     expect(opacity.at(-1)).toBe(0);
-    expect(largestStep([before['translate.y'], ...series(samples, 'translate.y')])).toBeLessThanOrEqual(2);
+    expect(largestStep(before, samples, 'translate.y')).toBeLessThanOrEqual(2);
     // No inline style was written; the exit holds its end and the element is inert.
     expect(await box.evaluate((el) => [el.getAttribute('style'), el.inert, el.getAnimations().map((a) => a.id)])).toEqual([before.inline, true, ['ds-handoff', 'ds-handoff']]);
   });
@@ -98,7 +108,7 @@ test.describe('interruption (D21)', () => {
     expect(Math.abs(opacity[0] - before.opacity)).toBeLessThan(0.05);
     expect(Math.abs(opacity[1] - before.opacity)).toBeLessThan(0.05);
     expectMonotonic(opacity, { direction: 'up', tolerance: 1e-3 });
-    expect(largestStep([before['translate.y'], ...series(samples, 'translate.y')])).toBeLessThanOrEqual(2);
+    expect(largestStep(before, samples, 'translate.y')).toBeLessThanOrEqual(2);
     expect(await page.evaluate(() => window.fxEntered)).toBe('entered');
     expect(await box.evaluate((el) => ({ hidden: el.hidden, inert: el.inert, classes: el.className, opacity: getComputedStyle(el).opacity, running: el.getAnimations().length })))
       .toEqual({ hidden: false, inert: false, classes: 'fx-box', opacity: '1', running: 0 });
@@ -129,7 +139,7 @@ test.describe('interruption (D21)', () => {
       expect(Math.abs(before[axis]), 'the first motion was moving').toBeGreaterThan(1);
       const values = [before[axis], ...series(samples, axis)];
       expect(Math.abs(values[1] - values[0]), 'no snap in the task of the interruption').toBeLessThan(0.5);
-      expect(largestStep(values)).toBeLessThanOrEqual(2);
+      expect(largestStep(before, samples, axis)).toBeLessThanOrEqual(2);
       expect(values.at(-1), 'it lands at rest').toBeCloseTo(0, 1);
     });
   }

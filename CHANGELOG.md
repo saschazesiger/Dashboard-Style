@@ -3,6 +3,69 @@
 All notable changes. Versions follow [semver](https://semver.org): renaming or removing a token, class, hook or JS
 export is a major change; adding one is a minor change.
 
+## 1.2.0
+
+Motion 2, the navigation: the sliding indicator stretches toward its target and lands on the spring, follows its
+items by itself and survives `morphHtml`; the drawer comes back on the x axis, the modal drawer opens on the spring
+and closes accelerating without a gap at the screen edge; labels change colour with the pill; the segmented switch
+can keep its width; the top bar tints on scroll and the view keeps a stable scrollbar gutter. Additive: no class,
+token, hook or export was removed or renamed. Screenshots of the frame change (see "Changed").
+
+### Added
+
+- `DS.indicator.createIndicator(track, { active, className, observe })`: the new `observe` option (default `true`)
+  makes the pill follow `aria-current`, `aria-pressed`, `aria-selected` and `aria-checked` and added or removed
+  items by itself; `update()` stays (needed only with `observe: false`). `DS.indicator.OVERSHOOT` (0.05) exports
+  the overshoot share of a glide.
+- `.ds-drawer--instant`: no slide and no scrim fade while the window crosses 900px (the page sets it for two frames
+  on the `matchMedia` change; snippet in docs/components.md, App frame).
+- `data-label` on `.ds-segmented__option` (its text again): the option keeps the width of its heavier current
+  weight, so the switch never changes width. Such an option lays out its content in a column (for its text, or one
+  wrapper); options without it are unchanged.
+- Hooks: `--ds-topbar-scrolled-bg` (default `--ds-surface-high`), `--ds-view-scrollbar-gutter` (default `stable`),
+  `--ds-indicator-radius` (the pill's corners) and `--ds-indicator-lag` (how long the trailing edge waits, default
+  `--ds-dur-micro`; a motion hook, themes never set it).
+- The top bar tints to a surface container colour while the view is scrolled (`data-scrolled`), with the panel's
+  hairline, over `--ds-dur-fast`. Filled toolbar fields in it (`.ds-input--filled`, `.ds-search`) step up to
+  `--ds-surface-highest` meanwhile, so they keep their container on the tint.
+
+### Changed
+
+- **The indicator** is drawn by `clip-path` on a box and moved by `translate` (never by animating `width`,
+  `height` or `transform`): a glide stretches toward the target (the leading edge leads, the trailing edge follows
+  `--ds-indicator-lag` later on `--ds-ease-in-out`, so the pill is never shorter than its item), lands on the
+  spatial spring (the leading edge passes the target by at most 5 % of the travel) and
+  takes `--ds-dur-medium` for a neighbour up to `--ds-dur-slow` for long jumps (`travelDuration()`, written as
+  `--ds-indicator-dur` on the track). A new target mid-glide continues from where the pill is; the first placement
+  and a resize jump. `--ds-indicator-x/-y/-w/-h` describe the box, which is the union of two items during a glide.
+  An empty state contracts the pill to its centre and an item after it grows from there (an item that comes back
+  while the pill still contracts turns it from where it is). Own indicator classes
+  keep working: their `border-radius` is read at rest and copied into `--ds-indicator-radius`.
+- `DS.motion.enter(drawer)` slides the drawer in from the left on the x axis (the same keyframes, duration and
+  curves as `enter(drawer, 'slide')`); it rose from below before.
+- **Modal drawer**: opens on the spring over `--ds-dur-long` (was `--ds-dur-slow` on the emphasized curve), the
+  scrim fades in over `--ds-dur-medium`; closes over `--ds-dur-base` on `--ds-ease-exit` (was `--ds-ease-in`). A
+  bleed of its own background on its left covers the spring's overshoot.
+- Drawer and segmented labels change colour on the pill's timing (`--ds-indicator-dur`), so the new label turns
+  `--ds-on-accent` while its pill arrives; their weight still switches at once. Without the indicator script, and
+  in the modal drawer, tint and label change in one frame (the colour transition exists only under
+  `.ds-has-indicator`).
+- `.ds-btn[aria-pressed="true"]` inside `.ds-has-indicator` (a track of toggles with a sliding indicator) drops its
+  own tint and border, so the pill alone paints the selection and no second highlight appears in place while it
+  travels; the labels change colour on `--ds-indicator-dur`. Toggles outside a track are unchanged.
+- `.ds-view` keeps a stable scrollbar gutter, so a classic scrollbar that appears never shifts the content; set
+  `--ds-view-scrollbar-gutter: auto` for the old behaviour (overlay scrollbars and Safari before 18.2 are
+  unaffected).
+
+### Fixed
+
+- The indicator follows item size and position changes (a badge or a wrap in an earlier item, a group expanding
+  above, the active label growing) and fonts that load late; `destroy()` stops late callbacks and leaves no
+  observer, listener or frame behind.
+- No drawer slide when the window crosses 900px (with the documented snippet).
+- The styleguide's nav no longer walks the pill through every section on a click (the scroll-spy pattern is in
+  docs/components.md, App frame).
+
 ## 1.1.0
 
 Motion 2, the controls: every action presses with a layer in `--ds-dur-micro`, a ripple and a shape morph; every

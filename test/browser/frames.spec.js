@@ -14,6 +14,11 @@
  * Seeking a paused CSS animation into its after phase still fires
  * `animationend`, so the end frame of an exit shows what the demo leaves
  * behind (the snackbar removed, the tooltip hidden, the dialog gone).
+ *
+ * From 1.2.0 also the indicator's glide in the drawer and the segmented
+ * switch: its start, the moment the trailing edge follows, halfway and the
+ * overshoot frame (in Chromium only: Playwright's WebKit screenshot ends
+ * running custom-property transitions).
  */
 import { test, expect } from '@playwright/test';
 import { ready, settle, seek } from './helpers/motion.js';
@@ -216,4 +221,65 @@ test('modal drawer opens and closes at 800px', async ({ page }) => {
   await settle(page);
   end = await act(page, click, '#scrim');
   await frames(page, 'modal-drawer-close', end);
+});
+
+/* ── Indicator glides (1.2.0) ──────────────────────────────────────── */
+
+/**
+ * Clicks `href` in `track` and pauses every animation in the same task,
+ * then shoots the pill at its start, when the trailing edge starts (after
+ * --ds-indicator-lag: only the leading edge has moved), halfway and at the
+ * frame where the leading edge passes its target furthest (the spring's
+ * overshoot, found by seeking in 2ms steps). The references are kept, so a
+ * seek goes back as well as forward; every time is before the end, where a
+ * paused transition would leave getAnimations().
+ */
+async function glideFrames(page, track, href, name) {
+  const box = await page.locator(track).boundingBox();
+  const pad = 12;
+  const clip = { x: Math.floor(box.x - pad), y: Math.floor(box.y - pad), width: Math.ceil(box.width + 2 * pad), height: Math.ceil(box.height + 2 * pad) };
+  const times = await page.evaluate(([trackSelector, target]) => {
+    const element = document.querySelector(trackSelector);
+    const indicator = element.querySelector(':scope > .ds-indicator');
+    element.querySelector(`[href="${target}"]`).click();
+    const animations = document.getAnimations();
+    for (const animation of animations) animation.pause();
+    window.fxGlide = animations;
+    const edges = indicator.getAnimations().filter((animation) => /^--ds-indicator-[trbl]$/.test(animation.transitionProperty));
+    const end = Math.max(...edges.map((animation) => Number(animation.effect.getComputedTiming().endTime)));
+    const lead = { down: '--ds-indicator-b', up: '--ds-indicator-t', right: '--ds-indicator-r', left: '--ds-indicator-l' }[indicator.dataset.dir];
+    let peak = 0;
+    let least = Infinity;
+    for (let time = 0; time < end - 1; time += 2) {
+      for (const animation of animations) animation.currentTime = time;
+      const inset = parseFloat(getComputedStyle(indicator).getPropertyValue(lead));
+      if (inset < least) {
+        least = inset;
+        peak = time;
+      }
+    }
+    return { lag: DS.motion.motionDuration(element, '--ds-dur-micro'), half: Math.round(end / 2), peak };
+  }, [track, href]);
+  for (const [step, time] of [['0', 0], ['lag', times.lag], ['50', times.half], ['peak', times.peak]]) {
+    await page.evaluate((ms) => {
+      for (const animation of window.fxGlide) animation.currentTime = ms;
+      return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    }, time);
+    // The pill's tint is close to the backdrop: the default colour threshold
+    // (0.2) would not see it move, so these shots compare colours closely.
+    await expect.soft(page, `${name} at ${step}`).toHaveScreenshot(`frame-${name}-${step}.png`, { clip, animations: 'allow', threshold: 0.02 });
+  }
+}
+
+test('drawer indicator glides down the list: stretch and overshoot', async ({ page }) => {
+  await page.setViewportSize({ width: 1000, height: 800 });
+  await open(page, `${FIXTURES}shell.html`);
+  await glideFrames(page, '#drawer-list', '#settings', 'drawer-indicator');
+});
+
+test('segmented indicator hops to its neighbour: stretch and overshoot', async ({ page }) => {
+  await open(page, `${FIXTURES}controls.html`);
+  await page.locator('#segmented').scrollIntoViewIfNeeded();
+  await settle(page);
+  await glideFrames(page, '#segmented', '#admin', 'segmented-indicator');
 });

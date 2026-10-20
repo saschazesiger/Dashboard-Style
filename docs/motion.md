@@ -13,8 +13,8 @@ distances, Material curves and a gentle spring for movement that floats. All tim
    `width` of the chip check slot; the height of `.ds-collapsible` (only where `interpolate-size` exists), of
    validation messages and of expandable rows; the `min-height` of a `flip()` container that shrinks once its
    removed items left (on `--ds-ease-out`). Discrete properties (`visibility`, `display`) only flip as a 0ms
-   step or with `allow-discrete`. Never `transition: all`, never `font-weight`. The sliding indicator still moves
-   its `width` and `height` until 1.2.0. `test/css.test.js` allows each exception once its feature lands.
+   step or with `allow-discrete`. Never `transition: all`, never `font-weight`. `test/css.test.js` allows each
+   exception once its feature lands.
 2. Effects never overshoot, movement floats:
    - entering opacity runs on the standard curve (`--ds-ease-in-out`), leaving opacity accelerates
      (`--ds-ease-in`);
@@ -85,7 +85,7 @@ on load, and a rapid toggle turns back from where it is.
 | `.ds-enter` | one-shot entrance: fade + 8px rise, 250ms; the fade on the standard curve, the movement on the spring (`--ds-ease-spatial`); plays once, also on an element with its own loop |
 | `.ds-enter--fade` | fade only |
 | `.ds-enter--scale` | fade + rise from .98 (dialogs) |
-| `.ds-enter--slide` | fade + 24px from the side, 350ms, on the spring (sheets, a drawer coming back) |
+| `.ds-enter--slide` | fade + 24px from the side (`--ds-motion-distance`, default from the right), 350ms, on the spring (sheets). A drawer coming back: `DS.motion.enter(drawer)` slides it in from the left with the same keyframes, duration and curves (`.ds-drawer.ds-enter`), so it equals `enter(drawer, 'slide')` |
 | `.ds-enter--swap` | fade + 4px: content replacing a placeholder or another view |
 | `.ds-enter--delayed` | fade after `--ds-delay-loader` (loaders) |
 | `.ds-enter--pop` | fade + scale from `--ds-scale-small` (a badge or counter that appears) |
@@ -96,7 +96,7 @@ on load, and a rapid toggle turns back from where it is.
 | `.ds-stagger` | its children fade in and rise 4px one after the other (`--ds-i` x 30ms); where `sibling-index()` exists, CSS-only lists number themselves |
 | `.ds-reveal` | fade-through with the smallest rise, for freshly loaded content |
 | `.ds-collapsible` | on `<details>`: animates the height where supported |
-| `.ds-view--leaving` | quick fade-out of a view's children before a swap |
+| `.ds-view--leaving` | quick fade-out of a view's children before a swap (`--ds-dur-instant`, accelerating). The swap sequence without a helper: add it, `await DS.motion.settled(view.firstElementChild, { event: 'transitionend', property: 'opacity' })`, return if a newer swap started meanwhile (a counter), replace the content, then in the same task remove the class and `DS.motion.enter(newContent, 'swap')`, so the new view never shows at full opacity for a frame ([App frame](components.md#app-frame)) |
 | `.ds-swap` | a slot whose children share one grid cell (`inline-grid`, clipped), so outgoing and incoming content cross without a width jump; `DS.motion.roll()` and `crossfade()` make it |
 | `.ds-icon-swap` | two icons in one cell, `.ds-icon-swap__a` and `.ds-icon-swap__b`: `data-swap="b"` (or, without `data-swap`, an ancestor with `aria-pressed="true"`) shows b. The incoming icon fades in (`--ds-dur-fast`) and springs up from `--ds-scale-small` (`--ds-dur-medium`), a `pathLength="1"` glyph in b draws itself (`stroke-dashoffset`, `--ds-ease-out`); the outgoing one only fades (`--ds-dur-instant`, accelerating). Transitions: nothing plays on the first render, a rapid toggle turns back from where it is. A crossfade with a scale, not a path morph; `crossfade(el, icon, { kind: 'icon' })` makes it |
 
@@ -234,15 +234,64 @@ DS.motion.countUp(total, rows.length);
 
 ## DS.indicator (js/indicator.js)
 
-`createIndicator(track, { active, className })` inserts one `.ds-indicator` behind the items of `track` (which gets
-`.ds-has-indicator`) and returns `{ update(), destroy() }`. It measures the item matching the `active` selector
-(horizontal, vertical, scrolling or wrapping tracks); the first placement and resizes jump, only a change of the
-active item glides (`--ds-dur-medium`, standard curve). It writes `--ds-indicator-x`, `--ds-indicator-y`,
-`--ds-indicator-w` and `--ds-indicator-h` on the indicator; `.ds-indicator--instant` turns the glide off. The
-component gives it its look (`.ds-drawer__indicator`, `.ds-segmented__indicator`, or your own class). Tracks may
-be morphed: the span carries `data-ds-keep`, so `DS.dom.morphHtml` never removes it; a foreign re-render that
-dropped it anyway gets it back at the next placement (without a glide). Call `update()` after a morph that moved
-the active item.
+`createIndicator(track, { active, className, observe })` inserts one `.ds-indicator` behind the items of `track`
+(which gets `.ds-has-indicator`) and returns `{ update(), destroy() }`. It measures the item matching the `active`
+selector in the track's scroll coordinates (horizontal, vertical, scrolling or wrapping tracks). The component gives
+it its look (`.ds-drawer__indicator`, `.ds-segmented__indicator`, or your own class). A track of `.ds-btn` toggles
+(`active: '[aria-pressed="true"]'`) works as it is: inside `.ds-has-indicator` a pressed button drops its own tint
+and border, so only the pill paints the selection (give your class `--ds-accent`, the tint's colour), and the labels
+change colour on `--ds-indicator-dur`. Forced colors keep the button's selection colours.
+
+- **Options.** `active`: the selector of the active item. `className`: the indicator's own class. `observe`
+  (default `true`): the indicator follows the track by itself; `observe: false` turns the `MutationObserver` off,
+  and the page calls `update()` after it changed the active item.
+- **What it observes.** `aria-current`, `aria-pressed`, `aria-selected` and `aria-checked` anywhere in the track and
+  items added or removed (never `class`; its own span and `data-ds-keep` nodes such as ripples are ignored); the size
+  of the track, of each element child of the track and of the active item (a badge or a wrap in an earlier item, a
+  group expanding above, the active label growing); web fonts that load late (`fonts.ready` and `loadingdone`).
+  Changes are batched into one animation frame; a resize places the pill within the resize callback, so it never
+  trails its item. `update()` stays and is harmless when the observer already moved the pill.
+- **Drawing.** The pill is drawn by `clip-path` on a box, never by animating `width` or `height`. The box is
+  `--ds-indicator-x`, `--ds-indicator-y` (moved by `translate`), `--ds-indicator-w` and `--ds-indicator-h`; the
+  painted pill is the box minus the insets `--ds-indicator-t`, `--ds-indicator-r`, `--ds-indicator-b` and
+  `--ds-indicator-l` (registered lengths), rounded by `--ds-indicator-radius`. At rest the box is the active item and
+  the insets are 0px: a plain rounded pill.
+- **Stretch and landing.** A change of the active item glides: the box becomes the union of the pill it leaves and
+  the item it goes to (`data-glide`), widened where an edge travels outward by an overshoot margin
+  (`OVERSHOOT` × the edge's travel + 1px, so the spring's pass beyond the target is never cut off; inside a track
+  that clips or scrolls the box stays within the scroll area), and the edges move to the target on
+  `--ds-ease-spatial`. The edge on the far side waits `--ds-indicator-lag` (default `--ds-dur-micro`; a motion hook
+  that themes never set): `data-dir` (`left`, `right`, `up`, `down`) names the travel, so the leading edge leads, the
+  trailing edge follows, and the pill lands with the spring's overshoot (at most 5 % of the travel). The trailing
+  edge runs on `--ds-ease-in-out` instead of the spring (through `--ds-indicator-ease-t/-r/-b/-l`, the curve of
+  each edge, component internal): it never passes its target, so the pill is never shorter than its item and never
+  slides past it. Once every edge
+  has landed, the box collapses to the item again (no visual change).
+- **Duration from distance.** `travelDuration(track, distance)` between the centres: `--ds-dur-medium` for a neighbour,
+  up to `--ds-dur-slow` for long jumps. It is written as `--ds-indicator-dur` (in ms, `--ds-time-scale` included) on
+  the **track**, where the item labels read it too, so a label changes colour while its pill arrives.
+- **Retargeting.** A placement while the edges still run (a second click, a resize mid-glide) continues from the pill
+  as it is painted now to the new target, without a jump; a placement on the same running target keeps gliding. The
+  first placement and a resize with nothing running jump (`.ds-indicator--instant`, the edges without transition;
+  a press morph of the radius and a fade still run).
+- **Appear and disappear.** When the active item goes away the pill contracts to its centre and fades in
+  `--ds-dur-fast`, accelerating (`data-empty`). An active item after that grows from its centre over
+  `--ds-dur-medium` on the spring while it fades in; one that comes while the pill still contracts glides it on
+  from where it is painted, and the fade turns back from its current opacity. On page load the first placement jumps.
+- **Radius.** A component sets `--ds-indicator-radius` (the drawer: half the item height, squarer under a pressed
+  active item). A project class that only sets `border-radius` keeps working: at rest, when `--ds-indicator-radius`
+  computes to 0px, the computed `border-top-left-radius` (capped at half the item's smaller side) is copied into it
+  inline. During a glide the box has no radius of its own.
+- **Morphs.** The span carries `data-ds-keep`, so `DS.dom.morphHtml` never removes it and the observers keep working
+  after a morph of the track (a change of the active item in the new markup glides by itself). A foreign re-render
+  that dropped the span anyway gets it back at the next placement (it jumps there once).
+- **`destroy()`** is final: it disconnects both observers, cancels the pending frame, removes the fonts listener, the
+  span, `.ds-has-indicator` and the track's `--ds-indicator-dur`; late callbacks do nothing.
+
+| Export | |
+|---|---|
+| `createIndicator(track, { active, className, observe })` | see above; returns `{ update(), destroy() }` |
+| `OVERSHOOT` | 0.05: the largest pass of an edge beyond its target, as a share of its travel (the peak contract of `--ds-ease-spatial`); the overshoot margin of the glide box |
 
 ## DS.dom (js/dom.js)
 

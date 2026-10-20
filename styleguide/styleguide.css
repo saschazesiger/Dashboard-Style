@@ -349,3 +349,19 @@
   font: var(--ds-font-code);
   white-space: pre;
 }
+
+/* The view swap demo: a small stand-in for .ds-view, whose children fade
+   out with .ds-view--leaving before the next page enters. */
+.sg-swap-stage {
+  min-height: 136px;
+}
+
+.sg-swap-view {
+  width: min(100%, 360px);
+}
+
+.sg-swap-page {
+  padding: var(--ds-space-4) var(--ds-space-5);
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface);
+}

@@ -100,9 +100,9 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   lands: `rotate` (spinners, loaders, disclosure chevrons, icon swaps), `border-radius` (press morph),
   `outline-offset` (focus snap, transition only), `stroke-dashoffset` (drawn checks), `mask-position` (the
   progress wave), the chip check slot `width`, the heights of `.ds-collapsible`, validation messages and
-  expandable rows, and the `min-height` of a `DS.motion.flip` container shrinking after removals; the sliding indicator's `width`/`height` until 1.2.0. Never `transition: all`, never
-  `font-weight`. Exits take 0.3-0.8 of their entrance (tested). Hover never moves anything; nothing scales on
-  press except the switch handle. Data changes glide only through `countUp`, value bars and `DS.motion.flip`
+  expandable rows, and the `min-height` of a `DS.motion.flip` container shrinking after removals. Never
+  `transition: all`, never `font-weight`. Exits take 0.3-0.8 of their entrance (tested). Hover never moves
+  anything; nothing scales on press except the switch handle. Data changes glide only through `countUp`, value bars and `DS.motion.flip`
   (live reorders wait while pointed at or focused, at most 2s); re-render with `DS.dom.morphHtml`, never
   `innerHTML`. Interrupted motion continues from its current state; JS timing comes from the computed tokens
   (`motionDuration`), never ms literals; constants are tested fallbacks (`MOTION_FALLBACKS`). Never a near-zero

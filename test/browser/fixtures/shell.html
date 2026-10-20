@@ -61,17 +61,26 @@
 <script src="/dist/ds.js"></script>
 <script src="fixture.js"></script>
 <script>
-  // Page script, as a project would write it: the modal drawer and the
-  // scrolled hairline.
+  // Page script, as a project would write it: the modal drawer, the
+  // breakpoint snippet of docs/components.md and the scrolled hairline.
   (function () {
     var app = document.getElementById('app');
     var menu = document.getElementById('menu');
     var view = document.getElementById('main');
+    var drawer = document.getElementById('drawer');
     function openDrawer(open) {
       if (open) app.setAttribute('data-drawer-open', '');
       else app.removeAttribute('data-drawer-open');
       menu.setAttribute('aria-expanded', String(open));
     }
+    var modal = matchMedia('(max-width: 900px)');
+    modal.addEventListener('change', function () {
+      drawer.classList.add('ds-drawer--instant');
+      if (!modal.matches) openDrawer(false);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { drawer.classList.remove('ds-drawer--instant'); });
+      });
+    });
     menu.addEventListener('click', function () { openDrawer(!app.hasAttribute('data-drawer-open')); });
     document.getElementById('scrim').addEventListener('click', function () { openDrawer(false); });
     view.addEventListener('scroll', function () {

@@ -170,6 +170,8 @@
   --ds-switch-disabled-track: var(--ds-disabled-fill);
   --ds-switch-disabled-handle: var(--ds-disabled-ink);
   --ds-drawer-item-height: 48px;
+  --ds-topbar-scrolled-bg: var(--ds-surface-high);
+  --ds-view-scrollbar-gutter: stable;
   --ds-card-padding: var(--ds-space-6); --ds-card-padding-sm: var(--ds-space-4);
   --ds-card-padding-filled: var(--ds-space-5);
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);

@@ -105,6 +105,7 @@ const PROGRESSIVE = [
   [/sibling-index\(|sibling-count\(/, 'sibling-index()'],
   [/text-wrap/, 'text-wrap'],
   [/scrollbar-color|scrollbar-width/, 'scrollbar-color'],
+  [/scrollbar-gutter/, 'scrollbar-gutter'],
 ];
 
 /** Plain :focus selectors that may draw an outline, each with its reason. */
@@ -114,7 +115,7 @@ const FOCUS_EXEMPT = [
 ];
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
-const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-chips-backdrop']);
+const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-indicator-dur', '--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-chips-backdrop']);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
@@ -151,12 +152,7 @@ const declarationsAt = (css, selector) => rules(css).filter((rule) => splitSelec
 /** A drawn glyph (pathLength="1") or the icon-swap face it inherits from: stroke-dashoffset may transition there (drawn checks). */
 const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$/.test(part));
 /** Animated properties that a later phase removes (P8 asserts that this is empty). */
-const ANIMATED_PENDING = new Map([
-  ['.ds-indicator', { properties: ['width', 'height'], phase: 'P4 (moved by transform or clip-path)' }],
-  // The pill under a pressed active item restates the indicator's list (a click's new item is still pressed while it glides there).
-  ['.ds-has-indicator:has(.ds-drawer__item[aria-current="page"]:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator, .ds-has-indicator:has(.ds-drawer__item[aria-current="page"].ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator',
-    { properties: ['width', 'height'], phase: 'P4 (moved by transform or clip-path, with .ds-indicator)' }],
-]);
+const ANIMATED_PENDING = new Map();
 /** The registered custom properties of src/ (they animate like any other property). */
 const REGISTERED = new Set(SRC_CSS.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
 
@@ -474,7 +470,7 @@ describe('motion in CSS', () => {
     }
     // The table reads what the docs promise.
     assert.deepEqual(RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
-      ['250/150', '250/200', '350/200', '250/150', '250/150', '350/200', '350/200', '250/150', '150/100']);
+      ['250/150', '250/200', '350/200', '250/150', '250/150', '350/200', '450/200', '250/150', '150/100']);
     for (const [name, entrance, exit] of CONTROL_RATIOS) {
       const enter = resolveDuration(entrance);
       const leave = resolveDuration(exit);
@@ -484,6 +480,17 @@ describe('motion in CSS', () => {
     }
     assert.deepEqual(CONTROL_RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
       ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100']);
+  });
+
+  it('brings the drawer back like .ds-enter--slide, from the left (enter(drawer) equals enter(drawer, "slide"))', () => {
+    const own = (file, selector) => Object.fromEntries(declarationsOf(read(file), selector).map((entry) => [entry.property, entry.value]));
+    const drawer = own('src/components/shell.css', '.ds-drawer.ds-enter');
+    const slide = own(M, '.ds-enter--slide');
+    for (const hook of ['--ds-enter-keyframes', '--ds-enter-duration', '--ds-enter-easing']) {
+      assert.ok(slide[hook], `.ds-enter--slide sets ${hook}`);
+      assert.equal(drawer[hook], slide[hook], `.ds-drawer.ds-enter ${hook}`);
+    }
+    assert.equal(drawer['--ds-motion-distance'], 'calc(-1 * var(--ds-distance-xl))');
   });
 
   it('shapes keyframes: entrances from-only, exits to-only, movement on translate and scale', () => {
@@ -1169,7 +1176,6 @@ describe('controls (1.1.0)', () => {
           assert.equal(own.animation, undefined, `${file}: ${selector}: transitions only`);
         }
         for (const entry of entriesOf(own.transition || '')) {
-          // The indicator's size is P4's (ANIMATED_PENDING).
           if (entry.name !== 'width' || ANIMATED_PENDING.has(selector)) continue;
           assert.equal(selector, '.ds-chip__body::after', `${file}: ${selector}: width transition`);
           assert.equal(entry.easing, 'var(--ds-ease-out)', 'a layout size never overshoots (D29)');
@@ -1233,6 +1239,74 @@ describe('controls (1.1.0)', () => {
   it('keeps the spinner of a hidden busy face still (no endless loop per button at rest)', () => {
     const paused = declarationsAt(read('src/components/button.css'), '.ds-btn:not([aria-busy="true"]) .ds-btn__face--busy .ds-spinner');
     assert.deepEqual(paused.map(({ property, value }) => `${property}: ${value}`), ['animation-play-state: paused']);
+  });
+});
+
+describe('navigation (1.2.0)', () => {
+  const SHELL = 'src/components/shell.css';
+  const INDICATOR = 'src/components/indicator.css';
+  const PILL_PROPERTIES = ['--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius'];
+  /** The properties a rule's transition or transition-property animates. */
+  const animated = (body) => declarations(`${body};`)
+    .filter(({ property }) => property === 'transition' || property === 'transition-property')
+    .flatMap(({ value }) => entriesOf(value).map((entry) => entry.name));
+
+  it('registers the clip edges and the radius of the pill as non-inheriting lengths, at top level', () => {
+    const source = stripComments(read(INDICATOR));
+    const topLevel = withoutAtRuleBlocks(source, /^@layer\b/);
+    for (const name of PILL_PROPERTIES) {
+      const pattern = new RegExp(`@property ${literally(name)} \\{\\s*syntax: '<length>';\\s*inherits: false;\\s*initial-value: 0px;\\s*\\}`);
+      assert.match(topLevel, pattern, `${name}: @property outside any layer`);
+      assert.ok(REGISTERED.has(name));
+    }
+  });
+
+  it('draws the pill by clip-path on a box: no width, height or transform ever transitions', () => {
+    const own = Object.fromEntries(declarationsAt(read(INDICATOR), '.ds-indicator').map((entry) => [entry.property, entry.value]));
+    assert.equal(own.translate, 'var(--ds-indicator-x, 0) var(--ds-indicator-y, 0)');
+    assert.equal(own.transform, undefined);
+    assert.match(own['clip-path'], /^inset\(var\(--ds-indicator-t\) var\(--ds-indicator-r\) var\(--ds-indicator-b\) var\(--ds-indicator-l\) round var\(--ds-indicator-radius\)\)$/);
+    for (const file of [INDICATOR, SHELL]) {
+      for (const { selector, body } of rules(read(file))) {
+        // Rules on the pill itself (its last compound), not on items inside a track with one.
+        if (!splitSelectors(selector).some((part) => /(\.ds-indicator|__indicator)(?![\w-])[^\s>+~]*$/.test(part))) continue;
+        for (const name of animated(body)) {
+          assert.ok(['none', 'opacity', ...PILL_PROPERTIES].includes(name), `${file}: ${selector}: ${name}`);
+        }
+      }
+    }
+  });
+
+  it('never transitions font-weight in shell.css, not even as a delayed step', () => {
+    for (const { selector, body } of rules(read(SHELL))) {
+      for (const { property, value } of declarations(`${body};`)) {
+        if (!property.startsWith('transition')) continue;
+        assert.doesNotMatch(value, /font-weight|\bfont\b|\ball\b/, `${selector}: ${property}: ${value}`);
+      }
+    }
+  });
+
+  it('changes label colour on the pill timing, only under .ds-has-indicator', () => {
+    const LABELS = /\.ds-drawer__item(?![\w-])(?!.*::)|\.ds-segmented__option(?![\w-])(?!.*::)/;
+    const found = [];
+    for (const { selector, body } of rules(read(SHELL))) {
+      if (!animated(body).includes('color')) continue;
+      for (const part of splitSelectors(selector).filter((text) => LABELS.test(text))) {
+        assert.ok(part.includes('.ds-has-indicator'), `${part}: a colour transition without the pill`);
+        found.push(part);
+      }
+      const colour = declarations(`${body};`).filter(({ property }) => property === 'transition')
+        .flatMap(({ value }) => entriesOf(value)).find((entry) => entry.name === 'color');
+      assert.deepEqual(colour?.words, ['color', 'var(--ds-indicator-dur, var(--ds-dur-medium))', 'var(--ds-ease-in-out)'], selector);
+    }
+    for (const part of ['.ds-has-indicator .ds-drawer__item', '.ds-has-indicator .ds-drawer__item svg', '.ds-has-indicator > .ds-segmented__option']) {
+      assert.ok(found.includes(part), `${part}: changes colour with the pill`);
+    }
+    // The modal drawer: its pill does not glide, so its labels change at once.
+    const modal = atRuleBlocks(read(SHELL), /max-width:\s*900px/).flatMap((block) => rules(block));
+    const items = modal.filter((rule) => splitSelectors(rule.selector).some((part) => /^\.ds-drawer (\.ds-has-indicator )?\.ds-drawer__item/.test(part)));
+    assert.ok(items.length >= 3, 'item, pressed item and icon rules in the modal drawer');
+    for (const rule of items) assert.equal(animated(rule.body).includes('color'), false, rule.selector);
   });
 });
 

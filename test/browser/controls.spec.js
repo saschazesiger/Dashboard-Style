@@ -273,7 +273,13 @@ test.describe('press', () => {
     const box = await button.boundingBox();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.waitForTimeout(30);
+    // 30ms, and at least two rendered frames: an engine whose animation
+    // clock only advances with frames (Firefox) would otherwise leave the
+    // morph at its start on a busy machine, as no frame showed it.
+    await page.evaluate(() => Promise.all([
+      new Promise((resolve) => setTimeout(resolve, 30)),
+      new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    ]));
     await page.mouse.up();
     await expect.poll(() => page.evaluate(() => window.fxPress.up !== undefined), { timeout: 2000 }).toBe(true);
     const press = await page.evaluate(() => window.fxPress);
@@ -1122,8 +1128,9 @@ test.describe('drawer', () => {
     await open(page);
     const item = page.locator('#drawer-list .ds-drawer__item[aria-current="page"]');
     const pill = page.locator('#drawer-list .ds-drawer__indicator');
+    // The pill's corners are its clip's (--ds-indicator-radius, 1.2.0).
     const read = () => Promise.all([item, pill].map((locator) => locator.evaluate((el) => ({
-      radius: parseFloat(getComputedStyle(el).borderTopLeftRadius),
+      radius: parseFloat(el.classList.contains('ds-indicator') ? getComputedStyle(el).getPropertyValue('--ds-indicator-radius') : getComputedStyle(el).borderTopLeftRadius),
       transform: `${getComputedStyle(el).transform} ${getComputedStyle(el).translate} ${getComputedStyle(el).scale}`,
     }))));
     await item.scrollIntoViewIfNeeded();
@@ -1168,7 +1175,7 @@ test.describe('drawer', () => {
     const seen = await page.evaluate(() => window.fxDrawerClick);
     expect(seen.pressed, 'the item is still pressed during the click').toBe(true);
     expect(seen.current).toBe('page');
-    expect(seen.properties.split(/,\s*/)).toEqual(expect.arrayContaining(['transform', 'width', 'height', 'border-radius']));
-    expect(seen.running).toContain('transform');
+    expect(seen.properties.split(/,\s*/)).toEqual(expect.arrayContaining(['--ds-indicator-t', '--ds-indicator-b', '--ds-indicator-radius']));
+    expect(seen.running).toEqual(expect.arrayContaining(['--ds-indicator-t', '--ds-indicator-b']));
   });
 });

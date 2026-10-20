@@ -353,10 +353,30 @@
   }
 
   /* App frame */
+  /* The pages of the view swap demo (App frame). */
+  var SWAP_PAGES = [
+    ['Devices', 'Every laptop and desktop, synced nightly.'],
+    ['Tickets', 'Three open, one waiting for a part.'],
+    ['Owners', 'Forty-two people in six teams.'],
+  ];
+
+  function swapPage(index) {
+    var page = SWAP_PAGES[index % SWAP_PAGES.length];
+    return '<div class="sg-swap-page"><h4 class="ds-card__title">' + page[0] + '</h4><p class="ds-muted">' + page[1] + '</p></div>';
+  }
+
   function frame() {
-    return section('frame', 'App frame', 'This page is the frame: a top bar and a navigation drawer on the backdrop, one white panel that scrolls. Below 900px the drawer becomes a modal sheet (use the menu button). The sliding pill follows the section you read; press and hold a drawer item or a segmented option and it turns squarer, then springs back.',
-      card('Segmented switch', '<div class="sg-row"><nav class="ds-segmented" id="sg-segmented" aria-label="Mode" style="margin-left:0"><a class="ds-segmented__option" href="#frame" aria-current="true">Live</a><a class="ds-segmented__option" href="#frame">Admin</a><a class="ds-segmented__option" href="#frame">Reports</a></nav></div>' +
-        '<p class="ds-muted">The tint glides between options (DS.indicator); the current option is also set in the label weight.</p>') +
+    var segment = function (text, current) {
+      return '<a class="ds-segmented__option" href="#frame" data-label="' + text + '"' + (current ? ' aria-current="true"' : '') + '>' + text + '</a>';
+    };
+    return section('frame', 'App frame', 'This page is the frame: a top bar and a navigation drawer on the backdrop, one white panel that scrolls. Below 900px the drawer becomes a modal sheet (use the menu button): it opens on the spring and closes accelerating, and crossing 900px never slides it. Scroll the page and the top bar tints with the hairline under it. The sliding pill follows the section you read; press and hold a drawer item or a segmented option and it turns squarer, then springs back.',
+      card('Segmented switch', '<div class="sg-row"><nav class="ds-segmented" id="sg-segmented" aria-label="Mode" style="margin-left:0">' + segment('Live', true) + segment('Admin') + segment('Reports') + '</nav></div>' +
+        '<p class="ds-muted">The tint glides between options (DS.indicator) and the labels change colour while it arrives; the current option is also set in the label weight. data-label keeps the width of the heavier weight, so the switch never changes width.</p>') +
+      card('Drawer and view', '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="drawer-toggle" aria-pressed="false">View without the drawer</button><button class="ds-btn ds-btn--sm" type="button" data-sg="swap-view">Swap the view</button></div>' +
+        '<div class="sg-stage sg-swap-stage"><div class="sg-swap-view" id="sg-swap-view">' + swapPage(0) + '</div></div>' +
+        '<p class="ds-muted">Without the drawer the panel takes the width; when the drawer comes back it slides in from the left (DS.motion.enter(drawer)). The swap fades the view\'s children out (.ds-view--leaving), waits for that fade, replaces the content and lets it enter (swap); pressing again during a swap ends on the latest view.</p>' +
+        '<pre class="sg-code">const modal = matchMedia(\'(max-width: 900px)\');\nmodal.addEventListener(\'change\', () =&gt; {\n  drawer.classList.add(\'ds-drawer--instant\');\n  if (!modal.matches) {\n    app.removeAttribute(\'data-drawer-open\');\n    document.body.classList.remove(\'ds-no-scroll\');\n  }\n  requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt;\n    drawer.classList.remove(\'ds-drawer--instant\')));\n});</pre>' +
+        '<p class="ds-muted">The breakpoint snippet this page runs: the drawer turns modal (or back) in place, and a modal drawer that a wider window no longer shows is closed.</p>') +
       card('Markup', '<pre class="sg-code">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
   }
 
@@ -367,11 +387,15 @@
       card('Enter and leave', '<div class="sg-stage"><div class="ds-card sg-stage__card" id="sg-motion-card"><h3 class="ds-card__title">A card</h3><p class="ds-muted">Plays the chosen entrance or exit.</p></div></div>' +
         '<div class="sg-row">' + ['', 'fade', 'scale', 'slide', 'swap'].map(function (v) { return '<button class="ds-btn ds-btn--sm" type="button" data-enter="' + v + '">enter' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>' +
         '<div class="sg-row">' + ['', 'sink', 'scale', 'slide', 'pop'].map(function (v) { return '<button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-leave="' + v + '">leave' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>') +
-      card('Stagger, count, indicator', '<div class="sg-stage"><div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div></div>' +
+      card('Stagger and count', '<div class="sg-stage"><div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div></div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stagger">Stagger</button><button class="ds-btn ds-btn--sm" type="button" data-sg="fill">Fill as bars</button><button class="ds-btn ds-btn--sm" type="button" data-sg="count">Count up the tiles</button></div>' +
-        '<div class="ds-progress sg-count-progress" id="sg-count-progress" style="--ds-progress:.6"><div class="ds-progress__track" role="progressbar" aria-label="Share counted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><div class="ds-progress__bar"></div></div><p class="ds-progress__label" id="sg-count-figure">60%</p><p class="ds-progress__detail">figure and bar land together</p></div>' +
-        '<div class="sg-track" id="sg-track"><button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Month</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Year</button></div>') +
+        '<div class="ds-progress sg-count-progress" id="sg-count-progress" style="--ds-progress:.6"><div class="ds-progress__track" role="progressbar" aria-label="Share counted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><div class="ds-progress__bar"></div></div><p class="ds-progress__label" id="sg-count-figure">60%</p><p class="ds-progress__detail">figure and bar land together</p></div>') +
       '</div>' +
+      card('Indicator', '<p class="ds-muted">The pill stretches toward its target (the leading edge leads, the trailing edge follows), passes it by a hair and settles on the spring; a longer jump takes longer, up to a cap. It follows aria-pressed by itself: the buttons below only change the attribute. A new target mid-glide continues from where the pill is.</p>' +
+        '<div class="sg-track" id="sg-track">' + ['Day', 'Week', 'Month', 'Quarter', 'Year', 'All time'].map(function (name, index) {
+          return '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="' + (index ? 'false' : 'true') + '">' + name + '</button>';
+        }).join('') + '</div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-hop">Hop to the neighbour</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-jump">Jump across</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-interrupt">Interrupt (two targets 80ms apart)</button><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="track-clear" aria-pressed="false">No active item</button></div>') +
       card('Data motion', '<p class="ds-muted">A keyed list re-rendered with DS.dom.morphHtml inside DS.motion.flip: rows glide to their new places, new rows fade in, removed rows fade out of the flow. Typing filters on every keystroke. The live feed reorders every 1.5s; while the mouse is over the list or a row has focus, values change at once and the reorder waits (at most 2s).</p>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="data-add">' + icon('plus', 16) + 'Add</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-remove">Remove</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-shuffle">Shuffle</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-sort">Sort by load</button><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="data-live" aria-pressed="false">Live feed</button></div>' +
         '<div class="ds-field sg-data-filter"><label class="ds-field__label" for="sg-data-filter">Filter</label><input class="ds-input" id="sg-data-filter" type="search" autocomplete="off" placeholder="Device name"></div>' +
@@ -513,12 +537,16 @@
   var segmented = null;
   var track = null;
 
+  /* The indicators follow aria-current and aria-pressed by themselves
+     (their MutationObserver): no update() after a change. */
   function setActive(id) {
     $$('.ds-drawer__item').forEach(function (a) {
-      if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'page');
-      else a.removeAttribute('aria-current');
+      if (a.getAttribute('href') === '#' + id) {
+        if (a.getAttribute('aria-current') !== 'page') a.setAttribute('aria-current', 'page');
+      } else if (a.hasAttribute('aria-current')) {
+        a.removeAttribute('aria-current');
+      }
     });
-    if (indicator) indicator.update();
   }
 
   function openDrawer(open) {
@@ -527,6 +555,49 @@
     $('[data-sg="menu"]').setAttribute('aria-expanded', String(open));
     document.body.classList.toggle('ds-no-scroll', open);
     if (open) $('#sg-drawer').focus();
+  }
+
+  /* Scroll-spy with a programmatic smooth scroll: a drawer link sets its
+     item current at once and mutes the spy until the scroll ends, so the
+     pill does not walk through every section on the way. The end is
+     scrollend where it exists (Progressive), else a quiet period without
+     scroll events (--ds-dur-fast) that each scroll event restarts. The
+     period only starts with the first scroll event (a busy page may start
+     the smooth scroll late), and a link to where the view already is mutes
+     nothing, since no scroll follows. */
+  var navigating = false;
+  var quietTimer = 0;
+
+  /** Whether scrolling `section` to the top of the view moves the view. */
+  function scrollsTo(section) {
+    var margin = parseFloat(getComputedStyle(section).scrollMarginTop) || 0;
+    var top = section.getBoundingClientRect().top - view.getBoundingClientRect().top - view.clientTop - margin + view.scrollTop;
+    var target = Math.max(0, Math.min(view.scrollHeight - view.clientHeight, top));
+    return Math.abs(target - view.scrollTop) >= 1;
+  }
+
+  function stopNavigating() {
+    navigating = false;
+    clearTimeout(quietTimer);
+  }
+
+  function waitForQuiet() {
+    clearTimeout(quietTimer);
+    quietTimer = setTimeout(stopNavigating, M.motionDuration(view, '--ds-dur-fast'));
+  }
+
+  /* The breakpoint snippet of docs/components.md: crossing 900px changes
+     the drawer in place (no slide, no scrim fade) and closes a modal
+     drawer that the wider window no longer shows. */
+  function setupBreakpoint() {
+    var drawer = $('#sg-drawer');
+    modal.addEventListener('change', function () {
+      drawer.classList.add('ds-drawer--instant');
+      if (!modal.matches && app.hasAttribute('data-drawer-open')) openDrawer(false);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () { drawer.classList.remove('ds-drawer--instant'); });
+      });
+    });
   }
 
   function setupNavigation() {
@@ -539,6 +610,7 @@
     var visible = {};
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
+      if (navigating) return;
       var first = $$('.sg-section').filter(function (s) { return visible[s.id]; })[0];
       if (first) setActive(first.id);
     }, { root: view, rootMargin: '0px 0px -60% 0px' });
@@ -547,17 +619,24 @@
     view.addEventListener('scroll', function () {
       if (view.scrollTop > 0) app.setAttribute('data-scrolled', '');
       else app.removeAttribute('data-scrolled');
+      if (navigating && !('onscrollend' in view)) waitForQuiet();
     }, { passive: true });
+    if ('onscrollend' in view) view.addEventListener('scrollend', function () { if (navigating) stopNavigating(); });
 
     $('#sg-nav').addEventListener('click', function (event) {
       var link = event.target.closest('a');
       if (!link) return;
       event.preventDefault();
-      var target = $(link.getAttribute('href'));
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      history.replaceState(null, '', link.getAttribute('href'));
+      var id = link.getAttribute('href').slice(1);
+      var section = $('#' + id);
+      setActive(id);
+      stopNavigating();
+      navigating = scrollsTo(section);
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + id);
       if (modal.matches) openDrawer(false);
     });
+    setupBreakpoint();
     $('[data-sg="menu"]').addEventListener('click', function () { openDrawer(!app.hasAttribute('data-drawer-open')); });
     $('[data-sg="close-drawer"]').addEventListener('click', function () { openDrawer(false); });
     document.addEventListener('keydown', function (event) {
@@ -570,16 +649,85 @@
       if (!option) return;
       event.preventDefault();
       $$('.ds-segmented__option', this).forEach(function (o) { if (o === option) o.setAttribute('aria-current', 'true'); else o.removeAttribute('aria-current'); });
-      segmented.update();
     });
 
     track = DS.indicator.createIndicator($('#sg-track'), { active: '[aria-pressed="true"]', className: 'sg-track__indicator' });
     $('#sg-track').addEventListener('click', function (event) {
       var button = event.target.closest('button');
-      if (!button) return;
-      $$('button', this).forEach(function (b) { b.setAttribute('aria-pressed', String(b === button)); });
-      track.update();
+      if (button) pressTrack($$('#sg-track > button').indexOf(button));
     });
+  }
+
+  /* The indicator demo: the track's options and the one shown before "No
+     active item" cleared it. */
+  var trackLast = 0;
+  var trackTimer = 0;
+
+  function pressTrack(index) {
+    clearTimeout(trackTimer);
+    var clear = $('[data-sg="track-clear"]');
+    if (clear) clear.setAttribute('aria-pressed', 'false');
+    $$('#sg-track > button').forEach(function (b, i) { b.setAttribute('aria-pressed', String(i === index)); });
+    if (index >= 0) trackLast = index;
+  }
+
+  function trackDemo(action, button) {
+    var count = $$('#sg-track > button').length;
+    if (action === 'track-hop') pressTrack(trackLast + 1 < count ? trackLast + 1 : trackLast - 1);
+    if (action === 'track-jump') pressTrack(trackLast < count / 2 ? count - 1 : 0);
+    if (action === 'track-interrupt') {
+      // The second target 80ms later (slowed down with ?speed=), while the
+      // first glide still runs: the pill turns from where it is.
+      var far = trackLast < count / 2 ? count - 1 : 0;
+      var middle = Math.floor(count / 2);
+      pressTrack(far);
+      trackTimer = setTimeout(function () { pressTrack(middle); }, speed > 0 && speed < 1 ? 80 / speed : 80);
+    }
+    if (action === 'track-clear') {
+      if (button.getAttribute('aria-pressed') === 'true') {
+        pressTrack(trackLast);
+      } else {
+        pressTrack(-1);
+        button.setAttribute('aria-pressed', 'true');
+      }
+    }
+  }
+
+  /* Drawer and view demos (App frame). */
+  var swapRun = 0;
+  var swapIndex = 0;
+
+  /* The documented swap sequence (docs/components.md, App frame): fade the
+     children out, wait for that fade, replace, and let the new content
+     enter in the same task; a newer swap takes over. */
+  function swapView() {
+    var target = $('#sg-swap-view');
+    var run = swapRun += 1;
+    swapIndex += 1;
+    target.classList.add('ds-view--leaving');
+    M.settled(target.firstElementChild, { event: 'transitionend', property: 'opacity' }).then(function () {
+      if (run !== swapRun) return;
+      target.innerHTML = swapPage(swapIndex);
+      target.classList.remove('ds-view--leaving');
+      M.enter(target.firstElementChild, 'swap');
+    });
+  }
+
+  function toggleDrawer(button) {
+    var drawer = $('#sg-drawer');
+    var hide = button.getAttribute('aria-pressed') !== 'true';
+    button.setAttribute('aria-pressed', String(hide));
+    if (hide) {
+      if (app.hasAttribute('data-drawer-open')) openDrawer(false);
+      // Docked, the drawer fades out first; then the view has none.
+      if (modal.matches) app.setAttribute('data-drawer-hidden', '');
+      else M.leave(drawer, '', { then: 'hide' }).then(function () { if (button.getAttribute('aria-pressed') === 'true') app.setAttribute('data-drawer-hidden', ''); });
+      return;
+    }
+    app.removeAttribute('data-drawer-hidden');
+    // A view that has the drawer again: it slides in from the left.
+    if (modal.matches) drawer.hidden = false;
+    else M.enter(drawer);
   }
 
   /* ── Demo behaviours ──────────────────────────────────────────────── */
@@ -714,6 +862,9 @@
       }
       if (action === 'count') countMore();
       if (action && action.indexOf('data-') === 0) dataAction(action, el);
+      if (action && action.indexOf('track-') === 0) trackDemo(action, el);
+      if (action === 'drawer-toggle') toggleDrawer(el);
+      if (action === 'swap-view') swapView();
       if (action === 'toggle' || action === 'dense') el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
       if (action === 'dense') $('#sg-table').classList.toggle('ds-table--dense', el.getAttribute('aria-pressed') === 'true');
       if (action === 'progress') {

@@ -5,7 +5,7 @@
     "pseudoElement": null,
     "duration": 200,
     "delay": 0,
-    "easing": "cubic-bezier(0.3, 0, 1, 1)",
+    "easing": "cubic-bezier(0.3, 0, 0.8, 0.15)",
     "keyframeEasing": "linear",
     "iterations": 1,
     "direction": "normal",

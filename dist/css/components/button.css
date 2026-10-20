@@ -13,7 +13,11 @@
  *   .ds-btn--sm              compact (tables, card headers, banners); with
  *                            --icon a 32px round button
  *   [aria-pressed="true"]    a toggle that is on: the tint, plus the
- *                            attribute, so it is not told by colour alone
+ *                            attribute, so it is not told by colour alone;
+ *                            in a track with a sliding indicator
+ *                            (.ds-has-indicator) the pill paints it: the
+ *                            button stays clear and its label changes
+ *                            colour on the pill's timing
  *
  * Faces: a button whose label changes while it works (DS.motion.busy())
  * stacks every label it can show in one grid cell, so it is as wide as the
@@ -413,6 +417,41 @@
     --ds-btn-bg: var(--ds-accent);
     --ds-btn-color: var(--ds-on-accent);
     --ds-btn-hover-color: var(--ds-on-accent);
+  }
+
+  /* Toggles in a track with a sliding indicator (js/indicator.js): the pill
+     paints the selection. A tint of its own would appear in place while the
+     pill still travels (two pills at once), so the button stays clear and
+     only its label changes colour, on the pill's timing (--ds-indicator-dur
+     on the track). The pressed twin keeps the colour entry: a clicked toggle
+     is still pressed (.ds-pressed outlives the click) while its pill
+     arrives. Forced colors keep the selection colours below. */
+  .ds-has-indicator > .ds-btn[aria-pressed="true"] {
+    --ds-btn-border: transparent;
+    --ds-btn-bg: transparent;
+  }
+
+  .ds-has-indicator > .ds-btn {
+    transition:
+      border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      color var(--ds-indicator-dur, var(--ds-dur-medium)) var(--ds-ease-in-out),
+      box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-has-indicator > .ds-btn:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .ds-btn--done),
+  .ds-has-indicator > .ds-btn.ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"], .ds-btn--done) {
+    transition:
+      border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      color var(--ds-indicator-dur, var(--ds-dur-medium)) var(--ds-ease-in-out),
+      box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      border-radius var(--ds-dur-micro) var(--ds-ease-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   /* Forced colors turn the tint into Canvas, so on would look like off: the

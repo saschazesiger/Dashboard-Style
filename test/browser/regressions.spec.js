@@ -380,7 +380,6 @@ test.describe('fixed in P3', () => {
 
 test.describe('fixed in P4', () => {
   test('DS.motion.enter(drawer) slides in along the x axis only', async ({ page }) => {
-    test.fail(true, 'layout-drawer-enter-axis, repo-drawer-enter-axis: fixed in P4');
     await page.setViewportSize({ width: 1000, height: 800 });
     await open(page, 'shell.html');
     const drawer = page.locator('#drawer');
@@ -393,26 +392,46 @@ test.describe('fixed in P4', () => {
     expect(dx[0]).toBeLessThan(-1);
   });
 
-  test('resizing from 1000px to 800px starts no transition on the drawer', async ({ page }) => {
-    test.fail(true, 'layout-drawer-resize-slide: fixed in P4');
+  test('resizing from 1000px to 800px does not slide the drawer', async ({ page }) => {
     await page.setViewportSize({ width: 1000, height: 800 });
     await open(page, 'shell.html');
     // Recorded by event: WebKit runs the transition but does not always list
     // it in getAnimations() a frame later, so polling would miss it there.
+    // Chromium starts the transitions in the layout of the new size, before
+    // any script runs; the snippet's .ds-drawer--instant (matchMedia change,
+    // in the same rendering step) cancels them before the first frame, so
+    // every run must be cancelled, none may end, and every frame at the new
+    // width already shows the drawer at rest. Firefox and WebKit start none.
     await page.locator('#drawer').evaluate((el) => {
       window.drawerTransitions = [];
-      el.addEventListener('transitionrun', (event) => {
-        if (event.target === el) window.drawerTransitions.push(event.propertyName);
-      });
+      window.drawerFrames = [];
+      for (const type of ['transitionrun', 'transitionend', 'transitioncancel']) {
+        el.addEventListener(type, (event) => {
+          if (event.target === el) window.drawerTransitions.push(`${type} ${event.propertyName}`);
+        });
+      }
+      const frame = () => {
+        if (innerWidth <= 900) window.drawerFrames.push(getComputedStyle(el).transform);
+        if (window.drawerFrames.length < 12) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
     });
     await page.setViewportSize({ width: 800, height: 800 });
     await frames(page);
     await page.waitForTimeout(300);
-    expect(await page.evaluate(() => window.drawerTransitions)).toEqual([]);
+    const events = await page.evaluate(() => window.drawerTransitions);
+    const runs = events.filter((event) => event.startsWith('transitionrun ')).map((event) => event.split(' ')[1]).sort();
+    const cancels = events.filter((event) => event.startsWith('transitioncancel ')).map((event) => event.split(' ')[1]).sort();
+    expect(events.filter((event) => event.startsWith('transitionend '))).toEqual([]);
+    expect(cancels).toEqual(runs);
+    const rest = await page.locator('#drawer').evaluate((el) => getComputedStyle(el).transform);
+    expect(rest).not.toBe('none');
+    const seen = await page.evaluate(() => window.drawerFrames);
+    expect(seen.length).toBeGreaterThan(3);
+    expect(seen).toEqual(seen.map(() => rest));
   });
 
   test('the indicator follows its item when the active label grows and when an earlier item gets a badge', async ({ page }) => {
-    test.fail(true, 'controls-indicator-item-resize: fixed in P4');
     await open(page, 'controls.html');
     const offset = (selector) => page.evaluate((active) => {
       const indicator = document.querySelector(`${active.track} > .ds-indicator`).getBoundingClientRect();

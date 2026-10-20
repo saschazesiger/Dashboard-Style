@@ -198,8 +198,13 @@ Only floating layers cast shadows; hierarchy comes from hairlines, tonal surface
 
 Component hooks are listed in [theming.md](theming.md#component-hooks). Component-internal (set by the component, not a
 hook): `--ds-btn-half`, half a button's height (`--ds-btn-height`, or `--ds-btn-icon-size` on `--icon`), the
-largest radius a pill shows, so the press morph interpolates over its whole run instead of from 9999px. Properties set at runtime (by `js/` or by the
+largest radius a pill shows, so the press morph interpolates over its whole run instead of from 9999px;
+`--ds-indicator-ease-t`, `--ds-indicator-ease-r`, `--ds-indicator-ease-b`, `--ds-indicator-ease-l`, the curve of each
+clip edge of the sliding indicator (its `data-dir` rules put the trailing edge on `--ds-ease-in-out`). Properties set at runtime (by `js/` or by the
 page) are listed with their component in [components.md](components.md) and [motion.md](motion.md): `--ds-i`,
-`--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h`, `--ds-progress`, `--ds-toast-left`,
-`--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`, and the per-element motion settings `--ds-motion-distance`,
-`--ds-motion-scale`, `--ds-draw-length`, `--ds-enter-*`, `--ds-leave-*`, `--ds-scan-*`, `--ds-ripple-*`.
+`--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h` (the indicator's box), `--ds-indicator-t`,
+`--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l` (its clip edges), `--ds-indicator-radius` (its corners, copied
+from a project class's `border-radius` when no class sets it), `--ds-indicator-dur` (the travel time, on the track),
+`--ds-progress`, `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`,
+and the per-element motion settings `--ds-motion-distance`, `--ds-motion-scale`, `--ds-draw-length`, `--ds-enter-*`,
+`--ds-leave-*`, `--ds-scan-*`, `--ds-ripple-*`, `--ds-indicator-lag` (themes never set these).

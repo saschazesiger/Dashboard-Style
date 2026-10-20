@@ -156,6 +156,8 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-switch-halo` | 40px | the halo around the switch handle |
 | `--ds-switch-disabled-track`, `--ds-switch-disabled-handle` | `--ds-disabled-fill`, `--ds-disabled-ink` | disabled switch track (and border) and off handle |
 | `--ds-drawer-item-height` | 48px | drawer item (its rest radius is half of it, so the press morph runs its whole way) |
+| `--ds-topbar-scrolled-bg` | `--ds-surface-high` | top bar while the view is scrolled (`data-scrolled`); `transparent` keeps a flat bar |
+| `--ds-view-scrollbar-gutter` | `stable` | the view's scrollbar gutter: `stable both-edges` (symmetric) or `auto` (no reserved room) |
 | `--ds-card-padding` | `--ds-space-6` | card padding |
 | `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
 | `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
@@ -172,9 +174,13 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not
 set it. Runtime properties (set by scripts, not themes) are documented with their components: `--ds-progress`
 ([progress](components.md#progress)), `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`,
-`--ds-toast-shift-y`, `--ds-toast-reserve` ([snackbar](components.md#snackbar)), `--ds-i` and the indicator's
-position ([motion](motion.md)), and
-`--ds-drawer-icon-axis` (set by `.ds-app--drawer`, aligns the brand with the drawer icons).
+`--ds-toast-shift-y`, `--ds-toast-reserve` ([snackbar](components.md#snackbar)), `--ds-i`, the indicator's box
+(`--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h`), its clip edges (`--ds-indicator-t`,
+`--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l`) and its travel time on the track (`--ds-indicator-dur`)
+([motion](motion.md#dsindicator-jsindicatorjs)), and `--ds-drawer-icon-axis` (set by `.ds-app--drawer`, aligns the
+brand with the drawer icons). The pill's corners, `--ds-indicator-radius`, belong to the indicator's class (the
+drawer's sets half the item height); the property does not inherit, so set it on that class, never on `.ds-theme`.
+`--ds-indicator-lag` is a motion hook: themes never set it.
 
 ## Checking a theme
 
