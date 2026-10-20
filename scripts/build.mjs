@@ -6,8 +6,10 @@
  *   node scripts/build.mjs --check   exit 1 if dist/ is not what src/ builds
  *
  * dist/ holds everything a project needs, so it can be vendored alone:
- *   ds.css          every stylesheet in cascade order (src/index.css inlined)
- *   ds.js           classic script: window.DS = { version, motion, indicator, dom, icons }
+ *   ds.css          every stylesheet in cascade order (src/index.css inlined),
+ *                   the layer order declared once at the top
+ *   ds.js           classic script: window.DS = { version, motion, indicator, dom, icons },
+ *                   each copy also under DashboardStyle.versions[version]
  *   css/, js/       the source files (ES modules, single stylesheets)
  *   fonts/          Google Sans woff2, fonts.css, OFL.txt
  *   LICENSE         MIT notice (it must travel with every copy)
@@ -45,26 +47,90 @@ function banner(info) {
   return `/*! ${info.name} ${info.version} | ${info.license} License | ${info.homepage} */\n`;
 }
 
-/** Inlines the @import lines of a stylesheet, recursively. */
-export function inlineCss(path, seen = new Set()) {
-  if (seen.has(path)) throw new Error(`CSS import cycle at ${path}`);
-  seen.add(path);
-  return readText(path).replace(/^@import '([^']+)';\n/gm, (line, target) => {
-    const child = resolve(dirname(path), target);
-    const body = inlineCss(child, seen).trimEnd();
+/** One `@import 'x';` or `@import "x";` line, the final newline optional. */
+const IMPORT_LINE = /^@import\s+(?:'([^']+)'|"([^"]+)");[ \t]*(?:\n|$)/gm;
+
+/**
+ * Inlines the @import lines of a stylesheet, recursively. `ancestors` is
+ * the chain of files above this one (a file among them is a cycle);
+ * `inlined` holds every file inlined so far (a file imported a second time
+ * through another parent would repeat its rules). Any @import left after
+ * inlining is a form this build does not read, so it throws instead of
+ * shipping a request for a file that is not there.
+ */
+export function inlineCss(path, ancestors = [], inlined = new Set()) {
+  if (ancestors.includes(path)) throw new Error(`CSS import cycle: ${[...ancestors, path].join(' -> ')}`);
+  if (inlined.has(path)) throw new Error(`CSS duplicate import: ${path} (imported by ${ancestors.at(-1)})`);
+  inlined.add(path);
+  const chain = [...ancestors, path];
+  const css = readText(path).replace(IMPORT_LINE, (line, single, double) => {
+    const child = resolve(dirname(path), single ?? double);
+    const body = inlineCss(child, chain, inlined).trimEnd();
     return `/* ── ${posix(relative(join(ROOT, 'src'), child))} ── */\n${body}\n\n`;
+  });
+  if (/^\s*@import/m.test(css)) throw new Error(`CSS @import left after inlining in ${path}: only "@import 'file';" lines are read`);
+  return css;
+}
+
+/**
+ * Every stylesheet of src/ starts with the same `@layer ds.tokens, ...;`
+ * order statement, so a single file of dist/css/ keeps the order. Inlined
+ * into ds.css, the first one declares it; the repeats go.
+ */
+export function layerStatementOnce(css) {
+  const first = css.match(/^@layer [\w.,\- ]+;$/m);
+  if (!first) return css;
+  const head = css.slice(0, first.index + first[0].length);
+  const rest = css.slice(head.length).split(`${first[0]}\n\n`).join('').split(`${first[0]}\n`).join('');
+  return head + rest;
+}
+
+/** `import { a, b as c } from './motion.js';` on one line. */
+const SIBLING_IMPORT = /^import\s*\{([^}]*)\}\s*from\s*(?:'\.\/([\w-]+)\.js'|"\.\/([\w-]+)\.js")\s*;?[ \t]*$/;
+
+/**
+ * Rewrites the imports of one module for the classic build: a module may
+ * import named exports of a module earlier in MODULES (`import { a, b as c }
+ * from './motion.js';`, on one line), which becomes
+ * `const a = DS.motion.a, c = DS.motion.b;` inside its closure. Default,
+ * namespace and bare imports, later or unknown modules and imports over
+ * several lines throw.
+ */
+function rewriteImports(source, name) {
+  const position = MODULES.indexOf(name);
+  return source.replace(/^[ \t]*import\b.*$/gm, (line) => {
+    const statement = line.trim();
+    const match = SIBLING_IMPORT.exec(statement);
+    if (!match) {
+      if (/^import\s*\{[^}]*$/.test(statement)) throw new Error(`${name}.js: an import must sit on one line: ${statement}`);
+      if (/^import\s*\*/.test(statement)) throw new Error(`${name}.js: namespace imports are not supported: ${statement}`);
+      if (/^import\s*['"]/.test(statement)) throw new Error(`${name}.js: bare imports are not supported: ${statement}`);
+      if (/^import\s*\{/.test(statement)) throw new Error(`${name}.js: only sibling modules (./<name>.js) can be imported: ${statement}`);
+      if (/^import\s+[\w$]/.test(statement)) throw new Error(`${name}.js: default imports are not supported: ${statement}`);
+      throw new Error(`${name}.js: unsupported import: ${statement}`);
+    }
+    const from = match[2] ?? match[3];
+    const index = MODULES.indexOf(from);
+    if (index < 0) throw new Error(`${name}.js: unknown module ./${from}.js (not in MODULES)`);
+    if (index >= position) throw new Error(`${name}.js: ./${from}.js is not earlier in MODULES; import only from an earlier module`);
+    const bindings = match[1].split(',').map((part) => part.trim()).filter(Boolean).map((part) => {
+      const names = /^([\w$]+)(?:\s+as\s+([\w$]+))?$/.exec(part);
+      if (!names) throw new Error(`${name}.js: cannot read the import binding "${part}"`);
+      return `${names[2] || names[1]} = DS.${from}.${names[1]}`;
+    });
+    if (!bindings.length) throw new Error(`${name}.js: an empty import: ${statement}`);
+    return `const ${bindings.join(', ')};`;
   });
 }
 
 /**
  * Turns one ES module of src/js into a function body that returns its
- * exports. Only `export const` and `export function` are allowed, and no
- * imports: the modules are independent on purpose.
+ * exports. Only `export const` and `export function` are allowed; imports
+ * only from an earlier module (rewriteImports).
  */
 export function moduleBody(source, name) {
-  if (/^\s*import\s/m.test(source)) throw new Error(`${name}.js: imports are not allowed`);
   const exports = [];
-  const body = source.replace(/^export (const|function) ([\w$]+)/gm, (match, kind, id) => {
+  const body = rewriteImports(source, name).replace(/^export (const|function) ([\w$]+)/gm, (match, kind, id) => {
     exports.push(id);
     return `${kind} ${id}`;
   });
@@ -81,14 +147,31 @@ export function buildJs(info) {
  * DS.indicator, DS.dom and DS.icons hold the same exports as the ES modules
  * in js/. Generated by scripts/build.mjs; do not edit.
  * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
+ *
+ * Two copies on one page (a host page and an embedded widget): every copy
+ * registers itself in DashboardStyle.versions[version]. window.DS is set
+ * only when it is absent or holds the same version, so the first copy
+ * keeps it; a second copy of the same version does nothing, one of another
+ * version warns once and leaves DS alone. A widget reads
+ * DashboardStyle.versions['<its version>'] || DS.
  */
 (function (root) {
   'use strict';
-  var DS = root.DS || {};
-  DS.version = '${info.version}';
+  var version = '${info.version}';
+  var registry = root.DashboardStyle || (root.DashboardStyle = {});
+  var versions = registry.versions || (registry.versions = {});
+  if (versions[version]) return;
+  var DS = { version: version };
 
 ${parts.join('\n')}
-  root.DS = DS;
+  versions[version] = DS;
+  var current = root.DS;
+  var warn = function (message) {
+    if (root.console && typeof root.console.warn === 'function') root.console.warn(message);
+  };
+  if (current === undefined || current === null || (typeof current === 'object' && current.version === version)) root.DS = DS;
+  else if (typeof current.version === 'string') warn('Dashboard-Style ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is DashboardStyle.versions[\\'' + version + '\\'].');
+  else warn('Dashboard-Style ' + version + ': window.DS already holds something else; it is left alone, this copy is DashboardStyle.versions[\\'' + version + '\\'].');
 })(typeof globalThis !== 'undefined' ? globalThis : this);
 `;
 }
@@ -99,7 +182,7 @@ export function build() {
   const out = new Map();
   const text = (path, value) => out.set(path, Buffer.from(value, 'utf8'));
 
-  text('ds.css', `${banner(info)}${inlineCss(join(ROOT, 'src/index.css')).trimEnd()}\n`);
+  text('ds.css', `${banner(info)}${layerStatementOnce(inlineCss(join(ROOT, 'src/index.css'))).trimEnd()}\n`);
   text('ds.js', buildJs(info));
 
   for (const file of filesIn(join(ROOT, 'src'))) {

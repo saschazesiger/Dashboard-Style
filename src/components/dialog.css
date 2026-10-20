@@ -2,7 +2,8 @@
  * Dialog (confirmation): a modal sheet over the whole window, above an open
  * side sheet (it may ask from inside one) and below snackbars. It enters
  * with a fading scrim and a sheet that rises from just below full size; it
- * leaves faster than it came. No blur, no spring.
+ * leaves faster than it came, fading and dropping a little. No blur, no
+ * spring.
  *
  *   <div class="ds-dialog">
  *     <div class="ds-dialog__backdrop" data-close></div>
@@ -13,8 +14,12 @@
  *         <button class="ds-btn ds-btn--text" type="button">Cancel</button>
  *         <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
  *
- *   .ds-dialog--hidden     not shown (or use the hidden attribute)
- *   .ds-dialog--closing    plays the exit; remove or hide after animationend
+ *   .ds-dialog--hidden     not shown (or use the hidden attribute; it works
+ *                          without .ds-base)
+ *   .ds-dialog--closing    plays the exit; remove or hide after animationend.
+ *                          The box ignores the pointer during the exit, the
+ *                          backdrop still catches clicks, so nothing reaches
+ *                          the page under it.
  *   .ds-dialog--contained  covers its positioned container instead of the
  *                          window (a dialog inside an embedded panel)
  *
@@ -25,92 +30,98 @@
  * shadow and scrim are gone), --ds-dialog-shadow.
  */
 
-.ds-dialog {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: var(--ds-z-dialog);
-  display: grid;
-  place-items: center;
-  padding: var(--ds-space-4);
-}
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-.ds-dialog--contained {
-  position: absolute;
-  z-index: var(--ds-z-popover);
-}
+@layer ds.components {
+  .ds-dialog {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: var(--ds-z-dialog);
+    display: grid;
+    place-items: center;
+    padding: var(--ds-space-4);
+  }
 
-.ds-dialog--hidden {
-  display: none;
-}
+  .ds-dialog--contained {
+    position: absolute;
+    z-index: var(--ds-z-popover);
+  }
 
-.ds-dialog__backdrop {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: var(--ds-scrim);
-  animation: ds-fade-in var(--ds-dur-base) var(--ds-ease-in-out) backwards;
-}
+  .ds-dialog--hidden,
+  .ds-dialog[hidden] {
+    display: none;
+  }
 
-.ds-dialog__box {
-  position: relative;
-  width: min(var(--ds-dialog-width, 400px), 100%);
-  max-height: 100%;
-  overflow-y: auto;
-  padding: var(--ds-space-6);
-  display: grid;
-  gap: var(--ds-space-4);
-  border: var(--ds-dialog-border, 1px solid transparent);
-  border-radius: var(--ds-radius-dialog);
-  background: var(--ds-surface);
-  box-shadow: var(--ds-dialog-shadow, var(--ds-elev-overlay));
-  text-align: left;
-  animation:
-    ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
-    ds-grow-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
-}
+  .ds-dialog__backdrop {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: var(--ds-scrim);
+    animation: ds-fade-in var(--ds-dur-base) var(--ds-ease-in-out) backwards;
+  }
 
-.ds-dialog--closing {
-  pointer-events: none;
-}
+  .ds-dialog__box {
+    position: relative;
+    width: min(var(--ds-dialog-width, 400px), 100%);
+    max-height: 100%;
+    overflow-y: auto;
+    padding: var(--ds-space-6);
+    display: grid;
+    gap: var(--ds-space-4);
+    border: var(--ds-dialog-border, 1px solid transparent);
+    border-radius: var(--ds-radius-dialog);
+    background: var(--ds-surface);
+    box-shadow: var(--ds-dialog-shadow, var(--ds-elev-overlay));
+    text-align: left;
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
+      ds-grow-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
+  }
 
-.ds-dialog--closing .ds-dialog__backdrop {
-  animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) forwards;
-}
+  .ds-dialog--closing .ds-dialog__backdrop {
+    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) forwards;
+  }
 
-.ds-dialog--closing .ds-dialog__box {
-  --ds-motion-distance: var(--ds-distance-sm);
-  animation: ds-sink-out var(--ds-dur-fast) var(--ds-ease-in) forwards;
-}
+  /* Only the box lets clicks through while it leaves; the backdrop swallows
+     them until the dialog is hidden or removed. */
+  .ds-dialog--closing .ds-dialog__box {
+    --ds-motion-distance: var(--ds-distance-sm);
+    pointer-events: none;
+    animation:
+      ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) forwards,
+      ds-drop-out var(--ds-dur-fast) var(--ds-ease-in) forwards;
+  }
 
-.ds-dialog__title {
-  margin: 0;
-  color: var(--ds-text);
-  font: var(--ds-font-title);
-  letter-spacing: 0;
-  overflow-wrap: anywhere;
-}
+  .ds-dialog__title {
+    margin: 0;
+    color: var(--ds-text);
+    font: var(--ds-font-title);
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+  }
 
-.ds-dialog__text {
-  margin: 0;
-  color: var(--ds-text-2);
-  font: var(--ds-font-body);
-}
+  .ds-dialog__text {
+    margin: 0;
+    color: var(--ds-text-2);
+    font: var(--ds-font-body);
+  }
 
-/* The title and its text belong together. */
-.ds-dialog__title + .ds-dialog__text {
-  margin-top: calc(-1 * var(--ds-space-2));
-}
+  /* The title and its text belong together. */
+  .ds-dialog__title + .ds-dialog__text {
+    margin-top: calc(-1 * var(--ds-space-2));
+  }
 
-.ds-dialog__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--ds-space-2);
-  margin-top: var(--ds-space-2);
+  .ds-dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--ds-space-2);
+    margin-top: var(--ds-space-2);
+  }
 }

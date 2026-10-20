@@ -26,21 +26,14 @@
 
   /* ── Slow motion: ?speed=<factor> ─────────────────────────────────── */
 
-  // Interim bridge until a time-scale token exists: every animation and
-  // transition plays at `factor`. The capture-phase listeners catch CSS
-  // motion as it starts; the sweep each frame also catches el.animate().
-  // JS timing (timeouts, countUp) keeps its pace.
+  // --ds-time-scale multiplies every duration and delay token: at
+  // ?speed=0.1 it is 10 on the root .ds-theme element (<html>), so CSS
+  // motion and everything DS.motion times from the tokens run ten times
+  // slower. Only the styleguide and the tests set it.
   var speed = Number(new URLSearchParams(location.search).get('speed'));
   if (speed > 0 && speed < 1) {
     document.documentElement.setAttribute('data-sg-speed', String(speed));
-    var slow = function () {
-      document.getAnimations().forEach(function (animation) {
-        if (animation.playbackRate !== speed) animation.playbackRate = speed;
-      });
-    };
-    document.addEventListener('animationstart', slow, true);
-    document.addEventListener('transitionrun', slow, true);
-    (function sweep() { slow(); requestAnimationFrame(sweep); }());
+    document.documentElement.style.setProperty('--ds-time-scale', String(1 / speed));
   }
 
   /* ── Sections ─────────────────────────────────────────────────────── */
@@ -294,7 +287,7 @@
 
   /* Loading and progress */
   function loading() {
-    return section('loading', 'Loading and progress', 'Fast loads show nothing: indicators fade in after the loader delay and then stay long enough not to flicker. With reduced motion they keep running, slower.',
+    return section('loading', 'Loading and progress', 'Fast loads show nothing: indicators fade in after the loader delay and then stay long enough not to flicker. Their loops always run at their token speed.',
       '<div class="ds-grid-2">' +
       card('Spinners and loading line', '<div class="sg-row"><span class="ds-spinner" aria-hidden="true"></span><button class="ds-btn ds-btn--primary" type="button" aria-disabled="true" aria-busy="true"><span class="ds-btn__swap"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>Saving</span></button><span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Importing</span></span></div><div class="ds-loading" role="status"><span class="ds-spinner" aria-hidden="true"></span>Loading more devices ...</div>') +
       card('Progress', '<div class="ds-progress" id="sg-progress" style="--ds-progress:.4"><div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">40%</p><p class="ds-progress__detail">812 of 2,030 rows</p></div>' +
@@ -317,16 +310,16 @@
 
   /* Motion */
   function motion() {
-    return section('motion', 'Motion', 'Material curves, short distances, exits faster than entrances, nothing that bounces. Everything slows to near-instant with reduced motion, except loaders.',
+    return section('motion', 'Motion', 'Material curves for fades, a gentle spring for movement that floats, short distances, exits faster than entrances. The same motion on every device; ?speed=0.1 in the address plays it ten times slower.',
       '<div class="ds-grid-2">' +
       card('Enter and leave', '<div class="sg-stage"><div class="ds-card sg-stage__card" id="sg-motion-card"><h3 class="ds-card__title">A card</h3><p class="ds-muted">Plays the chosen entrance or exit.</p></div></div>' +
         '<div class="sg-row">' + ['', 'fade', 'scale', 'slide', 'swap'].map(function (v) { return '<button class="ds-btn ds-btn--sm" type="button" data-enter="' + v + '">enter' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>' +
-        '<div class="sg-row">' + ['', 'sink', 'scale', 'slide'].map(function (v) { return '<button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-leave="' + v + '">leave' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>') +
+        '<div class="sg-row">' + ['', 'sink', 'scale', 'slide', 'pop'].map(function (v) { return '<button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-leave="' + v + '">leave' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>') +
       card('Stagger, count, indicator', '<div class="sg-stage"><div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div></div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stagger">Stagger</button><button class="ds-btn ds-btn--sm" type="button" data-sg="fill">Fill as bars</button><button class="ds-btn ds-btn--sm" type="button" data-sg="count">Count up the tiles</button></div>' +
         '<div class="sg-track" id="sg-track"><button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Month</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Year</button></div>') +
       '</div>' +
-      card('Disclosure', '<details class="ds-collapsible"><summary>Show the motion rules</summary><ol class="ds-muted"><li>Animate only transform, opacity, colours, shadows and clip-path.</li><li>Opacity on the standard curve; entering movement decelerates, exits accelerate.</li><li>Updated data never animates; only first renders and user actions move.</li></ol></details>'));
+      card('Disclosure', '<details class="ds-collapsible"><summary>Show the motion rules</summary><ol class="ds-muted"><li>Animate only transform, opacity, colours, shadows and clip-path.</li><li>Fades on the standard curve, floating movement on a gentle spring; exits accelerate.</li><li>Updated data never animates; only first renders and user actions move.</li></ol></details>'));
   }
 
   /* Icons */
@@ -416,7 +409,7 @@
       if (!link) return;
       event.preventDefault();
       var target = $(link.getAttribute('href'));
-      target.scrollIntoView({ behavior: M.prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       history.replaceState(null, '', link.getAttribute('href'));
       if (modal.matches) openDrawer(false);
     });
@@ -517,7 +510,10 @@
       tip.hidden = false;
       var r = target.getBoundingClientRect();
       var w = tip.offsetWidth;
-      tip.style.transform = 'translate(' + Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px,' + (r.bottom + 8) + 'px)';
+      // top/left, not a transform: the entrance's scale would shrink a
+      // transform offset too and drift the tooltip in (tooltip.css).
+      tip.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+      tip.style.top = (r.bottom + 8) + 'px';
     }, delay);
   }
   function hideTip() {
@@ -535,7 +531,17 @@
       if (action === 'toast') toast('Saved. The record is visible to everyone now.');
       if (action === 'toast-error') toast('Could not save. Check the connection and try again.', true);
       if (action === 'busy') busy(el);
-      if (action === 'stagger') { var items = $$('#sg-stagger > span'); $('#sg-stagger').classList.remove('sg-fill'); M.stagger(items); items.forEach(function (i) { M.enter(i, 'scale'); }); }
+      if (action === 'stagger') {
+        // The .ds-stagger utility: each square fades in and rises 4px, one step
+        // after the other. The class goes once the last one landed, so a later
+        // entrance on a square does not hand back to it.
+        var list = $('#sg-stagger');
+        var items = $$('span', list);
+        list.classList.remove('sg-fill');
+        M.stagger(items);
+        M.replay(list, 'ds-stagger');
+        M.settled(items[items.length - 1]).then(function () { list.classList.remove('ds-stagger'); });
+      }
       if (action === 'fill') { var bars = $$('#sg-stagger > span'); $('#sg-stagger').classList.add('sg-fill'); M.stagger(bars); bars.forEach(function (i) { M.enter(i, 'fill-x'); }); }
       if (action === 'count') countTiles();
       if (action === 'toggle' || action === 'dense') el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
@@ -553,7 +559,7 @@
       if (el.hasAttribute('data-leave')) {
         var card = $('#sg-motion-card');
         M.leave(card, el.getAttribute('data-leave'), { then: 'keep' }).then(function () {
-          setTimeout(function () { card.classList.remove('ds-leave', 'ds-leave--sink', 'ds-leave--scale', 'ds-leave--slide'); M.enter(card, 'fade'); }, 400);
+          setTimeout(function () { card.classList.remove('ds-leave', 'ds-leave--sink', 'ds-leave--scale', 'ds-leave--slide', 'ds-leave--pop'); M.enter(card, 'fade'); }, 400);
         });
       }
     });

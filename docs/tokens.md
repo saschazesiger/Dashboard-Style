@@ -17,29 +17,46 @@ enforce it), so a theme reaches every value.
 
 | Token | Value | Use |
 |---|---|---|
-| `--ds-dur-instant` | 100ms | pressed state |
-| `--ds-dur-fast` | 150ms | colour and opacity of small things; exits of small things |
-| `--ds-dur-base` | 200ms | hover-out of shapes, toggles, exits of panels and dialogs |
-| `--ds-dur-medium` | 250ms | entries of menus, dialogs, snackbars; hover-in of shapes; indicator |
-| `--ds-dur-slow` | 350ms | large surfaces: side sheet, modal drawer |
+| `--ds-dur-micro` | 50ms | press-in of layers and radius, tiny ticks |
+| `--ds-dur-instant` | 100ms | pressed state, popup exits |
+| `--ds-dur-fast` | 150ms | colour, small exits (the default `.ds-leave`), focus snap |
+| `--ds-dur-base` | 200ms | toggles, exits of panels and dialogs |
+| `--ds-dur-medium` | 250ms | content entrances, small spatial movement (handle, chip, check), menu entrances |
+| `--ds-dur-slow` | 350ms | dialogs, FLIP, the indicator cap |
+| `--ds-dur-long` | 450ms | sheets, modal drawer, container transform; never routine UI |
 | `--ds-dur-glide` | 600ms | values that travel: progress, `countUp()` |
-| `--ds-ease-in-out` | `cubic-bezier(.2, 0, 0, 1)` | M3 standard: on-screen changes, hover, every opacity |
-| `--ds-ease-out` | `cubic-bezier(.05, .7, .1, 1)` | M3 emphasized decelerate: movement of entering small things |
-| `--ds-ease-in` | `cubic-bezier(.3, 0, 1, 1)` | M3 standard accelerate: everything leaving |
-| `--ds-ease-emphasized`, `--ds-ease` | `cubic-bezier(.2, 0, 0, 1)`; the exact M3 path as `linear()` where supported | large surfaces |
+| `--ds-ease-in-out` | `cubic-bezier(.2, 0, 0, 1)` | M3 standard: effects (opacity, colour), on-screen changes |
+| `--ds-ease-out` | `cubic-bezier(.05, .7, .1, 1)` | M3 emphasized decelerate: the spring's fallback, sizes that push layout (never overshoot) |
+| `--ds-ease-in` | `cubic-bezier(.3, 0, 1, 1)` | M3 standard accelerate: small exits, leaving fades |
+| `--ds-ease-exit` | `cubic-bezier(.3, 0, .8, .15)` | M3 emphasized accelerate: large surfaces leaving (movement only) |
+| `--ds-ease-emphasized` | `cubic-bezier(.2, 0, 0, 1)`; the exact M3 path as `linear()` where supported | movement that starts and ends on screen |
+| `--ds-ease-spatial` | a spring (damping ratio 0.75, peak about 1.028, settles) as `linear()` where supported; `var(--ds-ease-out)` elsewhere | every spatial movement that floats: translate, scale, clip-path |
+| `--ds-ease-value` | `var(--ds-ease-in-out)` | progress bars and `countUp()`, so figures and bars land together |
+| `--ds-ease` | `var(--ds-ease-emphasized)` | **deprecated** (removed in 2.0): use `--ds-ease-emphasized` |
 | `--ds-distance-sm`, `--ds-distance-md`, `--ds-distance-lg`, `--ds-distance-xl` | 4, 8, 12, 24px | travel of entering things (swap, default, sheet exit, sheet entry) |
 | `--ds-distance-sheet` | 100% | a sheet that covers the screen (modal drawer) |
-| `--ds-scale-enter` | .98 | start scale of dialogs and tooltips |
-| `--ds-scale-small` | .6 | start scale of badges and the disc hover of `.ds-btn--disc` |
+| `--ds-scale-enter` | .98 | start scale of content and dialogs |
+| `--ds-scale-popup` | .95 | start scale of menus and the combobox list |
+| `--ds-scale-tooltip` | .9 | start scale of tooltips |
+| `--ds-scale-small` | .6 | start scale of small markers (badges, `ds-pop-in`) |
 | `--ds-stagger` | 30ms | step between staggered items (at most six) |
 | `--ds-delay-loader` | 200ms | loading indicators wait this long (`LOADER_DELAY_MS`) |
 | `--ds-delay-boot` | 400ms | the app start screen waits this long |
 | `--ds-loop-spin`, `--ds-loop-spin-fast` | 1s, .8s | spinner / spinner in a status chip |
 | `--ds-loop-indeterminate`, `--ds-loop-pulse` | 2s, 2s | indeterminate progress / skeleton pulse |
+| `--ds-time-scale` | 1 (registered with `@property`, never declared) | slow motion: multiplies every duration, delay and loop above; set only by the styleguide and the tests, on the `.ds-theme` element or above |
 
-With `prefers-reduced-motion: reduce` every duration becomes 1ms (not 0: end events still fire), distances 0,
-`--ds-scale-enter` 1 and `--ds-stagger` 0; loops only slow down (1.4s and 2.4s), because a loader says that work is
-running. `.ds-motion-full` on the `.ds-theme` element opts a page out. Details: [motion.md](motion.md).
+Every duration, delay, loop and the stagger step is written as `calc(<value> * var(--ds-time-scale, 1))`, for example
+`calc(250ms * var(--ds-time-scale, 1))`: read them through `DS.motion` (or let the engine resolve the `calc()`), not with `parseInt`. The spring of
+`--ds-ease-spatial` is normalised to its settle time, so one curve serves every size: small controls, menus and popups
+take `--ds-dur-medium`, dialogs, FLIP and the indicator `--ds-dur-slow`, sheets, the drawer and container transforms
+`--ds-dur-long`. The overshoot (at most 5%) is the contract. `scripts/motion-curves.mjs` writes both `linear()` values
+(`node scripts/motion-curves.mjs`; `--check` runs in `npm run check`). Themes never set motion tokens: motion is one
+scheme for every product, and `DS.motion` reads the computed tokens.
+
+Motion is the same on every device (no media-query switch), and loops always run at their token speed.
+The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`, `--ds-draw-length`,
+`--ds-i`) are registered with `inherits: false` and take these tokens only. Details: [motion.md](motion.md).
 
 ### State layers
 
@@ -96,7 +113,7 @@ running. `.ds-motion-full` on the `.ds-theme` element opts a page out. Details: 
 | `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`) |
 | `--ds-disabled-opacity` | 1 | opacity of a disabled button |
 | `--ds-disabled-fill` / `--ds-disabled-ink` | `rgba(31,31,31,.12)` / `.38` | container and label of disabled buttons |
-| `--ds-spinner-sm-track` | `rgba(0,0,0,.18)` | small spinner's ring where `color-mix()` is missing |
+| `--ds-spinner-sm-track` | `rgba(0,0,0,.18)` | **deprecated** (removed in 2.0): small spinner's ring where `color-mix()` is missing; every baseline browser has it |
 
 All text roles pass WCAG AA (4.5:1) on the surfaces they are meant for; the tests check the pairs. The tint is too
 light to carry a state alone: a selection always adds a check, a weight or an aria attribute.

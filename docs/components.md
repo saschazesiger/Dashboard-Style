@@ -445,7 +445,7 @@ title next to the switch already names the setting.
 ```
 
 `data-open` flips the chevron, `data-active` marks the keyboard or pointer option, `aria-selected="true"` the chosen
-one. Hide the popup (`hidden`) when closed.
+one. Hide the popup (`hidden`; it works without `.ds-base`) when closed.
 
 ## Dialog
 
@@ -463,8 +463,11 @@ one. Hide the popup (`hidden`) when closed.
 </div>
 ```
 
-- Show: insert it or drop `.ds-dialog--hidden`; move focus into the box and trap it; Escape closes.
+- Show: insert it, or drop `.ds-dialog--hidden` or the `hidden` attribute (it hides the dialog without `.ds-base`
+  too); move focus into the box and trap it; Escape closes.
 - Close: add `.ds-dialog--closing`, wait for the box's `animationend` (`DS.motion.settled(box)`), then hide or remove.
+  During the exit only the box lets clicks through: the backdrop swallows them until the dialog is hidden or removed,
+  so a click meant for the backdrop never reaches the page under it.
 - `.ds-dialog--contained` covers the nearest positioned ancestor instead of the window (a dialog inside an embedded
   panel).
 
@@ -484,7 +487,8 @@ one. Hide the popup (`hidden`) when closed.
 ```
 
 Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears). Close like the dialog with
-`.ds-sheet--closing`. Use a `<div>` for the head, not `<header>` (a second banner landmark).
+`.ds-sheet--closing`: the panel lets clicks through while it leaves, the backdrop swallows them until the sheet is
+hidden or removed. The `hidden` attribute hides the sheet without `.ds-base` too. Use a `<div>` for the head, not `<header>` (a second banner landmark).
 
 ## Snackbar
 
@@ -517,8 +521,11 @@ Set `data-scrolled` on the panel while the body is scrolled (the head's hairline
 <div class="ds-tooltip" role="tooltip" id="tip" hidden>Copy link</div>
 ```
 
-Your script places it (`position: fixed`, set `top`/`left` or a transform), shows it after a short delay on hover and
-at once on keyboard focus, keeps it open while the pointer is on it, and hides it with `DS.motion.leave(tip, '', { then: 'hide' })`.
+Your script places it (`position: fixed`, set `top` and `left`; the entrance grows it around its centre), shows it
+after a short delay on hover and at once on keyboard focus, keeps it open while the pointer is on it, and hides it with `DS.motion.leave(tip, '', { then: 'hide' })`.
+A `transform` placement composes with the entrance, but its scale shrinks the offset too, so the tooltip drifts in by
+(1 - scale) × offset; a script that keeps a `transform: translate(Xpx, Ypx)` also sets
+`transform-origin: calc(50% + Xpx) calc(50% + Ypx)`.
 
 ## Loading
 
@@ -576,12 +583,11 @@ Every loader fades in only after `--ds-delay-loader` (fast loads show nothing); 
 | `.ds-nowrap` | keeps a value and its unit together |
 | `.ds-no-scroll` | on `<body>` while a modal layer is open (with `.ds-base`) |
 
-Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional), `.ds-motion-full` (ignore the
-reduced-motion setting; rarely right).
+Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
 ## Motion classes
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
-`.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`;
+`.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
 `.ds-stagger`; `.ds-reveal`; `.ds-collapsible`; the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
 `.ds-indicator--instant`.

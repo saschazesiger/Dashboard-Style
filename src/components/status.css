@@ -13,55 +13,59 @@
  * Hook: --ds-status-radius.
  */
 
-.ds-status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ds-space-1);
-  min-height: 24px;
-  max-width: 100%;
-  padding: var(--ds-space-1) var(--ds-space-2) var(--ds-space-1) 6px;
-  border-radius: var(--ds-status-radius, var(--ds-radius-md));
-  background: var(--ds-surface-high);
-  color: var(--ds-text-2);
-  font: var(--ds-font-caption);
-  vertical-align: middle;
-  transition:
-    background-color var(--ds-dur-fast) var(--ds-ease-in-out),
-    color var(--ds-dur-fast) var(--ds-ease-in-out);
-}
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-.ds-status > svg {
-  flex-shrink: 0;
-}
+@layer ds.components {
+  .ds-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-1);
+    min-height: 24px;
+    max-width: 100%;
+    padding: var(--ds-space-1) var(--ds-space-2) var(--ds-space-1) 6px;
+    border-radius: var(--ds-status-radius, var(--ds-radius-md));
+    background: var(--ds-surface-high);
+    color: var(--ds-text-2);
+    font: var(--ds-font-caption);
+    vertical-align: middle;
+    transition:
+      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      color var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
 
-.ds-status--ok {
-  background: var(--ds-success-container);
-  color: var(--ds-on-success-container);
-}
+  .ds-status > svg {
+    flex-shrink: 0;
+  }
 
-.ds-status--ok > svg {
-  color: var(--ds-success);
-}
+  .ds-status--ok {
+    background: var(--ds-success-container);
+    color: var(--ds-on-success-container);
+  }
 
-.ds-status--error {
-  background: var(--ds-error-container);
-  color: var(--ds-on-error-container);
-}
+  .ds-status--ok > svg {
+    color: var(--ds-success);
+  }
 
-.ds-status--warning {
-  background: var(--ds-warning-container);
-  color: var(--ds-on-warning-container);
-}
+  .ds-status--error {
+    background: var(--ds-error-container);
+    color: var(--ds-on-error-container);
+  }
 
-/* Running: a neutral chip with the primary spinner. */
-.ds-status--running {
-  color: var(--ds-text);
-}
+  .ds-status--warning {
+    background: var(--ds-warning-container);
+    color: var(--ds-on-warning-container);
+  }
 
-.ds-status__spinner {
-  width: 14px;
-  height: 14px;
-  margin: 1px;
-  border-width: 2px;
-  animation-duration: var(--ds-loop-spin-fast);
+  /* Running: a neutral chip with the primary spinner. */
+  .ds-status--running {
+    color: var(--ds-text);
+  }
+
+  .ds-status__spinner {
+    width: 14px;
+    height: 14px;
+    margin: 1px;
+    border-width: 2px;
+    animation-duration: var(--ds-loop-spin-fast);
+  }
 }

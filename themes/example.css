@@ -15,8 +15,12 @@
  *   full app: <html>). Roles derived from others (type roles from --ds-font,
  *   --ds-link from --ds-primary, the focus ring) are resolved there.
  * - Never set motion tokens (--ds-dur-*, --ds-ease-*, --ds-distance-*,
- *   --ds-loop-*, --ds-stagger, --ds-delay-*, --ds-scale-*): the
- *   reduced-motion switch in tokens.css depends on them.
+ *   --ds-scale-*, --ds-loop-*, --ds-delay-*, --ds-stagger,
+ *   --ds-time-scale) or motion hooks (--ds-motion-*, --ds-enter-*,
+ *   --ds-leave-*): motion is one scheme for every product, and DS.motion
+ *   reads the computed tokens.
+ * - Do not wrap a theme in @layer: unlayered rules win over every ds.*
+ *   layer, which is what lets this file override the defaults.
  * - Keep text roles at 4.5:1 against the surfaces they sit on.
  */
 

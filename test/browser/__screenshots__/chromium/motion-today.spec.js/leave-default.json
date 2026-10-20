@@ -3,7 +3,7 @@
     "type": "animation",
     "name": "ds-fade-out",
     "pseudoElement": null,
-    "duration": 200,
+    "duration": 150,
     "delay": 0,
     "easing": "linear",
     "keyframeEasing": "cubic-bezier(0.3, 0, 1, 1)",

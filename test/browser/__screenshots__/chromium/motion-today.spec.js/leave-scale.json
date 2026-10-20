@@ -1,7 +1,19 @@
 [
   {
     "type": "animation",
-    "name": "ds-scale-out",
+    "name": "ds-fade-out",
+    "pseudoElement": null,
+    "duration": 200,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.3, 0, 1, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "forwards"
+  },
+  {
+    "type": "animation",
+    "name": "ds-shrink-out",
     "pseudoElement": null,
     "duration": 200,
     "delay": 0,

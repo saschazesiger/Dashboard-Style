@@ -17,9 +17,10 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 
 | Command | Purpose |
 |---|---|
-| `npm run check` | tests + verify that `dist/` matches `src/` (CI runs this); run it before every commit |
+| `npm run check` | tests + verify that `dist/` matches `src/` and that the sampled curves in `tokens.css` match their generator (`node scripts/motion-curves.mjs --check`); CI runs this; run it before every commit |
 | `npm test` | tests only (`node --test`, no dependencies, Node 22+) |
 | `npm run build` | rebuild `dist/` after any change to `src/`, `fonts/`, `LICENSE` or the version |
+| `node scripts/motion-curves.mjs` | regenerate the sampled `linear()` curves (`--ds-ease-spatial`, `--ds-ease-emphasized`) in `src/tokens.css`; never edit them by hand |
 | `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
 | `sh scripts/vendor.sh --from . /tmp/ds && sh scripts/vendor.sh --check /tmp/ds` | the vendor round trip CI runs after `npm run check` |
 | `npm ci` | once, for the browser tests only (installs the pinned `@playwright/test`, the only devDependency); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
@@ -31,19 +32,19 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 
 | Path | What |
 |---|---|
-| `src/tokens.css` | all tokens on `.ds-theme`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the reduced-motion switch at the end |
-| `src/motion.css` | every `@keyframes` and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`) |
+| `src/tokens.css` | all tokens on `.ds-theme` in `@layer ds.tokens`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the `linear()` refinements at the end; `@property --ds-time-scale` at top level |
+| `src/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
 | `src/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
 | `src/components/*.css` | one file per component; the header comment sketches markup, modifiers, hooks and "Progressive:" features |
-| `src/index.css` | `@import` list = cascade order of `ds.css`; every stylesheet must be listed |
-| `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `icons`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` |
+| `src/index.css` | the layer order statement, then the `@import` list = cascade order of `ds.css`; every stylesheet must be listed |
+| `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `icons`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
 | `styleguide/` | living styleguide on top of `dist/` (`styleguide.js` holds the demos and the component count tile) |
 | `docs/` | `install`, `tokens`, `theming`, `components`, `motion`, `icons`, `rules` |
-| `scripts/` | `build.mjs` (deterministic, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects) |
+| `scripts/` | `build.mjs` (deterministic, `--check`), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects) |
 | `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
-| `test/` | `css`, `tokens`, `motion`, `js`, `repo`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
+| `test/` | `css`, `tokens`, `motion`, `js`, `build`, `repo`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
 | `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, known bugs as `test.fail` markers) and the committed `__screenshots__/`; `README.md` explains them |
 | `plans/` | working plans (Motion 2); kept outside `docs/` so the docs tests do not count them |
 | `.github/workflows/check.yml` | CI on every push, pull request and by hand: `check` (Node 22 and 24: `npm run check` and the vendor round trip), then `browser` (Playwright in `mcr.microsoft.com/playwright:v<pinned>-noble`, one job per engine); Run workflow with "update screenshots" uploads a new screenshot set |
@@ -58,31 +59,55 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 
 The tests in `test/` enforce most of these; do not weaken a test to make a change pass.
 
-- **Tokens on `.ds-theme`, never `:root`**, so the system can run inside someone else's page. Only the `ds-` prefix
-  for classes, custom properties and keyframes; no bare element selector outside a `.ds-` scope.
+- **Tokens on `.ds-theme`, never `:root`**, so the system can run inside someone else's page. The `@property`
+  registrations (`--ds-time-scale`, the motion hooks) are the one documented exception: they sit at top level. Only
+  the `ds-` prefix for classes, custom properties and keyframes; no bare element selector outside a `.ds-` scope.
 - **Three token layers.** 1 scales (motion, spacing, state layers, z) are the same in every theme; 2 roles (palette,
   type, radii, elevation, focus, links, layout) are what a theme overrides; 3 hooks (`--ds-btn-*`, `--ds-card-*` ...)
-  are read by one component with a fallback (`var(--ds-btn-height, 36px)`). Themes never set motion tokens.
+  are read by one component with a fallback (`var(--ds-btn-height, 36px)`). Themes never set motion tokens or
+  motion hooks (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`, `--ds-delay-*`,
+  `--ds-stagger`, `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`): motion is one scheme for every
+  product, and `DS.motion` reads the computed tokens. The per-element motion hooks take tokens only and do not
+  inherit: set them on the animating element. `--ds-time-scale` is for the styleguide and the tests only.
 - **No literals in components**: colours, radii, shadows, type (`font` roles), durations, curves, opacities
   (`--ds-state-*`) and z-indices (`--ds-z-*`) come from tokens. Literal values live only in `src/tokens.css` and
   theme files. A missing value becomes a token (with docs), never a literal.
-- **Safari 14.** Everything in `src/` may be loaded by an embedded widget on an old browser: no `@layer`, no
-  nesting, no `inset` shorthand; focus rings on `:focus`, removed by a separate `:focus:not(:focus-visible)` rule;
-  never `:focus-visible` or `:has()` in a selector list with other selectors. Newer features (`:has()`, container
-  queries, `color-mix()`, `interpolate-size`, `linear()`, `svh`) only as graceful refinements, named under
-  "Progressive:" in the file header. JS is ES2020 without destructuring and without imports, exports only as
-  `export const` / `export function`.
-- **Motion.** `@keyframes` only in `src/motion.css`, each name once (entrances define only `from`, exits only
-  `to`). Durations and curves only from `--ds-dur-*` / `--ds-ease-*`; curves stay within [0, 1]; animate only
-  `transform`, `opacity`, colours, `box-shadow`, `clip-path` (exceptions: the sliding indicator in position and
-  size, `.ds-collapsible` height behind `interpolate-size`); never scale up on hover, never scale on press
-  (tested). Updated data never animates; never re-render an animating element (`DS.dom.morphHtml`).
-- **Reduced motion through one switch**: `@media (prefers-reduced-motion: reduce)` on
-  `.ds-theme:not(.ds-motion-full)` at the end of `tokens.css` sets durations to 1ms (end events still fire),
-  distances to 0 and only slows the loader loops. Never fake it with a tiny duration on an endless animation.
+- **Baseline: Safari 16.4, Chrome/Edge 111, Firefox 128.** Everything in `src/` may run in an embedded widget on
+  such a browser. Allowed directly: `:focus-visible`, `:has()`, `inset`, container queries, `color-mix()`,
+  `svh`/`dvh`, `<dialog>`, `inert`, `@layer`, `@property` and the individual `translate`/`scale`/`rotate`. No
+  CSS nesting. Progressive only, behind a feature query where it matters, and named by feature under
+  "Progressive:" in the file header with its fallback (tested): `linear()`, `@starting-style`,
+  `transition-behavior: allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven
+  animations, `interpolate-size`, `::details-content`, `overflow-clip-margin`, `sibling-index()`,
+  `moveBefore()`, plus `text-wrap` and `scrollbar-color`. JS is ES2022; a module may import named exports from
+  an earlier module in `MODULES` (`import { a } from './motion.js';`, one line), exports only as `export const` /
+  `export function`, newer APIs only behind feature detection, named under "Progressive:".
+- **Cascade layers.** `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;` is the first statement
+  of every stylesheet in `src/` (`dist/ds.css` declares it once); each file wraps its rules in one block
+  (`tokens.css` → `ds.tokens`, `base.css` → `ds.base`, components → `ds.components`; `motion.css` puts its
+  keyframes in `ds.motion` and its utilities in `ds.utilities`). `@property` and `@font-face` stay at top level;
+  themes, `fonts.css` and project CSS stay unlayered, so they win. No doubled-class or other specificity tricks:
+  the layer order decides. `!important` only on the allowlist (tested): `[hidden]` in `base.css`, the `.ds-sr`
+  rules, the alignment utilities `.ds-num` and `.ds-center`, the forced-colours `svg` colour in `shell.css`.
+- **Motion.** `@keyframes` only in `src/motion.css`, each name once; entrances define only `from`, exits only
+  `to`, with named exemptions (tested). Movement keyframes use `translate`/`scale`; exits are movement-only and
+  pair with `ds-fade-out`. Durations and curves only from tokens. Effects (opacity, colour) and values run on
+  curves within [0, 1] that never decrease; movement that floats runs on the spring `--ds-ease-spatial` (peak at
+  most 1.05, then it settles; the percentage is the contract); sizes that push layout never overshoot
+  (`--ds-ease-out`). Animate only `transform`, `translate`, `scale`, `opacity`, colours, `box-shadow`,
+  `clip-path` and registered custom properties; named exceptions, each allowed by the test when its feature
+  lands: `rotate` (spinners, loaders, disclosure chevrons, icon swaps), `border-radius` (press morph),
+  `outline-offset` (focus snap, transition only), `stroke-dashoffset` (drawn checks), `mask-position` (the
+  progress wave), the chip check slot `width`, and the heights of `.ds-collapsible`, validation messages and
+  expandable rows; the sliding indicator's `width`/`height` until 1.2.0. Never `transition: all`, never
+  `font-weight`. Exits take 0.3-0.8 of their entrance (tested). Hover never moves anything; nothing scales on
+  press except the switch handle. Updated data never animates; never re-render an animating element
+  (`DS.dom.morphHtml`). Never a near-zero duration on a loop (it races).
 - **State layers.** Hover and press lay `currentColor` (or the hook) over the control at `--ds-state-hover` /
-  `--ds-state-pressed` via `::before`; hover rules only inside `@media (hover: hover)`; focus is an instant 2px
-  ring (`--ds-focus-outline`), never animated.
+  `--ds-state-pressed` via `::before`; hover rules only inside `@media (hover: hover)`; focus is a 2px ring
+  (`--ds-focus-outline`) on `:focus-visible`, solid from the first frame. On top come the pointer ripple
+  (`DS.ripple`, from 1.0.0), the press shape morph and the focus snap (from 1.1.0: only the ring's offset moves,
+  never its colour or width).
 - **Every action is a pill** (`--ds-radius-action`). One filled button per area, no red buttons.
 - **Status never by colour alone**: icon and word on status chips and alerts, a check on selected chips, the
   label weight or `aria-*` on active items.
@@ -101,19 +126,19 @@ Work in `src/`, never in `dist/`. Every change follows the same path:
   at its place in the cascade; a section in `docs/components.md` (markup, modifiers, behaviour the page must add)
   plus a row in its "Which component for which need" table; new hooks in the table of `docs/theming.md` and
   commented in `themes/example.css`; a demo in `styleguide/styleguide.js` (raise the `Components` tile, a test
-  counts the files); forced-colors and reduced-motion behaviour checked. Every `.ds-*` class must appear in
+  counts the files); forced-colors behaviour and browser motion tests checked. Every `.ds-*` class must appear in
   `docs/components.md` (tested).
 - **Token**: a role goes after the `── 2. Palette` marker in `src/tokens.css`, into `docs/tokens.md` and
   `themes/example.css` (tested); a new text colour pair gets a contrast check in `test/tokens.test.js`. A scale goes
-  before the marker; a motion scale also needs its reduced-motion value in the switch. Every `--ds-*` name must
-  appear in `docs/` (tested).
+  before the marker; a duration-like scale is written as `calc(<n>ms * var(--ds-time-scale, 1))` (tested). Every
+  `--ds-*` name must appear in `docs/` (tested).
 - **Icon**: a named export in `src/js/icons.js` (24px grid, flat shapes, no `stroke`, `fill`, `class` or colour of
   their own; tested) and its name in the glyph table of `docs/icons.md`. The styleguide lists glyphs by itself.
 - **Keyframe**: only in `src/motion.css` with the `ds-` prefix, a row in the keyframe table of `docs/motion.md`;
-  use it through tokens so reduced motion applies.
+  use it through tokens so `--ds-time-scale` applies.
 - **JS export**: in `src/js/*.js`, documented in `docs/motion.md` or `docs/icons.md` (tested). A new module also
-  goes into `MODULES` in `scripts/build.mjs`, the `dist/` table in `docs/install.md` and the module imports of
-  `test/js.test.js`.
+  goes into `MODULES` in `scripts/build.mjs` (after every module it imports from), the `dist/` table in
+  `docs/install.md` and the module imports of `test/js.test.js`.
 
 ## Releases
 
@@ -164,13 +189,16 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   exactly; behaviour (opening, closing, filtering) is the project's own script.
 - Theme only through tokens in `<theme file>`, on `.ds-theme`, loaded after `ds.css`: roles (`--ds-primary`,
   `--ds-accent`, `--ds-font` ...), component hooks (`--ds-btn-*`, `--ds-card-*` ...), the project's own
-  `--<prefix>-*` tokens and `@font-face`. Never set motion tokens (`--ds-dur-*`, `--ds-ease-*`).
+  `--<prefix>-*` tokens and `@font-face`. Never set motion tokens or hooks (`--ds-dur-*`, `--ds-ease-*`,
+  `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`, `--ds-delay-*`, `--ds-stagger`, `--ds-time-scale`,
+  `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`). Never wrap the theme in `@layer`.
+- `ds.css` sits in `@layer ds.*`, so unlayered project CSS beats every component. Load resets in a layer declared
+  before ds (`@layer reset;` first, or `@layer reset, ds, app;`).
 - Never change the look of a `.ds-*` component in project CSS (colour, radius, type, motion); set its hooks
   instead, in the theme or on the element. Placing a `.ds-*` element inside a project container is fine; document
   any deliberate deviation with its reason.
 - Local components use the project prefix `<prefix>-` and read tokens only (`--ds-*` and `--<prefix>-*`): no
   colour, radius, font, shadow, duration or curve literals, no own `@keyframes` (use the `ds-*` keyframes and
   motion tokens).
-- Icons only from `DS.icons` / `js/icons.js`; status never by colour alone; actions are pills; respect
-  `prefers-reduced-motion` (the tokens do it when you use them).
+- Icons only from `DS.icons` / `js/icons.js`; status never by colour alone; actions are pills.
 ```

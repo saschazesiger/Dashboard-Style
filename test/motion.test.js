@@ -14,7 +14,6 @@ import {
   enter,
   leave,
   loaderHoldMs,
-  prefersReducedMotion,
   replay,
   settleLoader,
   settled,
@@ -94,6 +93,27 @@ describe('js/motion', () => {
     assert.equal(done, true);
   });
 
+  it('stretches the default timeout with --ds-time-scale (slow motion)', async (t) => {
+    t.mock.timers.enable({ apis: ['setTimeout'] });
+    const element = new FakeElement();
+    globalThis.getComputedStyle = (el) => ({ getPropertyValue: (name) => (el === element && name === '--ds-time-scale' ? ' 10' : '') });
+    t.after(() => { delete globalThis.getComputedStyle; });
+    let done = false;
+    const promise = settled(element).then(() => { done = true; });
+    t.mock.timers.tick(9999);
+    await Promise.resolve();
+    assert.equal(done, false);
+    t.mock.timers.tick(1);
+    await promise;
+    assert.equal(done, true);
+    // Without the token (outside a theme) it is the plain default.
+    let plain = false;
+    const other = settled(new FakeElement()).then(() => { plain = true; });
+    t.mock.timers.tick(1000);
+    await other;
+    assert.equal(plain, true);
+  });
+
   it('enter() plays the variant and cleans its classes up afterwards', async () => {
     const element = new FakeElement();
     const promise = enter(element, 'scale');
@@ -169,7 +189,7 @@ describe('js/motion', () => {
   });
 
   describe('countUp', () => {
-    const fakeWindow = ({ reduce = false } = {}) => {
+    const fakeWindow = () => {
       const frames = [];
       let now = 0;
       return {
@@ -181,7 +201,6 @@ describe('js/motion', () => {
         },
         performance: { now: () => now },
         requestAnimationFrame: (callback) => frames.push(callback),
-        matchMedia: () => ({ matches: reduce }),
       };
     };
 
@@ -209,19 +228,10 @@ describe('js/motion', () => {
       assert.equal(win.frames.length, 0);
     });
 
-    it('shows the value at once with reduced motion or without animation frames', () => {
+    it('shows the value at once without animation frames', () => {
       const element = new FakeElement();
-      countUp(element, 42, { win: fakeWindow({ reduce: true }) });
-      assert.equal(element.textContent, '42');
       countUp(element, 7, { win: undefined, format: (value) => `${value}%` });
       assert.equal(element.textContent, '7%');
     });
-  });
-
-  it('reads the reduced-motion preference defensively', () => {
-    assert.equal(prefersReducedMotion({ matchMedia: () => ({ matches: true }) }), true);
-    assert.equal(prefersReducedMotion({}), false);
-    assert.equal(prefersReducedMotion({ matchMedia: () => { throw new Error('no'); } }), false);
-    assert.equal(prefersReducedMotion(undefined), false);
   });
 });

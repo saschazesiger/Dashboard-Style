@@ -12,8 +12,8 @@
  *   git worktree add ../ds-before motion-2-p0
  *   cd ../ds-before && npm ci && DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium
  *
- * The speed bridge slows CSS and Web Animations only; JS timers keep their
- * pace (test/browser/README.md, "Slow motion").
+ * ?speed= sets --ds-time-scale: motion timed by the tokens slows down,
+ * plain JS timers keep their pace (test/browser/README.md, "Slow motion").
  */
 import { test, expect } from '@playwright/test';
 import { ready, settle } from './helpers/motion.js';
@@ -170,7 +170,7 @@ for (const variant of ['', 'fade', 'scale', 'slide', 'swap']) {
   });
 }
 
-for (const variant of ['', 'sink', 'scale', 'slide']) {
+for (const variant of ['', 'sink', 'scale', 'slide', 'pop']) {
   test(`leave${variant ? ` ${variant}` : ''}: the card leaves and comes back`, async ({ page }) => {
     const card = page.locator('#sg-motion-card');
     await press(page.locator(`[data-leave="${variant}"]`));

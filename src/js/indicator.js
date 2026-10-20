@@ -11,6 +11,9 @@
  *   const indicator = createIndicator(nav, { active: '[aria-current="page"]' });
  *   ...change the active item...
  *   indicator.update();
+ *
+ * ES2022 (Safari 16.4); a module may import from an earlier module; newer
+ * APIs only behind feature detection, named under Progressive:.
  */
 
 /**
@@ -20,7 +23,6 @@
  *   className  extra class for the indicator (its look is up to the component)
  */
 export function createIndicator(track, options) {
-  // No destructuring: some Safari 14 target builds cannot lower it.
   const active = options.active;
   const className = options.className || '';
   const indicator = document.createElement('span');

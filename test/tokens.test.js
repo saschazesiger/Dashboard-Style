@@ -1,48 +1,90 @@
 /**
- * The token contract: reduced motion through one switch, themes that never
- * touch motion, JS constants that mirror CSS tokens, a default palette that
- * passes WCAG AA, and a theme template that lists every role.
+ * The token contract: themes that never touch motion, durations that follow
+ * the --ds-time-scale multiplier, sampled curves that equal their generator,
+ * JS constants that mirror CSS tokens, a default palette that passes WCAG
+ * AA, and a theme template that lists every role.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { COUNT_UP_MS, LOADER_DELAY_MS } from '../src/js/motion.js';
-import { filesIn, read, stripComments, token } from './helpers.js';
+import { emphasizedCurve, SPATIAL, springCurve, springFunction, TOLERANCE } from '../scripts/motion-curves.mjs';
+import { filesIn, ms, read, stripComments, token } from './helpers.js';
 
 const tokens = stripComments(read('src/tokens.css'));
-const reduced = tokens.slice(tokens.indexOf('prefers-reduced-motion'));
-const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|scale-enter|scale-small)[\w-]*\s*:/;
+/** Motion tokens and per-element motion hooks: no theme sets one, no role matches. */
+const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|scale|time-scale|motion|enter|leave|clip-from|draw-length)[\w-]*\s*:/;
+/** Duration-like scales: written as calc(<n>ms * var(--ds-time-scale, 1)). */
+const TIMED = /^--ds-(dur-[\w-]+|loop-[\w-]+|delay-[\w-]+|stagger)$/;
+
+/** The linear() value of a token inside the @supports (linear()) block. */
+function sampled(name) {
+  const match = tokens.match(new RegExp(`${name}:\\s*(linear\\([^;]*\\));`));
+  assert.ok(match, `${name} has a linear() value`);
+  return match[1];
+}
+
+/** linear() stops as [{ value, at }] (at in [0, 1]; first and last implicit). */
+function stops(linear) {
+  const parts = linear.slice('linear('.length, -1).split(',').map((part) => part.trim().split(/\s+/));
+  return parts.map(([value, at], index) => ({
+    value: Number(value),
+    at: at ? Number(at.replace('%', '')) / 100 : index === 0 ? 0 : 1,
+  }));
+}
 
 /** Names declared in the main .ds-theme rule, split at the palette marker. */
 function layers() {
   const source = read('src/tokens.css');
-  const main = source.slice(source.indexOf('.ds-theme {'), source.indexOf('\n}\n'));
+  // The rule ends at its matching brace (the file is indented inside @layer).
+  const start = source.indexOf('.ds-theme {');
+  let depth = 0;
+  let end = start;
+  do {
+    if (source[end] === '{') depth += 1;
+    else if (source[end] === '}') depth -= 1;
+    end += 1;
+  } while (depth > 0 || end <= source.indexOf('{', start));
+  const main = source.slice(start, end);
   const marker = main.indexOf('── 2. Palette');
   const names = (text) => [...stripComments(text).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]);
   return { scales: names(main.slice(0, marker)), roles: names(main.slice(marker)) };
 }
 
 describe('tokens', () => {
-  it('switches every duration off for reduced motion (1ms, so end events still fire)', () => {
-    const durations = [...new Set([...tokens.matchAll(/(--ds-dur-[\w-]+)\s*:/g)].map((match) => match[1]))];
-    assert.ok(durations.length >= 6);
-    for (const name of durations) assert.match(reduced, new RegExp(`${name}\\s*:\\s*1ms`), name);
+  it('writes every duration-like scale in the --ds-time-scale form', () => {
+    const timed = layers().scales.filter((name) => TIMED.test(name));
+    for (const name of ['--ds-dur-micro', '--ds-dur-long', '--ds-stagger', '--ds-delay-loader', '--ds-delay-boot', '--ds-loop-spin']) {
+      assert.ok(timed.includes(name), name);
+    }
+    for (const name of timed) assert.match(token(name), /^calc\(\d*\.?\d+m?s \* var\(--ds-time-scale, 1\)\)$/, name);
+    assert.deepEqual(['micro', 'instant', 'fast', 'base', 'medium', 'slow', 'long', 'glide'].map((step) => ms(`--ds-dur-${step}`)), [50, 100, 150, 200, 250, 350, 450, 600]);
   });
 
-  it('collapses distances, scaling and staggering, and only slows the loaders', () => {
-    const distances = [...new Set([...tokens.matchAll(/(--ds-distance-[\w-]+)\s*:/g)].map((match) => match[1]))];
-    assert.ok(distances.includes('--ds-distance-sheet'));
-    for (const name of distances) assert.match(reduced, new RegExp(`${name}\\s*:\\s*0(px|%)?\\s*;`), name);
-    assert.match(reduced, /--ds-scale-enter\s*:\s*1\s*;/);
-    assert.match(reduced, /--ds-stagger\s*:\s*0m?s\s*;/);
-    for (const loop of ['--ds-loop-spin', '--ds-loop-spin-fast', '--ds-loop-indeterminate', '--ds-loop-pulse']) {
-      const normal = parseFloat(token(loop));
-      const slow = parseFloat(reduced.match(new RegExp(`${loop}\\s*:\\s*([\\d.]+)s`))[1]);
-      assert.ok(slow > normal, `${loop} slows down (${normal}s -> ${slow}s) instead of stopping`);
+  it('registers --ds-time-scale and declares it nowhere (styleguide and tests only)', () => {
+    assert.match(tokens, /@property --ds-time-scale \{\s*syntax: '<number>';\s*inherits: true;\s*initial-value: 1;\s*\}/);
+    const declared = [...filesIn('src', (path) => path.endsWith('.css')), ...filesIn('themes', (path) => path.endsWith('.css'))]
+      .filter((file) => /--ds-time-scale\s*:/.test(stripComments(read(file))));
+    assert.deepEqual(declared, []);
+  });
+
+  it('samples the spring and the emphasized path with scripts/motion-curves.mjs', () => {
+    assert.equal(token('--ds-ease-spatial'), 'var(--ds-ease-out)', 'the cubic fallback of the spring');
+    assert.equal(sampled('--ds-ease-spatial'), springCurve(SPATIAL));
+    assert.equal(sampled('--ds-ease-emphasized'), emphasizedCurve());
+    const spring = springFunction(SPATIAL);
+    for (const stop of stops(sampled('--ds-ease-spatial'))) {
+      assert.ok(Math.abs(stop.value - spring(stop.at)) <= TOLERANCE, `stop ${stop.value} at ${stop.at}`);
     }
   });
 
-  it('lets a page opt out only through .ds-motion-full on the switch itself', () => {
-    assert.match(tokens, /@media \(prefers-reduced-motion: reduce\) \{\s*\.ds-theme:not\(\.ds-motion-full\) \{/);
+  it('gives the spring its contract: overshoot of 2-5%, then it settles', () => {
+    const curve = stops(sampled('--ds-ease-spatial'));
+    const peak = Math.max(...curve.map((stop) => stop.value));
+    assert.ok(curve.every((stop) => stop.value >= 0));
+    assert.ok(peak >= 1.02 && peak <= 1.05, `peak ${peak}`);
+    assert.equal(curve.at(-1).value, 1);
+    const after = curve.slice(curve.findIndex((stop) => stop.value === peak));
+    assert.ok(after.every((stop) => stop.value >= 0.998 && stop.value <= peak), 'settles after the peak');
   });
 
   it('keeps motion tokens out of themes', () => {
@@ -52,14 +94,14 @@ describe('tokens', () => {
   });
 
   it('keeps JS constants in step with the tokens they mirror', () => {
-    assert.equal(parseInt(token('--ds-delay-loader'), 10), LOADER_DELAY_MS);
-    assert.equal(parseInt(token('--ds-dur-glide'), 10), COUNT_UP_MS);
+    assert.equal(ms('--ds-delay-loader'), LOADER_DELAY_MS);
+    assert.equal(ms('--ds-dur-glide'), COUNT_UP_MS);
     // The indicator retargets for 600ms while it glides (js/indicator.js).
     assert.match(read('src/js/indicator.js'), /glideUntil = now \+ 600/);
-    assert.ok(parseInt(token('--ds-dur-medium'), 10) < 600);
+    assert.ok(ms('--ds-dur-medium') < 600);
     // settled() waits at most this long: longer than the longest animation.
     const timeout = Number(read('src/js/motion.js').match(/DEFAULT_TIMEOUT_MS = (\d+)/)[1]);
-    assert.ok(timeout > parseInt(token('--ds-dur-glide'), 10));
+    assert.ok(timeout > ms('--ds-dur-glide'));
   });
 
   it('pins the shared link geometry and the disabled opacity', () => {

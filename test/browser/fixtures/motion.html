@@ -112,7 +112,8 @@
   <section class="fx-section" aria-labelledby="misc-title">
     <h2 id="misc-title">Delayed spinner and SVG</h2>
     <div class="fx-row">
-      <span class="ds-spinner ds-enter ds-enter--delayed" id="delayed-spinner" aria-hidden="true"></span>
+      <!-- The documented form (spinner.css): the delayed entrance on a wrapper, so the spinner keeps turning. -->
+      <span class="ds-enter ds-enter--delayed" id="delayed-wrap"><span class="ds-spinner" id="delayed-spinner" aria-hidden="true"></span></span>
       <svg id="svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path id="svg-path" pathLength="1" d="M20 6 9 17l-5-5"/></svg>
     </div>
   </section>

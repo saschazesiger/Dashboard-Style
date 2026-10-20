@@ -5,8 +5,9 @@
  * in CSS tokens. Waiting for an animation always has a timeout as well,
  * because animationend never fires for hidden or detached elements.
  *
- * Plain ES2020 without imports or destructuring (Safari 14 builds), so it
- * runs as a module and inside dist/ds.js (DS.motion).
+ * ES2022 (Safari 16.4); a module may import from an earlier module (the
+ * build bundles it into dist/ds.js as DS.motion); newer APIs only behind
+ * feature detection, named under Progressive:.
  */
 
 /** Must match --ds-delay-loader (tokens.css; test/tokens.test.js checks it). */
@@ -20,15 +21,6 @@ export const LOADER_MIN_VISIBLE_MS = 450;
 
 /** Longest animation of the system (--ds-dur-glide) plus a margin. */
 const DEFAULT_TIMEOUT_MS = 1000;
-
-/** @param {Window|undefined} [win] */
-export function prefersReducedMotion(win = globalThis.window) {
-  try {
-    return Boolean(win?.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-  } catch {
-    return false;
-  }
-}
 
 /** Highest stagger index: 30ms × at most six steps (0…5), the motion rule. */
 export const STAGGER_MAX = 5;
@@ -67,15 +59,28 @@ export function replay(element, ...classNames) {
 }
 
 /**
+ * The `--ds-time-scale` in effect on the element: 10 at the styleguide's
+ * ?speed=0.1; 1 outside a theme, before ds.css has loaded or without a DOM.
+ * @param {Element} element
+ * @returns {number}
+ */
+function timeScale(element) {
+  if (typeof getComputedStyle !== 'function') return 1;
+  const value = parseFloat(getComputedStyle(element).getPropertyValue('--ds-time-scale'));
+  return value > 0 ? value : 1;
+}
+
+/**
  * Resolves when the element's own animation or transition ends (events of
  * children are ignored), or after `timeout`. `property` waits for the
- * transition of one CSS property when several run at once.
+ * transition of one CSS property when several run at once. The default
+ * timeout stretches with `--ds-time-scale`, like the motion it waits for.
  * @param {Element} element
  * @param {{ timeout?: number, event?: 'animationend'|'transitionend', property?: string }} [options]
  * @returns {Promise<void>}
  */
 export function settled(element, options = {}) {
-  const timeout = options.timeout || DEFAULT_TIMEOUT_MS;
+  const timeout = options.timeout || DEFAULT_TIMEOUT_MS * timeScale(element);
   const event = options.event || 'animationend';
   return new Promise((resolve) => {
     let timer = 0;
@@ -108,7 +113,7 @@ export function enter(element, variant = '') {
 /**
  * Plays a .ds-leave animation, then removes or hides the element.
  * @param {Element|null|undefined} element
- * @param {''|'sink'|'scale'|'slide'} [variant]
+ * @param {''|'sink'|'scale'|'slide'|'pop'} [variant]
  * @param {{ then?: 'remove'|'hide'|'keep' }} [options]
  * @returns {Promise<void>}
  */
@@ -162,7 +167,7 @@ export const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 
 /**
  * Counts a number up to `to` in the element's text (key figures). Without
- * animation frames or with reduced motion it shows the final value at once.
+ * animation frames, or for 0, it shows the final value at once.
  * @param {Element|null|undefined} element
  * @param {number} to
  * @param {{ format?: (value: number) => string, duration?: number, win?: any }} [options]
@@ -174,7 +179,7 @@ export function countUp(element, to, options = {}) {
   const duration = options.duration || COUNT_UP_MS;
   const win = 'win' in options ? options.win : globalThis.window;
   const target = Number(to) || 0;
-  if (!win?.requestAnimationFrame || prefersReducedMotion(win) || target === 0) {
+  if (!win?.requestAnimationFrame || target === 0) {
     element.textContent = format(target);
     return;
   }

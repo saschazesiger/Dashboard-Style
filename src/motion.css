@@ -1,229 +1,428 @@
 /*
  * Motion: the only file with @keyframes (test/css.test.js enforces it).
  * Components either name a keyframe here directly or use the utility
- * classes below; durations, easings and distances always come from
- * tokens.css, so reduced motion is handled once, for everything.
+ * classes below; durations, easings, distances and scales always come from
+ * tokens.css.
  *
- * Enter keyframes only define `from`: the element animates to whatever its
- * own styles say, so one keyframe works for any final opacity or transform.
+ * Keyframes sit in the ds.motion layer, the utility classes in
+ * ds.utilities. That layer comes after ds.components, so a utility wins
+ * over a component's own animation by layer order, not by specificity.
+ *
+ * The per-element hooks (--ds-motion-*, --ds-clip-from, --ds-draw-length,
+ * --ds-enter-*, --ds-leave-*, --ds-i) are registered here, at the top
+ * level, and do not inherit: a hook applies to the element that sets it,
+ * never to its descendants, so set it on the animating element.
+ *
+ * Movement keyframes use the individual translate and scale properties, so
+ * they compose with an element's own or inline transform (a placed tooltip,
+ * the indicator, FLIP) and can be read back mid-flight. Entrances define
+ * only `from`: the element animates to whatever its own styles say, so one
+ * keyframe works for any final opacity or position. Exits define only `to`
+ * and are movement-only; they always pair with ds-fade-out. The combined
+ * ds-sink-out, ds-scale-out and ds-slide-out (fade + move) are deprecated
+ * aliases, removed in 2.0.
  *
  * Progressive: .ds-collapsible animates its height only where the browser
- * supports interpolate-size (elsewhere it simply toggles).
+ * supports interpolate-size and ::details-content, with content-visibility
+ * as an allow-discrete transition (elsewhere it simply toggles);
+ * sibling-index() numbers the children of .ds-stagger where it exists
+ * (elsewhere stagger() in js/motion.js does).
  */
 
-/* ── Keyframes: enter ──────────────────────────── */
-
-@keyframes ds-fade-in {
-  from { opacity: 0; }
-}
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 /*
- * Movement only. Opacity must take the standard curve while the movement
- * decelerates (a decelerating fade flashes), and one keyframe runs on one
- * curve, so entrances pair ds-fade-in with one of these:
- *
- *   animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
- *              ds-lift-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
- *
- * ds-lift-in rises (snackbars, a swapped view), ds-grow-in rises from just
- * below full size (dialogs), ds-shift-in comes from the side (side sheets),
- * ds-pop-in grows small markers (badges). The .ds-enter utilities below
- * always use these pairs.
+ * Per-element motion hooks. No initial value: an unset hook stays
+ * guaranteed-invalid, so every var(--hook, fallback) keeps its fallback.
+ * inherits: false, so a hook set on a parent (a .ds-reveal block, a
+ * .ds-enter--delayed wrapper, a staggered item) never reaches an element
+ * that animates inside it.
  */
-@keyframes ds-lift-in {
-  from { transform: translate3d(0, var(--ds-motion-distance, var(--ds-distance-md)), 0); }
+@property --ds-motion-distance {
+  syntax: '*';
+  inherits: false;
 }
 
-@keyframes ds-grow-in {
-  from { transform: translate3d(0, var(--ds-motion-distance, var(--ds-distance-md)), 0) scale(var(--ds-scale-enter)); }
+@property --ds-motion-scale {
+  syntax: '*';
+  inherits: false;
 }
 
-@keyframes ds-shift-in {
-  from { transform: translate3d(var(--ds-motion-distance, var(--ds-distance-xl)), 0, 0); }
+@property --ds-motion-origin {
+  syntax: '*';
+  inherits: false;
 }
 
-/* A rolling line (a status text that changes): the new line comes up from
-   below into its slot (--ds-motion-distance: 100%, one line height). */
-@keyframes ds-roll-in {
-  from { transform: translate3d(0, var(--ds-motion-distance, 100%), 0); }
+@property --ds-clip-from {
+  syntax: '*';
+  inherits: false;
 }
 
-/* Small markers that appear (badges, counters): the only scale bigger than
-   --ds-scale-enter, still without overshoot. */
-@keyframes ds-pop-in {
-  from { transform: scale(var(--ds-motion-scale, var(--ds-scale-small))); }
+@property --ds-draw-length {
+  syntax: '*';
+  inherits: false;
 }
 
-/* A stroke that draws itself (a check after success). The element sets
-   stroke-dasharray to its path length (pathLength="1" keeps it at 1). */
-@keyframes ds-draw {
-  from { stroke-dashoffset: var(--ds-draw-length, 1); }
+@property --ds-enter-keyframes {
+  syntax: '*';
+  inherits: false;
 }
 
-/* A bar that fills from its start (meters, chart bars and columns on their
-   first render). The element sets its own transform (the scaleX or scaleY
-   of its share) and transform-origin; the bar grows from zero to it. A
-   value that changes later jumps or transitions, it never replays this. */
-@keyframes ds-fill-x {
-  from { transform: scaleX(0); }
+@property --ds-enter-duration {
+  syntax: '*';
+  inherits: false;
 }
 
-@keyframes ds-fill-y {
-  from { transform: scaleY(0); }
+@property --ds-enter-easing {
+  syntax: '*';
+  inherits: false;
 }
 
-/* ── Keyframes: leave ──────────────────────────── */
-
-@keyframes ds-fade-out {
-  to { opacity: 0; }
+@property --ds-enter-delay {
+  syntax: '*';
+  inherits: false;
 }
 
-@keyframes ds-sink-out {
-  to { opacity: 0; transform: translate3d(0, var(--ds-motion-distance, var(--ds-distance-md)), 0); }
+@property --ds-leave-keyframes {
+  syntax: '*';
+  inherits: false;
 }
 
-@keyframes ds-scale-out {
-  to { opacity: 0; transform: translate3d(0, var(--ds-distance-sm), 0) scale(var(--ds-scale-enter)); }
+@property --ds-leave-duration {
+  syntax: '*';
+  inherits: false;
 }
 
-@keyframes ds-slide-out {
-  to { opacity: 0; transform: translate3d(var(--ds-motion-distance, var(--ds-distance-lg)), 0, 0); }
+@property --ds-leave-easing {
+  syntax: '*';
+  inherits: false;
 }
 
-/* The rolling line leaves upwards (--ds-motion-distance: -100%); movement
-   only, it pairs with ds-fade-out. */
-@keyframes ds-roll-out {
-  to { transform: translate3d(0, var(--ds-motion-distance, -100%), 0); }
+/* The stagger step of an item (stagger() in js/motion.js sets it inline). */
+@property --ds-i {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
 }
 
-/* ── Keyframes: loops (loading indicators) ─────── */
-/* No shimmer: shimmers are decoration; skeletons pulse. */
+@layer ds.motion {
+  /* ── Keyframes: enter ──────────────────────────── */
 
-@keyframes ds-spin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes ds-pulse {
-  50% { opacity: .45; }
-}
-
-/* The segment (35% of the track) enters left and leaves right. */
-@keyframes ds-indeterminate {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(286%); }
-}
-
-/* A scan line over media being processed: a band travels from above the
-   frame to below it (percentages of its own height, set by the component). */
-@keyframes ds-scan {
-  from { transform: translate3d(0, var(--ds-scan-from, -100%), 0); }
-  to { transform: translate3d(0, var(--ds-scan-to, 100%), 0); }
-}
-
-/* A ring that widens and fades once behind a confirmation. No overshoot:
-   it only grows and disappears. */
-@keyframes ds-ripple {
-  from { opacity: var(--ds-ripple-opacity, .6); transform: scale(1); }
-  to { opacity: 0; transform: scale(var(--ds-ripple-scale, 1.6)); }
-}
-
-/* ── Utilities ─────────────────────────────────── */
-
-/*
- * One-shot entrance. Variants pick the keyframes; `--ds-i` (set by
- * stagger() in js/motion.js) delays each item of a list by one
- * --ds-stagger step. Every variant fades on the standard curve: movement
- * runs as a second animation (the lists pair up; duration, delay and fill
- * repeat), so only the movement decelerates.
- *
- *   <li class="ds-enter ds-enter--scale">   via JS: DS.motion.enter(el, 'scale')
- *
- * The doubled class is deliberate: a utility must win over the entrance
- * animation a component declares itself, whatever the file order.
- */
-.ds-enter.ds-enter {
-  animation-name: var(--ds-enter-keyframes, ds-fade-in, ds-lift-in);
-  animation-duration: var(--ds-enter-duration, var(--ds-dur-medium));
-  animation-timing-function: var(--ds-enter-easing, var(--ds-ease-in-out), var(--ds-ease-out));
-  animation-delay: calc(var(--ds-i, 0) * var(--ds-stagger) + var(--ds-enter-delay, 0ms));
-  /* backwards: hold the start state during the delay, then hand back to the
-     element's own styles (hover transforms keep working afterwards). */
-  animation-fill-mode: backwards;
-}
-
-.ds-enter--fade { --ds-enter-keyframes: ds-fade-in; --ds-enter-easing: var(--ds-ease-in-out); }
-.ds-enter--scale { --ds-enter-keyframes: ds-fade-in, ds-grow-in; }
-.ds-enter--slide { --ds-enter-keyframes: ds-fade-in, ds-shift-in; --ds-enter-duration: var(--ds-dur-slow); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-emphasized); }
-
-/* Content that replaces a placeholder or another view: fade-through, the
-   default pair with the smallest rise. The distance is inherited, but
-   enter() drops the class once the entrance settles, so children that enter
-   with it keep the short rise only for that moment. */
-.ds-enter--swap { --ds-motion-distance: var(--ds-distance-sm); }
-
-/* Waits before it shows: fast loads never flash a loading indicator. */
-.ds-enter--delayed { --ds-enter-keyframes: ds-fade-in; --ds-enter-easing: var(--ds-ease-in-out); --ds-enter-delay: var(--ds-delay-loader); }
-
-/* A small marker appears (a badge, a counter that gets its first value):
-   it pops in from --ds-scale-small, without overshoot. */
-.ds-enter--pop { --ds-enter-keyframes: ds-fade-in, ds-pop-in; }
-
-/* A bar or column grows to its share once (first render of a chart): a
-   value travelling, so it glides on the standard curve like progress. */
-.ds-enter--fill-x { --ds-enter-keyframes: ds-fade-in, ds-fill-x; --ds-enter-duration: var(--ds-dur-glide); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-in-out); }
-.ds-enter--fill-y { --ds-enter-keyframes: ds-fade-in, ds-fill-y; --ds-enter-duration: var(--ds-dur-glide); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-in-out); }
-
-/* One-shot exit; leave() in js/motion.js removes or hides the element
-   afterwards. It starts at once and plays once, whatever delay (a loader
-   that waited to fade in) or loop the element's own animation had. */
-.ds-leave.ds-leave {
-  animation-name: var(--ds-leave-keyframes, ds-fade-out);
-  animation-duration: var(--ds-leave-duration, var(--ds-dur-base));
-  animation-timing-function: var(--ds-ease-in);
-  animation-delay: 0ms;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
-  pointer-events: none;
-}
-
-.ds-leave--sink { --ds-leave-keyframes: ds-sink-out; }
-.ds-leave--scale { --ds-leave-keyframes: ds-scale-out; }
-.ds-leave--slide { --ds-leave-keyframes: ds-slide-out; }
-
-/* First render of a page only: its children (cards, tiles) fade in one
-   after the other, at most six steps (stagger() numbers them). Refreshes
-   never animate: drop the class once the entrance played. */
-.ds-stagger > * {
-  animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards;
-  animation-delay: calc(var(--ds-i, 0) * var(--ds-stagger));
-}
-
-/* Freshly loaded content replaces its placeholder: fade-through with the
-   smallest rise (opacity on the standard curve, the rise decelerating). */
-.ds-reveal {
-  --ds-motion-distance: var(--ds-distance-sm);
-  animation:
-    ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
-    ds-lift-in var(--ds-dur-medium) var(--ds-ease-out) backwards;
-}
-
-/*
- * Disclosure: <details class="ds-collapsible"> opens and closes with a
- * height transition where the browser can animate to `auto` (progressive
- * enhancement; elsewhere it simply toggles).
- */
-@supports (interpolate-size: allow-keywords) {
-  .ds-collapsible {
-    interpolate-size: allow-keywords;
+  @keyframes ds-fade-in {
+    from { opacity: 0; }
   }
 
-  .ds-collapsible::details-content {
-    height: 0;
-    overflow: clip;
-    transition: height var(--ds-dur-medium) var(--ds-ease-in-out), content-visibility var(--ds-dur-medium) allow-discrete;
+  /*
+   * Movement only. Opacity must take the standard curve while the movement
+   * floats on the spring (an overshooting fade flashes), and one keyframe
+   * runs on one curve, so entrances pair ds-fade-in with one of these:
+   *
+   *   animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
+   *              ds-lift-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
+   *
+   * ds-lift-in rises (snackbars, a swapped view), ds-grow-in rises from just
+   * below full size (dialogs; --ds-motion-scale sets the start scale),
+   * ds-shift-in comes from the side (side sheets), ds-pop-in grows small
+   * markers (badges). The .ds-enter utilities below always use these pairs.
+   */
+  @keyframes ds-lift-in {
+    from { translate: 0 var(--ds-motion-distance, var(--ds-distance-md)); }
   }
 
-  .ds-collapsible[open]::details-content {
-    height: auto;
+  @keyframes ds-grow-in {
+    from {
+      translate: 0 var(--ds-motion-distance, var(--ds-distance-md));
+      scale: var(--ds-motion-scale, var(--ds-scale-enter));
+    }
+  }
+
+  @keyframes ds-shift-in {
+    from { translate: var(--ds-motion-distance, var(--ds-distance-xl)) 0; }
+  }
+
+  /* A rolling line (a status text that changes): the new line comes up from
+     below into its slot (--ds-motion-distance: 100%, one line height). */
+  @keyframes ds-roll-in {
+    from { translate: 0 var(--ds-motion-distance, 100%); }
+  }
+
+  /* Small markers that appear (badges, counters): the smallest start scale
+     (--ds-scale-small). */
+  @keyframes ds-pop-in {
+    from { scale: var(--ds-motion-scale, var(--ds-scale-small)); }
+  }
+
+  /* A stroke that draws itself (a check after success). The glyph carries
+     pathLength="1" and the element sets stroke-dasharray: 1, so the stroke
+     starts fully offset (--ds-draw-length, default 1) and draws in. */
+  @keyframes ds-draw {
+    from { stroke-dashoffset: var(--ds-draw-length, 1); }
+  }
+
+  /* A bar that fills from its start (meters, chart bars and columns on their
+     first render). The element sets its own transform (the scaleX or scaleY
+     of its share) and transform-origin; the scale property multiplies it,
+     so the bar grows from zero to its share. A value that changes later
+     jumps or transitions, it never replays this. */
+  @keyframes ds-fill-x {
+    from { scale: 0 1; }
+  }
+
+  @keyframes ds-fill-y {
+    from { scale: 1 0; }
+  }
+
+  /* ── Keyframes: leave ──────────────────────────── */
+  /* Movement only, each paired with ds-fade-out (the fade accelerates on
+     its own curve):
+
+       animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) forwards,
+                  ds-drop-out var(--ds-dur-fast) var(--ds-ease-in) forwards;
+  */
+
+  @keyframes ds-fade-out {
+    to { opacity: 0; }
+  }
+
+  /* Down (the reverse of ds-lift-in). */
+  @keyframes ds-drop-out {
+    to { translate: 0 var(--ds-motion-distance, var(--ds-distance-md)); }
+  }
+
+  /* Smaller and a little down (the reverse of ds-grow-in). */
+  @keyframes ds-shrink-out {
+    to {
+      translate: 0 var(--ds-motion-distance, var(--ds-distance-sm));
+      scale: var(--ds-motion-scale, var(--ds-scale-enter));
+    }
+  }
+
+  /* Sideways (a side sheet, a drawer). */
+  @keyframes ds-shift-out {
+    to { translate: var(--ds-motion-distance, var(--ds-distance-lg)) 0; }
+  }
+
+  /* A small marker disappears (the reverse of ds-pop-in). */
+  @keyframes ds-pop-out {
+    to { scale: var(--ds-motion-scale, var(--ds-scale-small)); }
+  }
+
+  /* The rolling line leaves upwards (--ds-motion-distance: -100%). */
+  @keyframes ds-roll-out {
+    to { translate: 0 var(--ds-motion-distance, -100%); }
+  }
+
+  /* Deprecated, removed in 2.0: fade + move in one keyframe, so the fade
+     cannot take its own curve. Use ds-fade-out with ds-drop-out,
+     ds-shrink-out or ds-shift-out. Unchanged, so a page that names one alone
+     keeps its fade. */
+  @keyframes ds-sink-out {
+    to { opacity: 0; transform: translate3d(0, var(--ds-motion-distance, var(--ds-distance-md)), 0); }
+  }
+
+  @keyframes ds-scale-out {
+    to { opacity: 0; transform: translate3d(0, var(--ds-distance-sm), 0) scale(var(--ds-scale-enter)); }
+  }
+
+  @keyframes ds-slide-out {
+    to { opacity: 0; transform: translate3d(var(--ds-motion-distance, var(--ds-distance-lg)), 0, 0); }
+  }
+
+  /* ── Keyframes: popup reveal ───────────────────── */
+  /* A popup (menu, listbox) uncovers itself from the edge of its trigger:
+     --ds-clip-from is the hidden state (DS.motion.originFrom() writes it,
+     default: closed towards the top edge). clip-path does not interpolate
+     to `none`, so both keyframes name both ends; the open end reaches
+     --ds-space-4 beyond the box, so the popup's shadow stays visible while
+     the animation runs. */
+  @keyframes ds-clip-in {
+    from { clip-path: var(--ds-clip-from, inset(0 0 100% 0)); }
+    to { clip-path: inset(calc(-1 * var(--ds-space-4))); }
+  }
+
+  @keyframes ds-clip-out {
+    from { clip-path: inset(calc(-1 * var(--ds-space-4))); }
+    to { clip-path: var(--ds-clip-from, inset(0 0 100% 0)); }
+  }
+
+  /* ── Keyframes: feedback ───────────────────────── */
+
+  /* The pointer ripple of an action (DS.ripple): a circle grows from the
+     pointer. Its fade is a separate track (ds-fade-out). */
+  @keyframes ds-press-ripple {
+    from { scale: 0; }
+  }
+
+  /* A ring that widens and fades once behind a confirmation. No overshoot:
+     it only grows and disappears. */
+  @keyframes ds-ripple {
+    from { opacity: var(--ds-ripple-opacity, .6); scale: 1; }
+    to { opacity: 0; scale: var(--ds-ripple-scale, 1.6); }
+  }
+
+  /* ── Keyframes: loops (loading indicators) ─────── */
+  /* No shimmer: shimmers are decoration; skeletons pulse. */
+
+  @keyframes ds-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes ds-pulse {
+    50% { opacity: .45; }
+  }
+
+  /* The segment (35% of the track) enters left and leaves right. */
+  @keyframes ds-indeterminate {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(286%); }
+  }
+
+  /* A scan line over media being processed: a band travels from above the
+     frame to below it (percentages of its own height, set by the component). */
+  @keyframes ds-scan {
+    from { translate: 0 var(--ds-scan-from, -100%); }
+    to { translate: 0 var(--ds-scan-to, 100%); }
+  }
+}
+
+@layer ds.utilities {
+  /* ── Utilities ─────────────────────────────────── */
+
+  /* Order matters inside this layer, not specificity: the layer beats every
+     component's own animation, and within it the later rule wins. The
+     first-render utilities come first, .ds-enter after them and .ds-leave
+     last, so an exit always wins over an entrance. */
+
+  /* First render of a page only: its children (cards, tiles) fade in and
+     rise the smallest distance one after the other, at most six steps
+     (stagger() numbers them). Refreshes never animate: drop the class once
+     the entrance played. */
+  .ds-stagger > * {
+    --ds-motion-distance: var(--ds-distance-sm);
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
+      ds-lift-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
+    animation-delay: calc(var(--ds-i, 0) * var(--ds-stagger));
+  }
+
+  /* Where sibling-index() exists, CSS-only pages stagger too: each child
+     numbers itself, capped at the sixth step. An inline --ds-i from
+     stagger() still wins. */
+  @supports (z-index: sibling-index()) {
+    .ds-stagger > * {
+      --ds-i: min(sibling-index() - 1, 5);
+    }
+  }
+
+  /* Freshly loaded content replaces its placeholder: fade-through with the
+     smallest rise (opacity on the standard curve, the rise on the spring). */
+  .ds-reveal {
+    --ds-motion-distance: var(--ds-distance-sm);
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
+      ds-lift-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
+  }
+
+  /* Loaders keep their own animation: a skeleton, .ds-loading or .ds-boot
+     waits its loader delay (fast loads never flash it) and a spinner keeps
+     turning, also as a direct child of .ds-stagger (skeleton placeholders
+     in a staggered grid) or with .ds-reveal. revert-layer hands them back
+     to ds.components. The selectors weigh one class, so they beat the two
+     rules above by order and .ds-enter and .ds-leave below still win. */
+  .ds-stagger > :where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner),
+  .ds-reveal:where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner) {
+    animation: revert-layer;
+  }
+
+  /*
+   * One-shot entrance. Variants pick the keyframes; `--ds-i` (set by
+   * stagger() in js/motion.js) delays each item of a list by one
+   * --ds-stagger step. Every variant fades on the standard curve: movement
+   * runs as a second animation (the lists pair up; duration, delay and fill
+   * repeat) and floats on the spring, so the fade never overshoots.
+   *
+   * It plays once and ends, also on an element with its own loop (the
+   * entrance replaces that loop while it runs). Never put .ds-enter on a
+   * looping element in static markup: wrap it (spinner.css).
+   *
+   *   <li class="ds-enter ds-enter--scale">   via JS: DS.motion.enter(el, 'scale')
+   */
+  .ds-enter {
+    animation-name: var(--ds-enter-keyframes, ds-fade-in, ds-lift-in);
+    animation-duration: var(--ds-enter-duration, var(--ds-dur-medium));
+    animation-timing-function: var(--ds-enter-easing, var(--ds-ease-in-out), var(--ds-ease-spatial));
+    animation-delay: calc(var(--ds-i, 0) * var(--ds-stagger) + var(--ds-enter-delay, 0ms));
+    animation-iteration-count: 1;
+    animation-direction: normal;
+    animation-play-state: running;
+    /* backwards: hold the start state during the delay, then hand back to the
+       element's own styles. */
+    animation-fill-mode: backwards;
+  }
+
+  .ds-enter--fade { --ds-enter-keyframes: ds-fade-in; --ds-enter-easing: var(--ds-ease-in-out); }
+  .ds-enter--scale { --ds-enter-keyframes: ds-fade-in, ds-grow-in; }
+  .ds-enter--slide { --ds-enter-keyframes: ds-fade-in, ds-shift-in; --ds-enter-duration: var(--ds-dur-slow); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-spatial); }
+
+  /* Content that replaces a placeholder or another view: fade-through, the
+     default pair with the smallest rise. The distance applies to this
+     element only (the hooks do not inherit): children that enter inside it
+     keep their own distance. */
+  .ds-enter--swap { --ds-motion-distance: var(--ds-distance-sm); }
+
+  /* Waits before it shows: fast loads never flash a loading indicator. */
+  .ds-enter--delayed { --ds-enter-keyframes: ds-fade-in; --ds-enter-easing: var(--ds-ease-in-out); --ds-enter-delay: var(--ds-delay-loader); }
+
+  /* A small marker appears (a badge, a counter that gets its first value):
+     it springs in from --ds-scale-small (the scale settles just past full
+     size, about 1%). */
+  .ds-enter--pop { --ds-enter-keyframes: ds-fade-in, ds-pop-in; }
+
+  /* A bar or column grows to its share once (first render of a chart): a
+     value travelling, so it glides on the value curve like progress (data
+     never overshoots). */
+  .ds-enter--fill-x { --ds-enter-keyframes: ds-fade-in, ds-fill-x; --ds-enter-duration: var(--ds-dur-glide); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-value); }
+  .ds-enter--fill-y { --ds-enter-keyframes: ds-fade-in, ds-fill-y; --ds-enter-duration: var(--ds-dur-glide); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-value); }
+
+  /* One-shot exit; leave() in js/motion.js removes or hides the element
+     afterwards. It starts at once and plays once, whatever delay (a loader
+     that waited to fade in) or loop the element's own animation had. Small
+     exits accelerate (--ds-ease-in, the fade included) in --ds-dur-fast,
+     0.6 of the default entrance. The variants pair ds-fade-out with a
+     movement-only exit. */
+  .ds-leave {
+    animation-name: var(--ds-leave-keyframes, ds-fade-out);
+    animation-duration: var(--ds-leave-duration, var(--ds-dur-fast));
+    animation-timing-function: var(--ds-leave-easing, var(--ds-ease-in));
+    animation-delay: 0ms;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    pointer-events: none;
+  }
+
+  .ds-leave--sink { --ds-leave-keyframes: ds-fade-out, ds-drop-out; }
+  .ds-leave--scale { --ds-leave-keyframes: ds-fade-out, ds-shrink-out; --ds-leave-duration: var(--ds-dur-base); }
+  .ds-leave--slide { --ds-leave-keyframes: ds-fade-out, ds-shift-out; --ds-leave-duration: var(--ds-dur-base); }
+  .ds-leave--pop { --ds-leave-keyframes: ds-fade-out, ds-pop-out; }
+
+  /*
+   * Disclosure: <details class="ds-collapsible"> opens and closes with a
+   * height transition where the browser can animate to `auto` (progressive
+   * enhancement; elsewhere it simply toggles).
+   */
+  @supports (interpolate-size: allow-keywords) {
+    .ds-collapsible {
+      interpolate-size: allow-keywords;
+    }
+
+    .ds-collapsible::details-content {
+      height: 0;
+      overflow: clip;
+      transition: height var(--ds-dur-medium) var(--ds-ease-in-out), content-visibility var(--ds-dur-medium) allow-discrete;
+    }
+
+    .ds-collapsible[open]::details-content {
+      height: auto;
+    }
   }
 }

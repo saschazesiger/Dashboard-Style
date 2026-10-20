@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A neutral, themeable design system for admin dashboards in the Material 3 / Google console style: CSS tokens, components, motion and icons, without dependencies.",
   "license": "MIT",
   "type": "module",
@@ -35,7 +35,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test \"test/*.test.js\"",
-    "check": "node --test \"test/*.test.js\" && node scripts/build.mjs --check",
+    "check": "node --test \"test/*.test.js\" && node scripts/build.mjs --check && node scripts/motion-curves.mjs --check",
     "test:browser": "playwright test --config test/browser/playwright.config.js",
     "test:browser:update": "playwright test --config test/browser/playwright.config.js --update-snapshots"
   },

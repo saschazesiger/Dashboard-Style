@@ -46,13 +46,14 @@ DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one vide
 
 | Spec | Engines | Asserts |
 |---|---|---|
-| `smoke.spec.js` | all | the server (types, no listings, nothing outside the root); the styleguide reaches `data-sg-ready` with no console error and runs `DS.version` 0.1.0; every fixture loads cleanly; `module.html` imports the four ES modules; a theme switch sets `data-sg-theme` and re-places the three indicators; a saved theme loads before `data-sg-ready`; `?speed=0.1` slows the styleguide and the fixtures |
+| `smoke.spec.js` | all | the server (types, no listings, nothing outside the root); the styleguide reaches `data-sg-ready` with no console error and runs the `DS.version` of `package.json`; every fixture loads cleanly; `module.html` imports the four ES modules; a theme switch sets `data-sg-theme` and re-places the three indicators; a saved theme loads before `data-sg-ready`; `?speed=0.1` slows the styleguide and the fixtures |
 | `spike.spec.js` | all | the ten capabilities of the spike ("Capability spike") |
 | `baseline.spec.js` | all (phone, themes, forced colours: Chromium) | settled screenshots ("Baselines") |
 | `motion-today.spec.js` | all | JSON timelines of every motion utility and animated component; smoke checks for `ds-spin` and `.ds-enter` |
 | `frames.spec.js` | Chromium | mid-animation frames (0, 50 %, end) of the overlays, the drawer entrance and the modal drawer |
 | `demos.spec.js` | all (videos: Chromium) | every styleguide demo ends settled without a console error; one video per demo with `DS_VIDEO=1` |
-| `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs") |
+| `foundation.spec.js` | all | the 1.0.0 foundation: the layer order of `ds.css`, unlayered CSS (and an unlayered reset) beating components, utilities beating component animations, non-inheriting motion hooks, `?speed=` scaling durations and delays, the spring on movement tracks, the paired exits, hover that moves nothing, the 4px stagger rise and the `sibling-index()` stagger |
+| `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs"); a fixed bug's test stays and passes |
 
 ### Fixtures
 
@@ -68,8 +69,8 @@ embedded-widget path is the default under test. The styleguide covers the `html.
 | `feedback.html` | `.ds-progress` at .05, .4 and 1, `--indeterminate`, `--waiting`; loading bar, skeleton, spinners, the four status chips and one whose class a button toggles on the live node, alerts, a clickable tile and a card link |
 | `shell.html` | the `.ds-app.ds-app--drawer` frame with top bar, drawer, indicator, scrim and panel; use it at 1000px (docked) and 800px (modal drawer; the menu button and the scrim toggle `data-drawer-open`) |
 | `module.html` | imports the four ES modules of `dist/js/`; `window.moduleResult` says whether they export everything `window.DS` exposes |
-| `reset.html` | a normalize-like reset without a layer before `ds.css`; expected to change in P1 (the `@layer` break of the migration note) |
-| `reset-layered.html` | the same reset in `@layer reset`, declared before `ds.css`; must keep its P0 screenshot after P1 |
+| `reset.html` | a normalize-like reset without a layer before `ds.css`; it changed in P1 on purpose (the unlayered reset now wins: the `@layer` break of the 1.0.0 migration note) |
+| `reset-layered.html` | the same reset in `@layer reset`, declared before `ds.css`; kept its P0 screenshot through P1 |
 | `spike.html` | the test bed of the capability spike, one numbered block per capability; animations start when a test adds the `--run` class |
 
 `fixture.js` fills `[data-icon]` placeholders from `DS.icons`, wires `[data-replay]` buttons
@@ -101,7 +102,7 @@ A theme for a test goes in before the page loads:
 | `sample(locator, props, times, { pseudo })` | freeze, then seek to each time and read numbers (keys listed in the file header) |
 | `rafSample(locator, props, ms, { pseudo })` | the same values every frame in real time; only for interruption, judged with tolerances |
 | `settle(page, { timeout })` | waits for every finite animation; rejects and names what still runs (a frozen page never settles) |
-| `setSpeed(page, factor)` | reloads with `?speed=<factor>` (see "Slow motion") |
+| `setSpeed(page, factor)` | reloads with `?speed=<factor>`, which sets `--ds-time-scale` (see "Slow motion") |
 | `press(locator, { holdMs, x, y, pointer })` | real pointer down, hold, up with the mouse; `pointer: 'touch'` taps (context with `hasTouch`), a touch hold needs Chromium |
 | `focusByKeyboard(page, locator)` | focus by the Tab key, so `:focus-visible` matches |
 | `expectEndState(locator, styles)` | computed styles at rest |
@@ -141,12 +142,12 @@ relying on frame timing, so a loaded machine cannot make it pass or time out by 
 
 | Phase | Test (what the fix makes true) | Ids | Engines |
 |---|---|---|---|
-| P1 | a delayed spinner plays its entrance once, keeps turning; `enter()` resolves on `animationend` | repo-enter-iteration | all |
-| P1 | a `.ds-enter--slide` child of `.ds-reveal` travels `--ds-distance-xl` | core-css-distance-inherits | all |
-| P1 | `[hidden]` hides dialog, sheet and combobox popup without `.ds-base` | overlay-hidden-attr-ignored | all |
-| P1 | a backdrop click during the dialog exit does not reach the page | overlay-missed-1 | all |
-| P1 | a tooltip placed by an inline `transform` is at its anchor at 10 % of the entrance | overlay-tooltip-transform-fly | all |
-| P1 | `reducedMotion: 'reduce'` gives the same timelines (enter, leave, spinner, dialog) | D8 | all |
+| P1 (fixed, marker deleted) | a delayed spinner plays its entrance once, keeps turning; `enter()` resolves on `animationend` | repo-enter-iteration | all |
+| P1 (fixed, marker deleted) | a `.ds-enter--slide` child of `.ds-reveal` travels `--ds-distance-xl` | core-css-distance-inherits | all |
+| P1 (fixed, marker deleted) | `[hidden]` hides dialog, sheet and combobox popup without `.ds-base` | overlay-hidden-attr-ignored | all |
+| P1 (fixed, marker deleted) | a backdrop click during the dialog exit does not reach the page | overlay-missed-1 | all |
+| P1 (fixed, marker deleted) | a tooltip placed by an inline `transform` is at its anchor at 10 % of the entrance | overlay-tooltip-transform-fly | all |
+| P1 (fixed, marker deleted) | `reducedMotion: 'reduce'` gives the same timelines (enter, leave, spinner, dialog) | D8 | all |
 | P2 | `leave(…, { then: 'hide' })` then `enter(el, 'swap')` ends visible | core-js-leave-enter-race, js-leave-enter-race, repo-leave-enter-race | all |
 | P2 | a second `countUp()` mid-count never counts backwards (fixture and styleguide tiles) | core-js-countup-reentry, js-countup-concurrent, repo-countup-overlap | all |
 | P2 | `enter()` restarts the entrance of an SVG path that carries `.ds-enter` | core-js-replay-svg-reflow | all |
@@ -174,14 +175,13 @@ it): equal pixels mean nothing was cut off.
 ## Slow motion: `?speed=`
 
 `?speed=<factor>` with a factor of 1 or less (for example `?speed=0.1`) slows motion down on the styleguide and on
-every fixture: the page sets every animation's and transition's `playbackRate` to the factor (capture-phase
-`animationstart` and `transitionrun` listeners plus a sweep each frame over `document.getAnimations()`, which also
-catches `el.animate()`). The styleguide marks it with `html[data-sg-speed]`, fixtures with `html[data-fx-speed]`.
+every fixture: the page sets `--ds-time-scale: <1 / factor>` on `<html>` (the styleguide's root `.ds-theme`, above the
+fixtures' `.ds-theme`). The registered token multiplies every duration and delay token, so CSS motion stretches by
+itself. The styleguide marks it with `html[data-sg-speed]`, fixtures with `html[data-fx-speed]`.
 
-Limits until P1/P2: only CSS and Web Animations slow down. JS timing keeps its pace: the 1000ms timeout of
-`settled()`, the indicator's 600ms glide window and `COUNT_UP_MS`. P1 replaces the bridge with
-`--ds-time-scale = 1 / factor` under the same query parameter (and `setSpeed()` with it); the Motion Lab (P8)
-builds its global slow motion on that token.
+Limits until P2: JS timing that does not read the tokens keeps its pace: the 1000ms timeout of `settled()`, the
+indicator's 600ms glide window and `COUNT_UP_MS`. P2's `motionDuration()` reads the scaled tokens; the Motion Lab
+(P8) builds its global slow motion on the same token.
 
 ## Screenshots
 

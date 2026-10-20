@@ -6,9 +6,10 @@ A neutral, themeable design system for admin dashboards and internal tools, in t
 - **Plain CSS and dependency-free JS.** No build step needed: one stylesheet, one optional script.
 - **Themeable from one file.** Every colour, radius, font and shadow comes from a `--ds-*` token. A project theme
   overrides tokens; it never touches components.
-- **Accessible by default.** WCAG AA text contrast, visible instant focus, reduced motion, forced colors (Windows
-  contrast themes), status never by colour alone.
-- **Embeddable.** Tokens live on `.ds-theme`, not `:root`, so the system can run inside someone else's page.
+- **Accessible by default.** WCAG AA text contrast, visible instant focus, forced colors (Windows contrast
+  themes), status never by colour alone.
+- **Embeddable.** Tokens live on `.ds-theme`, not `:root`, so the system can run inside someone else's page, and
+  every rule sits in `@layer ds.*`, so the page's own unlayered CSS always wins.
 
 MIT licensed. The bundled Google Sans font is under the SIL Open Font License 1.1; the icon shapes come from Lucide
 (ISC) and Feather (MIT), see [LICENSE](LICENSE). There is no dark theme: the default is light, and dark mode is not
@@ -118,13 +119,17 @@ AGENTS.md        how to work on the system (CLAUDE.md points to it)
 
 ## Browser support
 
-Current Chrome, Edge, Firefox and Safari, and Safari 14.1 and later: the CSS uses no `@layer`, no nesting and no
-`inset` shorthand, and the JS is ES2020 without destructuring. Refinements that need newer browsers degrade
-gracefully: `:has()`, container queries, `color-mix()`, `interpolate-size`, `linear()` easing and `svh`/`dvh`
-(each file names them under "Progressive:" in its header); `:focus-visible` (rings sit on `:focus` and come off on
-`:focus:not(:focus-visible)`, so browsers without it keep them);
-`accent-color`, `text-wrap`, `overflow-wrap: anywhere` and the `translate` property. Safari 14.0 also works but
-loses flex gaps.
+Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Everything in `src/` may run in an embedded widget
+on such a browser, so the CSS uses `:focus-visible`, `:has()`, `inset`, container queries, `color-mix()`,
+`svh`/`dvh`, `<dialog>`, `inert`, `@layer`, `@property` and the individual `translate`/`scale`/`rotate` directly,
+but no CSS nesting; the JS is ES2022.
+
+Newer features are refinements only, behind a feature query where it matters, and each file names them under
+"Progressive:" in its header with its fallback: `linear()`, `@starting-style`, `transition-behavior:
+allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven animations, `interpolate-size`,
+`::details-content`, `overflow-clip-margin`, `sibling-index()`, `moveBefore()`, plus `text-wrap` and
+`scrollbar-color`. Older browsers get the same page without the refinement (a cubic curve instead of the spring,
+a disclosure that toggles instead of gliding).
 
 ## Develop
 

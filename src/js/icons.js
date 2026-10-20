@@ -136,17 +136,25 @@ function checkGlyph(body) {
   if (typeof body !== 'string' || body.charAt(0) !== '<') throw new Error('Unknown icon: ' + body);
 }
 
+const ESCAPES = { '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' };
+
+/** A value for a double-quoted attribute: a class can never close it. */
+function escapeAttribute(value) {
+  return String(value).replace(/[&"<>]/g, (char) => ESCAPES[char]);
+}
+
 /**
  * SVG markup of one glyph.
  * @param {string} body  a glyph of this module (inner SVG markup)
  * @param {number} [size]  rendered width and height in px (default 20)
- * @param {string} [className]  extra class (a styling hook)
+ * @param {string} [className]  extra class (a styling hook); escaped, so
+ *   it never ends the attribute
  * @returns {string}
  */
 export function icon(body, size, className) {
   checkGlyph(body);
   const px = size || ICON_SIZE;
-  const cls = className ? ` class="${className}"` : '';
+  const cls = className ? ` class="${escapeAttribute(className)}"` : '';
   return `<svg${cls} width="${px}" height="${px}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
 }
 

@@ -14,7 +14,20 @@
   },
   {
     "type": "animation",
-    "name": "ds-sink-out",
+    "name": "ds-fade-out",
+    "pseudoElement": null,
+    "duration": 150,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "cubic-bezier(0.3, 0, 1, 1)",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "forwards",
+    "target": "div.ds-dialog__box"
+  },
+  {
+    "type": "animation",
+    "name": "ds-drop-out",
     "pseudoElement": null,
     "duration": 150,
     "delay": 0,

@@ -19,6 +19,9 @@ import { ready, settle, timeline } from './helpers/motion.js';
 const STYLEGUIDE = '/styleguide/index.html';
 const FIXTURES = '/test/browser/fixtures/';
 
+/** Times to the microsecond: a calc() duration may come back as 350.00000000000006. */
+const time = (value) => (typeof value === 'number' ? Math.round(value * 1000) / 1000 : value);
+
 /** The timing contract of a timeline (JSON has no Infinity: loops say "Infinity"). */
 function contract(entries) {
   return entries.map((entry) => {
@@ -26,8 +29,8 @@ function contract(entries) {
       type: entry.type,
       name: entry.name,
       pseudoElement: entry.pseudoElement,
-      duration: entry.duration,
-      delay: entry.delay,
+      duration: time(entry.duration),
+      delay: time(entry.delay),
       easing: entry.easing,
       keyframeEasing: entry.keyframeEasing,
       iterations: Number.isFinite(entry.iterations) ? entry.iterations : String(entry.iterations),
@@ -88,7 +91,15 @@ test.describe('smoke', () => {
   test('.ds-enter plays ds-fade-in and ds-lift-in over --ds-dur-medium', async ({ page }) => {
     await open(page, `${FIXTURES}motion.html`);
     const box = page.locator('#enter-default');
-    const medium = await box.evaluate((el) => parseFloat(getComputedStyle(el).getPropertyValue('--ds-dur-medium')));
+    // The token is a calc() (its value times --ds-time-scale): let the engine resolve it.
+    const medium = await box.evaluate((el) => {
+      const probe = document.createElement('div');
+      probe.style.transitionDuration = 'var(--ds-dur-medium)';
+      el.append(probe);
+      const seconds = parseFloat(getComputedStyle(probe).transitionDuration);
+      probe.remove();
+      return seconds * 1000;
+    });
     expect(medium).toBeGreaterThan(0);
     await act(page, (id) => DS.motion.replay(document.getElementById(id), 'ds-enter'), 'enter-default');
     const entries = await timeline(box);

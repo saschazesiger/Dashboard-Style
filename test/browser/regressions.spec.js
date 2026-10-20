@@ -26,9 +26,33 @@ async function open(page, name) {
   await settle(page);
 }
 
-/** Adds markup at the end of the fixture's `.ds-theme` wrapper (the embedded-widget path). */
-function inject(page, html) {
-  return page.evaluate((markup) => document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', markup), html);
+/**
+ * Adds markup at the end of the fixture's `.ds-theme` wrapper (the
+ * embedded-widget path). With `pause`, every animation of the document is
+ * paused in the same task (getAnimations() flushes styles, so the entrances
+ * the markup starts are there, at their start), so nothing finishes before
+ * a later evaluate reads it, however busy the machine is.
+ */
+function inject(page, html, { pause = false } = {}) {
+  return page.evaluate(([markup, hold]) => {
+    document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', markup);
+    if (hold) for (const animation of document.getAnimations()) animation.pause();
+  }, [html, pause]);
+}
+
+/** Runs `action(el)` on the element and pauses every animation of the document in the same task, like inject(). */
+function act(locator, action) {
+  return locator.evaluate((el, source) => {
+    new Function('el', `(${source})(el)`)(el);
+    for (const animation of document.getAnimations()) animation.pause();
+  }, action.toString());
+}
+
+/** Plays every animation that act() or inject() paused. */
+function resume(page) {
+  return page.evaluate(() => {
+    for (const animation of document.getAnimations()) if (animation.playState === 'paused') animation.play();
+  });
 }
 
 /** Waits for two animation frames, so a change has been laid out and painted. */
@@ -55,27 +79,36 @@ async function ringIsClipped(page, locator, unclip, pad = 8) {
 
 test.describe('fixed in P1', () => {
   test('a delayed spinner plays its entrance once and keeps turning; enter() resolves on animationend', async ({ page }) => {
-    test.fail(true, 'repo-enter-iteration: fixed in P1');
     await open(page, 'motion.html');
     const spinner = page.locator('#delayed-spinner');
     // Static markup, long after load: only the spinner's own loop is infinite.
     const looping = (await timeline(spinner)).filter((entry) => entry.iterations === Infinity).map((entry) => entry.name);
     expect(looping).toEqual(['ds-spin']);
     // Replayed: the entrance tracks play once.
-    await spinner.evaluate((el) => DS.motion.replay(el, 'ds-enter', 'ds-enter--delayed'));
+    await act(spinner, (el) => DS.motion.replay(el, 'ds-enter', 'ds-enter--delayed'));
     const entrance = (await timeline(spinner)).filter((entry) => entry.name !== 'ds-spin');
     expect(entrance.length).toBeGreaterThan(0);
     expect(entrance.map((entry) => entry.iterations)).toEqual(entrance.map(() => 1));
+    await resume(page);
     // enter() resolves when the entrance ends (delay plus duration), not on its 1000ms timeout.
     const ms = await spinner.evaluate((el) => {
       const start = performance.now();
       return DS.motion.enter(el, 'delayed').then(() => performance.now() - start);
     });
     expect(ms).toBeLessThan(900);
+    // enter() took its classes away, so the spinner turns again: its loop alone, running and advancing.
+    expect(await spinner.evaluate((el) => [...el.classList])).toEqual(['ds-spinner']);
+    const after = await timeline(spinner);
+    expect(after.map((entry) => [entry.name, entry.iterations, entry.playState])).toEqual([['ds-spin', Infinity, 'running']]);
+    const turning = await spinner.evaluate((el) => new Promise((resolve) => {
+      const [loop] = el.getAnimations();
+      const from = Number(loop.currentTime);
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve(Number(loop.currentTime) > from)));
+    }));
+    expect(turning).toBe(true);
   });
 
   test('a .ds-enter--slide child inside .ds-reveal travels its own distance', async ({ page }) => {
-    test.fail(true, 'core-css-distance-inherits: fixed in P1');
     await open(page, 'motion.html');
     const child = page.locator('#reveal-child');
     const rest = await child.boundingBox();
@@ -88,13 +121,12 @@ test.describe('fixed in P1', () => {
       return width;
     });
     expect(distance).toBeGreaterThan(4);
-    await child.evaluate((el) => DS.motion.replay(el, 'ds-enter', 'ds-enter--slide'));
+    await act(child, (el) => DS.motion.replay(el, 'ds-enter', 'ds-enter--slide'));
     const [start] = await sample(child, ['rect'], [0]);
     expect(Math.abs(start['rect.x'] - rest.x)).toBeCloseTo(distance, 0);
   });
 
   test('[hidden] hides a dialog, a sheet and a combobox popup without .ds-base', async ({ page }) => {
-    test.fail(true, 'overlay-hidden-attr-ignored: fixed in P1');
     await open(page, 'controls.html');
     await inject(page, `
       <div class="ds-dialog" id="x-dialog" hidden><div class="ds-dialog__backdrop"></div>
@@ -109,7 +141,6 @@ test.describe('fixed in P1', () => {
   });
 
   test('a click on the dialog backdrop during the exit does not reach the page under it', async ({ page }) => {
-    test.fail(true, 'overlay-missed-1: fixed in P1');
     await open(page, 'controls.html');
     await inject(page, `
       <button class="ds-btn" type="button" id="x-under" style="position: fixed; top: 8px; left: 8px">Under the backdrop</button>
@@ -128,39 +159,44 @@ test.describe('fixed in P1', () => {
     expect(await page.evaluate(() => window.underClicks)).toBe(0);
   });
 
-  test('a tooltip placed with an inline transform enters at its anchor', async ({ page }) => {
-    test.fail(true, 'overlay-tooltip-transform-fly: fixed in P1');
+  test('a tooltip placed far from the page origin grows at its anchor, placed with top/left or a transform and its origin', async ({ page }) => {
     await open(page, 'controls.html');
-    const tip = page.locator('#x-tip');
-    await inject(page, '<div class="ds-tooltip" role="tooltip" id="x-tip" style="transform: translate(300px, 200px)">Copy link</div>');
-    const [early] = await sample(tip, ['rect'], [{ progress: 0.1 }]);
-    await tip.evaluate((el) => el.getAnimations().forEach((animation) => animation.finish()));
-    const rest = await tip.boundingBox();
-    expect(rest.x).toBeCloseTo(300, 0);
-    // The centre is where it rests (a scale from the centre keeps it there).
-    expect(Math.abs(early['rect.x'] + early['rect.width'] / 2 - (rest.x + rest.width / 2))).toBeLessThan(4);
-    expect(Math.abs(early['rect.y'] + early['rect.height'] / 2 - (rest.y + rest.height / 2))).toBeLessThan(4);
+    // Far from the origin, so a scale that also shrank the offset would show: (1 - .98) x 1000px = 20px.
+    await inject(page, `
+      <div class="ds-tooltip" role="tooltip" id="x-tip" style="left: 1000px; top: 600px">Copy link</div>
+      <div class="ds-tooltip" role="tooltip" id="x-tip-transform"
+        style="transform: translate(1000px, 680px); transform-origin: calc(50% + 1000px) calc(50% + 680px)">Copy link</div>`, { pause: true });
+    for (const [id, left, top] of [['#x-tip', 1000, 600], ['#x-tip-transform', 1000, 680]]) {
+      const tip = page.locator(id);
+      const early = await sample(tip, ['rect', 'scale.x'], [{ progress: 0 }, { progress: 0.1 }]);
+      // The entrance is really there: it starts below full size.
+      expect(early[0]['scale.x'], id).toBeLessThan(1);
+      await tip.evaluate((el) => el.getAnimations().forEach((animation) => animation.finish()));
+      const rest = await tip.boundingBox();
+      expect(rest.x, id).toBeCloseTo(left, 0);
+      expect(rest.y, id).toBeCloseTo(top, 0);
+      // The centre is where it rests from the first frame (the scale grows it around that centre).
+      for (const at of early) {
+        expect(Math.abs(at['rect.x'] + at['rect.width'] / 2 - (rest.x + rest.width / 2)), `${id} at ${at.time}`).toBeLessThan(2);
+        expect(Math.abs(at['rect.y'] + at['rect.height'] / 2 - (rest.y + rest.height / 2)), `${id} at ${at.time}`).toBeLessThan(2);
+      }
+    }
   });
 
   test('reduced motion gives the same timelines (D8: one motion on every device)', async ({ page }) => {
-    test.fail(true, 'D8: fixed in P1');
     const collect = async () => {
       await open(page, 'motion.html');
       await inject(page, '<span class="ds-spinner" id="x-spinner" aria-hidden="true"></span>');
       const out = {};
-      const start = {
-        enter: (el) => DS.motion.replay(el, 'ds-enter'),
-        leave: (el) => DS.motion.replay(el, 'ds-leave'),
-      };
-      await page.locator('#enter-default').evaluate(start.enter);
+      await act(page.locator('#enter-default'), (el) => DS.motion.replay(el, 'ds-enter'));
       out.enter = await timeline(page.locator('#enter-default'));
-      await page.locator('#leave-default').evaluate(start.leave);
+      await act(page.locator('#leave-default'), (el) => DS.motion.replay(el, 'ds-leave'));
       out.leave = await timeline(page.locator('#leave-default'));
       out.spinner = await timeline(page.locator('#x-spinner'));
       await inject(page, `<div class="ds-dialog" id="x-dialog"><div class="ds-dialog__backdrop"></div>
-        <div class="ds-dialog__box" role="alertdialog" aria-label="Delete"><p class="ds-dialog__text">Delete 3 devices?</p></div></div>`);
+        <div class="ds-dialog__box" role="alertdialog" aria-label="Delete"><p class="ds-dialog__text">Delete 3 devices?</p></div></div>`, { pause: true });
       out.dialogOpen = await timeline(page.locator('#x-dialog'), { subtree: true });
-      await page.evaluate(() => document.querySelector('#x-dialog').classList.add('ds-dialog--closing'));
+      await act(page.locator('#x-dialog'), (el) => el.classList.add('ds-dialog--closing'));
       out.dialogClose = await timeline(page.locator('#x-dialog'), { subtree: true });
       // Timing only: where each animation is right now differs between runs.
       for (const key of Object.keys(out)) {

@@ -258,10 +258,10 @@ export async function settle(page, { timeout = 3000 } = {}) {
 }
 
 /**
- * Slows the page's motion down by `factor` (1 or less, e.g. 0.1). In P0 it
- * reloads the page with `?speed=<factor>`, the playback-rate bridge of the
- * styleguide and the fixtures: CSS and Web Animations slow down, JS timers
- * do not. P1 switches it to `--ds-time-scale = 1 / factor`.
+ * Slows the page's motion down by `factor` (1 or less, e.g. 0.1): reloads
+ * the page with `?speed=<factor>`, which the styleguide and the fixtures
+ * turn into `--ds-time-scale = 1 / factor` on <html>. Every duration and
+ * delay token stretches; plain JS timers do not.
  */
 export async function setSpeed(page, factor) {
   assert.ok(factor > 0 && factor <= 1, `speed factor must be in (0, 1], got ${factor}`);

@@ -58,8 +58,11 @@ export function literalPart(value) {
   return current;
 }
 
-/** An empty block of these (e.g. after withoutAtRuleBlocks) is no style rule. */
-const GROUP_AT_RULE = /^@(media|supports|layer|container)\b/;
+/**
+ * No style rule: an empty group block (e.g. after withoutAtRuleBlocks) or a
+ * block of descriptors (`@property`, `@font-face`).
+ */
+const AT_RULE = /^@(media|supports|layer|container|property|font-face)\b/;
 
 /** At-rule statements without a block (`@import ...;`, `@layer a, b;`). */
 const statements = (css) => css.replace(/@[\w-]+[^{};]*;/g, '');
@@ -72,7 +75,7 @@ export function rules(css) {
   return [...statements(stripComments(css)).matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((match) => ({
     selector: match[1].replace(/\s+/g, ' ').trim(),
     body: match[2].replace(/\s+/g, ' ').trim(),
-  })).filter((rule) => !GROUP_AT_RULE.test(rule.selector));
+  })).filter((rule) => !AT_RULE.test(rule.selector));
 }
 
 /** Declarations of the rules whose selector list contains `selector` exactly. */
@@ -135,4 +138,15 @@ export function token(name) {
   const tokens = stripComments(read('src/tokens.css'));
   const match = tokens.match(new RegExp(`${name}:\\s*([^;]+);`));
   return match ? match[1].trim() : undefined;
+}
+
+/**
+ * A duration-like token in ms at --ds-time-scale 1: written as
+ * `calc(<n>ms * var(--ds-time-scale, 1))` (or s), or as a plain time.
+ */
+export function ms(name) {
+  const value = token(name);
+  const match = value && (value.match(/^calc\(\s*(\d*\.?\d+)(ms|s)\s*\*\s*var\(--ds-time-scale,\s*1\)\s*\)$/) || value.match(/^(\d*\.?\d+)(ms|s)$/));
+  if (!match) throw new Error(`${name}: not a duration (${value})`);
+  return Number(match[1]) * (match[2] === 's' ? 1000 : 1);
 }

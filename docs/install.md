@@ -4,13 +4,16 @@ Everything a project needs is in `dist/`:
 
 | Path | What |
 |---|---|
-| `ds.css` | all stylesheets in cascade order (tokens, motion, base, components) |
-| `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, icons }` |
+| `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
+| `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, icons }` (see "Two copies on one page") |
 | `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
 | `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `icons.js`) |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
+
+Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
+files name under "Progressive:"; older engines on that floor get the same page without them.
 
 Load order on a page: fonts (optional), `ds.css`, your theme, then your own styles.
 
@@ -20,6 +23,26 @@ Load order on a page: fonts (optional), `ds.css`, your theme, then your own styl
 <link rel="stylesheet" href="css/theme.css">
 <script src="vendor/dashboard-style/ds.js" defer></script>
 ```
+
+## Cascade layers and resets
+
+`ds.css` declares `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;` and puts every rule into one of
+these layers. Unlayered CSS beats every layer, whatever its specificity, so your theme and your own styles always win
+over a component: no `!important` or doubled selectors are needed against ds.
+
+That includes resets. A reset loaded unlayered (`button { font: inherit; border: 0; background: none }`, normalize,
+the preflight of a utility framework) now overrides the components too. Put it into a layer that is declared before
+`ds.css` loads:
+
+```html
+<style>@layer reset;</style>
+<link rel="stylesheet" href="css/reset.css">            <!-- its rules inside @layer reset { ... } -->
+<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+```
+
+A project with its own layers lists `ds` where it belongs, for example `@layer reset, ds, app;` before anything
+loads. The `!important` that ds keeps (`[hidden]` under `.ds-base`, `.ds-sr`, `.ds-num`, `.ds-center`) sits in a
+layer, so it beats an unlayered `!important` of the page.
 
 ## Vendoring (recommended)
 
@@ -45,10 +68,10 @@ The destination is replaced as a whole. It must be missing, empty or an earlier 
 starts with `version ` and a `SHA256SUMS` that lists `ds.css`); anything else is refused. It then gets two extra
 files:
 
-- `VERSION`: `version 0.1.0`, `source github:saschazesiger/Dashboard-Style@main` (or `local`) and `commit`: the
+- `VERSION`: `version 1.0.0`, `source github:saschazesiger/Dashboard-Style@main` (or `local`) and `commit`: the
   exact commit the ref resolved to; with `--from`, the commit hash of the source checkout (`-modified` if it is dirty), or `none` for a copy that
   is not a Git checkout of its own (an unpacked archive). A Git checkout without commits records the version as
-  `0.1.0-dev`.
+  `1.0.0-dev`.
 - `SHA256SUMS`: `sha256sum` format, sorted by path, LF line ends, covering every file including `VERSION`.
 
 Verify it in your tests or CI so edits to the vendored files fail loudly: run `vendor.sh --check`, or compare the
@@ -78,7 +101,8 @@ glyph of search fields are `data:image/svg+xml` masks in `form.css`, and `img-sr
 
 ## Bundlers and ES modules
 
-Import the single files from the vendored copy (or `dist/` of a checkout). The modules have no imports of their own.
+Import the single files from the vendored copy (or `dist/` of a checkout). A module only imports from its siblings
+in `js/` (`./motion.js`), so keep the folder together.
 
 ```js
 import { enter, leave, stagger } from './vendor/dashboard-style/js/motion.js';
@@ -96,6 +120,18 @@ import { icon, check } from './vendor/dashboard-style/js/icons.js';
 When you pick files, keep the order of `css/index.css` and always include `tokens.css` and `motion.css` (components
 name the keyframes in it). With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
 `package.json` lets both the bundler and Node tests write `#ds/js/motion.js`.
+
+## Two copies on one page
+
+A host page and an embedded widget may each load their own `ds.js`. Every copy registers itself in
+`window.DashboardStyle.versions['<version>']`; `window.DS` is set only when it is absent or holds the same version,
+so the first copy keeps it. A second copy of the same version does nothing. A copy of another version leaves
+`window.DS` alone and logs one warning naming both versions; a `window.DS` that is not Dashboard-Style (no
+`version` string) is never touched either. Code that must run on its own copy reads it by version:
+
+```js
+const ds = window.DashboardStyle.versions['1.0.0'] || window.DS;
+```
 
 ## Fonts
 

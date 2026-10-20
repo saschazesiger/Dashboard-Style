@@ -1,14 +1,15 @@
 /**
  * Guardrails of the stylesheets: motion only through tokens and one file of
  * keyframes, no palette, radius or type literals in components (so a theme
- * reaches every value), plain CSS a Safari 14 page can load, and the
- * forced-colors and accessibility details that are easy to lose.
+ * reaches every value), CSS within the browser baseline and its cascade
+ * layers, and the forced-colors and accessibility details that are easy
+ * to lose.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import * as icons from '../src/js/icons.js';
 import {
-  ROOT, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, read, rules, stripComments, withoutAtRuleBlocks,
+  ROOT, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
 } from './helpers.js';
 
 const ALL_CSS = [...filesIn('src', (path) => path.endsWith('.css')), 'fonts/fonts.css', ...filesIn('themes', (path) => path.endsWith('.css'))];
@@ -45,8 +46,195 @@ function hoverOutsideHoverBlocks(css) {
     .filter((selector) => /:hover/.test(selector) && !HOVER_EXEMPT.has(selector));
 }
 
+/** The order statement every stylesheet of src/ starts with (dist/ds.css keeps one). */
+const LAYER_STATEMENT = '@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;';
+/** The layer block(s) of each file; every other file of src/components/ is ds.components. */
+const LAYERS_OF = {
+  'src/tokens.css': ['ds.tokens'],
+  'src/base.css': ['ds.base'],
+  'src/motion.css': ['ds.motion', 'ds.utilities'],
+};
+
+/**
+ * Top-level items of a comment-free stylesheet, in order: statements as
+ * { text } (`@import ...;`, `@layer a, b;`), blocks as { prelude, body }.
+ */
+function topLevel(css) {
+  const items = [];
+  let index = 0;
+  while (index < css.length) {
+    if (/\s/.test(css[index])) { index += 1; continue; }
+    const semicolon = css.indexOf(';', index);
+    const brace = css.indexOf('{', index);
+    if (brace < 0 || (semicolon >= 0 && semicolon < brace)) {
+      const end = semicolon < 0 ? css.length : semicolon + 1;
+      items.push({ text: css.slice(index, end).replace(/\s+/g, ' ').trim() });
+      index = end;
+      continue;
+    }
+    let depth = 1;
+    let end = brace + 1;
+    while (depth > 0 && end < css.length) {
+      if (css[end] === '{') depth += 1;
+      else if (css[end] === '}') depth -= 1;
+      end += 1;
+    }
+    items.push({ prelude: css.slice(index, brace).replace(/\s+/g, ' ').trim(), body: css.slice(brace + 1, end - 1) });
+    index = end;
+  }
+  return items;
+}
+
+/**
+ * Features newer than the baseline (Safari 16.4, Chrome 111, Firefox 128),
+ * each with the name its file's "Progressive:" note must use. Baseline
+ * features (:has(), color-mix(), container queries, svh/dvh) are not listed.
+ */
+const PROGRESSIVE = [
+  [/linear\(/, 'linear()'],
+  [/@starting-style/, '@starting-style'],
+  [/allow-discrete/, 'allow-discrete'],
+  [/(?<![\w-])popover(?![\w-])|:popover-open/, 'popover'],
+  [/anchor-name|position-anchor|position-area|position-try|anchor\(/, 'anchor positioning'],
+  [/view-transition/, 'View Transitions'],
+  [/animation-timeline|scroll-timeline|view-timeline|animation-range|timeline-scope/, 'scroll-driven'],
+  [/interpolate-size|calc-size\(/, 'interpolate-size'],
+  [/::details-content/, '::details-content'],
+  [/overflow-clip-margin/, 'overflow-clip-margin'],
+  [/sibling-index\(|sibling-count\(/, 'sibling-index()'],
+  [/text-wrap/, 'text-wrap'],
+  [/scrollbar-color|scrollbar-width/, 'scrollbar-color'],
+];
+
+/** Plain :focus selectors that may draw an outline, each with its reason. */
+const FOCUS_EXEMPT = [
+  [/\.ds-input/, 'fields show an inset ring on any focus: typing needs to see where the caret is'],
+  [/\.ds-skip/, 'the skip link is shown only while focused'],
+];
+
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
 const RUNTIME = new Set(['--ds-i', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve']);
+
+/** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
+const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
+/** The deprecated combined exits (fade + move in one keyframe), removed in 2.0. */
+const DEPRECATED_EXITS = ['ds-sink-out', 'ds-scale-out', 'ds-slide-out'];
+/** Loops of loading indicators: they may keep transform (P6 reworks them). */
+const LOOPS = ['ds-spin', 'ds-pulse', 'ds-indeterminate'];
+/** Keyframes that may rotate: spinners (P3 to P6 add loaders, chevrons and icon swaps). */
+const ROTATE = ['ds-spin'];
+/** Keyframes that may name both ends, each with its reason; every other one is from-only, or to-only for ds-*-out. */
+const KEYFRAME_SHAPE_EXEMPT = new Map([
+  ['ds-clip-in', 'clip-path does not interpolate to none, so both ends are named'],
+  ['ds-clip-out', 'clip-path does not interpolate to none, so both ends are named'],
+  ['ds-spin', 'a loop: one full turn to 360deg'],
+  ['ds-pulse', 'a loop: dims at 50% and comes back'],
+  ['ds-indeterminate', 'a loop: the segment enters on one side and leaves on the other'],
+  ['ds-scan', 'a loop: the band travels from above the frame to below it'],
+  ['ds-ripple', 'a ring that grows and fades from a set start (--ds-ripple-opacity)'],
+]);
+/** Movement exits that may run without ds-fade-out (selector → reason). P5 adds the opaque side sheet panel (D16). */
+const EXIT_UNPAIRED = new Map();
+
+/** Properties every transition and keyframe may animate (plus the registered --ds-* properties). */
+const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color', 'background-color', 'border-color', 'outline-color',
+  'text-decoration-color', 'fill', 'stroke', 'box-shadow', 'clip-path', 'border-radius']);
+/** Animated properties allowed on one selector only, each with its reason. */
+const ANIMATED_EXCEPTIONS = new Map([
+  ['.ds-collapsible::details-content', { properties: ['height'], reason: 'the disclosure opens to auto, only where interpolate-size exists' }],
+]);
+/** Animated properties that a later phase removes (P8 asserts that this is empty). */
+const ANIMATED_PENDING = new Map([
+  ['.ds-indicator', { properties: ['width', 'height'], phase: 'P4 (moved by transform or clip-path)' }],
+]);
+/** The registered custom properties of src/ (they animate like any other property). */
+const REGISTERED = new Set(SRC_CSS.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
+
+/** The per-element motion hooks: registered in motion.css with inherits: false (the canonical list). */
+const MOTION_HOOKS = ['--ds-motion-distance', '--ds-motion-scale', '--ds-motion-origin', '--ds-clip-from', '--ds-draw-length',
+  '--ds-enter-keyframes', '--ds-enter-duration', '--ds-enter-easing', '--ds-enter-delay',
+  '--ds-leave-keyframes', '--ds-leave-duration', '--ds-leave-easing', '--ds-i'];
+
+/** The words of one entry of a list at top-level whitespace (var(...) and calc(...) stay whole). */
+function words(entry) {
+  const out = [];
+  let depth = 0;
+  let current = '';
+  for (const char of entry.trim()) {
+    if (char === '(') depth += 1;
+    if (char === ')') depth -= 1;
+    if (/\s/.test(char) && depth === 0) {
+      if (current) out.push(current);
+      current = '';
+    } else current += char;
+  }
+  if (current) out.push(current);
+  return out;
+}
+
+/** A time word in ms (0ms, 150ms, .2s, var(--ds-dur-*|--ds-loop-*|--ds-delay-*|--ds-stagger)), else undefined. */
+function timeOf(word) {
+  const literal = word.match(/^(\d*\.?\d+)(ms|s)$/);
+  if (literal) return Number(literal[1]) * (literal[2] === 's' ? 1000 : 1);
+  const token = word.match(/^var\((--ds-(?:dur|loop|delay)-[\w-]+|--ds-stagger)\)$/);
+  return token ? ms(token[1]) : undefined;
+}
+
+/** The entries of an `animation` or `transition` shorthand as { name, words, times, easing, infinite }. */
+function entriesOf(value) {
+  return splitSelectors(value).map((entry) => {
+    const parts = words(entry);
+    return {
+      name: parts[0],
+      words: parts,
+      times: parts.map(timeOf).filter((time) => time !== undefined),
+      easing: parts.find((word) => /^var\(--ds-ease-[\w-]+\)$|^(linear|ease(-in|-out|-in-out)?|cubic-bezier\(.*\)|linear\(.*\))$/.test(word)),
+      infinite: parts.includes('infinite'),
+    };
+  });
+}
+
+/** The fallback list of a hook read (`var(--hook, a, b)` → `a, b`). */
+const fallbackOf = (value) => value.replace(/^var\(--[\w-]+,\s*/, '').replace(/\)$/, '');
+
+/** Whether a keyframe changes opacity or a colour. */
+const fades = (name) => /(^|[;{\s])(opacity|color|background(-color)?|border-color|outline-color|fill|stroke)\s*:/.test(KEYFRAMES[name] || '');
+
+/** The longest duration (ms) the rule `selector` of `file` sets through `properties` (first time of each list entry). */
+function longest(file, selector, properties) {
+  const times = [];
+  for (const { property, value } of declarationsOf(read(file), selector)) {
+    if (!properties.includes(property)) continue;
+    if (property === 'animation' || property === 'transition') {
+      for (const entry of entriesOf(value)) if (entry.times.length) times.push(entry.times[0]);
+    } else {
+      const token = value.match(/--ds-dur-[\w-]+/);
+      if (token) times.push(ms(token[0]));
+    }
+  }
+  return times.length ? Math.max(...times) : undefined;
+}
+
+/**
+ * Exit/entrance pairs, measured on the longest track of each side; each
+ * side lists candidates [file, selector, properties], the first that sets
+ * a duration wins (a variant without its own duration takes the base's).
+ */
+const M = 'src/motion.css';
+const ENTER_BASE = [M, '.ds-enter', ['animation-duration']];
+const LEAVE_BASE = [M, '.ds-leave', ['animation-duration']];
+const RATIOS = [
+  ['.ds-enter / .ds-leave', [ENTER_BASE], [LEAVE_BASE]],
+  ['--scale', [[M, '.ds-enter--scale', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--scale', ['--ds-leave-duration']], LEAVE_BASE]],
+  ['--slide', [[M, '.ds-enter--slide', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--slide', ['--ds-leave-duration']], LEAVE_BASE]],
+  ['--pop', [[M, '.ds-enter--pop', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--pop', ['--ds-leave-duration']], LEAVE_BASE]],
+  ['dialog', [['src/components/dialog.css', '.ds-dialog__box', ['animation']]], [['src/components/dialog.css', '.ds-dialog--closing .ds-dialog__box', ['animation']]]],
+  ['side sheet', [['src/components/sheet.css', '.ds-sheet__panel', ['animation']]], [['src/components/sheet.css', '.ds-sheet--closing .ds-sheet__panel', ['animation']]]],
+  ['modal drawer', [['src/components/shell.css', '.ds-app[data-drawer-open] .ds-drawer', ['transition']]], [['src/components/shell.css', '.ds-drawer', ['transition']]]],
+  ['snackbar', [['src/components/toast.css', '.ds-toast', ['animation']]], [['src/components/toast.css', '.ds-toast', ['--ds-leave-duration']]]],
+  ['tooltip', [['src/components/tooltip.css', '.ds-tooltip', ['animation']]], [['src/components/tooltip.css', '.ds-tooltip', ['--ds-leave-duration']]]],
+];
+const resolveDuration = (candidates) => candidates.map(([file, selector, properties]) => longest(file, selector, properties)).find((time) => time !== undefined);
 
 describe('motion in CSS', () => {
   it('defines @keyframes only in motion.css, each name once', () => {
@@ -87,7 +275,7 @@ describe('motion in CSS', () => {
   it('fades every .ds-enter variant on the standard curve and moves it separately', () => {
     const motion = stripComments(read('src/motion.css'));
     const keyframes = Object.fromEntries([...motion.matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
-    const enter = declarations(motion.slice(motion.indexOf('.ds-enter.ds-enter'), motion.indexOf('.ds-leave.ds-leave')));
+    const enter = declarations(motion.slice(motion.indexOf('.ds-enter {'), motion.indexOf('.ds-leave {')));
     const fallback = (property) => enter.find((entry) => entry.property === property).value.replace(/^var\(--[\w-]+,\s*/, '').replace(/\)$/, '');
     const variants = [fallback('animation-name'), ...enter.filter((entry) => entry.property === '--ds-enter-keyframes').map((entry) => entry.value)];
     const easings = [fallback('animation-timing-function'), ...enter.filter((entry) => entry.property === '--ds-enter-easing').map((entry) => entry.value)];
@@ -99,54 +287,268 @@ describe('motion in CSS', () => {
     for (const list of easings) assert.match(list, /^var\(--ds-ease-in-out\)/, list);
   });
 
-  it('fills bars from zero only, gliding on the standard curve (first render of a chart)', () => {
+  it('fills bars from zero only, gliding on the value curve (first render of a chart)', () => {
     const motion = stripComments(read('src/motion.css'));
-    assert.match(motion, /@keyframes ds-fill-x\s*\{\s*from\s*\{\s*transform:\s*scaleX\(0\);\s*\}\s*\}/);
-    assert.match(motion, /@keyframes ds-fill-y\s*\{\s*from\s*\{\s*transform:\s*scaleY\(0\);\s*\}\s*\}/);
+    // The scale property multiplies the bar's own transform: scaleX(<share>).
+    assert.match(motion, /@keyframes ds-fill-x\s*\{\s*from\s*\{\s*scale:\s*0 1;\s*\}\s*\}/);
+    assert.match(motion, /@keyframes ds-fill-y\s*\{\s*from\s*\{\s*scale:\s*1 0;\s*\}\s*\}/);
     for (const axis of ['x', 'y']) {
       const fill = Object.fromEntries(declarationsOf(read('src/motion.css'), `.ds-enter--fill-${axis}`).map((entry) => [entry.property, entry.value]));
       assert.equal(fill['--ds-enter-keyframes'], `ds-fade-in, ds-fill-${axis}`);
       assert.equal(fill['--ds-enter-duration'], 'var(--ds-dur-glide)');
-      assert.equal(fill['--ds-enter-easing'], 'var(--ds-ease-in-out), var(--ds-ease-in-out)');
+      assert.equal(fill['--ds-enter-easing'], 'var(--ds-ease-in-out), var(--ds-ease-value)');
     }
   });
 
   it('starts every exit at once and plays it once', () => {
-    const leave = Object.fromEntries(declarationsOf(read('src/motion.css'), '.ds-leave.ds-leave').map((entry) => [entry.property, entry.value]));
+    const leave = Object.fromEntries(declarationsOf(read('src/motion.css'), '.ds-leave').map((entry) => [entry.property, entry.value]));
     assert.equal(leave['animation-delay'], '0ms');
     assert.equal(leave['animation-iteration-count'], '1');
   });
 
-  it('never fakes reduced motion with a tiny duration (endless loops would race)', () => {
+  it('fades every .ds-leave variant out first and moves it separately', () => {
+    const motion = stripComments(read('src/motion.css'));
+    const leave = declarations(motion.slice(motion.indexOf('.ds-leave {'), motion.indexOf('.ds-collapsible')));
+    const variants = [fallbackOf(leave.find((entry) => entry.property === 'animation-name').value), ...leave.filter((entry) => entry.property === '--ds-leave-keyframes').map((entry) => entry.value)];
+    assert.ok(variants.length >= 5, variants.join(' | '));
+    for (const list of variants) {
+      const names = list.split(/\s*,\s*/);
+      assert.equal(names[0], 'ds-fade-out', list);
+      for (const name of names.slice(1)) assert.ok(!fades(name), `${name} must be movement only`);
+    }
+  });
+
+  it('has no near-zero durations (a tiny duration on a loop races)', () => {
     assert.deepEqual(ALL_CSS.filter((file) => /\.0\d*1ms|0\.01ms/.test(read(file))), []);
   });
 
-  it('never overshoots: every curve stays within [0, 1]', () => {
+  it('keeps effect curves within [0, 1] and never decreasing (only the spring overshoots)', () => {
     const offenders = [];
     for (const file of ALL_CSS) {
-      const css = stripComments(read(file));
+      // The spring of floating movement is the one exemption (its contract: test/tokens.test.js).
+      const css = stripComments(read(file)).replace(/--ds-ease-spatial:\s*linear\([^;]*\);/g, '');
       for (const match of css.matchAll(/cubic-bezier\(([^)]*)\)/g)) {
         if (!match[1].split(',').map(Number).every((value) => value >= 0 && value <= 1)) offenders.push(`${file}: ${match[0]}`);
       }
       for (const match of css.matchAll(/linear\(([^)]*\d[^)]*)\)/g)) {
         const outputs = match[1].split(',').map((stop) => Number(stop.trim().split(/\s+/)[0]));
-        if (!outputs.every((value) => value >= 0 && value <= 1)) offenders.push(`${file}: linear(...)`);
+        if (!outputs.every((value) => value >= 0 && value <= 1)) offenders.push(`${file}: linear(...) leaves [0, 1]`);
+        if (outputs.some((value, index) => index > 0 && value < outputs[index - 1])) offenders.push(`${file}: linear(...) decreases`);
       }
     }
     assert.deepEqual(offenders, []);
   });
 
-  it('never scales an element up on hover and never scales on press', () => {
+  it('falls back from the spring to the decelerate curve where linear() is missing', () => {
+    const declarations = [...stripComments(read('src/tokens.css')).matchAll(/--ds-ease-spatial:\s*([^;]+);/g)].map((match) => match[1]);
+    assert.equal(declarations.length, 2);
+    assert.equal(declarations[0], 'var(--ds-ease-out)');
+    assert.match(declarations[1], /^linear\(/);
+  });
+
+  it('never moves anything on hover and never transforms on press', () => {
+    // transform: none and var() values count too: a hover that resets a
+    // transform moves the element back (the old disc loophole).
+    const ACTIVE_EXEMPT = new Map(); // P3 adds the switch handle (it may grow while pressed, D6).
     const offenders = [];
     for (const file of ALL_CSS) {
       for (const { selector, body } of rules(read(file))) {
-        // transform: scale(...) and the separate scale property.
-        const factors = [
-          ...[...body.matchAll(/scale(?:3d|X|Y)?\(\s*([\d.]+)/g)].map((match) => Number(match[1])),
-          ...[...body.matchAll(/(?:^|[;\s])scale\s*:\s*([\d.]+)/g)].map((match) => Number(match[1])),
-        ];
-        if (selector.includes(':hover') && factors.some((factor) => factor > 1)) offenders.push(`${file}: ${selector}`);
-        if (selector.includes(':active') && factors.length) offenders.push(`${file}: ${selector}`);
+        const set = declarations(`${body};`).map((entry) => entry.property);
+        const parts = splitSelectors(selector);
+        if (parts.some((part) => part.includes(':hover'))) {
+          const moves = set.filter((property) => /^(transform|translate|scale|rotate|top|right|bottom|left|inset|margin(-[\w-]+)?)$/.test(property));
+          if (moves.length) offenders.push(`${file}: ${selector}: ${moves.join(', ')} on hover`);
+        }
+        if (parts.some((part) => part.includes(':active') && !ACTIVE_EXEMPT.has(part))) {
+          const moves = set.filter((property) => /^(transform|translate|scale)$/.test(property));
+          if (moves.length) offenders.push(`${file}: ${selector}: ${moves.join(', ')} on press`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('runs the spring only on movement (effects never overshoot)', () => {
+    const spatial = 'var(--ds-ease-spatial)';
+    const offenders = [];
+    for (const file of SRC_CSS) {
+      for (const { selector, body } of rules(read(file))) {
+        const own = Object.fromEntries(declarations(`${body};`).map((entry) => [entry.property, entry.value]));
+        if (own.animation) {
+          for (const entry of entriesOf(own.animation)) if (entry.easing === spatial && fades(entry.name)) offenders.push(`${file}: ${selector}: ${entry.name} on the spring`);
+        }
+        if (own.transition) {
+          for (const entry of entriesOf(own.transition)) {
+            if (entry.easing === spatial && !/^(transform|translate|scale|rotate|clip-path|border-radius)$/.test(entry.name)) offenders.push(`${file}: ${selector}: transition of ${entry.name} on the spring`);
+          }
+        }
+      }
+    }
+    // The motion utilities pair --ds-enter-keyframes / --ds-leave-keyframes
+    // with the easing at the same index (a variant inherits what it does not set).
+    for (const kind of ['enter', 'leave']) {
+      const base = Object.fromEntries(declarationsOf(read(M), `.ds-${kind}`).map((entry) => [entry.property, entry.value]));
+      const defaults = { keyframes: fallbackOf(base['animation-name']), easing: fallbackOf(base['animation-timing-function']) };
+      const variants = rules(read(M)).filter((rule) => new RegExp(`--ds-${kind}-(keyframes|easing)\\s*:`).test(rule.body));
+      for (const { selector, body } of [{ selector: `.ds-${kind}`, body: '' }, ...variants]) {
+        const own = Object.fromEntries(declarations(`${body};`).map((entry) => [entry.property, entry.value]));
+        const names = (own[`--ds-${kind}-keyframes`] || defaults.keyframes).split(/\s*,\s*/);
+        const easings = splitSelectors(own[`--ds-${kind}-easing`] || defaults.easing);
+        names.forEach((name, index) => {
+          if (easings[index % easings.length] === spatial && fades(name)) offenders.push(`${M}: ${selector}: ${name} on the spring`);
+        });
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('pairs every movement exit with ds-fade-out and keeps the deprecated exits unused', () => {
+    const offenders = [];
+    for (const file of SRC_CSS) {
+      for (const { selector, body } of rules(read(file))) {
+        for (const { property, value } of declarations(`${body};`)) {
+          let names;
+          if (property === 'animation') names = entriesOf(value).map((entry) => entry.name);
+          else if (property === 'animation-name' || property === '--ds-leave-keyframes') names = splitSelectors(fallbackOf(value));
+          else continue;
+          const moves = names.filter((name) => /^ds-[\w-]+-out$/.test(name) && name !== 'ds-fade-out');
+          if (moves.length && !names.includes('ds-fade-out') && !EXIT_UNPAIRED.has(selector)) offenders.push(`${file}: ${selector}: ${moves.join(', ')} without ds-fade-out`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+    for (const file of [...SRC_CSS, ...filesIn('src/js')]) {
+      const source = file.endsWith('.css') ? stripComments(read(file)) : read(file).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+      for (const name of DEPRECATED_EXITS) {
+        const uses = source.split(name).length - 1 - (source.includes(`@keyframes ${name} `) ? 1 : 0);
+        assert.equal(uses, 0, `${file} uses the deprecated ${name}`);
+      }
+    }
+  });
+
+  it('keeps every exit at 0.3-0.8 of its entrance (longest track)', () => {
+    for (const [name, entrance, exit] of RATIOS) {
+      const enter = resolveDuration(entrance);
+      const leave = resolveDuration(exit);
+      assert.ok(enter > 0 && leave > 0, `${name}: ${enter}/${leave}`);
+      const ratio = leave / enter;
+      assert.ok(leave < enter && ratio >= 0.3 && ratio <= 0.8, `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
+    }
+    // The table reads what the docs promise.
+    assert.deepEqual(RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
+      ['250/150', '250/200', '350/200', '250/150', '250/150', '350/200', '350/200', '250/150', '150/100']);
+  });
+
+  it('shapes keyframes: entrances from-only, exits to-only, movement on translate and scale', () => {
+    for (const [name, body] of Object.entries(KEYFRAMES)) {
+      const stops = rules(body).map((rule) => rule.selector);
+      if (!KEYFRAME_SHAPE_EXEMPT.has(name)) assert.deepEqual(stops, [/-out$/.test(name) ? 'to' : 'from'], name);
+      if (/-out$/.test(name) && name !== 'ds-fade-out' && !DEPRECATED_EXITS.includes(name)) assert.ok(!/opacity\s*:/.test(body), `${name}: an exit is movement only`);
+      if (!LOOPS.includes(name) && !DEPRECATED_EXITS.includes(name)) assert.doesNotMatch(body, /(^|[;{\s])transform\s*:/, `${name}: use translate and scale`);
+    }
+    assert.deepEqual(rules(KEYFRAMES['ds-press-ripple']).map((rule) => rule.selector), ['from']);
+  });
+
+  it('times loops with --ds-loop-* and one-shots with --ds-dur-*', () => {
+    const offenders = [];
+    for (const file of SRC_CSS) {
+      for (const { selector, body } of rules(read(file))) {
+        const own = Object.fromEntries(declarations(`${body};`).map((entry) => [entry.property, entry.value]));
+        // none and the CSS-wide keywords (revert-layer hands a loader back to its own timing) carry no duration.
+        if (own.animation && !/^(none|inherit|initial|unset|revert|revert-layer)$/.test(own.animation)) {
+          for (const entry of entriesOf(own.animation)) {
+            const duration = entry.words.find((word) => timeOf(word) !== undefined);
+            const expected = entry.infinite ? /^var\(--ds-loop-/ : /^var\(--ds-dur-/;
+            if (!expected.test(duration || '')) offenders.push(`${file}: ${selector}: ${entry.words.join(' ')}`);
+          }
+        }
+        if (own['animation-duration']) {
+          const expected = own['animation-iteration-count'] === 'infinite' ? /var\(--ds-loop-/ : /var\(--ds-(dur|loop)-/;
+          if (!expected.test(own['animation-duration'])) offenders.push(`${file}: ${selector}: animation-duration: ${own['animation-duration']}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('animates only the allowed properties', () => {
+    const offenders = [];
+    const allowed = (selector, property) => ANIMATABLE.has(property) || REGISTERED.has(property)
+      || [ANIMATED_EXCEPTIONS, ANIMATED_PENDING].some((map) => map.get(selector)?.properties.includes(property));
+    for (const file of SRC_CSS) {
+      for (const { selector, body } of rules(read(file))) {
+        for (const { property, value } of declarations(`${body};`)) {
+          if (property !== 'transition' && property !== 'transition-property') continue;
+          for (const entry of entriesOf(value)) {
+            const animated = entry.name;
+            if (animated === 'none' || animated === 'outline-offset') continue; // the focus snap: a transition, never a keyframe
+            if (/^(all|font-weight)$/.test(animated)) offenders.push(`${file}: ${selector}: never ${animated}`);
+            else if (/^(visibility|display|content-visibility|overlay)$/.test(animated)) {
+              // A discrete property flips: as a 0ms step, or with allow-discrete.
+              if (!(entry.times[0] === 0 || entry.words.includes('allow-discrete'))) offenders.push(`${file}: ${selector}: ${animated} must step`);
+            } else if (animated === 'rotate') offenders.push(`${file}: ${selector}: rotate only in the ROTATE keyframes`);
+            else if (!allowed(selector, animated)) offenders.push(`${file}: ${selector}: ${animated}`);
+          }
+        }
+      }
+    }
+    for (const [name, body] of Object.entries(KEYFRAMES)) {
+      for (const { property, value } of declarations(body)) {
+        const rotates = property === 'rotate' || (property === 'transform' && /rotate/.test(value));
+        if (rotates && !ROTATE.includes(name)) offenders.push(`@keyframes ${name}: rotate`);
+        else if (property === 'stroke-dashoffset' && name !== 'ds-draw') offenders.push(`@keyframes ${name}: stroke-dashoffset only in ds-draw`);
+        else if (!rotates && property !== 'stroke-dashoffset' && !ANIMATABLE.has(property) && !REGISTERED.has(property)) offenders.push(`@keyframes ${name}: ${property}`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('gives the per-element motion hooks token values only', () => {
+    const keyframe = /^ds-[\w-]+$/;
+    const token = /var\(--ds-(dur|ease|distance|delay|scale)-[\w-]+\)|var\(--ds-stagger\)/g;
+    const offenders = [];
+    for (const file of SRC_CSS.filter((path) => path !== 'src/tokens.css')) {
+      for (const { property, value } of declarations(read(file))) {
+        if (!/^--ds-[\w-]*(duration|delay|easing|distance|scale|keyframes)/.test(property)) continue;
+        const ok = splitSelectors(value.replace(token, 'T')).every((item) => /^(T|0|0px|-?\d*\.?\d+%|calc\([-\s\dT.*+/]*\))$/.test(item) || (keyframe.test(item) && KEYFRAME_NAMES.has(item)));
+        if (!ok) offenders.push(`${file}: ${property}: ${value}`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('registers exactly the canonical motion hooks, as documented', () => {
+    const registered = [...stripComments(read(M)).matchAll(/@property\s+(--ds-[\w-]+)\s*\{([^}]*)\}/g)]
+      .filter((match) => /inherits:\s*false/.test(match[2])).map((match) => match[1]);
+    assert.deepEqual([...registered].sort(), [...MOTION_HOOKS].sort());
+    const docs = read('docs/motion.md');
+    const paragraph = docs.slice(docs.indexOf('Per-element settings'), docs.indexOf('Unregistered', docs.indexOf('Per-element settings')));
+    const documented = [...new Set([...paragraph.matchAll(/`(--ds-[\w-]+)`/g)].map((match) => match[1]))];
+    assert.deepEqual(documented.sort(), [...MOTION_HOOKS].sort());
+  });
+
+  it('closes dialog and sheet with the backdrop still catching clicks', () => {
+    for (const [file, block, part] of [['src/components/dialog.css', 'ds-dialog', 'ds-dialog__box'], ['src/components/sheet.css', 'ds-sheet', 'ds-sheet__panel']]) {
+      const blocked = rules(read(file)).filter((rule) => /pointer-events:\s*none/.test(rule.body)).flatMap((rule) => splitSelectors(rule.selector));
+      assert.ok(blocked.includes(`.${block}--closing .${part}`), `${file}: the ${part} lets clicks through while it leaves`);
+      assert.deepEqual(blocked.filter((selector) => selector.includes(`${block}--closing`) && !selector.endsWith(`.${part}`)), [], `${file}: only the ${part}`);
+    }
+  });
+
+  it('hides with the hidden attribute without .ds-base', () => {
+    const hides = (file, selector) => rules(read(file)).some((rule) => splitSelectors(rule.selector).includes(`${selector}[hidden]`) && /display:\s*none/.test(rule.body));
+    for (const [file, selector] of [['src/components/dialog.css', '.ds-dialog'], ['src/components/sheet.css', '.ds-sheet'], ['src/components/combobox.css', '.ds-combo__popup'], ['src/components/tooltip.css', '.ds-tooltip']]) {
+      assert.ok(hides(file, selector), `${file}: ${selector}[hidden] { display: none }`);
+    }
+    // Generic: markup in a header that shows `hidden` on a class which sets display.
+    const offenders = [];
+    for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
+      const header = read(file).match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
+      for (const tag of header.matchAll(/<\w+\s[^>]*>/g)) {
+        if (!/\shidden(?=[\s>])/.test(tag[0])) continue;
+        for (const name of (tag[0].match(/class="([^"]*)"/)?.[1] || '').split(/\s+/).filter(Boolean)) {
+          if (declarationsOf(read(file), `.${name}`).some((entry) => entry.property === 'display' && entry.value !== 'none') && !hides(file, `.${name}`)) offenders.push(`${file}: .${name}`);
+        }
       }
     }
     assert.deepEqual(offenders, []);
@@ -253,67 +655,102 @@ describe('values come from tokens', () => {
   });
 });
 
-describe('plain CSS for older browsers', () => {
-  it('uses no @layer and no nesting, and has no stray comment ends', () => {
+describe('CSS for the baseline', () => {
+  it('declares the canonical layer order first in every file of src/', () => {
+    for (const file of SRC_CSS) {
+      const items = topLevel(stripComments(read(file)));
+      assert.equal(items[0]?.text, LAYER_STATEMENT, `${file}: the layer statement comes first`);
+    }
+  });
+
+  it('puts every rule of src/ into its file\'s layer (only @property stays outside)', () => {
+    for (const file of SRC_CSS) {
+      const items = topLevel(stripComments(read(file))).slice(1);
+      const expected = file === 'src/index.css' ? [] : LAYERS_OF[file] || ['ds.components'];
+      const blocks = items.filter((item) => item.body !== undefined && !/^@property\s/.test(item.prelude));
+      assert.deepEqual(blocks.map((item) => item.prelude), expected.map((name) => `@layer ${name}`), file);
+      const statements = items.filter((item) => item.body === undefined);
+      const allowed = file === 'src/index.css' ? /^@import '[^']+';$/ : /^$/;
+      assert.deepEqual(statements.map((item) => item.text).filter((text) => !allowed.test(text)), [], file);
+    }
+  });
+
+  it('keeps keyframes in ds.motion and the motion utilities in ds.utilities', () => {
+    const items = topLevel(stripComments(read('src/motion.css')));
+    const motion = items.find((item) => item.prelude === '@layer ds.motion').body;
+    const utilities = items.find((item) => item.prelude === '@layer ds.utilities').body;
+    assert.equal([...motion.matchAll(/@keyframes\s+([\w-]+)/g)].length, KEYFRAME_NAMES.size);
+    assert.doesNotMatch(utilities, /@keyframes/);
+    assert.deepEqual(rules(motion).filter((rule) => !/^(from|to|\d+%)$/.test(rule.selector)), []);
+    const selectors = rules(utilities).flatMap((rule) => splitSelectors(rule.selector));
+    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible']) {
+      assert.ok(selectors.includes(utility), utility);
+    }
+    assert.deepEqual(selectors.filter((selector) => !/^\.ds-(enter|leave|stagger|reveal|collapsible)\b/.test(selector)), []);
+  });
+
+  it('leaves themes, fonts and the styleguide unlayered', () => {
+    for (const file of [...ALL_CSS.filter((path) => !path.startsWith('src/')), 'styleguide/styleguide.css']) {
+      assert.doesNotMatch(stripComments(read(file)), /@layer\b/, file);
+    }
+  });
+
+  it('uses no nesting and has no stray comment ends', () => {
     for (const file of ALL_CSS) {
       const css = stripComments(read(file));
       assert.doesNotMatch(css, /\*\//, `${file}: text outside a comment (a stray "*/")`);
-      assert.doesNotMatch(css, /@layer\b/, file);
       assert.doesNotMatch(css.replace(/url\([^)]*\)/g, ''), /&/, file);
     }
   });
 
-  it('says so in the header where a file relies on a newer feature', () => {
-    const features = /:has\(|color-mix\(|@container|container-type|\bcontainer:|\d+cqi|interpolate-size|\b\d*\.?\d+[sld]v[hwib]\b|linear\(0/;
-    for (const file of SRC_CSS) {
-      const css = read(file);
-      if (!features.test(stripComments(css))) continue;
-      const header = css.match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
-      assert.match(header, /Progressive:/, `${file} uses a newer feature: name it under "Progressive:" in the header`);
-    }
-  });
-
-  it('uses top/right/bottom/left instead of inset (Safari 14.0 drops it)', () => {
-    const offenders = [];
+  it('keeps !important to its allowlist', () => {
+    const found = [];
     for (const file of ALL_CSS) {
-      for (const { property } of declarations(read(file))) if (property === 'inset') offenders.push(file);
+      for (const { selector, body } of rules(read(file))) {
+        for (const { property, value } of declarations(`${body};`)) if (/!important/.test(value)) found.push(`${file}: ${selector}: ${property}`);
+      }
     }
-    assert.deepEqual(offenders, []);
+    const allowed = new Set([
+      'src/base.css: :where(.ds-base) [hidden]: display',
+      ...['position', 'top', 'left', 'width', 'height', 'padding', 'margin', 'overflow', 'clip', 'white-space', 'border']
+        .map((property) => `src/components/utilities.css: .ds-sr: ${property}`),
+      'src/components/utilities.css: .ds-num: text-align',
+      'src/components/utilities.css: .ds-center: text-align',
+      'src/components/shell.css: .ds-theme svg: color',
+    ]);
+    assert.deepEqual(found.filter((entry) => !allowed.has(entry)), []);
+    assert.deepEqual([...allowed].filter((entry) => !found.includes(entry)), [], 'an allowlisted !important is gone: shorten the list');
   });
 
-  it('gives keyboard focus rings a :focus fallback for browsers without :focus-visible', () => {
-    // The ring sits on X:focus (:focus-visible implies :focus) and a separate
-    // X:focus:not(:focus-visible) rule takes it off after a pointer click; a
-    // browser without :focus-visible drops only that second rule. Deliberately
-    // without: the radio card (its ring needs :has() anyway), the sheet body
-    // (no ring on programmatic focus), the skip link (shown only while
-    // focused) and the page base (the browser's own ring remains).
-    const exempt = /\.ds-radio|\.ds-sheet__body|\.ds-skip|\.ds-base/;
-    const focus = /:focus(?![-\w])/;
+  it('names every feature newer than the baseline under "Progressive:" in the header', () => {
+    for (const file of SRC_CSS) {
+      const source = read(file);
+      const css = stripComments(source);
+      const header = source.match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
+      const note = header.includes('Progressive:') ? header.slice(header.indexOf('Progressive:')) : '';
+      for (const [pattern, name] of PROGRESSIVE) {
+        if (pattern.test(css)) assert.ok(note.includes(name), `${file} uses ${name}: name it under "Progressive:" in the header`);
+      }
+    }
+  });
+
+  it('puts focus rings on :focus-visible', () => {
+    const plainFocus = /:focus(?![-\w])/;
+    const ring = (body) => /(^|[;\s])outline\s*:/.test(body) && !/(^|[;\s])outline\s*:\s*none/.test(body);
     const offenders = [];
     for (const file of SRC_CSS) {
       const all = rules(read(file));
       for (const { selector, body } of all) {
-        if (!/(^|[;\s])outline\s*:/.test(body) || /outline\s*:\s*none/.test(body)) continue;
         for (const part of splitSelectors(selector)) {
-          if (exempt.test(part)) continue;
-          if (part.includes(':focus-visible')) { offenders.push(`${file}: ${part}: put the ring on :focus`); continue; }
-          if (!focus.test(part)) continue;
-          const off = part.replace(focus, ':focus:not(:focus-visible)');
-          if (!all.some((rule) => rule.selector === off && /outline\s*:\s*none/.test(rule.body))) offenders.push(`${file}: ${off} missing`);
+          if (part.includes(':focus:not(:focus-visible)')) offenders.push(`${file}: ${part}: use :focus-visible`);
+          if (ring(body) && plainFocus.test(part) && !FOCUS_EXEMPT.some(([pattern]) => pattern.test(part))) offenders.push(`${file}: ${part}: ring on :focus`);
+          if (/(^|[;\s])outline\s*:\s*none/.test(body) && part.includes(':focus-visible')) {
+            // The ring moved to another element: it must follow the same :focus-visible through :has().
+            const compound = part.split(/\s*[\s>+~]\s*/).find((piece) => piece.includes(':focus-visible'));
+            const moved = all.some((other) => ring(other.body) && splitSelectors(other.selector).some((sel) => sel.includes(`:has(${compound})`)));
+            if (!moved) offenders.push(`${file}: ${part}: outline: none without a ring on :has(${compound})`);
+          }
         }
-      }
-    }
-    assert.deepEqual(offenders, []);
-  });
-
-  it('never lists :focus-visible or :has() next to other selectors (one unknown selector drops the whole list)', () => {
-    const offenders = [];
-    for (const file of SRC_CSS) {
-      for (const { selector } of rules(read(file))) {
-        const parts = splitSelectors(selector);
-        if (parts.length < 2) continue;
-        for (const part of parts) if (/:focus-visible|:has\(/.test(part)) offenders.push(`${file}: ${selector}`);
       }
     }
     assert.deepEqual(offenders, []);

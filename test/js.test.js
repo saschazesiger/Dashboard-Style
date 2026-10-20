@@ -59,6 +59,13 @@ describe('icons', () => {
     }
   });
 
+  it('escapes the class, so it never ends the attribute', () => {
+    const markup = icons.icon(icons.check, 16, 'a" onload="x');
+    assert.equal(markup.match(/ class="[^"]*"/g).length, 1);
+    assert.match(markup, /^<svg class="a&quot; onload=&quot;x" width="16"/);
+    assert.match(icons.icon(icons.check, 16, '<b>&'), /class="&lt;b&gt;&amp;"/);
+  });
+
   it('keeps the check drawable (pathLength 1 for ds-draw)', () => {
     assert.match(icons.check, /pathLength="1"/);
   });
@@ -105,16 +112,103 @@ describe('classic-script build (dist/ds.js)', () => {
     }
     assert.equal(DS.icons.icon(DS.icons.plus, 16), icons.icon(icons.plus, 16));
     assert.equal(DS.motion.loaderHoldMs(1000, 1300), motion.loaderHoldMs(1000, 1300));
+    assert.equal(sandbox.DashboardStyle.versions[DS.version], DS);
   });
 
-  it('keeps src/js free of destructuring and imports (Safari 14 builds, ds.js)', () => {
+  describe('two copies on one page', () => {
+    const version = JSON.parse(read('package.json')).version;
+    /** A page with a console that counts warnings; `load(source)` runs a copy of ds.js in it. */
+    function page(globals = {}) {
+      const warnings = [];
+      const sandbox = { window: undefined, console: { warn: (message) => warnings.push(message) }, ...globals };
+      sandbox.globalThis = sandbox;
+      return { sandbox, warnings, load: (source) => runInNewContext(source, sandbox) };
+    }
+    const asVersion = (other) => read('dist/ds.js').split(`'${version}'`).join(`'${other}'`);
+
+    it('keeps the first DS when another version loads, exposes both and warns once', () => {
+      const { sandbox, warnings, load } = page();
+      load(read('dist/ds.js'));
+      const first = sandbox.DS;
+      load(asVersion('9.9.9'));
+      assert.equal(sandbox.DS, first);
+      assert.equal(sandbox.DS.version, version);
+      assert.deepEqual(Object.keys(sandbox.DashboardStyle.versions).sort(), [version, '9.9.9'].sort());
+      assert.equal(sandbox.DashboardStyle.versions['9.9.9'].version, '9.9.9');
+      assert.equal(typeof sandbox.DashboardStyle.versions['9.9.9'].motion.enter, 'function');
+      assert.equal(warnings.length, 1);
+      assert.match(warnings[0], new RegExp(`9\\.9\\.9.*${version.replace(/\./g, '\\.')}`));
+    });
+
+    it('stays silent when the same version loads twice', () => {
+      const { sandbox, warnings, load } = page();
+      load(read('dist/ds.js'));
+      const first = sandbox.DS;
+      load(read('dist/ds.js'));
+      assert.equal(sandbox.DS, first);
+      assert.deepEqual(warnings, []);
+    });
+
+    it('leaves a foreign DS without a version untouched', () => {
+      const foreign = { mine: true };
+      const { sandbox, warnings, load } = page({ DS: foreign });
+      load(read('dist/ds.js'));
+      assert.equal(sandbox.DS, foreign);
+      assert.deepEqual(Object.keys(sandbox.DS), ['mine']);
+      assert.equal(sandbox.DashboardStyle.versions[version].version, version);
+      assert.equal(warnings.length, 1);
+    });
+  });
+
+  it('keeps src/js within the ES2022 baseline', () => {
     for (const file of filesIn('src/js')) {
-      const code = read(file).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '').replace(/'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/g, "''");
-      assert.doesNotMatch(code, /\b(?:const|let|var)\s*[{[]/, `${file}: destructuring declaration`);
-      assert.doesNotMatch(code, /\bfor\s*\(\s*(?:const|let|var)\s*[{[]/, `${file}: destructuring loop`);
-      assert.doesNotMatch(code, /function\s*[\w$]*\s*\(\s*[{[]|function\s*[\w$]*\s*\([^)]*,\s*[{[]/, `${file}: destructuring parameter`);
-      assert.doesNotMatch(code, /\(\s*[{[][^()]*[}\]]\s*\)\s*=>|,\s*[{[][^()]*[}\]]\s*\)\s*=>/, `${file}: destructuring arrow parameter`);
-      assert.doesNotMatch(code, /^\s*import\s/m, `${file}: imports`);
+      const withStrings = withoutComments(read(file));
+      // Before the strings go: the module specifiers and a RegExp built with the v flag.
+      for (const line of withStrings.split('\n').filter((text) => /^\s*import\b|\bimport\s*\(/.test(text))) {
+        assert.match(line, /^import \{ [\w$]+( as [\w$]+)?(, [\w$]+( as [\w$]+)?)* \} from (['"])\.\/[\w-]+\.js\4;$/, `${file}: imports only named exports of a sibling module, on one line: ${line.trim()}`);
+      }
+      assert.doesNotMatch(withStrings, /new RegExp\([^)]*,\s*['"`][a-z]*v[a-z]*['"`]\s*\)/, `${file}: the RegExp v flag`);
+      assert.doesNotMatch(withStrings, /^\s*export\s+(?!const\s|function\s)/m, `${file}: exports only as export const / export function`);
+      const code = withoutStrings(withStrings);
+      for (const [pattern, name] of ES_NEWER) assert.doesNotMatch(code, pattern, `${file}: ${name} is newer than ES2022 / Safari 16.4`);
+    }
+  });
+
+  it('uses progressive APIs only behind feature detection, named under "Progressive:"', () => {
+    for (const file of filesIn('src/js')) {
+      const source = read(file);
+      const code = withoutComments(source);
+      const header = source.match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
+      const note = header.includes('Progressive:') ? header.slice(header.indexOf('Progressive:')) : '';
+      for (const api of PROGRESSIVE_APIS) {
+        const used = new RegExp(`\\b${api}\\b`).test(withoutStrings(code)) || new RegExp(`['"]${api}['"]`).test(code);
+        if (!used) continue;
+        const detected = new RegExp(`typeof\\s+[\\w$.]*\\b${api}\\s*===?\\s*['"]function['"]|['"]${api}['"]\\s+in\\s`).test(code);
+        assert.ok(detected, `${file}: ${api} without a typeof ... === 'function' or '${api}' in ... check`);
+        assert.ok(note.includes(api), `${file}: name ${api} under "Progressive:" in the header`);
+      }
     }
   });
 });
+
+/** JS without block and line comments (a `//` inside a string or regex is rare enough here). */
+const withoutComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\])\/\/.*$/gm, '$1');
+/** JS without the contents of single-, double- and back-quoted strings. */
+const withoutStrings = (code) => code.replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, "''");
+
+/** APIs and syntax newer than the baseline (ES2022, Safari 16.4), each with its name. */
+const ES_NEWER = [
+  [/\bPromise\.withResolvers\b/, 'Promise.withResolvers'],
+  [/\bObject\.groupBy\b/, 'Object.groupBy'],
+  [/\bMap\.groupBy\b/, 'Map.groupBy'],
+  [/\bArray\.fromAsync\b/, 'Array.fromAsync'],
+  [/\.(union|intersection|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\(/, 'the Set methods'],
+  [/\bIterator\.from\b/, 'Iterator.from'],
+  [/(^|[;{}\s])(await\s+)?using\s+[\w$]+\s*=/m, 'using declarations'],
+  [/(^|[\s(;{}])@[\w$]/m, 'decorators'],
+  // A regex literal after an operator or bracket whose flags include v.
+  [/(^|[=(,:[!&|?{};>]|\breturn)\s*\/(?![*/])(?:[^/\\\n[]|\\.|\[(?:[^\]\\\n]|\\.)*\])+\/[dgimsuy]*v/m, 'the RegExp v flag'],
+];
+
+/** Browser APIs newer than the baseline: only behind feature detection, named under "Progressive:". */
+const PROGRESSIVE_APIS = ['startViewTransition', 'moveBefore', 'showPopover', 'anchorName', 'scrollend'];

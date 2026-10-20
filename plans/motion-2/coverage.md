@@ -51,49 +51,49 @@ When a phase finishes, its ids are done or moved explicitly here (definition of 
 | repo-test-hover-parser | repo | P0 | **Done (P0):** `atRuleBlocks()`, `withoutAtRuleBlocks()`, the `HOVER_EXEMPT` rewrite and `test/helpers.test.js`. Unit-test fixes: `atRuleBlocks`, hover test rewrite, helper self-tests: Must land before the P1 `@layer` wrap re-indents the CSS. |
 | repo-ci-hardening | repo | P0 | **Done (P0):** permissions, concurrency, `workflow_dispatch` with "update screenshots", Node 22/24 and the `browser` job (not yet run on GitHub). CI: hardening and the browser job: `main` runs are never cancelled. Node 22/24 matrix. The nightly template is unchanged (D4). |
 | repo-missed-1 | repo | P0 | **Done (P0):** baseline recorded (100 tests, 14 suites, 39 files); P0 ends with 117 tests in 16 suites and `dist/` unchanged; the commit message lines and the `motion-2-p0` tag belong to the P0 commit. Starting point; Done when: Recorded as 100 tests, 14 suites, 39 `dist/` files. "Must not change it" means `dist/` and the existing tests. The count grows only by P0's new unit tests. |
-| core-css-distance-inherits | core | P1 | Non-inheriting motion hooks; browser test: Covers the whole hook family (merged core-missed-1). Migration note: set hooks on the animating element. |
-| core-tokens-easing-set | core | P1 | Motion tokens: easings: Canonical names override the draft: `--ds-ease-exit` instead of `--ds-ease-in-emphasized`, no `--ds-ease-decelerate`. `--ds-ease` stays as a deprecated alias (removed in 2.0), not removed. |
-| core-tokens-springs | core | P1 | Motion tokens: the spring, generator; utilities: One `--ds-ease-spatial` (ζ 0.75, peak 1.028), fallback `--ds-ease-out`. |
-| core-tokens-durations | core | P1 | Motion tokens: durations, multiplier: micro and long added; `--ds-time-scale` registered, never declared; delays scale too. |
-| core-tokens-scales | core | P1 | Motion tokens: scales: `--ds-scale-popup` (canonical name, not `-popover`) and `--ds-scale-tooltip`. The draft's `--ds-scale-through` is not in the canonical spec; P7 adds it only if needed. The reduced-motion reset part is dropped (D8). |
-| core-css-leave-curve | core | P1 | Keyframe catalogue: exits; `.ds-leave`; dialog, sheet: Movement-only exits under new names; the combined names stay as deprecated aliases. |
-| core-css-leave-duration | core | P1 | `.ds-leave`: 150ms default, 200ms for `--scale`/`--slide`; the ratio band is 0.3-0.8 per the authority. |
-| core-css-scale-out-distance | core | P1 | Keyframe catalogue: `ds-shrink-out`: The movement-only replacement reads both hooks; the deprecated alias stays unchanged. |
-| core-css-stagger | core | P1 | `.ds-stagger`: Rise plus the `sibling-index()` refinement; `staggerOnce` is P2. |
-| core-css-missing-exits | core | P1 | Keyframe catalogue: new keyframes; `.ds-leave--pop`; styleguide demo: The "conceal pair" uses the canonical names `ds-clip-in`/`ds-clip-out`. `roll()` is P2. |
-| core-css-specificity-claim | core | P1 | Cascade layers: Doubled classes removed; the utilities layer wins. |
-| core-docs-rules | core | P1 | Docs and rules; headers: Interim rewrite; the full `motion.md` with choreography comes in P8. |
-| core-tests-css-guards | core | P1 | Tests: curves, ratio, exits, Progressive, generator: The ratio band follows the authority (0.3-0.8), not 0.5-0.75. |
-| core-missed-6 | core | P1 | Components: dialog, sheet: Fade + movement pairs in the same commit; P5 drops the sheet panel fade (D16). |
-| core-missed-7 | core | P1 | Motion tokens: durations: Role comment rewritten to the canonical table. |
-| overlay-tooltip-transform-fly | overlay | P1 | Keyframe catalogue; tooltip; browser test: Individual `translate`/`scale` compose with a page transform. The tooltip motion itself is P5. |
-| overlay-hidden-attr-ignored | overlay | P1 | Components: dialog, sheet, combobox; tests: Plus the generic `[hidden]` test. |
-| overlay-tests-progressive-guards | overlay | P1 | Tests: Progressive by name, `[hidden]`, closing: The `.ds-combo__popup` forced-colours edge case moves to P5 with overlay-combo-forced-colors (the outline lands there). The overlay choreography tests are P5. |
-| overlay-missed-1 | overlay | P1 | Components: dialog, sheet; tests: `pointer-events: none` on the box or panel only. |
-| controls-btn-disc-timing | controls | P1 | Components: button disc: D14: fade only; merged controls-missed-1 (press scale gone). |
-| controls-spatial-easing-token | controls | P1 | Motion tokens: the spring: Canonical single spring; the draft's `--ds-ease-spatial-fast`/`--ds-dur-spatial-fast` are not created (P3 uses `--ds-ease-spatial` + `--ds-dur-medium`). |
-| controls-form-radio-focus-hole | controls | P1 | Baseline sweep: radio card; focus test: Moot under the Firefox 128 floor (D28): every engine has `:has()`. No `@supports` guard; a generic test keeps every `outline: none` paired with a ring. |
-| layout-card-link-arrow-press | layout | P1 | Components: card: Lean removed; no focus or press lean. |
-| layout-missed-4 | layout | P1 | `.ds-enter` (`--slide`): Moves to the spring. `--ds-ease-emphasized` is not deprecated: the authority keeps it unchanged for movement that starts and ends on screen. |
-| js-stagger-inherit | js | P1 | Non-inheriting motion hooks; browser test: `--ds-i` registered `<integer>`, `inherits: false`; `enterAll`/`staggerOnce` cleanup is P2. |
-| js-es-guard-test | js | P1 | Build: sibling imports; JS headers; js tests: ES2022 denylist, sibling-import rule, progressive-API guard. |
-| js-build-inline-import | js | P1 | Build: `inlineCss()`; `test/build.test.js`: Files wrap themselves, so the build only drops the repeated layer statements instead of wrapping imports. |
-| js-dsjs-double-load | js | P1 | Build: double-load guard; install.md: First copy wins; `DashboardStyle.versions`. |
-| js-icon-classname | js | P1 | JS modules: `icon()`: Escape, never throw. |
-| js-missed-6 | js | P1 | Keyframe catalogue: `ds-draw` setup, nothing pruned: `stroke-dashoffset` allowed; unused keyframes are kept (P3, P6, P8 use them), not removed. |
-| js-missed-7 | js | P1 | Motion tokens: multiplier; styleguide speed: Duration tokens stay unregistered (parsed as `calc()` by P2's `motionDuration`), so "outside `.ds-theme`" stays detectable. The draft's `--ds-hold-*` tokens are not in the canonical spec. |
-| repo-enter-iteration | repo | P1 | `.ds-enter`; spinner header; browser marker: Iteration count 1 plus the documented wrapper. |
-| repo-browser-baseline | repo | P1 | Baseline sweep; JS headers; docs: Firefox 128 (D28), not 121. |
-| repo-test-animated-properties | repo | P1 | Tests: animated properties: `EXCEPTIONS` and `PENDING` maps; later phases add exceptions as their features land; P8 asserts `PENDING` is empty. |
-| repo-test-motion-hooks-bypass | repo | P1 | Tests: hooks take tokens, `MOTION` regex: New rationale: the multiplier and the one fixed scheme (reduced motion is gone). |
-| repo-test-keyframe-shape-loops | repo | P1 | Tests: keyframe shapes and loops: Named exemptions; longhand `infinite` handled. |
-| repo-test-choreography-ratios | repo | P1 | Tests: exit/entrance ratio: The hover-asymmetry part is replaced by "hover never moves" (D14). |
-| repo-docs-opacity-curve | repo | P1 | Docs: `motion.md` rule 2: Leaving fades accelerate (`--ds-ease-in`), entering fades on standard; merged layout-missed-3. |
-| repo-docs-rule-lists | repo | P1 | Docs: AGENTS.md, `motion.md`, `rules.md`: Lists match the tests; final sync in P8. |
-| repo-opp-spatial-springs | repo | P1 | Motion tokens: the spring, generator: Canonical: `--ds-ease-spatial` with existing durations; no `--ds-ease-spring`/`--ds-dur-spring-*`. The generator is `scripts/motion-curves.mjs`, not `springs.mjs`. |
-| repo-test-progressive-regex | repo | P1 | Baseline sweep: Progressive notes; tests: Feature-by-name table for the 16.4 / 111 / 128 floor. |
-| repo-missed-3 | repo | P1 | Cascade layers: `.ds-stagger`/`.ds-reveal` beat component animations; browser test. |
-| repo-missed-7 | repo | P1 | Docs: AGENTS.md and README: One progressive list, written identically in both. |
+| core-css-distance-inherits | core | P1 | **Done (P1):** Non-inheriting motion hooks; browser test: Covers the whole hook family (merged core-missed-1). Migration note: set hooks on the animating element. |
+| core-tokens-easing-set | core | P1 | **Done (P1):** Motion tokens: easings: Canonical names override the draft: `--ds-ease-exit` instead of `--ds-ease-in-emphasized`, no `--ds-ease-decelerate`. `--ds-ease` stays as a deprecated alias (removed in 2.0), not removed. |
+| core-tokens-springs | core | P1 | **Done (P1):** Motion tokens: the spring, generator; utilities: One `--ds-ease-spatial` (ζ 0.75, peak 1.028), fallback `--ds-ease-out`. |
+| core-tokens-durations | core | P1 | **Done (P1):** Motion tokens: durations, multiplier: micro and long added; `--ds-time-scale` registered, never declared; delays scale too. |
+| core-tokens-scales | core | P1 | **Done (P1):** Motion tokens: scales: `--ds-scale-popup` (canonical name, not `-popover`) and `--ds-scale-tooltip`. The draft's `--ds-scale-through` is not in the canonical spec; P7 adds it only if needed. The reduced-motion reset part is dropped (D8). |
+| core-css-leave-curve | core | P1 | **Done (P1):** Keyframe catalogue: exits; `.ds-leave`; dialog, sheet: Movement-only exits under new names; the combined names stay as deprecated aliases. |
+| core-css-leave-duration | core | P1 | **Done (P1):** `.ds-leave`: 150ms default, 200ms for `--scale`/`--slide`; the ratio band is 0.3-0.8 per the authority. |
+| core-css-scale-out-distance | core | P1 | **Done (P1):** Keyframe catalogue: `ds-shrink-out`: The movement-only replacement reads both hooks; the deprecated alias stays unchanged. |
+| core-css-stagger | core | P1 | **Done (P1):** `.ds-stagger`: Rise plus the `sibling-index()` refinement; `staggerOnce` is P2. |
+| core-css-missing-exits | core | P1 | **Done (P1):** Keyframe catalogue: new keyframes; `.ds-leave--pop`; styleguide demo: The "conceal pair" uses the canonical names `ds-clip-in`/`ds-clip-out`. `roll()` is P2. |
+| core-css-specificity-claim | core | P1 | **Done (P1):** Cascade layers: Doubled classes removed; the utilities layer wins. |
+| core-docs-rules | core | P1 | **Done (P1):** Docs and rules; headers: Interim rewrite; the full `motion.md` with choreography comes in P8. |
+| core-tests-css-guards | core | P1 | **Done (P1):** Tests: curves, ratio, exits, Progressive, generator: The ratio band follows the authority (0.3-0.8), not 0.5-0.75. |
+| core-missed-6 | core | P1 | **Done (P1):** Components: dialog, sheet: Fade + movement pairs in the same commit; P5 drops the sheet panel fade (D16). |
+| core-missed-7 | core | P1 | **Done (P1):** Motion tokens: durations: Role comment rewritten to the canonical table. |
+| overlay-tooltip-transform-fly | overlay | P1 | **Done (P1):** Keyframe catalogue; tooltip; browser test: Individual `translate`/`scale` compose with a page transform. The tooltip motion itself is P5. |
+| overlay-hidden-attr-ignored | overlay | P1 | **Done (P1):** Components: dialog, sheet, combobox; tests: Plus the generic `[hidden]` test. |
+| overlay-tests-progressive-guards | overlay | P1 | **Done (P1):** Tests: Progressive by name, `[hidden]`, closing: The `.ds-combo__popup` forced-colours edge case moves to P5 with overlay-combo-forced-colors (the outline lands there). The overlay choreography tests are P5. |
+| overlay-missed-1 | overlay | P1 | **Done (P1):** Components: dialog, sheet; tests: `pointer-events: none` on the box or panel only. |
+| controls-btn-disc-timing | controls | P1 | **Done (P1):** Components: button disc: D14: fade only; merged controls-missed-1 (press scale gone). |
+| controls-spatial-easing-token | controls | P1 | **Done (P1):** Motion tokens: the spring: Canonical single spring; the draft's `--ds-ease-spatial-fast`/`--ds-dur-spatial-fast` are not created (P3 uses `--ds-ease-spatial` + `--ds-dur-medium`). |
+| controls-form-radio-focus-hole | controls | P1 | **Done (P1):** Baseline sweep: radio card; focus test: Moot under the Firefox 128 floor (D28): every engine has `:has()`. No `@supports` guard; a generic test keeps every `outline: none` paired with a ring. |
+| layout-card-link-arrow-press | layout | P1 | **Done (P1):** Components: card: Lean removed; no focus or press lean. |
+| layout-missed-4 | layout | P1 | **Done (P1):** `.ds-enter` (`--slide`): Moves to the spring. `--ds-ease-emphasized` is not deprecated: the authority keeps it unchanged for movement that starts and ends on screen. |
+| js-stagger-inherit | js | P1 | **Done (P1):** Non-inheriting motion hooks; browser test: `--ds-i` registered `<integer>`, `inherits: false`; `enterAll`/`staggerOnce` cleanup is P2. |
+| js-es-guard-test | js | P1 | **Done (P1):** Build: sibling imports; JS headers; js tests: ES2022 denylist, sibling-import rule, progressive-API guard. |
+| js-build-inline-import | js | P1 | **Done (P1):** Build: `inlineCss()`; `test/build.test.js`: Files wrap themselves, so the build only drops the repeated layer statements instead of wrapping imports. |
+| js-dsjs-double-load | js | P1 | **Done (P1):** Build: double-load guard; install.md: First copy wins; `DashboardStyle.versions`. |
+| js-icon-classname | js | P1 | **Done (P1):** JS modules: `icon()`: Escape, never throw. |
+| js-missed-6 | js | P1 | **Done (P1):** Keyframe catalogue: `ds-draw` setup, nothing pruned: `stroke-dashoffset` allowed; unused keyframes are kept (P3, P6, P8 use them), not removed. |
+| js-missed-7 | js | P1 | **Done (P1):** Motion tokens: multiplier; styleguide speed: Duration tokens stay unregistered (parsed as `calc()` by P2's `motionDuration`), so "outside `.ds-theme`" stays detectable. The draft's `--ds-hold-*` tokens are not in the canonical spec. |
+| repo-enter-iteration | repo | P1 | **Done (P1):** `.ds-enter`; spinner header; browser marker: Iteration count 1 plus the documented wrapper. |
+| repo-browser-baseline | repo | P1 | **Done (P1):** Baseline sweep; JS headers; docs: Firefox 128 (D28), not 121. |
+| repo-test-animated-properties | repo | P1 | **Done (P1):** Tests: animated properties: `EXCEPTIONS` and `PENDING` maps; later phases add exceptions as their features land; P8 asserts `PENDING` is empty. |
+| repo-test-motion-hooks-bypass | repo | P1 | **Done (P1):** Tests: hooks take tokens, `MOTION` regex: New rationale: the multiplier and the one fixed scheme (reduced motion is gone). |
+| repo-test-keyframe-shape-loops | repo | P1 | **Done (P1):** Tests: keyframe shapes and loops: Named exemptions; longhand `infinite` handled. |
+| repo-test-choreography-ratios | repo | P1 | **Done (P1):** Tests: exit/entrance ratio: The hover-asymmetry part is replaced by "hover never moves" (D14). |
+| repo-docs-opacity-curve | repo | P1 | **Done (P1):** Docs: `motion.md` rule 2: Leaving fades accelerate (`--ds-ease-in`), entering fades on standard; merged layout-missed-3. |
+| repo-docs-rule-lists | repo | P1 | **Done (P1):** Docs: AGENTS.md, `motion.md`, `rules.md`: Lists match the tests; final sync in P8. |
+| repo-opp-spatial-springs | repo | P1 | **Done (P1):** Motion tokens: the spring, generator: Canonical: `--ds-ease-spatial` with existing durations; no `--ds-ease-spring`/`--ds-dur-spring-*`. The generator is `scripts/motion-curves.mjs`, not `springs.mjs`. |
+| repo-test-progressive-regex | repo | P1 | **Done (P1):** Baseline sweep: Progressive notes; tests: Feature-by-name table for the 16.4 / 111 / 128 floor. |
+| repo-missed-3 | repo | P1 | **Done (P1):** Cascade layers: `.ds-stagger`/`.ds-reveal` beat component animations; browser test. |
+| repo-missed-7 | repo | P1 | **Done (P1):** Docs: AGENTS.md and README: One progressive list, written identically in both. |
 | core-js-leave-enter-race | core | P2 | T2: generation map, superseded promises resolve silently, `cancel(el)` |
 | core-js-settled-cancel | core | P2 | T6: `getAnimations` + `allSettled`, filters, derived ceiling |
 | core-js-replay-svg-reflow | core | P2 | T7, T8: style-only flush, `enterAll` |

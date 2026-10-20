@@ -77,7 +77,7 @@ describe('repository', () => {
     for (const file of filesIn('src', (path) => path.endsWith('.css'))) {
       for (const { selector } of rules(read(file))) for (const match of selector.matchAll(/\.(ds-[\w-]+)/g)) classes.add(match[1]);
     }
-    const generic = new Set(['ds-theme', 'ds-base', 'ds-motion-full']);
+    const generic = new Set(['ds-theme', 'ds-base']);
     const missing = [...classes].filter((name) => !generic.has(name) && !docs.includes(name)).sort();
     assert.deepEqual(missing, []);
   });
@@ -94,10 +94,18 @@ describe('repository', () => {
 
   it('documents every JS export in the docs', () => {
     const docs = filesIn('docs', (path) => path.endsWith('.md')).map(read).join('\n');
-    for (const file of ['src/js/motion.js', 'src/js/indicator.js', 'src/js/dom.js']) {
+    for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {
       for (const match of read(file).matchAll(/^export (?:const|function) ([\w$]+)/gm)) assert.ok(docs.includes(match[1]), `${file}: ${match[1]}`);
     }
-    for (const name of ['icon', 'iconElement', 'ICON_SIZE']) assert.ok(read('docs/icons.md').includes(name), name);
+  });
+
+  it('has no reduced-motion remnants (D8: one motion on every device)', () => {
+    // Built from fragments, so this file passes its own check; CHANGELOG.md,
+    // plans/ and test/ may name them (history, decisions, the D8 browser test).
+    const names = new RegExp(['prefers-' + 'reduced-motion', 'ds-motion' + '-full', 'prefersReduced' + 'Motion', 'reduced' + '[ -]motion'].join('|'), 'i');
+    const scope = ALL_FILES.filter((path) => TEXT.test(path) && (/^(src|dist|styleguide|themes|docs)\//.test(path) || ['README.md', 'AGENTS.md'].includes(path)));
+    assert.ok(scope.includes('src/tokens.css') && scope.includes('AGENTS.md'), 'the walk finds the files');
+    assert.deepEqual(scope.filter((path) => names.test(readFileSync(join(ROOT, path), 'utf8'))), []);
   });
 
   it('points CLAUDE.md at AGENTS.md, the one set of contributor notes', () => {

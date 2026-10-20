@@ -6,7 +6,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { ready, settle, timeline } from './helpers/motion.js';
+import { ready, settle } from './helpers/motion.js';
 
 const STYLEGUIDE = '/styleguide/index.html';
 const FIXTURES = '/test/browser/fixtures/';
@@ -51,7 +51,6 @@ test('the styleguide reaches data-sg-ready without a console error and runs this
   await settle(page);
   await expect(page.locator('html')).toHaveAttribute('data-sg-ready', '');
   expect(await page.evaluate(() => window.DS.version)).toBe(VERSION);
-  expect(VERSION, 'P0 leaves the version alone').toBe('0.1.0');
   expect(errors).toEqual([]);
 });
 
@@ -117,14 +116,14 @@ test('?speed=0.1 slows CSS motion tenfold on the styleguide and the fixtures', a
   await ready(page);
   await expect(page.locator('html')).toHaveAttribute('data-sg-speed', '0.1');
   const card = page.locator('#sg-motion-card');
+  // --ds-time-scale stretches the tokens: the 350ms slide takes 3500ms.
+  const durations = (locator) => locator.evaluate((el) => el.getAnimations().map((animation) => Math.round(animation.effect.getComputedTiming().duration)));
   await page.locator('[data-enter="slide"]').click();
-  // The bridge sets the rate on animationstart or at the next frame: poll.
-  await expect.poll(async () => (await timeline(card)).length).toBeGreaterThan(0);
-  await expect.poll(() => card.evaluate((el) => el.getAnimations().map((animation) => animation.playbackRate))).toEqual([0.1, 0.1]);
+  await expect.poll(() => durations(card)).toEqual([3500, 3500]);
 
   await page.goto(`${FIXTURES}motion.html?speed=0.1`);
   await ready(page);
   await expect(page.locator('html')).toHaveAttribute('data-fx-speed', '0.1');
   await page.locator('[data-replay="#enter-scale"]').click();
-  await expect.poll(() => page.locator('#enter-scale').evaluate((el) => el.getAnimations().map((animation) => animation.playbackRate))).toEqual([0.1, 0.1]);
+  await expect.poll(() => durations(page.locator('#enter-scale'))).toEqual([2500, 2500]);
 });

@@ -25,9 +25,9 @@ the tests in `test/`.
 - **Status is never colour alone.** A status chip has an icon and a word; a selected chip has a check; the active
   navigation item is also set in the label weight; a chosen toggle changes shape.
 - **Links are underlined** (`--ds-link-underline-*`); colour alone does not tell a link from text.
-- **Focus is a 2px ring that appears instantly**, never animated, on every control (`--ds-focus-outline`). Put the
-  ring on `:focus` and take it off with a separate `:focus:not(:focus-visible)` rule; never list `:focus-visible` or
-  `:has()` next to other selectors, since a browser that lacks one drops the whole list.
+- **Focus is a 2px ring on `:focus-visible`**, solid at once, on every control (`--ds-focus-outline`). Fields
+  show their inset ring on any focus. (From 1.1.0 the ring snaps from a 4px to its 2px offset; it is still solid
+  from the first frame.)
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
   why over a bare `disabled`.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least 450ms.
@@ -36,10 +36,18 @@ the tests in `test/`.
 
 ## Motion
 
-- Material 3 curves only, nothing outside [0, 1]: no overshoot, no spring. No lift, growth or scaling on hover or
-  press. Short distances (4-12px), exits shorter than entrances.
-- Durations and curves only from tokens, keyframes only from `motion.css`, so reduced motion works everywhere from
-  one switch. Loaders slow down instead of stopping. Details: [motion.md](motion.md).
+- Effects (opacity, colour) and values run on Material 3 curves within [0, 1] that never decrease. Movement that
+  floats (translate, scale, clip-path) runs on the spring `--ds-ease-spatial`: it peaks at most 5% past its target
+  and settles. Sizes that push layout never overshoot (`--ds-ease-out`).
+- An entrance is a fade plus a movement; an exit is `ds-fade-out` plus a movement-only keyframe, and takes 0.3-0.8
+  of its entrance. Short distances (4-12px, 24px for side sheets).
+- Hover never moves anything (state layer, colour and documented shadow only); nothing scales on press except the
+  switch handle.
+- Animate only `transform`, `translate`, `scale`, `opacity`, colours, `box-shadow`, `clip-path` and registered
+  custom properties, plus the named exceptions of [motion.md](motion.md#rules). Never `transition: all`, never
+  `font-weight`.
+- Durations and curves only from tokens, keyframes only from `motion.css`. Motion is the same on every device;
+  loaders always run at their token speed. Details: [motion.md](motion.md).
 
 ## Accessibility
 
@@ -60,6 +68,9 @@ the tests in `test/`.
   own prefix.
 - Components read roles and hooks only: no colour, radius, font, shadow, duration or curve literals outside
   `tokens.css` and theme files.
-- Plain CSS for Safari 14 (no `@layer`, no nesting); newer features only where they degrade gracefully, named under
-  "Progressive:" in the file header.
-- JS: ES2020 modules without imports or destructuring, so `dist/ds.js` can wrap them.
+- Plain CSS for Safari 16.4, Chrome/Edge 111 and Firefox 128 (no nesting); newer features only where they degrade
+  gracefully, named under "Progressive:" in the file header.
+- Every stylesheet sits in `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities`; themes and project
+  CSS stay unlayered and win. No specificity tricks; `!important` only on a short allowlist.
+- JS: ES2022 modules; a module may import named exports from an earlier sibling module, and `dist/ds.js` wraps
+  them all into `window.DS`.

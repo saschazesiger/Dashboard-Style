@@ -5,7 +5,17 @@
  *
  * Order: tokens, motion, the opt-in page base, then components from the
  * smallest building blocks to the app frame.
+ *
+ * Cascade layers: every stylesheet starts with the same layer statement
+ * (so a single file keeps the order too) and puts its rules into one of
+ * ds.tokens, ds.base, ds.components, ds.motion (keyframes) or
+ * ds.utilities (the motion utilities). Unlayered project CSS beats every
+ * layer, whatever its specificity; a project reset belongs in a layer
+ * declared before this file (@layer reset;). @property and @font-face
+ * stay outside the layers.
  */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @import './tokens.css';
 @import './motion.css';

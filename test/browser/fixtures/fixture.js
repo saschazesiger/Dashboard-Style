@@ -13,7 +13,7 @@
  *       gets a sliding indicator (DS.indicator.createIndicator); a click on
  *       an item makes it the active one
  *   ?speed=0.1 in the URL
- *       slows every CSS and Web Animation down (see below)
+ *       slows every motion timed by the tokens down (see below)
  *
  * When everything is wired, <html> gets data-fixture-ready.
  */
@@ -64,20 +64,13 @@
   });
   window.fixtureIndicators = indicators;
 
-  // ?speed=<factor> (1 or less): the same interim playback-rate bridge as the
-  // styleguide (setSpeed() in helpers/motion.js). Every animation and
-  // transition plays at `factor`; JS timers keep their pace.
+  // ?speed=<factor> (1 or less): like the styleguide (setSpeed() in
+  // helpers/motion.js), --ds-time-scale = 1 / factor on <html>, above every
+  // .ds-theme of the fixture, so every duration and delay token stretches.
   var speed = Number(new URLSearchParams(location.search).get('speed'));
   if (speed > 0 && speed < 1) {
     document.documentElement.setAttribute('data-fx-speed', String(speed));
-    var slow = function () {
-      document.getAnimations().forEach(function (animation) {
-        if (animation.playbackRate !== speed) animation.playbackRate = speed;
-      });
-    };
-    document.addEventListener('animationstart', slow, true);
-    document.addEventListener('transitionrun', slow, true);
-    (function sweep() { slow(); requestAnimationFrame(sweep); }());
+    document.documentElement.style.setProperty('--ds-time-scale', String(1 / speed));
   }
 
   document.documentElement.setAttribute('data-fixture-ready', '');

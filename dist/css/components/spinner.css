@@ -1,44 +1,53 @@
 /*
  * Spinner: a ring that turns once per --ds-loop-spin, a primary arc on a
- * track. It is a loading indicator, not decoration: with reduced motion it
- * keeps turning, slower (tokens.css). Show it only after --ds-delay-loader
- * (.ds-enter--delayed) so fast loads never flash it.
+ * track. Show it only after --ds-delay-loader, so fast loads never flash it.
+ *
+ * Never put .ds-enter on the spinner itself in static markup: the entrance
+ * replaces the turn while it runs, and the classes stay. Delay a spinner
+ * through .ds-loading (it has its own delay), or wrap it:
+ *   <span class="ds-enter ds-enter--delayed"><span class="ds-spinner"></span></span>
+ * DS.motion.enter(spinner, 'delayed') is fine: the entrance plays once and
+ * enter() removes its classes, so the spinner turns again.
  *
  *   .ds-spinner         on surfaces (16px)
  *   .ds-spinner--sm     inside buttons and chips (12px), takes the text colour
  *
  * Hooks: --ds-spinner-track, --ds-spinner-color.
  *
- * Progressive: the small spinner's faint ring uses color-mix(); older
- * browsers keep --ds-spinner-sm-track.
+ * The small spinner's faint ring mixes the text colour (color-mix());
+ * --ds-spinner-sm-track is a deprecated fallback line (removed in 2.0).
  */
 
-.ds-spinner {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  border: 2px solid var(--ds-spinner-track, var(--ds-line));
-  border-top-color: var(--ds-spinner-color, var(--ds-primary));
-  border-radius: 50%;
-  animation: ds-spin var(--ds-loop-spin) linear infinite;
-}
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-.ds-spinner--sm {
-  width: 12px;
-  height: 12px;
-  /* A faint ring in the text colour. */
-  border-color: var(--ds-spinner-sm-track);
-  border-color: color-mix(in srgb, currentColor 22%, transparent);
-  border-top-color: currentColor;
-}
-
-/* Forced colors paint every side of the border alike: the arc would turn
-   into a still-looking full ring. */
-@media (forced-colors: active) {
+@layer ds.components {
   .ds-spinner {
-    forced-color-adjust: none;
-    border-color: GrayText;
-    border-top-color: Highlight;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 2px solid var(--ds-spinner-track, var(--ds-line));
+    border-top-color: var(--ds-spinner-color, var(--ds-primary));
+    border-radius: 50%;
+    animation: ds-spin var(--ds-loop-spin) linear infinite;
+  }
+
+  .ds-spinner--sm {
+    width: 12px;
+    height: 12px;
+    /* A faint ring in the text colour. */
+    border-color: var(--ds-spinner-sm-track);
+    border-color: color-mix(in srgb, currentColor 22%, transparent);
+    border-top-color: currentColor;
+  }
+
+  /* Forced colors paint every side of the border alike: the arc would turn
+     into a still-looking full ring. */
+  @media (forced-colors: active) {
+    .ds-spinner {
+      forced-color-adjust: none;
+      border-color: GrayText;
+      border-top-color: Highlight;
+    }
   }
 }

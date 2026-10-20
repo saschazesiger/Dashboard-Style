@@ -16,14 +16,22 @@ A theme is one stylesheet, loaded after `ds.css`, that overrides roles (layer 2)
    `--ds-primary`; `--ds-focus-ring` reads `--ds-surface`) are resolved on the element that declares them. Change
    the source token on that element and the derived roles follow; change it on a descendant and they silently keep
    the old value.
-2. **Never set motion tokens** (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-loop-*`, `--ds-stagger`,
-   `--ds-delay-*`, `--ds-scale-enter`, `--ds-scale-small`). The reduced-motion switch overrides them; a theme value
-   would win over it on some pages and lose on others.
+2. **Never set motion tokens** (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`,
+   `--ds-delay-*`, `--ds-stagger`, `--ds-time-scale`) **and the per-element motion hooks** (`--ds-motion-*`,
+   `--ds-enter-*`, `--ds-leave-*`). Motion is one fixed scheme for every product, and `DS.motion` reads the
+   computed tokens, so a theme value would put CSS and script out of step.
 3. **Keep contrast.** Text roles need 4.5:1 on the surfaces they sit on (`--ds-text-3` on white only), icons and
    outlines that carry meaning 3:1. The tint (`--ds-accent`) may be light; components never rely on it alone.
 4. **px for sizes.** Type roles are `font` shorthands in px; keep `--ds-font-input` at 16px or more.
 5. **One theme per page.** Put brand assets (logo, wordmark) and project components in your own files, reading the
    same tokens.
+
+## Layers
+
+`ds.css` puts every rule into `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities`. A theme is never
+wrapped in `@layer`: an unlayered rule beats every `ds.*` layer, whatever its specificity. That is what makes a
+theme on `.ds-theme` win, and also why a theme sets hooks rather than restyling component selectors: an unlayered
+`.ds-btn { ... }` would override the component in every state at once.
 
 ## Recipes
 
@@ -154,5 +162,5 @@ position ([motion](motion.md)), and
 ## Checking a theme
 
 Open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component re-renders with it.
-Check text contrast with your browser's accessibility tools and look at the page with
-`prefers-reduced-motion: reduce` and with forced colors emulated (DevTools, Rendering panel).
+Check text contrast with your browser's accessibility tools and look at the page with forced colors emulated
+(DevTools, Rendering panel).
