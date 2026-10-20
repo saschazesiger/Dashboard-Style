@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data motion · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- Data that changes: a key figure with its progress bar (countUp),
+     a keyed list and a keyed table body (DS.motion.flip with
+     DS.dom.morphHtml), a field that a morph re-renders per keystroke, and
+     a segmented control with an indicator (fixture.js). The specs render
+     the list and the rows themselves through window.fxData. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="figure-title">
+    <h2 id="figure-title">Figure and bar</h2>
+    <div class="ds-tiles fx-narrow">
+      <div class="ds-tile"><p class="ds-tile__label"><span>Devices synced</span></p><p class="ds-tile__value" id="figure">0</p></div>
+    </div>
+    <div class="ds-progress fx-narrow" id="progress" style="--ds-progress: 0">
+      <div class="ds-progress__track" role="progressbar" aria-label="Sync" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="ds-progress__bar" id="bar"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="list-title">
+    <h2 id="list-title">List</h2>
+    <ul class="fx-list fx-narrow" id="list"></ul>
+  </section>
+
+  <section class="fx-section" aria-labelledby="table-title">
+    <h2 id="table-title">Table</h2>
+    <div class="ds-table-wrap fx-narrow">
+      <table class="ds-table" id="table">
+        <caption class="ds-sr">Devices</caption>
+        <thead><tr><th scope="col">Device</th><th scope="col" class="ds-num">Age (y)</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="form-title">
+    <h2 id="form-title">Form</h2>
+    <div class="ds-form-grid fx-narrow" id="form"></div>
+    <nav class="ds-segmented" id="segmented" aria-label="Mode" data-indicator='[aria-current="true"]' data-indicator-class="ds-segmented__indicator">
+      <a class="ds-segmented__option" href="#live" aria-current="true">Live</a>
+      <a class="ds-segmented__option" href="#admin">Admin</a>
+      <a class="ds-segmented__option" href="#reports">Reports</a>
+    </nav>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  // Markup for the specs: keyed items and rows, rendered as a page would.
+  window.fxData = {
+    names: ['LAPTOP-0042', 'LAPTOP-0043', 'DESKTOP-0107', 'LAPTOP-0051', 'TABLET-0008', 'LAPTOP-0060', 'DESKTOP-0112', 'PHONE-0019'],
+    item: function (name, value) {
+      return '<li class="fx-item" data-ds-key="' + name + '"><span>' + name + '</span><span class="ds-num">' + (value === undefined ? '' : value) + '</span></li>';
+    },
+    row: function (name, value) {
+      return '<tr data-ds-key="' + name + '"><td>' + name + '</td><td class="ds-num">' + value + '</td></tr>';
+    },
+    list: function (names, values) {
+      var self = this;
+      return names.map(function (name, index) { return self.item(name, values ? values[index] : undefined); }).join('');
+    },
+    rows: function (names) {
+      var self = this;
+      return names.map(function (name, index) { return self.row(name, (index + 1) / 2); }).join('');
+    },
+  };
+</script>
+</body>
+</html>

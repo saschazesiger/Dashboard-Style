@@ -18,7 +18,8 @@
  * depend on the rasteriser and always use the committed folder.
  */
 import { defineConfig } from '@playwright/test';
-import { dirname, resolve } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -26,6 +27,18 @@ const ROOT = resolve(HERE, '../..');
 const PORT = Number(process.env.DS_TEST_PORT || 4173);
 const ORIGIN = `http://127.0.0.1:${PORT}`;
 const SHOTS = process.env.DS_SHOTS === 'local' ? '__screenshots-local__' : '__screenshots__';
+
+/**
+ * The specs of the `fallback` project: those that import their `test`
+ * from base-test.js (the engine specs from P2 on). A spec on plain
+ * @playwright/test would only run in Chromium a second time.
+ */
+const FALLBACK_SPECS = readdirSync(HERE).filter((name) => name.endsWith('.spec.js'))
+  .filter((name) => /^import\s*\{[^}]*\}\s*from\s*'\.\/base-test\.js';/m.test(readFileSync(join(HERE, name), 'utf8')))
+  .map((name) => new RegExp(`[\\\\/]${name.replace(/\./g, '\\.')}$`));
+
+/** Specs about the fallback project itself: they run there only. */
+const FALLBACK_ONLY = /[\\/]fallback\.spec\.js$/;
 
 export default defineConfig({
   testDir: HERE,
@@ -56,12 +69,16 @@ export default defineConfig({
     reducedMotion: 'no-preference',
   },
   // The shared `use` above applies to every engine: no device presets, so
-  // viewport, scale and user agent stay the same across projects. The
-  // `fallback` project (progressive features stripped) arrives in P2.
+  // viewport, scale and user agent stay the same across projects.
+  // `fallback` is Chromium playing an engine on the browser floor: ds.css
+  // without its @supports and @starting-style blocks, no View Transitions,
+  // popover or moveBefore, and el.animate() rejecting linear() (see
+  // base-test.js). It runs the specs that import base-test.js.
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium' } },
-    { name: 'firefox', use: { browserName: 'firefox' } },
-    { name: 'webkit', use: { browserName: 'webkit' } },
+    { name: 'chromium', testIgnore: FALLBACK_ONLY, use: { browserName: 'chromium' } },
+    { name: 'firefox', testIgnore: FALLBACK_ONLY, use: { browserName: 'firefox' } },
+    { name: 'webkit', testIgnore: FALLBACK_ONLY, use: { browserName: 'webkit' } },
+    { name: 'fallback', testMatch: FALLBACK_SPECS.length ? FALLBACK_SPECS : /^$/, use: { browserName: 'chromium', dsFallback: true } },
   ],
   webServer: {
     command: `node test/browser/serve.js ${PORT}`,

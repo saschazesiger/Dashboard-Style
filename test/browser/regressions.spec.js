@@ -215,7 +215,6 @@ test.describe('fixed in P1', () => {
 
 test.describe('fixed in P2', () => {
   test('leave(..., { then: "hide" }) followed at once by enter(el, "swap") ends visible', async ({ page }) => {
-    test.fail(true, 'core-js-leave-enter-race, js-leave-enter-race, repo-leave-enter-race: fixed in P2');
     await open(page, 'motion.html');
     const result = await page.locator('#leave-default').evaluate(async (el) => {
       const leaving = DS.motion.leave(el, '', { then: 'hide' });
@@ -229,7 +228,6 @@ test.describe('fixed in P2', () => {
   });
 
   test('countUp() called again mid-count never counts backwards', async ({ page }) => {
-    test.fail(true, 'core-js-countup-reentry, js-countup-concurrent, repo-countup-overlap: fixed in P2');
     await open(page, 'feedback.html');
     const shown = await page.evaluate(async () => {
       const el = document.createElement('span');
@@ -257,7 +255,6 @@ test.describe('fixed in P2', () => {
   });
 
   test('enter() on an SVG path that already carries .ds-enter restarts the entrance', async ({ page }) => {
-    test.fail(true, 'core-js-replay-svg-reflow: fixed in P2');
     await open(page, 'motion.html');
     const running = await page.locator('#svg-path').evaluate(async (el) => {
       el.classList.add('ds-enter');
@@ -269,7 +266,6 @@ test.describe('fixed in P2', () => {
   });
 
   test('morphHtml() on an indicator track keeps the .ds-indicator', async ({ page }) => {
-    test.fail(true, 'js-morph-indicator, controls-indicator-morph-removes: fixed in P2');
     await open(page, 'controls.html');
     const kept = await page.locator('#segmented').evaluate((nav) => {
       // The options as the server renders them, without the indicator the script added.
@@ -281,7 +277,6 @@ test.describe('fixed in P2', () => {
   });
 
   test('morphHtml() keeps the focus and the caret of a focused input', async ({ page }) => {
-    test.fail(true, 'js-morph-focus: fixed in P2');
     await open(page, 'controls.html');
     await inject(page, '<div class="ds-field" id="x-field"><label class="ds-field__label" for="x-name">Name</label>'
       + '<input class="ds-input" id="x-name" value="LAPTOP-0042"><small class="ds-field__hint">As printed on the label.</small></div>');

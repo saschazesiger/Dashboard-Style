@@ -64,7 +64,7 @@
       '<p>White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and quiet motion. Every value comes from a token, so one theme file restyles everything below.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="../README.md">Get started</a><a class="ds-btn" href="../docs/theming.md">Theming guide</a><a class="ds-btn ds-btn--text" href="../docs/components.md">Component markup ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +
-      tile('Components', '23', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
+      tile('Components', '24', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
       '</div></section>';
   }
 
@@ -317,9 +317,102 @@
         '<div class="sg-row">' + ['', 'sink', 'scale', 'slide', 'pop'].map(function (v) { return '<button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-leave="' + v + '">leave' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>') +
       card('Stagger, count, indicator', '<div class="sg-stage"><div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div></div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stagger">Stagger</button><button class="ds-btn ds-btn--sm" type="button" data-sg="fill">Fill as bars</button><button class="ds-btn ds-btn--sm" type="button" data-sg="count">Count up the tiles</button></div>' +
+        '<div class="ds-progress sg-count-progress" id="sg-count-progress" style="--ds-progress:.6"><div class="ds-progress__track" role="progressbar" aria-label="Share counted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><div class="ds-progress__bar"></div></div><p class="ds-progress__label" id="sg-count-figure">60%</p><p class="ds-progress__detail">figure and bar land together</p></div>' +
         '<div class="sg-track" id="sg-track"><button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Month</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Year</button></div>') +
       '</div>' +
-      card('Disclosure', '<details class="ds-collapsible"><summary>Show the motion rules</summary><ol class="ds-muted"><li>Animate only transform, opacity, colours, shadows and clip-path.</li><li>Fades on the standard curve, floating movement on a gentle spring; exits accelerate.</li><li>Updated data never animates; only first renders and user actions move.</li></ol></details>'));
+      card('Data motion', '<p class="ds-muted">A keyed list re-rendered with DS.dom.morphHtml inside DS.motion.flip: rows glide to their new places, new rows fade in, removed rows fade out of the flow. Typing filters on every keystroke. The live feed reorders every 1.5s; while the mouse is over the list or a row has focus, values change at once and the reorder waits (at most 2s).</p>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="data-add">' + icon('plus', 16) + 'Add</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-remove">Remove</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-shuffle">Shuffle</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-sort">Sort by load</button><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="data-live" aria-pressed="false">Live feed</button></div>' +
+        '<div class="ds-field sg-data-filter"><label class="ds-field__label" for="sg-data-filter">Filter</label><input class="ds-input" id="sg-data-filter" type="search" autocomplete="off" placeholder="Device name"></div>' +
+        '<p class="ds-meta sg-data-status" id="sg-data-status" aria-live="polite"><span>' + dataCount() + '</span></p>' +
+        '<ul class="ds-kv-list sg-data-list" id="sg-data-list">' + dataHtml() + '</ul>') +
+      card('Disclosure', '<details class="ds-collapsible"><summary>Show the motion rules</summary><ol class="ds-muted"><li>Animate only transform, opacity, colours, shadows and clip-path.</li><li>Fades on the standard curve, floating movement on a gentle spring; exits accelerate.</li><li>Data changes glide: figures count from the shown value, reordered rows move to their new places; a refresh never replays an entrance.</li></ol></details>'));
+  }
+
+  /* Data motion: a keyed list, its state and its markup. */
+  var data = {
+    items: [
+      { id: 'd1', name: 'LAPTOP-0042', load: 72 },
+      { id: 'd2', name: 'LAPTOP-0017', load: 35 },
+      { id: 'd3', name: 'PRINTER-0003', load: 88 },
+      { id: 'd4', name: 'TABLET-0121', load: 14 },
+      { id: 'd5', name: 'LAPTOP-0108', load: 51 },
+      { id: 'd6', name: 'DESKTOP-0009', load: 63 },
+    ],
+    next: 7,
+    filter: '',
+    sorted: false,
+    feed: 0,
+  };
+
+  function dataShown() {
+    var query = data.filter.trim().toLowerCase();
+    return data.items.filter(function (item) { return !query || item.name.toLowerCase().indexOf(query) !== -1; });
+  }
+
+  function dataCount() {
+    var shown = dataShown().length;
+    return shown === data.items.length ? data.items.length + ' devices' : shown + ' of ' + data.items.length + ' devices';
+  }
+
+  function dataHtml() {
+    var shown = dataShown();
+    if (!shown.length) return '<li><span class="ds-muted">No device matches "' + esc(data.filter.trim()) + '".</span></li>';
+    return shown.map(function (item) {
+      return '<li data-ds-key="' + item.id + '"><span>' + esc(item.name) + '</span><strong class="ds-num">' + item.load + '%</strong></li>';
+    }).join('');
+  }
+
+  /* Re-renders the list through flip(); `status` (optional) rolls in below the buttons. */
+  function updateData(status, live) {
+    var list = $('#sg-data-list');
+    if (data.sorted) data.items.sort(function (a, b) { return b.load - a.load; });
+    M.flip(list, function (options) { DS.dom.morphHtml(list, dataHtml(), options); }, live ? { live: true } : {});
+    M.roll($('#sg-data-status'), status ? dataCount() + ' · ' + status : dataCount());
+  }
+
+  function dataAction(action, button) {
+    var names = ['LAPTOP', 'TABLET', 'DESKTOP', 'PRINTER'];
+    if (action === 'data-add' && data.items.length < 12) {
+      var id = data.next;
+      data.next += 1;
+      var item = { id: 'd' + id, name: names[id % names.length] + '-0' + (200 + id), load: Math.round(5 + Math.random() * 90) };
+      data.items.splice(Math.floor(Math.random() * (data.items.length + 1)), 0, item);
+      updateData('added ' + item.name);
+    }
+    if (action === 'data-remove' && data.items.length) {
+      var gone = data.items.splice(Math.floor(Math.random() * data.items.length), 1)[0];
+      updateData('removed ' + gone.name);
+    }
+    if (action === 'data-shuffle') {
+      data.sorted = false;
+      for (var i = data.items.length - 1; i > 0; i -= 1) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var swap = data.items[i];
+        data.items[i] = data.items[j];
+        data.items[j] = swap;
+      }
+      updateData('shuffled');
+    }
+    if (action === 'data-sort') {
+      data.sorted = true;
+      updateData('sorted by load');
+    }
+    if (action === 'data-live') {
+      var on = button.getAttribute('aria-pressed') !== 'true';
+      button.setAttribute('aria-pressed', String(on));
+      clearInterval(data.feed);
+      data.feed = 0;
+      if (on) {
+        data.sorted = true;
+        data.feed = setInterval(function () {
+          data.items.forEach(function (row) {
+            if (Math.random() < 0.5) row.load = Math.max(1, Math.min(99, row.load + Math.round((Math.random() - 0.5) * 40)));
+          });
+          updateData(null, true);
+        }, 1500);
+      }
+      M.roll($('#sg-data-status'), dataCount() + ' · live feed ' + (on ? 'on' : 'off'));
+    }
   }
 
   /* Icons */
@@ -532,18 +625,17 @@
       if (action === 'toast-error') toast('Could not save. Check the connection and try again.', true);
       if (action === 'busy') busy(el);
       if (action === 'stagger') {
-        // The .ds-stagger utility: each square fades in and rises 4px, one step
-        // after the other. The class goes once the last one landed, so a later
-        // entrance on a square does not hand back to it.
-        var list = $('#sg-stagger');
-        var items = $$('span', list);
-        list.classList.remove('sg-fill');
-        M.stagger(items);
-        M.replay(list, 'ds-stagger');
-        M.settled(items[items.length - 1]).then(function () { list.classList.remove('ds-stagger'); });
+        // enterAll(): one batch, each square scales in one step after the
+        // other; the classes and --ds-i go once each one landed.
+        $('#sg-stagger').classList.remove('sg-fill');
+        M.enterAll($$('#sg-stagger > span'), 'scale');
       }
-      if (action === 'fill') { var bars = $$('#sg-stagger > span'); $('#sg-stagger').classList.add('sg-fill'); M.stagger(bars); bars.forEach(function (i) { M.enter(i, 'fill-x'); }); }
-      if (action === 'count') countTiles();
+      if (action === 'fill') {
+        $('#sg-stagger').classList.add('sg-fill');
+        M.enterAll($$('#sg-stagger > span'), 'fill-x');
+      }
+      if (action === 'count') countMore();
+      if (action && action.indexOf('data-') === 0) dataAction(action, el);
       if (action === 'toggle' || action === 'dense') el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
       if (action === 'dense') $('#sg-table').classList.toggle('ds-table--dense', el.getAttribute('aria-pressed') === 'true');
       if (action === 'progress') {
@@ -555,13 +647,29 @@
         $('.ds-progress__label', p).textContent = Math.round(value * 100) + '%';
         $('.ds-progress__detail', p).textContent = Math.round(value * 2030).toLocaleString('en-US') + ' of 2,030 rows';
       }
+      // enter() and leave() continue from where the card is, whenever they
+      // are pressed; enter() also cleans up whatever variant played before.
+      // Every press is a new run: a superseded leave() still resolves (without
+      // acting), so only the latest press may bring the card back.
+      if (el.hasAttribute('data-enter') || el.hasAttribute('data-leave')) {
+        clearTimeout(backTimer);
+        leaveRun += 1;
+      }
       if (el.hasAttribute('data-enter')) M.enter($('#sg-motion-card'), el.getAttribute('data-enter'));
       if (el.hasAttribute('data-leave')) {
         var card = $('#sg-motion-card');
+        var run = leaveRun;
         M.leave(card, el.getAttribute('data-leave'), { then: 'keep' }).then(function () {
-          setTimeout(function () { card.classList.remove('ds-leave', 'ds-leave--sink', 'ds-leave--scale', 'ds-leave--slide', 'ds-leave--pop'); M.enter(card, 'fade'); }, 400);
+          if (run !== leaveRun || !card.classList.contains('ds-leave')) return;
+          backTimer = setTimeout(function () {
+            if (run === leaveRun) M.enter(card, 'fade');
+          }, 400);
         });
       }
+    });
+    $('#sg-data-filter').addEventListener('input', function (event) {
+      data.filter = event.target.value;
+      updateData(data.filter.trim() ? 'filtered' : null);
     });
     document.addEventListener('change', function (event) {
       var input = event.target;
@@ -573,6 +681,11 @@
     document.addEventListener('focusout', function (event) { if (event.target.closest('[data-tip]')) hideTip(); });
   }
 
+  /* The leave demo brings the card back 400ms after its exit, unless another press came first. */
+  var leaveRun = 0;
+  var backTimer = 0;
+
+  /* Counts every tile to its data-count, from the value it shows (0 on the first render). */
   function countTiles() {
     $$('.ds-tile__value[data-count]').forEach(function (el) {
       var suffix = el.getAttribute('data-suffix') || '';
@@ -580,6 +693,26 @@
         format: function (value) { return Math.round(value).toLocaleString('en-US') + suffix; },
       });
     });
+  }
+
+  /*
+   * The count demo: the tiles of the cards section count up by a step from
+   * the value they show (a second press retargets a running count), and
+   * the figure next to the button counts with its bar, so both land
+   * together (--ds-ease-value over --ds-dur-glide).
+   */
+  function countMore() {
+    $$('#cards .ds-tile__value[data-count]').forEach(function (el) {
+      var value = Number(el.getAttribute('data-count'));
+      el.setAttribute('data-count', String(value + Math.max(1, Math.round(value * 0.05))));
+    });
+    countTiles();
+    var progress = $('#sg-count-progress');
+    var share = parseFloat(progress.style.getPropertyValue('--ds-progress')) || 0;
+    share = share >= 0.95 ? 0.15 : Math.min(1, Math.round((share + 0.2) * 100) / 100);
+    progress.style.setProperty('--ds-progress', String(share));
+    $('.ds-progress__track', progress).setAttribute('aria-valuenow', String(Math.round(share * 100)));
+    M.countUp($('#sg-count-figure'), Math.round(share * 100), { format: function (value) { return Math.round(value) + '%'; } });
   }
 
   /* ── Themes ───────────────────────────────────────────────────────── */
@@ -667,15 +800,19 @@
   }
 
   render();
+  // Every action gets the pointer ripple (and iOS its :active feedback).
+  DS.ripple.attach(document);
   setupNavigation();
   setupDemos();
   setupThemes(function () {
     // Tests wait for this instead of racing the first stagger.
     document.documentElement.setAttribute('data-sg-ready', '');
   });
-  // First render: the page staggers in and the key figures count up once.
-  M.stagger($$('#sg-page > .sg-section'));
-  $('#sg-page').classList.add('ds-stagger');
+  // First render: the sections in view stagger in once, and the key
+  // figures count up from 0. The figure of the count demo starts at what
+  // it shows, so its first count runs from there with its bar.
+  M.staggerOnce($('#sg-page'));
   countTiles();
+  M.countUp($('#sg-count-figure'), 60, { duration: 0, format: function (value) { return Math.round(value) + '%'; } });
   if (location.hash && $(location.hash)) $(location.hash).scrollIntoView();
 }());

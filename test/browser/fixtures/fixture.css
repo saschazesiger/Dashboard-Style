@@ -69,3 +69,20 @@ body {
   width: 280px;
   height: 220px;
 }
+
+.fx-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fx-item {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--ds-space-3);
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--ds-line);
+  background: var(--ds-surface);
+}

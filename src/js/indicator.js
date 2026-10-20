@@ -8,6 +8,10 @@
  * first placement and size changes from resizing jump; only a change of the
  * active item animates.
  *
+ * The span carries data-ds-keep, so DS.dom.morphHtml() on the track never
+ * removes it; a foreign re-render that dropped it anyway gets it back on
+ * the next placement (it jumps there once).
+ *
  *   const indicator = createIndicator(nav, { active: '[aria-current="page"]' });
  *   ...change the active item...
  *   indicator.update();
@@ -28,6 +32,7 @@ export function createIndicator(track, options) {
   const indicator = document.createElement('span');
   indicator.className = `ds-indicator ds-indicator--instant${className ? ` ${className}` : ''}`;
   indicator.setAttribute('aria-hidden', 'true');
+  indicator.setAttribute('data-ds-keep', '');
   track.prepend(indicator);
   track.classList.add('ds-has-indicator');
 
@@ -40,6 +45,12 @@ export function createIndicator(track, options) {
   let glideUntil = 0;
 
   function place(animate) {
+    // Gone after a re-render that replaced the track's content: back in, without a glide.
+    if (indicator.parentNode !== track) {
+      track.prepend(indicator);
+      placed = null;
+      glideUntil = 0;
+    }
     const item = track.querySelector(active);
     const trackRect = track.getBoundingClientRect();
     if (!item || trackRect.width === 0) {

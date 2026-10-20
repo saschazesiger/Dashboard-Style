@@ -5,9 +5,9 @@ Everything a project needs is in `dist/`:
 | Path | What |
 |---|---|
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
-| `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, icons }` (see "Two copies on one page") |
+| `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, ripple, icons }` (see "Two copies on one page") |
 | `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
-| `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `icons.js`) |
+| `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`) |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
@@ -23,6 +23,17 @@ Load order on a page: fonts (optional), `ds.css`, your theme, then your own styl
 <link rel="stylesheet" href="css/theme.css">
 <script src="vendor/dashboard-style/ds.js" defer></script>
 ```
+
+With `ds.js`, one call gives every action its pointer ripple ([components.md](components.md#ripple)):
+
+```js
+DS.ripple.attach(document);
+```
+
+On iOS, Safari shows `:active` (the press feedback) only on pages that listen to `touchstart`; `attach()` adds a
+passive listener. A page without `ds.js` adds one itself:
+`document.addEventListener('touchstart', () => {}, { passive: true })`, or `ontouchstart=""` on `<body>` where the
+Content-Security-Policy allows inline handlers.
 
 ## Cascade layers and resets
 

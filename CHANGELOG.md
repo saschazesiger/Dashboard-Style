@@ -5,8 +5,10 @@ export is a major change; adding one is a minor change.
 
 ## 1.0.0
 
-Motion 2, the foundation: a newer browser floor, cascade layers, one motion scheme on every device, a spatial
-spring and a rebuilt keyframe catalogue. Breaking; read the migration notes.
+Motion 2, the foundation and the engine: a newer browser floor, cascade layers, one motion scheme on every device, a
+spatial spring, a rebuilt keyframe catalogue, and a `DS.motion` that reads its timing from the tokens, continues
+interrupted motion from where it is and glides data (FLIP, figures that count from what they show). `DS.dom.morphHtml`
+patches in place, and the new `DS.ripple` grows a ripple from the pointer. Breaking; read the migration notes.
 
 ### Migration
 
@@ -32,6 +34,39 @@ spring and a rebuilt keyframe catalogue. Breaking; read the migration notes.
 - Never put `.ds-enter` on a looping element (a spinner) in static markup: the entrance now plays once and ends,
   and it replaces the loop while the class stays. Wrap the spinner (`<span class="ds-enter ds-enter--delayed">`)
   or use `.ds-loading`.
+- **Motion character**: spatial movement floats on a spring (`--ds-ease-spatial`, a 2.8 % overshoot that settles),
+  exits accelerate on the new exit curves (`--ds-ease-in`, `--ds-ease-exit` for large surfaces), and `--ds-ease` is
+  deprecated (use `--ds-ease-emphasized`). Screenshots and timings of animated states change.
+
+Behaviour of the JS exports (`DS.dom`, `DS.motion`):
+
+- **`morphHtml` patches in place.** A node of the same tag (and key) is kept and its attributes are synced, where
+  0.1.0 replaced any node whose attributes changed. Listeners on kept nodes therefore stay: bind them once
+  (delegate to a container), or mark a subtree `data-ds-replace`, or pass `{ replace: true }` to get fresh nodes
+  as before. Key list rows with `data-ds-key` (or `id`) so a reorder moves them. Nodes marked `data-ds-keep` are
+  never touched; the focused element is never replaced and keeps its value and caret.
+- **`leave()` moves focus and sets `inert`.** Focus inside the leaving element goes to `focus` (new option), else
+  the element that had focus when `enter()` ran, else the closest `tabindex="-1"` ancestor, before the element turns
+  `inert` for its exit: it takes no clicks or focus while it leaves. `then: 'hide'` clears `inert` again;
+  `then: 'keep'` leaves it invisible and inert until `enter()` or the new `cancel()`. While `leave()` is
+  removing an element (`then: 'remove'`) it carries `data-ds-leaving`, so `morphHtml` skips it instead of patching
+  it into the next item; `enter()` and `cancel()` take the mark back.
+- **`enter()` clears `hidden`** (and an `inert` that `leave()` set): drop the `el.hidden = false` before it.
+- **A later call wins.** `enter()`, `leave()` and `cancel()` keep one state per element: a call made while
+  another motion runs continues from the current state (no restart, no reversed entrance), and the earlier call's
+  promise resolves without acting (a superseded `leave()` never removes or hides). Both remove every `ds-enter*` and
+  `ds-leave*` variant class, not only their own.
+- **`settled()` resolves when nothing runs** (on the next frame) instead of after its 1000ms timeout, and otherwise
+  when the element's own finite animations finish or are cancelled; its ceiling comes from their timing. Transitions
+  count only with `transitions: true` (or `event: 'transitionend'`); pseudo-elements and loops never count. Code
+  that relied on the fixed wait waits for the motion it starts.
+- **`countUp` counts from the shown value** (0 on the first call) on `--ds-ease-value` over `--ds-dur-glide`, up or
+  down, instead of from 0 on an ease-out each time; the same value again changes nothing, a new call takes over the
+  running count, a count down to 0 animates too, and it returns `{ cancel, finished }` (was `undefined`). Pass
+  `from` to start elsewhere. While it counts the element is `aria-busy` and keeps its width.
+- Timing comes from the computed tokens: `settleLoader` takes `{ element }` to read `--ds-delay-loader` (or
+  `--ds-delay-boot` inside `.ds-boot`) and `--ds-hold-loader` time-scaled; the exported constants stay as the
+  fallbacks outside a `.ds-theme`.
 
 ### Changed
 
@@ -54,8 +89,22 @@ spring and a rebuilt keyframe catalogue. Breaking; read the migration notes.
 - Focus rings sit on `:focus-visible` (no `:focus` fallback rules).
 - `icon()` escapes `className`.
 - `ds.js` loaded twice keeps the first copy as `window.DS`; every copy is in `DashboardStyle.versions`.
-- The styleguide's `?speed=<factor>` sets `--ds-time-scale`; `DS.motion.settled()` stretches its default timeout
-  (1000ms) by it, so slow motion is not cut short.
+- The styleguide's `?speed=<factor>` sets `--ds-time-scale`; `DS.motion` reads every duration from the computed
+  tokens, so JS and CSS slow down together.
+- `DS.motion.enter()` / `leave()`: interruptible (an interrupted motion continues from its current opacity,
+  `translate`, `scale` and `clip-path` on the new direction's curve, for the share of the duration left, through
+  `el.animate()`, without inline style; a value the new motion has no track for, such as the lift of an entrance
+  under the fade-only `leave()`, glides to its rest instead of snapping), one state per element, focus and `inert` handling, `hidden` cleared (see
+  the migration notes).
+- `DS.motion.settled()` watches the element's own animations (`getAnimations()`) with a derived ceiling; new
+  options `names`, `transitions` and `subtree`.
+- `DS.motion.countUp()` counts from the shown value on the curve and time of progress bars, on a clock animation of
+  the element (id `ds-count`) that starts in the same frame as a CSS transition, so a figure and its bar land
+  together; one count per element; tabular figures; returns `{ cancel, finished }`.
+- `DS.motion.replay()` restarts with a style flush instead of a layout read (works on SVG).
+- `DS.dom.morphHtml()` patches in place, keyed (`data-ds-key`, then `id`), moves with `moveBefore` where it exists,
+  keeps focus, caret and the runtime classes and properties DS writes, looks ahead at most 8 siblings.
+- `DS.indicator`: the indicator span carries `data-ds-keep` and comes back if a re-render dropped it.
 
 ### Added
 
@@ -67,11 +116,26 @@ spring and a rebuilt keyframe catalogue. Breaking; read the migration notes.
 - `.ds-leave--pop` (`leave(el, 'pop')`) and the `--ds-leave-easing` hook.
 - Where `sibling-index()` exists, `.ds-stagger` numbers its children without `stagger()`.
 - Modules in `src/js` may import from an earlier module (`scripts/build.mjs` bundles them).
+- `DS.motion`: `motionDuration`, `motionEasing`, `MOTION_FALLBACKS`, `travelDuration`, `cancel`, `enterAll`,
+  `staggerOnce`, `flip` (FLIP for lists: retargets mid-flight, moving items paint above the ones they cross, removed items fade out of flow inside the list, which
+  keeps its height meanwhile and then glides to the new one, a cap of 50 moving items, a live guard that holds reorders under a mouse or pen or focus for at most 2s), `originFrom`, `roll` and
+  `crossfade` (kind `'text'`); `leave()` takes `focus`; `loaderHoldMs()` and `settleLoader()` take `delay` and
+  `minVisible`, `settleLoader()` also `element`; `countUp()` takes `from`.
+- `DS.dom.morphHtml()` / `morphChildren()` options `replace`, `holdOrder`, `onInsert` and `onRemove` (a returned
+  Promise keeps the node as a pending removal); the attributes `data-ds-key`, `data-ds-keep` and `data-ds-replace`.
+- `DS.ripple` (`js/ripple.js`, `window.DS.ripple`): `attach(root)` gives every action a ripple from the pointer
+  (Enter and Space: from the centre) and returns `{ detach }`; it also adds the passive `touchstart` listener iOS
+  needs for `:active`. `components/ripple.css`: `.ds-ripples`, `.ds-press-ripple`, `.ds-press-ripple--out`,
+  `.ds-pressed`, `data-ds-ripple` (`="off"` opts out) and the hook `--ds-ripple-color`.
+- `.ds-swap`: a slot whose old and new content cross in one grid cell (`roll()`, `crossfade()`).
+- `--ds-hold-loader` (450ms): how long a loader that showed stays at least (`LOADER_MIN_VISIBLE_MS`).
+- The Playwright `fallback` project: Chromium as an engine on the browser floor, so the fallback paths are tested.
 - `scripts/motion-curves.mjs` generates the sampled curves (`npm run check` verifies them).
 
 ### Deprecated (removed in 2.0)
 
 - `--ds-ease` (use `--ds-ease-emphasized`), `--ds-spinner-sm-track`.
+- `DS.motion.easeOutCubic`, no longer used (`countUp` runs on `--ds-ease-value`).
 - `ds-sink-out`, `ds-scale-out`, `ds-slide-out` (use `ds-fade-out` with `ds-drop-out`, `ds-shrink-out`,
   `ds-shift-out`).
 

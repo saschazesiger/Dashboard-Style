@@ -4,7 +4,8 @@
  * classes below; durations, easings, distances and scales always come from
  * tokens.css.
  *
- * Keyframes sit in the ds.motion layer, the utility classes in
+ * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
+ * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-swap) in
  * ds.utilities. That layer comes after ds.components, so a utility wins
  * over a component's own animation by layer order, not by specificity.
  *
@@ -404,6 +405,23 @@
   .ds-leave--scale { --ds-leave-keyframes: ds-fade-out, ds-shrink-out; --ds-leave-duration: var(--ds-dur-base); }
   .ds-leave--slide { --ds-leave-keyframes: ds-fade-out, ds-shift-out; --ds-leave-duration: var(--ds-dur-base); }
   .ds-leave--pop { --ds-leave-keyframes: ds-fade-out, ds-pop-out; }
+
+  /*
+   * A slot where outgoing and incoming content cross (roll() and
+   * crossfade() in js/motion.js): every child takes the same grid cell, so
+   * while both are there the slot keeps the width of the wider one instead
+   * of jumping, and a line that rolls in or out is clipped at the slot.
+   *
+   *   <span class="ds-swap"><span>Saving ...</span></span>   via JS: DS.motion.roll(el, 'Saved')
+   */
+  .ds-swap {
+    display: inline-grid;
+    overflow: clip;
+  }
+
+  .ds-swap > * {
+    grid-area: 1 / 1;
+  }
 
   /*
    * Disclosure: <details class="ds-collapsible"> opens and closes with a

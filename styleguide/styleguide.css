@@ -229,6 +229,28 @@
   transform-origin: left center;
 }
 
+/* The count demo: a figure and its bar under the buttons. */
+.sg-count-progress {
+  margin-top: var(--ds-space-4);
+}
+
+/* Data motion: rows on the card's surface, so rows gliding past each other
+   cover what is behind them; the status line rolls in below the buttons. */
+.sg-data-filter {
+  max-width: 320px;
+  margin-top: var(--ds-space-4);
+}
+
+.sg-data-status {
+  /* A block-level .ds-swap slot: the outgoing and incoming lines share one cell. */
+  display: grid;
+  margin: var(--ds-space-3) 0 0;
+}
+
+.sg-data-list li {
+  background: var(--ds-surface);
+}
+
 /* A track for the indicator demo: options in a pill. */
 .sg-track {
   display: inline-flex;

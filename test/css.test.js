@@ -113,7 +113,7 @@ const FOCUS_EXEMPT = [
 ];
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
-const RUNTIME = new Set(['--ds-i', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve']);
+const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve']);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
@@ -683,10 +683,10 @@ describe('CSS for the baseline', () => {
     assert.doesNotMatch(utilities, /@keyframes/);
     assert.deepEqual(rules(motion).filter((rule) => !/^(from|to|\d+%)$/.test(rule.selector)), []);
     const selectors = rules(utilities).flatMap((rule) => splitSelectors(rule.selector));
-    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible']) {
+    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible', '.ds-swap']) {
       assert.ok(selectors.includes(utility), utility);
     }
-    assert.deepEqual(selectors.filter((selector) => !/^\.ds-(enter|leave|stagger|reveal|collapsible)\b/.test(selector)), []);
+    assert.deepEqual(selectors.filter((selector) => !/^\.ds-(enter|leave|stagger|reveal|collapsible|swap)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {

@@ -6,15 +6,15 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { COUNT_UP_MS, LOADER_DELAY_MS } from '../src/js/motion.js';
+import { COUNT_UP_MS, LOADER_DELAY_MS, LOADER_MIN_VISIBLE_MS, MOTION_FALLBACKS } from '../src/js/motion.js';
 import { emphasizedCurve, SPATIAL, springCurve, springFunction, TOLERANCE } from '../scripts/motion-curves.mjs';
 import { filesIn, ms, read, stripComments, token } from './helpers.js';
 
 const tokens = stripComments(read('src/tokens.css'));
 /** Motion tokens and per-element motion hooks: no theme sets one, no role matches. */
-const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|scale|time-scale|motion|enter|leave|clip-from|draw-length)[\w-]*\s*:/;
+const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length)[\w-]*\s*:/;
 /** Duration-like scales: written as calc(<n>ms * var(--ds-time-scale, 1)). */
-const TIMED = /^--ds-(dur-[\w-]+|loop-[\w-]+|delay-[\w-]+|stagger)$/;
+const TIMED = /^--ds-(dur-[\w-]+|loop-[\w-]+|delay-[\w-]+|hold-[\w-]+|stagger)$/;
 
 /** The linear() value of a token inside the @supports (linear()) block. */
 function sampled(name) {
@@ -53,7 +53,7 @@ function layers() {
 describe('tokens', () => {
   it('writes every duration-like scale in the --ds-time-scale form', () => {
     const timed = layers().scales.filter((name) => TIMED.test(name));
-    for (const name of ['--ds-dur-micro', '--ds-dur-long', '--ds-stagger', '--ds-delay-loader', '--ds-delay-boot', '--ds-loop-spin']) {
+    for (const name of ['--ds-dur-micro', '--ds-dur-long', '--ds-stagger', '--ds-delay-loader', '--ds-delay-boot', '--ds-hold-loader', '--ds-loop-spin']) {
       assert.ok(timed.includes(name), name);
     }
     for (const name of timed) assert.match(token(name), /^calc\(\d*\.?\d+m?s \* var\(--ds-time-scale, 1\)\)$/, name);
@@ -96,12 +96,32 @@ describe('tokens', () => {
   it('keeps JS constants in step with the tokens they mirror', () => {
     assert.equal(ms('--ds-delay-loader'), LOADER_DELAY_MS);
     assert.equal(ms('--ds-dur-glide'), COUNT_UP_MS);
-    // The indicator retargets for 600ms while it glides (js/indicator.js).
+    assert.equal(ms('--ds-hold-loader'), LOADER_MIN_VISIBLE_MS);
+    // The indicator retargets for 600ms while it glides (js/indicator.js, until P4).
     assert.match(read('src/js/indicator.js'), /glideUntil = now \+ 600/);
     assert.ok(ms('--ds-dur-medium') < 600);
-    // settled() waits at most this long: longer than the longest animation.
-    const timeout = Number(read('src/js/motion.js').match(/DEFAULT_TIMEOUT_MS = (\d+)/)[1]);
-    assert.ok(timeout > ms('--ds-dur-glide'));
+  });
+
+  it('keeps every MOTION_FALLBACKS entry equal to its token in tokens.css', () => {
+    /** A token's value with var() references followed (the cubic fallback of a sampled curve). */
+    const resolved = (name) => {
+      let value = token(name);
+      while (value && /^var\(--ds-[\w-]+\)$/.test(value)) value = token(value.slice(4, -1));
+      return value;
+    };
+    const normal = (text) => String(text).replace(/\s+/g, '');
+    const names = Object.keys(MOTION_FALLBACKS);
+    // Every duration, delay and hold scale and every easing role has its fallback.
+    const scales = layers().scales.filter((name) => /^--ds-(dur|delay|hold)-/.test(name));
+    const easings = [...tokens.matchAll(/(--ds-ease[\w-]*)\s*:/g)].map((match) => match[1]);
+    assert.deepEqual([...new Set([...scales, ...easings])].filter((name) => !names.includes(name)), []);
+    for (const [name, fallback] of Object.entries(MOTION_FALLBACKS)) {
+      if (typeof fallback === 'number') assert.equal(ms(name), fallback, name);
+      else {
+        assert.match(resolved(name), /^cubic-bezier\(/, `${name}: the main value is a cubic`);
+        assert.equal(normal(resolved(name)), normal(fallback), name);
+      }
+    }
   });
 
   it('pins the shared link geometry and the disabled opacity', () => {

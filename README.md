@@ -44,8 +44,8 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
 ```
 
 `ds-theme` turns the tokens on, `ds-base` (optional) styles the page itself: backdrop, body text, links, focus.
-`ds.js` is only needed for the motion helpers, the sliding indicator, the DOM morph and the icons
-(`window.DS`); every component works without it.
+`ds.js` is only needed for the motion helpers, the sliding indicator, the DOM morph, the pointer ripple
+(`DS.ripple.attach(document)` once) and the icons (`window.DS`); every component works without it.
 
 Open [`styleguide/index.html`](styleguide/index.html) in a browser (works from disk) to see every component, the
 tokens, the motion and the icons, and to try a theme file.
@@ -98,7 +98,7 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 | [Tokens](docs/tokens.md) | the three layers and every token |
 | [Theming](docs/theming.md) | writing a project theme, component hooks |
 | [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
-| [Motion](docs/motion.md) | durations, curves, utilities, `DS.motion`, indicator, morph |
+| [Motion](docs/motion.md) | durations, curves, utilities, `DS.motion` (FLIP, `countUp`), indicator, morph, ripple |
 | [Icons](docs/icons.md) | the outline set and its helpers |
 | [Rules](docs/rules.md) | the design rules the components follow |
 

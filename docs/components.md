@@ -36,6 +36,7 @@ component live.
 | A long job with a known or unknown share | [Progress](#progress) `.ds-progress` (`--indeterminate`) |
 | Content that opens and closes | `<details class="ds-collapsible">` ([Motion classes](#motion-classes)) |
 | Something new appearing, a view's first render | [Motion classes](#motion-classes) and `DS.motion` ([motion.md](motion.md)) |
+| Press feedback from the pointer on every action | [Ripple](#ripple): `DS.ripple.attach(document)` once (`.ds-ripples`) |
 | An icon | `DS.icons` ([icons.md](icons.md)); brand logos stay in the project |
 
 Nothing fits? If any dashboard could use it, add it to Dashboard-Style ([AGENTS.md](../AGENTS.md#making-a-change))
@@ -46,7 +47,7 @@ Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card
 [Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
 [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Dialog](#dialog) ·
 [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Loading](#loading) ·
-[Progress](#progress) · [Utilities](#utilities) · [Motion classes](#motion-classes)
+[Progress](#progress) · [Ripple](#ripple) · [Utilities](#utilities) · [Motion classes](#motion-classes)
 
 ## App frame
 
@@ -194,9 +195,11 @@ the `--ds-card-padding*` hooks ([theming.md](theming.md#component-hooks)).
 </div>
 ```
 
-The value never takes a colour and never wraps (it shrinks on narrow tiles); count it up once with
-`DS.motion.countUp(el, 12)`. A tile that opens something is a `<button class="ds-tile">` or `<a class="ds-tile">`
-with `<span>`s instead of the `<p>`s (a 6% state layer and the focus ring, no lift).
+The value never takes a colour and never wraps (it shrinks on narrow tiles). Count it with
+`DS.motion.countUp(el, 12)`: it counts from the figure it shows (from 0 the first time), so a refresh counts on from
+the old value and the same value changes nothing; a progress bar set in the same task lands with it. A tile that
+opens something is a `<button class="ds-tile">` or `<a class="ds-tile">` with `<span>`s instead of the `<p>`s (a 6%
+state layer and the focus ring, no lift).
 
 ## Lists
 
@@ -570,6 +573,41 @@ Every loader fades in only after `--ds-delay-loader` (fast loads show nothing); 
 `--ds-progress` (0 to 1) scales the bar (set it with `el.style.setProperty`, which a strict CSP allows).
 `.ds-progress--indeterminate` runs a segment across; `.ds-progress--waiting` hides the track and keeps the labels.
 
+## Ripple
+
+A press on an action grows a circle of the content colour from the pointer (Enter or Space: from the centre) and
+fades it when the press ends. One call wires every action on the page, also the ones rendered later:
+
+```js
+const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripples.detach() takes it back
+```
+
+```html
+<button class="ds-btn" type="button">Export</button>           <!-- a host: nothing to add -->
+<div class="x-row" data-ds-ripple tabindex="0">...</div>        <!-- any element becomes a host -->
+<nav data-ds-ripple="off">...</nav>                              <!-- no ripples inside -->
+```
+
+- Hosts: `.ds-btn`, `.ds-chip` (the ripple goes into `.ds-chip__body`), `.ds-segmented__option`, `.ds-drawer__item`,
+  `:is(button, a).ds-tile`, `.ds-table__sort` and `[data-ds-ripple]`; `data-ds-ripple="off"` on a host or an
+  ancestor opts out. Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
+  (zero specificity, so a host's own `position` wins; at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled` and `aria-busy` hosts, switch, checkbox and radio inputs
+  (their press is their own halo) and buttons other than the primary one get no ripple.
+- The ripple is `<span class="ds-press-ripple" aria-hidden="true" data-ds-keep>` with the runtime properties
+  `--ds-ripple-x`, `--ds-ripple-y` (its centre) and `--ds-ripple-r` (the distance to the farthest corner). It
+  grows on `ds-press-ripple` over `--ds-dur-medium` (an effect: no overshoot), gets `.ds-press-ripple--out` on
+  release (not before `--ds-dur-instant` after the press) and is removed once that fade settled. The host carries
+  `.ds-pressed` from press to release, at least `--ds-dur-instant`, so a quick click shows the whole press.
+- The flat state layer and the ripple never stack: under `.ds-ripples` a pressed host keeps its hover layer (0 on
+  touch screens), and the ripple adds the press. A button's layer also keeps what `--ds-btn-state-pressed-opacity`
+  asks for beyond the ripple's `--ds-state-pressed`, so `.ds-btn--disc` shows its disc on press on touch screens
+  too. Without `attach()` the flat layer stays the press feedback.
+- Colour: `--ds-ripple-color` (default `currentColor`), on `.ds-theme` or a host. Forced colours show no ripple.
+- iOS Safari applies `:active` only on pages that listen to `touchstart`. `attach()` adds a passive listener; a
+  page without `ds.js` adds one itself (`document.addEventListener('touchstart', () => {}, { passive: true })`, or
+  `ontouchstart=""` on `<body>` where the Content-Security-Policy allows inline handlers), otherwise iOS shows no
+  press feedback.
+
 ## Utilities
 
 | Class | Effect |
@@ -589,5 +627,6 @@ Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
 `.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
-`.ds-stagger`; `.ds-reveal`; `.ds-collapsible`; the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
+`.ds-stagger`; `.ds-reveal`; `.ds-collapsible`; `.ds-swap` (the slot of `DS.motion.roll()` and
+`DS.motion.crossfade()`); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
 `.ds-indicator--instant`.

@@ -24,7 +24,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
 | `sh scripts/vendor.sh --from . /tmp/ds && sh scripts/vendor.sh --check /tmp/ds` | the vendor round trip CI runs after `npm run check` |
 | `npm ci` | once, for the browser tests only (installs the pinned `@playwright/test`, the only devDependency); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
-| `npm run test:browser` | browser tests in Chromium, Firefox and WebKit (`test/browser/`); run it before every push. Outside the Playwright container (other fonts and rasteriser) run `DS_SHOTS=local npm run test:browser`: screenshots then compare against the gitignored `__screenshots-local__/`, generated from the parent commit (`test/browser/README.md`, "CI"). `DS_TEST_PORT` picks another port for a second run or a worktree |
+| `npm run test:browser` | browser tests in Chromium, Firefox and WebKit (`test/browser/`), plus the `fallback` project (Chromium as an engine on the browser floor: progressive CSS stripped, `linear()` rejected by `el.animate()`, no View Transitions, popover or `moveBefore`) for the specs that import `base-test.js`; run it before every push. Outside the Playwright container (other fonts and rasteriser) run `DS_SHOTS=local npm run test:browser`: screenshots then compare against the gitignored `__screenshots-local__/`, generated from the parent commit (`test/browser/README.md`, "CI"). `DS_TEST_PORT` picks another port for a second run or a worktree |
 | `npm run test:browser:update` | rewrite screenshots and JSON timelines, then review the diff. The committed `__screenshots__/` set is only ever rewritten from the CI container (Actions → check → Run workflow → "update screenshots"); elsewhere update with `DS_SHOTS=local`, see `test/browser/README.md` |
 | open `styleguide/index.html` | every component, token, motion demo and icon, works from disk; "Load theme file ..." tries a theme; `?speed=0.1` slows its motion tenfold |
 
@@ -33,11 +33,11 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | Path | What |
 |---|---|
 | `src/tokens.css` | all tokens on `.ds-theme` in `@layer ds.tokens`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the `linear()` refinements at the end; `@property --ds-time-scale` at top level |
-| `src/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
+| `src/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, `.ds-swap`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
 | `src/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
 | `src/components/*.css` | one file per component; the header comment sketches markup, modifiers, hooks and "Progressive:" features |
 | `src/index.css` | the layer order statement, then the `@import` list = cascade order of `ds.css`; every stylesheet must be listed |
-| `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `icons`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
+| `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `ripple`, `icons`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
 | `styleguide/` | living styleguide on top of `dist/` (`styleguide.js` holds the demos and the component count tile) |
@@ -45,7 +45,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `scripts/` | `build.mjs` (deterministic, `--check`), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects) |
 | `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
 | `test/` | `css`, `tokens`, `motion`, `js`, `build`, `repo`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
-| `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, known bugs as `test.fail` markers) and the committed `__screenshots__/`; `README.md` explains them |
+| `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`, `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, known bugs as `test.fail` markers) and the committed `__screenshots__/`; `README.md` explains them |
 | `plans/` | working plans (Motion 2); kept outside `docs/` so the docs tests do not count them |
 | `.github/workflows/check.yml` | CI on every push, pull request and by hand: `check` (Node 22 and 24: `npm run check` and the vendor round trip), then `browser` (Playwright in `mcr.microsoft.com/playwright:v<pinned>-noble`, one job per engine); Run workflow with "update screenshots" uploads a new screenshot set |
 
@@ -66,9 +66,10 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   type, radii, elevation, focus, links, layout) are what a theme overrides; 3 hooks (`--ds-btn-*`, `--ds-card-*` ...)
   are read by one component with a fallback (`var(--ds-btn-height, 36px)`). Themes never set motion tokens or
   motion hooks (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`, `--ds-delay-*`,
-  `--ds-stagger`, `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`): motion is one scheme for every
-  product, and `DS.motion` reads the computed tokens. The per-element motion hooks take tokens only and do not
-  inherit: set them on the animating element. `--ds-time-scale` is for the styleguide and the tests only.
+  `--ds-hold-*`, `--ds-stagger`, `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`): motion is one
+  scheme for every product, and `DS.motion` reads the computed tokens. The per-element motion hooks take tokens
+  only and do not inherit: set them on the animating element. `--ds-time-scale` is for the styleguide and the tests
+  only.
 - **No literals in components**: colours, radii, shadows, type (`font` roles), durations, curves, opacities
   (`--ds-state-*`) and z-indices (`--ds-z-*`) come from tokens. Literal values live only in `src/tokens.css` and
   theme files. A missing value becomes a token (with docs), never a literal.
@@ -98,11 +99,14 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   `clip-path` and registered custom properties; named exceptions, each allowed by the test when its feature
   lands: `rotate` (spinners, loaders, disclosure chevrons, icon swaps), `border-radius` (press morph),
   `outline-offset` (focus snap, transition only), `stroke-dashoffset` (drawn checks), `mask-position` (the
-  progress wave), the chip check slot `width`, and the heights of `.ds-collapsible`, validation messages and
-  expandable rows; the sliding indicator's `width`/`height` until 1.2.0. Never `transition: all`, never
+  progress wave), the chip check slot `width`, the heights of `.ds-collapsible`, validation messages and
+  expandable rows, and the `min-height` of a `DS.motion.flip` container shrinking after removals; the sliding indicator's `width`/`height` until 1.2.0. Never `transition: all`, never
   `font-weight`. Exits take 0.3-0.8 of their entrance (tested). Hover never moves anything; nothing scales on
-  press except the switch handle. Updated data never animates; never re-render an animating element
-  (`DS.dom.morphHtml`). Never a near-zero duration on a loop (it races).
+  press except the switch handle. Data changes glide only through `countUp`, value bars and `DS.motion.flip`
+  (live reorders wait while pointed at or focused, at most 2s); re-render with `DS.dom.morphHtml`, never
+  `innerHTML`. Interrupted motion continues from its current state; JS timing comes from the computed tokens
+  (`motionDuration`), never ms literals; constants are tested fallbacks (`MOTION_FALLBACKS`). Never a near-zero
+  duration on a loop (it races).
 - **State layers.** Hover and press lay `currentColor` (or the hook) over the control at `--ds-state-hover` /
   `--ds-state-pressed` via `::before`; hover rules only inside `@media (hover: hover)`; focus is a 2px ring
   (`--ds-focus-outline`) on `:focus-visible`, solid from the first frame. On top come the pointer ripple
@@ -138,7 +142,8 @@ Work in `src/`, never in `dist/`. Every change follows the same path:
   use it through tokens so `--ds-time-scale` applies.
 - **JS export**: in `src/js/*.js`, documented in `docs/motion.md` or `docs/icons.md` (tested). A new module also
   goes into `MODULES` in `scripts/build.mjs` (after every module it imports from), the `dist/` table in
-  `docs/install.md` and the module imports of `test/js.test.js`.
+  `docs/install.md`, the module imports of `test/js.test.js` and the module list of `test/browser/fixtures/module.html`
+  (with its smoke test).
 
 ## Releases
 
@@ -173,7 +178,8 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
 ## Design system: Dashboard-Style
 
 - The UI is built on [Dashboard-Style](https://github.com/saschazesiger/Dashboard-Style), vendored in `<dest>`
-  (tokens `--ds-*`, components `.ds-*`, `DS.motion`, `DS.indicator`, `DS.dom`, `DS.icons`).
+  (tokens `--ds-*`, components `.ds-*`, `DS.motion`, `DS.indicator`, `DS.dom`, `DS.ripple`, `DS.icons`). Call
+  `DS.ripple.attach(document)` once at start-up: every action gets the pointer ripple.
 - Never edit `<dest>`: it is checksummed (`<dest>/SHA256SUMS`, checked by `<check command>`) and replaced by the
   nightly `.github/workflows/update-dashboard-style.yml` (by hand: `<update command>`). A fix or a component every
   dashboard could use goes to Dashboard-Style itself (project-neutral, English), then the copy is updated.
@@ -190,8 +196,8 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
 - Theme only through tokens in `<theme file>`, on `.ds-theme`, loaded after `ds.css`: roles (`--ds-primary`,
   `--ds-accent`, `--ds-font` ...), component hooks (`--ds-btn-*`, `--ds-card-*` ...), the project's own
   `--<prefix>-*` tokens and `@font-face`. Never set motion tokens or hooks (`--ds-dur-*`, `--ds-ease-*`,
-  `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`, `--ds-delay-*`, `--ds-stagger`, `--ds-time-scale`,
-  `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`). Never wrap the theme in `@layer`.
+  `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`, `--ds-delay-*`, `--ds-hold-*`, `--ds-stagger`,
+  `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`). Never wrap the theme in `@layer`.
 - `ds.css` sits in `@layer ds.*`, so unlayered project CSS beats every component. Load resets in a layer declared
   before ds (`@layer reset;` first, or `@layer reset, ds, app;`).
 - Never change the look of a `.ds-*` component in project CSS (colour, radius, type, motion); set its hooks
@@ -200,5 +206,8 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
 - Local components use the project prefix `<prefix>-` and read tokens only (`--ds-*` and `--<prefix>-*`): no
   colour, radius, font, shadow, duration or curve literals, no own `@keyframes` (use the `ds-*` keyframes and
   motion tokens).
+- Re-render with `DS.dom.morphHtml` (key list rows with `data-ds-key`), never `innerHTML`; it patches in place, so
+  bind listeners once (or mark a subtree `data-ds-replace`). Reorders go through `DS.motion.flip`, figures through
+  `DS.motion.countUp`; JS timing comes from `DS.motion.motionDuration()`, never ms literals.
 - Icons only from `DS.icons` / `js/icons.js`; status never by colour alone; actions are pills.
 ```

@@ -15,7 +15,7 @@
  *   full app: <html>). Roles derived from others (type roles from --ds-font,
  *   --ds-link from --ds-primary, the focus ring) are resolved there.
  * - Never set motion tokens (--ds-dur-*, --ds-ease-*, --ds-distance-*,
- *   --ds-scale-*, --ds-loop-*, --ds-delay-*, --ds-stagger,
+ *   --ds-scale-*, --ds-loop-*, --ds-delay-*, --ds-hold-*, --ds-stagger,
  *   --ds-time-scale) or motion hooks (--ds-motion-*, --ds-enter-*,
  *   --ds-leave-*): motion is one scheme for every product, and DS.motion
  *   reads the computed tokens.
@@ -160,6 +160,7 @@
   --ds-card-padding-filled: var(--ds-space-5);
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);
   --ds-status-radius: var(--ds-radius-md);
+  --ds-ripple-color: currentColor;
   --ds-spinner-track: var(--ds-line);  --ds-spinner-color: var(--ds-primary);
   --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
   --ds-dialog-shadow: var(--ds-elev-overlay);

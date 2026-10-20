@@ -42,6 +42,7 @@ enforce it), so a theme reaches every value.
 | `--ds-stagger` | 30ms | step between staggered items (at most six) |
 | `--ds-delay-loader` | 200ms | loading indicators wait this long (`LOADER_DELAY_MS`) |
 | `--ds-delay-boot` | 400ms | the app start screen waits this long |
+| `--ds-hold-loader` | 450ms | a loader that showed stays at least this long (`LOADER_MIN_VISIBLE_MS`, `settleLoader()`) |
 | `--ds-loop-spin`, `--ds-loop-spin-fast` | 1s, .8s | spinner / spinner in a status chip |
 | `--ds-loop-indeterminate`, `--ds-loop-pulse` | 2s, 2s | indeterminate progress / skeleton pulse |
 | `--ds-time-scale` | 1 (registered with `@property`, never declared) | slow motion: multiplies every duration, delay and loop above; set only by the styleguide and the tests, on the `.ds-theme` element or above |
@@ -74,7 +75,7 @@ The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `
 | Token | Value |
 |---|---|
 | `--ds-space-1`, `--ds-space-2`, `--ds-space-3`, `--ds-space-4`, `--ds-space-5`, `--ds-space-6`, `--ds-space-7`, `--ds-space-8`, `--ds-space-10`, `--ds-space-12` | 4, 8, 12, 16, 20, 24, 28, 32, 40, 48px (4px grid) |
-| `--ds-z-raised` | 1 (sticky table parts, loading bar) |
+| `--ds-z-raised` | 1 (sticky table parts, loading bar; the base of the items `DS.motion.flip()` raises while they glide) |
 | `--ds-z-sticky` | 20 (top bar, scroll edge) |
 | `--ds-z-popover` | 40 (menus, listboxes, a dialog contained in a panel) |
 | `--ds-z-drawer` | 50 (side sheet, modal drawer) |

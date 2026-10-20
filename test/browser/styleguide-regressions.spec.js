@@ -14,9 +14,9 @@ import { ready, settle, focusByKeyboard, expectMonotonic } from './helpers/motio
 
 const STYLEGUIDE = '/styleguide/index.html';
 
-/** Loads the styleguide and waits until the first-render motion (stagger, count-up) has played. */
-async function open(page) {
-  await page.goto(STYLEGUIDE);
+/** Loads the styleguide (optionally slowed down) and waits until the first-render motion (stagger, count-up) has played. */
+async function open(page, { speed } = {}) {
+  await page.goto(`${STYLEGUIDE}${speed ? `?speed=${speed}` : ''}`);
   await ready(page);
   await page.mouse.move(1, 1);
   await page.waitForFunction(() => [...document.querySelectorAll('.ds-tile__value[data-count]')].every((el) => {
@@ -55,7 +55,6 @@ function watchTooltip(page, text, ms) {
 
 test.describe('fixed in P2', () => {
   test('clicking "Count up the tiles" twice never counts a tile backwards', async ({ page }) => {
-    test.fail(true, 'core-js-countup-reentry, js-countup-concurrent, repo-countup-overlap: fixed in P2');
     await open(page);
     await page.locator('[data-sg="count"]').scrollIntoViewIfNeeded();
     const shown = await page.evaluate(async () => {
@@ -78,10 +77,39 @@ test.describe('fixed in P2', () => {
         };
         requestAnimationFrame(frame);
       });
+      // Each press raises the target by a step (the count demo, P2): the count ends on the last one.
+      return { values, final: Number(tile.getAttribute('data-count')) };
+    });
+    expectMonotonic(shown.values, { direction: 'up' });
+    expect(shown.final).toBeGreaterThan(1284);
+    expect(shown.values.at(-1)).toBe(shown.final);
+  });
+
+  test('"leave sink" then "enter scale" 100ms later never flashes the card', async ({ page }) => {
+    await open(page);
+    const opacity = await page.evaluate(async () => {
+      const card = document.getElementById('sg-motion-card');
+      const values = [];
+      document.querySelector('[data-leave="sink"]').click();
+      setTimeout(() => document.querySelector('[data-enter="scale"]').click(), 100);
+      const start = performance.now();
+      await new Promise((resolve) => {
+        const frame = (now) => {
+          values.push(Number(getComputedStyle(card).opacity));
+          if (now - start < 1200) requestAnimationFrame(frame);
+          else resolve();
+        };
+        requestAnimationFrame(frame);
+      });
       return values;
     });
-    expectMonotonic(shown, { direction: 'up' });
-    expect(shown.at(-1)).toBe(1284);
+    // The exit takes the card down, the entrance brings it back from there: once
+    // it rises it never drops again (the superseded leave() must not replay an entrance).
+    const turn = opacity.findIndex((value, index) => index > 0 && value > opacity[index - 1] + 1e-3);
+    expect(turn, 'the card comes back').toBeGreaterThan(0);
+    expect(Math.min(...opacity.slice(0, turn))).toBeLessThan(0.99);
+    expectMonotonic(opacity.slice(turn - 1), { direction: 'up', tolerance: 1e-3 });
+    expect(opacity.at(-1)).toBe(1);
   });
 });
 

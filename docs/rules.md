@@ -30,9 +30,13 @@ the tests in `test/`.
   from the first frame.)
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
   why over a bare `disabled`.
-- **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least 450ms.
-  Never re-render an animating element; update in place (`DS.dom.morphHtml`, `.textContent`).
-- **Updated data never animates.** Only the first render of a view and changes the user asked for move.
+- **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
+  `--ds-hold-loader` (450ms). Re-render with `DS.dom.morphHtml` (keyed, in place), never `innerHTML`: an
+  animating element keeps its animation and a field its focus.
+- **Data changes glide, they never replay an entrance.** Values count from the shown value (`countUp`, bars on
+  `--ds-ease-value`); reorders glide through `DS.motion.flip`: user actions at once, live data held while a mouse
+  or pen is over the list or a row has focus (at most 2s), at most 50 moving rows. Only the first render of a view
+  staggers in.
 
 ## Motion
 
@@ -42,7 +46,10 @@ the tests in `test/`.
 - An entrance is a fade plus a movement; an exit is `ds-fade-out` plus a movement-only keyframe, and takes 0.3-0.8
   of its entrance. Short distances (4-12px, 24px for side sheets).
 - Hover never moves anything (state layer, colour and documented shadow only); nothing scales on press except the
-  switch handle.
+  switch handle. A press ripples from the pointer (`DS.ripple.attach(document)` once per page).
+- Interrupted motion continues from where it is, on the curve of the new direction: never a jump to the end, a
+  restart from zero or a reversed entrance (`DS.motion.enter`, `leave` and `flip` do it). JS timing comes from
+  the computed tokens (`DS.motion.motionDuration`), never from ms literals.
 - Animate only `transform`, `translate`, `scale`, `opacity`, colours, `box-shadow`, `clip-path` and registered
   custom properties, plus the named exceptions of [motion.md](motion.md#rules). Never `transition: all`, never
   `font-weight`.

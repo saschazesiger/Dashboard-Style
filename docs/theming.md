@@ -17,9 +17,9 @@ A theme is one stylesheet, loaded after `ds.css`, that overrides roles (layer 2)
    the source token on that element and the derived roles follow; change it on a descendant and they silently keep
    the old value.
 2. **Never set motion tokens** (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`,
-   `--ds-delay-*`, `--ds-stagger`, `--ds-time-scale`) **and the per-element motion hooks** (`--ds-motion-*`,
-   `--ds-enter-*`, `--ds-leave-*`). Motion is one fixed scheme for every product, and `DS.motion` reads the
-   computed tokens, so a theme value would put CSS and script out of step.
+   `--ds-delay-*`, `--ds-hold-*`, `--ds-stagger`, `--ds-time-scale`) **and the per-element motion hooks**
+   (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`). Motion is one fixed scheme for every product, and `DS.motion`
+   reads the computed tokens, so a theme value would put CSS and script out of step.
 3. **Keep contrast.** Text roles need 4.5:1 on the surfaces they sit on (`--ds-text-3` on white only), icons and
    outlines that carry meaning 3:1. The tint (`--ds-accent`) may be light; components never rely on it alone.
 4. **px for sizes.** Type roles are `font` shorthands in px; keep `--ds-font-input` at 16px or more.
@@ -145,6 +145,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
 | `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button or switch in the header row overhangs it (set it with a type role that changes the subtitle line) |
 | `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile |
+| `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
 | `--ds-status-radius` | `--ds-radius-md` | status chip |
 | `--ds-spinner-track`, `--ds-spinner-color` | `--ds-line`, `--ds-primary` | spinner |
 | `--ds-dialog-width` | 400px | dialog |

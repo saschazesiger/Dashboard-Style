@@ -128,7 +128,8 @@ these named exceptions (tested by an allowlist): `rotate` for spinners, loaders,
 `border-radius` for the press morph; `outline-offset` for the focus snap (a transition, never a keyframe, so it cannot
 take over an element's `animation`); `stroke-dashoffset` for drawn checks; `mask-position` for the travelling progress wave;
 `width` of the chip check slot; height of `.ds-collapsible`, the validation message room and expandable rows
-(`grid-template-rows` or `interpolate-size`, on `--ds-ease-out`). Never `transition: all`, never `font-weight`.
+(`grid-template-rows` or `interpolate-size`, on `--ds-ease-out`); the `min-height` of a `flip()` container shrinking
+after its removed items left (WAAPI, on `--ds-ease-out`, D29). Never `transition: all`, never `font-weight`.
 
 Hover never moves anything (D14). Nothing scales on press except the switch handle (D6); the press feedback is ripple,
 layer and morph.

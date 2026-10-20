@@ -105,9 +105,10 @@
      * width for a sheet that covers the screen); start scales of content and
      * dialogs (enter), menus and the combobox list (popup), tooltips
      * (tooltip) and small markers such as badges (small); the step between
-     * staggered items (at most six, first render only) and the delays before
+     * staggered items (at most six, first render only), the delays before
      * loading indicators may show (fast loads show nothing; js/motion.js
-     * LOADER_DELAY_MS mirrors --ds-delay-loader).
+     * LOADER_DELAY_MS mirrors --ds-delay-loader) and how long a loader that
+     * showed stays at least (LOADER_MIN_VISIBLE_MS mirrors --ds-hold-loader).
      */
     --ds-distance-sm: 4px;
     --ds-distance-md: 8px;
@@ -121,6 +122,7 @@
     --ds-stagger: calc(30ms * var(--ds-time-scale, 1));
     --ds-delay-loader: calc(200ms * var(--ds-time-scale, 1));
     --ds-delay-boot: calc(400ms * var(--ds-time-scale, 1));
+    --ds-hold-loader: calc(450ms * var(--ds-time-scale, 1));
 
     /* Loops of loading indicators: they always run at their token speed. */
     --ds-loop-spin: calc(1s * var(--ds-time-scale, 1));

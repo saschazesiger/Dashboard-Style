@@ -125,10 +125,12 @@ describe('repository', () => {
       }
     }
     assert.deepEqual(offenders, []);
-    // Playwright itself only in the specs and the config, which node --test never loads.
+    // Playwright itself only in the specs, the config and the shared fixture
+    // of the specs (base-test.js), which node --test never loads.
     const playwright = ALL_FILES.filter((path) => /\.(js|mjs)$/.test(path) && path.startsWith('test/'))
       .filter((path) => importsOf(read(path)).some((specifier) => specifier.startsWith('@playwright/')));
-    assert.deepEqual(playwright.filter((path) => !/^test\/browser\/([^/]+\.spec\.js|playwright\.config\.js)$/.test(path)), []);
+    assert.ok(playwright.includes('test/browser/base-test.js'), 'the walk finds the shared fixture');
+    assert.deepEqual(playwright.filter((path) => !/^test\/browser\/([^/]+\.spec\.js|playwright\.config\.js|base-test\.js)$/.test(path)), []);
   });
 
   it('pins Playwright as the only devDependency', () => {

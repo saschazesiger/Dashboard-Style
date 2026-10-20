@@ -94,55 +94,55 @@ When a phase finishes, its ids are done or moved explicitly here (definition of 
 | repo-test-progressive-regex | repo | P1 | **Done (P1):** Baseline sweep: Progressive notes; tests: Feature-by-name table for the 16.4 / 111 / 128 floor. |
 | repo-missed-3 | repo | P1 | **Done (P1):** Cascade layers: `.ds-stagger`/`.ds-reveal` beat component animations; browser test. |
 | repo-missed-7 | repo | P1 | **Done (P1):** Docs: AGENTS.md and README: One progressive list, written identically in both. |
-| core-js-leave-enter-race | core | P2 | T2: generation map, superseded promises resolve silently, `cancel(el)` |
-| core-js-settled-cancel | core | P2 | T6: `getAnimations` + `allSettled`, filters, derived ceiling |
-| core-js-replay-svg-reflow | core | P2 | T7, T8: style-only flush, `enterAll` |
-| core-js-countup-reentry | core | P2 | T10: D7: counts from the shown value, one loop, handle |
-| core-js-countup-a11y | core | P2 | T10: `aria-busy` while counting |
-| core-js-motion-preference | core | P2 | T1: timing from tokens; the reduced-motion part dropped by D8 (P1 removes `prefersReducedMotion`) |
-| core-js-leave-focus | core | P2 | T4: focus to `focus`/opener before `inert` |
-| core-js-interruptible | core | P2 | T5: one mechanism (snapshot, cancel, `el.animate`) per the authority, not `setKeyframes` |
-| core-js-flip | core | P2 | T14: canonical signature, retarget, cap, touch-aware live guard |
-| core-css-origin-aware | core | P2 | T12: `originFrom` writes `--ds-motion-origin`/`--ds-clip-from`; hooks registered in P1, used in P5 |
-| core-docs-example | core | P2 | T9, Docs: `staggerOnce`, example rewrite, `stagger()` comment |
-| core-tests-js-gaps | core | P2 | Tests: fakes with `getAnimations`; browser counterparts; P0 markers flipped |
-| core-missed-2 | core | P2 | T6: `settled` watches only its own class change's animations, generations guard, `replay` never cancels |
-| core-missed-3 | core | P2 | T10: `countUp` on `--ds-ease-value`, lands with the bars |
-| core-missed-4 | core | P2 | T4: `keep` defined and documented |
-| core-missed-5 | core | P2 | T3: `enter()` clears `hidden` and `inert` |
-| controls-indicator-morph-removes | controls | P2 | T19, T20: `data-ds-keep` plus the re-prepend in `place()` (both here) |
-| controls-missed-2 | controls | P2 | T23: passive `touchstart` in `attach()`, documented fallback |
-| js-leave-enter-race | js | P2 | T2: same fix as core-js-leave-enter-race |
-| js-variant-classes-linger | js | P2 | T2: `clearMotion` (covers merged js-missed-1/-2) |
-| js-interrupt-from-current | js | P2 | T5: individual `translate`/`scale` snapshot (P1 keyframes), remaining share, no inline style |
-| js-settled-robust | js | P2 | T6: covers merged js-missed-4 (pseudo-element events) |
-| js-replay-svg | js | P2 | T7. |
-| js-enter-batch | js | P2 | T8, T24: `enterAll` with `visibleOnly` (default true); styleguide demos use it |
-| js-countup-concurrent | js | P2 | T10: handle is `{ cancel, finished }` (canonical), not `stop()` |
-| js-countup-layout | js | P2 | T10: `min-width` lock, tabular figures, `aria-busy` |
-| js-motion-source-of-truth | js | P2 | T1: the reduced-motion half removed in P1 (D8) |
-| js-countup-curve | js | P2 | T1, T10: internal `curve()` for `cubic-bezier`/`linear()` |
-| js-morph-attributes | js | P2 | T15: in-place patch is the 1.0.0 default (D31), with escape hatches |
-| js-morph-focus | js | P2 | T18. |
-| js-morph-keys | js | P2 | T16: `data-ds-key`, then `id`; `moveBefore` progressive; P6 wires tables |
-| js-morph-greedy | js | P2 | T17: 8-sibling lookahead after the shell check |
-| js-morph-indicator | js | P2 | T19, T20: the coverage note's P4 re-prepend is done here (one line); P4 keeps it |
-| js-page-stagger-cleanup | js | P2 | T24, T9: `staggerOnce` on the sections in view |
-| js-morph-hooks | js | P2 | T19, T14: `onInsert`/`onRemove`/`holdOrder` feed `flip` |
-| js-loader-delay-option | js | P2 | T11: `--ds-hold-loader` is added here (T11); P1 does not add it |
-| js-tests-coverage | js | P2 | Tests: indicator glide tests stay in P4 |
-| js-missed-5 | js | P2 | T10: disconnect writes the final value; `duration: 0` via `??` |
-| js-missed-8 | js | P2 | Tasks (anchors): informational: the corrected anchors (enter :100, leave :115, settled :77, countUp :170) are used above |
-| repo-leave-enter-race | repo | P2 | T2, T5: plus the tooltip docs line (`components.md` Tooltip) in P5 with `DS.overlay.tooltips` |
-| repo-countup-overlap | repo | P2 | T10: D7 overrides the verifier: count from the shown value; covers merged repo-missed-5 |
-| repo-docs-stagger-example | repo | P2 | T9: `staggerOnce` replaces the `data-ds-rendered` guard |
-| repo-js-replay-reflow | repo | P2 | T7, T8. |
-| repo-js-settled-cancel | repo | P2 | T6. |
-| repo-countup-curve | repo | P2 | T1, T10: the `easeStandard` values are the `curve()` tests |
-| repo-dom-morph-attrs | repo | P2 | T15, T16: key attribute is `data-ds-key` (canonical), not `data-key` |
-| repo-opp-flip-helper | repo | P2 | T14: WAAPI is allowed (D21); AGENTS wording in Docs |
-| repo-tests-js-coverage | repo | P2 | Tests, T25: engine unit and browser tests; the `fallback` project starts here |
-| repo-missed-4 | repo | P2 | T6: ceiling derived from delay and duration |
+| core-js-leave-enter-race | core | P2 | **Done (P2):** T2: generation map, superseded promises resolve silently, `cancel(el)` |
+| core-js-settled-cancel | core | P2 | **Done (P2):** T6: `getAnimations` + `allSettled`, filters, derived ceiling |
+| core-js-replay-svg-reflow | core | P2 | **Done (P2):** T7, T8: style-only flush, `enterAll` |
+| core-js-countup-reentry | core | P2 | **Done (P2):** T10: D7: counts from the shown value, one loop, handle |
+| core-js-countup-a11y | core | P2 | **Done (P2):** T10: `aria-busy` while counting |
+| core-js-motion-preference | core | P2 | **Done (P2):** T1: timing from tokens; the reduced-motion part dropped by D8 (P1 removes `prefersReducedMotion`) |
+| core-js-leave-focus | core | P2 | **Done (P2):** T4: focus to `focus`/opener before `inert` |
+| core-js-interruptible | core | P2 | **Done (P2):** T5: one mechanism (snapshot, cancel, `el.animate`) per the authority, not `setKeyframes` |
+| core-js-flip | core | P2 | **Done (P2):** T14: canonical signature, retarget, cap, touch-aware live guard |
+| core-css-origin-aware | core | P2 | **Done (P2):** T12: `originFrom` writes `--ds-motion-origin`/`--ds-clip-from`; hooks registered in P1, used in P5 |
+| core-docs-example | core | P2 | **Done (P2):** T9, Docs: `staggerOnce`, example rewrite, `stagger()` comment |
+| core-tests-js-gaps | core | P2 | **Done (P2):** Tests: fakes with `getAnimations`; browser counterparts; P0 markers flipped. Unit: handoff, `settled`, `countUp`, curves, `originFrom`, `flip`, `roll`/`crossfade` (`motion.test.js`), the morph on a fake DOM and the timing-literal allowlist (`js.test.js`), `MOTION_FALLBACKS` against `tokens.css`; browser: `motion-engine`, `countup`, `flip`, `morph`, `ripple`, `fallback` specs; no P2 marker left. |
+| core-missed-2 | core | P2 | **Done (P2):** T6: `settled` watches only its own class change's animations, generations guard, `replay` never cancels |
+| core-missed-3 | core | P2 | **Done (P2):** T10: `countUp` on `--ds-ease-value`, lands with the bars (it starts on its first frame like a CSS transition; `countup.spec.js` proves one frame in every engine) |
+| core-missed-4 | core | P2 | **Done (P2):** T4: `keep` defined and documented |
+| core-missed-5 | core | P2 | **Done (P2):** T3: `enter()` clears `hidden` and `inert` |
+| controls-indicator-morph-removes | controls | P2 | **Done (P2):** T19, T20: `data-ds-keep` plus the re-prepend in `place()` (both here) |
+| controls-missed-2 | controls | P2 | **Done (P2):** T23: passive `touchstart` in `attach()`, documented fallback |
+| js-leave-enter-race | js | P2 | **Done (P2):** T2: same fix as core-js-leave-enter-race |
+| js-variant-classes-linger | js | P2 | **Done (P2):** T2: `clearMotion` (covers merged js-missed-1/-2) |
+| js-interrupt-from-current | js | P2 | **Done (P2):** T5: individual `translate`/`scale` snapshot (P1 keyframes), remaining share, no inline style |
+| js-settled-robust | js | P2 | **Done (P2):** T6: covers merged js-missed-4 (pseudo-element events) |
+| js-replay-svg | js | P2 | **Done (P2):** T7. |
+| js-enter-batch | js | P2 | **Done (P2):** T8, T24: `enterAll` with `visibleOnly` (default true); styleguide demos use it |
+| js-countup-concurrent | js | P2 | **Done (P2):** T10: handle is `{ cancel, finished }` (canonical), not `stop()` |
+| js-countup-layout | js | P2 | **Done (P2):** T10: `min-width` lock, tabular figures, `aria-busy` |
+| js-motion-source-of-truth | js | P2 | **Done (P2):** T1: the reduced-motion half removed in P1 (D8) |
+| js-countup-curve | js | P2 | **Done (P2):** T1, T10: internal `curve()` for `cubic-bezier`/`linear()` |
+| js-morph-attributes | js | P2 | **Done (P2):** T15: in-place patch is the 1.0.0 default (D31), with escape hatches |
+| js-morph-focus | js | P2 | **Done (P2):** T18. |
+| js-morph-keys | js | P2 | **Done (P2):** T16: `data-ds-key`, then `id`; `moveBefore` progressive; P6 wires tables |
+| js-morph-greedy | js | P2 | **Done (P2):** T17: 8-sibling lookahead after the shell check |
+| js-morph-indicator | js | P2 | **Done (P2):** T19, T20: the coverage note's P4 re-prepend is done here (one line); P4 keeps it |
+| js-page-stagger-cleanup | js | P2 | **Done (P2):** T24, T9: `staggerOnce` on the sections in view |
+| js-morph-hooks | js | P2 | **Done (P2):** T19, T14: `onInsert`/`onRemove`/`holdOrder` feed `flip` |
+| js-loader-delay-option | js | P2 | **Done (P2):** T11: `--ds-hold-loader` is added here (T11); P1 does not add it |
+| js-tests-coverage | js | P2 | **Done (P2):** Tests: indicator glide tests stay in P4 |
+| js-missed-5 | js | P2 | **Done (P2):** T10: disconnect writes the final value; `duration: 0` via `??` |
+| js-missed-8 | js | P2 | **Done (P2):** Tasks (anchors): informational: the corrected anchors (enter :100, leave :115, settled :77, countUp :170) are used above |
+| repo-leave-enter-race | repo | P2 | **Done (P2):** T2, T5: plus the tooltip docs line (`components.md` Tooltip) in P5 with `DS.overlay.tooltips` |
+| repo-countup-overlap | repo | P2 | **Done (P2):** T10: D7 overrides the verifier: count from the shown value; covers merged repo-missed-5 |
+| repo-docs-stagger-example | repo | P2 | **Done (P2):** T9: `staggerOnce` replaces the `data-ds-rendered` guard |
+| repo-js-replay-reflow | repo | P2 | **Done (P2):** T7, T8. |
+| repo-js-settled-cancel | repo | P2 | **Done (P2):** T6. |
+| repo-countup-curve | repo | P2 | **Done (P2):** T1, T10: the `easeStandard` values are the `curve()` tests |
+| repo-dom-morph-attrs | repo | P2 | **Done (P2):** T15, T16: key attribute is `data-ds-key` (canonical), not `data-key` |
+| repo-opp-flip-helper | repo | P2 | **Done (P2):** T14: WAAPI is allowed (D21); AGENTS wording in Docs |
+| repo-tests-js-coverage | repo | P2 | **Done (P2):** Tests, T25: engine unit and browser tests; the `fallback` project starts here |
+| repo-missed-4 | repo | P2 | **Done (P2):** T6: ceiling derived from delay and duration |
 | overlay-combo-toggle-state-layer | overlay | P3 | Other parts: `.ds-combo__toggle`; Shared: ripple hosts: layer, morph, ripple; no ring (`tabindex="-1"`) |
 | controls-press-feedback-weak | controls | P3 | Shared press feedback; Navigation items; Radio cards; table sort and tiles: tile and card morph stay in P6 (layout-tile-press-shape, layout-card-interactive); chips are not pills, so no morph |
 | controls-btn-focus-layer | controls | P3 | Focus: snap by transition, `--ds-state-focus` |

@@ -9,8 +9,9 @@ nothing installed and never load this folder: `node --test "test/*.test.js"` doe
 ```sh
 npm ci                                   # once: installs the pinned @playwright/test (the only devDependency)
 npx playwright install chromium firefox webkit   # only when the pinned browsers are not in the cache yet
-npm run test:browser                     # all three engines
+npm run test:browser                     # all three engines and the fallback project
 npm run test:browser -- --project=webkit # one engine
+npm run test:browser -- --project=fallback   # Chromium as an engine on the browser floor (see "The fallback project")
 npm run test:browser:update              # rewrite screenshots and JSON snapshots, then review the diff
 DS_SHOTS=local npm run test:browser      # screenshots against __screenshots-local__/ (see "Screenshots")
 DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one video per demo at ?speed=0.1
@@ -34,7 +35,8 @@ DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one vide
 
 | Path | What |
 |---|---|
-| `playwright.config.js` | projects `chromium`, `firefox`, `webkit` (the `fallback` project arrives in P2), viewport 1280 x 800 at scale 1, `en-US`, UTC, light, `reducedMotion: 'no-preference'` |
+| `playwright.config.js` | projects `chromium`, `firefox`, `webkit` and `fallback` (below), viewport 1280 x 800 at scale 1, `en-US`, UTC, light, `reducedMotion: 'no-preference'` |
+| `base-test.js` | the shared `test` of the engine specs: `@playwright/test` with the `dsFallback` option of the `fallback` project; besides the specs and the config the only file that imports `@playwright/test` (`test/repo.test.js`) |
 | `serve.js` | static server: MIME types (`.js` as `text/javascript`, so module fixtures load), nothing outside the root, no listings, no caching headers |
 | `helpers/motion.js` | the one helper module (below); imports only `node:*`, so its pure checks run under `node --test` |
 | `fixtures/*.html` | minimal pages on `/dist/fonts/fonts.css`, `/dist/ds.css` and `/dist/ds.js` |
@@ -46,13 +48,19 @@ DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one vide
 
 | Spec | Engines | Asserts |
 |---|---|---|
-| `smoke.spec.js` | all | the server (types, no listings, nothing outside the root); the styleguide reaches `data-sg-ready` with no console error and runs the `DS.version` of `package.json`; every fixture loads cleanly; `module.html` imports the four ES modules; a theme switch sets `data-sg-theme` and re-places the three indicators; a saved theme loads before `data-sg-ready`; `?speed=0.1` slows the styleguide and the fixtures |
+| `smoke.spec.js` | all | the server (types, no listings, nothing outside the root); the styleguide reaches `data-sg-ready` with no console error and runs the `DS.version` of `package.json`; every fixture loads cleanly; `module.html` imports the five ES modules; a theme switch sets `data-sg-theme` and re-places the three indicators; a saved theme loads before `data-sg-ready`; `?speed=0.1` slows the styleguide and the fixtures |
 | `spike.spec.js` | all | the ten capabilities of the spike ("Capability spike") |
 | `baseline.spec.js` | all (phone, themes, forced colours: Chromium) | settled screenshots ("Baselines") |
 | `motion-today.spec.js` | all | JSON timelines of every motion utility and animated component; smoke checks for `ds-spin` and `.ds-enter` |
 | `frames.spec.js` | Chromium | mid-animation frames (0, 50 %, end) of the overlays, the drawer entrance and the modal drawer |
 | `demos.spec.js` | all (videos: Chromium) | every styleguide demo ends settled without a console error; one video per demo with `DS_VIDEO=1` |
 | `foundation.spec.js` | all | the 1.0.0 foundation: the layer order of `ds.css`, unlayered CSS (and an unlayered reset) beating components, utilities beating component animations, non-inheriting motion hooks, `?speed=` scaling durations and delays, the spring on movement tracks, the paired exits, hover that moves nothing, the 4px stagger rise and the `sibling-index()` stagger |
+| `motion-engine.spec.js` | all, `fallback` | the P2 engine: `leave()` during `enter()` and back continue from the current opacity without a jump (no inline style), rapid toggles end in the last call's state, `cancel()`, the cubic retry where `el.animate()` rejects `linear()`, focus moving to the opener before `inert`, SVG `enter()`, `settled()` within one frame, `motionDuration()` and `settled()` under `--ds-time-scale`, `motionEasing()`, `staggerOnce()` |
+| `countup.spec.js` | all, `fallback` | `countUp()`: a rising count never turns back and lands, a new target continues from the figure on screen, a figure and its `.ds-progress` bar set in one task land within one frame and agree within 2 % on the way (at `?speed=0.1`) |
+| `flip.spec.js` | all, `fallback` | `flip()`: a sort glides on `translate` (spring peak at most 1.05, none on the cubic fallback) and lands, a sort mid-flight continues from where the item is, a typing filter never stacks glides, live data waits under the mouse (values at once) and reorders when it leaves or after `hold`, a touch tap never holds, `<tbody>` rows glide, 60 moving items update without motion, a removed item fades out of flow while its neighbours close the gap |
+| `morph.spec.js` | all, `fallback` | `morphHtml()`: patched nodes keep their identity and a progress transition runs, a field re-rendered per keystroke keeps focus, caret and value, a morphed segmented control keeps its indicator and `update()` glides, a keyed reorder moves the same nodes (`moveBefore` where it exists, `insertBefore` in `fallback`) |
+| `ripple.spec.js` | all, `fallback` (forced colours: Chromium; touch: WebKit) | `DS.ripple`: the centre at the pointer (±1px), the span goes after the release, no ripple on disabled, `aria-disabled` and busy hosts, a static `[data-ds-ripple]` host is positioned and clips, Enter ripples from the centre, under `.ds-ripples` the pressed flat layer stays at its hover value, forced colours hide it, a WebKit tap ripples and `attach()` adds the passive `touchstart` listener |
+| `fallback.spec.js` | `fallback` only | the floor engine itself: `--ds-ease-spatial` computes to its cubic, `startViewTransition`, `showPopover` and `moveBefore` are gone, `el.animate()` rejects `linear()` |
 | `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs"); a fixed bug's test stays and passes |
 
 ### Fixtures
@@ -67,8 +75,9 @@ embedded-widget path is the default under test. The styleguide covers the `html.
 | `motion.html` | every `.ds-enter` and `.ds-leave` variant on its own element (`#enter-<variant>`, `#leave-<variant>`, `default` for none) with a replay button; `.ds-stagger`, `.ds-reveal` with a `.ds-enter--slide` child, a `.ds-collapsible` with a control flush with its content edge, a delayed spinner (`#delayed-spinner`) and an SVG `<path>` (`#svg-path`) |
 | `controls.html` | every `.ds-btn` variant and state, a wrapping `.ds-chips` row, `.ds-switch` off, on and disabled, check and radio cards, a `.ds-table` with a checkbox column, fields with hint and error, `.ds-search`, `.ds-segmented` and a scrolling drawer list with indicators, `.ds-parts` with links, `.ds-link-btn`, `.ds-errors` |
 | `feedback.html` | `.ds-progress` at .05, .4 and 1, `--indeterminate`, `--waiting`; loading bar, skeleton, spinners, the four status chips and one whose class a button toggles on the live node, alerts, a clickable tile and a card link |
+| `data.html` | data that changes: a tile figure with a `.ds-progress` bar (`#figure`, `#progress`), an empty keyed list (`#list`) and table body (`#rows`), a form container (`#form`) and a `.ds-segmented` with an indicator; `window.fxData` renders keyed items and rows (`list(names, values)`, `rows(names)`) for `morphHtml` |
 | `shell.html` | the `.ds-app.ds-app--drawer` frame with top bar, drawer, indicator, scrim and panel; use it at 1000px (docked) and 800px (modal drawer; the menu button and the scrim toggle `data-drawer-open`) |
-| `module.html` | imports the four ES modules of `dist/js/`; `window.moduleResult` says whether they export everything `window.DS` exposes |
+| `module.html` | imports the five ES modules of `dist/js/`; `window.moduleResult` says whether they export everything `window.DS` exposes |
 | `reset.html` | a normalize-like reset without a layer before `ds.css`; it changed in P1 on purpose (the unlayered reset now wins: the `@layer` break of the 1.0.0 migration note) |
 | `reset-layered.html` | the same reset in `@layer reset`, declared before `ds.css`; kept its P0 screenshot through P1 |
 | `spike.html` | the test bed of the capability spike, one numbered block per capability; animations start when a test adds the `--run` class |
@@ -148,11 +157,11 @@ relying on frame timing, so a loaded machine cannot make it pass or time out by 
 | P1 (fixed, marker deleted) | a backdrop click during the dialog exit does not reach the page | overlay-missed-1 | all |
 | P1 (fixed, marker deleted) | a tooltip placed by an inline `transform` is at its anchor at 10 % of the entrance | overlay-tooltip-transform-fly | all |
 | P1 (fixed, marker deleted) | `reducedMotion: 'reduce'` gives the same timelines (enter, leave, spinner, dialog) | D8 | all |
-| P2 | `leave(…, { then: 'hide' })` then `enter(el, 'swap')` ends visible | core-js-leave-enter-race, js-leave-enter-race, repo-leave-enter-race | all |
-| P2 | a second `countUp()` mid-count never counts backwards (fixture and styleguide tiles) | core-js-countup-reentry, js-countup-concurrent, repo-countup-overlap | all |
-| P2 | `enter()` restarts the entrance of an SVG path that carries `.ds-enter` | core-js-replay-svg-reflow | all |
-| P2 | `morphHtml()` keeps a track's `.ds-indicator` | js-morph-indicator, controls-indicator-morph-removes | all |
-| P2 | `morphHtml()` keeps focus and caret of a focused input | js-morph-focus | all |
+| P2 (fixed, marker deleted) | `leave(…, { then: 'hide' })` then `enter(el, 'swap')` ends visible | core-js-leave-enter-race, js-leave-enter-race, repo-leave-enter-race | all |
+| P2 (fixed, marker deleted) | a second `countUp()` mid-count never counts backwards (fixture and styleguide tiles) | core-js-countup-reentry, js-countup-concurrent, repo-countup-overlap | all |
+| P2 (fixed, marker deleted) | `enter()` restarts the entrance of an SVG path that carries `.ds-enter` | core-js-replay-svg-reflow | all |
+| P2 (fixed, marker deleted) | `morphHtml()` keeps a track's `.ds-indicator` | js-morph-indicator, controls-indicator-morph-removes | all |
+| P2 (fixed, marker deleted) | `morphHtml()` keeps focus and caret of a focused input | js-morph-focus | all |
 | P3 | hovering a disabled chip or switch changes nothing (two tests) | controls-chip-disabled-hover, controls-switch-disabled | all |
 | P3 | 50ms after blur a field shows no primary border without its inset shadow | controls-form-blur-ghost | all |
 | P3 | the focus ring of a `.ds-parts` link is not clipped | controls-list-parts-clip | all |
@@ -172,6 +181,24 @@ relying on frame timing, so a loaded machine cannot make it pass or time out by 
 The clipping tests compare the pixels around the focused control with and without the clip (a style sheet that lifts
 it): equal pixels mean nothing was cut off.
 
+## The fallback project
+
+`fallback` is Chromium playing an engine on the browser floor (Safari 16.4, Chrome/Edge 111), so the fallback paths
+run in CI, not only the refinements:
+
+- `dist/ds.css` is served without its `@supports (...)` and `@starting-style` blocks (an `@supports not (...)` block
+  keeps its rules): `linear()` tokens compute to their cubic fallbacks, anchor positioning, `interpolate-size`,
+  `sibling-index()` and `overflow-clip-margin` are gone. The route fails the test if a `linear()` survives.
+- An init script deletes `document.startViewTransition`, the popover methods and `moveBefore`, makes
+  `CSS.supports()` answer false for the stripped features, and makes `Element.prototype.animate` throw a
+  `TypeError` for a `linear()` easing, so the cubic retry of `motion.js` (`animateSafe`) is what plays.
+
+A spec opts in by importing `test` and `expect` from `./base-test.js` instead of `@playwright/test`; the config
+runs exactly those specs in `fallback` (a spec on plain `@playwright/test` would only run Chromium twice). The engine
+specs of P2 import it, and so does every later spec of a feature with a fallback. `fallback.spec.js` checks the floor
+engine itself and runs in `fallback` only (`testIgnore` in the three engine projects). A fallback spec that needs its own
+screenshots or JSON snapshots gets them under `__screenshots__/fallback/`.
+
 ## Slow motion: `?speed=`
 
 `?speed=<factor>` with a factor of 1 or less (for example `?speed=0.1`) slows motion down on the styleguide and on
@@ -179,8 +206,9 @@ every fixture: the page sets `--ds-time-scale: <1 / factor>` on `<html>` (the st
 fixtures' `.ds-theme`). The registered token multiplies every duration and delay token, so CSS motion stretches by
 itself. The styleguide marks it with `html[data-sg-speed]`, fixtures with `html[data-fx-speed]`.
 
-Limits until P2: JS timing that does not read the tokens keeps its pace: the 1000ms timeout of `settled()`, the
-indicator's 600ms glide window and `COUNT_UP_MS`. P2's `motionDuration()` reads the scaled tokens; the Motion Lab
+JS timing follows it through `DS.motion.motionDuration()`, which reads the scaled tokens, and `settled()`, whose ceiling
+comes from the animations it waits for (and waits on while one is paused), and `countUp()`, which counts over the
+scaled `--ds-dur-glide`. Until its rewrite, the indicator's 600ms glide window (P4) keeps its pace. The Motion Lab
 (P8) builds its global slow motion on the same token.
 
 ## Screenshots
@@ -226,7 +254,7 @@ older runs of another branch are.
 | Job | What |
 |---|---|
 | `check` | Node 22 and 24: `npm run check` and the vendor round trip; no `npm ci`, the unit tests need nothing installed |
-| `browser` | after `check`; one job per engine (`fail-fast: false`) in `mcr.microsoft.com/playwright:v1.63.0-noble` as user 1001: `npm ci`, then the engine's project; uploads `playwright-report/` and `test-results/` on failure (14 days) and, with "update screenshots", the rewritten `__screenshots__/` |
+| `browser` | after `check`; one job per project, the three engines and `fallback` (`fail-fast: false`) in `mcr.microsoft.com/playwright:v1.63.0-noble` as user 1001: `npm ci`, then the engine's project; uploads `playwright-report/` and `test-results/` on failure (14 days) and, with "update screenshots", the rewritten `__screenshots__/` |
 
 The container tag and the pinned `@playwright/test` version change together (`test/repo.test.js`).
 
