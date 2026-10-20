@@ -15,6 +15,8 @@ component live.
 | A block of related content | [Card](#card) `.ds-card`; a quieter block inside one: `.ds-card--filled` |
 | Any action | [Button](#button) `.ds-btn` with one variant; an action inside text or a table cell: `.ds-link-btn` |
 | A view option that stays on or off (filter, compact view) | `.ds-btn--quiet` with `aria-pressed` ([Button](#button)) |
+| A save that takes a moment, with a success moment after it | `.ds-btn__faces` and `DS.motion.busy()` ([Button](#button)) |
+| An icon that turns into another (copy to check, play to pause) | `.ds-icon-swap`, `DS.motion.crossfade(el, icon, { kind: 'icon' })` ([Button](#button)) |
 | Key figures at the top of a page | [Tiles](#tiles) `.ds-tiles`, `.ds-tile` |
 | Label and value pairs | `.ds-kv-list` (rows) or `.ds-facts` (a grid, best with four) ([Lists](#lists)) |
 | A run of short counts ("3 new · 1 updated") | `.ds-parts` ([Lists](#lists)) |
@@ -27,6 +29,7 @@ component live.
 | One choice from a short list | `<select class="ds-input">`; with an explanation per option: `.ds-radios` ([Form](#form)) |
 | One choice from a long list, by typing | [Combobox](#combobox) `.ds-combo` |
 | A yes/no value saved with the form | `.ds-check` ([Form](#form)) |
+| A checkbox without a label row (a table column, a list item) | `.ds-checkbox` ([Form](#form)); in a `.ds-table` any bare checkbox is drawn the same |
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
 | Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
 | Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog` |
@@ -100,6 +103,15 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - Sliding pills: `DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })`
   and the same on `.ds-segmented` with `className: 'ds-segmented__indicator'`; call `update()` after the active item
   changes.
+- Press: drawer items and segmented options take their state layer in `--ds-dur-micro` and, with
+  `DS.ripple.attach(document)`, the ripple ([Ripple](#ripple)). A drawer item turns squarer while pressed
+  (`--ds-radius-action-pressed`) and springs back on release; under the active item the pill morphs with it, and
+  nothing moves. Its rest radius is half of `--ds-drawer-item-height` (48px). A segmented option lies inside the
+  clipping pill, so it morphs the clip of its state layer instead. An `aria-disabled="true"` drawer item shows no
+  hover, press or ripple, but keeps its focus layer.
+- Focus: drawer items and segmented options draw an inset ring (the list and the pill clip anything outside),
+  solid from the first frame, that snaps inward from their edge in `--ds-dur-fast`, with the focus layer
+  (`--ds-state-focus`).
 - `.ds-view--leaving` fades the current view out quickly before you swap it (fade-through).
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px.
 - While the modal drawer is open, add `.ds-no-scroll` to `<body>` (with `.ds-base`).
@@ -138,10 +150,22 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 <button class="ds-btn ds-btn--quiet" type="button" aria-pressed="true">[icon filter 16] Filter</button>  <!-- toggle, on -->
 <button class="ds-btn ds-btn--primary" type="button" disabled>Save</button>
 <button class="ds-btn ds-btn--primary" type="button" aria-disabled="true" aria-describedby="why">Publish</button>
-<button class="ds-btn ds-btn--primary" type="button" aria-disabled="true" aria-busy="true">
-  <span class="ds-btn__swap"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>Saving ...</span>
+<button class="ds-btn ds-btn--primary" type="button">                              <!-- faces: busy and done -->
+  <span class="ds-btn__faces">
+    <span class="ds-btn__face">Save</span>
+    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+    <span class="ds-btn__face ds-btn__face--done" aria-hidden="true">[icon check 16]Saved</span>
+  </span>
+</button>
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link">  <!-- icon swap -->
+  <span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">[icon copy 20]</span><span class="ds-icon-swap__b">[icon check 20]</span></span>
 </button>
 <button class="ds-link-btn" type="button">Printer on floor 2</button>                <!-- reads like a link -->
+```
+
+```js
+await DS.motion.busy(saveButton, () => fetch(url, { method: 'POST', body }));   // busy, then "Saved" for a moment
+DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' });  // copy to check
 ```
 
 - Every action is a pill. One filled `--primary` per area; there are no red buttons (name the consequence:
@@ -150,8 +174,28 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 - A toggle that is on carries `aria-pressed="true"` and shows the tint (forced colors: the selection colours).
 - `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why; your script
   must ignore its clicks. `disabled` and `aria-busy="true"` block the pointer.
-- Busy: block the button at once (`aria-disabled`, `aria-busy`), swap in the small spinner only after
-  `--ds-delay-loader`, keep it at least `LOADER_MIN_VISIBLE_MS`; the width stays.
+- Press: the state layer comes in `--ds-dur-micro` and the shape turns squarer (`--ds-radius-action-pressed`, 12px;
+  hook `--ds-btn-radius-pressed`), then springs back on release (`--ds-ease-spatial`, `--ds-dur-medium`); with
+  `DS.ripple.attach(document)` a ripple grows from the pointer ([Ripple](#ripple)) and `.ds-pressed` keeps a quick
+  click visible. The rest radius is `min(radius, half the height)`, so the morph runs the whole way; a pressed
+  radius is never rounder than the rest radius (square themes stay square). Disabled, `aria-disabled`, busy and done
+  buttons show no press. `.ds-btn--disc` morphs and ripples like every pill. Nothing scales or moves.
+- Focus: the ring is solid from the first frame and snaps from 4px to its 2px offset in `--ds-dur-fast`, with the
+  focus layer (`--ds-state-focus`, hook `--ds-btn-state-focus-opacity`; `--disc` shows its disc). An
+  `aria-disabled` button keeps the focus layer.
+- Busy and done, without a width jump: `.ds-btn__faces` stacks every `.ds-btn__face` in one grid cell, so the
+  button is as wide as its widest face. `aria-busy="true"` blocks it at once and shows `.ds-btn__face--busy` only
+  after `--ds-delay-loader` (a fast save shows nothing); `.ds-btn--done` (blocked as well) shows
+  `.ds-btn__face--done`, whose `pathLength="1"` check (`DS.icons.check`) draws itself. The faces roll: the leaving
+  face rises and fades in `--ds-dur-instant`, the next one rises in over `--ds-dur-fast`; back to rest they roll
+  down. `DS.motion.busy(button, work, { done })` ([motion.md](motion.md)) sets and clears both, keeps a busy face
+  that showed for the loader minimum and the success face for `--ds-hold-success`. Announce the result yourself
+  (`aria-live`, a snackbar). `.ds-btn__swap` (one face the page swaps in) is **deprecated** (removed in 2.0): use
+  the faces.
+- Icon swap: `.ds-icon-swap` holds `.ds-icon-swap__a` and `.ds-icon-swap__b` in one cell; `data-swap="b"`, or an
+  `aria-pressed="true"` ancestor (a play/pause toggle), shows b. The incoming icon fades in and springs up from
+  `--ds-scale-small`, a `pathLength="1"` glyph draws itself, the outgoing icon only fades; a crossfade with a scale,
+  not a path morph ([motion.md](motion.md)).
 - Hooks: [theming.md](theming.md#component-hooks).
 
 ## Card
@@ -222,7 +266,9 @@ state layer and the focus ring, no lift).
 ```
 
 `.ds-facts` with exactly four entries shows 4, 2 or 1 per row by the page's width. `.ds-parts` wraps between parts
-and never leaves a "·" at a line end; only a part wider than the whole line breaks inside.
+and never leaves a "·" at a line end; only a part wider than the whole line breaks inside. Links in parts
+(`<span><a href="#new">3 new</a></span>`) keep their focus ring: the line clips only sideways, and the links take an
+inset ring that snaps inward from the edge (also without `.ds-base`).
 
 ## Empty state
 
@@ -270,6 +316,11 @@ update the text node only, so the spinner does not restart (`DS.dom.morphHtml`).
 The plain `.ds-alert` is the neutral (information) alert: quiet surface, primary icon, no modifier.
 Alerts do not animate in; add `.ds-reveal` when a user action brings one in.
 
+The summary of `.ds-errors` is pressable: a state layer in its colour (hover, press in `--ds-dur-micro`, keyboard
+focus with `--ds-state-focus`) in a 4px padding that hangs into the space around it, the ripple, and its own focus
+ring (also without `.ds-base`) that is solid from the first frame and snaps to its offset. It is not a pill and
+does not morph.
+
 ## Table
 
 ```html
@@ -301,6 +352,13 @@ Alerts do not animate in; add `.ds-reveal` when a user action brings one in.
 - Sortable columns: a `.ds-table__sort` button in the header cell and `aria-sort` on the cell; the arrow shows at the
   sorted column only. In a `.ds-num` column the arrow leads.
 - Short values that must not break (an ID with a hyphen) take `.ds-nowrap`.
+- `.ds-table__sort` presses in `--ds-dur-micro` and ripples (it is not a pill, so it does not morph); keyboard focus
+  shows the ring, which snaps to its offset, and the focus layer.
+- `.ds-link-btn` is an inline link: no ripple and no morph, which would reach outside its line of text. Keyboard
+  focus shows the ring (also without `.ds-base`), snapping to its offset; a press darkens its underline, the press
+  feedback on touch screens.
+- Any checkbox in a `.ds-table` is drawn like `.ds-checkbox` ([Form](#form)), with a halo that the table's
+  wrapper does not clip; a switch or a chip in a cell keeps its own look.
 - Rows never animate, and figures in tables never count up.
 
 ## Form
@@ -336,6 +394,9 @@ Alerts do not animate in; add `.ds-reveal` when a user action brings one in.
   <small class="ds-field__hint">Updates install automatically.</small>
   <label class="ds-check ds-check--sm"><input type="checkbox" name="clear"><span>Delete the saved key</span></label>
 
+  <input class="ds-checkbox" type="checkbox" aria-label="Select all">       <!-- a checkbox anywhere -->
+  <input class="ds-radio-input" type="radio" name="size" aria-label="Small"> <!-- a radio anywhere -->
+
   <div class="ds-radios" role="radiogroup" aria-label="Plan">
     <label class="ds-radio"><input type="radio" name="plan" value="basic" checked>
       <span><strong>Basic</strong><small>Inventory only.</small></span></label>
@@ -353,14 +414,32 @@ Alerts do not animate in; add `.ds-reveal` when a user action brings one in.
 </form>
 ```
 
-- 40px fields, label above (never only a placeholder), focus as an instant 2px ring inside the field.
-- Error: `aria-invalid="true"` plus a `.ds-field__hint--error` with an icon, linked by `aria-describedby`.
+- 40px fields, label above (never only a placeholder), focus as an instant 2px ring inside the field. On blur the
+  border, the inner ring and the text colour fade back together, so the ring never fades as half a ring.
+- The label of a field (`.ds-field__label` before the field, or the `<legend>` of a fieldset) takes the primary
+  colour with the ring, at once, and fades back on blur; the label of an invalid field keeps the error ink, also
+  while focused.
+- Error: `aria-invalid="true"` plus a `.ds-field__hint--error` with an icon, linked by `aria-describedby`. The
+  message fades in when it appears (inserted, or filled from empty), not when its text changes; where the browser
+  can animate height to `auto` and focus is in its form (`<form>`, `.ds-form`) or `.ds-field` (validation on blur
+  or on submit), its room also opens from 0 (on `--ds-ease-out`, so the form below never overshoots). A message
+  already in the markup only fades in, so nothing shifts on load. Removing it is instant.
 - Disabled and read-only (`readonly`) fields take the quiet surface. A `<datalist>` field shows the select triangle.
 - Form grids drop to one column when the page is 760px or narrower, and in sheets and dialogs when the window is.
 - A form in a card: `<form class="ds-card ds-form">` (16px rhythm).
 - A `<textarea class="ds-input">` starts about three lines tall and grows only vertically, by hand.
 - A group of checkboxes is a `<fieldset class="ds-field">` with `<legend class="ds-field__label">` as its label;
   both lose the browser's frame and indent.
+- Checkboxes and radios are drawn on the native input (`appearance: none`, no wrapper): inputs in `.ds-check`, every
+  checkbox in a `.ds-table` (not the hidden input of a switch or chip in a cell), the radio of a `.ds-radio` card, and `.ds-checkbox` / `.ds-radio-input` anywhere else.
+  The check wipes in from its short arm, the indeterminate dash (`el.indeterminate = true`) grows from the centre
+  while the check collapses into it, the radio dot grows on the spring; nothing animates on load. A 40px halo
+  (`--ds-check-target`) shows hover (also on the whole `.ds-check` row), press and keyboard focus with the ring; on
+  touch screens a tap grows it from the centre (inputs get no ripple). `aria-invalid="true"` draws the box in the
+  error colour; disabled boxes take `--ds-disabled-ink`. Forced colours: system colours, no halo.
+- Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
+  (`--ds-radius-card-pressed`), springing back on release; `.ds-radio--disabled` and a card whose input is disabled
+  have none.
 
 **Toolbar, search, filters, inline form**
 
@@ -413,6 +492,23 @@ Alerts do not animate in; add `.ds-reveal` when a user action brings one in.
 
 The native input stays in the form and the tab order; a selected chip shows the tint and the check.
 
+- Selecting opens the room of the check: an empty slot before the label grows to `--ds-chip-check-size` on
+  `--ds-ease-out` (a layout size never overshoots) and the chips after it on the line follow; the check draws itself
+  from its short arm. Deselecting reverses it (the check leaves first). Radio chips trade the selection at once, so a
+  pair keeps its width. A chip rendered selected does not animate.
+- When a toggle moves chips to another line, they glide there (FLIP) on pages that call `DS.ripple.attach(root)`;
+  without it, or when a script sets `checked`, the chips jump to the new line. During the glide the row carries
+  `data-ds-glide` and every `.ds-chip` an opaque backing in the colour behind the row (`--ds-chips-backdrop`, written
+  by the script; `--ds-surface` without one), so a chip that crosses another never shows it through its body.
+- Press: the state layer in `--ds-dur-micro` and the ripple. Chips are not pills, so they do not morph. Keyboard
+  focus: the ring, solid from the first frame, snaps to its offset, with the focus layer.
+- Disabled chips (`disabled` on the input or its `<fieldset>`) show no hover, press or ripple and the `not-allowed` cursor, and take
+  the button's disabled model: the outline (selected: the container) in `--ds-disabled-fill`, label and check in
+  `--ds-disabled-ink`, fading on `--ds-dur-fast`. A theme that dims instead (`--ds-disabled-opacity`) keeps the
+  chip's own colours. Forced colours: GrayText.
+- Hooks: `--ds-chip-height` (32px), `--ds-chip-check-size` (18px), `--ds-chip-disabled-border`,
+  `--ds-chip-disabled-bg` (the container of a disabled selected chip).
+
 ## Switch
 
 ```html
@@ -420,12 +516,19 @@ The native input stays in the form and the tab order; a selected chip shows the 
   <input type="checkbox" role="switch" name="sync" checked>
   <span class="ds-switch__track" aria-hidden="true"></span>
   <span class="ds-switch__label">Nightly sync</span>
-  <span class="ds-switch__state" aria-hidden="true">On</span>
+  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
 </label>
 ```
 
-Update the state word when it flips (screen readers announce the switch state themselves). Toggle in place; never
-re-render the switch to change it. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
+With both words (`.ds-switch__on`, `.ds-switch__off`) the CSS shows the right one and crossfades them; a single word
+(`<span class="ds-switch__state" aria-hidden="true">On</span>`) still works, and then the page updates it when the
+switch flips (screen readers announce the switch state themselves). Toggle in place; never re-render the switch to
+change it.
+
+The handle glides and grows on the spatial spring (also when a script sets `checked`), grows to 28px while pressed,
+and a halo around it (`--ds-switch-halo`, 40px) shows hover, press and keyboard focus; the switch has no ripple.
+Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-switch-disabled-handle`), no hover, halo
+or grow, the `not-allowed` cursor and the quieter label. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
 title next to the switch already names the setting.
 
 ## Combobox
@@ -449,6 +552,10 @@ title next to the switch already names the setting.
 
 `data-open` flips the chevron, `data-active` marks the keyboard or pointer option, `aria-selected="true"` the chosen
 one. Hide the popup (`hidden`; it works without `.ds-base`) when closed.
+
+The toggle is a round 40px target with a state layer (hover, press in `--ds-dur-micro`), the ripple and the press
+morph of every pill; it stays `tabindex="-1"` (the field opens the list from the keyboard), so it has no ring.
+Options get no ripple: pressing one selects it and closes the list, and the state layer is the feedback.
 
 ## Dialog
 
@@ -588,18 +695,21 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 <nav data-ds-ripple="off">...</nav>                              <!-- no ripples inside -->
 ```
 
-- Hosts: `.ds-btn`, `.ds-chip` (the ripple goes into `.ds-chip__body`), `.ds-segmented__option`, `.ds-drawer__item`,
-  `:is(button, a).ds-tile`, `.ds-table__sort` and `[data-ds-ripple]`; `data-ds-ripple="off"` on a host or an
-  ancestor opts out. Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
-  (zero specificity, so a host's own `position` wins; at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled` and `aria-busy` hosts, switch, checkbox and radio inputs
-  (their press is their own halo) and buttons other than the primary one get no ripple.
+- Hosts (`DS.ripple.RIPPLE_HOSTS`): `.ds-btn`, `.ds-chip` (the ripple goes into `.ds-chip__body`),
+  `.ds-segmented__option`, `.ds-drawer__item`, `:is(button, a).ds-tile`, `.ds-table__sort`, `.ds-radio` (a radio
+  card, also when its own input is pressed), `.ds-combo__toggle`, `.ds-errors summary` and `[data-ds-ripple]`;
+  `data-ds-ripple="off"` on a host or an ancestor opts out. Not hosts, by design: inline links (`.ds-link-btn`,
+  links in text), the switch, `.ds-check` rows and checkbox or radio inputs (their halo is the press), combobox
+  options (pointer-down selects and closes the list; the state layer is the feedback) and native field parts. Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
+  (zero specificity, so a host's own `position` wins; at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
+  whose input is disabled, also by its `<fieldset>`, or `.ds-radio--disabled`) and buttons other than the primary one get no ripple.
 - The ripple is `<span class="ds-press-ripple" aria-hidden="true" data-ds-keep>` with the runtime properties
   `--ds-ripple-x`, `--ds-ripple-y` (its centre) and `--ds-ripple-r` (the distance to the farthest corner). It
   grows on `ds-press-ripple` over `--ds-dur-medium` (an effect: no overshoot), gets `.ds-press-ripple--out` on
   release (not before `--ds-dur-instant` after the press) and is removed once that fade settled. The host carries
   `.ds-pressed` from press to release, at least `--ds-dur-instant`, so a quick click shows the whole press.
 - The flat state layer and the ripple never stack: under `.ds-ripples` a pressed host keeps its hover layer (0 on
-  touch screens), and the ripple adds the press. A button's layer also keeps what `--ds-btn-state-pressed-opacity`
+  touch screens), or its focus layer when a key pressed it, and the ripple adds the press. A button's layer also keeps what `--ds-btn-state-pressed-opacity`
   asks for beyond the ripple's `--ds-state-pressed`, so `.ds-btn--disc` shows its disc on press on touch screens
   too. Without `attach()` the flat layer stays the press feedback.
 - Colour: `--ds-ripple-color` (default `currentColor`), on `.ds-theme` or a host. Forced colours show no ripple.
@@ -628,5 +738,6 @@ Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
 `.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
 `.ds-stagger`; `.ds-reveal`; `.ds-collapsible`; `.ds-swap` (the slot of `DS.motion.roll()` and
-`DS.motion.crossfade()`); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
+`DS.motion.crossfade()`); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
+[Button](#button)); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
 `.ds-indicator--instant`.

@@ -108,11 +108,19 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   (`motionDuration`), never ms literals; constants are tested fallbacks (`MOTION_FALLBACKS`). Never a near-zero
   duration on a loop (it races).
 - **State layers.** Hover and press lay `currentColor` (or the hook) over the control at `--ds-state-hover` /
-  `--ds-state-pressed` via `::before`; hover rules only inside `@media (hover: hover)`; focus is a 2px ring
-  (`--ds-focus-outline`) on `:focus-visible`, solid from the first frame. On top come the pointer ripple
-  (`DS.ripple`, from 1.0.0), the press shape morph and the focus snap (from 1.1.0: only the ring's offset moves,
-  never its colour or width).
-- **Every action is a pill** (`--ds-radius-action`). One filled button per area, no red buttons.
+  `--ds-state-pressed` via `::before`; hover rules only inside `@media (hover: hover)`. The press comes in
+  `--ds-dur-micro` (`:active` and the `.ds-pressed` that `DS.ripple` holds), never `--ds-dur-instant`; with
+  `DS.ripple.attach()` the ripple brings the press and the flat layer stays at its hover value (each host has its
+  `.ds-ripples` rule in `ripple.css`; every action is a host or on the tested exemption list). Pills morph: the
+  rest radius is `min(radius, half the height)`, never 9999px; pressed it turns `--ds-radius-action-pressed` in
+  `--ds-dur-micro` and springs back on `--ds-ease-spatial` over `--ds-dur-medium` (radio cards:
+  `--ds-radius-card-pressed`); disabled, `aria-disabled` and busy controls neither morph nor show a press. Focus is
+  a 2px ring (`--ds-focus-outline`) on `:focus-visible`, solid from the first frame: it rests at offset + width
+  (inset rings: 0) and only `outline-offset` transitions, on `--ds-dur-fast` (never a keyframe, never its colour or
+  width), with the focus layer (`--ds-state-focus`) at once. The switch handle is the only thing that scales on
+  press (never above 1). Disabled is one model: `--ds-disabled-*`, faded on `--ds-dur-fast`.
+- **Every action is a pill** (`--ds-radius-action`). One filled button per area, no red buttons. Inline text links
+  (`.ds-link-btn`, links in text) are the exception to ripple and morph.
 - **Status never by colour alone**: icon and word on status chips and alerts, a check on selected chips, the
   label weight or `aria-*` on active items.
 - **Forced colors** (`@media (forced-colors: active)`): floating layers keep a transparent outline that becomes

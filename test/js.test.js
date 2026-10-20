@@ -68,8 +68,11 @@ describe('icons', () => {
     assert.match(icons.icon(icons.check, 16, '<b>&'), /class="&lt;b&gt;&amp;"/);
   });
 
-  it('keeps the check drawable (pathLength 1 for ds-draw)', () => {
-    assert.match(icons.check, /pathLength="1"/);
+  it('keeps the check drawable (pathLength 1 for ds-draw), from its short arm', () => {
+    // The stroke starts at the short arm, so a drawn check reads left to right.
+    assert.equal(icons.check, '<path pathLength="1" d="M4 12l5 5L20 6"/>');
+    // The tick of checkCircle draws too; its circle stays a plain outline.
+    assert.equal(icons.checkCircle, '<circle cx="12" cy="12" r="10"/><path pathLength="1" d="m9 12 2 2 4-4"/>');
   });
 });
 

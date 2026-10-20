@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.0.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.1.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.motion,
  * DS.indicator, DS.dom, DS.ripple and DS.icons hold the same exports as the ES modules
@@ -14,7 +14,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '1.0.0';
+  var version = '1.1.0';
   var registry = root.DashboardStyle || (root.DashboardStyle = {});
   var versions = registry.versions || (registry.versions = {});
   if (versions[version]) return;
@@ -54,8 +54,11 @@
      * progress bars (one loop per element), flip() moves reordered items from
      * their old places (retargeting mid-flight; live data waits while pointed
      * at or focused). roll() and crossfade() swap content in a .ds-swap slot
-     * through enter() and leave(), so they are interruptible too. originFrom()
-     * writes where a popup grows from.
+     * through enter() and leave(), so they are interruptible too; an icon
+     * crossfade (kind 'icon') only flips the CSS transitions of .ds-icon-swap.
+     * busy() drives the faces of a button (busy, done) through aria-busy and
+     * .ds-btn--done; the faces themselves are CSS. originFrom() writes where a
+     * popup grows from.
      *
      * ES2022 (Safari 16.4); a module may import from an earlier module (the
      * build bundles it into dist/ds.js as DS.motion); newer APIs only behind
@@ -86,6 +89,7 @@
       '--ds-delay-loader': 200,
       '--ds-delay-boot': 400,
       '--ds-hold-loader': 450,
+      '--ds-hold-success': 600,
       '--ds-ease-in-out': 'cubic-bezier(.2, 0, 0, 1)',
       '--ds-ease-out': 'cubic-bezier(.05, .7, .1, 1)',
       '--ds-ease-in': 'cubic-bezier(.3, 0, 1, 1)',
@@ -1121,6 +1125,79 @@
       return ms ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
     }
 
+    /* ── Busy buttons ───────────────────────────────────── */
+
+    /** The running busy() of each button. @type {WeakMap<Element, Promise<any>>} */
+    const busyRuns = new WeakMap();
+
+    /** The timer that ends each button's success face. @type {WeakMap<Element, any>} */
+    const doneTimers = new WeakMap();
+
+    /** Takes the success face off at once (a new busy() starts). */
+    function clearDone(button) {
+      clearTimeout(doneTimers.get(button));
+      doneTimers.delete(button);
+      button.classList?.remove('ds-btn--done');
+    }
+
+    /**
+     * Runs `work` while `button` shows that it works, through the faces of
+     * button.css: aria-busy="true" at once (blocked, the busy face shows after
+     * --ds-delay-loader, so fast work changes nothing); once a busy face showed
+     * it stays for the loader minimum (settleLoader(), --ds-hold-loader); on
+     * success aria-busy goes and, unless `done` is false, .ds-btn--done shows
+     * the success face for --ds-hold-success. On failure aria-busy goes at once
+     * and the error is rethrown. A second call while the button is busy
+     * returns the running promise and does not start `work` again; a call
+     * during the success face takes it off first. Times are the computed
+     * tokens (--ds-time-scale applies). Announcing the result stays the page's
+     * job (aria-live).
+     * @template T
+     * @param {Element|null|undefined} button  a .ds-btn, best with .ds-btn__faces
+     * @param {(() => T|PromiseLike<T>)|PromiseLike<T>|T} work  a function (called at once) or a promise
+     * @param {{ done?: boolean }} [options]  done: false skips the success face
+     * @returns {Promise<T>} the work's result, once the button is no longer busy
+     */
+    function busy(button, work, options = {}) {
+      const start = () => {
+        try {
+          return typeof work === 'function' ? /** @type {Function} */ (work)() : work;
+        } catch (error) {
+          return Promise.reject(error);
+        }
+      };
+      if (!button) return Promise.resolve(start());
+      const running = busyRuns.get(button);
+      if (running) return running;
+      const done = options.done ?? true;
+      clearDone(button);
+      button.setAttribute('aria-busy', 'true');
+      const startedAt = Date.now();
+      const delay = motionDuration(button, '--ds-delay-loader');
+      /** @type {Promise<any>} */
+      let promise;
+      const finish = () => {
+        if (busyRuns.get(button) === promise) busyRuns.delete(button);
+        button.removeAttribute('aria-busy');
+      };
+      promise = Promise.resolve(start()).then(
+        (value) => settleLoader(startedAt, { element: button, delay }).then(() => {
+          finish();
+          if (done) {
+            button.classList.add('ds-btn--done');
+            doneTimers.set(button, setTimeout(() => clearDone(button), motionDuration(button, '--ds-hold-success')));
+          }
+          return value;
+        }),
+        (error) => {
+          finish();
+          throw error;
+        },
+      );
+      busyRuns.set(button, promise);
+      return promise;
+    }
+
     /* ── Values ─────────────────────────────────────────── */
 
     /** --ds-dur-glide outside a theme (MOTION_FALLBACKS): how long countUp() counts. */
@@ -1417,22 +1494,94 @@
         { '--ds-leave-keyframes': 'ds-fade-out, ds-roll-out' });
     }
 
+    /** Whether an icon swap shows b: its data-swap, else an aria-pressed="true" ancestor. */
+    function showsB(element) {
+      const swap = element.getAttribute('data-swap');
+      if (swap) return swap === 'b';
+      return Boolean(element.parentElement?.closest('[aria-pressed="true"]'));
+    }
+
+    /** The face `which` ('a' or 'b') of an icon swap, created when missing. */
+    function iconFace(element, which) {
+      const existing = Array.from(element.children).find((child) => child.classList.contains(`ds-icon-swap__${which}`));
+      if (existing) return existing;
+      const face = element.ownerDocument.createElement('span');
+      face.className = `ds-icon-swap__${which}`;
+      return face;
+    }
+
+    /** `next` as one node: an element as is, a string as icon markup (an icon() string). */
+    function iconNode(element, next) {
+      if (next?.nodeType) return next;
+      const template = element.ownerDocument.createElement('template');
+      template.innerHTML = String(next ?? '').trim();
+      const nodes = Array.from(template.content.childNodes);
+      if (nodes.length === 1) return nodes[0];
+      const span = element.ownerDocument.createElement('span');
+      span.append(...nodes);
+      return span;
+    }
+
     /**
-     * Crossfades the content of `element` (which becomes a .ds-swap slot) to
-     * `next`, a node or a string: the new content fades in (--ds-dur-fast,
-     * --ds-ease-in-out) while the current one fades out (--ds-dur-instant,
+     * The icon kind of crossfade(): `element` becomes (or is) a .ds-icon-swap
+     * with the faces .ds-icon-swap__a (its current content) and
+     * .ds-icon-swap__b; `next` goes into the face that is not shown (unless
+     * that face already holds the same icon, or `next` is a face) and
+     * data-swap flips to it. The CSS transitions do the rest.
+     */
+    function iconSwap(element, next) {
+      element.classList.add('ds-icon-swap');
+      const a = iconFace(element, 'a');
+      const b = iconFace(element, 'b');
+      const built = !a.parentNode || !b.parentNode;
+      if (!a.parentNode) {
+        for (const node of Array.from(element.childNodes)) if (node !== b) a.append(node);
+        element.prepend(a);
+      }
+      if (!b.parentNode) element.append(b);
+      const shown = showsB(element) ? b : a;
+      const target = next === a || next === b ? next : shown === a ? b : a;
+      if (next !== a && next !== b) {
+        const node = iconNode(element, next);
+        const same = target.childNodes.length === 1 && target.firstChild.isEqualNode?.(node);
+        if (!same) {
+          target.replaceChildren(node);
+          flushStyle(target);
+        }
+      }
+      // New faces and new content get their hidden style first, so the swap transitions from it.
+      if (built) for (const face of [a, b]) flushStyle(face);
+      element.setAttribute('data-swap', target === b ? 'b' : 'a');
+      return settled(element, { transitions: true, subtree: true });
+    }
+
+    /**
+     * Crossfades the content of `element` to `next`.
+     *
+     * kind 'text' (the default): `element` becomes a .ds-swap slot and
+     * `next` (a node or a string of text) fades in (--ds-dur-fast,
+     * --ds-ease-in-out) while the current content fades out (--ds-dur-instant,
      * --ds-ease-in) and is removed. No movement and no width measuring: the
      * grid slot holds the width while both are there. Safe to call again
      * mid-swap; only the last content stays.
+     *
+     * kind 'icon' (1.1): `element` becomes a .ds-icon-swap (its current
+     * content is face a) and `next` (an element, or icon markup from
+     * DS.icons.icon()) goes into the face that is hidden; data-swap flips to
+     * it. The incoming icon fades in and springs up from --ds-scale-small, a
+     * pathLength="1" glyph draws itself; the outgoing one only fades. A rapid
+     * toggle turns back from where the icons are. Pass an element (iconElement())
+     * where a policy forbids parsing markup.
      * @param {Element|null|undefined} element
      * @param {Node|string} next
-     * @param {{ kind?: 'text' }} [options]  only 'text' (the default) exists in 1.0
+     * @param {{ kind?: 'text'|'icon' }} [options]
      * @returns {Promise<void>} resolves when the swap settled
      */
     function crossfade(element, next, options = {}) {
       const kind = options.kind ?? 'text';
-      if (kind !== 'text') throw new TypeError(`crossfade(): unknown kind "${kind}"`);
+      if (kind !== 'text' && kind !== 'icon') throw new TypeError(`crossfade(): unknown kind "${kind}"`);
       if (!element) return Promise.resolve();
+      if (kind === 'icon') return iconSwap(element, next);
       const current = swapSlot(element);
       let incoming = /** @type {any} */ (next);
       if (incoming?.nodeType !== 1) {
@@ -1874,6 +2023,7 @@
       staggerOnce: staggerOnce,
       loaderHoldMs: loaderHoldMs,
       settleLoader: settleLoader,
+      busy: busy,
       COUNT_UP_MS: COUNT_UP_MS,
       easeOutCubic: easeOutCubic,
       countUp: countUp,
@@ -2460,10 +2610,15 @@
      * the root: pointerdown for the pointer, Enter and Space for a centred
      * ripple on a focused host. Hosts: .ds-btn, .ds-chip (the ripple goes into
      * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
-     * :is(button, a).ds-tile, .ds-table__sort and [data-ds-ripple];
-     * data-ds-ripple="off" on a host or an ancestor opts out. Disabled, busy
-     * and aria-disabled hosts, switch, checkbox and radio inputs, and presses
-     * other than the primary button get none.
+     * :is(button, a).ds-tile, .ds-table__sort, .ds-radio (a radio card, also
+     * when its own input is pressed), .ds-combo__toggle, .ds-errors summary
+     * and [data-ds-ripple]; data-ds-ripple="off" on a host or an ancestor
+     * opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
+     * card whose input is disabled, .ds-radio--disabled), switch, checkbox and
+     * radio inputs (their halo is the press), and presses other than the
+     * primary button get none. Not hosts, by design: inline links
+     * (.ds-link-btn, links in text), .ds-check rows, combobox options
+     * (pointer-down selects and closes the list) and native field parts.
      *
      * The ripple is <span class="ds-press-ripple" aria-hidden="true"
      * data-ds-keep> with --ds-ripple-x / --ds-ripple-y (its centre, px from the
@@ -2477,14 +2632,36 @@
      * iOS Safari applies :active only on pages with a touchstart listener:
      * attach() adds a passive one.
      *
+     * Chips (D22): attach() also listens for change on .ds-chip__input in a
+     * .ds-chips row, the one call that wires control motion. A toggle that
+     * keeps every chip on its line plays the check slot's width from where
+     * it is to its end (el.animate() on the slot with its CSS timing, so the
+     * neighbours follow the reflow and a rapid toggle continues from the
+     * current width); a toggle that moves a chip to another line lets the
+     * slot land at once and glides the chips to their new places by flip(),
+     * each chip on an opaque backing in the colour behind the row (the row's
+     * data-ds-glide and --ds-chips-backdrop, for the glide), so a chip never
+     * shows the one it crosses through its transparent body. The toggled
+     * chip keeps pace on its neighbour's timing: a body that grew is clipped
+     * back to its old width and opens with the neighbour's glide
+     * (clip-path), and its label glides from where it was (translate), so
+     * its edge and the next chip's never overlap; a body that shrank only
+     * glides its label. It measures the end layout with the row's
+     * data-ds-snap (the slots without their transition) for one forced style
+     * pass. A programmatic
+     * `checked` change has no event: there CSS alone runs and a wrap jumps.
+     *
      * ES2022 (Safari 16.4); a module may import from an earlier module (the
      * build bundles it into dist/ds.js as DS.ripple); newer APIs only behind
      * feature detection, named under Progressive:.
      */
-    const motionDuration = DS.motion.motionDuration, settled = DS.motion.settled;
+    const MOTION_FALLBACKS = DS.motion.MOTION_FALLBACKS, flip = DS.motion.flip, motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing, settled = DS.motion.settled, travelDuration = DS.motion.travelDuration;
 
-    /** The actions that get a ripple (P3, P5 and P6 add more). */
-    const HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, [data-ds-ripple]';
+    /** The actions that get a ripple (P5 and P6 add more). */
+    const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-errors summary, [data-ds-ripple]';
+
+    /** Hosts whose own input is part of the host: pressing the input ripples the host. */
+    const OWNS_INPUT = '.ds-chip, .ds-radio';
 
     /** Controls whose press is their own halo, not a ripple. */
     const OWN_PRESS = 'input[type="checkbox"], input[type="radio"], .ds-switch';
@@ -2507,7 +2684,7 @@
     /** The host of an event target inside `root`, or null. */
     function hostOf(target, root) {
       const element = target?.nodeType === 1 ? target : target?.parentElement;
-      const host = element?.closest?.(HOSTS);
+      const host = element?.closest?.(RIPPLE_HOSTS);
       if (!host || !root.contains(host)) return null;
       if (host.closest('[data-ds-ripple="off"]')) return null;
       return host;
@@ -2518,12 +2695,17 @@
       return host.classList.contains('ds-chip') ? host.querySelector('.ds-chip__body') : host;
     }
 
-    /** Hosts that take no press: disabled, aria-disabled, busy, a chip whose input is disabled. */
+    /**
+     * Hosts that take no press: disabled, aria-disabled, busy, done, a chip or
+     * radio card whose input is disabled. `:disabled`, not the property: it also
+     * holds for an input in a disabled <fieldset> (`.ds-chips` is one).
+     */
     function inactive(host) {
       if (host.matches(':disabled') || host.getAttribute('aria-disabled') === 'true' || host.getAttribute('aria-busy') === 'true') return true;
-      if (host.classList.contains('ds-chip')) {
+      if (host.classList.contains('ds-btn--done') || host.classList.contains('ds-radio--disabled')) return true;
+      if (host.matches(OWNS_INPUT)) {
         const input = host.querySelector('input');
-        if (input?.disabled) return true;
+        if (input?.matches(':disabled')) return true;
       }
       return false;
     }
@@ -2597,6 +2779,253 @@
       if (press) release(host, press);
     }
 
+    /* ── Chips across a wrap ───────────────────────────── */
+
+    /** The running width glide of each chip's check slot. @type {WeakMap<Element, Animation>} */
+    const slotGlides = new WeakMap();
+
+    /** A computed time (the first of a list: '0.25s', '50ms') in ms. */
+    function timeOf(text) {
+      const match = /^\s*(-?\d*\.?\d+)(m?s)\s*$/.exec(String(text ?? '').split(',')[0]);
+      return match ? Number(match[1]) * (match[2] === 's' ? 1000 : 1) : 0;
+    }
+
+    /** The first easing of a computed list (cubic-bezier() holds commas of its own). */
+    function easingOf(text) {
+      const match = /^\s*([\w-]+\([^)]*\)|[\w-]+)/.exec(String(text ?? ''));
+      return match ? match[1] : 'ease';
+    }
+
+    /**
+     * Glides the check slot of `body` from `from` to `to` px with the timing
+     * the CSS gave it (a slot that is not animated jumps, as without script).
+     */
+    function glideSlot(body, from, to, timing) {
+      if (Math.abs(from - to) < 0.5 || !(timing.duration > 0) || typeof body.animate !== 'function') return;
+      try {
+        const animation = body.animate([{ width: `${from}px` }, { width: `${to}px` }], {
+          pseudoElement: '::after',
+          duration: timing.duration,
+          delay: timing.delay,
+          easing: timing.easing,
+          fill: 'backwards',
+        });
+        animation.id = 'ds-chip-slot';
+        slotGlides.set(body, animation);
+        const done = () => {
+          if (slotGlides.get(body) === animation) slotGlides.delete(body);
+        };
+        animation.finished.then(done, done);
+      } catch {
+        // No animations of pseudo-elements: the slot lands at once.
+      }
+    }
+
+    /** The edge glides of each chip body across a wrap (clip-path and label translate). @type {WeakMap<Element, Animation[]>} */
+    const edgeGlides = new WeakMap();
+
+    /** The right inset of a computed `inset()` clip-path in px (0 for none). */
+    function insetRight(clip) {
+      const match = /^inset\(([^)]*)\)/.exec(String(clip ?? '').trim());
+      if (!match) return 0;
+      const sides = match[1].split(/\s+round\s+/)[0].trim().split(/\s+/).map((value) => parseFloat(value) || 0);
+      return sides.length > 1 ? sides[1] : sides[0] ?? 0;
+    }
+
+    /** The x of a computed `translate` in px (0 for none). */
+    function translateX(value) {
+      return parseFloat(String(value ?? '').split(/\s+/)[0]) || 0;
+    }
+
+    /** What of a body glides along its edge: its children but the check (over the slot, it never moves) and a ripple. */
+    function labelsOf(body) {
+      return Array.from(body.children).filter((child) => !child.matches('.ds-chip__check, .ds-press-ripple'));
+    }
+
+    /**
+     * Where a chip body stands in an edge glide: the part of its width still
+     * clipped and its label's offset, to continue from on a rapid toggle.
+     */
+    function edgeState(body) {
+      const view = body.ownerDocument.defaultView;
+      const label = labelsOf(body)[0];
+      return { clip: insetRight(view.getComputedStyle(body).clipPath), shift: label ? translateX(view.getComputedStyle(label).translate) : 0 };
+    }
+
+    /** Stops the edge glide of a body (it lands at once). */
+    function stopEdge(body) {
+      for (const animation of edgeGlides.get(body) ?? []) animation.cancel();
+      edgeGlides.delete(body);
+    }
+
+    /** el.animate() with the spring's cubic fallback where linear() is unknown. */
+    function animateEdge(element, keyframes, timing) {
+      try {
+        return element.animate(keyframes, timing);
+      } catch {
+        return element.animate(keyframes, { ...timing, easing: /** @type {string} */ (MOTION_FALLBACKS['--ds-ease-spatial']) });
+      }
+    }
+
+    /**
+     * Across a wrap the slot of a toggled chip lands at once while flip()
+     * glides its neighbours: the body keeps pace on the timing of the next
+     * chip on its line (else the travel of `grow` on the spring). A body that
+     * grew by `grow` px is clipped back to its old width and opens with the
+     * neighbour, so its edge and the neighbour's never overlap; its label
+     * glides from where it was. A body that shrank cannot paint its old width:
+     * its label glides back, clipped to the body. A keyboard ring (an outline)
+     * stays inside the clip.
+     */
+    function glideEdge(body, grow, shift, timing) {
+      if (typeof body.animate !== 'function' || (Math.abs(grow) < 0.5 && Math.abs(shift) < 0.5)) return;
+      const view = body.ownerDocument.defaultView;
+      const style = view.getComputedStyle(body);
+      const radius = parseFloat(style.borderTopRightRadius) || 0;
+      const ring = style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0
+        ? Math.max(0, parseFloat(style.outlineOffset) || 0) + parseFloat(style.outlineWidth) + 1
+        : 0;
+      const clip = (right) => `inset(${-ring}px ${Math.round(right * 100) / 100}px ${-ring}px ${-ring}px round ${radius + ring}px)`;
+      const options = { duration: timing.duration, easing: timing.easing };
+      const running = [];
+      try {
+        running.push(animateEdge(body, [{ clipPath: clip(Math.max(0, grow)) }, { clipPath: clip(0) }], options));
+        if (Math.abs(shift) >= 0.5) {
+          for (const label of labelsOf(body)) running.push(animateEdge(label, [{ translate: `${Math.round(shift * 100) / 100}px 0px` }, { translate: '0px 0px' }], options));
+        }
+      } catch {
+        // No such animations: the body lands at once.
+        for (const animation of running) animation.cancel();
+        return;
+      }
+      for (const animation of running) animation.id = 'ds-chip-edge';
+      edgeGlides.set(body, running);
+      const done = () => {
+        if (edgeGlides.get(body) === running) edgeGlides.delete(body);
+      };
+      Promise.allSettled(running.map((animation) => animation.finished)).then(done);
+    }
+
+    /** The timing of a running ds-flip glide of `element`, or null. */
+    function flipTiming(element) {
+      const animation = element?.getAnimations?.().find((item) => item.id === 'ds-flip' && item.playState !== 'finished' && item.playState !== 'idle');
+      const timing = animation?.effect?.getTiming?.();
+      return timing && Number(timing.duration) > 0 ? { duration: Number(timing.duration), easing: timing.easing || 'linear' } : null;
+    }
+
+    /** Whether a computed colour paints anything (alpha above 0). */
+    function paints(colour) {
+      if (!colour || colour === 'transparent') return false;
+      const inner = /\(([^)]*)\)/.exec(colour)?.[1] ?? '';
+      const slash = inner.split('/');
+      if (slash.length > 1) return parseFloat(slash[1]) > 0;
+      const parts = inner.split(',');
+      return parts.length === 4 ? parseFloat(parts[3]) > 0 : true;
+    }
+
+    /** The colour behind `element`: the background of the nearest ancestor (itself included) that paints one. */
+    function backdropOf(element) {
+      const view = element.ownerDocument.defaultView;
+      for (let node = element; node && node.nodeType === 1; node = node.parentElement) {
+        const colour = view.getComputedStyle(node).backgroundColor;
+        if (paints(colour)) return colour;
+      }
+      return '';
+    }
+
+    /**
+     * While chips glide across a wrap, each chip gets an opaque backing in the
+     * colour behind the row (data-ds-glide, --ds-chips-backdrop): a chip that
+     * crosses another, transparent or still fading to its fill, never shows
+     * the other one through it. At rest the backing matches what is behind.
+     */
+    function backChips(row) {
+      const backdrop = backdropOf(row);
+      if (backdrop) row.style.setProperty('--ds-chips-backdrop', backdrop);
+      else row.style.removeProperty('--ds-chips-backdrop');
+      row.setAttribute('data-ds-glide', '');
+    }
+
+    /** Takes the backing away once no chip of `row` glides any more. */
+    function unbackChips(row) {
+      const running = Array.from(row.children).flatMap((child) => child.getAnimations?.() ?? [])
+        .filter((animation) => animation.id === 'ds-flip' && animation.playState !== 'finished' && animation.playState !== 'idle');
+      if (running.length) {
+        Promise.allSettled(running.map((animation) => animation.finished)).then(() => unbackChips(row));
+        return;
+      }
+      row.removeAttribute('data-ds-glide');
+      row.style.removeProperty('--ds-chips-backdrop');
+    }
+
+    /**
+     * A chip of `row` was toggled (its transitions have not advanced yet):
+     * the slots glide, or, when a chip changes its line, the chips do.
+     */
+    function chipToggled(row) {
+      const view = row.ownerDocument.defaultView;
+      const bodies = Array.from(row.querySelectorAll('.ds-chip__body'));
+      const children = Array.from(row.children);
+      const tops = children.map((child) => child.getBoundingClientRect().top);
+      // Where an edge glide in flight stands, then it lands (flip() measures the bodies unclipped).
+      const edges = bodies.map((body) => {
+        const state = edgeGlides.has(body) ? edgeState(body) : { clip: 0, shift: 0 };
+        stopEdge(body);
+        return state;
+      });
+      let wrapped = false;
+      /** @type {{ body: Element, grow: number, shift: number, next: Element|null }[]} */
+      let toggled = [];
+      const glide = flip(row, () => {
+        // Where each slot is now (the old width, or a glide in flight) and the timing of its new state.
+        const slots = bodies.map((body) => {
+          const style = view.getComputedStyle(body, '::after');
+          return {
+            body,
+            from: parseFloat(style.width) || 0,
+            timing: { duration: timeOf(style.transitionDuration), delay: timeOf(style.transitionDelay), easing: easingOf(style.transitionTimingFunction) },
+          };
+        });
+        for (const body of bodies) {
+          slotGlides.get(body)?.cancel();
+          slotGlides.delete(body);
+        }
+        // The end layout: the slots at their end width.
+        row.setAttribute('data-ds-snap', '');
+        wrapped = children.some((child, index) => Math.abs(child.getBoundingClientRect().top - tops[index]) > 1);
+        const ends = slots.map((slot) => parseFloat(view.getComputedStyle(slot.body, '::after').width) || 0);
+        if (wrapped) {
+          // The bodies whose slot changes, each with the next item on its line in the end layout.
+          toggled = slots.map((slot, index) => {
+            const grow = ends[index] - slot.from;
+            const chip = slot.body.closest('.ds-chip');
+            const next = chip?.parentElement === row ? chip.nextElementSibling : null;
+            const same = next && Math.abs(next.getBoundingClientRect().top - chip.getBoundingClientRect().top) <= 1;
+            return { body: slot.body, grow: grow + edges[index].clip, shift: edges[index].shift - grow, next: same ? next : null };
+          }).filter((entry) => Math.abs(entry.grow) >= 0.5 || Math.abs(entry.shift) >= 0.5);
+        }
+        // Measured (a forced style pass): the slots keep their end width without a new transition.
+        row.removeAttribute('data-ds-snap');
+        // A chip changed its line: flip() glides every chip from its old place, each on its backing.
+        if (wrapped) {
+          backChips(row);
+          return;
+        }
+        // Same lines: the slots glide from where they were (flip() then finds nothing moved).
+        slots.forEach((slot, index) => glideSlot(slot.body, slot.from, ends[index], slot.timing));
+      });
+      if (!wrapped) return;
+      // flip() has started its glides: each toggled body keeps pace with the next chip on its line.
+      for (const entry of toggled) {
+        const timing = flipTiming(entry.next) ?? {
+          duration: travelDuration(row, Math.abs(entry.grow)),
+          easing: motionEasing(row, '--ds-ease-spatial'),
+        };
+        glideEdge(entry.body, entry.grow, entry.shift, timing);
+      }
+      glide.then(() => unbackChips(row), () => unbackChips(row));
+    }
+
     /** Enter activates buttons and links, Space buttons and inputs (not links, not on Enter for checkboxes). */
     function activates(target, key) {
       if (key === ' ') return target.tagName !== 'A';
@@ -2621,7 +3050,7 @@
         const host = hostOf(event.target, element);
         if (!host || inactive(host)) return;
         const target = /** @type {Element} */ (event.target);
-        if (target.closest?.(OWN_PRESS) && !host.classList.contains('ds-chip')) return;
+        if (target.closest?.(OWN_PRESS) && !host.matches(OWNS_INPUT)) return;
         if (!start(host, event.clientX, event.clientY)) return;
         const up = () => {
           host.removeEventListener('pointerleave', up);
@@ -2639,8 +3068,8 @@
         const target = /** @type {Element} */ (event.target);
         const host = hostOf(target, element);
         if (!host || inactive(host) || !activates(target, event.key)) return;
-        // The host itself, or the input of a chip (typing in a field inside a host is no press).
-        if (target !== host && !(host.classList.contains('ds-chip') && target.tagName === 'INPUT')) return;
+        // The host itself, or the input of a chip or radio card (typing in a field inside a host is no press).
+        if (target !== host && !(host.matches(OWNS_INPUT) && target.tagName === 'INPUT')) return;
         if (!start(host)) return;
         const leave = () => {
           target.removeEventListener('blur', leave);
@@ -2658,11 +3087,19 @@
       // A passive no-op: iOS Safari applies :active only with a touchstart listener.
       const onTouchStart = () => {};
 
+      const onChange = (/** @type {Event} */ event) => {
+        const input = /** @type {Element} */ (event.target);
+        if (!input?.matches?.('.ds-chip__input')) return;
+        const row = input.closest('.ds-chips');
+        if (row && element.contains(row)) chipToggled(row);
+      };
+
       element.classList.add('ds-ripples');
       element.addEventListener('pointerdown', onPointerDown);
       element.addEventListener('keydown', onKeyDown);
       element.addEventListener('keyup', onKeyUp);
       element.addEventListener('touchstart', onTouchStart, { passive: true });
+      element.addEventListener('change', onChange);
 
       const handle = {
         /** Removes the listeners and .ds-ripples; ripples already shown finish. */
@@ -2673,6 +3110,7 @@
           element.removeEventListener('keydown', onKeyDown);
           element.removeEventListener('keyup', onKeyUp);
           element.removeEventListener('touchstart', onTouchStart);
+          element.removeEventListener('change', onChange);
           element.classList.remove('ds-ripples');
         },
       };
@@ -2681,6 +3119,7 @@
     }
 
     return Object.freeze({
+      RIPPLE_HOSTS: RIPPLE_HOSTS,
       attach: attach
     });
   })();
@@ -2760,9 +3199,11 @@
     const thumbDown = '<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88z"/>';
 
     // Status
-    // pathLength="1": the check can draw itself (ds-draw in motion.css).
-    const check = '<path pathLength="1" d="M20 6 9 17l-5-5"/>';
-    const checkCircle = '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>';
+    // pathLength="1": the check and the tick of checkCircle can draw themselves
+    // (ds-draw in motion.css, the done face of a button, .ds-icon-swap). Drawn
+    // from the short arm, left to right, like the checks of chips and checkboxes.
+    const check = '<path pathLength="1" d="M4 12l5 5L20 6"/>';
+    const checkCircle = '<circle cx="12" cy="12" r="10"/><path pathLength="1" d="m9 12 2 2 4-4"/>';
     const alert = '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>';
     const alertCircle = '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>';
     const info = '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>';

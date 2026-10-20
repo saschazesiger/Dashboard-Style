@@ -22,6 +22,14 @@
  *
  * .ds-table--wide narrows by container query on "ds-content"; when it
  * still scrolls sideways, a fade at the edge of its card says so.
+ *
+ * The sort button presses in --ds-dur-micro (also while js/ripple.js holds
+ * .ds-pressed) and ripples; it is not a pill and does not morph. Keyboard
+ * focus on the sort button and .ds-link-btn: a ring that is solid from the
+ * first frame and snaps from offset + width to the offset (outline-offset,
+ * --ds-dur-fast), plus the focus layer on the sort button. The link button
+ * is an inline link: no ripple, no morph; a press darkens its underline
+ * (the press feedback on touch screens).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -120,6 +128,9 @@
     white-space: inherit;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    /* The ring rests (invisible) one width further out and snaps in. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   .ds-table__sort::before {
@@ -143,9 +154,15 @@
     }
   }
 
-  .ds-table__sort:active::before {
+  .ds-table__sort:focus-visible::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
+  }
+
+  .ds-table__sort:active::before,
+  .ds-table__sort.ds-pressed::before {
     opacity: var(--ds-state-pressed);
-    transition-duration: var(--ds-dur-instant);
+    transition-duration: var(--ds-dur-micro);
   }
 
   .ds-table__sort:focus-visible {
@@ -261,12 +278,28 @@
     text-decoration-color: var(--ds-link-underline);
     text-underline-offset: var(--ds-link-underline-offset);
     cursor: pointer;
-    transition: text-decoration-color var(--ds-dur-fast) var(--ds-ease-in-out);
+    /* The ring rests (invisible) one width further out and snaps in. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition:
+      text-decoration-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   @media (hover: hover) {
     .ds-link-btn:hover {
       text-decoration-color: var(--ds-link-underline-hover);
     }
+  }
+
+  /* The press on touch screens, which show no hover: the underline darkens
+     like on hover. An inline link has no ripple and no morph. */
+  .ds-link-btn:active {
+    text-decoration-color: var(--ds-link-underline-hover);
+  }
+
+  /* Its own ring, also without .ds-base; it follows the small radius. */
+  .ds-link-btn:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
   }
 }

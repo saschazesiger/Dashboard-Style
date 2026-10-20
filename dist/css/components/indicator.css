@@ -2,7 +2,9 @@
  * Sliding indicator (js/indicator.js). The component that uses it gives it
  * a look (background, radius); this file only moves it. Position and size
  * glide together on the standard curve, so the pill never stretches past
- * its target (no spring).
+ * its target (no spring). Its radius springs like a pill's after a press
+ * morph, also while it rests (the drawer squares the pill under a pressed
+ * active item).
  *
  *   <nav class="ds-has-indicator"> <span class="ds-indicator ..."> ... </nav>
  *   (createIndicator() inserts the span and the class.)
@@ -29,11 +31,13 @@
       transform var(--ds-dur-medium) var(--ds-ease-in-out),
       width var(--ds-dur-medium) var(--ds-ease-in-out),
       height var(--ds-dur-medium) var(--ds-ease-in-out),
-      opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial);
   }
 
+  /* Placed without a glide; a radius change (a press morph) still springs. */
   .ds-indicator--instant {
-    transition: none;
+    transition: border-radius var(--ds-dur-medium) var(--ds-ease-spatial);
   }
 
   .ds-indicator[data-empty] {

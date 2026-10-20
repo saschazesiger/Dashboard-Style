@@ -69,6 +69,8 @@ function frames(page) {
 async function ringIsClipped(page, locator, unclip, pad = 8) {
   const box = await locator.boundingBox();
   const clip = { x: Math.floor(box.x - pad), y: Math.floor(box.y - pad), width: Math.ceil(box.width + 2 * pad), height: Math.ceil(box.height + 2 * pad) };
+  // The ring snaps in (outline-offset, --ds-dur-fast): compare it at rest.
+  await settle(page);
   await frames(page);
   const before = await page.screenshot({ clip, animations: 'allow', caret: 'hide' });
   await page.addStyleTag({ content: unclip });
@@ -306,7 +308,6 @@ test.describe('fixed in P3', () => {
   }
 
   test('hovering a disabled chip leaves its state layer alone', async ({ page }) => {
-    test.fail(true, 'controls-chip-disabled-hover: fixed in P3');
     await open(page, 'controls.html');
     const chip = page.locator('#chips .ds-chip').filter({ has: page.locator('input:disabled') });
     const body = chip.locator('.ds-chip__body');
@@ -317,7 +318,6 @@ test.describe('fixed in P3', () => {
   });
 
   test('hovering a disabled switch leaves its handle alone', async ({ page }) => {
-    test.fail(true, 'controls-switch-disabled: fixed in P3');
     await open(page, 'controls.html');
     const control = page.locator('.ds-switch').filter({ has: page.locator('#switch-disabled-off') });
     const track = control.locator('.ds-switch__track');
@@ -328,7 +328,6 @@ test.describe('fixed in P3', () => {
   });
 
   test('a field\'s focus ring leaves as one unit on blur', async ({ page }) => {
-    test.fail(true, 'controls-form-blur-ghost: fixed in P3');
     await open(page, 'controls.html');
     const field = page.locator('#field-name');
     const rest = await styleOf(field, 'border-top-color');
@@ -349,7 +348,6 @@ test.describe('fixed in P3', () => {
   });
 
   test('the focus ring of a link in .ds-parts is not clipped', async ({ page }) => {
-    test.fail(true, 'controls-list-parts-clip: fixed in P3');
     await open(page, 'controls.html');
     const link = page.locator('#parts a').nth(1);
     await focusByKeyboard(page, link);
@@ -357,7 +355,6 @@ test.describe('fixed in P3', () => {
   });
 
   test('.ds-link-btn and .ds-errors summary show the --ds-focus ring without .ds-base', async ({ page }) => {
-    test.fail(true, 'layout-linkbtn-focus, layout-errors-summary-focus: fixed in P3');
     await open(page, 'controls.html');
     const ring = await page.evaluate(() => {
       const probe = document.createElement('span');

@@ -5,9 +5,10 @@
  * tokens.css.
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
- * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-swap) in
- * ds.utilities. That layer comes after ds.components, so a utility wins
- * over a component's own animation by layer order, not by specificity.
+ * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-swap,
+ * .ds-icon-swap) in ds.utilities. That layer comes after ds.components,
+ * so a utility wins over a component's own animation by layer order, not
+ * by specificity.
  *
  * The per-element hooks (--ds-motion-*, --ds-clip-from, --ds-draw-length,
  * --ds-enter-*, --ds-leave-*, --ds-i) are registered here, at the top
@@ -421,6 +422,66 @@
 
   .ds-swap > * {
     grid-area: 1 / 1;
+  }
+
+  /*
+   * Icon swap (copy to check, play to pause): two icons in one grid cell.
+   * data-swap="b" on the wrapper, or (without data-swap) an ancestor with
+   * aria-pressed="true", shows b; otherwise a shows. The incoming icon
+   * fades in (--ds-dur-fast) and springs up from --ds-scale-small
+   * (--ds-dur-medium); the outgoing one only fades (--ds-dur-instant,
+   * accelerating) and takes its small scale once it is gone. A
+   * pathLength="1" glyph in b (the check) draws itself as it comes. A
+   * crossfade with a scale, not a path morph. Transitions, not keyframes:
+   * nothing plays on the first render, and a rapid toggle turns back from
+   * where the icons are. DS.motion.crossfade(el, icon, { kind: 'icon' })
+   * builds the markup and flips data-swap.
+   *
+   *   <span class="ds-icon-swap" data-swap="a">
+   *     <span class="ds-icon-swap__a">(copy)</span><span class="ds-icon-swap__b">(check)</span>
+   *   </span>
+   */
+  .ds-icon-swap {
+    display: inline-grid;
+    place-items: center;
+    vertical-align: middle;
+  }
+
+  .ds-icon-swap > :is(.ds-icon-swap__a, .ds-icon-swap__b) {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* Hidden: b at rest, a while b shows. b's drawn glyph waits undrawn:
+     the face carries stroke-dashoffset and the glyph inherits it (one
+     state on the face, so engines that restyle only the face's own
+     subtree still draw the glyph). */
+  .ds-icon-swap > .ds-icon-swap__b,
+  .ds-icon-swap:where([data-swap="b"], [aria-pressed="true"] :not([data-swap])) > .ds-icon-swap__a {
+    opacity: 0;
+    scale: var(--ds-scale-small);
+    stroke-dashoffset: 1;
+    transition:
+      opacity var(--ds-dur-instant) var(--ds-ease-in),
+      scale 0s var(--ds-dur-instant),
+      stroke-dashoffset 0s var(--ds-dur-instant);
+  }
+
+  .ds-icon-swap:where([data-swap="b"], [aria-pressed="true"] :not([data-swap])) > .ds-icon-swap__b {
+    opacity: 1;
+    scale: 1;
+    stroke-dashoffset: 0;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-medium) var(--ds-ease-spatial),
+      stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out);
+  }
+
+  .ds-icon-swap__b [pathLength] {
+    stroke-dasharray: 1;
   }
 
   /*

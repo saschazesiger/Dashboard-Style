@@ -3,6 +3,92 @@
 All notable changes. Versions follow [semver](https://semver.org): renaming or removing a token, class, hook or JS
 export is a major change; adding one is a minor change.
 
+## 1.1.0
+
+Motion 2, the controls: every action presses with a layer in `--ds-dur-micro`, a ripple and a shape morph; every
+focus ring is solid from the first frame and snaps to its offset, with a focus layer; buttons get busy and success
+faces without a width jump and icon swaps; chips, the switch and drawn checkboxes and radios move on the shared
+timing; fields and disabled states follow one model. Additive: no class, token, hook or export was removed or
+renamed. Screenshots of pressed, focused and disabled controls change (see "Changed").
+
+### Added
+
+- Button faces: `.ds-btn__faces` with `.ds-btn__face`, `.ds-btn__face--busy` and `.ds-btn__face--done` stack every
+  label in one cell, so a button never changes width; `.ds-btn--done` shows the success face (its `pathLength="1"`
+  check draws itself) and blocks the button like `aria-busy`.
+- `DS.motion.busy(button, work, { done })`: `aria-busy` at once, the busy face only after `--ds-delay-loader`, kept
+  for the loader minimum once shown, then `.ds-btn--done` for `--ds-hold-success`; a failure clears at once and
+  rethrows; a second call while busy returns the running promise.
+- `.ds-icon-swap` (`.ds-icon-swap__a`, `.ds-icon-swap__b`, `data-swap` or an `aria-pressed="true"` ancestor) and
+  the `'icon'` kind of `DS.motion.crossfade()`: the incoming icon fades in and springs up from `--ds-scale-small`, a
+  drawn glyph draws itself, the outgoing one fades.
+- Switch state words: `.ds-switch__state` may hold both `.ds-switch__on` and `.ds-switch__off`; the CSS shows the
+  right one and crossfades them (the single-word markup still works).
+- `.ds-checkbox` and `.ds-radio-input`: a drawn checkbox or radio anywhere (a table column, a list item).
+- Tokens: `--ds-state-focus` (.10, the focus layer), `--ds-hold-success` (600ms); roles `--ds-radius-check` (2px),
+  `--ds-radius-action-pressed` (12px) and `--ds-radius-card-pressed` (`= --ds-radius-sm`).
+- Hooks: `--ds-btn-radius-pressed`, `--ds-btn-state-focus-opacity`, `--ds-chip-height`, `--ds-chip-check-size`,
+  `--ds-chip-disabled-border`, `--ds-chip-disabled-bg`, `--ds-switch-halo`, `--ds-switch-disabled-track`,
+  `--ds-switch-disabled-handle`, `--ds-check-size`, `--ds-check-target`, `--ds-drawer-item-height`.
+- Ripple hosts: `.ds-radio` (radio cards, also when their input is pressed), `.ds-combo__toggle` and
+  `.ds-errors summary`; `DS.ripple.RIPPLE_HOSTS` exports the host selector. `DS.ripple.attach()` also glides chips
+  that a toggle moves to another line (FLIP, each chip on an opaque backing in the colour behind the row:
+  `data-ds-glide`, `--ds-chips-backdrop`; the toggled chip opens with its neighbour by `clip-path` and its label
+  glides, so the two never overlap), and plays the check slot from where it is on a rapid toggle.
+- `.ds-pressed` (the press `DS.ripple` holds) now counts as a press on every host: chips, segmented options, drawer
+  items, tiles, table sort buttons, radio cards, the combobox toggle and the errors summary; a static
+  `.ds-pressed` shows a held press.
+
+### Changed
+
+- **Press morph**: buttons (`.ds-btn`, also `--icon` and `--disc`), drawer items (and the pill under the active
+  one) and the combobox toggle turn squarer while pressed (`--ds-radius-action-pressed`, in `--ds-dur-micro`) and
+  spring back on release (`--ds-ease-spatial`, `--ds-dur-medium`); radio cards go to `--ds-radius-card-pressed`;
+  segmented options morph the clip of their state layer. The rest radius of a pill is now `min(radius, half the
+  height)` instead of 9999px (the same look; the morph interpolates over its whole run). Disabled, `aria-disabled`,
+  busy and done controls neither morph nor show a press.
+- **Micro press-in**: every press layer comes in `--ds-dur-micro` instead of `--ds-dur-instant`.
+- **Focus**: every ring is solid from the first frame and snaps from offset + width to its offset
+  (`outline-offset`, `--ds-dur-fast`; inset rings of segmented options, drawer items and `.ds-parts` links from the
+  edge inward), with a focus layer (`--ds-state-focus`) under it on buttons, chips, segmented options, drawer items,
+  tiles, table sort buttons and the errors summary. Drawer items now have a ring of their own; `.ds-link-btn` and
+  `.ds-errors summary` show theirs without `.ds-base`; `.ds-parts` no longer clips the rings of its links.
+- **Checkboxes and radios are drawn** on the native input (`appearance: none`, no wrapper) instead of
+  `accent-color`, in `.ds-check`, `.ds-table` (not the hidden input of a switch or chip in a cell), radio cards and
+  the new classes: the check wipes in from its short
+  arm, the indeterminate dash and the check morph into each other, the radio dot springs, and a 40px halo shows
+  hover (also on the `.ds-check` row), press and focus (on touch screens a tap grows it from the centre). In a table
+  cell the box now centres on the text (`vertical-align: middle`). Forced colours use system colours.
+- **Chips**: the check keeps its room in the layout; selecting grows its slot (`width`, `--ds-ease-out`, the
+  neighbours follow) and draws the check; deselecting reverses it.
+- **Switch**: the handle is one 28px box moved and scaled on the spring (`translate`, `scale`; never above 1), grows
+  to its full size while pressed, and a halo (`--ds-switch-halo`) follows it for hover, press and focus.
+- **One disabled model**: chips and the switch now take the button's neutral Material look
+  (`--ds-disabled-fill`, `--ds-disabled-ink`; a dimming theme keeps their own colours), show no hover, press,
+  ripple or halo and take the `not-allowed` cursor; buttons, chips, the switch and the inputs fade into the
+  disabled look on `--ds-dur-fast`.
+- **Fields**: on blur border, inner ring and text fade back together (the ring never fades as half a ring); the
+  label takes the primary colour with the ring and keeps the error ink on an invalid field; an error message fades
+  in and, where `interpolate-size` exists, its room opens from 0 when it appears while focus is in its form or
+  field (a message already in the markup only fades, so nothing shifts on load).
+- `.ds-link-btn`: a press darkens its underline. `.ds-errors summary`: a state layer, the ripple and a 4px padding
+  that hangs into the space around it. `.ds-combo__toggle`: a state layer, the ripple and the press morph.
+- The `check` glyph is drawn from its short arm (`M4 12l5 5L20 6`, `pathLength="1"`); the tick of `checkCircle`
+  can draw itself too. Same shape; only `ds-draw` and drawn checks change direction.
+- A project `transition` on `.ds-btn`, `.ds-chip__body` or `.ds-input` (unlayered, so it wins) replaces the
+  component's list, and with it the focus snap, the spring back of the morph and the ring's fade: set hooks
+  instead (docs/theming.md, "Layers").
+
+### Fixed
+
+- `DS.ripple`: a chip or radio card whose input is disabled by a disabled `<fieldset>` (such as
+  `<fieldset class="ds-chips" disabled>`) no longer gets a ripple or `.ds-pressed`; only an input's own `disabled`
+  attribute counted before.
+
+### Deprecated (removed in 2.0)
+
+- `.ds-btn__swap` (one face that the page swaps): use `.ds-btn__faces` and `DS.motion.busy()`.
+
 ## 1.0.0
 
 Motion 2, the foundation and the engine: a newer browser floor, cascade layers, one motion scheme on every device, a

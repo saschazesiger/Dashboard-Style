@@ -25,9 +25,18 @@ the tests in `test/`.
 - **Status is never colour alone.** A status chip has an icon and a word; a selected chip has a check; the active
   navigation item is also set in the label weight; a chosen toggle changes shape.
 - **Links are underlined** (`--ds-link-underline-*`); colour alone does not tell a link from text.
-- **Focus is a 2px ring on `:focus-visible`**, solid at once, on every control (`--ds-focus-outline`). Fields
-  show their inset ring on any focus. (From 1.1.0 the ring snaps from a 4px to its 2px offset; it is still solid
-  from the first frame.)
+- **Focus is a 2px ring on `:focus-visible`** on every control (`--ds-focus-outline`), solid from the first frame;
+  only its offset snaps from 4px to 2px (inset rings from the edge inward) in `--ds-dur-fast`. A focus layer
+  (`--ds-state-focus`) lies under the ring at once; a press stays on top of it. Fields show their inset ring on any
+  focus. No ring may be clipped: a container that clips takes an inset ring for its items.
+- **A press is a layer, a ripple and a shape.** The state layer comes in `--ds-dur-micro`, the ripple grows from the
+  pointer (`DS.ripple.attach(document)`), and pills turn squarer (`--ds-radius-action-pressed`) and spring back on
+  release. Nothing scales on press except the switch handle; checkboxes, radios and the switch show a halo instead
+  of a ripple. Inline text links (`.ds-link-btn`, links in text) neither ripple nor morph.
+- **One disabled model.** Disabled controls take the neutral Material look (`--ds-disabled-fill` container or
+  outline, `--ds-disabled-ink` content; a theme may dim them as a whole with `--ds-disabled-opacity`), show no hover,
+  press, ripple, morph or halo, take the `not-allowed` cursor where they can still be pointed at, and fade into that
+  look on `--ds-dur-fast`.
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
   why over a bare `disabled`.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
@@ -61,6 +70,10 @@ the tests in `test/`.
 - Text roles pass WCAG AA on their surfaces; `--ds-text-3` only on white.
 - Field text is 16px on phones (`--ds-font-input`), or iOS Safari zooms into the page.
 - Labels stay above fields, never only as a placeholder; hints and errors are linked with `aria-describedby`.
+- Checkboxes and radios stay native inputs, drawn on the input itself (`appearance: none`, no wrapper), so forms,
+  labels, the keyboard and screen readers work as without CSS.
+- A busy button (`aria-busy`) and its done face change only what is seen: announce the result yourself (an
+  `aria-live` region or a snackbar).
 - Forced colors (Windows contrast themes) drop backgrounds and shadows: floating layers carry a transparent outline
   that becomes their edge, selects get their native arrow back, and the spinner, switch, progress and loading bar use
   system colours. Keep these when you build your own floating layers.

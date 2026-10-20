@@ -195,11 +195,15 @@ test('table rows glide when a tbody is reordered', async ({ page }) => {
   await page.evaluate((names) => DS.dom.morphHtml(document.getElementById('rows'), fxData.rows(names)), NAMES.slice(0, 5));
   const row = page.locator('#rows > tr[data-ds-key="LAPTOP-0042"]');
   const from = (await row.boundingBox()).y;
-  await page.evaluate((names) => {
+  // Frozen and read in the task of flip(): one round trip can take as long
+  // as the ~300ms glide (seen in Firefox), which would end before it is read.
+  const ids = await page.evaluate((names) => {
     const body = document.getElementById('rows');
     DS.motion.flip(body, (hooks) => DS.dom.morphHtml(body, fxData.rows(names), hooks));
+    for (const animation of document.getAnimations()) animation.pause();
+    return body.querySelector('tr[data-ds-key="LAPTOP-0042"]').getAnimations().map((animation) => animation.id);
   }, NAMES.slice(0, 5).reverse());
-  expect(await row.evaluate((el) => el.getAnimations().map((animation) => animation.id))).toEqual(['ds-flip']);
+  expect(ids).toEqual(['ds-flip']);
   const [middle] = await sample(row, ['rect.y'], [{ progress: 0.5 }]);
   await finishAll(page);
   await settle(page);

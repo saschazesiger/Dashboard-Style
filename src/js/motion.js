@@ -31,8 +31,11 @@
  * progress bars (one loop per element), flip() moves reordered items from
  * their old places (retargeting mid-flight; live data waits while pointed
  * at or focused). roll() and crossfade() swap content in a .ds-swap slot
- * through enter() and leave(), so they are interruptible too. originFrom()
- * writes where a popup grows from.
+ * through enter() and leave(), so they are interruptible too; an icon
+ * crossfade (kind 'icon') only flips the CSS transitions of .ds-icon-swap.
+ * busy() drives the faces of a button (busy, done) through aria-busy and
+ * .ds-btn--done; the faces themselves are CSS. originFrom() writes where a
+ * popup grows from.
  *
  * ES2022 (Safari 16.4); a module may import from an earlier module (the
  * build bundles it into dist/ds.js as DS.motion); newer APIs only behind
@@ -63,6 +66,7 @@ export const MOTION_FALLBACKS = Object.freeze({
   '--ds-delay-loader': 200,
   '--ds-delay-boot': 400,
   '--ds-hold-loader': 450,
+  '--ds-hold-success': 600,
   '--ds-ease-in-out': 'cubic-bezier(.2, 0, 0, 1)',
   '--ds-ease-out': 'cubic-bezier(.05, .7, .1, 1)',
   '--ds-ease-in': 'cubic-bezier(.3, 0, 1, 1)',
@@ -1098,6 +1102,79 @@ export function settleLoader(startedAt, nowOrOptions, options = {}) {
   return ms ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
 }
 
+/* ── Busy buttons ───────────────────────────────────── */
+
+/** The running busy() of each button. @type {WeakMap<Element, Promise<any>>} */
+const busyRuns = new WeakMap();
+
+/** The timer that ends each button's success face. @type {WeakMap<Element, any>} */
+const doneTimers = new WeakMap();
+
+/** Takes the success face off at once (a new busy() starts). */
+function clearDone(button) {
+  clearTimeout(doneTimers.get(button));
+  doneTimers.delete(button);
+  button.classList?.remove('ds-btn--done');
+}
+
+/**
+ * Runs `work` while `button` shows that it works, through the faces of
+ * button.css: aria-busy="true" at once (blocked, the busy face shows after
+ * --ds-delay-loader, so fast work changes nothing); once a busy face showed
+ * it stays for the loader minimum (settleLoader(), --ds-hold-loader); on
+ * success aria-busy goes and, unless `done` is false, .ds-btn--done shows
+ * the success face for --ds-hold-success. On failure aria-busy goes at once
+ * and the error is rethrown. A second call while the button is busy
+ * returns the running promise and does not start `work` again; a call
+ * during the success face takes it off first. Times are the computed
+ * tokens (--ds-time-scale applies). Announcing the result stays the page's
+ * job (aria-live).
+ * @template T
+ * @param {Element|null|undefined} button  a .ds-btn, best with .ds-btn__faces
+ * @param {(() => T|PromiseLike<T>)|PromiseLike<T>|T} work  a function (called at once) or a promise
+ * @param {{ done?: boolean }} [options]  done: false skips the success face
+ * @returns {Promise<T>} the work's result, once the button is no longer busy
+ */
+export function busy(button, work, options = {}) {
+  const start = () => {
+    try {
+      return typeof work === 'function' ? /** @type {Function} */ (work)() : work;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  };
+  if (!button) return Promise.resolve(start());
+  const running = busyRuns.get(button);
+  if (running) return running;
+  const done = options.done ?? true;
+  clearDone(button);
+  button.setAttribute('aria-busy', 'true');
+  const startedAt = Date.now();
+  const delay = motionDuration(button, '--ds-delay-loader');
+  /** @type {Promise<any>} */
+  let promise;
+  const finish = () => {
+    if (busyRuns.get(button) === promise) busyRuns.delete(button);
+    button.removeAttribute('aria-busy');
+  };
+  promise = Promise.resolve(start()).then(
+    (value) => settleLoader(startedAt, { element: button, delay }).then(() => {
+      finish();
+      if (done) {
+        button.classList.add('ds-btn--done');
+        doneTimers.set(button, setTimeout(() => clearDone(button), motionDuration(button, '--ds-hold-success')));
+      }
+      return value;
+    }),
+    (error) => {
+      finish();
+      throw error;
+    },
+  );
+  busyRuns.set(button, promise);
+  return promise;
+}
+
 /* ── Values ─────────────────────────────────────────── */
 
 /** --ds-dur-glide outside a theme (MOTION_FALLBACKS): how long countUp() counts. */
@@ -1394,22 +1471,94 @@ export function roll(element, text) {
     { '--ds-leave-keyframes': 'ds-fade-out, ds-roll-out' });
 }
 
+/** Whether an icon swap shows b: its data-swap, else an aria-pressed="true" ancestor. */
+function showsB(element) {
+  const swap = element.getAttribute('data-swap');
+  if (swap) return swap === 'b';
+  return Boolean(element.parentElement?.closest('[aria-pressed="true"]'));
+}
+
+/** The face `which` ('a' or 'b') of an icon swap, created when missing. */
+function iconFace(element, which) {
+  const existing = Array.from(element.children).find((child) => child.classList.contains(`ds-icon-swap__${which}`));
+  if (existing) return existing;
+  const face = element.ownerDocument.createElement('span');
+  face.className = `ds-icon-swap__${which}`;
+  return face;
+}
+
+/** `next` as one node: an element as is, a string as icon markup (an icon() string). */
+function iconNode(element, next) {
+  if (next?.nodeType) return next;
+  const template = element.ownerDocument.createElement('template');
+  template.innerHTML = String(next ?? '').trim();
+  const nodes = Array.from(template.content.childNodes);
+  if (nodes.length === 1) return nodes[0];
+  const span = element.ownerDocument.createElement('span');
+  span.append(...nodes);
+  return span;
+}
+
 /**
- * Crossfades the content of `element` (which becomes a .ds-swap slot) to
- * `next`, a node or a string: the new content fades in (--ds-dur-fast,
- * --ds-ease-in-out) while the current one fades out (--ds-dur-instant,
+ * The icon kind of crossfade(): `element` becomes (or is) a .ds-icon-swap
+ * with the faces .ds-icon-swap__a (its current content) and
+ * .ds-icon-swap__b; `next` goes into the face that is not shown (unless
+ * that face already holds the same icon, or `next` is a face) and
+ * data-swap flips to it. The CSS transitions do the rest.
+ */
+function iconSwap(element, next) {
+  element.classList.add('ds-icon-swap');
+  const a = iconFace(element, 'a');
+  const b = iconFace(element, 'b');
+  const built = !a.parentNode || !b.parentNode;
+  if (!a.parentNode) {
+    for (const node of Array.from(element.childNodes)) if (node !== b) a.append(node);
+    element.prepend(a);
+  }
+  if (!b.parentNode) element.append(b);
+  const shown = showsB(element) ? b : a;
+  const target = next === a || next === b ? next : shown === a ? b : a;
+  if (next !== a && next !== b) {
+    const node = iconNode(element, next);
+    const same = target.childNodes.length === 1 && target.firstChild.isEqualNode?.(node);
+    if (!same) {
+      target.replaceChildren(node);
+      flushStyle(target);
+    }
+  }
+  // New faces and new content get their hidden style first, so the swap transitions from it.
+  if (built) for (const face of [a, b]) flushStyle(face);
+  element.setAttribute('data-swap', target === b ? 'b' : 'a');
+  return settled(element, { transitions: true, subtree: true });
+}
+
+/**
+ * Crossfades the content of `element` to `next`.
+ *
+ * kind 'text' (the default): `element` becomes a .ds-swap slot and
+ * `next` (a node or a string of text) fades in (--ds-dur-fast,
+ * --ds-ease-in-out) while the current content fades out (--ds-dur-instant,
  * --ds-ease-in) and is removed. No movement and no width measuring: the
  * grid slot holds the width while both are there. Safe to call again
  * mid-swap; only the last content stays.
+ *
+ * kind 'icon' (1.1): `element` becomes a .ds-icon-swap (its current
+ * content is face a) and `next` (an element, or icon markup from
+ * DS.icons.icon()) goes into the face that is hidden; data-swap flips to
+ * it. The incoming icon fades in and springs up from --ds-scale-small, a
+ * pathLength="1" glyph draws itself; the outgoing one only fades. A rapid
+ * toggle turns back from where the icons are. Pass an element (iconElement())
+ * where a policy forbids parsing markup.
  * @param {Element|null|undefined} element
  * @param {Node|string} next
- * @param {{ kind?: 'text' }} [options]  only 'text' (the default) exists in 1.0
+ * @param {{ kind?: 'text'|'icon' }} [options]
  * @returns {Promise<void>} resolves when the swap settled
  */
 export function crossfade(element, next, options = {}) {
   const kind = options.kind ?? 'text';
-  if (kind !== 'text') throw new TypeError(`crossfade(): unknown kind "${kind}"`);
+  if (kind !== 'text' && kind !== 'icon') throw new TypeError(`crossfade(): unknown kind "${kind}"`);
   if (!element) return Promise.resolve();
+  if (kind === 'icon') return iconSwap(element, next);
   const current = swapSlot(element);
   let incoming = /** @type {any} */ (next);
   if (incoming?.nodeType !== 1) {

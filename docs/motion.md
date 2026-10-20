@@ -46,10 +46,37 @@ distances, Material curves and a gentle spring for movement that floats. All tim
    `DS.motion.settleLoader` waits for both.
 10. Re-render with `DS.dom.morphHtml` (keyed, in place), never `innerHTML`: an animating element (a spinner, an
     entering card) keeps its animation, a field its focus, and only the nodes that changed change.
-11. Focus rings appear instantly, never animated.
+11. Focus rings are solid from the first frame: only their offset moves, snapping from offset + width (4px) to the
+    offset (2px) in `--ds-dur-fast` (a transition, never a keyframe, so it never takes over an element's
+    `animation`); their colour and width never animate. Fields show their inset ring at once.
 
 For slow motion, the styleguide and the tests set the registered
 `--ds-time-scale` (`?speed=0.1` multiplies every duration and delay by 10); pages never set it.
+
+## Press, focus and state
+
+The controls (1.1) share one timing. Press feedback is the state layer, the ripple
+([DS.ripple](#dsripple-jsripplejs)) and the shape morph: pills turn squarer while pressed
+(`--ds-radius-action-pressed`, radio cards `--ds-radius-card-pressed`) and spring back on release; nothing scales
+except the switch handle. Disabled, `aria-disabled` and busy controls neither morph nor show a press.
+
+| Moment | Duration | Curve |
+|---|---|---|
+| press-in of the state layer and the radius | `--ds-dur-micro` | layer `--ds-ease-in-out`, radius `--ds-ease-out` |
+| radius release (the morph springs back) | `--ds-dur-medium` | `--ds-ease-spatial` |
+| state layer release, colours | `--ds-dur-fast` | `--ds-ease-in-out` |
+| focus snap (`outline-offset`), with the focus layer (`--ds-state-focus`) at once | `--ds-dur-fast` | `--ds-ease-out` |
+| switch handle travel and size, radio dot, icon-swap scale | `--ds-dur-medium` | `--ds-ease-spatial` |
+| switch handle press grow (to its full 28px, never above) | `--ds-dur-instant` | `--ds-ease-out` |
+| chip check slot `width` (a size that pushes layout) | `--ds-dur-medium` | `--ds-ease-out` |
+| drawn marks in (chip and button checks: `stroke-dashoffset`; checkbox: a clip wipe) | `--ds-dur-medium` after `--ds-dur-micro` | `--ds-ease-out` |
+| marks out, leaving faces and words | `--ds-dur-fast` or `--ds-dur-instant` | `--ds-ease-in` |
+| disabled look (colours and opacity) | `--ds-dur-fast` | `--ds-ease-in-out` |
+
+What leaves takes 0.4-0.67 of what enters: the chip check, the checkbox mark and the radio dot 250 to 150ms, the
+button faces and the switch words 150 to 100ms, the icon swap 250 to 100ms (tested). Everything here is a
+transition, so a control rendered in its end state (a chip rendered selected, a box rendered checked) stays still
+on load, and a rapid toggle turns back from where it is.
 
 ## Utilities (CSS)
 
@@ -71,6 +98,7 @@ For slow motion, the styleguide and the tests set the registered
 | `.ds-collapsible` | on `<details>`: animates the height where supported |
 | `.ds-view--leaving` | quick fade-out of a view's children before a swap |
 | `.ds-swap` | a slot whose children share one grid cell (`inline-grid`, clipped), so outgoing and incoming content cross without a width jump; `DS.motion.roll()` and `crossfade()` make it |
+| `.ds-icon-swap` | two icons in one cell, `.ds-icon-swap__a` and `.ds-icon-swap__b`: `data-swap="b"` (or, without `data-swap`, an ancestor with `aria-pressed="true"`) shows b. The incoming icon fades in (`--ds-dur-fast`) and springs up from `--ds-scale-small` (`--ds-dur-medium`), a `pathLength="1"` glyph in b draws itself (`stroke-dashoffset`, `--ds-ease-out`); the outgoing one only fades (`--ds-dur-instant`, accelerating). Transitions: nothing plays on the first render, a rapid toggle turns back from where it is. A crossfade with a scale, not a path morph; `crossfade(el, icon, { kind: 'icon' })` makes it |
 
 The utilities sit in the `ds.utilities` layer, so they beat a component's own animation; unlayered project
 animations beat the utilities. Loaders are the exception for `.ds-stagger` and `.ds-reveal`: a `.ds-skeleton`,
@@ -158,17 +186,18 @@ movement curve (the spring for an entrance without one); nothing snaps.
 | `motionDuration(el, token)` | a duration token as computed on `el`, in ms, `--ds-time-scale` included; `MOTION_FALLBACKS[token]` outside a `.ds-theme` |
 | `motionEasing(el, token)` | an easing token as computed on `el` (`cubic-bezier()` or `linear()`); the cubic of `MOTION_FALLBACKS` outside a `.ds-theme` |
 | `travelDuration(el, px)` | the travel rule of FLIP and the indicator: `--ds-dur-medium` plus up to `--ds-dur-slow` by distance (all of it at 480px) |
-| `MOTION_FALLBACKS` | frozen fallbacks by token name: the ms of every `--ds-dur-*`, `--ds-delay-*` and `--ds-hold-loader`, the cubic of every `--ds-ease-*` (the spring falls back to `--ds-ease-out`); tested against `tokens.css` |
+| `MOTION_FALLBACKS` | frozen fallbacks by token name: the ms of every `--ds-dur-*`, `--ds-delay-*` and `--ds-hold-*`, the cubic of every `--ds-ease-*` (the spring falls back to `--ds-ease-out`); tested against `tokens.css` |
 | `LOADER_DELAY_MS` | 200, equals `--ds-delay-loader` |
 | `LOADER_MIN_VISIBLE_MS` | 450: a loader that appeared stays at least this long |
 | `loaderHoldMs(startedAt, now?, { delay, minVisible })` | how much longer a loader inserted at `startedAt` must stay (0 if it never showed); `delay` and `minVisible` default to `LOADER_DELAY_MS` and `LOADER_MIN_VISIBLE_MS` |
 | `settleLoader(startedAt, nowOrOptions?, { element, delay, minVisible })` | Promise that waits for `loaderHoldMs`; with `element` (the loader) the times come from its computed tokens, time-scaled: the delay from `--ds-delay-boot` when it is or sits in a `.ds-boot`, else `--ds-delay-loader`, the minimum from `--ds-hold-loader`. The second argument may be `now` or the options |
+| `busy(button, work, { done })` | runs `work` (a function, called at once, or a promise) while the button shows it works, through the faces of [components.md](components.md#button): `aria-busy="true"` at once (the busy face shows after `--ds-delay-loader`, so fast work changes nothing); a busy face that showed stays for the loader minimum (the `settleLoader()` path); on success `aria-busy` goes and, unless `done: false`, `.ds-btn--done` shows the success face for `--ds-hold-success`; on failure `aria-busy` goes at once and the error is rethrown. A call while busy returns the running promise without starting `work` again; a call during the success face takes it off first. Times are computed tokens (`--ds-time-scale` applies). Returns a Promise of the work's result, once the button is no longer busy. Announcing the result stays the page's job (`aria-live`) (1.1) |
 | `countUp(el, to, { from, format, duration, win })` | counts a key figure from the value it shows (0 on the first call, or `from`) to `to`, up or down, on `--ds-ease-value` over `--ds-dur-glide` (`COUNT_UP_MS` outside a theme), on a clock animation of the element (id `ds-count`, no keyframes) that starts in the same frame as a CSS transition set with it, so a figure and its progress bar land together (and pausing or seeking the page's animations holds the figure). A new call takes over from the shown value (one count per element); the same value changes nothing. While it counts the element is `aria-busy`, keeps the width of its wider string and shows tabular figures (kept). `duration: 0`, a non-finite value or no animation frames show the value at once; a disconnected element gets the final value. Returns `{ cancel, finished }`: `cancel()` writes the final value, `finished` resolves once it is written (or a later call took over) |
 | `COUNT_UP_MS` | 600, equals `--ds-dur-glide` |
 | `easeOutCubic(t)` | **deprecated** (removed in 2.0), no longer used: `countUp` runs on `--ds-ease-value` |
 | `originFrom(trigger, panel)` | where a popup grows from: writes `--ds-motion-origin` (the trigger's centre projected onto the panel, clamped, in px) and `--ds-clip-from` (the panel closed towards the trigger, with its radius) on the panel; `trigger` is an element or a `{ x, y }` point (a context menu). Call it once the panel is laid out. Returns `{ origin, side }`, `side` being where the panel lies: `'bottom'`, `'top'`, `'right'` or `'left'` |
 | `roll(el, text)` | a status line that changes: `el` becomes a `.ds-swap` slot, the old line rolls up and out (`ds-fade-out`, `ds-roll-out`, `--ds-dur-fast`, accelerating), the new one rolls in from below (`ds-fade-in`, `ds-roll-in` on the spring, `--ds-dur-medium`). A roll during a roll continues from where each line is; only the last text stays. Returns a Promise |
-| `crossfade(el, next, { kind })` | swaps the content of `el` (a `.ds-swap` slot) for `next` (a node or a string): the new content fades in over `--ds-dur-fast`, the old one fades out over `--ds-dur-instant` and is removed; no movement, no width measuring. Safe to call again mid-swap. `kind` is `'text'` (the default); any other kind throws a `TypeError` |
+| `crossfade(el, next, { kind })` | `kind: 'text'` (the default): swaps the content of `el` (a `.ds-swap` slot) for `next` (a node or a string): the new content fades in over `--ds-dur-fast`, the old one fades out over `--ds-dur-instant` and is removed; no movement, no width measuring. Safe to call again mid-swap. `kind: 'icon'` (1.1): `el` becomes a `.ds-icon-swap` (its current content is face a), `next` (an element such as `DS.icons.iconElement(...)`, or the markup of `DS.icons.icon(...)`) goes into the hidden face unless it already holds that icon, and `data-swap` flips to it; the CSS transitions do the motion. Pass an element where a policy forbids parsing markup. Any other kind throws a `TypeError`. Returns a Promise that resolves when the swap settled |
 | `flip(container, mutate, { items, live, max, hold })` | glides reordered items (FLIP): measures the items (`items` selector, default the element children; never `data-ds-keep` or leaving nodes), calls `mutate({ holdOrder, onInsert, onRemove })` (pass it to `DS.dom.morphHtml` as its options), measures again and moves each item from its old place on `translate` (`composite: 'add'`) on the spring for `travelDuration()`. While they glide, the moving items paint above the others, the farthest travel on top, so an item never passes under the items it crosses (inline `z-index` from `--ds-z-raised`, `position: relative` where the item is static, `isolation: isolate` on the container so no rank reaches past it; all restored when the glide ends). A call during a glide continues from where each item is, so a typing filter may call it per keystroke. Inserted items fade in, removed items fade out of flow where they were while the others close the gap (table rows go at once); meanwhile the container keeps its height (an inline `min-height`, restored afterwards), then glides down to its new height on `--ds-ease-out`, so what follows the list never jumps and leaving items stay inside it. Items outside the viewport before and after jump; above `max` (50) moving items the update lands without motion. `live: true`: while a mouse or pen is over the container or focus is in an item, values update at once (`holdOrder: true`) and the reorder waits until the pointer or focus leaves, at most `hold` (2000) ms; touch never holds; a call without `live` (a user's sort) runs the held reorder at once. Returns a Promise of this call's motion |
 
 First load: the loader, then the content, staggered once.
@@ -252,6 +281,18 @@ call for the same root returns the same handle. It adds `.ds-ripples` to the roo
 `document`) and listens there once (delegated): `pointerdown` with the primary button grows a ripple from the
 pointer, Enter or Space on a focused host one from the centre. Hosts, skips, the runtime properties
 (`--ds-ripple-x`, `--ds-ripple-y`, `--ds-ripple-r`), `.ds-pressed` and the markup:
-[components.md](components.md#ripple). The ripple's timing comes from the tokens (`--ds-dur-instant` minimum press,
+[components.md](components.md#ripple). `RIPPLE_HOSTS` is the selector of the default hosts (1.1). The ripple's timing comes from the tokens (`--ds-dur-instant` minimum press,
 read through `motionDuration()`). `attach()` also adds a passive `touchstart` listener, which makes iOS Safari apply
 `:active`; `detach()` removes the listeners and the class, ripples already shown finish.
+
+Chips (1.1): `attach()` also listens for `change` on `.ds-chip__input` in a `.ds-chips` row, the one call that
+wires control motion. A toggle that keeps every chip on its line plays the check slot's `width` from where it is
+(`el.animate()` on `::after` with the slot's CSS timing, so the neighbours follow the reflow and a rapid toggle
+continues from the current width); a toggle that moves a chip to another line lets the slot land at once and glides
+the chips to their new places with `flip()` (on the spring); meanwhile the row carries `data-ds-glide` and
+`--ds-chips-backdrop` (the background colour of its nearest painted ancestor), which gives every chip an opaque
+backing, so crossing chips never show through each other. The toggled chip keeps pace on the timing of the next
+chip on its line: a body that grew opens from its old width with that chip's glide (`clip-path`) and its label glides
+from where it was (`translate`), so the two never overlap; a body that shrank cannot paint its old width, so only
+its label glides back. A script that sets `checked` fires no `change`:
+then the CSS alone runs, and a chip that wraps jumps to its new line.

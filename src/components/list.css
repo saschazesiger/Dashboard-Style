@@ -9,6 +9,10 @@
  *
  * Facts take as many 220px columns as fit; exactly four facts get a
  * layout of their own, by the width of the content area.
+ *
+ * Links in parts take an inset ring for keyboard focus (also without
+ * .ds-base): solid from the first frame, it snaps from the edge inward
+ * (outline-offset, --ds-dur-fast).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -142,13 +146,29 @@
    * Parts: a line of parts that wraps between the parts. A part moves to the
    * next line whole; only a part longer than a whole line wraps inside. Each
    * part brings its «·» in front, in a padding of its own; the list is
-   * shifted left by one separator and clipped, so the separator of a part
-   * that starts a line is never seen: nothing dangles at a line end, nothing
-   * leads the next line.
+   * shifted left by one separator and clipped at the sides only, so the
+   * separator of a part that starts a line is never seen (nothing dangles at
+   * a line end, nothing leads the next line), while descenders and focus
+   * rings above and below stay whole. A link in a part rings inside its own
+   * box (an inset ring that snaps inward), so the side clip never cuts it.
    */
   .ds-parts {
     display: block;
-    overflow: hidden;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
+  /* The underline fade of the page base stays in the list. */
+  .ds-parts a {
+    outline-offset: 0;
+    transition:
+      text-decoration-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-parts a:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: calc(-1 * var(--ds-focus-width));
   }
 
   .ds-parts__list {

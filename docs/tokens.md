@@ -43,6 +43,7 @@ enforce it), so a theme reaches every value.
 | `--ds-delay-loader` | 200ms | loading indicators wait this long (`LOADER_DELAY_MS`) |
 | `--ds-delay-boot` | 400ms | the app start screen waits this long |
 | `--ds-hold-loader` | 450ms | a loader that showed stays at least this long (`LOADER_MIN_VISIBLE_MS`, `settleLoader()`) |
+| `--ds-hold-success` | 600ms | how long a button shows its success face (`.ds-btn--done`, `DS.motion.busy()`) |
 | `--ds-loop-spin`, `--ds-loop-spin-fast` | 1s, .8s | spinner / spinner in a status chip |
 | `--ds-loop-indeterminate`, `--ds-loop-pulse` | 2s, 2s | indeterminate progress / skeleton pulse |
 | `--ds-time-scale` | 1 (registered with `@property`, never declared) | slow motion: multiplies every duration, delay and loop above; set only by the styleguide and the tests, on the `.ds-theme` element or above |
@@ -65,9 +66,10 @@ The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `
 |---|---|---|
 | `--ds-state-hover` | .08 | hover layer on controls |
 | `--ds-state-hover-lg` | .06 | hover on large targets (rows, navigation items) |
+| `--ds-state-focus` | .10 | keyboard focus: the layer under the ring, at once with it (a press stays on top) |
 | `--ds-state-pressed` | .10 | pressed |
 | `--ds-state-dragged` | .16 | dragged |
-| `--ds-state-disabled` | .38 | disabled content (chips, switch; buttons in a dimming theme) |
+| `--ds-state-disabled` | .38 | disabled controls in a dimming theme (`--ds-disabled-opacity: var(--ds-state-disabled)`); the fallback of `--ds-disabled-opacity` |
 | `--ds-state-stale` | .55 | `.ds-stale`: content about to be replaced |
 
 ### Spacing and layers
@@ -112,8 +114,8 @@ The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `
 | `--ds-scrim` | `rgba(0,0,0,.32)` | behind dialogs, sheets, the modal drawer; never blurred |
 | `--ds-fill-round` | `rgba(31,31,31,.08)` | disc of `.ds-btn--disc` |
 | `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`) |
-| `--ds-disabled-opacity` | 1 | opacity of a disabled button |
-| `--ds-disabled-fill` / `--ds-disabled-ink` | `rgba(31,31,31,.12)` / `.38` | container and label of disabled buttons |
+| `--ds-disabled-opacity` | 1 | opacity of every disabled control (buttons, chips, the switch, checkboxes and radios) |
+| `--ds-disabled-fill` / `--ds-disabled-ink` | `rgba(31,31,31,.12)` / `.38` | container or outline, and ink (label, check, handle, box) of every disabled control: buttons, chips, the switch, checkboxes and radios |
 | `--ds-spinner-sm-track` | `rgba(0,0,0,.18)` | **deprecated** (removed in 2.0): small spinner's ring where `color-mix()` is missing; every baseline browser has it |
 
 All text roles pass WCAG AA (4.5:1) on the surfaces they are meant for; the tests check the pairs. The tint is too
@@ -128,7 +130,7 @@ light to carry a state alone: a selection always adds a check, a weight or an ar
 | `--ds-link-underline-thickness` / `--ds-link-underline-offset` | 1px / 3px | underline geometry, the same everywhere |
 | `--ds-focus` | `= --ds-primary` | colour of every focus indicator |
 | `--ds-focus-width` / `--ds-focus-offset` | 2px / 2px | |
-| `--ds-focus-outline` | `2px solid var(--ds-focus)` | `outline` of controls (instant, never animated) |
+| `--ds-focus-outline` | `2px solid var(--ds-focus)` | `outline` of controls: solid from the first frame; it rests (invisible) at offset + width and snaps to the offset over `--ds-dur-fast` (inset rings: from the edge inward) |
 | `--ds-focus-ring` | `0 0 0 2px surface, 0 0 0 4px focus` | `box-shadow` form for media and floating buttons |
 
 ### Radii
@@ -137,11 +139,14 @@ light to carry a state alone: a selection always adds a check, a weight or an ar
 |---|---|---|
 | `--ds-radius-xs`, `--ds-radius-sm`, `--ds-radius-md`, `--ds-radius-lg`, `--ds-radius-xl`, `--ds-radius-2xl` | 4, 8, 12, 16, 20, 28px | the scale: tooltip, code (xs); toast, skeleton heading (sm); status chip (md); tile (lg) |
 | `--ds-radius-action` | 9999px | every action: buttons, navigation pills, search, switch |
+| `--ds-radius-action-pressed` | 12px | an action while pressed (the press morph; it springs back on release); never rounder than the rest radius |
 | `--ds-radius-panel` | `= xl` | the content panel |
 | `--ds-radius-card` | `= md` | cards, alerts, radio cards |
+| `--ds-radius-card-pressed` | `= sm` | radio cards while pressed (the press morph; never rounder than `--ds-radius-card`) |
 | `--ds-radius-dialog` | `= lg` | dialogs, side sheet, modal drawer |
 | `--ds-radius-chip` | `= sm` | filter chips |
 | `--ds-radius-field` | `= sm` | fields |
+| `--ds-radius-check` | 2px | the drawn box of a checkbox (radios are round) |
 
 ### Type
 
@@ -191,7 +196,9 @@ Only floating layers cast shadows; hierarchy comes from hairlines, tonal surface
 
 ## 3. Hooks and runtime properties
 
-Component hooks are listed in [theming.md](theming.md#component-hooks). Properties set at runtime (by `js/` or by the
+Component hooks are listed in [theming.md](theming.md#component-hooks). Component-internal (set by the component, not a
+hook): `--ds-btn-half`, half a button's height (`--ds-btn-height`, or `--ds-btn-icon-size` on `--icon`), the
+largest radius a pill shows, so the press morph interpolates over its whole run instead of from 9999px. Properties set at runtime (by `js/` or by the
 page) are listed with their component in [components.md](components.md) and [motion.md](motion.md): `--ds-i`,
 `--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h`, `--ds-progress`, `--ds-toast-left`,
 `--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`, and the per-element motion settings `--ds-motion-distance`,

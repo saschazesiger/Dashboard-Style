@@ -10,8 +10,11 @@
  * The value never wraps and never takes a colour: on narrow tiles it gets
  * smaller instead (a broken number reads as another number). Status goes
  * into the label as an icon. A tile that opens something is a <button
- * class="ds-tile"> or <a class="ds-tile">: a 6% state layer and the focus
- * ring, no lift.
+ * class="ds-tile"> or <a class="ds-tile">: a 6% state layer, the press
+ * in --ds-dur-micro (also while js/ripple.js holds .ds-pressed) with the
+ * ripple, and keyboard focus with the focus layer and a ring that is solid
+ * from the first frame and snaps from offset + width to the offset
+ * (outline-offset, --ds-dur-fast); no lift.
  *
  * Hook: --ds-tile-radius.
  *
@@ -91,6 +94,9 @@
     text-decoration: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    /* The ring rests (invisible) one width further out and snaps in. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   :is(button, a).ds-tile::before {
@@ -114,9 +120,15 @@
     }
   }
 
-  :is(button, a).ds-tile:active::before {
+  :is(button, a).ds-tile:focus-visible::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
+  }
+
+  :is(button, a).ds-tile:active::before,
+  :is(button, a).ds-tile.ds-pressed::before {
     opacity: var(--ds-state-pressed);
-    transition-duration: var(--ds-dur-instant);
+    transition-duration: var(--ds-dur-micro);
   }
 
   :is(button, a).ds-tile:focus-visible {

@@ -1,5 +1,18 @@
 [
   {
+    "type": "transition",
+    "name": "outline-offset",
+    "pseudoElement": null,
+    "duration": 150,
+    "delay": 0,
+    "easing": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+    "keyframeEasing": "linear",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "backwards",
+    "target": "button.ds-btn.ds-btn--text"
+  },
+  {
     "type": "animation",
     "name": "ds-fade-in",
     "pseudoElement": null,

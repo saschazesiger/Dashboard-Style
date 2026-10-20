@@ -12,10 +12,15 @@
  * the root: pointerdown for the pointer, Enter and Space for a centred
  * ripple on a focused host. Hosts: .ds-btn, .ds-chip (the ripple goes into
  * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
- * :is(button, a).ds-tile, .ds-table__sort and [data-ds-ripple];
- * data-ds-ripple="off" on a host or an ancestor opts out. Disabled, busy
- * and aria-disabled hosts, switch, checkbox and radio inputs, and presses
- * other than the primary button get none.
+ * :is(button, a).ds-tile, .ds-table__sort, .ds-radio (a radio card, also
+ * when its own input is pressed), .ds-combo__toggle, .ds-errors summary
+ * and [data-ds-ripple]; data-ds-ripple="off" on a host or an ancestor
+ * opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
+ * card whose input is disabled, .ds-radio--disabled), switch, checkbox and
+ * radio inputs (their halo is the press), and presses other than the
+ * primary button get none. Not hosts, by design: inline links
+ * (.ds-link-btn, links in text), .ds-check rows, combobox options
+ * (pointer-down selects and closes the list) and native field parts.
  *
  * The ripple is <span class="ds-press-ripple" aria-hidden="true"
  * data-ds-keep> with --ds-ripple-x / --ds-ripple-y (its centre, px from the
@@ -29,14 +34,36 @@
  * iOS Safari applies :active only on pages with a touchstart listener:
  * attach() adds a passive one.
  *
+ * Chips (D22): attach() also listens for change on .ds-chip__input in a
+ * .ds-chips row, the one call that wires control motion. A toggle that
+ * keeps every chip on its line plays the check slot's width from where
+ * it is to its end (el.animate() on the slot with its CSS timing, so the
+ * neighbours follow the reflow and a rapid toggle continues from the
+ * current width); a toggle that moves a chip to another line lets the
+ * slot land at once and glides the chips to their new places by flip(),
+ * each chip on an opaque backing in the colour behind the row (the row's
+ * data-ds-glide and --ds-chips-backdrop, for the glide), so a chip never
+ * shows the one it crosses through its transparent body. The toggled
+ * chip keeps pace on its neighbour's timing: a body that grew is clipped
+ * back to its old width and opens with the neighbour's glide
+ * (clip-path), and its label glides from where it was (translate), so
+ * its edge and the next chip's never overlap; a body that shrank only
+ * glides its label. It measures the end layout with the row's
+ * data-ds-snap (the slots without their transition) for one forced style
+ * pass. A programmatic
+ * `checked` change has no event: there CSS alone runs and a wrap jumps.
+ *
  * ES2022 (Safari 16.4); a module may import from an earlier module (the
  * build bundles it into dist/ds.js as DS.ripple); newer APIs only behind
  * feature detection, named under Progressive:.
  */
-import { motionDuration, settled } from './motion.js';
+import { MOTION_FALLBACKS, flip, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
 
-/** The actions that get a ripple (P3, P5 and P6 add more). */
-const HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, [data-ds-ripple]';
+/** The actions that get a ripple (P5 and P6 add more). */
+export const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-errors summary, [data-ds-ripple]';
+
+/** Hosts whose own input is part of the host: pressing the input ripples the host. */
+const OWNS_INPUT = '.ds-chip, .ds-radio';
 
 /** Controls whose press is their own halo, not a ripple. */
 const OWN_PRESS = 'input[type="checkbox"], input[type="radio"], .ds-switch';
@@ -59,7 +86,7 @@ const now = () => (typeof performance !== 'undefined' ? performance.now() : Date
 /** The host of an event target inside `root`, or null. */
 function hostOf(target, root) {
   const element = target?.nodeType === 1 ? target : target?.parentElement;
-  const host = element?.closest?.(HOSTS);
+  const host = element?.closest?.(RIPPLE_HOSTS);
   if (!host || !root.contains(host)) return null;
   if (host.closest('[data-ds-ripple="off"]')) return null;
   return host;
@@ -70,12 +97,17 @@ function surfaceOf(host) {
   return host.classList.contains('ds-chip') ? host.querySelector('.ds-chip__body') : host;
 }
 
-/** Hosts that take no press: disabled, aria-disabled, busy, a chip whose input is disabled. */
+/**
+ * Hosts that take no press: disabled, aria-disabled, busy, done, a chip or
+ * radio card whose input is disabled. `:disabled`, not the property: it also
+ * holds for an input in a disabled <fieldset> (`.ds-chips` is one).
+ */
 function inactive(host) {
   if (host.matches(':disabled') || host.getAttribute('aria-disabled') === 'true' || host.getAttribute('aria-busy') === 'true') return true;
-  if (host.classList.contains('ds-chip')) {
+  if (host.classList.contains('ds-btn--done') || host.classList.contains('ds-radio--disabled')) return true;
+  if (host.matches(OWNS_INPUT)) {
     const input = host.querySelector('input');
-    if (input?.disabled) return true;
+    if (input?.matches(':disabled')) return true;
   }
   return false;
 }
@@ -149,6 +181,253 @@ function end(host) {
   if (press) release(host, press);
 }
 
+/* ── Chips across a wrap ───────────────────────────── */
+
+/** The running width glide of each chip's check slot. @type {WeakMap<Element, Animation>} */
+const slotGlides = new WeakMap();
+
+/** A computed time (the first of a list: '0.25s', '50ms') in ms. */
+function timeOf(text) {
+  const match = /^\s*(-?\d*\.?\d+)(m?s)\s*$/.exec(String(text ?? '').split(',')[0]);
+  return match ? Number(match[1]) * (match[2] === 's' ? 1000 : 1) : 0;
+}
+
+/** The first easing of a computed list (cubic-bezier() holds commas of its own). */
+function easingOf(text) {
+  const match = /^\s*([\w-]+\([^)]*\)|[\w-]+)/.exec(String(text ?? ''));
+  return match ? match[1] : 'ease';
+}
+
+/**
+ * Glides the check slot of `body` from `from` to `to` px with the timing
+ * the CSS gave it (a slot that is not animated jumps, as without script).
+ */
+function glideSlot(body, from, to, timing) {
+  if (Math.abs(from - to) < 0.5 || !(timing.duration > 0) || typeof body.animate !== 'function') return;
+  try {
+    const animation = body.animate([{ width: `${from}px` }, { width: `${to}px` }], {
+      pseudoElement: '::after',
+      duration: timing.duration,
+      delay: timing.delay,
+      easing: timing.easing,
+      fill: 'backwards',
+    });
+    animation.id = 'ds-chip-slot';
+    slotGlides.set(body, animation);
+    const done = () => {
+      if (slotGlides.get(body) === animation) slotGlides.delete(body);
+    };
+    animation.finished.then(done, done);
+  } catch {
+    // No animations of pseudo-elements: the slot lands at once.
+  }
+}
+
+/** The edge glides of each chip body across a wrap (clip-path and label translate). @type {WeakMap<Element, Animation[]>} */
+const edgeGlides = new WeakMap();
+
+/** The right inset of a computed `inset()` clip-path in px (0 for none). */
+function insetRight(clip) {
+  const match = /^inset\(([^)]*)\)/.exec(String(clip ?? '').trim());
+  if (!match) return 0;
+  const sides = match[1].split(/\s+round\s+/)[0].trim().split(/\s+/).map((value) => parseFloat(value) || 0);
+  return sides.length > 1 ? sides[1] : sides[0] ?? 0;
+}
+
+/** The x of a computed `translate` in px (0 for none). */
+function translateX(value) {
+  return parseFloat(String(value ?? '').split(/\s+/)[0]) || 0;
+}
+
+/** What of a body glides along its edge: its children but the check (over the slot, it never moves) and a ripple. */
+function labelsOf(body) {
+  return Array.from(body.children).filter((child) => !child.matches('.ds-chip__check, .ds-press-ripple'));
+}
+
+/**
+ * Where a chip body stands in an edge glide: the part of its width still
+ * clipped and its label's offset, to continue from on a rapid toggle.
+ */
+function edgeState(body) {
+  const view = body.ownerDocument.defaultView;
+  const label = labelsOf(body)[0];
+  return { clip: insetRight(view.getComputedStyle(body).clipPath), shift: label ? translateX(view.getComputedStyle(label).translate) : 0 };
+}
+
+/** Stops the edge glide of a body (it lands at once). */
+function stopEdge(body) {
+  for (const animation of edgeGlides.get(body) ?? []) animation.cancel();
+  edgeGlides.delete(body);
+}
+
+/** el.animate() with the spring's cubic fallback where linear() is unknown. */
+function animateEdge(element, keyframes, timing) {
+  try {
+    return element.animate(keyframes, timing);
+  } catch {
+    return element.animate(keyframes, { ...timing, easing: /** @type {string} */ (MOTION_FALLBACKS['--ds-ease-spatial']) });
+  }
+}
+
+/**
+ * Across a wrap the slot of a toggled chip lands at once while flip()
+ * glides its neighbours: the body keeps pace on the timing of the next
+ * chip on its line (else the travel of `grow` on the spring). A body that
+ * grew by `grow` px is clipped back to its old width and opens with the
+ * neighbour, so its edge and the neighbour's never overlap; its label
+ * glides from where it was. A body that shrank cannot paint its old width:
+ * its label glides back, clipped to the body. A keyboard ring (an outline)
+ * stays inside the clip.
+ */
+function glideEdge(body, grow, shift, timing) {
+  if (typeof body.animate !== 'function' || (Math.abs(grow) < 0.5 && Math.abs(shift) < 0.5)) return;
+  const view = body.ownerDocument.defaultView;
+  const style = view.getComputedStyle(body);
+  const radius = parseFloat(style.borderTopRightRadius) || 0;
+  const ring = style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0
+    ? Math.max(0, parseFloat(style.outlineOffset) || 0) + parseFloat(style.outlineWidth) + 1
+    : 0;
+  const clip = (right) => `inset(${-ring}px ${Math.round(right * 100) / 100}px ${-ring}px ${-ring}px round ${radius + ring}px)`;
+  const options = { duration: timing.duration, easing: timing.easing };
+  const running = [];
+  try {
+    running.push(animateEdge(body, [{ clipPath: clip(Math.max(0, grow)) }, { clipPath: clip(0) }], options));
+    if (Math.abs(shift) >= 0.5) {
+      for (const label of labelsOf(body)) running.push(animateEdge(label, [{ translate: `${Math.round(shift * 100) / 100}px 0px` }, { translate: '0px 0px' }], options));
+    }
+  } catch {
+    // No such animations: the body lands at once.
+    for (const animation of running) animation.cancel();
+    return;
+  }
+  for (const animation of running) animation.id = 'ds-chip-edge';
+  edgeGlides.set(body, running);
+  const done = () => {
+    if (edgeGlides.get(body) === running) edgeGlides.delete(body);
+  };
+  Promise.allSettled(running.map((animation) => animation.finished)).then(done);
+}
+
+/** The timing of a running ds-flip glide of `element`, or null. */
+function flipTiming(element) {
+  const animation = element?.getAnimations?.().find((item) => item.id === 'ds-flip' && item.playState !== 'finished' && item.playState !== 'idle');
+  const timing = animation?.effect?.getTiming?.();
+  return timing && Number(timing.duration) > 0 ? { duration: Number(timing.duration), easing: timing.easing || 'linear' } : null;
+}
+
+/** Whether a computed colour paints anything (alpha above 0). */
+function paints(colour) {
+  if (!colour || colour === 'transparent') return false;
+  const inner = /\(([^)]*)\)/.exec(colour)?.[1] ?? '';
+  const slash = inner.split('/');
+  if (slash.length > 1) return parseFloat(slash[1]) > 0;
+  const parts = inner.split(',');
+  return parts.length === 4 ? parseFloat(parts[3]) > 0 : true;
+}
+
+/** The colour behind `element`: the background of the nearest ancestor (itself included) that paints one. */
+function backdropOf(element) {
+  const view = element.ownerDocument.defaultView;
+  for (let node = element; node && node.nodeType === 1; node = node.parentElement) {
+    const colour = view.getComputedStyle(node).backgroundColor;
+    if (paints(colour)) return colour;
+  }
+  return '';
+}
+
+/**
+ * While chips glide across a wrap, each chip gets an opaque backing in the
+ * colour behind the row (data-ds-glide, --ds-chips-backdrop): a chip that
+ * crosses another, transparent or still fading to its fill, never shows
+ * the other one through it. At rest the backing matches what is behind.
+ */
+function backChips(row) {
+  const backdrop = backdropOf(row);
+  if (backdrop) row.style.setProperty('--ds-chips-backdrop', backdrop);
+  else row.style.removeProperty('--ds-chips-backdrop');
+  row.setAttribute('data-ds-glide', '');
+}
+
+/** Takes the backing away once no chip of `row` glides any more. */
+function unbackChips(row) {
+  const running = Array.from(row.children).flatMap((child) => child.getAnimations?.() ?? [])
+    .filter((animation) => animation.id === 'ds-flip' && animation.playState !== 'finished' && animation.playState !== 'idle');
+  if (running.length) {
+    Promise.allSettled(running.map((animation) => animation.finished)).then(() => unbackChips(row));
+    return;
+  }
+  row.removeAttribute('data-ds-glide');
+  row.style.removeProperty('--ds-chips-backdrop');
+}
+
+/**
+ * A chip of `row` was toggled (its transitions have not advanced yet):
+ * the slots glide, or, when a chip changes its line, the chips do.
+ */
+function chipToggled(row) {
+  const view = row.ownerDocument.defaultView;
+  const bodies = Array.from(row.querySelectorAll('.ds-chip__body'));
+  const children = Array.from(row.children);
+  const tops = children.map((child) => child.getBoundingClientRect().top);
+  // Where an edge glide in flight stands, then it lands (flip() measures the bodies unclipped).
+  const edges = bodies.map((body) => {
+    const state = edgeGlides.has(body) ? edgeState(body) : { clip: 0, shift: 0 };
+    stopEdge(body);
+    return state;
+  });
+  let wrapped = false;
+  /** @type {{ body: Element, grow: number, shift: number, next: Element|null }[]} */
+  let toggled = [];
+  const glide = flip(row, () => {
+    // Where each slot is now (the old width, or a glide in flight) and the timing of its new state.
+    const slots = bodies.map((body) => {
+      const style = view.getComputedStyle(body, '::after');
+      return {
+        body,
+        from: parseFloat(style.width) || 0,
+        timing: { duration: timeOf(style.transitionDuration), delay: timeOf(style.transitionDelay), easing: easingOf(style.transitionTimingFunction) },
+      };
+    });
+    for (const body of bodies) {
+      slotGlides.get(body)?.cancel();
+      slotGlides.delete(body);
+    }
+    // The end layout: the slots at their end width.
+    row.setAttribute('data-ds-snap', '');
+    wrapped = children.some((child, index) => Math.abs(child.getBoundingClientRect().top - tops[index]) > 1);
+    const ends = slots.map((slot) => parseFloat(view.getComputedStyle(slot.body, '::after').width) || 0);
+    if (wrapped) {
+      // The bodies whose slot changes, each with the next item on its line in the end layout.
+      toggled = slots.map((slot, index) => {
+        const grow = ends[index] - slot.from;
+        const chip = slot.body.closest('.ds-chip');
+        const next = chip?.parentElement === row ? chip.nextElementSibling : null;
+        const same = next && Math.abs(next.getBoundingClientRect().top - chip.getBoundingClientRect().top) <= 1;
+        return { body: slot.body, grow: grow + edges[index].clip, shift: edges[index].shift - grow, next: same ? next : null };
+      }).filter((entry) => Math.abs(entry.grow) >= 0.5 || Math.abs(entry.shift) >= 0.5);
+    }
+    // Measured (a forced style pass): the slots keep their end width without a new transition.
+    row.removeAttribute('data-ds-snap');
+    // A chip changed its line: flip() glides every chip from its old place, each on its backing.
+    if (wrapped) {
+      backChips(row);
+      return;
+    }
+    // Same lines: the slots glide from where they were (flip() then finds nothing moved).
+    slots.forEach((slot, index) => glideSlot(slot.body, slot.from, ends[index], slot.timing));
+  });
+  if (!wrapped) return;
+  // flip() has started its glides: each toggled body keeps pace with the next chip on its line.
+  for (const entry of toggled) {
+    const timing = flipTiming(entry.next) ?? {
+      duration: travelDuration(row, Math.abs(entry.grow)),
+      easing: motionEasing(row, '--ds-ease-spatial'),
+    };
+    glideEdge(entry.body, entry.grow, entry.shift, timing);
+  }
+  glide.then(() => unbackChips(row), () => unbackChips(row));
+}
+
 /** Enter activates buttons and links, Space buttons and inputs (not links, not on Enter for checkboxes). */
 function activates(target, key) {
   if (key === ' ') return target.tagName !== 'A';
@@ -173,7 +452,7 @@ export function attach(root = document) {
     const host = hostOf(event.target, element);
     if (!host || inactive(host)) return;
     const target = /** @type {Element} */ (event.target);
-    if (target.closest?.(OWN_PRESS) && !host.classList.contains('ds-chip')) return;
+    if (target.closest?.(OWN_PRESS) && !host.matches(OWNS_INPUT)) return;
     if (!start(host, event.clientX, event.clientY)) return;
     const up = () => {
       host.removeEventListener('pointerleave', up);
@@ -191,8 +470,8 @@ export function attach(root = document) {
     const target = /** @type {Element} */ (event.target);
     const host = hostOf(target, element);
     if (!host || inactive(host) || !activates(target, event.key)) return;
-    // The host itself, or the input of a chip (typing in a field inside a host is no press).
-    if (target !== host && !(host.classList.contains('ds-chip') && target.tagName === 'INPUT')) return;
+    // The host itself, or the input of a chip or radio card (typing in a field inside a host is no press).
+    if (target !== host && !(host.matches(OWNS_INPUT) && target.tagName === 'INPUT')) return;
     if (!start(host)) return;
     const leave = () => {
       target.removeEventListener('blur', leave);
@@ -210,11 +489,19 @@ export function attach(root = document) {
   // A passive no-op: iOS Safari applies :active only with a touchstart listener.
   const onTouchStart = () => {};
 
+  const onChange = (/** @type {Event} */ event) => {
+    const input = /** @type {Element} */ (event.target);
+    if (!input?.matches?.('.ds-chip__input')) return;
+    const row = input.closest('.ds-chips');
+    if (row && element.contains(row)) chipToggled(row);
+  };
+
   element.classList.add('ds-ripples');
   element.addEventListener('pointerdown', onPointerDown);
   element.addEventListener('keydown', onKeyDown);
   element.addEventListener('keyup', onKeyUp);
   element.addEventListener('touchstart', onTouchStart, { passive: true });
+  element.addEventListener('change', onChange);
 
   const handle = {
     /** Removes the listeners and .ds-ripples; ripples already shown finish. */
@@ -225,6 +512,7 @@ export function attach(root = document) {
       element.removeEventListener('keydown', onKeyDown);
       element.removeEventListener('keyup', onKeyUp);
       element.removeEventListener('touchstart', onTouchStart);
+      element.removeEventListener('change', onChange);
       element.classList.remove('ds-ripples');
     },
   };

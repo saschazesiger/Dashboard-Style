@@ -10,6 +10,14 @@
  *   </div>
  *
  *   (none: neutral info)  --success  --warning  --error
+ *
+ * The summary of .ds-errors is a pressable part: a state layer in its
+ * colour (hover, press in --ds-dur-micro, focus with --ds-state-focus) in
+ * a 4px padding that hangs into the space around it, the ripple
+ * (js/ripple.js), and its own ring for keyboard focus (also without
+ * .ds-base): solid from the first frame, it snaps from offset + width to
+ * the offset (outline-offset, --ds-dur-fast). It is not a pill and does
+ * not morph.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -94,14 +102,64 @@
     font: var(--ds-font-body);
   }
 
+  /* Its 4px padding (the room of its state layer) hangs into the space
+     around it, like the table's sort button, so the text keeps its place. */
   .ds-errors summary {
+    position: relative;
+    isolation: isolate;
     display: inline-flex;
     align-items: center;
     gap: var(--ds-space-2);
+    margin: calc(-1 * var(--ds-space-1));
+    padding: var(--ds-space-1);
     border-radius: var(--ds-radius-xs);
     color: var(--ds-on-error-container);
     font: var(--ds-font-label);
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    /* The ring rests (invisible) one width further out and snaps in. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* State layer in the content colour. */
+  .ds-errors summary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  @media (hover: hover) {
+    .ds-errors summary:hover::before {
+      opacity: var(--ds-state-hover);
+    }
+  }
+
+  /* Keyboard focus: the layer appears with the ring and fades out on blur. */
+  .ds-errors summary:focus-visible::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
+  }
+
+  /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it). */
+  .ds-errors summary:active::before,
+  .ds-errors summary.ds-pressed::before {
+    opacity: var(--ds-state-pressed);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  .ds-errors summary:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
   }
 
   .ds-errors summary svg {

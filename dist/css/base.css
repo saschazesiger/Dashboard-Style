@@ -55,7 +55,10 @@
     text-decoration-thickness: var(--ds-link-underline-thickness);
     text-underline-offset: var(--ds-link-underline-offset);
     text-decoration-color: var(--ds-link-underline);
-    transition: text-decoration-color var(--ds-dur-fast) var(--ds-ease-in-out);
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition:
+      text-decoration-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   @media (hover: hover) {
@@ -91,7 +94,16 @@
     font-weight: var(--ds-weight-label);
   }
 
-  /* Instant ring, never animated; the outline follows the element's radius. */
+  /* The ring is solid from the first frame and snaps in: links (above),
+     disclosure summaries and focusable elements rest one ring width further
+     out. Other elements, and programmatic focus targets (tabindex -1, such
+     as the drawer, whose forced-colours edge is an outline), show it at
+     once. The outline follows the element's radius. */
+  :where(.ds-base) :where(summary, [tabindex]:not([tabindex^="-"])) {
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
   :where(.ds-base) :focus-visible {
     outline: var(--ds-focus-outline);
     outline-offset: var(--ds-focus-offset);

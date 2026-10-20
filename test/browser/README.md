@@ -60,6 +60,7 @@ DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one vide
 | `flip.spec.js` | all, `fallback` | `flip()`: a sort glides on `translate` (spring peak at most 1.05, none on the cubic fallback) and lands, a sort mid-flight continues from where the item is, a typing filter never stacks glides, live data waits under the mouse (values at once) and reorders when it leaves or after `hold`, a touch tap never holds, `<tbody>` rows glide, 60 moving items update without motion, a removed item fades out of flow while its neighbours close the gap |
 | `morph.spec.js` | all, `fallback` | `morphHtml()`: patched nodes keep their identity and a progress transition runs, a field re-rendered per keystroke keeps focus, caret and value, a morphed segmented control keeps its indicator and `update()` glides, a keyed reorder moves the same nodes (`moveBefore` where it exists, `insertBefore` in `fallback`) |
 | `ripple.spec.js` | all, `fallback` (forced colours: Chromium; touch: WebKit) | `DS.ripple`: the centre at the pointer (±1px), the span goes after the release, no ripple on disabled, `aria-disabled` and busy hosts, a static `[data-ds-ripple]` host is positioned and clips, Enter ripples from the centre, under `.ds-ripples` the pressed flat layer stays at its hover value, forced colours hide it, a WebKit tap ripples and `attach()` adds the passive `touchstart` listener |
+| `controls.spec.js` | all, `fallback` (forced colours: Chromium; touch: WebKit) | the 1.1.0 controls: a held press reaches the 12px pressed radius and the layer within 100ms, the release springs back (peak at most 1.05, none in `fallback`) and settles within `--ds-dur-medium` + 50ms, `.ds-pressed` holds a 30ms click for `--ds-dur-instant`, blocked buttons show no press, the disc never scales; one clipped ripple on the combobox toggle, errors summary and table sort, layer and ripple never add up; the focus ring solid from the first frame snapping 4 to 2px in `--ds-dur-fast`, the focus layer at .10, a focused `.ds-enter` button runs both, inset rings unclipped; chips (slot to 18px without overshoot, the check drawn and reversed in order, a radio pair keeps its width, nothing on first render, a wrap glides by FLIP from where the chip was, on an opaque backing that goes after the glide, the toggled chip never overlapping its neighbour and its label gliding, both ways); the switch (travel peak, scale at most 1, the halo follows, press grow, disabled, the two words); checkboxes and radios (pseudo-elements render, nothing on load, the wipe, check to dash, the dot's spring, the row hover halo, the halo unclipped in a table, a switch and a chip in a table cell keep their hidden inputs, a WebKit tap grows it from 0, a forced-colours screenshot); fields (label tint in the first focus frame, the error message fade and, in Chromium, its height while focus is in the field; a message in the markup keeps its height from the first frame on load); busy faces (no running loop at rest, constant width, nothing for fast work, the done hold) and the icon swap; a disabled fieldset fades every control; the drawer item and its pill morph, and with `attach()` a click on another item still glides the pill |
 | `fallback.spec.js` | `fallback` only | the floor engine itself: `--ds-ease-spatial` computes to its cubic, `startViewTransition`, `showPopover` and `moveBefore` are gone, `el.animate()` rejects `linear()` |
 | `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs"); a fixed bug's test stays and passes |
 
@@ -162,10 +163,10 @@ relying on frame timing, so a loaded machine cannot make it pass or time out by 
 | P2 (fixed, marker deleted) | `enter()` restarts the entrance of an SVG path that carries `.ds-enter` | core-js-replay-svg-reflow | all |
 | P2 (fixed, marker deleted) | `morphHtml()` keeps a track's `.ds-indicator` | js-morph-indicator, controls-indicator-morph-removes | all |
 | P2 (fixed, marker deleted) | `morphHtml()` keeps focus and caret of a focused input | js-morph-focus | all |
-| P3 | hovering a disabled chip or switch changes nothing (two tests) | controls-chip-disabled-hover, controls-switch-disabled | all |
-| P3 | 50ms after blur a field shows no primary border without its inset shadow | controls-form-blur-ghost | all |
-| P3 | the focus ring of a `.ds-parts` link is not clipped | controls-list-parts-clip | all |
-| P3 | `.ds-link-btn` and `.ds-errors summary` show the `--ds-focus-outline` ring without `.ds-base` | layout-linkbtn-focus, layout-errors-summary-focus | all |
+| P3 (fixed, marker deleted) | hovering a disabled chip or switch changes nothing (two tests) | controls-chip-disabled-hover, controls-switch-disabled | all |
+| P3 (fixed, marker deleted) | 50ms after blur a field shows no primary border without its inset shadow | controls-form-blur-ghost | all |
+| P3 (fixed, marker deleted) | the focus ring of a `.ds-parts` link is not clipped | controls-list-parts-clip | all |
+| P3 (fixed, marker deleted) | `.ds-link-btn` and `.ds-errors summary` show the `--ds-focus-outline` ring without `.ds-base` | layout-linkbtn-focus, layout-errors-summary-focus | all |
 | P4 | `DS.motion.enter(drawer)` moves along x only, starting left | layout-drawer-enter-axis, repo-drawer-enter-axis | all |
 | P4 | 1000px to 800px starts no transition on `.ds-drawer` (no `transitionrun` event) | layout-drawer-resize-slide | all |
 | P4 | the indicator follows a growing active label and a badge on an earlier item | controls-indicator-item-resize | all |
@@ -298,7 +299,12 @@ every infinite loop paused at a fixed point of its cycle; the shots then use `an
 off the content, so it toggles and navigates nothing. Each test names the `src/` anchors it covers as `src`
 annotations.
 
-Size in the committed container set: 437 PNG files, 7.9 MB (Chromium 157 files, 3.1 MB; Firefox and WebKit 140
+`controls.spec.js` keeps shots of its own: in Chromium only, the drawn checkboxes and radios of `controls.html`
+(`forced-checks.png`) and a checked, an indeterminate and a radio input (`forced-boxes.png`) with
+`forcedColors: 'active'`; in the three engines, a chip row 40ms into a glide across a wrap (`wrap-glide.png`,
+seeked: the moving chip covers the one it crosses).
+
+Size in the committed container set: 440 PNG files, 7.9 MB (Chromium 158 files, 3.1 MB; Firefox and WebKit 141
 files each, 2.4 MB each). The 45 section shots are 3.2 MB of it; the state crops are 1 to 5 kB each. With the
 mid-animation frames (40 files, 1.8 MB) and the JSON timelines (97 files, 0.4 MB) the whole `__screenshots__/`
 folder is 11 MB.

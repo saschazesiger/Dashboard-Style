@@ -107,8 +107,9 @@
      * (tooltip) and small markers such as badges (small); the step between
      * staggered items (at most six, first render only), the delays before
      * loading indicators may show (fast loads show nothing; js/motion.js
-     * LOADER_DELAY_MS mirrors --ds-delay-loader) and how long a loader that
-     * showed stays at least (LOADER_MIN_VISIBLE_MS mirrors --ds-hold-loader).
+     * LOADER_DELAY_MS mirrors --ds-delay-loader), how long a loader that
+     * showed stays at least (LOADER_MIN_VISIBLE_MS mirrors --ds-hold-loader)
+     * and how long a button shows its success face (DS.motion.busy()).
      */
     --ds-distance-sm: 4px;
     --ds-distance-md: 8px;
@@ -123,6 +124,7 @@
     --ds-delay-loader: calc(200ms * var(--ds-time-scale, 1));
     --ds-delay-boot: calc(400ms * var(--ds-time-scale, 1));
     --ds-hold-loader: calc(450ms * var(--ds-time-scale, 1));
+    --ds-hold-success: calc(600ms * var(--ds-time-scale, 1));
 
     /* Loops of loading indicators: they always run at their token speed. */
     --ds-loop-spin: calc(1s * var(--ds-time-scale, 1));
@@ -132,11 +134,14 @@
 
     /* ── State layers ───────────────────────────────────
      * Opacity of the content colour laid over a control (::before). Large
-     * targets (rows, navigation items) take the lighter hover. Disabled
-     * content dims to 38%; stale content (about to be replaced) to 55%.
+     * targets (rows, navigation items) take the lighter hover. Keyboard
+     * focus lays its own layer under the ring (focus); a press stays on top
+     * of it. Disabled content dims to 38%; stale content (about to be
+     * replaced) to 55%.
      */
     --ds-state-hover: .08;
     --ds-state-hover-lg: .06;
+    --ds-state-focus: .10;
     --ds-state-pressed: .10;
     --ds-state-dragged: .16;
     --ds-state-disabled: .38;
@@ -266,8 +271,10 @@
     --ds-link-underline-offset: 3px;
 
     /* ── Focus ──────────────────────────────────────────
-     * A 2 px ring that appears instantly, never animated. The outline form
-     * for controls, the box-shadow form for media and floating buttons.
+     * A 2 px ring, solid from the first frame. The outline form for
+     * controls: it rests (invisible) at offset + width and snaps in to the
+     * offset, a transition of outline-offset on --ds-dur-fast; the
+     * box-shadow form for media and floating buttons.
      */
     --ds-focus: var(--ds-primary);
     --ds-focus-width: 2px;
@@ -277,8 +284,12 @@
 
     /* ── Radii ──────────────────────────────────────────
      * The scale (xs ... 2xl) and the roles components read. Every action is
-     * fully round (--ds-radius-action). A theme that wants square containers
-     * sets the scale to 0 and keeps the action radius.
+     * fully round (--ds-radius-action). Pressed, an action turns squarer
+     * (--ds-radius-action-pressed) and springs back on release; cards and
+     * radio cards take --ds-radius-card-pressed. A pressed radius is never
+     * rounder than the rest radius, so a square theme stays square. A theme
+     * that wants square containers sets the scale to 0 and keeps the action
+     * radius.
      */
     --ds-radius-xs: 4px;
     --ds-radius-sm: 8px;
@@ -287,11 +298,15 @@
     --ds-radius-xl: 20px;
     --ds-radius-2xl: 28px;
     --ds-radius-action: 9999px;
+    --ds-radius-action-pressed: 12px;
     --ds-radius-panel: var(--ds-radius-xl);
     --ds-radius-card: var(--ds-radius-md);
+    --ds-radius-card-pressed: var(--ds-radius-sm);
     --ds-radius-dialog: var(--ds-radius-lg);
     --ds-radius-chip: var(--ds-radius-sm);
     --ds-radius-field: var(--ds-radius-sm);
+    /* The drawn box of a checkbox (radios are round). */
+    --ds-radius-check: 2px;
 
     /* ── Type ───────────────────────────────────────────
      * Headings are regular weight; the label weight is for buttons, labels

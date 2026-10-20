@@ -37,10 +37,15 @@ lines; 18px for the check in a filter chip; 24px in the empty-state disc.
 
 The [styleguide](../styleguide/index.html#icons) shows them all. Notes:
 
-- `check` has `pathLength="1"`, so it can draw itself (`ds-draw`, [motion.md](motion.md#keyframes)).
+- `check` and the tick of `checkCircle` have `pathLength="1"`, so they can draw themselves (`ds-draw`,
+  [motion.md](motion.md#keyframes); the done face of a button; `.ds-icon-swap`). The check is drawn from its short
+  arm, left to right, like the checks of chips and checkboxes.
+- Icon swaps (copy to check, play to pause) are a crossfade with a scale, not a path morph: `.ds-icon-swap` or
+  `DS.motion.crossfade(el, icon, { kind: 'icon' })` ([motion.md](motion.md#dsmotion-jsmotionjs)).
 - `thumbUp` and `thumbDown` end with the outline path: fill it (`path:last-child { fill: currentColor }`) to show a
   chosen state by shape, not only colour.
-- `calendar` and `close` are also drawn by `components/form.css` as masks (date fields, the search's clear button).
+- `calendar`, `close` and `check` are also drawn by `components/form.css` as masks (date fields, the search's clear
+  button, the drawn checkbox; its check at stroke width 3).
 - `clock` means waiting, `ban` switched off or not set up.
 
 ## Adding glyphs

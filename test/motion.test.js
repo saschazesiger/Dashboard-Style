@@ -10,6 +10,7 @@ import {
   LOADER_MIN_VISIBLE_MS,
   MOTION_FALLBACKS,
   STAGGER_MAX,
+  busy,
   cancel,
   countUp,
   crossfade,
@@ -88,6 +89,38 @@ class FakeElement extends EventTarget {
 
   blur() {
     if (this.ownerDocument?.activeElement === this) this.ownerDocument.activeElement = this.ownerDocument.body;
+  }
+
+  /** The children as the node list (the fake has element children only). */
+  get childNodes() {
+    return this.children;
+  }
+
+  get parentNode() {
+    return this.parentElement;
+  }
+
+  get firstChild() {
+    return this.children[0] ?? null;
+  }
+
+  set className(value) {
+    for (const name of String(value).split(/\s+/).filter(Boolean)) this.classList.add(name);
+  }
+
+  prepend(...nodes) {
+    const rest = this.children.splice(0);
+    this.append(...nodes);
+    for (const node of rest) if (!nodes.includes(node)) this.children.push(node);
+  }
+
+  replaceChildren(...nodes) {
+    for (const child of this.children.splice(0)) child.parentElement = null;
+    this.append(...nodes);
+  }
+
+  isEqualNode(other) {
+    return other === this;
   }
 
   remove() {
@@ -758,7 +791,171 @@ describe('js/motion', () => {
       assert.equal(a.hasAttribute('data-ds-leaving'), false);
       assert.equal(a.hasAttribute('aria-hidden'), false);
 
-      assert.throws(() => crossfade(element, 'x', { kind: 'icon' }), TypeError);
+      assert.throws(() => crossfade(element, 'x', { kind: 'shape' }), TypeError);
+    });
+
+    it("crossfade(..., { kind: 'icon' }) builds a .ds-icon-swap and flips data-swap to the face it filled", async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout'] });
+      const element = slot();
+      const doc = element.ownerDocument;
+      const copy = new FakeElement(doc);
+      element.append(copy);
+      const check = new FakeElement(doc);
+      const done = crossfade(element, check, { kind: 'icon' });
+      assert.ok(element.classList.contains('ds-icon-swap'));
+      const [a, b] = element.children;
+      assert.ok(a.classList.contains('ds-icon-swap__a') && b.classList.contains('ds-icon-swap__b'));
+      assert.deepEqual(a.children, [copy], 'the current icon is face a');
+      assert.deepEqual(b.children, [check]);
+      assert.equal(element.getAttribute('data-swap'), 'b');
+      t.mock.timers.tick(1000);
+      await done;
+
+      // Back to a face: only data-swap flips, both icons stay.
+      crossfade(element, a, { kind: 'icon' });
+      assert.equal(element.getAttribute('data-swap'), 'a');
+      assert.deepEqual(element.children, [a, b]);
+      assert.deepEqual(b.children, [check]);
+      // A new icon goes into the hidden face.
+      const pause = new FakeElement(doc);
+      crossfade(element, pause, { kind: 'icon' });
+      assert.equal(element.getAttribute('data-swap'), 'b');
+      assert.deepEqual(b.children, [pause]);
+      assert.deepEqual(a.children, [copy]);
+
+      // Without data-swap an aria-pressed="true" ancestor shows b, so the next icon goes into a.
+      const toggle = new FakeElement(doc);
+      toggle.setAttribute('aria-pressed', 'true');
+      toggle.matches = (selector) => selector === '[aria-pressed="true"]';
+      const icon = slot();
+      toggle.append(icon);
+      const faceA = new FakeElement(doc);
+      faceA.className = 'ds-icon-swap__a';
+      const faceB = new FakeElement(doc);
+      faceB.className = 'ds-icon-swap__b';
+      icon.append(faceA, faceB);
+      const play = new FakeElement(doc);
+      crossfade(icon, play, { kind: 'icon' });
+      assert.deepEqual(icon.children, [faceA, faceB], 'existing faces are kept');
+      assert.deepEqual(faceA.children, [play]);
+      assert.equal(icon.getAttribute('data-swap'), 'a');
+      t.mock.timers.tick(1000);
+    });
+
+    describe('busy()', () => {
+      /** Work that the test resolves or rejects by hand. */
+      function deferred() {
+        const handle = {};
+        handle.promise = new Promise((resolve, reject) => Object.assign(handle, { resolve, reject }));
+        return handle;
+      }
+
+      it('sets aria-busy at once; work faster than the loader delay is never held', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const button = new FakeElement();
+        const work = deferred();
+        const done = busy(button, () => work.promise);
+        assert.equal(button.getAttribute('aria-busy'), 'true');
+        t.mock.timers.tick(LOADER_DELAY_MS - 50);
+        work.resolve('saved');
+        await flushPromises();
+        assert.equal(button.getAttribute('aria-busy'), null, 'no hold: the busy face never showed');
+        assert.equal(await done, 'saved');
+        assert.ok(button.classList.contains('ds-btn--done'));
+      });
+
+      it('holds a busy face that showed for the loader minimum, then shows done for --ds-hold-success', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const button = new FakeElement();
+        const work = deferred();
+        const done = busy(button, () => work.promise);
+        t.mock.timers.tick(LOADER_DELAY_MS + 50);
+        work.resolve(42);
+        await flushPromises();
+        // Visible for 50ms: it stays until it was visible for --ds-hold-loader.
+        t.mock.timers.tick(LOADER_MIN_VISIBLE_MS - 51);
+        await flushPromises();
+        assert.equal(button.getAttribute('aria-busy'), 'true');
+        assert.equal(button.classList.contains('ds-btn--done'), false);
+        t.mock.timers.tick(1);
+        await flushPromises();
+        assert.equal(button.getAttribute('aria-busy'), null);
+        assert.ok(button.classList.contains('ds-btn--done'));
+        assert.equal(await done, 42);
+        t.mock.timers.tick(MOTION_FALLBACKS['--ds-hold-success'] - 1);
+        assert.ok(button.classList.contains('ds-btn--done'));
+        t.mock.timers.tick(1);
+        assert.equal(button.classList.contains('ds-btn--done'), false);
+      });
+
+      it('done: false skips the success face', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const button = new FakeElement();
+        await busy(button, 'ready', { done: false });
+        assert.equal(button.getAttribute('aria-busy'), null);
+        assert.equal(button.classList.contains('ds-btn--done'), false);
+      });
+
+      it('clears at once on failure and rethrows', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const button = new FakeElement();
+        const work = deferred();
+        const done = busy(button, () => work.promise);
+        t.mock.timers.tick(LOADER_DELAY_MS + 50);
+        const error = new Error('offline');
+        work.reject(error);
+        await assert.rejects(done, (thrown) => thrown === error);
+        assert.equal(button.getAttribute('aria-busy'), null, 'no hold on failure');
+        assert.equal(button.classList.contains('ds-btn--done'), false);
+        // A throwing function rejects too, and leaves the button usable.
+        await assert.rejects(busy(button, () => { throw error; }), (thrown) => thrown === error);
+        assert.equal(button.getAttribute('aria-busy'), null);
+      });
+
+      it('a second call while busy returns the same promise and runs work once', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const button = new FakeElement();
+        const work = deferred();
+        let calls = 0;
+        const run = () => { calls += 1; return work.promise; };
+        const first = busy(button, run);
+        const second = busy(button, run);
+        assert.equal(second, first);
+        assert.equal(calls, 1);
+        work.resolve('once');
+        assert.equal(await second, 'once');
+        // A call during the success face takes it off and starts again.
+        assert.ok(button.classList.contains('ds-btn--done'));
+        const third = busy(button, () => 'again');
+        assert.equal(button.classList.contains('ds-btn--done'), false);
+        assert.equal(button.getAttribute('aria-busy'), 'true');
+        assert.equal(await third, 'again');
+      });
+
+      it('scales its times with --ds-time-scale (motionDuration)', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const values = { '--ds-delay-loader': 'calc(200ms * 10)', '--ds-hold-loader': 'calc(450ms * 10)', '--ds-hold-success': 'calc(600ms * 10)' };
+        const doc = fakeDocument(() => values);
+        const theme = new FakeElement(doc);
+        theme.matches = (selector) => selector === '.ds-theme';
+        const button = new FakeElement(doc);
+        theme.append(button);
+        const work = deferred();
+        const done = busy(button, () => work.promise);
+        // 2500ms: the busy face showed 500ms ago at a time scale of 10.
+        t.mock.timers.tick(2500);
+        work.resolve();
+        await flushPromises();
+        t.mock.timers.tick(4000 - 1);
+        await flushPromises();
+        assert.equal(button.getAttribute('aria-busy'), 'true');
+        t.mock.timers.tick(1);
+        await done;
+        t.mock.timers.tick(6000 - 1);
+        assert.ok(button.classList.contains('ds-btn--done'));
+        t.mock.timers.tick(1);
+        assert.equal(button.classList.contains('ds-btn--done'), false);
+      });
     });
 
     it('roll() keeps only the last line; the same text changes nothing', async (t) => {

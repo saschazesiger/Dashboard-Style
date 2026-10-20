@@ -137,10 +137,35 @@
         '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" disabled>Save</button><button class="ds-btn ds-btn--tonal" type="button" disabled>Add entry</button><button class="ds-btn" type="button" disabled>Export</button><button class="ds-btn ds-btn--text" type="button" disabled>Details</button></div>' +
         label('aria-disabled: focusable, the tooltip says why') +
         '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" aria-disabled="true" data-tip="Fill in the serial number first">Publish</button></div>' +
-        label('Busy: blocked at once, spinner only after the loader delay') +
-        '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-sg="busy">Save changes</button><button class="ds-link-btn" type="button">A button that reads like a link</button></div>') +
-      '</div>');
+        label('Busy, then done: spinner only after the loader delay (DS.motion.busy)') +
+        '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-sg="busy">' + faces('Save changes', 'Saving', 'Saved') + '</button><button class="ds-btn" type="button" data-sg="busy-fail">' + faces('Sync now', 'Syncing', 'Synced') + '</button></div>' +
+        label('Icon swaps: copy to check, a pressed toggle') +
+        '<div class="sg-row"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-sg="copy"><span class="ds-icon-swap">' + icon('copy', 20) + '</span></button>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Work offline" aria-pressed="false" data-sg="toggle"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('wifi', 20) + '</span><span class="ds-icon-swap__b">' + icon('wifiOff', 20) + '</span></span></button>' +
+        '<button class="ds-link-btn" type="button">A button that reads like a link</button></div>') +
+      '</div>' +
+      card('Press, focus and disabled', '<p class="ds-muted">Point at a button in the first column for its hover, press and hold it for the morph and the ripple, or Tab to it for the ring that snaps in. The second column holds the press (a static .ds-pressed).</p>' +
+        '<div class="ds-table-wrap"><table class="ds-table sg-states"><caption class="ds-sr">Button states</caption><thead><tr><th scope="col">Variant</th><th scope="col">Rest</th><th scope="col">Held press</th><th scope="col">Disabled</th><th scope="col">aria-disabled</th></tr></thead><tbody>' +
+        BUTTON_VARIANTS.map(function (variant) {
+          var make = function (extra) {
+            return '<button class="ds-btn' + variant[1] + (extra === 'pressed' ? ' ds-pressed' : '') + '" type="button"' +
+              (variant[2] ? ' aria-label="' + variant[2] + '"' : '') +
+              (extra === 'pressed' ? ' data-ds-ripple="off" tabindex="-1"' : '') + (extra === 'disabled' ? ' disabled' : '') + (extra === 'aria' ? ' aria-disabled="true"' : '') + '>' + variant[3] + '</button>';
+          };
+          return '<tr><th scope="row">' + variant[0] + '</th><td>' + make('') + '</td><td>' + make('pressed') + '</td><td>' + make('disabled') + '</td><td>' + make('aria') + '</td></tr>';
+        }).join('') + '</tbody></table></div>'));
   }
+
+  /* The rows of the button state table: name, classes, aria-label, content. */
+  var BUTTON_VARIANTS = [
+    ['Primary', ' ds-btn--primary', '', 'Save'],
+    ['Tonal', ' ds-btn--tonal', '', 'Add entry'],
+    ['Outlined', '', '', 'Export'],
+    ['Text', ' ds-btn--text', '', 'Details'],
+    ['Quiet', ' ds-btn--quiet', '', icon('filter', 16) + 'Filter'],
+    ['Icon', ' ds-btn--quiet ds-btn--icon', 'Settings', icon('settings', 20)],
+    ['Disc', ' ds-btn--quiet ds-btn--icon ds-btn--disc', 'More actions', icon('moreVertical', 20)],
+  ];
 
   /* Status and alerts */
   function status() {
@@ -175,7 +200,7 @@
         '<ul class="ds-kv-list"><li><span>Model</span><strong>Latitude 7440</strong></li><li><span>Warranty until</span><strong>2027-03-31</strong></li><li><span>Storage</span><strong>512 GB</strong></li></ul>' +
         '<nav class="ds-card__links" aria-label="Related"><a class="ds-btn ds-btn--text ds-card__link" href="#cards">History ' + icon('arrowRight', 16) + '</a><a class="ds-btn ds-btn--text ds-card__link" href="#cards">Tickets ' + icon('arrowRight', 16) + '</a></nav></section>' +
       '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">Sync</h3><label class="ds-switch"><input type="checkbox" role="switch" checked data-sg="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label ds-sr">Nightly sync</span><span class="ds-switch__state" aria-hidden="true">On</span></label></div>' +
-        '<dl class="ds-facts"><div><dt>Last run</dt><dd>Today, 02:00 <span class="ds-nowrap">(1 min 35 s)</span></dd></div><div><dt>Changes</dt><dd><span class="ds-parts"><span class="ds-parts__list"><span>3 new</span><span>1 updated</span><span>250 unchanged</span></span></span></dd></div><div><dt>Next</dt><dd>Tomorrow, 02:00</dd></div></dl>' +
+        '<dl class="ds-facts"><div><dt>Last run</dt><dd>Today, 02:00 <span class="ds-nowrap">(1 min 35 s)</span></dd></div><div><dt>Changes</dt><dd><span class="ds-parts"><span class="ds-parts__list"><span><a href="#table">3 new</a></span><span><a href="#table">1 updated</a></span><span>250 unchanged</span></span></span></dd></div><div><dt>Next</dt><dd>Tomorrow, 02:00</dd></div></dl>' +
         '<div class="ds-subsection"><h3 class="ds-card__subtitle">Sources</h3><p class="ds-muted">Directory (users, groups) and device management (hardware).</p></div>' +
         '<p class="ds-meta">Last saved today, 09:12 by Ada Lovelace</p></section>' +
       '</div>' +
@@ -197,9 +222,9 @@
   function table() {
     return section('table', 'Table', 'A 48px header, 52px rows, hairlines and a quiet hover; no zebra. In a card the table runs to the edges; secondary columns drop on phones.',
       '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">Devices</h3><div class="sg-row"><button class="ds-btn ds-btn--quiet ds-btn--sm" type="button" aria-pressed="false" data-sg="dense">Dense</button><button class="ds-btn ds-btn--sm" type="button">' + icon('download', 16) + 'CSV</button></div></div>' +
-      '<div class="ds-table-wrap"><table class="ds-table" id="sg-table"><caption class="ds-sr">Devices</caption><thead><tr><th scope="col" aria-sort="ascending"><button class="ds-table__sort" type="button">Device' + icon('arrowUp', 16) + '</button></th><th scope="col" class="ds-col--secondary">Model</th><th scope="col" class="ds-col--secondary">Owner</th><th scope="col" class="ds-num"><button class="ds-table__sort" type="button">Age (y)</button></th><th scope="col">Status</th></tr></thead><tbody>' +
-      ROWS.map(function (row) {
-        return '<tr><td class="ds-nowrap"><button class="ds-link-btn" type="button">' + row[0] + '</button></td><td class="ds-col--secondary">' + row[1] + '</td><td class="ds-col--secondary">' + (row[2] || '<span class="ds-muted">Not issued</span>') + '</td><td class="ds-num">' + row[3] + '</td><td><span class="ds-status' + (row[4][0] ? ' ds-status--' + row[4][0] : '') + '">' + icon(row[4][1], 16) + '<span>' + row[4][2] + '</span></span></td></tr>';
+      '<div class="ds-table-wrap"><table class="ds-table" id="sg-table"><caption class="ds-sr">Devices</caption><thead><tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-sg="select-all"></th><th scope="col" aria-sort="ascending"><button class="ds-table__sort" type="button">Device' + icon('arrowUp', 16) + '</button></th><th scope="col" class="ds-col--secondary">Model</th><th scope="col" class="ds-col--secondary">Owner</th><th scope="col" class="ds-num"><button class="ds-table__sort" type="button">Age (y)</button></th><th scope="col">Status</th></tr></thead><tbody>' +
+      ROWS.map(function (row, index) {
+        return '<tr><td><input type="checkbox" aria-label="Select ' + row[0] + '" data-sg="select-row"' + (index === 1 ? ' checked' : '') + '></td><td class="ds-nowrap"><button class="ds-link-btn" type="button">' + row[0] + '</button></td><td class="ds-col--secondary">' + row[1] + '</td><td class="ds-col--secondary">' + (row[2] || '<span class="ds-muted">Not issued</span>') + '</td><td class="ds-num">' + row[3] + '</td><td><span class="ds-status' + (row[4][0] ? ' ds-status--' + row[4][0] : '') + '">' + icon(row[4][1], 16) + '<span>' + row[4][2] + '</span></span></td></tr>';
       }).join('') + '</tbody></table></div></section>');
   }
 
@@ -226,6 +251,27 @@
       '<button class="ds-btn ds-btn--text ds-add-row" type="button">' + icon('plus', 16) + 'Add an accessory</button>' +
       '<div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button><button class="ds-btn ds-btn--text" type="button">Discard</button><p class="ds-meta">Last saved today, 09:12</p></div>' +
       '</form>' +
+      '<div class="ds-grid-2">' +
+      card('Checkboxes and radios', label('In a row (.ds-check): the halo lights on the whole row') +
+        '<div class="ds-stack"><fieldset class="ds-field"><legend class="ds-field__label">Options</legend>' +
+        '<label class="ds-check"><input type="checkbox" checked><span>Checked</span></label>' +
+        '<label class="ds-check"><input type="checkbox"><span>Not checked</span></label>' +
+        '<label class="ds-check"><input type="checkbox" data-sg="indeterminate"><span>Some of them (indeterminate)</span></label>' +
+        '<label class="ds-check"><input type="checkbox" aria-invalid="true" aria-describedby="sg-terms-error"><span>I accept the terms of use</span></label>' +
+        '<small class="ds-field__hint ds-field__hint--error" id="sg-terms-error">' + icon('alertCircle', 16) + 'Accept the terms to continue.</small>' +
+        '<label class="ds-check"><input type="checkbox" disabled><span>Locked by policy</span></label>' +
+        '<label class="ds-check"><input type="checkbox" checked disabled><span>Required by policy</span></label></fieldset>' +
+        '<fieldset class="ds-field"><legend class="ds-field__label">Delivery</legend>' +
+        '<label class="ds-check"><input type="radio" name="sg-delivery" checked><span>Ship to the office</span></label>' +
+        '<label class="ds-check"><input type="radio" name="sg-delivery"><span>Pick up in person</span></label>' +
+        '<label class="ds-check"><input type="radio" name="sg-delivery" disabled><span>Courier (not available here)</span></label></fieldset></div>' +
+        label('Anywhere (.ds-checkbox, .ds-radio-input)') +
+        '<div class="sg-row"><input class="ds-checkbox" type="checkbox" aria-label="Checked" checked><input class="ds-checkbox" type="checkbox" aria-label="Indeterminate" data-sg="indeterminate"><input class="ds-checkbox" type="checkbox" aria-label="Not checked"><input class="ds-checkbox" type="checkbox" aria-label="Checked, in error" aria-invalid="true" checked><input class="ds-checkbox" type="checkbox" aria-label="Disabled" disabled checked>' +
+        '<input class="ds-radio-input" type="radio" name="sg-size" aria-label="Small" checked><input class="ds-radio-input" type="radio" name="sg-size" aria-label="Large"><input class="ds-radio-input" type="radio" name="sg-size" aria-label="Huge (disabled)" disabled></div>') +
+      card('Focus and validation', '<p class="ds-muted">The label takes the ring\'s colour while the field has the focus. Type something other than five digits: the message fades in and its room opens; it goes at once when the number is right.</p>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-ticket">Ticket number</label><input class="ds-input" id="sg-ticket" inputmode="numeric" autocomplete="off" placeholder="12345" data-sg="validate" aria-describedby="sg-ticket-error"><small class="ds-field__hint ds-field__hint--error" id="sg-ticket-error"></small></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-ticket-note">Note</label><input class="ds-input" id="sg-ticket-note" placeholder="Optional"></div>') +
+      '</div>' +
       card('Toolbar, action bar and inline form', '<div class="ds-toolbar"><div class="ds-filters">' +
         '<div class="ds-field ds-field--grow"><label class="ds-sr" for="f-q">Search</label><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" id="f-q" type="search" placeholder="Search name, owner or serial"></div></div>' +
         '<div class="ds-field"><label class="ds-field__label" for="f-status">Status</label><select class="ds-input ds-input--filled" id="f-status"><option>All</option><option>Active</option></select></div>' +
@@ -236,20 +282,26 @@
   }
 
   /* Chips, switch, combobox */
+  /* A switch with both state words: the CSS shows and crossfades them. */
+  function switchRow(name, attributes) {
+    return '<label class="ds-switch"><input type="checkbox" role="switch"' + (attributes ? ' ' + attributes : '') + '><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">' + name + '</span>' +
+      '<span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span></label>';
+  }
+
   function selection() {
     var chip = function (text, checked, type, disabled) {
       return '<label class="ds-chip"><input class="ds-chip__input" type="' + (type || 'checkbox') + '" name="' + (type === 'radio' ? 'age' : 'status') + '"' + (checked ? ' checked' : '') + (disabled ? ' disabled' : '') + '><span class="ds-chip__body">' + icon('check', 18, 'ds-chip__check') + '<span>' + text + '</span></span></label>';
     };
     return section('selection', 'Chips, switch, combobox', 'Selection always shows more than the tint: a check, the label weight, a state word.',
       '<div class="ds-grid-2">' +
-      card('Filter chips', '<div><fieldset class="ds-chips"><legend class="ds-sr">Status</legend>' + chip('Active', true) + chip('In storage') + chip('Archived') + '<span class="ds-chips__divider" aria-hidden="true"></span>' + chip('Older than 4 years', false, 'radio') + chip('Unavailable', false, 'checkbox', true) + '</fieldset></div>') +
-      card('Switch', '<div class="ds-stack"><label class="ds-switch"><input type="checkbox" role="switch" checked data-sg="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Nightly sync</span><span class="ds-switch__state" aria-hidden="true">On</span></label>' +
-        '<label class="ds-switch"><input type="checkbox" role="switch" data-sg="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Email summary</span><span class="ds-switch__state" aria-hidden="true">Off</span></label>' +
-        '<label class="ds-switch"><input type="checkbox" role="switch" disabled><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Locked by policy</span><span class="ds-switch__state" aria-hidden="true">Off</span></label></div>') +
+      card('Filter chips', '<p class="ds-muted">The room of the check opens and the check draws itself; chips that move to another line glide there.</p><div><fieldset class="ds-chips"><legend class="ds-sr">Status</legend>' + chip('Active', true) + chip('In storage') + chip('Archived') + chip('Lent out') + chip('In repair') + '<span class="ds-chips__divider" aria-hidden="true"></span>' + chip('Older than 4 years', false, 'radio') + chip('Newer than 1 year', true, 'radio') + chip('Unavailable', false, 'checkbox', true) + chip('Required', true, 'checkbox', true) + '</fieldset></div>') +
+      card('Switch', '<div class="ds-stack">' + switchRow('Nightly sync', 'checked') + switchRow('Email summary', '') +
+        '<label class="ds-switch"><input type="checkbox" role="switch" data-sg="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Weekly report (one word)</span><span class="ds-switch__state" aria-hidden="true">Off</span></label>' +
+        switchRow('Locked by policy', 'disabled') + switchRow('Required by policy', 'checked disabled') + '</div>') +
       '</div>' +
-      card('Combobox (open)', '<div class="ds-field" style="max-width:420px"><label class="ds-field__label" for="f-combo">Model</label>' +
+      card('Combobox', '<div class="ds-field" style="max-width:420px"><label class="ds-field__label" for="f-combo">Model</label>' +
         '<div class="ds-combo" data-open><input class="ds-input ds-combo__input" id="f-combo" role="combobox" aria-expanded="true" aria-controls="f-combo-list" aria-activedescendant="f-combo-2" value="lat">' +
-        '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">' + icon('chevronDown', 20) + '</button>' +
+        '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all" data-sg="combo-toggle">' + icon('chevronDown', 20) + '</button>' +
         '<div class="ds-combo__popup"><ul class="ds-combo__list" id="f-combo-list" role="listbox">' +
         '<li class="ds-combo__option" id="f-combo-1" role="option" aria-selected="false"><span class="ds-combo__name">Latitude 5430</span><span class="ds-combo__meta">14 inch · 2022</span></li>' +
         '<li class="ds-combo__option" id="f-combo-2" role="option" aria-selected="false" data-active><span class="ds-combo__name">Latitude 7440</span><span class="ds-combo__meta">14 inch · 2023</span></li>' +
@@ -289,7 +341,7 @@
   function loading() {
     return section('loading', 'Loading and progress', 'Fast loads show nothing: indicators fade in after the loader delay and then stay long enough not to flicker. Their loops always run at their token speed.',
       '<div class="ds-grid-2">' +
-      card('Spinners and loading line', '<div class="sg-row"><span class="ds-spinner" aria-hidden="true"></span><button class="ds-btn ds-btn--primary" type="button" aria-disabled="true" aria-busy="true"><span class="ds-btn__swap"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>Saving</span></button><span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Importing</span></span></div><div class="ds-loading" role="status"><span class="ds-spinner" aria-hidden="true"></span>Loading more devices ...</div>') +
+      card('Spinners and loading line', '<div class="sg-row"><span class="ds-spinner" aria-hidden="true"></span><button class="ds-btn ds-btn--primary" type="button" aria-busy="true">' + faces('Save', 'Saving', 'Saved') + '</button><span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Importing</span></span></div><div class="ds-loading" role="status"><span class="ds-spinner" aria-hidden="true"></span>Loading more devices ...</div>') +
       card('Progress', '<div class="ds-progress" id="sg-progress" style="--ds-progress:.4"><div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">40%</p><p class="ds-progress__detail">812 of 2,030 rows</p></div>' +
         '<div class="ds-progress ds-progress--indeterminate"><div class="ds-progress__track" role="progressbar" aria-label="Preparing"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">Preparing the import ...</p></div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="progress">Advance</button></div>') +
@@ -302,7 +354,7 @@
 
   /* App frame */
   function frame() {
-    return section('frame', 'App frame', 'This page is the frame: a top bar and a navigation drawer on the backdrop, one white panel that scrolls. Below 900px the drawer becomes a modal sheet (use the menu button). The sliding pill follows the section you read.',
+    return section('frame', 'App frame', 'This page is the frame: a top bar and a navigation drawer on the backdrop, one white panel that scrolls. Below 900px the drawer becomes a modal sheet (use the menu button). The sliding pill follows the section you read; press and hold a drawer item or a segmented option and it turns squarer, then springs back.',
       card('Segmented switch', '<div class="sg-row"><nav class="ds-segmented" id="sg-segmented" aria-label="Mode" style="margin-left:0"><a class="ds-segmented__option" href="#frame" aria-current="true">Live</a><a class="ds-segmented__option" href="#frame">Admin</a><a class="ds-segmented__option" href="#frame">Reports</a></nav></div>' +
         '<p class="ds-muted">The tint glides between options (DS.indicator); the current option is also set in the label weight.</p>') +
       card('Markup', '<pre class="sg-code">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
@@ -571,27 +623,42 @@
     else setTimeout(close, 4000);
   }
 
+  /* The faces of a button that works (button.css): the label, the busy
+     face with the small spinner, the done face with a check that draws. */
+  function faces(label, busyLabel, doneLabel) {
+    return '<span class="ds-btn__faces"><span class="ds-btn__face">' + esc(label) + '</span>' +
+      '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>' + esc(busyLabel) + '</span>' +
+      '<span class="ds-btn__face ds-btn__face--done" aria-hidden="true">' + icon('check', 16) + esc(doneLabel) + '</span></span>';
+  }
+
+  // DS.motion.busy() holds the busy face for the loader minimum and shows
+  // the success face; the width never changes (the faces share one cell).
   function busy(button) {
-    if (button.getAttribute('aria-busy') === 'true') return;
-    var original = button.innerHTML;
-    var width = button.offsetWidth;
-    var startedAt = Date.now();
-    button.setAttribute('aria-disabled', 'true');
-    button.setAttribute('aria-busy', 'true');
-    var timer = setTimeout(function () {
-      button.style.minWidth = width + 'px';
-      button.innerHTML = '<span class="ds-btn__swap ds-enter ds-enter--fade"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>Saving</span>';
-    }, M.LOADER_DELAY_MS);
-    setTimeout(function () {
-      clearTimeout(timer);
-      M.settleLoader(startedAt).then(function () {
-        button.innerHTML = original;
-        button.style.minWidth = '';
-        button.removeAttribute('aria-disabled');
-        button.removeAttribute('aria-busy');
-        toast('Changes saved.');
+    M.busy(button, function () {
+      return new Promise(function (resolve) { setTimeout(resolve, speed > 0 && speed < 1 ? 1600 / speed : 1600); });
+    }).then(function () { toast('Changes saved.'); });
+  }
+
+  // The failing twin: the busy face goes at once on the error (no success
+  // face), and the page says what went wrong.
+  function busyFail(button) {
+    M.busy(button, function () {
+      return new Promise(function (resolve, reject) {
+        setTimeout(function () { reject(new Error('The sync server did not answer.')); }, speed > 0 && speed < 1 ? 1600 / speed : 1600);
       });
-    }, 1600);
+    }).catch(function () { toast('Could not sync. Check the connection and try again.', true); });
+  }
+
+  // Copy link: the icon swaps to a drawn check for --ds-hold-success, then
+  // back (DS.motion.crossfade, kind 'icon'; a press meanwhile restarts it).
+  var copyTimer = 0;
+  function copied(button) {
+    var swap = $('.ds-icon-swap', button);
+    clearTimeout(copyTimer);
+    M.crossfade(swap, icon('check', 20), { kind: 'icon' });
+    copyTimer = setTimeout(function () {
+      M.crossfade(swap, icon('copy', 20), { kind: 'icon' });
+    }, M.motionDuration(button, '--ds-hold-success'));
   }
 
   var tip = $('#sg-tooltip');
@@ -624,6 +691,17 @@
       if (action === 'toast') toast('Saved. The record is visible to everyone now.');
       if (action === 'toast-error') toast('Could not save. Check the connection and try again.', true);
       if (action === 'busy') busy(el);
+      if (action === 'busy-fail') busyFail(el);
+      if (action === 'copy') copied(el);
+      if (action === 'combo-toggle') {
+        // Demo code: the toggle opens and closes the list (its press is the
+        // layer, the morph and the ripple).
+        var combo = el.closest('.ds-combo');
+        var open = !combo.hasAttribute('data-open');
+        combo.toggleAttribute('data-open', open);
+        $('.ds-combo__popup', combo).hidden = !open;
+        $('.ds-combo__input', combo).setAttribute('aria-expanded', String(open));
+      }
       if (action === 'stagger') {
         // enterAll(): one batch, each square scales in one step after the
         // other; the classes and --ds-i go once each one landed.
@@ -674,11 +752,35 @@
     document.addEventListener('change', function (event) {
       var input = event.target;
       if (input.getAttribute('data-sg') === 'switch') $('.ds-switch__state', input.parentNode).textContent = input.checked ? 'On' : 'Off';
+      if (input.getAttribute('data-sg') === 'select-all') $$('[data-sg="select-row"]').forEach(function (row) { row.checked = input.checked; });
+      if (input.getAttribute('data-sg') === 'select-row') syncSelectAll();
     });
+    // The ticket field: checked on every keystroke, the message only
+    // changes when the verdict does (so it fades in once).
+    $('#sg-ticket').addEventListener('input', function (event) {
+      var field = event.target;
+      var wrong = field.value.trim() !== '' && !/^\d{5}$/.test(field.value.trim());
+      if (wrong === (field.getAttribute('aria-invalid') === 'true')) return;
+      if (wrong) field.setAttribute('aria-invalid', 'true');
+      else field.removeAttribute('aria-invalid');
+      $('#sg-ticket-error').innerHTML = wrong ? icon('alertCircle', 16) + 'A ticket number has five digits.' : '';
+    });
+    // The mixed state exists only as a property.
+    $$('[data-sg="indeterminate"]').forEach(function (input) { input.indeterminate = true; });
+    syncSelectAll();
     document.addEventListener('mouseover', function (event) { var t = event.target.closest('[data-tip]'); if (t) showTip(t, 500); });
     document.addEventListener('mouseout', function (event) { if (event.target.closest('[data-tip]')) hideTip(); });
     document.addEventListener('focusin', function (event) { var t = event.target.closest('[data-tip]'); if (t && t.matches(':focus-visible')) showTip(t, 0); });
     document.addEventListener('focusout', function (event) { if (event.target.closest('[data-tip]')) hideTip(); });
+  }
+
+  /* The header checkbox of the table: checked, mixed or empty by its rows. */
+  function syncSelectAll() {
+    var rows = $$('[data-sg="select-row"]');
+    var checked = rows.filter(function (row) { return row.checked; }).length;
+    var all = $('[data-sg="select-all"]');
+    all.checked = checked === rows.length;
+    all.indeterminate = checked > 0 && checked < rows.length;
   }
 
   /* The leave demo brings the card back 400ms after its exit, unless another press came first. */

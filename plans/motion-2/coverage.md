@@ -143,32 +143,32 @@ When a phase finishes, its ids are done or moved explicitly here (definition of 
 | repo-opp-flip-helper | repo | P2 | **Done (P2):** T14: WAAPI is allowed (D21); AGENTS wording in Docs |
 | repo-tests-js-coverage | repo | P2 | **Done (P2):** Tests, T25: engine unit and browser tests; the `fallback` project starts here |
 | repo-missed-4 | repo | P2 | **Done (P2):** T6: ceiling derived from delay and duration |
-| overlay-combo-toggle-state-layer | overlay | P3 | Other parts: `.ds-combo__toggle`; Shared: ripple hosts: layer, morph, ripple; no ring (`tabindex="-1"`) |
-| controls-press-feedback-weak | controls | P3 | Shared press feedback; Navigation items; Radio cards; table sort and tiles: tile and card morph stay in P6 (layout-tile-press-shape, layout-card-interactive); chips are not pills, so no morph |
-| controls-btn-focus-layer | controls | P3 | Focus: snap by transition, `--ds-state-focus` |
-| controls-disabled-inconsistent | controls | P3 | Disabled states: visual change under "Changed" |
-| controls-btn-busy-swap | controls | P3 | Buttons: faces, busy, icon swap: `.ds-btn__swap` deprecated |
-| controls-chip-layout-shift | controls | P3 | Chips: slot glide, across a wrap: `--ds-ease-out` per D29; wrap via FLIP per D22 |
-| controls-chip-check-drawin | controls | P3 | Chips: check draws in. |
-| controls-icon-check-direction | controls | P3 | Buttons: drawable check glyphs. |
-| controls-chip-disabled-hover | controls | P3 | Chips: disabled: P0 marker flips |
-| controls-switch-disabled | controls | P3 | Switch: disabled: P0 marker flips; HOVER_EXEMPT entry updated |
-| controls-switch-halo | controls | P3 | Switch: halo. |
-| controls-switch-thumb-motion | controls | P3 | Switch: handle: `--ds-ease-spatial` at `--ds-dur-medium` (no spatial-fast tokens) |
-| controls-form-blur-ghost | controls | P3 | Text fields: blur: P0 marker flips |
-| controls-form-label-focus | controls | P3 | Text fields: label tint: `:has()` is baseline (Firefox 128), no fallback note |
-| controls-form-error-hint-shift | controls | P3 | Text fields: validation message: height progressive, `--ds-ease-out` |
-| controls-form-native-checks | controls | P3 | Checkbox and radio: 18px input as the box, halo by `box-shadow` (authority risk row); gated by the P0 spike |
-| controls-list-parts-clip | controls | P3 | Other parts: `.ds-parts`: P0 marker flips |
-| controls-missed-4 | controls | P3 | Checkbox and radio: radio cards and rows; Shared: press shape roles: pressed radius from `--ds-radius-card-pressed` (added in P3; equals `--ds-radius-card` by default) |
-| controls-missed-5 | controls | P3 | Text fields: blur: `color` in the `.ds-input` transition |
-| controls-missed-6 | controls | P3 | Switch: state words. |
-| layout-linkbtn-focus | layout | P3 | Other parts: `.ds-link-btn`; Focus: `:focus-visible` directly (D3); ripple and morph exception; P0 marker flips |
-| layout-errors-summary-focus | layout | P3 | Other parts: `.ds-errors summary`; Focus: P0 marker flips; chevron rotation in P6 |
-| layout-drawer-press-feedback | layout | P3 | Navigation items: drawer item: uses `--ds-radius-action-pressed`, not a drawer-specific radius hook |
-| js-busy-restore | js | P3 | Buttons: `DS.motion.busy`: CSS faces, no width measuring |
-| js-icon-motion | js | P3 | Buttons: icon swap, drawable glyphs: incoming scale from `--ds-scale-small` (one canonical scale) |
-| repo-missed-2 | repo | P3 | Shared: shape morph: the disc's hover and press scale removal moved to P1 (controls-btn-disc-timing, with the stricter test, no PENDING entry); P3 gives the disc the shared morph and ripple and its browser test |
+| overlay-combo-toggle-state-layer | overlay | P3 | **Done (P3):** Other parts: `.ds-combo__toggle`; Shared: ripple hosts: layer, morph, ripple; no ring (`tabindex="-1"`) |
+| controls-press-feedback-weak | controls | P3 | **Done (P3):** Shared press feedback; Navigation items; Radio cards; table sort and tiles: tile and card morph stay in P6 (layout-tile-press-shape, layout-card-interactive); chips are not pills, so no morph |
+| controls-btn-focus-layer | controls | P3 | **Done (P3):** Focus: snap by transition, `--ds-state-focus` |
+| controls-disabled-inconsistent | controls | P3 | **Done (P3):** Disabled states: visual change under "Changed" |
+| controls-btn-busy-swap | controls | P3 | **Done (P3):** Buttons: faces, busy, icon swap: `.ds-btn__swap` deprecated |
+| controls-chip-layout-shift | controls | P3 | **Done (P3):** Chips: slot glide, across a wrap: `--ds-ease-out` per D29; wrap via FLIP per D22 |
+| controls-chip-check-drawin | controls | P3 | **Done (P3):** Chips: check draws in. |
+| controls-icon-check-direction | controls | P3 | **Done (P3):** Buttons: drawable check glyphs. |
+| controls-chip-disabled-hover | controls | P3 | **Done (P3):** Chips: disabled: P0 marker flips |
+| controls-switch-disabled | controls | P3 | **Done (P3):** Switch: disabled: P0 marker flips; HOVER_EXEMPT entry updated |
+| controls-switch-halo | controls | P3 | **Done (P3):** Switch: halo. |
+| controls-switch-thumb-motion | controls | P3 | **Done (P3):** Switch: handle: `--ds-ease-spatial` at `--ds-dur-medium` (no spatial-fast tokens) |
+| controls-form-blur-ghost | controls | P3 | **Done (P3):** Text fields: blur: P0 marker flips |
+| controls-form-label-focus | controls | P3 | **Done (P3):** Text fields: label tint: `:has()` is baseline (Firefox 128), no fallback note |
+| controls-form-error-hint-shift | controls | P3 | **Done (P3):** Text fields: validation message: height progressive, `--ds-ease-out` |
+| controls-form-native-checks | controls | P3 | **Done (P3):** Checkbox and radio: 18px input as the box, halo by `box-shadow` (authority risk row); gated by the P0 spike |
+| controls-list-parts-clip | controls | P3 | **Done (P3):** Other parts: `.ds-parts`: P0 marker flips |
+| controls-missed-4 | controls | P3 | **Done (P3):** Checkbox and radio: radio cards and rows; Shared: press shape roles: pressed radius from `--ds-radius-card-pressed` (added in P3; 8px against the 12px card radius) |
+| controls-missed-5 | controls | P3 | **Done (P3):** Text fields: blur: `color` in the `.ds-input` transition |
+| controls-missed-6 | controls | P3 | **Done (P3):** Switch: state words. |
+| layout-linkbtn-focus | layout | P3 | **Done (P3):** Other parts: `.ds-link-btn`; Focus: `:focus-visible` directly (D3); ripple and morph exception; P0 marker flips |
+| layout-errors-summary-focus | layout | P3 | **Done (P3):** Other parts: `.ds-errors summary`; Focus: P0 marker flips; chevron rotation in P6 |
+| layout-drawer-press-feedback | layout | P3 | **Done (P3):** Navigation items: drawer item: uses `--ds-radius-action-pressed`, not a drawer-specific radius hook |
+| js-busy-restore | js | P3 | **Done (P3):** Buttons: `DS.motion.busy`: CSS faces, no width measuring |
+| js-icon-motion | js | P3 | **Done (P3):** Buttons: icon swap, drawable glyphs: incoming scale from `--ds-scale-small` (one canonical scale) |
+| repo-missed-2 | repo | P3 | **Done (P3):** Shared: shape morph: the disc's hover and press scale removal moved to P1 (controls-btn-disc-timing, with the stricter test, no PENDING entry); P3 gives the disc the shared morph and ripple and its browser test |
 | core-docs-drawer-enter | core | P4 | Drawer and modal drawer: drawer coming back: One task with layout-drawer-enter-axis and repo-drawer-enter-axis; equality with `.ds-enter--slide` tested. |
 | controls-indicator-item-resize | controls | P4 | Indicator: observing: Observes the track, every item child and the active item (covers position-only shifts, merged controls-missed-3), rAF-batched, `loadingdone`. |
 | controls-indicator-glide-window | controls | P4 | Indicator: glide decision: Running edge transitions from `getAnimations()` replace the 600ms window. |

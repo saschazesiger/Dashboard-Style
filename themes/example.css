@@ -100,11 +100,15 @@
   --ds-radius-xl: 20px;
   --ds-radius-2xl: 28px;
   --ds-radius-action: 9999px;
+  /* Pressed shapes: never rounder than the rest radius (a square theme stays square). */
+  --ds-radius-action-pressed: 12px;
   --ds-radius-panel: var(--ds-radius-xl);
   --ds-radius-card: var(--ds-radius-md);
+  --ds-radius-card-pressed: var(--ds-radius-sm);
   --ds-radius-dialog: var(--ds-radius-lg);
   --ds-radius-chip: var(--ds-radius-sm);
   --ds-radius-field: var(--ds-radius-sm);
+  --ds-radius-check: 2px;
 
   /* ── Type ──
      Changing --ds-font or a weight here (on .ds-theme) updates every role.
@@ -152,10 +156,20 @@
   --ds-btn-font: var(--ds-font-label); --ds-btn-bg / -color / -border (per variant)
   --ds-btn-state: currentColor;        --ds-btn-state-opacity: var(--ds-state-hover);
   --ds-btn-state-pressed-opacity: var(--ds-state-pressed);
+  --ds-btn-state-focus-opacity: var(--ds-state-focus);
+  --ds-btn-radius-pressed: var(--ds-radius-action-pressed);
   --ds-btn-hover-color / -hover-border / -hover-shadow / -hover-decoration
   --ds-btn-icon-size: 40px;            --ds-btn-quiet-color: var(--ds-text-2);
   --ds-btn-disabled-bg / -disabled-border
   --ds-input-font: (body; input role up to 600px)
+  --ds-check-size: 18px;               --ds-check-target: 40px;
+  --ds-chip-height: 32px;              --ds-chip-check-size: 18px;
+  --ds-chip-disabled-border: var(--ds-disabled-fill);
+  --ds-chip-disabled-bg: var(--ds-disabled-fill);
+  --ds-switch-halo: 40px;
+  --ds-switch-disabled-track: var(--ds-disabled-fill);
+  --ds-switch-disabled-handle: var(--ds-disabled-ink);
+  --ds-drawer-item-height: 48px;
   --ds-card-padding: var(--ds-space-6); --ds-card-padding-sm: var(--ds-space-4);
   --ds-card-padding-filled: var(--ds-space-5);
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);

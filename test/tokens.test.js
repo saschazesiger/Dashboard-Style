@@ -137,6 +137,23 @@ describe('tokens', () => {
     assert.ok(!roles.some((name) => MOTION.test(`${name}:`)), 'no motion token among the roles');
   });
 
+  it('adds the control scales and roles of 1.1.0 to their layers', () => {
+    const { scales, roles } = layers();
+    for (const name of ['--ds-state-focus', '--ds-hold-success']) assert.ok(scales.includes(name), `${name} is a scale`);
+    assert.equal(token('--ds-state-focus'), '.10');
+    assert.equal(ms('--ds-hold-success'), 600);
+    assert.match(token('--ds-hold-success'), /^calc\(600ms \* var\(--ds-time-scale, 1\)\)$/);
+    assert.ok(MOTION.test('--ds-hold-success:'), 'a motion token: themes never set it');
+    const example = stripComments(read('themes/example.css'));
+    for (const name of ['--ds-radius-check', '--ds-radius-action-pressed', '--ds-radius-card-pressed']) {
+      assert.ok(roles.includes(name), `${name} is a role`);
+      assert.match(example, new RegExp(`${name}\\s*:`), `${name} in themes/example.css`);
+    }
+    assert.equal(token('--ds-radius-action-pressed'), '12px');
+    assert.equal(token('--ds-radius-card-pressed'), 'var(--ds-radius-sm)');
+    assert.equal(token('--ds-radius-check'), '2px');
+  });
+
   it('lists every role in the theme template (themes/example.css)', () => {
     const example = stripComments(read('themes/example.css'));
     const missing = layers().roles.filter((name) => !new RegExp(`${name}\\s*:`).test(example));
@@ -173,6 +190,8 @@ describe('default palette', () => {
     ['--ds-on-error-container', '--ds-error-container'], ['--ds-on-success-container', '--ds-success-container'],
     ['--ds-on-warning-container', '--ds-warning-container'], ['--ds-text', '--ds-warning-surface'],
     ['--ds-on-inverse', '--ds-inverse'], ['--ds-on-error-container', '--ds-surface'],
+    // A field label tints with the ring, or takes the error ink: on every surface a field sits on.
+    ['--ds-primary', '--ds-surface'], ['--ds-primary', '--ds-surface-low'], ['--ds-on-error-container', '--ds-surface-low'],
   ];
   for (const [fg, bg] of pairs) {
     it(`${fg} on ${bg} passes AA for text (4.5:1)`, () => {
@@ -180,6 +199,14 @@ describe('default palette', () => {
       assert.ok(ratio >= 4.5, `${ratio.toFixed(2)}:1`);
     });
   }
+
+  it('draws checkboxes and radios at 3:1 (WCAG 1.4.11): box, fill, mark, error', () => {
+    for (const [fg, bg] of [['--ds-text-2', '--ds-surface'], ['--ds-primary', '--ds-surface'], ['--ds-error', '--ds-surface'],
+      ['--ds-on-primary', '--ds-primary'], ['--ds-surface', '--ds-error']]) {
+      const ratio = contrast(colour(fg), colour(bg));
+      assert.ok(ratio >= 3, `${fg} on ${bg}: ${ratio.toFixed(2)}:1`);
+    }
+  });
 
   it('keeps icons and outlines at 3:1 where they carry meaning', () => {
     for (const [fg, bg] of [['--ds-error', '--ds-surface'], ['--ds-success', '--ds-surface'], ['--ds-warning', '--ds-surface'], ['--ds-outline', '--ds-surface'], ['--ds-inverse-primary', '--ds-inverse'], ['--ds-focus', '--ds-surface']]) {

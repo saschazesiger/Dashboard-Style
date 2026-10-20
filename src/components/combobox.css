@@ -19,6 +19,12 @@
  * Close the list with the hidden attribute on .ds-combo__popup; it works
  * without .ds-base.
  *
+ * The toggle is a round 40px target: a state layer in its colour (hover,
+ * press in --ds-dur-micro), the ripple (js/ripple.js) and the press morph
+ * of every pill (squarer to --ds-radius-action-pressed in --ds-dur-micro,
+ * back on the spatial spring). It stays tabindex="-1", so it has no ring.
+ * Options have no ripple: a press selects and closes the list.
+ *
  * Progressive: scrollbar-color and scrollbar-width (a thin, quiet
  * scrollbar in the list); without them the platform scrollbar shows.
  */
@@ -35,10 +41,14 @@
     text-overflow: ellipsis;
   }
 
+  /* A round 40px target in the field's end. Pressed it turns squarer and
+     springs back like every pill; it stays out of the tab order (the field
+     opens the list from the keyboard), so it has no ring. */
   .ds-combo__toggle {
     position: absolute;
     top: 0;
     right: var(--ds-space-1);
+    isolation: isolate;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -46,9 +56,47 @@
     height: 40px;
     padding: 0;
     border: 0;
+    border-radius: min(var(--ds-radius-action), calc(var(--ds-space-10) / 2));
     background: transparent;
     color: var(--ds-text-2);
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-radius var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* State layer in the content colour. */
+  .ds-combo__toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  @media (hover: hover) {
+    .ds-combo__toggle:hover::before {
+      opacity: var(--ds-state-hover);
+    }
+  }
+
+  /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it). */
+  .ds-combo__toggle:active::before,
+  .ds-combo__toggle.ds-pressed::before {
+    opacity: var(--ds-state-pressed);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  .ds-combo__toggle:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]),
+  .ds-combo__toggle.ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    border-radius: min(var(--ds-radius-action-pressed), var(--ds-radius-action), calc(var(--ds-space-10) / 2));
+    transition: border-radius var(--ds-dur-micro) var(--ds-ease-out);
   }
 
   /* The chevron flips without turning (no rotation in the motion system). */

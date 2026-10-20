@@ -33,6 +33,20 @@
  * The active drawer item glides with js/indicator.js
  * (createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })).
  *
+ * Drawer items and segmented options press in --ds-dur-micro (also while
+ * js/ripple.js holds .ds-pressed) and ripple, and turn squarer while
+ * pressed (--ds-radius-action-pressed, in --ds-dur-micro, springing back
+ * on release): a drawer item morphs itself and, when it is the active one,
+ * the pill under it; a segmented option morphs the clip of its state layer
+ * (the pill around the options clips them). Nothing moves. An
+ * aria-disabled drawer item shows no hover, press or morph. Their
+ * keyboard rings are inset (the list and the pill would clip anything
+ * outside): solid from the first frame, they rest on the edge and snap
+ * inward (outline-offset, --ds-dur-fast), with the focus layer
+ * (--ds-state-focus). The skip link's ring snaps in from outside.
+ *
+ * Hook: --ds-drawer-item-height (48px; the rest radius is half of it).
+ *
  * Progressive: scrollbar-color and scrollbar-width (thin, quiet scrollbars
  * in the drawer and the panel); without them the platform scrollbar shows.
  *
@@ -111,10 +125,14 @@
     color: var(--ds-text);
     font: var(--ds-font-label);
     text-decoration: none;
+    /* The ring rests one width further out and snaps in, like every ring. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   .ds-skip:focus-visible {
     outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
   }
 
   .ds-skip:not(:focus) {
@@ -167,14 +185,21 @@
     text-decoration: none;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
-    transition: color var(--ds-dur-fast) var(--ds-ease-in-out);
+    /* An inset ring (the pill clips anything outside): it rests on the edge
+       and snaps inward. */
+    outline-offset: 0;
+    transition:
+      color var(--ds-dur-fast) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   .ds-segmented__option + .ds-segmented__option {
     border-left: 1px solid var(--ds-outline);
   }
 
-  /* State layer */
+  /* State layer. The pill clips the options, so a pressed option cannot
+     change its own shape: its layer morphs its clip instead (squarer
+     corners in --ds-dur-micro, back on the spatial spring). */
   .ds-segmented__option::before {
     content: '';
     position: absolute;
@@ -185,7 +210,10 @@
     background: currentColor;
     opacity: 0;
     pointer-events: none;
-    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+    clip-path: inset(0 round 0);
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      clip-path var(--ds-dur-medium) var(--ds-ease-spatial);
   }
 
   @media (hover: hover) {
@@ -194,9 +222,19 @@
     }
   }
 
-  .ds-segmented__option:active::before {
+  /* The layer appears with the ring; the clip keeps its spring back. */
+  .ds-segmented__option:focus-visible::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s, var(--ds-dur-medium);
+  }
+
+  .ds-segmented__option:active::before,
+  .ds-segmented__option.ds-pressed::before {
     opacity: var(--ds-state-pressed);
-    transition-duration: var(--ds-dur-instant);
+    clip-path: inset(0 round var(--ds-radius-action-pressed));
+    transition:
+      opacity var(--ds-dur-micro) var(--ds-ease-in-out),
+      clip-path var(--ds-dur-micro) var(--ds-ease-out);
   }
 
   .ds-segmented__option:first-of-type {
@@ -385,13 +423,21 @@
     display: flex;
     align-items: center;
     gap: var(--ds-space-3);
-    min-height: 48px;
+    min-height: var(--ds-drawer-item-height, 48px);
     padding: 0 var(--ds-space-6) 0 var(--ds-space-4);
-    border-radius: var(--ds-radius-action);
+    /* Half the height, never 9999px, so the press morph interpolates over
+       its whole run. */
+    border-radius: min(var(--ds-radius-action), calc(var(--ds-drawer-item-height, 48px) / 2));
     color: var(--ds-text-2);
     font: var(--ds-font-body);
     text-decoration: none;
-    transition: color var(--ds-dur-fast) var(--ds-ease-in-out);
+    /* An inset ring (the scrolling list clips anything outside): it rests
+       on the edge and snaps inward. */
+    outline-offset: 0;
+    transition:
+      color var(--ds-dur-fast) var(--ds-ease-in-out),
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   /* An item may be a <button> (it switches a section in place instead of
@@ -440,9 +486,48 @@
     }
   }
 
-  .ds-drawer__item:active::before {
+  .ds-drawer__item:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  .ds-drawer__item:focus-visible::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
+  }
+
+  .ds-drawer__item:active::before,
+  .ds-drawer__item.ds-pressed::before {
     opacity: var(--ds-state-pressed);
-    transition-duration: var(--ds-dur-instant);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  /* Pressed, the item turns squarer (in --ds-dur-micro, never rounder than
+     at rest) and springs back on release; its layer follows (inherit).
+     Nothing moves: no transform. */
+  .ds-drawer__item:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]),
+  .ds-drawer__item.ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
+    border-radius: min(var(--ds-radius-action-pressed), var(--ds-radius-action), calc(var(--ds-drawer-item-height, 48px) / 2));
+    transition:
+      color var(--ds-dur-fast) var(--ds-ease-in-out),
+      border-radius var(--ds-dur-micro) var(--ds-ease-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* An item that cannot be chosen (aria-disabled) shows no hover and no
+     press (js/ripple.js gives it no ripple); it keeps the focus layer. */
+  @media (hover: hover) {
+    .ds-drawer__item[aria-disabled="true"]:hover::before {
+      opacity: 0;
+    }
+  }
+
+  .ds-drawer__item[aria-disabled="true"]:is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  .ds-drawer__item[aria-disabled="true"]:focus-visible::before {
+    opacity: var(--ds-state-focus);
   }
 
   /* The active pill: the tint glides between the items (js/indicator.js);
@@ -451,8 +536,31 @@
      the others are 400) and darker: the state never rests on colour alone.
      The pill spans the full item width, so the weight change moves nothing. */
   .ds-drawer__indicator {
-    border-radius: var(--ds-radius-action);
+    border-radius: min(var(--ds-radius-action), calc(var(--ds-drawer-item-height, 48px) / 2));
     background: var(--ds-accent);
+  }
+
+  /* The pill under a pressed active item morphs with it: the same pressed
+     radius in --ds-dur-micro, back on the indicator's own spring
+     (indicator.css). Only the radius entry changes: the item a click has
+     just made active is still pressed (.ds-pressed outlives the click), and
+     the pill's glide to it keeps its own timing. Keep the list in step with
+     .ds-indicator. */
+  .ds-has-indicator:has(.ds-drawer__item[aria-current="page"]:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator,
+  .ds-has-indicator:has(.ds-drawer__item[aria-current="page"].ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator {
+    border-radius: min(var(--ds-radius-action-pressed), var(--ds-radius-action), calc(var(--ds-drawer-item-height, 48px) / 2));
+    transition:
+      transform var(--ds-dur-medium) var(--ds-ease-in-out),
+      width var(--ds-dur-medium) var(--ds-ease-in-out),
+      height var(--ds-dur-medium) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      border-radius var(--ds-dur-micro) var(--ds-ease-out);
+  }
+
+  /* A pill placed without a glide (.ds-indicator--instant) keeps it so. */
+  .ds-has-indicator:has(.ds-drawer__item[aria-current="page"]:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator.ds-indicator--instant,
+  .ds-has-indicator:has(.ds-drawer__item[aria-current="page"].ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator.ds-indicator--instant {
+    transition: border-radius var(--ds-dur-micro) var(--ds-ease-out);
   }
 
   .ds-drawer__item[aria-current="page"] {
@@ -583,8 +691,10 @@
       border-radius: 0 var(--ds-radius-dialog) var(--ds-radius-dialog) 0;
       box-shadow: var(--ds-elev-overlay);
       /* Invisible, but forced colors drop fill, shadow and scrim and paint
-         it: the sheet keeps an edge against the page. */
+         it: the sheet keeps an edge against the page, on its own edge
+         whatever offset a page base gives focusable elements. */
       outline: 1px solid transparent;
+      outline-offset: 0;
       /* An opaque sheet: it only slides, the scrim does the fading. */
       visibility: hidden;
       transform: translateX(calc(-1 * var(--ds-distance-sheet)));
@@ -605,6 +715,13 @@
        only has to be in place when it opens again, not glide while it leaves. */
     .ds-drawer .ds-drawer__indicator {
       transition: none;
+    }
+
+    /* Also while the item a click has just made active is still pressed;
+       the press morph of the pill stays. */
+    .ds-drawer .ds-has-indicator:has(.ds-drawer__item[aria-current="page"]:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator,
+    .ds-drawer .ds-has-indicator:has(.ds-drawer__item[aria-current="page"].ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator {
+      transition: border-radius var(--ds-dur-micro) var(--ds-ease-out);
     }
 
     /* The lock-up stays where the top bar shows it (menu button inset,

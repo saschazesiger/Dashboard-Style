@@ -33,6 +33,11 @@ wrapped in `@layer`: an unlayered rule beats every `ds.*` layer, whatever its sp
 theme on `.ds-theme` win, and also why a theme sets hooks rather than restyling component selectors: an unlayered
 `.ds-btn { ... }` would override the component in every state at once.
 
+The same goes for motion: an unlayered `transition` on `.ds-btn`, `.ds-chip__body` or `.ds-input` (or any other
+component) replaces the component's whole list, and with it the focus snap (`outline-offset`), the spring back of
+the press morph (`border-radius`) and the fade of a field's ring on blur. Leave component transitions alone; a
+project component of your own lists its properties with the motion tokens.
+
 ## Recipes
 
 **Brand palette.** Usually five roles are enough; `--ds-link`, `--ds-focus` and `--ds-action-ink` follow
@@ -57,7 +62,9 @@ theme on `.ds-theme` win, and also why a theme sets hooks rather than restyling 
 }
 ```
 
-**Square containers, round actions.** Zero the radius scale; actions keep `--ds-radius-action`.
+**Square containers, round actions.** Zero the radius scale; actions keep `--ds-radius-action`. The press shapes
+follow on their own: a pressed shape is never rounder than its rest shape (`--ds-radius-action-pressed`, 12px, for
+pills; `--ds-radius-card-pressed` for radio cards; checkboxes take `--ds-radius-check`).
 
 ```css
 .ds-theme {
@@ -129,10 +136,11 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-padding-x` | `--ds-space-4` (`--text`, `--sm`: `--ds-space-3`) | button |
 | `--ds-btn-padding-start` | `= padding-x`; `--ds-space-3` before a leading icon | button |
 | `--ds-btn-radius` | `--ds-radius-action` | button |
+| `--ds-btn-radius-pressed` | `--ds-radius-action-pressed` | button while pressed (never rounder than `--ds-btn-radius`) |
 | `--ds-btn-font` | `--ds-font-label` | button |
 | `--ds-btn-bg`, `--ds-btn-color`, `--ds-btn-border` | per variant | button fill, label, border colour |
 | `--ds-btn-state` | `currentColor` | colour of the hover/press layer |
-| `--ds-btn-state-opacity`, `--ds-btn-state-pressed-opacity` | `--ds-state-hover`, `--ds-state-pressed` | layer strength |
+| `--ds-btn-state-opacity`, `--ds-btn-state-focus-opacity`, `--ds-btn-state-pressed-opacity` | `--ds-state-hover`, `--ds-state-focus`, `--ds-state-pressed` (`--disc`: 1) | layer strength on hover, keyboard focus, press |
 | `--ds-btn-hover-color`, `--ds-btn-hover-border` | the resting values | hover label and border |
 | `--ds-btn-hover-shadow` | none (`--primary`: `--ds-elev-hover`) | hover elevation |
 | `--ds-btn-hover-decoration` | none | e.g. `underline` for text buttons |
@@ -140,6 +148,14 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
 | `--ds-input-font` | body; input role at 600px and below | fields |
+| `--ds-check-size` | 18px | the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes) |
+| `--ds-check-target` | 40px | their halo (hover, press, focus) across |
+| `--ds-chip-height` | 32px | filter chip |
+| `--ds-chip-check-size` | 18px | the check of a selected chip (and the room it opens) |
+| `--ds-chip-disabled-border`, `--ds-chip-disabled-bg` | `--ds-disabled-fill` | disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`) |
+| `--ds-switch-halo` | 40px | the halo around the switch handle |
+| `--ds-switch-disabled-track`, `--ds-switch-disabled-handle` | `--ds-disabled-fill`, `--ds-disabled-ink` | disabled switch track (and border) and off handle |
+| `--ds-drawer-item-height` | 48px | drawer item (its rest radius is half of it, so the press morph runs its whole way) |
 | `--ds-card-padding` | `--ds-space-6` | card padding |
 | `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
 | `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |

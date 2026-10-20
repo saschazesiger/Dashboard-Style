@@ -141,6 +141,8 @@
     display: flex;
     flex-direction: column;
     gap: var(--ds-space-3);
+    outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   /* A snackbar shown inside the sheet (toast.css) that stays until closed:
@@ -153,7 +155,8 @@
   }
 
   /* A tab stop for scrolling: the ring only for the keyboard, inside the
-     edge so the panel does not clip it. */
+     edge so the panel does not clip it; it rests on the edge and snaps
+     inward like every inset ring (.ds-sheet__body above). */
   .ds-sheet__body:focus {
     outline: none;
   }

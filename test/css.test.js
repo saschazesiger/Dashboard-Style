@@ -8,8 +8,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import * as icons from '../src/js/icons.js';
+import { RIPPLE_HOSTS } from '../src/js/ripple.js';
 import {
-  ROOT, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
+  ROOT, atRuleBlocks, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
 } from './helpers.js';
 
 const ALL_CSS = [...filesIn('src', (path) => path.endsWith('.css')), 'fonts/fonts.css', ...filesIn('themes', (path) => path.endsWith('.css'))];
@@ -113,7 +114,7 @@ const FOCUS_EXEMPT = [
 ];
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
-const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve']);
+const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-chips-backdrop']);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
@@ -142,10 +143,19 @@ const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color
 /** Animated properties allowed on one selector only, each with its reason. */
 const ANIMATED_EXCEPTIONS = new Map([
   ['.ds-collapsible::details-content', { properties: ['height'], reason: 'the disclosure opens to auto, only where interpolate-size exists' }],
+  ['.ds-chip__body::after', { properties: ['width'], reason: 'the check slot of a chip: a layout size on --ds-ease-out (D29)' }],
+  ['.ds-field__hint--error', { properties: ['height'], reason: 'the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists' }],
 ]);
+/** Declarations of the rules whose selector list (split at top-level commas) contains `selector`. */
+const declarationsAt = (css, selector) => rules(css).filter((rule) => splitSelectors(rule.selector).includes(selector)).flatMap((rule) => declarations(`${rule.body};`));
+/** A drawn glyph (pathLength="1") or the icon-swap face it inherits from: stroke-dashoffset may transition there (drawn checks). */
+const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$/.test(part));
 /** Animated properties that a later phase removes (P8 asserts that this is empty). */
 const ANIMATED_PENDING = new Map([
   ['.ds-indicator', { properties: ['width', 'height'], phase: 'P4 (moved by transform or clip-path)' }],
+  // The pill under a pressed active item restates the indicator's list (a click's new item is still pressed while it glides there).
+  ['.ds-has-indicator:has(.ds-drawer__item[aria-current="page"]:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator, .ds-has-indicator:has(.ds-drawer__item[aria-current="page"].ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) > .ds-drawer__indicator',
+    { properties: ['width', 'height'], phase: 'P4 (moved by transform or clip-path, with .ds-indicator)' }],
 ]);
 /** The registered custom properties of src/ (they animate like any other property). */
 const REGISTERED = new Set(SRC_CSS.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
@@ -203,7 +213,7 @@ const fades = (name) => /(^|[;{\s])(opacity|color|background(-color)?|border-col
 /** The longest duration (ms) the rule `selector` of `file` sets through `properties` (first time of each list entry). */
 function longest(file, selector, properties) {
   const times = [];
-  for (const { property, value } of declarationsOf(read(file), selector)) {
+  for (const { property, value } of declarationsAt(read(file), selector)) {
     if (!properties.includes(property)) continue;
     if (property === 'animation' || property === 'transition') {
       for (const entry of entriesOf(value)) if (entry.times.length) times.push(entry.times[0]);
@@ -233,6 +243,21 @@ const RATIOS = [
   ['modal drawer', [['src/components/shell.css', '.ds-app[data-drawer-open] .ds-drawer', ['transition']]], [['src/components/shell.css', '.ds-drawer', ['transition']]]],
   ['snackbar', [['src/components/toast.css', '.ds-toast', ['animation']]], [['src/components/toast.css', '.ds-toast', ['--ds-leave-duration']]]],
   ['tooltip', [['src/components/tooltip.css', '.ds-tooltip', ['animation']]], [['src/components/tooltip.css', '.ds-tooltip', ['--ds-leave-duration']]]],
+];
+/**
+ * The control marks of 1.1.0: what leaves takes 0.4-0.67 of what enters
+ * (an exit that is quick but still seen), measured like RATIOS.
+ */
+const CHECKBOX = ':is(.ds-check input[type="checkbox"], .ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *)), .ds-checkbox)';
+const RADIO = ':is(.ds-check input[type="radio"], .ds-radio input, .ds-radio-input)';
+const SWAP_SHOWN = '.ds-icon-swap:where([data-swap="b"], [aria-pressed="true"] :not([data-swap])) > .ds-icon-swap__b';
+const CONTROL_RATIOS = [
+  ['chip check', [['src/components/chip.css', '.ds-chip__input:checked + .ds-chip__body .ds-chip__check [pathLength]', ['transition']]], [['src/components/chip.css', '.ds-chip__check [pathLength]', ['transition']]]],
+  ['checkbox mark', [['src/components/form.css', `${CHECKBOX}:checked::before`, ['transition']]], [['src/components/form.css', `${CHECKBOX}::before`, ['transition']]]],
+  ['radio dot', [['src/components/form.css', `${RADIO}:checked::after`, ['transition']]], [['src/components/form.css', `${RADIO}::after`, ['transition']]]],
+  ['button faces', [['src/components/button.css', '.ds-btn[aria-busy="true"] .ds-btn__face--busy', ['transition']]], [['src/components/button.css', '.ds-btn__face--busy', ['transition']]]],
+  ['icon swap', [[M, SWAP_SHOWN, ['transition']]], [[M, '.ds-icon-swap > .ds-icon-swap__b', ['transition']]]],
+  ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
 ];
 const resolveDuration = (candidates) => candidates.map(([file, selector, properties]) => longest(file, selector, properties)).find((time) => time !== undefined);
 
@@ -349,7 +374,11 @@ describe('motion in CSS', () => {
   it('never moves anything on hover and never transforms on press', () => {
     // transform: none and var() values count too: a hover that resets a
     // transform moves the element back (the old disc loophole).
-    const ACTIVE_EXEMPT = new Map(); // P3 adds the switch handle (it may grow while pressed, D6).
+    // The switch handle may grow while pressed (D6), never above 1 (its 28px box).
+    const ACTIVE_EXEMPT = new Map([
+      ['.ds-switch:active input:not(:disabled) + .ds-switch__track::after', 'the handle grows to its pressed size'],
+      ['.ds-switch.ds-pressed input:not(:disabled) + .ds-switch__track::after', 'the handle grows to its pressed size'],
+    ]);
     const offenders = [];
     for (const file of ALL_CSS) {
       for (const { selector, body } of rules(read(file))) {
@@ -359,13 +388,22 @@ describe('motion in CSS', () => {
           const moves = set.filter((property) => /^(transform|translate|scale|rotate|top|right|bottom|left|inset|margin(-[\w-]+)?)$/.test(property));
           if (moves.length) offenders.push(`${file}: ${selector}: ${moves.join(', ')} on hover`);
         }
-        if (parts.some((part) => part.includes(':active') && !ACTIVE_EXEMPT.has(part))) {
+        // .ds-pressed is the press js/ripple.js holds: the same rule as :active.
+        if (parts.some((part) => /:active|\.ds-pressed\b/.test(part) && !ACTIVE_EXEMPT.has(part))) {
           const moves = set.filter((property) => /^(transform|translate|scale)$/.test(property));
           if (moves.length) offenders.push(`${file}: ${selector}: ${moves.join(', ')} on press`);
         }
       }
     }
     assert.deepEqual(offenders, []);
+    // The exemption is the switch handle only, and it never grows above its box.
+    for (const selector of ACTIVE_EXEMPT.keys()) {
+      assert.match(selector, /\.ds-switch__track::after$/, selector);
+      for (const { property, value } of declarationsAt(read('src/components/switch.css'), selector)) {
+        if (property === 'scale') assert.ok(Number(value) <= 1, `${selector}: scale ${value}`);
+        assert.ok(!/^(transform|translate)$/.test(property), `${selector}: ${property}`);
+      }
+    }
   });
 
   it('runs the spring only on movement (effects never overshoot)', () => {
@@ -437,6 +475,15 @@ describe('motion in CSS', () => {
     // The table reads what the docs promise.
     assert.deepEqual(RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
       ['250/150', '250/200', '350/200', '250/150', '250/150', '350/200', '350/200', '250/150', '150/100']);
+    for (const [name, entrance, exit] of CONTROL_RATIOS) {
+      const enter = resolveDuration(entrance);
+      const leave = resolveDuration(exit);
+      assert.ok(enter > 0 && leave > 0, `${name}: ${enter}/${leave}`);
+      const ratio = leave / enter;
+      assert.ok(ratio >= 0.4 && ratio <= 0.67 + 1e-9, `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
+    }
+    assert.deepEqual(CONTROL_RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
+      ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100']);
   });
 
   it('shapes keyframes: entrances from-only, exits to-only, movement on translate and scale', () => {
@@ -474,6 +521,7 @@ describe('motion in CSS', () => {
   it('animates only the allowed properties', () => {
     const offenders = [];
     const allowed = (selector, property) => ANIMATABLE.has(property) || REGISTERED.has(property)
+      || (property === 'stroke-dashoffset' && drawnGlyph(selector))
       || [ANIMATED_EXCEPTIONS, ANIMATED_PENDING].some((map) => map.get(selector)?.properties.includes(property));
     for (const file of SRC_CSS) {
       for (const { selector, body } of rules(read(file))) {
@@ -575,7 +623,8 @@ describe('values come from tokens', () => {
     for (const file of COMPONENT_CSS) {
       for (const { property, value } of declarations(read(file))) {
         const literal = literalPart(value).trim();
-        if (/radius/.test(property) && literal.replace(/\b0\b|\b50%|\binherit\b/g, '').trim()) offenders.push(`${file}: ${property}: ${value}`);
+        // min() of tokens (a pill's rest and pressed radius) carries no literal of its own.
+        if (/radius/.test(property) && literal.replace(/\b0\b|\b50%|\binherit\b|\bmin\(|[\s,()]/g, '').trim()) offenders.push(`${file}: ${property}: ${value}`);
         // Shadows used as rings (inset 0 0 0 1px var(--x)) are geometry; a blur is elevation.
         if (property === 'box-shadow' && /\d+px\s+\d+px\s+\d+px\s+\d*px?\s*$/.test(literal)) offenders.push(`${file}: ${property}: ${value}`);
       }
@@ -683,10 +732,10 @@ describe('CSS for the baseline', () => {
     assert.doesNotMatch(utilities, /@keyframes/);
     assert.deepEqual(rules(motion).filter((rule) => !/^(from|to|\d+%)$/.test(rule.selector)), []);
     const selectors = rules(utilities).flatMap((rule) => splitSelectors(rule.selector));
-    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible', '.ds-swap']) {
+    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible', '.ds-swap', '.ds-icon-swap']) {
       assert.ok(selectors.includes(utility), utility);
     }
-    assert.deepEqual(selectors.filter((selector) => !/^\.ds-(enter|leave|stagger|reveal|collapsible|swap)\b/.test(selector)), []);
+    assert.deepEqual(selectors.filter((selector) => !/^\.ds-(enter|leave|stagger|reveal|collapsible|swap|icon-swap(__[ab])?)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {
@@ -852,17 +901,19 @@ describe('accessibility details', () => {
     assert.ok(blocks.flatMap((block) => declarationsOf(block, '.ds-loadbar')).some((entry) => entry.property === 'outline'));
   });
 
-  it('draws the masked glyphs of the fields (calendar, clear) from the icon set', () => {
+  it('draws the masked glyphs of the fields (calendar, clear, the checkbox check) from the icon set', () => {
     const masks = [...read('src/components/form.css').matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)].map((match) => decodeURIComponent(match[1]));
     const drawn = new Set();
     for (const svg of masks) {
       const inner = svg.replace(/^<svg[^>]*>|<\/svg>$/g, '').replace(/'/g, '"');
-      const name = ['calendar', 'close'].find((glyph) => icons[glyph] === inner);
+      const name = ['calendar', 'close', 'check'].find((glyph) => icons[glyph] === inner);
       assert.ok(name, `not a glyph of the set: ${inner}`);
       drawn.add(name);
-      assert.match(svg, /stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/);
+      // The checkbox check alone is heavier: stroke 3 is 2.25px in the 18px box.
+      const width = name === 'check' ? 3 : 2;
+      assert.match(svg, new RegExp(`stroke-width='${width}' stroke-linecap='round' stroke-linejoin='round'`));
     }
-    assert.deepEqual([...drawn].sort(), ['calendar', 'close']);
+    assert.deepEqual([...drawn].sort(), ['calendar', 'check', 'close']);
   });
 
   it('rings a date field while its calendar button has the focus', () => {
@@ -879,12 +930,77 @@ describe('accessibility details', () => {
     assert.deepEqual(hover.map((rule) => rule.selector), ['.ds-input:where(:hover:not(:focus-within, :disabled, [readonly], [aria-invalid="true"]))']);
   });
 
-  it('shows the focus ring at once (no transition on outline)', () => {
+  it('shows the focus ring solid from the first frame and snaps only its offset', () => {
+    const offenders = [];
     for (const file of COMPONENT_CSS) {
       for (const { property, value } of declarations(read(file))) {
-        if (/^transition(-property)?$/.test(property)) assert.doesNotMatch(value, /\boutline\b|\ball\b/, `${file}: ${value}`);
+        if (!/^transition(-property)?$/.test(property)) continue;
+        for (const entry of entriesOf(value)) {
+          if (/^(outline|outline-color|outline-width|outline-style|all)$/.test(entry.name)) offenders.push(`${file}: transition of ${entry.name}`);
+          if (entry.name === 'outline-offset' && !(entry.words[1] === 'var(--ds-dur-fast)' && entry.words[2] === 'var(--ds-ease-out)')) offenders.push(`${file}: ${entry.words.join(' ')}`);
+        }
       }
     }
+    for (const body of Object.values(KEYFRAMES)) assert.doesNotMatch(body, /outline/, 'a keyframe would take over the element\'s animation');
+    // Every ring of the components (outline: var(--ds-focus-outline)) rests one
+    // width further out (inset rings: on the edge) and lists outline-offset
+    // in the element's own transition. The rest rule is the ring's selector
+    // without its focus state.
+    const SNAP = 'calc(var(--ds-focus-offset) + var(--ds-focus-width))';
+    const INSET = 'calc(-1 * var(--ds-focus-width))';
+    for (const file of COMPONENT_CSS) {
+      const all = rules(read(file));
+      for (const { selector, body } of all) {
+        const own = Object.fromEntries(declarations(`${body};`).map((entry) => [entry.property, entry.value]));
+        if (own.outline !== 'var(--ds-focus-outline)') continue;
+        for (const part of splitSelectors(selector)) {
+          const rest = part
+            .replace(/^(\.ds-[\w-]+) input:focus-visible \+ (\.ds-[\w-]+)$/, '$2')
+            .replace(/^\.ds-chip__input:focus-visible \+ /, '')
+            .replace(/:has\(input:focus-visible\)/, '')
+            .replace(/:focus-visible/, '');
+          const expected = own['outline-offset'] === INSET ? '0' : SNAP;
+          const restRules = all.filter((rule) => splitSelectors(rule.selector).includes(rest) || (rest.startsWith(':where(.ds-base)') && /:where\(.ds-base\) (a|:where\(summary, \[tabindex\]:not\(\[tabindex\^="-"\]\)\))/.test(rule.selector)));
+          const entries = Object.fromEntries(restRules.flatMap((rule) => declarations(`${rule.body};`)).map((entry) => [entry.property, entry.value]));
+          if (rest.startsWith(':where(.ds-base)')) continue; // the page base: checked below
+          if (entries['outline-offset'] !== expected) offenders.push(`${file}: ${rest} rests at ${entries['outline-offset']}, not ${expected}`);
+          if (!/outline-offset var\(--ds-dur-fast\) var\(--ds-ease-out\)/.test(entries.transition || '')) offenders.push(`${file}: ${rest} has no outline-offset in its transition`);
+        }
+      }
+    }
+    for (const selector of [':where(.ds-base) a', ':where(.ds-base) :where(summary, [tabindex]:not([tabindex^="-"]))']) {
+      const entries = Object.fromEntries(declarationsAt(read('src/base.css'), selector).map((entry) => [entry.property, entry.value]));
+      assert.equal(entries['outline-offset'], SNAP, selector);
+      assert.match(entries.transition, /outline-offset var\(--ds-dur-fast\) var\(--ds-ease-out\)/, selector);
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('lays the focus layer under the ring (--ds-state-focus), at once', () => {
+    const cases = [
+      ['src/components/button.css', '.ds-btn:focus-visible::before', 'var(--ds-btn-state-focus-opacity, var(--ds-state-focus))'],
+      ['src/components/chip.css', '.ds-chip__input:focus-visible + .ds-chip__body::before', 'var(--ds-state-focus)'],
+      ['src/components/shell.css', '.ds-segmented__option:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/shell.css', '.ds-drawer__item:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/tile.css', ':is(button, a).ds-tile:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/table.css', '.ds-table__sort:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/alert.css', '.ds-errors summary:focus-visible::before', 'var(--ds-state-focus)'],
+    ];
+    for (const [file, selector, opacity] of cases) {
+      const entries = Object.fromEntries(declarationsAt(read(file), selector).map((entry) => [entry.property, entry.value]));
+      assert.equal(entries.opacity, opacity, `${file}: ${selector}`);
+      // The first entry is the layer's opacity (a segmented option keeps the
+      // spring of its clip in a second one).
+      assert.equal(entries['transition-duration']?.split(',')[0].trim(), '0s', `${file}: ${selector}`);
+    }
+    // The halos of the switch and of checkboxes and radios are their focus layer.
+    const halo = Object.fromEntries(declarationsAt(read('src/components/switch.css'), '.ds-switch input:focus-visible + .ds-switch__track::before').map((entry) => [entry.property, entry.value]));
+    assert.equal(halo.opacity, 'var(--ds-state-focus)');
+    assert.match(halo.transition, /(^|, )opacity 0s(,|$)/);
+    const unforced = (file) => withoutAtRuleBlocks(read(file), /@media\s*\(forced-colors:\s*active\)/);
+    const check = Object.fromEntries(declarationsAt(unforced('src/components/form.css'), ':is(.ds-check input, .ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *)), .ds-checkbox, .ds-radio-input):focus-visible:not(:disabled)').map((entry) => [entry.property, entry.value]));
+    assert.match(check['box-shadow'], /var\(--ds-state-focus\)/);
+    assert.match(check.transition, /(^|, )box-shadow 0s(,|$)/);
   });
 
   it('lines up the figures of counts, times and key figures (tabular)', () => {
@@ -910,6 +1026,213 @@ describe('accessibility details', () => {
       + '@supports (display: grid) { @media (min-width: 1px) { .ds-b:hover, .ds-c { color: red; } } }\n'
       + '.ds-d:hover { color: red; }';
     assert.deepEqual(hoverOutsideHoverBlocks(planted), ['.ds-b:hover', '.ds-d:hover']);
+  });
+});
+
+/** A RegExp source that matches `text` literally. */
+const literally = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** The compound a selector part styles: its last compound, without pseudo-elements. */
+function subjectOf(part) {
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < part.length; index += 1) {
+    const char = part[index];
+    if (char === '(' || char === '[') depth += 1;
+    else if (char === ')' || char === ']') depth -= 1;
+    else if (depth === 0 && /[\s>+~]/.test(char)) start = index + 1;
+  }
+  return part.slice(start).replace(/::[\w-]+(\(.*\))?$/, '');
+}
+
+/**
+ * Action-like parts (cursor: pointer) that are no ripple host, each with
+ * its reason; keyed by the class of the styled compound, or `input`.
+ */
+const RIPPLE_EXEMPT = new Map([
+  ['.ds-link-btn', 'an inline text link: no ripple and no morph (they would reach outside the text line)'],
+  ['.ds-switch', 'its halo is the press (D23)'],
+  ['.ds-check', 'a checkbox row: the input\'s halo is the press'],
+  ['input', 'checkbox and radio inputs: an input cannot hold a ripple, the halo is the press'],
+  ['.ds-checkbox', 'a checkbox input: the halo is the press'],
+  ['.ds-radio-input', 'a radio input: the halo is the press'],
+  ['.ds-combo__option', 'pointer-down selects and closes the list; the state layer is the feedback'],
+  ['.ds-input', 'native field parts (select, the calendar and clear buttons)'],
+]);
+
+describe('controls (1.1.0)', () => {
+  /** The pills that morph: rest radius min(..., half the height), pressed radius from the role. */
+  const PILLS = [
+    ['src/components/button.css', '.ds-btn', 'var(--ds-btn-half)', 'var(--ds-btn-radius-pressed, var(--ds-radius-action-pressed))'],
+    ['src/components/shell.css', '.ds-drawer__item', 'calc(var(--ds-drawer-item-height, 48px) / 2)', 'var(--ds-radius-action-pressed)'],
+    ['src/components/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-space-10) / 2)', 'var(--ds-radius-action-pressed)'],
+  ];
+  const BLOCKED = [':disabled', '[aria-disabled="true"]', '[aria-busy="true"]'];
+
+  /** The pressed parts (`host:active...`, `host.ds-pressed...`) of `file` that set a border-radius, with their declarations. */
+  function pressed(file, host) {
+    const pattern = new RegExp(`^${literally(host)}(:active|\\.ds-pressed)(?![\\w-])`);
+    return rules(read(file)).flatMap((rule) => splitSelectors(rule.selector)
+      .filter((part) => pattern.test(part) && !part.includes('::') && /border-radius\s*:/.test(rule.body))
+      .map((part) => ({ part, own: Object.fromEntries(declarations(`${rule.body};`).map((entry) => [entry.property, entry.value])) })));
+  }
+
+  it('morphs every pill on press and springs it back (rest radius never 9999px)', () => {
+    for (const [file, host, half, role] of PILLS) {
+      const rest = Object.fromEntries(declarationsAt(read(file), host).map((entry) => [entry.property, entry.value]));
+      assert.ok(rest['border-radius'].startsWith('min(') && rest['border-radius'].endsWith(`, ${half})`), `${host}: rest radius ${rest['border-radius']}`);
+      assert.match(rest.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/, `${host}: the release springs back`);
+      const parts = pressed(file, host);
+      assert.deepEqual(parts.map(({ part }) => /:active/.test(part) ? 'active' : 'pressed').sort(), ['active', 'pressed'], `${host}: :active and .ds-pressed`);
+      for (const { part, own } of parts) {
+        for (const state of BLOCKED) assert.ok(part.includes(state), `${part}: excludes ${state}`);
+        assert.ok(own['border-radius'].startsWith(`min(${role}, `) && own['border-radius'].endsWith(`, ${half})`), `${part}: ${own['border-radius']}`);
+        assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/, `${part}: the press goes in on --ds-dur-micro`);
+      }
+    }
+    // A round icon button morphs from half its own size; done buttons are blocked too.
+    const icon = Object.fromEntries(declarationsOf(read('src/components/button.css'), '.ds-btn--icon').map((entry) => [entry.property, entry.value]));
+    assert.equal(icon['--ds-btn-half'], 'calc(var(--ds-btn-icon-size, 40px) / 2)');
+    for (const { part } of pressed('src/components/button.css', '.ds-btn')) assert.ok(part.includes('.ds-btn--done'), part);
+    // Radio cards go to the card's pressed role, never rounder than at rest.
+    const card = pressed('src/components/form.css', '.ds-radio');
+    assert.equal(card.length, 2);
+    for (const { part, own } of card) {
+      assert.ok(part.includes(':not(.ds-radio--disabled, :has(input:disabled))'), part);
+      assert.equal(own['border-radius'], 'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
+      assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/);
+    }
+    const cardRest = Object.fromEntries(declarationsAt(read('src/components/form.css'), '.ds-radio').map((entry) => [entry.property, entry.value]));
+    assert.match(cardRest.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/);
+  });
+
+  it('presses every state layer in --ds-dur-micro (no --ds-dur-instant press-in)', () => {
+    const offenders = [];
+    let layers = 0;
+    for (const file of COMPONENT_CSS.filter((path) => path !== 'src/components/ripple.css')) {
+      for (const { selector, body } of rules(read(file))) {
+        const parts = splitSelectors(selector).filter((part) => /:active|\.ds-pressed\b/.test(part) && part.endsWith('::before'));
+        if (!parts.length) continue;
+        const own = Object.fromEntries(declarations(`${body};`).map((entry) => [entry.property, entry.value]));
+        const timing = `${own.transition || ''} ${own['transition-duration'] || ''}`;
+        if (/--ds-dur-instant/.test(timing)) offenders.push(`${file}: ${selector}: --ds-dur-instant`);
+        // A layer that shows the press must bring it in on the micro step.
+        if (/--ds-state-pressed|-state-pressed-opacity/.test(own.opacity || '')) {
+          layers += 1;
+          if (!/--ds-dur-micro/.test(timing)) offenders.push(`${file}: ${selector}: no --ds-dur-micro press-in`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+    assert.ok(layers >= 10, `${layers} press layers`);
+  });
+
+  it('gives every action a ripple, or names why not (RIPPLE_EXEMPT)', () => {
+    const hosts = splitSelectors(RIPPLE_HOSTS);
+    const classOf = (compound) => compound.match(/\.ds-[\w-]+/)?.[0] ?? (/^input\b/.test(compound) ? 'input' : compound);
+    const isHost = (part) => hosts.some((host) => {
+      if (/\s/.test(host)) return part.replace(/::[\w-]+$/, '').endsWith(host);
+      const name = host.match(/\.ds-[\w-]+|\[[\w-]+\]/)[0];
+      return new RegExp(`${literally(name)}(?![\\w-])`).test(subjectOf(part));
+    });
+    const offenders = [];
+    const exemptUsed = new Set();
+    for (const file of SRC_CSS) {
+      for (const { selector, body } of rules(read(file))) {
+        if (!/cursor:\s*pointer/.test(body)) continue;
+        for (const part of splitSelectors(selector).filter((item) => item.includes('.ds-'))) {
+          if (isHost(part)) continue;
+          const key = classOf(subjectOf(part));
+          if (RIPPLE_EXEMPT.has(key)) exemptUsed.add(key);
+          else offenders.push(`${file}: ${part} (no ripple host, not in RIPPLE_EXEMPT)`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+    assert.deepEqual([...RIPPLE_EXEMPT.keys()].filter((key) => !exemptUsed.has(key)), [], 'an exemption nothing needs: shorten RIPPLE_EXEMPT');
+    // Every host with a pressed state layer has its .ds-ripples rule, so layer and ripple never stack.
+    const ripple = rules(read('src/components/ripple.css')).flatMap((rule) => splitSelectors(rule.selector));
+    for (const host of hosts.filter((item) => item !== '[data-ds-ripple]')) {
+      const layered = COMPONENT_CSS.filter((path) => path !== 'src/components/ripple.css').some((file) => rules(read(file))
+        .some((rule) => splitSelectors(rule.selector).some((part) => new RegExp(`${literally(host)}(?![\\w-])[^,]*:active`).test(part) && part.endsWith('::before'))));
+      assert.ok(layered, `${host}: a pressed state layer`);
+      assert.ok(ripple.some((part) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && part.endsWith('::before')), `${host}: its .ds-ripples rule`);
+    }
+  });
+
+  it('opens the chip check slot by width alone (--ds-ease-out) and never hides the check', () => {
+    for (const file of SRC_CSS) {
+      for (const { selector, body } of rules(read(file))) {
+        const own = Object.fromEntries(declarations(`${body};`).map((entry) => [entry.property, entry.value]));
+        if (selector.includes('.ds-chip__check')) {
+          assert.notEqual(own.display, 'none', `${file}: ${selector}`);
+          assert.equal(own.animation, undefined, `${file}: ${selector}: transitions only`);
+        }
+        for (const entry of entriesOf(own.transition || '')) {
+          // The indicator's size is P4's (ANIMATED_PENDING).
+          if (entry.name !== 'width' || ANIMATED_PENDING.has(selector)) continue;
+          assert.equal(selector, '.ds-chip__body::after', `${file}: ${selector}: width transition`);
+          assert.equal(entry.easing, 'var(--ds-ease-out)', 'a layout size never overshoots (D29)');
+        }
+      }
+    }
+    assert.equal(declarationsAt(read('src/components/chip.css'), '.ds-chip__body::after').find((entry) => entry.property === 'transition')?.value,
+      'width var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro)');
+  });
+
+  it('draws checkboxes and radios on the native input (no accent-color), in system colours when forced', () => {
+    for (const file of ALL_CSS) assert.doesNotMatch(stripComments(read(file)), /accent-color/, file);
+    const form = read('src/components/form.css');
+    const drawn = rules(form).filter((rule) => /(^|;\s*)appearance:\s*none/.test(rule.body) && /-webkit-appearance:\s*none/.test(rule.body))
+      .flatMap((rule) => splitSelectors(rule.selector));
+    for (const selector of ['.ds-check input[type="checkbox"]', '.ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *))', '.ds-checkbox', '.ds-check input[type="radio"]', '.ds-radio input', '.ds-radio-input']) {
+      assert.ok(drawn.includes(selector) || drawn.includes(selector.replace(/\[type="\w+"\]$/, '')), `${selector}: appearance: none`);
+    }
+    const SYSTEM = /^(Canvas|CanvasText|Highlight|HighlightText|GrayText|none|transparent)$/;
+    const forced = forcedColorBlocks(form).flatMap((block) => rules(block))
+      .filter((rule) => /\.ds-checkbox|\.ds-radio-input/.test(rule.selector));
+    assert.ok(forced.some((rule) => /forced-color-adjust:\s*none/.test(rule.body)), 'forced-color-adjust: none');
+    const colours = forced.flatMap((rule) => declarations(`${rule.body};`)).filter((entry) => /^(background|border-color|color|outline-color|box-shadow)$/.test(entry.property));
+    assert.ok(colours.length >= 8, `${colours.length} forced colours`);
+    for (const { property, value } of colours) assert.match(value, SYSTEM, `${property}: ${value}`);
+    for (const value of ['CanvasText', 'Highlight', 'HighlightText', 'GrayText']) assert.ok(colours.some((entry) => entry.value === value), value);
+  });
+
+  it('fades the blur of a field as one unit and shows its ring at once', () => {
+    const form = read('src/components/form.css');
+    const input = Object.fromEntries(declarationsOf(form, '.ds-input').map((entry) => [entry.property, entry.value]));
+    const names = entriesOf(input.transition).map((entry) => entry.name);
+    for (const name of ['border-color', 'box-shadow', 'color']) assert.ok(names.includes(name), `.ds-input transitions ${name}`);
+    const focus = Object.fromEntries(declarationsOf(form, '.ds-input:focus').map((entry) => [entry.property, entry.value]));
+    assert.equal(focus['transition-duration'], '0s');
+  });
+
+  it('fades every control to one disabled model', () => {
+    const transitionOf = (file, selector) => declarationsAt(read(file), selector).find((entry) => entry.property === 'transition')?.value || '';
+    for (const [file, selector] of [
+      ['src/components/button.css', '.ds-btn'],
+      ['src/components/chip.css', '.ds-chip__body'],
+      ['src/components/switch.css', '.ds-switch__track'],
+      ['src/components/form.css', '.ds-checkbox'],
+    ]) {
+      assert.match(transitionOf(file, selector), /(^|, )opacity var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, `${selector}: opacity fades`);
+    }
+    const reads = (file, selector) => declarationsAt(read(file), selector).map((entry) => entry.value).join(' ');
+    const chip = reads('src/components/chip.css', '.ds-chip__input:disabled + .ds-chip__body');
+    for (const token of ['--ds-disabled-fill', '--ds-disabled-ink', '--ds-disabled-opacity']) assert.ok(chip.includes(token), `chip: ${token}`);
+    const track = reads('src/components/switch.css', '.ds-switch input:disabled + .ds-switch__track');
+    for (const token of ['--ds-disabled-fill', '--ds-disabled-opacity']) assert.ok(track.includes(token), `switch track: ${token}`);
+    assert.ok(reads('src/components/switch.css', '.ds-switch input:disabled + .ds-switch__track::after').includes('--ds-disabled-ink'), 'switch handle');
+    // Hover changes nothing on a disabled chip or switch.
+    const hover = atRuleBlocks(read('src/components/switch.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
+    assert.ok(hover.length && hover.every((part) => part.includes(':not(:disabled)')), hover.join(' | '));
+    const chipHover = atRuleBlocks(read('src/components/chip.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
+    assert.ok(chipHover.length && chipHover.every((part) => part.includes(':not(:disabled)')), chipHover.join(' | '));
+  });
+
+  it('keeps the spinner of a hidden busy face still (no endless loop per button at rest)', () => {
+    const paused = declarationsAt(read('src/components/button.css'), '.ds-btn:not([aria-busy="true"]) .ds-btn__face--busy .ds-spinner');
+    assert.deepEqual(paused.map(({ property, value }) => `${property}: ${value}`), ['animation-play-state: paused']);
   });
 });
 
