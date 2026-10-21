@@ -117,11 +117,12 @@ test.describe('interruption (D21)', () => {
   // The new motion has no track for a value that was moving: the lift (or
   // slide) of an entrance under the fade-only default leave(), the drop of
   // leave('sink') under enter('fade'). It glides to its rest, never snaps.
-  for (const { name, id, first, then, axis } of [
+  for (const { name, id, first, then, axis, wait = 400 } of [
     { name: 'enter() then the default leave()', id: '#enter-default', first: (el) => DS.motion.enter(el), then: (el) => DS.motion.leave(el, '', { then: 'keep' }), axis: 'translate.y' },
     { name: "enter('slide') then the default leave()", id: '#enter-slide', first: (el) => DS.motion.enter(el, 'slide'), then: (el) => DS.motion.leave(el, '', { then: 'keep' }), axis: 'translate.x' },
     { name: "enter('scale') then leave('pop')", id: '#enter-scale', first: (el) => DS.motion.enter(el, 'scale'), then: (el) => DS.motion.leave(el, 'pop', { then: 'keep' }), axis: 'translate.y' },
-    { name: "leave('sink') then enter('fade')", id: '#leave-sink', first: (el) => DS.motion.leave(el, 'sink', { then: 'keep' }), then: (el) => DS.motion.enter(el, 'fade'), axis: 'translate.y' },
+    // The exit accelerates (--ds-ease-in): at 400ms of its 1500ms it has barely moved, so it is read later.
+    { name: "leave('sink') then enter('fade')", id: '#leave-sink', first: (el) => DS.motion.leave(el, 'sink', { then: 'keep' }), then: (el) => DS.motion.enter(el, 'fade'), axis: 'translate.y', wait: 600 },
   ]) {
     test(`${name}: a moving translate without a new track glides to rest from where it is`, async ({ page }) => {
       await open(page, { speed: 0.1 });
@@ -131,11 +132,11 @@ test.describe('interruption (D21)', () => {
         const next = new Function(`return (${args.then})`)();
         start(el);
         // Early in the first motion, while the translate is still far from rest.
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, args.wait));
         const before = read(el);
         next(el);
         return { before, samples: await frames(el, 1800) };
-      }, { source: TOOLS, first: first.toString(), then: then.toString() });
+      }, { source: TOOLS, first: first.toString(), then: then.toString(), wait });
       expect(Math.abs(before[axis]), 'the first motion was moving').toBeGreaterThan(1);
       const values = [before[axis], ...series(samples, axis)];
       expect(Math.abs(values[1] - values[0]), 'no snap in the task of the interruption').toBeLessThan(0.5);

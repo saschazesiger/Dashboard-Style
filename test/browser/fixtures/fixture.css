@@ -86,3 +86,12 @@ body {
   border-bottom: 1px solid var(--ds-line);
   background: var(--ds-surface);
 }
+
+.fx-wide {
+  max-width: 720px;
+}
+
+.fx-stack {
+  display: grid;
+  gap: var(--ds-space-3);
+}

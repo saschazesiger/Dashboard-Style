@@ -118,25 +118,30 @@ test.describe('cascade layers', () => {
         <div class="ds-skeleton" id="x-st-skeleton"></div>
         <div class="ds-loading" id="x-st-loading">Loading ...</div>
         <span class="ds-spinner" id="x-st-spinner"></span>
+        <span class="ds-loader" id="x-st-loader"></span>
         <span class="ds-spinner ds-enter" id="x-st-entering"></span>
         <div class="ds-skeleton ds-leave" id="x-st-leaving"></div>
       </div>
       <div class="ds-skeleton ds-reveal" id="x-reveal-skeleton"></div>`);
     // The 200ms loader delay, not a stagger step: a fast load never flashes the placeholder.
-    for (const id of ['#x-st-skeleton', '#x-st-loading', '#x-reveal-skeleton']) {
+    // A skeleton's wave starts after its entrance.
+    for (const id of ['#x-st-skeleton', '#x-st-loading', '#x-reveal-skeleton', '#x-st-loader']) {
       const own = await animations(page.locator(id));
-      expect(own.map((entry) => entry.name), id).toEqual(['ds-fade-in']);
+      expect(own.map((entry) => entry.name), id).toEqual(id.includes('skeleton') ? ['ds-fade-in', 'ds-skeleton-wave'] : ['ds-fade-in']);
       expect(own[0].delay, id).toBeCloseTo(200, 0);
+      if (id.includes('skeleton')) expect(own[1].delay, id).toBeCloseTo(200 + 250, 0);
     }
-    // The spinner keeps turning while its grid keeps .ds-stagger.
+    // The spinner keeps its arc and its turn while its grid keeps .ds-stagger.
     const spin = await animations(page.locator('#x-st-spinner'));
-    expect(spin.map((entry) => entry.name)).toEqual(['ds-spin']);
-    expect(spin[0].iterations).toBe(Infinity);
+    expect(spin.map((entry) => entry.name)).toEqual(['ds-spinner-arc', 'ds-spin']);
+    expect(spin.map((entry) => entry.iterations)).toEqual([Infinity, Infinity]);
     // The later one-class utilities still replace the loader's animation.
     expect((await animations(page.locator('#x-st-entering'))).map((entry) => entry.name)).toEqual(['ds-fade-in', 'ds-lift-in']);
+    // .ds-leave replaces the entrance; a skeleton keeps its wave under the exit (1.4.0).
     const leaving = await animations(page.locator('#x-st-leaving'));
-    expect(leaving.map((entry) => entry.name)).toEqual(['ds-fade-out']);
-    expect(leaving[0].delay).toBe(0);
+    expect(leaving.map((entry) => entry.name)).toEqual(['ds-skeleton-wave', 'ds-fade-out']);
+    expect(leaving[1].delay).toBe(0);
+    expect(leaving[1].iterations).toBe(1);
   });
 });
 

@@ -47,8 +47,13 @@ enforce it), so a theme reaches every value.
 | `--ds-delay-tooltip` | 500ms | a tooltip shows after the pointer rested this long on its trigger (`TOOLTIP_DELAY_MS`, `DS.overlay.tooltips()`) |
 | `--ds-delay-tooltip-skip` | 300ms | within this of the last hide, the next tooltip shows at once (warm-up along a toolbar; `TOOLTIP_SKIP_MS`) |
 | `--ds-delay-tooltip-hide` | 100ms | the grace before a tooltip hides, so the pointer can cross onto it (WCAG 1.4.13; `TOOLTIP_HIDE_MS`) |
-| `--ds-loop-spin`, `--ds-loop-spin-fast` | 1s, .8s | spinner / spinner in a status chip |
-| `--ds-loop-indeterminate`, `--ds-loop-pulse` | 2s, 2s | indeterminate progress / skeleton pulse |
+| `--ds-loop-spin`, `--ds-loop-spin-fast` | 1568ms, .8s | one turn of the spinner (the M3 rotation period) / of the spinner in a status chip |
+| `--ds-loop-arc` | 5332ms | one loop of the spinner's arc (`ds-spinner-arc`): four 1333ms cycles of growing and shrinking, so the start comes back to where it began (4 x 270deg = 3 turns) |
+| `--ds-loop-indeterminate` | 1800ms | one cycle of two-segment indeterminate progress (`ds-progress-head`, `ds-progress-tail`) |
+| `--ds-loop-loader` | 4550ms | one round of the shape loader: 7 shapes x 650ms (`ds-loader-morph`, `ds-loader-turn`) |
+| `--ds-loop-skeleton` | 2s | one pass of the skeleton wave (`ds-skeleton-wave`: the sweep takes the first 60%, then it rests) |
+| `--ds-loop-wave` | 1.2s | one wavelength of the travelling wave of determinate progress (`ds-progress-wave`) |
+| `--ds-loop-pulse` | 2s | **deprecated** (removed in 2.0) with `ds-pulse`: skeletons run the wave |
 | `--ds-time-scale` | 1 (registered with `@property`, never declared) | slow motion: multiplies every duration, delay and loop above; set only by the styleguide and the tests, on the `.ds-theme` element or above |
 
 Every duration, delay, loop and the stagger step is written as `calc(<value> * var(--ds-time-scale, 1))`, for example
@@ -59,7 +64,9 @@ take `--ds-dur-medium`, dialogs, FLIP and the indicator `--ds-dur-slow`, sheets,
 (`node scripts/motion-curves.mjs`; `--check` runs in `npm run check`). Themes never set motion tokens: motion is one
 scheme for every product, and `DS.motion` reads the computed tokens.
 
-Motion is the same on every device (no media-query switch), and loops always run at their token speed.
+Motion is the same on every device (no media-query switch), and loops always run at their token speed. The loops of
+the loading indicators run `linear`: `scripts/motion-curves.mjs` bakes their curves into the keyframe stops (the
+loader shapes, the arc, the indeterminate segments and the skeleton wave), so they need no curve token.
 The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`, `--ds-draw-length`,
 `--ds-i`) are registered with `inherits: false` and take these tokens only. Details: [motion.md](motion.md).
 
@@ -74,6 +81,25 @@ The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `
 | `--ds-state-dragged` | .16 | dragged |
 | `--ds-state-disabled` | .38 | disabled controls in a dimming theme (`--ds-disabled-opacity: var(--ds-state-disabled)`); the fallback of `--ds-disabled-opacity` |
 | `--ds-state-stale` | .55 | `.ds-stale`: content about to be replaced |
+| `--ds-state-pulse` | .45 | the dimmest point of the deprecated `ds-pulse` |
+
+### Progress waves
+
+Written by `scripts/motion-curves.mjs` (between the `generated: progress-masks` markers of `tokens.css`; never by hand).
+
+| Token | Value | Use |
+|---|---|---|
+| `--ds-progress-wave-length` | 40px | the wavelength of wavy progress: the width of one mask tile, and how far `ds-progress-wave` moves it per loop |
+| `--ds-progress-wave` | an SVG mask | one wavelength of a 4px sine stroke, ±3px, in a 40 x 10px tile (repeated along the bar) |
+| `--ds-progress-ring-wave` | an SVG mask | a closed wavy ring (7 waves of ±1.6px, 4px stroke) for the 40px determinate spinner |
+
+Short bars and arcs are flat, as in M3 Expressive (a piece shorter than a wavelength would be a loose hook of the
+sine): the wave and the flat fill cross-fade on the gliding share. Not generated, and the same in every theme.
+
+| Token | Value | Use |
+|---|---|---|
+| `--ds-progress-wave-start` | .06 | the share up to which linear and circular progress are flat |
+| `--ds-progress-wave-ramp` | .05 | the share over which the wave then fades in (fully wavy from 11%) |
 
 ### Spacing and layers
 
@@ -98,6 +124,7 @@ The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `
 | `--ds-surface-low` | `#f8fafd` | tiles, filled cards, code, read-only fields, neutral alerts |
 | `--ds-surface-high` | `#e9eef6` | filled fields (search, toolbar select), neutral chips |
 | `--ds-surface-highest` | `#dde3ea` | tracks (switch), skeleton lines, hovered filled fields |
+| `--ds-skeleton-highlight` | `var(--ds-surface-high)` | the band of the skeleton wave that passes over the bones |
 | `--ds-text` | `#1f1f1f` | text, values, titles |
 | `--ds-text-2` | `#444746` | labels, leads, meta, inactive icons; on any surface |
 | `--ds-text-3` | `#747775` | placeholders; **on white only** (4.5:1) |
@@ -184,7 +211,7 @@ Only floating layers cast shadows; hierarchy comes from hairlines, tonal surface
 | Token | Default | Use |
 |---|---|---|
 | `--ds-elev-1`, `--ds-elev-2`, `--ds-elev-3` | Material levels 1-3 | the scale |
-| `--ds-elev-hover` | `= --ds-elev-1` | hover of filled buttons |
+| `--ds-elev-hover` | `= --ds-elev-1` | hover of filled buttons; clickable cards when a theme sets `--ds-card-hover-shadow` to it |
 | `--ds-elev-popover` | `= --ds-elev-2` | menus, listboxes, the skip link |
 | `--ds-elev-overlay` | `= --ds-elev-3` | dialogs, side sheets, the modal drawer, snackbars |
 
@@ -204,7 +231,11 @@ Component hooks are listed in [theming.md](theming.md#component-hooks). Componen
 hook): `--ds-btn-half`, half a button's height (`--ds-btn-height`, or `--ds-btn-icon-size` on `--icon`), the
 largest radius a pill shows, so the press morph interpolates over its whole run instead of from 9999px;
 `--ds-indicator-ease-t`, `--ds-indicator-ease-r`, `--ds-indicator-ease-b`, `--ds-indicator-ease-l`, the curve of each
-clip edge of the sliding indicator (its `data-dir` rules put the trailing edge on `--ds-ease-in-out`). Properties set at runtime (by `js/` or by the
+clip edge of the sliding indicator (its `data-dir` rules put the trailing edge on `--ds-ease-in-out`). Resulting
+properties (read them, never set them; set the spacing tokens instead): `--ds-content-pad-top` and
+`--ds-content-pad-x`, the top and side padding of `.ds-content` at the current width (`--ds-space-6` and
+`--ds-space-8`, at 720px and below `--ds-space-5` and `--ds-space-4`), which the loading bar reads to reach the panel
+edges. Properties set at runtime (by `js/` or by the
 page) are listed with their component in [components.md](components.md) and [motion.md](motion.md): `--ds-i`,
 `--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h` (the indicator's box), `--ds-indicator-t`,
 `--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l` (its clip edges), `--ds-indicator-radius` (its corners, copied
@@ -214,3 +245,13 @@ from a project class's `border-radius` when no class sets it), `--ds-indicator-d
 `--ds-menu-x`, `--ds-menu-y` (a menu's place, written by `DS.overlay.open()` where anchor positioning is missing),
 and the per-element motion settings `--ds-motion-distance`, `--ds-motion-scale`, `--ds-draw-length`, `--ds-enter-*`,
 `--ds-leave-*`, `--ds-scan-*`, `--ds-ripple-*`, `--ds-indicator-lag` (themes never set these).
+
+Registered runtime properties of the loading indicators (top-level `@property` rules in `tokens.css`, so they
+interpolate). The page sets `--ds-progress` (`<number>`, the share 0 to 1; it inherits, so every part of a progress
+indicator reads the same value as it glides). The loop keyframes animate the others: `--ds-progress-head-1`,
+`--ds-progress-head-2`, `--ds-progress-tail-1`, `--ds-progress-tail-2` (`<percentage>`, inheriting: the edges of the two
+indeterminate segments, animated on the track and read by its pseudo-elements), `--ds-spinner-arc` and
+`--ds-spinner-start` (`<angle>`, not inheriting: the sweep and the start of the spinner's arc, 10deg and 0deg at rest)
+and `--ds-skeleton-x` (`<length>`, inheriting: the position of the skeleton wave, animated on the surface and read by
+every bone; a surface rests at -150vw, off screen, so an exit or entrance that replaces the wave shows no band).
+Themes never set them.

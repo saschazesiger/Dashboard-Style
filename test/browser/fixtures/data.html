@@ -12,8 +12,10 @@
 <!-- Data that changes: a key figure with its progress bar (countUp),
      a keyed list and a keyed table body (DS.motion.flip with
      DS.dom.morphHtml), a field that a morph re-renders per keystroke, and
-     a segmented control with an indicator (fixture.js). The specs render
-     the list and the rows themselves through window.fxData. -->
+     a segmented control with an indicator (fixture.js); an interactive
+     table with selection, expandable rows and a sort button, an alert
+     stack, clickable cards and a clickable tile. The specs render the list
+     and the rows themselves through window.fxData. -->
 <div class="ds-theme fx-root">
   <section class="fx-section" aria-labelledby="figure-title">
     <h2 id="figure-title">Figure and bar</h2>
@@ -51,6 +53,76 @@
       <a class="ds-segmented__option" href="#admin">Admin</a>
       <a class="ds-segmented__option" href="#reports">Reports</a>
     </nav>
+  </section>
+
+  <section class="fx-section" aria-labelledby="itable-title">
+    <h2 id="itable-title">Interactive table</h2>
+    <div class="ds-table-wrap fx-wide">
+      <table class="ds-table ds-table--interactive" id="itable">
+        <caption class="ds-sr">Devices</caption>
+        <thead><tr>
+          <th scope="col"><input type="checkbox" id="select-all" aria-label="Select all"></th>
+          <th scope="col"><span class="ds-sr">Details</span></th>
+          <th scope="col" id="sort-head" aria-sort="ascending"><button class="ds-table__sort" type="button" id="sort">Device <span data-icon="arrowUp" data-size="16" data-class="ds-table__sort-arrow"></span></button></th>
+          <th scope="col" class="ds-num">Load</th>
+        </tr></thead>
+        <tbody id="irows">
+          <tr data-ds-key="a1">
+            <td><input type="checkbox" aria-label="Select LAPTOP-0042"></td>
+            <td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="false" aria-controls="a1-detail" aria-label="Details"><span data-icon="chevronDown" data-size="20" data-class="ds-chevron"></span></button></td>
+            <td class="ds-col--text"><a class="ds-link-btn ds-table__row-link" href="#a1">LAPTOP-0042</a></td>
+            <td class="ds-num">0.4</td>
+          </tr>
+          <tr class="ds-table__detail" id="a1-detail" data-ds-key="a1-detail" inert>
+            <td colspan="4"><div class="ds-table__expand"><div><p>Issued to Ada Lovelace, last seen today.</p></div></div></td>
+          </tr>
+          <tr data-ds-key="a2" class="ds-table__row--selected">
+            <td><input type="checkbox" aria-label="Select DESKTOP-0107" checked></td>
+            <td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="false" aria-controls="a2-detail" aria-label="Details"><span data-icon="chevronDown" data-size="20" data-class="ds-chevron"></span></button></td>
+            <td class="ds-col--text"><a class="ds-link-btn ds-table__row-link" href="#a2">DESKTOP-0107</a></td>
+            <td class="ds-num">1.2</td>
+          </tr>
+          <tr class="ds-table__detail" id="a2-detail" data-ds-key="a2-detail" inert>
+            <td colspan="4"><div class="ds-table__expand"><div><p>Issued to Ada Lovelace, last seen today.</p></div></div></td>
+          </tr>
+          <tr data-ds-key="a3">
+            <td><input type="checkbox" aria-label="Select TABLET-0008"></td>
+            <td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="false" aria-controls="a3-detail" aria-label="Details"><span data-icon="chevronDown" data-size="20" data-class="ds-chevron"></span></button></td>
+            <td class="ds-col--text"><a class="ds-link-btn ds-table__row-link" href="#a3">TABLET-0008</a></td>
+            <td class="ds-num">2.5</td>
+          </tr>
+          <tr class="ds-table__detail" id="a3-detail" data-ds-key="a3-detail" inert>
+            <td colspan="4"><div class="ds-table__expand"><div><p>Issued to Ada Lovelace, last seen today.</p></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="stack-title">
+    <h2 id="stack-title">Alert stack</h2>
+    <div class="fx-stack fx-narrow" id="alerts">
+      <div class="ds-alert" role="status" id="alert-1"><span data-icon="info" data-size="20"></span><span class="ds-alert__text">The nightly sync runs at 02:00.</span></div>
+      <div class="ds-alert ds-alert--warning" id="alert-2"><span data-icon="alert" data-size="20"></span><span class="ds-alert__text">The certificate expires in 5 days.</span></div>
+      <div class="ds-alert ds-alert--success" id="alert-3"><span data-icon="checkCircle" data-size="20"></span><span class="ds-alert__text">All 128 devices are up to date.</span></div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="cards-title">
+    <h2 id="cards-title">Clickable cards and tile</h2>
+    <div class="ds-grid-2 fx-wide" id="cards">
+      <button class="ds-card ds-card--interactive" type="button" id="card-button"><span class="ds-card__row"><span class="ds-card__title">LAPTOP-0042</span></span><span class="ds-muted">Issued to Ada Lovelace.</span></button>
+      <div class="ds-card ds-card--interactive" id="card-div">
+        <div class="ds-card__row">
+          <h3 class="ds-card__title"><a class="ds-card__action" href="#desktop">DESKTOP-0107</a></h3>
+          <button class="ds-btn ds-btn--sm" type="button" id="card-div-button">Restart</button>
+        </div>
+        <p class="ds-muted">Last seen today, 09:12.</p>
+      </div>
+    </div>
+    <div class="ds-tiles fx-wide">
+      <button class="ds-tile" type="button" id="tile-button"><span class="ds-tile__label"><span>Open tickets</span></span><span class="ds-tile__value">12</span><span class="ds-tile__note">3 more than last week</span></button>
+    </div>
   </section>
 </div>
 <script src="/dist/ds.js"></script>

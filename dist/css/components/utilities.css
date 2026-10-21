@@ -5,10 +5,15 @@
  *   .ds-sr       visually hidden, still read by screen readers
  *   .ds-muted    quieter body text (tabular figures)
  *   .ds-meta     a meta line: hints, "last saved ..." (tabular figures)
- *   .ds-stale    content on its way out, dimmed until it is replaced
+ *   .ds-stale    content on its way out, dimmed until it is replaced (set
+ *                aria-busy="true" on the container while it is stale)
  *   .ds-num      right-aligned tabular figures (table cells)
  *   .ds-center   centred text
  *   .ds-nowrap   keeps a value and its unit together
+ *
+ * .ds-stale dims only after --ds-delay-loader, so an update that answers
+ * within 200ms never dims; taking it off is instant, so fresh values show
+ * at once (docs/motion.md, "Data motion").
  *
  * Progressive: text-wrap (a paragraph of .ds-muted avoids a lone last
  * word); without it the text wraps as usual.
@@ -67,10 +72,12 @@
 
   /* Content on its way out (a filter applied, a test running again): it
      stays in place, dimmed, until the new one replaces it in one step, so
-     nothing collapses and jumps back meanwhile. */
+     nothing collapses and jumps back meanwhile. It dims after the loader
+     delay (a fast answer never dims); the rest state has no transition, so
+     removing the class shows the fresh values at once. */
   .ds-stale {
     opacity: var(--ds-state-stale);
-    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out) var(--ds-delay-loader);
   }
 
   .ds-num {

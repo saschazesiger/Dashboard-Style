@@ -7,11 +7,12 @@ distances, Material curves and a gentle spring for movement that floats. All tim
 ## Rules
 
 1. Animate only `transform`, `translate`, `scale`, `opacity`, colours, `box-shadow`, `clip-path` and registered
-   custom properties. Named exceptions: `rotate` for spinners, loaders, disclosure chevrons and icon swaps;
+   custom properties. Named exceptions: `rotate` for spinners, loaders, disclosure chevrons, the table sort arrow
+   and icon swaps;
    `border-radius` for the press morph; `outline-offset` for the focus snap (a transition, never a keyframe);
    `stroke-dashoffset` for drawn strokes (`ds-draw`); `mask-position` for the travelling progress wave; the
    `width` of the chip check slot; the height of `.ds-collapsible` (only where `interpolate-size` exists), of
-   validation messages and of expandable rows; the `min-height` of a `flip()` container that shrinks once its
+   validation messages and of expandable table rows (`grid-template-rows`); the `min-height` of a `flip()` container that shrinks once its
    removed items left (on `--ds-ease-out`). Discrete properties (`visibility`, `display`) only flip as a 0ms
    step or with `allow-discrete`. Never `transition: all`, never `font-weight`. `test/css.test.js` allows each
    exception once its feature lands.
@@ -33,7 +34,8 @@ distances, Material curves and a gentle spring for movement that floats. All tim
    content and dialogs (`--ds-scale-enter`), .95 for popups (`--ds-scale-popup`: menus, the combobox list), .9 for
    tooltips (`--ds-scale-tooltip`), each from an origin at its trigger (`originFrom()`), .6 for small markers;
    `ds-ripple` widens to 1.6.
-   Rotation only for spinners, loaders, disclosure chevrons and icon swaps. Nothing scales on press except the
+   Rotation only for spinners, loaders, disclosure chevrons, the table sort arrow and icon swaps. Nothing scales on
+   press except the
    switch handle.
 5. Hover never moves anything: state layer, colour and the documented shadow only, inside
    `@media (hover: hover)`; touch shows the end state on press.
@@ -46,7 +48,10 @@ distances, Material curves and a gentle spring for movement that floats. All tim
    `DS.motion.flip` (user actions at once, live data held while a mouse or pen is over the list or a row has focus,
    at most 2s, 50 rows); refreshes never replay an entrance. Figures in table cells update without counting.
 9. Loaders appear only after `--ds-delay-loader` (200ms) and then stay at least `--ds-hold-loader` (450ms):
-   `DS.motion.settleLoader` waits for both.
+   `DS.motion.settleLoader` waits for both. The shape loader (`.ds-loader`) is the block loader (`.ds-boot`,
+   `.ds-loading`, a section or sheet that waits), the arc spinner (`.ds-spinner`) the inline one (buttons, chips,
+   status chips, table cells); both wait the same delay, and a loader inside a block that waits has no delay of its
+   own, so delays never stack.
 10. Re-render with `DS.dom.morphHtml` (keyed, in place), never `innerHTML`: an animating element (a spinner, an
     entering card) keeps its animation, a field its focus, and only the nodes that changed change.
 11. Focus rings are solid from the first frame: only their offset moves, snapping from offset + width (4px) to the
@@ -87,6 +92,78 @@ button faces and the switch words 150 to 100ms, the icon swap 250 to 100ms (test
 transition, so a control rendered in its end state (a chip rendered selected, a box rendered checked) stays still
 on load, and a rapid toggle turns back from where it is.
 
+## Data motion
+
+Data that changes, by a user action or by itself (polling, a push), glides where that helps to follow it and
+changes at once where motion would only slow the reading. One rule for stale content, empty states, alerts, status
+chips, tiles and tables; their file headers point here.
+
+| | |
+|---|---|
+| **Glides** | order, through `DS.motion.flip` (sort, filter, live reorder, alerts that come and go); values: progress (`--ds-progress` on `--ds-ease-value`) and figures (`countUp` from the shown value, over `--ds-dur-glide`); status colour and icon (`.ds-status`, `--ds-dur-medium`) |
+| **Changes at once** | text values (a label, a note, a figure in a table cell), and the removal of `.ds-stale`, so fresh values show without a fade |
+| **Never per keystroke or per poll** | `.ds-reveal` and `.ds-enter--swap`: they are only for content that replaces a placeholder (a skeleton, a loader, another view) |
+
+Render with `DS.dom.morphHtml` and key list items with `data-ds-key`: kept nodes are patched in place, so class
+changes transition, running loops continue, focus stays, and `flip()` sees which item moved.
+
+A live list (polling): values update at once; while a mouse or pen is over the list or an item has focus, the
+reorder waits (at most 2s), so nothing moves under the pointer.
+
+```js
+DS.motion.flip(list, (options) => DS.dom.morphHtml(list, renderItems(items), options), { live: true });
+```
+
+Filtering while typing and sorting a table: user actions glide at once; a call during a glide continues from where
+each item is. Rows are keyed; a removed row goes at once while the rows below glide up (a table row cannot leave
+out of flow), entering rows fade in, and above 50 moving rows the update has no motion.
+
+```js
+search.addEventListener('input', () => {
+  DS.motion.flip(tbody, (options) => DS.dom.morphHtml(tbody, renderRows(filter(rows, search.value)), options), { items: 'tr' });
+});
+sortButton.addEventListener('click', () => {
+  DS.motion.flip(tbody, (options) => DS.dom.morphHtml(tbody, renderRows(sort(rows, key)), options), { items: 'tr' });
+});
+```
+
+Alerts that come and go: `flip()` covers both, for a user action and live data alike, in any flex or grid gap and
+without animating a height. A direct child that `mutate` removes fades out in place, out of flow, while the others
+glide up on the spring; a new one fades in.
+
+```js
+DS.motion.flip(stack, () => alert.remove());        // dismiss
+DS.motion.flip(stack, () => stack.prepend(alert));  // insert
+```
+
+A refresh with a loading bar: `.ds-stale` on the content (it dims only after `--ds-delay-loader`, so a fast answer
+never dims) and `aria-busy="true"` on its container; the bar fades in after the same delay.
+
+```js
+const startedAt = Date.now();
+content.classList.add('ds-stale');
+content.setAttribute('aria-busy', 'true');
+content.before(loadbar);
+const rows = await fetchRows();
+await DS.motion.settleLoader(startedAt, { element: loadbar });   // a bar that showed stays --ds-hold-loader
+DS.motion.leave(loadbar);
+DS.dom.morphHtml(content, renderRows(rows));
+content.classList.remove('ds-stale');                             // at once
+content.removeAttribute('aria-busy');
+```
+
+A tile with its bar: set both in the same task and they land on the same frame; the note changes at once.
+
+```js
+DS.motion.countUp(value, synced);
+bar.style.setProperty('--ds-progress', String(synced / total));
+```
+
+Empty states: replacing a skeleton, `.ds-reveal`; the result of a filter, search or live update, the rows leave
+through `flip()`, then `DS.motion.enter(empty, 'fade')` (no rise); the filter cleared, `DS.motion.leave(empty)`
+while the rows enter through `flip()`; the user deleted the last item, the disc pops in with
+`DS.motion.enter(disc, 'pop')`.
+
 ## Utilities (CSS)
 
 | Class | Effect |
@@ -104,7 +181,8 @@ on load, and a rapid toggle turns back from where it is.
 | `.ds-leave--pop` | `ds-fade-out` plus a scale to `--ds-scale-small`, 150ms (a badge or counter that goes) |
 | `.ds-stagger` | its children fade in and rise 4px one after the other (`--ds-i` x 30ms); where `sibling-index()` exists, CSS-only lists number themselves |
 | `.ds-reveal` | fade-through with the smallest rise, for freshly loaded content |
-| `.ds-collapsible` | on `<details>`: animates the height where supported |
+| `.ds-collapsible` | on `<details>`: the content opens over `--ds-dur-medium` on `--ds-ease-out` (its height pushes what follows, so it never overshoots) while it fades in, and closes faster, accelerating (`--ds-dur-base` on `--ds-ease-in`, the fade in `--ds-dur-fast`). Its clip reaches out by `--ds-space-3` (`overflow-clip-margin`, 12px: the focus ring at its snap start plus about `--ds-space-1`), so the ring of a control flush with the content edge is never cut; larger shadows (`--ds-elev-2`/`-3`) may still be cut a little. Progressive: `interpolate-size`, `::details-content`, `transition-behavior: allow-discrete`, `overflow-clip-margin`; elsewhere it opens and closes at once, and where `overflow-clip-margin` is missing the content's own padding should equal that ring room. Add a `.ds-chevron` to the summary: it turns with the expansion, and the summary drops its native marker |
+| `.ds-chevron` | a disclosure chevron: turns 180deg on the spring (`--ds-dur-medium`, `rotate`) in the summary of an open `<details>` or under `aria-expanded="true"` (a table row's `.ds-table__toggle`); `.ds-errors__chevron` turns the same way |
 | `.ds-presence` | a project element toggled with `hidden`, as a `[popover]` or as a `<dialog>` without `DS.overlay`: fades in (`--ds-dur-fast`) and grows from `--ds-motion-scale` (default `--ds-scale-popup`) on the spring (`--ds-dur-medium`), its clip opening from `--ds-clip-from` when set (`originFrom()`); leaves in `--ds-dur-fast`, accelerating; `display` and `overlay` step with `allow-discrete`, so it stays rendered (and in the top layer) through its exit. Transitions, so a toggle mid-way continues from where it is. Progressive: `@starting-style`, `allow-discrete`, `:popover-open`; elsewhere an instant toggle |
 | `.ds-view--leaving` | quick fade-out of a view's children before a swap (`--ds-dur-instant`, accelerating). The swap sequence without a helper: add it, `await DS.motion.settled(view.firstElementChild, { event: 'transitionend', property: 'opacity' })`, return if a newer swap started meanwhile (a counter), replace the content, then in the same task remove the class and `DS.motion.enter(newContent, 'swap')`, so the new view never shows at full opacity for a frame ([App frame](components.md#app-frame)) |
 | `.ds-swap` | a slot whose children share one grid cell (`inline-grid`, clipped), so outgoing and incoming content cross without a width jump; `DS.motion.roll()` and `crossfade()` make it |
@@ -112,9 +190,10 @@ on load, and a rapid toggle turns back from where it is.
 
 The utilities sit in the `ds.utilities` layer, so they beat a component's own animation; unlayered project
 animations beat the utilities. Loaders are the exception for `.ds-stagger` and `.ds-reveal`: a `.ds-skeleton`,
-`.ds-loading`, `.ds-boot` or `.ds-spinner` placed directly in `.ds-stagger` (or given `.ds-reveal`) keeps its own
+`.ds-loading`, `.ds-boot`, `.ds-loader` or `.ds-spinner` placed directly in `.ds-stagger` (or given `.ds-reveal`) keeps its own
 loader delay and loop, so skeleton placeholders in a staggered grid never flash and a spinner keeps turning.
-`.ds-enter` and `.ds-leave` still replace a loader's animation.
+`.ds-enter` and `.ds-leave` still replace a loader's animation, except that `.ds-leave` on a `.ds-loadbar` or a
+`.ds-skeleton` keeps its loop running (the segments and the wave move on while the exit fades them out).
 
 Per-element settings, registered in `src/motion.css` with `inherits: false`: they take tokens only, are set on the
 animating element and never reach its descendants: `--ds-motion-distance` (travel of lift, grow, shift, roll, drop,
@@ -130,7 +209,10 @@ Entrances define only `from` (the element animates to its own styles), exits onl
 `ds-clip-out` name both ends, because `clip-path` does not interpolate to `none`. Movement keyframes animate the
 individual `translate` and `scale` properties, so they compose with an element's own or inline `transform` (a
 placed tooltip, a bar's `scaleX()`). Exits are movement-only and always pair with `ds-fade-out`, with one exception: the
-opaque side sheet panel slides its full width (`--ds-distance-sheet`) off the screen without a fade.
+opaque side sheet panel slides its full width (`--ds-distance-sheet`) off the screen without a fade. Loops run on a
+`--ds-loop-*` token, `linear` (the shape loader's morph steps on the spring), and name all their stops; `scripts/motion-curves.mjs` generates the stops of
+`ds-spinner-arc`, `ds-loader-morph`, `ds-progress-head`, `ds-progress-tail` and `ds-skeleton-wave` (with their curves
+baked in) between `generated:` markers in `motion.css`, which are never edited by hand.
 
 | Name | Movement | Use |
 |---|---|---|
@@ -150,7 +232,15 @@ opaque side sheet panel slides its full width (`--ds-distance-sheet`) off the sc
 | `ds-press-ripple` | `scale` from 0 (its fade is a separate track) | the pointer ripple of an action (`DS.ripple`) |
 | `ds-ripple` | a ring that widens (`scale` to `--ds-ripple-scale`, 1.6) and fades once | behind a confirmation |
 | `ds-sink-out` / `ds-scale-out` / `ds-slide-out` | fade + down / smaller / sideways in one keyframe | **deprecated** (removed in 2.0): use `ds-fade-out` with `ds-drop-out` / `ds-shrink-out` / `ds-shift-out` |
-| `ds-spin`, `ds-pulse`, `ds-indeterminate` | loops | spinner, skeleton, indeterminate progress |
+| `ds-spin` | `transform: rotate(360deg)`, a loop | one turn of the spinner (`--ds-loop-spin`) |
+| `ds-spinner-arc` | `--ds-spinner-arc` (sweep 10deg → 270deg → 10deg) and `--ds-spinner-start` (advancing 270deg per cycle), generated; a loop of four cycles | the M3 arc of the spinner, with `ds-spin` (`--ds-loop-arc`, linear) |
+| `ds-loader-morph` | `clip-path`: the 7 M3 shapes as 64-vertex `polygon()`s at k/7, generated; a loop | the shape loader, on `--ds-ease-spatial` over `--ds-loop-loader` (every step lands with the spring) |
+| `ds-loader-turn` | `rotate` to `1turn`, a loop | the shape loader turning while it morphs (`--ds-loop-loader`, linear) |
+| `ds-progress-head` / `ds-progress-tail` | `--ds-progress-head-1`, `--ds-progress-head-2` / `--ds-progress-tail-1`, `--ds-progress-tail-2` (0% → 100%, each on its M3 curve and window), generated; a loop | two-segment indeterminate progress (`--ds-loop-indeterminate`, linear) |
+| `ds-progress-wave` | `mask-position` by one `--ds-progress-wave-length`, a loop | the travelling wave of determinate progress (`--ds-loop-wave`, linear) |
+| `ds-skeleton-wave` | `--ds-skeleton-x` (a sine in-out sweep from -150vw to 50vw over 60% of the loop, then a rest), generated; a loop | the one diagonal wave across a skeleton surface (`--ds-loop-skeleton`, linear) |
+| `ds-pulse` | opacity dims to `--ds-state-pulse` and comes back, a loop | **deprecated** (removed in 2.0): skeletons run `ds-skeleton-wave` |
+| `ds-indeterminate` | `transform`: a segment across the track, a loop | **deprecated** (removed in 2.0): indeterminate progress runs `ds-progress-head` and `ds-progress-tail` |
 | `ds-scan` | `translate`: a band from `--ds-scan-from` to `--ds-scan-to` | media being processed |
 
 ```css
@@ -209,7 +299,7 @@ movement curve (the spring for an entrance without one); nothing snaps.
 | `originFrom(trigger, panel)` | where a popup grows from: writes `--ds-motion-origin` (the trigger's centre projected onto the panel, clamped, in px) and `--ds-clip-from` (the panel closed towards the trigger, with its radius; the other three edges `--ds-space-6` beyond the box, like a popup's resting clip) on the panel; `trigger` is an element or a `{ x, y }` point (a context menu). Call it once the panel is laid out. Returns `{ origin, side }`, `side` being where the panel lies: `'bottom'`, `'top'`, `'right'` or `'left'` |
 | `roll(el, text)` | a status line that changes: `el` becomes a `.ds-swap` slot, the old line rolls up and out (`ds-fade-out`, `ds-roll-out`, `--ds-dur-fast`, accelerating), the new one rolls in from below (`ds-fade-in`, `ds-roll-in` on the spring, `--ds-dur-medium`). A roll during a roll continues from where each line is; only the last text stays. Returns a Promise |
 | `crossfade(el, next, { kind })` | `kind: 'text'` (the default): swaps the content of `el` (a `.ds-swap` slot) for `next` (a node or a string): the new content fades in over `--ds-dur-fast`, the old one fades out over `--ds-dur-instant` and is removed; no movement, no width measuring. Safe to call again mid-swap. `kind: 'icon'` (1.1): `el` becomes a `.ds-icon-swap` (its current content is face a), `next` (an element such as `DS.icons.iconElement(...)`, or the markup of `DS.icons.icon(...)`) goes into the hidden face unless it already holds that icon, and `data-swap` flips to it; the CSS transitions do the motion. Pass an element where a policy forbids parsing markup. Any other kind throws a `TypeError`. Returns a Promise that resolves when the swap settled |
-| `flip(container, mutate, { items, live, max, hold })` | glides reordered items (FLIP): measures the items (`items` selector, default the element children; never `data-ds-keep` or leaving nodes), calls `mutate({ holdOrder, onInsert, onRemove })` (pass it to `DS.dom.morphHtml` as its options), measures again and moves each item from its old place on `translate` (`composite: 'add'`) on the spring for `travelDuration()`. While they glide, the moving items paint above the others, the farthest travel on top, so an item never passes under the items it crosses (inline `z-index` from `--ds-z-raised`, `position: relative` where the item is static, `isolation: isolate` on the container so no rank reaches past it; all restored when the glide ends). A call during a glide continues from where each item is, so a typing filter may call it per keystroke. Inserted items fade in, removed items fade out of flow where they were while the others close the gap (table rows go at once); meanwhile the container keeps its height (an inline `min-height`, restored afterwards), then glides down to its new height on `--ds-ease-out`, so what follows the list never jumps and leaving items stay inside it. Items outside the viewport before and after jump; above `max` (50) moving items the update lands without motion. `live: true`: while a mouse or pen is over the container or focus is in an item, values update at once (`holdOrder: true`) and the reorder waits until the pointer or focus leaves, at most `hold` (2000) ms; touch never holds; a call without `live` (a user's sort) runs the held reorder at once. Returns a Promise of this call's motion |
+| `flip(container, mutate, { items, live, max, hold })` | glides reordered items (FLIP): measures the items (`items` selector, default the element children; never `data-ds-keep` or leaving nodes), calls `mutate({ holdOrder, onInsert, onRemove })` (pass it to `DS.dom.morphHtml` as its options; a `mutate` that changes the DOM itself works too, see below), measures again and moves each item from its old place on `translate` (`composite: 'add'`) on the spring for `travelDuration()`. While they glide, the moving items paint above the others, the farthest travel on top, so an item never passes under the items it crosses (inline `z-index` from `--ds-z-raised`, `position: relative` where the item is static, `isolation: isolate` on the container so no rank reaches past it; all restored when the glide ends). A call during a glide continues from where each item is, so a typing filter may call it per keystroke. Inserted items fade in, removed items fade out of flow where they were while the others close the gap (table rows go at once); this also holds for plain DOM calls in `mutate`: a direct child it removed goes back in, out of flow, for its exit, and an item that is new afterwards fades in (unless it runs an entrance of its own), so `flip(stack, () => alert.remove())` and `flip(stack, () => stack.prepend(alert))` need nothing else ([Data motion](#data-motion)); meanwhile the container keeps its height (an inline `min-height`, restored afterwards; a grid also gets `align-content: start`, so its rows never stretch into the held height), then glides down to its new height on `--ds-ease-out`, so what follows the list never jumps and leaving items stay inside it. Items outside the viewport before and after jump; above `max` (50) moving items the update lands without motion. `live: true`: while a mouse or pen is over the container or focus is in an item, values update at once (`holdOrder: true`) and the reorder waits until the pointer or focus leaves, at most `hold` (2000) ms; touch never holds; a call without `live` (a user's sort) runs the held reorder at once. Returns a Promise of this call's motion |
 
 First load: the loader, then the content, staggered once.
 
@@ -332,7 +422,10 @@ nodes.
   `holdOrder: true` patches the matched children of `target` in place and leaves moves, inserts and removals for a
   later call. `DS.motion.flip()` passes all four; hand its object straight on.
 - Progressive: keyed moves use `moveBefore` where it exists (the node keeps its animations, focus and iframe state);
-  elsewhere `insertBefore`, and a moved node that held the focus gets it back with its selection.
+  elsewhere `insertBefore`, and a moved node that held the focus gets it back with its selection. `insertBefore`
+  makes the node new to the style engine, so it carries `data-ds-moving` (transitions off in its subtree, from
+  `motion.css`) until one style flush at the end of the call: an `@starting-style` entrance inside it (a status
+  icon, an error message's room) never plays again on a sort. The attribute is runtime state; never set it.
 
 ## DS.ripple (js/ripple.js)
 

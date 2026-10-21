@@ -157,17 +157,19 @@ test.describe('utilities', () => {
       return ['transition-property', 'transition-duration', 'transition-delay', 'transition-timing-function', 'transition-behavior', 'interpolate-size']
         .map((name) => ({ name, value: name === 'interpolate-size' ? getComputedStyle(el).getPropertyValue(name) : cs.getPropertyValue(name) }));
     });
-    const heightAfterToggle = () => details.evaluate((el) => new Promise((resolve) => {
+    // Opening decelerates (two frames show it moving); closing accelerates
+    // (--ds-ease-in), so it is read 100ms in.
+    const heightAfterToggle = (ms = 0) => details.evaluate((el, wait) => new Promise((resolve) => {
       el.querySelector('summary').click();
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve(parseFloat(getComputedStyle(el, '::details-content').height))));
-    }));
+      requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => resolve(parseFloat(getComputedStyle(el, '::details-content').height)), wait)));
+    }), ms);
     expect.soft(JSON.stringify(await declared(), null, 2)).toMatchSnapshot('collapsible.json');
     const opening = await heightAfterToggle();
     await page.waitForTimeout(600);
     const full = await details.evaluate((el) => parseFloat(getComputedStyle(el, '::details-content').height));
     expect(opening, 'opening: between closed and open').toBeGreaterThan(0);
     expect(opening).toBeLessThan(full);
-    const closing = await heightAfterToggle();
+    const closing = await heightAfterToggle(100);
     expect(closing, 'closing: between open and closed').toBeGreaterThan(0);
     expect(closing).toBeLessThan(full);
   });

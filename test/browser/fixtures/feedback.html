@@ -10,7 +10,9 @@
 </head>
 <body>
 <!-- Progress, loaders, status chips, alerts, a clickable tile and a card
-     link. Loaders fade in after the loader delay by themselves. -->
+     link; the 1.4.0 shape loaders, determinate rings, flat and queued
+     progress and a paragraph to mark stale. Loaders fade in after the
+     loader delay by themselves. -->
 <div class="ds-theme fx-root">
   <section class="fx-section fx-narrow" aria-labelledby="progress-title">
     <h2 id="progress-title">Progress</h2>
@@ -90,6 +92,34 @@
       <p class="ds-muted">Issued to Ada Lovelace.</p>
       <nav class="ds-card__links" aria-label="Related"><a class="ds-btn ds-btn--text ds-card__link" id="card-link" href="#history">History <span data-icon="arrowRight" data-size="16"></span></a></nav>
     </section>
+  </section>
+
+  <section class="fx-section" aria-labelledby="expressive-title">
+    <h2 id="expressive-title">Expressive loaders and progress</h2>
+    <div class="fx-row" id="loaders">
+      <span class="ds-loader" id="loader" aria-hidden="true"></span>
+      <span class="ds-loader ds-loader--contained" id="loader-contained" aria-hidden="true"></span>
+      <span class="ds-loader ds-loader--sm" id="loader-sm" aria-hidden="true"></span>
+      <span class="ds-spinner ds-spinner--determinate" id="ring" role="progressbar" aria-label="Upload" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" style="--ds-progress: 0.4"></span>
+      <span class="ds-spinner ds-spinner--determinate ds-spinner--flat" id="ring-flat" role="progressbar" aria-label="Upload" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" style="--ds-progress: 0.4"></span>
+    </div>
+    <div class="ds-boot" role="status" id="boot" style="min-height: 120px"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
+    <div class="ds-loading" role="status" id="loading-loader"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading more devices ...</div>
+    <div class="fx-narrow">
+      <div class="ds-progress ds-progress--flat" id="progress-flat" style="--ds-progress: 0.4">
+        <div class="ds-progress__track" role="progressbar" aria-label="Upload" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><div class="ds-progress__bar"></div></div>
+        <p class="ds-progress__label">40%</p>
+      </div>
+      <div class="ds-progress ds-progress--flat ds-progress--indeterminate" id="progress-flat-indeterminate">
+        <div class="ds-progress__track" role="progressbar" aria-label="Upload" aria-valuetext="Preparing"><div class="ds-progress__bar"></div></div>
+        <p class="ds-progress__label">Preparing ...</p>
+      </div>
+      <div class="ds-progress ds-progress--waiting" id="progress-queued" style="--ds-progress: 0">
+        <div class="ds-progress__track" role="progressbar" aria-label="Export" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Waiting"><div class="ds-progress__bar"></div></div>
+        <p class="ds-progress__label">Waiting for a free worker ...</p>
+      </div>
+    </div>
+    <p class="fx-narrow" id="stale">Ticket 4711: the printer on floor 2 is out of toner.</p>
   </section>
 </div>
 <script src="/dist/ds.js"></script>

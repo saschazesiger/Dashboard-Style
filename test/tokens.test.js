@@ -8,7 +8,9 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { COUNT_UP_MS, LOADER_DELAY_MS, LOADER_MIN_VISIBLE_MS, MOTION_FALLBACKS } from '../src/js/motion.js';
 import { TOOLTIP_DELAY_MS, TOOLTIP_HIDE_MS, TOOLTIP_SKIP_MS } from '../src/js/overlay.js';
-import { emphasizedCurve, SPATIAL, springCurve, springFunction, TOLERANCE } from '../scripts/motion-curves.mjs';
+import {
+  emphasizedCurve, generate, LOADER_SHAPES, LOADER_VERTICES, loaderPolygons, problems, SPATIAL, springCurve, springFunction, TOLERANCE, WAVE,
+} from '../scripts/motion-curves.mjs';
 import { filesIn, ms, read, stripComments, token } from './helpers.js';
 
 const tokens = stripComments(read('src/tokens.css'));
@@ -160,6 +162,35 @@ describe('tokens', () => {
     assert.equal(token('--ds-radius-check'), '2px');
   });
 
+  it('adds the loop scales and the skeleton role of 1.4.0 to their layers', () => {
+    const { scales, roles } = layers();
+    const loops = { '--ds-loop-spin': 1568, '--ds-loop-arc': 4 * 1333, '--ds-loop-indeterminate': 1800, '--ds-loop-loader': 7 * 650, '--ds-loop-skeleton': 2000, '--ds-loop-wave': 1200 };
+    for (const [name, value] of Object.entries(loops)) {
+      assert.ok(scales.includes(name), `${name} is a scale`);
+      assert.equal(ms(name), value, name);
+    }
+    for (const name of ['--ds-state-pulse', '--ds-progress-wave-length', '--ds-progress-wave', '--ds-progress-ring-wave']) assert.ok(scales.includes(name), `${name} is a scale`);
+    assert.equal(token('--ds-state-pulse'), '.45');
+    assert.equal(token('--ds-progress-wave-length'), `${WAVE.length}px`);
+    for (const name of ['--ds-progress-wave', '--ds-progress-ring-wave']) assert.match(token(name), /^url\("data:image\/svg\+xml,%3Csvg [^"#]*%3C\/svg%3E"\)$/, name);
+    assert.ok(roles.includes('--ds-skeleton-highlight'), '--ds-skeleton-highlight is a role');
+    assert.equal(token('--ds-skeleton-highlight'), 'var(--ds-surface-high)');
+    assert.match(stripComments(read('themes/example.css')), /--ds-skeleton-highlight\s*:/);
+  });
+
+  it('generates the loop keyframes and the progress masks with scripts/motion-curves.mjs, within their contract', () => {
+    const next = generate();
+    for (const [path, content] of Object.entries(next)) assert.equal(read(path), content, `${path}: run node scripts/motion-curves.mjs`);
+    assert.deepEqual(problems(), []);
+    // The seven M3 shapes in the order of the loading indicator, 64 vertices each.
+    assert.deepEqual(Object.keys(LOADER_SHAPES), ['soft burst', 'cookie-9', 'pentagon', 'pill', 'sunny', 'cookie-4', 'oval']);
+    for (const points of Object.values(loaderPolygons())) {
+      assert.equal(points.length, LOADER_VERTICES);
+      assert.ok(Math.abs(points[0][0] - 50) <= 0.01 && points[0][1] < 50, 'the first vertex straight above the centre');
+      assert.ok(points[1][0] > points[0][0], 'then clockwise');
+    }
+  });
+
   it('lists every role in the theme template (themes/example.css)', () => {
     const example = stripComments(read('themes/example.css'));
     const missing = layers().roles.filter((name) => !new RegExp(`${name}\\s*:`).test(example));
@@ -193,6 +224,8 @@ describe('default palette', () => {
     ['--ds-text-3', '--ds-surface'],
     ['--ds-on-primary', '--ds-primary'], ['--ds-link', '--ds-surface'], ['--ds-action-ink', '--ds-surface'], ['--ds-action-ink', '--ds-backdrop'],
     ['--ds-on-accent', '--ds-accent'],
+    // A selected table row (--ds-table-row-selected, default --ds-accent) keeps its text readable.
+    ['--ds-text', '--ds-accent'], ['--ds-text-2', '--ds-accent'],
     ['--ds-on-error-container', '--ds-error-container'], ['--ds-on-success-container', '--ds-success-container'],
     ['--ds-on-warning-container', '--ds-warning-container'], ['--ds-text', '--ds-warning-surface'],
     ['--ds-on-inverse', '--ds-inverse'], ['--ds-on-error-container', '--ds-surface'],

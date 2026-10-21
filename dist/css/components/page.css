@@ -14,6 +14,13 @@
  * clear of a one- or two-line snackbar (--ds-toast-room), so a success
  * message never covers the actions just pressed.
  *
+ * Read-only resulting properties of .ds-content (read them, never set
+ * them; set the spacing tokens instead): --ds-content-pad-top and
+ * --ds-content-pad-x, the top and side padding of the panel at the current
+ * width. The loading bar (loading.css) reads them, and inside .ds-page the
+ * page's centring (100cqw of the "ds-content" container), to reach the
+ * panel edges.
+ *
  * Progressive: text-wrap (the lead avoids a lone last word); without it
  * the line wraps as usual.
  */
@@ -22,8 +29,10 @@
 
 @layer ds.components {
   .ds-content {
+    --ds-content-pad-top: var(--ds-space-6);
+    --ds-content-pad-x: var(--ds-space-8);
     container: ds-content / inline-size;
-    padding: var(--ds-space-6) var(--ds-space-8) calc(var(--ds-space-6) + var(--ds-toast-room) + var(--ds-space-2));
+    padding: var(--ds-content-pad-top) var(--ds-content-pad-x) calc(var(--ds-space-6) + var(--ds-toast-room) + var(--ds-space-2));
   }
 
   .ds-page {
@@ -41,8 +50,8 @@
 
   @media (max-width: 720px) {
     .ds-content {
-      padding-top: var(--ds-space-5);
-      padding-inline: var(--ds-space-4);
+      --ds-content-pad-top: var(--ds-space-5);
+      --ds-content-pad-x: var(--ds-space-4);
     }
   }
 

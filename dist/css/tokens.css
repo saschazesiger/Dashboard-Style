@@ -3,8 +3,9 @@
  *
  * Every token lives on `.ds-theme`, never on :root: the system can run
  * inside a foreign page (an embedded widget) without touching that page's
- * variables. A full app puts class="ds-theme" on <html>. The one exception
- * is the @property registration of --ds-time-scale at the top level.
+ * variables. A full app puts class="ds-theme" on <html>. The exceptions
+ * are the @property registrations at the top level: --ds-time-scale and the
+ * runtime properties the loading indicators animate (below it).
  *
  * Three layers:
  *   1. Scales: motion, spacing, state layers, layers (z), radius scale.
@@ -30,7 +31,8 @@
  * Progressive: linear() carries the spring of --ds-ease-spatial and the
  * exact Material emphasized path behind @supports; older engines keep the
  * cubic-bezier fallbacks (--ds-ease-out, the emphasized approximation).
- * scripts/motion-curves.mjs writes both linear() values.
+ * scripts/motion-curves.mjs writes both linear() values and the block
+ * between the "generated: progress-masks" markers; never edit them by hand.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -46,6 +48,63 @@
   syntax: '<number>';
   inherits: true;
   initial-value: 1;
+}
+
+/*
+ * Runtime properties of the loading indicators, registered so they
+ * interpolate: the page sets --ds-progress (a share, 0 ... 1) and it
+ * glides; the loop keyframes of motion.css animate the others. Not motion
+ * hooks: the progress and skeleton values inherit on purpose, because they
+ * are animated on a parent and read by its children and pseudo-elements,
+ * which keeps every part in lockstep. The spinner's angles stay on the
+ * spinner itself.
+ */
+@property --ds-progress {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --ds-progress-head-1 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-progress-head-2 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-progress-tail-1 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-progress-tail-2 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-spinner-arc {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 10deg;
+}
+
+@property --ds-spinner-start {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --ds-skeleton-x {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
 }
 
 @layer ds.tokens {
@@ -133,18 +192,49 @@
     --ds-delay-tooltip-skip: calc(300ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-hide: calc(100ms * var(--ds-time-scale, 1));
 
-    /* Loops of loading indicators: they always run at their token speed. */
-    --ds-loop-spin: calc(1s * var(--ds-time-scale, 1));
+    /* Loops of loading indicators: they always run at their token speed.
+     * spin           one turn of the spinner (the M3 rotation period)
+     * spin-fast      one turn of the spinner in a status chip
+     * arc            one loop of the spinner's arc: four 1333ms cycles of
+     *                growing and shrinking (ds-spinner-arc)
+     * indeterminate  one cycle of the two-segment indeterminate bar
+     * loader         one round of the shape loader: 7 shapes x 650ms
+     * skeleton       one pass of the skeleton wave (sweep, then rest)
+     * wave           one wavelength of the travelling progress wave
+     * pulse          deprecated with ds-pulse (removed in 2.0)
+     */
+    --ds-loop-spin: calc(1568ms * var(--ds-time-scale, 1));
     --ds-loop-spin-fast: calc(.8s * var(--ds-time-scale, 1));
-    --ds-loop-indeterminate: calc(2s * var(--ds-time-scale, 1));
+    --ds-loop-arc: calc(5332ms * var(--ds-time-scale, 1));
+    --ds-loop-indeterminate: calc(1800ms * var(--ds-time-scale, 1));
+    --ds-loop-loader: calc(4550ms * var(--ds-time-scale, 1));
+    --ds-loop-skeleton: calc(2s * var(--ds-time-scale, 1));
+    --ds-loop-wave: calc(1.2s * var(--ds-time-scale, 1));
     --ds-loop-pulse: calc(2s * var(--ds-time-scale, 1));
+
+    /* ── Progress waves ─────────────────────────────────
+     * The masks that make progress wavy (scripts/motion-curves.mjs writes
+     * them): one wavelength of a 4px sine stroke, ±3px, as a tile of
+     * --ds-progress-wave-length x 10px for the linear bar, and a closed
+     * wavy ring for the 40px determinate spinner.
+     */
+    /* generated: progress-masks */
+    --ds-progress-wave-length: 40px;
+    --ds-progress-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10' viewBox='0 0 40 10'%3E%3Cpath d='M-5 7.12C-3.33 6.57 -1.67 5.79 0 5C1.67 4.21 3.33 3.43 5 2.88C6.67 2.32 8.33 2 10 2C11.67 2 13.33 2.32 15 2.88C16.67 3.43 18.33 4.21 20 5C21.67 5.79 23.33 6.57 25 7.12C26.67 7.68 28.33 8 30 8C31.67 8 33.33 7.68 35 7.12C36.67 6.57 38.33 5.79 40 5C41.67 4.21 43.33 3.43 45 2.88' fill='none' stroke='black' stroke-width='4'/%3E%3C/svg%3E");
+    --ds-progress-ring-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M20 3.6C21.23 2.76 22.69 2.15 24.01 2.45C25.32 2.75 26.37 3.94 27.12 5.22C27.86 6.51 28.36 7.74 29.23 8.43C30.09 9.12 31.4 9.34 32.82 9.77C34.24 10.21 35.63 10.98 36.22 12.19C36.8 13.4 36.53 14.97 35.99 16.35C35.45 17.73 34.8 18.89 34.8 20C34.8 21.11 35.45 22.27 35.99 23.65C36.53 25.03 36.8 26.6 36.22 27.81C35.63 29.02 34.24 29.79 32.82 30.23C31.4 30.66 30.09 30.88 29.23 31.57C28.36 32.26 27.86 33.49 27.12 34.78C26.37 36.06 25.32 37.25 24.01 37.55C22.69 37.85 21.23 37.24 20 36.4C18.77 35.56 17.79 34.68 16.71 34.43C15.63 34.18 14.35 34.55 12.88 34.78C11.42 35 9.83 34.91 8.78 34.07C7.72 33.23 7.29 31.71 7.18 30.23C7.07 28.74 7.15 27.42 6.67 26.42C6.19 25.42 5.1 24.66 4.01 23.65C2.92 22.64 2 21.35 2 20C2 18.65 2.92 17.36 4.01 16.35C5.1 15.34 6.19 14.58 6.67 13.58C7.15 12.58 7.07 11.26 7.18 9.77C7.29 8.29 7.72 6.77 8.78 5.93C9.83 5.09 11.42 5 12.88 5.22C14.35 5.45 15.63 5.82 16.71 5.57C17.79 5.32 18.77 4.44 20 3.6Z' fill='none' stroke='black' stroke-width='4'/%3E%3C/svg%3E");
+    /* end generated: progress-masks */
+    /* Short bars and arcs are flat (M3 Expressive flattens the wave at
+       small shares): the wave fades in from the share wave-start over the
+       next wave-ramp of the share (flat up to 6%, wavy from 11%). */
+    --ds-progress-wave-start: .06;
+    --ds-progress-wave-ramp: .05;
 
     /* ── State layers ───────────────────────────────────
      * Opacity of the content colour laid over a control (::before). Large
      * targets (rows, navigation items) take the lighter hover. Keyboard
      * focus lays its own layer under the ring (focus); a press stays on top
      * of it. Disabled content dims to 38%; stale content (about to be
-     * replaced) to 55%.
+     * replaced) to 55%. The deprecated ds-pulse dims to pulse.
      */
     --ds-state-hover: .08;
     --ds-state-hover-lg: .06;
@@ -153,6 +243,7 @@
     --ds-state-dragged: .16;
     --ds-state-disabled: .38;
     --ds-state-stale: .55;
+    --ds-state-pulse: .45;
 
     /* ── Spacing (4 px grid) ──────────────────────────── */
     --ds-space-1: 4px;
@@ -193,6 +284,9 @@
     --ds-surface-low: #f8fafd;
     --ds-surface-high: #e9eef6;
     --ds-surface-highest: #dde3ea;
+
+    /* The band of the skeleton wave that passes over the bones. */
+    --ds-skeleton-highlight: var(--ds-surface-high);
 
     /* Text. --ds-text-3 reaches 4.5:1 on white only; on any tinted surface
        the quieter text is --ds-text-2. */
@@ -368,7 +462,8 @@
     /* ── Elevation ──────────────────────────────────────
      * Only floating layers cast shadows. The three Material levels, and the
      * roles components read:
-     *   hover    clickable cards and filled buttons on hover (level 1)
+     *   hover    clickable cards when a theme sets --ds-card-hover-shadow,
+     *            and filled buttons on hover (level 1)
      *   popover  menus, listboxes, the skip link (level 2)
      *   overlay  dialogs, side sheets, the modal drawer, snackbars (level 3)
      */

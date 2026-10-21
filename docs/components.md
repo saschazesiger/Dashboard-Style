@@ -14,6 +14,7 @@ component live.
 | Switch between two or three modes of the app | `.ds-segmented` in the top bar ([App frame](#app-frame)) |
 | Page title, lead and the column layout of cards | [Page](#page): `.ds-page-head`, `.ds-stack` (one column), `.ds-grid-2` (two) |
 | A block of related content | [Card](#card) `.ds-card`; a quieter block inside one: `.ds-card--filled` |
+| A whole card opens something (a device, a report) | `.ds-card--interactive` on `<a>` or `<button>`, or on a `<div>` with a `.ds-card__action` link ([Card](#card)) |
 | Any action | [Button](#button) `.ds-btn` with one variant; an action inside text or a table cell: `.ds-link-btn` |
 | A view option that stays on or off (filter, compact view) | `.ds-btn--quiet` with `aria-pressed` ([Button](#button)) |
 | A save that takes a moment, with a success moment after it | `.ds-btn__faces` and `DS.motion.busy()` ([Button](#button)) |
@@ -26,6 +27,9 @@ component live.
 | A message about a page or section that stays | [Alert](#alert) `.ds-alert`; a list of errors to open: `.ds-errors` |
 | Short feedback after an action | [Snackbar](#snackbar) `.ds-toast` in `.ds-toasts` |
 | Records in rows and columns | [Table](#table) `.ds-table` in `.ds-table-wrap` |
+| Rows that open their record | `.ds-table--interactive` with a `.ds-table__row-link` per row ([Table](#table)) |
+| Pick several rows for one action (bulk selection) | a checkbox in each row and in the header cell; the row takes the selection colour ([Table](#table)) |
+| More about one row without leaving the table | an expandable row: `.ds-table__toggle` and a `.ds-table__detail` row ([Table](#table)) |
 | Data entry | [Form](#form): `.ds-form`, `.ds-form-grid`, `.ds-field`, `.ds-input`, `.ds-form-actions` |
 | One choice from a short list | `<select class="ds-input">`; with an explanation per option: `.ds-radios` ([Form](#form)) |
 | One choice from a long list, by typing | [Combobox](#combobox) `.ds-combo` |
@@ -38,7 +42,8 @@ component live.
 | Details or editing of one record next to its list | [Side sheet](#side-sheet) `.ds-sheet` |
 | Name an icon button, or say why a control is disabled | [Tooltip](#tooltip) `.ds-tooltip` |
 | Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |
-| A long job with a known or unknown share | [Progress](#progress) `.ds-progress` (`--indeterminate`) |
+| A block of the page waits (a section, a sheet, the app start) against a small spot (a button, a chip, a cell) | the shape loader `.ds-loader` (in `.ds-boot`, `.ds-loading`) against the arc spinner `.ds-spinner` ([Loading](#loading)) |
+| A long job with a known or unknown share | [Progress](#progress) `.ds-progress` (`--indeterminate`); round: `.ds-spinner--determinate` |
 | Content that opens and closes | `<details class="ds-collapsible">` ([Motion classes](#motion-classes)) |
 | Something new appearing, a view's first render | [Motion classes](#motion-classes) and `DS.motion` ([motion.md](motion.md)) |
 | Press feedback from the pointer on every action | [Ripple](#ripple): `DS.ripple.attach(document)` once (`.ds-ripples`) |
@@ -295,6 +300,42 @@ Children of a card are 16px apart; a button or switch in `.ds-card__row` overhan
 start at the same height. Cards in `.ds-grid-2` share their height and line up their `.ds-card__links`. Padding:
 the `--ds-card-padding*` hooks ([theming.md](theming.md#component-hooks)).
 
+### Interactive card
+
+A whole card that opens something (1.4):
+
+```html
+<a class="ds-card ds-card--interactive" href="/devices/42">
+  <h2 class="ds-card__title">Printer on floor 2</h2>
+  <p class="ds-muted">Last seen today, 09:12</p>
+</a>
+
+<button class="ds-card ds-card--interactive" type="button">
+  <span class="ds-card__title">Printer on floor 2</span> ...       <!-- a button holds phrasing content only -->
+</button>
+
+<div class="ds-card ds-card--interactive">                          <!-- with other controls inside -->
+  <div class="ds-card__row">
+    <h2 class="ds-card__title"><a class="ds-card__action" href="/devices/42">Printer on floor 2</a></h2>
+    <button class="ds-btn ds-btn--sm" type="button">Restart</button>
+  </div>
+  <p class="ds-muted">Last seen today, 09:12</p>
+</div>
+```
+
+- The `<a>` and `<button>` forms lose the element's own look (colour, font, underline; full width, left-aligned) and
+  lay their content out as a column from the top, so cards in one grid row line up.
+  In the `<div>` form the `.ds-card__action` link reads as the card's text and its `::after` stretches over the
+  card; the card's other links and controls stay above it and keep working.
+- A state layer in `currentColor`: hover `--ds-state-hover-lg`, press `--ds-state-pressed` in `--ds-dur-micro`
+  (or the ripple, `DS.ripple.attach()`), keyboard focus `--ds-state-focus` with the ring, which is solid from the
+  first frame and snaps to its offset (on the `<div>` form the card draws it through
+  `:has(.ds-card__action:focus-visible)`, so the clip of a ripple never cuts it).
+- The press morph: the radius goes to `--ds-radius-card-pressed` (12 to 8px) and springs back on release.
+- Nothing moves on hover, no lift and no scale. A theme may add a shadow on hover with `--ds-card-hover-shadow`
+  (default none; for example `var(--ds-elev-hover)`), in over `--ds-dur-medium`, out over `--ds-dur-base`.
+- In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring.
+
 ## Tiles
 
 ```html
@@ -308,11 +349,22 @@ the `--ds-card-padding*` hooks ([theming.md](theming.md#component-hooks)).
 </div>
 ```
 
-The value never takes a colour and never wraps (it shrinks on narrow tiles). Count it with
-`DS.motion.countUp(el, 12)`: it counts from the figure it shows (from 0 the first time), so a refresh counts on from
-the old value and the same value changes nothing; a progress bar set in the same task lands with it. A tile that
-opens something is a `<button class="ds-tile">` or `<a class="ds-tile">` with `<span>`s instead of the `<p>`s (a 6%
-state layer and the focus ring, no lift).
+The value never takes a colour and never wraps (it shrinks on narrow tiles). Every new value goes through
+`DS.motion.countUp(el, next)`: it counts from the figure it shows (from 0 the first time) on `--ds-ease-value` over
+`--ds-dur-glide`, so a refresh counts on from the old value, a new value mid-count retargets from where the figure
+is, the same value changes nothing, and assistive technology gets the final value. A meter or progress bar set in
+the same task lands on the same frame. The note changes at once
+([motion.md](motion.md#data-motion)).
+
+```js
+DS.motion.countUp(value, synced);
+bar.style.setProperty('--ds-progress', String(synced / total));   // same task: they land together
+note.textContent = `${failed} failed`;                             // at once
+```
+
+A tile that opens something is a `<button class="ds-tile">` or `<a class="ds-tile">` with `<span>`s instead of the
+`<p>`s: a 6% state layer, the focus ring, the ripple, and the press morph (16 to 12px, `--ds-tile-radius-pressed`,
+springing back on release); no lift, no scale.
 
 ## Lists
 
@@ -350,7 +402,15 @@ inset ring that snaps inward from the edge (also without `.ds-base`).
 </div>
 ```
 
-At most one sentence and one action.
+At most one sentence and one action. It has no motion of its own; how it comes depends on what brought it
+([motion.md](motion.md#data-motion)):
+
+| What happened | Motion |
+|---|---|
+| It replaces a skeleton (first load) | `.ds-reveal` |
+| A filter, search or live update left nothing | the rows leave through `DS.motion.flip` (they fade out in place), then `DS.motion.enter(empty, 'fade')`, without a rise |
+| The filter was cleared | `DS.motion.leave(empty)` while the rows enter through `flip` |
+| The user deleted the last item | the disc pops in: `DS.motion.enter(disc, 'pop')` |
 
 ## Status chip
 
@@ -366,6 +426,13 @@ At most one sentence and one action.
 Always icon and word. Show chips for deviations, not for the normal case. When the label of a running chip changes,
 update the text node only, so the spinner does not restart (`DS.dom.morphHtml`).
 
+Status changes glide, for a user action and a poll alike: render with `DS.dom.morphHtml`, which patches the kept
+chip in place, so its container and icon change colour over `--ds-dur-medium` (250ms); an icon or spinner that
+comes in new (running to ok) fades in and springs up from `--ds-scale-small` (progressive: `@starting-style`, which
+also plays on a chip's first render; elsewhere the icon swaps at once). A row that a keyed `morphHtml` moves (a sort)
+keeps its icon as it is: where `moveBefore` is missing, the moved node carries `data-ds-moving` for one style flush,
+so the entrance never plays again. The label text changes at once. A page that swaps the icon itself can cross-fade it with `DS.motion.crossfade(chip, icon, { kind: 'icon' })`.
+
 ## Alert
 
 ```html
@@ -376,19 +443,31 @@ update the text node only, so the spinner does not restart (`DS.dom.morphHtml`).
 <div class="ds-alert ds-alert--error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">Could not load devices.</span>
   <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Try again</button></div>
 
-<details class="ds-errors">
+<details class="ds-errors ds-collapsible">
   <summary>[icon alertCircle 16]2 errors[icon chevronDown 16 ds-errors__chevron]</summary>
   <ul><li>Row 4: unknown model</li><li>Row 9: duplicate serial</li></ul>
 </details>
 ```
 
 The plain `.ds-alert` is the neutral (information) alert: quiet surface, primary icon, no modifier.
-Alerts do not animate in; add `.ds-reveal` when a user action brings one in.
+Alerts have no entrance of their own: one re-rendered with fresh data is patched in place and never fades in again.
+An alert that comes or goes, by a user action or live data, does it through `DS.motion.flip` on its stack (a flex or
+grid column with a gap), with no export of its own and no height animated
+([motion.md](motion.md#data-motion)):
+
+```js
+DS.motion.flip(stack, () => alert.remove());       // dismiss: it fades out in place, the alerts below glide up
+DS.motion.flip(stack, () => stack.prepend(alert)); // insert: it fades in, the others glide down
+```
+
+Move focus before a dismiss removes the focused button (to the next alert or the section's heading). An alert that
+replaces a placeholder takes `.ds-reveal`.
 
 The summary of `.ds-errors` is pressable: a state layer in its colour (hover, press in `--ds-dur-micro`, keyboard
 focus with `--ds-state-focus`) in a 4px padding that hangs into the space around it, the ripple, and its own focus
 ring (also without `.ds-base`) that is solid from the first frame and snaps to its offset. It is not a pill and
-does not morph.
+does not morph. Its chevron turns 180deg with the list on the spring, like `.ds-chevron`; with `.ds-collapsible`
+the list opens and closes with the collapsible timing.
 
 ## Table
 
@@ -398,7 +477,7 @@ does not morph.
     <table class="ds-table">                      <!-- ds-table--dense: 40px rows -->
       <caption class="ds-sr">Devices</caption>
       <thead><tr>
-        <th scope="col" aria-sort="ascending"><button class="ds-table__sort" type="button">Device [icon arrowUp 16]</button></th>
+        <th scope="col" aria-sort="ascending"><button class="ds-table__sort" type="button">Device [icon arrowUp 16 ds-table__sort-arrow]</button></th>
         <th scope="col" class="ds-num"><button class="ds-table__sort" type="button">Age</button></th>
         <th scope="col" class="ds-col--secondary">Owner</th><th scope="col">Status</th>
       </tr></thead>
@@ -415,11 +494,16 @@ does not morph.
 </section>
 ```
 
-- 48px head, 52px rows, hairlines, quiet hover, no zebra. In a card the table runs to the card edges.
+- 48px head, 52px rows, hairlines, no zebra. In a card the table runs to the card edges.
+- Row hover is a state layer on the cells (`currentColor` at `--ds-state-hover-lg`, `--ds-dur-fast`), so it adds to
+  a selected row's colour; `--ds-table-row-hover` sets a fixed colour instead.
 - `.ds-num` right-aligns tabular figures; `.ds-col--text` keeps a readable width; `.ds-col--secondary` is dropped on
   phones. `.ds-table--wide` also drops secondary columns when the page is narrow (next to the drawer).
 - Sortable columns: a `.ds-table__sort` button in the header cell and `aria-sort` on the cell; the arrow shows at the
-  sorted column only. In a `.ds-num` column the arrow leads.
+  sorted column only. In a `.ds-num` column the arrow leads. Render the same up arrow for both directions and mark
+  it `.ds-table__sort-arrow`: `aria-sort="descending"` turns it 180deg on the spring (when the header is patched in
+  place by `morphHtml`). An arrow without the marker is never turned, so a page that renders `arrowDown` for a
+  descending column keeps showing it as drawn.
 - Short values that must not break (an ID with a hyphen) take `.ds-nowrap`.
 - `.ds-table__sort` presses in `--ds-dur-micro` and ripples (it is not a pill, so it does not morph); keyboard focus
   shows the ring, which snaps to its offset, and the focus layer.
@@ -428,7 +512,67 @@ does not morph.
   feedback on touch screens.
 - Any checkbox in a `.ds-table` is drawn like `.ds-checkbox` ([Form](#form)), with a halo that the table's
   wrapper does not clip; a switch or a chip in a cell keeps its own look.
-- Rows never animate, and figures in tables never count up.
+- Figures in tables never count up; a changed value shows at once.
+
+Sort, filter (also while typing) and live data glide (1.4): key the rows with `data-ds-key` and render through
+`DS.motion.flip` and `DS.dom.morphHtml`:
+
+```js
+// A user's sort or filter (also per keystroke): glides at once, a call mid-glide continues from where each row is.
+DS.motion.flip(tbody, (options) => DS.dom.morphHtml(tbody, renderRows(rows), options), { items: 'tr' });
+// Polled data: values update at once; a reorder waits while a mouse or pen is over the rows or a row has focus (at most 2s).
+DS.motion.flip(tbody, (options) => DS.dom.morphHtml(tbody, renderRows(rows), options), { items: 'tr', live: true });
+```
+
+Moved rows glide on `translate` on the spring, entering rows fade in, removed rows go at once while the rows below
+glide up (a table row cannot leave out of flow), and above 50 moving rows the update lands without motion. `live`
+is only for polled updates; sorting and filtering are user actions. More in
+[motion.md](motion.md#data-motion).
+
+### Interactive, selected and expandable rows
+
+```html
+<table class="ds-table ds-table--interactive">
+  <thead><tr>
+    <th scope="col"><input type="checkbox" aria-label="Select all"></th>          <!-- indeterminate for some -->
+    <th scope="col"></th><th scope="col">Device</th><th scope="col">Status</th>
+  </tr></thead>
+  <tbody>
+    <tr data-ds-key="p2" class="ds-table__row--selected">                         <!-- or just the checked box -->
+      <td><input type="checkbox" aria-label="Select Printer on floor 2" checked></td>
+      <td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="false" aria-controls="p2-detail"
+            aria-label="Details">[icon chevronDown 20 ds-chevron]</button></td>
+      <td class="ds-col--text"><a class="ds-link-btn ds-table__row-link" href="/devices/p2">Printer on floor 2</a></td>
+      <td><span class="ds-status ds-status--ok">[icon check 16]<span>OK</span></span></td>
+    </tr>
+    <tr class="ds-table__detail" id="p2-detail" data-ds-key="p2-detail" inert>
+      <td colspan="4"><div class="ds-table__expand"><div>
+        <dl class="ds-facts">...</dl>
+      </div></div></td>
+    </tr>
+  </tbody>
+</table>
+```
+
+- **Interactive** (`.ds-table--interactive`): every body row opens its record. The row's primary link or button
+  carries `.ds-table__row-link`; its `::after` stretches over the row, so a click anywhere on the row follows it,
+  while the row's other controls (checkbox, toggle, buttons) stay above it. Keyboard focus shows the focus layer on
+  the row and the ring around the row, inset so the scroller never clips it. The press is the cell layer at
+  `--ds-state-pressed` in `--ds-dur-micro`; with `DS.ripple.attach()` the row ripples from the pointer instead
+  (Enter on the row link ripples from the centre). A row's first cell may be a `<th scope="row">` row header: it
+  takes the row's layers and holds the ripple like a `<td>`.
+- **Selected** (`.ds-table__row--selected`, or any row with a checked checkbox directly in a cell): the row takes
+  `--ds-table-row-selected` (default `--ds-accent`) over `--ds-dur-fast`; select all changes every row in the same
+  frame, with no stagger. The checkbox is the cue that does not rely on colour, in every row and in the header cell
+  (bulk selection; set `indeterminate` when only some rows are selected).
+- **Expandable**: the trigger row holds a `.ds-table__toggle` with a `.ds-chevron` and `aria-expanded`, followed by
+  a `.ds-table__detail` row whose single cell holds `.ds-table__expand` and one child. The detail opens by
+  `grid-template-rows` over `--ds-dur-medium` on `--ds-ease-out` and closes over `--ds-dur-base` on `--ds-ease-in`
+  (it pushes the rows below, so it never overshoots); its content fades over `--ds-dur-fast`, and the chevron turns
+  on the spring. There is one hairline, below the detail, which travels down as it opens. The page toggles
+  `aria-expanded`, sets `inert` on the collapsed detail row (which also hides it from assistive technology) and
+  keys both rows with `data-ds-key`, so `flip()` and `morphHtml` keep them together. The child takes the cells'
+  horizontal padding and its own vertical room; put the content straight into it.
 
 ## Form
 
@@ -881,10 +1025,14 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 ## Loading
 
 ```html
+<!-- Block loader: the shape loader (M3 Expressive), 48px; --sm 24px; --contained on an --ds-accent disc -->
+<div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
+<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
+<span class="ds-loader ds-loader--contained" aria-hidden="true"></span>
+
+<!-- Inline spinner: the M3 arc, for buttons, chips, status chips and table cells -->
 <span class="ds-spinner" aria-hidden="true"></span>                 <!-- 16px -->
 <span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>  <!-- 12px, text colour -->
-
-<div class="ds-loading" role="status"><span class="ds-spinner" aria-hidden="true"></span>Loading ...</div>
 
 <div class="ds-skeleton" role="status">
   <span class="ds-sr">Loading ...</span>
@@ -898,13 +1046,38 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
     <span class="ds-skeleton__line ds-skeleton__line--mid"></span>
   </div>
 </div>
-
-<div class="ds-boot">[logo] Product</div>   <!-- app start, fades in after --ds-delay-boot -->
 ```
 
-Every loader fades in only after `--ds-delay-loader` (fast loads show nothing); keep a visible one up with
-`DS.motion.settleLoader(startedAt)`. The loading bar sits in the skeleton at the top of the content panel (inside
-`.ds-content`). No large spinners: the page outline pulses instead.
+Every loader fades in only after `--ds-delay-loader` (`.ds-boot` after `--ds-delay-boot`), so fast loads show
+nothing; keep a visible one up with `DS.motion.settleLoader(startedAt, { element })`. Delays never stack: a loader
+inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a skeleton, have no fade of their own.
+
+- **Shape loader** (`.ds-loader`): the block loader. A shape morphs through the seven M3 shapes, each step landing
+  on the spring, while it turns (`--ds-loop-loader`). It is `aria-hidden`; the surrounding `role="status"` carries
+  the text. Keep it to a few per view (the morph repaints every frame). Hooks `--ds-loader-size` (48px) and
+  `--ds-loader-color` (`--ds-primary`). The older markup with a `.ds-spinner` in `.ds-boot` or `.ds-loading` keeps
+  working.
+- **Spinner** (`.ds-spinner`): the inline loader, the M3 arc that grows and shrinks while it turns, without a track.
+  Hooks `--ds-spinner-color`, `--ds-spinner-track` (none; the small one keeps a faint ring of the text colour) and
+  `--ds-spinner-width` (2px; replaces a project's own `border-width`). Never put `.ds-enter` on it in static markup
+  (wrap it); `.ds-enter` on a `.ds-loader` is fine, its loops run on `::before`.
+- **Circular progress** (`.ds-spinner--determinate`, 40px): the share as an arc, a gap, then the track in
+  `--ds-accent`, on a wavy ring (`.ds-spinner--flat`: a plain ring). It never spins; set `--ds-progress` (0 to 1)
+  and the arc glides like linear progress. Markup as for [progress](#progress): `role="progressbar"`,
+  `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, a name.
+- **Skeleton**: one calm diagonal wave passes over the whole surface, after its entrance. Every bone shows its slice
+  of one band fixed to the viewport (`background-attachment: fixed`, the registered `--ds-skeleton-x`), so the bones
+  of a surface share one phase. Fallback: where `background-attachment: fixed` is ignored (iOS) or broken by a
+  transformed ancestor (a sheet mid-slide, `.ds-enter`), the bones stay in time but the band no longer runs across
+  them; never wrap a skeleton in an entrance that fills forwards.
+- **Loading bar** (`.ds-loadbar`): the two-segment indeterminate choreography, flat, at the top of the content
+  panel (inside `.ds-content`, whose read-only `--ds-content-pad-top` and `--ds-content-pad-x` it reads to reach the
+  panel edges; inside `.ds-page` it also spans the page's centring, measured as `100cqw` of `.ds-content`, so it
+  reaches the edges at any panel width; the view's scroll hairline hides while it is there). Put the bar, or the
+  skeleton that holds it, directly in `.ds-content` or `.ds-page`, with no other size container in between. Refresh pattern: put `.ds-stale` on the content
+  and insert the loading bar; when the data arrives, `await DS.motion.settleLoader(startedAt, { element: loadbar })`,
+  then `DS.motion.leave(loadbar)` (it fades out with its segments still moving, and is removed) and render the fresh
+  content. `.ds-leave` keeps the loops of a loading bar and of a skeleton surface while they fade out.
 
 ## Progress
 
@@ -918,8 +1091,33 @@ Every loader fades in only after `--ds-delay-loader` (fast loads show nothing); 
 </div>
 ```
 
-`--ds-progress` (0 to 1) scales the bar (set it with `el.style.setProperty`, which a strict CSP allows).
-`.ds-progress--indeterminate` runs a segment across; `.ds-progress--waiting` hides the track and keeps the labels.
+`--ds-progress` (0 to 1) sets the share (set it with `el.style.setProperty`, which a strict CSP allows). It is a
+registered number that glides on `--ds-ease-value` over `--ds-dur-glide`: the bar, the remaining track and a
+nested `.ds-spinner--determinate` land together, and on the same frame as a `DS.motion.countUp()` figure set in the
+same task. The bar is cut at the share (a clip, never a scale), so its round cap keeps its shape at any share.
+
+- **The 2024 look** (the default): the bar ends at the share, a gap (`--ds-progress-gap`, 4px) follows, then the
+  remaining track (`--ds-progress-track`, `--ds-accent`) with a stop dot at its end (`--ds-progress-stop`,
+  `--ds-primary`). The bar is wavy and its wave travels; at `aria-valuenow="100"` (with the documented
+  `aria-valuemax="100"`) the wave stops and the flat bar fades in.
+- **`.ds-progress--flat`**: the classic look, no gap, no dot, no wave. Use it in dense table cells: the wave reaches
+  3px above and below the 4px track, and an ancestor with `overflow: hidden` closer than that clips it.
+- **`.ds-progress--indeterminate`**: two segments run across the track (the M3 choreography). When the modifier
+  drops, set the first share in the same task: the segments stop and fade out, the bar fades in and grows from 0 to
+  its share (it never sweeps across or shrinks from 100%). A share set earlier, while indeterminate, simply
+  appears at that share.
+- **`.ds-progress--waiting`** hides the track and keeps the labels. The track keeps its 4px, so the label stays put
+  when the wait ends, and fades in over `--ds-dur-fast`.
+- **Accessibility**: while `--indeterminate` or `--waiting` is on, the share is unknown: remove `aria-valuenow` and
+  set `aria-valuetext` ("Preparing", "Waiting"). With the first share, set `aria-valuenow` again and remove
+  `aria-valuetext`:
+
+```js
+progress.classList.remove('ds-progress--indeterminate');
+progress.style.setProperty('--ds-progress', .3);
+track.setAttribute('aria-valuenow', '30');
+track.removeAttribute('aria-valuetext');
+```
 
 ## Ripple
 
@@ -937,9 +1135,13 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 ```
 
 - Hosts (`DS.ripple.RIPPLE_HOSTS`): `.ds-btn`, `.ds-chip` (the ripple goes into `.ds-chip__body`),
-  `.ds-segmented__option`, `.ds-drawer__item`, `:is(button, a).ds-tile`, `.ds-table__sort`, `.ds-radio` (a radio
-  card, also when its own input is pressed), `.ds-combo__toggle`, `.ds-menu__item`, `.ds-errors summary` and
-  `[data-ds-ripple]`;
+  `.ds-segmented__option`, `.ds-drawer__item`, `:is(button, a).ds-tile`, `.ds-card--interactive` (also the `<div>`
+  form), `.ds-table__sort`, the body rows of `.ds-table--interactive` (the ripple goes into the row's first cell, a
+  `<td>` or a `<th scope="row">` row header, as a box over the whole row that clips the circle; the row is isolated meanwhile, so the ripple paints under the
+  cells' content), `.ds-radio` (a radio card, also when its own input is pressed), `.ds-combo__toggle`,
+  `.ds-menu__item`, `.ds-errors summary` and `[data-ds-ripple]`; Enter on a `.ds-table__row-link` or
+  `.ds-card__action` ripples its row or card from the centre, while a press on another link or control inside the
+  row or `<div>` card (a plain link, a field, a label) is that control's own and ripples neither;
   `data-ds-ripple="off"` on a host or an ancestor opts out. Not hosts, by design: inline links (`.ds-link-btn`,
   links in text), the switch, `.ds-check` rows and checkbox or radio inputs (their halo is the press), combobox
   options (pointer-down selects and closes the list; the state layer is the feedback) and native field parts. Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
@@ -967,7 +1169,7 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 | `.ds-sr` | visually hidden, read by screen readers |
 | `.ds-muted` | quieter body text, tabular figures (`p.ds-muted` keeps the reading measure) |
 | `.ds-meta` | meta line, 12px, tabular figures |
-| `.ds-stale` | dims content until its replacement arrives (filter applied, request running) |
+| `.ds-stale` | dims content until its replacement arrives (filter applied, request running), after `--ds-delay-loader`, so an answer within 200ms never dims; removing it is instant. Set `aria-busy="true"` on the container while it is stale |
 | `.ds-num` | right-aligned tabular figures |
 | `.ds-center` | centred text |
 | `.ds-nowrap` | keeps a value and its unit together |
@@ -979,7 +1181,8 @@ Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
 `.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
-`.ds-stagger`; `.ds-reveal`; `.ds-collapsible`; `.ds-presence` (toggled elements); `.ds-swap` (the slot of `DS.motion.roll()` and
+`.ds-stagger`; `.ds-reveal`; `.ds-collapsible` (opens decelerating and closes faster, accelerating; focus rings at its content edge are not cut; a summary holding a `.ds-chevron` drops the native marker); `.ds-chevron` (a disclosure chevron that turns 180deg on the spring
+in the summary of an open `<details>` or under `aria-expanded="true"`); `.ds-presence` (toggled elements); `.ds-swap` (the slot of `DS.motion.roll()` and
 `DS.motion.crossfade()`); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
 [Button](#button)); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
 `.ds-indicator--instant`.

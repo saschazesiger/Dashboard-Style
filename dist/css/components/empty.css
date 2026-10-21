@@ -8,6 +8,16 @@
  *     <p class="ds-empty__text">Add the first one to start the inventory.</p>
  *     <button class="ds-btn ds-btn--tonal" type="button">Add device</button>
  *
+ * No motion of its own; the page picks it by what brought the empty state
+ * (docs/motion.md, "Data motion"):
+ *   replacing a skeleton           .ds-reveal
+ *   a filter, search or live update the rows leave through DS.motion.flip
+ *                                  (they fade out in place), then
+ *                                  DS.motion.enter(empty, 'fade'), no rise
+ *   the filter cleared             DS.motion.leave(empty) while the rows
+ *                                  enter through flip
+ *   the user deleted the last item DS.motion.enter(disc, 'pop') on the disc
+ *
  * Progressive: text-wrap (the text avoids a lone last word); without it
  * the line wraps as usual.
  */

@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.3.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.4.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.motion,
  * DS.indicator, DS.dom, DS.ripple, DS.icons and DS.overlay hold the same
@@ -15,7 +15,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '1.3.0';
+  var version = '1.4.0';
   var registry = root.DashboardStyle || (root.DashboardStyle = {});
   var versions = registry.versions || (registry.versions = {});
   if (versions[version]) return;
@@ -1651,7 +1651,7 @@
     function flipState(container) {
       let state = flips.get(container);
       if (!state) {
-        state = { pointer: '', over: false, guarded: false, items: undefined, queued: null, timer: 0, waiters: [], lifted: 0, position: null, minHeight: null, sizeGlide: null, raised: 0, isolation: null };
+        state = { pointer: '', over: false, guarded: false, items: undefined, queued: null, timer: 0, waiters: [], lifted: 0, position: null, minHeight: null, align: null, sizeGlide: null, raised: 0, isolation: null };
         flips.set(container, state);
       }
       return state;
@@ -1780,6 +1780,21 @@
       if (state.minHeight !== null) return;
       state.minHeight = container.style.minHeight ?? '';
       container.style.minHeight = `${round(Math.max(0, minHeightFor(container, height)))}px`;
+      // A grid stretches its auto rows into a held height (align-content:
+      // normal): the items that stay would grow and shrink back. They keep
+      // their size until the held height has glided away.
+      const style = computed(container);
+      if (state.align === null && /grid/.test(style?.display ?? '') && /^(normal|stretch)$/.test(style?.alignContent ?? '')) {
+        state.align = container.style.alignContent ?? '';
+        container.style.alignContent = 'start';
+      }
+    }
+
+    /** Gives a grid container its align-content back once nothing holds or glides its height. */
+    function releaseAlign(container, state) {
+      if (state.align === null || state.minHeight !== null || state.sizeGlide) return;
+      container.style.alignContent = state.align;
+      state.align = null;
     }
 
     /**
@@ -1790,7 +1805,10 @@
      */
     function glideSize(container, state, from) {
       const to = heightOf(container);
-      if (from - to < 0.5 || typeof container.animate !== 'function') return Promise.resolve();
+      if (from - to < 0.5 || typeof container.animate !== 'function') {
+        releaseAlign(container, state);
+        return Promise.resolve();
+      }
       const animation = animateSafe(container, [
         { minHeight: `${round(minHeightFor(container, from))}px` },
         { minHeight: `${round(minHeightFor(container, to))}px` },
@@ -1803,6 +1821,7 @@
       state.sizeGlide = animation;
       return animation.finished.then(() => {
         if (state.sizeGlide === animation) state.sizeGlide = null;
+        releaseAlign(container, state);
       }, () => {});
     }
 
@@ -1823,7 +1842,9 @@
       const from = heightOf(container);
       container.style.minHeight = state.minHeight;
       state.minHeight = null;
-      return glide ? glideSize(container, state, from) : Promise.resolve();
+      if (glide) return glideSize(container, state, from);
+      releaseAlign(container, state);
+      return Promise.resolve();
     }
 
     /**
@@ -1839,6 +1860,8 @@
       // First.
       const before = new Map();
       for (const item of flipItems(container, selector)) before.set(item, item.getBoundingClientRect());
+      /** The direct children among the items: only they can come back for an exit. */
+      const childrenOf = new Set(Array.from(before.keys()).filter((item) => item.parentElement === container));
       const frame = edges(container.getBoundingClientRect());
       const firstHeight = frame.bottom - frame.top;
       for (const item of before.keys()) {
@@ -1866,6 +1889,31 @@
           return new Promise((resolve) => removed.push({ node, resolve }));
         },
       });
+      // What `mutate` took out or put in by itself (not through the hooks): a
+      // direct child that left the document fades out of flow where it was (it
+      // goes back in, out of flow, for its exit); a new item fades in.
+      for (const [item, rect] of before) {
+        if (item.parentNode || !childrenOf.has(item)) continue;
+        // Back in for its exit only: data-ds-moving for one style flush keeps
+        // its @starting-style entrances (a status icon) from playing (motion.css).
+        item.setAttribute('data-ds-moving', '');
+        container.append(item);
+        void computed(item)?.opacity;
+        item.removeAttribute('data-ds-moving');
+        if (!liftable(item)) {
+          item.remove();
+          continue;
+        }
+        holdSize(container, state, firstHeight);
+        lift(container, item, rect, frame, state);
+        removed.push({ node: item, resolve() {} });
+      }
+      for (const item of flipItems(container, selector)) {
+        if (before.has(item) || inserted.includes(item) || removed.some((entry) => entry.node === item)) continue;
+        // An item that brings its own entrance (a snackbar's keyframes) keeps it.
+        if (item.getAnimations?.().some((animation) => animation.playState !== 'finished')) continue;
+        inserted.push(item);
+      }
       // Last.
       const moves = [];
       for (const item of flipItems(container, selector)) {
@@ -1998,8 +2046,14 @@
      * call during a glide continues from where every item is, so a filter can
      * call it on every keystroke. Inserted items fade in; removed items fade
      * out of flow where they were while their neighbours close the gap (table
-     * rows go at once); meanwhile the container keeps its height (min-height,
-     * restored afterwards), then its block size glides down on --ds-ease-out,
+     * rows go at once). Both work through the hooks (DS.dom.morphHtml) and
+     * for plain DOM calls in `mutate`: a direct child that `mutate` removed
+     * goes back in, out of flow, for its exit, and an item that is new after
+     * `mutate` fades in (unless it runs an entrance of its own), so flip(stack, () => alert.remove()) and
+     * flip(stack, () => stack.prepend(alert)) need nothing else. Meanwhile
+     * the container keeps its height (min-height, restored afterwards; a grid
+     * keeps its rows at their size with align-content: start), then its block
+     * size glides down on --ds-ease-out,
      * so what follows the list never jumps and leaving items never paint over
      * it. Items outside the viewport before and after jump; with
      * more than `max` moving items the update lands without motion.
@@ -2568,7 +2622,10 @@
      *
      * Progressive: moveBefore (a keyed move keeps the node's animations,
      * focus and iframe state); elsewhere insertBefore, and a moved node that
-     * held the focus gets it back with its selection.
+     * held the focus gets it back with its selection. insertBefore makes the
+     * node new to the style engine, so its @starting-style entrances (a status
+     * icon) would play again: it carries data-ds-moving (transition: none in
+     * motion.css) until one style flush at the end of the call.
      */
 
     /** How many candidate siblings the look-ahead for an identical node checks. */
@@ -2581,7 +2638,7 @@
     const RUNTIME_STYLE = /^--ds-(?:i|indicator-[\w-]+|ripple-[\w-]+|motion-origin|clip-from)$/;
 
     /** Attributes that DS sets at runtime; a patch never removes them. */
-    const RUNTIME_ATTRIBUTES = new Set(['data-ds-staggered']);
+    const RUNTIME_ATTRIBUTES = new Set(['data-ds-staggered', 'data-ds-moving']);
 
     /** An element in a DS.motion.leave() (running, or kept with then: 'keep'): its `inert` is runtime state. */
     const exiting = (element) => Array.from(element.classList ?? []).some((name) => /^ds-leave(?:--[\w-]+)?$/.test(name));
@@ -2599,6 +2656,7 @@
      * @property {boolean} replace
      * @property {MorphOptions} options
      * @property {Element|null} active  the focused element at the start of the call
+     * @property {Element[]} moved  nodes moved by insertBefore, marked data-ds-moving until the call ends
      */
 
     const isElement = (node) => node?.nodeType === 1;
@@ -2680,7 +2738,9 @@
     /**
      * Moves a kept node before `before`: moveBefore where it exists (the node
      * keeps its animations and focus), else insertBefore, after which a node
-     * that held the focus gets it back with its selection.
+     * that held the focus gets it back with its selection. The insertBefore
+     * path marks the node data-ds-moving, so it skips its @starting-style
+     * entrances; morphChildren() lifts the marks after one style flush.
      */
     function moveNode(parent, node, before, ctx) {
       if (typeof parent.moveBefore === 'function') {
@@ -2697,6 +2757,10 @@
         if (focused && typeof focused.selectionStart === 'number') selection = [focused.selectionStart, focused.selectionEnd, focused.selectionDirection];
       } catch {
         // Inputs without a selection (checkbox, number) throw on read.
+      }
+      if (!node.hasAttribute('data-ds-moving')) {
+        node.setAttribute('data-ds-moving', '');
+        ctx.moved.push(node);
       }
       parent.insertBefore(node, before);
       const doc = parent.ownerDocument;
@@ -2965,8 +3029,26 @@
         replace: options.replace === true,
         options,
         active: /** @type {any} */ (target).ownerDocument?.activeElement ?? null,
+        moved: [],
       };
-      patchChildren(target, Array.from(nodes), ctx, true);
+      try {
+        patchChildren(target, Array.from(nodes), ctx, true);
+      } finally {
+        settleMoved(ctx.moved);
+      }
+    }
+
+    /**
+     * Lifts the data-ds-moving marks after one style flush: the moved nodes
+     * get their style without transitions (no @starting-style entrance), and
+     * keep it as their before-change style once the mark is gone.
+     */
+    function settleMoved(moved) {
+      if (!moved.length) return;
+      const view = moved[0].ownerDocument?.defaultView;
+      // Reading a computed value resolves the style of the whole document.
+      if (typeof view?.getComputedStyle === 'function') void view.getComputedStyle(moved[0]).opacity;
+      for (const node of moved) node.removeAttribute('data-ds-moving');
     }
 
     /**
@@ -3002,7 +3084,12 @@
      * the root: pointerdown for the pointer, Enter and Space for a centred
      * ripple on a focused host. Hosts: .ds-btn, .ds-chip (the ripple goes into
      * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
-     * :is(button, a).ds-tile, .ds-table__sort, .ds-radio (a radio card, also
+     * :is(button, a).ds-tile, .ds-card--interactive (also the <div> form,
+     * whose .ds-card__action stretches over it), .ds-table__sort, the body rows
+     * of .ds-table--interactive (the ripple goes into the row's first cell and
+     * covers the row; Enter on .ds-table__row-link or .ds-card__action ripples
+     * the row or card; a press on another link or control inside a row or
+     * a <div> card is that control's own, so the host gets none), .ds-radio (a radio card, also
      * when its own input is pressed), .ds-combo__toggle, .ds-menu__item,
      * .ds-errors summary and [data-ds-ripple]; data-ds-ripple="off" on a host
      * or an ancestor opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
@@ -3049,14 +3136,23 @@
      */
     const MOTION_FALLBACKS = DS.motion.MOTION_FALLBACKS, flip = DS.motion.flip, motionDuration = DS.motion.motionDuration, motionEasing = DS.motion.motionEasing, settled = DS.motion.settled, travelDuration = DS.motion.travelDuration;
 
-    /** The actions that get a ripple (P5 and P6 add more). */
-    const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]';
+    /** The actions that get a ripple. */
+    const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-card--interactive, .ds-table__sort, .ds-table--interactive tbody tr:not(.ds-table__detail), .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]';
+
+    /** The link that stands for its host (stretched over a row or a <div> card): Enter on it ripples the host. */
+    const HOST_LINK = '.ds-table__row-link, .ds-card__action';
 
     /** Hosts whose own input is part of the host: pressing the input ripples the host. */
     const OWNS_INPUT = '.ds-chip, .ds-radio';
 
     /** Controls whose press is their own halo, not a ripple. */
     const OWN_PRESS = 'input[type="checkbox"], input[type="radio"], .ds-switch';
+
+    /** Hosts a link stretches over (HOST_LINK): their other controls keep their own press. */
+    const STRETCHED = '.ds-card--interactive, .ds-table--interactive tbody tr';
+
+    /** What a press inside a stretched host may land on besides its link (the CSS's press exclusion, plus [tabindex]). */
+    const CONTROLS = 'a[href], button, input, select, textarea, label, summary, [tabindex]';
 
     /**
      * @typedef {object} Press
@@ -3082,9 +3178,19 @@
       return host;
     }
 
-    /** Where the ripple goes: the chip's body, else the host itself. */
+    /** Where the ripple is measured and placed: the chip's body, else the host itself. */
     function surfaceOf(host) {
       return host.classList.contains('ds-chip') ? host.querySelector('.ds-chip__body') : host;
+    }
+
+    /**
+     * The element the ripple goes into: a table row cannot hold a span, so
+     * it goes into the row's first cell (a <td> or a <th> row header),
+     * positioned against the row (it covers the row and clips the circle
+     * itself, ripple.css).
+     */
+    function holderOf(surface) {
+      return surface.tagName === 'TR' ? surface.cells[0] ?? null : surface;
     }
 
     /**
@@ -3100,6 +3206,19 @@
         if (input?.matches(':disabled')) return true;
       }
       return false;
+    }
+
+    /**
+     * Whether a press on `target` belongs to another control inside a host
+     * that a link stretches over (a plain link, a field, a label in a row or
+     * a <div> card): that control has its own press, so the host neither
+     * ripples nor holds .ds-pressed, as its :active layer does not show.
+     */
+    function pressesOther(host, target) {
+      if (!host.matches(STRETCHED)) return false;
+      const element = target?.nodeType === 1 ? target : target?.parentElement;
+      const control = element?.closest?.(CONTROLS);
+      return Boolean(control && control !== host && host.contains(control) && !control.matches(HOST_LINK));
     }
 
     /** Fades a ripple out and removes it once the fade settled. */
@@ -3141,14 +3260,19 @@
         previous.released = true;
         fade(previous.span);
       }
+      const holder = holderOf(surface);
+      if (!holder) return null;
       const rect = surface.getBoundingClientRect();
-      // The padding box, in the host's own (untransformed) pixels.
-      const scaleX = surface.offsetWidth ? rect.width / surface.offsetWidth : 1;
-      const scaleY = surface.offsetHeight ? rect.height / surface.offsetHeight : 1;
-      const width = surface.clientWidth;
-      const height = surface.clientHeight;
-      const left = x === undefined ? width / 2 : (x - rect.left) / (scaleX || 1) - surface.clientLeft;
-      const top = y === undefined ? height / 2 : (y - rect.top) / (scaleY || 1) - surface.clientTop;
+      // The padding box, in the host's own (untransformed) pixels. A table row
+      // has no padding box of its own: its border box (a gliding row's
+      // translate included, so the circle starts under the pointer).
+      const row = surface !== holder;
+      const scaleX = !row && surface.offsetWidth ? rect.width / surface.offsetWidth : 1;
+      const scaleY = !row && surface.offsetHeight ? rect.height / surface.offsetHeight : 1;
+      const width = row ? rect.width : surface.clientWidth;
+      const height = row ? rect.height : surface.clientHeight;
+      const left = x === undefined ? width / 2 : (x - rect.left) / (scaleX || 1) - (row ? 0 : surface.clientLeft);
+      const top = y === undefined ? height / 2 : (y - rect.top) / (scaleY || 1) - (row ? 0 : surface.clientTop);
       const radius = Math.hypot(Math.max(left, width - left), Math.max(top, height - top));
       const span = surface.ownerDocument.createElement('span');
       span.className = 'ds-press-ripple';
@@ -3157,7 +3281,7 @@
       span.style.setProperty('--ds-ripple-x', `${Math.round(left * 100) / 100}px`);
       span.style.setProperty('--ds-ripple-y', `${Math.round(top * 100) / 100}px`);
       span.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
-      surface.append(span);
+      holder.append(span);
       host.classList.add('ds-pressed');
       /** @type {Press} */
       const press = { span, at: now(), released: false };
@@ -3443,6 +3567,7 @@
         if (!host || inactive(host)) return;
         const target = /** @type {Element} */ (event.target);
         if (target.closest?.(OWN_PRESS) && !host.matches(OWNS_INPUT)) return;
+        if (pressesOther(host, target)) return;
         if (!start(host, event.clientX, event.clientY)) return;
         const up = () => {
           host.removeEventListener('pointerleave', up);
@@ -3460,8 +3585,9 @@
         const target = /** @type {Element} */ (event.target);
         const host = hostOf(target, element);
         if (!host || inactive(host) || !activates(target, event.key)) return;
-        // The host itself, or the input of a chip or radio card (typing in a field inside a host is no press).
-        if (target !== host && !(host.matches(OWNS_INPUT) && target.tagName === 'INPUT')) return;
+        // The host itself, the input of a chip or radio card, or the link that stands for a row or card
+        // (typing in a field inside a host is no press).
+        if (target !== host && !(host.matches(OWNS_INPUT) && target.tagName === 'INPUT') && !target.matches?.(HOST_LINK)) return;
         if (!start(host)) return;
         const leave = () => {
           target.removeEventListener('blur', leave);

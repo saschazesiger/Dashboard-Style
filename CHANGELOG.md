@@ -3,6 +3,130 @@
 All notable changes. Versions follow [semver](https://semver.org): renaming or removing a token, class, hook or JS
 export is a major change; adding one is a minor change.
 
+## 1.4.0
+
+Motion 2, feedback and data: the Material 3 Expressive loaders (a shape-morphing block loader, the growing and
+shrinking arc spinner, wavy circular progress), the 2024 progress look with the two-segment indeterminate
+choreography, one calm skeleton wave per surface, and data that glides: table rows (hover layer, selection,
+expandable rows, sort, filter and live data through `DS.motion.flip`), status chips, tiles, alerts and empty states.
+New clickable cards and table rows, a press morph on clickable tiles, and `.ds-collapsible` with asymmetric timing,
+a chevron and an unclipped focus ring. Additive: no class, token, hook or export was removed or renamed, and no
+migration is required. Loaders, progress and skeletons deliberately change their default look (D10, D11): each
+change is listed under "Changed" with what a project can do (usually nothing; at most `--flat` or a hook).
+
+### Added
+
+- `.ds-loader` (`loader.css`), the M3 Expressive loading indicator and the block loader: a shape that morphs through
+  the seven M3 shapes (each step landing on the spring) while it turns, 48px (`--sm` 24px, `--contained` on an
+  `--ds-accent` disc); it fades in after `--ds-delay-loader`, and inside `.ds-boot`, `.ds-loading` and
+  `.ds-skeleton` it has no delay of its own. Hooks `--ds-loader-size`, `--ds-loader-color`. It keeps its own delay in
+  `.ds-stagger` and `.ds-reveal`, like the other loaders.
+- `.ds-spinner--determinate` (circular progress, 40px: the share as an arc, a gap, the track in `--ds-accent`, the
+  arc wavy) with `.ds-spinner--flat`; it never spins and its value glides like linear progress. Hook
+  `--ds-spinner-width` (2px; 4px on the ring).
+- `.ds-progress--flat`: the classic progress look (no gap, no stop dot, no wave), for dense table cells.
+- `.ds-card--interactive` (on `<a>`, `<button>`, or a `<div>` with a `.ds-card__action` link stretched over it): a
+  state layer, the focus ring and focus layer, the press morph to `--ds-radius-card-pressed` (12 to 8px) and the
+  ripple; nothing moves on hover. The `<a>` and `<button>` forms lay their content out as a column from the top, so
+  cards in one grid row line up. Hook `--ds-card-hover-shadow` (default none).
+- Table: `.ds-table--interactive` with `.ds-table__row-link` (a row that opens its record: cursor, inset ring, focus,
+  press layer and the ripple on the row; separate borders, so Firefox keeps the hairlines next to a selected row),
+  `.ds-table__row--selected` (and any row with a checked checkbox in a cell:
+  `--ds-table-row-selected`, default `--ds-accent`), expandable rows (`.ds-table__toggle`, `.ds-table__detail`,
+  `.ds-table__expand`: `grid-template-rows` over `--ds-dur-medium` on `--ds-ease-out`, closing over `--ds-dur-base`
+  on `--ds-ease-in`), and `.ds-table__sort-arrow`, an opt-in marker on the sort button's svg: one up arrow for both
+  directions that turns 180deg on the spring for `aria-sort="descending"` (an unmarked arrow is never turned, so a
+  page that renders `arrowDown` for a descending column keeps its direction). The row cells' layers, the selection
+  cue and the row ripple also take a `<th scope="row">` row header as a row's cell. Hooks
+  `--ds-table-row-hover`, `--ds-table-row-selected`.
+- `.ds-chevron` (`motion.css`, `ds.utilities`): a disclosure chevron that turns 180deg on the spring in the summary of
+  an open `<details>` or under `aria-expanded="true"`; a `.ds-collapsible` summary holding one drops its native
+  marker.
+- Clickable tiles morph on press (16 to 12px): hook `--ds-tile-radius-pressed` (fallback `--ds-radius-md`).
+- Progress hooks `--ds-progress-gap` (4px), `--ds-progress-stop` (the stop dot, `--ds-primary`) and
+  `--ds-progress-track` (the remaining track, `--ds-accent`).
+- Tokens: the loop scales `--ds-loop-arc` (5332ms: four 1333ms arc cycles, so the advancing start meets itself),
+  `--ds-loop-loader` (4550ms, 7 × 650ms), `--ds-loop-skeleton` (2s) and `--ds-loop-wave` (1.2s); `--ds-state-pulse`
+  (.45, now read by `ds-pulse`); `--ds-progress-wave`, `--ds-progress-ring-wave` (generated mask images) and
+  `--ds-progress-wave-length` (40px); `--ds-progress-wave-start` (.06) and `--ds-progress-wave-ramp` (.05), the
+  shares between which a short bar or arc turns from flat to wavy; the role `--ds-skeleton-highlight` (`var(--ds-surface-high)`).
+- Registered runtime properties (top level): `--ds-progress` (`<number>`, inheriting, so the bar, the track and a
+  nested ring land together), `--ds-progress-head-1`, `--ds-progress-head-2`, `--ds-progress-tail-1`,
+  `--ds-progress-tail-2` (`<percentage>`, inheriting), `--ds-spinner-arc` and `--ds-spinner-start` (`<angle>`, not
+  inheriting), `--ds-skeleton-x` (`<length>`, inheriting).
+- Read-only `--ds-content-pad-top` and `--ds-content-pad-x` on `.ds-content` (its resulting padding; read, never
+  set).
+- Keyframes `ds-spinner-arc`, `ds-loader-morph`, `ds-loader-turn`, `ds-progress-head`, `ds-progress-tail`,
+  `ds-progress-wave` and `ds-skeleton-wave`; `scripts/motion-curves.mjs` generates their stops (and the masks),
+  checked by `npm run check`.
+- `DS.ripple.RIPPLE_HOSTS` gains `.ds-card--interactive` (also the `<div>` form) and the body rows of
+  `.ds-table--interactive`; Enter on a `.ds-table__row-link` or `.ds-card__action` ripples its row or card, while a
+  press on another link or control inside the row or `<div>` card ripples neither (as its `:active` layer).
+- `.ds-leave` on a `.ds-loadbar` or a `.ds-skeleton` keeps its loop running, so the segments and the wave move on
+  while the exit fades them out; a skeleton's band rests off screen (`--ds-skeleton-x: -150vw`) whenever the wave
+  does not run.
+- Docs: "Data motion" in motion.md (what glides, what changes at once, recipes for a live list, filtering while
+  typing, table sort, alert dismiss and insert, the loader refresh, a tile with its bar); the progress aria rules
+  (no `aria-valuenow` but an `aria-valuetext` while the share is unknown).
+
+### Changed
+
+- **Progress** (D10): the 2024 look is the default: the bar ends at the share, a 4px gap, the remaining track in
+  `--ds-accent` with a stop dot; the bar is wavy and its wave travels until `aria-valuenow="100"`, where the flat bar
+  fades in. Short bars stay flat (up to 6%, wavy from 11%, cross-fading on the gliding share), as does a short arc of
+  the determinate ring, so a starting bar never shows a loose piece of the wave. The bar is cut by `clip-path` at the share instead of `scaleX()`. A project that wants the old bar adds
+  `.ds-progress--flat`; one that styled `.ds-progress__bar`'s `transform` reads `--ds-progress` instead.
+- **Indeterminate progress** runs the M3 two-segment choreography on `ds-progress-head` and `ds-progress-tail`, wavy
+  (flat with `--flat`); the loading bar (`.ds-loadbar`) runs the same two segments, flat. Dropping the modifier
+  stops the segments and fades them out while the bar grows from 0 to its share.
+- **Spinner**: the M3 arc that grows and shrinks while it turns, without a track (set `--ds-spinner-track` to keep
+  one; `.ds-spinner--sm` keeps its faint ring). A project override of `border-width` becomes `--ds-spinner-width`.
+- `--ds-loop-spin` is 1568ms (was 1s) and `--ds-loop-indeterminate` 1800ms (was 2s), the M3 periods.
+- **Skeletons** (D11): one calm diagonal wave passes over every bone of a surface at once (a band fixed to the
+  viewport, after the entrance) instead of the pulse. Where `background-attachment: fixed` does not hold (iOS, a
+  transformed ancestor) the bones stay in time but the band no longer runs across them.
+- **Table row hover**: a `currentColor` layer on the cells (`--ds-state-hover-lg`), so it adds to a selected row's
+  colour; it no longer uses `--ds-backdrop` (the square preset gets its hover back). `--ds-table-row-hover` brings
+  back a fixed colour.
+- **`.ds-progress--waiting`** keeps the track's 4px (hidden) instead of `display: none`, so the label no longer jumps
+  when the wait ends; the track fades in over `--ds-dur-fast`.
+- **`.ds-stale`** dims only after `--ds-delay-loader` (200ms), so an answer within 200ms never dims; removing it stays
+  instant.
+- **Status chips** change colour over `--ds-dur-medium` (was `--ds-dur-fast`), the container and the icon together;
+  an icon or spinner that comes in new fades in and springs up (progressive: `@starting-style`, also on a chip's
+  first render).
+- **`.ds-collapsible`** opens over `--ds-dur-medium` on `--ds-ease-out` while its content fades in, and closes faster,
+  accelerating (`--ds-dur-base` on `--ds-ease-in`).
+- **`.ds-errors`**: its chevron turns 180deg (`rotate`) with the list, like `.ds-chevron`; document it as
+  `<details class="ds-errors ds-collapsible">` for the collapsible timing.
+- **A standalone loading bar** fades in after `--ds-delay-loader` (inside a skeleton only its loops run).
+- **`DS.motion.flip()`** also handles plain DOM calls in `mutate`: a direct child that `mutate` removes fades out in
+  place, out of flow, and a new item fades in (unless it runs an entrance of its own), so
+  `flip(stack, () => alert.remove())` and `flip(stack, () => stack.prepend(alert))` need nothing else; a grid
+  container keeps `align-content: start` while its height is held.
+- **Docs**: the documented markup of `.ds-boot` and `.ds-loading` uses `.ds-loader`; the old `.ds-spinner` markup in
+  both keeps working (the spinner is documented as the inline loader). The interactive table row is a ripple host.
+
+### Deprecated (removed in 2.0)
+
+- Keyframes `ds-pulse` (now `opacity: var(--ds-state-pulse)`) and `ds-indeterminate`: the skeleton wave and the
+  two-segment keyframes replace them.
+
+### Fixed
+
+- The indeterminate to determinate handoff: the bar never sweeps across or shrinks from 100%; it grows from 0 to its
+  share while the segments fade out where they stopped.
+- The squashed cap of a progress bar at small shares (the clip keeps a round end at any share).
+- The focus ring of a control flush with the content edge of an open `.ds-collapsible` is no longer cut
+  (`overflow-clip-margin`, progressive).
+- The loading bar's margins follow the content panel's padding (also at 720px and below) and, inside `.ds-page`,
+  the page's centring, so it reaches the panel edges at any width (also above `--ds-content-max`); the view's scroll
+  hairline no longer draws over it.
+- A keyed reorder through `DS.dom.morphHtml` (a table sort) no longer replays the entrance of a moved row's status
+  icon where `moveBefore` is missing (WebKit, Firefox 128, Chrome before 133): the moved node carries `data-ds-moving`
+  for one style flush, and `motion.css` turns its transitions off meanwhile, so no `@starting-style` plays again.
+- The label of `.ds-progress--waiting` no longer shifts by 4px when the wait ends.
+
 ## 1.3.0
 
 Motion 2, the overlays: a new `DS.overlay` module opens and closes dialogs, side sheets, the modal drawer, menus and

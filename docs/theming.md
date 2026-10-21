@@ -165,10 +165,18 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
 | `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
 | `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button or switch in the header row overhangs it (set it with a type role that changes the subtitle line) |
+| `--ds-card-hover-shadow` | none | `.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift |
 | `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile |
+| `--ds-tile-radius-pressed` | `--ds-radius-md` | a clickable tile while pressed (never rounder than `--ds-tile-radius`) |
+| `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
+| `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
 | `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
 | `--ds-status-radius` | `--ds-radius-md` | status chip |
-| `--ds-spinner-track`, `--ds-spinner-color` | `--ds-line`, `--ds-primary` | spinner |
+| `--ds-spinner-track`, `--ds-spinner-color` | none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`) | spinner: the track behind the arc, the arc |
+| `--ds-spinner-width` | 2px (`--determinate`: 4px) | the spinner's ring width (instead of `border-width`) |
+| `--ds-loader-size`, `--ds-loader-color` | 48px (`--sm`: 24px), `--ds-primary` | the shape loader's container and its shape ([loading](components.md#loading)) |
+| `--ds-progress-gap` | 4px | linear progress: the gap between the bar and the remaining track |
+| `--ds-progress-track`, `--ds-progress-stop` | `--ds-accent`, `--ds-primary` | linear progress: the remaining track, the stop dot at its end |
 | `--ds-dialog-width` | 400px | dialog |
 | `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
 | `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |

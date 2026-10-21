@@ -17,10 +17,10 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 
 | Command | Purpose |
 |---|---|
-| `npm run check` | tests + verify that `dist/` matches `src/` and that the sampled curves in `tokens.css` match their generator (`node scripts/motion-curves.mjs --check`); CI runs this; run it before every commit |
+| `npm run check` | tests + verify that `dist/` matches `src/` and that the generated curves, keyframes and masks in `tokens.css` and `motion.css` match their generator (`node scripts/motion-curves.mjs --check`); CI runs this; run it before every commit |
 | `npm test` | tests only (`node --test`, no dependencies, Node 22+) |
 | `npm run build` | rebuild `dist/` after any change to `src/`, `fonts/`, `LICENSE` or the version |
-| `node scripts/motion-curves.mjs` | regenerate the sampled `linear()` curves (`--ds-ease-spatial`, `--ds-ease-emphasized`) in `src/tokens.css`; never edit them by hand |
+| `node scripts/motion-curves.mjs` | regenerate the sampled `linear()` curves (`--ds-ease-spatial`, `--ds-ease-emphasized`) and the progress masks in `src/tokens.css`, and the generated loop keyframe stops (loader shapes, spinner arc, indeterminate progress, skeleton wave) in `src/motion.css`; never edit them by hand |
 | `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
 | `sh scripts/vendor.sh --from . /tmp/ds && sh scripts/vendor.sh --check /tmp/ds` | the vendor round trip CI runs after `npm run check` |
 | `npm ci` | once, for the browser tests only (installs the pinned `@playwright/test`, the only devDependency); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
@@ -97,10 +97,10 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   most 1.05, then it settles; the percentage is the contract); sizes that push layout never overshoot
   (`--ds-ease-out`). Animate only `transform`, `translate`, `scale`, `opacity`, colours, `box-shadow`,
   `clip-path` and registered custom properties; named exceptions, each allowed by the test when its feature
-  lands: `rotate` (spinners, loaders, disclosure chevrons, icon swaps), `border-radius` (press morph),
+  lands: `rotate` (spinners, loaders, disclosure chevrons, the table sort arrow, icon swaps), `border-radius` (press morph),
   `outline-offset` (focus snap, transition only), `stroke-dashoffset` (drawn checks), `mask-position` (the
   progress wave), the chip check slot `width`, the heights of `.ds-collapsible`, validation messages and
-  expandable rows, and the `min-height` of a `DS.motion.flip` container shrinking after removals. Never
+  expandable rows (`grid-template-rows`), and the `min-height` of a `DS.motion.flip` container shrinking after removals. Never
   `transition: all`, never `font-weight`. Exits take 0.3-0.8 of their entrance (tested). Hover never moves
   anything; nothing scales on press except the switch handle. Data changes glide only through `countUp`, value bars and `DS.motion.flip`
   (live reorders wait while pointed at or focused, at most 2s); re-render with `DS.dom.morphHtml`, never
@@ -129,8 +129,8 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   keyframes only on `:not([data-state])` (the hand path).
 - **Every action is a pill** (`--ds-radius-action`). One filled button per area, no red buttons. Inline text links
   (`.ds-link-btn`, links in text) are the exception to ripple and morph.
-- **Status never by colour alone**: icon and word on status chips and alerts, a check on selected chips, the
-  label weight or `aria-*` on active items.
+- **Status never by colour alone**: icon and word on status chips and alerts, a check on selected chips, selected
+  table rows keep their checkbox, the label weight or `aria-*` on active items.
 - **Forced colors** (`@media (forced-colors: active)`): floating layers (dialogs, sheets, the modal drawer,
   snackbars, tooltips, menus and the combobox list) keep a transparent outline or border that becomes their edge,
   selected options show `SelectedItem` / `SelectedItemText`, selects get their native arrow back, spinner, switch,

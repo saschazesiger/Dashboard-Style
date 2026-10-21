@@ -22,8 +22,9 @@ the tests in `test/`.
 
 ## State and feedback
 
-- **Status is never colour alone.** A status chip has an icon and a word; a selected chip has a check; the active
-  navigation item is also set in the label weight; a chosen toggle changes shape.
+- **Status is never colour alone.** A status chip has an icon and a word; a selected chip has a check; a selected
+  table row keeps its checkbox; the active navigation item is also set in the label weight; a chosen toggle changes
+  shape.
 - **Links are underlined** (`--ds-link-underline-*`); colour alone does not tell a link from text.
 - **Focus is a 2px ring on `:focus-visible`** on every control (`--ds-focus-outline`), solid from the first frame;
   only its offset snaps from 4px to 2px (inset rings from the edge inward) in `--ds-dur-fast`. A focus layer
@@ -40,7 +41,8 @@ the tests in `test/`.
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
   why over a bare `disabled`.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
-  `--ds-hold-loader` (450ms). Re-render with `DS.dom.morphHtml` (keyed, in place), never `innerHTML`: an
+  `--ds-hold-loader` (450ms). A block that waits shows the shape loader (`.ds-loader`), a small spot (a button, a
+  chip, a cell) the arc spinner; delays never stack. Re-render with `DS.dom.morphHtml` (keyed, in place), never `innerHTML`: an
   animating element keeps its animation and a field its focus.
 - **Data changes glide, they never replay an entrance.** Values count from the shown value (`countUp`, bars on
   `--ds-ease-value`); reorders glide through `DS.motion.flip`: user actions at once, live data held while a mouse

@@ -23,10 +23,11 @@ test('patched nodes keep their identity, and a progress transition runs', async 
     const markup = (share, label) => `<div class="ds-progress" style="--ds-progress: ${share}"><div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${share * 100}"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">${label}</p></div>`;
     DS.dom.morphHtml(form, markup(0.2, '20%'));
     const before = [...form.querySelectorAll('*')];
-    getComputedStyle(form.querySelector('.ds-progress__bar')).transform;
+    getComputedStyle(form.querySelector('.ds-progress')).getPropertyValue('--ds-progress');
     DS.dom.morphHtml(form, markup(0.6, '60%'));
     const after = [...form.querySelectorAll('*')];
-    const bar = form.querySelector('.ds-progress__bar');
+    // The share glides on the .ds-progress element (a registered number the bar reads).
+    const bar = form.querySelector('.ds-progress');
     return {
       same: before.length === after.length && before.every((node, index) => node === after[index]),
       label: form.querySelector('.ds-progress__label').textContent,
@@ -34,7 +35,7 @@ test('patched nodes keep their identity, and a progress transition runs', async 
       transitions: bar.getAnimations().map((animation) => animation.transitionProperty),
     };
   });
-  expect(result).toEqual({ same: true, label: '60%', valuenow: '60', transitions: ['transform'] });
+  expect(result).toEqual({ same: true, label: '60%', valuenow: '60', transitions: ['--ds-progress'] });
 });
 
 test('a field re-rendered on every keystroke keeps focus, caret and value', async ({ page }) => {

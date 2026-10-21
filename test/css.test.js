@@ -121,13 +121,36 @@ const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-rippl
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
 /** The deprecated combined exits (fade + move in one keyframe), removed in 2.0. */
 const DEPRECATED_EXITS = ['ds-sink-out', 'ds-scale-out', 'ds-slide-out'];
-/** Loops of loading indicators: they may keep transform (P6 reworks them). */
+/** The selector of a keyframe stop: from, to, percentages (with decimals), or a list of them ("0%, 100%"). */
+const KEYFRAME_STOP = /^(from|to|\d+(\.\d+)?%)(\s*,\s*(from|to|\d+(\.\d+)?%))*$/;
+/** Loops of loading indicators that keep transform: the turn of the spinner and the deprecated ds-indeterminate. */
 const LOOPS = ['ds-spin', 'ds-pulse', 'ds-indeterminate'];
-/** Keyframes that may rotate: spinners (P3 to P6 add loaders, chevrons and icon swaps). */
-const ROTATE = ['ds-spin'];
+/**
+ * The loops of the loading indicators (1.4.0), each with its reason: many
+ * stops or one end only. Their stops come from scripts/motion-curves.mjs
+ * where they are generated.
+ */
+const LOADER_LOOPS = new Map([
+  ['ds-spinner-arc', 'generated: the arc of the spinner grows and shrinks four times per loop'],
+  ['ds-loader-morph', 'generated: the seven loader shapes at k/7, the first again at 100%'],
+  ['ds-loader-turn', 'a loop: one turn to 1turn'],
+  ['ds-progress-head', 'generated: the heads of the two indeterminate segments'],
+  ['ds-progress-tail', 'generated: the tails of the two indeterminate segments'],
+  ['ds-progress-wave', 'a loop: the wave mask travels one wavelength'],
+  ['ds-skeleton-wave', 'generated: the sweep of the skeleton wave, then its rest'],
+]);
+/** Keyframes that may rotate: spinners and the shape loader (P3 to P6 add chevrons and icon swaps). */
+const ROTATE = ['ds-spin', 'ds-loader-turn'];
+/** Keyframes that may animate one property outside ANIMATABLE, each with its reason (the named exceptions of the animate list). */
+const KEYFRAME_EXCEPTIONS = new Map([
+  ['ds-progress-wave', { properties: ['mask-position'], reason: 'the travelling wave of determinate progress moves its mask' }],
+]);
 /** Selectors whose transition may animate `rotate`, each with its reason (the named exceptions of the animate list). */
 const ROTATE_TRANSITIONS = new Map([
   ['.ds-combo__toggle svg', 'disclosure chevrons: the combobox chevron turns 180deg with its list (D25)'],
+  ['.ds-chevron', 'disclosure chevrons: the shared chevron turns 180deg with the expansion (D25)'],
+  ['.ds-errors .ds-errors__chevron', 'disclosure chevrons: the errors list chevron turns 180deg with the list (D25)'],
+  ['.ds-table__sort-arrow', 'the marked sort arrow turns 180deg for a descending column'],
 ]);
 /** Keyframes that may name both ends, each with its reason; every other one is from-only, or to-only for ds-*-out. */
 const KEYFRAME_SHAPE_EXEMPT = new Map([
@@ -138,6 +161,7 @@ const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-indeterminate', 'a loop: the segment enters on one side and leaves on the other'],
   ['ds-scan', 'a loop: the band travels from above the frame to below it'],
   ['ds-ripple', 'a ring that grows and fades from a set start (--ds-ripple-opacity)'],
+  ...LOADER_LOOPS,
 ]);
 /**
  * Movement exits that may run without ds-fade-out (selector → reason). Each
@@ -153,9 +177,12 @@ const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color
   'text-decoration-color', 'fill', 'stroke', 'box-shadow', 'clip-path', 'border-radius']);
 /** Animated properties allowed on one selector only, each with its reason. */
 const ANIMATED_EXCEPTIONS = new Map([
-  ['.ds-collapsible::details-content', { properties: ['height'], reason: 'the disclosure opens to auto, only where interpolate-size exists' }],
+  ['.ds-collapsible::details-content', { properties: ['height'], reason: 'the disclosure closes (0) on --ds-ease-in, only where interpolate-size exists' }],
+  ['.ds-collapsible[open]::details-content', { properties: ['height'], reason: 'the disclosure opens to auto on --ds-ease-out (D29), only where interpolate-size exists' }],
   ['.ds-chip__body::after', { properties: ['width'], reason: 'the check slot of a chip: a layout size on --ds-ease-out (D29)' }],
   ['.ds-field__hint--error', { properties: ['height'], reason: 'the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists' }],
+  ['.ds-table__expand', { properties: ['grid-template-rows'], reason: 'an expandable table row closes (0fr) on --ds-ease-in: a layout size, never overshooting (D29)' }],
+  ['tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand', { properties: ['grid-template-rows'], reason: 'an expandable table row opens (1fr) on --ds-ease-out (D29)' }],
 ]);
 /** Declarations of the rules whose selector list (split at top-level commas) contains `selector`. */
 const declarationsAt = (css, selector) => rules(css).filter((rule) => splitSelectors(rule.selector).includes(selector)).flatMap((rule) => declarations(`${rule.body};`));
@@ -571,7 +598,8 @@ describe('motion in CSS', () => {
         const rotates = property === 'rotate' || (property === 'transform' && /rotate/.test(value));
         if (rotates && !ROTATE.includes(name)) offenders.push(`@keyframes ${name}: rotate`);
         else if (property === 'stroke-dashoffset' && name !== 'ds-draw') offenders.push(`@keyframes ${name}: stroke-dashoffset only in ds-draw`);
-        else if (!rotates && property !== 'stroke-dashoffset' && !ANIMATABLE.has(property) && !REGISTERED.has(property)) offenders.push(`@keyframes ${name}: ${property}`);
+        else if (!rotates && property !== 'stroke-dashoffset' && !ANIMATABLE.has(property) && !REGISTERED.has(property)
+          && !KEYFRAME_EXCEPTIONS.get(name)?.properties.includes(property)) offenders.push(`@keyframes ${name}: ${property}`);
       }
     }
     assert.deepEqual(offenders, []);
@@ -589,6 +617,29 @@ describe('motion in CSS', () => {
       }
     }
     assert.deepEqual(offenders, []);
+  });
+
+  it('registers the runtime properties of the loading indicators at top level, typed (1.4.0)', () => {
+    const topLevel = withoutAtRuleBlocks(stripComments(read('src/tokens.css')), /^@layer\b/);
+    const expected = [
+      ['--ds-progress', '<number>', true, '0'],
+      ['--ds-progress-head-1', '<percentage>', true, '0%'], ['--ds-progress-head-2', '<percentage>', true, '0%'],
+      ['--ds-progress-tail-1', '<percentage>', true, '0%'], ['--ds-progress-tail-2', '<percentage>', true, '0%'],
+      ['--ds-spinner-arc', '<angle>', false, '10deg'], ['--ds-spinner-start', '<angle>', false, '0deg'],
+      ['--ds-skeleton-x', '<length>', true, '0px'],
+    ];
+    for (const [name, syntax, inherits, initial] of expected) {
+      const pattern = new RegExp(`@property ${name} \\{\\s*syntax: '${syntax}';\\s*inherits: ${inherits};\\s*initial-value: ${initial};\\s*\\}`);
+      assert.match(topLevel, pattern, `${name}: @property outside any layer`);
+    }
+    // The loops that animate them, and only those, are the loader loops.
+    const animatesLoopProperty = (body) => /--ds-(progress-(head|tail)-\d|spinner-(arc|start)|skeleton-x)\s*:/.test(body);
+    assert.deepEqual(Object.keys(KEYFRAMES).filter((name) => animatesLoopProperty(KEYFRAMES[name])).sort(),
+      ['ds-progress-head', 'ds-progress-tail', 'ds-skeleton-wave', 'ds-spinner-arc']);
+    for (const name of LOADER_LOOPS.keys()) assert.ok(KEYFRAME_NAMES.has(name), `${name} is defined in motion.css`);
+    assert.match(KEYFRAMES['ds-loader-turn'], /^\s*to\s*\{\s*rotate:\s*1turn;\s*\}\s*$/);
+    assert.match(KEYFRAMES['ds-progress-wave'], /^\s*to\s*\{\s*mask-position:\s*var\(--ds-progress-wave-length\) 0;\s*\}\s*$/);
+    assert.match(KEYFRAMES['ds-pulse'], /^\s*50%\s*\{\s*opacity:\s*var\(--ds-state-pulse\);\s*\}\s*$/);
   });
 
   it('registers exactly the canonical motion hooks, as documented', () => {
@@ -676,7 +727,7 @@ describe('values come from tokens', () => {
 
   it('dims through the state tokens, not literal opacities', () => {
     const offenders = [];
-    for (const file of COMPONENT_CSS.filter((path) => path !== 'src/motion.css')) {
+    for (const file of COMPONENT_CSS) {
       for (const { property, value } of declarations(read(file))) {
         if (property === 'opacity' && !/^\s*[01]\s*$/.test(literalPart(value)) && /\d/.test(literalPart(value))) offenders.push(`${file}: ${value}`);
       }
@@ -756,12 +807,15 @@ describe('CSS for the baseline', () => {
     const utilities = items.find((item) => item.prelude === '@layer ds.utilities').body;
     assert.equal([...motion.matchAll(/@keyframes\s+([\w-]+)/g)].length, KEYFRAME_NAMES.size);
     assert.doesNotMatch(utilities, /@keyframes/);
-    assert.deepEqual(rules(motion).filter((rule) => !/^(from|to|\d+%)$/.test(rule.selector)), []);
+    assert.deepEqual(rules(motion).filter((rule) => !KEYFRAME_STOP.test(rule.selector)), []);
     const selectors = rules(utilities).flatMap((rule) => splitSelectors(rule.selector));
-    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible', '.ds-swap', '.ds-icon-swap', '.ds-presence']) {
+    for (const utility of ['.ds-enter', '.ds-leave', '.ds-stagger > *', '.ds-reveal', '.ds-collapsible', '.ds-chevron', '.ds-swap', '.ds-icon-swap', '.ds-presence']) {
       assert.ok(selectors.includes(utility), utility);
     }
-    assert.deepEqual(selectors.filter((selector) => !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
+    // A node that DS.dom.morphHtml moves with insertBefore skips its @starting-style entrances.
+    for (const moving of [':where(.ds-theme) [data-ds-moving]', ':where(.ds-theme) [data-ds-moving] *']) assert.ok(selectors.includes(moving), moving);
+    const moving = /^:where\(\.ds-theme\) \[data-ds-moving\]( \*)?$/;
+    assert.deepEqual(selectors.filter((selector) => !moving.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {
@@ -820,9 +874,11 @@ describe('CSS for the baseline', () => {
           if (part.includes(':focus:not(:focus-visible)')) offenders.push(`${file}: ${part}: use :focus-visible`);
           if (ring(body) && plainFocus.test(part) && !FOCUS_EXEMPT.some(([pattern]) => pattern.test(part))) offenders.push(`${file}: ${part}: ring on :focus`);
           if (/(^|[;\s])outline\s*:\s*none/.test(body) && part.includes(':focus-visible')) {
-            // The ring moved to another element: it must follow the same :focus-visible through :has().
+            // The ring moved to another element: it must follow the same :focus-visible through :has(),
+            // or sit on the element's own pseudo-element (a link stretched over a row or card).
             const compound = part.split(/\s*[\s>+~]\s*/).find((piece) => piece.includes(':focus-visible'));
-            const moved = all.some((other) => ring(other.body) && splitSelectors(other.selector).some((sel) => sel.includes(`:has(${compound})`)));
+            const own = new RegExp(`${literally(compound)}::(before|after)$`);
+            const moved = all.some((other) => ring(other.body) && splitSelectors(other.selector).some((sel) => sel.includes(`:has(${compound})`) || own.test(sel)));
             if (!moved) offenders.push(`${file}: ${part}: outline: none without a ring on :has(${compound})`);
           }
         }
@@ -845,7 +901,7 @@ describe('CSS for the baseline', () => {
     const offenders = [];
     for (const file of COMPONENT_CSS.filter((path) => path !== 'src/base.css')) {
       for (const { selector } of rules(read(file))) {
-        if (/^(from|to|\d+%)$/.test(selector)) continue;
+        if (KEYFRAME_STOP.test(selector)) continue;
         for (const part of splitSelectors(selector)) if (!/\.ds-/.test(part)) offenders.push(`${file}: ${part}`);
       }
     }
@@ -991,7 +1047,8 @@ describe('accessibility details', () => {
           const rest = part
             .replace(/^(\.ds-[\w-]+) input:focus-visible \+ (\.ds-[\w-]+)$/, '$2')
             .replace(/^\.ds-chip__input:focus-visible \+ /, '')
-            .replace(/:has\(input:focus-visible\)/, '')
+            // A ring drawn on the host for a focused descendant rests on the host.
+            .replace(/:has\([^()]*:focus-visible\)/, '')
             .replace(/:focus-visible/, '');
           const expected = own['outline-offset'] === INSET ? '0' : SNAP;
           const restRules = all.filter((rule) => splitSelectors(rule.selector).includes(rest) || (rest.startsWith(':where(.ds-base)') && /:where\(.ds-base\) (a|:where\(summary, \[tabindex\]:not\(\[tabindex\^="-"\]\)\))/.test(rule.selector)));
@@ -1185,12 +1242,15 @@ describe('controls (1.1.0)', () => {
     assert.deepEqual(offenders, []);
     assert.deepEqual([...RIPPLE_EXEMPT.keys()].filter((key) => !exemptUsed.has(key)), [], 'an exemption nothing needs: shorten RIPPLE_EXEMPT');
     // Every host with a pressed state layer has its .ds-ripples rule, so layer and ripple never stack.
+    // The layer is the host's ::before; a table row's is on its cells
+    // (> :is(td, th), so a <th scope="row"> row header has it too).
+    const layer = (part) => part.endsWith('::before') || part.endsWith(' > :is(td, th)');
     const ripple = rules(read('src/components/ripple.css')).flatMap((rule) => splitSelectors(rule.selector));
     for (const host of hosts.filter((item) => item !== '[data-ds-ripple]')) {
       const layered = COMPONENT_CSS.filter((path) => path !== 'src/components/ripple.css').some((file) => rules(read(file))
-        .some((rule) => splitSelectors(rule.selector).some((part) => new RegExp(`${literally(host)}(?![\\w-])[^,]*:active`).test(part) && part.endsWith('::before'))));
+        .some((rule) => splitSelectors(rule.selector).some((part) => new RegExp(`${literally(host)}(?![\\w-])[^,]*:active`).test(part) && layer(part))));
       assert.ok(layered, `${host}: a pressed state layer`);
-      assert.ok(ripple.some((part) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && part.endsWith('::before')), `${host}: its .ds-ripples rule`);
+      assert.ok(ripple.some((part) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && layer(part)), `${host}: its .ds-ripples rule`);
     }
   });
 
@@ -1435,3 +1495,63 @@ describe('overlays (1.3.0)', () => {
 });
 
 export { ROOT };
+
+describe('feedback and data (1.4.0)', () => {
+  /** The rules of `file` whose selector list has a part matching `pattern`, with their own declarations. */
+  const rulesWith = (file, pattern) => rules(read(file)).filter((rule) => splitSelectors(rule.selector).some((part) => pattern.test(part)))
+    .map((rule) => ({ selector: rule.selector, own: Object.fromEntries(declarations(`${rule.body};`).map((entry) => [entry.property, entry.value])) }));
+
+  it('presses clickable cards and tiles by radius and layer only: nothing moves on hover or press', () => {
+    for (const [file, host] of [['src/components/card.css', /\.ds-card--interactive/], ['src/components/tile.css', /\.ds-tile/]]) {
+      const states = rulesWith(file, new RegExp(`${host.source}[^\\s,]*(:hover|:active|\\.ds-pressed)`));
+      assert.ok(states.length >= 3, `${file}: hover and press rules`);
+      for (const { selector, own } of states) {
+        const moves = Object.keys(own).filter((property) => /^(transform|translate|scale|rotate|top|right|bottom|left|inset|margin(-[\w-]+)?)$/.test(property));
+        assert.deepEqual(moves, [], `${file}: ${selector}`);
+      }
+      // The press morph is there, on :active and on .ds-pressed.
+      const morph = states.filter(({ selector, own }) => own['border-radius'] && !selector.includes('::'));
+      assert.equal(morph.length, 1, `${file}: one press morph rule`);
+      assert.match(morph[0].selector, /:active/);
+      assert.match(morph[0].selector, /\.ds-pressed/);
+    }
+    assert.equal(rulesWith('src/components/card.css', /^\.ds-card--interactive:active/).find(({ own }) => own['border-radius']).own['border-radius'],
+      'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
+    assert.equal(rulesWith('src/components/tile.css', /^:is\(button, a\)\.ds-tile:active/).find(({ own }) => own['border-radius']).own['border-radius'],
+      'min(var(--ds-tile-radius-pressed, var(--ds-radius-md)), var(--ds-tile-radius, var(--ds-radius-lg)))');
+  });
+
+  it('names the P6 uses of the animate exceptions, and P6 leaves nothing pending', () => {
+    assert.deepEqual(ANIMATED_EXCEPTIONS.get('.ds-table__expand').properties, ['grid-template-rows']);
+    assert.ok(ROTATE.includes('ds-loader-turn'), 'the loader turns');
+    for (const selector of ['.ds-chevron', '.ds-errors .ds-errors__chevron', '.ds-table__sort-arrow']) assert.ok(ROTATE_TRANSITIONS.has(selector), selector);
+    assert.equal(ANIMATED_PENDING.size, 0);
+    // The selectors of the exceptions exist in src/.
+    const selectors = new Set(SRC_CSS.flatMap((file) => rules(read(file)).flatMap((rule) => splitSelectors(rule.selector))));
+    for (const selector of [...ROTATE_TRANSITIONS.keys(), ...ANIMATED_EXCEPTIONS.keys()]) assert.ok(selectors.has(selector), `${selector} is in src/`);
+  });
+
+  it('keeps the waiting track in the layout (hidden, not display: none) and fades it in', () => {
+    const file = 'src/components/progress.css';
+    const waiting = rulesWith(file, /^\.ds-progress--waiting \.ds-progress__track$/);
+    assert.equal(waiting.length, 1);
+    assert.deepEqual(waiting[0].own, { visibility: 'hidden', opacity: '0', 'animation-play-state': 'paused' });
+    for (const { own } of rulesWith(file, /\.ds-progress--waiting/)) assert.ok(!('display' in own), 'never display: none');
+    const track = Object.fromEntries(declarationsAt(read(file), '.ds-progress__track').map((entry) => [entry.property, entry.value]));
+    assert.equal(track.transition, 'opacity var(--ds-dur-fast) var(--ds-ease-in-out)');
+  });
+
+  it('waits the loader delay once: loaders in a waiting container and a loading bar in a skeleton have no fade of their own', () => {
+    const loader = rulesWith('src/components/loader.css', /^\.ds-(boot|loading|skeleton) \.ds-loader$/);
+    assert.equal(loader.length, 1);
+    assert.equal(loader[0].own.animation, 'none');
+    assert.equal(splitSelectors(loader[0].selector).length, 3);
+    const standalone = declarationsAt(read('src/components/loading.css'), '.ds-loadbar:not(.ds-skeleton > .ds-loadbar)').find((entry) => entry.property === 'animation');
+    assert.match(standalone.value, /^ds-fade-in var\(--ds-dur-medium\) var\(--ds-ease-in-out\) var\(--ds-delay-loader\) backwards,/);
+    const inSkeleton = declarationsAt(read('src/components/loading.css'), '.ds-loadbar').find((entry) => entry.property === 'animation');
+    assert.doesNotMatch(inSkeleton.value, /ds-fade-in/);
+    // The skeleton's wave starts after its entrance.
+    const skeleton = declarationsAt(read('src/components/loading.css'), '.ds-skeleton').find((entry) => entry.property === 'animation');
+    assert.match(skeleton.value, /ds-skeleton-wave var\(--ds-loop-skeleton\) linear calc\(var\(--ds-delay-loader\) \+ var\(--ds-dur-medium\)\) infinite/);
+  });
+});

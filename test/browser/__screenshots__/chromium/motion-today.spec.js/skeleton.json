@@ -1,93 +1,41 @@
 [
   {
     "type": "animation",
-    "name": "ds-indeterminate",
+    "name": "ds-skeleton-wave",
     "pseudoElement": null,
     "duration": 2000,
-    "delay": 0,
+    "delay": 450,
     "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "keyframeEasing": "linear",
     "iterations": "Infinity",
     "direction": "normal",
-    "fill": "none",
-    "target": "span.ds-loadbar__bar"
+    "fill": "backwards",
+    "target": "div#skeleton.ds-skeleton.fx-narrow"
   },
   {
     "type": "animation",
-    "name": "ds-pulse",
+    "name": "ds-progress-head",
     "pseudoElement": null,
-    "duration": 2000,
+    "duration": 1800,
     "delay": 0,
     "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "keyframeEasing": "linear",
     "iterations": "Infinity",
     "direction": "normal",
     "fill": "none",
-    "target": "span.ds-skeleton__line.ds-skeleton__line--heading"
+    "target": "span#loadbar.ds-loadbar"
   },
   {
     "type": "animation",
-    "name": "ds-pulse",
+    "name": "ds-progress-tail",
     "pseudoElement": null,
-    "duration": 2000,
+    "duration": 1800,
     "delay": 0,
     "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
+    "keyframeEasing": "linear",
     "iterations": "Infinity",
     "direction": "normal",
     "fill": "none",
-    "target": "span.ds-skeleton__line.ds-skeleton__line--lead"
-  },
-  {
-    "type": "animation",
-    "name": "ds-pulse",
-    "pseudoElement": null,
-    "duration": 2000,
-    "delay": 0,
-    "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
-    "iterations": "Infinity",
-    "direction": "normal",
-    "fill": "none",
-    "target": "span.ds-skeleton__line.ds-skeleton__line--title"
-  },
-  {
-    "type": "animation",
-    "name": "ds-pulse",
-    "pseudoElement": null,
-    "duration": 2000,
-    "delay": 0,
-    "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
-    "iterations": "Infinity",
-    "direction": "normal",
-    "fill": "none",
-    "target": "span.ds-skeleton__line"
-  },
-  {
-    "type": "animation",
-    "name": "ds-pulse",
-    "pseudoElement": null,
-    "duration": 2000,
-    "delay": 0,
-    "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
-    "iterations": "Infinity",
-    "direction": "normal",
-    "fill": "none",
-    "target": "span.ds-skeleton__line.ds-skeleton__line--short"
-  },
-  {
-    "type": "animation",
-    "name": "ds-pulse",
-    "pseudoElement": null,
-    "duration": 2000,
-    "delay": 0,
-    "easing": "linear",
-    "keyframeEasing": "cubic-bezier(0.2, 0, 0, 1)",
-    "iterations": "Infinity",
-    "direction": "normal",
-    "fill": "none",
-    "target": "span.ds-skeleton__line.ds-skeleton__line--mid"
+    "target": "span#loadbar.ds-loadbar"
   }
 ]

@@ -24,6 +24,7 @@
 @import './components/utilities.css';
 @import './components/button.css';
 @import './components/spinner.css';
+@import './components/loader.css';
 @import './components/indicator.css';
 @import './components/loading.css';
 @import './components/card.css';

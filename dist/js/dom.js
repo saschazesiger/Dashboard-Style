@@ -39,7 +39,10 @@
  *
  * Progressive: moveBefore (a keyed move keeps the node's animations,
  * focus and iframe state); elsewhere insertBefore, and a moved node that
- * held the focus gets it back with its selection.
+ * held the focus gets it back with its selection. insertBefore makes the
+ * node new to the style engine, so its @starting-style entrances (a status
+ * icon) would play again: it carries data-ds-moving (transition: none in
+ * motion.css) until one style flush at the end of the call.
  */
 
 /** How many candidate siblings the look-ahead for an identical node checks. */
@@ -52,7 +55,7 @@ const RUNTIME_CLASS = /^ds-(?:enter|leave)(?:--[\w-]+)?$|^ds-(?:has-indicator|pr
 const RUNTIME_STYLE = /^--ds-(?:i|indicator-[\w-]+|ripple-[\w-]+|motion-origin|clip-from)$/;
 
 /** Attributes that DS sets at runtime; a patch never removes them. */
-const RUNTIME_ATTRIBUTES = new Set(['data-ds-staggered']);
+const RUNTIME_ATTRIBUTES = new Set(['data-ds-staggered', 'data-ds-moving']);
 
 /** An element in a DS.motion.leave() (running, or kept with then: 'keep'): its `inert` is runtime state. */
 const exiting = (element) => Array.from(element.classList ?? []).some((name) => /^ds-leave(?:--[\w-]+)?$/.test(name));
@@ -70,6 +73,7 @@ const exiting = (element) => Array.from(element.classList ?? []).some((name) => 
  * @property {boolean} replace
  * @property {MorphOptions} options
  * @property {Element|null} active  the focused element at the start of the call
+ * @property {Element[]} moved  nodes moved by insertBefore, marked data-ds-moving until the call ends
  */
 
 const isElement = (node) => node?.nodeType === 1;
@@ -151,7 +155,9 @@ function insertNode(parent, node, before, ctx) {
 /**
  * Moves a kept node before `before`: moveBefore where it exists (the node
  * keeps its animations and focus), else insertBefore, after which a node
- * that held the focus gets it back with its selection.
+ * that held the focus gets it back with its selection. The insertBefore
+ * path marks the node data-ds-moving, so it skips its @starting-style
+ * entrances; morphChildren() lifts the marks after one style flush.
  */
 function moveNode(parent, node, before, ctx) {
   if (typeof parent.moveBefore === 'function') {
@@ -168,6 +174,10 @@ function moveNode(parent, node, before, ctx) {
     if (focused && typeof focused.selectionStart === 'number') selection = [focused.selectionStart, focused.selectionEnd, focused.selectionDirection];
   } catch {
     // Inputs without a selection (checkbox, number) throw on read.
+  }
+  if (!node.hasAttribute('data-ds-moving')) {
+    node.setAttribute('data-ds-moving', '');
+    ctx.moved.push(node);
   }
   parent.insertBefore(node, before);
   const doc = parent.ownerDocument;
@@ -436,8 +446,26 @@ export function morphChildren(target, nodes, options = {}) {
     replace: options.replace === true,
     options,
     active: /** @type {any} */ (target).ownerDocument?.activeElement ?? null,
+    moved: [],
   };
-  patchChildren(target, Array.from(nodes), ctx, true);
+  try {
+    patchChildren(target, Array.from(nodes), ctx, true);
+  } finally {
+    settleMoved(ctx.moved);
+  }
+}
+
+/**
+ * Lifts the data-ds-moving marks after one style flush: the moved nodes
+ * get their style without transitions (no @starting-style entrance), and
+ * keep it as their before-change style once the mark is gone.
+ */
+function settleMoved(moved) {
+  if (!moved.length) return;
+  const view = moved[0].ownerDocument?.defaultView;
+  // Reading a computed value resolves the style of the whole document.
+  if (typeof view?.getComputedStyle === 'function') void view.getComputedStyle(moved[0]).opacity;
+  for (const node of moved) node.removeAttribute('data-ds-moving');
 }
 
 /**

@@ -74,13 +74,13 @@ test('a figure and its bar set in the same frame land together', async ({ page }
     await new Promise((resolve) => requestAnimationFrame(resolve));
     progress.style.setProperty('--ds-progress', '1');
     const handle = DS.motion.countUp(figure, 1, { format: String });
-    const transition = bar.getAnimations().find((animation) => animation.transitionProperty === 'transform');
+    // The share glides on .ds-progress (a registered number); the bar reads the inherited value.
+    const transition = progress.getAnimations().find((animation) => animation.transitionProperty === '--ds-progress');
     // Sampled after the count's own frame callback, so each sample sees the frame's figure.
     const samples = [];
     let running = true;
     const tick = () => {
-      const matrix = new DOMMatrixReadOnly(getComputedStyle(bar).transform);
-      samples.push({ figure: parseFloat(figure.textContent), bar: matrix.a });
+      samples.push({ figure: parseFloat(figure.textContent), bar: parseFloat(getComputedStyle(bar).getPropertyValue('--ds-progress')) });
       if (running) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -89,7 +89,7 @@ test('a figure and its bar set in the same frame land together', async ({ page }
     running = false;
     return {
       samples,
-      // Landed: within 0.01 % of the target (a computed matrix rounds to six digits).
+      // Landed: within 0.01 % of the target.
       landed: { figure: samples.findIndex((entry) => entry.figure >= 0.9999), bar: samples.findIndex((entry) => entry.bar >= 0.9999) },
       duration: DS.motion.motionDuration(figure, '--ds-dur-glide'),
     };

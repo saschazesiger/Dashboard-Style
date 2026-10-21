@@ -93,6 +93,13 @@ describe('indicator, dom, ripple and overlay', () => {
     );
   });
 
+  it('ripples clickable cards, clickable tiles and interactive table rows by default (1.4.0)', () => {
+    const hosts = ripple.RIPPLE_HOSTS.split(/,\s*(?![^(]*\))/);
+    for (const host of [':is(button, a).ds-tile', '.ds-card--interactive', '.ds-table--interactive tbody tr:not(.ds-table__detail)']) {
+      assert.ok(hosts.includes(host), `${host} is a default host`);
+    }
+  });
+
   it('counts the scroll lock and keeps the room of a scrollbar that the lock removed', () => {
     /** A page whose body scrollbar (`bar` px) goes while body.ds-no-scroll is set. */
     function stubPage(bar, gutter) {
@@ -182,6 +189,10 @@ describe('indicator, dom, ripple and overlay', () => {
         dom.morphChildren(body, sorted);
         assert.deepEqual(body.childNodes, [old[2], old[0], old[1]], `moveBefore: ${move}`);
         assert.ok(doc.log.length > 0 && doc.log.every(([kind, node]) => old.includes(node) && kind === (move ? 'move' : 'insert')), 'only moves');
+        // insertBefore makes a node new to the style engine: it is marked while it goes in (no
+        // @starting-style replay), and the mark is gone when the call returns.
+        assert.ok(doc.log.every(([, , marked]) => marked === !move), `data-ds-moving while inserted, moveBefore: ${move}`);
+        assert.ok(old.every((row) => !row.hasAttribute('data-ds-moving')), 'no mark left');
         const prepended = rows('x', 'c', 'a', 'b');
         doc.log.length = 0;
         dom.morphChildren(body, prepended);
@@ -453,7 +464,7 @@ function miniDom() {
       assert.ok(index >= 0, 'insertBefore: the reference is a child');
       this.childNodes.splice(index, 0, node);
       node.parentNode = this;
-      doc.log.push(['insert', node]);
+      doc.log.push(['insert', node, node.hasAttribute?.('data-ds-moving') ?? false]);
       return node;
     }
 

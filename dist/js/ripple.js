@@ -12,7 +12,12 @@
  * the root: pointerdown for the pointer, Enter and Space for a centred
  * ripple on a focused host. Hosts: .ds-btn, .ds-chip (the ripple goes into
  * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
- * :is(button, a).ds-tile, .ds-table__sort, .ds-radio (a radio card, also
+ * :is(button, a).ds-tile, .ds-card--interactive (also the <div> form,
+ * whose .ds-card__action stretches over it), .ds-table__sort, the body rows
+ * of .ds-table--interactive (the ripple goes into the row's first cell and
+ * covers the row; Enter on .ds-table__row-link or .ds-card__action ripples
+ * the row or card; a press on another link or control inside a row or
+ * a <div> card is that control's own, so the host gets none), .ds-radio (a radio card, also
  * when its own input is pressed), .ds-combo__toggle, .ds-menu__item,
  * .ds-errors summary and [data-ds-ripple]; data-ds-ripple="off" on a host
  * or an ancestor opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
@@ -59,14 +64,23 @@
  */
 import { MOTION_FALLBACKS, flip, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
 
-/** The actions that get a ripple (P5 and P6 add more). */
-export const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]';
+/** The actions that get a ripple. */
+export const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-card--interactive, .ds-table__sort, .ds-table--interactive tbody tr:not(.ds-table__detail), .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]';
+
+/** The link that stands for its host (stretched over a row or a <div> card): Enter on it ripples the host. */
+const HOST_LINK = '.ds-table__row-link, .ds-card__action';
 
 /** Hosts whose own input is part of the host: pressing the input ripples the host. */
 const OWNS_INPUT = '.ds-chip, .ds-radio';
 
 /** Controls whose press is their own halo, not a ripple. */
 const OWN_PRESS = 'input[type="checkbox"], input[type="radio"], .ds-switch';
+
+/** Hosts a link stretches over (HOST_LINK): their other controls keep their own press. */
+const STRETCHED = '.ds-card--interactive, .ds-table--interactive tbody tr';
+
+/** What a press inside a stretched host may land on besides its link (the CSS's press exclusion, plus [tabindex]). */
+const CONTROLS = 'a[href], button, input, select, textarea, label, summary, [tabindex]';
 
 /**
  * @typedef {object} Press
@@ -92,9 +106,19 @@ function hostOf(target, root) {
   return host;
 }
 
-/** Where the ripple goes: the chip's body, else the host itself. */
+/** Where the ripple is measured and placed: the chip's body, else the host itself. */
 function surfaceOf(host) {
   return host.classList.contains('ds-chip') ? host.querySelector('.ds-chip__body') : host;
+}
+
+/**
+ * The element the ripple goes into: a table row cannot hold a span, so
+ * it goes into the row's first cell (a <td> or a <th> row header),
+ * positioned against the row (it covers the row and clips the circle
+ * itself, ripple.css).
+ */
+function holderOf(surface) {
+  return surface.tagName === 'TR' ? surface.cells[0] ?? null : surface;
 }
 
 /**
@@ -110,6 +134,19 @@ function inactive(host) {
     if (input?.matches(':disabled')) return true;
   }
   return false;
+}
+
+/**
+ * Whether a press on `target` belongs to another control inside a host
+ * that a link stretches over (a plain link, a field, a label in a row or
+ * a <div> card): that control has its own press, so the host neither
+ * ripples nor holds .ds-pressed, as its :active layer does not show.
+ */
+function pressesOther(host, target) {
+  if (!host.matches(STRETCHED)) return false;
+  const element = target?.nodeType === 1 ? target : target?.parentElement;
+  const control = element?.closest?.(CONTROLS);
+  return Boolean(control && control !== host && host.contains(control) && !control.matches(HOST_LINK));
 }
 
 /** Fades a ripple out and removes it once the fade settled. */
@@ -151,14 +188,19 @@ function start(host, x, y) {
     previous.released = true;
     fade(previous.span);
   }
+  const holder = holderOf(surface);
+  if (!holder) return null;
   const rect = surface.getBoundingClientRect();
-  // The padding box, in the host's own (untransformed) pixels.
-  const scaleX = surface.offsetWidth ? rect.width / surface.offsetWidth : 1;
-  const scaleY = surface.offsetHeight ? rect.height / surface.offsetHeight : 1;
-  const width = surface.clientWidth;
-  const height = surface.clientHeight;
-  const left = x === undefined ? width / 2 : (x - rect.left) / (scaleX || 1) - surface.clientLeft;
-  const top = y === undefined ? height / 2 : (y - rect.top) / (scaleY || 1) - surface.clientTop;
+  // The padding box, in the host's own (untransformed) pixels. A table row
+  // has no padding box of its own: its border box (a gliding row's
+  // translate included, so the circle starts under the pointer).
+  const row = surface !== holder;
+  const scaleX = !row && surface.offsetWidth ? rect.width / surface.offsetWidth : 1;
+  const scaleY = !row && surface.offsetHeight ? rect.height / surface.offsetHeight : 1;
+  const width = row ? rect.width : surface.clientWidth;
+  const height = row ? rect.height : surface.clientHeight;
+  const left = x === undefined ? width / 2 : (x - rect.left) / (scaleX || 1) - (row ? 0 : surface.clientLeft);
+  const top = y === undefined ? height / 2 : (y - rect.top) / (scaleY || 1) - (row ? 0 : surface.clientTop);
   const radius = Math.hypot(Math.max(left, width - left), Math.max(top, height - top));
   const span = surface.ownerDocument.createElement('span');
   span.className = 'ds-press-ripple';
@@ -167,7 +209,7 @@ function start(host, x, y) {
   span.style.setProperty('--ds-ripple-x', `${Math.round(left * 100) / 100}px`);
   span.style.setProperty('--ds-ripple-y', `${Math.round(top * 100) / 100}px`);
   span.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
-  surface.append(span);
+  holder.append(span);
   host.classList.add('ds-pressed');
   /** @type {Press} */
   const press = { span, at: now(), released: false };
@@ -453,6 +495,7 @@ export function attach(root = document) {
     if (!host || inactive(host)) return;
     const target = /** @type {Element} */ (event.target);
     if (target.closest?.(OWN_PRESS) && !host.matches(OWNS_INPUT)) return;
+    if (pressesOther(host, target)) return;
     if (!start(host, event.clientX, event.clientY)) return;
     const up = () => {
       host.removeEventListener('pointerleave', up);
@@ -470,8 +513,9 @@ export function attach(root = document) {
     const target = /** @type {Element} */ (event.target);
     const host = hostOf(target, element);
     if (!host || inactive(host) || !activates(target, event.key)) return;
-    // The host itself, or the input of a chip or radio card (typing in a field inside a host is no press).
-    if (target !== host && !(host.matches(OWNS_INPUT) && target.tagName === 'INPUT')) return;
+    // The host itself, the input of a chip or radio card, or the link that stands for a row or card
+    // (typing in a field inside a host is no press).
+    if (target !== host && !(host.matches(OWNS_INPUT) && target.tagName === 'INPUT') && !target.matches?.(HOST_LINK)) return;
     if (!start(host)) return;
     const leave = () => {
       target.removeEventListener('blur', leave);

@@ -10,13 +10,36 @@
  *     <nav class="ds-card__links"> <a class="ds-btn ds-btn--text ds-card__link"> ...
  *
  *   .ds-card--filled   a quieter block inside a card or form
+ *   .ds-card--interactive  the whole card opens something:
+ *     <a class="ds-card ds-card--interactive" href="/devices/42"> ... </a>
+ *     <button class="ds-card ds-card--interactive" type="button"> (spans) </button>
+ *     <div class="ds-card ds-card--interactive"> ... <a class="ds-card__action" href="/devices/42">Title</a> ... </div>
+ *     The <a> and <button> forms lay their content out as a column from
+ *     the top (a button would centre it in a taller grid cell).
+ *     The <div> form keeps other controls usable: .ds-card__action's
+ *     ::after stretches over the card, the card's other links and controls
+ *     stay above it.
+ *
+ * An interactive card has a state layer in currentColor (hover
+ * --ds-state-hover-lg, press --ds-state-pressed in --ds-dur-micro, keyboard
+ * focus --ds-state-focus with a ring that is solid from the first frame
+ * and snaps from offset + width to the offset; on the <div> form the ring
+ * sits on the card through :has(.ds-card__action:focus-visible), so a
+ * ripple's clip never cuts it), the press morph (the radius goes to
+ * --ds-radius-card-pressed in --ds-dur-micro and springs back over
+ * --ds-dur-medium) and the ripple (js/ripple.js). Nothing moves on hover:
+ * no lift, no scale; a theme may give it a shadow through
+ * --ds-card-hover-shadow (default none; for example var(--ds-elev-hover)),
+ * in over --ds-dur-medium, out over --ds-dur-base. In forced colours every
+ * interactive card keeps a visible edge.
  *
  * Hooks (on .ds-theme or an element): --ds-card-padding (--ds-space-6),
  * --ds-card-padding-sm (600px and below, --ds-space-4),
  * --ds-card-padding-filled (--ds-space-5), --ds-card-title-line (the
  * title's line height, 24px, which a button or switch in the header row
- * overhangs). --ds-card-pad is the resulting padding of each card, which
- * tables read to bleed to its edges: read it, never set it.
+ * overhangs), --ds-card-hover-shadow (an interactive card's shadow on
+ * hover, default none). --ds-card-pad is the resulting padding of each
+ * card, which tables read to bleed to its edges: read it, never set it.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -57,6 +80,137 @@
     --ds-card-pad: var(--ds-card-padding-filled, var(--ds-space-5));
     border-color: transparent;
     background: var(--ds-surface-low);
+  }
+
+  /*
+   * Interactive card (D26): a whole card that opens something. The
+   * element's own link or button look is reset; the state layer sits
+   * between the card's fill and its content (the card is isolated).
+   */
+  .ds-card--interactive {
+    position: relative;
+    isolation: isolate;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    /* The ring rests (invisible) one width further out and snaps in. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition:
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+      box-shadow var(--ds-dur-base) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* A column from the top: a button centres its content in a taller box
+     (next to a taller card in a grid row), and its spans stack with the
+     card's rhythm like the blocks of the other forms. */
+  :is(a, button).ds-card--interactive {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .ds-card--interactive::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  @media (hover: hover) {
+    .ds-card--interactive:hover {
+      box-shadow: var(--ds-card-hover-shadow, none);
+      transition:
+        border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+        box-shadow var(--ds-dur-medium) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+    }
+
+    .ds-card--interactive:hover::before {
+      opacity: var(--ds-state-hover-lg);
+    }
+  }
+
+  /* Keyboard focus: the layer appears with the ring and fades out on blur. */
+  .ds-card--interactive:focus-visible::before,
+  .ds-card--interactive:has(.ds-card__action:focus-visible)::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
+  }
+
+  /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it); not
+     while another control in a <div> card is pressed (it has its own). */
+  .ds-card--interactive:active:not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-card__action):active)))::before,
+  .ds-card--interactive.ds-pressed::before {
+    opacity: var(--ds-state-pressed);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  /* The press morph: squarer while pressed (never rounder than at rest),
+     springing back on release. */
+  .ds-card--interactive:active:not(:disabled, [aria-disabled="true"]):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-card__action):active))),
+  .ds-card--interactive.ds-pressed:not(:disabled, [aria-disabled="true"]) {
+    border-radius: min(var(--ds-radius-card-pressed), var(--ds-radius-card));
+    transition:
+      border-radius var(--ds-dur-micro) var(--ds-ease-out),
+      box-shadow var(--ds-dur-base) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* The <div> form takes its ring on the card itself, not on the action's
+     stretched ::after: a ripple clips the card (overflow: clip) and would
+     cut a descendant's ring outside the padding box for the whole press. */
+  .ds-card--interactive:focus-visible,
+  .ds-card--interactive:has(.ds-card__action:focus-visible) {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
+  }
+
+  /* The <div> form: the action's ::after covers the card; the card's other
+     links and controls stay above it (zero specificity: a control's own
+     position wins). The action reads as the card's text: the whole card is
+     the affordance. */
+  .ds-card__action {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ds-card__action::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: var(--ds-radius-card);
+  }
+
+  .ds-card--interactive .ds-card__action:focus-visible {
+    outline: none;
+  }
+
+  :where(.ds-card--interactive) :where(a[href], button, input, select, textarea, label, summary, [tabindex]):where(:not(.ds-card__action)) {
+    position: relative;
+    z-index: var(--ds-z-raised);
+  }
+
+  @media (forced-colors: active) {
+    .ds-card--interactive.ds-card--filled {
+      border-color: CanvasText;
+    }
   }
 
   /* Cards side by side share one height; their link rows line up at the

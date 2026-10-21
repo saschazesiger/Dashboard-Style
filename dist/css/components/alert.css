@@ -17,14 +17,26 @@
  * (js/ripple.js), and its own ring for keyboard focus (also without
  * .ds-base): solid from the first frame, it snaps from offset + width to
  * the offset (outline-offset, --ds-dur-fast). It is not a pill and does
- * not morph.
+ * not morph. Its chevron (.ds-errors__chevron) turns 180deg with the list
+ * on the spring, like .ds-chevron; <details class="ds-errors
+ * ds-collapsible"> opens the list with the collapsible timing.
+ *
+ * Inserting and dismissing (docs/motion.md, "Data motion"): through
+ * DS.motion.flip on the stack, for a user action and live data alike.
+ * Dismiss: flip(stack, () => alert.remove()): the alert fades out in place,
+ * out of flow, and the alerts below glide up on the spring (in any flex or
+ * grid gap, no height animated). Insert: flip(stack, () =>
+ * stack.prepend(alert)): it fades in while the others glide down.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components {
-  /* No entrance of their own: an alert re-rendered with fresh data must not
-     fade in again. Give an alert that a user action brings in .ds-reveal. */
+  /* No entrance of their own: an alert re-rendered with fresh data is
+     patched in place and never fades in again. An alert that comes or goes
+     (a user action or live data) does it through DS.motion.flip on its
+     stack (the header above); one that replaces a placeholder takes
+     .ds-reveal, never per update. */
 
   .ds-alert {
     display: flex;
@@ -97,7 +109,7 @@
 
   /* Collapsible list of messages: icon and text in the summary.
 
-     <details class="ds-errors"><summary><svg ...>(alertCircle)</svg>2 errors<svg class="ds-errors__chevron" ...>(chevronDown)</svg></summary><ul><li>...</li></ul></details> */
+     <details class="ds-errors ds-collapsible"><summary><svg ...>(alertCircle)</svg>2 errors<svg class="ds-errors__chevron" ...>(chevronDown)</svg></summary><ul><li>...</li></ul></details> */
   .ds-errors {
     font: var(--ds-font-body);
   }
@@ -182,12 +194,14 @@
     display: none;
   }
 
-  /* The chevron flips without turning (no rotation in the motion system). */
+  /* The disclosure chevron turns 180deg with the expansion (D25), on the
+     timing of .ds-chevron. */
   .ds-errors .ds-errors__chevron {
     color: inherit;
+    transition: rotate var(--ds-dur-medium) var(--ds-ease-spatial);
   }
 
   .ds-errors[open] .ds-errors__chevron {
-    transform: rotate(180deg);
+    rotate: 180deg;
   }
 }

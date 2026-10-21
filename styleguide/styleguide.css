@@ -388,3 +388,69 @@
   border-radius: var(--ds-radius-card);
   background: var(--ds-surface);
 }
+
+/* ── Feedback and data demos ───────────────────── */
+
+/* The shape loaders side by side; the app start in a frame of its own
+   instead of the whole viewport (.ds-boot fills 100svh on a real page). */
+.sg-loaders {
+  align-items: center;
+}
+
+.sg-boot {
+  min-height: 160px;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface-low);
+}
+
+/* Fast and slow loads: the stage keeps the height of the loading line, so
+   the buttons never jump while the result replaces it. */
+.sg-load-stage {
+  display: grid;
+  align-content: center;
+  min-height: 56px;
+}
+
+/* The page that replaces the skeleton, in the skeleton's rhythm. */
+.sg-loaded {
+  display: grid;
+  gap: var(--ds-space-4);
+}
+
+.sg-loaded__title {
+  margin: 0;
+  font: var(--ds-font-title);
+}
+
+/* Alerts on a grid with a gap: flip() glides them, no height animates. */
+.sg-alerts {
+  display: grid;
+  gap: var(--ds-space-3);
+}
+
+/* The synced share under its figure. */
+.sg-tile-progress {
+  margin-top: var(--ds-space-2);
+}
+
+/* A <button> card holds phrasing content only: its text spans read as blocks. */
+.sg-card-text {
+  display: block;
+}
+
+/* Rows on the card's surface, so rows gliding past each other cover what is behind them. */
+.sg-items li {
+  background: var(--ds-surface);
+}
+
+.sg-table-filter {
+  max-width: 320px;
+}
+
+/* The disclosure's summary: its text and chevron on one line. */
+.sg-disclosure > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  cursor: pointer;
+}

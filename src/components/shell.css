@@ -758,6 +758,12 @@
     opacity: 1;
   }
 
+  /* A loading bar at the top of the view takes the hairline's place. */
+  .ds-view:has(.ds-loadbar)::before,
+  .ds-app[data-scrolled] .ds-view:has(.ds-loadbar)::before {
+    opacity: 0;
+  }
+
   /* The drawer brings its own inset on the left. */
   .ds-app--drawer .ds-panel {
     margin-left: 0;

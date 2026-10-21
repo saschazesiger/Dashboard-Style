@@ -60,11 +60,28 @@ function frames(page) {
   return page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
 }
 
+/** PNG pixels of a screenshot as [r, g, b, a, ...], decoded by the page itself (no image library in the tests). */
+function decode(page, png) {
+  return page.evaluate(async (data) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${data}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    return Array.from(context.getImageData(0, 0, image.width, image.height).data);
+  }, png.toString('base64'));
+}
+
 /**
  * Whether a clipping ancestor cuts into the element's focus ring: the
  * pixels around the focused element, once as they are and once with the
- * clip lifted by `unclip` (a style sheet); equal pixels mean nothing was
- * cut off. The element must already have keyboard focus.
+ * clip lifted by `unclip` (a style sheet); nothing was cut off when no
+ * pixel changed by more than an anti-aliasing step (lifting a clip may
+ * re-rasterise a few edge pixels by a few levels; a cut ring differs by
+ * most of the range). The element must already have keyboard focus.
  */
 async function ringIsClipped(page, locator, unclip, pad = 8) {
   const box = await locator.boundingBox();
@@ -76,7 +93,9 @@ async function ringIsClipped(page, locator, unclip, pad = 8) {
   await page.addStyleTag({ content: unclip });
   await frames(page);
   const after = await page.screenshot({ clip, animations: 'allow', caret: 'hide' });
-  return !before.equals(after);
+  if (before.equals(after)) return false;
+  const [a, b] = [await decode(page, before), await decode(page, after)];
+  return a.some((value, index) => Math.abs(value - b[index]) > 32);
 }
 
 test.describe('fixed in P1', () => {
@@ -85,10 +104,10 @@ test.describe('fixed in P1', () => {
     const spinner = page.locator('#delayed-spinner');
     // Static markup, long after load: only the spinner's own loop is infinite.
     const looping = (await timeline(spinner)).filter((entry) => entry.iterations === Infinity).map((entry) => entry.name);
-    expect(looping).toEqual(['ds-spin']);
+    expect(looping).toEqual(['ds-spinner-arc', 'ds-spin']);
     // Replayed: the entrance tracks play once.
     await act(spinner, (el) => DS.motion.replay(el, 'ds-enter', 'ds-enter--delayed'));
-    const entrance = (await timeline(spinner)).filter((entry) => entry.name !== 'ds-spin');
+    const entrance = (await timeline(spinner)).filter((entry) => !['ds-spinner-arc', 'ds-spin'].includes(entry.name));
     expect(entrance.length).toBeGreaterThan(0);
     expect(entrance.map((entry) => entry.iterations)).toEqual(entrance.map(() => 1));
     await resume(page);
@@ -101,7 +120,7 @@ test.describe('fixed in P1', () => {
     // enter() took its classes away, so the spinner turns again: its loop alone, running and advancing.
     expect(await spinner.evaluate((el) => [...el.classList])).toEqual(['ds-spinner']);
     const after = await timeline(spinner);
-    expect(after.map((entry) => [entry.name, entry.iterations, entry.playState])).toEqual([['ds-spin', Infinity, 'running']]);
+    expect(after.map((entry) => [entry.name, entry.iterations, entry.playState])).toEqual([['ds-spinner-arc', Infinity, 'running'], ['ds-spin', Infinity, 'running']]);
     const turning = await spinner.evaluate((el) => new Promise((resolve) => {
       const [loop] = el.getAnimations();
       const from = Number(loop.currentTime);
@@ -471,64 +490,104 @@ test.describe('fixed in P4', () => {
 });
 
 test.describe('fixed in P6', () => {
-  test('indeterminate to determinate at .3: the bar never passes 30 % and starts at the left edge', async ({ page, browserName }) => {
-    // Firefox starts the bar's transform transition from the running segment
-    // when the page updates in a frame callback; the others jump to the share.
-    test.fail(browserName === 'firefox', 'layout-progress-handoff: fixed in P6');
+  test('indeterminate to determinate at .3: the bar grows from the left edge to 30 %, the segments stop and fade', async ({ page }) => {
     await open(page, 'feedback.html');
     const progress = page.locator('#progress-indeterminate');
-    const track = await progress.locator('.ds-progress__track').boundingBox();
-    // The handoff waits for a fixed part of the loop (40 to 60 % of its
-    // cycle, where the segment's right edge is well past 30 %), so it never
-    // starts from a segment still off the track. The first share arrives in a
-    // render frame, as a page's update loop would apply it. Two things hide
-    // Firefox's bug and are avoided: setting the loop's time (so the test
-    // waits for the phase instead of seeking it) and reading layout in the
-    // frame of the swap (so the guard reads the segment one frame earlier).
+    // The first share arrives in a render frame (as a page's update loop
+    // would apply it), at a fixed part of the loop where segment 1 runs well
+    // past 30 % (40 to 60 % of its cycle). Every animation is paused in that
+    // task, and only the transitions are then seeked: the loops stay where
+    // they stopped.
     const handoff = await progress.evaluate((el) => new Promise((resolve) => {
-      const bar = el.querySelector('.ds-progress__bar');
-      const loop = bar.getAnimations()[0];
+      const track = el.querySelector('.ds-progress__track');
+      const loop = track.getAnimations().find((animation) => animation.animationName === 'ds-progress-head');
       const cycle = Number(loop.effect.getComputedTiming().duration);
-      let segment = null;
       const frame = () => {
         const phase = (Number(loop.currentTime) % cycle) / cycle;
         if (phase < 0.4 || phase > 0.6) {
-          segment = null;
           requestAnimationFrame(frame);
-        } else if (segment === null) {
-          segment = bar.getBoundingClientRect().right;
-          requestAnimationFrame(frame);
-        } else {
-          el.classList.remove('ds-progress--indeterminate');
-          el.style.setProperty('--ds-progress', '0.3');
-          resolve({ phase, segment });
+          return;
         }
+        const head = parseFloat(getComputedStyle(track).getPropertyValue('--ds-progress-head-1'));
+        el.classList.remove('ds-progress--indeterminate');
+        el.style.setProperty('--ds-progress', '0.3');
+        const state = getComputedStyle(track).animationPlayState;
+        for (const animation of document.getAnimations()) animation.pause();
+        resolve({ phase, head, state });
       };
       requestAnimationFrame(frame);
     }));
-    expect(handoff.segment - track.x, `the segment one frame before the handoff (phase ${handoff.phase}) ends past 30 %`)
-      .toBeGreaterThan(0.4 * track.width);
-    const frames = await rafSample(progress.locator('.ds-progress__bar'), ['rect'], 600);
-    const right = series(frames, 'rect.x').map((x, i) => Math.min(x + frames[i]['rect.width'], track.x + track.width) - track.x);
-    const left = series(frames, 'rect.x').map((x) => Math.max(x, track.x) - track.x);
-    expect(Math.max(...right)).toBeLessThanOrEqual(0.3 * track.width + 1);
-    expect(Math.max(...left)).toBeLessThanOrEqual(1);
+    expect(handoff.head, `segment 1 ends past 30 % at the handoff (phase ${handoff.phase})`).toBeGreaterThan(40);
+    // The segments' loops stop where they are.
+    expect(handoff.state.split(/,\s*/)).toEqual(['paused', 'paused']);
+    const samples = await progress.evaluate((el) => {
+      const track = el.querySelector('.ds-progress__track');
+      const bar = el.querySelector('.ds-progress__bar');
+      const transitions = document.getAnimations().filter((animation) => animation.transitionProperty);
+      // The visible part of the bar from its clip (inset(top right bottom left round r)).
+      const inset = () => {
+        const parts = getComputedStyle(bar).clipPath.replace(/^inset\(|\)$/g, '').split(' round ')[0].replace(/calc\(|\)/g, '').trim().split(/\s+/);
+        const edges = [parts[0], parts[1] ?? parts[0], parts[2] ?? parts[0], parts[3] ?? parts[1] ?? parts[0]];
+        return edges.map((value) => (value.endsWith('%') ? parseFloat(value) / 100 : parseFloat(value) / bar.getBoundingClientRect().width));
+      };
+      const out = [];
+      for (let t = 0; t <= 700; t += 10) {
+        for (const animation of transitions) animation.currentTime = t;
+        const [, right, , left] = inset();
+        out.push({
+          t,
+          share: parseFloat(getComputedStyle(el).getPropertyValue('--ds-progress')),
+          right: 1 - right,
+          left,
+          bar: Number(getComputedStyle(bar).opacity),
+          segment: Number(getComputedStyle(track, '::before').opacity),
+          head: parseFloat(getComputedStyle(track).getPropertyValue('--ds-progress-head-1')),
+        });
+      }
+      return { out, names: transitions.map((animation) => animation.transitionProperty).sort() };
+    });
+    expect(samples.names).toEqual(expect.arrayContaining(['--ds-progress', 'opacity']));
+    const { out } = samples;
+    // The bar: from the left edge, growing to 30 % and never past it.
+    for (const entry of out) {
+      expect(entry.left, JSON.stringify(entry)).toBeLessThanOrEqual(0.001);
+      expect(entry.right, JSON.stringify(entry)).toBeLessThanOrEqual(0.3 + 0.001);
+    }
+    expect(out[0].right).toBeLessThan(0.01);
+    expectMonotonic(out.map((entry) => entry.right), { direction: 'up', tolerance: 1e-4 });
+    expect(out.at(-1).right).toBeCloseTo(0.3, 3);
+    // It fades in while the segments, stopped where they were, fade out.
+    expectMonotonic(out.map((entry) => entry.bar), { direction: 'up' });
+    expect(out.at(-1).bar).toBe(1);
+    expectMonotonic(out.map((entry) => entry.segment), { direction: 'down' });
+    expect(out[0].segment).toBeGreaterThan(0.9);
+    expect(out.at(-1).segment).toBe(0);
+    // Stopped (a pause lands on the next frame in some engines: within a few percent of the handoff), then still.
+    expect(Math.abs(out[0].head - handoff.head)).toBeLessThan(5);
+    for (const entry of out) expect(entry.head).toBeCloseTo(out[0].head, 3);
   });
 
   test('a status class change on the live node changes icon and container on the same timing', async ({ page }) => {
-    test.fail(true, 'layout-status-data-crossfade: fixed in P6');
     await open(page, 'feedback.html');
     const chip = page.locator('#status-live');
-    await page.locator('#status-toggle').click();
+    // The change, a read of every style (Chromium starts an SVG glyph's
+    // transition only once the glyph's own style is read) and a pause of
+    // everything in one task: the 250ms transitions are still there when
+    // the timelines are read, however busy the machine is.
+    await page.locator('#status-toggle').evaluate((el) => {
+      el.click();
+      for (const node of document.querySelectorAll('.ds-theme *')) void getComputedStyle(node).color;
+      for (const animation of document.getAnimations()) animation.pause();
+    });
     const container = (await timeline(chip)).find((entry) => entry.name === 'background-color');
     expect(container).toBeTruthy();
     const icon = await timeline(chip.locator('svg'));
     expect(icon.map((entry) => [entry.duration, entry.delay])).toContainEqual([container.duration, container.delay]);
   });
 
-  test('the focus ring of a control flush with an open .ds-collapsible is not clipped', async ({ page, browserName }) => {
-    // Only Chromium clips: the clipping block is gated on interpolate-size.
-    test.fail(browserName === 'chromium', 'core-css-collapsible-clip: fixed in P6');
+  test('the focus ring of a control flush with an open .ds-collapsible is not clipped', async ({ page }) => {
+    // Only Chromium clips (the clipping block is gated on interpolate-size);
+    // overflow-clip-margin lets the ring show past the content edge.
     await open(page, 'motion.html');
     await page.locator('#collapsible summary').click();
     await settle(page);

@@ -31,6 +31,7 @@
   --ds-surface-low: #f6fafa;
   --ds-surface-high: #e3eaea;
   --ds-surface-highest: #d9e1e1;
+  --ds-skeleton-highlight: var(--ds-surface-high);
 
   /* ── Text and lines ── */
   --ds-text: #191c1c;
@@ -176,9 +177,17 @@
   --ds-card-padding: var(--ds-space-6); --ds-card-padding-sm: var(--ds-space-4);
   --ds-card-padding-filled: var(--ds-space-5);
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);
+  --ds-card-hover-shadow: none;        (for example var(--ds-elev-hover))
+  --ds-tile-radius-pressed: var(--ds-radius-md);
+  --ds-table-row-hover: (a currentColor layer at --ds-state-hover-lg);
+  --ds-table-row-selected: var(--ds-accent);
   --ds-status-radius: var(--ds-radius-md);
   --ds-ripple-color: currentColor;
-  --ds-spinner-track: var(--ds-line);  --ds-spinner-color: var(--ds-primary);
+  --ds-spinner-track: transparent;     --ds-spinner-color: var(--ds-primary);
+  --ds-spinner-width: 2px;
+  --ds-loader-size: 48px;              --ds-loader-color: var(--ds-primary);
+  --ds-progress-gap: 4px;
+  --ds-progress-track: var(--ds-accent); --ds-progress-stop: var(--ds-primary);
   --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
   --ds-dialog-shadow: var(--ds-elev-overlay); --ds-dialog-scrim: var(--ds-scrim);
   --ds-sheet-width: 560px;             --ds-sheet-width-wide: 720px;

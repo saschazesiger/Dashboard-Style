@@ -1,23 +1,23 @@
 [
   {
     "name": "transition-property",
-    "value": "height, content-visibility"
+    "value": "height, opacity, content-visibility"
   },
   {
     "name": "transition-duration",
-    "value": "0.25s, 0.25s"
+    "value": "0.2s, 0.15s, 0.2s"
   },
   {
     "name": "transition-delay",
-    "value": "0s, 0s"
+    "value": "0s, 0s, 0s"
   },
   {
     "name": "transition-timing-function",
-    "value": "cubic-bezier(0.2, 0, 0, 1), ease"
+    "value": "cubic-bezier(0.3, 0, 1, 1), cubic-bezier(0.3, 0, 1, 1), ease"
   },
   {
     "name": "transition-behavior",
-    "value": "normal, allow-discrete"
+    "value": "normal, normal, allow-discrete"
   },
   {
     "name": "interpolate-size",

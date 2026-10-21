@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.3.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.4.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Dashboard-Style: every stylesheet in cascade order. scripts/build.mjs
  * inlines these imports into dist/ds.css; a bundler can import this file
@@ -24,8 +24,9 @@
  *
  * Every token lives on `.ds-theme`, never on :root: the system can run
  * inside a foreign page (an embedded widget) without touching that page's
- * variables. A full app puts class="ds-theme" on <html>. The one exception
- * is the @property registration of --ds-time-scale at the top level.
+ * variables. A full app puts class="ds-theme" on <html>. The exceptions
+ * are the @property registrations at the top level: --ds-time-scale and the
+ * runtime properties the loading indicators animate (below it).
  *
  * Three layers:
  *   1. Scales: motion, spacing, state layers, layers (z), radius scale.
@@ -51,7 +52,8 @@
  * Progressive: linear() carries the spring of --ds-ease-spatial and the
  * exact Material emphasized path behind @supports; older engines keep the
  * cubic-bezier fallbacks (--ds-ease-out, the emphasized approximation).
- * scripts/motion-curves.mjs writes both linear() values.
+ * scripts/motion-curves.mjs writes both linear() values and the block
+ * between the "generated: progress-masks" markers; never edit them by hand.
  */
 
 /*
@@ -65,6 +67,63 @@
   syntax: '<number>';
   inherits: true;
   initial-value: 1;
+}
+
+/*
+ * Runtime properties of the loading indicators, registered so they
+ * interpolate: the page sets --ds-progress (a share, 0 ... 1) and it
+ * glides; the loop keyframes of motion.css animate the others. Not motion
+ * hooks: the progress and skeleton values inherit on purpose, because they
+ * are animated on a parent and read by its children and pseudo-elements,
+ * which keeps every part in lockstep. The spinner's angles stay on the
+ * spinner itself.
+ */
+@property --ds-progress {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --ds-progress-head-1 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-progress-head-2 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-progress-tail-1 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-progress-tail-2 {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@property --ds-spinner-arc {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 10deg;
+}
+
+@property --ds-spinner-start {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --ds-skeleton-x {
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
 }
 
 @layer ds.tokens {
@@ -152,18 +211,49 @@
     --ds-delay-tooltip-skip: calc(300ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-hide: calc(100ms * var(--ds-time-scale, 1));
 
-    /* Loops of loading indicators: they always run at their token speed. */
-    --ds-loop-spin: calc(1s * var(--ds-time-scale, 1));
+    /* Loops of loading indicators: they always run at their token speed.
+     * spin           one turn of the spinner (the M3 rotation period)
+     * spin-fast      one turn of the spinner in a status chip
+     * arc            one loop of the spinner's arc: four 1333ms cycles of
+     *                growing and shrinking (ds-spinner-arc)
+     * indeterminate  one cycle of the two-segment indeterminate bar
+     * loader         one round of the shape loader: 7 shapes x 650ms
+     * skeleton       one pass of the skeleton wave (sweep, then rest)
+     * wave           one wavelength of the travelling progress wave
+     * pulse          deprecated with ds-pulse (removed in 2.0)
+     */
+    --ds-loop-spin: calc(1568ms * var(--ds-time-scale, 1));
     --ds-loop-spin-fast: calc(.8s * var(--ds-time-scale, 1));
-    --ds-loop-indeterminate: calc(2s * var(--ds-time-scale, 1));
+    --ds-loop-arc: calc(5332ms * var(--ds-time-scale, 1));
+    --ds-loop-indeterminate: calc(1800ms * var(--ds-time-scale, 1));
+    --ds-loop-loader: calc(4550ms * var(--ds-time-scale, 1));
+    --ds-loop-skeleton: calc(2s * var(--ds-time-scale, 1));
+    --ds-loop-wave: calc(1.2s * var(--ds-time-scale, 1));
     --ds-loop-pulse: calc(2s * var(--ds-time-scale, 1));
+
+    /* ── Progress waves ─────────────────────────────────
+     * The masks that make progress wavy (scripts/motion-curves.mjs writes
+     * them): one wavelength of a 4px sine stroke, ±3px, as a tile of
+     * --ds-progress-wave-length x 10px for the linear bar, and a closed
+     * wavy ring for the 40px determinate spinner.
+     */
+    /* generated: progress-masks */
+    --ds-progress-wave-length: 40px;
+    --ds-progress-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='10' viewBox='0 0 40 10'%3E%3Cpath d='M-5 7.12C-3.33 6.57 -1.67 5.79 0 5C1.67 4.21 3.33 3.43 5 2.88C6.67 2.32 8.33 2 10 2C11.67 2 13.33 2.32 15 2.88C16.67 3.43 18.33 4.21 20 5C21.67 5.79 23.33 6.57 25 7.12C26.67 7.68 28.33 8 30 8C31.67 8 33.33 7.68 35 7.12C36.67 6.57 38.33 5.79 40 5C41.67 4.21 43.33 3.43 45 2.88' fill='none' stroke='black' stroke-width='4'/%3E%3C/svg%3E");
+    --ds-progress-ring-wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath d='M20 3.6C21.23 2.76 22.69 2.15 24.01 2.45C25.32 2.75 26.37 3.94 27.12 5.22C27.86 6.51 28.36 7.74 29.23 8.43C30.09 9.12 31.4 9.34 32.82 9.77C34.24 10.21 35.63 10.98 36.22 12.19C36.8 13.4 36.53 14.97 35.99 16.35C35.45 17.73 34.8 18.89 34.8 20C34.8 21.11 35.45 22.27 35.99 23.65C36.53 25.03 36.8 26.6 36.22 27.81C35.63 29.02 34.24 29.79 32.82 30.23C31.4 30.66 30.09 30.88 29.23 31.57C28.36 32.26 27.86 33.49 27.12 34.78C26.37 36.06 25.32 37.25 24.01 37.55C22.69 37.85 21.23 37.24 20 36.4C18.77 35.56 17.79 34.68 16.71 34.43C15.63 34.18 14.35 34.55 12.88 34.78C11.42 35 9.83 34.91 8.78 34.07C7.72 33.23 7.29 31.71 7.18 30.23C7.07 28.74 7.15 27.42 6.67 26.42C6.19 25.42 5.1 24.66 4.01 23.65C2.92 22.64 2 21.35 2 20C2 18.65 2.92 17.36 4.01 16.35C5.1 15.34 6.19 14.58 6.67 13.58C7.15 12.58 7.07 11.26 7.18 9.77C7.29 8.29 7.72 6.77 8.78 5.93C9.83 5.09 11.42 5 12.88 5.22C14.35 5.45 15.63 5.82 16.71 5.57C17.79 5.32 18.77 4.44 20 3.6Z' fill='none' stroke='black' stroke-width='4'/%3E%3C/svg%3E");
+    /* end generated: progress-masks */
+    /* Short bars and arcs are flat (M3 Expressive flattens the wave at
+       small shares): the wave fades in from the share wave-start over the
+       next wave-ramp of the share (flat up to 6%, wavy from 11%). */
+    --ds-progress-wave-start: .06;
+    --ds-progress-wave-ramp: .05;
 
     /* ── State layers ───────────────────────────────────
      * Opacity of the content colour laid over a control (::before). Large
      * targets (rows, navigation items) take the lighter hover. Keyboard
      * focus lays its own layer under the ring (focus); a press stays on top
      * of it. Disabled content dims to 38%; stale content (about to be
-     * replaced) to 55%.
+     * replaced) to 55%. The deprecated ds-pulse dims to pulse.
      */
     --ds-state-hover: .08;
     --ds-state-hover-lg: .06;
@@ -172,6 +262,7 @@
     --ds-state-dragged: .16;
     --ds-state-disabled: .38;
     --ds-state-stale: .55;
+    --ds-state-pulse: .45;
 
     /* ── Spacing (4 px grid) ──────────────────────────── */
     --ds-space-1: 4px;
@@ -212,6 +303,9 @@
     --ds-surface-low: #f8fafd;
     --ds-surface-high: #e9eef6;
     --ds-surface-highest: #dde3ea;
+
+    /* The band of the skeleton wave that passes over the bones. */
+    --ds-skeleton-highlight: var(--ds-surface-high);
 
     /* Text. --ds-text-3 reaches 4.5:1 on white only; on any tinted surface
        the quieter text is --ds-text-2. */
@@ -387,7 +481,8 @@
     /* ── Elevation ──────────────────────────────────────
      * Only floating layers cast shadows. The three Material levels, and the
      * roles components read:
-     *   hover    clickable cards and filled buttons on hover (level 1)
+     *   hover    clickable cards when a theme sets --ds-card-hover-shadow,
+     *            and filled buttons on hover (level 1)
      *   popover  menus, listboxes, the skip link (level 2)
      *   overlay  dialogs, side sheets, the modal drawer, snackbars (level 3)
      */
@@ -435,8 +530,8 @@
  * tokens.css.
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
- * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-swap,
- * .ds-icon-swap, .ds-presence) in ds.utilities. That layer comes after ds.components,
+ * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-chevron,
+ * .ds-swap, .ds-icon-swap, .ds-presence) in ds.utilities. That layer comes after ds.components,
  * so a utility wins over a component's own animation by layer order, not
  * by specificity.
  *
@@ -454,15 +549,22 @@
  * ds-sink-out, ds-scale-out and ds-slide-out (fade + move) are deprecated
  * aliases, removed in 2.0.
  *
- * Progressive: .ds-collapsible animates its height only where the browser
- * supports interpolate-size and ::details-content, with content-visibility
- * as an allow-discrete transition (elsewhere it simply toggles);
+ * Progressive: .ds-collapsible animates its height and fades its content
+ * only where the browser supports interpolate-size and ::details-content,
+ * with content-visibility as a transition-behavior: allow-discrete track,
+ * and overflow-clip-margin lets focus rings at its content edge show
+ * (elsewhere it simply toggles, and the content's own padding is the
+ * ring room);
  * sibling-index() numbers the children of .ds-stagger where it exists
  * (elsewhere stagger() in js/motion.js does); .ds-presence animates
  * toggled elements with @starting-style (the entry state), allow-discrete
  * transitions of display and overlay (it stays rendered and in the top
  * layer while it leaves) and :popover-open (a popover's exit state, in a
  * rule of its own); without them it shows and hides at once.
+ *
+ * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
+ * it moves with insertBefore) turns transitions off in that subtree, so a
+ * keyed reorder never replays an @starting-style entrance.
  */
 
 /*
@@ -696,17 +798,408 @@
   }
 
   /* ── Keyframes: loops (loading indicators) ─────── */
-  /* No shimmer: shimmers are decoration; skeletons pulse. */
+  /* Skeletons: one synchronised, calm diagonal wave across the surface
+     (ds-skeleton-wave); ds-pulse is deprecated.
 
+     Loops run `linear` on their --ds-loop-* token: the curves of the
+     generated loops are baked into their stops by scripts/motion-curves.mjs
+     (never edit a generated block by hand). The registered properties they
+     animate are in tokens.css. */
+
+  /* One turn: the spinner turns on top of its arc, and so does the old
+     ring. */
   @keyframes ds-spin {
     to { transform: rotate(360deg); }
   }
 
-  @keyframes ds-pulse {
-    50% { opacity: .45; }
+  /* The Material 3 arc of .ds-spinner: the sweep (--ds-spinner-arc) grows
+     from 10deg to 270deg (the head runs ahead) and shrinks back while the
+     start (--ds-spinner-start) advances 270deg (the tail chases the head),
+     on the M3 curve. Four such cycles, 3 turns of the start, make one loop
+     (--ds-loop-arc), so the loop never jumps. */
+  @keyframes ds-spinner-arc {
+    /* generated: spinner-arc */
+    0% { --ds-spinner-arc: 10deg; --ds-spinner-start: 0deg; }
+    0.95% { --ds-spinner-arc: 13.67deg; }
+    1.71% { --ds-spinner-arc: 23.79deg; }
+    2.34% { --ds-spinner-arc: 39.49deg; }
+    2.91% { --ds-spinner-arc: 61.3deg; }
+    3.59% { --ds-spinner-arc: 96.43deg; }
+    4.56% { --ds-spinner-arc: 149.37deg; }
+    5.27% { --ds-spinner-arc: 180.41deg; }
+    6.06% { --ds-spinner-arc: 206.48deg; }
+    7% { --ds-spinner-arc: 228.76deg; }
+    8.14% { --ds-spinner-arc: 247.02deg; }
+    9.54% { --ds-spinner-arc: 260.65deg; }
+    11.26% { --ds-spinner-arc: 268.56deg; }
+    12.5% { --ds-spinner-arc: 270deg; --ds-spinner-start: 0deg; }
+    13.43% { --ds-spinner-start: 3.64deg; }
+    13.45% { --ds-spinner-arc: 266.33deg; }
+    14.18% { --ds-spinner-start: 13.74deg; }
+    14.21% { --ds-spinner-arc: 256.21deg; }
+    14.8% { --ds-spinner-start: 29.33deg; }
+    14.84% { --ds-spinner-arc: 240.51deg; }
+    15.36% { --ds-spinner-start: 50.96deg; }
+    15.41% { --ds-spinner-arc: 218.7deg; }
+    16% { --ds-spinner-start: 84.53deg; }
+    16.09% { --ds-spinner-arc: 183.57deg; }
+    17.04% { --ds-spinner-start: 143.71deg; }
+    17.06% { --ds-spinner-arc: 130.63deg; }
+    17.74% { --ds-spinner-start: 175.77deg; }
+    17.77% { --ds-spinner-arc: 99.59deg; }
+    18.51% { --ds-spinner-start: 202.55deg; }
+    18.56% { --ds-spinner-arc: 73.52deg; }
+    19.42% { --ds-spinner-start: 225.51deg; }
+    19.5% { --ds-spinner-arc: 51.24deg; }
+    20.52% { --ds-spinner-start: 244.51deg; }
+    20.64% { --ds-spinner-arc: 32.98deg; }
+    21.87% { --ds-spinner-start: 258.99deg; }
+    22.04% { --ds-spinner-arc: 19.35deg; }
+    23.52% { --ds-spinner-start: 267.83deg; }
+    23.76% { --ds-spinner-arc: 11.44deg; }
+    25% { --ds-spinner-arc: 10deg; --ds-spinner-start: 270deg; }
+    25.95% { --ds-spinner-arc: 13.67deg; }
+    26.71% { --ds-spinner-arc: 23.79deg; }
+    27.34% { --ds-spinner-arc: 39.49deg; }
+    27.91% { --ds-spinner-arc: 61.3deg; }
+    28.59% { --ds-spinner-arc: 96.43deg; }
+    29.56% { --ds-spinner-arc: 149.37deg; }
+    30.27% { --ds-spinner-arc: 180.41deg; }
+    31.06% { --ds-spinner-arc: 206.48deg; }
+    32% { --ds-spinner-arc: 228.76deg; }
+    33.14% { --ds-spinner-arc: 247.02deg; }
+    34.54% { --ds-spinner-arc: 260.65deg; }
+    36.26% { --ds-spinner-arc: 268.56deg; }
+    37.5% { --ds-spinner-arc: 270deg; --ds-spinner-start: 270deg; }
+    38.43% { --ds-spinner-start: 273.64deg; }
+    38.45% { --ds-spinner-arc: 266.33deg; }
+    39.18% { --ds-spinner-start: 283.74deg; }
+    39.21% { --ds-spinner-arc: 256.21deg; }
+    39.8% { --ds-spinner-start: 299.33deg; }
+    39.84% { --ds-spinner-arc: 240.51deg; }
+    40.36% { --ds-spinner-start: 320.96deg; }
+    40.41% { --ds-spinner-arc: 218.7deg; }
+    41% { --ds-spinner-start: 354.53deg; }
+    41.09% { --ds-spinner-arc: 183.57deg; }
+    42.04% { --ds-spinner-start: 413.71deg; }
+    42.06% { --ds-spinner-arc: 130.63deg; }
+    42.74% { --ds-spinner-start: 445.77deg; }
+    42.77% { --ds-spinner-arc: 99.59deg; }
+    43.51% { --ds-spinner-start: 472.55deg; }
+    43.56% { --ds-spinner-arc: 73.52deg; }
+    44.42% { --ds-spinner-start: 495.51deg; }
+    44.5% { --ds-spinner-arc: 51.24deg; }
+    45.52% { --ds-spinner-start: 514.51deg; }
+    45.64% { --ds-spinner-arc: 32.98deg; }
+    46.87% { --ds-spinner-start: 528.99deg; }
+    47.04% { --ds-spinner-arc: 19.35deg; }
+    48.52% { --ds-spinner-start: 537.83deg; }
+    48.76% { --ds-spinner-arc: 11.44deg; }
+    50% { --ds-spinner-arc: 10deg; --ds-spinner-start: 540deg; }
+    50.95% { --ds-spinner-arc: 13.67deg; }
+    51.71% { --ds-spinner-arc: 23.79deg; }
+    52.34% { --ds-spinner-arc: 39.49deg; }
+    52.91% { --ds-spinner-arc: 61.3deg; }
+    53.59% { --ds-spinner-arc: 96.43deg; }
+    54.56% { --ds-spinner-arc: 149.37deg; }
+    55.27% { --ds-spinner-arc: 180.41deg; }
+    56.06% { --ds-spinner-arc: 206.48deg; }
+    57% { --ds-spinner-arc: 228.76deg; }
+    58.14% { --ds-spinner-arc: 247.02deg; }
+    59.54% { --ds-spinner-arc: 260.65deg; }
+    61.26% { --ds-spinner-arc: 268.56deg; }
+    62.5% { --ds-spinner-arc: 270deg; --ds-spinner-start: 540deg; }
+    63.43% { --ds-spinner-start: 543.64deg; }
+    63.45% { --ds-spinner-arc: 266.33deg; }
+    64.18% { --ds-spinner-start: 553.74deg; }
+    64.21% { --ds-spinner-arc: 256.21deg; }
+    64.8% { --ds-spinner-start: 569.33deg; }
+    64.84% { --ds-spinner-arc: 240.51deg; }
+    65.36% { --ds-spinner-start: 590.96deg; }
+    65.41% { --ds-spinner-arc: 218.7deg; }
+    66% { --ds-spinner-start: 624.53deg; }
+    66.09% { --ds-spinner-arc: 183.57deg; }
+    67.04% { --ds-spinner-start: 683.71deg; }
+    67.06% { --ds-spinner-arc: 130.63deg; }
+    67.74% { --ds-spinner-start: 715.77deg; }
+    67.77% { --ds-spinner-arc: 99.59deg; }
+    68.51% { --ds-spinner-start: 742.55deg; }
+    68.56% { --ds-spinner-arc: 73.52deg; }
+    69.42% { --ds-spinner-start: 765.51deg; }
+    69.5% { --ds-spinner-arc: 51.24deg; }
+    70.52% { --ds-spinner-start: 784.51deg; }
+    70.64% { --ds-spinner-arc: 32.98deg; }
+    71.87% { --ds-spinner-start: 798.99deg; }
+    72.04% { --ds-spinner-arc: 19.35deg; }
+    73.52% { --ds-spinner-start: 807.83deg; }
+    73.76% { --ds-spinner-arc: 11.44deg; }
+    75% { --ds-spinner-arc: 10deg; --ds-spinner-start: 810deg; }
+    75.95% { --ds-spinner-arc: 13.67deg; }
+    76.71% { --ds-spinner-arc: 23.79deg; }
+    77.34% { --ds-spinner-arc: 39.49deg; }
+    77.91% { --ds-spinner-arc: 61.3deg; }
+    78.59% { --ds-spinner-arc: 96.43deg; }
+    79.56% { --ds-spinner-arc: 149.37deg; }
+    80.27% { --ds-spinner-arc: 180.41deg; }
+    81.06% { --ds-spinner-arc: 206.48deg; }
+    82% { --ds-spinner-arc: 228.76deg; }
+    83.14% { --ds-spinner-arc: 247.02deg; }
+    84.54% { --ds-spinner-arc: 260.65deg; }
+    86.26% { --ds-spinner-arc: 268.56deg; }
+    87.5% { --ds-spinner-arc: 270deg; --ds-spinner-start: 810deg; }
+    88.43% { --ds-spinner-start: 813.64deg; }
+    88.45% { --ds-spinner-arc: 266.33deg; }
+    89.18% { --ds-spinner-start: 823.74deg; }
+    89.21% { --ds-spinner-arc: 256.21deg; }
+    89.8% { --ds-spinner-start: 839.33deg; }
+    89.84% { --ds-spinner-arc: 240.51deg; }
+    90.36% { --ds-spinner-start: 860.96deg; }
+    90.41% { --ds-spinner-arc: 218.7deg; }
+    91% { --ds-spinner-start: 894.53deg; }
+    91.09% { --ds-spinner-arc: 183.57deg; }
+    92.04% { --ds-spinner-start: 953.71deg; }
+    92.06% { --ds-spinner-arc: 130.63deg; }
+    92.74% { --ds-spinner-start: 985.77deg; }
+    92.77% { --ds-spinner-arc: 99.59deg; }
+    93.51% { --ds-spinner-start: 1012.55deg; }
+    93.56% { --ds-spinner-arc: 73.52deg; }
+    94.42% { --ds-spinner-start: 1035.51deg; }
+    94.5% { --ds-spinner-arc: 51.24deg; }
+    95.52% { --ds-spinner-start: 1054.51deg; }
+    95.64% { --ds-spinner-arc: 32.98deg; }
+    96.87% { --ds-spinner-start: 1068.99deg; }
+    97.04% { --ds-spinner-arc: 19.35deg; }
+    98.52% { --ds-spinner-start: 1077.83deg; }
+    98.76% { --ds-spinner-arc: 11.44deg; }
+    100% { --ds-spinner-arc: 10deg; --ds-spinner-start: 1080deg; }
+    /* end generated: spinner-arc */
   }
 
-  /* The segment (35% of the track) enters left and leaves right. */
+  /* The Material 3 Expressive loader: the 7 shapes (soft burst, cookie-9,
+     pentagon, pill, sunny, cookie-4, oval), each 64 vertices from the top,
+     clockwise, so a morph never twists. Run on --ds-ease-spatial over
+     --ds-loop-loader: every step lands with the spring. */
+  @keyframes ds-loader-morph {
+    /* generated: loader-morph */
+    0%, 100% {
+      clip-path: polygon(
+        50% 0%, 54.65% 2.82%, 57.66% 7.66%, 61.14% 12.09%, 66.6% 12.07%, 71.87% 9.9%, 77.32% 8.63%, 81.32% 12.3%,
+        81.24% 17.97%, 80.84% 23.66%, 83.57% 28.36%, 89.05% 29.88%, 94.57% 31.29%, 97.78% 35.67%, 95.57% 40.71%, 91.9% 45.07%,
+        89.38% 50.01%, 91.94% 54.93%, 95.63% 59.28%, 97.79% 64.34%, 94.53% 68.67%, 89.01% 70.09%, 83.53% 71.64%, 80.86% 76.37%,
+        81.29% 82.06%, 81.35% 87.72%, 77.31% 91.34%, 71.86% 90.04%, 66.58% 87.89%, 61.12% 87.93%, 57.67% 92.38%, 54.68% 97.24%,
+        50% 100%, 45.35% 97.18%, 42.34% 92.34%, 38.86% 87.91%, 33.4% 87.93%, 28.13% 90.1%, 22.68% 91.37%, 18.68% 87.7%,
+        18.76% 82.03%, 19.16% 76.34%, 16.43% 71.64%, 10.95% 70.12%, 5.43% 68.71%, 2.22% 64.33%, 4.43% 59.29%, 8.1% 54.93%,
+        10.62% 49.99%, 8.06% 45.07%, 4.37% 40.72%, 2.21% 35.66%, 5.47% 31.33%, 10.99% 29.91%, 16.47% 28.36%, 19.14% 23.63%,
+        18.71% 17.94%, 18.65% 12.28%, 22.69% 8.66%, 28.14% 9.96%, 33.42% 12.11%, 38.88% 12.07%, 42.33% 7.62%, 45.32% 2.76%
+      );
+    }
+    14.29% {
+      clip-path: polygon(
+        50% 1.98%, 54.75% 2.74%, 59.03% 4.93%, 62.87% 7.85%, 67.36% 9.57%, 72.17% 9.89%, 76.9% 10.79%, 81.11% 13.11%,
+        84.38% 16.63%, 86.4% 21%, 87.44% 25.71%, 89.62% 30%, 93.02% 33.41%, 96.19% 37.03%, 98.07% 41.45%, 98.49% 46.25%,
+        97.39% 50.93%, 95.16% 55.2%, 93.91% 59.85%, 94.17% 64.65%, 94.44% 69.46%, 93.2% 74.1%, 90.58% 78.14%, 86.83% 81.16%,
+        82.39% 83.03%, 78.35% 85.64%, 75.33% 89.38%, 72.57% 93.33%, 68.73% 96.23%, 64.18% 97.79%, 59.37% 97.87%, 54.75% 96.51%,
+        50% 95.76%, 45.25% 96.51%, 40.63% 97.87%, 35.82% 97.79%, 31.27% 96.23%, 27.43% 93.33%, 24.67% 89.38%, 21.65% 85.64%,
+        17.61% 83.03%, 13.17% 81.16%, 9.42% 78.14%, 6.8% 74.1%, 5.56% 69.46%, 5.83% 64.65%, 6.09% 59.85%, 4.84% 55.2%,
+        2.61% 50.93%, 1.51% 46.25%, 1.93% 41.45%, 3.81% 37.03%, 6.98% 33.41%, 10.38% 30%, 12.56% 25.71%, 13.6% 21%,
+        15.62% 16.63%, 18.89% 13.11%, 23.1% 10.79%, 27.83% 9.89%, 32.64% 9.57%, 37.13% 7.85%, 40.97% 4.93%, 45.25% 2.74%
+      );
+    }
+    28.57% {
+      clip-path: polygon(
+        50% 5.98%, 54.42% 6.6%, 58.51% 8.41%, 62.19% 10.97%, 65.85% 13.56%, 69.51% 16.14%, 73.17% 18.72%, 76.84% 21.31%,
+        80.5% 23.89%, 84.16% 26.48%, 87.82% 29.06%, 91.44% 31.7%, 94.37% 35.07%, 96.21% 39.15%, 96.79% 43.58%, 96.08% 47.98%,
+        94.66% 52.24%, 93.24% 56.49%, 91.82% 60.74%, 90.4% 64.99%, 88.98% 69.24%, 87.56% 73.5%, 86.14% 77.75%, 84.72% 82%,
+        83% 86.13%, 80.24% 89.64%, 76.61% 92.24%, 72.39% 93.72%, 67.93% 94.02%, 63.45% 94.02%, 58.96% 94.02%, 54.48% 94.02%,
+        50% 94.02%, 45.52% 94.02%, 41.04% 94.02%, 36.55% 94.02%, 32.07% 94.02%, 27.61% 93.72%, 23.39% 92.24%, 19.76% 89.64%,
+        17% 86.13%, 15.28% 82%, 13.86% 77.75%, 12.44% 73.5%, 11.02% 69.24%, 9.6% 64.99%, 8.18% 60.74%, 6.76% 56.49%,
+        5.34% 52.24%, 3.92% 47.98%, 3.21% 43.58%, 3.79% 39.15%, 5.63% 35.07%, 8.56% 31.7%, 12.18% 29.06%, 15.84% 26.48%,
+        19.5% 23.89%, 23.16% 21.31%, 26.83% 18.72%, 30.49% 16.14%, 34.15% 13.56%, 37.81% 10.97%, 41.49% 8.41%, 45.58% 6.6%
+      );
+    }
+    42.86% {
+      clip-path: polygon(
+        50% 9.4%, 53.83% 7.69%, 57.85% 6.53%, 62% 5.94%, 66.2% 5.93%, 70.35% 6.51%, 74.38% 7.66%, 78.21% 9.36%,
+        81.76% 11.58%, 84.97% 14.28%, 87.78% 17.39%, 90.13% 20.86%, 91.96% 24.63%, 93.25% 28.62%, 93.98% 32.75%, 94.12% 36.94%,
+        93.68% 41.1%, 92.66% 45.17%, 91.08% 49.05%, 88.98% 52.68%, 86.39% 55.98%, 83.45% 58.97%, 80.49% 61.94%, 77.52% 64.91%,
+        74.55% 67.87%, 71.59% 70.84%, 68.62% 73.8%, 65.66% 76.77%, 62.69% 79.74%, 59.72% 82.7%, 56.75% 85.66%, 53.55% 88.37%,
+        50% 90.6%, 46.17% 92.31%, 42.15% 93.47%, 38% 94.06%, 33.8% 94.07%, 29.65% 93.49%, 25.62% 92.34%, 21.79% 90.64%,
+        18.24% 88.42%, 15.03% 85.72%, 12.22% 82.61%, 9.87% 79.14%, 8.04% 75.37%, 6.75% 71.38%, 6.02% 67.25%, 5.88% 63.06%,
+        6.32% 58.9%, 7.34% 54.83%, 8.92% 50.95%, 11.02% 47.32%, 13.61% 44.02%, 16.55% 41.03%, 19.51% 38.06%, 22.48% 35.09%,
+        25.45% 32.13%, 28.41% 29.16%, 31.38% 26.2%, 34.34% 23.23%, 37.31% 20.26%, 40.28% 17.3%, 43.25% 14.34%, 46.45% 11.63%
+      );
+    }
+    57.14% {
+      clip-path: polygon(
+        50% 0%, 54.64% 1.52%, 58.44% 4.72%, 62.22% 7.94%, 66.22% 10.85%, 71.1% 11.62%, 76.05% 12.02%, 81% 12.43%,
+        85.36% 14.64%, 87.57% 19%, 87.98% 23.95%, 88.38% 28.9%, 89.15% 33.78%, 92.06% 37.78%, 95.28% 41.56%, 98.48% 45.36%,
+        100% 50%, 98.48% 54.64%, 95.28% 58.44%, 92.06% 62.22%, 89.15% 66.22%, 88.38% 71.1%, 87.98% 76.05%, 87.57% 81%,
+        85.36% 85.36%, 81% 87.57%, 76.05% 87.98%, 71.1% 88.38%, 66.22% 89.15%, 62.22% 92.06%, 58.44% 95.28%, 54.64% 98.48%,
+        50% 100%, 45.36% 98.48%, 41.56% 95.28%, 37.78% 92.06%, 33.78% 89.15%, 28.9% 88.38%, 23.95% 87.98%, 19% 87.57%,
+        14.64% 85.36%, 12.43% 81%, 12.02% 76.05%, 11.62% 71.1%, 10.85% 66.22%, 7.94% 62.22%, 4.72% 58.44%, 1.52% 54.64%,
+        0% 50%, 1.52% 45.36%, 4.72% 41.56%, 7.94% 37.78%, 10.85% 33.78%, 11.62% 28.9%, 12.02% 23.95%, 12.43% 19%,
+        14.64% 14.64%, 19% 12.43%, 23.95% 12.02%, 28.9% 11.62%, 33.78% 10.85%, 37.78% 7.94%, 41.56% 4.72%, 45.36% 1.52%
+      );
+    }
+    71.43% {
+      clip-path: polygon(
+        50% 13.38%, 54.68% 12.8%, 59.12% 11.17%, 63.49% 9.38%, 68.12% 8.43%, 72.84% 8.51%, 77.43% 9.61%, 81.66% 11.69%,
+        85.35% 14.64%, 88.3% 18.33%, 90.38% 22.57%, 91.48% 27.16%, 91.55% 31.88%, 90.6% 36.5%, 88.82% 40.88%, 87.19% 45.32%,
+        86.62% 50%, 87.2% 54.68%, 88.83% 59.12%, 90.62% 63.49%, 91.57% 68.12%, 91.49% 72.84%, 90.39% 77.43%, 88.31% 81.66%,
+        85.36% 85.35%, 81.67% 88.3%, 77.43% 90.38%, 72.84% 91.48%, 68.12% 91.55%, 63.5% 90.6%, 59.12% 88.82%, 54.68% 87.19%,
+        50% 86.62%, 45.32% 87.2%, 40.88% 88.83%, 36.51% 90.62%, 31.88% 91.57%, 27.16% 91.49%, 22.57% 90.39%, 18.34% 88.31%,
+        14.65% 85.36%, 11.7% 81.67%, 9.62% 77.43%, 8.52% 72.84%, 8.45% 68.12%, 9.4% 63.5%, 11.18% 59.12%, 12.81% 54.68%,
+        13.38% 50%, 12.8% 45.32%, 11.17% 40.88%, 9.38% 36.51%, 8.43% 31.88%, 8.51% 27.16%, 9.61% 22.57%, 11.69% 18.34%,
+        14.64% 14.65%, 18.33% 11.7%, 22.57% 9.62%, 27.16% 8.52%, 31.88% 8.45%, 36.5% 9.4%, 40.88% 11.18%, 45.32% 12.81%
+      );
+    }
+    85.71% {
+      clip-path: polygon(
+        50% 11.88%, 53.81% 10.45%, 57.72% 9.3%, 61.71% 8.49%, 65.76% 8.07%, 69.83% 8.1%, 73.86% 8.65%, 77.77% 9.79%,
+        81.43% 11.57%, 84.69% 14.01%, 87.4% 17.03%, 89.48% 20.53%, 90.91% 24.34%, 91.72% 28.33%, 91.98% 32.39%, 91.75% 36.45%,
+        91.11% 40.48%, 90.11% 44.42%, 88.8% 48.28%, 87.22% 52.03%, 85.39% 55.67%, 83.34% 59.19%, 81.09% 62.59%, 78.65% 65.85%,
+        76.05% 68.98%, 73.28% 71.97%, 70.36% 74.81%, 67.29% 77.49%, 64.09% 80.01%, 60.75% 82.34%, 57.29% 84.49%, 53.7% 86.42%,
+        50% 88.12%, 46.19% 89.55%, 42.28% 90.7%, 38.29% 91.51%, 34.24% 91.93%, 30.17% 91.9%, 26.14% 91.35%, 22.23% 90.21%,
+        18.57% 88.43%, 15.31% 85.99%, 12.6% 82.97%, 10.52% 79.47%, 9.09% 75.66%, 8.28% 71.67%, 8.02% 67.61%, 8.25% 63.55%,
+        8.89% 59.52%, 9.89% 55.58%, 11.2% 51.72%, 12.78% 47.97%, 14.61% 44.33%, 16.66% 40.81%, 18.91% 37.41%, 21.35% 34.15%,
+        23.95% 31.02%, 26.72% 28.03%, 29.64% 25.19%, 32.71% 22.51%, 35.91% 19.99%, 39.25% 17.66%, 42.71% 15.51%, 46.3% 13.58%
+      );
+    }
+    /* end generated: loader-morph */
+  }
+
+  /* The loader turns once per round while it morphs (linear). */
+  @keyframes ds-loader-turn {
+    to { rotate: 1turn; }
+  }
+
+  /* Two-segment indeterminate progress (Material 3, one cycle of
+     --ds-loop-indeterminate): the heads and tails of both segments run from
+     0% to 100% of the track on their own curves and windows and never go
+     back within a cycle. A segment is drawn from its tail to its head, so
+     it is empty at both ends of the cycle. */
+  @keyframes ds-progress-head {
+    /* generated: progress-head */
+    0% { --ds-progress-head-1: 0%; --ds-progress-head-2: 0%; }
+    1.03% { --ds-progress-head-1: 0.43%; }
+    2.34% { --ds-progress-head-1: 1.87%; }
+    3.99% { --ds-progress-head-1: 4.57%; }
+    6.06% { --ds-progress-head-1: 8.85%; }
+    8.67% { --ds-progress-head-1: 15.15%; }
+    12.04% { --ds-progress-head-1: 24.2%; }
+    16.82% { --ds-progress-head-1: 38.01%; }
+    27.08% { --ds-progress-head-1: 68.54%; }
+    31.12% { --ds-progress-head-1: 79.91%; }
+    34.14% { --ds-progress-head-1: 87.7%; }
+    36.51% { --ds-progress-head-1: 93.11%; }
+    38.4% { --ds-progress-head-1: 96.71%; }
+    39.9% { --ds-progress-head-1: 98.86%; }
+    41.09% { --ds-progress-head-1: 99.86%; }
+    41.67% { --ds-progress-head-1: 100%; }
+    55.56% { --ds-progress-head-2: 0%; }
+    58.29% { --ds-progress-head-2: 12.75%; }
+    61.53% { --ds-progress-head-2: 27.03%; }
+    64.79% { --ds-progress-head-2: 40.61%; }
+    67.92% { --ds-progress-head-2: 52.86%; }
+    70.86% { --ds-progress-head-2: 63.59%; }
+    73.59% { --ds-progress-head-2: 72.8%; }
+    76.1% { --ds-progress-head-2: 80.5%; }
+    78.39% { --ds-progress-head-2: 86.76%; }
+    80.47% { --ds-progress-head-2: 91.69%; }
+    82.34% { --ds-progress-head-2: 95.37%; }
+    84.01% { --ds-progress-head-2: 97.9%; }
+    85.5% { --ds-progress-head-2: 99.4%; }
+    86.82% { --ds-progress-head-2: 99.99%; }
+    87.06% { --ds-progress-head-2: 100%; }
+    100% { --ds-progress-head-1: 100%; --ds-progress-head-2: 100%; }
+    /* end generated: progress-head */
+  }
+
+  @keyframes ds-progress-tail {
+    /* generated: progress-tail */
+    0% { --ds-progress-tail-1: 0%; --ds-progress-tail-2: 0%; }
+    18.5% { --ds-progress-tail-1: 0%; }
+    20.66% { --ds-progress-tail-1: 0.41%; }
+    23.02% { --ds-progress-tail-1: 1.69%; }
+    25.59% { --ds-progress-tail-1: 3.92%; }
+    28.37% { --ds-progress-tail-1: 7.16%; }
+    31.37% { --ds-progress-tail-1: 11.49%; }
+    34.6% { --ds-progress-tail-1: 16.97%; }
+    38.05% { --ds-progress-tail-1: 23.66%; }
+    41.72% { --ds-progress-tail-1: 31.59%; }
+    45.6% { --ds-progress-tail-1: 40.79%; }
+    49.67% { --ds-progress-tail-1: 51.26%; }
+    53.88% { --ds-progress-tail-1: 62.9%; }
+    58.15% { --ds-progress-tail-1: 75.51%; }
+    62.29% { --ds-progress-tail-1: 88.51%; }
+    65.69% { --ds-progress-tail-1: 99.89%; }
+    65.72% { --ds-progress-tail-1: 99.99%; }
+    70.39% { --ds-progress-tail-2: 0%; }
+    70.77% { --ds-progress-tail-2: 0.45%; }
+    71.29% { --ds-progress-tail-2: 1.99%; }
+    72.02% { --ds-progress-tail-2: 5.12%; }
+    73.13% { --ds-progress-tail-2: 10.88%; }
+    77.65% { --ds-progress-tail-2: 36.58%; }
+    79.67% { --ds-progress-tail-2: 47.33%; }
+    81.54% { --ds-progress-tail-2: 56.51%; }
+    83.35% { --ds-progress-tail-2: 64.61%; }
+    85.13% { --ds-progress-tail-2: 71.79%; }
+    86.89% { --ds-progress-tail-2: 78.09%; }
+    88.65% { --ds-progress-tail-2: 83.6%; }
+    90.4% { --ds-progress-tail-2: 88.29%; }
+    92.16% { --ds-progress-tail-2: 92.2%; }
+    93.92% { --ds-progress-tail-2: 95.32%; }
+    95.68% { --ds-progress-tail-2: 97.64%; }
+    97.45% { --ds-progress-tail-2: 99.18%; }
+    99.22% { --ds-progress-tail-2: 99.92%; }
+    100% { --ds-progress-tail-1: 100%; --ds-progress-tail-2: 100%; }
+    /* end generated: progress-tail */
+  }
+
+  /* The wave of determinate progress travels one wavelength per loop
+     (--ds-loop-wave), linear: the mask tile moves, the bar stays. */
+  @keyframes ds-progress-wave {
+    to { mask-position: var(--ds-progress-wave-length) 0; }
+  }
+
+  /* The skeleton wave: --ds-skeleton-x sweeps once on a sine in-out, then
+     rests with the band off screen. Every bone reads the one value (its
+     background is fixed to the viewport), so the bones of a surface show a
+     single band and background-position itself never animates. */
+  @keyframes ds-skeleton-wave {
+    /* generated: skeleton-wave */
+    0% { --ds-skeleton-x: -150vw; }
+    2.41% { --ds-skeleton-x: -149.2vw; }
+    4.84% { --ds-skeleton-x: -146.81vw; }
+    7.31% { --ds-skeleton-x: -142.76vw; }
+    9.85% { --ds-skeleton-x: -136.99vw; }
+    12.49% { --ds-skeleton-x: -129.37vw; }
+    15.28% { --ds-skeleton-x: -119.67vw; }
+    18.3% { --ds-skeleton-x: -107.5vw; }
+    21.71% { --ds-skeleton-x: -92.06vw; }
+    26% { --ds-skeleton-x: -70.79vw; }
+    35.6% { --ds-skeleton-x: -21.1vw; }
+    39.49% { --ds-skeleton-x: -2.33vw; }
+    42.74% { --ds-skeleton-x: 11.87vw; }
+    45.67% { --ds-skeleton-x: 23.15vw; }
+    48.4% { --ds-skeleton-x: 32.11vw; }
+    51% { --ds-skeleton-x: 39.1vw; }
+    53.52% { --ds-skeleton-x: 44.3vw; }
+    55.98% { --ds-skeleton-x: 47.79vw; }
+    58.4% { --ds-skeleton-x: 49.65vw; }
+    60% { --ds-skeleton-x: 50vw; }
+    100% { --ds-skeleton-x: 50vw; }
+    /* end generated: skeleton-wave */
+  }
+
+  /* Deprecated, removed in 2.0: skeletons run ds-skeleton-wave. */
+  @keyframes ds-pulse {
+    50% { opacity: var(--ds-state-pulse); }
+  }
+
+  /* Deprecated, removed in 2.0: indeterminate progress runs
+     ds-progress-head and ds-progress-tail. The segment (35% of the track)
+     enters left and leaves right. */
   @keyframes ds-indeterminate {
     from { transform: translateX(-100%); }
     to { transform: translateX(286%); }
@@ -758,14 +1251,15 @@
       ds-lift-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
   }
 
-  /* Loaders keep their own animation: a skeleton, .ds-loading or .ds-boot
-     waits its loader delay (fast loads never flash it) and a spinner keeps
-     turning, also as a direct child of .ds-stagger (skeleton placeholders
-     in a staggered grid) or with .ds-reveal. revert-layer hands them back
-     to ds.components. The selectors weigh one class, so they beat the two
-     rules above by order and .ds-enter and .ds-leave below still win. */
-  .ds-stagger > :where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner),
-  .ds-reveal:where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner) {
+  /* Loaders keep their own animation: a skeleton, .ds-loading, .ds-boot
+     or a shape loader waits its loader delay (fast loads never flash it)
+     and a spinner keeps turning, also as a direct child of .ds-stagger
+     (skeleton placeholders in a staggered grid) or with .ds-reveal.
+     revert-layer hands them back to ds.components. The selectors weigh one
+     class, so they beat the two rules above by order and .ds-enter and
+     .ds-leave below still win. */
+  .ds-stagger > :where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner, .ds-loader),
+  .ds-reveal:where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner, .ds-loader) {
     animation: revert-layer;
   }
 
@@ -839,6 +1333,29 @@
   .ds-leave--scale { --ds-leave-keyframes: ds-fade-out, ds-shrink-out; --ds-leave-duration: var(--ds-dur-base); }
   .ds-leave--slide { --ds-leave-keyframes: ds-fade-out, ds-shift-out; --ds-leave-duration: var(--ds-dur-base); }
   .ds-leave--pop { --ds-leave-keyframes: ds-fade-out, ds-pop-out; }
+
+  /* Loaders whose loop draws them keep it while they leave (a loading bar
+     after its data arrived, a skeleton replaced by content): the loop
+     names stay in the list, so they run on where they are, and the exit
+     takes the positions after them. A leave variant may name one or two
+     keyframes, so its timing is listed twice (a list repeats to the
+     number of names; surplus entries are ignored). */
+  .ds-leave:where(.ds-loadbar) {
+    animation-name: ds-progress-head, ds-progress-tail, var(--ds-leave-keyframes, ds-fade-out);
+    animation-duration: var(--ds-loop-indeterminate), var(--ds-loop-indeterminate), var(--ds-leave-duration, var(--ds-dur-fast)), var(--ds-leave-duration, var(--ds-dur-fast));
+    animation-timing-function: linear, linear, var(--ds-leave-easing, var(--ds-ease-in)), var(--ds-leave-easing, var(--ds-ease-in));
+    animation-iteration-count: infinite, infinite, 1, 1;
+    animation-fill-mode: none, none, forwards, forwards;
+  }
+
+  .ds-leave:where(.ds-skeleton) {
+    animation-name: ds-skeleton-wave, var(--ds-leave-keyframes, ds-fade-out);
+    animation-duration: var(--ds-loop-skeleton), var(--ds-leave-duration, var(--ds-dur-fast)), var(--ds-leave-duration, var(--ds-dur-fast));
+    animation-timing-function: linear, var(--ds-leave-easing, var(--ds-ease-in)), var(--ds-leave-easing, var(--ds-ease-in));
+    animation-delay: calc(var(--ds-delay-loader) + var(--ds-dur-medium)), 0ms, 0ms;
+    animation-iteration-count: infinite, 1, 1;
+    animation-fill-mode: backwards, forwards, forwards;
+  }
 
   /*
    * A slot where outgoing and incoming content cross (roll() and
@@ -920,7 +1437,22 @@
   /*
    * Disclosure: <details class="ds-collapsible"> opens and closes with a
    * height transition where the browser can animate to `auto` (progressive
-   * enhancement; elsewhere it simply toggles).
+   * enhancement; elsewhere it simply toggles). A transition takes the
+   * timing of the state it moves to, so the closed rule is the close and
+   * the [open] rule the open: it opens over --ds-dur-medium on
+   * --ds-ease-out (the height pushes the content below, so it never
+   * overshoots, D29) and closes faster, accelerating; the content fades
+   * with it. content-visibility steps at the end of the close
+   * (allow-discrete), so the content stays painted while it goes.
+   *
+   * The content box clips during the height change, but its clip reaches
+   * out by --ds-space-3 (12px): a 2px ring at its snap start (offset +
+   * width out, then its own width) plus about --ds-space-1 of room, so the
+   * ring of a control flush with the content edge is never cut. One token,
+   * not a calc() of the focus tokens: Chromium computes a calc() in
+   * overflow-clip-margin to 0. Larger shadows (--ds-elev-2/3) may still be
+   * cut a little. Where overflow-clip-margin is missing, give the content
+   * that much padding (the ring room) instead.
    */
   @supports (interpolate-size: allow-keywords) {
     .ds-collapsible {
@@ -929,13 +1461,48 @@
 
     .ds-collapsible::details-content {
       height: 0;
+      opacity: 0;
       overflow: clip;
-      transition: height var(--ds-dur-medium) var(--ds-ease-in-out), content-visibility var(--ds-dur-medium) allow-discrete;
+      overflow-clip-margin: var(--ds-space-3);
+      transition:
+        height var(--ds-dur-base) var(--ds-ease-in),
+        opacity var(--ds-dur-fast) var(--ds-ease-in),
+        content-visibility var(--ds-dur-base) allow-discrete;
     }
 
     .ds-collapsible[open]::details-content {
       height: auto;
+      opacity: 1;
+      transition:
+        height var(--ds-dur-medium) var(--ds-ease-out),
+        opacity var(--ds-dur-medium) var(--ds-ease-in-out),
+        content-visibility var(--ds-dur-medium) allow-discrete;
     }
+  }
+
+  /*
+   * Disclosure chevron (D25): turns 180deg with the expansion on the spring,
+   * in a summary of an open <details> or under aria-expanded="true" (a
+   * table row's toggle, a menu trigger).
+   *
+   *   <summary>Advanced <svg class="ds-chevron" ...>(chevronDown)</svg></summary>
+   *   <button aria-expanded="false" ...><svg class="ds-chevron" ...>(chevronDown)</svg></button>
+   */
+  .ds-chevron {
+    transition: rotate var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  /* A collapsible's summary with a chevron drops the native marker. */
+  .ds-collapsible > summary:has(> .ds-chevron) {
+    list-style: none;
+  }
+
+  .ds-collapsible > summary:has(> .ds-chevron)::-webkit-details-marker {
+    display: none;
+  }
+
+  .ds-chevron:where([open] > summary *, [aria-expanded="true"] *) {
+    rotate: 180deg;
   }
 
   /*
@@ -1004,6 +1571,16 @@
         display var(--ds-dur-fast) allow-discrete,
         overlay var(--ds-dur-fast) allow-discrete;
     }
+  }
+
+  /* A node that DS.dom.morphHtml moves with insertBefore (engines without
+     moveBefore) is new to the style engine, so its @starting-style
+     entrances (a status icon, an error message's room) would play again on
+     every sort. It carries data-ds-moving for one style flush: no
+     transitions, so data changes glide and never replay an entrance. */
+  :where(.ds-theme) [data-ds-moving],
+  :where(.ds-theme) [data-ds-moving] * {
+    transition: none;
   }
 }
 
@@ -1127,10 +1704,15 @@
  *   .ds-sr       visually hidden, still read by screen readers
  *   .ds-muted    quieter body text (tabular figures)
  *   .ds-meta     a meta line: hints, "last saved ..." (tabular figures)
- *   .ds-stale    content on its way out, dimmed until it is replaced
+ *   .ds-stale    content on its way out, dimmed until it is replaced (set
+ *                aria-busy="true" on the container while it is stale)
  *   .ds-num      right-aligned tabular figures (table cells)
  *   .ds-center   centred text
  *   .ds-nowrap   keeps a value and its unit together
+ *
+ * .ds-stale dims only after --ds-delay-loader, so an update that answers
+ * within 200ms never dims; taking it off is instant, so fresh values show
+ * at once (docs/motion.md, "Data motion").
  *
  * Progressive: text-wrap (a paragraph of .ds-muted avoids a lone last
  * word); without it the text wraps as usual.
@@ -1187,10 +1769,12 @@
 
   /* Content on its way out (a filter applied, a test running again): it
      stays in place, dimmed, until the new one replaces it in one step, so
-     nothing collapses and jumps back meanwhile. */
+     nothing collapses and jumps back meanwhile. It dims after the loader
+     delay (a fast answer never dims); the rest state has no transition, so
+     removing the class shows the fresh values at once. */
   .ds-stale {
     opacity: var(--ds-state-stale);
-    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out) var(--ds-delay-loader);
   }
 
   .ds-num {
@@ -1680,20 +2264,48 @@
 
 /* ── components/spinner.css ── */
 /*
- * Spinner: a ring that turns once per --ds-loop-spin, a primary arc on a
- * track. Show it only after --ds-delay-loader, so fast loads never flash it.
+ * Spinner: the Material 3 arc, the inline loading indicator (busy buttons,
+ * chips, status chips, table cells). The arc grows from 10deg to 270deg and
+ * shrinks back while its start advances, so the tail chases the head
+ * (ds-spinner-arc, --ds-loop-arc), and the whole ring turns once per
+ * --ds-loop-spin (ds-spin). One element, painted by a conic gradient on
+ * the two registered angles (--ds-spinner-start, --ds-spinner-arc) through
+ * a ring mask; no track by default (M3, 2024). Show it only after
+ * --ds-delay-loader, so fast loads never flash it. A block of the page
+ * that waits (a section, a sheet, the app start) shows the shape loader
+ * instead (loader.css).
  *
  * Never put .ds-enter on the spinner itself in static markup: the entrance
- * replaces the turn while it runs, and the classes stay. Delay a spinner
- * through .ds-loading (it has its own delay), or wrap it:
+ * replaces the arc and the turn while it runs, and the classes stay. Delay
+ * a spinner through .ds-loading (it has its own delay), or wrap it:
  *   <span class="ds-enter ds-enter--delayed"><span class="ds-spinner"></span></span>
  * DS.motion.enter(spinner, 'delayed') is fine: the entrance plays once and
  * enter() removes its classes, so the spinner turns again.
  *
- *   .ds-spinner         on surfaces (16px)
- *   .ds-spinner--sm     inside buttons and chips (12px), takes the text colour
+ *   .ds-spinner                on surfaces (16px)
+ *   .ds-spinner--sm            inside buttons and chips (12px), takes the
+ *                              text colour, on a faint ring of it
+ *   .ds-spinner--determinate   circular progress (40px, 4px): the share
+ *                              (--ds-progress, 0 ... 1) as an arc, a gap,
+ *                              then the remaining track in --ds-accent; the
+ *                              arc is wavy (--ds-progress-ring-wave) on a
+ *                              plain track, and flat while it is short
+ *                              (cross-fading between 6% and 11%). It
+ *                              never spins, and its value glides on
+ *                              --ds-ease-value over --ds-dur-glide, like
+ *                              linear progress and DS.motion.countUp():
+ *     <span class="ds-spinner ds-spinner--determinate" role="progressbar" aria-label="Upload"
+ *           aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" style="--ds-progress: .4"></span>
+ *   .ds-spinner--flat          with --determinate: a plain arc, no wave
  *
- * Hooks: --ds-spinner-track, --ds-spinner-color.
+ * Inside .ds-progress a determinate spinner reads the share of its
+ * .ds-progress (the property inherits) and lands with its bar on the same
+ * frame; it has no transition of its own there.
+ *
+ * Hooks: --ds-spinner-color (the arc), --ds-spinner-track (none, or
+ * --ds-accent on the determinate ring), --ds-spinner-width (2px; 4px on
+ * the determinate ring). A project that set border-width on a spinner sets
+ * --ds-spinner-width instead.
  *
  * The small spinner's faint ring mixes the text colour (color-mix());
  * --ds-spinner-sm-track is a deprecated fallback line (removed in 2.0).
@@ -1705,28 +2317,196 @@
     width: 16px;
     height: 16px;
     flex-shrink: 0;
-    border: 2px solid var(--ds-spinner-track, var(--ds-line));
-    border-top-color: var(--ds-spinner-color, var(--ds-primary));
+    border: 0;
     border-radius: 50%;
-    animation: ds-spin var(--ds-loop-spin) linear infinite;
+    background: conic-gradient(from var(--ds-spinner-start), var(--ds-spinner-color, var(--ds-primary)) 0 var(--ds-spinner-arc), var(--ds-spinner-track, transparent) 0);
+    /* The ring: the inner disc is cut away, half a pixel soft for an even edge. */
+    -webkit-mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
+    mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
+    animation:
+      ds-spinner-arc var(--ds-loop-arc) linear infinite,
+      ds-spin var(--ds-loop-spin) linear infinite;
   }
 
   .ds-spinner--sm {
     width: 12px;
     height: 12px;
-    /* A faint ring in the text colour. */
-    border-color: var(--ds-spinner-sm-track);
-    border-color: color-mix(in srgb, currentColor 22%, transparent);
-    border-top-color: currentColor;
+    /* The arc and a faint ring in the text colour. The first track line is
+       the deprecated fallback; the colour mix always replaces it. */
+    --ds-spinner-color: currentColor;
+    --ds-spinner-track: var(--ds-spinner-sm-track);
+    --ds-spinner-track: color-mix(in srgb, currentColor 22%, transparent);
   }
 
-  /* Forced colors paint every side of the border alike: the arc would turn
-     into a still-looking full ring. */
+  /*
+   * Circular progress: the element holds the value; ::before paints the
+   * track, ::after the arc, each a ring of its own, so the arc can be wavy
+   * on a plain track (M3 Expressive). The arc ends at the share; a gap of
+   * about 4px of arc (14deg at the ring's radius) separates it from the
+   * track on both ends and opens with the first percent, so an empty ring
+   * is a whole track and a full one a whole arc (the colour stops clamp
+   * past 360deg).
+   */
+  .ds-spinner--determinate {
+    --ds-spinner-width: 4px;
+    position: relative;
+    width: 40px;
+    height: 40px;
+    background: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+    animation: none;
+    transition: --ds-progress var(--ds-dur-glide) var(--ds-ease-value);
+  }
+
+  .ds-spinner--determinate::before,
+  .ds-spinner--determinate::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    -webkit-mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
+    mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
+  }
+
+  .ds-spinner--determinate::before {
+    background: conic-gradient(
+      transparent 0 calc(var(--ds-progress) * 360deg + 14deg * min(1, var(--ds-progress) * 100)),
+      var(--ds-spinner-track, var(--ds-accent)) 0 calc(360deg - 14deg * min(1, var(--ds-progress) * 100)),
+      transparent 0
+    );
+  }
+
+  .ds-spinner--determinate::after {
+    background: conic-gradient(var(--ds-spinner-color, var(--ds-primary)) 0 calc(var(--ds-progress) * 360deg), transparent 0);
+  }
+
+  /* The wavy arc (--ds-progress-ring-wave: 7 waves around a 16.4px radius)
+     on a plain track at the wave's middle; --flat keeps both plain rings
+     at the edge. A short arc would be a loose tick or hook of the wave, so
+     up to 6% the arc is flat (a layer of the track's ring, at the wave's
+     middle) and the wavy one cross-fades in by 11%, on the gliding share
+     (--ds-progress-wave-start, --ds-progress-wave-ramp). */
+  .ds-spinner--determinate:not(.ds-spinner--flat)::before {
+    inset: 1.6px;
+    background:
+      conic-gradient(color-mix(in srgb, var(--ds-spinner-color, var(--ds-primary)) clamp(0%, calc(1 - var(--ds-progress) / var(--ds-progress-wave-ramp) + var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp)) * 100%, 100%), transparent) 0 calc(var(--ds-progress) * 360deg), transparent 0),
+      conic-gradient(
+        transparent 0 calc(var(--ds-progress) * 360deg + 14deg * min(1, var(--ds-progress) * 100)),
+        var(--ds-spinner-track, var(--ds-accent)) 0 calc(360deg - 14deg * min(1, var(--ds-progress) * 100)),
+        transparent 0
+      );
+  }
+
+  .ds-spinner--determinate:not(.ds-spinner--flat)::after {
+    opacity: calc(var(--ds-progress) / var(--ds-progress-wave-ramp) - var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp));
+    -webkit-mask-image: var(--ds-progress-ring-wave);
+    mask-image: var(--ds-progress-ring-wave);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+
+  /* Nested, the share inherits from .ds-progress, which glides it: a second
+     transition here would trail behind the bar. */
+  .ds-progress .ds-spinner--determinate {
+    transition: none;
+  }
+
+  /* Forced colors drop background images: the arc and its track paint in
+     system colours, the ring mask stays. */
   @media (forced-colors: active) {
     .ds-spinner {
       forced-color-adjust: none;
-      border-color: GrayText;
-      border-top-color: Highlight;
+      --ds-spinner-color: Highlight;
+      --ds-spinner-track: GrayText;
+    }
+  }
+}
+
+/* ── components/loader.css ── */
+/*
+ * Shape loader: the Material 3 Expressive loading indicator and the block
+ * loader of the system (.ds-boot, .ds-loading). A shape morphs through the
+ * seven M3 shapes (soft burst, cookie-9, pentagon, pill, sunny, cookie-4,
+ * oval; ds-loader-morph), every step landing on the spatial spring, while
+ * it turns once per round (ds-loader-turn, linear); one round takes
+ * --ds-loop-loader. Like every loader it fades in only after
+ * --ds-delay-loader, so fast loads never show it.
+ *
+ *   <span class="ds-loader" aria-hidden="true"></span>
+ *   <div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
+ *   <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
+ *
+ *   .ds-loader              48px container, the shape 38px (38/48 of it)
+ *   .ds-loader--sm          24px, for the loading line
+ *   .ds-loader--contained   the shape on a --ds-accent disc
+ *
+ * Hooks: --ds-loader-size (48px), --ds-loader-color (--ds-primary).
+ *
+ * The loader is decoration: aria-hidden, and the surrounding role="status"
+ * carries the text. Inside .ds-boot, .ds-loading and .ds-skeleton the
+ * container waits its own delay, so the loader drops its fade there (the
+ * delays never stack). The loops run on ::before, so .ds-enter on the
+ * loader itself replaces only its fade.
+ *
+ * At most a few per view: the polygon morph repaints every frame. Inline
+ * spots (buttons, chips, status chips, table cells) keep the arc spinner
+ * (spinner.css).
+ */
+
+@layer ds.components {
+  .ds-loader {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: var(--ds-loader-size, 48px);
+    height: var(--ds-loader-size, 48px);
+    border-radius: 50%;
+    animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards;
+  }
+
+  /* The shape: 64-vertex polygons, so every morph is a straight blend. */
+  .ds-loader::before {
+    content: '';
+    width: calc(100% * 38 / 48);
+    height: calc(100% * 38 / 48);
+    background: var(--ds-loader-color, var(--ds-primary));
+    animation:
+      ds-loader-morph var(--ds-loop-loader) var(--ds-ease-spatial) infinite,
+      ds-loader-turn var(--ds-loop-loader) linear infinite;
+  }
+
+  .ds-loader--sm {
+    --ds-loader-size: 24px;
+  }
+
+  .ds-loader--contained {
+    background: var(--ds-accent);
+  }
+
+  /* The container already waits: no second delay. */
+  .ds-boot .ds-loader,
+  .ds-loading .ds-loader,
+  .ds-skeleton .ds-loader {
+    animation: none;
+  }
+
+  /* Forced colors drop the fills: the shape in the system highlight, the
+     disc of the contained loader as an edge. */
+  @media (forced-colors: active) {
+    .ds-loader {
+      forced-color-adjust: none;
+    }
+
+    .ds-loader::before {
+      background: Highlight;
+    }
+
+    .ds-loader--contained {
+      background: Canvas;
+      outline: 1px solid CanvasText;
     }
   }
 }
@@ -1905,13 +2685,55 @@
  * only after --ds-delay-loader (the same delay as LOADER_DELAY_MS in
  * js/motion.js, whose settleLoader() keeps a visible one up long enough).
  * Their loops always run at their token speed (--ds-loop-* in tokens.css).
+ * A block that waits shows the shape loader (loader.css); inline spots
+ * keep the arc spinner (spinner.css).
  *
- *   <div class="ds-boot"> ... </div>                 app start, after --ds-delay-boot
- *   <div class="ds-loading" role="status"><span class="ds-spinner"></span>Loading ...</div>
+ *   <div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
+ *                                                     app start, after --ds-delay-boot
+ *   <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
  *   <div class="ds-skeleton" role="status"> <span class="ds-sr">Loading ...</span>
- *     <span class="ds-loadbar"><span class="ds-loadbar__bar"></span></span>
+ *     <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
  *     <span class="ds-skeleton__line ds-skeleton__line--heading"></span> ...
  *     <div class="ds-skeleton__card"> <span class="ds-skeleton__line ds-skeleton__line--title"></span> ...
+ *
+ * The older markup with a .ds-spinner in .ds-boot or .ds-loading keeps
+ * working; the spinner is the inline variant (a row in a list, a cell).
+ *
+ * Skeleton: one synchronised, calm diagonal wave across the whole surface.
+ * The surface runs ds-skeleton-wave once its own entrance is over (its
+ * delay is --ds-delay-loader plus --ds-dur-medium) and animates one
+ * registered value, --ds-skeleton-x; every bone paints the same band, fixed
+ * to the viewport (background-attachment: fixed) at that position, so the
+ * bones show a single continuous band. A bone outside a .ds-skeleton runs
+ * the wave itself. Fallback: where background-attachment: fixed is ignored
+ * (iOS) or broken (a transformed ancestor, such as a sheet mid-slide or an
+ * element running .ds-enter), the bones stay in sync in time, but the band
+ * is no longer continuous across them. Never wrap a skeleton in an
+ * entrance that fills forwards: Chromium and Firefox break the band while
+ * an ancestor's translate animation is in effect.
+ *
+ * Loading bar: the two-segment indeterminate choreography of M3
+ * (ds-progress-head, ds-progress-tail on --ds-loop-indeterminate), flat
+ * (at the panel edge a wave would be clipped). In a skeleton it shares the
+ * skeleton's delay; on its own it fades in after --ds-delay-loader. It
+ * reaches the panel edges through the read-only padding properties of
+ * .ds-content (--ds-content-pad-top, --ds-content-pad-x; page.css) and,
+ * inside a .ds-page, the page's centring (100cqw of .ds-content), and the
+ * view's scroll hairline hides while it is there (shell.css). Place it (or
+ * its skeleton) directly in .ds-content or .ds-page, with no other size
+ * container in between.
+ *
+ * Refresh pattern: put .ds-stale on the content and insert a loading bar
+ * above it; when the data arrives,
+ *   await DS.motion.settleLoader(startedAt, { element: loadbar });
+ *   await DS.motion.leave(loadbar);       (fades it out and removes it)
+ * then render the fresh content and remove .ds-stale. The bar's segments
+ * (and a skeleton's wave) keep moving while it fades out: .ds-leave keeps
+ * their loops (motion.css).
+ *
+ * Runtime property --ds-skeleton-x (registered, tokens.css): the band's
+ * position; it rests at -150vw (off screen) whenever the wave does not
+ * run, so an exit that replaces the wave never shows a band.
  */
 
 @layer ds.components {
@@ -1937,11 +2759,18 @@
     animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards;
   }
 
-  /* Page placeholder: the outline of the page, pulsing slowly. */
+  /* Page placeholder: the outline of the page, one wave passing over it
+     after its entrance. The wave holds its start (off screen) during the
+     delay. */
   .ds-skeleton {
+    /* At rest (an exit or entrance that replaces the wave) the band stays
+       off screen, as at the start of the sweep. */
+    --ds-skeleton-x: -150vw;
     display: grid;
     gap: var(--ds-space-4);
-    animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards;
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards,
+      ds-skeleton-wave var(--ds-loop-skeleton) linear calc(var(--ds-delay-loader) + var(--ds-dur-medium)) infinite backwards;
   }
 
   .ds-skeleton__card {
@@ -1952,13 +2781,23 @@
     border-radius: var(--ds-radius-card);
   }
 
+  /* A bone: the band is two viewports wide and fixed to the viewport, so
+     every bone shows its own slice of the same band. */
   .ds-skeleton__line {
     display: block;
     width: 100%;
     height: 12px;
     border-radius: var(--ds-radius-action);
-    background: var(--ds-surface-highest);
-    animation: ds-pulse var(--ds-loop-pulse) var(--ds-ease-in-out) infinite;
+    background-color: var(--ds-surface-highest);
+    background-image: linear-gradient(105deg, transparent 40%, var(--ds-skeleton-highlight) 50%, transparent 60%);
+    background-size: 200vw 100%;
+    background-attachment: fixed;
+    background-position: var(--ds-skeleton-x) 0;
+  }
+
+  .ds-skeleton__line:not(.ds-skeleton *) {
+    --ds-skeleton-x: -150vw;
+    animation: ds-skeleton-wave var(--ds-loop-skeleton) linear infinite;
   }
 
   .ds-skeleton__line--heading { width: 28%; height: 28px; border-radius: var(--ds-radius-sm); }
@@ -1968,9 +2807,10 @@
   .ds-skeleton__line--mid { width: 70%; }
 
   /*
-   * Page loading bar: 4px at the top edge of the content panel. It sits in
-   * the skeleton (so it shares its delay) and reaches the panel edges by the
-   * page padding of .ds-content (page.css), sticky while the panel scrolls.
+   * Page loading bar: 4px at the top edge of the content panel, sticky
+   * while the panel scrolls. The track animates the edges of both segments
+   * (registered, inheriting); segment 1 is the bar, segment 2 the ::after,
+   * each the full width clipped between its tail and its head.
    */
   .ds-loadbar {
     position: sticky;
@@ -1979,33 +2819,70 @@
     display: block;
     height: 4px;
     overflow: hidden;
-    margin: calc(-1 * var(--ds-space-6)) calc(-1 * var(--ds-space-8)) var(--ds-space-5);
+    margin: calc(-1 * var(--ds-content-pad-top, var(--ds-space-6))) calc(-1 * var(--ds-content-pad-x, var(--ds-space-8))) var(--ds-space-5);
     background: var(--ds-accent);
+    animation:
+      ds-progress-head var(--ds-loop-indeterminate) linear infinite,
+      ds-progress-tail var(--ds-loop-indeterminate) linear infinite;
+  }
+
+  /* On its own (a refresh), the bar waits the loader delay; in a skeleton
+     the skeleton waits, and only the loops run here. */
+  .ds-loadbar:not(.ds-skeleton > .ds-loadbar) {
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards,
+      ds-progress-head var(--ds-loop-indeterminate) linear infinite,
+      ds-progress-tail var(--ds-loop-indeterminate) linear infinite;
+  }
+
+  /* In a page (the skeleton of a loading page, a refresh above its
+     content) the bar also spans the page's centring: .ds-page is
+     min(100%, --ds-content-max) wide and centred in .ds-content, the
+     nearest size container, so 100cqw is the panel's content box. Sides
+     only, so the bottom margin of the 720px rule still applies. */
+  .ds-page .ds-loadbar {
+    margin-right: calc(-1 * var(--ds-content-pad-x, var(--ds-space-8)) - max(0px, (100cqw - var(--ds-content-max)) / 2));
+    margin-left: calc(-1 * var(--ds-content-pad-x, var(--ds-space-8)) - max(0px, (100cqw - var(--ds-content-max)) / 2));
   }
 
   @media (max-width: 720px) {
     .ds-loadbar {
-      margin: calc(-1 * var(--ds-space-5)) calc(-1 * var(--ds-space-4)) var(--ds-space-4);
+      margin-bottom: var(--ds-space-4);
     }
   }
 
-  .ds-loadbar__bar {
+  .ds-loadbar__bar,
+  .ds-loadbar::after {
+    position: absolute;
+    inset: 0;
     display: block;
-    width: 35%;
-    height: 100%;
-    border-radius: var(--ds-radius-action);
     background: var(--ds-primary);
-    animation: ds-indeterminate var(--ds-loop-indeterminate) var(--ds-ease-in-out) infinite;
   }
 
-  /* Forced colors turn both fills into Canvas, which would hide the bar: an
-     edge for the track and the system highlight for the moving part. */
+  .ds-loadbar__bar {
+    clip-path: inset(0 calc(100% - var(--ds-progress-head-1)) 0 var(--ds-progress-tail-1) round var(--ds-radius-action));
+  }
+
+  .ds-loadbar::after {
+    content: '';
+    clip-path: inset(0 calc(100% - var(--ds-progress-head-2)) 0 var(--ds-progress-tail-2) round var(--ds-radius-action));
+  }
+
+  /* Forced colors turn every fill into Canvas, which would hide the bones
+     and the bar: edges for the bones and the track, the system highlight
+     for both segments. */
   @media (forced-colors: active) {
+    .ds-skeleton__line {
+      outline: 1px solid CanvasText;
+      background-image: none;
+    }
+
     .ds-loadbar {
       outline: 1px solid CanvasText;
     }
 
-    .ds-loadbar__bar {
+    .ds-loadbar__bar,
+    .ds-loadbar::after {
       forced-color-adjust: none;
       background: Highlight;
     }
@@ -2025,13 +2902,36 @@
  *     <nav class="ds-card__links"> <a class="ds-btn ds-btn--text ds-card__link"> ...
  *
  *   .ds-card--filled   a quieter block inside a card or form
+ *   .ds-card--interactive  the whole card opens something:
+ *     <a class="ds-card ds-card--interactive" href="/devices/42"> ... </a>
+ *     <button class="ds-card ds-card--interactive" type="button"> (spans) </button>
+ *     <div class="ds-card ds-card--interactive"> ... <a class="ds-card__action" href="/devices/42">Title</a> ... </div>
+ *     The <a> and <button> forms lay their content out as a column from
+ *     the top (a button would centre it in a taller grid cell).
+ *     The <div> form keeps other controls usable: .ds-card__action's
+ *     ::after stretches over the card, the card's other links and controls
+ *     stay above it.
+ *
+ * An interactive card has a state layer in currentColor (hover
+ * --ds-state-hover-lg, press --ds-state-pressed in --ds-dur-micro, keyboard
+ * focus --ds-state-focus with a ring that is solid from the first frame
+ * and snaps from offset + width to the offset; on the <div> form the ring
+ * sits on the card through :has(.ds-card__action:focus-visible), so a
+ * ripple's clip never cuts it), the press morph (the radius goes to
+ * --ds-radius-card-pressed in --ds-dur-micro and springs back over
+ * --ds-dur-medium) and the ripple (js/ripple.js). Nothing moves on hover:
+ * no lift, no scale; a theme may give it a shadow through
+ * --ds-card-hover-shadow (default none; for example var(--ds-elev-hover)),
+ * in over --ds-dur-medium, out over --ds-dur-base. In forced colours every
+ * interactive card keeps a visible edge.
  *
  * Hooks (on .ds-theme or an element): --ds-card-padding (--ds-space-6),
  * --ds-card-padding-sm (600px and below, --ds-space-4),
  * --ds-card-padding-filled (--ds-space-5), --ds-card-title-line (the
  * title's line height, 24px, which a button or switch in the header row
- * overhangs). --ds-card-pad is the resulting padding of each card, which
- * tables read to bleed to its edges: read it, never set it.
+ * overhangs), --ds-card-hover-shadow (an interactive card's shadow on
+ * hover, default none). --ds-card-pad is the resulting padding of each
+ * card, which tables read to bleed to its edges: read it, never set it.
  */
 
 @layer ds.components {
@@ -2070,6 +2970,137 @@
     --ds-card-pad: var(--ds-card-padding-filled, var(--ds-space-5));
     border-color: transparent;
     background: var(--ds-surface-low);
+  }
+
+  /*
+   * Interactive card (D26): a whole card that opens something. The
+   * element's own link or button look is reset; the state layer sits
+   * between the card's fill and its content (the card is isolated).
+   */
+  .ds-card--interactive {
+    position: relative;
+    isolation: isolate;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    /* The ring rests (invisible) one width further out and snaps in. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition:
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+      box-shadow var(--ds-dur-base) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* A column from the top: a button centres its content in a taller box
+     (next to a taller card in a grid row), and its spans stack with the
+     card's rhythm like the blocks of the other forms. */
+  :is(a, button).ds-card--interactive {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .ds-card--interactive::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  @media (hover: hover) {
+    .ds-card--interactive:hover {
+      box-shadow: var(--ds-card-hover-shadow, none);
+      transition:
+        border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+        box-shadow var(--ds-dur-medium) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+    }
+
+    .ds-card--interactive:hover::before {
+      opacity: var(--ds-state-hover-lg);
+    }
+  }
+
+  /* Keyboard focus: the layer appears with the ring and fades out on blur. */
+  .ds-card--interactive:focus-visible::before,
+  .ds-card--interactive:has(.ds-card__action:focus-visible)::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
+  }
+
+  /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it); not
+     while another control in a <div> card is pressed (it has its own). */
+  .ds-card--interactive:active:not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-card__action):active)))::before,
+  .ds-card--interactive.ds-pressed::before {
+    opacity: var(--ds-state-pressed);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  /* The press morph: squarer while pressed (never rounder than at rest),
+     springing back on release. */
+  .ds-card--interactive:active:not(:disabled, [aria-disabled="true"]):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-card__action):active))),
+  .ds-card--interactive.ds-pressed:not(:disabled, [aria-disabled="true"]) {
+    border-radius: min(var(--ds-radius-card-pressed), var(--ds-radius-card));
+    transition:
+      border-radius var(--ds-dur-micro) var(--ds-ease-out),
+      box-shadow var(--ds-dur-base) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* The <div> form takes its ring on the card itself, not on the action's
+     stretched ::after: a ripple clips the card (overflow: clip) and would
+     cut a descendant's ring outside the padding box for the whole press. */
+  .ds-card--interactive:focus-visible,
+  .ds-card--interactive:has(.ds-card__action:focus-visible) {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
+  }
+
+  /* The <div> form: the action's ::after covers the card; the card's other
+     links and controls stay above it (zero specificity: a control's own
+     position wins). The action reads as the card's text: the whole card is
+     the affordance. */
+  .ds-card__action {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ds-card__action::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: var(--ds-radius-card);
+  }
+
+  .ds-card--interactive .ds-card__action:focus-visible {
+    outline: none;
+  }
+
+  :where(.ds-card--interactive) :where(a[href], button, input, select, textarea, label, summary, [tabindex]):where(:not(.ds-card__action)) {
+    position: relative;
+    z-index: var(--ds-z-raised);
+  }
+
+  @media (forced-colors: active) {
+    .ds-card--interactive.ds-card--filled {
+      border-color: CanvasText;
+    }
   }
 
   /* Cards side by side share one height; their link rows line up at the
@@ -2189,9 +3220,18 @@
  * in --ds-dur-micro (also while js/ripple.js holds .ds-pressed) with the
  * ripple, and keyboard focus with the focus layer and a ring that is solid
  * from the first frame and snaps from offset + width to the offset
- * (outline-offset, --ds-dur-fast); no lift.
+ * (outline-offset, --ds-dur-fast); no lift, no scale. While pressed it
+ * turns squarer (16px to --ds-tile-radius-pressed, 12px) in
+ * --ds-dur-micro and springs back over --ds-dur-medium, like a card.
  *
- * Hook: --ds-tile-radius.
+ * Values (docs/motion.md, "Data motion"): every new value goes through
+ * DS.motion.countUp(el, next), which counts from the figure on screen
+ * (the first call from 0) on --ds-ease-value over --ds-dur-glide,
+ * retargets mid-count and gives assistive technology the final value. A
+ * meter or progress bar set in the same task lands on the same frame. The
+ * note changes at once.
+ *
+ * Hooks: --ds-tile-radius, --ds-tile-radius-pressed.
  *
  * On narrow tiles the value shrinks with the tile (container units).
  */
@@ -2269,7 +3309,19 @@
     -webkit-tap-highlight-color: transparent;
     /* The ring rests (invisible) one width further out and snaps in. */
     outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
-    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+    transition:
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* The press morph: squarer while pressed (never rounder than at rest);
+     the layer follows through border-radius: inherit. */
+  :is(button, a).ds-tile:active:not(:disabled, [aria-disabled="true"]),
+  :is(button, a).ds-tile.ds-pressed:not(:disabled, [aria-disabled="true"]) {
+    border-radius: min(var(--ds-tile-radius-pressed, var(--ds-radius-md)), var(--ds-tile-radius, var(--ds-radius-lg)));
+    transition:
+      border-radius var(--ds-dur-micro) var(--ds-ease-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   :is(button, a).ds-tile::before {
@@ -2525,6 +3577,16 @@
  *     <p class="ds-empty__text">Add the first one to start the inventory.</p>
  *     <button class="ds-btn ds-btn--tonal" type="button">Add device</button>
  *
+ * No motion of its own; the page picks it by what brought the empty state
+ * (docs/motion.md, "Data motion"):
+ *   replacing a skeleton           .ds-reveal
+ *   a filter, search or live update the rows leave through DS.motion.flip
+ *                                  (they fade out in place), then
+ *                                  DS.motion.enter(empty, 'fade'), no rise
+ *   the filter cleared             DS.motion.leave(empty) while the rows
+ *                                  enter through flip
+ *   the user deleted the last item DS.motion.enter(disc, 'pop') on the disc
+ *
  * Progressive: text-wrap (the text avoids a lone last word); without it
  * the line wraps as usual.
  */
@@ -2583,6 +3645,23 @@
  * Fully round at one line (radius = half the height); a long label that
  * wraps keeps soft corners instead of turning into a stadium.
  * Hook: --ds-status-radius.
+ *
+ * Status changes glide, for a user action and a poll alike: colour and
+ * icon change smoothly for every status change, the text at once. The
+ * container and its icon change colour over --ds-dur-medium; render with
+ * DS.dom.morphHtml, which patches the kept span in place, so the class
+ * change transitions instead of replacing the chip. An icon or spinner
+ * that comes in new (running to ok) fades in and springs up from
+ * --ds-scale-small, like the incoming face of .ds-icon-swap; a page that
+ * swaps the icon itself can use DS.motion.crossfade(chip, icon, { kind:
+ * 'icon' }). What glides and what changes at once: docs/motion.md, "Data
+ * motion".
+ *
+ * Progressive: @starting-style (the incoming icon's fade and scale; it
+ * also plays on the first render of a chip, never on a keyed move: where
+ * moveBefore is missing, morphHtml marks a moved row data-ds-moving for
+ * one style flush, motion.css); without it the icon swaps at once while
+ * the colours still glide.
  */
 
 @layer ds.components {
@@ -2599,12 +3678,28 @@
     font: var(--ds-font-caption);
     vertical-align: middle;
     transition:
-      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
-      color var(--ds-dur-fast) var(--ds-ease-in-out);
+      background-color var(--ds-dur-medium) var(--ds-ease-in-out),
+      color var(--ds-dur-medium) var(--ds-ease-in-out);
   }
 
   .ds-status > svg {
     flex-shrink: 0;
+  }
+
+  /* The icon's colour follows the modifier on the container's timing; an
+     icon or spinner that comes in new fades in and springs up. */
+  .ds-status > :is(svg, .ds-spinner) {
+    transition:
+      color var(--ds-dur-medium) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-fast) var(--ds-ease-spatial);
+  }
+
+  @starting-style {
+    .ds-status > :is(svg, .ds-spinner) {
+      opacity: 0;
+      scale: var(--ds-scale-small);
+    }
   }
 
   .ds-status--ok {
@@ -2631,12 +3726,13 @@
     color: var(--ds-text);
   }
 
+  /* The arc at its own pace, the turn a little faster than on a surface. */
   .ds-status__spinner {
+    --ds-spinner-width: 2px;
     width: 14px;
     height: 14px;
     margin: 1px;
-    border-width: 2px;
-    animation-duration: var(--ds-loop-spin-fast);
+    animation-duration: var(--ds-loop-arc), var(--ds-loop-spin-fast);
   }
 }
 
@@ -2660,12 +3756,24 @@
  * (js/ripple.js), and its own ring for keyboard focus (also without
  * .ds-base): solid from the first frame, it snaps from offset + width to
  * the offset (outline-offset, --ds-dur-fast). It is not a pill and does
- * not morph.
+ * not morph. Its chevron (.ds-errors__chevron) turns 180deg with the list
+ * on the spring, like .ds-chevron; <details class="ds-errors
+ * ds-collapsible"> opens the list with the collapsible timing.
+ *
+ * Inserting and dismissing (docs/motion.md, "Data motion"): through
+ * DS.motion.flip on the stack, for a user action and live data alike.
+ * Dismiss: flip(stack, () => alert.remove()): the alert fades out in place,
+ * out of flow, and the alerts below glide up on the spring (in any flex or
+ * grid gap, no height animated). Insert: flip(stack, () =>
+ * stack.prepend(alert)): it fades in while the others glide down.
  */
 
 @layer ds.components {
-  /* No entrance of their own: an alert re-rendered with fresh data must not
-     fade in again. Give an alert that a user action brings in .ds-reveal. */
+  /* No entrance of their own: an alert re-rendered with fresh data is
+     patched in place and never fades in again. An alert that comes or goes
+     (a user action or live data) does it through DS.motion.flip on its
+     stack (the header above); one that replaces a placeholder takes
+     .ds-reveal, never per update. */
 
   .ds-alert {
     display: flex;
@@ -2738,7 +3846,7 @@
 
   /* Collapsible list of messages: icon and text in the summary.
 
-     <details class="ds-errors"><summary><svg ...>(alertCircle)</svg>2 errors<svg class="ds-errors__chevron" ...>(chevronDown)</svg></summary><ul><li>...</li></ul></details> */
+     <details class="ds-errors ds-collapsible"><summary><svg ...>(alertCircle)</svg>2 errors<svg class="ds-errors__chevron" ...>(chevronDown)</svg></summary><ul><li>...</li></ul></details> */
   .ds-errors {
     font: var(--ds-font-body);
   }
@@ -2823,13 +3931,15 @@
     display: none;
   }
 
-  /* The chevron flips without turning (no rotation in the motion system). */
+  /* The disclosure chevron turns 180deg with the expansion (D25), on the
+     timing of .ds-chevron. */
   .ds-errors .ds-errors__chevron {
     color: inherit;
+    transition: rotate var(--ds-dur-medium) var(--ds-ease-spatial);
   }
 
   .ds-errors[open] .ds-errors__chevron {
-    transform: rotate(180deg);
+    rotate: 180deg;
   }
 }
 
@@ -2852,9 +3962,14 @@
  *                       content area is narrow)
  *   .ds-link-btn        a button that reads like a link (opens a detail)
  *   .ds-table--dense    40px rows (long lists)
- *   <th aria-sort="ascending"><button class="ds-table__sort">Name (arrow)</button></th>
+ *   <th aria-sort="ascending"><button class="ds-table__sort">Name (arrowUp .ds-table__sort-arrow)</button></th>
  *                       a sortable column; the arrow at the sorted column
  *                       says it, not the colour
+ *   .ds-table__sort-arrow  on the arrow's svg: one up arrow for both
+ *                       directions, which turns to point down for
+ *                       aria-sort="descending" (opt-in: an unmarked svg
+ *                       is never turned, so a page that renders arrowDown
+ *                       for descending keeps its direction)
  *
  * .ds-table--wide narrows by container query on "ds-content"; when it
  * still scrolls sideways, a fade at the edge of its card says so.
@@ -2866,6 +3981,52 @@
  * --ds-dur-fast), plus the focus layer on the sort button. The link button
  * is an inline link: no ripple, no morph; a press darkens its underline
  * (the press feedback on touch screens).
+ *
+ * Rows:
+ *   hover                  a state layer on the cells (currentColor at
+ *                          --ds-state-hover-lg), so it adds to a selected
+ *                          row's colour; hook --ds-table-row-hover
+ *   .ds-table--interactive every body row opens something: its primary link
+ *                          or button carries .ds-table__row-link, whose
+ *                          ::after stretches over the row (the focus ring
+ *                          sits on it, inset, so the scroller never clips
+ *                          it); the press is the cell layer at
+ *                          --ds-state-pressed in --ds-dur-micro, or the
+ *                          ripple (js/ripple.js, the row is a host); other
+ *                          controls in the row stay above the link and
+ *                          keep their own press (no row layer, no ripple);
+ *                          the table draws separate borders (a positioned
+ *                          row would cover collapsed hairlines in Firefox)
+ *   .ds-table__row--selected, or a checked checkbox directly in a cell: the
+ *                          row takes --ds-table-row-selected (default
+ *                          --ds-accent) over --ds-dur-fast; the checkbox is
+ *                          the cue that does not rely on colour, also in
+ *                          the header cell (select all, indeterminate for
+ *                          some); select all changes every row in one frame
+ *   expandable             the trigger row holds
+ *                          <button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" aria-expanded="false" aria-controls="d1">(chevronDown .ds-chevron)</button>
+ *                          and is followed by
+ *                          <tr class="ds-table__detail" id="d1" inert><td colspan="N"><div class="ds-table__expand"><div>...</div></div></td></tr>
+ *                          The detail opens by grid-template-rows (0fr to
+ *                          1fr) over --ds-dur-medium on --ds-ease-out and
+ *                          closes over --ds-dur-base on --ds-ease-in: it
+ *                          pushes the rows below, so it never overshoots;
+ *                          its content fades over --ds-dur-fast. One
+ *                          hairline, below the detail. The page toggles
+ *                          aria-expanded, sets inert on the collapsed
+ *                          detail row and keys both rows (data-ds-key), so
+ *                          flip() and morphHtml keep them together.
+ *
+ * Sorting: with .ds-table__sort-arrow the page renders the same up arrow
+ * for both directions; aria-sort="descending" turns it 180deg on the
+ * spring (--ds-dur-medium), when the header is patched in place
+ * (DS.dom.morphHtml). Without the marker the arrow is what the page
+ * renders (arrowUp or arrowDown), as before 1.4.
+ *
+ * Data motion (docs/motion.md, "Data motion"): sort, filter (also while
+ * typing) and live data glide through DS.motion.flip with keyed rows and
+ * DS.dom.morphHtml; figures in cells change at once and never count up.
+ * A removed row goes at once while the rows below glide up.
  */
 
 @layer ds.components {
@@ -2921,14 +4082,155 @@
     padding-block: var(--ds-space-3);
   }
 
-  .ds-table tbody tr {
+  /* The row holds the selection colour, its cells the state layer: the
+     layer adds to the selection instead of replacing it. */
+  .ds-table tbody tr,
+  .ds-table tbody tr > :is(td, th) {
     transition: background-color var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
   @media (hover: hover) {
-    .ds-table tbody tr:hover {
-      background: var(--ds-backdrop);
+    .ds-table tbody tr:not(.ds-table__detail):hover > :is(td, th) {
+      background-color: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
     }
+  }
+
+  /* Selected rows (bulk selection): the checkbox in the row is the cue
+     that does not rely on colour. Two rules, so an engine without :has()
+     keeps the class. */
+  .ds-table tbody tr.ds-table__row--selected {
+    background-color: var(--ds-table-row-selected, var(--ds-accent));
+  }
+
+  .ds-table tbody tr:has(> :is(td, th) > input[type="checkbox"]:checked) {
+    background-color: var(--ds-table-row-selected, var(--ds-accent));
+  }
+
+  /*
+   * Interactive rows: the row's primary link or button stretches over the
+   * row (::after against the positioned row). Other controls in the row
+   * stay above it (zero specificity: a control's own position wins).
+   */
+  /* Positioned rows paint after the table's collapsed borders (Firefox
+     then covers a selected row's hairlines with its colour): separate
+     borders, which each cell paints over its row. Only bottom borders are
+     drawn, so the lines look the same. */
+  .ds-table--interactive {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .ds-table--interactive tbody tr:not(.ds-table__detail) {
+    position: relative;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :where(.ds-table--interactive tbody tr) :where(a[href], button, input, select, textarea, label, summary, [tabindex]):where(:not(.ds-table__row-link)) {
+    position: relative;
+    z-index: var(--ds-z-raised);
+  }
+
+  .ds-table__row-link::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    /* The ring rests at the row's edge and snaps inward. */
+    outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-table--interactive .ds-table__row-link:focus-visible {
+    outline: none;
+  }
+
+  /* Inset by the ring's width, so the scroller never clips it. */
+  .ds-table__row-link:focus-visible::after {
+    outline: var(--ds-focus-outline);
+    outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  /* Keyboard focus: the focus layer on the cells, at once. */
+  .ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within > :is(td, th) {
+    background-color: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
+    transition-duration: 0s;
+  }
+
+  /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it); not
+     while a control inside the row is pressed (it has its own press). */
+  .ds-table--interactive tbody tr:not(.ds-table__detail):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))) > :is(td, th) {
+    background-color: color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
+    transition-duration: var(--ds-dur-micro);
+  }
+
+  /*
+   * Expandable rows: the detail row has no padding, height or hairline of
+   * its own until it opens; the trigger row gives its hairline to the
+   * detail, so there is one line, below the detail, which travels down as
+   * it opens.
+   */
+  .ds-table tbody tr:has(+ .ds-table__detail) > :is(td, th) {
+    border-bottom: 0;
+  }
+
+  .ds-table .ds-table__detail > td,
+  .ds-card .ds-table-wrap .ds-table__detail > td {
+    height: auto;
+    padding: 0;
+  }
+
+  .ds-table__expand {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--ds-dur-base) var(--ds-ease-in);
+  }
+
+  /* The content: horizontal room as the cells', vertical room as spacers
+     inside the clip (a padding would stay as the collapsed height). */
+  .ds-table__expand > * {
+    min-height: 0;
+    overflow: hidden;
+    padding-inline: var(--ds-space-4);
+    opacity: 0;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in);
+  }
+
+  .ds-table__expand > *::before,
+  .ds-table__expand > *::after {
+    content: '';
+    display: block;
+    height: var(--ds-space-4);
+  }
+
+  .ds-table__expand > *::before {
+    height: var(--ds-space-1);
+  }
+
+  .ds-card .ds-table-wrap .ds-table__expand > * {
+    padding-inline: var(--ds-card-pad);
+  }
+
+  tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand {
+    grid-template-rows: 1fr;
+    transition: grid-template-rows var(--ds-dur-medium) var(--ds-ease-out);
+  }
+
+  tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand > * {
+    opacity: 1;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  /* The 40px round toggle hangs out of the 20px text line, so the row
+     keeps its height; its icon lines up with the column's text. Its margin
+     box is the text line: aligned to the line's top (not its baseline),
+     its centre is the line's centre. */
+  .ds-table .ds-table__toggle {
+    vertical-align: top;
+    margin-block: calc((var(--ds-space-5) - var(--ds-btn-icon-size, 40px)) / 2);
+    margin-inline: calc((var(--ds-space-5) - var(--ds-btn-icon-size, 40px)) / 2) 0;
   }
 
   .ds-table tbody tr:last-child td {
@@ -3008,6 +4310,16 @@
     flex-shrink: 0;
   }
 
+  /* Opt-in: one up arrow for both directions, which descending turns on
+     the spring. An unmarked svg keeps the direction the page drew. */
+  .ds-table__sort-arrow {
+    transition: rotate var(--ds-dur-medium) var(--ds-ease-spatial);
+  }
+
+  .ds-table th[aria-sort="descending"] .ds-table__sort-arrow {
+    rotate: 180deg;
+  }
+
   /* A number column sorts with the arrow in front, so the figures keep
      their right edge. */
   .ds-table th.ds-num .ds-table__sort {
@@ -3070,6 +4382,10 @@
       padding-inline: var(--ds-space-3);
     }
 
+    .ds-table .ds-table__expand > * {
+      padding-inline: var(--ds-space-3);
+    }
+
     .ds-card .ds-table-wrap {
       -webkit-mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
       mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
@@ -3080,6 +4396,10 @@
      scroll. */
   @media (max-width: 359px) {
     .ds-table :is(th, td) {
+      padding-inline: var(--ds-space-2);
+    }
+
+    .ds-table .ds-table__expand > * {
       padding-inline: var(--ds-space-2);
     }
   }
@@ -5372,52 +6692,251 @@
 
 /* ── components/progress.css ── */
 /*
- * Linear progress (Material 3): a 4px primary bar on the tinted track. A
- * known share scales the bar (transform only: set --ds-progress, 0 ... 1,
- * on the element); an unknown one runs a calm segment across.
+ * Linear progress (Material 3, 2024 look): a primary bar that ends at the
+ * share, a gap, then the remaining track in --ds-accent with a stop dot at
+ * its end. The bar is wavy and its wave travels (M3 Expressive); it turns
+ * flat once the job is complete. An unknown share runs the two-segment
+ * choreography of M3 across the track.
  *
- *   <div class="ds-progress [ds-progress--indeterminate]" style="--ds-progress: .4">
+ *   <div class="ds-progress [ds-progress--indeterminate | --waiting | --flat]" style="--ds-progress: .4">
  *     <div class="ds-progress__track" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" aria-label="Import">
  *       <div class="ds-progress__bar"></div>
  *     </div>
  *     <p class="ds-progress__label">40%</p>
  *     <p class="ds-progress__detail">812 of 2,030 rows</p>
  *
- *   .ds-progress--waiting  hides the track (only the label shows)
+ *   .ds-progress--indeterminate  two segments run across (ds-progress-head,
+ *                                ds-progress-tail over --ds-loop-indeterminate)
+ *   .ds-progress--waiting        hides the track (only the label shows);
+ *                                the track keeps its 4px, so the label
+ *                                stays put, and fades in when the
+ *                                modifier drops
+ *   .ds-progress--flat           the classic look: no gap, no stop dot, no
+ *                                wave. Use it in dense table cells: the wave
+ *                                reaches 3px above and below the 4px track,
+ *                                and an ancestor with overflow: hidden closer
+ *                                than that clips it.
+ *
+ * The share: set --ds-progress (0 ... 1; registered as a number) on the
+ * .ds-progress element, with el.style.setProperty (a strict CSP allows it).
+ * It glides there on --ds-ease-value over --ds-dur-glide, and the bar, the
+ * gap, the remaining track and a nested .ds-spinner--determinate read the
+ * inherited value, so they land together, and on the same frame as a
+ * DS.motion.countUp() figure set in the same task. The bar is cut by
+ * clip-path at the share (never scaled), so its round cap keeps its radius
+ * at any share; the clip repaints every frame of a glide, which is fine for
+ * a 4px bar.
+ *
+ * Layers: the track paints the remaining track and the stop dot (background
+ * layers that start after the share and the gap); .ds-progress__bar is the
+ * box of the bar, 3px taller than the track on both sides, cut at the share
+ * (the clip's round end is the cap); its ::before is the wave (the primary
+ * colour through the --ds-progress-wave mask, which travels one
+ * --ds-progress-wave-length per --ds-loop-wave and stops at completion) and
+ * its ::after the flat 4px fill, which cross-fades in over --ds-dur-medium
+ * when aria-valuenow reaches 100 (the documented aria-valuemax="100") and
+ * in --flat. The track's ::before and ::after are the two indeterminate
+ * segments, on the same wave.
+ *
+ * Short bars are flat (M3 Expressive flattens the wave at small shares): a
+ * bar shorter than a wavelength would show a loose piece of the sine that
+ * bobs above and below the track as the wave travels. The wave and the
+ * flat fill cross-fade on the (gliding) share itself: flat up to 6%, wavy
+ * from 11% (--ds-progress-wave-start, --ds-progress-wave-ramp), so the
+ * crossover follows the glide on its own.
+ *
+ * Handoff: when --indeterminate drops, the segments stop where they are and
+ * fade out (--ds-dur-fast, --ds-ease-in), the bar fades in (--ds-dur-fast,
+ * --ds-ease-in-out) and --ds-progress glides from its previous value (0
+ * when it was never set): the bar grows to its share and never sweeps
+ * across or shrinks from 100%. Set the first share in the same task that
+ * drops the modifier; a share set earlier, while indeterminate, simply
+ * appears at that share.
+ *
+ * Accessibility: while --indeterminate or --waiting is on, remove
+ * aria-valuenow and set aria-valuetext ("Preparing", "Waiting"); with the
+ * first share, set aria-valuenow again and remove aria-valuetext.
+ *
+ * Hooks: --ds-progress-gap (4px between the bar and the remaining track),
+ * --ds-progress-stop (the stop dot, --ds-primary), --ds-progress-track (the
+ * remaining track, --ds-accent).
  */
 
 @layer ds.components {
+  .ds-progress {
+    transition: --ds-progress var(--ds-dur-glide) var(--ds-ease-value);
+  }
+
+  /*
+   * The remaining track starts the gap after the share. The gap opens with
+   * the first percent (an empty bar shows the whole track); a disc of the
+   * track's height rounds its start. The stop dot is the top layer, under
+   * the bar, which paints over it once it arrives. The loops of the
+   * segments are declared here, paused, so dropping --indeterminate stops
+   * them where they are while they fade out.
+   */
   .ds-progress__track {
     position: relative;
     height: 4px;
-    overflow: hidden;
+    overflow: visible;
+    isolation: isolate;
     border-radius: var(--ds-radius-action);
-    background: var(--ds-accent);
+    background:
+      radial-gradient(circle 2px at calc(100% - 2px) 50%, var(--ds-progress-stop, var(--ds-primary)) calc(100% - .5px), transparent),
+      radial-gradient(circle 2px at calc(var(--ds-progress) * 100% + var(--ds-progress-gap, 4px) * min(1, var(--ds-progress) * 100) + 2px) 50%, var(--ds-progress-track, var(--ds-accent)) calc(100% - .5px), transparent),
+      linear-gradient(to right, transparent calc(var(--ds-progress) * 100% + var(--ds-progress-gap, 4px) * min(1, var(--ds-progress) * 100) + 2px), var(--ds-progress-track, var(--ds-accent)) 0);
+    animation:
+      ds-progress-head var(--ds-loop-indeterminate) linear infinite paused,
+      ds-progress-tail var(--ds-loop-indeterminate) linear infinite paused;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
+  /* The bar's box: the track's width, 3px taller on both sides for the
+     wave, cut at the share with a round end. */
   .ds-progress__bar {
     position: absolute;
-    top: 0;
+    inset: -3px 0;
+    clip-path: inset(0 calc((1 - var(--ds-progress)) * 100%) 0 0 round var(--ds-radius-action));
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  .ds-progress__bar::before,
+  .ds-progress__bar::after {
+    content: '';
+    position: absolute;
     right: 0;
-    bottom: 0;
     left: 0;
-    border-radius: inherit;
     background: var(--ds-primary);
-    transform: scaleX(var(--ds-progress, 0));
-    transform-origin: left center;
-    transition: transform var(--ds-dur-glide) var(--ds-ease-in-out);
+    transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
+
+  /* The wave, travelling; it fades in between 6% and 11% (short bars are
+     flat). Opacity clamps the ramp to 0 ... 1 by itself. */
+  .ds-progress__bar::before {
+    top: 0;
+    bottom: 0;
+    opacity: calc(var(--ds-progress) / var(--ds-progress-wave-ramp) - var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp));
+    -webkit-mask-image: var(--ds-progress-wave);
+    mask-image: var(--ds-progress-wave);
+    -webkit-mask-size: var(--ds-progress-wave-length) 100%;
+    mask-size: var(--ds-progress-wave-length) 100%;
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    animation: ds-progress-wave var(--ds-loop-wave) linear infinite;
+  }
+
+  /* The flat fill, with its own clip: the box's clip rounds 5px, the 4px
+     fill needs its own 2px cap. */
+  .ds-progress__bar::after {
+    top: 3px;
+    height: 4px;
+    border-radius: var(--ds-radius-action);
+    clip-path: inset(0 calc((1 - var(--ds-progress)) * 100%) 0 0 round var(--ds-radius-action));
+    opacity: calc(1 - var(--ds-progress) / var(--ds-progress-wave-ramp) + var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp));
+  }
+
+  /* Complete: the wave stops where it is and fades, the flat fill takes
+     over. */
+  .ds-progress:has(> .ds-progress__track[aria-valuenow="100"]) .ds-progress__bar::before {
+    opacity: 0;
+    animation-play-state: paused;
+  }
+
+  .ds-progress:has(> .ds-progress__track[aria-valuenow="100"]) .ds-progress__bar::after {
+    opacity: 1;
+  }
+
+  /* The classic look: the whole track behind a flat bar. */
+  .ds-progress--flat .ds-progress__track {
+    background: var(--ds-progress-track, var(--ds-accent));
+  }
+
+  .ds-progress--flat .ds-progress__bar::before {
+    display: none;
+  }
+
+  .ds-progress--flat .ds-progress__bar::after {
+    opacity: 1;
+    transition: none;
+  }
+
+  /*
+   * The two indeterminate segments: each the full width of the track, 3px
+   * taller for the wave, cut between its tail and its head (the track's
+   * loops animate the four edges; they inherit). Out of that state they
+   * fade out on the way (the handoff) and stay at opacity 0, their wave
+   * paused.
+   */
+  .ds-progress__track::before,
+  .ds-progress__track::after {
+    content: '';
+    position: absolute;
+    inset: -3px 0;
+    z-index: -1;
+    background: var(--ds-primary);
+    -webkit-mask-image: var(--ds-progress-wave);
+    mask-image: var(--ds-progress-wave);
+    -webkit-mask-size: var(--ds-progress-wave-length) 100%;
+    mask-size: var(--ds-progress-wave-length) 100%;
+    -webkit-mask-repeat: repeat-x;
+    mask-repeat: repeat-x;
+    opacity: 0;
+    animation: ds-progress-wave var(--ds-loop-wave) linear infinite paused;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in);
+  }
+
+  .ds-progress__track::before {
+    clip-path: inset(0 calc(100% - var(--ds-progress-head-1)) 0 var(--ds-progress-tail-1) round var(--ds-radius-action));
+  }
+
+  .ds-progress__track::after {
+    clip-path: inset(0 calc(100% - var(--ds-progress-head-2)) 0 var(--ds-progress-tail-2) round var(--ds-radius-action));
+  }
+
+  /* Indeterminate: the whole track, no stop dot, the segments running;
+     the bar waits unseen and still. */
+  .ds-progress--indeterminate .ds-progress__track {
+    background: var(--ds-progress-track, var(--ds-accent));
+    animation-play-state: running;
+  }
+
+  .ds-progress--indeterminate .ds-progress__track::before,
+  .ds-progress--indeterminate .ds-progress__track::after {
+    opacity: 1;
+    animation-play-state: running;
+    transition: none;
   }
 
   .ds-progress--indeterminate .ds-progress__bar {
-    right: auto;
-    width: 35%;
-    transform: none;
+    opacity: 0;
     transition: none;
-    animation: ds-indeterminate var(--ds-loop-indeterminate) var(--ds-ease-in-out) infinite;
   }
 
+  .ds-progress--indeterminate .ds-progress__bar::before {
+    animation-play-state: paused;
+  }
+
+  .ds-progress--flat.ds-progress--indeterminate .ds-progress__track::before,
+  .ds-progress--flat.ds-progress--indeterminate .ds-progress__track::after {
+    -webkit-mask-image: none;
+    mask-image: none;
+    inset: 0;
+    animation: none;
+  }
+
+  /* Waiting: the track keeps its 4px (so the label never jumps when the
+     wait ends) but is hidden, its loops held; it fades in when the
+     modifier drops. */
   .ds-progress--waiting .ds-progress__track {
-    display: none;
+    visibility: hidden;
+    opacity: 0;
+    animation-play-state: paused;
+  }
+
+  .ds-progress--waiting .ds-progress__track::before,
+  .ds-progress--waiting .ds-progress__track::after,
+  .ds-progress--waiting .ds-progress__bar::before {
+    animation-play-state: paused;
   }
 
   .ds-progress__label {
@@ -5437,15 +6956,24 @@
     white-space: nowrap;
   }
 
-  /* Forced colors drop both fills: the track gets an edge, the bar a system
-     colour, so the share still shows. */
+  /* Forced colors drop the fills and the background images: the parts
+     paint in system colours (the bar, its segments and the dot Highlight,
+     the remaining track GrayText), and the track keeps an edge. */
   @media (forced-colors: active) {
+    .ds-progress {
+      --ds-progress-stop: Highlight;
+      --ds-progress-track: GrayText;
+    }
+
     .ds-progress__track {
+      forced-color-adjust: none;
       outline: 1px solid CanvasText;
     }
 
-    .ds-progress__bar {
-      forced-color-adjust: none;
+    .ds-progress__bar::before,
+    .ds-progress__bar::after,
+    .ds-progress__track::before,
+    .ds-progress__track::after {
       background: Highlight;
     }
   }
@@ -7250,6 +8778,12 @@
     opacity: 1;
   }
 
+  /* A loading bar at the top of the view takes the hairline's place. */
+  .ds-view:has(.ds-loadbar)::before,
+  .ds-app[data-scrolled] .ds-view:has(.ds-loadbar)::before {
+    opacity: 0;
+  }
+
   /* The drawer brings its own inset on the left. */
   .ds-app--drawer .ds-panel {
     margin-left: 0;
@@ -7542,7 +9076,10 @@
  *
  * Hosts: .ds-btn, .ds-chip (the ripple goes into .ds-chip__body),
  * .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile,
- * .ds-table__sort, .ds-radio (radio cards), .ds-combo__toggle,
+ * .ds-card--interactive, .ds-table__sort, the body rows of
+ * .ds-table--interactive (a press on another link or control inside a
+ * row or a <div> card is that control's own: no ripple, no .ds-pressed),
+ * .ds-radio (radio cards), .ds-combo__toggle,
  * .ds-menu__item, .ds-errors summary and [data-ds-ripple] (any element,
  * made positioned here); inline links, the switch, checkbox and radio
  * inputs (their halo is the press), combobox options and native field
@@ -7567,13 +9104,19 @@
  * --ds-btn-state-pressed-opacity hook asks for beyond the ripple (the
  * solid disc of .ds-btn--disc). Forced colours show no ripple.
  *
+ * A table row cannot hold the ripple and does not clip: the ripple goes
+ * into its first cell (a <td>, or a <th scope="row"> row header) as a box
+ * over the whole row (against the positioned row) that clips the circle,
+ * its ::before. The row is isolated while it ripples, so the ripple
+ * paints over the row's colour and under the cells' content and layers.
+ *
  * Progressive: overflow-clip-margin lets a chip's ripple cover the chip's
  * 1px border like its state layer does; without it the ripple stops at
  * the padding box.
  */
 
 @layer ds.components {
-  :where(.ds-ripples :is(.ds-btn, .ds-chip__body, .ds-segmented__option, .ds-drawer__item, button.ds-tile, a.ds-tile, .ds-table__sort, .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]:not([data-ds-ripple="off"]))) {
+  :where(.ds-ripples :is(.ds-btn, .ds-chip__body, .ds-segmented__option, .ds-drawer__item, button.ds-tile, a.ds-tile, .ds-card--interactive, .ds-table__sort, .ds-table--interactive tbody tr, .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]:not([data-ds-ripple="off"]))) {
     position: relative;
   }
 
@@ -7610,6 +9153,44 @@
     transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
   }
 
+  /* A row's ripple: a box over the row (its first cell, <td> or a <th>
+     row header, is static, so the positioned row places it) that clips
+     the circle. The cell neither
+     clips nor isolates; the row is isolated instead. */
+  :where(.ds-ripples tr:has(> :is(td, th) > .ds-press-ripple)) {
+    isolation: isolate;
+  }
+
+  :where(.ds-ripples tr > :is(td, th):has(> .ds-press-ripple)) {
+    overflow: visible;
+    isolation: auto;
+  }
+
+  .ds-ripples tr > :is(td, th) > .ds-press-ripple {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    height: auto;
+    overflow: clip;
+    border-radius: 0;
+    background: none;
+    animation: none;
+  }
+
+  .ds-ripples tr > :is(td, th) > .ds-press-ripple::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r));
+    left: calc(var(--ds-ripple-x) - var(--ds-ripple-r));
+    width: calc(var(--ds-ripple-r) * 2);
+    height: calc(var(--ds-ripple-r) * 2);
+    border-radius: 50%;
+    background: var(--ds-ripple-color, currentColor);
+    animation: ds-press-ripple var(--ds-dur-medium) var(--ds-ease-out) backwards;
+  }
+
   /*
    * One press feedback, not two: the ripple brings --ds-state-pressed, so
    * the flat layer of a pressed host (:active, or .ds-pressed while
@@ -7631,12 +9212,18 @@
   :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
   :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
     opacity: 0;
+  }
+
+  /* A row's layer is on its cells (table.css). */
+  :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :is(td, th) {
+    background-color: transparent;
   }
 
   @media (hover: hover) {
@@ -7655,8 +9242,13 @@
 
     :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before {
       opacity: var(--ds-state-hover-lg);
+    }
+
+    :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :is(td, th) {
+      background-color: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
     }
   }
 
@@ -7668,10 +9260,15 @@
   :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:focus-visible, :has(.ds-card__action:focus-visible)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);
+  }
+
+  :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-table__row-link:focus-visible):is(:active, .ds-pressed) > :is(td, th) {
+    background-color: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
   }
 
   @media (forced-colors: active) {
@@ -7698,14 +9295,23 @@
  * clear of a one- or two-line snackbar (--ds-toast-room), so a success
  * message never covers the actions just pressed.
  *
+ * Read-only resulting properties of .ds-content (read them, never set
+ * them; set the spacing tokens instead): --ds-content-pad-top and
+ * --ds-content-pad-x, the top and side padding of the panel at the current
+ * width. The loading bar (loading.css) reads them, and inside .ds-page the
+ * page's centring (100cqw of the "ds-content" container), to reach the
+ * panel edges.
+ *
  * Progressive: text-wrap (the lead avoids a lone last word); without it
  * the line wraps as usual.
  */
 
 @layer ds.components {
   .ds-content {
+    --ds-content-pad-top: var(--ds-space-6);
+    --ds-content-pad-x: var(--ds-space-8);
     container: ds-content / inline-size;
-    padding: var(--ds-space-6) var(--ds-space-8) calc(var(--ds-space-6) + var(--ds-toast-room) + var(--ds-space-2));
+    padding: var(--ds-content-pad-top) var(--ds-content-pad-x) calc(var(--ds-space-6) + var(--ds-toast-room) + var(--ds-space-2));
   }
 
   .ds-page {
@@ -7723,8 +9329,8 @@
 
   @media (max-width: 720px) {
     .ds-content {
-      padding-top: var(--ds-space-5);
-      padding-inline: var(--ds-space-4);
+      --ds-content-pad-top: var(--ds-space-5);
+      --ds-content-pad-x: var(--ds-space-4);
     }
   }
 

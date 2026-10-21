@@ -14,9 +14,18 @@
  * in --ds-dur-micro (also while js/ripple.js holds .ds-pressed) with the
  * ripple, and keyboard focus with the focus layer and a ring that is solid
  * from the first frame and snaps from offset + width to the offset
- * (outline-offset, --ds-dur-fast); no lift.
+ * (outline-offset, --ds-dur-fast); no lift, no scale. While pressed it
+ * turns squarer (16px to --ds-tile-radius-pressed, 12px) in
+ * --ds-dur-micro and springs back over --ds-dur-medium, like a card.
  *
- * Hook: --ds-tile-radius.
+ * Values (docs/motion.md, "Data motion"): every new value goes through
+ * DS.motion.countUp(el, next), which counts from the figure on screen
+ * (the first call from 0) on --ds-ease-value over --ds-dur-glide,
+ * retargets mid-count and gives assistive technology the final value. A
+ * meter or progress bar set in the same task lands on the same frame. The
+ * note changes at once.
+ *
+ * Hooks: --ds-tile-radius, --ds-tile-radius-pressed.
  *
  * On narrow tiles the value shrinks with the tile (container units).
  */
@@ -96,7 +105,19 @@
     -webkit-tap-highlight-color: transparent;
     /* The ring rests (invisible) one width further out and snaps in. */
     outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
-    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+    transition:
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  /* The press morph: squarer while pressed (never rounder than at rest);
+     the layer follows through border-radius: inherit. */
+  :is(button, a).ds-tile:active:not(:disabled, [aria-disabled="true"]),
+  :is(button, a).ds-tile.ds-pressed:not(:disabled, [aria-disabled="true"]) {
+    border-radius: min(var(--ds-tile-radius-pressed, var(--ds-radius-md)), var(--ds-tile-radius, var(--ds-radius-lg)));
+    transition:
+      border-radius var(--ds-dur-micro) var(--ds-ease-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
   :is(button, a).ds-tile::before {

@@ -1,9 +1,22 @@
 [
   {
     "type": "animation",
+    "name": "ds-spinner-arc",
+    "pseudoElement": null,
+    "duration": 5332,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "linear",
+    "iterations": "Infinity",
+    "direction": "normal",
+    "fill": "none",
+    "target": "span#spinner.ds-spinner"
+  },
+  {
+    "type": "animation",
     "name": "ds-spin",
     "pseudoElement": null,
-    "duration": 1000,
+    "duration": 1568,
     "delay": 0,
     "easing": "linear",
     "keyframeEasing": "linear",

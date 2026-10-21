@@ -1627,7 +1627,7 @@ const raisedItems = new WeakMap();
 function flipState(container) {
   let state = flips.get(container);
   if (!state) {
-    state = { pointer: '', over: false, guarded: false, items: undefined, queued: null, timer: 0, waiters: [], lifted: 0, position: null, minHeight: null, sizeGlide: null, raised: 0, isolation: null };
+    state = { pointer: '', over: false, guarded: false, items: undefined, queued: null, timer: 0, waiters: [], lifted: 0, position: null, minHeight: null, align: null, sizeGlide: null, raised: 0, isolation: null };
     flips.set(container, state);
   }
   return state;
@@ -1756,6 +1756,21 @@ function holdSize(container, state, height) {
   if (state.minHeight !== null) return;
   state.minHeight = container.style.minHeight ?? '';
   container.style.minHeight = `${round(Math.max(0, minHeightFor(container, height)))}px`;
+  // A grid stretches its auto rows into a held height (align-content:
+  // normal): the items that stay would grow and shrink back. They keep
+  // their size until the held height has glided away.
+  const style = computed(container);
+  if (state.align === null && /grid/.test(style?.display ?? '') && /^(normal|stretch)$/.test(style?.alignContent ?? '')) {
+    state.align = container.style.alignContent ?? '';
+    container.style.alignContent = 'start';
+  }
+}
+
+/** Gives a grid container its align-content back once nothing holds or glides its height. */
+function releaseAlign(container, state) {
+  if (state.align === null || state.minHeight !== null || state.sizeGlide) return;
+  container.style.alignContent = state.align;
+  state.align = null;
 }
 
 /**
@@ -1766,7 +1781,10 @@ function holdSize(container, state, height) {
  */
 function glideSize(container, state, from) {
   const to = heightOf(container);
-  if (from - to < 0.5 || typeof container.animate !== 'function') return Promise.resolve();
+  if (from - to < 0.5 || typeof container.animate !== 'function') {
+    releaseAlign(container, state);
+    return Promise.resolve();
+  }
   const animation = animateSafe(container, [
     { minHeight: `${round(minHeightFor(container, from))}px` },
     { minHeight: `${round(minHeightFor(container, to))}px` },
@@ -1779,6 +1797,7 @@ function glideSize(container, state, from) {
   state.sizeGlide = animation;
   return animation.finished.then(() => {
     if (state.sizeGlide === animation) state.sizeGlide = null;
+    releaseAlign(container, state);
   }, () => {});
 }
 
@@ -1799,7 +1818,9 @@ function landed(container, state, glide = true) {
   const from = heightOf(container);
   container.style.minHeight = state.minHeight;
   state.minHeight = null;
-  return glide ? glideSize(container, state, from) : Promise.resolve();
+  if (glide) return glideSize(container, state, from);
+  releaseAlign(container, state);
+  return Promise.resolve();
 }
 
 /**
@@ -1815,6 +1836,8 @@ function runFlip(container, mutate, options, state) {
   // First.
   const before = new Map();
   for (const item of flipItems(container, selector)) before.set(item, item.getBoundingClientRect());
+  /** The direct children among the items: only they can come back for an exit. */
+  const childrenOf = new Set(Array.from(before.keys()).filter((item) => item.parentElement === container));
   const frame = edges(container.getBoundingClientRect());
   const firstHeight = frame.bottom - frame.top;
   for (const item of before.keys()) {
@@ -1842,6 +1865,31 @@ function runFlip(container, mutate, options, state) {
       return new Promise((resolve) => removed.push({ node, resolve }));
     },
   });
+  // What `mutate` took out or put in by itself (not through the hooks): a
+  // direct child that left the document fades out of flow where it was (it
+  // goes back in, out of flow, for its exit); a new item fades in.
+  for (const [item, rect] of before) {
+    if (item.parentNode || !childrenOf.has(item)) continue;
+    // Back in for its exit only: data-ds-moving for one style flush keeps
+    // its @starting-style entrances (a status icon) from playing (motion.css).
+    item.setAttribute('data-ds-moving', '');
+    container.append(item);
+    void computed(item)?.opacity;
+    item.removeAttribute('data-ds-moving');
+    if (!liftable(item)) {
+      item.remove();
+      continue;
+    }
+    holdSize(container, state, firstHeight);
+    lift(container, item, rect, frame, state);
+    removed.push({ node: item, resolve() {} });
+  }
+  for (const item of flipItems(container, selector)) {
+    if (before.has(item) || inserted.includes(item) || removed.some((entry) => entry.node === item)) continue;
+    // An item that brings its own entrance (a snackbar's keyframes) keeps it.
+    if (item.getAnimations?.().some((animation) => animation.playState !== 'finished')) continue;
+    inserted.push(item);
+  }
   // Last.
   const moves = [];
   for (const item of flipItems(container, selector)) {
@@ -1974,8 +2022,14 @@ function guard(container, state) {
  * call during a glide continues from where every item is, so a filter can
  * call it on every keystroke. Inserted items fade in; removed items fade
  * out of flow where they were while their neighbours close the gap (table
- * rows go at once); meanwhile the container keeps its height (min-height,
- * restored afterwards), then its block size glides down on --ds-ease-out,
+ * rows go at once). Both work through the hooks (DS.dom.morphHtml) and
+ * for plain DOM calls in `mutate`: a direct child that `mutate` removed
+ * goes back in, out of flow, for its exit, and an item that is new after
+ * `mutate` fades in (unless it runs an entrance of its own), so flip(stack, () => alert.remove()) and
+ * flip(stack, () => stack.prepend(alert)) need nothing else. Meanwhile
+ * the container keeps its height (min-height, restored afterwards; a grid
+ * keeps its rows at their size with align-content: start), then its block
+ * size glides down on --ds-ease-out,
  * so what follows the list never jumps and leaving items never paint over
  * it. Items outside the viewport before and after jump; with
  * more than `max` moving items the update lands without motion.

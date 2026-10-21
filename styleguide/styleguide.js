@@ -38,6 +38,10 @@
     document.documentElement.style.setProperty('--ds-time-scale', String(1 / speed));
   }
 
+  /* A demo's own timer (a fake request, a poll, a feed): slowed down with
+     ?speed= like the motion, so the story keeps its pace. */
+  function slow(ms) { return speed > 0 && speed < 1 ? ms / speed : ms; }
+
   /* ── Sections ─────────────────────────────────────────────────────── */
 
   var NAV = [
@@ -66,7 +70,7 @@
       '<p>White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and quiet motion. Every value comes from a token, so one theme file restyles everything below.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="../README.md">Get started</a><a class="ds-btn" href="../docs/theming.md">Theming guide</a><a class="ds-btn ds-btn--text" href="../docs/components.md">Component markup ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +
-      tile('Components', '25', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
+      tile('Components', '26', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
       '</div></section>';
   }
 
@@ -178,24 +182,85 @@
         '<span class="ds-status ds-status--error">' + icon('alert', 16) + '<span>Failed</span></span>' +
         '<span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Running</span></span>' +
         '<span class="ds-status">' + icon('clock', 16) + '<span>Waiting</span></span>' +
-        '<span class="ds-status">' + icon('ban', 16) + '<span>Off</span></span></div>') +
+        '<span class="ds-status">' + icon('ban', 16) + '<span>Off</span></span></div>' +
+        '<div class="sg-row"><span id="sg-status-poll">' + pollChip(0) + '</span><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="status-poll" aria-pressed="false">Poll every 1.5s</button></div>' +
+        '<p class="ds-muted">A polled chip, rendered with DS.dom.morphHtml: the kept chip changes colour over 250ms, an icon that comes in new fades in and springs up, the word changes at once.</p>') +
       card('Alerts',
-        '<div class="ds-alert ds-alert--info" role="status">' + icon('info', 20) + '<span class="ds-alert__text">The nightly sync runs at 02:00. Changes made now appear tomorrow.</span></div>' +
-        '<div class="ds-alert ds-alert--success">' + icon('checkCircle', 20) + '<span class="ds-alert__text">All 128 devices are up to date.</span></div>' +
+        '<div class="sg-alerts" id="sg-alerts">' +
+        '<div class="ds-alert ds-alert--info" role="status">' + icon('info', 20) + '<span class="ds-alert__text">The nightly sync runs at 02:00. Changes made now appear tomorrow.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="alert-dismiss">Dismiss</button></div>' +
+        '<div class="ds-alert ds-alert--success">' + icon('checkCircle', 20) + '<span class="ds-alert__text">All 128 devices are up to date.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="alert-dismiss">Dismiss</button></div>' +
         '<div class="ds-alert ds-alert--warning">' + icon('alert', 20) + '<span class="ds-alert__text">The certificate expires in 5 days.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>' +
         '<div class="ds-alert ds-alert--error" role="alert">' + icon('alertCircle', 20) + '<span class="ds-alert__text">Could not reach the directory server.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Try again</button></div>' +
-        '<details class="ds-errors"><summary>' + icon('alertCircle', 16) + '2 rows were skipped' + icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "XPS 13 9999"</li><li>Row 9: duplicate serial number</li></ul></details>'));
+        '</div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="alert-insert">' + icon('plus', 16) + 'Insert an alert</button></div>' +
+        '<p class="ds-muted">Both through DS.motion.flip on the stack: a dismissed alert fades out in place while the ones below glide up; a new one fades in at the top while the others glide down (past six, the oldest goes in the same call).</p>' +
+        '<details class="ds-errors ds-collapsible"><summary>' + icon('alertCircle', 16) + '2 rows were skipped' + icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "XPS 13 9999"</li><li>Row 9: duplicate serial number</li></ul></details>'));
+  }
+
+  /* The polled status chip: running, then ok, then error, and round again. */
+  var POLL = [['running', '', 'Syncing'], ['ok', 'check', 'Synced'], ['error', 'alert', 'Failed']];
+  var poll = { step: 0, timer: 0 };
+
+  function pollChip(step) {
+    var state = POLL[step % POLL.length];
+    var mark = state[1] ? icon(state[1], 16) : '<span class="ds-spinner ds-status__spinner" aria-hidden="true"></span>';
+    return '<span class="ds-status ds-status--' + state[0] + '">' + mark + '<span>' + state[2] + '</span></span>';
+  }
+
+  function togglePoll(button) {
+    var on = button.getAttribute('aria-pressed') !== 'true';
+    button.setAttribute('aria-pressed', String(on));
+    clearInterval(poll.timer);
+    poll.timer = 0;
+    if (!on) return;
+    poll.timer = setInterval(function () {
+      poll.step += 1;
+      DS.dom.morphHtml($('#sg-status-poll'), pollChip(poll.step));
+    }, slow(1500));
+  }
+
+  /* Alerts come and go through flip() on their stack (a grid with a gap). */
+  var alertCount = 0;
+  var ALERT_NEWS = ['Synced LAPTOP-0042.', 'Imported 12 devices.', 'TABLET-0121 is back online.', 'Exported the list as CSV.'];
+
+  function insertAlert() {
+    var stack = $('#sg-alerts');
+    var holder = document.createElement('div');
+    holder.innerHTML = '<div class="ds-alert ds-alert--success">' + icon('checkCircle', 20) + '<span class="ds-alert__text">' + ALERT_NEWS[alertCount % ALERT_NEWS.length] + '</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="alert-dismiss">Dismiss</button></div>';
+    alertCount += 1;
+    var alert = holder.firstChild;
+    var shown = $$(':scope > .ds-alert:not([data-ds-leaving])', stack);
+    var oldest = shown.length >= 6 ? shown[shown.length - 1] : null;
+    M.flip(stack, function () {
+      if (oldest) oldest.remove();
+      stack.prepend(alert);
+    });
+  }
+
+  function dismissAlert(button) {
+    var alert = button.closest('.ds-alert');
+    var stack = $('#sg-alerts');
+    // Focus moves on before its button goes: to the next alert's button, else the insert button.
+    if (alert.contains(document.activeElement)) {
+      var next = alert.nextElementSibling || alert.previousElementSibling;
+      ((next && $('button', next)) || $('[data-sg="alert-insert"]')).focus();
+    }
+    M.flip(stack, function () { alert.remove(); });
   }
 
   /* Cards, tiles, lists, empty state */
   function cards() {
     return section('cards', 'Cards and lists', 'White cards with a hairline; hierarchy from type and tonal tiles. Key figures never take a colour and never wrap.',
       '<div class="ds-tiles">' +
-      '<div class="ds-tile"><p class="ds-tile__label">' + icon('laptop', 20) + '<span>Devices</span></p><p class="ds-tile__value" data-count="1284">1284</p><p class="ds-tile__note">+12 this week</p></div>' +
-      '<button class="ds-tile" type="button"><span class="ds-tile__label">' + icon('alert', 20) + '<span>Overdue</span></span><span class="ds-tile__value" data-count="7">7</span><span class="ds-tile__note">clickable tile</span></button>' +
-      '<div class="ds-tile"><p class="ds-tile__label"><span>In storage</span></p><p class="ds-tile__value" data-count="42">42</p></div>' +
+      '<div class="ds-tile"><p class="ds-tile__label">' + icon('laptop', 20) + '<span>Devices</span></p><p class="ds-tile__value" id="sg-devices" data-count="1284">1284</p><p class="ds-tile__note">+12 this week</p></div>' +
+      '<button class="ds-tile" type="button" data-sg="tile-open"><span class="ds-tile__label">' + icon('alert', 20) + '<span>Overdue</span></span><span class="ds-tile__value" data-count="7">7</span><span class="ds-tile__note">clickable tile</span></button>' +
+      '<div class="ds-tile"><p class="ds-tile__label">' + icon('sync', 20) + '<span>Synced</span></p><p class="ds-tile__value" id="sg-synced" data-count="1210">1210</p>' +
+        '<div class="ds-progress ds-progress--flat sg-tile-progress" id="sg-synced-progress" style="--ds-progress:.94"><div class="ds-progress__track" role="progressbar" aria-label="Synced devices" aria-valuemin="0" aria-valuemax="100" aria-valuenow="94"><div class="ds-progress__bar"></div></div></div>' +
+        '<p class="ds-tile__note" id="sg-synced-note">74 not synced yet</p></div>' +
       '<div class="ds-tile"><p class="ds-tile__label"><span>Average age</span></p><p class="ds-tile__value">3.1 y</p></div>' +
       '</div>' +
+      '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="figures">' + icon('sync', 16) + 'Refresh the figures</button></div>' +
+      '<p class="ds-muted">Every figure counts from the value it shows (DS.motion.countUp); the bar of the synced share is set in the same task and lands on the same frame; the note changes at once.</p>' +
       '<div class="ds-grid-2">' +
       '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Managed</span></span></div>' +
         '<p class="ds-muted">Issued to Ada Lovelace. <a href="#cards">Open the record</a> or copy the serial <code>5CD1234XYZ</code>.</p>' +
@@ -207,27 +272,221 @@
         '<p class="ds-meta">Last saved today, 09:12 by Ada Lovelace</p></section>' +
       '</div>' +
       '<div class="ds-grid-2">' +
+      '<button class="ds-card ds-card--interactive" type="button" data-sg="card-open" data-name="PRINTER-0003"><span class="ds-card__row"><span class="ds-card__title">PRINTER-0003</span><span class="ds-status ds-status--warning">' + icon('alert', 16) + '<span>Toner low</span></span></span><span class="ds-muted sg-card-text">Floor 2, by the kitchen. The whole card is one button: hover lays a layer over it, a press turns it squarer and ripples from the pointer.</span></button>' +
+      '<div class="ds-card ds-card--interactive"><div class="ds-card__row"><h3 class="ds-card__title"><a class="ds-card__action" href="#cards" data-sg="card-open" data-name="LAPTOP-0017">LAPTOP-0017</a></h3><button class="ds-btn ds-btn--sm" type="button" data-sg="card-restart">Restart</button></div><p class="ds-muted">Issued to Grace Hopper. The title link stretches over the card, so the whole card opens the record; Restart stays a button of its own.</p></div>' +
+      '</div>' +
+      '<div class="ds-grid-2">' +
       card('Empty state', '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('box', 24) + '</span><p class="ds-empty__title">No devices in storage</p><p class="ds-empty__text">Devices you take back appear here until they are issued again.</p><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 16) + 'Add device</button></div>') +
       '<section class="ds-card ds-card--filled"><h3 class="ds-card__title">Filled card</h3><p class="ds-muted">A quieter block inside a card or form, for example a test result.</p><ul class="ds-plain-list"><li><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Server reachable</span></span></li><li><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Signed in</span></span></li><li><span class="ds-status ds-status--error">' + icon('alert', 16) + '<span>No write access</span></span></li></ul><div class="ds-more"><button class="ds-btn" type="button">Show more</button></div></section>' +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      card('Removing the last item', '<ul class="ds-kv-list sg-items" id="sg-items">' + itemsHtml() + '</ul>' +
+        '<div class="ds-empty" id="sg-items-empty" hidden><span class="ds-empty__disc" aria-hidden="true">' + icon('box', 24) + '</span><p class="ds-empty__title">No devices to return</p><p class="ds-empty__text">Every device on loan is back.</p><button class="ds-btn ds-btn--tonal" type="button" data-sg="items-restore">' + icon('plus', 16) + 'Lend two again</button></div>' +
+        '<p class="ds-muted">Each item leaves through DS.motion.flip; after the last one the empty state shows and its disc pops in (DS.motion.enter(disc, \'pop\')).</p>') +
+      card('Refreshing data', '<div id="sg-stale" aria-busy="false"><ul class="ds-kv-list" id="sg-stale-list">' + staleHtml() + '</ul></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stale-fast">Fast refresh (150ms)</button><button class="ds-btn ds-btn--sm" type="button" data-sg="stale-slow">Slow refresh (1200ms)</button></div>' +
+        '<p class="ds-muted">While a refresh runs the list carries .ds-stale and aria-busy="true". It dims only after the loader delay, so the fast refresh never dims; the fresh values show at once.</p>') +
       '</div>');
   }
 
-  /* Table */
-  var ROWS = [
-    ['LAPTOP-0042', 'Latitude 7440', 'Ada Lovelace', '3.2', ['ok', 'check', 'Active']],
-    ['LAPTOP-0043', 'ThinkPad T14', 'Alan Turing', '1.4', ['ok', 'check', 'Active']],
-    ['DESKTOP-0107', 'OptiPlex 7010', '', '5.8', ['error', 'alert', 'Replacement overdue']],
-    ['LAPTOP-0051', 'EliteBook 840', 'Grace Hopper', '4.1', ['warning', 'alert', 'Warranty ends']],
-    ['LAPTOP-0060', 'Surface Pro 9', '', '0.6', ['', 'box', 'In storage']],
-  ];
+  /* Removing the last item: two devices on loan, each with its own button. */
+  var ITEMS = [['i1', 'LAPTOP-0201'], ['i2', 'TABLET-0207']];
+
+  function itemsHtml() {
+    return ITEMS.map(function (item) {
+      return '<li data-ds-key="' + item[0] + '"><span>' + item[1] + '</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="item-return">Mark returned</button></li>';
+    }).join('');
+  }
+
+  function returnItem(button) {
+    var list = $('#sg-items');
+    var item = button.closest('li');
+    var next = item.nextElementSibling || item.previousElementSibling;
+    if (next && item.contains(document.activeElement)) $('button', next).focus();
+    M.flip(list, function () { item.remove(); }).then(function () {
+      var empty = $('#sg-items-empty');
+      if ($$('li:not([data-ds-leaving])', list).length || !empty.hidden) return;
+      // The user removed the last one: the empty state is there at once and its disc pops in.
+      list.hidden = true;
+      empty.hidden = false;
+      M.enter($('.ds-empty__disc', empty), 'pop');
+      $('button', empty).focus({ preventScroll: true });
+    });
+  }
+
+  function restoreItems() {
+    var list = $('#sg-items');
+    var empty = $('#sg-items-empty');
+    M.leave(empty, '', { then: 'hide' }).then(function () {
+      list.hidden = false;
+      M.flip(list, function (options) { DS.dom.morphHtml(list, itemsHtml(), options); });
+    });
+  }
+
+  /* Refreshing data: .ds-stale while a (fake) request runs. */
+  var staleRun = 0;
+
+  function staleHtml() {
+    var seed = staleRun;
+    return [['Online', 1180 + (seed * 37) % 60], ['Offline', 42 + (seed * 13) % 20], ['Updating', 6 + (seed * 5) % 9]].map(function (row) {
+      return '<li><span>' + row[0] + '</span><strong class="ds-num">' + row[1].toLocaleString('en-US') + '</strong></li>';
+    }).join('');
+  }
+
+  function refreshStale(ms) {
+    var box = $('#sg-stale');
+    var run = staleRun += 1;
+    box.classList.add('ds-stale');
+    box.setAttribute('aria-busy', 'true');
+    setTimeout(function () {
+      if (run !== staleRun) return;
+      DS.dom.morphHtml($('#sg-stale-list'), staleHtml());
+      box.classList.remove('ds-stale');
+      box.setAttribute('aria-busy', 'false');
+    }, slow(ms));
+  }
+
+  /* Key figures: devices and synced count from what they show; the synced
+     bar is set in the same task, so bar and figure land together. */
+  function syncShare() {
+    var devices = Number($('#sg-devices').getAttribute('data-count'));
+    var synced = Math.min(devices, Number($('#sg-synced').getAttribute('data-count')));
+    var share = synced / devices;
+    var bar = $('#sg-synced-progress');
+    bar.style.setProperty('--ds-progress', String(share));
+    $('.ds-progress__track', bar).setAttribute('aria-valuenow', String(Math.round(share * 100)));
+    $('#sg-synced-note').textContent = (devices - synced).toLocaleString('en-US') + ' not synced yet';
+  }
+
+  function refreshFigures() {
+    var devices = Number($('#sg-devices').getAttribute('data-count')) + Math.round(Math.random() * 12);
+    $('#sg-devices').setAttribute('data-count', String(devices));
+    $('#sg-synced').setAttribute('data-count', String(devices - Math.round(10 + Math.random() * 180)));
+    syncShare();
+    countTiles();
+  }
+
+  /* Table: keyed rows rendered through DS.motion.flip + DS.dom.morphHtml. */
+  var TABLE = {
+    rows: [
+      { id: 'r1', name: 'LAPTOP-0042', model: 'Latitude 7440', owner: 'Ada Lovelace', load: 32, place: 'Building A, 1st floor', seen: 'Today, 09:12' },
+      { id: 'r2', name: 'LAPTOP-0043', model: 'ThinkPad T14', owner: 'Alan Turing', load: 14, place: 'Building A, 2nd floor', seen: 'Today, 08:47' },
+      { id: 'r3', name: 'DESKTOP-0107', model: 'OptiPlex 7010', owner: '', load: 93, place: 'Server room', seen: 'Today, 09:15' },
+      { id: 'r4', name: 'LAPTOP-0051', model: 'EliteBook 840', owner: 'Grace Hopper', load: 78, place: 'Building B, ground floor', seen: 'Yesterday, 17:30' },
+      { id: 'r5', name: 'LAPTOP-0060', model: 'Surface Pro 9', owner: '', load: 5, place: 'Storage', seen: '3 days ago' },
+      { id: 'r6', name: 'TABLET-0121', model: 'iPad Air', owner: 'Katherine Johnson', load: 47, place: 'Building B, 1st floor', seen: 'Today, 07:58' },
+    ],
+    sort: 'name',
+    dir: 'ascending',
+    filter: '',
+    selected: { r2: true },
+    expanded: {},
+    feed: 0,
+  };
+
+  function tableShown() {
+    var query = TABLE.filter.trim().toLowerCase();
+    var rows = TABLE.rows.filter(function (row) {
+      return !query || [row.name, row.model, row.owner].join(' ').toLowerCase().indexOf(query) !== -1;
+    });
+    var sign = TABLE.dir === 'ascending' ? 1 : -1;
+    return rows.sort(function (a, b) {
+      return sign * (TABLE.sort === 'load' ? a.load - b.load : a.name.localeCompare(b.name));
+    });
+  }
+
+  function loadStatus(load) {
+    if (load >= 90) return ['error', 'alert', 'Overloaded'];
+    if (load >= 75) return ['warning', 'alert', 'High load'];
+    return ['ok', 'check', 'Active'];
+  }
+
+  /* The header row: the arrow only at the sorted column, the same up arrow for both directions. */
+  function tableHeadHtml() {
+    var sortable = function (key, text, cls) {
+      var sorted = TABLE.sort === key;
+      return '<th scope="col"' + (cls ? ' class="' + cls + '"' : '') + (sorted ? ' aria-sort="' + TABLE.dir + '"' : '') + '><button class="ds-table__sort" type="button" data-sg="table-sort" data-key="' + key + '">' + text + (sorted ? icon('arrowUp', 16, 'ds-table__sort-arrow') : '') + '</button></th>';
+    };
+    return '<tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-sg="select-all"></th><th scope="col"><span class="ds-sr">Details</span></th>' +
+      sortable('name', 'Device') + '<th scope="col" class="ds-col--secondary">Model</th><th scope="col" class="ds-col--secondary">Owner</th>' +
+      sortable('load', 'Load', 'ds-num') + '<th scope="col">Status</th></tr>';
+  }
+
+  function tableRowsHtml(rows) {
+    return rows.map(function (row) {
+      var open = !!TABLE.expanded[row.id];
+      var state = loadStatus(row.load);
+      return '<tr data-ds-key="' + row.id + '">' +
+        '<td><input type="checkbox" aria-label="Select ' + row.name + '" data-sg="select-row"' + (TABLE.selected[row.id] ? ' checked' : '') + '></td>' +
+        '<td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="' + open + '" aria-controls="sg-detail-' + row.id + '" aria-label="Details of ' + row.name + '" data-sg="row-toggle">' + icon('chevronDown', 20, 'ds-chevron') + '</button></td>' +
+        '<td class="ds-nowrap"><button class="ds-link-btn ds-table__row-link" type="button" data-sg="row-open">' + row.name + '</button></td>' +
+        '<td class="ds-col--secondary">' + row.model + '</td>' +
+        '<td class="ds-col--secondary">' + (row.owner || '<span class="ds-muted">Not issued</span>') + '</td>' +
+        '<td class="ds-num">' + row.load + '%</td>' +
+        '<td><span class="ds-status ds-status--' + state[0] + '">' + icon(state[1], 16) + '<span>' + state[2] + '</span></span></td></tr>' +
+        '<tr class="ds-table__detail" id="sg-detail-' + row.id + '" data-ds-key="' + row.id + '-detail"' + (open ? '' : ' inert') + '><td colspan="7"><div class="ds-table__expand"><div>' +
+        '<dl class="ds-facts"><div><dt>Owner</dt><dd>' + (row.owner || 'Not issued') + '</dd></div><div><dt>Model</dt><dd>' + row.model + '</dd></div><div><dt>Location</dt><dd>' + row.place + '</dd></div><div><dt>Last seen</dt><dd>' + row.seen + '</dd></div></dl>' +
+        '</div></div></td></tr>';
+    }).join('');
+  }
 
   function table() {
     return section('table', 'Table', 'A 48px header, 52px rows, hairlines and a quiet hover; no zebra. In a card the table runs to the edges; secondary columns drop on phones.',
-      '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">Devices</h3><div class="sg-row"><button class="ds-btn ds-btn--quiet ds-btn--sm" type="button" aria-pressed="false" data-sg="dense">Dense</button><button class="ds-btn ds-btn--sm" type="button">' + icon('download', 16) + 'CSV</button></div></div>' +
-      '<div class="ds-table-wrap"><table class="ds-table" id="sg-table"><caption class="ds-sr">Devices</caption><thead><tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-sg="select-all"></th><th scope="col" aria-sort="ascending"><button class="ds-table__sort" type="button">Device' + icon('arrowUp', 16) + '</button></th><th scope="col" class="ds-col--secondary">Model</th><th scope="col" class="ds-col--secondary">Owner</th><th scope="col" class="ds-num"><button class="ds-table__sort" type="button">Age (y)</button></th><th scope="col">Status</th></tr></thead><tbody>' +
-      ROWS.map(function (row, index) {
-        return '<tr><td><input type="checkbox" aria-label="Select ' + row[0] + '" data-sg="select-row"' + (index === 1 ? ' checked' : '') + '></td><td class="ds-nowrap"><button class="ds-link-btn" type="button">' + row[0] + '</button></td><td class="ds-col--secondary">' + row[1] + '</td><td class="ds-col--secondary">' + (row[2] || '<span class="ds-muted">Not issued</span>') + '</td><td class="ds-num">' + row[3] + '</td><td><span class="ds-status' + (row[4][0] ? ' ds-status--' + row[4][0] : '') + '">' + icon(row[4][1], 16) + '<span>' + row[4][2] + '</span></span></td></tr>';
-      }).join('') + '</tbody></table></div></section>');
+      '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">Devices</h3><div class="sg-row"><button class="ds-btn ds-btn--quiet ds-btn--sm" type="button" aria-pressed="false" data-sg="dense">Dense</button><button class="ds-btn ds-btn--quiet ds-btn--sm" type="button" aria-pressed="false" data-sg="table-live">Live feed</button><button class="ds-btn ds-btn--sm" type="button">' + icon('download', 16) + 'CSV</button></div></div>' +
+      '<div class="ds-field sg-table-filter"><label class="ds-field__label" for="sg-table-filter">Filter</label><input class="ds-input" id="sg-table-filter" type="search" autocomplete="off" placeholder="Device, model or owner"></div>' +
+      '<div class="ds-table-wrap"><table class="ds-table ds-table--interactive" id="sg-table"><caption class="ds-sr">Devices</caption><thead>' + tableHeadHtml() + '</thead><tbody>' + tableRowsHtml(tableShown()) + '</tbody></table></div>' +
+      '<div class="ds-empty" id="sg-table-empty" hidden><span class="ds-empty__disc" aria-hidden="true">' + icon('search', 24) + '</span><p class="ds-empty__title">No device matches</p><p class="ds-empty__text" id="sg-table-empty-text"></p></div>' +
+      '</section>' +
+      '<p class="ds-muted">Every row opens its record (the device name stretches over the row; the checkbox and the chevron stay their own controls). Select rows or all of them, open a row\'s details, sort by a column, or type a filter: rows glide to their places on every keystroke. The live feed changes the load every 2s; sorted by load, the rows reorder, but while the mouse is over the table or a row has focus only the values change, and the reorder waits (at most 2s).</p>');
+  }
+
+  /* Renders the table through flip(): a user's sort or filter glides at once, the live feed waits for the pointer. */
+  function renderTable(live) {
+    var tbody = $('#sg-table tbody');
+    var empty = $('#sg-table-empty');
+    var rows = tableShown();
+    DS.dom.morphHtml($('#sg-table thead'), tableHeadHtml());
+    var done = M.flip(tbody, function (options) { DS.dom.morphHtml(tbody, tableRowsHtml(rows), options); }, { items: 'tr', live: !!live });
+    syncSelectAll();
+    if (!rows.length) {
+      $('#sg-table-empty-text').textContent = 'Nothing has "' + TABLE.filter.trim() + '" in its name, model or owner.';
+      // The rows leave first, then the empty state fades in, without a rise.
+      if (empty.hidden) done.then(function () { if (!tableShown().length && empty.hidden) M.enter(empty, 'fade'); });
+    } else if (!empty.hidden && !empty.classList.contains('ds-leave')) {
+      // The filter found rows again: the empty state goes while they enter.
+      M.leave(empty, '', { then: 'hide' });
+    }
+  }
+
+  function tableAction(action, el) {
+    var id = el.closest('tr') && el.closest('tr').getAttribute('data-ds-key');
+    var row = TABLE.rows.filter(function (r) { return r.id === id; })[0];
+    if (action === 'table-sort') {
+      var key = el.getAttribute('data-key');
+      TABLE.dir = TABLE.sort === key && TABLE.dir === 'ascending' ? 'descending' : 'ascending';
+      TABLE.sort = key;
+      renderTable();
+    }
+    if (action === 'row-toggle' && row) {
+      TABLE.expanded[id] = !TABLE.expanded[id];
+      el.setAttribute('aria-expanded', String(TABLE.expanded[id]));
+      $('#sg-detail-' + id).inert = !TABLE.expanded[id];
+    }
+    if (action === 'row-open' && row) toast('Opened ' + row.name + '.', 'info');
+    if (action === 'table-live') {
+      var on = el.getAttribute('aria-pressed') !== 'true';
+      el.setAttribute('aria-pressed', String(on));
+      clearInterval(TABLE.feed);
+      TABLE.feed = 0;
+      if (on) {
+        TABLE.feed = setInterval(function () {
+          TABLE.rows.forEach(function (r) {
+            if (Math.random() < 0.6) r.load = Math.max(1, Math.min(99, r.load + Math.round((Math.random() - 0.5) * 50)));
+          });
+          renderTable(true);
+        }, slow(2000));
+      }
+    }
   }
 
   /* Forms */
@@ -400,18 +659,140 @@
   }
 
   /* Loading and progress */
+  function progressHtml(share, name, label, detail, extra) {
+    return '<div class="ds-progress' + (extra && extra.cls ? ' ' + extra.cls : '') + '"' + (extra && extra.id ? ' id="' + extra.id + '"' : '') + (share === null ? '' : ' style="--ds-progress:' + share + '"') + '>' +
+      '<div class="ds-progress__track" role="progressbar" aria-label="' + name + '" aria-valuemin="0" aria-valuemax="100"' + (share === null ? ' aria-valuetext="' + extra.text + '"' : ' aria-valuenow="' + Math.round(share * 100) + '"') + '><div class="ds-progress__bar"></div></div>' +
+      '<p class="ds-progress__label">' + label + '</p>' + (detail ? '<p class="ds-progress__detail">' + detail + '</p>' : '') + '</div>';
+  }
+
+  function ring(share, flat) {
+    return '<span class="ds-spinner ds-spinner--determinate' + (flat ? ' ds-spinner--flat' : '') + '" role="progressbar" aria-label="Upload' + (flat ? ' (flat)' : '') + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(share * 100) + '" style="--ds-progress:' + share + '"></span>';
+  }
+
+  function skeletonHtml() {
+    return '<div class="ds-skeleton" role="status" style="position:relative"><span class="ds-sr">Loading the page ...</span>' +
+      '<span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span><span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>' +
+      '<div class="ds-skeleton__card"><span class="ds-skeleton__line ds-skeleton__line--title"></span><span class="ds-skeleton__line"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span></div>' +
+      '<div class="ds-skeleton__card"><span class="ds-skeleton__line ds-skeleton__line--title"></span><span class="ds-skeleton__line"></span><span class="ds-skeleton__line ds-skeleton__line--mid"></span></div></div>';
+  }
+
+  function loadedPageHtml() {
+    return '<div class="ds-reveal sg-loaded"><h4 class="sg-loaded__title">Devices</h4><p class="ds-muted">1,284 devices, 7 overdue for replacement.</p>' +
+      '<section class="ds-card"><h5 class="ds-card__title">LAPTOP-0042</h5><p class="ds-muted">Latitude 7440, issued to Ada Lovelace.</p></section>' +
+      '<section class="ds-card"><h5 class="ds-card__title">DESKTOP-0107</h5><p class="ds-muted">OptiPlex 7010, in the server room. Replacement overdue.</p></section></div>';
+  }
+
   function loading() {
     return section('loading', 'Loading and progress', 'Fast loads show nothing: indicators fade in after the loader delay and then stay long enough not to flicker. Their loops always run at their token speed.',
       '<div class="ds-grid-2">' +
-      card('Spinners and loading line', '<div class="sg-row"><span class="ds-spinner" aria-hidden="true"></span><button class="ds-btn ds-btn--primary" type="button" aria-busy="true">' + faces('Save', 'Saving', 'Saved') + '</button><span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Importing</span></span></div><div class="ds-loading" role="status"><span class="ds-spinner" aria-hidden="true"></span>Loading more devices ...</div>') +
-      card('Progress', '<div class="ds-progress" id="sg-progress" style="--ds-progress:.4"><div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">40%</p><p class="ds-progress__detail">812 of 2,030 rows</p></div>' +
-        '<div class="ds-progress ds-progress--indeterminate"><div class="ds-progress__track" role="progressbar" aria-label="Preparing"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">Preparing the import ...</p></div>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="progress">Advance</button></div>') +
+      card('Shape loader', '<div class="sg-row sg-loaders"><span class="ds-loader" aria-hidden="true"></span><span class="ds-loader ds-loader--sm" aria-hidden="true"></span><span class="ds-loader ds-loader--contained" aria-hidden="true"></span></div>' +
+        '<div class="ds-boot sg-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting the console ...</div>' +
+        '<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading more devices ...</div>' +
+        '<p class="ds-muted">The block loader (48px, --sm 24px, --contained on a tinted disc) for a section, a sheet or the app start: the shape morphs through the seven Material shapes while it turns. A few per view at most; inline spots keep the spinner.</p>') +
+      card('Spinners', '<div class="sg-row"><span class="ds-spinner" aria-hidden="true"></span><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span><span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Importing</span></span><button class="ds-btn ds-btn--primary" type="button" aria-busy="true">' + faces('Save', 'Saving', 'Saved') + '</button></div>' +
+        '<div class="sg-row">' + ring(0.05) + ring(0.4) + ring(1) + ring(0.4, true) + '</div>' +
+        '<p class="ds-muted">The inline spinner (16px, --sm 12px in the text colour) is the arc that grows and shrinks while it turns. The determinate ring shows a share on a wavy arc, a gap and the track (5%, 40%, done, and --flat); it never spins.</p>') +
       '</div>' +
-      card('Page skeleton', '<div class="ds-skeleton" role="status" style="position:relative"><span class="ds-sr">Loading the page ...</span>' +
-        '<span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span><span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>' +
-        '<div class="ds-skeleton__card"><span class="ds-skeleton__line ds-skeleton__line--title"></span><span class="ds-skeleton__line"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span></div>' +
-        '<div class="ds-skeleton__card"><span class="ds-skeleton__line ds-skeleton__line--title"></span><span class="ds-skeleton__line"></span><span class="ds-skeleton__line ds-skeleton__line--mid"></span></div></div>'));
+      '<div class="ds-grid-2">' +
+      card('Progress', progressHtml(0.05, 'Export', '5%', '102 of 2,030 rows') +
+        progressHtml(0.4, 'Import', '40%', '812 of 2,030 rows', { id: 'sg-progress' }) +
+        progressHtml(1, 'Backup', '100%', 'Done') +
+        progressHtml(0.4, 'Upload (flat)', '40%', 'flat: no gap, no stop dot, no wave', { cls: 'ds-progress--flat' }) +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="progress">Advance</button></div>') +
+      card('Unknown share', progressHtml(null, 'Preparing', 'Preparing the import ...', '', { cls: 'ds-progress--indeterminate', text: 'Preparing' }) +
+        progressHtml(null, 'Queued export', 'Waiting for a free worker ...', '', { cls: 'ds-progress--waiting', text: 'Waiting' }) +
+        progressHtml(0, 'Import run', 'Ready', 'Start runs waiting, preparing, 30%, done', { id: 'sg-progress-run' }) +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="progress-run">Start</button></div>' +
+        '<p class="ds-muted">While the share is unknown the bar has no aria-valuenow but an aria-valuetext ("Waiting", "Preparing"); the first share sets aria-valuenow again. The segments stop and fade out, and the bar grows from 0 to its share.</p>') +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      card('Page skeleton', '<div id="sg-skeleton-stage">' + skeletonHtml() + '</div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="skeleton">Load the page</button></div>' +
+        '<p class="ds-muted">One calm wave passes over every bone at once. Loaded, the page replaces the skeleton with .ds-reveal.</p>') +
+      card('Fast and slow loads', '<div class="sg-load-stage" id="sg-load-stage"><p class="ds-muted">Load the device list.</p></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="load" data-ms="150">Fast (150ms)</button><button class="ds-btn ds-btn--sm" type="button" data-sg="load" data-ms="300">Medium (300ms)</button><button class="ds-btn ds-btn--sm" type="button" data-sg="load" data-ms="1200">Slow (1200ms)</button></div>' +
+        '<p class="ds-muted">The loading line goes in at once but fades in only after the loader delay, so the fast load shows nothing. DS.motion.settleLoader(startedAt, { element }) keeps a loader that did show for at least the hold time, so it never flashes.</p>') +
+      '</div>');
+  }
+
+  /* The progress run: waiting, preparing, a first share, done; the aria follows each step. */
+  var progressTimers = [];
+
+  function progressRun() {
+    var p = $('#sg-progress-run');
+    var track = $('.ds-progress__track', p);
+    var say = function (label, detail) {
+      $('.ds-progress__label', p).textContent = label;
+      $('.ds-progress__detail', p).textContent = detail;
+    };
+    var unknown = function (cls, text) {
+      p.classList.remove('ds-progress--waiting', 'ds-progress--indeterminate');
+      p.classList.add(cls);
+      track.removeAttribute('aria-valuenow');
+      track.setAttribute('aria-valuetext', text);
+    };
+    var share = function (value, label, detail) {
+      p.classList.remove('ds-progress--waiting', 'ds-progress--indeterminate');
+      p.style.setProperty('--ds-progress', String(value));
+      track.removeAttribute('aria-valuetext');
+      track.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+      say(label, detail);
+    };
+    progressTimers.forEach(clearTimeout);
+    progressTimers = [];
+    unknown('ds-progress--waiting', 'Waiting');
+    p.style.setProperty('--ds-progress', '0');
+    say('Waiting for a free worker ...', 'queued');
+    progressTimers.push(setTimeout(function () {
+      unknown('ds-progress--indeterminate', 'Preparing');
+      say('Preparing the import ...', 'reading the file');
+    }, slow(1200)));
+    progressTimers.push(setTimeout(function () { share(0.3, '30%', '609 of 2,030 rows'); }, slow(3000)));
+    progressTimers.push(setTimeout(function () { share(1, '100%', 'Done'); }, slow(4500)));
+  }
+
+  /* Skeleton: the page loads (the skeleton stays at least the loader hold once shown), then .ds-reveal. */
+  var skeletonShownAt = Date.now();
+
+  function skeletonDemo(button) {
+    var stage = $('#sg-skeleton-stage');
+    var skeleton = $('.ds-skeleton', stage);
+    if (!skeleton) {
+      stage.innerHTML = skeletonHtml();
+      skeletonShownAt = Date.now();
+      button.textContent = 'Load the page';
+      return;
+    }
+    M.settleLoader(skeletonShownAt, { element: skeleton }).then(function () {
+      if (!skeleton.isConnected) return;
+      stage.innerHTML = loadedPageHtml();
+      button.textContent = 'Show the skeleton again';
+    });
+  }
+
+  /* Fast and slow loads: a loading line, a fake request, settleLoader(), then the result. */
+  var loadRun = 0;
+
+  function loadDemo(ms) {
+    var stage = $('#sg-load-stage');
+    var run = loadRun += 1;
+    stage.innerHTML = '<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading the devices ...</div>';
+    var loader = stage.firstChild;
+    /* The times are read once, before the request, so the verdict follows the
+       hold settleLoader() computes rather than wall time (a busy machine). */
+    var times = { delay: M.motionDuration(loader, '--ds-delay-loader'), minVisible: M.motionDuration(loader, '--ds-hold-loader') };
+    var startedAt = Date.now();
+    setTimeout(function () {
+      var answered = Date.now();
+      var shown = answered - startedAt > times.delay;
+      var held = M.loaderHoldMs(startedAt, answered, times) > 0;
+      M.settleLoader(startedAt, answered, times).then(function () {
+        if (run !== loadRun) return;
+        stage.innerHTML = '<p class="ds-muted">Loaded 1,284 devices after ' + ms + 'ms. ' +
+          (!shown ? 'The loader never showed.' : held ? 'The loader had just appeared, so it stayed for the hold time.' : 'The loader showed and left at once.') + '</p>';
+        M.enter(stage.firstChild, 'swap');
+      });
+    }, slow(ms));
   }
 
   /* App frame */
@@ -463,7 +844,9 @@
         '<div class="ds-field sg-data-filter"><label class="ds-field__label" for="sg-data-filter">Filter</label><input class="ds-input" id="sg-data-filter" type="search" autocomplete="off" placeholder="Device name"></div>' +
         '<p class="ds-meta sg-data-status" id="sg-data-status" aria-live="polite"><span>' + dataCount() + '</span></p>' +
         '<ul class="ds-kv-list sg-data-list" id="sg-data-list">' + dataHtml() + '</ul>') +
-      card('Disclosure', '<details class="ds-collapsible"><summary>Show the motion rules</summary><ol class="ds-muted"><li>Animate only transform, opacity, colours, shadows and clip-path.</li><li>Fades on the standard curve, floating movement on a gentle spring; exits accelerate.</li><li>Data changes glide: figures count from the shown value, reordered rows move to their new places; a refresh never replays an entrance.</li></ol></details>'));
+      card('Disclosure', '<details class="ds-collapsible sg-disclosure"><summary>Show the motion rules' + icon('chevronDown', 20, 'ds-chevron') + '</summary><ol class="ds-muted"><li>Animate only transform, opacity, colours, shadows and clip-path.</li><li>Fades on the standard curve, floating movement on a gentle spring; exits accelerate.</li><li>Data changes glide: figures count from the shown value, reordered rows move to their new places; a refresh never replays an entrance.</li></ol>' +
+        '<button class="ds-btn ds-btn--sm" type="button" data-sg="copy-rules">' + icon('copy', 16) + 'Copy the rules</button></details>' +
+        '<p class="ds-muted">It opens over 250ms, decelerating, while the content fades in, and closes faster, accelerating; the chevron turns on the spring. The button sits flush with the content edge, and its focus ring still shows in full.</p>'));
   }
 
   /* Data motion: a keyed list, its state and its markup. */
@@ -1012,6 +1395,24 @@
         M.enterAll($$('#sg-stagger > span'), 'fill-x');
       }
       if (action === 'count') countMore();
+      if (action === 'figures') refreshFigures();
+      if (action === 'status-poll') togglePoll(el);
+      if (action === 'alert-insert') insertAlert();
+      if (action === 'alert-dismiss') dismissAlert(el);
+      if (action === 'item-return') returnItem(el);
+      if (action === 'items-restore') restoreItems();
+      if (action === 'stale-fast') refreshStale(150);
+      if (action === 'stale-slow') refreshStale(1200);
+      if (action === 'card-open' || action === 'tile-open') {
+        event.preventDefault();
+        toast('Opened ' + (el.getAttribute('data-name') || 'the overdue devices') + '.', 'info');
+      }
+      if (action === 'card-restart') toast('Restarting LAPTOP-0017.', 'info');
+      if (action === 'copy-rules') toast('Copied the motion rules.', 'info');
+      if (action === 'table-sort' || action === 'row-toggle' || action === 'row-open' || action === 'table-live') tableAction(action, el);
+      if (action === 'progress-run') progressRun();
+      if (action === 'skeleton') skeletonDemo(el);
+      if (action === 'load') loadDemo(Number(el.getAttribute('data-ms')));
       if (action && action.indexOf('data-') === 0) dataAction(action, el);
       if (action && action.indexOf('track-') === 0) trackDemo(action, el);
       if (action === 'drawer-toggle') toggleDrawer(el);
@@ -1051,11 +1452,25 @@
       data.filter = event.target.value;
       updateData(data.filter.trim() ? 'filtered' : null);
     });
+    // The table filter: a user action, so every keystroke glides at once.
+    $('#sg-table-filter').addEventListener('input', function (event) {
+      TABLE.filter = event.target.value;
+      renderTable();
+    });
     document.addEventListener('change', function (event) {
       var input = event.target;
       if (input.getAttribute('data-sg') === 'switch') $('.ds-switch__state', input.parentNode).textContent = input.checked ? 'On' : 'Off';
-      if (input.getAttribute('data-sg') === 'select-all') $$('[data-sg="select-row"]').forEach(function (row) { row.checked = input.checked; });
-      if (input.getAttribute('data-sg') === 'select-row') syncSelectAll();
+      // Select all changes every row in the same frame (no stagger).
+      if (input.getAttribute('data-sg') === 'select-all') {
+        $$('[data-sg="select-row"]').forEach(function (row) {
+          row.checked = input.checked;
+          TABLE.selected[row.closest('tr').getAttribute('data-ds-key')] = input.checked;
+        });
+      }
+      if (input.getAttribute('data-sg') === 'select-row') {
+        TABLE.selected[input.closest('tr').getAttribute('data-ds-key')] = input.checked;
+        syncSelectAll();
+      }
     });
     // The ticket field: checked on every keystroke, the message only
     // changes when the verdict does (so it fades in once).
@@ -1077,12 +1492,12 @@
     setupMenus();
   }
 
-  /* The header checkbox of the table: checked, mixed or empty by its rows. */
+  /* The header checkbox of the table: checked, mixed or empty by its shown rows. */
   function syncSelectAll() {
-    var rows = $$('[data-sg="select-row"]');
-    var checked = rows.filter(function (row) { return row.checked; }).length;
+    var rows = tableShown();
+    var checked = rows.filter(function (row) { return TABLE.selected[row.id]; }).length;
     var all = $('[data-sg="select-all"]');
-    all.checked = checked === rows.length;
+    all.checked = rows.length > 0 && checked === rows.length;
     all.indeterminate = checked > 0 && checked < rows.length;
   }
 
@@ -1111,6 +1526,7 @@
       var value = Number(el.getAttribute('data-count'));
       el.setAttribute('data-count', String(value + Math.max(1, Math.round(value * 0.05))));
     });
+    syncShare();
     countTiles();
     var progress = $('#sg-count-progress');
     var share = parseFloat(progress.style.getPropertyValue('--ds-progress')) || 0;
