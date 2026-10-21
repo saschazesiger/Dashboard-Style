@@ -37,6 +37,13 @@
  * .ds-btn--done; the faces themselves are CSS. originFrom() writes where a
  * popup grows from.
  *
+ * Views: transition() moves from one view to the next (navigation only,
+ * never data): fade-through, shared axis X (forward, back) or a container
+ * transform, as a View Transition keyed on data-ds-vt on <html> (the
+ * rules are in motion.css), else as an .ds-enter--swap fade-through of
+ * the new view (D30). No component calls it, except DS.overlay.open with
+ * `container: true`.
+ *
  * ES2022 (Safari 16.4); a module may import from an earlier module (the
  * build bundles it into dist/ds.js as DS.motion); newer APIs only behind
  * feature detection, named under Progressive:.
@@ -44,6 +51,13 @@
  * Progressive: linear() easings (the spring) in el.animate(); an engine
  * that rejects them (Chrome/Edge 111-112, Safari 16.4-17.1) throws a
  * TypeError and gets the token's cubic fallback instead (animateSafe).
+ * document.startViewTransition (same-document View Transitions) for
+ * transition(), only with .ds-theme on <html>; without it, or for an
+ * embedded widget, the new view fades through with .ds-enter--swap.
+ * ScrollTimeline (scroll-driven animations): where it exists, settled(),
+ * the handoffs and flip() tell those animations apart and leave them be,
+ * and resyncScroll() restarts those whose scroller stopped overflowing;
+ * elsewhere there are none.
  */
 
 /**
@@ -486,10 +500,62 @@ function markLeaving(element, state, on) {
   }
 }
 
-/** The element's own animations (no pseudo-elements, no descendants). */
+/**
+ * A scroll-driven animation (a ScrollTimeline or ViewTimeline: the panel
+ * hairline, a table's edge fades, .ds-reveal--scroll). It follows the
+ * scroll position, never ends by time and takes no time-based currentTime,
+ * so no helper waits for it, snapshots it or hands it off.
+ */
+function scrollDriven(animation) {
+  const ScrollTimeline = globalThis.ScrollTimeline;
+  return typeof ScrollTimeline === 'function' && animation.timeline instanceof ScrollTimeline;
+}
+
+/**
+ * Restarts the scroll-driven animations whose scroller stopped
+ * overflowing: its timeline turned inactive, yet Chromium and WebKit keep
+ * the animation's last progress, so a scrolled view whose content shrank
+ * kept the top bar tinted and its hairline shown, and a table that now
+ * fits kept its left edge fade. A restarted animation has no effect until
+ * its scroller overflows again, as on a fresh load. It waits two frames
+ * first: a timeline sees a new layout only a frame or two later.
+ * transition() calls it after every update; call it after a change in
+ * place that may shrink a scroller (a table filter, columns hidden, a
+ * record swap with morphHtml outside transition()). `root` (an element or
+ * a document, default the document) limits it to the scrollers inside it,
+ * the one around it and the animations of its descendants (the top bar's
+ * tint follows the view's timeline). Without scroll timelines it does
+ * nothing. Resolves to the number of animations restarted.
+ *
+ * @param {Element|Document} [root]
+ * @returns {Promise<number>}
+ */
+export function resyncScroll(root = globalThis.document) {
+  const doc = root?.nodeType === 9 ? root : root?.ownerDocument;
+  const win = doc?.defaultView ?? globalThis;
+  if (typeof globalThis.ScrollTimeline !== 'function' || typeof doc?.getAnimations !== 'function' || typeof win.requestAnimationFrame !== 'function') return Promise.resolve(0);
+  const related = (node) => Boolean(node) && (root === doc || root.contains(node) || node.contains?.(root));
+  // Two frames: a frame snapshots its timelines from the layout it starts
+  // with, so a change made in a task shows in the frame after the next.
+  return new Promise((resolve) => {
+    win.requestAnimationFrame(() => win.requestAnimationFrame(() => {
+      let restarted = 0;
+      for (const animation of doc.getAnimations()) {
+        if (!scrollDriven(animation) || animation.timeline.currentTime !== null || animation.currentTime === null) continue;
+        if (!related(animation.timeline.source) && !related(animation.effect?.target)) continue;
+        animation.cancel();
+        animation.play();
+        restarted += 1;
+      }
+      resolve(restarted);
+    }));
+  });
+}
+
+/** The element's own time-based animations (no pseudo-elements, no descendants, nothing scroll-driven). */
 function ownAnimations(element) {
   if (typeof element.getAnimations !== 'function') return [];
-  return element.getAnimations().filter((animation) => !animation.effect?.pseudoElement);
+  return element.getAnimations().filter((animation) => !animation.effect?.pseudoElement && !scrollDriven(animation));
 }
 
 /** @returns {number} */
@@ -784,7 +850,7 @@ function watched(element, options) {
   const transitions = transitionsOnly || options.transitions === true;
   const names = options.names;
   return element.getAnimations({ subtree: options.subtree === true }).filter((animation) => {
-    if (!animation.effect || animation.effect.pseudoElement) return false;
+    if (!animation.effect || animation.effect.pseudoElement || scrollDriven(animation)) return false;
     if (animation.playState === 'idle' || iterationsOf(animation) === Infinity) return false;
     if (typeof animation.transitionProperty === 'string') {
       return transitions && (!options.property || animation.transitionProperty === options.property);
@@ -866,7 +932,8 @@ function settledByEvents(element, options) {
  *   - 'ds-handoff' animations (an interrupted enter() or leave()),
  *   - CSS transitions only with `transitions: true`, or with
  *     `event: 'transitionend'` (then only those), of `property` if given;
- * never pseudo-elements (state layers, ripples) or loops. A cancelled
+ * never pseudo-elements (state layers, ripples), loops or scroll-driven
+ * animations (they follow the scroll, not time). A cancelled
  * animation counts as done. With nothing to wait for it resolves on the
  * next frame. The ceiling is `timeout`, else the end of the longest kept
  * animation (delay and duration) plus 100ms.
@@ -1887,7 +1954,7 @@ function runFlip(container, mutate, options, state) {
   for (const item of flipItems(container, selector)) {
     if (before.has(item) || inserted.includes(item) || removed.some((entry) => entry.node === item)) continue;
     // An item that brings its own entrance (a snackbar's keyframes) keeps it.
-    if (item.getAnimations?.().some((animation) => animation.playState !== 'finished')) continue;
+    if (item.getAnimations?.().some((animation) => animation.playState !== 'finished' && !scrollDriven(animation))) continue;
     inserted.push(item);
   }
   // Last.
@@ -2060,4 +2127,449 @@ export function flip(container, mutate, options = {}) {
     }
   }
   return flush(container, mutate, options, state);
+}
+
+/* ── Views ──────────────────────────────────────────── */
+
+/** The types of transition(), written as data-ds-vt on <html> while one runs. */
+const VIEW_TYPES = Object.freeze(['fade-through', 'forward', 'back', 'container']);
+
+/**
+ * The latest transition() of each document on the View Transition path:
+ * its ViewTransition, a promise that settles once its update has run, one
+ * that settles once it has ended and cleaned up, and the inline
+ * view-transition-names it wrote (element → the value before).
+ * @typedef {{ transition: any, updated: Promise<void>, done: Promise<void>, names: Map<HTMLElement, string> }} ViewCall
+ * @type {WeakMap<Document, ViewCall>}
+ */
+const viewCalls = new WeakMap();
+
+const isElement = (value) => value?.nodeType === 1;
+
+/**
+ * The elements whose view-transition-name is lifted (inline `none`) while
+ * a transition() runs in their document: element → its inline value
+ * before ('' when the name came from a stylesheet).
+ * @type {WeakMap<Document, Map<HTMLElement, string>>}
+ */
+const liftedNames = new WeakMap();
+
+/**
+ * An open dialog or side sheet: it covers the page frame. Opened by
+ * DS.overlay (data-state), a native one shown by hand ([open]), or the div
+ * fallback shown by hand by removing hidden (no data-state; a div sheet is
+ * modal only with aria-modal, the selector sheet.css names its body by).
+ */
+const MODAL_OPEN = [
+  '.ds-dialog[data-state="open"]',
+  '.ds-sheet[data-state="open"]',
+  'dialog.ds-dialog[open]',
+  'dialog.ds-sheet[open]',
+  '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing)',
+  '.ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing)',
+].join(', ');
+
+/** The modal drawer exists only below this width (shell.css). */
+const MODAL_DRAWER = '(max-width: 900px)';
+
+/** The parts of the page frame that shell.css names while data-ds-vt is set. */
+const FRAME_PARTS = '.ds-view, .ds-panel, .ds-drawer';
+
+function liftName(doc, element) {
+  let lifted = liftedNames.get(doc);
+  if (lifted?.has(element)) return;
+  if (!lifted) liftedNames.set(doc, (lifted = new Map()));
+  lifted.set(element, element.style.getPropertyValue('view-transition-name'));
+  element.style.setProperty('view-transition-name', 'none');
+}
+
+/**
+ * Within a page an indicator glides better live than as a group of its
+ * own (a group floats above its labels and outside its track's clip): the
+ * drawer shows live (motion.css), so its pill glides as on a click. Its
+ * name serves page loads; it is lifted until the transition ends.
+ */
+function liftIndicatorNames(doc) {
+  for (const pill of Array.from(doc.querySelectorAll?.('.ds-indicator') ?? [])) {
+    const name = pill.style.getPropertyValue('view-transition-name');
+    if (name && name !== 'none') liftName(doc, pill);
+  }
+}
+
+/**
+ * A modal drawer that is open, or still leaving (its exit, a transition
+ * on the drawer itself, runs while the view changes): it lies in the root
+ * snapshot with its scrim.
+ */
+function modalDrawer(doc) {
+  if (doc.defaultView?.matchMedia?.(MODAL_DRAWER)?.matches !== true) return false;
+  if (doc.querySelector?.('.ds-app[data-drawer-open]')) return true;
+  const drawer = doc.querySelector?.('.ds-app .ds-drawer');
+  return Boolean(drawer?.getAnimations?.().some((animation) => animation.playState === 'running'));
+}
+
+/**
+ * Under an open dialog or sheet (a record swap in a sheet), or the modal
+ * drawer (a navigation from it), the page frame stays in the root
+ * snapshot: named, its view, panel and drawer would paint above the
+ * overlay or the drawer and its scrim (every group lies above the root)
+ * and fade through although they did not change, or pop in front of the
+ * drawer. Unnamed, the new view crossfades with the root under them.
+ */
+function liftFrameNames(doc) {
+  if (!doc.querySelector?.(MODAL_OPEN) && !modalDrawer(doc)) return;
+  for (const part of Array.from(doc.querySelectorAll?.(FRAME_PARTS) ?? [])) liftName(doc, part);
+}
+
+/**
+ * toast.css names a snackbar region with messages ds-toasts while a
+ * transition runs, so its messages stay above the page's groups. A name
+ * must be unique, or the engine skips the whole transition: a further
+ * region with messages keeps no name (it crossfades in the root).
+ */
+function liftExtraToasts(doc) {
+  const regions = Array.from(doc.querySelectorAll?.('.ds-toasts') ?? []);
+  const shown = regions.filter((region) => Array.from(region.children ?? []).some((child) => child.classList?.contains('ds-toast')));
+  for (const region of shown.slice(1)) liftName(doc, region);
+}
+
+/** Clicks on <html> already forwarded (two listeners may see one). @type {WeakSet<Event>} */
+const forwardedClicks = new WeakSet();
+
+/**
+ * Chromium and WebKit hit-test the document element while a View
+ * Transition's pseudo tree is up, so a click meant for a button under the
+ * pointer would reach <html> and be lost (Firefox delivers it). While
+ * `call` is the latest, a press on <html> skips the running motion
+ * instead, and its click goes to the element under the pointer once no
+ * transition runs any more: stepping through records or navigating fast
+ * never loses input. Both stray events stop at the window (capture), so
+ * no outside-press logic of the page sees a press on <html>. Returns the
+ * function that removes the listeners.
+ */
+function forwardPresses(doc, call) {
+  const root = doc.documentElement;
+  const target = doc.defaultView ?? doc;
+  if (typeof target?.addEventListener !== 'function') return () => {};
+  const land = (x, y) => {
+    const running = viewCalls.get(doc);
+    if (running) {
+      running.transition?.skipTransition?.();
+      running.done.then(() => land(x, y));
+      return;
+    }
+    // The element under the pointer may be a button's icon: an SVG
+    // element has no click(), so its nearest HTML ancestor takes it.
+    let element = doc.elementFromPoint?.(x, y) ?? null;
+    while (element && typeof element.click !== 'function') element = element.parentElement;
+    if (element && element !== root) element.click();
+  };
+  const onClick = (/** @type {MouseEvent} */ event) => {
+    if (event.target !== root || forwardedClicks.has(event)) return;
+    forwardedClicks.add(event);
+    event.stopPropagation();
+    land(event.clientX, event.clientY);
+  };
+  const onPointerDown = (/** @type {PointerEvent} */ event) => {
+    if (event.target !== root || event.button !== 0 || viewCalls.get(doc) !== call) return;
+    event.stopPropagation();
+    call.transition?.skipTransition?.();
+    // The click of this press may come after the end, once (a press that
+    // ends in no click, such as a drag, leaves it to the next click, which
+    // is let through unless it is on <html> too).
+    target.addEventListener('click', onClick, { capture: true, once: true });
+  };
+  // A press that reached its button just before the pseudo tree went up
+  // releases on <html>, so its click goes to <html> too: forwarded the same.
+  const onClickDuring = (/** @type {MouseEvent} */ event) => {
+    if (viewCalls.get(doc) === call) onClick(event);
+  };
+  target.addEventListener('pointerdown', onPointerDown, true);
+  target.addEventListener('click', onClickDuring, true);
+  return () => {
+    target.removeEventListener('pointerdown', onPointerDown, true);
+    target.removeEventListener('click', onClickDuring, true);
+  };
+}
+
+/** The panel's width, to tell a view that shows or hides the drawer (a morph) from a plain swap. */
+function panelWidth(doc) {
+  const panel = doc.querySelector?.('.ds-theme .ds-panel');
+  return panel?.getBoundingClientRect?.().width ?? null;
+}
+
+/** The lifted names come back (an element renamed meanwhile keeps its new name). */
+function restoreLiftedNames(doc) {
+  const lifted = liftedNames.get(doc);
+  if (!lifted) return;
+  liftedNames.delete(doc);
+  for (const [element, before] of lifted) {
+    if (element.style.getPropertyValue('view-transition-name') !== 'none') continue;
+    if (before) element.style.setProperty('view-transition-name', before);
+    else element.style.removeProperty('view-transition-name');
+  }
+}
+
+/**
+ * Whether a clipping ancestor (the .ds-view scroller, a sheet body, a
+ * table's scroll wrapper, the panel's rounded frame) hides a part of
+ * `element` that lies inside the window. A View Transition group escapes
+ * every clip and paints above the root, where the top bar is: a container
+ * group from (or into) such an element would draw its hidden part over the
+ * bar or the drawer, so the container transform becomes a fade-through.
+ * A part outside the window (a long detail that runs past the bottom) does
+ * not count; an element with nothing in the window does (its group would
+ * fly in from off screen). Ancestors above a fixed element do not clip it.
+ */
+function clippedOnScreen(element) {
+  const doc = element.ownerDocument;
+  const view = doc?.defaultView;
+  if (typeof element.getBoundingClientRect !== 'function' || typeof view?.getComputedStyle !== 'function' || !(view.innerWidth > 0)) return false;
+  const rect = element.getBoundingClientRect();
+  const shown = {
+    left: Math.max(rect.left, 0),
+    top: Math.max(rect.top, 0),
+    right: Math.min(rect.right, view.innerWidth),
+    bottom: Math.min(rect.bottom, view.innerHeight),
+  };
+  if (shown.right - shown.left < 1 || shown.bottom - shown.top < 1) return true;
+  const stop = new Set([doc.documentElement, doc.body]);
+  for (let node = element; node && !stop.has(node); node = node.parentElement) {
+    const style = view.getComputedStyle(node);
+    if (node !== element) {
+      const box = node.getBoundingClientRect();
+      // The padding box: what overflow clips to (without the scrollbar).
+      const left = box.left + (node.clientLeft || 0);
+      const top = box.top + (node.clientTop || 0);
+      if (style.overflowX !== 'visible' && (shown.left < left - 1 || shown.right > left + node.clientWidth + 1)) return true;
+      if (style.overflowY !== 'visible' && (shown.top < top - 1 || shown.bottom > top + node.clientHeight + 1)) return true;
+    }
+    if (style.position === 'fixed') break;
+  }
+  return false;
+}
+
+/** Names `element` ds-container for this call (the inline value before is kept). */
+function nameContainer(call, element) {
+  if (!call.names.has(element)) call.names.set(element, element.style.viewTransitionName ?? '');
+  element.style.viewTransitionName = 'ds-container';
+}
+
+/** Gives `element` back the inline name it had before this call named it. */
+function unnameContainer(call, element) {
+  if (!call.names.has(element)) return;
+  element.style.viewTransitionName = call.names.get(element);
+  call.names.delete(element);
+}
+
+/** Every name this call wrote goes. */
+function unnameAll(call) {
+  for (const element of Array.from(call.names.keys())) unnameContainer(call, element);
+}
+
+/**
+ * The element to enter after a swap without View Transitions: what the
+ * update returned, else the first content child of the themed view (not a
+ * kept or hidden helper, such as the 1px data-scrolled sentinel that
+ * docs/components.md puts first).
+ */
+function swapTarget(doc, result) {
+  if (isElement(result)) return result;
+  const view = doc?.querySelector?.('.ds-theme .ds-view');
+  for (const child of Array.from(view?.children ?? [])) {
+    if (child.hasAttribute?.('data-ds-keep') || child.getAttribute?.('aria-hidden') === 'true') continue;
+    return child;
+  }
+  return null;
+}
+
+/**
+ * D30: no View Transitions (or no html.ds-theme). The update runs at
+ * once, nothing waits before it, and the new view fades through with
+ * .ds-enter--swap; rapid calls land on the latest view through enter()'s
+ * generation.
+ */
+function swapView(doc, update) {
+  let result;
+  try {
+    result = update();
+  } catch (error) {
+    return Promise.reject(error);
+  }
+  // A synchronous update enters in a microtask: before the next frame, so
+  // the new view never shows at full opacity first.
+  return Promise.resolve(result).then((value) => {
+    // A view that scrolled and now fits keeps no tint or hairline.
+    resyncScroll(doc);
+    const target = swapTarget(doc, value);
+    return target ? enter(target, 'swap') : undefined;
+  });
+}
+
+/** The View Transition path of transition() (see there). */
+function viewTransition(doc, update, type, from) {
+  const root = doc.documentElement;
+  const previous = viewCalls.get(doc);
+  if (previous) {
+    // A skipped transition still runs its update (in call order, below);
+    // its names can only get in the way of this snapshot.
+    previous.transition?.skipTransition?.();
+    unnameAll(previous);
+  }
+  const container = type === 'container' && isElement(from) && from.isConnected && !clippedOnScreen(from) ? from : null;
+  /** @type {ViewCall} */
+  const call = { transition: null, updated: Promise.resolve(), done: Promise.resolve(), names: new Map() };
+  const latest = () => viewCalls.get(doc) === call;
+  viewCalls.set(doc, call);
+  root.setAttribute('data-ds-vt', type === 'container' && !container ? 'fade-through' : type);
+  root.removeAttribute('data-ds-vt-morph');
+  if (container) nameContainer(call, container);
+  liftIndicatorNames(doc);
+  liftFrameNames(doc);
+  liftExtraToasts(doc);
+
+  let settleUpdate = () => {};
+  call.updated = new Promise((resolve) => { settleUpdate = resolve; });
+  let watchdog = 0;
+  /** The update's error: kept here, not thrown into the View Transition (Firefox reports it as uncaught). */
+  let failure = /** @type {{ error: unknown }|null} */ (null);
+  const run = async () => {
+    // A slow render never holds the frozen page for long: past
+    // --ds-dur-long the motion is skipped and the page shows (and takes
+    // input) while the update finishes.
+    watchdog = /** @type {any} */ (setTimeout(() => call.transition?.skipTransition?.(), motionDuration(root, '--ds-dur-long')));
+    try {
+      if (container) unnameContainer(call, container);
+      if (previous) await previous.updated;
+      const widthBefore = panelWidth(doc);
+      let result;
+      try {
+        result = await update();
+      } catch (error) {
+        failure = { error };
+        call.transition?.skipTransition?.();
+        return;
+      }
+      // An indicator the update created has its name lifted too.
+      if (latest()) liftIndicatorNames(doc);
+      // Only a panel that changes its width (the drawer shown or hidden)
+      // morphs over --ds-dur-long; a plain swap keeps the short groups, so
+      // the frozen page never holds input longer than it must.
+      const widthAfter = latest() && widthBefore !== null ? panelWidth(doc) : null;
+      if (widthAfter !== null && Math.abs(widthAfter - widthBefore) > 0.5) root.setAttribute('data-ds-vt-morph', '');
+      if (type === 'container' && latest()) {
+        if (container && isElement(result) && result.isConnected && !clippedOnScreen(result)) nameContainer(call, result);
+        else root.setAttribute('data-ds-vt', 'fade-through');
+      }
+    } finally {
+      clearTimeout(watchdog);
+      settleUpdate();
+    }
+  };
+
+  let started;
+  try {
+    started = doc.startViewTransition(run);
+  } catch (error) {
+    // An engine that refuses to start one: the update still runs, without motion.
+    unnameAll(call);
+    if (latest()) {
+      root.removeAttribute('data-ds-vt');
+      root.removeAttribute('data-ds-vt-morph');
+      viewCalls.delete(doc);
+      restoreLiftedNames(doc);
+    }
+    return swapView(doc, update);
+  }
+  call.transition = started;
+  // The new view may not overflow where the old one was scrolled: its
+  // scroll-driven tint and hairline go (the new image is live).
+  call.updated.then(() => resyncScroll(doc));
+  // Skipped (by a newer call, the watchdog, a press, a hidden tab or a
+  // duplicate name): ready rejects, which is no error here.
+  started.ready?.catch?.(() => {});
+  const unforward = forwardPresses(doc, call);
+  const ended = Promise.allSettled([started.updateCallbackDone, started.finished]).then(([updated]) => {
+    clearTimeout(watchdog);
+    unforward();
+    unnameAll(call);
+    if (latest()) {
+      root.removeAttribute('data-ds-vt');
+      root.removeAttribute('data-ds-vt-morph');
+      viewCalls.delete(doc);
+      restoreLiftedNames(doc);
+    }
+    return updated;
+  });
+  call.done = ended.then(() => {});
+  return ended.then((updated) => {
+    if (failure) throw failure.error;
+    if (updated.status === 'rejected') throw updated.reason;
+  });
+}
+
+/**
+ * Moves from one view to the next (D15), for navigation only: a top-level
+ * destination, a drill-down, another record. Never for data: a refresh,
+ * polling or typing changes values in place (DS.dom.morphHtml), and an
+ * entrance never replays for them. No component calls it, except
+ * DS.overlay.open with `container: true`.
+ *
+ *   type 'fade-through'  between top-level destinations (the default)
+ *        'forward'       shared axis X: the next step, record or page
+ *        'back'          shared axis X, mirrored
+ *        'container'     `from` (a card, a row) grows into the element the
+ *                        update returns (its detail); without either, or
+ *                        when a scroller clips a part of one of them that
+ *                        lies in the window (a group escapes every clip
+ *                        and would paint over the top bar), it falls back
+ *                        to a fade-through
+ *
+ * With View Transitions and .ds-theme on <html>, the document is
+ * snapshotted: data-ds-vt="<type>" on <html> names .ds-view, .ds-panel,
+ * the docked .ds-drawer and .ds-sheet__body while it runs, and motion.css
+ * plays the type. The top bar stays in the root and never moves; the
+ * docked drawer shows live, so its indicator glides to the new item as on
+ * a click (the `name` of an indicator, which serves page loads, is lifted
+ * meanwhile). A view that shows or hides the drawer (the panel changes
+ * its width) also gets data-ds-vt-morph: only then do the panel and the
+ * view move over --ds-dur-long. Under an open dialog or side sheet, or the
+ * modal drawer (open or still leaving), the page frame keeps no names, so
+ * a record swap in a sheet moves only its body and the page stays under
+ * the scrim, and a navigation from the modal drawer crossfades under it
+ * (close the drawer inside the update). A snackbar region with messages
+ * is named too (ds-toasts), so its messages stay on top, still. The page
+ * is frozen while it runs, so fetch first and call this with a quick
+ * swap: an update still pending after --ds-dur-long has its motion
+ * skipped. A press meanwhile (which Chromium and WebKit would deliver to
+ * <html>) skips the motion, and its click goes to the element under the
+ * pointer once the transition has ended. A call while one runs skips the
+ * running one; every update runs, in call order. After the update,
+ * resyncScroll() clears a scroll-driven tint or hairline that the old,
+ * scrolled view would leave on a new one that does not scroll.
+ *
+ * Elsewhere (no View Transitions, or .ds-theme on a wrapper: an embedded
+ * widget never snapshots its host page) the update runs at once and the
+ * element it returns, else the first child of the themed .ds-view that is
+ * not data-ds-keep or aria-hidden (a sentinel), enters with
+ * .ds-enter--swap.
+ *
+ * @param {() => (Element|null|undefined|void|Promise<Element|null|undefined|void>)} update
+ *   swaps the content; may be async; may return the element that holds
+ *   the new content (the container target, the fallback's entrance)
+ * @param {{ type?: 'fade-through'|'forward'|'back'|'container', from?: Element|null }} [options]
+ * @returns {Promise<void>} resolves once the update has run and the motion
+ *   finished (also when it was skipped); rejects with the update's error,
+ *   after cleaning up
+ * @throws {TypeError} for an unknown type or an update that is not a function
+ */
+export function transition(update, options = {}) {
+  const type = options?.type ?? 'fade-through';
+  const from = options?.from ?? null;
+  if (!VIEW_TYPES.includes(type)) throw new TypeError(`DS.motion.transition: unknown type "${type}" (${VIEW_TYPES.join(', ')})`);
+  if (typeof update !== 'function') throw new TypeError('DS.motion.transition: update must be a function');
+  const doc = from?.ownerDocument ?? globalThis.document;
+  const root = doc?.documentElement;
+  if (doc && typeof doc.startViewTransition === 'function' && root?.classList?.contains('ds-theme')) return viewTransition(doc, update, type, from);
+  return swapView(doc, update);
 }

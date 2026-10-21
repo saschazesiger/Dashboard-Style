@@ -46,13 +46,13 @@ function act(locator, action) {
   return locator.evaluate((el, source) => {
     new Function('el', `(${source})(el)`)(el);
     for (const node of document.querySelectorAll('.ds-theme *')) void getComputedStyle(node).opacity;
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, action.toString());
 }
 
 /** Ends every finite animation (play() would restart one that was seeked to its end). */
 const finishAll = (page) => page.evaluate(() => {
-  for (const animation of document.getAnimations()) {
+  for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
     if (Number.isFinite(animation.effect.getComputedTiming().iterations)) animation.finish();
   }
 });
@@ -104,7 +104,7 @@ function sortTo(page, order, { live = false, freeze: pause = false } = {}) {
     const render = new Function(`return (${source})`)();
     const body = document.getElementById('irows');
     window.fxSort = DS.motion.flip(body, (hooks) => DS.dom.morphHtml(body, render(keys, rows), hooks), { items: 'tr', live: isLive });
-    if (hold) for (const animation of document.getAnimations()) animation.pause();
+    if (hold) for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, [order, ROWS, renderRows.toString(), live, pause]);
 }
 
@@ -209,7 +209,7 @@ test.describe('table', () => {
       const arrowEl = document.querySelector('#sort > svg');
       const angle = (el) => parseFloat(getComputedStyle(el).rotate) || 0;
       return times.map((time) => {
-        for (const animation of document.getAnimations()) animation.currentTime = time;
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.currentTime = time;
         return { chevron: angle(chevronEl), arrow: angle(arrowEl) };
       });
     }, steps(250, 10));
@@ -269,7 +269,7 @@ test.describe('table', () => {
       const before = el.getBoundingClientRect().top;
       window.fxSort = DS.motion.flip(body, (hooks) => DS.dom.morphHtml(body, render(['a1', 'a2', 'a3'], rows), hooks), { items: 'tr' });
       const glides = el.getAnimations().filter((animation) => animation.id === 'ds-flip');
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       return { before, after: el.getBoundingClientRect().top, glides: glides.length };
     }, [ROWS, renderRows.toString()]);
     expect(handoff.glides).toBe(1);
@@ -327,7 +327,7 @@ test.describe('status chips in a sorted table', () => {
         const transitions = svg.getAnimations().map((animation) => animation.transitionProperty).filter(Boolean);
         return { key: svg.closest('tr').getAttribute('data-ds-key'), transitions, opacity: style.opacity, scale: style.scale };
       });
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       return { calls, icons, marked: body.querySelectorAll('[data-ds-moving]').length, starting: 'CSSStartingStyleRule' in window };
     }, render.toString());
     expect(result.calls.insertBefore).toBeGreaterThan(0);
@@ -685,7 +685,7 @@ test.describe('alerts', () => {
     await page.evaluate(() => {
       const stack = document.getElementById('alerts');
       window.fxDismiss = DS.motion.flip(stack, () => document.getElementById('alert-1').remove());
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     });
     const leaving = await page.locator('#alert-1').evaluate((el) => ({ position: getComputedStyle(el).position, animations: el.getAnimations().map((a) => a.animationName || a.id) }));
     expect(leaving.position).toBe('absolute');

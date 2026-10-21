@@ -40,6 +40,20 @@
  * to their opener only when it was inside them and the close was not a
  * click outside.
  *
+ * Container transform (opt-in): open(el, { opener, container: true }) on
+ * a dialog or side sheet runs the open inside DS.motion.transition() with
+ * type 'container', so the opener (a card, a row) grows into the box or
+ * panel on the spring over --ds-dur-long while the scrim fades with the
+ * root's crossfade; the overlay skips its own entrance for that open (the
+ * live image would grow twice), and the page frame and the sheet's body
+ * keep no view-transition-name meanwhile (named, they would paint above
+ * the scrim or apart from the panel). The page is frozen while it runs, so
+ * it is never the default. close() keeps its own exit. Without View
+ * Transitions, or without .ds-theme on <html>, it is the usual entrance
+ * from the opener; an opener that its scroller clips (a group would paint
+ * its hidden part over the top bar) gets that entrance inside a short
+ * fade-through.
+ *
  * Escape stack: one keydown listener on the document (bubble phase, so a
  * widget inside the overlay that handles Escape itself and calls
  * preventDefault() keeps it open) closes the topmost overlay that is not
@@ -129,8 +143,10 @@
  * moveBefore: a snackbar region that moves into a dialog or side sheet
  * keeps its running motion and focus; elsewhere insertBefore, focus put
  * back, the entrances already marked played (.ds-toast--shown).
+ * startViewTransition (through DS.motion.transition()) for `container:
+ * true`, only with .ds-theme on <html>; elsewhere the usual entrance.
  */
-import { flip, motionDuration, originFrom, settled } from './motion.js';
+import { flip, motionDuration, originFrom, settled, transition } from './motion.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';
 
 /** How long a snackbar stays (ms) before its length adds time; --ds-time-scale stretches it. */
@@ -210,7 +226,7 @@ let warned = false;
 function stateOf(element) {
   let state = overlays.get(element);
   if (!state) {
-    state = { gen: 0, phase: 'closed', kind: kindOf(element), opener: null, expander: null, inerted: [], locked: false, hiddenClass: '', opening: null, closing: null, anchor: null, home: null };
+    state = { gen: 0, phase: 'closed', kind: kindOf(element), opener: null, expander: null, inerted: [], locked: false, hiddenClass: '', opening: null, closing: null, anchor: null, home: null, container: null };
     overlays.set(element, state);
   }
   return state;
@@ -859,14 +875,95 @@ function finishClose(element, state) {
  * (a menu: its first enabled item; a combobox keeps focus in its input;
  * the drawer: itself). A close in progress is taken back from where its
  * motion is. Resolves when the entrance has settled.
+ *
+ * `container: true` (a closed dialog or side sheet, with View Transitions
+ * and .ds-theme on <html>): the opener grows into the box or panel as a
+ * container transform (DS.motion.transition()); the open, focus included,
+ * runs a frame later inside the transition's update, and the promise
+ * resolves once the transform finished. The page is frozen meanwhile
+ * (--ds-dur-long; a press skips the motion), so use it only where the overlay is the opener's own
+ * detail. Ignored elsewhere: the usual entrance.
  * @param {Element} element
- * @param {{ opener?: Element|null }} [options]
+ * @param {{ opener?: Element|null, container?: boolean }} [options]
  * @returns {Promise<void>}
  */
 export function open(element, options = {}) {
   if (!element?.isConnected) return Promise.resolve();
+  if (options.container) {
+    const transform = containerOpen(element, options);
+    if (transform) return transform;
+  }
+  return show(element, options, false);
+}
+
+/** The parts that keep no view-transition-name during a container open (see containerOpen). */
+const UNNAMED_IN_CONTAINER = '.ds-view, .ds-panel, .ds-drawer';
+
+/**
+ * open() as a container transform, or null where it cannot run: only a
+ * closed dialog or sheet, an opener on the page, View Transitions and
+ * .ds-theme on <html> (the conditions of DS.motion.transition()'s View
+ * Transition path). The page frame (shell.css names it while data-ds-vt
+ * is set) and the overlay's sheet body keep no name meanwhile: every group
+ * paints above the root, where the scrim is, and a body named apart would
+ * not grow with its panel.
+ */
+function containerOpen(element, options) {
   const doc = element.ownerDocument;
   const state = stateOf(element);
+  if (state.kind !== 'dialog' && state.kind !== 'sheet') return null;
+  if (state.phase !== 'closed' || state.container) return state.container?.done ?? null;
+  const viewTransitions = typeof doc.startViewTransition === 'function' && doc.documentElement.classList.contains('ds-theme');
+  if (!viewTransitions) return null;
+  const active = doc.activeElement;
+  const opener = options.opener ?? (active && active !== doc.body && !element.contains(active) ? active : null);
+  if (!opener?.isConnected || typeof opener.getBoundingClientRect !== 'function') return null;
+
+  const lifted = new Map();
+  for (const part of [...doc.querySelectorAll(UNNAMED_IN_CONTAINER), ...element.querySelectorAll('.ds-sheet__body')]) {
+    lifted.set(part, part.style.getPropertyValue('view-transition-name'));
+    part.style.setProperty('view-transition-name', 'none');
+  }
+  const restore = () => {
+    for (const [part, before] of lifted) {
+      if (part.style.getPropertyValue('view-transition-name') !== 'none') continue;
+      if (before) part.style.setProperty('view-transition-name', before);
+      else part.style.removeProperty('view-transition-name');
+    }
+  };
+
+  const pending = { done: /** @type {Promise<void>|null} */ (null) };
+  state.container = pending;
+  let entrance = Promise.resolve();
+  const update = () => {
+    // A close() (or a plain open()) before the snapshot took over.
+    const current = state.container === pending;
+    if (current) state.container = null;
+    if (!current || !element.isConnected) return null;
+    // Inside the View Transition data-ds-vt is "container"; were it
+    // refused, the update runs bare, and an opener that its scroller clips
+    // (a row of a wide table, a card partly scrolled under the top bar)
+    // made it a fade-through: the overlay plays its usual entrance.
+    const transform = doc.documentElement.getAttribute('data-ds-vt') === 'container';
+    entrance = show(element, { ...options, opener }, transform);
+    return transform ? boxOf(element, state.kind) : null;
+  };
+  pending.done = transition(update, { type: 'container', from: opener }).then(
+    () => { restore(); return entrance; },
+    (error) => { restore(); throw error; },
+  );
+  return pending.done;
+}
+
+/**
+ * The open itself. `transform`: the container transform plays the motion,
+ * so the overlay takes its open state at once (shown straight into
+ * data-state="open": nothing to transition from).
+ */
+function show(element, options, transform) {
+  const doc = element.ownerDocument;
+  const state = stateOf(element);
+  state.container = null;
   const kind = state.kind;
   const box = boxOf(element, kind);
   const app = kind === 'drawer' ? element.closest('.ds-app') : null;
@@ -915,7 +1012,7 @@ export function open(element, options = {}) {
 
   // The closed state first, so a native dialog shown by showModal() never
   // matches the hand-driven rules (their @starting-style) on the way.
-  if (kind !== 'drawer' && !reopening) element.setAttribute('data-state', 'closed');
+  if (kind !== 'drawer' && !reopening) element.setAttribute('data-state', transform ? 'open' : 'closed');
 
   // Show it and take the page away.
   if (kind === 'drawer') {
@@ -962,7 +1059,7 @@ export function open(element, options = {}) {
       flushStyle(element);
       style.removeProperty('transition');
       element.setAttribute('data-state', 'open');
-    } else {
+    } else if (!transform) {
       element.setAttribute('data-state', 'closed');
       flushStyle(box);
       if ((kind !== 'sheet') && state.opener && typeof state.opener.getBoundingClientRect === 'function') originFrom(state.opener, box);
@@ -991,6 +1088,9 @@ export function open(element, options = {}) {
  */
 export function close(element) {
   if (!element) return Promise.resolve();
+  // A container open still waiting for its snapshot does not open.
+  const pending = overlays.get(element);
+  if (pending?.container) pending.container = null;
   if (element.matches('.ds-drawer')) watchDrawer(element, drawerQuery(element));
   return closeFrom(element, 'close');
 }

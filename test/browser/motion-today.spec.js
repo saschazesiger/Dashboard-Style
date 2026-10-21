@@ -58,14 +58,14 @@ async function expectTimeline(locator, name, options = {}) {
 function act(page, action, arg = null) {
   return page.evaluate(([source, value]) => {
     new Function('arg', `(${source})(arg)`)(value);
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, [action.toString(), arg]);
 }
 
 /** Plays what act() paused. */
 function resume(page) {
   return page.evaluate(() => {
-    for (const animation of document.getAnimations()) if (animation.playState === 'paused') animation.play();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) if (animation.playState === 'paused') animation.play();
   });
 }
 
@@ -230,7 +230,7 @@ test.describe('overlays', () => {
       const observer = new MutationObserver(() => {
         if (tip.hidden) return;
         observer.disconnect();
-        for (const animation of document.getAnimations()) animation.pause();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
         resolve();
       });
       observer.observe(tip, { attributes: true, attributeFilter: ['hidden'] });

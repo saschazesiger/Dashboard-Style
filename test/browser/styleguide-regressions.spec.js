@@ -130,7 +130,7 @@ test.describe('fixed in P5', () => {
       await page.evaluate((type) => {
         window.afterClose = undefined;
         window.addEventListener(type, () => {
-          const exit = document.getAnimations().filter((a) => a.effect && a.effect.target
+          const exit = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).filter((a) => a.effect && a.effect.target
             && a.effect.target.closest('.ds-dialog:not(.ds-dialog--contained)') && a.playState === 'running');
           exit.forEach((a) => a.pause());
           requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -215,7 +215,7 @@ test.describe('fixed in P5', () => {
       const box = shownBox();
       [...box.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Cancel').click();
       // getAnimations() flushes styles, so the exit exists in this task.
-      const exit = document.getAnimations().filter((a) => a.effect && a.effect.target === box && a.playState === 'running');
+      const exit = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).filter((a) => a.effect && a.effect.target === box && a.playState === 'running');
       for (const animation of exit) {
         animation.pause();
         const delay = animation.effect.getTiming().delay || 0;
@@ -223,7 +223,7 @@ test.describe('fixed in P5', () => {
       }
       const before = Number(getComputedStyle(box).opacity);
       document.querySelector('[data-sg="dialog"]').click();
-      document.getAnimations();
+      document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
       const after = Number(getComputedStyle(shownBox()).opacity);
       exit.forEach((a) => { if (a.playState === 'paused') a.play(); });
       return { exit: exit.length, before, after };

@@ -107,6 +107,36 @@ is the only scroller. At 900px and below the drawer becomes modal.
   `--ds-topbar-scrolled-bg`, default `--ds-surface-high`, over `--ds-dur-fast`; a theme sets the hook to
   `transparent` for a flat bar). Filled toolbar fields in the bar (`.ds-input--filled`, `.ds-search`) share that
   fill, so they step up to `--ds-surface-highest` while it is tinted and keep their container.
+- Where scroll timelines exist (progressive: `animation-timeline`, `timeline-scope`), the hairline and the top bar's
+  tint follow the scroll position themselves: both fade in over the first `--ds-space-2` (8px) of scroll. The
+  hairline runs on `scroll(nearest block)`; the tint on the view's named timeline `--ds-view-scroll`, which
+  `.ds-app` scopes to the bar (`timeline-scope`). The tint is a layer behind the bar's content (`.ds-topbar::before`),
+  hidden in forced colours. Elsewhere `data-scrolled` shows both over `--ds-dur-fast`. Set `data-scrolled` in every
+  engine (the filled fields read it), from an `IntersectionObserver` on a 1px sentinel at the top of the view rather
+  than a scroll listener, so the attribute changes twice per scroll and not on every event:
+
+  ```js
+  function watchScrolled(scroller, target) {
+    const sentinel = document.createElement('div');
+    sentinel.setAttribute('aria-hidden', 'true');
+    sentinel.setAttribute('data-ds-keep', '');      // DS.dom.morphHtml leaves it in place
+    sentinel.style.cssText = 'height: 1px; margin-bottom: -1px; flex-shrink: 0';
+    scroller.prepend(sentinel);
+    new IntersectionObserver((entries) => {
+      const entry = entries.at(-1);
+      if (!entry.boundingClientRect.height) return;    // not rendered (a closed sheet)
+      if (entry.isIntersecting === !target.hasAttribute('data-scrolled')) return;   // only on a change
+      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
+      if (entry.isIntersecting) DS.motion.resyncScroll(scroller);   // content that shrank: no tint left behind
+    }, { root: scroller }).observe(sentinel);
+  }
+  watchScrolled(document.querySelector('.ds-view'), document.querySelector('.ds-app'));
+  ```
+
+  A scrolled view whose content shrinks until it no longer scrolls leaves its scroll timeline inactive, and Chromium
+  and WebKit then keep the tint and the hairline at their last value. `DS.motion.resyncScroll(scroller)` restarts
+  them ([motion](motion.md#scroll-driven-effects)); `DS.motion.transition()` calls it after every update, and the
+  sentinel above when the view is back at its top.
 - A drawer item may be a `<button class="ds-drawer__item">` when it shows a section in place instead of loading a
   page; it loses the browser's button look. The active one also carries `aria-current="page"`.
 - `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible.
@@ -129,6 +159,26 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - The drawer coming back (a view that has it, after one without): remove `data-drawer-hidden`, then
   `DS.motion.enter(drawer)`. It slides in 24px from the left with a fade, like `.ds-enter--slide` (the same as
   `enter(drawer, 'slide')`).
+- A view with or without the drawer as part of a navigation: toggle `data-drawer-hidden` inside
+  `DS.motion.transition()` with the new view. With View Transitions (and `.ds-theme` on `<html>`) the panel morphs to
+  its new width on the spring (`--ds-dur-long`) while the view's content keeps its size (never scaled), the docked
+  drawer leaves to the left, accelerating (`--ds-dur-base`), or slides back in from there (`--ds-dur-long`); the top
+  bar stays still. `enter(drawer)` inside the update stays quiet then (the transition plays the return), so one
+  recipe serves both paths; without View Transitions the grid jumps and the drawer slides in through `enter()`.
+
+  ```js
+  DS.motion.transition(() => {
+    const comesBack = page.hasDrawer && app.hasAttribute('data-drawer-hidden');
+    app.toggleAttribute('data-drawer-hidden', !page.hasDrawer);
+    if (comesBack) DS.motion.enter(drawer);
+    view.querySelector(':scope > .ds-content').replaceWith(page.content);   // a .ds-content; the sentinel stays
+    return page.content;
+  });
+  ```
+
+  `transition()` sees the panel change its width and marks `<html>` with `data-ds-vt-morph` for that transition:
+  only then do the panel and the view move over `--ds-dur-long`; a swap that keeps the drawer ends within
+  `--ds-dur-slow`.
 - The modal drawer is an opaque sheet: it opens on the spatial spring over `--ds-dur-long` while the scrim fades in,
   and closes accelerating over `--ds-dur-base` (`--ds-ease-exit`). A strip of its background left of it covers the
   spring's overshoot, so the scrim never shows at the screen edge. Opening or closing again mid-way continues from
@@ -142,21 +192,45 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - Focus: drawer items and segmented options draw an inset ring (the list and the pill clip anything outside),
   solid from the first frame, that snaps inward from their edge in `--ds-dur-fast`, with the focus layer
   (`--ds-state-focus`).
-- `.ds-view--leaving` fades the current view out quickly before you swap it (fade-through). Without a helper, swap
-  in this order, so the new view never shows at full opacity for a frame and a second navigation during a swap ends
-  on the latest content:
+- Navigate between views with [`DS.motion.transition(update, { type })`](motion.md#view-transitions) (1.5):
+  `'fade-through'` between destinations of the drawer, `'forward'` / `'back'` for a step in a sequence,
+  `'container'` from a card or row into its detail. Fetch first, then call it with a quick swap that returns the new
+  content; with View Transitions (and `.ds-theme` on `<html>`) the view moves while the top bar stays still and the
+  drawer's pill glides, elsewhere the returned element enters with `.ds-enter--swap`. Return the content element,
+  never `view.firstElementChild` (that is the `data-scrolled` sentinel). From the modal drawer, close it inside the
+  update: while it is open or still leaving, `transition()` leaves the page frame in the root snapshot, so the new
+  view crossfades under the drawer and its scrim instead of popping in front of them.
+
+  ```js
+  link.addEventListener('click', async (event) => {
+    event.preventDefault();
+    const html = await fetchView(link.href);          // fetch first: the page is frozen while a transition runs
+    DS.motion.transition(() => {
+      if (app.hasAttribute('data-drawer-open')) DS.overlay.close(drawer);
+      DS.dom.morphHtml(view, html, { replace: true }); // keeps the data-ds-keep sentinel
+      setActive(link);                                 // aria-current: the pill follows by itself
+      return view.querySelector(':scope > .ds-content');
+    }, { type: 'fade-through' });
+  });
+  ```
+- `.ds-view--leaving` fades the current view out quickly before you swap it (fade-through), the manual recipe that
+  `transition()` replaces (it never waits before the update). A page that keeps it swaps in this order, so the new
+  view never shows at full opacity for a frame and a second navigation during a swap ends on the latest content
+  (the fade sits on the children, so wait on the content element, never on `view`, and never on
+  `view.firstElementChild`, which is the sentinel):
 
   ```js
   let swaps = 0;
+  const content = (view) => view.querySelector(':scope > .ds-content');
   async function swapView(view, html) {
     const run = ++swaps;
     view.classList.add('ds-view--leaving');
     // The fade sits on the children; settled() derives its own ceiling.
-    await DS.motion.settled(view.firstElementChild, { event: 'transitionend', property: 'opacity' });
+    await DS.motion.settled(content(view), { event: 'transitionend', property: 'opacity' });
     if (run !== swaps) return;                       // a newer swap took over
-    view.innerHTML = html;                           // or DS.dom.morphHtml(view, html, { replace: true })
+    DS.dom.morphHtml(view, html, { replace: true }); // keeps the data-ds-keep sentinel
     view.classList.remove('ds-view--leaving');       // in the same task as the entrance
-    DS.motion.enter(view.firstElementChild, 'swap');
+    DS.motion.enter(content(view), 'swap');
   }
   ```
 
@@ -505,6 +579,14 @@ the list opens and closes with the collapsible timing.
   place by `morphHtml`). An arrow without the marker is never turned, so a page that renders `arrowDown` for a
   descending column keeps showing it as drawn.
 - Short values that must not break (an ID with a hyphen) take `.ds-nowrap`.
+- A table that scrolls sideways in a card (on phones, or `.ds-table--wide` in a narrow content area) fades at the
+  card's right edge while columns follow. Where scroll timelines exist (progressive: `animation-timeline`) the fades
+  follow the scroll position: the right fade goes over the last 5% of the travel, a left fade grows over the first
+  5% once the table has left its start, and a table that fits shows neither. `ds-edge-fade` drives the registered
+  lengths `--ds-table-fade-start` and `--ds-table-fade-end` (internal, set nowhere else) on the wrapper's own scroll
+  timeline. Elsewhere the static right fade stays. A table scrolled sideways that then fits (columns hidden, a
+  filter, a wider window) keeps its last fade in Chromium and WebKit: call `DS.motion.resyncScroll(wrapper)` after
+  such a change.
 - `.ds-table__sort` presses in `--ds-dur-micro` and ripples (it is not a pill, so it does not morph); keyboard focus
   shows the ring, which snaps to its offset, and the focus layer.
 - `.ds-link-btn` is an inline link: no ripple and no morph, which would reach outside its line of text. Keyboard
@@ -928,8 +1010,35 @@ from the bottom and falls back down. A strip of the panel's background past its 
 overshoot, so the scrim never shows at the screen edge. By hand, close it like the dialog with `.ds-sheet--closing`
 (`DS.motion.settled(panel)`, then hide and remove the class in one task): the panel lets clicks through while it
 leaves, the backdrop swallows them until the sheet is hidden. The `hidden` attribute hides the div sheet without
-`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears). Use a
+`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears), with the
+sentinel of the [App frame](#app-frame) at the top of the body: `watchScrolled(body, panel)`. The body is a flex
+column with a gap, so its sentinel also takes the gap back: `margin-bottom: calc(-1px - var(--ds-space-3))`.
+`data-ds-keep` keeps it through a record swap with `DS.dom.morphHtml(body, html)`. Where
+scroll timelines exist the hairline follows the body's scroll by itself, over the first `--ds-space-2`: the body
+names its timeline `--ds-sheet-scroll` and the panel scopes it to the head (progressive: `timeline-scope`). Use a
 `<div>` for the head, not `<header>` (a second banner landmark).
+
+**Another record in an open sheet** (previous and next, another row of the table): keep the sheet open and swap only
+the body with `DS.dom.morphHtml` inside [`DS.motion.transition()`](motion.md#dsmotion-jsmotionjs):
+
+```js
+// type: 'forward' for the next record, 'back' for the previous, 'fade-through' for another row
+DS.motion.transition(() => { DS.dom.morphHtml(body, html); return body; }, { type: 'forward' });
+
+// The same record refreshed (polling, a save): never a transition, data does not replay an entrance.
+DS.dom.morphHtml(body, html);
+```
+
+With View Transitions (and `.ds-theme` on `<html>`) the body of the open sheet is its own group, `ds-sheet-body`
+(only an open modal sheet's body is named: one shown inline in a page stays in the page), and takes the view's
+motion: fade-through, or shared axis X for `forward` and `back`; the head, the panel and the page under the scrim
+stay still. Without them the body enters with `.ds-enter--swap`. Fetch the record first and call `transition()` with
+the quick swap: the page is frozen while a View Transition runs.
+
+**Container transform** (opt-in): `DS.overlay.open(sheet, { opener: row, container: true })` grows the row (or card)
+into the panel instead of sliding it in from the edge ([DS.overlay](motion.md#dsoverlay-jsoverlayjs)); the same works
+for a dialog. A row that its table's scroll wrapper clips (the row of a `.ds-table--wide` table wider than its wrapper, or one partly
+under the top bar) gets the usual entrance instead: its group would paint the hidden part over the frame.
 
 ## Snackbar
 
@@ -976,6 +1085,10 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
   (so they stay above its scrim and panel through the exit) and return to the page once it ended. The modal drawer leaves the regions and their announcers usable where they
   are. A region placed inside another element of the page (not next to `.ds-app`) is inert under a div dialog that
   does not take it in, so keep it in the documented place.
+- **View transitions.** While `DS.motion.transition()` runs, a region with messages is its own group
+  (`ds-toasts`, [motion.md](motion.md#view-transitions)): a message stays on screen and still above the changing
+  view, and glides with the panel's edge when the view shows or hides the drawer. Keep one region with messages per
+  page: `transition()` lifts the name of a further one, which then crossfades with the page.
 - A bar pinned to the bottom edge (a save bar): set `--ds-toast-bottom` on the region to its height plus a gap while
   it shows, so messages stay above it.
 - An error that stays until closed: give `.ds-view` (or `.ds-sheet__body`) `data-toast-reserve` and set
@@ -1181,7 +1294,9 @@ Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
 `.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
-`.ds-stagger`; `.ds-reveal`; `.ds-collapsible` (opens decelerating and closes faster, accelerating; focus rings at its content edge are not cut; a summary holding a `.ds-chevron` drops the native marker); `.ds-chevron` (a disclosure chevron that turns 180deg on the spring
+`.ds-stagger`; `.ds-reveal`; `.ds-reveal--scroll` (a block of a long read-only page fades in and rises while it
+scrolls into view, tied to the scroll position; static where `view()` timelines are missing and in print);
+`.ds-collapsible` (opens decelerating and closes faster, accelerating; focus rings at its content edge are not cut; a summary holding a `.ds-chevron` drops the native marker); `.ds-chevron` (a disclosure chevron that turns 180deg on the spring
 in the summary of an open `<details>` or under `aria-expanded="true"`); `.ds-presence` (toggled elements); `.ds-swap` (the slot of `DS.motion.roll()` and
 `DS.motion.crossfade()`); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
 [Button](#button)); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,

@@ -47,8 +47,27 @@
  *
  * The hidden attribute hides the div sheet, also without .ds-base.
  *
+ * Another record in an open sheet (previous/next, another row of the
+ * table): keep the sheet open and swap only the body, inside
+ * DS.motion.transition() with type 'forward' or 'back' for previous and
+ * next, 'fade-through' for another row:
+ *
+ *   DS.motion.transition(() => { DS.dom.morphHtml(body, html); return body; }, { type: 'forward' });
+ *
+ * The body then takes the view's motion (ds-sheet-body, motion.css) while
+ * head, panel and the page under the scrim stay still; without View
+ * Transitions the body enters with .ds-enter--swap. A refresh of the same
+ * record never calls transition(): a plain DS.dom.morphHtml(body, html),
+ * since data never replays an entrance.
+ *
+ * Container transform (opt-in): DS.overlay.open(sheet, { opener: row,
+ * container: true }) grows the row into the panel (js/overlay.js).
+ *
  * Set data-scrolled on the panel while its body is scrolled: the head's
- * hairline shows then. Do not use <header> in the head: outside main
+ * hairline shows then (where scroll timelines exist it follows the body's
+ * scroll by itself). Set it from an IntersectionObserver on a 1px
+ * sentinel at the top of the body (docs/components.md, Side sheet), not
+ * from a scroll listener. Do not use <header> in the head: outside main
  * content it would be a second banner landmark.
  *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px).
@@ -59,6 +78,16 @@
  * transitions, also on close(); Chromium keeps a sheet in the top layer
  * through every exit, DS.overlay's included. Without them it enters with
  * the keyframes and closes at once.
+ * View Transitions: while DS.motion.transition() runs (data-ds-vt on
+ * <html>) the body of an open modal sheet is named ds-sheet-body, so a
+ * record swap moves only the body; without them the body enters with
+ * .ds-enter--swap. A sheet shown inline (no data-state, no [open], no
+ * aria-modal) is never named.
+ * scroll-driven animations (animation-timeline, animation-range,
+ * scroll-timeline, timeline-scope): the head's hairline fades in over the
+ * first --ds-space-2 of the body's scroll, on the named timeline
+ * --ds-sheet-scroll (scoped on the panel); elsewhere data-scrolled shows it
+ * over --ds-dur-fast.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -282,6 +311,29 @@
     opacity: 1;
   }
 
+  /* Where scroll timelines exist, the hairline follows the body's scroll
+     position itself (over the first --ds-space-2), and data-scrolled, the
+     fallback, changes nothing. The head is the body's sibling, so the body
+     names its timeline and the panel widens the scope to the head.
+     ds-scroll-fade names both ends, so a body without overflow (an
+     inactive timeline) keeps the hairline's own opacity 0;
+     animation-timeline comes after the shorthand, which resets it. */
+  @supports (timeline-scope: none) {
+    .ds-sheet__panel {
+      timeline-scope: --ds-sheet-scroll;
+    }
+
+    .ds-sheet__body {
+      scroll-timeline: --ds-sheet-scroll block;
+    }
+
+    .ds-sheet__head::after {
+      animation: ds-scroll-fade linear both;
+      animation-timeline: --ds-sheet-scroll;
+      animation-range: 0 var(--ds-space-2);
+    }
+  }
+
   .ds-sheet__title {
     margin: 0;
     min-width: 0;
@@ -327,6 +379,21 @@
   .ds-sheet__body:focus-visible {
     outline: var(--ds-focus-outline);
     outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  /* Another record in an open sheet (DS.motion.transition() writes
+     data-ds-vt on <html> while it runs): the body is a group of its own and
+     takes the view's fade-through or shared axis (motion.css); head and
+     panel stay still. Named only while a transition runs, and only in an
+     open modal sheet (DS.overlay's data-state, a native sheet shown by
+     hand, a div sheet shown by hand), never while it leaves: a group
+     escapes the clip of the scroller around it, so a sheet shown inline
+     in a page would paint over the top bar, and two named bodies would
+     abort the transition. */
+  .ds-theme[data-ds-vt] .ds-sheet[data-state="open"] .ds-sheet__body,
+  .ds-theme[data-ds-vt] dialog.ds-sheet[open]:not([data-state], .ds-sheet--closing) .ds-sheet__body,
+  .ds-theme[data-ds-vt] .ds-sheet[aria-modal="true"]:not([hidden], [data-state], .ds-sheet--closing) .ds-sheet__body {
+    view-transition-name: ds-sheet-body;
   }
 
   @media (max-width: 600px) {

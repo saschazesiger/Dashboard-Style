@@ -98,18 +98,18 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 | [Tokens](docs/tokens.md) | the three layers and every token |
 | [Theming](docs/theming.md) | writing a project theme, component hooks |
 | [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
-| [Motion](docs/motion.md) | durations, curves, utilities, `DS.motion` (FLIP, `countUp`), indicator, morph, ripple |
+| [Motion](docs/motion.md) | durations, curves, utilities, view transitions, scroll-driven effects, `DS.motion` (FLIP, `countUp`, `transition`), indicator, morph, ripple |
 | [Icons](docs/icons.md) | the outline set and its helpers |
 | [Rules](docs/rules.md) | the design rules the components follow |
 
 ## Files
 
 ```
-dist/            what you ship (built, committed): ds.css, ds.js, css/, js/, fonts/, LICENSE, SHA256SUMS
-src/             sources: tokens.css, motion.css, base.css, components/*.css, js/*.js, index.css (order)
+dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css/optional/), js/, fonts/, LICENSE, SHA256SUMS
+src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, index.css (order)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template
-styleguide/      living styleguide (open index.html)
+styleguide/      living styleguide (open index.html; views.html: view transitions and scrolling)
 scripts/         build.mjs, vendor.sh, vendor.ps1
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test unit tests, no dependencies; test/browser/ Playwright tests (three engines)

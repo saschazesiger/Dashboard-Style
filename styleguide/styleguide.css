@@ -454,3 +454,11 @@
   gap: var(--ds-space-2);
   cursor: pointer;
 }
+
+/* ── Views page (views.html) ────────────────────── */
+
+/* The sheet's arrows and close button sit close together, like a toolbar. */
+.ds-sheet__head .sg-row {
+  flex-wrap: nowrap;
+  gap: var(--ds-space-1);
+}

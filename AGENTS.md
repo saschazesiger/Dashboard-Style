@@ -36,7 +36,8 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `src/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, `.ds-swap`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
 | `src/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
 | `src/components/*.css` | one file per component; the header comment sketches markup, modifiers, hooks and "Progressive:" features |
-| `src/index.css` | the layer order statement, then the `@import` list = cascade order of `ds.css`; every stylesheet must be listed |
+| `src/index.css` | the layer order statement, then the `@import` list = cascade order of `ds.css`; every stylesheet outside `src/optional/` must be listed |
+| `src/optional/` | opt-in stylesheets (`view-transitions.css`: View Transitions across page loads), built to `dist/css/optional/`, never in `index.css` or `ds.css` |
 | `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `ripple`, `icons`, `overlay`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
@@ -86,8 +87,9 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
 - **Cascade layers.** `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;` is the first statement
   of every stylesheet in `src/` (`dist/ds.css` declares it once); each file wraps its rules in one block
   (`tokens.css` → `ds.tokens`, `base.css` → `ds.base`, components → `ds.components`; `motion.css` puts its
-  keyframes in `ds.motion` and its utilities in `ds.utilities`). `@property` and `@font-face` stay at top level;
-  themes, `fonts.css` and project CSS stay unlayered, so they win. No doubled-class or other specificity tricks:
+  keyframes in `ds.motion` and its utilities in `ds.utilities`). `@property` and `@font-face` (and
+  `@view-transition` in `src/optional/`) stay at top level; themes, `fonts.css` and project CSS stay unlayered, so
+  they win. No doubled-class or other specificity tricks:
   the layer order decides. `!important` only on the allowlist (tested): `[hidden]` in `base.css`, the `.ds-sr`
   rules, the alignment utilities `.ds-num` and `.ds-center`, the forced-colours `svg` colour in `shell.css`.
 - **Motion.** `@keyframes` only in `src/motion.css`, each name once; entrances define only `from`, exits only
@@ -107,6 +109,12 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   `innerHTML`. Interrupted motion continues from its current state; JS timing comes from the computed tokens
   (`motionDuration`), never ms literals; constants are tested fallbacks (`MOTION_FALLBACKS`). Never a near-zero
   duration on a loop (it races).
+- **View Transitions and scroll-driven animations.** View Transitions only through `DS.motion.transition()` for
+  navigation, never for data; `::view-transition-*` rules hang off `.ds-theme` (so they match only on `<html>`);
+  `@view-transition` and permanent `view-transition-name`s only in `src/optional/` (`ds.css` names the frame only
+  while `data-ds-vt` is set). Scroll-driven animations only as documented refinements with a static or
+  `data-scrolled` fallback; `animation-timeline` after the `animation` shorthand, named timelines behind
+  `@supports (timeline-scope: none)` (tested).
 - **State layers.** Hover and press lay `currentColor` (or the hook) over the control at `--ds-state-hover` /
   `--ds-state-pressed` via `::before`; hover rules only inside `@media (hover: hover)`. The press comes in
   `--ds-dur-micro` (`:active` and the `.ds-pressed` that `DS.ripple` holds), never `--ds-dur-instant`; with

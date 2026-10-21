@@ -33,7 +33,7 @@ async function open(page, name, width = 1000) {
 /** Ends every running animation of the document (paused ones included). */
 function finishAll(page) {
   return page.evaluate(() => {
-    for (const animation of document.getAnimations()) {
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
       if (Number.isFinite(animation.effect.getComputedTiming().iterations)) animation.finish();
     }
   });
@@ -58,7 +58,7 @@ test.describe('drawer', () => {
     const play = async (variant) => {
       const start = await drawer.evaluate((el, name) => {
         if (name) DS.motion.enter(el, name); else DS.motion.enter(el);
-        for (const animation of document.getAnimations()) animation.pause();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
         const cs = getComputedStyle(el);
         return { translate: cs.translate, opacity: Number(cs.opacity) };
       }, variant);
@@ -89,7 +89,7 @@ test.describe('drawer', () => {
     });
     await page.evaluate(() => {
       document.getElementById('menu').click();
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     });
     const open1 = (await timeline(drawer)).find((entry) => entry.name === 'transform');
     const durations = await drawer.evaluate((el) => ({
@@ -101,7 +101,7 @@ test.describe('drawer', () => {
     const frames = [];
     for (let step = 0; step <= 20; step += 1) {
       await page.evaluate((time) => {
-        for (const animation of document.getAnimations()) animation.currentTime = time;
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.currentTime = time;
       }, (open1.duration * step) / 20);
       frames.push(await read());
     }
@@ -126,7 +126,7 @@ test.describe('drawer', () => {
     // Close: --ds-dur-base on --ds-ease-exit.
     await page.evaluate(() => {
       document.getElementById('scrim').click();
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     });
     const close = (await timeline(drawer)).find((entry) => entry.name === 'transform');
     expect(close.duration).toBe(durations.base);
@@ -140,7 +140,7 @@ test.describe('drawer', () => {
       const before = el.getBoundingClientRect().left;
       document.getElementById('menu').click();
       const running = el.getAnimations().filter((animation) => animation.transitionProperty === 'transform');
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       for (const animation of running) animation.currentTime = 0;
       return { before, after: el.getBoundingClientRect().left, count: running.length };
     });
@@ -158,7 +158,7 @@ test.describe('labels', () => {
     await item.evaluate((el) => {
       el.click();
       // The indicator places in a frame (the click handler's update() at once).
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     });
     const result = await item.evaluate((el) => {
       const track = el.closest('.ds-has-indicator');
@@ -228,7 +228,7 @@ test.describe('labels', () => {
       buttons[0].setAttribute('aria-pressed', 'false');
       target.setAttribute('aria-pressed', 'true');
       window.xToggles.update();
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       const track = target.parentElement;
       const dur = parseFloat(track.style.getPropertyValue('--ds-indicator-dur'));
       const colours = (el) => el.getAnimations().filter((animation) => animation.transitionProperty === 'color').map((animation) => animation.effect.getTiming().duration);
@@ -325,17 +325,10 @@ test.describe('labels', () => {
 });
 
 test.describe('top bar and view', () => {
-  test('the top bar tints to --ds-surface-high while the view is scrolled, over --ds-dur-fast', async ({ page }) => {
+  test('the top bar tints to --ds-surface-high while the view is scrolled: on the scroll where timelines exist, else over --ds-dur-fast', async ({ page }) => {
     await open(page, 'shell.html');
     const bar = page.locator('.ds-topbar');
-    expect(await bar.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgba(0, 0, 0, 0)');
-    await page.evaluate(() => {
-      document.getElementById('app').setAttribute('data-scrolled', '');
-      for (const animation of document.getAnimations()) animation.pause();
-    });
-    const tint = (await timeline(bar)).find((entry) => entry.name === 'background-color');
-    expect(tint.duration).toBe(await bar.evaluate((el) => DS.motion.motionDuration(el, '--ds-dur-fast')));
-    await finishAll(page);
+    const view = page.locator('#main');
     const high = await page.evaluate(() => {
       const probe = document.createElement('span');
       probe.style.backgroundColor = 'var(--ds-surface-high)';
@@ -344,7 +337,33 @@ test.describe('top bar and view', () => {
       probe.remove();
       return value;
     });
-    expect(await bar.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(high);
+    // The tint is a layer behind the bar's content; the bar itself stays clear.
+    const tint = () => bar.evaluate((el) => {
+      const layer = getComputedStyle(el, '::before');
+      return { bar: getComputedStyle(el).backgroundColor, color: layer.backgroundColor, opacity: Number(layer.opacity) };
+    });
+    expect(await tint()).toEqual({ bar: 'rgba(0, 0, 0, 0)', color: high, opacity: 0 });
+    const frames = () => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    if (await page.evaluate(() => CSS.supports('timeline-scope: none'))) {
+      // Scroll-driven: the tint follows the view's scroll over its first 8px, and data-scrolled changes nothing.
+      for (const [top, opacity] of [[4, 0.5], [8, 1], [120, 1], [0, 0]]) {
+        await view.evaluate((el, value) => { el.scrollTop = value; }, top);
+        await frames();
+        expect((await tint()).opacity, `scrollTop ${top}`).toBeCloseTo(opacity, 1);
+      }
+      await page.evaluate(() => document.getElementById('app').setAttribute('data-scrolled', ''));
+      await frames();
+      expect((await tint()).opacity).toBe(0);
+      return;
+    }
+    await page.evaluate(() => {
+      document.getElementById('app').setAttribute('data-scrolled', '');
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
+    });
+    const fade = (await timeline(bar, { subtree: true })).find((entry) => entry.pseudoElement === '::before' && entry.name === 'opacity');
+    expect(fade.duration).toBe(await bar.evaluate((el) => DS.motion.motionDuration(el, '--ds-dur-fast')));
+    await finishAll(page);
+    expect(await tint()).toEqual({ bar: 'rgba(0, 0, 0, 0)', color: high, opacity: 1 });
   });
 
   test('filled toolbar fields keep their container on the tinted bar', async ({ page }) => {
@@ -353,8 +372,9 @@ test.describe('top bar and view', () => {
       document.querySelector('.ds-topbar .ds-brand').insertAdjacentHTML('afterend', '<div class="ds-search"><input class="ds-input" id="x-search" type="search" aria-label="Search"></div>'
         + '<select class="ds-input ds-input--filled" id="x-filled" aria-label="Theme"><option>Default</option></select>');
     });
+    // The tint's colour (its layer, .ds-topbar::before; scroll-driven engines show it by the scroll position).
     const read = () => page.evaluate(() => ({
-      bar: getComputedStyle(document.querySelector('.ds-topbar')).backgroundColor,
+      bar: getComputedStyle(document.querySelector('.ds-topbar'), '::before').backgroundColor,
       search: getComputedStyle(document.getElementById('x-search')).backgroundColor,
       filled: getComputedStyle(document.getElementById('x-filled')).backgroundColor,
     }));

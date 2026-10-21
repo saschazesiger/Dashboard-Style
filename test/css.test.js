@@ -7,6 +7,8 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import * as icons from '../src/js/icons.js';
 import { RIPPLE_HOSTS } from '../src/js/ripple.js';
 import {
@@ -54,6 +56,7 @@ const LAYERS_OF = {
   'src/tokens.css': ['ds.tokens'],
   'src/base.css': ['ds.base'],
   'src/motion.css': ['ds.motion', 'ds.utilities'],
+  'src/optional/view-transitions.css': ['ds.utilities'],
 };
 
 /**
@@ -161,6 +164,8 @@ const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-indeterminate', 'a loop: the segment enters on one side and leaves on the other'],
   ['ds-scan', 'a loop: the band travels from above the frame to below it'],
   ['ds-ripple', 'a ring that grows and fades from a set start (--ds-ripple-opacity)'],
+  ['ds-scroll-fade', 'scroll-linked: both ends named, so an inactive timeline (a scroller without overflow) leaves the element\'s own opacity 0'],
+  ['ds-edge-fade', 'scroll-linked: a position on the table\'s scroll timeline, not an entrance, so both ends are named'],
   ...LOADER_LOOPS,
 ]);
 /**
@@ -282,6 +287,16 @@ const RATIOS = [
   ['combobox list', [['src/components/combobox.css', '.ds-combo__popup[data-state]', ['transition']]], [['src/components/combobox.css', '.ds-combo__popup[data-state="closed"]', ['transition']]]],
   ['menu', [['src/components/menu.css', '.ds-menu[data-state]', ['transition']]], [['src/components/menu.css', '.ds-menu[data-state="closed"]', ['transition']]]],
 ];
+/**
+ * Old/new pairs outside the ratio, each with its reason (the test checks
+ * that they exist): the "View transitions" section of motion.css.
+ */
+const RATIO_EXEMPT = new Map([
+  ['.ds-theme::view-transition-old(ds-view)', 'view transitions: old and new are simultaneous images of one moment, not a component\'s entrance and exit; fade-through lets the old view go in --ds-dur-instant by design'],
+  ['.ds-theme[data-ds-vt="forward"]::view-transition-old(ds-view)', 'view transitions: shared axis, as fade-through'],
+  ['.ds-theme[data-ds-vt="back"]::view-transition-old(ds-view)', 'view transitions: shared axis, as fade-through'],
+  ['.ds-theme[data-ds-vt="container"]::view-transition-old(ds-container)', 'view transitions: the container\'s two images cross while its group grows'],
+]);
 /**
  * The control marks of 1.1.0: what leaves takes 0.4-0.67 of what enters
  * (an exit that is quick but still seen), measured like RATIOS.
@@ -512,6 +527,7 @@ describe('motion in CSS', () => {
       const ratio = leave / enter;
       assert.ok(leave < enter && ratio >= 0.3 && ratio <= 0.8, `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
     }
+    for (const [selector, reason] of RATIO_EXEMPT) assert.ok(declarationsAt(read(M), selector).length, `exempt, but missing: ${selector} (${reason})`);
     // The table reads what the docs promise.
     assert.deepEqual(RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
       ['250/150', '250/200', '350/200', '250/150', '350/200', '250/200', '450/200', '450/200', '450/200', '250/150', '250/100', '150/100', '250/100', '250/100']);
@@ -552,8 +568,9 @@ describe('motion in CSS', () => {
     for (const file of SRC_CSS) {
       for (const { selector, body } of rules(read(file))) {
         const own = Object.fromEntries(declarations(`${body};`).map((entry) => [entry.property, entry.value]));
-        // none and the CSS-wide keywords (revert-layer hands a loader back to its own timing) carry no duration.
-        if (own.animation && !/^(none|inherit|initial|unset|revert|revert-layer)$/.test(own.animation)) {
+        // none and the CSS-wide keywords (revert-layer hands a loader back to its own timing) carry no duration;
+        // a timeline-driven animation (animation-timeline in the same rule) runs on the scroll position, not on time.
+        if (own.animation && !own['animation-timeline'] && !/^(none|inherit|initial|unset|revert|revert-layer)$/.test(own.animation)) {
           for (const entry of entriesOf(own.animation)) {
             const duration = entry.words.find((word) => timeOf(word) !== undefined);
             const expected = entry.infinite ? /^var\(--ds-loop-/ : /^var\(--ds-dur-/;
@@ -612,6 +629,8 @@ describe('motion in CSS', () => {
     for (const file of SRC_CSS.filter((path) => path !== 'src/tokens.css')) {
       for (const { property, value } of declarations(read(file))) {
         if (!/^--ds-[\w-]*(duration|delay|easing|distance|scale|keyframes)/.test(property)) continue;
+        // `none` on a keyframes hook: no entrance (the drawer inside a View Transition, shell.css).
+        if (/keyframes$/.test(property) && value === 'none') continue;
         const ok = splitSelectors(value.replace(token, 'T')).every((item) => /^(T|0|0px|-?\d*\.?\d+%|calc\([-\s\dT.*+/]*\))$/.test(item) || (keyframe.test(item) && KEYFRAME_NAMES.has(item)));
         if (!ok) offenders.push(`${file}: ${property}: ${value}`);
       }
@@ -775,9 +794,18 @@ describe('values come from tokens', () => {
     assert.deepEqual([...new Set(offenders)], []);
   });
 
-  it('bundles every stylesheet of src/', () => {
+  it('bundles every stylesheet of src/ except src/optional/', () => {
     const bundle = new Set(cssBundle());
-    assert.deepEqual(SRC_CSS.filter((file) => file !== 'src/index.css' && !bundle.has(file)), []);
+    assert.deepEqual(SRC_CSS.filter((file) => file !== 'src/index.css' && !file.startsWith('src/optional/') && !bundle.has(file)), []);
+    // Opt-in stylesheets: never in ds.css, shipped on their own under css/optional/.
+    const optional = SRC_CSS.filter((file) => file.startsWith('src/optional/'));
+    assert.ok(optional.length, 'src/optional/ holds the opt-in stylesheets');
+    for (const file of optional) {
+      assert.ok(!bundle.has(file), `${file} is opt-in: src/index.css never imports it`);
+      assert.ok(existsSync(join(ROOT, 'dist/css', file.slice('src/'.length))), `${file} ships as dist/css/${file.slice('src/'.length)}`);
+      assert.ok(read('docs/install.md').includes(file.slice('src/optional/'.length)), `${file} is named in docs/install.md`);
+    }
+    assert.match(read('docs/install.md'), /\| `css\/optional\/` \|/, 'docs/install.md: the css/optional/ row of the dist/ table');
   });
 });
 
@@ -793,7 +821,8 @@ describe('CSS for the baseline', () => {
     for (const file of SRC_CSS) {
       const items = topLevel(stripComments(read(file))).slice(1);
       const expected = file === 'src/index.css' ? [] : LAYERS_OF[file] || ['ds.components'];
-      const blocks = items.filter((item) => item.body !== undefined && !/^@property\s/.test(item.prelude));
+      // @view-transition is a document-wide at-rule, only in the opt-in src/optional/ files.
+      const blocks = items.filter((item) => item.body !== undefined && !/^@property\s/.test(item.prelude) && !(file.startsWith('src/optional/') && item.prelude === '@view-transition'));
       assert.deepEqual(blocks.map((item) => item.prelude), expected.map((name) => `@layer ${name}`), file);
       const statements = items.filter((item) => item.body === undefined);
       const allowed = file === 'src/index.css' ? /^@import '[^']+';$/ : /^$/;
@@ -815,7 +844,11 @@ describe('CSS for the baseline', () => {
     // A node that DS.dom.morphHtml moves with insertBefore skips its @starting-style entrances.
     for (const moving of [':where(.ds-theme) [data-ds-moving]', ':where(.ds-theme) [data-ds-moving] *']) assert.ok(selectors.includes(moving), moving);
     const moving = /^:where\(\.ds-theme\) \[data-ds-moving\]( \*)?$/;
-    assert.deepEqual(selectors.filter((selector) => !moving.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
+    // The view-transition rules hang off the document element (html.ds-theme, keyed on data-ds-vt,
+    // or data-ds-vt-morph while the panel changes its width).
+    const viewTransition = /^\.ds-theme(\[data-ds-vt="[\w-]+"\]|\[data-ds-vt-morph\])?::view-transition-(group|image-pair|old|new)\([\w*-]+\)(:only-child)?$/;
+    assert.ok(selectors.some((selector) => viewTransition.test(selector)), 'the view-transition section');
+    assert.deepEqual(selectors.filter((selector) => !moving.test(selector) && !viewTransition.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {
@@ -901,7 +934,7 @@ describe('CSS for the baseline', () => {
     const offenders = [];
     for (const file of COMPONENT_CSS.filter((path) => path !== 'src/base.css')) {
       for (const { selector } of rules(read(file))) {
-        if (KEYFRAME_STOP.test(selector)) continue;
+        if (KEYFRAME_STOP.test(selector) || selector === '@view-transition') continue;
         for (const part of splitSelectors(selector)) if (!/\.ds-/.test(part)) offenders.push(`${file}: ${part}`);
       }
     }
@@ -1553,5 +1586,151 @@ describe('feedback and data (1.4.0)', () => {
     // The skeleton's wave starts after its entrance.
     const skeleton = declarationsAt(read('src/components/loading.css'), '.ds-skeleton').find((entry) => entry.property === 'animation');
     assert.match(skeleton.value, /ds-skeleton-wave var\(--ds-loop-skeleton\) linear calc\(var\(--ds-delay-loader\) \+ var\(--ds-dur-medium\)\) infinite/);
+  });
+});
+
+describe('view transitions and scroll-driven effects (1.5.0)', () => {
+  /** Every style rule of src/ as { file, selector, parts, own (property → value), order (property names in order) }. */
+  const all = SRC_CSS.flatMap((file) => rules(read(file)).map(({ selector, body }) => {
+    const list = declarations(`${body};`);
+    return { file, selector, parts: splitSelectors(selector), own: Object.fromEntries(list.map((entry) => [entry.property, entry.value])), order: list.map((entry) => entry.property) };
+  }));
+  const optional = (file) => file.startsWith('src/optional/');
+  /** The header comment of a file from its "Progressive:" note on. */
+  const progressiveNote = (file) => {
+    const header = read(file).match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
+    return header.includes('Progressive:') ? header.slice(header.indexOf('Progressive:')) : '';
+  };
+  /**
+   * Rules that set animation-timeline without the shorthand, each with its
+   * reason: a reset to the document timeline, never a timeline of its own.
+   */
+  const TIMELINE_RESETS = new Map([
+    ['.ds-reveal--scroll:is(.ds-enter, .ds-leave)', 'enter() or leave() on a scroll-revealed block plays in time: the one-shot utilities set longhands only, which would keep the view() timeline'],
+  ]);
+
+  it('opts into page loads (@view-transition) and names for good only in src/optional/; ds.css never does', () => {
+    for (const file of SRC_CSS.filter((path) => !optional(path))) assert.doesNotMatch(stripComments(read(file)), /@view-transition/, file);
+    assert.match(stripComments(read('src/optional/view-transitions.css')), /@view-transition\s*\{\s*navigation:\s*auto;\s*\}/);
+    assert.doesNotMatch(stripComments(read('dist/ds.css')), /@view-transition/);
+    // ds.css names the frame only while DS.motion.transition() runs (data-ds-vt on <html>).
+    const named = all.filter((rule) => 'view-transition-name' in rule.own);
+    assert.ok(named.some((rule) => optional(rule.file)) && named.some((rule) => !optional(rule.file)));
+    for (const rule of named.filter((entry) => !optional(entry.file))) {
+      for (const part of rule.parts) assert.match(part, /^\.ds-theme\[data-ds-vt\] /, `${rule.file}: ${part}: named only while a transition runs`);
+    }
+  });
+
+  it('hangs every ::view-transition-* rule off .ds-theme (the document element), so a host page is never restyled', () => {
+    const pseudo = all.flatMap((rule) => rule.parts.filter((part) => part.includes('::view-transition')).map((part) => `${rule.file}: ${part}`));
+    assert.ok(pseudo.length > 10, 'the view-transition section');
+    assert.deepEqual(pseudo.filter((entry) => !/: \.ds-theme(\[data-ds-vt(="[\w-]+")?\]|\[data-ds-vt-morph\])?::view-transition-/.test(entry)), []);
+  });
+
+  it('gives every view-transition-name in src/ the ds- prefix (CSS values and the names js/ writes)', () => {
+    const values = all.filter((rule) => 'view-transition-name' in rule.own).map((rule) => rule.own['view-transition-name']);
+    for (const value of values) assert.match(value, /^ds-[\w-]+$/, value);
+    const pseudoNames = all.flatMap((rule) => rule.parts.flatMap((part) => [...part.matchAll(/::view-transition-[\w-]+\(([^)]*)\)/g)].map((match) => match[1])));
+    for (const name of pseudoNames) assert.match(name, /^(\*|root|ds-[\w-]+)$/, name);
+    // Inline names written by the scripts: ds-<name>, or none while a name is lifted.
+    const written = filesIn('src/js', (path) => path.endsWith('.js')).flatMap((file) => [
+      ...[...read(file).matchAll(/setProperty\('view-transition-name',\s*['`]([^'`]*)['`]/g)].map((match) => match[1]),
+      ...[...read(file).matchAll(/viewTransitionName\s*=\s*['`]([^'`]*)['`]/g)].map((match) => match[1]),
+    ]);
+    assert.ok(written.includes('ds-container') && written.includes('ds-indicator-${name}'), written.join());
+    for (const name of written) assert.match(name, /^(ds-[\w${}-]+|none)$/, name);
+  });
+
+  it('sets animation-timeline after the animation shorthand (which resets it), resets named', () => {
+    const timed = all.filter((rule) => 'animation-timeline' in rule.own);
+    assert.ok(timed.length >= 5, 'hairline, tint, sheet hairline, table edges, reveal');
+    for (const rule of timed) {
+      const where = `${rule.file}: ${rule.selector}`;
+      if (TIMELINE_RESETS.has(rule.selector)) {
+        assert.equal(rule.own['animation-timeline'], 'auto', `${where}: a reset goes back to the document timeline`);
+        assert.ok(!('animation' in rule.own), `${where}: a reset keeps the one-shot's own shorthand`);
+        continue;
+      }
+      assert.ok('animation' in rule.own, `${where}: the shorthand in the same rule`);
+      assert.ok(rule.order.indexOf('animation') < rule.order.indexOf('animation-timeline'), `${where}: animation-timeline after the shorthand`);
+      if ('animation-range' in rule.own) assert.ok(rule.order.indexOf('animation') < rule.order.indexOf('animation-range'), `${where}: animation-range after the shorthand`);
+    }
+    for (const selector of TIMELINE_RESETS.keys()) assert.ok(timed.some((rule) => rule.selector === selector), `exempt, but missing: ${selector}`);
+  });
+
+  it('guards scroll timelines: named ones by @supports (timeline-scope: none), anonymous ones by @supports (animation-timeline: ...)', () => {
+    const scoped = /@supports\s*\(timeline-scope:\s*none\)/;
+    const anonymous = /@supports\s*\(animation-timeline:\s*(scroll|view)\(\)\)/;
+    const timelineProps = /^(animation-timeline|animation-range|scroll-timeline|view-timeline|timeline-scope)$/;
+    for (const file of SRC_CSS) {
+      const css = read(file);
+      // Outside both guards: no timeline at all.
+      for (const { selector, body } of rules(withoutAtRuleBlocks(withoutAtRuleBlocks(css, scoped), anonymous))) {
+        for (const { property } of declarations(`${body};`)) assert.ok(!timelineProps.test(property), `${file}: ${selector}: ${property} outside a feature query`);
+      }
+      // Named timelines (and their scope) only behind timeline-scope: an engine without it leaves them unresolved.
+      for (const block of atRuleBlocks(css, anonymous)) {
+        for (const { property, value } of declarations(block)) {
+          if (/^(scroll-timeline|view-timeline|timeline-scope)$/.test(property) || (property === 'animation-timeline' && value.startsWith('--'))) assert.fail(`${file}: ${property}: ${value} needs @supports (timeline-scope: none)`);
+          if (property === 'animation-timeline') assert.match(value, /^(scroll|view)\([^)]*\)$|^auto$/, `${file}: ${value}`);
+        }
+      }
+      for (const block of atRuleBlocks(css, scoped)) {
+        for (const { property, value } of declarations(block)) {
+          if (/^(animation-timeline|scroll-timeline|timeline-scope)$/.test(property)) assert.match(value, /^--ds-[\w-]+(\s+block|\s+inline)?$/, `${file}: ${property}: ${value}`);
+        }
+      }
+    }
+  });
+
+  it('runs the scroll-linked keyframes only on a scroll timeline, and times nothing on one', () => {
+    const scrollLinked = ['ds-scroll-fade', 'ds-edge-fade'];
+    const users = all.filter((rule) => scrollLinked.some((name) => new RegExp(`(^|[\\s,])${name}(\\s|,|$)`).test(rule.own.animation || '')));
+    assert.ok(users.length >= 5, users.map((rule) => rule.selector).join());
+    for (const rule of users) {
+      assert.ok(rule.own['animation-timeline'], `${rule.file}: ${rule.selector}: on a timeline`);
+      // A duration on a scroll timeline means nothing (and Firefox would run it in time without the feature query).
+      for (const entry of entriesOf(rule.own.animation)) assert.equal(entry.times.length, 0, `${rule.file}: ${rule.selector}: no duration`);
+    }
+    // ds-edge-fade: a position on the table's scroll, on its registered lengths only.
+    const edge = KEYFRAMES['ds-edge-fade'];
+    assert.ok(edge, 'ds-edge-fade exists');
+    const stops = rules(edge).map((rule) => rule.selector);
+    assert.ok(stops.includes('0%') && stops.includes('100%'), stops.join());
+    const touched = new Set(declarations(edge).map((entry) => entry.property));
+    assert.deepEqual([...touched].sort(), ['--ds-table-fade-end', '--ds-table-fade-start']);
+    for (const name of touched) assert.ok(REGISTERED.has(name), `${name} is registered`);
+    assert.deepEqual(rules(KEYFRAMES['ds-scroll-fade']).map((rule) => rule.selector), ['from', 'to']);
+  });
+
+  it('names View Transitions and scroll-driven animations under "Progressive:" in each file that uses them', () => {
+    const expected = {
+      'src/components/shell.css': ['View Transitions', 'scroll-driven'],
+      'src/components/sheet.css': ['View Transitions', 'scroll-driven'],
+      'src/components/table.css': ['scroll-driven'],
+      'src/motion.css': ['View Transitions', 'scroll-driven'],
+      'src/optional/view-transitions.css': ['View Transitions'],
+    };
+    for (const [file, names] of Object.entries(expected)) {
+      for (const name of names) assert.ok(progressiveNote(file).includes(name), `${file}: "${name}" under "Progressive:"`);
+    }
+    // The scripts name theirs too.
+    assert.match(read('src/js/motion.js').match(/^\/\*[\s\S]*?\*\//)[0], /Progressive:[\s\S]*startViewTransition/);
+    assert.match(read('src/js/indicator.js').match(/^\/\*[\s\S]*?\*\//)[0], /Progressive:[\s\S]*view-transition-name/);
+  });
+
+  it('hides the top bar tint in forced colours and prints scroll-revealed blocks at their end state', () => {
+    const tint = forcedColorBlocks(read('src/components/shell.css')).flatMap((block) => declarationsOf(block, '.ds-topbar::before'));
+    assert.equal(tint.find((entry) => entry.property === 'display')?.value, 'none');
+    const print = atRuleBlocks(read('src/motion.css'), /@media\s+print/).flatMap((block) => declarationsOf(block, '.ds-reveal--scroll'));
+    assert.equal(print.find((entry) => entry.property === 'animation')?.value, 'none');
+    // The reveal hides nothing without view(): its only rules sit behind the feature query (and print).
+    const outside = rules(withoutAtRuleBlocks(withoutAtRuleBlocks(read('src/motion.css'), /@supports\s*\(animation-timeline/), /@media\s+print/));
+    assert.deepEqual(outside.filter((rule) => rule.selector.includes('.ds-reveal--scroll')).map((rule) => rule.selector), []);
+    // Its base opacity is the element's own: the hairline, tint and sheet hairline rest at 0 and only the timeline shows them.
+    for (const [file, selector] of [['src/components/shell.css', '.ds-view::before'], ['src/components/shell.css', '.ds-topbar::before'], ['src/components/sheet.css', '.ds-sheet__head::after']]) {
+      const base = declarationsOf(withoutAtRuleBlocks(read(file), /@supports/), selector).filter((entry) => entry.property === 'opacity');
+      assert.equal(base[0]?.value, '0', `${file}: ${selector} rests at opacity 0`);
+    }
   });
 });

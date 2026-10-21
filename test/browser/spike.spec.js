@@ -202,7 +202,7 @@ test('3. a translate keyframe composes with an inline transform; composite add',
 test('4. pseudo-element animations are listed and seekable', async ({ page }) => {
   const pseudo = page.locator('#spike-pseudo');
   await pseudo.evaluate((el) => el.classList.add('spike-pseudo--run'));
-  const listed = await page.evaluate(() => document.getAnimations()
+  const listed = await page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))
     .map((a) => `${a.animationName}${a.effect.pseudoElement || ''}`).sort());
   expect(listed).toEqual(['spike-pseudo::after', 'spike-pseudo::before']);
   const before = await sample(pseudo, ['opacity', 'translate.x'], [250, 500], { pseudo: '::before' });

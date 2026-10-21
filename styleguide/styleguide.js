@@ -820,6 +820,8 @@
         '<p class="ds-muted">Without the drawer the panel takes the width; when the drawer comes back it slides in from the left (DS.motion.enter(drawer)). The swap fades the view\'s children out (.ds-view--leaving), waits for that fade, replaces the content and lets it enter (swap); pressing again during a swap ends on the latest view.</p>' +
         '<pre class="sg-code">const modal = matchMedia(\'(max-width: 900px)\');\nmodal.addEventListener(\'change\', () =&gt; {\n  drawer.classList.add(\'ds-drawer--instant\');\n  if (!modal.matches) {\n    app.removeAttribute(\'data-drawer-open\');\n    document.body.classList.remove(\'ds-no-scroll\');\n  }\n  requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt;\n    drawer.classList.remove(\'ds-drawer--instant\')));\n});</pre>' +
         '<p class="ds-muted">The breakpoint snippet this page runs: the drawer turns modal (or back) in place, and a modal drawer that a wider window no longer shows is closed.</p>') +
+      card('Views and scrolling', '<p class="ds-muted">The motion between views and the motion that follows scrolling, in a small app of its own: fade-through between destinations, shared axis for previous and next, a card growing into its detail or into a side sheet, a destination without the drawer, a record swap in a sheet, a report that reveals itself on scroll, a wide table with live edge fades, and page loads with the opt-in stylesheet (needs http).</p>' +
+        '<div class="sg-row"><a class="ds-btn" href="views.html">Open the views page ' + icon('arrowRight', 16) + '</a></div>') +
       card('Markup', '<pre class="sg-code">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
   }
 
@@ -1031,6 +1033,35 @@
     quietTimer = setTimeout(stopNavigating, M.motionDuration(view, '--ds-dur-fast'));
   }
 
+  /* data-scrolled from a 1px sentinel at the top of a scroller (the
+     snippet of docs/components.md, App frame): an IntersectionObserver
+     changes the attribute only when the state does, never per scroll
+     event. Where scroll timelines exist the hairlines and the top bar's
+     tint follow the scroll by themselves; the attribute is their fallback
+     (and the filled toolbar fields read it). The sentinel takes no room:
+     its negative margin also takes back the scroller's gap (a sheet body
+     is a flex column with one), and data-ds-keep keeps it through
+     DS.dom.morphHtml. A scroller that is not rendered (a closed sheet)
+     reports nothing. */
+  function watchScrolled(scroller, target) {
+    var sentinel = document.createElement('div');
+    var gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
+    sentinel.setAttribute('aria-hidden', 'true');
+    sentinel.setAttribute('data-ds-keep', '');
+    sentinel.style.cssText = 'height: 1px; margin-bottom: ' + (-1 - gap) + 'px; flex-shrink: 0';
+    scroller.insertBefore(sentinel, scroller.firstChild);
+    new IntersectionObserver(function (entries) {
+      var entry = entries[entries.length - 1];
+      if (!entry.boundingClientRect.height) return;
+      var scrolled = !entry.isIntersecting;
+      if (scrolled === target.hasAttribute('data-scrolled')) return;
+      target.toggleAttribute('data-scrolled', scrolled);
+      // Back at the top: content that shrank (the scroller fits now)
+      // leaves no scroll-driven tint or hairline behind.
+      if (!scrolled) DS.motion.resyncScroll(scroller);
+    }, { root: scroller }).observe(sentinel);
+  }
+
   /* The breakpoint snippet of docs/components.md: crossing 900px changes
      the drawer in place (no slide, no scrim fade) and closes a modal
      drawer that the wider window no longer shows. */
@@ -1046,7 +1077,7 @@
   }
 
   function setupNavigation() {
-    indicator = DS.indicator.createIndicator($('#sg-nav'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
+    indicator = DS.indicator.createIndicator($('#sg-nav'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' });
     setActive('overview');
     var list = $('#sg-nav');
     var overflow = function () { list.classList.toggle('ds-drawer__list--overflow', list.scrollHeight > list.clientHeight + 1); };
@@ -1061,9 +1092,9 @@
     }, { root: view, rootMargin: '0px 0px -60% 0px' });
     $$('.sg-section').forEach(function (s) { observer.observe(s); });
 
+    watchScrolled(view, app);
+    $$('.ds-sheet__panel').forEach(function (panel) { watchScrolled($('.ds-sheet__body', panel), panel); });
     view.addEventListener('scroll', function () {
-      if (view.scrollTop > 0) app.setAttribute('data-scrolled', '');
-      else app.removeAttribute('data-scrolled');
       if (navigating && !('onscrollend' in view)) waitForQuiet();
     }, { passive: true });
     if ('onscrollend' in view) view.addEventListener('scrollend', function () { if (navigating) stopNavigating(); });
@@ -1085,7 +1116,7 @@
     // The scrim and Escape close the drawer by themselves (DS.overlay).
     $('[data-sg="menu"]').addEventListener('click', function () { openDrawer(!app.hasAttribute('data-drawer-open')); });
 
-    segmented = DS.indicator.createIndicator($('#sg-segmented'), { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
+    segmented = DS.indicator.createIndicator($('#sg-segmented'), { active: '[aria-current="true"]', className: 'ds-segmented__indicator', name: 'mode' });
     $('#sg-segmented').addEventListener('click', function (event) {
       var option = event.target.closest('a');
       if (!option) return;
@@ -1188,6 +1219,7 @@
       overlay = shownOverlays[name] = holder.firstChild;
       document.body.appendChild(overlay);
       $$('[data-sg-combo]', overlay).forEach(setupCombo);
+      $$('.ds-sheet__panel', overlay).forEach(function (panel) { watchScrolled($('.ds-sheet__body', panel), panel); });
       new MutationObserver(function (records, observer) {
         if (overlay.hasAttribute('data-state')) return;
         observer.disconnect();
@@ -1572,8 +1604,20 @@
     link.href = href;
   }
 
-  /* Applies a theme (a value of the select), then calls `done`. */
-  function applyTheme(value, done) {
+  /* Swaps the theme in one step: inside DS.motion.transition() as a
+     fade-through (View Transitions; elsewhere the view fades through with
+     .ds-enter--swap), or at once (`instant`, the saved theme on load).
+     Calls `then` once the swap and its motion are done. */
+  function swapTheme(apply, instant, then) {
+    if (instant) { apply(); requestAnimationFrame(then); return; }
+    M.transition(apply, { type: 'fade-through' }).then(then, then);
+  }
+
+  /* Applies a theme (a value of the select), then calls `done`. A theme
+     file loads first, its link on media "not all" (a disabled link would
+     not load at all); only then does the page switch, in one step, and
+     afterThemeChange() re-places the indicators. */
+  function applyTheme(value, done, instant) {
     var link = $('#sg-theme-link');
     var style = $('#sg-theme-style');
     var run = themeRun += 1;
@@ -1581,12 +1625,23 @@
       if (run === themeRun) afterThemeChange(value);
       if (done) done();
     };
+    var apply = function () {
+      if (run !== themeRun) return;          // a newer choice took over
+      style.textContent = PRESETS[value] || '';
+      link.media = '';
+      link.disabled = value !== 'example';
+    };
     try { localStorage.setItem('ds-styleguide-theme', value === 'file' ? 'default' : value); } catch (e) { /* storage may be blocked */ }
-    style.textContent = PRESETS[value] || '';
-    link.disabled = value !== 'example';
-    if (value === 'example') { whenLinkLoaded(link, '../themes/example.css', finish); return; }
-    // A <style> preset applies synchronously: one frame for layout.
-    requestAnimationFrame(finish);
+    if (value === 'example') {
+      if (link.disabled) link.media = 'not all';
+      link.disabled = false;
+      whenLinkLoaded(link, '../themes/example.css', function () {
+        if (run !== themeRun) { if (done) done(); return; }
+        swapTheme(apply, instant, finish);
+      });
+      return;
+    }
+    swapTheme(apply, instant, finish);
   }
 
   /* Wires the switcher and applies the saved theme, then calls `done`. */
@@ -1605,16 +1660,18 @@
       var reader = new FileReader();
       reader.onload = function () {
         var run = themeRun += 1;
-        $('#sg-theme-link').disabled = true;
-        $('#sg-theme-style').textContent = String(reader.result);
-        requestAnimationFrame(function () { if (run === themeRun) afterThemeChange('file'); });
+        swapTheme(function () {
+          if (run !== themeRun) return;
+          $('#sg-theme-link').disabled = true;
+          $('#sg-theme-style').textContent = String(reader.result);
+        }, false, function () { if (run === themeRun) afterThemeChange('file'); });
         toast('Theme loaded: ' + chosen.name);
       };
       reader.readAsText(chosen);
     });
     if (saved !== 'default' && saved !== 'file') {
       select.value = saved;
-      applyTheme(saved, done);
+      applyTheme(saved, done, true);
     } else {
       done();
     }

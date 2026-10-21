@@ -29,7 +29,11 @@
  *   data-drawer-hidden  this view has no drawer (the panel takes the width)
  *   data-scrolled       the view is scrolled: the panel's top hairline shows
  *                       and the top bar tints (--ds-topbar-scrolled-bg);
- *                       filled fields in it step up to --ds-surface-highest
+ *                       filled fields in it step up to --ds-surface-highest.
+ *                       Where scroll timelines exist, hairline and tint
+ *                       follow the scroll position themselves (below); set
+ *                       the attribute anyway, from an IntersectionObserver
+ *                       on a 1px sentinel (docs/components.md, App frame)
  *
  * .ds-drawer--instant on the drawer: no slide and no scrim fade while the
  * window crosses 900px (the page adds it on the matchMedia change and
@@ -41,6 +45,9 @@
  * the scrim never shows at the screen edge. A state change mid-flight
  * continues from where the sheet is. The docked drawer coming back
  * (DS.motion.enter(drawer)) slides in from the left like .ds-enter--slide.
+ * data-drawer-hidden toggled inside DS.motion.transition() morphs the
+ * panel to its new width while the drawer leaves or slides back (the
+ * transition plays it; enter(drawer) stays quiet meanwhile).
  *
  * A segmented switch (.ds-segmented) may follow the brand in the top bar.
  * The active drawer item glides with js/indicator.js
@@ -72,6 +79,17 @@
  * scrollbar-gutter (the view keeps room for a classic scrollbar, so content
  * never shifts when it starts to scroll); ignored before Safari 18.2,
  * overlay scrollbars need no room.
+ * View Transitions: while DS.motion.transition() runs (data-ds-vt on
+ * <html>) the view, the panel and the docked drawer carry
+ * view-transition-names (ds-view, ds-panel, ds-drawer) and the top bar
+ * none, so it stays still; without View Transitions the new view enters
+ * with .ds-enter--swap, and a view without the drawer makes the grid jump.
+ * scroll-driven animations (animation-timeline, animation-range,
+ * scroll-timeline, timeline-scope): the panel hairline fades in over the
+ * first --ds-space-2 of scroll on scroll(nearest block), the top bar tint
+ * on the view's named timeline --ds-view-scroll (the frame widens its
+ * scope to the bar), both with ds-scroll-fade (a view without overflow
+ * shows neither); elsewhere data-scrolled shows both over --ds-dur-fast.
  *
  * Print: only the page content, without the frame and its scroller (the
  * page's own padding and width come off at the end of page.css).
@@ -116,14 +134,26 @@
       max(var(--ds-space-4), env(safe-area-inset-right))
       0
       max(var(--ds-space-6), env(safe-area-inset-left));
-    /* The same timing as the panel's hairline: they show together. */
-    transition: background-color var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
   /* Content scrolls under the bar: it takes a surface container colour
-     while the panel's hairline shows (D33). */
-  .ds-app[data-scrolled] .ds-topbar {
-    background-color: var(--ds-topbar-scrolled-bg, var(--ds-surface-high));
+     while the panel's hairline shows (D33). The tint is a layer of its own
+     behind the bar's content (the bar is a stacking context), so a scroll
+     timeline can drive its opacity (below); elsewhere data-scrolled fades
+     it in on the hairline's timing, so they show together. */
+  .ds-topbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ds-topbar-scrolled-bg, var(--ds-surface-high));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  .ds-app[data-scrolled] .ds-topbar::before {
+    opacity: 1;
   }
 
   /* Filled toolbar fields share that fill (form.css): they step up one
@@ -331,7 +361,11 @@
     background: transparent;
   }
 
-  /* A view without the drawer: the panel takes the whole width. */
+  /* A view without the drawer: the panel takes the whole width. Toggled
+     inside DS.motion.transition() (View Transitions, .ds-theme on <html>),
+     the panel morphs to its new width while the drawer leaves or comes
+     back (motion.css); elsewhere the grid jumps, and the drawer coming
+     back slides in through DS.motion.enter(drawer) (below). */
   .ds-app--drawer[data-drawer-hidden] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
@@ -363,6 +397,14 @@
     --ds-enter-keyframes: ds-fade-in, ds-shift-in;
     --ds-enter-duration: var(--ds-dur-slow);
     --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-spatial);
+  }
+
+  /* Inside a View Transition the transition plays the drawer's return (its
+     new image slides in), so enter(drawer) stays quiet: the live drawer
+     would slide a second time inside its image. One recipe for both
+     paths: remove data-drawer-hidden, then enter(drawer). */
+  .ds-theme[data-ds-vt] .ds-drawer.ds-enter {
+    --ds-enter-keyframes: none;
   }
 
   /* The menu button shows with the modal drawer only. */
@@ -758,10 +800,47 @@
     opacity: 1;
   }
 
-  /* A loading bar at the top of the view takes the hairline's place. */
+  /* Where scroll timelines exist, the hairline follows the scroll position
+     itself: it fades in over the first --ds-space-2 of scroll, and
+     data-scrolled (the fallback) changes nothing. ds-scroll-fade names both
+     ends, so a view without overflow (an inactive timeline) keeps the
+     hairline's own opacity 0. animation-timeline comes after the
+     shorthand, which resets it. */
+  @supports (animation-timeline: scroll()) {
+    .ds-view::before {
+      animation: ds-scroll-fade linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: 0 var(--ds-space-2);
+    }
+  }
+
+  /* A loading bar at the top of the view takes the hairline's place (also
+     its scroll-driven fade). */
   .ds-view:has(.ds-loadbar)::before,
   .ds-app[data-scrolled] .ds-view:has(.ds-loadbar)::before {
     opacity: 0;
+    animation: none;
+  }
+
+  /* The top bar's tint on the same scroll: the view names its timeline and
+     the frame widens its scope to the bar (a sibling of the panel). Guarded
+     by timeline-scope, not scroll(): an engine with scroll timelines but
+     without timeline-scope would leave the named timeline unresolved, and
+     the bar would never tint; it keeps data-scrolled there. */
+  @supports (timeline-scope: none) {
+    .ds-app {
+      timeline-scope: --ds-view-scroll;
+    }
+
+    .ds-view {
+      scroll-timeline: --ds-view-scroll block;
+    }
+
+    .ds-topbar::before {
+      animation: ds-scroll-fade linear both;
+      animation-timeline: --ds-view-scroll;
+      animation-range: 0 var(--ds-space-2);
+    }
   }
 
   /* The drawer brings its own inset on the left. */
@@ -774,6 +853,31 @@
   .ds-view--leaving > * {
     opacity: 0;
     transition: opacity var(--ds-dur-instant) var(--ds-ease-in);
+  }
+
+  /*
+   * View transitions (DS.motion.transition() writes data-ds-vt on <html>
+   * while one runs; motion.css plays them). Only then are these named, so
+   * a page without a transition carries no names. The view is its own
+   * group and the top bar has none: it stays in the root snapshot, whose
+   * crossfade leaves unchanged pixels still. The panel's name serves the
+   * morph of a view without the drawer; the docked drawer is named for its
+   * exit and return there. The modal drawer is never named: while it is
+   * open or leaving, DS.motion.transition() lifts these names, so the view
+   * crossfades in the root under it (close it inside the update).
+   */
+  .ds-theme[data-ds-vt] .ds-view {
+    view-transition-name: ds-view;
+  }
+
+  .ds-theme[data-ds-vt] .ds-panel {
+    view-transition-name: ds-panel;
+  }
+
+  @media (min-width: 901px) {
+    .ds-theme[data-ds-vt] .ds-drawer {
+      view-transition-name: ds-drawer;
+    }
   }
 
   /* ── Modal drawer ─────────────────────────────── */
@@ -997,6 +1101,12 @@
    * text that always goes with it.
    */
   @media (forced-colors: active) {
+    /* The forced canvas would paint the tint over nothing: the bar stays
+       flat (the hairline still marks the scrolled view). */
+    .ds-topbar::before {
+      display: none;
+    }
+
     .ds-drawer__item[aria-current="page"] {
       outline: 2px solid Highlight;
       outline-offset: -2px;

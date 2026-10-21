@@ -24,11 +24,13 @@ import {
   motionEasing,
   originFrom,
   replay,
+  resyncScroll,
   roll,
   settleLoader,
   settled,
   stagger,
   staggerOnce,
+  transition,
   travelDuration,
 } from '../src/js/motion.js';
 
@@ -1413,5 +1415,551 @@ describe('js/motion', () => {
       assert.equal(at(), 1);
       assert.equal(win.frames.length, 0);
     });
+  });
+});
+
+describe('transition() (1.5.0)', () => {
+  const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+  /** A FakeElement whose style also has the viewTransitionName accessor (on the same store as setProperty). */
+  function vtElement(doc) {
+    const element = new FakeElement(doc);
+    Object.defineProperty(element.style, 'viewTransitionName', {
+      get: () => element.style.getPropertyValue('view-transition-name'),
+      set: (value) => (value ? element.style.setProperty('view-transition-name', value) : element.style.removeProperty('view-transition-name')),
+    });
+    return element;
+  }
+
+  /**
+   * A document whose <html> may carry .ds-theme, with a view, the frame, an
+   * optional named indicator and an open sheet; `api: true` stubs
+   * startViewTransition: the update runs in a microtask (after the
+   * snapshot), skipTransition() ends the transition, finish() ends it too.
+   */
+  function page({ theme = true, api = true, modalOpen = false, shown = [], phone = false, drawerOpen = false, drawerLeaving = false, panelWidths = null, toasts = [], onSnapshot = () => {} } = {}) {
+    const doc = { activeElement: null, started: [] };
+    // The window's listeners (capture flag ignored), so a test can fire events.
+    const listeners = [];
+    doc.defaultView = {
+      requestAnimationFrame: (callback) => setImmediate(callback),
+      getComputedStyle: () => ({ getPropertyValue: (name) => (name === '--ds-dur-long' ? '450ms' : '') }),
+      matchMedia: (query) => ({ matches: query === '(max-width: 900px)' && phone }),
+      listeners,
+      addEventListener: (type, listener, options) => listeners.push({ type, listener, once: options?.once === true }),
+      removeEventListener: (type, listener) => {
+        const at = listeners.findIndex((entry) => entry.type === type && entry.listener === listener);
+        if (at >= 0) listeners.splice(at, 1);
+      },
+      fire: (type, event) => {
+        for (const entry of listeners.filter((item) => item.type === type)) {
+          if (entry.once) listeners.splice(listeners.indexOf(entry), 1);
+          entry.listener(event);
+        }
+      },
+    };
+    doc.body = new FakeElement(doc);
+    doc.activeElement = doc.body;
+    const root = vtElement(doc);
+    if (theme) root.classList.add('ds-theme');
+    root.matches = (selector) => selector === '.ds-theme' && root.classList.contains('ds-theme');
+    doc.documentElement = root;
+    const view = vtElement(doc);
+    Object.defineProperty(view, 'firstElementChild', { get: () => view.children[0] ?? null });
+    const panel = vtElement(doc);
+    const drawer = vtElement(doc);
+    drawer.getAnimations = () => (drawerLeaving ? [{ playState: 'running' }] : []);
+    // The panel's width: one value per read, the last one repeated.
+    let reads = 0;
+    panel.getBoundingClientRect = () => ({ width: panelWidths ? panelWidths[Math.min(reads++, panelWidths.length - 1)] : 1000 });
+    const first = vtElement(doc);
+    view.append(first);
+    const pill = vtElement(doc);
+    pill.style.setProperty('view-transition-name', 'ds-indicator-nav');
+    // Snackbar regions, each with `count` messages.
+    const regions = toasts.map((count) => {
+      const region = vtElement(doc);
+      for (let i = 0; i < count; i += 1) {
+        const message = new FakeElement(doc);
+        message.classList.add('ds-toast');
+        region.append(message);
+      }
+      return region;
+    });
+    doc.querySelectorAll = (selector) => (selector === '.ds-indicator' ? [pill] : selector === '.ds-toasts' ? regions : /\.ds-view, \.ds-panel, \.ds-drawer/.test(selector) ? [view, panel, drawer] : []);
+    doc.querySelector = (selector) => {
+      if (/data-state="open"/.test(selector)) {
+        // `shown`: overlays shown by hand, as the selectors that match them.
+        return modalOpen || selectorList(selector).some((part) => shown.includes(part)) ? {} : null;
+      }
+      if (selector === '.ds-app[data-drawer-open]') return drawerOpen ? {} : null;
+      if (selector === '.ds-app .ds-drawer') return drawer;
+      if (selector === '.ds-theme .ds-panel') return panel;
+      return selector === '.ds-theme .ds-view' ? view : null;
+    };
+    if (api) {
+      doc.startViewTransition = (callback) => {
+        let finish;
+        const ended = new Promise((resolve) => { finish = resolve; });
+        const started = { skipped: 0, finish, attribute: root.getAttribute('data-ds-vt') };
+        onSnapshot(started);
+        started.updateCallbackDone = Promise.resolve().then(() => callback());
+        started.finished = started.updateCallbackDone.then(() => ended);
+        started.ready = Promise.resolve();
+        started.skipTransition = () => { started.skipped += 1; finish(); };
+        doc.started.push(started);
+        return started;
+      };
+    }
+    return { doc, root, view, panel, drawer, first, pill, regions };
+  }
+
+  /** The parts of a selector list (commas inside :not() stay in their part). */
+  function selectorList(selector) {
+    const parts = [];
+    let depth = 0;
+    let part = '';
+    for (const char of selector) {
+      if (char === ',' && depth === 0) {
+        parts.push(part.trim());
+        part = '';
+        continue;
+      }
+      if (char === '(') depth += 1;
+      if (char === ')') depth -= 1;
+      part += char;
+    }
+    parts.push(part.trim());
+    return parts;
+  }
+
+  /** `doc` as the global document for this test (transition() without `from` reads it). */
+  function useDocument(t, doc) {
+    const saved = Object.getOwnPropertyDescriptor(globalThis, 'document');
+    Object.defineProperty(globalThis, 'document', { value: doc, configurable: true, writable: true });
+    t.after(() => {
+      if (saved) Object.defineProperty(globalThis, 'document', saved);
+      else delete globalThis.document;
+    });
+  }
+
+  it('throws a TypeError for an unknown type or an update that is not a function', (t) => {
+    useDocument(t, page({ api: false }).doc);
+    assert.throws(() => transition(() => {}, { type: 'slide' }), TypeError);
+    assert.throws(() => transition(null), TypeError);
+    for (const type of ['fade-through', 'forward', 'back', 'container']) assert.doesNotThrow(() => transition(() => {}, { type }).catch(() => {}));
+  });
+
+  it('without View Transitions: runs the update once, then enters what it returned with .ds-enter--swap', async (t) => {
+    const { doc, view } = page({ api: false });
+    useDocument(t, doc);
+    {
+      const target = new FakeElement(doc);
+      let runs = 0;
+      const promise = transition(() => { runs += 1; view.replaceChildren(target); return target; }, { type: 'forward' });
+      assert.equal(runs, 1, 'at once, nothing waits before the update');
+      await flush();
+      assert.ok(target.classList.contains('ds-enter') && target.classList.contains('ds-enter--swap'));
+      end(target);
+      await promise;
+      assert.equal(runs, 1);
+      assert.equal(String(target.classList), '');
+      // Without a returned element: the first child of the themed view.
+      const again = transition(() => {});
+      await flush();
+      assert.equal(view.children[0], target);
+      assert.ok(target.classList.contains('ds-enter--swap'));
+      end(view.children[0]);
+      await again;
+    }
+  });
+
+  it('without View Transitions and without a returned element: enters the view\'s content, never the data-scrolled sentinel', async (t) => {
+    const { doc, view, first } = page({ api: false });
+    useDocument(t, doc);
+    {
+      // The documented sentinel: first in the view, aria-hidden, kept through morphHtml.
+      const sentinel = new FakeElement(doc);
+      sentinel.setAttribute('aria-hidden', 'true');
+      sentinel.setAttribute('data-ds-keep', '');
+      view.prepend(sentinel);
+      assert.equal(view.children[0], sentinel);
+      const promise = transition(() => {});
+      await flush();
+      assert.equal(String(sentinel.classList), '', 'the sentinel never enters');
+      assert.ok(first.classList.contains('ds-enter--swap'), 'the content does');
+      end(first);
+      await promise;
+    }
+  });
+
+  it('without .ds-theme on <html> (an embedded widget) never calls startViewTransition', async (t) => {
+    const { doc, root } = page({ theme: false });
+    useDocument(t, doc);
+    {
+      const target = new FakeElement(doc);
+      const promise = transition(() => target, { type: 'container', from: new FakeElement(doc) });
+      await flush();
+      assert.equal(doc.started.length, 0);
+      assert.equal(root.hasAttribute('data-ds-vt'), false);
+      assert.ok(target.classList.contains('ds-enter--swap'));
+      end(target);
+      await promise;
+    }
+  });
+
+  it('keys the type on data-ds-vt while it runs and names the container from `from` to the target', async () => {
+    let fromAtSnapshot;
+    const { doc, root, pill } = page({ onSnapshot: () => { fromAtSnapshot = from.style.viewTransitionName; } });
+    const from = vtElement(doc);
+    const target = vtElement(doc);
+    let during;
+    const promise = transition(() => {
+      during = { attribute: root.getAttribute('data-ds-vt'), from: from.style.viewTransitionName, pill: pill.style.getPropertyValue('view-transition-name') };
+      return target;
+    }, { type: 'container', from });
+    assert.equal(doc.started.length, 1);
+    assert.equal(doc.started[0].attribute, 'container', 'set before startViewTransition');
+    assert.equal(fromAtSnapshot, 'ds-container', 'from is named before the snapshot');
+    await flush();
+    assert.deepEqual(during, { attribute: 'container', from: '', pill: 'none' }, 'inside the update: from unnamed, the indicator lifted');
+    assert.equal(target.style.viewTransitionName, 'ds-container', 'the returned target carries the name for the new snapshot');
+    doc.started[0].finish();
+    await promise;
+    assert.equal(root.hasAttribute('data-ds-vt'), false);
+    assert.equal(from.style.viewTransitionName, '');
+    assert.equal(target.style.viewTransitionName, '');
+    assert.equal(pill.style.getPropertyValue('view-transition-name'), 'ds-indicator-nav', 'the indicator gets its name back');
+  });
+
+  it('falls back to a fade-through when a container transition has no target or no `from`', async (t) => {
+    const { doc, root } = page();
+    useDocument(t, doc);
+    const from = vtElement(doc);
+    let attribute;
+    const promise = transition(() => { attribute = root.getAttribute('data-ds-vt'); return null; }, { type: 'container', from });
+    await flush();
+    assert.equal(attribute, 'container');
+    assert.equal(root.getAttribute('data-ds-vt'), 'fade-through', 'nothing to grow into');
+    doc.started[0].finish();
+    await promise;
+    const without = transition(() => {}, { type: 'container' });
+    assert.equal(doc.started[1].attribute, 'fade-through', 'no from: a plain fade-through');
+    doc.started[1].finish();
+    await without;
+    assert.equal(root.hasAttribute('data-ds-vt'), false);
+  });
+
+  it('falls back to a fade-through when a scroller clips `from` or the target inside the window', async (t) => {
+    const { doc, root, view } = page();
+    useDocument(t, doc);
+    // A 1280 x 500 window; the view (overflow-y: auto) clips from y = 64 on.
+    const styles = new Map([[view, { overflowX: 'auto', overflowY: 'auto', position: 'static' }]]);
+    const plain = doc.defaultView.getComputedStyle;
+    Object.assign(doc.defaultView, {
+      innerWidth: 1280,
+      innerHeight: 500,
+      getComputedStyle: (element) => Object.assign({ overflowX: 'visible', overflowY: 'visible', position: 'static' }, plain(element), styles.get(element)),
+    });
+    Object.assign(view, { clientLeft: 0, clientTop: 0, clientWidth: 1000, clientHeight: 436 });
+    view.getBoundingClientRect = () => ({ left: 200, top: 64, right: 1200, bottom: 500 });
+    const box = (rect) => {
+      const element = vtElement(doc);
+      element.getBoundingClientRect = () => rect;
+      view.append(element);
+      return element;
+    };
+    // A detail scrolled to its end: its top lies above the view, under the top bar.
+    const scrolled = box({ left: 224, top: -600, right: 1176, bottom: 480 });
+    let named;
+    const back = transition(() => { named = scrolled.style.viewTransitionName; return box({ left: 224, top: 88, right: 500, bottom: 300 }); }, { type: 'container', from: scrolled });
+    assert.equal(doc.started[0].attribute, 'fade-through', 'a clipped from never becomes a group');
+    await flush();
+    assert.equal(named, '');
+    doc.started[0].finish();
+    await back;
+    // A card in view into a detail longer than the view: the part below the window does not count.
+    const card = box({ left: 224, top: 88, right: 500, bottom: 300 });
+    const detail = box({ left: 224, top: 88, right: 1176, bottom: 1400 });
+    const open = transition(() => detail, { type: 'container', from: card });
+    assert.equal(doc.started[1].attribute, 'container');
+    await flush();
+    assert.equal(detail.style.viewTransitionName, 'ds-container', 'clipped only outside the window');
+    doc.started[1].finish();
+    await open;
+    // A target the view clips inside the window (scrolled under the bar): a fade-through.
+    const hidden = box({ left: 224, top: 20, right: 1176, bottom: 400 });
+    const into = transition(() => hidden, { type: 'container', from: card });
+    await flush();
+    assert.equal(root.getAttribute('data-ds-vt'), 'fade-through');
+    assert.equal(hidden.style.viewTransitionName, '');
+    doc.started[2].finish();
+    await into;
+    assert.equal(card.style.viewTransitionName, '');
+  });
+
+  it('skips a running transition for the next call; both updates run, in call order', async (t) => {
+    const { doc, root } = page();
+    useDocument(t, doc);
+    const order = [];
+    const first = transition(async () => { await flush(); order.push('first'); });
+    const second = transition(() => { order.push('second'); }, { type: 'back' });
+    assert.equal(doc.started[0].skipped, 1, 'the first is skipped');
+    assert.equal(root.getAttribute('data-ds-vt'), 'back');
+    await first;
+    assert.equal(root.getAttribute('data-ds-vt'), 'back', 'the first call leaves the latest one\'s attribute alone');
+    doc.started[1].finish();
+    await second;
+    assert.deepEqual(order, ['first', 'second']);
+    assert.equal(root.hasAttribute('data-ds-vt'), false);
+  });
+
+  it('rejects with the update\'s error after cleaning up: no attribute, no name left', async () => {
+    const { doc, root, pill } = page();
+    const from = vtElement(doc);
+    const error = new Error('render failed');
+    await assert.rejects(transition(() => { throw error; }, { type: 'container', from }), (reason) => reason === error);
+    assert.equal(doc.started[0].skipped, 1, 'its motion is skipped');
+    assert.equal(root.hasAttribute('data-ds-vt'), false);
+    assert.equal(from.style.viewTransitionName, '');
+    assert.equal(pill.style.getPropertyValue('view-transition-name'), 'ds-indicator-nav');
+    await assert.rejects(transition(async () => { await flush(); throw error; }), (reason) => reason === error);
+    assert.equal(root.hasAttribute('data-ds-vt'), false);
+  });
+
+  it('skips the motion of an update still pending after --ds-dur-long (the watchdog)', async (t) => {
+    t.mock.timers.enable({ apis: ['setTimeout'] });
+    const { doc, root } = page();
+    useDocument(t, doc);
+    let release;
+    const promise = transition(() => new Promise((resolve) => { release = resolve; }));
+    await Promise.resolve();
+    await Promise.resolve();
+    t.mock.timers.tick(449);
+    assert.equal(doc.started[0].skipped, 0);
+    t.mock.timers.tick(1);
+    assert.equal(doc.started[0].skipped, 1, 'skipped at --ds-dur-long: the page takes input again');
+    assert.equal(root.getAttribute('data-ds-vt'), 'fade-through', 'the update still runs');
+    release();
+    await promise;
+    assert.equal(root.hasAttribute('data-ds-vt'), false);
+  });
+
+  it('under an open dialog or sheet, lifts the page frame\'s names until it ends (a record swap moves only the sheet body)', async (t) => {
+    const { doc, view, panel, drawer } = page({ modalOpen: true });
+    useDocument(t, doc);
+    let during;
+    const promise = transition(() => { during = [view, panel, drawer].map((part) => part.style.getPropertyValue('view-transition-name')); }, { type: 'forward' });
+    await flush();
+    assert.deepEqual(during, ['none', 'none', 'none']);
+    doc.started[0].finish();
+    await promise;
+    assert.deepEqual([view, panel, drawer].map((part) => part.style.getPropertyValue('view-transition-name')), ['', '', '']);
+  });
+
+  it('lifts the page frame\'s names under a div sheet or div dialog shown by hand (no data-state), not under a closed or leaving one', async (t) => {
+    const sheet = '.ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing)';
+    const dialog = '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing)';
+    for (const [shown, lifted] of [[[sheet], true], [[dialog], true], [['.ds-sheet[aria-modal="true"]'], false], [[], false]]) {
+      const { doc, view, panel, drawer } = page({ shown });
+      useDocument(t, doc);
+      let during;
+      const promise = transition(() => { during = [view, panel, drawer].map((part) => part.style.getPropertyValue('view-transition-name')); }, { type: 'forward' });
+      await flush();
+      assert.deepEqual(during, lifted ? ['none', 'none', 'none'] : ['', '', ''], JSON.stringify(shown));
+      doc.started[0].finish();
+      await promise;
+      assert.deepEqual([view, panel, drawer].map((part) => part.style.getPropertyValue('view-transition-name')), ['', '', '']);
+    }
+  });
+
+  it('restarts a scroll-driven tint the old, scrolled view left stuck, after the update, on both paths', async (t) => {
+    const saved = Object.getOwnPropertyDescriptor(globalThis, 'ScrollTimeline');
+    class ScrollTimeline {}
+    Object.defineProperty(globalThis, 'ScrollTimeline', { value: ScrollTimeline, configurable: true, writable: true });
+    t.after(() => {
+      if (saved) Object.defineProperty(globalThis, 'ScrollTimeline', saved);
+      else delete globalThis.ScrollTimeline;
+    });
+    for (const api of [true, false]) {
+      const { doc, view } = page({ api });
+      useDocument(t, doc);
+      const calls = [];
+      // Inactive once the update ran: the new view does not overflow.
+      let updated = false;
+      const timeline = Object.defineProperties(new ScrollTimeline(), { source: { value: view }, currentTime: { get: () => (updated ? null : 40) } });
+      const stuck = { timeline, currentTime: 0.8, effect: { target: view }, cancel: () => calls.push('cancel'), play: () => calls.push('play') };
+      doc.nodeType = 9;
+      doc.getAnimations = () => [stuck];
+      const promise = transition(() => { updated = true; });
+      if (api) {
+        await flush();
+        doc.started[0].finish();
+      }
+      await promise;
+      await flush();
+      await flush();
+      assert.deepEqual(calls, ['cancel', 'play'], api ? 'View Transition' : 'fallback');
+    }
+  });
+
+  it('lifts the page frame\'s names while the modal drawer is open or still leaving, only where it is modal', async (t) => {
+    for (const [options, lifted] of [
+      [{ phone: true, drawerOpen: true }, true],
+      [{ phone: true, drawerLeaving: true }, true],
+      [{ phone: true }, false],
+      [{ phone: false, drawerOpen: true, drawerLeaving: true }, false],
+    ]) {
+      const { doc, view, panel, drawer } = page(options);
+      useDocument(t, doc);
+      let during;
+      const promise = transition(() => { during = [view, panel, drawer].map((part) => part.style.getPropertyValue('view-transition-name')); });
+      await flush();
+      assert.deepEqual(during, lifted ? ['none', 'none', 'none'] : ['', '', ''], JSON.stringify(options));
+      doc.started[0].finish();
+      await promise;
+      assert.deepEqual([view, panel, drawer].map((part) => part.style.getPropertyValue('view-transition-name')), ['', '', '']);
+    }
+  });
+
+  it('names one snackbar region with messages: a further one keeps no name until it ends (a duplicate would skip the transition)', async (t) => {
+    const { doc, regions } = page({ toasts: [0, 1, 2] });
+    useDocument(t, doc);
+    let during;
+    const promise = transition(() => { during = regions.map((region) => region.style.getPropertyValue('view-transition-name')); });
+    await flush();
+    assert.deepEqual(during, ['', '', 'none'], 'the empty region and the first with messages keep their stylesheet name');
+    doc.started[0].finish();
+    await promise;
+    assert.deepEqual(regions.map((region) => region.style.getPropertyValue('view-transition-name')), ['', '', '']);
+  });
+
+  it('a press on <html> while it runs skips the motion; its click goes to the element under the pointer once it ended', async (t) => {
+    const { doc, root } = page();
+    useDocument(t, doc);
+    const win = doc.defaultView;
+    const clicks = [];
+    const button = new FakeElement(doc);
+    button.click = () => clicks.push(doc.started.length);
+    // The pointer is over the button's icon: an SVG element has no click().
+    const icon = { parentElement: button };
+    doc.elementFromPoint = (x, y) => (x === 10 && y === 20 ? icon : null);
+    let stopped = 0;
+    const event = (target, extra = {}) => ({ target, button: 0, clientX: 10, clientY: 20, stopPropagation: () => { stopped += 1; }, ...extra });
+    const promise = transition(() => {});
+    await flush();
+    win.fire('pointerdown', event(button));
+    assert.equal(doc.started[0].skipped, 0, 'a press the engine delivered is left alone');
+    win.fire('pointerdown', event(root, { button: 2 }));
+    assert.equal(doc.started[0].skipped, 0, 'only the primary button');
+    win.fire('pointerdown', event(root));
+    assert.equal(doc.started[0].skipped, 1, 'a press on <html> skips the motion');
+    win.fire('click', event(root));
+    assert.equal(stopped, 2, 'the stray press and click stop at the window');
+    assert.deepEqual(clicks, [], 'the click waits for the end');
+    await promise;
+    await flush();
+    assert.deepEqual(clicks, [1], 'then it reaches the button');
+    assert.equal(win.listeners.length, 0, 'no listener is left behind');
+  });
+
+  it('a click on <html> while it runs (the press reached its button before the snapshot) goes to the element under the pointer too', async (t) => {
+    const { doc, root } = page();
+    useDocument(t, doc);
+    const clicks = [];
+    const button = new FakeElement(doc);
+    button.click = () => clicks.push('button');
+    doc.elementFromPoint = () => button;
+    const promise = transition(() => {});
+    await flush();
+    doc.defaultView.fire('click', { target: button, clientX: 1, clientY: 1, stopPropagation: () => {} });
+    doc.defaultView.fire('click', { target: root, clientX: 1, clientY: 1, stopPropagation: () => {} });
+    assert.equal(doc.started[0].skipped, 1, 'the motion is skipped');
+    await promise;
+    await flush();
+    assert.deepEqual(clicks, ['button'], 'once, and the click the engine delivered is left alone');
+  });
+
+  it('marks data-ds-vt-morph only when the update changes the panel\'s width (the drawer shown or hidden)', async (t) => {
+    for (const [panelWidths, morph] of [[[1000, 1256], true], [[1000, 1000], false], [null, false]]) {
+      const { doc, root } = page({ panelWidths });
+      useDocument(t, doc);
+      const promise = transition(() => {});
+      await flush();
+      assert.equal(root.hasAttribute('data-ds-vt-morph'), morph, JSON.stringify(panelWidths));
+      doc.started[0].finish();
+      await promise;
+      assert.equal(root.hasAttribute('data-ds-vt-morph'), false, 'gone with data-ds-vt');
+    }
+  });
+});
+
+describe('resyncScroll() (1.5.0)', () => {
+  /** A node that contains itself and its listed descendants. */
+  const node = (...inside) => ({ inside, contains(other) { return other === this || this.inside.some((child) => child === other || child.contains?.(other)); } });
+
+  /**
+   * ScrollTimeline stubbed for one test, a document whose animations are
+   * `list`, and a scroll-driven animation: `active` gives its timeline a
+   * progress, `progress` the animation's own (null: never ran).
+   */
+  function setup(t, list) {
+    const saved = Object.getOwnPropertyDescriptor(globalThis, 'ScrollTimeline');
+    class ScrollTimeline {}
+    Object.defineProperty(globalThis, 'ScrollTimeline', { value: ScrollTimeline, configurable: true, writable: true });
+    t.after(() => {
+      if (saved) Object.defineProperty(globalThis, 'ScrollTimeline', saved);
+      else delete globalThis.ScrollTimeline;
+    });
+    const doc = { nodeType: 9, defaultView: { requestAnimationFrame: (callback) => setImmediate(callback) }, getAnimations: () => list };
+    const scrollAnimation = ({ source, target, active, progress }) => {
+      const timeline = Object.assign(new ScrollTimeline(), { source, currentTime: active ? 30 : null });
+      const animation = { timeline, currentTime: progress, effect: { target }, calls: [] };
+      animation.cancel = () => { animation.calls.push('cancel'); animation.currentTime = null; };
+      animation.play = () => animation.calls.push('play');
+      return animation;
+    };
+    return { doc, scrollAnimation };
+  }
+
+  it('restarts only scroll-driven animations whose timeline went inactive but kept a progress, two frames later', async (t) => {
+    const list = [];
+    const { doc, scrollAnimation } = setup(t, list);
+    const view = node();
+    const topbar = node();
+    const stuck = scrollAnimation({ source: view, target: topbar, active: false, progress: 0.8 });
+    const fresh = scrollAnimation({ source: view, target: view, active: false, progress: null });
+    const running = scrollAnimation({ source: view, target: view, active: true, progress: 0.3 });
+    const timed = { timeline: {}, currentTime: 100, effect: { target: view }, calls: [], cancel() { this.calls.push('cancel'); }, play() {} };
+    list.push(stuck, fresh, running, timed);
+    const promise = resyncScroll(doc);
+    assert.deepEqual(stuck.calls, [], 'waits: the timeline sees the new layout only a frame or two later');
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(stuck.calls, [], 'still waits after one frame');
+    assert.equal(await promise, 1);
+    assert.deepEqual(stuck.calls, ['cancel', 'play']);
+    assert.deepEqual([fresh.calls, running.calls, timed.calls], [[], [], []]);
+  });
+
+  it('limits itself to the scrollers in and around `root` and the animations of its descendants', async (t) => {
+    const list = [];
+    const { doc, scrollAnimation } = setup(t, list);
+    const table = node();
+    const card = node(table);
+    const view = node(card);
+    const other = node();
+    const tint = scrollAnimation({ source: view, target: other, active: false, progress: 0.8 });   // the bar follows the view
+    const edge = scrollAnimation({ source: table, target: table, active: false, progress: 0.9 });
+    const elsewhere = scrollAnimation({ source: other, target: other, active: false, progress: 0.8 });
+    list.push(tint, edge, elsewhere);
+    view.ownerDocument = doc;
+    table.ownerDocument = doc;
+    assert.equal(await resyncScroll(table), 2, 'the table, and the view around it');
+    assert.deepEqual([tint.calls.length, edge.calls.length, elsewhere.calls.length], [2, 2, 0]);
+  });
+
+  it('does nothing without scroll timelines', async () => {
+    assert.equal(typeof globalThis.ScrollTimeline, 'undefined');
+    assert.equal(await resyncScroll({ nodeType: 9, getAnimations: () => { throw new Error('not read'); } }), 0);
   });
 });

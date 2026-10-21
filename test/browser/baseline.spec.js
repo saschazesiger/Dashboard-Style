@@ -46,7 +46,7 @@ function annotate(...anchors) {
  */
 function pauseLoops(page, progress = 0) {
   return page.evaluate((at) => {
-    for (const animation of document.getAnimations()) {
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
       const timing = animation.effect.getComputedTiming();
       if (Number.isFinite(timing.iterations)) continue;
       animation.pause();

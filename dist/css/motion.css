@@ -5,10 +5,12 @@
  * tokens.css.
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
- * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-chevron,
- * .ds-swap, .ds-icon-swap, .ds-presence) in ds.utilities. That layer comes after ds.components,
- * so a utility wins over a component's own animation by layer order, not
- * by specificity.
+ * .ds-leave, .ds-stagger, .ds-reveal, .ds-reveal--scroll,
+ * .ds-collapsible, .ds-chevron, .ds-swap, .ds-icon-swap, .ds-presence)
+ * and the view-transition rules (.ds-theme::view-transition-*) in
+ * ds.utilities. That layer comes after
+ * ds.components, so a utility wins over a component's own animation by
+ * layer order, not by specificity.
  *
  * The per-element hooks (--ds-motion-*, --ds-clip-from, --ds-draw-length,
  * --ds-enter-*, --ds-leave-*, --ds-i) are registered here, at the top
@@ -36,6 +38,17 @@
  * transitions of display and overlay (it stays rendered and in the top
  * layer while it leaves) and :popover-open (a popover's exit state, in a
  * rule of its own); without them it shows and hides at once.
+ * View Transitions: the ::view-transition-* rules of the "View
+ * transitions" section (fade-through, shared axis, container transform,
+ * the group default that glides named indicators) apply only where the
+ * engine runs them and .ds-theme sits on <html>; elsewhere
+ * DS.motion.transition() fades the new view through with .ds-enter--swap.
+ * scroll-driven animations (animation-timeline: view(), animation-range):
+ * .ds-reveal--scroll ties its fade and rise to the scroll position; without
+ * view() timelines it stays static, never hidden. ds-scroll-fade (the
+ * hairlines and the top bar's tint) and ds-edge-fade (a table's edge
+ * fades) run on the scroll timelines of shell.css, sheet.css and
+ * table.css only; without them data-scrolled and the static fade stay.
  *
  * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
  * it moves with insertBefore) turns transitions off in that subtree, so a
@@ -688,6 +701,30 @@
     from { translate: 0 var(--ds-scan-from, -100%); }
     to { translate: 0 var(--ds-scan-to, 100%); }
   }
+
+  /* ── Keyframes: scroll-linked ──────────────────── */
+
+  /* A hairline or a tint that shows with the first pixels of scroll (the
+     panel's hairline, the top bar's tint, a sheet head's hairline), on a
+     scroll timeline. Both ends are named, so the element's own opacity
+     stays 0: a scroller without overflow has an inactive timeline, the
+     animation has no effect then, and nothing shows. */
+  @keyframes ds-scroll-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* The edge fades of a table that scrolls sideways (table.css), on the
+     wrapper's own scroll timeline, so progress is the scroll position:
+     the start fade grows over the first 5% of the travel, the end fade
+     goes over the last 5%. Both ends are named (a scroll position, not an
+     entrance); the lengths are registered in table.css. */
+  @keyframes ds-edge-fade {
+    0% { --ds-table-fade-start: 0px; --ds-table-fade-end: var(--ds-card-pad); }
+    5% { --ds-table-fade-start: var(--ds-card-pad); }
+    95% { --ds-table-fade-end: var(--ds-card-pad); }
+    100% { --ds-table-fade-start: var(--ds-card-pad); --ds-table-fade-end: 0px; }
+  }
 }
 
 @layer ds.utilities {
@@ -738,6 +775,43 @@
   .ds-stagger > :where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner, .ds-loader),
   .ds-reveal:where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner, .ds-loader) {
     animation: revert-layer;
+  }
+
+  /*
+   * Reveal on scroll (opt-in, long read-only pages: reports, overviews):
+   * a block fades in and rises --ds-distance-md while it enters the
+   * scrollport, tied to the scroll position (view()), so it never plays on
+   * its own and scrolling back reverses it. It is opaque once
+   * 4 x --ds-space-6 (96px) of it are in view; a block already passed
+   * shows its end state. Never on tables, rows, forms or anything typed
+   * into or searched, and not together with .ds-enter or .ds-reveal on the
+   * same element. Without view() timelines it does nothing: static, never
+   * hidden. The shorthand comes first (it resets animation-timeline).
+   */
+  @supports (animation-timeline: view()) {
+    .ds-reveal--scroll {
+      --ds-motion-distance: var(--ds-distance-md);
+      animation:
+        ds-fade-in linear both,
+        ds-lift-in var(--ds-ease-out) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry calc(4 * var(--ds-space-6));
+    }
+
+    /* DS.motion.enter() or leave() on such a block plays in time: the
+       one-shot utilities set longhands only, which keep the view()
+       timeline, so it goes back to the document's here. */
+    .ds-reveal--scroll:is(.ds-enter, .ds-leave) {
+      animation-timeline: auto;
+      animation-range: normal;
+    }
+  }
+
+  /* Paper has no scroll position: every block prints at its end state. */
+  @media print {
+    .ds-reveal--scroll {
+      animation: none;
+    }
   }
 
   /*
@@ -1058,5 +1132,253 @@
   :where(.ds-theme) [data-ds-moving],
   :where(.ds-theme) [data-ds-moving] * {
     transition: none;
+  }
+
+  /* ── View transitions ──────────────────────────── */
+  /*
+   * DS.motion.transition() (js/motion.js) writes data-ds-vt="<type>" on
+   * <html> while a View Transition runs; shell.css, sheet.css and
+   * toast.css name the view, the panel, the docked drawer, an open sheet's
+   * body and a snackbar region with messages only then (and it adds
+   * data-ds-vt-morph while the panel changes width), and an
+   * indicator created with a `name` carries its own name for good. Every
+   * selector starts at .ds-theme, so it only matches when the theme sits on
+   * <html> (the pseudo-elements hang off the document element and inherit
+   * its tokens) and never restyles a host page. Durations and curves are
+   * tokens, so --ds-time-scale slows them too.
+   *
+   * Old and new are two images of one moment, not a component's entrance
+   * and exit: the exit-to-entrance ratio does not apply, and fade-through
+   * lets the old view go in --ds-dur-instant by design. No keyframes of
+   * their own: the ds-fade-*, ds-grow-in and ds-shift-in/-out pairs.
+   */
+
+  /* The root (the top bar, the backdrop, everything unnamed): the browser's
+     crossfade, short; pixels that did not change stay still under its
+     plus-lighter blend. */
+  .ds-theme::view-transition-old(root),
+  .ds-theme::view-transition-new(root) {
+    animation-duration: var(--ds-dur-fast);
+    animation-timing-function: var(--ds-ease-in-out);
+  }
+
+  /* Every group moves and resizes on the spring, over the indicator's cap
+     (--ds-dur-slow): a named indicator glides to its new item this way on
+     a page load (css/optional/view-transitions.css). */
+  .ds-theme::view-transition-group(*) {
+    animation-duration: var(--ds-dur-slow);
+    animation-timing-function: var(--ds-ease-spatial);
+  }
+
+  /* The docked drawer stays the drawer: its new image is live and covers
+     the old one at once (no crossfade), so the pill glides to the new
+     destination under its labels and the labels change colour, as on a
+     click (DS.motion.transition() lifts an indicator's name meanwhile).
+     When the drawer leaves or comes back with the view, the :only-child
+     image plays its own motion. */
+  .ds-theme::view-transition-new(ds-drawer) {
+    animation: none;
+  }
+
+  /* Fade-through, the default (without a condition on data-ds-vt, so the
+     opt-in stylesheet for page loads reuses it): the old view goes quickly
+     and accelerating, then the new one fades in and grows from
+     --ds-scale-enter in place. */
+  .ds-theme::view-transition-old(ds-view),
+  .ds-theme::view-transition-old(ds-sheet-body) {
+    animation: ds-fade-out var(--ds-dur-instant) var(--ds-ease-in) both;
+  }
+
+  .ds-theme::view-transition-new(ds-view),
+  .ds-theme::view-transition-new(ds-sheet-body) {
+    --ds-motion-distance: 0px;
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-dur-instant) both,
+      ds-grow-in var(--ds-dur-medium) var(--ds-ease-spatial) var(--ds-dur-instant) both;
+  }
+
+  /* Shared axis X: forward, the old view leaves to the start while the new
+     one comes from the end; back mirrors both. The two images travel on
+     one axis on the spring and land together at --ds-dur-slow; the fades
+     are those of fade-through. The new image travels with its fade (after
+     --ds-dur-instant, over --ds-dur-medium): the spring covers most of
+     its way early, so a view that moved while still invisible would only
+     settle on screen. */
+  .ds-theme[data-ds-vt="forward"]::view-transition-old(ds-view),
+  .ds-theme[data-ds-vt="forward"]::view-transition-old(ds-sheet-body) {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    animation:
+      ds-fade-out var(--ds-dur-instant) var(--ds-ease-in) both,
+      ds-shift-out var(--ds-dur-slow) var(--ds-ease-spatial) both;
+  }
+
+  .ds-theme[data-ds-vt="forward"]::view-transition-new(ds-view),
+  .ds-theme[data-ds-vt="forward"]::view-transition-new(ds-sheet-body) {
+    --ds-motion-distance: var(--ds-distance-xl);
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-dur-instant) both,
+      ds-shift-in var(--ds-dur-medium) var(--ds-ease-spatial) var(--ds-dur-instant) both;
+  }
+
+  .ds-theme[data-ds-vt="back"]::view-transition-old(ds-view),
+  .ds-theme[data-ds-vt="back"]::view-transition-old(ds-sheet-body) {
+    --ds-motion-distance: var(--ds-distance-xl);
+    animation:
+      ds-fade-out var(--ds-dur-instant) var(--ds-ease-in) both,
+      ds-shift-out var(--ds-dur-slow) var(--ds-ease-spatial) both;
+  }
+
+  .ds-theme[data-ds-vt="back"]::view-transition-new(ds-view),
+  .ds-theme[data-ds-vt="back"]::view-transition-new(ds-sheet-body) {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-dur-instant) both,
+      ds-shift-in var(--ds-dur-medium) var(--ds-ease-spatial) var(--ds-dur-instant) both;
+  }
+
+  /* Container transform: the card or row (ds-container before the update)
+     grows into its detail (ds-container after it) on the spring over
+     --ds-dur-long, a large surface. One surface grows: the new image is
+     live and opaque from the first frame, and the old one lies on top of
+     it and fades out within --ds-dur-fast (two images fading at once
+     would leave the group see-through halfway, the page showing through
+     a card that vanishes and a panel that fades in). */
+  .ds-theme[data-ds-vt="container"]::view-transition-group(ds-container) {
+    animation-duration: var(--ds-dur-long);
+    animation-timing-function: var(--ds-ease-spatial);
+  }
+
+  /* Both images keep the browser's sizing (as wide as the group, their own
+     aspect, from the top) and the pair clips them to the group: a card is
+     never stretched into the shape of its detail, nor magnified to cover a
+     much taller panel (cover would scale a card's text several times). */
+  .ds-theme[data-ds-vt="container"]::view-transition-image-pair(ds-container) {
+    overflow: clip;
+  }
+
+  .ds-theme[data-ds-vt="container"]::view-transition-old(ds-container) {
+    z-index: var(--ds-z-raised);
+    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in-out) both;
+  }
+
+  .ds-theme[data-ds-vt="container"]::view-transition-new(ds-container) {
+    animation: none;
+  }
+
+  /* A view with or without the drawer (data-drawer-hidden toggled inside
+     DS.motion.transition()): the panel morphs to its new width instead of
+     the grid jumping, a large surface on the spring over --ds-dur-long.
+     Its images are only the white surface (the content is the separately
+     named view), so the new one fills the group at once and the old one
+     is not drawn. The view's group travels with it; its images keep their
+     natural size from the top left, so text is never scaled while the
+     width changes (the group's edge cuts it). Only then (DS.motion.
+     transition() sets data-ds-vt-morph when the panel's width changed):
+     a plain swap keeps the --ds-dur-slow groups, so the frozen page holds
+     input no longer than the view's own motion. Page loads cannot tell,
+     so they keep --ds-dur-slow too. */
+  .ds-theme[data-ds-vt-morph]::view-transition-group(ds-panel),
+  .ds-theme[data-ds-vt-morph]::view-transition-group(ds-view) {
+    animation-duration: var(--ds-dur-long);
+  }
+
+  /* Stacking inside the transition (two steps of the z scale): a drawer
+     that comes back exists in the new state only, so its group comes last
+     and would paint over the panel that makes room for it; the surfaces of
+     the page lie above the drawer instead, in their own order. The drawer
+     lies above an indicator's group (page loads), so a gliding pill passes
+     under its labels (the opt-in stylesheet makes the docked drawer
+     transparent; it lies on the same backdrop). */
+  .ds-theme::view-transition-group(ds-drawer) {
+    z-index: var(--ds-z-raised);
+  }
+
+  .ds-theme::view-transition-group(ds-panel),
+  .ds-theme::view-transition-group(ds-view),
+  .ds-theme::view-transition-group(ds-sheet-body),
+  .ds-theme::view-transition-group(ds-container) {
+    z-index: var(--ds-z-sticky);
+  }
+
+  /* Snackbars stay where they are: a region with messages (toast.css
+     names it ds-toasts while a transition runs) lies above every group
+     of the page and shows only its live image, so a message never blinks
+     out under the panel's opaque image; its group follows the region if
+     the update moves it (the drawer shown or hidden). A message that goes
+     with the update fades out. */
+  .ds-theme::view-transition-group(ds-toasts) {
+    z-index: var(--ds-z-toast);
+  }
+
+  .ds-theme::view-transition-old(ds-toasts) {
+    opacity: 0;
+    animation: none;
+  }
+
+  .ds-theme::view-transition-new(ds-toasts) {
+    animation: none;
+  }
+
+  .ds-theme::view-transition-old(ds-toasts):only-child {
+    opacity: 1;
+    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) both;
+  }
+
+  /* A drawer in both states shows only its live image (see above); a
+     transparent one would otherwise show both label sets at once. */
+  .ds-theme::view-transition-old(ds-drawer) {
+    opacity: 0;
+    animation: none;
+  }
+
+  .ds-theme::view-transition-old(ds-panel) {
+    opacity: 0;
+    animation: none;
+  }
+
+  .ds-theme::view-transition-new(ds-panel) {
+    width: 100%;
+    height: 100%;
+    animation: none;
+  }
+
+  /* A panel on one side only: a page load from a page whose frame lay
+     under the modal drawer or an overlay (css/optional/view-transitions.css
+     names it only where nothing covers it) crossfades like the root
+     around it, so the drawer and its scrim do not vanish at once. */
+  .ds-theme::view-transition-new(ds-panel):only-child {
+    animation: ds-fade-in var(--ds-dur-fast) var(--ds-ease-in-out) both;
+  }
+
+  .ds-theme::view-transition-old(ds-panel):only-child {
+    opacity: 1;
+    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in-out) both;
+  }
+
+  .ds-theme::view-transition-old(ds-view),
+  .ds-theme::view-transition-new(ds-view) {
+    height: 100%;
+    overflow: clip;
+    object-fit: none;
+    object-position: left top;
+  }
+
+  /* The docked drawer leaves to the start, accelerating, faded within
+     --ds-dur-fast (the panel grows over it); it comes back from there on
+     the spring while the panel makes room. Only one image exists then:
+     the drawer is shown on one side of the transition only. */
+  .ds-theme::view-transition-old(ds-drawer):only-child {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    opacity: 1;
+    animation:
+      ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) both,
+      ds-shift-out var(--ds-dur-base) var(--ds-ease-exit) both;
+  }
+
+  .ds-theme::view-transition-new(ds-drawer):only-child {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) both,
+      ds-shift-in var(--ds-dur-long) var(--ds-ease-spatial) both;
   }
 }

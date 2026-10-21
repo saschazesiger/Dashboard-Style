@@ -44,14 +44,14 @@ function act(locator, action) {
   return locator.evaluate((el, source) => {
     new Function('el', `(${source})(el)`)(el);
     for (const node of document.querySelectorAll('.ds-theme *')) void getComputedStyle(node).opacity;
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, action.toString());
 }
 
 /** Plays every paused animation again. */
 function resume(page) {
   return page.evaluate(() => {
-    for (const animation of document.getAnimations()) if (animation.playState === 'paused') animation.play();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) if (animation.playState === 'paused') animation.play();
   });
 }
 
@@ -82,7 +82,7 @@ async function sampleMany(page, targets, times) {
           const cs = getComputedStyle(document.querySelector(selector), pseudo || null);
           return [name, Object.fromEntries(props.map((prop) => [prop, cs[prop]]))];
         }));
-        return { values, started: document.getAnimations().some((animation) => animation.playState === 'running') };
+        return { values, started: document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).some((animation) => animation.playState === 'running') };
       }, targets);
       if (!result.started) entry = { time, ...result.values };
     }
@@ -102,7 +102,7 @@ async function holdAt(page, time) {
     await seek(page, time);
     const started = await page.evaluate(() => {
       for (const node of document.querySelectorAll('.ds-theme *')) void getComputedStyle(node).opacity;
-      return document.getAnimations().some((animation) => animation.playState === 'running');
+      return document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).some((animation) => animation.playState === 'running');
     });
     if (!started) return;
   }
@@ -547,7 +547,7 @@ test.describe('chips', () => {
       const edge = first.getBoundingClientRect().right;
       const label = first.querySelector(':scope > span').getBoundingClientRect().left;
       row.querySelector('input').click();
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       return { x: box.x, y: box.y, edge, label };
     });
     // Mid-glide, the moving chip rests on an opaque backing in the colour

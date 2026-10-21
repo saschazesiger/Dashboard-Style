@@ -66,6 +66,12 @@ the tests in `test/`.
   `font-weight`.
 - Durations and curves only from tokens, keyframes only from `motion.css`. Motion is the same on every device;
   loaders always run at their token speed. Details: [motion.md](motion.md).
+- View Transitions only through `DS.motion.transition()`, for navigation (a destination, a drill-down, another
+  record), never for data; the `::view-transition-*` rules hang off `.ds-theme`, and `@view-transition` and
+  permanent `view-transition-name`s live only in `src/optional/` ([motion.md](motion.md#view-transitions)).
+- Scroll-driven animations only as documented refinements with a static or `data-scrolled` fallback;
+  `animation-timeline` comes after the `animation` shorthand, which resets it
+  ([motion.md](motion.md#scroll-driven-effects)).
 
 ## Accessibility
 

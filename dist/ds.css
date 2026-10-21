@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.4.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.5.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Dashboard-Style: every stylesheet in cascade order. scripts/build.mjs
  * inlines these imports into dist/ds.css; a bundler can import this file
@@ -530,10 +530,12 @@
  * tokens.css.
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
- * .ds-leave, .ds-stagger, .ds-reveal, .ds-collapsible, .ds-chevron,
- * .ds-swap, .ds-icon-swap, .ds-presence) in ds.utilities. That layer comes after ds.components,
- * so a utility wins over a component's own animation by layer order, not
- * by specificity.
+ * .ds-leave, .ds-stagger, .ds-reveal, .ds-reveal--scroll,
+ * .ds-collapsible, .ds-chevron, .ds-swap, .ds-icon-swap, .ds-presence)
+ * and the view-transition rules (.ds-theme::view-transition-*) in
+ * ds.utilities. That layer comes after
+ * ds.components, so a utility wins over a component's own animation by
+ * layer order, not by specificity.
  *
  * The per-element hooks (--ds-motion-*, --ds-clip-from, --ds-draw-length,
  * --ds-enter-*, --ds-leave-*, --ds-i) are registered here, at the top
@@ -561,6 +563,17 @@
  * transitions of display and overlay (it stays rendered and in the top
  * layer while it leaves) and :popover-open (a popover's exit state, in a
  * rule of its own); without them it shows and hides at once.
+ * View Transitions: the ::view-transition-* rules of the "View
+ * transitions" section (fade-through, shared axis, container transform,
+ * the group default that glides named indicators) apply only where the
+ * engine runs them and .ds-theme sits on <html>; elsewhere
+ * DS.motion.transition() fades the new view through with .ds-enter--swap.
+ * scroll-driven animations (animation-timeline: view(), animation-range):
+ * .ds-reveal--scroll ties its fade and rise to the scroll position; without
+ * view() timelines it stays static, never hidden. ds-scroll-fade (the
+ * hairlines and the top bar's tint) and ds-edge-fade (a table's edge
+ * fades) run on the scroll timelines of shell.css, sheet.css and
+ * table.css only; without them data-scrolled and the static fade stay.
  *
  * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
  * it moves with insertBefore) turns transitions off in that subtree, so a
@@ -1211,6 +1224,30 @@
     from { translate: 0 var(--ds-scan-from, -100%); }
     to { translate: 0 var(--ds-scan-to, 100%); }
   }
+
+  /* ── Keyframes: scroll-linked ──────────────────── */
+
+  /* A hairline or a tint that shows with the first pixels of scroll (the
+     panel's hairline, the top bar's tint, a sheet head's hairline), on a
+     scroll timeline. Both ends are named, so the element's own opacity
+     stays 0: a scroller without overflow has an inactive timeline, the
+     animation has no effect then, and nothing shows. */
+  @keyframes ds-scroll-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* The edge fades of a table that scrolls sideways (table.css), on the
+     wrapper's own scroll timeline, so progress is the scroll position:
+     the start fade grows over the first 5% of the travel, the end fade
+     goes over the last 5%. Both ends are named (a scroll position, not an
+     entrance); the lengths are registered in table.css. */
+  @keyframes ds-edge-fade {
+    0% { --ds-table-fade-start: 0px; --ds-table-fade-end: var(--ds-card-pad); }
+    5% { --ds-table-fade-start: var(--ds-card-pad); }
+    95% { --ds-table-fade-end: var(--ds-card-pad); }
+    100% { --ds-table-fade-start: var(--ds-card-pad); --ds-table-fade-end: 0px; }
+  }
 }
 
 @layer ds.utilities {
@@ -1261,6 +1298,43 @@
   .ds-stagger > :where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner, .ds-loader),
   .ds-reveal:where(.ds-skeleton, .ds-loading, .ds-boot, .ds-spinner, .ds-loader) {
     animation: revert-layer;
+  }
+
+  /*
+   * Reveal on scroll (opt-in, long read-only pages: reports, overviews):
+   * a block fades in and rises --ds-distance-md while it enters the
+   * scrollport, tied to the scroll position (view()), so it never plays on
+   * its own and scrolling back reverses it. It is opaque once
+   * 4 x --ds-space-6 (96px) of it are in view; a block already passed
+   * shows its end state. Never on tables, rows, forms or anything typed
+   * into or searched, and not together with .ds-enter or .ds-reveal on the
+   * same element. Without view() timelines it does nothing: static, never
+   * hidden. The shorthand comes first (it resets animation-timeline).
+   */
+  @supports (animation-timeline: view()) {
+    .ds-reveal--scroll {
+      --ds-motion-distance: var(--ds-distance-md);
+      animation:
+        ds-fade-in linear both,
+        ds-lift-in var(--ds-ease-out) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry calc(4 * var(--ds-space-6));
+    }
+
+    /* DS.motion.enter() or leave() on such a block plays in time: the
+       one-shot utilities set longhands only, which keep the view()
+       timeline, so it goes back to the document's here. */
+    .ds-reveal--scroll:is(.ds-enter, .ds-leave) {
+      animation-timeline: auto;
+      animation-range: normal;
+    }
+  }
+
+  /* Paper has no scroll position: every block prints at its end state. */
+  @media print {
+    .ds-reveal--scroll {
+      animation: none;
+    }
   }
 
   /*
@@ -1581,6 +1655,254 @@
   :where(.ds-theme) [data-ds-moving],
   :where(.ds-theme) [data-ds-moving] * {
     transition: none;
+  }
+
+  /* ── View transitions ──────────────────────────── */
+  /*
+   * DS.motion.transition() (js/motion.js) writes data-ds-vt="<type>" on
+   * <html> while a View Transition runs; shell.css, sheet.css and
+   * toast.css name the view, the panel, the docked drawer, an open sheet's
+   * body and a snackbar region with messages only then (and it adds
+   * data-ds-vt-morph while the panel changes width), and an
+   * indicator created with a `name` carries its own name for good. Every
+   * selector starts at .ds-theme, so it only matches when the theme sits on
+   * <html> (the pseudo-elements hang off the document element and inherit
+   * its tokens) and never restyles a host page. Durations and curves are
+   * tokens, so --ds-time-scale slows them too.
+   *
+   * Old and new are two images of one moment, not a component's entrance
+   * and exit: the exit-to-entrance ratio does not apply, and fade-through
+   * lets the old view go in --ds-dur-instant by design. No keyframes of
+   * their own: the ds-fade-*, ds-grow-in and ds-shift-in/-out pairs.
+   */
+
+  /* The root (the top bar, the backdrop, everything unnamed): the browser's
+     crossfade, short; pixels that did not change stay still under its
+     plus-lighter blend. */
+  .ds-theme::view-transition-old(root),
+  .ds-theme::view-transition-new(root) {
+    animation-duration: var(--ds-dur-fast);
+    animation-timing-function: var(--ds-ease-in-out);
+  }
+
+  /* Every group moves and resizes on the spring, over the indicator's cap
+     (--ds-dur-slow): a named indicator glides to its new item this way on
+     a page load (css/optional/view-transitions.css). */
+  .ds-theme::view-transition-group(*) {
+    animation-duration: var(--ds-dur-slow);
+    animation-timing-function: var(--ds-ease-spatial);
+  }
+
+  /* The docked drawer stays the drawer: its new image is live and covers
+     the old one at once (no crossfade), so the pill glides to the new
+     destination under its labels and the labels change colour, as on a
+     click (DS.motion.transition() lifts an indicator's name meanwhile).
+     When the drawer leaves or comes back with the view, the :only-child
+     image plays its own motion. */
+  .ds-theme::view-transition-new(ds-drawer) {
+    animation: none;
+  }
+
+  /* Fade-through, the default (without a condition on data-ds-vt, so the
+     opt-in stylesheet for page loads reuses it): the old view goes quickly
+     and accelerating, then the new one fades in and grows from
+     --ds-scale-enter in place. */
+  .ds-theme::view-transition-old(ds-view),
+  .ds-theme::view-transition-old(ds-sheet-body) {
+    animation: ds-fade-out var(--ds-dur-instant) var(--ds-ease-in) both;
+  }
+
+  .ds-theme::view-transition-new(ds-view),
+  .ds-theme::view-transition-new(ds-sheet-body) {
+    --ds-motion-distance: 0px;
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-dur-instant) both,
+      ds-grow-in var(--ds-dur-medium) var(--ds-ease-spatial) var(--ds-dur-instant) both;
+  }
+
+  /* Shared axis X: forward, the old view leaves to the start while the new
+     one comes from the end; back mirrors both. The two images travel on
+     one axis on the spring and land together at --ds-dur-slow; the fades
+     are those of fade-through. The new image travels with its fade (after
+     --ds-dur-instant, over --ds-dur-medium): the spring covers most of
+     its way early, so a view that moved while still invisible would only
+     settle on screen. */
+  .ds-theme[data-ds-vt="forward"]::view-transition-old(ds-view),
+  .ds-theme[data-ds-vt="forward"]::view-transition-old(ds-sheet-body) {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    animation:
+      ds-fade-out var(--ds-dur-instant) var(--ds-ease-in) both,
+      ds-shift-out var(--ds-dur-slow) var(--ds-ease-spatial) both;
+  }
+
+  .ds-theme[data-ds-vt="forward"]::view-transition-new(ds-view),
+  .ds-theme[data-ds-vt="forward"]::view-transition-new(ds-sheet-body) {
+    --ds-motion-distance: var(--ds-distance-xl);
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-dur-instant) both,
+      ds-shift-in var(--ds-dur-medium) var(--ds-ease-spatial) var(--ds-dur-instant) both;
+  }
+
+  .ds-theme[data-ds-vt="back"]::view-transition-old(ds-view),
+  .ds-theme[data-ds-vt="back"]::view-transition-old(ds-sheet-body) {
+    --ds-motion-distance: var(--ds-distance-xl);
+    animation:
+      ds-fade-out var(--ds-dur-instant) var(--ds-ease-in) both,
+      ds-shift-out var(--ds-dur-slow) var(--ds-ease-spatial) both;
+  }
+
+  .ds-theme[data-ds-vt="back"]::view-transition-new(ds-view),
+  .ds-theme[data-ds-vt="back"]::view-transition-new(ds-sheet-body) {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-dur-instant) both,
+      ds-shift-in var(--ds-dur-medium) var(--ds-ease-spatial) var(--ds-dur-instant) both;
+  }
+
+  /* Container transform: the card or row (ds-container before the update)
+     grows into its detail (ds-container after it) on the spring over
+     --ds-dur-long, a large surface. One surface grows: the new image is
+     live and opaque from the first frame, and the old one lies on top of
+     it and fades out within --ds-dur-fast (two images fading at once
+     would leave the group see-through halfway, the page showing through
+     a card that vanishes and a panel that fades in). */
+  .ds-theme[data-ds-vt="container"]::view-transition-group(ds-container) {
+    animation-duration: var(--ds-dur-long);
+    animation-timing-function: var(--ds-ease-spatial);
+  }
+
+  /* Both images keep the browser's sizing (as wide as the group, their own
+     aspect, from the top) and the pair clips them to the group: a card is
+     never stretched into the shape of its detail, nor magnified to cover a
+     much taller panel (cover would scale a card's text several times). */
+  .ds-theme[data-ds-vt="container"]::view-transition-image-pair(ds-container) {
+    overflow: clip;
+  }
+
+  .ds-theme[data-ds-vt="container"]::view-transition-old(ds-container) {
+    z-index: var(--ds-z-raised);
+    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in-out) both;
+  }
+
+  .ds-theme[data-ds-vt="container"]::view-transition-new(ds-container) {
+    animation: none;
+  }
+
+  /* A view with or without the drawer (data-drawer-hidden toggled inside
+     DS.motion.transition()): the panel morphs to its new width instead of
+     the grid jumping, a large surface on the spring over --ds-dur-long.
+     Its images are only the white surface (the content is the separately
+     named view), so the new one fills the group at once and the old one
+     is not drawn. The view's group travels with it; its images keep their
+     natural size from the top left, so text is never scaled while the
+     width changes (the group's edge cuts it). Only then (DS.motion.
+     transition() sets data-ds-vt-morph when the panel's width changed):
+     a plain swap keeps the --ds-dur-slow groups, so the frozen page holds
+     input no longer than the view's own motion. Page loads cannot tell,
+     so they keep --ds-dur-slow too. */
+  .ds-theme[data-ds-vt-morph]::view-transition-group(ds-panel),
+  .ds-theme[data-ds-vt-morph]::view-transition-group(ds-view) {
+    animation-duration: var(--ds-dur-long);
+  }
+
+  /* Stacking inside the transition (two steps of the z scale): a drawer
+     that comes back exists in the new state only, so its group comes last
+     and would paint over the panel that makes room for it; the surfaces of
+     the page lie above the drawer instead, in their own order. The drawer
+     lies above an indicator's group (page loads), so a gliding pill passes
+     under its labels (the opt-in stylesheet makes the docked drawer
+     transparent; it lies on the same backdrop). */
+  .ds-theme::view-transition-group(ds-drawer) {
+    z-index: var(--ds-z-raised);
+  }
+
+  .ds-theme::view-transition-group(ds-panel),
+  .ds-theme::view-transition-group(ds-view),
+  .ds-theme::view-transition-group(ds-sheet-body),
+  .ds-theme::view-transition-group(ds-container) {
+    z-index: var(--ds-z-sticky);
+  }
+
+  /* Snackbars stay where they are: a region with messages (toast.css
+     names it ds-toasts while a transition runs) lies above every group
+     of the page and shows only its live image, so a message never blinks
+     out under the panel's opaque image; its group follows the region if
+     the update moves it (the drawer shown or hidden). A message that goes
+     with the update fades out. */
+  .ds-theme::view-transition-group(ds-toasts) {
+    z-index: var(--ds-z-toast);
+  }
+
+  .ds-theme::view-transition-old(ds-toasts) {
+    opacity: 0;
+    animation: none;
+  }
+
+  .ds-theme::view-transition-new(ds-toasts) {
+    animation: none;
+  }
+
+  .ds-theme::view-transition-old(ds-toasts):only-child {
+    opacity: 1;
+    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) both;
+  }
+
+  /* A drawer in both states shows only its live image (see above); a
+     transparent one would otherwise show both label sets at once. */
+  .ds-theme::view-transition-old(ds-drawer) {
+    opacity: 0;
+    animation: none;
+  }
+
+  .ds-theme::view-transition-old(ds-panel) {
+    opacity: 0;
+    animation: none;
+  }
+
+  .ds-theme::view-transition-new(ds-panel) {
+    width: 100%;
+    height: 100%;
+    animation: none;
+  }
+
+  /* A panel on one side only: a page load from a page whose frame lay
+     under the modal drawer or an overlay (css/optional/view-transitions.css
+     names it only where nothing covers it) crossfades like the root
+     around it, so the drawer and its scrim do not vanish at once. */
+  .ds-theme::view-transition-new(ds-panel):only-child {
+    animation: ds-fade-in var(--ds-dur-fast) var(--ds-ease-in-out) both;
+  }
+
+  .ds-theme::view-transition-old(ds-panel):only-child {
+    opacity: 1;
+    animation: ds-fade-out var(--ds-dur-fast) var(--ds-ease-in-out) both;
+  }
+
+  .ds-theme::view-transition-old(ds-view),
+  .ds-theme::view-transition-new(ds-view) {
+    height: 100%;
+    overflow: clip;
+    object-fit: none;
+    object-position: left top;
+  }
+
+  /* The docked drawer leaves to the start, accelerating, faded within
+     --ds-dur-fast (the panel grows over it); it comes back from there on
+     the spring while the panel makes room. Only one image exists then:
+     the drawer is shown on one side of the transition only. */
+  .ds-theme::view-transition-old(ds-drawer):only-child {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    opacity: 1;
+    animation:
+      ds-fade-out var(--ds-dur-fast) var(--ds-ease-in) both,
+      ds-shift-out var(--ds-dur-base) var(--ds-ease-exit) both;
+  }
+
+  .ds-theme::view-transition-new(ds-drawer):only-child {
+    --ds-motion-distance: calc(-1 * var(--ds-distance-xl));
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) both,
+      ds-shift-in var(--ds-dur-long) var(--ds-ease-spatial) both;
   }
 }
 
@@ -3972,7 +4294,12 @@
  *                       for descending keeps its direction)
  *
  * .ds-table--wide narrows by container query on "ds-content"; when it
- * still scrolls sideways, a fade at the edge of its card says so.
+ * still scrolls sideways, a fade at the edge of its card says so. Where
+ * scroll timelines exist the fades follow the scroll position: the right
+ * fade shows while columns follow, the left one once the table has
+ * scrolled away from its start (ds-edge-fade drives the registered
+ * --ds-table-fade-start and --ds-table-fade-end, internal); a table that
+ * fits shows neither.
  *
  * The sort button presses in --ds-dur-micro (also while js/ripple.js holds
  * .ds-pressed) and ripples; it is not a pill and does not morph. Keyboard
@@ -4027,7 +4354,30 @@
  * typing) and live data glide through DS.motion.flip with keyed rows and
  * DS.dom.morphHtml; figures in cells change at once and never count up.
  * A removed row goes at once while the rows below glide up.
+ *
+ * :has() and container queries are baseline.
+ * Progressive: scroll-driven edge fades (animation-timeline, the
+ * registered --ds-table-fade-* through @property) fall back to the static
+ * fade at the right edge.
  */
+
+/*
+ * The widths of the scroll-linked edge fades (ds-edge-fade in motion.css
+ * animates them on the wrapper's own scroll timeline). Registered, so they
+ * interpolate as lengths; a table that does not scroll has an inactive
+ * timeline, so both stay at 0px and nothing fades.
+ */
+@property --ds-table-fade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --ds-table-fade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
 
 @layer ds.components {
   /* Positioned, so absolutely placed descendants (the visually hidden header
@@ -4361,6 +4711,18 @@
       -webkit-mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
       mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
     }
+
+    /* Scroll-linked: a fade on each side that still has columns to show
+       (the timeline is the wrapper's own inline scroll; the shorthand
+       comes first, it resets animation-timeline). */
+    @supports (animation-timeline: scroll()) {
+      .ds-card .ds-table-wrap:has(> .ds-table--wide) {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        animation: ds-edge-fade linear both;
+        animation-timeline: scroll(self inline);
+      }
+    }
   }
 
   @media (max-width: 600px) {
@@ -4389,6 +4751,15 @@
     .ds-card .ds-table-wrap {
       -webkit-mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
       mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
+    }
+
+    @supports (animation-timeline: scroll()) {
+      .ds-card .ds-table-wrap {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        animation: ds-edge-fade linear both;
+        animation-timeline: scroll(self inline);
+      }
     }
   }
 
@@ -7029,8 +7400,27 @@
  *
  * The hidden attribute hides the div sheet, also without .ds-base.
  *
+ * Another record in an open sheet (previous/next, another row of the
+ * table): keep the sheet open and swap only the body, inside
+ * DS.motion.transition() with type 'forward' or 'back' for previous and
+ * next, 'fade-through' for another row:
+ *
+ *   DS.motion.transition(() => { DS.dom.morphHtml(body, html); return body; }, { type: 'forward' });
+ *
+ * The body then takes the view's motion (ds-sheet-body, motion.css) while
+ * head, panel and the page under the scrim stay still; without View
+ * Transitions the body enters with .ds-enter--swap. A refresh of the same
+ * record never calls transition(): a plain DS.dom.morphHtml(body, html),
+ * since data never replays an entrance.
+ *
+ * Container transform (opt-in): DS.overlay.open(sheet, { opener: row,
+ * container: true }) grows the row into the panel (js/overlay.js).
+ *
  * Set data-scrolled on the panel while its body is scrolled: the head's
- * hairline shows then. Do not use <header> in the head: outside main
+ * hairline shows then (where scroll timelines exist it follows the body's
+ * scroll by itself). Set it from an IntersectionObserver on a 1px
+ * sentinel at the top of the body (docs/components.md, Side sheet), not
+ * from a scroll listener. Do not use <header> in the head: outside main
  * content it would be a second banner landmark.
  *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px).
@@ -7041,6 +7431,16 @@
  * transitions, also on close(); Chromium keeps a sheet in the top layer
  * through every exit, DS.overlay's included. Without them it enters with
  * the keyframes and closes at once.
+ * View Transitions: while DS.motion.transition() runs (data-ds-vt on
+ * <html>) the body of an open modal sheet is named ds-sheet-body, so a
+ * record swap moves only the body; without them the body enters with
+ * .ds-enter--swap. A sheet shown inline (no data-state, no [open], no
+ * aria-modal) is never named.
+ * scroll-driven animations (animation-timeline, animation-range,
+ * scroll-timeline, timeline-scope): the head's hairline fades in over the
+ * first --ds-space-2 of the body's scroll, on the named timeline
+ * --ds-sheet-scroll (scoped on the panel); elsewhere data-scrolled shows it
+ * over --ds-dur-fast.
  */
 
 @layer ds.components {
@@ -7262,6 +7662,29 @@
     opacity: 1;
   }
 
+  /* Where scroll timelines exist, the hairline follows the body's scroll
+     position itself (over the first --ds-space-2), and data-scrolled, the
+     fallback, changes nothing. The head is the body's sibling, so the body
+     names its timeline and the panel widens the scope to the head.
+     ds-scroll-fade names both ends, so a body without overflow (an
+     inactive timeline) keeps the hairline's own opacity 0;
+     animation-timeline comes after the shorthand, which resets it. */
+  @supports (timeline-scope: none) {
+    .ds-sheet__panel {
+      timeline-scope: --ds-sheet-scroll;
+    }
+
+    .ds-sheet__body {
+      scroll-timeline: --ds-sheet-scroll block;
+    }
+
+    .ds-sheet__head::after {
+      animation: ds-scroll-fade linear both;
+      animation-timeline: --ds-sheet-scroll;
+      animation-range: 0 var(--ds-space-2);
+    }
+  }
+
   .ds-sheet__title {
     margin: 0;
     min-width: 0;
@@ -7307,6 +7730,21 @@
   .ds-sheet__body:focus-visible {
     outline: var(--ds-focus-outline);
     outline-offset: calc(-1 * var(--ds-focus-width));
+  }
+
+  /* Another record in an open sheet (DS.motion.transition() writes
+     data-ds-vt on <html> while it runs): the body is a group of its own and
+     takes the view's fade-through or shared axis (motion.css); head and
+     panel stay still. Named only while a transition runs, and only in an
+     open modal sheet (DS.overlay's data-state, a native sheet shown by
+     hand, a div sheet shown by hand), never while it leaves: a group
+     escapes the clip of the scroller around it, so a sheet shown inline
+     in a page would paint over the top bar, and two named bodies would
+     abort the transition. */
+  .ds-theme[data-ds-vt] .ds-sheet[data-state="open"] .ds-sheet__body,
+  .ds-theme[data-ds-vt] dialog.ds-sheet[open]:not([data-state], .ds-sheet--closing) .ds-sheet__body,
+  .ds-theme[data-ds-vt] .ds-sheet[aria-modal="true"]:not([hidden], [data-state], .ds-sheet--closing) .ds-sheet__body {
+    view-transition-name: ds-sheet-body;
   }
 
   @media (max-width: 600px) {
@@ -7749,6 +8187,13 @@
  * when it moves; deprecated for side sheets, which toast() follows by
  * itself), and --ds-toast-reserve (room kept for an open message, with
  * data-toast-reserve on .ds-view or .ds-sheet__body).
+ *
+ * Progressive: View Transitions. While DS.motion.transition() runs
+ * (data-ds-vt on <html>) a region with messages is named ds-toasts, so
+ * motion.css keeps it live and still above the page's groups (in the root
+ * snapshot the panel's opaque image would cover it until the end); one
+ * region with messages per page (transition() lifts the name of any
+ * further one). Without them nothing is named.
  */
 
 @layer ds.components {
@@ -7864,6 +8309,11 @@
   .ds-view[data-toast-reserve] {
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--ds-toast-reserve, 0px));
     scroll-padding-bottom: var(--ds-toast-reserve, 0px);
+  }
+
+  /* A region with messages, only while a transition runs (see the header). */
+  .ds-theme[data-ds-vt] .ds-toasts:has(> .ds-toast) {
+    view-transition-name: ds-toasts;
   }
 
   /* Phones: across the width, above the bottom edge. */
@@ -8051,7 +8501,11 @@
  *   data-drawer-hidden  this view has no drawer (the panel takes the width)
  *   data-scrolled       the view is scrolled: the panel's top hairline shows
  *                       and the top bar tints (--ds-topbar-scrolled-bg);
- *                       filled fields in it step up to --ds-surface-highest
+ *                       filled fields in it step up to --ds-surface-highest.
+ *                       Where scroll timelines exist, hairline and tint
+ *                       follow the scroll position themselves (below); set
+ *                       the attribute anyway, from an IntersectionObserver
+ *                       on a 1px sentinel (docs/components.md, App frame)
  *
  * .ds-drawer--instant on the drawer: no slide and no scrim fade while the
  * window crosses 900px (the page adds it on the matchMedia change and
@@ -8063,6 +8517,9 @@
  * the scrim never shows at the screen edge. A state change mid-flight
  * continues from where the sheet is. The docked drawer coming back
  * (DS.motion.enter(drawer)) slides in from the left like .ds-enter--slide.
+ * data-drawer-hidden toggled inside DS.motion.transition() morphs the
+ * panel to its new width while the drawer leaves or slides back (the
+ * transition plays it; enter(drawer) stays quiet meanwhile).
  *
  * A segmented switch (.ds-segmented) may follow the brand in the top bar.
  * The active drawer item glides with js/indicator.js
@@ -8094,6 +8551,17 @@
  * scrollbar-gutter (the view keeps room for a classic scrollbar, so content
  * never shifts when it starts to scroll); ignored before Safari 18.2,
  * overlay scrollbars need no room.
+ * View Transitions: while DS.motion.transition() runs (data-ds-vt on
+ * <html>) the view, the panel and the docked drawer carry
+ * view-transition-names (ds-view, ds-panel, ds-drawer) and the top bar
+ * none, so it stays still; without View Transitions the new view enters
+ * with .ds-enter--swap, and a view without the drawer makes the grid jump.
+ * scroll-driven animations (animation-timeline, animation-range,
+ * scroll-timeline, timeline-scope): the panel hairline fades in over the
+ * first --ds-space-2 of scroll on scroll(nearest block), the top bar tint
+ * on the view's named timeline --ds-view-scroll (the frame widens its
+ * scope to the bar), both with ds-scroll-fade (a view without overflow
+ * shows neither); elsewhere data-scrolled shows both over --ds-dur-fast.
  *
  * Print: only the page content, without the frame and its scroller (the
  * page's own padding and width come off at the end of page.css).
@@ -8136,14 +8604,26 @@
       max(var(--ds-space-4), env(safe-area-inset-right))
       0
       max(var(--ds-space-6), env(safe-area-inset-left));
-    /* The same timing as the panel's hairline: they show together. */
-    transition: background-color var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
   /* Content scrolls under the bar: it takes a surface container colour
-     while the panel's hairline shows (D33). */
-  .ds-app[data-scrolled] .ds-topbar {
-    background-color: var(--ds-topbar-scrolled-bg, var(--ds-surface-high));
+     while the panel's hairline shows (D33). The tint is a layer of its own
+     behind the bar's content (the bar is a stacking context), so a scroll
+     timeline can drive its opacity (below); elsewhere data-scrolled fades
+     it in on the hairline's timing, so they show together. */
+  .ds-topbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ds-topbar-scrolled-bg, var(--ds-surface-high));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  .ds-app[data-scrolled] .ds-topbar::before {
+    opacity: 1;
   }
 
   /* Filled toolbar fields share that fill (form.css): they step up one
@@ -8351,7 +8831,11 @@
     background: transparent;
   }
 
-  /* A view without the drawer: the panel takes the whole width. */
+  /* A view without the drawer: the panel takes the whole width. Toggled
+     inside DS.motion.transition() (View Transitions, .ds-theme on <html>),
+     the panel morphs to its new width while the drawer leaves or comes
+     back (motion.css); elsewhere the grid jumps, and the drawer coming
+     back slides in through DS.motion.enter(drawer) (below). */
   .ds-app--drawer[data-drawer-hidden] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
@@ -8383,6 +8867,14 @@
     --ds-enter-keyframes: ds-fade-in, ds-shift-in;
     --ds-enter-duration: var(--ds-dur-slow);
     --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-spatial);
+  }
+
+  /* Inside a View Transition the transition plays the drawer's return (its
+     new image slides in), so enter(drawer) stays quiet: the live drawer
+     would slide a second time inside its image. One recipe for both
+     paths: remove data-drawer-hidden, then enter(drawer). */
+  .ds-theme[data-ds-vt] .ds-drawer.ds-enter {
+    --ds-enter-keyframes: none;
   }
 
   /* The menu button shows with the modal drawer only. */
@@ -8778,10 +9270,47 @@
     opacity: 1;
   }
 
-  /* A loading bar at the top of the view takes the hairline's place. */
+  /* Where scroll timelines exist, the hairline follows the scroll position
+     itself: it fades in over the first --ds-space-2 of scroll, and
+     data-scrolled (the fallback) changes nothing. ds-scroll-fade names both
+     ends, so a view without overflow (an inactive timeline) keeps the
+     hairline's own opacity 0. animation-timeline comes after the
+     shorthand, which resets it. */
+  @supports (animation-timeline: scroll()) {
+    .ds-view::before {
+      animation: ds-scroll-fade linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: 0 var(--ds-space-2);
+    }
+  }
+
+  /* A loading bar at the top of the view takes the hairline's place (also
+     its scroll-driven fade). */
   .ds-view:has(.ds-loadbar)::before,
   .ds-app[data-scrolled] .ds-view:has(.ds-loadbar)::before {
     opacity: 0;
+    animation: none;
+  }
+
+  /* The top bar's tint on the same scroll: the view names its timeline and
+     the frame widens its scope to the bar (a sibling of the panel). Guarded
+     by timeline-scope, not scroll(): an engine with scroll timelines but
+     without timeline-scope would leave the named timeline unresolved, and
+     the bar would never tint; it keeps data-scrolled there. */
+  @supports (timeline-scope: none) {
+    .ds-app {
+      timeline-scope: --ds-view-scroll;
+    }
+
+    .ds-view {
+      scroll-timeline: --ds-view-scroll block;
+    }
+
+    .ds-topbar::before {
+      animation: ds-scroll-fade linear both;
+      animation-timeline: --ds-view-scroll;
+      animation-range: 0 var(--ds-space-2);
+    }
   }
 
   /* The drawer brings its own inset on the left. */
@@ -8794,6 +9323,31 @@
   .ds-view--leaving > * {
     opacity: 0;
     transition: opacity var(--ds-dur-instant) var(--ds-ease-in);
+  }
+
+  /*
+   * View transitions (DS.motion.transition() writes data-ds-vt on <html>
+   * while one runs; motion.css plays them). Only then are these named, so
+   * a page without a transition carries no names. The view is its own
+   * group and the top bar has none: it stays in the root snapshot, whose
+   * crossfade leaves unchanged pixels still. The panel's name serves the
+   * morph of a view without the drawer; the docked drawer is named for its
+   * exit and return there. The modal drawer is never named: while it is
+   * open or leaving, DS.motion.transition() lifts these names, so the view
+   * crossfades in the root under it (close it inside the update).
+   */
+  .ds-theme[data-ds-vt] .ds-view {
+    view-transition-name: ds-view;
+  }
+
+  .ds-theme[data-ds-vt] .ds-panel {
+    view-transition-name: ds-panel;
+  }
+
+  @media (min-width: 901px) {
+    .ds-theme[data-ds-vt] .ds-drawer {
+      view-transition-name: ds-drawer;
+    }
   }
 
   /* ── Modal drawer ─────────────────────────────── */
@@ -9017,6 +9571,12 @@
    * text that always goes with it.
    */
   @media (forced-colors: active) {
+    /* The forced canvas would paint the tint over nothing: the bar stays
+       flat (the hairline still marks the scrolled view). */
+    .ds-topbar::before {
+      display: none;
+    }
+
     .ds-drawer__item[aria-current="page"] {
       outline: 2px solid Highlight;
       outline-offset: -2px;

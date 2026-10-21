@@ -275,7 +275,7 @@ test.describe('dialog and sheet', () => {
       const dialog = document.getElementById('native');
       const box = dialog.querySelector('.ds-dialog__box');
       DS.overlay.close(dialog);
-      for (const animation of document.getAnimations()) {
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
         animation.pause();
         animation.currentTime = (animation.effect.getTiming().delay || 0) + Number(animation.effect.getComputedTiming().duration) / 2;
       }
@@ -719,7 +719,7 @@ function tracksOf(page, id, action) {
     const el = document.getElementById(name);
     if (act === 'open') DS.overlay.open(el, { opener: document.getElementById('open-dialog') });
     else DS.overlay.close(el);
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     const read = (part) => part.getAnimations().filter((animation) => animation.transitionProperty && animation.effect.getTiming().duration > 0)
       .map((animation) => `${animation.transitionProperty} ${Math.round(animation.effect.getTiming().duration)} ${animation.effect.getTiming().easing}`).sort();
     return {
@@ -735,7 +735,7 @@ const expected = (t, entries) => entries.map(([property, duration, easing]) => `
 /** The longest duration of a list of tracks. */
 const longestOf = (list) => Math.max(...list.map((entry) => Number(entry.split(' ')[1])));
 
-const finishAll = (page) => page.evaluate(() => document.getAnimations().forEach((animation) => animation.finish()));
+const finishAll = (page) => page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((animation) => animation.finish()));
 
 /** PNG pixels of `clip` as [r, g, b, a, ...], decoded by the page itself (no image library in the tests). */
 async function pixels(page, clip) {
@@ -898,14 +898,14 @@ test.describe('overlay timelines', () => {
       // transition's value from the timeline (real time since it began) when showModal() puts the dialog back in the
       // top layer, not from a paused animation's held time.
       const at = await page.evaluate(([name, time]) => {
-        for (const animation of document.getAnimations()) {
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
           animation.currentTime = time;
           animation.play();
         }
         const style = getComputedStyle(document.querySelector(`#${name} .ds-dialog__box`));
         const values = { opacity: Number(style.opacity), 'scale.x': style.scale === 'none' ? 1 : parseFloat(style.scale) };
         DS.overlay.open(document.getElementById(name), { opener: document.getElementById('open-dialog') });
-        for (const animation of document.getAnimations()) animation.pause();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
         return values;
       }, [id, half]);
       // Fine steps while the opacity climbs (the standard curve is steep there), then coarser ones.
@@ -943,7 +943,7 @@ test.describe('overlay timelines', () => {
         const menu = document.getElementById('menu');
         DS.overlay.open(menu, { opener: document.getElementById('open-menu') });
         const tracks = menu.getAnimations().map((animation) => `${animation.transitionProperty} ${animation.effect.getTiming().duration} ${animation.effect.getTiming().easing}`).sort();
-        for (const animation of document.getAnimations()) animation.finish();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.finish();
         return tracks;
       });
       await page.evaluate(() => DS.overlay.close(document.getElementById('menu')));
@@ -1046,7 +1046,7 @@ test.describe('focus and pointer during the close', () => {
         const el = document.getElementById(name);
         await DS.overlay.open(el, { opener: document.getElementById('open-native') });
         DS.overlay.close(el);
-        const exit = document.getAnimations();
+        const exit = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
         const sticky = document.getElementById('sticky').getBoundingClientRect();
         const hit = () => el.contains(document.elementFromPoint(sticky.left + 8, sticky.top + 8));
         const out = { open: el.open, start: hit() };

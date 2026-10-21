@@ -59,7 +59,7 @@ function holdTimers(page) {
 function act(page, action, arg = null) {
   return page.evaluate(([source, value]) => {
     new Function('arg', `(${source})(arg)`)(value);
-    const animations = document.getAnimations();
+    const animations = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
     for (const animation of animations) animation.pause();
     const ends = animations.map((animation) => animation.effect.getComputedTiming())
       .filter((timing) => Number.isFinite(timing.iterations)).map((timing) => Number(timing.endTime));
@@ -70,7 +70,7 @@ function act(page, action, arg = null) {
 /** Plays what act() paused. */
 function resume(page) {
   return page.evaluate(() => {
-    for (const animation of document.getAnimations()) if (animation.playState === 'paused') animation.play();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) if (animation.playState === 'paused') animation.play();
   });
 }
 
@@ -168,16 +168,21 @@ test('tooltip shows and hides', async ({ page }) => {
   await holdTimers(page);
   const anchor = page.locator('#overlays [data-tip]').first();
   await anchor.scrollIntoViewIfNeeded();
+  // The scroll changes the view's data-scrolled state (set by an
+  // IntersectionObserver a frame later): its transitions end first, so
+  // nothing else moves while the tooltip is shot.
+  await settle(page);
   // DS.overlay.tooltips() shows it --ds-delay-tooltip after a mouse rests
-  // on the trigger: pause in the task that unhides it.
+  // on the trigger: pause in the task that unhides it. The motion ends
+  // with the tooltip's own animations, whatever else the page runs.
   end = await page.evaluate(() => new Promise((resolve) => {
     const tip = document.querySelector('.ds-tooltip[role="tooltip"]');
     const observer = new MutationObserver(() => {
       if (tip.hidden) return;
       observer.disconnect();
-      const animations = document.getAnimations();
+      const animations = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
       for (const animation of animations) animation.pause();
-      resolve(Math.max(0, ...animations.map((animation) => animation.effect.getComputedTiming())
+      resolve(Math.max(0, ...tip.getAnimations({ subtree: true }).map((animation) => animation.effect.getComputedTiming())
         .filter((timing) => Number.isFinite(timing.iterations)).map((timing) => Number(timing.endTime))));
     });
     observer.observe(tip, { attributes: true, attributeFilter: ['hidden'] });
@@ -248,7 +253,7 @@ async function glideFrames(page, track, href, name) {
     const element = document.querySelector(trackSelector);
     const indicator = element.querySelector(':scope > .ds-indicator');
     element.querySelector(`[href="${target}"]`).click();
-    const animations = document.getAnimations();
+    const animations = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
     for (const animation of animations) animation.pause();
     window.fxGlide = animations;
     const edges = indicator.getAnimations().filter((animation) => /^--ds-indicator-[trbl]$/.test(animation.transitionProperty));

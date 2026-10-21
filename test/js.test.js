@@ -82,6 +82,12 @@ describe('icons', () => {
 describe('indicator, dom, ripple and overlay', () => {
   it('exports the documented functions', () => {
     assert.equal(typeof indicator.createIndicator, 'function');
+    // DS.motion.transition (1.5.0), documented in docs/motion.md; its behaviour: test/motion.test.js.
+    assert.equal(typeof motion.transition, 'function');
+    assert.match(read('docs/motion.md'), /\| `transition\(update, \{ type, from \}\)` \|/);
+    // DS.motion.resyncScroll (1.5.0): scroll-driven animations of a scroller that stopped overflowing.
+    assert.equal(typeof motion.resyncScroll, 'function');
+    assert.match(read('docs/motion.md'), /\| `resyncScroll\(root\?\)` \|/);
     assert.equal(typeof dom.morphHtml, 'function');
     assert.equal(typeof dom.morphChildren, 'function');
     assert.equal(typeof ripple.attach, 'function');
@@ -693,6 +699,22 @@ describe('createIndicator on a fake track', () => {
     assert.equal(env.track.style.getPropertyValue('--ds-indicator-dur'), '', 'no travel time without a glide');
     assert.ok(env.track.classList.contains('ds-has-indicator'));
     handle.destroy();
+  });
+
+  it('names the pill ds-indicator-<name> for good with `name`, and leaves it unnamed without (1.5.0)', () => {
+    const env = indicatorTrack({ current: 1 });
+    const { handle, span } = create(env, { name: 'nav' });
+    assert.equal(span.style.getPropertyValue('view-transition-name'), 'ds-indicator-nav');
+    // A change of the active item keeps the name (it pairs the pills of two pages).
+    env.setCurrent(2);
+    handle.update();
+    env.runFrames();
+    assert.equal(span.style.getPropertyValue('view-transition-name'), 'ds-indicator-nav');
+    handle.destroy();
+    const plain = indicatorTrack();
+    const unnamed = create(plain);
+    assert.equal(unnamed.span.style.getPropertyValue('view-transition-name'), '');
+    unnamed.handle.destroy();
   });
 
   it('glides to a new item: data-dir, travel time, union box with the overshoot margin', async () => {

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Views · Dashboard-Style</title>
+<!-- Works from disk (file://): plain links to dist/, classic scripts, no modules. Page loads with
+     View Transitions (?mpa=1) need http: cross-document transitions are same-origin only. -->
+<link rel="stylesheet" href="../dist/fonts/fonts.css">
+<link rel="stylesheet" href="../dist/ds.css">
+<link rel="stylesheet" href="styleguide.css">
+<!-- The opt-in stylesheet for page loads: parser-inserted, so it blocks the first render (Chromium
+     does not wait for a script-inserted one and then reveals pages without its @view-transition rule);
+     off unless ?mpa=1. The first render also waits for views.js, which creates the named drawer
+     indicator (rel=expect on the element after it): WebKit reveals a page while it still parses, and
+     a later pill would miss the new snapshot. -->
+<link rel="stylesheet" href="../dist/css/optional/view-transitions.css" id="vw-mpa-css">
+<link rel="expect" href="#vw-rendered" blocking="render">
+<script>
+  if (new URLSearchParams(location.search).get('mpa') !== '1') document.getElementById('vw-mpa-css').media = 'not all';
+</script>
+</head>
+<body>
+<div class="ds-app ds-app--drawer" id="vw-app">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="vw-drawer" id="vw-menu"></button>
+    <a class="ds-brand" href="index.html"><span class="sg-mark" aria-hidden="true"></span><span class="ds-brand__name">Views</span></a>
+    <div class="ds-account">
+      <label class="ds-switch" id="vw-mpa-switch">
+        <input type="checkbox" role="switch" id="vw-mpa">
+        <span class="ds-switch__track" aria-hidden="true"></span>
+        <span class="ds-switch__label">Page loads (MPA)</span>
+      </label>
+      <a class="ds-btn ds-btn--text" href="index.html#frame">Styleguide</a>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="vw-drawer" aria-label="Destinations" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="sg-mark"></span><span class="ds-brand__name">Views</span></div>
+    <div class="ds-drawer__list" id="vw-nav"></div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content"><div class="ds-page" id="vw-page"></div></div>
+    </main>
+  </div>
+</div>
+
+<dialog class="ds-sheet" id="vw-sheet" aria-labelledby="vw-sheet-title">
+  <div class="ds-sheet__backdrop" data-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="vw-sheet-title">Device</h2>
+      <div class="sg-row">
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous device" id="vw-sheet-prev"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next device" id="vw-sheet-next"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close id="vw-sheet-close"></button>
+      </div>
+    </div>
+    <div class="ds-sheet__body" tabindex="0" id="vw-sheet-body"></div>
+  </section>
+</dialog>
+
+<script src="../dist/ds.js"></script>
+<script src="views.js"></script>
+<div id="vw-rendered" hidden></div>
+</body>
+</html>

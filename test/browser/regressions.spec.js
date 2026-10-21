@@ -36,7 +36,7 @@ async function open(page, name) {
 function inject(page, html, { pause = false } = {}) {
   return page.evaluate(([markup, hold]) => {
     document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', markup);
-    if (hold) for (const animation of document.getAnimations()) animation.pause();
+    if (hold) for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, [html, pause]);
 }
 
@@ -44,14 +44,14 @@ function inject(page, html, { pause = false } = {}) {
 function act(locator, action) {
   return locator.evaluate((el, source) => {
     new Function('el', `(${source})(el)`)(el);
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, action.toString());
 }
 
 /** Plays every animation that act() or inject() paused. */
 function resume(page) {
   return page.evaluate(() => {
-    for (const animation of document.getAnimations()) if (animation.playState === 'paused') animation.play();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) if (animation.playState === 'paused') animation.play();
   });
 }
 
@@ -512,7 +512,7 @@ test.describe('fixed in P6', () => {
         el.classList.remove('ds-progress--indeterminate');
         el.style.setProperty('--ds-progress', '0.3');
         const state = getComputedStyle(track).animationPlayState;
-        for (const animation of document.getAnimations()) animation.pause();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
         resolve({ phase, head, state });
       };
       requestAnimationFrame(frame);
@@ -523,7 +523,7 @@ test.describe('fixed in P6', () => {
     const samples = await progress.evaluate((el) => {
       const track = el.querySelector('.ds-progress__track');
       const bar = el.querySelector('.ds-progress__bar');
-      const transitions = document.getAnimations().filter((animation) => animation.transitionProperty);
+      const transitions = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).filter((animation) => animation.transitionProperty);
       // The visible part of the bar from its clip (inset(top right bottom left round r)).
       const inset = () => {
         const parts = getComputedStyle(bar).clipPath.replace(/^inset\(|\)$/g, '').split(' round ')[0].replace(/calc\(|\)/g, '').trim().split(/\s+/);
@@ -577,7 +577,7 @@ test.describe('fixed in P6', () => {
     await page.locator('#status-toggle').evaluate((el) => {
       el.click();
       for (const node of document.querySelectorAll('.ds-theme *')) void getComputedStyle(node).color;
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     });
     const container = (await timeline(chip)).find((entry) => entry.name === 'background-color');
     expect(container).toBeTruthy();

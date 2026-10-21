@@ -364,7 +364,7 @@ test.describe('snackbars over a closing modal', () => {
       const during = await page.evaluate((name) => {
         const el = document.getElementById(name);
         DS.overlay.close(el);
-        const animations = document.getAnimations();
+        const animations = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
         animations.forEach((animation) => animation.pause());
         return [0.3, 0.4, 0.5].map((progress) => {
           for (const animation of animations) {
@@ -377,7 +377,7 @@ test.describe('snackbars over a closing modal', () => {
         });
       }, id);
       expect(during, id).toEqual([0.3, 0.4, 0.5].map((progress) => ({ progress, top: 'toast' })));
-      await page.evaluate(() => document.getAnimations().forEach((animation) => animation.finish()));
+      await page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((animation) => animation.finish()));
       await page.waitForFunction((name) => !document.getElementById(name).hasAttribute('data-state'), id);
       expect(await page.evaluate(() => document.getElementById('toasts').parentNode.id), id).toBe('theme');
       await page.locator('#toasts .ds-toast__close').click();
@@ -396,7 +396,7 @@ test.describe('snackbars over a closing modal', () => {
       const region = document.getElementById('toasts');
       DS.overlay.close(sheet);
       // Halfway through the exit glide.
-      for (const animation of document.getAnimations()) {
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
         animation.pause();
         animation.currentTime = (animation.effect.getTiming().delay || 0) + 0.5 * Number(animation.effect.getComputedTiming().duration);
       }
@@ -405,7 +405,7 @@ test.describe('snackbars over a closing modal', () => {
       const glide = region.getAnimations().filter((animation) => animation.transitionProperty === 'translate');
       glide.forEach((animation) => animation.pause());
       const start = region.getBoundingClientRect().left;
-      document.getAnimations().forEach((animation) => animation.play());
+      document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((animation) => animation.play());
       return { parent: region.parentNode.id, follow: region.dataset.follow, jump: Math.abs(start - mid) < 1 };
     });
     expect(reopened).toEqual({ parent: 'sheet', follow: 'enter', jump: true });
@@ -457,7 +457,7 @@ test.describe('tooltips', () => {
         const tip = document.querySelector('.ds-tooltip');
         const trigger = document.querySelector(selector);
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
-        for (const animation of document.getAnimations()) animation.finish();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.finish();
         trigger.blur();
         // Past the warm-up window, so the next show is a cold one.
         return new Promise((resolve) => setTimeout(() => {
@@ -493,7 +493,7 @@ test.describe('tooltips', () => {
       // Centred on the trigger, unless that would take it closer than 8px to the viewport edge.
       if (entrance.left > 8.5) expect(entrance.centre, id).toBeLessThan(1.5);
       else expect(entrance.left, id).toBeCloseTo(8, 0);
-      await page.evaluate(() => document.getAnimations().forEach((animation) => animation.finish()));
+      await page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((animation) => animation.finish()));
       // The exit: opacity only, in --ds-dur-instant; the scale waits until it is invisible.
       const exit = await page.evaluate(() => {
         const tip = document.querySelector('.ds-tooltip');
@@ -505,7 +505,7 @@ test.describe('tooltips', () => {
         return [`was ${before}`, ...animations.map((animation) => `${animation.transitionProperty} ${animation.effect.getTiming().duration} after ${animation.effect.getTiming().delay}`).sort()];
       });
       expect(exit, id).toEqual(['was open', 'opacity 100 after 0', 'scale 0 after 100']);
-      await page.evaluate(() => document.getAnimations().forEach((animation) => animation.finish()));
+      await page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((animation) => animation.finish()));
       await settle(page);
     }
   });

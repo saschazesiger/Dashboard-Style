@@ -56,7 +56,7 @@ test('the styleguide reaches data-sg-ready without a console error and runs this
 
 test('every fixture loads without a console error', async ({ page }) => {
   const errors = collectErrors(page);
-  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'overlay', 'module', 'reset', 'reset-layered', 'spike']) {
+  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'overlay', 'module', 'reset', 'reset-layered', 'spike', 'views', 'mpa-a', 'mpa-b']) {
     await page.goto(`${FIXTURES}${name}.html`);
     // module.html has no fixture.js: it reports through window.moduleResult.
     if (name === 'module') await page.waitForFunction(() => window.moduleResult);
@@ -75,6 +75,9 @@ test('module.html imports the six ES modules and they export what window.DS expo
 });
 
 test('a theme switch marks data-sg-theme and re-places the three indicators', async ({ page }) => {
+  // Six switches, each a View Transition over the whole styleguide: snapshotting the long page takes
+  // seconds in software-rendered engines under a parallel run, so the test gets the budget of six.
+  test.setTimeout(120000);
   await page.goto(STYLEGUIDE);
   await ready(page);
   await settle(page);
@@ -96,7 +99,11 @@ test('a theme switch marks data-sg-theme and re-places the three indicators', as
   // The dim preset changes type and button sizes; example loads a file.
   for (const value of ['dim', 'example', 'square', 'default', 'dim', 'default']) {
     await page.locator('#sg-theme-select').selectOption(value);
-    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', value);
+    // The switch plays a View Transition over the whole styleguide first (DS.motion.transition, fade-through);
+    // snapshotting the long page is slow in software-rendered engines under a parallel run.
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', value, { timeout: 15000 });
+    // The next switch starts on a settled page: the transition has ended (no data-ds-vt left).
+    await page.waitForFunction(() => !document.documentElement.hasAttribute('data-ds-vt'), null, { timeout: 15000 });
     expect(await placed(), value).toEqual(expected);
   }
 });

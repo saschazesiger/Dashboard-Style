@@ -1,0 +1,296 @@
+/**
+ * Scroll-driven effects (1.5.0) on fixtures/views.html and the styleguide:
+ * the panel hairline and the top bar's tint, a side sheet's head hairline,
+ * a table's edge fades and .ds-reveal--scroll, each with its fallback
+ * (data-scrolled from the 1px sentinel, the static fade, a static block).
+ *
+ * Scroll-driven animations follow the scroll position: they are read
+ * after setting scrollTop / scrollLeft and two frames, never seeked.
+ * Where the engine lacks them (Firefox today, the `fallback` project) the
+ * fallback is asserted instead, by feature detection.
+ */
+import { test, expect } from './base-test.js';
+import { ready, settle } from './helpers/motion.js';
+
+const VIEWS = '/test/browser/fixtures/views.html';
+
+async function load(page, url = VIEWS) {
+  await page.goto(url);
+  await ready(page);
+  await page.mouse.move(1, 1);
+  await settle(page);
+}
+
+const supports = (page) => page.evaluate(() => ({
+  scroll: CSS.supports('animation-timeline: scroll()'),
+  scope: CSS.supports('timeline-scope: none'),
+  view: CSS.supports('animation-timeline: view()'),
+}));
+
+/** Scrolls `selector` to `top` (block) or `left` (inline) and waits two frames, so scroll timelines have run. */
+function scrollTo(page, selector, { top, left }) {
+  return page.evaluate(async ([sel, y, x]) => {
+    const scroller = document.querySelector(sel);
+    if (y !== null) scroller.scrollTop = y;
+    if (x !== null) scroller.scrollLeft = x;
+    for (let i = 0; i < 2; i += 1) await new Promise((resolve) => requestAnimationFrame(resolve));
+  }, [selector, top ?? null, left ?? null]);
+}
+
+/**
+ * Scrolls `scroller` to `top` and, in the microtask after the sentinel's
+ * observer set data-scrolled on `target`, starts the opacity transitions
+ * of `pseudos` ([selector, '::before'] ...) and pauses every time-based
+ * animation of the document in the same task: what the attribute fades in,
+ * read before a frame can end it. The caller plays them on (release()).
+ */
+function scrolledFades(page, scroller, target, top, pseudos) {
+  return page.evaluate(([scrollerSel, targetSel, y, list]) => new Promise((resolve) => {
+    const observer = new MutationObserver(() => {
+      observer.disconnect();
+      for (const [selector, pseudo] of list) void getComputedStyle(document.querySelector(selector), pseudo).opacity;
+      const timed = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
+      for (const animation of timed) animation.pause();
+      resolve(timed.filter((a) => a.transitionProperty === 'opacity' && list.some(([selector, pseudo]) => a.effect.target === document.querySelector(selector) && a.effect.pseudoElement === pseudo))
+        .map((a) => ({ target: `#${a.effect.target.id}${a.effect.pseudoElement}`, duration: Math.round(a.effect.getTiming().duration), scrolled: document.querySelector(targetSel).hasAttribute('data-scrolled') })));
+    });
+    observer.observe(document.querySelector(targetSel), { attributes: true, attributeFilter: ['data-scrolled'] });
+    document.querySelector(scrollerSel).scrollTop = y;
+  }), [scroller, target, top, pseudos]);
+}
+
+/** Plays on what scrolledFades() paused. */
+const release = (page) => page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((a) => a.play()));
+
+/** Computed opacity of a pseudo-element. */
+const opacityOf = (page, selector, pseudo) => page.evaluate(([sel, p]) => Number(getComputedStyle(document.querySelector(sel), p).opacity), [selector, pseudo]);
+
+test('panel hairline and top bar tint: they follow the first 8px of scroll, or data-scrolled fades them in', async ({ page }) => {
+  await load(page, `${VIEWS}?observe=0`);
+  const has = await supports(page);
+  if (has.scroll) {
+    // The scroll position alone: the fixture never sets data-scrolled here.
+    const read = async (top) => {
+      await scrollTo(page, '#main', { top });
+      return {
+        hairline: await opacityOf(page, '#main', '::before'),
+        tint: has.scope ? await opacityOf(page, '#topbar', '::before') : null,
+      };
+    };
+    const at = { 0: await read(0), 4: await read(4), 8: await read(8), 40: await read(40) };
+    expect(at[0].hairline).toBe(0);
+    expect(at[4].hairline).toBeGreaterThan(0.35);
+    expect(at[4].hairline).toBeLessThan(0.65);
+    expect([at[8].hairline, at[40].hairline]).toEqual([1, 1]);
+    if (has.scope) {
+      expect(at[0].tint).toBe(0);
+      expect(at[4].tint).toBeGreaterThan(0.35);
+      expect(at[4].tint).toBeLessThan(0.65);
+      expect([at[8].tint, at[40].tint]).toEqual([1, 1]);
+    }
+    await scrollTo(page, '#main', { top: 0 });
+    expect(await opacityOf(page, '#main', '::before'), 'scrolled back').toBe(0);
+    expect(await page.locator('#app').getAttribute('data-scrolled')).toBeNull();
+  }
+  if (!has.scroll || !has.scope) {
+    // The observer of the sentinel sets data-scrolled; the hairline and the tint fade in over --ds-dur-fast.
+    await load(page);
+    const fast = await page.evaluate(() => Math.round(DS.motion.motionDuration(document.documentElement, '--ds-dur-fast')));
+    const fades = await scrolledFades(page, '#main', '#app', 40, [['#topbar', '::before'], ['#main', '::before']]);
+    const expected = has.scroll ? ['#topbar::before'] : ['#main::before', '#topbar::before'];
+    expect(fades.map((entry) => entry.target).sort()).toEqual(expected);
+    for (const entry of fades) expect([entry.duration, entry.scrolled]).toEqual([fast, true]);
+    await release(page);
+    await settle(page);
+    expect(await opacityOf(page, '#topbar', '::before')).toBe(1);
+    expect(await opacityOf(page, '#main', '::before')).toBe(1);
+    await scrollTo(page, '#main', { top: 0 });
+    await expect(page.locator('#app')).not.toHaveAttribute('data-scrolled', '');
+  }
+});
+
+test('a scrolled view that no longer scrolls keeps no tint or hairline: the styleguide\'s Report, scrolled, then Overview', async ({ page }) => {
+  await page.goto('/styleguide/views.html');
+  await ready(page);
+  await page.mouse.move(1, 1);
+  await settle(page);
+  await page.locator('[data-vw-go="2"]').click();
+  await settle(page);
+  await scrollTo(page, '#main', { top: 300 });
+  await settle(page);   // without scroll timelines data-scrolled fades the tint in
+  expect(await page.evaluate(() => document.getElementById('main').scrollTop), 'Report scrolls').toBe(300);
+  expect(await opacityOf(page, '.ds-topbar', '::before'), 'tinted while scrolled').toBe(1);
+  await page.locator('[data-vw-go="0"]').click();
+  await settle(page);
+  await scrollTo(page, '#main', {});
+  const after = await page.evaluate(() => {
+    const view = document.getElementById('main');
+    return { top: view.scrollTop, overflows: view.scrollHeight > view.clientHeight, scrolled: document.getElementById('vw-app').hasAttribute('data-scrolled') };
+  });
+  expect(after).toEqual({ top: 0, overflows: false, scrolled: false });
+  expect(await opacityOf(page, '.ds-topbar', '::before'), 'the bar').toBe(0);
+  expect(await opacityOf(page, '#main', '::before'), 'the panel hairline').toBe(0);
+});
+
+test('transition() and resyncScroll(): a scroller that stops overflowing rests as on a fresh load (view, sheet body)', async ({ page }) => {
+  // No sentinel observer here: transition() and resyncScroll() alone.
+  await load(page, `${VIEWS}?observe=0`);
+  const has = await supports(page);
+  test.skip(!has.scroll, 'without scroll timelines data-scrolled draws the hairlines (the test above)');
+  await scrollTo(page, '#main', { top: 300 });
+  expect(await opacityOf(page, '#main', '::before')).toBe(1);
+  await page.evaluate(() => window.fxViews.go(1));
+  await settle(page);
+  await scrollTo(page, '#main', {});
+  expect(await page.evaluate(() => document.getElementById('main').scrollHeight > document.getElementById('main').clientHeight), 'the new view fits').toBe(false);
+  expect(await opacityOf(page, '#main', '::before'), 'the panel hairline').toBe(0);
+  if (has.scope) expect(await opacityOf(page, '#topbar', '::before'), 'the bar').toBe(0);
+  if (!has.scope) return;
+  // A sheet body scrolled, then its content shrinks in place.
+  await page.evaluate(() => window.fxViews.openSheet(0));
+  await settle(page);
+  await scrollTo(page, '#sheet-body', { top: 200 });
+  expect(await opacityOf(page, '#sheet .ds-sheet__head', '::after')).toBe(1);
+  const restarted = await page.evaluate(async () => {
+    const body = document.getElementById('sheet-body');
+    DS.dom.morphHtml(body, '<p id="record" data-record="0">Short.</p>');
+    return DS.motion.resyncScroll(body);
+  });
+  expect(restarted).toBeGreaterThanOrEqual(1);
+  await scrollTo(page, '#sheet-body', {});
+  expect(await opacityOf(page, '#sheet .ds-sheet__head', '::after'), 'the sheet head hairline').toBe(0);
+  // Scrolling again still drives it.
+  await page.evaluate(() => DS.dom.morphHtml(document.getElementById('sheet-body'), '<div style="flex: none; height: 2000px">Tall.</div>'));
+  await scrollTo(page, '#sheet-body', { top: 4 });
+  const half = await opacityOf(page, '#sheet .ds-sheet__head', '::after');
+  expect(half).toBeGreaterThan(0.35);
+  expect(half).toBeLessThan(0.65);
+});
+
+test('side sheet: the head hairline follows the body\'s first 8px of scroll, or data-scrolled on the panel', async ({ page }) => {
+  await load(page, `${VIEWS}?observe=0`);
+  const has = await supports(page);
+  if (has.scope) {
+    await page.evaluate(() => window.fxViews.openSheet(0));
+    await settle(page);
+    const read = async (top) => {
+      await scrollTo(page, '#sheet-body', { top });
+      return opacityOf(page, '#sheet .ds-sheet__head', '::after');
+    };
+    const at = [await read(0), await read(4), await read(8), await read(60)];
+    expect(at[0]).toBe(0);
+    expect(at[1]).toBeGreaterThan(0.35);
+    expect(at[1]).toBeLessThan(0.65);
+    expect([at[2], at[3]]).toEqual([1, 1]);
+    expect(await page.locator('#sheet .ds-sheet__panel').getAttribute('data-scrolled')).toBeNull();
+  } else {
+    await load(page);
+    await page.evaluate(() => window.fxViews.openSheet(0));
+    await settle(page);
+    const fast = await page.evaluate(() => Math.round(DS.motion.motionDuration(document.documentElement, '--ds-dur-fast')));
+    await page.evaluate(() => { document.querySelector('#sheet .ds-sheet__head').id = 'sheet-head'; });
+    const fade = await scrolledFades(page, '#sheet-body', '#sheet .ds-sheet__panel', 60, [['#sheet-head', '::after']]);
+    expect(fade).toEqual([{ target: '#sheet-head::after', duration: fast, scrolled: true }]);
+    await release(page);
+    await settle(page);
+    expect(await opacityOf(page, '#sheet .ds-sheet__head', '::after')).toBe(1);
+  }
+});
+
+test('table edge fades: a fade on each side that still has columns, none on a table that fits; else the static fade', async ({ page }) => {
+  await load(page);
+  const has = await supports(page);
+  const fades = (selector) => page.evaluate((sel) => {
+    const wrap = document.querySelector(sel);
+    const style = getComputedStyle(wrap);
+    return {
+      start: style.getPropertyValue('--ds-table-fade-start').trim(),
+      end: style.getPropertyValue('--ds-table-fade-end').trim(),
+      pad: style.getPropertyValue('--ds-card-pad').trim(),
+      mask: style.maskImage || style.webkitMaskImage,
+      scrolls: wrap.scrollWidth > wrap.clientWidth,
+    };
+  }, selector);
+  const wide = await fades('#wide');
+  expect(wide.scrolls, 'the wide table scrolls sideways').toBe(true);
+  if (has.scroll) {
+    expect([wide.start, wide.end]).toEqual(['0px', wide.pad]);
+    await scrollTo(page, '#wide', { left: 100000 });
+    const end = await fades('#wide');
+    expect([end.start, end.end]).toEqual([wide.pad, '0px']);
+    const narrow = await fades('#narrow');
+    expect(narrow.scrolls).toBe(false);
+    expect([narrow.start, narrow.end], 'a table that fits fades nowhere').toEqual(['0px', '0px']);
+    // Scrolled to its end, then columns hidden until it fits: resyncScroll() drops the left fade it kept.
+    await page.evaluate(() => {
+      const wrap = document.getElementById('wide');
+      for (const cell of wrap.querySelectorAll('th:nth-child(n+3), td:nth-child(n+3)')) cell.hidden = true;
+      return DS.motion.resyncScroll(wrap);
+    });
+    await scrollTo(page, '#wide', {});
+    const fits = await fades('#wide');
+    expect(fits.scrolls, 'the table fits now').toBe(false);
+    expect(await page.evaluate(() => document.getElementById('wide').getAnimations().length), 'it keeps its edge fades').toBe(1);
+    expect([fits.start, fits.end], 'a table that fits now fades nowhere').toEqual(['0px', '0px']);
+  } else {
+    // The static fade at the right edge, without a timeline.
+    expect(wide.mask).toMatch(/linear-gradient\(to left, /);
+    expect(await page.evaluate(() => document.getElementById('wide').getAnimations().length)).toBe(0);
+  }
+});
+
+test('reveal on scroll: hidden below the fold, opaque 96px into view; opaque in print and without view()', async ({ page }) => {
+  await load(page);
+  const has = await supports(page);
+  const reveal = () => page.evaluate(() => {
+    const el = document.getElementById('reveal');
+    const view = document.getElementById('main').getBoundingClientRect();
+    return { opacity: Number(getComputedStyle(el).opacity), inView: view.bottom - el.getBoundingClientRect().top };
+  });
+  const below = await reveal();
+  expect(below.inView, 'below the fold').toBeLessThan(0);
+  if (has.view) {
+    expect(below.opacity).toBe(0);
+    // 4 x --ds-space-6 (96px) of it in view, and a little more.
+    await page.evaluate(async () => {
+      const view = document.getElementById('main');
+      const el = document.getElementById('reveal');
+      view.scrollTop += el.getBoundingClientRect().top - view.getBoundingClientRect().bottom + 100;
+      for (let i = 0; i < 2; i += 1) await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
+    const inView = await reveal();
+    expect(inView.inView).toBeGreaterThanOrEqual(96);
+    expect(inView.opacity).toBe(1);
+    await scrollTo(page, '#main', { top: 0 });
+    expect((await reveal()).opacity, 'scrolled back, it reverses').toBe(0);
+    await page.emulateMedia({ media: 'print' });
+    expect((await reveal()).opacity, 'print shows its end state').toBe(1);
+    await page.emulateMedia({ media: 'screen' });
+  } else {
+    expect(below.opacity, 'static, never hidden').toBe(1);
+  }
+});
+
+test('sentinel: scrolling the styleguide view 2000px changes data-scrolled on .ds-app at most twice', async ({ page }) => {
+  await page.goto('/styleguide/index.html');
+  await ready(page);
+  const mutations = await page.evaluate(async () => {
+    const app = document.querySelector('.ds-app');
+    const view = document.querySelector('.ds-view');
+    view.scrollTop = 0;
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const records = [];
+    const observer = new MutationObserver((list) => records.push(...list.map((record) => record.attributeName)));
+    observer.observe(app, { attributes: true, attributeFilter: ['data-scrolled'] });
+    for (let y = 50; y <= 2000; y += 50) {
+      view.scrollTop = y;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    }
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    observer.disconnect();
+    return { count: records.length, scrolled: app.hasAttribute('data-scrolled') };
+  });
+  expect(mutations.scrolled).toBe(true);
+  expect(mutations.count).toBeGreaterThanOrEqual(1);
+  expect(mutations.count).toBeLessThanOrEqual(2);
+});

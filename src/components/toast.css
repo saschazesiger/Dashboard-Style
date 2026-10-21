@@ -33,6 +33,13 @@
  * when it moves; deprecated for side sheets, which toast() follows by
  * itself), and --ds-toast-reserve (room kept for an open message, with
  * data-toast-reserve on .ds-view or .ds-sheet__body).
+ *
+ * Progressive: View Transitions. While DS.motion.transition() runs
+ * (data-ds-vt on <html>) a region with messages is named ds-toasts, so
+ * motion.css keeps it live and still above the page's groups (in the root
+ * snapshot the panel's opaque image would cover it until the end); one
+ * region with messages per page (transition() lifts the name of any
+ * further one). Without them nothing is named.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -150,6 +157,11 @@
   .ds-view[data-toast-reserve] {
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--ds-toast-reserve, 0px));
     scroll-padding-bottom: var(--ds-toast-reserve, 0px);
+  }
+
+  /* A region with messages, only while a transition runs (see the header). */
+  .ds-theme[data-ds-vt] .ds-toasts:has(> .ds-toast) {
+    view-transition-name: ds-toasts;
   }
 
   /* Phones: across the width, above the bottom edge. */

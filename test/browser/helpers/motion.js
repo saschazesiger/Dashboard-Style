@@ -155,10 +155,18 @@ export function timeline(locator, { subtree = false, names } = {}) {
   }, { subtree, names: names || null });
 }
 
-/** Pauses every animation of the document, pseudo-elements included. */
+/**
+ * Every helper below works on time-based animations only: a scroll-driven
+ * one (a ScrollTimeline or ViewTimeline: the panel hairline, the top bar's
+ * tint, a table's edge fades, .ds-reveal--scroll) follows the scroll
+ * position, never finishes by itself and takes no time-based currentTime.
+ * Read it with a scroll position instead.
+ */
+
+/** Pauses every time-based animation of the document, pseudo-elements included. */
 export function freeze(page) {
   return page.evaluate(() => {
-    const animations = document.getAnimations();
+    const animations = document.getAnimations().filter((a) => !(typeof ScrollTimeline === 'function' && a.timeline instanceof ScrollTimeline));
     for (const animation of animations) animation.pause();
     return animations.length;
   });
@@ -172,6 +180,7 @@ export function freeze(page) {
 export function seek(page, time) {
   return page.evaluate((at) => {
     for (const animation of document.getAnimations()) {
+      if (typeof ScrollTimeline === 'function' && animation.timeline instanceof ScrollTimeline) continue;
       if (typeof at === 'number') {
         animation.currentTime = at;
       } else {
@@ -195,9 +204,10 @@ export function seek(page, time) {
 export function sample(locator, props, times, { pseudo } = {}) {
   return locator.evaluate((el, args) => {
     const read = new Function(`return (${args.source})`)();
-    for (const animation of document.getAnimations()) animation.pause();
+    const timed = () => document.getAnimations().filter((a) => !(typeof ScrollTimeline === 'function' && a.timeline instanceof ScrollTimeline));
+    for (const animation of timed()) animation.pause();
     return args.times.map((at) => {
-      for (const animation of document.getAnimations()) {
+      for (const animation of timed()) {
         if (typeof at === 'number') {
           animation.currentTime = at;
         } else {
@@ -245,6 +255,7 @@ export async function settle(page, { timeout = 3000 } = {}) {
   const pending = await page.evaluate(async (limit) => {
     const deadline = performance.now() + limit;
     const running = () => document.getAnimations().filter((animation) => {
+      if (typeof ScrollTimeline === 'function' && animation.timeline instanceof ScrollTimeline) return false;
       const iterations = animation.effect && animation.effect.getComputedTiming().iterations;
       return Number.isFinite(iterations) && animation.playState !== 'finished' && animation.playState !== 'idle';
     });

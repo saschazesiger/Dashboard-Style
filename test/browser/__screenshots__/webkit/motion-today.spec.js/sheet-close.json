@@ -50,5 +50,18 @@
     "direction": "normal",
     "fill": "backwards",
     "target": "button.ds-btn.ds-btn--quiet.ds-btn--icon"
+  },
+  {
+    "type": "animation",
+    "name": "ds-scroll-fade",
+    "pseudoElement": "::after",
+    "duration": null,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "linear",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "both",
+    "target": "div.ds-sheet__head"
   }
 ]

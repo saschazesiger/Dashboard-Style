@@ -41,7 +41,7 @@ function act(locator, action) {
   return locator.evaluate((el, source) => {
     new Function('el', `(${source})(el)`)(el);
     for (const node of document.querySelectorAll('.ds-theme *')) void getComputedStyle(node).opacity;
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, action.toString());
 }
 
@@ -63,7 +63,7 @@ const tokenNumber = (page, name) => page.evaluate((token) => parseFloat(getCompu
 /** Pauses every infinite animation at `progress` (0 to 1) of its loop, after its delay, for a screenshot. */
 function pauseLoops(page, progress = 0) {
   return page.evaluate((at) => {
-    for (const animation of document.getAnimations()) {
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
       const timing = animation.effect.getComputedTiming();
       if (Number.isFinite(timing.iterations)) continue;
       animation.pause();
@@ -171,7 +171,7 @@ test.describe('skeleton', () => {
       const wave = document.querySelector('#skeleton').getAnimations().find((animation) => animation.animationName === 'ds-skeleton-wave');
       const cycle = Number(wave.effect.getComputedTiming().duration);
       const delay = wave.effect.getTiming().delay;
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       return [0.1, 0.3, 0.5].map((share) => {
         wave.currentTime = delay + share * cycle;
         return bones.map((bone) => {
@@ -216,7 +216,7 @@ test.describe('skeleton', () => {
       DS.motion.leave(el, '', { then: 'keep' });
       const after = { x: x(), position: getComputedStyle(bone).backgroundPositionX };
       const names = el.getAnimations().map((animation) => animation.animationName);
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       // An entrance (or anything) that replaces the wave: the resting value.
       el.style.animation = 'none';
       const rest = x();
@@ -256,7 +256,7 @@ test.describe('progress', () => {
         void getComputedStyle(bar.querySelector('.ds-progress__bar'), '::before').opacity;
         void getComputedStyle(ring, '::after').opacity;
         // A layer's own opacity transition (a static change) ends at once.
-        for (const animation of document.getAnimations()) {
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
           if (Number.isFinite(animation.effect.getComputedTiming().iterations)) animation.finish();
         }
         const of = (el, pseudo) => Number(getComputedStyle(el, pseudo).opacity);
@@ -281,7 +281,7 @@ test.describe('progress', () => {
         el.style.transition = 'none';
         el.style.setProperty('--ds-progress', String(value));
         for (const node of document.querySelectorAll('.ds-theme *')) void getComputedStyle(node).opacity;
-        for (const animation of document.getAnimations()) {
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
           const timing = animation.effect.getComputedTiming();
           if (Number.isFinite(timing.iterations)) { animation.finish(); continue; }
           animation.pause();
@@ -386,7 +386,7 @@ test.describe('progress', () => {
     // Both layers in one pass: a seek to the end finishes a transition, and
     // a finished one leaves getAnimations().
     const layers = await bar.evaluate((el, times) => times.map((time) => {
-      for (const animation of document.getAnimations()) animation.currentTime = time;
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.currentTime = time;
       return { wave: Number(getComputedStyle(el, '::before').opacity), flat: Number(getComputedStyle(el, '::after').opacity) };
     }), steps(250, 25));
     const wave = layers.map((entry) => entry.wave);

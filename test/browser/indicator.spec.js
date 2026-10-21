@@ -66,10 +66,10 @@ function install(page) {
         return indicator.getAnimations().filter((animation) => EDGES.includes(animation.transitionProperty));
       },
       pauseAll() {
-        for (const animation of document.getAnimations()) animation.pause();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       },
       seek(time) {
-        for (const animation of document.getAnimations()) animation.currentTime = time;
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.currentTime = time;
       },
       /**
        * Ends the edge transitions (the collapse to rest follows in a
@@ -79,7 +79,7 @@ function install(page) {
        */
       finish(indicator, edges = []) {
         for (const animation of [...edges, ...indicator.getAnimations()]) animation.finish();
-        for (const animation of document.getAnimations()) if (animation.playState === 'paused') animation.play();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) if (animation.playState === 'paused') animation.play();
       },
     };
   });

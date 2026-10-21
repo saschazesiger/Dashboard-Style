@@ -26,7 +26,12 @@
  *                       for descending keeps its direction)
  *
  * .ds-table--wide narrows by container query on "ds-content"; when it
- * still scrolls sideways, a fade at the edge of its card says so.
+ * still scrolls sideways, a fade at the edge of its card says so. Where
+ * scroll timelines exist the fades follow the scroll position: the right
+ * fade shows while columns follow, the left one once the table has
+ * scrolled away from its start (ds-edge-fade drives the registered
+ * --ds-table-fade-start and --ds-table-fade-end, internal); a table that
+ * fits shows neither.
  *
  * The sort button presses in --ds-dur-micro (also while js/ripple.js holds
  * .ds-pressed) and ripples; it is not a pill and does not morph. Keyboard
@@ -81,9 +86,32 @@
  * typing) and live data glide through DS.motion.flip with keyed rows and
  * DS.dom.morphHtml; figures in cells change at once and never count up.
  * A removed row goes at once while the rows below glide up.
+ *
+ * :has() and container queries are baseline.
+ * Progressive: scroll-driven edge fades (animation-timeline, the
+ * registered --ds-table-fade-* through @property) fall back to the static
+ * fade at the right edge.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+/*
+ * The widths of the scroll-linked edge fades (ds-edge-fade in motion.css
+ * animates them on the wrapper's own scroll timeline). Registered, so they
+ * interpolate as lengths; a table that does not scroll has an inactive
+ * timeline, so both stay at 0px and nothing fades.
+ */
+@property --ds-table-fade-start {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --ds-table-fade-end {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
 
 @layer ds.components {
   /* Positioned, so absolutely placed descendants (the visually hidden header
@@ -417,6 +445,18 @@
       -webkit-mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
       mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
     }
+
+    /* Scroll-linked: a fade on each side that still has columns to show
+       (the timeline is the wrapper's own inline scroll; the shorthand
+       comes first, it resets animation-timeline). */
+    @supports (animation-timeline: scroll()) {
+      .ds-card .ds-table-wrap:has(> .ds-table--wide) {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        animation: ds-edge-fade linear both;
+        animation-timeline: scroll(self inline);
+      }
+    }
   }
 
   @media (max-width: 600px) {
@@ -445,6 +485,15 @@
     .ds-card .ds-table-wrap {
       -webkit-mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
       mask-image: linear-gradient(to left, transparent, #000 var(--ds-card-pad));
+    }
+
+    @supports (animation-timeline: scroll()) {
+      .ds-card .ds-table-wrap {
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        mask-image: linear-gradient(to right, transparent, #000 var(--ds-table-fade-start), #000 calc(100% - var(--ds-table-fade-end)), transparent);
+        animation: ds-edge-fade linear both;
+        animation-timeline: scroll(self inline);
+      }
     }
   }
 

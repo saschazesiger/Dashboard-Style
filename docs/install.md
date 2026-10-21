@@ -7,6 +7,7 @@ Everything a project needs is in `dist/`:
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
 | `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, ripple, icons, overlay }` (see "Two copies on one page") |
 | `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
+| `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
 | `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `LICENSE` | the MIT notice; keep it with the copy |
@@ -131,6 +132,56 @@ import { icon, check } from './vendor/dashboard-style/js/icons.js';
 When you pick files, keep the order of `css/index.css` and always include `tokens.css` and `motion.css` (components
 name the keyframes in it). With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
 `package.json` lets both the bundler and Node tests write `#ds/js/motion.js`.
+
+## Multi-page apps
+
+An app whose navigation loads pages can let them move like the views of a single-page app (fade-through, the panel
+morph, the drawer's pill gliding): load `css/optional/view-transitions.css` after `ds.css` on every page, with
+`.ds-theme` on `<html>`, from a `<link>` in the markup of `<head>` (a stylesheet that a script inserts may apply only
+after Chromium revealed the new page, which then skips the transition). It opts every same-origin navigation into a
+cross-document View Transition (`@view-transition`) and names the view, the panel and the docked drawer for good,
+except while the modal drawer (at 900px and below, how phones navigate) or a dialog or side sheet is open (also one shown by hand): then the
+page being left stays under it and its scrim, and the new page's frame fades in over the crossfade. The motion comes
+from the rules of `ds.css`. It affects the whole document, so an embedded widget never loads it.
+Browsers without cross-document View Transitions load pages as before.
+
+```html
+<html class="ds-theme" lang="en">
+<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="vendor/dashboard-style/css/optional/view-transitions.css">
+```
+
+An indicator glides across the load only with a `name` (`createIndicator(list, { ..., name: 'nav' })`, unique on the
+page), created before the new page is captured, from a classic script (not a module or a deferred script). Browsers
+may reveal a page while it still parses (WebKit does), so either load `ds.js` in `<head>` and create the indicator in
+an inline script right after its markup, or keep the scripts at the end of `<body>` and let the first render wait for
+them:
+
+```html
+<head>
+  ...
+  <link rel="expect" href="#rendered" blocking="render">
+</head>
+<body>
+  ...
+  <script src="vendor/dashboard-style/ds.js"></script>
+  <script src="app.js"></script>               <!-- createIndicator(list, { ..., name: 'nav' }) -->
+  <div id="rendered" hidden></div>
+</body>
+```
+
+Chromium ends that wait early, with the console warning "Did not find element expected to be parsed", as soon as a
+script before the marker parses markup into the page with `innerHTML` or `insertAdjacentHTML` (an icon's `<svg>`, an
+`<img>`), so the first render may come before a later script has created the pill. Create the named indicator in the
+same classic script that builds the navigation (nothing renders inside one task), or keep the links in the markup, and
+build markup through a `<template>` (`DS.dom.morphHtml` does) or with `DS.icons.iconElement()` instead of parsing it
+into the page.
+
+A page with or without the drawer morphs the panel on page loads too, over `--ds-dur-slow` (within a page,
+`DS.motion.transition()` sees the width change and takes `--ds-dur-long`; a page load cannot tell).
+
+Back and forward through the history can move on the shared axis instead of fading through; the file's header holds
+the `pagereveal` snippet that sets `data-ds-vt` from `navigation.activation`.
 
 ## Two copies on one page
 

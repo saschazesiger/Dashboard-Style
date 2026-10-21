@@ -44,6 +44,13 @@ describe('repository', () => {
     assert.deepEqual(diffDist(), []);
   });
 
+  it('ships the opt-in stylesheets under dist/css/optional/, checksummed like the rest (1.5.0)', () => {
+    const sums = read('dist/SHA256SUMS').split('\n').filter(Boolean).map((line) => line.split(/\s+/)[1]);
+    assert.ok(read('dist/css/optional/view-transitions.css').startsWith('/*'), 'dist/css/optional/view-transitions.css');
+    assert.ok(sums.includes('css/optional/view-transitions.css'), 'in SHA256SUMS, so the vendor copy verifies it');
+    assert.doesNotMatch(read('dist/ds.css'), /@import[^;]*optional/, 'ds.css never includes it');
+  });
+
   it('names no particular project, organisation or place', () => {
     // Built from fragments, so this file passes its own check.
     const names = new RegExp(['cam' + 'pus', 'cha' + 'tbob', 'socra' + 'tes', 'sur' + 'see', '\\bi' + 'ct\\b', 'inven' + 'tar', 'mel' + 'den', '\\bb' + 'ob\\b', 'trade.go' + 'thic', 'type' + 'kit', 'arch' + 'ivo',

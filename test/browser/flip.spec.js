@@ -30,7 +30,7 @@ function flipTo(page, names, { values, options = {}, freeze = false } = {}) {
   return page.evaluate(([order, numbers, opts, pause]) => {
     const list = document.getElementById('list');
     window.fxFlip = DS.motion.flip(list, (hooks) => DS.dom.morphHtml(list, fxData.list(order, numbers), hooks), opts);
-    if (pause) for (const animation of document.getAnimations()) animation.pause();
+    if (pause) for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, [names, values ?? null, options, freeze]);
 }
 
@@ -39,7 +39,7 @@ const order = (page) => page.evaluate(() => [...document.querySelectorAll('#list
 
 /** Ends every finite animation after a seek-based sample (play() would restart one seeked to its end). */
 const finishAll = (page) => page.evaluate(() => {
-  for (const animation of document.getAnimations()) {
+  for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) {
     if (Number.isFinite(animation.effect.getComputedTiming().iterations)) animation.finish();
   }
 });
@@ -200,7 +200,7 @@ test('table rows glide when a tbody is reordered', async ({ page }) => {
   const ids = await page.evaluate((names) => {
     const body = document.getElementById('rows');
     DS.motion.flip(body, (hooks) => DS.dom.morphHtml(body, fxData.rows(names), hooks));
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     return body.querySelector('tr[data-ds-key="LAPTOP-0042"]').getAnimations().map((animation) => animation.id);
   }, NAMES.slice(0, 5).reverse());
   expect(ids).toEqual(['ds-flip']);
@@ -219,7 +219,7 @@ test('60 moving items update without motion (cap of 50)', async ({ page }) => {
   const names = Array.from({ length: 60 }, (_, index) => `DEVICE-${String(index + 1).padStart(4, '0')}`);
   await open(page, { names });
   await flipTo(page, [...names].reverse());
-  const flips = await page.evaluate(() => document.getAnimations().filter((animation) => animation.id === 'ds-flip').length);
+  const flips = await page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).filter((animation) => animation.id === 'ds-flip').length);
   expect(flips).toBe(0);
   expect(await order(page)).toEqual([...names].reverse());
 });
@@ -305,7 +305,7 @@ function crossing(page, { containerId, render, names, key, shares }) {
     container.scrollIntoView({ block: 'center' });
     const markup = () => (kind === 'rows' ? fxData.rows(order) : fxData.list(order));
     DS.motion.flip(container, (hooks) => DS.dom.morphHtml(container, markup(), hooks));
-    const animations = document.getAnimations().filter((animation) => animation.id === 'ds-flip');
+    const animations = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).filter((animation) => animation.id === 'ds-flip');
     for (const animation of animations) animation.pause();
     const item = container.querySelector(`[data-ds-key="${watched}"]`);
     const found = steps.map((share) => {
@@ -363,7 +363,7 @@ test('a glide cancelled by the next one keeps the item raised; a removed item ke
     const removed = list.querySelector('[data-ds-key="LAPTOP-0042"]');
     // Mid-flight: one item goes away, the rest keep gliding.
     to(names.slice(1));
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     return new Promise((resolve) => setTimeout(() => resolve({
       raisedZ: raised.style.zIndex,
       raisedPosition: raised.style.position,

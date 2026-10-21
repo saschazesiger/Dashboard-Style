@@ -11,6 +11,8 @@
  *   ds.js           classic script: window.DS = { version, motion, indicator, dom, ripple, icons, overlay },
  *                   each copy also under DashboardStyle.versions[version]
  *   css/, js/       the source files (ES modules, single stylesheets)
+ *   css/optional/   opt-in stylesheets that ds.css never includes (src/optional/,
+ *                   not imported by src/index.css), such as view-transitions.css
  *   fonts/          Google Sans woff2, fonts.css, OFL.txt
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above

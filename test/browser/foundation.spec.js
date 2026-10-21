@@ -39,7 +39,7 @@ async function open(page, name) {
 function inject(page, html, { pause = true } = {}) {
   return page.evaluate(([markup, hold]) => {
     document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', markup);
-    if (hold) for (const animation of document.getAnimations()) animation.pause();
+    if (hold) for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, [html, pause]);
 }
 
@@ -55,7 +55,7 @@ async function animations(locator) {
 function replay(locator, ...classes) {
   return locator.evaluate((el, names) => {
     DS.motion.replay(el, ...names);
-    for (const animation of document.getAnimations()) animation.pause();
+    for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
   }, classes);
 }
 
@@ -262,7 +262,7 @@ test.describe('exits', () => {
     await page.evaluate(() => {
       document.querySelector('#x-dialog').classList.add('ds-dialog--closing');
       document.querySelector('#x-sheet').classList.add('ds-sheet--closing');
-      for (const animation of document.getAnimations()) animation.pause();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
     });
     const box = await animations(page.locator('#x-dialog .ds-dialog__box'));
     expect(box.map((entry) => entry.name)).toEqual(['ds-fade-out', 'ds-shrink-out']);

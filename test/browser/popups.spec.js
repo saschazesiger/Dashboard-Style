@@ -460,7 +460,7 @@ test.describe('reveal from the trigger in both placements', () => {
       const trigger = document.getElementById(from);
       trigger.focus();
       DS.overlay.open(el, { opener: trigger });
-      const running = document.getAnimations();
+      const running = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
       for (const animation of running) animation.pause();
       const style = getComputedStyle(el);
       const box = el.getBoundingClientRect();
@@ -506,7 +506,7 @@ test.describe('reveal from the trigger in both placements', () => {
       else expect(start.clip).toMatch(/^inset\(100% -24px -24px( -24px)?( round .*)?\)$/);
       expect(start.originY).toBeCloseTo(side === 'below' ? 0 : start.height, 0);
       expect(start.shadow).not.toBe('none');
-      await page.evaluate(() => document.getAnimations().forEach((animation) => animation.finish()));
+      await page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((animation) => animation.finish()));
       await settle(page);
       expect(await exitTracks(page, popup)).toEqual(['opacity 100']);
       await closed(page, popup);
@@ -521,7 +521,7 @@ test.describe('reveal from the trigger in both placements', () => {
         const popup = document.getElementById('combo-popup');
         if (act === 'open') DS.overlay.open(popup, { opener: document.getElementById('combo-input') });
         else DS.overlay.close(popup);
-        for (const animation of document.getAnimations()) animation.pause();
+        for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
       }, action);
       // Seeks the chevron's own transition only: a paused animation seeked past its end drops out of
       // getAnimations() with its promise pending, and the list's close would never end.
@@ -541,7 +541,7 @@ test.describe('reveal from the trigger in both placements', () => {
       expectMonotonic(values.slice(0, peakAt + 1), { direction: action === 'open' ? 'up' : 'down' });
       expectPeakAtMost(values, 1.05, { from: action === 'open' ? 0 : 180, to: action === 'open' ? 180 : 0 });
       expectSettles(values, action === 'open' ? 180 : 0, 0.5);
-      await page.evaluate(() => document.getAnimations().forEach((animation) => animation.finish()));
+      await page.evaluate(() => document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).forEach((animation) => animation.finish()));
       await settle(page);
     };
     await turn('open');

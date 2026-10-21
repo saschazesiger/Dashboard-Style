@@ -24,5 +24,18 @@
     "direction": "normal",
     "fill": "backwards",
     "target": "section.ds-sheet__panel"
+  },
+  {
+    "type": "animation",
+    "name": "ds-scroll-fade",
+    "pseudoElement": "::after",
+    "duration": null,
+    "delay": 0,
+    "easing": "linear",
+    "keyframeEasing": "linear",
+    "iterations": 1,
+    "direction": "normal",
+    "fill": "both",
+    "target": "div.ds-sheet__head"
   }
 ]

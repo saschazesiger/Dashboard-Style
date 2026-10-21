@@ -101,7 +101,7 @@ function floorEngine() {
   drop(Element.prototype, ['moveBefore']);
   drop(DocumentFragment.prototype, ['moveBefore']);
   drop(HTMLElement.prototype, ['showPopover', 'hidePopover', 'togglePopover']);
-  const unsupported = /linear\(|anchor|position-area|position-try|view-transition|sibling-index|sibling-count|interpolate-size|calc-size|overflow-clip-margin|animation-timeline|scroll-timeline|view-timeline|animation-range|allow-discrete|transition-behavior|popover|details-content/i;
+  const unsupported = /linear\(|anchor|position-area|position-try|view-transition|sibling-index|sibling-count|interpolate-size|calc-size|overflow-clip-margin|animation-timeline|scroll-timeline|view-timeline|animation-range|timeline-scope|allow-discrete|transition-behavior|popover|details-content/i;
   const supports = CSS.supports.bind(CSS);
   CSS.supports = (...args) => (unsupported.test(args.join(' ')) ? false : supports(...args));
   const animate = Element.prototype.animate;

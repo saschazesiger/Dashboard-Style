@@ -48,8 +48,25 @@
  *   ...change the active item: the pill follows by itself...
  *   indicator.update();   // only needed with observe: false
  *
+ * Across page loads: with a `name`, the span carries view-transition-name
+ * ds-indicator-<name> for good, so a cross-document View Transition
+ * (css/optional/view-transitions.css) pairs the pill of the old page with
+ * the one of the new page and glides it there on the
+ * ::view-transition-group(*) default of motion.css (--ds-dur-slow on the
+ * spring). The name must be unique on the page: a drawer and a segmented
+ * switch take different names; name only a pill outside the view (the
+ * drawer, a switch in the top bar), since a group floats above every
+ * snapshot. Within a page, DS.motion.transition() lifts the name while it
+ * runs: the docked drawer shows live, so the pill glides as on a click,
+ * under its labels and inside its track. Without a name the pill is part
+ * of its parent's snapshot and switches with it on a page load.
+ *
  * ES2022 (Safari 16.4); a module may import from an earlier module; newer
  * APIs only behind feature detection, named under Progressive:.
+ *
+ * Progressive: view-transition-name (the `name` option); where View
+ * Transitions are missing the property is ignored and the pill glides as
+ * always.
  */
 import { motionDuration, travelDuration } from './motion.js';
 
@@ -78,19 +95,23 @@ const kept = (node) => node?.nodeType === 1 && node.hasAttribute?.('data-ds-keep
 
 /**
  * @param {HTMLElement} track   positioned container of the items
- * @param {{ active: string, className?: string, observe?: boolean }} options
+ * @param {{ active: string, className?: string, observe?: boolean, name?: string }} options
  *   active     selector of the active item inside the track
  *   className  extra class for the indicator (its look is up to the component)
  *   observe    follow attribute and item changes by itself (default true)
+ *   name       view-transition-name ds-indicator-<name> on the pill, so it
+ *              glides across page loads (unique per page; letters, digits,
+ *              - and _)
  */
 export function createIndicator(track, options) {
-  const { active, className = '', observe = true } = options;
+  const { active, className = '', observe = true, name = '' } = options;
   const doc = track.ownerDocument ?? document;
   const view = doc.defaultView ?? globalThis;
   const indicator = doc.createElement('span');
   indicator.className = `ds-indicator ${INSTANT}${className ? ` ${className}` : ''}`;
   indicator.setAttribute('aria-hidden', 'true');
   indicator.setAttribute('data-ds-keep', '');
+  if (name) indicator.style.setProperty('view-transition-name', `ds-indicator-${name}`);
   track.prepend(indicator);
   track.classList.add('ds-has-indicator');
 

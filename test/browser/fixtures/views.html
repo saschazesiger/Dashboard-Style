@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en" class="ds-theme">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Views · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  /* The side sheet sits outside the frame: the text the page base would set. */
+  body { font: var(--ds-font-body); color: var(--ds-text); }
+</style>
+</head>
+<body>
+<!-- The app frame with .ds-theme on <html> (the View Transition path of
+     DS.motion.transition(); shell.html is the embedded case) and window.fxViews
+     to navigate: four destinations (#3 without the drawer), a card detail, a
+     side sheet with previous/next and Refresh, a snackbar region (#toasts). The first destination scrolls
+     and holds a wide table (#wide), a table that fits (#narrow) and a
+     .ds-reveal--scroll block below the fold (#reveal). A 1px sentinel sets
+     data-scrolled on .ds-app and the sheet panel (docs/components.md);
+     ?observe=0 leaves it out, so only scroll timelines draw. -->
+<div class="ds-app ds-app--drawer" id="app">
+  <div class="ds-topbar" id="topbar">
+    <a class="ds-brand" href="#overview"><span class="ds-brand__name">Product</span></a>
+    <div class="ds-account">
+      <button class="ds-btn ds-btn--text" type="button" id="ping">Ping</button>
+      <div class="ds-account__text"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
+      <span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org">A</span>
+    </div>
+  </div>
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__list" id="drawer-list">
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Inventory</p>
+        <a class="ds-drawer__item" href="#overview" data-go="0" aria-current="page"><span data-icon="overview" data-size="20"></span><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#devices" data-go="1"><span data-icon="laptop" data-size="20"></span><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#tickets" data-go="2"><span data-icon="ticket" data-size="20"></span><span class="ds-drawer__label">Tickets</span></a>
+        <a class="ds-drawer__item" href="#wall" data-go="3"><span data-icon="monitor" data-size="20"></span><span class="ds-drawer__label">Wall display</span></a>
+      </div>
+    </div>
+  </nav>
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content"><div class="ds-page" id="page"></div></div>
+    </main>
+  </div>
+</div>
+<div class="ds-toasts" id="toasts"></div>
+
+<dialog class="ds-sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="ds-sheet__backdrop" data-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="sheet-title">Device</h2>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous device" id="sheet-prev"><span data-icon="chevronLeft" data-size="20"></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next device" id="sheet-next"><span data-icon="chevronRight" data-size="20"></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+    </div>
+    <div class="ds-sheet__body" id="sheet-body" tabindex="0"></div>
+  </section>
+</dialog>
+
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  // Page script, as a project would write it (docs/motion.md, "View
+  // transitions"): every navigation swaps inside DS.motion.transition() and
+  // returns the new content.
+  (function () {
+    var DS = window.DS;
+    var app = document.getElementById('app');
+    var view = document.getElementById('main');
+    var page = document.getElementById('page');
+    var drawer = document.getElementById('drawer');
+    var list = document.getElementById('drawer-list');
+    var sheet = document.getElementById('sheet');
+    var body = document.getElementById('sheet-body');
+    var TITLES = ['Overview', 'Devices', 'Tickets', 'Wall display'];
+    var current = 0;
+    var record = 0;
+    var refreshes = 0;
+    var pings = 0;
+
+    function cards(count, prefix) {
+      var out = '';
+      for (var i = 0; i < count; i += 1) {
+        out += '<section class="ds-card ds-card--interactive" data-ds-key="' + prefix + i + '" id="' + prefix + i + '">' +
+          '<h2 class="ds-card__title">Building ' + String.fromCharCode(65 + i) + '</h2>' +
+          '<p class="ds-muted">' + (12 * (i + 1)) + ' devices, ' + (i + 1) + ' tickets open.</p></section>';
+      }
+      return out;
+    }
+
+    function table(id, columns) {
+      var head = '';
+      var row = '';
+      for (var c = 0; c < columns; c += 1) {
+        head += '<th scope="col">Column ' + (c + 1) + '</th>';
+        row += '<td class="ds-nowrap">Value ' + (c + 1) + ' of the row</td>';
+      }
+      return '<section class="ds-card"><h2 class="ds-card__title">' + columns + ' columns</h2><div class="ds-table-wrap" id="' + id + '">' +
+        '<table class="ds-table ds-table--wide"><thead><tr>' + head + '</tr></thead><tbody><tr>' + row + '</tr><tr>' + row + '</tr></tbody></table></div></section>';
+    }
+
+    function render(index) {
+      var title = '<header class="ds-page-head"><h1 class="ds-page-head__title" tabindex="-1">' + TITLES[index] + '</h1>' +
+        '<p class="ds-page-head__lead">Destination ' + (index + 1) + ' of 4.</p></header>';
+      if (index === 0) {
+        return title + '<div class="ds-grid-2" id="cards">' + cards(4, 'card-') + '</div>' + table('wide', 14) + table('narrow', 2) +
+          '<div class="ds-stack">' + cards(6, 'more-') + '</div>' +
+          '<section class="ds-card ds-reveal--scroll" id="reveal" style="min-height: 320px"><h2 class="ds-card__title">Revealed on scroll</h2><p>A block of a long read-only page.</p></section>';
+      }
+      return title + '<div class="ds-stack" id="content-' + index + '">' + cards(3, 'page' + index + '-') + '</div>';
+    }
+
+    function detailHtml(i) {
+      return '<header class="ds-page-head"><h1 class="ds-page-head__title" tabindex="-1">Building ' + String.fromCharCode(65 + i) + '</h1></header>' +
+        '<section class="ds-card" id="detail" style="min-height: 420px"><h2 class="ds-card__title">Detail</h2><p class="ds-muted">The detail of one card.</p></section>';
+    }
+
+    function recordHtml(i) {
+      var rows = '';
+      for (var n = 0; n < 30; n += 1) rows += '<p data-ds-key="line-' + n + '">Device ' + (i + 1) + ', line ' + (n + 1) + '.</p>';
+      return '<p id="record" data-record="' + i + '">Record ' + (i + 1) + ', refreshed ' + refreshes + ' times.</p>' + rows;
+    }
+
+    function setActive(index) {
+      Array.prototype.forEach.call(list.querySelectorAll('.ds-drawer__item'), function (item, at) {
+        if (at === index) item.setAttribute('aria-current', 'page');
+        else item.removeAttribute('aria-current');
+      });
+    }
+
+    /* The view `index` in place, with the drawer shown or hidden (one recipe on both paths). */
+    function swap(index, html) {
+      var comesBack = index !== 3 && app.hasAttribute('data-drawer-hidden');
+      app.toggleAttribute('data-drawer-hidden', index === 3);
+      if (comesBack) DS.motion.enter(drawer);
+      current = index;
+      DS.dom.morphHtml(page, html || render(index), { replace: true });
+      setActive(index);
+      view.scrollTop = 0;
+      return page.firstElementChild;
+    }
+
+    function watchScrolled(scroller, target) {
+      var sentinel = document.createElement('div');
+      var gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
+      sentinel.setAttribute('aria-hidden', 'true');
+      sentinel.setAttribute('data-ds-keep', '');
+      sentinel.style.cssText = 'height: 1px; margin-bottom: ' + (-1 - gap) + 'px; flex-shrink: 0';
+      scroller.insertBefore(sentinel, scroller.firstChild);
+      new IntersectionObserver(function (entries) {
+        var entry = entries[entries.length - 1];
+        if (!entry.boundingClientRect.height) return;
+        var scrolled = !entry.isIntersecting;
+        if (scrolled !== target.hasAttribute('data-scrolled')) target.toggleAttribute('data-scrolled', scrolled);
+      }, { root: scroller }).observe(sentinel);
+    }
+
+    window.fxViews = {
+      indicator: DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' }),
+      get current() { return current; },
+      get pings() { return pings; },
+      /** A destination, by the drawer (fade-through) or a step (forward, back). */
+      go: function (index, type) {
+        return DS.motion.transition(function () { return swap(index); }, { type: type || 'fade-through' });
+      },
+      /** The same, with an update that returns nothing: the fallback enters the view's content, not the sentinel. */
+      bare: function (index) {
+        return DS.motion.transition(function () { swap(index); });
+      },
+      /** From the open modal drawer (docs/components.md): it closes inside the update. */
+      fromDrawer: function (index) {
+        return DS.motion.transition(function () {
+          if (app.hasAttribute('data-drawer-open')) DS.overlay.close(drawer);
+          return swap(index);
+        });
+      },
+      /** The same, by a page that closes the modal drawer first: it is still leaving when transition() looks. */
+      afterDrawer: function (index) {
+        DS.overlay.close(drawer);
+        return DS.motion.transition(function () { return swap(index); });
+      },
+      openDrawer: function () { return DS.overlay.open(drawer); },
+      /** The same, with an update that takes `ms` (a slow render inside the transition). */
+      slow: function (index, ms) {
+        return DS.motion.transition(function () {
+          return new Promise(function (resolve) { setTimeout(resolve, ms); }).then(function () { return swap(index); });
+        });
+      },
+      /** Card `i` of the overview into its detail, and back into its card. */
+      detail: function (i) {
+        return DS.motion.transition(function () {
+          DS.dom.morphHtml(page, detailHtml(i), { replace: true });
+          return document.getElementById('detail');
+        }, { type: 'container', from: document.getElementById('card-' + i) });
+      },
+      back: function (i) {
+        return DS.motion.transition(function () {
+          swap(0);
+          return document.getElementById('card-' + i);
+        }, { type: 'container', from: document.getElementById('detail') });
+      },
+      openSheet: function (i, container) {
+        record = i;
+        DS.dom.morphHtml(body, recordHtml(i));
+        return DS.overlay.open(sheet, { opener: document.getElementById('card-' + i), container: !!container });
+      },
+      closeSheet: function () { return DS.overlay.close(sheet); },
+      /** Previous or next record: a swap on the shared axis. */
+      step: function (delta) {
+        return DS.motion.transition(function () {
+          record = (record + delta + 6) % 6;
+          DS.dom.morphHtml(body, recordHtml(record));
+          return body;
+        }, { type: delta > 0 ? 'forward' : 'back' });
+      },
+      /** The same record refreshed: data, never a transition. */
+      refresh: function () {
+        refreshes += 1;
+        DS.dom.morphHtml(body, recordHtml(record));
+      },
+    };
+
+    swap(0);
+    list.addEventListener('click', function (event) {
+      var item = event.target.closest('[data-go]');
+      if (!item) return;
+      event.preventDefault();
+      window.fxViews.go(Number(item.getAttribute('data-go')));
+    });
+    document.getElementById('sheet-prev').addEventListener('click', function () { window.fxViews.step(-1); });
+    document.getElementById('sheet-next').addEventListener('click', function () { window.fxViews.step(1); });
+    document.getElementById('ping').addEventListener('click', function () { pings += 1; });
+    if (new URLSearchParams(location.search).get('observe') !== '0') {
+      watchScrolled(view, app);
+      watchScrolled(body, sheet.querySelector('.ds-sheet__panel'));
+    }
+  }());
+</script>
+</body>
+</html>
