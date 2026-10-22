@@ -206,7 +206,7 @@ const EXCEPTIONS = new Map([
     transitions: (selector, entry) => entry.words[1] === 'var(--ds-dur-fast)' && entry.easing === 'var(--ds-ease-out)',
   }],
   ['stroke-dashoffset', { use: 'drawn checks', keyframes: ['ds-draw'], transitions: (selector) => drawnGlyph(selector) }],
-  ['mask-position', { use: 'the travelling progress wave', keyframes: ['ds-progress-wave'], transitions: new Map() }],
+  ['mask-position', { use: 'the travelling progress wave', properties: ['mask-position', '-webkit-mask-position'], keyframes: ['ds-progress-wave'], transitions: new Map() }],
   ['width', {
     use: 'the chip check slot',
     keyframes: [],
@@ -744,7 +744,8 @@ describe('motion in CSS', () => {
       ['ds-progress-head', 'ds-progress-tail', 'ds-skeleton-wave', 'ds-spinner-arc']);
     for (const name of LOADER_LOOPS.keys()) assert.ok(KEYFRAME_NAMES.has(name), `${name} is defined in motion.css`);
     assert.match(KEYFRAMES['ds-loader-turn'], /^\s*to\s*\{\s*rotate:\s*1turn;\s*\}\s*$/);
-    assert.match(KEYFRAMES['ds-progress-wave'], /^\s*to\s*\{\s*mask-position:\s*var\(--ds-progress-wave-length\) 0;\s*\}\s*$/);
+    // The -webkit- twin is for Chrome/Edge 111-119, which know only the prefixed mask properties.
+    assert.match(KEYFRAMES['ds-progress-wave'], /^\s*to\s*\{\s*-webkit-mask-position:\s*var\(--ds-progress-wave-length\) 0;\s*mask-position:\s*var\(--ds-progress-wave-length\) 0;\s*\}\s*$/);
     assert.match(KEYFRAMES['ds-pulse'], /^\s*50%\s*\{\s*opacity:\s*var\(--ds-state-pulse\);\s*\}\s*$/);
   });
 
@@ -766,11 +767,32 @@ describe('motion in CSS', () => {
     }
   });
 
+  it('keeps its own box where a layered reset or a parent card would reach it (1.6.2)', () => {
+    const has = (file, selector, property, value) => rules(read(file)).filter((rule) => splitSelectors(rule.selector).includes(selector))
+      .flatMap((rule) => declarations(`${rule.body};`)).some((entry) => entry.property === property && entry.value === value);
+    // Bootstrap's reboot floats, widens and spaces a legend.
+    for (const [property, value] of [['float', 'none'], ['width', 'auto'], ['margin', '0'], ['padding', '0']]) {
+      assert.ok(has('src/components/form.css', 'legend.ds-field__label', property, value), `legend.ds-field__label { ${property}: ${value} }`);
+    }
+    // A bare table checkbox keeps no UA margin (a 48px head stays 48px).
+    assert.ok(has('src/components/form.css', '.ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *))', 'margin', '0'));
+    // Inline code keeps the ink of its text.
+    assert.ok(has('src/base.css', ':where(.ds-base) code', 'color', 'inherit'));
+    // Out of flow: no rhythm margin of .ds-card > * + * moves a div dialog or sheet.
+    assert.ok(has('src/components/dialog.css', '.ds-dialog', 'margin', '0'));
+    assert.ok(has('src/components/sheet.css', '.ds-sheet', 'margin', '0'));
+  });
+
   it('hides with the hidden attribute without .ds-base', () => {
     const hides = (file, selector) => rules(read(file)).some((rule) => splitSelectors(rule.selector).includes(`${selector}[hidden]`) && /display:\s*none/.test(rule.body));
     for (const [file, selector] of [['src/components/dialog.css', '.ds-dialog'], ['src/components/sheet.css', '.ds-sheet'], ['src/components/combobox.css', '.ds-combo__popup'], ['src/components/tooltip.css', '.ds-tooltip']]) {
       assert.ok(hides(file, selector), `${file}: ${selector}[hidden] { display: none }`);
     }
+    // Any ds component, for DS.motion.leave(el, v, { then: 'hide' }): a zero-specificity rule in ds.utilities, scoped by .ds-theme.
+    const motion = stripComments(read('src/motion.css'));
+    const utilities = motion.slice(motion.indexOf('@layer ds.utilities {'));
+    assert.ok(rules(utilities).some((rule) => /^:where\(\.ds-theme\)\s+:where\(\[hidden\]/.test(rule.selector) && /display:\s*none/.test(rule.body)),
+      'motion.css: :where(.ds-theme) :where([hidden]...) { display: none } in ds.utilities');
     // Generic: markup in a header that shows `hidden` on a class which sets display.
     const offenders = [];
     for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
@@ -931,11 +953,14 @@ describe('CSS for the baseline', () => {
     // A node that DS.dom.morphHtml moves with insertBefore skips its @starting-style entrances.
     for (const moving of [':where(.ds-theme) [data-ds-moving]', ':where(.ds-theme) [data-ds-moving] *']) assert.ok(selectors.includes(moving), moving);
     const moving = /^:where\(\.ds-theme\) \[data-ds-moving\]( \*)?$/;
+    // `hidden` inside the theme without .ds-base (DS.motion.leave(el, v, { then: 'hide' })).
+    const hidden = ':where(.ds-theme) :where([hidden]:not(.ds-presence, [hidden="until-found"]))';
+    assert.ok(selectors.includes(hidden), hidden);
     // The view-transition rules hang off the document element (html.ds-theme, keyed on data-ds-vt,
     // or data-ds-vt-morph while the panel changes its width).
     const viewTransition = /^\.ds-theme(\[data-ds-vt="[\w-]+"\]|\[data-ds-vt-morph\])?::view-transition-(group|image-pair|old|new)\([\w*-]+\)(:only-child)?$/;
     assert.ok(selectors.some((selector) => viewTransition.test(selector)), 'the view-transition section');
-    assert.deepEqual(selectors.filter((selector) => !moving.test(selector) && !viewTransition.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
+    assert.deepEqual(selectors.filter((selector) => selector !== hidden && !moving.test(selector) && !viewTransition.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {
@@ -1234,6 +1259,8 @@ describe('accessibility details', () => {
       ['src/components/tile.css', ':is(button, a).ds-tile:focus-visible::before', 'var(--ds-state-focus)'],
       ['src/components/table.css', '.ds-table__sort:focus-visible::before', 'var(--ds-state-focus)'],
       ['src/components/alert.css', '.ds-errors summary:focus-visible::before', 'var(--ds-state-focus)'],
+      // A radio card's input has no halo: the card's layer is its focus layer.
+      ['src/components/form.css', '.ds-radio:has(:where(input):focus-visible):not(.ds-radio--disabled, :has(input:disabled))::before', 'var(--ds-state-focus)'],
     ];
     for (const [file, selector, opacity] of cases) {
       const entries = Object.fromEntries(declarationsAt(read(file), selector).map((entry) => [entry.property, entry.value]));
@@ -1307,6 +1334,8 @@ const RIPPLE_EXEMPT = new Map([
   ['.ds-radio-input', 'a radio input: the halo is the press'],
   ['.ds-combo__option', 'pointer-down selects and closes the list; the state layer is the feedback'],
   ['.ds-input', 'native field parts (select, the calendar and clear buttons)'],
+  ['.ds-brand', 'the home link in the top bar: identity, not a control; no state layer, ripple or morph (like a link in text)'],
+  ['.ds-skip', 'a keyboard-only skip link, shown only while focused: its focus ring is the feedback'],
 ]);
 
 describe('controls (1.1.0)', () => {
@@ -1355,6 +1384,19 @@ describe('controls (1.1.0)', () => {
     assert.match(cardRest.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/);
   });
 
+  it('shows no hover or press layer on a blocked tile or card, but keeps the focus layer', () => {
+    const cases = [
+      ['src/components/tile.css', ':is(button, a).ds-tile', '[aria-disabled="true"]:focus-visible::before'],
+      ['src/components/card.css', '.ds-card--interactive', '[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))::before'],
+    ];
+    const opacityAt = (file, selector) => declarationsAt(read(file), selector).find((entry) => entry.property === 'opacity')?.value;
+    for (const [file, host, focus] of cases) {
+      assert.equal(opacityAt(file, `${host}:is(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed)::before`), '0', `${host}: press`);
+      assert.equal(opacityAt(file, `${host}:is(:disabled, [aria-disabled="true"]):hover::before`), '0', `${host}: hover`);
+      assert.equal(opacityAt(file, `${host}${focus}`), 'var(--ds-state-focus)', `${host}: focus`);
+    }
+  });
+
   it('presses every state layer in --ds-dur-micro (no --ds-dur-instant press-in)', () => {
     const offenders = [];
     let layers = 0;
@@ -1395,6 +1437,28 @@ describe('controls (1.1.0)', () => {
           if (RIPPLE_EXEMPT.has(key)) exemptUsed.add(key);
           else offenders.push(`${file}: ${part} (no ripple host, not in RIPPLE_EXEMPT)`);
         }
+      }
+    }
+    // A link or button takes its pointer cursor from the UA stylesheet, so
+    // the markup in the header comments counts too: every <a class="ds-...">
+    // and <button class="ds-..."> is a host, a link that stands for its host
+    // (HOST_LINK in ripple.js) or an exemption.
+    const hostLinks = splitSelectors(read('src/js/ripple.js').match(/const HOST_LINK = '([^']+)'/)[1]);
+    // A host of one compound (`.ds-btn`, `:is(button, a).ds-tile`) matches an element by tag and classes.
+    const elementIsHost = (tag, names) => hosts.some((host) => {
+      const match = host.match(/^(?::is\(([\w,\s]+)\))?((?:\.[\w-]+)+)$/);
+      if (!match || (match[1] && !match[1].split(',').map((item) => item.trim()).includes(tag))) return false;
+      return match[2].split('.').filter(Boolean).every((name) => names.includes(name));
+    });
+    for (const file of COMPONENT_CSS) {
+      const header = read(file).match(/\/\*[\s\S]*?\*\//)?.[0] ?? '';
+      for (const [, tag, list] of header.matchAll(/<(a|button)\b[^>]*?\bclass="([^"]*)"/g)) {
+        const names = list.split(/\s+/).filter((name) => name.startsWith('ds-'));
+        if (!names.length) continue;
+        if (elementIsHost(tag, names) || hostLinks.some((link) => names.includes(link.slice(1)))) continue;
+        const key = `.${names.find((name) => !name.includes('--')) ?? names[0]}`;
+        if (RIPPLE_EXEMPT.has(key)) exemptUsed.add(key);
+        else offenders.push(`${file}: <${tag} class="${list}"> in the header (no ripple host, not in RIPPLE_EXEMPT)`);
       }
     }
     assert.deepEqual(offenders, []);

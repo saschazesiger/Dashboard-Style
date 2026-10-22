@@ -650,9 +650,12 @@
   }
 
   /* The wave of determinate progress travels one wavelength per loop
-     (--ds-loop-wave), linear: the mask tile moves, the bar stays. */
+     (--ds-loop-wave), linear: the mask tile moves, the bar stays. Written
+     as a -webkit- and unprefixed pair, like the static masks in
+     progress.css: Chrome/Edge before 120 know only the -webkit- form, and
+     without it their wave would be drawn but stand still. */
   @keyframes ds-progress-wave {
-    to { mask-position: var(--ds-progress-wave-length) 0; }
+    to { -webkit-mask-position: var(--ds-progress-wave-length) 0; mask-position: var(--ds-progress-wave-length) 0; }
   }
 
   /* The skeleton wave: --ds-skeleton-x sweeps once on a sine in-out, then
@@ -731,6 +734,17 @@
 }
 
 @layer ds.utilities {
+  /* `hidden` wins inside the theme also without .ds-base (an embedded
+     widget): the UA [hidden] rule loses to every component's display, so
+     DS.motion.leave(el, v, { then: 'hide' }) on an alert, a button or a chip
+     would snap back visible. Zero specificity, first in the last layer: it
+     beats every component and loses to project CSS and to the utilities
+     below that set display (.ds-swap, .ds-icon-swap). .ds-presence keeps
+     its allow-discrete exit, and hidden="until-found" stays searchable. */
+  :where(.ds-theme) :where([hidden]:not(.ds-presence, [hidden="until-found"])) {
+    display: none;
+  }
+
   /* ── Utilities ─────────────────────────────────── */
 
   /* Order matters inside this layer, not specificity: the layer beats every

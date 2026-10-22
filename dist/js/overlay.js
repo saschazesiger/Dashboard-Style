@@ -19,7 +19,7 @@
  * writes the origin (originFrom(opener, box) for dialogs and popups) and
  * sets data-state="open"; close() sets data-state="closed". The CSS
  * transitions keyed on data-state therefore reverse from the current value
- * when a close is taken back (D21). The drawer keeps its P4 attribute,
+ * when a close is taken back (D21). The drawer keeps its own attribute,
  * data-drawer-open on .ds-app.
  *
  * Every element has one state with a generation: a later open() or
@@ -180,6 +180,10 @@
  *   put back, the entrances already marked played (.ds-toast--shown).
  * - startViewTransition (through DS.motion.transition(), for `container:
  *   true`, only with .ds-theme on <html>): without it the usual entrance.
+ * - focus({ focusVisible: false }) (a native dialog or sheet opened or
+ *   closed with the pointer shows no keyboard ring in WebKit, which marks
+ *   what showModal() and close() focus as :focus-visible): without it that
+ *   ring stays as WebKit draws it.
  */
 import { flip, motionDuration, originFrom, settled, transition } from './motion.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';
@@ -246,6 +250,39 @@ const stack = /** @type {Element[]} */ ([]);
  * Copies before 1.6.1 keep their own.
  * @returns {{ order: Array<{ element: Element, open: () => boolean, escape: (event: Event) => void }>, lock: { count: number, saved: { gutter: string, padding: string } | null }, seq: number, tipRoots: WeakMap<Element, { destroy: () => void }> }}
  */
+/**
+ * The focused element as seen from `node`'s tree: inside a shadow root its
+ * own activeElement (document.activeElement is the shadow host there, so a
+ * widget in a shadow root would never see its own focus), else the
+ * document's.
+ * @param {any} node
+ * @returns {any}
+ */
+function activeIn(node) {
+  const root = node?.getRootNode?.();
+  return (root?.nodeType === 11 ? root.activeElement : null) ?? node?.ownerDocument?.activeElement ?? null;
+}
+
+/**
+ * Whether `event` started inside `node`: a test along the composed path.
+ * It covers `node` inside an open shadow root (a listener on the document
+ * sees the target retargeted to the shadow host, so a contained dialog in
+ * a shadow root would take every Escape for one pressed outside its
+ * container) and a press inside a web component in `node` (an icon
+ * element with its own shadow root: contains() stops at the shadow
+ * boundary of the innermost target, so that press would count as one
+ * outside a menu). A closed shadow root ends the path at its host, which
+ * is still on it.
+ * @param {Node|null|undefined} node
+ * @param {Event} event
+ * @returns {boolean}
+ */
+function inside(node, event) {
+  if (!node) return false;
+  const path = event.composedPath?.();
+  return path?.length ? path.includes(node) : node.contains(/** @type {Node} */ (event.target));
+}
+
 const SHARED = Symbol.for('ds.overlay');
 
 function sharedOf(doc) {
@@ -268,7 +305,7 @@ function enterOrder(element) {
       // A contained dialog owns Escape only inside its container: the host
       // page around an embedded widget keeps the key (its own dialogs, its
       // search fields), also with focus on <body>.
-      if (containedDialog(element) && !containerOf(element).contains(/** @type {Node} */ (event.target))) return;
+      if (containedDialog(element) && !inside(containerOf(element), event)) return;
       // preventDefault() also keeps a native dialog from its own cancel.
       event.preventDefault();
       closeFrom(element, 'escape');
@@ -443,6 +480,35 @@ function hostsOf(node) {
   return hosts;
 }
 
+/** Controls that always show the keyboard ring when focused, by pointer or by key. */
+const TEXT_ENTRY = 'input:not([type="button"], [type="submit"], [type="reset"], [type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="image"]), textarea, select, [contenteditable]:not([contenteditable="false"])';
+
+/**
+ * Runs showModal() or close() of a native dialog without the keyboard ring
+ * a pointer never asked for: WebKit marks the element these focus (the
+ * autofocus target, the opener the dialog gives focus back to) as
+ * :focus-visible even after a mouse click, and the focus() that follows
+ * is a no-op on an element that has focus already. Only inside a pointer
+ * event (a click from Enter or Space has detail 0) and only when the
+ * previous focus showed no ring: a key press (Escape) and a script open
+ * keep the engine's own choice. Text-entry controls are left alone: they
+ * match :focus-visible in every engine whatever the input modality, so
+ * there is nothing to correct, and a blur would run the page's blur
+ * handlers (validate on blur, a combobox that closes) on open.
+ */
+function keepFocusVisibility(element, run) {
+  const before = activeIn(element);
+  const body = element.ownerDocument.body;
+  const was = Boolean(before) && before !== body && before.matches(':focus-visible');
+  const event = /** @type {any} */ (viewOf(element)).event;
+  const pointer = /^(pointer|mouse|click$)/.test(event?.type ?? '') && !(event.type === 'click' && event.detail === 0);
+  run();
+  const now = activeIn(element);
+  if (was || !pointer || !now || now === before || now === body || now.matches(TEXT_ENTRY) || !now.matches(':focus-visible')) return;
+  now.blur();
+  now.focus({ preventScroll: true, focusVisible: false });
+}
+
 function focusInto(element, state, box) {
   const autofocus = element.querySelector('[autofocus]');
   if (canFocus(autofocus)) {
@@ -480,19 +546,57 @@ function focusInto(element, state, box) {
  * all but .ds-scrim, the snackbar regions and their announcers (they stay
  * above every modal: usable and heard), the tooltips (a trigger inside the
  * overlay shows one that must stay hoverable and heard), and what is inert
- * already without us. syncInert() applies them.
+ * already without us. syncInert() applies them. The walk crosses a shadow
+ * root through its host (a top-level child of a shadow root has no
+ * parentElement), so the div dialog, sheet or modal drawer of a widget in
+ * a shadow root makes the host page inert too, as showModal() does.
  */
 function inertOutside(element, stop = element.ownerDocument.body) {
   const taken = [];
   const body = element.ownerDocument.body;
-  for (let node = element; node && node !== stop && node !== body && node.parentElement; node = node.parentElement) {
-    for (const sibling of node.parentElement.children) {
+  for (let node = element; node && node !== stop && node !== body;) {
+    const parent = node.parentNode;
+    if (!parent || parent.nodeType === 9) break;
+    for (const sibling of /** @type {ParentNode} */ (parent).children) {
       if (sibling === node || sibling.matches('.ds-scrim, .ds-toasts') || announcerNodes.has(sibling) || tooltipNodes.has(sibling)) continue;
       if (sibling.inert && !managedInert.has(sibling)) continue;
       taken.push(sibling);
     }
+    node = parent.nodeType === 11 ? /** @type {ShadowRoot} */ (parent).host : /** @type {Element} */ (parent);
   }
   return taken;
+}
+
+/** Whether `node` holds `other`, also across shadow roots (through their hosts). */
+function composedContains(node, other) {
+  for (let at = other; at; at = at.parentNode ?? /** @type {any} */ (at).host ?? null) {
+    if (at === node) return true;
+  }
+  return false;
+}
+
+/**
+ * Nodes the page added next to an open div trap, or next to an ancestor of
+ * it (a host script's banner appended to <body>, a re-rendered section),
+ * join that trap: Tab never reaches them while it is open.
+ * @param {Node[]} targets  the parents that gained children
+ */
+function refreshTraps(targets) {
+  let grew = false;
+  for (const element of stack) {
+    const state = overlays.get(element);
+    // Only div traps hold a list; a native modal is inert-free by the top layer.
+    if (!state?.inerted.length || state.phase !== 'open' || !element.isConnected) continue;
+    if (!targets.some((target) => composedContains(target, element))) continue;
+    const stop = containedDialog(element) ? containerOf(element) : undefined;
+    const known = new Set(state.inerted);
+    for (const node of inertOutside(element, stop)) {
+      if (known.has(node)) continue;
+      state.inerted.push(node);
+      grew = true;
+    }
+  }
+  if (grew) syncInert();
 }
 
 /**
@@ -508,7 +612,8 @@ function syncInert() {
   stack.forEach((element, index) => {
     const above = stack.slice(index + 1);
     for (const node of overlays.get(element)?.inerted ?? []) {
-      if (node.isConnected && !above.some((other) => node.contains(other))) wanted.add(node);
+      // A host-page node the trap took may hold a later overlay inside a shadow root.
+      if (node.isConnected && !above.some((other) => composedContains(node, other))) wanted.add(node);
     }
   });
   const closingBoxes = new Set(stack.filter((element) => overlays.get(element)?.phase === 'closing')
@@ -643,19 +748,18 @@ function listen(doc) {
   doc.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
     if (event.key !== 'Tab' || event.isComposing || event.defaultPrevented) return;
     const top = topOpen();
-    if (!top || overlays.get(top)?.kind !== 'menu' || !top.contains(doc.activeElement)) return;
+    if (!top || overlays.get(top)?.kind !== 'menu' || !top.contains(activeIn(top))) return;
     // Tab moves on from the trigger, as if the menu had not been there.
     const opener = overlays.get(top)?.opener;
     if (canFocus(opener)) opener.focus({ preventScroll: true });
     closeFrom(top, 'tab');
   }, true);
   doc.addEventListener('pointerdown', (/** @type {PointerEvent} */ event) => {
-    const target = /** @type {Node} */ (event.target);
     pruneDetached();
     for (const element of [...stack].reverse()) {
       const state = overlays.get(element);
       if (state?.kind !== 'menu' || state.phase !== 'open') continue;
-      if (element.contains(target) || state.opener?.contains(target)) continue;
+      if (inside(element, event) || inside(state.opener, event)) continue;
       closeFrom(element, 'outside');
     }
   }, true);
@@ -884,22 +988,41 @@ function placePopup(element, state) {
  * never taller than the room on its side; 8px (--ds-space-2) from the
  * viewport edges.
  */
+/** The fixed probe beside each script-placed popup, kept while it is placed (fixedOrigin()). */
+const probes = new WeakMap();
+
 /**
  * Where (0,0) of a fixed box's containing block sits in the viewport: the
  * viewport's origin, unless a host ancestor (an embedded widget's) has a
  * transform, filter, perspective, will-change or contain: layout/paint and
  * so becomes the box that fixed layers fill. A fixed probe beside
- * `element` tells, whatever transform the element itself has now.
+ * `element` tells, whatever transform the element itself has now, read
+ * afresh on every call (a transformed host may scroll with the page). The
+ * probe stays beside the popup until it is no longer placed (dropProbe()),
+ * so following a scroll or a resize adds no DOM mutation per frame for the
+ * page's observers; data-ds-keep keeps morphs and indicator tracks off it.
  */
 function fixedOrigin(element) {
   const parent = element.parentNode;
   if (!parent) return { left: 0, top: 0 };
-  const probe = element.ownerDocument.createElement('div');
-  probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;margin:0;border:0;padding:0;transform:none;translate:none;scale:none;rotate:none;animation:none;transition:none;visibility:hidden';
-  parent.insertBefore(probe, element);
+  let probe = probes.get(element);
+  if (!probe) {
+    probe = element.ownerDocument.createElement('div');
+    probe.setAttribute('data-ds-keep', '');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;margin:0;border:0;padding:0;transform:none;translate:none;scale:none;rotate:none;animation:none;transition:none;visibility:hidden;pointer-events:none';
+    probes.set(element, probe);
+  }
+  // Re-inserted only when the popup moved (adopted into a dialog, re-rendered).
+  if (probe.parentNode !== parent || probe.nextSibling !== element) parent.insertBefore(probe, element);
   const { left, top } = probe.getBoundingClientRect();
-  probe.remove();
   return { left, top };
+}
+
+/** Takes the probe of fixedOrigin() out once the popup is no longer placed by the script. */
+function dropProbe(element) {
+  probes.get(element)?.remove();
+  probes.delete(element);
 }
 
 function placeMenu(menu, anchor) {
@@ -963,6 +1086,7 @@ function placeList(list, anchor) {
 
 /** Undoes placePopup() once a popup is hidden: out of the top layer, its anchor-name gone. */
 function releasePopup(element, state) {
+  dropProbe(element);
   if (element.hasAttribute('popover')) {
     try {
       if (element.matches(':popover-open')) /** @type {HTMLElement} */ (element).hidePopover();
@@ -1194,9 +1318,15 @@ function unwatchRemovals(doc) {
   watch.observer.disconnect();
 }
 
-/** dropDetached() when an overlay on the stack left the document. */
-function pruneDetached() {
+/**
+ * dropDetached() when an overlay on the stack left the document; nodes the
+ * page added beside an open div trap join it (refreshTraps()).
+ * @param {MutationRecord[]} [records]
+ */
+function pruneDetached(records) {
   if (stack.some((element) => !element.isConnected)) dropDetached();
+  const grown = records?.filter((record) => record.addedNodes.length).map((record) => record.target) ?? [];
+  if (grown.length) refreshTraps(grown);
 }
 
 /**
@@ -1219,6 +1349,7 @@ function dropDetached() {
       continue;
     }
     const kind = state.kind;
+    dropProbe(element);
     // A pending exit's settled() callback no longer acts.
     state.gen += 1;
     state.phase = 'closed';
@@ -1302,7 +1433,7 @@ function containerOpen(element, options) {
   if (state.phase !== 'closed' || state.container) return state.container?.done ?? null;
   const viewTransitions = typeof doc.startViewTransition === 'function' && doc.documentElement.classList.contains('ds-theme');
   if (!viewTransitions) return null;
-  const active = doc.activeElement;
+  const active = activeIn(element);
   const opener = options.opener ?? (active && active !== doc.body && !element.contains(active) ? active : null);
   if (!opener?.isConnected || typeof opener.getBoundingClientRect !== 'function') return null;
 
@@ -1368,13 +1499,20 @@ function show(element, options, transform) {
   pruneDetached();
   listen(doc);
   wire(element, state);
-  const reopening = state.phase === 'closing';
+  let reopening = state.phase === 'closing';
+  // Reopened mid-exit from another trigger (one menu for every row): the
+  // placement, origin, aria-expanded and claims belong to the previous
+  // trigger, so it opens afresh from the new one.
+  if (reopening && (kind === 'menu' || kind === 'combo' || kind === 'popup') && options.opener && options.opener !== state.opener) {
+    if (kind !== 'popup') releasePopup(element, state);
+    reopening = false;
+  }
   const gen = ++state.gen;
   state.closing = null;
   state.phase = 'open';
 
   if (!reopening) {
-    const active = doc.activeElement;
+    const active = activeIn(element);
     const focused = active && active !== doc.body && !element.contains(active) ? active : null;
     const menuButton = app?.querySelector('.ds-topbar__menu') ?? null;
     state.opener = options.opener ?? (kind === 'drawer' ? menuButton ?? focused : focused);
@@ -1424,7 +1562,7 @@ function show(element, options, transform) {
     if (!state.inerted.length) state.inerted = inertOutside(element);
   } else if (isNative(element) && MODAL.has(kind)) {
     element.classList.remove('ds-dialog--closing', 'ds-sheet--closing');
-    if (!element.open) element.showModal();
+    if (!element.open) keepFocusVisibility(element, () => element.showModal());
     // The snackbars of the theme come in: into the top layer with it.
     hostToasts(element, 'enter');
   } else {
@@ -1529,20 +1667,20 @@ function closeFrom(element, reason) {
   const gen = ++state.gen;
   state.phase = 'closing';
   state.opening = null;
-  const active = doc.activeElement;
+  const active = activeIn(element);
   const focusInside = Boolean(active) && (element.contains(active) || active === doc.body);
 
   // 1. Release the trap.
   if (kind === 'drawer') (state.app ?? element.closest('.ds-app'))?.removeAttribute('data-drawer-open');
   if (isNative(element) && MODAL.has(kind)) {
     element.classList.add(kind === 'sheet' ? 'ds-sheet--closing' : 'ds-dialog--closing');
-    if (element.open) element.close();
+    if (element.open) keepFocusVisibility(element, () => element.close());
   }
   restoreInert(state);
 
   // 2. Focus back on the opener at once.
   state.expander?.setAttribute('aria-expanded', 'false');
-  const returns = MODAL.has(kind) ? focusInside : reason !== 'outside' && element.contains(doc.activeElement);
+  const returns = MODAL.has(kind) ? focusInside : reason !== 'outside' && element.contains(activeIn(element));
   if (returns) returnTarget(element, state)?.focus({ preventScroll: true });
   // The snackbars glide back to their place (from a sheet, with the
   // leaving panel) and stay inside it, above its scrim, until it settled.
@@ -1781,7 +1919,7 @@ function watchPointer(doc) {
   pointerWatched.add(doc);
   doc.addEventListener('pointerover', (/** @type {PointerEvent} */ event) => {
     for (const pointed of [...pointedRegions]) {
-      if (!pointed.contains(/** @type {Node} */ (event.target))) unpoint(pointed, toastRegions.get(pointed));
+      if (!inside(pointed, event)) unpoint(pointed, toastRegions.get(pointed));
     }
   }, true);
 }
@@ -1831,14 +1969,24 @@ function buildToast(doc, text, kind, closable, closeLabel) {
 
 /** The two announcers next to the region (created once, moved with it). */
 function announcers(region, state) {
-  if (state.polite?.isConnected && state.assertive?.isConnected) return;
+  // An announcer a re-render patched into a page element is no announcer
+  // any more: a new one takes its place, and the page keeps its element.
+  const live = (key) => {
+    const node = state[key];
+    return Boolean(node?.isConnected) && node.classList.contains('ds-sr') && node.getAttribute('aria-live') === key;
+  };
+  if (live('polite') && live('assertive')) return;
   const doc = region.ownerDocument;
   for (const key of /** @type {const} */ (['polite', 'assertive'])) {
-    if (state[key]?.isConnected) continue;
+    if (live(key)) continue;
+    if (state[key]) announcerNodes.delete(state[key]);
     const node = doc.createElement('div');
     node.className = 'ds-sr';
     node.setAttribute('aria-live', key);
     node.setAttribute('aria-atomic', 'true');
+    // A runtime node, like a ripple: DS.dom.morphHtml of the region's
+    // parent never matches, patches or removes it.
+    node.setAttribute('data-ds-keep', '');
     announcerNodes.add(node);
     state[key] = node;
   }
@@ -1948,7 +2096,7 @@ function finishToast(entry) {
  */
 function releaseToastFocus(entry, region, state, staying) {
   const doc = region.ownerDocument;
-  if (!entry.el.contains(doc.activeElement)) return;
+  if (!entry.el.contains(activeIn(entry.el))) return;
   const others = staying.filter((other) => other.el.parentNode === region);
   const after = others.filter((other) => entry.el.compareDocumentPosition(other.el) & 4);
   const before = others.filter((other) => !after.includes(other)).reverse();
@@ -2022,7 +2170,7 @@ function updateToasts(region, state, closing) {
 function moveRegion(region, parent, before) {
   const state = toastRegions.get(region);
   const doc = region.ownerDocument;
-  const active = doc.activeElement;
+  const active = activeIn(region);
   const refocus = active && region.contains(active) ? active : null;
   const nodes = [region, state?.polite, state?.assertive].filter((node) => node && node.parentNode === region.parentNode);
   const anchor = before && before.parentNode === parent ? before : null;
@@ -2037,7 +2185,7 @@ function moveRegion(region, parent, before) {
     }
     parent.insertBefore(node, anchor);
   }
-  if (refocus && doc.activeElement !== refocus && canFocus(refocus)) refocus.focus({ preventScroll: true });
+  if (refocus && activeIn(refocus) !== refocus && canFocus(refocus)) refocus.focus({ preventScroll: true });
 }
 
 /**
@@ -2085,7 +2233,8 @@ function glideRegion(region, direction, move) {
 
 /**
  * An opening dialog or side sheet takes in every .ds-toasts region of its
- * theme (with their announcers), so a message shown meanwhile is above its
+ * theme (with their announcers; not one inside a nested .ds-theme, an
+ * embedded widget's), so a message shown meanwhile is above its
  * scrim and usable: in the top layer of a native one, outside the inert
  * page of the div trap. In a sheet --ds-toast-left becomes the panel's
  * resting left edge plus --ds-space-6, and the messages glide there; in a
@@ -2103,7 +2252,9 @@ function hostToasts(host, step) {
   const doc = host.ownerDocument;
   const theme = host.closest('.ds-theme');
   const scope = !theme || theme === doc.documentElement ? doc : theme;
-  const regions = new Set(scope.querySelectorAll('.ds-toasts'));
+  // Only the regions of its own theme: one inside a nested .ds-theme (an
+  // embedded widget's) stays in its widget, under the modal like the rest of it.
+  const regions = new Set([...scope.querySelectorAll('.ds-toasts')].filter((region) => !theme || region.closest('.ds-theme') === theme));
   // A hosted region is found even if it left the document meanwhile.
   if (step !== 'enter') for (const region of hostedRegions.keys()) regions.add(region);
   for (const region of regions) {
@@ -2279,19 +2430,26 @@ function focusVisible(node) {
  * call on the same root returns the first handle (also one of another
  * copy of ds.js), and a trigger inside nested roots (a host page's
  * document and an embedded widget's root) is served by the innermost one.
- * @param {Document|Element} [root]
+ * An open shadow root works as a root too (the tooltip goes into the
+ * .ds-theme inside it).
+ * @param {Document|Element|ShadowRoot} [root]
  * @returns {{ destroy: () => void }}
  */
 export function tooltips(root = globalThis.document) {
   const doc = root?.nodeType === 9 ? /** @type {Document} */ (root) : root?.ownerDocument;
   if (!doc) return { destroy() {} };
   const view = doc.defaultView ?? globalThis;
+  // A shadow root stays itself: its listeners see the real targets (the
+  // document sees the host), and its theme is the .ds-theme inside it,
+  // where ds.css applies.
+  const shadow = root.nodeType === 11;
   const rootElement = root.nodeType === 9 ? doc.documentElement : /** @type {Element} */ (root);
   // One controller per root (whichever copy of ds.js made it): a second call returns the first.
   const roots = sharedOf(doc).tipRoots;
   const existing = roots.get(rootElement);
   if (existing) return existing;
-  const theme = rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
+  const theme = shadow ? /** @type {ShadowRoot} */ (root).querySelector('.ds-theme')
+    : rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
   if (!theme && !tooltipWarned) {
     tooltipWarned = true;
     view.console?.warn('Dashboard-Style: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
@@ -2310,6 +2468,8 @@ export function tooltips(root = globalThis.document) {
     tip.setAttribute('data-anchored', '');
   }
   tooltipNodes.add(tip);
+  // A runtime node: a re-render of the theme (DS.dom.morphHtml) keeps it.
+  tip.setAttribute('data-ds-keep', '');
   home.append(tip);
 
   /** @type {'hidden'|'open'|'closing'} */
@@ -2325,7 +2485,7 @@ export function tooltips(root = globalThis.document) {
   let ownAnchor = /** @type {HTMLElement|null} */ (null);
   let described = /** @type {Element|null} */ (null);
 
-  const time = (token) => motionDuration(tip.isConnected ? tip : rootElement, token);
+  const time = (token) => motionDuration(tip.isConnected ? tip : shadow ? theme ?? /** @type {ShadowRoot} */ (root).host : rootElement, token);
   const contains = (node) => (root.nodeType === 9 ? doc.contains(node) : rootElement.contains(node));
 
   /** Where the tooltip lives for a trigger: its overlay (in the top layer, never inert), else the theme. */
@@ -2426,7 +2586,7 @@ export function tooltips(root = globalThis.document) {
     const warm = !visible && clock() - lastHide < time('--ds-delay-tooltip-skip');
     run += 1;
     trigger = next;
-    focusing = next === doc.activeElement && focusVisible(next);
+    focusing = next === activeIn(next) && focusVisible(next);
     tip.textContent = text;
     if (visible) {
       // A swap (or a hide taken back): text and place change where it is,
@@ -2492,6 +2652,7 @@ export function tooltips(root = globalThis.document) {
       }
       tip.hidden = true;
       unanchor();
+      dropProbe(tip);
     });
   }
 
@@ -2648,6 +2809,7 @@ export function tooltips(root = globalThis.document) {
       view.removeEventListener('resize', onScroll);
       undescribe();
       unanchor();
+      dropProbe(tip);
       run += 1;
       phase = 'hidden';
       tip.remove();

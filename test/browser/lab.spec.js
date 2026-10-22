@@ -766,9 +766,49 @@ function overflowing(page) {
     .map(([id, stage]) => `${id}: ${stage.scrollHeight}/${stage.clientHeight}`));
 }
 
+/** Code labels of the lab split over two lines (an inline-block label has one rect, however it wraps inside). */
+function splitCode(page) {
+  return page.evaluate(() => [...document.querySelectorAll('[data-lab-demo] code, .sg-hero code')]
+    .filter((code) => code.getClientRects().length > 1)
+    .map((code) => `${code.closest('[data-lab-demo]')?.getAttribute('data-lab-demo') ?? 'hero'}: ${code.textContent}`));
+}
+
+/**
+ * Punctuation that touches a code label ("(" before it, "," after it) but sits on another line: an inline-block
+ * label adds a break opportunity on each side, so the styleguide glues them (glue() in styleguide.js).
+ */
+function orphanedPunctuation(page) {
+  return page.evaluate(() => {
+    const out = [];
+    const charRect = (node, at) => {
+      const range = document.createRange();
+      range.setStart(node, at);
+      range.setEnd(node, at + 1);
+      return range.getBoundingClientRect();
+    };
+    const sameLine = (rect, chip) => {
+      const middle = rect.top + rect.height / 2;
+      return middle >= chip.top && middle <= chip.bottom;
+    };
+    for (const code of document.querySelectorAll('[data-lab-demo] code, .sg-hero code')) {
+      const rects = code.getClientRects();
+      if (!rects.length) continue;
+      const name = `${code.closest('[data-lab-demo]')?.getAttribute('data-lab-demo') ?? 'hero'}: ${code.textContent}`;
+      const before = code.previousSibling;
+      if (before?.nodeType === 3 && before.data.length && /\S/.test(before.data.at(-1)) && !sameLine(charRect(before, before.data.length - 1), rects[0])) out.push(`${name} after "${before.data.at(-1)}"`);
+      const after = code.nextSibling;
+      if (after?.nodeType === 3 && after.data.length && /\S/.test(after.data[0]) && !sameLine(charRect(after, 0), rects[rects.length - 1])) out.push(`${name} before "${after.data[0]}"`);
+    }
+    return out;
+  });
+}
+
+/** Demos whose read-out starts empty: the line is reserved, so the first Replay that fills it moves nothing. */
+const EMPTY_READOUTS = { stagger: 'sg-stagger-left', 'stagger-once': 'sg-once-left', morph: 'sg-jobs-focus', menu: 'sg-menu-placement', combobox: 'sg-combo-placement' };
+
 test.describe('stages', () => {
   for (const width of [1280, 1000, 390]) {
-    test(`at ${width}px every stage holds its demo, and the open disclosure keeps its stage's height`, async ({ page }) => {
+    test(`at ${width}px every stage holds its demo, the open disclosure keeps its stage's height, and no code label breaks or loses its punctuation`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await open(page);
       expect(await overflowing(page)).toEqual([]);
@@ -780,8 +820,35 @@ test.describe('stages', () => {
         return { closed, open: stage.getBoundingClientRect().height, fits: stage.scrollHeight <= stage.clientHeight + 1 };
       });
       expect(heights).toEqual({ closed: heights.closed, open: heights.closed, fits: true });
+      // Curve captions, the ladder heads and the rules list included.
+      expect(await splitCode(page)).toEqual([]);
+      // Nor does the punctuation touching a label wrap away from it.
+      expect(await orphanedPunctuation(page)).toEqual([]);
     });
   }
+
+  test('a read-out that starts empty keeps its card\'s height when the first Replay fills it', async ({ page }) => {
+    await open(page);
+    for (const [id, readout] of Object.entries(EMPTY_READOUTS)) {
+      const card = page.locator(`[data-lab-demo="${id}"]`);
+      await bringUp(page, id);
+      // The morph demo reports where focus was: a note in the patched list.
+      if (id === 'morph') await page.evaluate(() => document.querySelector('#sg-jobs-morph input').focus());
+      const before = await page.evaluate(({ demoId, readoutId }) => ({
+        text: document.getElementById(readoutId).textContent,
+        display: getComputedStyle(document.getElementById(readoutId)).display,
+        height: document.querySelector(`[data-lab-demo="${demoId}"]`).getBoundingClientRect().height,
+      }), { demoId: id, readoutId: readout });
+      expect(before, `${id}: an empty read-out keeps its line`).toEqual({ text: '', display: 'block', height: before.height });
+      await card.locator('[data-lab="replay"]').evaluate((button) => button.click());
+      await expect(card, `${id} replay`).toHaveAttribute('data-lab-state', 'settled', { timeout: 30000 });
+      await expect(page.locator(`#${readout}`), `${id}: the read-out is filled`).not.toHaveText('');
+      await settle(page, { timeout: 20000 });
+      const after = await card.evaluate((element) => element.getBoundingClientRect().height);
+      expect(after, `${id}: the card keeps its height`).toBe(before.height);
+      await closeOverlays(page);
+    }
+  });
 
   test('the skeleton keeps the height of the page that replaces it, and its loading bar stays in its pane', async ({ page }) => {
     await open(page);

@@ -371,6 +371,32 @@
   min-height: 56px;
 }
 
+/* A one-cell stack: every layer takes the same cell, so the stack keeps the
+   size of its largest layer whichever one shows (the page skeleton and the
+   page that replaces it, the two labels of its button). */
+.sg-stack {
+  display: grid;
+}
+
+.sg-stack--inline {
+  display: inline-grid;
+}
+
+.sg-stack > * {
+  grid-area: 1 / 1;
+}
+
+/* A layer that only holds its size: unseen and without motion (unlayered,
+   so it beats the ds animations). */
+.sg-off {
+  visibility: hidden;
+}
+
+.sg-off,
+.sg-off * {
+  animation: none;
+}
+
 /* The page that replaces the skeleton, in the skeleton's rhythm. */
 .sg-loaded {
   display: grid;
@@ -407,6 +433,18 @@
   max-width: 320px;
 }
 
+/* The live feed changes the status chips ("Overloaded" is the widest): the
+   Status column keeps that chip's width (a zero-height box in its header,
+   whatever the cell padding), so automatic table layout does not
+   re-divide the columns and shift them sideways on every tick (the
+   documented advice for live columns, components.md "Table"). */
+#sg-table th:last-child::after {
+  content: '';
+  display: block;
+  width: 104px;
+  height: 0;
+}
+
 /* The principles of the Motion section, one per line. */
 .sg-principles {
   display: grid;
@@ -439,6 +477,9 @@
 .sg-demo__tokens code,
 .sg-demo__shows code,
 .sg-demo__note code,
+.sg-plot__caption code,
+.sg-ladder__head code,
+.sg-disclosure code,
 .sg-hero code {
   display: inline-block;
   max-width: 100%;
@@ -446,6 +487,17 @@
   /* On the line's bottom edge rather than its baseline, so it adds no
      half pixel to the line in Firefox and WebKit. */
   vertical-align: bottom;
+}
+
+/* A code label and the punctuation touching it ("(" + label, label + ",")
+   stay on one line: an inline-block adds a break opportunity on each side
+   (styleguide.js, glue()). The label itself can still wrap inside. */
+.sg-glue {
+  white-space: nowrap;
+}
+
+.sg-glue > code {
+  white-space: normal;
 }
 
 .sg-demo > .sg-demo__tokens + .sg-demo__shows,
@@ -809,6 +861,8 @@
    reserved even while empty, so the first replay that fills it never moves
    the buttons below (the stage's fixed height has the same aim). */
 .sg-readout {
+  /* card.css hides an empty `.ds-card > p`; unlayered, this wins. */
+  display: block;
   min-height: 1lh;
   margin: var(--ds-space-2) 0 0;
 }

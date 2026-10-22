@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.6.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.6.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Dashboard-Style: every stylesheet in cascade order. scripts/build.mjs
  * inlines these imports into dist/ds.css; a bundler can import this file
@@ -255,7 +255,8 @@
      * targets (rows, navigation items) take the lighter hover. Keyboard
      * focus lays its own layer under the ring (focus); a press stays on top
      * of it. Disabled content dims to 38%; stale content (about to be
-     * replaced) to 55%. The deprecated ds-pulse dims to pulse.
+     * replaced) to 55%. pulse is deprecated with ds-pulse (removed in
+     * 2.0): its dimmest point.
      */
     --ds-state-hover: .08;
     --ds-state-hover-lg: .06;
@@ -1175,9 +1176,12 @@
   }
 
   /* The wave of determinate progress travels one wavelength per loop
-     (--ds-loop-wave), linear: the mask tile moves, the bar stays. */
+     (--ds-loop-wave), linear: the mask tile moves, the bar stays. Written
+     as a -webkit- and unprefixed pair, like the static masks in
+     progress.css: Chrome/Edge before 120 know only the -webkit- form, and
+     without it their wave would be drawn but stand still. */
   @keyframes ds-progress-wave {
-    to { mask-position: var(--ds-progress-wave-length) 0; }
+    to { -webkit-mask-position: var(--ds-progress-wave-length) 0; mask-position: var(--ds-progress-wave-length) 0; }
   }
 
   /* The skeleton wave: --ds-skeleton-x sweeps once on a sine in-out, then
@@ -1256,6 +1260,17 @@
 }
 
 @layer ds.utilities {
+  /* `hidden` wins inside the theme also without .ds-base (an embedded
+     widget): the UA [hidden] rule loses to every component's display, so
+     DS.motion.leave(el, v, { then: 'hide' }) on an alert, a button or a chip
+     would snap back visible. Zero specificity, first in the last layer: it
+     beats every component and loses to project CSS and to the utilities
+     below that set display (.ds-swap, .ds-icon-swap). .ds-presence keeps
+     its allow-discrete exit, and hidden="until-found" stays searchable. */
+  :where(.ds-theme) :where([hidden]:not(.ds-presence, [hidden="until-found"])) {
+    display: none;
+  }
+
   /* ── Utilities ─────────────────────────────────── */
 
   /* Order matters inside this layer, not specificity: the layer beats every
@@ -1923,11 +1938,15 @@
  *
  * Every rule is scoped to .ds-base through :where(), which adds no
  * specificity: the rules weigh exactly what bare element selectors would,
- * so any class of the page still wins over them. An embedded widget simply
- * leaves .ds-base off and keeps the host page untouched.
+ * so any class of the page still wins over them. An embedded widget puts
+ * .ds-base on its root element: the html/body rules never match there, so
+ * the host page stays untouched.
  */
 
 @layer ds.base {
+  /* Under .ds-base `hidden` beats everything, page CSS included. Without
+     it (a widget that leaves it off), motion.css still hides ds components that
+     carry `hidden` inside .ds-theme, in ds.utilities. */
   :where(.ds-base) [hidden] {
     display: none !important;
   }
@@ -1981,12 +2000,14 @@
     }
   }
 
-  /* Inline code takes the size of the text around it, only the typeface
-     changes. Its own box is just its glyphs: the monospace font sits higher
-     on the baseline and would open up the line by a pixel. */
+  /* Inline code takes the size and colour of the text around it, only the
+     typeface changes (a layered reset's code colour does not reach it).
+     Its own box is just its glyphs: the monospace font sits higher on the
+     baseline and would open up the line by a pixel. */
   :where(.ds-base) code {
     font-family: var(--ds-font-mono);
     font-size: inherit;
+    color: inherit;
     line-height: 1;
     background: var(--ds-code-bg);
     border: 1px solid var(--ds-line);
@@ -3255,7 +3276,9 @@
  * sits on the card through :has(.ds-card__action:focus-visible), so a
  * ripple's clip never cuts it), the press morph (the radius goes to
  * --ds-radius-card-pressed in --ds-dur-micro and springs back over
- * --ds-dur-medium) and the ripple (js/ripple.js). Nothing moves on hover:
+ * --ds-dur-medium) and the ripple (js/ripple.js); a disabled or
+ * aria-disabled card shows no hover or press layer and does not morph (an
+ * aria-disabled one keeps its focus layer). Nothing moves on hover:
  * no lift, no scale; a theme may give it a shadow through
  * --ds-card-hover-shadow (default none; for example var(--ds-elev-hover)),
  * in over --ds-dur-medium, out over --ds-dur-base. In forced colours every
@@ -3386,6 +3409,22 @@
   .ds-card--interactive.ds-pressed::before {
     opacity: var(--ds-state-pressed);
     transition-duration: var(--ds-dur-micro);
+  }
+
+  /* A blocked card (disabled, aria-disabled) shows neither hover nor press,
+     like its morph below; an aria-disabled card keeps its focus layer. */
+  @media (hover: hover) {
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]):hover::before {
+      opacity: 0;
+    }
+  }
+
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  .ds-card--interactive[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))::before {
+    opacity: var(--ds-state-focus);
   }
 
   /* The press morph: squarer while pressed (never rounder than at rest),
@@ -3549,7 +3588,7 @@
  *   <div class="ds-tiles">
  *     <div class="ds-tile">
  *       <p class="ds-tile__label">[icon] <span>Open items</span></p>
- *       <p class="ds-tile__value" data-count="128">128</p>
+ *       <p class="ds-tile__value">128</p>
  *       <p class="ds-tile__note">+12 this week</p>
  *
  * The value never wraps and never takes a colour: on narrow tiles it gets
@@ -3561,7 +3600,9 @@
  * from the first frame and snaps from offset + width to the offset
  * (outline-offset, --ds-dur-fast); no lift, no scale. While pressed it
  * turns squarer (16px to --ds-tile-radius-pressed, 12px) in
- * --ds-dur-micro and springs back over --ds-dur-medium, like a card.
+ * --ds-dur-micro and springs back over --ds-dur-medium, like a card. A
+ * disabled or aria-disabled tile shows no hover or press layer and does
+ * not morph; an aria-disabled one keeps its focus layer.
  *
  * Values (docs/motion.md, "Data motion"): every new value goes through
  * DS.motion.countUp(el, next), which counts from the figure on screen
@@ -3693,6 +3734,22 @@
   :is(button, a).ds-tile.ds-pressed::before {
     opacity: var(--ds-state-pressed);
     transition-duration: var(--ds-dur-micro);
+  }
+
+  /* A blocked tile (disabled, aria-disabled) shows neither hover nor press,
+     like its morph above; an aria-disabled tile keeps its focus layer. */
+  @media (hover: hover) {
+    :is(button, a).ds-tile:is(:disabled, [aria-disabled="true"]):hover::before {
+      opacity: 0;
+    }
+  }
+
+  :is(button, a).ds-tile:is(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  :is(button, a).ds-tile[aria-disabled="true"]:focus-visible::before {
+    opacity: var(--ds-state-focus);
   }
 
   :is(button, a).ds-tile:focus-visible {
@@ -4470,8 +4527,9 @@
   }
 
   /* Selected rows (bulk selection): the checkbox in the row is the cue
-     that does not rely on colour. Two rules, so an engine without :has()
-     keeps the class. */
+     that does not rely on colour. Two rules: the class marks a row on its
+     own (set by the page), and the :has() rule picks up a row whose
+     checkbox is checked. */
   .ds-table tbody tr.ds-table__row--selected {
     background-color: var(--ds-table-row-selected, var(--ds-accent));
   }
@@ -4901,7 +4959,9 @@
  * native input (appearance: none, no wrapper; the section below) with a
  * halo for hover, press and focus; they and radio cards take the outline
  * ring of every other control, solid from the first frame and snapping
- * from offset + width to the offset (outline-offset, --ds-dur-fast).
+ * from offset + width to the offset (outline-offset, --ds-dur-fast). A
+ * radio card's input has no halo: the card's own layer is its hover,
+ * press and (with the ring, at once) focus layer (--ds-state-focus).
  * Chips and the switch have files of their own.
  *
  *   <label class="ds-check"><input type="checkbox" name="managed"> Managed</label>
@@ -5106,7 +5166,13 @@
     border: 0;
   }
 
+  /* A layered reset (Bootstrap's reboot) floats a legend, widens it and
+     gives it a margin; ds sets all three, so a group label sits as close to
+     its first option as a field's label to its field. */
   legend.ds-field__label {
+    float: none;
+    width: auto;
+    margin: 0;
     padding: 0;
   }
 
@@ -5483,9 +5549,11 @@
     outline-offset: var(--ds-focus-offset);
   }
 
-  /* Not the table's box: table cells place it themselves. */
+  /* The box adds no margin of its own: rows and table cells place it, the
+     same in every engine (a UA margin would make a table head 49px). */
   .ds-check input,
   .ds-radio input,
+  .ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *)),
   .ds-checkbox,
   .ds-radio-input {
     margin: 0;
@@ -5741,6 +5809,14 @@
     .ds-radio:hover:not(.ds-radio--disabled, :has(input:disabled))::before {
       opacity: var(--ds-state-hover-lg);
     }
+  }
+
+  /* Keyboard focus lays the focus layer under the card's ring (its input
+   * has no halo inside a card). :where(input) keeps the weight of the hover
+   * and press rules, so source order puts the press on top. */
+  .ds-radio:has(:where(input):focus-visible):not(.ds-radio--disabled, :has(input:disabled))::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
   }
 
   .ds-radio:active:not(.ds-radio--disabled, :has(input:disabled)),
@@ -7521,6 +7597,8 @@
     bottom: 0;
     left: 0;
     z-index: var(--ds-z-drawer);
+    /* Out of flow: no rhythm margin from a parent card (.ds-card > * + *). */
+    margin: 0;
     display: flex;
     justify-content: flex-end;
     /* The bleed past the panel's outer edge never makes anything scroll. */
@@ -7938,7 +8016,9 @@
  *                          scrims add up to about 43%. DS.overlay sets it.
  *   .ds-dialog--contained  covers its positioned container instead of the
  *                          window (div markup only: a dialog inside an
- *                          embedded panel)
+ *                          embedded panel); in a container taller than
+ *                          the window the box stays in the visible part
+ *                          (position: sticky)
  *
  * At 600px and below the box moves on --ds-ease-out: a box nearly as wide
  * as the window never overshoots past it.
@@ -7969,6 +8049,9 @@
     z-index: var(--ds-z-dialog);
     display: grid;
     place-items: center;
+    /* Out of flow: no rhythm margin from a parent card (.ds-card > * + *)
+       pushes the cover off its container or the window. */
+    margin: 0;
     padding: var(--ds-space-4);
   }
 
@@ -8002,6 +8085,17 @@
   .ds-dialog--contained {
     position: absolute;
     z-index: var(--ds-z-popover);
+  }
+
+  /* The container may be taller than the window (a long list, a grid cell
+     the host stretches): the box sticks inside the visible part instead of
+     centring below the fold, and stays centred when the container fits. A
+     box taller than the window scrolls inside it. */
+  .ds-dialog--contained .ds-dialog__box {
+    position: sticky;
+    top: var(--ds-space-4);
+    bottom: var(--ds-space-4);
+    max-height: min(100%, calc(100dvh - 2 * var(--ds-space-4)));
   }
 
   .ds-dialog--hidden,
@@ -8080,12 +8174,15 @@
   }
 
   /* Keyframes: markup driven by hand, without data-state. The exit mirrors
-     the entrance, movement-only plus the fade. */
+     the entrance, movement-only plus the fade. The box rises the same
+     --ds-distance-sm as on the state path; the keyframes keep the
+     --ds-dur-medium of the hand path (docs/motion.md rule 3). */
   .ds-dialog:not([data-state]) .ds-dialog__backdrop {
     animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards;
   }
 
   .ds-dialog:not([data-state]) .ds-dialog__box {
+    --ds-motion-distance: var(--ds-distance-sm);
     animation:
       ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
       ds-grow-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
@@ -9906,6 +10003,7 @@
   :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:focus-visible, :has(.ds-card__action:focus-visible)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(:where(input):focus-visible):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);
   }

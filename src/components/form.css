@@ -7,7 +7,9 @@
  * native input (appearance: none, no wrapper; the section below) with a
  * halo for hover, press and focus; they and radio cards take the outline
  * ring of every other control, solid from the first frame and snapping
- * from offset + width to the offset (outline-offset, --ds-dur-fast).
+ * from offset + width to the offset (outline-offset, --ds-dur-fast). A
+ * radio card's input has no halo: the card's own layer is its hover,
+ * press and (with the ring, at once) focus layer (--ds-state-focus).
  * Chips and the switch have files of their own.
  *
  *   <label class="ds-check"><input type="checkbox" name="managed"> Managed</label>
@@ -214,7 +216,13 @@
     border: 0;
   }
 
+  /* A layered reset (Bootstrap's reboot) floats a legend, widens it and
+     gives it a margin; ds sets all three, so a group label sits as close to
+     its first option as a field's label to its field. */
   legend.ds-field__label {
+    float: none;
+    width: auto;
+    margin: 0;
     padding: 0;
   }
 
@@ -591,9 +599,11 @@
     outline-offset: var(--ds-focus-offset);
   }
 
-  /* Not the table's box: table cells place it themselves. */
+  /* The box adds no margin of its own: rows and table cells place it, the
+     same in every engine (a UA margin would make a table head 49px). */
   .ds-check input,
   .ds-radio input,
+  .ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *)),
   .ds-checkbox,
   .ds-radio-input {
     margin: 0;
@@ -849,6 +859,14 @@
     .ds-radio:hover:not(.ds-radio--disabled, :has(input:disabled))::before {
       opacity: var(--ds-state-hover-lg);
     }
+  }
+
+  /* Keyboard focus lays the focus layer under the card's ring (its input
+   * has no halo inside a card). :where(input) keeps the weight of the hover
+   * and press rules, so source order puts the press on top. */
+  .ds-radio:has(:where(input):focus-visible):not(.ds-radio--disabled, :has(input:disabled))::before {
+    opacity: var(--ds-state-focus);
+    transition-duration: 0s;
   }
 
   .ds-radio:active:not(.ds-radio--disabled, :has(input:disabled)),

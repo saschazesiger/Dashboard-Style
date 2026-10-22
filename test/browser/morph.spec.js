@@ -1,7 +1,8 @@
 /**
  * DS.dom.morphHtml() in real engines: patched nodes keep their identity (a
  * progress transition runs), a field re-rendered on every keystroke keeps
- * focus, caret and value, a segmented control keeps its indicator, and a
+ * focus, caret and value (a focused select its option, a focused radio the
+ * choice of its group), a segmented control keeps its indicator, and a
  * keyed reorder takes the moveBefore path where it exists and insertBefore
  * elsewhere (the `fallback` project removes moveBefore) with one result. A
  * re-render during DS.motion.leave() skips an element being removed and
@@ -65,6 +66,44 @@ test('a field re-rendered on every keystroke keeps focus, caret and value', asyn
     };
   });
   expect(state).toEqual({ same: true, focused: true, value: 'LAPTOP-0042', attribute: 'LAPTOP-0042', caret: [9, 9], hint: '11 of 20 characters' });
+});
+
+test('a focused select keeps the option the user picked through a re-render that selects another', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.fxRender = (selected) => DS.dom.morphHtml(document.getElementById('form'), `<div class="ds-field"><label class="ds-field__label" for="fx-select">Plan</label><select class="ds-input" id="fx-select">${['a', 'b', 'c'].map((value) => `<option value="${value}"${value === selected ? ' selected' : ''}>${value}</option>`).join('')}</select></div>`);
+    window.fxRender('b');
+  });
+  await page.locator('#fx-select').focus();
+  await page.locator('#fx-select').selectOption('c');
+  const state = await page.evaluate(() => {
+    window.fxRender('a');
+    const kept = { value: document.getElementById('fx-select').value, focused: document.activeElement?.id };
+    // Once focus has left, the next render brings the rendered choice.
+    document.getElementById('fx-select').blur();
+    window.fxRender('b');
+    return { ...kept, after: document.getElementById('fx-select').value };
+  });
+  expect(state).toEqual({ value: 'c', focused: 'fx-select', after: 'b' });
+});
+
+test('a focused radio keeps the choice of its group through a re-render that checks another', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.fxRender = (checked) => DS.dom.morphHtml(document.getElementById('form'), `<div class="ds-radios" role="radiogroup" aria-label="Plan">${['a', 'b', 'c'].map((value) => `<label class="ds-radio"><input type="radio" name="fx-plan" id="r-${value}" value="${value}"${value === checked ? ' checked' : ''}><span><strong>${value}</strong></span></label>`).join('')}</div>`);
+    window.fxRender('b');
+  });
+  await page.locator('#r-b').focus();
+  await page.keyboard.press('ArrowDown');
+  const state = await page.evaluate(() => {
+    const picked = { focused: document.activeElement?.id, checked: document.querySelector('[name="fx-plan"]:checked')?.id };
+    window.fxRender('a');
+    const kept = { focused: document.activeElement?.id, checked: document.querySelector('[name="fx-plan"]:checked')?.id };
+    document.activeElement.blur();
+    window.fxRender('b');
+    return { picked, kept, after: document.querySelector('[name="fx-plan"]:checked')?.id };
+  });
+  expect(state).toEqual({ picked: { focused: 'r-c', checked: 'r-c' }, kept: { focused: 'r-c', checked: 'r-c' }, after: 'r-b' });
 });
 
 test('a morphed segmented control keeps its indicator, and update() then glides', async ({ page }) => {

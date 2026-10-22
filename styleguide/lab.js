@@ -956,8 +956,8 @@
     id: 'roll',
     group: 'keyframes',
     title: 'Rolling status line',
-    note: '<code>DS.motion.roll()</code> on a status line (a <code>.ds-swap</code> slot): the old line leaves upwards (<code>ds-roll-out</code>, fast, accelerating) while the new one comes up from below on the spring (<code>ds-roll-in</code>). A roll during a roll continues from where each line is.',
-    shows: ['ds-roll-in', 'ds-roll-out', 'DS.motion.roll', '.ds-swap', '--ds-dur-fast', '--ds-dur-medium', '--ds-ease-spatial', '--ds-ease-exit'],
+    note: '<code>DS.motion.roll()</code> on a status line (a <code>.ds-swap</code> slot): the old line leaves upwards (<code>ds-roll-out</code>, fast, accelerating), and once it is half out the new one comes up from below on the spring (<code>ds-roll-in</code> after <code>--ds-enter-delay</code>, half of <code>--ds-dur-fast</code>), so the two lines never cover each other. A roll during a roll continues from where each line is.',
+    shows: ['ds-roll-in', 'ds-roll-out', 'DS.motion.roll', '.ds-swap', '--ds-dur-fast', '--ds-dur-medium', '--ds-ease-spatial', '--ds-ease-in', '--ds-enter-delay'],
     html: '<p class="sg-roll" id="sg-roll" aria-live="polite">' + ROLL[0] + '</p>',
     controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-roll="twice">Roll twice, 80ms apart</button></div>',
     setup: function (stage, sg) {
@@ -2940,12 +2940,16 @@
   });
 
   /* The order of the cards inside each section (entries not named keep
-     their place after these). */
-  var ORDER = ['enter-leave', 'interrupt', 'stagger', 'stagger-once', 'reveal', 'swap', 'disclosure',
+     their place after these). Half-width cards come in pairs before a wide
+     card, so none sits alone beside an empty column; an odd one goes last
+     in its section. */
+  var ORDER = ['enter-leave', 'reveal', 'interrupt', 'stagger', 'stagger-once', 'disclosure', 'swap',
     'draw', 'roll', 'scan', 'ring', 'press-ripple', 'pop', 'clip',
     'count', 'data-list', 'morph', 'settle-loader',
-    'press', 'focus', 'busy', 'icon-swap', 'chips', 'switch', 'checks', 'validation',
-    'track', 'drawer', 'segmented', 'topbar'];
+    'press', 'focus', 'busy', 'icon-swap', 'chips', 'switch', 'validation', 'checks',
+    'track', 'drawer', 'segmented', 'topbar',
+    'loaders', 'progress', 'indeterminate', 'status', 'skeleton', 'stale', 'table', 'tiles', 'alerts',
+    'views', 'scroll', 'view-leaving'];
   LAB_DEMOS = LAB_DEMOS.map(function (entry, index) { return { entry: entry, index: index }; }).sort(function (a, b) {
     var rank = function (item) { var at = ORDER.indexOf(item.entry.id); return at === -1 ? ORDER.length + item.index : at; };
     return rank(a) - rank(b);

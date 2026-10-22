@@ -260,7 +260,8 @@
         '<span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Running</span></span>' +
         '<span class="ds-status">' + icon('clock', 16) + '<span>Waiting</span></span>' +
         '<span class="ds-status">' + icon('ban', 16) + '<span>Off</span></span></div>' +
-        '<div class="sg-row"><span id="sg-status-poll">' + pollChip(0) + '</span><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="status-poll" aria-pressed="false">Poll every 1.5s</button></div>' +
+        // The toggle first: the chip changes width on every tick, and the button the user presses again must not move.
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="status-poll" aria-pressed="false">Poll every 1.5s</button><span id="sg-status-poll">' + pollChip(0) + '</span></div>' +
         '<p class="ds-muted">A polled chip, rendered with DS.dom.morphHtml: the kept chip changes colour over 250ms, an icon that comes in new fades in and springs up, the word changes at once.</p>') +
       card('Alerts',
         '<div class="sg-alerts" id="sg-alerts">' +
@@ -783,8 +784,8 @@
         '<p class="ds-muted">While the share is unknown the bar has no aria-valuenow but an aria-valuetext ("Waiting", "Preparing"); the first share sets aria-valuenow again. The segments stop and fade out, and the bar grows from 0 to its share.</p>') +
       '</div>' +
       '<div class="ds-grid-2">' +
-      card('Page skeleton', '<div id="sg-skeleton-stage">' + skeletonHtml() + '</div>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="skeleton">Load the page</button></div>' +
+      card('Page skeleton', '<div class="sg-stack" id="sg-skeleton-stage">' + skeletonHtml() + offHtml(loadedPageHtml()) + '</div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="skeleton"><span class="sg-stack sg-stack--inline"><span>Load the page</span><span class="sg-off" aria-hidden="true">Show the skeleton again</span></span></button></div>' +
         '<p class="ds-muted">One calm wave passes over every bone at once. Loaded, the page replaces the skeleton with .ds-reveal.</p>') +
       card('Fast and slow loads', '<div class="sg-load-stage" id="sg-load-stage"><p class="ds-muted">Load the device list.</p></div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="load" data-ms="150">Fast (150ms)</button><button class="ds-btn ds-btn--sm" type="button" data-sg="load" data-ms="300">Medium (300ms)</button><button class="ds-btn ds-btn--sm" type="button" data-sg="load" data-ms="1200">Slow (1200ms)</button></div>' +
@@ -831,20 +832,44 @@
   /* Skeleton: the page loads (the skeleton stays at least the loader hold once shown), then .ds-reveal. */
   var skeletonShownAt = Date.now();
 
+  /* Markup in a stack cell that holds its size but is not shown (no motion, not announced, not focusable). */
+  function offHtml(html) {
+    return html.replace(/^<(\w+) class="/, '<$1 aria-hidden="true" inert class="sg-off ');
+  }
+
+  /* Shows one layer of a stack and keeps the others as invisible sizers: the
+     stack is as tall and wide as its largest layer in both states, so the
+     swap moves nothing below it (or the button under the pointer).
+     Removing .sg-off restarts the layer's own entrance (.ds-reveal, the
+     skeleton's delayed fade and wave). */
+  function showLayer(stack, layer) {
+    Array.prototype.forEach.call(stack.children, function (child) {
+      var off = child !== layer;
+      child.classList.toggle('sg-off', off);
+      child.inert = off;
+      if (off) child.setAttribute('aria-hidden', 'true');
+      else child.removeAttribute('aria-hidden');
+    });
+  }
+
   function skeletonDemo(button) {
     var stage = $('#sg-skeleton-stage');
     var skeleton = $('.ds-skeleton', stage);
-    if (!skeleton) {
-      stage.innerHTML = skeletonHtml();
-      skeletonShownAt = Date.now();
-      button.textContent = 'Load the page';
+    var loaded = $('.sg-loaded', stage);
+    var labels = button.querySelector('.sg-stack');
+    if (!skeleton.classList.contains('sg-off')) {
+      if (stage.getAttribute('data-sg-loading') === 'true') return;
+      stage.setAttribute('data-sg-loading', 'true');
+      M.settleLoader(skeletonShownAt, { element: skeleton }).then(function () {
+        stage.removeAttribute('data-sg-loading');
+        showLayer(stage, loaded);
+        showLayer(labels, labels.lastElementChild);
+      });
       return;
     }
-    M.settleLoader(skeletonShownAt, { element: skeleton }).then(function () {
-      if (!skeleton.isConnected) return;
-      stage.innerHTML = loadedPageHtml();
-      button.textContent = 'Show the skeleton again';
-    });
+    showLayer(stage, skeleton);
+    showLayer(labels, labels.firstElementChild);
+    skeletonShownAt = Date.now();
   }
 
   /* Fast and slow loads: a loading line, a fake request, settleLoader(), then the result. */
@@ -946,9 +971,23 @@
     return '<code>' + name + '</code>' + (TIMED.test(name) ? ' <span class="ds-num" data-lab-ms="' + name + '"></span>' : '');
   }
 
+  /* A code label is an inline-block, and an inline-block adds a line break
+     opportunity on each side, even next to "(" or ",": the punctuation
+     touching a label goes into one .sg-glue span with it, which keeps them
+     on one line (the label itself can still wrap inside). */
+  function glue(html) {
+    return html.replace(/([(\[{"']*)(<code>[^<]*<\/code>)([)\]}.,;:!?"']*)/g, function (match, before, code, after) {
+      return before || after ? '<span class="sg-glue">' + before + code + after + '</span>' : match;
+    });
+  }
+
   /* One demo of the registry: stage, the tokens it uses with their ms at the
      current speed, what else it exercises, and its buttons. */
   function labCard(entry) {
+    return glue(labCardHtml(entry));
+  }
+
+  function labCardHtml(entry) {
     var tokens = entry.shows.filter(isToken);
     var others = entry.shows.filter(function (name) { return !isToken(name); });
     return '<article class="ds-card sg-demo' + (entry.wide ? ' sg-demo--wide' : '') + '" data-lab-demo="' + entry.id + '" data-lab-shows="' + esc(entry.shows.join(' ')) + '" data-lab-state="idle" aria-labelledby="lab-' + entry.id + '-title">' +

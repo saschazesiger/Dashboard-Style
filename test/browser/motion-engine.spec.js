@@ -239,6 +239,31 @@ test.describe('focus and state', () => {
     });
     expect(names).toEqual(['ds-fade-in']);
   });
+
+  test('leave(el, v, { then: "hide" }) hides an alert, a button and a chip inside the theme without .ds-base', async ({ page }) => {
+    await open(page);
+    const result = await page.evaluate(async () => {
+      const theme = document.querySelector('.ds-theme');
+      theme.insertAdjacentHTML('beforeend',
+        '<div class="ds-alert ds-alert--info" id="h-alert">Saved</div>'
+        + '<button class="ds-btn" type="button" id="h-btn">Assign</button>'
+        + '<span class="ds-chip" id="h-chip">Laptop</span>');
+      const ids = ['h-alert', 'h-btn', 'h-chip'];
+      await Promise.all(ids.map((id) => DS.motion.leave(document.getElementById(id), '', { then: 'hide' })));
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      return {
+        base: document.documentElement.classList.contains('ds-base') || !!document.querySelector('.ds-base'),
+        hidden: Object.fromEntries(ids.map((id) => {
+          const el = document.getElementById(id);
+          return [id, { hidden: el.hidden, display: getComputedStyle(el).display, inert: el.inert }];
+        })),
+      };
+    });
+    expect(result).toEqual({
+      base: false,
+      hidden: Object.fromEntries(['h-alert', 'h-btn', 'h-chip'].map((id) => [id, { hidden: true, display: 'none', inert: false }])),
+    });
+  });
 });
 
 test.describe('waiting and timing', () => {

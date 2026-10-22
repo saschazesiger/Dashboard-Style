@@ -161,6 +161,25 @@ describe('repository', () => {
     for (const name of NOT_HOOKS.keys()) assert.ok(stripComments(css.map(read).join('\n')).includes(name), `NOT_HOOKS names ${name}, which src/ never reads`);
   });
 
+  it('guards every element of the documented component markup in the embedded-widget rule of docs/theming.md', () => {
+    // Host element rules (a reboot) beat ds.css by layer: the guard hands every element the markup uses back to it.
+    const names = new Set([...read('docs/components.md').matchAll(/```html\n([\s\S]*?)```/g)]
+      .flatMap((block) => [...block[1].matchAll(/<([a-z][a-z0-9]*)\b/g)].map((match) => match[1])));
+    const EXEMPT = new Map([
+      ['html', 'the page, not the widget'], ['body', 'the page, not the widget'],
+      ['div', 'no UA style that a reset changes'], ['span', 'no UA style that a reset changes'],
+      ['svg', 'icons keep their own attributes'], ['path', 'an icon shape'], ['form', 'no UA style the components rely on'],
+      ['tbody', 'table structure: the cells carry the styles'], ['thead', 'table structure: the cells carry the styles'],
+      ['tr', 'table structure: the cells carry the styles'], ['option', 'native select options'],
+    ]);
+    const theming = read('docs/theming.md');
+    const guard = /\.ds-theme\.my-widget :where\(([^)]*)\)\s*\{\s*all: revert-layer;/.exec(theming)?.[1];
+    assert.ok(guard, 'the guard rule in docs/theming.md');
+    const guarded = new Set(guard.split(',').map((name) => name.trim()));
+    assert.ok(names.has('legend') && names.has('summary'), 'the walk finds the markup');
+    assert.deepEqual([...names].filter((name) => !guarded.has(name) && !EXEMPT.has(name)).sort(), []);
+  });
+
   it('lists every @keyframes once in the docs/motion.md keyframe table, unused kept names marked deprecated', () => {
     const motion = read('src/motion.css');
     const names = [...stripComments(motion).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
@@ -308,6 +327,29 @@ describe('repository', () => {
       }
     }
     assert.deepEqual(offenders, []);
+  });
+
+  it('lists the same progressive features in README.md and AGENTS.md', () => {
+    const ticked = (text) => [...text.replace(/\s+/g, ' ').matchAll(/`([^`]+)`/g)].map((match) => match[1]).sort();
+    const agents = read('AGENTS.md').match(/\(tested\): (`linear\(\)`[\s\S]*?)JS is ES2022/)?.[1] ?? '';
+    const readme = read('README.md').match(/with its fallback: (`linear\(\)`[\s\S]*?)Older browsers/)?.[1] ?? '';
+    assert.ok(agents && readme, 'both lists found');
+    assert.deepEqual(ticked(readme), ticked(agents));
+  });
+
+  it('names every data: mask of src/ in the CSP note of install.md (a blocked mask hides what it covers)', () => {
+    const note = read('docs/install.md').split('\n\n').find((paragraph) => paragraph.includes('img-src')) ?? '';
+    const missing = [];
+    for (const file of filesIn('src', (path) => path.endsWith('.css'))) {
+      const source = stripComments(read(file));
+      if (!source.includes('url("data:')) continue;
+      if (file.endsWith('tokens.css')) {
+        // A token that holds the mask: its name is what a project can look up.
+        for (const match of source.matchAll(/(--ds-[\w-]+):\s*url\("data:/g)) if (!note.includes(`\`${match[1]}\``)) missing.push(match[1]);
+      } else if (!note.includes(`\`${posix.basename(file)}\``)) missing.push(file);
+    }
+    assert.ok(note, 'docs/install.md has a paragraph on img-src');
+    assert.deepEqual(missing, []);
   });
 
   it('keeps links between the docs working', () => {

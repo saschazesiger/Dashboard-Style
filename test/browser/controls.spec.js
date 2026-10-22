@@ -422,6 +422,29 @@ test.describe('focus', () => {
     expect(await button.evaluate((el) => Number(getComputedStyle(el, '::before').opacity))).toBeCloseTo(0.1, 3);
   });
 
+  test('a radio card lays the focus layer under its ring (its input has no halo), also under a key press', async ({ page }) => {
+    await open(page, { attach: true });
+    // Tab reaches a radio group at its checked radio.
+    const input = page.locator('#radio-standard');
+    await focusByKeyboard(page, input);
+    await settle(page);
+    const read = () => input.evaluate((el) => {
+      const card = el.closest('.ds-radio');
+      return { layer: Number(getComputedStyle(card, '::before').opacity), outline: getComputedStyle(card).outlineStyle, halo: getComputedStyle(el).boxShadow, pressed: card.matches('.ds-pressed, :active') };
+    });
+    const focused = await read();
+    expect(focused.layer).toBeCloseTo(0.1, 3);
+    expect(focused.outline).toBe('solid');
+    expect(focused.halo).toBe('none');
+    // A key press keeps the focus layer under the ripple (ripple.css), as on a button.
+    await page.keyboard.down('Space');
+    await settle(page);
+    const pressed = await read();
+    await page.keyboard.up('Space');
+    expect(pressed.pressed, 'the key press reached the card').toBe(true);
+    expect(pressed.layer).toBeCloseTo(0.1, 3);
+  });
+
   test('a focused .ds-enter button runs its entrance and the outline-offset transition together', async ({ page }) => {
     await open(page, { query: '?speed=0.1' });
     await inject(page, '<p><button class="ds-btn" type="button" id="x-before">Back</button> <button class="ds-btn ds-enter" type="button" id="x-enter">Retry</button></p>');

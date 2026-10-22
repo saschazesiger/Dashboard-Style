@@ -318,7 +318,7 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 
 - Every action is a pill. One filled `--primary` per area; there are no red buttons (name the consequence:
   "Delete 3 devices").
-- A leading icon pulls the start padding to 12px (where `:has()` exists).
+- A leading icon pulls the start padding to 12px.
 - A toggle that is on carries `aria-pressed="true"` and shows the tint (forced colors: the selection colours).
   Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
@@ -411,6 +411,8 @@ A whole card that opens something (1.4):
   first frame and snaps to its offset (on the `<div>` form the card draws it through
   `:has(.ds-card__action:focus-visible)`, so the clip of a ripple never cuts it).
 - The press morph: the radius goes to `--ds-radius-card-pressed` (12 to 8px) and springs back on release.
+- A disabled or `aria-disabled="true"` card shows no hover or press layer and does not morph; an `aria-disabled` card
+  keeps its focus layer.
 - Nothing moves on hover, no lift and no scale. A theme may add a shadow on hover with `--ds-card-hover-shadow`
   (default none; for example `var(--ds-elev-hover)`), in over `--ds-dur-medium`, out over `--ds-dur-base`.
 - In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring.
@@ -423,12 +425,17 @@ A whole card that opens something (1.4):
 <div class="ds-tiles">
   <div class="ds-tile">
     <p class="ds-tile__label">[icon alert 16]<span>Overdue</span></p>
-    <p class="ds-tile__value" data-count="12">12</p>
+    <p class="ds-tile__value">12</p>
     <p class="ds-tile__note">3 more than last week</p>
   </div>
   ... (four per row, two below 1100px)
 </div>
 ```
+
+`DS.motion.countUp()` never takes the target from the markup. It counts from the figure it last wrote (or one a
+re-render wrote since, read back through `format`), and on its first call from 0. So keep the raw value in your own
+state (the styleguide demo keeps it in a data attribute of its own), and pass `{ from: <the value in the markup> }`
+on the first update of a tile rendered with its figure if it should count on rather than from 0.
 
 The value never takes a colour and never wraps (it shrinks on narrow tiles). Every new value goes through
 `DS.motion.countUp(el, next)`: it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
@@ -446,7 +453,8 @@ note.textContent = `${failed} failed`;                             // at once
 
 A tile that opens something is a `<button class="ds-tile">` or `<a class="ds-tile">` with `<span>`s instead of the
 `<p>`s: a 6% state layer, the focus ring, the ripple, and the press morph (16 to 12px, `--ds-tile-radius-pressed`,
-springing back on release); no lift, no scale.
+springing back on release); no lift, no scale. A disabled or `aria-disabled="true"` tile shows no hover or press
+layer and does not morph; an `aria-disabled` tile keeps its focus layer.
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
 
@@ -632,6 +640,10 @@ their text through each other (1.6.1). `live`
 is only for polled updates; sorting and filtering are user actions. More in
 [motion.md](motion.md#data-motion).
 
+With live data, a column whose content changes width (a status chip, a figure that gains a digit) gets a stable
+width (a `min-width` on its `th`, or a `<col>`), so the columns do not shift sideways when a value changes: `flip()`
+moves rows only vertically, and automatic table layout re-divides the widths on every change.
+
 ### Interactive, selected and expandable rows
 
 ```html
@@ -756,8 +768,9 @@ is only for polled updates; sorting and filtering are user actions. More in
   touch screens a tap grows it from the centre (inputs get no ripple). `aria-invalid="true"` draws the box in the
   error colour; disabled boxes take `--ds-disabled-ink`. Forced colours: system colours, no halo.
 - Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
-  (`--ds-radius-card-pressed`), springing back on release; `.ds-radio--disabled` and a card whose input is disabled
-  have none.
+  (`--ds-radius-card-pressed`), springing back on release; keyboard focus rings the whole card and lays the focus
+  layer (`--ds-state-focus`) at once (its input has no halo); `.ds-radio--disabled` and a card whose input is
+  disabled have none.
 
 **Toolbar, search, filters, inline form**
 
@@ -992,8 +1005,9 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
 
 - Open and close with `DS.overlay.open(dialog, { opener: button })` and `DS.overlay.close(dialog)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): focus moves in at once (`autofocus` marks the intended first focus,
-  Cancel in a destructive `alertdialog`; else the first focusable element), the page is inert, Escape and
-  `[data-close]` close, the scroll lock counts (it stops the page from scrolling with `.ds-base`; without it, in an
+  Cancel in a destructive `alertdialog`; else the first focusable element), the page is inert (the div markup in a
+  shadow root makes the host page inert too, and so are elements the page adds while it is open), Escape and
+  `[data-close]` close, the scroll lock counts (it stops the page from scrolling with `.ds-base` on `<html>`; not in an
   embedded widget, see [theming.md](theming.md), "Embedded in someone else's page"), and focus is back on the opener in the frame of the close. The dialog
   must sit inside the `.ds-theme` element (`DS.overlay` warns otherwise).
 - Motion: the scrim fades while the box fades, grows from `--ds-scale-enter` and rises `--ds-distance-sm` on the
@@ -1019,8 +1033,9 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
 - `.ds-dialog--contained` covers the nearest positioned ancestor instead of the window (a dialog inside an embedded
   panel; div markup only). `DS.overlay` traps focus and input within that container only and takes no scroll lock
   (1.6.1), and Escape closes it only when pressed inside the container: the host page around the widget keeps its
-  input, its scroll and its own Escape (its dialogs, its search fields). Its z-index is the host page's business:
-  [theming.md](theming.md), "Embedded in someone else's page".
+  input, its scroll and its own Escape (its dialogs, its search fields). In a container taller than the window the
+  box stays in the visible part (`position: sticky`), so it never opens below the fold. Its z-index is the host
+  page's business: [theming.md](theming.md), "Embedded in someone else's page".
 
 **Motion:** the "Scrim", "Dialog", "Nested dialog" and "Dialog on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
 
@@ -1119,7 +1134,7 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
   `toast()` adds two `.ds-sr` live regions next to the region (polite, and assertive for errors) and writes each
   message's text there.
 - **Dialogs and side sheets.** While a dialog or side sheet is open (`DS.overlay.open()`), the regions of its theme
-  move into it, so a message shown meanwhile (an error from the dialog's action) is above the scrim, announced and
+  (not one inside a nested `.ds-theme`, an embedded widget's: it stays in its widget) move into it, so a message shown meanwhile (an error from the dialog's action) is above the scrim, announced and
   usable: in the top layer of a native one, outside the inert page of the div markup. In a sheet the messages glide
   with the panel's edge (`data-follow="enter"` and `"exit"` time the glide like the sheet); in a dialog they keep
   their place. Closing brings them back: they glide to their place while still inside the leaving dialog or sheet
@@ -1150,7 +1165,7 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
 ```
 
 ```js
-const tips = DS.overlay.tooltips(document);   // one call per page (or per root element); tips.destroy() undoes it
+const tips = DS.overlay.tooltips(document);   // one call per page (or per root element or shadow root); tips.destroy() undoes it
 ```
 
 `tooltips(root)` serves every `[data-tip]` inside `root` with one `<div class="ds-tooltip" role="tooltip">` that it
@@ -1207,8 +1222,10 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 </div>
 ```
 
-Every loader fades in only after `--ds-delay-loader` (`.ds-boot` after `--ds-delay-boot`), so fast loads show
-nothing; keep a visible one up with `DS.motion.settleLoader(startedAt, { element })`. Delays never stack: a loader
+Every loader except the bare arc spinner fades in only after `--ds-delay-loader` (`.ds-boot` after
+`--ds-delay-boot`), so fast loads show nothing; keep a visible one up with
+`DS.motion.settleLoader(startedAt, { element })`. A `.ds-spinner` turns at once; delay it through `.ds-loading`, a
+busy button or `<span class="ds-enter ds-enter--delayed">`. Delays never stack: a loader
 inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a skeleton, have no fade of their own.
 
 - **Shape loader** (`.ds-loader`): the block loader. A shape morphs through the seven M3 shapes, each step landing
@@ -1315,7 +1332,10 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
   row or `<div>` card (a plain link, a field, a label) is that control's own and ripples neither;
   `data-ds-ripple="off"` on a host or an ancestor opts out. Not hosts, by design: inline links (`.ds-link-btn`,
   links in text), the switch, `.ds-check` rows and checkbox or radio inputs (their halo is the press), combobox
-  options (pointer-down selects and closes the list; the state layer is the feedback) and native field parts. Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
+  options (pointer-down selects and closes the list; the state layer is the feedback), native field parts, the brand
+  link (`.ds-brand`: the home link in the top bar is identity, not a control, so like a link in text it has no state
+  layer, ripple or morph) and the skip link (`.ds-skip`: keyboard-only, shown while focused; its focus ring is the
+  feedback). Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
   (zero specificity, so a host's own `position` wins; at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
   whose input is disabled, also by its `<fieldset>`, or `.ds-radio--disabled`) get no ripple, and neither does a press with a pointer button other than the primary one (a right or middle click) or from a non-primary pointer (a second finger).
 - The ripple is `<span class="ds-press-ripple" aria-hidden="true" data-ds-keep>` with the runtime properties

@@ -51,7 +51,7 @@ fixed and the tests learn to prove motion in real browsers.
 | D26 | New parts | Clickable card (`.ds-card--interactive`), selectable table rows (bulk selection), expandable table rows, a menu component (`.ds-menu`). |
 | D27 | Language | All repository content stays English and project-neutral. |
 | D28 | Engines | Firefox 128 ESR (so `@property` is baseline) and Chrome/Edge 111. |
-| D29 | Layout sizes | Sizes that push layout (chip width, validation message room, expandable rows, `.ds-collapsible`) never overshoot: they land on `--ds-ease-out`. Springs with overshoot only for movement that floats (translate, scale, clip-path). |
+| D29 | Layout sizes | Sizes that push layout (chip width, validation message room, expandable rows, `.ds-collapsible`) never overshoot: they open on `--ds-ease-out` and close on `--ds-ease-out` or `--ds-ease-in`, never on a curve that overshoots. Springs with overshoot only for movement that floats (translate, scale, clip-path). |
 | D30 | VT fallback | Without View Transitions the new view fades through (`.ds-enter--swap`), without a shared element. |
 | D31 | Release | **P1 and P2 ship together as 1.0.0**: every break and every behaviour change in one release with one migration section. Every 1.x after it is additive. |
 | D32 | Snackbar queue | See D19. |
@@ -128,7 +128,8 @@ these named exceptions (tested by an allowlist): `rotate` for spinners, loaders,
 `border-radius` for the press morph; `outline-offset` for the focus snap (a transition, never a keyframe, so it cannot
 take over an element's `animation`); `stroke-dashoffset` for drawn checks; `mask-position` for the travelling progress wave;
 `width` of the chip check slot; height of `.ds-collapsible`, the validation message room and expandable rows
-(`grid-template-rows` or `interpolate-size`, on `--ds-ease-out`); the `min-height` of a `flip()` container shrinking
+(`grid-template-rows`, or `height` through `interpolate-size`; opening on `--ds-ease-out`, closing on `--ds-ease-out`
+or the accelerating `--ds-ease-in`, never a spring); the `min-height` of a `flip()` container shrinking
 after its removed items left (WAAPI, on `--ds-ease-out`, D29). Never `transition: all`, never `font-weight`.
 
 Hover never moves anything (D14). Nothing scales on press except the switch handle (D6); the press feedback is ripple,

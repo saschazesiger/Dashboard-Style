@@ -102,6 +102,21 @@ class FakeElement extends EventTarget {
     return this.parentElement;
   }
 
+  get nextSibling() {
+    const siblings = this.parentElement?.children;
+    return siblings ? siblings[siblings.indexOf(this) + 1] ?? null : null;
+  }
+
+  insertBefore(node, reference) {
+    node.parentElement?.children.splice(node.parentElement.children.indexOf(node), 1);
+    node.parentElement = this;
+    node.isConnected = true;
+    const at = reference ? this.children.indexOf(reference) : -1;
+    if (at < 0) this.children.push(node);
+    else this.children.splice(at, 0, node);
+    return node;
+  }
+
   get firstChild() {
     return this.children[0] ?? null;
   }
@@ -580,6 +595,23 @@ describe('js/motion', () => {
       assert.ok(container.children.every((child) => String(child.classList) === '' && child.style.getPropertyValue('--ds-i') === ''));
       await staggerOnce(container);
       assert.equal(String(container.children[0].classList), '', 'a refresh never staggers');
+    });
+
+    it('staggerOnce() leaves out data-ds-keep helpers (the data-scrolled sentinel)', async () => {
+      const doc = fakeDocument();
+      const view = new FakeElement(doc);
+      const sentinel = new FakeElement(doc);
+      sentinel.setAttribute('data-ds-keep', '');
+      sentinel.setAttribute('aria-hidden', 'true');
+      const content = [new FakeElement(doc), new FakeElement(doc)];
+      view.append(sentinel, ...content);
+      const first = staggerOnce(view);
+      assert.equal(String(sentinel.classList), '', 'the sentinel plays no entrance');
+      assert.equal(sentinel.style.getPropertyValue('--ds-i'), '');
+      assert.deepEqual(content.map((item) => item.style.getPropertyValue('--ds-i')), ['0', '1'], 'the content takes the first step');
+      assert.equal(String(content[0].classList), 'ds-enter ds-enter--swap');
+      content.forEach((child) => end(child));
+      await first;
     });
 
     it('enter() then leave() removes the element once, without the enter variant', async () => {
@@ -1082,8 +1114,9 @@ describe('js/motion', () => {
         const z = (name) => items.get(name).style.zIndex;
         assert.equal(container.style.isolation, 'isolate', 'no rank reaches past the list');
         assert.equal(items.get('d').style.position, 'relative');
-        assert.equal(z('d'), '4', 'the farthest travel on top');
-        assert.deepEqual(['a', 'b', 'c'].map(z).sort(), ['1', '2', '3']);
+        // From one above --ds-z-raised: controls an item lifts to --ds-z-raised stay under every gliding item.
+        assert.equal(z('d'), '5', 'the farthest travel on top');
+        assert.deepEqual(['a', 'b', 'c'].map(z).sort(), ['2', '3', '4']);
         // A second call mid-flight: d's glide is cancelled and d is raised again, not lowered.
         flip(container, order('a', 'd', 'b', 'c'));
         await flushPromises();
@@ -1097,6 +1130,14 @@ describe('js/motion', () => {
           assert.equal(z(name), undefined, name);
           assert.equal(items.get(name).style.position, undefined, name);
         }
+      });
+
+      it('a child that mutate removed itself goes back where it was for its exit, not at the end', () => {
+        const { container, items } = list(['a', 'b', 'c', 'd']);
+        // a and b (neighbours) and d (the last) leave; the order of their nodes stays.
+        flip(container, () => ['a', 'b', 'd'].forEach((name) => items.get(name).remove()));
+        assert.deepEqual(container.children.map((item) => item.textContent), ['a', 'b', 'c', 'd']);
+        for (const name of ['a', 'b', 'd']) assert.equal(items.get(name).style.getPropertyValue('position'), 'absolute', name);
       });
 
       it('moves without motion above `max` moving items', () => {

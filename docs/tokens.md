@@ -35,7 +35,7 @@ through `DS.motion` (or let the engine resolve the `calc()`), not with `parseInt
 | `--ds-state-dragged` | .16 | dragged |
 | `--ds-state-disabled` | .38 | disabled controls in a dimming theme (`--ds-disabled-opacity: var(--ds-state-disabled)`); the fallback of `--ds-disabled-opacity` |
 | `--ds-state-stale` | .55 | `.ds-stale`: content about to be replaced |
-| `--ds-state-pulse` | .45 | the dimmest point of the deprecated `ds-pulse` |
+| `--ds-state-pulse` | .45 | **deprecated** (removed in 2.0) with `ds-pulse`: the dimmest point of that loop; skeletons run the wave |
 
 ### Progress waves
 

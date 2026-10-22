@@ -93,18 +93,26 @@ test.describe('fixed in P2', () => {
     expect(shown.values.at(-1)).toBe(shown.final);
   });
 
-  test('"leave sink" then "enter scale" 100ms later never flashes the card', async ({ page }) => {
+  test('"leave sink" then "enter scale" mid-exit never flashes the card', async ({ page }) => {
     await open(page, { path: LAB });
     const opacity = await page.evaluate(async () => {
       const card = document.getElementById('sg-motion-card');
       const values = [];
+      let entered = false;
       document.querySelector('[data-leave="sink"]').click();
-      setTimeout(() => document.querySelector('[data-enter="scale"]').click(), 100);
       const start = performance.now();
       await new Promise((resolve) => {
         const frame = (now) => {
-          values.push(Number(getComputedStyle(card).opacity));
-          if (now - start < 1200) requestAnimationFrame(frame);
+          const value = Number(getComputedStyle(card).opacity);
+          values.push(value);
+          // Interrupt once the exit has visibly started, however late the frames come (not on a timer), and
+          // sample until the card has settled (not for a fixed time): a loaded machine cannot pass or fail it.
+          if (!entered && value < 0.9) {
+            entered = true;
+            document.querySelector('[data-enter="scale"]').click();
+          }
+          const settled = entered && value === 1 && card.getAnimations().length === 0;
+          if (!settled && now - start < 10000) requestAnimationFrame(frame);
           else resolve();
         };
         requestAnimationFrame(frame);

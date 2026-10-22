@@ -121,6 +121,19 @@ const TRAVEL_FULL_PX = 480;
 /** Highest stagger index: 30ms × at most six steps (0…5), the motion rule. */
 export const STAGGER_MAX = 5;
 
+/**
+ * The focused element as seen from `node`'s tree: inside a shadow root its
+ * own activeElement (document.activeElement is the shadow host there, so a
+ * widget in a shadow root would never see its own focus), else the
+ * document's.
+ * @param {any} node
+ * @returns {any}
+ */
+function activeIn(node) {
+  const root = node?.getRootNode?.();
+  return (root?.nodeType === 11 ? root.activeElement : null) ?? node?.ownerDocument?.activeElement ?? null;
+}
+
 /* ── Timing from tokens ─────────────────────────────── */
 
 /**
@@ -789,15 +802,15 @@ function play(element, classes, leaving, state) {
  * tabindex="-1" (a view); else focus is dropped.
  */
 function releaseFocus(element, focus, state) {
-  const doc = element.ownerDocument;
-  const active = doc?.activeElement;
+  const active = activeIn(element);
   if (!active || !element.contains?.(active)) return;
   const usable = (node) => Boolean(node) && node.isConnected !== false && !element.contains(node)
     && typeof node.focus === 'function' && !node.closest?.('[inert]');
   const wanted = typeof focus === 'function' ? focus() : focus;
   const target = [wanted, state.opener, element.parentElement?.closest?.('[tabindex="-1"]')].find(usable);
   if (target) target.focus({ preventScroll: true });
-  if (element.contains(doc.activeElement)) doc.activeElement.blur?.();
+  const still = activeIn(element);
+  if (still && element.contains(still)) still.blur?.();
 }
 
 /* ── Classes, waiting, entrances and exits ──────────── */
@@ -999,8 +1012,8 @@ export function enter(element, variant = '') {
   const state = stateOf(element);
   const gen = ++state.gen;
   const doc = element.ownerDocument;
-  const active = doc?.activeElement;
-  state.opener = active && active !== doc.body && !element.contains?.(active) ? active : null;
+  const active = activeIn(element);
+  state.opener = active && active !== doc?.body && !element.contains?.(active) ? active : null;
   dropStep(element);
   if (/** @type {HTMLElement} */ (element).hidden) /** @type {HTMLElement} */ (element).hidden = false;
   if (/** @type {HTMLElement} */ (element).inert) /** @type {HTMLElement} */ (element).inert = false;
@@ -1145,7 +1158,8 @@ export function enterAll(elements, variant = '', options = {}) {
 
 /**
  * The first-render stagger of a container: enterAll() on its element
- * children that are in view (default variant 'swap': the fade and 4px
+ * children that are in view, not data-ds-keep helpers such as the
+ * data-scrolled sentinel of watchScrolled() (default variant 'swap': the fade and 4px
  * rise of .ds-stagger). It marks the container data-ds-staggered, so later
  * calls (refreshes) resolve at once without motion, and it leaves no
  * classes or `--ds-i` behind.
@@ -1156,7 +1170,10 @@ export function enterAll(elements, variant = '', options = {}) {
 export function staggerOnce(container, options = {}) {
   if (!container || container.hasAttribute('data-ds-staggered')) return Promise.resolve();
   container.setAttribute('data-ds-staggered', '');
-  return enterAll(container.children, options.variant ?? 'swap', { max: options.max ?? STAGGER_MAX, visibleOnly: true });
+  // A kept helper (the 1px sentinel first in a .ds-view) would take the
+  // first step and push the real content one step later.
+  const items = Array.from(container.children).filter((child) => !child.hasAttribute('data-ds-keep'));
+  return enterAll(items, options.variant ?? 'swap', { max: options.max ?? STAGGER_MAX, visibleOnly: true });
 }
 
 /* ── Loaders ────────────────────────────────────────── */
@@ -1593,9 +1610,12 @@ function swap(element, outgoing, incoming, enterHooks, leaveHooks) {
 
 /**
  * Rolls a status line inside `element` (which becomes a .ds-swap slot) to
- * `text`: the old line leaves upwards (ds-fade-out, ds-roll-out on the exit
- * curve, --ds-dur-fast) while the new one comes up from below (ds-fade-in,
- * ds-roll-in on the spring, --ds-dur-medium). A roll during a roll
+ * `text`: the old line leaves upwards (ds-fade-out, ds-roll-out,
+ * accelerating, --ds-dur-fast) and the new one comes up from below
+ * (ds-fade-in, ds-roll-in on the spring, --ds-dur-medium) once the old one
+ * is half out (--ds-enter-delay: half of --ds-dur-fast). The fast-starting
+ * spring would otherwise catch up with the accelerating exit, and the two
+ * lines would cover each other half a line apart. A roll during a roll
  * continues from where each line is; only the last text stays. The same
  * text again changes nothing.
  * @param {Element|null|undefined} element
@@ -1610,7 +1630,7 @@ export function roll(element, text) {
   const line = element.ownerDocument.createElement('span');
   line.textContent = value;
   return swap(element, current, line,
-    { '--ds-enter-keyframes': 'ds-fade-in, ds-roll-in' },
+    { '--ds-enter-keyframes': 'ds-fade-in, ds-roll-in', '--ds-enter-delay': 'calc(var(--ds-dur-fast) / 2)' },
     { '--ds-leave-keyframes': 'ds-fade-out, ds-roll-out' });
 }
 
@@ -1882,7 +1902,9 @@ function unbackContainer(container, state) {
  * Paints a gliding item above the items it crosses: in DOM order an item
  * moving up would pass under every opaque item on its way and seem to
  * vanish. `rank` orders the moving items (the farthest travel on top) from
- * --ds-z-raised; the container is isolated meanwhile, so the ranks never
+ * one above --ds-z-raised, so controls an item lifts to --ds-z-raised (the
+ * checkbox and chevron of an interactive table row) stay under every
+ * gliding item; the container is isolated meanwhile, so the ranks never
  * reach past it (a sticky bar or a menu over the list stays on top). The
  * glide's own translate already makes the item a stacking context and a
  * containing block, so `position: relative` (for a static item) changes
@@ -1903,7 +1925,7 @@ function raise(container, state, item, rank) {
     state.raised += 1;
   }
   const base = parseInt(computed(container)?.getPropertyValue('--ds-z-raised') ?? '', 10);
-  item.style.zIndex = Number.isFinite(base) ? String(base + rank) : 'var(--ds-z-raised)';
+  item.style.zIndex = Number.isFinite(base) ? String(base + 1 + rank) : 'calc(var(--ds-z-raised) + 1)';
 }
 
 /** Gives a raised item (and, after the last one, its container) its inline styles back. */
@@ -2023,14 +2045,18 @@ function landed(container, state, glide = true) {
 
 /**
  * The First of a FLIP: the rect of every item, the direct children among
- * them (only they can come back for an exit) and the container's edges.
- * @returns {{ before: Map<Element, DOMRect>, childrenOf: Set<Element>, frame: { left: number, top: number, right: number, bottom: number } }}
+ * them (only they can come back for an exit), the node after each child of
+ * the container (a child `mutate` took out goes back where it was, so
+ * :first-child and the like keep matching while it leaves) and the
+ * container's edges.
+ * @returns {{ before: Map<Element, DOMRect>, childrenOf: Set<Element>, nextOf: Map<Node, Node | null>, frame: { left: number, top: number, right: number, bottom: number } }}
  */
 function measure(container, selector) {
   const before = new Map();
   for (const item of flipItems(container, selector)) before.set(item, item.getBoundingClientRect());
   const childrenOf = new Set(Array.from(before.keys()).filter((item) => item.parentElement === container));
-  return { before, childrenOf, frame: edges(container.getBoundingClientRect()) };
+  const nextOf = new Map(Array.from(container.childNodes, (node) => [node, node.nextSibling]));
+  return { before, childrenOf, nextOf, frame: edges(container.getBoundingClientRect()) };
 }
 
 /**
@@ -2046,7 +2072,7 @@ function runFlip(container, mutate, options, state, first) {
   const max = options.max ?? 50;
   const view = windowOf(container);
   // First.
-  const { before, childrenOf, frame } = first ?? measure(container, selector);
+  const { before, childrenOf, nextOf, frame } = first ?? measure(container, selector);
   const firstHeight = frame.bottom - frame.top;
   for (const item of before.keys()) {
     glides.get(item)?.cancel();
@@ -2076,14 +2102,23 @@ function runFlip(container, mutate, options, state, first) {
   // What `mutate` took out or put in by itself (not through the hooks): a
   // direct child that left the document fades out of flow where it was (it
   // goes back in, out of flow, for its exit); a new item fades in.
-  for (const [item, rect] of before) {
-    if (item.parentNode || !childrenOf.has(item)) continue;
-    // Back in for its exit only: data-ds-moving for one style flush keeps
-    // its @starting-style entrances (a status icon) from playing (motion.css).
-    item.setAttribute('data-ds-moving', '');
-    container.append(item);
-    void computed(item)?.opacity;
-    item.removeAttribute('data-ds-moving');
+  const back = Array.from(before.keys()).filter((item) => !item.parentNode && childrenOf.has(item));
+  // Back in for its exit only: data-ds-moving for one style flush keeps
+  // their @starting-style entrances (a status icon) from playing
+  // (motion.css). Each goes back before the node that followed it, never at
+  // the end: structural selectors (:first-child, li + li) keep matching, so
+  // its content and dividers do not jump while it fades. Last first, so a
+  // removed neighbour it went before is already back.
+  for (const item of back) item.setAttribute('data-ds-moving', '');
+  for (const item of [...back].reverse()) {
+    let next = nextOf.get(item) ?? null;
+    while (next && next.parentNode !== container) next = nextOf.get(next) ?? null;
+    container.insertBefore(item, next);
+  }
+  if (back.length) void computed(back[0])?.opacity;
+  for (const item of back) item.removeAttribute('data-ds-moving');
+  for (const item of back) {
+    const rect = before.get(item);
     if (!liftable(item)) {
       item.remove();
       continue;
@@ -2155,7 +2190,7 @@ function runFlip(container, mutate, options, state, first) {
 /** A held reorder may run: no mouse or pen over the container, no focus in an item. */
 function held(container, state) {
   if (state.over && (state.pointer === 'mouse' || state.pointer === 'pen')) return true;
-  const active = container.ownerDocument?.activeElement;
+  const active = activeIn(container);
   if (!active || active === container || !container.contains(active)) return false;
   return flipItems(container, state.items).some((item) => item.contains(active));
 }
@@ -2231,7 +2266,9 @@ function guard(container, state) {
  * from its old place to the new one on `translate` (composite: 'add', so
  * an item's own translate stays) on the spring, for travelDuration().
  * Meanwhile the moving items paint above the others, the farthest travel
- * on top (inline z-index from --ds-z-raised, position: relative where
+ * on top (inline z-index from one above --ds-z-raised, so the controls
+ * that interactive table rows lift to --ds-z-raised stay under them;
+ * position: relative where
  * static, the container isolated and marked data-ds-glide with
  * --ds-flip-backdrop, the colour behind it, so table rows get an opaque
  * backing; all restored when the glide ends). A
@@ -2240,7 +2277,7 @@ function guard(container, state) {
  * out of flow where they were while their neighbours close the gap (table
  * rows go at once). Both work through the hooks (DS.dom.morphHtml) and
  * for plain DOM calls in `mutate`: a direct child that `mutate` removed
- * goes back in, out of flow, for its exit, and an item that is new after
+ * goes back in where it was, out of flow, for its exit, and an item that is new after
  * `mutate` fades in (unless it runs an entrance of its own), so flip(stack, () => alert.remove()) and
  * flip(stack, () => stack.prepend(alert)) need nothing else. Meanwhile
  * the container keeps its height (min-height, restored afterwards; a grid

@@ -48,7 +48,9 @@
  *                          scrims add up to about 43%. DS.overlay sets it.
  *   .ds-dialog--contained  covers its positioned container instead of the
  *                          window (div markup only: a dialog inside an
- *                          embedded panel)
+ *                          embedded panel); in a container taller than
+ *                          the window the box stays in the visible part
+ *                          (position: sticky)
  *
  * At 600px and below the box moves on --ds-ease-out: a box nearly as wide
  * as the window never overshoots past it.
@@ -81,6 +83,9 @@
     z-index: var(--ds-z-dialog);
     display: grid;
     place-items: center;
+    /* Out of flow: no rhythm margin from a parent card (.ds-card > * + *)
+       pushes the cover off its container or the window. */
+    margin: 0;
     padding: var(--ds-space-4);
   }
 
@@ -114,6 +119,17 @@
   .ds-dialog--contained {
     position: absolute;
     z-index: var(--ds-z-popover);
+  }
+
+  /* The container may be taller than the window (a long list, a grid cell
+     the host stretches): the box sticks inside the visible part instead of
+     centring below the fold, and stays centred when the container fits. A
+     box taller than the window scrolls inside it. */
+  .ds-dialog--contained .ds-dialog__box {
+    position: sticky;
+    top: var(--ds-space-4);
+    bottom: var(--ds-space-4);
+    max-height: min(100%, calc(100dvh - 2 * var(--ds-space-4)));
   }
 
   .ds-dialog--hidden,
@@ -192,12 +208,15 @@
   }
 
   /* Keyframes: markup driven by hand, without data-state. The exit mirrors
-     the entrance, movement-only plus the fade. */
+     the entrance, movement-only plus the fade. The box rises the same
+     --ds-distance-sm as on the state path; the keyframes keep the
+     --ds-dur-medium of the hand path (docs/motion.md rule 3). */
   .ds-dialog:not([data-state]) .ds-dialog__backdrop {
     animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards;
   }
 
   .ds-dialog:not([data-state]) .ds-dialog__box {
+    --ds-motion-distance: var(--ds-distance-sm);
     animation:
       ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
       ds-grow-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;

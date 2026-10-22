@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.6.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.6.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.motion,
  * DS.indicator, DS.dom, DS.ripple, DS.icons and DS.overlay hold the same
@@ -15,7 +15,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '1.6.1';
+  var version = '1.6.2';
   var registry = root.DashboardStyle || (root.DashboardStyle = {});
   var versions = registry.versions || (registry.versions = {});
   if (versions[version]) return;
@@ -144,6 +144,19 @@
 
     /** Highest stagger index: 30ms × at most six steps (0…5), the motion rule. */
     const STAGGER_MAX = 5;
+
+    /**
+     * The focused element as seen from `node`'s tree: inside a shadow root its
+     * own activeElement (document.activeElement is the shadow host there, so a
+     * widget in a shadow root would never see its own focus), else the
+     * document's.
+     * @param {any} node
+     * @returns {any}
+     */
+    function activeIn(node) {
+      const root = node?.getRootNode?.();
+      return (root?.nodeType === 11 ? root.activeElement : null) ?? node?.ownerDocument?.activeElement ?? null;
+    }
 
     /* ── Timing from tokens ─────────────────────────────── */
 
@@ -813,15 +826,15 @@
      * tabindex="-1" (a view); else focus is dropped.
      */
     function releaseFocus(element, focus, state) {
-      const doc = element.ownerDocument;
-      const active = doc?.activeElement;
+      const active = activeIn(element);
       if (!active || !element.contains?.(active)) return;
       const usable = (node) => Boolean(node) && node.isConnected !== false && !element.contains(node)
         && typeof node.focus === 'function' && !node.closest?.('[inert]');
       const wanted = typeof focus === 'function' ? focus() : focus;
       const target = [wanted, state.opener, element.parentElement?.closest?.('[tabindex="-1"]')].find(usable);
       if (target) target.focus({ preventScroll: true });
-      if (element.contains(doc.activeElement)) doc.activeElement.blur?.();
+      const still = activeIn(element);
+      if (still && element.contains(still)) still.blur?.();
     }
 
     /* ── Classes, waiting, entrances and exits ──────────── */
@@ -1023,8 +1036,8 @@
       const state = stateOf(element);
       const gen = ++state.gen;
       const doc = element.ownerDocument;
-      const active = doc?.activeElement;
-      state.opener = active && active !== doc.body && !element.contains?.(active) ? active : null;
+      const active = activeIn(element);
+      state.opener = active && active !== doc?.body && !element.contains?.(active) ? active : null;
       dropStep(element);
       if (/** @type {HTMLElement} */ (element).hidden) /** @type {HTMLElement} */ (element).hidden = false;
       if (/** @type {HTMLElement} */ (element).inert) /** @type {HTMLElement} */ (element).inert = false;
@@ -1169,7 +1182,8 @@
 
     /**
      * The first-render stagger of a container: enterAll() on its element
-     * children that are in view (default variant 'swap': the fade and 4px
+     * children that are in view, not data-ds-keep helpers such as the
+     * data-scrolled sentinel of watchScrolled() (default variant 'swap': the fade and 4px
      * rise of .ds-stagger). It marks the container data-ds-staggered, so later
      * calls (refreshes) resolve at once without motion, and it leaves no
      * classes or `--ds-i` behind.
@@ -1180,7 +1194,10 @@
     function staggerOnce(container, options = {}) {
       if (!container || container.hasAttribute('data-ds-staggered')) return Promise.resolve();
       container.setAttribute('data-ds-staggered', '');
-      return enterAll(container.children, options.variant ?? 'swap', { max: options.max ?? STAGGER_MAX, visibleOnly: true });
+      // A kept helper (the 1px sentinel first in a .ds-view) would take the
+      // first step and push the real content one step later.
+      const items = Array.from(container.children).filter((child) => !child.hasAttribute('data-ds-keep'));
+      return enterAll(items, options.variant ?? 'swap', { max: options.max ?? STAGGER_MAX, visibleOnly: true });
     }
 
     /* ── Loaders ────────────────────────────────────────── */
@@ -1617,9 +1634,12 @@
 
     /**
      * Rolls a status line inside `element` (which becomes a .ds-swap slot) to
-     * `text`: the old line leaves upwards (ds-fade-out, ds-roll-out on the exit
-     * curve, --ds-dur-fast) while the new one comes up from below (ds-fade-in,
-     * ds-roll-in on the spring, --ds-dur-medium). A roll during a roll
+     * `text`: the old line leaves upwards (ds-fade-out, ds-roll-out,
+     * accelerating, --ds-dur-fast) and the new one comes up from below
+     * (ds-fade-in, ds-roll-in on the spring, --ds-dur-medium) once the old one
+     * is half out (--ds-enter-delay: half of --ds-dur-fast). The fast-starting
+     * spring would otherwise catch up with the accelerating exit, and the two
+     * lines would cover each other half a line apart. A roll during a roll
      * continues from where each line is; only the last text stays. The same
      * text again changes nothing.
      * @param {Element|null|undefined} element
@@ -1634,7 +1654,7 @@
       const line = element.ownerDocument.createElement('span');
       line.textContent = value;
       return swap(element, current, line,
-        { '--ds-enter-keyframes': 'ds-fade-in, ds-roll-in' },
+        { '--ds-enter-keyframes': 'ds-fade-in, ds-roll-in', '--ds-enter-delay': 'calc(var(--ds-dur-fast) / 2)' },
         { '--ds-leave-keyframes': 'ds-fade-out, ds-roll-out' });
     }
 
@@ -1906,7 +1926,9 @@
      * Paints a gliding item above the items it crosses: in DOM order an item
      * moving up would pass under every opaque item on its way and seem to
      * vanish. `rank` orders the moving items (the farthest travel on top) from
-     * --ds-z-raised; the container is isolated meanwhile, so the ranks never
+     * one above --ds-z-raised, so controls an item lifts to --ds-z-raised (the
+     * checkbox and chevron of an interactive table row) stay under every
+     * gliding item; the container is isolated meanwhile, so the ranks never
      * reach past it (a sticky bar or a menu over the list stays on top). The
      * glide's own translate already makes the item a stacking context and a
      * containing block, so `position: relative` (for a static item) changes
@@ -1927,7 +1949,7 @@
         state.raised += 1;
       }
       const base = parseInt(computed(container)?.getPropertyValue('--ds-z-raised') ?? '', 10);
-      item.style.zIndex = Number.isFinite(base) ? String(base + rank) : 'var(--ds-z-raised)';
+      item.style.zIndex = Number.isFinite(base) ? String(base + 1 + rank) : 'calc(var(--ds-z-raised) + 1)';
     }
 
     /** Gives a raised item (and, after the last one, its container) its inline styles back. */
@@ -2047,14 +2069,18 @@
 
     /**
      * The First of a FLIP: the rect of every item, the direct children among
-     * them (only they can come back for an exit) and the container's edges.
-     * @returns {{ before: Map<Element, DOMRect>, childrenOf: Set<Element>, frame: { left: number, top: number, right: number, bottom: number } }}
+     * them (only they can come back for an exit), the node after each child of
+     * the container (a child `mutate` took out goes back where it was, so
+     * :first-child and the like keep matching while it leaves) and the
+     * container's edges.
+     * @returns {{ before: Map<Element, DOMRect>, childrenOf: Set<Element>, nextOf: Map<Node, Node | null>, frame: { left: number, top: number, right: number, bottom: number } }}
      */
     function measure(container, selector) {
       const before = new Map();
       for (const item of flipItems(container, selector)) before.set(item, item.getBoundingClientRect());
       const childrenOf = new Set(Array.from(before.keys()).filter((item) => item.parentElement === container));
-      return { before, childrenOf, frame: edges(container.getBoundingClientRect()) };
+      const nextOf = new Map(Array.from(container.childNodes, (node) => [node, node.nextSibling]));
+      return { before, childrenOf, nextOf, frame: edges(container.getBoundingClientRect()) };
     }
 
     /**
@@ -2070,7 +2096,7 @@
       const max = options.max ?? 50;
       const view = windowOf(container);
       // First.
-      const { before, childrenOf, frame } = first ?? measure(container, selector);
+      const { before, childrenOf, nextOf, frame } = first ?? measure(container, selector);
       const firstHeight = frame.bottom - frame.top;
       for (const item of before.keys()) {
         glides.get(item)?.cancel();
@@ -2100,14 +2126,23 @@
       // What `mutate` took out or put in by itself (not through the hooks): a
       // direct child that left the document fades out of flow where it was (it
       // goes back in, out of flow, for its exit); a new item fades in.
-      for (const [item, rect] of before) {
-        if (item.parentNode || !childrenOf.has(item)) continue;
-        // Back in for its exit only: data-ds-moving for one style flush keeps
-        // its @starting-style entrances (a status icon) from playing (motion.css).
-        item.setAttribute('data-ds-moving', '');
-        container.append(item);
-        void computed(item)?.opacity;
-        item.removeAttribute('data-ds-moving');
+      const back = Array.from(before.keys()).filter((item) => !item.parentNode && childrenOf.has(item));
+      // Back in for its exit only: data-ds-moving for one style flush keeps
+      // their @starting-style entrances (a status icon) from playing
+      // (motion.css). Each goes back before the node that followed it, never at
+      // the end: structural selectors (:first-child, li + li) keep matching, so
+      // its content and dividers do not jump while it fades. Last first, so a
+      // removed neighbour it went before is already back.
+      for (const item of back) item.setAttribute('data-ds-moving', '');
+      for (const item of [...back].reverse()) {
+        let next = nextOf.get(item) ?? null;
+        while (next && next.parentNode !== container) next = nextOf.get(next) ?? null;
+        container.insertBefore(item, next);
+      }
+      if (back.length) void computed(back[0])?.opacity;
+      for (const item of back) item.removeAttribute('data-ds-moving');
+      for (const item of back) {
+        const rect = before.get(item);
         if (!liftable(item)) {
           item.remove();
           continue;
@@ -2179,7 +2214,7 @@
     /** A held reorder may run: no mouse or pen over the container, no focus in an item. */
     function held(container, state) {
       if (state.over && (state.pointer === 'mouse' || state.pointer === 'pen')) return true;
-      const active = container.ownerDocument?.activeElement;
+      const active = activeIn(container);
       if (!active || active === container || !container.contains(active)) return false;
       return flipItems(container, state.items).some((item) => item.contains(active));
     }
@@ -2255,7 +2290,9 @@
      * from its old place to the new one on `translate` (composite: 'add', so
      * an item's own translate stays) on the spring, for travelDuration().
      * Meanwhile the moving items paint above the others, the farthest travel
-     * on top (inline z-index from --ds-z-raised, position: relative where
+     * on top (inline z-index from one above --ds-z-raised, so the controls
+     * that interactive table rows lift to --ds-z-raised stay under them;
+     * position: relative where
      * static, the container isolated and marked data-ds-glide with
      * --ds-flip-backdrop, the colour behind it, so table rows get an opaque
      * backing; all restored when the glide ends). A
@@ -2264,7 +2301,7 @@
      * out of flow where they were while their neighbours close the gap (table
      * rows go at once). Both work through the hooks (DS.dom.morphHtml) and
      * for plain DOM calls in `mutate`: a direct child that `mutate` removed
-     * goes back in, out of flow, for its exit, and an item that is new after
+     * goes back in where it was, out of flow, for its exit, and an item that is new after
      * `mutate` fades in (unless it runs an entrance of its own), so flip(stack, () => alert.remove()) and
      * flip(stack, () => stack.prepend(alert)) need nothing else. Meanwhile
      * the container keeps its height (min-height, restored afterwards; a grid
@@ -3401,9 +3438,10 @@
      *   `hidden`, `open`, popover, data-anchored, data-placement, the
      *   --closing, --nested and --hidden classes, --ds-menu-x/-y, max-height
      *   and position-anchor; the `inert` of its box or panel during the exit;
-     *   aria-expanded on its opener, anchor-name on its anchor, the `inert` of
-     *   what its trap took), a tooltip's
-     *   aria-describedby, busy()'s aria-busy and .ds-btn--done, countUp()'s
+     *   aria-expanded on its opener, data-drawer-open on .ds-app, anchor-name
+     *   on its anchor, the `inert` of what its trap took), a tooltip's
+     *   aria-describedby, a snackbar's .ds-toast--shown, busy()'s aria-busy
+     *   and .ds-btn--done, countUp()'s
      *   aria-busy, min-width and tabular figures, a running swap's .ds-swap or
      *   .ds-icon-swap and data-swap, flip()'s z-index and position on the
      *   items that glide and, on their container, data-ds-glide,
@@ -3412,11 +3450,12 @@
      *   --ds-chips-backdrop. An owned name stays as it is, present or absent;
      *   once the helper lets go, the next patch takes the template's value.
      *   The focused element and its ancestors are always patched, never
-     *   replaced; a focused control keeps its live value and selection (only
-     *   unfocused controls get their value, checked and selected properties
-     *   from changed attributes).
-     * - `data-ds-keep` nodes (the indicator, ripples) are never matched,
-     *   moved or removed. `data-ds-replace` on a node, old or new, or
+     *   replaced; a focused control keeps its live value and selection, a
+     *   focused <select> its selected options and a focused radio the choice
+     *   of its group (only controls outside the focused one get their value,
+     *   checked and selected properties from changed attributes).
+     * - `data-ds-keep` nodes (the indicator, ripples, the snackbar announcers
+     *   and the tooltip of DS.overlay) are never matched, moved or removed. `data-ds-replace` on a node, old or new, or
      *   `{ replace: true }` for the whole call, brings back replace-on-change
      *   for that subtree (fresh nodes, fresh listeners).
      * - Hooks for DS.motion.flip(): `onInsert(node)` after a new element went
@@ -3465,6 +3504,19 @@
 
     /** An element in a DS.motion.leave() (running, or kept with then: 'keep'): its `inert` is runtime state. */
     const exiting = (element) => Array.from(element.classList ?? []).some((name) => /^ds-leave(?:--[\w-]+)?$/.test(name));
+
+    /**
+     * The focused element as seen from `node`'s tree: inside a shadow root its
+     * own activeElement (document.activeElement is the shadow host there, so a
+     * morph in a shadow root would overwrite the focused field), else the
+     * document's.
+     * @param {any} node
+     * @returns {any}
+     */
+    function activeIn(node) {
+      const root = node?.getRootNode?.();
+      return (root?.nodeType === 11 ? root.activeElement : null) ?? node?.ownerDocument?.activeElement ?? null;
+    }
 
     /**
      * @typedef {object} MorphOptions
@@ -3587,7 +3639,7 @@
       }
       parent.insertBefore(node, before);
       const doc = parent.ownerDocument;
-      if (focused && doc?.activeElement !== focused && typeof focused.focus === 'function') {
+      if (focused && doc && activeIn(focused) !== focused && typeof focused.focus === 'function') {
         focused.focus({ preventScroll: true });
         if (selection) focused.setSelectionRange?.(selection[0], selection[1], selection[2] ?? undefined);
       }
@@ -3636,9 +3688,65 @@
       if (style && !style.length && wanted === null) old.removeAttribute('style');
     }
 
+    /** Whether `node` is a radio button. */
+    function isRadio(node) {
+      return node?.tagName === 'INPUT' && node.type === 'radio';
+    }
+
+    /** Whether two radios form one group: the same name, form and tree. */
+    function sameGroup(a, b) {
+      return Boolean(a.name) && a.name === b.name && a.form === b.form && a.getRootNode() === b.getRootNode();
+    }
+
+    /**
+     * Whether `element` is part of the focused control: the control itself, an
+     * option of a focused <select>, or a radio in the group of a focused radio.
+     * Their choice is the user's while the focus is there.
+     */
+    function inFocusedControl(element, active) {
+      if (!active) return false;
+      if (element === active) return true;
+      if (element.tagName === 'OPTION') return element.closest('select') === active;
+      return isRadio(element) && isRadio(active) && sameGroup(element, active);
+    }
+
+    /**
+     * Records the live choice of a focused <select> or radio group and returns
+     * the function that puts it back after the patch. A changed `selected` or
+     * `checked` attribute on an option or radio the user has not touched would
+     * move the choice (Chromium and WebKit), so skipping the property is not
+     * enough.
+     * @param {Element|null} active
+     * @returns {(() => void)|null}
+     */
+    function keepChoice(active) {
+      if (active?.tagName === 'SELECT') {
+        const select = /** @type {HTMLSelectElement} */ (active);
+        const before = new Map(Array.from(select.options, (option) => [option, option.selected]));
+        return () => {
+          const options = Array.from(select.options).filter((option) => before.has(option));
+          // Deselect first: on a single select, selecting the saved option deselects the rest.
+          if (select.multiple) for (const option of options) if (!before.get(option) && option.selected) option.selected = false;
+          for (const option of options) if (before.get(option) && !option.selected) option.selected = true;
+        };
+      }
+      if (isRadio(active) && /** @type {HTMLInputElement} */ (active).name) {
+        const group = () => Array.from(active.getRootNode().querySelectorAll('input[type="radio"]')).filter((radio) => sameGroup(radio, active));
+        const checked = group().find((radio) => radio.checked) ?? null;
+        return () => {
+          if (checked?.isConnected) {
+            if (!checked.checked) checked.checked = true;
+          } else if (!checked) {
+            for (const radio of group()) if (radio.checked) radio.checked = false;
+          }
+        };
+      }
+      return null;
+    }
+
     /** An unfocused form control follows a changed attribute with its live property too. */
     function syncProperty(element, name, present, ctx) {
-      if (element === ctx.active) return;
+      if (inFocusedControl(element, ctx.active)) return;
       const tag = element.tagName;
       if (tag === 'INPUT' && name === 'value') element.value = element.getAttribute('value') ?? '';
       else if (tag === 'INPUT' && name === 'checked') element.checked = present;
@@ -3863,12 +3971,14 @@
       const ctx = {
         replace: options.replace === true,
         options,
-        active: /** @type {any} */ (target).ownerDocument?.activeElement ?? null,
+        active: activeIn(target),
         moved: [],
       };
+      const restore = keepChoice(ctx.active);
       try {
         patchChildren(target, Array.from(nodes), ctx, true);
       } finally {
+        restore?.();
         settleMoved(ctx.moved);
       }
     }
@@ -3886,16 +3996,28 @@
       for (const node of moved) node.removeAttribute('data-ds-moving');
     }
 
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
+
     /**
-     * Sets the content of `target` to `html`, touching only what changed.
+     * Sets the content of `target` to `html`, touching only what changed. An
+     * <svg> (or MathML) target gets its markup parsed in its own namespace (a
+     * chart or a sparkline morphs in place; `<path/>` stays a sibling); the
+     * HTML children of a <foreignObject> parse as HTML.
      * @param {Element} target
      * @param {string} html
      * @param {MorphOptions} [options]  replace, holdOrder, onInsert, onRemove (pass DS.motion.flip's object straight on)
      */
     function morphHtml(target, html, options = {}) {
       const template = target.ownerDocument.createElement('template');
-      template.innerHTML = html;
-      morphChildren(target, Array.from(template.content.childNodes), options);
+      // A template parses in an HTML context: <path> would become an HTML
+      // element. Foreign content parses inside a root of its own (still inert:
+      // a template runs no scripts).
+      const foreign = target.namespaceURI === SVG_NS && target.localName !== 'foreignObject' ? 'svg'
+        : target.namespaceURI === MATHML_NS ? 'math' : '';
+      template.innerHTML = foreign ? `<${foreign}>${html}</${foreign}>` : html;
+      const source = foreign ? template.content.firstChild : template.content;
+      morphChildren(target, Array.from(source?.childNodes ?? []), options);
     }
 
     return Object.freeze({
@@ -4422,14 +4544,18 @@
 
     /**
      * Adds the pointer ripple to every action inside `root` (delegated, so
-     * actions rendered later have it too). Idempotent per root.
-     * @param {Document|Element} [root]
+     * actions rendered later have it too). Idempotent per root. An open shadow
+     * root works as a root too: the listeners go on it (events keep their real
+     * targets there) and .ds-ripples on the .ds-theme inside it, where ds.css
+     * applies.
+     * @param {Document|Element|ShadowRoot} [root]
      * @returns {{ detach: () => void }}
      */
     function attach(root = document) {
       const existing = attached.get(root);
       if (existing) return existing;
       const element = /** @type {Element} */ (root.nodeType === 9 ? /** @type {Document} */ (root).documentElement : root);
+      const marked = root.nodeType === 11 ? /** @type {ShadowRoot} */ (root).querySelector('.ds-theme') ?? /** @type {ShadowRoot} */ (root).host : element;
       const doc = element.ownerDocument;
       /** The pending blur that ends a key press, per focused target. @type {WeakMap<Element, () => void>} */
       const blurs = new WeakMap();
@@ -4497,7 +4623,7 @@
         if (row && element.contains(row)) chipToggled(row);
       };
 
-      element.classList.add('ds-ripples');
+      marked.classList.add('ds-ripples');
       element.addEventListener('pointerdown', onPointerDown);
       element.addEventListener('keydown', onKeyDown);
       element.addEventListener('keyup', onKeyUp);
@@ -4514,7 +4640,7 @@
           element.removeEventListener('keyup', onKeyUp);
           element.removeEventListener('touchstart', onTouchStart);
           element.removeEventListener('change', onChange);
-          element.classList.remove('ds-ripples');
+          marked.classList.remove('ds-ripples');
         },
       };
       attached.set(root, handle);
@@ -4829,7 +4955,7 @@
      * writes the origin (originFrom(opener, box) for dialogs and popups) and
      * sets data-state="open"; close() sets data-state="closed". The CSS
      * transitions keyed on data-state therefore reverse from the current value
-     * when a close is taken back (D21). The drawer keeps its P4 attribute,
+     * when a close is taken back (D21). The drawer keeps its own attribute,
      * data-drawer-open on .ds-app.
      *
      * Every element has one state with a generation: a later open() or
@@ -4990,6 +5116,10 @@
      *   put back, the entrances already marked played (.ds-toast--shown).
      * - startViewTransition (through DS.motion.transition(), for `container:
      *   true`, only with .ds-theme on <html>): without it the usual entrance.
+     * - focus({ focusVisible: false }) (a native dialog or sheet opened or
+     *   closed with the pointer shows no keyboard ring in WebKit, which marks
+     *   what showModal() and close() focus as :focus-visible): without it that
+     *   ring stays as WebKit draws it.
      */
     const flip = DS.motion.flip, motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled, transition = DS.motion.transition;
     const alertCircle = DS.icons.alertCircle, checkCircle = DS.icons.checkCircle, closeGlyph = DS.icons.close, iconElement = DS.icons.iconElement, info = DS.icons.info;
@@ -5056,6 +5186,39 @@
      * Copies before 1.6.1 keep their own.
      * @returns {{ order: Array<{ element: Element, open: () => boolean, escape: (event: Event) => void }>, lock: { count: number, saved: { gutter: string, padding: string } | null }, seq: number, tipRoots: WeakMap<Element, { destroy: () => void }> }}
      */
+    /**
+     * The focused element as seen from `node`'s tree: inside a shadow root its
+     * own activeElement (document.activeElement is the shadow host there, so a
+     * widget in a shadow root would never see its own focus), else the
+     * document's.
+     * @param {any} node
+     * @returns {any}
+     */
+    function activeIn(node) {
+      const root = node?.getRootNode?.();
+      return (root?.nodeType === 11 ? root.activeElement : null) ?? node?.ownerDocument?.activeElement ?? null;
+    }
+
+    /**
+     * Whether `event` started inside `node`: a test along the composed path.
+     * It covers `node` inside an open shadow root (a listener on the document
+     * sees the target retargeted to the shadow host, so a contained dialog in
+     * a shadow root would take every Escape for one pressed outside its
+     * container) and a press inside a web component in `node` (an icon
+     * element with its own shadow root: contains() stops at the shadow
+     * boundary of the innermost target, so that press would count as one
+     * outside a menu). A closed shadow root ends the path at its host, which
+     * is still on it.
+     * @param {Node|null|undefined} node
+     * @param {Event} event
+     * @returns {boolean}
+     */
+    function inside(node, event) {
+      if (!node) return false;
+      const path = event.composedPath?.();
+      return path?.length ? path.includes(node) : node.contains(/** @type {Node} */ (event.target));
+    }
+
     const SHARED = Symbol.for('ds.overlay');
 
     function sharedOf(doc) {
@@ -5078,7 +5241,7 @@
           // A contained dialog owns Escape only inside its container: the host
           // page around an embedded widget keeps the key (its own dialogs, its
           // search fields), also with focus on <body>.
-          if (containedDialog(element) && !containerOf(element).contains(/** @type {Node} */ (event.target))) return;
+          if (containedDialog(element) && !inside(containerOf(element), event)) return;
           // preventDefault() also keeps a native dialog from its own cancel.
           event.preventDefault();
           closeFrom(element, 'escape');
@@ -5253,6 +5416,35 @@
       return hosts;
     }
 
+    /** Controls that always show the keyboard ring when focused, by pointer or by key. */
+    const TEXT_ENTRY = 'input:not([type="button"], [type="submit"], [type="reset"], [type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="image"]), textarea, select, [contenteditable]:not([contenteditable="false"])';
+
+    /**
+     * Runs showModal() or close() of a native dialog without the keyboard ring
+     * a pointer never asked for: WebKit marks the element these focus (the
+     * autofocus target, the opener the dialog gives focus back to) as
+     * :focus-visible even after a mouse click, and the focus() that follows
+     * is a no-op on an element that has focus already. Only inside a pointer
+     * event (a click from Enter or Space has detail 0) and only when the
+     * previous focus showed no ring: a key press (Escape) and a script open
+     * keep the engine's own choice. Text-entry controls are left alone: they
+     * match :focus-visible in every engine whatever the input modality, so
+     * there is nothing to correct, and a blur would run the page's blur
+     * handlers (validate on blur, a combobox that closes) on open.
+     */
+    function keepFocusVisibility(element, run) {
+      const before = activeIn(element);
+      const body = element.ownerDocument.body;
+      const was = Boolean(before) && before !== body && before.matches(':focus-visible');
+      const event = /** @type {any} */ (viewOf(element)).event;
+      const pointer = /^(pointer|mouse|click$)/.test(event?.type ?? '') && !(event.type === 'click' && event.detail === 0);
+      run();
+      const now = activeIn(element);
+      if (was || !pointer || !now || now === before || now === body || now.matches(TEXT_ENTRY) || !now.matches(':focus-visible')) return;
+      now.blur();
+      now.focus({ preventScroll: true, focusVisible: false });
+    }
+
     function focusInto(element, state, box) {
       const autofocus = element.querySelector('[autofocus]');
       if (canFocus(autofocus)) {
@@ -5290,19 +5482,57 @@
      * all but .ds-scrim, the snackbar regions and their announcers (they stay
      * above every modal: usable and heard), the tooltips (a trigger inside the
      * overlay shows one that must stay hoverable and heard), and what is inert
-     * already without us. syncInert() applies them.
+     * already without us. syncInert() applies them. The walk crosses a shadow
+     * root through its host (a top-level child of a shadow root has no
+     * parentElement), so the div dialog, sheet or modal drawer of a widget in
+     * a shadow root makes the host page inert too, as showModal() does.
      */
     function inertOutside(element, stop = element.ownerDocument.body) {
       const taken = [];
       const body = element.ownerDocument.body;
-      for (let node = element; node && node !== stop && node !== body && node.parentElement; node = node.parentElement) {
-        for (const sibling of node.parentElement.children) {
+      for (let node = element; node && node !== stop && node !== body;) {
+        const parent = node.parentNode;
+        if (!parent || parent.nodeType === 9) break;
+        for (const sibling of /** @type {ParentNode} */ (parent).children) {
           if (sibling === node || sibling.matches('.ds-scrim, .ds-toasts') || announcerNodes.has(sibling) || tooltipNodes.has(sibling)) continue;
           if (sibling.inert && !managedInert.has(sibling)) continue;
           taken.push(sibling);
         }
+        node = parent.nodeType === 11 ? /** @type {ShadowRoot} */ (parent).host : /** @type {Element} */ (parent);
       }
       return taken;
+    }
+
+    /** Whether `node` holds `other`, also across shadow roots (through their hosts). */
+    function composedContains(node, other) {
+      for (let at = other; at; at = at.parentNode ?? /** @type {any} */ (at).host ?? null) {
+        if (at === node) return true;
+      }
+      return false;
+    }
+
+    /**
+     * Nodes the page added next to an open div trap, or next to an ancestor of
+     * it (a host script's banner appended to <body>, a re-rendered section),
+     * join that trap: Tab never reaches them while it is open.
+     * @param {Node[]} targets  the parents that gained children
+     */
+    function refreshTraps(targets) {
+      let grew = false;
+      for (const element of stack) {
+        const state = overlays.get(element);
+        // Only div traps hold a list; a native modal is inert-free by the top layer.
+        if (!state?.inerted.length || state.phase !== 'open' || !element.isConnected) continue;
+        if (!targets.some((target) => composedContains(target, element))) continue;
+        const stop = containedDialog(element) ? containerOf(element) : undefined;
+        const known = new Set(state.inerted);
+        for (const node of inertOutside(element, stop)) {
+          if (known.has(node)) continue;
+          state.inerted.push(node);
+          grew = true;
+        }
+      }
+      if (grew) syncInert();
     }
 
     /**
@@ -5318,7 +5548,8 @@
       stack.forEach((element, index) => {
         const above = stack.slice(index + 1);
         for (const node of overlays.get(element)?.inerted ?? []) {
-          if (node.isConnected && !above.some((other) => node.contains(other))) wanted.add(node);
+          // A host-page node the trap took may hold a later overlay inside a shadow root.
+          if (node.isConnected && !above.some((other) => composedContains(node, other))) wanted.add(node);
         }
       });
       const closingBoxes = new Set(stack.filter((element) => overlays.get(element)?.phase === 'closing')
@@ -5453,19 +5684,18 @@
       doc.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
         if (event.key !== 'Tab' || event.isComposing || event.defaultPrevented) return;
         const top = topOpen();
-        if (!top || overlays.get(top)?.kind !== 'menu' || !top.contains(doc.activeElement)) return;
+        if (!top || overlays.get(top)?.kind !== 'menu' || !top.contains(activeIn(top))) return;
         // Tab moves on from the trigger, as if the menu had not been there.
         const opener = overlays.get(top)?.opener;
         if (canFocus(opener)) opener.focus({ preventScroll: true });
         closeFrom(top, 'tab');
       }, true);
       doc.addEventListener('pointerdown', (/** @type {PointerEvent} */ event) => {
-        const target = /** @type {Node} */ (event.target);
         pruneDetached();
         for (const element of [...stack].reverse()) {
           const state = overlays.get(element);
           if (state?.kind !== 'menu' || state.phase !== 'open') continue;
-          if (element.contains(target) || state.opener?.contains(target)) continue;
+          if (inside(element, event) || inside(state.opener, event)) continue;
           closeFrom(element, 'outside');
         }
       }, true);
@@ -5694,22 +5924,41 @@
      * never taller than the room on its side; 8px (--ds-space-2) from the
      * viewport edges.
      */
+    /** The fixed probe beside each script-placed popup, kept while it is placed (fixedOrigin()). */
+    const probes = new WeakMap();
+
     /**
      * Where (0,0) of a fixed box's containing block sits in the viewport: the
      * viewport's origin, unless a host ancestor (an embedded widget's) has a
      * transform, filter, perspective, will-change or contain: layout/paint and
      * so becomes the box that fixed layers fill. A fixed probe beside
-     * `element` tells, whatever transform the element itself has now.
+     * `element` tells, whatever transform the element itself has now, read
+     * afresh on every call (a transformed host may scroll with the page). The
+     * probe stays beside the popup until it is no longer placed (dropProbe()),
+     * so following a scroll or a resize adds no DOM mutation per frame for the
+     * page's observers; data-ds-keep keeps morphs and indicator tracks off it.
      */
     function fixedOrigin(element) {
       const parent = element.parentNode;
       if (!parent) return { left: 0, top: 0 };
-      const probe = element.ownerDocument.createElement('div');
-      probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;margin:0;border:0;padding:0;transform:none;translate:none;scale:none;rotate:none;animation:none;transition:none;visibility:hidden';
-      parent.insertBefore(probe, element);
+      let probe = probes.get(element);
+      if (!probe) {
+        probe = element.ownerDocument.createElement('div');
+        probe.setAttribute('data-ds-keep', '');
+        probe.setAttribute('aria-hidden', 'true');
+        probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;margin:0;border:0;padding:0;transform:none;translate:none;scale:none;rotate:none;animation:none;transition:none;visibility:hidden;pointer-events:none';
+        probes.set(element, probe);
+      }
+      // Re-inserted only when the popup moved (adopted into a dialog, re-rendered).
+      if (probe.parentNode !== parent || probe.nextSibling !== element) parent.insertBefore(probe, element);
       const { left, top } = probe.getBoundingClientRect();
-      probe.remove();
       return { left, top };
+    }
+
+    /** Takes the probe of fixedOrigin() out once the popup is no longer placed by the script. */
+    function dropProbe(element) {
+      probes.get(element)?.remove();
+      probes.delete(element);
     }
 
     function placeMenu(menu, anchor) {
@@ -5773,6 +6022,7 @@
 
     /** Undoes placePopup() once a popup is hidden: out of the top layer, its anchor-name gone. */
     function releasePopup(element, state) {
+      dropProbe(element);
       if (element.hasAttribute('popover')) {
         try {
           if (element.matches(':popover-open')) /** @type {HTMLElement} */ (element).hidePopover();
@@ -6004,9 +6254,15 @@
       watch.observer.disconnect();
     }
 
-    /** dropDetached() when an overlay on the stack left the document. */
-    function pruneDetached() {
+    /**
+     * dropDetached() when an overlay on the stack left the document; nodes the
+     * page added beside an open div trap join it (refreshTraps()).
+     * @param {MutationRecord[]} [records]
+     */
+    function pruneDetached(records) {
       if (stack.some((element) => !element.isConnected)) dropDetached();
+      const grown = records?.filter((record) => record.addedNodes.length).map((record) => record.target) ?? [];
+      if (grown.length) refreshTraps(grown);
     }
 
     /**
@@ -6029,6 +6285,7 @@
           continue;
         }
         const kind = state.kind;
+        dropProbe(element);
         // A pending exit's settled() callback no longer acts.
         state.gen += 1;
         state.phase = 'closed';
@@ -6112,7 +6369,7 @@
       if (state.phase !== 'closed' || state.container) return state.container?.done ?? null;
       const viewTransitions = typeof doc.startViewTransition === 'function' && doc.documentElement.classList.contains('ds-theme');
       if (!viewTransitions) return null;
-      const active = doc.activeElement;
+      const active = activeIn(element);
       const opener = options.opener ?? (active && active !== doc.body && !element.contains(active) ? active : null);
       if (!opener?.isConnected || typeof opener.getBoundingClientRect !== 'function') return null;
 
@@ -6178,13 +6435,20 @@
       pruneDetached();
       listen(doc);
       wire(element, state);
-      const reopening = state.phase === 'closing';
+      let reopening = state.phase === 'closing';
+      // Reopened mid-exit from another trigger (one menu for every row): the
+      // placement, origin, aria-expanded and claims belong to the previous
+      // trigger, so it opens afresh from the new one.
+      if (reopening && (kind === 'menu' || kind === 'combo' || kind === 'popup') && options.opener && options.opener !== state.opener) {
+        if (kind !== 'popup') releasePopup(element, state);
+        reopening = false;
+      }
       const gen = ++state.gen;
       state.closing = null;
       state.phase = 'open';
 
       if (!reopening) {
-        const active = doc.activeElement;
+        const active = activeIn(element);
         const focused = active && active !== doc.body && !element.contains(active) ? active : null;
         const menuButton = app?.querySelector('.ds-topbar__menu') ?? null;
         state.opener = options.opener ?? (kind === 'drawer' ? menuButton ?? focused : focused);
@@ -6234,7 +6498,7 @@
         if (!state.inerted.length) state.inerted = inertOutside(element);
       } else if (isNative(element) && MODAL.has(kind)) {
         element.classList.remove('ds-dialog--closing', 'ds-sheet--closing');
-        if (!element.open) element.showModal();
+        if (!element.open) keepFocusVisibility(element, () => element.showModal());
         // The snackbars of the theme come in: into the top layer with it.
         hostToasts(element, 'enter');
       } else {
@@ -6339,20 +6603,20 @@
       const gen = ++state.gen;
       state.phase = 'closing';
       state.opening = null;
-      const active = doc.activeElement;
+      const active = activeIn(element);
       const focusInside = Boolean(active) && (element.contains(active) || active === doc.body);
 
       // 1. Release the trap.
       if (kind === 'drawer') (state.app ?? element.closest('.ds-app'))?.removeAttribute('data-drawer-open');
       if (isNative(element) && MODAL.has(kind)) {
         element.classList.add(kind === 'sheet' ? 'ds-sheet--closing' : 'ds-dialog--closing');
-        if (element.open) element.close();
+        if (element.open) keepFocusVisibility(element, () => element.close());
       }
       restoreInert(state);
 
       // 2. Focus back on the opener at once.
       state.expander?.setAttribute('aria-expanded', 'false');
-      const returns = MODAL.has(kind) ? focusInside : reason !== 'outside' && element.contains(doc.activeElement);
+      const returns = MODAL.has(kind) ? focusInside : reason !== 'outside' && element.contains(activeIn(element));
       if (returns) returnTarget(element, state)?.focus({ preventScroll: true });
       // The snackbars glide back to their place (from a sheet, with the
       // leaving panel) and stay inside it, above its scrim, until it settled.
@@ -6591,7 +6855,7 @@
       pointerWatched.add(doc);
       doc.addEventListener('pointerover', (/** @type {PointerEvent} */ event) => {
         for (const pointed of [...pointedRegions]) {
-          if (!pointed.contains(/** @type {Node} */ (event.target))) unpoint(pointed, toastRegions.get(pointed));
+          if (!inside(pointed, event)) unpoint(pointed, toastRegions.get(pointed));
         }
       }, true);
     }
@@ -6641,14 +6905,24 @@
 
     /** The two announcers next to the region (created once, moved with it). */
     function announcers(region, state) {
-      if (state.polite?.isConnected && state.assertive?.isConnected) return;
+      // An announcer a re-render patched into a page element is no announcer
+      // any more: a new one takes its place, and the page keeps its element.
+      const live = (key) => {
+        const node = state[key];
+        return Boolean(node?.isConnected) && node.classList.contains('ds-sr') && node.getAttribute('aria-live') === key;
+      };
+      if (live('polite') && live('assertive')) return;
       const doc = region.ownerDocument;
       for (const key of /** @type {const} */ (['polite', 'assertive'])) {
-        if (state[key]?.isConnected) continue;
+        if (live(key)) continue;
+        if (state[key]) announcerNodes.delete(state[key]);
         const node = doc.createElement('div');
         node.className = 'ds-sr';
         node.setAttribute('aria-live', key);
         node.setAttribute('aria-atomic', 'true');
+        // A runtime node, like a ripple: DS.dom.morphHtml of the region's
+        // parent never matches, patches or removes it.
+        node.setAttribute('data-ds-keep', '');
         announcerNodes.add(node);
         state[key] = node;
       }
@@ -6758,7 +7032,7 @@
      */
     function releaseToastFocus(entry, region, state, staying) {
       const doc = region.ownerDocument;
-      if (!entry.el.contains(doc.activeElement)) return;
+      if (!entry.el.contains(activeIn(entry.el))) return;
       const others = staying.filter((other) => other.el.parentNode === region);
       const after = others.filter((other) => entry.el.compareDocumentPosition(other.el) & 4);
       const before = others.filter((other) => !after.includes(other)).reverse();
@@ -6832,7 +7106,7 @@
     function moveRegion(region, parent, before) {
       const state = toastRegions.get(region);
       const doc = region.ownerDocument;
-      const active = doc.activeElement;
+      const active = activeIn(region);
       const refocus = active && region.contains(active) ? active : null;
       const nodes = [region, state?.polite, state?.assertive].filter((node) => node && node.parentNode === region.parentNode);
       const anchor = before && before.parentNode === parent ? before : null;
@@ -6847,7 +7121,7 @@
         }
         parent.insertBefore(node, anchor);
       }
-      if (refocus && doc.activeElement !== refocus && canFocus(refocus)) refocus.focus({ preventScroll: true });
+      if (refocus && activeIn(refocus) !== refocus && canFocus(refocus)) refocus.focus({ preventScroll: true });
     }
 
     /**
@@ -6895,7 +7169,8 @@
 
     /**
      * An opening dialog or side sheet takes in every .ds-toasts region of its
-     * theme (with their announcers), so a message shown meanwhile is above its
+     * theme (with their announcers; not one inside a nested .ds-theme, an
+     * embedded widget's), so a message shown meanwhile is above its
      * scrim and usable: in the top layer of a native one, outside the inert
      * page of the div trap. In a sheet --ds-toast-left becomes the panel's
      * resting left edge plus --ds-space-6, and the messages glide there; in a
@@ -6913,7 +7188,9 @@
       const doc = host.ownerDocument;
       const theme = host.closest('.ds-theme');
       const scope = !theme || theme === doc.documentElement ? doc : theme;
-      const regions = new Set(scope.querySelectorAll('.ds-toasts'));
+      // Only the regions of its own theme: one inside a nested .ds-theme (an
+      // embedded widget's) stays in its widget, under the modal like the rest of it.
+      const regions = new Set([...scope.querySelectorAll('.ds-toasts')].filter((region) => !theme || region.closest('.ds-theme') === theme));
       // A hosted region is found even if it left the document meanwhile.
       if (step !== 'enter') for (const region of hostedRegions.keys()) regions.add(region);
       for (const region of regions) {
@@ -7089,19 +7366,26 @@
      * call on the same root returns the first handle (also one of another
      * copy of ds.js), and a trigger inside nested roots (a host page's
      * document and an embedded widget's root) is served by the innermost one.
-     * @param {Document|Element} [root]
+     * An open shadow root works as a root too (the tooltip goes into the
+     * .ds-theme inside it).
+     * @param {Document|Element|ShadowRoot} [root]
      * @returns {{ destroy: () => void }}
      */
     function tooltips(root = globalThis.document) {
       const doc = root?.nodeType === 9 ? /** @type {Document} */ (root) : root?.ownerDocument;
       if (!doc) return { destroy() {} };
       const view = doc.defaultView ?? globalThis;
+      // A shadow root stays itself: its listeners see the real targets (the
+      // document sees the host), and its theme is the .ds-theme inside it,
+      // where ds.css applies.
+      const shadow = root.nodeType === 11;
       const rootElement = root.nodeType === 9 ? doc.documentElement : /** @type {Element} */ (root);
       // One controller per root (whichever copy of ds.js made it): a second call returns the first.
       const roots = sharedOf(doc).tipRoots;
       const existing = roots.get(rootElement);
       if (existing) return existing;
-      const theme = rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
+      const theme = shadow ? /** @type {ShadowRoot} */ (root).querySelector('.ds-theme')
+        : rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
       if (!theme && !tooltipWarned) {
         tooltipWarned = true;
         view.console?.warn('Dashboard-Style: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
@@ -7120,6 +7404,8 @@
         tip.setAttribute('data-anchored', '');
       }
       tooltipNodes.add(tip);
+      // A runtime node: a re-render of the theme (DS.dom.morphHtml) keeps it.
+      tip.setAttribute('data-ds-keep', '');
       home.append(tip);
 
       /** @type {'hidden'|'open'|'closing'} */
@@ -7135,7 +7421,7 @@
       let ownAnchor = /** @type {HTMLElement|null} */ (null);
       let described = /** @type {Element|null} */ (null);
 
-      const time = (token) => motionDuration(tip.isConnected ? tip : rootElement, token);
+      const time = (token) => motionDuration(tip.isConnected ? tip : shadow ? theme ?? /** @type {ShadowRoot} */ (root).host : rootElement, token);
       const contains = (node) => (root.nodeType === 9 ? doc.contains(node) : rootElement.contains(node));
 
       /** Where the tooltip lives for a trigger: its overlay (in the top layer, never inert), else the theme. */
@@ -7236,7 +7522,7 @@
         const warm = !visible && clock() - lastHide < time('--ds-delay-tooltip-skip');
         run += 1;
         trigger = next;
-        focusing = next === doc.activeElement && focusVisible(next);
+        focusing = next === activeIn(next) && focusVisible(next);
         tip.textContent = text;
         if (visible) {
           // A swap (or a hide taken back): text and place change where it is,
@@ -7302,6 +7588,7 @@
           }
           tip.hidden = true;
           unanchor();
+          dropProbe(tip);
         });
       }
 
@@ -7458,6 +7745,7 @@
           view.removeEventListener('resize', onScroll);
           undescribe();
           unanchor();
+          dropProbe(tip);
           run += 1;
           phase = 'hidden';
           tip.remove();

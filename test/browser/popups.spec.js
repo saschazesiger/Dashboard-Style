@@ -106,6 +106,63 @@ test.describe('menu', () => {
     expect(await focused(page)).toBe('after');
   });
 
+  test('one menu for several triggers: a press on another trigger during the exit reopens it there, and that trigger closes it', async ({ page }) => {
+    await load(page);
+    // A second trigger of the same menu (one menu for every row), wired as the docs show.
+    await page.evaluate(() => {
+      const menu = document.getElementById('menu');
+      const second = document.createElement('button');
+      Object.assign(second, { className: 'ds-btn', type: 'button', id: 'trigger-2', textContent: 'Row 2' });
+      second.setAttribute('aria-haspopup', 'menu');
+      second.setAttribute('aria-expanded', 'false');
+      second.setAttribute('aria-controls', 'menu');
+      second.addEventListener('click', () => {
+        if (second.getAttribute('aria-expanded') === 'true') DS.overlay.close(menu);
+        else DS.overlay.open(menu, { opener: second });
+      });
+      document.getElementById('after').after(second);
+    });
+    await openMenu(page, 'trigger', 'menu');
+    // Row 2's press: its pointerdown starts the outside close, its click
+    // opens the menu during that exit (one task, so the exit is surely running).
+    const during = await page.evaluate(() => {
+      const second = document.getElementById('trigger-2');
+      second.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, composed: true, button: 0, isPrimary: true, pointerType: 'mouse' }));
+      const closing = document.getElementById('menu').getAttribute('data-state');
+      second.click();
+      return closing;
+    });
+    expect(during, 'the pointerdown started the exit').toBe('closed');
+    await expect(page.locator('#menu')).toHaveAttribute('data-state', 'open');
+    await settle(page);
+    const placed = await page.evaluate(() => {
+      const menu = document.getElementById('menu').getBoundingClientRect();
+      const first = document.getElementById('trigger');
+      const second = document.getElementById('trigger-2');
+      return {
+        atSecond: Math.abs(menu.left - second.getBoundingClientRect().left) < 1.5,
+        below: Math.abs(menu.top - (second.getBoundingClientRect().bottom + 4)) < 1.5,
+        expanded: [first.getAttribute('aria-expanded'), second.getAttribute('aria-expanded')],
+      };
+    });
+    expect(placed).toEqual({ atSecond: true, below: true, expanded: ['false', 'true'] });
+    // Row 2's trigger toggles it closed again.
+    await page.click('#trigger-2');
+    await closed(page, 'menu');
+    expect(await page.evaluate(() => ['trigger', 'trigger-2'].map((id) => document.getElementById(id).getAttribute('aria-expanded')))).toEqual(['false', 'false']);
+    // The same trigger during the exit still takes the close back where it is.
+    await openMenu(page, 'trigger', 'menu');
+    await page.evaluate(() => {
+      const first = document.getElementById('trigger');
+      first.click();
+      first.click();
+    });
+    await expect(page.locator('#menu')).toHaveAttribute('data-state', 'open');
+    expect(await page.locator('#trigger').getAttribute('aria-expanded')).toBe('true');
+    await page.keyboard.press('Escape');
+    await closed(page, 'menu');
+  });
+
   test('placement: under the trigger from its start edge, towards the start edge at the right edge, above at the bottom', async ({ page }) => {
     await load(page);
     const place = async (trigger, id) => {
@@ -128,6 +185,40 @@ test.describe('menu', () => {
     const low = await place('low-trigger', 'low-menu');
     expect(Math.abs(low.menu.bottom - (low.trigger.top - 4)), 'it opens above').toBeLessThan(1.5);
     expect(low.top).toBe('top');
+  });
+
+  test('a menu the script places follows a scroll without adding or removing nodes every frame; its probe goes on close', async ({ page }) => {
+    await load(page);
+    // No popover: the script places the menu (Safari before 26, Firefox, Chrome before 125).
+    await page.evaluate(() => { delete HTMLElement.prototype.showPopover; });
+    await openMenu(page, 'trigger', 'menu');
+    expect(await page.locator('#menu').getAttribute('data-anchored')).toBeNull();
+    const probes = () => page.evaluate(() => [...document.querySelectorAll('[data-ds-keep][aria-hidden="true"]')]
+      .filter((node) => getComputedStyle(node).position === 'fixed' && !node.childNodes.length).length);
+    const result = await page.evaluate(async () => {
+      const records = [];
+      const observer = new MutationObserver((list) => records.push(...list.filter((record) => record.type === 'childList')));
+      observer.observe(document, { childList: true, subtree: true });
+      const menu = document.getElementById('menu');
+      const trigger = document.getElementById('trigger');
+      const before = menu.style.getPropertyValue('--ds-menu-y');
+      for (let step = 1; step <= 10; step += 1) {
+        // The trigger moves (an attribute change, not a child list one), then a scroll frame follows it.
+        trigger.style.marginTop = `${step}px`;
+        document.dispatchEvent(new Event('scroll'));
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      observer.disconnect();
+      const after = menu.style.getPropertyValue('--ds-menu-y');
+      trigger.style.marginTop = '';
+      return { records: records.length, followed: after !== before };
+    });
+    expect(result).toEqual({ records: 0, followed: true });
+    expect(await probes()).toBe(1);
+    await page.keyboard.press('Escape');
+    await closed(page, 'menu');
+    expect(await probes()).toBe(0);
   });
 
   test('a body-level menu opened from inside a native dialog moves into it: focusable and hit-testable, back home once closed', async ({ page }) => {

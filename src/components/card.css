@@ -27,7 +27,9 @@
  * sits on the card through :has(.ds-card__action:focus-visible), so a
  * ripple's clip never cuts it), the press morph (the radius goes to
  * --ds-radius-card-pressed in --ds-dur-micro and springs back over
- * --ds-dur-medium) and the ripple (js/ripple.js). Nothing moves on hover:
+ * --ds-dur-medium) and the ripple (js/ripple.js); a disabled or
+ * aria-disabled card shows no hover or press layer and does not morph (an
+ * aria-disabled one keeps its focus layer). Nothing moves on hover:
  * no lift, no scale; a theme may give it a shadow through
  * --ds-card-hover-shadow (default none; for example var(--ds-elev-hover)),
  * in over --ds-dur-medium, out over --ds-dur-base. In forced colours every
@@ -160,6 +162,22 @@
   .ds-card--interactive.ds-pressed::before {
     opacity: var(--ds-state-pressed);
     transition-duration: var(--ds-dur-micro);
+  }
+
+  /* A blocked card (disabled, aria-disabled) shows neither hover nor press,
+     like its morph below; an aria-disabled card keeps its focus layer. */
+  @media (hover: hover) {
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]):hover::before {
+      opacity: 0;
+    }
+  }
+
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  .ds-card--interactive[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))::before {
+    opacity: var(--ds-state-focus);
   }
 
   /* The press morph: squarer while pressed (never rounder than at rest),

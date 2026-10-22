@@ -189,8 +189,9 @@
   }
 
   /* Selected rows (bulk selection): the checkbox in the row is the cue
-     that does not rely on colour. Two rules, so an engine without :has()
-     keeps the class. */
+     that does not rely on colour. Two rules: the class marks a row on its
+     own (set by the page), and the :has() rule picks up a row whose
+     checkbox is checked. */
   .ds-table tbody tr.ds-table__row--selected {
     background-color: var(--ds-table-row-selected, var(--ds-accent));
   }

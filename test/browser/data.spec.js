@@ -702,6 +702,63 @@ test.describe('alerts', () => {
   });
 });
 
+test.describe('blocked tiles and cards', () => {
+  test('an aria-disabled tile or card shows no hover or press layer and keeps its shape', async ({ page }) => {
+    await open(page);
+    for (const id of ['tile-button', 'card-button']) {
+      const host = page.locator(`#${id}`);
+      await host.evaluate((el) => el.setAttribute('aria-disabled', 'true'));
+      await host.scrollIntoViewIfNeeded();
+      const read = () => host.evaluate((el) => ({ layer: Number(getComputedStyle(el, '::before').opacity), radius: getComputedStyle(el).borderTopLeftRadius }));
+      const rest = await read();
+      await host.hover();
+      await settle(page);
+      const hover = await read();
+      await page.mouse.down();
+      await settle(page);
+      const pressed = await read();
+      await page.mouse.up();
+      await page.mouse.move(1, 1);
+      await settle(page);
+      expect(hover, id).toEqual({ layer: 0, radius: rest.radius });
+      expect(pressed, id).toEqual({ layer: 0, radius: rest.radius });
+    }
+  });
+});
+
+test.describe('status line', () => {
+  test('roll(): the two lines never cover each other (one line height apart while both show)', async ({ page }) => {
+    await open(page);
+    const frames = await page.evaluate(() => {
+      const slot = document.createElement('p');
+      slot.style.cssText = 'margin: 0; line-height: 28px; font-size: 16px';
+      slot.textContent = 'Checking 4 devices ...';
+      document.getElementById('form').append(slot);
+      void slot.offsetHeight;
+      DS.motion.roll(slot, '3 of 4 devices up to date');
+      // Frozen in the task that started it, then stepped through by hand.
+      const animations = slot.getAnimations({ subtree: true });
+      for (const animation of animations) animation.pause();
+      const [oldLine, newLine] = slot.children;
+      const height = slot.getBoundingClientRect().height;
+      const out = [];
+      for (let t = 0; t <= 400; t += 10) {
+        for (const animation of animations) animation.currentTime = t;
+        const read = (line) => ({ y: line.getBoundingClientRect().top, opacity: Number(getComputedStyle(line).opacity) });
+        out.push({ t, height, old: read(oldLine), next: read(newLine) });
+      }
+      return { out, lines: slot.children.length, names: animations.map((animation) => animation.animationName).sort() };
+    });
+    expect(frames.lines).toBe(2);
+    expect(frames.names).toEqual(['ds-fade-in', 'ds-fade-out', 'ds-roll-in', 'ds-roll-out']);
+    const close = frames.out.filter(({ old, next, height }) => old.opacity > 0.3 && next.opacity > 0.3 && next.y - old.y < 0.9 * height);
+    expect(close.map(({ t, old, next }) => `${t}ms: ${(next.y - old.y).toFixed(1)}px apart`)).toEqual([]);
+    // The new line lands in the slot, the old one is gone above it.
+    expect(frames.out.at(-1).next.opacity).toBe(1);
+    expect(frames.out.at(-1).old.opacity).toBe(0);
+  });
+});
+
 test.describe('forced colours', () => {
   test('a selected row and the interactive cards keep their cues', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'forced colours are emulated in Chromium only (one baseline)');

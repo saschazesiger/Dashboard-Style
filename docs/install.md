@@ -7,6 +7,7 @@ Everything a project needs is in `dist/`:
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
 | `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, ripple, icons, overlay }` (see "Two copies on one page") |
 | `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
+| `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
 | `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
@@ -112,8 +113,12 @@ caches branches for up to a day); pin a commit hash when a page must never chang
 For subresource integrity, compute the hash of the file you load
 (`openssl dgst -sha384 -binary ds.css | openssl base64 -A`) and add `integrity="sha384-..." crossorigin="anonymous"`.
 A strict Content-Security-Policy needs `cdn.jsdelivr.net` in `style-src`, `script-src` and `font-src`; vendoring
-needs only `'self'` there. Either way `img-src` must allow `data:`: the calendar glyph of date fields and the clear
-glyph of search fields are `data:image/svg+xml` masks in `form.css`, and `img-src 'self'` alone leaves them blank.
+needs only `'self'` there. Either way `img-src` must allow `data:` (`img-src 'self' data:`): several shapes are
+`data:image/svg+xml` masks, and a blocked mask hides what it covers. Under `img-src 'self'` alone, a checked checkbox
+(`.ds-check`, `.ds-checkbox`, table checkboxes) loses its check and keeps only the filled box, the value of a
+determinate `.ds-progress` and the arc of `.ds-spinner--determinate` disappear (the masks `--ds-progress-wave` and
+`--ds-progress-ring-wave` in `tokens.css`), and the calendar glyph of date fields and the clear glyph of search
+fields go blank (`form.css`).
 
 ## Bundlers and ES modules
 
@@ -130,11 +135,15 @@ import { icon, check } from './vendor/dashboard-style/js/icons.js';
 @import './vendor/dashboard-style/css/index.css';   /* everything, or pick files: */
 @import './vendor/dashboard-style/css/tokens.css';
 @import './vendor/dashboard-style/css/motion.css';
+@import './vendor/dashboard-style/css/components/utilities.css';
 @import './vendor/dashboard-style/css/components/button.css';
+@import './vendor/dashboard-style/css/components/ripple.css';   /* with DS.ripple */
 ```
 
-When you pick files, keep the order of `css/index.css` and always include `tokens.css` and `motion.css` (components
-name the keyframes in it). With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
+When you pick files, keep the order of `css/index.css` and always include `tokens.css`, `motion.css` (components
+name the keyframes in it) and `components/utilities.css` (border-box sizing inside `.ds-theme`, `.ds-sr`). Add
+`components/ripple.css` whenever you call `DS.ripple.attach()`: without it the ripple span sits in the flow and
+widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
 `package.json` lets both the bundler and Node tests write `#ds/js/motion.js`.
 
 ## Multi-page apps
@@ -223,6 +232,9 @@ font. Preload the latin file for a faster first paint:
 
 Keep `OFL.txt` next to the font files and do not rename or re-subset them. To use another typeface, set `--ds-font`
 in your theme and skip `fonts.css`.
+
+In a widget that lives in a shadow root, link `fonts.css` in the host document: Chromium and Firefox ignore
+`@font-face` inside a shadow root (see theming.md, "Embedded in someone else's page").
 
 ## Updating
 

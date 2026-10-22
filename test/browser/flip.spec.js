@@ -358,6 +358,84 @@ test('an item gliding past others paints above them (the farthest on top) and ge
   expect(await leftovers(page, 'rows')).toEqual({ isolation: '', items: [] });
 });
 
+test('a gliding row of an interactive table covers the checkbox and the chevron of a row it crosses', async ({ page }) => {
+  await open(page);
+  // A is removed (table rows go at once), C rises two rows past B, which
+  // stays: C is the only mover, so it glides on the lowest rank, and it
+  // ends before B, so B's controls (lifted to --ds-z-raised) come later in
+  // the paint order of a tie.
+  const result = await page.evaluate((shares) => {
+    const chevron = DS.icons.icon(DS.icons.chevronDown, 20, 'ds-chevron');
+    const row = (key) => `<tr data-ds-key="${key}"><td><input type="checkbox" aria-label="Select ${key}"></td>`
+      + `<td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="false" aria-label="Details">${chevron}</button></td>`
+      + `<td class="ds-col--text">${key}</td><td class="ds-num">1.2</td></tr>`;
+    document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', '<div class="ds-table-wrap" style="width: 640px"><table class="ds-table ds-table--interactive"><caption class="ds-sr">Devices</caption><tbody id="z-rows"></tbody></table></div>');
+    const body = document.getElementById('z-rows');
+    body.scrollIntoView({ block: 'center' });
+    DS.dom.morphHtml(body, ['LAPTOP-A', 'LAPTOP-B', 'LAPTOP-C'].map(row).join(''));
+    DS.motion.flip(body, (hooks) => DS.dom.morphHtml(body, ['LAPTOP-C', 'LAPTOP-B'].map(row).join(''), hooks));
+    const animations = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline)).filter((animation) => animation.id === 'ds-flip');
+    for (const animation of animations) animation.pause();
+    const still = body.querySelector('[data-ds-key="LAPTOP-B"]');
+    const keyAt = (x, y) => document.elementFromPoint(x, y)?.closest('[data-ds-key]')?.getAttribute('data-ds-key') ?? null;
+    const centre = (el) => { const rect = el.getBoundingClientRect(); return [rect.left + rect.width / 2, rect.top + rect.height / 2]; };
+    const out = shares.map((share) => {
+      for (const animation of animations) animation.currentTime = share * animation.effect.getComputedTiming().duration;
+      const [boxX, y] = centre(still.querySelector('input'));
+      const [toggleX] = centre(still.querySelector('.ds-table__toggle'));
+      const text = still.querySelector('.ds-col--text').getBoundingClientRect();
+      return { share, text: keyAt(text.left + text.width / 2, y), box: keyAt(boxX, y), toggle: keyAt(toggleX, y) };
+    });
+    const moving = animations.map((animation) => animation.effect.target.getAttribute('data-ds-key'));
+    for (const animation of animations) animation.finish();
+    return { moving, out };
+  }, [0.02, 0.05, 0.08, 0.11, 0.14, 0.17, 0.2, 0.25, 0.3, 0.4]);
+  expect(result.moving).toEqual(['LAPTOP-C']);
+  const covered = result.out.filter((sample) => sample.text === 'LAPTOP-C');
+  expect(covered.length, JSON.stringify(result.out)).toBeGreaterThan(0);
+  for (const sample of covered) expect(sample, 'the controls of the row it crosses stay under it').toEqual({ ...sample, box: 'LAPTOP-C', toggle: 'LAPTOP-C' });
+  await settle(page);
+  expect(await leftovers(page, 'z-rows')).toEqual({ isolation: '', items: [] });
+});
+
+test('a first item that a plain DOM mutate removes keeps its place, padding and divider while it fades', async ({ page }) => {
+  await open(page, { speed: 0.1 });
+  const result = await page.evaluate(() => {
+    document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', '<ul class="ds-kv-list" id="kv" style="width: 480px">'
+      + ['LAPTOP-0201', 'LAPTOP-0202', 'LAPTOP-0203'].map((name) => `<li data-ds-key="${name}"><span>${name}</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Mark returned</button></li>`).join('')
+      + '</ul>');
+    const list = document.getElementById('kv');
+    const first = list.firstElementChild;
+    const read = () => ({
+      offset: first.querySelector('span').getBoundingClientRect().top - first.getBoundingClientRect().top,
+      border: getComputedStyle(first).borderTopWidth,
+      first: first.matches(':first-child'),
+    });
+    const before = read();
+    DS.motion.flip(list, () => first.remove());
+    const animations = document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
+    for (const animation of animations) animation.pause();
+    const during = [0, 0.5, 0.9].map((share) => {
+      for (const animation of animations) {
+        const { duration, delay } = animation.effect.getComputedTiming();
+        if (Number.isFinite(duration)) animation.currentTime = delay + share * duration;
+      }
+      return read();
+    });
+    const connected = first.isConnected;
+    for (const animation of animations) if (Number.isFinite(animation.effect.getComputedTiming().iterations)) animation.finish();
+    return { before, during, connected };
+  });
+  expect(result.connected).toBe(true);
+  for (const frame of result.during) {
+    expect(Math.abs(frame.offset - result.before.offset), JSON.stringify(result)).toBeLessThanOrEqual(1);
+    expect(frame.border).toBe(result.before.border);
+    expect(frame.first).toBe(true);
+  }
+  await settle(page);
+  expect(await page.evaluate(() => [...document.querySelectorAll('#kv > li')].map((item) => item.getAttribute('data-ds-key')))).toEqual(['LAPTOP-0202', 'LAPTOP-0203']);
+});
+
 test('a glide cancelled by the next one keeps the item raised; a removed item keeps its lift', async ({ page }) => {
   await open(page);
   const result = await page.evaluate((names) => {

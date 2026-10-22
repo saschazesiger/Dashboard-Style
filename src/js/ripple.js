@@ -515,14 +515,18 @@ function activates(target, key) {
 
 /**
  * Adds the pointer ripple to every action inside `root` (delegated, so
- * actions rendered later have it too). Idempotent per root.
- * @param {Document|Element} [root]
+ * actions rendered later have it too). Idempotent per root. An open shadow
+ * root works as a root too: the listeners go on it (events keep their real
+ * targets there) and .ds-ripples on the .ds-theme inside it, where ds.css
+ * applies.
+ * @param {Document|Element|ShadowRoot} [root]
  * @returns {{ detach: () => void }}
  */
 export function attach(root = document) {
   const existing = attached.get(root);
   if (existing) return existing;
   const element = /** @type {Element} */ (root.nodeType === 9 ? /** @type {Document} */ (root).documentElement : root);
+  const marked = root.nodeType === 11 ? /** @type {ShadowRoot} */ (root).querySelector('.ds-theme') ?? /** @type {ShadowRoot} */ (root).host : element;
   const doc = element.ownerDocument;
   /** The pending blur that ends a key press, per focused target. @type {WeakMap<Element, () => void>} */
   const blurs = new WeakMap();
@@ -590,7 +594,7 @@ export function attach(root = document) {
     if (row && element.contains(row)) chipToggled(row);
   };
 
-  element.classList.add('ds-ripples');
+  marked.classList.add('ds-ripples');
   element.addEventListener('pointerdown', onPointerDown);
   element.addEventListener('keydown', onKeyDown);
   element.addEventListener('keyup', onKeyUp);
@@ -607,7 +611,7 @@ export function attach(root = document) {
       element.removeEventListener('keyup', onKeyUp);
       element.removeEventListener('touchstart', onTouchStart);
       element.removeEventListener('change', onChange);
-      element.classList.remove('ds-ripples');
+      marked.classList.remove('ds-ripples');
     },
   };
   attached.set(root, handle);

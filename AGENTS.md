@@ -82,9 +82,10 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   "Progressive:" in the file header with its fallback (tested): `linear()`, `@starting-style`,
   `transition-behavior: allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven
   animations, `interpolate-size`, `::details-content`, `overflow-clip-margin`, `sibling-index()`,
-  `moveBefore()`, plus `text-wrap` and `scrollbar-color`. JS is ES2022; a module may import named exports from
-  an earlier module in `MODULES` (`import { a } from './motion.js';`, one line), exports only as `export const` /
-  `export function`, newer APIs only behind feature detection, named under "Progressive:".
+  `moveBefore()`, `scrollbar-gutter`, `focus({ focusVisible: false })`, plus `text-wrap` and `scrollbar-color`.
+  JS is ES2022; a module may import named exports from an earlier module in `MODULES`
+  (`import { a } from './motion.js';`, one line), exports only as `export const` / `export function`, newer APIs
+  only behind feature detection, named under "Progressive:".
 - **Cascade layers.** `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;` is the first statement
   of every stylesheet in `src/` (`dist/ds.css` declares it once); each file wraps its rules in one block
   (`tokens.css` → `ds.tokens`, `base.css` → `ds.base`, components → `ds.components`; `motion.css` puts its

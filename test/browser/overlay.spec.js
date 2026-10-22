@@ -864,6 +864,17 @@ test.describe('overlay timelines', () => {
           el.hidden = false;
           const enter = getComputedStyle(box);
           const entrance = { names: enter.animationName, curves: enter.animationTimingFunction };
+          // The first frame of the rise, frozen in this task: the same --ds-distance-sm as the state path.
+          const grow = box.getAnimations().find((animation) => animation.animationName === 'ds-grow-in');
+          if (grow) {
+            for (const animation of box.getAnimations()) animation.pause();
+            grow.currentTime = 0;
+            const distance = document.createElement('div');
+            distance.style.width = 'var(--ds-distance-sm)';
+            document.querySelector('.ds-theme').append(distance);
+            entrance.rise = getComputedStyle(box).translate === `0px ${getComputedStyle(distance).width}`;
+            distance.remove();
+          }
           el.classList.add(closing);
           const leave = getComputedStyle(box);
           const exit = { names: leave.animationName, curves: leave.animationTimingFunction, running: box.getAnimations().map((animation) => animation.animationName).sort() };
@@ -876,7 +887,7 @@ test.describe('overlay timelines', () => {
       });
       const c = read.curves;
       const phone = width <= 600;
-      expect(read.dialog.entrance, `dialog at ${width}px`).toEqual({ names: 'ds-fade-in, ds-grow-in', curves: `${c.inOut}, ${phone ? c.out : c.spatial}` });
+      expect(read.dialog.entrance, `dialog at ${width}px`).toEqual({ names: 'ds-fade-in, ds-grow-in', curves: `${c.inOut}, ${phone ? c.out : c.spatial}`, rise: true });
       expect(read.dialog.exit, `dialog at ${width}px`).toEqual({ names: 'ds-fade-out, ds-shrink-out', curves: `${c.inOut}, ${c.exit}`, running: ['ds-fade-out', 'ds-shrink-out'] });
       expect(read.sheet.entrance, `sheet at ${width}px`).toEqual({ names: phone ? 'ds-lift-in' : 'ds-shift-in', curves: phone ? c.out : c.spatial });
       expect(read.sheet.exit, `sheet at ${width}px`).toEqual({ names: phone ? 'ds-drop-out' : 'ds-shift-out', curves: c.exit, running: [phone ? 'ds-drop-out' : 'ds-shift-out'] });
@@ -973,6 +984,51 @@ test.describe('focus and pointer during the close', () => {
         expect(await leftovers(page)).toEqual(clean);
       }
     }
+  });
+
+  test('a native dialog or sheet opened and closed with the mouse shows no keyboard ring; with the keyboard it does', async ({ page }) => {
+    // WebKit marks what showModal() and close() focus as :focus-visible even
+    // after a click (1.6.2): the autofocus target, then the opener.
+    await load(page);
+    const ring = () => page.evaluate(() => ({ id: document.activeElement?.id, ring: document.activeElement?.matches(':focus-visible') ?? false }));
+    for (const [id, opener, inside] of [['native', 'open-native', 'native-cancel'], ['native-sheet', 'open-native-sheet', 'native-sheet-close']]) {
+      await page.click(`#${opener}`);
+      await settle(page);
+      expect(await ring(), `${id}: a mouse open`).toEqual({ id: inside, ring: false });
+      await page.click(`#${inside}`);
+      await closed(page, id);
+      expect(await ring(), `${id}: a mouse close`).toEqual({ id: opener, ring: false });
+      await page.mouse.move(1, 1);
+      await focusByKeyboard(page, page.locator(`#${opener}`));
+      await page.keyboard.press('Enter');
+      await settle(page);
+      expect(await ring(), `${id}: a keyboard open`).toEqual({ id: inside, ring: true });
+      await page.keyboard.press('Escape');
+      await closed(page, id);
+      expect(await ring(), `${id}: Escape`).toEqual({ id: opener, ring: true });
+      expect(await leftovers(page)).toEqual(clean);
+    }
+  });
+
+  test('a native dialog opened with the mouse leaves the text field it focuses alone: no blur, and it keeps its ring', async ({ page }) => {
+    // The WebKit ring correction runs only where there is something to correct: a text field always shows the ring.
+    await load(page);
+    await page.evaluate(() => {
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="x-open-field">Rename</button>'
+        + '<dialog class="ds-dialog" id="x-field-dialog" aria-labelledby="x-field-title"><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box">'
+        + '<h2 class="ds-dialog__title" id="x-field-title">Rename</h2><input class="ds-input" id="x-field" required aria-label="Name">'
+        + '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="x-field-cancel" data-close>Cancel</button></div></div></dialog>');
+      window.fxLog = [];
+      const field = document.getElementById('x-field');
+      for (const type of ['focus', 'blur']) field.addEventListener(type, () => window.fxLog.push(type));
+      document.getElementById('x-open-field').addEventListener('click', (event) => DS.overlay.open(document.getElementById('x-field-dialog'), { opener: event.currentTarget }));
+    });
+    await page.click('#x-open-field');
+    await settle(page);
+    expect(await page.evaluate(() => ({ log: window.fxLog, focused: document.activeElement?.id, ring: document.getElementById('x-field').matches(':focus-visible') })))
+      .toEqual({ log: ['focus'], focused: 'x-field', ring: true });
+    await page.click('#x-field-cancel');
+    await closed(page, 'x-field-dialog');
   });
 
   test('Tab and Shift+Tab never reach the page behind an open dialog (div and native)', async ({ page }) => {

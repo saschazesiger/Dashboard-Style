@@ -101,6 +101,8 @@
     bottom: 0;
     left: 0;
     z-index: var(--ds-z-drawer);
+    /* Out of flow: no rhythm margin from a parent card (.ds-card > * + *). */
+    margin: 0;
     display: flex;
     justify-content: flex-end;
     /* The bleed past the panel's outer edge never makes anything scroll. */

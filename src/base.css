@@ -7,13 +7,17 @@
  *
  * Every rule is scoped to .ds-base through :where(), which adds no
  * specificity: the rules weigh exactly what bare element selectors would,
- * so any class of the page still wins over them. An embedded widget simply
- * leaves .ds-base off and keeps the host page untouched.
+ * so any class of the page still wins over them. An embedded widget puts
+ * .ds-base on its root element: the html/body rules never match there, so
+ * the host page stays untouched.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.base {
+  /* Under .ds-base `hidden` beats everything, page CSS included. Without
+     it (a widget that leaves it off), motion.css still hides ds components that
+     carry `hidden` inside .ds-theme, in ds.utilities. */
   :where(.ds-base) [hidden] {
     display: none !important;
   }
@@ -67,12 +71,14 @@
     }
   }
 
-  /* Inline code takes the size of the text around it, only the typeface
-     changes. Its own box is just its glyphs: the monospace font sits higher
-     on the baseline and would open up the line by a pixel. */
+  /* Inline code takes the size and colour of the text around it, only the
+     typeface changes (a layered reset's code colour does not reach it).
+     Its own box is just its glyphs: the monospace font sits higher on the
+     baseline and would open up the line by a pixel. */
   :where(.ds-base) code {
     font-family: var(--ds-font-mono);
     font-size: inherit;
+    color: inherit;
     line-height: 1;
     background: var(--ds-code-bg);
     border: 1px solid var(--ds-line);

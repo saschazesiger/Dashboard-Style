@@ -72,6 +72,19 @@ describe('dist/ds.css', () => {
   });
 });
 
+describe('dist/css/properties.css', () => {
+  it('holds every top-level @property of dist/ds.css, byte for byte and in order, and nothing else', () => {
+    const blocks = (css) => css.match(/^@property\s+--[\w-]+\s*\{[^{}]*\}/gm) ?? [];
+    const all = blocks(read('dist/ds.css'));
+    const properties = read('dist/css/properties.css');
+    assert.ok(all.length >= 29, `${all.length} registrations`);
+    assert.deepEqual(blocks(properties), all);
+    // Only the registrations: no layer statement, no rule, nothing that styles.
+    const code = properties.replace(/\/\*[\s\S]*?\*\//g, '');
+    assert.equal(code.replace(/^@property\s+--[\w-]+\s*\{[^{}]*\}/gm, '').trim(), '');
+  });
+});
+
 describe('moduleBody()', () => {
   it('rewrites a sibling import of an earlier module to the DS namespace', () => {
     const body = moduleBody("import { enter, leave as exit } from './motion.js';\nexport const x = 1;\n", 'dom');

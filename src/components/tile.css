@@ -4,7 +4,7 @@
  *   <div class="ds-tiles">
  *     <div class="ds-tile">
  *       <p class="ds-tile__label">[icon] <span>Open items</span></p>
- *       <p class="ds-tile__value" data-count="128">128</p>
+ *       <p class="ds-tile__value">128</p>
  *       <p class="ds-tile__note">+12 this week</p>
  *
  * The value never wraps and never takes a colour: on narrow tiles it gets
@@ -16,7 +16,9 @@
  * from the first frame and snaps from offset + width to the offset
  * (outline-offset, --ds-dur-fast); no lift, no scale. While pressed it
  * turns squarer (16px to --ds-tile-radius-pressed, 12px) in
- * --ds-dur-micro and springs back over --ds-dur-medium, like a card.
+ * --ds-dur-micro and springs back over --ds-dur-medium, like a card. A
+ * disabled or aria-disabled tile shows no hover or press layer and does
+ * not morph; an aria-disabled one keeps its focus layer.
  *
  * Values (docs/motion.md, "Data motion"): every new value goes through
  * DS.motion.countUp(el, next), which counts from the figure on screen
@@ -150,6 +152,22 @@
   :is(button, a).ds-tile.ds-pressed::before {
     opacity: var(--ds-state-pressed);
     transition-duration: var(--ds-dur-micro);
+  }
+
+  /* A blocked tile (disabled, aria-disabled) shows neither hover nor press,
+     like its morph above; an aria-disabled tile keeps its focus layer. */
+  @media (hover: hover) {
+    :is(button, a).ds-tile:is(:disabled, [aria-disabled="true"]):hover::before {
+      opacity: 0;
+    }
+  }
+
+  :is(button, a).ds-tile:is(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  :is(button, a).ds-tile[aria-disabled="true"]:focus-visible::before {
+    opacity: var(--ds-state-focus);
   }
 
   :is(button, a).ds-tile:focus-visible {

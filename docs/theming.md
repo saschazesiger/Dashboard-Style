@@ -41,14 +41,16 @@ project component of your own lists its properties with the motion tokens.
 
 ## Recipes
 
-**Brand palette.** Usually five roles are enough; `--ds-link`, `--ds-focus` and `--ds-action-ink` follow
-`--ds-primary`.
+**Brand palette.** Usually six roles are enough; `--ds-link`, `--ds-focus` and `--ds-action-ink` follow
+`--ds-primary`, while `--ds-inverse-primary` (the snackbar icon on the dark inverse surface) is a light tint of the
+brand colour that the theme sets itself (at least 3:1 against `--ds-inverse`).
 
 ```css
 .ds-theme {
   --ds-primary: #1d4e89;
   --ds-accent: #d6e4f5;
   --ds-on-accent: #0b2440;
+  --ds-inverse-primary: #a6c8ff;
   --ds-backdrop: #f2f4f7;
   --ds-link-underline: rgba(29, 78, 137, .4);
 }
@@ -112,18 +114,23 @@ zoom into smaller text. `--ds-input-font` forces one role everywhere:
 .ds-theme { --ds-input-font: var(--ds-font-body); }
 ```
 
-**Embedded in someone else's page.** Put `ds-theme` on your root element instead of `<html>`, leave out `ds-base`,
-and use `.ds-dialog--contained` for dialogs that should cover only your panel (`DS.overlay` traps focus and input
-only inside its positioned container, leaves the host page's scroll alone and closes it on Escape only when the key
-is pressed inside that container, so the host keeps Escape for its own dialogs and search fields). Full-window
-modals (a dialog without `--contained`, side sheets, the modal drawer) still count the lock and set
-`body.ds-no-scroll` on the host's `<body>`, but only `.ds-base` turns that class into `overflow: hidden`: without it
-the host page keeps scrolling behind the scrim. A widget that wants the lock adds its own unlayered rule, such as
-`body.ds-no-scroll { overflow: hidden; }`, where the host agrees.
+**Embedded in someone else's page.** Put `ds-theme` on your root element instead of `<html>`, and add `ds-base` to
+that root as well (`<div class="ds-theme ds-base my-widget">`): its `html` and `body` rules match only those elements,
+so on a `<div>` they never reach the host page, while links (`--ds-link` and the underline tokens), `strong` and `b`
+(the label weight), inline code, `::selection`, the font of form controls and the focus ring on focusable elements
+apply inside your widget. Without it, links in the documented markup (a `.ds-facts` value, a link in an alert or card
+text) take the browser's default link colour, and `strong` its bold. Use `.ds-dialog--contained` for dialogs that
+should cover only your panel (`DS.overlay` traps focus and input only inside its positioned container, leaves the host
+page's scroll alone and closes it on Escape only when the key is pressed inside that container, so the host keeps
+Escape for its own dialogs and search fields). Full-window modals (a dialog without `--contained`, side sheets, the
+modal drawer) still count the lock and set `body.ds-no-scroll` on the host's `<body>`, but that class becomes
+`overflow: hidden` only when `<html>` carries `.ds-base`. A `.ds-base` on your widget root does not reach the host's
+`<body>`, so the host page keeps scrolling behind the scrim. A widget that wants the lock adds its own unlayered rule,
+such as `body.ds-no-scroll { overflow: hidden; }`, where the host agrees.
 
-Leaving out `ds-base` also leaves out the page's ink and body type. Cards, dialogs, side sheets and tables set the
-text colour on their surfaces, but loose text elsewhere in your widget, and the type of loose text everywhere,
-inherits the host page's colour and font. Give your root both, unlayered and after `ds.css`:
+On your root, `ds-base` does not set the page's ink and body type (those rules sit on `<body>`). Cards, dialogs,
+side sheets and tables set the text colour on their surfaces, but loose text elsewhere in your widget, and the type
+of loose text everywhere, inherits the host page's colour and font. Give your root both, unlayered and after `ds.css`:
 
 ```css
 .ds-theme.my-widget {
@@ -137,16 +144,22 @@ Every token and rule is scoped to
 `box-sizing: border-box` (zero specificity, so your own sizing rules still win). Overlays (dialogs, side sheets,
 snackbar regions, tooltips, menus) must sit inside the `.ds-theme` element too, not at the end of the host's
 `<body>`: outside it they get neither the tokens nor the motion. `DS.overlay` warns once in the console when it opens
-an overlay outside `.ds-theme` (and `tooltips()` when its root has none).
+an overlay outside `.ds-theme` (and `tooltips()` when its root has none). With `ds-base` on your root, `[hidden]`
+beats everything inside the widget, as on a full page (the `!important` rule of `base.css`). Without it, the
+`hidden` attribute still hides ds components inside `.ds-theme` (a zero-specificity rule in `ds.utilities`, so
+`DS.motion.leave(el, v, { then: 'hide' })` works on an alert or a button), and your widget's own unlayered
+`display` rules beat it.
 
 The other direction needs a guard of yours. `ds.css` sits in `@layer ds.*`, so the host page's unlayered CSS beats
 your widget's components, whatever its specificity: element rules such as `button { ... }`, `h2 { ... }`,
 `p { ... }` and `dialog { ... }` from a reboot, a normalize or the host's own styles can square your pills, change
-fonts and title sizes and frame a native `<dialog class="ds-dialog">`. Hand those elements back to the ds layers
-with an unlayered rule, loaded after `ds.css` and keyed to your root like the tokens:
+fonts and title sizes, float a legend, mark a summary, pad a section card and frame a native
+`<dialog class="ds-dialog">`. Hand those elements back to the ds layers with an unlayered rule, loaded after `ds.css`
+and keyed to your root like the tokens. The list holds every element the documented component markup uses (`svg`
+stays out: icons keep their own attributes):
 
 ```css
-.ds-theme.my-widget :where(button, h1, h2, h3, h4, p, ul, ol, li, a, dialog, input, select, textarea, label, table, th, td) {
+.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td) {
   all: revert-layer;
 }
 ```
@@ -156,6 +169,18 @@ The guard weighs (0,2,0): your widget's own unlayered rules on those elements mu
 or narrow the guard to ds elements with `:where([class^="ds-"], [class*=" ds-"])`. Host rules that weigh more than
 the guard (`#app p`, `.content .toolbar button`) or carry `!important` still win; a shadow root or an `<iframe>` is the
 isolation that always holds.
+
+In a shadow root, load `ds.css` inside it and keep the `.ds-theme` element (and every overlay) inside it too;
+`DS.dom`, `DS.motion` and `DS.overlay` read the focus of the shadow tree, and `DS.overlay.tooltips(shadowRoot)` and
+`DS.ripple.attach(shadowRoot)` take the shadow root itself. `@property` rules apply only in document-level
+stylesheets, so also link `css/properties.css` in the host document: it only registers the `--ds-*` custom
+properties and styles nothing. Without it the indicator, progress, spinner and skeleton step instead of gliding, and
+the per-element motion hooks inherit into descendants. Fonts work the same way: Chromium and Firefox ignore
+`@font-face` inside a shadow root, so link `fonts/fonts.css` in the host document as well (and put any `@font-face`
+of your theme there). Otherwise those engines render the widget in the fallback font (Roboto, Segoe UI or the
+system UI font) while the computed `font-family` still reads Google Sans. The trap of a div dialog, side sheet or
+modal drawer in the shadow root crosses it through the host: the host page around the widget is inert while one is
+open, as with `showModal()` (1.6.2; a `.ds-dialog--contained` stays within its container).
 
 Stacking: prefer the native `<dialog>` markup for dialogs and side sheets in a widget. `showModal()` puts them in the
 top layer, above everything the host page paints, and while one is open `DS.overlay` moves the snackbar regions into
@@ -178,7 +203,8 @@ both copies share their selectors, and `tokens.css` on bare `.ds-theme` would re
 values. Scope what you inject to your root: rewrite `.ds-theme` to `.ds-theme.my-widget` in every stylesheet you
 ship, `tokens.css` and your theme included (a build step can do it), and key any reset of your own the same way
 (`.ds-theme.my-widget :where(button) { ... }`). The component rules themselves stay shared; load the same version
-as the host where you can.
+as the host where you can. A dialog or side sheet of the host leaves your widget's `.ds-toasts` region in your
+widget (it moves only the regions of its own theme; 1.6.2), and yours leaves the host's alone.
 
 Overlays of the two copies (1.6.1 and later on both sides) share what the page has only once: Escape closes the
 topmost layer whichever copy opened it, the scroll lock holds until the last modal of either copy closes, anchor

@@ -1092,7 +1092,10 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
           return next?.id === 'r-after';
         })(),
         left: region.style.getPropertyValue('--ds-toast-left') === home.left,
-        keep: region.hasAttribute('data-ds-keep') || [...document.querySelectorAll('[aria-live][data-ds-keep]')].length > 0,
+        // The page's region loses the mark it had while away; the announcers
+        // are DS runtime nodes and keep theirs (1.6.2).
+        keep: region.hasAttribute('data-ds-keep'),
+        announcers: [...document.querySelectorAll('#r-toasts ~ .ds-sr[aria-live]')].map((node) => node.hasAttribute('data-ds-keep')),
       };
     });
     expect(result).toEqual({
@@ -1103,6 +1106,7 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
       back: true,
       left: true,
       keep: false,
+      announcers: [true, true],
     });
   });
 
@@ -1272,5 +1276,364 @@ test.describe('fixed in 1.6.1 (final review, second pass)', () => {
       return out;
     });
     for (const row of lefts.slice(1)) expect(row).toEqual(lefts[0]);
+  });
+});
+
+test.describe('fixed in 1.6.2', () => {
+  /**
+   * An open shadow root on a host at the end of <body>: ds.css loads inside
+   * it, `markup` sits in its .ds-theme (positioned, so a contained dialog
+   * covers it). window.wroot is the shadow root.
+   */
+  function shadowWidget(page, markup) {
+    return page.evaluate(async (html) => {
+      const host = document.createElement('div');
+      host.id = 'shadow-host';
+      document.body.append(host);
+      const root = host.attachShadow({ mode: 'open' });
+      root.innerHTML = `<link rel="stylesheet" href="/dist/ds.css"><div class="ds-theme" id="w-theme" style="position: relative; min-height: 320px">${html}</div>`;
+      const link = root.querySelector('link');
+      if (!link.sheet) await new Promise((resolve) => link.addEventListener('load', resolve, { once: true }));
+      window.wroot = root;
+    }, markup);
+  }
+
+  test('in a shadow root: morphHtml keeps the focused field, leave() moves focus out, Escape and close() work for a contained dialog', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await shadowWidget(page, '<div id="w-list"><input class="ds-input" id="q" aria-label="Search" value="ab"></div>'
+      + '<div id="w-panel"><button class="ds-btn" type="button" id="w-in">Assign</button></div>'
+      + '<button class="ds-btn" type="button" id="w-open">Delete</button>'
+      + '<div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>'
+      + '<div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><div class="ds-dialog__actions">'
+      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div>');
+    const morph = await page.evaluate(() => {
+      const field = wroot.getElementById('q');
+      field.focus();
+      field.value = 'abc';
+      field.setSelectionRange(1, 1);
+      DS.dom.morphHtml(wroot.getElementById('w-list'), '<input class="ds-input" id="q" aria-label="Search" value="ab ">');
+      const now = wroot.getElementById('q');
+      return { same: now === field, value: now.value, caret: now.selectionStart, focused: wroot.activeElement === now };
+    });
+    expect(morph).toEqual({ same: true, value: 'abc', caret: 1, focused: true });
+    const left = await page.evaluate(async () => {
+      const panel = wroot.getElementById('w-panel');
+      wroot.getElementById('w-in').focus();
+      const leaving = DS.motion.leave(panel, '', { then: 'keep' });
+      const sameTask = { inside: panel.contains(wroot.activeElement), inert: panel.inert };
+      await leaving;
+      DS.motion.cancel(panel);
+      return sameTask;
+    });
+    expect(left).toEqual({ inside: false, inert: true });
+    await page.evaluate(() => {
+      wroot.getElementById('w-open').focus();
+      DS.overlay.open(wroot.getElementById('w-dialog'), { opener: wroot.getElementById('w-open') });
+    });
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').getAttribute('data-state') === 'open');
+    expect(await page.evaluate(() => wroot.activeElement?.id)).toBe('w-cancel');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').hidden);
+    expect(await page.evaluate(() => wroot.activeElement?.id), 'focus back on the opener').toBe('w-open');
+    // close() by hand, focus inside: back on the opener too, never <body>.
+    await page.evaluate(() => DS.overlay.open(wroot.getElementById('w-dialog'), { opener: wroot.getElementById('w-open') }));
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').getAttribute('data-state') === 'open');
+    await page.evaluate(() => DS.overlay.close(wroot.getElementById('w-dialog')));
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').hidden);
+    expect(await page.evaluate(() => [document.activeElement?.id, wroot.activeElement?.id])).toEqual(['shadow-host', 'w-open']);
+  });
+
+  /** Defines <x-icon> and <x-field>: web components with an open shadow root (an inner span, an inner input). */
+  function defineWebComponents(page) {
+    return page.evaluate(() => {
+      if (customElements.get('x-icon')) return;
+      customElements.define('x-icon', class extends HTMLElement {
+        connectedCallback() {
+          if (this.shadowRoot) return;
+          this.attachShadow({ mode: 'open' }).innerHTML = '<span style="display: inline-block; width: 16px; height: 16px; background: currentColor"></span>';
+        }
+      });
+      customElements.define('x-field', class extends HTMLElement {
+        connectedCallback() {
+          if (this.shadowRoot) return;
+          this.attachShadow({ mode: 'open' }).innerHTML = '<input aria-label="Reason">';
+        }
+      });
+    });
+  }
+
+  test('a press on a web component inside a menu item or the trigger counts as inside the menu', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await defineWebComponents(page);
+    await page.evaluate(() => {
+      document.getElementById('menu-b').prepend(document.createElement('x-icon'));
+      document.getElementById('open-menu').prepend(document.createElement('x-icon'));
+      window.fxLog = [];
+      document.getElementById('menu-b').addEventListener('click', () => window.fxLog.push('item-click'));
+    });
+    const openMenu = async () => {
+      await page.click('#open-menu');
+      await page.waitForFunction(() => document.getElementById('menu').getAttribute('data-state') === 'open');
+    };
+    await openMenu();
+    await page.locator('#menu-b x-icon span').click();
+    expect(await page.evaluate(() => window.fxLog), 'the item ran: the press was inside the menu').toEqual(['item-click']);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('menu')));
+    await page.waitForFunction(() => document.getElementById('menu').hidden);
+    await openMenu();
+    // The trigger's icon toggles the menu closed (the page's handler), and the outside press does not reopen it.
+    await page.locator('#open-menu x-icon span').click();
+    await page.waitForFunction(() => document.getElementById('menu').hidden);
+    await settle(page);
+    expect(await page.evaluate(() => ({ hidden: document.getElementById('menu').hidden, expanded: document.getElementById('open-menu').getAttribute('aria-expanded') })))
+      .toEqual({ hidden: true, expanded: 'false' });
+  });
+
+  test('Escape in a field inside a web component inside a contained dialog in a shadow root closes the dialog', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await defineWebComponents(page);
+    await shadowWidget(page, '<button class="ds-btn" type="button" id="w-open">Retire</button>'
+      + '<div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>'
+      + '<div class="ds-dialog__box" role="dialog" aria-modal="true" aria-label="Retire"><x-field id="w-reason"></x-field><div class="ds-dialog__actions">'
+      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div>');
+    await page.evaluate(() => DS.overlay.open(wroot.getElementById('w-dialog'), { opener: wroot.getElementById('w-open') }));
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').getAttribute('data-state') === 'open');
+    await page.evaluate(() => wroot.getElementById('w-reason').shadowRoot.querySelector('input').focus());
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').hidden);
+    expect(await page.evaluate(() => wroot.activeElement?.id)).toBe('w-open');
+  });
+
+  test('a div dialog in a shadow root makes the host page inert too, and Tab stays in it', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await shadowWidget(page, '<button class="ds-btn" type="button" id="w-open">Delete</button>'
+      + '<div class="ds-dialog" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>'
+      + '<div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><div class="ds-dialog__actions">'
+      + '<button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button>'
+      + '<button class="ds-btn ds-btn--primary" type="button" id="w-ok" data-close>Delete</button></div></div></div>');
+    // A host-page button after the widget, too.
+    await page.evaluate(() => document.body.insertAdjacentHTML('beforeend', '<p id="after-host"><button type="button" id="after-host-btn">Help</button></p>'));
+    await page.evaluate(() => DS.overlay.open(wroot.getElementById('w-dialog'), { opener: wroot.getElementById('w-open') }));
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').getAttribute('data-state') === 'open');
+    const inert = () => page.evaluate(() => ({
+      page: !!document.getElementById('open-dialog').closest('[inert]'),
+      after: !!document.getElementById('after-host-btn').closest('[inert]'),
+      opener: !!wroot.getElementById('w-open').closest('[inert]'),
+    }));
+    expect(await inert()).toEqual({ page: true, after: true, opener: true });
+    const stops = [];
+    for (const key of [...Array(4).fill('Tab'), ...Array(4).fill('Shift+Tab')]) {
+      await page.keyboard.press(key);
+      stops.push(await page.evaluate(() => {
+        const active = document.activeElement;
+        // <body> stands for the browser's own UI between the last and the first stop.
+        if (!active || active === document.body) return 'inside';
+        if (active.id === 'shadow-host') return wroot.getElementById('w-dialog').contains(wroot.activeElement) ? 'inside' : `widget:${wroot.activeElement?.id}`;
+        return active.id || active.tagName;
+      }));
+    }
+    expect(stops).toEqual(stops.map(() => 'inside'));
+    await page.evaluate(() => DS.overlay.close(wroot.getElementById('w-dialog')));
+    await page.waitForFunction(() => wroot.getElementById('w-dialog').hidden && !wroot.getElementById('w-dialog').hasAttribute('data-state'));
+    expect(await inert()).toEqual({ page: false, after: false, opener: false });
+  });
+
+  test('an element the page adds next to an open div sheet joins its trap, and is free again after the close', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await page.evaluate(() => DS.overlay.open(document.getElementById('sheet'), { opener: document.getElementById('open-sheet') }));
+    await page.waitForFunction(() => document.getElementById('sheet').getAttribute('data-state') === 'open');
+    // A host script appends a banner to <body> while the sheet is open; the trap learns of it before the next frame.
+    const late = await page.evaluate(async () => {
+      document.body.insertAdjacentHTML('beforeend', '<p id="late"><button type="button" id="late-btn">Chat</button></p>');
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      return !!document.getElementById('late-btn').closest('[inert]');
+    });
+    expect(late).toBe(true);
+    const stops = [];
+    for (let i = 0; i < 8; i += 1) {
+      await page.keyboard.press('Tab');
+      stops.push(await page.evaluate(() => {
+        const active = document.activeElement;
+        return !active || active === document.body || document.getElementById('sheet').contains(active) ? 'inside' : active.id || active.tagName;
+      }));
+    }
+    expect(stops).toEqual(stops.map(() => 'inside'));
+    await page.evaluate(() => DS.overlay.close(document.getElementById('sheet')));
+    await page.waitForFunction(() => document.getElementById('sheet').hidden && !document.getElementById('sheet').hasAttribute('data-state'));
+    expect(await page.evaluate(() => [...document.querySelectorAll('[inert]')].map((el) => el.id || el.className))).toEqual([]);
+  });
+
+  test('a page dialog leaves the snackbar region of a nested widget theme in the widget', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await page.evaluate(() => {
+      document.getElementById('page').insertAdjacentHTML('beforeend', '<div class="ds-toasts" id="page-toasts"></div>'
+        + '<style>.ds-theme.my-widget { --ds-font: Georgia, serif; }</style>'
+        + '<div class="ds-theme my-widget" id="widget"><div class="ds-toasts" id="widget-toasts"></div></div>');
+      DS.overlay.toast(document.getElementById('widget-toasts'), 'Widget ready', { persistent: true });
+    });
+    const read = () => page.evaluate(() => ({
+      widget: document.getElementById('widget-toasts').parentElement.id,
+      page: document.getElementById('page-toasts').parentElement.id,
+      font: getComputedStyle(document.querySelector('#widget-toasts .ds-toast')).fontFamily.split(',')[0].replace(/"/g, ''),
+    }));
+    await page.click('#open-native');
+    await page.waitForFunction(() => document.getElementById('native').getAttribute('data-state') === 'open');
+    expect(await read()).toEqual({ widget: 'widget', page: 'native', font: 'Georgia' });
+    const shown = await page.evaluate(() => !!DS.overlay.toast(document.getElementById('widget').querySelector('.ds-toasts'), 'Synced').el);
+    expect(shown, 'the widget still finds its region in its own root').toBe(true);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('native').open && !document.getElementById('native').hasAttribute('data-state'));
+    expect(await read()).toEqual({ widget: 'widget', page: 'page', font: 'Georgia' });
+  });
+
+  test('in a shadow root: tooltips() and ripple.attach() take the shadow root', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await shadowWidget(page, '<button class="ds-btn" type="button" id="w-btn">Export</button>'
+      + '<button class="ds-btn ds-btn--icon" type="button" id="w-tip" aria-label="Copy" data-tip="Copy the link">C</button>');
+    const handles = await page.evaluate(() => {
+      const errors = [];
+      let tips = null;
+      let ripples = null;
+      try { tips = DS.overlay.tooltips(wroot); } catch (error) { errors.push(String(error)); }
+      try { ripples = DS.ripple.attach(wroot); } catch (error) { errors.push(String(error)); }
+      return {
+        errors,
+        tooltip: !!wroot.querySelector('#w-theme > .ds-tooltip'),
+        again: !!tips && DS.overlay.tooltips(wroot) === tips && DS.ripple.attach(wroot) === ripples,
+        marked: wroot.getElementById('w-theme').classList.contains('ds-ripples'),
+      };
+    });
+    expect(handles).toEqual({ errors: [], tooltip: true, again: true, marked: true });
+    const button = page.locator('#w-btn');
+    await button.scrollIntoViewIfNeeded();
+    const box = await button.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    expect(await page.evaluate(() => wroot.querySelectorAll('#w-btn .ds-press-ripple').length)).toBe(1);
+    await page.mouse.up();
+    await page.mouse.move(1, 1);
+    // Keyboard focus on the trigger shows the tooltip, inside the shadow root.
+    await page.evaluate(() => wroot.getElementById('w-btn').focus());
+    await page.keyboard.press('Tab');
+    await page.waitForFunction(() => wroot.querySelector('.ds-tooltip')?.getAttribute('data-state') === 'open');
+    expect(await page.evaluate(() => wroot.querySelector('.ds-tooltip').textContent)).toBe('Copy the link');
+  });
+
+  test('css/properties.css in the host document registers what a shadow root cannot: a registered hook glides again', async ({ page }) => {
+    await open(page, 'motion.html');
+    // The host page without ds.css: the registrations of the shadow root's own ds.css do not apply.
+    await page.evaluate(() => { for (const link of document.querySelectorAll('link[rel="stylesheet"]')) link.remove(); });
+    await shadowWidget(page, '');
+    // A fresh element each time: registered, the hook computes to its initial 0px and a new value transitions.
+    const glides = () => page.evaluate(() => {
+      const pill = document.createElement('span');
+      pill.style.transition = '--ds-indicator-t 1s linear';
+      wroot.getElementById('w-theme').append(pill);
+      const start = getComputedStyle(pill).getPropertyValue('--ds-indicator-t').trim();
+      pill.style.setProperty('--ds-indicator-t', '10px');
+      const count = pill.getAnimations().length;
+      pill.remove();
+      return { registered: start === '0px', count };
+    });
+    expect(await glides()).toEqual({ registered: false, count: 0 });
+    await page.evaluate(async () => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = '/dist/css/properties.css';
+      const loaded = new Promise((resolve) => link.addEventListener('load', resolve, { once: true }));
+      document.head.append(link);
+      await loaded;
+    });
+    expect(await glides()).toEqual({ registered: true, count: 1 });
+  });
+
+  test('a div dialog, a contained dialog and a div side sheet inside a card take no rhythm margin', async ({ page }) => {
+    await open(page, 'reset-layered.html');
+    const result = await page.evaluate(async () => {
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', `<section class="ds-card" id="m-card" style="position: relative">
+        <h2 class="ds-card__title">Devices</h2><button class="ds-btn" type="button" id="m-open">Delete</button>
+        <div class="ds-dialog ds-dialog--contained" id="m-contained" hidden><div class="ds-dialog__backdrop" data-close></div>
+          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div>
+        <div class="ds-dialog" id="m-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-label="Delete?"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div>
+        <div class="ds-sheet" id="m-sheet" hidden aria-modal="true"><div class="ds-sheet__backdrop" data-close></div>
+          <section class="ds-sheet__panel" role="dialog" aria-label="Details"><div class="ds-sheet__body"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></section></div>
+      </section>`);
+      const card = document.getElementById('m-card');
+      const out = {};
+      for (const id of ['m-contained', 'm-dialog', 'm-sheet']) {
+        const el = document.getElementById(id);
+        el.hidden = false;
+        const rect = el.getBoundingClientRect();
+        out[id] = { margin: getComputedStyle(el).marginTop, top: Math.round(rect.top), height: Math.round(rect.height) };
+        el.hidden = true;
+      }
+      const inner = card.getBoundingClientRect().top + parseFloat(getComputedStyle(card).borderTopWidth);
+      return { out, inner: Math.round(inner), cardHeight: Math.round(card.clientHeight), view: innerHeight };
+    });
+    expect(result.out['m-contained']).toEqual({ margin: '0px', top: result.inner, height: result.cardHeight });
+    expect(result.out['m-dialog']).toEqual({ margin: '0px', top: 0, height: result.view });
+    expect(result.out['m-sheet']).toEqual({ margin: '0px', top: 0, height: result.view });
+  });
+
+  test('a contained dialog in a container taller than the window keeps its box and its focus in view', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await page.evaluate(() => {
+      document.body.insertAdjacentHTML('afterbegin', `<section id="tall" style="position: relative; height: 2200px">
+        <button class="ds-btn" type="button" id="t-open">Delete</button>
+        <div class="ds-dialog ds-dialog--contained" id="t-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="t-title"><h2 class="ds-dialog__title" id="t-title">Delete?</h2>
+          <p>LAPTOP-0042 goes from the list.</p>
+          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="t-cancel" autofocus data-close>Cancel</button></div></div></div></section>`);
+      scrollTo(0, 0);
+    });
+    await page.evaluate(() => DS.overlay.open(document.getElementById('t-dialog'), { opener: document.getElementById('t-open') }));
+    await page.waitForFunction(() => document.getElementById('t-dialog').getAttribute('data-state') === 'open');
+    await settle(page);
+    const inView = (y) => page.evaluate((to) => {
+      scrollTo(0, to);
+      const box = document.querySelector('#t-dialog .ds-dialog__box').getBoundingClientRect();
+      const focus = document.activeElement.getBoundingClientRect();
+      return { focus: document.activeElement.id, box: box.top >= 0 && box.bottom <= innerHeight, focused: focus.top >= 0 && focus.bottom <= innerHeight, scrolled: Math.round(scrollY) === to };
+    }, y);
+    expect(await inView(0)).toEqual({ focus: 't-cancel', box: true, focused: true, scrolled: true });
+    expect(await inView(700)).toEqual({ focus: 't-cancel', box: true, focused: true, scrolled: true });
+  });
+
+  test('under a layered reboot: a group legend sits on its first option, a table head with a checkbox is 48px, inline code keeps its ink', async ({ page }) => {
+    await open(page, 'reset-layered.html');
+    const result = await page.evaluate(() => {
+      const theme = document.querySelector('.ds-theme');
+      theme.insertAdjacentHTML('afterbegin', `<div class="ds-base" id="rb">
+        <fieldset class="ds-field" id="rb-group"><legend class="ds-field__label">Options</legend>
+          <label class="ds-check"><input type="checkbox"> Backups</label><label class="ds-check"><input type="checkbox"> Updates</label></fieldset>
+        <div class="ds-field" id="rb-field"><label class="ds-field__label" for="rb-name">Name</label><input class="ds-input" id="rb-name"></div>
+        <div class="ds-table-wrap"><table class="ds-table ds-table--interactive"><thead id="rb-head"><tr><th scope="col"><input type="checkbox" aria-label="Select all"></th><th scope="col">Device</th></tr></thead>
+          <tbody><tr><td><input type="checkbox" aria-label="Select LAPTOP-0042"></td><td>LAPTOP-0042</td></tr></tbody></table></div>
+        <p id="rb-text">Run <code id="rb-code">sync --all</code> to start.</p></div>`);
+      const gap = (field) => {
+        const label = field.querySelector('.ds-field__label').getBoundingClientRect();
+        return Math.round(field.children[1].getBoundingClientRect().top - label.bottom);
+      };
+      const plain = gap(document.getElementById('rb-field'));
+      const plainGroup = gap(document.getElementById('rb-group'));
+      // Bootstrap's reboot, in the reset layer declared before ds.
+      const style = document.createElement('style');
+      style.textContent = '@layer reset { legend { float: left; width: 100%; padding: 0; margin-bottom: .5rem; font-size: calc(1.275rem + .3vw); line-height: inherit; } legend + * { clear: left; } code { color: #d63384; font-size: .875em; } }';
+      document.head.append(style);
+      return {
+        plainGroup,
+        group: gap(document.getElementById('rb-group')),
+        field: gap(document.getElementById('rb-field')),
+        plain,
+        head: Math.round(document.getElementById('rb-head').getBoundingClientRect().height),
+        code: getComputedStyle(document.getElementById('rb-code')).color,
+        text: getComputedStyle(document.getElementById('rb-text')).color,
+      };
+    });
+    expect(result.group, JSON.stringify(result)).toBe(result.plainGroup);
+    expect(result.field).toBe(result.plain);
+    expect(result.head).toBe(48);
+    expect(result.code).toBe(result.text);
   });
 });

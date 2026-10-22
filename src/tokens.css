@@ -236,7 +236,8 @@
      * targets (rows, navigation items) take the lighter hover. Keyboard
      * focus lays its own layer under the ring (focus); a press stays on top
      * of it. Disabled content dims to 38%; stale content (about to be
-     * replaced) to 55%. The deprecated ds-pulse dims to pulse.
+     * replaced) to 55%. pulse is deprecated with ds-pulse (removed in
+     * 2.0): its dimmest point.
      */
     --ds-state-hover: .08;
     --ds-state-hover-lg: .06;

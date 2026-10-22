@@ -88,6 +88,7 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
   --ds-primary: #006a6a;
   --ds-accent: #cce8e7;
   --ds-on-accent: #002020;
+  --ds-inverse-primary: #4cdada;
   --ds-font: 'Inter', system-ui, sans-serif;
 }
 ```
@@ -109,7 +110,7 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 ## Files
 
 ```
-dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css/optional/), js/, fonts/, LICENSE, SHA256SUMS
+dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css/optional/, css/properties.css), js/, fonts/, LICENSE, SHA256SUMS
 src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, index.css (order)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template
@@ -131,8 +132,8 @@ but no CSS nesting; the JS is ES2022.
 Newer features are refinements only, behind a feature query where it matters, and each file names them under
 "Progressive:" in its header with its fallback: `linear()`, `@starting-style`, `transition-behavior:
 allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven animations, `interpolate-size`,
-`::details-content`, `overflow-clip-margin`, `sibling-index()`, `moveBefore()`, `scrollbar-gutter`, plus `text-wrap`
-and `scrollbar-color`. Older browsers get the same page without the refinement (a cubic curve instead of the spring,
+`::details-content`, `overflow-clip-margin`, `sibling-index()`, `moveBefore()`, `scrollbar-gutter`,
+`focus({ focusVisible: false })`, plus `text-wrap` and `scrollbar-color`. Older browsers get the same page without the refinement (a cubic curve instead of the spring,
 a disclosure that toggles instead of gliding).
 
 ## Develop

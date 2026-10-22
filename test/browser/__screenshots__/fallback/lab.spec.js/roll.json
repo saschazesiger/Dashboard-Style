@@ -1,6 +1,6 @@
 [
-  "animation ds-fade-in - 250 0 1 --ds-ease-in-out",
+  "animation ds-fade-in - 250 75 1 --ds-ease-in-out",
   "animation ds-fade-out - 150 0 1 --ds-ease-in",
-  "animation ds-roll-in - 250 0 1 --ds-ease-out",
+  "animation ds-roll-in - 250 75 1 --ds-ease-out",
   "animation ds-roll-out - 150 0 1 --ds-ease-in"
 ]

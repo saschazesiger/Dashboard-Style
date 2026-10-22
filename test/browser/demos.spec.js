@@ -256,15 +256,29 @@ test('progress-run: waiting, preparing, a first share, done, with the aria of ea
   await expect(track).toHaveAttribute('aria-valuenow', '100', WAIT);
 });
 
-test('skeleton: the loaded page replaces the skeleton with .ds-reveal, and back', async ({ page }) => {
+test('skeleton: the loaded page replaces the skeleton with .ds-reveal, and back; the stage and its button never move', async ({ page }) => {
   const stage = page.locator('#sg-skeleton-stage');
   const button = page.locator('[data-sg="skeleton"]');
+  const geometry = () => page.evaluate(() => {
+    const stack = document.getElementById('sg-skeleton-stage').getBoundingClientRect();
+    const pressed = document.querySelector('[data-sg="skeleton"]').getBoundingClientRect();
+    return { height: stack.height, top: pressed.top - stack.top, width: pressed.width };
+  });
+  await button.scrollIntoViewIfNeeded();
+  const before = await geometry();
   await press(button);
-  await expect(stage.locator('.ds-reveal')).toHaveCount(1);
-  await expect(stage.locator('.ds-skeleton')).toHaveCount(0);
+  await expect(stage.locator('.ds-reveal')).toBeVisible();
+  await expect(stage.locator('.ds-skeleton')).toBeHidden();
+  await expect(button).toHaveAccessibleName('Show the skeleton again');
+  const loaded = await geometry();
+  for (const key of Object.keys(before)) expect(Math.abs(loaded[key] - before[key]), `${key}: ${JSON.stringify({ before, loaded })}`).toBeLessThanOrEqual(0.5);
   await settle(page, SETTLE);
   await press(button);
-  await expect(stage.locator('.ds-skeleton')).toHaveCount(1);
+  await expect(stage.locator('.ds-skeleton')).toBeVisible();
+  await expect(stage.locator('.ds-reveal')).toBeHidden();
+  await expect(button).toHaveAccessibleName('Load the page');
+  const back = await geometry();
+  for (const key of Object.keys(before)) expect(Math.abs(back[key] - before[key]), `${key}: ${JSON.stringify({ before, back })}`).toBeLessThanOrEqual(0.5);
 });
 
 // Whether the 150ms load stays under the loader delay depends on timer

@@ -42,7 +42,8 @@ the tests in `test/`.
   why over a bare `disabled`.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
   `--ds-hold-loader` (450ms). A block that waits shows the shape loader (`.ds-loader`), a small spot (a button, a
-  chip, a cell) the arc spinner; delays never stack. Re-render with `DS.dom.morphHtml` (keyed, in place), never `innerHTML`: an
+  chip, a cell) the arc spinner (it has no delay of its own: put it in `.ds-loading`, a busy button, or a
+  `.ds-enter--delayed` wrapper); delays never stack. Re-render with `DS.dom.morphHtml` (keyed, in place), never `innerHTML`: an
   animating element keeps its animation and a field its focus.
 - **Data changes glide, they never replay an entrance.** Values count from the shown value (`countUp`, bars on
   `--ds-ease-value`); reorders glide through `DS.motion.flip`: user actions at once, live data held while a mouse

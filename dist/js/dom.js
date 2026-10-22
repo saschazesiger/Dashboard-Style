@@ -23,9 +23,10 @@
  *   `hidden`, `open`, popover, data-anchored, data-placement, the
  *   --closing, --nested and --hidden classes, --ds-menu-x/-y, max-height
  *   and position-anchor; the `inert` of its box or panel during the exit;
- *   aria-expanded on its opener, anchor-name on its anchor, the `inert` of
- *   what its trap took), a tooltip's
- *   aria-describedby, busy()'s aria-busy and .ds-btn--done, countUp()'s
+ *   aria-expanded on its opener, data-drawer-open on .ds-app, anchor-name
+ *   on its anchor, the `inert` of what its trap took), a tooltip's
+ *   aria-describedby, a snackbar's .ds-toast--shown, busy()'s aria-busy
+ *   and .ds-btn--done, countUp()'s
  *   aria-busy, min-width and tabular figures, a running swap's .ds-swap or
  *   .ds-icon-swap and data-swap, flip()'s z-index and position on the
  *   items that glide and, on their container, data-ds-glide,
@@ -34,11 +35,12 @@
  *   --ds-chips-backdrop. An owned name stays as it is, present or absent;
  *   once the helper lets go, the next patch takes the template's value.
  *   The focused element and its ancestors are always patched, never
- *   replaced; a focused control keeps its live value and selection (only
- *   unfocused controls get their value, checked and selected properties
- *   from changed attributes).
- * - `data-ds-keep` nodes (the indicator, ripples) are never matched,
- *   moved or removed. `data-ds-replace` on a node, old or new, or
+ *   replaced; a focused control keeps its live value and selection, a
+ *   focused <select> its selected options and a focused radio the choice
+ *   of its group (only controls outside the focused one get their value,
+ *   checked and selected properties from changed attributes).
+ * - `data-ds-keep` nodes (the indicator, ripples, the snackbar announcers
+ *   and the tooltip of DS.overlay) are never matched, moved or removed. `data-ds-replace` on a node, old or new, or
  *   `{ replace: true }` for the whole call, brings back replace-on-change
  *   for that subtree (fresh nodes, fresh listeners).
  * - Hooks for DS.motion.flip(): `onInsert(node)` after a new element went
@@ -87,6 +89,19 @@ const owned = (element, kind, name) => Boolean(element[OWNED]?.[kind]?.get(name)
 
 /** An element in a DS.motion.leave() (running, or kept with then: 'keep'): its `inert` is runtime state. */
 const exiting = (element) => Array.from(element.classList ?? []).some((name) => /^ds-leave(?:--[\w-]+)?$/.test(name));
+
+/**
+ * The focused element as seen from `node`'s tree: inside a shadow root its
+ * own activeElement (document.activeElement is the shadow host there, so a
+ * morph in a shadow root would overwrite the focused field), else the
+ * document's.
+ * @param {any} node
+ * @returns {any}
+ */
+function activeIn(node) {
+  const root = node?.getRootNode?.();
+  return (root?.nodeType === 11 ? root.activeElement : null) ?? node?.ownerDocument?.activeElement ?? null;
+}
 
 /**
  * @typedef {object} MorphOptions
@@ -209,7 +224,7 @@ function moveNode(parent, node, before, ctx) {
   }
   parent.insertBefore(node, before);
   const doc = parent.ownerDocument;
-  if (focused && doc?.activeElement !== focused && typeof focused.focus === 'function') {
+  if (focused && doc && activeIn(focused) !== focused && typeof focused.focus === 'function') {
     focused.focus({ preventScroll: true });
     if (selection) focused.setSelectionRange?.(selection[0], selection[1], selection[2] ?? undefined);
   }
@@ -258,9 +273,65 @@ function syncStyle(old, next) {
   if (style && !style.length && wanted === null) old.removeAttribute('style');
 }
 
+/** Whether `node` is a radio button. */
+function isRadio(node) {
+  return node?.tagName === 'INPUT' && node.type === 'radio';
+}
+
+/** Whether two radios form one group: the same name, form and tree. */
+function sameGroup(a, b) {
+  return Boolean(a.name) && a.name === b.name && a.form === b.form && a.getRootNode() === b.getRootNode();
+}
+
+/**
+ * Whether `element` is part of the focused control: the control itself, an
+ * option of a focused <select>, or a radio in the group of a focused radio.
+ * Their choice is the user's while the focus is there.
+ */
+function inFocusedControl(element, active) {
+  if (!active) return false;
+  if (element === active) return true;
+  if (element.tagName === 'OPTION') return element.closest('select') === active;
+  return isRadio(element) && isRadio(active) && sameGroup(element, active);
+}
+
+/**
+ * Records the live choice of a focused <select> or radio group and returns
+ * the function that puts it back after the patch. A changed `selected` or
+ * `checked` attribute on an option or radio the user has not touched would
+ * move the choice (Chromium and WebKit), so skipping the property is not
+ * enough.
+ * @param {Element|null} active
+ * @returns {(() => void)|null}
+ */
+function keepChoice(active) {
+  if (active?.tagName === 'SELECT') {
+    const select = /** @type {HTMLSelectElement} */ (active);
+    const before = new Map(Array.from(select.options, (option) => [option, option.selected]));
+    return () => {
+      const options = Array.from(select.options).filter((option) => before.has(option));
+      // Deselect first: on a single select, selecting the saved option deselects the rest.
+      if (select.multiple) for (const option of options) if (!before.get(option) && option.selected) option.selected = false;
+      for (const option of options) if (before.get(option) && !option.selected) option.selected = true;
+    };
+  }
+  if (isRadio(active) && /** @type {HTMLInputElement} */ (active).name) {
+    const group = () => Array.from(active.getRootNode().querySelectorAll('input[type="radio"]')).filter((radio) => sameGroup(radio, active));
+    const checked = group().find((radio) => radio.checked) ?? null;
+    return () => {
+      if (checked?.isConnected) {
+        if (!checked.checked) checked.checked = true;
+      } else if (!checked) {
+        for (const radio of group()) if (radio.checked) radio.checked = false;
+      }
+    };
+  }
+  return null;
+}
+
 /** An unfocused form control follows a changed attribute with its live property too. */
 function syncProperty(element, name, present, ctx) {
-  if (element === ctx.active) return;
+  if (inFocusedControl(element, ctx.active)) return;
   const tag = element.tagName;
   if (tag === 'INPUT' && name === 'value') element.value = element.getAttribute('value') ?? '';
   else if (tag === 'INPUT' && name === 'checked') element.checked = present;
@@ -485,12 +556,14 @@ export function morphChildren(target, nodes, options = {}) {
   const ctx = {
     replace: options.replace === true,
     options,
-    active: /** @type {any} */ (target).ownerDocument?.activeElement ?? null,
+    active: activeIn(target),
     moved: [],
   };
+  const restore = keepChoice(ctx.active);
   try {
     patchChildren(target, Array.from(nodes), ctx, true);
   } finally {
+    restore?.();
     settleMoved(ctx.moved);
   }
 }
@@ -508,14 +581,26 @@ function settleMoved(moved) {
   for (const node of moved) node.removeAttribute('data-ds-moving');
 }
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
+
 /**
- * Sets the content of `target` to `html`, touching only what changed.
+ * Sets the content of `target` to `html`, touching only what changed. An
+ * <svg> (or MathML) target gets its markup parsed in its own namespace (a
+ * chart or a sparkline morphs in place; `<path/>` stays a sibling); the
+ * HTML children of a <foreignObject> parse as HTML.
  * @param {Element} target
  * @param {string} html
  * @param {MorphOptions} [options]  replace, holdOrder, onInsert, onRemove (pass DS.motion.flip's object straight on)
  */
 export function morphHtml(target, html, options = {}) {
   const template = target.ownerDocument.createElement('template');
-  template.innerHTML = html;
-  morphChildren(target, Array.from(template.content.childNodes), options);
+  // A template parses in an HTML context: <path> would become an HTML
+  // element. Foreign content parses inside a root of its own (still inert:
+  // a template runs no scripts).
+  const foreign = target.namespaceURI === SVG_NS && target.localName !== 'foreignObject' ? 'svg'
+    : target.namespaceURI === MATHML_NS ? 'math' : '';
+  template.innerHTML = foreign ? `<${foreign}>${html}</${foreign}>` : html;
+  const source = foreign ? template.content.firstChild : template.content;
+  morphChildren(target, Array.from(source?.childNodes ?? []), options);
 }

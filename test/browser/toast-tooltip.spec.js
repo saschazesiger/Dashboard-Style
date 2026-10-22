@@ -243,6 +243,46 @@ test.describe('snackbars', () => {
     expect(legacy).toEqual({ announcers: 2, role: null });
   });
 
+  test('a re-render of the region\'s parent keeps the announcers and the tooltip, and never writes a message into the page', async ({ page }) => {
+    // 1.6.2: both are data-ds-keep runtime nodes. Before, morphHtml() patched
+    // the polite announcer into the next page element and removed the tooltip.
+    await load(page);
+    const after = await page.evaluate(async () => {
+      const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const markup = (note) => `<p>Devices</p><div class="ds-toasts" id="m-toasts"></div><div class="m-note">${note}</div>`
+        + '<button class="ds-btn" type="button" data-tip="Refresh the list" id="m-tip">Refresh</button>';
+      const theme = document.createElement('div');
+      theme.className = 'ds-theme';
+      theme.id = 'm-theme';
+      document.body.append(theme);
+      DS.dom.morphHtml(theme, markup('Note A'));
+      const tips = DS.overlay.tooltips(theme);
+      const tip = theme.querySelector(':scope > .ds-tooltip');
+      DS.overlay.toast(theme.querySelector('#m-toasts'), 'One', { persistent: true });
+      await frame();
+      DS.dom.morphHtml(theme, markup('Note B'));
+      DS.overlay.toast(theme.querySelector('#m-toasts'), 'Two', { persistent: true });
+      await frame();
+      const result = {
+        note: theme.querySelector('.m-note').textContent,
+        children: [...theme.children].map((el) => el.classList[0] || el.tagName),
+        polite: theme.querySelector('.ds-sr[aria-live="polite"]')?.textContent,
+        announcers: theme.querySelectorAll(':scope > .ds-sr[aria-live]').length,
+        tip: Boolean(tip?.isConnected) && tip.parentNode === theme,
+      };
+      tips.destroy();
+      theme.remove();
+      return result;
+    });
+    expect(after).toEqual({
+      note: 'Note B',
+      children: ['P', 'ds-toasts', 'ds-sr', 'ds-sr', 'm-note', 'ds-btn', 'ds-tooltip'],
+      polite: 'Two',
+      announcers: 2,
+      tip: true,
+    });
+  });
+
   test('an open side sheet takes the region in; its messages glide with the panel and come back with it', async ({ page }) => {
     await load(page);
     await page.evaluate(() => DS.overlay.toast(document.getElementById('toasts'), 'Could not save.', { kind: 'error' }));
