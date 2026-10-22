@@ -309,6 +309,27 @@ test('the first placement and a window resize jump', async ({ page }) => {
   expect(await restState(page, '#drawer-list', '[aria-current="page"]')).toEqual(REST);
 });
 
+test('a track styled before the script: its items take their look under the new pill at once (no tint or colour fade on load)', async ({ page }) => {
+  await open(page, 'shell.html');
+  const runs = await page.evaluate(() => {
+    const track = document.createElement('div');
+    track.className = 'sg-fx-track';
+    track.style.cssText = 'position: relative; display: flex; gap: 8px;';
+    track.innerHTML = '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">One</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Two</button>';
+    document.querySelector('.ds-theme').append(track);
+    // Styled once, as a page shows its markup before its script runs.
+    for (const button of track.children) void getComputedStyle(button).backgroundColor;
+    const runs = [];
+    for (const button of track.querySelectorAll('button')) button.addEventListener('transitionrun', (event) => runs.push(event.propertyName));
+    DS.indicator.createIndicator(track, { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
+    const pressed = getComputedStyle(track.querySelector('[aria-pressed="true"]')).backgroundColor;
+    return { animations: track.querySelector('[aria-pressed="true"]').getAnimations().map((a) => a.transitionProperty), moving: track.hasAttribute('data-ds-moving'), pressed };
+  });
+  expect(runs.animations, 'the pressed toggle drops its tint at once').toEqual([]);
+  expect(runs.moving).toBe(false);
+  expect(runs.pressed).toBe('rgba(0, 0, 0, 0)');
+});
+
 test('a change of aria-current moves the pill without update(); with observe: false it does not', async ({ page }) => {
   await open(page, 'shell.html');
   await install(page);

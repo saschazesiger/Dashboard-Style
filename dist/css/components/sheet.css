@@ -72,22 +72,23 @@
  *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px).
  *
- * Progressive: @starting-style, transition-behavior: allow-discrete and
- * the overlay property. A native sheet driven by hand (showModal() and
- * close() of the page, without DS.overlay) then plays the same
- * transitions, also on close(); Chromium keeps a sheet in the top layer
- * through every exit, DS.overlay's included. Without them it enters with
- * the keyframes and closes at once.
- * View Transitions: while DS.motion.transition() runs (data-ds-vt on
- * <html>) the body of an open modal sheet is named ds-sheet-body, so a
- * record swap moves only the body; without them the body enters with
- * .ds-enter--swap. A sheet shown inline (no data-state, no [open], no
- * aria-modal) is never named.
- * scroll-driven animations (animation-timeline, animation-range,
- * scroll-timeline, timeline-scope): the head's hairline fades in over the
- * first --ds-space-2 of the body's scroll, on the named timeline
- * --ds-sheet-scroll (scoped on the panel); elsewhere data-scrolled shows it
- * over --ds-dur-fast.
+ * Progressive:
+ * - @starting-style, allow-discrete transitions and the overlay property
+ *   (a native sheet driven by hand, showModal() and close() of the page
+ *   without DS.overlay, plays the same transitions, also on close();
+ *   Chromium keeps a sheet in the top layer through every exit, DS.overlay's
+ *   included): without them it enters with the keyframes and closes at
+ *   once.
+ * - View Transitions (while DS.motion.transition() runs, data-ds-vt on
+ *   <html>, the body of an open modal sheet is named ds-sheet-body, so a
+ *   record swap moves only the body; a sheet shown inline, without
+ *   data-state, [open] or aria-modal, is never named): without them the
+ *   body enters with .ds-enter--swap.
+ * - scroll-driven animations (animation-timeline, animation-range,
+ *   scroll-timeline, timeline-scope; the head's hairline fades in over the
+ *   first --ds-space-2 of the body's scroll, on the named timeline
+ *   --ds-sheet-scroll scoped on the panel): without them data-scrolled
+ *   shows it over --ds-dur-fast.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

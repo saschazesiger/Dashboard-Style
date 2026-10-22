@@ -1,0 +1,9 @@
+[
+  "animation ds-press-ripple - 250 0 1 --ds-ease-out",
+  "transition border-bottom-left-radius - 50 0 1 --ds-ease-out",
+  "transition border-bottom-right-radius - 50 0 1 --ds-ease-out",
+  "transition border-top-left-radius - 50 0 1 --ds-ease-out",
+  "transition border-top-right-radius - 50 0 1 --ds-ease-out",
+  "transition opacity - 200 0 1 --ds-ease-in-out",
+  "transition opacity ::before 50 0 1 --ds-ease-in-out"
+]

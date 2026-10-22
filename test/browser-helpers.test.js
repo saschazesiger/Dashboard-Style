@@ -10,6 +10,7 @@ import {
   expectMonotonic,
   expectPeakAtMost,
   expectSettles,
+  expectSmooth,
   expectWithin,
   peakRatio,
   series,
@@ -87,5 +88,25 @@ describe('browser test helpers', () => {
     assert.throws(() => expectSettles([0, 0.9, 0.99], 1), /settles at/);
     expectSettles([0, 0.9, 0.99], 1, 0.02);
     expectSettles([0, 50, 99.5], 100, 0.5);
+  });
+
+  it('expectSmooth() judges steps by their frame time: long frames and holds pass, a jump or a restart fails', () => {
+    // An ease-out over 1s, sampled on frames of 16ms with a 64ms frame and a held frame in between.
+    const times = [0, 16, 32, 48, 112, 128, 128, 144, 160, 176, 192, 208, 224, 240];
+    const at = (t) => easeOut(Math.min(1, t / 1000));
+    const points = times.map((t, i) => ({ t: t + (i > 5 ? 16 : 0), v: i === 6 ? at(128) : at(t) }));
+    expectSmooth(points, 'ease-out');
+    // Reversed halfway on an ease-out (the steep start of the way back), with a long frame at the turn.
+    const out = [0, 16, 32, 48, 64].map((t) => ({ t, v: 0.5 + 0.5 * at(t) }));
+    const back = [112, 128, 144, 160, 176].map((t) => ({ t, v: out.at(-1).v - 0.5 * at(t - 64) }));
+    expectSmooth([...out, ...back], 'reversal');
+    // A jump ahead (to the end) that the motion then continues from.
+    const jumped = times.map((t, i) => ({ t, v: at(t) + (i >= 8 ? 0.3 : 0) }));
+    assert.throws(() => expectSmooth(jumped, 'jumped'), /jumped: a jump of/);
+    // A restart from zero in the middle of an exit.
+    const restart = [...times.slice(0, 7).map((t) => ({ t, v: 1 - at(t) })), ...times.slice(0, 7).map((t) => ({ t: t + 128, v: 1 - at(t) }))];
+    assert.throws(() => expectSmooth(restart, 'restart'), /a jump of/);
+    // A series that does not move is smooth.
+    expectSmooth([{ t: 0, v: 1 }, { t: 16, v: 1 }], 'still');
   });
 });

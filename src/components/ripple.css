@@ -48,9 +48,10 @@
  * its ::before. The row is isolated while it ripples, so the ripple
  * paints over the row's colour and under the cells' content and layers.
  *
- * Progressive: overflow-clip-margin lets a chip's ripple cover the chip's
- * 1px border like its state layer does; without it the ripple stops at
- * the padding box.
+ * Progressive:
+ * - overflow-clip-margin (a chip's ripple covers the chip's 1px border
+ *   like its state layer does): without it the ripple stops at the
+ *   padding box.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

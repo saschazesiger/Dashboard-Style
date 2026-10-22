@@ -48,16 +48,17 @@
  * build bundles it into dist/ds.js as DS.motion); newer APIs only behind
  * feature detection, named under Progressive:.
  *
- * Progressive: linear() easings (the spring) in el.animate(); an engine
- * that rejects them (Chrome/Edge 111-112, Safari 16.4-17.1) throws a
- * TypeError and gets the token's cubic fallback instead (animateSafe).
- * document.startViewTransition (same-document View Transitions) for
- * transition(), only with .ds-theme on <html>; without it, or for an
- * embedded widget, the new view fades through with .ds-enter--swap.
- * ScrollTimeline (scroll-driven animations): where it exists, settled(),
- * the handoffs and flip() tell those animations apart and leave them be,
- * and resyncScroll() restarts those whose scroller stopped overflowing;
- * elsewhere there are none.
+ * Progressive:
+ * - linear() easings (the spring) in el.animate(): an engine without them
+ *   (Chrome/Edge 111-112, Safari 16.4-17.1) throws a TypeError and gets
+ *   the token's cubic fallback instead (animateSafe).
+ * - document.startViewTransition (same-document View Transitions, for
+ *   transition(), only with .ds-theme on <html>): without it, or for an
+ *   embedded widget, the new view fades through with .ds-enter--swap.
+ * - ScrollTimeline (scroll-driven animations; settled(), the handoffs and
+ *   flip() tell those animations apart and leave them be, and
+ *   resyncScroll() restarts those whose scroller stopped overflowing):
+ *   without it there are none.
  */
 
 /**
@@ -2159,13 +2160,15 @@ const liftedNames = new WeakMap();
  * DS.overlay (data-state), a native one shown by hand ([open]), or the div
  * fallback shown by hand by removing hidden (no data-state; a div sheet is
  * modal only with aria-modal, the selector sheet.css names its body by).
+ * A contained dialog (.ds-dialog--contained) covers its container inside
+ * the panel, not the frame, so it never counts.
  */
 const MODAL_OPEN = [
-  '.ds-dialog[data-state="open"]',
+  '.ds-dialog[data-state="open"]:not(.ds-dialog--contained)',
   '.ds-sheet[data-state="open"]',
-  'dialog.ds-dialog[open]',
+  'dialog.ds-dialog[open]:not(.ds-dialog--contained)',
   'dialog.ds-sheet[open]',
-  '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing)',
+  '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--contained, .ds-dialog--hidden, .ds-dialog--closing)',
   '.ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing)',
 ].join(', ');
 

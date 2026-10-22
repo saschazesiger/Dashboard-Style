@@ -23,11 +23,12 @@
  * 'icon' }). What glides and what changes at once: docs/motion.md, "Data
  * motion".
  *
- * Progressive: @starting-style (the incoming icon's fade and scale; it
- * also plays on the first render of a chip, never on a keyed move: where
- * moveBefore is missing, morphHtml marks a moved row data-ds-moving for
- * one style flush, motion.css); without it the icon swaps at once while
- * the colours still glide.
+ * Progressive:
+ * - @starting-style (the incoming icon's fade and scale; it also plays on
+ *   the first render of a chip, never on a keyed move: where moveBefore is
+ *   missing, morphHtml marks a moved row data-ds-moving for one style
+ *   flush, motion.css): without it the icon swaps at once while the
+ *   colours still glide.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

@@ -40,6 +40,17 @@ const FALLBACK_SPECS = readdirSync(HERE).filter((name) => name.endsWith('.spec.j
 /** Specs about the fallback project itself: they run there only. */
 const FALLBACK_ONLY = /[\\/]fallback\.spec\.js$/;
 
+/**
+ * The paint budget and the style recalc times (perf.spec.js) run in a
+ * project of their own, `perf` (Chromium), and assert only when that project
+ * runs alone: times measured while other workers share the CPU say nothing
+ * about the page.
+ * DS_PERF_ALONE tells the workers (they inherit the environment).
+ */
+const PERF = /[\\/]perf\.spec\.js$/;
+const SELECTED = process.argv.flatMap((arg, index, all) => (arg === '--project' ? [all[index + 1]] : arg.startsWith('--project=') ? [arg.slice('--project='.length)] : []));
+if (SELECTED.length && SELECTED.every((name) => name === 'perf')) process.env.DS_PERF_ALONE = '1';
+
 export default defineConfig({
   testDir: HERE,
   testMatch: '*.spec.js',
@@ -54,6 +65,11 @@ export default defineConfig({
     // animations: 'allow' after freeze()/seek() (helpers/motion.js).
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.002,
+      // Per pixel: Playwright's default (0.2) let an 8-10 % state layer or a
+      // selected row's tint pass unseen, so stale shots stayed in the set
+      // until P8 refreshed it. The container renders the same pixels on every
+      // run, so a tight threshold costs no flakiness there.
+      threshold: 0.05,
       animations: 'disabled',
       caret: 'hide',
       pathTemplate: `{testDir}/${SHOTS}/{projectName}/{testFilePath}/{arg}{ext}`,
@@ -73,12 +89,14 @@ export default defineConfig({
   // `fallback` is Chromium playing an engine on the browser floor: ds.css
   // without its @supports and @starting-style blocks, no View Transitions,
   // popover or moveBefore, and el.animate() rejecting linear() (see
-  // base-test.js). It runs the specs that import base-test.js.
+  // base-test.js). It runs the specs that import base-test.js. `perf` is
+  // Chromium for perf.spec.js alone (above).
   projects: [
-    { name: 'chromium', testIgnore: FALLBACK_ONLY, use: { browserName: 'chromium' } },
-    { name: 'firefox', testIgnore: FALLBACK_ONLY, use: { browserName: 'firefox' } },
-    { name: 'webkit', testIgnore: FALLBACK_ONLY, use: { browserName: 'webkit' } },
+    { name: 'chromium', testIgnore: [FALLBACK_ONLY, PERF], use: { browserName: 'chromium' } },
+    { name: 'firefox', testIgnore: [FALLBACK_ONLY, PERF], use: { browserName: 'firefox' } },
+    { name: 'webkit', testIgnore: [FALLBACK_ONLY, PERF], use: { browserName: 'webkit' } },
     { name: 'fallback', testMatch: FALLBACK_SPECS.length ? FALLBACK_SPECS : /^$/, use: { browserName: 'chromium', dsFallback: true } },
+    { name: 'perf', testMatch: PERF, use: { browserName: 'chromium' } },
   ],
   webServer: {
     command: `node test/browser/serve.js ${PORT}`,

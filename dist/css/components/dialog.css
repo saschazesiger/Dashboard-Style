@@ -60,12 +60,13 @@
  * shadow and scrim are gone), --ds-dialog-shadow, --ds-dialog-scrim
  * (--ds-scrim).
  *
- * Progressive: @starting-style, transition-behavior: allow-discrete and
- * the overlay property. A native dialog driven by hand (showModal() and
- * close() of the page, without DS.overlay) then plays the same
- * transitions, also on close(); Chromium keeps a dialog in the top layer
- * through every exit, DS.overlay's included. Without them it enters with
- * the keyframes and closes at once.
+ * Progressive:
+ * - @starting-style, allow-discrete transitions and the overlay property
+ *   (a native dialog driven by hand, showModal() and close() of the page
+ *   without DS.overlay, plays the same transitions, also on close();
+ *   Chromium keeps a dialog in the top layer through every exit, DS.overlay's
+ *   included): without them it enters with the keyframes and closes at
+ *   once.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

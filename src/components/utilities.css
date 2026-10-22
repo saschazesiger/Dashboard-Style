@@ -15,8 +15,9 @@
  * within 200ms never dims; taking it off is instant, so fresh values show
  * at once (docs/motion.md, "Data motion").
  *
- * Progressive: text-wrap (a paragraph of .ds-muted avoids a lone last
- * word); without it the text wraps as usual.
+ * Progressive:
+ * - text-wrap (a paragraph of .ds-muted avoids a lone last word): without
+ *   it the text wraps as usual.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

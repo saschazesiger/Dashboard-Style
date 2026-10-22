@@ -14,6 +14,9 @@
  *     <span class="ds-toast__text">Saved.</span>
  *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">(close)</button>
  *
+ *   .ds-toast--shown  runtime: toast() marks a message whose entrance has
+ *                     played, so moving its region never replays it
+ *
  * DS.overlay.toast() (js/overlay.js) stacks at most three with FLIP, evicts
  * the oldest message that would close by itself or queues one behind three
  * that stay, pauses the timers on hover, focus and a hidden tab, announces
@@ -34,12 +37,13 @@
  * itself), and --ds-toast-reserve (room kept for an open message, with
  * data-toast-reserve on .ds-view or .ds-sheet__body).
  *
- * Progressive: View Transitions. While DS.motion.transition() runs
- * (data-ds-vt on <html>) a region with messages is named ds-toasts, so
- * motion.css keeps it live and still above the page's groups (in the root
- * snapshot the panel's opaque image would cover it until the end); one
- * region with messages per page (transition() lifts the name of any
- * further one). Without them nothing is named.
+ * Progressive:
+ * - View Transitions (while DS.motion.transition() runs, data-ds-vt on
+ *   <html>, a region with messages is named ds-toasts, so motion.css keeps
+ *   it live and still above the page's groups; in the root snapshot the
+ *   panel's opaque image would cover it until the end. One region with
+ *   messages per page: transition() lifts the name of any further one):
+ *   without them nothing is named.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

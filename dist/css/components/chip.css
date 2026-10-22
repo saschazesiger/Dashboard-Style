@@ -190,7 +190,12 @@
   }
 
   /* The check lies over the slot, never a flex item, and fades: in at once
-     (--ds-dur-micro, before the stroke starts), out with the stroke. */
+     (--ds-dur-micro, before the stroke starts), out with the stroke. The
+     drawn stroke (pathLength="1") runs on the <svg>, and its path inherits
+     it: from the short arm, after the check's fade-in; out faster and
+     accelerating. Set on the path itself, Chromium missed the change of
+     :checked (its style invalidation does not reach a [pathLength]
+     selector on the camelCase SVG attribute), so the check drew late. */
   .ds-chip__check {
     position: absolute;
     top: calc(50% - var(--ds-chip-check-size, 18px) / 2);
@@ -198,15 +203,14 @@
     width: var(--ds-chip-check-size, 18px);
     height: var(--ds-chip-check-size, 18px);
     opacity: 0;
-    transition: opacity var(--ds-dur-fast) var(--ds-ease-in);
+    stroke-dashoffset: 1;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in),
+      stroke-dashoffset var(--ds-dur-fast) var(--ds-ease-in);
   }
 
-  /* The drawn stroke (pathLength="1"): from the short arm, after the
-     check's fade-in; out faster and accelerating. */
   .ds-chip__check [pathLength] {
     stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    transition: stroke-dashoffset var(--ds-dur-fast) var(--ds-ease-in);
   }
 
   .ds-chip__input:checked + .ds-chip__body {
@@ -217,12 +221,10 @@
 
   .ds-chip__input:checked + .ds-chip__body .ds-chip__check {
     opacity: 1;
-    transition: opacity var(--ds-dur-micro) var(--ds-ease-in-out);
-  }
-
-  .ds-chip__input:checked + .ds-chip__body .ds-chip__check [pathLength] {
     stroke-dashoffset: 0;
-    transition: stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro);
+    transition:
+      opacity var(--ds-dur-micro) var(--ds-ease-in-out),
+      stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro);
   }
 
   .ds-chip__input:focus-visible + .ds-chip__body {

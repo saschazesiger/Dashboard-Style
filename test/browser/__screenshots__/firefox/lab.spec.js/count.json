@@ -1,0 +1,8 @@
+[
+  "animation ds-progress-head - 1800 0 infinite linear",
+  "animation ds-progress-tail - 1800 0 infinite linear",
+  "animation ds-progress-wave ::after 1200 0 infinite linear",
+  "animation ds-progress-wave ::before 1200 0 infinite linear",
+  "script ds-count - 600 0 1 linear",
+  "transition --ds-progress - 600 0 1 --ds-ease-in-out"
+]

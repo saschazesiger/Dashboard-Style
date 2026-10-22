@@ -3,6 +3,93 @@
 All notable changes. Versions follow [semver](https://semver.org): renaming or removing a token, class, hook or JS
 export is a major change; adding one is a minor change.
 
+## 1.6.0
+
+Motion 2, the close: the Motion Lab, the complete motion reference and the final review in every engine, with the
+fixes it found. Additive: no class, token, hook or export was removed or renamed, and no migration is required.
+
+### Added
+
+- The Motion Lab, `styleguide/motion.html` (styleguide only, not in `dist/`): every curve plotted as the browser plays
+  it (with the spring's peak), the duration ladder and `travelDuration()`, and a replayable demo of every keyframe,
+  motion utility, JS function and component choreography, each with "Rapid toggle" and "Reverse at 50%" where the
+  motion is reversible. A speed select in the top bar of both styleguide pages (1×, 0.5×, 0.25×, 0.1×, stored;
+  `?speed=` wins) sets `--ds-time-scale`. The demos are a registry, `styleguide/lab.js`.
+- `docs/motion.md` as one reference: principles, the motion tokens (moved from `docs/tokens.md`, which links to
+  them), the numbered rules with the test that holds each, the choreography of every component (with the overlay
+  table: tracks, durations, curves, origin, delays, interruption and focus per layer), interruption, keyframes and
+  utilities, the JS modules, recipes, View Transitions, scroll-driven effects and every progressive feature with its
+  fallback. `docs/components.md` points every component with motion to its row.
+- Browser tests (`test/browser/`): `lab.spec.js` (coverage of every primitive by a demo, every demo's timeline and
+  settled stage per engine, continuity of every reversal at `?speed=0.1`, rapid toggles, the overlay table compared
+  with what each engine plays), `review.spec.js` (quiet load, hover and disabled sweeps, forced colours, the page
+  load transition, the style scope of a DOM change) and `perf.spec.js` (the paint budget and the
+  style recalc time of that DOM change, in a `perf` project of its own that asserts only when run alone).
+
+### Changed
+
+- Header comments: every "Progressive:" note in `src/` is a list of `<feature> (<what it adds>): <what happens
+  without it>`, so each newer feature names its fallback (tested); they ship in `dist/css/` and `dist/ds.js`.
+- `themes/example.css` lists the button colour hooks one by one (`--ds-btn-bg`, `--ds-btn-color`, `--ds-btn-border`,
+  `--ds-btn-hover-*`, `--ds-btn-disabled-*`) instead of abbreviating them.
+- Docs: rule 1 of `docs/motion.md` lists the named exceptions of the animate list one per line, rule 3 the
+  exit/entrance pairs as a table (both read by the tests); `docs/components.md` "Loading" gains "Paint cost", the
+  measured limits of the loaders (one skeleton surface per view, alone; a few shape loaders; `--flat` bars in dense
+  tables).
+- Fixed: in Chromium every DOM change inside a `.ds-card` (a text, a re-render) restyled a large part of the page,
+  about 35ms per change on a page of 2,800 elements, through the rule that lines facts up with the tiles of their card
+  (`.ds-card:has(.ds-tiles) > .ds-facts > :nth-child(2)`). The facts now take two equal columns with the tiles' gap,
+  so the second fact still starts where the third tile does (the second below 1100px) with no rule per fact: about
+  3-4ms per change, the cost of the other `:has()` rules (`review.spec.js`, "style scope", counts the
+  restyled elements; `perf.spec.js` times the recalc).
+- Fixed: in Chromium the check of a filter chip drew late, or only when something else restyled the row: a change of
+  `:checked` did not reach the `[pathLength]` rule of the stroke. The stroke now runs on the chip's `<svg>`
+  (`.ds-chip__check`) and its path inherits it; the success check of `.ds-btn--done` draws on its `<svg>` the same
+  way. A css test keeps every moving rule off `[pathLength]` selectors.
+- Fixed: `DS.indicator.createIndicator()` on a track the page had already styled (a toggle row, a drawer rendered
+  before the script ran) faded the pressed toggle's own tint, or a label's colour, out on load while the pill was
+  already in place. The items now take their look under the new pill at once (one style flush with `data-ds-moving`
+  on the track, like the pill's first placement).
+- Fixed: a `.ds-dialog--contained` on the page (shown in place, inside the panel) counted as an open modal, so
+  `css/optional/view-transitions.css` left the view, the panel and the docked drawer unnamed on that page and
+  `DS.motion.transition()` lifted their names: on a page load the docked drawer slid out or in as if it left the view,
+  and two sets of its labels showed. A contained dialog now never counts (`review.spec.js`, "page loads", checks the
+  frame's groups both ways).
+- Fixed: a named indicator (`createIndicator(..., { name })`) whose pill was scrolled out of its track's view when
+  the page was left or revealed (the active item of a long drawer list scrolled down to a link further on) glided in
+  from outside the drawer, over the top bar. Such a pill now keeps no name for that navigation (`pageswap`,
+  `pagereveal`) and goes or comes with its page.
+- `loading.css` names `.ds-skeleton__line--mid` in its header.
+- Docs: `docs/install.md` ("Multi-page apps") asks to keep what the first render waits for short
+  and to build the rest after the reveal: an engine skips the transition when the new page comes after its timeout.
+  The Motion Lab does so with its demos.
+
+### Deprecated
+
+Every name deprecated in 1.0.0 to 1.5.0, still working and removed in 2.0:
+
+- `--ds-ease`: use `--ds-ease-emphasized` (1.0.0).
+- `--ds-spinner-sm-track`: the colour mix of the small spinner's ring replaces it (1.0.0).
+- `DS.motion.easeOutCubic`: no longer used, `countUp()` runs on `--ds-ease-value` (1.0.0).
+- `ds-sink-out`, `ds-scale-out`, `ds-slide-out`: use `ds-fade-out` with `ds-drop-out`, `ds-shrink-out` or
+  `ds-shift-out` (1.0.0).
+- `.ds-btn__swap`: use `.ds-btn__faces` and `DS.motion.busy()` (1.1.0).
+- The snackbar region with `role="status" aria-live="polite"` (and `role="alert"` on errors): use the region without
+  a role, `DS.overlay.toast()` announces; the manual `--ds-toast-shift` recipe for a side sheet and closing snackbars
+  with `setTimeout`: `toast()` does both (1.3.0).
+- `data-open` on `.ds-combo`: `aria-expanded="true"` on the field turns the chevron (1.3.0).
+- `ds-pulse` with `--ds-loop-pulse`: skeletons run `ds-skeleton-wave`; `ds-indeterminate`: indeterminate progress
+  runs `ds-progress-head` and `ds-progress-tail` (1.4.0).
+
+### For 2.0
+
+- The skeleton wave paints the whole view on every frame of its sweep (`background-attachment: fixed`, which gives
+  the one diagonal band across all bones): without GPU rasterisation a full-width skeleton drops most frames
+  (`test/browser/perf.spec.js` records it). Compositing the bones or a scrolling band removes the cost but loses the
+  diagonal across the bones in Chromium and Firefox, a change of the look D11 chose; until then the limits in
+  `docs/components.md` apply.
+- Remove the deprecated names above.
+
 ## 1.5.0
 
 Motion 2, views and scrolling: the motion between views (D15) and the motion that follows scrolling (D5, D33).

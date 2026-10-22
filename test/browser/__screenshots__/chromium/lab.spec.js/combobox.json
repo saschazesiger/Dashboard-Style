@@ -1,0 +1,6 @@
+[
+  "transition clip-path - 250 0 1 --ds-ease-spatial",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition rotate - 250 0 1 --ds-ease-spatial",
+  "transition scale - 250 0 1 --ds-ease-spatial"
+]

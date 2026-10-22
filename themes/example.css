@@ -155,14 +155,18 @@
   /* ── Component hooks (layer 3), with their defaults ──
   --ds-btn-height: 36px;               --ds-btn-padding-x: var(--ds-space-4);
   --ds-btn-padding-start: (padding-x)  --ds-btn-radius: var(--ds-radius-action);
-  --ds-btn-font: var(--ds-font-label); --ds-btn-bg / -color / -border (per variant)
+  --ds-btn-font: var(--ds-font-label);
+  --ds-btn-bg: (per variant);          --ds-btn-color: (per variant);
+  --ds-btn-border: (per variant);
   --ds-btn-state: currentColor;        --ds-btn-state-opacity: var(--ds-state-hover);
   --ds-btn-state-pressed-opacity: var(--ds-state-pressed);
   --ds-btn-state-focus-opacity: var(--ds-state-focus);
   --ds-btn-radius-pressed: var(--ds-radius-action-pressed);
-  --ds-btn-hover-color / -hover-border / -hover-shadow / -hover-decoration
+  --ds-btn-hover-color: (resting color); --ds-btn-hover-border: (resting border);
+  --ds-btn-hover-shadow: none;         --ds-btn-hover-decoration: none;
   --ds-btn-icon-size: 40px;            --ds-btn-quiet-color: var(--ds-text-2);
-  --ds-btn-disabled-bg / -disabled-border
+  --ds-btn-disabled-bg: (from --ds-disabled-fill);
+  --ds-btn-disabled-border: (from --ds-disabled-fill);
   --ds-input-font: (body; input role up to 600px)
   --ds-check-size: 18px;               --ds-check-target: 40px;
   --ds-chip-height: 32px;              --ds-chip-check-size: 18px;

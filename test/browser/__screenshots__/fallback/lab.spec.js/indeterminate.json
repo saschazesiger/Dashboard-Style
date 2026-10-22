@@ -1,0 +1,7 @@
+[
+  "animation ds-progress-head - 1800 0 infinite --ds-ease-in-out",
+  "animation ds-progress-tail - 1800 0 infinite --ds-ease-in-out",
+  "animation ds-progress-wave ::after 1200 0 infinite --ds-ease-in-out",
+  "animation ds-progress-wave ::before 1200 0 infinite --ds-ease-in-out",
+  "transition opacity - 150 0 1 --ds-ease-in-out"
+]

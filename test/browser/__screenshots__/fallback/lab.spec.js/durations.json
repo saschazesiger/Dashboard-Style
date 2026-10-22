@@ -1,0 +1,13 @@
+[
+  "script sg-lab - 100 0 1 --ds-ease-in-out",
+  "script sg-lab - 150 0 1 --ds-ease-in-out",
+  "script sg-lab - 200 0 1 --ds-ease-in-out",
+  "script sg-lab - 250 0 1 --ds-ease-in-out",
+  "script sg-lab - 258 0 1 --ds-ease-out",
+  "script sg-lab - 283 0 1 --ds-ease-out",
+  "script sg-lab - 350 0 1 --ds-ease-in-out",
+  "script sg-lab - 350 0 1 --ds-ease-out",
+  "script sg-lab - 450 0 1 --ds-ease-in-out",
+  "script sg-lab - 50 0 1 --ds-ease-in-out",
+  "script sg-lab - 600 0 1 --ds-ease-in-out"
+]

@@ -1,22 +1,28 @@
 /**
- * Known bugs in the styleguide's own demo code (styleguide/styleguide.js),
- * written as tests of the **correct** behaviour and marked
+ * Bugs the audit found in the styleguide's own demo code, written as tests
+ * of the **correct** behaviour. From P0 to P7 they were marked
  * `test.fail(<engines>, '<ids>: fixed in P<n>')` with the ids of
- * plans/motion-2/coverage.md. P2 fixes `countUp()`, which the tiles use; P5
- * replaces the overlay, snackbar and tooltip demos with `DS.overlay`.
+ * plans/motion-2/coverage.md: P2 fixed `countUp()`, which the tiles use,
+ * P5 replaced the overlay, snackbar and tooltip demos with `DS.overlay`.
+ * All of them pass now and stay as regression tests; no `test.fail` is
+ * left (test/repo.test.js allows only `spike: <capability>` markers).
  *
- * The locators name what a user sees (the opener buttons, `.ds-dialog`,
- * `.ds-tooltip`, `.ds-toast`), not the demo's internals, so they hold for the
- * rewritten demos too. Bugs on the fixtures live in regressions.spec.js.
+ * The demos live in styleguide/styleguide.js (index.html) and, since P8,
+ * in the Motion Lab (motion.html, its registry styleguide/lab.js): the
+ * count-up and the leave/enter tests open motion.html, where those demos
+ * moved. The locators name what a user sees (the opener buttons,
+ * `.ds-dialog`, `.ds-tooltip`, `.ds-toast`), not the demo's internals.
+ * Bugs on the fixtures live in regressions.spec.js.
  */
 import { test, expect } from '@playwright/test';
 import { ready, settle, focusByKeyboard, expectMonotonic } from './helpers/motion.js';
 
 const STYLEGUIDE = '/styleguide/index.html';
+const LAB = '/styleguide/motion.html';
 
 /** Loads the styleguide (optionally slowed down) and waits until the first-render motion (stagger, count-up) has played. */
-async function open(page, { speed } = {}) {
-  await page.goto(`${STYLEGUIDE}${speed ? `?speed=${speed}` : ''}`);
+async function open(page, { speed, path = STYLEGUIDE } = {}) {
+  await page.goto(`${path}${speed ? `?speed=${speed}` : ''}`);
   await ready(page);
   await page.mouse.move(1, 1);
   await page.waitForFunction(() => [...document.querySelectorAll('.ds-tile__value[data-count]')].every((el) => {
@@ -55,7 +61,7 @@ function watchTooltip(page, text, ms) {
 
 test.describe('fixed in P2', () => {
   test('clicking "Count up the tiles" twice never counts a tile backwards', async ({ page }) => {
-    await open(page);
+    await open(page, { path: LAB });
     await page.locator('[data-sg="count"]').scrollIntoViewIfNeeded();
     const shown = await page.evaluate(async () => {
       const button = document.querySelector('[data-sg="count"]');
@@ -72,7 +78,9 @@ test.describe('fixed in P2', () => {
             again = true;
             button.click();
           }
-          if (now - start < 1400) requestAnimationFrame(frame);
+          // Until the second count has landed (countUp drops aria-busy), at
+          // most 3s: a click on the busy lab page may start it late.
+          if (now - start < 1400 || (tile.getAttribute('aria-busy') === 'true' && now - start < 3000)) requestAnimationFrame(frame);
           else resolve();
         };
         requestAnimationFrame(frame);
@@ -86,7 +94,7 @@ test.describe('fixed in P2', () => {
   });
 
   test('"leave sink" then "enter scale" 100ms later never flashes the card', async ({ page }) => {
-    await open(page);
+    await open(page, { path: LAB });
     const opacity = await page.evaluate(async () => {
       const card = document.getElementById('sg-motion-card');
       const values = [];

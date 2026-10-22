@@ -1,0 +1,4 @@
+[
+  "script sg-lab - 200 0 1 --ds-ease-exit",
+  "script sg-lab - 200 0 1 --ds-ease-in-out"
+]

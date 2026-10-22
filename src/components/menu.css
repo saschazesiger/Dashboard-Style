@@ -47,13 +47,15 @@
  * Forced colours: the menu keeps an edge (its transparent outline), the
  * focused item its ring.
  *
- * Progressive: popover and CSS anchor positioning (anchor-name on the
- * trigger, position-anchor, position-area and position-try-fallbacks on
- * the menu), behind @supports: DS.overlay opens the menu as
- * popover="manual" in the top layer with data-anchored, below the trigger,
- * flipped above or towards the start edge when there is no room; elsewhere
- * the script writes --ds-menu-x/-y and sets data-placement="top" above.
- * scrollbar-color and scrollbar-width (a thin scrollbar in a long menu).
+ * Progressive:
+ * - popover and CSS anchor positioning (anchor-name on the trigger,
+ *   position-anchor, position-area and position-try-fallbacks on the menu,
+ *   behind @supports; DS.overlay opens the menu as popover="manual" in the
+ *   top layer with data-anchored, below the trigger, flipped above or
+ *   towards the start edge when there is no room): without them the
+ *   script writes --ds-menu-x/-y and sets data-placement="top" above.
+ * - scrollbar-color and scrollbar-width (a thin scrollbar in a long menu):
+ *   without them the platform scrollbar shows.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

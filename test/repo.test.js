@@ -3,13 +3,14 @@
  * particular project, licences travel with the files, the docs cover
  * every class and custom property, and the test tooling stays in its lane
  * (unit tests without dependencies, Playwright pinned and matched by the CI
- * container, known bugs as test.fail with an id and a phase).
+ * container, no known bug left: only spike markers of engine gaps, every
+ * skip with its reason).
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
-import { diffDist } from '../scripts/build.mjs';
+import { MODULES, diffDist } from '../scripts/build.mjs';
 import { ROOT, filesIn, read, rules, stripComments } from './helpers.js';
 
 const TEXT = /\.(css|js|mjs|md|html|json|txt|sh|ps1)$|(^|\/)(LICENSE|SHA256SUMS|\.gitignore|\.gitattributes)$/;
@@ -99,20 +100,118 @@ describe('repository', () => {
     assert.deepEqual(missing, []);
   });
 
-  it('documents every JS export in the docs', () => {
-    const docs = filesIn('docs', (path) => path.endsWith('.md')).map(read).join('\n');
-    for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {
-      for (const match of read(file).matchAll(/^export (?:const|function) ([\w$]+)/gm)) assert.ok(docs.includes(match[1]), `${file}: ${match[1]}`);
+  it('documents every JS export of every built module (MODULES): icons in docs/icons.md, the rest in docs/motion.md', () => {
+    // A module in src/js/ that the build leaves out fails here too.
+    assert.deepEqual(filesIn('src/js', (path) => path.endsWith('.js')).map((path) => path.slice('src/js/'.length, -3)).sort(), [...MODULES].sort(), 'src/js/ is MODULES');
+    const missing = [];
+    for (const name of MODULES) {
+      const docs = read(name === 'icons' ? 'docs/icons.md' : 'docs/motion.md');
+      // In a code span of its own or as a call or member in one (`flip(container, ...)`, `DS.motion.flip`).
+      const spans = [...docs.matchAll(/`([^`\n]+)`/g)].map((match) => match[1]);
+      for (const match of read(`src/js/${name}.js`).matchAll(/^export (?:const|function) ([\w$]+)/gm)) {
+        const word = new RegExp(`(^|[^\\w$])${match[1].replace(/\$/g, '\\$')}(?![\\w$])`);
+        if (!spans.some((span) => word.test(span))) missing.push(`${name}.js: ${match[1]}`);
+      }
     }
+    assert.deepEqual(missing, []);
   });
 
-  it('has no reduced-motion remnants (D8: one motion on every device)', () => {
+  it('documents every component hook in the docs/theming.md table and, commented out, in themes/example.css', () => {
+    // A hook (layer 3) is a --ds-* read with a fallback in src/components/ that tokens.css does not declare.
+    // Not hooks: the registered per-element motion settings (motion.css), the runtime properties that
+    // src/js/ writes, and the read-only or page-set values named below (each documented in docs/).
+    const declared = new Set([...stripComments(read('src/tokens.css')).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]));
+    const css = filesIn('src', (path) => path.endsWith('.css'));
+    const registered = new Set(css.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
+    const scripts = filesIn('src/js', (path) => path.endsWith('.js')).map(read).join('\n');
+    const NOT_HOOKS = new Map([
+      ['--ds-content-pad-top', 'the panel padding of page.css at the current width: read it, never set it'],
+      ['--ds-content-pad-x', 'the panel padding of page.css at the current width: read it, never set it'],
+      ['--ds-toast-reserve', 'set by the page (data-toast-reserve) for an open message'],
+      ['--ds-toast-bottom', 'set by the page on the region over a bar pinned to the bottom edge'],
+      ['--ds-toast-shift-y', 'set by the page with --ds-toast-shift, to glide a region it moved'],
+      ['--ds-indicator-lag', 'a motion hook: how long the trailing edge waits; themes never set it'],
+      ['--ds-indicator-ease-t', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
+      ['--ds-indicator-ease-r', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
+      ['--ds-indicator-ease-b', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
+      ['--ds-indicator-ease-l', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
+    ]);
+    const hooks = new Set();
+    for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
+      for (const match of stripComments(read(file)).matchAll(/var\(\s*(--ds-[\w-]+)\s*,/g)) {
+        const name = match[1];
+        if (declared.has(name) || registered.has(name) || NOT_HOOKS.has(name) || scripts.includes(`'${name}'`) || scripts.includes(`${name}:`)) continue;
+        hooks.add(name);
+      }
+    }
+    assert.ok(hooks.has('--ds-btn-height') && hooks.has('--ds-card-padding'), 'the walk finds the hooks');
+    const theming = read('docs/theming.md');
+    const table = theming.slice(theming.indexOf('## Component hooks'), theming.indexOf('\n## ', theming.indexOf('## Component hooks') + 1));
+    const rows = table.split('\n').filter((line) => line.startsWith('| `'));
+    const comments = [...read('themes/example.css').matchAll(/\/\*[\s\S]*?\*\//g)].map((match) => match[0]).join('\n');
+    const offenders = [];
+    for (const name of [...hooks].sort()) {
+      const word = new RegExp(`\`${name}\``);
+      if (!rows.some((row) => word.test(row.split(' | ')[0]))) offenders.push(`${name}: no row in the docs/theming.md "Component hooks" table`);
+      if (!new RegExp(`${name}:`).test(comments)) offenders.push(`${name}: not commented out in themes/example.css`);
+    }
+    assert.deepEqual(offenders, []);
+    for (const name of NOT_HOOKS.keys()) assert.ok(stripComments(css.map(read).join('\n')).includes(name), `NOT_HOOKS names ${name}, which src/ never reads`);
+  });
+
+  it('lists every @keyframes once in the docs/motion.md keyframe table, unused kept names marked deprecated', () => {
+    const motion = read('src/motion.css');
+    const names = [...stripComments(motion).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
+    const docs = read('docs/motion.md');
+    const section = docs.slice(docs.indexOf('\n## Keyframes'), docs.indexOf('\n## ', docs.indexOf('\n## Keyframes') + 1));
+    const rows = section.split('\n').filter((line) => /^\| `ds-/.test(line)).map((line) => ({ names: [...line.split(' | ')[0].matchAll(/`(ds-[\w-]+)`/g)].map((match) => match[1]), line }));
+    const listed = rows.flatMap((row) => row.names);
+    assert.deepEqual([...listed].sort(), [...names].sort(), 'each @keyframes of src/motion.css in one row, once');
+    // A name no stylesheet or module of src/ uses (outside its own @keyframes) is either deprecated or kept for pages.
+    const KEPT_FOR_PAGES = new Map([
+      ['ds-scan', 'a band across media being processed: no component of its own, used by pages (the Motion Lab shows it)'],
+      ['ds-ripple', 'the confirmation ring behind a saved state: placed by pages (the Motion Lab shows it)'],
+      ['ds-clip-out', 'the exit of a popup a page shows by hand with ds-clip-in (DS.overlay uses transitions)'],
+    ]);
+    const sources = [...filesIn('src', (path) => path.endsWith('.css')).map((file) => stripComments(read(file))), ...filesIn('src/js', (path) => path.endsWith('.js')).map((file) => code(read(file)))].join('\n');
+    const DEPRECATED = /\*\*deprecated\*\*/;
+    const offenders = [];
+    for (const row of rows) {
+      for (const name of row.names) {
+        const used = sources.replace(new RegExp(`@keyframes\\s+${name}(?![\\w-])`, 'g'), '').match(new RegExp(`(^|[^\\w-])${name}(?![\\w-])`));
+        if (!used && !DEPRECATED.test(row.line) && !KEPT_FOR_PAGES.has(name)) offenders.push(`${name}: unused in src/, so mark it **deprecated** (or keep it for pages, with a reason)`);
+        if (used && DEPRECATED.test(row.line)) offenders.push(`${name}: marked deprecated, but src/ still uses it`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+    for (const name of ['ds-sink-out', 'ds-scale-out', 'ds-slide-out']) assert.ok(DEPRECATED.test(rows.find((row) => row.names.includes(name)).line), `${name} is deprecated`);
+  });
+
+  it('has no reduced-motion remnants and no wording of the old motion rules (D8, D1, D3)', () => {
     // Built from fragments, so this file passes its own check; CHANGELOG.md,
     // plans/ and test/ may name them (history, decisions, the D8 browser test).
-    const names = new RegExp(['prefers-' + 'reduced-motion', 'ds-motion' + '-full', 'prefersReduced' + 'Motion', 'reduced' + '[ -]motion'].join('|'), 'i');
+    // The old rules: the Safari 14 floor (D3 moved it), "no spring" and the
+    // blanket "nothing bounces / overshoots" (D1: the spring floats). The
+    // qualified rules stay: effects and layout sizes never overshoot (D1, D29).
+    const names = new RegExp(['prefers-' + 'reduced-motion', 'ds-motion' + '-full', 'prefersReduced' + 'Motion', 'reduced' + '[ -]motion',
+      'Safari ' + '14', 'no ' + 'spring', 'nothing that ' + 'bounces', 'nothing ' + '(overshoots|bounces)', '(no|motion|curves?|animations?|everything) never ' + 'overshoots?',
+      'no curve ' + 'leaves'].join('|'), 'i');
     const scope = ALL_FILES.filter((path) => TEXT.test(path) && (/^(src|dist|styleguide|themes|docs)\//.test(path) || ['README.md', 'AGENTS.md'].includes(path)));
-    assert.ok(scope.includes('src/tokens.css') && scope.includes('AGENTS.md'), 'the walk finds the files');
-    assert.deepEqual(scope.filter((path) => names.test(readFileSync(join(ROOT, path), 'utf8'))), []);
+    assert.ok(scope.includes('src/tokens.css') && scope.includes('AGENTS.md') && scope.includes('styleguide/lab.js'), 'the walk finds the files');
+    const offenders = [];
+    for (const path of scope) {
+      const lines = readFileSync(join(ROOT, path), 'utf8').split('\n');
+      lines.forEach((line, index) => { if (names.test(line)) offenders.push(`${path}:${index + 1}: ${line.trim().slice(0, 100)}`); });
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('keeps no transitional list in the tests (P8: the guards are final)', () => {
+    // Built from fragments, so this file passes its own check.
+    const word = new RegExp('\\b' + 'PEND' + 'ING' + '\\b');
+    const tests = ALL_FILES.filter((path) => path.startsWith('test/') && /\.(js|mjs)$/.test(path));
+    assert.ok(tests.includes('test/css.test.js') && tests.includes('test/browser/lab.spec.js'), 'the walk finds the tests');
+    assert.deepEqual(tests.filter((path) => word.test(read(path))), []);
   });
 
   it('points CLAUDE.md at AGENTS.md, the one set of contributor notes', () => {
@@ -158,17 +257,28 @@ describe('repository', () => {
     assert.deepEqual([...new Set(tags)], [`${version}-noble`]);
   });
 
-  it('marks known bugs with test.fail', () => {
+  it('leaves no known bug: only spike markers name an engine gap, and every skip says why', () => {
+    // P1 to P7 turned every "<ids>: fixed in P<n>" marker green; what may stay
+    // is a capability gap of an engine, `test.fail(<engine condition>, 'spike: <capability>')`,
+    // with its row in the capability table of test/browser/README.md.
     const specs = ALL_FILES.filter((path) => path.startsWith('test/browser/') && /\.(js|mjs)$/.test(path));
-    const reason = /^[A-Za-z0-9-]+(, [A-Za-z0-9-]+)*: fixed in P[1-8]$|^spike: /;
+    const readme = read('test/browser/README.md');
+    const capabilities = readme.slice(readme.indexOf('## Capability spike'));
+    const strings = (args) => [...args.matchAll(/'([^'\\]*)'|"([^"\\]*)"|`([^`\\]*)`/g)].map((match) => match[1] ?? match[2] ?? match[3]);
     const offenders = [];
     for (const file of specs) {
       const source = code(read(file));
       if (/\btest\.fixme\s*\(/.test(source)) offenders.push(`${file}: test.fixme never runs`);
       for (const args of callArguments(source, /\btest\.fail\s*\(/g)) {
-        const strings = [...args.matchAll(/'([^'\\]*)'|"([^"\\]*)"|`([^`\\$]*)`/g)].map((match) => match[1] ?? match[2] ?? match[3]);
-        const last = strings.at(-1);
-        if (last === undefined || !reason.test(last)) offenders.push(`${file}: test.fail(${args.replace(/\s+/g, ' ')})`);
+        const last = strings(args).at(-1);
+        const condition = args.slice(0, args.lastIndexOf(',')).trim();
+        if (last === undefined || !/^spike: \S/.test(last)) offenders.push(`${file}: test.fail(${args.replace(/\s+/g, ' ')}): only spike: markers stay`);
+        else if (!/browserName|project\.name|dsFallback/.test(condition) || /^true$/.test(condition)) offenders.push(`${file}: test.fail(${args.replace(/\s+/g, ' ')}): name the engine, never true`);
+        else if (!capabilities.includes(last.slice('spike: '.length))) offenders.push(`${file}: ${last}: no row in the capability table of test/browser/README.md`);
+      }
+      for (const args of callArguments(source, /\btest(?:\.describe)?\.skip\s*\(/g)) {
+        const last = strings(args).at(-1);
+        if (!last || last.trim().length < 12 || !args.includes(',')) offenders.push(`${file}: test.skip(${args.replace(/\s+/g, ' ').slice(0, 80)}): give the reason (the engine gap or the choice)`);
       }
     }
     assert.deepEqual(offenders, []);

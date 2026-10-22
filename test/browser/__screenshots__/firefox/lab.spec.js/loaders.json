@@ -1,0 +1,11 @@
+[
+  "animation ds-fade-in - 250 200 1 --ds-ease-in-out",
+  "animation ds-fade-in - 350 400 1 --ds-ease-in-out",
+  "animation ds-loader-morph ::before 4550 0 infinite --ds-ease-spatial",
+  "animation ds-loader-turn ::before 4550 0 infinite linear",
+  "animation ds-spin - 1568 0 infinite linear",
+  "animation ds-spin - 800 0 infinite linear",
+  "animation ds-spinner-arc - 5332 0 infinite linear",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition scale - 150 0 1 --ds-ease-spatial"
+]

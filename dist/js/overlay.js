@@ -133,18 +133,19 @@
  * build bundles it into dist/ds.js as DS.overlay); newer APIs only behind
  * feature detection, named under Progressive:.
  *
- * Progressive: scrollbar-gutter (CSS.supports): keeps the room of a
- * removed page scrollbar; without it the body gets the same room as
- * padding-right. showPopover and CSS anchor positioning (anchorName,
- * position-area, both detected; anchor-size() too for a combobox list):
- * the tooltip, a menu and a combobox list go into the top layer as
- * popover="manual", anchored to their trigger; elsewhere the script places
- * them (--ds-tooltip-x/-y, --ds-menu-x/-y, the list's upward flip).
- * moveBefore: a snackbar region that moves into a dialog or side sheet
- * keeps its running motion and focus; elsewhere insertBefore, focus put
- * back, the entrances already marked played (.ds-toast--shown).
- * startViewTransition (through DS.motion.transition()) for `container:
- * true`, only with .ds-theme on <html>; elsewhere the usual entrance.
+ * Progressive:
+ * - scrollbar-gutter (CSS.supports; keeps the room of a removed page
+ *   scrollbar): without it the body gets the same room as padding-right.
+ * - showPopover and CSS anchor positioning (anchorName and position-area,
+ *   both detected, anchor-size() too for a combobox list; the tooltip, a
+ *   menu and a combobox list go into the top layer as popover="manual",
+ *   anchored to their trigger): without them the script places them
+ *   (--ds-tooltip-x/-y, --ds-menu-x/-y, the list's upward flip).
+ * - moveBefore (a snackbar region that moves into a dialog or side sheet
+ *   keeps its running motion and focus): without it insertBefore, focus
+ *   put back, the entrances already marked played (.ds-toast--shown).
+ * - startViewTransition (through DS.motion.transition(), for `container:
+ *   true`, only with .ds-theme on <html>): without it the usual entrance.
  */
 import { flip, motionDuration, originFrom, settled, transition } from './motion.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';

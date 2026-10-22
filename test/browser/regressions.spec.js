@@ -1,11 +1,11 @@
 /**
- * Known bugs on the fixtures (test/browser/fixtures/), each written as a
- * test of the **correct** behaviour and marked
- * `test.fail(<engines>, '<ids>: fixed in P<n>')`: the ids are those of
- * plans/motion-2/coverage.md, the phase is the one that fixes the bug.
- * Playwright reports such a test as "expected to fail"; once the fix lands
- * the test passes, Playwright reports "expected to fail, but passed", and
- * the fixing phase deletes the marker line and nothing else.
+ * Bugs the audit found on the fixtures (test/browser/fixtures/), each
+ * written as a test of the **correct** behaviour. From P0 to P7 they were
+ * marked `test.fail(<engines>, '<ids>: fixed in P<n>')` with the ids of
+ * plans/motion-2/coverage.md; the phase that fixed a bug deleted its
+ * marker, so all of them now pass and stay as regression tests. No
+ * `test.fail` is left: test/repo.test.js allows only `spike: <capability>`
+ * markers, and a bug found later is fixed with its test, not marked.
  *
  * Bugs in the styleguide's own demo code live in
  * styleguide-regressions.spec.js. See README.md, "Known bugs: test.fail".

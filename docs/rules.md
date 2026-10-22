@@ -55,7 +55,8 @@ the tests in `test/`.
   floats (translate, scale, clip-path) runs on the spring `--ds-ease-spatial`: it peaks at most 5% past its target
   and settles. Sizes that push layout never overshoot (`--ds-ease-out`).
 - An entrance is a fade plus a movement; an exit is `ds-fade-out` plus a movement-only keyframe, and takes 0.3-0.8
-  of its entrance. Short distances (4-12px, 24px for side sheets).
+  of its entrance. Short distances (4-12px, 24px for a panel that slides in by hand
+  (`.ds-enter--slide`); side sheets and the modal drawer slide their full width).
 - Hover never moves anything (state layer, colour and documented shadow only); nothing scales on press except the
   switch handle. A press ripples from the pointer (`DS.ripple.attach(document)` once per page).
 - Interrupted motion continues from where it is, on the curve of the new direction: never a jump to the end, a
@@ -65,7 +66,8 @@ the tests in `test/`.
   custom properties, plus the named exceptions of [motion.md](motion.md#rules). Never `transition: all`, never
   `font-weight`.
 - Durations and curves only from tokens, keyframes only from `motion.css`. Motion is the same on every device;
-  loaders always run at their token speed. Details: [motion.md](motion.md).
+  loaders always run at their token speed. Details: [motion.md](motion.md); what each component plays: its
+  [choreography](motion.md#choreography), live in the Motion Lab (`styleguide/motion.html`).
 - View Transitions only through `DS.motion.transition()`, for navigation (a destination, a drill-down, another
   record), never for data; the `::view-transition-*` rules hang off `.ds-theme`, and `@view-transition` and
   permanent `view-transition-name`s live only in `src/optional/` ([motion.md](motion.md#view-transitions)).

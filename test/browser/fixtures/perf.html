@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paint cost · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- The paint budget of the Expressive loaders (perf.spec.js): four shape
+     loaders, a skeleton surface with its wave, and a table of 50 rows, each
+     with a wavy progress bar whose wave travels, all looping at once. The
+     rows are written by the script below, so the file stays short.
+     ?parts=loaders,skeleton,table keeps only the parts named. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" data-part="loaders" aria-labelledby="loaders-title">
+    <h2 id="loaders-title">Loaders</h2>
+    <div class="fx-row">
+      <span class="ds-loader" aria-hidden="true"></span>
+      <span class="ds-loader ds-loader--contained" aria-hidden="true"></span>
+      <span class="ds-loader" aria-hidden="true"></span>
+      <span class="ds-loader ds-loader--sm" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <section class="fx-section" data-part="skeleton" aria-labelledby="skeleton-title">
+    <h2 id="skeleton-title">Skeleton</h2>
+    <div class="ds-skeleton" role="status">
+      <span class="ds-sr">Loading the page ...</span>
+      <span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span>
+      <span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>
+      <div class="ds-skeleton__card">
+        <span class="ds-skeleton__line ds-skeleton__line--title"></span>
+        <span class="ds-skeleton__line"></span>
+        <span class="ds-skeleton__line ds-skeleton__line--short"></span>
+        <span class="ds-skeleton__line ds-skeleton__line--mid"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" data-part="table" aria-labelledby="table-title">
+    <h2 id="table-title">Imports</h2>
+    <div class="ds-table-wrap">
+      <table class="ds-table" id="table">
+        <thead><tr><th scope="col">Device</th><th scope="col">Import</th><th scope="col">Rows</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+<script>
+  // 50 rows, each with a wavy (default) progress bar at its own share below 100%, so every wave travels.
+  (function () {
+    var parts = new URLSearchParams(location.search).get('parts');
+    if (parts) {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-part]'), function (section) {
+        if (parts.split(',').indexOf(section.getAttribute('data-part')) < 0) section.remove();
+      });
+    }
+    var body = document.getElementById('rows');
+    if (!body) return;
+    for (var i = 1; i <= 50; i += 1) {
+      var share = ((i * 37) % 90 + 5) / 100;
+      body.insertAdjacentHTML('beforeend', '<tr><td>Device ' + i + '</td><td>'
+        + '<div class="ds-progress" style="--ds-progress: ' + share + '"><div class="ds-progress__track" role="progressbar" aria-label="Import of device ' + i + '"'
+        + ' aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(share * 100) + '"><div class="ds-progress__bar"></div></div></div>'
+        + '</td><td>' + Math.round(share * 2030) + ' of 2,030</td></tr>');
+    }
+  })();
+</script>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

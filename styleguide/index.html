@@ -11,8 +11,14 @@
 <!-- The theme switcher fills one of these (a theme file or a preset). -->
 <link rel="stylesheet" id="sg-theme-link" disabled>
 <style id="sg-theme-style"></style>
+<!-- The opt-in stylesheet for page loads (D15): over http, the move to the Motion Lab and back is a
+     cross-document View Transition and the drawer's pill glides across it; from disk the pages just
+     switch. The first render waits for the scripts at the end of <body>, which create the named pill
+     (rel=expect on the element after them): WebKit reveals a page while it still parses. -->
+<link rel="stylesheet" href="../dist/css/optional/view-transitions.css">
+<link rel="expect" href="#sg-rendered" blocking="render">
 </head>
-<body>
+<body data-sg-page="index">
 <div class="ds-app ds-app--drawer" id="sg-app">
   <a class="ds-skip" href="#main">Skip to content</a>
 
@@ -20,16 +26,28 @@
     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="sg-drawer" data-sg="menu"></button>
     <a class="ds-brand" href="#top"><span class="sg-mark" aria-hidden="true"></span><span class="ds-brand__name">Dashboard-Style</span></a>
     <span class="sg-version ds-meta" id="sg-version"></span>
-    <div class="sg-theme">
-      <label class="ds-sr" for="sg-theme-select">Theme</label>
-      <select class="ds-input ds-input--filled" id="sg-theme-select">
-        <option value="default">Default theme</option>
-        <option value="example">themes/example.css</option>
-        <option value="square">Preset: square, flat</option>
-        <option value="dim">Preset: dimmed disabled, dense</option>
-        <option value="file">Load theme file ...</option>
-      </select>
-      <input type="file" id="sg-theme-file" accept=".css,text/css" hidden>
+    <div class="sg-tools">
+      <span class="sg-speed-readout ds-meta" id="sg-speed-readout" hidden></span>
+      <div class="sg-speed">
+        <label class="ds-sr" for="sg-speed-select">Speed</label>
+        <select class="ds-input ds-input--filled" id="sg-speed-select">
+          <option value="1">1&times;</option>
+          <option value="0.5">0.5&times;</option>
+          <option value="0.25">0.25&times;</option>
+          <option value="0.1">0.1&times;</option>
+        </select>
+      </div>
+      <div class="sg-theme">
+        <label class="ds-sr" for="sg-theme-select">Theme</label>
+        <select class="ds-input ds-input--filled" id="sg-theme-select">
+          <option value="default">Default theme</option>
+          <option value="example">themes/example.css</option>
+          <option value="square">Preset: square, flat</option>
+          <option value="dim">Preset: dimmed disabled, dense</option>
+          <option value="file">Load theme file ...</option>
+        </select>
+        <input type="file" id="sg-theme-file" accept=".css,text/css" hidden>
+      </div>
     </div>
   </div>
 
@@ -51,5 +69,6 @@
 
 <script src="../dist/ds.js"></script>
 <script src="styleguide.js"></script>
+<div id="sg-rendered" hidden></div>
 </body>
 </html>

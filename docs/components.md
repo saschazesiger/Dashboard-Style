@@ -261,6 +261,8 @@ is the only scroller. At 900px and below the drawer becomes modal.
   });
   ```
 
+**Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
+
 ## Page
 
 ```html
@@ -346,6 +348,8 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   not a path morph ([motion.md](motion.md)).
 - Hooks: [theming.md](theming.md#component-hooks).
 
+**Motion:** the press, focus, busy and success rows of [Controls](motion.md#controls) in motion.md.
+
 ## Card
 
 ```html
@@ -410,6 +414,8 @@ A whole card that opens something (1.4):
   (default none; for example `var(--ds-elev-hover)`), in over `--ds-dur-medium`, out over `--ds-dur-base`.
 - In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring.
 
+**Motion:** the press morph of [Controls](motion.md#controls) (`.ds-card--interactive`) and the "Alert, tile, card" row of [Feedback](motion.md#feedback).
+
 ## Tiles
 
 ```html
@@ -439,6 +445,8 @@ note.textContent = `${failed} failed`;                             // at once
 A tile that opens something is a `<button class="ds-tile">` or `<a class="ds-tile">` with `<span>`s instead of the
 `<p>`s: a 6% state layer, the focus ring, the ripple, and the press morph (16 to 12px, `--ds-tile-radius-pressed`,
 springing back on release); no lift, no scale.
+
+**Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
 
 ## Lists
 
@@ -486,6 +494,8 @@ At most one sentence and one action. It has no motion of its own; how it comes d
 | The filter was cleared | `DS.motion.leave(empty)` while the rows enter through `flip` |
 | The user deleted the last item | the disc pops in: `DS.motion.enter(disc, 'pop')` |
 
+**Motion:** [Data motion](motion.md#data-motion) in motion.md.
+
 ## Status chip
 
 ```html
@@ -506,6 +516,8 @@ comes in new (running to ok) fades in and springs up from `--ds-scale-small` (pr
 also plays on a chip's first render; elsewhere the icon swaps at once). A row that a keyed `morphHtml` moves (a sort)
 keeps its icon as it is: where `moveBefore` is missing, the moved node carries `data-ds-moving` for one style flush,
 so the entrance never plays again. The label text changes at once. A page that swaps the icon itself can cross-fade it with `DS.motion.crossfade(chip, icon, { kind: 'icon' })`.
+
+**Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.
 
 ## Alert
 
@@ -542,6 +554,8 @@ focus with `--ds-state-focus`) in a 4px padding that hangs into the space around
 ring (also without `.ds-base`) that is solid from the first frame and snaps to its offset. It is not a pill and
 does not morph. Its chevron turns 180deg with the list on the spring, like `.ds-chevron`; with `.ds-collapsible`
 the list opens and closes with the collapsible timing.
+
+**Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) and [Data motion](motion.md#data-motion) in motion.md.
 
 ## Table
 
@@ -656,6 +670,8 @@ is only for polled updates; sorting and filtering are user actions. More in
   keys both rows with `data-ds-key`, so `flip()` and `morphHtml` keep them together. The child takes the cells'
   horizontal padding and its own vertical room; put the content straight into it.
 
+**Motion:** the "Table" row of [Feedback](motion.md#feedback) and [Data motion](motion.md#data-motion) in motion.md.
+
 ## Form
 
 ```html
@@ -767,6 +783,8 @@ is only for polled updates; sorting and filtering are user actions. More in
 
 `.ds-input--filled` is the toolbar variant on the tonal fill; `.ds-search` is a filled pill with a leading icon.
 
+**Motion:** the check, radio, focus and validation rows of [Controls](motion.md#controls) in motion.md.
+
 ## Chips
 
 ```html
@@ -804,6 +822,8 @@ The native input stays in the form and the tab order; a selected chip shows the 
 - Hooks: `--ds-chip-height` (32px), `--ds-chip-check-size` (18px), `--ds-chip-disabled-border`,
   `--ds-chip-disabled-bg` (the container of a disabled selected chip).
 
+**Motion:** the chip rows of [Controls](motion.md#controls) in motion.md.
+
 ## Switch
 
 ```html
@@ -825,6 +845,8 @@ and a halo around it (`--ds-switch-halo`, 40px) shows hover, press and keyboard 
 Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-switch-disabled-handle`), no hover, halo
 or grow, the `not-allowed` cursor and the quieter label. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
 title next to the switch already names the setting.
+
+**Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
 
 ## Combobox
 
@@ -876,6 +898,8 @@ colours `SelectedItem`). `aria-expanded="true"` on the field turns the chevron 1
 The toggle is a round 40px target with a state layer (hover, press in `--ds-dur-micro`), the ripple and the press
 morph of every pill; it stays `tabindex="-1"` (the field opens the list from the keyboard), so it has no ring.
 Options get no ripple: pressing one selects it and closes the list, and the state layer is the feedback.
+
+**Motion:** the "Combobox list" row of [Overlays](motion.md#overlays) in motion.md.
 
 ## Menu
 
@@ -934,6 +958,8 @@ trigger.addEventListener('keydown', (event) => {
   back from where it is. Shown by hand (dropping `hidden` without `DS.overlay`) it reveals itself once.
 - The menu sits inside the `.ds-theme` element, like every overlay. Forced colours keep its edge.
 
+**Motion:** the "Menu" row of [Overlays](motion.md#overlays) in motion.md.
+
 ## Dialog
 
 Native markup (preferred): `showModal()` makes the page inert and gives the dialog its modal semantics, so the box
@@ -984,6 +1010,8 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
   `transition-behavior: allow-discrete` exist; elsewhere it enters with the keyframes and closes at once.
 - `.ds-dialog--contained` covers the nearest positioned ancestor instead of the window (a dialog inside an embedded
   panel; div markup only).
+
+**Motion:** the "Scrim", "Dialog", "Nested dialog" and "Dialog on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
 
 ## Side sheet
 
@@ -1039,6 +1067,8 @@ the quick swap: the page is frozen while a View Transition runs.
 into the panel instead of sliding it in from the edge ([DS.overlay](motion.md#dsoverlay-jsoverlayjs)); the same works
 for a dialog. A row that its table's scroll wrapper clips (the row of a `.ds-table--wide` table wider than its wrapper, or one partly
 under the top bar) gets the usual entrance instead: its group would paint the hidden part over the frame.
+
+**Motion:** the "Scrim", "Side sheet" and "Side sheet on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
 
 ## Snackbar
 
@@ -1100,6 +1130,8 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
   messages into a side sheet: mark them `.ds-toast--shown`, set `--ds-toast-shift` and `--ds-toast-shift-y` to the
   offset from the old place with `transition: none`, force a style flush, then remove both.
 
+**Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
+
 ## Tooltip
 
 ```html
@@ -1134,6 +1166,8 @@ Placing a `.ds-tooltip` yourself: set `--ds-tooltip-x` and `--ds-tooltip-y` (or 
 `hidden` (the entrance plays) and hide it with `DS.motion.leave(tip, '', { then: 'hide' })`. A `transform` placement
 composes with the entrance, but its scale shrinks the offset too, so the tooltip drifts in by (1 - scale) × offset;
 a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-origin: calc(50% + Xpx) calc(50% + Ypx)`.
+
+**Motion:** the "Tooltip" and "Tooltip warm-up" rows of [Overlays](motion.md#overlays) in motion.md.
 
 ## Loading
 
@@ -1191,6 +1225,16 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   and insert the loading bar; when the data arrives, `await DS.motion.settleLoader(startedAt, { element: loadbar })`,
   then `DS.motion.leave(loadbar)` (it fades out with its segments still moving, and is removed) and render the fresh
   content. `.ds-leave` keeps the loops of a loading bar and of a skeleton surface while they fade out.
+- **Paint cost** (measured by `test/browser/perf.spec.js`, budget: the p95 frame within 33ms, two frames at 60Hz,
+  at 4x CPU throttling): 50 table rows of wavy progress with four shape loaders stay within it. The skeleton wave
+  does not: its fixed band (`background-attachment: fixed`) is repainted with the whole view, so without GPU
+  rasterisation a full-width skeleton stalls a frame for three or more several times a second, at any CPU speed.
+  Limits: one skeleton surface per view, shown only while a page loads its first data and never beside other
+  loops (shape loaders, wavy bars, spinners; its own loading bar aside) in the same view; for a refresh use `.ds-stale` and the loading bar.
+  Keep shape loaders to a few per view, and use `.ds-progress--flat` in dense table cells (the wave reaches outside
+  the 4px track).
+
+**Motion:** the loader and skeleton rows of [Feedback](motion.md#feedback) in motion.md.
 
 ## Progress
 
@@ -1231,6 +1275,8 @@ progress.style.setProperty('--ds-progress', .3);
 track.setAttribute('aria-valuenow', '30');
 track.removeAttribute('aria-valuetext');
 ```
+
+**Motion:** the "Progress" row of [Feedback](motion.md#feedback) in motion.md.
 
 ## Ripple
 
@@ -1275,6 +1321,8 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
   `ontouchstart=""` on `<body>` where the Content-Security-Policy allows inline handlers), otherwise iOS shows no
   press feedback.
 
+**Motion:** the press rows of [Controls](motion.md#controls) in motion.md.
+
 ## Utilities
 
 | Class | Effect |
@@ -1289,6 +1337,8 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 | `.ds-no-scroll` | on `<body>` while a modal layer is open (with `.ds-base`); `DS.overlay` sets it, reference-counted |
 
 Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
+
+**Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
 
 ## Motion classes
 
@@ -1309,3 +1359,5 @@ it fades in and grows from `--ds-scale-popup` on the spring, leaves faster, and 
 it is (progressive: where `@starting-style` and `transition-behavior: allow-discrete` exist; elsewhere it toggles at
 once). Never both on one element. A `[popover]` is centred by the browser's `margin: auto`; inside a container that
 spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` again or place it outside.
+
+**Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.

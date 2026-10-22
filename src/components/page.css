@@ -21,8 +21,9 @@
  * page's centring (100cqw of the "ds-content" container), to reach the
  * panel edges.
  *
- * Progressive: text-wrap (the lead avoids a lone last word); without it
- * the line wraps as usual.
+ * Progressive:
+ * - text-wrap (the lead avoids a lone last word): without it the line
+ *   wraps as usual.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

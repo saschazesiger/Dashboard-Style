@@ -28,11 +28,13 @@
  * Every stylesheet declares the layer order and puts its rules in one of
  * them (this file in ds.tokens), so unlayered project CSS always wins.
  *
- * Progressive: linear() carries the spring of --ds-ease-spatial and the
- * exact Material emphasized path behind @supports; older engines keep the
- * cubic-bezier fallbacks (--ds-ease-out, the emphasized approximation).
- * scripts/motion-curves.mjs writes both linear() values and the block
+ * scripts/motion-curves.mjs writes the linear() values and the block
  * between the "generated: progress-masks" markers; never edit them by hand.
+ *
+ * Progressive:
+ * - linear() (the spring of --ds-ease-spatial and the exact Material
+ *   emphasized path, behind @supports): without it the cubic-bezier
+ *   fallbacks apply (--ds-ease-out, the emphasized approximation).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

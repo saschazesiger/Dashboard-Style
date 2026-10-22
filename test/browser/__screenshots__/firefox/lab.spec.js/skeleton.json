@@ -1,0 +1,6 @@
+[
+  "animation ds-fade-in - 250 200 1 --ds-ease-in-out",
+  "animation ds-progress-head - 1800 0 infinite linear",
+  "animation ds-progress-tail - 1800 0 infinite linear",
+  "animation ds-skeleton-wave - 2000 450 infinite linear"
+]

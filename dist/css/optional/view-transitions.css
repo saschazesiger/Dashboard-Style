@@ -69,8 +69,9 @@
  * No smooth scrolling is turned on (scroll-behavior stays untouched), and
  * motion is the same on every device (D8).
  *
- * Progressive: cross-document View Transitions (@view-transition,
- * view-transition-name); without them, pages load as before.
+ * Progressive:
+ * - cross-document View Transitions (@view-transition,
+ *   view-transition-name): without them, pages load as before.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -86,12 +87,14 @@
      hand by removing hidden), keeps its view and panel in the root
      snapshot, under the drawer or the overlay and its scrim (a group would
      paint above them). The new page's frame then fades in on its own over
-     the root's crossfade. */
-  .ds-theme:not(:has(.ds-app[data-drawer-open], .ds-dialog[data-state="open"], .ds-sheet[data-state="open"], dialog.ds-dialog[open], dialog.ds-sheet[open], .ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing), .ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing))) .ds-view {
+     the root's crossfade. A contained dialog (.ds-dialog--contained) covers
+     its container inside the panel, not the frame: it is captured with the
+     panel and unnames nothing. */
+  .ds-theme:not(:has(.ds-app[data-drawer-open], .ds-dialog[data-state="open"]:not(.ds-dialog--contained), .ds-sheet[data-state="open"], dialog.ds-dialog[open]:not(.ds-dialog--contained), dialog.ds-sheet[open], .ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--contained, .ds-dialog--hidden, .ds-dialog--closing), .ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing))) .ds-view {
     view-transition-name: ds-view;
   }
 
-  .ds-theme:not(:has(.ds-app[data-drawer-open], .ds-dialog[data-state="open"], .ds-sheet[data-state="open"], dialog.ds-dialog[open], dialog.ds-sheet[open], .ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing), .ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing))) .ds-panel {
+  .ds-theme:not(:has(.ds-app[data-drawer-open], .ds-dialog[data-state="open"]:not(.ds-dialog--contained), .ds-sheet[data-state="open"], dialog.ds-dialog[open]:not(.ds-dialog--contained), dialog.ds-sheet[open], .ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--contained, .ds-dialog--hidden, .ds-dialog--closing), .ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing))) .ds-panel {
     view-transition-name: ds-panel;
   }
 
@@ -104,7 +107,7 @@
       background: transparent;
     }
 
-    .ds-theme:not(:has(.ds-dialog[data-state="open"], .ds-sheet[data-state="open"], dialog.ds-dialog[open], dialog.ds-sheet[open], .ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing), .ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing))) .ds-drawer {
+    .ds-theme:not(:has(.ds-dialog[data-state="open"]:not(.ds-dialog--contained), .ds-sheet[data-state="open"], dialog.ds-dialog[open]:not(.ds-dialog--contained), dialog.ds-sheet[open], .ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--contained, .ds-dialog--hidden, .ds-dialog--closing), .ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing))) .ds-drawer {
       view-transition-name: ds-drawer;
     }
   }

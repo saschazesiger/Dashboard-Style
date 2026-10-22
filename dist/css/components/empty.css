@@ -18,8 +18,9 @@
  *                                  enter through flip
  *   the user deleted the last item DS.motion.enter(disc, 'pop') on the disc
  *
- * Progressive: text-wrap (the text avoids a lone last word); without it
- * the line wraps as usual.
+ * Progressive:
+ * - text-wrap (the text avoids a lone last word): without it the line
+ *   wraps as usual.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

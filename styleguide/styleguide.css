@@ -1,6 +1,7 @@
 /*
- * Layout of the styleguide page only (sg- prefix). It reads tokens like any
- * project stylesheet; components come from dist/ds.css unchanged.
+ * Layout of the styleguide pages only (sg- prefix): index.html and the
+ * Motion Lab (motion.html). It reads tokens like any project stylesheet;
+ * components come from dist/ds.css unchanged.
  */
 
 /* ── Top bar extras ─────────────────────────────── */
@@ -21,15 +22,42 @@
   white-space: nowrap;
 }
 
-.sg-theme {
+/* The speed select, its read-out and the theme select, at the end of the bar. */
+.sg-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-width: 0;
   margin-left: auto;
+}
+
+.sg-speed {
+  flex-shrink: 0;
+  width: 96px;
+}
+
+.sg-speed-readout {
+  white-space: nowrap;
+}
+
+.sg-theme {
   width: min(240px, 46vw);
 }
 
 @media (max-width: 600px) {
   .ds-topbar .ds-brand__name,
-  .sg-version {
+  .sg-version,
+  .sg-speed-readout {
     display: none;
+  }
+
+  /* The select itself still shows the speed. */
+  .sg-speed {
+    width: 84px;
+  }
+
+  .sg-theme {
+    width: min(240px, 40vw);
   }
 }
 
@@ -207,74 +235,6 @@
   overflow: hidden;
 }
 
-.sg-stage__card {
-  width: min(100%, 320px);
-}
-
-.sg-stagger-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-  gap: var(--ds-space-2);
-  width: 100%;
-}
-
-.sg-stagger-list > span {
-  height: 40px;
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent);
-}
-
-/* The fill demo grows each item from its left edge (.ds-enter--fill-x). */
-.sg-stagger-list.sg-fill > span {
-  transform-origin: left center;
-}
-
-/* The count demo: a figure and its bar under the buttons. */
-.sg-count-progress {
-  margin-top: var(--ds-space-4);
-}
-
-/* Data motion: rows on the card's surface, so rows gliding past each other
-   cover what is behind them; the status line rolls in below the buttons. */
-.sg-data-filter {
-  max-width: 320px;
-  margin-top: var(--ds-space-4);
-}
-
-.sg-data-status {
-  /* A block-level .ds-swap slot: the outgoing and incoming lines share one cell. */
-  display: grid;
-  margin: var(--ds-space-3) 0 0;
-}
-
-.sg-data-list li {
-  background: var(--ds-surface);
-}
-
-/* A track for the indicator demo: options in a pill. */
-.sg-track {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--ds-space-1);
-  padding: var(--ds-space-1);
-  border: 1px solid var(--ds-outline);
-  border-radius: var(--ds-radius-action);
-}
-
-.sg-track > .ds-btn {
-  --ds-btn-border: transparent;
-}
-
-.sg-track > .ds-btn[aria-pressed="true"] {
-  --ds-btn-color: var(--ds-on-accent);
-  font: var(--ds-font-label);
-}
-
-.sg-track__indicator {
-  border-radius: var(--ds-radius-action);
-  background: var(--ds-accent);
-}
-
 /* Overlays shown in place (not over the page) so they can be inspected. */
 .sg-inline-overlay {
   --ds-sheet-width: 78%;
@@ -447,6 +407,317 @@
   max-width: 320px;
 }
 
+/* The principles of the Motion section, one per line. */
+.sg-principles {
+  display: grid;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding-left: var(--ds-space-5);
+}
+
+/* ── Motion Lab (motion.html) ───────────────────── */
+
+/* Demo cards side by side; a wide one takes the whole row. */
+.sg-demos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  align-items: start;
+  gap: var(--ds-space-5);
+}
+
+.sg-demo--wide {
+  grid-column: 1 / -1;
+}
+
+.sg-demo__tokens,
+.sg-demo__shows {
+  overflow-wrap: anywhere;
+}
+
+.sg-demo > .sg-demo__tokens + .sg-demo__shows,
+.sg-demo > .sg-lab-stage + .sg-plot__caption {
+  margin-top: var(--ds-space-2);
+}
+
+/* The stage: a fixed height, so a replay never shifts the page. Content
+   that changes size (a list, a disclosure) hangs from the top. */
+.sg-lab-stage {
+  position: relative;
+  display: grid;
+  align-content: center;
+  height: var(--sg-lab-stage-height, 184px);
+  padding: var(--ds-space-4) var(--ds-space-5);
+  overflow: hidden;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface-low);
+}
+
+.sg-lab-stage:has(> .sg-data-head, > .sg-disclosure, > .sg-alerts, > .ds-table-wrap) {
+  align-content: start;
+}
+
+/* Tiles are tonal on the backdrop colour: their stage is a surface. */
+.sg-lab-stage:has(> .sg-count-tiles, > .sg-tiles-demo, > .sg-press-all) {
+  border: 1px solid var(--ds-line);
+  background: var(--ds-surface);
+}
+
+/* The demo's own buttons sit close under Replay. */
+.sg-demo > .sg-demo__actions + .sg-row,
+.sg-demo > .sg-row + .sg-row,
+.sg-demo > .sg-row + .sg-data-filter {
+  margin-top: var(--ds-space-2);
+}
+
+/* A plot fills its stage. */
+.sg-lab-stage:has(> .sg-plot) {
+  align-content: stretch;
+}
+
+.sg-lab-card {
+  justify-self: center;
+  width: min(100%, 320px);
+}
+
+/* The hidden probe that samples a curve (lab.js): a box that never paints. */
+.sg-probe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* A curve plot: the [0, 1] band, its edges, the sampled path, and the
+   ball that runs along it (x linear in time, y on the curve). */
+.sg-plot {
+  position: relative;
+  margin-left: var(--ds-space-5);
+}
+
+.sg-plot__svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sg-plot__band {
+  fill: var(--ds-accent);
+}
+
+.sg-plot__line {
+  stroke: var(--ds-outline);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.sg-plot__path {
+  fill: none;
+  stroke: var(--ds-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sg-plot__mark {
+  position: absolute;
+  left: calc(-1 * var(--ds-space-5));
+  translate: 0 -50%;
+  color: var(--ds-text-2);
+  font: var(--ds-font-caption);
+}
+
+.sg-plot__area {
+  position: absolute;
+  right: 0;
+  left: 0;
+}
+
+.sg-plot__x,
+.sg-plot__y {
+  position: absolute;
+  inset: 0;
+}
+
+.sg-plot__ball {
+  position: absolute;
+  bottom: -7px;
+  left: -7px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ds-surface);
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-primary);
+}
+
+/* Lanes of the spring explainer: a box per duration, the same distance. */
+.sg-lanes {
+  display: grid;
+  gap: var(--ds-space-3);
+}
+
+.sg-lane__label {
+  margin: 0;
+  color: var(--ds-text-2);
+  font: var(--ds-font-meta);
+}
+
+.sg-lane__track,
+.sg-ladder__lane {
+  position: relative;
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-surface-high);
+}
+
+.sg-lane__track {
+  height: 24px;
+  margin-top: var(--ds-space-1);
+}
+
+.sg-lane__box,
+.sg-ladder__chip {
+  display: block;
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-primary);
+}
+
+.sg-lane__box {
+  width: 40px;
+  height: 24px;
+}
+
+/* The duration ladder: token, use and ms beside a lane on wide screens,
+   above it on narrow ones. */
+.sg-ladder {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.sg-ladder__head {
+  margin: var(--ds-space-2) 0 0;
+  color: var(--ds-text-2);
+  font: var(--ds-font-caption);
+}
+
+.sg-ladder__head:first-child {
+  margin-top: 0;
+}
+
+.sg-ladder__row {
+  display: grid;
+  grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--ds-space-1) var(--ds-space-4);
+}
+
+.sg-ladder__label {
+  display: grid;
+  margin: 0;
+  font: var(--ds-font-meta);
+}
+
+.sg-ladder__use {
+  color: var(--ds-text-2);
+}
+
+.sg-ladder__lane {
+  height: 20px;
+}
+
+.sg-ladder__chip {
+  width: 32px;
+  height: 20px;
+}
+
+[data-lab-demo="durations"] {
+  --sg-lab-stage-height: 560px;
+}
+
+@media (max-width: 700px) {
+  .sg-ladder__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-lab-demo="durations"] {
+    --sg-lab-stage-height: 820px;
+  }
+}
+
+/* Stagger: squares (or bars) in a grid. */
+.sg-stagger-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: var(--ds-space-2);
+  width: 100%;
+}
+
+.sg-stagger-list > span {
+  height: 40px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-accent);
+}
+
+/* The fill demo grows each item from its left edge (.ds-enter--fill-x). */
+.sg-stagger-list.sg-fill > span {
+  transform-origin: left center;
+}
+
+/* Count: two tiles, then a figure and its bar. */
+.sg-count-tiles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sg-count-progress {
+  margin-top: var(--ds-space-4);
+}
+
+/* Data motion: rows on the card's surface, so rows gliding past each other
+   cover what is behind them; the status line rolls in above the list. */
+.sg-data-filter {
+  max-width: 320px;
+}
+
+.sg-data-status {
+  /* A block-level .ds-swap slot: the outgoing and incoming lines share one cell. */
+  display: grid;
+  margin: 0 0 var(--ds-space-2);
+}
+
+.sg-data-list li {
+  background: var(--ds-surface);
+}
+
+/* A track for the indicator demo: options in a pill. */
+.sg-track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-self: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1);
+  border: 1px solid var(--ds-outline);
+  border-radius: var(--ds-radius-action);
+}
+
+.sg-track > .ds-btn {
+  --ds-btn-border: transparent;
+}
+
+.sg-track > .ds-btn[aria-pressed="true"] {
+  --ds-btn-color: var(--ds-on-accent);
+  font: var(--ds-font-label);
+}
+
+.sg-track__indicator {
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-accent);
+}
+
 /* The disclosure's summary: its text and chevron on one line. */
 .sg-disclosure > summary {
   display: inline-flex;
@@ -455,10 +726,495 @@
   cursor: pointer;
 }
 
+/* The rules in two columns where there is room. */
+.sg-disclosure ol {
+  columns: 2 22rem;
+  column-gap: var(--ds-space-8);
+}
+
+.sg-disclosure li {
+  break-inside: avoid;
+  margin-bottom: var(--ds-space-2);
+}
+
+[data-lab-demo="disclosure"] {
+  --sg-lab-stage-height: 440px;
+}
+
+@media (max-width: 700px) {
+  [data-lab-demo="disclosure"] {
+    --sg-lab-stage-height: 960px;
+  }
+}
+
+/* ── Choreography demos ──────────────────────────── */
+
+/* A line of figures under a stage (what a demo measured). */
+.sg-readout {
+  margin: var(--ds-space-2) 0 0;
+}
+
+.sg-readout:empty {
+  display: none;
+}
+
+/* Two panes side by side (fast and slow, before and after). */
+.sg-panes,
+.sg-jobs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: var(--ds-space-4);
+  align-items: start;
+}
+
+.sg-pane {
+  display: grid;
+  align-content: start;
+  min-height: 72px;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+
+.sg-pane--tall {
+  min-height: 180px;
+}
+
+.sg-panes .sg-label,
+.sg-jobs .sg-label {
+  margin-bottom: var(--ds-space-2);
+}
+
+/* The interruption bench: the card beside the trace of its opacity. */
+.sg-bench {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  align-items: center;
+  gap: var(--ds-space-5);
+}
+
+.sg-trace {
+  display: block;
+  width: 100%;
+  height: 96px;
+  overflow: visible;
+}
+
+.sg-trace__band {
+  fill: var(--ds-accent);
+}
+
+.sg-trace__path {
+  fill: none;
+  stroke: var(--ds-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sg-trace__caption {
+  margin: var(--ds-space-1) 0 0;
+}
+
+.sg-trace__mark {
+  stroke: var(--ds-outline);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Swaps: an icon toggle and the text it changes. */
+.sg-swap-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-3);
+}
+
+.sg-swap-text {
+  display: grid;
+  min-width: 14rem;
+  margin: 0;
+  font: var(--ds-font-subtitle);
+}
+
+/* ds-draw: a check on a disc, its path drawn in once per replay. */
+.sg-draw-row {
+  justify-content: center;
+}
+
+.sg-draw-disc {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-success-container);
+  color: var(--ds-on-success-container);
+}
+
+.sg-draw-disc--quiet {
+  background: var(--ds-surface-high);
+  color: var(--ds-text);
+}
+
+.sg-draw [pathLength] {
+  stroke-dasharray: 1;
+}
+
+/* On the <svg>: its pathLength="1" path inherits the stroke. A class change
+   on the svg does not restyle a [pathLength] path in Chromium. */
+.sg-draw--play {
+  animation: ds-draw var(--ds-dur-slow) var(--ds-ease-out) backwards;
+}
+
+/* ds-roll-in / ds-roll-out: a status line in a .ds-swap slot. */
+.sg-roll {
+  display: grid;
+  margin: 0;
+  overflow: hidden;
+  font: var(--ds-font-title);
+  text-align: center;
+}
+
+/* ds-scan: a band over a media placeholder. */
+.sg-media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: min(100%, 280px);
+  height: 140px;
+  overflow: hidden;
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-high);
+  color: var(--ds-text-3);
+}
+
+.sg-scan {
+  --ds-scan-to: 250%;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 40%;
+  background: linear-gradient(transparent, var(--ds-accent), transparent);
+  translate: 0 -100%;
+  pointer-events: none;
+}
+
+.sg-scan--play {
+  animation: ds-scan var(--ds-dur-glide) var(--ds-ease-in-out) 2 both;
+}
+
+.sg-media__state {
+  position: absolute;
+  right: var(--ds-space-3);
+  bottom: var(--ds-space-2);
+  left: var(--ds-space-3);
+  margin: 0;
+  text-align: center;
+}
+
+/* ds-ripple: the confirmation ring behind a status chip. */
+.sg-ring-host {
+  position: relative;
+  display: inline-grid;
+  justify-self: center;
+}
+
+.sg-ring {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: 2px solid var(--ds-success);
+  border-radius: var(--ds-radius-action);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sg-ring--play {
+  animation: ds-ripple var(--ds-dur-slow) var(--ds-ease-out) both;
+}
+
+/* Pointer ripple: four large targets. */
+.sg-press-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.sg-press-grid > .ds-btn {
+  --ds-btn-height: 56px;
+}
+
+/* ds-pop-in / ds-pop-out: a counter on a button. */
+.sg-badge-host {
+  position: relative;
+  justify-self: center;
+}
+
+.sg-badge {
+  position: absolute;
+  top: calc(-1 * var(--ds-space-2));
+  right: calc(-1 * var(--ds-space-2));
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--ds-space-1);
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-primary);
+  color: var(--ds-on-primary);
+  font: var(--ds-font-caption);
+}
+
+/* ds-clip-in / ds-clip-out: a panel between four triggers. The hooks pick
+   the keyframes of enter() and leave(), so interruption still works. */
+.sg-lab-stage:has(> .sg-clip) {
+  align-content: stretch;
+}
+
+.sg-clip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.sg-clip__trigger {
+  position: absolute;
+}
+
+.sg-clip__trigger--top {
+  top: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.sg-clip__trigger--bottom {
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
+}
+
+.sg-clip__trigger--left {
+  top: 50%;
+  left: 0;
+  translate: 0 -50%;
+}
+
+.sg-clip__trigger--right {
+  top: 50%;
+  right: 0;
+  translate: 0 -50%;
+}
+
+.sg-clip__panel {
+  --ds-enter-keyframes: ds-fade-in, ds-clip-in;
+  --ds-enter-duration: var(--ds-dur-medium);
+  --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-spatial);
+  --ds-leave-keyframes: ds-fade-out, ds-clip-out;
+  --ds-leave-duration: var(--ds-dur-instant);
+  --ds-leave-easing: var(--ds-ease-in);
+  width: min(100% - 2 * var(--ds-space-12), 240px);
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-elev-popover);
+}
+
+.sg-clip__panel > p {
+  margin: 0;
+}
+
+/* Data: the status line and the "Order held" chip above the list. */
+.sg-data-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-2);
+  margin: 0 0 var(--ds-space-2);
+}
+
+.sg-data-head > .sg-data-status {
+  margin: 0;
+}
+
+/* Morph versus innerHTML: a row with its spinner, name, figure and note. */
+.sg-jobs__list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 7rem);
+  align-items: center;
+  gap: var(--ds-space-2);
+  background: var(--ds-surface);
+}
+
+.sg-job__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sg-job__note {
+  min-width: 0;
+}
+
+/* Press on every action, and the cards that press. */
+.sg-press-all {
+  display: grid;
+  gap: var(--ds-space-4);
+}
+
+.sg-press-all .ds-segmented,
+.sg-lab-segmented {
+  margin-left: 0;
+}
+
+.sg-press-cards,
+.sg-tiles-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  align-items: stretch;
+  gap: var(--ds-space-3);
+}
+
+.sg-lab-segmented {
+  justify-self: center;
+}
+
+/* Checkboxes, the little table and the radio cards side by side. */
+.sg-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  align-items: start;
+  gap: var(--ds-space-5);
+}
+
+.sg-chip-row {
+  max-width: 420px;
+}
+
+.sg-validate {
+  max-width: 360px;
+}
+
+/* A small app in a frame (lab.js): phone-sized where the modal drawer
+   and the top bar need a narrow window. */
+.sg-frame {
+  display: block;
+  justify-self: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-backdrop);
+}
+
+.sg-frame--phone {
+  width: min(100%, 360px);
+}
+
+.sg-lab-stage:has(> .sg-frame) {
+  align-content: stretch;
+  padding: var(--ds-space-3);
+}
+
+/* Popups open near the bottom of their stage. */
+.sg-popup-stage {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.sg-lab-stage:has(> .sg-popup-stage) {
+  align-content: stretch;
+}
+
+.sg-combo-field {
+  width: min(100%, 320px);
+}
+
+/* Loaders: the app start beside the block and inline ones. */
+.sg-loaders-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  align-items: center;
+  gap: var(--ds-space-5);
+}
+
+.sg-lab-boot {
+  min-height: 140px;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+}
+
+.sg-progress-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ds-space-6);
+}
+
+/* A stage that scrolls: report blocks that reveal themselves, and a table
+   wider than its card. */
+.sg-scroll-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: var(--ds-space-4);
+  height: 100%;
+  min-height: 0;
+}
+
+.sg-lab-stage:has(> .sg-scroll-demo) {
+  align-content: stretch;
+}
+
+.sg-scroll-box {
+  display: grid;
+  align-content: start;
+  gap: var(--ds-space-4);
+  height: 100%;
+  min-height: 0;
+  padding: var(--ds-space-2);
+  overflow-y: auto;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+
+.sg-wide-table,
+.sg-checks .ds-table-wrap {
+  margin-inline: 0;
+}
+
+.sg-wide-table {
+  align-self: start;
+  min-width: 0;
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+
+.sg-drawer-state {
+  margin: 0;
+  text-align: center;
+}
+
 /* ── Views page (views.html) ────────────────────── */
 
 /* The sheet's arrows and close button sit close together, like a toolbar. */
 .ds-sheet__head .sg-row {
   flex-wrap: nowrap;
   gap: var(--ds-space-1);
+}
+
+/* The lab ends with room to spare, so its last demo can sit in the middle
+   of the view like the others, not pinned to the bottom edge. */
+[data-sg-page="lab"] .sg-section:last-child {
+  padding-bottom: 40vh;
 }

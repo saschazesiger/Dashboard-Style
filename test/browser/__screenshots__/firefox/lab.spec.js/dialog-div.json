@@ -1,0 +1,7 @@
+[
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition opacity - 250 0 1 --ds-ease-in-out",
+  "transition outline-offset - 150 0 1 --ds-ease-out",
+  "transition scale - 350 0 1 --ds-ease-spatial",
+  "transition translate - 350 0 1 --ds-ease-spatial"
+]

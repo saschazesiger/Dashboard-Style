@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.5.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.6.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Dashboard-Style: every stylesheet in cascade order. scripts/build.mjs
  * inlines these imports into dist/ds.css; a bundler can import this file
@@ -49,11 +49,13 @@
  * Every stylesheet declares the layer order and puts its rules in one of
  * them (this file in ds.tokens), so unlayered project CSS always wins.
  *
- * Progressive: linear() carries the spring of --ds-ease-spatial and the
- * exact Material emphasized path behind @supports; older engines keep the
- * cubic-bezier fallbacks (--ds-ease-out, the emphasized approximation).
- * scripts/motion-curves.mjs writes both linear() values and the block
+ * scripts/motion-curves.mjs writes the linear() values and the block
  * between the "generated: progress-masks" markers; never edit them by hand.
+ *
+ * Progressive:
+ * - linear() (the spring of --ds-ease-spatial and the exact Material
+ *   emphasized path, behind @supports): without it the cubic-bezier
+ *   fallbacks apply (--ds-ease-out, the emphasized approximation).
  */
 
 /*
@@ -551,33 +553,36 @@
  * ds-sink-out, ds-scale-out and ds-slide-out (fade + move) are deprecated
  * aliases, removed in 2.0.
  *
- * Progressive: .ds-collapsible animates its height and fades its content
- * only where the browser supports interpolate-size and ::details-content,
- * with content-visibility as a transition-behavior: allow-discrete track,
- * and overflow-clip-margin lets focus rings at its content edge show
- * (elsewhere it simply toggles, and the content's own padding is the
- * ring room);
- * sibling-index() numbers the children of .ds-stagger where it exists
- * (elsewhere stagger() in js/motion.js does); .ds-presence animates
- * toggled elements with @starting-style (the entry state), allow-discrete
- * transitions of display and overlay (it stays rendered and in the top
- * layer while it leaves) and :popover-open (a popover's exit state, in a
- * rule of its own); without them it shows and hides at once.
- * View Transitions: the ::view-transition-* rules of the "View
- * transitions" section (fade-through, shared axis, container transform,
- * the group default that glides named indicators) apply only where the
- * engine runs them and .ds-theme sits on <html>; elsewhere
- * DS.motion.transition() fades the new view through with .ds-enter--swap.
- * scroll-driven animations (animation-timeline: view(), animation-range):
- * .ds-reveal--scroll ties its fade and rise to the scroll position; without
- * view() timelines it stays static, never hidden. ds-scroll-fade (the
- * hairlines and the top bar's tint) and ds-edge-fade (a table's edge
- * fades) run on the scroll timelines of shell.css, sheet.css and
- * table.css only; without them data-scrolled and the static fade stay.
- *
  * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
- * it moves with insertBefore) turns transitions off in that subtree, so a
- * keyed reorder never replays an @starting-style entrance.
+ * it moves with insertBefore, and by DS.indicator.createIndicator on its
+ * track) turns transitions off in that subtree, so a keyed reorder never
+ * replays an @starting-style entrance and the items under a new pill take
+ * their look at once.
+ *
+ * Progressive:
+ * - interpolate-size and ::details-content (.ds-collapsible animates its
+ *   height and fades its content, with content-visibility as an
+ *   allow-discrete track): without them it simply toggles.
+ * - overflow-clip-margin (focus rings at the edge of an open
+ *   .ds-collapsible show): without it the content's own padding is the
+ *   ring room.
+ * - sibling-index() (it numbers the children of .ds-stagger): without it
+ *   stagger() in js/motion.js numbers them.
+ * - @starting-style, allow-discrete transitions of display and overlay,
+ *   and :popover-open (.ds-presence animates toggled elements, stays
+ *   rendered and in the top layer while it leaves; :popover-open in a rule
+ *   of its own): without them it shows and hides at once.
+ * - View Transitions (the ::view-transition-* rules of the "View
+ *   transitions" section: fade-through, shared axis, container transform,
+ *   the group default that glides named indicators; only with .ds-theme on
+ *   <html>): without them DS.motion.transition() fades the new view
+ *   through with .ds-enter--swap.
+ * - scroll-driven animations (animation-timeline: view(), animation-range;
+ *   .ds-reveal--scroll ties its fade and rise to the scroll position, and
+ *   ds-scroll-fade and ds-edge-fade run on the scroll timelines of
+ *   shell.css, sheet.css and table.css): without them .ds-reveal--scroll
+ *   stays static, never hidden, and data-scrolled and the static table
+ *   fade stay.
  */
 
 /*
@@ -1651,7 +1656,9 @@
      moveBefore) is new to the style engine, so its @starting-style
      entrances (a status icon, an error message's room) would play again on
      every sort. It carries data-ds-moving for one style flush: no
-     transitions, so data changes glide and never replay an entrance. */
+     transitions, so data changes glide and never replay an entrance.
+     DS.indicator.createIndicator() sets it on the track for the flush that
+     gives its items their look under the new pill. */
   :where(.ds-theme) [data-ds-moving],
   :where(.ds-theme) [data-ds-moving] * {
     transition: none;
@@ -2036,8 +2043,9 @@
  * within 200ms never dims; taking it off is instant, so fresh values show
  * at once (docs/motion.md, "Data motion").
  *
- * Progressive: text-wrap (a paragraph of .ds-muted avoids a lone last
- * word); without it the text wraps as usual.
+ * Progressive:
+ * - text-wrap (a paragraph of .ds-muted avoids a lone last word): without
+ *   it the text wraps as usual.
  */
 
 @layer ds.components {
@@ -2429,7 +2437,9 @@
     stroke-dasharray: 1;
   }
 
-  .ds-btn--done:not([aria-busy="true"]) .ds-btn__face--done [pathLength] {
+  /* The check draws on its <svg>; the pathLength="1" path inherits the
+     stroke (Chromium can miss a class change above a [pathLength] rule). */
+  .ds-btn--done:not([aria-busy="true"]) .ds-btn__face--done > svg {
     animation: ds-draw var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro) backwards;
   }
 
@@ -3017,6 +3027,10 @@
  *     <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
  *     <span class="ds-skeleton__line ds-skeleton__line--heading"></span> ...
  *     <div class="ds-skeleton__card"> <span class="ds-skeleton__line ds-skeleton__line--title"></span> ...
+ *
+ *   .ds-skeleton__line  a body line; --heading (a page title), --lead (its
+ *                       lead), --title (a card title), --mid (a middle-length
+ *                       line), --short (a last line)
  *
  * The older markup with a .ds-spinner in .ds-boot or .ds-loading keeps
  * working; the spinner is the inline variant (a row in a list, a cell).
@@ -3788,26 +3802,16 @@
     }
   }
 
-  /* Facts above key figures follow the tiles' grid: the second fact starts
-     where the third tile does, or (two tiles per row) where the second one
-     does; phones stack them. */
+  /* Facts above key figures follow the tiles' grid: two equal columns with
+     the tiles' gap, so the second fact starts where the third tile does
+     (four tiles per row) or the second one does (two per row); phones
+     stack them. No per-fact rule: a structural or tag subject under a
+     :has() ancestor made Chromium restyle a large part of the page on
+     every DOM change inside a card (about 10ms per change on the
+     styleguide, every frame of a countUp). */
   .ds-card:has(.ds-tiles) > .ds-facts {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: var(--ds-space-3);
-  }
-
-  .ds-card:has(.ds-tiles) > .ds-facts > :nth-child(2) {
-    grid-column: 3 / -1;
-  }
-
-  @media (max-width: 1100px) {
-    .ds-card:has(.ds-tiles) > .ds-facts {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .ds-card:has(.ds-tiles) > .ds-facts > :nth-child(2) {
-      grid-column: auto;
-    }
   }
 
   @media (max-width: 600px) {
@@ -3909,8 +3913,9 @@
  *                                  enter through flip
  *   the user deleted the last item DS.motion.enter(disc, 'pop') on the disc
  *
- * Progressive: text-wrap (the text avoids a lone last word); without it
- * the line wraps as usual.
+ * Progressive:
+ * - text-wrap (the text avoids a lone last word): without it the line
+ *   wraps as usual.
  */
 
 @layer ds.components {
@@ -3979,11 +3984,12 @@
  * 'icon' }). What glides and what changes at once: docs/motion.md, "Data
  * motion".
  *
- * Progressive: @starting-style (the incoming icon's fade and scale; it
- * also plays on the first render of a chip, never on a keyed move: where
- * moveBefore is missing, morphHtml marks a moved row data-ds-moving for
- * one style flush, motion.css); without it the icon swaps at once while
- * the colours still glide.
+ * Progressive:
+ * - @starting-style (the incoming icon's fade and scale; it also plays on
+ *   the first render of a chip, never on a keyed move: where moveBefore is
+ *   missing, morphHtml marks a moved row data-ds-moving for one style
+ *   flush, motion.css): without it the icon swaps at once while the
+ *   colours still glide.
  */
 
 @layer ds.components {
@@ -4356,9 +4362,10 @@
  * A removed row goes at once while the rows below glide up.
  *
  * :has() and container queries are baseline.
- * Progressive: scroll-driven edge fades (animation-timeline, the
- * registered --ds-table-fade-* through @property) fall back to the static
- * fade at the right edge.
+ * Progressive:
+ * - scroll-driven edge fades (animation-timeline, the registered
+ *   --ds-table-fade-* through @property): without them the static fade at
+ *   the right edge stays.
  */
 
 /*
@@ -4868,11 +4875,13 @@
  * error ink on an invalid field; an error message fades in when it
  * appears.
  *
- * Progressive: text-wrap (hints and radio card descriptions avoid a lone
- * last word); without it they wrap as usual. interpolate-size and
- * @starting-style open the room of an error message that appears while
- * focus is in its form or field from height 0 on --ds-ease-out (never on
- * load); without them the message only fades in.
+ * Progressive:
+ * - text-wrap (hints and radio card descriptions avoid a lone last word):
+ *   without it they wrap as usual.
+ * - interpolate-size and @starting-style (the room of an error message
+ *   that appears while focus is in its form or field opens from height 0
+ *   on --ds-ease-out, never on load): without them the message only fades
+ *   in.
  */
 
 @layer ds.components {
@@ -6057,7 +6066,12 @@
   }
 
   /* The check lies over the slot, never a flex item, and fades: in at once
-     (--ds-dur-micro, before the stroke starts), out with the stroke. */
+     (--ds-dur-micro, before the stroke starts), out with the stroke. The
+     drawn stroke (pathLength="1") runs on the <svg>, and its path inherits
+     it: from the short arm, after the check's fade-in; out faster and
+     accelerating. Set on the path itself, Chromium missed the change of
+     :checked (its style invalidation does not reach a [pathLength]
+     selector on the camelCase SVG attribute), so the check drew late. */
   .ds-chip__check {
     position: absolute;
     top: calc(50% - var(--ds-chip-check-size, 18px) / 2);
@@ -6065,15 +6079,14 @@
     width: var(--ds-chip-check-size, 18px);
     height: var(--ds-chip-check-size, 18px);
     opacity: 0;
-    transition: opacity var(--ds-dur-fast) var(--ds-ease-in);
+    stroke-dashoffset: 1;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in),
+      stroke-dashoffset var(--ds-dur-fast) var(--ds-ease-in);
   }
 
-  /* The drawn stroke (pathLength="1"): from the short arm, after the
-     check's fade-in; out faster and accelerating. */
   .ds-chip__check [pathLength] {
     stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    transition: stroke-dashoffset var(--ds-dur-fast) var(--ds-ease-in);
   }
 
   .ds-chip__input:checked + .ds-chip__body {
@@ -6084,12 +6097,10 @@
 
   .ds-chip__input:checked + .ds-chip__body .ds-chip__check {
     opacity: 1;
-    transition: opacity var(--ds-dur-micro) var(--ds-ease-in-out);
-  }
-
-  .ds-chip__input:checked + .ds-chip__body .ds-chip__check [pathLength] {
     stroke-dashoffset: 0;
-    transition: stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro);
+    transition:
+      opacity var(--ds-dur-micro) var(--ds-ease-in-out),
+      stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro);
   }
 
   .ds-chip__input:focus-visible + .ds-chip__body {
@@ -6506,14 +6517,15 @@
  * chosen option is SelectedItem / SelectedItemText, the active one has a
  * Highlight outline.
  *
- * Progressive: scrollbar-color and scrollbar-width (a thin, quiet
- * scrollbar in the list); without them the platform scrollbar shows.
- * popover and CSS anchor positioning (anchor-name on the field,
- * position-anchor, position-area, position-try-fallbacks and
- * anchor-size() on the list), behind @supports: DS.overlay opens the list
- * as popover="manual" in the top layer with data-anchored, as wide as the
- * field, below it or flipped above, so a scrolling dialog never clips it;
- * elsewhere the absolute list with the script's upward flip.
+ * Progressive:
+ * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar in the
+ *   list): without them the platform scrollbar shows.
+ * - popover and CSS anchor positioning (anchor-name on the field,
+ *   position-anchor, position-area, position-try-fallbacks and anchor-size()
+ *   on the list, behind @supports; DS.overlay opens the list as
+ *   popover="manual" in the top layer with data-anchored, as wide as the
+ *   field, below it or flipped above, so a scrolling dialog never clips
+ *   it): without them the list is absolute, and the script flips it up.
  */
 
 @layer ds.components {
@@ -6846,13 +6858,15 @@
  * Forced colours: the menu keeps an edge (its transparent outline), the
  * focused item its ring.
  *
- * Progressive: popover and CSS anchor positioning (anchor-name on the
- * trigger, position-anchor, position-area and position-try-fallbacks on
- * the menu), behind @supports: DS.overlay opens the menu as
- * popover="manual" in the top layer with data-anchored, below the trigger,
- * flipped above or towards the start edge when there is no room; elsewhere
- * the script writes --ds-menu-x/-y and sets data-placement="top" above.
- * scrollbar-color and scrollbar-width (a thin scrollbar in a long menu).
+ * Progressive:
+ * - popover and CSS anchor positioning (anchor-name on the trigger,
+ *   position-anchor, position-area and position-try-fallbacks on the menu,
+ *   behind @supports; DS.overlay opens the menu as popover="manual" in the
+ *   top layer with data-anchored, below the trigger, flipped above or
+ *   towards the start edge when there is no room): without them the
+ *   script writes --ds-menu-x/-y and sets data-placement="top" above.
+ * - scrollbar-color and scrollbar-width (a thin scrollbar in a long menu):
+ *   without them the platform scrollbar shows.
  */
 
 @layer ds.components {
@@ -7425,22 +7439,23 @@
  *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px).
  *
- * Progressive: @starting-style, transition-behavior: allow-discrete and
- * the overlay property. A native sheet driven by hand (showModal() and
- * close() of the page, without DS.overlay) then plays the same
- * transitions, also on close(); Chromium keeps a sheet in the top layer
- * through every exit, DS.overlay's included. Without them it enters with
- * the keyframes and closes at once.
- * View Transitions: while DS.motion.transition() runs (data-ds-vt on
- * <html>) the body of an open modal sheet is named ds-sheet-body, so a
- * record swap moves only the body; without them the body enters with
- * .ds-enter--swap. A sheet shown inline (no data-state, no [open], no
- * aria-modal) is never named.
- * scroll-driven animations (animation-timeline, animation-range,
- * scroll-timeline, timeline-scope): the head's hairline fades in over the
- * first --ds-space-2 of the body's scroll, on the named timeline
- * --ds-sheet-scroll (scoped on the panel); elsewhere data-scrolled shows it
- * over --ds-dur-fast.
+ * Progressive:
+ * - @starting-style, allow-discrete transitions and the overlay property
+ *   (a native sheet driven by hand, showModal() and close() of the page
+ *   without DS.overlay, plays the same transitions, also on close();
+ *   Chromium keeps a sheet in the top layer through every exit, DS.overlay's
+ *   included): without them it enters with the keyframes and closes at
+ *   once.
+ * - View Transitions (while DS.motion.transition() runs, data-ds-vt on
+ *   <html>, the body of an open modal sheet is named ds-sheet-body, so a
+ *   record swap moves only the body; a sheet shown inline, without
+ *   data-state, [open] or aria-modal, is never named): without them the
+ *   body enters with .ds-enter--swap.
+ * - scroll-driven animations (animation-timeline, animation-range,
+ *   scroll-timeline, timeline-scope; the head's hairline fades in over the
+ *   first --ds-space-2 of the body's scroll, on the named timeline
+ *   --ds-sheet-scroll scoped on the panel): without them data-scrolled
+ *   shows it over --ds-dur-fast.
  */
 
 @layer ds.components {
@@ -7878,12 +7893,13 @@
  * shadow and scrim are gone), --ds-dialog-shadow, --ds-dialog-scrim
  * (--ds-scrim).
  *
- * Progressive: @starting-style, transition-behavior: allow-discrete and
- * the overlay property. A native dialog driven by hand (showModal() and
- * close() of the page, without DS.overlay) then plays the same
- * transitions, also on close(); Chromium keeps a dialog in the top layer
- * through every exit, DS.overlay's included. Without them it enters with
- * the keyframes and closes at once.
+ * Progressive:
+ * - @starting-style, allow-discrete transitions and the overlay property
+ *   (a native dialog driven by hand, showModal() and close() of the page
+ *   without DS.overlay, plays the same transitions, also on close();
+ *   Chromium keeps a dialog in the top layer through every exit, DS.overlay's
+ *   included): without them it enters with the keyframes and closes at
+ *   once.
  */
 
 @layer ds.components {
@@ -8168,6 +8184,9 @@
  *     <span class="ds-toast__text">Saved.</span>
  *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">(close)</button>
  *
+ *   .ds-toast--shown  runtime: toast() marks a message whose entrance has
+ *                     played, so moving its region never replays it
+ *
  * DS.overlay.toast() (js/overlay.js) stacks at most three with FLIP, evicts
  * the oldest message that would close by itself or queues one behind three
  * that stay, pauses the timers on hover, focus and a hidden tab, announces
@@ -8188,12 +8207,13 @@
  * itself), and --ds-toast-reserve (room kept for an open message, with
  * data-toast-reserve on .ds-view or .ds-sheet__body).
  *
- * Progressive: View Transitions. While DS.motion.transition() runs
- * (data-ds-vt on <html>) a region with messages is named ds-toasts, so
- * motion.css keeps it live and still above the page's groups (in the root
- * snapshot the panel's opaque image would cover it until the end); one
- * region with messages per page (transition() lifts the name of any
- * further one). Without them nothing is named.
+ * Progressive:
+ * - View Transitions (while DS.motion.transition() runs, data-ds-vt on
+ *   <html>, a region with messages is named ds-toasts, so motion.css keeps
+ *   it live and still above the page's groups; in the root snapshot the
+ *   panel's opaque image would cover it until the end. One region with
+ *   messages per page: transition() lifts the name of any further one):
+ *   without them nothing is named.
  */
 
 @layer ds.components {
@@ -8364,12 +8384,13 @@
  * hidden, leave with DS.motion.leave(tip, '', { then: 'hide' })) the
  * keyframe entrance and .ds-leave still play.
  *
- * Progressive: popover (popover="manual" puts the tooltip into the top
- * layer, over a modal dialog) and CSS anchor positioning (anchor-name on
- * the trigger, position-anchor, position-area, position-try-fallbacks
- * on the tooltip), behind @supports (position-area: block-end); data-
- * anchored marks that path. Elsewhere the script writes --ds-tooltip-x/-y
- * and flips the tooltip above the trigger (data-placement="top").
+ * Progressive:
+ * - popover and CSS anchor positioning (popover="manual" puts the tooltip
+ *   into the top layer, over a modal dialog; anchor-name on the trigger,
+ *   position-anchor, position-area and position-try-fallbacks on the
+ *   tooltip, behind @supports (position-area: block-end); data-anchored
+ *   marks that path): without them the script writes --ds-tooltip-x/-y and
+ *   flips the tooltip above the trigger (data-placement="top").
  */
 
 @layer ds.components {
@@ -8546,25 +8567,27 @@
  * --ds-surface-high, transparent keeps a flat bar),
  * --ds-view-scrollbar-gutter (stable; stable both-edges, or auto).
  *
- * Progressive: scrollbar-color and scrollbar-width (thin, quiet scrollbars
- * in the drawer and the panel); without them the platform scrollbar shows.
- * scrollbar-gutter (the view keeps room for a classic scrollbar, so content
- * never shifts when it starts to scroll); ignored before Safari 18.2,
- * overlay scrollbars need no room.
- * View Transitions: while DS.motion.transition() runs (data-ds-vt on
- * <html>) the view, the panel and the docked drawer carry
- * view-transition-names (ds-view, ds-panel, ds-drawer) and the top bar
- * none, so it stays still; without View Transitions the new view enters
- * with .ds-enter--swap, and a view without the drawer makes the grid jump.
- * scroll-driven animations (animation-timeline, animation-range,
- * scroll-timeline, timeline-scope): the panel hairline fades in over the
- * first --ds-space-2 of scroll on scroll(nearest block), the top bar tint
- * on the view's named timeline --ds-view-scroll (the frame widens its
- * scope to the bar), both with ds-scroll-fade (a view without overflow
- * shows neither); elsewhere data-scrolled shows both over --ds-dur-fast.
- *
  * Print: only the page content, without the frame and its scroller (the
  * page's own padding and width come off at the end of page.css).
+ *
+ * Progressive:
+ * - scrollbar-color and scrollbar-width (thin, quiet scrollbars in the
+ *   drawer and the panel): without them the platform scrollbar shows.
+ * - scrollbar-gutter (the view keeps room for a classic scrollbar, so
+ *   content never shifts when it starts to scroll): ignored before Safari
+ *   18.2, where overlay scrollbars need no room.
+ * - View Transitions (while DS.motion.transition() runs, data-ds-vt on
+ *   <html>, the view, the panel and the docked drawer carry
+ *   view-transition-names ds-view, ds-panel and ds-drawer, the top bar
+ *   none, so it stays still): without them the new view enters with
+ *   .ds-enter--swap, and a view without the drawer makes the grid jump.
+ * - scroll-driven animations (animation-timeline, animation-range,
+ *   scroll-timeline, timeline-scope; the panel hairline fades in over the
+ *   first --ds-space-2 of scroll on scroll(nearest block), the top bar
+ *   tint on the view's named timeline --ds-view-scroll, whose scope the
+ *   frame widens to the bar, both with ds-scroll-fade; a view without
+ *   overflow shows neither): without them data-scrolled shows both over
+ *   --ds-dur-fast.
  */
 
 @layer ds.components {
@@ -9670,9 +9693,10 @@
  * its ::before. The row is isolated while it ripples, so the ripple
  * paints over the row's colour and under the cells' content and layers.
  *
- * Progressive: overflow-clip-margin lets a chip's ripple cover the chip's
- * 1px border like its state layer does; without it the ripple stops at
- * the padding box.
+ * Progressive:
+ * - overflow-clip-margin (a chip's ripple covers the chip's 1px border
+ *   like its state layer does): without it the ripple stops at the
+ *   padding box.
  */
 
 @layer ds.components {
@@ -9862,8 +9886,9 @@
  * page's centring (100cqw of the "ds-content" container), to reach the
  * panel edges.
  *
- * Progressive: text-wrap (the lead avoids a lone last word); without it
- * the line wraps as usual.
+ * Progressive:
+ * - text-wrap (the lead avoids a lone last word): without it the line
+ *   wraps as usual.
  */
 
 @layer ds.components {

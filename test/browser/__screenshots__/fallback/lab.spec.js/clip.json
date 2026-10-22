@@ -1,0 +1,4 @@
+[
+  "animation ds-clip-in - 250 0 1 --ds-ease-out",
+  "animation ds-fade-in - 250 0 1 --ds-ease-in-out"
+]

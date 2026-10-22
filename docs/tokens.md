@@ -15,60 +15,14 @@ enforce it), so a theme reaches every value.
 
 ### Motion
 
-| Token | Value | Use |
-|---|---|---|
-| `--ds-dur-micro` | 50ms | press-in of layers and radius, tiny ticks |
-| `--ds-dur-instant` | 100ms | pressed state, popup exits |
-| `--ds-dur-fast` | 150ms | colour, small exits (the default `.ds-leave`), focus snap |
-| `--ds-dur-base` | 200ms | toggles, exits of panels and dialogs |
-| `--ds-dur-medium` | 250ms | content entrances, small spatial movement (handle, chip, check), menu entrances |
-| `--ds-dur-slow` | 350ms | dialogs, FLIP, the indicator cap |
-| `--ds-dur-long` | 450ms | sheets, modal drawer, container transform; never routine UI |
-| `--ds-dur-glide` | 600ms | values that travel: progress, `countUp()` |
-| `--ds-ease-in-out` | `cubic-bezier(.2, 0, 0, 1)` | M3 standard: effects (opacity, colour), on-screen changes |
-| `--ds-ease-out` | `cubic-bezier(.05, .7, .1, 1)` | M3 emphasized decelerate: the spring's fallback, sizes that push layout (never overshoot) |
-| `--ds-ease-in` | `cubic-bezier(.3, 0, 1, 1)` | M3 standard accelerate: small exits, leaving fades |
-| `--ds-ease-exit` | `cubic-bezier(.3, 0, .8, .15)` | M3 emphasized accelerate: large surfaces leaving (movement only) |
-| `--ds-ease-emphasized` | `cubic-bezier(.2, 0, 0, 1)`; the exact M3 path as `linear()` where supported | movement that starts and ends on screen |
-| `--ds-ease-spatial` | a spring (damping ratio 0.75, peak about 1.028, settles) as `linear()` where supported; `var(--ds-ease-out)` elsewhere | every spatial movement that floats: translate, scale, clip-path |
-| `--ds-ease-value` | `var(--ds-ease-in-out)` | progress bars and `countUp()`, so figures and bars land together |
-| `--ds-ease` | `var(--ds-ease-emphasized)` | **deprecated** (removed in 2.0): use `--ds-ease-emphasized` |
-| `--ds-distance-sm`, `--ds-distance-md`, `--ds-distance-lg`, `--ds-distance-xl` | 4, 8, 12, 24px | travel of entering things (swap, default, sheet exit, sheet entry) |
-| `--ds-distance-sheet` | 100% | side sheet and modal drawer (full width; the side sheet on phones: full height, from the bottom) |
-| `--ds-scale-enter` | .98 | start scale of content and dialogs |
-| `--ds-scale-popup` | .95 | start scale of menus and the combobox list |
-| `--ds-scale-tooltip` | .9 | start scale of tooltips |
-| `--ds-scale-small` | .6 | start scale of small markers (badges, `ds-pop-in`) |
-| `--ds-stagger` | 30ms | step between staggered items (at most six) |
-| `--ds-delay-loader` | 200ms | loading indicators wait this long (`LOADER_DELAY_MS`) |
-| `--ds-delay-boot` | 400ms | the app start screen waits this long |
-| `--ds-hold-loader` | 450ms | a loader that showed stays at least this long (`LOADER_MIN_VISIBLE_MS`, `settleLoader()`) |
-| `--ds-hold-success` | 600ms | how long a button shows its success face (`.ds-btn--done`, `DS.motion.busy()`) |
-| `--ds-delay-tooltip` | 500ms | a tooltip shows after the pointer rested this long on its trigger (`TOOLTIP_DELAY_MS`, `DS.overlay.tooltips()`) |
-| `--ds-delay-tooltip-skip` | 300ms | within this of the last hide, the next tooltip shows at once (warm-up along a toolbar; `TOOLTIP_SKIP_MS`) |
-| `--ds-delay-tooltip-hide` | 100ms | the grace before a tooltip hides, so the pointer can cross onto it (WCAG 1.4.13; `TOOLTIP_HIDE_MS`) |
-| `--ds-loop-spin`, `--ds-loop-spin-fast` | 1568ms, .8s | one turn of the spinner (the M3 rotation period) / of the spinner in a status chip |
-| `--ds-loop-arc` | 5332ms | one loop of the spinner's arc (`ds-spinner-arc`): four 1333ms cycles of growing and shrinking, so the start comes back to where it began (4 x 270deg = 3 turns) |
-| `--ds-loop-indeterminate` | 1800ms | one cycle of two-segment indeterminate progress (`ds-progress-head`, `ds-progress-tail`) |
-| `--ds-loop-loader` | 4550ms | one round of the shape loader: 7 shapes x 650ms (`ds-loader-morph`, `ds-loader-turn`) |
-| `--ds-loop-skeleton` | 2s | one pass of the skeleton wave (`ds-skeleton-wave`: the sweep takes the first 60%, then it rests) |
-| `--ds-loop-wave` | 1.2s | one wavelength of the travelling wave of determinate progress (`ds-progress-wave`) |
-| `--ds-loop-pulse` | 2s | **deprecated** (removed in 2.0) with `ds-pulse`: skeletons run the wave |
-| `--ds-time-scale` | 1 (registered with `@property`, never declared) | slow motion: multiplies every duration, delay and loop above; set only by the styleguide and the tests, on the `.ds-theme` element or above |
+The motion scales (the duration ladder `--ds-dur-micro` to `--ds-dur-glide`, the curves `--ds-ease-*` with the
+spring `--ds-ease-spatial`, distances, scales, the stagger step, the delays and holds of loaders, success faces and
+tooltips, the loops `--ds-loop-*` and `--ds-time-scale`) are documented with the rules that use them, in
+[motion.md](motion.md#tokens): the ladder with each step's use, the curve table, the spring's contract and
+`travelDuration()`. They are layer 1 like every scale here: the same in every theme, and themes never set them.
 
-Every duration, delay, loop and the stagger step is written as `calc(<value> * var(--ds-time-scale, 1))`, for example
-`calc(250ms * var(--ds-time-scale, 1))`: read them through `DS.motion` (or let the engine resolve the `calc()`), not with `parseInt`. The spring of
-`--ds-ease-spatial` is normalised to its settle time, so one curve serves every size: small controls, menus and popups
-take `--ds-dur-medium`, dialogs, FLIP and the indicator `--ds-dur-slow`, sheets, the drawer and container transforms
-`--ds-dur-long`. The overshoot (at most 5%) is the contract. `scripts/motion-curves.mjs` writes both `linear()` values
-(`node scripts/motion-curves.mjs`; `--check` runs in `npm run check`). Themes never set motion tokens: motion is one
-scheme for every product, and `DS.motion` reads the computed tokens.
-
-Motion is the same on every device (no media-query switch), and loops always run at their token speed. The loops of
-the loading indicators run `linear`: `scripts/motion-curves.mjs` bakes their curves into the keyframe stops (the
-loader shapes, the arc, the indeterminate segments and the skeleton wave), so they need no curve token.
-The per-element motion hooks (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`, `--ds-draw-length`,
-`--ds-i`) are registered with `inherits: false` and take these tokens only. Details: [motion.md](motion.md).
+Every duration, delay, loop and the stagger step is written as `calc(<value> * var(--ds-time-scale, 1))`: read them
+through `DS.motion` (or let the engine resolve the `calc()`), not with `parseInt`.
 
 ### State layers
 

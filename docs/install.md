@@ -140,7 +140,8 @@ morph, the drawer's pill gliding): load `css/optional/view-transitions.css` afte
 `.ds-theme` on `<html>`, from a `<link>` in the markup of `<head>` (a stylesheet that a script inserts may apply only
 after Chromium revealed the new page, which then skips the transition). It opts every same-origin navigation into a
 cross-document View Transition (`@view-transition`) and names the view, the panel and the docked drawer for good,
-except while the modal drawer (at 900px and below, how phones navigate) or a dialog or side sheet is open (also one shown by hand): then the
+except while the modal drawer (at 900px and below, how phones navigate) or a dialog or side sheet is open (also one shown by hand;
+a `.ds-dialog--contained` inside the panel does not count): then the
 page being left stays under it and its scrim, and the new page's frame fades in over the crossfade. The motion comes
 from the rules of `ds.css`. It affects the whole document, so an embedded widget never loads it.
 Browsers without cross-document View Transitions load pages as before.
@@ -176,6 +177,13 @@ script before the marker parses markup into the page with `innerHTML` or `insert
 same classic script that builds the navigation (nothing renders inside one task), or keep the links in the markup, and
 build markup through a `<template>` (`DS.dom.morphHtml` does) or with `DS.icons.iconElement()` instead of parsing it
 into the page.
+
+Keep what the first render waits for short: the frame, the navigation and its named indicator, and what the first
+view shows. An engine skips the transition when the new page is revealed after its timeout (a busy machine reaches it
+sooner than you think), and until then the old page stays frozen. Build the rest after the reveal, once the
+transition has finished (`pagereveal` gives `event.viewTransition`; its main-thread animations, the indicator's size
+among them, stall behind long work); the styleguide's Motion Lab does this with its demos (`startLab` in
+`styleguide/styleguide.js`).
 
 A page with or without the drawer morphs the panel on page loads too, over `--ds-dur-slow` (within a page,
 `DS.motion.transition()` sees the width change and takes `--ds-dur-long`; a page load cannot tell).

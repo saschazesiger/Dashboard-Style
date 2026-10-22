@@ -315,7 +315,9 @@
     stroke-dasharray: 1;
   }
 
-  .ds-btn--done:not([aria-busy="true"]) .ds-btn__face--done [pathLength] {
+  /* The check draws on its <svg>; the pathLength="1" path inherits the
+     stroke (Chromium can miss a class change above a [pathLength] rule). */
+  .ds-btn--done:not([aria-busy="true"]) .ds-btn__face--done > svg {
     animation: ds-draw var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro) backwards;
   }
 

@@ -1,0 +1,11 @@
+[
+  "script ds-chip-slot ::after 250 0 1 --ds-ease-out",
+  "transition background-color - 150 0 1 --ds-ease-in-out",
+  "transition border-bottom-color - 150 0 1 --ds-ease-in-out",
+  "transition border-left-color - 150 0 1 --ds-ease-in-out",
+  "transition border-right-color - 150 0 1 --ds-ease-in-out",
+  "transition border-top-color - 150 0 1 --ds-ease-in-out",
+  "transition color - 150 0 1 --ds-ease-in-out",
+  "transition opacity - 50 0 1 --ds-ease-in-out",
+  "transition stroke-dashoffset - 250 50 1 --ds-ease-out"
+]

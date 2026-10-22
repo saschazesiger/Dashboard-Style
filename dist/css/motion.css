@@ -26,33 +26,36 @@
  * ds-sink-out, ds-scale-out and ds-slide-out (fade + move) are deprecated
  * aliases, removed in 2.0.
  *
- * Progressive: .ds-collapsible animates its height and fades its content
- * only where the browser supports interpolate-size and ::details-content,
- * with content-visibility as a transition-behavior: allow-discrete track,
- * and overflow-clip-margin lets focus rings at its content edge show
- * (elsewhere it simply toggles, and the content's own padding is the
- * ring room);
- * sibling-index() numbers the children of .ds-stagger where it exists
- * (elsewhere stagger() in js/motion.js does); .ds-presence animates
- * toggled elements with @starting-style (the entry state), allow-discrete
- * transitions of display and overlay (it stays rendered and in the top
- * layer while it leaves) and :popover-open (a popover's exit state, in a
- * rule of its own); without them it shows and hides at once.
- * View Transitions: the ::view-transition-* rules of the "View
- * transitions" section (fade-through, shared axis, container transform,
- * the group default that glides named indicators) apply only where the
- * engine runs them and .ds-theme sits on <html>; elsewhere
- * DS.motion.transition() fades the new view through with .ds-enter--swap.
- * scroll-driven animations (animation-timeline: view(), animation-range):
- * .ds-reveal--scroll ties its fade and rise to the scroll position; without
- * view() timelines it stays static, never hidden. ds-scroll-fade (the
- * hairlines and the top bar's tint) and ds-edge-fade (a table's edge
- * fades) run on the scroll timelines of shell.css, sheet.css and
- * table.css only; without them data-scrolled and the static fade stay.
- *
  * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
- * it moves with insertBefore) turns transitions off in that subtree, so a
- * keyed reorder never replays an @starting-style entrance.
+ * it moves with insertBefore, and by DS.indicator.createIndicator on its
+ * track) turns transitions off in that subtree, so a keyed reorder never
+ * replays an @starting-style entrance and the items under a new pill take
+ * their look at once.
+ *
+ * Progressive:
+ * - interpolate-size and ::details-content (.ds-collapsible animates its
+ *   height and fades its content, with content-visibility as an
+ *   allow-discrete track): without them it simply toggles.
+ * - overflow-clip-margin (focus rings at the edge of an open
+ *   .ds-collapsible show): without it the content's own padding is the
+ *   ring room.
+ * - sibling-index() (it numbers the children of .ds-stagger): without it
+ *   stagger() in js/motion.js numbers them.
+ * - @starting-style, allow-discrete transitions of display and overlay,
+ *   and :popover-open (.ds-presence animates toggled elements, stays
+ *   rendered and in the top layer while it leaves; :popover-open in a rule
+ *   of its own): without them it shows and hides at once.
+ * - View Transitions (the ::view-transition-* rules of the "View
+ *   transitions" section: fade-through, shared axis, container transform,
+ *   the group default that glides named indicators; only with .ds-theme on
+ *   <html>): without them DS.motion.transition() fades the new view
+ *   through with .ds-enter--swap.
+ * - scroll-driven animations (animation-timeline: view(), animation-range;
+ *   .ds-reveal--scroll ties its fade and rise to the scroll position, and
+ *   ds-scroll-fade and ds-edge-fade run on the scroll timelines of
+ *   shell.css, sheet.css and table.css): without them .ds-reveal--scroll
+ *   stays static, never hidden, and data-scrolled and the static table
+ *   fade stay.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -1128,7 +1131,9 @@
      moveBefore) is new to the style engine, so its @starting-style
      entrances (a status icon, an error message's room) would play again on
      every sort. It carries data-ds-moving for one style flush: no
-     transitions, so data changes glide and never replay an entrance. */
+     transitions, so data changes glide and never replay an entrance.
+     DS.indicator.createIndicator() sets it on the track for the flush that
+     gives its items their look under the new pill. */
   :where(.ds-theme) [data-ds-moving],
   :where(.ds-theme) [data-ds-moving] * {
     transition: none;

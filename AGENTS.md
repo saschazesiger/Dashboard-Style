@@ -26,7 +26,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `npm ci` | once, for the browser tests only (installs the pinned `@playwright/test`, the only devDependency); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
 | `npm run test:browser` | browser tests in Chromium, Firefox and WebKit (`test/browser/`), plus the `fallback` project (Chromium as an engine on the browser floor: progressive CSS stripped, `linear()` rejected by `el.animate()`, no View Transitions, popover or `moveBefore`) for the specs that import `base-test.js`; run it before every push. Outside the Playwright container (other fonts and rasteriser) run `DS_SHOTS=local npm run test:browser`: screenshots then compare against the gitignored `__screenshots-local__/`, generated from the parent commit (`test/browser/README.md`, "CI"). `DS_TEST_PORT` picks another port for a second run or a worktree |
 | `npm run test:browser:update` | rewrite screenshots and JSON timelines, then review the diff. The committed `__screenshots__/` set is only ever rewritten from the CI container (Actions → check → Run workflow → "update screenshots"); elsewhere update with `DS_SHOTS=local`, see `test/browser/README.md` |
-| open `styleguide/index.html` | every component, token, motion demo and icon, works from disk; "Load theme file ..." tries a theme; `?speed=0.1` slows its motion tenfold |
+| open `styleguide/index.html` and `styleguide/motion.html` | the styleguide (every component, token and icon) and the Motion Lab (every curve, duration and choreography, replayable, with rapid toggles and reversals); both work from disk. "Load theme file ..." tries a theme; the speed select in the top bar (1×, 0.5×, 0.25×, 0.1×) or `?speed=0.1` slows every duration and delay tenfold |
 
 ## Files
 
@@ -41,12 +41,12 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `ripple`, `icons`, `overlay`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
-| `styleguide/` | living styleguide on top of `dist/` (`styleguide.js` holds the demos and the component count tile) |
+| `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`) |
 | `docs/` | `install`, `tokens`, `theming`, `components`, `motion`, `icons`, `rules` |
 | `scripts/` | `build.mjs` (deterministic, `--check`), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects) |
 | `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
 | `test/` | `css`, `tokens`, `motion`, `js`, `build`, `repo`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
-| `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`, `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, known bugs as `test.fail` markers) and the committed `__screenshots__/`; `README.md` explains them |
+| `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`, `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, `lab` for the Motion Lab: coverage, every demo, interruption, the overlay table; `review` for the whole-page sweeps; `perf` for the paint budget and style recalc times, alone) and the committed `__screenshots__/`; `README.md` explains them |
 | `plans/` | working plans (Motion 2); kept outside `docs/` so the docs tests do not count them |
 | `.github/workflows/check.yml` | CI on every push, pull request and by hand: `check` (Node 22 and 24: `npm run check` and the vendor round trip), then `browser` (Playwright in `mcr.microsoft.com/playwright:v<pinned>-noble`, one job per engine); Run workflow with "update screenshots" uploads a new screenshot set |
 
@@ -156,17 +156,26 @@ Work in `src/`, never in `dist/`. Every change follows the same path:
   at its place in the cascade; a section in `docs/components.md` (markup, modifiers, behaviour the page must add)
   plus a row in its "Which component for which need" table; new hooks in the table of `docs/theming.md` and
   commented in `themes/example.css`; a demo in `styleguide/styleguide.js` (raise the `Components` tile, a test
-  counts the files); forced-colors behaviour and browser motion tests checked. Every `.ds-*` class must appear in
+  counts the files); its motion as a row of the choreography in `docs/motion.md` and a Motion Lab demo (below);
+  forced-colors behaviour and browser motion tests checked. Every `.ds-*` class must appear in
   `docs/components.md` (tested).
+- **Motion** (a keyframe, a utility, a JS export, a component's choreography): a Motion Lab demo, an entry in
+  `styleguide/lab.js` whose `shows` lists every keyframe, class, export and token it plays, with Replay and, when
+  the motion is reversible, a `toggle` (Rapid toggle, Reverse at 50%). The coverage test of
+  `test/browser/lab.spec.js` fails for a keyframe, motion class or function of `DS.motion`, `DS.dom`,
+  `DS.indicator`, `DS.ripple` or `DS.overlay` that no demo shows (or that is not on its `LAB_EXEMPT` list with a
+  reason). An overlay's timing also goes into the Overlays table of `docs/motion.md`, which the same spec compares
+  with what every engine plays.
 - **Token**: a role goes after the `── 2. Palette` marker in `src/tokens.css`, into `docs/tokens.md` and
   `themes/example.css` (tested); a new text colour pair gets a contrast check in `test/tokens.test.js`. A scale goes
   before the marker; a duration-like scale is written as `calc(<n>ms * var(--ds-time-scale, 1))` (tested). Every
   `--ds-*` name must appear in `docs/` (tested).
 - **Icon**: a named export in `src/js/icons.js` (24px grid, flat shapes, no `stroke`, `fill`, `class` or colour of
   their own; tested) and its name in the glyph table of `docs/icons.md`. The styleguide lists glyphs by itself.
-- **Keyframe**: only in `src/motion.css` with the `ds-` prefix, a row in the keyframe table of `docs/motion.md`;
-  use it through tokens so `--ds-time-scale` applies.
-- **JS export**: in `src/js/*.js`, documented in `docs/motion.md` or `docs/icons.md` (tested). A new module also
+- **Keyframe**: only in `src/motion.css` with the `ds-` prefix, a row in the keyframe table of `docs/motion.md`
+  (tested); use it through tokens so `--ds-time-scale` applies; a Motion Lab demo shows it (tested).
+- **JS export**: in `src/js/*.js`, documented in `docs/motion.md` or `docs/icons.md` (tested); a function of a motion
+  module gets a Motion Lab demo (tested). A new module also
   goes into `MODULES` in `scripts/build.mjs` (after every module it imports from), the `dist/` table in
   `docs/install.md`, the module imports of `test/js.test.js` and the module list of `test/browser/fixtures/module.html`
   (with its smoke test).
@@ -220,8 +229,10 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
 - Reach for an existing component first. The docs are not part of the vendored copy: the table "Which component
   for which need" and the markup of every component are in
   https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md; for live examples clone the
-  repository and open `styleguide/index.html` (works from disk). Copy the documented markup and attributes
-  exactly; behaviour (wiring the triggers, filtering, choosing) is the project's own script, and opening and
+  repository and open `styleguide/index.html` (every component) and `styleguide/motion.html` (the Motion Lab: every
+  choreography, replayable and slowed down with its speed select; both work from disk). What each component plays
+  is the choreography in https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/motion.md. Copy the
+  documented markup and attributes exactly; behaviour (wiring the triggers, filtering, choosing) is the project's own script, and opening and
   closing go through `DS.overlay`.
 - Theme only through tokens in `<theme file>`, on `.ds-theme`, loaded after `ds.css`: roles (`--ds-primary`,
   `--ds-accent`, `--ds-font` ...), component hooks (`--ds-btn-*`, `--ds-card-*` ...), the project's own

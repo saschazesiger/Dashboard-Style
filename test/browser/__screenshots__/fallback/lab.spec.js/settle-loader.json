@@ -1,0 +1,5 @@
+[
+  "animation ds-fade-in - 250 200 1 --ds-ease-in-out",
+  "animation ds-loader-morph ::before 4550 0 infinite --ds-ease-out",
+  "animation ds-loader-turn ::before 4550 0 infinite --ds-ease-in-out"
+]

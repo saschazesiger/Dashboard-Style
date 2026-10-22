@@ -142,19 +142,6 @@ const LOADER_LOOPS = new Map([
   ['ds-progress-wave', 'a loop: the wave mask travels one wavelength'],
   ['ds-skeleton-wave', 'generated: the sweep of the skeleton wave, then its rest'],
 ]);
-/** Keyframes that may rotate: spinners and the shape loader (P3 to P6 add chevrons and icon swaps). */
-const ROTATE = ['ds-spin', 'ds-loader-turn'];
-/** Keyframes that may animate one property outside ANIMATABLE, each with its reason (the named exceptions of the animate list). */
-const KEYFRAME_EXCEPTIONS = new Map([
-  ['ds-progress-wave', { properties: ['mask-position'], reason: 'the travelling wave of determinate progress moves its mask' }],
-]);
-/** Selectors whose transition may animate `rotate`, each with its reason (the named exceptions of the animate list). */
-const ROTATE_TRANSITIONS = new Map([
-  ['.ds-combo__toggle svg', 'disclosure chevrons: the combobox chevron turns 180deg with its list (D25)'],
-  ['.ds-chevron', 'disclosure chevrons: the shared chevron turns 180deg with the expansion (D25)'],
-  ['.ds-errors .ds-errors__chevron', 'disclosure chevrons: the errors list chevron turns 180deg with the list (D25)'],
-  ['.ds-table__sort-arrow', 'the marked sort arrow turns 180deg for a descending column'],
-]);
 /** Keyframes that may name both ends, each with its reason; every other one is from-only, or to-only for ds-*-out. */
 const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-clip-in', 'clip-path does not interpolate to none, so both ends are named'],
@@ -179,22 +166,73 @@ const EXIT_UNPAIRED = new Map([
 
 /** Properties every transition and keyframe may animate (plus the registered --ds-* properties). */
 const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color', 'background-color', 'border-color', 'outline-color',
-  'text-decoration-color', 'fill', 'stroke', 'box-shadow', 'clip-path', 'border-radius']);
-/** Animated properties allowed on one selector only, each with its reason. */
-const ANIMATED_EXCEPTIONS = new Map([
-  ['.ds-collapsible::details-content', { properties: ['height'], reason: 'the disclosure closes (0) on --ds-ease-in, only where interpolate-size exists' }],
-  ['.ds-collapsible[open]::details-content', { properties: ['height'], reason: 'the disclosure opens to auto on --ds-ease-out (D29), only where interpolate-size exists' }],
-  ['.ds-chip__body::after', { properties: ['width'], reason: 'the check slot of a chip: a layout size on --ds-ease-out (D29)' }],
-  ['.ds-field__hint--error', { properties: ['height'], reason: 'the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists' }],
-  ['.ds-table__expand', { properties: ['grid-template-rows'], reason: 'an expandable table row closes (0fr) on --ds-ease-in: a layout size, never overshooting (D29)' }],
-  ['tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand', { properties: ['grid-template-rows'], reason: 'an expandable table row opens (1fr) on --ds-ease-out (D29)' }],
-]);
+  'text-decoration-color', 'fill', 'stroke', 'box-shadow', 'clip-path']);
 /** Declarations of the rules whose selector list (split at top-level commas) contains `selector`. */
 const declarationsAt = (css, selector) => rules(css).filter((rule) => splitSelectors(rule.selector).includes(selector)).flatMap((rule) => declarations(`${rule.body};`));
-/** A drawn glyph (pathLength="1") or the icon-swap face it inherits from: stroke-dashoffset may transition there (drawn checks). */
-const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$/.test(part));
-/** Animated properties that a later phase removes (P8 asserts that this is empty). */
-const ANIMATED_PENDING = new Map();
+/** A drawn glyph (pathLength="1") or what it inherits from (an icon-swap face, a chip's check): stroke-dashoffset may transition there (drawn checks). */
+const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$|\.ds-chip__check$/.test(part));
+/** The two timings of the press morph: the press-in (micro, decelerating) and the release (medium, on the spring). */
+const PRESS_MORPH = ['var(--ds-dur-micro) var(--ds-ease-out)', 'var(--ds-dur-medium) var(--ds-ease-spatial)'];
+/**
+ * The named exceptions of the animate list, exactly those of "What may
+ * animate" in plans/motion-2.md and in its order (EXCEPTION_SPEC below);
+ * rule 1 of docs/motion.md lists the same (tested). Each is property →
+ * { use, properties, keyframes, transitions, script }: `properties` the
+ * CSS properties it covers (default: the key), `keyframes` the @keyframes
+ * that may animate it, `transitions` where a transition may (selector →
+ * reason, or a check of (selector, entry) where a list would be endless),
+ * `script` the module that animates it through el.animate().
+ */
+const EXCEPTIONS = new Map([
+  ['rotate', {
+    use: 'spinners, loaders, disclosure chevrons and icon swaps',
+    keyframes: ['ds-spin', 'ds-loader-turn'],
+    transitions: new Map([
+      ['.ds-combo__toggle svg', 'disclosure chevrons: the combobox chevron turns 180deg with its list (D25)'],
+      ['.ds-chevron', 'disclosure chevrons: the shared chevron turns 180deg with the expansion (D25)'],
+      ['.ds-errors .ds-errors__chevron', 'disclosure chevrons: the errors list chevron turns 180deg with the list (D25)'],
+      ['.ds-table__sort-arrow', 'icon swaps: the one arrow of the marked column turns 180deg between ascending and descending'],
+    ]),
+  }],
+  ['border-radius', {
+    use: 'the press morph',
+    keyframes: [],
+    // Every action host morphs (a list would be the ripple host list); the timing says it is the morph.
+    transitions: (selector, entry) => PRESS_MORPH.includes(entry.words.slice(1, 3).join(' ')),
+  }],
+  ['outline-offset', {
+    use: 'the focus snap',
+    keyframes: [], // a transition, never a keyframe, so it cannot take over an element's animation
+    transitions: (selector, entry) => entry.words[1] === 'var(--ds-dur-fast)' && entry.easing === 'var(--ds-ease-out)',
+  }],
+  ['stroke-dashoffset', { use: 'drawn checks', keyframes: ['ds-draw'], transitions: (selector) => drawnGlyph(selector) }],
+  ['mask-position', { use: 'the travelling progress wave', keyframes: ['ds-progress-wave'], transitions: new Map() }],
+  ['width', {
+    use: 'the chip check slot',
+    keyframes: [],
+    transitions: new Map([['.ds-chip__body::after', 'the check slot of a chip: a layout size on --ds-ease-out (D29)']]),
+  }],
+  ['height', {
+    use: '.ds-collapsible, the validation message room and expandable rows',
+    properties: ['height', 'grid-template-rows'],
+    keyframes: [],
+    transitions: new Map([
+      ['.ds-collapsible::details-content', 'the disclosure closes (0) on --ds-ease-in, only where interpolate-size exists'],
+      ['.ds-collapsible[open]::details-content', 'the disclosure opens to auto on --ds-ease-out (D29), only where interpolate-size exists'],
+      ['.ds-field__hint--error', 'the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists'],
+      ['.ds-table__expand', 'an expandable table row closes (0fr, grid-template-rows) on --ds-ease-in: a layout size (D29)'],
+      ['tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand', 'an expandable table row opens (1fr, grid-template-rows) on --ds-ease-out (D29)'],
+    ]),
+  }],
+  ['min-height', { use: 'a flip() container shrinking after its removed items left', keyframes: [], transitions: new Map(), script: 'src/js/motion.js' }],
+]);
+/** "What may animate" in plans/motion-2.md, property by property (the authority for EXCEPTIONS). */
+const EXCEPTION_SPEC = ['rotate', 'border-radius', 'outline-offset', 'stroke-dashoffset', 'mask-position', 'width', 'height', 'min-height'];
+/** Whether a named exception lets `selector` transition `property` (`entry`: the transition's list entry). */
+const transitionException = (selector, property, entry) => [...EXCEPTIONS].some(([key, exception]) => (exception.properties || [key]).includes(property)
+  && (typeof exception.transitions === 'function' ? exception.transitions(selector, entry) : exception.transitions.has(selector)));
+/** Whether the @keyframes `name` may animate `property` (rotate also through transform: rotate()). */
+const keyframeException = (name, property) => [...EXCEPTIONS].some(([key, exception]) => (exception.properties || [key]).includes(property) && exception.keyframes.includes(name));
 /** The registered custom properties of src/ (they animate like any other property). */
 const REGISTERED = new Set(SRC_CSS.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
 
@@ -273,16 +311,16 @@ const ENTER_BASE = [M, '.ds-enter', ['animation-duration']];
 const LEAVE_BASE = [M, '.ds-leave', ['animation-duration']];
 const RATIOS = [
   ['.ds-enter / .ds-leave', [ENTER_BASE], [LEAVE_BASE]],
-  ['--scale', [[M, '.ds-enter--scale', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--scale', ['--ds-leave-duration']], LEAVE_BASE]],
-  ['--slide', [[M, '.ds-enter--slide', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--slide', ['--ds-leave-duration']], LEAVE_BASE]],
-  ['--pop', [[M, '.ds-enter--pop', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--pop', ['--ds-leave-duration']], LEAVE_BASE]],
-  ['dialog', [['src/components/dialog.css', '.ds-dialog[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['.ds-enter--scale / .ds-leave--scale', [[M, '.ds-enter--scale', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--scale', ['--ds-leave-duration']], LEAVE_BASE]],
+  ['.ds-enter--slide / .ds-leave--slide', [[M, '.ds-enter--slide', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--slide', ['--ds-leave-duration']], LEAVE_BASE]],
+  ['.ds-enter--pop / .ds-leave--pop', [[M, '.ds-enter--pop', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--pop', ['--ds-leave-duration']], LEAVE_BASE]],
+  ['dialog (DS.overlay)', [['src/components/dialog.css', '.ds-dialog[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog[data-state="closed"] .ds-dialog__box', ['transition']]]],
   ['dialog (keyframes)', [['src/components/dialog.css', '.ds-dialog:not([data-state]) .ds-dialog__box', ['animation']]], [['src/components/dialog.css', '.ds-dialog--closing:not([data-state]) .ds-dialog__box', ['animation']]]],
-  ['side sheet', [['src/components/sheet.css', '.ds-sheet[data-state] .ds-sheet__panel', ['transition']]], [['src/components/sheet.css', '.ds-sheet[data-state="closed"] .ds-sheet__panel', ['transition']]]],
+  ['side sheet (DS.overlay)', [['src/components/sheet.css', '.ds-sheet[data-state] .ds-sheet__panel', ['transition']]], [['src/components/sheet.css', '.ds-sheet[data-state="closed"] .ds-sheet__panel', ['transition']]]],
   ['side sheet (keyframes)', [['src/components/sheet.css', '.ds-sheet:not([data-state]) .ds-sheet__panel', ['animation']]], [['src/components/sheet.css', '.ds-sheet--closing:not([data-state]) .ds-sheet__panel', ['animation']]]],
   ['modal drawer', [['src/components/shell.css', '.ds-app[data-drawer-open] .ds-drawer', ['transition']]], [['src/components/shell.css', '.ds-drawer', ['transition']]]],
   ['snackbar', [['src/components/toast.css', '.ds-toast', ['animation']]], [['src/components/toast.css', '.ds-toast', ['--ds-leave-duration']]]],
-  ['tooltip', [['src/components/tooltip.css', '.ds-tooltip[data-state]', ['transition']]], [['src/components/tooltip.css', '.ds-tooltip[data-state="closed"]', ['transition']]]],
+  ['tooltip (DS.overlay)', [['src/components/tooltip.css', '.ds-tooltip[data-state]', ['transition']]], [['src/components/tooltip.css', '.ds-tooltip[data-state="closed"]', ['transition']]]],
   ['tooltip (keyframes)', [['src/components/tooltip.css', '.ds-tooltip:not([data-state])', ['animation']]], [['src/components/tooltip.css', '.ds-tooltip:not([data-state])', ['--ds-leave-duration']]]],
   ['combobox list', [['src/components/combobox.css', '.ds-combo__popup[data-state]', ['transition']]], [['src/components/combobox.css', '.ds-combo__popup[data-state="closed"]', ['transition']]]],
   ['menu', [['src/components/menu.css', '.ds-menu[data-state]', ['transition']]], [['src/components/menu.css', '.ds-menu[data-state="closed"]', ['transition']]]],
@@ -305,7 +343,7 @@ const CHECKBOX = ':is(.ds-check input[type="checkbox"], .ds-table input[type="ch
 const RADIO = ':is(.ds-check input[type="radio"], .ds-radio input, .ds-radio-input)';
 const SWAP_SHOWN = '.ds-icon-swap:where([data-swap="b"], [aria-pressed="true"] :not([data-swap])) > .ds-icon-swap__b';
 const CONTROL_RATIOS = [
-  ['chip check', [['src/components/chip.css', '.ds-chip__input:checked + .ds-chip__body .ds-chip__check [pathLength]', ['transition']]], [['src/components/chip.css', '.ds-chip__check [pathLength]', ['transition']]]],
+  ['chip check', [['src/components/chip.css', '.ds-chip__input:checked + .ds-chip__body .ds-chip__check', ['transition']]], [['src/components/chip.css', '.ds-chip__check', ['transition']]]],
   ['checkbox mark', [['src/components/form.css', `${CHECKBOX}:checked::before`, ['transition']]], [['src/components/form.css', `${CHECKBOX}::before`, ['transition']]]],
   ['radio dot', [['src/components/form.css', `${RADIO}:checked::after`, ['transition']]], [['src/components/form.css', `${RADIO}::after`, ['transition']]]],
   ['button faces', [['src/components/button.css', '.ds-btn[aria-busy="true"] .ds-btn__face--busy', ['transition']]], [['src/components/button.css', '.ds-btn__face--busy', ['transition']]]],
@@ -313,6 +351,8 @@ const CONTROL_RATIOS = [
   ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
 ];
 const resolveDuration = (candidates) => candidates.map(([file, selector, properties]) => longest(file, selector, properties)).find((time) => time !== undefined);
+/** The popups of the ratio table: they may exit in --ds-dur-instant (motion-2.md). */
+const POPUPS = ['src/components/tooltip.css', 'src/components/combobox.css', 'src/components/menu.css'];
 
 describe('motion in CSS', () => {
   it('defines @keyframes only in motion.css, each name once', () => {
@@ -525,12 +565,12 @@ describe('motion in CSS', () => {
       const leave = resolveDuration(exit);
       assert.ok(enter > 0 && leave > 0, `${name}: ${enter}/${leave}`);
       const ratio = leave / enter;
-      assert.ok(leave < enter && ratio >= 0.3 && ratio <= 0.8, `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
+      // Popups may exit in --ds-dur-instant, whatever their entrance.
+      const popupInstant = POPUPS.some((file) => entrance[0][0] === file) && leave === ms('--ds-dur-instant');
+      assert.ok(leave < enter && (popupInstant || (ratio >= 0.3 && ratio <= 0.8)), `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
     }
     for (const [selector, reason] of RATIO_EXEMPT) assert.ok(declarationsAt(read(M), selector).length, `exempt, but missing: ${selector} (${reason})`);
-    // The table reads what the docs promise.
-    assert.deepEqual(RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
-      ['250/150', '250/200', '350/200', '250/150', '350/200', '250/200', '450/200', '450/200', '450/200', '250/150', '250/100', '150/100', '250/100', '250/100']);
+    // What the docs promise: rule 3 of docs/motion.md (the next tests).
     for (const [name, entrance, exit] of CONTROL_RATIOS) {
       const enter = resolveDuration(entrance);
       const leave = resolveDuration(exit);
@@ -540,6 +580,27 @@ describe('motion in CSS', () => {
     }
     assert.deepEqual(CONTROL_RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
       ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100']);
+  });
+
+  it('has a ratio row for every component with an entrance and an exit', () => {
+    // An exit: a --closing, --leaving, [data-state="closed"] or .ds-leave selector, or an animation with a ds-*-out keyframe.
+    const exitKeyframe = new RegExp(`(^|[\\s,(])(${[...KEYFRAME_NAMES].filter((name) => name.endsWith('-out')).join('|')})(?![\\w-])`);
+    const withRow = new Set(RATIOS.flatMap(([, entrance, exit]) => [...entrance, ...exit].map(([file]) => file)));
+    const missing = [];
+    for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
+      const exits = rules(read(file)).some(({ selector, body }) => /--closing|--leaving|\[data-state="closed"\]|\.ds-leave\b/.test(selector)
+        || declarations(`${body};`).some(({ property, value }) => /^(animation|animation-name|--ds-leave-keyframes)$/.test(property) && exitKeyframe.test(value)));
+      const enters = /\bds-[\w-]+-in\b|\[data-state\]|\[data-state="open"\]|@starting-style/.test(stripComments(read(file)));
+      if (exits && enters && !withRow.has(file)) missing.push(file);
+    }
+    assert.deepEqual(missing, [], 'components with an entrance and an exit but no row in RATIOS');
+  });
+
+  it('documents the same exit/entrance pairs in rule 3 of docs/motion.md', () => {
+    const rule = read('docs/motion.md').match(/^3\. Exits take[\s\S]*?(?=^4\. )/m)?.[0] || '';
+    const rows = [...rule.matchAll(/^\s+\| ([^|]+) \| `(--ds-dur-[\w-]+)` \| `(--ds-dur-[\w-]+)` \|/gm)]
+      .map((match) => [match[1].replace(/`/g, '').trim(), ms(match[2]), ms(match[3])]);
+    assert.deepEqual(rows, RATIOS.map(([name, entrance, exit]) => [name, resolveDuration(entrance), resolveDuration(exit)]));
   });
 
   it('brings the drawer back like .ds-enter--slide, from the left (enter(drawer) equals enter(drawer, "slide"))', () => {
@@ -588,35 +649,61 @@ describe('motion in CSS', () => {
 
   it('animates only the allowed properties', () => {
     const offenders = [];
-    const allowed = (selector, property) => ANIMATABLE.has(property) || REGISTERED.has(property)
-      || (property === 'stroke-dashoffset' && drawnGlyph(selector))
-      || [ANIMATED_EXCEPTIONS, ANIMATED_PENDING].some((map) => map.get(selector)?.properties.includes(property));
     for (const file of SRC_CSS) {
       for (const { selector, body } of rules(read(file))) {
         for (const { property, value } of declarations(`${body};`)) {
           if (property !== 'transition' && property !== 'transition-property') continue;
           for (const entry of entriesOf(value)) {
             const animated = entry.name;
-            if (animated === 'none' || animated === 'outline-offset') continue; // the focus snap: a transition, never a keyframe
+            if (animated === 'none' || ANIMATABLE.has(animated) || REGISTERED.has(animated)) continue;
             if (/^(all|font-weight)$/.test(animated)) offenders.push(`${file}: ${selector}: never ${animated}`);
             else if (/^(visibility|display|content-visibility|overlay)$/.test(animated)) {
               // A discrete property flips: as a 0ms step, or with allow-discrete.
               if (!(entry.times[0] === 0 || entry.words.includes('allow-discrete'))) offenders.push(`${file}: ${selector}: ${animated} must step`);
-            } else if (animated === 'rotate') {
-              if (!ROTATE_TRANSITIONS.has(selector)) offenders.push(`${file}: ${selector}: rotate only in the ROTATE keyframes and ROTATE_TRANSITIONS`);
-            }
-            else if (!allowed(selector, animated)) offenders.push(`${file}: ${selector}: ${animated}`);
+            } else if (!transitionException(selector, animated, entry)) offenders.push(`${file}: ${selector}: ${animated} (not a named exception here: EXCEPTIONS)`);
           }
         }
       }
     }
     for (const [name, body] of Object.entries(KEYFRAMES)) {
       for (const { property, value } of declarations(body)) {
-        const rotates = property === 'rotate' || (property === 'transform' && /rotate/.test(value));
-        if (rotates && !ROTATE.includes(name)) offenders.push(`@keyframes ${name}: rotate`);
-        else if (property === 'stroke-dashoffset' && name !== 'ds-draw') offenders.push(`@keyframes ${name}: stroke-dashoffset only in ds-draw`);
-        else if (!rotates && property !== 'stroke-dashoffset' && !ANIMATABLE.has(property) && !REGISTERED.has(property)
-          && !KEYFRAME_EXCEPTIONS.get(name)?.properties.includes(property)) offenders.push(`@keyframes ${name}: ${property}`);
+        // transform: rotate() counts as rotate (the turn of ds-spin).
+        const animated = property === 'transform' && /rotate/.test(value) ? 'rotate' : property;
+        if (ANIMATABLE.has(animated) || REGISTERED.has(animated)) continue;
+        if (!keyframeException(name, animated)) offenders.push(`@keyframes ${name}: ${animated}`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('allows exactly the named exceptions of the animate list, as docs/motion.md rule 1 lists them', () => {
+    assert.deepEqual([...EXCEPTIONS.keys()], EXCEPTION_SPEC);
+    // Rule 1 of docs/motion.md: "Named exceptions (EXCEPTIONS in test/css.test.js):" and one
+    // "- `<property>`: <use>" line per exception, in the same order.
+    const rule = read('docs/motion.md').match(/^1\. Animate only[\s\S]*?(?=^2\. )/m)?.[0] || '';
+    const listed = [...rule.matchAll(/^\s+- `([\w-]+)`: ([\s\S]*?)(?=^\s+- `|^\s*$)/gm)].map((match) => [match[1], match[2].replace(/\s+/g, ' ')]);
+    assert.deepEqual(listed.map(([property]) => property), EXCEPTION_SPEC, 'docs/motion.md rule 1 lists the exceptions');
+    for (const [property, use] of listed) {
+      for (const word of EXCEPTIONS.get(property).use.match(/[.\w-]{5,}/g)) assert.ok(use.includes(word), `rule 1, ${property}: names "${word}"`);
+    }
+    // Every selector and keyframe an exception names exists, and the script animates its property.
+    const selectors = new Set(SRC_CSS.flatMap((file) => rules(read(file)).flatMap((rule) => splitSelectors(rule.selector))));
+    for (const [property, exception] of EXCEPTIONS) {
+      for (const name of exception.keyframes) assert.ok(KEYFRAME_NAMES.has(name), `${property}: @keyframes ${name}`);
+      if (exception.transitions instanceof Map) for (const selector of exception.transitions.keys()) assert.ok(selectors.has(selector), `${property}: ${selector} is in src/`);
+      if (exception.script) assert.match(read(exception.script), new RegExp(`\\{ ${property.replace(/-(\w)/g, (m, c) => c.toUpperCase())}: `), `${property}: animated in ${exception.script}`);
+    }
+  });
+
+  it('draws strokes on the <svg>, never through a [pathLength] selector that moves (Chromium misses a change above it)', () => {
+    // A class or :checked change above a [pathLength] rule does not restyle
+    // the path in Chromium (its invalidation keys on the lowercased name);
+    // stroke-dashoffset inherits, so the glyph's <svg> carries the motion.
+    const offenders = [];
+    for (const file of SRC_CSS) {
+      for (const rule of rules(read(file))) {
+        if (!splitSelectors(rule.selector).some((part) => /\[pathLength\]$/.test(part))) continue;
+        if (declarations(`${rule.body};`).some(({ property }) => /^(transition|animation)|^stroke-dashoffset$/.test(property))) offenders.push(`${file}: ${rule.selector}`);
       }
     }
     assert.deepEqual(offenders, []);
@@ -894,6 +981,44 @@ describe('CSS for the baseline', () => {
         if (pattern.test(css)) assert.ok(note.includes(name), `${file} uses ${name}: name it under "Progressive:" in the header`);
       }
     }
+  });
+
+  it('names a fallback for every "Progressive:" entry of a src/ header (<feature>: <what happens without it>)', () => {
+    // The note is a list at the end of its paragraph: "Progressive:" on a line
+    // of its own, then "- <feature> (<what it adds>): <the fallback>" entries.
+    const files = [...SRC_CSS, ...filesIn('src/js', (path) => path.endsWith('.js'))];
+    const offenders = [];
+    let notes = 0;
+    for (const file of files) {
+      const header = read(file).match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
+      const lines = header.split('\n').map((line) => line.replace(/^\s*\/?\*+\/?\s?/, '').replace(/\s*\*\/$/, ''));
+      for (const line of lines) if (/^Progressive:\s*\S/.test(line)) offenders.push(`${file}: "${line}": put the entries in a list under "Progressive:"`);
+      const start = lines.findIndex((line) => /^Progressive:\s*$/.test(line));
+      if (start < 0) continue;
+      notes += 1;
+      const entries = [];
+      for (const line of lines.slice(start + 1)) {
+        if (!line.trim()) break;
+        if (line.startsWith('- ')) entries.push(line.slice(2));
+        else if (line.startsWith('  ') && entries.length) entries[entries.length - 1] += ` ${line.trim()}`;
+        else offenders.push(`${file}: "${line}" is no entry of the Progressive: list`);
+      }
+      if (!entries.length) offenders.push(`${file}: an empty Progressive: list`);
+      for (const entry of entries) {
+        // The feature ends at the first ": " outside parentheses.
+        let depth = 0;
+        let split = -1;
+        for (let index = 0; index < entry.length - 1 && split < 0; index += 1) {
+          if (entry[index] === '(') depth += 1;
+          else if (entry[index] === ')') depth -= 1;
+          else if (depth === 0 && entry[index] === ':' && entry[index + 1] === ' ') split = index;
+        }
+        const fallback = split < 0 ? '' : entry.slice(split + 2);
+        if (split < 1 || !/\b(without|elsewhere|ignored|instead|falls? back)\b/i.test(fallback)) offenders.push(`${file}: "${entry.slice(0, 70)}...": name the fallback after "<feature>: "`);
+      }
+    }
+    assert.ok(notes >= 15, 'the walk finds the notes');
+    assert.deepEqual(offenders, []);
   });
 
   it('puts focus rings on :focus-visible', () => {
@@ -1296,7 +1421,7 @@ describe('controls (1.1.0)', () => {
           assert.equal(own.animation, undefined, `${file}: ${selector}: transitions only`);
         }
         for (const entry of entriesOf(own.transition || '')) {
-          if (entry.name !== 'width' || ANIMATED_PENDING.has(selector)) continue;
+          if (entry.name !== 'width') continue;
           assert.equal(selector, '.ds-chip__body::after', `${file}: ${selector}: width transition`);
           assert.equal(entry.easing, 'var(--ds-ease-out)', 'a layout size never overshoots (D29)');
         }
@@ -1554,14 +1679,10 @@ describe('feedback and data (1.4.0)', () => {
       'min(var(--ds-tile-radius-pressed, var(--ds-radius-md)), var(--ds-tile-radius, var(--ds-radius-lg)))');
   });
 
-  it('names the P6 uses of the animate exceptions, and P6 leaves nothing pending', () => {
-    assert.deepEqual(ANIMATED_EXCEPTIONS.get('.ds-table__expand').properties, ['grid-template-rows']);
-    assert.ok(ROTATE.includes('ds-loader-turn'), 'the loader turns');
-    for (const selector of ['.ds-chevron', '.ds-errors .ds-errors__chevron', '.ds-table__sort-arrow']) assert.ok(ROTATE_TRANSITIONS.has(selector), selector);
-    assert.equal(ANIMATED_PENDING.size, 0);
-    // The selectors of the exceptions exist in src/.
-    const selectors = new Set(SRC_CSS.flatMap((file) => rules(read(file)).flatMap((rule) => splitSelectors(rule.selector))));
-    for (const selector of [...ROTATE_TRANSITIONS.keys(), ...ANIMATED_EXCEPTIONS.keys()]) assert.ok(selectors.has(selector), `${selector} is in src/`);
+  it('names the P6 uses of the animate exceptions', () => {
+    assert.ok(EXCEPTIONS.get('height').transitions.has('.ds-table__expand'), 'expandable rows: grid-template-rows');
+    assert.ok(EXCEPTIONS.get('rotate').keyframes.includes('ds-loader-turn'), 'the loader turns');
+    for (const selector of ['.ds-chevron', '.ds-errors .ds-errors__chevron', '.ds-table__sort-arrow']) assert.ok(EXCEPTIONS.get('rotate').transitions.has(selector), selector);
   });
 
   it('keeps the waiting track in the layout (hidden, not display: none) and fades it in', () => {

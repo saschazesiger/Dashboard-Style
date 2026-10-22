@@ -1,0 +1,14 @@
+[
+  "animation ds-press-ripple - 250 0 1 --ds-ease-out",
+  "animation ds-progress-head - 1800 0 infinite --ds-ease-in-out",
+  "animation ds-progress-tail - 1800 0 infinite --ds-ease-in-out",
+  "animation ds-progress-wave ::after 1200 0 infinite --ds-ease-in-out",
+  "animation ds-progress-wave ::before 1200 0 infinite --ds-ease-in-out",
+  "script ds-count - 600 0 1 --ds-ease-in-out",
+  "transition --ds-progress - 600 0 1 --ds-ease-in-out",
+  "transition border-bottom-left-radius - 50 0 1 --ds-ease-out",
+  "transition border-bottom-right-radius - 50 0 1 --ds-ease-out",
+  "transition border-top-left-radius - 50 0 1 --ds-ease-out",
+  "transition border-top-right-radius - 50 0 1 --ds-ease-out",
+  "transition opacity ::before 50 0 1 --ds-ease-in-out"
+]

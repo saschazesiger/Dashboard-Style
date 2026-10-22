@@ -33,12 +33,13 @@
  * hidden, leave with DS.motion.leave(tip, '', { then: 'hide' })) the
  * keyframe entrance and .ds-leave still play.
  *
- * Progressive: popover (popover="manual" puts the tooltip into the top
- * layer, over a modal dialog) and CSS anchor positioning (anchor-name on
- * the trigger, position-anchor, position-area, position-try-fallbacks
- * on the tooltip), behind @supports (position-area: block-end); data-
- * anchored marks that path. Elsewhere the script writes --ds-tooltip-x/-y
- * and flips the tooltip above the trigger (data-placement="top").
+ * Progressive:
+ * - popover and CSS anchor positioning (popover="manual" puts the tooltip
+ *   into the top layer, over a modal dialog; anchor-name on the trigger,
+ *   position-anchor, position-area and position-try-fallbacks on the
+ *   tooltip, behind @supports (position-area: block-end); data-anchored
+ *   marks that path): without them the script writes --ds-tooltip-x/-y and
+ *   flips the tooltip above the trigger (data-placement="top").
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

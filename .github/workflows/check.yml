@@ -39,7 +39,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit, fallback]
+        # perf: the paint budget and the style recalc times (perf.spec.js), alone in its job so no other test shares the CPU.
+        browser: [chromium, firefox, webkit, fallback, perf]
     # The official image of the pinned @playwright/test version (test/repo.test.js keeps the tag in step), so the
     # committed screenshots come from the same fonts and rasteriser on every run.
     container:

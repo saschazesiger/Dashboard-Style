@@ -36,11 +36,13 @@
  * error ink on an invalid field; an error message fades in when it
  * appears.
  *
- * Progressive: text-wrap (hints and radio card descriptions avoid a lone
- * last word); without it they wrap as usual. interpolate-size and
- * @starting-style open the room of an error message that appears while
- * focus is in its form or field from height 0 on --ds-ease-out (never on
- * load); without them the message only fades in.
+ * Progressive:
+ * - text-wrap (hints and radio card descriptions avoid a lone last word):
+ *   without it they wrap as usual.
+ * - interpolate-size and @starting-style (the room of an error message
+ *   that appears while focus is in its form or field opens from height 0
+ *   on --ds-ease-out, never on load): without them the message only fades
+ *   in.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

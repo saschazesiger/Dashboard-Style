@@ -1,0 +1,4 @@
+[
+  "animation ds-fade-in - 250 0 1 --ds-ease-in-out",
+  "animation ds-pop-in - 250 0 1 --ds-ease-spatial"
+]

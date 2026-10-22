@@ -1,9 +1,10 @@
 /**
- * Walk-through of every styleguide demo: the `[data-sg]` buttons, the
- * enter and leave buttons of the Motion card, the track and segmented
- * options and the disclosure. Each demo is one test that clicks it, checks
- * what it did, and must end settled (helpers/motion.js `settle()`) with no
- * console error.
+ * Walk-through of every styleguide demo: the `[data-sg]` buttons and the
+ * segmented options of index.html, and on the Motion Lab (motion.html) the
+ * demos that moved there from the index's Motion section: enter and leave,
+ * stagger, count, the track and the disclosure. Each demo is one test that
+ * clicks it, checks what it did, and must end settled (helpers/motion.js
+ * `settle()`) with no console error.
  *
  * With DS_VIDEO=1 the walk-through runs in Chromium only, at `?speed=0.1`,
  * and records one video per demo into test-results/ (never committed).
@@ -20,6 +21,7 @@ import { ready, settle, setSpeed } from './helpers/motion.js';
 
 const VIDEO = !!process.env.DS_VIDEO;
 const STYLEGUIDE = `/styleguide/index.html${VIDEO ? '?speed=0.1' : ''}`;
+const LAB = `/styleguide/motion.html${VIDEO ? '?speed=0.1' : ''}`;
 // Ten times slower motion needs ten times the settle time.
 const SETTLE = { timeout: VIDEO ? 30000 : 3000 };
 
@@ -33,7 +35,8 @@ test.beforeEach(async ({ page, browserName }) => {
   errors = [];
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   page.on('pageerror', (error) => errors.push(String(error)));
-  await page.goto(STYLEGUIDE);
+  // The tests of the 'Motion Lab' block run on motion.html.
+  await page.goto(test.info().titlePath.includes('Motion Lab') ? LAB : STYLEGUIDE);
   await ready(page);
   await page.mouse.move(1, 1);
   await page.waitForFunction(() => [...document.querySelectorAll('.ds-tile__value[data-count]')].every((el) => {
@@ -104,21 +107,6 @@ test('toast-error: an error snackbar shows and closes', async ({ page }) => {
   await settle(page, SETTLE);
   await toast.locator('.ds-toast__close').click();
   await expect(toast).toHaveCount(0, { timeout: SETTLE.timeout });
-});
-
-test('stagger: the squares enter one after the other', async ({ page }) => {
-  await press(page.locator('[data-sg="stagger"]'));
-  await expect(page.locator('#sg-stagger')).not.toHaveClass(/sg-fill/);
-});
-
-test('fill: the squares grow as bars', async ({ page }) => {
-  await press(page.locator('[data-sg="fill"]'));
-  await expect(page.locator('#sg-stagger')).toHaveClass(/sg-fill/);
-});
-
-test('count: the tiles count up again', async ({ page }) => {
-  await press(page.locator('[data-sg="count"]'));
-  await countsDone(page);
 });
 
 test('sheet: the side sheet opens and closes', async ({ page }) => {
@@ -281,10 +269,16 @@ test('skeleton: the loaded page replaces the skeleton with .ds-reveal, and back'
 
 // Whether the 150ms load stays under the loader delay depends on timer
 // jitter on a busy machine, so only the slow load's verdict is checked.
+// The loading line is checked in the task of the click: a 150ms load may
+// be over before a later poll could see it.
 for (const [ms, text] of [['150', 'after 150ms'], ['1200', 'showed and left at once']]) {
   test(`load ${ms}ms: the result replaces the loading line`, async ({ page }) => {
-    await press(page.locator(`[data-sg="load"][data-ms="${ms}"]`));
-    await expect(page.locator('#sg-load-stage .ds-loading')).toHaveCount(1);
+    const button = page.locator(`[data-sg="load"][data-ms="${ms}"]`);
+    await button.scrollIntoViewIfNeeded();
+    expect(await button.evaluate((el) => {
+      el.click();
+      return document.querySelectorAll('#sg-load-stage .ds-loading').length;
+    }), 'the loading line goes in at once').toBe(1);
     await expect(page.locator('#sg-load-stage')).toContainText(text, WAIT);
   });
 }
@@ -430,48 +424,6 @@ test('table-live: the feed changes values and stops', async ({ page }) => {
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
 });
 
-test('copy-rules: the button flush with the open disclosure works', async ({ page }) => {
-  const details = page.locator('#motion details.ds-collapsible');
-  await press(details.locator('summary'));
-  await settle(page, SETTLE);
-  await press(details.locator('[data-sg="copy-rules"]'));
-  await expect(page.locator('#sg-toasts > .ds-toast').filter({ hasText: 'Copied the motion rules.' })).toHaveCount(1);
-});
-
-/* ── Motion card: enter and leave ──────────────────────────────────── */
-
-for (const variant of ['', 'fade', 'scale', 'slide', 'swap']) {
-  test(`enter${variant ? ` ${variant}` : ''}: the card plays its entrance`, async ({ page }) => {
-    await press(page.locator(`[data-enter="${variant}"]`));
-    await settle(page, SETTLE);
-    // enter() drops its classes once the entrance settled.
-    await expect(page.locator('#sg-motion-card')).not.toHaveClass(/ds-enter/, { timeout: SETTLE.timeout });
-  });
-}
-
-for (const variant of ['', 'sink', 'scale', 'slide', 'pop']) {
-  test(`leave${variant ? ` ${variant}` : ''}: the card leaves and comes back`, async ({ page }) => {
-    const card = page.locator('#sg-motion-card');
-    await press(page.locator(`[data-leave="${variant}"]`));
-    await expect(card).toHaveClass(/ds-leave/);
-    // The demo keeps the card, then fades it back in 400ms after the exit.
-    await expect(card).not.toHaveClass(/ds-leave/, { timeout: SETTLE.timeout });
-    await expect(card).not.toHaveClass(/ds-enter/, { timeout: SETTLE.timeout });
-    expect(await card.evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(1);
-  });
-}
-
-/* ── Indicators and the disclosure ─────────────────────────────────── */
-
-test('track: the indicator glides between options', async ({ page }) => {
-  for (const name of ['Week', 'Year', 'Day']) {
-    const option = page.locator('#sg-track button', { hasText: name });
-    await press(option);
-    await expect(option).toHaveAttribute('aria-pressed', 'true');
-    await settle(page, SETTLE);
-  }
-});
-
 test('segmented: the indicator glides between options', async ({ page }) => {
   for (const name of ['Admin', 'Reports', 'Live']) {
     const option = page.locator('#sg-segmented .ds-segmented__option', { hasText: name });
@@ -481,12 +433,69 @@ test('segmented: the indicator glides between options', async ({ page }) => {
   }
 });
 
-test('disclosure: the motion rules open and close', async ({ page }) => {
-  const details = page.locator('#motion details.ds-collapsible');
-  const summary = details.locator('summary');
-  await press(summary);
-  await expect(details).toHaveAttribute('open', '');
-  await settle(page, SETTLE);
-  await summary.click();
-  await expect(details).not.toHaveAttribute('open', '');
+/* ── Motion Lab (motion.html): the demos that moved from the Motion section ── */
+
+test.describe('Motion Lab', () => {
+  test('stagger: the squares enter one after the other', async ({ page }) => {
+    await press(page.locator('[data-sg="stagger"]'));
+    await expect(page.locator('#sg-stagger')).not.toHaveClass(/sg-fill/);
+  });
+
+  test('fill: the squares grow as bars', async ({ page }) => {
+    await press(page.locator('[data-sg="fill"]'));
+    await expect(page.locator('#sg-stagger')).toHaveClass(/sg-fill/);
+  });
+
+  test('count: the tiles count up again', async ({ page }) => {
+    await press(page.locator('[data-sg="count"]'));
+    await countsDone(page);
+  });
+
+  test('copy-rules: the button flush with the open disclosure works', async ({ page }) => {
+    const details = page.locator('[data-lab-demo="disclosure"] details.ds-collapsible');
+    await press(details.locator('summary'));
+    await settle(page, SETTLE);
+    await press(details.locator('[data-sg="copy-rules"]'));
+    await expect(page.locator('#sg-toasts > .ds-toast').filter({ hasText: 'Copied the motion rules.' })).toHaveCount(1);
+  });
+
+  for (const variant of ['', 'fade', 'scale', 'slide', 'swap']) {
+    test(`enter${variant ? ` ${variant}` : ''}: the card plays its entrance`, async ({ page }) => {
+      await press(page.locator(`[data-enter="${variant}"]`));
+      await settle(page, SETTLE);
+      // enter() drops its classes once the entrance settled.
+      await expect(page.locator('#sg-motion-card')).not.toHaveClass(/ds-enter/, { timeout: SETTLE.timeout });
+    });
+  }
+
+  for (const variant of ['', 'sink', 'scale', 'slide', 'pop']) {
+    test(`leave${variant ? ` ${variant}` : ''}: the card leaves and comes back`, async ({ page }) => {
+      const card = page.locator('#sg-motion-card');
+      await press(page.locator(`[data-leave="${variant}"]`));
+      await expect(card).toHaveClass(/ds-leave/);
+      // The demo keeps the card, then fades it back in 400ms after the exit.
+      await expect(card).not.toHaveClass(/ds-leave/, { timeout: SETTLE.timeout });
+      await expect(card).not.toHaveClass(/ds-enter/, { timeout: SETTLE.timeout });
+      expect(await card.evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(1);
+    });
+  }
+
+  test('track: the indicator glides between options', async ({ page }) => {
+    for (const name of ['Week', 'Year', 'Day']) {
+      const option = page.locator('#sg-track button', { hasText: name });
+      await press(option);
+      await expect(option).toHaveAttribute('aria-pressed', 'true');
+      await settle(page, SETTLE);
+    }
+  });
+
+  test('disclosure: the motion rules open and close', async ({ page }) => {
+    const details = page.locator('[data-lab-demo="disclosure"] details.ds-collapsible');
+    const summary = details.locator('summary');
+    await press(summary);
+    await expect(details).toHaveAttribute('open', '');
+    await settle(page, SETTLE);
+    await summary.click();
+    await expect(details).not.toHaveAttribute('open', '');
+  });
 });

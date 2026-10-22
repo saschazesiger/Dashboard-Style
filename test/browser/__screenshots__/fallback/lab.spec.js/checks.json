@@ -1,0 +1,12 @@
+[
+  "transition background-color - 150 0 1 --ds-ease-in-out",
+  "transition border-bottom-color - 150 0 1 --ds-ease-in-out",
+  "transition border-left-color - 150 0 1 --ds-ease-in-out",
+  "transition border-right-color - 150 0 1 --ds-ease-in-out",
+  "transition border-top-color - 150 0 1 --ds-ease-in-out",
+  "transition box-shadow - 150 0 1 --ds-ease-in-out",
+  "transition clip-path ::after 150 0 1 --ds-ease-in",
+  "transition clip-path ::before 250 50 1 --ds-ease-out",
+  "transition scale ::after 150 0 1 --ds-ease-in",
+  "transition scale ::after 250 0 1 --ds-ease-out"
+]

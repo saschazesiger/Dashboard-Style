@@ -48,7 +48,9 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
 (`DS.ripple.attach(document)` once) and the icons (`window.DS`); every component works without it.
 
 Open [`styleguide/index.html`](styleguide/index.html) in a browser (works from disk) to see every component, the
-tokens, the motion and the icons, and to try a theme file.
+tokens and the icons, and to try a theme file. Its Motion Lab, [`styleguide/motion.html`](styleguide/motion.html),
+plots every curve as your browser plays it, lines up the durations and replays every choreography, with rapid
+toggles and reversals; the speed select in the top bar slows it all down to 0.1×.
 
 ## Install
 
@@ -95,10 +97,10 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 | Topic | |
 |---|---|
 | [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy |
-| [Tokens](docs/tokens.md) | the three layers and every token |
+| [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |
 | [Theming](docs/theming.md) | writing a project theme, component hooks |
 | [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
-| [Motion](docs/motion.md) | durations, curves, utilities, view transitions, scroll-driven effects, `DS.motion` (FLIP, `countUp`, `transition`), indicator, morph, ripple |
+| [Motion](docs/motion.md) | principles, motion tokens, rules, the choreography of every component, interruption, keyframes and utilities, `DS.motion` (FLIP, `countUp`, `transition`), indicator, morph, ripple, overlays, recipes, view transitions, scroll-driven effects |
 | [Icons](docs/icons.md) | the outline set and its helpers |
 | [Rules](docs/rules.md) | the design rules the components follow |
 
@@ -109,8 +111,8 @@ dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css
 src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, index.css (order)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template
-styleguide/      living styleguide (open index.html; views.html: view transitions and scrolling)
-scripts/         build.mjs, vendor.sh, vendor.ps1
+styleguide/      living styleguide (open index.html; motion.html: the Motion Lab; views.html: view transitions and scrolling)
+scripts/         build.mjs, motion-curves.mjs, vendor.sh, vendor.ps1
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test unit tests, no dependencies; test/browser/ Playwright tests (three engines)
 docs/            the documentation above

@@ -1,0 +1,5 @@
+[
+  "transition background-color ::after 200 0 1 --ds-ease-in-out",
+  "transition opacity ::before 50 0 1 --ds-ease-in-out",
+  "transition scale ::after 100 0 1 --ds-ease-out"
+]

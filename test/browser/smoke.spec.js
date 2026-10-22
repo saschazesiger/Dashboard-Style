@@ -56,7 +56,7 @@ test('the styleguide reaches data-sg-ready without a console error and runs this
 
 test('every fixture loads without a console error', async ({ page }) => {
   const errors = collectErrors(page);
-  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'overlay', 'module', 'reset', 'reset-layered', 'spike', 'views', 'mpa-a', 'mpa-b']) {
+  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'overlay', 'module', 'reset', 'reset-layered', 'spike', 'views', 'mpa-a', 'mpa-b', 'popups', 'toast-tooltip', 'perf']) {
     await page.goto(`${FIXTURES}${name}.html`);
     // module.html has no fixture.js: it reports through window.moduleResult.
     if (name === 'module') await page.waitForFunction(() => window.moduleResult);
@@ -74,7 +74,7 @@ test('module.html imports the six ES modules and they export what window.DS expo
   expect(result.ok).toBe(true);
 });
 
-test('a theme switch marks data-sg-theme and re-places the three indicators', async ({ page }) => {
+test('a theme switch marks data-sg-theme and re-places the indicators', async ({ page }) => {
   // Six switches, each a View Transition over the whole styleguide: snapshotting the long page takes
   // seconds in software-rendered engines under a parallel run, so the test gets the budget of six.
   test.setTimeout(120000);
@@ -85,7 +85,6 @@ test('a theme switch marks data-sg-theme and re-places the three indicators', as
   const placed = () => page.evaluate(() => [
     ['#sg-nav', '[aria-current="page"]'],
     ['#sg-segmented', '[aria-current="true"]'],
-    ['#sg-track', '[aria-pressed="true"]'],
   ].map(([track, active]) => {
     const indicator = document.querySelector(`${track} > .ds-indicator`);
     const item = document.querySelector(`${track} ${active}`);
@@ -94,7 +93,7 @@ test('a theme switch marks data-sg-theme and re-places the three indicators', as
     const height = parseFloat(indicator.style.getPropertyValue('--ds-indicator-h'));
     return `${track} ${Math.abs(width - rect.width) < 0.5 && Math.abs(height - rect.height) < 0.5 ? 'placed' : `off (${width}x${height} vs ${rect.width}x${rect.height})`}`;
   }));
-  const expected = ['#sg-nav placed', '#sg-segmented placed', '#sg-track placed'];
+  const expected = ['#sg-nav placed', '#sg-segmented placed'];
   expect(await placed()).toEqual(expected);
   // The dim preset changes type and button sizes; example loads a file.
   for (const value of ['dim', 'example', 'square', 'default', 'dim', 'default']) {
@@ -118,8 +117,8 @@ test('a saved theme is applied before data-sg-ready', async ({ page }) => {
   expect(await page.locator('#sg-theme-link').evaluate((link) => !link.disabled && !!link.sheet)).toBe(true);
 });
 
-test('?speed=0.1 slows CSS motion tenfold on the styleguide and the fixtures', async ({ page }) => {
-  await page.goto(`${STYLEGUIDE}?speed=0.1`);
+test('?speed=0.1 slows CSS motion tenfold on the Motion Lab and the fixtures', async ({ page }) => {
+  await page.goto('/styleguide/motion.html?speed=0.1');
   await ready(page);
   await expect(page.locator('html')).toHaveAttribute('data-sg-speed', '0.1');
   const card = page.locator('#sg-motion-card');

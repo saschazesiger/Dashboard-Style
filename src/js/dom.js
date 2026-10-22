@@ -37,12 +37,13 @@
  * ES2022 (Safari 16.4); a module may import from an earlier module; newer
  * APIs only behind feature detection, named under Progressive:.
  *
- * Progressive: moveBefore (a keyed move keeps the node's animations,
- * focus and iframe state); elsewhere insertBefore, and a moved node that
- * held the focus gets it back with its selection. insertBefore makes the
- * node new to the style engine, so its @starting-style entrances (a status
- * icon) would play again: it carries data-ds-moving (transition: none in
- * motion.css) until one style flush at the end of the call.
+ * Progressive:
+ * - moveBefore (a keyed move keeps the node's animations, focus and iframe
+ *   state): without it insertBefore, and a moved node that held the focus
+ *   gets it back with its selection. insertBefore makes the node new to
+ *   the style engine, so its @starting-style entrances (a status icon)
+ *   would play again: it carries data-ds-moving (transition: none in
+ *   motion.css) until one style flush at the end of the call.
  */
 
 /** How many candidate siblings the look-ahead for an identical node checks. */

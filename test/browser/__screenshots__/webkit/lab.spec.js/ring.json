@@ -1,0 +1,7 @@
+[
+  "animation ds-ripple - 350 0 1 --ds-ease-out",
+  "transition background-color - 250 0 1 --ds-ease-in-out",
+  "transition color - 250 0 1 --ds-ease-in-out",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition scale - 150 0 1 --ds-ease-spatial"
+]

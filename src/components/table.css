@@ -88,9 +88,10 @@
  * A removed row goes at once while the rows below glide up.
  *
  * :has() and container queries are baseline.
- * Progressive: scroll-driven edge fades (animation-timeline, the
- * registered --ds-table-fade-* through @property) fall back to the static
- * fade at the right edge.
+ * Progressive:
+ * - scroll-driven edge fades (animation-timeline, the registered
+ *   --ds-table-fade-* through @property): without them the static fade at
+ *   the right edge stays.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

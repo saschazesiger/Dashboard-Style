@@ -1,0 +1,16 @@
+[
+  "animation ds-fade-in - 150 0 1 --ds-ease-in-out",
+  "animation ds-fade-out - 100 0 1 --ds-ease-in",
+  "transition background-color - 150 0 1 --ds-ease-in-out",
+  "transition border-bottom-color - 150 0 1 --ds-ease-in-out",
+  "transition border-left-color - 150 0 1 --ds-ease-in-out",
+  "transition border-right-color - 150 0 1 --ds-ease-in-out",
+  "transition border-top-color - 150 0 1 --ds-ease-in-out",
+  "transition color - 150 0 1 --ds-ease-in-out",
+  "transition opacity - 100 0 1 --ds-ease-in",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition scale - 0 100 1 ease",
+  "transition scale - 250 0 1 --ds-ease-spatial",
+  "transition stroke-dashoffset - 0 100 1 ease",
+  "transition stroke-dashoffset - 250 0 1 --ds-ease-out"
+]

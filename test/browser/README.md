@@ -15,6 +15,8 @@ npm run test:browser -- --project=fallback   # Chromium as an engine on the brow
 npm run test:browser:update              # rewrite screenshots and JSON snapshots, then review the diff
 DS_SHOTS=local npm run test:browser      # screenshots against __screenshots-local__/ (see "Screenshots")
 DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one video per demo at ?speed=0.1
+DS_VIDEO=1 npm run test:browser -- lab.spec.js --project=webkit   # one video per Motion Lab section at ?speed=0.1
+npm run test:browser -- --project=perf   # the paint budget and style recalc times, alone (see "Paint budget")
 ```
 
 - `@playwright/test` is pinned to an exact version in `package.json` (1.63.0: chromium 1243, firefox 1543,
@@ -72,6 +74,9 @@ DS_VIDEO=1 npm run test:browser -- demos.spec.js --project=chromium   # one vide
 | `scroll.spec.js` | all, `fallback` | scroll-driven effects (1.5.0) on `views.html`, by feature detection: the panel hairline and the top bar's tint at opacity 0, about .5 and 1 at `scrollTop` 0, 4 and 8 (`?observe=0`: no `data-scrolled`), else the sentinel's `data-scrolled` fading both in over `--ds-dur-fast` (read in the microtask after the observer set it, paused in the same task); the same for a side sheet's head hairline; the table's edge fades (`--ds-table-fade-start` / `-end` 0 and `--ds-card-pad` at the start, the reverse at the end, both 0 on a table that fits; else the static `to left` mask without animation); `.ds-reveal--scroll` (hidden below the fold, opaque 96px into view, reversed when scrolled back, opaque in print; static without `view()`); the styleguide's sentinel changes `data-scrolled` at most twice while its view scrolls 2000px |
 | `fallback.spec.js` | `fallback` only | the floor engine itself: `--ds-ease-spatial` computes to its cubic, `startViewTransition`, `showPopover` and `moveBefore` are gone, `el.animate()` rejects `linear()` |
 | `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs"); a fixed bug's test stays and passes |
+| `lab.spec.js` | all, `fallback` (videos with `DS_VIDEO=1`) | the Motion Lab ("Motion Lab: `lab.spec.js`"): the speed select, the curve plots and the ladder, coverage of every primitive by a demo, every demo's Replay timeline (JSON) and settled stage (PNG) per engine, Rapid toggle ending on the far state, Reverse at 50% continuous at `?speed=0.1`, and the Overlays table of `docs/motion.md` against what each engine plays |
+| `review.spec.js` | all (forced colours, style scope: Chromium; page loads: Chromium, WebKit) | the review sweeps over both styleguide pages ("Review sweeps: `review.spec.js`"): quiet load, hover, disabled, forced colours, the page load transition, the style scope of a DOM change |
+| `perf.spec.js` | `perf` (Chromium, measured only when that project runs alone) | the paint budget ("Paint budget"): on `fixtures/perf.html` at 4x CPU throttling the p95 rAF interval of the table of 50 wavy progress bars with four shape loaders is at most two frames (33ms, plus 1ms of rAF jitter); the whole fixture and the skeleton alone are recorded in the annotations; the style recalc of a text change inside a card on both styleguide pages stays under 7.5ms (lower quartile of 21) |
 
 ### Fixtures
 
@@ -95,6 +100,7 @@ covers the `html.ds-theme.ds-base` path.
 | `overlay.html` | `.ds-theme` on `<body>` (the body scrolls, for the scroll lock): openers for a div dialog, a native `<dialog>` with `autofocus` on Cancel, a div side sheet (whose button opens the div dialog nested), a native side sheet and a menu, and a combobox; the page script only wires the openers to `DS.overlay` |
 | `popups.html` | `.ds-theme` on a wrapper: a menu trigger with a four-item menu (one `aria-disabled`, one `menuitemcheckbox`, a divider), a trigger at the right edge and one fixed at the bottom edge with their menus, a combobox with a chevron, one fixed at the bottom edge, a native dialog whose last field is a combobox, `.ds-presence` on a `[hidden]` note and on a `[popover]`; the triggers are wired as `docs/components.md` shows, item clicks are recorded in `window.activated` |
 | `toast-tooltip.html` | `.ds-theme` on a wrapper: a `.ds-toasts` region without role and one with the deprecated `role="status"`, a toolbar of five `[data-tip]` icon buttons (one whose tip equals its name), a trigger fixed at the bottom edge, a native dialog with a trigger, a div side sheet; `DS.overlay.tooltips(document)` as `window.tips` |
+| `perf.html` | the paint budget (`perf.spec.js`): four shape loaders, a full-width skeleton surface and a table of 50 rows with a wavy progress bar each; `?parts=loaders,skeleton,table` keeps only the parts named |
 | `spike.html` | the test bed of the capability spike, one numbered block per capability; animations start when a test adds the `--run` class |
 | `views.html` | `.ds-theme` on `<html>` (the View Transition path; `shell.html` stays the embedded case): the app frame with a drawer indicator named `nav`, four destinations (the fourth without the drawer), a card detail, a native side sheet with previous/next and Refresh, all through `window.fxViews` (`go`, `slow`, `detail`, `back`, `openSheet`, `step`, `refresh`); the first destination scrolls and holds a wide table (`#wide`), one that fits (`#narrow`) and a `.ds-reveal--scroll` block below the fold (`#reveal`); the 1px sentinel sets `data-scrolled` on `.ds-app` and the sheet panel, `?observe=0` leaves it out |
 | `mpa-a.html`, `mpa-b.html` | two pages of a multi-page app: `.ds-theme` on `<html>`, `css/optional/view-transitions.css` as a parser-inserted link (`?plain=1` sets its media to `not all`), a drawer indicator named `nav` from the classic scripts at the end of `<body>`, which the first render waits for (`<link rel="expect" blocking="render">`); the new page records the animations of its View Transition at `ready` in `window.revealed` |
@@ -110,7 +116,7 @@ its link instead), honours `?speed=` and then sets `html[data-fixture-ready]`.
 
 | Hook | Meaning |
 |---|---|
-| `html[data-sg-ready]` | render, navigation, demos and themes are set up, and a theme saved in `localStorage` (`ds-styleguide-theme`) has loaded; `ready()` waits for it instead of racing the first stagger |
+| `html[data-sg-ready]` | render, navigation, demos and themes are set up, and a theme saved in `localStorage` (`ds-styleguide-theme`) has loaded; `ready()` waits for it instead of racing the first stagger. The lab renders its demos after its first render (after the incoming View Transition, if any), so on `motion.html` it also means the demos exist |
 | `html[data-sg-theme="<value>"]` | the theme last applied (`example`, `square`, `dim`, `default`, `file`), set after `afterThemeChange()` refreshed the shown values and re-placed the three indicators; a theme file link is awaited by its `load` or `error` event, a `<style>` preset by one frame, never by a timeout |
 | `html[data-sg-speed]` | `?speed=<factor>` is active (see "Slow motion") |
 
@@ -159,7 +165,10 @@ test('the delayed spinner keeps turning after its entrance', async ({ page }) =>
 
 - The condition is `true`, or the engines where the bug reproduces (`browserName === 'webkit'`).
 - The reason is `<id>[, <id> ...]: fixed in P<n>`, with the ids of `plans/motion-2/coverage.md` (a decision such
-  as `D8` counts as an id); capability gaps use `spike: <capability>`. `test/repo.test.js` checks the format.
+  as `D8` counts as an id); capability gaps use `spike: <capability>`.
+- Since P8 no bug marker is left: `test/repo.test.js` fails on any `test.fail` other than a `spike: <capability>`
+  marker whose condition names the engine (never `true`) and whose capability has a row in the table of "Capability
+  spike", and on a `test.skip` without its reason. A bug found later is fixed with its test, not marked.
 - Never `test.fixme`: it never runs and proves nothing. Before committing, confirm that each marker fails, in the
   engines it names, for the reason it names. A reproduction that unexpectedly passes is a finding to re-check, not
   a marker.
@@ -199,9 +208,9 @@ relying on frame timing, so a loaded machine cannot make it pass or time out by 
 | P5 (fixed, marker deleted) | the pointer moving onto the icon inside a tooltip button keeps the tooltip | js-tooltip-mouseout-child | all |
 | P5 (fixed, marker deleted) | closing an error snackbar does not drop focus to `<body>` | overlay-toast-close-focus-loss | all |
 | P5 (fixed, marker deleted) | reopening a closing dialog continues from its opacity (the exit held at 40 %, read in one task) | overlay-keyframes-not-interruptible | all |
-| P6 | indeterminate to determinate at .3, set in a frame callback 40 to 60 % into the loop's cycle: the bar stays within 30 % from the left edge | layout-progress-handoff | Firefox (the others jump to the share) |
-| P6 | a status class change: the icon runs on the container's timing | layout-status-data-crossfade | all |
-| P6 | the focus ring of a control flush with an open `.ds-collapsible` is not clipped | core-css-collapsible-clip | Chromium (the clip is gated on `interpolate-size`) |
+| P6 (fixed, marker deleted) | indeterminate to determinate at .3, set in a frame callback 40 to 60 % into the loop's cycle: the bar stays within 30 % from the left edge | layout-progress-handoff | Firefox (the others jumped to the share) |
+| P6 (fixed, marker deleted) | a status class change: the icon runs on the container's timing | layout-status-data-crossfade | all |
+| P6 (fixed, marker deleted) | the focus ring of a control flush with an open `.ds-collapsible` is not clipped | core-css-collapsible-clip | Chromium (the clip is gated on `interpolate-size`) |
 
 The clipping tests compare the pixels around the focused control with and without the clip (a style sheet that lifts
 it): equal pixels mean nothing was cut off.
@@ -242,10 +251,23 @@ The committed set in `__screenshots__/<project>/<spec>/` comes from the CI conta
 `mcr.microsoft.com/playwright:v1.63.0-noble`: run the `check` workflow by hand (Actions, "check", Run workflow) with
 "update screenshots" set, download the uploaded `screenshots-<browser>` artifacts (one per engine, each the whole
 `__screenshots__/` folder after that engine's run), copy each one's `<browser>/` folder into
-`test/browser/__screenshots__/` and commit them. CI compares against that set (`maxDiffPixelRatio: 0.002`).
+`test/browser/__screenshots__/` and commit them. CI compares against that set (`maxDiffPixelRatio: 0.002`, `threshold: 0.05` per pixel).
 
 The JSON timelines of `motion-today.spec.js` sit in the same folder but do not depend on fonts or the rasteriser:
 they are compared on every machine, also with `DS_SHOTS=local`.
+
+### The 1.6.0 set
+
+P8 refreshed every committed shot on purpose (`--update-snapshots=all`, all four projects, in the container image
+as for the P0 set, since the review ran without Actions): 515 PNG and 103 JSON files, 14 MB (Chromium 233 + 35,
+Firefox 141 + 34, WebKit 141 + 34). 218 files changed. Until then a run rewrote only shots that failed, and
+Playwright's default per-pixel threshold (0.2) let state layers, a selected row's tint or a hover layer pass
+unseen, so the set still showed some P0 states; the config now compares with `threshold: 0.05` (stable over
+repeated runs in the container). The lab and review specs then added their own (`--update-snapshots=missing`,
+checked with `--repeat-each=3`): a JSON timeline and a settled stage per Motion Lab demo and project (60 + 60 in
+each of the four), and four forced-colour shots. The set is now 759 PNG and 343 JSON files, 18 MB (Chromium 297 + 95,
+Firefox 201 + 94, WebKit 201 + 94, fallback 60 + 60). A CI run with "update screenshots" should reproduce the set;
+if it differs, its artifacts win, as for the P0 set.
 
 ### The P0 set and local parity
 
@@ -420,12 +442,171 @@ The audit's layout findings cite `dist/ds.css` lines; these are the matching `sr
 | `.ds-collapsible` | `motion.css:216-228` |
 | `ds-pulse`, `ds-indeterminate` | `motion.css:106`, `:111` |
 
+## Motion Lab: `lab.spec.js`
+
+The lab (`styleguide/motion.html`) renders the registry of `styleguide/lab.js` (`window.SG_LAB`): one card per
+demo, `data-lab-demo="<id>"`, with `data-lab-shows` (the keyframes, classes, exports and tokens it plays), its
+stage (`.sg-lab-stage`, a fixed height) and the buttons `[data-lab="replay"]`, and for a reversible demo
+`[data-lab="rapid"]` (five toggles 80ms apart at the current speed) and `[data-lab="reverse"]` (back at half of
+the longest running animation). A card carries `data-lab-state="running"` while its run's Promise is pending and
+`"settled"` once it resolved, so the tests never sleep. `Math.random` is seeded per test (the live data of the
+demos), so a run is the same on every machine.
+
+- **Speed:** the select sets `--ds-time-scale` on `<html>` (CSS and `motionDuration()` follow: ten times longer at
+  0.1), stores its choice, and `?speed=` wins without being stored.
+- **Curves and durations:** every `--ds-ease-*` token has a plot sampled from the engine (101 points of a paused
+  probe): effects within [0, 1] and monotonic, the spring above 1 and at most 1.05, settling (the cubic fallback in
+  `fallback`); the ladder has a row per `--ds-dur-*` token, and its chips take token x time scale.
+- **Coverage:** every `@keyframes` of the page's stylesheets (layer blocks included), every `.ds-enter*`,
+  `.ds-leave*`, `.ds-stagger`, `.ds-reveal*`, `.ds-collapsible`, `.ds-swap` and `.ds-icon-swap` class and every
+  function of `DS.motion`, `DS.dom`, `DS.indicator`, `DS.ripple` and `DS.overlay` appears in some `data-lab-shows`,
+  apart from `LAB_EXEMPT` (the deprecated names, each with its reason). A demo that names something that does not
+  exist fails too. Every reversible demo is in `CONTINUITY` or in `CONTINUITY_EXEMPT` with its reason.
+- **Demos** (one test per section, at speed 1): Replay is pressed in the page and, in the task of the click, the
+  timeline it started in the stage and the demo's subject is read: `type name pseudo duration delay iterations
+  easing` per animation, the curve named by its token, unique and sorted. It is compared with the JSON snapshot of
+  the engine (`__screenshots__/<project>/lab.spec.js/<id>.json`); the card must then settle within 4s plus ten times
+  the longest animation of that timeline, or within its `LONG_RUNS` ceiling (a Replay that chains steps on timers or
+  moves outside the stage, so its timeline is empty or short: the drawer, the snackbars, the tooltips ..., each with
+  its reason; a timer chain stretches on a loaded machine), and the settled stage is compared with its screenshot
+  (`<id>.png`; `SHOT_MASKS` covers what frame timing writes, the interruption trace, and, in Firefox only, the
+  frame of `views`, which Firefox now and then paints 1px off after its View Transition (capability table, row 11);
+  a caption that tells what a
+  demo did is written from its nominal times, never from the wall clock). A reversible demo then rapid-toggles
+  twice: five toggles end on the other side of where it was (the registry's `state()`), five more come back, each
+  time with nothing `inert` or `--closing` left, and what carries `hidden` at the end is what carried it before (no
+  `hidden` left by an entrance that was turned back). After a section nothing is left over (`ds-enter` /
+  `ds-leave` classes, `--ds-i`, `inert`, `--closing`, the scroll lock).
+- **Interruption** (one test per section, at `?speed=0.1`): Reverse at 50% of every reversible demo is sampled every
+  frame on the demo's main property (`CONTINUITY`: an opacity, a `translate`, a radio's dot, an indicator's painted
+  edge ...). It must move and be continuous in time (`expectSmooth()` of `helpers/motion.js`): no step larger than
+  four times what the faster of its neighbouring moving frames covers in that step's own frame time, plus 3 % of the
+  range. A sample's time is its frame's rAF timestamp, the time the frame's animations were sampled at: on a loaded
+  machine the moment a script gets to read drifts from it by a frame or more, and a step then read as a jump. Frames
+  that hold a value (a delay, the frame a new animation starts) are no neighbours, and a long frame may cover more
+  ground, so a jump to the end or back to the start stands out in every engine while a steep curve does not.
+- **Overlay table:** every row of the "Overlays" table of `docs/motion.md` is opened and closed in the lab (at
+  `?speed=0.1`; the phone rows at 390px): the part's running transitions and animations (property or keyframe,
+  duration, curve) equal the row's tracks resolved in the engine (durations through `motionDuration()`, curves
+  through the engine's own serialisation on a probe), and where the row names `--ds-motion-origin`, `originFrom()`
+  wrote it and the part grows from it. The table names exactly the layers of `LAYERS`.
+- **Videos:** with `DS_VIDEO=1` only the video tests run, one per section at `?speed=0.1` ("Final review (P8)").
+
+New lab demos get their snapshots with `--update-snapshots=missing` in the container; check them with
+`--repeat-each=3` before committing (a nondeterministic part is masked or made deterministic, never retried).
+
+## Review sweeps: `review.spec.js`
+
+- **Quiet load:** from load until settled, every `transitionrun` and `animationstart` on `index.html` and
+  `motion.html` must come from a source on the `QUIET` list, each with its reason: loops, loaders after their delay,
+  the first-render stagger, scroll-driven effects, and the documented first-render entrances of content in the
+  markup (a status icon, a validation message, the overlays the index shows in place). Nothing on a chip, switch,
+  checkbox, radio or the drawer's pill may move on load. (It found the pill growing in from an empty track and the
+  mixed checkboxes playing their dash in Firefox and WebKit; both are fixed in the styleguide and, for the pill's
+  items, in `createIndicator()`.)
+- **Hover** (engines with a hovering pointer): one element of every kind of interactive element (tag, `ds-`/`sg-`
+  classes, type and role) on both pages keeps its box within 0.5px and its `translate`, `scale` and `transform`
+  while the mouse rests on it (D14).
+- **Disabled:** a press (mouse down, 250ms) on every visible `:disabled` or `aria-disabled="true"` control (a chip or
+  switch through its label) creates no `.ds-press-ripple`, keeps its radius and leaves its `::before` state layer as
+  it was.
+- **Forced colours** (Chromium): screenshots of both pages and of the lab's Controls and Feedback sections with
+  `forcedColors: 'active'`.
+- **Page loads** (where `onpagereveal` exists: Chromium, WebKit): at a height where both drawer lists fit, the
+  drawer's "Motion Lab" link from `index.html` and the link back each run a cross-document View Transition in which
+  `ds-drawer`, `ds-panel`, `ds-view` and `ds-indicator-nav` have groups of their own, no image of the drawer plays a
+  slide (a one-sided drawer would), and the pill's group starts inside the drawer. At 1280x800 the index's list
+  scrolls to its "Motion Lab" link, so the active item's pill is out of view: it gets no group and never starts
+  outside the drawer. (The first found the index's in-place `.ds-dialog--contained` unnaming the frame, the second
+  the pill gliding in over the top bar; both fixed in 1.6.0.) An engine skips the transition when the new page is
+  revealed after its timeout, which the shared run of every spec can cause: each page records when it was revealed
+  (`pagereveal`, ms from the click), and only a page revealed later than `REVEAL_BUDGET` (1s, below every engine's
+  timeout) may come without one, as an annotation; a page revealed in time must have it. The lab once held its first
+  render for 0.3-0.6s (up to 2s under load) while it built and set up every demo, and WebKit dropped the transition at
+  random; its demos now come after the reveal (0.1-0.2s).
+- **Style scope** (Chromium): with every loop paused, a text change inside a card (on both pages) restyles fewer
+  than 100 elements (`UpdateLayoutTree` in a CDP trace). A count does not depend on the load, so it is checked in
+  the shared run; what the change costs in ms is timed in `perf.spec.js` ("Style recalc"), where the CPU is not
+  shared. Before 1.6.0 a rule of `list.css` made it a large part of the page (257 elements, about 35ms of the lab's
+  2,800); a later form of it with a per-fact subject restyled few elements but still cost 8-12ms per change. Each
+  rule alone is cheap; a `:has()` ancestor with a tag or structural subject is not.
+
+## Paint budget: `perf.spec.js`
+
+`fixtures/perf.html` holds what loops most in a dashboard: four shape loaders, a full-width skeleton surface and a
+table of 50 rows with a wavy progress bar each. The test throttles Chromium's CPU 4x (CDP
+`Emulation.setCPUThrottlingRate`), waits 1s, records the rAF intervals of 3s and writes their p95 into its
+annotations. The budget is 33ms, two frames at 60Hz: rAF times come in whole frames (16.7ms steps, a few tenths of
+jitter), so two frames read 33.2-33.5ms and the check allows two frames plus 1ms of that jitter (34.3ms) at the
+p95, never a value between two and three frames. It runs in the `perf` project and measures only when
+that project runs alone (`npm run test:browser -- --project=perf`; CI runs it in a job of its own), since frame
+times taken while other workers share the CPU are noise (a full parallel run read 83ms for the same page).
+
+Result with Playwright 1.63.0 in the CI container, 2026-10-21 (four runs):
+
+| Part | p95 | Frames in 3s (180 is every frame) | Asserted |
+|---|---|---|---|
+| table of 50 wavy bars and four shape loaders | 33.3-33.4ms (two frames), never three | 162-172 | yes |
+| the whole fixture | 133-183ms | 47-65 | no: over budget |
+| the skeleton surface alone | 100-133ms, also without throttling | 88-99 | no: over budget |
+
+The skeleton wave is the cost: its band is fixed to the viewport (`background-attachment: fixed`, the one phase
+across every bone of D11), and a fixed background is repainted with the whole view on every frame of the sweep.
+With `background-attachment: scroll`, or with the bones composited (`will-change: transform`), the same page holds
+every frame, but both lose the diagonal band across the bones in Chromium and Firefox (WebKit keeps it), so P8 did
+not change it: the limits are documented in `docs/components.md` ("Loading", "Paint cost"), and the skeleton's paint
+is on the list for 2.0 in the CHANGELOG. The cost is the rasteriser's (the container has no GPU), so it hardly
+changes with the CPU throttling; a GPU-rasterised browser repaints the band far faster, but still every frame.
+
+### Style recalc
+
+The second half of the style scope sweep: on both styleguide pages, with every loop paused, the same text change
+inside a card as in `review.spec.js` is made 21 times, and the lower quartile of `RecalcStyleDuration` (CDP
+`Performance.getMetrics`) stays under 7.5ms (`STYLE_CEILING`). In the container with the CPU alone a change costs
+3-4.5ms (the `:has()` rules of `ds.css` are most of it; without any it is 0.4ms); the per-fact rule of `list.css`
+took it to 8-12ms. In a full parallel run the same change read 8-27ms, so like the paint budget it asserts only in
+the `perf` project run alone, and the lower quartile, not the median, keeps a stray process out.
+
+## Final review (P8)
+
+### Before/after report
+
+The P0 screenshot set is the "before" picture. Without touching the committed set, extract it into the ignored
+folder and point a wrapper config at it:
+
+```sh
+mkdir -p test/browser/__screenshots-local__/p8-review/p0
+git archive motion-2-p0 test/browser/__screenshots__ | tar -x -C test/browser/__screenshots-local__/p8-review/p0
+# p0.config.js there: the main config with testMatch /(baseline|frames)\.spec\.js$/, the three engines, an html
+# reporter into p8-review/report and toHaveScreenshot.pathTemplate into p8-review/p0/...
+npx playwright test -c test/browser/__screenshots-local__/p8-review/p0.config.js
+```
+
+The HTML report holds actual, expected and diff for every shot; it is the review artefact and is never committed.
+In the P8 review 44 of 88 tests differed (177 shots), every difference explained by a CHANGELOG entry: the reset
+fixture (1.0.0: unlayered resets now beat the components), press, hover and focus shots (1.1.0: press morph, focus
+ring and layer, drawn checkboxes and radios, drawer item rings; the controls table grew 1 to 2px with the drawn
+checkboxes), feedback shots (1.4.0: wavy progress with gap and stop dot, the loading bar), the overlay frames (1.3.0:
+`DS.overlay` timings, the sheet's full-width slide, focus back on the opener at once, so no ring on the closing
+dialog), the modal drawer (1.2.0), the styleguide sections (new demos in every phase, the stable scrollbar gutter of
+1.2.0, the speed select and the Motion Lab card of 1.6.0) and the theme presets (the same controls).
+
+### Videos
+
+`DS_VIDEO=1 npm run test:browser -- lab.spec.js --project=chromium --project=firefox --project=webkit` records one
+video per Motion Lab section at `?speed=0.1` (Replay, then Reverse at 50% and Rapid toggle where a demo is
+reversible) into `test-results/`. Review each demo for jumps, restarts, reversed entrances (D21), movement on hover
+(D14), overshoot on layout sizes (D29) and gaps at the screen edge. Without a video player, Playwright's own ffmpeg
+(`/ms-playwright/ffmpeg-*/ffmpeg-linux` in the container) cuts a video into PNG frames:
+`ffmpeg-linux -i video.webm -r 4 frame-%03d.png`.
+
 ## Capability spike
 
 `spike.spec.js` on `fixtures/spike.html` asserts, in every engine, a capability that a later design relies on;
 gaps are `test.fail(browserName === '<engine>', 'spike: <capability>')`. Findings that are recorded rather than
 asserted are `spike-result` annotations of the test. Results with Playwright 1.63.0 (chromium 1243, firefox 1543,
-webkit 2359), run on 2026-10-19; no engine needed a marker:
+webkit 2359), run on 2026-10-19; no engine needed a marker, and none is left at 1.6.0 (the table records the
+capabilities the design relies on; a later gap gets its row and its `spike:` marker):
 
 | # | Capability | Chromium | Firefox | WebKit | Design consequence |
 |---|---|---|---|---|---|
@@ -439,3 +620,4 @@ webkit 2359), run on 2026-10-19; no engine needed a marker:
 | 8 | Focus snap: `outline-offset` transition beside a running animation | ring solid at frame 1, offset 4 → 3 → 2px; the animation keeps running | same | same | D24 as planned in P3: a transition on `outline-offset` never takes over `animation`. |
 | 9 | A closing `<dialog>` above a sticky element | paints above | paints above | paints above | P5's `--closing` rule (`display: block; position: fixed; z-index`) keeps a closed dialog above sticky content in every engine. |
 | 10 | Skeleton wave in phase across bones (`background-attachment: fixed`) | one phase across bones; breaks under an ancestor's `translate` animation, also while a finished one fills; holds once it is gone | same as Chromium | one phase in every case | P6: the wave starts after the container's entrance, and no entrance around a skeleton fills forwards (`.ds-enter` fills `backwards` only). Noted in `plans/motion-2/P6.md`. |
+| 11 | Painting a frame (`<iframe>`) after a same-document View Transition inside it (recorded, not a spike test) | the same paint every run | now and then, under parallel load (2 of 20 with 10 workers), paints the frame's content 1px up and to the left while its border stays put; the DOM, the rects, the scroll, the transforms and the animations are those of a good run, and a forced repaint does not stop it | the same paint every run | Not a `src/` bug: the settled shot of the lab's `views` demo masks the `iframe` in Firefox only (`SHOT_MASKS`, `engines`); its timeline JSON and the state checks of the Replay stay the proof. |

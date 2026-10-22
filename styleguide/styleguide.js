@@ -1,7 +1,14 @@
 /*
  * The living styleguide: every component with the markup of
- * docs/components.md, the tokens of the active theme, motion demos and the
- * icon set. A classic script on top of dist/ds.js, so it runs from disk.
+ * docs/components.md, the tokens of the active theme and the icon set
+ * (index.html), and the Motion Lab (motion.html). A classic script on top
+ * of dist/ds.js, so both pages run from disk. It is the one shared script
+ * of both pages: the frame, navigation, themes, the speed select and the
+ * readiness hook; <body data-sg-page="index|lab"> says which sections it
+ * renders. The lab's demos come from the registry window.SG_LAB (lab.js,
+ * loaded before this file), whose cards get Replay, Rapid toggle and
+ * Reverse at 50% here.
+ *
  * Overlays (dialogs, sheets, the modal drawer, menus, the combobox list,
  * snackbars and tooltips) run through DS.overlay; the rest of the small
  * behaviours here (filtering the combobox, what a menu item does) is demo
@@ -9,11 +16,18 @@
  *
  * Hooks for the browser tests (test/browser/), harmless when opened by hand:
  *   html[data-sg-ready]   set once render, navigation, demos and themes are
- *                         set up and a saved theme has loaded
+ *                         set up and a saved theme has loaded (the lab's
+ *                         demos come after its first render: startLab)
  *   html[data-sg-theme]   the theme last applied, set once its values and
- *                         the three indicators were updated
+ *                         the indicators were updated
  *   ?speed=0.1            slow motion (a factor of 1 or less), marked
- *                         html[data-sg-speed]
+ *                         html[data-sg-speed]; it wins over the speed
+ *                         select's stored choice and is not stored
+ *   [data-lab-demo]       a lab card: data-lab-shows (what it exercises),
+ *                         data-lab-state running or settled, and its
+ *                         buttons [data-lab="replay|rapid|reverse"]
+ *   window.SG_LAB_HELPERS the `sg` object the registry's functions receive
+ *                         (a test calls a demo's reset() with it)
  */
 (function () {
   'use strict';
@@ -26,30 +40,93 @@
   var $$ = function (selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); };
   var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
 
-  /* ── Slow motion: ?speed=<factor> ─────────────────────────────────── */
+  /** Which page this is: the styleguide (index.html) or the Motion Lab (motion.html). */
+  var PAGE = document.body.getAttribute('data-sg-page') === 'lab' ? 'lab' : 'index';
 
-  // --ds-time-scale multiplies every duration and delay token: at
-  // ?speed=0.1 it is 10 on the root .ds-theme element (<html>), so CSS
-  // motion and everything DS.motion times from the tokens run ten times
-  // slower. Only the styleguide and the tests set it.
-  var speed = Number(new URLSearchParams(location.search).get('speed'));
-  if (speed > 0 && speed < 1) {
-    document.documentElement.setAttribute('data-sg-speed', String(speed));
-    document.documentElement.style.setProperty('--ds-time-scale', String(1 / speed));
+  /* ── Slow motion: the speed select and ?speed=<factor> ───────────── */
+
+  /*
+   * Styleguide tooling only. --ds-time-scale multiplies every duration and
+   * delay token: at a speed of 0.1 it is 10, inline on the root .ds-theme
+   * element (<html>), so CSS motion and everything DS.motion times from
+   * the tokens (motionDuration() reads them) run ten times slower. Themes
+   * and components never set it (test/tokens.test.js forbids it in src/
+   * and themes/). The select's choice is stored; ?speed= wins over it and
+   * is not stored, so test runs are deterministic.
+   */
+  var SPEEDS = [1, 0.5, 0.25, 0.1];
+  var SPEED_KEY = 'ds-styleguide-speed';
+  var speed = 1;
+
+  function applySpeed(factor) {
+    var root = document.documentElement;
+    speed = factor;
+    if (factor < 1) {
+      root.setAttribute('data-sg-speed', String(factor));
+      root.style.setProperty('--ds-time-scale', String(1 / factor));
+    } else {
+      root.removeAttribute('data-sg-speed');
+      root.style.removeProperty('--ds-time-scale');
+    }
   }
 
+  (function initialSpeed() {
+    var asked = Number(new URLSearchParams(location.search).get('speed'));
+    var stored = 1;
+    try { stored = Number(localStorage.getItem(SPEED_KEY)); } catch (e) { stored = 1; /* storage may be blocked */ }
+    applySpeed(asked > 0 && asked <= 1 ? asked : SPEEDS.indexOf(stored) !== -1 ? stored : 1);
+  }());
+
   /* A demo's own timer (a fake request, a poll, a feed): slowed down with
-     ?speed= like the motion, so the story keeps its pace. */
-  function slow(ms) { return speed > 0 && speed < 1 ? ms / speed : ms; }
+     the speed like the motion, so the story keeps its pace. */
+  function slow(ms) { return ms / speed; }
+
+  /* The read-out next to the select names the speed while it is below 1,
+     so a screenshot never hides it; the lab's ms labels follow. */
+  function showSpeed() {
+    var out = $('#sg-speed-readout');
+    out.hidden = speed >= 1;
+    out.textContent = 'Slow motion ' + speed + '\u00d7';
+    refreshTimes();
+  }
+
+  /* The select in the top bar. A ?speed= factor that is none of its
+     options gets an option of its own for the visit. */
+  function setupSpeed() {
+    var select = $('#sg-speed-select');
+    if (SPEEDS.indexOf(speed) === -1) {
+      var option = document.createElement('option');
+      option.value = String(speed);
+      option.textContent = speed + '\u00d7';
+      select.appendChild(option);
+    }
+    select.value = String(speed);
+    showSpeed();
+    select.addEventListener('change', function () {
+      applySpeed(Number(select.value));
+      try { localStorage.setItem(SPEED_KEY, String(speed)); } catch (e) { /* storage may be blocked */ }
+      showSpeed();
+    });
+  }
 
   /* ── Sections ─────────────────────────────────────────────────────── */
 
+  /* The drawer: groups of [section id, label, icon], and a fourth entry
+     for a link to the other page. */
   var NAV = [
     { group: 'Start', items: [['overview', 'Overview', 'overview']] },
     { group: 'Foundations', items: [['colour', 'Colour', 'image'], ['type', 'Type', 'fileText'], ['shape', 'Space and shape', 'columns']] },
     { group: 'Components', items: [['buttons', 'Buttons', 'plus'], ['status', 'Status and alerts', 'alertCircle'], ['cards', 'Cards and lists', 'list'], ['table', 'Table', 'rows'], ['forms', 'Forms', 'pencil'], ['selection', 'Chips, switch, combobox', 'check'], ['overlays', 'Overlays', 'copy'], ['loading', 'Loading and progress', 'sync'], ['frame', 'App frame', 'monitor']] },
-    { group: 'Motion and icons', items: [['motion', 'Motion', 'activity'], ['icons', 'Icons', 'apps']] },
+    { group: 'Motion and icons', items: [['motion', 'Motion', 'sparkles'], ['lab', 'Motion Lab', 'activity', 'motion.html'], ['icons', 'Icons', 'apps']] },
   ];
+
+  /* The lab's drawer: its sections (the groups that have demos), then the way back. */
+  function labNav() {
+    return [
+      { group: 'Motion Lab', items: [['lab', 'Overview', 'overview']].concat(labGroups().map(function (group) { return [group.id, group.title, group.icon]; })) },
+      { group: 'Styleguide', items: [['index', 'Components and tokens', 'arrowLeft', 'index.html']] },
+    ];
+  }
 
   function section(id, title, lead, body) {
     return '<section class="sg-section" id="' + id + '" aria-labelledby="' + id + '-title">' +
@@ -825,117 +902,15 @@
       card('Markup', '<pre class="sg-code">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
   }
 
-  /* Motion */
+  /* Motion: the principles in short; every demo is in the Motion Lab. */
   function motion() {
-    return section('motion', 'Motion', 'Material curves for fades, a gentle spring for movement that floats, short distances, exits faster than entrances. The same motion on every device; ?speed=0.1 in the address plays it ten times slower.',
-      '<div class="ds-grid-2">' +
-      card('Enter and leave', '<div class="sg-stage"><div class="ds-card sg-stage__card" id="sg-motion-card"><h3 class="ds-card__title">A card</h3><p class="ds-muted">Plays the chosen entrance or exit.</p></div></div>' +
-        '<div class="sg-row">' + ['', 'fade', 'scale', 'slide', 'swap'].map(function (v) { return '<button class="ds-btn ds-btn--sm" type="button" data-enter="' + v + '">enter' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>' +
-        '<div class="sg-row">' + ['', 'sink', 'scale', 'slide', 'pop'].map(function (v) { return '<button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-leave="' + v + '">leave' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>') +
-      card('Stagger and count', '<div class="sg-stage"><div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div></div>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stagger">Stagger</button><button class="ds-btn ds-btn--sm" type="button" data-sg="fill">Fill as bars</button><button class="ds-btn ds-btn--sm" type="button" data-sg="count">Count up the tiles</button></div>' +
-        '<div class="ds-progress sg-count-progress" id="sg-count-progress" style="--ds-progress:.6"><div class="ds-progress__track" role="progressbar" aria-label="Share counted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><div class="ds-progress__bar"></div></div><p class="ds-progress__label" id="sg-count-figure">60%</p><p class="ds-progress__detail">figure and bar land together</p></div>') +
-      '</div>' +
-      card('Indicator', '<p class="ds-muted">The pill stretches toward its target (the leading edge leads, the trailing edge follows), passes it by a hair and settles on the spring; a longer jump takes longer, up to a cap. It follows aria-pressed by itself: the buttons below only change the attribute. A new target mid-glide continues from where the pill is.</p>' +
-        '<div class="sg-track" id="sg-track">' + ['Day', 'Week', 'Month', 'Quarter', 'Year', 'All time'].map(function (name, index) {
-          return '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="' + (index ? 'false' : 'true') + '">' + name + '</button>';
-        }).join('') + '</div>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-hop">Hop to the neighbour</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-jump">Jump across</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-interrupt">Interrupt (two targets 80ms apart)</button><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="track-clear" aria-pressed="false">No active item</button></div>') +
-      card('Data motion', '<p class="ds-muted">A keyed list re-rendered with DS.dom.morphHtml inside DS.motion.flip: rows glide to their new places, new rows fade in, removed rows fade out of the flow. Typing filters on every keystroke. The live feed reorders every 1.5s; while the mouse is over the list or a row has focus, values change at once and the reorder waits (at most 2s).</p>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="data-add">' + icon('plus', 16) + 'Add</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-remove">Remove</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-shuffle">Shuffle</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-sort">Sort by load</button><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="data-live" aria-pressed="false">Live feed</button></div>' +
-        '<div class="ds-field sg-data-filter"><label class="ds-field__label" for="sg-data-filter">Filter</label><input class="ds-input" id="sg-data-filter" type="search" autocomplete="off" placeholder="Device name"></div>' +
-        '<p class="ds-meta sg-data-status" id="sg-data-status" aria-live="polite"><span>' + dataCount() + '</span></p>' +
-        '<ul class="ds-kv-list sg-data-list" id="sg-data-list">' + dataHtml() + '</ul>') +
-      card('Disclosure', '<details class="ds-collapsible sg-disclosure"><summary>Show the motion rules' + icon('chevronDown', 20, 'ds-chevron') + '</summary><ol class="ds-muted"><li>Animate only transform, opacity, colours, shadows and clip-path.</li><li>Fades on the standard curve, floating movement on a gentle spring; exits accelerate.</li><li>Data changes glide: figures count from the shown value, reordered rows move to their new places; a refresh never replays an entrance.</li></ol>' +
-        '<button class="ds-btn ds-btn--sm" type="button" data-sg="copy-rules">' + icon('copy', 16) + 'Copy the rules</button></details>' +
-        '<p class="ds-muted">It opens over 250ms, decelerating, while the content fades in, and closes faster, accelerating; the chevron turns on the spring. The button sits flush with the content edge, and its focus ring still shows in full.</p>'));
-  }
-
-  /* Data motion: a keyed list, its state and its markup. */
-  var data = {
-    items: [
-      { id: 'd1', name: 'LAPTOP-0042', load: 72 },
-      { id: 'd2', name: 'LAPTOP-0017', load: 35 },
-      { id: 'd3', name: 'PRINTER-0003', load: 88 },
-      { id: 'd4', name: 'TABLET-0121', load: 14 },
-      { id: 'd5', name: 'LAPTOP-0108', load: 51 },
-      { id: 'd6', name: 'DESKTOP-0009', load: 63 },
-    ],
-    next: 7,
-    filter: '',
-    sorted: false,
-    feed: 0,
-  };
-
-  function dataShown() {
-    var query = data.filter.trim().toLowerCase();
-    return data.items.filter(function (item) { return !query || item.name.toLowerCase().indexOf(query) !== -1; });
-  }
-
-  function dataCount() {
-    var shown = dataShown().length;
-    return shown === data.items.length ? data.items.length + ' devices' : shown + ' of ' + data.items.length + ' devices';
-  }
-
-  function dataHtml() {
-    var shown = dataShown();
-    if (!shown.length) return '<li><span class="ds-muted">No device matches "' + esc(data.filter.trim()) + '".</span></li>';
-    return shown.map(function (item) {
-      return '<li data-ds-key="' + item.id + '"><span>' + esc(item.name) + '</span><strong class="ds-num">' + item.load + '%</strong></li>';
-    }).join('');
-  }
-
-  /* Re-renders the list through flip(); `status` (optional) rolls in below the buttons. */
-  function updateData(status, live) {
-    var list = $('#sg-data-list');
-    if (data.sorted) data.items.sort(function (a, b) { return b.load - a.load; });
-    M.flip(list, function (options) { DS.dom.morphHtml(list, dataHtml(), options); }, live ? { live: true } : {});
-    M.roll($('#sg-data-status'), status ? dataCount() + ' · ' + status : dataCount());
-  }
-
-  function dataAction(action, button) {
-    var names = ['LAPTOP', 'TABLET', 'DESKTOP', 'PRINTER'];
-    if (action === 'data-add' && data.items.length < 12) {
-      var id = data.next;
-      data.next += 1;
-      var item = { id: 'd' + id, name: names[id % names.length] + '-0' + (200 + id), load: Math.round(5 + Math.random() * 90) };
-      data.items.splice(Math.floor(Math.random() * (data.items.length + 1)), 0, item);
-      updateData('added ' + item.name);
-    }
-    if (action === 'data-remove' && data.items.length) {
-      var gone = data.items.splice(Math.floor(Math.random() * data.items.length), 1)[0];
-      updateData('removed ' + gone.name);
-    }
-    if (action === 'data-shuffle') {
-      data.sorted = false;
-      for (var i = data.items.length - 1; i > 0; i -= 1) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var swap = data.items[i];
-        data.items[i] = data.items[j];
-        data.items[j] = swap;
-      }
-      updateData('shuffled');
-    }
-    if (action === 'data-sort') {
-      data.sorted = true;
-      updateData('sorted by load');
-    }
-    if (action === 'data-live') {
-      var on = button.getAttribute('aria-pressed') !== 'true';
-      button.setAttribute('aria-pressed', String(on));
-      clearInterval(data.feed);
-      data.feed = 0;
-      if (on) {
-        data.sorted = true;
-        data.feed = setInterval(function () {
-          data.items.forEach(function (row) {
-            if (Math.random() < 0.5) row.load = Math.max(1, Math.min(99, row.load + Math.round((Math.random() - 0.5) * 40)));
-          });
-          updateData(null, true);
-        }, 1500);
-      }
-      M.roll($('#sg-data-status'), dataCount() + ' · live feed ' + (on ? 'on' : 'off'));
-    }
+    return section('motion', 'Motion', 'Material curves for fades, a gentle spring for movement that floats, short distances, exits faster than entrances. The same motion on every device; the Speed select in the top bar (or ?speed=0.1 in the address) plays it slower.',
+      card('Principles', '<ul class="sg-principles">' +
+        '<li>Springs carry what floats (the indicator, sheets, menus, rows that glide); fades and colours stay within their range, and sizes that push layout land on <code>--ds-ease-out</code>.</li>' +
+        '<li>Hover never moves anything; a press ripples from the pointer and turns the shape squarer, then it springs back.</li>' +
+        '<li>Interrupted, every motion continues from where it is; data glides to its new place and never replays an entrance.</li></ul>' +
+        '<div class="sg-row"><a class="ds-btn ds-btn--tonal" href="motion.html">' + icon('activity', 16) + 'Open the Motion Lab</a><a class="ds-btn ds-btn--text" href="../docs/motion.md">Motion reference ' + icon('arrowRight', 16) + '</a></div>' +
+        '<p class="ds-muted">The lab plots every curve as this browser plays it, lines up the durations, and replays every choreography, with rapid toggles and reversals to show interruption.</p>'));
   }
 
   /* Icons */
@@ -950,18 +925,301 @@
       }).join('') + '</div>'));
   }
 
+  /* ── Motion Lab (motion.html) ────────────────────────────────────── */
+
+  var LAB = window.SG_LAB || [];
+
+  /** The lab's groups that have demos, in page order. */
+  function labGroups() {
+    return (window.SG_LAB_GROUPS || []).filter(function (group) {
+      return LAB.some(function (entry) { return entry.group === group.id; });
+    });
+  }
+
+  /** Tokens whose computed value is a time: the card shows them in ms. */
+  var TIMED = /^--ds-(dur|delay|hold|stagger|loop)(-|$)/;
+
+  function isToken(name) { return name.indexOf('--ds-') === 0; }
+
+  /** A token as a label; a time token with its computed ms (refreshTimes() fills it). */
+  function tokenLabel(name) {
+    return '<code>' + name + '</code>' + (TIMED.test(name) ? ' <span class="ds-num" data-lab-ms="' + name + '"></span>' : '');
+  }
+
+  /* One demo of the registry: stage, the tokens it uses with their ms at the
+     current speed, what else it exercises, and its buttons. */
+  function labCard(entry) {
+    var tokens = entry.shows.filter(isToken);
+    var others = entry.shows.filter(function (name) { return !isToken(name); });
+    return '<article class="ds-card sg-demo' + (entry.wide ? ' sg-demo--wide' : '') + '" data-lab-demo="' + entry.id + '" data-lab-shows="' + esc(entry.shows.join(' ')) + '" data-lab-state="idle" aria-labelledby="lab-' + entry.id + '-title">' +
+      '<h3 class="ds-card__title" id="lab-' + entry.id + '-title">' + entry.title + '</h3>' +
+      (entry.note ? '<p class="ds-muted sg-demo__note">' + entry.note + '</p>' : '') +
+      '<div class="sg-lab-stage"' + (entry.height ? ' style="--sg-lab-stage-height: ' + entry.height + 'px"' : '') + '>' + entry.html + '</div>' +
+      (entry.after || '') +
+      (tokens.length ? '<p class="ds-meta sg-demo__tokens">' + tokens.map(tokenLabel).join(' · ') + '</p>' : '') +
+      (others.length ? '<p class="ds-meta sg-demo__shows">Exercises ' + others.map(function (name) { return '<code>' + esc(name) + '</code>'; }).join(', ') + '</p>' : '') +
+      '<div class="sg-row sg-demo__actions"><button class="ds-btn ds-btn--sm ds-btn--tonal" type="button" data-lab="replay">' + icon('reset', 16) + (entry.playLabel || 'Replay') + '</button>' +
+      (entry.toggle ? '<button class="ds-btn ds-btn--sm" type="button" data-lab="rapid">Rapid toggle</button><button class="ds-btn ds-btn--sm" type="button" data-lab="reverse">Reverse at 50%</button>' : '') + '</div>' +
+      (entry.controls || '') + '</article>';
+  }
+
+  function labGroup(group) {
+    return '<section class="sg-section" id="' + group.id + '" aria-labelledby="' + group.id + '-title">' +
+      '<header class="ds-page-head"><h2 class="ds-page-head__title" id="' + group.id + '-title">' + group.title + '</h2>' +
+      '<p class="ds-page-head__lead">' + group.lead + '</p></header>' +
+      '<div class="sg-demos">' + LAB.filter(function (entry) { return entry.group === group.id; }).map(labCard).join('') + '</div></section>';
+  }
+
+  /* The lab's opening: what it is, how to use it, and four figures. */
+  function labIntro() {
+    var durations = {};
+    LAB.forEach(function (entry) { entry.shows.forEach(function (name) { if (name.indexOf('--ds-dur-') === 0) durations[name] = true; }); });
+    var curves = LAB.filter(function (entry) { return entry.id.indexOf('curve-') === 0; }).length;
+    var figure = function (name, value, glyph, note, id) {
+      return '<div class="ds-tile"><p class="ds-tile__label">' + icon(glyph, 20) + '<span>' + name + '</span></p><p class="ds-tile__value"' + (id ? ' id="' + id + '"' : '') + '>' + value + '</p><p class="ds-tile__note">' + note + '</p></div>';
+    };
+    return '<section class="sg-section" id="lab" aria-labelledby="lab-title">' +
+      '<div class="sg-hero"><h1 id="lab-title">Motion Lab</h1>' +
+      '<p>Every motion of Dashboard-Style, one demo at a time: the curves and durations it is built from, sampled from this browser, and the choreography of its parts. Replay any demo; Rapid toggle and Reverse at 50% interrupt it, and every motion continues from where it is.</p>' +
+      '<p>The Speed select in the top bar slows everything down to a tenth (or add <code>?speed=0.1</code> to the address): it sets <code>--ds-time-scale</code>, so CSS motion and DS.motion slow down together.</p>' +
+      '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="#foundations">Start with the curves</a><a class="ds-btn" href="index.html">' + icon('arrowLeft', 16) + 'Back to the styleguide</a><a class="ds-btn ds-btn--text" href="../docs/motion.md">Motion reference ' + icon('arrowRight', 16) + '</a></div></div>' +
+      '<div class="ds-tiles">' +
+      figure('Demos', String(LAB.length), 'apps', 'each one replays') + figure('Curves', String(curves), 'activity', 'sampled, not drawn') +
+      figure('Durations', String(Object.keys(durations).length), 'clock', '50 to 600ms') + figure('Spring peak', '...', 'sparkles', 'the contract: at most 1.05', 'sg-lab-peak') +
+      '</div></section>';
+  }
+
+  /* The time labels of the lab: tokens in ms at the current speed, and the
+     travel times of the ladder. */
+  function refreshTimes() {
+    // Every read first, then every write: a write between two reads would
+    // make each read restyle the whole page again.
+    var labels = $$('[data-lab-ms]').map(function (el) { return [el, Math.round(M.motionDuration(el, el.getAttribute('data-lab-ms'))) + 'ms']; })
+      .concat($$('[data-lab-travel]').map(function (el) { return [el, Math.round(M.travelDuration(el, Number(el.getAttribute('data-lab-travel')))) + 'ms']; }));
+    labels.forEach(function (label) { if (label[0].textContent !== label[1]) label[0].textContent = label[1]; });
+  }
+
+  /* The helpers a lab entry gets as `sg` (lab.js). */
+  var indicators = [];
+
+  function addIndicator(track, options) {
+    var made = DS.indicator.createIndicator(track, options);
+    indicators.push(made);
+    return made;
+  }
+
+  function frames(count) {
+    return new Promise(function (resolve) {
+      var left = count;
+      (function tick() {
+        if (left <= 0) { resolve(); return; }
+        left -= 1;
+        requestAnimationFrame(tick);
+      }());
+    });
+  }
+
+  var SG = { icon: icon, toast: function (text, kind) { return toast(text, kind); }, slow: slow, indicator: addIndicator, frames: frames };
+  window.SG_LAB_HELPERS = SG;
+
+  /* Each demo's run: a newer press supersedes an older one (its timers stop,
+     and only the latest run marks the card settled), and `on` is where a
+     reversible demo is. */
+  var labDemos = {};
+
+  function labOn(demo) {
+    if (demo.entry.state) demo.on = !!demo.entry.state(demo.stage);
+    return demo.on;
+  }
+
+  function labRun(demo, start) {
+    var run = demo.run += 1;
+    demo.timers.forEach(clearTimeout);
+    demo.timers = [];
+    demo.card.setAttribute('data-lab-state', 'running');
+    var finish = function () { if (run === demo.run) demo.card.setAttribute('data-lab-state', 'settled'); };
+    new Promise(function (resolve) { resolve(start()); }).then(finish, function (error) {
+      finish();
+      throw error;
+    });
+  }
+
+  function later(demo, ms) {
+    return new Promise(function (resolve) { demo.timers.push(setTimeout(resolve, ms)); });
+  }
+
+  function labReplay(demo) {
+    labRun(demo, function () {
+      if (demo.entry.reset) demo.entry.reset(demo.stage, SG);
+      var done = demo.entry.play(demo.stage, SG);
+      demo.on = true;
+      labOn(demo);
+      return done;
+    });
+  }
+
+  /* Five toggles 80ms apart (at the current speed): the end state is the
+     one the count implies, and nothing jumps on the way. */
+  function labRapid(demo) {
+    labRun(demo, function () {
+      labOn(demo);
+      return new Promise(function (resolve) {
+        var left = 5;
+        (function next() {
+          demo.on = !demo.on;
+          var done = demo.entry.toggle(demo.stage, demo.on, SG);
+          left -= 1;
+          if (left) demo.timers.push(setTimeout(next, slow(80)));
+          else resolve(done);
+        }());
+      });
+    });
+  }
+
+  /** How long until the longest motion in `root` (the stage, or the entry's subject) is half done (ms). */
+  function halfway(root) {
+    var longest = null;
+    root.getAnimations({ subtree: true }).forEach(function (animation) {
+      var timing = animation.effect && animation.effect.getComputedTiming();
+      if (!timing || !isFinite(timing.endTime) || !(timing.endTime > 0)) return;
+      if (!longest || timing.endTime > longest.end) longest = { end: timing.endTime, at: Number(animation.currentTime) || 0 };
+    });
+    if (!longest) return M.motionDuration(document.documentElement, '--ds-dur-medium') / 2;
+    return Math.max(0, longest.end / 2 - longest.at);
+  }
+
+  /* Starts the motion, then turns it back at half of its (scaled) duration:
+     the way back continues from there, never from the start. */
+  function labReverse(demo) {
+    labRun(demo, function () {
+      demo.on = !labOn(demo);
+      demo.entry.toggle(demo.stage, demo.on, SG);
+      // Two frames: an indicator places itself one frame after the change.
+      return frames(2).then(function () {
+        var subject = demo.entry.subject ? demo.entry.subject(demo.stage) : demo.stage;
+        return later(demo, halfway(subject || demo.stage));
+      }).then(function () {
+        demo.on = !demo.on;
+        return demo.entry.toggle(demo.stage, demo.on, SG);
+      });
+    });
+  }
+
+  /* The lab's sections, appended to the opening that render() put in. */
+  function renderLabSections() {
+    var template = document.createElement('template');
+    template.innerHTML = labGroups().map(labGroup).join('');
+    var sections = Array.prototype.slice.call(template.content.children);
+    presetStates(template.content);
+    $('#sg-page').append(template.content);
+    return sections;
+  }
+
+  /*
+   * The lab's sections and demos come after the first render. Built, laid
+   * out and set up (curves sampled, indicators placed) before it, they kept
+   * the page render-blocked (<link rel="expect"> in motion.html) for half a
+   * second and more, and a cross-document View Transition whose new page
+   * comes that late is skipped once the engine's timeout passes: the move
+   * from the styleguide lost its glide on a busy machine. So the first
+   * render holds the frame, the drawer with its named pill and the lab's
+   * opening; the rest waits for the incoming View Transition to finish
+   * (its main-thread animations, the pill's size among them, would stall
+   * behind the work) or, without one, for the frame after the reveal.
+   * pagereveal comes before the animation frame callbacks of the same
+   * frame: a first frame callback that has seen none comes after a reveal
+   * that happened earlier, or in an engine without the event.
+   */
+  function startLab(done) {
+    var transition = null;
+    var start = function () {
+      setTimeout(function () {
+        var sections = renderLabSections();
+        setupLab();
+        $$('.sg-section').forEach(function (s) { spy.observe(s); });
+        refreshTimes();
+        M.enterAll(sections, 'swap');
+        var target = location.hash && document.getElementById(location.hash.slice(1));
+        if (target) target.scrollIntoView();
+        done();
+      }, 0);
+    };
+    window.addEventListener('pagereveal', function (event) { transition = event.viewTransition || null; }, { once: true });
+    requestAnimationFrame(function () {
+      if (transition) transition.finished.then(start, start);
+      else start();
+    });
+  }
+
+  function setupLab() {
+    LAB.forEach(function (entry) {
+      var card = $('[data-lab-demo="' + entry.id + '"]');
+      var demo = labDemos[entry.id] = { entry: entry, card: card, stage: $('.sg-lab-stage', card), on: false, run: 0, timers: [] };
+      if (entry.setup) entry.setup(demo.stage, SG);
+      labOn(demo);
+    });
+    $('#sg-page').addEventListener('click', function (event) {
+      var button = event.target.closest('[data-lab]');
+      var demo = button && labDemos[button.closest('[data-lab-demo]').getAttribute('data-lab-demo')];
+      if (!demo) return;
+      var kind = button.getAttribute('data-lab');
+      if (kind === 'replay') labReplay(demo);
+      if (kind === 'rapid' && demo.entry.toggle) labRapid(demo);
+      if (kind === 'reverse' && demo.entry.toggle) labReverse(demo);
+    });
+    var spatial = $('[data-lab-curve="--ds-ease-spatial"] [data-lab-peak]');
+    if (spatial && $('#sg-lab-peak')) $('#sg-lab-peak').textContent = spatial.getAttribute('data-lab-peak');
+    DS.overlay.tooltips(document);
+  }
+
   /* ── Render ──────────────────────────────────────────────────────── */
+
+  /* Markup into the page through an inert <template>: parsed straight into
+     the document (innerHTML with an icon's <svg>), it would make Chromium
+     end the render block of the pages' <link rel="expect"> before the
+     named drawer indicator exists (css/optional/view-transitions.css). */
+  function setHtml(element, html, prepare) {
+    var template = document.createElement('template');
+    template.innerHTML = html;
+    if (prepare) prepare(template.content);
+    element.replaceChildren(template.content);
+  }
 
   function render() {
     $('#sg-version').textContent = 'v' + DS.version;
-    $('[data-sg="menu"]').innerHTML = icon('menu', 20);
-    $('#sg-nav').innerHTML = NAV.map(function (group) {
+    setHtml($('[data-sg="menu"]'), icon('menu', 20));
+    setHtml($('#sg-nav'), (PAGE === 'lab' ? labNav() : NAV).map(function (group) {
       return '<div class="ds-drawer__group"><p class="ds-drawer__heading">' + group.group + '</p>' + group.items.map(function (item) {
-        return '<a class="ds-drawer__item" href="#' + item[0] + '">' + icon(item[2], 20) + '<span class="ds-drawer__label">' + item[1] + '</span></a>';
+        return '<a class="ds-drawer__item" href="' + (item[3] || '#' + item[0]) + '">' + icon(item[2], 20) + '<span class="ds-drawer__label">' + item[1] + '</span></a>';
       }).join('') + '</div>';
-    }).join('');
-    $('#sg-page').innerHTML = overview() + colour() + type() + shape() + buttons() + status() + cards() + table() + forms() + selection() + overlays() + loading() + frame() + motion() + icons();
+    }).join(''));
+    // The lab's first render is its opening alone: its demos follow once
+    // the page is revealed (startLab).
+    setHtml($('#sg-page'), PAGE === 'lab'
+      ? labIntro()
+      : overview() + colour() + type() + shape() + buttons() + status() + cards() + table() + forms() + selection() + overlays() + loading() + frame() + motion() + icons(), presetStates);
+    // The current item is part of the first render: its colour never fades
+    // in on load. A lab address with a section's hash starts on that
+    // section's item, before the section itself exists.
+    var hashed = PAGE === 'lab' && location.hash && $$('#sg-nav a').some(function (a) { return a.getAttribute('href') === location.hash; });
+    setActive(hashed ? location.hash.slice(1) : $('.sg-section').id);
     readValues();
+  }
+
+  /* The mixed state exists only as a property: set it on the parsed markup
+     before it goes into the page, or the boxes play their dash on load
+     where the engine has styled them on insertion (Firefox, WebKit). A
+     header checkbox takes the state of its rows, as the demos keep it. */
+  function presetStates(root) {
+    $$('[data-sg="indeterminate"], [data-check-some]', root).forEach(function (input) { input.indeterminate = true; });
+    $$('table', root).forEach(function (table) {
+      var all = $('thead input[type="checkbox"]', table);
+      var rows = $$('tbody input[type="checkbox"]', table);
+      if (!all || !rows.length) return;
+      var checked = rows.filter(function (row) { return row.checked; }).length;
+      all.checked = checked === rows.length;
+      all.indeterminate = checked > 0 && checked < rows.length;
+    });
   }
 
   /* Current values of the colour and type roles (they change with the theme). */
@@ -980,9 +1238,6 @@
   var app = $('#sg-app');
   var view = $('#main');
   var modal = window.matchMedia('(max-width: 900px)');
-  var indicator = null;
-  var segmented = null;
-  var track = null;
 
   /* The indicators follow aria-current and aria-pressed by themselves
      (their MutationObserver): no update() after a change. */
@@ -1014,6 +1269,8 @@
      nothing, since no scroll follows. */
   var navigating = false;
   var quietTimer = 0;
+  /** The scroll-spy (an IntersectionObserver on the sections), set up by setupNavigation(). */
+  var spy = null;
 
   /** Whether scrolling `section` to the top of the view moves the view. */
   function scrollsTo(section) {
@@ -1077,20 +1334,25 @@
   }
 
   function setupNavigation() {
-    indicator = DS.indicator.createIndicator($('#sg-nav'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' });
-    setActive('overview');
+    // Named, so the pill glides across the load between the two pages
+    // (css/optional/view-transitions.css).
+    // The current item is set (render()): the pill's first placement jumps
+    // there, instead of growing in from an empty track on load.
+    addIndicator($('#sg-nav'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' });
     var list = $('#sg-nav');
     var overflow = function () { list.classList.toggle('ds-drawer__list--overflow', list.scrollHeight > list.clientHeight + 1); };
     overflow();
     window.addEventListener('resize', overflow);
     var visible = {};
-    var observer = new IntersectionObserver(function (entries) {
+    spy = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
       if (navigating) return;
       var first = $$('.sg-section').filter(function (s) { return visible[s.id]; })[0];
       if (first) setActive(first.id);
     }, { root: view, rootMargin: '0px 0px -60% 0px' });
-    $$('.sg-section').forEach(function (s) { observer.observe(s); });
+    // The lab's spy starts with its sections (startLab): watching the
+    // opening alone would take the pill off a hash's section on load.
+    if (PAGE !== 'lab') $$('.sg-section').forEach(function (s) { spy.observe(s); });
 
     watchScrolled(view, app);
     $$('.ds-sheet__panel').forEach(function (panel) { watchScrolled($('.ds-sheet__body', panel), panel); });
@@ -1101,7 +1363,8 @@
 
     $('#sg-nav').addEventListener('click', function (event) {
       var link = event.target.closest('a');
-      if (!link) return;
+      // A link to the other page loads it (a cross-document View Transition over http).
+      if (!link || link.getAttribute('href').charAt(0) !== '#') return;
       event.preventDefault();
       var id = link.getAttribute('href').slice(1);
       var section = $('#' + id);
@@ -1116,54 +1379,14 @@
     // The scrim and Escape close the drawer by themselves (DS.overlay).
     $('[data-sg="menu"]').addEventListener('click', function () { openDrawer(!app.hasAttribute('data-drawer-open')); });
 
-    segmented = DS.indicator.createIndicator($('#sg-segmented'), { active: '[aria-current="true"]', className: 'ds-segmented__indicator', name: 'mode' });
+    if (!$('#sg-segmented')) return;
+    addIndicator($('#sg-segmented'), { active: '[aria-current="true"]', className: 'ds-segmented__indicator', name: 'mode' });
     $('#sg-segmented').addEventListener('click', function (event) {
       var option = event.target.closest('a');
       if (!option) return;
       event.preventDefault();
       $$('.ds-segmented__option', this).forEach(function (o) { if (o === option) o.setAttribute('aria-current', 'true'); else o.removeAttribute('aria-current'); });
     });
-
-    track = DS.indicator.createIndicator($('#sg-track'), { active: '[aria-pressed="true"]', className: 'sg-track__indicator' });
-    $('#sg-track').addEventListener('click', function (event) {
-      var button = event.target.closest('button');
-      if (button) pressTrack($$('#sg-track > button').indexOf(button));
-    });
-  }
-
-  /* The indicator demo: the track's options and the one shown before "No
-     active item" cleared it. */
-  var trackLast = 0;
-  var trackTimer = 0;
-
-  function pressTrack(index) {
-    clearTimeout(trackTimer);
-    var clear = $('[data-sg="track-clear"]');
-    if (clear) clear.setAttribute('aria-pressed', 'false');
-    $$('#sg-track > button').forEach(function (b, i) { b.setAttribute('aria-pressed', String(i === index)); });
-    if (index >= 0) trackLast = index;
-  }
-
-  function trackDemo(action, button) {
-    var count = $$('#sg-track > button').length;
-    if (action === 'track-hop') pressTrack(trackLast + 1 < count ? trackLast + 1 : trackLast - 1);
-    if (action === 'track-jump') pressTrack(trackLast < count / 2 ? count - 1 : 0);
-    if (action === 'track-interrupt') {
-      // The second target 80ms later (slowed down with ?speed=), while the
-      // first glide still runs: the pill turns from where it is.
-      var far = trackLast < count / 2 ? count - 1 : 0;
-      var middle = Math.floor(count / 2);
-      pressTrack(far);
-      trackTimer = setTimeout(function () { pressTrack(middle); }, speed > 0 && speed < 1 ? 80 / speed : 80);
-    }
-    if (action === 'track-clear') {
-      if (button.getAttribute('aria-pressed') === 'true') {
-        pressTrack(trackLast);
-      } else {
-        pressTrack(-1);
-        button.setAttribute('aria-pressed', 'true');
-      }
-    }
   }
 
   /* Drawer and view demos (App frame). */
@@ -1249,7 +1472,7 @@
       ['Synced LAPTOP-0042.', 'info'],
       ['Exported the list as CSV.', 'success'],
     ];
-    var step = speed > 0 && speed < 1 ? 250 / speed : 250;
+    var step = slow(250);
     messages.forEach(function (message, index) {
       setTimeout(function () { toast(message[0], message[1]); }, index * step);
     });
@@ -1374,7 +1597,7 @@
   // the success face; the width never changes (the faces share one cell).
   function busy(button) {
     M.busy(button, function () {
-      return new Promise(function (resolve) { setTimeout(resolve, speed > 0 && speed < 1 ? 1600 / speed : 1600); });
+      return new Promise(function (resolve) { setTimeout(resolve, slow(1600)); });
     }).then(function () { toast('Changes saved.'); });
   }
 
@@ -1383,7 +1606,7 @@
   function busyFail(button) {
     M.busy(button, function () {
       return new Promise(function (resolve, reject) {
-        setTimeout(function () { reject(new Error('The sync server did not answer.')); }, speed > 0 && speed < 1 ? 1600 / speed : 1600);
+        setTimeout(function () { reject(new Error('The sync server did not answer.')); }, slow(1600));
       });
     }).catch(function () { toast('Could not sync. Check the connection and try again.', true); });
   }
@@ -1402,7 +1625,7 @@
 
   function setupDemos() {
     document.addEventListener('click', function (event) {
-      var el = event.target.closest('[data-sg], [data-enter], [data-leave]');
+      var el = event.target.closest('[data-sg]');
       if (!el) return;
       var action = el.getAttribute('data-sg');
       if (action === 'dialog') showOverlay('dialog', nativeDialogMarkup('sg-dialog', 'Delete 3 devices?', 'They disappear from every list. This cannot be undone.', 'Delete devices'), el);
@@ -1416,17 +1639,6 @@
       if (action === 'busy') busy(el);
       if (action === 'busy-fail') busyFail(el);
       if (action === 'copy') copied(el);
-      if (action === 'stagger') {
-        // enterAll(): one batch, each square scales in one step after the
-        // other; the classes and --ds-i go once each one landed.
-        $('#sg-stagger').classList.remove('sg-fill');
-        M.enterAll($$('#sg-stagger > span'), 'scale');
-      }
-      if (action === 'fill') {
-        $('#sg-stagger').classList.add('sg-fill');
-        M.enterAll($$('#sg-stagger > span'), 'fill-x');
-      }
-      if (action === 'count') countMore();
       if (action === 'figures') refreshFigures();
       if (action === 'status-poll') togglePoll(el);
       if (action === 'alert-insert') insertAlert();
@@ -1440,13 +1652,10 @@
         toast('Opened ' + (el.getAttribute('data-name') || 'the overdue devices') + '.', 'info');
       }
       if (action === 'card-restart') toast('Restarting LAPTOP-0017.', 'info');
-      if (action === 'copy-rules') toast('Copied the motion rules.', 'info');
       if (action === 'table-sort' || action === 'row-toggle' || action === 'row-open' || action === 'table-live') tableAction(action, el);
       if (action === 'progress-run') progressRun();
       if (action === 'skeleton') skeletonDemo(el);
       if (action === 'load') loadDemo(Number(el.getAttribute('data-ms')));
-      if (action && action.indexOf('data-') === 0) dataAction(action, el);
-      if (action && action.indexOf('track-') === 0) trackDemo(action, el);
       if (action === 'drawer-toggle') toggleDrawer(el);
       if (action === 'swap-view') swapView();
       if (action === 'toggle' || action === 'dense') el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
@@ -1460,29 +1669,6 @@
         $('.ds-progress__label', p).textContent = Math.round(value * 100) + '%';
         $('.ds-progress__detail', p).textContent = Math.round(value * 2030).toLocaleString('en-US') + ' of 2,030 rows';
       }
-      // enter() and leave() continue from where the card is, whenever they
-      // are pressed; enter() also cleans up whatever variant played before.
-      // Every press is a new run: a superseded leave() still resolves (without
-      // acting), so only the latest press may bring the card back.
-      if (el.hasAttribute('data-enter') || el.hasAttribute('data-leave')) {
-        clearTimeout(backTimer);
-        leaveRun += 1;
-      }
-      if (el.hasAttribute('data-enter')) M.enter($('#sg-motion-card'), el.getAttribute('data-enter'));
-      if (el.hasAttribute('data-leave')) {
-        var card = $('#sg-motion-card');
-        var run = leaveRun;
-        M.leave(card, el.getAttribute('data-leave'), { then: 'keep' }).then(function () {
-          if (run !== leaveRun || !card.classList.contains('ds-leave')) return;
-          backTimer = setTimeout(function () {
-            if (run === leaveRun) M.enter(card, 'fade');
-          }, 400);
-        });
-      }
-    });
-    $('#sg-data-filter').addEventListener('input', function (event) {
-      data.filter = event.target.value;
-      updateData(data.filter.trim() ? 'filtered' : null);
     });
     // The table filter: a user action, so every keystroke glides at once.
     $('#sg-table-filter').addEventListener('input', function (event) {
@@ -1533,10 +1719,6 @@
     all.indeterminate = checked > 0 && checked < rows.length;
   }
 
-  /* The leave demo brings the card back 400ms after its exit, unless another press came first. */
-  var leaveRun = 0;
-  var backTimer = 0;
-
   /* Counts every tile to its data-count, from the value it shows (0 on the first render). */
   function countTiles() {
     $$('.ds-tile__value[data-count]').forEach(function (el) {
@@ -1545,27 +1727,6 @@
         format: function (value) { return Math.round(value).toLocaleString('en-US') + suffix; },
       });
     });
-  }
-
-  /*
-   * The count demo: the tiles of the cards section count up by a step from
-   * the value they show (a second press retargets a running count), and
-   * the figure next to the button counts with its bar, so both land
-   * together (--ds-ease-value over --ds-dur-glide).
-   */
-  function countMore() {
-    $$('#cards .ds-tile__value[data-count]').forEach(function (el) {
-      var value = Number(el.getAttribute('data-count'));
-      el.setAttribute('data-count', String(value + Math.max(1, Math.round(value * 0.05))));
-    });
-    syncShare();
-    countTiles();
-    var progress = $('#sg-count-progress');
-    var share = parseFloat(progress.style.getPropertyValue('--ds-progress')) || 0;
-    share = share >= 0.95 ? 0.15 : Math.min(1, Math.round((share + 0.2) * 100) / 100);
-    progress.style.setProperty('--ds-progress', String(share));
-    $('.ds-progress__track', progress).setAttribute('aria-valuenow', String(Math.round(share * 100)));
-    M.countUp($('#sg-count-figure'), Math.round(share * 100), { format: function (value) { return Math.round(value) + '%'; } });
   }
 
   /* ── Themes ───────────────────────────────────────────────────────── */
@@ -1580,12 +1741,10 @@
   var themeRun = 0;
 
   /* Once a theme's rules apply: refresh the shown values, re-place the
-     three indicators, then mark the theme for the tests. */
+     indicators, then mark the theme for the tests. */
   function afterThemeChange(value) {
     readValues();
-    if (indicator) indicator.update();
-    if (segmented) segmented.update();
-    if (track) track.update();
+    indicators.forEach(function (made) { made.update(); });
     document.documentElement.setAttribute('data-sg-theme', value);
   }
 
@@ -1677,20 +1836,25 @@
     }
   }
 
+  // Tests wait for data-sg-ready instead of racing the first stagger: it
+  // comes once the themes are set up and, in the lab, the demos too.
+  var waiting = PAGE === 'lab' ? 2 : 1;
+  var started = function () {
+    waiting -= 1;
+    if (!waiting) document.documentElement.setAttribute('data-sg-ready', '');
+  };
   render();
   // Every action gets the pointer ripple (and iOS its :active feedback).
   DS.ripple.attach(document);
   setupNavigation();
-  setupDemos();
-  setupThemes(function () {
-    // Tests wait for this instead of racing the first stagger.
-    document.documentElement.setAttribute('data-sg-ready', '');
-  });
-  // First render: the sections in view stagger in once, and the key
-  // figures count up from 0. The figure of the count demo starts at what
-  // it shows, so its first count runs from there with its bar.
+  setupSpeed();
+  if (PAGE === 'lab') startLab(started);
+  else setupDemos();
+  setupThemes(started);
+  // First render: the sections in view stagger in once (the lab's demos
+  // join when they come), and the key figures of the styleguide count up
+  // from 0.
   M.staggerOnce($('#sg-page'));
-  countTiles();
-  M.countUp($('#sg-count-figure'), 60, { duration: 0, format: function (value) { return Math.round(value) + '%'; } });
-  if (location.hash && $(location.hash)) $(location.hash).scrollIntoView();
+  if (PAGE === 'index') countTiles();
+  if (PAGE === 'index' && location.hash && $(location.hash)) $(location.hash).scrollIntoView();
 }());

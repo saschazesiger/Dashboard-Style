@@ -1489,6 +1489,7 @@ describe('transition() (1.5.0)', () => {
     doc.querySelectorAll = (selector) => (selector === '.ds-indicator' ? [pill] : selector === '.ds-toasts' ? regions : /\.ds-view, \.ds-panel, \.ds-drawer/.test(selector) ? [view, panel, drawer] : []);
     doc.querySelector = (selector) => {
       if (/data-state="open"/.test(selector)) {
+        doc.modalSelector = selector;
         // `shown`: overlays shown by hand, as the selectors that match them.
         return modalOpen || selectorList(selector).some((part) => shown.includes(part)) ? {} : null;
       }
@@ -1759,7 +1760,7 @@ describe('transition() (1.5.0)', () => {
 
   it('lifts the page frame\'s names under a div sheet or div dialog shown by hand (no data-state), not under a closed or leaving one', async (t) => {
     const sheet = '.ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing)';
-    const dialog = '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing)';
+    const dialog = '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--contained, .ds-dialog--hidden, .ds-dialog--closing)';
     for (const [shown, lifted] of [[[sheet], true], [[dialog], true], [['.ds-sheet[aria-modal="true"]'], false], [[], false]]) {
       const { doc, view, panel, drawer } = page({ shown });
       useDocument(t, doc);
@@ -1770,6 +1771,10 @@ describe('transition() (1.5.0)', () => {
       doc.started[0].finish();
       await promise;
       assert.deepEqual([view, panel, drawer].map((part) => part.style.getPropertyValue('view-transition-name')), ['', '', '']);
+      // A contained dialog covers its container in the panel, not the frame: no dialog part of the list matches it.
+      const dialogParts = selectorList(doc.modalSelector).filter((part) => /^(dialog)?\.ds-dialog/.test(part));
+      assert.equal(dialogParts.length, 3);
+      for (const part of dialogParts) assert.match(part, /:not\([^)]*\.ds-dialog--contained/, part);
     }
   });
 

@@ -56,17 +56,24 @@
  * spring). The name must be unique on the page: a drawer and a segmented
  * switch take different names; name only a pill outside the view (the
  * drawer, a switch in the top bar), since a group floats above every
- * snapshot. Within a page, DS.motion.transition() lifts the name while it
- * runs: the docked drawer shows live, so the pill glides as on a click,
- * under its labels and inside its track. Without a name the pill is part
- * of its parent's snapshot and switches with it on a page load.
+ * snapshot. A pill that is not wholly inside its track's visible part
+ * when the page is left (pageswap) or revealed (pagereveal), such as the
+ * active item of a drawer list scrolled down to a link further on, keeps
+ * no name for that navigation and goes or comes with its page, so it never
+ * glides in over the top bar. Within a page, DS.motion.transition() lifts
+ * the name while it runs: the docked drawer shows live, so the pill glides
+ * as on a click, under its labels and inside its track. Without a name the
+ * pill is part of its parent's snapshot and switches with it on a page
+ * load.
  *
  * ES2022 (Safari 16.4); a module may import from an earlier module; newer
  * APIs only behind feature detection, named under Progressive:.
  *
- * Progressive: view-transition-name (the `name` option); where View
- * Transitions are missing the property is ignored and the pill glides as
- * always.
+ * Progressive:
+ * - view-transition-name (the `name` option) and the pageswap and
+ *   pagereveal events (they lift it for a pill scrolled out of view):
+ *   without View Transitions the property is ignored and the pill glides
+ *   as always.
  */
 import { motionDuration, travelDuration } from './motion.js';
 
@@ -113,7 +120,18 @@ export function createIndicator(track, options) {
   indicator.setAttribute('data-ds-keep', '');
   if (name) indicator.style.setProperty('view-transition-name', `ds-indicator-${name}`);
   track.prepend(indicator);
+  // The items take their look under the pill at once (a pressed toggle
+  // drops its own tint, a label its colour): one style flush with their
+  // transitions off (data-ds-moving, motion.css), as the pill's first
+  // placement jumps. Without it a track styled before the script ran would
+  // fade its tint out on load while the pill is already there.
+  const settling = !track.hasAttribute('data-ds-moving');
+  if (settling) track.setAttribute('data-ds-moving', '');
   track.classList.add('ds-has-indicator');
+  if (settling) {
+    if (typeof view.getComputedStyle === 'function') void view.getComputedStyle(track).opacity;
+    track.removeAttribute('data-ds-moving');
+  }
 
   /** The item of the last placement (null: none, or the pill is leaving). */
   let placed = /** @type {Element|null} */ (null);
@@ -447,6 +465,47 @@ export function createIndicator(track, options) {
     });
   }
 
+  /**
+   * A page load captures a named pill where it is painted, and its group
+   * floats above every snapshot, outside its track's clip. A pill
+   * scrolled out of its track's view (the active item of a long drawer
+   * list the user scrolled down to click a link) would glide in from
+   * outside the drawer, across the top bar. For that navigation it keeps
+   * no name and goes or comes with its page; the name returns once the
+   * transition ended (or the page comes back from the back/forward cache).
+   */
+  function shownWhole() {
+    const rect = indicator.getBoundingClientRect();
+    let clip = { left: 0, top: 0, right: view.innerWidth ?? Infinity, bottom: view.innerHeight ?? Infinity };
+    for (let el = indicator.parentElement; el && el !== doc.body && el !== doc.documentElement; el = el.parentElement) {
+      const cs = view.getComputedStyle(el);
+      if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+      const outer = el.getBoundingClientRect();
+      const left = outer.left + el.clientLeft;
+      const top = outer.top + el.clientTop;
+      clip = { left: Math.max(clip.left, left), top: Math.max(clip.top, top), right: Math.min(clip.right, left + el.clientWidth), bottom: Math.min(clip.bottom, top + el.clientHeight) };
+    }
+    return rect.left >= clip.left - 0.5 && rect.top >= clip.top - 0.5 && rect.right <= clip.right + 0.5 && rect.bottom <= clip.bottom + 0.5;
+  }
+
+  const ownName = name ? `ds-indicator-${name}` : '';
+  const rename = () => {
+    if (!destroyed) indicator.style.setProperty('view-transition-name', ownName);
+  };
+  const onPageTransition = (event) => {
+    if (destroyed || !event.viewTransition || typeof view.getComputedStyle !== 'function' || shownWhole()) return;
+    indicator.style.setProperty('view-transition-name', 'none');
+    event.viewTransition.finished?.then(rename, rename);
+  };
+  const onPageShow = (event) => {
+    if (event.persisted) rename();
+  };
+  if (name) {
+    view.addEventListener?.('pageswap', onPageTransition);
+    view.addEventListener?.('pagereveal', onPageTransition);
+    view.addEventListener?.('pageshow', onPageShow);
+  }
+
   // Web fonts change the size of the items when they arrive.
   const fonts = doc.fonts;
   const onFonts = () => schedule();
@@ -470,6 +529,11 @@ export function createIndicator(track, options) {
       if (frame) view.cancelAnimationFrame?.(frame);
       frame = 0;
       fonts?.removeEventListener?.('loadingdone', onFonts);
+      if (name) {
+        view.removeEventListener?.('pageswap', onPageTransition);
+        view.removeEventListener?.('pagereveal', onPageTransition);
+        view.removeEventListener?.('pageshow', onPageShow);
+      }
       indicator.remove();
       track.classList.remove('ds-has-indicator');
       track.style.removeProperty('--ds-indicator-dur');

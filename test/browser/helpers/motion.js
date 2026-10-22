@@ -466,3 +466,32 @@ export function expectContinuous(values, { factor = 2, floor } = {}) {
     assert.ok(step <= limit + 1e-9, `jump of ${step} at index ${i + 1} (${values[i]} -> ${values[i + 1]}), limit ${limit}`);
   });
 }
+
+/**
+ * No jump in time (D21), for real-time samples of an interrupted motion:
+ * `points` are { t, v }, with `t` in ms of the frame the value belongs to
+ * (the animation timeline's time, or a rAF timestamp: the time the frame's
+ * animations were sampled at, not when a busy script got to read them). No
+ * step moves more than `factor` times what the faster of its neighbouring
+ * steps (the two moving steps before it, the two after) would cover in
+ * that step's own frame time, plus `floor` (default 3 % of the range).
+ * Steps that hold a value (a delay, the frame a new animation starts) are
+ * no neighbours, and a long frame may cover more ground; a jump (to the
+ * end, back to the start) stands out against both sides.
+ */
+export function expectSmooth(points, label = 'series', { factor = 4, floor } = {}) {
+  const values = points.map((point) => point.v);
+  const range = Math.max(...values) - Math.min(...values);
+  if (range <= 1e-3) return;
+  const slack = floor ?? range * 0.03;
+  const steps = points.slice(1).map((point, i) => ({ dv: Math.abs(point.v - points[i].v), dt: Math.max(1, point.t - points[i].t) }));
+  const moving = steps.map((step, i) => i).filter((i) => steps[i].dv > 1e-9);
+  const rate = (i) => steps[i].dv / steps[i].dt;
+  moving.forEach((i, k) => {
+    const near = [...moving.slice(Math.max(0, k - 2), k), ...moving.slice(k + 1, k + 3)];
+    if (!near.length) return;
+    const limit = factor * Math.max(...near.map(rate)) * steps[i].dt + slack;
+    assert.ok(steps[i].dv <= limit + 1e-9, `${label}: a jump of ${steps[i].dv.toFixed(4)} in ${Math.round(steps[i].dt)}ms (limit ${limit.toFixed(4)}) at sample ${i + 1}\n`
+      + points.map((point) => `${Math.round(point.t - points[0].t)}:${Math.round(point.v * 1000) / 1000}`).join(' '));
+  });
+}

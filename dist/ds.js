@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.5.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.6.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.motion,
  * DS.indicator, DS.dom, DS.ripple, DS.icons and DS.overlay hold the same
@@ -15,7 +15,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '1.5.0';
+  var version = '1.6.0';
   var registry = root.DashboardStyle || (root.DashboardStyle = {});
   var versions = registry.versions || (registry.versions = {});
   if (versions[version]) return;
@@ -72,16 +72,17 @@
      * build bundles it into dist/ds.js as DS.motion); newer APIs only behind
      * feature detection, named under Progressive:.
      *
-     * Progressive: linear() easings (the spring) in el.animate(); an engine
-     * that rejects them (Chrome/Edge 111-112, Safari 16.4-17.1) throws a
-     * TypeError and gets the token's cubic fallback instead (animateSafe).
-     * document.startViewTransition (same-document View Transitions) for
-     * transition(), only with .ds-theme on <html>; without it, or for an
-     * embedded widget, the new view fades through with .ds-enter--swap.
-     * ScrollTimeline (scroll-driven animations): where it exists, settled(),
-     * the handoffs and flip() tell those animations apart and leave them be,
-     * and resyncScroll() restarts those whose scroller stopped overflowing;
-     * elsewhere there are none.
+     * Progressive:
+     * - linear() easings (the spring) in el.animate(): an engine without them
+     *   (Chrome/Edge 111-112, Safari 16.4-17.1) throws a TypeError and gets
+     *   the token's cubic fallback instead (animateSafe).
+     * - document.startViewTransition (same-document View Transitions, for
+     *   transition(), only with .ds-theme on <html>): without it, or for an
+     *   embedded widget, the new view fades through with .ds-enter--swap.
+     * - ScrollTimeline (scroll-driven animations; settled(), the handoffs and
+     *   flip() tell those animations apart and leave them be, and
+     *   resyncScroll() restarts those whose scroller stopped overflowing):
+     *   without it there are none.
      */
 
     /**
@@ -2183,13 +2184,15 @@
      * DS.overlay (data-state), a native one shown by hand ([open]), or the div
      * fallback shown by hand by removing hidden (no data-state; a div sheet is
      * modal only with aria-modal, the selector sheet.css names its body by).
+     * A contained dialog (.ds-dialog--contained) covers its container inside
+     * the panel, not the frame, so it never counts.
      */
     const MODAL_OPEN = [
-      '.ds-dialog[data-state="open"]',
+      '.ds-dialog[data-state="open"]:not(.ds-dialog--contained)',
       '.ds-sheet[data-state="open"]',
-      'dialog.ds-dialog[open]',
+      'dialog.ds-dialog[open]:not(.ds-dialog--contained)',
       'dialog.ds-sheet[open]',
-      '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--hidden, .ds-dialog--closing)',
+      '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--contained, .ds-dialog--hidden, .ds-dialog--closing)',
       '.ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing)',
     ].join(', ');
 
@@ -2688,17 +2691,24 @@
      * spring). The name must be unique on the page: a drawer and a segmented
      * switch take different names; name only a pill outside the view (the
      * drawer, a switch in the top bar), since a group floats above every
-     * snapshot. Within a page, DS.motion.transition() lifts the name while it
-     * runs: the docked drawer shows live, so the pill glides as on a click,
-     * under its labels and inside its track. Without a name the pill is part
-     * of its parent's snapshot and switches with it on a page load.
+     * snapshot. A pill that is not wholly inside its track's visible part
+     * when the page is left (pageswap) or revealed (pagereveal), such as the
+     * active item of a drawer list scrolled down to a link further on, keeps
+     * no name for that navigation and goes or comes with its page, so it never
+     * glides in over the top bar. Within a page, DS.motion.transition() lifts
+     * the name while it runs: the docked drawer shows live, so the pill glides
+     * as on a click, under its labels and inside its track. Without a name the
+     * pill is part of its parent's snapshot and switches with it on a page
+     * load.
      *
      * ES2022 (Safari 16.4); a module may import from an earlier module; newer
      * APIs only behind feature detection, named under Progressive:.
      *
-     * Progressive: view-transition-name (the `name` option); where View
-     * Transitions are missing the property is ignored and the pill glides as
-     * always.
+     * Progressive:
+     * - view-transition-name (the `name` option) and the pageswap and
+     *   pagereveal events (they lift it for a pill scrolled out of view):
+     *   without View Transitions the property is ignored and the pill glides
+     *   as always.
      */
     const motionDuration = DS.motion.motionDuration, travelDuration = DS.motion.travelDuration;
 
@@ -2745,7 +2755,18 @@
       indicator.setAttribute('data-ds-keep', '');
       if (name) indicator.style.setProperty('view-transition-name', `ds-indicator-${name}`);
       track.prepend(indicator);
+      // The items take their look under the pill at once (a pressed toggle
+      // drops its own tint, a label its colour): one style flush with their
+      // transitions off (data-ds-moving, motion.css), as the pill's first
+      // placement jumps. Without it a track styled before the script ran would
+      // fade its tint out on load while the pill is already there.
+      const settling = !track.hasAttribute('data-ds-moving');
+      if (settling) track.setAttribute('data-ds-moving', '');
       track.classList.add('ds-has-indicator');
+      if (settling) {
+        if (typeof view.getComputedStyle === 'function') void view.getComputedStyle(track).opacity;
+        track.removeAttribute('data-ds-moving');
+      }
 
       /** The item of the last placement (null: none, or the pill is leaving). */
       let placed = /** @type {Element|null} */ (null);
@@ -3079,6 +3100,47 @@
         });
       }
 
+      /**
+       * A page load captures a named pill where it is painted, and its group
+       * floats above every snapshot, outside its track's clip. A pill
+       * scrolled out of its track's view (the active item of a long drawer
+       * list the user scrolled down to click a link) would glide in from
+       * outside the drawer, across the top bar. For that navigation it keeps
+       * no name and goes or comes with its page; the name returns once the
+       * transition ended (or the page comes back from the back/forward cache).
+       */
+      function shownWhole() {
+        const rect = indicator.getBoundingClientRect();
+        let clip = { left: 0, top: 0, right: view.innerWidth ?? Infinity, bottom: view.innerHeight ?? Infinity };
+        for (let el = indicator.parentElement; el && el !== doc.body && el !== doc.documentElement; el = el.parentElement) {
+          const cs = view.getComputedStyle(el);
+          if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+          const outer = el.getBoundingClientRect();
+          const left = outer.left + el.clientLeft;
+          const top = outer.top + el.clientTop;
+          clip = { left: Math.max(clip.left, left), top: Math.max(clip.top, top), right: Math.min(clip.right, left + el.clientWidth), bottom: Math.min(clip.bottom, top + el.clientHeight) };
+        }
+        return rect.left >= clip.left - 0.5 && rect.top >= clip.top - 0.5 && rect.right <= clip.right + 0.5 && rect.bottom <= clip.bottom + 0.5;
+      }
+
+      const ownName = name ? `ds-indicator-${name}` : '';
+      const rename = () => {
+        if (!destroyed) indicator.style.setProperty('view-transition-name', ownName);
+      };
+      const onPageTransition = (event) => {
+        if (destroyed || !event.viewTransition || typeof view.getComputedStyle !== 'function' || shownWhole()) return;
+        indicator.style.setProperty('view-transition-name', 'none');
+        event.viewTransition.finished?.then(rename, rename);
+      };
+      const onPageShow = (event) => {
+        if (event.persisted) rename();
+      };
+      if (name) {
+        view.addEventListener?.('pageswap', onPageTransition);
+        view.addEventListener?.('pagereveal', onPageTransition);
+        view.addEventListener?.('pageshow', onPageShow);
+      }
+
       // Web fonts change the size of the items when they arrive.
       const fonts = doc.fonts;
       const onFonts = () => schedule();
@@ -3102,6 +3164,11 @@
           if (frame) view.cancelAnimationFrame?.(frame);
           frame = 0;
           fonts?.removeEventListener?.('loadingdone', onFonts);
+          if (name) {
+            view.removeEventListener?.('pageswap', onPageTransition);
+            view.removeEventListener?.('pagereveal', onPageTransition);
+            view.removeEventListener?.('pageshow', onPageShow);
+          }
           indicator.remove();
           track.classList.remove('ds-has-indicator');
           track.style.removeProperty('--ds-indicator-dur');
@@ -3155,12 +3222,13 @@
      * ES2022 (Safari 16.4); a module may import from an earlier module; newer
      * APIs only behind feature detection, named under Progressive:.
      *
-     * Progressive: moveBefore (a keyed move keeps the node's animations,
-     * focus and iframe state); elsewhere insertBefore, and a moved node that
-     * held the focus gets it back with its selection. insertBefore makes the
-     * node new to the style engine, so its @starting-style entrances (a status
-     * icon) would play again: it carries data-ds-moving (transition: none in
-     * motion.css) until one style flush at the end of the call.
+     * Progressive:
+     * - moveBefore (a keyed move keeps the node's animations, focus and iframe
+     *   state): without it insertBefore, and a moved node that held the focus
+     *   gets it back with its selection. insertBefore makes the node new to
+     *   the style engine, so its @starting-style entrances (a status icon)
+     *   would play again: it carries data-ds-moving (transition: none in
+     *   motion.css) until one style flush at the end of the call.
      */
 
     /** How many candidate siblings the look-ahead for an identical node checks. */
@@ -4593,18 +4661,19 @@
      * build bundles it into dist/ds.js as DS.overlay); newer APIs only behind
      * feature detection, named under Progressive:.
      *
-     * Progressive: scrollbar-gutter (CSS.supports): keeps the room of a
-     * removed page scrollbar; without it the body gets the same room as
-     * padding-right. showPopover and CSS anchor positioning (anchorName,
-     * position-area, both detected; anchor-size() too for a combobox list):
-     * the tooltip, a menu and a combobox list go into the top layer as
-     * popover="manual", anchored to their trigger; elsewhere the script places
-     * them (--ds-tooltip-x/-y, --ds-menu-x/-y, the list's upward flip).
-     * moveBefore: a snackbar region that moves into a dialog or side sheet
-     * keeps its running motion and focus; elsewhere insertBefore, focus put
-     * back, the entrances already marked played (.ds-toast--shown).
-     * startViewTransition (through DS.motion.transition()) for `container:
-     * true`, only with .ds-theme on <html>; elsewhere the usual entrance.
+     * Progressive:
+     * - scrollbar-gutter (CSS.supports; keeps the room of a removed page
+     *   scrollbar): without it the body gets the same room as padding-right.
+     * - showPopover and CSS anchor positioning (anchorName and position-area,
+     *   both detected, anchor-size() too for a combobox list; the tooltip, a
+     *   menu and a combobox list go into the top layer as popover="manual",
+     *   anchored to their trigger): without them the script places them
+     *   (--ds-tooltip-x/-y, --ds-menu-x/-y, the list's upward flip).
+     * - moveBefore (a snackbar region that moves into a dialog or side sheet
+     *   keeps its running motion and focus): without it insertBefore, focus
+     *   put back, the entrances already marked played (.ds-toast--shown).
+     * - startViewTransition (through DS.motion.transition(), for `container:
+     *   true`, only with .ds-theme on <html>): without it the usual entrance.
      */
     const flip = DS.motion.flip, motionDuration = DS.motion.motionDuration, originFrom = DS.motion.originFrom, settled = DS.motion.settled, transition = DS.motion.transition;
     const alertCircle = DS.icons.alertCircle, checkCircle = DS.icons.checkCircle, closeGlyph = DS.icons.close, iconElement = DS.icons.iconElement, info = DS.icons.info;

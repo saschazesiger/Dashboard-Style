@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Motion Lab · Dashboard-Style</title>
+<!-- The Motion Lab: the head and frame of index.html, the demos of lab.js. Works from disk
+     (file://): plain links to dist/, classic scripts, no modules. -->
+<link rel="stylesheet" href="../dist/fonts/fonts.css">
+<link rel="stylesheet" href="../dist/ds.css">
+<link rel="stylesheet" href="styleguide.css">
+<!-- The theme switcher fills one of these (a theme file or a preset). -->
+<link rel="stylesheet" id="sg-theme-link" disabled>
+<style id="sg-theme-style"></style>
+<!-- The opt-in stylesheet for page loads (D15): over http, the move to the styleguide and back is a
+     cross-document View Transition and the drawer's pill glides across it; from disk the pages just
+     switch. The first render waits for the scripts at the end of <body>, which create the named pill
+     (rel=expect on the element after them): WebKit reveals a page while it still parses. They keep
+     that wait short: the demos come after the reveal (startLab in styleguide.js). -->
+<link rel="stylesheet" href="../dist/css/optional/view-transitions.css">
+<link rel="expect" href="#sg-rendered" blocking="render">
+</head>
+<body data-sg-page="lab">
+<div class="ds-app ds-app--drawer" id="sg-app">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="sg-drawer" data-sg="menu"></button>
+    <a class="ds-brand" href="#top"><span class="sg-mark" aria-hidden="true"></span><span class="ds-brand__name">Dashboard-Style</span></a>
+    <span class="sg-version ds-meta" id="sg-version"></span>
+    <div class="sg-tools">
+      <span class="sg-speed-readout ds-meta" id="sg-speed-readout" hidden></span>
+      <div class="sg-speed">
+        <label class="ds-sr" for="sg-speed-select">Speed</label>
+        <select class="ds-input ds-input--filled" id="sg-speed-select">
+          <option value="1">1&times;</option>
+          <option value="0.5">0.5&times;</option>
+          <option value="0.25">0.25&times;</option>
+          <option value="0.1">0.1&times;</option>
+        </select>
+      </div>
+      <div class="sg-theme">
+        <label class="ds-sr" for="sg-theme-select">Theme</label>
+        <select class="ds-input ds-input--filled" id="sg-theme-select">
+          <option value="default">Default theme</option>
+          <option value="example">themes/example.css</option>
+          <option value="square">Preset: square, flat</option>
+          <option value="dim">Preset: dimmed disabled, dense</option>
+          <option value="file">Load theme file ...</option>
+        </select>
+        <input type="file" id="sg-theme-file" accept=".css,text/css" hidden>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-scrim" data-sg="close-drawer"></div>
+  <nav class="ds-drawer" id="sg-drawer" aria-label="Motion Lab sections" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="sg-mark"></span><span class="ds-brand__name">Dashboard-Style</span></div>
+    <div class="ds-drawer__list" id="sg-nav"></div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content"><div class="ds-page" id="sg-page"></div></div>
+    </main>
+  </div>
+</div>
+
+<!-- DS.overlay.toast() adds the live regions next to it; DS.overlay.tooltips() creates the tooltip. -->
+<div class="ds-toasts" id="sg-toasts"></div>
+
+<script src="../dist/ds.js"></script>
+<script src="lab.js"></script>
+<script src="styleguide.js"></script>
+<div id="sg-rendered" hidden></div>
+</body>
+</html>

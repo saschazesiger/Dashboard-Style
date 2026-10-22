@@ -74,25 +74,27 @@
  * --ds-surface-high, transparent keeps a flat bar),
  * --ds-view-scrollbar-gutter (stable; stable both-edges, or auto).
  *
- * Progressive: scrollbar-color and scrollbar-width (thin, quiet scrollbars
- * in the drawer and the panel); without them the platform scrollbar shows.
- * scrollbar-gutter (the view keeps room for a classic scrollbar, so content
- * never shifts when it starts to scroll); ignored before Safari 18.2,
- * overlay scrollbars need no room.
- * View Transitions: while DS.motion.transition() runs (data-ds-vt on
- * <html>) the view, the panel and the docked drawer carry
- * view-transition-names (ds-view, ds-panel, ds-drawer) and the top bar
- * none, so it stays still; without View Transitions the new view enters
- * with .ds-enter--swap, and a view without the drawer makes the grid jump.
- * scroll-driven animations (animation-timeline, animation-range,
- * scroll-timeline, timeline-scope): the panel hairline fades in over the
- * first --ds-space-2 of scroll on scroll(nearest block), the top bar tint
- * on the view's named timeline --ds-view-scroll (the frame widens its
- * scope to the bar), both with ds-scroll-fade (a view without overflow
- * shows neither); elsewhere data-scrolled shows both over --ds-dur-fast.
- *
  * Print: only the page content, without the frame and its scroller (the
  * page's own padding and width come off at the end of page.css).
+ *
+ * Progressive:
+ * - scrollbar-color and scrollbar-width (thin, quiet scrollbars in the
+ *   drawer and the panel): without them the platform scrollbar shows.
+ * - scrollbar-gutter (the view keeps room for a classic scrollbar, so
+ *   content never shifts when it starts to scroll): ignored before Safari
+ *   18.2, where overlay scrollbars need no room.
+ * - View Transitions (while DS.motion.transition() runs, data-ds-vt on
+ *   <html>, the view, the panel and the docked drawer carry
+ *   view-transition-names ds-view, ds-panel and ds-drawer, the top bar
+ *   none, so it stays still): without them the new view enters with
+ *   .ds-enter--swap, and a view without the drawer makes the grid jump.
+ * - scroll-driven animations (animation-timeline, animation-range,
+ *   scroll-timeline, timeline-scope; the panel hairline fades in over the
+ *   first --ds-space-2 of scroll on scroll(nearest block), the top bar
+ *   tint on the view's named timeline --ds-view-scroll, whose scope the
+ *   frame widens to the bar, both with ds-scroll-fade; a view without
+ *   overflow shows neither): without them data-scrolled shows both over
+ *   --ds-dur-fast.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

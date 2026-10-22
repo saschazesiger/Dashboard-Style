@@ -14,6 +14,10 @@
  *     <span class="ds-skeleton__line ds-skeleton__line--heading"></span> ...
  *     <div class="ds-skeleton__card"> <span class="ds-skeleton__line ds-skeleton__line--title"></span> ...
  *
+ *   .ds-skeleton__line  a body line; --heading (a page title), --lead (its
+ *                       lead), --title (a card title), --mid (a middle-length
+ *                       line), --short (a last line)
+ *
  * The older markup with a .ds-spinner in .ds-boot or .ds-loading keeps
  * working; the spinner is the inline variant (a row in a list, a cell).
  *

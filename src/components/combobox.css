@@ -57,14 +57,15 @@
  * chosen option is SelectedItem / SelectedItemText, the active one has a
  * Highlight outline.
  *
- * Progressive: scrollbar-color and scrollbar-width (a thin, quiet
- * scrollbar in the list); without them the platform scrollbar shows.
- * popover and CSS anchor positioning (anchor-name on the field,
- * position-anchor, position-area, position-try-fallbacks and
- * anchor-size() on the list), behind @supports: DS.overlay opens the list
- * as popover="manual" in the top layer with data-anchored, as wide as the
- * field, below it or flipped above, so a scrolling dialog never clips it;
- * elsewhere the absolute list with the script's upward flip.
+ * Progressive:
+ * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar in the
+ *   list): without them the platform scrollbar shows.
+ * - popover and CSS anchor positioning (anchor-name on the field,
+ *   position-anchor, position-area, position-try-fallbacks and anchor-size()
+ *   on the list, behind @supports; DS.overlay opens the list as
+ *   popover="manual" in the top layer with data-anchored, as wide as the
+ *   field, below it or flipped above, so a scrolling dialog never clips
+ *   it): without them the list is absolute, and the script flips it up.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

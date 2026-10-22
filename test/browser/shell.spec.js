@@ -15,10 +15,12 @@
  * styleguide's nav click glides the pill once.
  *
  * Motion is started and paused in one task and read by seeking, so nothing
- * depends on how fast the machine is.
+ * depends on how fast the machine is; the one exception is the modal
+ * drawer reopened mid-close, sampled on every frame at ten times slower
+ * and judged with expectSmooth().
  */
 import { test, expect } from './base-test.js';
-import { ready, settle, timeline } from './helpers/motion.js';
+import { ready, settle, timeline, expectSmooth } from './helpers/motion.js';
 
 const FIXTURES = '/test/browser/fixtures/';
 
@@ -134,20 +136,44 @@ test.describe('drawer', () => {
     expect(close.easing).toMatch(/^cubic-bezier\(/);
     expect(numbers(close.easing)).toEqual(numbers(durations.exit));
 
-    // Reopened mid-close, it continues from where it is.
-    const turn = await drawer.evaluate((el) => {
-      for (const animation of el.getAnimations()) animation.currentTime = animation.effect.getComputedTiming().duration / 2;
-      const before = el.getBoundingClientRect().left;
-      document.getElementById('menu').click();
-      const running = el.getAnimations().filter((animation) => animation.transitionProperty === 'transform');
-      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
-      for (const animation of running) animation.currentTime = 0;
-      return { before, after: el.getBoundingClientRect().left, count: running.length };
-    });
-    expect(turn.count).toBe(1);
-    expect(turn.before).toBeLessThan(-10);
-    expect(Math.abs(turn.after - turn.before)).toBeLessThan(1);
     await finishAll(page);
+    await settle(page);
+
+    // Reopened mid-close, it continues from where it is (D21). Ten times
+    // slower, the close runs on its own, the menu reopens the drawer at half
+    // of it, and its left edge, read on every frame at that frame's time,
+    // never jumps (a paused and seeked reversal reads differently in
+    // Firefox than what it paints).
+    await page.evaluate(() => {
+      document.documentElement.style.setProperty('--ds-time-scale', '10');
+      document.getElementById('menu').click();
+    });
+    await finishAll(page);
+    await settle(page);
+    const trace = await drawer.evaluate(async (el) => {
+      const frame = () => new Promise((resolve) => requestAnimationFrame((time) => resolve(time)));
+      const samples = [];
+      const read = (t) => samples.push({ t, v: el.getBoundingClientRect().left });
+      read(await frame());
+      document.getElementById('scrim').click();
+      const half = DS.motion.motionDuration(el, '--ds-dur-base') / 2;
+      let turn = null;
+      for (;;) {
+        const t = await frame();
+        read(t);
+        if (!turn && t - samples[0].t >= half) {
+          document.getElementById('menu').click();
+          turn = { at: samples.length - 1, count: el.getAnimations().filter((animation) => animation.transitionProperty === 'transform').length };
+        } else if (turn && !el.getAnimations().length) break;
+        if (t - samples[0].t > 30000) break;
+      }
+      return { samples, turn };
+    });
+    await page.evaluate(() => document.documentElement.style.removeProperty('--ds-time-scale'));
+    expect(trace.turn.count, 'one transform transition takes over').toBe(1);
+    expect(trace.samples[trace.turn.at].v, 'reopened mid-close').toBeLessThan(-10);
+    expect(Math.abs(trace.samples.at(-1).v), 'open again').toBeLessThan(0.5);
+    expectSmooth(trace.samples, 'the drawer reopened mid-close');
   });
 });
 
