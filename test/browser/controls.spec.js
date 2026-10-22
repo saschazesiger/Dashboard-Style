@@ -225,12 +225,26 @@ test.describe('press', () => {
     expect(await button.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))).toBeCloseTo(box.height / 2, 1);
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
-    await page.waitForTimeout(100);
-    const held = await button.evaluate((el) => ({
-      radius: parseFloat(getComputedStyle(el).borderTopLeftRadius),
-      layer: parseFloat(getComputedStyle(el, '::before').opacity),
-    }));
+    // "Within 100ms" is read from the transitions' own timing, not from the
+    // wall clock: a slow runner would otherwise read them mid-flight.
+    const held = await button.evaluate(async (el) => {
+      // Only the press: the corner radii and the layer's opacity (hover
+      // colours started by the pointer moving in run on their own timing).
+      const running = el.getAnimations({ subtree: true }).filter((a) =>
+        /radius$/.test(a.transitionProperty) || (a.effect.pseudoElement === '::before' && a.transitionProperty === 'opacity'));
+      const longest = Math.max(0, ...running.map((a) => {
+        const timing = a.effect.getTiming();
+        return Number(timing.delay || 0) + Number(timing.duration || 0);
+      }));
+      await Promise.all(running.map((a) => a.finished.catch(() => {})));
+      return {
+        longest,
+        radius: parseFloat(getComputedStyle(el).borderTopLeftRadius),
+        layer: parseFloat(getComputedStyle(el, '::before').opacity),
+      };
+    });
     await page.mouse.up();
+    expect(held.longest).toBeLessThanOrEqual(100);
     expect(held.radius).toBeCloseTo(12, 1);
     expect(held.layer).toBeCloseTo(pressedOpacity, 2);
   });
