@@ -1,0 +1,339 @@
+/*
+ * The tour's own components, with the project prefix demo-. They read
+ * tokens only (--ds-* and the tour's --demo-* from theme.js): no colour,
+ * radius, font, shadow, duration or curve literals, no keyframes of their
+ * own. Unlayered, like every project stylesheet, and never restyling a
+ * .ds-* component.
+ *
+ *   .demo-logo        the brand mark in the top bar and the drawer
+ *   .demo-speed       the motion speed switch in the top bar (hidden on phones)
+ *   .demo-section     one stop of the tour: __head, __title, __lead
+ *   .demo-hero        the welcome block on the accent: __kicker, __title, __lead
+ *   .demo-row         a wrapping row of controls
+ *   .demo-tip         a hint line with an icon
+ *   .demo-checks      a parent checkbox with its children indented
+ *   .demo-progress    a linear and a round progress side by side
+ *   .demo-loaders     a row of loaders
+ *   .demo-alerts      the stack the alerts come and go in (flip)
+ *   .demo-disclosure  <details class="ds-collapsible demo-disclosure">: the summary row and its body
+ *   .demo-radios      radio cards in two columns
+ *   .demo-swatch      the colour dot of an accent choice
+ *   .demo-code        a block of code
+ *   .demo-icons       the icon grid: .demo-icon buttons with their name
+ *   .demo-links       interactive cards in a list
+ *   .demo-col-status  a stable width for the live status column
+ *   .demo-sheet-actions  previous, next and close in the head of the side sheet
+ */
+
+.demo-logo {
+  display: inline-block;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ds-radius-sm);
+  background:
+    linear-gradient(135deg, var(--ds-primary) 0 50%, transparent 50%) top left / 50% 50% no-repeat,
+    linear-gradient(var(--ds-accent), var(--ds-accent));
+  box-shadow: inset 0 0 0 1px var(--ds-line);
+}
+
+@media (max-width: 600px) {
+  .demo-speed,
+  .demo-topbar-cta {
+    display: none;
+  }
+}
+
+/* ── Sections ─────────────────────────────────────────────────────── */
+
+.demo-section {
+  display: grid;
+  gap: var(--ds-space-4);
+  /* The view is the scroller: a jump to a section leaves room above its title. */
+  scroll-margin-top: var(--ds-space-6);
+}
+
+.demo-section + .demo-section {
+  margin-top: var(--ds-space-8);
+  padding-top: var(--ds-space-8);
+  border-top: 1px solid var(--ds-line);
+}
+
+.demo-section__head {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.demo-section__title {
+  margin: 0;
+  font: var(--ds-font-headline);
+}
+
+.demo-section__lead {
+  margin: 0;
+  max-width: var(--ds-measure);
+  color: var(--ds-text-2);
+  font: var(--ds-font-reading);
+}
+
+.demo-section kbd {
+  padding: 0 var(--ds-space-1);
+  border: 1px solid var(--ds-outline);
+  border-radius: var(--ds-radius-xs);
+  font: var(--ds-font-code);
+}
+
+/* ── Welcome ──────────────────────────────────────────────────────── */
+
+.demo-hero {
+  display: grid;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-8);
+  border-radius: var(--ds-radius-panel);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+}
+
+.demo-hero__kicker {
+  margin: 0;
+  font: var(--ds-font-caption);
+}
+
+.demo-hero__title {
+  margin: 0;
+  font: var(--ds-font-display);
+  text-wrap: balance;
+}
+
+.demo-hero__lead {
+  margin: 0;
+  max-width: var(--ds-measure);
+  font: var(--ds-font-reading);
+}
+
+.demo-hero .demo-row {
+  margin-top: var(--ds-space-2);
+}
+
+/* The outlined and text buttons on the accent take its ink. */
+.demo-hero .demo-on-hero {
+  color: var(--ds-on-accent);
+}
+
+@media (max-width: 600px) {
+  .demo-hero {
+    padding: var(--ds-space-5);
+  }
+}
+
+.demo-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.demo-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  margin: 0;
+  color: var(--ds-text-2);
+  font: var(--ds-font-body);
+}
+
+.demo-tip > svg {
+  flex: none;
+  color: var(--ds-primary);
+}
+
+/* ── Controls ─────────────────────────────────────────────────────── */
+
+.demo-checks {
+  display: grid;
+  gap: var(--ds-space-1);
+}
+
+.demo-checks__children {
+  display: grid;
+  gap: var(--ds-space-1);
+  padding-left: var(--ds-space-6);
+}
+
+.demo-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-6);
+}
+
+.demo-progress > .ds-progress {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.demo-loaders {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-6);
+}
+
+.demo-alerts {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.demo-col-status {
+  min-width: 136px;
+}
+
+.demo-sheet-actions {
+  display: flex;
+  flex: none;
+  gap: var(--ds-space-1);
+}
+
+/* ── Forms ────────────────────────────────────────────────────────── */
+
+.demo-disclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  width: fit-content;
+  color: var(--ds-text);
+  font: var(--ds-font-label);
+  cursor: pointer;
+}
+
+.demo-disclosure__body {
+  padding-top: var(--ds-space-4);
+}
+
+.demo-radios {
+  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+}
+
+.demo-radios strong {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.demo-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--ds-radius-action);
+}
+
+.demo-swatch--blue { background: var(--demo-swatch-blue); }
+.demo-swatch--teal { background: var(--demo-swatch-teal); }
+.demo-swatch--violet { background: var(--demo-swatch-violet); }
+.demo-swatch--green { background: var(--demo-swatch-green); }
+
+.demo-code {
+  margin: 0;
+  padding: var(--ds-space-4);
+  overflow-x: auto;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-surface-low);
+  color: var(--ds-text);
+  font: var(--ds-font-code);
+  white-space: pre;
+}
+
+/* ── Icons ────────────────────────────────────────────────────────── */
+
+.demo-icon-search {
+  max-width: 360px;
+}
+
+.demo-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A project control: a state layer in currentColor (hover, press, focus), the ring, the ripple through data-ds-ripple. */
+.demo-icon {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--ds-space-2);
+  width: 100%;
+  padding: var(--ds-space-3) var(--ds-space-1);
+  border: 0;
+  border-radius: var(--ds-radius-card);
+  background: transparent;
+  color: var(--ds-text);
+  font: var(--ds-font-meta);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  outline-offset: 2px;
+  transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+}
+
+.demo-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ds-dur-fast) var(--ds-ease-out);
+}
+
+@media (hover: hover) {
+  .demo-icon:hover::before {
+    opacity: var(--ds-state-hover);
+  }
+}
+
+.demo-icon:focus-visible {
+  outline: var(--ds-focus-outline);
+  outline-offset: 0;
+}
+
+.demo-icon:focus-visible::before {
+  opacity: var(--ds-state-focus);
+}
+
+.demo-icon:active::before {
+  opacity: var(--ds-state-pressed);
+  transition-duration: var(--ds-dur-micro);
+}
+
+.ds-ripples .demo-icon:active::before {
+  opacity: var(--ds-state-hover);
+}
+
+.demo-icon > span {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ds-text-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Get started ──────────────────────────────────────────────────── */
+
+.demo-links {
+  display: grid;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.demo-links .ds-card {
+  gap: var(--ds-space-1);
+}
+
+.demo-footer {
+  margin: var(--ds-space-4) 0 0;
+  color: var(--ds-text-2);
+}

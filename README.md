@@ -1,26 +1,86 @@
-# Dashboard-Style
+<div align="center">
 
-A neutral, themeable design system for admin dashboards and internal tools, in the style of the Google admin consoles
-(Material 3): white panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions, calm motion.
+# 🎛️ Dashboard-Style
 
-- **Plain CSS and dependency-free JS.** No build step needed: one stylesheet, one optional script.
-- **Themeable from one file.** Every colour, radius, font and shadow comes from a `--ds-*` token. A project theme
-  overrides tokens; it never touches components.
-- **Accessible by default.** WCAG AA text contrast, visible instant focus, forced colors (Windows contrast
-  themes), status never by colour alone.
-- **Embeddable.** Tokens live on `.ds-theme`, not `:root`, so the system can run inside someone else's page, and
-  every rule sits in `@layer ds.*`, so the page's own unlayered CSS always wins.
+**Calm, themeable admin dashboards in the Material 3 / Google console style.**<br>
+White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and motion that feels right.
 
-**See it live:** [saschazesiger.github.io/Dashboard-Style](https://saschazesiger.github.io/Dashboard-Style/) runs the
-reference app (a small device console built the way a project uses the system, source in [`example/`](example/README.md)),
-the [styleguide](https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html) and the
-[Motion Lab](https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html).
+[![Live tour](https://img.shields.io/badge/%E2%96%B6%20live%20tour-try%20it%20in%20your%20browser-0b57d0?style=for-the-badge)](https://saschazesiger.github.io/Dashboard-Style/)
+
+![License: MIT](https://img.shields.io/badge/license-MIT-146c2e)
+![Dependencies: 0](https://img.shields.io/badge/dependencies-0-146c2e)
+![Build step: none](https://img.shields.io/badge/build%20step-none-146c2e)
+![Components: 26](https://img.shields.io/badge/components-26-6750a4)
+![Icons: 82](https://img.shields.io/badge/icons-82-6750a4)
+
+[🚀 Live tour](https://saschazesiger.github.io/Dashboard-Style/) ·
+[🖥️ Reference app](https://saschazesiger.github.io/Dashboard-Style/example/) ·
+[🧩 Styleguide](https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html) ·
+[🎬 Motion Lab](https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html) ·
+[📚 Docs](#-documentation)
+
+<a href="https://saschazesiger.github.io/Dashboard-Style/"><img src="docs/images/tour.png" alt="The live tour of Dashboard-Style: a hero on the accent colour, four tiles with key figures and the navigation drawer" width="900"></a>
+
+</div>
+
+## ✨ Why Dashboard-Style?
+
+| | |
+|---|---|
+| 🪶 **Plain CSS, tiny JS** | One stylesheet and one optional, dependency-free script. No framework, no bundler, no build step. |
+| 🎨 **Themeable from one file** | Every colour, radius, font and shadow is a `--ds-*` token. A project theme overrides tokens; it never touches components. |
+| ♿ **Accessible by default** | WCAG AA text contrast, a focus ring that is there from the first frame, forced colours (Windows contrast themes), status never by colour alone. |
+| 🌊 **Motion that feels right** | One spring for everything that floats, ripples from your pointer, overlays that turn around mid-way, rows that glide when data changes. |
+| 🧳 **Embeddable** | Tokens live on `.ds-theme`, not `:root`, and every rule sits in `@layer ds.*`, so the system runs inside someone else's page and the page's own CSS always wins. |
+| 🔒 **Safe to vendor** | A checksummed copy of `dist/` in your project, updated by a nightly workflow. |
+
+## 👀 See it in action
+
+> 💡 Everything below is live on the [**tour page**](https://saschazesiger.github.io/Dashboard-Style/). Switch the top bar to
+> **Slow motion** there to watch every animation at a fifth of its speed.
+
+**Overlays** open from where you pressed and close back there: a side sheet that steps between records, a dialog that
+grows from its button.
+
+<img src="docs/images/overlays.gif" alt="A side sheet slides in, steps to the next device and closes; then a confirm dialog grows from its button and closes" width="800">
+
+**Live data** glides: tiles count on from what they show, sorted rows travel to their new place, status chips fade
+to their new colour.
+
+<img src="docs/images/live-data.gif" alt="A device table is sorted by name, status and load; the rows glide to their new places" width="800">
+
+**One theme file** restyles everything: accent, shape and density are just tokens.
+
+<img src="docs/images/themes.gif" alt="The same page in blue, teal, violet with square corners, and green in the compact density" width="800">
+
+<table>
+<tr>
+<td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/"><img src="docs/images/reference-app.png" alt="The reference app: an overview with alerts, four tiles, a sync card and a chart"></a><br>🖥️ <b>Reference app</b>: a device console built the way a project uses the system.</td>
+<td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/#/devices"><img src="docs/images/side-sheet.png" alt="The device table of the reference app with a side sheet open on one device"></a><br>📋 <b>Tables and side sheets</b>: search, filter chips, sorting, bulk selection, details next to the list.</td>
+</tr>
+<tr>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html"><img src="docs/images/styleguide.png" alt="The styleguide: every button variant and state"></a><br>🧩 <b>Styleguide</b>: every component, token and icon, with a theme switcher.</td>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html"><img src="docs/images/motion-lab.png" alt="The Motion Lab: the spring curve plotted as the browser plays it, and three boxes on one spring"></a><br>🎬 <b>Motion Lab</b>: every curve sampled from your browser, 60 replayable demos.</td>
+</tr>
+<tr>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/#choose"><img src="docs/images/controls.png" alt="Switches, checkboxes with a parent in the indeterminate state, filter chips and radio cards"></a><br>✅ <b>Controls</b>: checks that draw themselves, switches on a spring, chips that make room.</td>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/#icons"><img src="docs/images/icons.png" alt="A grid of the 82 outline icons with their names"></a><br>🖼️ <b>82 icons</b>: one outline set on a 24px grid, in <code>DS.icons</code>.</td>
+</tr>
+</table>
+
+📱 **Phones included**: the drawer turns modal at 900px, forms drop to one column, fields keep 16px text.
+
+<p>
+<img src="docs/images/phone-app.png" alt="The reference app on a phone" width="260">
+&nbsp;&nbsp;
+<img src="docs/images/phone-tour.png" alt="The live tour on a phone" width="260">
+</p>
 
 MIT licensed. The bundled Google Sans font is under the SIL Open Font License 1.1; the icon shapes come from Lucide
-(ISC) and Feather (MIT), see [LICENSE](LICENSE). There is no dark theme: the default is light, and dark mode is not
-designed yet.
+(ISC) and Feather (MIT), see [LICENSE](LICENSE). There is no dark theme yet: the default is light, and dark mode is not
+designed.
 
-## Quick start
+## ⚡ Quick start
 
 Copy `dist/` into your project (or use the CDN, see below) and write:
 
@@ -48,25 +108,24 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
 </html>
 ```
 
-`ds-theme` turns the tokens on, `ds-base` (optional) styles the page itself: backdrop, body text, links, focus.
-`ds.js` is only needed for the motion helpers, the sliding indicator, the DOM morph, the pointer ripple
-(`DS.ripple.attach(document)` once), the overlays (`DS.overlay`: dialogs, side sheets, the modal drawer, menus, the
-combobox list, tooltips and snackbars) and the icons (`window.DS`); every component works without it, overlays then
-opened and closed by hand as [docs/components.md](docs/components.md) describes.
+- 🎨 `ds-theme` turns the tokens on, `ds-base` (optional) styles the page itself: backdrop, body text, links, focus.
+- 🧠 `ds.js` is only needed for the motion helpers, the sliding indicator, the DOM morph, the pointer ripple
+  (`DS.ripple.attach(document)` once), the overlays (`DS.overlay`: dialogs, side sheets, the modal drawer, menus, the
+  combobox list, tooltips and snackbars) and the icons (`window.DS`). Every component works without it, overlays then
+  opened and closed by hand as [docs/components.md](docs/components.md) describes.
+- 🖥️ For a whole app (navigation, tables with live data, overlays, forms, a project theme and project components),
+  read the reference app in [`example/`](example/README.md): its README maps every pattern to its code.
+- 🚀 The live tour in [`demo/`](demo/index.html) shows one working demo of every behaviour, wired as a project wires it.
+- 🧩 Open [`styleguide/index.html`](styleguide/index.html) in a browser (works from disk) to see every component, the
+  tokens and the icons, and to try a theme file. Its Motion Lab, [`styleguide/motion.html`](styleguide/motion.html),
+  plots every curve as your browser plays it, lines up the durations and replays every choreography, with rapid
+  toggles and reversals; the speed select in the top bar slows it all down to 0.1×.
 
-For a whole app (navigation, tables with live data, overlays, forms, a project theme and project components),
-read the reference app in [`example/`](example/README.md): its README maps every pattern to its code.
+## 📦 Install
 
-Open [`styleguide/index.html`](styleguide/index.html) in a browser (works from disk) to see every component, the
-tokens and the icons, and to try a theme file. Its Motion Lab, [`styleguide/motion.html`](styleguide/motion.html),
-plots every curve as your browser plays it, lines up the durations and replays every choreography, with rapid
-toggles and reversals; the speed select in the top bar slows it all down to 0.1×.
-
-## Install
-
-**Vendor a copy (recommended).** The script copies `dist/` of the latest `main` into your project and writes `VERSION`
-(with the exact commit) and `SHA256SUMS` next to it, so a test or CI step can prove nobody edited the copy. To update,
-run it again.
+**🔒 Vendor a copy (recommended).** The script copies `dist/` of the latest `main` into your project and writes
+`VERSION` (with the exact commit) and `SHA256SUMS` next to it, so a test or CI step can prove nobody edited the copy.
+To update, run it again.
 
 ```sh
 curl -fsSLO https://raw.githubusercontent.com/saschazesiger/Dashboard-Style/main/scripts/vendor.sh
@@ -74,9 +133,10 @@ sh vendor.sh vendor/dashboard-style             # copy the latest main (or: vend
 sh vendor.sh --check vendor/dashboard-style     # verify (exit 1 if anything changed)
 ```
 
-Windows PowerShell: `scripts/vendor.ps1` with the same arguments (`-From`, `-Check`).
+Windows PowerShell: `scripts/vendor.ps1` with the same arguments (`-From`, `-Check`). A nightly GitHub Actions
+workflow that keeps the copy on `main` is in [`templates/`](templates/update-dashboard-style.yml).
 
-**CDN.** jsDelivr serves the repository (`@main`, or a commit hash to pin):
+**🌍 CDN.** jsDelivr serves the repository (`@main`, or a commit hash to pin):
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.css">
@@ -84,10 +144,10 @@ Windows PowerShell: `scripts/vendor.ps1` with the same arguments (`-From`, `-Che
 <script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.js"></script>
 ```
 
-**Bundlers.** `dist/css/` and `dist/js/` hold the single stylesheets and ES modules; import only what you need.
+**🧰 Bundlers.** `dist/css/` and `dist/js/` hold the single stylesheets and ES modules; import only what you need.
 Details, updates and integrity checks: [docs/install.md](docs/install.md).
 
-## Theming
+## 🎨 Theming
 
 Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector:
 
@@ -102,36 +162,54 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 ```
 
 [`themes/example.css`](themes/example.css) is a template listing every role. Guide: [docs/theming.md](docs/theming.md).
+Want to play first? The [**Theme it**](https://saschazesiger.github.io/Dashboard-Style/#theme) stop of the tour builds
+a theme file from a few clicks and lets you copy it.
 
-## Documentation
+## 🧩 What's inside
+
+| | |
+|---|---|
+| 🏗️ **Frame** | top bar, navigation drawer (modal on phones) with a sliding pill, segmented switch, one scrolling content panel |
+| 🃏 **Content** | page head, cards (also interactive), tiles, key-value lists, facts, empty states |
+| 🚦 **Status** | status chips, alerts, error lists, snackbars, tooltips |
+| 📊 **Data** | tables with sorting, selection, expandable rows and live updates; progress (linear and round), loaders, skeletons |
+| 📝 **Input** | buttons (busy and done faces, icon swaps), fields, selects, checkboxes, radio cards, switches, filter chips, combobox, search |
+| 🪟 **Overlays** | dialogs, side sheets, menus, through `DS.overlay` (focus, Escape, scroll lock, stacking) |
+| 🌊 **Motion** | `DS.motion` (`flip`, `countUp`, `busy`, `transition`, `crossfade` ...), `DS.indicator`, `DS.dom.morphHtml`, `DS.ripple` |
+| 🖼️ **Icons** | 82 outline glyphs in `DS.icons` |
+
+Which component fits which need: the table at the top of [docs/components.md](docs/components.md).
+
+## 📚 Documentation
 
 | Topic | |
 |---|---|
-| [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy |
-| [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |
-| [Theming](docs/theming.md) | writing a project theme, component hooks |
-| [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
-| [Motion](docs/motion.md) | principles, motion tokens, rules, the choreography of every component, interruption, keyframes and utilities, `DS.motion` (FLIP, `countUp`, `transition`), indicator, morph, ripple, overlays, recipes, view transitions, scroll-driven effects |
-| [Icons](docs/icons.md) | the outline set and its helpers |
-| [Rules](docs/rules.md) | the design rules the components follow |
+| 📦 [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy |
+| 🎚️ [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |
+| 🎨 [Theming](docs/theming.md) | writing a project theme, component hooks |
+| 🧩 [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
+| 🌊 [Motion](docs/motion.md) | principles, motion tokens, rules, the choreography of every component, interruption, keyframes and utilities, `DS.motion` (FLIP, `countUp`, `transition`), indicator, morph, ripple, overlays, recipes, view transitions, scroll-driven effects |
+| 🖼️ [Icons](docs/icons.md) | the outline set and its helpers |
+| 📐 [Rules](docs/rules.md) | the design rules the components follow |
 
-## Files
+## 🗂️ Files
 
 ```
 dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css/optional/, css/properties.css), js/, fonts/, LICENSE, SHA256SUMS
 src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, index.css (order)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template
-styleguide/      living styleguide (open index.html; motion.html: the Motion Lab; views.html: view transitions and scrolling)
+demo/            the live tour: one page that demonstrates every behaviour (the start page on GitHub Pages)
 example/         the reference app: a device console on top of dist/, as a project builds one (published on GitHub Pages)
+styleguide/      living styleguide (open index.html; motion.html: the Motion Lab; views.html: view transitions and scrolling)
 scripts/         build.mjs, motion-curves.mjs, vendor.sh, vendor.ps1, site.sh (assembles the GitHub Pages site)
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test unit tests, no dependencies; test/browser/ Playwright tests (three engines)
-docs/            the documentation above
+docs/            the documentation above (docs/images/: the pictures of this README)
 AGENTS.md        how to work on the system (CLAUDE.md points to it)
 ```
 
-## Browser support
+## 🌐 Browser support
 
 Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Everything in `src/` may run in an embedded widget
 on such a browser, so the CSS uses `:focus-visible`, `:has()`, `inset`, container queries, `color-mix()`,
@@ -145,7 +223,7 @@ allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven 
 `focus({ focusVisible: false })`, plus `text-wrap` and `scrollbar-color`. Older browsers get the same page without the refinement (a cubic curve instead of the spring,
 a disclosure that toggles instead of gliding).
 
-## Develop
+## 🛠️ Develop
 
 Node 22 or later. The unit tests, the build and `npm run check` need nothing installed. The browser tests
 (Chromium, Firefox and WebKit, through the one pinned devDependency `@playwright/test`) need `npm ci` and the
@@ -167,5 +245,11 @@ How the browser tests work, the screenshot environment and the known-bug markers
 
 Change `src/`, run the build, commit `src/` and `dist/` together, note the change in [CHANGELOG.md](CHANGELOG.md).
 `main` is always releasable: projects that use the nightly update workflow receive every push within a day,
-whatever the version number says, so a rename keeps the old name working and only a later major version removes it. The full checklist for components, tokens, icons
-and keyframes is in [AGENTS.md](AGENTS.md).
+whatever the version number says, so a rename keeps the old name working and only a later major version removes it.
+The full checklist for components, tokens, icons and keyframes is in [AGENTS.md](AGENTS.md).
+
+<div align="center">
+
+Made with 💙 for calm dashboards · [MIT](LICENSE)
+
+</div>

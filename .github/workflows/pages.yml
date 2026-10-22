@@ -1,5 +1,6 @@
 name: pages
-# Publishes the reference app, the styleguide and the Motion Lab on GitHub Pages (scripts/site.sh assembles them).
+# Publishes the live tour, the reference app, the styleguide and the Motion Lab on GitHub Pages (scripts/site.sh
+# assembles them).
 # One-time setup: Settings → Pages → Source "GitHub Actions".
 on:
   # After CI passed on a push to main (unit and browser tests), so the site never shows a commit that failed them.
@@ -47,7 +48,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}example/
+      url: ${{ steps.deployment.outputs.page_url }}demo/
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4

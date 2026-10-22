@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dashboard-Style · Live tour</title>
+<meta name="description" content="A guided, hands-on tour of Dashboard-Style: every component and every motion, live in your browser.">
+<!-- The order a project loads: fonts, ds.css, then its own theme and its own components (both unlayered, so they
+     win). Here they point at this repository's dist/, so the page also works from disk. -->
+<link rel="stylesheet" href="../dist/fonts/fonts.css">
+<link rel="stylesheet" href="../dist/ds.css">
+<link rel="stylesheet" href="demo.css">
+<!-- The theme: the choices under "Theme it" build a theme stylesheet (theme.js), applied before the first paint. -->
+<script src="theme.js"></script>
+</head>
+<body>
+<div class="ds-app ds-app--drawer" id="app">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" id="menu" data-icon="menu"></button>
+    <a class="ds-brand" href="#welcome"><span class="demo-logo" aria-hidden="true"></span><span class="ds-brand__name">Dashboard-Style</span></a>
+    <nav class="ds-segmented demo-speed" aria-label="Motion speed" id="speed">
+      <a class="ds-segmented__option" href="?speed=1" aria-current="true" data-speed="1" data-label="Normal">Normal</a>
+      <a class="ds-segmented__option" href="?speed=0.2" data-speed="0.2" data-label="Slow motion">Slow motion</a>
+    </nav>
+    <div class="ds-account">
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="https://github.com/saschazesiger/Dashboard-Style" aria-label="Source on GitHub" data-tip="Source on GitHub" data-icon="fileCode"></a>
+      <a class="ds-btn ds-btn--tonal demo-topbar-cta" href="https://github.com/saschazesiger/Dashboard-Style#-quick-start" data-icon="download">Get it</a>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Tour" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="demo-logo"></span><span class="ds-brand__name">Dashboard-Style</span></div>
+    <div class="ds-drawer__list" id="nav">
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Tour</p>
+        <a class="ds-drawer__item" href="#welcome" aria-current="page" data-icon="sparkles"><span class="ds-drawer__label">Welcome</span></a>
+        <a class="ds-drawer__item" href="#press" data-icon="thumbUp"><span class="ds-drawer__label">Press and focus</span></a>
+        <a class="ds-drawer__item" href="#choose" data-icon="checkCircle"><span class="ds-drawer__label">Choose</span></a>
+        <a class="ds-drawer__item" href="#live" data-icon="activity"><span class="ds-drawer__label">Live data</span></a>
+        <a class="ds-drawer__item" href="#overlays" data-icon="columns"><span class="ds-drawer__label">Overlays</span></a>
+        <a class="ds-drawer__item" href="#feedback" data-icon="sync"><span class="ds-drawer__label">Feedback</span></a>
+        <a class="ds-drawer__item" href="#forms" data-icon="compose"><span class="ds-drawer__label">Forms</span></a>
+        <a class="ds-drawer__item" href="#theme" data-icon="image"><span class="ds-drawer__label">Theme it</span></a>
+        <a class="ds-drawer__item" href="#icons" data-icon="apps"><span class="ds-drawer__label">Icons</span></a>
+        <a class="ds-drawer__item" href="#start" data-icon="download"><span class="ds-drawer__label">Get started</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Explore more</p>
+        <a class="ds-drawer__item" href="../example/index.html" data-icon="laptop"><span class="ds-drawer__label">Reference app</span></a>
+        <a class="ds-drawer__item" href="../styleguide/index.html" data-icon="overview"><span class="ds-drawer__label">Styleguide</span></a>
+        <a class="ds-drawer__item" href="../styleguide/motion.html" data-icon="barChart"><span class="ds-drawer__label">Motion Lab</span></a>
+        <a class="ds-drawer__item" href="../styleguide/views.html" data-icon="monitor"><span class="ds-drawer__label">Views and scroll</span></a>
+        <a class="ds-drawer__item" href="https://github.com/saschazesiger/Dashboard-Style" data-icon="fileCode"><span class="ds-drawer__label">Source</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page" id="page">
+
+          <!-- ── Welcome ─────────────────────────────────────────────── -->
+          <section class="demo-section" id="welcome" aria-labelledby="welcome-title">
+            <div class="demo-hero">
+              <p class="demo-hero__kicker">Live tour · v<span id="version">1</span></p>
+              <h1 class="demo-hero__title" id="welcome-title" tabindex="-1">Calm dashboards, ready to theme.</h1>
+              <p class="demo-hero__lead">A design system for admin dashboards in the Material 3 / Google console style: plain CSS, a
+                small dependency-free script, one theme file. Everything on this page is live: press it, tab through it,
+                break it.</p>
+              <div class="demo-row">
+                <a class="ds-btn ds-btn--primary" href="#press" data-icon="arrowDown">Start the tour</a>
+                <a class="ds-btn demo-on-hero" href="../example/index.html" data-icon="laptop">Open the reference app</a>
+                <a class="ds-btn ds-btn--text demo-on-hero" href="../styleguide/index.html">Every component <span data-icon-inline="arrowRight 16"></span></a>
+              </div>
+            </div>
+            <div class="ds-tiles" id="facts">
+              <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="apps 16"></span><span>Components</span></p><p class="ds-tile__value" data-count="26">0</p><p class="ds-tile__note">one CSS file each</p></div>
+              <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="image 16"></span><span>Icons</span></p><p class="ds-tile__value" data-count="82">0</p><p class="ds-tile__note">outline, 24px grid</p></div>
+              <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="settings 16"></span><span>Tokens</span></p><p class="ds-tile__value" data-count="120" data-suffix="+">0</p><p class="ds-tile__note">in three layers</p></div>
+              <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="box 16"></span><span>Dependencies</span></p><p class="ds-tile__value">0</p><p class="ds-tile__note">plain CSS and JS</p></div>
+            </div>
+            <p class="demo-tip"><span data-icon-inline="info"></span><span>Switch the top bar to <strong>Slow motion</strong> to watch every
+              animation at a fifth of its speed. The pill under it glides on the same spring as everything else.</span></p>
+          </section>
+
+          <!-- ── Press and focus ────────────────────────────────────── -->
+          <section class="demo-section" id="press" aria-labelledby="press-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="press-title">Press, hover, focus</h2>
+              <p class="demo-section__lead">Every action is a pill. Press and hold one: a ripple grows from your pointer and the pill
+                turns squarer, then springs back when you let go. Press <kbd>Tab</kbd>: the focus ring is solid from the first
+                frame and snaps into place. Hover never moves anything.</p>
+            </header>
+            <div class="ds-grid-2">
+              <section class="ds-card">
+                <h3 class="ds-card__title">Buttons</h3>
+                <div class="demo-row">
+                  <button class="ds-btn ds-btn--primary" type="button">Primary</button>
+                  <button class="ds-btn ds-btn--tonal" type="button">Tonal</button>
+                  <button class="ds-btn" type="button">Outlined</button>
+                  <button class="ds-btn ds-btn--text" type="button">Text</button>
+                </div>
+                <div class="demo-row">
+                  <button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" id="filter-toggle" data-icon-sm="filter">Filter</button>
+                  <button class="ds-btn ds-btn--sm" type="button" data-icon-sm="plus">Small</button>
+                  <button class="ds-btn ds-btn--primary" type="button" disabled>Disabled</button>
+                  <button class="ds-btn" type="button" aria-disabled="true" data-tip="Disabled, but still focusable: a tooltip can say why">Why not?</button>
+                </div>
+                <p class="ds-muted">The filter is a toggle (<code>aria-pressed</code>). The last button stays focusable, so its tooltip can explain itself.</p>
+              </section>
+              <section class="ds-card">
+                <h3 class="ds-card__title">Icon buttons and tooltips</h3>
+                <div class="demo-row">
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit" data-tip="Edit" data-icon="pencil"></button>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Archive" data-tip="Archive" data-icon="archive"></button>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Download" data-tip="Download" data-icon="download"></button>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--disc" type="button" aria-label="Share" data-tip="Share" data-icon="link"></button>
+                  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link" id="copy-link">
+                    <span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a" data-icon-inline="copy"></span><span class="ds-icon-swap__b" data-icon-inline="check"></span></span>
+                  </button>
+                </div>
+                <p class="ds-muted">Rest on a button: its tooltip waits half a second, the next one comes at once (warm-up). Copy link swaps its icon to a check that draws itself.</p>
+                <h3 class="ds-card__subtitle">Busy, then done</h3>
+                <div class="demo-row">
+                  <button class="ds-btn ds-btn--primary" type="button" id="save-demo">
+                    <span class="ds-btn__faces">
+                      <span class="ds-btn__face">Save changes</span>
+                      <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+                      <span class="ds-btn__face ds-btn__face--done" aria-hidden="true"><span data-icon-check></span>Saved</span>
+                    </span>
+                  </button>
+                  <span class="ds-meta">The button never changes its width.</span>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <!-- ── Choose ─────────────────────────────────────────────── -->
+          <section class="demo-section" id="choose" aria-labelledby="choose-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="choose-title">Choose</h2>
+              <p class="demo-section__lead">Checks draw themselves from their short arm, switch handles glide on the spring, chips open
+                room for their check and the chips after them glide along. Nothing animates on load.</p>
+            </header>
+            <div class="ds-grid-2">
+              <section class="ds-card">
+                <h3 class="ds-card__title">Switches</h3>
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch" checked>
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">Nightly sync</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch">
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">Email me about failures</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch" disabled>
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">Managed by your organisation</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+                <h3 class="ds-card__subtitle">Checkboxes</h3>
+                <fieldset class="ds-field demo-checks" id="check-group">
+                  <legend class="ds-field__label">Notify by</legend>
+                  <label class="ds-check"><input type="checkbox" id="check-all"><span>All channels</span></label>
+                  <div class="demo-checks__children">
+                    <label class="ds-check"><input type="checkbox" checked data-channel><span>Email</span></label>
+                    <label class="ds-check"><input type="checkbox" data-channel><span>Chat</span></label>
+                    <label class="ds-check"><input type="checkbox" data-channel><span>Phone</span></label>
+                  </div>
+                </fieldset>
+                <p class="ds-muted">"All channels" turns into a dash while only some are on.</p>
+              </section>
+              <section class="ds-card">
+                <h3 class="ds-card__title">Filter chips</h3>
+                <fieldset class="ds-chips" id="demo-chips">
+                  <legend class="ds-sr">Device type</legend>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" checked><span class="ds-chip__body"><span data-chip-check></span><span>Laptops</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span data-chip-check></span><span>Desktops</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span data-chip-check></span><span>Printers</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span data-chip-check></span><span>Phones</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span data-chip-check></span><span>Servers</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span data-chip-check></span><span>Tablets</span></span></label>
+                </fieldset>
+                <h3 class="ds-card__subtitle">Radio cards</h3>
+                <div class="ds-radios" role="radiogroup" aria-label="Plan">
+                  <label class="ds-radio"><input type="radio" name="plan" value="basic" checked>
+                    <span><strong>Basic</strong><small>Inventory and tickets.</small></span></label>
+                  <label class="ds-radio"><input type="radio" name="plan" value="team">
+                    <span><strong>Team</strong><small>Adds roles, audit log and single sign-on.</small></span></label>
+                  <label class="ds-radio ds-radio--disabled"><input type="radio" name="plan" value="enterprise" disabled>
+                    <span><strong>Enterprise</strong><small class="ds-radio__note"><span data-icon-inline="alert 16"></span>Needs a licence.</small></span></label>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <!-- ── Live data ──────────────────────────────────────────── -->
+          <section class="demo-section" id="live" aria-labelledby="live-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="live-title">Live data</h2>
+              <p class="demo-section__lead">A fake backend reports new figures every few seconds. Tiles count on from what they show,
+                rows glide to their new place, status chips fade to their new colour. Point at the table: a live reorder waits
+                until you are done (at most 2s). Type in the search: the rows glide per keystroke.</p>
+            </header>
+            <div class="ds-tiles" id="live-tiles"></div>
+            <section class="ds-card">
+              <div class="ds-card__row">
+                <h3 class="ds-card__title">Devices</h3>
+                <label class="ds-switch">
+                  <input type="checkbox" role="switch" id="live-switch" checked>
+                  <span class="ds-switch__track" aria-hidden="true"></span>
+                  <span class="ds-switch__label">Live updates</span>
+                  <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+                </label>
+              </div>
+              <div class="ds-toolbar">
+                <div class="ds-filters">
+                  <div class="ds-field ds-field--grow">
+                    <label class="ds-sr" for="live-search">Search devices</label>
+                    <div class="ds-search"><span data-icon-inline="search"></span><input class="ds-input" id="live-search" type="search" placeholder="Search devices" autocomplete="off"></div>
+                  </div>
+                </div>
+                <fieldset class="ds-chips" id="live-chips">
+                  <legend class="ds-sr">Status</legend>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="ok"><span class="ds-chip__body"><span data-chip-check></span><span>OK</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="warning"><span class="ds-chip__body"><span data-chip-check></span><span>Busy</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="running"><span class="ds-chip__body"><span data-chip-check></span><span>Updating</span></span></label>
+                  <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="error"><span class="ds-chip__body"><span data-chip-check></span><span>Offline</span></span></label>
+                </fieldset>
+              </div>
+              <div class="ds-table-wrap">
+                <table class="ds-table">
+                  <caption class="ds-sr">Devices, live</caption>
+                  <thead id="live-head"></thead>
+                  <tbody id="live-body"></tbody>
+                </table>
+              </div>
+              <div id="live-empty"></div>
+            </section>
+          </section>
+
+          <!-- ── Overlays ───────────────────────────────────────────── -->
+          <section class="demo-section" id="overlays" aria-labelledby="overlays-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="overlays-title">Overlays</h2>
+              <p class="demo-section__lead">Dialogs, side sheets, menus and snackbars open from where you pressed and close back
+                there. Click twice quickly: a closing overlay turns around from where it is. Escape closes the top layer only,
+                focus goes back to the button that opened it.</p>
+            </header>
+            <div class="ds-grid-2">
+              <section class="ds-card">
+                <h3 class="ds-card__title">Dialog and side sheet</h3>
+                <p class="ds-muted">The dialog grows from its opener on the spring; the sheet slides its full width in and steps between records with a shared-axis transition.</p>
+                <div class="demo-row">
+                  <button class="ds-btn ds-btn--tonal" type="button" id="open-dialog" data-icon-sm="trash">Delete 3 devices</button>
+                  <button class="ds-btn" type="button" id="open-sheet" data-icon-sm="fileText">Open details</button>
+                </div>
+              </section>
+              <section class="ds-card">
+                <h3 class="ds-card__title">Menu and snackbars</h3>
+                <p class="ds-muted">Menus work with the arrow keys. Snackbars stack up to three; an error or one with an action stays until closed.</p>
+                <div class="demo-row">
+                  <button class="ds-btn" type="button" id="open-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="demo-menu" data-icon-sm="moreVertical">Actions</button>
+                  <button class="ds-btn" type="button" data-toast="ok">Show a message</button>
+                  <button class="ds-btn" type="button" data-toast="error">Show an error</button>
+                  <button class="ds-btn ds-btn--text" type="button" data-toast="undo">With undo</button>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <!-- ── Feedback ───────────────────────────────────────────── -->
+          <section class="demo-section" id="feedback" aria-labelledby="feedback-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="feedback-title">Feedback</h2>
+              <p class="demo-section__lead">Loaders appear only after 200ms, so fast answers show nothing. Progress glides and lands on
+                the same frame as its figure. Alerts come and go while the ones around them glide.</p>
+            </header>
+            <div class="ds-grid-2">
+              <section class="ds-card">
+                <div class="ds-card__row">
+                  <h3 class="ds-card__title">Progress</h3>
+                  <button class="ds-btn ds-btn--sm" type="button" id="run-import">
+                    <span class="ds-btn__faces">
+                      <span class="ds-btn__face">Run import</span>
+                      <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Importing</span>
+                      <span class="ds-btn__face ds-btn__face--done" aria-hidden="true"><span data-icon-check></span>Done</span>
+                    </span>
+                  </button>
+                </div>
+                <div class="demo-progress">
+                  <div class="ds-progress" id="import-progress" style="--ds-progress: 0">
+                    <div class="ds-progress__track" role="progressbar" aria-label="Import" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ds-progress__bar"></div></div>
+                    <p class="ds-progress__label" id="import-label">0%</p>
+                    <p class="ds-progress__detail" id="import-detail">2,030 rows ready</p>
+                  </div>
+                  <span class="ds-spinner ds-spinner--determinate" id="import-ring" role="progressbar" aria-label="Import, round" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="--ds-progress: 0"></span>
+                </div>
+                <h3 class="ds-card__subtitle">Status that changes</h3>
+                <div class="demo-row">
+                  <span id="deploy-status"></span>
+                  <button class="ds-btn ds-btn--text ds-btn--sm" type="button" id="deploy">Deploy</button>
+                </div>
+                <h3 class="ds-card__subtitle">Loaders</h3>
+                <div class="demo-loaders">
+                  <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
+                  <span class="ds-loader ds-loader--contained" aria-hidden="true"></span>
+                  <span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Running</span></span>
+                </div>
+              </section>
+              <section class="ds-card">
+                <div class="ds-card__row">
+                  <h3 class="ds-card__title">Alerts</h3>
+                  <button class="ds-btn ds-btn--sm" type="button" id="add-alert" data-icon-sm="plus">Add alert</button>
+                </div>
+                <div class="demo-alerts" id="alerts"></div>
+                <details class="ds-errors ds-collapsible">
+                  <summary><span data-icon-inline="alertCircle 16"></span>2 errors in the last import<span data-icon-chevron="ds-errors__chevron"></span></summary>
+                  <ul><li>Row 4: unknown model</li><li>Row 9: duplicate serial</li></ul>
+                </details>
+              </section>
+            </div>
+          </section>
+
+          <!-- ── Forms ──────────────────────────────────────────────── -->
+          <section class="demo-section" id="forms" aria-labelledby="forms-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="forms-title">Forms</h2>
+              <p class="demo-section__lead">Labels above fields, a ring inside the field that is there at once. Submit the empty form:
+                messages open their room and fade in. The model field is a combobox: type, use the arrow keys, press Enter.</p>
+            </header>
+            <form class="ds-card ds-form" id="demo-form" novalidate>
+              <div class="ds-form-grid">
+                <div class="ds-field">
+                  <label class="ds-field__label" for="f-name">Device name</label>
+                  <input class="ds-input" id="f-name" name="name" autocomplete="off" aria-describedby="f-name-hint">
+                  <small class="ds-field__hint" id="f-name-hint">As printed on the label.</small>
+                </div>
+                <div class="ds-field">
+                  <label class="ds-field__label" for="f-type">Type</label>
+                  <select class="ds-input" id="f-type" name="type"><option>Laptop</option><option>Desktop</option><option>Printer</option><option>Phone</option></select>
+                </div>
+                <div class="ds-field">
+                  <label class="ds-field__label" for="f-owner">Owner's email</label>
+                  <input class="ds-input" id="f-owner" name="owner" type="email" autocomplete="off" placeholder="ada@example.org">
+                </div>
+                <div class="ds-field">
+                  <label class="ds-field__label" for="f-model">Model</label>
+                  <div class="ds-combo" id="model-combo">
+                    <input class="ds-input ds-combo__input" id="f-model" name="model" role="combobox" aria-expanded="false" aria-controls="model-list" aria-autocomplete="list" autocomplete="off">
+                    <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all models"><span data-icon-inline="chevronDown"></span></button>
+                    <div class="ds-combo__popup" hidden>
+                      <ul class="ds-combo__list" id="model-list" role="listbox" aria-label="Models"></ul>
+                      <p class="ds-combo__status" role="status"></p>
+                    </div>
+                  </div>
+                </div>
+                <div class="ds-field ds-field--full">
+                  <label class="ds-field__label" for="f-notes">Notes</label>
+                  <textarea class="ds-input" id="f-notes" name="notes"></textarea>
+                </div>
+              </div>
+              <label class="ds-check"><input type="checkbox" name="managed" checked><span>Managed: install updates automatically</span></label>
+              <details class="ds-collapsible demo-disclosure">
+                <summary>Advanced settings<span data-icon-chevron="ds-chevron"></span></summary>
+                <div class="demo-disclosure__body">
+                  <div class="ds-form-grid ds-form-grid--2">
+                    <div class="ds-field"><label class="ds-field__label" for="f-asset">Asset tag</label><input class="ds-input" id="f-asset" name="asset"></div>
+                    <div class="ds-field"><label class="ds-field__label" for="f-bought">Bought</label><input class="ds-input" id="f-bought" name="bought" type="date"></div>
+                  </div>
+                </div>
+              </details>
+              <div class="ds-form-actions">
+                <button class="ds-btn ds-btn--primary" type="submit">
+                  <span class="ds-btn__faces">
+                    <span class="ds-btn__face">Add device</span>
+                    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Adding</span>
+                    <span class="ds-btn__face ds-btn__face--done" aria-hidden="true"><span data-icon-check></span>Added</span>
+                  </span>
+                </button>
+                <button class="ds-btn ds-btn--text" type="reset">Clear</button>
+                <p class="ds-meta">Nothing is sent anywhere.</p>
+              </div>
+            </form>
+          </section>
+
+          <!-- ── Theme it ───────────────────────────────────────────── -->
+          <section class="demo-section" id="theme" aria-labelledby="theme-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="theme-title">Theme it</h2>
+              <p class="demo-section__lead">Every colour, radius, font and shadow is a <code>--ds-*</code> token on <code>.ds-theme</code>.
+                Pick a few: the whole page restyles at once, and the theme file below is all a project would write.</p>
+            </header>
+            <div class="ds-grid-2">
+              <form class="ds-card ds-form" id="theme-form">
+                <fieldset class="ds-field">
+                  <legend class="ds-field__label">Accent</legend>
+                  <div class="ds-radios demo-radios" role="radiogroup" aria-label="Accent">
+                    <label class="ds-radio"><input type="radio" name="accent" value="blue" checked><span><strong><span class="demo-swatch demo-swatch--blue" aria-hidden="true"></span>Blue</strong><small>The default</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="accent" value="teal"><span><strong><span class="demo-swatch demo-swatch--teal" aria-hidden="true"></span>Teal</strong><small>Calm and clinical</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="accent" value="violet"><span><strong><span class="demo-swatch demo-swatch--violet" aria-hidden="true"></span>Violet</strong><small>A little playful</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="accent" value="green"><span><strong><span class="demo-swatch demo-swatch--green" aria-hidden="true"></span>Green</strong><small>Fresh and friendly</small></span></label>
+                  </div>
+                </fieldset>
+                <fieldset class="ds-field">
+                  <legend class="ds-field__label">Shape</legend>
+                  <div class="ds-radios demo-radios" role="radiogroup" aria-label="Shape">
+                    <label class="ds-radio"><input type="radio" name="shape" value="round" checked><span><strong>Rounded</strong><small>Pills and soft cards</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="shape" value="square"><span><strong>Square</strong><small>Sharp corners, flat layers</small></span></label>
+                  </div>
+                </fieldset>
+                <fieldset class="ds-field">
+                  <legend class="ds-field__label">Density</legend>
+                  <div class="ds-radios demo-radios" role="radiogroup" aria-label="Density">
+                    <label class="ds-radio"><input type="radio" name="density" value="comfortable" checked><span><strong>Comfortable</strong><small>14px text, 36px buttons</small></span></label>
+                    <label class="ds-radio"><input type="radio" name="density" value="compact"><span><strong>Compact</strong><small>13px text, 32px buttons</small></span></label>
+                  </div>
+                </fieldset>
+                <div class="ds-form-actions">
+                  <button class="ds-btn ds-btn--text" type="reset" data-icon-sm="reset">Back to the default</button>
+                </div>
+              </form>
+              <section class="ds-card">
+                <div class="ds-card__row">
+                  <h3 class="ds-card__title">theme.css</h3>
+                  <button class="ds-btn ds-btn--sm" type="button" id="copy-theme" data-icon-sm="copy">Copy</button>
+                </div>
+                <pre class="demo-code" id="theme-code"></pre>
+                <p class="ds-muted">Load it after <code>ds.css</code>. Themes set roles and component hooks, never motion: motion is one
+                  scheme for every product.</p>
+              </section>
+            </div>
+          </section>
+
+          <!-- ── Icons ──────────────────────────────────────────────── -->
+          <section class="demo-section" id="icons" aria-labelledby="icons-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="icons-title">Icons</h2>
+              <p class="demo-section__lead">82 outline glyphs on a 24px grid, in <code>DS.icons</code>. Filter them, then click one to copy
+                the line that draws it.</p>
+            </header>
+            <section class="ds-card">
+              <div class="ds-search demo-icon-search"><span data-icon-inline="search"></span><input class="ds-input" id="icon-search" type="search" placeholder="Filter icons" aria-label="Filter icons" autocomplete="off"></div>
+              <ul class="demo-icons" id="icon-grid"></ul>
+              <div id="icon-empty"></div>
+            </section>
+          </section>
+
+          <!-- ── Get started ────────────────────────────────────────── -->
+          <section class="demo-section" id="start" aria-labelledby="start-title">
+            <header class="demo-section__head">
+              <h2 class="demo-section__title" id="start-title">Get started</h2>
+              <p class="demo-section__lead">One stylesheet, one optional script, no build step. Vendor a checksummed copy, or load it from the CDN.</p>
+            </header>
+            <div class="ds-grid-2">
+              <section class="ds-card">
+                <h3 class="ds-card__title">From the CDN</h3>
+                <pre class="demo-code" id="start-code">&lt;html class="ds-theme ds-base"&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/fonts/fonts.css"&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.css"&gt;
+&lt;script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.js"&gt;&lt;/script&gt;
+
+&lt;button class="ds-btn ds-btn--primary"&gt;Hello&lt;/button&gt;
+&lt;script&gt;DS.ripple.attach(document);&lt;/script&gt;</pre>
+                <div class="demo-row">
+                  <button class="ds-btn ds-btn--sm" type="button" id="copy-start" data-icon-sm="copy">Copy</button>
+                </div>
+              </section>
+              <section class="ds-card">
+                <h3 class="ds-card__title">Read on</h3>
+                <ul class="demo-links">
+                  <li><a class="ds-card ds-card--interactive ds-card--filled" href="../example/index.html"><span class="ds-card__title">Reference app</span><span class="ds-muted">A device console built the way a project uses the system.</span></a></li>
+                  <li><a class="ds-card ds-card--interactive ds-card--filled" href="../styleguide/index.html"><span class="ds-card__title">Styleguide</span><span class="ds-muted">Every component, token and icon, with a theme switcher.</span></a></li>
+                  <li><a class="ds-card ds-card--interactive ds-card--filled" href="../styleguide/motion.html"><span class="ds-card__title">Motion Lab</span><span class="ds-muted">60 replayable demos, every curve sampled from your browser.</span></a></li>
+                  <li><a class="ds-card ds-card--interactive ds-card--filled" href="https://github.com/saschazesiger/Dashboard-Style/tree/main/docs"><span class="ds-card__title">Documentation</span><span class="ds-muted">Install, tokens, theming, components, motion, icons, rules.</span></a></li>
+                </ul>
+              </section>
+            </div>
+            <p class="demo-footer ds-meta">MIT licensed · Google Sans under the SIL Open Font License · icon shapes from Lucide (ISC) and Feather (MIT)</p>
+          </section>
+
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="ds-toasts" id="toasts"></div>
+
+<dialog class="ds-dialog" id="confirm" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="confirm-title">Delete 3 devices?</h2>
+    <p class="ds-dialog__text" id="confirm-text">They disappear from every list. You can undo it for a moment.</p>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="confirm-delete">Delete devices</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="ds-sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="ds-sheet__backdrop" data-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="sheet-title">Device</h2>
+      <div class="demo-sheet-actions">
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous device" data-tip="Previous device" data-step="-1" data-icon="chevronLeft"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next device" data-tip="Next device" data-step="1" data-icon="chevronRight"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close data-icon="close"></button>
+      </div>
+    </div>
+    <div class="ds-sheet__body" tabindex="0" id="sheet-body"></div>
+  </section>
+</dialog>
+
+<div class="ds-menu" role="menu" id="demo-menu" aria-label="Actions" hidden>
+  <button class="ds-menu__item" role="menuitem" type="button" data-icon="pencil"><span class="ds-menu__label">Edit</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button" data-icon="copy"><span class="ds-menu__label">Duplicate</span></button>
+  <button class="ds-menu__item" role="menuitemcheckbox" type="button" aria-checked="true" data-menu-check><span class="ds-menu__label">Pinned</span></button>
+  <div class="ds-menu__divider" role="separator"></div>
+  <button class="ds-menu__item" role="menuitem" type="button" aria-disabled="true" data-icon="trash"><span class="ds-menu__label">Delete (no permission)</span></button>
+</div>
+
+<script src="../dist/ds.js"></script>
+<script src="demo.js"></script>
+</body>
+</html>

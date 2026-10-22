@@ -1,7 +1,7 @@
 #!/bin/sh
-# Assembles the GitHub Pages site (.github/workflows/pages.yml) from this checkout: the reference app (example/),
-# the styleguide, the Motion Lab and the views page on top of dist/, laid out as in the repository, so every
-# relative link works as it does from disk. The root page forwards to the reference app.
+# Assembles the GitHub Pages site (.github/workflows/pages.yml) from this checkout: the live tour (demo/), the
+# reference app (example/), the styleguide, the Motion Lab and the views page on top of dist/, laid out as in the
+# repository, so every relative link works as it does from disk. The root page forwards to the live tour.
 #
 #   sh scripts/site.sh [dest]      dest defaults to _site (gitignored); it must not exist or be empty
 #
@@ -18,7 +18,7 @@ fi
 mkdir -p "$dest"
 
 # dist/ is what the pages load; the styleguide links to README.md, docs/ and themes/ (shown as plain text).
-for path in dist example styleguide themes docs README.md LICENSE; do
+for path in dist demo example styleguide themes docs README.md LICENSE; do
   cp -R "$root/$path" "$dest/"
 done
 
@@ -29,11 +29,11 @@ cat > "$dest/index.html" <<'HTML'
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dashboard-Style</title>
-<meta http-equiv="refresh" content="0; url=example/">
-<link rel="canonical" href="example/">
+<meta http-equiv="refresh" content="0; url=demo/">
+<link rel="canonical" href="demo/">
 </head>
 <body>
-<p><a href="example/">The reference app</a> · <a href="styleguide/index.html">Styleguide</a> ·
+<p><a href="demo/">The live tour</a> · <a href="example/">The reference app</a> · <a href="styleguide/index.html">Styleguide</a> ·
 <a href="styleguide/motion.html">Motion Lab</a> · <a href="https://github.com/saschazesiger/Dashboard-Style">Source</a></p>
 </body>
 </html>
