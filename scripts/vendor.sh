@@ -37,10 +37,17 @@ sums() {
 }
 
 # Verifies <dir>/SHA256SUMS: every listed file matches, nothing is missing,
-# nothing unlisted was added.
+# nothing unlisted was added (a symbolic link neither: the file listing
+# cannot see it, so any link fails the check).
 check_dir() {
   dir=$1
   [ -f "$dir/SHA256SUMS" ] || die "$dir/SHA256SUMS not found"
+  links=$(cd "$dir" && find . -type l | sed 's|^\./||' | LC_ALL=C sort)
+  if [ -n "$links" ]; then
+    echo "vendor.sh: $dir contains symbolic links, which SHA256SUMS cannot cover:" >&2
+    printf '%s\n' "$links" >&2
+    return 1
+  fi
   expected=$(cd "$dir" && tr -d '\r' < SHA256SUMS)
   actual=$(cd "$dir" && sums)
   if [ "$expected" != "$actual" ]; then

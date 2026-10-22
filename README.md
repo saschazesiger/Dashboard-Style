@@ -45,7 +45,9 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
 
 `ds-theme` turns the tokens on, `ds-base` (optional) styles the page itself: backdrop, body text, links, focus.
 `ds.js` is only needed for the motion helpers, the sliding indicator, the DOM morph, the pointer ripple
-(`DS.ripple.attach(document)` once) and the icons (`window.DS`); every component works without it.
+(`DS.ripple.attach(document)` once), the overlays (`DS.overlay`: dialogs, side sheets, the modal drawer, menus, the
+combobox list, tooltips and snackbars) and the icons (`window.DS`); every component works without it, overlays then
+opened and closed by hand as [docs/components.md](docs/components.md) describes.
 
 Open [`styleguide/index.html`](styleguide/index.html) in a browser (works from disk) to see every component, the
 tokens and the icons, and to try a theme file. Its Motion Lab, [`styleguide/motion.html`](styleguide/motion.html),
@@ -129,8 +131,8 @@ but no CSS nesting; the JS is ES2022.
 Newer features are refinements only, behind a feature query where it matters, and each file names them under
 "Progressive:" in its header with its fallback: `linear()`, `@starting-style`, `transition-behavior:
 allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven animations, `interpolate-size`,
-`::details-content`, `overflow-clip-margin`, `sibling-index()`, `moveBefore()`, plus `text-wrap` and
-`scrollbar-color`. Older browsers get the same page without the refinement (a cubic curve instead of the spring,
+`::details-content`, `overflow-clip-margin`, `sibling-index()`, `moveBefore()`, `scrollbar-gutter`, plus `text-wrap`
+and `scrollbar-color`. Older browsers get the same page without the refinement (a cubic curve instead of the spring,
 a disclosure that toggles instead of gliding).
 
 ## Develop

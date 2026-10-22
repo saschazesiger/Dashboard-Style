@@ -1,4 +1,4 @@
-/*! Dashboard-Style 1.6.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 1.6.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Dashboard-Style: every stylesheet in cascade order. scripts/build.mjs
  * inlines these imports into dist/ds.css; a bundler can import this file
@@ -3278,6 +3278,9 @@
     border: 1px solid var(--ds-line);
     border-radius: var(--ds-radius-card);
     background: var(--ds-surface);
+    /* Its own ink on its own surface: without .ds-base (a widget in a host
+       page) text would inherit the host's colour. */
+    color: var(--ds-text);
   }
 
   /* The rhythm below decides all spacing: no browser margins of paragraphs
@@ -3335,7 +3338,7 @@
     justify-content: flex-start;
     align-items: stretch;
     width: 100%;
-    color: inherit;
+    color: var(--ds-text);
     font: inherit;
     text-align: left;
     text-decoration: none;
@@ -3833,8 +3836,11 @@
     overflow-wrap: anywhere;
   }
 
-  /* A trailing icon in a link (an external target) keeps a little air. */
+  /* A trailing icon in a link (an external target) keeps a little air. Its
+     own display: a layered preflight (svg { display: block }) would drop it
+     below the text. */
   .ds-facts a svg {
+    display: inline-block;
     margin-left: var(--ds-space-1);
     vertical-align: -2px;
   }
@@ -4244,7 +4250,10 @@
     color: var(--ds-error);
   }
 
+  /* Its own bullets: a layered reset (list-style: none on ul) would leave
+     the indent without its markers. */
   .ds-errors ul {
+    list-style-type: disc;
     margin: var(--ds-space-2) 0 0;
     padding-left: var(--ds-space-5);
     color: var(--ds-text-2);
@@ -4292,7 +4301,9 @@
  *   .ds-table--dense    40px rows (long lists)
  *   <th aria-sort="ascending"><button class="ds-table__sort">Name (arrowUp .ds-table__sort-arrow)</button></th>
  *                       a sortable column; the arrow at the sorted column
- *                       says it, not the colour
+ *                       says it, not the colour; every sort button keeps
+ *                       the arrow's room, so moving the sort never shifts
+ *                       the columns
  *   .ds-table__sort-arrow  on the arrow's svg: one up arrow for both
  *                       directions, which turns to point down for
  *                       aria-sort="descending" (opt-in: an unmarked svg
@@ -4359,7 +4370,11 @@
  * Data motion (docs/motion.md, "Data motion"): sort, filter (also while
  * typing) and live data glide through DS.motion.flip with keyed rows and
  * DS.dom.morphHtml; figures in cells change at once and never count up.
- * A removed row goes at once while the rows below glide up.
+ * A removed row goes at once while the rows below glide up. While rows
+ * glide, flip() marks the tbody data-ds-glide and sets --ds-flip-backdrop
+ * (the colour behind the table): every row gets an opaque backing in that
+ * colour (the selection colour over it), so crossing rows never show
+ * through each other.
  *
  * :has() and container queries are baseline.
  * Progressive:
@@ -4401,6 +4416,8 @@
   .ds-table {
     width: 100%;
     border-collapse: collapse;
+    /* Its own ink (a widget without .ds-base would take the host's). */
+    color: var(--ds-text);
     font: var(--ds-font-dense);
     /* Dates, times and counts line up from row to row. */
     font-variant-numeric: tabular-nums;
@@ -4461,6 +4478,28 @@
 
   .ds-table tbody tr:has(> :is(td, th) > input[type="checkbox"]:checked) {
     background-color: var(--ds-table-row-selected, var(--ds-accent));
+  }
+
+  /* While rows glide (DS.motion.flip marks the tbody data-ds-glide with
+     --ds-flip-backdrop, the colour behind the table), every row is opaque,
+     so a row that crosses another never shows its text through. A
+     background image: it switches at once (no colour transition), and the
+     selection colour lies over the backing; the cells' state layer stays
+     above both. At rest it matches what is behind the table. */
+  .ds-table tbody[data-ds-glide] > tr {
+    background-image: linear-gradient(var(--ds-flip-backdrop, var(--ds-surface)), var(--ds-flip-backdrop, var(--ds-surface)));
+  }
+
+  .ds-table tbody[data-ds-glide] > tr.ds-table__row--selected {
+    background-image:
+      linear-gradient(var(--ds-table-row-selected, var(--ds-accent)), var(--ds-table-row-selected, var(--ds-accent))),
+      linear-gradient(var(--ds-flip-backdrop, var(--ds-surface)), var(--ds-flip-backdrop, var(--ds-surface)));
+  }
+
+  .ds-table tbody[data-ds-glide] > tr:has(> :is(td, th) > input[type="checkbox"]:checked) {
+    background-image:
+      linear-gradient(var(--ds-table-row-selected, var(--ds-accent)), var(--ds-table-row-selected, var(--ds-accent))),
+      linear-gradient(var(--ds-flip-backdrop, var(--ds-surface)), var(--ds-flip-backdrop, var(--ds-surface)));
   }
 
   /*
@@ -4667,6 +4706,15 @@
     flex-shrink: 0;
   }
 
+  /* A sortable column without its arrow keeps the arrow's room (the gap
+     and the documented 16px arrow) in its padding, so a sort that moves to
+     another column never resizes the columns. Padding, not an empty flex
+     item: that would become the inline-flex button's baseline and move it
+     down in its row. In a .ds-num column the room leads, as the arrow does. */
+  .ds-table__sort:not(:has(> svg)) {
+    padding-inline-end: calc(2 * var(--ds-space-1) + 16px);
+  }
+
   /* Opt-in: one up arrow for both directions, which descending turns on
      the spring. An unmarked svg keeps the direction the page drew. */
   .ds-table__sort-arrow {
@@ -4681,6 +4729,10 @@
      their right edge. */
   .ds-table th.ds-num .ds-table__sort {
     flex-direction: row-reverse;
+  }
+
+  .ds-table th.ds-num .ds-table__sort:not(:has(> svg)) {
+    padding-inline: calc(2 * var(--ds-space-1) + 16px) var(--ds-space-1);
   }
 
   .ds-table th:is([aria-sort="ascending"], [aria-sort="descending"]) {
@@ -4782,8 +4834,11 @@
     }
   }
 
-  /* A link that leaves the app carries the external icon. */
+  /* A link that leaves the app carries the external icon. Its own display:
+     a layered preflight (svg { display: block }) would drop it below the
+     text. */
   .ds-table a > svg {
+    display: inline-block;
     margin-left: var(--ds-space-1);
     vertical-align: -2px;
   }
@@ -7520,6 +7575,8 @@
     padding-top: env(safe-area-inset-top);
     border-radius: var(--ds-radius-dialog) 0 0 var(--ds-radius-dialog);
     background: var(--ds-surface);
+    /* Its own ink on its own surface (a widget without .ds-base). */
+    color: var(--ds-text);
     box-shadow: var(--ds-elev-overlay);
     /* Invisible; forced colors paint it, so the sheet keeps its edge. */
     outline: 1px solid transparent;
@@ -7977,6 +8034,8 @@
     border-radius: var(--ds-radius-dialog);
     background: var(--ds-surface);
     box-shadow: var(--ds-dialog-shadow, var(--ds-elev-overlay));
+    /* Its own ink on its own surface (a widget without .ds-base). */
+    color: var(--ds-text);
     text-align: left;
   }
 

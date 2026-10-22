@@ -245,3 +245,26 @@ test.describe('fixed in P5', () => {
     expect(await pageDialog(page).locator('.ds-dialog__box').evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(1);
   });
 });
+
+test.describe('fixed in 1.6.1', () => {
+  test('the validation demo keeps the field that was left in place while its message opens; only what follows moves', async ({ page }) => {
+    await open(page, { path: LAB });
+    const stage = page.locator('[data-lab-demo="validation"] .sg-lab-stage');
+    await stage.scrollIntoViewIfNeeded();
+    const place = () => stage.evaluate((el) => {
+      const top = el.getBoundingClientRect().top;
+      const at = (id) => Math.round(el.querySelector(`label[for="${id}"]`).getBoundingClientRect().top - top);
+      return { ticket: at('sg-lab-ticket'), note: at('sg-lab-ticket-note') };
+    });
+    const before = await place();
+    await stage.evaluate((el) => {
+      const entry = window.SG_LAB.find((item) => item.id === 'validation');
+      return Promise.resolve(entry.toggle(el, true, window.SG_LAB_HELPERS)).then(() => undefined);
+    });
+    await page.waitForFunction(() => document.getElementById('sg-lab-ticket-error'));
+    await settle(page);
+    const after = await place();
+    expect(after.ticket).toBe(before.ticket);
+    expect(after.note).toBeGreaterThan(before.note);
+  });
+});

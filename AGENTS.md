@@ -67,7 +67,8 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   type, radii, elevation, focus, links, layout) are what a theme overrides; 3 hooks (`--ds-btn-*`, `--ds-card-*` ...)
   are read by one component with a fallback (`var(--ds-btn-height, 36px)`). Themes never set motion tokens or
   motion hooks (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`, `--ds-delay-*`,
-  `--ds-hold-*`, `--ds-stagger`, `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`): motion is one
+  `--ds-hold-*`, `--ds-stagger`, `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`,
+  `--ds-clip-from`, `--ds-draw-length`, `--ds-scan-*`, `--ds-indicator-lag`, `--ds-indicator-dur`): motion is one
   scheme for every product, and `DS.motion` reads the computed tokens. The per-element motion hooks take tokens
   only and do not inherit: set them on the animating element. `--ds-time-scale` is for the styleguide and the tests
   only.
@@ -238,7 +239,8 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   `--ds-accent`, `--ds-font` ...), component hooks (`--ds-btn-*`, `--ds-card-*` ...), the project's own
   `--<prefix>-*` tokens and `@font-face`. Never set motion tokens or hooks (`--ds-dur-*`, `--ds-ease-*`,
   `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`, `--ds-delay-*`, `--ds-hold-*`, `--ds-stagger`,
-  `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`). Never wrap the theme in `@layer`.
+  `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`, `--ds-draw-length`,
+  `--ds-scan-*`, `--ds-indicator-lag`, `--ds-indicator-dur`). Never wrap the theme in `@layer`.
 - `ds.css` sits in `@layer ds.*`, so unlayered project CSS beats every component. Load resets in a layer declared
   before ds (`@layer reset;` first, or `@layer reset, ds, app;`).
 - Never change the look of a `.ds-*` component in project CSS (colour, radius, type, motion); set its hooks

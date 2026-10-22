@@ -15,9 +15,11 @@
  *                          them in data-lab-shows and names the tokens with
  *                          their computed ms at the current speed
  *   note                   optional caption above the stage
- *   html                   the stage markup (.sg-lab-stage, a fixed height
- *                          so a replay never shifts the page)
- *   height                 optional stage height in px (default 184)
+ *   html                   the stage markup (.sg-lab-stage: at least
+ *                          `height`, taller where its content needs it;
+ *                          a demo keeps its size between states, so a
+ *                          replay never shifts the page)
+ *   height                 optional minimum stage height in px (default 184)
  *   after                  optional markup right under the stage (a caption)
  *   controls               optional markup: the demo's own buttons, in a
  *                          row under Replay
@@ -582,7 +584,7 @@
     id: 'enter-leave',
     group: 'utilities',
     title: 'Enter and leave',
-    note: 'Every .ds-enter and .ds-leave variant through DS.motion.enter() and leave(). enter() and leave() continue from where the card is, whenever they are pressed; enter() also cleans up whatever variant played before. "delayed" waits for the loader delay first; "fill-x" and "fill-y" grow a bar or a column to its share. Cancel stops at the rest state at once.',
+    note: 'Every <code>.ds-enter</code> and <code>.ds-leave</code> variant through <code>DS.motion.enter()</code> and leave(). enter() and leave() continue from where the card is, whenever they are pressed; enter() also cleans up whatever variant played before. "delayed" waits for the loader delay first; "fill-x" and "fill-y" grow a bar or a column to its share. Cancel stops at the rest state at once.',
     shows: ['.ds-enter', '.ds-enter--fade', '.ds-enter--scale', '.ds-enter--slide', '.ds-enter--swap', '.ds-enter--delayed', '.ds-enter--pop', '.ds-enter--fill-x', '.ds-enter--fill-y',
       '.ds-leave', '.ds-leave--sink', '.ds-leave--scale', '.ds-leave--slide', '.ds-leave--pop',
       'ds-fade-in', 'ds-lift-in', 'ds-grow-in', 'ds-shift-in', 'ds-pop-in', 'ds-fill-x', 'ds-fill-y', 'ds-fade-out', 'ds-drop-out', 'ds-shrink-out', 'ds-shift-out', 'ds-pop-out',
@@ -630,7 +632,7 @@
     id: 'stagger',
     group: 'utilities',
     title: 'Stagger',
-    note: 'DS.motion.enterAll(): one batch, each square enters one step after the other (30ms, at most six steps); the classes and --ds-i go once each one landed. "Fill as bars" grows them from their left edge.',
+    note: '<code>DS.motion.enterAll()</code>: one batch, each square enters one step after the other (30ms, at most six steps); the classes and <code>--ds-i</code> go once each one landed. "Fill as bars" grows them from their left edge.',
     shows: ['DS.motion.enterAll', '.ds-enter--scale', '.ds-enter--fill-x', '--ds-stagger', '--ds-dur-medium', '--ds-dur-glide', '--ds-ease-value'],
     html: '<div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div>',
     after: readoutHtml('sg-stagger-left'),
@@ -679,7 +681,7 @@
     id: 'stagger-once',
     group: 'utilities',
     title: 'First render',
-    note: 'A view\'s first render staggers once. DS.motion.staggerOnce() plays the fade and 4px rise of .ds-stagger through enterAll(), marks the container and leaves nothing behind; a second call (a refresh) resolves at once, without motion. "CSS only" is the class itself: .ds-stagger numbers its children with sibling-index() where it exists, else DS.motion.stagger() writes --ds-i; the page drops the class once it played.',
+    note: 'A view\'s first render staggers once. <code>DS.motion.staggerOnce()</code> plays the fade and 4px rise of <code>.ds-stagger</code> through enterAll(), marks the container and leaves nothing behind; a second call (a refresh) resolves at once, without motion. "CSS only" is the class itself: <code>.ds-stagger</code> numbers its children with sibling-index() where it exists, else <code>DS.motion.stagger()</code> writes <code>--ds-i</code>; the page drops the class once it played.',
     shows: ['DS.motion.staggerOnce', 'DS.motion.stagger', '.ds-stagger', '.ds-enter--swap', '--ds-stagger', '--ds-dur-medium', '--ds-distance-sm'],
     html: '<div class="sg-stagger-list sg-once"></div>',
     after: readoutHtml('sg-once-left'),
@@ -839,7 +841,7 @@
     id: 'reveal',
     group: 'utilities',
     title: 'Reveal',
-    note: 'Content that replaces its placeholder fades in with the smallest rise (.ds-reveal), once. DS.motion.replay() restarts the class on an element that may still carry it, with a style flush and no layout.',
+    note: 'Content that replaces its placeholder fades in with the smallest rise (<code>.ds-reveal</code>), once. <code>DS.motion.replay()</code> restarts the class on an element that may still carry it, with a style flush and no layout.',
     shows: ['.ds-reveal', 'DS.motion.replay', 'ds-fade-in', 'ds-lift-in', '--ds-dur-medium', '--ds-distance-sm'],
     html: '<section class="ds-card sg-lab-card sg-reveal"><h4 class="ds-card__title">LAPTOP-0042</h4><p class="ds-muted">Latitude 7440, issued to Ada Lovelace. Loaded just now.</p></section>',
     play: function (stage) {
@@ -857,7 +859,7 @@
     id: 'swap',
     group: 'utilities',
     title: 'Swaps',
-    note: 'DS.motion.crossfade() swaps a text in a .ds-swap slot: the old line fades out fast while the new one fades in, in one grid cell, so nothing jumps in width. The button\'s icons are a .ds-icon-swap that follows aria-pressed by CSS alone: the incoming icon fades in and springs up from --ds-scale-small.',
+    note: '<code>DS.motion.crossfade()</code> swaps a text in a <code>.ds-swap</code> slot: the old line fades out fast while the new one fades in, in one grid cell, so nothing jumps in width. The button\'s icons are a <code>.ds-icon-swap</code> that follows aria-pressed by CSS alone: the incoming icon fades in and springs up from <code>--ds-scale-small</code>.',
     shows: ['.ds-swap', '.ds-icon-swap', 'DS.motion.crossfade', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-in-out', '--ds-ease-in', '--ds-ease-spatial', '--ds-scale-small'],
     html: '<div class="sg-swap-row"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Work offline" aria-pressed="false" data-swap-toggle><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('wifi', 20) + '</span><span class="ds-icon-swap__b">' + icon('wifiOff', 20) + '</span></span></button>' +
       '<p class="sg-swap-text" id="sg-swap-text">' + SYNC_TEXT[0] + '</p></div>',
@@ -902,7 +904,7 @@
     id: 'disclosure',
     group: 'utilities',
     title: 'Disclosure',
-    note: 'A .ds-collapsible: it opens over 250ms, decelerating, while the content fades in, and closes faster, accelerating; the .ds-chevron turns with it. The button sits flush with the content edge, and its focus ring still shows in full.',
+    note: 'A <code>.ds-collapsible</code>: it opens over 250ms, decelerating, while the content fades in, and closes faster, accelerating; the <code>.ds-chevron</code> turns with it. The button sits flush with the content edge, and its focus ring still shows in full.',
     shows: ['.ds-collapsible', '.ds-chevron', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in'],
     html: '<details class="ds-collapsible sg-disclosure"><summary>Show the motion rules' + icon('chevronDown', 20, 'ds-chevron') + '</summary><ol class="ds-muted">' +
       RULES.map(function (rule) { return '<li>' + rule + '</li>'; }).join('') + '</ol>' +
@@ -930,7 +932,7 @@
     id: 'draw',
     group: 'keyframes',
     title: 'A check that draws itself',
-    note: 'ds-draw on the check glyph: its path carries pathLength="1", the page sets stroke-dasharray: 1, and the stroke draws in from --ds-draw-length. DS.motion.replay() restarts the class on the <code>&lt;svg&gt;</code> itself (a style flush works on SVG, a layout read would not).',
+    note: '<code>ds-draw</code> on the check glyph: its path carries pathLength="1", the page sets stroke-dasharray: 1, and the stroke draws in from <code>--ds-draw-length</code>. <code>DS.motion.replay()</code> restarts the class on the <code>&lt;svg&gt;</code> itself (a style flush works on SVG, a layout read would not).',
     shows: ['ds-draw', 'DS.motion.replay', '--ds-draw-length', '--ds-dur-slow', '--ds-ease-out'],
     html: '<div class="sg-row sg-draw-row"><span class="sg-draw-disc">' + icon('check', 40, 'sg-draw') + '</span><span class="sg-draw-disc sg-draw-disc--quiet">' + icon('checkCircle', 40, 'sg-draw') + '</span></div>',
     play: function (stage) {
@@ -954,7 +956,7 @@
     id: 'roll',
     group: 'keyframes',
     title: 'Rolling status line',
-    note: 'DS.motion.roll() on a status line (a .ds-swap slot): the old line leaves upwards (ds-roll-out, fast, accelerating) while the new one comes up from below on the spring (ds-roll-in). A roll during a roll continues from where each line is.',
+    note: '<code>DS.motion.roll()</code> on a status line (a <code>.ds-swap</code> slot): the old line leaves upwards (<code>ds-roll-out</code>, fast, accelerating) while the new one comes up from below on the spring (<code>ds-roll-in</code>). A roll during a roll continues from where each line is.',
     shows: ['ds-roll-in', 'ds-roll-out', 'DS.motion.roll', '.ds-swap', '--ds-dur-fast', '--ds-dur-medium', '--ds-ease-spatial', '--ds-ease-exit'],
     html: '<p class="sg-roll" id="sg-roll" aria-live="polite">' + ROLL[0] + '</p>',
     controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-roll="twice">Roll twice, 80ms apart</button></div>',
@@ -973,7 +975,7 @@
     id: 'scan',
     group: 'keyframes',
     title: 'Scan over media',
-    note: 'ds-scan moves a band from above a frame to below it (--ds-scan-from, --ds-scan-to, in percent of the band) while media is being processed: here two passes on the standard curve, then the image counts as processed.',
+    note: '<code>ds-scan</code> moves a band from above a frame to below it (<code>--ds-scan-from</code>, <code>--ds-scan-to</code>, in percent of the band) while media is being processed: here two passes on the standard curve, then the image counts as processed.',
     shows: ['ds-scan', '--ds-dur-glide', '--ds-ease-in-out'],
     html: '<div class="sg-media"><span class="sg-media__frame">' + icon('image', 40) + '</span><span class="sg-scan" aria-hidden="true"></span><p class="ds-meta sg-media__state" id="sg-scan-state">Photo of LAPTOP-0042</p></div>',
     play: function (stage) {
@@ -992,7 +994,7 @@
     id: 'ring',
     group: 'keyframes',
     title: 'Confirmation ring',
-    note: 'ds-ripple: a ring that widens to --ds-ripple-scale (1.6) and fades once behind a state that was just saved. It only grows and disappears, on a curve that lands without passing its end.',
+    note: '<code>ds-ripple</code>: a ring that widens to <code>--ds-ripple-scale</code> (1.6) and fades once behind a state that was just saved. It only grows and disappears, on a curve that lands without passing its end.',
     shows: ['ds-ripple', '--ds-ripple-scale', '--ds-ripple-opacity', '--ds-dur-slow', '--ds-ease-out'],
     html: '<div class="sg-ring-host"><span class="sg-ring" aria-hidden="true"></span><span class="ds-status" id="sg-ring-status">' + icon('clock', 16) + '<span>Not saved yet</span></span></div>',
     play: function (stage) {
@@ -1012,7 +1014,7 @@
     id: 'press-ripple',
     group: 'keyframes',
     title: 'Pointer ripple',
-    note: 'DS.ripple.attach(grid): a press grows ds-press-ripple from the point that was pressed, out to the farthest corner, and fades it once the press ends, never before --ds-dur-instant, so a 30ms click still shows the whole press. Replay presses all four at once, as a mouse would; press them yourself too.',
+    note: '<code>DS.ripple.attach(grid)</code>: a press grows <code>ds-press-ripple</code> from the point that was pressed, out to the farthest corner, and fades it once the press ends, never before <code>--ds-dur-instant</code>, so a 30ms click still shows the whole press. Replay presses all four at once, as a mouse would; press them yourself too.',
     shows: ['ds-press-ripple', 'ds-fade-out', 'DS.ripple.attach', '--ds-dur-medium', '--ds-dur-base', '--ds-dur-instant', '--ds-ease-out', '--ds-ease-in-out'],
     html: '<div class="sg-press-grid" id="sg-press-grid">' + PRESSES.map(function (item) {
       return '<button class="ds-btn ds-btn--tonal" type="button" data-press-at="' + item[0] + '" data-press-ms="' + item[1] + '">' + item[2] + '</button>';
@@ -1035,7 +1037,7 @@
     id: 'pop',
     group: 'keyframes',
     title: 'Badge',
-    note: 'A counter badge pops in from --ds-scale-small on the spring with its fade (.ds-enter--pop: ds-fade-in, ds-pop-in) and pops out the same way back, faster (.ds-leave--pop: ds-fade-out, ds-pop-out).',
+    note: 'A counter badge pops in from <code>--ds-scale-small</code> on the spring with its fade (<code>.ds-enter--pop</code>: <code>ds-fade-in</code>, <code>ds-pop-in</code>) and pops out the same way back, faster (<code>.ds-leave--pop</code>: <code>ds-fade-out</code>, <code>ds-pop-out</code>).',
     shows: ['ds-pop-in', 'ds-pop-out', '.ds-enter--pop', '.ds-leave--pop', '--ds-scale-small', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-spatial', '--ds-ease-in'],
     html: '<span class="sg-badge-host"><button class="ds-btn" type="button">' + icon('mail', 16) + 'Inbox</button><span class="sg-badge" hidden>3</span></span>',
     reset: function (stage) {
@@ -1077,7 +1079,7 @@
     id: 'clip',
     group: 'keyframes',
     title: 'Reveal from a trigger',
-    note: 'A panel shown by hand with ds-clip-in and ds-clip-out (set through the --ds-enter-* and --ds-leave-* hooks, so enter() and leave() keep their interruption). DS.motion.originFrom(trigger, panel) writes --ds-motion-origin and --ds-clip-from: the panel uncovers itself from the edge that faces its trigger. Replay opens it from each trigger in turn.',
+    note: 'A panel shown by hand with <code>ds-clip-in</code> and <code>ds-clip-out</code> (set through the <code>--ds-enter-*</code> and <code>--ds-leave-*</code> hooks, so enter() and leave() keep their interruption). <code>DS.motion.originFrom(trigger, panel)</code> writes <code>--ds-motion-origin</code> and <code>--ds-clip-from</code>: the panel uncovers itself from the edge that faces its trigger. Replay opens it from each trigger in turn.',
     shows: ['ds-clip-in', 'ds-clip-out', 'DS.motion.originFrom', '--ds-clip-from', '--ds-motion-origin', '--ds-enter-keyframes', '--ds-leave-keyframes', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial', '--ds-ease-in'],
     html: '<div class="sg-clip">' + CLIP_SIDES.map(function (side) {
       return '<button class="ds-btn ds-btn--sm sg-clip__trigger sg-clip__trigger--' + side + '" type="button" aria-expanded="false" data-clip="' + side + '">' + side.charAt(0).toUpperCase() + side.slice(1) + '</button>';
@@ -1134,7 +1136,7 @@
     id: 'count',
     group: 'data',
     title: 'Count up',
-    note: 'DS.motion.countUp() counts from the value it shows; a second press mid-count retargets from there ("Press twice" presses again halfway). The figure under the tiles counts with its bar (a --ds-progress transition) on the same curve and time, so both land in the same frame.',
+    note: '<code>DS.motion.countUp()</code> counts from the value it shows; a second press mid-count retargets from there ("Press twice" presses again halfway). The figure under the tiles counts with its bar (a <code>--ds-progress</code> transition) on the same curve and time, so both land in the same frame.',
     shows: ['DS.motion.countUp', '--ds-progress', '--ds-ease-value', '--ds-dur-glide'],
     html: '<div class="ds-tiles sg-count-tiles">' + COUNT_TILES.map(function (tile) {
       return '<div class="ds-tile"><p class="ds-tile__label">' + icon(tile[0], 20) + '<span>' + tile[1] + '</span></p><p class="ds-tile__value" data-count="' + tile[2] + '">' + tile[2].toLocaleString('en-US') + '</p></div>';
@@ -1260,7 +1262,7 @@
     id: 'data-list',
     group: 'data',
     title: 'A keyed list',
-    note: 'Re-rendered with DS.dom.morphHtml inside DS.motion.flip: rows glide to their new places on the spring, over a time that grows with the distance; new rows fade in, removed rows fade out of the flow while the list closes the gap. Typing filters on every keystroke. Live data re-sorts every 700ms with live: true; while the mouse is over the list or a row has focus, the values change at once and the reorder waits ("Order held"), at most 2s.',
+    note: 'Re-rendered with <code>DS.dom.morphHtml</code> inside <code>DS.motion.flip</code>: rows glide to their new places on the spring, over a time that grows with the distance; new rows fade in, removed rows fade out of the flow while the list closes the gap. Typing filters on every keystroke. Live data re-sorts every 700ms with live: true; while the mouse is over the list or a row has focus, the values change at once and the reorder waits ("Order held"), at most 2s.',
     shows: ['DS.motion.flip', 'DS.dom.morphHtml', 'DS.motion.roll', 'DS.motion.travelDuration', '--ds-dur-medium', '--ds-dur-slow', '--ds-ease-spatial', '--ds-ease-out'],
     html: '<div class="sg-data-head"><p class="ds-meta sg-data-status" id="sg-data-status" aria-live="polite"><span>' + dataCount() + '</span></p><span class="ds-status sg-data-held" id="sg-data-held" hidden>' + icon('lock', 16) + '<span>Order held</span></span></div>' +
       '<ul class="ds-kv-list sg-data-list" id="sg-data-list">' + dataHtml() + '</ul>',
@@ -1322,7 +1324,7 @@
     id: 'morph',
     group: 'data',
     title: 'Morph, not innerHTML',
-    note: 'Both lists get the same new values. The left one is replaced (innerHTML): every spinner restarts and waits its loader delay again, and a note being typed loses its focus. The right one is patched in place with DS.dom.morphHtml (morphChildren): only the figures change, the spinners keep turning and the focus stays. Type in a note, then turn the updates on.',
+    note: 'Both lists get the same new values. The left one is replaced (innerHTML): every spinner restarts and waits its loader delay again, and a note being typed loses its focus. The right one is patched in place with <code>DS.dom.morphHtml</code> (morphChildren): only the figures change, the spinners keep turning and the focus stays. Type in a note, then turn the updates on.',
     shows: ['DS.dom.morphHtml', 'DS.dom.morphChildren', 'ds-spinner-arc', '--ds-delay-loader', '--ds-loop-arc'],
     html: '<div class="sg-jobs"><div><p class="sg-label">innerHTML</p><ul class="ds-kv-list sg-jobs__list" id="sg-jobs-replace">' + jobsHtml(0, 'innerHTML') + '</ul></div>' +
       '<div><p class="sg-label">DS.dom.morphHtml</p><ul class="ds-kv-list sg-jobs__list" id="sg-jobs-morph">' + jobsHtml(0, 'morphHtml') + '</ul></div></div>',
@@ -1370,7 +1372,7 @@
     id: 'settle-loader',
     group: 'data',
     title: 'Fast and slow loads',
-    note: 'The same load twice: 150ms on the left, 1200ms on the right. A loading line fades in only after --ds-delay-loader, so the fast load shows nothing at all; once one showed, DS.motion.settleLoader() keeps it for --ds-hold-loader, so it never flashes up and away.',
+    note: 'The same load twice: 150ms on the left, 1200ms on the right. A loading line fades in only after <code>--ds-delay-loader</code>, so the fast load shows nothing at all; once one showed, <code>DS.motion.settleLoader()</code> keeps it for <code>--ds-hold-loader</code>, so it never flashes up and away.',
     shows: ['DS.motion.settleLoader', 'DS.motion.loaderHoldMs', '.ds-enter--swap', '--ds-delay-loader', '--ds-hold-loader', 'ds-loader-morph'],
     html: '<div class="sg-panes"><div><p class="sg-label">Fast (150ms)</p><div class="sg-pane" id="sg-load-fast"><p class="ds-muted">Ready.</p></div></div>' +
       '<div><p class="sg-label">Slow (1200ms)</p><div class="sg-pane" id="sg-load-slow"><p class="ds-muted">Ready.</p></div></div></div>',
@@ -1403,7 +1405,7 @@
     id: 'press',
     group: 'controls',
     title: 'Press on every action',
-    note: 'Every action presses the same way: the state layer comes in --ds-dur-micro, the ripple grows from the pointer, and the shape turns squarer (pills to --ds-radius-action-pressed, cards and radio cards to --ds-radius-card-pressed, tiles to their hook) and springs back on release. Nothing scales and nothing moves on hover. Replay holds each for 300ms.',
+    note: 'Every action presses the same way: the state layer comes in <code>--ds-dur-micro</code>, the ripple grows from the pointer, and the shape turns squarer (pills to <code>--ds-radius-action-pressed</code>, cards and radio cards to <code>--ds-radius-card-pressed</code>, tiles to their hook) and springs back on release. Nothing scales and nothing moves on hover. Replay holds each for 300ms.',
     shows: ['DS.ripple.attach', 'ds-press-ripple', '--ds-radius-action-pressed', '--ds-radius-card-pressed', '--ds-tile-radius-pressed', '--ds-dur-micro', '--ds-dur-medium', '--ds-ease-out', '--ds-ease-spatial', '--ds-state-pressed'],
     html: '<div class="sg-press-all"><div class="sg-row">' + ACTIONS.join('') + '</div>' + PRESS_CARDS + '</div>',
     height: 260,
@@ -1426,7 +1428,7 @@
     id: 'focus',
     group: 'controls',
     title: 'Focus snap',
-    note: 'Keyboard focus: the ring is solid from the first frame, one ring width further out, then its offset snaps in over --ds-dur-fast (a transition of outline-offset, decelerating); colour and width never animate. Replay walks the focus along the row as Tab would; press Tab yourself to see it.',
+    note: 'Keyboard focus: the ring is solid from the first frame, one ring width further out, then its offset snaps in over <code>--ds-dur-fast</code> (a transition of outline-offset, decelerating); colour and width never animate. Replay walks the focus along the row as Tab would; press Tab yourself to see it.',
     shows: ['--ds-focus-outline', '--ds-focus-offset', '--ds-focus-width', '--ds-dur-fast', '--ds-ease-out'],
     html: '<div class="sg-row sg-focus-row"><button class="ds-btn ds-btn--primary" type="button">Save</button><button class="ds-btn" type="button">Export</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Settings">' + icon('settings', 20) + '</button>' +
       '<label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body">' + icon('check', 18, 'ds-chip__check') + '<span>Active</span></span></label><input class="ds-input sg-focus-input" aria-label="Search" placeholder="Search"></div>',
@@ -1455,7 +1457,7 @@
     id: 'busy',
     group: 'controls',
     title: 'Busy and success',
-    note: 'DS.motion.busy() on two saves. The fast one (150ms) answers before the loader delay: nothing changes but the success face. The slow one (1200ms) shows its spinner after --ds-delay-loader, keeps it at least --ds-hold-loader, then the label and spinner crossfade to the success face, whose check draws itself, for --ds-hold-success. The width never changes: the faces share one cell.',
+    note: '<code>DS.motion.busy()</code> on two saves. The fast one (150ms) answers before the loader delay: nothing changes but the success face. The slow one (1200ms) shows its spinner after <code>--ds-delay-loader</code>, keeps it at least <code>--ds-hold-loader</code>, then the label and spinner crossfade to the success face, whose check draws itself, for <code>--ds-hold-success</code>. The width never changes: the faces share one cell.',
     shows: ['DS.motion.busy', 'ds-draw', 'ds-spinner-arc', '--ds-delay-loader', '--ds-hold-loader', '--ds-hold-success', '--ds-dur-fast', '--ds-dur-medium'],
     html: '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-busy="150">' + facesHtml('Save (150ms)', 'Saving', 'Saved') + '</button>' +
       '<button class="ds-btn" type="button" data-busy="1200">' + facesHtml('Save (1200ms)', 'Saving', 'Saved') + '</button></div>',
@@ -1489,7 +1491,7 @@
     id: 'icon-swap',
     group: 'controls',
     title: 'Icon pairs',
-    note: 'Copy turns into a check (DS.motion.crossfade(el, icon, { kind: \'icon\' })), and a pressed toggle swaps wifi for wifi off by CSS alone (aria-pressed). The incoming icon fades in and springs up from --ds-scale-small, a check draws itself, the outgoing one only fades; a rapid toggle turns back from where both icons are. (The icon set has no play and pause glyphs; these are its pairs.)',
+    note: 'Copy turns into a check (<code>DS.motion.crossfade(el, icon, { kind: \'icon\' })</code>), and a pressed toggle swaps wifi for wifi off by CSS alone (aria-pressed). The incoming icon fades in and springs up from <code>--ds-scale-small</code>, a check draws itself, the outgoing one only fades; a rapid toggle turns back from where both icons are. (The icon set has no play and pause glyphs; these are its pairs.)',
     shows: ['DS.motion.crossfade', '.ds-icon-swap', 'ds-draw', '--ds-scale-small', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-spatial', '--ds-ease-in-out'],
     html: '<div class="sg-row"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-pair="copy"><span class="ds-icon-swap">' + icon('copy', 20) + '</span></button>' +
       '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Work offline" aria-pressed="false" data-pair="offline"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('wifi', 20) + '</span><span class="ds-icon-swap__b">' + icon('wifiOff', 20) + '</span></span></button></div>',
@@ -1523,7 +1525,7 @@
     id: 'chips',
     group: 'controls',
     title: 'Filter chips',
-    note: 'Selecting a chip opens the room of its check (its width, on --ds-ease-out: a size that pushes layout lands without passing its end) while the check draws itself; the neighbours follow. When a chip no longer fits its line, the slot lands at once and the chips glide to their new places (FLIP), across the wrap. Deselecting reverses it.',
+    note: 'Selecting a chip opens the room of its check (its width, on <code>--ds-ease-out</code>: a size that pushes layout lands without passing its end) while the check draws itself; the neighbours follow. When a chip no longer fits its line, the slot lands at once and the chips glide to their new places (FLIP), across the wrap. Deselecting reverses it.',
     shows: ['DS.ripple.attach', 'DS.motion.flip', 'ds-draw', '--ds-dur-medium', '--ds-dur-micro', '--ds-ease-out', '--ds-ease-spatial'],
     html: '<fieldset class="ds-chips sg-chip-row"><legend class="ds-sr">Status</legend>' + CHIPS.map(function (name, index) {
       return '<label class="ds-chip"><input class="ds-chip__input" type="checkbox"' + (index ? '' : ' checked') + '><span class="ds-chip__body">' + icon('check', 18, 'ds-chip__check') + '<span>' + name + '</span></span></label>';
@@ -1548,7 +1550,7 @@
     id: 'switch',
     group: 'controls',
     title: 'Switch',
-    note: 'Pressed, the handle grows to its full size in --ds-dur-instant (the one thing that scales on press); on release it travels and settles on the spring while the track and the state word change colour. A programmatic change runs the same transitions, and a rapid toggle turns the handle back from where it is. Replay presses and holds, then lets go.',
+    note: 'Pressed, the handle grows to its full size in <code>--ds-dur-instant</code> (the one thing that scales on press); on release it travels and settles on the spring while the track and the state word change colour. A programmatic change runs the same transitions, and a rapid toggle turns the handle back from where it is. Replay presses and holds, then lets go.',
     shows: ['--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-instant', '--ds-dur-fast', '--ds-ease-in-out'],
     html: '<div class="ds-stack">' + switchHtml('sg-lab-switch', 'Nightly sync') + '</div>',
     play: function (stage, sg) {
@@ -1653,7 +1655,7 @@
     id: 'validation',
     group: 'controls',
     title: 'Validation on blur',
-    note: 'A message that appears while someone works in the form fades in while its room opens from 0 (on --ds-ease-out, a layout size); one that goes leaves at once. The field\'s border and label take the error colour without motion. Replay types a wrong number and moves on, as Tab would.',
+    note: 'A message that appears while someone works in the form fades in while its room opens from 0 (on <code>--ds-ease-out</code>, a layout size); one that goes leaves at once. The field\'s border and label take the error colour without motion. Replay types a wrong number and moves on, as Tab would.',
     shows: ['ds-fade-in', '--ds-dur-base', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in-out'],
     html: '<form class="ds-form sg-validate" onsubmit="return false"><div class="ds-field"><label class="ds-field__label" for="sg-lab-ticket">Ticket number</label><input class="ds-input" id="sg-lab-ticket" inputmode="numeric" autocomplete="off" placeholder="12345"></div>' +
       '<div class="ds-field"><label class="ds-field__label" for="sg-lab-ticket-note">Note</label><input class="ds-input" id="sg-lab-ticket-note" placeholder="Optional"></div></form>',
@@ -1741,7 +1743,7 @@
     id: 'track',
     group: 'navigation',
     title: 'Indicator',
-    note: 'The pill stretches toward its target (the leading edge leads, the trailing edge follows), passes it by a hair and settles on the spring; a longer jump takes longer, up to a cap (travelDuration, in the read-out). It follows aria-pressed by itself: the buttons only change the attribute. A new target mid-glide continues from where the pill is, and a re-render of the track through DS.dom.morphHtml keeps the pill, which glides to its item\'s new size.',
+    note: 'The pill stretches toward its target (the leading edge leads, the trailing edge follows), passes it by a hair and settles on the spring; a longer jump takes longer, up to a cap (travelDuration, in the read-out). It follows aria-pressed by itself: the buttons only change the attribute. A new target mid-glide continues from where the pill is, and a re-render of the track through <code>DS.dom.morphHtml</code> keeps the pill, which glides to its item\'s new size.',
     shows: ['DS.indicator.createIndicator', 'DS.motion.travelDuration', 'DS.dom.morphHtml', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow', '--ds-dur-micro'],
     html: '<div class="sg-track" id="sg-track">' + trackHtml(TRACK) + '</div>',
     after: readoutHtml('sg-track-move', 'Press an item, or hop and jump.'),
@@ -1799,7 +1801,7 @@
     id: 'drawer',
     group: 'navigation',
     title: 'A view without the drawer',
-    note: 'This page\'s own drawer leaves for a view that has none and comes back with the next one: the panel takes the width on the spring while the drawer slides out, accelerating, and back in (DS.motion.transition() with data-drawer-hidden; without View Transitions the drawer slides in with enter() and the view fades through). Replay hides it and brings it back; Rapid toggle may leave it hidden: toggle once more.',
+    note: 'This page\'s own drawer leaves for a view that has none and comes back with the next one: the panel takes the width on the spring while the drawer slides out, accelerating, and back in (<code>DS.motion.transition()</code> with data-drawer-hidden; without View Transitions the drawer slides in with enter() and the view fades through). Replay hides it and brings it back; Rapid toggle may leave it hidden: toggle once more.',
     shows: ['DS.motion.transition', 'DS.motion.enter', 'ds-shift-in', 'ds-shift-out', '--ds-dur-long', '--ds-dur-slow', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
     html: '<p class="ds-muted sg-drawer-state" id="sg-drawer-state">The drawer is on the left of this page.</p>',
     height: 120,
@@ -1839,7 +1841,7 @@
     id: 'segmented',
     group: 'navigation',
     title: 'Segmented switch',
-    note: 'The tint glides between the options on the spring (DS.indicator) and the labels change colour while it arrives; the current option is also set in the label weight, and data-label keeps the width of the heavier weight, so the switch never changes width.',
+    note: 'The tint glides between the options on the spring (<code>DS.indicator</code>) and the labels change colour while it arrives; the current option is also set in the label weight, and data-label keeps the width of the heavier weight, so the switch never changes width.',
     shows: ['DS.indicator.createIndicator', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in-out'],
     html: '<nav class="ds-segmented sg-lab-segmented" aria-label="Mode">' + MODES.map(function (mode, index) {
       return '<a class="ds-segmented__option" href="#navigation" data-label="' + mode + '"' + (index ? '' : ' aria-current="true"') + '>' + mode + '</a>';
@@ -1910,7 +1912,7 @@
     id: 'topbar',
     group: 'navigation',
     title: 'Top bar on scroll',
-    note: 'Scrolled, the top bar tints to a surface container colour and its hairline shows, over the first pixels of scroll (ds-scroll-fade on the view\'s scroll timeline; without scroll timelines data-scrolled from a sentinel and a transition). The lab\'s own top bar does the same: scroll this page back to the top and watch it. Replay scrolls the small app down and back.',
+    note: 'Scrolled, the top bar tints to a surface container colour and its hairline shows, over the first pixels of scroll (<code>ds-scroll-fade</code> on the view\'s scroll timeline; without scroll timelines data-scrolled from a sentinel and a transition). The lab\'s own top bar does the same: scroll this page back to the top and watch it. Replay scrolls the small app down and back.',
     shows: ['ds-scroll-fade', 'DS.motion.resyncScroll', '--ds-dur-fast', '--ds-ease-in-out'],
     html: frameHtml('sg-frame--phone', 'A small app: the top bar on scroll'),
     height: 360,
@@ -2014,7 +2016,7 @@
   overlayDemo({
     id: 'dialog',
     title: 'Dialog (native)',
-    note: 'A <code>&lt;dialog&gt;</code> through DS.overlay.open(): the scrim fades while the box fades, grows from --ds-scale-enter and rises on the spring, from an origin towards its opener; it leaves the same way back in --ds-dur-base, accelerating, with focus back on the opener at once. A nested dialog takes the lighter scrim. The read-out counts the open layers (the Escape stack) and the scroll lock.',
+    note: 'A <code>&lt;dialog&gt;</code> through <code>DS.overlay.open()</code>: the scrim fades while the box fades, grows from <code>--ds-scale-enter</code> and rises on the spring, from an origin towards its opener; it leaves the same way back in <code>--ds-dur-base</code>, accelerating, with focus back on the opener at once. A nested dialog takes the lighter scrim. The read-out counts the open layers (the Escape stack) and the scroll lock.',
     shows: DIALOG_SHOWS,
     button: 'Open dialog',
     markup: dialogHtml('sg-lab-dialog', true, 'Delete 3 devices?', 'They disappear from every list. This cannot be undone.', 'Delete devices', NESTED),
@@ -2024,7 +2026,7 @@
   overlayDemo({
     id: 'dialog-div',
     title: 'Dialog (div markup)',
-    note: 'The same dialog in the div markup: DS.overlay makes the page inert itself (the siblings up to <code>&lt;body&gt;</code>), so the motion, Escape, the focus and the lock behave as with the native one.',
+    note: 'The same dialog in the div markup: <code>DS.overlay</code> makes the page inert itself (the siblings up to <code>&lt;body&gt;</code>), so the motion, Escape, the focus and the lock behave as with the native one.',
     shows: DIALOG_SHOWS,
     button: 'Open dialog',
     markup: dialogHtml('sg-lab-dialog-div', false, 'Archive 3 devices?', 'They leave the active lists and stay in the archive for a year.', 'Archive devices', NESTED),
@@ -2036,7 +2038,7 @@
   overlayDemo({
     id: 'sheet',
     title: 'Side sheet (native)',
-    note: 'An opaque panel slides its full width in from the edge on the spring (--ds-dur-long) while the scrim fades, and goes back in --ds-dur-base, accelerating, without a fade. A strip past its outer edge covers the overshoot; at 600px and below it rises from the bottom.',
+    note: 'An opaque panel slides its full width in from the edge on the spring (<code>--ds-dur-long</code>) while the scrim fades, and goes back in <code>--ds-dur-base</code>, accelerating, without a fade. A strip past its outer edge covers the overshoot; at 600px and below it rises from the bottom.',
     shows: SHEET_SHOWS,
     button: 'Open side sheet',
     markup: sheetHtml('sg-lab-sheet', true),
@@ -2066,7 +2068,7 @@
     id: 'modal-drawer',
     group: 'overlays',
     title: 'Modal drawer',
-    note: 'Below 900px the drawer is modal: it slides its full width in on the spring over --ds-dur-long while the scrim fades, and leaves in --ds-dur-base, accelerating. Check the edge at phone width: the drawer\'s background runs past the screen edge, so the spring never shows a gap. Escape, the scrim and focus go through DS.overlay; the read-out is the frame\'s.',
+    note: 'Below 900px the drawer is modal: it slides its full width in on the spring over <code>--ds-dur-long</code> while the scrim fades, and leaves in <code>--ds-dur-base</code>, accelerating. Check the edge at phone width: the drawer\'s background runs past the screen edge, so the spring never shows a gap. Escape, the scrim and focus go through <code>DS.overlay</code>; the read-out is the frame\'s.',
     shows: ['DS.overlay.open', 'DS.overlay.close', 'DS.indicator.createIndicator', '--ds-dur-long', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit', '--ds-distance-sheet'],
     html: frameHtml('sg-frame--phone', 'A small app: the modal drawer'),
     after: layersHtml(),
@@ -2125,7 +2127,7 @@
     id: 'menu',
     group: 'overlays',
     title: 'Menu near the bottom edge',
-    note: 'A .ds-menu grows out of its trigger: its clip opens from the trigger\'s edge and it grows from --ds-scale-popup at an origin on the trigger, on the spring over --ds-dur-medium, and leaves with a fade in --ds-dur-instant. Replay first scrolls the trigger to the bottom of the view, so the menu flips above it.',
+    note: 'A <code>.ds-menu</code> grows out of its trigger: its clip opens from the trigger\'s edge and it grows from <code>--ds-scale-popup</code> at an origin on the trigger, on the spring over <code>--ds-dur-medium</code>, and leaves with a fade in <code>--ds-dur-instant</code>. Replay first scrolls the trigger to the bottom of the view, so the menu flips above it.',
     shows: ['DS.overlay.open', 'DS.overlay.close', 'DS.motion.originFrom', '--ds-clip-from', '--ds-motion-origin', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-spatial'],
     html: '<div class="sg-popup-stage"><button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menu" data-menu-trigger>' + icon('moreVertical', 16) + 'Actions</button>' +
       '<div class="ds-menu" role="menu" id="sg-lab-menu" aria-label="Actions" hidden>' +
@@ -2234,7 +2236,7 @@
     id: 'tooltips',
     group: 'overlays',
     title: 'Tooltips along a toolbar',
-    note: 'A pointer that rests on a button shows its tooltip after --ds-delay-tooltip; moving on along the toolbar within --ds-delay-tooltip-skip shows the next one at once, swapped in place (the warm-up). It fades and grows from --ds-scale-tooltip at its anchor, stays while the pointer crosses onto it (--ds-delay-tooltip-hide) and goes on Escape. Replay moves a pointer along the row.',
+    note: 'A pointer that rests on a button shows its tooltip after <code>--ds-delay-tooltip</code>; moving on along the toolbar within <code>--ds-delay-tooltip-skip</code> shows the next one at once, swapped in place (the warm-up). It fades and grows from <code>--ds-scale-tooltip</code> at its anchor, stays while the pointer crosses onto it (<code>--ds-delay-tooltip-hide</code>) and goes on Escape. Replay moves a pointer along the row.',
     shows: ['DS.overlay.tooltips', '--ds-delay-tooltip', '--ds-delay-tooltip-skip', '--ds-delay-tooltip-hide', '--ds-scale-tooltip', '--ds-dur-fast', '--ds-dur-instant'],
     html: '<div class="sg-row" role="toolbar" aria-label="Device actions">' + TIPS.map(function (tip) {
       return '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="' + tip[1] + '" data-tip="' + tip[1] + '">' + icon(tip[0], 20) + '</button>';
@@ -2363,7 +2365,7 @@
     id: 'loaders',
     group: 'feedback',
     title: 'Loaders',
-    note: 'The shape loader (.ds-loader) is the block loader of .ds-boot and .ds-loading: it morphs through the seven Material shapes, each step landing on the spring, while it turns. Inline spots keep the arc spinner, which grows and shrinks while it turns. Replay inserts them again: each fades in only after its delay (--ds-delay-boot for the app start, --ds-delay-loader for the rest), and the loops always run at their token speed.',
+    note: 'The shape loader (<code>.ds-loader</code>) is the block loader of <code>.ds-boot</code> and <code>.ds-loading</code>: it morphs through the seven Material shapes, each step landing on the spring, while it turns. Inline spots keep the arc spinner, which grows and shrinks while it turns. Replay inserts them again: the shape loaders fade in only after their delay (<code>--ds-delay-boot</code> for the app start, <code>--ds-delay-loader</code> for the rest). The arc spinner has no delay of its own: here it shows a running state at once, and a page that shows one for a wait delays it (<code>.ds-loading</code>, a <code>.ds-enter.ds-enter--delayed</code> wrapper or <code>DS.motion.enter(spinner, \'delayed\')</code>). The loops always run at their token speed.',
     shows: ['ds-loader-morph', 'ds-loader-turn', 'ds-spinner-arc', 'ds-spin', 'ds-fade-in', '--ds-delay-loader', '--ds-delay-boot', '--ds-loop-loader', '--ds-loop-arc', '--ds-loop-spin', '--ds-ease-spatial'],
     html: LOADERS,
     height: 200,
@@ -2402,7 +2404,7 @@
     id: 'progress',
     group: 'feedback',
     title: 'Progress',
-    note: 'Determinate progress glides to a new share on --ds-ease-value over --ds-dur-glide, the curve and time of countUp(), so the figure lands with its bar. The wavy bar and ring carry a wave that travels (ds-progress-wave) and flattens near the ends; --flat drops the wave, the gap and the stop dot.',
+    note: 'Determinate progress glides to a new share on <code>--ds-ease-value</code> over <code>--ds-dur-glide</code>, the curve and time of countUp(), so the figure lands with its bar. The wavy bar and ring carry a wave that travels (<code>ds-progress-wave</code>) and flattens near the ends; --flat drops the wave, the gap and the stop dot.',
     shows: ['ds-progress-wave', 'DS.motion.countUp', '--ds-progress', '--ds-dur-glide', '--ds-ease-value', '--ds-loop-wave'],
     html: '<div class="sg-progress-demo"><div class="ds-stack">' + progressBlock('sg-lab-progress', 0.3, 'Import') + progressBlock('sg-lab-progress-flat', 0.3, 'Import (flat)', true) + '</div>' +
       '<div class="sg-row">' + ringHtml(0.3) + ringHtml(0.3, true) + '</div></div>',
@@ -2458,7 +2460,7 @@
     id: 'indeterminate',
     group: 'feedback',
     title: 'Unknown share, then a share',
-    note: 'While the share is unknown, two segments chase each other (ds-progress-head and ds-progress-tail, the M3 choreography); waiting for a worker is the quiet variant. The first share stops the segments and fades them out while the bar grows from 0 to its share; aria-valuetext gives way to aria-valuenow.',
+    note: 'While the share is unknown, two segments chase each other (<code>ds-progress-head</code> and <code>ds-progress-tail</code>, the M3 choreography); waiting for a worker is the quiet variant. The first share stops the segments and fades them out while the bar grows from 0 to its share; aria-valuetext gives way to aria-valuenow.',
     shows: ['ds-progress-head', 'ds-progress-tail', '--ds-loop-indeterminate', '--ds-dur-glide', '--ds-ease-value'],
     html: '<div class="ds-progress" id="sg-lab-run" style="--ds-progress:0"><div class="ds-progress__track" role="progressbar" aria-label="Import run" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">Ready</p><p class="ds-progress__detail">Replay runs waiting, preparing, 30%, done</p></div>',
     height: 140,
@@ -2495,7 +2497,7 @@
     id: 'skeleton',
     group: 'feedback',
     title: 'Skeleton',
-    note: 'One calm diagonal wave passes over every bone of the surface at once (ds-skeleton-wave), alone and with its loading bar; both wait for the loader delay. When the data arrives, settleLoader() keeps a skeleton that showed for the hold time, and the page replaces it with .ds-reveal.',
+    note: 'One calm diagonal wave passes over every bone of the surface at once (<code>ds-skeleton-wave</code>), alone and with its loading bar; both wait for the loader delay. When the data arrives, settleLoader() keeps a skeleton that showed for the hold time, and the page replaces it with <code>.ds-reveal</code>.',
     shows: ['ds-skeleton-wave', 'ds-progress-head', 'ds-progress-tail', '.ds-reveal', 'DS.motion.settleLoader', '--ds-loop-skeleton', '--ds-delay-loader', '--ds-hold-loader'],
     html: '<div class="sg-panes"><div><p class="sg-label">Skeleton</p><div class="sg-pane sg-pane--tall" id="sg-skeleton-alone">' + loadedHtml() + '</div></div>' +
       '<div><p class="sg-label">With a loading bar</p><div class="sg-pane sg-pane--tall" id="sg-skeleton-bar">' + loadedHtml() + '</div></div></div>',
@@ -2532,7 +2534,7 @@
     id: 'stale',
     group: 'feedback',
     title: 'Stale while refreshing',
-    note: 'While a refresh runs the list carries .ds-stale and aria-busy="true". It dims only after the loader delay, so the 150ms refresh never dims; the 1200ms one does, and the fresh values replace the old ones in place (morphHtml), at once.',
+    note: 'While a refresh runs the list carries <code>.ds-stale</code> and aria-busy="true". It dims only after the loader delay, so the 150ms refresh never dims; the 1200ms one does, and the fresh values replace the old ones in place (morphHtml), at once.',
     shows: ['--ds-delay-loader', '--ds-dur-base', '--ds-state-stale', 'DS.dom.morphHtml'],
     html: '<div class="sg-panes"><div><p class="sg-label">150ms</p><div class="sg-stale" id="sg-stale-fast" aria-busy="false"><ul class="ds-kv-list">' + staleHtml() + '</ul></div></div>' +
       '<div><p class="sg-label">1200ms</p><div class="sg-stale" id="sg-stale-slow" aria-busy="false"><ul class="ds-kv-list">' + staleHtml() + '</ul></div></div></div>',
@@ -2562,7 +2564,7 @@
     id: 'status',
     group: 'feedback',
     title: 'Status polling',
-    note: 'A polled status chip, re-rendered with DS.dom.morphHtml: the kept chip changes colour over --ds-dur-medium, an icon that comes in new fades in and springs up, the word changes at once. Polling never replays an entrance.',
+    note: 'A polled status chip, re-rendered with <code>DS.dom.morphHtml</code>: the kept chip changes colour over <code>--ds-dur-medium</code>, an icon that comes in new fades in and springs up, the word changes at once. Polling never replays an entrance.',
     shows: ['DS.dom.morphHtml', '--ds-dur-medium', '--ds-ease-in-out', '--ds-ease-spatial'],
     html: '<div class="sg-row"><span id="sg-lab-poll">' + pollChip(0) + '</span></div>',
     height: 120,
@@ -2651,7 +2653,7 @@
     id: 'table',
     group: 'feedback',
     title: 'Table',
-    note: 'Sort by a column or type a filter: the rows glide to their places through DS.motion.flip on every keystroke, and the sort arrow turns. "Select all" checks every row in the same frame. A row\'s chevron opens its details, the room on --ds-ease-out (a layout size), the content fading in. The live feed changes the load every 2s; sorted by load the rows reorder, but only while the mouse is not over the table.',
+    note: 'Sort by a column or type a filter: the rows glide to their places through <code>DS.motion.flip</code> on every keystroke, and the sort arrow turns. "Select all" checks every row in the same frame. A row\'s chevron opens its details, the room on <code>--ds-ease-out</code> (a layout size), the content fading in. The live feed changes the load every 2s; sorted by load the rows reorder, but only while the mouse is not over the table.',
     shows: ['DS.motion.flip', 'DS.dom.morphHtml', 'DS.motion.resyncScroll', '.ds-chevron', '--ds-dur-slow', '--ds-dur-medium', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-out', '--ds-ease-in'],
     html: '<div class="ds-table-wrap"><table class="ds-table ds-table--interactive sg-lab-table"><caption class="ds-sr">Devices</caption><thead>' + tableHeadHtml() + '</thead><tbody>' + tableRowsHtml(tableShown()) + '</tbody></table></div>',
     height: 420,
@@ -2727,7 +2729,7 @@
     id: 'alerts',
     group: 'feedback',
     title: 'Alerts and errors',
-    note: 'Both through DS.motion.flip on the stack: a new alert fades in at the top while the others glide down (past three, the oldest goes in the same call); a dismissed one fades out in place while the ones below glide up. The .ds-errors disclosure opens like any .ds-collapsible and its chevron turns.',
+    note: 'Both through <code>DS.motion.flip</code> on the stack: a new alert fades in at the top while the others glide down (past three, the oldest goes in the same call); a dismissed one fades out in place while the ones below glide up. The <code>.ds-errors</code> disclosure opens like any <code>.ds-collapsible</code> and its chevron turns.',
     shows: ['DS.motion.flip', '.ds-collapsible', 'ds-fade-in', '--ds-dur-slow', '--ds-dur-fast', '--ds-ease-spatial'],
     html: '<div class="sg-alerts">' + alertHtml('The nightly sync runs at 02:00.') + '</div>' +
       '<details class="ds-errors ds-collapsible"><summary>' + icon('alertCircle', 16) + '2 rows were skipped' + icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "XPS 13 9999"</li><li>Row 9: duplicate serial number</li></ul></details>',
@@ -2840,7 +2842,7 @@
     id: 'views',
     group: 'views',
     title: 'Between views',
-    note: 'DS.motion.transition() in a small app: fade-through between top-level destinations (the old view goes in --ds-dur-instant, the new one fades in and grows from --ds-scale-enter), shared axis X for forward and back (both views travel on the spring, landing together), and the container transform from a card into its detail over --ds-dur-long. The top bar never moves. "Without View Transitions" runs the same update through the fallback: the new view fades through with .ds-enter--swap.',
+    note: '<code>DS.motion.transition()</code> in a small app: fade-through between top-level destinations (the old view goes in <code>--ds-dur-instant</code>, the new one fades in and grows from <code>--ds-scale-enter</code>), shared axis X for forward and back (both views travel on the spring, landing together), and the container transform from a card into its detail over <code>--ds-dur-long</code>. The top bar never moves. "Without View Transitions" runs the same update through the fallback: the new view fades through with <code>.ds-enter--swap</code>.',
     shows: ['DS.motion.transition', '.ds-enter--swap', 'ds-fade-in', 'ds-fade-out', 'ds-grow-in', 'ds-shift-in', 'ds-shift-out', '--ds-dur-instant', '--ds-dur-medium', '--ds-dur-slow', '--ds-dur-long', '--ds-ease-spatial', '--ds-ease-in', '--ds-distance-xl', '--ds-scale-enter'],
     html: frameHtml('', 'A small app: views'),
     after: readoutHtml('sg-views-at', 'Pick a navigation.'),
@@ -2894,7 +2896,7 @@
     id: 'view-leaving',
     group: 'views',
     title: 'Leaving view, by hand',
-    note: 'Without DS.motion.transition(): .ds-view--leaving fades the view\'s children out (--ds-dur-instant, accelerating), the page waits for that fade with DS.motion.settled(), replaces the content and lets it enter with .ds-enter--swap. Pressing again during a swap ends on the latest view.',
+    note: 'Without <code>DS.motion.transition()</code>: <code>.ds-view--leaving</code> fades the view\'s children out (<code>--ds-dur-instant</code>, accelerating), the page waits for that fade with <code>DS.motion.settled()</code>, replaces the content and lets it enter with <code>.ds-enter--swap</code>. Pressing again during a swap ends on the latest view.',
     shows: ['DS.motion.settled', 'DS.motion.enter', '.ds-enter--swap', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-in', '--ds-distance-sm'],
     html: '<div class="sg-swap-view"><div class="sg-swap-page"><h4 class="ds-card__title">' + VIEW_PAGES[0][0] + '</h4><p class="ds-muted">' + VIEW_PAGES[0][1] + '</p></div></div>',
     height: 140,
@@ -2918,7 +2920,7 @@
     id: 'scroll',
     group: 'views',
     title: 'Reveal on scroll and edge fades',
-    note: 'In a long read-only page each block fades in and rises while it scrolls into view (.ds-reveal--scroll, tied to the scroll position: scrolling back reverses it). A table wider than its card fades its edges while it scrolls sideways (ds-edge-fade on the wrapper\'s scroll timeline). Without scroll timelines both stay static, never hidden. Replay scrolls both to the end and back.',
+    note: 'In a long read-only page each block fades in and rises while it scrolls into view (<code>.ds-reveal--scroll</code>, tied to the scroll position: scrolling back reverses it). A table wider than its card fades its edges while it scrolls sideways (<code>ds-edge-fade</code> on the wrapper\'s scroll timeline). Without scroll timelines both stay static, never hidden. Replay scrolls both to the end and back.',
     shows: ['.ds-reveal--scroll', 'ds-edge-fade', 'ds-fade-in', 'ds-lift-in', '--ds-distance-md'],
     html: '<div class="sg-scroll-demo"><div class="sg-scroll-box" tabindex="0" aria-label="A report">' + REPORT.map(function (block) {
       return '<section class="ds-card ds-reveal--scroll"><h4 class="ds-card__title">' + block[0] + '</h4><p class="ds-muted">' + block[1] + '</p></section>';

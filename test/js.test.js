@@ -143,6 +143,35 @@ describe('indicator, dom, ripple and overlay', () => {
     }
   });
 
+  it('counts the scroll lock per document: an iframe\'s lock leaves the page alone (1.6.1)', () => {
+    const stub = () => {
+      const classes = new Set();
+      return {
+        body: { style: { paddingRight: '' }, classList: { add: (name) => classes.add(name), remove: (name) => classes.delete(name), contains: (name) => classes.has(name) } },
+        documentElement: { style: { scrollbarGutter: '' }, clientWidth: 1000 },
+        defaultView: { innerWidth: 1000 },
+      };
+    };
+    const page = stub();
+    const frame = stub();
+    const locked = (doc) => doc.body.classList.contains('ds-no-scroll');
+    overlay.lockScroll(frame);
+    assert.deepEqual([locked(frame), locked(page)], [true, false]);
+    overlay.lockScroll(page);
+    overlay.unlockScroll(frame);
+    assert.deepEqual([locked(frame), locked(page)], [false, true]);
+    overlay.unlockScroll(frame);
+    assert.equal(locked(page), true, 'an unbalanced unlock of another document never releases this one');
+    overlay.unlockScroll(page);
+    assert.equal(locked(page), false);
+  });
+
+  it('keeps the list of open modals of indicator.js equal to the one of motion.js (1.6.1)', () => {
+    const list = (file) => /const MODAL_OPEN = \[([\s\S]*?)\]\.join\(/.exec(read(file))?.[1].trim();
+    assert.ok(list('src/js/motion.js'));
+    assert.equal(list('src/js/indicator.js'), list('src/js/motion.js'));
+  });
+
   it('morphChildren keeps equal nodes and only inserts or removes what changed', () => {
     // A tiny node model: text, isEqualNode, siblings, insertBefore, remove.
     class Node {
@@ -182,6 +211,17 @@ describe('indicator, dom, ripple and overlay', () => {
       assert.equal(status.style.getPropertyValue('--ds-i'), '2');
       assert.equal(status.textContent, 'Failed');
       assert.equal(bar.style.getPropertyValue('--ds-progress'), '60%');
+    });
+
+    it('keeps only the ripple properties DS writes (--ds-ripple-x/-y/-r): a host\'s --ds-ripple-color follows the template', () => {
+      const button = h('button', { class: 'ds-btn', style: '--ds-ripple-color: var(--ds-primary); --ds-ripple-x: 4px' });
+      const target = h('div', {}, button);
+      dom.morphChildren(target, [h('button', { class: 'ds-btn', style: '--ds-ripple-color: var(--ds-error)' })]);
+      assert.equal(target.childNodes[0], button);
+      assert.equal(button.style.getPropertyValue('--ds-ripple-color'), 'var(--ds-error)');
+      assert.equal(button.style.getPropertyValue('--ds-ripple-x'), '4px', 'runtime state survives');
+      dom.morphChildren(target, [h('button', { class: 'ds-btn' })]);
+      assert.equal(button.style.getPropertyValue('--ds-ripple-color'), '');
     });
 
     it('moves keyed nodes and keeps their identity; a prepended row inserts only itself', () => {
@@ -328,6 +368,38 @@ describe('indicator, dom, ripple and overlay', () => {
       const rest = h('div', { class: 'ds-panel', inert: '' }, text('Old'));
       dom.morphChildren(h('div', {}, rest), [h('div', { class: 'ds-panel' }, text('Old'))]);
       assert.equal(rest.hasAttribute('inert'), false);
+    });
+
+    it('keeps the state a DS helper owns as it is, present or absent, until the helper lets go (1.6.1)', () => {
+      // What DS.overlay, busy(), countUp(), the swaps and flip() own while they run (motion.js, overlay.js).
+      const OWNED = Symbol.for('ds.owned');
+      const owned = (attrs, classes, props) => ({ attrs: new Map(attrs.map((name) => [name, 1])), classes: new Map(classes.map((name) => [name, 1])), props: new Map(props.map((name) => [name, 1])) });
+      // An open row menu: its hidden dropped, data-state and a placement written, inline place and cap.
+      const menu = h('div', { class: 'ds-menu', role: 'menu', 'data-state': 'open', style: '--ds-menu-x: 12px; max-height: 90px' }, text('Rename'));
+      const trigger = h('button', { 'aria-expanded': 'true', 'aria-busy': 'true', class: 'ds-btn ds-btn--done' }, text('More'));
+      const row = h('div', {}, trigger, menu);
+      menu[OWNED] = owned(['hidden', 'data-state', 'data-placement'], ['ds-dialog--nested'], ['--ds-menu-x', '--ds-menu-y', 'max-height']);
+      trigger[OWNED] = owned(['aria-expanded', 'aria-busy'], ['ds-btn--done'], []);
+      const template = () => [
+        h('button', { 'aria-expanded': 'false', class: 'ds-btn' }, text('More')),
+        h('div', { class: 'ds-menu ds-dialog--nested', role: 'menu', hidden: '', 'data-placement': 'top', style: '--ds-menu-y: 4px; color: red' }, text('Rename (2)')),
+      ];
+      dom.morphChildren(row, template());
+      assert.deepEqual(row.childNodes, [trigger, menu], 'patched, not replaced');
+      assert.equal(menu.textContent, 'Rename (2)');
+      assert.equal(menu.hasAttribute('hidden'), false, 'an owned absence stays: the template\'s hidden is not added back');
+      assert.equal(menu.getAttribute('data-state'), 'open');
+      assert.equal(menu.hasAttribute('data-placement'), false);
+      assert.deepEqual([...menu.classList], ['ds-menu'], 'an owned class the element lacks is not added');
+      assert.deepEqual([menu.style.getPropertyValue('--ds-menu-x'), menu.style.getPropertyValue('max-height'), menu.style.getPropertyValue('--ds-menu-y'), menu.style.getPropertyValue('color')], ['12px', '90px', '', 'red']);
+      assert.deepEqual([trigger.getAttribute('aria-expanded'), trigger.getAttribute('aria-busy'), [...trigger.classList]], ['true', 'true', ['ds-btn', 'ds-btn--done']]);
+      // Let go (the close settled, the work ended): the next patch takes the template's values.
+      menu[OWNED] = owned([], [], []);
+      trigger[OWNED] = owned([], [], []);
+      dom.morphChildren(row, template());
+      assert.deepEqual([menu.hasAttribute('hidden'), menu.getAttribute('data-state'), menu.getAttribute('data-placement'), [...menu.classList]], [true, null, 'top', ['ds-menu', 'ds-dialog--nested']]);
+      assert.deepEqual([menu.style.getPropertyValue('--ds-menu-x'), menu.style.getPropertyValue('--ds-menu-y')], ['', '4px']);
+      assert.deepEqual([trigger.getAttribute('aria-expanded'), trigger.getAttribute('aria-busy'), [...trigger.classList]], ['false', null, ['ds-btn']]);
     });
 
     it('calls onInsert for new elements and holds them back under holdOrder', () => {

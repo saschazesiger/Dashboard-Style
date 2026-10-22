@@ -18,7 +18,8 @@ A theme is one stylesheet, loaded after `ds.css`, that overrides roles (layer 2)
    the old value.
 2. **Never set motion tokens** (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`,
    `--ds-delay-*`, `--ds-hold-*`, `--ds-stagger`, `--ds-time-scale`) **and the per-element motion hooks**
-   (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`). Motion is one fixed scheme for every product, and `DS.motion`
+   (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`, `--ds-draw-length`, `--ds-scan-*`,
+   `--ds-indicator-lag`, `--ds-indicator-dur`). Motion is one fixed scheme for every product, and `DS.motion`
    reads the computed tokens, so a theme value would put CSS and script out of step.
 3. **Keep contrast.** Text roles need 4.5:1 on the surfaces they sit on (`--ds-text-3` on white only), icons and
    outlines that carry meaning 3:1. The tint (`--ds-accent`) may be light; components never rely on it alone.
@@ -70,7 +71,7 @@ pills; `--ds-radius-card-pressed` for radio cards; checkboxes take `--ds-radius-
 .ds-theme {
   --ds-radius-xs: 0; --ds-radius-sm: 0; --ds-radius-md: 0;
   --ds-radius-lg: 0; --ds-radius-xl: 0; --ds-radius-2xl: 0;
-  --ds-radius-chip: 9999px;   /* chips stay pills */
+  --ds-radius-chip: 9999px;   /* chips become pills (default: --ds-radius-sm, zeroed above) */
 }
 ```
 
@@ -112,12 +113,65 @@ zoom into smaller text. `--ds-input-font` forces one role everywhere:
 ```
 
 **Embedded in someone else's page.** Put `ds-theme` on your root element instead of `<html>`, leave out `ds-base`,
-and use `.ds-dialog--contained` for dialogs that should cover only your panel. Every token and rule is scoped to
+and use `.ds-dialog--contained` for dialogs that should cover only your panel (`DS.overlay` traps focus and input
+only inside its positioned container, leaves the host page's scroll alone and closes it on Escape only when the key
+is pressed inside that container, so the host keeps Escape for its own dialogs and search fields). Full-window
+modals (a dialog without `--contained`, side sheets, the modal drawer) still count the lock and set
+`body.ds-no-scroll` on the host's `<body>`, but only `.ds-base` turns that class into `overflow: hidden`: without it
+the host page keeps scrolling behind the scrim. A widget that wants the lock adds its own unlayered rule, such as
+`body.ds-no-scroll { overflow: hidden; }`, where the host agrees.
+
+Leaving out `ds-base` also leaves out the page's ink and body type. Cards, dialogs, side sheets and tables set the
+text colour on their surfaces, but loose text elsewhere in your widget, and the type of loose text everywhere,
+inherits the host page's colour and font. Give your root both, unlayered and after `ds.css`:
+
+```css
+.ds-theme.my-widget {
+  font: var(--ds-font-body);
+  color: var(--ds-text);
+}
+```
+
+Every token and rule is scoped to
 `.ds-` classes, so a page without Dashboard-Style is not affected. Inside `.ds-theme` every element is
 `box-sizing: border-box` (zero specificity, so your own sizing rules still win). Overlays (dialogs, side sheets,
 snackbar regions, tooltips, menus) must sit inside the `.ds-theme` element too, not at the end of the host's
 `<body>`: outside it they get neither the tokens nor the motion. `DS.overlay` warns once in the console when it opens
 an overlay outside `.ds-theme` (and `tooltips()` when its root has none).
+
+The other direction needs a guard of yours. `ds.css` sits in `@layer ds.*`, so the host page's unlayered CSS beats
+your widget's components, whatever its specificity: element rules such as `button { ... }`, `h2 { ... }`,
+`p { ... }` and `dialog { ... }` from a reboot, a normalize or the host's own styles can square your pills, change
+fonts and title sizes and frame a native `<dialog class="ds-dialog">`. Hand those elements back to the ds layers
+with an unlayered rule, loaded after `ds.css` and keyed to your root like the tokens:
+
+```css
+.ds-theme.my-widget :where(button, h1, h2, h3, h4, p, ul, ol, li, a, dialog, input, select, textarea, label, table, th, td) {
+  all: revert-layer;
+}
+```
+
+`all` leaves custom properties alone, so tokens and hooks keep working, and `revert-layer` is on the browser floor.
+The guard weighs (0,2,0): your widget's own unlayered rules on those elements must weigh more (`.my-widget .x-row p`),
+or narrow the guard to ds elements with `:where([class^="ds-"], [class*=" ds-"])`. Host rules that weigh more than
+the guard (`#app p`, `.content .toolbar button`) or carry `!important` still win; a shadow root or an `<iframe>` is the
+isolation that always holds.
+
+Stacking: prefer the native `<dialog>` markup for dialogs and side sheets in a widget. `showModal()` puts them in the
+top layer, above everything the host page paints, and while one is open `DS.overlay` moves the snackbar regions into
+it, so messages are in the top layer too. The div markup, `.ds-dialog--contained`, menus and tooltips placed by the
+script and the `.ds-toasts` region stack in the host's stacking context at `--ds-z-popover` to `--ds-z-toast` (40 to
+60): a fixed or sticky host layer with a higher `z-index` (a sticky header, a chat bubble) paints over them. The trap
+of a div dialog or sheet makes such a layer inert, so it takes no clicks, but it can still hide a title or a close
+button. Where that matters, give your widget root (or ask the host to give its layer) a `z-index` that keeps the
+widget above, or use the native markup.
+
+A host ancestor with `transform`, `filter`, `perspective`, `will-change: transform` or `contain: layout` / `paint`
+(an animated card, an off-canvas panel) becomes the box that `position: fixed` layers fill. Inside it, full-window
+div dialogs and side sheets, their scrims, the modal drawer and the `.ds-toasts` region cover or pin to that box,
+not the window. Use the native `<dialog>` markup there (the top layer ignores the ancestor), or a host that does not
+transform your widget's ancestors. Menus and tooltips are placed right either way: anchored in the top layer, or by
+the script, which writes their coordinates in that box's terms (1.6.1).
 
 The host page may use Dashboard-Style itself (`<html class="ds-theme">`), possibly another version or theme. Then
 both copies share their selectors, and `tokens.css` on bare `.ds-theme` would reset the host's theme to your
@@ -125,6 +179,12 @@ values. Scope what you inject to your root: rewrite `.ds-theme` to `.ds-theme.my
 ship, `tokens.css` and your theme included (a build step can do it), and key any reset of your own the same way
 (`.ds-theme.my-widget :where(button) { ... }`). The component rules themselves stay shared; load the same version
 as the host where you can.
+
+Overlays of the two copies (1.6.1 and later on both sides) share what the page has only once: Escape closes the
+topmost layer whichever copy opened it, the scroll lock holds until the last modal of either copy closes, anchor
+names and tooltip ids never repeat, and a trigger inside both copies' tooltip roots is served once (by the
+innermost root). A copy before 1.6.1 keeps its own count of these: there, avoid overlays of both copies open at
+once.
 
 ## Component hooks
 

@@ -357,6 +357,31 @@ function flipTiming(element) {
   return timing && Number(timing.duration) > 0 ? { duration: Number(timing.duration), easing: timing.easing || 'linear' } : null;
 }
 
+/**
+ * The runtime state a DS helper owns on an element right now, which
+ * DS.dom.morphHtml keeps (present or absent) until the helper lets go:
+ * the record of motion.js under the same symbol of the global registry.
+ * These two helpers are motion.js's own, repeated here.
+ */
+const OWNED = Symbol.for('ds.owned');
+
+/** `kind`: 'attrs', 'classes' or 'props' (a style property, kebab-case). */
+function own(element, kind, name) {
+  if (!element || typeof element !== 'object') return;
+  const record = element[OWNED] ?? (element[OWNED] = { attrs: new Map(), classes: new Map(), props: new Map() });
+  record[kind].set(name, (record[kind].get(name) ?? 0) + 1);
+}
+
+function disown(element, kind, name) {
+  const map = element?.[OWNED]?.[kind];
+  const count = map?.get(name) ?? 0;
+  if (count > 1) map.set(name, count - 1);
+  else map?.delete(name);
+}
+
+/** Chip rows that carry the glide backing (owned once, however often backChips() runs). */
+const backedRows = new WeakSet();
+
 /** Whether a computed colour paints anything (alpha above 0). */
 function paints(colour) {
   if (!colour || colour === 'transparent') return false;
@@ -382,8 +407,15 @@ function backdropOf(element) {
  * colour behind the row (data-ds-glide, --ds-chips-backdrop): a chip that
  * crosses another, transparent or still fading to its fill, never shows
  * the other one through it. At rest the backing matches what is behind.
+ * Both are owned while they last, so a re-render of an ancestor
+ * (DS.dom.morphHtml) mid-glide keeps them.
  */
 function backChips(row) {
+  if (!backedRows.has(row)) {
+    backedRows.add(row);
+    own(row, 'attrs', 'data-ds-glide');
+    own(row, 'props', '--ds-chips-backdrop');
+  }
   const backdrop = backdropOf(row);
   if (backdrop) row.style.setProperty('--ds-chips-backdrop', backdrop);
   else row.style.removeProperty('--ds-chips-backdrop');
@@ -400,6 +432,10 @@ function unbackChips(row) {
   }
   row.removeAttribute('data-ds-glide');
   row.style.removeProperty('--ds-chips-backdrop');
+  if (backedRows.delete(row)) {
+    disown(row, 'attrs', 'data-ds-glide');
+    disown(row, 'props', '--ds-chips-backdrop');
+  }
 }
 
 /**
@@ -488,6 +524,8 @@ export function attach(root = document) {
   if (existing) return existing;
   const element = /** @type {Element} */ (root.nodeType === 9 ? /** @type {Document} */ (root).documentElement : root);
   const doc = element.ownerDocument;
+  /** The pending blur that ends a key press, per focused target. @type {WeakMap<Element, () => void>} */
+  const blurs = new WeakMap();
 
   const onPointerDown = (/** @type {PointerEvent} */ event) => {
     if (event.button !== 0 || event.isPrimary === false) return;
@@ -517,16 +555,28 @@ export function attach(root = document) {
     // (typing in a field inside a host is no press).
     if (target !== host && !(host.matches(OWNS_INPUT) && target.tagName === 'INPUT') && !target.matches?.(HOST_LINK)) return;
     if (!start(host)) return;
+    // One pending blur per target: a key press ended by keyup takes its own
+    // away, so a stepper pressed again and again keeps no stale listeners.
+    const stale = blurs.get(target);
+    if (stale) target.removeEventListener('blur', stale);
     const leave = () => {
+      blurs.delete(target);
       target.removeEventListener('blur', leave);
       end(host);
     };
+    blurs.set(target, leave);
     target.addEventListener('blur', leave);
   };
 
   const onKeyUp = (/** @type {KeyboardEvent} */ event) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
-    const host = hostOf(event.target, element);
+    const target = /** @type {Element} */ (event.target);
+    const pending = blurs.get(target);
+    if (pending) {
+      target.removeEventListener('blur', pending);
+      blurs.delete(target);
+    }
+    const host = hostOf(target, element);
     if (host) end(host);
   };
 

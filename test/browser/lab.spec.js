@@ -26,6 +26,9 @@
  *   time at ?speed=0.1 (expectSmooth(), on frame timestamps);
  * - overlay table: every row of the docs/motion.md Overlays table against
  *   what the engine plays;
+ * - stages: at 1280, 1000 and 390px no stage cuts its demo off, the open
+ *   disclosure keeps its stage's height, and the skeleton keeps the height
+ *   of the page that replaces it, its loading bar inside its pane;
  * - videos: with DS_VIDEO=1 only the "videos" tests run, one per section
  *   at ?speed=0.1 in every engine, each recording a video of its demos
  *   (Replay, then Reverse at 50% and Rapid toggle where reversible) into
@@ -752,6 +755,56 @@ function layerStep(page, layer, step, variant, row) {
     return { actual, expected, origin };
   }, { layer, step, variant, tracks: row[step === 'open' ? 'entrance' : 'exit'] });
 }
+
+/** Stages whose content is taller than the stage (it would be cut off): "id: scrollHeight/clientHeight". */
+function overflowing(page) {
+  return page.evaluate(() => [...document.querySelectorAll('[data-lab-demo]')]
+    // The scroll demo scrolls on purpose.
+    .filter((card) => card.getAttribute('data-lab-demo') !== 'scroll')
+    .map((card) => [card.getAttribute('data-lab-demo'), card.querySelector('.sg-lab-stage')])
+    .filter(([, stage]) => stage.scrollHeight > stage.clientHeight + 1)
+    .map(([id, stage]) => `${id}: ${stage.scrollHeight}/${stage.clientHeight}`));
+}
+
+test.describe('stages', () => {
+  for (const width of [1280, 1000, 390]) {
+    test(`at ${width}px every stage holds its demo, and the open disclosure keeps its stage's height`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await open(page);
+      expect(await overflowing(page)).toEqual([]);
+      const heights = await page.evaluate(async () => {
+        const stage = document.querySelector('[data-lab-demo="disclosure"] .sg-lab-stage');
+        const entry = window.SG_LAB.find((each) => each.id === 'disclosure');
+        const closed = stage.getBoundingClientRect().height;
+        await entry.toggle(stage, true, window.SG_LAB_HELPERS);
+        return { closed, open: stage.getBoundingClientRect().height, fits: stage.scrollHeight <= stage.clientHeight + 1 };
+      });
+      expect(heights).toEqual({ closed: heights.closed, open: heights.closed, fits: true });
+    });
+  }
+
+  test('the skeleton keeps the height of the page that replaces it, and its loading bar stays in its pane', async ({ page }) => {
+    await open(page);
+    await bringUp(page, 'skeleton');
+    const loading = await page.evaluate(() => {
+      const card = document.querySelector('[data-lab-demo="skeleton"]');
+      const panes = card.querySelector('.sg-panes');
+      const settled = panes.getBoundingClientRect().height;
+      card.querySelector('[data-lab="replay"]').click();
+      const pane = card.querySelector('#sg-skeleton-bar').getBoundingClientRect();
+      const bar = card.querySelector('#sg-skeleton-bar .ds-loadbar').getBoundingClientRect();
+      const label = card.querySelector('#sg-skeleton-bar').previousElementSibling.getBoundingClientRect();
+      return {
+        settled,
+        loading: panes.getBoundingClientRect().height,
+        inside: bar.left >= pane.left - 0.5 && bar.right <= pane.right + 0.5 && bar.top >= pane.top - 0.5,
+        belowLabel: bar.top >= label.bottom - 0.5,
+      };
+    });
+    expect(loading).toEqual({ settled: loading.settled, loading: loading.settled, inside: true, belowLabel: true });
+    await expect(page.locator('[data-lab-demo="skeleton"]')).toHaveAttribute('data-lab-state', 'settled', { timeout: 20000 });
+  });
+});
 
 test.describe('overlay table', () => {
   test.beforeEach(({ page }) => seedRandom(page));

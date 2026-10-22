@@ -60,7 +60,9 @@
  * when the page is left (pageswap) or revealed (pagereveal), such as the
  * active item of a drawer list scrolled down to a link further on, keeps
  * no name for that navigation and goes or comes with its page, so it never
- * glides in over the top bar. Within a page, DS.motion.transition() lifts
+ * glides in over the top bar; so does a pill under an open dialog, side
+ * sheet or the modal drawer (1.6.1), which would paint above the overlay
+ * or the drawer and its scrim. Within a page, DS.motion.transition() lifts
  * the name while it runs: the docked drawer shows live, so the pill glides
  * as on a click, under its labels and inside its track. Without a name the
  * pill is part of its parent's snapshot and switches with it on a page
@@ -91,6 +93,21 @@ const EDGES = ['--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds
 const ACTIVE_ATTRIBUTES = ['aria-current', 'aria-pressed', 'aria-selected', 'aria-checked'];
 
 const INSTANT = 'ds-indicator--instant';
+
+/**
+ * An open dialog or side sheet: it covers the page frame, which
+ * view-transitions.css then leaves unnamed. The same list as MODAL_OPEN
+ * in motion.js (test/js.test.js keeps them equal); a contained dialog
+ * covers only its container and never counts.
+ */
+const MODAL_OPEN = [
+  '.ds-dialog[data-state="open"]:not(.ds-dialog--contained)',
+  '.ds-sheet[data-state="open"]',
+  'dialog.ds-dialog[open]:not(.ds-dialog--contained)',
+  'dialog.ds-sheet[open]',
+  '.ds-dialog:not(dialog, [hidden], [data-state], .ds-dialog--contained, .ds-dialog--hidden, .ds-dialog--closing)',
+  '.ds-sheet[aria-modal="true"]:not(dialog, [hidden], [data-state], .ds-sheet--closing)',
+].join(', ');
 
 /** Within half a pixel two placements are the same. */
 const same = (a, b) => Boolean(a && b) && ['left', 'top', 'right', 'bottom'].every((side) => Math.abs(a[side] - b[side]) < 0.5);
@@ -470,9 +487,13 @@ export function createIndicator(track, options) {
    * floats above every snapshot, outside its track's clip. A pill
    * scrolled out of its track's view (the active item of a long drawer
    * list the user scrolled down to click a link) would glide in from
-   * outside the drawer, across the top bar. For that navigation it keeps
-   * no name and goes or comes with its page; the name returns once the
-   * transition ended (or the page comes back from the back/forward cache).
+   * outside the drawer, across the top bar; a pill under something modal
+   * (a page left with a dialog, a side sheet or the modal drawer open,
+   * whose frame view-transitions.css leaves in the root snapshot) would
+   * paint above the overlay or the drawer and its scrim, over the labels.
+   * For that navigation it keeps no name and goes or comes with its page;
+   * the name returns once the transition ended (or the page comes back
+   * from the back/forward cache).
    */
   function shownWhole() {
     const rect = indicator.getBoundingClientRect();
@@ -492,8 +513,10 @@ export function createIndicator(track, options) {
   const rename = () => {
     if (!destroyed) indicator.style.setProperty('view-transition-name', ownName);
   };
+  const covered = () => Boolean(doc.querySelector?.(`${MODAL_OPEN}, .ds-app[data-drawer-open]`));
   const onPageTransition = (event) => {
-    if (destroyed || !event.viewTransition || typeof view.getComputedStyle !== 'function' || shownWhole()) return;
+    if (destroyed || !event.viewTransition || typeof view.getComputedStyle !== 'function') return;
+    if (!covered() && shownWhole()) return;
     indicator.style.setProperty('view-transition-name', 'none');
     event.viewTransition.finished?.then(rename, rename);
   };

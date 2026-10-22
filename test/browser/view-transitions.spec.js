@@ -634,14 +634,25 @@ test.describe('page loads (css/optional/view-transitions.css)', () => {
     expect(revealed.animations.some((a) => a.pseudo === '::view-transition-new(ds-view)' && a.name === 'ds-fade-in')).toBe(true);
   });
 
+  /** Records the pill's view-transition-name as the page is left (after the indicator's own pageswap listener). */
+  function recordPillAtSwap(page) {
+    return page.evaluate(() => {
+      sessionStorage.removeItem('ds-pill-at-swap');
+      addEventListener('pageswap', () => sessionStorage.setItem('ds-pill-at-swap', getComputedStyle(document.querySelector('.ds-indicator')).viewTransitionName));
+    });
+  }
+
   test('phone width: a page left from the open modal drawer stays under it; only the new frame fades in', async ({ page, browserName }) => {
     await page.setViewportSize({ width: 390, height: 760 });
     await page.evaluate(() => DS.overlay.open(document.querySelector('.ds-drawer')));
     await settle(page);
     await expect(page.locator('.ds-app')).toHaveAttribute('data-drawer-open', '');
     expect(await page.evaluate(() => ['.ds-view', '.ds-panel'].map((s) => getComputedStyle(document.querySelector(s)).viewTransitionName)), 'unnamed under the drawer').toEqual(['none', 'none']);
+    await recordPillAtSwap(page);
     await page.locator('#to-b').click();
     await page.waitForURL(/mpa-b\.html/);
+    // The pill keeps no name under the modal drawer (1.6.1): its group would paint over the drawer's labels.
+    expect(await page.evaluate(() => sessionStorage.getItem('ds-pill-at-swap'))).toBe('none');
     const revealed = await page.evaluate(() => window.revealed);
     expect(revealed.transition).toBe(true);
     const pseudos = revealed.animations.map((a) => `${a.pseudo} ${a.name}`);
@@ -650,6 +661,26 @@ test.describe('page loads (css/optional/view-transitions.css)', () => {
     expect(pseudos).toContain('::view-transition-new(ds-view) ds-fade-in');
     // WebKit lists the animations of an image that does not exist too, so only Chromium can tell from the list.
     if (browserName === 'chromium') expect(pseudos.filter((p) => /old\(ds-(view|panel)\)/.test(p))).toEqual([]);
+  });
+
+  test('a page left with a dialog open: the frame and the pill stay under its scrim; the pill is no group from the old page', async ({ page, browserName }) => {
+    await page.evaluate(() => {
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<div class="ds-dialog" id="fx-dialog" hidden><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="fx-dialog-title"><h2 class="ds-dialog__title" id="fx-dialog-title">Leave the page?</h2><div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Stay</button></div></div></div>');
+      return DS.overlay.open(document.getElementById('fx-dialog'));
+    });
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.ds-indicator')).viewTransitionName), 'named while the page shows').toBe('ds-indicator-nav');
+    await recordPillAtSwap(page);
+    // The page under the dialog is inert: the navigation starts from the script.
+    await page.evaluate(() => document.getElementById('to-b').click());
+    await page.waitForURL(/mpa-b\.html/);
+    expect(await page.evaluate(() => sessionStorage.getItem('ds-pill-at-swap'))).toBe('none');
+    const revealed = await page.evaluate(() => window.revealed);
+    expect(revealed.transition).toBe(true);
+    // WebKit lists the animations of an image that does not exist too, so only Chromium can tell from the list.
+    if (browserName === 'chromium') expect(revealed.animations.filter((a) => /old\(ds-indicator-nav\)/.test(a.pseudo))).toEqual([]);
+    // Nothing covers the new page: its pill has its name.
+    await settle(page);
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.ds-indicator')).viewTransitionName)).toBe('ds-indicator-nav');
   });
 
   test('without the opt-in stylesheet no page load transitions', async ({ page }) => {

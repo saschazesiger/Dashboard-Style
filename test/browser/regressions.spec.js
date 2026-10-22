@@ -596,3 +596,681 @@ test.describe('fixed in P6', () => {
     expect(await ringIsClipped(page, action, '.ds-collapsible::details-content { overflow: visible !important; }')).toBe(false);
   });
 });
+
+test.describe('fixed in 1.6.1', () => {
+  /** A keyed table row with the documented row menu in it; `menu` puts the menu in the row. */
+  const ROW = `function row(status, { menu = true, hidden = true, expanded = 'false' } = {}) {
+    return '<tr data-ds-key="r1"><td>LAPTOP-0042</td><td class="fx-status">' + status + '</td><td>'
+      + '<button class="ds-btn ds-btn--quiet" type="button" id="row-trigger" aria-haspopup="menu" aria-expanded="' + expanded + '" aria-controls="row-menu">More</button>'
+      + (menu ? '<div class="ds-menu" role="menu" id="row-menu" aria-labelledby="row-trigger"' + (hidden ? ' hidden' : '') + '>'
+        + '<button class="ds-menu__item" role="menuitem" type="button" id="row-a">Rename</button>'
+        + '<button class="ds-menu__item" role="menuitem" type="button" id="row-b">Retire</button></div>' : '')
+      + '</td></tr>';
+  }`;
+
+  /** Adds the table (and, without `inRow`, the menu at the end of .ds-theme) and defines window.row and window.liveUpdate. */
+  async function table(page, inRow) {
+    await inject(page, `<table class="ds-table"><tbody id="rows"></tbody></table>${inRow ? '' : '<div class="ds-menu" role="menu" id="row-menu" aria-labelledby="row-trigger" hidden><button class="ds-menu__item" role="menuitem" type="button" id="row-a">Rename</button></div>'}`);
+    await page.evaluate(([source, menu]) => {
+      window.row = new Function(`${source}; return row;`)();
+      window.inRow = menu;
+      const rows = document.getElementById('rows');
+      DS.dom.morphHtml(rows, window.row('online', { menu }));
+      // The documented live update: a polled re-render through flip() and morphHtml().
+      window.liveUpdate = (status, options = {}) => {
+        DS.motion.flip(rows, (hooks) => DS.dom.morphHtml(rows, window.row(status, { menu, ...options }), hooks), { items: 'tr', live: true });
+        return new Promise((resolve) => setTimeout(resolve, 50));
+      };
+    }, [ROW, inRow]);
+  }
+
+  const menuState = (page) => page.evaluate(() => {
+    const menu = document.getElementById('row-menu');
+    return {
+      status: document.querySelector('#rows .fx-status').textContent,
+      hidden: menu.hidden,
+      state: menu.getAttribute('data-state'),
+      expanded: document.getElementById('row-trigger').getAttribute('aria-expanded'),
+      focusInMenu: menu.contains(document.activeElement),
+    };
+  });
+
+  test('a live re-render keeps a row menu opened by DS.overlay open, focused and marked expanded', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await table(page, true);
+    await page.evaluate(() => DS.overlay.open(document.getElementById('row-menu'), { opener: document.getElementById('row-trigger') }));
+    expect(await menuState(page)).toEqual({ status: 'online', hidden: false, state: 'open', expanded: 'true', focusInMenu: true });
+    await page.evaluate(() => window.liveUpdate('offline'));
+    expect(await menuState(page)).toEqual({ status: 'offline', hidden: false, state: 'open', expanded: 'true', focusInMenu: true });
+    // Closed, the template decides again: a template that shows the menu shows it.
+    await page.evaluate(() => DS.overlay.close(document.getElementById('row-menu')));
+    expect(await menuState(page)).toMatchObject({ hidden: true, state: null, expanded: 'false' });
+    await page.evaluate(() => window.liveUpdate('online', { hidden: false, expanded: 'true' }));
+    expect(await menuState(page)).toMatchObject({ status: 'online', hidden: false, state: null, expanded: 'true' });
+  });
+
+  test('a live re-render keeps aria-expanded on the in-row trigger of a menu at the end of .ds-theme', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await table(page, false);
+    await page.evaluate(() => DS.overlay.open(document.getElementById('row-menu'), { opener: document.getElementById('row-trigger') }));
+    await page.evaluate(() => window.liveUpdate('offline'));
+    expect(await menuState(page)).toEqual({ status: 'offline', hidden: false, state: 'open', expanded: 'true', focusInMenu: true });
+    await page.evaluate(() => DS.overlay.close(document.getElementById('row-menu')));
+    await page.evaluate(() => window.liveUpdate('online', { expanded: 'true' }));
+    expect(await menuState(page)).toMatchObject({ status: 'online', hidden: true, expanded: 'true' });
+  });
+
+  test('a re-render keeps the busy face of busy() and then its success face', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await inject(page, '<ul id="jobs"></ul>');
+    const result = await page.evaluate(async () => {
+      const jobs = document.getElementById('jobs');
+      const render = (extra = '') => DS.dom.morphHtml(jobs, `<li data-ds-key="j1"><button class="ds-btn ds-btn--tonal" type="button" id="save"${extra}><span class="ds-btn__faces"><span class="ds-btn__face">Save</span></span></button></li>`);
+      render();
+      const button = document.getElementById('save');
+      const seen = {};
+      let finish;
+      const work = DS.motion.busy(button, new Promise((resolve) => { finish = resolve; }));
+      render();
+      seen.busy = [button === document.getElementById('save'), button.getAttribute('aria-busy')];
+      finish('saved');
+      seen.result = await work;
+      render();
+      seen.done = button.classList.contains('ds-btn--done');
+      // Once the success face ended, the template decides again.
+      await new Promise((resolve) => setTimeout(resolve, DS.motion.motionDuration(button, '--ds-hold-success') + 100));
+      seen.after = button.classList.contains('ds-btn--done');
+      render(' aria-busy="true"');
+      seen.template = button.getAttribute('aria-busy');
+      return seen;
+    });
+    expect(result).toEqual({ busy: [true, 'true'], result: 'saved', done: true, after: false, template: 'true' });
+  });
+
+  test('a removed open dialog releases the scroll lock, the inert page and the Escape key', async ({ page }) => {
+    await open(page, 'overlay.html');
+    const after = (id) => page.evaluate(async (which) => {
+      const element = document.getElementById(which);
+      await DS.overlay.open(element, { opener: document.getElementById('open-dialog') });
+      const before = { locked: document.body.classList.contains('ds-no-scroll'), inert: document.getElementById('page').inert || element.tagName === 'DIALOG' };
+      element.remove();
+      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+      const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+      document.body.dispatchEvent(escape);
+      return { before, locked: document.body.classList.contains('ds-no-scroll'), inert: document.getElementById('page').inert, escapeTaken: escape.defaultPrevented, focus: document.activeElement?.id ?? null };
+    }, id);
+    for (const id of ['native', 'dialog']) {
+      const result = await after(id);
+      expect(result, id).toMatchObject({ before: { locked: true, inert: true }, locked: false, inert: false, escapeTaken: false });
+    }
+    // The next overlay locks and releases as usual.
+    await page.evaluate(() => DS.overlay.open(document.getElementById('sheet')));
+    expect(await page.evaluate(() => document.body.classList.contains('ds-no-scroll'))).toBe(true);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('sheet')));
+    expect(await page.evaluate(() => [document.body.classList.contains('ds-no-scroll'), document.getElementById('page').inert])).toEqual([false, false]);
+  });
+
+  test('a contained dialog traps only inside its container: the page around it stays usable and scrolls', async ({ page }) => {
+    await open(page, 'overlay.html');
+    // A widget panel at the top of the page, before the host's own content.
+    await page.evaluate(() => {
+      document.body.insertAdjacentHTML('afterbegin', `<section id="widget" style="position: relative; height: 320px">
+        <button class="ds-btn" type="button" id="w-open">Delete</button><p id="w-text">Widget content</p>
+        <div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="w-title"><h2 class="ds-dialog__title" id="w-title">Delete?</h2>
+          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div></section>`);
+      window.hostClicks = 0;
+      document.getElementById('open-native').addEventListener('click', (event) => { window.hostClicks += 1; event.stopImmediatePropagation(); }, { capture: true });
+    });
+    await page.locator('#w-open').focus();
+    await page.evaluate(() => DS.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') }));
+    const state = await page.evaluate(() => ({
+      page: document.getElementById('page').inert,
+      text: document.getElementById('w-text').inert,
+      trigger: document.getElementById('w-open').inert,
+      locked: document.body.classList.contains('ds-no-scroll'),
+      focus: document.activeElement.id,
+    }));
+    expect(state).toEqual({ page: false, text: true, trigger: true, locked: false, focus: 'w-cancel' });
+    await page.locator('#open-native').click();
+    expect(await page.evaluate(() => window.hostClicks)).toBe(1);
+    await page.locator('#w-cancel').focus();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.getElementById('w-dialog').hidden);
+    expect(await page.evaluate(() => [document.activeElement.id, document.getElementById('w-text').inert])).toEqual(['w-open', false]);
+  });
+
+  test('a menu opened from a trigger with a tooltip stays anchored once the tooltip has gone, and the other way round', async ({ page }) => {
+    await open(page, 'popups.html');
+    const anchoring = await page.evaluate(() => typeof HTMLElement.prototype.showPopover === 'function' && CSS.supports('position-area: block-end') && 'anchorName' in document.documentElement.style);
+    test.skip(!anchoring, 'needs popover and CSS anchor positioning (the shared anchor-name)');
+    await page.evaluate(() => {
+      document.getElementById('trigger').setAttribute('data-tip', 'More actions');
+      DS.overlay.tooltips(document);
+    });
+    const tip = page.locator('.ds-tooltip');
+    const placed = () => page.evaluate(() => {
+      const trigger = document.getElementById('trigger');
+      const menu = document.getElementById('menu');
+      const t = trigger.getBoundingClientRect();
+      const m = menu.getBoundingClientRect();
+      return { name: trigger.style.getPropertyValue('anchor-name'), below: Math.abs(m.top - t.bottom) <= 12, menuOpen: menu.getAttribute('data-state') };
+    });
+    // The tooltip shows, then the menu opens from the same trigger and the tooltip fades out.
+    await page.locator('#trigger').hover();
+    await expect(tip).toHaveAttribute('data-state', 'open');
+    await page.evaluate(() => DS.overlay.open(document.getElementById('menu'), { opener: document.getElementById('trigger') }));
+    await page.waitForFunction(() => document.querySelector('.ds-tooltip').hidden);
+    await frames(page);
+    expect(await placed()).toEqual({ name: expect.stringMatching(/^--ds-anchor-\d+$/), below: true, menuOpen: 'open' });
+    // The other way round: the menu closes while the tooltip shows.
+    await page.mouse.move(1, 1);
+    await page.locator('#trigger').hover();
+    await expect(tip).toHaveAttribute('data-state', 'open');
+    await page.evaluate(() => DS.overlay.close(document.getElementById('menu')));
+    await frames(page);
+    const kept = await page.evaluate(() => {
+      const trigger = document.getElementById('trigger');
+      const tooltip = document.querySelector('.ds-tooltip');
+      const t = trigger.getBoundingClientRect();
+      const r = tooltip.getBoundingClientRect();
+      return { name: trigger.style.getPropertyValue('anchor-name'), anchor: tooltip.style.getPropertyValue('position-anchor'), near: Math.min(Math.abs(r.top - t.bottom), Math.abs(t.top - r.bottom)) <= 16 };
+    });
+    expect(kept.name).toMatch(/^--ds-anchor-\d+$/);
+    expect(kept).toEqual({ name: kept.name, anchor: kept.name, near: true });
+    // Neither uses it any more: the name goes (the close gave focus back to the trigger, which holds a tooltip too).
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.mouse.move(1, 1);
+    await page.waitForFunction(() => document.querySelector('.ds-tooltip').hidden);
+    expect(await page.evaluate(() => document.getElementById('trigger').style.getPropertyValue('anchor-name'))).toBe('');
+  });
+
+  for (const [from, to] of [[1000, 800], [800, 1000]]) {
+    test(`a page that drives the drawer through DS.overlay, without the snippet: resizing from ${from}px to ${to}px before any open does not slide it`, async ({ page }) => {
+      await page.setViewportSize({ width: from, height: 800 });
+      await open(page, 'shell-overlay.html');
+      await page.locator('#drawer').evaluate((el) => {
+        window.drawerTransitions = [];
+        for (const type of ['transitionrun', 'transitionend', 'transitioncancel']) {
+          el.addEventListener(type, (event) => {
+            if (event.target === el) window.drawerTransitions.push(`${type} ${event.propertyName}`);
+          });
+        }
+      });
+      await page.setViewportSize({ width: to, height: 800 });
+      await frames(page);
+      await page.waitForTimeout(400);
+      const events = await page.evaluate(() => window.drawerTransitions);
+      expect(events.filter((event) => event.startsWith('transitionend '))).toEqual([]);
+      expect(await page.locator('#drawer').evaluate((el) => el.classList.contains('ds-drawer--instant'))).toBe(false);
+    });
+  }
+
+  test('the errors list keeps its bullets under a layered reset that removes list styles', async ({ page }) => {
+    await open(page, 'reset-layered.html');
+    await page.evaluate(() => {
+      const style = document.createElement('style');
+      style.textContent = '@layer reset { ol, ul, menu { list-style: none; margin: 0; padding: 0; } }';
+      document.head.prepend(style);
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<details class="ds-errors" open id="errors"><summary>2 errors</summary><ul><li>Name is required</li><li>Owner is required</li></ul></details>');
+    });
+    expect(await page.evaluate(() => [...document.querySelectorAll('#errors ul, #errors li')].map((el) => getComputedStyle(el).listStyleType))).toEqual(['disc', 'disc', 'disc']);
+  });
+});
+
+test.describe('fixed in 1.6.1 (final review)', () => {
+  /** Paused animations of the document (not scroll-driven ones). */
+  const PAUSE_ALL = "for (const a of document.getAnimations().filter((x) => !window.ScrollTimeline || !(x.timeline instanceof ScrollTimeline))) a.pause();";
+
+  test('table rows that glide through flip() are opaque, a selected row keeps its colour, and the backing goes once they landed', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await inject(page, '<section class="ds-card" id="t-card"><div class="ds-table-wrap"><table class="ds-table"><tbody id="t-rows"></tbody></table></div></section>');
+    const mid = await page.evaluate((pause) => {
+      const rows = document.getElementById('t-rows');
+      const html = (order) => order.map((n) => `<tr data-ds-key="r${n}"${n === 2 ? ' class="ds-table__row--selected"' : ''}><td><input type="checkbox"${n === 2 ? ' checked' : ''} aria-label="Select"></td><td>LAPTOP-00${40 + n}</td><td>${n * 10}%</td></tr>`).join('');
+      DS.dom.morphHtml(rows, html([1, 2, 3, 4]));
+      document.getElementById('t-card').scrollIntoView({ block: 'center' });
+      window.glide = DS.motion.flip(rows, (options) => DS.dom.morphHtml(rows, html([4, 3, 2, 1]), options), { items: 'tr' });
+      // Frozen in the task that started the glide: the rows stand at their old places.
+      new Function(pause)();
+      const card = getComputedStyle(document.getElementById('t-card')).backgroundColor;
+      const moving = [...rows.children].filter((tr) => tr.getAnimations().some((a) => a.id === 'ds-flip'));
+      return {
+        glide: rows.hasAttribute('data-ds-glide'),
+        backdrop: rows.style.getPropertyValue('--ds-flip-backdrop'),
+        card,
+        moving: moving.length,
+        images: moving.map((tr) => ({ selected: tr.classList.contains('ds-table__row--selected'), image: getComputedStyle(tr).backgroundImage })),
+      };
+    }, PAUSE_ALL);
+    expect(mid.glide).toBe(true);
+    expect(mid.backdrop).toBe(mid.card);
+    expect(mid.card).toBe('rgb(255, 255, 255)');
+    expect(mid.moving).toBe(4);
+    for (const row of mid.images) {
+      const layers = row.image.match(/linear-gradient\(/g) ?? [];
+      // A solid backing in the card's colour; a selected row its colour over it.
+      expect(row.image, JSON.stringify(row)).toContain(mid.card);
+      expect(layers.length, JSON.stringify(row)).toBe(row.selected ? 2 : 1);
+    }
+    await resume(page);
+    await page.evaluate(() => window.glide);
+    expect(await page.evaluate(() => {
+      const rows = document.getElementById('t-rows');
+      return { glide: rows.hasAttribute('data-ds-glide'), backdrop: rows.style.getPropertyValue('--ds-flip-backdrop'), image: getComputedStyle(rows.firstElementChild).backgroundImage, isolation: rows.style.isolation };
+    })).toEqual({ glide: false, backdrop: '', image: 'none', isolation: '' });
+  });
+
+  test('an overlay moved into a native sheet goes back to its place when the page removes the sheet, and opens again', async ({ page }) => {
+    await open(page, 'overlay.html');
+    for (const closeFirst of [false, true]) {
+      const result = await page.evaluate(async (closing) => {
+        const sheet = document.getElementById('native-sheet');
+        const dialog = document.getElementById('dialog');
+        const home = dialog.parentNode;
+        const next = dialog.nextSibling;
+        const spare = sheet.cloneNode(true);
+        await DS.overlay.open(sheet, { opener: document.getElementById('open-native-sheet') });
+        await DS.overlay.open(dialog, { opener: document.getElementById('native-sheet-close') });
+        const adopted = sheet.contains(dialog);
+        if (closing) DS.overlay.close(dialog);
+        sheet.replaceWith(spare);
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const back = { adopted, home: dialog.parentNode === home && dialog.nextSibling === next, hidden: dialog.hidden, state: dialog.getAttribute('data-state'), locked: document.body.classList.contains('ds-no-scroll') };
+        await DS.overlay.open(dialog, { opener: document.getElementById('open-dialog') });
+        back.reopened = !dialog.hidden && dialog.getAttribute('data-state') === 'open';
+        await DS.overlay.close(dialog);
+        return back;
+      }, closeFirst);
+      expect(result, `close() first: ${closeFirst}`).toEqual({ adopted: true, home: true, hidden: true, state: null, locked: false, reopened: true });
+    }
+  });
+
+  test('a native dialog and a menu moved into a removed native sheet both go back, and neither stays on the Escape stack', async ({ page }) => {
+    await open(page, 'overlay.html');
+    const result = await page.evaluate(async () => {
+      const sheet = document.getElementById('native-sheet');
+      const native = document.getElementById('native');
+      const menu = document.getElementById('menu');
+      const homes = [native.parentNode, menu.parentNode];
+      await DS.overlay.open(sheet);
+      await DS.overlay.open(native);
+      await DS.overlay.open(menu, { opener: document.getElementById('native-ok') });
+      const adopted = [sheet.contains(native), native.contains(menu)];
+      sheet.remove();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+      document.body.dispatchEvent(escape);
+      return {
+        adopted,
+        home: [native.parentNode === homes[0], menu.parentNode === homes[1]],
+        open: [native.open, !menu.hidden],
+        states: [native.getAttribute('data-state'), menu.getAttribute('data-state')],
+        escapeTaken: escape.defaultPrevented,
+        locked: document.body.classList.contains('ds-no-scroll'),
+      };
+    });
+    expect(result).toEqual({ adopted: [true, true], home: [true, true], open: [false, false], states: [null, null], escapeTaken: false, locked: false });
+  });
+
+  test('a modal drawer the page replaces while it is open leaves its frame closed and usable', async ({ page }) => {
+    await page.setViewportSize({ width: 600, height: 800 });
+    await open(page, 'shell-overlay.html');
+    const result = await page.evaluate(async () => {
+      const app = document.getElementById('app');
+      const drawer = document.getElementById('drawer');
+      await DS.overlay.open(drawer, { opener: document.getElementById('menu') });
+      const before = app.hasAttribute('data-drawer-open');
+      const fresh = drawer.cloneNode(true);
+      drawer.replaceWith(fresh);
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const after = { open: app.hasAttribute('data-drawer-open'), locked: document.body.classList.contains('ds-no-scroll') };
+      // The scrim fades out and stops covering the page.
+      const scrim = document.getElementById('scrim');
+      await DS.motion.settled(scrim, { transitions: true });
+      await new Promise((resolve) => setTimeout(resolve, DS.motion.motionDuration(scrim, '--ds-dur-base') + 50));
+      after.scrim = getComputedStyle(scrim).visibility;
+      after.covered = document.elementFromPoint(500, 400) === scrim;
+      await DS.overlay.open(fresh, { opener: document.getElementById('menu') });
+      after.reopened = app.hasAttribute('data-drawer-open');
+      await DS.overlay.close(fresh);
+      after.closed = !app.hasAttribute('data-drawer-open');
+      return { before, after };
+    });
+    expect(result).toEqual({ before: true, after: { open: false, locked: false, scrim: 'hidden', covered: false, reopened: true, closed: true } });
+  });
+
+  test('a contained dialog leaves Escape to the host page outside its container', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await page.evaluate(() => {
+      document.body.insertAdjacentHTML('afterbegin', `<input type="search" id="host-search" value="hello" aria-label="Search">
+        <dialog id="host-dialog"><input id="host-dialog-input" aria-label="Name"></dialog>
+        <section id="widget" class="ds-theme" style="position: relative; height: 320px">
+        <button class="ds-btn" type="button" id="w-open">Delete</button>
+        <div class="ds-dialog ds-dialog--contained" id="w-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+          <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="w-title"><h2 class="ds-dialog__title" id="w-title">Delete?</h2>
+          <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></div></section>`);
+      window.escapes = [];
+      window.addEventListener('keydown', (event) => { if (event.key === 'Escape') window.escapes.push(event.defaultPrevented); });
+    });
+    const widgetOpen = () => page.evaluate(() => !document.getElementById('w-dialog').hidden && document.getElementById('w-dialog').getAttribute('data-state') === 'open');
+    await page.evaluate(() => DS.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') }));
+    // (a) The host's own modal dialog closes on Escape; the widget's stays open.
+    await page.evaluate(() => {
+      document.getElementById('host-dialog').showModal();
+      document.getElementById('host-dialog-input').focus();
+    });
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('host-dialog').open);
+    expect(await widgetOpen()).toBe(true);
+    // (b) Escape in a host field is the field's: not prevented, the widget's dialog stays open.
+    await page.locator('#host-search').focus();
+    await page.keyboard.press('Escape');
+    expect(await page.evaluate(() => window.escapes)).toEqual([false, false]);
+    expect(await widgetOpen()).toBe(true);
+    // (c) Inside the container the key closes the contained dialog.
+    await page.locator('#w-cancel').focus();
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.getElementById('w-dialog').hidden);
+    expect(await page.evaluate(() => window.escapes.at(-1))).toBe(true);
+  });
+
+  test('cards, dialogs, side sheets and tables of a widget without .ds-base set their own ink over a dark host page', async ({ page }) => {
+    await open(page, 'reset-layered.html');
+    const inks = await page.evaluate(() => {
+      const style = document.createElement('style');
+      style.textContent = 'body { font: 18px/1.6 Georgia, serif; background: #121212; color: #e8e8e8; }';
+      document.head.append(style);
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', `
+        <section class="ds-card" id="ink-card"><p id="ink-card-p">Plain text</p><ul class="ds-kv-list"><li><span>Owner</span><strong id="ink-kv">Ada Lovelace</strong></li></ul>
+          <div class="ds-table-wrap"><table class="ds-table"><tbody><tr><td id="ink-td">Printer</td></tr></tbody></table></div></section>
+        <button class="ds-card ds-card--interactive" type="button" id="ink-button-card"><span id="ink-button-text">Open</span></button>
+        <div class="ds-dialog" id="ink-dialog"><div class="ds-dialog__box"><p id="ink-dialog-p">Body</p></div></div>
+        <div class="ds-sheet" id="ink-sheet"><div class="ds-sheet__panel"><div class="ds-sheet__body"><p id="ink-sheet-p">Body</p></div></div></div>`);
+      const text = getComputedStyle(document.querySelector('.ds-theme')).getPropertyValue('--ds-text').trim();
+      const probe = document.createElement('span');
+      probe.style.color = text;
+      document.querySelector('.ds-theme').append(probe);
+      const want = getComputedStyle(probe).color;
+      probe.remove();
+      const got = Object.fromEntries(['ink-card-p', 'ink-kv', 'ink-td', 'ink-button-text', 'ink-dialog-p', 'ink-sheet-p'].map((id) => [id, getComputedStyle(document.getElementById(id)).color]));
+      return { want, got };
+    });
+    expect(inks.want).not.toBe('rgb(232, 232, 232)');
+    for (const [id, colour] of Object.entries(inks.got)) expect(colour, id).toBe(inks.want);
+  });
+
+  test('the external icon after a link in a table cell and in a facts value stays on the text line under a layered preflight', async ({ page }) => {
+    await open(page, 'reset-layered.html');
+    const lines = await page.evaluate(() => {
+      const style = document.createElement('style');
+      style.textContent = '@layer reset { img, svg, video { display: block; vertical-align: middle; } }';
+      document.head.prepend(style);
+      const icon = DS.icons.icon(DS.icons.external, 16);
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', `
+        <div class="ds-table-wrap" style="width: 400px"><table class="ds-table"><tbody><tr><td><a href="#t" id="icon-td">#42${icon}</a></td></tr></tbody></table></div>
+        <dl class="ds-facts" style="width: 400px"><div><dt>Ticket</dt><dd><a href="#f" id="icon-facts">#42${icon}</a></dd></div></dl>`);
+      return ['icon-td', 'icon-facts'].map((id) => {
+        const link = document.getElementById(id);
+        const range = document.createRange();
+        range.selectNodeContents(link.firstChild);
+        const text = range.getBoundingClientRect();
+        const svg = link.querySelector('svg').getBoundingClientRect();
+        return { id, display: getComputedStyle(link.querySelector('svg')).display, sameLine: svg.top < text.bottom && svg.bottom > text.top, after: svg.left >= text.right - 0.5 };
+      });
+    });
+    for (const line of lines) expect(line).toEqual({ id: line.id, display: 'inline-block', sameLine: true, after: true });
+  });
+
+  test('drawers and snackbar regions of a frame the page dropped are not kept alive', async ({ page, browserName }) => {
+    test.skip(browserName !== 'chromium', 'forces garbage collection through the Chromium DevTools protocol');
+    await open(page, 'overlay.html');
+    const cdp = await page.context().newCDPSession(page);
+    const alive = async (mode) => {
+      await page.evaluate(async (which) => {
+        window.refs = [];
+        const host = document.createElement('div');
+        document.querySelector('.ds-theme').append(host);
+        for (let i = 0; i < 20; i += 1) {
+          host.replaceChildren();
+          host.insertAdjacentHTML('beforeend', '<div class="ds-app"><nav class="ds-drawer"></nav><div class="ds-toasts"></div></div>');
+          const drawer = host.querySelector('.ds-drawer');
+          const region = host.querySelector('.ds-toasts');
+          if (which === 'drawer') await DS.overlay.close(drawer);
+          if (which === 'toast') {
+            const message = DS.overlay.toast(region, 'Saved');
+            message.close();
+            await message.closed;
+          }
+          window.refs.push(new WeakRef(which === 'toast' ? region : drawer));
+        }
+        host.remove();
+        // The frames and timers still pending (an announcer's next frame, an exit's end) run first.
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }, mode);
+      for (let i = 0; i < 3; i += 1) await cdp.send('HeapProfiler.collectGarbage');
+      return page.evaluate(() => window.refs.filter((ref) => ref.deref()).length);
+    };
+    expect(await alive('none'), 'control: nothing called').toBe(0);
+    expect(await alive('drawer'), 'DS.overlay.close(drawer)').toBe(0);
+    expect(await alive('toast'), 'DS.overlay.toast(region)').toBe(0);
+  });
+});
+
+test.describe('fixed in 1.6.1 (final review, second pass)', () => {
+  test('a re-render of the view around an open dialog keeps the snackbar region it took in; closing gives it back', async ({ page }) => {
+    await open(page, 'overlay.html');
+    const result = await page.evaluate(async () => {
+      const theme = document.querySelector('.ds-theme');
+      const view = (text) => `<div class="ds-dialog" id="r-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+        <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="r-title"><h2 class="ds-dialog__title" id="r-title">${text}</h2>
+        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="r-cancel" data-close>Cancel</button></div></div></div>`;
+      theme.insertAdjacentHTML('beforeend', `<section id="r-view">${view('Edit the device')}</section><div class="ds-toasts" id="r-toasts" style="--ds-toast-left: 40px"></div><p id="r-after">After</p>`);
+      const region = document.getElementById('r-toasts');
+      const dialog = document.getElementById('r-dialog');
+      const home = { parent: region.parentNode, left: region.style.getPropertyValue('--ds-toast-left') };
+      await DS.overlay.open(dialog, { opener: document.getElementById('open-dialog') });
+      const hosted = dialog.contains(region) && region.hasAttribute('data-ds-keep');
+      // A poll re-renders the view that holds the open dialog.
+      DS.dom.morphHtml(document.getElementById('r-view'), view('Edit the device (synced)'));
+      const kept = { connected: region.isConnected, inDialog: dialog.contains(region), open: dialog.getAttribute('data-state'), title: document.getElementById('r-title').textContent };
+      const message = DS.overlay.toast(region, 'Could not save.', { kind: 'error' });
+      await DS.motion.settled(message.element ?? region.lastElementChild);
+      const shown = [...document.querySelectorAll('#r-toasts .ds-toast')].filter((toast) => toast.getClientRects().length).length;
+      const announced = [...document.querySelectorAll('[aria-live]')].some((node) => node.textContent.includes('Could not save.'));
+      await DS.overlay.close(dialog);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      return {
+        hosted,
+        kept,
+        shown,
+        announced,
+        // Back at its place, with its announcers right after it.
+        back: region.parentNode === home.parent && (() => {
+          let next = region.nextElementSibling;
+          while (next?.hasAttribute('aria-live')) next = next.nextElementSibling;
+          return next?.id === 'r-after';
+        })(),
+        left: region.style.getPropertyValue('--ds-toast-left') === home.left,
+        keep: region.hasAttribute('data-ds-keep') || [...document.querySelectorAll('[aria-live][data-ds-keep]')].length > 0,
+      };
+    });
+    expect(result).toEqual({
+      hosted: true,
+      kept: { connected: true, inDialog: true, open: 'open', title: 'Edit the device (synced)' },
+      shown: 1,
+      announced: true,
+      back: true,
+      left: true,
+      keep: false,
+    });
+  });
+
+  test('a re-render of an open native dialog keeps the snackbar region and an adopted menu', async ({ page }) => {
+    await open(page, 'overlay.html');
+    const result = await page.evaluate(async () => {
+      const theme = document.querySelector('.ds-theme');
+      theme.insertAdjacentHTML('beforeend', '<div class="ds-toasts" id="r-toasts"></div>');
+      const region = document.getElementById('r-toasts');
+      const native = document.getElementById('native');
+      const menu = document.getElementById('menu');
+      const markup = native.innerHTML;
+      const menuHome = menu.parentNode;
+      await DS.overlay.open(native, { opener: document.getElementById('open-native') });
+      await DS.overlay.open(menu, { opener: document.getElementById('native-ok') });
+      const adopted = native.contains(menu) && native.contains(region);
+      DS.dom.morphHtml(native, markup);
+      const kept = { menu: menu.isConnected && native.contains(menu), menuOpen: menu.getAttribute('data-state'), region: region.isConnected && native.contains(region) };
+      await DS.overlay.close(menu);
+      await DS.overlay.close(native);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      return {
+        adopted,
+        kept,
+        home: menu.parentNode === menuHome && region.parentNode === theme,
+        keep: [menu, region].some((node) => node.hasAttribute('data-ds-keep')),
+      };
+    });
+    expect(result).toEqual({ adopted: true, kept: { menu: true, menuOpen: 'open', region: true }, home: true, keep: false });
+  });
+
+  test('two copies of ds.js share the Escape stack, the scroll lock and the numbering of tooltip ids', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await page.evaluate(async () => {
+      // A widget's own copy, of another version (the one on the page keeps window.DS).
+      const source = await (await fetch('/dist/ds.js')).text();
+      const script = document.createElement('script');
+      script.textContent = source.replace(/var version = '[^']+';/, "var version = 'widget';");
+      document.head.append(script);
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', `<section id="w-root"><button class="ds-btn" type="button" id="w-open">Widget</button>
+        <button class="ds-btn" type="button" id="w-tip" data-tip="Widget tip">Tip</button>
+        <dialog class="ds-dialog" id="w-dialog" aria-labelledby="w-title"><div class="ds-dialog__backdrop" data-close></div>
+        <div class="ds-dialog__box"><h2 class="ds-dialog__title" id="w-title">Widget</h2><div class="ds-dialog__actions">
+        <button class="ds-btn ds-btn--text" type="button" id="w-cancel" data-close>Cancel</button></div></div></dialog></section>`);
+    });
+    const state = () => page.evaluate(() => ({
+      host: document.getElementById('dialog').getAttribute('data-state'),
+      widget: document.getElementById('w-dialog').getAttribute('data-state'),
+      locked: document.body.classList.contains('ds-no-scroll'),
+    }));
+    expect(await page.evaluate(() => typeof window.DashboardStyle.versions.widget?.overlay.open)).toBe('function');
+    // The host's copy opens its div dialog, the widget's copy its native dialog over it.
+    await page.evaluate(async () => {
+      await DS.overlay.open(document.getElementById('dialog'), { opener: document.getElementById('open-dialog') });
+      await window.DashboardStyle.versions.widget.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') });
+    });
+    expect(await state()).toEqual({ host: 'open', widget: 'open', locked: true });
+    // Escape closes the topmost layer (the widget's), not the host's under it; the lock holds.
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('w-dialog').open);
+    await settle(page);
+    expect(await state()).toEqual({ host: 'open', widget: null, locked: true });
+    // Closed by its own copy while the host's is open: the lock still holds, until the last one closes.
+    await page.evaluate(() => window.DashboardStyle.versions.widget.overlay.open(document.getElementById('w-dialog'), { opener: document.getElementById('w-open') }));
+    await page.evaluate(() => window.DashboardStyle.versions.widget.overlay.close(document.getElementById('w-dialog')));
+    expect((await state()).locked).toBe(true);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => document.getElementById('dialog').hidden);
+    expect(await state()).toEqual({ host: null, widget: null, locked: false });
+    // Tooltip ids never repeat across the copies.
+    const ids = await page.evaluate(() => {
+      DS.overlay.tooltips(document.getElementById('page'));
+      window.DashboardStyle.versions.widget.overlay.tooltips(document.getElementById('w-root'));
+      return [...document.querySelectorAll('.ds-tooltip')].map((tip) => tip.id);
+    });
+    expect(ids.length).toBe(2);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  test('tooltips on nested roots serve a trigger once: the innermost root shows it; a second call on a root returns its handle', async ({ page }) => {
+    await open(page, 'overlay.html');
+    const handles = await page.evaluate(() => {
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<section id="n-root"><button class="ds-btn" type="button" id="n-tip" data-tip="Widget tip">Tip</button></section>');
+      const outer = DS.overlay.tooltips(document);
+      const again = DS.overlay.tooltips(document);
+      DS.overlay.tooltips(document.getElementById('n-root'));
+      return { same: outer === again, tips: document.querySelectorAll('.ds-tooltip').length };
+    });
+    expect(handles).toEqual({ same: true, tips: 2 });
+    await page.locator('#n-tip').hover();
+    await page.waitForFunction(() => [...document.querySelectorAll('.ds-tooltip')].some((tip) => tip.getAttribute('data-state') === 'open'));
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => ({
+      open: [...document.querySelectorAll('.ds-tooltip')].filter((tip) => tip.getAttribute('data-state') === 'open' && !tip.hidden).length,
+      describedBy: document.getElementById('n-tip').getAttribute('aria-describedby')?.split(' ').length ?? 0,
+    }))).toEqual({ open: 1, describedBy: 1 });
+  });
+
+  test('without popover, a menu and a tooltip under a transformed host ancestor sit at their trigger', async ({ page }) => {
+    await open(page, 'popups.html');
+    await page.evaluate(() => {
+      // The script's placement (no popover, no anchor positioning).
+      delete HTMLElement.prototype.showPopover;
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', `<div id="xf" style="transform: translateZ(0); margin: 48px 0 0 51px; padding: 12px; width: 600px">
+        <button class="ds-btn" type="button" id="xf-trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="xf-menu">Actions</button>
+        <button class="ds-btn" type="button" id="xf-tip" data-tip="Copy the link">Copy</button>
+        <div class="ds-menu" role="menu" id="xf-menu" aria-labelledby="xf-trigger" hidden>
+          <button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Edit</span></button></div></div>`);
+    });
+    await page.evaluate(() => DS.overlay.open(document.getElementById('xf-menu'), { opener: document.getElementById('xf-trigger') }));
+    await settle(page);
+    const menu = await page.evaluate(() => {
+      const t = document.getElementById('xf-trigger').getBoundingClientRect();
+      const m = document.getElementById('xf-menu').getBoundingClientRect();
+      return { dx: Math.round(m.left - t.left), dy: Math.round(m.top - t.bottom) };
+    });
+    expect(Math.abs(menu.dx), JSON.stringify(menu)).toBeLessThanOrEqual(1);
+    expect(menu.dy, JSON.stringify(menu)).toBeGreaterThanOrEqual(0);
+    expect(menu.dy, JSON.stringify(menu)).toBeLessThanOrEqual(8);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('xf-menu')));
+    await page.evaluate(() => DS.overlay.tooltips(document.getElementById('xf')));
+    await page.locator('#xf-tip').hover();
+    await page.waitForFunction(() => document.querySelector('#xf .ds-tooltip, .ds-tooltip[data-state="open"]')?.getAttribute('data-state') === 'open');
+    await settle(page);
+    const tip = await page.evaluate(() => {
+      const t = document.getElementById('xf-tip').getBoundingClientRect();
+      const r = [...document.querySelectorAll('.ds-tooltip')].find((node) => node.getAttribute('data-state') === 'open').getBoundingClientRect();
+      return { centre: Math.round((r.left + r.right) / 2 - (t.left + t.right) / 2), gap: Math.round(r.top - t.bottom) };
+    });
+    expect(Math.abs(tip.centre), JSON.stringify(tip)).toBeLessThanOrEqual(1);
+    expect(tip.gap, JSON.stringify(tip)).toBeGreaterThanOrEqual(0);
+    expect(tip.gap, JSON.stringify(tip)).toBeLessThanOrEqual(12);
+  });
+
+  test('Enter pressed again and again on a focused action keeps at most one pending blur listener', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await page.evaluate(() => {
+      DS.ripple.attach(document);
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="b-step">Next</button>');
+      const button = document.getElementById('b-step');
+      window.blurs = new Set();
+      const add = button.addEventListener.bind(button);
+      const remove = button.removeEventListener.bind(button);
+      button.addEventListener = (type, listener, options) => { if (type === 'blur') window.blurs.add(listener); add(type, listener, options); };
+      button.removeEventListener = (type, listener, options) => { if (type === 'blur') window.blurs.delete(listener); remove(type, listener, options); };
+      button.focus();
+    });
+    for (let press = 0; press < 20; press += 1) await page.keyboard.press('Enter');
+    expect(await page.evaluate(() => window.blurs.size)).toBeLessThanOrEqual(1);
+    await page.evaluate(() => document.getElementById('b-step').blur());
+    expect(await page.evaluate(() => window.blurs.size)).toBe(0);
+  });
+
+  test('moving the sort to another column keeps every column where it was', async ({ page }) => {
+    await open(page, 'data.html');
+    const lefts = await page.evaluate(() => {
+      const arrow = () => DS.icons.icon(DS.icons.arrowUp, 16, 'ds-table__sort-arrow');
+      const head = (sorted) => `<tr>${['Device', 'Owner', 'Load'].map((name) => `<th scope="col"${name === 'Load' ? ' class="ds-num"' : ''}${name === sorted ? ' aria-sort="ascending"' : ''}><button class="ds-table__sort" type="button">${name}${name === sorted ? ` ${arrow()}` : ''}</button></th>`).join('')}</tr>`;
+      const body = [['LAPTOP-0042', 'Ada Lovelace', '12'], ['DESKTOP-0107', 'Grace Hopper', '7']].map((row) => `<tr>${row.map((cell, index) => `<td${index === 2 ? ' class="ds-num"' : ''}>${cell}</td>`).join('')}</tr>`).join('');
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', `<div class="ds-table-wrap" style="width: 720px"><table class="ds-table" id="s-table"><thead id="s-head">${head('Device')}</thead><tbody>${body}</tbody></table></div>`);
+      const read = () => [...document.querySelectorAll('#s-head th')].map((th) => Math.round(th.getBoundingClientRect().left));
+      const out = [read()];
+      for (const sorted of ['Owner', 'Load', 'Device']) {
+        DS.dom.morphHtml(document.getElementById('s-head'), head(sorted));
+        out.push(read());
+      }
+      return out;
+    });
+    for (const row of lefts.slice(1)) expect(row).toEqual(lefts[0]);
+  });
+});

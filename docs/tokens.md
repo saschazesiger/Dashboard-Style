@@ -197,8 +197,12 @@ from a project class's `border-radius` when no class sets it), `--ds-indicator-d
 `--ds-progress`, `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`,
 `--ds-tooltip-x`, `--ds-tooltip-y` (the tooltip's place, written by `DS.overlay.tooltips()` where anchor positioning is missing),
 `--ds-menu-x`, `--ds-menu-y` (a menu's place, written by `DS.overlay.open()` where anchor positioning is missing),
-and the per-element motion settings `--ds-motion-distance`, `--ds-motion-scale`, `--ds-draw-length`, `--ds-enter-*`,
-`--ds-leave-*`, `--ds-scan-*`, `--ds-ripple-*`, `--ds-indicator-lag` (themes never set these).
+`--ds-chips-backdrop`, `--ds-flip-backdrop` (the colour behind a chip row or a `DS.motion.flip()` container while its items
+glide: their opaque backing),
+and the per-element motion settings `--ds-motion-distance`, `--ds-motion-scale`, `--ds-motion-origin`, `--ds-clip-from`,
+`--ds-draw-length`, `--ds-enter-*`, `--ds-leave-*`, `--ds-scan-*`, `--ds-indicator-lag`, and the ripple's place and size
+`--ds-ripple-x`, `--ds-ripple-y`, `--ds-ripple-r` (themes never set these; `--ds-ripple-color` is a theme hook,
+[theming.md](theming.md)).
 
 Registered runtime properties of the loading indicators (top-level `@property` rules in `tokens.css`, so they
 interpolate). The page sets `--ds-progress` (`<number>`, the share 0 to 1; it inherits, so every part of a progress

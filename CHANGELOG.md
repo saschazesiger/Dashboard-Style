@@ -3,6 +3,166 @@
 All notable changes. Versions follow [semver](https://semver.org): renaming or removing a token, class, hook or JS
 export is a major change; adding one is a minor change.
 
+## 1.6.1
+
+Fixes from the final Motion 2 review. No class, token, hook or export was added, removed or renamed;
+`lockScroll()` / `unlockScroll()` take an optional document, and `flip()` marks its container while items glide. No
+migration is required.
+
+### Added
+
+- `DS.overlay.lockScroll(doc)` / `unlockScroll(doc)`: an optional document whose lock to count (default: the global
+  document, as before).
+- While items glide, `DS.motion.flip()` sets `data-ds-glide` and `--ds-flip-backdrop` (the background colour of the
+  nearest painted ancestor) on the container, removed with the last glide; table rows read them (below).
+
+### Fixed
+
+- Table rows that glide through `DS.motion.flip()` (sort, filter, live data) are opaque while they move: every row of
+  a gliding `tbody` gets a backing in the colour behind the table, a selected row its colour over it, and the cells'
+  hover and press layers stay above. Before, rows had no background of their own, so the z-order `flip()` gives the
+  moving rows hid nothing and the texts, checkboxes and chevrons of crossing rows lay over each other.
+- An overlay that `DS.overlay` moved into an open native dialog or sheet (a menu, a popup, a dialog or a sheet) goes
+  back to its place when the page removes that host while the overlay is open or closing, so a later `open()` shows
+  it again; nested moves (a menu in a native dialog in a native sheet) go back topmost first. Before, it left the
+  document with the host and every later `open()` returned at once.
+- The modal drawer's frame loses `data-drawer-open` also when the page replaces the open drawer element alone (a
+  re-rendered drawer component): `DS.overlay` keeps the `.ds-app` it opened the drawer in. Before, the scrim kept
+  covering the page and the documented toggle called `close()` on a drawer that was never open.
+- Escape closes a `.ds-dialog--contained` only when pressed inside the container it covers: in the host page around an
+  embedded widget the key stays the host's (its own modal dialog closes, a search field clears), instead of closing
+  the widget's dialog and being prevented.
+- `DS.overlay` keeps no detached drawer or snackbar region alive: the drawer breakpoint listener is one per window and
+  the tab-visibility listener one per document, both holding the elements through `WeakRef`, and the document
+  listeners are made outside the per-element scope. Before, every drawer passed to `open()` / `close()` and every
+  region that showed a snackbar stayed in memory with its whole frame, one per re-render of an SPA.
+- `.ds-card` (also the interactive one as a link or button), `.ds-dialog__box`, `.ds-sheet__panel` and `.ds-table` set
+  their own text colour (`--ds-text`) on their surfaces: in a widget without `.ds-base`, text in them no longer takes
+  the host page's colour (near-white on white on a dark host). Inside `.ds-base` nothing changes.
+- The external icon after a link in a `.ds-table` cell and in a `.ds-facts` value has its own `display`, so a layered
+  preflight (`svg { display: block }`) no longer drops it below the link text.
+
+- `DS.dom.morphHtml` keeps the state a DS helper owns while it runs, as it is, present or absent, and takes the
+  template's value again once the helper lets go. Before, a live re-render (D7: `flip()` with `morphHtml`) closed a row
+  menu opened by `DS.overlay` in the middle of an interaction (its dropped `hidden` came back, `data-state` and the
+  opener's `aria-expanded` went, focus was lost while `DS.overlay` still counted it open), reset `aria-expanded` on the
+  in-row trigger of a menu at the end of `.ds-theme`, and took a `busy()` button's busy face and then its success face
+  away at the next poll. Owned now: `DS.overlay`'s state on the overlay and its box or panel, its opener, `.ds-app`, its
+  anchor and what its trap took (until the close settled), a tooltip's `aria-describedby`, `.ds-toast--shown`,
+  `busy()`'s `aria-busy` and `.ds-btn--done`, `countUp()`'s `aria-busy`, `min-width` and tabular figures, a running
+  swap's `.ds-swap`, `.ds-icon-swap` and `data-swap`, and `flip()`'s `z-index` and `position` on gliding items and
+  `data-ds-glide` and `--ds-flip-backdrop` on their container. The record sits on the element under
+  `Symbol.for('ds.owned')`, so every copy of `ds.js` on a page shares it (`docs/motion.md`, DS.dom).
+- `DS.overlay` makes every `.ds-app > .ds-drawer` of the page cross 900px in place from load on (`.ds-drawer--instant`
+  for two frames, a stale open state closed), not only a drawer it had opened or closed once: a page that drives the
+  drawer through `DS.overlay` without the breakpoint snippet no longer slides it off screen (or back in) on its first
+  resize across 900px.
+- A menu opened from a trigger that also has a tooltip (`[data-tip]`) stays anchored: the tooltip and the popup share
+  one counted `anchor-name` on the trigger, removed only once neither uses it. Before, the tooltip's fade removed the
+  name and the open menu jumped to the corner of the viewport (and closing the menu took the name from a tooltip that
+  still showed).
+- An overlay that the page removes from the document while it is open or closing is closed at once, without motion:
+  its scroll lock, the inert of its trap, `aria-expanded`, its runtime state and its Escape entry go. Before, the page
+  stayed locked (and, for the div markup, inert) and the next Escape was swallowed.
+- `.ds-dialog--contained` opened through `DS.overlay` traps focus and input only inside its positioned container and
+  takes no scroll lock (nor `.ds-dialog--nested`): the host page around an embedded widget stays usable, instead of
+  being inert and locked while it showed uncovered.
+- `lockScroll(doc)` / `unlockScroll(doc)` count per document (default: the global one, as before) and the overlays
+  lock their own document, so an overlay in a same-origin iframe driven from the parent's `DS` locks the iframe's page.
+  The scroll-driven animations are told by their timeline's `axis`, not by `instanceof` a constructor of this realm, so
+  `settled()`, the handoffs, `flip()` and `resyncScroll()` treat those of an iframe right too.
+- A named indicator (`createIndicator(..., { name })`) keeps no `view-transition-name` for a page load while a dialog,
+  a side sheet or the modal drawer is open: its group glided undimmed above the scrim and over the drawer's labels.
+- `.ds-errors` keeps its bullets under a layered reset that sets `list-style: none` on lists.
+- `DS.motion.flip(..., { live: true })` with a plain DOM `mutate` (`() => stack.prepend(alert)`, the alerts recipe)
+  holds while the list is pointed at or focused: a `mutate` without parameters cannot honour `holdOrder`, so it waits
+  whole (every such call, in order) and glides on release. A `mutate` that takes the options but changes the items all
+  the same glides at once from where they were. Before, the insert ran at once under the pointer, without a glide,
+  and the release glided nothing.
+- `flip()` owns what it holds on the container while items glide or leave (the inline `position`, `isolation`,
+  `min-height` and `align-content`), and the chip glide of `DS.ripple` the row's `data-ds-glide` and
+  `--ds-chips-backdrop`, so `DS.dom.morphHtml` keeps them. Before, a live re-render of the card around a gliding
+  list dropped them: the content below jumped by the held height, a leaving item jumped to the corner of the next
+  positioned ancestor and the raised rows escaped the list's isolation.
+- `countUp()` counts on from a figure that a re-render (`DS.dom.morphHtml`) or the page wrote since its last count,
+  when that text reads back through `format`; one that does not lands at once. Before, it counted from the last value
+  it wrote itself: a polled tile whose markup carries the figure jumped back and counted up again, also to the value
+  it already showed.
+- The snackbar region (with its announcers) that an open dialog or side sheet took in, and an overlay that
+  `DS.overlay` adopted into an open native dialog, carry `data-ds-keep` while they are away from home (a page's own
+  `data-ds-keep` stays), and a close finds a hosted region even if it left the document. Before, a re-render of the
+  open dialog, or of the view holding it, removed them for good: no snackbar showed or was announced again on that
+  page, and the adopted menu was lost.
+- Two copies of `ds.js` on a page (a host page and an embedded widget, any 1.6.1 or later) share the overlay state
+  that belongs to the document, under `document[Symbol.for('ds.overlay')]`: Escape closes the topmost layer
+  whichever copy opened it, the scroll lock holds until the last modal of either copy closes, and anchor names and
+  tooltip ids are numbered once per page. Before, Escape closed the first copy's lower overlay and left the top one
+  open, closing one copy's modal released the lock under the other's, and both copies wrote `--ds-anchor-1` and
+  `ds-tooltip-1`.
+- `tooltips(root)` returns the first handle on a second call for the same root, and a trigger inside nested roots
+  (`tooltips(document)` on the page, `tooltips(widgetRoot)` in a widget) is served by the innermost one only. Before,
+  both showed a tooltip and the trigger was described twice.
+- Menus and tooltips that the script places (no popover or anchor positioning) under a host ancestor with
+  `transform`, `filter` or `contain` write their coordinates in that box's terms, so they sit at their trigger instead
+  of off by the ancestor's offset.
+- A sortable column without its arrow keeps the arrow's room (in its padding), so a sort
+  that moves to another column no longer resizes every column in the frame where the rows start to glide.
+- `DS.ripple.attach()` keeps one pending blur listener per focused action: a button pressed with Enter again and
+  again (a stepper) no longer collects one per press.
+- `DS.dom.morphHtml` keeps only the ripple properties DS writes (`--ds-ripple-x`, `-y`, `-r`): a host's
+  `--ds-ripple-color` now follows the template like any other inline style.
+- Opening a dialog or side sheet with an empty snackbar region no longer measures the region and flushes its style
+  (two forced layouts of the page before the entrance's first frame on the div markup).
+
+### Docs and styleguide
+
+- `docs/theming.md`, "Embedded in someone else's page": give the widget root the body type and ink that `.ds-base`
+  would give (`font: var(--ds-font-body); color: var(--ds-text)`); full-window modals still count the scroll lock but
+  only `.ds-base` stops the host page from scrolling (with a rule a widget may add); Escape of a contained dialog. The
+  example of a host rule that outweighs the `revert-layer` guard is now one that does (`.content .toolbar button`).
+  `docs/components.md` and `docs/motion.md` say the same in the Dialog section, the Escape stack and "Removed while
+  open".
+- The list of motion hooks that themes never set is the same everywhere (AGENTS.md and its project block,
+  `docs/theming.md` rule 2, `themes/example.css`): `--ds-clip-from`, `--ds-draw-length`, `--ds-scan-*`,
+  `--ds-indicator-lag` and `--ds-indicator-dur` were missing; the theme test now also rejects `--ds-scan-*`, and a
+  unit test keeps the lists in step with it. `docs/tokens.md` no longer counts `--ds-ripple-color`, a theme hook,
+  among the runtime properties.
+- `docs/theming.md`, "Square containers, round actions": the comment says that the chip line makes chips pills (they
+  are not by default).
+- `docs/motion.md`, rule 2 and the `--ds-ease-in` row: small leaving effects accelerate on `--ds-ease-in`, while the
+  overlay layers and the View Transition old snapshots fade out on the standard curve, as the Overlays table says
+  (they turn back on the curve of their entrance). The DS.dom list of the state a patch keeps names everything the
+  helpers own (`flip()`'s container, the chip row, the `inert` of a closing box or panel) and the nodes `DS.overlay`
+  marks `data-ds-keep`; the alerts recipe shows the live insert.
+- `docs/theming.md`, "Embedded in someone else's page": a host ancestor with `transform`, `filter`, `perspective`,
+  `will-change` or `contain` becomes the box that fixed layers fill (prefer the native `<dialog>` there), and what two
+  copies share; `docs/install.md`, "Two copies on one page", points there.
+- `themes/example.css`: `--ds-text-3` is `#6e7878` (4.54:1 on its white surface; it was 4.48:1, under the 4.5:1 the
+  file asks for). A unit test checks every text pair of the template.
+- Motion Lab: a stage is at least its demo's height and grows where its content needs more (a narrow window), so no
+  demo is cut off; the disclosure reserves its open height at every width, and the skeleton's loading bar sits on its
+  pane's top edge instead of crossing the label, so the skeleton keeps the height of the page that replaces it.
+- `test/browser/README.md` lists the `shell-overlay.html` fixture.
+- `scripts/vendor.sh --check` (and `vendor.ps1`) fail on a symbolic link inside the copy, which `SHA256SUMS` cannot
+  cover; `docs/install.md` says so.
+- CI: each run on `main` has a concurrency group of its own, so a run that waits is never cancelled by a newer push.
+- Motion Lab: the validation demo hangs from the top of its stage, so the field that was left stays in place while its
+  message opens (before, the re-centred form moved it up by half the message).
+- `docs/theming.md`, "Embedded in someone else's page": the host page's unlayered element CSS beats a widget's
+  components (with a `revert-layer` guard to hand them back), and the stacking of the div markup and the snackbar
+  region in the host's stacking context (prefer the native `<dialog>` in a widget). `docs/install.md` points there.
+- README: `ds.js` also brings `DS.overlay`; `scrollbar-gutter` in the list of progressive features.
+- `docs/components.md`: the drawer breakpoint snippet is only for pages that drive the drawer by hand; the ripple skips
+  presses with a non-primary pointer button, not the non-primary button variants.
+- `themes/example.css` marks `--ds-spinner-sm-track` deprecated and without effect.
+- The 1.0.0 migration notes say exactly what to do about `prefersReducedMotion()` (calls and imports) and that
+  `enter()` clears any `inert`.
+- Styleguide: "View without the drawer" plays the documented recipe (the panel morphs inside
+  `DS.motion.transition()`) instead of fading the drawer and then snapping the panel; a Motion Lab read-out reserves
+  its line, so the first Replay no longer moves the buttons under the pointer; code labels no longer break at their
+  hyphens, and the notes set token and class names as code; the loaders note says that the arc spinner has no delay of
+  its own.
+
 ## 1.6.0
 
 Motion 2, the close: the Motion Lab, the complete motion reference and the final review in every engine, with the
@@ -577,9 +737,10 @@ patches in place, and the new `DS.ripple` grows a ripple from the pointer. Break
   first (or `@layer reset, ds, app;`), then load `ds.css`. Drop the `!important` and doubled selectors written
   against ds. A layered `!important` (`[hidden]` with `.ds-base`, `.ds-sr`, `.ds-num`, `.ds-center`) beats a
   project's unlayered `!important`. Never wrap a theme in `@layer`: unlayered, it wins over every `ds.*` layer.
-- **Reduced motion is removed**: the `prefers-reduced-motion` switch in `tokens.css`, `.ds-motion-full` (harmless if
-  left) and `DS.motion.prefersReducedMotion()` (a call now throws: delete it). Motion is the same on every device.
-  A project that needs a reduced mode implements it itself.
+- **Reduced motion is removed**: the `prefers-reduced-motion` switch in `tokens.css`, `.ds-motion-full` (it does
+  nothing now: remove it) and `DS.motion.prefersReducedMotion()`. Remove every call and every import of it: with
+  `ds.js` a call throws, and an ES-module import of it from `js/motion.js` stops the module from loading. Motion is
+  the same on every device. There is no reduced mode, and none is supported: motion tokens and hooks stay untouched.
 - **Motion hooks no longer inherit** (`--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`,
   `--ds-draw-length`, `--ds-i`): set them on the animating element.
 - **Duration-like tokens are `calc()` expressions** (`calc(250ms * var(--ds-time-scale, 1))`): read them with
@@ -609,7 +770,8 @@ Behaviour of the JS exports (`DS.dom`, `DS.motion`):
   `then: 'keep'` leaves it invisible and inert until `enter()` or the new `cancel()`. While `leave()` is
   removing an element (`then: 'remove'`) it carries `data-ds-leaving`, so `morphHtml` skips it instead of patching
   it into the next item; `enter()` and `cancel()` take the mark back.
-- **`enter()` clears `hidden`** (and an `inert` that `leave()` set): drop the `el.hidden = false` before it.
+- **`enter()` clears `hidden` and `inert`** (any `inert`, also one the page set): drop the `el.hidden = false` before
+  it, and set `inert` again after `enter()` if the element must stay inert.
 - **A later call wins.** `enter()`, `leave()` and `cancel()` keep one state per element: a call made while
   another motion runs continues from the current state (no restart, no reversed entrance), and the earlier call's
   promise resolves without acting (a superseded `leave()` never removes or hides). Both remove every `ds-enter*` and

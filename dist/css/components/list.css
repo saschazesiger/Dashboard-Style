@@ -126,8 +126,11 @@
     overflow-wrap: anywhere;
   }
 
-  /* A trailing icon in a link (an external target) keeps a little air. */
+  /* A trailing icon in a link (an external target) keeps a little air. Its
+     own display: a layered preflight (svg { display: block }) would drop it
+     below the text. */
   .ds-facts a svg {
+    display: inline-block;
     margin-left: var(--ds-space-1);
     vertical-align: -2px;
   }

@@ -894,7 +894,7 @@
         '<p class="ds-muted">The tint glides between options (DS.indicator) and the labels change colour while it arrives; the current option is also set in the label weight. data-label keeps the width of the heavier weight, so the switch never changes width.</p>') +
       card('Drawer and view', '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="drawer-toggle" aria-pressed="false">View without the drawer</button><button class="ds-btn ds-btn--sm" type="button" data-sg="swap-view">Swap the view</button></div>' +
         '<div class="sg-stage sg-swap-stage"><div class="sg-swap-view" id="sg-swap-view">' + swapPage(0) + '</div></div>' +
-        '<p class="ds-muted">Without the drawer the panel takes the width; when the drawer comes back it slides in from the left (DS.motion.enter(drawer)). The swap fades the view\'s children out (.ds-view--leaving), waits for that fade, replaces the content and lets it enter (swap); pressing again during a swap ends on the latest view.</p>' +
+        '<p class="ds-muted">Inside DS.motion.transition() the panel takes the width on the spring while the drawer leaves to the left, and gives it back while the drawer comes in; without View Transitions the grid changes at once and the returning drawer slides in from the left (DS.motion.enter(drawer)). The swap fades the view\'s children out (.ds-view--leaving), waits for that fade, replaces the content and lets it enter (swap); pressing again during a swap ends on the latest view.</p>' +
         '<pre class="sg-code">const modal = matchMedia(\'(max-width: 900px)\');\nmodal.addEventListener(\'change\', () =&gt; {\n  drawer.classList.add(\'ds-drawer--instant\');\n  if (!modal.matches) {\n    app.removeAttribute(\'data-drawer-open\');\n    document.body.classList.remove(\'ds-no-scroll\');\n  }\n  requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt;\n    drawer.classList.remove(\'ds-drawer--instant\')));\n});</pre>' +
         '<p class="ds-muted">The breakpoint snippet this page runs: the drawer turns modal (or back) in place, and a modal drawer that a wider window no longer shows is closed.</p>') +
       card('Views and scrolling', '<p class="ds-muted">The motion between views and the motion that follows scrolling, in a small app of its own: fade-through between destinations, shared axis for previous and next, a card growing into its detail or into a side sheet, a destination without the drawer, a record swap in a sheet, a report that reveals itself on scroll, a wide table with live edge fades, and page loads with the opt-in stylesheet (needs http).</p>' +
@@ -1413,17 +1413,22 @@
     var drawer = $('#sg-drawer');
     var hide = button.getAttribute('aria-pressed') !== 'true';
     button.setAttribute('aria-pressed', String(hide));
-    if (hide) {
-      if (app.hasAttribute('data-drawer-open')) openDrawer(false);
-      // Docked, the drawer fades out first; then the view has none.
-      if (modal.matches) app.setAttribute('data-drawer-hidden', '');
-      else M.leave(drawer, '', { then: 'hide' }).then(function () { if (button.getAttribute('aria-pressed') === 'true') app.setAttribute('data-drawer-hidden', ''); });
-      return;
-    }
-    app.removeAttribute('data-drawer-hidden');
-    // A view that has the drawer again: it slides in from the left.
-    if (modal.matches) drawer.hidden = false;
-    else M.enter(drawer);
+    if (hide && app.hasAttribute('data-drawer-open')) openDrawer(false);
+    // The documented recipe (docs/components.md, the same as the Motion
+    // Lab's): with View Transitions the panel takes the width on the spring
+    // while the drawer leaves to the left, and gives it back while the
+    // drawer comes in; elsewhere the grid changes at once and the returning
+    // drawer slides in through enter().
+    M.transition(function () {
+      if (hide) {
+        app.setAttribute('data-drawer-hidden', '');
+        return undefined;
+      }
+      app.removeAttribute('data-drawer-hidden');
+      if (modal.matches) drawer.hidden = false;
+      else M.enter(drawer);
+      return undefined;
+    });
   }
 
   /* ── Demo behaviours ──────────────────────────────────────────────── */

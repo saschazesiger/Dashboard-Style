@@ -17,8 +17,9 @@
  * - Never set motion tokens (--ds-dur-*, --ds-ease-*, --ds-distance-*,
  *   --ds-scale-*, --ds-loop-*, --ds-delay-*, --ds-hold-*, --ds-stagger,
  *   --ds-time-scale) or motion hooks (--ds-motion-*, --ds-enter-*,
- *   --ds-leave-*): motion is one scheme for every product, and DS.motion
- *   reads the computed tokens.
+ *   --ds-leave-*, --ds-clip-from, --ds-draw-length, --ds-scan-*,
+ *   --ds-indicator-lag, --ds-indicator-dur): motion is one scheme for
+ *   every product, and DS.motion reads the computed tokens.
  * - Do not wrap a theme in @layer: unlayered rules win over every ds.*
  *   layer, which is what lets this file override the defaults.
  * - Keep text roles at 4.5:1 against the surfaces they sit on.
@@ -36,7 +37,7 @@
   /* ── Text and lines ── */
   --ds-text: #191c1c;
   --ds-text-2: #3f4948;
-  --ds-text-3: #6f7979;
+  --ds-text-3: #6e7878;
   --ds-line: #d9e1e1;
   --ds-line-2: #bec9c8;
   --ds-outline: #6f7979;
@@ -79,6 +80,9 @@
   --ds-disabled-opacity: 1;
   --ds-disabled-fill: rgba(25, 28, 28, .12);
   --ds-disabled-ink: rgba(25, 28, 28, .38);
+
+  /* Deprecated (removed in 2.0), no effect: the small spinner's ring
+     mixes the text colour (color-mix()). Delete this line in your theme. */
   --ds-spinner-sm-track: rgba(0, 0, 0, .18);
 
   /* ── Links and focus ── */

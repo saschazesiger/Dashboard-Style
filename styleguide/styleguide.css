@@ -434,25 +434,43 @@
   overflow-wrap: anywhere;
 }
 
+/* A code label (a token, a class, a call) stays in one piece and moves to
+   the next line whole; only a label longer than the line breaks inside. */
+.sg-demo__tokens code,
+.sg-demo__shows code,
+.sg-demo__note code,
+.sg-hero code {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  /* On the line's bottom edge rather than its baseline, so it adds no
+     half pixel to the line in Firefox and WebKit. */
+  vertical-align: bottom;
+}
+
 .sg-demo > .sg-demo__tokens + .sg-demo__shows,
 .sg-demo > .sg-lab-stage + .sg-plot__caption {
   margin-top: var(--ds-space-2);
 }
 
-/* The stage: a fixed height, so a replay never shifts the page. Content
-   that changes size (a list, a disclosure) hangs from the top. */
+/* The stage: at least its demo's height, and taller where the content
+   needs it (a narrow window), so nothing is cut off. Demos keep their size
+   between states, so a replay never shifts the page; content that changes
+   size (a list, a disclosure) hangs from the top in a height reserved for
+   its larger state. overflow stays hidden for transient motion (ripples,
+   slides). */
 .sg-lab-stage {
   position: relative;
   display: grid;
   align-content: center;
-  height: var(--sg-lab-stage-height, 184px);
+  min-height: var(--sg-lab-stage-height, 184px);
   padding: var(--ds-space-4) var(--ds-space-5);
   overflow: hidden;
   border-radius: var(--ds-radius-card);
   background: var(--ds-surface-low);
 }
 
-.sg-lab-stage:has(> .sg-data-head, > .sg-disclosure, > .sg-alerts, > .ds-table-wrap) {
+.sg-lab-stage:has(> .sg-data-head, > .sg-disclosure, > .sg-alerts, > .ds-table-wrap, > .sg-validate) {
   align-content: start;
 }
 
@@ -737,25 +755,62 @@
   margin-bottom: var(--ds-space-2);
 }
 
-[data-lab-demo="disclosure"] {
-  --sg-lab-stage-height: 440px;
+/* The disclosure reserves its open height, which follows the width its
+   stage gives the rules (two columns from about 776px, then more lines the
+   narrower it gets): steps of the stage's content width, measured in the
+   three engines with some room. */
+[data-lab-demo="disclosure"] .sg-lab-stage {
+  container-type: inline-size;
 }
 
-@media (max-width: 700px) {
-  [data-lab-demo="disclosure"] {
-    --sg-lab-stage-height: 960px;
+.sg-disclosure {
+  min-height: 510px;
+}
+
+@container (max-width: 775.98px) {
+  .sg-disclosure {
+    min-height: 600px;
+  }
+}
+
+@container (max-width: 699.98px) {
+  .sg-disclosure {
+    min-height: 660px;
+  }
+}
+
+@container (max-width: 599.98px) {
+  .sg-disclosure {
+    min-height: 740px;
+  }
+}
+
+@container (max-width: 499.98px) {
+  .sg-disclosure {
+    min-height: 920px;
+  }
+}
+
+@container (max-width: 399.98px) {
+  .sg-disclosure {
+    min-height: 1100px;
+  }
+}
+
+@container (max-width: 299.98px) {
+  .sg-disclosure {
+    min-height: 1760px;
   }
 }
 
 /* ── Choreography demos ──────────────────────────── */
 
-/* A line of figures under a stage (what a demo measured). */
+/* A line of figures under a stage (what a demo measured). Its line is
+   reserved even while empty, so the first replay that fills it never moves
+   the buttons below (the stage's fixed height has the same aim). */
 .sg-readout {
+  min-height: 1lh;
   margin: var(--ds-space-2) 0 0;
-}
-
-.sg-readout:empty {
-  display: none;
 }
 
 /* Two panes side by side (fast and slow, before and after). */
@@ -778,7 +833,18 @@
 }
 
 .sg-pane--tall {
-  min-height: 180px;
+  position: relative;
+  min-height: 184px; /* the skeleton's height, so the swap keeps it */
+  overflow: clip;    /* the loading bar follows the rounded top edge */
+}
+
+/* In a lab pane the bar sits on the pane's top edge, out of the skeleton's
+   grid (no row, no gap), so the skeleton keeps the height of the page that
+   replaces it. In a page it stays directly in .ds-content (docs). */
+.sg-pane > .ds-skeleton > .ds-loadbar {
+  position: absolute;
+  inset: 0 0 auto;
+  margin: 0;
 }
 
 .sg-panes .sg-label,
@@ -1172,6 +1238,8 @@
 
 .sg-lab-stage:has(> .sg-scroll-demo) {
   align-content: stretch;
+  /* It scrolls on purpose: a fixed height, never its content's. */
+  height: var(--sg-lab-stage-height, 184px);
 }
 
 .sg-scroll-box {

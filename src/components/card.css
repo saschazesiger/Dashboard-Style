@@ -52,6 +52,9 @@
     border: 1px solid var(--ds-line);
     border-radius: var(--ds-radius-card);
     background: var(--ds-surface);
+    /* Its own ink on its own surface: without .ds-base (a widget in a host
+       page) text would inherit the host's colour. */
+    color: var(--ds-text);
   }
 
   /* The rhythm below decides all spacing: no browser margins of paragraphs
@@ -109,7 +112,7 @@
     justify-content: flex-start;
     align-items: stretch;
     width: 100%;
-    color: inherit;
+    color: var(--ds-text);
     font: inherit;
     text-align: left;
     text-decoration: none;

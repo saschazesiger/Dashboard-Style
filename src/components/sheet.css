@@ -155,6 +155,8 @@
     padding-top: env(safe-area-inset-top);
     border-radius: var(--ds-radius-dialog) 0 0 var(--ds-radius-dialog);
     background: var(--ds-surface);
+    /* Its own ink on its own surface (a widget without .ds-base). */
+    color: var(--ds-text);
     box-shadow: var(--ds-elev-overlay);
     /* Invisible; forced colors paint it, so the sheet keeps its edge. */
     outline: 1px solid transparent;

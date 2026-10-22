@@ -1128,6 +1128,36 @@ describe('js/motion', () => {
         await done;
       });
 
+      it('live: a mutate without options waits whole while held (every call, in order) and glides on release', () => {
+        const { container, calls, order } = list(['a', 'b', 'c'], { hover: 'mouse' });
+        const steps = [];
+        flip(container, () => {
+          steps.push(1);
+          order('c', 'b', 'a')();
+        }, { live: true });
+        flip(container, () => steps.push(2), { live: true });
+        assert.deepEqual(steps, [], 'a plain DOM change cannot honour holdOrder: it does not run while held');
+        assert.deepEqual(container.children.map((item) => item.textContent), ['a', 'b', 'c']);
+        container.dispatchEvent(new Event('pointerleave'));
+        assert.deepEqual(steps, [1, 2]);
+        assert.deepEqual(container.children.map((item) => item.textContent), ['c', 'b', 'a']);
+        assert.equal(calls.length, 2, 'a and c glide');
+      });
+
+      it('live: a held mutate that takes the options but changes the order anyway glides at once', () => {
+        const { container, calls, order } = list(['a', 'b', 'c'], { hover: 'mouse' });
+        const seen = [];
+        flip(container, (options) => {
+          seen.push(options.holdOrder);
+          order('c', 'b', 'a')();
+        }, { live: true });
+        assert.deepEqual(seen, [true]);
+        assert.equal(calls.length, 2, 'glides from where the items were, instead of jumping');
+        assert.deepEqual(calls.map((call) => call.keyframes[0].translate).sort(), ['0px -80px', '0px 80px']);
+        container.dispatchEvent(new Event('pointerleave'));
+        assert.deepEqual(seen, [true], 'nothing is left to run on release');
+      });
+
       it('live: the reorder runs once the mouse leaves; touch never holds', () => {
         const held = list(['a', 'b'], { hover: 'mouse' });
         flip(held.container, (options) => { if (!options.holdOrder) held.order('b', 'a')(); }, { live: true });
@@ -1325,6 +1355,41 @@ describe('js/motion', () => {
       // The next count starts from 40.
       countUp(element, 50, { duration: 100, win });
       assert.equal(element.textContent, '40');
+    });
+
+    it('a figure a re-render wrote since the last count is where the next one starts', () => {
+      const win = fakeWindow();
+      const element = new FakeElement();
+      countUp(element, 125, { duration: 100, win });
+      win.advance(0);
+      win.advance(200);
+      assert.equal(element.textContent, '125');
+      // DS.dom.morphHtml wrote the next figure: the same value changes nothing.
+      element.textContent = '140';
+      countUp(element, 140, { duration: 100, win });
+      assert.equal(element.textContent, '140');
+      assert.equal(win.frames.length, 0, 'no count');
+      // Rewritten again, then a new value: it counts on from 160, never from 140.
+      element.textContent = '160';
+      countUp(element, 170, { duration: 100, win });
+      assert.equal(element.textContent, '160');
+      win.advance(0);
+      win.advance(20);
+      assert.ok(Number(element.textContent) >= 160 && Number(element.textContent) <= 170, element.textContent);
+      win.advance(200);
+      assert.equal(element.textContent, '170');
+      // A grouped format reads back; text that does not (a placeholder) lands at once.
+      const grouped = (value) => Math.round(value).toLocaleString('en-US');
+      countUp(element, 1200, { duration: 0, win, format: grouped });
+      element.textContent = '1,284';
+      countUp(element, 1300, { duration: 100, win, format: grouped });
+      assert.equal(element.textContent, '1,284');
+      win.advance(0);
+      win.advance(200);
+      element.textContent = '–';
+      countUp(element, 1400, { duration: 100, win, format: grouped });
+      assert.equal(element.textContent, '1,400');
+      assert.equal(win.frames.length, 0);
     });
 
     it('cancel() and a disconnect write the final value; finished resolves', async () => {
@@ -1779,15 +1844,11 @@ describe('transition() (1.5.0)', () => {
   });
 
   it('restarts a scroll-driven tint the old, scrolled view left stuck, after the update, on both paths', async (t) => {
-    const saved = Object.getOwnPropertyDescriptor(globalThis, 'ScrollTimeline');
-    class ScrollTimeline {}
-    Object.defineProperty(globalThis, 'ScrollTimeline', { value: ScrollTimeline, configurable: true, writable: true });
-    t.after(() => {
-      if (saved) Object.defineProperty(globalThis, 'ScrollTimeline', saved);
-      else delete globalThis.ScrollTimeline;
-    });
+    // The page's own window has scroll timelines (scroll timelines have an axis).
+    class ScrollTimeline { get axis() { return 'block'; } }
     for (const api of [true, false]) {
       const { doc, view } = page({ api });
+      doc.defaultView.ScrollTimeline = ScrollTimeline;
       useDocument(t, doc);
       const calls = [];
       // Inactive once the update ran: the new view does not overflow.
@@ -1909,14 +1970,12 @@ describe('resyncScroll() (1.5.0)', () => {
    * progress, `progress` the animation's own (null: never ran).
    */
   function setup(t, list) {
-    const saved = Object.getOwnPropertyDescriptor(globalThis, 'ScrollTimeline');
-    class ScrollTimeline {}
-    Object.defineProperty(globalThis, 'ScrollTimeline', { value: ScrollTimeline, configurable: true, writable: true });
-    t.after(() => {
-      if (saved) Object.defineProperty(globalThis, 'ScrollTimeline', saved);
-      else delete globalThis.ScrollTimeline;
-    });
-    const doc = { nodeType: 9, defaultView: { requestAnimationFrame: (callback) => setImmediate(callback) }, getAnimations: () => list };
+    // The document's own window (an iframe's) has scroll timelines, the
+    // global one has none: the timelines are told by their axis, not by
+    // instanceof a constructor of this realm (1.6.1).
+    class ScrollTimeline { get axis() { return 'block'; } }
+    assert.equal(typeof globalThis.ScrollTimeline, 'undefined');
+    const doc = { nodeType: 9, defaultView: { requestAnimationFrame: (callback) => setImmediate(callback), ScrollTimeline }, getAnimations: () => list };
     const scrollAnimation = ({ source, target, active, progress }) => {
       const timeline = Object.assign(new ScrollTimeline(), { source, currentTime: active ? 30 : null });
       const animation = { timeline, currentTime: progress, effect: { target }, calls: [] };

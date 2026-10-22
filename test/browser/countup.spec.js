@@ -1,7 +1,8 @@
 /**
  * DS.motion.countUp() in real engines (D7): a key figure counts frame by
  * frame without turning back, a new target continues from the figure on
- * screen, and a figure lands together with its progress bar (both on
+ * screen, a figure that a re-render wrote counts on from what it shows,
+ * and a figure lands together with its progress bar (both on
  * --ds-ease-value over --ds-dur-glide).
  */
 import { test, expect } from './base-test.js';
@@ -102,4 +103,38 @@ test('a figure and its bar set in the same frame land together', async ({ page }
   const middle = result.samples.filter((entry) => entry.figure > 0.05 && entry.figure < 0.95);
   expect(middle.length).toBeGreaterThan(50);
   for (const entry of middle) expect(Math.abs(entry.figure - entry.bar), JSON.stringify(entry)).toBeLessThanOrEqual(0.02);
+});
+
+test('a figure that a re-render wrote counts on from what it shows; the same value changes nothing', async ({ page }) => {
+  await open(page);
+  const result = await page.locator('#figure').evaluate(async (el) => {
+    await DS.motion.countUp(el, 125).finished;
+    const tile = el.closest('.ds-tile');
+    const markup = (value) => `<p class="ds-tile__label"><span>Devices synced</span></p><p class="ds-tile__value" id="figure">${value}</p>`;
+    /** Every frame's figure until the count ends (at least three frames). */
+    const trace = async (to) => {
+      const values = [el.textContent];
+      const handle = DS.motion.countUp(el, to);
+      values.push(el.textContent);
+      let done = false;
+      handle.finished.then(() => { done = true; });
+      for (let frame = 0; (frame < 3 || !done) && frame < 600; frame += 1) {
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        values.push(el.textContent);
+      }
+      return values.map(Number);
+    };
+    // A poll re-renders the tile with its new figure, then counts to it.
+    DS.dom.morphHtml(tile, markup(140));
+    const same = await trace(140);
+    DS.dom.morphHtml(tile, markup(140));
+    const next = await trace(150);
+    return { node: tile.querySelector('#figure') === el, same, next };
+  });
+  expect(result.node).toBe(true);
+  expect(new Set(result.same), 'the figure already shows 140').toEqual(new Set([140]));
+  expect(result.next[0]).toBe(140);
+  expect(Math.min(...result.next), 'never below the figure it showed').toBe(140);
+  expectMonotonic(result.next, { direction: 'up' });
+  expect(result.next.at(-1)).toBe(150);
 });

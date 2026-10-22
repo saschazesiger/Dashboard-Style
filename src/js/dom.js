@@ -15,12 +15,28 @@
  *   (8 siblings) for an identical node, so the cost stays linear.
  * - Runtime state survives: the classes DS adds (ds-enter*, ds-leave*,
  *   ds-has-indicator, ds-pressed, ds-ripples), the custom properties it
- *   writes (--ds-i, --ds-indicator-*, --ds-ripple-*, --ds-motion-origin,
+ *   writes (--ds-i, --ds-indicator-*, --ds-ripple-x/-y/-r, --ds-motion-origin,
  *   --ds-clip-from), data-ds-staggered and the `inert` of an element in a
- *   DS.motion.leave() (ds-leave*). The focused element and its ancestors
- *   are always patched, never replaced; a focused control keeps its live
- *   value and selection (only unfocused controls get their value, checked
- *   and selected properties from changed attributes).
+ *   DS.motion.leave() (ds-leave*). So does the state a helper owns while
+ *   it runs (the record under Symbol.for('ds.owned'), see motion.js): an
+ *   overlay from open() until its close settled (data-state, its dropped
+ *   `hidden`, `open`, popover, data-anchored, data-placement, the
+ *   --closing, --nested and --hidden classes, --ds-menu-x/-y, max-height
+ *   and position-anchor; the `inert` of its box or panel during the exit;
+ *   aria-expanded on its opener, anchor-name on its anchor, the `inert` of
+ *   what its trap took), a tooltip's
+ *   aria-describedby, busy()'s aria-busy and .ds-btn--done, countUp()'s
+ *   aria-busy, min-width and tabular figures, a running swap's .ds-swap or
+ *   .ds-icon-swap and data-swap, flip()'s z-index and position on the
+ *   items that glide and, on their container, data-ds-glide,
+ *   --ds-flip-backdrop and the position, isolation, min-height and
+ *   align-content it holds, and a gliding chip row's data-ds-glide and
+ *   --ds-chips-backdrop. An owned name stays as it is, present or absent;
+ *   once the helper lets go, the next patch takes the template's value.
+ *   The focused element and its ancestors are always patched, never
+ *   replaced; a focused control keeps its live value and selection (only
+ *   unfocused controls get their value, checked and selected properties
+ *   from changed attributes).
  * - `data-ds-keep` nodes (the indicator, ripples) are never matched,
  *   moved or removed. `data-ds-replace` on a node, old or new, or
  *   `{ replace: true }` for the whole call, brings back replace-on-change
@@ -53,10 +69,21 @@ const LOOKAHEAD = 8;
 const RUNTIME_CLASS = /^ds-(?:enter|leave)(?:--[\w-]+)?$|^ds-(?:has-indicator|pressed|ripples)$/;
 
 /** Custom properties that DS writes at runtime; a patch keeps them over the new style text. */
-const RUNTIME_STYLE = /^--ds-(?:i|indicator-[\w-]+|ripple-[\w-]+|motion-origin|clip-from)$/;
+const RUNTIME_STYLE = /^--ds-(?:i|indicator-[\w-]+|ripple-[xyr]|motion-origin|clip-from)$/;
 
 /** Attributes that DS sets at runtime; a patch never removes them. */
 const RUNTIME_ATTRIBUTES = new Set(['data-ds-staggered', 'data-ds-moving']);
+
+/**
+ * The runtime state a DS helper owns on an element right now (motion.js
+ * and overlay.js write it under this symbol of the global registry, so
+ * every copy of ds.js on the page shares it): { attrs, classes, props },
+ * each a Map of name to a count of owners.
+ */
+const OWNED = Symbol.for('ds.owned');
+
+/** Whether a helper owns `name` of `kind` ('attrs', 'classes', 'props') on the element. */
+const owned = (element, kind, name) => Boolean(element[OWNED]?.[kind]?.get(name));
 
 /** An element in a DS.motion.leave() (running, or kept with then: 'keep'): its `inert` is runtime state. */
 const exiting = (element) => Array.from(element.classList ?? []).some((name) => /^ds-leave(?:--[\w-]+)?$/.test(name));
@@ -190,31 +217,43 @@ function moveNode(parent, node, before, ctx) {
 
 /* ── Patching one node ──────────────────────────────── */
 
-/** Syncs the class attribute, keeping the runtime classes of `old`. */
+/**
+ * Syncs the class attribute, keeping the runtime classes of `old` and its
+ * owned classes as they are (an owned class it lacks is not added).
+ */
 function syncClass(old, next) {
-  const wanted = (next.getAttribute('class') ?? '').split(/\s+/).filter(Boolean);
   const current = Array.from(old.classList);
-  const runtime = current.filter((name) => RUNTIME_CLASS.test(name) && !wanted.includes(name));
+  const wanted = (next.getAttribute('class') ?? '').split(/\s+/).filter(Boolean)
+    .filter((name) => current.includes(name) || !owned(old, 'classes', name));
+  const runtime = current.filter((name) => (RUNTIME_CLASS.test(name) || owned(old, 'classes', name)) && !wanted.includes(name));
   const result = [...wanted, ...runtime];
   if (result.length === current.length && result.every((name) => current.includes(name))) return;
   if (result.length) old.setAttribute('class', result.join(' '));
   else old.removeAttribute('class');
 }
 
-/** Syncs the style attribute, then puts back the custom properties DS wrote at runtime. */
+/**
+ * Syncs the style attribute, then puts back the custom properties DS wrote
+ * at runtime and the owned properties as they were (an owned property the
+ * element lacked stays absent).
+ */
 function syncStyle(old, next) {
   const wanted = next.getAttribute('style');
   if (old.getAttribute('style') === wanted) return;
   const style = old.style;
   const runtime = [];
+  const props = old[OWNED]?.props;
+  const absent = [];
   if (style) {
     for (let index = 0; index < style.length; index += 1) {
       const name = style[index];
-      if (RUNTIME_STYLE.test(name)) runtime.push([name, style.getPropertyValue(name), style.getPropertyPriority(name)]);
+      if (RUNTIME_STYLE.test(name) || owned(old, 'props', name)) runtime.push([name, style.getPropertyValue(name), style.getPropertyPriority(name)]);
     }
+    for (const [name, count] of props ?? []) if (count && !style.getPropertyValue(name)) absent.push(name);
   }
   if (wanted === null) old.removeAttribute('style');
   else old.setAttribute('style', wanted);
+  for (const name of absent) style.removeProperty(name);
   for (const [name, value, priority] of runtime) style.setProperty(name, value, priority);
   if (style && !style.length && wanted === null) old.removeAttribute('style');
 }
@@ -232,7 +271,7 @@ function syncProperty(element, name, present, ctx) {
 function syncAttributes(old, next, ctx) {
   for (const attribute of Array.from(old.attributes)) {
     const name = attribute.name;
-    if (name === 'class' || name === 'style' || RUNTIME_ATTRIBUTES.has(name)) continue;
+    if (name === 'class' || name === 'style' || RUNTIME_ATTRIBUTES.has(name) || owned(old, 'attrs', name)) continue;
     if (name === 'inert' && exiting(old)) continue;
     if (attribute.namespaceURI ? next.hasAttributeNS(attribute.namespaceURI, attribute.localName) : next.hasAttribute(name)) continue;
     if (attribute.namespaceURI) old.removeAttributeNS(attribute.namespaceURI, attribute.localName);
@@ -241,7 +280,7 @@ function syncAttributes(old, next, ctx) {
   }
   for (const attribute of Array.from(next.attributes)) {
     const name = attribute.name;
-    if (name === 'class' || name === 'style') continue;
+    if (name === 'class' || name === 'style' || owned(old, 'attrs', name)) continue;
     if (attribute.namespaceURI) {
       if (old.getAttributeNS(attribute.namespaceURI, attribute.localName) === attribute.value) continue;
       old.setAttributeNS(attribute.namespaceURI, name, attribute.value);

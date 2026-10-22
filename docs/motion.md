@@ -65,7 +65,7 @@ The ladder, from tiny feedback to values that travel. A duration picks the size 
 |---|---|---|
 | `--ds-ease-in-out` | `cubic-bezier(.2, 0, 0, 1)` | M3 standard: effects (opacity, colour), on-screen changes |
 | `--ds-ease-out` | `cubic-bezier(.05, .7, .1, 1)` | M3 emphasized decelerate: the spring's fallback, sizes that push layout (never overshoot) |
-| `--ds-ease-in` | `cubic-bezier(.3, 0, 1, 1)` | M3 standard accelerate: small exits, leaving fades |
+| `--ds-ease-in` | `cubic-bezier(.3, 0, 1, 1)` | M3 standard accelerate: small exits and small leaving fades (overlay layers fade out on `--ds-ease-in-out`, see [Overlays](#overlays)) |
 | `--ds-ease-exit` | `cubic-bezier(.3, 0, .8, .15)` | M3 emphasized accelerate: large surfaces leaving (movement only) |
 | `--ds-ease-emphasized` | `cubic-bezier(.2, 0, 0, 1)`; the exact M3 path as `linear()` where supported | movement that starts and ends on screen |
 | `--ds-ease-spatial` | a spring (damping ratio 0.75, peak about 1.028, settles) as `linear()` where supported; `var(--ds-ease-out)` elsewhere | every spatial movement that floats: translate, scale, clip-path |
@@ -150,8 +150,11 @@ components never set it (`test/tokens.test.js`).
    `transition: all`, never `font-weight`. Tests: `test/css.test.js` ("allows exactly the named exceptions ...",
    which also compares this list with `EXCEPTIONS`).
 2. Effects never overshoot, movement floats:
-   - entering opacity runs on the standard curve (`--ds-ease-in-out`), leaving opacity accelerates
-     (`--ds-ease-in`);
+   - entering opacity runs on the standard curve (`--ds-ease-in-out`); small leaving effects accelerate on
+     `--ds-ease-in` (`.ds-leave`, the snackbar, the drawer scrim, `.ds-view--leaving`, leaving marks, faces and
+     words); overlay layers (scrims, dialog boxes, tooltips, menus, the combobox list) and the View Transition old
+     snapshots fade out on the standard curve, so an interrupted close turns back on the same curve as the entrance
+     (D21, the Overlays table);
    - values (progress, figures, chart bars) run on `--ds-ease-value`;
    - movement that floats (`translate`, `scale`, `clip-path`) runs on the spring `--ds-ease-spatial`;
    - small exits move on `--ds-ease-in`, large surfaces (sheets, drawers) on `--ds-ease-exit`;
@@ -366,7 +369,12 @@ glide up on the spring; a new one fades in.
 ```js
 DS.motion.flip(stack, () => alert.remove());        // dismiss
 DS.motion.flip(stack, () => stack.prepend(alert));  // insert
+DS.motion.flip(stack, () => stack.prepend(alert), { live: true });  // live insert: held while pointed at
 ```
+
+With `live: true`, a `mutate` without parameters (a plain DOM call) waits whole while the list is pointed at or
+focused, and glides once the pointer or focus leaves (1.6.1); one that takes the options gets `holdOrder: true` and
+should then leave the order alone, as `DS.dom.morphHtml` does.
 
 A refresh with a loading bar: `.ds-stale` on the content (it dims only after `--ds-delay-loader`, so a fast answer
 never dims) and `aria-busy="true"` on its container; the bar fades in after the same delay.
@@ -576,7 +584,7 @@ movement curve (the spring for an entrance without one); nothing snaps.
 | `loaderHoldMs(startedAt, now?, { delay, minVisible })` | how much longer a loader inserted at `startedAt` must stay (0 if it never showed); `delay` and `minVisible` default to `LOADER_DELAY_MS` and `LOADER_MIN_VISIBLE_MS` |
 | `settleLoader(startedAt, nowOrOptions?, { element, delay, minVisible })` | Promise that waits for `loaderHoldMs`; with `element` (the loader) the times come from its computed tokens, time-scaled: the delay from `--ds-delay-boot` when it is or sits in a `.ds-boot`, else `--ds-delay-loader`, the minimum from `--ds-hold-loader`. The second argument may be `now` or the options |
 | `busy(button, work, { done })` | runs `work` (a function, called at once, or a promise) while the button shows it works, through the faces of [components.md](components.md#button): `aria-busy="true"` at once (the busy face shows after `--ds-delay-loader`, so fast work changes nothing); a busy face that showed stays for the loader minimum (the `settleLoader()` path); on success `aria-busy` goes and, unless `done: false`, `.ds-btn--done` shows the success face for `--ds-hold-success`; on failure `aria-busy` goes at once and the error is rethrown. A call while busy returns the running promise without starting `work` again; a call during the success face takes it off first. Times are computed tokens (`--ds-time-scale` applies). Returns a Promise of the work's result, once the button is no longer busy. Announcing the result stays the page's job (`aria-live`) (1.1) |
-| `countUp(el, to, { from, format, duration, win })` | counts a key figure from the value it shows (0 on the first call, or `from`) to `to`, up or down, on `--ds-ease-value` over `--ds-dur-glide` (`COUNT_UP_MS` outside a theme), on a clock animation of the element (id `ds-count`, no keyframes) that starts in the same frame as a CSS transition set with it, so a figure and its progress bar land together (and pausing or seeking the page's animations holds the figure). A new call takes over from the shown value (one count per element); the same value changes nothing. While it counts the element is `aria-busy`, keeps the width of its wider string and shows tabular figures (kept). `duration: 0`, a non-finite value or no animation frames show the value at once; a disconnected element gets the final value. Returns `{ cancel, finished }`: `cancel()` writes the final value, `finished` resolves once it is written (or a later call took over) |
+| `countUp(el, to, { from, format, duration, win })` | counts a key figure from the value it shows (the last value it wrote, or one that a re-render such as `DS.dom.morphHtml` wrote since and that reads back through `format`, 1.6.1; a figure that does not read back lands at once; 0 on the first call, or `from`) to `to`, up or down, on `--ds-ease-value` over `--ds-dur-glide` (`COUNT_UP_MS` outside a theme), on a clock animation of the element (id `ds-count`, no keyframes) that starts in the same frame as a CSS transition set with it, so a figure and its progress bar land together (and pausing or seeking the page's animations holds the figure). A new call takes over from the shown value (one count per element); the same value changes nothing. While it counts the element is `aria-busy`, keeps the width of its wider string and shows tabular figures (kept). `duration: 0`, a non-finite value or no animation frames show the value at once; a disconnected element gets the final value. Returns `{ cancel, finished }`: `cancel()` writes the final value, `finished` resolves once it is written (or a later call took over) |
 | `COUNT_UP_MS` | 600, equals `--ds-dur-glide` |
 | `easeOutCubic(t)` | **deprecated** (removed in 2.0), no longer used: `countUp` runs on `--ds-ease-value` |
 | `originFrom(trigger, panel)` | where a popup grows from: writes `--ds-motion-origin` (the trigger's centre projected onto the panel, clamped, in px) and `--ds-clip-from` (the panel closed towards the trigger, with its radius; the other three edges `--ds-space-6` beyond the box, like a popup's resting clip) on the panel; `trigger` is an element or a `{ x, y }` point (a context menu). Call it once the panel is laid out. Returns `{ origin, side }`, `side` being where the panel lies: `'bottom'`, `'top'`, `'right'` or `'left'` |
@@ -584,7 +592,7 @@ movement curve (the spring for an entrance without one); nothing snaps.
 | `transition(update, { type, from })` | moves to another view, for navigation only (never data): `type` `'fade-through'` (default, between destinations), `'forward'` / `'back'` (shared axis X) or `'container'` (`from` grows into the element `update` returns); any other type throws a `TypeError`. With View Transitions and `.ds-theme` on `<html>` the page is snapshotted while `data-ds-vt="<type>"` on `<html>` names the view, panel, docked drawer and sheet body (the top bar stays still; named indicators are lifted, the drawer shows live); a running one is skipped, every update runs in call order, and an update still pending after `--ds-dur-long` loses its motion (the page is frozen while one runs: fetch first, then swap quickly; a press meanwhile skips the motion and its click lands on the element under the pointer); a snackbar region with messages is named `ds-toasts` and stays on top. Elsewhere, or for an embedded widget, the update runs at once and the returned element (else the first child of the themed `.ds-view`) enters with `.ds-enter--swap`. Returns a Promise that resolves once the update ran and the motion ended (rejects with the update's error) (1.5) |
 | `resyncScroll(root?)` | restarts the scroll-driven animations (hairlines, top bar tint, table edge fades, `.ds-reveal--scroll`) whose scroller stopped overflowing: Chromium and WebKit keep their last progress on an inactive timeline. It waits two frames (a timeline sees a new layout only a frame or two later) and only touches animations whose timeline is inactive but still has a progress; `root` (an element or the document, the default) limits it to the scrollers in and around it and the animations of its descendants. `transition()` calls it after every update; a page calls it after a change in place that may shrink a scroller ([Scroll-driven effects](#scroll-driven-effects)). Without scroll timelines it does nothing. Resolves to the number restarted (1.5) |
 | `crossfade(el, next, { kind })` | `kind: 'text'` (the default): swaps the content of `el` (a `.ds-swap` slot) for `next` (a node or a string): the new content fades in over `--ds-dur-fast`, the old one fades out over `--ds-dur-instant` and is removed; no movement, no width measuring. Safe to call again mid-swap. `kind: 'icon'` (1.1): `el` becomes a `.ds-icon-swap` (its current content is face a), `next` (an element such as `DS.icons.iconElement(...)`, or the markup of `DS.icons.icon(...)`) goes into the hidden face unless it already holds that icon, and `data-swap` flips to it; the CSS transitions do the motion. Pass an element where a policy forbids parsing markup. Any other kind throws a `TypeError`. Returns a Promise that resolves when the swap settled |
-| `flip(container, mutate, { items, live, max, hold })` | glides reordered items (FLIP): measures the items (`items` selector, default the element children; never `data-ds-keep` or leaving nodes), calls `mutate({ holdOrder, onInsert, onRemove })` (pass it to `DS.dom.morphHtml` as its options; a `mutate` that changes the DOM itself works too, see below), measures again and moves each item from its old place on `translate` (`composite: 'add'`) on the spring for `travelDuration()`. While they glide, the moving items paint above the others, the farthest travel on top, so an item never passes under the items it crosses (inline `z-index` from `--ds-z-raised`, `position: relative` where the item is static, `isolation: isolate` on the container so no rank reaches past it; all restored when the glide ends). A call during a glide continues from where each item is, so a typing filter may call it per keystroke. Inserted items fade in, removed items fade out of flow where they were while the others close the gap (table rows go at once); this also holds for plain DOM calls in `mutate`: a direct child it removed goes back in, out of flow, for its exit, and an item that is new afterwards fades in (unless it runs an entrance of its own), so `flip(stack, () => alert.remove())` and `flip(stack, () => stack.prepend(alert))` need nothing else ([Data motion](#data-motion)); meanwhile the container keeps its height (an inline `min-height`, restored afterwards; a grid also gets `align-content: start`, so its rows never stretch into the held height), then glides down to its new height on `--ds-ease-out`, so what follows the list never jumps and leaving items stay inside it. Items outside the viewport before and after jump; above `max` (50) moving items the update lands without motion. `live: true`: while a mouse or pen is over the container or focus is in an item, values update at once (`holdOrder: true`) and the reorder waits until the pointer or focus leaves, at most `hold` (2000) ms; touch never holds; a call without `live` (a user's sort) runs the held reorder at once. Returns a Promise of this call's motion |
+| `flip(container, mutate, { items, live, max, hold })` | glides reordered items (FLIP): measures the items (`items` selector, default the element children; never `data-ds-keep` or leaving nodes), calls `mutate({ holdOrder, onInsert, onRemove })` (pass it to `DS.dom.morphHtml` as its options; a `mutate` that changes the DOM itself works too, see below), measures again and moves each item from its old place on `translate` (`composite: 'add'`) on the spring for `travelDuration()`. While they glide, the moving items paint above the others, the farthest travel on top, so an item never passes under the items it crosses (inline `z-index` from `--ds-z-raised`, `position: relative` where the item is static, `isolation: isolate` on the container so no rank reaches past it; all restored when the glide ends). The container also carries `data-ds-glide` and `--ds-flip-backdrop` (the background colour of its nearest painted ancestor) meanwhile, so items without a background of their own get an opaque backing: table rows do (1.6.1), with the selection colour over it. A call during a glide continues from where each item is, so a typing filter may call it per keystroke. Inserted items fade in, removed items fade out of flow where they were while the others close the gap (table rows go at once); this also holds for plain DOM calls in `mutate`: a direct child it removed goes back in, out of flow, for its exit, and an item that is new afterwards fades in (unless it runs an entrance of its own), so `flip(stack, () => alert.remove())` and `flip(stack, () => stack.prepend(alert))` need nothing else ([Data motion](#data-motion)); meanwhile the container keeps its height (an inline `min-height`, restored afterwards; a grid also gets `align-content: start`, so its rows never stretch into the held height), then glides down to its new height on `--ds-ease-out`, so what follows the list never jumps and leaving items stay inside it. Items outside the viewport before and after jump; above `max` (50) moving items the update lands without motion. `live: true`: while a mouse or pen is over the container or focus is in an item, a `mutate` that takes the options runs at once with `holdOrder: true` (values update, nodes stay; the latest such call wins) and the reorder waits until the pointer or focus leaves, at most `hold` (2000) ms; if that `mutate` changed the items all the same (it ignored `holdOrder`), the change glides at once instead of jumping. A `mutate` without parameters (`() => stack.prepend(alert)`) cannot honour `holdOrder`: it waits whole, every such call in order, and glides on release (1.6.1). Touch never holds; a call without `live` (a user's sort) runs the held reorder at once. Returns a Promise of this call's motion |
 
 ### DS.dom (js/dom.js)
 
@@ -599,13 +607,37 @@ nodes.
   different keys never morph into each other. Unkeyed nodes match by position, with a look-ahead of 8 siblings for an
   identical node. Key list rows, so a reorder moves them instead of rewriting each one.
 - Runtime state survives a patch: the classes DS adds (`ds-enter*`, `ds-leave*`, `ds-has-indicator`, `ds-pressed`,
-  `ds-ripples`), the custom properties it writes (`--ds-i`, `--ds-indicator-*`, `--ds-ripple-*`,
+  `ds-ripples`), the custom properties it writes (`--ds-i`, `--ds-indicator-*`, `--ds-ripple-x` / `-y` / `-r`,
   `--ds-motion-origin`, `--ds-clip-from`), `data-ds-staggered`, and the `inert` of an element that carries a
   `ds-leave*` class (an exit in progress, or one kept with `then: 'keep'`).
+- So does the state a helper owns while it runs (1.6.1), as it is, present or absent; once the helper lets go, the
+  next patch takes the template's value again:
+  - `DS.overlay`, from `open()` until the close settled: on the overlay `data-state`, the `hidden` it dropped (a
+    template that still says `hidden` does not close it), `open`, `popover`, `data-anchored`, `data-placement`, the
+    `--closing`, `--nested` and `--hidden` classes, `--ds-menu-x` / `--ds-menu-y`, `max-height` and
+    `position-anchor`; the `inert` of its box or panel during the exit; `aria-expanded` on its opener, `data-drawer-open` on `.ds-app`, the `anchor-name` it wrote on
+    the anchor and the `inert` of what its trap took. A tooltip's `aria-describedby` on its trigger, while shown;
+    `.ds-toast--shown`;
+  - `busy()`: `aria-busy` while the work runs, then `.ds-btn--done` while the success face shows;
+  - `countUp()`: `aria-busy`, the `min-width` and the tabular figures while it counts;
+  - `roll()` and `crossfade()`: `.ds-swap` while the swap runs; the icon kind `.ds-icon-swap` and `data-swap` until
+    it settled;
+  - `flip()`: the inline `z-index` and `position` of the items that glide; on their container `data-ds-glide` and
+    `--ds-flip-backdrop`, and the inline `position`, `isolation`, `min-height` and `align-content` it holds while
+    items glide or leave, so a re-render of the card around a gliding list keeps the list's height and the leaving
+    items' place;
+  - the chip glide of `DS.ripple`: the row's `data-ds-glide` and `--ds-chips-backdrop`.
+
+  So a row menu opened from a polled list stays open, focused and marked expanded through the next poll, and a busy
+  Save button keeps its faces. The record sits on the element under `Symbol.for('ds.owned')`, shared by every copy of
+  `ds.js` on the page; it is runtime state, never set it.
 - Focus: the focused element and its ancestors are always patched, never replaced; a focused field keeps its value,
   caret and IME composition (only unfocused controls take `value`, `checked` and `selected` from changed
   attributes).
-- `data-ds-keep` nodes (the indicator, ripples) are never matched, moved or removed. `data-ds-replace` on a node (old
+- `data-ds-keep` nodes (the indicator, ripples) are never matched, moved or removed. `DS.overlay` sets it, while they
+  are away from home, on what it moves into an open dialog or sheet: the snackbar region and its two announcers, and
+  an overlay it adopted into a native dialog (a page's own `data-ds-keep` stays). A re-render of the open dialog, or
+  of the view that holds it, so never takes them out of the document. `data-ds-replace` on a node (old
   or new markup) or `{ replace: true }` for the whole call brings back replacement when a node's shell differs.
 - `onInsert(node)` runs after a new element went in; `onRemove(node)` may return a Promise, and the node then stays
   as a pending removal (`inert`, `aria-hidden`, `data-ds-leaving`, skipped by later morphs) until it settles. An
@@ -637,7 +669,10 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
   segmented switch take different names), and only for a pill outside the view, since a group floats above every
   snapshot. A pill that is not wholly inside its track's visible part when the page is left (`pageswap`) or
   revealed (`pagereveal`), such as the active item of a long drawer list scrolled down to a link further on, keeps no
-  name for that navigation (1.6) and goes or comes with its page, so it never glides in over the top bar. Within a
+  name for that navigation (1.6) and goes or comes with its page, so it never glides in over the top bar. So does a
+  pill under something modal (1.6.1): a page left or revealed with a dialog, a side sheet or the modal drawer open,
+  whose frame `view-transitions.css` leaves in the root snapshot, where a group would paint above the overlay or the
+  drawer and its scrim, over the labels. Within a
   page `DS.motion.transition()` lifts the name while it runs: the docked drawer shows live and its pill glides as on
   a click, under its labels.
 - **What it observes.** `aria-current`, `aria-pressed`, `aria-selected` and `aria-checked` anywhere in the track and
@@ -727,7 +762,7 @@ the entrance, turns the motion back from its current value in every engine, with
 |---|---|
 | `open(el, { opener, container })` | shows `el` and moves focus into it at once; `opener` (default: the focused element) gets focus back on close; `container: true` (1.5) grows the opener into a dialog or sheet (below) |
 | `close(el)` | plays the exit and hides `el`; a second call during the exit returns the same promise |
-| `lockScroll()` / `unlockScroll()` | the reference-counted scroll lock that the modal kinds take; a page may take it for a layer of its own |
+| `lockScroll(doc?)` / `unlockScroll(doc?)` | the reference-counted scroll lock of `doc` (default: the document of the page; 1.6.1) that the modal kinds take for their own document; a page may take it for a layer of its own |
 | `toast(region, content, { kind, persistent, timeout, closeLabel })` | shows a snackbar in a `.ds-toasts` region; returns `{ el, close(), closed }` (below) |
 | `tooltips(root = document)` | tooltips for every `[data-tip]` in `root`; returns `{ destroy() }` (below) |
 | `TOAST_MS`, `TOAST_MAX_MS`, `TOAST_LIMIT` | snackbar fallbacks: 4000ms, at most 10000ms, at most 3 at once |
@@ -742,10 +777,13 @@ The constants are fallbacks only (outside a `.ds-theme`): JS timing comes from t
 2. takes back a close in progress (a generation token: the pending close promise resolves without acting, and the
    motion reverses from where it is by flipping `data-state`); an overlay that is already open stays as it is;
 3. records the opener;
-4. modal kinds (dialog, sheet, drawer) take the scroll lock; every overlay joins the Escape stack. A dialog opened
-   while another modal is open gets `.ds-dialog--nested`;
+4. modal kinds (dialog, sheet, drawer) take the scroll lock of their document, except a `.ds-dialog--contained`
+   (1.6.1); every overlay joins the Escape stack. A dialog opened while another modal is open gets
+   `.ds-dialog--nested` (a contained dialog neither gets it nor counts as that other modal);
 5. shows it: native `showModal()`, which traps focus and makes the page inert; div markup drops `hidden` (or
-   `.ds-dialog--hidden`) and sets `inert` on every sibling of the overlay and of each of its ancestors up to `<body>`,
+   `.ds-dialog--hidden`) and sets `inert` on every sibling of the overlay and of each of its ancestors up to `<body>`
+   (a `.ds-dialog--contained` only up to the positioned container it covers, so the page around an embedded widget
+   stays usable; 1.6.1),
    `.ds-scrim`, the `.ds-toasts` regions, their announcers and the tooltips of `tooltips()` excepted. The inert
    follows the stack: an element a trap took stays usable while it holds an overlay opened above that trap (a dialog
    from a div sheet or from the modal drawer, which the lower trap took as a sibling, takes input; the sheet under it
@@ -799,7 +837,8 @@ Popups: a menu or a combobox list is placed before it enters, at rest size, and 
 edges `--ds-space-6` beyond the box like the resting clip, so only one edge moves). With `showPopover` and CSS anchor
 positioning (and `anchor-size()` for a combobox list) it opens as `popover="manual"` in the top layer with
 `data-anchored`: its anchor (the trigger; for a combobox the `.ds-combo` field) gets an inline `anchor-name`
-(`--ds-anchor-<n>`, removed on close unless it had one) and the popup `position-anchor`, so no scrolling box clips
+(`--ds-anchor-<n>`, never one the page set; shared with a tooltip of the same trigger and removed once neither uses
+it) and the popup `position-anchor`, so no scrolling box clips
 it. Elsewhere a menu is placed by `--ds-menu-x` / `--ds-menu-y` (below the trigger from its start edge, towards the
 start edge without room, 8px from the window's edges, following scroll and resize within a frame) and a combobox list
 stays absolute under its field. Either way a popup opens below its trigger when it fits there, else on the side with
@@ -815,11 +854,15 @@ only the topmost overlay that is not already closing, and only when no tooltip t
 overlay that handles Escape itself (an inline edit, a picker) runs first: when it calls `preventDefault()`, the
 overlay stays open, as with a plain `<dialog>`. The listener calls `preventDefault()` itself (which also keeps a
 native dialog from its own `cancel`) but does not stop the event. A native dialog's `cancel` is turned into
-`close()`, so Escape plays its exit. A click on `[data-close]` inside an overlay closes it (ignored while it
-closes). A menu also closes on Tab (focus returns to its trigger and Tab moves on from there) and on a
+`close()`, so Escape plays its exit. When the topmost overlay is a `.ds-dialog--contained`, the key is its own only
+when pressed inside the container it covers (1.6.1): Escape in the host page around an embedded widget is left alone,
+so the host's own dialogs and search fields keep it. The stack is the page's, shared by every copy of `ds.js` on it
+(1.6.1 and later): the topmost overlay closes whichever copy opened it. A click on `[data-close]` inside an overlay closes it (ignored
+while it closes). A menu also closes on Tab (focus returns to its trigger and Tab moves on from there) and on a
 `pointerdown` outside the menu and its trigger.
 
-Scroll lock: `lockScroll()` / `unlockScroll()` count; `body.ds-no-scroll` (with `.ds-base`) toggles only on the
+Scroll lock: `lockScroll(doc)` / `unlockScroll(doc)` count per document (an overlay in a same-origin iframe, driven
+from the parent's `DS`, locks the iframe's page), one count for every copy of `ds.js` on that page (1.6.1); `body.ds-no-scroll` (with `.ds-base`) toggles only on the
 0 to 1 and 1 to 0 steps, and an unbalanced unlock never goes below 0. When the lock removes a classic scrollbar of
 the page, its room stays: `scrollbar-gutter: stable` on `<html>` where supported, else a `padding-right` on
 `<body>`. In the app frame, where `.ds-view` scrolls, nothing is reserved.
@@ -827,10 +870,20 @@ the page, its room stays: `scrollbar-gutter: stable` on `<html>` where supported
 Modal drawer: `open(drawer, { opener })` acts only while `(max-width: 900px)` matches (wider, it resolves at once).
 It sets `data-drawer-open` on `.ds-app` and `aria-expanded` on the menu button, focuses the drawer, makes its
 siblings inert (not `.ds-scrim`, nor the snackbar regions, their announcers and the tooltips), takes the lock, joins the Escape stack and closes on a click on the scrim.
-`close(drawer)` returns focus to the menu button at once. From the first `open(drawer)` or `close(drawer)` on, a
-window crossing 900px sets `.ds-drawer--instant` for two frames, and a window that widens closes a stale open state
-without motion; the breakpoint recipe of the App frame may stay (both together do no harm). Without the helper, the
-CSS and the page recipe keep working.
+`close(drawer)` returns focus to the menu button at once. From load on (1.6.1; before, from the first `open(drawer)` or
+`close(drawer)`), a window crossing 900px sets `.ds-drawer--instant` for two frames on every `.ds-app > .ds-drawer`
+of the page, and a window that widens closes a stale open state without motion: a page that drives the drawer
+through `DS.overlay` needs no breakpoint snippet. The snippet of the App frame is for pages that drive the drawer by
+hand; it may stay (both together do no harm). Without the helper, the CSS and the page recipe keep working.
+
+Removed while open: an overlay that the page takes out of the document while it is open or closing (a route change,
+a re-render of the region around it) is closed at once, without motion (1.6.1): its scroll lock, the inert of its
+trap, `aria-expanded` on its opener, its runtime state and its Escape entry go, and the snackbar regions it took in
+return to their place; focus is not moved. An overlay that `DS.overlay` moved into a native dialog or sheet (above)
+and that left the document only with that host goes back to its place too, so a later `open()` shows it again (the
+modal drawer's frame loses `data-drawer-open` also when only the drawer element was replaced). A `MutationObserver`,
+connected only while an overlay is open, notices the removal; a `close()` of the removed element does the same at
+once.
 
 Snackbars: `toast(region, content, options)` takes a `.ds-toast` element or builds one from a string (`kind`
 `'success'`, `'error'` or `'info'` picks the icon and the modifier; a message that stays gets a close button) and
@@ -859,7 +912,9 @@ dialog). Overlays over each other nest: each gives the regions back to the one i
 Tooltips: `tooltips(root)` installs one set of delegated listeners for the `[data-tip]` triggers in `root` and creates
 one `.ds-tooltip` inside the `.ds-theme` around it (a tooltip of a trigger inside a dialog or sheet moves into that
 overlay while it shows, so it is never under the top layer; the div trap and the modal drawer never make it inert,
-so it stays hoverable and heard). It shows after `--ds-delay-tooltip` for a
+so it stays hoverable and heard). A second call on the same root returns the first handle, and a trigger inside
+nested roots (the host page's `document` and an embedded widget's root) is served by the innermost one only, so it
+never shows twice or is described twice (1.6.1). It shows after `--ds-delay-tooltip` for a
 mouse or pen resting on a trigger (`pointerover` / `pointerout` with a `relatedTarget` check, so the trigger's own
 icon changes nothing; touch never) and at once on `focusin` with `:focus-visible`. While one is visible, or within
 `--ds-delay-tooltip-skip` of the last hide, the next trigger shows at once: a visible tooltip swaps text and place
@@ -869,7 +924,8 @@ focus; Escape hides it (with `preventDefault()` and `stopPropagation()`, only wh
 `pointerdown`, `open()` and a trigger that scrolls out of view. Timing reads the tokens through `motionDuration()`,
 so `--ds-time-scale` stretches the delays too. Motion runs on the `data-state` transitions of tooltip.css; the origin
 comes from `originFrom(trigger, tip)`. Placement: with `showPopover` and CSS anchor positioning the tooltip is a
-`popover="manual"` with `data-anchored`, the trigger gets an inline `anchor-name` (`--ds-anchor-<n>`, removed again
+`popover="manual"` with `data-anchored`, the trigger gets an inline `anchor-name` (`--ds-anchor-<n>`, shared with a
+menu opened from the same trigger and removed again once neither uses it,
 unless it had one) and the tooltip `position-anchor`, and `data-placement` follows the side the engine chose (read
 again two frames after a show or swap: Chromium lays a swap out with the scroll offset of the previous anchor's
 scrolling box until the next rendering); elsewhere a capture-phase scroll listener and `resize`

@@ -179,7 +179,10 @@
     color: var(--ds-error);
   }
 
+  /* Its own bullets: a layered reset (list-style: none on ul) would leave
+     the indent without its markers. */
   .ds-errors ul {
+    list-style-type: disc;
     margin: var(--ds-space-2) 0 0;
     padding-left: var(--ds-space-5);
     color: var(--ds-text-2);

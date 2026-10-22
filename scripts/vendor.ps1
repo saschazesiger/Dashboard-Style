@@ -75,6 +75,12 @@ function Get-Sums([string] $Dir) {
 function Test-Dir([string] $Dir) {
   $sumsFile = Join-Path $Dir 'SHA256SUMS'
   if (-not (Test-Path -LiteralPath $sumsFile)) { Fail "$sumsFile not found" }
+  # A symbolic link or junction is never part of a copy (SHA256SUMS cannot cover it).
+  $links = @(Get-ChildItem -LiteralPath $Dir -Recurse -Force | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint })
+  if ($links.Count) {
+    [Console]::Error.WriteLine("vendor.ps1: $Dir contains symbolic links or junctions: $(($links | ForEach-Object { $_.FullName }) -join ', ')")
+    return $false
+  }
   $expected = ([IO.File]::ReadAllText($sumsFile) -replace "`r", '').TrimEnd("`n")
   $actual = (@(Get-Sums $Dir) -join "`n")
   if ($expected -ne $actual) {

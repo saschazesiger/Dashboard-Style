@@ -143,6 +143,35 @@ function themed(element) {
   return Boolean(element?.closest?.('.ds-theme'));
 }
 
+/* ── Runtime state that a re-render keeps ───────────── */
+
+/**
+ * The runtime state a DS helper owns on an element right now, for
+ * DS.dom.morphHtml: { attrs, classes, props }, each a Map of name to a
+ * count of owners. A patch keeps an owned name as it is, present or
+ * absent (an open overlay's dropped `hidden` is not added back from the
+ * template); once the last owner lets go, the next patch takes the
+ * template's value again. The record sits under a symbol of the global
+ * registry, so a morph of any copy of ds.js (another version on the page,
+ * another frame) sees what any copy owns; overlay.js keeps its own copy
+ * of these two helpers.
+ */
+const OWNED = Symbol.for('ds.owned');
+
+/** `kind`: 'attrs', 'classes' or 'props' (a style property, kebab-case). */
+function own(element, kind, name) {
+  if (!element || typeof element !== 'object') return;
+  const record = element[OWNED] ?? (element[OWNED] = { attrs: new Map(), classes: new Map(), props: new Map() });
+  record[kind].set(name, (record[kind].get(name) ?? 0) + 1);
+}
+
+function disown(element, kind, name) {
+  const map = element?.[OWNED]?.[kind];
+  const count = map?.get(name) ?? 0;
+  if (count > 1) map.set(name, count - 1);
+  else map?.delete(name);
+}
+
 const NUMBER = '[+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:e[+-]?\\d+)?';
 const TIME = new RegExp(`^(${NUMBER})(ms|s)$`, 'i');
 const PLAIN = new RegExp(`^${NUMBER}$`, 'i');
@@ -505,11 +534,13 @@ function markLeaving(element, state, on) {
  * A scroll-driven animation (a ScrollTimeline or ViewTimeline: the panel
  * hairline, a table's edge fades, .ds-reveal--scroll). It follows the
  * scroll position, never ends by time and takes no time-based currentTime,
- * so no helper waits for it, snapshots it or hands it off.
+ * so no helper waits for it, snapshots it or hands it off. Told by the
+ * timeline's `axis` (scroll timelines have one, the document timeline has
+ * none) rather than instanceof, so a timeline of another realm (an element
+ * in a same-origin iframe, driven from the parent's DS) counts too.
  */
 function scrollDriven(animation) {
-  const ScrollTimeline = globalThis.ScrollTimeline;
-  return typeof ScrollTimeline === 'function' && animation.timeline instanceof ScrollTimeline;
+  return typeof animation.timeline?.axis === 'string';
 }
 
 /**
@@ -534,7 +565,7 @@ function scrollDriven(animation) {
 export function resyncScroll(root = globalThis.document) {
   const doc = root?.nodeType === 9 ? root : root?.ownerDocument;
   const win = doc?.defaultView ?? globalThis;
-  if (typeof globalThis.ScrollTimeline !== 'function' || typeof doc?.getAnimations !== 'function' || typeof win.requestAnimationFrame !== 'function') return Promise.resolve(0);
+  if (typeof win.ScrollTimeline !== 'function' || typeof doc?.getAnimations !== 'function' || typeof win.requestAnimationFrame !== 'function') return Promise.resolve(0);
   const related = (node) => Boolean(node) && (root === doc || root.contains(node) || node.contains?.(root));
   // Two frames: a frame snapshots its timelines from the layout it starts
   // with, so a change made in a task shows in the frame after the next.
@@ -1183,8 +1214,11 @@ const doneTimers = new WeakMap();
 
 /** Takes the success face off at once (a new busy() starts). */
 function clearDone(button) {
-  clearTimeout(doneTimers.get(button));
-  doneTimers.delete(button);
+  if (doneTimers.has(button)) {
+    clearTimeout(doneTimers.get(button));
+    doneTimers.delete(button);
+    disown(button, 'classes', 'ds-btn--done');
+  }
   button.classList?.remove('ds-btn--done');
 }
 
@@ -1219,6 +1253,8 @@ export function busy(button, work, options = {}) {
   if (running) return running;
   const done = options.done ?? true;
   clearDone(button);
+  // A re-render of the list around it (DS.dom.morphHtml) keeps both faces.
+  own(button, 'attrs', 'aria-busy');
   button.setAttribute('aria-busy', 'true');
   const startedAt = Date.now();
   const delay = motionDuration(button, '--ds-delay-loader');
@@ -1227,11 +1263,13 @@ export function busy(button, work, options = {}) {
   const finish = () => {
     if (busyRuns.get(button) === promise) busyRuns.delete(button);
     button.removeAttribute('aria-busy');
+    disown(button, 'attrs', 'aria-busy');
   };
   promise = Promise.resolve(start()).then(
     (value) => settleLoader(startedAt, { element: button, delay }).then(() => {
       finish();
       if (done) {
+        own(button, 'classes', 'ds-btn--done');
         button.classList.add('ds-btn--done');
         doneTimers.set(button, setTimeout(() => clearDone(button), motionDuration(button, '--ds-hold-success')));
       }
@@ -1297,6 +1335,9 @@ function startClock(element, duration) {
  */
 function steady(element, fromText, toText) {
   const busy = element.getAttribute?.('aria-busy') ?? null;
+  // A re-render meanwhile (DS.dom.morphHtml) keeps what the count holds.
+  for (const name of ['min-width', 'font-variant-numeric']) own(element, 'props', name);
+  own(element, 'attrs', 'aria-busy');
   element.setAttribute?.('aria-busy', 'true');
   const style = computed(element);
   const inline = element.style;
@@ -1318,12 +1359,15 @@ function steady(element, fromText, toText) {
     if (minWidth !== null) inline.minWidth = minWidth;
     if (busy === null) element.removeAttribute?.('aria-busy');
     else element.setAttribute?.('aria-busy', busy);
+    for (const name of ['min-width', 'font-variant-numeric']) disown(element, 'props', name);
+    disown(element, 'attrs', 'aria-busy');
   };
 }
 
 /**
- * Counts a key figure in the element's text from the value it shows (0 on
- * the first call, or `from`) to `to`, up or down, on --ds-ease-value over
+ * Counts a key figure in the element's text from the value it shows (the
+ * last value it wrote, or one that a re-render wrote since and that reads
+ * back through `format`; 0 on the first call, or `from`) to `to`, up or down, on --ds-ease-value over
  * --ds-dur-glide: the curve and time of progress bars, so a figure and its
  * bar land together: its clock is an animation on the element (id
  * 'ds-count'), which starts in the same frame as a CSS transition set with
@@ -1344,7 +1388,16 @@ export function countUp(element, to, options = {}) {
   const target = Number(to);
   const running = counts.get(element);
   if (running && running.to === target && options.from === undefined) return running.handle;
-  const start = options.from !== undefined ? Number(options.from) : shownValues.get(element) ?? 0;
+  const cached = shownValues.get(element);
+  let start = options.from !== undefined ? Number(options.from) : cached ?? 0;
+  // Something else wrote the figure since the last count (a re-render by
+  // DS.dom.morphHtml, the page): go on from what it shows when that reads
+  // back through `format` ('1,284', '94 %'), else land at once.
+  const text = String(element.textContent ?? '');
+  if (!running && options.from === undefined && cached !== undefined && text !== format(cached)) {
+    const parsed = Number(text.replace(/[^\d.-]/g, ''));
+    start = text.trim() && Number.isFinite(parsed) && format(parsed) === text ? parsed : target;
+  }
   const from = Number.isFinite(start) ? start : 0;
   running?.stop(false);
   if (!Number.isFinite(target)) {
@@ -1510,6 +1563,8 @@ const swappedOut = new WeakSet();
  * a swap continues from where each child is; only the last one stays.
  */
 function swap(element, outgoing, incoming, enterHooks, leaveHooks) {
+  // The slot stays a slot through a re-render of its parent while it runs.
+  own(element, 'classes', 'ds-swap');
   const leaving = outgoing.map((child) => {
     child.setAttribute('data-ds-leaving', '');
     child.setAttribute('aria-hidden', 'true');
@@ -1528,6 +1583,7 @@ function swap(element, outgoing, incoming, enterHooks, leaveHooks) {
   const entering = enter(incoming);
   const gen = stateOf(incoming).gen;
   return Promise.all([entering, ...leaving]).then(() => {
+    disown(element, 'classes', 'ds-swap');
     if (stateOf(incoming).gen !== gen) return;
     for (const name of Object.keys(enterHooks)) incoming.style.removeProperty(name);
     // No empty attributes left behind by the swap.
@@ -1594,6 +1650,9 @@ function iconNode(element, next) {
  * data-swap flips to it. The CSS transitions do the rest.
  */
 function iconSwap(element, next) {
+  // Until it settled, a re-render of its parent keeps the swap and its side.
+  own(element, 'classes', 'ds-icon-swap');
+  own(element, 'attrs', 'data-swap');
   element.classList.add('ds-icon-swap');
   const a = iconFace(element, 'a');
   const b = iconFace(element, 'b');
@@ -1616,7 +1675,14 @@ function iconSwap(element, next) {
   // New faces and new content get their hidden style first, so the swap transitions from it.
   if (built) for (const face of [a, b]) flushStyle(face);
   element.setAttribute('data-swap', target === b ? 'b' : 'a');
-  return settled(element, { transitions: true, subtree: true });
+  const release = () => {
+    disown(element, 'classes', 'ds-icon-swap');
+    disown(element, 'attrs', 'data-swap');
+  };
+  return settled(element, { transitions: true, subtree: true }).then(release, (error) => {
+    release();
+    throw error;
+  });
 }
 
 /**
@@ -1667,7 +1733,7 @@ export function crossfade(element, next, options = {}) {
  * @property {boolean} over  a pointer is over the container
  * @property {boolean} guarded  the live guard's listeners are attached
  * @property {string|undefined} items  the item selector of the last live call
- * @property {{ mutate: Function, options: object }|null} queued  the held reorder (latest wins)
+ * @property {{ steps: { mutate: Function, aware: boolean }[], options: object }|null} queued  the held reorder: plain mutates in order, the latest that honours holdOrder
  * @property {any} timer  releases the held reorder after `hold`
  * @property {Array<(done: Promise<void>) => void>} waiters  calls whose reorder is held
  * @property {number} lifted  removed items still leaving out of flow
@@ -1676,6 +1742,7 @@ export function crossfade(element, next, options = {}) {
  * @property {Animation|null} sizeGlide  the container's block size gliding to its new height
  * @property {number} raised  items raised while they glide
  * @property {string|null} isolation  the container's inline isolation while items are raised (else null)
+ * @property {boolean} backed  data-ds-glide and --ds-flip-backdrop set on the container while items are raised
  */
 
 /** @type {WeakMap<Element, FlipState>} */
@@ -1695,7 +1762,7 @@ const raisedItems = new WeakMap();
 function flipState(container) {
   let state = flips.get(container);
   if (!state) {
-    state = { pointer: '', over: false, guarded: false, items: undefined, queued: null, timer: 0, waiters: [], lifted: 0, position: null, minHeight: null, align: null, sizeGlide: null, raised: 0, isolation: null };
+    state = { pointer: '', over: false, guarded: false, items: undefined, queued: null, timer: 0, waiters: [], lifted: 0, position: null, minHeight: null, align: null, sizeGlide: null, raised: 0, isolation: null, backed: false };
     flips.set(container, state);
   }
   return state;
@@ -1741,6 +1808,9 @@ function lift(container, node, rect, frame, state) {
     state.position = null;
     if (style?.position === 'static') {
       state.position = container.style.position;
+      // Owned while items leave: a morph of an ancestor (a live re-render
+      // of the card) keeps their containing block.
+      own(container, 'props', 'position');
       container.style.position = 'relative';
     }
   }
@@ -1763,6 +1833,51 @@ function lift(container, node, rect, frame, state) {
   });
 }
 
+/** Whether a computed colour paints anything (alpha above 0); ripple.js has the same for the chips. */
+function paints(colour) {
+  if (!colour || colour === 'transparent') return false;
+  const inner = /\(([^)]*)\)/.exec(colour)?.[1] ?? '';
+  const slash = inner.split('/');
+  if (slash.length > 1) return parseFloat(slash[1]) > 0;
+  const parts = inner.split(',');
+  return parts.length === 4 ? parseFloat(parts[3]) > 0 : true;
+}
+
+/** The colour behind `element`: the background of the nearest ancestor (itself included) that paints one. */
+function backdropOf(element) {
+  for (let node = element; node && node.nodeType === 1; node = node.parentElement) {
+    const colour = computed(node)?.backgroundColor;
+    if (paints(colour)) return colour;
+  }
+  return '';
+}
+
+/**
+ * Marks a container whose items glide: data-ds-glide and
+ * --ds-flip-backdrop (the colour behind it), so items without a background
+ * of their own (table rows) get an opaque backing for the glide
+ * (table.css) and never show each other through. At rest the backing
+ * matches what is behind, and it goes with the last raised item.
+ */
+function backContainer(container, state) {
+  if (state.backed) return;
+  state.backed = true;
+  own(container, 'attrs', 'data-ds-glide');
+  own(container, 'props', '--ds-flip-backdrop');
+  const backdrop = backdropOf(container);
+  if (backdrop) container.style.setProperty('--ds-flip-backdrop', backdrop);
+  container.setAttribute('data-ds-glide', '');
+}
+
+function unbackContainer(container, state) {
+  if (!state.backed) return;
+  state.backed = false;
+  container.removeAttribute('data-ds-glide');
+  container.style.removeProperty('--ds-flip-backdrop');
+  disown(container, 'attrs', 'data-ds-glide');
+  disown(container, 'props', '--ds-flip-backdrop');
+}
+
 /**
  * Paints a gliding item above the items it crosses: in DOM order an item
  * moving up would pass under every opaque item on its way and seem to
@@ -1771,15 +1886,19 @@ function lift(container, node, rect, frame, state) {
  * reach past it (a sticky bar or a menu over the list stays on top). The
  * glide's own translate already makes the item a stacking context and a
  * containing block, so `position: relative` (for a static item) changes
- * nothing else.
+ * nothing else. Items without a background of their own get one from the
+ * container's data-ds-glide (backContainer()).
  */
 function raise(container, state, item, rank) {
   if (!raisedItems.has(item)) {
     raisedItems.set(item, { position: item.style.position, zIndex: item.style.zIndex, container });
+    for (const name of ['position', 'z-index']) own(item, 'props', name);
     if (computed(item)?.position === 'static') item.style.position = 'relative';
     if (!state.raised) {
       state.isolation = container.style.isolation ?? '';
+      own(container, 'props', 'isolation');
       container.style.isolation = 'isolate';
+      backContainer(container, state);
     }
     state.raised += 1;
   }
@@ -1794,12 +1913,15 @@ function lower(item) {
   raisedItems.delete(item);
   item.style.position = saved.position;
   item.style.zIndex = saved.zIndex;
+  for (const name of ['position', 'z-index']) disown(item, 'props', name);
   const state = flipState(saved.container);
   state.raised = Math.max(0, state.raised - 1);
   if (!state.raised && state.isolation !== null) {
     saved.container.style.isolation = state.isolation;
     state.isolation = null;
+    disown(saved.container, 'props', 'isolation');
   }
+  if (!state.raised) unbackContainer(saved.container, state);
 }
 
 /** The border-box height of an element. */
@@ -1823,6 +1945,9 @@ function minHeightFor(container, height) {
 function holdSize(container, state, height) {
   if (state.minHeight !== null) return;
   state.minHeight = container.style.minHeight ?? '';
+  // Owned while held, like position, isolation and align-content: a morph
+  // of an ancestor would otherwise drop it and what follows would jump.
+  own(container, 'props', 'min-height');
   container.style.minHeight = `${round(Math.max(0, minHeightFor(container, height)))}px`;
   // A grid stretches its auto rows into a held height (align-content:
   // normal): the items that stay would grow and shrink back. They keep
@@ -1830,6 +1955,7 @@ function holdSize(container, state, height) {
   const style = computed(container);
   if (state.align === null && /grid/.test(style?.display ?? '') && /^(normal|stretch)$/.test(style?.alignContent ?? '')) {
     state.align = container.style.alignContent ?? '';
+    own(container, 'props', 'align-content');
     container.style.alignContent = 'start';
   }
 }
@@ -1839,6 +1965,7 @@ function releaseAlign(container, state) {
   if (state.align === null || state.minHeight !== null || state.sizeGlide) return;
   container.style.alignContent = state.align;
   state.align = null;
+  disown(container, 'props', 'align-content');
 }
 
 /**
@@ -1881,32 +2008,45 @@ function landed(container, state, glide = true) {
   if (state.position !== null) {
     container.style.position = state.position;
     state.position = null;
+    disown(container, 'props', 'position');
   }
   if (state.minHeight === null) return Promise.resolve();
   const from = heightOf(container);
   container.style.minHeight = state.minHeight;
   state.minHeight = null;
+  // The glide below runs above the inline value, which a morph may now set.
+  disown(container, 'props', 'min-height');
   if (glide) return glideSize(container, state, from);
   releaseAlign(container, state);
   return Promise.resolve();
 }
 
 /**
+ * The First of a FLIP: the rect of every item, the direct children among
+ * them (only they can come back for an exit) and the container's edges.
+ * @returns {{ before: Map<Element, DOMRect>, childrenOf: Set<Element>, frame: { left: number, top: number, right: number, bottom: number } }}
+ */
+function measure(container, selector) {
+  const before = new Map();
+  for (const item of flipItems(container, selector)) before.set(item, item.getBoundingClientRect());
+  const childrenOf = new Set(Array.from(before.keys()).filter((item) => item.parentElement === container));
+  return { before, childrenOf, frame: edges(container.getBoundingClientRect()) };
+}
+
+/**
  * One FLIP: measure, cancel the glides in flight (the rects include their
  * offsets, so each item continues from where it is), mutate, measure
- * again and glide every moved item from its old place.
+ * again and glide every moved item from its old place. `first`: a
+ * measure() taken before the DOM already changed (a held `mutate` that
+ * ignored holdOrder).
  * @returns {Promise<void>}
  */
-function runFlip(container, mutate, options, state) {
+function runFlip(container, mutate, options, state, first) {
   const selector = options.items;
   const max = options.max ?? 50;
   const view = windowOf(container);
   // First.
-  const before = new Map();
-  for (const item of flipItems(container, selector)) before.set(item, item.getBoundingClientRect());
-  /** The direct children among the items: only they can come back for an exit. */
-  const childrenOf = new Set(Array.from(before.keys()).filter((item) => item.parentElement === container));
-  const frame = edges(container.getBoundingClientRect());
+  const { before, childrenOf, frame } = first ?? measure(container, selector);
   const firstHeight = frame.bottom - frame.top;
   for (const item of before.keys()) {
     glides.get(item)?.cancel();
@@ -2020,21 +2160,22 @@ function held(container, state) {
   return flipItems(container, state.items).some((item) => item.contains(active));
 }
 
-/** Runs `mutate` as a FLIP, together with a held reorder (the held one first). */
-function flush(container, mutate, options, state) {
-  const queued = state.queued;
+/**
+ * Runs `mutate` (if any) as a FLIP, together with the held reorder (its
+ * steps first, in order). `first`: see runFlip().
+ */
+function flush(container, mutate, options, state, first) {
+  const steps = (state.queued?.steps ?? []).map((step) => step.mutate);
   const waiters = state.waiters;
   clearTimeout(state.timer);
   state.timer = 0;
   state.queued = null;
   state.waiters = [];
-  const both = queued && queued.mutate !== mutate
-    ? (/** @type {any} */ hooks) => {
-      queued.mutate(hooks);
-      mutate(hooks);
-    }
-    : mutate;
-  const done = runFlip(container, both, options, state);
+  if (mutate && !steps.includes(mutate)) steps.push(mutate);
+  const all = steps.length === 1 ? steps[0] : (/** @type {any} */ hooks) => {
+    for (const step of steps) step(hooks);
+  };
+  const done = runFlip(container, all, options, state, first);
   for (const resolve of waiters) resolve(done);
   return done;
 }
@@ -2042,7 +2183,12 @@ function flush(container, mutate, options, state) {
 /** Runs the held reorder once nothing holds it any more (or `hold` ran out). */
 function release(container, state, force = false) {
   if (!state.queued || (!force && held(container, state))) return;
-  flush(container, state.queued.mutate, state.queued.options, state);
+  flush(container, null, state.queued.options, state);
+}
+
+/** Whether two lists of items hold the same elements in the same order. */
+function sameItems(a, b) {
+  return a.length === b.length && a.every((item, index) => item === b[index]);
 }
 
 /**
@@ -2086,7 +2232,9 @@ function guard(container, state) {
  * an item's own translate stays) on the spring, for travelDuration().
  * Meanwhile the moving items paint above the others, the farthest travel
  * on top (inline z-index from --ds-z-raised, position: relative where
- * static, the container isolated; all restored when the glide ends). A
+ * static, the container isolated and marked data-ds-glide with
+ * --ds-flip-backdrop, the colour behind it, so table rows get an opaque
+ * backing; all restored when the glide ends). A
  * call during a glide continues from where every item is, so a filter can
  * call it on every keystroke. Inserted items fade in; removed items fade
  * out of flow where they were while their neighbours close the gap (table
@@ -2103,10 +2251,14 @@ function guard(container, state) {
  * more than `max` moving items the update lands without motion.
  *
  * `live: true` (data that changes by itself): while a mouse or pen is over
- * the container, or focus is in an item, `mutate` runs at once with
- * `holdOrder: true` (values update, nodes keep their places) and the
- * reorder waits until the pointer leaves, focus leaves or `hold` ms after
- * the first held call (the latest held `mutate` wins). A call without
+ * the container, or focus is in an item, a `mutate` that takes the options
+ * runs at once with `holdOrder: true` (values update, nodes keep their
+ * places) and the reorder waits until the pointer leaves, focus leaves or
+ * `hold` ms after the first held call (the latest held `mutate` wins); if
+ * it changed the items all the same, that change glides at once. A
+ * `mutate` without parameters (a plain DOM call such as
+ * `() => stack.prepend(alert)`) cannot honour holdOrder: it waits whole
+ * (every such call, in order) and glides on release. A call without
  * `live` (a user's sort) runs the held reorder with its own, at once.
  * @param {Element|null|undefined} container
  * @param {(options: { holdOrder: boolean, onInsert: (node: Node) => void, onRemove: (node: Node) => Promise<void>|undefined }) => void} mutate
@@ -2121,8 +2273,25 @@ export function flip(container, mutate, options = {}) {
     state.items = options.items;
     guard(container, state);
     if (held(container, state)) {
-      mutate({ holdOrder: true, onInsert() {}, onRemove() { return undefined; } });
-      state.queued = { mutate, options };
+      const queued = state.queued ?? (state.queued = { steps: [], options });
+      queued.options = options;
+      if (mutate.length === 0) {
+        // A mutate that takes no options cannot honour holdOrder (a plain
+        // DOM change such as stack.prepend(alert)): it waits whole, in
+        // order with the other plain ones, and glides on release.
+        queued.steps.push({ mutate, aware: false });
+      } else {
+        const first = measure(container, state.items);
+        mutate({ holdOrder: true, onInsert() {}, onRemove() { return undefined; } });
+        // The latest mutate that honours holdOrder wins (it renders all the data).
+        queued.steps = queued.steps.filter((step) => !step.aware);
+        if (!sameItems(Array.from(first.before.keys()), flipItems(container, state.items))) {
+          // It changed the items all the same (holdOrder ignored): too late
+          // to hold, so that change glides now from where the items were.
+          return flush(container, null, options, state, first);
+        }
+        queued.steps.push({ mutate, aware: true });
+      }
       if (!state.timer) state.timer = setTimeout(() => release(container, state, true), options.hold ?? 2000);
       return new Promise((resolve) => state.waiters.push(resolve));
     }
@@ -2161,7 +2330,8 @@ const liftedNames = new WeakMap();
  * fallback shown by hand by removing hidden (no data-state; a div sheet is
  * modal only with aria-modal, the selector sheet.css names its body by).
  * A contained dialog (.ds-dialog--contained) covers its container inside
- * the panel, not the frame, so it never counts.
+ * the panel, not the frame, so it never counts. indicator.js keeps the
+ * same list (test/js.test.js compares them).
  */
 const MODAL_OPEN = [
   '.ds-dialog[data-state="open"]:not(.ds-dialog--contained)',

@@ -118,7 +118,7 @@ const FOCUS_EXEMPT = [
 ];
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
-const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-indicator-dur', '--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-tooltip-x', '--ds-tooltip-y', '--ds-menu-x', '--ds-menu-y', '--ds-chips-backdrop']);
+const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-indicator-dur', '--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-tooltip-x', '--ds-tooltip-y', '--ds-menu-x', '--ds-menu-y', '--ds-chips-backdrop', '--ds-flip-backdrop']);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));

@@ -56,6 +56,10 @@ A project with its own layers lists `ds` where it belongs, for example `@layer r
 loads. The `!important` that ds keeps (`[hidden]` under `.ds-base`, `.ds-sr`, `.ds-num`, `.ds-center`) sits in a
 layer, so it beats an unlayered `!important` of the page.
 
+An embedded widget cannot move the host page's CSS into a layer: the host's unlayered element rules (`button`, `h2`,
+`p`, `dialog`) then beat the widget's components. [theming.md](theming.md), "Embedded in someone else's page", has the
+guard that hands those elements back to ds.
+
 ## Vendoring (recommended)
 
 Commit a copy to your repository. `main` is always releasable, so updating means fetching the latest `main` again; a
@@ -87,8 +91,8 @@ files:
 - `SHA256SUMS`: `sha256sum` format, sorted by path, LF line ends, covering every file including `VERSION`.
 
 Verify it in your tests or CI so edits to the vendored files fail loudly: run `vendor.sh --check`, or compare the
-hashes yourself (`cd vendor/dashboard-style && sha256sum -c SHA256SUMS`, plus a check that no unlisted file was
-added). On Windows checkouts, mark the folder binary so Git does not rewrite line ends:
+hashes yourself (`cd vendor/dashboard-style && sha256sum -c SHA256SUMS`, plus a check that no unlisted file or symbolic link
+was added). On Windows checkouts, mark the folder binary so Git does not rewrite line ends:
 
 ```gitattributes
 vendor/dashboard-style/** -text
@@ -202,6 +206,10 @@ so the first copy keeps it. A second copy of the same version does nothing. A co
 ```js
 const ds = window.DashboardStyle.versions['1.0.0'] || window.DS;
 ```
+
+From 1.6.1 on, the copies share the overlay state that belongs to the page (the Escape stack, the scroll lock, the
+numbering of anchor names and tooltip ids, the tooltip roots) through `document[Symbol.for('ds.overlay')]`; see
+[theming.md](theming.md), "Embedded in someone else's page".
 
 ## Fonts
 

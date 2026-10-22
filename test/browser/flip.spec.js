@@ -4,11 +4,16 @@
  * is, a typing filter never stacks glides, live data waits while a mouse is
  * over the list (never for touch), table rows glide, more than `max` moving
  * items update without motion, and a removed item fades out of flow while
- * its neighbours close the gap. The list is keyed markup patched by
+ * its neighbours close the gap. Live data with a plain DOM mutate waits
+ * whole and glides on release, and a re-render of the list's ancestor
+ * mid-glide keeps what the glide holds. The list is keyed markup patched by
  * DS.dom.morphHtml (fixtures/data.html, window.fxData).
  */
 import { test, expect } from './base-test.js';
 import { ready, settle, sample, series, expectPeakAtMost, expectSettles, expectContinuous, expectMonotonic } from './helpers/motion.js';
+
+/** Pauses every animation of the document (not scroll-driven ones), in the task that runs it. */
+const PAUSE = 'for (const a of document.getAnimations().filter((x) => !window.ScrollTimeline || !(x.timeline instanceof ScrollTimeline))) a.pause();';
 
 const NAMES = ['LAPTOP-0042', 'LAPTOP-0043', 'DESKTOP-0107', 'LAPTOP-0051', 'TABLET-0008', 'LAPTOP-0060', 'DESKTOP-0112', 'PHONE-0019'];
 
@@ -381,4 +386,104 @@ test('a glide cancelled by the next one keeps the item raised; a removed item ke
   await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 50)));
   await settle(page);
   expect(await leftovers(page, 'list')).toEqual({ isolation: '', items: [] });
+});
+
+test('live: a plain DOM mutate waits whole while the mouse is over the stack, then glides on release', async ({ page }) => {
+  await open(page);
+  const stack = page.locator('#alerts');
+  await stack.scrollIntoViewIfNeeded();
+  await page.locator('#alert-3').hover();
+  // Held: the plain mutate (no options, so no holdOrder) does not run yet.
+  const held = await page.evaluate(() => {
+    const list = document.getElementById('alerts');
+    const watched = document.getElementById('alert-3');
+    const top = watched.getBoundingClientRect().top;
+    const alert = document.createElement('div');
+    alert.className = 'ds-alert ds-alert--error';
+    alert.id = 'alert-new';
+    alert.innerHTML = '<span class="ds-alert__text">The sync failed.</span>';
+    window.fxAlert = alert;
+    window.fxFlip = DS.motion.flip(list, () => list.prepend(alert), { live: true });
+    return { top, now: watched.getBoundingClientRect().top, inserted: alert.isConnected, count: list.children.length, glides: watched.getAnimations().length };
+  });
+  expect(held).toEqual({ top: held.top, now: held.top, inserted: false, count: 3, glides: 0 });
+  // The pointer leaves (dispatched in the task that reads it): the insert runs as a glide.
+  const released = await page.evaluate((pause) => {
+    const list = document.getElementById('alerts');
+    const watched = document.getElementById('alert-3');
+    const top = watched.getBoundingClientRect().top;
+    list.dispatchEvent(new PointerEvent('pointerleave', { pointerType: 'mouse' }));
+    new Function(pause)();
+    return {
+      first: list.firstElementChild === window.fxAlert,
+      count: list.children.length,
+      glide: watched.getAnimations().filter((animation) => animation.id === 'ds-flip').length,
+      from: Math.round(watched.getBoundingClientRect().top - top),
+    };
+  }, PAUSE);
+  expect(released.first).toBe(true);
+  expect(released.count).toBe(4);
+  expect(released.glide).toBe(1);
+  expect(released.from, 'the glide starts where the alert was').toBe(0);
+  await finishAll(page);
+  await page.evaluate(() => window.fxFlip);
+});
+
+test('live: a mutate that takes the options but ignores holdOrder glides at once instead of jumping', async ({ page }) => {
+  await open(page);
+  await page.locator('#alerts').scrollIntoViewIfNeeded();
+  await page.locator('#alert-3').hover();
+  const result = await page.evaluate((pause) => {
+    const list = document.getElementById('alerts');
+    const watched = document.getElementById('alert-3');
+    const top = watched.getBoundingClientRect().top;
+    const alert = document.createElement('div');
+    alert.className = 'ds-alert';
+    alert.innerHTML = '<span class="ds-alert__text">New devices joined.</span>';
+    window.fxFlip = DS.motion.flip(list, (options) => list.prepend(alert), { live: true });
+    new Function(pause)();
+    return {
+      inserted: list.firstElementChild === alert,
+      glide: watched.getAnimations().filter((animation) => animation.id === 'ds-flip').length,
+      from: Math.round(watched.getBoundingClientRect().top - top),
+    };
+  }, PAUSE);
+  expect(result).toEqual({ inserted: true, glide: 1, from: 0 });
+  await finishAll(page);
+  await page.evaluate(() => window.fxFlip);
+});
+
+test('a re-render of the list\'s ancestor mid-glide keeps the held height, the leaving item\'s place and the raised ranks', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(([names, pause]) => {
+    const list = document.getElementById('list');
+    const section = list.closest('section');
+    const following = section.nextElementSibling;
+    const rest = names.slice(1);
+    window.fxFlip = DS.motion.flip(list, (hooks) => DS.dom.morphHtml(list, fxData.list(rest), hooks));
+    new Function(pause)();
+    const leaving = list.querySelector('[data-ds-leaving]');
+    const read = () => ({
+      position: list.style.position,
+      isolation: list.style.isolation,
+      minHeight: list.style.minHeight,
+      glide: list.hasAttribute('data-ds-glide'),
+      after: following.getBoundingClientRect().top,
+      leaving: (({ left, top }) => `${Math.round(left)},${Math.round(top)}`)(leaving.getBoundingClientRect()),
+    });
+    const before = read();
+    // A live re-render of the section around the list, as authored (no inline styles on the list).
+    DS.dom.morphHtml(section, `<h2 id="list-title">List</h2><ul class="fx-list fx-narrow" id="list">${fxData.list(rest)}</ul>`);
+    return { before, after: read() };
+  }, [NAMES, PAUSE]);
+  expect(result.before.position).toBe('relative');
+  expect(result.before.isolation).toBe('isolate');
+  expect(result.before.minHeight).not.toBe('');
+  expect(result.before.glide).toBe(true);
+  expect(result.after).toEqual(result.before);
+  await finishAll(page);
+  await page.evaluate(() => window.fxFlip);
+  await settle(page);
+  expect(await page.locator('#list').evaluate((el) => ({ position: el.style.position, isolation: el.style.isolation, minHeight: el.style.minHeight, glide: el.hasAttribute('data-ds-glide') })))
+    .toEqual({ position: '', isolation: '', minHeight: '', glide: false });
 });

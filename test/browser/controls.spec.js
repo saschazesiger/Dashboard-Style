@@ -1179,3 +1179,27 @@ test.describe('drawer', () => {
     expect(seen.running).toEqual(expect.arrayContaining(['--ds-indicator-t', '--ds-indicator-b']));
   });
 });
+  test('a re-render of the row\'s ancestor mid-glide keeps the chips\' backing until they landed', async ({ page }) => {
+    await open(page, { attach: true });
+    const result = await page.evaluate(() => {
+      const names = ['Laptops', 'Desktops', 'Printers'];
+      const chips = names.map((name) => `<label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body">${DS.icons.icon(DS.icons.check, 18, 'ds-chip__check')}<span>${name}</span></span></label>`).join('');
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', `<div id="x-wrap"><fieldset class="ds-chips" id="x-row" style="display: inline-flex">${chips}</fieldset></div>`);
+      const row = document.querySelector('#x-row');
+      const width = `${row.getBoundingClientRect().width + 6}px`;
+      row.style.width = width;
+      row.style.display = '';
+      row.querySelector('input').click();
+      for (const animation of document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline))) animation.pause();
+      const read = () => ({ glide: row.hasAttribute('data-ds-glide'), backdrop: row.style.getPropertyValue('--ds-chips-backdrop') !== '' });
+      const before = read();
+      // A live re-render of the wrapper, as authored: no backing in the template.
+      DS.dom.morphHtml(document.getElementById('x-wrap'), `<fieldset class="ds-chips" id="x-row" style="width: ${width}">${chips}</fieldset>`);
+      return { before, after: read(), same: document.querySelector('#x-row') === row };
+    });
+    expect(result).toEqual({ before: { glide: true, backdrop: true }, after: { glide: true, backdrop: true }, same: true });
+    await resume(page);
+    await expect(page.locator('#x-row')).not.toHaveAttribute('data-ds-glide');
+    expect(await page.locator('#x-row').evaluate((el) => el.style.getPropertyValue('--ds-chips-backdrop'))).toBe('');
+  });
+

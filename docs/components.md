@@ -245,8 +245,9 @@ is the only scroller. At 900px and below the drawer becomes modal.
   `data-drawer-open` and add `.ds-no-scroll` to `<body>` (with `.ds-base`) while the modal drawer is open.
 - When the window crosses 900px the drawer changes between docked and modal in place: add `.ds-drawer--instant` to
   the drawer for two frames, so it neither slides nor fades its scrim, and close a modal drawer that the wider
-  window no longer shows. `DS.overlay` does both by itself for a drawer it opened or closed once; a page that drives
-  the drawer by hand uses this snippet:
+  window no longer shows. `DS.overlay` does both by itself for every `.ds-app > .ds-drawer` of the page from load on
+  (1.6.1), so a page that opens and closes the drawer through it needs nothing more; only a page that drives the
+  drawer by hand uses this snippet:
 
   ```js
   const modal = matchMedia('(max-width: 900px)');
@@ -430,7 +431,8 @@ A whole card that opens something (1.4):
 ```
 
 The value never takes a colour and never wraps (it shrinks on narrow tiles). Every new value goes through
-`DS.motion.countUp(el, next)`: it counts from the figure it shows (from 0 the first time) on `--ds-ease-value` over
+`DS.motion.countUp(el, next)`: it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
+through `format`; from 0 the first time) on `--ds-ease-value` over
 `--ds-dur-glide`, so a refresh counts on from the old value, a new value mid-count retargets from where the figure
 is, the same value changes nothing, and assistive technology gets the final value. A meter or progress bar set in
 the same task lands on the same frame. The note changes at once
@@ -544,6 +546,7 @@ grid column with a gap), with no export of its own and no height animated
 ```js
 DS.motion.flip(stack, () => alert.remove());       // dismiss: it fades out in place, the alerts below glide up
 DS.motion.flip(stack, () => stack.prepend(alert)); // insert: it fades in, the others glide down
+DS.motion.flip(stack, () => stack.prepend(alert), { live: true }); // live data: waits while the stack is pointed at
 ```
 
 Move focus before a dismiss removes the focused button (to the next alert or the section's heading). An alert that
@@ -588,7 +591,8 @@ the list opens and closes with the collapsible timing.
 - `.ds-num` right-aligns tabular figures; `.ds-col--text` keeps a readable width; `.ds-col--secondary` is dropped on
   phones. `.ds-table--wide` also drops secondary columns when the page is narrow (next to the drawer).
 - Sortable columns: a `.ds-table__sort` button in the header cell and `aria-sort` on the cell; the arrow shows at the
-  sorted column only. In a `.ds-num` column the arrow leads. Render the same up arrow for both directions and mark
+  sorted column only; every sort button keeps room for it (1.6.1), so moving the sort never shifts the columns. In a
+  `.ds-num` column the arrow leads. Render the same up arrow for both directions and mark
   it `.ds-table__sort-arrow`: `aria-sort="descending"` turns it 180deg on the spring (when the header is patched in
   place by `morphHtml`). An arrow without the marker is never turned, so a page that renders `arrowDown` for a
   descending column keeps showing it as drawn.
@@ -621,7 +625,10 @@ DS.motion.flip(tbody, (options) => DS.dom.morphHtml(tbody, renderRows(rows), opt
 ```
 
 Moved rows glide on `translate` on the spring, entering rows fade in, removed rows go at once while the rows below
-glide up (a table row cannot leave out of flow), and above 50 moving rows the update lands without motion. `live`
+glide up (a table row cannot leave out of flow), and above 50 moving rows the update lands without motion. While
+rows glide, `flip()` marks the `tbody` with `data-ds-glide` and `--ds-flip-backdrop` (the colour behind the table), and
+every row gets an opaque backing in that colour (a selected row its colour over it), so rows that cross never show
+their text through each other (1.6.1). `live`
 is only for polled updates; sorting and filtering are user actions. More in
 [motion.md](motion.md#data-motion).
 
@@ -986,7 +993,8 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
 - Open and close with `DS.overlay.open(dialog, { opener: button })` and `DS.overlay.close(dialog)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): focus moves in at once (`autofocus` marks the intended first focus,
   Cancel in a destructive `alertdialog`; else the first focusable element), the page is inert, Escape and
-  `[data-close]` close, the scroll lock counts, and focus is back on the opener in the frame of the close. The dialog
+  `[data-close]` close, the scroll lock counts (it stops the page from scrolling with `.ds-base`; without it, in an
+  embedded widget, see [theming.md](theming.md), "Embedded in someone else's page"), and focus is back on the opener in the frame of the close. The dialog
   must sit inside the `.ds-theme` element (`DS.overlay` warns otherwise).
 - Motion: the scrim fades while the box fades, grows from `--ds-scale-enter` and rises `--ds-distance-sm` on the
   spatial spring (`--ds-dur-slow`), from an origin towards its opener; it leaves the same way back in `--ds-dur-base`,
@@ -1009,7 +1017,10 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
   driven by hand (`showModal()`, `close()`) plays the same transitions where `@starting-style` and
   `transition-behavior: allow-discrete` exist; elsewhere it enters with the keyframes and closes at once.
 - `.ds-dialog--contained` covers the nearest positioned ancestor instead of the window (a dialog inside an embedded
-  panel; div markup only).
+  panel; div markup only). `DS.overlay` traps focus and input within that container only and takes no scroll lock
+  (1.6.1), and Escape closes it only when pressed inside the container: the host page around the widget keeps its
+  input, its scroll and its own Escape (its dialogs, its search fields). Its z-index is the host page's business:
+  [theming.md](theming.md), "Embedded in someone else's page".
 
 **Motion:** the "Scrim", "Dialog", "Nested dialog" and "Dialog on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
 
@@ -1143,7 +1154,8 @@ const tips = DS.overlay.tooltips(document);   // one call per page (or per root 
 ```
 
 `tooltips(root)` serves every `[data-tip]` inside `root` with one `<div class="ds-tooltip" role="tooltip">` that it
-creates inside the `.ds-theme` (it warns once when `root` has none):
+creates inside the `.ds-theme` (it warns once when `root` has none). A second call on the same root returns the first
+handle; a trigger inside nested roots (a host page's `document` and a widget's root) is served by the innermost one:
 
 - **Delay.** A mouse or pen that rests on a trigger shows the tooltip after `--ds-delay-tooltip` (500ms); keyboard
   focus (`:focus-visible`) shows it at once. Touch never shows one.
@@ -1305,7 +1317,7 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
   links in text), the switch, `.ds-check` rows and checkbox or radio inputs (their halo is the press), combobox
   options (pointer-down selects and closes the list; the state layer is the feedback) and native field parts. Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
   (zero specificity, so a host's own `position` wins; at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
-  whose input is disabled, also by its `<fieldset>`, or `.ds-radio--disabled`) and buttons other than the primary one get no ripple.
+  whose input is disabled, also by its `<fieldset>`, or `.ds-radio--disabled`) get no ripple, and neither does a press with a pointer button other than the primary one (a right or middle click) or from a non-primary pointer (a second finger).
 - The ripple is `<span class="ds-press-ripple" aria-hidden="true" data-ds-keep>` with the runtime properties
   `--ds-ripple-x`, `--ds-ripple-y` (its centre) and `--ds-ripple-r` (the distance to the farthest corner). It
   grows on `ds-press-ripple` over `--ds-dur-medium` (an effect: no overshoot), gets `.ds-press-ripple--out` on

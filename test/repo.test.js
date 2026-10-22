@@ -8,7 +8,9 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, posix } from 'node:path';
 import { MODULES, diffDist } from '../scripts/build.mjs';
 import { ROOT, filesIn, read, rules, stripComments } from './helpers.js';
@@ -255,6 +257,30 @@ describe('repository', () => {
     const tags = [...read('.github/workflows/check.yml').matchAll(/mcr\.microsoft\.com\/playwright:v([\w.-]+)/g)].map((match) => match[1]);
     assert.ok(tags.length > 0, 'check.yml runs the browser tests in the Playwright container');
     assert.deepEqual([...new Set(tags)], [`${version}-noble`]);
+  });
+
+  it('never cancels a CI run on main: each run there has a concurrency group of its own', () => {
+    // A shared group keeps one pending run and cancels the older one, whatever cancel-in-progress says.
+    const block = /^concurrency:\n((?:[ #].*\n)+)/m.exec(read('.github/workflows/check.yml'))?.[1] ?? '';
+    assert.match(block, /^\s*group: check-\$\{\{ github\.ref == 'refs\/heads\/main' && github\.run_id \|\| github\.ref \}\}$/m);
+    assert.match(block, /^\s*cancel-in-progress: \$\{\{ github\.ref != 'refs\/heads\/main' \}\}$/m);
+  });
+
+  it('fails vendor.sh --check on a symbolic link added to a copy', { skip: process.platform === 'win32' && 'needs sh' }, () => {
+    const temp = mkdtempSync(join(tmpdir(), 'ds-vendor-'));
+    try {
+      const copy = join(temp, 'v');
+      const run = (...args) => spawnSync('sh', [join(ROOT, 'scripts/vendor.sh'), ...args], { cwd: ROOT, encoding: 'utf8' });
+      const made = run('--from', '.', copy);
+      assert.equal(made.status, 0, made.stderr);
+      assert.equal(run('--check', copy).status, 0, 'a fresh copy verifies');
+      symlinkSync('../ds.css', join(copy, 'js', 'link.css'));
+      const checked = run('--check', copy);
+      assert.equal(checked.status, 1);
+      assert.match(checked.stderr, /symbolic links[\s\S]*js\/link\.css/);
+    } finally {
+      rmSync(temp, { recursive: true, force: true });
+    }
   });
 
   it('leaves no known bug: only spike markers name an engine gap, and every skip says why', () => {

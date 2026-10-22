@@ -15,7 +15,7 @@ import { filesIn, ms, read, stripComments, token } from './helpers.js';
 
 const tokens = stripComments(read('src/tokens.css'));
 /** Motion tokens and per-element motion hooks: no theme sets one, no role matches. */
-const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|indicator-lag|indicator-dur)[\w-]*\s*:/;
+const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/;
 /** Duration-like scales: written as calc(<n>ms * var(--ds-time-scale, 1)). */
 const TIMED = /^--ds-(dur-[\w-]+|loop-[\w-]+|delay-[\w-]+|hold-[\w-]+|stagger)$/;
 
@@ -93,6 +93,25 @@ describe('tokens', () => {
   it('keeps motion tokens out of themes', () => {
     for (const theme of filesIn('themes', (path) => path.endsWith('.css'))) {
       assert.equal(MOTION.test(stripComments(read(theme))), false, theme);
+    }
+  });
+
+  it('names every motion family it keeps out of themes in the rule lists', () => {
+    // The lists a theme author or a project reads: the rule and the copied block of AGENTS.md, rule 2 of
+    // theming.md and the header of the example theme.
+    const families = /\(([^)]*)\)/.exec(MOTION.source)[1].split('|');
+    const lists = {
+      'AGENTS.md (rule)': /Themes never set motion tokens or\s+motion hooks \(([^)]*)\)/.exec(read('AGENTS.md'))?.[1],
+      'AGENTS.md (project block)': /Never set motion tokens or hooks \(([^)]*)\)/.exec(read('AGENTS.md'))?.[1],
+      'docs/theming.md (rule 2)': /\*\*Never set motion tokens\*\*([\s\S]*?)Motion is one/.exec(read('docs/theming.md'))?.[1],
+      'themes/example.css': /Never set motion tokens([\s\S]*?)motion is one scheme/.exec(read('themes/example.css'))?.[1],
+    };
+    for (const [where, list] of Object.entries(lists)) {
+      assert.ok(list, `${where}: the list is found`);
+      const names = list.replace(/\n\s*\*\s*/g, ' ');
+      for (const family of families) {
+        assert.ok(names.includes(`--ds-${family}-*`) || new RegExp(`--ds-${family}(?![\\w-])`).test(names), `${where} names --ds-${family}`);
+      }
     }
   });
 
@@ -217,21 +236,24 @@ function colour(name) {
   return value;
 }
 
+/** The text pairs that pass AA (4.5:1), in the default palette and in the theme template. */
+const TEXT_PAIRS = [
+  ['--ds-text', '--ds-surface'], ['--ds-text', '--ds-backdrop'], ['--ds-text', '--ds-surface-highest'],
+  ['--ds-text-2', '--ds-surface'], ['--ds-text-2', '--ds-backdrop'], ['--ds-text-2', '--ds-surface-low'], ['--ds-text-2', '--ds-surface-high'],
+  ['--ds-text-3', '--ds-surface'],
+  ['--ds-on-primary', '--ds-primary'], ['--ds-link', '--ds-surface'], ['--ds-action-ink', '--ds-surface'], ['--ds-action-ink', '--ds-backdrop'],
+  ['--ds-on-accent', '--ds-accent'],
+  // A selected table row (--ds-table-row-selected, default --ds-accent) keeps its text readable.
+  ['--ds-text', '--ds-accent'], ['--ds-text-2', '--ds-accent'],
+  ['--ds-on-error-container', '--ds-error-container'], ['--ds-on-success-container', '--ds-success-container'],
+  ['--ds-on-warning-container', '--ds-warning-container'], ['--ds-text', '--ds-warning-surface'],
+  ['--ds-on-inverse', '--ds-inverse'], ['--ds-on-error-container', '--ds-surface'],
+  // A field label tints with the ring, or takes the error ink: on every surface a field sits on.
+  ['--ds-primary', '--ds-surface'], ['--ds-primary', '--ds-surface-low'], ['--ds-on-error-container', '--ds-surface-low'],
+];
+
 describe('default palette', () => {
-  const pairs = [
-    ['--ds-text', '--ds-surface'], ['--ds-text', '--ds-backdrop'], ['--ds-text', '--ds-surface-highest'],
-    ['--ds-text-2', '--ds-surface'], ['--ds-text-2', '--ds-backdrop'], ['--ds-text-2', '--ds-surface-low'], ['--ds-text-2', '--ds-surface-high'],
-    ['--ds-text-3', '--ds-surface'],
-    ['--ds-on-primary', '--ds-primary'], ['--ds-link', '--ds-surface'], ['--ds-action-ink', '--ds-surface'], ['--ds-action-ink', '--ds-backdrop'],
-    ['--ds-on-accent', '--ds-accent'],
-    // A selected table row (--ds-table-row-selected, default --ds-accent) keeps its text readable.
-    ['--ds-text', '--ds-accent'], ['--ds-text-2', '--ds-accent'],
-    ['--ds-on-error-container', '--ds-error-container'], ['--ds-on-success-container', '--ds-success-container'],
-    ['--ds-on-warning-container', '--ds-warning-container'], ['--ds-text', '--ds-warning-surface'],
-    ['--ds-on-inverse', '--ds-inverse'], ['--ds-on-error-container', '--ds-surface'],
-    // A field label tints with the ring, or takes the error ink: on every surface a field sits on.
-    ['--ds-primary', '--ds-surface'], ['--ds-primary', '--ds-surface-low'], ['--ds-on-error-container', '--ds-surface-low'],
-  ];
+  const pairs = TEXT_PAIRS;
   for (const [fg, bg] of pairs) {
     it(`${fg} on ${bg} passes AA for text (4.5:1)`, () => {
       const ratio = contrast(colour(fg), colour(bg));
@@ -251,5 +273,27 @@ describe('default palette', () => {
     for (const [fg, bg] of [['--ds-error', '--ds-surface'], ['--ds-success', '--ds-surface'], ['--ds-warning', '--ds-surface'], ['--ds-outline', '--ds-surface'], ['--ds-inverse-primary', '--ds-inverse'], ['--ds-focus', '--ds-surface']]) {
       assert.ok(contrast(colour(fg), colour(bg)) >= 3, `${fg} on ${bg}`);
     }
+  });
+});
+
+describe('theme template (themes/example.css)', () => {
+  // Projects copy the template as their palette: it keeps the rule it states
+  // ("Keep text roles at 4.5:1"). Roles it leaves unset take the default.
+  const template = stripComments(read('themes/example.css'));
+  const set = (name) => new RegExp(`(?<![\\w-])${name}\\s*:\\s*([^;]+);`).exec(template)?.[1].trim();
+  const resolve = (name) => {
+    let value = set(name) ?? token(name);
+    while (value && value.startsWith('var(')) {
+      const ref = value.slice(4, -1).split(',')[0].trim();
+      value = set(ref) ?? token(ref);
+    }
+    assert.match(value || '', /^#[0-9a-f]{6}$/i, `${name} resolves to a hex colour`);
+    return value;
+  };
+  it('keeps every text pair of the default palette at 4.5:1', () => {
+    const failing = TEXT_PAIRS.map(([fg, bg]) => [fg, bg, contrast(resolve(fg), resolve(bg))])
+      .filter(([, , ratio]) => ratio < 4.5)
+      .map(([fg, bg, ratio]) => `${fg} on ${bg}: ${ratio.toFixed(2)}:1`);
+    assert.deepEqual(failing, []);
   });
 });
