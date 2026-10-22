@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Devices · Example Console</title>
+<meta name="description" content="A reference implementation of Dashboard-Style: a small device console built the way a project uses the design system.">
+<!-- The order a project loads: fonts, ds.css, then its own theme and its own components (both unlayered, so they
+     win). A project points these at its vendored copy (vendor/dashboard-style/...); here it is this repository's
+     dist/, so the page also works from disk. -->
+<link rel="stylesheet" href="../dist/fonts/fonts.css">
+<link rel="stylesheet" href="../dist/ds.css">
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="app.css">
+<script>
+  // The accent chosen under Settings, before the first paint (no flash of the default theme).
+  try { var accent = localStorage.getItem('ex-accent'); if (accent) document.documentElement.setAttribute('data-ex-accent', accent); } catch (error) { /* storage blocked */ }
+</script>
+</head>
+<body>
+<div class="ds-app ds-app--drawer" id="app">
+  <a class="ds-skip" href="#main">Skip to content</a>
+
+  <div class="ds-topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false" aria-controls="drawer" id="menu" data-icon="menu"></button>
+    <a class="ds-brand" href="#/overview"><span class="ex-logo" aria-hidden="true"></span><span class="ds-brand__name">Example Console</span></a>
+    <div class="ds-account">
+      <a class="ds-btn ds-btn--quiet ds-btn--icon" href="https://github.com/saschazesiger/Dashboard-Style#readme" aria-label="Documentation" data-tip="Documentation" data-icon="info"></a>
+      <div class="ds-account__text"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
+      <span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org" data-tip="Ada Lovelace, ada@example.org" tabindex="0">A</span>
+    </div>
+  </div>
+
+  <div class="ds-scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="ex-logo"></span><span class="ds-brand__name">Example Console</span></div>
+    <div class="ds-drawer__list" id="nav">
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Console</p>
+        <a class="ds-drawer__item" href="#/overview" data-route="overview" data-icon="overview"><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#/devices" data-route="devices" data-icon="laptop"><span class="ds-drawer__label">Devices</span></a>
+        <a class="ds-drawer__item" href="#/tickets" data-route="tickets" data-icon="ticket"><span class="ds-drawer__label">Tickets</span></a>
+        <a class="ds-drawer__item" href="#/settings" data-route="settings" data-icon="settings"><span class="ds-drawer__label">Settings</span></a>
+      </div>
+      <div class="ds-drawer__group">
+        <p class="ds-drawer__heading">Design system</p>
+        <a class="ds-drawer__item" href="../styleguide/index.html" data-icon="apps"><span class="ds-drawer__label">Styleguide</span></a>
+        <a class="ds-drawer__item" href="../styleguide/motion.html" data-icon="activity"><span class="ds-drawer__label">Motion Lab</span></a>
+        <a class="ds-drawer__item" href="../styleguide/views.html" data-icon="columns"><span class="ds-drawer__label">Views</span></a>
+        <a class="ds-drawer__item" href="https://github.com/saschazesiger/Dashboard-Style" data-icon="fileCode"><span class="ds-drawer__label">Source</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content">
+        <div class="ds-page" id="page">
+          <!-- The first load: one skeleton surface with its loading bar, replaced once the data is in (app.js). -->
+          <div class="ds-skeleton" role="status">
+            <span class="ds-sr">Loading ...</span>
+            <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
+            <span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span>
+            <span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>
+            <div class="ds-skeleton__card" aria-hidden="true">
+              <span class="ds-skeleton__line ds-skeleton__line--title"></span>
+              <span class="ds-skeleton__line"></span>
+              <span class="ds-skeleton__line ds-skeleton__line--short"></span>
+              <span class="ds-skeleton__line ds-skeleton__line--mid"></span>
+            </div>
+            <div class="ds-skeleton__card" aria-hidden="true">
+              <span class="ds-skeleton__line ds-skeleton__line--title"></span>
+              <span class="ds-skeleton__line"></span>
+              <span class="ds-skeleton__line ds-skeleton__line--mid"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Right after .ds-app: DS.overlay.toast() adds its live regions next to it. -->
+<div class="ds-toasts" id="toasts"></div>
+
+<!-- Overlays sit inside the .ds-theme element (here <html>) and open and close through DS.overlay. -->
+
+<dialog class="ds-sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="ds-sheet__backdrop" data-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <h2 class="ds-sheet__title" id="sheet-title">Device</h2>
+      <div class="ex-row">
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous device" data-tip="Previous device" id="sheet-prev" data-icon="chevronLeft"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next device" data-tip="Next device" id="sheet-next" data-icon="chevronRight"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close data-icon="close"></button>
+      </div>
+    </div>
+    <div class="ds-sheet__body" tabindex="0" id="sheet-body"></div>
+  </section>
+</dialog>
+
+<dialog class="ds-dialog" id="confirm" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="confirm-title">Delete devices?</h2>
+    <p class="ds-dialog__text" id="confirm-text">They disappear from every list.</p>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="confirm-ok">Delete</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="ds-dialog" id="ticket-dialog" aria-labelledby="ticket-title">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <form class="ds-dialog__box ds-form" id="ticket-form" novalidate>
+    <h2 class="ds-dialog__title" id="ticket-title">New ticket</h2>
+    <div class="ds-form-grid ds-form-grid--2">
+      <div class="ds-field ds-field--full">
+        <label class="ds-field__label" for="ticket-subject">Subject</label>
+        <input class="ds-input" id="ticket-subject" name="subject" autocomplete="off" aria-describedby="ticket-subject-hint" autofocus>
+        <small class="ds-field__hint" id="ticket-subject-hint">One line: what does not work?</small>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="ticket-device">Device</label>
+        <div class="ds-combo" id="ticket-combo">
+          <input class="ds-input ds-combo__input" id="ticket-device" name="device" role="combobox" autocomplete="off"
+                 aria-expanded="false" aria-controls="ticket-device-list" aria-autocomplete="list" aria-describedby="ticket-device-hint">
+          <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all devices" data-icon="chevronDown"></button>
+          <div class="ds-combo__popup" hidden>
+            <ul class="ds-combo__list" id="ticket-device-list" role="listbox" aria-label="Devices"></ul>
+            <p class="ds-combo__status" role="status"></p>
+          </div>
+        </div>
+        <small class="ds-field__hint" id="ticket-device-hint">Type a name, owner or model.</small>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="ticket-priority">Priority</label>
+        <select class="ds-input" id="ticket-priority" name="priority">
+          <option value="low">Low</option>
+          <option value="normal" selected>Normal</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="ds-field ds-field--full">
+        <label class="ds-field__label" for="ticket-text">Description</label>
+        <textarea class="ds-input" id="ticket-text" name="text"></textarea>
+      </div>
+    </div>
+    <label class="ds-check"><input type="checkbox" name="notify" checked><span>Tell the owner</span></label>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="submit">
+        <span class="ds-btn__faces">
+          <span class="ds-btn__face">Create ticket</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Creating</span>
+          <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon-done>Created</span>
+        </span>
+      </button>
+    </div>
+  </form>
+</dialog>
+
+<div class="ds-menu" role="menu" id="row-menu" aria-label="Device actions" hidden>
+  <button class="ds-menu__item" role="menuitem" type="button" data-action="open" data-icon="fileText"><span class="ds-menu__label">Open</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button" data-action="ticket" data-icon="ticket"><span class="ds-menu__label">New ticket</span></button>
+  <button class="ds-menu__item" role="menuitem" type="button" data-action="restart" data-icon="sync"><span class="ds-menu__label">Restart</span></button>
+  <div class="ds-menu__divider" role="separator"></div>
+  <button class="ds-menu__item" role="menuitem" type="button" data-action="delete" data-icon="trash"><span class="ds-menu__label">Delete</span></button>
+</div>
+
+<script src="../dist/ds.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

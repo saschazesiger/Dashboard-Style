@@ -11,6 +11,11 @@ A neutral, themeable design system for admin dashboards and internal tools, in t
 - **Embeddable.** Tokens live on `.ds-theme`, not `:root`, so the system can run inside someone else's page, and
   every rule sits in `@layer ds.*`, so the page's own unlayered CSS always wins.
 
+**See it live:** [saschazesiger.github.io/Dashboard-Style](https://saschazesiger.github.io/Dashboard-Style/) runs the
+reference app (a small device console built the way a project uses the system, source in [`example/`](example/README.md)),
+the [styleguide](https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html) and the
+[Motion Lab](https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html).
+
 MIT licensed. The bundled Google Sans font is under the SIL Open Font License 1.1; the icon shapes come from Lucide
 (ISC) and Feather (MIT), see [LICENSE](LICENSE). There is no dark theme: the default is light, and dark mode is not
 designed yet.
@@ -48,6 +53,9 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
 (`DS.ripple.attach(document)` once), the overlays (`DS.overlay`: dialogs, side sheets, the modal drawer, menus, the
 combobox list, tooltips and snackbars) and the icons (`window.DS`); every component works without it, overlays then
 opened and closed by hand as [docs/components.md](docs/components.md) describes.
+
+For a whole app (navigation, tables with live data, overlays, forms, a project theme and project components),
+read the reference app in [`example/`](example/README.md): its README maps every pattern to its code.
 
 Open [`styleguide/index.html`](styleguide/index.html) in a browser (works from disk) to see every component, the
 tokens and the icons, and to try a theme file. Its Motion Lab, [`styleguide/motion.html`](styleguide/motion.html),
@@ -115,7 +123,8 @@ src/             sources: tokens.css, motion.css, base.css, components/*.css, op
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template
 styleguide/      living styleguide (open index.html; motion.html: the Motion Lab; views.html: view transitions and scrolling)
-scripts/         build.mjs, motion-curves.mjs, vendor.sh, vendor.ps1
+example/         the reference app: a device console on top of dist/, as a project builds one (published on GitHub Pages)
+scripts/         build.mjs, motion-curves.mjs, vendor.sh, vendor.ps1, site.sh (assembles the GitHub Pages site)
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test unit tests, no dependencies; test/browser/ Playwright tests (three engines)
 docs/            the documentation above

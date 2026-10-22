@@ -21,6 +21,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `npm test` | tests only (`node --test`, no dependencies, Node 22+) |
 | `npm run build` | rebuild `dist/` after any change to `src/`, `fonts/`, `LICENSE` or the version |
 | `node scripts/motion-curves.mjs` | regenerate the sampled `linear()` curves (`--ds-ease-spatial`, `--ds-ease-emphasized`) and the progress masks in `src/tokens.css`, and the generated loop keyframe stops (loader shapes, spinner arc, indeterminate progress, skeleton wave) in `src/motion.css`; never edit them by hand |
+| `sh scripts/site.sh <dest>` | assemble the GitHub Pages site (`example/`, `styleguide/`, `dist/`, `docs/`, `themes/`, a root page that forwards to the reference app) into an empty `<dest>` (default `_site`, gitignored); `pages.yml` runs it |
 | `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
 | `sh scripts/vendor.sh --from . /tmp/ds && sh scripts/vendor.sh --check /tmp/ds` | the vendor round trip CI runs after `npm run check` |
 | `npm ci` | once, for the browser tests only (installs the pinned `@playwright/test`, the only devDependency); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
@@ -43,11 +44,13 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
 | `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`) |
 | `docs/` | `install`, `tokens`, `theming`, `components`, `motion`, `icons`, `rules` |
-| `scripts/` | `build.mjs` (deterministic, `--check`), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects) |
+| `example/` | the reference app, published on GitHub Pages: a device console that uses the system as a project does (`theme.css` the project theme, `app.css` project components with the prefix `ex-`, `data.js` a fake backend, `app.js` the app; classic scripts on `../dist/`, so it works from disk); its `README.md` maps every pattern to its code. It follows the documented markup and the project rules of "Using Dashboard-Style in a project" below; `test/browser/example.spec.js` runs its flows |
+| `scripts/` | `build.mjs` (deterministic, `--check`), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects), `site.sh` (the GitHub Pages site) |
 | `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
 | `test/` | `css`, `tokens`, `motion`, `js`, `build`, `repo`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
 | `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`, `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, `lab` for the Motion Lab: coverage, every demo, interruption, the overlay table; `review` for the whole-page sweeps; `perf` for the paint budget and style recalc times, alone) and the committed `__screenshots__/`; `README.md` explains them |
 | `plans/` | working plans (Motion 2); kept outside `docs/` so the docs tests do not count them |
+| `.github/workflows/pages.yml` | GitHub Pages: after `check` passed on a push to `main` (or by hand), `npm run check`, `scripts/site.sh`, deploy; the repository's Pages source is "GitHub Actions" |
 | `.github/workflows/check.yml` | CI on every push, pull request and by hand: `check` (Node 22 and 24: `npm run check` and the vendor round trip), then `browser` (Playwright in `mcr.microsoft.com/playwright:v<pinned>-noble`, one job per engine); Run workflow with "update screenshots" uploads a new screenshot set |
 
 ## Conventions
@@ -153,6 +156,8 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
 Work in `src/`, never in `dist/`. Every change follows the same path:
 **src → docs → styleguide demo → unit tests → browser tests → CHANGELOG → version in `package.json` →
 `npm run build` → `npm run check` → `npm run test:browser`**, and `src/` and `dist/` are committed together.
+A change to documented markup, a hook or a JS export that `example/` uses updates the reference app in the same
+commit, so the published example never shows a deprecated pattern.
 
 - **Component**: a new `src/components/<name>.css` with the usual header comment; `@import` it in `src/index.css`
   at its place in the cascade; a section in `docs/components.md` (markup, modifiers, behaviour the page must add)

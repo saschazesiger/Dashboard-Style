@@ -217,7 +217,7 @@ describe('repository', () => {
     const names = new RegExp(['prefers-' + 'reduced-motion', 'ds-motion' + '-full', 'prefersReduced' + 'Motion', 'reduced' + '[ -]motion',
       'Safari ' + '14', 'no ' + 'spring', 'nothing that ' + 'bounces', 'nothing ' + '(overshoots|bounces)', '(no|motion|curves?|animations?|everything) never ' + 'overshoots?',
       'no curve ' + 'leaves'].join('|'), 'i');
-    const scope = ALL_FILES.filter((path) => TEXT.test(path) && (/^(src|dist|styleguide|themes|docs)\//.test(path) || ['README.md', 'AGENTS.md'].includes(path)));
+    const scope = ALL_FILES.filter((path) => TEXT.test(path) && (/^(src|dist|styleguide|example|themes|docs)\//.test(path) || ['README.md', 'AGENTS.md'].includes(path)));
     assert.ok(scope.includes('src/tokens.css') && scope.includes('AGENTS.md') && scope.includes('styleguide/lab.js'), 'the walk finds the files');
     const offenders = [];
     for (const path of scope) {

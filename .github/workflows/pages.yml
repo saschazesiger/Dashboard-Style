@@ -1,0 +1,53 @@
+name: pages
+# Publishes the reference app, the styleguide and the Motion Lab on GitHub Pages (scripts/site.sh assembles them).
+# One-time setup: Settings → Pages → Source "GitHub Actions".
+on:
+  # After CI passed on a push to main (unit and browser tests), so the site never shows a commit that failed them.
+  workflow_run:
+    workflows: [check]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer commit waits and then wins.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Only a push to this repository's main: a pull request from a fork may name its branch main as well.
+    if: >-
+      github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' && github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The commit CI tested, not whatever main points to by now.
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm run check
+      - run: sh scripts/site.sh _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}example/
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

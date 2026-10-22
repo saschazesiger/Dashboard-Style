@@ -1,0 +1,225 @@
+/*
+ * The reference app's own components, with the project prefix ex-. They
+ * read tokens only (--ds-* and the project's --ex-* from theme.css): no
+ * colour, radius, font, shadow, duration or curve literals, no keyframes
+ * of their own (the bars grow with .ds-enter--fill-y). Unlayered, like
+ * every project stylesheet, and never restyling a .ds-* component.
+ *
+ *   .ex-logo         the brand mark in the top bar and the drawer
+ *   .ex-row          a wrapping row of buttons
+ *   .ex-page-head    the page header with actions on the right
+ *   .ex-field-row    a field and an icon button side by side
+ *   .ex-detail       the content of an expanded table row
+ *   .ex-col-time, .ex-col-status  stable widths for columns with live values
+ *   .ex-chart        a column chart: .ex-chart__col > .ex-chart__bar (--ex-share 0..1), .ex-chart__label
+ *   .ex-activity     a feed: .ex-activity__item > .ex-activity__icon, .ex-activity__text, .ex-activity__time
+ *   .ex-disclosure   <details class="ds-collapsible ex-disclosure">: the summary row
+ *   .ex-swatch       the colour dot of an accent choice
+ */
+
+.ex-logo {
+  display: inline-block;
+  flex: none;
+  width: var(--ex-logo-size);
+  height: var(--ex-logo-size);
+  border-radius: var(--ds-radius-sm);
+  background:
+    linear-gradient(135deg, var(--ds-primary) 0 50%, transparent 50%) top left / 50% 50% no-repeat,
+    linear-gradient(var(--ds-accent), var(--ds-accent));
+  box-shadow: inset 0 0 0 1px var(--ds-line);
+}
+
+.ex-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.ex-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ds-space-3) var(--ds-space-6);
+}
+
+.ex-page-head > .ds-page-head {
+  flex: 1 1 320px;
+}
+
+/* A field with a button after it (copy, reveal). */
+.ex-field-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.ex-field-row > .ds-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ex-detail {
+  display: grid;
+  gap: var(--ds-space-3);
+  justify-items: start;
+}
+
+/* Live data changes these values' width ("Just now", "2 days ago", a status
+   chip): a stable width keeps the columns from shifting sideways. */
+.ex-col-time {
+  min-width: 112px;
+}
+
+.ex-col-status {
+  min-width: 136px;
+}
+
+/* ── Column chart ───────────────────────────────────────────────────── */
+
+.ex-chart {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--ds-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ex-chart__col {
+  display: grid;
+  gap: var(--ds-space-2);
+  justify-items: center;
+}
+
+.ex-chart__track {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  max-width: var(--ds-space-10);
+  height: var(--ex-chart-height);
+  border-radius: var(--ds-radius-xs);
+  background: var(--ex-chart-track);
+  overflow: hidden;
+}
+
+.ex-chart__bar {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--ds-radius-xs);
+  background: var(--ex-chart-bar);
+  transform: scaleY(var(--ex-share, 0));
+  transform-origin: bottom;
+}
+
+.ex-chart__label {
+  font: var(--ds-font-caption);
+  color: var(--ds-text-2);
+}
+
+.ex-chart__value {
+  font: var(--ds-font-meta);
+  color: var(--ds-text);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (forced-colors: active) {
+  .ex-chart__bar {
+    background: CanvasText;
+  }
+
+  .ex-chart__track {
+    background: Canvas;
+    outline: 1px solid CanvasText;
+  }
+}
+
+/* ── Activity feed ──────────────────────────────────────────────────── */
+
+/* A flex column with a gap: DS.motion.flip() glides the items when one comes in. */
+.ex-activity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ex-activity__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.ex-activity__icon {
+  display: grid;
+  place-items: center;
+  width: var(--ds-space-8);
+  height: var(--ds-space-8);
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-surface-high);
+  color: var(--ds-text-2);
+}
+
+.ex-activity__text {
+  font: var(--ds-font-body);
+  color: var(--ds-text);
+  overflow-wrap: anywhere;
+}
+
+.ex-activity__time {
+  font: var(--ds-font-meta);
+  color: var(--ds-text-3);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Disclosure ─────────────────────────────────────────────────────── */
+
+/* The summary of a <details class="ds-collapsible ex-disclosure">; its .ds-chevron turns by itself. */
+.ex-disclosure > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  font: var(--ds-font-label);
+  color: var(--ds-text);
+  cursor: pointer;
+  border-radius: var(--ds-radius-xs);
+}
+
+.ex-disclosure > summary:focus-visible {
+  outline: var(--ds-focus-outline);
+  outline-offset: var(--ds-focus-offset);
+}
+
+.ex-disclosure > :not(summary) {
+  margin-top: var(--ds-space-3);
+}
+
+/* ── Accent choice ──────────────────────────────────────────────────── */
+
+.ex-swatch {
+  display: inline-block;
+  flex: none;
+  width: var(--ds-space-4);
+  height: var(--ds-space-4);
+  margin-inline-end: var(--ds-space-2);
+  vertical-align: -3px;
+  border-radius: var(--ds-radius-action);
+  background: var(--ds-primary);
+  box-shadow: inset 0 0 0 1px var(--ds-line);
+}
+
+.ex-swatch[data-accent="default"] { background: var(--ex-swatch-default); }
+.ex-swatch[data-accent="teal"] { background: var(--ex-swatch-teal); }
+.ex-swatch[data-accent="violet"] { background: var(--ex-swatch-violet); }
+
+@media (forced-colors: active) {
+  .ex-swatch {
+    display: none;
+  }
+}

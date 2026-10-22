@@ -1,0 +1,44 @@
+/*
+ * The project theme of the reference app: loaded after ds.css, unlayered
+ * and on .ds-theme, so it wins over every token of the system. A theme
+ * sets roles (--ds-primary, --ds-accent ...), component hooks
+ * (--ds-card-*, --ds-btn-* ...) and the project's own tokens (--ex-*);
+ * never motion tokens or motion hooks, and never a component's look
+ * directly. themes/example.css lists every role and hook.
+ */
+
+.ds-theme {
+  /* A component hook: interactive cards gain a shadow on hover (default: none). */
+  --ds-card-hover-shadow: var(--ds-elev-hover);
+
+  /* The project's own tokens, read by app.css. */
+  --ex-logo-size: 32px;
+  --ex-chart-height: 120px;
+  --ex-chart-bar: var(--ds-primary);
+  --ex-chart-track: var(--ds-surface-high);
+  /* The dots of the accent choice under Settings: each accent's primary colour, whichever accent is on. */
+  --ex-swatch-default: #0b57d0;
+  --ex-swatch-teal: #006a6a;
+  --ex-swatch-violet: #6750a4;
+}
+
+/* A second accent, chosen under Settings (data-ex-accent on <html>): the roles that follow the primary colour. */
+.ds-theme[data-ex-accent="teal"] {
+  --ds-primary: #006a6a;
+  --ds-primary-hover: #187979;
+  --ds-primary-pressed: #005454;
+  --ds-accent: #cce8e7;
+  --ds-on-accent: #002020;
+  --ds-inverse-primary: #4cdada;
+  --ds-link-underline: rgba(0, 106, 106, .4);
+}
+
+.ds-theme[data-ex-accent="violet"] {
+  --ds-primary: #6750a4;
+  --ds-primary-hover: #7461ab;
+  --ds-primary-pressed: #56418f;
+  --ds-accent: #e8def8;
+  --ds-on-accent: #1d192b;
+  --ds-inverse-primary: #d0bcff;
+  --ds-link-underline: rgba(103, 80, 164, .4);
+}
