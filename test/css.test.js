@@ -118,7 +118,34 @@ const FOCUS_EXEMPT = [
 ];
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
-const RUNTIME = new Set(['--ds-i', '--ds-ripple-x', '--ds-ripple-y', '--ds-ripple-r', '--ds-indicator-x', '--ds-indicator-y', '--ds-indicator-w', '--ds-indicator-h', '--ds-indicator-dur', '--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius', '--ds-progress', '--ds-toast-left', '--ds-toast-bottom', '--ds-toast-shift', '--ds-toast-shift-y', '--ds-toast-reserve', '--ds-tooltip-x', '--ds-tooltip-y', '--ds-menu-x', '--ds-menu-y', '--ds-chips-backdrop', '--ds-flip-backdrop']);
+const RUNTIME = new Set([
+  '--ds-i',
+  '--ds-ripple-x',
+  '--ds-ripple-y',
+  '--ds-ripple-r',
+  '--ds-indicator-x',
+  '--ds-indicator-y',
+  '--ds-indicator-w',
+  '--ds-indicator-h',
+  '--ds-indicator-dur',
+  '--ds-indicator-t',
+  '--ds-indicator-r',
+  '--ds-indicator-b',
+  '--ds-indicator-l',
+  '--ds-indicator-radius',
+  '--ds-progress',
+  '--ds-toast-left',
+  '--ds-toast-bottom',
+  '--ds-toast-shift',
+  '--ds-toast-shift-y',
+  '--ds-toast-reserve',
+  '--ds-tooltip-x',
+  '--ds-tooltip-y',
+  '--ds-menu-x',
+  '--ds-menu-y',
+  '--ds-chips-backdrop',
+  '--ds-flip-backdrop',
+]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
@@ -1443,7 +1470,7 @@ describe('controls (1.1.0)', () => {
     // the markup in the header comments counts too: every <a class="ds-...">
     // and <button class="ds-..."> is a host, a link that stands for its host
     // (HOST_LINK in ripple.js) or an exemption.
-    const hostLinks = splitSelectors(read('src/js/ripple.js').match(/const HOST_LINK = '([^']+)'/)[1]);
+    const hostLinks = [...read('src/js/ripple.js').match(/const HOST_LINK = \[([^\]]+)\]\.join\(', '\)/)[1].matchAll(/'([^']+)'/g)].map((match) => match[1]);
     // A host of one compound (`.ds-btn`, `:is(button, a).ds-tile`) matches an element by tag and classes.
     const elementIsHost = (tag, names) => hosts.some((host) => {
       const match = host.match(/^(?::is\(([\w,\s]+)\))?((?:\.[\w-]+)+)$/);

@@ -166,11 +166,17 @@ describe('repository', () => {
     const names = new Set([...read('docs/components.md').matchAll(/```html\n([\s\S]*?)```/g)]
       .flatMap((block) => [...block[1].matchAll(/<([a-z][a-z0-9]*)\b/g)].map((match) => match[1])));
     const EXEMPT = new Map([
-      ['html', 'the page, not the widget'], ['body', 'the page, not the widget'],
-      ['div', 'no UA style that a reset changes'], ['span', 'no UA style that a reset changes'],
-      ['svg', 'icons keep their own attributes'], ['path', 'an icon shape'], ['form', 'no UA style the components rely on'],
-      ['tbody', 'table structure: the cells carry the styles'], ['thead', 'table structure: the cells carry the styles'],
-      ['tr', 'table structure: the cells carry the styles'], ['option', 'native select options'],
+      ['html', 'the page, not the widget'],
+      ['body', 'the page, not the widget'],
+      ['div', 'no UA style that a reset changes'],
+      ['span', 'no UA style that a reset changes'],
+      ['svg', 'icons keep their own attributes'],
+      ['path', 'an icon shape'],
+      ['form', 'no UA style the components rely on'],
+      ['tbody', 'table structure: the cells carry the styles'],
+      ['thead', 'table structure: the cells carry the styles'],
+      ['tr', 'table structure: the cells carry the styles'],
+      ['option', 'native select options'],
     ]);
     const theming = read('docs/theming.md');
     const guard = /\.ds-theme\.my-widget :where\(([^)]*)\)\s*\{\s*all: revert-layer;/.exec(theming)?.[1];

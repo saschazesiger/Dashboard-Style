@@ -1393,3 +1393,5 @@ once). Never both on one element. A `[popover]` is centred by the browser's `mar
 spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` again or place it outside.
 
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
+
+## Attributes

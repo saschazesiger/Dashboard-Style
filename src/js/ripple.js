@@ -65,19 +65,42 @@
 import { MOTION_FALLBACKS, flip, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
 
 /** The actions that get a ripple. */
-export const RIPPLE_HOSTS = '.ds-btn, .ds-chip, .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile, .ds-card--interactive, .ds-table__sort, .ds-table--interactive tbody tr:not(.ds-table__detail), .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]';
+export const RIPPLE_HOSTS = [
+  '.ds-btn',
+  '.ds-chip',
+  '.ds-segmented__option',
+  '.ds-drawer__item',
+  ':is(button, a).ds-tile',
+  '.ds-card--interactive',
+  '.ds-table__sort',
+  '.ds-table--interactive tbody tr:not(.ds-table__detail)',
+  '.ds-radio',
+  '.ds-combo__toggle',
+  '.ds-menu__item',
+  '.ds-errors summary',
+  '[data-ds-ripple]',
+].join(', ');
 
 /** The link that stands for its host (stretched over a row or a <div> card): Enter on it ripples the host. */
-const HOST_LINK = '.ds-table__row-link, .ds-card__action';
+const HOST_LINK = [
+  '.ds-table__row-link',
+  '.ds-card__action',
+].join(', ');
 
 /** Hosts whose own input is part of the host: pressing the input ripples the host. */
-const OWNS_INPUT = '.ds-chip, .ds-radio';
+const OWNS_INPUT = [
+  '.ds-chip',
+  '.ds-radio',
+].join(', ');
 
 /** Controls whose press is their own halo, not a ripple. */
 const OWN_PRESS = 'input[type="checkbox"], input[type="radio"], .ds-switch';
 
 /** Hosts a link stretches over (HOST_LINK): their other controls keep their own press. */
-const STRETCHED = '.ds-card--interactive, .ds-table--interactive tbody tr';
+const STRETCHED = [
+  '.ds-card--interactive',
+  '.ds-table--interactive tbody tr',
+].join(', ');
 
 /** What a press inside a stretched host may land on besides its link (the CSS's press exclusion, plus [tabindex]). */
 const CONTROLS = 'a[href], button, input, select, textarea, label, summary, [tabindex]';

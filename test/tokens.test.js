@@ -238,18 +238,32 @@ function colour(name) {
 
 /** The text pairs that pass AA (4.5:1), in the default palette and in the theme template. */
 const TEXT_PAIRS = [
-  ['--ds-text', '--ds-surface'], ['--ds-text', '--ds-backdrop'], ['--ds-text', '--ds-surface-highest'],
-  ['--ds-text-2', '--ds-surface'], ['--ds-text-2', '--ds-backdrop'], ['--ds-text-2', '--ds-surface-low'], ['--ds-text-2', '--ds-surface-high'],
+  ['--ds-text', '--ds-surface'],
+  ['--ds-text', '--ds-backdrop'],
+  ['--ds-text', '--ds-surface-highest'],
+  ['--ds-text-2', '--ds-surface'],
+  ['--ds-text-2', '--ds-backdrop'],
+  ['--ds-text-2', '--ds-surface-low'],
+  ['--ds-text-2', '--ds-surface-high'],
   ['--ds-text-3', '--ds-surface'],
-  ['--ds-on-primary', '--ds-primary'], ['--ds-link', '--ds-surface'], ['--ds-action-ink', '--ds-surface'], ['--ds-action-ink', '--ds-backdrop'],
+  ['--ds-on-primary', '--ds-primary'],
+  ['--ds-link', '--ds-surface'],
+  ['--ds-action-ink', '--ds-surface'],
+  ['--ds-action-ink', '--ds-backdrop'],
   ['--ds-on-accent', '--ds-accent'],
   // A selected table row (--ds-table-row-selected, default --ds-accent) keeps its text readable.
-  ['--ds-text', '--ds-accent'], ['--ds-text-2', '--ds-accent'],
-  ['--ds-on-error-container', '--ds-error-container'], ['--ds-on-success-container', '--ds-success-container'],
-  ['--ds-on-warning-container', '--ds-warning-container'], ['--ds-text', '--ds-warning-surface'],
-  ['--ds-on-inverse', '--ds-inverse'], ['--ds-on-error-container', '--ds-surface'],
+  ['--ds-text', '--ds-accent'],
+  ['--ds-text-2', '--ds-accent'],
+  ['--ds-on-error-container', '--ds-error-container'],
+  ['--ds-on-success-container', '--ds-success-container'],
+  ['--ds-on-warning-container', '--ds-warning-container'],
+  ['--ds-text', '--ds-warning-surface'],
+  ['--ds-on-inverse', '--ds-inverse'],
+  ['--ds-on-error-container', '--ds-surface'],
   // A field label tints with the ring, or takes the error ink: on every surface a field sits on.
-  ['--ds-primary', '--ds-surface'], ['--ds-primary', '--ds-surface-low'], ['--ds-on-error-container', '--ds-surface-low'],
+  ['--ds-primary', '--ds-surface'],
+  ['--ds-primary', '--ds-surface-low'],
+  ['--ds-on-error-container', '--ds-surface-low'],
 ];
 
 describe('default palette', () => {
