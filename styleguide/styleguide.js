@@ -1629,7 +1629,7 @@
     };
     return '<dialog class="ds-dialog ds-dialog--wide" id="sg-dialog-long" aria-labelledby="sg-long-title"><div class="ds-dialog__backdrop" data-close></div>' +
       '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-long-title">Edit LAPTOP-0042</h2>' +
-      '<div class="ds-dialog__body" data-sg-scrolled><p class="ds-dialog__text">The changes apply to every list once you save.</p>' +
+      '<div class="ds-dialog__body"><p class="ds-dialog__text">The changes apply to every list once you save.</p>' +
       field('name', 'Name', ' value="LAPTOP-0042"') + field('owner', 'Owner', ' value="Ada Lovelace"') + field('place', 'Location', ' value="Building A, 1st floor"') +
       field('model', 'Model', ' value="Latitude 7440"') + field('serial', 'Serial number', ' value="7H2K9Q3"') + field('bought', 'Bought', ' type="date" value="2023-04-12"') +
       field('warranty', 'Warranty until', ' type="date" value="2026-04-12"') + field('note', 'Note', ' placeholder="Add a note"') +
@@ -1643,7 +1643,7 @@
       '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-people-title">Choose the new owner</h2>' +
       '<div class="ds-search">' + icon('search', 20) + '<input class="ds-input" id="sg-people-search" type="search" aria-label="Search people" placeholder="Search people" autocomplete="off"></div>' +
       '<p class="ds-meta" id="sg-people-count" aria-live="polite">40 people</p>' +
-      '<div class="ds-dialog__body" id="sg-people-list" role="radiogroup" aria-label="People" data-sg-scrolled></div>' +
+      '<div class="ds-dialog__body" id="sg-people-list" role="radiogroup" aria-label="People"></div>' +
       '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>' +
       '<button class="ds-btn ds-btn--primary" type="button" id="sg-people-ok" aria-disabled="true" data-tip="Choose a person first">Choose</button></div></div></dialog>';
   }
