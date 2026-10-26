@@ -109,6 +109,7 @@ const PROGRESSIVE = [
   [/text-wrap/, 'text-wrap'],
   [/scrollbar-color|scrollbar-width/, 'scrollbar-color'],
   [/scrollbar-gutter/, 'scrollbar-gutter'],
+  [/content:\s*[^;]*\/\s*["']/, 'alt text for generated content'],
 ];
 
 /** Plain :focus selectors that may draw an outline, each with its reason. */
@@ -180,6 +181,8 @@ const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-ripple', 'a ring that grows and fades from a set start (--ds-ripple-opacity)'],
   ['ds-scroll-fade', 'scroll-linked: both ends named, so an inactive timeline (a scroller without overflow) leaves the element\'s own opacity 0'],
   ['ds-edge-fade', 'scroll-linked: a position on the table\'s scroll timeline, not an entrance, so both ends are named'],
+  ['ds-scroll-edge-start', 'scroll-linked: the start fade of a sideways scroller over the first --ds-space-8 of its scroll, a position, not an entrance'],
+  ['ds-scroll-edge-end', 'scroll-linked: the end fade of a sideways scroller over the last --ds-space-8 of its scroll, a position, not an entrance'],
   ...LOADER_LOOPS,
 ]);
 /**
@@ -1896,7 +1899,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
   });
 
   it('runs the scroll-linked keyframes only on a scroll timeline, and times nothing on one', () => {
-    const scrollLinked = ['ds-scroll-fade', 'ds-edge-fade'];
+    const scrollLinked = ['ds-scroll-fade', 'ds-edge-fade', 'ds-scroll-edge-start', 'ds-scroll-edge-end'];
     const users = all.filter((rule) => scrollLinked.some((name) => new RegExp(`(^|[\\s,])${name}(\\s|,|$)`).test(rule.own.animation || '')));
     assert.ok(users.length >= 5, users.map((rule) => rule.selector).join());
     for (const rule of users) {
@@ -1913,6 +1916,22 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
     assert.deepEqual([...touched].sort(), ['--ds-table-fade-end', '--ds-table-fade-start']);
     for (const name of touched) assert.ok(REGISTERED.has(name), `${name} is registered`);
     assert.deepEqual(rules(KEYFRAMES['ds-scroll-fade']).map((rule) => rule.selector), ['from', 'to']);
+    // The edge numbers (2.0): from 0 to 1 at the start, 1 to 0 at the end, registered <number>s that do not inherit.
+    for (const [name, property, from, to] of [['ds-scroll-edge-start', '--ds-scroll-edge-start', '0', '1'], ['ds-scroll-edge-end', '--ds-scroll-edge-end', '1', '0']]) {
+      const stops = Object.fromEntries(rules(KEYFRAMES[name]).map((rule) => [rule.selector, declarations(rule.body)]));
+      assert.deepEqual(Object.keys(stops), ['from', 'to'], name);
+      assert.deepEqual([stops.from, stops.to].map((list) => list.map((entry) => `${entry.property}: ${entry.value}`)), [[`${property}: ${from}`], [`${property}: ${to}`]], name);
+      assert.ok(REGISTERED.has(property), `${property} is registered`);
+      assert.match(stripComments(read('src/components/scroller.css')), new RegExp(`@property ${property} \\{\\s*syntax: '<number>';\\s*inherits: false;\\s*initial-value: 0;`), property);
+    }
+    // Every user of the edge numbers runs both on its own inline scroll, over the documented ranges.
+    const edges = users.filter((rule) => /ds-scroll-edge-start/.test(rule.own.animation));
+    assert.ok(edges.length >= 4, edges.map((rule) => rule.selector).join());
+    for (const rule of edges) {
+      assert.equal(rule.own.animation, 'ds-scroll-edge-start linear both, ds-scroll-edge-end linear both', rule.selector);
+      assert.equal(rule.own['animation-timeline'], 'scroll(self inline)', rule.selector);
+      assert.equal(rule.own['animation-range'], '0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%', rule.selector);
+    }
   });
 
   it('names View Transitions and scroll-driven animations under "Progressive:" in each file that uses them', () => {
@@ -1920,6 +1939,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       'src/components/shell.css': ['View Transitions', 'scroll-driven'],
       'src/components/sheet.css': ['View Transitions', 'scroll-driven'],
       'src/components/table.css': ['scroll-driven'],
+      'src/components/scroller.css': ['scroll-driven'],
       'src/motion.css': ['View Transitions', 'scroll-driven'],
       'src/optional/view-transitions.css': ['View Transitions'],
     };
@@ -1944,5 +1964,145 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       const base = declarationsOf(withoutAtRuleBlocks(read(file), /@supports/), selector).filter((entry) => entry.property === 'opacity');
       assert.equal(base[0]?.value, '0', `${file}: ${selector} rests at opacity 0`);
     }
+  });
+});
+
+describe('tables and scrollers (2.0)', () => {
+  const TABLE = 'src/components/table.css';
+  const SCROLLER = 'src/components/scroller.css';
+  const table = read(TABLE);
+
+  it('keeps the three copies of the stacked block identical (sheet and dialog, 600px, 840px)', () => {
+    // Each copy: its scope (the stacked table) and its card form; the rules of a copy are the rules whose selector starts with either.
+    const copies = [
+      { block: withoutAtRuleBlocks(withoutAtRuleBlocks(table, /@container/), /@media\s+print/), scope: ':is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide)', card: ':is(.ds-sheet__body, .ds-dialog) .ds-card .ds-table-wrap > :is(.ds-table--stack, .ds-table--stack-wide)' },
+      { block: atRuleBlocks(table, /@container ds-content \(max-width: 600px\)/).join('\n'), scope: '.ds-table--stack', card: '.ds-card .ds-table-wrap > .ds-table--stack' },
+      { block: atRuleBlocks(table, /@container ds-content \(max-width: 840px\)/).join('\n'), scope: '.ds-table--stack-wide', card: '.ds-card .ds-table-wrap > .ds-table--stack-wide' },
+    ];
+    const normalised = copies.map(({ block, scope, card }) => rules(block)
+      .filter((rule) => rule.selector.startsWith(scope) || rule.selector.startsWith(card))
+      .map((rule) => `${rule.selector.startsWith(card) ? `C${rule.selector.slice(card.length)}` : `S${rule.selector.slice(scope.length)}`} { ${rule.body} }`));
+    assert.ok(normalised[0].length >= 10, normalised[0].join('\n'));
+    assert.deepEqual(normalised[1], normalised[0], 'the 600px copy equals the sheet and dialog copy');
+    assert.deepEqual(normalised[2], normalised[0], 'the 840px copy equals the sheet and dialog copy');
+    // The stacked block: the header for screen readers only, rows as bordered blocks, labels above the content.
+    const own = (selector) => Object.fromEntries(declarationsAt(atRuleBlocks(table, /@container ds-content \(max-width: 600px\)/).join('\n'), selector).map((entry) => [entry.property, entry.value]));
+    assert.equal(own('.ds-table--stack > thead')['clip-path'], 'inset(50%)');
+    assert.equal(own('.ds-table--stack > tbody > tr').border, '1px solid var(--ds-line)');
+    assert.equal(own('.ds-table--stack > tbody > tr')['border-radius'], 'var(--ds-radius-card)');
+    const label = declarationsAt(atRuleBlocks(table, /@container ds-content \(max-width: 600px\)/).join('\n'), '.ds-table--stack > tbody > tr > td[data-label]::before');
+    assert.deepEqual(label.filter((entry) => entry.property === 'content').map((entry) => entry.value), ['attr(data-label)', 'attr(data-label) / ""'], 'the plain label first, the alt text form after it');
+    assert.equal(label.find((entry) => entry.property === 'font')?.value, 'var(--ds-font-label)');
+    // A wrapper of stacked rows never fades.
+    const quiet = Object.fromEntries(declarationsAt(table, '.ds-card .ds-table-wrap:has(> :is(.ds-table--stack, .ds-table--stack-wide))').map((entry) => [entry.property, entry.value]));
+    assert.deepEqual([quiet['mask-image'], quiet['-webkit-mask-image'], quiet.animation], ['none', 'none', 'none']);
+  });
+
+  it('fades every sideways scroller on the two edge numbers, through --ds-scroll-fade, and leaves the scrollbar strip opaque', () => {
+    const masks = [...rules(read(SCROLLER)), ...rules(table)].flatMap((rule) => declarations(`${rule.body};`).filter((entry) => /mask-image$/.test(entry.property) && entry.value !== 'none').map((entry) => ({ selector: rule.selector, ...entry })));
+    assert.ok(masks.length >= 12, `${masks.length} masks`);
+    for (const { selector, property, value } of masks) {
+      assert.match(value, /var\(--ds-scroll-fade, var\(--ds-(space-8|card-pad)\)\)/, `${selector}: ${property} reads the one fade switch`);
+      // Only transparent and #000 as stops (a mask reads alpha), never a colour or a deprecated length.
+      assert.doesNotMatch(value, /--ds-table-fade-|rgb|#(?!000\b)/, `${selector}: ${property}`);
+      if (/to right/.test(value)) assert.match(value, /calc\(var\(--ds-scroll-edge-start\) \* .*calc\(100% - var\(--ds-scroll-edge-end\) \* /, `${selector}: the numbers scale the fade`);
+    }
+    // Every masked scroller has its -webkit- twin (Chrome and Edge before 120).
+    for (const { selector, property } of masks.filter((entry) => entry.property === 'mask-image')) assert.ok(masks.some((entry) => entry.selector === selector && entry.property === '-webkit-mask-image'), selector);
+    // The scrollbar strip: a second, opaque layer the size of --ds-scrollbar-height (the fill wrapper: the padding box ring).
+    const size = declarationsOf(read(SCROLLER), '.ds-scroll-x').find((entry) => entry.property === 'mask-size')?.value;
+    assert.equal(size, '100% calc(100% - var(--ds-scrollbar-height, 0px)), 100% var(--ds-scrollbar-height, 0px)');
+    const fill = Object.fromEntries(declarationsOf(table, '.ds-table-wrap--fill').map((entry) => [entry.property, entry.value]));
+    assert.equal(fill['mask-composite'], 'add, exclude');
+    assert.equal(fill['-webkit-mask-composite'], 'source-over, xor');
+    assert.equal(fill['mask-clip'], 'padding-box, padding-box, border-box');
+    // The attribute fallback sets the numbers; the scroll timeline wins where it runs.
+    for (const [file, host] of [[SCROLLER, '.ds-scroll-x'], [TABLE, '.ds-table-wrap']]) {
+      const css = read(file);
+      assert.equal(declarationsOf(css, `${host}[data-ds-overflow-start]`).find((entry) => entry.property === '--ds-scroll-edge-start')?.value, '1', host);
+      assert.equal(declarationsOf(css, `${host}[data-ds-overflow-end]`).find((entry) => entry.property === '--ds-scroll-edge-end')?.value, '1', host);
+      assert.match(declarationsOf(css, host).find((entry) => entry.property === 'transition')?.value ?? '', /--ds-scroll-edge-start var\(--ds-dur-fast\) var\(--ds-ease-in-out\), --ds-scroll-edge-end var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, host);
+    }
+    // The hook is a length that themes may set: documented, never a motion hook.
+    assert.doesNotMatch('--ds-scroll-fade:', /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave)/);
+  });
+
+  it('makes a sideways scroller a tab stop with an inset ring that drops the mask, and unmasks it in print', () => {
+    for (const [file, host] of [[SCROLLER, '.ds-scroll-x[tabindex]'], [TABLE, '.ds-table-wrap[tabindex]']]) {
+      const focus = Object.fromEntries(declarationsOf(read(file), `${host}:focus-visible`).map((entry) => [entry.property, entry.value]));
+      assert.equal(focus.outline, 'var(--ds-focus-outline)', host);
+      assert.equal(focus['outline-offset'], 'calc(-1 * var(--ds-focus-width))', host);
+      assert.equal(focus['mask-image'], 'none', host);
+      assert.equal(focus['-webkit-mask-image'], 'none', host);
+    }
+    const print = (file, selector) => Object.fromEntries(atRuleBlocks(read(file), /@media\s+print/).flatMap((block) => declarationsOf(block, selector)).map((entry) => [entry.property, entry.value]));
+    assert.deepEqual([print(SCROLLER, '.ds-scroll-x').overflow, print(SCROLLER, '.ds-scroll-x')['mask-image']], ['visible', 'none']);
+    assert.equal(print(SCROLLER, '.ds-jump').display, 'none');
+    assert.deepEqual([print(TABLE, '.ds-table-wrap').overflow, print(TABLE, '.ds-table-wrap')['mask-image']], ['visible', 'none']);
+    assert.equal(print(TABLE, '.ds-table-wrap--fill')['max-height'], 'none');
+    assert.equal(print(TABLE, '.ds-table th')['white-space'], 'normal');
+    assert.equal(print(TABLE, '.ds-table tr')['break-inside'], 'avoid');
+    assert.equal(print(TABLE, '.ds-selection-bar').display, 'none');
+    assert.equal(print('src/components/pagination.css', '.ds-pagination').display, 'none');
+    // The jump place takes no room and lets the pointer through to the log; only the pill takes it.
+    const jump = Object.fromEntries(declarationsOf(read(SCROLLER), '.ds-jump').map((entry) => [entry.property, entry.value]));
+    assert.deepEqual([jump.position, jump.height, jump['pointer-events']], ['sticky', '0', 'none']);
+    assert.equal(declarationsOf(read(SCROLLER), '.ds-jump > *').find((entry) => entry.property === 'pointer-events')?.value, 'auto');
+  });
+
+  it('keeps pinned cells opaque: their layers are background images of two registered colours, never a translucent background colour', () => {
+    const PINNED = ['.ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child', '.ds-table--pin-first thead th:first-child'];
+    const screen = withoutAtRuleBlocks(withoutAtRuleBlocks(table, /@media\s*\(forced-colors:\s*active\)/), /@media\s+print/);
+    for (const rule of rules(screen)) {
+      for (const part of splitSelectors(rule.selector)) {
+        if (!/\.ds-table--pin-first\b/.test(part) || part.endsWith('::after')) continue;
+        for (const { property } of declarations(`${rule.body};`)) assert.notEqual(property, 'background-color', `${part}: a pinned cell lays its layers over its base as images`);
+      }
+    }
+    const base = Object.fromEntries(declarationsAt(screen, PINNED[0]).map((entry) => [entry.property, entry.value]));
+    assert.deepEqual([base.position, base['inset-inline-start'], base['z-index']], ['sticky', '0', 'var(--ds-z-pinned)']);
+    assert.match(base['background-image'], /^linear-gradient\(var\(--ds-table-sticky-layer\), var\(--ds-table-sticky-layer\)\), linear-gradient\(var\(--ds-table-sticky-tint\), var\(--ds-table-sticky-tint\)\), linear-gradient\(var\(--ds-table-sticky-bg, var\(--ds-surface\)\)/);
+    assert.match(base.transition, /--ds-table-sticky-layer var\(--ds-dur-fast\) var\(--ds-ease-in-out\), --ds-table-sticky-tint var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/);
+    for (const name of ['--ds-table-sticky-layer', '--ds-table-sticky-tint']) {
+      assert.match(stripComments(table), new RegExp(`@property ${name} \\{\\s*syntax: '<color>';\\s*inherits: false;\\s*initial-value: transparent;`), name);
+    }
+    assert.equal(declarationsAt(table, '.ds-table-wrap--fill > .ds-table--pin-first > thead th:first-child').find((entry) => entry.property === 'z-index')?.value, 'var(--ds-z-sticky-pinned)');
+    // Forced colours: sticky and pinned cells Canvas, the fill wrapper's edge CanvasText.
+    const forced = forcedColorBlocks(table).join('\n');
+    for (const selector of [...PINNED, '.ds-table-wrap--fill > .ds-table > thead th']) {
+      const own = Object.fromEntries(declarationsAt(forced, selector).map((entry) => [entry.property, entry.value]));
+      assert.deepEqual([own['background-color'], own['background-image']], ['Canvas', 'none'], selector);
+    }
+    assert.equal(declarationsAt(forced, '.ds-table-wrap--fill').find((entry) => entry.property === 'border-color')?.value, 'CanvasText');
+    assert.match(declarationsAt(forced, '.ds-selection-bar').find((entry) => entry.property === 'outline')?.value ?? '', /CanvasText/);
+  });
+
+  it('scopes the interactive row rules to rows with a row link (a row without one stays plain)', () => {
+    const ROW = '.ds-table--interactive tbody tr:not(.ds-table__detail)';
+    const offenders = [];
+    for (const file of [TABLE, 'src/components/ripple.css']) {
+      for (const rule of rules(read(file))) {
+        for (const part of splitSelectors(rule.selector)) {
+          // The row's own pointer and press: only with a row link (focus already follows the link).
+          if (part.includes(ROW) && /cursor|:active|\.ds-pressed/.test(`${part} ${rule.body}`) && !part.includes(`${ROW}:has(.ds-table__row-link)`)) offenders.push(`${file}: ${part}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+    assert.ok(splitSelectors(RIPPLE_HOSTS).includes(`${ROW}:has(.ds-table__row-link)`));
+    assert.ok(!splitSelectors(RIPPLE_HOSTS).includes(ROW));
+  });
+
+  it('reads the density hooks for every cell height, and the cell padding from them', () => {
+    for (const [selector, hook, fallback] of [['.ds-table th', '--ds-table-head-height', '48px'], ['.ds-table td', '--ds-table-row-height', '52px'], ['.ds-table--dense :is(th, td)', '--ds-table-dense-row-height', '40px']]) {
+      const own = Object.fromEntries(declarationsAt(withoutAtRuleBlocks(table, /@media|@container/), selector).map((entry) => [entry.property, entry.value]));
+      assert.equal(own.height, `var(${hook}, ${fallback})`, selector);
+      assert.ok(own['padding-block'].startsWith('min(var(--ds-space-3), calc((') && own['padding-block'].includes(`var(${hook}, ${fallback})`), `${selector}: ${own['padding-block']}`);
+    }
+    // Summary rows: label type, a hairline above, none below.
+    const foot = Object.fromEntries(declarationsAt(table, '.ds-table tfoot :is(th, td)').map((entry) => [entry.property, entry.value]));
+    assert.deepEqual([foot['border-top'], foot['border-bottom'], foot.font, foot['font-variant-numeric']], ['1px solid var(--ds-line-2)', '0', 'var(--ds-font-label)', 'tabular-nums']);
+    // No rule of a body row reaches the summary row.
+    assert.deepEqual(rules(table).flatMap((rule) => splitSelectors(rule.selector)).filter((part) => /tfoot/.test(part) && /:hover|row-link|:active/.test(part)), []);
   });
 });

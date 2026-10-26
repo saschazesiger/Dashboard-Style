@@ -331,7 +331,7 @@ on load, and a rapid toggle turns back from where it is. A chip that wraps to an
 | Loading bar (`.ds-loadbar`) | the indeterminate segments, flat, after `--ds-delay-loader`; `.ds-stale` dims the content only after the same delay and lifts at once |
 | `countUp()` | from the shown value on `--ds-ease-value` over `--ds-dur-glide`, landing on the same frame as a bar set in the same task |
 | Status chip | colour and icon glide over `--ds-dur-medium`; a new icon fades in and springs up from `--ds-scale-small` |
-| Table | sort, filter and live reorder glide through `flip()`; a selected row tints over `--ds-dur-fast`; an expandable row opens its room on `--ds-ease-out` (`--ds-dur-medium`) and closes accelerating (`--ds-dur-base`); the sort arrow and the toggle chevron turn on the spring |
+| Table | sort, filter and live reorder glide through `flip()`; a selected row tints over `--ds-dur-fast` (a pinned cell through its registered layer colours, the same timing); an expandable row opens its room on `--ds-ease-out` (`--ds-dur-medium`) and closes accelerating (`--ds-dur-base`); the sort arrow and the toggle chevron turn on the spring; the edge fades and the pinned column's hairline follow the scroll ([Scroll-driven effects](#scroll-driven-effects)); the selection bar and the toolbar cross in one slot (`crossfade()`: in over `--ds-dur-fast`, out over `--ds-dur-instant`) when the count goes from 0 to 1 and back, its count changes at once; a page change (`.ds-pagination`) dims the rows, then the new page fades in through `flip()` |
 | Alert, tile, card | alerts come and go through `flip()`; a tile's figure counts with `countUp()`; clickable tiles and cards take the press morph |
 
 ### Data motion
@@ -404,6 +404,27 @@ A tile with its bar: set both in the same task and they land on the same frame; 
 ```js
 DS.motion.countUp(value, synced);
 bar.style.setProperty('--ds-progress', String(synced / total));
+```
+
+A page change (`.ds-pagination`): the rows dim (`.ds-stale` and the loading bar, as in a refresh) while the page
+loads, then render through `flip()`; every key is new, so the old rows go at once and the new ones fade in. No
+count-up, no slide; the range text changes at once.
+
+```js
+content.classList.add('ds-stale');
+const rows = await fetchPage(page);
+DS.motion.flip(tbody, (options) => DS.dom.morphHtml(tbody, renderRows(rows), options), { items: 'tr' });
+content.classList.remove('ds-stale');
+range.textContent = `${first}–${last} of ${total}`;
+```
+
+A bulk selection: the toolbar and the `.ds-selection-bar` share one slot; `crossfade()` swaps them only when the count
+goes from 0 to 1 and back, and the count text changes at once.
+
+```js
+if (count > 0 && !shown) DS.motion.crossfade(slot, selectionBar);
+if (count === 0 && shown) DS.motion.crossfade(slot, toolbar);
+countText.textContent = `${count} selected`;
 ```
 
 Empty states: replacing a skeleton, `.ds-reveal`; the result of a filter, search or live update, the rows leave
@@ -490,7 +511,8 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `ds-indeterminate` | `transform`: a segment across the track, a loop | **deprecated** (removed in 2.0): indeterminate progress runs `ds-progress-head` and `ds-progress-tail` |
 | `ds-scan` | `translate`: a band from `--ds-scan-from` to `--ds-scan-to` | media being processed |
 | `ds-scroll-fade` | opacity 0 → 1, both ends named; scroll-linked | the panel's hairline, the top bar's tint and a sheet head's hairline over the first `--ds-space-2` of scroll (no duration); the element's own opacity stays 0, so a scroller without overflow (an inactive timeline) shows nothing; progressive: `animation-timeline`, elsewhere `data-scrolled` |
-| `ds-edge-fade` | `--ds-table-fade-start` (0 → `--ds-card-pad` over the first 5%) and `--ds-table-fade-end` (`--ds-card-pad` → 0 over the last 5%), registered lengths; scroll-linked, so both ends are named | the edge fades of a table that scrolls sideways, on the wrapper's own scroll timeline (`scroll(self inline)`, no duration); progressive: `animation-timeline`, elsewhere the static fade |
+| `ds-scroll-edge-start` / `ds-scroll-edge-end` | `--ds-scroll-edge-start` (0 → 1) / `--ds-scroll-edge-end` (1 → 0), registered numbers; scroll-linked, so both ends are named | the edge fades of a sideways scroller (`.ds-scroll-x`, the table wrappers; menus on the block axis), on its own `scroll(self inline)` timeline over `animation-range: 0 var(--ds-space-8)` and `calc(100% - var(--ds-space-8)) 100%` (no duration): the numbers scale the fade length (`--ds-scroll-fade`), so a scroller that fits fades nowhere; progressive: `animation-timeline`, elsewhere `data-ds-overflow-start` / `-end` from `DS.dom.scrollEdges()` over `--ds-dur-fast`, or the static table fade |
+| `ds-edge-fade` | `--ds-table-fade-start` (0 → `--ds-card-pad` over the first 5%) and `--ds-table-fade-end` (`--ds-card-pad` → 0 over the last 5%), registered lengths; scroll-linked, so both ends are named | **deprecated** (2.0, removed in 3.0 at the earliest) and unused: the table wrappers run `ds-scroll-edge-start` and `ds-scroll-edge-end` |
 
 ```css
 .my-panel {
@@ -760,6 +782,15 @@ chip on its line: a body that grew opens from its old width with that chip's gli
 from where it was (`translate`), so the two never overlap; a body that shrank cannot paint its old width, so only
 its label glides back. A script that sets `checked` fires no `change`:
 then the CSS alone runs, and a chip that wraps jumps to its new line.
+
+Pinned columns (2.0): in a `.ds-table--pin-first.ds-table--interactive` table the sticky first cell holds the row
+link's stretched area, so `attach()` also listens for `click` and `auxclick` (bubble phase) and forwards a click on a
+row (outside its controls, with no text selected, not `preventDefault()`ed by the page) to the row's
+`.ds-table__row-link`: a plain click calls `link.click()`; Ctrl, Meta or Shift and the middle button open an
+`a[href]` with `window.open(href, '_blank', 'noopener')`, and a middle `mousedown` there is `preventDefault()`ed, so
+no autoscroll starts. A press on such a row ripples in two parts from one centre: the box over the row goes into the
+second cell (under the pinned cell), a second box with the same circle into the pinned cell. Rows of an unpinned
+table keep the single ripple.
 
 ### DS.overlay (js/overlay.js)
 
@@ -1120,14 +1151,17 @@ view's children) and never `view.firstElementChild` (with the `data-scrolled` se
 
 Where the engine has scroll-driven animations, what marks a scrolled position follows the scroll itself instead of
 an attribute set by script; elsewhere the attribute (or a static look) stays. They take no duration: their progress
-is the scroll position (the scroll-linked keyframes `ds-scroll-fade` and `ds-edge-fade`, [Keyframes](#keyframes)).
+is the scroll position (the scroll-linked keyframes `ds-scroll-fade`, `ds-scroll-edge-start` and `ds-scroll-edge-end`,
+[Keyframes](#keyframes)).
 
 | Effect | Scroll-driven (progressive) | Fallback |
 |---|---|---|
 | The panel's top hairline | `ds-scroll-fade` on `scroll(nearest block)` over the first `--ds-space-2` (8px) of the view's scroll | `data-scrolled` on `.ds-app`, faded over `--ds-dur-fast` |
 | The top bar's tint (`.ds-topbar::before`, `--ds-topbar-scrolled-bg`) | the same fade on the view's named timeline `--ds-view-scroll`, which `.ds-app` scopes to the bar (`timeline-scope`) | `data-scrolled` on `.ds-app` |
 | A side sheet's head hairline | the same fade on the body's named timeline `--ds-sheet-scroll`, scoped on the panel | `data-scrolled` on `.ds-sheet__panel` |
-| A table's edge fades | `ds-edge-fade` on the wrapper's own `scroll(self inline)`: a fade on each side that still has columns to show | the static fade at the right edge |
+| A table's edge fades | `ds-scroll-edge-start` and `ds-scroll-edge-end` on the wrapper's own `scroll(self inline)`: a fade on each side that still has columns to show | `data-ds-overflow-start` / `-end` from `DS.dom.scrollEdges()`, faded over `--ds-dur-fast`; without it the static fade at the right edge |
+| A sideways strip's edge fades (`.ds-scroll-x`) | the same two keyframes on the strip's own timeline | `data-ds-overflow-start` / `-end` from `DS.dom.scrollEdges()`; without it no fade |
+| The hairline at a pinned column's end (`.ds-table--pin-first`) | `ds-scroll-fade` on `scroll(nearest inline)` over the first `--ds-space-2` | `data-ds-overflow-start` on the wrapper, faded over `--ds-dur-fast` |
 | `.ds-reveal--scroll` | a block of a long read-only page fades in and rises while it enters the scrollport (`view()`) | none: static, never hidden (also in print) |
 
 - **The `data-scrolled` fallback.** Set it in every engine (filled toolbar fields read it too), from an
@@ -1176,7 +1210,8 @@ The `fallback` project of the browser tests runs every spec without them.
 - View Transitions across documents (`css/optional/view-transitions.css`): without them pages load as before.
 - Scroll-driven animations (`animation-timeline`, `animation-range`, `timeline-scope`: the hairlines, the top bar's
   tint, a table's edge fades, `.ds-reveal--scroll`): without them `data-scrolled`, the static table fade, and a
-  static, never hidden `.ds-reveal--scroll`.
+  static, never hidden `.ds-reveal--scroll`. The edge fades of `.ds-scroll-x` and the table wrappers and a pinned
+  column's hairline fall back to the `data-ds-overflow-*` attributes of `DS.dom.scrollEdges()`.
 - `moveBefore` (a keyed move or a snackbar region that moves keeps its animations and focus): without it
   `insertBefore`, focus put back, and `data-ds-moving` for one style flush so no entrance replays.
 - `scrollbar-gutter` (the room of a removed page scrollbar under the scroll lock): without it a `padding-right` on

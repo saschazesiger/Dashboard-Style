@@ -101,7 +101,7 @@ describe('indicator, dom, ripple and overlay', () => {
 
   it('ripples clickable cards, clickable tiles and interactive table rows by default (1.4.0)', () => {
     const hosts = ripple.RIPPLE_HOSTS.split(/,\s*(?![^(]*\))/);
-    for (const host of [':is(button, a).ds-tile', '.ds-card--interactive', '.ds-table--interactive tbody tr:not(.ds-table__detail)']) {
+    for (const host of [':is(button, a).ds-tile', '.ds-card--interactive', '.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link)']) {
       assert.ok(hosts.includes(host), `${host} is a default host`);
     }
   });

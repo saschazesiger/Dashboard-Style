@@ -14,8 +14,9 @@
  * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
  * :is(button, a).ds-tile, .ds-card--interactive (also the <div> form,
  * whose .ds-card__action stretches over it), .ds-table__sort, the body rows
- * of .ds-table--interactive (the ripple goes into the row's first cell and
- * covers the row; Enter on .ds-table__row-link or .ds-card__action ripples
+ * of .ds-table--interactive that hold a .ds-table__row-link (the ripple
+ * goes into the row's first cell and covers the row; Enter on
+ * .ds-table__row-link or .ds-card__action ripples
  * the row or card; a press on another link or control inside a row or
  * a <div> card is that control's own, so the host gets none), .ds-radio (a radio card, also
  * when its own input is pressed), .ds-combo__toggle, .ds-menu__item,
@@ -38,6 +39,16 @@
  *
  * iOS Safari applies :active only on pages with a touchstart listener:
  * attach() adds a passive one.
+ *
+ * Pinned columns (.ds-table--pin-first): the sticky first cell holds the
+ * row link's stretched area and covers the row's ripple, so in an
+ * interactive table attach() forwards a click on a row (outside its
+ * controls, with no text selected) to the row's .ds-table__row-link
+ * (link.click(); Ctrl, Meta or Shift and the middle button open an
+ * a[href] in a new tab), unless the page called preventDefault() on it;
+ * a middle press there starts no autoscroll. The row ripples in two
+ * parts with one centre: a span in the second cell covers the row under
+ * the pinned cell, a second span in the pinned cell covers that cell.
  *
  * Chips (D22): attach() also listens for change on .ds-chip__input in a
  * .ds-chips row, the one call that wires control motion. A toggle that
@@ -73,7 +84,7 @@ export const RIPPLE_HOSTS = [
   ':is(button, a).ds-tile',
   '.ds-card--interactive',
   '.ds-table__sort',
-  '.ds-table--interactive tbody tr:not(.ds-table__detail)',
+  '.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link)',
   '.ds-radio',
   '.ds-combo__toggle',
   '.ds-menu__item',
@@ -99,7 +110,7 @@ const OWN_PRESS = 'input[type="checkbox"], input[type="radio"], .ds-switch';
 /** Hosts a link stretches over (HOST_LINK): their other controls keep their own press. */
 const STRETCHED = [
   '.ds-card--interactive',
-  '.ds-table--interactive tbody tr',
+  '.ds-table--interactive tbody tr:has(.ds-table__row-link)',
 ].join(', ');
 
 /** What a press inside a stretched host may land on besides its link (the CSS's press exclusion, plus [tabindex]). */
@@ -108,6 +119,7 @@ const CONTROLS = 'a[href], button, input, select, textarea, label, summary, [tab
 /**
  * @typedef {object} Press
  * @property {HTMLElement} span  the ripple
+ * @property {HTMLElement} [twin]  its part in a pinned first cell (two-part ripple of a pinned row)
  * @property {number} at  when it started (performance.now())
  * @property {boolean} released
  */
@@ -141,7 +153,78 @@ function surfaceOf(host) {
  * itself, ripple.css).
  */
 function holderOf(surface) {
-  return surface.tagName === 'TR' ? surface.cells[0] ?? null : surface;
+  if (surface.tagName !== 'TR') return surface;
+  return (pinnedCell(surface) ? surface.cells[1] : null) ?? surface.cells[0] ?? null;
+}
+
+/* ── Pinned columns ────────────────────────────────── */
+
+/** A row of a pinned interactive table (.ds-table--pin-first): what a click on it may forward to. */
+const PINNED_ROW = '.ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail)';
+
+/**
+ * The pinned first cell of a table row, when it is pinned now (sticky:
+ * stacked rows and print unpin it), else null.
+ */
+function pinnedCell(row) {
+  const cell = row.cells?.[0];
+  if (!cell || row.cells.length < 2 || !row.closest('.ds-table--pin-first')) return null;
+  return row.ownerDocument.defaultView?.getComputedStyle(cell).position === 'sticky' ? cell : null;
+}
+
+/**
+ * The part of a row's ripple in its pinned first cell: the same circle
+ * (centre and radius), placed against the cell, which paints over the
+ * row's own part.
+ */
+function pinnedTwin(row, rect, left, top, radius) {
+  const cell = pinnedCell(row);
+  if (!cell) return null;
+  const box = cell.getBoundingClientRect();
+  const twin = row.ownerDocument.createElement('span');
+  twin.className = 'ds-press-ripple';
+  twin.setAttribute('aria-hidden', 'true');
+  twin.setAttribute('data-ds-keep', '');
+  twin.style.setProperty('--ds-ripple-x', `${Math.round((left + rect.left - box.left) * 100) / 100}px`);
+  twin.style.setProperty('--ds-ripple-y', `${Math.round((top + rect.top - box.top) * 100) / 100}px`);
+  twin.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
+  cell.append(twin);
+  return twin;
+}
+
+/**
+ * A click on a row of a pinned interactive table, outside its controls and
+ * with no text selected, opens the row's link: the sticky first cell
+ * confines the link's stretched area, so the click would open nothing.
+ * A plain click clicks the link; Ctrl, Meta or Shift and the middle
+ * button open an a[href] in a new tab. A page that called
+ * preventDefault() keeps the click. Returns whether it forwarded.
+ */
+function forwardRowClick(event, root) {
+  if (event.defaultPrevented || (event.button !== 0 && event.button !== 1)) return false;
+  const element = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
+  const row = element?.closest?.(PINNED_ROW);
+  if (!row || !root.contains(row)) return false;
+  const control = element.closest(CONTROLS);
+  if (control && row.contains(control)) return false;
+  const link = row.querySelector('.ds-table__row-link');
+  if (!link || link.matches(':disabled') || link.getAttribute('aria-disabled') === 'true') return false;
+  const view = row.ownerDocument.defaultView;
+  const selection = view?.getSelection?.();
+  if (selection && !selection.isCollapsed) return false;
+  const away = event.button === 1 || event.ctrlKey || event.metaKey || event.shiftKey;
+  if (away) {
+    if (!link.matches('a[href]')) {
+      if (event.button !== 0) return false;
+      link.click();
+      return true;
+    }
+    event.preventDefault();
+    view?.open(/** @type {HTMLAnchorElement} */ (link).href, '_blank', 'noopener');
+    return true;
+  }
+  link.click();
+  return true;
 }
 
 /**
@@ -192,6 +275,7 @@ function release(host, press) {
       host.classList.remove('ds-pressed');
     }
     fade(press.span);
+    if (press.twin) fade(press.twin);
   }, wait);
 }
 
@@ -210,6 +294,7 @@ function start(host, x, y) {
   if (previous && !previous.released) {
     previous.released = true;
     fade(previous.span);
+    if (previous.twin) fade(previous.twin);
   }
   const holder = holderOf(surface);
   if (!holder) return null;
@@ -233,9 +318,11 @@ function start(host, x, y) {
   span.style.setProperty('--ds-ripple-y', `${Math.round(top * 100) / 100}px`);
   span.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
   holder.append(span);
+  const twin = row ? pinnedTwin(surface, rect, left, top, radius) : null;
   host.classList.add('ds-pressed');
   /** @type {Press} */
   const press = { span, at: now(), released: false };
+  if (twin) press.twin = twin;
   presses.set(host, press);
   return press;
 }
@@ -610,6 +697,19 @@ export function attach(root = document) {
   // A passive no-op: iOS Safari applies :active only with a touchstart listener.
   const onTouchStart = () => {};
 
+  // Pinned rows: a click on the row opens its link (bubble phase, after the page's own handlers).
+  const onRowClick = (/** @type {MouseEvent} */ event) => {
+    forwardRowClick(event, element);
+  };
+
+  // A middle press on a pinned row opens its link in a new tab, never the platform autoscroll.
+  const onRowMouseDown = (/** @type {MouseEvent} */ event) => {
+    if (event.button !== 1) return;
+    const target = /** @type {Element} */ (event.target);
+    const row = (target?.nodeType === 1 ? target : target?.parentElement)?.closest?.(PINNED_ROW);
+    if (row && element.contains(row) && row.querySelector('a[href].ds-table__row-link') && !target.closest?.(CONTROLS)) event.preventDefault();
+  };
+
   const onChange = (/** @type {Event} */ event) => {
     const input = /** @type {Element} */ (event.target);
     if (!input?.matches?.('.ds-chip__input')) return;
@@ -623,6 +723,9 @@ export function attach(root = document) {
   element.addEventListener('keyup', onKeyUp);
   element.addEventListener('touchstart', onTouchStart, { passive: true });
   element.addEventListener('change', onChange);
+  element.addEventListener('click', onRowClick);
+  element.addEventListener('auxclick', onRowClick);
+  element.addEventListener('mousedown', onRowMouseDown);
 
   const handle = {
     /** Removes the listeners and .ds-ripples; ripples already shown finish. */
@@ -634,6 +737,9 @@ export function attach(root = document) {
       element.removeEventListener('keyup', onKeyUp);
       element.removeEventListener('touchstart', onTouchStart);
       element.removeEventListener('change', onChange);
+      element.removeEventListener('click', onRowClick);
+      element.removeEventListener('auxclick', onRowClick);
+      element.removeEventListener('mousedown', onRowMouseDown);
       marked.classList.remove('ds-ripples');
     },
   };

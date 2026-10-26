@@ -137,6 +137,8 @@ describe('repository', () => {
       ['--ds-indicator-ease-r', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
       ['--ds-indicator-ease-b', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
       ['--ds-indicator-ease-l', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
+      ['--ds-scrollbar-height', 'written by DS.dom.scrollEdges() (the scrollbar strip a fade leaves opaque): runtime state, never set it'],
+      ['--ds-table-pin-width', 'written by DS.dom.scrollEdges() (the width of a pinned first column): runtime state, never set it'],
     ]);
     const hooks = new Set();
     for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
@@ -176,6 +178,7 @@ describe('repository', () => {
       ['tbody', 'table structure: the cells carry the styles'],
       ['thead', 'table structure: the cells carry the styles'],
       ['tr', 'table structure: the cells carry the styles'],
+      ['tfoot', 'table structure: the cells carry the styles'],
       ['option', 'native select options'],
     ]);
     const theming = read('docs/theming.md');

@@ -189,6 +189,12 @@
   --ds-tile-radius-pressed: var(--ds-radius-md);
   --ds-table-row-hover: (a currentColor layer at --ds-state-hover-lg);
   --ds-table-row-selected: var(--ds-accent);
+  --ds-table-head-height: 48px;        --ds-table-row-height: 52px;
+  --ds-table-dense-row-height: 40px;
+  --ds-table-sticky-bg: var(--ds-surface);
+  --ds-table-cell-max-width: 280px;
+  --ds-table-fill-min-height: 240px;   --ds-table-fill-max-height: none;
+  --ds-scroll-fade: var(--ds-space-8); (0px: no edge fades; in a card the default is --ds-card-pad)
   --ds-status-radius: var(--ds-radius-md);
   --ds-ripple-color: currentColor;
   --ds-spinner-track: transparent;     --ds-spinner-color: var(--ds-primary);

@@ -61,7 +61,9 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 |---|---|
 | `--ds-space-1`, `--ds-space-2`, `--ds-space-3`, `--ds-space-4`, `--ds-space-5`, `--ds-space-6`, `--ds-space-7`, `--ds-space-8`, `--ds-space-10`, `--ds-space-12` | 4, 8, 12, 16, 20, 24, 28, 32, 40, 48px (4px grid) |
 | `--ds-z-raised` | 1 (sticky table parts, loading bar; the base of the items `DS.motion.flip()` raises while they glide) |
+| `--ds-z-pinned` | raised + 1 (the pinned first column of `.ds-table--pin-first`, above the raised controls of the cells that scroll under it) |
 | `--ds-z-sticky` | 20 (top bar, scroll edge) |
+| `--ds-z-sticky-pinned` | sticky + 1 (the corner cell of a sticky header over a pinned column) |
 | `--ds-z-popover` | 40 (menus (`.ds-menu`), the combobox list and other listboxes, a dialog contained in a panel) |
 | `--ds-z-drawer` | 50 (side sheet, modal drawer) |
 | `--ds-z-dialog` | drawer + 1 (dialogs, above an open sheet) |

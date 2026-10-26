@@ -433,6 +433,50 @@
   max-width: 320px;
 }
 
+/* The full-page table demo: a bounded flex column, as .ds-view--fill makes the view. */
+.sg-fill-frame {
+  display: flex;
+  flex-direction: column;
+  height: 360px;
+}
+
+/* The page buttons are rendered as one group (morphHtml); the nav lays them out. */
+.sg-page-buttons {
+  display: contents;
+}
+
+/* Sixteen months in a strip wider than its card. */
+.sg-months {
+  display: flex;
+  gap: var(--ds-space-2);
+  width: max-content;
+}
+
+.sg-month {
+  display: grid;
+  gap: var(--ds-space-1);
+  min-width: 88px;
+  padding: var(--ds-space-3) var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A short log that scrolls, with the place of its "Latest" pill. */
+.sg-log {
+  position: relative;
+  height: 200px;
+  overflow-y: auto;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+}
+
+.sg-log__line {
+  margin: 0;
+  padding-block: var(--ds-space-1);
+}
+
 /* The live feed changes the status chips ("Overloaded" is the widest): the
    Status column keeps that chip's width (a zero-height box in its header,
    whatever the cell padding), so automatic table layout does not

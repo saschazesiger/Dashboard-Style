@@ -147,7 +147,7 @@
       '<p>White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and quiet motion. Every value comes from a token, so one theme file restyles everything below.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="../README.md">Get started</a><a class="ds-btn" href="../docs/theming.md">Theming guide</a><a class="ds-btn ds-btn--text" href="../docs/components.md">Component markup ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +
-      tile('Components', '26', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
+      tile('Components', '28', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
       '</div></section>';
   }
 
@@ -515,7 +515,213 @@
       '<div class="ds-table-wrap"><table class="ds-table ds-table--interactive" id="sg-table"><caption class="ds-sr">Devices</caption><thead>' + tableHeadHtml() + '</thead><tbody>' + tableRowsHtml(tableShown()) + '</tbody></table></div>' +
       '<div class="ds-empty" id="sg-table-empty" hidden><span class="ds-empty__disc" aria-hidden="true">' + icon('search', 24) + '</span><p class="ds-empty__title">No device matches</p><p class="ds-empty__text" id="sg-table-empty-text"></p></div>' +
       '</section>' +
-      '<p class="ds-muted">Every row opens its record (the device name stretches over the row; the checkbox and the chevron stay their own controls). Select rows or all of them, open a row\'s details, sort by a column, or type a filter: rows glide to their places on every keystroke. The live feed changes the load every 2s; sorted by load, the rows reorder, but while the mouse is over the table or a row has focus only the values change, and the reorder waits (at most 2s).</p>');
+      '<p class="ds-muted">Every row opens its record (the device name stretches over the row; the checkbox and the chevron stay their own controls). Select rows or all of them, open a row\'s details, sort by a column, or type a filter: rows glide to their places on every keystroke. The live feed changes the load every 2s; sorted by load, the rows reorder, but while the mouse is over the table or a row has focus only the values change, and the reorder waits (at most 2s).</p>' +
+      tableMore());
+  }
+
+  /* ── Tables and scrollers (2.0): stacked rows, pinned columns, the
+     full-page table, row actions and a summary row, pagination, the
+     selection bar, a sideways strip and the place of a "Latest" pill. ── */
+  var TB_MODELS = ['Latitude 7440', 'ThinkPad T14', 'OptiPlex 7010', 'EliteBook 840', 'Surface Pro 9', 'iPad Air'];
+  var TB_OWNERS = ['Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Katherine Johnson', 'Edsger Dijkstra', 'Barbara Liskov'];
+  var TB_PLACES = ['Building A, 1st floor', 'Building A, 2nd floor', 'Server room', 'Building B, ground floor, the open-plan office next to the stairs', 'Storage', 'Building B, 1st floor'];
+
+  /* A deterministic fleet of `count` devices (the same rows on every visit). */
+  function fleet(count) {
+    var rows = [];
+    for (var i = 0; i < count; i += 1) {
+      rows.push({
+        id: 'd' + (i + 1),
+        name: (i % 3 === 2 ? 'DESKTOP-' : 'LAPTOP-') + String(100 + i * 7).padStart(4, '0'),
+        model: TB_MODELS[i % TB_MODELS.length],
+        owner: TB_OWNERS[(i * 5) % TB_OWNERS.length],
+        place: TB_PLACES[(i * 7) % TB_PLACES.length],
+        bought: '20' + (20 + (i % 5)) + '-0' + (1 + (i % 9)) + '-1' + (i % 10),
+        warranty: (1 + (i % 4)) + ' years',
+        system: i % 4 === 3 ? 'Release 23.4' : 'Release 24.2',
+        serial: 'SN-' + (40961 + i * 977).toString(16).toUpperCase(),
+        load: (i * 37) % 100,
+      });
+    }
+    return rows;
+  }
+
+  /* The nine columns of the pinned and the full-page table. */
+  function wideHead(actions) {
+    return '<tr><th scope="col">Device</th><th scope="col">Model</th><th scope="col">Owner</th><th scope="col">Location</th>' +
+      '<th scope="col" class="ds-num">Bought</th><th scope="col">Warranty</th><th scope="col">System</th><th scope="col">Serial</th>' +
+      '<th scope="col" class="ds-num">Load</th>' + (actions ? '<th scope="col"><span class="ds-sr">Actions</span></th>' : '') + '</tr>';
+  }
+
+  function wideRow(row, actions) {
+    return '<tr data-ds-key="' + row.id + '"><td class="ds-nowrap"><button class="ds-link-btn ds-table__row-link" type="button" data-sg="row-open-wide" data-name="' + row.name + '">' + row.name + '</button></td>' +
+      '<td class="ds-nowrap">' + row.model + '</td><td class="ds-nowrap">' + row.owner + '</td><td class="ds-nowrap" data-tip="' + row.place + '">' + row.place + '</td>' +
+      '<td class="ds-num ds-nowrap">' + row.bought + '</td><td class="ds-nowrap">' + row.warranty + '</td><td class="ds-nowrap">' + row.system + '</td><td class="ds-nowrap">' + row.serial + '</td>' +
+      '<td class="ds-num">' + row.load + '%</td>' +
+      (actions ? '<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ' + row.name + '" data-tip="Edit" data-sg="row-edit" data-name="' + row.name + '">' + icon('pencil', 20) + '</button></td>' : '') + '</tr>';
+  }
+
+  var PAGES = { rows: fleet(128), size: 5, page: 0 };
+
+  function pageRowsHtml() {
+    var start = PAGES.page * PAGES.size;
+    return PAGES.rows.slice(start, start + PAGES.size).map(function (row) {
+      return '<tr data-ds-key="' + row.id + '"><td class="ds-nowrap">' + row.name + '</td><td>' + row.model + '</td><td class="ds-col--secondary">' + row.owner + '</td><td class="ds-num">' + row.load + '%</td></tr>';
+    }).join('');
+  }
+
+  function pageRange() {
+    var start = PAGES.page * PAGES.size;
+    return (start + 1) + '–' + Math.min(PAGES.rows.length, start + PAGES.size) + ' of ' + PAGES.rows.length;
+  }
+
+  /* The four page buttons: one that leads nowhere is aria-disabled (it keeps the focus; its tooltip still names it). */
+  function pageButtons() {
+    var last = Math.ceil(PAGES.rows.length / PAGES.size) - 1;
+    var first = I.chevronFirst ? 'chevronFirst' : 'chevronLeft';
+    var end = I.chevronLast ? 'chevronLast' : 'chevronRight';
+    var button = function (to, name, glyph, blocked) {
+      return '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="' + name + '" data-tip="' + name + '" data-sg="page" data-to="' + to + '"' + (blocked ? ' aria-disabled="true"' : '') + '>' + icon(glyph, 20) + '</button>';
+    };
+    return button('first', 'First page', first, PAGES.page === 0) + button('previous', 'Previous page', 'chevronLeft', PAGES.page === 0) +
+      button('next', 'Next page', 'chevronRight', PAGES.page === last) + button('last', 'Last page', end, PAGES.page === last);
+  }
+
+  function paginationHtml() {
+    return '<nav class="ds-pagination" aria-label="Pages of devices" id="sg-pages"><div class="ds-pagination__size"><label class="ds-pagination__label" for="sg-page-size">Rows per page</label>' +
+      '<select class="ds-input ds-input--filled" id="sg-page-size" data-sg="page-size"><option selected>5</option><option>10</option><option>25</option></select></div>' +
+      '<p class="ds-pagination__range" aria-live="polite" id="sg-page-range">' + pageRange() + '</p><span class="sg-page-buttons" id="sg-page-buttons">' + pageButtons() + '</span></nav>';
+  }
+
+  /* A page change: the rows dim while the page "loads", then the new rows render through flip() and morphHtml. */
+  function goToPage(to) {
+    var last = Math.ceil(PAGES.rows.length / PAGES.size) - 1;
+    var next = to === 'first' ? 0 : to === 'previous' ? PAGES.page - 1 : to === 'next' ? PAGES.page + 1 : to === 'last' ? last : Number(to);
+    next = Math.max(0, Math.min(last, next));
+    if (next === PAGES.page && to !== 'size') return;
+    PAGES.page = next;
+    var tbody = $('#sg-paged tbody');
+    var card = $('#sg-paged-card');
+    card.classList.add('ds-stale');
+    card.setAttribute('aria-busy', 'true');
+    $('#sg-page-range').textContent = pageRange();
+    DS.dom.morphHtml($('#sg-page-buttons'), pageButtons());
+    setTimeout(function () {
+      M.flip(tbody, function (options) { DS.dom.morphHtml(tbody, pageRowsHtml(), options); }, { items: 'tr' });
+      card.classList.remove('ds-stale');
+      card.removeAttribute('aria-busy');
+    }, slow(300));
+  }
+
+  var BULK = { rows: fleet(4), selected: {} };
+
+  function bulkCount() {
+    return BULK.rows.filter(function (row) { return BULK.selected[row.id]; }).length;
+  }
+
+  function bulkToolbarHtml() {
+    return '<div class="ds-action-bar" id="sg-bulk-tools"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div><p class="ds-meta">4 devices</p></div>';
+  }
+
+  function selectionBarHtml(count) {
+    return '<div class="ds-selection-bar" role="toolbar" aria-label="Selected devices" id="sg-selection-bar">' +
+      '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear selection" data-tip="Clear selection" data-sg="bulk-clear">' + icon('close', 20) + '</button>' +
+      '<p class="ds-selection-bar__count" aria-live="polite" id="sg-selection-count">' + count + ' selected</p>' +
+      '<div class="ds-selection-bar__actions"><button class="ds-btn ds-btn--text" type="button" data-sg="bulk-delete">' + icon('trash', 18) + 'Delete</button></div></div>';
+  }
+
+  /* The bar crosses with the toolbar only when the count goes from 0 to 1 and back; the count text changes at once. */
+  function syncBulk() {
+    var count = bulkCount();
+    var slot = $('#sg-bulk-slot');
+    var bar = $('#sg-selection-bar', slot);
+    $$('#sg-bulk tbody input').forEach(function (box) { box.checked = !!BULK.selected[box.closest('tr').getAttribute('data-ds-key')]; });
+    var all = $('#sg-bulk thead input');
+    all.checked = count === BULK.rows.length;
+    all.indeterminate = count > 0 && count < BULK.rows.length;
+    if (count && !bar) M.crossfade(slot, htmlElement(selectionBarHtml(count)));
+    else if (!count && bar) M.crossfade(slot, htmlElement(bulkToolbarHtml()));
+    else if (bar) $('#sg-selection-count').textContent = count + ' selected';
+  }
+
+  /* One element from trusted demo markup. */
+  function htmlElement(html) {
+    var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstElementChild;
+  }
+
+  function tableMore() {
+    var wide = fleet(6);
+    var fill = fleet(30);
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'];
+    return '<div class="ds-grid-2">' +
+      card('Stacked rows', '<p class="ds-muted">A row of fields per entry. In a side sheet, a dialog or a narrow content area (600px; <code>--stack-wide</code>: 840px) each row becomes a block, each field takes its label above it.</p>' +
+        '<div class="ds-table-wrap"><table class="ds-table ds-table--stack" id="sg-stack"><caption class="ds-sr">Status sources</caption>' +
+        '<thead><tr><th scope="col">Name</th><th scope="col">URL</th><th scope="col"><span class="ds-sr">Remove</span></th></tr></thead><tbody>' +
+        [['Status page', 'https://status.example.org'], ['Mail relay', 'https://mail.example.org/health'], ['Backups', 'https://backup.example.org/ping']].map(function (source, index) {
+          return '<tr data-ds-key="s' + (index + 1) + '"><td data-label="Name"><input class="ds-input" aria-label="Name of source ' + (index + 1) + '" value="' + source[0] + '"></td>' +
+            '<td data-label="URL"><input class="ds-input" type="url" aria-label="URL of source ' + (index + 1) + '" value="' + source[1] + '"></td>' +
+            '<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove source ' + (index + 1) + '" data-tip="Remove">' + icon('close', 20) + '</button></td></tr>';
+        }).join('') + '</tbody></table></div>') +
+      card('Bulk selection bar', '<div class="ds-toolbar"><div class="ds-swap" id="sg-bulk-slot">' + bulkToolbarHtml() + '</div></div>' +
+        '<div class="ds-table-wrap"><table class="ds-table" id="sg-bulk"><caption class="ds-sr">Devices to select</caption><thead><tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-sg="bulk-all"></th><th scope="col">Device</th><th scope="col">Model</th></tr></thead><tbody>' +
+        BULK.rows.map(function (row) {
+          return '<tr data-ds-key="' + row.id + '"><td><input type="checkbox" aria-label="Select ' + row.name + '" data-sg="bulk-row"></td><td class="ds-nowrap">' + row.name + '</td><td>' + row.model + '</td></tr>';
+        }).join('') + '</tbody></table></div>') +
+      '</div>' +
+      card('Pinned first column, row actions and a summary row', '<p class="ds-muted">Narrow the window: the columns scroll under the pinned device column, which keeps opening its row from anywhere on the row. The edit button sits at the row\'s end; the footer sums up the table.</p>' +
+        '<div class="ds-table-wrap"><table class="ds-table ds-table--wide ds-table--interactive ds-table--pin-first" id="sg-pinned"><caption class="ds-sr">Devices with a pinned column</caption>' +
+        '<thead>' + wideHead(true) + '</thead><tbody>' + wide.map(function (row) { return wideRow(row, true); }).join('') + '</tbody>' +
+        '<tfoot><tr><th scope="row">6 devices</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ds-num">' + Math.round(wide.reduce(function (sum, row) { return sum + row.load; }, 0) / wide.length) + '%</td><td></td></tr></tfoot></table></div>') +
+      '<p class="ds-muted">A full-page table is its own card: in a <code>.ds-view--fill</code> it takes what is left of the view; here a frame of 360px. The header sticks, the device column stays, long cells end in an ellipsis.</p>' +
+        '<div class="sg-fill-frame"><div class="ds-table-wrap ds-table-wrap--fill" id="sg-fill"><table class="ds-table ds-table--interactive ds-table--pin-first"><caption class="ds-sr">The whole fleet</caption>' +
+        '<thead>' + wideHead(false) + '</thead><tbody>' + fill.map(function (row) { return wideRow(row, false); }).join('') + '</tbody></table></div></div>' +
+      '<section class="ds-card" id="sg-paged-card"><h3 class="ds-card__title">Pagination</h3>' +
+        '<div class="ds-table-wrap"><table class="ds-table" id="sg-paged"><caption class="ds-sr">Devices, in pages</caption><thead><tr><th scope="col">Device</th><th scope="col">Model</th><th scope="col" class="ds-col--secondary">Owner</th><th scope="col" class="ds-num">Load</th></tr></thead>' +
+        '<tbody>' + pageRowsHtml() + '</tbody></table></div>' + paginationHtml() + '</section>' +
+      '<div class="ds-grid-2">' +
+      card('Horizontal scroller', '<p class="ds-muted">A strip wider than its card fades at the end that still has months to show.</p>' +
+        '<div class="ds-scroll-x" tabindex="0" role="region" aria-label="Check-ins per month" id="sg-months"><div class="sg-months">' + months.map(function (month, index) {
+          return '<div class="sg-month"><span class="ds-meta">' + month + '</span><strong>' + (380 + ((index * 53) % 120)) + '</strong></div>';
+        }).join('') + '</div></div>') +
+      card('"Latest" pill', '<p class="ds-muted">Scroll the log up: the pill shows at its bottom edge, a click goes back to the end.</p>' +
+        '<div class="sg-log" id="sg-log">' + fleet(14).map(function (row, index) { return '<p class="sg-log__line"><span class="ds-meta">09:' + String(10 + index).padStart(2, '0') + '</span> ' + row.name + ' checked in</p>'; }).join('') +
+        '<div class="ds-jump"><div class="ds-presence" hidden id="sg-jump"><button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Latest" data-tip="Latest" data-sg="log-end">' + icon('arrowDown', 20) + '</button></div></div></div>') +
+      '</div>';
+  }
+
+  /* The log keeps to its end; the pill shows while the reader is above it. */
+  function setupTableMore() {
+    var log = $('#sg-log');
+    if (!log) return;
+    log.scrollTop = log.scrollHeight;
+    var pill = $('#sg-jump');
+    log.addEventListener('scroll', function () {
+      var atEnd = log.scrollHeight - log.clientHeight - log.scrollTop < 2;
+      if (pill.hidden !== atEnd) pill.hidden = atEnd;
+    }, { passive: true });
+    $('#sg-page-size').addEventListener('change', function (event) {
+      PAGES.size = Number(event.target.value);
+      PAGES.page = 0;
+      goToPage('size');
+    });
+  }
+
+  function tableMoreAction(action, el) {
+    if (action === 'page' && el.getAttribute('aria-disabled') !== 'true') goToPage(el.getAttribute('data-to'));
+    if (action === 'row-open-wide') toast('Opened ' + el.getAttribute('data-name') + '.', 'info');
+    if (action === 'row-edit') toast('Editing ' + el.getAttribute('data-name') + '.', 'info');
+    if (action === 'log-end') {
+      var log = $('#sg-log');
+      log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
+    }
+    if (action === 'bulk-clear') {
+      BULK.selected = {};
+      syncBulk();
+      $('#sg-bulk thead input').focus();
+    }
+    if (action === 'bulk-delete') toast(bulkCount() + ' selected (a demo: nothing was deleted).', 'info');
   }
 
   /* Renders the table through flip(): a user's sort or filter glides at once, the live feed waits for the pointer. */
@@ -1697,6 +1903,7 @@
       }
       if (action === 'card-restart') toast('Restarting LAPTOP-0017.', 'info');
       if (action === 'table-sort' || action === 'row-toggle' || action === 'row-open' || action === 'table-live') tableAction(action, el);
+      if (/^(page|row-open-wide|row-edit|log-end|bulk-clear|bulk-delete)$/.test(action)) tableMoreAction(action, el);
       if (action === 'progress-run') progressRun();
       if (action === 'skeleton') skeletonDemo(el);
       if (action === 'load') loadDemo(Number(el.getAttribute('data-ms')));
@@ -1733,6 +1940,14 @@
         TABLE.selected[input.closest('tr').getAttribute('data-ds-key')] = input.checked;
         syncSelectAll();
       }
+      if (input.getAttribute('data-sg') === 'bulk-row') {
+        BULK.selected[input.closest('tr').getAttribute('data-ds-key')] = input.checked;
+        syncBulk();
+      }
+      if (input.getAttribute('data-sg') === 'bulk-all') {
+        BULK.rows.forEach(function (row) { BULK.selected[row.id] = input.checked; });
+        syncBulk();
+      }
     });
     // The ticket field: checked on every keystroke, the message only
     // changes when the verdict does (so it fades in once).
@@ -1752,6 +1967,7 @@
     DS.overlay.tooltips(document);
     $$('#sg-page [data-sg-combo]').forEach(setupCombo);
     setupMenus();
+    setupTableMore();
   }
 
   /* The header checkbox of the table: checked, mixed or empty by its shown rows. */
