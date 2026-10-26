@@ -2563,3 +2563,111 @@ describe('tables and scrollers (2.0)', () => {
     assert.deepEqual(rules(table).flatMap((rule) => splitSelectors(rule.selector)).filter((part) => /tfoot/.test(part) && /:hover|row-link|:active/.test(part)), []);
   });
 });
+
+/*
+ * Direction (D9). 2.0 lays out left to right only, but every component uses
+ * the logical form of a property where the baseline has it (margin-inline-*,
+ * padding-inline-*, border-inline-*, inset-inline-*, text-align: start | end),
+ * so a page with dir="rtl" mirrors what does not move. What stays physical is
+ * listed below with its reason; a declaration on the safe area
+ * (env(safe-area-inset-left | right)) is physical by nature and passes.
+ */
+const DIRECTION_FILES = [...filesIn('src/components', (path) => path.endsWith('.css')), 'src/base.css'];
+/** A box shorthand's values at the top level (not inside var() or calc()). */
+function boxValues(value) {
+  const parts = [];
+  let depth = 0;
+  let current = '';
+  for (const char of value.replace(/\s*!important$/, '').trim()) {
+    if (char === '(') depth += 1;
+    if (char === ')') depth -= 1;
+    if (/\s/.test(char) && depth === 0) { if (current) parts.push(current); current = ''; } else current += char;
+  }
+  if (current) parts.push(current);
+  return parts;
+}
+/** Why a declaration is physical, or undefined when it reads the same in both directions. */
+function physicalReason(property, value) {
+  const plain = value.replace(/\s*!important$/, '');
+  if (/^(margin|padding|scroll-margin|scroll-padding)-(left|right)$|^border-(left|right)(-(width|style|color))?$|^(left|right)$|^border-(top|bottom)-(left|right)-radius$/.test(property)) return property;
+  if (/^(text-align|text-align-last|float|clear)$/.test(property) && /^(left|right)$/.test(plain)) return `${property}: ${plain}`;
+  if (/^(margin|padding|inset|scroll-margin|scroll-padding|border-width|border-style|border-color)$/.test(property)) {
+    const values = boxValues(plain);
+    if (values.length === 4 && values[1] !== values[3]) return `${property} with different left and right`;
+  }
+  if (property === 'border-radius') {
+    const values = boxValues(plain.split('/')[0]);
+    const [tl, tr = tl, br = tl, bl = tr] = values;
+    if (tl !== tr || br !== bl) return 'border-radius with different left and right corners';
+  }
+  if (/\bto (left|right)\b|\bto (top|bottom) (left|right)\b/.test(plain)) return 'gradient direction';
+  if (/^(background|background-position|background-position-x|mask|mask-position|-webkit-mask|-webkit-mask-position)$/.test(property)
+    && /(^|[\s,/])(left|right)(?=[\s,/]|$)/.test(plain.replace(/\([^()]*(\([^()]*\)[^()]*)*\)/g, ''))) return 'position keyword';
+  return undefined;
+}
+/** `file: selector: property` of every physical declaration that stays, with its reason. */
+const PHYSICAL_ALLOWED = new Map([
+  ['src/components/form.css: select.ds-input, input.ds-input[list]: padding-right', 'the room of the arrow, which sits at the right'],
+  ['src/components/form.css: select.ds-input, input.ds-input[list]: background-position', 'the select arrow: two gradients placed from the right edge'],
+  ['src/components/form.css: input.ds-input[list]::-webkit-calendar-picker-indicator: margin', 'the invisible picker laid over the arrow at the right'],
+  ['src/components/indicator.css: .ds-indicator: left', 'DS.indicator writes viewport-measured x from the left'],
+  ['src/components/menu.css: .ds-menu: inset', 'script coordinates: --ds-menu-x from the left'],
+  ['src/components/progress.css: .ds-progress__track: background', 'gradient direction: the bar fills left to right with its clip'],
+  ['src/components/ripple.css: .ds-press-ripple: left', 'pointer coordinates: --ds-ripple-x from the host\'s left'],
+  ['src/components/ripple.css: .ds-ripples tr > :is(td, th) > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the cell\'s left'],
+  ['src/components/ripple.css: .ds-ripples .ds-tabs__tab > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the tab\'s left'],
+  ['src/components/scroller.css: .ds-scroll-x: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/scroller.css: .ds-scroll-x: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/sheet.css: .ds-sheet__panel: border-radius', 'the side sheet slides in from the right edge: its open side is the left'],
+  ['src/components/sheet.css: .ds-sheet__panel::after: left', 'the bleed beyond the right edge covers the slide\'s overshoot'],
+  ['src/components/shell.css: .ds-app--drawer .ds-panel: margin-left', 'clears the safe-area margin-left of the panel, which stays physical'],
+  ['src/components/shell.css: .ds-drawer: left', 'the modal drawer slides in from the left edge'],
+  ['src/components/shell.css: .ds-drawer: border-radius', 'the modal drawer slides in from the left edge: its open side is the right'],
+  ['src/components/shell.css: .ds-drawer::before: right', 'the bleed left of the modal drawer covers the slide\'s overshoot'],
+  ['src/components/slider.css: .ds-slider::-webkit-slider-runnable-track: background', 'gradient direction: the active part fills from the left, as the native thumb moves'],
+  ['src/components/switch.css: .ds-switch__track::after: left', 'the handle starts at the left and travels on translate'],
+  ['src/components/switch.css: .ds-switch__track::before: left', 'the halo starts at the left and travels on translate with the handle'],
+  ['src/components/table.css: .ds-table-wrap--fill: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-table-wrap--fill: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/toast.css: .ds-toasts: left', 'script coordinate: --ds-toast-left, and DS.overlay reads the computed left back'],
+  ['src/components/tooltip.css: .ds-tooltip: left', 'script coordinates: --ds-tooltip-x from the left'],
+  ['src/components/tooltip.css: .ds-tooltip[popover]: inset', 'script coordinates: --ds-tooltip-x from the left'],
+  ['src/components/tooltip.css: .ds-tooltip[data-anchored]: left', 'clears the script coordinate for anchor positioning'],
+]);
+
+describe('direction (2.0, D9)', () => {
+  it('uses logical properties in components and the page base, physical ones only on the allowlist', () => {
+    const found = [];
+    for (const file of DIRECTION_FILES) {
+      for (const { selector, body } of rules(read(file))) {
+        for (const { property, value } of declarations(`${body};`)) {
+          const reason = physicalReason(property, value);
+          if (reason && !/env\(safe-area-inset-(left|right)\)/.test(value)) found.push(`${file}: ${selector}: ${property}`);
+        }
+      }
+    }
+    assert.deepEqual([...new Set(found)].filter((entry) => !PHYSICAL_ALLOWED.has(entry)), [], 'a physical property: use its logical form (margin-inline-start, inset-inline, text-align: start ...) or allowlist it with a reason');
+    assert.deepEqual([...PHYSICAL_ALLOWED.keys()].filter((entry) => !found.includes(entry)), [], 'an allowlisted physical property is gone: shorten the list');
+  });
+
+  it('recognises the physical forms it guards against', () => {
+    for (const [property, value] of [['margin-left', '0'], ['padding-right', '4px'], ['border-left', '1px solid'], ['left', '0'], ['right', 'auto'],
+      ['text-align', 'right'], ['float', 'left'], ['padding', '0 8px 0 4px'], ['inset', '0 auto auto 0'], ['border-radius', '8px 0 0 8px'],
+      ['background', 'linear-gradient(to right, red, blue)'], ['background-position', 'right 12px top 50%'], ['border-top-left-radius', '4px']]) {
+      assert.ok(physicalReason(property, value), `${property}: ${value}`);
+    }
+    for (const [property, value] of [['margin-inline-start', '0'], ['inset-inline', '0'], ['inset', '0'], ['text-align', 'start'], ['padding', '0 8px'],
+      ['padding', '0 8px 4px'], ['padding', '1px 8px 2px 8px'], ['border-radius', '8px 8px 0 0'], ['border-radius', 'var(--ds-radius-card)'],
+      ['background', 'linear-gradient(currentColor, currentColor) center bottom / 100% 3px no-repeat'], ['margin', 'calc(-1 * var(--ds-space-2)) 0']]) {
+      assert.equal(physicalReason(property, value), undefined, `${property}: ${value}`);
+    }
+  });
+});
