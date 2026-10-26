@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" class="ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dialog layout · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body class="ds-theme">
+<!-- The dialog layouts of 2.0: a body that scrolls alone (a list of
+     people with checkboxes, a search above it, a count, a fixed
+     --ds-dialog-height), a dialog without anything focusable (the box
+     takes focus), the full-screen dialog and the action sheet, and a side
+     sheet with a subtitle and a foot. The page script only fills the list
+     and wires the triggers; DS.overlay opens and closes. -->
+<main class="ds-page" id="page" tabindex="-1">
+  <p>
+    <button class="ds-btn" type="button" id="open-people">Choose people</button>
+    <button class="ds-btn" type="button" id="open-note">A note</button>
+    <button class="ds-btn" type="button" id="open-full">New ticket</button>
+    <button class="ds-btn" type="button" id="open-actions">Row actions</button>
+    <button class="ds-btn" type="button" id="open-filters">Filters</button>
+  </p>
+</main>
+
+<dialog class="ds-dialog ds-dialog--wide" id="people" aria-labelledby="people-title" style="--ds-dialog-height: 480px">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="people-title">Choose people</h2>
+    <div class="ds-search"><span data-icon="search" data-size="20"></span><input class="ds-input" id="people-search" type="search" aria-label="Search people" placeholder="Search"></div>
+    <p class="ds-meta" id="people-count">40 people</p>
+    <div class="ds-dialog__body" id="people-body"></div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="people-ok" data-close>Choose</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="ds-dialog" id="note" hidden>
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="note-title">
+    <h2 class="ds-dialog__title" id="note-title">Synced</h2>
+    <p class="ds-dialog__text">Every device is up to date.</p>
+    <div class="ds-dialog__body"></div>
+    <div class="ds-dialog__actions"></div>
+  </div>
+</div>
+
+<dialog class="ds-dialog ds-dialog--full-narrow" id="full" aria-labelledby="full-title">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <div class="ds-dialog__head">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="full-close" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+      <h2 class="ds-dialog__title" id="full-title">New ticket</h2>
+      <button class="ds-btn ds-btn--text" type="button" id="full-save" data-close>Save</button>
+    </div>
+    <div class="ds-dialog__body">
+      <div class="ds-field"><label class="ds-field__label" for="full-subject">Subject</label><input class="ds-input" id="full-subject"></div>
+      <div class="ds-field"><label class="ds-field__label" for="full-text">Description</label><textarea class="ds-input" id="full-text"></textarea></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="ds-dialog ds-dialog--bottom" id="actions" aria-labelledby="actions-title">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="actions-title">LAPTOP-0042</h2>
+    <div class="ds-dialog__list">
+      <button class="ds-menu__item" type="button" id="act-edit" data-close><span data-icon="pencil" data-size="20"></span><span class="ds-menu__label">Edit</span></button>
+      <button class="ds-menu__item" type="button" id="act-copy" data-close><span data-icon="copy" data-size="20"></span><span class="ds-menu__label">Duplicate</span></button>
+      <button class="ds-menu__item" type="button" id="act-archive" data-close><span data-icon="archive" data-size="20"></span><span class="ds-menu__label">Archive</span></button>
+    </div>
+    <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="act-cancel" data-close>Cancel</button></div>
+  </div>
+</dialog>
+
+<dialog class="ds-sheet" id="filters" aria-labelledby="filters-title">
+  <div class="ds-sheet__backdrop" data-close></div>
+  <section class="ds-sheet__panel">
+    <div class="ds-sheet__head">
+      <div class="ds-sheet__heading">
+        <h2 class="ds-sheet__title" id="filters-title">Filters for the devices of the second floor of building A</h2>
+        <p class="ds-sheet__subtitle" id="filters-count">12 of 240 devices</p>
+      </div>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+    </div>
+    <div class="ds-sheet__body" tabindex="0" id="filters-body">
+      <label class="ds-check"><input type="checkbox" checked> Laptops</label>
+      <label class="ds-check"><input type="checkbox"> Printers</label>
+      <button class="ds-btn" type="button" id="filters-more">More filters</button>
+    </div>
+    <div class="ds-sheet__foot" id="filters-foot">
+      <p class="ds-meta">1 filter</p>
+      <button class="ds-btn ds-btn--text" type="button">Reset</button>
+      <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
+    </div>
+  </section>
+</dialog>
+
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+    var names = ['Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Katherine Johnson', 'Margaret Hamilton', 'Edsger Dijkstra', 'Barbara Liskov', 'Donald Knuth'];
+    // The list: built node by node (DOM APIs), each row a checkbox that can take focus.
+    window.fillPeople = function (count) {
+      var body = $('people-body');
+      body.replaceChildren();
+      for (var i = 0; i < count; i += 1) {
+        var label = document.createElement('label');
+        label.className = 'ds-check';
+        var input = document.createElement('input');
+        input.type = 'checkbox';
+        input.id = 'person-' + i;
+        label.append(input, document.createTextNode(' ' + names[i % names.length] + ' ' + (i + 1)));
+        body.append(label);
+      }
+      $('people-count').textContent = count + ' people';
+    };
+    window.fillPeople(40);
+    [['open-people', 'people'], ['open-note', 'note'], ['open-full', 'full'], ['open-actions', 'actions'], ['open-filters', 'filters']].forEach(function (pair) {
+      $(pair[0]).addEventListener('click', function () { DS.overlay.open($(pair[1]), { opener: this }); });
+    });
+  }());
+</script>
+</body>
+</html>

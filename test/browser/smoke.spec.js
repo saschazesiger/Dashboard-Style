@@ -56,7 +56,7 @@ test('the styleguide reaches data-sg-ready without a console error and runs this
 
 test('every fixture loads without a console error', async ({ page }) => {
   const errors = collectErrors(page);
-  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'shell-overlay', 'overlay', 'module', 'reset', 'reset-layered', 'spike', 'views', 'mpa-a', 'mpa-b', 'popups', 'toast-tooltip', 'perf']) {
+  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'shell-overlay', 'overlay', 'module', 'reset', 'reset-layered', 'spike', 'views', 'mpa-a', 'mpa-b', 'popups', 'toast-tooltip', 'perf', 'dialog-layout']) {
     await page.goto(`${FIXTURES}${name}.html`);
     // module.html has no fixture.js: it reports through window.moduleResult.
     if (name === 'module') await page.waitForFunction(() => window.moduleResult);

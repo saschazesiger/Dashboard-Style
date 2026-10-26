@@ -237,6 +237,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
 | `--ds-input-font` | body; input role at 600px and below | fields |
+| `--ds-input-height` | 40px | fields; the combobox toggle is that size and the field keeps room for it |
 | `--ds-check-size` | 18px | the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes) |
 | `--ds-check-target` | 40px | their halo (hover, press, focus) across |
 | `--ds-chip-height` | 32px | filter chip |
@@ -268,6 +269,12 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
 | `--ds-dialog-scrim` | `--ds-scrim` | the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested` |
 | `--ds-sheet-width`, `--ds-sheet-width-wide` | 560px, 720px | side sheet |
+| `--ds-dialog-width-wide` | 560px | `.ds-dialog--wide` |
+| `--ds-dialog-height` | auto (capped by the window) | the dialog box; a fixed height keeps a box with a filtered list from jumping |
+| `--ds-dialog-full-radius` | 0 | the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`) |
+| `--ds-sheet-foot-border` | `1px solid var(--ds-line)` | the hairline above `.ds-sheet__foot` |
+| `--ds-menu-item-height` | 48px | menu item (and action sheet row) |
+| `--ds-combo-option-height` | 48px | the least height of a combobox option |
 
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not
 set it. Runtime properties (set by scripts, not themes) are documented with their components: `--ds-progress`

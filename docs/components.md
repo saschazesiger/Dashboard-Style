@@ -33,14 +33,22 @@ component live.
 | Data entry | [Form](#form): `.ds-form`, `.ds-form-grid`, `.ds-field`, `.ds-input`, `.ds-form-actions` |
 | One choice from a short list | `<select class="ds-input">`; with an explanation per option: `.ds-radios` ([Form](#form)) |
 | One choice from a long list, by typing | [Combobox](#combobox) `.ds-combo` |
+| Pick one of a few rich options (a name with a meta or a share) | `.ds-combo--select`: the select-only combobox ([Combobox](#combobox)) |
 | A yes/no value saved with the form | `.ds-check` ([Form](#form)) |
 | A checkbox without a label row (a table column, a list item) | `.ds-checkbox` ([Form](#form)); in a `.ds-table` any bare checkbox is drawn the same |
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
 | Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
 | Actions for one item or a toolbar overflow | [Menu](#menu) `.ds-menu` |
+| Choose one of a few settings from a menu (sort by, density) | a `role="group"` with a `.ds-menu__heading` and `menuitemradio` items ([Menu](#menu)) |
 | Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog`; built for you: `DS.overlay.confirm()` ("A question with yes or no") |
 | Keep a dialog or side sheet open while its action runs | `data-ds-busy` on the `.ds-dialog`, `.ds-sheet` or `.ds-drawer` ([Dialog](#dialog), "While its action runs") |
 | Details or editing of one record next to its list | [Side sheet](#side-sheet) `.ds-sheet` |
+| A form or a list taller than the window in a dialog | `.ds-dialog__body`: only the body scrolls, title and actions stay ([Dialog](#dialog)) |
+| Pick one from a long list in a dialog | `.ds-dialog--wide` with a search, a `.ds-dialog__body` list and `--ds-dialog-height` ([Dialog](#dialog), "A search over a list") |
+| A task that needs the whole phone screen | `.ds-dialog--full-narrow` (or `--full`) with a `.ds-dialog__head` ([Dialog](#dialog)) |
+| Actions of a row on a phone | an action sheet: `.ds-dialog--bottom` with a `.ds-dialog__list` of menu items; a [Menu](#menu) at a desk ([Dialog](#dialog)) |
+| Confirm by typing the name of what goes | a `.ds-dialog--wide` `alertdialog` with a field ([Dialog](#dialog), "Confirm by typing the name") |
+| Filters or a form with its actions at the end of a side sheet | `.ds-sheet__foot`, and a live count in `.ds-sheet__subtitle` ([Side sheet](#side-sheet)) |
 | Name an icon button, or say why a control is disabled | [Tooltip](#tooltip) `.ds-tooltip` |
 | Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |
 | A block of the page waits (a section, a sheet, the app start) against a small spot (a button, a chip, a cell) | the shape loader `.ds-loader` (in `.ds-boot`, `.ds-loading`) against the arc spinner `.ds-spinner` ([Loading](#loading)) |
@@ -921,6 +929,34 @@ colours `SelectedItem`). `aria-expanded="true"` on the field turns the chevron 1
   `max-height` while it is open. There such a box still clips the list, so keep a combobox off the very end of a
   dialog.
 
+**Select-only** (`.ds-combo--select`, pick one of a few rich options without typing): the field is a
+`<button class="ds-input ds-combo__input" type="button" role="combobox" aria-haspopup="listbox">` that shows the
+choice in `.ds-combo__value` and an optional `.ds-combo__meta` in one row (start-aligned, ellipsis). Options may hold
+any content (a `.ds-progress` on the chosen option keeps a visible track on the tint).
+
+```html
+<label class="ds-field__label" id="plan-label">Plan</label>
+<div class="ds-combo ds-combo--select">
+  <button class="ds-input ds-combo__input" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false"
+          aria-controls="plan-list" aria-labelledby="plan-label plan-value">
+    <span class="ds-combo__value" id="plan-value">Standard</span><span class="ds-combo__meta">4 devices</span>
+  </button>
+  <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show plans">[icon chevronDown 20]</button>
+  <div class="ds-combo__popup" hidden>
+    <ul class="ds-combo__list" id="plan-list" role="listbox" aria-labelledby="plan-label"> ... options ... </ul>
+  </div>
+</div>
+```
+
+The keys are the page's script, as the WAI select-only pattern says: Enter, Space, ArrowDown and ArrowUp open the
+list on the chosen option; the arrows move `data-active` (and `aria-activedescendant` on the button), Home and End go
+to the ends, Enter or Space chooses and closes, Escape closes, a printable key moves to the next option that starts
+with the typed letters. Focus stays on the button.
+
+`aria-disabled="true"` on an option draws it in the disabled ink with no active layer (skip it in your keys).
+Without a `.ds-combo__toggle` the field keeps only its own end padding. The field reads `--ds-input-height` (40px),
+the toggle is that size; options are at least `--ds-combo-option-height` (48px) tall.
+
 The toggle is a round 40px target with a state layer (hover, press in `--ds-dur-micro`), the ripple and the press
 morph of every pill; it stays `tabindex="-1"` (the field opens the list from the keyboard), so it has no ring.
 Options get no ripple: pressing one selects it and closes the list, and the state layer is the feedback.
@@ -969,7 +1005,23 @@ trigger.addEventListener('keydown', (event) => {
   `aria-checked`: the check (`.ds-menu__check` on its icon) shows only when checked and keeps its room otherwise, so
   the labels line up; your click handler flips `aria-checked`. `aria-disabled="true"` keeps an item focusable (its name
   is read) with the disabled ink, no hover, no press and no ripple; `DS.overlay` ignores its clicks.
-  `.ds-menu__divider` separates groups.
+  `.ds-menu__divider` separates groups. `.ds-menu__meta` at an item's end holds a shortcut (`.ds-kbd`) or the word "On" /
+  "Off" of a `menuitemcheckbox` (meta type, tabular). `--ds-menu-item-height` (48px) sets the row height.
+- **Groups and radio items.** A `<div role="group" aria-labelledby>` with a `.ds-menu__heading` (caption type, not
+  focusable: the arrow keys pass it by) holds `role="menuitemradio"` items; the check shows on the one with
+  `aria-checked="true"` (your click handler moves it):
+
+  ```html
+  <div role="group" aria-labelledby="sort-h">
+    <p class="ds-menu__heading" id="sort-h">Sort by</p>
+    <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true">[icon check 20 ds-menu__check]<span class="ds-menu__label">Name</span></button>
+    <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false">[icon check 20 ds-menu__check]<span class="ds-menu__label">Last seen</span></button>
+  </div>
+  <button class="ds-menu__item" role="menuitem" type="button">[icon copy 20]<span class="ds-menu__label">Copy link</span><span class="ds-menu__meta">Ctrl C</span></button>
+  ```
+
+- **Type-ahead.** A printable key moves focus to the next item whose label starts with the letters typed so far;
+  they reset after `--ds-delay-tooltip` (`DS.overlay`).
 - **Placement.** Below the trigger from its start edge, flipped towards the start edge when there is no room; above
   the trigger when it does not fit below and there is more room above; 112px to 280px wide, and never taller than the
   room on its side (it scrolls inside), so it never covers its trigger. Where popover and CSS anchor positioning
@@ -1044,6 +1096,151 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
   box stays in the visible part (`position: sticky`), so it never opens below the fold. Its z-index is the host
   page's business: [theming.md](theming.md), "Embedded in someone else's page".
 
+### Body, width and height
+
+A dialog whose content can be taller than the window (a form, a long list) puts it in `.ds-dialog__body`: the box
+turns into a column, only the body scrolls, and title and actions stay in view. The body reaches 12px into the box's
+padding (focus rings and the halos of checks are never clipped) and shows a hairline at its top while it is scrolled
+(`data-scrolled` on the box, which `DS.dom.watchScrolled()` sets). A body that scrolls with nothing focusable in it
+gets `tabindex="0"`, `role="region"` and a name, so the keyboard can scroll it (an inset ring). In a window 320px high
+or less the box scrolls as one instead (WCAG 1.4.10). An empty body or empty actions take no room. A lone `.ds-btn`
+directly in the body keeps its own width.
+
+```html
+<dialog class="ds-dialog ds-dialog--wide" aria-labelledby="own-title">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="own-title">Choose an owner</h2>
+    <div class="ds-dialog__body"> ... a form or a list ... </div>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button">Choose</button>
+    </div>
+  </div>
+</dialog>
+```
+
+`.ds-dialog--wide` makes the box `--ds-dialog-width-wide` (560px) wide. `--ds-dialog-height` (default `auto`, never
+taller than the window) fixes the box's height, so a list that filters does not make the box jump.
+
+**A search over a list.** A `.ds-search` between the title and the body, a `.ds-meta` count after it ("12 of 40
+people"), the list in the body, Choose `aria-disabled="true"` with a `data-tip` until a row is chosen, and
+`--ds-dialog-height` on the dialog. Filter through `DS.dom.morphHtml` inside `DS.motion.flip`, so the rows glide; with
+no match the body shows a `.ds-empty` that enters with `DS.motion.enter(empty, 'fade')`. Escape in the filled search
+clears it first; the next Escape closes the dialog.
+
+```js
+search.addEventListener('input', () => {
+  const rows = people.filter((person) => person.name.toLowerCase().includes(search.value.trim().toLowerCase()));
+  DS.motion.flip(list, () => DS.dom.morphHtml(list, rows.length ? rows.map(rowHtml).join('') : emptyHtml));
+  count.textContent = `${rows.length} of ${people.length} people`;
+});
+```
+
+**Steps in one dialog** (choose, then confirm): keep the box's height through the CSSOM
+(`box.style.setProperty('height', box.offsetHeight + 'px')`), swap the body's content and play
+`DS.motion.enter(body, 'swap')`, focus the second step's primary action and announce the step (a `.ds-sr` live
+region, or a snackbar); remove the height once the second step settled.
+
+### Full screen and the action sheet
+
+`.ds-dialog--full` fills the window (no padding around the box, radius `--ds-dialog-full-radius`, 0; safe areas on
+head and actions); `.ds-dialog--full-narrow` does so at 600px and below and is a normal dialog above. Its head,
+`.ds-dialog__head`, is the M3 full-screen top bar: a close icon button with `data-close`, the title, an optional text
+button at the end (the head may also be used in a normal dialog). The box rises `--ds-distance-lg` on the spring over
+`--ds-dur-long` with the fade, no scale, and drops back in `--ds-dur-base`.
+
+```html
+<dialog class="ds-dialog ds-dialog--full-narrow" aria-labelledby="new-title">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <div class="ds-dialog__head">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>[icon close 20]</button>
+      <h2 class="ds-dialog__title" id="new-title">New ticket</h2>
+      <button class="ds-btn ds-btn--text" type="button">Save</button>
+    </div>
+    <div class="ds-dialog__body"> ... the form ... </div>
+  </div>
+</dialog>
+```
+
+`.ds-dialog--bottom` is the action sheet: the box sits at the bottom edge (above the home indicator) and rises its
+full height on the spring; it drops back in `--ds-dur-base`. `.ds-dialog__list` lays [menu](#menu) items full bleed
+in the box, and `DS.overlay` moves focus through them with ArrowUp, ArrowDown, Home and End, as in a menu. A menu at a
+desk and an action sheet at 600px and below can share the item markup:
+
+```html
+<dialog class="ds-dialog ds-dialog--bottom" aria-labelledby="row-title">
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="row-title">LAPTOP-0042</h2>
+    <div class="ds-dialog__list">
+      <button class="ds-menu__item" type="button">[icon pencil 20]<span class="ds-menu__label">Edit</span></button>
+      <button class="ds-menu__item" type="button">[icon archive 20]<span class="ds-menu__label">Archive</span></button>
+    </div>
+    <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div>
+  </div>
+</dialog>
+```
+
+```js
+const phone = matchMedia('(max-width: 600px)');
+rowButton.addEventListener('click', () => DS.overlay.open(phone.matches ? actionSheet : rowMenu, { opener: rowButton }));
+```
+
+Forced colours: the full-screen box is the window and needs no edge; the action sheet keeps the box's transparent
+border.
+
+### A question with yes or no
+
+`DS.overlay.confirm()`, `alert()` and `prompt()` build the dialog for you (DOM APIs only, inside the opener's
+`.ds-theme`), open it through `DS.overlay.open()`, remove it after its exit and resolve with the answer
+([motion.md](motion.md#dsoverlay-jsoverlayjs)):
+
+```js
+const ok = await DS.overlay.confirm({
+  title: 'Delete 3 devices?', text: 'They disappear from every list.',
+  confirmLabel: 'Delete devices', destructive: true, opener: button,
+  onConfirm: () => api.removeDevices(ids),          // busy on the button, the dialog stays open meanwhile
+  errorText: 'Could not delete the devices.',       // a failure keeps it open with this error snackbar
+});
+const name = await DS.overlay.prompt({ title: 'Rename', label: 'Name', value: device.name, opener: button });
+await DS.overlay.alert({ title: 'Export ready', text: 'The file is in your downloads.', opener: button });
+```
+
+`destructive: true` makes it an `alertdialog` whose first focus is Cancel, and the confirm button names the
+consequence (there are no red buttons). `onConfirm` runs with `DS.motion.busy()` on the confirm button and
+`data-ds-busy` on the dialog (Cancel `aria-disabled`); when it rejects, the dialog stays open, `errorText` (default
+"That did not work. Try again."; never the raw error) shows as an error snackbar above it, and focus goes back to the
+confirm button. `confirm()` resolves `true` or `false`, `prompt()` the value or `null`; Enter in the prompt's field
+confirms. The defaults are English: "Confirm", "Cancel", "OK".
+
+### Confirm by typing the name
+
+For an action that cannot be undone: an `alertdialog`, `.ds-dialog--wide`, a body with the text, a
+`.ds-alert--warning` and a field ("Type LAPTOP-0042 to confirm", `autocomplete="off"`, `spellcheck="false"`,
+`autocapitalize="off"`, `autofocus`). The action stays `aria-disabled` with a tip until `value.trim()` equals the name;
+Enter (not while composing) runs it. While it works: `data-ds-busy` on the dialog, the field `readOnly`, Cancel
+`aria-disabled`, and `DS.motion.busy(action, work, { done: false })`. Success closes it with reason `confirm` and a
+snackbar; a failure keeps the value, shows an error snackbar above the dialog and focuses the field.
+
+```js
+field.addEventListener('input', () => action.setAttribute('aria-disabled', String(field.value.trim() !== name)));
+field.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.isComposing) run(); });
+action.addEventListener('click', run);
+async function run() {
+  if (field.value.trim() !== name || dialog.hasAttribute('data-ds-busy')) return;
+  dialog.setAttribute('data-ds-busy', '');
+  field.readOnly = true;
+  cancel.setAttribute('aria-disabled', 'true');
+  try { await DS.motion.busy(action, deleteDevice(name), { done: false }); }
+  catch { DS.overlay.toast(region, `Could not delete ${name}.`, { kind: 'error' }); field.focus(); return; }
+  finally { dialog.removeAttribute('data-ds-busy'); field.readOnly = false; cancel.removeAttribute('aria-disabled'); }
+  DS.overlay.close(dialog, { reason: 'confirm' });
+  DS.overlay.toast(region, `${name} deleted.`);
+}
+```
+
 ### While its action runs
 
 `data-ds-busy` on the dialog (2.0; set and removed by the page, never written by the system) keeps it open while its
@@ -1075,7 +1272,7 @@ Android Back can still force a native close (it follows with reason `escape`); n
 - **An opener with `aria-expanded`** (a button that says it shows a dialog, `aria-haspopup="dialog"`) is kept in step:
   `"true"` while it is open, `"false"` as soon as the close starts. An opener without the attribute gets none.
 
-**Motion:** the "Scrim", "Dialog", "Nested dialog" and "Dialog on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
+**Motion:** the "Scrim", "Dialog", "Nested dialog", "Dialog on a phone", "Full-screen dialog" and "Action sheet" rows of [Overlays](motion.md#overlays) in motion.md.
 
 ## Side sheet
 
@@ -1094,6 +1291,30 @@ aria-labelledby="sheet-title" hidden>`:
   </section>
 </dialog>
 ```
+
+The head can hold a subtitle under the title, and the sheet a foot with its actions (2.0):
+
+```html
+<div class="ds-sheet__head">
+  <div class="ds-sheet__heading">
+    <h2 class="ds-sheet__title" id="filter-title">Filters</h2>
+    <p class="ds-sheet__subtitle" aria-live="polite">12 of 240 devices</p>
+  </div>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>[icon close 20]</button>
+</div>
+<div class="ds-sheet__body" tabindex="0"> ... </div>
+<div class="ds-sheet__foot">
+  <p class="ds-meta">3 filters</p>
+  <button class="ds-btn ds-btn--text" type="button">Reset</button>
+  <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
+</div>
+```
+
+The title wraps (a long record name stays readable); `.ds-sheet__subtitle` is one line of meta type that ends in an
+ellipsis (empty, it takes no room). `.ds-sheet__foot` sits after the body, its actions at the end and wrapping, above a
+hairline (`--ds-sheet-foot-border`); a leading `.ds-meta` takes the start; it holds the safe area, so the body above it
+ends with its normal gap; empty, it takes no room. The body is positioned (`offsetParent` of what is inside) and has a
+thin scrollbar; a lone `.ds-btn` directly in it keeps its own width.
 
 Open and close it like the dialog, with `DS.overlay.open(sheet, { opener })` and `DS.overlay.close(sheet)`. The panel
 is opaque throughout: it slides its full width in from the edge on the spatial spring (`--ds-dur-long`) while the

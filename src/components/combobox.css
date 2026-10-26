@@ -8,13 +8,29 @@
  * (aria-selected) the tint and the label weight, never colour alone.
  *
  *   <div class="ds-combo">
- *     <input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-controls="list" aria-activedescendant="opt-2">
+ *     <input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-controls="list" aria-autocomplete="list" aria-activedescendant="opt-2">
  *     <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show list">(chevronDown)</button>
  *     <div class="ds-combo__popup" hidden data-state="open | closed" [data-placement="top"] [data-anchored]>
  *       <ul class="ds-combo__list" id="list" role="listbox">
  *         <li class="ds-combo__option" id="opt-2" role="option" aria-selected="true" data-active>
  *           <span class="ds-combo__name">Name</span><span class="ds-combo__meta">Meta</span>
- *       <p class="ds-combo__status">12 of 240</p>
+ *       <p class="ds-combo__status" role="status">12 of 240</p>
+ *
+ * Select-only (.ds-combo--select: pick one of a few rich options, no
+ * typing): the field is a button that shows the choice, its value and an
+ * optional meta in one row (start-aligned, ellipsis); options may hold any
+ * content. The keys (Enter, Space and the arrows open; type-ahead) are the
+ * page's script, as for every combobox.
+ *
+ *   <div class="ds-combo ds-combo--select">
+ *     <button class="ds-input ds-combo__input" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="plan-list" aria-labelledby="plan-label plan-value">
+ *       <span class="ds-combo__value" id="plan-value">Standard</span><span class="ds-combo__meta">4 devices</span>
+ *     </button>
+ *     <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show list">(chevronDown)</button>
+ *     <div class="ds-combo__popup" hidden> ... the same list ... </div>
+ *
+ * aria-disabled="true" on an option: the disabled ink, no active layer.
+ * Without a toggle the field keeps only its own end padding.
  *
  *   DS.overlay.open(popup, { opener: input });   DS.overlay.close(popup);
  *
@@ -47,6 +63,11 @@
  * where the progressive path below is missing: there the room is that
  * box's, so keep a combobox off the very end of a dialog.
  *
+ * Sizes: the field reads --ds-input-height (40px); the toggle is that size
+ * and the field keeps room for it at its end; options are at least
+ * --ds-combo-option-height (48px) tall. A .ds-progress on the chosen option
+ * takes --ds-surface as its track (the tint behind it).
+ *
  * The toggle is a round 40px target: a state layer in its colour (hover,
  * press in --ds-dur-micro), the ripple (js/ripple.js) and the press morph
  * of every pill (squarer to --ds-radius-action-pressed in --ds-dur-micro,
@@ -55,7 +76,9 @@
  *
  * Forced colours: the list keeps an edge (its transparent outline), the
  * chosen option is SelectedItem / SelectedItemText, the active one has a
- * Highlight outline.
+ * Highlight outline, a blocked one GrayText.
+ *
+ * Print: an open list is not printed.
  *
  * Progressive:
  * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar in the
@@ -76,8 +99,39 @@
   }
 
   .ds-combo__input {
-    padding-right: calc(var(--ds-space-2) + 20px + var(--ds-space-3));
+    padding-right: calc(var(--ds-space-1) + var(--ds-input-height, 40px));
     text-overflow: ellipsis;
+  }
+
+  /* Without a toggle there is nothing to keep room for. */
+  .ds-combo:not(:has(.ds-combo__toggle)) > .ds-combo__input {
+    padding-inline-end: var(--ds-space-3);
+  }
+
+  /* Select-only: a button that reads like the field, value and meta in one
+     row. A field, not an action: no ripple, no press morph (like a select). */
+  .ds-combo--select .ds-combo__input {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-2);
+    min-width: 0;
+    text-align: start;
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ds-combo__value {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ds-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ds-combo__input > .ds-combo__meta {
+    flex: 0 1 auto;
+    min-width: 0;
   }
 
   /* A round 40px target in the field's end. Pressed it turns squarer and
@@ -91,11 +145,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: var(--ds-space-10);
-    height: 40px;
+    width: var(--ds-input-height, 40px);
+    height: var(--ds-input-height, 40px);
     padding: 0;
     border: 0;
-    border-radius: min(var(--ds-radius-action), calc(var(--ds-space-10) / 2));
+    border-radius: min(var(--ds-radius-action), calc(var(--ds-input-height, 40px) / 2));
     background: transparent;
     color: var(--ds-text-2);
     cursor: pointer;
@@ -134,7 +188,7 @@
 
   .ds-combo__toggle:active:not(:disabled, [aria-disabled="true"], [aria-busy="true"]),
   .ds-combo__toggle.ds-pressed:not(:disabled, [aria-disabled="true"], [aria-busy="true"]) {
-    border-radius: min(var(--ds-radius-action-pressed), var(--ds-radius-action), calc(var(--ds-space-10) / 2));
+    border-radius: min(var(--ds-radius-action-pressed), var(--ds-radius-action), calc(var(--ds-input-height, 40px) / 2));
     transition: border-radius var(--ds-dur-micro) var(--ds-ease-out);
   }
 
@@ -256,9 +310,30 @@
   .ds-combo__option {
     position: relative;
     display: grid;
+    align-content: center;
     gap: 2px;
+    min-height: var(--ds-combo-option-height, 48px);
     padding: var(--ds-space-2) var(--ds-space-4);
     cursor: pointer;
+  }
+
+  /* Cannot be chosen: the disabled ink, and no active layer. */
+  .ds-combo__option[aria-disabled="true"] {
+    color: var(--ds-disabled-ink, var(--ds-text));
+    cursor: default;
+  }
+
+  .ds-combo__option[aria-disabled="true"] :is(.ds-combo__name, .ds-combo__meta) {
+    color: inherit;
+  }
+
+  .ds-combo__option[aria-disabled="true"][data-active]::before {
+    opacity: 0;
+  }
+
+  /* A share on the chosen option keeps a track that shows on the tint. */
+  .ds-combo__option[aria-selected="true"] .ds-progress {
+    --ds-progress-track: var(--ds-surface);
   }
 
   /* State layer of the active entry, as in the drawer: it fades in over
@@ -346,6 +421,17 @@
     .ds-combo__option[aria-selected="true"] .ds-combo__name,
     .ds-combo__option[aria-selected="true"] .ds-combo__meta {
       color: inherit;
+    }
+
+    /* Blocked is one system colour (D8). */
+    .ds-combo__option[aria-disabled="true"] {
+      color: GrayText;
+    }
+  }
+
+  @media print {
+    .ds-combo__popup {
+      display: none;
     }
   }
 }

@@ -13,6 +13,16 @@
  *     <button class="ds-menu__item" role="menuitem" type="button" aria-disabled="true">(trash) <span class="ds-menu__label">Delete</span></button>
  *   </div>
  *
+ * Groups of radio items under a heading, and a meta at an item's end (a
+ * shortcut in a .ds-kbd, or "On" / "Off" of a menuitemcheckbox):
+ *
+ *   <div role="group" aria-labelledby="sort-h">
+ *     <p class="ds-menu__heading" id="sort-h">Sort by</p>
+ *     <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="true">(check, .ds-menu__check) <span class="ds-menu__label">Name</span></button>
+ *     <button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="false">(check, .ds-menu__check) <span class="ds-menu__label">Last seen</span></button>
+ *   </div>
+ *   <button class="ds-menu__item" role="menuitem" type="button">(copy) <span class="ds-menu__label">Copy link</span><span class="ds-menu__meta">Ctrl C</span></button>
+ *
  *   DS.overlay.open(menu, { opener: button });   DS.overlay.close(menu);
  *
  * DS.overlay (js/overlay.js) places it below the trigger, aligned with its
@@ -20,7 +30,9 @@
  * not fit below and there is more room above; never taller than the room
  * on its side, so it never covers its trigger: it scrolls inside),
  * focuses the first enabled item (the last one when opened from ArrowUp),
- * moves focus with ArrowUp, ArrowDown, Home and End (wrapping), closes on
+ * moves focus with ArrowUp, ArrowDown, Home and End (wrapping; a heading is
+ * no item, so they skip it) and to the next item whose label starts with
+ * the typed letters (type-ahead), closes on
  * Escape (focus back on the trigger), on Tab, after an item's click
  * handlers ran, and on a pointerdown outside (focus stays where the pointer
  * put it), and sets aria-expanded on the trigger.
@@ -38,14 +50,21 @@
  * turns back from where it is; without data-state (a page that toggles
  * hidden by hand) it plays ds-fade-in and ds-clip-in once.
  *
- * Items: a 48px row in the body role, a state layer in the content colour
+ * Items: a 48px row (--ds-menu-item-height) in the body role, a state layer in the content colour
  * (hover, press in --ds-dur-micro, the focus layer and an inset ring that
  * snaps in), the ripple (js/ripple.js) and no press morph (a menu row is
  * not a pill). aria-disabled items stay focusable (their name is read) but
  * show the disabled ink and take no press.
  *
+ * menuitemradio and menuitemcheckbox items show .ds-menu__check only when
+ * aria-checked="true" (the page flips it; one radio of a group at a time).
+ * .ds-menu__heading names a group (caption type, not focusable);
+ * .ds-menu__meta sits at an item's end (meta type, tabular).
+ *
  * Forced colours: the menu keeps an edge (its transparent outline), the
- * focused item its ring.
+ * focused item its ring, a blocked item GrayText.
+ *
+ * Print: an open menu is not printed.
  *
  * Progressive:
  * - popover and CSS anchor positioning (anchor-name on the trigger,
@@ -156,7 +175,7 @@
     align-items: center;
     gap: var(--ds-space-3);
     width: 100%;
-    min-height: 48px;
+    min-height: var(--ds-menu-item-height, 48px);
     margin: 0;
     padding: 0 var(--ds-space-3);
     border: 0;
@@ -263,5 +282,53 @@
     height: 1px;
     margin: var(--ds-space-2) 0;
     background: var(--ds-line);
+  }
+
+  /* A group of items (role="group") is a column like the menu itself. */
+  .ds-menu [role="group"] {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  /* The name of a group: not focusable, so the arrow keys pass it by. */
+  .ds-menu__heading {
+    flex-shrink: 0;
+    margin: 0;
+    padding: var(--ds-space-2) var(--ds-space-4) var(--ds-space-1);
+    color: var(--ds-text-2);
+    font: var(--ds-font-caption);
+  }
+
+  /* At an item's end: a shortcut (.ds-kbd) or the state word of a checkbox item. */
+  .ds-menu__meta {
+    flex-shrink: 0;
+    margin-inline-start: auto;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ds-menu__label + .ds-menu__meta {
+    margin-inline-start: var(--ds-space-3);
+  }
+
+  .ds-menu__item[aria-disabled="true"] .ds-menu__meta,
+  .ds-menu__item:disabled .ds-menu__meta {
+    color: inherit;
+  }
+
+  /* Blocked is one system colour (D8). */
+  @media (forced-colors: active) {
+    .ds-menu__item[aria-disabled="true"],
+    .ds-menu__item:disabled {
+      color: GrayText;
+    }
+  }
+
+  @media print {
+    .ds-menu {
+      display: none;
+    }
   }
 }
