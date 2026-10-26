@@ -458,13 +458,19 @@
       color: CanvasText;
     }
 
-    .ds-switch__icon {
-      forced-color-adjust: none;
+    /* The page's forced svg rule (shell.css) makes every icon inherit its
+       colour, so the track carries it: the lock takes the track's colour. */
+    .ds-switch--locked input:is(:disabled, [aria-disabled="true"]) + .ds-switch__track {
       color: Canvas;
     }
 
-    .ds-switch input:checked + .ds-switch__track .ds-switch__icon {
+    .ds-switch--locked input:checked:is(:disabled, [aria-disabled="true"]) + .ds-switch__track {
       color: Highlight;
+    }
+
+    .ds-switch__icon {
+      forced-color-adjust: none;
+      color: inherit;
     }
   }
 

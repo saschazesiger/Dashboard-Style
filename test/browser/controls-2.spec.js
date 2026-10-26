@@ -59,9 +59,16 @@ test.describe('the ripple handle (CT-1)', () => {
     await page.mouse.down();
     expect(await chip.evaluate((el) => el.classList.contains('ds-pressed'))).toBe(true);
     await expect(chip.locator('.ds-press-ripple')).toHaveCount(1);
+    // The fade may finish (and the ripple go) before a poll sees it: record it as it starts.
+    await chip.evaluate((el) => {
+      window.fxFaded = false;
+      new MutationObserver(() => {
+        if (el.querySelector('.ds-press-ripple--out')) window.fxFaded = true;
+      }).observe(el, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    });
     await page.mouse.move(box.x + box.width / 2 - 40, box.y + box.height / 2, { steps: 4 });
     // Still held: the ripple fades as on release, and .ds-pressed goes after its minimum.
-    await expect(chip.locator('.ds-press-ripple--out')).toHaveCount(1);
+    await expect.poll(() => page.evaluate(() => window.fxFaded), { timeout: 2000 }).toBe(true);
     await expect.poll(() => chip.evaluate((el) => el.classList.contains('ds-pressed')), { timeout: 2000 }).toBe(false);
     await page.mouse.up();
     await expect.poll(() => chip.locator('.ds-press-ripple').count(), { timeout: 2000 }).toBe(0);
@@ -408,11 +415,15 @@ test.describe('forced colours', () => {
     await open(page);
     const system = await page.evaluate(() => {
       const probe = (value) => { const el = document.createElement('span'); el.style.color = value; document.body.append(el); const out = getComputedStyle(el).color; el.remove(); return out; };
-      return { highlight: probe('Highlight'), gray: probe('GrayText') };
+      return { highlight: probe('Highlight'), gray: probe('GrayText'), canvas: probe('Canvas') };
     });
     const bg = (id) => page.locator(id).evaluate((el) => getComputedStyle(el).backgroundColor);
     for (const id of ['#tile-selected', '#card-selected', '#btn-disclosure', '#btn-locked']) expect(await bg(id), id).toBe(system.highlight);
     expect(await page.locator('#btn-locked-off').evaluate((el) => getComputedStyle(el).color)).toBe(system.gray);
+    // The lock: Canvas on the off handle (CanvasText), Highlight on the on handle (Canvas).
+    const lock = (id) => page.locator(`${id} .ds-switch__icon`).evaluate((el) => getComputedStyle(el).color);
+    expect(await lock('#switch-locked-off')).toBe(system.canvas);
+    expect(await lock('#switch-locked')).toBe(system.highlight);
   });
 
   test('the fixture in forced colours (settled shot)', async ({ page }) => {
