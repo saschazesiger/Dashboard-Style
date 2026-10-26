@@ -129,9 +129,11 @@ describe('repository', () => {
     const NOT_HOOKS = new Map([
       ['--ds-content-pad-top', 'the panel padding of page.css at the current width: read it, never set it'],
       ['--ds-content-pad-x', 'the panel padding of page.css at the current width: read it, never set it'],
-      ['--ds-toast-reserve', 'set by the page (data-toast-reserve) for an open message'],
+      ['--ds-toast-reserve', 'written by toast(), or by the page with reserve: false (data-toast-reserve)'],
       ['--ds-toast-bottom', 'set by the page on the region over a bar pinned to the bottom edge'],
-      ['--ds-toast-shift-y', 'set by the page with --ds-toast-shift, to glide a region it moved'],
+      ['--ds-toast-shift-y', 'written by DS.overlay (two-axis glide)'],
+      ['--ds-keyboard-inset', 'written by DS.dom.followViewport() on <html>: the height of the on-screen keyboard'],
+      ['--ds-content-pad-bottom', 'the bottom padding of the page content at the current width: read it, never set it'],
       ['--ds-indicator-lag', 'a motion hook: how long the trailing edge waits; themes never set it'],
       ['--ds-indicator-ease-t', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
       ['--ds-indicator-ease-r', 'a motion hook: the curve of each indicator edge, set by indicator.css'],

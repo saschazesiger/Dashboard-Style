@@ -14,7 +14,8 @@
 </head>
 <body>
 <!-- DS.overlay.toast() and DS.overlay.tooltips(): a region without role
-     (announcers), one with the deprecated role="status", a toolbar of five
+     (announcers), one with the markup removed in 2.0 (role="status": toast()
+     takes it off and adds the announcers), a toolbar of five
      tooltip icon buttons, a trigger whose tip equals its name, a trigger at
      the bottom edge (the tooltip flips above), a native dialog with a
      trigger, and a div side sheet that the region follows. -->
@@ -60,7 +61,7 @@
   </div>
 
   <div class="ds-toasts" id="toasts"></div>
-  <div class="ds-toasts" id="legacy" role="status" aria-live="polite" style="--ds-toast-bottom: 400px"></div>
+  <div class="ds-toasts" id="old-markup" role="status" aria-live="polite" style="--ds-toast-bottom: 400px"></div>
 </div>
 
 <script src="/dist/ds.js"></script>

@@ -269,8 +269,8 @@ with this table, so the table and the code are one source.
 | Side sheet on a phone | native and div | `translate` `--ds-dur-long` `--ds-ease-out` | `translate` `--ds-dur-base` `--ds-ease-exit` | rises its full height from the bottom (as tall as the screen, so it decelerates: the spring would cut off its head) | the bottom edge | none | as the side sheet | as the side sheet |
 | Modal drawer | div | `transform` `--ds-dur-long` `--ds-ease-spatial` | `transform` `--ds-dur-base` `--ds-ease-exit` | slides its full width in from the start edge below 900px; its bleed covers the overshoot; `visibility` steps after the exit | the start edge | none | turns back from where the drawer is | on the menu button at once |
 | Modal drawer scrim | div | `opacity` `--ds-dur-medium` `--ds-ease-in-out` | `opacity` `--ds-dur-base` `--ds-ease-in` | fades only (`--ds-scrim`) | none | none | turns back from its opacity | closes the drawer on a click |
-| Snackbar | div | `ds-fade-in` `--ds-dur-medium` `--ds-ease-in-out`; `ds-lift-in` `--ds-dur-medium` `--ds-ease-spatial` | `ds-fade-out` `--ds-dur-fast` `--ds-ease-in` | rises `--ds-distance-md`; a closed message fades out in place, out of flow, while the stack glides (`flip()`: `translate` on the spring for `travelDuration()`); at most three, a fourth replaces the oldest that closes by itself or waits (D19, D32) | none | closes after its timeout (time-scaled); the timers pause on hover, focus and a hidden tab | a message that leaves mid-entrance continues from its current opacity (`DS.motion.leave()`) | to the next message's close button, else where focus came from, else the view |
-| Tooltip | popover and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `--ds-dur-medium` `--ds-ease-spatial` | `opacity` `--ds-dur-instant` `--ds-ease-in-out` | grows from `--ds-scale-tooltip` at its anchor; the exit only fades | `--ds-motion-origin`: the side of the anchor | shows after `--ds-delay-tooltip` for a resting mouse or pen, at once on keyboard focus; hides after `--ds-delay-tooltip-hide` | a hide taken back turns back from its opacity; a visible tooltip swaps text and place in place | focus stays on the trigger |
+| Snackbar | div | `ds-fade-in` `--ds-dur-medium` `--ds-ease-in-out`; `ds-lift-in` `--ds-dur-medium` `--ds-ease-spatial` | `ds-fade-out` `--ds-dur-fast` `--ds-ease-in` | rises `--ds-distance-md`; a closed message fades out in place, out of flow, while the stack glides (`flip()`: `translate` on the spring for `travelDuration()`); at most three, a fourth replaces the oldest that closes by itself or waits (D19, D32) | none | closes after its timeout (time-scaled); the timers pause on hover, focus and a hidden tab; the same message again restarts it, nothing moves | a message that leaves mid-entrance continues from its current opacity (`DS.motion.leave()`) | to the next message's close button, else where focus came from, else the view |
+| Tooltip | popover and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `--ds-dur-medium` `--ds-ease-spatial` | `opacity` `--ds-dur-instant` `--ds-ease-in-out` | grows from `--ds-scale-tooltip` at its anchor; the exit only fades | `--ds-motion-origin`: the side of the anchor | shows after `--ds-delay-tooltip` for a resting mouse or pen, at once on keyboard focus; on touch at once on a tap (an image, a blocked control) or after a long press of `--ds-delay-tooltip`; hides after `--ds-delay-tooltip-hide` (a touch tip on the next touch, a scroll or Escape) | a hide taken back turns back from its opacity; a visible tooltip swaps text and place in place | focus stays on the trigger |
 | Tooltip warm-up | popover and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out` | `opacity` `--ds-dur-instant` `--ds-ease-in-out` | within `--ds-delay-tooltip-skip` of the last hide the next tooltip of a toolbar shows at once and only fades in (`data-warm`) | `--ds-motion-origin`: the side of the anchor | none: it shows at once | as the tooltip | focus stays on the trigger |
 | Menu | popover and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `clip-path` `--ds-dur-medium` `--ds-ease-spatial` | `opacity` `--ds-dur-instant` `--ds-ease-in-out` | its clip opens from the trigger's edge (`--ds-clip-from`) while it grows from `--ds-scale-popup`; opens above the trigger without room below; the exit only fades | `--ds-motion-origin`: the trigger | none | a close mid-entrance fades from where it is | back to the trigger for Escape or when focus was inside, never for a click outside |
 | Combobox list | popover and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `clip-path` `--ds-dur-medium` `--ds-ease-spatial` | `opacity` `--ds-dur-instant` `--ds-ease-in-out` | as the menu, from the field; as wide as the field | `--ds-motion-origin`: the field | none | as the menu | focus stays in the input |
@@ -333,6 +333,7 @@ on load, and a rapid toggle turns back from where it is. A chip that wraps to an
 | Status chip | colour and icon glide over `--ds-dur-medium`; a new icon fades in and springs up from `--ds-scale-small` |
 | Table | sort, filter and live reorder glide through `flip()`; a selected row tints over `--ds-dur-fast`; an expandable row opens its room on `--ds-ease-out` (`--ds-dur-medium`) and closes accelerating (`--ds-dur-base`); the sort arrow and the toggle chevron turn on the spring |
 | Alert, tile, card | alerts come and go through `flip()`; a tile's figure counts with `countUp()`; clickable tiles and cards take the press morph |
+| Save bar (`.ds-savebar`, `DS.overlay.savebar()`) | the `.ds-presence` transitions: fades in over `--ds-dur-fast` and grows from `--ds-scale-enter` at its bottom edge on the spring over `--ds-dur-medium`, leaves in `--ds-dur-fast` accelerating; a toggle mid-way turns back from where it is; the snackbars glide above it and back (`--ds-toast-lift`, `data-follow`); the view's room comes and goes at once (no layout motion) |
 
 ### Data motion
 
@@ -776,7 +777,11 @@ the entrance, turns the motion back from its current value in every engine, with
 | `open(el, { opener, container })` | shows `el` and moves focus into it at once; `opener` (default: the focused element) gets focus back on close; `container: true` (1.5) grows the opener into a dialog or sheet (below) |
 | `close(el)` | plays the exit and hides `el`; a second call during the exit returns the same promise |
 | `lockScroll(doc?)` / `unlockScroll(doc?)` | the reference-counted scroll lock of `doc` (default: the document of the page; 1.6.1) that the modal kinds take for their own document; a page may take it for a layer of its own |
-| `toast(region, content, { kind, persistent, timeout, closeLabel })` | shows a snackbar in a `.ds-toasts` region; returns `{ el, close(), closed }` (below) |
+| `toast(region, content, { kind, persistent, timeout, closeLabel, action, key, restart, reserve })` | shows a snackbar in a `.ds-toasts` region (`null`: `toastRegion()`); returns `{ el, close(), closed }` (below; `action`, `key`, `restart` and `reserve` 2.0) |
+| `closeToasts(region = toastRegion(), { kind, key })` | closes every message on screen or waiting that matches, as one change of the stack; a Promise that resolves once they are gone (2.0) |
+| `announce(text, { assertive, region })` | says `text` through the announcers of a snackbar region (default `toastRegion()`) without a message; polite, or assertive; the same text twice is said twice, empty text nothing (2.0) |
+| `toastRegion(doc = document)` | the page's snackbar region: the `.ds-toasts` in the theme of the first `.ds-app`, else the first in the document, else a new one right after `.ds-app` (2.0) |
+| `savebar(element, { focusTarget })` | the controller of a `.ds-savebar`: `{ element, show(), hide(), update(fn), shown, destroy() }`, one per element (below; 2.0) |
 | `tooltips(root = document)` | tooltips for every `[data-tip]` in `root` (a document, an element or an open shadow root); returns `{ destroy() }` (below) |
 | `TOAST_MS`, `TOAST_MAX_MS`, `TOAST_LIMIT` | snackbar fallbacks: 4000ms, at most 10000ms, at most 3 at once |
 | `TOOLTIP_DELAY_MS`, `TOOLTIP_SKIP_MS`, `TOOLTIP_HIDE_MS` | tooltip fallbacks: 500, 300 and 100ms |
@@ -902,29 +907,60 @@ connected only while an overlay is open, notices the removal; a `close()` of the
 once.
 
 Snackbars: `toast(region, content, options)` takes a `.ds-toast` element or builds one from a string (`kind`
-`'success'`, `'error'` or `'info'` picks the icon and the modifier; a message that stays gets a close button) and
-returns `{ el, close(), closed }`; `closed` resolves once the message is gone (also when it never showed). Every
+`'success'`, `'error'` or `'info'` picks the icon and the modifier; `action: { label, onClick }` adds a
+`.ds-toast__action` text button; a message that stays gets a close button, whose label is also its `data-tip`; an
+element message that stays without a close button or an action gets one too) and returns `{ el, close(), closed }`;
+`closed` resolves once the message is gone (also when it never showed). `region` `null` is `toastRegion()`. Every
 insertion and removal runs inside `DS.motion.flip(region, ...)`: the messages on screen glide on `--ds-ease-spatial`
 while a new one rises in (`--ds-dur-medium`) or a closed one fades out in place (`--ds-dur-fast`, out of flow) and the
 gap closes. At most `TOAST_LIMIT` (3) show; a further one replaces the oldest message that would close by itself, or
 waits in a queue (first in, first out) behind three that stay. A message closes after `timeout` ms, by default
 `min(TOAST_MAX_MS, TOAST_MS + 50ms × max(0, characters − 40))`, multiplied by the computed `--ds-time-scale`; errors,
-`persistent: true` and messages with another button or a link never close by themselves. The timers pause while a
-pointer is over a message (`pointerover` / `pointerout`, checked against the region), while focus is in the region
-and while `document.hidden`, and resume with the time left. A focused message that leaves first hands focus to the
+`persistent: true` and messages with an action, another button or a link never close by themselves. The timers pause
+while a pointer is over a message (`pointerover` / `pointerout`, checked against the region), while focus is in the
+region and while `document.hidden`, and resume with the time left. Matching (2.0): a string message without action
+has the implicit key `restart:` + kind + persistent + its normalised text; a call whose key matches a message on
+screen restarts it (its full timeout again, its text announced again, nothing moves) and returns that message's
+handle, one that matches a waiting message returns its handle; `restart: false` drops the implicit key. An explicit
+`key` replaces the matching message instead: on screen inside one `flip()` (the old one fades out in place, the new
+one enters in its slot, focus inside the old one moves to the new close button), waiting in its queue slot; the old
+`closed` resolves. `closeToasts(region, { kind, key })` takes every match off the screen and out of the queue in one
+`updateToasts` pass. A click on the action closes the message, then calls `onClick(event, handle)` once, inside
+`try` (`reportError`). Messages that stay (`reserve` is on by default for them) keep room: `data-toast-reserve` and
+`--ds-toast-reserve` on the scroller of the region's layer (the `.ds-view` of its app, a hosting sheet's
+`.ds-sheet__body`), `max(0, scroller bottom − top of the highest staying message)` rounded up, or on a hosting
+`.ds-dialog` (the stack, its bottom offset and `--ds-space-3`) only while the box would overlap the stack; measured
+after each change of the stack settled, after the region moved, and by one `ResizeObserver` on the region while
+held; a focused element (or the focus origin) under the stack is brought clear with `scrollIntoView({ block:
+'nearest' })`; both names are owned and go once no staying message shows (in a dialog, after its exit).
+A focused message that leaves first hands focus to the
 next message's close button, else to the element focused before focus entered the region, else to the view
 (`tabindex="-1"`); never `<body>`. The text is announced through two `.ds-sr` live regions that `toast()` adds next to
 the region (polite; assertive for errors): cleared, then written on the next frame, so the same text is announced
-again. A region with `role` or `aria-live` (the deprecated markup) announces by itself and gets none. `open()` of a
+again; `announce(text)` writes through the same pair. A region's own `role` and `aria-live` are removed on its first
+use (and owned), so the old markup is announced once, by the announcers. `open()` of a
 dialog or sheet moves every `.ds-toasts` region of its theme, with its announcers, into the overlay (`moveBefore`
 where it exists), before the div trap makes the page inert (a region inside a nested `.ds-theme`, an embedded
 widget's, is not moved: it stays where it is, under the modal like the rest of that widget; 1.6.2): a message shown while it is open sits above its scrim,
 in the top layer of a native one, announced and usable. In a dialog the region keeps its place (`--ds-toast-left`
-holds the left edge it had). In a sheet `--ds-toast-left` becomes the panel's resting left edge plus `--ds-space-6`;
-the messages glide there through the region's own `translate` transition (`--ds-toast-shift` set, flushed, cleared)
+holds the left edge it had). In a sheet `--ds-toast-left` becomes the panel's resting left edge plus `--ds-space-6`
+and `--ds-toast-lift` the height of its `.ds-sheet__foot` plus `--ds-space-2`;
+the messages glide there through the region's own `translate` transition (`--ds-toast-shift` and
+`--ds-toast-shift-y`, from the measured `left` and `bottom`: set, flushed, cleared)
 timed by `data-follow="enter"` (`--ds-dur-long`, `--ds-ease-spatial`); `close(sheet)` brings the region back with
-`data-follow="exit"` (`--ds-dur-base`, `--ds-ease-exit`). Nothing glides where the place does not change (phones, a
-dialog). Overlays over each other nest: each gives the regions back to the one it took them from.
+`data-follow="exit"` (`--ds-dur-base`, `--ds-ease-exit`). Nothing glides where the place moves by less than half a
+pixel on both axes (phones, a dialog). Overlays over each other nest: each gives the regions back to the one it took
+them from. On the page `--ds-toast-lift` is the room above a shown save bar of the theme and, on phones while the
+modal drawer is open, above its `.ds-drawer__foot` (a `MutationObserver` on `.ds-app` for `data-drawer-open`); it is
+set at once when the first message of an empty stack shows, and glides when it changes under messages.
+
+Save bar: `savebar(element, { focusTarget })` drives a `.ds-savebar__bar` (a `.ds-presence`, so its entrance and exit
+are the utility's transitions). `show()` removes `hidden`, writes `--ds-savebar-height` and `data-ds-savebar` on the
+`.ds-view`, lifts the regions of its theme that no overlay hosts (`--ds-toast-lift`, gliding) and scrolls the focused
+element clear; `hide()` rescues focus inside the bar to `focusTarget()` (else the view), sets `inert` until the exit
+`settled()`, sets `hidden`, lowers the regions, and sets `data-ds-savebar-rest` when the view was at its end (dropped
+once the view scrolls the bar's room away from its end); `update(fn)` waits for a running exit. A `ResizeObserver`
+re-measures while it shows. Its writes are owned. Outside `.ds-view` it warns once.
 
 Tooltips: `tooltips(root)` installs one set of delegated listeners for the `[data-tip]` triggers in `root` and creates
 one `.ds-tooltip` inside the `.ds-theme` around it (for a shadow root: the `.ds-theme` inside it; a tooltip of a trigger inside a dialog or sheet moves into that
@@ -933,12 +969,12 @@ so it stays hoverable and heard). A second call on the same root returns the fir
 nested roots (the host page's `document` and an embedded widget's root) is served by the innermost one only, so it
 never shows twice or is described twice (1.6.1). It shows after `--ds-delay-tooltip` for a
 mouse or pen resting on a trigger (`pointerover` / `pointerout` with a `relatedTarget` check, so the trigger's own
-icon changes nothing; touch never) and at once on `focusin` with `:focus-visible`. While one is visible, or within
+icon changes nothing) and at once on `focusin` with `:focus-visible`. On touch (`pointerType` `"touch"`, one capture listener per event on the document): a tap (down and up on the same trigger within 10px, `TAP_SLOP_PX`) on `[role="img"][data-tip]` or `[aria-disabled="true"][data-tip]` shows it at once on `pointerup` and a second tap hides it; a long press of `--ds-delay-tooltip` on any other trigger but `a[href]` shows it and swallows the `click` and `contextmenu` that follow (one capture listener, removed after the click or at the next `pointerdown`); `pointercancel` and a move past 10px cancel; a touch tip hides on the next `pointerdown`, any scroll and Escape, never on a timer (2.0). Whether a tip is wanted is checked on `pointerover`, `focusin` and when the delay ends (`tipWanted()`): the trigger's rendered text (text nodes whose parent has client rects, without `.ds-sr`, `[aria-hidden="true"]`, `svg` and boxes of at most 1×1px) normalised like `normalText`; a tip that differs always shows, one that equals it only while the trigger, one of its first 24 descendants or one of up to three ancestors with the same text has `overflow` other than `visible` and `scrollWidth > clientWidth + 1` or `scrollHeight > clientHeight + 1`, and then sets no `aria-describedby` (2.0). While one is visible, or within
 `--ds-delay-tooltip-skip` of the last hide, the next trigger shows at once: a visible tooltip swaps text and place
 in place (a fade under way turns back from its current opacity), a hidden one opens with `data-warm` and only fades
 in. It hides after `--ds-delay-tooltip-hide`, unless the pointer crossed onto it or the trigger keeps keyboard
 focus; Escape hides it (with `preventDefault()` and `stopPropagation()`, only when one was visible), as do any
-`pointerdown`, `open()` and a trigger that scrolls out of view. Timing reads the tokens through `motionDuration()`,
+`pointerdown`, `open()` and a trigger that scrolls out of view; a trigger removed from the document hides it at once, without the fade (a `MutationObserver` on the root, connected only while a tooltip shows; 2.0). Timing reads the tokens through `motionDuration()`,
 so `--ds-time-scale` stretches the delays too. Motion runs on the `data-state` transitions of tooltip.css; the origin
 comes from `originFrom(trigger, tip)`. Placement: with `showPopover` and CSS anchor positioning the tooltip is a
 `popover="manual"` with `data-anchored`, the trigger gets an inline `anchor-name` (`--ds-anchor-<n>`, shared with a

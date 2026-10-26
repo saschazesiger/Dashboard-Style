@@ -39,7 +39,7 @@ the tests in `test/`.
   press, ripple, morph or halo, take the `not-allowed` cursor where they can still be pointed at, and fade into that
   look on `--ds-dur-fast`.
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
-  why over a bare `disabled`.
+  why over a bare `disabled`: the reason shows on hover, on keyboard focus and on a tap on touch screens.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
   `--ds-hold-loader` (450ms). A block that waits shows the shape loader (`.ds-loader`), a small spot (a button, a
   chip, a cell) the arc spinner (it has no delay of its own: put it in `.ds-loading`, a busy button, or a
@@ -83,8 +83,8 @@ the tests in `test/`.
 - Labels stay above fields, never only as a placeholder; hints and errors are linked with `aria-describedby`.
 - Checkboxes and radios stay native inputs, drawn on the input itself (`appearance: none`, no wrapper), so forms,
   labels, the keyboard and screen readers work as without CSS.
-- A busy button (`aria-busy`) and its done face change only what is seen: announce the result yourself (an
-  `aria-live` region or a snackbar).
+- A busy button (`aria-busy`) and its done face change only what is seen: announce the result yourself
+  (`DS.overlay.announce()` or a snackbar).
 - Forced colors (Windows contrast themes) drop backgrounds and shadows: floating layers (dialogs, sheets, the modal
   drawer, snackbars, tooltips, menus and the combobox list) carry a transparent outline that becomes their edge, a
   selected option shows `SelectedItem`, selects get their native arrow back, and the spinner, switch, progress and

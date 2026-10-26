@@ -1116,6 +1116,43 @@ describe('createIndicator on a fake track', () => {
   });
 });
 
+describe('snackbars, tooltips and the save bar (2.0)', () => {
+  it('exports announce, toastRegion, closeToasts and savebar, documented in docs/motion.md', () => {
+    const doc = read('docs/motion.md');
+    for (const name of ['announce', 'toastRegion', 'closeToasts', 'savebar']) assert.equal(typeof overlay[name], 'function', name);
+    assert.match(doc, /\| `toast\(region, content, \{ kind, persistent, timeout, closeLabel, action, key, restart, reserve \}\)` \|/);
+    assert.match(doc, /\| `closeToasts\(region = toastRegion\(\), \{ kind, key \}\)` \|/);
+    assert.match(doc, /\| `announce\(text, \{ assertive, region \}\)` \|/);
+    assert.match(doc, /\| `toastRegion\(doc = document\)` \|/);
+    assert.match(doc, /\| `savebar\(element, \{ focusTarget \}\)` \|/);
+  });
+
+  it('does nothing without a document: no region, no announcement, an empty handle', async () => {
+    assert.equal(overlay.toastRegion(undefined), null);
+    assert.equal(overlay.announce(''), undefined);
+    assert.equal(overlay.announce('Saved.'), undefined);
+    const handle = overlay.toast(null, 'Saved.');
+    assert.equal(handle.el, null);
+    await handle.closed;
+    await overlay.closeToasts(null, { kind: 'error' });
+  });
+
+  it('has no legacy branch: the region is never left mute (R11)', () => {
+    const source = withoutComments(read('src/js/overlay.js'));
+    assert.doesNotMatch(source, /\blegacy\b/);
+    // The private speaker was renamed, so the export could take the name.
+    assert.match(source, /function speak\(region, state, entry\)/);
+    assert.match(source, /export function announce\(text, options = \{\}\)/);
+  });
+
+  it('keeps the touch slop a private distance and documents it', () => {
+    const source = read('src/js/overlay.js');
+    assert.match(source, /^const TAP_SLOP_PX = 10;$/m);
+    assert.doesNotMatch(source, /export const TAP_SLOP_PX/);
+    assert.match(read('docs/motion.md'), /within 10px, `TAP_SLOP_PX`/);
+  });
+});
+
 describe('classic-script build (dist/ds.js)', () => {
   it('exposes the same exports as the modules under window.DS', () => {
     const sandbox = { window: undefined };

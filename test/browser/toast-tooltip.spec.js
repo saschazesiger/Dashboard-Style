@@ -7,7 +7,7 @@
  * close by itself is replaced and a fourth waits behind three that stay;
  * the timer pauses on hover, focus and a hidden tab; a focused message
  * that leaves hands focus on, never to <body>; the text reaches the
- * announcers (and an old role="status" region gets none); an open side
+ * announcers (an old role="status" region loses the role and gets its own); an open side
  * sheet takes the region in and its messages glide on the sheet's timing;
  * over an open dialog (native, div) or sheet a new error is above the
  * scrim, announced and closes by its own button, and through the exit it
@@ -206,7 +206,7 @@ test.describe('snackbars', () => {
     expect(await focused(page)).toBe('page');
   });
 
-  test('the text reaches the polite and assertive announcers, again for the same text; an old role="status" region gets none', async ({ page }) => {
+  test('the text reaches the polite and assertive announcers, again for the same text; an old role="status" region loses it and gets its own', async ({ page }) => {
     await load(page);
     const said = await page.evaluate(async () => {
       const region = document.getElementById('toasts');
@@ -234,13 +234,25 @@ test.describe('snackbars', () => {
     expect(said.next).toEqual([true, true]);
     expect(said.live, 'the messages are not live').toBe(0);
 
-    const legacy = await page.evaluate(() => {
-      const region = document.getElementById('legacy');
+    // 2.0 (R11): the old markup is stripped once and announced by its own pair, never twice.
+    const old = await page.evaluate(async () => {
+      const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const region = document.getElementById('old-markup');
       const entry = DS.overlay.toast(region, 'Could not sync.', { kind: 'error' });
-      return { announcers: region.parentNode.querySelectorAll('.ds-sr[aria-live]').length, role: entry.el.getAttribute('role') };
+      await frame();
+      const polite = region.nextElementSibling;
+      const assertive = polite?.nextElementSibling;
+      return {
+        role: region.getAttribute('role'),
+        live: region.getAttribute('aria-live'),
+        message: entry.el.getAttribute('role'),
+        announcers: region.parentNode.querySelectorAll(':scope > .ds-sr[aria-live]').length,
+        next: [polite?.getAttribute('aria-live'), assertive?.getAttribute('aria-live')],
+        said: assertive?.textContent,
+      };
     });
-    // Only the two of #toasts.
-    expect(legacy).toEqual({ announcers: 2, role: null });
+    // Two of #toasts and two of #old-markup.
+    expect(old).toEqual({ role: null, live: null, message: null, announcers: 4, next: ['polite', 'assertive'], said: 'Could not sync.' });
   });
 
   test('a re-render of the region\'s parent keeps the announcers and the tooltip, and never writes a message into the page', async ({ page }) => {

@@ -26,6 +26,9 @@ component live.
 | The state of one item (synced, failed, running) | [Status chip](#status-chip) `.ds-status` |
 | A message about a page or section that stays | [Alert](#alert) `.ds-alert`; a list of errors to open: `.ds-errors` |
 | Short feedback after an action | [Snackbar](#snackbar) `.ds-toast` in `.ds-toasts` |
+| Undo right after an action | a snackbar with `action: { label: 'Undo', onClick }` (`.ds-toast__action`, [Snackbar](#snackbar)) |
+| Say a result to screen readers without showing a message | `DS.overlay.announce(text)` ([Snackbar](#snackbar)) |
+| Unsaved edits of a view, saved or discarded together | [Save bar](#save-bar) `.ds-savebar` with `DS.overlay.savebar()` |
 | Records in rows and columns | [Table](#table) `.ds-table` in `.ds-table-wrap` |
 | Rows that open their record | `.ds-table--interactive` with a `.ds-table__row-link` per row ([Table](#table)) |
 | Pick several rows for one action (bulk selection) | a checkbox in each row and in the header cell; the row takes the selection colour ([Table](#table)) |
@@ -56,7 +59,7 @@ and update the copy; otherwise build it in the project with the project's own cl
 Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card](#card) · [Tiles](#tiles) ·
 [Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
 [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) ·
-[Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Loading](#loading) ·
+[Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Save bar](#save-bar) · [Loading](#loading) ·
 [Progress](#progress) · [Ripple](#ripple) · [Utilities](#utilities) · [Motion classes](#motion-classes)
 
 ## App frame
@@ -237,7 +240,8 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - `.ds-view` keeps a stable scrollbar gutter (`--ds-view-scrollbar-gutter`, default `stable`; `stable both-edges` for
   symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
   scrollbars need no room; Safari before 18.2 ignores it.
-- Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px.
+- Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px. As a
+  `role="img"` it shows that tooltip on a tap too ([Tooltip](#tooltip), "On touch screens").
 - Open and close the modal drawer with `DS.overlay.open(drawer, { opener: menu })` and `DS.overlay.close(drawer)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): it sets `data-drawer-open` and `aria-expanded`, makes the rest of
   the app inert (not the scrim), locks the scroll (`.ds-no-scroll` on `<body>`, counted), closes on Escape and a scrim
@@ -864,7 +868,8 @@ The handle glides and grows on the spatial spring (also when a script sets `chec
 and a halo around it (`--ds-switch-halo`, 40px) shows hover, press and keyboard focus; the switch has no ripple.
 Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-switch-disabled-handle`), no hover, halo
 or grow, the `not-allowed` cursor and the quieter label. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
-title next to the switch already names the setting.
+title next to the switch already names the setting. A tooltip on a switch (why it is blocked) goes on its input:
+`<input type="checkbox" role="switch" aria-disabled="true" data-tip="Managed by your organisation">`.
 
 **Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
 
@@ -1107,54 +1112,97 @@ DS.overlay.toast(region, 'Saved.');                                 // closes by
 DS.overlay.toast(region, 'Could not save.', { kind: 'error' });     // stays until closed
 const message = DS.overlay.toast(region, 'Export ready.', { persistent: true });
 message.close();                                                    // message.closed resolves once it is gone
+DS.overlay.toast(region, '3 devices deleted.', { action: { label: 'Undo', onClick: () => restore() } });
+DS.overlay.toast(null, 'Saved.');                                   // null: the page's region (toastRegion())
+DS.overlay.announce('Saved.');                                      // said, not shown
 ```
 
 What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toast` element):
 
 ```html
 <div class="ds-toast [ds-toast--error | ds-toast--info]">[icon checkCircle | alertCircle | info 20]<span class="ds-toast__text">Saved.</span>
-  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">[icon close 20]</button></div>
+  <button class="ds-btn ds-btn--text ds-btn--sm ds-toast__action" type="button">Undo</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">[icon close 20]</button></div>
 ```
 
+The action button comes only with `action`, the close button with every message that stays (`closeLabel`, default
+"Close", is its label and its tooltip).
+
 - Place the region right after `.ds-app`. It sits at the bottom left of the content panel: next to a persistent
-  drawer by itself, full width on phones. If your panel starts elsewhere, set `--ds-toast-left` on the region to the
-  panel's left edge plus 24px (`region.style.setProperty('--ds-toast-left', panel.getBoundingClientRect().left + 24 + 'px')`).
+  drawer by itself, next to the open modal drawer above 600px, full width on phones. If your panel starts elsewhere,
+  set `--ds-toast-left` on the region to the panel's left edge plus 24px
+  (`region.style.setProperty('--ds-toast-left', panel.getBoundingClientRect().left + 24 + 'px')`).
+  `DS.overlay.toastRegion(doc)` returns the page's region: the `.ds-toasts` in the theme of the first `.ds-app` (else
+  the first in the document); without one it creates `<div class="ds-toasts"></div>` right after `.ds-app` (else at
+  the end of the `.ds-theme`). `toast(null, ...)`, `announce()` and the save bar use it.
 - **Stack.** At most three show at once (`TOAST_LIMIT`), the newest at the bottom; the others glide to their places
   (`DS.motion.flip()`) while a message rises in or fades out where it was. A fourth replaces the oldest message that
   would close by itself; when all three stay (errors, `persistent`), it waits and enters when one closes. `close()`
   on a waiting message takes it out of the queue.
+- **The same message again.** A string message without action, of the same kind, `persistent` and text (whitespace
+  and case aside) as one on screen does not stack: the one on screen starts its timer over and its text is announced
+  again, and `toast()` returns its handle (a waiting one keeps its place). A poll that reports "Offline." every few
+  seconds shows one message. `restart: false` stacks it all the same.
+- **Replace by key.** `toast(region, text, { key: 'sync' })` replaces the message with the same `key` on screen or
+  waiting: on screen the old one fades out in place while the new one enters in its slot (one glide), waiting it
+  takes its place in the queue; the old handle's `closed` resolves, the call returns the new handle, and focus inside
+  the old message moves to the new one's close button. A retry keeps one error: `{ kind: 'error', key: 'save' }`.
+- **Close by kind or key.** `DS.overlay.closeToasts(region, { kind, key })` closes every message on screen or waiting
+  that matches (both optional; no filter closes all; `region` defaults to `toastRegion()`), as one change of the
+  stack, and resolves once they are gone: a save that succeeds after a retry clears its errors with
+  `closeToasts(null, { key: 'save' })`.
+- **Undo right after an action.** `action: { label, onClick }` (string messages) adds a text button before the close
+  button; the message gets the close button too and stays until one of them is used. A click closes the message,
+  then calls `onClick(event, handle)` once (an error it throws goes to `reportError`). Any `.ds-btn--text` in a
+  message, also one you build, takes the inverse primary ink (`--ds-toast-action-color`, default
+  `--ds-inverse-primary`, 7.6:1 on the inverse surface) and sits at the end of the line.
 - **Timer.** A message closes after `timeout` ms: by default 4s plus 50ms for each character past 40, at most 10s,
-  all stretched by `--ds-time-scale`. Errors, `persistent: true` and messages with another button or a link (an
-  action such as Undo) never close by themselves: the close button (`closeLabel`, default "Close") or your action
-  does. The timers pause while a pointer is over a message, while focus is in the region and while the tab is
-  hidden, and go on with the time they had left.
+  all stretched by `--ds-time-scale`. Errors, `persistent: true` and messages with an action, another button or a
+  link never close by themselves: the close button or the action does. An element message that stays without a
+  close button or an action of its own gets the documented close button. The timers pause while a pointer is over a
+  message, while focus is in the region and while the tab is hidden, and go on with the time they had left.
+- **Room at the end.** While a message that stays shows, its layer keeps room for it, so the last actions can scroll
+  clear of it: `toast()` sets `data-toast-reserve` and `--ds-toast-reserve` (how far the highest staying message
+  reaches into the scroller, rounded up) on the `.ds-view` of the region's app, on the `.ds-sheet__body` of a side
+  sheet that hosts the region, or on a hosting `.ds-dialog` while its box would overlap the stack (the box then
+  re-centres above it). It measures again after every change of the stack, after the region moves and when the
+  region resizes, and scrolls a focused element that the stack covers clear of it. Both are owned (a re-render
+  keeps them). `reserve: false` leaves both to the page.
 - **Focus.** A focused message that leaves hands focus to the next message's close button, else back to where focus
   came from into the region, else to the view (`.ds-view` with `tabindex="-1"`), never to `<body>`.
 - **Screen readers.** The region and the messages are not live regions, so their buttons stay usable. On first use
   `toast()` adds two `.ds-sr` live regions next to the region (polite, and assertive for errors) and writes each
-  message's text there.
+  message's text there; it takes `role` and `aria-live` off the region and off the messages (once, and owned).
+  `DS.overlay.announce(text, { assertive, region })` writes a text through the same announcers without a message
+  (a result that a busy button only shows, a filter count): the same text twice is said twice, empty text nothing.
+  While a dialog or side sheet is open, the announcers sit inside it with the region, so it is heard there.
 - **Dialogs and side sheets.** While a dialog or side sheet is open (`DS.overlay.open()`), the regions of its theme
-  (not one inside a nested `.ds-theme`, an embedded widget's: it stays in its widget) move into it, so a message shown meanwhile (an error from the dialog's action) is above the scrim, announced and
-  usable: in the top layer of a native one, outside the inert page of the div markup. In a sheet the messages glide
-  with the panel's edge (`data-follow="enter"` and `"exit"` time the glide like the sheet); in a dialog they keep
-  their place. Closing brings them back: they glide to their place while still inside the leaving dialog or sheet
-  (so they stay above its scrim and panel through the exit) and return to the page once it ended. The modal drawer leaves the regions and their announcers usable where they
-  are. A region placed inside another element of the page (not next to `.ds-app`) is inert under a div dialog that
-  does not take it in, so keep it in the documented place.
+  (not one inside a nested `.ds-theme`, an embedded widget's: it stays in its widget) move into it, so a message shown
+  meanwhile (an error from the dialog's action) is above the scrim, announced and usable: in the top layer of a
+  native one, outside the inert page of the div markup. In a sheet the messages glide with the panel's edge and rise
+  above its `.ds-sheet__foot` (`data-follow="enter"` and `"exit"` time the glide like the sheet); in a dialog they
+  keep their place. Closing brings them back: they glide to their place while still inside the leaving dialog or
+  sheet (so they stay above its scrim and panel through the exit) and return to the page once it ended. The modal
+  drawer leaves the regions and their announcers usable where they are; on phones they rise above its
+  `.ds-drawer__foot`. A region placed inside another element of the page (not next to `.ds-app`) is inert under a div
+  dialog that does not take it in, so keep it in the documented place.
+- **Above bars.** A shown [save bar](#save-bar) lifts the messages above itself. `--ds-toast-lift` is the region's
+  runtime rise that `DS.overlay` writes (a sheet's foot, the drawer's foot, the save bar); the messages glide on both
+  axes (`--ds-toast-shift`, `--ds-toast-shift-y`, written by `DS.overlay` only). The on-screen keyboard raises them by
+  `--ds-keyboard-inset` (written by `DS.dom.followViewport()`). Another bar of your own pinned to the bottom edge:
+  set `--ds-toast-bottom` on the region to its height plus a gap while it shows.
 - **View transitions.** While `DS.motion.transition()` runs, a region with messages is its own group
   (`ds-toasts`, [motion.md](motion.md#view-transitions)): a message stays on screen and still above the changing
   view, and glides with the panel's edge when the view shows or hides the drawer. Keep one region with messages per
   page: `transition()` lifts the name of a further one, which then crossfades with the page.
-- A bar pinned to the bottom edge (a save bar): set `--ds-toast-bottom` on the region to its height plus a gap while
-  it shows, so messages stay above it.
-- An error that stays until closed: give `.ds-view` (or `.ds-sheet__body`) `data-toast-reserve` and set
-  `--ds-toast-reserve` to the message's height, so the last actions can scroll clear of it.
-- `.ds-toast--info` uses the plain text colour for its icon, like `--error`.
-- **Deprecated** (still working, removed in 2.0): the region `<div class="ds-toasts" role="status" aria-live="polite">`
-  with `role="alert"` on error messages (on such a region `toast()` adds no announcers, so nothing is read twice);
-  showing messages by hand with `setTimeout(() => DS.motion.leave(toast), 4000)`; and the hand recipe for moving
-  messages into a side sheet: mark them `.ds-toast--shown`, set `--ds-toast-shift` and `--ds-toast-shift-y` to the
-  offset from the old place with `transition: none`, force a style flush, then remove both.
+- `.ds-toast--info` uses the plain text colour for its icon, like `--error`. `.ds-toast--shown` is runtime state:
+  `toast()` marks a message whose entrance has played, so a region that moves never replays it.
+- Hooks: `--ds-toast-action-color`, `--ds-toast-close-size` (the close button, 36px)
+  ([theming.md](theming.md#component-hooks)).
+- **Removed in 2.0:** the region with `role="status" aria-live="polite"` and `role="alert"` on messages (`toast()` now
+  takes the attributes off and announces once: use `<div class="ds-toasts"></div>`); showing messages by hand with
+  `setTimeout(() => DS.motion.leave(toast), 4000)` (`toast()` times them); the hand recipe that moved messages into a
+  side sheet with a page-set `--ds-toast-shift` (`DS.overlay.open(sheet)` moves and glides the region).
 
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
 
@@ -1162,6 +1210,7 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
 
 ```html
 <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">[icon link 20]</button>
+<td><a href="#device-42" data-tip="LAPTOP-0042-FINANCE-BACKUP">LAPTOP-0042-FINANCE-BACKUP</a></td>   <!-- shows only while cut off -->
 ```
 
 ```js
@@ -1173,14 +1222,26 @@ creates inside the `.ds-theme` (it warns once when `root` has none). A second ca
 handle; a trigger inside nested roots (a host page's `document` and a widget's root) is served by the innermost one:
 
 - **Delay.** A mouse or pen that rests on a trigger shows the tooltip after `--ds-delay-tooltip` (500ms); keyboard
-  focus (`:focus-visible`) shows it at once. Touch never shows one.
+  focus (`:focus-visible`) shows it at once.
+- **On touch screens.** A tap on an image (`role="img"`, a status icon, an avatar) or a blocked control
+  (`aria-disabled="true"`, so the reason reaches a finger) shows its tooltip at once; a second tap hides it. Any other
+  trigger shows it after a long press of `--ds-delay-tooltip`, and the click and context menu that the press would
+  end in never happen; a link keeps its own long press (the browser's menu). It stays until the next touch, a scroll
+  or Escape: no timeout (WCAG 1.4.13). A press that moves more than 10px is a scroll, not a tap.
+- **Repeats the visible text.** A tip that says what the trigger already shows (a name in a narrow column, with the
+  full name as its tip) shows only while that text is cut off: the trigger, one of its first 24 descendants or one
+  of up to three ancestors that hold just its text (the `td` around a link) clips it (`overflow` other than
+  `visible` and more content than room). Such a tip never describes the trigger. A tip that adds something always
+  shows: an icon button, a label hidden on phones (`.ds-sr`, `aria-hidden`, or a 1×1px box), a collapsed rail. No
+  attribute is needed for either: plain `data-tip` decides by itself.
 - **Warm-up.** While a tooltip is visible, or within `--ds-delay-tooltip-skip` (300ms) of the last hide, the next
   trigger shows at once: a visible tooltip swaps its text and place without leaving, a hidden one only fades in.
 - **Hoverable and persistent** (WCAG 1.4.13). It hides `--ds-delay-tooltip-hide` (100ms) after the pointer or focus
   left the trigger; the pointer may cross onto the tooltip meanwhile, and it stays while the pointer is on it or the
   trigger keeps keyboard focus.
 - **Dismissable.** Escape hides it, and only then is the key the tooltip's (an open dialog under it stays open). Any
-  pointerdown, `DS.overlay.open()` and a trigger scrolled out of view hide it too.
+  pointerdown, `DS.overlay.open()` and a trigger scrolled out of view hide it too; a trigger that leaves the document
+  (a re-render, a closed message) takes its tooltip with it at once.
 - **Description.** While it shows, the trigger gets `aria-describedby` pointing at it, unless the trigger's accessible
   name already says the same (an icon button whose `aria-label` equals the tip is not described twice).
 - **Placement.** Below the trigger and centred on it, above it when there is no room, 8px from the viewport edges.
@@ -1188,6 +1249,7 @@ handle; a trigger inside nested roots (a host page's `document` and a widget's r
   the trigger (`data-anchored`); elsewhere the script writes `--ds-tooltip-x` and `--ds-tooltip-y` and sets
   `data-placement="top"` above. It fades in and grows from `--ds-scale-tooltip` at the side of the trigger, and
   leaves with a quick fade.
+- On a [switch](#switch) the `data-tip` goes on its input, which covers the track.
 
 Placing a `.ds-tooltip` yourself: set `--ds-tooltip-x` and `--ds-tooltip-y` (or `top` and `left`) on it, remove
 `hidden` (the entrance plays) and hide it with `DS.motion.leave(tip, '', { then: 'hide' })`. A `transform` placement
@@ -1195,6 +1257,59 @@ composes with the entrance, but its scale shrinks the offset too, so the tooltip
 a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-origin: calc(50% + Xpx) calc(50% + Ypx)`.
 
 **Motion:** the "Tooltip" and "Tooltip warm-up" rows of [Overlays](motion.md#overlays) in motion.md.
+
+## Save bar
+
+```html
+<main class="ds-view" id="main" tabindex="-1">
+  <div class="ds-content"> ... </div>
+  <div class="ds-savebar">
+    <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
+      <p class="ds-savebar__text">2 unsaved changes</p>
+      <div class="ds-savebar__actions">
+        <button class="ds-btn ds-btn--text" type="button">Discard</button>
+        <button class="ds-btn ds-btn--primary" type="button"><span class="ds-btn__faces"> ... </span></button>   <!-- the faces of Button -->
+      </div>
+    </div>
+  </div>
+</main>
+```
+
+```js
+const bar = DS.overlay.savebar(document.querySelector('.ds-savebar'), { focusTarget: () => form.querySelector('input') });
+form.addEventListener('input', () => bar.show());
+discard.addEventListener('click', () => { form.reset(); bar.hide(); });
+bar.update(() => { text.textContent = `${count} unsaved changes`; });   // after the exit while it leaves
+```
+
+Unsaved edits of a view, saved or discarded together. The `.ds-savebar` is the last child of the `.ds-view`, after
+`.ds-content`: sticky at the view's bottom, it takes no room (height 0); its bar floats `--ds-savebar-offset` (16px)
+above the view's bottom edge, in the page column (the view's side pad, `--ds-content-pad-x`, at most
+`--ds-content-max` wide), text first, the actions at the end, wrapping on narrow views. It shows and hides as a
+`.ds-presence`: it fades in and grows from `--ds-scale-enter` at its bottom edge on the spring, leaves faster, and a
+toggle mid-way continues from where it is.
+
+`DS.overlay.savebar(element, { focusTarget })` returns `{ element, show(), hide(), update(fn), shown, destroy() }`,
+one controller per element (`.ds-savebar` or its `.ds-savebar__bar`):
+
+- `show()` removes `hidden`, measures the bar (`--ds-savebar-height` on the view) and sets `data-ds-savebar` on the
+  `.ds-view`: its `scroll-padding-bottom` and the content's bottom padding (at least `--ds-content-pad-bottom`) keep
+  the bar's height, offset and `--ds-space-2` free, so the last field scrolls above the bar and the focused element
+  scrolls clear of it at once (WCAG 2.4.11). The snackbars of its theme on the page rise above it
+  (`--ds-toast-lift`, [Snackbar](#snackbar)). A `ResizeObserver` measures again while it shows.
+- `hide()` moves focus inside the bar to `focusTarget()` (else the view), makes the bar inert while it leaves and
+  sets `hidden`; the snackbars glide back down. Hidden while the view was at its end, the room stays
+  (`data-ds-savebar-rest`) until the page scrolls away from the end, so nothing jumps.
+- `update(fn)` runs `fn` at once, or after the exit while the bar is leaving (the count changes only once it is gone).
+- Everything it writes is owned, so `DS.dom.morphHtml` keeps it. Outside a `.ds-view` it warns once and only shows and
+  hides.
+- Busy save: put the faces in the primary button and run it with `DS.motion.busy()` ([Button](#button)); hide the bar
+  when it resolves and say the result with a snackbar.
+- Hooks: `--ds-savebar-offset`, `--ds-savebar-inset` (from the view's sides instead of the page column),
+  `--ds-savebar-min-height` (56px), `--ds-savebar-radius` (`--ds-radius-card`), `--ds-savebar-bg` (`--ds-surface`),
+  `--ds-savebar-shadow` (`--ds-elev-overlay`) ([theming.md](theming.md#component-hooks)). Print: hidden.
+
+**Motion:** the "Save bar" row of [Feedback](motion.md#feedback) in motion.md.
 
 ## Loading
 
@@ -1395,3 +1510,9 @@ spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` ag
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
 
 ## Attributes
+
+| Attribute | On | Set by | Meaning |
+|---|---|---|---|
+| `data-toast-reserve` (with `--ds-toast-reserve`) | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | both: `toast()` by default, the page only with `reserve: false` | the layer keeps room at its end for snackbars that stay ([Snackbar](#snackbar)) |
+| `data-ds-savebar` (with `--ds-savebar-height`) | `.ds-view` | the system (`DS.overlay.savebar()`) | the save bar shows: scroll padding and the content's end keep its room ([Save bar](#save-bar)) |
+| `data-ds-savebar-rest` | `.ds-view` | the system (`DS.overlay.savebar()`) | the bar hid at the end of the page: its room stays until the page scrolls away from the end ([Save bar](#save-bar)) |

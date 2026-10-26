@@ -199,5 +199,9 @@
   --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
   --ds-dialog-shadow: var(--ds-elev-overlay); --ds-dialog-scrim: var(--ds-scrim);
   --ds-sheet-width: 560px;             --ds-sheet-width-wide: 720px;
+  --ds-toast-action-color: var(--ds-inverse-primary); --ds-toast-close-size: 36px;
+  --ds-savebar-offset: var(--ds-space-4); --ds-savebar-inset: (the page pad, --ds-content-pad-x);
+  --ds-savebar-min-height: 56px;       --ds-savebar-radius: var(--ds-radius-card);
+  --ds-savebar-bg: var(--ds-surface);  --ds-savebar-shadow: var(--ds-elev-overlay);
   */
 }
