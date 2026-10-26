@@ -35,10 +35,12 @@ const SECTIONS = ['overview', ...[...readFileSync(new URL('../../styleguide/styl
 /** Tall enough for the tallest section, so an element shot is never cut by the scrolling view. */
 const TALL = { width: 1280, height: 2200 };
 /* The section shots: taller than the longest section (the table section
-   with its 2.0 demos, 3,124px; 4,276px at 390px), since the view scrolls
-   and a shot paints only what is inside the viewport. */
+   with its 2.0 demos, 3,124px; at 390px the frame section, 5,703px), since
+   the view scrolls and a shot paints only what is inside the viewport (a
+   taller section came out with a blank top and depended on the timing of
+   scripts that run during the capture). */
 const SECTIONS_TALL = { width: 1280, height: 3400 };
-const PHONE_SECTIONS_TALL = { width: 390, height: 4800 };
+const PHONE_SECTIONS_TALL = { width: 390, height: 6200 };
 
 function annotate(...anchors) {
   for (const anchor of anchors) test.info().annotations.push({ type: 'src', description: anchor });
