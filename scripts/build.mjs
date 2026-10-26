@@ -11,6 +11,8 @@
  *   ds.js           classic script: window.DS = { version, motion, indicator, dom, ripple, icons, overlay },
  *                   each copy also under DashboardStyle.versions[version]
  *   css/, js/       the source files (ES modules, single stylesheets)
+ *   ds.d.ts, js/*.d.ts  hand-written types (src/types/): the global DS,
+ *                   and each module's exports next to the module
  *   css/optional/   opt-in stylesheets that ds.css never includes (src/optional/,
  *                   not imported by src/index.css), such as view-transitions.css
  *   css/properties.css  every top-level @property of ds.css, alone: a widget
@@ -421,8 +423,12 @@ export function build() {
     if (path.endsWith('.css')) text(`css/${path}`, readText(file));
     else if (path.startsWith('js/') && path.endsWith('.js')) text(path, readText(file));
     else if (path === 'deprecations.json') text(path, deprecationsJson(readText(file), info));
+    else if (path === 'types/ds.d.ts') text('ds.d.ts', readText(file));
+    else if (/^types\/js\/[\w-]+\.d\.ts$/.test(path) && MODULES.includes(path.slice(9, -5))) text(path.slice(6), readText(file));
     else throw new Error(`Unexpected file in src/: ${path}`);
   }
+  for (const name of MODULES) if (!out.has(`js/${name}.d.ts`)) throw new Error(`src/types/js/${name}.d.ts is missing: every module has its types`);
+  if (!out.has('ds.d.ts')) throw new Error('src/types/ds.d.ts is missing');
   for (const file of filesIn(join(ROOT, 'fonts'))) {
     const path = posix(relative(join(ROOT, 'fonts'), file));
     out.set(`fonts/${path}`, /\.(css|txt)$/.test(path) ? Buffer.from(readText(file), 'utf8') : readFileSync(file));

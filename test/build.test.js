@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEPRECATION_KINDS, build, deprecationsJson, inlineCss, moduleBody, packageInfo, SHIPPED_THEMES, tokensJson } from '../scripts/build.mjs';
+import { DEPRECATION_KINDS, MODULES, build, deprecationsJson, inlineCss, moduleBody, packageInfo, SHIPPED_THEMES, tokensJson } from '../scripts/build.mjs';
 import { filesIn, read, stripComments } from './helpers.js';
 
 /** Writes `files` ({ name: css }) into a fresh temporary folder and runs `check` on it. */
@@ -239,3 +239,68 @@ describe('dist/tokens.json', () => {
     assert.ok(!byName.has('--ds-view-scroll'), 'a timeline name is not a custom property');
   });
 });
+
+/**
+ * The parameter names of every `export function` / `export declare function`
+ * in `text`: { name: ['a', 'b', '...rest'] }. Brackets of any kind nest;
+ * the `>` of an arrow does not close anything.
+ */
+function exportedParams(text, declared) {
+  const head = declared ? /export declare function (\w+)\s*(?:<[^(]*>)?\s*\(/g : /export function (\w+)\s*\(/g;
+  const result = {};
+  for (const match of text.matchAll(head)) {
+    let depth = 0;
+    let part = '';
+    const parts = [];
+    for (let i = match.index + match[0].length; i < text.length; i += 1) {
+      const c = text[i];
+      if (c === '>' && text[i - 1] === '=') { part += c; continue; }
+      if ('([{<'.includes(c)) depth += 1;
+      if (')]}>'.includes(c)) {
+        if (depth === 0) break;
+        depth -= 1;
+      }
+      if (c === ',' && depth === 0) { parts.push(part); part = ''; continue; }
+      part += c;
+    }
+    parts.push(part);
+    result[match[1]] = parts.map((p) => p.trim()).filter(Boolean).map((p) => p.match(/^(\.\.\.)?\w+/)[0]);
+  }
+  return result;
+}
+
+describe('types (dist/ds.d.ts, dist/js/*.d.ts)', () => {
+  const out = build();
+  it('ships src/types/ds.d.ts and one .d.ts next to every module, listed in SHA256SUMS', () => {
+    const sums = out.get('SHA256SUMS').toString('utf8');
+    assert.equal(out.get('ds.d.ts')?.toString('utf8'), read('src/types/ds.d.ts'));
+    assert.match(sums, /^[0-9a-f]{64} {2}ds\.d\.ts$/m);
+    for (const name of MODULES) {
+      assert.equal(out.get(`js/${name}.d.ts`)?.toString('utf8'), read(`src/types/js/${name}.d.ts`), name);
+      assert.match(sums, new RegExp(`^[0-9a-f]{64}  js/${name}\\.d\\.ts$`, 'm'));
+    }
+    const global = stripComments(read('src/types/ds.d.ts'));
+    for (const name of MODULES) {
+      assert.match(global, new RegExp(`import type \\* as ${name} from '\\./js/${name}\\.js';`), `ds.d.ts imports ${name}`);
+      assert.match(global, new RegExp(`readonly ${name}: typeof ${name};`), `DS.${name}`);
+    }
+    assert.match(global, /var DS: DashboardStyleApi;/);
+    assert.match(global, /var DashboardStyle: DashboardStyleRegistry;/);
+  });
+
+  for (const name of MODULES) {
+    it(`declares exactly the exports of js/${name}.js, with their parameters`, async () => {
+      const mod = await import(`../src/js/${name}.js`);
+      const types = stripComments(read(`src/types/js/${name}.d.ts`));
+      const functions = [...types.matchAll(/export declare function (\w+)/g)].map((m) => m[1]);
+      const constants = [...types.matchAll(/export declare const (\w+)/g)].map((m) => m[1]);
+      assert.equal(new Set(functions).size, functions.length, 'each function declared once (no overloads)');
+      assert.deepEqual([...functions, ...constants].sort(), Object.keys(mod).sort(), 'the declared values are the exports');
+      for (const fn of functions) assert.equal(typeof mod[fn], 'function', `${fn} is a function`);
+      for (const constant of constants) assert.notEqual(typeof mod[constant], 'function', `${constant} is a value`);
+      assert.doesNotMatch(types, /export (?:default|=)|export (?:function|const|let|var|class) /, 'only `export declare` values and type exports');
+      assert.deepEqual(exportedParams(types, true), exportedParams(read(`src/js/${name}.js`), false), 'parameter names in order');
+    });
+  }
+});
+

@@ -198,7 +198,7 @@ Which component fits which need: the table at the top of [docs/components.md](do
 ## 🗂️ Files
 
 ```
-dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css/optional/, css/properties.css), js/, fonts/, themes/, tools/, tokens.json, LICENSE, SHA256SUMS
+dist/            what you ship (built, committed): ds.css, ds.js, ds.d.ts, css/ (with css/optional/, css/properties.css), js/, fonts/, themes/, tools/, tokens.json, LICENSE, SHA256SUMS
 src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, index.css (order)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template; dark.css, compact.css, contrast.css, the shipped themes

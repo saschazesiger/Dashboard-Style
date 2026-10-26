@@ -9,7 +9,8 @@ Everything a project needs is in `dist/`:
 | `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
-| `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) |
+| `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`), each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself |
+| `ds.d.ts` | types of `ds.js`: the global `DS` (every module's exports, their options and handles) and `DashboardStyle.versions` (see "Types") |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `deprecations.json` | every deprecated and removed name as data, for a project's own checks (see "Deprecated and removed names") |
 | `LICENSE` | the MIT notice; keep it with the copy |
@@ -181,6 +182,24 @@ name the keyframes in it) and `components/utilities.css` (border-box sizing insi
 `components/ripple.css` whenever you call `DS.ripple.attach()`: without it the ripple span sits in the flow and
 widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
 `package.json` lets both the bundler and Node tests write `#ds/js/motion.js`.
+
+### Types
+
+The copy carries hand-written TypeScript declarations (2.0), for TypeScript and for `checkJs` in an editor. An
+`import` of `js/<module>.js` finds `js/<module>.d.ts` by itself. A page on the classic `ds.js` references
+`ds.d.ts`, which declares the global `DS` (and `DashboardStyle.versions`) with every module's exports, their option
+objects and the handles they return:
+
+```js
+/// <reference path="vendor/dashboard-style/ds.d.ts" />
+const handle = DS.ripple.attach(document);   // RippleHandle: { destroy, release, detach }
+DS.overlay.toast(null, 'Saved', { kind: 'success' });
+```
+
+The declarations follow the modules export for export and parameter for parameter (a test of this repository
+compares them); a deprecated export or handle method is marked `@deprecated`, so an editor strikes it through, and
+a deprecated option says so in its comment. They are not
+a promise beyond the docs: where a type and [motion.md](motion.md) disagree, the docs win and the type is a bug.
 
 ## Multi-page apps
 

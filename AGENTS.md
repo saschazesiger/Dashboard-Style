@@ -46,6 +46,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
 | `themes/dark.css`, `themes/compact.css`, `themes/contrast.css` | the shipped themes, copied to `dist/themes/`: every non-derived colour role in the dark tones; compact type and heights (default heights back under a coarse pointer); palette-neutral contrast mixes. Contrast pairs and completeness tested in `test/tokens.test.js`; a package that adds a colour role adds its dark and contrast values |
+| `src/types/` | hand-written TypeScript declarations: `ds.d.ts` (the global `DS`, copied to `dist/ds.d.ts`) and `js/<module>.d.ts` (each module's exports with their options and handles, copied next to the module in `dist/js/`); `test/build.test.js` keeps the declared exports and their parameter names equal to the modules |
 | `src/deprecations.json` | every deprecated and removed name as data (`dist/deprecations.json`); a removed name gets `removed` set |
 | `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`) |
 | `docs/` | `install`, `tokens`, `theming`, `components`, `patterns`, `motion`, `icons`, `rules` (with the accessibility statement) |
@@ -194,11 +195,12 @@ the live tour in the same commit, so the published pages never show a deprecated
   their own; tested) and its name in the glyph table of `docs/icons.md`. The styleguide lists glyphs by itself.
 - **Keyframe**: only in `src/motion.css` with the `ds-` prefix, a row in the keyframe table of `docs/motion.md`
   (tested); use it through tokens so `--ds-time-scale` applies; a Motion Lab demo shows it (tested).
-- **JS export**: in `src/js/*.js`, documented in `docs/motion.md` or `docs/icons.md` (tested); a function of a motion
+- **JS export**: in `src/js/*.js`, documented in `docs/motion.md` or `docs/icons.md` (tested), declared with its
+  options and handle in `src/types/js/<module>.d.ts` (same parameter names; tested); a function of a motion
   module gets a Motion Lab demo (tested). A new module also
   goes into `MODULES` in `scripts/build.mjs` (after every module it imports from), the `dist/` table in
-  `docs/install.md`, the module imports of `test/js.test.js` and the module list of `test/browser/fixtures/module.html`
-  (with its smoke test).
+  `docs/install.md`, a new `src/types/js/<module>.d.ts` and its namespace in `src/types/ds.d.ts`, the module imports
+  of `test/js.test.js` and the module list of `test/browser/fixtures/module.html` (with its smoke test).
 
 ## Releases
 
