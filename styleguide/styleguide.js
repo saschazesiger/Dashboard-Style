@@ -170,7 +170,141 @@
         return card(group[0], '<div class="sg-swatches">' + group[1].map(function (name) {
           return '<div class="sg-swatch"><span class="sg-swatch__chip" style="background:var(' + name + ')"></span><code>' + name + '</code><span class="ds-meta" data-value="' + name + '"></span></div>';
         }).join('') + '</div>');
-      }).join(''));
+      }).join('') +
+      card('Theme check', '<p class="ds-muted">The active theme against the rules of tools/check-theme.mjs: contrast as the browser computes it (color-mix() included), field text at 16px, and for a loaded file its motion tokens, :root, @layer and !important.</p>' +
+        '<div data-sg="theme-check" aria-live="polite"></div>', ' id="sg-theme-check"'));
+  }
+
+  /* ── Theme check ──────────────────────────────────────────────────── */
+
+  /* The pairs of scripts/tools/theme-rules.mjs (TEXT_PAIRS, CONTROL_PAIRS,
+     ICON_PAIRS), copied for this classic script; test/tools.test.js keeps
+     the copy equal. */
+  var THEME_PAIRS = {
+    text: [
+      ['--ds-text', '--ds-surface'],
+      ['--ds-text', '--ds-backdrop'],
+      ['--ds-text', '--ds-surface-highest'],
+      ['--ds-text-2', '--ds-surface'],
+      ['--ds-text-2', '--ds-backdrop'],
+      ['--ds-text-2', '--ds-surface-low'],
+      ['--ds-text-2', '--ds-surface-high'],
+      ['--ds-text-3', '--ds-surface'],
+      ['--ds-on-primary', '--ds-primary'],
+      ['--ds-link', '--ds-surface'],
+      ['--ds-action-ink', '--ds-surface'],
+      ['--ds-action-ink', '--ds-backdrop'],
+      ['--ds-on-accent', '--ds-accent'],
+      ['--ds-text', '--ds-accent'],
+      ['--ds-text-2', '--ds-accent'],
+      ['--ds-on-error-container', '--ds-error-container'],
+      ['--ds-on-success-container', '--ds-success-container'],
+      ['--ds-on-warning-container', '--ds-warning-container'],
+      ['--ds-text', '--ds-warning-surface'],
+      ['--ds-on-inverse', '--ds-inverse'],
+      ['--ds-on-error-container', '--ds-surface'],
+      ['--ds-primary', '--ds-surface'],
+      ['--ds-primary', '--ds-surface-low'],
+      ['--ds-on-error-container', '--ds-surface-low'],
+      ['--ds-text', '--ds-surface-overlay'],
+      ['--ds-text-2', '--ds-surface-overlay'],
+      ['--ds-text', '--ds-surface-popover'],
+      ['--ds-text-2', '--ds-surface-popover'],
+    ],
+    control: [
+      ['--ds-text-2', '--ds-surface'],
+      ['--ds-primary', '--ds-surface'],
+      ['--ds-error', '--ds-surface'],
+      ['--ds-on-primary', '--ds-primary'],
+      ['--ds-surface', '--ds-error'],
+    ],
+    icon: [
+      ['--ds-error', '--ds-surface'],
+      ['--ds-success', '--ds-surface'],
+      ['--ds-warning', '--ds-surface'],
+      ['--ds-outline', '--ds-surface'],
+      ['--ds-inverse-primary', '--ds-inverse'],
+      ['--ds-focus', '--ds-surface'],
+    ],
+  };
+  var PAIR_MIN = { text: 4.5, control: 3, icon: 3 };
+  /* The motion families no theme sets (MOTION_FAMILIES of theme-rules.mjs). */
+  var THEME_MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/;
+
+  /* The computed colour of a role on the theme root as [r, g, b, a] (rgb() or color(srgb ...)). */
+  function roleColour(name) {
+    var probe = document.createElement('span');
+    probe.style.color = 'var(' + name + ')';
+    document.documentElement.appendChild(probe);
+    var text = getComputedStyle(probe).color;
+    probe.remove();
+    var srgb = /^color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)(?: \/ ([\d.e-]+))?\)$/.exec(text);
+    if (srgb) return [srgb[1] * 255, srgb[2] * 255, srgb[3] * 255, srgb[4] === undefined ? 1 : Number(srgb[4])];
+    var rgb = /^rgba?\(([\d.]+),? ([\d.]+),? ([\d.]+)(?:[,/] ?([\d.]+))?\)$/.exec(text);
+    if (rgb) return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3]), rgb[4] === undefined ? 1 : Number(rgb[4])];
+    return null;
+  }
+
+  function over(top, bottom) {
+    return [0, 1, 2].map(function (i) { return top[i] * top[3] + bottom[i] * (1 - top[3]); }).concat(1);
+  }
+
+  /* WCAG contrast of fg on bg (a translucent bg over white, a translucent fg over the bg). */
+  function ratio(fg, bg) {
+    var back = bg[3] < 1 ? over(bg, [255, 255, 255, 1]) : bg;
+    var front = fg[3] < 1 ? over(fg, back) : fg;
+    var lum = function (c) {
+      var l = c.slice(0, 3).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+      return 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2];
+    };
+    var a = lum(front);
+    var b = lum(back);
+    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  }
+
+  /* The findings for the active theme: [{ ok, text }]. `source` is the
+     loaded file's text (checked for what only the file can show), or null. */
+  function themeFindings(source) {
+    var rows = [];
+    var passed = 0;
+    Object.keys(THEME_PAIRS).forEach(function (kind) {
+      THEME_PAIRS[kind].forEach(function (pair) {
+        var fg = roleColour(pair[0]);
+        var bg = roleColour(pair[1]);
+        if (!fg || !bg) { rows.push({ ok: false, text: '<code>' + pair[0] + '</code> on <code>' + pair[1] + '</code>: not a colour' }); return; }
+        var value = ratio(fg, bg);
+        if (value >= PAIR_MIN[kind]) { passed += 1; return; }
+        rows.push({ ok: false, text: '<code>' + pair[0] + '</code> on <code>' + pair[1] + '</code>: ' + value.toFixed(2) + ':1, needs ' + PAIR_MIN[kind] + ':1 (' + kind + ')' });
+      });
+    });
+    var probe = document.createElement('span');
+    probe.style.font = 'var(--ds-font-input)';
+    document.documentElement.appendChild(probe);
+    var size = parseFloat(getComputedStyle(probe).fontSize);
+    probe.remove();
+    if (size < 16) rows.push({ ok: false, text: '<code>--ds-font-input</code> is ' + size + 'px: keep field text at 16px or more' });
+    if (source) {
+      var text = String(source).replace(/\/\*[\s\S]*?\*\//g, '');
+      var motion = text.match(new RegExp(THEME_MOTION.source, 'g'));
+      if (motion) rows.push({ ok: false, text: 'Sets motion tokens or hooks (' + motion.map(function (m) { return '<code>' + m.replace(/\s*:$/, '') + '</code>'; }).join(', ') + '): motion is one scheme for every product' });
+      if (/:root\b/.test(text)) rows.push({ ok: false, text: 'Rules on <code>:root</code>: tokens live on <code>.ds-theme</code>' });
+      if (/@layer\b/.test(text)) rows.push({ ok: false, text: 'Uses <code>@layer</code>: a theme stays unlayered' });
+      if (/!\s*important/.test(text)) rows.push({ ok: false, text: 'Uses <code>!important</code>' });
+    }
+    rows.unshift({ ok: true, text: passed + ' contrast pairs pass' });
+    return rows;
+  }
+
+  function renderThemeCheck(source) {
+    var host = $('[data-sg="theme-check"]');
+    if (!host) return;
+    var rows = themeFindings(source);
+    DS.dom.morphHtml(host, '<ul class="ds-plain-list sg-findings">' + rows.map(function (row) {
+      var status = row.ok
+        ? '<span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Passes</span></span>'
+        : '<span class="ds-status ds-status--error">' + icon('alert', 16) + '<span>Fails</span></span>';
+      return '<li class="sg-finding" data-ok="' + row.ok + '">' + status + '<span>' + row.text + '</span></li>';
+    }).join('') + '</ul>');
   }
 
   /* Type */
@@ -2999,9 +3133,14 @@
      indicators, then mark the theme for the tests. */
   function afterThemeChange(value) {
     readValues();
+    if (value !== 'file') themeSource = null;
+    renderThemeCheck(themeSource);
     indicators.forEach(function (made) { made.update(); });
     document.documentElement.setAttribute('data-sg-theme', value);
   }
+
+  /* The text of a theme loaded with "Load theme file ...", for the theme check. */
+  var themeSource = null;
 
   /* Calls back once the theme link has its sheet: at once when the href is
      unchanged and the sheet is there (no load event follows), otherwise on
@@ -3084,7 +3223,8 @@
           if (run !== themeRun) return;
           $('#sg-theme-link').disabled = true;
           $('#sg-theme-link-2').disabled = true;
-          $('#sg-theme-style').textContent = String(reader.result);
+          themeSource = String(reader.result);
+          $('#sg-theme-style').textContent = themeSource;
         }, false, function () { if (run === themeRun) afterThemeChange('file'); });
         toast('Theme loaded: ' + chosen.name);
       };
@@ -3094,6 +3234,7 @@
       select.value = saved;
       applyTheme(saved, done, true);
     } else {
+      renderThemeCheck(null);
       done();
     }
   }

@@ -15,6 +15,7 @@ Everything a project needs is in `dist/`:
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
 | `themes/` | the shipped themes `dark.css`, `compact.css` and `contrast.css`, loaded after your theme ([theming.md](theming.md#dark-compact-and-contrast)) |
+| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project") and `theme-rules.mjs` (the contrast pairs and motion prefixes they share) |
 | `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
 
 Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
@@ -96,13 +97,38 @@ files:
   `1.0.0-dev`.
 - `SHA256SUMS`: `sha256sum` format, sorted by path, LF line ends, covering every file including `VERSION`.
 
-Verify it in your tests or CI so edits to the vendored files fail loudly: run `vendor.sh --check`, or compare the
-hashes yourself (`cd vendor/dashboard-style && sha256sum -c SHA256SUMS`, plus a check that no unlisted file or symbolic link
-was added). On Windows checkouts, mark the folder binary so Git does not rewrite line ends:
+Verify it in your tests or CI so edits to the vendored files fail loudly ("Verify a copy", below). On Windows
+checkouts, mark the folder binary so Git does not rewrite line ends:
 
 ```gitattributes
 vendor/dashboard-style/** -text
 ```
+
+### Verify a copy
+
+The copy carries its own check, so a project needs neither the network nor this repository to verify it:
+
+```sh
+node vendor/dashboard-style/tools/verify.mjs        # Node 18 or later, no dependency
+sh vendor/dashboard-style/tools/verify.sh           # POSIX sh with sha256sum or shasum (a Go or other non-Node project)
+sh vendor.sh --check vendor/dashboard-style         # the same check from the vendoring script
+```
+
+Each checks the copy it sits in (`verify.mjs --dir <path>` and `verify.sh <path>` check another one, a built `dist/`
+too) and exits 1 on any difference, naming the files. The three apply the same rules (`verify.sh` holds the very
+function of `vendor.sh`; a test keeps them and `verify.mjs` in step), and the format of `SHA256SUMS` is a contract
+that a project may check with its own code as well:
+
+- one line per file: the SHA-256 in lowercase hex, two spaces, the path relative to the copy with forward slashes;
+- every file of the copy is listed, `VERSION` included (a vendored copy) and `SHA256SUMS` itself excluded;
+- sorted by path in byte order (`LC_ALL=C sort`), LF line ends (a CR is ignored, so a Windows checkout still
+  verifies);
+- no symbolic link anywhere in the copy (a listing cannot cover one), nothing missing, changed or added.
+
+The file names of a copy stay the same across versions (`ds.css`, `ds.js`, `css/...`, `js/...`, `fonts/...`; new files
+only add to them), so a service worker that precaches them by name keeps working after an update. Only
+`fonts/fonts.css` refers to other files of the copy, with relative `url()`s; no other file depends on where the copy
+lives.
 
 ## CDN
 
@@ -290,17 +316,21 @@ your own checks need not parse CSS:
 | Value | Meaning |
 |---|---|
 | `DEST` | path of the copy, e.g. `vendor/dashboard-style` |
+| `SETUP` | the toolchain your checks need: `node` (set up when the repository has a `package.json`, or for `CHECK`), `go` (when it has a `go.mod`) or `none`; another one is a commented step to fill in |
+| `CHECK` | optional project check of the new copy, e.g. `node "$DEST/tools/check-project.mjs" --config ds-check.json`; empty to skip |
 | `VERIFY` | command that must pass before the update is committed (`npm ci && npm test`); empty to skip |
 | `BUILD_WORKFLOW` | workflow file that builds and deploys, started with `workflow_dispatch`; empty if your build starts on push by itself (Cloudflare Pages, Netlify, Vercel) |
 
 It runs daily at 02:30 UTC and on demand (*Run workflow*). If the commit in `DEST/VERSION` equals `main` of
-Dashboard-Style, the run ends there. Otherwise it vendors `main`, runs `VERIFY`, commits the copy to the branch it runs
-on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
+Dashboard-Style, the run ends there. Otherwise it vendors `main`, verifies the copy (`tools/verify.sh`, no Node
+needed), runs `CHECK` and `VERIFY`, commits the copy to the branch it runs on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
 started explicitly; the build workflow needs `on: workflow_dispatch`. The template asks for `contents: write` and
 `actions: write`; a branch protection rule that blocks direct pushes also blocks the update.
 
 #### When the update fails
 
+- **Check**: the project check found a removed name, a restyled component or another rule broken by the new copy
+  (its output names file, line and rule); fix the project as for **Verify**.
 - **Compare** or **Vendor main**: a network or GitHub API problem; run it again.
 - **Verify**: nothing was committed and the site keeps the old copy. Reproduce it locally (vendor `main` as in step 2,
   then run `VERIFY`), look in [CHANGELOG.md](../CHANGELOG.md) for deprecations and removals, check your code against

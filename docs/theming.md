@@ -439,6 +439,38 @@ contrast theme never relies on colour alone either.
 
 ## Checking a theme
 
-Open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component re-renders with it.
-Check text contrast with your browser's accessibility tools and look at the page with forced colors emulated
+The copy checks a theme file without network or dependencies (Node 18 or later):
+
+```sh
+node vendor/dashboard-style/tools/check-theme.mjs css/theme.css
+node vendor/dashboard-style/tools/check-theme.mjs css/theme-dark.css --with vendor/dashboard-style/themes/dark.css
+```
+
+It prints one line per finding, `<file>:<line> <error|warning|info> <rule> <message>`, and exits 1 on an error. The
+files are read as loaded after `ds.css`, in the order given; `--with` files load after them (a shipped theme your
+theme is used with) and count for the contrast pairs.
+
+| Rule | Level | What |
+|---|---|---|
+| `unknown` | error | a `--ds-*` name that is not a token of the copy (`tokens.json`): a typo or a name of another version |
+| `motion` | error | a motion token or motion hook (rule 2) |
+| `root` | error | a rule on `:root` (tokens live on `.ds-theme`) |
+| `layer` | error | `@layer` (a theme stays unlayered) |
+| `important` | error | `!important` |
+| `input-font` | error | `--ds-font-input` under 16px (a warning for `--ds-input-font`) |
+| `removed` | error | a name `deprecations.json` lists as removed, with its replacement |
+| `deprecated` | warning | a deprecated name, with its replacement |
+| `not-themeable` | warning | a scale, runtime or internal property (`tokens.json` says which) |
+| `contrast` | warning | a text pair under 4.5:1, a checkbox, icon or outline pair under 3:1 (rule 3); `var()`, hex, `rgb()` and `color-mix(in srgb, ...)` are resolved, any other form is reported as `info`, "not checked" |
+| `restyle` | warning | a component selector with a property that is not a custom property |
+
+Every rule whose selector names `.ds-theme` sets roles: plain `.ds-theme` (or `.ds-theme.my-widget`) is the base, and
+every other selector (`.ds-theme[data-accent="teal"]`) or `@media` block is a variant, checked over the base. The
+pairs are those of the repository's own tests (`tools/theme-rules.mjs`), so a theme that passes keeps what the default
+palette keeps.
+
+In the browser, open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component
+re-renders with it, and the "Theme check" card in the Colour section lists the same contrast pairs as the browser
+computes them (exactly, `color-mix()` included), the field text size, and the motion tokens, `:root`, `@layer` and
+`!important` of the loaded file; each row with an icon and a word. Look at the page with forced colors emulated too
 (DevTools, Rendering panel).

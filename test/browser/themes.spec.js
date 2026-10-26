@@ -174,6 +174,29 @@ test.describe('where the themes are offered', () => {
     await expect(page.locator('#ex-dark')).toHaveAttribute('media', '(prefers-color-scheme: dark)');
     await expect(page.locator('html')).not.toHaveAttribute('data-ex-dark', '');
   });
+
+  test('the styleguide theme check lists what a loaded theme fails, each row with an icon and a word', async ({ page }) => {
+    await page.goto('/styleguide/index.html');
+    await ready(page);
+    const check = page.locator('#sg-theme-check');
+    await expect(check.locator('.sg-finding[data-ok="false"]')).toHaveCount(0);
+    await expect(check.locator('.sg-finding[data-ok="true"]')).toContainText('contrast pairs pass');
+    const css = '.ds-theme {\n  --ds-text-2: color-mix(in srgb, #9aa0a6 80%, white);\n  --ds-font-input: var(--ds-font-body);\n  --ds-dur-fast: 1ms;\n}\n';
+    await page.locator('#sg-theme-file').setInputFiles({ name: 'weak.css', mimeType: 'text/css', buffer: Buffer.from(css) });
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'file', { timeout: 15000 });
+    const failing = check.locator('.sg-finding[data-ok="false"]');
+    await expect(failing.filter({ hasText: /--ds-text-2 on --ds-surface: .*needs 4\.5:1 \(text\)/ })).toHaveCount(1);
+    await expect(failing.filter({ hasText: '--ds-font-input is 14px' })).toHaveCount(1);
+    await expect(failing.filter({ hasText: '--ds-dur-fast' })).toHaveCount(1);
+    // Status never by colour alone: every row has its icon and its word.
+    for (const row of await failing.all()) {
+      await expect(row.locator('.ds-status svg')).toHaveCount(1);
+      await expect(row.locator('.ds-status')).toContainText('Fails');
+    }
+    await page.locator('#sg-theme-select').selectOption('default');
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default', { timeout: 15000 });
+    await expect(check.locator('.sg-finding[data-ok="false"]')).toHaveCount(0);
+  });
 });
 
 test.describe('dark baseline (Chromium)', () => {
