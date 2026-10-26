@@ -502,12 +502,13 @@ test.describe('modal drawer', () => {
       return {
         open: document.getElementById('app').hasAttribute('data-drawer-open'),
         expanded: document.getElementById('menu').getAttribute('aria-expanded'),
-        focus: document.activeElement.id,
+        // 2.0: the current item takes focus (the drawer itself without one).
+        focus: document.activeElement.getAttribute('aria-current') === 'page' && document.getElementById('drawer').contains(document.activeElement) ? 'current item' : document.activeElement.id,
         inert: [...document.querySelectorAll('#app > *')].filter((el) => el.inert).map((el) => el.className.split(' ')[0]),
         locked: document.body.classList.contains('ds-no-scroll'),
       };
     });
-    expect(opened).toEqual({ open: true, expanded: 'true', focus: 'drawer', inert: ['ds-skip', 'ds-topbar', 'ds-panel'], locked: true });
+    expect(opened).toEqual({ open: true, expanded: 'true', focus: 'current item', inert: ['ds-skip', 'ds-topbar', 'ds-panel'], locked: true });
 
     const atClose = await page.evaluate(() => {
       document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
@@ -1206,5 +1207,399 @@ test.describe('forced colours', () => {
     await shoot(page, '#toasts', 'forced-snackbars.png', { surface: '#toasts .ds-toast' });
     await focusByKeyboard(page, page.locator('#tip-download'));
     await shoot(page, '.ds-tooltip', 'forced-tooltip.png');
+  });
+});
+
+/* ── 2.0: busy, reasons, topmost, the dismiss guard, focus return ─── */
+
+/**
+ * Records every ds-close of the page as "id:reason" (window.__closes), in
+ * the order they are sent.
+ */
+function recordCloses(page) {
+  return page.evaluate(() => {
+    window.__closes = [];
+    document.addEventListener('ds-close', (event) => window.__closes.push(`${event.target.id || event.target.className}:${event.detail.reason}`));
+  });
+}
+
+const closes = (page) => page.evaluate(() => window.__closes.splice(0));
+
+/** Opens `id` from `opener` and waits until its entrance settled. */
+async function openSettled(page, id, opener) {
+  await page.evaluate(([name, from]) => DS.overlay.open(document.getElementById(name), { opener: from ? document.getElementById(from) : undefined }), [id, opener]);
+  await settle(page);
+}
+
+const isOpen = (page, id) => page.evaluate((name) => document.getElementById(name).getAttribute('data-state') === 'open', id);
+
+test.describe('busy overlays (2.0, data-ds-busy)', () => {
+  const OVERLAYS = [
+    ['dialog', 'open-dialog', '#dialog-cancel', '.ds-dialog__backdrop'],
+    ['native', 'open-native', '#native-cancel', '.ds-dialog__backdrop'],
+    ['sheet', 'open-sheet', '#sheet-close', '.ds-sheet__backdrop'],
+    ['native-sheet', 'open-native-sheet', '#native-sheet-close', '.ds-sheet__backdrop'],
+  ];
+
+  for (const [id, opener, closer, backdrop] of OVERLAYS) {
+    test(`${id}: Escape, [data-close], the backdrop and the native cancel do nothing while busy; close() and a removal still close`, async ({ page }) => {
+      await load(page);
+      await recordCloses(page);
+      await openSettled(page, id, opener);
+      await page.evaluate((name) => document.getElementById(name).setAttribute('data-ds-busy', ''), id);
+      await page.keyboard.press('Escape');
+      await page.evaluate(([name, close, scrim]) => {
+        const el = document.getElementById(name);
+        document.querySelector(close).click();
+        el.querySelector(scrim).click();
+        // A close request of the engine (Escape, Android Back) on a native dialog.
+        if (el.tagName === 'DIALOG') el.dispatchEvent(new Event('cancel', { cancelable: true }));
+      }, [id, closer, backdrop]);
+      // The pointer path too: a real click on the backdrop, well after the open.
+      await page.mouse.click(4, 4);
+      expect(await isOpen(page, id), 'still open').toBe(true);
+      expect(await page.evaluate((name) => (document.getElementById(name).tagName === 'DIALOG' ? document.getElementById(name).open : true), id), 'the native dialog stays modal').toBe(true);
+      expect(await closes(page), 'a refused attempt sends no ds-close').toEqual([]);
+      // close() of the page closes a busy overlay.
+      await page.evaluate((name) => DS.overlay.close(document.getElementById(name)), id);
+      await closed(page, id);
+      expect(await closes(page)).toEqual([`${id}:api`]);
+      expect(await focused(page)).toBe(opener);
+      // Removed from the document while busy: closed at once, with reason removed.
+      await openSettled(page, id, opener);
+      const reason = await page.evaluate(async (name) => {
+        const el = document.getElementById(name);
+        const place = [el.parentNode, el.nextSibling];
+        // Sent on the detached element: the document no longer hears it.
+        el.addEventListener('ds-close', (event) => window.__closes.push(`${name}:${event.detail.reason}`), { once: true });
+        el.remove();
+        await new Promise((resolve) => setTimeout(resolve));
+        place[0].insertBefore(el, place[1]);
+        el.removeAttribute('data-ds-busy');
+        return window.__closes.splice(0);
+      }, id);
+      expect(reason).toEqual([`${id}:removed`]);
+      expect(await leftovers(page)).toEqual(clean);
+    });
+  }
+
+  test('a menu inside a busy sheet still closes on Escape; the sheet does not', async ({ page }) => {
+    await load(page);
+    await recordCloses(page);
+    await openSettled(page, 'sheet', 'open-sheet');
+    await page.evaluate(() => document.getElementById('sheet').setAttribute('data-ds-busy', ''));
+    await page.evaluate(() => DS.overlay.open(document.getElementById('menu'), { opener: document.getElementById('sheet-delete') }));
+    await settle(page);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('menu').hasAttribute('data-state'));
+    await page.keyboard.press('Escape');
+    expect(await isOpen(page, 'sheet')).toBe(true);
+    expect(await closes(page)).toEqual(['menu:escape']);
+    await page.evaluate(() => document.getElementById('sheet').removeAttribute('data-ds-busy'));
+    await page.keyboard.press('Escape');
+    await closed(page, 'sheet');
+    expect(await closes(page)).toEqual(['sheet:escape']);
+  });
+
+  test('the modal drawer at 800px: Escape and the scrim do nothing while busy; close() closes; a wider window closes with reason breakpoint', async ({ page }) => {
+    await load(page, 'shell-overlay.html', 800);
+    await recordCloses(page);
+    const drawerOpen = () => page.evaluate(() => document.getElementById('app').hasAttribute('data-drawer-open'));
+    await openSettled(page, 'drawer', 'menu');
+    await page.evaluate(() => document.getElementById('drawer').setAttribute('data-ds-busy', ''));
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => document.getElementById('scrim').click());
+    expect(await drawerOpen()).toBe(true);
+    expect(await closes(page)).toEqual([]);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('drawer')));
+    expect(await drawerOpen()).toBe(false);
+    expect(await closes(page)).toEqual(['drawer:api']);
+    await settle(page);
+    await page.evaluate(() => document.getElementById('drawer').removeAttribute('data-ds-busy'));
+    await openSettled(page, 'drawer', 'menu');
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await page.waitForFunction(() => !document.getElementById('app').hasAttribute('data-drawer-open'));
+    expect(await closes(page)).toEqual(['drawer:breakpoint']);
+  });
+});
+
+test.describe('why it closed (2.0, ds-close)', () => {
+  test('each way of closing sends its reason once; nothing during an exit; inner layers first with parent', async ({ page }) => {
+    await load(page);
+    await recordCloses(page);
+    // Escape, the backdrop, another [data-close], a reason of the page's own, the native close of the page.
+    await openSettled(page, 'dialog', 'open-dialog');
+    await page.keyboard.press('Escape');
+    await closed(page, 'dialog');
+    await openSettled(page, 'dialog', 'open-dialog');
+    await page.evaluate(() => document.querySelector('#dialog .ds-dialog__backdrop').click());
+    await closed(page, 'dialog');
+    await openSettled(page, 'dialog', 'open-dialog');
+    await page.evaluate(() => document.getElementById('dialog-ok').click());
+    await closed(page, 'dialog');
+    await openSettled(page, 'dialog', 'open-dialog');
+    await page.evaluate(() => {
+      const dialog = document.getElementById('dialog');
+      DS.overlay.close(dialog, { reason: 'confirm' });
+      // A second close during the exit: no second event.
+      DS.overlay.close(dialog);
+    });
+    await closed(page, 'dialog');
+    await openSettled(page, 'native', 'open-native');
+    await page.evaluate(() => document.getElementById('native').close());
+    await closed(page, 'native');
+    expect(await closes(page)).toEqual(['dialog:escape', 'dialog:backdrop', 'dialog:close', 'dialog:confirm', 'native:api']);
+    // Menus: an item, Tab, a press outside.
+    await page.click('#open-menu');
+    await settle(page);
+    await page.click('#menu-b');
+    await page.waitForFunction(() => !document.getElementById('menu').hasAttribute('data-state'));
+    await page.click('#open-menu');
+    await settle(page);
+    await page.keyboard.press('Tab');
+    await page.waitForFunction(() => !document.getElementById('menu').hasAttribute('data-state'));
+    await page.click('#open-menu');
+    await settle(page);
+    await page.mouse.click(600, 700);
+    await page.waitForFunction(() => !document.getElementById('menu').hasAttribute('data-state'));
+    expect(await closes(page)).toEqual(['menu:item', 'menu:tab', 'menu:outside']);
+    // A menu opened from inside the sheet closes with it, before the sheet's own event.
+    await openSettled(page, 'sheet', 'open-sheet');
+    await page.evaluate(() => DS.overlay.open(document.getElementById('menu'), { opener: document.getElementById('sheet-delete') }));
+    await settle(page);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('sheet')));
+    await closed(page, 'sheet');
+    expect(await closes(page)).toEqual(['menu:parent', 'sheet:api']);
+    // Never opened: nothing.
+    await page.evaluate(() => DS.overlay.close(document.getElementById('native-sheet')));
+    expect(await closes(page)).toEqual([]);
+  });
+
+  test('the event comes after focus is back on the opener and the box turned inert', async ({ page }) => {
+    await load(page);
+    await openSettled(page, 'dialog', 'open-dialog');
+    const seen = await page.evaluate(() => new Promise((resolve) => {
+      const dialog = document.getElementById('dialog');
+      dialog.addEventListener('ds-close', (event) => resolve({
+        focus: document.activeElement.id,
+        inert: dialog.querySelector('.ds-dialog__box').inert,
+        state: dialog.getAttribute('data-state'),
+        cancelable: event.cancelable,
+        bubbles: event.bubbles,
+      }), { once: true });
+      DS.overlay.close(dialog);
+    }));
+    expect(seen).toEqual({ focus: 'open-dialog', inert: true, state: 'closed', cancelable: false, bubbles: true });
+  });
+});
+
+test.describe('topmost (2.0)', () => {
+  test('names the top open layer: none, a sheet, a dialog over it, the sheet again once the dialog closes, a menu', async ({ page }) => {
+    await load(page);
+    const top = () => page.evaluate(() => DS.overlay.topmost()?.id ?? null);
+    expect(await top()).toBe(null);
+    await openSettled(page, 'sheet', 'open-sheet');
+    expect(await top()).toBe('sheet');
+    await openSettled(page, 'dialog', 'sheet-delete');
+    expect(await top()).toBe('dialog');
+    // A closing layer no longer counts.
+    await page.evaluate(() => DS.overlay.close(document.getElementById('dialog')));
+    expect(await top()).toBe('sheet');
+    await closed(page, 'dialog');
+    await page.evaluate(() => DS.overlay.close(document.getElementById('sheet')));
+    await closed(page, 'sheet');
+    await page.click('#open-menu');
+    expect(await top()).toBe('menu');
+    await page.keyboard.press('Escape');
+    expect(await top()).toBe(null);
+  });
+});
+
+test.describe('the dismiss guard (2.0, --ds-delay-dismiss)', () => {
+  test('a double click on the opener opens and does not close; a click on the backdrop 400ms later closes', async ({ page }) => {
+    await load(page);
+    await recordCloses(page);
+    await page.dblclick('#open-dialog');
+    await settle(page);
+    expect(await isOpen(page, 'dialog')).toBe(true);
+    await page.waitForTimeout(400);
+    await page.mouse.click(4, 4);
+    await closed(page, 'dialog');
+    expect(await closes(page)).toEqual(['dialog:backdrop']);
+    // The native dialog too.
+    await page.dblclick('#open-native');
+    await settle(page);
+    expect(await isOpen(page, 'native')).toBe(true);
+    await page.waitForTimeout(400);
+    await page.mouse.click(4, 4);
+    await closed(page, 'native');
+    expect(await closes(page)).toEqual(['native:backdrop']);
+  });
+
+  test('a click right after the open does not close; the window follows --ds-time-scale', async ({ page }) => {
+    await load(page);
+    await page.click('#open-dialog');
+    await page.mouse.click(4, 4);
+    expect(await isOpen(page, 'dialog')).toBe(true);
+    await settle(page);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('dialog')));
+    await closed(page, 'dialog');
+    // Ten times slower: 400ms after the open is still inside the window of 3000ms.
+    await page.evaluate(() => document.body.style.setProperty('--ds-time-scale', '10'));
+    expect(await page.evaluate(() => Math.round(DS.motion.motionDuration(document.body, '--ds-delay-dismiss')))).toBe(3000);
+    await page.click('#open-dialog');
+    await page.waitForTimeout(400);
+    await page.mouse.click(4, 4);
+    expect(await isOpen(page, 'dialog')).toBe(true);
+    await page.evaluate(() => document.querySelector('#dialog .ds-dialog__backdrop').click());
+    await page.evaluate(() => document.body.style.removeProperty('--ds-time-scale'));
+    await closed(page, 'dialog');
+  });
+
+  test('a drag from the box that ends on the backdrop does not close; a second click on Cancel does not, click() does', async ({ page }) => {
+    await load(page);
+    await openSettled(page, 'dialog', 'open-dialog');
+    await page.waitForTimeout(400);
+    const box = await page.locator('#dialog .ds-dialog__box').boundingBox();
+    await page.mouse.move(box.x + 8, box.y + 8);
+    await page.mouse.down();
+    await page.mouse.move(4, 4, { steps: 4 });
+    await page.mouse.up();
+    expect(await isOpen(page, 'dialog')).toBe(true);
+    // A click with detail 2 on a [data-close] is ignored; detail 0 (click()) closes.
+    await page.evaluate(() => document.getElementById('dialog-cancel').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 2 })));
+    expect(await isOpen(page, 'dialog')).toBe(true);
+    await page.evaluate(() => document.getElementById('dialog-cancel').click());
+    await closed(page, 'dialog');
+  });
+
+  test('the modal drawer\'s scrim: a click right after the open does not close, one later does', async ({ page }) => {
+    await load(page, 'shell-overlay.html', 800);
+    await page.evaluate(() => { DS.overlay.open(document.getElementById('drawer'), { opener: document.getElementById('menu') }); });
+    await page.mouse.click(780, 400);
+    expect(await page.evaluate(() => document.getElementById('app').hasAttribute('data-drawer-open'))).toBe(true);
+    await settle(page);
+    await page.waitForTimeout(400);
+    await page.mouse.click(780, 400);
+    expect(await page.evaluate(() => document.getElementById('app').hasAttribute('data-drawer-open'))).toBe(false);
+  });
+});
+
+test.describe('the dismiss guard on touch (2.0)', () => {
+  test.use({ hasTouch: true });
+
+  test('a double tap on the opener opens and does not close', async ({ page, browserName }) => {
+    test.skip(browserName === 'firefox', 'Playwright emulates touch in Chromium and WebKit');
+    await load(page);
+    const button = await page.locator('#open-dialog').boundingBox();
+    const x = button.x + button.width / 2;
+    const y = button.y + button.height / 2;
+    await page.touchscreen.tap(x, y);
+    await page.touchscreen.tap(x, y);
+    await settle(page);
+    expect(await isOpen(page, 'dialog')).toBe(true);
+    await page.waitForTimeout(400);
+    await page.touchscreen.tap(4, 4);
+    await closed(page, 'dialog');
+  });
+});
+
+test.describe('focus back and openers (2.0)', () => {
+  test('a replaced opener: focus goes to the element with its id; returnTo() wins when the opener is gone; a throwing one falls through', async ({ page }) => {
+    await load(page);
+    // The re-render replaced the opener with a twin of the same id.
+    await openSettled(page, 'dialog', 'open-dialog');
+    await page.evaluate(() => {
+      const twin = document.getElementById('open-dialog').cloneNode(true);
+      twin.setAttribute('data-twin', '');
+      document.getElementById('open-dialog').replaceWith(twin);
+    });
+    await page.keyboard.press('Escape');
+    expect(await page.evaluate(() => document.activeElement.id + (document.activeElement.hasAttribute('data-twin') ? ' (twin)' : ''))).toBe('open-dialog (twin)');
+    await closed(page, 'dialog');
+    // returnTo: called only when the opener cannot take focus.
+    const calls = await page.evaluate(async () => {
+      let called = 0;
+      const dialog = document.getElementById('dialog');
+      const returnTo = () => { called += 1; return document.getElementById('after-menu'); };
+      DS.overlay.open(dialog, { opener: document.getElementById('open-sheet'), returnTo });
+      await DS.overlay.close(dialog);
+      const kept = [document.activeElement.id, called];
+      DS.overlay.open(dialog, { opener: document.getElementById('open-sheet'), returnTo });
+      document.getElementById('open-sheet').remove();
+      await DS.overlay.close(dialog);
+      return { kept, gone: [document.activeElement.id, called] };
+    });
+    expect(calls).toEqual({ kept: ['open-sheet', 0], gone: ['after-menu', 1] });
+    // A returnTo that throws is reported, and the landmark takes focus.
+    const thrown = await page.evaluate(async () => {
+      const errors = [];
+      window.addEventListener('error', (event) => { errors.push(event.message); event.preventDefault(); });
+      const dialog = document.getElementById('dialog');
+      DS.overlay.open(dialog, { opener: document.getElementById('open-native-sheet'), returnTo: () => { throw new Error('no row'); } });
+      document.getElementById('open-native-sheet').remove();
+      await DS.overlay.close(dialog);
+      return { focus: document.activeElement.id, errors: errors.length };
+    });
+    expect(thrown).toEqual({ focus: 'page', errors: 1 });
+  });
+
+  test('without an opener and with focus on <body>, the clicked control is the opener (Safari does not focus it)', async ({ page }) => {
+    await load(page);
+    const back = await page.evaluate(async () => {
+      const button = document.getElementById('after-menu');
+      button.addEventListener('click', () => DS.overlay.open(document.getElementById('dialog')), { once: true });
+      document.activeElement?.blur();
+      // A dispatched click never focuses: what Safari does with a mouse click on a button.
+      button.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 }));
+      const during = document.activeElement.id;
+      await DS.overlay.close(document.getElementById('dialog'));
+      return { during, after: document.activeElement.id };
+    });
+    expect(back).toEqual({ during: 'dialog-cancel', after: 'after-menu' });
+  });
+
+  test('a dialog or sheet keeps aria-expanded on an opener that has the attribute, and adds none to one without', async ({ page }) => {
+    await load(page);
+    const states = await page.evaluate(async () => {
+      const opener = document.getElementById('open-sheet');
+      opener.setAttribute('aria-expanded', 'false');
+      const sheet = document.getElementById('sheet');
+      DS.overlay.open(sheet, { opener });
+      const open = opener.getAttribute('aria-expanded');
+      const closing = DS.overlay.close(sheet);
+      const atClose = opener.getAttribute('aria-expanded');
+      await closing;
+      const plain = document.getElementById('open-dialog');
+      DS.overlay.open(document.getElementById('dialog'), { opener: plain });
+      const without = plain.hasAttribute('aria-expanded');
+      await DS.overlay.close(document.getElementById('dialog'));
+      return { open, atClose, without };
+    });
+    expect(states).toEqual({ open: 'true', atClose: 'false', without: false });
+  });
+});
+
+test.describe('a filled search takes the first Escape (2.0)', () => {
+  test('Escape clears a filled search inside the dialog and fires input; the next Escape closes', async ({ page }) => {
+    await load(page);
+    await page.evaluate(() => {
+      const search = document.createElement('input');
+      search.type = 'search';
+      search.id = 'dialog-search';
+      search.className = 'ds-input';
+      search.setAttribute('aria-label', 'Search');
+      document.querySelector('#dialog .ds-dialog__title').after(search);
+      window.__inputs = 0;
+      search.addEventListener('input', () => { window.__inputs += 1; });
+    });
+    await openSettled(page, 'dialog', 'open-dialog');
+    await page.locator('#dialog-search').fill('lap');
+    await page.evaluate(() => { window.__inputs = 0; });
+    await page.keyboard.press('Escape');
+    expect(await page.evaluate(() => ({ value: document.getElementById('dialog-search').value, inputs: window.__inputs }))).toEqual({ value: '', inputs: 1 });
+    expect(await isOpen(page, 'dialog')).toBe(true);
+    await page.keyboard.press('Escape');
+    await closed(page, 'dialog');
   });
 });

@@ -38,7 +38,8 @@ component live.
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
 | Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
 | Actions for one item or a toolbar overflow | [Menu](#menu) `.ds-menu` |
-| Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog` |
+| Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog`; built for you: `DS.overlay.confirm()` ("A question with yes or no") |
+| Keep a dialog or side sheet open while its action runs | `data-ds-busy` on the `.ds-dialog`, `.ds-sheet` or `.ds-drawer` ([Dialog](#dialog), "While its action runs") |
 | Details or editing of one record next to its list | [Side sheet](#side-sheet) `.ds-sheet` |
 | Name an icon button, or say why a control is disabled | [Tooltip](#tooltip) `.ds-tooltip` |
 | Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |
@@ -240,9 +241,12 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px.
 - Open and close the modal drawer with `DS.overlay.open(drawer, { opener: menu })` and `DS.overlay.close(drawer)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): it sets `data-drawer-open` and `aria-expanded`, makes the rest of
-  the app inert (not the scrim), locks the scroll (`.ds-no-scroll` on `<body>`, counted), closes on Escape and a scrim
-  click and gives focus back to the menu button; it acts only at 900px and below. By hand as before: toggle
-  `data-drawer-open` and add `.ds-no-scroll` to `<body>` (with `.ds-base`) while the modal drawer is open.
+  the app inert (not the scrim), locks the scroll (`.ds-no-scroll` on `<body>`, counted), focuses the current item
+  (`aria-current="page"`; without one the drawer), closes on Escape and a scrim click (the first click, from
+  `--ds-delay-dismiss` after the open) and gives focus back to the menu button; it acts only at 900px and below
+  (`DS.overlay.DRAWER_QUERY`). `data-ds-busy` on the drawer keeps it open while its action runs (as for the
+  [Dialog](#dialog)). By hand as before: toggle `data-drawer-open` and add `.ds-no-scroll` to `<body>` (with
+  `.ds-base`) while the modal drawer is open.
 - When the window crosses 900px the drawer changes between docked and modal in place: add `.ds-drawer--instant` to
   the drawer for two frames, so it neither slides nor fades its scrim, and close a modal drawer that the wider
   window no longer shows. `DS.overlay` does both by itself for every `.ds-app > .ds-drawer` of the page from load on
@@ -250,7 +254,7 @@ is the only scroller. At 900px and below the drawer becomes modal.
   drawer by hand uses this snippet:
 
   ```js
-  const modal = matchMedia('(max-width: 900px)');
+  const modal = matchMedia(DS.overlay.DRAWER_QUERY);     // '(max-width: 900px)'
   modal.addEventListener('change', () => {
     drawer.classList.add('ds-drawer--instant');
     if (!modal.matches) {
@@ -802,6 +806,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 ```
 
 `.ds-input--filled` is the toolbar variant on the tonal fill; `.ds-search` is a filled pill with a leading icon.
+Inside a dialog, a side sheet or a menu, Escape in a filled `type="search"` field clears it first (an `input` event
+follows, so the page's filter runs) and the next Escape closes the layer (2.0, `DS.overlay`).
 
 **Motion:** the check, radio, focus and validation rows of [Controls](motion.md#controls) in motion.md.
 
@@ -939,7 +945,8 @@ Actions for one item, or the overflow of a toolbar, opened from a button:
 ```
 
 ```js
-trigger.addEventListener('click', () => {
+trigger.addEventListener('click', (event) => {
+  if (event.detail > 1) return;                    // the second click of a double click toggles nothing
   if (trigger.getAttribute('aria-expanded') === 'true') DS.overlay.close(menu);
   else DS.overlay.open(menu, { opener: trigger });
 });
@@ -1037,6 +1044,37 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
   box stays in the visible part (`position: sticky`), so it never opens below the fold. Its z-index is the host
   page's business: [theming.md](theming.md), "Embedded in someone else's page".
 
+### While its action runs
+
+`data-ds-busy` on the dialog (2.0; set and removed by the page, never written by the system) keeps it open while its
+action runs: Escape, the native `cancel`, `[data-close]` (the backdrop included) do nothing, while
+`DS.overlay.close(dialog)` still closes. Nothing changes visibly: the busy button is the feedback, Cancel is
+`aria-disabled` with a `data-tip`. The same attribute works on the side sheet and the modal drawer.
+
+```js
+remove.addEventListener('click', async () => {
+  dialog.setAttribute('data-ds-busy', '');
+  cancel.setAttribute('aria-disabled', 'true');
+  try { await DS.motion.busy(remove, removeDevices(), { done: false }); }
+  catch { DS.overlay.toast(region, 'Could not delete the devices.', { kind: 'error' }); return; }
+  finally { dialog.removeAttribute('data-ds-busy'); cancel.removeAttribute('aria-disabled'); }
+  DS.overlay.close(dialog, { reason: 'confirm' });
+});
+```
+
+Limits: a morph that drops the attribute frees the dialog (render it, or set it on an element that is not morphed);
+Android Back can still force a native close (it follows with reason `escape`); never set `closedby` on a dialog that
+`DS.overlay` drives; a `<form method="dialog">` submit closes natively (give its buttons `type="button"`).
+
+- **Why it closed.** Every close sends `ds-close` with `detail.reason` (`escape`, `backdrop`, `close`, `api`, your own
+  string from `close(dialog, { reason })` ...; [motion.md](motion.md#dsoverlay-jsoverlayjs)), once, as soon as it starts.
+- **Focus back.** Give row buttons that open a dialog stable `id`s: when a re-render replaced the opener, focus goes to
+  the element that now has its `id`; `open(dialog, { opener, returnTo: () => element })` names another place.
+- **A double click on the opener** never closes the dialog it opened: a backdrop click closes only as the first click
+  of a press that began on it, from `--ds-delay-dismiss` after the open.
+- **An opener with `aria-expanded`** (a button that says it shows a dialog, `aria-haspopup="dialog"`) is kept in step:
+  `"true"` while it is open, `"false"` as soon as the close starts. An opener without the attribute gets none.
+
 **Motion:** the "Scrim", "Dialog", "Nested dialog" and "Dialog on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
 
 ## Side sheet
@@ -1093,6 +1131,9 @@ the quick swap: the page is frozen while a View Transition runs.
 into the panel instead of sliding it in from the edge ([DS.overlay](motion.md#dsoverlay-jsoverlayjs)); the same works
 for a dialog. A row that its table's scroll wrapper clips (the row of a `.ds-table--wide` table wider than its wrapper, or one partly
 under the top bar) gets the usual entrance instead: its group would paint the hidden part over the frame.
+
+While its action runs (a save in the sheet's foot), `data-ds-busy` on the sheet keeps it open, as for the
+[Dialog](#dialog); `ds-close` tells why it closed.
 
 **Motion:** the "Scrim", "Side sheet" and "Side sheet on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
 
@@ -1395,3 +1436,10 @@ spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` ag
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
 
 ## Attributes
+
+The attributes the system reads or writes, by who sets them. An attribute written by the system is owned state: a
+re-render with `DS.dom.morphHtml` keeps it.
+
+| Attribute | On | Set by | What it does |
+|---|---|---|---|
+| `data-ds-busy` | `.ds-dialog`, `.ds-sheet`, `.ds-drawer` | the page | keeps the overlay open while its action runs: the user's close attempts do nothing, `DS.overlay.close()` still closes ([Dialog](#dialog), "While its action runs") |

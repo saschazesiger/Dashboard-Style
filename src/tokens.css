@@ -193,6 +193,9 @@
     --ds-delay-tooltip: calc(500ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-skip: calc(300ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-hide: calc(100ms * var(--ds-time-scale, 1));
+    /* A backdrop or scrim click this soon after the open does not close
+       (shorter than the dialog's --ds-dur-slow entrance; DISMISS_DELAY_MS). */
+    --ds-delay-dismiss: calc(300ms * var(--ds-time-scale, 1));
 
     /* Loops of loading indicators: they always run at their token speed.
      * spin           one turn of the spinner (the M3 rotation period)

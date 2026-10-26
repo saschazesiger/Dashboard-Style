@@ -7,7 +7,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { COUNT_UP_MS, LOADER_DELAY_MS, LOADER_MIN_VISIBLE_MS, MOTION_FALLBACKS } from '../src/js/motion.js';
-import { TOOLTIP_DELAY_MS, TOOLTIP_HIDE_MS, TOOLTIP_SKIP_MS } from '../src/js/overlay.js';
+import { DISMISS_DELAY_MS, TOOLTIP_DELAY_MS, TOOLTIP_HIDE_MS, TOOLTIP_SKIP_MS } from '../src/js/overlay.js';
 import {
   emphasizedCurve, generate, LOADER_SHAPES, LOADER_VERTICES, loaderPolygons, problems, SPATIAL, springCurve, springFunction, TOLERANCE, WAVE,
 } from '../scripts/motion-curves.mjs';
@@ -122,6 +122,11 @@ describe('tokens', () => {
     assert.equal(ms('--ds-delay-tooltip'), TOOLTIP_DELAY_MS);
     assert.equal(ms('--ds-delay-tooltip-skip'), TOOLTIP_SKIP_MS);
     assert.equal(ms('--ds-delay-tooltip-hide'), TOOLTIP_HIDE_MS);
+    // The dismiss guard (2.0): shorter than the dialog's entrance, so a click on a backdrop that has
+    // fully faded in always closes, and in the time-scale form (the styleguide's slow motion stretches it).
+    assert.equal(ms('--ds-delay-dismiss'), DISMISS_DELAY_MS);
+    assert.ok(ms('--ds-delay-dismiss') < ms('--ds-dur-slow'), '--ds-delay-dismiss is shorter than --ds-dur-slow');
+    assert.equal(token('--ds-delay-dismiss'), 'calc(300ms * var(--ds-time-scale, 1))');
     // The indicator takes its timing from the tokens alone (travelDuration,
     // running transitions): no clock, no timer, no literal of two digits or more.
     const indicator = stripComments(read('src/js/indicator.js'));

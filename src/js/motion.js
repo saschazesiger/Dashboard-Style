@@ -85,6 +85,7 @@ export const MOTION_FALLBACKS = Object.freeze({
   '--ds-delay-tooltip': 500,
   '--ds-delay-tooltip-skip': 300,
   '--ds-delay-tooltip-hide': 100,
+  '--ds-delay-dismiss': 300,
   '--ds-ease-in-out': 'cubic-bezier(.2, 0, 0, 1)',
   '--ds-ease-out': 'cubic-bezier(.05, .7, .1, 1)',
   '--ds-ease-in': 'cubic-bezier(.3, 0, 1, 1)',
