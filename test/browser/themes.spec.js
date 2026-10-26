@@ -125,6 +125,10 @@ test.describe('shipped themes', () => {
 
 test.describe('where the themes are offered', () => {
   test('the styleguide: dark, compact, contrast and System (dark and contrast as the device asks)', async ({ page }) => {
+    // Five fade-through swaps of the whole styleguide (every 2.0 demo on
+    // one page), each re-reading the values and the theme check: about 17s
+    // alone in Firefox, more while other workers share the CPU.
+    test.slow();
     await page.goto('/styleguide/index.html');
     await ready(page);
     const scheme = () => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);

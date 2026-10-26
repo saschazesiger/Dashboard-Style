@@ -259,8 +259,9 @@ test.describe('confirm by typing the name (2.0, the styleguide recipe)', () => {
     await expect(page.locator('#sg-type-cancel')).toHaveAttribute('aria-disabled', 'true');
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveAttribute('data-state', 'open');
-    // Done: it closes, and the snackbar says what happened.
-    await expect(dialog).not.toHaveAttribute('data-state', 'open', { timeout: 5000 });
+    // Done: it closes (the styleguide removes a closed overlay, so it may be
+    // gone by the time the check looks), and the snackbar says what happened.
+    await expect(page.locator('#sg-dialog-type[data-state="open"]')).toHaveCount(0, { timeout: 5000 });
     await expect(page.locator('.ds-toast', { hasText: 'LAPTOP-0042 deleted.' })).toBeVisible();
   });
 });

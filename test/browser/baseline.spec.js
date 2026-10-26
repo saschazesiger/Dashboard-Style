@@ -32,14 +32,16 @@ const FIXTURES = '/test/browser/fixtures/';
 const SECTIONS = ['overview', ...[...readFileSync(new URL('../../styleguide/styleguide.js', import.meta.url), 'utf8')
   .matchAll(/\bsection\('([\w-]+)'/g)].map((match) => match[1])];
 
-/** Tall enough for the tallest section, so an element shot is never cut by the scrolling view. */
-const TALL = { width: 1280, height: 2200 };
-/* The section shots: taller than the longest section (the table section
-   with its 2.0 demos, 3,124px; at 390px the frame section, 5,703px), since
-   the view scrolls and a shot paints only what is inside the viewport (a
-   taller section came out with a blank top and depended on the timing of
-   scripts that run during the capture). */
-const SECTIONS_TALL = { width: 1280, height: 3400 };
+/* Taller than the longest section, since the view scrolls and a shot
+   paints only what is inside the viewport (a taller section came out cut
+   off, or with a blank top, and depended on the timing of scripts that run
+   during the capture). At 1280px the view is the viewport less the 64px
+   top bar; the longest sections with their 2.0 demos are the frame
+   (4,656px), forms (4,613px) and cards (4,370px). At 390px the frame
+   section is 5,562px. The theme presets and the forced colours shoot the
+   forms and cards sections too, so they share the height. */
+const TALL = { width: 1280, height: 4800 };
+const SECTIONS_TALL = TALL;
 const PHONE_SECTIONS_TALL = { width: 390, height: 6200 };
 
 function annotate(...anchors) {

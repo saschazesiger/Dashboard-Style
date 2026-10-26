@@ -486,7 +486,14 @@ async function bonePixels(page, ms) {
 
 /** The painted area (px²) and count of the Paint events in 1s of the running page, from a Chromium trace. */
 async function paintedArea(page, browser) {
-  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 300)));
+  // The running wave: past its delay (the skeleton's entrance), when the
+  // band's layers have had their first paint, which is not per frame.
+  await page.evaluate(async () => {
+    const wave = document.getAnimations().find((animation) => animation.animationName === 'ds-skeleton-wave');
+    const start = wave ? wave.effect.getTiming().delay : 0;
+    while (wave && (Number(wave.currentTime) || 0) < start) await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  });
   await browser.startTracing(page, { categories: ['devtools.timeline'] });
   await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 1000)));
   const trace = JSON.parse((await browser.stopTracing()).toString('utf8'));

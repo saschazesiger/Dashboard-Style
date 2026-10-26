@@ -249,7 +249,10 @@ test.describe('coverage', () => {
  * "Reverse at 50%" runs: it must be continuous (D21: never a jump, never a
  * restart from zero). `in`: the card's stage, the document or the stage's
  * frame; `text`: the first match whose text includes it; `sum`: the props
- * add up to one value (an indicator's painted edge is its box plus its inset).
+ * add up to one value (an indicator's painted edge is its box plus its inset);
+ * `progressive`: the motion needs a feature the fallback project strips, and
+ * the component's header names the instant toggle it falls back to (there
+ * the reversal is only required to settle).
  */
 const CONTINUITY = {
   spring: { in: 'stage', sel: '.sg-lane__box', props: ['translate.x'] },
@@ -282,7 +285,7 @@ const CONTINUITY = {
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   'list-edges': { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
-  savebar: { in: 'frame', sel: '#savebar-bar', props: ['opacity'] },
+  savebar: { in: 'frame', sel: '#savebar-bar', props: ['opacity'], progressive: '.ds-presence needs @starting-style and allow-discrete; without them the bar shows and hides at once (savebar.css)' },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
   presence: { in: 'stage', sel: '.ds-presence--keep', props: ['opacity'] },
   dropzone: { in: 'stage', sel: '.ds-dropzone__over', props: ['opacity'] },
@@ -599,7 +602,7 @@ test.describe('interruption', () => {
   test.beforeEach(({ page }) => seedRandom(page));
 
   for (const group of GROUPS) {
-    test(`${group}: "Reverse at 50%" of every reversible demo continues from where it is, at ?speed=0.1`, async ({ page }) => {
+    test(`${group}: "Reverse at 50%" of every reversible demo continues from where it is, at ?speed=0.1`, async ({ page, dsFallback }) => {
       test.setTimeout(480000);
       // Ten times slower: a frame is a hundredth of a motion, so a jump stands out from a steep curve.
       await open(page, `${LAB}?speed=0.1`);
@@ -610,7 +613,9 @@ test.describe('interruption', () => {
         const spec = CONTINUITY[id];
         const trace = await reverseTrace(page, id, spec ?? { in: 'stage', sel: ':scope', props: ['opacity'] });
         expect(trace.settled, `${id} reverse`).toBe(true);
-        if (spec) {
+        if (spec?.progressive && dsFallback) {
+          test.info().annotations.push({ type: 'instant in the fallback', description: `${id}: ${spec.progressive}` });
+        } else if (spec) {
           const samples = trace.samples.filter((sample) => !sample.gone);
           const series = spec.sum ? [samples.map((sample) => ({ t: sample.t, v: spec.props.reduce((sum, key) => sum + sample[key], 0) }))]
             : spec.props.map((key) => samples.map((sample) => ({ t: sample.t, v: sample[key] })));
