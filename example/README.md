@@ -18,18 +18,18 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Pattern | View | In `app.js` |
 |---|---|---|
 | Skeleton on the first load, held with `settleLoader()`, then `staggerOnce()` | start | `start()` |
-| Hash routes with `DS.motion.transition()` (fade-through), focus on the new title | all | `go()`, `renderView()` |
-| Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled` | frame | Wiring, `watchScrolled()` |
+| Hash routes with `DS.motion.transition()` (fade-through), focus on the new title when the navigation took it (`focus: true`: from the modal drawer) | all | `go()`, `renderView()` |
+| Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled` | frame | Wiring, `DS.dom.watchScrolled()` |
 | Ripple, tooltips (`data-tip`) | all | `DS.ripple.attach()`, `DS.overlay.tooltips()` |
 | Tiles that count on (`countUp()`) | Overview | `updateTiles()` |
-| Alerts that come and go with the data (`flip()` on their stack, `live`) | Overview | `alertsHtml()`, `updateAlerts()` |
-| Busy and done faces, progress bar and figure landing together | Overview | `runSync()`, `showSync()` |
+| Alerts that come and go with the data (`flip()` on their stack, `live`; a dismiss moves the focus to the next alert, `refocus`) | Overview | `alertsHtml()`, `updateAlerts()` |
+| Busy and done faces, progress bar and figure landing together (`DS.dom.progress()`, `countUp()`) | Overview | `runSync()`, `showSync()` |
 | A chart of the project's own whose bars grow once (`.ds-enter--fill-y`) | Overview | `chartHtml()`, `growChart()` |
 | A live feed (`flip({ live: true })` with `morphHtml`) | Overview | `poll()` |
 | Search per keystroke, filter chips, sort with the turning arrow | Devices | `renderRows()` |
 | Bulk selection: header box with `indeterminate`, bulk actions | Devices | `syncSelection()`, `bulkHtml()` |
 | Empty state after a filter, and back | Devices | `renderRows()` |
-| Refresh: `.ds-stale` and the loading bar | Devices | `refreshDevices()` |
+| Refresh: `.ds-stale` and the loading bar (`DS.motion.refresh()`) | Devices | `refreshDevices()` |
 | Row menu (`DS.overlay`, keyboard included) | Devices | `toggleMenu()`, the `rowMenu` listener |
 | Confirm dialog, then undo in a snackbar | Devices | `confirmDelete()`, `deleteDevices()`, `undoToast()` |
 | Side sheet, previous and next (`transition()` forward and back), live refresh without a transition | Devices | `openSheet()`, `stepSheet()`, `poll()` |

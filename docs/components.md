@@ -44,6 +44,8 @@ component live.
 | Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |
 | A block of the page waits (a section, a sheet, the app start) against a small spot (a button, a chip, a cell) | the shape loader `.ds-loader` (in `.ds-boot`, `.ds-loading`) against the arc spinner `.ds-spinner` ([Loading](#loading)) |
 | A long job with a known or unknown share | [Progress](#progress) `.ds-progress` (`--indeterminate`); round: `.ds-spinner--determinate` |
+| Let people add files (by drop, the file dialog or paste) | [File upload](#file-upload): `.ds-dropzone` or the file field `.ds-input[type="file"]`, `DS.dom.dropzone()` |
+| Let people reorder rows by drag or keyboard | [Reorder rows](#reorder-rows): `.ds-grip` in each row, `DS.motion.sortable()` |
 | Content that opens and closes | `<details class="ds-collapsible">` ([Motion classes](#motion-classes)) |
 | Something new appearing, a view's first render | [Motion classes](#motion-classes) and `DS.motion` ([motion.md](motion.md)) |
 | Press feedback from the pointer on every action | [Ripple](#ripple): `DS.ripple.attach(document)` once (`.ds-ripples`) |
@@ -57,7 +59,8 @@ Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card
 [Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
 [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) ·
 [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Loading](#loading) ·
-[Progress](#progress) · [Ripple](#ripple) · [Utilities](#utilities) · [Motion classes](#motion-classes)
+[Progress](#progress) · [File upload](#file-upload) · [Reorder rows](#reorder-rows) · [Ripple](#ripple) ·
+[Utilities](#utilities) · [Motion classes](#motion-classes)
 
 ## App frame
 
@@ -112,31 +115,18 @@ is the only scroller. At 900px and below the drawer becomes modal.
   hairline runs on `scroll(nearest block)`; the tint on the view's named timeline `--ds-view-scroll`, which
   `.ds-app` scopes to the bar (`timeline-scope`). The tint is a layer behind the bar's content (`.ds-topbar::before`),
   hidden in forced colours. Elsewhere `data-scrolled` shows both over `--ds-dur-fast`. Set `data-scrolled` in every
-  engine (the filled fields read it), from an `IntersectionObserver` on a 1px sentinel at the top of the view rather
-  than a scroll listener, so the attribute changes twice per scroll and not on every event:
+  engine (the filled fields read it) with `DS.dom.watchScrolled(view)` (2.0, [motion.md](motion.md#dsdom-jsdomjs)):
+  it watches a 1px sentinel at the top of the view with an `IntersectionObserver` rather than a scroll listener, so
+  the attribute changes twice per scroll and not on every event, and writes it on the `.ds-app`:
 
   ```js
-  function watchScrolled(scroller, target) {
-    const sentinel = document.createElement('div');
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');      // DS.dom.morphHtml leaves it in place
-    sentinel.style.cssText = 'height: 1px; margin-bottom: -1px; flex-shrink: 0';
-    scroller.prepend(sentinel);
-    new IntersectionObserver((entries) => {
-      const entry = entries.at(-1);
-      if (!entry.boundingClientRect.height) return;    // not rendered (a closed sheet)
-      if (entry.isIntersecting === !target.hasAttribute('data-scrolled')) return;   // only on a change
-      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
-      if (entry.isIntersecting) DS.motion.resyncScroll(scroller);   // content that shrank: no tint left behind
-    }, { root: scroller }).observe(sentinel);
-  }
-  watchScrolled(document.querySelector('.ds-view'), document.querySelector('.ds-app'));
+  DS.dom.watchScrolled(document.querySelector('.ds-view'));   // data-scrolled on the .ds-app, owned state
   ```
 
   A scrolled view whose content shrinks until it no longer scrolls leaves its scroll timeline inactive, and Chromium
   and WebKit then keep the tint and the hairline at their last value. `DS.motion.resyncScroll(scroller)` restarts
-  them ([motion](motion.md#scroll-driven-effects)); `DS.motion.transition()` calls it after every update, and the
-  sentinel above when the view is back at its top.
+  them ([motion](motion.md#scroll-driven-effects)); `DS.motion.transition()` calls it after every update, and
+  `watchScrolled()` when the view is back at its top.
 - A drawer item may be a `<button class="ds-drawer__item">` when it shows a section in place instead of loading a
   page; it loses the browser's button look. The active one also carries `aria-current="page"`.
 - `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible.
@@ -150,6 +140,11 @@ is the only scroller. At 900px and below the drawer becomes modal.
   switch keeps its width when the current option changes. The option then stacks its content and the reserved copy
   in a column, so use it on an option whose content is its text (or wrap icon and text in one element); without it
   the switch behaves as before.
+- One tab stop for a set (2.0): tabs, segmented options that are buttons and toggle buttons in a track take
+  `DS.dom.roving(container, { items })` ([motion](motion.md#dsdom-jsdomjs)): Tab reaches the current item only, the
+  arrow keys, Home and End move between the items and (by default) press the one they reach, so your click handler
+  sets the state; `aria-disabled` items are reached, `disabled` ones skipped. Links in a `<nav>` (the drawer, a
+  segmented switch of links) stay separate tab stops and need nothing.
 - Scroll-spy with a programmatic smooth scroll: when a drawer link scrolls the view to its section, set the item
   current at once and ignore the scroll-spy (an `IntersectionObserver`) until the scroll ends: `scrollend` on the
   view where it exists, otherwise once no `scroll` event came for `DS.motion.motionDuration(view, '--ds-dur-fast')`
@@ -239,6 +234,11 @@ is the only scroller. At 900px and below the drawer becomes modal.
   symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
   scrollbars need no room; Safari before 18.2 ignores it.
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px.
+- With the keyboard up (2.0): on a phone the on-screen keyboard shortens the visual viewport, not the layout one.
+  Call `DS.dom.followViewport()` once ([motion](motion.md#dsdom-jsdomjs)): it writes `--ds-viewport-height` (px) and,
+  while the keyboard is up and a field has the focus, `data-ds-keyboard` on `<html>`, and `--ds-keyboard-inset` (px)
+  for the snackbars, and scrolls the window back where the browser panned it for the keyboard. Nothing moves when
+  there is no `visualViewport`.
 - Open and close the modal drawer with `DS.overlay.open(drawer, { opener: menu })` and `DS.overlay.close(drawer)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): it sets `data-drawer-open` and `aria-expanded`, makes the rest of
   the app inert (not the scrim), locks the scroll (`.ds-no-scroll` on `<body>`, counted), closes on Escape and a scrim
@@ -283,6 +283,23 @@ is the only scroller. At 900px and below the drawer becomes modal.
 The page's width (not the window's) decides when grids, facts and tables narrow: those are container queries on
 `.ds-content`, so the persistent drawer counts.
 
+### Page outside the frame
+
+A page without `.ds-app` (a wizard, a sign-in page, an embedded flow) marks its view with `.ds-vt-view` (2.0), so
+`DS.motion.transition()` moves between its steps like between the views of the frame: named `ds-view` only while a
+transition runs, and without View Transitions the new step (its first child) enters with `.ds-enter--swap`. One per
+page, never inside `.ds-app`.
+
+```html
+<main class="ds-vt-view" tabindex="-1">
+  <section class="ds-page"><h1 class="ds-page-head__title" tabindex="-1">Step 1 of 3</h1> ... </section>
+</main>
+```
+
+```js
+DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
+```
+
 ## Button
 
 ```html
@@ -324,8 +341,12 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
   changes colour on the pill's timing (`--ds-indicator-dur`).
-- `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why; your script
-  must ignore its clicks. `disabled` and `aria-busy="true"` block the pointer.
+- `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why. `disabled` and
+  `aria-busy="true"` block the pointer. Blocked for every input (2.0): once `DS.motion.busy()` ran, or
+  `DS.motion.guard()` was called once ([motion.md](motion.md#dsmotion-jsmotionjs)), a click, middle click, Enter,
+  Space or form submission on a busy or done `.ds-btn`, or on any `aria-disabled="true"` action inside `.ds-theme`,
+  never reaches your listeners: no page guard needed. A control that must explain itself on click gets
+  `data-ds-guard="off"`.
 - Press: the state layer comes in `--ds-dur-micro` and the shape turns squarer (`--ds-radius-action-pressed`, 12px;
   hook `--ds-btn-radius-pressed`), then springs back on release (`--ds-ease-spatial`, `--ds-dur-medium`); with
   `DS.ripple.attach(document)` a ripple grows from the pointer ([Ripple](#ripple)) and `.ds-pressed` keeps a quick
@@ -557,8 +578,9 @@ DS.motion.flip(stack, () => stack.prepend(alert)); // insert: it fades in, the o
 DS.motion.flip(stack, () => stack.prepend(alert), { live: true }); // live data: waits while the stack is pointed at
 ```
 
-Move focus before a dismiss removes the focused button (to the next alert or the section's heading). An alert that
-replaces a placeholder takes `.ds-reveal`.
+A dismiss that removes the focused button needs nothing more: `flip()` moves focus to the same button of the next
+alert, else of the previous one (`refocus`, 2.0; pass `refocus: heading` to land on the section's heading when the
+last one goes). An alert that replaces a placeholder takes `.ds-reveal`.
 
 The summary of `.ds-errors` is pressable: a state layer in its colour (hover, press in `--ds-dur-micro`, keyboard
 focus with `--ds-state-focus`) in a 4px padding that hangs into the space around it, the ripple, and its own focus
@@ -835,6 +857,8 @@ The native input stays in the form and the tab order; a selected chip shows the 
   by the script; `--ds-surface` without one), so a chip that crosses another never shows it through its body.
 - Press: the state layer in `--ds-dur-micro` and the ripple. Chips are not pills, so they do not morph. Keyboard
   focus: the ring, solid from the first frame, snaps to its offset, with the focus layer.
+- An `aria-disabled="true"` chip input is blocked by `DS.motion.guard()`: a click on the chip never changes it (no
+  page guard needed).
 - Disabled chips (`disabled` on the input or its `<fieldset>`) show no hover, press or ripple and the `not-allowed` cursor, and take
   the button's disabled model: the outline (selected: the container) in `--ds-disabled-fill`, label and check in
   `--ds-disabled-ink`, fading on `--ds-dur-fast`. A theme that dims instead (`--ds-disabled-opacity`) keeps the
@@ -863,7 +887,8 @@ change it.
 The handle glides and grows on the spatial spring (also when a script sets `checked`), grows to 28px while pressed,
 and a halo around it (`--ds-switch-halo`, 40px) shows hover, press and keyboard focus; the switch has no ripple.
 Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-switch-disabled-handle`), no hover, halo
-or grow, the `not-allowed` cursor and the quieter label. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
+or grow, the `not-allowed` cursor and the quieter label. An `aria-disabled="true"` switch input is blocked by
+`DS.motion.guard()` (a click on the switch or its label never flips it; no page guard needed). `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
 title next to the switch already names the setting.
 
 **Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
@@ -961,7 +986,8 @@ trigger.addEventListener('keydown', (event) => {
   state layer for hover, press and focus, an inset focus ring and the ripple. `role="menuitemcheckbox"` with
   `aria-checked`: the check (`.ds-menu__check` on its icon) shows only when checked and keeps its room otherwise, so
   the labels line up; your click handler flips `aria-checked`. `aria-disabled="true"` keeps an item focusable (its name
-  is read) with the disabled ink, no hover, no press and no ripple; `DS.overlay` ignores its clicks.
+  is read) with the disabled ink, no hover, no press and no ripple; `DS.overlay` ignores its clicks, and
+  `DS.motion.guard()` keeps them from your handlers too (no page guard needed).
   `.ds-menu__divider` separates groups.
 - **Placement.** Below the trigger from its start edge, flipped towards the start edge when there is no room; above
   the trigger when it does not fit below and there is more room above; 112px to 280px wide, and never taller than the
@@ -1064,10 +1090,9 @@ from the bottom and falls back down. A strip of the panel's background past its 
 overshoot, so the scrim never shows at the screen edge. By hand, close it like the dialog with `.ds-sheet--closing`
 (`DS.motion.settled(panel)`, then hide and remove the class in one task): the panel lets clicks through while it
 leaves, the backdrop swallows them until the sheet is hidden. The `hidden` attribute hides the div sheet without
-`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears), with the
-sentinel of the [App frame](#app-frame) at the top of the body: `watchScrolled(body, panel)`. The body is a flex
-column with a gap, so its sentinel also takes the gap back: `margin-bottom: calc(-1px - var(--ds-space-3))`.
-`data-ds-keep` keeps it through a record swap with `DS.dom.morphHtml(body, html)`. Where
+`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears) with
+`DS.dom.watchScrolled(body)` (2.0): it writes the attribute on the `.ds-sheet__panel`, and its sentinel takes the
+body's gap back by itself and stays through a record swap with `DS.dom.morphHtml(body, html)`. Where
 scroll timelines exist the hairline follows the body's scroll by itself, over the first `--ds-space-2`: the body
 names its timeline `--ds-sheet-scroll` and the panel scopes it to the head (progressive: `timeline-scope`). Use a
 `<div>` for the head, not `<header>` (a second banner landmark).
@@ -1202,6 +1227,8 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 <!-- Block loader: the shape loader (M3 Expressive), 48px; --sm 24px; --contained on an --ds-accent disc -->
 <div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
 <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
+<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Importing devices
+  <p class="ds-loading__detail">812 of 2,030 rows</p></div>                       <!-- a detail line under the text -->
 <span class="ds-loader ds-loader--contained" aria-hidden="true"></span>
 
 <!-- Inline spinner: the M3 arc, for buttons, chips, status chips and table cells -->
@@ -1213,6 +1240,7 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
   <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
   <span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span>
   <span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>
+  <p class="ds-skeleton__note">Loading 3 of 12 reports</p>                        <!-- optional progress line -->
   <div class="ds-skeleton__card">
     <span class="ds-skeleton__line ds-skeleton__line--title"></span>
     <span class="ds-skeleton__line"></span>
@@ -1242,24 +1270,32 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   and the arc glides like linear progress. Markup as for [progress](#progress): `role="progressbar"`,
   `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, a name.
 - **Skeleton**: one calm diagonal wave passes over the whole surface, after its entrance. Every bone shows its slice
-  of one band fixed to the viewport (`background-attachment: fixed`, the registered `--ds-skeleton-x`), so the bones
-  of a surface share one phase. Fallback: where `background-attachment: fixed` is ignored (iOS) or broken by a
-  transformed ancestor (a sheet mid-slide, `.ds-enter`), the bones stay in time but the band no longer runs across
-  them; never wrap a skeleton in an entrance that fills forwards.
+  of one band fixed to the viewport (the registered `--ds-skeleton-x`), so the bones of a surface share one phase.
+  Since 2.0 each bone clips the band to its own shape and the band moves on a compositor layer of its own (a fixed
+  `::after`, moved by `translate`), so the wave repaints nothing; before, a fixed background was repainted with the
+  whole view. Under a transformed ancestor (a sheet mid-slide, `.ds-enter`) the band is placed in that ancestor
+  instead of the viewport: the bones stay in time and share it.
+- **Loading line** (`.ds-loading`): the loader, then the text in a two-column grid; `.ds-loading__detail` lines (2.0)
+  sit under the text in its column (`--ds-font-meta`, `--ds-text-2`), aligned with it whatever the loader's size.
+- **Skeleton note** (`p.ds-skeleton__note`, 2.0): a progress line under the lead bone ("Loading 3 of 12 reports",
+  `--ds-font-meta` in `--ds-text-2`, tabular figures); it sits inside the `role="status"` skeleton, so its text is
+  announced: update it at most every 10% or once a second. Empty, it takes no room. The bones' corners follow
+  `--ds-skeleton-radius` (2.0; default `--ds-radius-action`, the heading line `--ds-radius-sm`).
 - **Loading bar** (`.ds-loadbar`): the two-segment indeterminate choreography, flat, at the top of the content
   panel (inside `.ds-content`, whose read-only `--ds-content-pad-top` and `--ds-content-pad-x` it reads to reach the
   panel edges; inside `.ds-page` it also spans the page's centring, measured as `100cqw` of `.ds-content`, so it
   reaches the edges at any panel width; the view's scroll hairline hides while it is there). Put the bar, or the
-  skeleton that holds it, directly in `.ds-content` or `.ds-page`, with no other size container in between. Refresh pattern: put `.ds-stale` on the content
+  skeleton that holds it, directly in `.ds-content` or `.ds-page`, with no other size container in between. `DS.motion.refresh(content, load)`
+  (2.0) is the refresh pattern as one call: it puts `.ds-stale` and the bar in, waits for `load()` and the loader
+  hold, and takes both away before it resolves with the data. By hand, the refresh pattern: put `.ds-stale` on the content
   and insert the loading bar; when the data arrives, `await DS.motion.settleLoader(startedAt, { element: loadbar })`,
   then `DS.motion.leave(loadbar)` (it fades out with its segments still moving, and is removed) and render the fresh
   content. `.ds-leave` keeps the loops of a loading bar and of a skeleton surface while they fade out.
 - **Paint cost** (measured by `test/browser/perf.spec.js`, budget: the p95 frame within 33ms, two frames at 60Hz,
-  at 4x CPU throttling): 50 table rows of wavy progress with four shape loaders stay within it. The skeleton wave
-  does not: its fixed band (`background-attachment: fixed`) is repainted with the whole view, so without GPU
-  rasterisation a full-width skeleton stalls a frame for three or more several times a second, at any CPU speed.
-  Limits: one skeleton surface per view, shown only while a page loads its first data and never beside other
-  loops (shape loaders, wavy bars, spinners; its own loading bar aside) in the same view; for a refresh use `.ds-stale` and the loading bar.
+  at 4x CPU throttling): 50 table rows of wavy progress with four shape loaders and a skeleton surface stay within
+  it. The skeleton's band moves on its own compositor layer (2.0), so its wave repaints nothing; before 2.0 it was
+  a fixed background, repainted with the whole view on every step, and a skeleton had to wait alone. Show a
+  skeleton only while a page loads its first data; for a refresh use `.ds-stale` and the loading bar.
   Keep shape loaders to a few per view, and use `.ds-progress--flat` in dense table cells (the wave reaches outside
   the 4px track).
 
@@ -1296,16 +1332,86 @@ same task. The bar is cut at the share (a clip, never a scale), so its round cap
   when the wait ends, and fades in over `--ds-dur-fast`.
 - **Accessibility**: while `--indeterminate` or `--waiting` is on, the share is unknown: remove `aria-valuenow` and
   set `aria-valuetext` ("Preparing", "Waiting"). With the first share, set `aria-valuenow` again and remove
-  `aria-valuetext`:
+  `aria-valuetext`. `DS.dom.progress(el, share, { valueText, waiting })` (2.0,
+  [motion.md](motion.md#dsdom-jsdomjs)) does all of it in one call, on a `.ds-progress`, a determinate spinner or a
+  meter; set the share there or in the template, not both:
 
 ```js
-progress.classList.remove('ds-progress--indeterminate');
-progress.style.setProperty('--ds-progress', .3);
-track.setAttribute('aria-valuenow', '30');
-track.removeAttribute('aria-valuetext');
+DS.dom.progress(progress, null, { valueText: 'Preparing' });   // --indeterminate, no aria-valuenow
+DS.dom.progress(progress, 0.3);                                  // the bar grows to 30%, aria-valuenow="30"
+DS.motion.countUp(label, 30, { format: (value) => `${Math.round(value)}%` });   // lands on the same frame
 ```
 
 **Motion:** the "Progress" row of [Feedback](motion.md#feedback) in motion.md.
+
+## File upload
+
+```html
+<label class="ds-dropzone">
+  <input class="ds-dropzone__input" type="file" accept=".csv" multiple>
+  <span class="ds-dropzone__disc" aria-hidden="true">[icon plus 24]</span>
+  <span class="ds-dropzone__title">
+    <span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span>
+    <span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span>
+  </span>
+  <span class="ds-dropzone__hint">Up to 10 MB each</span>
+</label>
+
+<input class="ds-input" type="file" accept="image/*">       <!-- the plain file field -->
+```
+
+```js
+DS.dom.dropzone(zone, { onFiles: (files) => addFiles(files), paste: true });   // drop, dialog, paste
+DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*' });              // a page's own drop target
+```
+
+- **The zone** (2.0) is a `<label>`: a click or Enter on its input opens the file dialog; the input stays in the tab
+  order, visually hidden, and the ring shows on the zone. Border `--ds-dropzone-border` (`1px dashed var(--ds-outline)`),
+  radius `--ds-radius-card`; the state layer at `--ds-state-hover-lg`, the ripple, and the press morph to
+  `--ds-radius-card-pressed` like a radio card. Disabled through its input (`disabled`).
+- **Dragging over**: `DS.dom.dropzone()` writes `data-ds-dragover` while files are over the zone (a child included):
+  the zone takes `--ds-accent` with an inset `--ds-primary` edge (no layout shift) over `--ds-dur-fast`, and the
+  title says it in words (`__over` crossfades with `__idle` in one cell, so the zone never changes its size). On
+  any other element (a pane, a chat) the attribute draws a dashed `--ds-primary` outline inside its edge; call
+  `DS.dom.dropzone(element, { onFiles })` on it rather than counting drag events yourself.
+- **The file field** `.ds-input[type="file"]`: the field box, the chosen file's name in `--ds-text-2`, and the browser's
+  button as a small tonal pill (`--ds-accent`, 32px) with the hover and press mixed into its fill and the press
+  morph. It has no ripple (a native field part).
+- **The chosen files** are the page's: a list of rows with a `.ds-progress` and a remove button each, rendered through
+  `DS.motion.flip()` (a removed row fades out, focus moves to the next remove button).
+- **Forced colours**: a dashed `ButtonText` edge (`Highlight` while dragged over), the file button in `ButtonFace` /
+  `ButtonText` with a `ButtonText` border, a page's drop target outlined in `Highlight`.
+
+**Motion:** the press and state layers of [Controls](motion.md#controls) in motion.md; the drop state is a
+`--ds-dur-fast` colour change.
+
+## Reorder rows
+
+```html
+<ul class="ds-plain-list" id="steps">
+  <li class="ex-step" data-ds-key="a">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Backup">[icon menu 20]</button>
+    Backup
+  </li>
+  ...
+</ul>
+```
+
+```js
+DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dataset.dsKey)) });
+```
+
+- `.ds-grip` (2.0) on a quiet icon button is the handle: `cursor: grab` and `touch-action: none`, so a drag on a
+  touch screen moves the row, not the page. Give it an `aria-label` that names the row.
+- **Pointer**: the row follows the pointer and carries `data-ds-dragging` (raised: `--ds-elev-2` and the dragged state
+  layer, `currentColor` at `--ds-state-dragged`, over `--ds-dur-fast`; nothing scales), the other rows make room
+  through `DS.motion.flip()` and, on release, the row glides into its place on the spring.
+- **Keyboard**: on the handle, ArrowUp and ArrowDown move the row one place, Home and End to the start or the end; the
+  handle keeps the focus. Each move is spoken ("Moved to position 2 of 5") through a polite region in the list's
+  dialog or sheet, else its `.ds-theme`.
+- **Forced colours**: the dragged row is outlined in `Highlight`.
+
+**Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
 
 ## Ripple
 
@@ -1379,8 +1485,10 @@ Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-e
 `.ds-stagger`; `.ds-reveal`; `.ds-reveal--scroll` (a block of a long read-only page fades in and rises while it
 scrolls into view, tied to the scroll position; static where `view()` timelines are missing and in print);
 `.ds-collapsible` (opens decelerating and closes faster, accelerating; focus rings at its content edge are not cut; a summary holding a `.ds-chevron` drops the native marker); `.ds-chevron` (a disclosure chevron that turns 180deg on the spring
-in the summary of an open `<details>` or under `aria-expanded="true"`); `.ds-presence` (toggled elements); `.ds-swap` (the slot of `DS.motion.roll()` and
-`DS.motion.crossfade()`); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
+in the summary of an open `<details>` or under `aria-expanded="true"`); `.ds-presence` (toggled elements; on a wrapper, never on a `.ds-btn`, `.ds-chip` or `.ds-card`) with
+`.ds-presence--keep` (keeps its box, toggled by `data-ds-shown`; 2.0); `.ds-swap` (the slot of `DS.motion.roll()` and
+`DS.motion.crossfade()`) with `.ds-swap--fade` (soft edges, 2.0); `.ds-vt-view` (a view outside the app frame,
+2.0, see [Page](#page-outside-the-frame)); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
 [Button](#button)); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
 `.ds-indicator--instant`.
 
@@ -1389,9 +1497,47 @@ Something that is shown and hidden again and again uses `DS.overlay` (dialogs, s
 or, for a project element toggled with `hidden`, as a `[popover]` or as a `<dialog>` of its own, `.ds-presence`:
 it fades in and grows from `--ds-scale-popup` on the spring, leaves faster, and a toggle mid-way continues from where
 it is (progressive: where `@starting-style` and `transition-behavior: allow-discrete` exist; elsewhere it toggles at
-once). Never both on one element. A `[popover]` is centred by the browser's `margin: auto`; inside a container that
-spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` again or place it outside.
+once). Never both on one element. Something that comes and goes without moving its neighbours (a pill shown on
+hover, a "Latest" button whose room stays) takes `.ds-presence--keep` and the page's `data-ds-shown` instead: it fades
+and keeps its box, in every engine.
+
+```html
+<span class="ds-presence ds-presence--keep" data-ds-shown><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">Latest</button></span>
+```
+
+A `[popover]` is centred by the browser's `margin: auto`; inside a container that spaces its children with margins
+(`.ds-card > * + *`), give it `margin: auto` again or place it outside.
+
+A log that grows at its end (an import log, a chat) sticks to it with `DS.dom.followEnd(scroller, { pill })` (2.0):
+while the reader is at the end, new lines keep it there; scrolling up lets go and shows `pill` (a `.ds-presence`
+wrapper around a "Latest" button, toggled with `hidden`); a click on it, or `stick()`, goes back to the end
+([motion.md](motion.md#dsdom-jsdomjs)).
+
+```html
+<div class="ex-log" id="log" tabindex="0" aria-label="Import log">...</div>
+<span class="ds-presence" id="latest" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">[icon arrowDown 16] Latest</button></span>
+```
+
+```js
+DS.dom.followEnd(document.getElementById('log'), { pill: document.getElementById('latest') });
+```
 
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
 
 ## Attributes
+
+The attributes the system writes (owned state: a re-render with `DS.dom.morphHtml` keeps them; never set them) and
+the ones the page sets for it. The project check reads this table.
+
+| Attribute | Written by | On | Meaning |
+|---|---|---|---|
+| `data-scrolled` | the system (`DS.dom.watchScrolled`) | `.ds-app`, `.ds-sheet__panel`, `.ds-dialog__box` or the scroller | the scroller is scrolled away from its top (hairlines, top bar tint) |
+| `data-ds-sentinel` | the system (`DS.dom.watchScrolled`) | the 1px sentinel first in a watched scroller | marks the sentinel (with `data-ds-keep`) |
+| `data-ds-edges` | the system (`DS.dom.scrollEdges`) | the scroller | its edges are reported |
+| `data-ds-overflow-start` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the start of its axis |
+| `data-ds-overflow-end` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the end of its axis |
+| `data-ds-dragover` | the system (`DS.dom.dropzone`) | a `.ds-dropzone` or a page drop target | files are dragged over it |
+| `data-ds-dragging` | the system (`DS.motion.sortable`) | the item being moved | the dragged row |
+| `data-ds-keyboard` | the system (`DS.dom.followViewport`) | `<html>` | the on-screen keyboard is up |
+| `data-ds-guard="off"` | the page | any element around actions | its `aria-disabled` and busy actions explain themselves on click: `DS.motion.guard()` lets their activations through |
+| `data-ds-shown` | the page | a `.ds-presence--keep` element | shown (without it hidden, keeping its box) |

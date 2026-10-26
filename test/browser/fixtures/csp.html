@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="style-src 'self'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strict style CSP · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- A page under style-src 'self' (no 'unsafe-inline', no style-src-attr):
+     DS.dom.morphHtml() writes styles through the CSSOM, so a morphed
+     style="--x: 1" applies without a violation (morph.spec.js). Every
+     violation is counted in window.fxViolations. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="csp-title">
+    <h2 id="csp-title">Strict CSP</h2>
+    <div id="target"><div class="fx-box" id="box"></div></div>
+  </section>
+</div>
+<script>
+  window.fxViolations = [];
+  document.addEventListener('securitypolicyviolation', function (event) {
+    window.fxViolations.push(event.violatedDirective + ' ' + (event.sample || ''));
+  });
+</script>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

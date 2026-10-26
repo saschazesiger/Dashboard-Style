@@ -19,7 +19,7 @@
      side sheet with previous/next and Refresh, a snackbar region (#toasts). The first destination scrolls
      and holds a wide table (#wide), a table that fits (#narrow) and a
      .ds-reveal--scroll block below the fold (#reveal). A 1px sentinel sets
-     data-scrolled on .ds-app and the sheet panel (docs/components.md);
+     data-scrolled on .ds-app and the sheet panel (DS.dom.watchScrolled);
      ?observe=0 leaves it out, so only scroll timelines draw. -->
 <div class="ds-app ds-app--drawer" id="app">
   <div class="ds-topbar" id="topbar">
@@ -147,21 +147,6 @@
       return page.firstElementChild;
     }
 
-    function watchScrolled(scroller, target) {
-      var sentinel = document.createElement('div');
-      var gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
-      sentinel.setAttribute('aria-hidden', 'true');
-      sentinel.setAttribute('data-ds-keep', '');
-      sentinel.style.cssText = 'height: 1px; margin-bottom: ' + (-1 - gap) + 'px; flex-shrink: 0';
-      scroller.insertBefore(sentinel, scroller.firstChild);
-      new IntersectionObserver(function (entries) {
-        var entry = entries[entries.length - 1];
-        if (!entry.boundingClientRect.height) return;
-        var scrolled = !entry.isIntersecting;
-        if (scrolled !== target.hasAttribute('data-scrolled')) target.toggleAttribute('data-scrolled', scrolled);
-      }, { root: scroller }).observe(sentinel);
-    }
-
     window.fxViews = {
       indicator: DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' }),
       get current() { return current; },
@@ -238,8 +223,8 @@
     document.getElementById('sheet-next').addEventListener('click', function () { window.fxViews.step(1); });
     document.getElementById('ping').addEventListener('click', function () { pings += 1; });
     if (new URLSearchParams(location.search).get('observe') !== '0') {
-      watchScrolled(view, app);
-      watchScrolled(body, sheet.querySelector('.ds-sheet__panel'));
+      DS.dom.watchScrolled(view);
+      DS.dom.watchScrolled(body);
     }
   }());
 </script>

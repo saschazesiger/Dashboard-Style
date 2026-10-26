@@ -14,7 +14,9 @@
  *                   snackbars with an undo
  *   feedback        progress with its figure, a status that changes, alerts
  *                   that come and go (flip)
- *   forms           validation on submit, a combobox, busy and done
+ *   forms           validation on submit, a combobox, busy and done; a CSV
+ *                   import (DS.dom.dropzone, a list of files through flip,
+ *                   DS.dom.progress per file)
  *   theme           theme.js: the choice restyles the page and shows its file
  *   icons           the set, filtered with flip, copied on click
  *
@@ -81,28 +83,15 @@
 
   DS.ripple.attach(document);
   DS.overlay.tooltips(document);
+  // aria-disabled, busy and done actions ignore every input (click, Enter, Space, a submission): no own guard.
+  DS.motion.guard(document);
 
   /* ── Frame: drawer, scroll spy, modal drawer, data-scrolled ───────── */
 
   DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
 
-  /* data-scrolled from a 1px sentinel (docs/components.md, App frame). */
-  function watchScrolled(scroller, target) {
-    const sentinel = document.createElement('div');
-    const gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');
-    sentinel.style.cssText = `height: 1px; margin-bottom: ${-1 - gap}px; flex-shrink: 0`;
-    scroller.prepend(sentinel);
-    new IntersectionObserver((entries) => {
-      const entry = entries.at(-1);
-      if (!entry.boundingClientRect.height) return;
-      if (entry.isIntersecting === !target.hasAttribute('data-scrolled')) return;
-      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
-      if (entry.isIntersecting) M.resyncScroll(scroller);
-    }, { root: scroller }).observe(sentinel);
-  }
-  watchScrolled(view, app);
+  /* data-scrolled from a 1px sentinel (DS.dom.watchScrolled, docs/components.md, App frame). */
+  DS.dom.watchScrolled(view);
 
   const sections = $$('.demo-section');
   const tourItems = $$('.ds-drawer__item[href^="#"]', nav);
@@ -219,8 +208,6 @@
     const button = event.currentTarget;
     button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
   });
-
-  $$('[aria-disabled="true"]').forEach((element) => element.addEventListener('click', (event) => event.preventDefault()));
 
   let copyBack = 0;
   $('#copy-link').addEventListener('click', (event) => {
@@ -472,7 +459,7 @@
   const sheet = $('#sheet');
   const sheetBody = $('#sheet-body');
   let sheetId = null;
-  watchScrolled(sheetBody, $('.ds-sheet__panel', sheet));
+  DS.dom.watchScrolled(sheetBody);
 
   function sheetHtml(device) {
     return `<p class="ds-meta">${esc(device.type)} · ${esc(device.model)}</p>` +
@@ -505,7 +492,7 @@
       const delta = Number(button.getAttribute('data-step'));
       const list = live.devices;
       const next = list[(list.findIndex((device) => device.id === sheetId) + delta + list.length) % list.length];
-      M.transition(() => { fillSheet(next.id); return sheetBody; }, { type: delta > 0 ? 'forward' : 'back' });
+      M.transition(() => { fillSheet(next.id); return sheetBody; }, { type: delta > 0 ? 'forward' : 'back', focus: true });
     });
   }
 
@@ -535,7 +522,6 @@
   /* ── Feedback ─────────────────────────────────────────────────────── */
 
   const progress = $('#import-progress');
-  const track = $('.ds-progress__track', progress);
   const ring = $('#import-ring');
   const label = $('#import-label');
   const detail = $('#import-detail');
@@ -543,26 +529,20 @@
 
   function setShare(share, first) {
     const percent = Math.round(share * 100);
-    progress.classList.remove('ds-progress--indeterminate', 'ds-progress--waiting');
     // The bar, the ring and the figure, in one task: they land on the same frame.
-    progress.style.setProperty('--ds-progress', String(share));
-    ring.style.setProperty('--ds-progress', String(share));
-    track.setAttribute('aria-valuenow', String(percent));
-    track.removeAttribute('aria-valuetext');
-    ring.setAttribute('aria-valuenow', String(percent));
+    // DS.dom.progress() sets the share and its ARIA (and drops --indeterminate).
+    DS.dom.progress(progress, share);
+    DS.dom.progress(ring, share);
     M.countUp(label, percent, { format: (n) => `${Math.round(n)}%`, ...(first ? { from: 0 } : {}) });
     detail.textContent = `${Math.round(share * ROWS).toLocaleString('en-US')} of ${ROWS.toLocaleString('en-US')} rows`;
   }
 
   $('#run-import').addEventListener('click', (event) => {
     M.busy(event.currentTarget, async () => {
-      progress.classList.remove('ds-progress--waiting');
-      progress.classList.add('ds-progress--indeterminate');
-      progress.style.setProperty('--ds-progress', '0');
-      ring.style.setProperty('--ds-progress', '0');
-      ring.setAttribute('aria-valuenow', '0');
-      track.removeAttribute('aria-valuenow');
-      track.setAttribute('aria-valuetext', 'Preparing');
+      // From 0, so the first share grows from the start; then unknown until the file is read.
+      DS.dom.progress(progress, 0);
+      DS.dom.progress(progress, null, { valueText: 'Preparing' });
+      DS.dom.progress(ring, 0);
       label.textContent = 'Preparing';
       detail.textContent = 'Reading the file';
       await fake(1300);
@@ -617,10 +597,9 @@
   alertStack.addEventListener('click', (event) => {
     const button = event.target.closest('[data-dismiss]');
     if (!button) return;
-    // Focus leaves the button before its alert goes.
-    $('#add-alert').focus({ preventScroll: true });
     alerts.list = alerts.list.filter((alert) => alert.id !== button.getAttribute('data-dismiss'));
-    renderAlerts();
+    // flip() moves the focus to the next alert's Dismiss, and to "Add an alert" once none is left.
+    M.flip(alertStack, (morph) => DS.dom.morphHtml(alertStack, alertsHtml(), morph), { refocus: () => $('#add-alert') });
   });
 
   /* ── Forms ────────────────────────────────────────────────────────── */
@@ -747,6 +726,51 @@
     const option = event.target.closest('.ds-combo__option');
     const model = option && combo.matches.find((m) => m.id === option.id);
     if (model) comboChoose(model);
+  });
+
+  /* ── Forms: a CSV import ──────────────────────────────────────────── */
+
+  const csv = { files: [], next: 1 };
+  const csvList = $('#csv-files');
+  const csvZone = $('#csv-zone');
+
+  /* A row per file: its name, its upload progress (the share in the
+     template, so a re-render keeps it) and a remove button. */
+  function csvHtml() {
+    return csv.files.map((file) => {
+      const percent = Math.round(file.share * 100);
+      return `<li class="demo-file" data-ds-key="${file.id}">${icon('fileText', 20)}<span class="demo-file__name">${esc(file.name)}</span>` +
+        `<div class="ds-progress ds-progress--flat demo-file__progress" style="--ds-progress: ${file.share}"><div class="ds-progress__track" role="progressbar" aria-label="Upload of ${esc(file.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><div class="ds-progress__bar"></div></div></div>` +
+        `<span class="ds-meta demo-file__state">${percent === 100 ? 'Uploaded' : `${percent}%`}</span>` +
+        `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove ${esc(file.name)}" data-tip="Remove" data-remove="${file.id}">${icon('close', 20)}</button></li>`;
+    }).join('');
+  }
+  const renderCsv = () => M.flip(csvList, (morph) => DS.dom.morphHtml(csvList, csvHtml(), morph), { refocus: () => $('.ds-dropzone__input', csvZone) });
+
+  async function upload(file) {
+    for (const share of [0.3, 0.65, 1]) {
+      await fake(500 + Math.random() * 500);
+      if (!csv.files.includes(file)) return;
+      file.share = share;
+      DS.dom.morphHtml(csvList, csvHtml());
+    }
+  }
+
+  // Files by drop, by the file dialog and, with the focus in the zone, from the clipboard: one handler.
+  DS.dom.dropzone(csvZone, {
+    paste: true,
+    onFiles: (files) => {
+      const added = files.map((file) => ({ id: `f${csv.next++}`, name: file.name, share: 0 }));
+      csv.files.push(...added);
+      renderCsv();
+      added.forEach(upload);
+    },
+  });
+  csvList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-remove]');
+    if (!button) return;
+    csv.files = csv.files.filter((file) => file.id !== button.getAttribute('data-remove'));
+    renderCsv();
   });
 
   /* ── Theme it ─────────────────────────────────────────────────────── */

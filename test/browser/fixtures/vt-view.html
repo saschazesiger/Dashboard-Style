@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A view outside the frame · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- .ds-vt-view (2.0): a wizard without .ds-app. DS.motion.transition()
+     names it ds-view while it runs (View Transitions), else its first child
+     enters with .ds-enter--swap. window.fxStep(n, type) goes to step n. -->
+<main class="ds-vt-view" id="wizard" tabindex="-1">
+  <section class="ds-page" id="step"><h1 class="ds-page-head__title" tabindex="-1">Step 1 of 3</h1><button class="ds-btn ds-btn--primary" type="button" id="next">Next</button></section>
+</main>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    var wizard = document.getElementById('wizard');
+    window.fxStep = function (n, type) {
+      return DS.motion.transition(function () {
+        DS.dom.morphHtml(wizard, '<section class="ds-page" id="step"><h1 class="ds-page-head__title" tabindex="-1">Step ' + n + ' of 3</h1>' +
+          '<button class="ds-btn ds-btn--primary" type="button" id="next' + n + '">Next</button></section>', { replace: true });
+      }, { type: type || 'forward', focus: true });
+    };
+  })();
+</script>
+</body>
+</html>

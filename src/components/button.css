@@ -31,7 +31,9 @@
  *     </span>
  *   </button>
  *
- *   [aria-busy="true"]       blocked at once; the busy face shows only after
+ *   [aria-busy="true"]       blocked at once for pointer, keyboard and form
+ *                            submission (DS.motion.guard(), which busy()
+ *                            installs); the busy face shows only after
  *                            --ds-delay-loader (a fast save shows nothing)
  *   .ds-btn--done            the success face, for --ds-hold-success; its
  *                            check (pathLength="1") draws itself (ds-draw);

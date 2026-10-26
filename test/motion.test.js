@@ -23,10 +23,13 @@ import {
   motionEasing,
   originFrom,
   replay,
+  refresh,
   resyncScroll,
   roll,
+  setLabel,
   settleLoader,
   settled,
+  sortable,
   stagger,
   staggerOnce,
   transition,
@@ -884,9 +887,77 @@ describe('js/motion', () => {
         return handle;
       }
 
+      /** A button with a success face (busy() shows .ds-btn--done only when there is one, 2.0). */
+      function facesButton(doc = null) {
+        const button = new FakeElement(doc);
+        button.querySelector = (selector) => (selector === ':scope > .ds-btn__faces > .ds-btn__face--done' ? new FakeElement(doc) : null);
+        return button;
+      }
+
+      it('shows no success face on a button without one, even with done: true (2.0)', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        for (const options of [{}, { done: true }]) {
+          const button = new FakeElement();
+          const work = deferred();
+          const done = busy(button, () => work.promise, options);
+          t.mock.timers.tick(LOADER_DELAY_MS + 50);
+          work.resolve('ok');
+          await flushPromises();
+          t.mock.timers.tick(LOADER_MIN_VISIBLE_MS);
+          assert.equal(await done, 'ok');
+          assert.equal(button.getAttribute('aria-busy'), null);
+          assert.equal(button.classList.contains('ds-btn--done'), false, 'not blanked and blocked for --ds-hold-success');
+          // Usable at once: a new call runs.
+          let ran = false;
+          await busy(button, () => { ran = true; });
+          assert.ok(ran);
+        }
+      });
+
+      it('setLabel() writes the rest face, keeps the faces and waits while busy or done (2.0)', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const label = (text) => Object.assign(new FakeElement(), { nodeType: 3, nodeValue: text });
+        const button = facesButton();
+        const faces = new FakeElement();
+        faces.className = 'ds-btn__faces';
+        const rest = new FakeElement();
+        rest.className = 'ds-btn__face';
+        const busyFace = new FakeElement();
+        busyFace.className = 'ds-btn__face ds-btn__face--busy';
+        const doneFace = new FakeElement();
+        doneFace.className = 'ds-btn__face ds-btn__face--done';
+        const icon = new FakeElement();
+        const text = label('Save');
+        rest.append(icon, text);
+        faces.append(rest, busyFace, doneFace);
+        button.append(faces);
+        setLabel(button, 'Save 3 changes');
+        assert.equal(text.nodeValue, 'Save 3 changes');
+        assert.deepEqual(rest.children, [icon, text], 'the icon stays');
+        assert.deepEqual(faces.children, [rest, busyFace, doneFace], 'the faces stay');
+        const work = deferred();
+        const done = busy(button, () => work.promise);
+        setLabel(button, 'Save 4 changes');
+        assert.equal(text.nodeValue, 'Save 3 changes', 'waits while busy');
+        work.resolve();
+        await done;
+        assert.ok(button.classList.contains('ds-btn--done'));
+        assert.equal(text.nodeValue, 'Save 3 changes', 'waits while the success face shows');
+        t.mock.timers.tick(MOTION_FALLBACKS['--ds-hold-success']);
+        assert.equal(text.nodeValue, 'Save 4 changes', 'shows once at rest');
+        // A button without faces: its own text, its elements stay.
+        const plain = new FakeElement();
+        const glyph = new FakeElement();
+        const own = label('Add');
+        plain.append(glyph, own);
+        setLabel(plain, 'Add device');
+        assert.equal(own.nodeValue, 'Add device');
+        assert.deepEqual(plain.children, [glyph, own]);
+      });
+
       it('sets aria-busy at once; work faster than the loader delay is never held', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         const done = busy(button, () => work.promise);
         assert.equal(button.getAttribute('aria-busy'), 'true');
@@ -900,7 +971,7 @@ describe('js/motion', () => {
 
       it('holds a busy face that showed for the loader minimum, then shows done for --ds-hold-success', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         const done = busy(button, () => work.promise);
         t.mock.timers.tick(LOADER_DELAY_MS + 50);
@@ -924,7 +995,7 @@ describe('js/motion', () => {
 
       it('done: false skips the success face', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         await busy(button, 'ready', { done: false });
         assert.equal(button.getAttribute('aria-busy'), null);
         assert.equal(button.classList.contains('ds-btn--done'), false);
@@ -932,7 +1003,7 @@ describe('js/motion', () => {
 
       it('clears at once on failure and rethrows', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         const done = busy(button, () => work.promise);
         t.mock.timers.tick(LOADER_DELAY_MS + 50);
@@ -948,7 +1019,7 @@ describe('js/motion', () => {
 
       it('a second call while busy returns the same promise and runs work once', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         let calls = 0;
         const run = () => { calls += 1; return work.promise; };
@@ -972,7 +1043,7 @@ describe('js/motion', () => {
         const doc = fakeDocument(() => values);
         const theme = new FakeElement(doc);
         theme.matches = (selector) => selector === '.ds-theme';
-        const button = new FakeElement(doc);
+        const button = facesButton(doc);
         theme.append(button);
         const work = deferred();
         const done = busy(button, () => work.promise);
@@ -1006,6 +1077,31 @@ describe('js/motion', () => {
       assert.equal(line.style.getPropertyValue('--ds-enter-keyframes'), '', 'the enter hooks go once it settled');
       await roll(element, 'Syncing 3 of 3');
       assert.deepEqual(element.children, [line]);
+    });
+
+    it('roll(…, { hold: true }) keeps each line up for --ds-hold-status; only the latest waiting text rolls (2.0)', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+      const element = slot();
+      const lines = () => element.children.filter((child) => !child.hasAttribute('data-ds-leaving')).map((child) => child.textContent);
+      roll(element, 'Syncing 1 of 40', { hold: true });
+      assert.deepEqual(lines(), ['Syncing 1 of 40'], 'the first line rolls at once');
+      const second = roll(element, 'Syncing 2 of 40', { hold: true });
+      const third = roll(element, 'Syncing 3 of 40', { hold: true });
+      assert.equal(second, third, 'one roll waits; a later text replaces its text');
+      assert.deepEqual(lines(), ['Syncing 1 of 40'], 'the first line stays readable');
+      t.mock.timers.tick(MOTION_FALLBACKS['--ds-hold-status'] - 1);
+      assert.deepEqual(lines(), ['Syncing 1 of 40']);
+      t.mock.timers.tick(1);
+      assert.deepEqual(lines(), ['Syncing 3 of 40'], 'only the latest rolls');
+      t.mock.timers.tick(1000);
+      await third;
+      // Without hold a roll goes at once and calls off a waiting one.
+      roll(element, 'Syncing 4 of 40', { hold: true });
+      roll(element, 'Done');
+      assert.deepEqual(lines(), ['Done']);
+      t.mock.timers.tick(2000);
+      await flushPromises();
+      assert.deepEqual(lines(), ['Done'], 'the waiting line never comes');
     });
 
     describe('flip()', () => {
@@ -1103,6 +1199,19 @@ describe('js/motion', () => {
         assert.equal(container.style.minHeight, '2px', 'the page\'s own min-height is back');
       });
 
+      it('keeps every gliding item between --ds-z-pinned and --ds-z-sticky, however many glide (2.0)', async () => {
+        const styles = () => ({ position: 'static', '--ds-z-raised': '1', '--ds-z-pinned': '3', '--ds-z-sticky': '8' });
+        const names = Array.from({ length: 12 }, (_, index) => `i${index}`);
+        const { container, items, calls, order } = list(names, { styles });
+        flip(container, order(...[...names].reverse()));
+        const ranks = names.map((name) => Number(items.get(name).style.zIndex)).filter(Number.isFinite);
+        assert.ok(ranks.length >= 10, `${ranks.length} raised`);
+        assert.equal(Math.min(...ranks), 4, 'one above --ds-z-pinned');
+        assert.equal(Math.max(...ranks), 7, 'one below --ds-z-sticky: a sticky header stays on top');
+        calls.forEach((call) => call.animation.finish());
+        await flushPromises();
+      });
+
       it('raises the moving items while they glide (the farthest on top), then gives their styles back', async () => {
         const styles = () => ({ position: 'static', '--ds-z-raised': ' 1' });
         const { container, items, calls, order } = list(['a', 'b', 'c', 'd'], { styles });
@@ -1113,9 +1222,10 @@ describe('js/motion', () => {
         const z = (name) => items.get(name).style.zIndex;
         assert.equal(container.style.isolation, 'isolate', 'no rank reaches past the list');
         assert.equal(items.get('d').style.position, 'relative');
-        // From one above --ds-z-raised: controls an item lifts to --ds-z-raised stay under every gliding item.
-        assert.equal(z('d'), '5', 'the farthest travel on top');
-        assert.deepEqual(['a', 'b', 'c'].map(z).sort(), ['2', '3', '4']);
+        // From one above --ds-z-pinned (fallback --ds-z-raised + 1, 2.0): controls an item lifts to
+        // --ds-z-raised and a pinned table column stay under every gliding item.
+        assert.equal(z('d'), '6', 'the farthest travel on top');
+        assert.deepEqual(['a', 'b', 'c'].map(z).sort(), ['3', '4', '5']);
         // A second call mid-flight: d's glide is cancelled and d is raised again, not lowered.
         flip(container, order('a', 'd', 'b', 'c'));
         await flushPromises();
@@ -1137,6 +1247,80 @@ describe('js/motion', () => {
         flip(container, () => ['a', 'b', 'd'].forEach((name) => items.get(name).remove()));
         assert.deepEqual(container.children.map((item) => item.textContent), ['a', 'b', 'c', 'd']);
         for (const name of ['a', 'b', 'd']) assert.equal(items.get(name).style.getPropertyValue('position'), 'absolute', name);
+      });
+
+      it('refocus: focus in a removed item moves to the next item, else the previous, else the fallback; a page\'s own move stays (2.0)', () => {
+        const buttons = (names) => {
+          const made = list(names);
+          for (const item of made.items.values()) item.matches = (selector) => selector.includes('button');
+          return made;
+        };
+        const doc = (made) => made.container.ownerDocument;
+        let made = buttons(['a', 'b', 'c']);
+        made.items.get('b').focus();
+        flip(made.container, () => made.items.get('b').remove());
+        assert.equal(doc(made).activeElement, made.items.get('c'), 'the next item');
+        made = buttons(['a', 'b', 'c']);
+        made.items.get('c').focus();
+        flip(made.container, () => made.items.get('c').remove());
+        assert.equal(doc(made).activeElement, made.items.get('b'), 'the last one: the previous item');
+        made = buttons(['a']);
+        const fallback = new FakeElement(doc(made));
+        made.items.get('a').focus();
+        flip(made.container, () => made.items.get('a').remove(), { refocus: () => fallback });
+        assert.equal(doc(made).activeElement, fallback, 'no neighbour: the fallback');
+        made = buttons(['a', 'b']);
+        made.items.get('a').focus();
+        flip(made.container, () => made.items.get('a').remove(), { refocus: false });
+        assert.notEqual(doc(made).activeElement, made.items.get('b'), 'refocus: false leaves it to leave()');
+        made = buttons(['a', 'b']);
+        const search = new FakeElement(doc(made));
+        made.items.get('a').focus();
+        flip(made.container, () => { made.items.get('a').remove(); search.focus(); });
+        assert.equal(doc(made).activeElement, search, 'a page that moved focus itself is left alone');
+      });
+
+      it('sortable(): the keys of a grip move its item through flip(), report the order and speak the position (2.0)', () => {
+        const { container, items, calls } = list(['a', 'b', 'c', 'd']);
+        const doc = container.ownerDocument;
+        doc.createElement = () => new FakeElement(doc);
+        const grips = new Map();
+        for (const [name, item] of items) {
+          const grip = new FakeElement(doc);
+          grip.matches = (selector) => selector === '.ds-grip';
+          item.append(grip);
+          grips.set(name, grip);
+        }
+        // The fake has no event tree: take the list's listeners and call them with the grip as the target.
+        const listeners = {};
+        container.addEventListener = (type, listener) => { listeners[type] = listener; };
+        container.removeEventListener = (type) => { delete listeners[type]; };
+        const changes = [];
+        const handle = sortable(container, { onChange: (order, before) => changes.push([order, before].map((list) => list.map((item) => item.textContent).join(''))) });
+        assert.equal(sortable(container), handle, 'once per list');
+        const press = (name, key) => {
+          const event = { key, target: grips.get(name), defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+          listeners.keydown(event);
+          return event;
+        };
+        grips.get('a').focus();
+        assert.equal(press('a', 'ArrowDown').defaultPrevented, true);
+        assert.deepEqual(container.children.map((item) => item.textContent), ['b', 'a', 'c', 'd']);
+        assert.deepEqual(changes, [['bacd', 'abcd']]);
+        assert.ok(calls.length > 0, 'the rows glide (flip)');
+        assert.equal(doc.activeElement, grips.get('a'), 'the grip keeps the focus');
+        press('a', 'End');
+        assert.deepEqual(container.children.map((item) => item.textContent), ['b', 'c', 'd', 'a']);
+        press('a', 'ArrowDown');
+        assert.equal(changes.length, 2, 'nothing below the last place');
+        press('d', 'Home');
+        assert.deepEqual(container.children.map((item) => item.textContent), ['d', 'b', 'c', 'a']);
+        assert.equal(press('d', 'x').defaultPrevented, false, 'other keys pass');
+        const region = doc.body.children.find((child) => child.getAttribute('aria-live') === 'polite');
+        assert.ok(region, 'a polite region in the theme (here the body)');
+        assert.equal(region.classList.contains('ds-sr'), true);
+        handle.destroy();
+        assert.equal(listeners.keydown, undefined, 'destroy() removes the listeners');
       });
 
       it('moves without motion above `max` moving items', () => {
@@ -1237,6 +1421,19 @@ describe('js/motion', () => {
       assert.equal(loaderHoldMs(1000, 1500, { delay: 400 }), 350);
       assert.equal(loaderHoldMs(1000, 1500, { delay: 400, minVisible: 200 }), 100);
     });
+
+    it('reads its times from the element: --ds-delay-boot in a .ds-boot, else --ds-delay-loader, and --ds-hold-loader (2.0)', () => {
+      const values = { '--ds-delay-loader': 'calc(200ms * 10)', '--ds-delay-boot': 'calc(400ms * 10)', '--ds-hold-loader': 'calc(450ms * 10)' };
+      const loader = (inBoot) => ({
+        ownerDocument: { defaultView: { getComputedStyle: () => ({ getPropertyValue: (name) => values[name] ?? '' }) } },
+        closest: (selector) => (selector === '.ds-theme' || (inBoot && selector === '.ds-boot') ? {} : null),
+      });
+      // Time scale 10: visible after 2000ms (4000ms in a boot screen), for at least 4500ms.
+      assert.equal(loaderHoldMs(0, 2500, { element: loader(false) }), 4000);
+      assert.equal(loaderHoldMs(0, 2500, { element: loader(true) }), 0, 'a boot screen waits longer before it shows');
+      assert.equal(loaderHoldMs(0, 4500, { element: loader(true) }), 4000);
+      assert.equal(loaderHoldMs(0, 2500, { element: loader(false), delay: 0, minVisible: 3000 }), 500, 'explicit numbers win');
+    });
   });
 
   describe('settleLoader', () => {
@@ -1263,6 +1460,80 @@ describe('js/motion', () => {
 
     it('resolves at once when the indicator was visible long enough', async () => {
       await settleLoader(0, LOADER_DELAY_MS + LOADER_MIN_VISIBLE_MS);
+    });
+
+    it('takes `now` as an option; the numeric second argument (deprecated) still works (2.0)', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout'] });
+      const startedAt = 10_000;
+      const states = [];
+      const modern = settleLoader(startedAt, { now: startedAt + LOADER_DELAY_MS + 50 }).then(() => states.push('modern'));
+      const legacy = settleLoader(startedAt, startedAt + LOADER_DELAY_MS + 50, { minVisible: 100 }).then(() => states.push('legacy'));
+      t.mock.timers.tick(50);
+      await legacy;
+      assert.deepEqual(states, ['legacy'], 'the options after a numeric now still apply');
+      t.mock.timers.tick(LOADER_MIN_VISIBLE_MS - 100);
+      await modern;
+      assert.deepEqual(states, ['legacy', 'modern']);
+    });
+  });
+
+  describe('refresh() (2.0)', () => {
+    const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+
+    /** A container directly in a .ds-content (or not), on a fake document. */
+    function content(inContent = true) {
+      const doc = { createElement: () => new FakeElement(doc), activeElement: null };
+      const parent = new FakeElement(doc);
+      parent.matches = (selector) => inContent && selector === '.ds-content, .ds-page';
+      const container = new FakeElement(doc);
+      parent.append(container);
+      return { doc, parent, container };
+    }
+
+    it('marks the container stale and busy, puts a loading bar at the top of its .ds-content, and cleans up before it resolves', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+      const { parent, container } = content();
+      let answer = () => {};
+      const pending = refresh(container, () => new Promise((resolve) => { answer = resolve; }));
+      assert.ok(container.classList.contains('ds-stale'));
+      assert.equal(container.getAttribute('aria-busy'), 'true');
+      const bar = parent.children[0];
+      assert.ok(bar.classList.contains('ds-loadbar'), 'the bar goes in before the container');
+      assert.equal(parent.children[1], container);
+      await flushPromises();
+      t.mock.timers.tick(LOADER_DELAY_MS + 50);
+      answer({ rows: 3 });
+      await flushPromises();
+      assert.ok(container.classList.contains('ds-stale'), 'a bar that showed stays for --ds-hold-loader');
+      t.mock.timers.tick(LOADER_MIN_VISIBLE_MS);
+      const data = await pending;
+      assert.deepEqual(data, { rows: 3 });
+      assert.equal(container.classList.contains('ds-stale'), false);
+      assert.equal(container.getAttribute('aria-busy'), null);
+      t.mock.timers.tick(1000);
+    });
+
+    it('needs no bar outside .ds-content, cleans up on a rejection and an abort, and shares the state between two calls', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+      const { parent, container } = content(false);
+      const error = new Error('offline');
+      await assert.rejects(refresh(container, () => Promise.reject(error)), (thrown) => thrown === error);
+      assert.equal(parent.children.length, 1, 'no bar');
+      assert.equal(container.classList.contains('ds-stale'), false);
+      const controller = new AbortController();
+      const aborted = refresh(container, () => new Promise(() => {}), { signal: controller.signal });
+      controller.abort();
+      await assert.rejects(aborted, (thrown) => thrown.name === 'AbortError');
+      assert.equal(container.getAttribute('aria-busy'), null);
+      await assert.rejects(refresh(container, () => 1, { signal: controller.signal }), (thrown) => thrown.name === 'AbortError', 'an aborted signal rejects at once');
+      let first = () => {};
+      const one = refresh(container, () => new Promise((resolve) => { first = resolve; }));
+      const two = refresh(container, () => 'b');
+      await two;
+      assert.ok(container.classList.contains('ds-stale'), 'the other refresh still runs');
+      first('a');
+      assert.equal(await one, 'a');
+      assert.equal(container.classList.contains('ds-stale'), false);
     });
   });
 
@@ -1647,6 +1918,64 @@ describe('transition() (1.5.0)', () => {
       else delete globalThis.document;
     });
   }
+
+  it('focus: true moves lost focus to the incoming heading, else the view; a function chooses; focus kept stays (2.0)', async (t) => {
+    for (const api of [false, true]) {
+      const { doc, view } = page({ api });
+      useDocument(t, doc);
+      view.matches = (selector) => selector === '.ds-view';
+      view.closest = (selector) => (selector === '.ds-view' ? view : null);
+      const heading = new FakeElement(doc);
+      heading.matches = (selector) => selector === 'h1[tabindex="-1"]';
+      const incoming = new FakeElement(doc);
+      incoming.getAnimations = () => [];
+      incoming.append(heading);
+      incoming.querySelector = (selector) => (selector === 'h1[tabindex="-1"]' ? heading : null);
+      // The page's link (in the old content) is gone with it: focus is lost.
+      const link = new FakeElement(doc);
+      link.focus();
+      const done = transition(() => { link.isConnected = false; doc.activeElement = doc.body; view.replaceChildren(incoming); return incoming; }, { focus: true });
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await done;
+      assert.equal(doc.activeElement, heading, `the incoming heading (View Transitions: ${api})`);
+      // Without a heading: the view.
+      const bare = new FakeElement(doc);
+      bare.getAnimations = () => [];
+      bare.closest = (selector) => (selector.includes('.ds-view') ? view : null);
+      doc.activeElement = doc.body;
+      const second = transition(() => { view.replaceChildren(bare); return bare; }, { focus: true });
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await second;
+      assert.equal(doc.activeElement, view, 'no heading: the view');
+      // A function chooses; a focus the page kept stays; the default leaves focus alone.
+      const chosen = new FakeElement(doc);
+      doc.activeElement = doc.body;
+      await Promise.all([transition(() => incoming, { focus: (node) => (node === incoming ? chosen : null) }), ...doc.started.map((started) => started.finish())]);
+      await flush();
+      for (const started of doc.started) started.finish();
+      await flush();
+      assert.equal(doc.activeElement, chosen);
+      const search = new FakeElement(doc);
+      search.focus();
+      const kept = transition(() => incoming, { focus: true });
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await kept;
+      assert.equal(doc.activeElement, search, 'focus not lost: it stays');
+      doc.activeElement = doc.body;
+      const plain = transition(() => incoming);
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await plain;
+      assert.equal(doc.activeElement, doc.body, 'default: focus is the page\'s');
+    }
+  });
 
   it('throws a TypeError for an unknown type or an update that is not a function', (t) => {
     useDocument(t, page({ api: false }).doc);

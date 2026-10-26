@@ -164,6 +164,14 @@ describe('tokens', () => {
     assert.ok(!roles.some((name) => MOTION.test(`${name}:`)), 'no motion token among the roles');
   });
 
+  it('adds --ds-hold-status (2.0) as a motion scale before the palette', () => {
+    const { scales } = layers();
+    assert.ok(scales.includes('--ds-hold-status'), '--ds-hold-status is a scale');
+    assert.equal(ms('--ds-hold-status'), 900);
+    assert.match(token('--ds-hold-status'), /^calc\(900ms \* var\(--ds-time-scale, 1\)\)$/);
+    assert.ok(MOTION.test('--ds-hold-status:'), 'a motion token: themes never set it');
+  });
+
   it('adds the control scales and roles of 1.1.0 to their layers', () => {
     const { scales, roles } = layers();
     for (const name of ['--ds-state-focus', '--ds-hold-success']) assert.ok(scales.includes(name), `${name} is a scale`);

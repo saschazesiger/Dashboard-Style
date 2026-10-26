@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Action guard · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- DS.motion.guard() (2.0): a form whose default button is busy, a busy
+     button, an aria-disabled switch, link and button, one that explains
+     itself (data-ds-guard="off") and a usable button. guard.spec.js counts
+     what reaches the page in window.fxSeen. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="form-title">
+    <h2 id="form-title">Form</h2>
+    <form id="form" class="ds-form" action="#submitted">
+      <div class="ds-field">
+        <label class="ds-field__label" for="name">Name</label>
+        <input class="ds-input" id="name" name="name" value="LAPTOP-0042">
+      </div>
+      <div class="ds-form-actions">
+        <button class="ds-btn ds-btn--primary" type="submit" id="save">
+          <span class="ds-btn__faces">
+            <span class="ds-btn__face">Save</span>
+            <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+            <span class="ds-btn__face ds-btn__face--done" aria-hidden="true"><span data-icon="check" data-size="16"></span>Saved</span>
+          </span>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="fx-section" aria-labelledby="controls-title">
+    <h2 id="controls-title">Controls</h2>
+    <div class="fx-row">
+      <button class="ds-btn" type="button" id="plain">Export</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="publish" aria-disabled="true" data-tip="Fill in the serial number first">Publish</button>
+      <div data-ds-guard="off"><button class="ds-btn" type="button" id="explains" aria-disabled="true">Delete</button></div>
+      <a class="ds-link-btn" href="/test/browser/fixtures/guard.html#opened" id="link" aria-disabled="true">Open the report</a>
+      <label class="ds-switch" id="switch">
+        <input type="checkbox" role="switch" id="switch-input" aria-disabled="true">
+        <span class="ds-switch__track" aria-hidden="true"></span>
+        <span class="ds-switch__label">Nightly sync</span>
+      </label>
+    </div>
+    <div aria-busy="true" id="region"><button class="ds-btn" type="button" id="in-region">Retry</button></div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  window.fxSeen = [];
+  ['click', 'auxclick', 'submit', 'change'].forEach(function (type) {
+    document.addEventListener(type, function (event) {
+      var target = type === 'submit' ? event.submitter || event.target : event.target;
+      var named = target.closest('[id]');
+      window.fxSeen.push(type + ' ' + (named ? named.id : target.tagName.toLowerCase()));
+    });
+  });
+  document.getElementById('form').addEventListener('submit', function (event) { event.preventDefault(); });
+</script>
+</body>
+</html>

@@ -285,25 +285,6 @@
     return ready;
   }
 
-  /**
-   * data-scrolled from a 1px sentinel at the top of a scroller (the
-   * snippet of docs/components.md, App frame), in the frame's own window:
-   * the fallback of the scroll-driven tint and hairlines.
-   */
-  function watchScrolled(win, scroller, target) {
-    var sentinel = win.document.createElement('div');
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');
-    sentinel.style.cssText = 'height: 1px; margin-bottom: -1px; flex-shrink: 0';
-    scroller.insertBefore(sentinel, scroller.firstChild);
-    new win.IntersectionObserver(function (entries) {
-      var entry = entries[entries.length - 1];
-      if (!entry.boundingClientRect.height) return;
-      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
-      if (entry.isIntersecting) win.DS.motion.resyncScroll(scroller);
-    }, { root: scroller }).observe(sentinel);
-  }
-
   /* ── Overlays: the Escape stack and the scroll lock, read out ────── */
 
   var LAYERS = '.ds-dialog, .ds-sheet, .ds-menu, .ds-combo__popup';
@@ -882,6 +863,35 @@
     ]);
   }
 
+  /* ── Utilities: .ds-presence and .ds-presence--keep ──────────────── */
+
+  function presenceOn(stage) { return $('.ds-presence--keep', stage).hasAttribute('data-ds-shown'); }
+
+  function presenceTo(stage, on, sg) {
+    // A wrapper carries .ds-presence, never the pill itself: the pill keeps
+    // its own hover, press and focus transitions inside it.
+    $('#sg-presence-pill', stage).hidden = !on;
+    $('.ds-presence--keep', stage).toggleAttribute('data-ds-shown', on);
+    return sg.frames(2).then(function () { return quiet(stage, sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'presence',
+    group: 'utilities',
+    title: 'Presence',
+    note: '<code>.ds-presence</code> on a wrapper toggled with <code>hidden</code>: it fades in and grows on the spring, and leaves faster; the pill inside keeps its own hover and focus motion. <code>.ds-presence--keep</code> keeps its box, so nothing around it moves: the page sets <code>data-ds-shown</code>, it fades in over <code>--ds-dur-fast</code> and out in <code>--ds-dur-instant</code> (exit 0.67), and while hidden it is out of the tab order.',
+    shows: ['.ds-presence', '.ds-presence--keep', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-in-out', '--ds-ease-spatial', '--ds-scale-popup'],
+    html: '<div class="sg-presence-demo"><div class="sg-row"><span class="ds-presence" id="sg-presence-pill" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></span></div>' +
+      '<p class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-presence-save>Save</button><span class="ds-presence ds-presence--keep ds-muted">' + icon('check', 16) + 'Saved</span><span class="ds-muted">Nothing moves.</span></p></div>',
+    height: 140,
+    setup: function (stage, sg) {
+      $('[data-presence-save]', stage).addEventListener('click', function () { presenceTo(stage, !presenceOn(stage), sg); });
+    },
+    play: function (stage, sg) { return presenceTo(stage, !presenceOn(stage), sg); },
+    state: presenceOn,
+    toggle: function (stage, on, sg) { return presenceTo(stage, on, sg); },
+  });
+
   /* ── Utilities: the rules disclosure ─────────────────────────────── */
 
   /* The motion rules in short, from the rules of docs/motion.md. */
@@ -956,14 +966,24 @@
     id: 'roll',
     group: 'keyframes',
     title: 'Rolling status line',
-    note: '<code>DS.motion.roll()</code> on a status line (a <code>.ds-swap</code> slot): the old line leaves upwards (<code>ds-roll-out</code>, fast, accelerating), and once it is half out the new one comes up from below on the spring (<code>ds-roll-in</code> after <code>--ds-enter-delay</code>, half of <code>--ds-dur-fast</code>), so the two lines never cover each other. A roll during a roll continues from where each line is.',
-    shows: ['ds-roll-in', 'ds-roll-out', 'DS.motion.roll', '.ds-swap', '--ds-dur-fast', '--ds-dur-medium', '--ds-ease-spatial', '--ds-ease-in', '--ds-enter-delay'],
-    html: '<p class="sg-roll" id="sg-roll" aria-live="polite">' + ROLL[0] + '</p>',
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-roll="twice">Roll twice, 80ms apart</button></div>',
+    note: '<code>DS.motion.roll()</code> on a status line (a <code>.ds-swap</code> slot): the old line leaves upwards (<code>ds-roll-out</code>, fast, accelerating), and once it is half out the new one comes up from below on the spring (<code>ds-roll-in</code> after <code>--ds-enter-delay</code>, half of <code>--ds-dur-fast</code>), so the two lines never cover each other. A roll during a roll continues from where each line is. <code>.ds-swap--fade</code> gives the slot soft edges (<code>--ds-swap-fade</code>, a static mask), and <code>{ hold: true }</code> keeps each line up for <code>--ds-hold-status</code>: of five quick changes only the latest rolls in after the wait.',
+    shows: ['ds-roll-in', 'ds-roll-out', 'DS.motion.roll', '.ds-swap', '.ds-swap--fade', '--ds-swap-fade', '--ds-hold-status', '--ds-dur-fast', '--ds-dur-medium', '--ds-ease-spatial', '--ds-ease-in', '--ds-enter-delay'],
+    html: '<p class="sg-roll ds-swap--fade" id="sg-roll" aria-live="polite">' + ROLL[0] + '</p>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-roll="twice">Roll twice, 80ms apart</button><button class="ds-btn ds-btn--sm" type="button" data-roll="hold">Five changes, holding each</button></div>',
     setup: function (stage, sg) {
-      $('[data-roll]', stage.parentNode).addEventListener('click', function () {
+      $('[data-roll="twice"]', stage.parentNode).addEventListener('click', function () {
         rollNext(stage);
         setTimeout(function () { rollNext(stage); }, sg.slow(80));
+      });
+      // With hold every line stays --ds-hold-status; the changes that come
+      // during the wait replace the waiting text, so only the latest rolls.
+      $('[data-roll="hold"]', stage.parentNode).addEventListener('click', function () {
+        for (var i = 0; i < 5; i += 1) {
+          setTimeout(function () {
+            rollAt = (rollAt + 1) % ROLL.length;
+            M.roll($('#sg-roll', stage), ROLL[rollAt], { hold: true });
+          }, sg.slow(80 * i));
+        }
       });
     },
     play: rollNext,
@@ -1289,6 +1309,97 @@
     },
   });
 
+  /* ── Data: a list reordered by drag and keyboard ─────────────────── */
+
+  var SORT_ROWS = ['Back up the database', 'Update the agents', 'Restart the gateways', 'Send the report'];
+
+  function sortGrip(stage, index) { return $('[data-ds-key="sort-' + index + '"] .ds-grip', stage); }
+
+  function sortOn(stage) {
+    var rows = $$('#sg-lab-sortable > li', stage);
+    return rows[rows.length - 1].getAttribute('data-ds-key') === 'sort-0';
+  }
+
+  /* The keys of the grip, as a keyboard user presses them: End moves the
+     first row to the end, Home brings it back; both glide through flip(). */
+  function sortTo(stage, on, sg) {
+    sortGrip(stage, 0).dispatchEvent(new KeyboardEvent('keydown', { key: on ? 'End' : 'Home', bubbles: true, cancelable: true }));
+    return sg.frames(2).then(function () { return quiet(stage, sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'sortable',
+    group: 'data',
+    title: 'Reorder by drag and keyboard',
+    note: '<code>DS.motion.sortable()</code>: drag a row by its grip, or focus the grip and press the arrow keys, Home or End. The dragged row follows the pointer, raised (<code>data-ds-dragging</code>: the dragged state layer and a shadow, nothing scales); whenever it passes the middle of a neighbour the others glide through <code>DS.motion.flip()</code>, and a move during a glide continues from where each row is. The new position is spoken; the read-out shows what <code>onChange</code> got.',
+    shows: ['DS.motion.sortable', 'DS.motion.flip', '--ds-state-dragged', '--ds-elev-2', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-slow', '--ds-ease-spatial'],
+    html: '<ul class="ds-plain-list sg-sortable" id="sg-lab-sortable">' + SORT_ROWS.map(function (text, index) {
+      return '<li class="sg-sortable__row" data-ds-key="sort-' + index + '"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + text + '">' + icon('menu', 20) + '</button><span>' + text + '</span></li>';
+    }).join('') + '</ul>',
+    after: readoutHtml('sg-lab-sortable-out', 'Order: 1, 2, 3, 4'),
+    height: 220,
+    setup: function (stage) {
+      M.sortable($('#sg-lab-sortable', stage), {
+        onChange: function (order) {
+          $('#sg-lab-sortable-out', stage.parentNode).textContent = 'Order: ' + order.map(function (row) { return Number(row.getAttribute('data-ds-key').slice(5)) + 1; }).join(', ');
+        },
+      });
+    },
+    play: function (stage, sg) { return sortTo(stage, !sortOn(stage), sg); },
+    state: sortOn,
+    toggle: sortTo,
+  });
+
+  /* ── Data: a log that sticks to its end ──────────────────────────── */
+
+  var logLine = 0;
+
+  function logAppend(stage, count) {
+    var log = $('#sg-lab-log', stage);
+    for (var i = 0; i < count; i += 1) {
+      logLine += 1;
+      var line = document.createElement('p');
+      line.className = 'sg-log__line';
+      line.textContent = 'Row ' + logLine * 37 + ' imported';
+      log.append(line);
+    }
+  }
+
+  function logOn(stage) { return !$('#sg-lab-log-pill', stage).hidden; }
+
+  function logTo(stage, on, sg) {
+    var log = $('#sg-lab-log', stage);
+    if (on) log.scrollTo({ top: 0, behavior: 'smooth' });
+    else logFollow.stick();
+    return until(sg, function () { return on ? log.scrollTop < 1 : log.scrollHeight - log.clientHeight - log.scrollTop < 1; }, 4000)
+      .then(function () { return sg.frames(2); }).then(function () { return quiet(stage, sg); });
+  }
+
+  var logFollow = null;
+
+  LAB_DEMOS.push({
+    id: 'follow-end',
+    group: 'data',
+    title: 'A log that follows its end',
+    note: '<code>DS.dom.followEnd()</code>: while the log is at its end, new lines keep it there (a ResizeObserver, nothing polls). Scroll up and it lets go: the "Latest" pill shows (a <code>.ds-presence</code> wrapper), and a click on it goes back to the end, smoothly within one view height, else at once. Replay adds three lines.',
+    shows: ['DS.dom.followEnd', '.ds-presence', '--ds-dur-fast', '--ds-ease-spatial'],
+    html: '<div class="sg-log-demo"><div class="sg-log" id="sg-lab-log" tabindex="0" aria-label="Import log"></div>' +
+      '<div class="sg-log__jump"><span class="ds-presence" id="sg-lab-log-pill" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></span></div></div>',
+    height: 200,
+    setup: function (stage) {
+      logAppend(stage, 8);
+      var log = $('#sg-lab-log', stage);
+      log.scrollTop = log.scrollHeight;
+      logFollow = DS.dom.followEnd(log, { pill: $('#sg-lab-log-pill', stage) });
+    },
+    play: function (stage, sg) {
+      logAppend(stage, 3);
+      return sg.frames(3).then(function () { return quiet(stage, sg); });
+    },
+    state: logOn,
+    toggle: logTo,
+  });
+
   /* ── Data: morphHtml versus innerHTML ────────────────────────────── */
 
   var JOBS = [['j1', 'Backup LAPTOP-0042'], ['j2', 'Update TABLET-0121'], ['j3', 'Scan PRINTER-0003']];
@@ -1448,6 +1559,9 @@
   /* ── Controls: busy and success ──────────────────────────────────── */
 
   function busyRun(button, ms, sg) {
+    // A new label during the run (DS.motion.setLabel) waits for the rest face.
+    var next = button.getAttribute('data-busy-next');
+    if (next) M.setLabel(button, next);
     return M.busy(button, function () { return wait(sg, ms); }).then(function () {
       return until(sg, function () { return !button.classList.contains('ds-btn--done'); }, 3000);
     }).then(function () { return quiet(button, sg); });
@@ -1457,11 +1571,23 @@
     id: 'busy',
     group: 'controls',
     title: 'Busy and success',
-    note: '<code>DS.motion.busy()</code> on two saves. The fast one (150ms) answers before the loader delay: nothing changes but the success face. The slow one (1200ms) shows its spinner after <code>--ds-delay-loader</code>, keeps it at least <code>--ds-hold-loader</code>, then the label and spinner crossfade to the success face, whose check draws itself, for <code>--ds-hold-success</code>. The width never changes: the faces share one cell.',
-    shows: ['DS.motion.busy', 'ds-draw', 'ds-spinner-arc', '--ds-delay-loader', '--ds-hold-loader', '--ds-hold-success', '--ds-dur-fast', '--ds-dur-medium'],
+    note: '<code>DS.motion.busy()</code> on two saves and a retry. The fast one (150ms) answers before the loader delay: nothing changes but the success face. The slow one (1200ms) shows its spinner after <code>--ds-delay-loader</code>, keeps it at least <code>--ds-hold-loader</code>, then the label and spinner crossfade to the success face, whose check draws itself, for <code>--ds-hold-success</code>; its new label (<code>DS.motion.setLabel()</code>, set as the run starts) shows once it is back at rest. The retry has no success face, so it goes straight back to its label. The width never changes: the faces share one cell. While a button works or shows its success, <code>DS.motion.guard()</code> blocks every click, Enter and Space on it (the read-out counts them).',
+    shows: ['DS.motion.busy', 'DS.motion.guard', 'DS.motion.setLabel', 'ds-draw', 'ds-spinner-arc', '--ds-delay-loader', '--ds-hold-loader', '--ds-hold-success', '--ds-dur-fast', '--ds-dur-medium'],
     html: '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-busy="150">' + facesHtml('Save (150ms)', 'Saving', 'Saved') + '</button>' +
-      '<button class="ds-btn" type="button" data-busy="1200">' + facesHtml('Save (1200ms)', 'Saving', 'Saved') + '</button></div>',
+      '<button class="ds-btn" type="button" data-busy="1200" data-busy-next="Save again (1200ms)">' + facesHtml('Save (1200ms)', 'Saving', 'Saved') + '</button>' +
+      '<button class="ds-btn ds-btn--text" type="button" data-busy="1200"><span class="ds-btn__faces"><span class="ds-btn__face">Retry (1200ms)</span>' +
+      '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Retrying</span></span></button></div>',
+    after: readoutHtml('sg-busy-blocked', 'Click a button again while it works: <code>DS.motion.guard()</code> blocks it.'),
     setup: function (stage, sg) {
+      // Counts the activations the guard blocks: this listener comes before
+      // the guard's (busy() installs it on its first run), in the same phase.
+      var blocked = 0;
+      window.addEventListener('click', function (event) {
+        var button = event.isTrusted && event.target.closest && event.target.closest('[data-busy]');
+        if (!button || !stage.contains(button) || !button.matches('[aria-busy="true"], .ds-btn--done')) return;
+        blocked += 1;
+        setHtml($('#sg-busy-blocked', stage.parentNode), 'Blocked activations: <strong class="ds-num">' + blocked + '</strong> (<code>DS.motion.guard()</code>: clicks, Enter and Space on a busy or done button never reach the page)');
+      }, true);
       stage.addEventListener('click', function (event) {
         var button = event.target.closest('[data-busy]');
         if (button) busyRun(button, Number(button.getAttribute('data-busy')), sg);
@@ -1540,6 +1666,41 @@
       setChip(stage, 'In storage', on);
       return quiet(stage, sg);
     },
+  });
+
+  /* ── Controls: the drop zone ─────────────────────────────────────── */
+
+  function dropOn(stage) { return $('.ds-dropzone', stage).hasAttribute('data-ds-dragover'); }
+
+  /* The demo sets the attribute that DS.dom.dropzone() owns while files are
+     dragged over the zone (a script cannot start a real file drag). */
+  function dropTo(stage, on, sg) {
+    $('.ds-dropzone', stage).toggleAttribute('data-ds-dragover', on);
+    return sg.frames(2).then(function () { return quiet(stage, sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'dropzone',
+    group: 'controls',
+    title: 'Drop zone',
+    note: 'A <code>.ds-dropzone</code> while files are dragged over it (<code>data-ds-dragover</code>, written by <code>DS.dom.dropzone()</code>): it takes the accent with an inset primary edge over <code>--ds-dur-fast</code>, so nothing shifts, and its title crossfades in one cell to say so in words; the old title leaves in <code>--ds-dur-instant</code>. It presses like a radio card. Drop a file on it, or Replay.',
+    shows: ['--ds-dropzone-border', '--ds-radius-card-pressed', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-micro', '--ds-ease-in-out', '--ds-ease-spatial'],
+    html: '<label class="ds-dropzone sg-lab-dropzone"><input class="ds-dropzone__input" type="file" accept=".csv" multiple>' +
+      '<span class="ds-dropzone__disc" aria-hidden="true">' + icon('plus', 24) + '</span>' +
+      '<span class="ds-dropzone__title"><span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span><span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span></span>' +
+      '<span class="ds-dropzone__hint">Up to 10 MB each</span></label>',
+    after: readoutHtml('sg-lab-dropzone-out', 'No file yet.'),
+    height: 200,
+    setup: function (stage) {
+      DS.dom.dropzone($('.ds-dropzone', stage), {
+        onFiles: function (files) {
+          $('#sg-lab-dropzone-out', stage.parentNode).textContent = 'Added ' + files.map(function (file) { return file.name; }).join(', ') + '.';
+        },
+      });
+    },
+    play: function (stage, sg) { return dropTo(stage, !dropOn(stage), sg); },
+    state: dropOn,
+    toggle: dropTo,
   });
 
   /* ── Controls: switch ────────────────────────────────────────────── */
@@ -1681,7 +1842,7 @@
 
   function trackHtml(names) {
     return names.map(function (name, index) {
-      return '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="' + (index === trackLast) + '">' + name + '</button>';
+      return '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="' + (index === trackLast) + '" tabindex="' + (index === trackLast ? 0 : -1) + '">' + name + '</button>';
     }).join('');
   }
 
@@ -1743,8 +1904,8 @@
     id: 'track',
     group: 'navigation',
     title: 'Indicator',
-    note: 'The pill stretches toward its target (the leading edge leads, the trailing edge follows), passes it by a hair and settles on the spring; a longer jump takes longer, up to a cap (travelDuration, in the read-out). It follows aria-pressed by itself: the buttons only change the attribute. A new target mid-glide continues from where the pill is, and a re-render of the track through <code>DS.dom.morphHtml</code> keeps the pill, which glides to its item\'s new size.',
-    shows: ['DS.indicator.createIndicator', 'DS.motion.travelDuration', 'DS.dom.morphHtml', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow', '--ds-dur-micro'],
+    note: 'The pill stretches toward its target (the leading edge leads, the trailing edge follows), passes it by a hair and settles on the spring; a longer jump takes longer, up to a cap (travelDuration, in the read-out). It follows aria-pressed by itself: the buttons only change the attribute. A new target mid-glide continues from where the pill is, and a re-render of the track through <code>DS.dom.morphHtml</code> keeps the pill, which glides to its item\'s new size. The track is one tab stop (<code>DS.dom.roving()</code>): the arrow keys, Home and End move the focus and press the item.',
+    shows: ['DS.indicator.createIndicator', 'DS.motion.travelDuration', 'DS.dom.morphHtml', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow', '--ds-dur-micro'],
     html: '<div class="sg-track" id="sg-track">' + trackHtml(TRACK) + '</div>',
     after: readoutHtml('sg-track-move', 'Press an item, or hop and jump.'),
     height: 120,
@@ -1753,6 +1914,7 @@
     setup: function (stage, sg) {
       var track = $('#sg-track', stage);
       sg.indicator(track, { active: '[aria-pressed="true"]', className: 'sg-track__indicator' });
+      DS.dom.roving(track, { items: 'button' });
       track.addEventListener('click', function (event) {
         var button = event.target.closest('button');
         if (button) pressTrack(stage, trackButtons(stage).indexOf(button));
@@ -1912,13 +2074,13 @@
     id: 'topbar',
     group: 'navigation',
     title: 'Top bar on scroll',
-    note: 'Scrolled, the top bar tints to a surface container colour and its hairline shows, over the first pixels of scroll (<code>ds-scroll-fade</code> on the view\'s scroll timeline; without scroll timelines data-scrolled from a sentinel and a transition). The lab\'s own top bar does the same: scroll this page back to the top and watch it. Replay scrolls the small app down and back.',
-    shows: ['ds-scroll-fade', 'DS.motion.resyncScroll', '--ds-dur-fast', '--ds-ease-in-out'],
+    note: 'Scrolled, the top bar tints to a surface container colour and its hairline shows, over the first pixels of scroll (<code>ds-scroll-fade</code> on the view\'s scroll timeline; without scroll timelines data-scrolled from <code>DS.dom.watchScrolled()</code> and a transition). The lab\'s own top bar does the same: scroll this page back to the top and watch it. Replay scrolls the small app down and back.',
+    shows: ['ds-scroll-fade', 'DS.motion.resyncScroll', 'DS.dom.watchScrolled', '--ds-dur-fast', '--ds-ease-in-out'],
     html: frameHtml('sg-frame--phone', 'A small app: the top bar on scroll'),
     height: 360,
     setup: function (stage) {
       topbar.ready = openFrame(stage, appFrameHtml(false, pageHead('Devices', 'Scroll this view: the top bar tints.') + frameCards(6))).then(function (win) {
-        watchScrolled(win, win.document.getElementById('view'), win.document.getElementById('app'));
+        win.DS.dom.watchScrolled(win.document.getElementById('view'), win.document.getElementById('app'));
         return win;
       });
     },
@@ -2389,9 +2551,8 @@
 
   function progressTo(stage, share, sg) {
     $$('.ds-progress, .ds-spinner--determinate', stage).forEach(function (el) {
-      el.style.setProperty('--ds-progress', String(share));
-      var track = el.classList.contains('ds-progress') ? $('.ds-progress__track', el) : el;
-      track.setAttribute('aria-valuenow', String(Math.round(share * 100)));
+      // The share and its ARIA in one call; the figure counts in the same task.
+      DS.dom.progress(el, share);
       var label = $('.ds-progress__label', el);
       if (label) M.countUp(label, Math.round(share * 100), { format: function (value) { return Math.round(value) + '%'; } });
     });
@@ -2405,7 +2566,7 @@
     group: 'feedback',
     title: 'Progress',
     note: 'Determinate progress glides to a new share on <code>--ds-ease-value</code> over <code>--ds-dur-glide</code>, the curve and time of countUp(), so the figure lands with its bar. The wavy bar and ring carry a wave that travels (<code>ds-progress-wave</code>) and flattens near the ends; --flat drops the wave, the gap and the stop dot.',
-    shows: ['ds-progress-wave', 'DS.motion.countUp', '--ds-progress', '--ds-dur-glide', '--ds-ease-value', '--ds-loop-wave'],
+    shows: ['ds-progress-wave', 'DS.motion.countUp', 'DS.dom.progress', '--ds-progress', '--ds-dur-glide', '--ds-ease-value', '--ds-loop-wave'],
     html: '<div class="sg-progress-demo"><div class="ds-stack">' + progressBlock('sg-lab-progress', 0.3, 'Import') + progressBlock('sg-lab-progress-flat', 0.3, 'Import (flat)', true) + '</div>' +
       '<div class="sg-row">' + ringHtml(0.3) + ringHtml(0.3, true) + '</div></div>',
     height: 220,
@@ -2422,29 +2583,21 @@
 
   function handoffRun(stage, sg) {
     var p = $('#sg-lab-run', stage);
-    var track = $('.ds-progress__track', p);
     var say = function (label, detail) {
       $('.ds-progress__label', p).textContent = label;
       $('.ds-progress__detail', p).textContent = detail;
     };
-    var unknown = function (cls, text) {
-      p.classList.remove('ds-progress--waiting', 'ds-progress--indeterminate');
-      p.classList.add(cls);
-      track.removeAttribute('aria-valuenow');
-      track.setAttribute('aria-valuetext', text);
-    };
+    // DS.dom.progress(): null is an unknown share (indeterminate, or waiting), with its words for assistive tech.
+    var unknown = function (waiting, text) { DS.dom.progress(p, null, { waiting: waiting, valueText: text }); };
     var share = function (value, label, detail) {
-      p.classList.remove('ds-progress--waiting', 'ds-progress--indeterminate');
-      p.style.setProperty('--ds-progress', String(value));
-      track.removeAttribute('aria-valuetext');
-      track.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+      DS.dom.progress(p, value);
       say(label, detail);
     };
-    p.style.setProperty('--ds-progress', '0');
-    unknown('ds-progress--waiting', 'Waiting');
+    DS.dom.progress(p, 0);
+    unknown(true, 'Waiting');
     say('Waiting for a free worker ...', 'queued');
     return wait(sg, 900).then(function () {
-      unknown('ds-progress--indeterminate', 'Preparing');
+      unknown(false, 'Preparing');
       say('Preparing the import ...', 'reading the file');
       return wait(sg, 1600);
     }).then(function () {
@@ -2461,7 +2614,7 @@
     group: 'feedback',
     title: 'Unknown share, then a share',
     note: 'While the share is unknown, two segments chase each other (<code>ds-progress-head</code> and <code>ds-progress-tail</code>, the M3 choreography); waiting for a worker is the quiet variant. The first share stops the segments and fades them out while the bar grows from 0 to its share; aria-valuetext gives way to aria-valuenow.',
-    shows: ['ds-progress-head', 'ds-progress-tail', '--ds-loop-indeterminate', '--ds-dur-glide', '--ds-ease-value'],
+    shows: ['ds-progress-head', 'ds-progress-tail', 'DS.dom.progress', '--ds-loop-indeterminate', '--ds-dur-glide', '--ds-ease-value'],
     html: '<div class="ds-progress" id="sg-lab-run" style="--ds-progress:0"><div class="ds-progress__track" role="progressbar" aria-label="Import run" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ds-progress__bar"></div></div><p class="ds-progress__label">Ready</p><p class="ds-progress__detail">Replay runs waiting, preparing, 30%, done</p></div>',
     height: 140,
     play: handoffRun,
@@ -2519,13 +2672,11 @@
     }).join('');
   }
 
+  /* DS.motion.refresh(): stale and aria-busy at once, the load, then the
+     fresh values in the same task as the stale removal. */
   function staleRefresh(box, ms, sg) {
-    box.classList.add('ds-stale');
-    box.setAttribute('aria-busy', 'true');
-    return wait(sg, ms).then(function () {
+    return M.refresh(box, function () { return wait(sg, ms); }).then(function () {
       DS.dom.morphHtml($('ul', box), staleHtml());
-      box.classList.remove('ds-stale');
-      box.setAttribute('aria-busy', 'false');
       return quiet(box, sg);
     });
   }
@@ -2534,8 +2685,8 @@
     id: 'stale',
     group: 'feedback',
     title: 'Stale while refreshing',
-    note: 'While a refresh runs the list carries <code>.ds-stale</code> and aria-busy="true". It dims only after the loader delay, so the 150ms refresh never dims; the 1200ms one does, and the fresh values replace the old ones in place (morphHtml), at once.',
-    shows: ['--ds-delay-loader', '--ds-dur-base', '--ds-state-stale', 'DS.dom.morphHtml'],
+    note: '<code>DS.motion.refresh()</code>: while a refresh runs the list carries <code>.ds-stale</code> and aria-busy="true". It dims only after the loader delay, so the 150ms refresh never dims; the 1200ms one does, stays dimmed at least <code>--ds-hold-loader</code>, and the fresh values replace the old ones in place (morphHtml), at once. In a <code>.ds-content</code> or <code>.ds-page</code> the call also puts a loading bar at the top of the panel.',
+    shows: ['DS.motion.refresh', '--ds-delay-loader', '--ds-hold-loader', '--ds-dur-base', '--ds-state-stale', 'DS.dom.morphHtml'],
     html: '<div class="sg-panes"><div><p class="sg-label">150ms</p><div class="sg-stale" id="sg-stale-fast" aria-busy="false"><ul class="ds-kv-list">' + staleHtml() + '</ul></div></div>' +
       '<div><p class="sg-label">1200ms</p><div class="sg-stale" id="sg-stale-slow" aria-busy="false"><ul class="ds-kv-list">' + staleHtml() + '</ul></div></div></div>',
     wide: true,
@@ -2729,7 +2880,7 @@
     id: 'alerts',
     group: 'feedback',
     title: 'Alerts and errors',
-    note: 'Both through <code>DS.motion.flip</code> on the stack: a new alert fades in at the top while the others glide down (past three, the oldest goes in the same call); a dismissed one fades out in place while the ones below glide up. The <code>.ds-errors</code> disclosure opens like any <code>.ds-collapsible</code> and its chevron turns.',
+    note: 'Both through <code>DS.motion.flip</code> on the stack: a new alert fades in at the top while the others glide down (past three, the oldest goes in the same call); a dismissed one fades out in place while the ones below glide up, and the focus moves to the next alert\'s Dismiss (<code>refocus</code>). The <code>.ds-errors</code> disclosure opens like any <code>.ds-collapsible</code> and its chevron turns.',
     shows: ['DS.motion.flip', '.ds-collapsible', 'ds-fade-in', '--ds-dur-slow', '--ds-dur-fast', '--ds-ease-spatial'],
     html: '<div class="sg-alerts">' + alertHtml('The nightly sync runs at 02:00.') + '</div>' +
       '<details class="ds-errors ds-collapsible"><summary>' + icon('alertCircle', 16) + '2 rows were skipped' + icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "XPS 13 9999"</li><li>Row 9: duplicate serial number</li></ul></details>',
@@ -2740,8 +2891,8 @@
         var dismiss = event.target.closest('[data-alert-dismiss]');
         if (!dismiss) return;
         var alert = dismiss.closest('.ds-alert');
-        if (alert.contains(document.activeElement)) $('[data-alert-insert]', stage.parentNode).focus({ preventScroll: true });
-        M.flip($('.sg-alerts', stage), function () { alert.remove(); });
+        // flip() moves the focus to the next alert's Dismiss (refocus), and to Insert when none is left.
+        M.flip($('.sg-alerts', stage), function () { alert.remove(); }, { refocus: function () { return $('[data-alert-insert]', stage.parentNode); } });
       });
       $('[data-alert-insert]', stage.parentNode).addEventListener('click', function () { alertInsert(stage); });
     },
@@ -2870,6 +3021,64 @@
     },
   });
 
+  /* ── Views: a wizard outside the app frame (.ds-vt-view) ─────────── */
+
+  var WIZARD = [
+    ['Choose the device', 'Step 1 of 3: which device is returned?'],
+    ['Check its state', 'Step 2 of 3: anything broken or missing?'],
+    ['Confirm the return', 'Step 3 of 3: the owner gets a receipt.'],
+  ];
+  var wizard = { at: 0, ready: null };
+
+  function wizardStep(index) {
+    var step = WIZARD[index];
+    return '<section class="ds-card sg-wizard-step"><h1 class="ds-card__title" tabindex="-1">' + step[0] + '</h1><p class="ds-muted">' + step[1] + '</p></section>';
+  }
+
+  function wizardGo(stage, type) {
+    return wizard.ready.then(function (win) {
+      var doc = win.document;
+      var next = type === 'back' ? Math.max(0, wizard.at - 1) : Math.min(WIZARD.length - 1, wizard.at + 1);
+      if (next === wizard.at) return undefined;
+      wizard.at = next;
+      return win.DS.motion.transition(function () {
+        var view = doc.getElementById('wizard');
+        var template = doc.createElement('template');
+        template.innerHTML = wizardStep(next);
+        view.replaceChildren(template.content);
+        return view;
+      }, { type: type });
+    });
+  }
+
+  LAB_DEMOS.push({
+    id: 'wizard',
+    group: 'views',
+    title: 'A wizard outside the frame',
+    note: 'A page without <code>.ds-app</code> (a wizard, a sign-in page) marks its view <code>.ds-vt-view</code>: it is named <code>ds-view</code> only while <code>DS.motion.transition()</code> runs, so Next and Back travel on the shared axis like the app\'s views. Without View Transitions the new step enters with <code>.ds-enter--swap</code>. (A page passes <code>focus: true</code> too, so a focus that was lost lands on the new step\'s heading; the demo leaves the focus on its buttons.)',
+    shows: ['.ds-vt-view', 'DS.motion.transition', '.ds-enter--swap', 'ds-shift-in', 'ds-shift-out', '--ds-dur-long', '--ds-ease-spatial', '--ds-distance-xl'],
+    html: frameHtml('', 'A wizard without the app frame'),
+    height: 220,
+    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-wizard="back">' + icon('arrowLeft', 16) + 'Back</button><button class="ds-btn ds-btn--sm" type="button" data-wizard="forward">Next' + icon('arrowRight', 16) + '</button></div>',
+    setup: function (stage) {
+      wizard.ready = openFrame(stage, '<main class="ds-vt-view sg-wizard" id="wizard">' + wizardStep(0) + '</main>');
+      stage.parentNode.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-wizard]');
+        if (button) wizardGo(stage, button.getAttribute('data-wizard'));
+      });
+    },
+    subject: function (stage) {
+      var frame = $('iframe', stage);
+      return frame.contentDocument ? frame.contentDocument.documentElement : null;
+    },
+    play: function (stage) { return wizardGo(stage, wizard.at === WIZARD.length - 1 ? 'back' : 'forward'); },
+    state: function () { return wizard.at > 0; },
+    toggle: function (stage, on) {
+      if (!on) return wizardGo(stage, 'back');
+      return wizardGo(stage, 'forward');
+    },
+  });
+
   /* ── Views: .ds-view--leaving ────────────────────────────────────── */
 
   var swapRun = 0;
@@ -2920,8 +3129,8 @@
     id: 'scroll',
     group: 'views',
     title: 'Reveal on scroll and edge fades',
-    note: 'In a long read-only page each block fades in and rises while it scrolls into view (<code>.ds-reveal--scroll</code>, tied to the scroll position: scrolling back reverses it). A table wider than its card fades its edges while it scrolls sideways (<code>ds-edge-fade</code> on the wrapper\'s scroll timeline). Without scroll timelines both stay static, never hidden. Replay scrolls both to the end and back.',
-    shows: ['.ds-reveal--scroll', 'ds-edge-fade', 'ds-fade-in', 'ds-lift-in', '--ds-distance-md'],
+    note: 'In a long read-only page each block fades in and rises while it scrolls into view (<code>.ds-reveal--scroll</code>, tied to the scroll position: scrolling back reverses it). A table wider than its card fades its edges while it scrolls sideways (<code>ds-edge-fade</code> on the wrapper\'s scroll timeline). Without scroll timelines both stay static, never hidden. <code>DS.dom.scrollEdges()</code> reports which ends of the table have more to scroll (the read-out). Replay scrolls both to the end and back.',
+    shows: ['.ds-reveal--scroll', 'ds-edge-fade', 'DS.dom.scrollEdges', 'ds-fade-in', 'ds-lift-in', '--ds-distance-md'],
     html: '<div class="sg-scroll-demo"><div class="sg-scroll-box" tabindex="0" aria-label="A report">' + REPORT.map(function (block) {
       return '<section class="ds-card ds-reveal--scroll"><h4 class="ds-card__title">' + block[0] + '</h4><p class="ds-muted">' + block[1] + '</p></section>';
     }).join('') + '</div>' +
@@ -2930,8 +3139,21 @@
       ['LAPTOP-0042', 'TABLET-0121', 'PRINTER-0003'].map(function (name) {
         return '<tr><td class="ds-nowrap">' + name + '</td><td class="ds-nowrap">Ada Lovelace</td><td class="ds-nowrap">Latitude 7440</td><td class="ds-nowrap">Building A, 1st floor</td><td>5CD1234XYZ</td><td>10.0.4.42</td><td class="ds-nowrap">Release 24.2</td><td>32 GB</td></tr>';
       }).join('') + '</tbody></table></div></div>',
+    after: readoutHtml('sg-scroll-edges', ''),
     height: 280,
     wide: true,
+    setup: function (stage) {
+      var wide = $('.ds-table-wrap', stage);
+      var out = $('#sg-scroll-edges', stage.parentNode);
+      var say = function () {
+        var start = wide.hasAttribute('data-ds-overflow-start');
+        var end = wide.hasAttribute('data-ds-overflow-end');
+        out.textContent = 'The table has more to scroll ' + (start && end ? 'at both ends' : start ? 'at its start' : end ? 'at its end' : 'at neither end') + ' (data-ds-overflow-start, data-ds-overflow-end).';
+      };
+      new MutationObserver(say).observe(wide, { attributes: true, attributeFilter: ['data-ds-overflow-start', 'data-ds-overflow-end'] });
+      DS.dom.scrollEdges(wide);
+      say();
+    },
     play: function (stage, sg) {
       return scrollBox(stage, 'end', sg).then(function () { return wait(sg, 300); }).then(function () { return scrollBox(stage, 'start', sg); });
     },

@@ -132,6 +132,27 @@ test('the form shows its errors on submit, takes a model from the combobox and a
   await expect(page.locator('#f-name')).toHaveValue('');
 });
 
+test('the CSV import takes files from its dialog, uploads each with its progress, and a removal moves the focus on (2.0)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await open(page);
+  const csv = (name) => ({ name, mimeType: 'text/csv', buffer: Buffer.from('name,owner\nLAPTOP-0042,Ada Lovelace\n') });
+  await page.locator('#csv-zone .ds-dropzone__input').setInputFiles([csv('devices.csv'), csv('owners.csv'), { name: 'photo.png', mimeType: 'image/png', buffer: Buffer.from('png') }]);
+  const rows = page.locator('#csv-files .demo-file');
+  // The accept filter of the input keeps the image out.
+  await expect(rows).toHaveCount(2);
+  await expect(rows.nth(0)).toContainText('devices.csv');
+  await expect(rows.nth(0).locator('[role="progressbar"]')).toHaveAttribute('aria-valuenow', '100', { timeout: 10000 });
+  await expect(rows.nth(1)).toContainText('Uploaded', { timeout: 10000 });
+  await rows.nth(0).locator('[data-remove]').focus();
+  await rows.nth(0).locator('[data-remove]').press('Enter');
+  await expect(rows).toHaveCount(1);
+  await expect(page.locator('[aria-label="Remove owners.csv"]')).toBeFocused();
+  await page.locator('[aria-label="Remove owners.csv"]').press('Enter');
+  await expect(rows).toHaveCount(0);
+  await expect(page.locator('#csv-zone .ds-dropzone__input')).toBeFocused();
+  expect(errors).toEqual([]);
+});
+
 test('the theme choice restyles the page through its tokens, shows its file and keeps the choice', async ({ page }) => {
   await open(page);
   const primary = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ds-primary').trim());

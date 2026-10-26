@@ -281,27 +281,6 @@
     }, { type: delta > 0 ? 'forward' : 'back' });
   }
 
-  /* data-scrolled from a 1px sentinel (docs/components.md, App frame): the
-     fallback of the scroll-driven hairlines and the top bar's tint. */
-  function watchScrolled(scroller, target) {
-    var sentinel = document.createElement('div');
-    var gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');
-    sentinel.style.cssText = 'height: 1px; margin-bottom: ' + (-1 - gap) + 'px; flex-shrink: 0';
-    scroller.insertBefore(sentinel, scroller.firstChild);
-    new IntersectionObserver(function (entries) {
-      var entry = entries[entries.length - 1];
-      if (!entry.boundingClientRect.height) return;
-      var scrolled = !entry.isIntersecting;
-      if (scrolled === target.hasAttribute('data-scrolled')) return;
-      target.toggleAttribute('data-scrolled', scrolled);
-      // Back at the top: content that shrank (the scroller fits now)
-      // leaves no scroll-driven tint or hairline behind.
-      if (!scrolled) DS.motion.resyncScroll(scroller);
-    }, { root: scroller }).observe(sentinel);
-  }
-
   /* ── Wiring ───────────────────────────────────────────────────────── */
 
   /* Direction across page loads (the snippet of the opt-in stylesheet):
@@ -335,8 +314,9 @@
   // across page loads too (the name is unique on the page).
   DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' });
   DS.ripple.attach(document);
-  watchScrolled(view, app);
-  watchScrolled(sheetBody, $('.ds-sheet__panel', sheet));
+  // data-scrolled: the fallback of the scroll-driven hairlines and the top bar's tint.
+  DS.dom.watchScrolled(view);
+  DS.dom.watchScrolled(sheetBody);
 
   var mpaSwitch = $('#vw-mpa');
   mpaSwitch.checked = MPA;

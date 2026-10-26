@@ -6,9 +6,9 @@
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
  * .ds-leave, .ds-stagger, .ds-reveal, .ds-reveal--scroll,
- * .ds-collapsible, .ds-chevron, .ds-swap, .ds-icon-swap, .ds-presence)
- * and the view-transition rules (.ds-theme::view-transition-*) in
- * ds.utilities. That layer comes after
+ * .ds-collapsible, .ds-chevron, .ds-swap, .ds-swap--fade, .ds-icon-swap,
+ * .ds-presence, .ds-presence--keep, .ds-vt-view) and the view-transition
+ * rules (.ds-theme::view-transition-*) in ds.utilities. That layer comes after
  * ds.components, so a utility wins over a component's own animation by
  * layer order, not by specificity.
  *
@@ -45,9 +45,10 @@
  *   of its own): without them it shows and hides at once.
  * - View Transitions (the ::view-transition-* rules of the "View
  *   transitions" section: fade-through, shared axis, container transform,
- *   the group default that glides named indicators; only with .ds-theme on
- *   <html>): without them DS.motion.transition() fades the new view
- *   through with .ds-enter--swap.
+ *   the group default that glides named indicators, and .ds-vt-view, a
+ *   view outside the app frame; only with .ds-theme on <html>): without
+ *   them DS.motion.transition() fades the new view (the first child of a
+ *   .ds-vt-view) through with .ds-enter--swap.
  * - scroll-driven animations (animation-timeline: view(), animation-range;
  *   .ds-reveal--scroll ties its fade and rise to the scroll position, and
  *   ds-scroll-fade and ds-edge-fade run on the scroll timelines of
@@ -913,6 +914,22 @@
   }
 
   /*
+   * A soft slot edge (2.0): lines appear from and leave behind a soft edge
+   * instead of a hard cut. The slot takes --ds-swap-fade (default
+   * --ds-space-2) of room above and below, given back by a negative margin
+   * so nothing moves, and a static vertical mask fades that room. Nothing
+   * in the mask animates.
+   *
+   *   <span class="ds-swap ds-swap--fade"><span>Syncing 3 of 40</span></span>
+   */
+  .ds-swap--fade {
+    padding-block: var(--ds-swap-fade, var(--ds-space-2));
+    margin-block: calc(-1 * var(--ds-swap-fade, var(--ds-space-2)));
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-swap-fade, var(--ds-space-2)), #000 calc(100% - var(--ds-swap-fade, var(--ds-space-2))), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-swap-fade, var(--ds-space-2)), #000 calc(100% - var(--ds-swap-fade, var(--ds-space-2))), transparent);
+  }
+
+  /*
    * Icon swap (copy to check, play to pause): two icons in one grid cell.
    * data-swap="b" on the wrapper, or (without data-swap) an ancestor with
    * aria-pressed="true", shows b; otherwise a shows. The incoming icon
@@ -1054,6 +1071,11 @@
    * themselves: open, close, open continues from where it is. The exit
    * state is three separate rules, so an engine that does not know
    * :popover-open drops only its own rule. Elsewhere: an instant toggle.
+   * The lists also carry the element's own state transitions (background,
+   * colour, border, shadow on --ds-dur-fast, the focus snap of
+   * outline-offset), so a pill inside keeps its hover and focus motion; put
+   * .ds-presence on a wrapper, never on a .ds-btn, .ds-chip or .ds-card
+   * (their own transition lists would be replaced).
    */
   @supports (transition-behavior: allow-discrete) {
     .ds-presence {
@@ -1062,12 +1084,17 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-medium) var(--ds-ease-spatial),
         clip-path var(--ds-dur-medium) var(--ds-ease-spatial),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-medium) allow-discrete,
         overlay var(--ds-dur-medium) allow-discrete;
     }
 
     @starting-style {
-      .ds-presence {
+      .ds-presence:not(.ds-presence--keep) {
         opacity: 0;
         scale: var(--ds-motion-scale, var(--ds-scale-popup));
         clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
@@ -1082,6 +1109,11 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-fast) var(--ds-ease-in),
         clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-fast) allow-discrete,
         overlay var(--ds-dur-fast) allow-discrete;
     }
@@ -1094,6 +1126,11 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-fast) var(--ds-ease-in),
         clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-fast) allow-discrete,
         overlay var(--ds-dur-fast) allow-discrete;
     }
@@ -1106,9 +1143,41 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-fast) var(--ds-ease-in),
         clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-fast) allow-discrete,
         overlay var(--ds-dur-fast) allow-discrete;
     }
+  }
+
+  /*
+   * Presence that keeps its box (2.0): a pill that shows on hover, a "Saved"
+   * note, a jump button whose room stays reserved. The page toggles
+   * data-ds-shown; hidden is opacity 0 and visibility hidden (out of the
+   * tab order and the accessibility tree), so nothing around it moves. It
+   * fades in over --ds-dur-fast and out in --ds-dur-instant (exit 0.67);
+   * visibility steps at the end of the exit. Baseline: no @starting-style
+   * or allow-discrete needed.
+   *
+   *   <span class="ds-presence ds-presence--keep" [data-ds-shown]>...</span>
+   */
+  .ds-presence--keep {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--ds-dur-instant) var(--ds-ease-in-out),
+      visibility 0s linear var(--ds-dur-instant);
+  }
+
+  .ds-presence--keep[data-ds-shown] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      visibility 0s;
   }
 
   /* A node that DS.dom.morphHtml moves with insertBefore (engines without
@@ -1141,6 +1210,17 @@
    * lets the old view go in --ds-dur-instant by design. No keyframes of
    * their own: the ds-fade-*, ds-grow-in and ds-shift-in/-out pairs.
    */
+
+  /* A view outside the app frame (2.0): a wizard, a sign-in page or a page
+     without .ds-app names its .ds-vt-view ds-view while a transition runs,
+     so it plays like .ds-view. One per page, never inside .ds-app (the
+     frame's view has the name then). Without View Transitions
+     DS.motion.transition() enters its first child with .ds-enter--swap.
+
+       <main class="ds-vt-view"><section>(step 1)</section></main> */
+  .ds-theme[data-ds-vt] .ds-vt-view {
+    view-transition-name: ds-view;
+  }
 
   /* The root (the top bar, the backdrop, everything unnamed): the browser's
      crossfade, short; pixels that did not change stay still under its

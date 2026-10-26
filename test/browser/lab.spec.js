@@ -180,6 +180,9 @@ const GROUPS = ['foundations', 'utilities', 'keyframes', 'data', 'controls', 'na
  * list cannot go stale.
  */
 const LAB_EXEMPT = {
+  'DS.dom.followViewport': 'layout follows the on-screen keyboard (--ds-viewport-height, data-ds-keyboard), no motion',
+  'DS.dom.autosize': 'the height follows the text, never animated: no motion',
+  'DS.dom.dropzone': 'events, no motion: the dropzone demo plays the data-ds-dragover look it writes',
 };
 
 /** Closes what a demo left open (Rapid toggle ends on an open overlay) and waits until it is hidden. */
@@ -269,6 +272,8 @@ const CONTINUITY = {
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
+  presence: { in: 'stage', sel: '.ds-presence--keep', props: ['opacity'] },
+  dropzone: { in: 'stage', sel: '.ds-dropzone__over', props: ['opacity'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -279,6 +284,9 @@ const CONTINUITY_EXEMPT = {
   tooltips: 'a tooltip waits --ds-delay-tooltip before it moves, so the reversal comes before it shows',
   views: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
   scroll: 'scroll-driven: the reveal and the edge fades follow the scroll position, not time',
+  sortable: 'each toggle moves the row in the DOM and flip() glides it from where it is painted, so its translate restarts from a new layout place (continuity on screen is checked by flip.spec.js and the data-list demo)',
+  'follow-end': 'scroll-driven: the log follows the scroll position the demo sets; the pill only toggles hidden (its fade is .ds-presence, timed in the presence demo)',
+  wizard: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
 };
 
 /**
@@ -299,6 +307,7 @@ const LONG_RUNS = {
   scroll: { ms: 12000, reason: 'scrolls the box to its end smoothly, holds 300ms and scrolls back (scroll-driven effects)' },
   validation: { ms: 12000, reason: 'focuses the field and validates it 300ms later (the message fades in while its room opens)' },
   views: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
+  wizard: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
 };
 
 /**
@@ -312,6 +321,11 @@ const SHOT_MASKS = {
     selectors: ['iframe'],
     engines: ['firefox'],
     reason: 'after the same-document View Transition Firefox now and then paints the frame\'s content 1px up and to the left under parallel load (2 of 20), with the same DOM, layout and animations as a good run; the timeline and the state checks stay the proof (README, capability table, row 11)',
+  },
+  wizard: {
+    selectors: ['iframe'],
+    engines: ['firefox'],
+    reason: 'the same Firefox paint offset after a same-document View Transition in a frame as in the views demo',
   },
 };
 

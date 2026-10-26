@@ -193,7 +193,9 @@ test.describe('skeleton', () => {
         wave.currentTime = delay + share * cycle;
         return bones.map((bone) => {
           const style = getComputedStyle(bone);
-          return { x: style.getPropertyValue('--ds-skeleton-x').trim(), attachment: style.backgroundAttachment, left: bone.getBoundingClientRect().left, top: bone.getBoundingClientRect().top };
+          // The band (2.0): a fixed ::after on a layer of its own, moved by translate.
+          const band = getComputedStyle(bone, '::after');
+          return { x: style.getPropertyValue('--ds-skeleton-x').trim(), attachment: band.position, translate: band.translate.split(' ')[0], left: bone.getBoundingClientRect().left, top: bone.getBoundingClientRect().top };
         });
       });
     });
@@ -201,6 +203,7 @@ test.describe('skeleton', () => {
       expect(a.attachment).toBe('fixed');
       expect(b.attachment).toBe('fixed');
       expect(b.x).toBe(a.x);
+      expect(b.translate).toBe(a.translate);
       expect(Math.abs(a.left - b.left) + Math.abs(a.top - b.top), 'two bones at different places').toBeGreaterThan(20);
     }
     // The band moves.

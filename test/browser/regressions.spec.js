@@ -665,7 +665,8 @@ test.describe('fixed in 1.6.1', () => {
     await inject(page, '<ul id="jobs"></ul>');
     const result = await page.evaluate(async () => {
       const jobs = document.getElementById('jobs');
-      const render = (extra = '') => DS.dom.morphHtml(jobs, `<li data-ds-key="j1"><button class="ds-btn ds-btn--tonal" type="button" id="save"${extra}><span class="ds-btn__faces"><span class="ds-btn__face">Save</span></span></button></li>`);
+      const render = (extra = '') => DS.dom.morphHtml(jobs, `<li data-ds-key="j1"><button class="ds-btn ds-btn--tonal" type="button" id="save"${extra}><span class="ds-btn__faces"><span class="ds-btn__face">Save</span><span class="ds-btn__face ds-btn__face--done" aria-hidden="true">Saved</span></span></button></li>`);
+      // A done face (2.0: busy() shows the success face only on a button that has one).
       render();
       const button = document.getElementById('save');
       const seen = {};

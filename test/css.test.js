@@ -145,6 +145,11 @@ const RUNTIME = new Set([
   '--ds-menu-y',
   '--ds-chips-backdrop',
   '--ds-flip-backdrop',
+  '--ds-viewport-height',
+  '--ds-keyboard-inset',
+  '--ds-scrollbar-height',
+  '--ds-scrollbar-width',
+  '--ds-table-pin-width',
 ]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
@@ -370,6 +375,7 @@ const CONTROL_RATIOS = [
   ['button faces', [['src/components/button.css', '.ds-btn[aria-busy="true"] .ds-btn__face--busy', ['transition']]], [['src/components/button.css', '.ds-btn__face--busy', ['transition']]]],
   ['icon swap', [[M, SWAP_SHOWN, ['transition']]], [[M, '.ds-icon-swap > .ds-icon-swap__b', ['transition']]]],
   ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
+  ['presence that keeps its box', [[M, '.ds-presence--keep[data-ds-shown]', ['transition']]], [[M, '.ds-presence--keep', ['transition']]]],
 ];
 const resolveDuration = (candidates) => candidates.map(([file, selector, properties]) => longest(file, selector, properties)).find((time) => time !== undefined);
 /** The popups of the ratio table: they may exit in --ds-dur-instant (motion-2.md). */
@@ -593,7 +599,7 @@ describe('motion in CSS', () => {
       assert.ok(ratio >= 0.4 && ratio <= 0.67 + 1e-9, `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
     }
     assert.deepEqual(CONTROL_RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
-      ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100']);
+      ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100', '150/100']);
   });
 
   it('has a ratio row for every component with an entrance and an exit', () => {
@@ -952,6 +958,23 @@ describe('CSS for the baseline', () => {
     }
   });
 
+  it('puts .ds-presence on a wrapper, never on a button, chip or card (their own transitions would go), 2.0', () => {
+    const files = [...filesIn('docs', (path) => path.endsWith('.md')), ...filesIn('styleguide', (path) => /\.(js|html)$/.test(path)),
+      ...filesIn('example', (path) => /\.(js|html)$/.test(path)), ...filesIn('demo', (path) => /\.(js|html)$/.test(path))];
+    const offenders = [];
+    for (const file of files) {
+      for (const match of read(file).matchAll(/class=(["'])([^"']*)\1/g)) {
+        const names = match[2].split(/\s+/);
+        if (names.includes('ds-presence') && names.some((name) => /^ds-(btn|chip|card)$/.test(name))) offenders.push(`${file}: ${match[0]}`);
+      }
+    }
+    assert.deepEqual(offenders, []);
+    // The keep variant toggles a page-set attribute, outside every feature query.
+    const outside = withoutAtRuleBlocks(stripComments(read('src/motion.css')), /@supports/);
+    assert.match(outside, /\.ds-presence--keep\s*\{[^}]*visibility:\s*hidden/);
+    assert.match(outside, /\.ds-presence--keep\[data-ds-shown\]\s*\{[^}]*visibility:\s*visible/);
+  });
+
   it('keeps keyframes in ds.motion and the motion utilities in ds.utilities', () => {
     const items = topLevel(stripComments(read('src/motion.css')));
     const motion = items.find((item) => item.prelude === '@layer ds.motion').body;
@@ -973,7 +996,10 @@ describe('CSS for the baseline', () => {
     // or data-ds-vt-morph while the panel changes its width).
     const viewTransition = /^\.ds-theme(\[data-ds-vt="[\w-]+"\]|\[data-ds-vt-morph\])?::view-transition-(group|image-pair|old|new)\([\w*-]+\)(:only-child)?$/;
     assert.ok(selectors.some((selector) => viewTransition.test(selector)), 'the view-transition section');
-    assert.deepEqual(selectors.filter((selector) => selector !== hidden && !moving.test(selector) && !viewTransition.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
+    // A view outside the app frame (2.0) is named only while a transition runs.
+    const vtView = '.ds-theme[data-ds-vt] .ds-vt-view';
+    assert.ok(selectors.includes(vtView), vtView);
+    assert.deepEqual(selectors.filter((selector) => selector !== hidden && selector !== vtView && !moving.test(selector) && !viewTransition.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {
@@ -1760,6 +1786,17 @@ describe('feedback and data (1.4.0)', () => {
     assert.ok(EXCEPTIONS.get('height').transitions.has('.ds-table__expand'), 'expandable rows: grid-template-rows');
     assert.ok(EXCEPTIONS.get('rotate').keyframes.includes('ds-loader-turn'), 'the loader turns');
     for (const selector of ['.ds-chevron', '.ds-errors .ds-errors__chevron', '.ds-table__sort-arrow']) assert.ok(EXCEPTIONS.get('rotate').transitions.has(selector), selector);
+  });
+
+  it('gives the loading parts of 2.0 their hooks and layout: bone radius, the skeleton note, detail lines', () => {
+    const css = read('src/components/loading.css');
+    const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
+    assert.equal(own('.ds-skeleton__line')['border-radius'], 'var(--ds-skeleton-radius, var(--ds-radius-action))');
+    assert.match(stripComments(css), /\.ds-skeleton__line--heading \{[^}]*border-radius: var\(--ds-skeleton-radius, var\(--ds-radius-sm\)\)/);
+    assert.deepEqual([own('.ds-skeleton__note').color, own('.ds-skeleton__note').font, own('.ds-skeleton__note')['font-variant-numeric']], ['var(--ds-text-2)', 'var(--ds-font-meta)', 'tabular-nums']);
+    assert.equal(own('.ds-skeleton__note:empty').display, 'none');
+    assert.equal(own('.ds-loading').display, 'grid');
+    assert.equal(own('.ds-loading__detail')['grid-column'], '2');
   });
 
   it('keeps the waiting track in the layout (hidden, not display: none) and fades it in', () => {

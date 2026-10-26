@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOM helpers of 2.0 · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- The 2.0 helpers in real engines: a list DS.motion.sortable() reorders
+     (#steps, its order in window.fxOrder), a drop zone and a page drop
+     target for DS.dom.dropzone() (files in window.fxFiles), a tab list and
+     a toolbar for DS.dom.roving(). sortable.spec.js, dropzone.spec.js and
+     roving.spec.js. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="sort-title">
+    <h2 id="sort-title">Sortable</h2>
+    <ul class="ds-plain-list fx-sort" id="steps">
+      <li class="fx-step" data-ds-key="backup"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Backup"><span data-icon="menu" data-size="20"></span></button><span>Backup</span></li>
+      <li class="fx-step" data-ds-key="update"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Update"><span data-icon="menu" data-size="20"></span></button><span>Update</span></li>
+      <li class="fx-step" data-ds-key="restart"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Restart"><span data-icon="menu" data-size="20"></span></button><span>Restart</span></li>
+      <li class="fx-step" data-ds-key="report"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Report"><span data-icon="menu" data-size="20"></span></button><span>Report</span></li>
+    </ul>
+  </section>
+
+  <section class="fx-section" aria-labelledby="drop-title">
+    <h2 id="drop-title">Drop zone</h2>
+    <label class="ds-dropzone" id="zone">
+      <input class="ds-dropzone__input" type="file" accept=".csv, image/*" id="zone-input">
+      <span class="ds-dropzone__disc" aria-hidden="true"><span data-icon="plus" data-size="24"></span></span>
+      <span class="ds-dropzone__title"><span class="ds-dropzone__idle">Drop a CSV file here or <span class="ds-dropzone__browse">browse</span></span><span class="ds-dropzone__over" aria-hidden="true">Release to add the file</span></span>
+      <span class="ds-dropzone__hint">CSV or an image</span>
+    </label>
+    <div class="ds-card" id="pane" tabindex="-1"><p>A pane that takes files too.</p><p id="pane-child">A child of the pane.</p></div>
+    <input class="ds-input" type="file" id="file-field">
+  </section>
+
+  <section class="fx-section" aria-labelledby="roving-title">
+    <h2 id="roving-title">Roving focus</h2>
+    <div role="tablist" aria-label="Views" id="tabs">
+      <button class="ds-btn ds-btn--text" type="button" role="tab" id="tab-a" aria-selected="false">Overview</button>
+      <button class="ds-btn ds-btn--text" type="button" role="tab" id="tab-b" aria-selected="true">Devices</button>
+      <button class="ds-btn ds-btn--text" type="button" role="tab" id="tab-c" aria-selected="false" disabled>Reports</button>
+      <button class="ds-btn ds-btn--text" type="button" role="tab" id="tab-d" aria-selected="false" aria-disabled="true">Admin</button>
+    </div>
+    <div role="toolbar" aria-label="Format" id="toolbar">
+      <button class="ds-btn ds-btn--quiet" type="button" id="tool-1">Bold</button>
+      <button class="ds-btn ds-btn--quiet" type="button" id="tool-2">Italic</button>
+      <button class="ds-btn ds-btn--quiet" type="button" id="tool-3">Link</button>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    var steps = document.getElementById('steps');
+    window.fxOrder = [];
+    window.fxSortable = DS.motion.sortable(steps, {
+      onChange: function (order) { window.fxOrder = order.map(function (row) { return row.getAttribute('data-ds-key'); }); },
+    });
+    window.fxFiles = [];
+    var note = function (where) {
+      return function (files) { window.fxFiles.push(where + ': ' + files.map(function (file) { return file.name; }).join(', ')); };
+    };
+    window.fxZone = DS.dom.dropzone(document.getElementById('zone'), { onFiles: note('zone'), paste: true });
+    window.fxPane = DS.dom.dropzone(document.getElementById('pane'), { onFiles: note('pane'), multiple: true });
+    var tabs = document.getElementById('tabs');
+    tabs.addEventListener('click', function (event) {
+      var tab = event.target.closest('[role="tab"]');
+      if (!tab) return;
+      tabs.querySelectorAll('[role="tab"]').forEach(function (each) { each.setAttribute('aria-selected', String(each === tab)); });
+    });
+    DS.motion.guard(document);
+    DS.dom.roving(tabs);
+    DS.dom.roving(document.getElementById('toolbar'), { items: 'button', activate: false, wrap: false });
+  })();
+</script>
+</body>
+</html>

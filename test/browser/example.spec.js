@@ -1,7 +1,7 @@
 /**
  * The reference app (example/, published on GitHub Pages): it starts
- * without a console error, every view renders and takes focus on its
- * title, and the main flows work end to end (filter to the empty state
+ * without a console error, every view renders (a navigation from the modal
+ * drawer focuses its title), and the main flows work end to end (filter to the empty state
  * and back, delete with the confirm dialog and undo, a ticket through the
  * dialog's validation and combobox, the accent of the theme). It runs in
  * the `fallback` project too, so the app also works on the browser floor.
@@ -27,17 +27,44 @@ async function open(page, hash = '') {
   await settle(page);
 }
 
-test('starts without a console error and renders every view with focus on its title', async ({ page }) => {
+test('a navigation from the modal drawer lands on the new title (transition({ focus: true }), 2.0)', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await open(page);
+  await page.locator('#menu').click();
+  await settle(page);
+  await page.locator('.ds-drawer__item[data-route="tickets"]').click();
+  await settle(page);
+  await expect(page.locator('#page h1')).toHaveText('Tickets');
+  await expect(page.locator('#page h1')).toBeFocused();
+});
+
+test('dismissing an alert moves the focus to the same action of a neighbour, else to the title (flip() refocus, 2.0)', async ({ page }) => {
+  await open(page);
+  const dismiss = page.locator('#alerts [data-dismiss]');
+  test.skip(await dismiss.count() === 0, 'the fake backend raised no alert');
+  await dismiss.first().focus();
+  await page.keyboard.press('Enter');
+  await settle(page);
+  await expect(dismiss).toHaveCount(0);
+  // The offline alert's "Show" is the same kind of action; without a neighbour the title takes it.
+  const left = await page.locator('#alerts .ds-alert').count();
+  if (left) await expect(page.locator('#alerts .ds-alert .ds-btn').first()).toBeFocused();
+  else await expect(page.locator('#page h1')).toBeFocused();
+});
+
+test('starts without a console error and renders every view; a navigation that took the focus lands on the title', async ({ page }) => {
   const errors = collectErrors(page);
   await open(page);
   await expect(page.locator('.ds-skeleton')).toHaveCount(0);
   await expect(page.locator('.ds-tile')).toHaveCount(4);
   await expect(page.locator('.ds-drawer__item[aria-current="page"]')).toHaveAttribute('data-route', 'overview');
   for (const [route, title] of [['devices', 'Devices'], ['tickets', 'Tickets'], ['settings', 'Settings'], ['overview', 'Overview']]) {
-    await page.locator(`.ds-drawer__item[data-route="${route}"]`).click();
+    const item = page.locator(`.ds-drawer__item[data-route="${route}"]`);
+    await item.click();
     await settle(page);
     await expect(page.locator('#page h1')).toHaveText(title);
-    await expect(page.locator('#page h1')).toBeFocused();
+    // transition({ focus: true }) (2.0): the docked drawer keeps its focus, so the next item is one Tab away.
+    await expect(item).toBeFocused();
     await expect(page.locator('.ds-drawer__item[aria-current="page"]')).toHaveAttribute('data-route', route);
     expect(new URL(page.url()).hash).toBe(`#/${route}`);
   }
