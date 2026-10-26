@@ -347,10 +347,10 @@
   function paginationButtonsHtml() {
     const last = pageCount() - 1;
     const button = (to, label, glyph, blocked) => `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-page="${to}" aria-label="${label}" data-tip="${label}"${blocked ? ' aria-disabled="true"' : ''}>${icon(glyph, 20)}</button>`;
-    return button('first', 'First page', DS.icons.chevronFirst ? 'chevronFirst' : 'chevronLeft', state.page === 0) +
+    return button('first', 'First page', 'chevronFirst', state.page === 0) +
       button('previous', 'Previous page', 'chevronLeft', state.page === 0) +
       button('next', 'Next page', 'chevronRight', state.page >= last) +
-      button('last', 'Last page', DS.icons.chevronLast ? 'chevronLast' : 'chevronRight', state.page >= last);
+      button('last', 'Last page', 'chevronLast', state.page >= last);
   }
 
   function rangeText() {

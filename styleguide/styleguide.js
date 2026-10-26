@@ -1063,13 +1063,11 @@
   /* The four page buttons: one that leads nowhere is aria-disabled (it keeps the focus; its tooltip still names it). */
   function pageButtons() {
     var last = Math.ceil(PAGES.rows.length / PAGES.size) - 1;
-    var first = I.chevronFirst ? 'chevronFirst' : 'chevronLeft';
-    var end = I.chevronLast ? 'chevronLast' : 'chevronRight';
     var button = function (to, name, glyph, blocked) {
       return '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="' + name + '" data-tip="' + name + '" data-sg="page" data-to="' + to + '"' + (blocked ? ' aria-disabled="true"' : '') + '>' + icon(glyph, 20) + '</button>';
     };
-    return button('first', 'First page', first, PAGES.page === 0) + button('previous', 'Previous page', 'chevronLeft', PAGES.page === 0) +
-      button('next', 'Next page', 'chevronRight', PAGES.page === last) + button('last', 'Last page', end, PAGES.page === last);
+    return button('first', 'First page', 'chevronFirst', PAGES.page === 0) + button('previous', 'Previous page', 'chevronLeft', PAGES.page === 0) +
+      button('next', 'Next page', 'chevronRight', PAGES.page === last) + button('last', 'Last page', 'chevronLast', PAGES.page === last);
   }
 
   function paginationHtml() {
@@ -1328,9 +1326,6 @@
       formParts());
   }
 
-  /* A glyph of the set, or a stand-in until the set has it. */
-  function glyph(name, fallback) { return I[name] ? name : fallback; }
-
   /* The form parts of 2.0: hints, markers, the search key, field rows and
      input groups, the filled field, check lists and groups, editing in
      rows, radio tiles, the slider, the composer. setupForms() wires them. */
@@ -1352,7 +1347,7 @@
         '<div class="ds-field"><label class="ds-field__label" for="sg-api-key">API key</label><div class="ds-field__row"><input class="ds-input" id="sg-api-key" value="ex_7f3a9c21d4e8" readonly><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" data-tip="Copy the key" data-sg="copy"><span class="ds-icon-swap">' + icon('copy', 20) + '</span></button></div></div>' +
         '<div class="ds-form-grid--2 ds-form-grid"><div class="ds-field"><label class="ds-field__label" for="sg-quota">Quota (GB)</label><div class="ds-input-group"><input class="ds-input" id="sg-quota" inputmode="numeric" value="50"><span class="ds-input-group__affix" aria-hidden="true">GB</span></div></div>' +
         '<div class="ds-field"><label class="ds-field__label" for="sg-site">Website</label><div class="ds-input-group"><span class="ds-input-group__affix" aria-hidden="true">https://</span><input class="ds-input" id="sg-site" value="example.org" aria-invalid="true" aria-describedby="sg-site-error"></div><small class="ds-field__hint ds-field__hint--error" id="sg-site-error">' + icon('alertCircle', 16) + 'Not reachable.</small></div></div>' +
-        '<div class="ds-field"><label class="ds-field__label" for="sg-password">Password</label><div class="ds-input-group"><input class="ds-input" id="sg-password" type="password" value="correct horse" autocomplete="off"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="sg-password" data-sg="reveal"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon(glyph('eye', 'lock'), 18) + '</span><span class="ds-icon-swap__b">' + icon(glyph('eyeOff', 'key'), 18) + '</span></span></button></div></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-password">Password</label><div class="ds-input-group"><input class="ds-input" id="sg-password" type="password" value="correct horse" autocomplete="off"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="sg-password" data-sg="reveal"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('eye', 18) + '</span><span class="ds-icon-swap__b">' + icon('eyeOff', 18) + '</span></span></button></div></div>' +
         '<div class="ds-form-grid--2 ds-form-grid"><div class="ds-field"><label class="ds-field__label" for="sg-start">Starts</label><input class="ds-input" id="sg-start" type="datetime-local" value="2025-03-12T09:30"></div><div class="ds-field"><label class="ds-field__label" for="sg-time">Daily at</label><input class="ds-input" id="sg-time" type="time" value="02:30"></div></div>') +
       card('Filled field', '<p class="ds-muted">The label sits in the tonal box; the focus is a 2px line at its bottom.</p>' +
         '<div class="ds-field ds-field--inset"><label class="ds-field__label" for="sg-inset-title">Title</label><input class="ds-input" id="sg-inset-title" value="Quarterly report" aria-describedby="sg-inset-title-hint"><small class="ds-field__hint" id="sg-inset-title-hint">Shown in the list.</small></div>' +
@@ -1378,7 +1373,7 @@
       card('Composer and a growing field', '<p class="ds-muted">Both grow with their text; the send button stays at the bottom.</p>' +
         '<div class="ds-field"><label class="ds-field__label" for="sg-grow">Note</label><textarea class="ds-input ds-input--grow" id="sg-grow" rows="1" data-sg="grow" placeholder="A line, or a few"></textarea></div>' +
         '<form class="ds-composer" onsubmit="return false"><textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message" data-sg="grow"></textarea>' +
-        '<button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">' + icon(glyph('send', 'arrowUp'), 20) + '</button></form>') +
+        '<button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">' + icon('send', 20) + '</button></form>') +
       '</div>';
   }
 

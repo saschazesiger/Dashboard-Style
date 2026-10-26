@@ -73,13 +73,6 @@
   font: var(--ds-font-reading);
 }
 
-.demo-section kbd {
-  padding: 0 var(--ds-space-1);
-  border: 1px solid var(--ds-outline);
-  border-radius: var(--ds-radius-xs);
-  font: var(--ds-font-code);
-}
-
 /* ── Welcome ──────────────────────────────────────────────────────── */
 
 .demo-hero {
