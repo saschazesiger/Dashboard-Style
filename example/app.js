@@ -27,7 +27,9 @@
  *                       and a combobox
  *   Settings            switches that apply at once (one cuts the fake
  *                       connection), radio cards that change the theme, a
- *                       form that saves with DS.motion.busy()
+ *                       form whose edited fields are marked
+ *                       (.ds-field--changed) and wait in the save bar
+ *                       (DS.overlay.savebar()), saved with DS.motion.busy()
  *
  * A classic script on top of dist/ds.js and data.js (window.ExampleApi),
  * so it runs from disk. Re-renders go through DS.dom.morphHtml, never
@@ -58,6 +60,8 @@
   const ticketDialog = $('#ticket-dialog');
   const ticketForm = $('#ticket-form');
   const rowMenu = $('#row-menu');
+  // Edits of the organisation form wait here; hiding it from Discard puts the focus on the first field.
+  const savebar = DS.overlay.savebar($('#savebar'), { focusTarget: () => $('#org-name', page) });
 
   /* ── State ────────────────────────────────────────────────────────── */
 
@@ -548,12 +552,15 @@
   }
   DARK_QUERY.addEventListener('change', () => applyAppearance(stored('ex-appearance') || 'system'));
 
+  // In every label of a field that can change: the word joins the label's name while the field is .ds-field--changed.
+  const CHANGED = '<span class="ds-field__changed ds-sr"> (changed)</span>';
+
   function settingsHtml() {
     const s = state.settings;
     const accent = document.documentElement.getAttribute('data-ex-accent') || 'default';
     const appearance = stored('ex-appearance') || 'system';
     const option = (value, label, current) => `<option value="${value}"${value === current ? ' selected' : ''}>${label}</option>`;
-    return head('Settings', 'Switches, the accent and the appearance apply at once. The organisation saves with its button.') +
+    return head('Settings', 'Switches, the accent and the appearance apply at once. Edits of the organisation wait in the save bar.') +
       '<div class="ds-grid-2">' +
         '<section class="ds-card"><h2 class="ds-card__title">Sync</h2>' +
           switchHtml('nightlySync', 'Nightly sync at 02:00', s.nightlySync) +
@@ -577,10 +584,10 @@
       '</div>' +
       '<form class="ds-card ds-form" id="org-form" novalidate><h2 class="ds-card__title">Organisation</h2>' +
         '<div class="ds-form-grid">' +
-          `<div class="ds-field"><label class="ds-field__label" for="org-name">Name</label><input class="ds-input" id="org-name" name="organisation" value="${esc(s.organisation)}" aria-describedby="org-name-hint"><small class="ds-field__hint" id="org-name-hint">Shown in reports and emails.</small></div>` +
-          `<div class="ds-field"><label class="ds-field__label" for="org-contact">Contact email</label><input class="ds-input" id="org-contact" name="contact" type="email" value="${esc(s.contact)}"></div>` +
-          `<div class="ds-field"><label class="ds-field__label" for="org-timezone">Time zone</label><select class="ds-input" id="org-timezone" name="timezone">${['UTC', 'Europe/London', 'America/New_York', 'Asia/Tokyo'].map((zone) => option(zone, zone, s.timezone)).join('')}</select></div>` +
-          `<div class="ds-field"><label class="ds-field__label" for="org-retention">Keep history for</label><select class="ds-input" id="org-retention" name="retention">${[['30', '30 days'], ['90', '90 days'], ['365', 'One year']].map(([v, l]) => option(v, l, s.retention)).join('')}</select></div>` +
+          `<div class="ds-field"><label class="ds-field__label" for="org-name">Name${CHANGED}</label><input class="ds-input" id="org-name" name="organisation" value="${esc(s.organisation)}" aria-describedby="org-name-hint"><small class="ds-field__hint" id="org-name-hint">Shown in reports and emails.</small></div>` +
+          `<div class="ds-field"><label class="ds-field__label" for="org-contact">Contact email${CHANGED}</label><input class="ds-input" id="org-contact" name="contact" type="email" value="${esc(s.contact)}"></div>` +
+          `<div class="ds-field"><label class="ds-field__label" for="org-timezone">Time zone${CHANGED}</label><select class="ds-input" id="org-timezone" name="timezone">${['UTC', 'Europe/London', 'America/New_York', 'Asia/Tokyo'].map((zone) => option(zone, zone, s.timezone)).join('')}</select></div>` +
+          `<div class="ds-field"><label class="ds-field__label" for="org-retention">Keep history for${CHANGED}</label><select class="ds-input" id="org-retention" name="retention">${[['30', '30 days'], ['90', '90 days'], ['365', 'One year']].map(([v, l]) => option(v, l, s.retention)).join('')}</select></div>` +
         '</div>' +
         `<details class="ds-collapsible ds-disclosure"><summary>Advanced${icon('chevronDown', 20, 'ds-chevron')}</summary>` +
           '<div class="ds-disclosure__body"><div class="ds-field"><label class="ds-field__label" for="api-key">API key</label><div class="ds-field__row">' +
@@ -588,12 +595,8 @@
             `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" data-tip="Copy the key" data-act="copy-key"><span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">${icon('copy', 20)}</span><span class="ds-icon-swap__b">${icon('check', 20)}</span></span></button>` +
           '</div></div></div>' +
         '</details>' +
-        '<div class="ds-form-actions">' +
-          '<button class="ds-btn ds-btn--primary" type="submit"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
-            `<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span><span class="ds-btn__face ds-btn__face--done" aria-hidden="true">${icon('check', 16)}Saved</span></span></button>` +
-          '<button class="ds-btn ds-btn--text" type="reset">Reset</button>' +
-          `<p class="ds-meta" id="org-saved">${state.savedAt ? `Last saved today, ${clock(state.savedAt)}` : 'Not changed yet'}</p>` +
-        '</div>' +
+        // Save and Discard live in the save bar (index.html), which submits this form (form="org-form").
+        `<p class="ds-meta" id="org-saved">${state.savedAt ? `Last saved today, ${clock(state.savedAt)}` : 'Not changed yet'}</p>` +
       '</form>';
   }
 
@@ -667,6 +670,8 @@
   }
 
   function renderView() {
+    // A new render drops unsaved edits of the organisation form, and its bar with them.
+    savebar.hide();
     // The devices view fills the window: its full-page table takes what is left (.ds-view--fill).
     view.classList.toggle('ds-view--fill', state.route === 'devices');
     DS.dom.morphHtml(page, VIEWS[state.route].html(), { replace: true });
@@ -1257,9 +1262,39 @@
     }
   });
 
+  /* The organisation form: a field whose value differs from the saved one is
+     .ds-field--changed, and the save bar shows while any is (its count
+     changes at once, or after its exit while it leaves). */
+  function syncOrgChanges() {
+    const form = $('#org-form', page);
+    const changed = form ? $$('[name]', form).filter((field) => {
+      const differs = field.value !== String(state.settings[field.name] ?? '');
+      field.closest('.ds-field').classList.toggle('ds-field--changed', differs);
+      return differs;
+    }).length : 0;
+    if (!changed) {
+      savebar.hide();
+      return;
+    }
+    savebar.update(() => { $('#savebar-text').textContent = changed === 1 ? '1 unsaved change' : `${changed} unsaved changes`; });
+    savebar.show();
+  }
+
+  page.addEventListener('input', (event) => {
+    if (event.target.closest('#org-form')) syncOrgChanges();
+  });
+
+  $('#savebar-discard').addEventListener('click', () => {
+    const form = $('#org-form', page);
+    if (form) form.reset();
+    syncOrgChanges();
+  });
+
   page.addEventListener('submit', async (event) => {
     if (event.target.id !== 'org-form') return;
     event.preventDefault();
+    // Enter in a field submits through the bar's Save (the form's default button): nothing to save without an edit.
+    if (!savebar.shown) return;
     const form = event.target;
     const name = $('#org-name', form);
     const contact = $('#org-contact', form);
@@ -1272,9 +1307,16 @@
       return;
     }
     const values = Object.fromEntries(new FormData(form));
-    state.settings = await M.busy(event.submitter || $('[type="submit"]', form), () => api.saveSettings(values));
+    state.settings = await M.busy($('#savebar-save'), () => api.saveSettings(values));
     state.savedAt = Date.now();
-    $('#org-saved').textContent = `Last saved today, ${clock(state.savedAt)}`;
+    if (!form.isConnected) return;
+    // The saved values are the form's new defaults, so Discard returns to them.
+    for (const field of $$('[name]', form)) {
+      if (field.tagName === 'SELECT') for (const option of field.options) option.defaultSelected = option.selected;
+      else field.defaultValue = field.value;
+    }
+    $('#org-saved', form).textContent = `Last saved today, ${clock(state.savedAt)}`;
+    syncOrgChanges();
     DS.overlay.toast(toasts, 'Organisation saved.');
   });
 

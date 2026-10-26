@@ -34,7 +34,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Search per keystroke, filter chips, sort with the turning arrow | Devices | `renderRows()` |
 | Bulk selection: header box with `indeterminate`, the `.ds-selection-bar` crossing with the list's title in one `.ds-swap` slot | Devices | `syncSelection()`, `bulkHtml()` |
 | A full-page table (`.ds-table-wrap--fill` in a `.ds-view--fill`) with a pinned first column (`.ds-table--pin-first`: checkbox and row link stay, a click anywhere opens the row), row actions in `.ds-table__actions` that show on demand (`.ds-hover-actions`), the wrappers' edges reported by `DS.dom.scrollEdges()` | Devices | `devicesHtml()`, `rowHtml()`, `renderView()`, `watchEdges()` |
-| Pagination: rows per page, the range, blocked ends with `aria-disabled` | Devices | `paginationHtml()`, `syncPagination()`, the `data-page` click |
+| Pagination (`.ds-pagination`): rows per page, the range, blocked ends with `aria-disabled` | Devices | `paginationHtml()`, `syncPagination()`, the `data-page` click |
 | Empty state after a filter, and back | Devices | `renderRows()` |
 | Refresh: `.ds-stale` and the loading bar (`DS.motion.refresh()`) | Devices | `refreshDevices()` |
 | Row menu (`DS.overlay`, keyboard included) | Devices | `toggleMenu()`, the `rowMenu` listener |
@@ -46,4 +46,4 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Switches that apply at once | Settings | the `data-setting` change |
 | Radio cards that switch the theme (tokens on `.ds-theme`) | Settings | the `accent` change, `theme.css` |
 | Appearance: the shipped `themes/dark.css` on a link whose `media` follows the choice, set before the first paint | Settings | the `appearance` change, `applyAppearance()`, the script in `index.html` |
-| Form saved with `DS.motion.busy()`, a disclosure (`.ds-disclosure`), icon swap, a field and its button (`.ds-field__row`) | Settings | the `org-form` submit, `copy-key` |
+| Edited fields marked (`.ds-field--changed`), Save and Discard in the save bar (`.ds-savebar`, `DS.overlay.savebar()`), saved with `DS.motion.busy()`; a disclosure (`.ds-disclosure`), icon swap, a field and its button (`.ds-field__row`) | Settings | `syncOrgChanges()`, the `org-form` submit, `savebar-discard`, `copy-key`; the bar in `index.html` |

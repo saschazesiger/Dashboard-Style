@@ -87,6 +87,22 @@
           </div>
         </div>
       </div>
+      <!-- Unsaved edits of the organisation form (Settings): the last child of the view, shown through DS.overlay.savebar(). -->
+      <div class="ds-savebar" id="savebar">
+        <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
+          <p class="ds-savebar__text" id="savebar-text">1 unsaved change</p>
+          <div class="ds-savebar__actions">
+            <button class="ds-btn ds-btn--text" type="button" id="savebar-discard">Discard</button>
+            <button class="ds-btn ds-btn--primary" type="submit" form="org-form" id="savebar-save">
+              <span class="ds-btn__faces">
+                <span class="ds-btn__face">Save</span>
+                <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+                <span class="ds-btn__face ds-btn__face--done" aria-hidden="true" data-icon-done>Saved</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </div>

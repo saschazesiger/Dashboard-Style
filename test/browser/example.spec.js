@@ -217,6 +217,38 @@ test('the accent radio cards switch the theme through its tokens and keep the ch
   expect(await primary()).toBe(blue);
 });
 
+test('edits of the organisation wait in the save bar: changed fields marked, Discard restores, Save keeps them (2.0)', async ({ page }) => {
+  await open(page, '#/settings');
+  const name = page.locator('#org-name');
+  const field = page.locator('#org-form .ds-field', { has: name });
+  const bar = page.locator('#savebar .ds-savebar__bar');
+  const saved = await name.inputValue();
+  await expect(bar).toBeHidden();
+  await name.fill('Example Labs');
+  await expect(bar).toBeVisible();
+  await expect(bar).toContainText('1 unsaved change');
+  await expect(field).toHaveClass(/ds-field--changed/);
+  await expect(page.locator('#main')).toHaveAttribute('data-ds-savebar', '');
+  await page.locator('#org-timezone').selectOption('Asia/Tokyo');
+  await expect(bar).toContainText('2 unsaved changes');
+  // Discard: the saved values come back, the bar leaves and the focus lands on the first field.
+  await page.locator('#savebar-discard').click();
+  await expect(bar).toBeHidden();
+  await expect(name).toHaveValue(saved);
+  await expect(name).toBeFocused();
+  await expect(page.locator('#org-form .ds-field--changed')).toHaveCount(0);
+  // Save: busy until the backend answered, then the bar leaves and a snackbar says so; the new value is the one to return to.
+  await name.fill('Example Labs');
+  await page.locator('#savebar-save').click();
+  await expect(page.locator('.ds-toast', { hasText: 'Organisation saved.' })).toBeVisible();
+  await expect(bar).toBeHidden();
+  await expect(field).not.toHaveClass(/ds-field--changed/);
+  await name.fill('Example Labs 2');
+  await expect(bar).toBeVisible();
+  await page.locator('#savebar-discard').click();
+  await expect(name).toHaveValue('Example Labs');
+});
+
 test('a view opened from the overview offers the way back in its page head', async ({ page }) => {
   await open(page);
   await page.locator('.ds-tile[href="#/devices?status=warning"]').click();
