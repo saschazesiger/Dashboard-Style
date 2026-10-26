@@ -191,7 +191,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
   `panelLeft`, `keyboard`, `terminal`, `tag`, `sun`, `moon`; 109 in all), `DS.icons.fill()` for `[data-icon]` /
   `data-icon-size`; `.ds-btn--disclosure`, `.ds-btn--adaptive` with `.ds-btn__label`, `.ds-link--quiet`,
   `.ds-link-btn--quiet`; action and input chips (`button.ds-chip`, `.ds-chip--input`, `.ds-chip__icon`, `__label`,
-  `__trailing`), `.ds-chips--wrap` and the chip hooks; `.ds-badge` (`--neutral`, `--ok`, `--warning`, `--error`) and
+  `__trailing`), `.ds-chips--wrap` and the chip hooks; `.ds-badge` (`--neutral`, `--ok`, `--warning`, `--error`; the
+  disabled model in a blocked host) and
   `.ds-tag` (`--neutral`); selected tiles and interactive cards (`aria-pressed`, `-checked`, `-selected`;
   `--ds-tile-selected-bg`, `--ds-card-selected-bg`, `--ds-selected-ring`), the button form of `.ds-card__action`,
   `.ds-card--elevated` (`--ds-card-shadow`), `.ds-tile__value--empty`, `.ds-tiles--3`, `--ds-tile-min-width`,
@@ -266,7 +267,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
 - Forced colours: a focused `.ds-input`, date field, input group and composer show a focus outline (the inset-shadow
   ring disappeared there); keyboard focus on the current drawer item shows; a checked, focused switch shows a
   `CanvasText` ring; the selected segmented option is no longer told by weight alone; `aria-disabled` controls look
-  blocked.
+  blocked, and a focused one (button, chip, switch, interactive card, tile) rings in `CanvasText`, not the brand
+  colour.
 - Busy and done buttons took Enter, Space and form submissions (only the pointer was blocked); `busy()` blanked and
   blocked a button without a done face for `--ds-hold-success`.
 - `flip()` dropped focus to `<body>` when the focused item went.

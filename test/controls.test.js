@@ -431,3 +431,39 @@ describe('the switch (2.0)', () => {
     assert.match(own(narrow, '.ds-switch-list > .ds-switch')['grid-template-areas'], /"track meta state"/);
   });
 });
+
+describe('blocked hosts and selected cards (2.0 review)', () => {
+  it('rings a focused aria-disabled control in a system colour in forced colours (its colours are not forced)', () => {
+    for (const [file, selector] of [
+      ['src/components/button.css', '.ds-btn[aria-disabled="true"]:focus-visible'],
+      ['src/components/chip.css', '.ds-chip__input[aria-disabled="true"]:focus-visible + .ds-chip__body'],
+      ['src/components/switch.css', '.ds-switch input[aria-disabled="true"]:focus-visible + .ds-switch__track'],
+      ['src/components/card.css', '.ds-card--interactive[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))'],
+      ['src/components/tile.css', ':is(button, a).ds-tile[aria-disabled="true"]:focus-visible'],
+    ]) {
+      const forced = forcedColorBlocks(read(file)).join('\n');
+      assert.equal(own(forced, selector)['outline-color'], 'CanvasText', `${file}: ${selector}`);
+    }
+  });
+
+  it('gives a badge in a blocked host the disabled model, GrayText in forced colours', () => {
+    const css = read('src/components/badge.css');
+    const blocked = rules(withoutAtRuleBlocks(css, /@media/)).find((rule) => rule.selector.includes('.ds-btn:disabled') && rule.selector.endsWith(' .ds-badge'));
+    assert.ok(blocked, 'a rule for a badge in a blocked host');
+    for (const host of ['.ds-btn[aria-disabled="true"]:not([aria-busy="true"])', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body', '.ds-tabs__tab:is(:disabled, [aria-disabled="true"])']) {
+      assert.ok(blocked.selector.includes(host), host);
+    }
+    const body = Object.fromEntries(declarations(`${blocked.body};`).map((entry) => [entry.property, entry.value]));
+    assert.equal(body.background, 'var(--ds-disabled-fill, var(--ds-badge-bg, var(--ds-accent)))');
+    assert.equal(body.color, 'var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)))');
+    const forced = rules(forcedColorBlocks(css).join('\n')).find((rule) => rule.selector === blocked.selector);
+    assert.match(forced?.body ?? '', /color: GrayText/);
+  });
+
+  it('keeps the outer pixel of a selected card\'s ring while a ripple clips it', () => {
+    const block = atRuleBlocks(read('src/components/ripple.css'), /@supports \(overflow-clip-margin: 1px\)/).join('\n');
+    const rule = rules(block).find((item) => item.selector.includes('.ds-card--interactive'));
+    assert.ok(rule && /\[aria-pressed="true"\]/.test(rule.selector) && rule.selector.includes(':has(> .ds-press-ripple)'));
+    assert.match(rule.body, /overflow-clip-margin: 1px/);
+  });
+});

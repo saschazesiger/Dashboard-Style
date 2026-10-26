@@ -1348,8 +1348,10 @@ A count on a button, chip, tab or drawer item:
   row ("Failed", "2 errors"): colour is never the only signal. An empty badge takes no room.
 - On a tinted host (a pressed toggle, `.ds-btn--tonal`, an open disclosure button, a checked chip, an input chip, a
   selected table row) the default badge turns to `--ds-primary` / `--ds-on-primary` and the neutral one to
-  `--ds-surface` / `--ds-text-2`, so it never melts into the tint. It dims with a disabled host. Forced colours:
-  `Canvas` and `CanvasText` with a `CanvasText` outline.
+  `--ds-surface` / `--ds-text-2`, so it never melts into the tint. In a disabled or `aria-disabled` button, chip, tab
+  or drawer item it takes the disabled model over any tone (`--ds-disabled-fill`, `--ds-disabled-ink`; a theme that
+  dims instead keeps its colours and fades it with the host). Forced colours: `Canvas` and `CanvasText` with a
+  `CanvasText` outline (`GrayText` in a blocked host).
 - Motion: colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
   goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`); the number itself changes at once, and nothing
   plays on load ([motion.md](motion.md#a-count-badge)).

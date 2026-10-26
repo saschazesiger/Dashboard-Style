@@ -405,7 +405,8 @@
       color: HighlightText;
     }
 
-    .ds-chip__input:checked:focus-visible + .ds-chip__body {
+    .ds-chip__input:checked:focus-visible + .ds-chip__body,
+    .ds-chip__input[aria-disabled="true"]:focus-visible + .ds-chip__body {
       outline-color: CanvasText;
     }
 

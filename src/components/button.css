@@ -624,7 +624,10 @@
       color: HighlightText;
     }
 
+    /* Blocked controls stay focusable (their tooltip says why); unforced,
+       their ring would keep the brand colour. */
     .ds-btn[aria-pressed="true"]:focus-visible,
+    .ds-btn[aria-disabled="true"]:focus-visible,
     :is(.ds-btn--disclosure, .ds-btn[aria-haspopup="dialog"])[aria-expanded="true"]:focus-visible {
       outline-color: CanvasText;
     }

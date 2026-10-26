@@ -467,10 +467,72 @@ test.describe('forced colours', () => {
     expect(await lock('#switch-locked')).toBe(system.highlight);
   });
 
+  test('a focused aria-disabled button, chip, switch, card or tile rings in CanvasText, not the brand colour', async ({ page }) => {
+    await page.emulateMedia({ forcedColors: 'active' });
+    await open(page);
+    await page.evaluate(() => {
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin',
+        '<div class="fx-row"><button class="ds-card ds-card--interactive" type="button" id="card-blocked" aria-disabled="true"><span class="ds-card__title">Premium</span></button>' +
+        '<button class="ds-tile" type="button" id="tile-blocked" aria-disabled="true"><span class="ds-tile__label">Archived</span><span class="ds-tile__value">4</span></button></div>');
+    });
+    const canvasText = await page.evaluate(() => { const el = document.createElement('span'); el.style.color = 'CanvasText'; document.body.append(el); const out = getComputedStyle(el).color; el.remove(); return out; });
+    for (const [focus, ring] of [
+      ['#btn-locked-off', '#btn-locked-off'],
+      ['#chip-aria-disabled input', '#chip-aria-disabled .ds-chip__body'],
+      ['#switch-aria-input', '#switch-aria .ds-switch__track'],
+      ['#card-blocked', '#card-blocked'],
+      ['#tile-blocked', '#tile-blocked'],
+    ]) {
+      await focusByKeyboard(page, page.locator(focus));
+      const outline = await styleOf(page.locator(ring), ['outline-style', 'outline-color']);
+      expect(outline['outline-style'], focus).toBe('solid');
+      expect(outline['outline-color'], focus).toBe(canvasText);
+    }
+  });
+
   test('the fixture in forced colours (settled shot)', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' });
     await open(page, { attach: false });
     await expect(page).toHaveScreenshot('controls-2-forced.png', { fullPage: true });
+  });
+});
+
+test.describe('blocked hosts and selected cards (2.0 review)', () => {
+  test('a badge in a disabled or aria-disabled button or chip takes the disabled model', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => {
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin',
+        '<div class="fx-row"><button class="ds-btn" type="button" disabled>Inbox <span class="ds-badge" id="badge-disabled">3</span></button>' +
+        '<button class="ds-btn" type="button" aria-disabled="true">Alerts <span class="ds-badge ds-badge--error" id="badge-aria">2</span></button>' +
+        '<label class="ds-chip"><input class="ds-chip__input" type="checkbox" disabled><span class="ds-chip__body"><span>Failed</span> <span class="ds-badge" id="badge-chip">5</span></span></label></div>');
+    });
+    await settle(page);
+    const fill = await colourOf(page, '--ds-disabled-fill');
+    const ink = await colourOf(page, '--ds-disabled-ink');
+    for (const id of ['#badge-disabled', '#badge-aria', '#badge-chip']) {
+      const look = await styleOf(page.locator(id), ['background-color', 'color']);
+      expect(look, id).toEqual({ 'background-color': fill, color: ink });
+    }
+    // An enabled host keeps the tint.
+    expect((await styleOf(page.locator('#badge'), ['background-color']))['background-color']).toBe(await colourOf(page, '--ds-accent'));
+  });
+
+  test('a selected interactive card keeps its 2px ring while a ripple is inside (overflow-clip-margin)', async ({ page }) => {
+    await open(page);
+    const card = page.locator('#card-selected');
+    await card.scrollIntoViewIfNeeded();
+    const rect = await card.boundingBox();
+    await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
+    await page.mouse.down();
+    await expect(card.locator(':scope > .ds-press-ripple')).toHaveCount(1);
+    const during = await card.evaluate((el) => ({
+      overflow: getComputedStyle(el).overflowX,
+      margin: getComputedStyle(el).getPropertyValue('overflow-clip-margin'),
+      supported: CSS.supports('overflow-clip-margin', '1px'),
+    }));
+    await page.mouse.up();
+    expect(during.overflow).toBe('clip');
+    if (during.supported) expect(during.margin).toBe('1px');
   });
 });
 

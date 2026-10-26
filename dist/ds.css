@@ -3449,7 +3449,10 @@
       color: HighlightText;
     }
 
+    /* Blocked controls stay focusable (their tooltip says why); unforced,
+       their ring would keep the brand colour. */
     .ds-btn[aria-pressed="true"]:focus-visible,
+    .ds-btn[aria-disabled="true"]:focus-visible,
     :is(.ds-btn--disclosure, .ds-btn[aria-haspopup="dialog"])[aria-expanded="true"]:focus-visible {
       outline-color: CanvasText;
     }
@@ -4504,6 +4507,11 @@
     .ds-card--interactive[aria-disabled="true"] :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta, .ds-card__action) {
       color: GrayText;
     }
+
+    /* It stays focusable; unforced, its ring would keep the brand colour. */
+    .ds-card--interactive[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible)) {
+      outline-color: CanvasText;
+    }
   }
 
   /* Cards side by side share one height; their link rows line up at the
@@ -5068,6 +5076,11 @@
 
     :is(button, a).ds-tile[aria-disabled="true"] :is(.ds-tile__label, .ds-tile__value, .ds-tile__note) {
       color: GrayText;
+    }
+
+    /* It stays focusable; unforced, its ring would keep the brand colour. */
+    :is(button, a).ds-tile[aria-disabled="true"]:focus-visible {
+      outline-color: CanvasText;
     }
   }
 
@@ -11023,7 +11036,8 @@
       color: HighlightText;
     }
 
-    .ds-chip__input:checked:focus-visible + .ds-chip__body {
+    .ds-chip__input:checked:focus-visible + .ds-chip__body,
+    .ds-chip__input[aria-disabled="true"]:focus-visible + .ds-chip__body {
       outline-color: CanvasText;
     }
 
@@ -11077,14 +11091,17 @@
  * disclosure button, a checked chip, an input chip, a selected table row)
  * the default badge turns to --ds-primary / --ds-on-primary and the
  * neutral one to --ds-surface / --ds-text-2, so it never melts into the
- * tint. A badge in a blocked host fades with it.
+ * tint. In a blocked host (a disabled or aria-disabled button, chip, tab
+ * or drawer item) it takes the disabled model: --ds-disabled-fill and
+ * --ds-disabled-ink over any tone (GrayText in forced colours).
  *
  * Motion: colours glide on --ds-dur-fast. A count that appears pops in
  * (DS.motion.enter(badge, 'pop')), one that goes pops out
  * (DS.motion.leave(badge, 'pop', { then: 'hide' })); the number itself
  * changes at once, and nothing plays on load.
  *
- * Forced colours: Canvas / CanvasText with a CanvasText outline.
+ * Forced colours: Canvas / CanvasText with a CanvasText outline (GrayText
+ * in a blocked host).
  *
  * Hooks: --ds-badge-size (20px), --ds-badge-radius (--ds-radius-action,
  * never above half the size), --ds-badge-bg, --ds-badge-color.
@@ -11146,6 +11163,15 @@
     --ds-badge-color: var(--ds-text-2);
   }
 
+  /* In a blocked host (disabled, aria-disabled) the disabled model, over
+     any tone: the 12% container and the 38% ink. A theme that dims instead
+     (--ds-disabled-fill and -ink set to initial) keeps the badge's colours
+     and the host's opacity fades it. */
+  :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"]), .ds-tabs__tab:is(:disabled, [aria-disabled="true"]), .ds-drawer__item:is(:disabled, [aria-disabled="true"])) .ds-badge {
+    background: var(--ds-disabled-fill, var(--ds-badge-bg, var(--ds-accent)));
+    color: var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)));
+  }
+
   @media (forced-colors: active) {
     .ds-badge {
       forced-color-adjust: none;
@@ -11153,6 +11179,11 @@
       outline-offset: -1px;
       background: Canvas;
       color: CanvasText;
+    }
+
+    :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"]), .ds-tabs__tab:is(:disabled, [aria-disabled="true"]), .ds-drawer__item:is(:disabled, [aria-disabled="true"])) .ds-badge {
+      outline-color: GrayText;
+      color: GrayText;
     }
   }
 }
@@ -11592,8 +11623,10 @@
       color: GrayText;
     }
 
-    /* A checked switch keeps its ring in CanvasText (the track is Highlight). */
-    .ds-switch input:checked:focus-visible + .ds-switch__track {
+    /* A checked switch keeps its ring in CanvasText (the track is Highlight),
+       and so does a blocked one (its track is not forced). */
+    .ds-switch input:checked:focus-visible + .ds-switch__track,
+    .ds-switch input[aria-disabled="true"]:focus-visible + .ds-switch__track {
       outline-color: CanvasText;
     }
 
@@ -17792,8 +17825,10 @@
  *
  * Progressive:
  * - overflow-clip-margin (a chip's ripple covers the chip's 1px border
- *   like its state layer does): without it the ripple stops at the
- *   padding box.
+ *   like its state layer does, and a selected interactive card keeps the
+ *   outer pixel of its 2px ring while a ripple is inside): without it the
+ *   ripple stops at the padding box and the card's ring thins to 1px for
+ *   the press.
  */
 
 @layer ds.components {
@@ -17808,8 +17843,13 @@
     isolation: isolate;
   }
 
+  /* A selected interactive card draws its ring over its 1px border (its
+     ::after at inset -1px): the clip keeps that pixel, so the ring does not
+     thin while pressed (its border is transparent, so the ripple there is
+     under the ring). */
   @supports (overflow-clip-margin: 1px) {
-    :where(.ds-ripples .ds-chip__body:has(> .ds-press-ripple)) {
+    :where(.ds-ripples .ds-chip__body:has(> .ds-press-ripple)),
+    :where(.ds-ripples .ds-card--interactive:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))):has(> .ds-press-ripple)) {
       overflow-clip-margin: 1px;
     }
   }

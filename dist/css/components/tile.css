@@ -258,6 +258,11 @@
     :is(button, a).ds-tile[aria-disabled="true"] :is(.ds-tile__label, .ds-tile__value, .ds-tile__note) {
       color: GrayText;
     }
+
+    /* It stays focusable; unforced, its ring would keep the brand colour. */
+    :is(button, a).ds-tile[aria-disabled="true"]:focus-visible {
+      outline-color: CanvasText;
+    }
   }
 
   /* Print: a short tile is never split across pages. */

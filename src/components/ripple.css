@@ -56,8 +56,10 @@
  *
  * Progressive:
  * - overflow-clip-margin (a chip's ripple covers the chip's 1px border
- *   like its state layer does): without it the ripple stops at the
- *   padding box.
+ *   like its state layer does, and a selected interactive card keeps the
+ *   outer pixel of its 2px ring while a ripple is inside): without it the
+ *   ripple stops at the padding box and the card's ring thins to 1px for
+ *   the press.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -74,8 +76,13 @@
     isolation: isolate;
   }
 
+  /* A selected interactive card draws its ring over its 1px border (its
+     ::after at inset -1px): the clip keeps that pixel, so the ring does not
+     thin while pressed (its border is transparent, so the ripple there is
+     under the ring). */
   @supports (overflow-clip-margin: 1px) {
-    :where(.ds-ripples .ds-chip__body:has(> .ds-press-ripple)) {
+    :where(.ds-ripples .ds-chip__body:has(> .ds-press-ripple)),
+    :where(.ds-ripples .ds-card--interactive:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))):has(> .ds-press-ripple)) {
       overflow-clip-margin: 1px;
     }
   }

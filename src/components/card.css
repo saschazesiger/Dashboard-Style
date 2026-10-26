@@ -335,6 +335,11 @@
     .ds-card--interactive[aria-disabled="true"] :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta, .ds-card__action) {
       color: GrayText;
     }
+
+    /* It stays focusable; unforced, its ring would keep the brand colour. */
+    .ds-card--interactive[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible)) {
+      outline-color: CanvasText;
+    }
   }
 
   /* Cards side by side share one height; their link rows line up at the

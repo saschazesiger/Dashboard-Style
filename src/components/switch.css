@@ -434,8 +434,10 @@
       color: GrayText;
     }
 
-    /* A checked switch keeps its ring in CanvasText (the track is Highlight). */
-    .ds-switch input:checked:focus-visible + .ds-switch__track {
+    /* A checked switch keeps its ring in CanvasText (the track is Highlight),
+       and so does a blocked one (its track is not forced). */
+    .ds-switch input:checked:focus-visible + .ds-switch__track,
+    .ds-switch input[aria-disabled="true"]:focus-visible + .ds-switch__track {
       outline-color: CanvasText;
     }
 
