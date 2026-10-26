@@ -33,7 +33,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | A live feed as a timeline with icon markers (`.ds-timeline`, `flip({ live: true })` with `morphHtml`) | Overview | `activityHtml()`, `poll()` |
 | Search per keystroke, filter chips, sort with the turning arrow | Devices | `renderRows()` |
 | Bulk selection: header box with `indeterminate`, the `.ds-selection-bar` crossing with the list's title in one `.ds-swap` slot | Devices | `syncSelection()`, `bulkHtml()` |
-| A full-page table (`.ds-table-wrap--fill` in a `.ds-view--fill`) with a pinned first column (`.ds-table--pin-first`: checkbox and row link stay, a click anywhere opens the row), row actions in `.ds-table__actions` | Devices | `devicesHtml()`, `rowHtml()`, `renderView()` |
+| A full-page table (`.ds-table-wrap--fill` in a `.ds-view--fill`) with a pinned first column (`.ds-table--pin-first`: checkbox and row link stay, a click anywhere opens the row), row actions in `.ds-table__actions` that show on demand (`.ds-hover-actions`), the wrappers' edges reported by `DS.dom.scrollEdges()` | Devices | `devicesHtml()`, `rowHtml()`, `renderView()`, `watchEdges()` |
 | Pagination: rows per page, the range, blocked ends with `aria-disabled` | Devices | `paginationHtml()`, `syncPagination()`, the `data-page` click |
 | Empty state after a filter, and back | Devices | `renderRows()` |
 | Refresh: `.ds-stale` and the loading bar (`DS.motion.refresh()`) | Devices | `refreshDevices()` |

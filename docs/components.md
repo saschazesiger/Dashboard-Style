@@ -1642,7 +1642,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 - `td.ds-table__actions` holds a row's own buttons at its end: end-aligned, no wider than its buttons, which hang
   into the cell's padding, so the row keeps its height and the last icon lines up with the column's edge. Inside an
   element with `.ds-hover-actions` the buttons show on demand (row hover, focus, selection, an open menu; always on
-  touch screens).
+  touch screens): `<td class="ds-table__actions"><span class="ds-hover-actions">...buttons...</span></td>` (the span,
+  not the cell, so the row's hairline and layers stay).
 - `<tfoot>` rows sum up the table: the label type in `--ds-text`, tabular figures, a hairline (`--ds-line-2`) above,
   no hover, press or row link.
 - Density hooks: the header cells are `--ds-table-head-height` (48px), the rows `--ds-table-row-height` (52px) and

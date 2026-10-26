@@ -333,6 +333,9 @@
 
   const liveBody = $('#live-body');
   const liveEmpty = $('#live-empty');
+  /* The wrapper reports which ends have more columns (DS.dom.scrollEdges): on a phone it fades at the
+     side that still has some, also where scroll timelines are missing. */
+  DS.dom.scrollEdges(liveBody.closest('.ds-table-wrap'));
 
   /* The active filters as input chips: each removes its filter; Clear filters removes them all. */
   const liveActive = $('#live-active');

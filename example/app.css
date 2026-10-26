@@ -50,12 +50,15 @@
 }
 
 /* The last child of the devices page: a column that takes what is left of
-   a .ds-view--fill, the full-page table filling it above its pagination. */
+   a .ds-view--fill, the full-page table filling it above its pagination.
+   No wider than the page: the table scrolls sideways inside its wrapper
+   (the page's grid track would otherwise grow to the table's width). */
 .ex-list {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   gap: var(--ds-space-2);
+  min-width: 0;
   min-height: 0;
 }
 

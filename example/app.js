@@ -15,7 +15,8 @@
  *                       columns that fill once (.ds-columns), a live feed
  *                       (.ds-timeline), open tickets in a row list (.ds-list)
  *   Devices             a full-page table (.ds-table-wrap--fill) with a
- *                       pinned first column and pagination, search, filter
+ *                       pinned first column (DS.dom.scrollEdges), row
+ *                       actions on demand and pagination, search, filter
  *                       chips, sort, bulk selection with the selection bar,
  *                       a row menu, a confirm dialog, undo in a snackbar, an
  *                       empty state, a refresh with DS.motion.refresh(),
@@ -312,8 +313,8 @@
       `<td class="ds-col--secondary">${esc(device.location)}</td>` +
       `<td class="ds-num">${ago(device.lastSeen)}</td>` +
       `<td>${status(device.status)}</td>` +
-      `<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" data-menu="${device.id}" aria-label="Actions for ${esc(device.name)}" ` +
-      `aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu">${icon('moreVertical', 18)}</button></td></tr>`;
+      `<td class="ds-table__actions"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" data-menu="${device.id}" aria-label="Actions for ${esc(device.name)}" ` +
+      `aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu">${icon('moreVertical', 18)}</button></span></td></tr>`;
   }
 
   /* The bulk slot holds the list's title and count, or the selection bar
@@ -651,10 +652,25 @@
     }
   }
 
+  /* The table wrappers report which ends have more columns (DS.dom.scrollEdges):
+     the edge fades and the pinned column's hairline where scroll timelines are
+     missing, the unmasked scrollbar strip and the pinned column's width (focus
+     never lands under it) everywhere. A wrapper the new view dropped lets go. */
+  const edges = new Map();
+  function watchEdges() {
+    for (const [wrap, handle] of edges) {
+      if (wrap.isConnected) continue;
+      handle.destroy();
+      edges.delete(wrap);
+    }
+    for (const wrap of $$('.ds-table-wrap', page)) if (!edges.has(wrap)) edges.set(wrap, DS.dom.scrollEdges(wrap));
+  }
+
   function renderView() {
     // The devices view fills the window: its full-page table takes what is left (.ds-view--fill).
     view.classList.toggle('ds-view--fill', state.route === 'devices');
     DS.dom.morphHtml(page, VIEWS[state.route].html(), { replace: true });
+    watchEdges();
     emptyShown = state.route === 'devices' && !visibleDevices().length;
     for (const item of $$('[data-route]', nav)) {
       if (item.getAttribute('data-route') === state.route) item.setAttribute('aria-current', 'page');

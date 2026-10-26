@@ -1043,7 +1043,7 @@
       '<td class="ds-nowrap">' + row.model + '</td><td class="ds-nowrap">' + row.owner + '</td><td class="ds-nowrap" data-tip="' + row.place + '">' + row.place + '</td>' +
       '<td class="ds-num ds-nowrap">' + row.bought + '</td><td class="ds-nowrap">' + row.warranty + '</td><td class="ds-nowrap">' + row.system + '</td><td class="ds-nowrap">' + row.serial + '</td>' +
       '<td class="ds-num">' + row.load + '%</td>' +
-      (actions ? '<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ' + row.name + '" data-tip="Edit" data-sg="row-edit" data-name="' + row.name + '">' + icon('pencil', 20) + '</button></td>' : '') + '</tr>';
+      (actions ? '<td class="ds-table__actions"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ' + row.name + '" data-tip="Edit" data-sg="row-edit" data-name="' + row.name + '">' + icon('pencil', 20) + '</button></span></td>' : '') + '</tr>';
   }
 
   var PAGES = { rows: fleet(128), size: 5, page: 0 };
@@ -1153,7 +1153,7 @@
           return '<tr data-ds-key="' + row.id + '"><td><input type="checkbox" aria-label="Select ' + row.name + '" data-sg="bulk-row"></td><td class="ds-nowrap">' + row.name + '</td><td>' + row.model + '</td></tr>';
         }).join('') + '</tbody></table></div>') +
       '</div>' +
-      card('Pinned first column, row actions and a summary row', '<p class="ds-muted">Narrow the window: the columns scroll under the pinned device column, which keeps opening its row from anywhere on the row. The edit button sits at the row\'s end; the footer sums up the table.</p>' +
+      card('Pinned first column, row actions and a summary row', '<p class="ds-muted">Narrow the window: the columns scroll under the pinned device column, which keeps opening its row from anywhere on the row. The edit button at the row\'s end shows on demand; the footer sums up the table.</p>' +
         '<div class="ds-table-wrap"><table class="ds-table ds-table--wide ds-table--interactive ds-table--pin-first" id="sg-pinned"><caption class="ds-sr">Devices with a pinned column</caption>' +
         '<thead>' + wideHead(true) + '</thead><tbody>' + wide.map(function (row) { return wideRow(row, true); }).join('') + '</tbody>' +
         '<tfoot><tr><th scope="row">6 devices</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ds-num">' + Math.round(wide.reduce(function (sum, row) { return sum + row.load; }, 0) / wide.length) + '%</td><td></td></tr></tfoot></table></div>') +
@@ -1168,22 +1168,22 @@
         '<div class="ds-scroll-x" tabindex="0" role="region" aria-label="Check-ins per month" id="sg-months"><div class="sg-months">' + months.map(function (month, index) {
           return '<div class="sg-month"><span class="ds-meta">' + month + '</span><strong>' + (380 + ((index * 53) % 120)) + '</strong></div>';
         }).join('') + '</div></div>') +
-      card('"Latest" pill', '<p class="ds-muted">Scroll the log up: the pill shows at its bottom edge, a click goes back to the end.</p>' +
+      card('"Latest" pill', '<p class="ds-muted">Scroll the log up: the pill shows at its bottom edge, a click goes back to the end (DS.dom.followEnd).</p>' +
         '<div class="sg-log" id="sg-log">' + fleet(14).map(function (row, index) { return '<p class="sg-log__line"><span class="ds-meta">09:' + String(10 + index).padStart(2, '0') + '</span> ' + row.name + ' checked in</p>'; }).join('') +
-        '<div class="ds-jump"><div class="ds-presence" hidden id="sg-jump"><button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Latest" data-tip="Latest" data-sg="log-end">' + icon('arrowDown', 20) + '</button></div></div></div>') +
+        '<div class="ds-jump"><div class="ds-presence" hidden id="sg-jump"><button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Latest" data-tip="Latest">' + icon('arrowDown', 20) + '</button></div></div></div>') +
       '</div>';
   }
 
-  /* The log keeps to its end; the pill shows while the reader is above it. */
+  /* The log keeps to its end and the pill shows while the reader is above
+     it (DS.dom.followEnd); the sideways wrappers and strips report their
+     ends (DS.dom.scrollEdges): the fades and the pinned column's hairline
+     where scroll timelines are missing, the unmasked scrollbar strip. */
   function setupTableMore() {
     var log = $('#sg-log');
     if (!log) return;
     log.scrollTop = log.scrollHeight;
-    var pill = $('#sg-jump');
-    log.addEventListener('scroll', function () {
-      var atEnd = log.scrollHeight - log.clientHeight - log.scrollTop < 2;
-      if (pill.hidden !== atEnd) pill.hidden = atEnd;
-    }, { passive: true });
+    DS.dom.followEnd(log, { pill: $('#sg-jump') });
+    $$('#sg-page .ds-table-wrap, #sg-page .ds-scroll-x').forEach(function (scroller) { DS.dom.scrollEdges(scroller); });
     $('#sg-page-size').addEventListener('change', function (event) {
       PAGES.size = Number(event.target.value);
       PAGES.page = 0;
@@ -1195,10 +1195,6 @@
     if (action === 'page' && el.getAttribute('aria-disabled') !== 'true') goToPage(el.getAttribute('data-to'));
     if (action === 'row-open-wide') toast('Opened ' + el.getAttribute('data-name') + '.', 'info');
     if (action === 'row-edit') toast('Editing ' + el.getAttribute('data-name') + '.', 'info');
-    if (action === 'log-end') {
-      var log = $('#sg-log');
-      log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
-    }
     if (action === 'bulk-clear') {
       BULK.selected = {};
       syncBulk();
