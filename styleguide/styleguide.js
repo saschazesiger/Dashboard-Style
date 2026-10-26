@@ -711,10 +711,10 @@
         '<button class="ds-chip" type="button" disabled><span class="ds-chip__body"><span class="ds-chip__label">Unavailable</span></span></button></div>') +
       card('Locked switches, hints and a switch list', '<div class="ds-stack">' +
         '<label class="ds-switch ds-switch--locked"><input type="checkbox" role="switch" checked aria-disabled="true" aria-describedby="sg-lock-why"><span class="ds-switch__track" aria-hidden="true">' + icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Disk encryption</span><small class="ds-switch__hint" id="sg-lock-why">Set by the device policy</small></label>' +
-        '<label class="ds-switch ds-switch--locked"><input type="checkbox" role="switch" aria-disabled="true" aria-describedby="sg-lock-why-2"><span class="ds-switch__track" aria-hidden="true">' + icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Remote wipe</span><small class="ds-switch__hint" id="sg-lock-why-2">Set by the directory</small></label></div>' +
+        '<label class="ds-switch ds-switch--locked"><input type="checkbox" role="switch" aria-disabled="true" aria-describedby="sg-lock-why-2"><span class="ds-switch__track" aria-hidden="true">' + icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Remote wipe</span><small class="ds-switch__hint" id="sg-lock-why-2">Set by the directory</small></label>' +
         '<div class="ds-switch-list">' + switchListRow('sg-sw-mail', 'Email reports', 'Every Monday at 08:00', '<span class="ds-tag ds-tag--neutral">3 recipients</span>', true) +
         switchListRow('sg-sw-push', 'Push notifications', 'On this device only', '', false) +
-        switchListRow('sg-sw-digest', 'A weekly digest of every device that changed its owner, its place or its warranty', 'Long names wrap', '<span class="ds-badge ds-badge--neutral">12</span>', false) + '</div>') +
+        switchListRow('sg-sw-digest', 'A weekly digest of every device that changed its owner, its place or its warranty', 'Long names wrap', '<span class="ds-badge ds-badge--neutral">12</span>', false) + '</div></div>') +
       '</div>' +
       card('Combobox', '<p class="ds-muted">Type or use the chevron: the list grows out of the field, the chevron turns with it, and arrow keys move the active option.</p>' +
         '<div class="ds-field" style="max-width:420px">' + comboMarkup('f-combo', 'Model') + '</div>'));
