@@ -94,6 +94,9 @@
     display: inline-grid;
     grid-auto-flow: column;
     align-items: center;
+    /* The rows pack in the middle: the 0px row of data-label takes none of
+       the free height, so the label sits on the tab's centre. */
+    align-content: center;
     justify-content: center;
     column-gap: var(--ds-space-2);
     flex: none;

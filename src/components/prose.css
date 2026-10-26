@@ -36,8 +36,9 @@
  *
  * Progressive:
  * - hyphenate-limit-chars (hyphens: auto breaks only words of 18
- *   characters or more, keeping 8 on each side): without it long words
- *   break anywhere (overflow-wrap) instead of hyphenating.
+ *   characters or more, keeping 8 on each side; a string with no
+ *   hyphenation point, such as a URL, still breaks): without it long
+ *   words break anywhere (overflow-wrap) instead of hyphenating.
  * - text-wrap (headings and paragraphs avoid a lone last word): without it
  *   lines wrap as usual.
  * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar under a
@@ -60,8 +61,10 @@
   }
 
   @supports (hyphenate-limit-chars: 1) {
+    /* Hyphenation points come first; break-word splits only a string with
+       no other break (a URL, a hash, a path). */
     .ds-prose {
-      overflow-wrap: normal;
+      overflow-wrap: break-word;
       -webkit-hyphens: auto;
       hyphens: auto;
       hyphenate-limit-chars: 18 8 8;

@@ -1620,14 +1620,17 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   opaque (`--ds-table-sticky-bg`, or the selection colour of a selected row) and the row's hover, focus and press lie
   over them as two registered colours (`--ds-table-sticky-layer`, `--ds-table-sticky-tint`, internal), so they fade
   like the other cells. A hairline at the column's end shows once the table has scrolled (scroll-driven, else
-  `data-ds-overflow-start` from `DS.dom.scrollEdges()`).
+  `data-ds-overflow-start` from `DS.dom.scrollEdges()`); the wrapper then drops its start fade, which would wash out
+  the pinned text (`--ds-table-start-fade`, internal: `0` on a wrapper that holds a pinned table), and keeps the end
+  fade.
 - In an interactive table the pinned cell holds the row link's stretched area, so `DS.ripple.attach()` forwards a
   click anywhere on the row (outside its controls, with no text selected) to the `.ds-table__row-link`: a plain click
   clicks it, Ctrl, Meta, Shift or the middle button open an `a[href]` in a new tab, and a page that called
   `preventDefault()` on the click keeps it. Without `attach()` only the link's own cell opens the row. The row ripples
   in two parts from one centre. The keyboard ring of the row link wraps the pinned cell only, while the focus layer
-  covers the whole row. `DS.dom.scrollEdges()` writes `--ds-table-pin-width` (the pinned column's width), so focus
-  moved by the keyboard never lands under the pinned column.
+  covers the whole row. `DS.dom.scrollEdges()` writes `--ds-table-pin-width` (the pinned column's width) and every
+  table wrapper (a fill wrapper or a card's) keeps that much `scroll-padding` at its start, so focus moved by the
+  keyboard never lands under the pinned column.
 - Forced colours: sticky and pinned cells are `Canvas`, the wrapper border `CanvasText`. Print: unbounded, not
   sticky, every cell wraps; closed detail rows are left out (an open one prints in full).
 
@@ -2545,7 +2548,8 @@ padding (focus rings and the halos of checks are never clipped) and shows a hair
 (`data-scrolled` on the box: `DS.overlay.open()` watches every body with `DS.dom.watchScrolled()` on its first open,
 2.0; a dialog shown without `DS.overlay` calls `DS.dom.watchScrolled(body)` once). A body that scrolls with nothing focusable in it
 gets `tabindex="0"`, `role="region"` and a name, so the keyboard can scroll it (an inset ring). In a window 320px high
-or less the box scrolls as one instead (WCAG 1.4.10). An empty body (its sentinel aside) or empty actions take no room. A lone `.ds-btn`
+or less the box scrolls as one instead (WCAG 1.4.10). An empty body (its sentinel aside) or empty actions take no room; a body of bare text
+(no element around it) stays, as `watchScrolled()` marks it `data-ds-text`. A lone `.ds-btn`
 directly in the body keeps its own width.
 
 ```html
@@ -3500,6 +3504,7 @@ the ones the page sets for it. The project check reads this table.
 |---|---|---|---|
 | `data-scrolled` | the system (`DS.dom.watchScrolled`) | `.ds-app`, `.ds-sheet__panel`, `.ds-dialog__box` or the scroller | the scroller is scrolled away from its top (hairlines, top bar tint) |
 | `data-ds-sentinel` | the system (`DS.dom.watchScrolled`) | the 1px sentinel first in a watched scroller | marks the sentinel (with `data-ds-keep`) |
+| `data-ds-text` | the system (`DS.dom.watchScrolled`) | a watched `.ds-dialog__body` | bare text stands among its children, so a body of text and the sentinel is not taken for empty |
 | `data-ds-edges` | the system (`DS.dom.scrollEdges`) | the scroller | its edges are reported |
 | `data-ds-overflow-start` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the start of its axis |
 | `data-ds-overflow-end` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the end of its axis |

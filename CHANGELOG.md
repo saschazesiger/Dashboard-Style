@@ -150,7 +150,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
 - Motion and DOM: `DS.motion.guard()`, `refresh()` (the documented refresh as one call), `setLabel()`, `sortable()`
   (reorder by drag and keyboard), `roll(…, { hold })` with `--ds-hold-status`, `transition(…, { focus })`,
   `settleLoader(…, { now, element })`, `loaderHoldMs(…, { element })`, `flip(…, { refocus })`, `onKeep` for
-  `morphChildren()`, `morphHtml()` and `flip()`; `DS.dom.watchScrolled()`, `scrollEdges()`, `progress()` (a share and
+  `morphChildren()`, `morphHtml()` and `flip()`; `DS.dom.watchScrolled()` (on a `.ds-dialog__body` it also writes
+  `data-ds-text` while bare text stands in it, so a body of text and the sentinel is not hidden as empty), `scrollEdges()`, `progress()` (a share and
   its ARIA in one call), `roving()` (one tab stop for a set), `followViewport()` (the frame follows the on-screen
   keyboard), `followEnd()` (a log that sticks to its end), `autosize()`, `dropzone()`; `.ds-presence--keep`
   (`data-ds-shown`), `.ds-vt-view` (a view-transition target outside the frame), `.ds-swap--fade` (`--ds-swap-fade`);
@@ -163,7 +164,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
   becomes a two-column grid; without them it stays the one-row flex line of 1.x).
 - Tables and scrollers: `.ds-table--stack` and `--stack-wide` (each row a block, each cell's `data-label` above its
   value; always in sheets and dialogs, in a view at a content area of at most 600px / 840px), `.ds-table-wrap--fill`
-  (a full-page table with a sticky header and cut cells), `.ds-table--pin-first` (a pinned first column;
+  (a full-page table with a sticky header and cut cells), `.ds-table--pin-first` (a pinned first column, in a
+  fill wrapper or a card: keyboard focus stays clear of it, and its wrapper fades only at the end;
   `DS.ripple.attach()` forwards a click on the row to its `.ds-table__row-link` and ripples it in two parts),
   `td.ds-table__actions`, `tfoot` summary rows, `.ds-scroll-x` (a sideways strip with edge fades), `.ds-jump` (the
   place of a "Latest" pill), `.ds-pagination` (`--simple`), `.ds-selection-bar`; hooks `--ds-scroll-fade`,

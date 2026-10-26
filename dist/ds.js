@@ -5060,7 +5060,10 @@
      * keeps it). Once per scroller: a second call returns the same handle.
      * update() re-reads the scroller's position and gap and puts back a
      * sentinel the page removed; destroy() stops, removes
-     * the sentinel and the attribute. Without IntersectionObserver (a test
+     * the sentinel and the attribute. On a .ds-dialog__body it also keeps
+     * data-ds-text (owned state) while bare text stands among its children,
+     * so the body that holds only text and the sentinel is not taken for
+     * empty. Without IntersectionObserver (a test
      * fake) a passive scroll listener reads scrollTop.
      * @param {Element|null|undefined} scroller
      * @param {Element} [target]
@@ -5102,6 +5105,23 @@
         // Back at the top: content that shrank leaves no scroll-driven tint or hairline behind.
         if (!scrolled) resyncScroll(scroller);
       };
+      // A dialog body whose content is bare text (no element but the
+      // sentinel): CSS cannot see text nodes and would take it for empty, so
+      // data-ds-text says it is not. Dialog bodies only (small, so a subtree
+      // observer costs little), until destroy().
+      const texts = !whole && scroller.matches?.('.ds-dialog__body');
+      if (texts) own(scroller, 'attrs', 'data-ds-text');
+      const markText = () => {
+        if (!texts) return;
+        const bare = Array.from(scroller.childNodes).some((node) => node.nodeType === 3 && /\S/.test(node.nodeValue ?? ''));
+        if (bare !== scroller.hasAttribute('data-ds-text')) scroller.toggleAttribute('data-ds-text', bare);
+      };
+      const mutations = texts && typeof view.MutationObserver === 'function'
+        ? new view.MutationObserver((records) => {
+          if (records.some((record) => record.target === scroller || record.target.parentNode === scroller)) markText();
+        })
+        : null;
+      mutations?.observe(scroller, { childList: true, characterData: true, subtree: true });
       let observer = null;
       let onScroll = null;
       const source = whole ? view : scroller;
@@ -5118,12 +5138,14 @@
         source.addEventListener?.('scroll', onScroll, { passive: true });
       }
       place();
+      markText();
       observer?.observe(sentinel);
       const handle = {
         update() {
           if (scrollWatches.get(scroller)?.handle !== handle) return;
           const back = sentinel.parentNode !== host();
           place();
+          markText();
           if (back && observer) {
             observer.unobserve(sentinel);
             observer.observe(sentinel);
@@ -5134,10 +5156,15 @@
           if (scrollWatches.get(scroller)?.handle !== handle) return;
           scrollWatches.delete(scroller);
           observer?.disconnect();
+          mutations?.disconnect();
           if (onScroll) source.removeEventListener?.('scroll', onScroll);
           sentinel.remove();
           disown(owner, 'attrs', 'data-scrolled');
           owner.removeAttribute('data-scrolled');
+          if (texts) {
+            disown(scroller, 'attrs', 'data-ds-text');
+            scroller.removeAttribute('data-ds-text');
+          }
         },
       };
       scrollWatches.set(scroller, { handle });

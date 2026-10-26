@@ -470,9 +470,11 @@
 
   /* An empty body, its sentinel aside, takes no room. "No child but the
      sentinel" rather than :only-child inside :has(): Firefox does not
-     restyle that when rows are added after the sentinel. */
+     restyle that when rows are added after the sentinel. Text nodes are
+     no children to a selector, so a body of bare text carries
+     data-ds-text (DS.dom.watchScrolled()) and stays. */
   .ds-dialog__body:empty,
-  .ds-dialog__body:has(> [data-ds-sentinel]):not(:has(> :not([data-ds-sentinel]))),
+  .ds-dialog__body:not([data-ds-text]):has(> [data-ds-sentinel]):not(:has(> :not([data-ds-sentinel]))),
   .ds-dialog__actions:empty {
     display: none;
   }
@@ -687,10 +689,14 @@
   }
 
   /* A native full-screen dialog or action sheet driven by hand: the same
-     rise on transitions, keyed on [open]. */
+     rise on transitions, keyed on [open]. The open state names [open], so
+     it outweighs the phone dialog's ease-out (dialog.ds-dialog[open]
+     above). */
   @supports (transition-behavior: allow-discrete) {
     dialog.ds-dialog--full:not([data-state]) .ds-dialog__box,
-    dialog.ds-dialog--bottom:not([data-state]) .ds-dialog__box {
+    dialog.ds-dialog--full[open]:not([data-state]) .ds-dialog__box,
+    dialog.ds-dialog--bottom:not([data-state]) .ds-dialog__box,
+    dialog.ds-dialog--bottom[open]:not([data-state]) .ds-dialog__box {
       animation: none;
       transition:
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
@@ -712,6 +718,26 @@
     dialog.ds-dialog--bottom:not([data-state]):not([open]) .ds-dialog__box {
       translate: 0 var(--ds-distance-sheet);
     }
+
+    /* --full-narrow is a full-screen dialog at 600px and below: the same
+       rise. */
+    @media (max-width: 600px) {
+      dialog.ds-dialog--full-narrow:not([data-state]) .ds-dialog__box,
+      dialog.ds-dialog--full-narrow[open]:not([data-state]) .ds-dialog__box {
+        animation: none;
+        transition:
+          opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+          translate var(--ds-dur-long) var(--ds-ease-spatial);
+      }
+
+      dialog.ds-dialog--full-narrow:not([data-state]):not([open]) .ds-dialog__box {
+        scale: none;
+        translate: 0 var(--ds-distance-lg);
+        transition:
+          opacity var(--ds-dur-base) var(--ds-ease-in-out),
+          translate var(--ds-dur-base) var(--ds-ease-exit);
+      }
+    }
   }
 
   @starting-style {
@@ -723,6 +749,15 @@
     dialog.ds-dialog--bottom[open]:not([data-state]) .ds-dialog__box {
       scale: none;
       translate: 0 var(--ds-distance-sheet);
+    }
+  }
+
+  @media (max-width: 600px) {
+    @starting-style {
+      dialog.ds-dialog--full-narrow[open]:not([data-state]) .ds-dialog__box {
+        scale: none;
+        translate: 0 var(--ds-distance-lg);
+      }
     }
   }
 

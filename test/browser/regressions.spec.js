@@ -1638,3 +1638,173 @@ test.describe('fixed in 1.6.2', () => {
     expect(result.code).toBe(result.text);
   });
 });
+
+test.describe('fixed in 2.0.0 (review)', () => {
+  test('a tab with data-label keeps its label on the tab\'s centre', async ({ page }) => {
+    await open(page, 'page.html');
+    await inject(page, `<div class="ds-tabs" role="tablist" aria-label="Device" id="r-tabs">
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="true" data-label="Overview" id="r-tab">Overview</button>
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" id="r-plain">Activity</button></div>`);
+    const offsets = await page.evaluate(() => Object.fromEntries(['r-tab', 'r-plain'].map((id) => {
+      const tab = document.getElementById(id);
+      const range = document.createRange();
+      range.selectNodeContents(tab.firstChild);
+      const label = range.getBoundingClientRect();
+      const box = tab.getBoundingClientRect();
+      return [id, Math.round((label.top + label.height / 2) - (box.top + box.height / 2))];
+    })));
+    expect(Math.abs(offsets['r-tab']), JSON.stringify(offsets)).toBeLessThanOrEqual(1);
+    expect(Math.abs(offsets['r-plain'])).toBeLessThanOrEqual(1);
+  });
+
+  test('.ds-prose breaks a long URL or hash inside its box, also where it hyphenates', async ({ page }) => {
+    await open(page, 'page.html');
+    await inject(page, `<div class="ds-prose" id="r-prose" style="width: 250px"><p>Fetched https://example.com/devices/42/firmware/releases/0123456789abcdef0123456789abcdef/download?channel=stable and commit 0123456789abcdef0123456789abcdef01234567.</p></div>`);
+    const box = await page.evaluate(() => {
+      const prose = document.getElementById('r-prose');
+      return { scroll: prose.scrollWidth, client: prose.clientWidth };
+    });
+    expect(box.scroll, JSON.stringify(box)).toBeLessThanOrEqual(box.client);
+  });
+
+  test('beside the rail (data-drawer-collapsed) the snackbar region starts 24px from the panel', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await open(page, 'shell.html');
+    const edges = await page.evaluate(() => {
+      const app = document.getElementById('app');
+      app.insertAdjacentHTML('afterend', '<div class="ds-toasts" id="r-toasts"></div>');
+      const region = document.getElementById('r-toasts');
+      const measure = () => Math.round(region.getBoundingClientRect().left - app.querySelector('.ds-panel').getBoundingClientRect().left);
+      const open = measure();
+      app.setAttribute('data-drawer-collapsed', '');
+      return { open, rail: measure() };
+    });
+    expect(edges).toEqual({ open: 24, rail: 24 });
+  });
+
+  test('a pinned table in a card keeps keyboard focus clear of the pinned column', async ({ page }) => {
+    await open(page, 'page.html');
+    const columns = Array.from({ length: 8 }, (_, i) => `<th scope="col" style="min-width: 160px">Column ${i + 2}</th>`).join('');
+    const cells = Array.from({ length: 8 }, (_, i) => `<td><button class="ds-btn ds-btn--text" type="button" id="r-pin-${i + 2}">Open ${i + 2}</button></td>`).join('');
+    await inject(page, `<div class="ds-card" style="width: 480px"><div class="ds-table-wrap" id="r-pin-wrap">
+      <table class="ds-table ds-table--pin-first"><thead><tr><th scope="col" style="min-width: 160px">Device</th>${columns}</tr></thead>
+      <tbody><tr><td>LAPTOP-0042</td>${cells}</tr></tbody></table></div></div>`);
+    await page.evaluate(() => DS.dom.scrollEdges(document.getElementById('r-pin-wrap')));
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    await page.evaluate(() => { document.getElementById('r-pin-wrap').scrollLeft = 10000; });
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    await page.locator('#r-pin-4').focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Shift+Tab');
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    const place = await page.evaluate(() => {
+      const wrap = document.getElementById('r-pin-wrap');
+      const pinned = wrap.querySelector('tbody td').getBoundingClientRect();
+      const focused = document.activeElement.getBoundingClientRect();
+      return { focus: document.activeElement.id, clear: Math.round(focused.left) >= Math.round(pinned.right), padding: getComputedStyle(wrap).scrollPaddingInlineStart === wrap.style.getPropertyValue('--ds-table-pin-width') };
+    });
+    expect(place).toEqual({ focus: 'r-pin-2', clear: true, padding: true });
+  });
+
+  test('a scrolled pinned table drops its start fade (the pinned column stays opaque) and keeps the end fade', async ({ page }) => {
+    await open(page, 'page.html');
+    const columns = Array.from({ length: 8 }, (_, i) => `<th scope="col">Column ${i + 2}</th>`).join('');
+    const cells = Array.from({ length: 8 }, (_, i) => `<td>Value ${i + 2}</td>`).join('');
+    const table = (id, pin) => `<div class="ds-table-wrap ds-table-wrap--fill" id="${id}" style="width: 500px; flex: none">
+      <table class="ds-table${pin ? ' ds-table--pin-first' : ''}"><thead><tr><th scope="col">Device</th>${columns}</tr></thead>
+      <tbody><tr><td>LAPTOP-0042</td>${cells}</tr></tbody></table></div>`;
+    await inject(page, table('r-fade-pin', true) + table('r-fade-plain', false));
+    const stops = await page.evaluate(async () => {
+      for (const id of ['r-fade-pin', 'r-fade-plain']) DS.dom.scrollEdges(document.getElementById(id));
+      for (const id of ['r-fade-pin', 'r-fade-plain']) document.getElementById(id).scrollLeft = 200;
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+      for (const animation of document.getAnimations()) if (!window.ScrollTimeline || !(animation.timeline instanceof ScrollTimeline)) animation.finish();
+      await new Promise(requestAnimationFrame);
+      // The first mask layer: transparent, black at the start fade's end ... black at the end fade's start, transparent.
+      const read = (id) => {
+        const mask = getComputedStyle(document.getElementById(id)).maskImage;
+        return [...mask.split('linear-gradient')[1].matchAll(/(-?[\d.]+)px/g)].map((match) => Math.round(Number(match[1])));
+      };
+      return { pin: read('r-fade-pin'), plain: read('r-fade-plain') };
+    });
+    expect(stops.plain[0], JSON.stringify(stops)).toBeGreaterThan(0);
+    expect(stops.pin[0], JSON.stringify(stops)).toBe(0);
+    expect(stops.pin.length, JSON.stringify(stops)).toBe(stops.plain.length);
+  });
+
+  test('a dialog body of bare text stays once DS.overlay.open() adds its sentinel; an empty one still takes no room', async ({ page }) => {
+    await open(page, 'overlay.html');
+    await inject(page, `<button class="ds-btn" type="button" id="r-open">Terms</button>
+      <div class="ds-dialog" id="r-dialog" hidden><div class="ds-dialog__backdrop" data-close></div>
+        <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="r-title"><h2 class="ds-dialog__title" id="r-title">Terms</h2>
+        <div class="ds-dialog__body" tabindex="0" role="region" aria-label="Terms" id="r-text">The service is provided as is.</div>
+        <div class="ds-dialog__body" id="r-empty"></div>
+        <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></div></div>`);
+    await page.evaluate(() => DS.overlay.open(document.getElementById('r-dialog'), { opener: document.getElementById('r-open') }));
+    await page.waitForFunction(() => document.getElementById('r-dialog').getAttribute('data-state') === 'open');
+    const display = () => page.evaluate(() => ({
+      sentinels: document.querySelectorAll('#r-dialog [data-ds-sentinel]').length,
+      text: getComputedStyle(document.getElementById('r-text')).display,
+      empty: getComputedStyle(document.getElementById('r-empty')).display,
+    }));
+    expect(await display()).toEqual({ sentinels: 2, text: 'grid', empty: 'none' });
+    // Text added to the empty body while open shows it; taken away, it hides again.
+    await page.evaluate(() => document.getElementById('r-empty').append('Accepted on 3 May.'));
+    await expect.poll(display).toEqual({ sentinels: 2, text: 'grid', empty: 'grid' });
+    await page.evaluate(() => document.getElementById('r-empty').lastChild.remove());
+    await expect.poll(display).toEqual({ sentinels: 2, text: 'grid', empty: 'none' });
+  });
+
+  test('a focused accordion row under the pointer shows the focus layer, a pressed one the press layer', async ({ page }) => {
+    await open(page, 'page.html');
+    await inject(page, `<div class="ds-card"><details class="ds-disclosure ds-disclosure--row" id="r-row"><summary><span class="ds-disclosure__title">Network</span></summary><p>Wi-Fi</p></details>
+      <details class="ds-disclosure ds-disclosure--row"><summary id="r-row-2"><span class="ds-disclosure__title">Storage</span></summary><p>SSD</p></details></div>`);
+    const summary = page.locator('#r-row > summary');
+    const layer = () => page.evaluate(() => {
+      const theme = getComputedStyle(document.querySelector('.ds-theme'));
+      const opacity = Number(getComputedStyle(document.querySelector('#r-row > summary'), '::before').opacity);
+      const token = (name) => Number(theme.getPropertyValue(name));
+      return { opacity, focus: token('--ds-state-focus'), pressed: token('--ds-state-pressed'), hover: token('--ds-state-hover-lg') };
+    });
+    await focusByKeyboard(page, summary);
+    await summary.hover();
+    await settle(page);
+    const focused = await layer();
+    expect(focused.opacity, JSON.stringify(focused)).toBeCloseTo(focused.focus, 3);
+    await page.locator('#r-row-2').focus();
+    await summary.hover();
+    await page.mouse.down();
+    await settle(page);
+    const pressed = await layer();
+    await page.mouse.up();
+    expect(pressed.opacity, JSON.stringify(pressed)).toBeCloseTo(pressed.pressed, 3);
+  });
+
+  test('a native --full-narrow dialog driven by hand on a phone rises like --full, with no scale', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await open(page, 'overlay.html');
+    test.skip(!(await page.evaluate(() => CSS.supports('transition-behavior: allow-discrete'))), 'the native hand path needs allow-discrete');
+    await inject(page, ['full', 'full-narrow'].map((kind) => `<dialog class="ds-dialog ds-dialog--${kind}" id="r-${kind}" aria-labelledby="r-${kind}-title">
+      <div class="ds-dialog__box"><h2 class="ds-dialog__title" id="r-${kind}-title">Edit</h2><p>LAPTOP-0042</p>
+      <div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Close</button></div></div></dialog>`).join(''));
+    const play = (kind, how) => page.evaluate(([id, step]) => {
+      const dialog = document.getElementById(id);
+      const box = dialog.querySelector('.ds-dialog__box');
+      if (step === 'open') dialog.showModal();
+      else dialog.close();
+      getComputedStyle(box).translate;
+      const moves = box.getAnimations().filter((a) => ['scale', 'translate'].includes(a.transitionProperty)).map((a) => {
+        const frames = a.effect.getKeyframes();
+        return { property: a.transitionProperty, duration: a.effect.getTiming().duration, easing: frames[0].easing, from: frames[0][a.transitionProperty], to: frames.at(-1)[a.transitionProperty] };
+      }).sort((a, b) => a.property.localeCompare(b.property));
+      for (const animation of box.getAnimations()) animation.finish();
+      return { moves, scale: getComputedStyle(box).scale };
+    }, [`r-${kind}`, how]);
+    const full = await play('full', 'open');
+    const narrow = await play('full-narrow', 'open');
+    expect(narrow, JSON.stringify({ full, narrow })).toEqual(full);
+    expect(narrow.moves.map((move) => move.property)).toEqual(['translate']);
+    expect(await play('full-narrow', 'close')).toEqual(await play('full', 'close'));
+  });
+});

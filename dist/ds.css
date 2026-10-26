@@ -4728,6 +4728,12 @@
     .ds-disclosure > summary:hover::before {
       opacity: var(--ds-state-hover);
     }
+
+    /* A row's larger hover layer; before the focus and press layers, which
+       win at the same specificity. */
+    .ds-disclosure--row > summary:hover::before {
+      opacity: var(--ds-state-hover-lg);
+    }
   }
 
   /* Keyboard focus: the layer appears with the ring and fades out on blur. */
@@ -4790,12 +4796,6 @@
     /* An inset ring: it rests on the edge and snaps inward. */
     outline-offset: 0;
     transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
-  }
-
-  @media (hover: hover) {
-    .ds-disclosure--row > summary:hover::before {
-      opacity: var(--ds-state-hover-lg);
-    }
   }
 
   .ds-disclosure--row > summary:focus-visible {
@@ -6189,8 +6189,9 @@
  *
  * Progressive:
  * - hyphenate-limit-chars (hyphens: auto breaks only words of 18
- *   characters or more, keeping 8 on each side): without it long words
- *   break anywhere (overflow-wrap) instead of hyphenating.
+ *   characters or more, keeping 8 on each side; a string with no
+ *   hyphenation point, such as a URL, still breaks): without it long
+ *   words break anywhere (overflow-wrap) instead of hyphenating.
  * - text-wrap (headings and paragraphs avoid a lone last word): without it
  *   lines wrap as usual.
  * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar under a
@@ -6211,8 +6212,10 @@
   }
 
   @supports (hyphenate-limit-chars: 1) {
+    /* Hyphenation points come first; break-word splits only a string with
+       no other break (a URL, a hash, a path). */
     .ds-prose {
-      overflow-wrap: normal;
+      overflow-wrap: break-word;
       -webkit-hyphens: auto;
       hyphens: auto;
       hyphenate-limit-chars: 18 8 8;
@@ -7049,10 +7052,11 @@
  *                       under it, on an opaque base; the row's layers lie
  *                       over it (registered colours, so they still fade);
  *                       a hairline at its end shows once the table has
- *                       scrolled. In an interactive table DS.ripple.attach()
- *                       forwards a click on the row to its row link (the
- *                       pinned cell confines the link's stretched area)
- *                       and ripples the row in two parts
+ *                       scrolled (the wrapper drops its start
+ *                       fade). In an interactive table
+ *                       DS.ripple.attach() forwards a click on the row to
+ *                       its row link (the pinned cell confines the link's
+ *                       stretched area) and ripples the row in two parts
  *
  * Wrappers that scroll sideways fade at the end that still has columns
  * (in a card: .ds-table--wide when the content area is narrow, every table
@@ -7077,6 +7081,10 @@
  * Runtime properties (written by DS.dom.scrollEdges(), read with a
  * fallback): --ds-scrollbar-height (the scrollbar strip stays unmasked),
  * --ds-table-pin-width (focus never lands under a pinned column).
+ *
+ * Internal (never set it): --ds-table-start-fade, 1 on every wrapper and
+ * 0 on one that holds a .ds-table--pin-first (no start fade over the
+ * pinned column; the end fade stays).
  *
  * Internal (each body row sets them, its cells read them; never set
  * them): --ds-table-row-layer, --ds-table-row-pace, --ds-table-row-tint,
@@ -7210,6 +7218,19 @@
   .ds-table-wrap {
     position: relative;
     overflow-x: auto;
+    /* Focus moved by the keyboard never lands under a pinned column
+       (DS.dom.scrollEdges() writes its width), in a card as in a fill
+       wrapper. */
+    scroll-padding-inline-start: var(--ds-table-pin-width, 0px);
+    /* The start fade, on (1) or off (0): a pinned column stays opaque. */
+    --ds-table-start-fade: 1;
+  }
+
+  /* A pinned first column stays at the start edge, so the start fade would
+     only wash out its text; its hairline tells that the table has
+     scrolled. The end fade stays. */
+  .ds-table-wrap:has(> .ds-table--pin-first) {
+    --ds-table-start-fade: 0;
   }
 
   /* The edge numbers of scroller.css, from DS.dom.scrollEdges() where no
@@ -7662,16 +7683,15 @@
     background: var(--ds-table-sticky-bg, var(--ds-surface));
     scrollbar-width: thin;
     scrollbar-color: var(--ds-line-2) transparent;
-    /* Focus moved by the keyboard never lands under the header or the
-       pinned column. */
+    /* Focus moved by the keyboard never lands under the header (nor, as
+       in every wrapper, under the pinned column). */
     scroll-padding-block-start: var(--ds-table-head-height, 48px);
-    scroll-padding-inline-start: var(--ds-table-pin-width, 0px);
     -webkit-mask-image:
-      linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-space-8))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-space-8))), transparent),
+      linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-space-8))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-space-8))), transparent),
       linear-gradient(#000, #000),
       linear-gradient(#000, #000);
     mask-image:
-      linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-space-8))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-space-8))), transparent),
+      linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-space-8))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-space-8))), transparent),
       linear-gradient(#000, #000),
       linear-gradient(#000, #000);
     -webkit-mask-origin: padding-box, padding-box, border-box;
@@ -7869,8 +7889,8 @@
 
     /* DS.dom.scrollEdges() attached: a fade on each side that has more. */
     .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide) {
-      -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
-      mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+      mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
     }
 
     /* Scroll-linked: a fade on each side that still has columns to show
@@ -7878,8 +7898,8 @@
        comes first, it resets animation-timeline). */
     @supports (animation-timeline: scroll()) {
       .ds-card .ds-table-wrap:has(> .ds-table--wide) {
-        -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
-        mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+        mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
         animation: ds-scroll-edge-start linear both, ds-scroll-edge-end linear both;
         animation-timeline: scroll(self inline);
         animation-range: 0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%;
@@ -7922,14 +7942,14 @@
     }
 
     .ds-card .ds-table-wrap:where([data-ds-edges]) {
-      -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
-      mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+      -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+      mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
     }
 
     @supports (animation-timeline: scroll()) {
       .ds-card .ds-table-wrap {
-        -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
-        mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+        -webkit-mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
+        mask-image: linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-card-pad))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-card-pad))), transparent), linear-gradient(#000, #000);
         animation: ds-scroll-edge-start linear both, ds-scroll-edge-end linear both;
         animation-timeline: scroll(self inline);
         animation-range: 0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%;
@@ -14671,9 +14691,11 @@
 
   /* An empty body, its sentinel aside, takes no room. "No child but the
      sentinel" rather than :only-child inside :has(): Firefox does not
-     restyle that when rows are added after the sentinel. */
+     restyle that when rows are added after the sentinel. Text nodes are
+     no children to a selector, so a body of bare text carries
+     data-ds-text (DS.dom.watchScrolled()) and stays. */
   .ds-dialog__body:empty,
-  .ds-dialog__body:has(> [data-ds-sentinel]):not(:has(> :not([data-ds-sentinel]))),
+  .ds-dialog__body:not([data-ds-text]):has(> [data-ds-sentinel]):not(:has(> :not([data-ds-sentinel]))),
   .ds-dialog__actions:empty {
     display: none;
   }
@@ -14888,10 +14910,14 @@
   }
 
   /* A native full-screen dialog or action sheet driven by hand: the same
-     rise on transitions, keyed on [open]. */
+     rise on transitions, keyed on [open]. The open state names [open], so
+     it outweighs the phone dialog's ease-out (dialog.ds-dialog[open]
+     above). */
   @supports (transition-behavior: allow-discrete) {
     dialog.ds-dialog--full:not([data-state]) .ds-dialog__box,
-    dialog.ds-dialog--bottom:not([data-state]) .ds-dialog__box {
+    dialog.ds-dialog--full[open]:not([data-state]) .ds-dialog__box,
+    dialog.ds-dialog--bottom:not([data-state]) .ds-dialog__box,
+    dialog.ds-dialog--bottom[open]:not([data-state]) .ds-dialog__box {
       animation: none;
       transition:
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
@@ -14913,6 +14939,26 @@
     dialog.ds-dialog--bottom:not([data-state]):not([open]) .ds-dialog__box {
       translate: 0 var(--ds-distance-sheet);
     }
+
+    /* --full-narrow is a full-screen dialog at 600px and below: the same
+       rise. */
+    @media (max-width: 600px) {
+      dialog.ds-dialog--full-narrow:not([data-state]) .ds-dialog__box,
+      dialog.ds-dialog--full-narrow[open]:not([data-state]) .ds-dialog__box {
+        animation: none;
+        transition:
+          opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+          translate var(--ds-dur-long) var(--ds-ease-spatial);
+      }
+
+      dialog.ds-dialog--full-narrow:not([data-state]):not([open]) .ds-dialog__box {
+        scale: none;
+        translate: 0 var(--ds-distance-lg);
+        transition:
+          opacity var(--ds-dur-base) var(--ds-ease-in-out),
+          translate var(--ds-dur-base) var(--ds-ease-exit);
+      }
+    }
   }
 
   @starting-style {
@@ -14927,6 +14973,15 @@
     }
   }
 
+  @media (max-width: 600px) {
+    @starting-style {
+      dialog.ds-dialog--full-narrow[open]:not([data-state]) .ds-dialog__box {
+        scale: none;
+        translate: 0 var(--ds-distance-lg);
+      }
+    }
+  }
+
   @media print {
     .ds-dialog {
       display: none;
@@ -14938,8 +14993,8 @@
 /*
  * Snackbar (Material 3): the inverse surface on the overlay elevation, at
  * the bottom left of the content panel. Icon and text, never colour alone.
- * Place the region right after .ds-app: next to a persistent drawer it
- * then starts at the panel's edge by itself.
+ * Place the region right after .ds-app: next to a persistent drawer (or
+ * its rail) it then starts at the panel's edge by itself.
  * Enters with a fade and a short rise on the spatial spring, leaves with a
  * quick fade in place while the messages around it close the gap.
  *
@@ -15042,6 +15097,11 @@
   @media (min-width: 901px) {
     .ds-app--drawer:not([data-drawer-hidden]) ~ .ds-toasts {
       --ds-toast-left: calc(var(--ds-drawer-width) + env(safe-area-inset-left) + var(--ds-space-6));
+    }
+
+    /* Beside the rail (data-drawer-collapsed): its narrower column. */
+    .ds-app--drawer[data-drawer-collapsed]:not([data-drawer-hidden]) ~ .ds-toasts {
+      --ds-toast-left: calc(var(--ds-drawer-rail-width) + env(safe-area-inset-left) + var(--ds-space-6));
     }
   }
 
@@ -17406,6 +17466,9 @@
     display: inline-grid;
     grid-auto-flow: column;
     align-items: center;
+    /* The rows pack in the middle: the 0px row of data-label takes none of
+       the free height, so the label sits on the tab's centre. */
+    align-content: center;
     justify-content: center;
     column-gap: var(--ds-space-2);
     flex: none;

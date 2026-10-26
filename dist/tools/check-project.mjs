@@ -62,6 +62,7 @@ export const RULES = ['vendor', 'classes', 'deprecated', 'literals', 'keyframes'
 export const SYSTEM_ATTRIBUTES = [
   'data-scrolled',
   'data-ds-sentinel',
+  'data-ds-text',
   'data-ds-edges',
   'data-ds-overflow-start',
   'data-ds-overflow-end',

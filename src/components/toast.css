@@ -1,8 +1,8 @@
 /*
  * Snackbar (Material 3): the inverse surface on the overlay elevation, at
  * the bottom left of the content panel. Icon and text, never colour alone.
- * Place the region right after .ds-app: next to a persistent drawer it
- * then starts at the panel's edge by itself.
+ * Place the region right after .ds-app: next to a persistent drawer (or
+ * its rail) it then starts at the panel's edge by itself.
  * Enters with a fade and a short rise on the spatial spring, leaves with a
  * quick fade in place while the messages around it close the gap.
  *
@@ -107,6 +107,11 @@
   @media (min-width: 901px) {
     .ds-app--drawer:not([data-drawer-hidden]) ~ .ds-toasts {
       --ds-toast-left: calc(var(--ds-drawer-width) + env(safe-area-inset-left) + var(--ds-space-6));
+    }
+
+    /* Beside the rail (data-drawer-collapsed): its narrower column. */
+    .ds-app--drawer[data-drawer-collapsed]:not([data-drawer-hidden]) ~ .ds-toasts {
+      --ds-toast-left: calc(var(--ds-drawer-rail-width) + env(safe-area-inset-left) + var(--ds-space-6));
     }
   }
 
