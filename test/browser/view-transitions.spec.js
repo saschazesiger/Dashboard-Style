@@ -876,3 +876,30 @@ test('the styleguide\'s views page: every demo ends settled, without a console e
   await done();
   expect(errors).toEqual([]);
 });
+
+/* ── 2.0: .ds-vt-view and transition({ focus }) ───────────────────── */
+
+test('.ds-vt-view: named ds-view only while a transition runs, else its new step enters; focus lands on the heading (2.0)', async ({ page }) => {
+  await page.goto('/test/browser/fixtures/vt-view.html');
+  await ready(page);
+  await settle(page);
+  const result = await page.evaluate(async () => {
+    const wizard = document.getElementById('wizard');
+    const name = () => getComputedStyle(wizard).viewTransitionName || 'none';
+    document.getElementById('next').focus();
+    const api = typeof document.startViewTransition === 'function';
+    const before = name();
+    const done = window.fxStep(2);
+    // The snapshot is taken once the update callback runs (a frame later).
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    const during = name();
+    const entering = document.getElementById('step').classList.contains('ds-enter--swap');
+    await done;
+    return { api, before, during, entering, after: name(), focus: document.activeElement.textContent };
+  });
+  expect(result.before).toBe('none');
+  expect(result.after).toBe('none');
+  if (result.api) expect(result.during).toBe('ds-view');
+  else expect(result.entering, 'without View Transitions the new step enters with .ds-enter--swap').toBe(true);
+  expect(result.focus).toBe('Step 2 of 3');
+});

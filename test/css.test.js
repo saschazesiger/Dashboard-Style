@@ -992,7 +992,10 @@ describe('CSS for the baseline', () => {
     // or data-ds-vt-morph while the panel changes its width).
     const viewTransition = /^\.ds-theme(\[data-ds-vt="[\w-]+"\]|\[data-ds-vt-morph\])?::view-transition-(group|image-pair|old|new)\([\w*-]+\)(:only-child)?$/;
     assert.ok(selectors.some((selector) => viewTransition.test(selector)), 'the view-transition section');
-    assert.deepEqual(selectors.filter((selector) => selector !== hidden && !moving.test(selector) && !viewTransition.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
+    // A view outside the app frame (2.0) is named only while a transition runs.
+    const vtView = '.ds-theme[data-ds-vt] .ds-vt-view';
+    assert.ok(selectors.includes(vtView), vtView);
+    assert.deepEqual(selectors.filter((selector) => selector !== hidden && selector !== vtView && !moving.test(selector) && !viewTransition.test(selector) && !/^(dialog)?\.ds-(enter|leave|stagger|reveal|collapsible|chevron|swap|icon-swap(__[ab])?|presence)\b/.test(selector)), []);
   });
 
   it('leaves themes, fonts and the styleguide unlayered', () => {

@@ -196,6 +196,9 @@
   --ds-loader-size: 48px;              --ds-loader-color: var(--ds-primary);
   --ds-progress-gap: 4px;
   --ds-progress-track: var(--ds-accent); --ds-progress-stop: var(--ds-primary);
+  --ds-skeleton-radius: var(--ds-radius-action);
+  --ds-swap-fade: var(--ds-space-2);
+  --ds-dropzone-border: 1px dashed var(--ds-outline);
   --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
   --ds-dialog-shadow: var(--ds-elev-overlay); --ds-dialog-scrim: var(--ds-scrim);
   --ds-sheet-width: 560px;             --ds-sheet-width-wide: 720px;

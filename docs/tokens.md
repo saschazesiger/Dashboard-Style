@@ -16,8 +16,8 @@ enforce it), so a theme reaches every value.
 ### Motion
 
 The motion scales (the duration ladder `--ds-dur-micro` to `--ds-dur-glide`, the curves `--ds-ease-*` with the
-spring `--ds-ease-spatial`, distances, scales, the stagger step, the delays and holds of loaders, success faces and
-tooltips, the loops `--ds-loop-*` and `--ds-time-scale`) are documented with the rules that use them, in
+spring `--ds-ease-spatial`, distances, scales, the stagger step, the delays and holds of loaders, success faces,
+status lines (`--ds-hold-status`) and tooltips, the loops `--ds-loop-*` and `--ds-time-scale`) are documented with the rules that use them, in
 [motion.md](motion.md#tokens): the ladder with each step's use, the curve table, the spring's contract and
 `travelDuration()`. They are layer 1 like every scale here: the same in every theme, and themes never set them.
 

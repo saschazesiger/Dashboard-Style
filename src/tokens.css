@@ -190,6 +190,7 @@
     --ds-delay-boot: calc(400ms * var(--ds-time-scale, 1));
     --ds-hold-loader: calc(450ms * var(--ds-time-scale, 1));
     --ds-hold-success: calc(600ms * var(--ds-time-scale, 1));
+    --ds-hold-status: calc(900ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip: calc(500ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-skip: calc(300ms * var(--ds-time-scale, 1));
     --ds-delay-tooltip-hide: calc(100ms * var(--ds-time-scale, 1));

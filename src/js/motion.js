@@ -88,6 +88,7 @@ export const MOTION_FALLBACKS = Object.freeze({
   '--ds-delay-boot': 400,
   '--ds-hold-loader': 450,
   '--ds-hold-success': 600,
+  '--ds-hold-status': 900,
   '--ds-delay-tooltip': 500,
   '--ds-delay-tooltip-skip': 300,
   '--ds-delay-tooltip-hide': 100,
@@ -1239,6 +1240,101 @@ export function settleLoader(startedAt, options, legacy = {}) {
   return ms ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
 }
 
+/* ── Refresh ─────────────────────────────────────────── */
+
+/**
+ * The refreshes running on each container: how many, the loading bar they
+ * share and the container's aria-busy before the first.
+ * @type {WeakMap<Element, { count: number, bar: Element|null, busy: string|null, startedAt: number }>}
+ */
+const refreshes = new WeakMap();
+
+/** The error a refresh rethrows when its signal aborts. */
+function abortError(signal) {
+  const reason = signal?.reason;
+  if (reason instanceof Error) return reason;
+  return typeof DOMException === 'function' ? new DOMException('The refresh was aborted', 'AbortError') : Object.assign(new Error('The refresh was aborted'), { name: 'AbortError' });
+}
+
+/**
+ * The documented refresh as one call: `container` (the content about to be
+ * replaced) gets .ds-stale and aria-busy="true" at once (it dims only after
+ * --ds-delay-loader, so a fast answer changes nothing); when it sits
+ * directly in .ds-content or .ds-page (and `loadbar` is not false) a
+ * .ds-loadbar goes in at the top of that parent, where the bar reaches the
+ * panel edges; then `load()` runs. Once it settled, a bar that
+ * showed stays for --ds-hold-loader (settleLoader()), leaves (leave()), the
+ * stale state goes and the promise resolves with the data: render it in
+ * the continuation (the same task as the stale removal, so the old content
+ * never shows undimmed). On a rejection or an abort of `signal` it cleans
+ * up the same way and rethrows (an AbortError when aborted). Two
+ * refreshes of one container share the bar and the stale state until the
+ * last one settled. Times are the computed tokens.
+ * @template T
+ * @param {Element|null|undefined} container
+ * @param {() => T|PromiseLike<T>} load
+ * @param {{ signal?: AbortSignal, loadbar?: boolean }} [options]
+ * @returns {Promise<T>}
+ */
+export function refresh(container, load, options = {}) {
+  const signal = options.signal;
+  if (signal?.aborted) return Promise.reject(abortError(signal));
+  if (!container) return Promise.resolve().then(() => load());
+  let run = refreshes.get(container);
+  if (!run) {
+    const doc = container.ownerDocument;
+    run = { count: 0, bar: null, busy: container.getAttribute('aria-busy'), startedAt: Date.now() };
+    refreshes.set(container, run);
+    own(container, 'classes', 'ds-stale');
+    own(container, 'attrs', 'aria-busy');
+    container.classList.add('ds-stale');
+    container.setAttribute('aria-busy', 'true');
+    const parent = container.parentElement;
+    if (options.loadbar !== false && parent?.matches?.('.ds-content, .ds-page') && doc) {
+      const bar = doc.createElement('span');
+      bar.className = 'ds-loadbar';
+      bar.setAttribute('aria-hidden', 'true');
+      const fill = doc.createElement('span');
+      fill.className = 'ds-loadbar__bar';
+      bar.append(fill);
+      // At the top of the panel, where its margins take back the padding (loading.css).
+      parent.insertBefore(bar, parent.firstChild);
+      run.bar = bar;
+    }
+  }
+  run.count += 1;
+  const current = run;
+  const done = () => {
+    current.count -= 1;
+    if (current.count > 0) return Promise.resolve();
+    return settleLoader(current.startedAt, { element: current.bar ?? container }).then(() => {
+      if (current.count > 0 || refreshes.get(container) !== current) return;
+      refreshes.delete(container);
+      if (current.bar) leave(current.bar);
+      container.classList.remove('ds-stale');
+      disown(container, 'classes', 'ds-stale');
+      disown(container, 'attrs', 'aria-busy');
+      if (current.busy === null) container.removeAttribute('aria-busy');
+      else container.setAttribute('aria-busy', current.busy);
+    });
+  };
+  const loading = new Promise((resolve, reject) => {
+    const onAbort = () => reject(abortError(signal));
+    signal?.addEventListener('abort', onAbort, { once: true });
+    Promise.resolve().then(() => load()).then(resolve, reject)
+      .finally(() => signal?.removeEventListener('abort', onAbort));
+  });
+  return loading.then(
+    (data) => done().then(() => {
+      if (signal?.aborted) throw abortError(signal);
+      return data;
+    }),
+    (error) => done().then(() => {
+      throw error;
+    }),
+  );
+}
+
 /* ── Blocked actions ────────────────────────────────── */
 
 /** A busy button or one that shows its success face: blocked like a disabled one. */
@@ -1796,6 +1892,25 @@ function swap(element, outgoing, incoming, enterHooks, leaveHooks) {
 }
 
 /**
+ * The roll state of each slot with `hold`: when the current line went in
+ * (Date.now()), the text waiting for its turn, the timer and the promise of
+ * the roll that waits.
+ * @type {WeakMap<Element, { shownAt: number, text: string|null, timer: any, waiting: Promise<void>|null, resolve: (() => void)|null }>}
+ */
+const rollHolds = new WeakMap();
+
+/** The roll itself (see roll()). */
+function rollNow(element, value) {
+  const current = swapSlot(element);
+  if (current.length === 1 && current[0].textContent === value) return Promise.resolve();
+  const line = element.ownerDocument.createElement('span');
+  line.textContent = value;
+  return swap(element, current, line,
+    { '--ds-enter-keyframes': 'ds-fade-in, ds-roll-in', '--ds-enter-delay': 'calc(var(--ds-dur-fast) / 2)' },
+    { '--ds-leave-keyframes': 'ds-fade-out, ds-roll-out' });
+}
+
+/**
  * Rolls a status line inside `element` (which becomes a .ds-swap slot) to
  * `text`: the old line leaves upwards (ds-fade-out, ds-roll-out,
  * accelerating, --ds-dur-fast) and the new one comes up from below
@@ -1805,20 +1920,52 @@ function swap(element, outgoing, incoming, enterHooks, leaveHooks) {
  * lines would cover each other half a line apart. A roll during a roll
  * continues from where each line is; only the last text stays. The same
  * text again changes nothing.
+ *
+ * `hold: true` (2.0): every line stays readable. A new line waits until
+ * the current one has shown for --ds-hold-status; a later text during the
+ * wait replaces the waiting one, so only the latest rolls (a fast job's
+ * "Syncing 3 of 40", "4 of 40" ... never flicker). The promise is the one
+ * of the roll that ran.
  * @param {Element|null|undefined} element
  * @param {string} text
+ * @param {{ hold?: boolean }} [options]
  * @returns {Promise<void>} resolves when the lines settled
  */
-export function roll(element, text) {
+export function roll(element, text, options = {}) {
   if (!element) return Promise.resolve();
-  const current = swapSlot(element);
   const value = String(text ?? '');
-  if (current.length === 1 && current[0].textContent === value) return Promise.resolve();
-  const line = element.ownerDocument.createElement('span');
-  line.textContent = value;
-  return swap(element, current, line,
-    { '--ds-enter-keyframes': 'ds-fade-in, ds-roll-in', '--ds-enter-delay': 'calc(var(--ds-dur-fast) / 2)' },
-    { '--ds-leave-keyframes': 'ds-fade-out, ds-roll-out' });
+  if (!options.hold) {
+    const held = rollHolds.get(element);
+    if (held) {
+      clearTimeout(held.timer);
+      held.resolve?.();
+      rollHolds.delete(element);
+    }
+    return rollNow(element, value);
+  }
+  const state = rollHolds.get(element) ?? { shownAt: -Infinity, text: null, timer: 0, waiting: null, resolve: null };
+  rollHolds.set(element, state);
+  const hold = motionDuration(element, '--ds-hold-status');
+  const run = () => {
+    const next = /** @type {string} */ (state.text);
+    const resolve = state.resolve;
+    state.text = null;
+    state.timer = 0;
+    state.waiting = null;
+    state.resolve = null;
+    const shown = swapSlot(element);
+    if (!(shown.length === 1 && shown[0].textContent === next)) state.shownAt = Date.now();
+    const done = rollNow(element, next);
+    done.then(() => resolve?.(), () => resolve?.());
+    return done;
+  };
+  state.text = value;
+  if (state.waiting) return state.waiting;
+  const left = state.shownAt + hold - Date.now();
+  if (left <= 0) return run();
+  state.waiting = new Promise((resolve) => { state.resolve = resolve; });
+  state.timer = setTimeout(run, left);
+  return state.waiting;
 }
 
 /** Whether an icon swap shows b: its data-swap, else an aria-pressed="true" ancestor. */
@@ -2873,7 +3020,8 @@ function unnameAll(call) {
  */
 function swapTarget(doc, result) {
   if (isElement(result)) return result;
-  const view = doc?.querySelector?.('.ds-theme .ds-view');
+  // A view outside the app frame (a wizard, a sign-in page): its content.
+  const view = doc?.querySelector?.('.ds-theme .ds-vt-view') ?? doc?.querySelector?.('.ds-theme .ds-view');
   for (const child of Array.from(view?.children ?? [])) {
     if (child.hasAttribute?.('data-ds-keep') || child.getAttribute?.('aria-hidden') === 'true') continue;
     return child;
@@ -2882,12 +3030,41 @@ function swapTarget(doc, result) {
 }
 
 /**
+ * transition({ focus }): where focus goes once the update ran, if it was
+ * lost: on <body>, in the content that left (no longer connected), or in a
+ * modal drawer that the update closed. `option` true: the returned
+ * element's first h1[tabindex="-1"], else the view (tabindex="-1"), else the
+ * element itself; a function chooses from the incoming element.
+ */
+function moveViewFocus(doc, before, result, option) {
+  if (!option || !doc) return;
+  const now = doc.activeElement;
+  const app = before?.closest?.('.ds-app');
+  const fromDrawer = Boolean(before?.closest?.('.ds-drawer')) && Boolean(app) && !app.hasAttribute('data-drawer-open')
+    && doc.defaultView?.matchMedia?.(MODAL_DRAWER)?.matches === true;
+  const lost = !now || now === doc.body || now === doc.documentElement || (before && before.isConnected === false) || fromDrawer
+    || Boolean(now.closest?.('[inert], [data-ds-leaving]'));
+  if (!lost) return;
+  const incoming = isElement(result) ? result : null;
+  let target = null;
+  if (typeof option === 'function') target = option(incoming);
+  else {
+    // Without a returned element: the view outside the frame, else the frame's view.
+    const root = incoming ?? doc.querySelector?.('.ds-theme .ds-vt-view') ?? doc.querySelector?.('.ds-theme .ds-view');
+    target = (root?.matches?.('h1[tabindex="-1"]') ? root : root?.querySelector?.('h1[tabindex="-1"]'))
+      ?? root?.closest?.('.ds-view, .ds-vt-view') ?? root;
+  }
+  if (target && typeof target.focus === 'function' && target.isConnected !== false && !target.closest?.('[inert]')) target.focus({ preventScroll: true });
+}
+
+/**
  * D30: no View Transitions (or no html.ds-theme). The update runs at
  * once, nothing waits before it, and the new view fades through with
  * .ds-enter--swap; rapid calls land on the latest view through enter()'s
  * generation.
  */
-function swapView(doc, update) {
+function swapView(doc, update, focus) {
+  const before = doc?.activeElement ?? null;
   let result;
   try {
     result = update();
@@ -2899,14 +3076,16 @@ function swapView(doc, update) {
   return Promise.resolve(result).then((value) => {
     // A view that scrolled and now fits keeps no tint or hairline.
     resyncScroll(doc);
+    moveViewFocus(doc, before, value, focus);
     const target = swapTarget(doc, value);
     return target ? enter(target, 'swap') : undefined;
   });
 }
 
 /** The View Transition path of transition() (see there). */
-function viewTransition(doc, update, type, from) {
+function viewTransition(doc, update, type, from, focus) {
   const root = doc.documentElement;
+  const before = doc.activeElement;
   const previous = viewCalls.get(doc);
   if (previous) {
     // A skipped transition still runs its update (in call order, below);
@@ -2950,6 +3129,7 @@ function viewTransition(doc, update, type, from) {
       }
       // An indicator the update created has its name lifted too.
       if (latest()) liftIndicatorNames(doc);
+      if (latest()) moveViewFocus(doc, before, result, focus);
       // Only a panel that changes its width (the drawer shown or hidden)
       // morphs over --ds-dur-long; a plain swap keeps the short groups, so
       // the frozen page never holds input longer than it must.
@@ -2977,7 +3157,7 @@ function viewTransition(doc, update, type, from) {
       viewCalls.delete(doc);
       restoreLiftedNames(doc);
     }
-    return swapView(doc, update);
+    return swapView(doc, update, focus);
   }
   call.transition = started;
   // The new view may not overflow where the old one was scrolled: its
@@ -3048,14 +3228,19 @@ function viewTransition(doc, update, type, from) {
  *
  * Elsewhere (no View Transitions, or .ds-theme on a wrapper: an embedded
  * widget never snapshots its host page) the update runs at once and the
- * element it returns, else the first child of the themed .ds-view that is
- * not data-ds-keep or aria-hidden (a sentinel), enters with
- * .ds-enter--swap.
+ * element it returns, else the first child of the themed .ds-vt-view (a
+ * view outside the app frame) or .ds-view that is not data-ds-keep or
+ * aria-hidden (a sentinel), enters with .ds-enter--swap.
  *
  * @param {() => (Element|null|undefined|void|Promise<Element|null|undefined|void>)} update
  *   swaps the content; may be async; may return the element that holds
  *   the new content (the container target, the fallback's entrance)
- * @param {{ type?: 'fade-through'|'forward'|'back'|'container', from?: Element|null }} [options]
+ * `focus` (2.0): true moves focus once the update ran, when it was lost
+ * (on <body>, in the content that left, or in the modal drawer the update
+ * closed): to the returned element's first h1[tabindex="-1"], else the
+ * view, else the element (preventScroll); a function (incoming) =>
+ * Element|null chooses. Default false: focus stays where the page put it.
+ * @param {{ type?: 'fade-through'|'forward'|'back'|'container', from?: Element|null, focus?: boolean|((incoming: Element|null) => Element|null) }} [options]
  * @returns {Promise<void>} resolves once the update has run and the motion
  *   finished (also when it was skipped); rejects with the update's error,
  *   after cleaning up
@@ -3068,6 +3253,7 @@ export function transition(update, options = {}) {
   if (typeof update !== 'function') throw new TypeError('DS.motion.transition: update must be a function');
   const doc = from?.ownerDocument ?? globalThis.document;
   const root = doc?.documentElement;
-  if (doc && typeof doc.startViewTransition === 'function' && root?.classList?.contains('ds-theme')) return viewTransition(doc, update, type, from);
-  return swapView(doc, update);
+  const focus = options?.focus ?? false;
+  if (doc && typeof doc.startViewTransition === 'function' && root?.classList?.contains('ds-theme')) return viewTransition(doc, update, type, from, focus);
+  return swapView(doc, update, focus);
 }

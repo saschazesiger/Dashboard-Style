@@ -269,6 +269,23 @@ is the only scroller. At 900px and below the drawer becomes modal.
 The page's width (not the window's) decides when grids, facts and tables narrow: those are container queries on
 `.ds-content`, so the persistent drawer counts.
 
+### Page outside the frame
+
+A page without `.ds-app` (a wizard, a sign-in page, an embedded flow) marks its view with `.ds-vt-view` (2.0), so
+`DS.motion.transition()` moves between its steps like between the views of the frame: named `ds-view` only while a
+transition runs, and without View Transitions the new step (its first child) enters with `.ds-enter--swap`. One per
+page, never inside `.ds-app`.
+
+```html
+<main class="ds-vt-view" tabindex="-1">
+  <section class="ds-page"><h1 class="ds-page-head__title" tabindex="-1">Step 1 of 3</h1> ... </section>
+</main>
+```
+
+```js
+DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
+```
+
 ## Button
 
 ```html
@@ -1245,7 +1262,9 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   panel (inside `.ds-content`, whose read-only `--ds-content-pad-top` and `--ds-content-pad-x` it reads to reach the
   panel edges; inside `.ds-page` it also spans the page's centring, measured as `100cqw` of `.ds-content`, so it
   reaches the edges at any panel width; the view's scroll hairline hides while it is there). Put the bar, or the
-  skeleton that holds it, directly in `.ds-content` or `.ds-page`, with no other size container in between. Refresh pattern: put `.ds-stale` on the content
+  skeleton that holds it, directly in `.ds-content` or `.ds-page`, with no other size container in between. `DS.motion.refresh(content, load)`
+  (2.0) is the refresh pattern as one call: it puts `.ds-stale` and the bar in, waits for `load()` and the loader
+  hold, and takes both away before it resolves with the data. By hand, the refresh pattern: put `.ds-stale` on the content
   and insert the loading bar; when the data arrives, `await DS.motion.settleLoader(startedAt, { element: loadbar })`,
   then `DS.motion.leave(loadbar)` (it fades out with its segments still moving, and is removed) and render the fresh
   content. `.ds-leave` keeps the loops of a loading bar and of a skeleton surface while they fade out.
@@ -1376,7 +1395,8 @@ Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-e
 scrolls into view, tied to the scroll position; static where `view()` timelines are missing and in print);
 `.ds-collapsible` (opens decelerating and closes faster, accelerating; focus rings at its content edge are not cut; a summary holding a `.ds-chevron` drops the native marker); `.ds-chevron` (a disclosure chevron that turns 180deg on the spring
 in the summary of an open `<details>` or under `aria-expanded="true"`); `.ds-presence` (toggled elements); `.ds-swap` (the slot of `DS.motion.roll()` and
-`DS.motion.crossfade()`); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
+`DS.motion.crossfade()`) with `.ds-swap--fade` (soft edges, 2.0); `.ds-vt-view` (a view outside the app frame,
+2.0, see [Page](#page-outside-the-frame)); `.ds-icon-swap` with `.ds-icon-swap__a` and `.ds-icon-swap__b` (icon swaps, see
 [Button](#button)); the sliding indicator `.ds-has-indicator`, `.ds-indicator`,
 `.ds-indicator--instant`.
 

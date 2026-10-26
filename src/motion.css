@@ -6,9 +6,9 @@
  *
  * Keyframes sit in the ds.motion layer, the utility classes (.ds-enter,
  * .ds-leave, .ds-stagger, .ds-reveal, .ds-reveal--scroll,
- * .ds-collapsible, .ds-chevron, .ds-swap, .ds-icon-swap, .ds-presence)
- * and the view-transition rules (.ds-theme::view-transition-*) in
- * ds.utilities. That layer comes after
+ * .ds-collapsible, .ds-chevron, .ds-swap, .ds-swap--fade, .ds-icon-swap,
+ * .ds-presence, .ds-presence--keep, .ds-vt-view) and the view-transition
+ * rules (.ds-theme::view-transition-*) in ds.utilities. That layer comes after
  * ds.components, so a utility wins over a component's own animation by
  * layer order, not by specificity.
  *
@@ -47,9 +47,10 @@
  *   of its own): without them it shows and hides at once.
  * - View Transitions (the ::view-transition-* rules of the "View
  *   transitions" section: fade-through, shared axis, container transform,
- *   the group default that glides named indicators; only with .ds-theme on
- *   <html>): without them DS.motion.transition() fades the new view
- *   through with .ds-enter--swap.
+ *   the group default that glides named indicators, and .ds-vt-view, a
+ *   view outside the app frame; only with .ds-theme on <html>): without
+ *   them DS.motion.transition() fades the new view (the first child of a
+ *   .ds-vt-view) through with .ds-enter--swap.
  * - scroll-driven animations (animation-timeline: view(), animation-range;
  *   .ds-reveal--scroll ties its fade and rise to the scroll position, and
  *   ds-scroll-fade and ds-edge-fade run on the scroll timelines of
@@ -943,6 +944,22 @@
   }
 
   /*
+   * A soft slot edge (2.0): lines appear from and leave behind a soft edge
+   * instead of a hard cut. The slot takes --ds-swap-fade (default
+   * --ds-space-2) of room above and below, given back by a negative margin
+   * so nothing moves, and a static vertical mask fades that room. Nothing
+   * in the mask animates.
+   *
+   *   <span class="ds-swap ds-swap--fade"><span>Syncing 3 of 40</span></span>
+   */
+  .ds-swap--fade {
+    padding-block: var(--ds-swap-fade, var(--ds-space-2));
+    margin-block: calc(-1 * var(--ds-swap-fade, var(--ds-space-2)));
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-swap-fade, var(--ds-space-2)), #000 calc(100% - var(--ds-swap-fade, var(--ds-space-2))), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-swap-fade, var(--ds-space-2)), #000 calc(100% - var(--ds-swap-fade, var(--ds-space-2))), transparent);
+  }
+
+  /*
    * Icon swap (copy to check, play to pause): two icons in one grid cell.
    * data-swap="b" on the wrapper, or (without data-swap) an ancestor with
    * aria-pressed="true", shows b; otherwise a shows. The incoming icon
@@ -1171,6 +1188,17 @@
    * lets the old view go in --ds-dur-instant by design. No keyframes of
    * their own: the ds-fade-*, ds-grow-in and ds-shift-in/-out pairs.
    */
+
+  /* A view outside the app frame (2.0): a wizard, a sign-in page or a page
+     without .ds-app names its .ds-vt-view ds-view while a transition runs,
+     so it plays like .ds-view. One per page, never inside .ds-app (the
+     frame's view has the name then). Without View Transitions
+     DS.motion.transition() enters its first child with .ds-enter--swap.
+
+       <main class="ds-vt-view"><section>(step 1)</section></main> */
+  .ds-theme[data-ds-vt] .ds-vt-view {
+    view-transition-name: ds-view;
+  }
 
   /* The root (the top bar, the backdrop, everything unnamed): the browser's
      crossfade, short; pixels that did not change stay still under its

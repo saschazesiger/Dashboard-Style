@@ -490,7 +490,7 @@
       const delta = Number(button.getAttribute('data-step'));
       const list = live.devices;
       const next = list[(list.findIndex((device) => device.id === sheetId) + delta + list.length) % list.length];
-      M.transition(() => { fillSheet(next.id); return sheetBody; }, { type: delta > 0 ? 'forward' : 'back' });
+      M.transition(() => { fillSheet(next.id); return sheetBody; }, { type: delta > 0 ? 'forward' : 'back', focus: true });
     });
   }
 
@@ -520,7 +520,6 @@
   /* ── Feedback ─────────────────────────────────────────────────────── */
 
   const progress = $('#import-progress');
-  const track = $('.ds-progress__track', progress);
   const ring = $('#import-ring');
   const label = $('#import-label');
   const detail = $('#import-detail');
@@ -528,26 +527,20 @@
 
   function setShare(share, first) {
     const percent = Math.round(share * 100);
-    progress.classList.remove('ds-progress--indeterminate', 'ds-progress--waiting');
     // The bar, the ring and the figure, in one task: they land on the same frame.
-    progress.style.setProperty('--ds-progress', String(share));
-    ring.style.setProperty('--ds-progress', String(share));
-    track.setAttribute('aria-valuenow', String(percent));
-    track.removeAttribute('aria-valuetext');
-    ring.setAttribute('aria-valuenow', String(percent));
+    // DS.dom.progress() sets the share and its ARIA (and drops --indeterminate).
+    DS.dom.progress(progress, share);
+    DS.dom.progress(ring, share);
     M.countUp(label, percent, { format: (n) => `${Math.round(n)}%`, ...(first ? { from: 0 } : {}) });
     detail.textContent = `${Math.round(share * ROWS).toLocaleString('en-US')} of ${ROWS.toLocaleString('en-US')} rows`;
   }
 
   $('#run-import').addEventListener('click', (event) => {
     M.busy(event.currentTarget, async () => {
-      progress.classList.remove('ds-progress--waiting');
-      progress.classList.add('ds-progress--indeterminate');
-      progress.style.setProperty('--ds-progress', '0');
-      ring.style.setProperty('--ds-progress', '0');
-      ring.setAttribute('aria-valuenow', '0');
-      track.removeAttribute('aria-valuenow');
-      track.setAttribute('aria-valuetext', 'Preparing');
+      // From 0, so the first share grows from the start; then unknown until the file is read.
+      DS.dom.progress(progress, 0);
+      DS.dom.progress(progress, null, { valueText: 'Preparing' });
+      DS.dom.progress(ring, 0);
       label.textContent = 'Preparing';
       detail.textContent = 'Reading the file';
       await fake(1300);

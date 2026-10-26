@@ -24,6 +24,7 @@ import {
   motionEasing,
   originFrom,
   replay,
+  refresh,
   resyncScroll,
   roll,
   setLabel,
@@ -1078,6 +1079,31 @@ describe('js/motion', () => {
       assert.deepEqual(element.children, [line]);
     });
 
+    it('roll(…, { hold: true }) keeps each line up for --ds-hold-status; only the latest waiting text rolls (2.0)', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+      const element = slot();
+      const lines = () => element.children.filter((child) => !child.hasAttribute('data-ds-leaving')).map((child) => child.textContent);
+      roll(element, 'Syncing 1 of 40', { hold: true });
+      assert.deepEqual(lines(), ['Syncing 1 of 40'], 'the first line rolls at once');
+      const second = roll(element, 'Syncing 2 of 40', { hold: true });
+      const third = roll(element, 'Syncing 3 of 40', { hold: true });
+      assert.equal(second, third, 'one roll waits; a later text replaces its text');
+      assert.deepEqual(lines(), ['Syncing 1 of 40'], 'the first line stays readable');
+      t.mock.timers.tick(MOTION_FALLBACKS['--ds-hold-status'] - 1);
+      assert.deepEqual(lines(), ['Syncing 1 of 40']);
+      t.mock.timers.tick(1);
+      assert.deepEqual(lines(), ['Syncing 3 of 40'], 'only the latest rolls');
+      t.mock.timers.tick(1000);
+      await third;
+      // Without hold a roll goes at once and calls off a waiting one.
+      roll(element, 'Syncing 4 of 40', { hold: true });
+      roll(element, 'Done');
+      assert.deepEqual(lines(), ['Done']);
+      t.mock.timers.tick(2000);
+      await flushPromises();
+      assert.deepEqual(lines(), ['Done'], 'the waiting line never comes');
+    });
+
     describe('flip()', () => {
       /**
        * A list whose items sit at `y` (40px rows); a glide in flight shows
@@ -1405,6 +1431,66 @@ describe('js/motion', () => {
       t.mock.timers.tick(LOADER_MIN_VISIBLE_MS - 100);
       await modern;
       assert.deepEqual(states, ['legacy', 'modern']);
+    });
+  });
+
+  describe('refresh() (2.0)', () => {
+    const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+
+    /** A container directly in a .ds-content (or not), on a fake document. */
+    function content(inContent = true) {
+      const doc = { createElement: () => new FakeElement(doc), activeElement: null };
+      const parent = new FakeElement(doc);
+      parent.matches = (selector) => inContent && selector === '.ds-content, .ds-page';
+      const container = new FakeElement(doc);
+      parent.append(container);
+      return { doc, parent, container };
+    }
+
+    it('marks the container stale and busy, puts a loading bar at the top of its .ds-content, and cleans up before it resolves', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+      const { parent, container } = content();
+      let answer = () => {};
+      const pending = refresh(container, () => new Promise((resolve) => { answer = resolve; }));
+      assert.ok(container.classList.contains('ds-stale'));
+      assert.equal(container.getAttribute('aria-busy'), 'true');
+      const bar = parent.children[0];
+      assert.ok(bar.classList.contains('ds-loadbar'), 'the bar goes in before the container');
+      assert.equal(parent.children[1], container);
+      await flushPromises();
+      t.mock.timers.tick(LOADER_DELAY_MS + 50);
+      answer({ rows: 3 });
+      await flushPromises();
+      assert.ok(container.classList.contains('ds-stale'), 'a bar that showed stays for --ds-hold-loader');
+      t.mock.timers.tick(LOADER_MIN_VISIBLE_MS);
+      const data = await pending;
+      assert.deepEqual(data, { rows: 3 });
+      assert.equal(container.classList.contains('ds-stale'), false);
+      assert.equal(container.getAttribute('aria-busy'), null);
+      t.mock.timers.tick(1000);
+    });
+
+    it('needs no bar outside .ds-content, cleans up on a rejection and an abort, and shares the state between two calls', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+      const { parent, container } = content(false);
+      const error = new Error('offline');
+      await assert.rejects(refresh(container, () => Promise.reject(error)), (thrown) => thrown === error);
+      assert.equal(parent.children.length, 1, 'no bar');
+      assert.equal(container.classList.contains('ds-stale'), false);
+      const controller = new AbortController();
+      const aborted = refresh(container, () => new Promise(() => {}), { signal: controller.signal });
+      controller.abort();
+      await assert.rejects(aborted, (thrown) => thrown.name === 'AbortError');
+      assert.equal(container.getAttribute('aria-busy'), null);
+      await assert.rejects(refresh(container, () => 1, { signal: controller.signal }), (thrown) => thrown.name === 'AbortError', 'an aborted signal rejects at once');
+      let first = () => {};
+      const one = refresh(container, () => new Promise((resolve) => { first = resolve; }));
+      const two = refresh(container, () => 'b');
+      await two;
+      assert.ok(container.classList.contains('ds-stale'), 'the other refresh still runs');
+      first('a');
+      assert.equal(await one, 'a');
+      assert.equal(container.classList.contains('ds-stale'), false);
     });
   });
 
@@ -1790,6 +1876,64 @@ describe('transition() (1.5.0)', () => {
       else delete globalThis.document;
     });
   }
+
+  it('focus: true moves lost focus to the incoming heading, else the view; a function chooses; focus kept stays (2.0)', async (t) => {
+    for (const api of [false, true]) {
+      const { doc, view } = page({ api });
+      useDocument(t, doc);
+      view.matches = (selector) => selector === '.ds-view';
+      view.closest = (selector) => (selector === '.ds-view' ? view : null);
+      const heading = new FakeElement(doc);
+      heading.matches = (selector) => selector === 'h1[tabindex="-1"]';
+      const incoming = new FakeElement(doc);
+      incoming.getAnimations = () => [];
+      incoming.append(heading);
+      incoming.querySelector = (selector) => (selector === 'h1[tabindex="-1"]' ? heading : null);
+      // The page's link (in the old content) is gone with it: focus is lost.
+      const link = new FakeElement(doc);
+      link.focus();
+      const done = transition(() => { link.isConnected = false; doc.activeElement = doc.body; view.replaceChildren(incoming); return incoming; }, { focus: true });
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await done;
+      assert.equal(doc.activeElement, heading, `the incoming heading (View Transitions: ${api})`);
+      // Without a heading: the view.
+      const bare = new FakeElement(doc);
+      bare.getAnimations = () => [];
+      bare.closest = (selector) => (selector.includes('.ds-view') ? view : null);
+      doc.activeElement = doc.body;
+      const second = transition(() => { view.replaceChildren(bare); return bare; }, { focus: true });
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await second;
+      assert.equal(doc.activeElement, view, 'no heading: the view');
+      // A function chooses; a focus the page kept stays; the default leaves focus alone.
+      const chosen = new FakeElement(doc);
+      doc.activeElement = doc.body;
+      await Promise.all([transition(() => incoming, { focus: (node) => (node === incoming ? chosen : null) }), ...doc.started.map((started) => started.finish())]);
+      await flush();
+      for (const started of doc.started) started.finish();
+      await flush();
+      assert.equal(doc.activeElement, chosen);
+      const search = new FakeElement(doc);
+      search.focus();
+      const kept = transition(() => incoming, { focus: true });
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await kept;
+      assert.equal(doc.activeElement, search, 'focus not lost: it stays');
+      doc.activeElement = doc.body;
+      const plain = transition(() => incoming);
+      for (const started of doc.started) started.finish();
+      await flush();
+      for (const started of doc.started) started.finish();
+      await plain;
+      assert.equal(doc.activeElement, doc.body, 'default: focus is the page\'s');
+    }
+  });
 
   it('throws a TypeError for an unknown type or an update that is not a function', (t) => {
     useDocument(t, page({ api: false }).doc);

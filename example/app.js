@@ -13,7 +13,7 @@
  *                       a chart of the project's own (.ex-chart), a live feed
  *   Devices             search, filter chips, sort, bulk selection, a row
  *                       menu, a confirm dialog, undo in a snackbar, an empty
- *                       state, a refresh with .ds-stale and the loading bar,
+ *                       state, a refresh with DS.motion.refresh(),
  *                       live status through flip({ live: true }), a side
  *                       sheet with previous and next
  *   Tickets             expandable rows, a dialog with a form, validation
@@ -350,25 +350,12 @@
     return glide;
   }
 
-  /* The refresh pattern: the content dims (.ds-stale), the loading bar runs
-     at the top of the panel, and it leaves once the data is in. */
+  /* The refresh pattern as one call (DS.motion.refresh): the card dims
+     (.ds-stale), the loading bar runs at the top of the page, and both go
+     once the data is in; render right after. */
   async function refreshDevices() {
-    const card = $('#devices-card');
-    const bar = document.createElement('span');
-    bar.className = 'ds-loadbar';
-    bar.setAttribute('aria-hidden', 'true');
-    bar.append(Object.assign(document.createElement('span'), { className: 'ds-loadbar__bar' }));
-    // In .ds-content, before the page: its margins take back its room, so nothing moves.
-    page.before(bar);
-    card.classList.add('ds-stale');
-    card.setAttribute('aria-busy', 'true');
-    const startedAt = Date.now();
-    const devices = await api.devices();
-    await M.settleLoader(startedAt, { element: bar });
-    M.leave(bar);
+    const devices = await M.refresh($('#devices-card'), () => api.devices());
     state.devices = devices;
-    card.classList.remove('ds-stale');
-    card.removeAttribute('aria-busy');
     renderRows();
     DS.overlay.toast(toasts, 'Devices refreshed.');
   }
@@ -553,15 +540,14 @@
     if (push && location.hash !== hash) history.pushState(null, '', hash);
     applyParams(route, params);
     if (route === state.route && !params.toString() && !app.hasAttribute('data-drawer-open')) return Promise.resolve();
+    // focus: true: a navigation that took the focus with it (a drawer link) lands on the new title.
     return M.transition(() => {
       if (app.hasAttribute('data-drawer-open')) DS.overlay.close(drawer);
       state.route = route;
       renderView();
       if (VIEWS[route].after) VIEWS[route].after();
-      const title = $('h1', page);
-      if (title) title.focus({ preventScroll: true });
       return page;
-    }, { type: 'fade-through' });
+    }, { type: 'fade-through', focus: true });
   }
 
   /* ── Live data ────────────────────────────────────────────────────── */
@@ -645,7 +631,7 @@
     const index = list.findIndex((device) => device.id === state.sheetId);
     const next = list[(index + delta + list.length) % list.length];
     if (!next) return;
-    M.transition(() => { fillSheet(next.id); return sheetBody; }, { type: delta > 0 ? 'forward' : 'back' });
+    M.transition(() => { fillSheet(next.id); return sheetBody; }, { type: delta > 0 ? 'forward' : 'back', focus: true });
   }
 
   /* ── Actions ──────────────────────────────────────────────────────── */
@@ -727,13 +713,9 @@
     const progress = $('#sync-progress');
     if (!progress) return;
     const { running, done, total } = state.sync;
-    const track = $('.ds-progress__track', progress);
     const label = $('.ds-progress__label', progress);
-    progress.classList.remove('ds-progress--waiting');
     if (running && !done) {
-      progress.classList.add('ds-progress--indeterminate');
-      track.removeAttribute('aria-valuenow');
-      track.setAttribute('aria-valuetext', 'Preparing');
+      DS.dom.progress(progress, null, { valueText: 'Preparing' });
       label.textContent = 'Preparing';
       $('.ds-progress__detail', progress).textContent = `${total} devices`;
       return;
@@ -741,10 +723,8 @@
     const share = total ? done / total : 0;
     const percent = Math.round(share * 100);
     const first = progress.classList.contains('ds-progress--indeterminate');
-    progress.classList.remove('ds-progress--indeterminate');
-    progress.style.setProperty('--ds-progress', String(share));
-    track.setAttribute('aria-valuenow', String(percent));
-    track.removeAttribute('aria-valuetext');
+    // The share and its ARIA in one call, in the task of the count.
+    DS.dom.progress(progress, share);
     M.countUp(label, percent, { format: (value) => `${Math.round(value)}%`, ...(first ? { from: 0 } : {}) });
     $('.ds-progress__detail', progress).textContent = running ? `${done} of ${total} devices` : `Finished at ${clock(state.sync.finished)}`;
     if (!running && state.sync.summary) DS.dom.morphHtml(page, overviewHtml());

@@ -263,6 +263,9 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-loader-size`, `--ds-loader-color` | 48px (`--sm`: 24px), `--ds-primary` | the shape loader's container and its shape ([loading](components.md#loading)) |
 | `--ds-progress-gap` | 4px | linear progress: the gap between the bar and the remaining track |
 | `--ds-progress-track`, `--ds-progress-stop` | `--ds-accent`, `--ds-primary` | linear progress: the remaining track, the stop dot at its end |
+| `--ds-skeleton-radius` | `--ds-radius-action` (the heading line: `--ds-radius-sm`) | skeleton lines ([loading](components.md#loading)) |
+| `--ds-swap-fade` | `--ds-space-2` | the soft edge of a `.ds-swap--fade` slot ([motion](motion.md#utilities-css)) |
+| `--ds-dropzone-border` | `1px dashed var(--ds-outline)` | the border of a `.ds-dropzone` ([file upload](components.md#file-upload)) |
 | `--ds-dialog-width` | 400px | dialog |
 | `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
 | `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
