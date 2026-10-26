@@ -1386,6 +1386,12 @@
     /** The events of an activation: a click (Enter and Space on buttons and links too), a middle click, a submission. */
     const GUARDED_EVENTS = ['click', 'auxclick', 'submit'];
 
+    /** The key events a page's own handler activates an ARIA-role action on (they never arrive as clicks there). */
+    const GUARDED_KEY_EVENTS = ['keydown', 'keyup'];
+
+    /** Elements whose Enter and Space arrive as a click (the click guard takes them). */
+    const NATIVE_ACTION = new Set(['A', 'BUTTON', 'INPUT', 'SUMMARY']);
+
     /**
      * The installed guard of each document or shadow root: the target it
      * listens on and how many holders keep it.
@@ -1411,6 +1417,20 @@
       event.stopImmediatePropagation();
     }
 
+    /**
+     * Cancels Enter and Space on a blocked action that is no native control
+     * (a div with role="button", an option, a menu item): the page's key
+     * handler would activate it. Only with the focus on the action itself,
+     * so a field inside it still types.
+     */
+    function blockKeys(event) {
+      if (event.isTrusted === false || (event.key !== 'Enter' && event.key !== ' ')) return;
+      const action = blockedAction(event.target);
+      if (!action || action !== event.target || NATIVE_ACTION.has(action.tagName)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+
     /** Installs the guard on `root` (a document or a shadow root) once, or adds a holder. */
     function holdGuard(root) {
       const installed = guards.get(root);
@@ -1421,6 +1441,7 @@
       const target = root.nodeType === 9 ? root.defaultView ?? root : root;
       if (typeof target?.addEventListener !== 'function') return false;
       for (const type of GUARDED_EVENTS) target.addEventListener(type, blockActivation, true);
+      for (const type of GUARDED_KEY_EVENTS) target.addEventListener(type, blockKeys, true);
       guards.set(root, { target, holders: 1 });
       return true;
     }
@@ -1432,12 +1453,16 @@
       installed.holders -= 1;
       if (installed.holders > 0) return;
       for (const type of GUARDED_EVENTS) installed.target.removeEventListener(type, blockActivation, true);
+      for (const type of GUARDED_KEY_EVENTS) installed.target.removeEventListener(type, blockKeys, true);
       guards.delete(root);
     }
 
     /**
      * Blocks what says it is blocked, for every input: a click, a middle
-     * click (auxclick), Enter or Space (they arrive as clicks), a label click
+     * click (auxclick), Enter or Space (on a native control they arrive as
+     * clicks; on an ARIA-role action that has the focus, a div with
+     * role="button" or an option, their keydown and keyup are cancelled
+     * before the page's key handler), a label click
      * (it arrives as a click on its input) and a form submission (by its
      * submitter, also the default button of Enter in a field) never reach the
      * page's listeners or their default action when their target is inside

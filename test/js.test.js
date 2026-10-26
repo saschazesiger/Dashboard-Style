@@ -1530,6 +1530,20 @@ describe('DS.motion.guard (2.0)', () => {
     assert.equal(fire('click', inBusyRegion).blocked, false, 'a region with aria-busy is no action');
     assert.equal(fire('click', explains).blocked, false, 'data-ds-guard="off": the page explains on click');
     assert.equal(fire('click', outside).blocked, false, 'outside .ds-theme');
+    // Enter and Space on an ARIA-role action never arrive as clicks: their keys are cancelled.
+    const menuitem = h('div', { role: 'menuitem', tabindex: '0', 'aria-disabled': 'true' });
+    const field = h('input', {});
+    const optionWithField = h('div', { role: 'option', 'aria-disabled': 'true' }, field);
+    const usable = h('div', { role: 'menuitem', tabindex: '0' });
+    h('div', { class: 'ds-theme' }, menuitem, optionWithField, usable);
+    assert.equal(fire('keydown', menuitem, { key: 'Enter' }).blocked, true, 'Enter on an aria-disabled menu item');
+    assert.equal(fire('keydown', menuitem, { key: ' ' }).blocked, true, 'Space');
+    assert.equal(fire('keyup', menuitem, { key: ' ' }).blocked, true, 'and its keyup');
+    assert.equal(fire('keydown', menuitem, { key: 'ArrowDown' }).blocked, false, 'the arrows still move');
+    assert.equal(fire('keydown', menuitem, { key: 'Enter', isTrusted: false }).blocked, false, 'the page\'s own events');
+    assert.equal(fire('keydown', field, { key: ' ' }).blocked, false, 'a field inside it still types');
+    assert.equal(fire('keydown', usable, { key: 'Enter' }).blocked, false, 'a usable item');
+    assert.equal(fire('keydown', link, { key: 'Enter' }).blocked, false, 'a native control: its click is guarded');
     handle.destroy();
   });
 
@@ -1537,16 +1551,16 @@ describe('DS.motion.guard (2.0)', () => {
     const { doc, listeners } = guardDom();
     const first = motion.guard(doc);
     const second = motion.guard(doc);
-    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true]]);
+    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true], ['keydown', true], ['keyup', true]]);
     first.destroy();
     first.destroy();
-    assert.equal(listeners.length, 3, 'one holder left');
+    assert.equal(listeners.length, 5, 'one holder left');
     second.destroy();
     assert.equal(listeners.length, 0);
     // A shadow root listens on itself.
     const shadow = { nodeType: 11, added: [], addEventListener(type) { this.added.push(type); }, removeEventListener() {} };
     motion.guard(shadow).destroy();
-    assert.deepEqual(shadow.added, ['click', 'auxclick', 'submit']);
+    assert.deepEqual(shadow.added, ['click', 'auxclick', 'submit', 'keydown', 'keyup']);
   });
 
   it('is installed by busy() on its first call, for good', async () => {
@@ -1556,11 +1570,11 @@ describe('DS.motion.guard (2.0)', () => {
     button.querySelector = () => null;
     h('div', { class: 'ds-theme' }, button);
     await motion.busy(button, () => 'saved');
-    assert.equal(listeners.length, 3);
+    assert.equal(listeners.length, 5);
     await motion.busy(button, () => 'again');
-    assert.equal(listeners.length, 3, 'once');
+    assert.equal(listeners.length, 5, 'once');
     motion.guard(doc).destroy();
-    assert.equal(listeners.length, 3, 'a page handle never takes away the hold of busy()');
+    assert.equal(listeners.length, 5, 'a page handle never takes away the hold of busy()');
   });
 
   it('is installed by DS.ripple.attach() on the root\'s document, and its destroy() lets go (CT-1)', () => {
@@ -1574,7 +1588,7 @@ describe('DS.motion.guard (2.0)', () => {
       contains: () => false,
     });
     const handle = ripple.attach(root);
-    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true]]);
+    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true], ['keydown', true], ['keyup', true]]);
     assert.equal(fire('click', blocked).blocked, true, 'an aria-disabled action is blocked once attach() ran');
     handle.destroy();
     assert.equal(listeners.length, 0, 'destroy() takes its hold back');

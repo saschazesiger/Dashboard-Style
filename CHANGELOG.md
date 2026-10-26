@@ -40,7 +40,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
 - **Blocked actions are blocked for every input.** Once `DS.ripple.attach()` or `DS.motion.busy()` ran (or
   `DS.motion.guard()`), a click, middle click, Enter, Space, label click or form submission on a busy or done
   `.ds-btn`, or on any `aria-disabled="true"` action inside `.ds-theme`, never reaches your listeners or its default
-  action. Delete your own guards. A control that must explain itself on click gets `data-ds-guard="off"`.
+  action; on an ARIA-role action (`<div role="button">`, an option, a menu item) the `keydown` and `keyup` of Enter
+  and Space are cancelled before your key handler. Delete your own guards. A control that must explain itself on click gets `data-ds-guard="off"`.
 - `busy()` shows the done face only when the button has one (no `{ done: false }` needed for buttons without it).
 - `flip()` moves focus to the same control of the next item when the focused item goes (else the previous one,
   skipping items that take no focus, such as a day heading); `refocus: false` turns it off. Delete "move focus before

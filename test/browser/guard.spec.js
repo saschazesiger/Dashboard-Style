@@ -6,7 +6,9 @@
  * a middle click on an aria-disabled link opens nothing; a control under
  * data-ds-guard="off" and a button in an aria-busy region stay usable, and
  * focus and the tooltip of a blocked control stay; DS.ripple.attach()
- * installs it too. Runs in the `fallback` project too.
+ * installs it too; Enter and Space on an aria-disabled ARIA-role action
+ * (a div with role="button") never reach the page's key handler. Runs in
+ * the `fallback` project too.
  */
 import { test, expect } from './base-test.js';
 import { ready } from './helpers/motion.js';
@@ -117,4 +119,26 @@ test('DS.ripple.attach() installs the guard, and its destroy() lets go (CT-1)', 
   await page.evaluate(() => { window.fxSeen.length = 0; window.fxRipples.destroy(); });
   await page.locator('#publish').click({ force: true });
   expect(await seen(page)).toEqual(['click publish']);
+});
+
+test('an aria-disabled ARIA-role action: Enter and Space never reach the page\'s key handler; a usable one and the arrows still work', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const theme = document.querySelector('.ds-theme');
+    theme.insertAdjacentHTML('beforeend', '<div class="ds-pressable" role="button" tabindex="0" id="custom-off" aria-disabled="true">Archive</div>'
+      + '<div class="ds-pressable" role="button" tabindex="0" id="custom-on">Restore</div>');
+    // The page's own key handling, as docs/components.md tells it to add for .ds-pressable.
+    for (const id of ['custom-off', 'custom-on']) {
+      document.getElementById(id).addEventListener('keydown', (event) => window.fxSeen.push(`key ${event.key} ${id}`));
+      document.getElementById(id).addEventListener('keyup', (event) => window.fxSeen.push(`keyup ${event.key} ${id}`));
+    }
+  });
+  await page.locator('#custom-off').focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowDown');
+  expect(await page.evaluate(() => document.activeElement.id), 'the blocked one keeps the focus').toBe('custom-off');
+  await page.locator('#custom-on').focus();
+  await page.keyboard.press('Enter');
+  expect(await seen(page)).toEqual(['key ArrowDown custom-off', 'keyup ArrowDown custom-off', 'key Enter custom-on', 'keyup Enter custom-on']);
 });
