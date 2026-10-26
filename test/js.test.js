@@ -2034,7 +2034,17 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     log.scrollTop = 850;
     log.dispatchEvent(new Event('scroll'));
     assert.equal(pill.hidden, false, 'scrolled up against the glide: let go');
+    assert.equal(pill[Symbol.for('ds.owned')].attrs.get('hidden'), 1, 'the pill\'s hidden is owned state');
+    // Added lines are observed, removed ones let go; the rest is not walked again.
+    const [children] = observers.mutation.slice(-1);
+    const [first] = log.children;
+    const line = h('p', {});
+    log.append(line);
+    first.remove();
+    children.callback([{ addedNodes: [line], removedNodes: [] }, { addedNodes: [], removedNodes: [first] }]);
+    assert.deepEqual([sizes.targets.has(line), sizes.targets.has(first)], [true, false]);
     handle.destroy();
+    assert.equal(pill[Symbol.for('ds.owned')].attrs.has('hidden'), false);
   });
 
   it('autosize: grows with the text to max-height, then scrolls; nothing where field-sizing does it', () => {
@@ -2047,8 +2057,10 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     area.scrollHeight = 400;
     area.dispatchEvent(new Event('input'));
     assert.deepEqual([area.style.height, area.style.overflowY], ['200px', 'auto']);
+    assert.deepEqual(['height', 'overflow-y'].map((name) => area[Symbol.for('ds.owned')].props.get(name)), [1, 1], 'owned state: a re-render keeps the size');
     handle.destroy();
     assert.equal(area.style.height, '');
+    assert.equal(area[Symbol.for('ds.owned')].props.size, 0);
     const native = h('textarea', {});
     native.computed = { 'field-sizing': 'content' };
     dom.autosize(native);

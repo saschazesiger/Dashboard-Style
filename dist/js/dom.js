@@ -1334,7 +1334,9 @@ const endFollowers = new WeakMap();
  * place is .ds-jump) shows while it is let go (`hidden` toggled). A click
  * on the pill, or stick(), goes back to the end: smoothly within one
  * viewport height, else at once. A ResizeObserver watches the content (the
- * scroller's element children), so nothing polls. Once per scroller.
+ * scroller's element children: added lines are observed, removed ones let
+ * go), so nothing polls. The pill's `hidden` is owned state (a re-render
+ * keeps it). Once per scroller.
  * @param {Element|null|undefined} scroller
  * @param {{ pill?: HTMLElement|null, threshold?: number }} [options]
  * @returns {{ stick: () => void, destroy: () => void }}
@@ -1376,14 +1378,16 @@ export function followEnd(scroller, options = {}) {
     show();
   };
   const sizes = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(grew) : null;
-  const watchChildren = () => {
-    for (const child of Array.from(scroller.children ?? [])) sizes?.observe(child);
-  };
-  const children = typeof view.MutationObserver === 'function' ? new view.MutationObserver(() => {
-    watchChildren();
+  // Only what changed: a long log costs nothing per line, and a line that
+  // is pruned or replaced is let go (an observation holds its element).
+  const children = typeof view.MutationObserver === 'function' ? new view.MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of Array.from(record.removedNodes ?? [])) if (node.nodeType === 1 && node.parentNode !== scroller) sizes?.unobserve(node);
+      for (const node of Array.from(record.addedNodes ?? [])) if (node.nodeType === 1 && node.parentNode === scroller) sizes?.observe(node);
+    }
     grew();
   }) : null;
-  watchChildren();
+  for (const child of Array.from(scroller.children ?? [])) sizes?.observe(child);
   sizes?.observe(scroller);
   children?.observe(scroller, { childList: true });
   scroller.addEventListener('scroll', onScroll, { passive: true });
@@ -1394,6 +1398,8 @@ export function followEnd(scroller, options = {}) {
   };
   const onPill = () => stick();
   pill?.addEventListener('click', onPill);
+  // The pill's hidden is owned state: a re-render of the log keeps it.
+  if (pill) own(pill, 'attrs', 'hidden');
   show();
   const handle = {
     stick,
@@ -1404,6 +1410,7 @@ export function followEnd(scroller, options = {}) {
       children?.disconnect();
       scroller.removeEventListener('scroll', onScroll);
       pill?.removeEventListener('click', onPill);
+      if (pill) disown(pill, 'attrs', 'hidden');
     },
   };
   endFollowers.set(scroller, { handle });
@@ -1419,8 +1426,10 @@ const autosized = new WeakMap();
  * Grows a textarea with its text up to its computed max-height (then it
  * scrolls), through the CSSOM; never animated. Where the textarea sizes
  * itself (field-sizing: content, which .ds-input--grow sets where it
- * exists) it does nothing. Once per textarea; update() measures again (a
- * value set by script), destroy() removes the listener and the height.
+ * exists) it does nothing. The height and overflow-y it writes are owned
+ * state, so a re-render keeps a grown textarea's size. Once per textarea;
+ * update() measures again (a value set by script), destroy() removes the
+ * listener and the height.
  * @param {HTMLTextAreaElement|null|undefined} textarea
  * @returns {{ update: () => void, destroy: () => void }}
  */
@@ -1431,8 +1440,15 @@ export function autosize(textarea) {
   const view = windowOf(textarea);
   const style = () => (typeof view.getComputedStyle === 'function' ? view.getComputedStyle(textarea) : null);
   const native = () => style()?.getPropertyValue?.('field-sizing') === 'content';
+  let owned = false;
   const update = () => {
     if (native()) return;
+    if (!owned) {
+      // Owned state: a re-render around a focused, grown textarea keeps its height.
+      owned = true;
+      own(textarea, 'props', 'height');
+      own(textarea, 'props', 'overflow-y');
+    }
     const computed = style();
     const borders = computed?.boxSizing === 'border-box' ? (parseFloat(computed.borderTopWidth) || 0) + (parseFloat(computed.borderBottomWidth) || 0) : 0;
     const max = parseFloat(computed?.maxHeight);
@@ -1450,6 +1466,10 @@ export function autosize(textarea) {
       if (autosized.get(textarea)?.handle !== handle) return;
       autosized.delete(textarea);
       textarea.removeEventListener('input', update);
+      if (owned) {
+        disown(textarea, 'props', 'height');
+        disown(textarea, 'props', 'overflow-y');
+      }
       textarea.style.removeProperty('height');
       textarea.style.removeProperty('overflow-y');
       if (textarea.getAttribute('style')?.trim() === '') textarea.removeAttribute('style');

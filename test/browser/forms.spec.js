@@ -20,6 +20,8 @@
  *   side take less padding at 720px and below, a field alone keeps its own;
  * - the composer keeps its button at the bottom while its text grows
  *   (field-sizing, else DS.dom.autosize()) up to its cap, then scrolls;
+ * - a re-render with DS.dom.morphHtml keeps an autosized textarea's height
+ *   and a followEnd() pill's hidden (owned state);
  * - forced colours: a focused field shows an outline (Chromium emulates
  *   forced colours);
  * - settled shots of the slider and the tiles.
@@ -317,5 +319,48 @@ test.describe('forced colours', () => {
       }, pseudo);
       expect(outline, control).toEqual({ style: 'solid', width: '2px' });
     }
+  });
+});
+
+test.describe('what DS.dom helpers write survives a re-render (2.0)', () => {
+  test('autosize(): a focused, grown textarea keeps its height through morphHtml of its parent; followEnd(): the pill stays shown', async ({ page }) => {
+    await open(page);
+    const result = await page.evaluate(async () => {
+      const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      const host = document.createElement('div');
+      host.id = 'rerendered';
+      const fieldHtml = '<label class="ds-label" for="grown">Note</label><textarea class="ds-input" id="grown" rows="2"></textarea>';
+      host.innerHTML = fieldHtml;
+      document.querySelector('.ds-theme').append(host);
+      const area = document.getElementById('grown');
+      // No .ds-input--grow: autosize() sizes it in every engine.
+      DS.dom.autosize(area);
+      area.focus();
+      area.value = 'One\nTwo\nThree\nFour\nFive\nSix';
+      area.dispatchEvent(new Event('input'));
+      const grown = area.style.height;
+      DS.dom.morphHtml(host, fieldHtml);
+      const kept = [area.isConnected, document.activeElement === area, area.style.height, area.style.overflowY !== ''];
+      // A log with its pill, scrolled up, then the log and pill rendered again.
+      const wrap = document.createElement('div');
+      const lines = Array.from({ length: 40 }, (_, i) => `<p>Line ${i + 1}</p>`).join('');
+      const logHtml = `<div id="log" style="height: 120px; overflow: auto">${lines}</div><button class="ds-presence" id="latest" type="button" hidden>Latest</button>`;
+      wrap.innerHTML = logHtml;
+      document.querySelector('.ds-theme').append(wrap);
+      const log = document.getElementById('log');
+      const pill = document.getElementById('latest');
+      log.scrollTop = log.scrollHeight;
+      DS.dom.followEnd(log, { pill });
+      log.scrollTop = 0;
+      log.dispatchEvent(new Event('scroll'));
+      const shown = !pill.hidden;
+      DS.dom.morphHtml(wrap, logHtml);
+      await frame();
+      return { grown, kept, shown, stillShown: pill.isConnected && !pill.hidden };
+    });
+    expect(parseFloat(result.grown)).toBeGreaterThan(100);
+    expect(result.kept).toEqual([true, true, result.grown, true]);
+    expect(result.shown).toBe(true);
+    expect(result.stillShown).toBe(true);
   });
 });
