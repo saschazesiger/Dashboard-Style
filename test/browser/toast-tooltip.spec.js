@@ -941,6 +941,47 @@ test.describe('snackbars 2.0', () => {
     expect(said.same).toBe(true);
   });
 
+  test('a region toastRegion() creates while a dialog or sheet is open goes into it: the message is above the modal, usable and announced', async ({ page }) => {
+    // The overlay fixture has no .ds-toasts: toast(null) and announce() make one.
+    for (const id of ['native', 'dialog', 'native-sheet', 'sheet']) {
+      await page.setViewportSize({ width: 1000, height: 800 });
+      await page.goto('/test/browser/fixtures/overlay.html');
+      await ready(page);
+      await page.mouse.move(1, 1);
+      await settle(page);
+      await page.evaluate((name) => DS.overlay.open(document.getElementById(name), { opener: document.getElementById('open-dialog') }), id);
+      await settle(page);
+      await page.evaluate(() => {
+        DS.overlay.toast(null, 'Could not delete the devices.', { kind: 'error' });
+        DS.overlay.announce('3 devices match.');
+      });
+      await settle(page);
+      const inside = await page.evaluate((name) => {
+        const host = document.getElementById(name);
+        const message = document.querySelector('.ds-toast--error');
+        const rect = message.getBoundingClientRect();
+        const close = message.querySelector('.ds-toast__close');
+        close.focus();
+        const announcers = [...document.querySelectorAll('.ds-sr[aria-live]')];
+        return {
+          inHost: host.contains(message),
+          hit: message.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)),
+          focus: document.activeElement === close,
+          announcers: announcers.length === 2 && announcers.every((node) => host.contains(node)),
+          said: announcers.find((node) => node.getAttribute('aria-live') === 'polite')?.textContent,
+        };
+      }, id);
+      expect(inside, id).toEqual({ inHost: true, hit: true, focus: true, announcers: true, said: '3 devices match.' });
+      await page.evaluate((name) => DS.overlay.close(document.getElementById(name)), id);
+      await settle(page);
+      // Back where it was made once the exit settled.
+      expect(await page.evaluate((name) => {
+        const region = document.querySelector('.ds-toasts');
+        return { parent: region.parentNode === document.body, inHost: document.getElementById(name).contains(region) };
+      }, id), id).toEqual({ parent: true, inHost: false });
+    }
+  });
+
   test('the same message again restarts the one on screen (one message, its timer starts over); restart: false stacks it', async ({ page }) => {
     await loadApp(page);
     const first = await page.evaluate(async () => {

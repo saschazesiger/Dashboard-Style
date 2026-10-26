@@ -946,11 +946,17 @@ function dismissable(element, state, part, event) {
 function wire(element, state) {
   if (wired.has(element)) return;
   wired.add(element);
-  // A press on the scrim during the exit (the second click of a double
-  // click) would move focus off the opener to <body>: the backdrop is not
-  // focusable. Its default is the focus change, so focus stays put.
+  // A press on the backdrop or scrim would move focus: neither is
+  // focusable, so the second press of the double click that opened the
+  // overlay would take focus off the field it just focused (to the dialog
+  // or <body>), and one during the exit off the opener. Its default is the
+  // focus change (the click still comes), so focus stays put; during the
+  // exit that holds for a press anywhere on the overlay.
   const holdFocus = (/** @type {MouseEvent} */ event) => {
-    if (overlays.get(element)?.phase === 'closing') event.preventDefault();
+    const phase = overlays.get(element)?.phase;
+    if (!phase || phase === 'closed') return;
+    const target = /** @type {Element} */ (event.target);
+    if (phase === 'closing' || target.closest?.('.ds-dialog__backdrop, .ds-sheet__backdrop, .ds-scrim')) event.preventDefault();
   };
   element.addEventListener('mousedown', holdFocus, true);
   // Where a press began: a drag from the box that ends on the backdrop
@@ -1967,13 +1973,17 @@ export function topmost(doc = globalThis.document) {
 /** What a failed onConfirm says by default (never the raw error message). */
 const CONFIRM_ERROR = 'That did not work. Try again.';
 
+/** What a required prompt field left empty says by default. */
+const REQUIRED_TEXT = 'Enter a value.';
+
 /**
  * Asks with a built dialog: Cancel and a confirm button. `destructive`
  * makes it an alertdialog whose first focus is Cancel; the confirm label
  * names the consequence (there are no red buttons). `onConfirm` (async)
  * runs with busy() on the confirm button and data-ds-busy on the dialog: a
  * rejection keeps it open, shows `errorText` as an error snackbar above it
- * (in the theme's .ds-toasts region) and focuses the confirm button again.
+ * (in the theme's .ds-toasts region, made when the page has none, inside
+ * the open dialog) and focuses the confirm button again.
  * Resolves true when it closed through the confirm button, else false.
  * @param {{ title?: string, text?: string, confirmLabel?: string, cancelLabel?: string, destructive?: boolean,
  *   opener?: Element|null, onConfirm?: () => unknown, errorText?: string }} [options]
@@ -1996,11 +2006,15 @@ export function alert(options = {}) {
 /**
  * Asks for one value with a built dialog: a field (`label`, `value`;
  * `input` sets its type, autocomplete, inputmode and required), Cancel and
- * a confirm button; Enter in the field confirms. `onConfirm(value)` runs as
- * in confirm(). Resolves the value when it closed through the confirm
- * button, else null.
+ * a confirm button; Enter in the field confirms. A required field left
+ * empty stays open with the field error `requiredText` (default "Enter a
+ * value."; aria-invalid, a .ds-field__hint--error linked by
+ * aria-describedby, announced assertively) until the next input.
+ * `onConfirm(value)` runs as in confirm(). Resolves the value when it
+ * closed through the confirm button, else null.
  * @param {{ title?: string, text?: string, label?: string, value?: string, confirmLabel?: string,
  *   cancelLabel?: string, opener?: Element|null, onConfirm?: (value: string) => unknown, errorText?: string,
+ *   requiredText?: string,
  *   input?: { type?: string, autocomplete?: string, inputmode?: string, required?: boolean } }} [options]
  * @returns {Promise<string|null>}
  */
@@ -2123,14 +2137,40 @@ function ask(kind, options) {
       open(dialog, { opener });
       return;
     }
+    // A required field left empty: the documented field error (an
+    // aria-invalid field described by a .ds-field__hint--error with its
+    // icon, so never colour alone), said at once since focus is already
+    // there and the description is only read on the next focus.
+    /** @type {HTMLElement|null} */
+    let hint = null;
+    const invalid = (/** @type {HTMLInputElement} */ input) => {
+      const text = String(options.requiredText ?? REQUIRED_TEXT);
+      if (!hint) {
+        hint = make('small', 'ds-field__hint ds-field__hint--error');
+        hint.id = `${id}-error`;
+        hint.append(iconElement(alertCircle, 16, undefined, doc), doc.createTextNode(text));
+        input.parentElement?.append(hint);
+      }
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', hint.id);
+      input.focus();
+      announce(text, { assertive: true, region: regionOfTheme(doc, theme, home) });
+    };
+    // Typing takes the error away at once (the documented instant removal).
+    const valid = () => {
+      if (!field) return;
+      field.removeAttribute('aria-invalid');
+      field.removeAttribute('aria-describedby');
+      hint?.remove();
+      hint = null;
+    };
     const attempt = async () => {
       if (dialog.hasAttribute('data-ds-busy') || overlays.get(dialog)?.phase !== 'open') return;
       if (field?.required && !field.value.trim()) {
-        field.setAttribute('aria-invalid', 'true');
-        field.focus();
+        invalid(field);
         return;
       }
-      field?.removeAttribute('aria-invalid');
+      valid();
       if (typeof options.onConfirm !== 'function') {
         close(dialog, { reason: 'confirm' });
         return;
@@ -2149,7 +2189,9 @@ function ask(kind, options) {
       } catch {
         settle();
         if (!dialog.isConnected) return;
-        const region = (theme ?? doc).querySelector('.ds-toasts');
+        // Above the dialog: the theme's region (made when the page has
+        // none) moves into it on first use.
+        const region = regionOfTheme(doc, theme, home);
         if (region) toast(region, options.errorText ?? CONFIRM_ERROR, { kind: 'error' });
         confirmButton.focus({ preventScroll: true });
         return;
@@ -2166,7 +2208,7 @@ function ask(kind, options) {
       event.preventDefault();
       attempt();
     });
-    field?.addEventListener('input', () => field?.removeAttribute('aria-invalid'));
+    field?.addEventListener('input', valid);
     home.append(dialog);
     open(dialog, { opener });
   });
@@ -2359,6 +2401,13 @@ const pointerWatched = new WeakSet();
  */
 const visibilityRegions = new WeakMap();
 
+/**
+ * Per .ds-app, the regions its one data-drawer-open observer lifts, held
+ * weakly like visibilityRegions.
+ * @type {WeakMap<Element, Set<WeakRef<Element>>>}
+ */
+const drawerRegions = new WeakMap();
+
 /** The live regions announcers() made: inertOutside() leaves them alone, like the snackbar regions. */
 const announcerNodes = new WeakSet();
 
@@ -2415,8 +2464,28 @@ function regionState(region) {
       own(region, 'attrs', name);
     }
     wireRegion(region, state);
+    hostLate(region);
   }
   return state;
+}
+
+/**
+ * A region first used while a dialog or side sheet of its theme is open
+ * (made by toastRegion() then, or rendered by the page after the open)
+ * goes into each such overlay on the stack, oldest first, as if it had
+ * been there at open(): else it would stay under the modal, inert, and
+ * its announcers unheard. One inside a nested .ds-theme stays, as in
+ * hostToasts().
+ */
+function hostLate(region) {
+  const theme = region.closest?.('.ds-theme') ?? null;
+  for (const host of [...stack]) {
+    const state = overlays.get(host);
+    if (state?.phase !== 'open' || (state.kind !== 'dialog' && state.kind !== 'sheet')) continue;
+    const hostTheme = host.closest('.ds-theme');
+    if (hostTheme && hostTheme !== theme) continue;
+    followInto(region, host);
+  }
 }
 
 /** The .ds-app of a region's theme (the region sits right after it). */
@@ -2515,12 +2584,37 @@ function wireRegion(region, state) {
   regions.add(new WeakRef(region));
   watchPointer(doc);
   const app = appOf(region);
-  const Observer = viewOf(region).MutationObserver;
-  if (app && typeof Observer === 'function') {
-    new Observer(() => {
-      if (state.shown.length) liftRegion(region);
-    }).observe(app, { attributes: true, attributeFilter: ['data-drawer-open'] });
+  const lifted = app ? drawerOf(app) : null;
+  if (lifted) {
+    for (const ref of [...lifted]) if (!ref.deref()) lifted.delete(ref);
+    lifted.add(new WeakRef(region));
   }
+}
+
+/**
+ * The regions that the modal drawer of `app` lifts while it opens and
+ * closes (its foot on phones): one MutationObserver per .ds-app. A
+ * function of its own, like visibilityOf(): an observer made inside
+ * wireRegion() would keep its region alive as long as the .ds-app, also
+ * after the page replaced the region. Null without MutationObserver.
+ * @returns {Set<WeakRef<Element>>|null}
+ */
+function drawerOf(app) {
+  let watched = drawerRegions.get(app);
+  if (watched) return watched;
+  const Observer = viewOf(app).MutationObserver;
+  if (typeof Observer !== 'function') return null;
+  const regions = /** @type {Set<WeakRef<Element>>} */ (new Set());
+  drawerRegions.set(app, regions);
+  new Observer(() => {
+    for (const ref of [...regions]) {
+      const region = ref.deref();
+      const state = region && toastRegions.get(region);
+      if (!state) regions.delete(ref);
+      else if (region.isConnected && state.shown.length) liftRegion(region);
+    }
+  }).observe(app, { attributes: true, attributeFilter: ['data-drawer-open'] });
+  return regions;
 }
 
 /**
@@ -2662,14 +2756,34 @@ export function toastRegion(doc = globalThis.document) {
   if (!doc?.querySelector) return null;
   const app = doc.querySelector('.ds-app');
   const theme = app?.closest('.ds-theme') ?? null;
-  const mine = theme ? [...theme.querySelectorAll('.ds-toasts')].find((region) => region.closest('.ds-theme') === theme) : null;
-  const found = mine ?? doc.querySelector('.ds-toasts');
+  const found = (theme && ownOf(theme, '.ds-toasts')) ?? doc.querySelector('.ds-toasts');
   if (found) return /** @type {HTMLElement} */ (found);
+  return newRegion(doc, app, doc.querySelector('.ds-theme') ?? doc.body);
+}
+
+/** The first `selector` match inside `theme` that is its own (not inside a nested .ds-theme, an embedded widget's). */
+function ownOf(theme, selector) {
+  return [...theme.querySelectorAll(selector)].find((node) => node.closest('.ds-theme') === theme) ?? null;
+}
+
+/** A new empty .ds-toasts right after `app` (else the last child of `parent`); null when it is not in the document. */
+function newRegion(doc, app, parent) {
   const region = doc.createElement('div');
   region.className = 'ds-toasts';
   if (app) app.after(region);
-  else (doc.querySelector('.ds-theme') ?? doc.body)?.append(region);
+  else parent?.append(region);
   return region.isConnected ? region : null;
+}
+
+/**
+ * The snackbar region of a built dialog's theme (`home` is where the
+ * dialog went: the theme, or <body> for a theme on <html>): its own
+ * region, else a new one after its .ds-app, which regionState() then
+ * moves into the open dialog.
+ */
+function regionOfTheme(doc, theme, home) {
+  if (!theme) return toastRegion(doc);
+  return /** @type {HTMLElement|null} */ (ownOf(theme, '.ds-toasts')) ?? newRegion(doc, ownOf(theme, '.ds-app'), home);
 }
 
 /**
@@ -4112,7 +4226,13 @@ export function savebar(element, options = {}) {
     shown = false;
     const mine = ++gen;
     if (bar.contains(activeIn(bar))) {
-      const target = options.focusTarget?.() ?? null;
+      // A page callback that throws is reported; the bar still hides.
+      let target = null;
+      try {
+        target = options.focusTarget?.() ?? null;
+      } catch (error) {
+        report(bar, error);
+      }
       const fallback = scroller ?? doc.querySelector(LANDMARK);
       const next = [target, fallback].find((node) => canFocus(node) && !bar.contains(node));
       next?.focus({ preventScroll: true });

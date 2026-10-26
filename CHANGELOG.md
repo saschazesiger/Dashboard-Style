@@ -56,7 +56,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
   put `data-tip` on the input.
 - A backdrop or scrim click within `--ds-delay-dismiss` (300ms) of the open, a press that began elsewhere, and the
   second click of a double click (any `[data-close]` click with `detail > 1`) no longer close an overlay. A test that
-  clicks a backdrop right after opening waits 300ms or closes with Escape.
+  clicks a backdrop right after opening waits 300ms or closes with Escape. A press on a backdrop or scrim no longer
+  moves focus (the field a dialog just focused keeps it through the second click of the double click that opened it).
 - Focus returns to the opener's id twin when a re-render replaced the opener (or to `open(el, { returnTo })`);
   `open()` without an opener takes the clicked control (Safari); `open(drawer)` focuses the current item.
 - `DS.overlay.open()` watches every `.ds-sheet__body` and `.ds-dialog__body` itself (`DS.dom.watchScrolled()`): remove
@@ -127,7 +128,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
 
 - Overlays: `data-ds-busy` (an overlay stays open while its action runs), `close(el, { reason })` and the `ds-close`
   event (why it closed), `DS.overlay.topmost()`, `open(el, { returnTo })`, `DS.overlay.confirm()`, `alert()` and
-  `prompt()` (built dialogs that resolve a promise), `DRAWER_QUERY`, `DISMISS_DELAY_MS`, the scale
+  `prompt()` (built dialogs that resolve a promise; a required prompt field left empty shows a field error,
+  `requiredText`), `DRAWER_QUERY`, `DISMISS_DELAY_MS`, the scale
   `--ds-delay-dismiss`; `.ds-dialog__body`, `.ds-dialog__head`, `.ds-dialog--wide`, `--full`, `--full-narrow`,
   `--bottom` (an action sheet), `.ds-dialog__list`, `--ds-dialog-width-wide`, `--ds-dialog-height`,
   `--ds-dialog-full-radius`; `.ds-sheet__heading`, `__subtitle`, `__foot`, `--ds-sheet-foot-border`; menu groups,
@@ -137,7 +139,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
   over a list in a dialog, steps in one dialog, confirm by typing the name.
 - Snackbars and tooltips: `DS.overlay.announce()` (say a result without a message), `toastRegion()`, `closeToasts()`;
   `toast()` takes `null` as its region and the options `key` (replace by key), `restart`, `reserve` and `action` (an
-  Undo button); `.ds-toast__action`, `--ds-toast-action-color`, `--ds-toast-close-size`, the runtime
+  Undo button); a region first used while a dialog or side sheet is open (created by `toastRegion()` then) moves
+  into it, so its messages and announcements are above the modal; `.ds-toast__action`, `--ds-toast-action-color`, `--ds-toast-close-size`, the runtime
   `--ds-toast-lift`; tooltips on touch screens.
 - Save bar: `.ds-savebar` with `__bar`, `__text`, `__actions`, `DS.overlay.savebar()` (`{ show, hide, update,
   shown, destroy }`), hooks `--ds-savebar-offset`, `--ds-savebar-inset`, `--ds-savebar-min-height`,

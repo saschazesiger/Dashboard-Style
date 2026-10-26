@@ -142,6 +142,36 @@ test('focus inside the bar goes to focusTarget() on hide; without one, to the vi
   expect(plain).toBe('main');
 });
 
+test('a focusTarget() that throws is reported and the bar still hides, focus on the view', async ({ page }) => {
+  await load(page);
+  const after = await page.evaluate(() => {
+    window.bar.destroy();
+    const reported = [];
+    window.addEventListener('error', (event) => {
+      reported.push(event.error?.message);
+      event.preventDefault();
+    });
+    const other = DS.overlay.savebar(document.getElementById('bar'), { focusTarget: () => { throw new Error('boom'); } });
+    other.show();
+    document.getElementById('save').focus();
+    let threw = false;
+    try {
+      other.hide();
+    } catch {
+      threw = true;
+    }
+    return {
+      threw,
+      reported,
+      shown: other.shown,
+      hidden: document.getElementById('bar').hidden,
+      on: document.getElementById('main').hasAttribute('data-ds-savebar'),
+      active: document.activeElement.id,
+    };
+  });
+  expect(after).toEqual({ threw: false, reported: ['boom'], shown: false, hidden: true, on: false, active: 'main' });
+});
+
 test('hidden at the end of the page, the room stays until the page scrolls away from the end', async ({ page }) => {
   await load(page, { height: 600 });
   await page.evaluate(() => window.bar.show());

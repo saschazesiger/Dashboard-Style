@@ -2651,7 +2651,9 @@ consequence (there are no red buttons). `onConfirm` runs with `DS.motion.busy()`
 `data-ds-busy` on the dialog (Cancel `aria-disabled`); when it rejects, the dialog stays open, `errorText` (default
 "That did not work. Try again."; never the raw error) shows as an error snackbar above it, and focus goes back to the
 confirm button. `confirm()` resolves `true` or `false`, `prompt()` the value or `null`; Enter in the prompt's field
-confirms. The defaults are English: "Confirm", "Cancel", "OK".
+confirms. A prompt whose `input.required` field is left empty stays open with the field error of the form section:
+`aria-invalid`, a `.ds-field__hint--error` with its icon and `requiredText` (default "Enter a value."), linked by
+`aria-describedby` and announced at once; typing takes it away. The defaults are English: "Confirm", "Cancel", "OK".
 
 ### Confirm by typing the name
 
@@ -2829,7 +2831,9 @@ The action button comes only with `action`, the close button with every message 
   (`region.style.setProperty('--ds-toast-left', panel.getBoundingClientRect().left + 24 + 'px')`).
   `DS.overlay.toastRegion(doc)` returns the page's region: the `.ds-toasts` in the theme of the first `.ds-app` (else
   the first in the document); without one it creates `<div class="ds-toasts"></div>` right after `.ds-app` (else at
-  the end of the `.ds-theme`). `toast(null, ...)`, `announce()` and the save bar use it.
+  the end of the `.ds-theme`). `toast(null, ...)`, `announce()` and the save bar use it. A region first used while a
+  dialog or side sheet of its theme is open (created then, or rendered by the page after the open) moves into it on
+  that first use, like one that was there at the open, so its messages and announcements are above the modal.
 - **Stack.** At most three show at once (`TOAST_LIMIT`), the newest at the bottom; the others glide to their places
   (`DS.motion.flip()`) while a message rises in or fades out where it was. A fourth replaces the oldest message that
   would close by itself; when all three stay (errors, `persistent`), it waits and enters when one closes. `close()`

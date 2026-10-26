@@ -1419,9 +1419,17 @@ test.describe('the dismiss guard (2.0, --ds-delay-dismiss)', () => {
   test('a double click on the opener opens and does not close; a click on the backdrop 400ms later closes', async ({ page }) => {
     await load(page);
     await recordCloses(page);
+    // Where a single click puts focus: the second press, on the backdrop, keeps it there.
+    await page.click('#open-dialog');
+    await settle(page);
+    const first = await focused(page);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('dialog')));
+    await closed(page, 'dialog');
+    await closes(page);
     await page.dblclick('#open-dialog');
     await settle(page);
     expect(await isOpen(page, 'dialog')).toBe(true);
+    expect(await focused(page)).toBe(first);
     await page.waitForTimeout(400);
     await page.mouse.click(4, 4);
     await closed(page, 'dialog');
@@ -1430,6 +1438,7 @@ test.describe('the dismiss guard (2.0, --ds-delay-dismiss)', () => {
     await page.dblclick('#open-native');
     await settle(page);
     expect(await isOpen(page, 'native')).toBe(true);
+    expect(await focused(page)).toBe('native-cancel');
     await page.waitForTimeout(400);
     await page.mouse.click(4, 4);
     await closed(page, 'native');
@@ -1476,8 +1485,11 @@ test.describe('the dismiss guard (2.0, --ds-delay-dismiss)', () => {
   test('the modal drawer\'s scrim: a click right after the open does not close, one later does', async ({ page }) => {
     await load(page, 'shell-overlay.html', 800);
     await page.evaluate(() => { DS.overlay.open(document.getElementById('drawer'), { opener: document.getElementById('menu') }); });
+    const inside = await focused(page);
     await page.mouse.click(780, 400);
     expect(await page.evaluate(() => document.getElementById('app').hasAttribute('data-drawer-open'))).toBe(true);
+    // The refused press on the scrim leaves focus in the drawer (the scrim is no focus target).
+    expect(await focused(page)).toBe(inside);
     await settle(page);
     await page.waitForTimeout(400);
     await page.mouse.click(780, 400);

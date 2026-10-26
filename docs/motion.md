@@ -893,7 +893,7 @@ the entrance, turns the motion back from its current value in every engine, with
 | `topmost(doc = document)` | (2.0) the top open layer of the page (a dialog, side sheet, the modal drawer, a menu, a combobox list, a contained dialog; whichever copy of `ds.js` from 1.6.1 on opened it), else `null`; a layer that is closing no longer counts |
 | `confirm({ title, text, confirmLabel, cancelLabel, destructive, opener, onConfirm, errorText })` | (2.0) a built dialog with Cancel and a confirm button; resolves `true` or `false` (below) |
 | `alert({ title, text, closeLabel, opener })` | (2.0) a built dialog with one button; resolves once it closes |
-| `prompt({ title, text, label, value, confirmLabel, cancelLabel, opener, input, onConfirm, errorText })` | (2.0) a built dialog with one field; resolves the value, or `null` |
+| `prompt({ title, text, label, value, confirmLabel, cancelLabel, opener, input, onConfirm, errorText, requiredText })` | (2.0) a built dialog with one field; resolves the value, or `null` |
 | `lockScroll(doc?)` / `unlockScroll(doc?)` | the reference-counted scroll lock of `doc` (default: the document of the page; 1.6.1) that the modal kinds take for their own document; a page may take it for a layer of its own |
 | `toast(region, content, { kind, persistent, timeout, closeLabel, action, key, restart, reserve })` | shows a snackbar in a `.ds-toasts` region (`null`: `toastRegion()`); returns `{ el, close(), closed }` (below; `action`, `key`, `restart` and `reserve` 2.0) |
 | `closeToasts(region = toastRegion(), { kind, key })` | closes every message on screen or waiting that matches, as one change of the stack; a Promise that resolves once they are gone (2.0) |
@@ -931,7 +931,8 @@ The constants are fallbacks only (outside a `.ds-theme`): JS timing comes from t
    follows the stack: an element a trap took stays usable while it holds an overlay opened above that trap (a dialog
    from a div sheet or from the modal drawer, which the lower trap took as a sibling, takes input; the sheet under it
    stays inert), and overlays over each other close in any order. A dialog or sheet takes the snackbar regions of its
-   theme in first (below; a region inside a nested `.ds-theme`, an embedded widget's, stays in its widget). Over an open native dialog or sheet, which makes everything outside it inert (top-layer
+   theme in first (below; a region inside a nested `.ds-theme`, an embedded widget's, stays in its widget; a region first
+   used while it is open, one `toastRegion()` creates or the page renders then, goes in on that first use). Over an open native dialog or sheet, which makes everything outside it inert (top-layer
    popovers included), a menu, a dialog or a sheet (div or native) moves inside that native one before it shows and
    goes back to its place once its close settled; a combobox list stays with its field. A native dialog needs it for
    its exit: `close()` takes it out of the top layer at once, which would make it inert under the sheet below and
@@ -1083,18 +1084,21 @@ modal drawer's frame loses `data-drawer-open` also when only the drawer element 
 connected only while an overlay is open, notices the removal; a `close()` of the removed element does the same at
 once.
 
-Promise dialogs (2.0): `confirm()`, `alert()` and `prompt()` build a native `dialog.ds-dialog` with DOM APIs
-(no HTML strings, so a strict CSP is fine) inside the opener's `.ds-theme` (else the first one): the backdrop with
+Promise dialogs (2.0): `confirm()`, `alert()` and `prompt()` build a native `dialog.ds-dialog` with DOM APIs (no HTML
+strings, so a strict CSP is fine) inside the opener's `.ds-theme` (else the first one): the backdrop with
 `data-close`, the title (`aria-labelledby`), the text (`aria-describedby`), for `prompt()` a `.ds-field` whose input
-takes `input.type`, `autocomplete`, `inputmode` and `required`, and the actions. They open it with `open()`, remove it
-once its exit settled and resolve when the close starts: `confirm()` `true` only for the confirm button,
-`prompt()` the value or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is
-Cancel (else the confirm button, or the prompt's field). `onConfirm` (a function returning a promise) runs with
+takes `input.type`, `autocomplete`, `inputmode` and `required`, and the actions. A required field left empty keeps
+the dialog open with the documented field error: `aria-invalid`, a `.ds-field__hint--error` with the alertCircle icon
+and `requiredText` (default "Enter a value.") linked by `aria-describedby`, said at once through
+`announce(text, { assertive: true })`; the next input takes it away. They open it with `open()`, remove it once its
+exit settled and resolve when the close starts: `confirm()` `true` only for the confirm button, `prompt()` the value
+or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is Cancel (else the
+confirm button, or the prompt's field). `onConfirm` (a function returning a promise) runs with
 `busy(confirmButton, …, { done: false })` and `data-ds-busy` on the dialog (Cancel `aria-disabled`, the field
 `readOnly`); a rejection keeps the dialog open, shows `errorText` (default "That did not work. Try again."; never the
-raw message) as an error snackbar in the theme's `.ds-toasts` region (inside the open dialog, so above it) and returns
-focus to the confirm button; success closes it with reason `'confirm'`. The labels default to "Confirm", "Cancel" and
-"OK".
+raw message) as an error snackbar in the theme's `.ds-toasts` region (made when the page has none; inside the open
+dialog, so above it) and returns focus to the confirm button; success closes it with reason `'confirm'`. The labels
+default to "Confirm", "Cancel" and "OK".
 
 ```js
 if (await DS.overlay.confirm({ title: 'Archive 3 devices?', confirmLabel: 'Archive devices', opener: button })) archive();

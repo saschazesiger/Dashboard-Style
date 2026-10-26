@@ -59,6 +59,8 @@ export interface PromptOptions {
   opener?: Element | null;
   onConfirm?: (value: string) => unknown;
   errorText?: string;
+  /** The field error of a required field left empty (default "Enter a value."). */
+  requiredText?: string;
   input?: { type?: string; autocomplete?: string; inputmode?: string; required?: boolean };
 }
 /** A built prompt dialog; resolves with the value, or null when cancelled. */
