@@ -38,6 +38,9 @@
  *
  * Forced colours: done and current marks and segments Highlight,
  * upcoming ones a CanvasText outline.
+ *
+ * Print: marks and segments keep their colours (print-color-adjust): the
+ * check of a done step is drawn on its filled mark.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -205,6 +208,15 @@
     .ds-steps--bar > .ds-steps__step::after {
       forced-color-adjust: none;
       background: Highlight;
+    }
+  }
+
+  /* Print: the filled marks and segments are backgrounds, which printing
+     drops by default (the check of a done step would vanish with them). */
+  @media print {
+    .ds-steps {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
   }
 }

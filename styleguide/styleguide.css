@@ -525,6 +525,13 @@
   height: 360px;
 }
 
+/* On paper the table is unbounded (table.css), so the frame grows with it. */
+@media print {
+  .sg-fill-frame {
+    height: auto;
+  }
+}
+
 /* The page buttons are rendered as one group (morphHtml); the nav lays them out. */
 .sg-page-buttons {
   display: contents;

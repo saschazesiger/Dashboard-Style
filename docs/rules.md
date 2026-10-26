@@ -97,6 +97,11 @@ the tests in `test/`.
   selected option shows `SelectedItem`, selects get their native arrow back, and the spinner, switch, progress and
   loading bar use system colours; the current row of a list is `SelectedItem`, timeline dots and rails are borders,
   and chart fills take `CanvasText` with series 2 to 4 hatched. Keep these when you build your own floating layers.
+- Print: what floats is not printed (dialogs, sheets, menus, the combobox list, snackbars, tooltips, the save bar,
+  the loading bar and the shape loader); what scrolls sideways shows all of its content, unmasked; closed detail
+  rows are left out. Controls drawn with backgrounds (checkboxes, radios, switches, sliders, progress bars,
+  spinners, steps, meters and columns) keep their colours (`print-color-adjust: exact`), so their state survives a
+  printer that drops backgrounds. Short cards, tiles and alerts are not split across pages.
 - Hover effects only for devices that hover (`@media (hover: hover)`).
 - A skip link before the navigation; one `<h1>` per page that can take focus (`tabindex="-1"`) after a page change;
   no `<header>` inside dialogs or sheets (it would be a second banner landmark).

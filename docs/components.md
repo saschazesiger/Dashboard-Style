@@ -1625,7 +1625,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   covers the whole row. `DS.dom.scrollEdges()` writes `--ds-table-pin-width` (the pinned column's width), so focus
   moved by the keyboard never lands under the pinned column.
 - Forced colours: sticky and pinned cells are `Canvas`, the wrapper border `CanvasText`. Print: unbounded, not
-  sticky, every cell wraps.
+  sticky, every cell wraps; closed detail rows are left out (an open one prints in full).
 
 ### Row actions, summary rows and density
 

@@ -26,6 +26,8 @@
  * track in ButtonText, the handle in Highlight (GrayText when disabled).
  *
  * Hooks: --ds-slider-halo (40px).
+ *
+ * Print: track and handle keep their colours (print-color-adjust).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -212,6 +214,15 @@
 
     .ds-slider:is(:disabled, [aria-disabled="true"]) {
       color: GrayText;
+    }
+  }
+
+  /* Print: track and handle are backgrounds, which printing drops by
+     default; the value stays visible. */
+  @media print {
+    .ds-slider {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
   }
 }

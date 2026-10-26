@@ -1892,7 +1892,7 @@ describe('overlays (1.3.0)', () => {
   });
 
   it('prints no open overlay: menus, the combobox list, dialogs and side sheets are hidden in print (2.0)', () => {
-    for (const [file, selector] of [['src/components/menu.css', '.ds-menu'], ['src/components/combobox.css', '.ds-combo__popup'], ['src/components/dialog.css', '.ds-dialog'], ['src/components/sheet.css', '.ds-sheet']]) {
+    for (const [file, selector] of [['src/components/menu.css', '.ds-menu'], ['src/components/combobox.css', '.ds-combo__popup'], ['src/components/dialog.css', '.ds-dialog'], ['src/components/sheet.css', '.ds-sheet'], ['src/components/toast.css', '.ds-toasts'], ['src/components/tooltip.css', '.ds-tooltip'], ['src/components/loader.css', '.ds-loader']]) {
       const print = atRuleBlocks(read(file), /@media\s+print/).flatMap((block) => declarationsOf(block, selector));
       assert.equal(print.find((entry) => entry.property === 'display')?.value, 'none', `${file}: ${selector} in print`);
     }
@@ -2346,7 +2346,10 @@ describe('app frame, page and base (2.0)', () => {
     const print = atRuleBlocks(stripComments(read(SHELL)), /@media print/).join('\n');
     assert.ok(rules(print).some((rule) => splitSelectors(rule.selector).includes('.ds-banner') && /display:\s*none/.test(rule.body)));
     assert.ok(declarationsOf(print, '.ds-stale').some((entry) => entry.property === 'opacity' && entry.value === '1'));
-    assert.ok(rules(print).some((rule) => splitSelectors(rule.selector).includes('.ds-card') && /break-inside:\s*avoid/.test(rule.body)));
+    // Short cards only: a card that holds a table may break (card.css). Pushed whole to the next page inside a grid,
+    // Chromium printed it over the blocks after it.
+    assert.ok(rules(print).some((rule) => splitSelectors(rule.selector).includes('.ds-card:not(:has(.ds-table-wrap, .ds-table))') && /break-inside:\s*avoid/.test(rule.body)));
+    assert.ok(!rules(print).some((rule) => splitSelectors(rule.selector).includes('.ds-card') && /break-inside:\s*avoid/.test(rule.body)), 'every card kept whole');
   });
 });
 
@@ -2669,5 +2672,34 @@ describe('direction (2.0, D9)', () => {
       ['background', 'linear-gradient(currentColor, currentColor) center bottom / 100% 3px no-repeat'], ['margin', 'calc(-1 * var(--ds-space-2)) 0']]) {
       assert.equal(physicalReason(property, value), undefined, `${property}: ${value}`);
     }
+  });
+});
+
+describe('forced colours and print after the merges (2.0)', () => {
+  const forced = (file) => atRuleBlocks(read(file), /@media\s*\(forced-colors:\s*active\)/).join('\n');
+  const printed = (file) => atRuleBlocks(read(file), /@media\s+print/).join('\n');
+  const has = (css, selector, property, value) => rules(css).some((rule) => splitSelectors(rule.selector).includes(selector)
+    && declarations(`${rule.body};`).some((entry) => entry.property === property && entry.value === value));
+
+  it('maps the states of the new parts per D8', () => {
+    // A focused chosen option: a CanvasText ring inside its SelectedItem fill.
+    assert.ok(has(forced('src/components/combobox.css'), '.ds-combo__option[aria-selected="true"][data-active]', 'outline-color', 'CanvasText'));
+    // Blocked is GrayText: key-value rows, the drop zone and the file field.
+    assert.ok(has(forced('src/components/list.css'), ':is(a, button).ds-kv-list__row:is(:disabled, [aria-disabled="true"])', 'color', 'GrayText'));
+    assert.ok(has(forced('src/components/drag.css'), '.ds-dropzone:has(input:disabled)', 'color', 'GrayText'));
+    assert.ok(has(forced('src/components/drag.css'), '.ds-input[type="file"]:disabled::file-selector-button', 'color', 'GrayText'));
+    // forced-color-adjust inherits: the other controls of a current row take the system colours again, on Canvas.
+    const list = rules(forced('src/components/list.css'));
+    assert.ok(list.some((rule) => /\.ds-list__item:is\(\[aria-current\]/.test(rule.selector) && /:not\(\.ds-list__action\)$/.test(rule.selector) && /forced-color-adjust: auto/.test(rule.body)));
+    assert.ok(list.some((rule) => /\.ds-list__item:is\(\[aria-current\]/.test(rule.selector) && /:not\(\.ds-list__action\)$/.test(rule.selector) && /background-color: Canvas/.test(rule.body)));
+  });
+
+  it('prints the state of controls drawn with backgrounds, and no closed detail row', () => {
+    for (const [file, selector] of [['src/components/spinner.css', '.ds-spinner'], ['src/components/progress.css', '.ds-progress'], ['src/components/switch.css', '.ds-switch'], ['src/components/steps.css', '.ds-steps'], ['src/components/slider.css', '.ds-slider'], ['src/components/form.css', '.ds-radio > :is(.ds-radio__icon, .ds-radio__mark)']]) {
+      assert.ok(has(printed(file), selector, 'print-color-adjust', 'exact'), `${file}: ${selector}`);
+      assert.ok(has(printed(file), selector, '-webkit-print-color-adjust', 'exact'), `${file}: ${selector} (prefixed)`);
+      assert.match(read(file).match(/^\/\*[\s\S]*?\*\//)[0], /Print:/, `${file}: a Print: note in the header`);
+    }
+    assert.ok(has(printed('src/components/table.css'), '.ds-table tr:not(:has(.ds-table__toggle[aria-expanded="true"])) + .ds-table__detail', 'display', 'none'));
   });
 });

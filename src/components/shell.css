@@ -158,7 +158,8 @@
  *
  * Print: only the page content, without the frame and its scroller (the
  * page's own padding and width come off at the end of page.css); the
- * banner stays off paper.
+ * banner stays off paper; short cards, tiles, alerts, key-value rows and
+ * facts do not break across pages.
  *
  * Progressive:
  * - scrollbar-color and scrollbar-width (thin, quiet scrollbars in the
@@ -1790,9 +1791,6 @@
     .ds-drawer,
     .ds-scrim,
     .ds-skip,
-    .ds-loadbar,
-    .ds-toasts,
-    .ds-tooltip,
     .ds-banner {
       display: none;
     }
@@ -1815,9 +1813,11 @@
       opacity: 1;
     }
 
-    /* A card, a tile, an alert, a key-value row or a fact stays on one
-       page. */
-    .ds-card,
+    /* A short card, a tile, an alert, a key-value row or a fact stays on
+       one page. A card that holds a table may break (card.css): pushed
+       whole to the next page inside a grid, it would print over the
+       blocks after it. */
+    .ds-card:not(:has(.ds-table-wrap, .ds-table)),
     .ds-tile,
     .ds-alert,
     .ds-kv-list li,

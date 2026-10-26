@@ -82,7 +82,8 @@
  * Highlight outline (their inset ring is a shadow, which forced colours
  * drop); the filled field and the composer keep a transparent border,
  * their edge there. Print: a check list shows every row, sticky actions
- * stay in the flow.
+ * stay in the flow, drawn checkboxes and radios keep their colours
+ * (print-color-adjust).
  *
  * Progressive:
  * - text-wrap (hints and radio card descriptions avoid a lone last word):
@@ -1845,7 +1846,10 @@
     }
   }
 
-  /* Print: a check list shows every row, and the actions stay in the flow. */
+  /* Print: a check list shows every row, and the actions stay in the flow.
+     The drawn checkbox and radio (and a radio tile's check circle) are
+     backgrounds, which printing drops by default: they keep their colours,
+     so a checked box prints checked. */
   @media print {
     .ds-check-list {
       max-height: none;
@@ -1854,6 +1858,12 @@
 
     .ds-form-actions--sticky {
       position: static;
+    }
+
+    :is(.ds-check input, .ds-radio input, .ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *)), .ds-checkbox, .ds-radio-input),
+    .ds-radio > :is(.ds-radio__icon, .ds-radio__mark) {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
   }
 }

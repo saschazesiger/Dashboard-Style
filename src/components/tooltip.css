@@ -44,6 +44,8 @@
  *   tooltip, behind @supports (position-area: block-end); data-anchored
  *   marks that path): without them the script writes --ds-tooltip-x/-y and
  *   flips the tooltip above the trigger (data-placement="top").
+ *
+ * Print: a tooltip is not printed.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -143,6 +145,12 @@
       margin: var(--ds-space-2) var(--ds-space-2) 0;
       left: auto;
       top: auto;
+    }
+  }
+
+  @media print {
+    .ds-tooltip {
+      display: none;
     }
   }
 }

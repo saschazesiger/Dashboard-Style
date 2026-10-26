@@ -57,6 +57,8 @@
  *   panel's opaque image would cover it until the end. One region with
  *   messages per page: transition() lifts the name of any further one):
  *   without them nothing is named.
+ *
+ * Print: the region is not printed (a message is about the screen, now).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -229,6 +231,13 @@
       bottom: calc(var(--ds-toast-bottom, var(--ds-space-4)) + var(--ds-toast-lift, 0px) + var(--ds-keyboard-inset, 0px));
       max-width: none;
       justify-items: stretch;
+    }
+  }
+
+  /* Print: messages stay on the screen. */
+  @media print {
+    .ds-toasts {
+      display: none;
     }
   }
 }

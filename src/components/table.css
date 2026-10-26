@@ -172,7 +172,7 @@
  * them), the fill wrapper's border CanvasText, the selection bar keeps an
  * outline. Print: wrappers show every column, unmasked and unclipped; the
  * full-page table is unbounded and unsticky, header text wraps, rows do not
- * break across pages, the selection bar is hidden.
+ * break across pages, closed detail rows and the selection bar are hidden.
  *
  * :has() and container queries are baseline.
  * Progressive:
@@ -1324,6 +1324,12 @@
 
     .ds-table tr {
       break-inside: avoid;
+    }
+
+    /* A closed detail row stays off paper: paged layout gives its 0fr
+       room the height of its content (an open one prints in full). */
+    .ds-table tr:not(:has(.ds-table__toggle[aria-expanded="true"])) + .ds-table__detail {
+      display: none;
     }
 
     .ds-selection-bar {
