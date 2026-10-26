@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Dashboard-Style. User documentation:
-[README.md](README.md) and the [docs](README.md#documentation).
+[README.md](README.md) and the [docs](README.md#-documentation).
 
 ## In brief
 

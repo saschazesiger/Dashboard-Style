@@ -434,6 +434,37 @@ describe('repository', () => {
       }
     }
   });
+
+  it('keeps the anchors of links between the docs working (GitHub heading ids)', () => {
+    /** GitHub's heading id: lower case, punctuation and emoji dropped, each space a hyphen; repeats get -1, -2 ... */
+    const slug = (heading) => heading.trim().toLowerCase().replace(/<[^>]+>/g, '').replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-');
+    const ids = new Map();
+    const anchorsOf = (path) => {
+      if (!ids.has(path)) {
+        const seen = new Map();
+        const found = new Set();
+        for (const match of read(path).replace(/```[\s\S]*?```/g, '').matchAll(/^#{1,6} (.+)$/gm)) {
+          const id = slug(match[1]);
+          const count = seen.get(id) ?? 0;
+          seen.set(id, count + 1);
+          found.add(count ? `${id}-${count}` : id);
+        }
+        ids.set(path, found);
+      }
+      return ids.get(path);
+    };
+    const broken = [];
+    for (const file of ['README.md', 'AGENTS.md', ...filesIn('docs', (path) => path.endsWith('.md'))]) {
+      const base = file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : '';
+      for (const match of read(file).matchAll(/\]\((?!https?:)([^)#]*\.md)?#([^)]+)\)/g)) {
+        const target = match[1] ? posix.normalize(base + match[1]) : file;
+        // The changelog's section of the coming release is written when it is cut.
+        if (target === 'CHANGELOG.md') continue;
+        if (!anchorsOf(target).has(match[2])) broken.push(`${file}: ${match[1] ?? ''}#${match[2]}`);
+      }
+    }
+    assert.deepEqual(broken, []);
+  });
 });
 
 describe('language and locale', () => {
