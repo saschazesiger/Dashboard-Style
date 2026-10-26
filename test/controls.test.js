@@ -76,12 +76,21 @@ describe('utilities (2.0)', () => {
   it('shows .ds-hover-actions by opacity only, on demand, and always without hover', () => {
     assert.deepEqual(own(withoutAtRuleBlocks(css, /@media/), '.ds-hover-actions'), { opacity: '0', transition: 'opacity var(--ds-dur-instant) var(--ds-ease-in-out)' });
     const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).flatMap((block) => selectorsOf(block)).filter((part) => part.includes('.ds-hover-actions'));
-    assert.deepEqual(hover, [':is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):hover .ds-hover-actions']);
+    // Only the nearest host: a table in a card answers to its rows (every host around the actions is hovered).
+    const host = ':is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host)';
+    assert.deepEqual(hover, [`${host}:hover .ds-hover-actions:not(${host}:not(:hover) .ds-hover-actions)`]);
     const shown = selectorsOf(withoutAtRuleBlocks(css, /@media/)).filter((part) => part.includes('.ds-hover-actions') && part !== '.ds-hover-actions');
     for (const state of [':focus-within', '[aria-current]', '[aria-selected="true"]', '[data-ds-shown]', ':has([aria-expanded="true"])']) {
       assert.ok(shown.some((part) => part.includes(state)), state);
     }
     assert.ok(shown.includes('.ds-touch .ds-hover-actions'));
+    // A host in a state reveals unless a nearer host is in none; an open menu counts in the actions only (no
+    // :has() on every row and card).
+    const states = shown.find((part) => part.startsWith(`${host}:is(:focus-within`));
+    assert.ok(states, 'the host states');
+    assert.match(states, /\.ds-hover-actions:not\(:is\(tr, li, .*\):is\(:focus-within, .*\) :is\(tr, li, .*\):not\(:focus-within, .*\) \.ds-hover-actions\)$/);
+    assert.ok(!shown.some((part) => part.startsWith(host) && part.includes(':has(')), 'no :has() on the hosts');
+    assert.ok(shown.includes('.ds-hover-actions:is(:focus-within, [data-ds-shown], [aria-expanded="true"], :has([aria-expanded="true"]))'));
     // A drawer row is current through its item, not itself.
     assert.ok(shown.includes('.ds-drawer__row:has(> .ds-drawer__item[aria-current]:not([aria-current="false"])) .ds-hover-actions'));
     const none = atRuleBlocks(css, /@media\s*\(hover:\s*none\)/).flatMap((block) => declarationsOf(block, '.ds-hover-actions'));

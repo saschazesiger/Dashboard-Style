@@ -394,7 +394,7 @@ const CONTROL_RATIOS = [
   ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
   ['presence that keeps its box', [[M, '.ds-presence--keep[data-ds-shown]', ['transition']]], [[M, '.ds-presence--keep', ['transition']]]],
   ['switch lock (fade; it travels with the handle)', [['src/components/switch.css', '.ds-switch--locked .ds-switch__icon', ['transition'], 'opacity']], [['src/components/switch.css', '.ds-switch__icon', ['transition'], 'opacity']]],
-  ['hover actions', [['src/components/utilities.css', '.ds-hover-actions:is(:focus-within, [data-ds-shown], :has([aria-expanded="true"]))', ['transition']]], [['src/components/utilities.css', '.ds-hover-actions', ['transition']]]],
+  ['hover actions', [['src/components/utilities.css', '.ds-hover-actions:is(:focus-within, [data-ds-shown], [aria-expanded="true"], :has([aria-expanded="true"]))', ['transition']]], [['src/components/utilities.css', '.ds-hover-actions', ['transition']]]],
   ['changed dot', [['src/components/form.css', '.ds-field--changed > .ds-field__label::after', ['transition']]], [['src/components/form.css', '.ds-field__label::after', ['transition']]]],
   ['search key', [['src/components/form.css', '.ds-search__key', ['transition']]], [['src/components/form.css', '.ds-search .ds-input:is(:focus, :not(:placeholder-shown), :disabled) ~ .ds-search__key', ['transition']]]],
   ['radio tile check', [['src/components/form.css', '.ds-radio > input:checked ~ .ds-radio__mark > svg', ['transition']]], [['src/components/form.css', '.ds-radio__mark > svg', ['transition']]]],

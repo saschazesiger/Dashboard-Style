@@ -187,6 +187,47 @@ test.describe('press model and utilities (CT-2, CT-4)', () => {
     expect(await page.locator('#hover-action').evaluate((el) => el.tabIndex)).toBe(0);
   });
 
+  test('.ds-hover-actions answers to its nearest host: a table in a card shows the pointed row\'s actions only', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => {
+      const button = (name) => `<span class="ds-hover-actions" id="host-actions-${name}"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" id="host-action-${name}" aria-label="Edit ${name}">E</button></span>`;
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin',
+        '<section class="ds-card" id="host-card" style="width: 480px">' +
+        '<h3 class="ds-card__title" id="host-card-title">Fleet</h3>' +
+        '<input class="ds-input" id="host-card-search" aria-label="Search devices">' +
+        '<table class="ds-table"><tbody>' +
+        `<tr id="host-row-1"><td>LAPTOP-0042</td><td class="ds-table__actions">${button('1')}</td></tr>` +
+        `<tr id="host-row-2"><td>TABLET-0121</td><td class="ds-table__actions">${button('2')}</td></tr>` +
+        '</tbody></table></section>');
+    });
+    const opacity = async (name) => Number((await styleOf(page.locator(`#host-actions-${name}`), ['opacity'])).opacity);
+    const both = async () => [await opacity('1'), await opacity('2')];
+    const hasHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+    if (hasHover) {
+      await page.locator('#host-card-title').hover();
+      await settle(page);
+      expect(await both(), 'the card\'s title hovered').toEqual([0, 0]);
+      await page.locator('#host-row-1 td').first().hover();
+      await settle(page);
+      expect(await both(), 'the first row hovered').toEqual([1, 0]);
+      await page.mouse.move(1, 1);
+      await settle(page);
+    }
+    await focusByKeyboard(page, page.locator('#host-card-search'));
+    await settle(page);
+    if (hasHover) expect(await both(), 'the card\'s search field focused').toEqual([0, 0]);
+    await focusByKeyboard(page, page.locator('#host-action-2'));
+    await settle(page);
+    if (hasHover) expect(await both(), 'the second row\'s action focused').toEqual([0, 1]);
+    await page.locator('#host-row-1').evaluate((el) => el.setAttribute('aria-selected', 'true'));
+    await settle(page);
+    expect(await opacity('1'), 'a selected row').toBe(1);
+    // An open menu counts in the actions, also when the button itself carries .ds-hover-actions.
+    await page.locator('#host-action-2').evaluate((el) => { el.blur(); el.setAttribute('aria-expanded', 'true'); });
+    await settle(page);
+    expect(await opacity('2'), 'an open menu in the actions').toBe(1);
+  });
+
   test('keys and dividers draw from tokens', async ({ page }) => {
     await open(page);
     const kbd = await styleOf(page.locator('#kbd'), ['font-family', 'border-top-width', 'min-width']);

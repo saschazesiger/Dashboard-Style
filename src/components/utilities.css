@@ -40,10 +40,12 @@
  *
  *   <td><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit">...</button></span></td>
  *
- * .ds-hover-actions fades in (opacity, --ds-dur-fast) while its host (a
- * tr, li, .ds-card, .ds-drawer__row or .ds-hover-host) is hovered (devices
- * that hover), holds the focus, is current or selected (a drawer row:
- * its item is current), holds an open menu ([aria-expanded="true"]) or carries data-ds-shown; it fades out
+ * .ds-hover-actions fades in (opacity, --ds-dur-fast) while its nearest
+ * host (a tr, li, .ds-card, .ds-drawer__row or .ds-hover-host: a table in
+ * a card answers to its rows, not to the card) is hovered (devices that
+ * hover), holds the focus, is current or selected (a drawer row: its item
+ * is current) or carries data-ds-shown, or while the actions hold an open
+ * menu ([aria-expanded="true"]) or data-ds-shown; it fades out
  * faster (--ds-dur-instant, 0.67). Always shown on touch screens
  * (hover: none) and under .ds-touch. Opacity only: the buttons stay in the
  * tab order and the accessibility tree, and hover moves nothing.
@@ -227,24 +229,32 @@
 
   /*
    * Actions that show on demand: hidden by opacity only (still in the tab
-   * order and the tree), shown with their host's hover, focus, current or
-   * selected state or open menu; they leave faster than they come.
+   * order and the tree), shown with their nearest host's hover, focus,
+   * current or selected state, or their own open menu; they leave faster
+   * than they come.
    */
   .ds-hover-actions {
     opacity: 0;
     transition: opacity var(--ds-dur-instant) var(--ds-ease-in-out);
   }
 
+  /* Only the nearest host reveals its actions: a table in a card or a list
+     in a list item shows the pointed row's actions, not every row's. A
+     hovered host's ancestors are hovered too, so "no host around the
+     actions is left unhovered" means the nearest one is hovered. */
   @media (hover: hover) {
-    :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):hover .ds-hover-actions {
+    :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):hover .ds-hover-actions:not(:is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):not(:hover) .ds-hover-actions) {
       opacity: 1;
       transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
     }
   }
 
-  :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown], :has([aria-expanded="true"])) .ds-hover-actions,
+  /* The same for the states: a host in one of them shows its actions
+     unless a host nearer the actions is in none of them. An open menu
+     counts where it is, in the actions (no :has() on every row and card). */
+  :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) .ds-hover-actions:not(:is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):not(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) .ds-hover-actions),
   .ds-drawer__row:has(> .ds-drawer__item[aria-current]:not([aria-current="false"])) .ds-hover-actions,
-  .ds-hover-actions:is(:focus-within, [data-ds-shown], :has([aria-expanded="true"])) {
+  .ds-hover-actions:is(:focus-within, [data-ds-shown], [aria-expanded="true"], :has([aria-expanded="true"])) {
     opacity: 1;
     transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }

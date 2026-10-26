@@ -182,7 +182,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
   `--ds-chart-error`; the runtime `--ds-share`, keyframes `ds-fill-share` and `.ds-enter--fill`; `.ds-meter`,
   `.ds-columns` (`--mini`, `--grouped`) and `.ds-legend` with their hooks.
 - Controls: `.ds-pressable` (`--lg`, `--inset`, `--ds-pressable-radius`, `--ds-pressable-layer`: the press model for a
-  project element), `.ds-hover-actions` (with `.ds-hover-host`), `.ds-kbd`, `.ds-divider` (`--inset`, `--vertical`,
+  project element), `.ds-hover-actions` (with `.ds-hover-host`; only the nearest host reveals them, so a table in a
+  card shows the pointed row's actions), `.ds-kbd`, `.ds-divider` (`--inset`, `--vertical`,
   `--label`), `.ds-touch` and the role `--ds-touch-target` (48px: every target hook at once, opt-in),
   `.ds-icon--filled`, `.ds-icon--fillable` (fills under `aria-pressed` / `aria-checked`), 27 glyphs (`chevronFirst`,
   `chevronLast`, `cornerDownLeft`, `moreHorizontal`, `upload`, `clipboard`, `paperclip`, `send`, `printer`, `play`,

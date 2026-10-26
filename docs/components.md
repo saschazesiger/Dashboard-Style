@@ -3409,10 +3409,12 @@ hand-built one:
 </tr>
 ```
 
-`.ds-hover-actions` fades in on `--ds-dur-fast` while its host (a `tr`, `li`, `.ds-card`, `.ds-drawer__row` or any
-`.ds-hover-host`) is hovered (devices that hover), holds the focus, is current (`aria-current`) or selected
-(`aria-selected="true"`, `.ds-table__row--selected`), holds an open menu (`aria-expanded="true"`) or carries
-`data-ds-shown` (set by the page), and fades out faster (`--ds-dur-instant`). On touch screens (`hover: none`) and
+`.ds-hover-actions` fades in on `--ds-dur-fast` while its host (the nearest `tr`, `li`, `.ds-card`,
+`.ds-drawer__row` or `.ds-hover-host` around it) is hovered (devices that hover), holds the focus, is current
+(`aria-current`) or selected (`aria-selected="true"`, `.ds-table__row--selected`) or carries `data-ds-shown` (set by
+the page), or while the actions themselves hold an open menu (`aria-expanded="true"`) or carry `data-ds-shown`, and
+fades out faster (`--ds-dur-instant`). Only the nearest host counts: in a table inside a card, hovering the card's
+title or focusing its search field shows no row's actions, and hovering a row shows that row's. On touch screens (`hover: none`) and
 under `.ds-touch` it always shows. It changes opacity only: the buttons stay in the tab order and are read, and
 hover moves nothing. Name each button with its row ("Edit LAPTOP-0042").
 
