@@ -231,18 +231,30 @@
   /* The motion families no theme sets (MOTION_FAMILIES of theme-rules.mjs). */
   var THEME_MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/;
 
-  /* The computed colour of a role on the theme root as [r, g, b, a] (rgb() or color(srgb ...)). */
-  function roleColour(name) {
-    var probe = document.createElement('span');
-    probe.style.color = 'var(' + name + ')';
-    document.documentElement.appendChild(probe);
-    var text = getComputedStyle(probe).color;
-    probe.remove();
-    var srgb = /^color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)(?: \/ ([\d.e-]+))?\)$/.exec(text);
-    if (srgb) return [srgb[1] * 255, srgb[2] * 255, srgb[3] * 255, srgb[4] === undefined ? 1 : Number(srgb[4])];
-    var rgb = /^rgba?\(([\d.]+),? ([\d.]+),? ([\d.]+)(?:[,/] ?([\d.]+))?\)$/.exec(text);
-    if (rgb) return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3]), rgb[4] === undefined ? 1 : Number(rgb[4])];
-    return null;
+  /* The computed colours of roles on the theme root, as { name: [r, g, b, a] or
+     null } (rgb() or color(srgb ...)). Every probe goes in at once and is read
+     after, so the page computes its styles once, not once per role. */
+  function roleColours(names) {
+    var box = document.createElement('div');
+    box.hidden = true;
+    var probes = names.map(function (name) {
+      var probe = document.createElement('span');
+      probe.style.color = 'var(' + name + ')';
+      box.appendChild(probe);
+      return probe;
+    });
+    document.documentElement.appendChild(box);
+    var colours = {};
+    names.forEach(function (name, i) {
+      var text = getComputedStyle(probes[i]).color;
+      var srgb = /^color\(srgb ([\d.e-]+) ([\d.e-]+) ([\d.e-]+)(?: \/ ([\d.e-]+))?\)$/.exec(text);
+      var rgb = /^rgba?\(([\d.]+),? ([\d.]+),? ([\d.]+)(?:[,/] ?([\d.]+))?\)$/.exec(text);
+      if (srgb) colours[name] = [srgb[1] * 255, srgb[2] * 255, srgb[3] * 255, srgb[4] === undefined ? 1 : Number(srgb[4])];
+      else if (rgb) colours[name] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3]), rgb[4] === undefined ? 1 : Number(rgb[4])];
+      else colours[name] = null;
+    });
+    box.remove();
+    return colours;
   }
 
   function over(top, bottom) {
@@ -267,10 +279,17 @@
   function themeFindings(source) {
     var rows = [];
     var passed = 0;
+    var names = [];
     Object.keys(THEME_PAIRS).forEach(function (kind) {
       THEME_PAIRS[kind].forEach(function (pair) {
-        var fg = roleColour(pair[0]);
-        var bg = roleColour(pair[1]);
+        pair.forEach(function (name) { if (names.indexOf(name) < 0) names.push(name); });
+      });
+    });
+    var colours = roleColours(names);
+    Object.keys(THEME_PAIRS).forEach(function (kind) {
+      THEME_PAIRS[kind].forEach(function (pair) {
+        var fg = colours[pair[0]];
+        var bg = colours[pair[1]];
         if (!fg || !bg) { rows.push({ ok: false, text: '<code>' + pair[0] + '</code> on <code>' + pair[1] + '</code>: not a colour' }); return; }
         var value = ratio(fg, bg);
         if (value >= PAIR_MIN[kind]) { passed += 1; return; }
