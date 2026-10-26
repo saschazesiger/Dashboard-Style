@@ -1957,3 +1957,95 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
     }
   });
 });
+
+describe('app frame, page and base (2.0)', () => {
+  const SHELL = 'src/components/shell.css';
+  const COMPONENT_FILES = filesIn('src/components', (path) => path.endsWith('.css'));
+  /** The block a selector part styles: its last compound's first .ds- class, without a modifier. */
+  const blockOf = (part) => {
+    const last = part.trim().split(/\s+|>|\+|~/).filter(Boolean).at(-1) || '';
+    return /(\.ds-[\w-]+?)(?:--[\w-]+)?(?=[\s:.[>+~)]|$)/.exec(last)?.[1] ?? null;
+  };
+  /** Every block of src/components/ whose rules declare `property` matching `value`. */
+  const blocksWith = (property, value) => new Set(COMPONENT_FILES.flatMap((file) => rules(stripComments(read(file)))
+    .filter((rule) => declarations(`${rule.body};`).some((entry) => property.test(entry.property) && value.test(entry.value)))
+    .flatMap((rule) => splitSelectors(rule.selector).map(blockOf).filter(Boolean))));
+  /** Scrollers that another 2.0 package positions in its own file (their merge removes the need). */
+  const POSITIONED_ELSEWHERE = new Map([
+    ['.ds-sheet__body', 'OV-16 (sheet.css) positions it'],
+  ]);
+
+  it('positions every block that scrolls, so its absolute content and scroll-into-view stay inside it', () => {
+    const scrollers = blocksWith(/^overflow(-x|-y)?$/, /\b(auto|scroll)\b/);
+    const positioned = blocksWith(/^position$/, /^(relative|absolute|fixed|sticky)$/);
+    for (const block of ['.ds-view', '.ds-drawer__list', '.ds-tabs', '.ds-code-block']) assert.ok(scrollers.has(block), `${block} scrolls`);
+    const missing = [...scrollers].filter((block) => !positioned.has(block) && !POSITIONED_ELSEWHERE.has(block));
+    assert.deepEqual(missing, []);
+  });
+
+  it('gives button options the reset and selects them by aria-current, aria-checked or aria-pressed', () => {
+    const css = stripComments(read(SHELL));
+    const reset = declarationsOf(css, 'button.ds-segmented__option');
+    for (const [property, value] of [['margin', '0'], ['border', '0'], ['background', 'none'], ['cursor', 'pointer']]) {
+      assert.ok(reset.some((entry) => entry.property === property && entry.value === value), `button option: ${property}: ${value}`);
+    }
+    const SELECTED = '.ds-segmented__option:is([aria-current="true"], [aria-checked="true"], [aria-pressed="true"])';
+    assert.ok(rules(css).some((rule) => splitSelectors(rule.selector).includes(SELECTED)), SELECTED);
+    assert.ok(!rules(css).some((rule) => splitSelectors(rule.selector).includes('.ds-segmented__option[aria-current="true"]')), 'the old selection selector is folded into :is()');
+  });
+
+  it('keeps the segmented switch\'s start margin to the top bar', () => {
+    const css = withoutAtRuleBlocks(stripComments(read(SHELL)), /@media/);
+    const own = declarationsOf(css, '.ds-segmented').map((entry) => entry.property);
+    assert.ok(!own.some((property) => /^margin/.test(property)), '.ds-segmented itself sits flush');
+    assert.ok(declarationsOf(css, '.ds-topbar .ds-segmented').some((entry) => entry.property === 'margin-inline-start' && entry.value === 'var(--ds-space-4)'));
+  });
+
+  it('paints a choice in a set SelectedItem in forced colours: the current drawer item, the selected option and tab', () => {
+    const blocks = (file) => forcedColorBlocks(stripComments(read(file))).join('\n');
+    const selectedIn = (css, needle) => rules(css).some((rule) => splitSelectors(rule.selector).some((part) => part.includes(needle))
+      && /background(-color)?:\s*SelectedItem\b/.test(rule.body) && /color:\s*SelectedItemText/.test(rule.body) && /forced-color-adjust:\s*none/.test(rule.body));
+    assert.ok(selectedIn(blocks(SHELL), '.ds-drawer__item[aria-current="page"]'), 'current drawer item');
+    assert.ok(selectedIn(blocks(SHELL), '.ds-segmented__option:is([aria-current="true"], [aria-checked="true"], [aria-pressed="true"])'), 'selected option');
+    assert.ok(selectedIn(blocks('src/components/tabs.css'), '.ds-tabs__tab:is([aria-selected="true"], [aria-current="page"])'), 'selected tab');
+    for (const file of [SHELL, 'src/components/tabs.css']) assert.match(blocks(file), /\[aria-disabled="true"\][^{]*\{[^}]*GrayText/, `${file}: blocked is GrayText`);
+  });
+
+  it('imports tabs and steps after the shell and prose after the lists', () => {
+    const order = [...read('src/index.css').matchAll(/@import '\.\/components\/([\w-]+)\.css'/g)].map((match) => match[1]);
+    assert.equal(order.indexOf('tabs'), order.indexOf('shell') + 1);
+    assert.equal(order.indexOf('steps'), order.indexOf('tabs') + 1);
+    assert.equal(order.indexOf('prose'), order.indexOf('list') + 1);
+  });
+
+  it('gives bare headings under .ds-base the type roles by the element alone', () => {
+    const css = stripComments(read('src/base.css'));
+    const roles = { h1: '--ds-font-headline', h2: '--ds-font-subtitle', h3: '--ds-font-label', h6: '--ds-font-label' };
+    for (const [element, role] of Object.entries(roles)) {
+      const found = rules(css).filter((rule) => splitSelectors(rule.selector).some((part) => part === `:where(.ds-base) ${element}` || (part.startsWith(':where(.ds-base) :is(') && part.includes(element))))
+        .flatMap((rule) => declarations(`${rule.body};`)).filter((entry) => entry.property === 'font');
+      assert.ok(found.some((entry) => entry.value === `var(${role})`), `${element}: ${role}`);
+    }
+    const inside = rules(css).filter((rule) => splitSelectors(rule.selector).includes(':where(.ds-base) :where(pre, a) code')).flatMap((rule) => declarations(`${rule.body};`));
+    assert.ok(inside.some((entry) => entry.property === 'background' && entry.value === 'none'), 'code inside a pre or a link has no chip');
+  });
+
+  it('switches the rail\'s column at once and fades only its labels (no layout animation)', () => {
+    const css = stripComments(read(SHELL));
+    const rail = rules(css).filter((rule) => rule.selector.includes('[data-drawer-collapsed]'));
+    assert.ok(rail.length > 0);
+    for (const rule of rail) {
+      for (const entry of declarations(`${rule.body};`).filter(({ property }) => property === 'transition')) {
+        assert.deepEqual(entriesOf(entry.value).map((part) => part.name), ['opacity'], rule.selector);
+      }
+    }
+    assert.ok(/--ds-drawer-rail-width:\s*72px/.test(read('src/tokens.css')), 'the rail width is a layout role');
+  });
+
+  it('hides the banner, keeps stale content at full strength and keeps cards whole in print', () => {
+    const print = atRuleBlocks(stripComments(read(SHELL)), /@media print/).join('\n');
+    assert.ok(rules(print).some((rule) => splitSelectors(rule.selector).includes('.ds-banner') && /display:\s*none/.test(rule.body)));
+    assert.ok(declarationsOf(print, '.ds-stale').some((entry) => entry.property === 'opacity' && entry.value === '1'));
+    assert.ok(rules(print).some((rule) => splitSelectors(rule.selector).includes('.ds-card') && /break-inside:\s*avoid/.test(rule.body)));
+  });
+});
