@@ -209,7 +209,8 @@
               <h2 class="demo-section__title" id="live-title">Live data</h2>
               <p class="demo-section__lead">A fake backend reports new figures every few seconds. Tiles count on from what they show,
                 rows glide to their new place, status chips fade to their new colour. Point at the table: a live reorder waits
-                until you are done (at most 2s). Type in the search: the rows glide per keystroke.</p>
+                until you are done (at most 2s). Type in the search: the rows glide per keystroke. Every active filter shows as an
+                input chip: press one to remove its filter.</p>
             </header>
             <div class="ds-tiles" id="live-tiles"></div>
             <section class="ds-card">
@@ -237,6 +238,7 @@
                   <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="error"><span class="ds-chip__body"><span data-chip-check></span><span>Offline</span></span></label>
                 </fieldset>
               </div>
+              <div class="ds-chips" role="group" aria-label="Active filters" id="live-active"></div>
               <div class="ds-table-wrap">
                 <table class="ds-table">
                   <caption class="ds-sr">Devices, live</caption>

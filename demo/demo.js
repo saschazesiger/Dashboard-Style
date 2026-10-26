@@ -347,8 +347,57 @@
   const liveBody = $('#live-body');
   const liveEmpty = $('#live-empty');
 
+  /* The active filters as input chips: each removes its filter; Clear filters removes them all. */
+  const liveActive = $('#live-active');
+
+  function activeHtml() {
+    const chip = (key, text) => '<button class="ds-chip ds-chip--input" type="button" data-ds-key="' + key + '" data-remove="' + key + '" data-tip="' + esc(text) + '">' +
+      '<span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>' + esc(text) + '</span>' + icon('close', 18, 'ds-chip__trailing') + '</span></button>';
+    const chips = [];
+    if (live.query.trim()) chips.push(chip('query', '"' + live.query.trim() + '"'));
+    for (const box of $$('#live-chips input:checked')) chips.push(chip('status-' + box.value, box.nextElementSibling.textContent.trim()));
+    if (chips.length) chips.push('<button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-ds-key="clear" data-clear-filters>Clear filters</button>');
+    return chips.join('');
+  }
+
+  function renderActive() {
+    M.flip(liveActive, (morph) => DS.dom.morphHtml(liveActive, activeHtml(), morph));
+  }
+
+  function clearFilters() {
+    live.query = '';
+    live.statuses.clear();
+    $('#live-search').value = '';
+    for (const box of $$('#live-chips input')) box.checked = false;
+    $('#live-search').focus();
+    renderRows();
+  }
+
+  liveActive.addEventListener('click', (event) => {
+    if (event.target.closest('[data-clear-filters]')) {
+      clearFilters();
+      return;
+    }
+    const chip = event.target.closest('[data-remove]');
+    if (!chip) return;
+    // Focus moves on before the chip goes: to a neighbouring chip, else the search field.
+    const next = chip.nextElementSibling?.matches('.ds-chip') ? chip.nextElementSibling : chip.previousElementSibling;
+    (next || $('#live-search')).focus();
+    const key = chip.getAttribute('data-remove');
+    if (key === 'query') {
+      live.query = '';
+      $('#live-search').value = '';
+    } else {
+      const box = $(`#live-chips input[value="${key.slice('status-'.length)}"]`);
+      box.checked = false;
+      live.statuses.delete(box.value);
+    }
+    renderRows();
+  });
+
   function renderRows(options = {}) {
     const rows = visibleDevices();
+    if (!options.live) renderActive();
     DS.dom.morphHtml($('#live-head'), theadHtml());
     M.flip(liveBody, (morph) => DS.dom.morphHtml(liveBody, rows.map(rowHtml).join(''), morph), { items: 'tr', live: !!options.live });
     // The empty state follows the rows: in with a fade when nothing is left, out when rows come back.
@@ -364,13 +413,7 @@
   }
 
   liveEmpty.addEventListener('click', (event) => {
-    if (!event.target.closest('[data-clear-filters]')) return;
-    live.query = '';
-    live.statuses.clear();
-    $('#live-search').value = '';
-    for (const box of $$('#live-chips input')) box.checked = false;
-    $('#live-search').focus();
-    renderRows();
+    if (event.target.closest('[data-clear-filters]')) clearFilters();
   });
 
   $('#live-search').addEventListener('input', (event) => {
