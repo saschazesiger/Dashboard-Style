@@ -855,7 +855,7 @@
   function renderIcons(query = '') {
     const q = query.trim().toLowerCase();
     const shown = NAMES.filter((name) => name.toLowerCase().includes(q));
-    const html = shown.map((name) => `<li data-ds-key="${name}"><button class="demo-icon" type="button" data-ds-ripple data-name="${name}" aria-label="Copy ${name}">${icon(name, 24)}<span>${name}</span></button></li>`).join('');
+    const html = shown.map((name) => `<li data-ds-key="${name}"><button class="demo-icon ds-pressable" type="button" data-name="${name}" aria-label="Copy ${name}">${icon(name, 24)}<span>${name}</span></button></li>`).join('');
     M.flip(grid, (morph) => DS.dom.morphHtml(grid, html, morph), { items: 'li' });
     const empty = $('.ds-empty', iconEmpty);
     if (!shown.length && !empty) {
@@ -863,7 +863,7 @@
       M.enter($('.ds-empty', iconEmpty), 'fade');
     } else if (shown.length && empty && !empty.classList.contains('ds-leave')) M.leave(empty);
   }
-  DS.dom.morphHtml(grid, NAMES.map((name) => `<li data-ds-key="${name}"><button class="demo-icon" type="button" data-ds-ripple data-name="${name}" aria-label="Copy ${name}">${icon(name, 24)}<span>${name}</span></button></li>`).join(''));
+  DS.dom.morphHtml(grid, NAMES.map((name) => `<li data-ds-key="${name}"><button class="demo-icon ds-pressable" type="button" data-name="${name}" aria-label="Copy ${name}">${icon(name, 24)}<span>${name}</span></button></li>`).join(''));
   $('#icon-search').addEventListener('input', (event) => renderIcons(event.target.value));
   grid.addEventListener('click', (event) => {
     const button = event.target.closest('[data-name]');

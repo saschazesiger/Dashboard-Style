@@ -236,12 +236,20 @@ describe('tools/check-project.mjs', () => {
     assert.deepEqual(literalKinds('background', 'color-mix(in srgb, var(--ds-text) 8%, transparent)'), ['colour'], 'a mix of tokens is still a new colour: make it a token');
   });
 
-  it('passes the reference app without an error (example/ keeps the project rules, AGENTS.md)', () => {
-    const files = Object.fromEntries(readdirSync(join(ROOT, 'example')).filter((name) => /\.(css|js|html)$/.test(name)).map((name) => [`example/${name}`, read(`example/${name}`)]));
+  // The published pages never show a deprecated or hand-built pattern (AGENTS.md): no error and no warning.
+  const published = (folder) => Object.fromEntries(readdirSync(join(ROOT, folder)).filter((name) => /\.(css|js|html)$/.test(name)).map((name) => [`${folder}/${name}`, read(`${folder}/${name}`)]));
+  it('passes the reference app without a finding (example/ keeps the project rules, AGENTS.md)', () => {
     const config = { prefix: 'ex', css: ['example/*.css'], js: ['example/*.js'], html: ['example/*.html'], themes: ['example/theme.css'], themesWith: [`${VENDOR}/themes/dark.css`], vendor: VENDOR };
-    const { findings, errors } = run(files, config);
+    const { findings, errors } = run(published('example'), config);
     assert.deepEqual(errors, []);
-    assert.deepEqual(findings.filter((f) => f.level === 'error').map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
+    assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
+  });
+
+  it('passes the live tour without a finding (demo/ is wired as a project wires it)', () => {
+    const config = { prefix: 'demo', css: ['demo/*.css'], js: ['demo/*.js'], html: ['demo/*.html'], vendor: VENDOR };
+    const { findings, errors } = run(published('demo'), config);
+    assert.deepEqual(errors, []);
+    assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
   });
 
   it('keeps its rule ids in the AGENTS.md project block and its system attributes in the Attributes table', () => {

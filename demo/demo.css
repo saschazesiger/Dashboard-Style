@@ -218,58 +218,18 @@
   list-style: none;
 }
 
-/* A project control: a state layer in currentColor (hover, press, focus), the ring, the ripple through data-ds-ripple. */
+/* A project control on the system's press model (.ds-pressable: state layer, focus snap, ripple host); the radius through its hook. */
 .demo-icon {
-  position: relative;
+  --ds-pressable-radius: var(--ds-radius-card);
   display: grid;
   justify-items: center;
   gap: var(--ds-space-2);
   width: 100%;
   padding: var(--ds-space-3) var(--ds-space-1);
   border: 0;
-  border-radius: var(--ds-radius-card);
   background: transparent;
   color: var(--ds-text);
   font: var(--ds-font-meta);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  outline-offset: 2px;
-  transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
-}
-
-.demo-icon::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: currentColor;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--ds-dur-fast) var(--ds-ease-out);
-}
-
-@media (hover: hover) {
-  .demo-icon:hover::before {
-    opacity: var(--ds-state-hover);
-  }
-}
-
-.demo-icon:focus-visible {
-  outline: var(--ds-focus-outline);
-  outline-offset: 0;
-}
-
-.demo-icon:focus-visible::before {
-  opacity: var(--ds-state-focus);
-}
-
-.demo-icon:active::before {
-  opacity: var(--ds-state-pressed);
-  transition-duration: var(--ds-dur-micro);
-}
-
-.ds-ripples .demo-icon:active::before {
-  opacity: var(--ds-state-hover);
 }
 
 .demo-icon > span {
@@ -288,10 +248,6 @@
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.demo-links .ds-card {
-  gap: var(--ds-space-1);
 }
 
 .demo-footer {
