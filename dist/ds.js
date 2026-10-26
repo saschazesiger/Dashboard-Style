@@ -5338,8 +5338,12 @@
      * calls `onActivate(item)` instead); 'manual' waits for Enter or Space on
      * an item that is no button; false only moves focus (a toolbar). Left and
      * right swap where the container's computed direction is rtl. Delegated on
-     * the container, so it survives DS.dom.morphHtml; once per container (a
-     * second call returns the same handle).
+     * the container, and a MutationObserver puts the one stop back after a
+     * re-render (DS.dom.morphHtml removes a tabindex its template lacks), on
+     * new items and on a changed state (the focused item, one marked
+     * tabindex="0", the chosen one, the last stop, else the first), so it
+     * survives DS.dom.morphHtml; once per container (a second call returns the
+     * same handle).
      * @param {Element|null|undefined} container
      * @param {{ items?: string, orientation?: 'horizontal'|'vertical'|'both', wrap?: boolean, activate?: 'focus'|'manual'|false, onActivate?: (item: Element) => void }} [options]
      * @returns {{ destroy: () => void }}
@@ -5355,14 +5359,31 @@
       const view = windowOf(container);
       const items = () => Array.from(container.querySelectorAll(selector)).filter((item) => !item.matches?.(':disabled') && !item.hidden && !item.closest?.('[hidden], [inert]'));
       const chosen = (item) => ['aria-selected', 'aria-checked', 'aria-pressed'].some((name) => item.getAttribute(name) === 'true') || (item.hasAttribute('aria-current') && item.getAttribute('aria-current') !== 'false');
+      let last = null;
       const stop = (current) => {
+        last = current;
         for (const item of items()) {
           const value = item === current ? '0' : '-1';
           if (item.getAttribute('tabindex') !== value) item.setAttribute('tabindex', value);
         }
       };
-      const all = items();
-      stop(all.find((item) => item.getAttribute('tabindex') === '0') ?? all.find(chosen) ?? all[0] ?? null);
+      // The stop after setup or a change: the focused item, one the markup
+      // marks, the chosen one, the last stop, else the first.
+      const restop = () => {
+        const all = items();
+        const active = container.ownerDocument.activeElement;
+        stop(all.find((item) => item === active || item.contains?.(active))
+          ?? all.find((item) => item.getAttribute('tabindex') === '0')
+          ?? all.find(chosen)
+          ?? (all.includes(last) ? last : null)
+          ?? all[0] ?? null);
+      };
+      restop();
+      // A re-render (DS.dom.morphHtml takes away a tabindex its template
+      // lacks), new items and a changed state get the one stop back. Its own
+      // writes come back once and change nothing.
+      const changes = typeof view.MutationObserver === 'function' ? new view.MutationObserver(restop) : null;
+      changes?.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['tabindex', 'aria-selected', 'aria-checked', 'aria-pressed', 'aria-current', 'disabled', 'hidden'] });
       const run = (item) => {
         // An aria-disabled item takes the focus (its name is read), never the state.
         if (item.getAttribute('aria-disabled') === 'true') return;
@@ -5425,6 +5446,7 @@
         destroy() {
           if (rovers.get(container)?.handle !== handle) return;
           rovers.delete(container);
+          changes?.disconnect();
           container.removeEventListener('keydown', onKey);
           container.removeEventListener('focusin', onFocus);
         },

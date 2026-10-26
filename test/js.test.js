@@ -1939,6 +1939,32 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     void win;
   });
 
+  it('roving: a re-render that drops the tabindex, a new item and a moved selection get the one stop back', () => {
+    const { h, doc, observers } = helperDom();
+    const tabs = ['a', 'b', 'c'].map((name) => h('div', { role: 'option', id: name, 'aria-selected': name === 'b' ? 'true' : 'false' }));
+    const list = h('div', { role: 'listbox' }, ...tabs);
+    const handle = dom.roving(list);
+    const changes = observers.mutation.at(-1);
+    const stops = () => list.children.map((tab) => tab.getAttribute('tabindex'));
+    assert.deepEqual(stops(), ['-1', '0', '-1']);
+    // morphHtml with a template without tabindex removes them all.
+    for (const tab of tabs) tab.removeAttribute('tabindex');
+    list.append(h('div', { role: 'option', id: 'd', 'aria-selected': 'false' }));
+    changes.callback([]);
+    assert.deepEqual(stops(), ['-1', '0', '-1', '-1'], 'the chosen item is the stop again, the new one -1');
+    tabs[1].setAttribute('aria-selected', 'false');
+    tabs[2].setAttribute('aria-selected', 'true');
+    for (const tab of tabs) tab.removeAttribute('tabindex');
+    changes.callback([]);
+    assert.deepEqual(stops(), ['-1', '-1', '0', '-1'], 'the stop follows a selection the page moved');
+    tabs[0].focus();
+    assert.equal(doc.activeElement, tabs[0]);
+    for (const tab of tabs) tab.removeAttribute('tabindex');
+    changes.callback([]);
+    assert.deepEqual(stops(), ['0', '-1', '-1', '-1'], 'the focused item keeps the stop');
+    handle.destroy();
+  });
+
   it('followViewport: --ds-viewport-height, data-ds-keyboard only with a field focused and 150px less, the inset; once per document', () => {
     const { h, doc, win, runFrames } = helperDom();
     const viewport = new EventTarget();

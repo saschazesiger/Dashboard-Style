@@ -4,7 +4,8 @@
  * page's click handler), skipping a disabled tab and reaching an
  * aria-disabled one without selecting it; a toolbar moves the focus only,
  * without wrapping; Tab leaves the set from the stop. A re-render of the
- * tab list with DS.dom.morphHtml keeps it working. fixtures/helpers-2.html;
+ * tab list with DS.dom.morphHtml keeps it working, and one whose template
+ * has no tabindex gets the one stop back. fixtures/helpers-2.html;
  * runs in the `fallback` project too.
  */
 import { test, expect } from './base-test.js';
@@ -56,4 +57,17 @@ test('toolbar: focus only, no wrap; a re-render of the tabs keeps the keys worki
   await page.keyboard.press('ArrowLeft');
   await expect(page.locator('#tab-b')).toBeFocused();
   expect(await selected(page)).toBe('tab-b');
+});
+
+test('a re-render whose template has no tabindex: the one stop comes back, a new tab gets -1, Tab reaches the set once', async ({ page }) => {
+  await open(page);
+  await page.evaluate(async () => {
+    const tabs = document.getElementById('tabs');
+    DS.dom.morphHtml(tabs, ['a', 'b', 'c', 'e'].map((key) => `<button class="ds-btn ds-btn--text" type="button" role="tab" id="tab-${key}" aria-selected="${key === 'b'}">${key.toUpperCase()}</button>`).join(''));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  });
+  expect(await stops(page, '#tabs')).toEqual(['tab-a:-1', 'tab-b:0', 'tab-c:-1', 'tab-e:-1']);
+  await page.locator('#tab-b').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#tool-1'), 'Tab leaves the set from its stop').toBeFocused();
 });
