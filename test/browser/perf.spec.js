@@ -22,7 +22,8 @@
  *
  * The same holds for the cost of a style recalc: review.spec.js ("style
  * scope") counts the elements a text change inside a card restyles, in the
- * shared run; the test below times those changes, alone.
+ * shared run; the test below times those changes, alone, also while the
+ * styleguide's save bar shows (its view and content rules apply then).
  */
 import { test, expect } from '@playwright/test';
 import { ready, settle } from './helpers/motion.js';
@@ -105,6 +106,15 @@ const STYLE_CEILING = 7.5;
 const STYLE_TARGETS = {
   '/styleguide/index.html': '.ds-card p',
   '/styleguide/motion.html': '[data-lab-demo="progress"] .ds-progress__label',
+  '/styleguide/index.html?savebar': '.ds-card p',
+};
+
+/** What a page shows before its text changes: the styleguide's save bar (sticky, and the view and content rules of data-ds-savebar). */
+const STYLE_SETUP = {
+  '/styleguide/index.html?savebar': async (page) => {
+    await page.fill('#sg-sb-name', 'LAPTOP-0043');
+    await expect(page.locator('#main')).toHaveAttribute('data-ds-savebar', '');
+  },
 };
 
 for (const [path, selector] of Object.entries(STYLE_TARGETS)) {
@@ -114,6 +124,7 @@ for (const [path, selector] of Object.entries(STYLE_TARGETS)) {
     await page.goto(path);
     await ready(page);
     await page.mouse.move(1, 1);
+    if (STYLE_SETUP[path]) await STYLE_SETUP[path](page);
     await settle(page, { timeout: 20000 });
     // Every loop paused: the metrics then hold the recalc of the change alone.
     await page.evaluate(() => {
