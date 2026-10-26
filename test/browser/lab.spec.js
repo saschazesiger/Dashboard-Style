@@ -354,6 +354,11 @@ const SHOT_MASKS = {
     engines: ['firefox'],
     reason: 'the same Firefox paint offset after a same-document View Transition in a frame as in the views demo',
   },
+  savebar: {
+    selectors: ['iframe'],
+    engines: ['firefox'],
+    reason: 'the same Firefox paint offset of a frame\'s content without any View Transition: the first demo of its group, under parallel load (2 of 5 group runs in the CI container), with the same DOM and layout as a good run',
+  },
 };
 
 /** The locators SHOT_MASKS masks in a demo's stage in this engine. */
