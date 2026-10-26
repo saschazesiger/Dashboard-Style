@@ -109,6 +109,24 @@
       "note": "DS.overlay.open(list, { opener: field }) sets aria-expanded on the field, which turns the chevron."
     },
     {
+      "kind": "markup",
+      "name": "the live region .ds-toasts[role] / .ds-toasts[aria-live]",
+      "pattern": "<[^<>]*?(?:(?<![\\w-])ds-toasts(?![\\w-])[^<>]*?(?<![\\w-])(?:role|aria-live)=|(?<![\\w-])(?:role|aria-live)=[^<>]*?(?<![\\w-])ds-toasts(?![\\w-]))",
+      "replacement": "<div class=\"ds-toasts\"></div>",
+      "deprecated": "1.3.0",
+      "removed": "2.0.0",
+      "note": "DS.overlay.toast() announces through its own two announcers and strips role and aria-live from an old region on first use; never role=\"alert\" on a message."
+    },
+    {
+      "kind": "markup",
+      "name": "the hand recipe that moves snackbars into a side sheet",
+      "pattern": null,
+      "replacement": "DS.overlay.open(sheet) and DS.overlay.toast()",
+      "deprecated": "1.3.0",
+      "removed": "2.0.0",
+      "note": "A page no longer sets --ds-toast-shift or --ds-toast-shift-y, nor closes snackbars with setTimeout: DS.overlay moves the region into an open sheet and glides the messages (both properties stay, written by DS.overlay only), and toast() times them."
+    },
+    {
       "kind": "class",
       "name": ".ds-view--leaving",
       "pattern": "(?<![\\w-])ds-view--leaving(?![\\w-])",
