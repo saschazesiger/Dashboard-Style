@@ -2234,16 +2234,16 @@ describe('app frame, page and base (2.0)', () => {
   const blocksWith = (property, value) => new Set(COMPONENT_FILES.flatMap((file) => rules(stripComments(read(file)))
     .filter((rule) => declarations(`${rule.body};`).some((entry) => property.test(entry.property) && value.test(entry.value)))
     .flatMap((rule) => splitSelectors(rule.selector).map(blockOf).filter(Boolean))));
-  /** Scrollers that another 2.0 package positions in its own file (their merge removes the need). */
-  const POSITIONED_ELSEWHERE = new Map([
-    ['.ds-sheet__body', 'OV-16 (sheet.css) positions it'],
+  /** Scrollers that hold no element to position, each with its reason. */
+  const SCROLLERS_EXEMPT = new Map([
+    ['.ds-input', 'textarea.ds-input--grow scrolls its own text: a textarea has no child elements'],
   ]);
 
   it('positions every block that scrolls, so its absolute content and scroll-into-view stay inside it', () => {
     const scrollers = blocksWith(/^overflow(-x|-y)?$/, /\b(auto|scroll)\b/);
     const positioned = blocksWith(/^position$/, /^(relative|absolute|fixed|sticky)$/);
     for (const block of ['.ds-view', '.ds-drawer__list', '.ds-tabs', '.ds-code-block']) assert.ok(scrollers.has(block), `${block} scrolls`);
-    const missing = [...scrollers].filter((block) => !positioned.has(block) && !POSITIONED_ELSEWHERE.has(block));
+    const missing = [...scrollers].filter((block) => !positioned.has(block) && !SCROLLERS_EXEMPT.has(block));
     assert.deepEqual(missing, []);
   });
 
@@ -2275,11 +2275,12 @@ describe('app frame, page and base (2.0)', () => {
     for (const file of [SHELL, 'src/components/tabs.css']) assert.match(blocks(file), /\[aria-disabled="true"\][^{]*\{[^}]*GrayText/, `${file}: blocked is GrayText`);
   });
 
-  it('imports tabs and steps after the shell and prose after the lists', () => {
+  it('imports tabs and steps after the shell and prose after the lists, the timeline and the tasks', () => {
     const order = [...read('src/index.css').matchAll(/@import '\.\/components\/([\w-]+)\.css'/g)].map((match) => match[1]);
     assert.equal(order.indexOf('tabs'), order.indexOf('shell') + 1);
     assert.equal(order.indexOf('steps'), order.indexOf('tabs') + 1);
-    assert.equal(order.indexOf('prose'), order.indexOf('list') + 1);
+    // The lists of 2.0 (list, timeline, tasks) stay together; prose follows the last of them.
+    assert.equal(order.indexOf('prose'), Math.max(...['list', 'timeline', 'tasks'].map((name) => order.indexOf(name))) + 1);
   });
 
   it('gives bare headings under .ds-base the type roles by the element alone', () => {
