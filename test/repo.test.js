@@ -76,9 +76,14 @@ describe('repository', () => {
     assert.match(read('dist/ds.css'), new RegExp(`^/\\*! Dashboard-Style ${version.replace(/\./g, '\\.')} `));
   });
 
-  it('counts the components right in the styleguide overview', () => {
-    const count = filesIn('src/components', (path) => path.endsWith('.css')).length;
-    assert.match(read('styleguide/styleguide.js'), new RegExp(`tile\\('Components', '${count}'`));
+  it('counts the components right in the styleguide overview and lists them in AGENTS.md', () => {
+    const files = filesIn('src/components', (path) => path.endsWith('.css')).map((path) => path.slice('src/components/'.length, -'.css'.length));
+    assert.match(read('styleguide/styleguide.js'), new RegExp(`tile\\('Components', '${files.length}'`));
+    const row = read('AGENTS.md').split('\n').find((line) => line.startsWith('| `src/components/*.css` |')) ?? '';
+    const listed = /\((\d+): ([^;]+);/.exec(row);
+    assert.ok(listed, 'the Files row of AGENTS.md counts and names the component files');
+    assert.equal(Number(listed[1]), files.length);
+    assert.deepEqual([...listed[2].matchAll(/`([\w-]+)`/g)].map((match) => match[1]).sort(), files.sort());
   });
 
   it('documents every component class in docs/components.md', () => {

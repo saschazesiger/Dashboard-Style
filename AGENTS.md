@@ -39,7 +39,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `src/tokens.css` | all tokens on `.ds-theme` in `@layer ds.tokens`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the `linear()` refinements at the end; `@property --ds-time-scale` at top level; the one non-custom property, `color-scheme` from `--ds-color-scheme` on `:where(.ds-theme)` (zero specificity) |
 | `src/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, `.ds-swap`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
 | `src/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
-| `src/components/*.css` | one file per component; the header comment sketches markup, modifiers, hooks and "Progressive:" features |
+| `src/components/*.css` | one file per component (39: `alert`, `badge`, `button`, `card`, `chart`, `chip`, `combobox`, `dialog`, `disclosure`, `drag`, `empty`, `form`, `indicator`, `list`, `loader`, `loading`, `menu`, `page`, `pagination`, `progress`, `prose`, `ripple`, `savebar`, `scroller`, `sheet`, `shell`, `slider`, `spinner`, `status`, `steps`, `switch`, `table`, `tabs`, `tasks`, `tile`, `timeline`, `toast`, `tooltip`, `utilities`; the styleguide's `Components` tile counts them, tested); the header comment sketches markup, modifiers, hooks and "Progressive:" features |
 | `src/index.css` | the layer order statement, then the `@import` list = cascade order of `ds.css`; every stylesheet outside `src/optional/` must be listed |
 | `src/optional/` | opt-in stylesheets (`view-transitions.css`: View Transitions across page loads), built to `dist/css/optional/`, never in `index.css` or `ds.css` |
 | `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `ripple`, `icons`, `overlay`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
@@ -138,7 +138,9 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   `.ds-ripples` rule in `ripple.css`; every action is a host or on the tested exemption list). Pills morph: the
   rest radius is `min(radius, half the height)`, never 9999px; pressed it turns `--ds-radius-action-pressed` in
   `--ds-dur-micro` and springs back on `--ds-ease-spatial` over `--ds-dur-medium` (radio cards:
-  `--ds-radius-card-pressed`); disabled, `aria-disabled` and busy controls neither morph nor show a press. Focus is
+  `--ds-radius-card-pressed`); disabled, `aria-disabled` and busy controls neither morph nor show a press, and the
+  action guard (`DS.motion.guard()`, installed by `busy()` and `DS.ripple.attach()`) keeps every input from
+  reaching an `aria-disabled`, busy or done action (`data-ds-guard="off"` lets a control explain itself). Focus is
   a 2px ring (`--ds-focus-outline`) on `:focus-visible`, solid from the first frame: it rests at offset + width
   (inset rings: 0) and only `outline-offset` transitions, on `--ds-dur-fast` (never a keyframe, never its colour or
   width), with the focus layer (`--ds-state-focus`) at once. The switch handle is the only thing that scales on
@@ -237,8 +239,9 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
 
 - The UI is built on [Dashboard-Style](https://github.com/saschazesiger/Dashboard-Style), vendored in `<dest>`
   (tokens `--ds-*`, components `.ds-*`, `DS.motion`, `DS.indicator`, `DS.dom`, `DS.ripple`, `DS.icons`,
-  `DS.overlay`). Call `DS.ripple.attach(document)` once at start-up: every action gets the pointer ripple. Open and
-  close dialogs, side sheets, the modal drawer, menus and the combobox list with `DS.overlay.open(el, { opener })` /
+  `DS.overlay`). Call `DS.ripple.attach(document)` once at start-up: every action gets the pointer ripple, and the
+  action guard it installs blocks busy, done and `aria-disabled="true"` actions for every input (click, keys,
+  submit); a control that explains itself on click sits in `data-ds-guard="off"`. Open and close dialogs, side sheets, the modal drawer, menus and the combobox list with `DS.overlay.open(el, { opener })` /
   `DS.overlay.close(el)`, show snackbars with `DS.overlay.toast(region, text)` and tooltips with one
   `DS.overlay.tooltips(document)`; every overlay sits inside the `.ds-theme` element.
 - Never edit `<dest>`: it is checksummed (`<dest>/SHA256SUMS`, checked by `<check command>`) and replaced by the
@@ -274,7 +277,11 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   any deliberate deviation with its reason.
 - Local components use the project prefix `<prefix>-` and read tokens only (`--ds-*` and `--<prefix>-*`): no
   colour, radius, font, shadow, duration or curve literals, no own `@keyframes` (use the `ds-*` keyframes and
-  motion tokens).
+  motion tokens). A project element that acts on a press (a row, a tile of its own) takes `.ds-pressable` (state
+  layer, focus ring, ripple), never a `::before` state layer of its own.
+- Bigger targets for a finger are opt-in: `.ds-touch` on the `.ds-theme` element or a container, never a
+  `pointer: coarse` rule of the project's own. A widget embedded in someone else's page never calls
+  `DS.dom.followViewport()`: the host page owns the viewport.
 - Re-render with `DS.dom.morphHtml` (key list rows with `data-ds-key`), never `innerHTML`; it patches in place, so
   bind listeners once (or mark a subtree `data-ds-replace`). Reorders go through `DS.motion.flip`, figures through
   `DS.motion.countUp`; JS timing comes from `DS.motion.motionDuration()`, never ms literals.
