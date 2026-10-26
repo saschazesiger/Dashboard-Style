@@ -7,7 +7,9 @@
  *                       view with DS.motion.staggerOnce()
  *   navigation          hash routes, DS.motion.transition() (fade-through),
  *                       the drawer's pill (DS.indicator), the modal drawer
- *                       (DS.overlay), data-scrolled (DS.dom.watchScrolled)
+ *                       (DS.overlay), data-scrolled (DS.dom.watchScrolled),
+ *                       a drawer group that closes, the page head's way
+ *                       back, a banner while the backend is offline
  *   Overview            tiles that count (countUp), alerts that come and go
  *                       (flip), a sync with busy faces and a progress bar,
  *                       columns that fill once (.ds-columns), a live feed
@@ -16,11 +18,13 @@
  *                       menu, a confirm dialog, undo in a snackbar, an empty
  *                       state, a refresh with DS.motion.refresh(),
  *                       live status through flip({ live: true }), a side
- *                       sheet with previous and next
+ *                       sheet with Details and History tabs, previous and
+ *                       next
  *   Tickets             expandable rows, a dialog with a form, validation
  *                       and a combobox
- *   Settings            switches that apply at once, radio cards that change
- *                       the theme, a form that saves with DS.motion.busy()
+ *   Settings            switches that apply at once (one cuts the fake
+ *                       connection), radio cards that change the theme, a
+ *                       form that saves with DS.motion.busy()
  *
  * A classic script on top of dist/ds.js and data.js (window.ExampleApi),
  * so it runs from disk. Re-renders go through DS.dom.morphHtml, never
@@ -84,6 +88,9 @@
     dismissed: new Set(),
     sync: { running: false, done: 0, total: 0, finished: null, summary: null },
     sheetId: null,
+    sheetTab: 'details',
+    back: null,
+    offline: false,
     menuFor: null,
     dense: stored('ex-dense') === '1',
     savedAt: null,
@@ -126,9 +133,13 @@
       `<span class="ds-btn__face ds-btn__face--done" aria-hidden="true">${icon('check', 16)}${doneLabel}</span></span></button>`;
   }
 
-  function head(title, lead, actions = '') {
-    return `<div class="ex-page-head"><header class="ds-page-head"><h1 class="ds-page-head__title" tabindex="-1">${title}</h1>` +
-      `<p class="ds-page-head__lead">${lead}</p></header>${actions ? `<div class="ex-row">${actions}</div>` : ''}</div>`;
+  /* The page head: the way back (a view opened from a link of the overview),
+     the title and lead, the actions at the end of the title's line. */
+  function head(title, lead, actions = '', back = null) {
+    return '<header class="ds-page-head">' +
+      (back ? `<a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="${back.href}">${icon('arrowLeft', 18)}<span class="ds-sr">Back to </span>${back.label}</a>` : '') +
+      `<div class="ds-page-head__row"><div class="ds-page-head__text"><h1 class="ds-page-head__title" tabindex="-1">${title}</h1>` +
+      `<p class="ds-page-head__lead">${lead}</p></div>${actions ? `<div class="ds-page-head__actions">${actions}</div>` : ''}</div></header>`;
   }
 
   function counts() {
@@ -305,7 +316,7 @@
   function devicesHtml() {
     const rows = visibleDevices();
     return head('Devices', 'Every laptop, desktop, tablet and printer. The status of each device updates live; a row opens its details.',
-      `<button class="ds-btn" type="button" data-act="refresh">${icon('sync', 16)} Refresh</button>`) +
+      `<button class="ds-btn" type="button" data-act="refresh">${icon('sync', 16)} Refresh</button>`, state.back) +
       '<section class="ds-card" id="devices-card">' +
         '<div class="ds-toolbar"><div class="ds-filters">' +
           `<div class="ds-field ds-field--grow"><label class="ds-sr" for="q">Search</label><div class="ds-search">${icon('search', 20)}` +
@@ -401,7 +412,7 @@
   function ticketsHtml() {
     const shown = visibleTickets();
     return head('Tickets', 'Problems reported for a device. A row opens in place; a new ticket opens a dialog.',
-      `<button class="ds-btn ds-btn--primary" type="button" data-act="new-ticket">${icon('plus', 16)} New ticket</button>`) +
+      `<button class="ds-btn ds-btn--primary" type="button" data-act="new-ticket">${icon('plus', 16)} New ticket</button>`, state.back) +
       '<section class="ds-card">' +
         `<div class="ds-toolbar"><fieldset class="ds-chips" id="ticket-chips"><legend class="ds-sr">Show</legend>${
           [['open', 'Open'], ['closed', 'Closed'], ['all', 'All']].map(([value, label]) => chip('ticket-filter', value, label, state.ticketFilter === value, 'radio')).join('')}</fieldset></div>` +
@@ -444,6 +455,7 @@
           switchHtml('nightlySync', 'Nightly sync at 02:00', s.nightlySync) +
           switchHtml('notifyFailures', 'Email me when a sync fails', s.notifyFailures) +
           switchHtml('dense', 'Compact tables', state.dense) +
+          switchHtml('offline', 'Simulate a lost connection', state.offline) +
           '<p class="ds-muted">A switch takes effect when it flips; there is nothing to save.</p>' +
         '</section>' +
         '<section class="ds-card"><h2 class="ds-card__title" id="accent-title">Accent colour</h2>' +
@@ -512,8 +524,10 @@
     return { route, params: new URLSearchParams(match ? match[2] || '' : '') };
   }
 
-  /* Filters a link carries (a tile, an alert, a ticket in the overview). */
+  /* Filters a link carries (a tile, an alert, a ticket in the overview);
+     such a view offers the way back to the overview in its head. */
   function applyParams(route, params) {
+    state.back = route !== 'overview' && params.toString() ? { href: '#/overview', label: 'Overview' } : null;
     if (route === 'devices' && params.has('status')) {
       state.statuses = new Set(params.get('status').split(',').filter((kind) => STATUS[kind]));
       state.query = '';
@@ -590,7 +604,14 @@
 
   async function poll() {
     if (document.hidden || !state.devices.length) return;
-    const result = await api.poll();
+    let result;
+    try {
+      result = await api.poll();
+    } catch (error) {
+      showOffline(true);
+      return;
+    }
+    showOffline(false);
     state.devices = result.devices;
     state.activity.push(...result.activity);
     if (state.route === 'overview') {
@@ -605,22 +626,55 @@
     if (state.sheetId && byId(state.sheetId) && sheet.open) DS.dom.morphHtml(sheetBody, sheetHtml(byId(state.sheetId)));
   }
 
+  /* A message for the whole app: the banner above the view while the
+     backend does not answer. It comes and goes through flip() on the panel,
+     so the view glides and no height animates. */
+  const panel = $('.ds-panel');
+  let banner = null;
+  function showOffline(on) {
+    if (on === Boolean(banner?.isConnected)) return;
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.className = 'ds-banner';
+      banner.id = 'offline-banner';
+      DS.dom.morphHtml(banner, `<div class="ds-alert ds-alert--warning" role="status">${icon('wifiOff', 20)}` +
+        '<span class="ds-alert__text">The console is offline. Figures stay as they were until it answers again.</span>' +
+        '<button class="ds-btn ds-btn--text ds-btn--sm" type="button">Retry</button></div>');
+      banner.addEventListener('click', (event) => { if (event.target.closest('button')) poll(); });
+    }
+    M.flip(panel, () => { if (on) panel.prepend(banner); else banner.remove(); }, { items: ':scope > *' });
+  }
+
   /* ── The side sheet ───────────────────────────────────────────────── */
+
+  /* Details and History: ARIA tabs; the page keeps the choice (a live
+     refresh re-renders the body with it). */
+  const SHEET_TABS = [['details', 'Details'], ['history', 'History']];
 
   function sheetHtml(device) {
     const tickets = state.tickets.filter((ticket) => ticket.device === device.id);
+    const events = state.activity.filter((entry) => entry.text.startsWith(`${device.name} `)).slice(-5).reverse();
     const list = visibleDevices().length ? visibleDevices() : state.devices;
     const index = list.findIndex((other) => other.id === device.id);
-    return `<dl class="ds-facts"><div><dt>Owner</dt><dd>${esc(device.owner)}</dd></div><div><dt>Location</dt><dd>${esc(device.location)}</dd></div>` +
+    const shown = (name) => (state.sheetTab === name ? '' : ' hidden');
+    return '<div class="ds-tabs" role="tablist" aria-label="Device" id="sheet-tabs">' +
+      SHEET_TABS.map(([name, label]) => `<button class="ds-tabs__tab" role="tab" type="button" id="sheet-t-${name}" aria-controls="sheet-p-${name}" data-tab="${name}" data-label="${label}"` +
+        ` aria-selected="${state.sheetTab === name}"${state.sheetTab === name ? '' : ' tabindex="-1"'}>${label}</button>`).join('') + '</div>' +
+      `<div class="ds-tabs__panel ds-stack" role="tabpanel" id="sheet-p-details" aria-labelledby="sheet-t-details"${shown('details')}>` +
+      `<dl class="ds-facts"><div><dt>Owner</dt><dd>${esc(device.owner)}</dd></div><div><dt>Location</dt><dd>${esc(device.location)}</dd></div>` +
       `<div><dt>Last seen</dt><dd>${ago(device.lastSeen)}</dd></div><div><dt>Status</dt><dd>${status(device.status)}</dd></div></dl>` +
       `<ul class="ds-kv-list"><li><span>Model</span><strong>${esc(device.model)}</strong></li><li><span>System</span><strong>${esc(device.system)}</strong></li>` +
       `<li><span>Serial</span><strong>${esc(device.serial)}</strong></li><li><span>Address</span><strong>${esc(device.address)}</strong></li>` +
       `<li><span>Bought</span><strong>${esc(device.bought)}</strong></li></ul>` +
-      '<h3 class="ds-card__subtitle">Tickets</h3>' +
-      (tickets.length ? `<ul class="ds-plain-list">${tickets.map((ticket) => `<li>#${ticket.id} ${esc(ticket.subject)} ${ticketStatus(ticket.status)}</li>`).join('')}</ul>` : '<p class="ds-muted">No tickets for this device.</p>') +
       '<div class="ex-row">' +
         facesButton('ds-btn ds-btn--tonal', 'Restart', 'Restarting', 'Restarted', `data-sheet="restart" data-ds-key="restart-${device.id}"`) +
         `<button class="ds-btn" type="button" data-sheet="ticket">${icon('ticket', 16)} New ticket</button>` +
+      '</div></div>' +
+      `<div class="ds-tabs__panel ds-stack" role="tabpanel" id="sheet-p-history" aria-labelledby="sheet-t-history" tabindex="0"${shown('history')}>` +
+        '<h3 class="ds-card__subtitle">Tickets</h3>' +
+        (tickets.length ? `<ul class="ds-plain-list">${tickets.map((ticket) => `<li>#${ticket.id} ${esc(ticket.subject)} ${ticketStatus(ticket.status)}</li>`).join('')}</ul>` : '<p class="ds-muted">No tickets for this device.</p>') +
+        '<h3 class="ds-card__subtitle">Activity</h3>' +
+        (events.length ? `<ul class="ds-plain-list">${events.map((entry) => `<li>${esc(entry.text)} <span class="ds-meta">${ago(entry.at)}</span></li>`).join('')}</ul>` : '<p class="ds-muted">Nothing happened lately.</p>') +
       '</div>' +
       `<p class="ds-meta">Device ${index + 1} of ${list.length}</p>`;
   }
@@ -630,9 +684,27 @@
     $('#sheet-title').textContent = byId(id).name;
     DS.dom.morphHtml(sheetBody, sheetHtml(byId(id)));
     sheetBody.scrollTop = 0;
+    // The bar under the selected tab (one handle: a second call returns it).
+    DS.indicator.createIndicator($('#sheet-tabs', sheetBody), { active: '[aria-selected="true"]', className: 'ds-tabs__indicator' });
+  }
+
+  /* A tab shows its panel, which enters with swap; the bar glides by itself. */
+  function selectSheetTab(name) {
+    if (state.sheetTab === name) return;
+    state.sheetTab = name;
+    for (const tab of $$('[role="tab"]', sheetBody)) {
+      const selected = tab.getAttribute('data-tab') === name;
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+    }
+    for (const panel of $$('[role="tabpanel"]', sheetBody)) {
+      panel.hidden = panel.id !== `sheet-p-${name}`;
+      if (!panel.hidden) M.enter(panel, 'swap');
+    }
   }
 
   function openSheet(id, opener) {
+    state.sheetTab = 'details';
     fillSheet(id);
     DS.overlay.open(sheet, { opener });
   }
@@ -868,6 +940,23 @@
 
   /* ── Wiring ───────────────────────────────────────────────────────── */
 
+  /* Icons of the static markup: data-icon="name" puts the glyph first. */
+  for (const element of $$('[data-icon]')) {
+    element.insertAdjacentHTML('afterbegin', icon(element.getAttribute('data-icon'), 20));
+    element.removeAttribute('data-icon');
+  }
+  for (const element of $$('[data-icon-done]')) element.insertAdjacentHTML('afterbegin', icon('check', 16));
+  for (const element of $$('[data-icon-chevron]')) element.insertAdjacentHTML('afterbegin', icon('chevronDown', 20, 'ds-chevron'));
+
+  // A drawer group that closes keeps its state across loads.
+  for (const group of $$('details.ds-drawer__group[id]', nav)) {
+    if (stored(`ex-${group.id}`) === 'closed') group.open = false;
+    group.addEventListener('toggle', () => store(`ex-${group.id}`, group.open ? 'open' : 'closed'));
+  }
+
+  DS.ripple.attach(document);
+  DS.overlay.tooltips(document);
+  DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
   /* data-scrolled from a 1px sentinel (DS.dom.watchScrolled, docs/components.md, App frame). */
   DS.dom.watchScrolled(view);
   DS.dom.watchScrolled(sheetBody);
@@ -1003,6 +1092,11 @@
       if (setting === 'dense') {
         state.dense = on;
         store('ex-dense', on ? '1' : '0');
+      } else if (setting === 'offline') {
+        // The fake backend stops answering; the next poll (at once) shows the banner.
+        state.offline = on;
+        api.setOnline(!on);
+        poll();
       } else {
         state.settings[setting] = on;
         api.saveSettings({ [setting]: on });
@@ -1058,10 +1152,26 @@
   $('#sheet-prev').addEventListener('click', () => stepSheet(-1));
   $('#sheet-next').addEventListener('click', () => stepSheet(1));
   sheetBody.addEventListener('click', (event) => {
+    const tab = event.target.closest('[role="tab"]');
+    if (tab) selectSheetTab(tab.getAttribute('data-tab'));
     const button = event.target.closest('[data-sheet]');
     if (!button) return;
     if (button.getAttribute('data-sheet') === 'restart') restart(state.sheetId, button);
     if (button.getAttribute('data-sheet') === 'ticket') openTicketDialog(button, state.sheetId);
+  });
+
+  // Arrow keys, Home and End move between the tabs and select (automatic activation).
+  sheetBody.addEventListener('keydown', (event) => {
+    const tab = event.target.closest('[role="tab"]');
+    if (!tab) return;
+    const tabs = $$('[role="tab"]', sheetBody);
+    const at = tabs.indexOf(tab);
+    const to = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: tabs.length - 1 }[event.key];
+    if (to === undefined) return;
+    event.preventDefault();
+    const next = tabs[(to + tabs.length) % tabs.length];
+    selectSheetTab(next.getAttribute('data-tab'));
+    next.focus();
   });
 
   ticketForm.addEventListener('submit', (event) => {

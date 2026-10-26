@@ -42,13 +42,14 @@
         <a class="ds-drawer__item" href="#/tickets" data-route="tickets" data-icon="ticket"><span class="ds-drawer__label">Tickets</span></a>
         <a class="ds-drawer__item" href="#/settings" data-route="settings" data-icon="settings"><span class="ds-drawer__label">Settings</span></a>
       </div>
-      <div class="ds-drawer__group">
-        <p class="ds-drawer__heading">Design system</p>
+      <!-- A group that closes (its state is kept across loads in app.js); the count shows while it is closed. -->
+      <details class="ds-drawer__group ds-collapsible" id="nav-design" open>
+        <summary class="ds-drawer__heading ds-drawer__toggle" data-icon-chevron><span>Design system</span><span class="ds-drawer__count" aria-hidden="true">4</span></summary>
         <a class="ds-drawer__item" href="../styleguide/index.html" data-icon="apps"><span class="ds-drawer__label">Styleguide</span></a>
         <a class="ds-drawer__item" href="../styleguide/motion.html" data-icon="activity"><span class="ds-drawer__label">Motion Lab</span></a>
         <a class="ds-drawer__item" href="../styleguide/views.html" data-icon="columns"><span class="ds-drawer__label">Views</span></a>
         <a class="ds-drawer__item" href="https://github.com/saschazesiger/Dashboard-Style" data-icon="fileCode"><span class="ds-drawer__label">Source</span></a>
-      </div>
+      </details>
     </div>
   </nav>
 

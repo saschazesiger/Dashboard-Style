@@ -321,9 +321,9 @@ The controls (1.1) share one timing. Press feedback is the state layer, the ripp
 
 What leaves takes 0.4-0.67 of what enters: the chip check, the checkbox mark and the radio dot 250 to 150ms, the
 button faces, the switch words, the switch lock and the actions on demand 150 to 100ms, the icon swap 250 to 100ms,
-the changed dot and the search key 150 to 100ms, the radio tile check 250 to 150ms (tested). Everything here is a
-transition, so a control rendered in its end state (a chip rendered selected, a box rendered checked) stays still
-on load, and a rapid toggle turns back from where it is. A chip that wraps to another line glides there through
+the changed dot, the search key and the rail's labels 150 to 100ms, the radio tile check 250 to 150ms (tested).
+Everything here is a transition, so a control rendered in its end state (a chip rendered selected, a box rendered
+checked) stays still on load, and a rapid toggle turns back from where it is. A chip that wraps to another line glides there through
 `flip()` (`DS.ripple.attach()` wires it); a removed validation message goes at once.
 
 ### Navigation
@@ -333,7 +333,12 @@ on load, and a rapid toggle turns back from where it is. A chip that wraps to an
 | Indicator (`DS.indicator`) | the pill stretches towards its target: the leading edge moves on `--ds-ease-spatial`, the trailing edge follows after `--ds-indicator-lag` (`--ds-dur-micro`) on `--ds-ease-in-out`, over `travelDuration()` (`--ds-dur-medium` for a neighbour up to `--ds-dur-slow`); the labels change colour on the same `--ds-indicator-dur`; a pill that loses its item contracts and fades in `--ds-dur-fast`; the first placement jumps ([DS.indicator](#dsindicator-jsindicatorjs)) |
 | Drawer, docked | stays still while views change (its pill glides live); coming back after a view without it, `DS.motion.enter(drawer)` slides it 24px in from the left with a fade (`.ds-enter--slide`: `--ds-dur-slow` on the spring); inside `transition()` the panel morphs over `--ds-dur-long` ([View transitions](#view-transitions)) |
 | Modal drawer | the [Overlays](#overlays) rows "Modal drawer" and "Modal drawer scrim"; a window crossing 900px switches without motion (`.ds-drawer--instant`) |
-| Segmented | the indicator's pill under the options; the label weight switches at once, `data-label` keeps the width |
+| Segmented | the indicator's pill under the options; the label weight switches at once, `data-label` keeps the width; button options (`aria-checked`, `aria-pressed`) the same; a blocked option fades to the disabled model on `--ds-dur-fast` |
+| Tabs | the bar under the selected tab is the indicator (`.ds-tabs__indicator`: it stretches and lands like the pill, over `travelDuration()`); the labels change colour on `--ds-indicator-dur`, the weight at once; the new panel enters with `.ds-enter--swap` (`DS.motion.enter(panel, 'swap')`), link tabs move by `transition({ type: 'fade-through' })`; press: the inner pill morphs (`--ds-dur-micro`, back on the spring) and ripples |
+| Drawer groups | a `.ds-drawer__group` `<details>` opens and closes with the `.ds-collapsible` timing (`--ds-dur-medium` on `--ds-ease-out`, closing faster on `--ds-ease-in`), its chevron turns on the spring; the pill follows the current item across groups, contracts when its group closes (`--ds-dur-fast`) and grows back when it opens (`--ds-dur-medium`) |
+| Rail | `data-drawer-collapsed`: the column switches at once (no layout animation); labels fade back in on `--ds-dur-fast` and out on `--ds-dur-instant`; the pill jumps with its item's new size |
+| Banner | `.ds-banner` comes and goes through `DS.motion.flip(panel, ..., { items: ':scope > *' })`: the view glides on the spring, the banner fades in place; no height animates |
+| Steps | a step turning done draws its check (`ds-draw`, `--ds-dur-medium` after `--ds-dur-micro`); marks and connectors change colour on `--ds-dur-medium`; `--bar` segments fill on `--ds-ease-value` over `--ds-dur-glide`; moving between steps: `transition({ type: 'forward' | 'back' })` |
 | Top bar | still on every view change (the root snapshot); on scroll it tints to `--ds-topbar-scrolled-bg` and shows its hairline: scroll-driven (`ds-scroll-fade` over the first `--ds-space-2`) where supported, else `data-scrolled` over `--ds-dur-fast` (D33, [Scroll-driven effects](#scroll-driven-effects)) |
 
 ### Feedback
@@ -722,8 +727,9 @@ re-render with `morphHtml` keeps it. The attributes are listed in [components.md
 
 ### DS.indicator (js/indicator.js)
 
-`createIndicator(track, { active, className, observe, name })` inserts one `.ds-indicator` behind the items of `track`
-(which gets `.ds-has-indicator`) and returns `{ update(), destroy() }`. It measures the item matching the `active`
+`createIndicator(track, { active, className, observe, name, reveal })` inserts one `.ds-indicator` behind the items of
+`track` (which gets `.ds-has-indicator`) and returns `{ update(), destroy() }`. One per track (2.0): a second call
+with the same options returns the live handle, other options destroy it and make a new one. It measures the item matching the `active`
 selector in the track's scroll coordinates (horizontal, vertical, scrolling or wrapping tracks). The component gives
 it its look (`.ds-drawer__indicator`, `.ds-segmented__indicator`, or your own class). A track of `.ds-btn` toggles
 (`active: '[aria-pressed="true"]'`) works as it is: inside `.ds-has-indicator` a pressed button drops its own tint
@@ -744,12 +750,20 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
   drawer and its scrim, over the labels. Within a
   page `DS.motion.transition()` lifts the name while it runs: the docked drawer shows live and its pill glides as on
   a click, under its labels.
+- **`reveal`** (2.0, default `false`): when the active item changes or the track resizes, the track scrolls itself
+  (never its ancestors; smoothly, at once on the first placement) so the item is `--ds-space-2` clear of its edges,
+  and a `.ds-drawer__list` gets `.ds-drawer__list--overflow` while it is taller than its view (the drawer's long
+  lists, a row of tabs that scrolls sideways).
 - **What it observes.** `aria-current`, `aria-pressed`, `aria-selected` and `aria-checked` anywhere in the track and
   items added or removed (never `class`; its own span and `data-ds-keep` nodes such as ripples are ignored); the size
   of the track, of each element child of the track and of the active item (a badge or a wrap in an earlier item, a
   group expanding above, the active label growing); web fonts that load late (`fonts.ready` and `loadingdone`).
   Changes are batched into one animation frame; a resize places the pill within the resize callback, so it never
-  trails its item. `update()` stays and is harmless when the observer already moved the pill.
+  trails its item. `update()` stays and is harmless when the observer already moved the pill. The fonts listener is one
+  per document and the page-transition listeners one set per window, holding the indicators weakly (2.0): a
+  navigation that a re-render replaced is not kept alive by them, and a track out of the document places nothing
+  until it is back. An active item inside a closed `<details>` (a collapsed drawer group) has no pill: it contracts
+  as if the item were gone and grows back when the group opens.
 - **Drawing.** The pill is drawn by `clip-path` on a box, never by animating `width` or `height`. The box is
   `--ds-indicator-x`, `--ds-indicator-y` (moved by `translate`), `--ds-indicator-w` and `--ds-indicator-h`; the
   painted pill is the box minus the insets `--ds-indicator-t`, `--ds-indicator-r`, `--ds-indicator-b` and
@@ -786,12 +800,13 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
 - **Morphs.** The span carries `data-ds-keep`, so `DS.dom.morphHtml` never removes it and the observers keep working
   after a morph of the track (a change of the active item in the new markup glides by itself). A foreign re-render
   that dropped the span anyway gets it back at the next placement (it jumps there once).
-- **`destroy()`** is final: it disconnects both observers, cancels the pending frame, removes the fonts listener, the
-  span, `.ds-has-indicator` and the track's `--ds-indicator-dur`; late callbacks do nothing.
+- **`destroy()`** is final: it disconnects both observers, cancels the pending frame, leaves the shared fonts and page
+  listeners (the last indicator of a document or window removes them), removes the span, `.ds-has-indicator` and the
+  track's `--ds-indicator-dur`; late callbacks do nothing.
 
 | Export | |
 |---|---|
-| `createIndicator(track, { active, className, observe, name })` | see above; returns `{ update(), destroy() }` |
+| `createIndicator(track, { active, className, observe, name, reveal })` | see above; returns `{ update(), destroy() }` (the live one again for the same track and options) |
 | `OVERSHOOT` | 0.05: the largest pass of an edge beyond its target, as a share of its travel (the peak contract of `--ds-ease-spatial`); the overshoot margin of the glide box |
 
 ### DS.ripple (js/ripple.js)

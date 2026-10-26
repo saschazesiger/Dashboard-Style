@@ -92,6 +92,8 @@ export const RIPPLE_HOSTS = [
   '.ds-errors summary',
   '.ds-dropzone',
   '.ds-pressable',
+  '.ds-drawer__toggle',
+  '.ds-tabs__tab',
   '[data-ds-ripple]',
   '.ds-list--interactive > .ds-list__item',
   ':is(a, button).ds-kv-list__row',

@@ -1321,6 +1321,83 @@ describe('createIndicator on a fake track', () => {
     assert.ok(indicator.OVERSHOOT >= peak - 1, `OVERSHOOT ${indicator.OVERSHOOT} < ${peak - 1}`);
     assert.ok(indicator.OVERSHOOT <= 0.05, 'the 1.05 peak contract');
   });
+
+  it('returns the live handle for a second call with the same options; other options replace it (2.0)', () => {
+    const env = indicatorTrack({ current: 1 });
+    const first = create(env);
+    const again = create(env);
+    assert.equal(again.handle, first.handle, 'the same handle');
+    assert.equal(env.track.childNodes.filter((node) => node.classList?.contains('ds-indicator')).length, 1, 'one pill');
+    assert.equal(env.resizeObservers.length, 1, 'no second set of observers');
+    const other = create(env, { className: 'ds-drawer__indicator' });
+    assert.notEqual(other.handle, first.handle);
+    assert.equal(first.span.parentNode, null, 'the old pill is gone');
+    assert.equal(env.resizeObservers[0].connected, false, 'and its observers');
+    assert.equal(env.track.childNodes.filter((node) => node.classList?.contains('ds-indicator')).length, 1);
+    other.handle.destroy();
+    assert.notEqual(create(env).handle, other.handle, 'after destroy() a call makes a new one');
+  });
+
+  it('shares one fonts listener per document and drops it with the last indicator (2.0)', () => {
+    const env = indicatorTrack({ current: 1 });
+    const second = env.h('nav', { class: 'ds-segmented' }, env.h('a', { 'aria-current': 'page' }));
+    second.rect = { left: 0, top: 0, width: 100, height: 30, right: 100, bottom: 30 };
+    Object.assign(second, { clientLeft: 0, clientTop: 0, scrollLeft: 0, scrollTop: 0, scrollWidth: 100, scrollHeight: 30 });
+    const a = create(env);
+    const listener = env.listeners.get('loadingdone');
+    const b = indicator.createIndicator(second, { active: '[aria-current="page"]' });
+    assert.equal(env.listeners.get('loadingdone'), listener, 'the same listener serves both');
+    a.handle.destroy();
+    assert.equal(env.listeners.get('loadingdone'), listener, 'kept while one indicator follows the fonts');
+    env.runFrames();
+    listener();
+    assert.equal(env.frames.size, 1, 'the live one schedules its frame');
+    b.destroy();
+    assert.equal(env.listeners.has('loadingdone'), false, 'gone with the last');
+  });
+
+  it('places nothing while its track is out of the document (2.0)', () => {
+    const env = indicatorTrack({ current: 1 });
+    const { handle, span } = create(env);
+    const style = span.getAttribute('style');
+    env.track.isConnected = false;
+    env.setCurrent(2);
+    handle.update();
+    assert.equal(span.getAttribute('style'), style, 'nothing measured or written');
+    env.track.isConnected = true;
+    handle.update();
+    assert.notEqual(span.getAttribute('style'), style, 'back in the document, it follows again');
+    handle.destroy();
+  });
+
+  it('reveal: scrolls only the track so the active item is --ds-space-2 clear, and marks a drawer list that overflows (2.0)', () => {
+    const env = indicatorTrack({ count: 12, current: 0 });
+    Object.assign(env.track, { clientHeight: 200, clientWidth: 216, scrollHeight: 600 });
+    const scrolls = [];
+    env.track.scrollTo = (options) => {
+      scrolls.push(options);
+      // The items move up in the viewport by what the track scrolled.
+      const dy = options.top - env.track.scrollTop;
+      for (const item of env.items) item.rect = { ...item.rect, top: item.rect.top - dy, bottom: item.rect.bottom - dy };
+      env.track.scrollTop = options.top;
+    };
+    const { handle } = create(env, { reveal: true });
+    assert.equal(scrolls.length, 0, 'the first item is in view');
+    assert.ok(env.track.classList.contains('ds-drawer__list--overflow'));
+    env.setCurrent(9);
+    handle.update();
+    const slot = env.slot(9);
+    assert.equal(scrolls.length, 1);
+    assert.equal(scrolls[0].top, slot.bottom + 8 - 200, 'the item ends --ds-space-2 above the bottom edge');
+    assert.equal(scrolls[0].behavior, 'smooth');
+    env.setCurrent(1);
+    handle.update();
+    assert.equal(scrolls[1].top, env.slot(1).top - 8, 'and starts --ds-space-2 below the top edge');
+    env.track.scrollHeight = 200;
+    handle.update();
+    assert.equal(env.track.classList.contains('ds-drawer__list--overflow'), false, 'a list that fits loses the mark');
+    handle.destroy();
+  });
 });
 
 /**

@@ -266,6 +266,61 @@
     opacity: var(--ds-state-focus);
   }
 
+  /*
+   * The drawer's group toggles (a large row, like its items) and the tabs
+   * (2.0): the same one-feedback rule. A tab's layer is a pill inside the
+   * tab (tabs.css), so its ripple is a box over that pill that clips the
+   * circle, its ::before (like a table row's).
+   */
+  :where(.ds-ripples :is(.ds-drawer__toggle, .ds-tabs__tab)) {
+    position: relative;
+  }
+
+  .ds-ripples .ds-tabs__tab > .ds-press-ripple {
+    top: var(--ds-space-1);
+    right: 0;
+    bottom: var(--ds-space-1);
+    left: 0;
+    width: auto;
+    height: auto;
+    overflow: clip;
+    border-radius: min(var(--ds-radius-action), calc(var(--ds-tabs-height, 48px) / 2 - var(--ds-space-1)));
+    background: none;
+    animation: none;
+  }
+
+  .ds-ripples .ds-tabs__tab > .ds-press-ripple::before {
+    content: '';
+    position: absolute;
+    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r) - var(--ds-space-1));
+    left: calc(var(--ds-ripple-x) - var(--ds-ripple-r));
+    width: calc(var(--ds-ripple-r) * 2);
+    height: calc(var(--ds-ripple-r) * 2);
+    border-radius: 50%;
+    background: var(--ds-ripple-color, currentColor);
+    animation: ds-press-ripple var(--ds-dur-medium) var(--ds-ease-out) backwards;
+  }
+
+  :where(.ds-ripples) .ds-drawer__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  @media (hover: hover) {
+    :where(.ds-ripples) .ds-drawer__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+      opacity: var(--ds-state-hover-lg);
+    }
+
+    :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+      opacity: var(--ds-state-hover);
+    }
+  }
+
+  :where(.ds-ripples) .ds-drawer__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
+    opacity: var(--ds-state-focus);
+  }
+
   @media (forced-colors: active) {
     .ds-press-ripple {
       display: none;

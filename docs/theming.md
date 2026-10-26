@@ -159,7 +159,7 @@ and keyed to your root like the tokens. The list holds every element the documen
 stays out: icons keep their own attributes):
 
 ```css
-.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, hr, kbd, output, figure, figcaption, time) {
+.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, pre, blockquote, hr, mark, img, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, kbd, output, figure, figcaption, time) {
   all: revert-layer;
 }
 ```
@@ -286,6 +286,21 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-drawer-item-height` | 48px | drawer item (its rest radius is half of it, so the press morph runs its whole way) |
 | `--ds-topbar-scrolled-bg` | `--ds-surface-high` | top bar while the view is scrolled (`data-scrolled`); `transparent` keeps a flat bar |
 | `--ds-view-scrollbar-gutter` | `stable` | the view's scrollbar gutter: `stable both-edges` (symmetric) or `auto` (no reserved room) |
+| `--ds-segmented-padding-x` | `--ds-space-4` | the inline padding of a segmented option (narrow switches) |
+| `--ds-topbar-search-max` | 720px | the widest `.ds-topbar__search` |
+| `--ds-account-text-max` | 240px | the name and email beside the avatar in `.ds-account--capsule` |
+| `--ds-avatar-size` | 32px (`--sm` 24px, `--lg` 40px) | `.ds-avatar` and the account's avatar |
+| `--ds-tabs-height` | 48px | a tab (the state layer is a pill `--ds-space-1` inside it) |
+| `--ds-tabs-indicator-height`, `--ds-tabs-indicator-color` | 3px, `--ds-primary` | the bar under the selected tab |
+| `--ds-steps-bar-height` | 4px | the segments of `.ds-steps--bar` |
+| `--ds-stack-gap`, `--ds-stack-gap-page` | `--ds-space-4`, `--ds-space-5` | `.ds-stack`; a stack directly in the page and `.ds-stack--page` |
+| `--ds-page-head-text-basis` | 320px | the room the page head's title and lead take before the actions wrap under them |
+| `--ds-page-head-title-line` | 32px | the title line the page head's actions centre on (set it with a theme that changes `--ds-font-headline`) |
+| `--ds-breadcrumbs-item-max` | 240px | a breadcrumb item before its ellipsis |
+| `--ds-auth-width` | 400px | the card of `.ds-auth` |
+| `--ds-prose-gap` | `--ds-space-2` | the gap between blocks of `.ds-prose` |
+| `--ds-prose-font` | `--ds-font-reading` (`--dense`: `--ds-font-body`) | the text of `.ds-prose` |
+| `--ds-prose-strong-weight` | `--ds-weight-label` | `strong` and `b` in `.ds-prose` |
 | `--ds-card-padding` | `--ds-space-6` | card padding |
 | `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
 | `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |

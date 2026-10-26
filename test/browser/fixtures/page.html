@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+</head>
+<body>
+<!-- The page of 2.0 (page.spec.js) in a frame without the drawer: the
+     record's page head with its back link, status and actions,
+     breadcrumbs, empty head parts, stacks, the page base (headings, code,
+     hr, mark, link icons), prose and code blocks, steps, and a view that
+     fills (?view=fill or ?view=fixed: the head and the last child, which
+     takes the rest). The sign-in page is #auth, shown on its own with
+     ?auth. -->
+<div class="ds-app" id="app">
+  <div class="ds-topbar"><a class="ds-brand" href="#top"><span class="ds-brand__name">Product</span></a></div>
+  <div class="ds-panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content" id="content"><div class="ds-page" id="page">
+        <header class="ds-page-head" id="head">
+          <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" id="back" href="#devices"><span data-icon="arrowLeft" data-size="18"></span><span class="ds-sr">Back to </span>Devices</a>
+          <div class="ds-page-head__row" id="row">
+            <div class="ds-page-head__text" id="text">
+              <h1 class="ds-page-head__title" id="title" tabindex="-1">LAPTOP-0042</h1>
+              <p class="ds-page-head__lead" id="lead">Latitude 7440 · 2 of 128</p>
+              <div class="ds-page-head__status" id="status"></div>
+            </div>
+            <div class="ds-page-head__actions" id="actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--primary" type="button" id="edit">Edit</button></div>
+          </div>
+        </header>
+        <nav class="ds-breadcrumbs" id="crumbs" aria-label="Breadcrumb"><ol><li id="crumb-1"><a href="#home">Inventory</a></li><li id="crumb-2"><a href="#devices">Devices</a></li><li id="crumb-3"><a href="#d42" aria-current="page">LAPTOP-0042</a></li></ol></nav>
+        <header class="ds-page-head" id="empty-head"></header>
+        <button class="ds-btn" type="button" id="lone">Export</button>
+        <div class="ds-stack" id="stack"><div class="ds-stack" id="inner"><span>a</span><span>b</span></div><span>c</span></div>
+        <div id="base">
+          <h1 id="h1">Heading one</h1><h2 id="h2">Heading two</h2><h3 id="h3">Heading three</h3>
+          <p>Run <code id="code">ds-cli</code> and see <a id="link" href="#x">the guide<span data-icon="external" data-size="16"></span></a> or <a href="#y"><code id="link-code">--help</code></a>.</p>
+          <pre id="pre"><code id="pre-code">line one
+line two</code></pre>
+          <hr id="hr"><p>A <mark id="mark">hit</mark>.</p>
+        </div>
+        <div class="ds-prose" id="prose">
+          <h2 id="prose-h2">Before you start</h2>
+          <p id="prose-p">Back up the device and note its <strong>asset tag</strong>; the internationalisationaccessibility checklist lists the rest.</p>
+          <ul><li>Charger</li><li id="prose-li">Dock</li></ul>
+          <blockquote id="quote"><p>Old devices are retired.</p></blockquote>
+          <pre id="prose-pre"><code>ds-cli retire LAPTOP-0042</code></pre>
+          <table id="prose-table"><thead><tr><th>Model</th><th>Years</th></tr></thead><tbody><tr><td>Latitude</td><td id="num">4</td></tr></tbody></table>
+        </div>
+        <pre class="ds-code-block" id="block" tabindex="0" aria-label="Request"><code>GET /api/devices/42/history?from=2020-01-01&amp;to=2026-12-31&amp;fields=owner,place,model,serial,warranty,purchased,retired,notes,history,location,department,cost-centre HTTP/1.1</code></pre>
+        <ol class="ds-steps" id="steps" aria-label="Report a problem">
+          <li class="ds-steps__step" id="step-1" data-status="done"><span class="ds-steps__mark"><span data-icon="check" data-size="16"></span></span><span class="ds-steps__label">Device<span class="ds-sr">, done</span></span></li>
+          <li class="ds-steps__step" id="step-2" aria-current="step"><span class="ds-steps__mark">2</span><span class="ds-steps__label">Problem</span></li>
+          <li class="ds-steps__step" id="step-3"><span class="ds-steps__mark">3</span><span class="ds-steps__label">Contact</span></li>
+        </ol>
+        <ol class="ds-steps ds-steps--bar" id="bar" aria-label="Step 2 of 3">
+          <li class="ds-steps__step" data-status="done"><span class="ds-steps__label">Device</span></li>
+          <li class="ds-steps__step" id="bar-2" aria-current="step"><span class="ds-steps__label">Problem</span></li>
+          <li class="ds-steps__step" id="bar-3"><span class="ds-steps__label">Contact</span></li>
+        </ol>
+        <div class="ds-card" id="filler">The last child: it fills the view.</div>
+      </div></div>
+    </main>
+  </div>
+</div>
+<div class="ds-auth" id="auth" hidden>
+  <div class="ds-auth__alert" id="auth-alert"></div>
+  <section class="ds-card ds-auth__card" id="auth-card" aria-labelledby="auth-title">
+    <h1 class="ds-card__title" id="auth-title">Sign in</h1>
+    <form class="ds-form"><div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="button" id="signin">Sign in</button></div></form>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    var params = new URLSearchParams(location.search);
+    var view = params.get('view');
+    if (view) {
+      // A short page: the head and the last child, which fills the view.
+      document.getElementById('main').classList.add('ds-view--' + view);
+      Array.prototype.slice.call(document.getElementById('page').children).forEach(function (child) {
+        if (child.id !== 'head' && child.id !== 'filler') child.remove();
+      });
+    }
+    if (params.has('auth')) {
+      document.getElementById('app').hidden = true;
+      document.getElementById('auth').hidden = false;
+    }
+  }());
+</script>
+</body>
+</html>

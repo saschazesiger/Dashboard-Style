@@ -147,7 +147,7 @@
       '<p>White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and quiet motion. Every value comes from a token, so one theme file restyles everything below.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="../README.md">Get started</a><a class="ds-btn" href="../docs/theming.md">Theming guide</a><a class="ds-btn ds-btn--text" href="../docs/components.md">Component markup ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +
-      tile('Components', '34', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
+      tile('Components', '37', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
       '</div></section>';
   }
 
@@ -1543,21 +1543,124 @@
     return '<div class="sg-swap-page"><h4 class="ds-card__title">' + page[0] + '</h4><p class="ds-muted">' + page[1] + '</p></div>';
   }
 
+  /* A segmented option as a radio button (a mode of the same page). */
+  function radioSegment(text, checked, blocked) {
+    return '<button class="ds-segmented__option" type="button" role="radio" aria-checked="' + Boolean(checked) + '"' + (checked ? '' : ' tabindex="-1"') +
+      (blocked ? ' aria-disabled="true" data-tip="Needs at least two devices with readings"' : '') + ' data-label="' + text + '">' + text + '</button>';
+  }
+
+  function drawerItem(glyph, label, extra, count) {
+    return '<a class="ds-drawer__item" href="#sg-drawer-sample"' + (extra || '') + ' data-tip="' + label + '">' + icon(glyph, 20) + '<span class="ds-drawer__label">' + label + '</span>' +
+      (count ? '<span class="ds-drawer__count"><span class="ds-sr">, </span>' + count + '</span>' : '') + '</a>';
+  }
+
+  /* The drawer's parts, outside a frame: back, actions, groups that close, counts, a row action, a foot. */
+  function drawerSample() {
+    return '<div class="ds-drawer__back">' + drawerItem('arrowLeft', 'All sites') + '</div>' +
+      '<div class="ds-drawer__actions"><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 18) + 'New ticket</button></div>' +
+      '<div class="ds-drawer__list" id="sg-drawer-sample-list">' +
+        '<details class="ds-drawer__group ds-collapsible" open><summary class="ds-drawer__heading ds-drawer__toggle">' + icon('chevronDown', 20, 'ds-chevron') + '<span>Tickets</span><span class="ds-drawer__count" aria-hidden="true">5</span></summary>' +
+          drawerItem('ticket', 'Open', ' aria-current="page"', 3) +
+          '<div class="ds-drawer__row">' + drawerItem('clock', 'Waiting', '', 2) +
+          '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action" type="button" aria-label="Options for Waiting" data-tip="Options">' + icon('moreVertical', 18) + '</button></div>' +
+        '</details>' +
+        '<details class="ds-drawer__group ds-collapsible"><summary class="ds-drawer__heading ds-drawer__toggle">' + icon('chevronDown', 20, 'ds-chevron') + '<span>Devices</span><span class="ds-drawer__count" aria-hidden="true">12</span></summary>' +
+          drawerItem('laptop', 'Laptops', '', 9) + drawerItem('monitor', 'Desktops', '', 3) +
+        '</details>' +
+      '</div>' +
+      '<div class="ds-drawer__foot ds-drawer__foot--rail">' + drawerItem('settings', 'Settings') + drawerItem('info', 'Help') + '</div>';
+  }
+
+  var TABS = [['details', 'Details'], ['history', 'History', '3'], ['reports', 'Reports', '', true]];
+
+  function tabsSample() {
+    return '<div class="ds-tabs" id="sg-tabs" role="tablist" aria-label="Device">' + TABS.map(function (tab, index) {
+      return '<button class="ds-tabs__tab" role="tab" type="button" id="sg-tab-' + tab[0] + '" aria-selected="' + (index === 0) + '" aria-controls="sg-tabpanel-' + tab[0] + '"' +
+        (index ? ' tabindex="-1"' : '') + (tab[3] ? ' aria-disabled="true" data-tip="No reports for this device yet"' : '') + ' data-label="' + tab[1] + '">' + tab[1] +
+        (tab[2] ? '<span class="ds-meta"><span class="ds-sr">, </span>' + tab[2] + '</span>' : '') + '</button>';
+    }).join('') + '</div>' +
+    TABS.map(function (tab, index) {
+      return '<div class="ds-tabs__panel sg-tabpanel" role="tabpanel" id="sg-tabpanel-' + tab[0] + '" aria-labelledby="sg-tab-' + tab[0] + '" tabindex="0"' + (index ? ' hidden' : '') + '>' +
+        '<p class="ds-muted">' + ['Latitude 7440, issued to Ada Lovelace. Synced today at 09:12.', 'Three changes this week: a new owner, a battery swap, a move to Building B.', 'No reports yet.'][index] + '</p></div>';
+    }).join('');
+  }
+
+  function pageHeadSample() {
+    return '<header class="ds-page-head">' +
+      '<a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="#frame">' + icon('arrowLeft', 18) + '<span class="ds-sr">Back to </span>Devices</a>' +
+      '<div class="ds-page-head__row"><div class="ds-page-head__text"><h3 class="ds-page-head__title">LAPTOP-0042</h3><p class="ds-page-head__lead">Latitude 7440 · issued to Ada Lovelace · 2 of 128</p>' +
+      '<div class="ds-page-head__status"><span class="ds-status ds-status--success">' + icon('checkCircle', 16) + '<span>Synced</span></span></div></div>' +
+      '<div class="ds-page-head__actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--primary" type="button">Edit</button></div></div>' +
+      '</header>' +
+      '<nav class="ds-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="#frame">Inventory</a></li><li><a href="#frame">Devices</a></li><li><a href="#frame" aria-current="page">LAPTOP-0042</a></li></ol></nav>';
+  }
+
+  var STEPS = ['Device', 'Problem', 'Contact'];
+
+  function stepsSample(current) {
+    var items = STEPS.map(function (label, index) {
+      var done = index < current;
+      return '<li class="ds-steps__step"' + (done ? ' data-status="done"' : '') + (index === current ? ' aria-current="step"' : '') + '>' +
+        '<span class="ds-steps__mark">' + (done ? icon('check', 16) : String(index + 1)) + '</span>' +
+        '<span class="ds-steps__label">' + label + (done ? '<span class="ds-sr">, done</span>' : '') + '</span></li>';
+    }).join('');
+    return '<ol class="ds-steps" aria-label="Report a problem">' + items + '</ol>' +
+      '<ol class="ds-steps ds-steps--bar" aria-label="Step ' + Math.min(current + 1, STEPS.length) + ' of ' + STEPS.length + '">' + items + '</ol>';
+  }
+
   function frame() {
     var segment = function (text, current) {
       return '<a class="ds-segmented__option" href="#frame" data-label="' + text + '"' + (current ? ' aria-current="true"' : '') + '>' + text + '</a>';
     };
     return section('frame', 'App frame', 'This page is the frame: a top bar and a navigation drawer on the backdrop, one white panel that scrolls. Below 900px the drawer becomes a modal sheet (use the menu button): it opens on the spring and closes accelerating, and crossing 900px never slides it. Scroll the page and the top bar tints with the hairline under it. The sliding pill follows the section you read; press and hold a drawer item or a segmented option and it turns squarer, then springs back.',
-      card('Segmented switch', '<div class="sg-row"><nav class="ds-segmented" id="sg-segmented" aria-label="Mode" style="margin-left:0">' + segment('Live', true) + segment('Admin') + segment('Reports') + '</nav></div>' +
-        '<p class="ds-muted">The tint glides between options (DS.indicator) and the labels change colour while it arrives; the current option is also set in the label weight. data-label keeps the width of the heavier weight, so the switch never changes width.</p>') +
+      card('Segmented switch', '<div class="sg-row"><nav class="ds-segmented" id="sg-segmented" aria-label="Mode">' + segment('Live', true) + segment('Admin') + segment('Reports') + '</nav></div>' +
+        '<p class="ds-muted">The tint glides between options (DS.indicator) and the labels change colour while it arrives; the current option is also set in the label weight. data-label keeps the width of the heavier weight, so the switch never changes width.</p>' +
+        '<div class="sg-row"><div class="ds-segmented" id="sg-segmented-buttons" role="radiogroup" aria-label="View">' + radioSegment('List', true) + radioSegment('Map') + radioSegment('Chart', false, true) + '</div></div>' +
+        '<p class="ds-muted">A mode of the same page: button options (role="radio", aria-checked) sit flush in a page toolbar; the margin after the brand is the top bar\'s. Chart is aria-disabled: no hover, press or ripple, but it keeps its focus and says why.</p>') +
+      card('Drawer parts', '<div class="sg-drawer-sample" id="sg-drawer-sample">' + drawerSample() + '</div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="rail-toggle" aria-pressed="false">Rail (this page\'s drawer)</button></div>' +
+        '<p class="ds-muted">A way back up with a hairline under it, a primary action, groups that close (their heading is a pressable row; the count shows while closed, and the pill leaves an item whose group closes), counts, an item with an action of its own at its end, and a foot of icon-only items. The rail narrows this page\'s drawer to its icons above 900px: labels stay readable and each item names itself in its tooltip.</p>') +
+      card('Top bar parts', '<div class="sg-topbar-sample"><div class="ds-topbar">' +
+          '<a class="ds-brand" href="#frame"><span class="ds-brand__name">Inventory</span></a>' +
+          '<h1 class="ds-topbar__title">LAPTOP-0042</h1>' +
+          '<div class="ds-topbar__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Help" data-tip="Help">' + icon('info', 20) + '</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Settings" data-tip="Settings">' + icon('settings', 20) + '</button></div>' +
+          '<div class="ds-account ds-account--capsule"><div class="ds-account__text" aria-hidden="true"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>' +
+          '<span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org" tabindex="0" data-tip="Ada Lovelace, ada@example.org">A</span><span class="ds-account__divider"></span><button class="ds-btn ds-btn--text" type="button">Sign out</button></div>' +
+        '</div></div>' +
+        '<div class="sg-row"><span class="ds-avatar ds-avatar--sm" role="img" aria-label="Grace Hopper">G</span><span class="ds-avatar" role="img" aria-label="Alan Turing">A</span><span class="ds-avatar ds-avatar--lg" role="img" aria-label="Katherine Johnson">K</span><span class="ds-muted">Avatars: 24, 32 and 40px</span></div>' +
+        '<p class="ds-muted">A title in the bar (two lines of the label role on phones, where the brand gives way), icon actions with tooltips, and the account as a capsule: the avatar carries the name, the text beside it is aria-hidden and goes below 720px.</p>') +
+      card('Tabs', tabsSample() +
+        '<p class="ds-muted">The bar under the selected tab glides like the drawer\'s pill and the labels change colour as it arrives; the selected tab also takes the label weight. Arrow keys move between the tabs; the new panel enters with swap. History carries a count; Reports is aria-disabled and says why in its tooltip.</p>') +
+      card('Page head and breadcrumbs', '<div class="sg-stage sg-page-sample">' + pageHeadSample() + '</div>' +
+        '<p class="ds-muted">A record\'s head: the way back (a small text button, "Back to Devices" for a screen reader), the title with its lead and status, and the actions on the title\'s centre line; they wrap under the title on a narrow page. Breadcrumbs take the back link\'s place where the trail matters; on a narrow page only the parent shows.</p>') +
+      card('Steps', '<div class="sg-steps-sample" id="sg-steps">' + stepsSample(1) + '</div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="steps-back">Back</button><button class="ds-btn ds-btn--sm ds-btn--tonal" type="button" data-sg="steps-next">Next step</button></div>' +
+        '<p class="ds-muted">A done step draws its check, the current one is filled and set in the label weight; the bar fills its segments on the value curve. Steps are not buttons: going back is the page\'s own button.</p>') +
+      card('A message for the whole app', '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="banner-toggle" aria-pressed="false">Show the offline banner</button></div>' +
+        '<p class="ds-muted">The banner sits above the view in the panel, outside its scroll. It comes and goes through DS.motion.flip on the panel: the view glides, the banner fades in place.</p>') +
+      card('Prose and code', '<div class="ds-prose ds-prose--dense">' +
+          '<h2>Before you retire a device</h2><p>Back up the device and note its <strong>asset tag</strong>; the <a href="#frame">retire checklist</a> lists the rest. Run <code>ds-cli retire</code> from a workstation.</p>' +
+          '<ul><li>Charger and dock go back to storage.</li><li>The owner gets a replacement first.</li></ul>' +
+          '<blockquote><p>Devices older than four years are retired, not repaired.</p></blockquote>' +
+          '<pre><code>ds-cli retire LAPTOP-0042 --keep-history</code></pre>' +
+        '</div>' +
+        '<pre class="ds-code-block" tabindex="0" aria-label="Request"><code>GET /api/devices/42 HTTP/1.1\nAccept: application/json</code></pre>' +
+        '<p class="ds-muted">Rendered rich text keeps a reading hierarchy of its own (.ds-prose; --dense for cards). A code block scrolls sideways in its own box; it takes the focus only because it can scroll.</p>') +
+      card('Sign-in page', '<div class="sg-auth-sample"><div class="ds-auth">' +
+          '<div class="ds-auth__alert"><div class="ds-alert ds-alert--error" role="status">' + icon('alertCircle', 20) + '<span class="ds-alert__text">The password is wrong.</span></div></div>' +
+          '<section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="sg-auth-title"><h3 class="ds-card__title" id="sg-auth-title">Sign in</h3>' +
+          '<form class="ds-form" data-sg-form><div class="ds-field"><label class="ds-field__label" for="sg-auth-email">Email</label><input class="ds-input" id="sg-auth-email" type="email" autocomplete="off" value="ada@example.org"></div>' +
+          '<div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="button">Sign in</button></div></form></section>' +
+        '</div></div>' +
+        '<p class="ds-muted">.ds-auth: one centred card on the backdrop, the alert slot above it, the primary action as wide as the card. Shown here in a box; the page itself is at least the window\'s height.</p>') +
       card('Drawer and view', '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="drawer-toggle" aria-pressed="false">View without the drawer</button><button class="ds-btn ds-btn--sm" type="button" data-sg="swap-view">Swap the view</button></div>' +
         '<div class="sg-stage sg-swap-stage"><div class="sg-swap-view" id="sg-swap-view">' + swapPage(0) + '</div></div>' +
         '<p class="ds-muted">Inside DS.motion.transition() the panel takes the width on the spring while the drawer leaves to the left, and gives it back while the drawer comes in; without View Transitions the grid changes at once and the returning drawer slides in from the left (DS.motion.enter(drawer)). The swap, by hand, fades the view\'s children out (.ds-view--leaving, deprecated since 2.0: DS.motion.transition() replaces it), waits for that fade, replaces the content and lets it enter (swap); pressing again during a swap ends on the latest view.</p>' +
-        '<pre class="sg-code">const modal = matchMedia(\'(max-width: 900px)\');\nmodal.addEventListener(\'change\', () =&gt; {\n  drawer.classList.add(\'ds-drawer--instant\');\n  if (!modal.matches) {\n    app.removeAttribute(\'data-drawer-open\');\n    document.body.classList.remove(\'ds-no-scroll\');\n  }\n  requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt;\n    drawer.classList.remove(\'ds-drawer--instant\')));\n});</pre>' +
+        '<pre class="ds-code-block" tabindex="0" aria-label="The breakpoint snippet">const modal = matchMedia(\'(max-width: 900px)\');\nmodal.addEventListener(\'change\', () =&gt; {\n  drawer.classList.add(\'ds-drawer--instant\');\n  if (!modal.matches) {\n    app.removeAttribute(\'data-drawer-open\');\n    document.body.classList.remove(\'ds-no-scroll\');\n  }\n  requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt;\n    drawer.classList.remove(\'ds-drawer--instant\')));\n});</pre>' +
         '<p class="ds-muted">The breakpoint snippet this page runs: the drawer turns modal (or back) in place, and a modal drawer that a wider window no longer shows is closed.</p>') +
       card('Views and scrolling', '<p class="ds-muted">The motion between views and the motion that follows scrolling, in a small app of its own: fade-through between destinations, shared axis for previous and next, a card growing into its detail or into a side sheet, a destination without the drawer, a record swap in a sheet, a report that reveals itself on scroll, a wide table with live edge fades, and page loads with the opt-in stylesheet (needs http).</p>' +
         '<div class="sg-row"><a class="ds-btn" href="views.html">Open the views page ' + icon('arrowRight', 16) + '</a></div>') +
-      card('Markup', '<pre class="sg-code">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
+      card('Markup', '<pre class="ds-code-block" tabindex="0" aria-label="The frame markup">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
   }
 
   /* Motion: the principles in short; every demo is in the Motion Lab. */
@@ -1919,7 +2022,7 @@
   /* The indicators follow aria-current and aria-pressed by themselves
      (their MutationObserver): no update() after a change. */
   function setActive(id) {
-    $$('.ds-drawer__item').forEach(function (a) {
+    $$('#sg-nav .ds-drawer__item').forEach(function (a) {
       if (a.getAttribute('href') === '#' + id) {
         if (a.getAttribute('aria-current') !== 'page') a.setAttribute('aria-current', 'page');
       } else if (a.hasAttribute('aria-current')) {
@@ -2026,9 +2129,14 @@
     });
     setupBreakpoint();
     // The scrim and Escape close the drawer by themselves (DS.overlay).
-    $('[data-sg="menu"]').addEventListener('click', function () { openDrawer(!app.hasAttribute('data-drawer-open')); });
+    $('[data-sg="menu"]').addEventListener('click', function () {
+      // Above 900px the menu button shows only with the rail: it widens the drawer again.
+      if (!modal.matches && this.hasAttribute('aria-pressed')) return toggleRail($('[data-sg="rail-toggle"]'));
+      openDrawer(!app.hasAttribute('data-drawer-open'));
+    });
 
     if (!$('#sg-segmented')) return;
+    setupFrameParts();
     addIndicator($('#sg-segmented'), { active: '[aria-current="true"]', className: 'ds-segmented__indicator', name: 'mode' });
     $('#sg-segmented').addEventListener('click', function (event) {
       var option = event.target.closest('a');
@@ -2036,6 +2144,94 @@
       event.preventDefault();
       $$('.ds-segmented__option', this).forEach(function (o) { if (o === option) o.setAttribute('aria-current', 'true'); else o.removeAttribute('aria-current'); });
     });
+  }
+
+  /* The 2.0 frame parts (App frame): segmented buttons, the drawer sample,
+     tabs, steps, the rail of this page's drawer and the banner. */
+  function setupFrameParts() {
+    var buttons = $('#sg-segmented-buttons');
+    addIndicator(buttons, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+    buttons.addEventListener('click', function (event) {
+      var option = event.target.closest('.ds-segmented__option');
+      if (!option || option.getAttribute('aria-disabled') === 'true') return;
+      $$('.ds-segmented__option', buttons).forEach(function (other) {
+        other.setAttribute('aria-checked', String(other === option));
+        other.tabIndex = other === option ? 0 : -1;
+      });
+    });
+
+    var sample = $('#sg-drawer-sample-list');
+    addIndicator(sample, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
+    $('#sg-drawer-sample').addEventListener('click', function (event) {
+      var item = event.target.closest('.ds-drawer__item');
+      if (!item) return;
+      event.preventDefault();
+      if (!sample.contains(item)) return;
+      $$('.ds-drawer__item', sample).forEach(function (other) {
+        if (other === item) other.setAttribute('aria-current', 'page');
+        else other.removeAttribute('aria-current');
+      });
+    });
+
+    var tabs = $('#sg-tabs');
+    addIndicator(tabs, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
+    tabs.addEventListener('click', function (event) {
+      var tab = event.target.closest('[role="tab"]');
+      if (!tab || tab.getAttribute('aria-disabled') === 'true' || tab.getAttribute('aria-selected') === 'true') return;
+      var shown = null;
+      $$('[role="tab"]', tabs).forEach(function (other) {
+        var selected = other === tab;
+        var panel = $('#' + other.getAttribute('aria-controls'));
+        other.setAttribute('aria-selected', String(selected));
+        other.tabIndex = selected ? 0 : -1;
+        panel.hidden = !selected;
+        if (selected) shown = panel;
+      });
+      M.enter(shown, 'swap');
+    });
+  }
+
+  var stepAt = 1;
+
+  function step(by) {
+    stepAt = Math.max(0, Math.min(STEPS.length, stepAt + by));
+    DS.dom.morphHtml($('#sg-steps'), stepsSample(stepAt));
+  }
+
+  /* The rail of this page's drawer: data-drawer-collapsed, the menu button
+     with aria-pressed (it shows above 900px then), and a tooltip on each
+     item, whose label is gone. */
+  function toggleRail(button) {
+    var on = !app.hasAttribute('data-drawer-collapsed');
+    if (button) button.setAttribute('aria-pressed', String(on));
+    app.toggleAttribute('data-drawer-collapsed', on);
+    var menu = $('[data-sg="menu"]');
+    if (on) menu.setAttribute('aria-pressed', 'true');
+    else menu.removeAttribute('aria-pressed');
+    $$('#sg-nav .ds-drawer__item').forEach(function (item) {
+      if (on) item.setAttribute('data-tip', $('.ds-drawer__label', item).textContent);
+      else item.removeAttribute('data-tip');
+    });
+  }
+
+  /* The offline banner in this page's panel: in and out through flip(),
+     so the view glides and nothing animates a height. */
+  function toggleBanner(button) {
+    var panel = $('.ds-panel', app);
+    var on = button.getAttribute('aria-pressed') !== 'true';
+    button.setAttribute('aria-pressed', String(on));
+    button.textContent = on ? 'Hide the offline banner' : 'Show the offline banner';
+    M.flip(panel, function () {
+      var banner = $('#sg-banner');
+      if (!on) {
+        if (banner) banner.remove();
+        return;
+      }
+      var holder = document.createElement('div');
+      holder.innerHTML = '<div class="ds-banner" id="sg-banner"><div class="ds-alert ds-alert--warning" role="status">' + icon('wifiOff', 20) +
+        '<span class="ds-alert__text">You are offline. Changes are saved when the connection is back.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="banner-retry">Retry</button></div></div>';
+      panel.insertBefore(holder.firstChild, panel.firstChild);
+    }, { items: ':scope > *' });
   }
 
   /* Drawer and view demos (App frame). */
@@ -2656,6 +2852,11 @@
       if (action === 'skeleton') skeletonDemo(el);
       if (action === 'load') loadDemo(Number(el.getAttribute('data-ms')));
       if (action === 'drawer-toggle') toggleDrawer(el);
+      if (action === 'rail-toggle') toggleRail(el);
+      if (action === 'banner-toggle') toggleBanner(el);
+      if (action === 'banner-retry') toast('Still offline. Trying again in a minute.', 'info');
+      if (action === 'steps-next') step(1);
+      if (action === 'steps-back') step(-1);
       if (action === 'swap-view') swapView();
       if (action === 'toggle' || action === 'dense') el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
       if (action === 'dense') $('#sg-table').classList.toggle('ds-table--dense', el.getAttribute('aria-pressed') === 'true');

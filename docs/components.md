@@ -12,7 +12,20 @@ component live.
 |---|---|
 | The page frame: top bar, navigation, one scrolling content panel | [App frame](#app-frame): `.ds-app`, `.ds-topbar`, `.ds-drawer`, `.ds-panel` |
 | Switch between two or three modes of the app | `.ds-segmented` in the top bar ([App frame](#app-frame)) |
+| Switch a mode on the same page (list or map, day or week) | `.ds-segmented` with button options (`role="radio"`, `aria-checked`) in a page toolbar ([App frame](#app-frame)) |
+| Many destinations in the drawer: groups that close, counts, a way back up, actions at the end of an item, a narrow rail | `.ds-drawer__group` as `<details>` with `.ds-drawer__toggle`, `.ds-drawer__count`, `.ds-drawer__back`, `.ds-drawer__row`, `data-drawer-collapsed` ([App frame](#app-frame)) |
+| The page's title, search or actions in the top bar | `.ds-topbar__title`, `.ds-topbar__search`, `.ds-topbar__actions` ([App frame](#app-frame)) |
+| Who is signed in | `.ds-account` in the top bar, or the outlined `.ds-account--capsule`; a person anywhere else: `.ds-avatar` ([App frame](#app-frame)) |
+| A message for the whole app (offline, maintenance) | `.ds-banner` with a `.ds-alert`, above the view ([App frame](#app-frame)) |
+| A full-page table, or a view that never scrolls (a chat, a terminal) | `.ds-view--fill`, `.ds-view--fixed` ([App frame](#app-frame)) |
 | Page title, lead and the column layout of cards | [Page](#page): `.ds-page-head`, `.ds-stack` (one column), `.ds-grid-2` (two) |
+| A record's page: the way back, status and actions next to the title | `.ds-page-head__back` or `.ds-breadcrumbs`, `.ds-page-head__row`, `__status`, `__actions` ([Page](#page)) |
+| A page that loads, fails or is gone | the page states ([Page](#page)): a skeleton, `.ds-alert--error` with Retry, `.ds-empty` |
+| Sections of one page or record (overview, history, settings) | [Tabs](#tabs) `.ds-tabs` (ARIA tabs, or links between pages of a record) |
+| Tabs or segmented switch? | tabs change what the page shows (sections, with a panel each); a segmented switch changes how the same content shows (a mode, a view) |
+| Where the user is in a form of several steps | [Steps](#steps) `.ds-steps` (marks with labels, or `--bar`) |
+| Rendered rich text (Markdown, a help article) or a block of code | [Prose and code](#prose-and-code): `.ds-prose`, `.ds-code-block` |
+| A sign-in or password page | `.ds-auth` with `.ds-auth__card` ([Page](#page)) |
 | A block of related content | [Card](#card) `.ds-card`; a quieter block inside one: `.ds-card--filled` |
 | A whole card opens something (a device, a report) | `.ds-card--interactive` on `<a>` or `<button>`, or on a `<div>` with a `.ds-card__action` link ([Card](#card)) |
 | Any action | [Button](#button) `.ds-btn` with one variant; an action inside text or a table cell: `.ds-link-btn` |
@@ -109,13 +122,13 @@ Nothing fits? If any dashboard could use it, add it to Dashboard-Style ([AGENTS.
 and update the copy; otherwise build it in the project with the project's own class prefix, from the tokens only
 ([rules.md](rules.md#code)).
 
-Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card](#card) · [Tiles](#tiles) ·
-[Disclosure](#disclosure) · [Lists](#lists) · [Timeline](#timeline) · [Tasks](#tasks) · [Empty state](#empty-state) ·
-[Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) · [Table](#table) · [Form](#form) · [Chips](#chips) ·
-[Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) · [Side sheet](#side-sheet) ·
-[Snackbar](#snackbar) · [Tooltip](#tooltip) · [Save bar](#save-bar) · [Loading](#loading) · [Progress](#progress) ·
-[Charts](#charts) · [File upload](#file-upload) · [Reorder rows](#reorder-rows) · [Ripple](#ripple) ·
-[Utilities](#utilities) · [Motion classes](#motion-classes)
+Contents: [App frame](#app-frame) · [Page](#page) · [Tabs](#tabs) · [Steps](#steps) · [Button](#button) · [Card](#card) ·
+[Tiles](#tiles) · [Disclosure](#disclosure) · [Lists](#lists) · [Timeline](#timeline) · [Tasks](#tasks) ·
+[Prose and code](#prose-and-code) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) ·
+[Table](#table) · [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) ·
+[Dialog](#dialog) · [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Save bar](#save-bar) ·
+[Loading](#loading) · [Progress](#progress) · [Charts](#charts) · [File upload](#file-upload) ·
+[Reorder rows](#reorder-rows) · [Ripple](#ripple) · [Utilities](#utilities) · [Motion classes](#motion-classes)
 
 ## App frame
 
@@ -136,7 +149,7 @@ is the only scroller. At 900px and below the drawer becomes modal.
     </nav>
     <div class="ds-account">
       <div class="ds-account__text"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
-      <span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org">A</span>
+      <span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org" tabindex="0" data-tip="Ada Lovelace, ada@example.org">A</span>
       <button class="ds-btn ds-btn--text" type="button">Sign out</button>
     </div>
   </div>
@@ -184,7 +197,9 @@ is the only scroller. At 900px and below the drawer becomes modal.
   `watchScrolled()` when the view is back at its top.
 - A drawer item may be a `<button class="ds-drawer__item">` when it shows a section in place instead of loading a
   page; it loses the browser's button look. The active one also carries `aria-current="page"`.
-- `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible.
+- `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible;
+  `createIndicator(list, { ..., reveal: true })` sets it by itself and scrolls the list (only the list) so the
+  current item stays `--ds-space-2` clear of its edges.
 - Sliding pills: `DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })`
   and the same on `.ds-segmented` with `className: 'ds-segmented__indicator'`. The pill follows `aria-current` and
   the size of the items by itself ([motion](motion.md#dsindicator-jsindicatorjs)); no `update()` is needed. While it
@@ -322,6 +337,192 @@ is the only scroller. At 900px and below the drawer becomes modal.
   });
   ```
 
+### Segmented options as buttons
+
+A mode of the same page (a list or a map, day or week) is a segmented switch of buttons, anywhere on the page. It
+takes its start margin (`--ds-space-4`, `--ds-space-2` on phones) only in the top bar; in a page toolbar it sits
+flush. Button options lose the browser's button look.
+
+```html
+<div class="ds-segmented" role="radiogroup" aria-label="View">
+  <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="List">List</button>
+  <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Map">Map</button>
+  <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" aria-disabled="true" data-label="Chart">Chart</button>
+</div>
+```
+
+```js
+DS.indicator.createIndicator(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+DS.dom.roving(group, { items: '.ds-segmented__option' });   // arrow keys, Home and End; a click selects
+group.addEventListener('click', (event) => {
+  const option = event.target.closest('.ds-segmented__option');
+  if (!option || option.getAttribute('aria-disabled') === 'true') return;
+  for (const other of group.querySelectorAll('.ds-segmented__option')) other.setAttribute('aria-checked', String(other === option));
+  showView(option.dataset.label);
+});
+```
+
+- Selected: `aria-current="true"` on links, `aria-checked="true"` on radios, `aria-pressed="true"` on toggle buttons;
+  the tint (or the gliding pill), the label weight and the attribute, never colour alone.
+- Blocked: `:disabled` or `aria-disabled="true"` takes the disabled model (`--ds-disabled-ink`,
+  `--ds-disabled-opacity`, faded on `--ds-dur-fast`) and shows no hover, press or morph; `aria-disabled` keeps its
+  focus layer (give it a `data-tip` that says why).
+- `--ds-segmented-padding-x` (default `--ds-space-4`) narrows the options of a tight switch.
+- Forced colours: the selected option is `SelectedItem` / `SelectedItemText` (a choice in a set), a focused one keeps
+  a `CanvasText` ring inside its fill; the pill is hidden there, blocked options are `GrayText`.
+
+### Drawer parts
+
+```html
+<nav class="ds-drawer" aria-label="Main" tabindex="-1">
+  <div class="ds-drawer__head" aria-hidden="true">[logo] <span class="ds-brand__name">Product</span></div>
+  <div class="ds-drawer__back">
+    <a class="ds-drawer__item" href="/devices" data-tip="All devices">[icon arrowLeft 20]<span class="ds-drawer__label">All devices</span></a>
+  </div>
+  <div class="ds-drawer__actions"><a class="ds-btn ds-btn--tonal" href="/devices/new">[icon plus 18]New device</a></div>
+  <div class="ds-drawer__list">
+    <details class="ds-drawer__group ds-collapsible" open>
+      <summary class="ds-drawer__heading ds-drawer__toggle">[icon chevronDown 20 .ds-chevron]<span>Tickets</span><span class="ds-drawer__count" aria-hidden="true">5</span></summary>
+      <a class="ds-drawer__item" href="/tickets" aria-current="page" data-tip="Open tickets">[icon ticket 20]<span class="ds-drawer__label">Open</span><span class="ds-drawer__count"><span class="ds-sr">, </span>3</span></a>
+      <div class="ds-drawer__row">
+        <a class="ds-drawer__item" href="/tickets/waiting" data-tip="Waiting">[icon clock 20]<span class="ds-drawer__label">Waiting</span><span class="ds-drawer__count"><span class="ds-sr">, </span>2</span></a>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action ds-hover-actions" type="button" aria-label="Options for Waiting" data-tip="Options">[icon moreVertical 18]</button>
+      </div>
+    </details>
+  </div>
+  <div class="ds-drawer__foot">
+    <a class="ds-drawer__item" href="/settings" data-tip="Settings">[icon settings 20]<span class="ds-drawer__label">Settings</span></a>
+  </div>
+</nav>
+```
+
+- `.ds-drawer__back`: a way up (from a record back to its list), between the head and the list, with a hairline under
+  it inset to the text edge. Its item is a normal `.ds-drawer__item` that never carries `aria-current` and sits
+  outside the pill's track. Above 900px a docked drawer with a back item hides the page head's back link
+  (`.ds-page-head__back`), so the page shows one of them; the modal drawer leaves it to the page head.
+- `.ds-drawer__actions` (above the list, a primary action) and `.ds-drawer__foot` (below it, clear of the home
+  indicator of an installed app). `.ds-drawer__foot--rail` lays its items out icon-only in a row: their labels are
+  visually hidden but read, and each item names itself with `data-tip`.
+- `.ds-drawer__count`: a count at the end of an item or a group heading (tabular figures, the meta role, the item's
+  colour). A `.ds-sr` separator reads it with the label ("Open, 3"). On a group heading it shows only while the group is
+  closed (mark that one `aria-hidden`: its items say it).
+- Collapsible groups: `<details class="ds-drawer__group ds-collapsible">` with a `<summary class="ds-drawer__heading
+  ds-drawer__toggle">`. The heading is a pressable row of the item's height (`--ds-drawer-item-height`): state layer,
+  ring snap, press morph and ripple; the chevron turns with the group, and the group opens and closes with the
+  `.ds-collapsible` timing. The pill follows the current item across groups; an item inside a closed group has no pill
+  (it contracts, and comes back when the group opens). Keep the open groups across loads in the page (`open`).
+- `.ds-drawer__row` holds an item and a `.ds-drawer__action`, a quiet small icon button at the item's end (the item
+  keeps room for it). With `.ds-hover-actions` the action shows on hover, focus, the current item and an open menu, and
+  always on touch; it stays in the tab order.
+- `<a>` drawer items no longer flash on tap in iOS (`-webkit-tap-highlight-color` on every item).
+- Forced colours: the current item is `SelectedItem` / `SelectedItemText` (with its icon), a focused current item
+  keeps a `CanvasText` ring inside its fill, and an `aria-disabled` item is `GrayText`; the outline is for focus only.
+
+### The rail
+
+`data-drawer-collapsed` on `.ds-app` turns the docked drawer (above 900px) into a rail of `--ds-drawer-rail-width`
+(72px): items become 48px squares (circles by the pill rule), labels, headings and counts are visually hidden but
+read, row actions go, and the pill follows by itself. Each item's `data-tip` names it there: its visible text is gone,
+so the tooltip shows. The column switches at once; the labels fade back in on `--ds-dur-fast` when it widens again
+(no layout animation; View Transitions stay for navigation). The modal drawer at 900px and below is unaffected.
+
+The toggle is the top bar's menu button: with `aria-pressed` it also shows above 900px, on the drawer icons' axis.
+The page sets the attribute, keeps it across loads and leaves the modal drawer to `DS.overlay` below 900px:
+
+```js
+const wide = matchMedia('(min-width: 901px)');
+menu.addEventListener('click', () => {
+  if (!wide.matches) return DS.overlay.open(drawer, { opener: menu });
+  const collapsed = !app.hasAttribute('data-drawer-collapsed');
+  app.toggleAttribute('data-drawer-collapsed', collapsed);
+  menu.setAttribute('aria-pressed', String(collapsed));
+  localStorage.setItem('drawer', collapsed ? 'rail' : 'full');
+});
+```
+
+### Top bar parts
+
+```html
+<div class="ds-topbar">
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" aria-label="Menu" aria-expanded="false">[icon menu 20]</button>
+  <a class="ds-brand" href="/">[logo 32px] <span class="ds-brand__name">Product</span></a>
+  <h1 class="ds-topbar__title">LAPTOP-0042</h1>                     <!-- or a search: -->
+  <div class="ds-topbar__search"><div class="ds-search"> ... </div></div>
+  <div class="ds-topbar__actions">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Help" data-tip="Help">[icon info 20]</button>
+  </div>
+  <div class="ds-account ds-account--capsule">
+    <div class="ds-account__text" aria-hidden="true"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>
+    <span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org" tabindex="0" data-tip="Ada Lovelace, ada@example.org">A</span>
+    <span class="ds-account__divider"></span>
+    <button class="ds-btn ds-btn--text" type="button">Sign out</button>
+  </div>
+</div>
+```
+
+- `.ds-topbar__title`: a page title in the bar (an `h1`, for apps whose views have no page head of their own): it takes
+  the room between the brand and the account, in the subtitle role with an ellipsis; at 600px and below it takes the
+  label role in up to two lines, and the brand's name gives way (its mark stays).
+- `.ds-topbar__search`: a search centred in the bar, at most `--ds-topbar-search-max` (720px) wide; the account and
+  actions after it take no auto margin. Hidden below 720px: offer the search in the view there.
+- `.ds-topbar__actions`: icon buttons with `data-tip`, at the end of the bar (before the account).
+- A brand of only a name (no mark) lines its text up with the drawer's icon edge and keeps the name on phones. Between
+  601 and 900px a bar without the drawer starts at `--ds-space-4`, like the panel. The menu button never shrinks.
+- `.ds-account--capsule`: the account as one outlined pill (`--ds-line`, `--ds-surface`): the avatar first at every
+  width and the only carrier of the name (`role="img"`, `aria-label`, `data-tip`; a tap shows the tip), the text
+  `aria-hidden` beside it (at most `--ds-account-text-max`, 240px; hidden below 720px), `.ds-account__divider` and a
+  text button. The divider goes with a `[hidden]` sign-out button. `.ds-account__email:empty` takes no room.
+
+### Avatar
+
+```html
+<span class="ds-avatar" role="img" aria-label="Ada Lovelace">A</span>                      <!-- the initial -->
+<span class="ds-avatar ds-avatar--sm" aria-hidden="true">A</span> Ada Lovelace              <!-- next to the name -->
+<img class="ds-avatar ds-avatar--lg" src="/people/ada.jpg" alt="">                          <!-- a picture -->
+```
+
+A disc on the tint (`--ds-accent` / `--ds-on-accent`) of `--ds-avatar-size` (32px; `--sm` 24px, `--lg` 40px), the
+initial in a role that scales with it, a picture covering it. `.ds-account__avatar` is the same disc. No status dot:
+a status goes next to the name as a word. Forced colours keep its edge.
+
+### A message for the whole app
+
+```html
+<div class="ds-panel">
+  <div class="ds-banner">
+    <div class="ds-alert ds-alert--warning" role="status">[icon wifiOff 20]<span class="ds-alert__text">You are offline. Changes are saved when the connection is back.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Retry</button></div>
+  </div>
+  <main class="ds-view" id="main" tabindex="-1"> ... </main>
+</div>
+```
+
+`.ds-banner` is the first child of `.ds-panel`, above the view and outside its scroll; the alert runs to the panel's
+edges and keeps only the panel's top corners. `role="status"` for a notice, `role="alert"` only when it is urgent. It
+comes and goes through `DS.motion.flip(panel, () => panel.prepend(banner), { items: ':scope > *' })` (and
+`banner.remove()` inside `flip()` to go): the view glides, the banner fades in place, no height animates. It does not
+print.
+
+### Views that fill, views that never scroll
+
+- `.ds-view`, `.ds-drawer__list` (and `.ds-sheet__body`) are positioned (`position: relative`, no stacking context:
+  sticky parts and the view's hairline are unaffected), so an absolute element of the page stays inside its scroller,
+  and a `.ds-sr` label without a closer positioned ancestor sits at the top of the view's content instead of the
+  document's. `offsetParent` of elements inside a view is the view.
+- The page pad properties `--ds-content-pad-x`, `--ds-content-pad-top` and `--ds-content-pad-bottom` (read them,
+  never set them) are defined on `.ds-view` too, with the same values as on `.ds-content`, for parts of the view outside
+  the content (a bar pinned to the view's bottom).
+- `.ds-view--fill`: where there is room (from 601px wide and 720px tall) the view stops scrolling; its content and
+  page become flex columns (the page gap stays) and the page's last shown child fills the rest, a
+  `.ds-table-wrap--fill` with its sticky header. The content's bottom padding drops to `--ds-space-6`. Below that the
+  view scrolls as usual and a fill table is capped a little under the window's height. The filling child scrolls
+  itself (a scroller, or a flex column with `min-height: 0`).
+- `.ds-view--fixed`: the view never scrolls and has no gutter; the page's last shown child takes the rest and scrolls
+  itself (a chat, a terminal, a map).
+- The frame is as tall as `--ds-viewport-height` (written on `<html>` by `DS.dom.followViewport()`, the visual
+  viewport's height while the on-screen keyboard is up), else `100dvh`. `.ds-app--keyboard-hides-bar` hides the top
+  bar while `<html>` carries `data-ds-keyboard`, so the view keeps the field and its context in sight. An embedded
+  widget never calls `followViewport()`: the host page owns the viewport.
+
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
 
 ## Page
@@ -342,6 +543,83 @@ is the only scroller. At 900px and below the drawer becomes modal.
 The page's width (not the window's) decides when grids, facts and tables narrow: those are container queries on
 `.ds-content`, so the persistent drawer counts.
 
+- `.ds-stack` spaces its children by `--ds-stack-gap` (`--ds-space-4`); a stack directly in the page, and
+  `.ds-stack--page` wherever it sits, by `--ds-stack-gap-page` (`--ds-space-5`, the page's rhythm). A lone `.ds-btn`
+  directly in `.ds-page` or `.ds-stack` keeps its own width.
+- `.ds-content` exposes its padding as `--ds-content-pad-top`, `--ds-content-pad-x` and `--ds-content-pad-bottom`
+  (read them, never set them; `.ds-view` defines the same).
+
+### A record's page head
+
+```html
+<header class="ds-page-head">
+  <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="/devices">[icon arrowLeft 18]<span class="ds-sr">Back to </span>Devices</a>
+  <div class="ds-page-head__row">
+    <div class="ds-page-head__text">
+      <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1>
+      <p class="ds-page-head__lead">Latitude 7440 · issued to Ada Lovelace</p>
+      <div class="ds-page-head__status"><span class="ds-status ds-status--success">[icon checkCircle 16]Synced</span></div>
+    </div>
+    <div class="ds-page-head__actions">
+      <button class="ds-btn" type="button">Retire</button>
+      <button class="ds-btn ds-btn--primary" type="button">Edit</button>
+    </div>
+  </div>
+</header>
+```
+
+- `.ds-page-head__back`: the way back to the list, a small text button whose label lines up with the title; the
+  `.ds-sr` prefix reads "Back to Devices". A docked drawer with a `.ds-drawer__back` item hides it above 900px.
+- `.ds-page-head__row` wraps: `.ds-page-head__text` (title, lead, `.ds-page-head__status`) takes
+  `--ds-page-head-text-basis` (320px) and grows; `.ds-page-head__actions` sit at the row's end on the title's centre
+  line (`--ds-page-head-title-line`, the headline's 32px line) and start under the title at 600px of the content.
+- Empty parts take no room (`:empty`: the head, the lead, the status and the actions). The lead's figures are
+  tabular. Print leaves out the back link and the actions.
+
+### Breadcrumbs
+
+```html
+<nav class="ds-breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    <li><a href="/">Inventory</a></li>
+    <li><a href="/devices">Devices</a></li>
+    <li><a href="/devices/42" aria-current="page">LAPTOP-0042</a></li>
+  </ol>
+</nav>
+```
+
+In the page head's first row instead of the back link (one or the other). Inline links in the label role and
+`--ds-text-2`, underlined, with the link focus ring and no ripple; a chevron (a `chevronRight` mask) between them, in
+`CanvasText` under forced colours; each item ends in an ellipsis past `--ds-breadcrumbs-item-max` (240px); the last is
+the page itself (`aria-current="page"`, the text colour). At 600px of the content only the parent shows: the way up.
+
+### Page states
+
+A page that loads, fails or is gone says so in its body; the page head stays where it can:
+
+- **Loading:** the body as a skeleton (`.ds-skeleton` with its note, [Loading](#loading)) under a `.ds-loadbar`.
+- **Failed:** a `.ds-alert--error` with the reason and a Retry button (`.ds-btn--text`) in place of the body.
+- **Gone** (deleted, no access): `.ds-empty` with a way back.
+
+The page hides its body by an attribute of its own (`hidden` on the body, `data-state` is `DS.overlay`'s); never
+leave a stale body visible under the state.
+
+### Sign-in page
+
+```html
+<body class="ds-auth">                      <!-- in <html class="ds-theme ds-base"> -->
+  <div class="ds-auth__alert"><div class="ds-alert ds-alert--error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">The password is wrong.</span></div></div>
+  <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="auth-title">
+    <h1 class="ds-card__title" id="auth-title">Sign in</h1>
+    <form class="ds-form"> ...fields... <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Sign in</button></div></form>
+  </section>
+</body>
+```
+
+`.ds-auth` is a page that is one centred card on the backdrop, at least the window's height, within the safe areas.
+`.ds-auth__card` is `--ds-auth-width` (400px) wide at most; `.ds-auth__alert`, the slot above it, takes no room while
+empty; the primary action takes the card's width.
+
 ### Page outside the frame
 
 A page without `.ds-app` (a wizard, a sign-in page, an embedded flow) marks its view with `.ds-vt-view` (2.0), so
@@ -358,6 +636,91 @@ page, never inside `.ds-app`.
 ```js
 DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
 ```
+
+## Tabs
+
+Sections of one page or record. ARIA tabs show one panel at a time; link tabs move between pages of a record.
+
+```html
+<div class="ds-tabs" role="tablist" aria-label="Device">
+  <button class="ds-tabs__tab" role="tab" type="button" id="t-details" aria-selected="true" aria-controls="p-details" data-label="Details">Details</button>
+  <button class="ds-tabs__tab" role="tab" type="button" id="t-history" aria-selected="false" aria-controls="p-history" tabindex="-1" data-label="History">History<span class="ds-badge">3</span></button>
+</div>
+<div class="ds-tabs__panel" role="tabpanel" id="p-details" aria-labelledby="t-details" tabindex="0"> ... </div>
+<div class="ds-tabs__panel" role="tabpanel" id="p-history" aria-labelledby="t-history" tabindex="0" hidden> ... </div>
+
+<!-- link tabs -->
+<nav class="ds-tabs" aria-label="Device">
+  <a class="ds-tabs__tab" href="/devices/42" aria-current="page" data-label="Details">Details</a>
+  <a class="ds-tabs__tab" href="/devices/42/history" data-label="History">History</a>
+</nav>
+```
+
+```js
+DS.indicator.createIndicator(tabs, { active: '[aria-selected="true"], [aria-current="page"]', className: 'ds-tabs__indicator', reveal: true });
+DS.dom.roving(tabs);                                   // arrow keys, Home and End move focus and select
+tabs.addEventListener('click', (event) => {
+  const tab = event.target.closest('[role="tab"]');
+  if (!tab || tab.getAttribute('aria-disabled') === 'true') return;
+  for (const other of tabs.querySelectorAll('[role="tab"]')) {
+    const selected = other === tab;
+    other.setAttribute('aria-selected', String(selected));
+    other.tabIndex = selected ? 0 : -1;
+    document.getElementById(other.getAttribute('aria-controls')).hidden = !selected;
+  }
+  DS.motion.enter(document.getElementById(tab.getAttribute('aria-controls')), 'swap');
+});
+```
+
+- A row of `--ds-tabs-height` (48px) over a `--ds-line` hairline; labels in the label role at the regular weight in
+  `--ds-text-2`. The selected tab takes `--ds-primary` ink, the label weight and the bar: a
+  `--ds-tabs-indicator-height` (3px) bar in `--ds-tabs-indicator-color` (`--ds-primary`) at its bottom that glides
+  between the tabs (`DS.indicator`, `.ds-tabs__indicator`). Selected is bar, weight and ARIA. `data-label` (the
+  tab's text again) keeps the width of the heavier weight, so nothing moves; a `.ds-badge` after the text keeps its
+  place.
+- Press: the state layer is a pill inside the tab that turns squarer while pressed and springs back, with the ripple
+  (`DS.ripple.attach()`); the keyboard ring is inset and snaps inward. `:disabled` and `aria-disabled="true"` take the
+  disabled model (no hover, press or morph; `aria-disabled` keeps its focus layer).
+- Switching: the page toggles `hidden` on the panels and enters the new one (`DS.motion.enter(panel, 'swap')`). Link
+  tabs are navigation: `DS.motion.transition(update, { type: 'fade-through' })` ([Views](motion.md#views)).
+- Overflow: the row scrolls sideways without a scrollbar (add `.ds-scroll-x` for its edge fades); `DS.dom.roving()`
+  scrolls a focused tab into view, and `reveal: true` keeps the selected one in view.
+- `.ds-tabs--fill`: equal widths across the row. `.ds-tabs--flush`: no hairline (the tabs sit on a card's edge).
+- A panel that holds nothing focusable keeps `tabindex="0"`, so a keyboard reaches its content.
+- Forced colours: the selected tab is `SelectedItem` / `SelectedItemText` (a choice in a set) and the bar is hidden;
+  a focused selected tab keeps a `CanvasText` ring inside; blocked tabs are `GrayText`. Print wraps the row.
+
+**Motion:** the "Tabs" row of [Navigation](motion.md#navigation) in motion.md.
+
+## Steps
+
+Where the user is in a form of a few steps. Steps are not buttons: going back is a link or a button of the page.
+
+```html
+<ol class="ds-steps" aria-label="Report a problem">
+  <li class="ds-steps__step" data-status="done">
+    <span class="ds-steps__mark">[icon check 16, its path with pathLength="1"]</span>
+    <span class="ds-steps__label">Device<span class="ds-sr">, done</span></span>
+  </li>
+  <li class="ds-steps__step" aria-current="step"><span class="ds-steps__mark">2</span><span class="ds-steps__label">Problem</span></li>
+  <li class="ds-steps__step"><span class="ds-steps__mark">3</span><span class="ds-steps__label">Contact</span></li>
+</ol>
+
+<!-- or a bar: the same items, the list says where the user is -->
+<ol class="ds-steps ds-steps--bar" aria-label="Step 2 of 3"> ... </ol>
+```
+
+- `data-status="done"` on a finished step (the attribute of `.ds-tasks` too; never `data-state`, which `DS.overlay`
+  writes) and `aria-current="step"` on the current one; the rest are upcoming.
+- Marks are 24px discs: done `--ds-primary` with a check that draws itself (`ds-draw`), current `--ds-primary` with
+  `--ds-on-primary` figures and its label in the label weight, upcoming an `--ds-outline` ring in `--ds-text-2`.
+  Connectors are `--ds-line` hairlines, `--ds-primary` after a done step (colours on `--ds-dur-medium`). At 600px of
+  the content only the current label shows; the others are still read.
+- `.ds-steps--bar`: equal segments `--ds-steps-bar-height` (4px) high; done and current ones fill with `--ds-primary`
+  (a clip that glides on `--ds-ease-value` over `--ds-dur-glide`), the rest is `--ds-accent`. Marks and labels are
+  visually hidden; the list's `aria-label` ("Step 2 of 3") says where the user is.
+- Moving between steps: `DS.motion.transition(update, { type: 'forward' })` (or `'back'`).
+- Forced colours: done and current marks and segments are `Highlight`, upcoming ones `CanvasText` outlines.
 
 ## Button
 
@@ -842,6 +1205,43 @@ The steps of a job (2.0): an import, a setup, a migration, each step pending, ru
   take `CanvasText`.
 
 **Motion:** the "Tasks" row of [Feedback](motion.md#feedback) in motion.md.
+
+## Prose and code
+
+Rendered rich text (Markdown, a help article, a release note) and blocks of code.
+
+```html
+<div class="ds-prose">
+  <h2>Before you start</h2>
+  <p>Back up the device and note its <strong>asset tag</strong>. See <a href="/help/backup">backups</a>.</p>
+  <ul><li>Charger</li><li>Docking station</li></ul>
+  <blockquote><p>Devices older than four years are retired, not repaired.</p></blockquote>
+  <pre><code>ds-cli retire LAPTOP-0042</code></pre>
+  <table><thead><tr><th>Model</th><th>Years</th></tr></thead><tbody><tr><td>Latitude 7440</td><td>4</td></tr></tbody></table>
+  <hr>
+  <p>Ask <mark>IT support</mark> when in doubt.</p>
+</div>
+
+<pre class="ds-code-block" tabindex="0" aria-label="Request"><code>GET /api/devices/42 HTTP/1.1
+Accept: application/json</code></pre>
+```
+
+- `.ds-prose` styles only bare elements inside it, under `:where(.ds-prose)`, so any class of the page wins: the
+  margins reset, then one gap of `--ds-prose-gap` (`--ds-space-2`) between blocks and `--ds-space-5` above a
+  heading; `h1` headline, `h2` subtitle, `h3` and `h4` the label weight at the reading size; lists indented
+  `--ds-space-5` with `--ds-space-1` between items; `strong` in `--ds-prose-strong-weight` (the label weight); links
+  underlined like every link; a `pre` is a code block; a `table` gets hairline rows, a `--ds-text-2` head and tabular
+  figures and scrolls sideways when it is wider; a `blockquote` is a `--ds-surface-high` block on `--ds-radius-card`;
+  images are never wider than the text. Font `--ds-prose-font` (`--ds-font-reading`); `.ds-prose--dense` takes
+  `--ds-font-body` (in a card, a chat bubble, a side sheet). Long words hyphenate where the browser can (progressive:
+  `hyphenate-limit-chars`, only words of 18 characters or more), else break.
+- `.ds-code-block`: the code role on `--ds-code-bg` in the card radius, one line per line (`white-space: pre`, tab
+  size 2), scrolling sideways with a thin scrollbar. Give it `tabindex="0"` and a name (`aria-label`) only when it can
+  scroll sideways, so a keyboard reaches it (an inset ring). A `code` inside loses the inline chip.
+  `.ds-code-block--wrap` wraps long lines instead.
+- Under `.ds-base` bare headings take the type roles already (`h1` headline, `h2` subtitle, `h3` to `h6` the label
+  role, no margins); `.ds-prose` keeps a reading hierarchy for rendered text.
+- Forced colours: quotes and code blocks keep their edge. Print: code blocks and tables wrap.
 
 ## Empty state
 
@@ -2728,6 +3128,9 @@ Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
 `.ds-muted` has no margin (like `.ds-meta`): space it with the layout around it (a card's rhythm, a stack's gap).
 
+Under `.ds-base`, `hidden` always hides (the page base holds it with `!important`, whatever `display` a component or
+the page sets); never add a `[hidden]` rule of your own.
+
 ### A pressable element of your own
 
 A project component that acts on a press (a row, a tile of its own) takes the system's press model instead of a
@@ -2853,3 +3256,6 @@ the ones the page sets for it. The project check reads this table.
 | `data-icon` | the page | any element | the glyph name that `DS.icons.fill()` draws into it ([icons.md](icons.md)) |
 | `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |
 | `data-ds-shown` | the page | a `.ds-presence--keep` element, a `.ds-hover-actions` host or its actions | shown (`.ds-presence--keep`: without it hidden, keeping its box; `.ds-hover-actions`: the actions show without hover or focus, [Utilities](#actions-on-demand)) |
+| `data-drawer-collapsed` | the page | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
+| `data-label` | the page | `.ds-segmented__option`, `.ds-tabs__tab` | the option's text again: keeps the width of the selected weight |
+| `data-status` | the page | `.ds-steps__step` | `done`: a finished step ([Steps](#steps)) |

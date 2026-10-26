@@ -7,7 +7,6 @@
  *
  *   .ex-logo         the brand mark in the top bar and the drawer
  *   .ex-row          a wrapping row of buttons
- *   .ex-page-head    the page header with actions on the right
  *   .ex-detail       the content of an expanded table row
  *   .ex-col-time, .ex-col-status  stable widths for columns with live values
  *   .ex-swatch       the colour dot of an accent choice
@@ -30,18 +29,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ds-space-2);
-}
-
-.ex-page-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--ds-space-3) var(--ds-space-6);
-}
-
-.ex-page-head > .ds-page-head {
-  flex: 1 1 320px;
 }
 
 .ex-detail {

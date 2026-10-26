@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabs · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- Tabs (tabs.spec.js): ARIA tabs with panels and a blocked tab, link
+     tabs, a row that scrolls sideways with reveal, and --fill. -->
+<div class="fx-root">
+  <section class="fx-section">
+    <div class="ds-tabs" id="tabs" role="tablist" aria-label="Device">
+      <button class="ds-tabs__tab" role="tab" type="button" id="t-details" aria-selected="true" aria-controls="p-details" data-label="Details">Details</button>
+      <button class="ds-tabs__tab" role="tab" type="button" id="t-history" aria-selected="false" aria-controls="p-history" tabindex="-1" data-label="History">History</button>
+      <button class="ds-tabs__tab" role="tab" type="button" id="t-reports" aria-selected="false" aria-controls="p-reports" tabindex="-1" aria-disabled="true" data-label="Reports">Reports</button>
+    </div>
+    <div class="ds-tabs__panel" role="tabpanel" id="p-details" aria-labelledby="t-details" tabindex="0"><p>Latitude 7440.</p></div>
+    <div class="ds-tabs__panel" role="tabpanel" id="p-history" aria-labelledby="t-history" tabindex="0" hidden><p>A new owner.</p></div>
+    <div class="ds-tabs__panel" role="tabpanel" id="p-reports" aria-labelledby="t-reports" tabindex="0" hidden><p>No reports.</p></div>
+  </section>
+  <section class="fx-section">
+    <nav class="ds-tabs" id="links" aria-label="Record">
+      <a class="ds-tabs__tab" href="#overview" aria-current="page" data-label="Overview">Overview</a>
+      <a class="ds-tabs__tab" href="#log" data-label="Log">Log</a>
+    </nav>
+  </section>
+  <section class="fx-section" style="width: 260px">
+    <div class="ds-tabs" id="narrow" role="tablist" aria-label="Months">
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="true">January</button>
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1">February</button>
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1">March</button>
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1">April</button>
+      <button class="ds-tabs__tab" role="tab" type="button" id="may" aria-selected="false" tabindex="-1">May</button>
+    </div>
+  </section>
+  <section class="fx-section" style="width: 480px">
+    <div class="ds-tabs ds-tabs--fill" id="fill" role="tablist" aria-label="Range">
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="true">Day</button>
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1">Week of the year</button>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    function wire(tabs) {
+      var active = '[aria-selected="true"], [aria-current="page"]';
+      var handle = DS.indicator.createIndicator(tabs, { active: active, className: 'ds-tabs__indicator', reveal: true });
+      tabs.addEventListener('click', function (event) {
+        var tab = event.target.closest('.ds-tabs__tab');
+        if (!tab) return;
+        event.preventDefault();
+        if (tab.getAttribute('aria-disabled') === 'true') return;
+        var shown = null;
+        tabs.querySelectorAll('.ds-tabs__tab').forEach(function (other) {
+          var selected = other === tab;
+          if (other.hasAttribute('role')) {
+            other.setAttribute('aria-selected', String(selected));
+            other.tabIndex = selected ? 0 : -1;
+          } else if (selected) other.setAttribute('aria-current', 'page');
+          else other.removeAttribute('aria-current');
+          var panel = document.getElementById(other.getAttribute('aria-controls') || '');
+          if (panel) {
+            panel.hidden = !selected;
+            if (selected) shown = panel;
+          }
+        });
+        if (shown) DS.motion.enter(shown, 'swap');
+      });
+      return handle;
+    }
+    document.querySelectorAll('.ds-tabs').forEach(wire);
+    DS.ripple.attach(document);
+  }());
+</script>
+</body>
+</html>

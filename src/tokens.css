@@ -503,6 +503,7 @@
      * Sizes of the app frame (components/shell.css, components/page.css).
      *   topbar-height  the top app bar
      *   drawer-width   the navigation drawer
+     *   drawer-rail-width  the drawer as a rail (icons only, data-drawer-collapsed)
      *   content-max    widest page content
      *   measure        reading measure of running text (leads, notes)
      *   toast-room     room kept free at a page's end for a two-line snackbar
@@ -510,6 +511,7 @@
      */
     --ds-topbar-height: 64px;
     --ds-drawer-width: 256px;
+    --ds-drawer-rail-width: 72px;
     --ds-content-max: 1280px;
     --ds-measure: 76ch;
     --ds-toast-room: 64px;

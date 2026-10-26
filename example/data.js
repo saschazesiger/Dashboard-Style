@@ -84,6 +84,8 @@
 
   let nextTicket = 1043;
   let nextActivity = 6;
+  /* The connection: Settings can cut it (setOnline); polls then fail. */
+  let online = true;
 
   const copy = (value) => JSON.parse(JSON.stringify(value));
   const later = (value, ms) => new Promise((resolve) => setTimeout(() => resolve(copy(value)), ms));
@@ -161,10 +163,15 @@
       });
     },
 
+    setOnline(value) {
+      online = Boolean(value);
+    },
+
     /* What changed on the server since the last poll: a device that checks
        in, one that starts or ends a sync, now and then one that goes
        offline. Returns the new state of the fleet and any new activity. */
     poll() {
+      if (!online) return new Promise((resolve, reject) => setTimeout(() => reject(new Error('No connection')), 120));
       const device = devices[Math.floor(Math.random() * devices.length)];
       const fresh = [];
       if (device) {

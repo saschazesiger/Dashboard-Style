@@ -2239,41 +2239,194 @@
 
   var MODES = ['Live', 'Admin', 'Reports'];
 
+  /* Both switches of the demo follow: the links by aria-current, the
+     buttons (a mode of the same page) by aria-checked. */
   function segmentTo(stage, index, sg) {
-    $$('.ds-segmented__option', stage).forEach(function (option, at) {
-      if (at === index) option.setAttribute('aria-current', 'true');
-      else option.removeAttribute('aria-current');
+    $$('.ds-segmented', stage).forEach(function (group) {
+      $$('.ds-segmented__option', group).forEach(function (option, at) {
+        if (option.tagName === 'BUTTON') {
+          option.setAttribute('aria-checked', String(at === index));
+          option.tabIndex = at === index ? 0 : -1;
+        } else if (at === index) option.setAttribute('aria-current', 'true');
+        else option.removeAttribute('aria-current');
+      });
     });
     return sg.frames(2).then(function () { return quiet(stage, sg); });
   }
 
   function segmentAt(stage) {
-    return $$('.ds-segmented__option', stage).map(function (option) { return option.getAttribute('aria-current') === 'true'; }).indexOf(true);
+    return $$('.ds-segmented__option', $('.ds-segmented', stage)).map(function (option) { return option.getAttribute('aria-current') === 'true'; }).indexOf(true);
   }
 
   LAB_DEMOS.push({
     id: 'segmented',
     group: 'navigation',
     title: 'Segmented switch',
-    note: 'The tint glides between the options on the spring (<code>DS.indicator</code>) and the labels change colour while it arrives; the current option is also set in the label weight, and data-label keeps the width of the heavier weight, so the switch never changes width.',
+    note: 'The tint glides between the options on the spring (<code>DS.indicator</code>) and the labels change colour while it arrives; the current option is also set in the label weight, and data-label keeps the width of the heavier weight, so the switch never changes width. The second switch is a mode of the same page: buttons (role="radio", aria-checked) under the same pill.',
     shows: ['DS.indicator.createIndicator', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in-out'],
-    html: '<nav class="ds-segmented sg-lab-segmented" aria-label="Mode">' + MODES.map(function (mode, index) {
+    html: '<div class="sg-lab-segmented-pair"><nav class="ds-segmented sg-lab-segmented" aria-label="Mode">' + MODES.map(function (mode, index) {
       return '<a class="ds-segmented__option" href="#navigation" data-label="' + mode + '"' + (index ? '' : ' aria-current="true"') + '>' + mode + '</a>';
-    }).join('') + '</nav>',
+    }).join('') + '</nav>' +
+    '<div class="ds-segmented sg-lab-segmented" role="radiogroup" aria-label="View">' + MODES.map(function (mode, index) {
+      return '<button class="ds-segmented__option" type="button" role="radio" aria-checked="' + (index === 0) + '"' + (index ? ' tabindex="-1"' : '') + ' data-label="' + mode + '">' + mode + '</button>';
+    }).join('') + '</div></div>',
     height: 120,
     setup: function (stage, sg) {
-      var nav = $('.ds-segmented', stage);
+      var nav = $('nav.ds-segmented', stage);
+      var group = $('div.ds-segmented', stage);
       sg.indicator(nav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
-      nav.addEventListener('click', function (event) {
-        var option = event.target.closest('a');
+      sg.indicator(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+      stage.addEventListener('click', function (event) {
+        var option = event.target.closest('.ds-segmented__option');
         if (!option) return;
         event.preventDefault();
-        segmentTo(stage, $$('.ds-segmented__option', stage).indexOf(option), sg);
+        segmentTo(stage, $$('.ds-segmented__option', option.parentNode).indexOf(option), sg);
       });
     },
     play: function (stage, sg) { return segmentTo(stage, (segmentAt(stage) + 1) % MODES.length, sg); },
     state: function (stage) { return segmentAt(stage) === MODES.length - 1; },
     toggle: function (stage, on, sg) { return segmentTo(stage, on ? MODES.length - 1 : 0, sg); },
+  });
+
+  /* ── Navigation: tabs ────────────────────────────────────────────── */
+
+  var TAB_NAMES = ['Details', 'History', 'Settings'];
+
+  function tabTo(stage, index, sg) {
+    var shown = null;
+    $$('[role="tab"]', stage).forEach(function (tab, at) {
+      var panel = $('#' + tab.getAttribute('aria-controls'));
+      var selected = at === index;
+      if ((tab.getAttribute('aria-selected') === 'true') === selected) return;
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      panel.hidden = !selected;
+      if (selected) shown = panel;
+    });
+    if (shown) M.enter(shown, 'swap');
+    return sg.frames(2).then(function () { return quiet(stage, sg); });
+  }
+
+  function tabAt(stage) {
+    return $$('[role="tab"]', stage).map(function (tab) { return tab.getAttribute('aria-selected') === 'true'; }).indexOf(true);
+  }
+
+  LAB_DEMOS.push({
+    id: 'tabs',
+    group: 'navigation',
+    title: 'Tabs',
+    note: 'The bar under the selected tab is the indicator: it stretches toward its target and lands on the spring, and the labels change colour as it arrives (the weight switches at once, data-label keeps the width). The new panel enters with <code>.ds-enter--swap</code>; a press morphs the pill inside the tab.',
+    shows: ['DS.indicator.createIndicator', '.ds-tabs__indicator', '.ds-enter--swap', 'DS.motion.enter', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
+    html: '<div class="sg-lab-tabs"><div class="ds-tabs" role="tablist" aria-label="Device">' + TAB_NAMES.map(function (name, index) {
+      return '<button class="ds-tabs__tab" role="tab" type="button" id="sg-lab-tab-' + index + '" aria-selected="' + (index === 0) + '" aria-controls="sg-lab-tabpanel-' + index + '"' + (index ? ' tabindex="-1"' : '') + ' data-label="' + name + '">' + name + '</button>';
+    }).join('') + '</div>' + TAB_NAMES.map(function (name, index) {
+      return '<div class="ds-tabs__panel sg-lab-tabpanel" role="tabpanel" id="sg-lab-tabpanel-' + index + '" aria-labelledby="sg-lab-tab-' + index + '" tabindex="0"' + (index ? ' hidden' : '') + '><p class="ds-muted">' +
+        ['Latitude 7440, issued to Ada Lovelace.', 'A new owner, a battery swap, a move.', 'Nightly sync, no remote wipe.'][index] + '</p></div>';
+    }).join('') + '</div>',
+    height: 160,
+    setup: function (stage, sg) {
+      var tabs = $('.ds-tabs', stage);
+      sg.indicator(tabs, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator' });
+      tabs.addEventListener('click', function (event) {
+        var tab = event.target.closest('[role="tab"]');
+        if (tab) tabTo(stage, $$('[role="tab"]', stage).indexOf(tab), sg);
+      });
+    },
+    play: function (stage, sg) { return tabTo(stage, (tabAt(stage) + 1) % TAB_NAMES.length, sg); },
+    // Back to the first tab: the toggle runs between the first and the last,
+    // so a Replay that stopped on the middle one would leave another panel shown.
+    reset: function (stage, sg) { return tabTo(stage, 0, sg); },
+    state: function (stage) { return tabAt(stage) === TAB_NAMES.length - 1; },
+    toggle: function (stage, on, sg) { return tabTo(stage, on ? TAB_NAMES.length - 1 : 0, sg); },
+  });
+
+  /* ── Navigation: a drawer group that closes ──────────────────────── */
+
+  function groupItem(glyph, label, current, count) {
+    return '<a class="ds-drawer__item" href="#navigation"' + (current ? ' aria-current="page"' : '') + '>' + icon(glyph, 20) + '<span class="ds-drawer__label">' + label + '</span>' +
+      '<span class="ds-drawer__count"><span class="ds-sr">, </span>' + count + '</span></a>';
+  }
+
+  function groupOpen(stage) { return $('details', stage).open; }
+
+  function groupTo(stage, closed, sg) {
+    $('details', stage).open = !closed;
+    return sg.frames(2).then(function () { return quiet(stage, sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'drawer-group',
+    group: 'navigation',
+    title: 'Drawer group',
+    note: 'A group of the drawer closes with the <code>.ds-collapsible</code> timing and its chevron turns on the spring; its count shows while it is closed. The current item is inside: the pill contracts with it and grows back from its centre when the group opens, and it follows the current item across groups.',
+    shows: ['.ds-collapsible', 'DS.indicator.createIndicator', '--ds-dur-medium', '--ds-dur-base', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in', '--ds-ease-spatial'],
+    html: '<div class="sg-lab-drawer"><div class="ds-drawer__list">' +
+      '<details class="ds-drawer__group ds-collapsible" open><summary class="ds-drawer__heading ds-drawer__toggle">' + icon('chevronDown', 20, 'ds-chevron') + '<span>Tickets</span><span class="ds-drawer__count" aria-hidden="true">5</span></summary>' +
+        groupItem('ticket', 'Open', true, 3) + groupItem('clock', 'Waiting', false, 2) + '</details>' +
+      '<details class="ds-drawer__group ds-collapsible" open><summary class="ds-drawer__heading ds-drawer__toggle">' + icon('chevronDown', 20, 'ds-chevron') + '<span>Devices</span><span class="ds-drawer__count" aria-hidden="true">12</span></summary>' +
+        groupItem('laptop', 'Laptops', false, 9) + '</details>' +
+      '</div></div>',
+    height: 300,
+    setup: function (stage, sg) {
+      var list = $('.ds-drawer__list', stage);
+      sg.indicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
+      list.addEventListener('click', function (event) {
+        var item = event.target.closest('.ds-drawer__item');
+        if (!item) return;
+        event.preventDefault();
+        $$('.ds-drawer__item', list).forEach(function (other) {
+          if (other === item) other.setAttribute('aria-current', 'page');
+          else other.removeAttribute('aria-current');
+        });
+      });
+    },
+    play: function (stage, sg) {
+      return groupTo(stage, true, sg).then(function () { return wait(sg, 300); }).then(function () { return groupTo(stage, false, sg); });
+    },
+    state: function (stage) { return !groupOpen(stage); },
+    toggle: function (stage, on, sg) { return groupTo(stage, on, sg); },
+  });
+
+  /* ── Navigation: the rail ────────────────────────────────────────── */
+
+  function railOn() { return $('#sg-app').hasAttribute('data-drawer-collapsed'); }
+
+  /* This page's drawer as a rail (data-drawer-collapsed), the menu button
+     with aria-pressed, a tooltip on each item whose label is gone. */
+  function railTo(on, sg) {
+    var app = $('#sg-app');
+    app.toggleAttribute('data-drawer-collapsed', on);
+    var menu = $('.ds-topbar__menu', app);
+    if (on) menu.setAttribute('aria-pressed', 'true');
+    else menu.removeAttribute('aria-pressed');
+    $$('#sg-nav .ds-drawer__item').forEach(function (item) {
+      if (on) item.setAttribute('data-tip', $('.ds-drawer__label', item).textContent);
+      else item.removeAttribute('data-tip');
+    });
+    return sg.frames(2).then(function () { return quiet($('#sg-drawer'), sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'rail',
+    group: 'navigation',
+    title: 'Rail',
+    note: 'This page\'s drawer narrows to its icons (data-drawer-collapsed, above 900px): the column switches at once, nothing animates a layout size; the labels fade back in when it widens (<code>--ds-dur-fast</code> in, <code>--ds-dur-instant</code> out), and the pill follows its item\'s new size. Each item names itself in its tooltip while it is a rail.',
+    shows: ['--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out', 'DS.indicator.createIndicator'],
+    html: '<p class="ds-muted" id="sg-rail-state">The drawer shows its labels.</p>',
+    height: 120,
+    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-rail-toggle>Rail or full drawer</button></div>',
+    setup: function (stage, sg) {
+      $('[data-rail-toggle]', stage.parentNode).addEventListener('click', function () { railTo(!railOn(), sg); });
+      new MutationObserver(function () {
+        $('#sg-rail-state', stage).textContent = railOn() ? 'The drawer is a rail: icons, and a tooltip each.' : 'The drawer shows its labels.';
+      }).observe($('#sg-app'), { attributes: true, attributeFilter: ['data-drawer-collapsed'] });
+    },
+    play: function (stage, sg) {
+      return railTo(true, sg).then(function () { return wait(sg, 300); }).then(function () { return railTo(false, sg); });
+    },
+    subject: function () { return $('#sg-nav .ds-drawer__label'); },
+    state: railOn,
+    toggle: function (stage, on, sg) { return railTo(on, sg); },
   });
 
   /* ── Frames: a small app ─────────────────────────────────────────── */
