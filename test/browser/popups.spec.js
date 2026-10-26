@@ -640,3 +640,159 @@ test.describe('reveal from the trigger in both placements', () => {
     await closed(page, 'combo-popup');
   });
 });
+
+/* ── 2.0: menu groups, headings, radio items, meta, type-ahead; select-only ── */
+
+/** A menu with a heading, a group of radio items and items with a meta, at the end of the page's theme. */
+function addSortMenu(page) {
+  return page.evaluate(() => {
+    const button = document.createElement('button');
+    button.className = 'ds-btn';
+    button.type = 'button';
+    button.id = 'sort-trigger';
+    button.textContent = 'Sort';
+    button.setAttribute('aria-haspopup', 'menu');
+    button.setAttribute('aria-expanded', 'false');
+    document.querySelector('main, .fx-root, body').prepend(button);
+    const menu = document.createElement('div');
+    menu.className = 'ds-menu';
+    menu.setAttribute('role', 'menu');
+    menu.id = 'sort-menu';
+    menu.hidden = true;
+    const item = (id, label, role = 'menuitem', meta = '') => {
+      const node = document.createElement('button');
+      node.className = 'ds-menu__item';
+      node.type = 'button';
+      node.id = id;
+      node.setAttribute('role', role);
+      if (role !== 'menuitem') node.setAttribute('aria-checked', String(id === 'sort-name'));
+      const text = document.createElement('span');
+      text.className = 'ds-menu__label';
+      text.textContent = label;
+      node.append(text);
+      if (meta) {
+        const end = document.createElement('span');
+        end.className = 'ds-menu__meta';
+        end.textContent = meta;
+        node.append(end);
+      }
+      return node;
+    };
+    const group = document.createElement('div');
+    group.setAttribute('role', 'group');
+    group.setAttribute('aria-labelledby', 'sort-h');
+    const heading = document.createElement('p');
+    heading.className = 'ds-menu__heading';
+    heading.id = 'sort-h';
+    heading.textContent = 'Sort by';
+    group.append(heading, item('sort-name', 'Name', 'menuitemradio'), item('sort-seen', 'Last seen', 'menuitemradio'), item('sort-load', 'Load', 'menuitemradio'));
+    menu.append(group, item('sort-lock', 'Lock', 'menuitem', 'Ctrl L'), item('sort-list', 'List view', 'menuitemcheckbox', 'On'));
+    (document.querySelector('.ds-theme') ?? document.body).append(menu);
+    button.addEventListener('click', () => DS.overlay.open(menu, { opener: button }));
+  });
+}
+
+test.describe('menu groups and type-ahead (2.0)', () => {
+  test('the arrow keys pass the heading by; the heading is caption type and not focusable', async ({ page }) => {
+    await load(page);
+    await addSortMenu(page);
+    await page.focus('#sort-trigger');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#sort-menu')).toHaveAttribute('data-state', 'open');
+    expect(await focused(page)).toBe('sort-name');
+    await page.keyboard.press('ArrowUp');
+    expect(await focused(page), 'from the first item up wraps to the last, never the heading').toBe('sort-list');
+    await page.keyboard.press('Home');
+    expect(await focused(page)).toBe('sort-name');
+    const heading = await page.evaluate(() => {
+      const node = document.getElementById('sort-h');
+      return { tabIndex: node.tabIndex, font: getComputedStyle(node).fontSize };
+    });
+    expect(heading).toEqual({ tabIndex: -1, font: '12px' });
+    // The meta sits at the item's end (the item's padding from its edge).
+    await settle(page);
+    const meta = await page.evaluate(() => {
+      const item = document.getElementById('sort-lock').getBoundingClientRect();
+      const end = document.querySelector('#sort-lock .ds-menu__meta').getBoundingClientRect();
+      return item.right - end.right;
+    });
+    expect(Math.abs(meta - 12)).toBeLessThan(1);
+  });
+
+  test('type-ahead moves to the next item whose label starts with the typed letters; one letter again cycles', async ({ page }) => {
+    await load(page);
+    await addSortMenu(page);
+    await page.focus('#sort-trigger');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('#sort-menu')).toHaveAttribute('data-state', 'open');
+    await page.keyboard.press('l');
+    expect(await focused(page)).toBe('sort-seen');
+    await page.keyboard.press('o');
+    expect(await focused(page), '"lo" leads to Load').toBe('sort-load');
+    // After --ds-delay-tooltip the letters start again; "l" again cycles through the L items.
+    const wait = await page.evaluate(() => DS.motion.motionDuration(document.getElementById('sort-menu'), '--ds-delay-tooltip'));
+    await page.waitForTimeout(wait + 100);
+    await page.keyboard.press('l');
+    expect(await focused(page)).toBe('sort-lock');
+    await page.keyboard.press('l');
+    expect(await focused(page)).toBe('sort-list');
+    // A letter no label starts with moves nothing.
+    await page.waitForTimeout(wait + 100);
+    await page.keyboard.press('z');
+    expect(await focused(page)).toBe('sort-list');
+    await page.keyboard.press('Escape');
+    expect(await focused(page)).toBe('sort-trigger');
+  });
+});
+
+test.describe('select-only combobox (2.0)', () => {
+  test('a button field shows value and meta in one row; DS.overlay opens its list and keeps focus on the button; a blocked option shows no active layer', async ({ page }) => {
+    await load(page);
+    await page.evaluate(() => {
+      const root = document.querySelector('.ds-theme') ?? document.body;
+      const field = document.createElement('div');
+      field.className = 'ds-field';
+      field.style.maxWidth = '240px';
+      field.innerHTML = '<span class="ds-field__label" id="plan-label">Plan</span>'
+        + '<div class="ds-combo ds-combo--select" id="plan">'
+        + '<button class="ds-input ds-combo__input" id="plan-button" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="plan-list" aria-labelledby="plan-label plan-value">'
+        + '<span class="ds-combo__value" id="plan-value">Standard with a long name</span><span class="ds-combo__meta">4 devices</span></button>'
+        + '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show plans"></button>'
+        + '<div class="ds-combo__popup" id="plan-popup" hidden><ul class="ds-combo__list" id="plan-list" role="listbox" aria-labelledby="plan-label">'
+        + '<li class="ds-combo__option" id="plan-a" role="option" aria-selected="true"><span class="ds-combo__name">Standard</span></li>'
+        + '<li class="ds-combo__option" id="plan-b" role="option" aria-selected="false" aria-disabled="true" data-active><span class="ds-combo__name">Premium</span><span class="ds-combo__meta">Needs a contract</span></li>'
+        + '</ul></div></div>';
+      root.prepend(field);
+    });
+    const row = await page.evaluate(() => {
+      const button = document.getElementById('plan-button').getBoundingClientRect();
+      const value = document.getElementById('plan-value');
+      const metaNode = document.querySelector('#plan-button .ds-combo__meta');
+      const meta = metaNode.getBoundingClientRect();
+      return {
+        oneRow: Math.abs(value.getBoundingClientRect().top - meta.top) < 4,
+        inside: meta.right <= button.right,
+        // Too long for the field: the row ends in an ellipsis instead of growing.
+        cut: [value, metaNode].some((node) => node.scrollWidth > node.clientWidth) && getComputedStyle(value).textOverflow === 'ellipsis',
+        start: getComputedStyle(document.getElementById('plan-button')).textAlign,
+      };
+    });
+    expect(row).toEqual({ oneRow: true, inside: true, cut: true, start: 'start' });
+    await page.focus('#plan-button');
+    await page.evaluate(() => DS.overlay.open(document.getElementById('plan-popup'), { opener: document.getElementById('plan-button') }));
+    await settle(page);
+    const open = await page.evaluate(() => {
+      const option = document.getElementById('plan-b');
+      return {
+        expanded: document.getElementById('plan-button').getAttribute('aria-expanded'),
+        focus: document.activeElement.id,
+        layer: getComputedStyle(option, '::before').opacity,
+        height: Math.round(document.getElementById('plan-a').getBoundingClientRect().height),
+      };
+    });
+    expect(open).toEqual({ expanded: 'true', focus: 'plan-button', layer: '0', height: 48 });
+    await page.keyboard.press('Escape');
+    await closed(page, 'plan-popup');
+    expect(await focused(page)).toBe('plan-button');
+  });
+});

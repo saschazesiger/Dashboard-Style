@@ -110,11 +110,17 @@
 
   /* Select-only: a button that reads like the field, value and meta in one
      row. A field, not an action: no ripple, no press morph (like a select). */
+  /* Its row never widens the field: what does not fit ends in an ellipsis. */
+  .ds-combo--select {
+    min-width: 0;
+  }
+
   .ds-combo--select .ds-combo__input {
     display: flex;
     align-items: center;
     gap: var(--ds-space-2);
     min-width: 0;
+    overflow: hidden;
     text-align: start;
     cursor: default;
     -webkit-tap-highlight-color: transparent;
