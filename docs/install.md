@@ -15,7 +15,7 @@ Everything a project needs is in `dist/`:
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
 | `themes/` | the shipped themes `dark.css`, `compact.css` and `contrast.css`, loaded after your theme ([theming.md](theming.md#dark-compact-and-contrast)) |
-| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project") and `theme-rules.mjs` (the contrast pairs and motion prefixes they share) |
+| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes) and `css-scan.mjs` (a small CSS reader) |
 | `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
 
 Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
@@ -256,6 +256,24 @@ From 1.6.1 on, the copies share the overlay state that belongs to the page (the 
 numbering of anchor names and tooltip ids, the tooltip roots) through `document[Symbol.for('ds.overlay')]`; see
 [theming.md](theming.md), "Embedded in someone else's page".
 
+## Language and locale
+
+The system has almost no text of its own: labels, titles and messages are the page's markup and arguments. The few
+strings a script adds have an option, so a page in another language passes its own:
+
+| Built-in string | Where | Option |
+|---|---|---|
+| `Close` | the accessible name of the close button of a snackbar that stays | `DS.overlay.toast(region, text, { closeLabel })` |
+
+A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates are the page's
+too: set `lang` on `<html>` (or the widget root), format figures with `countUp(el, value, { format: new
+Intl.NumberFormat(lang).format })`, and dates with `Intl.DateTimeFormat(lang, ...)`; the system never formats either
+by itself.
+
+**Direction.** The components are laid out for left-to-right scripts; `dir="rtl"` is not supported yet (a sheet
+still slides in from the right, the drawer sits on the left, motion does not mirror). Newer rules use logical
+properties (`margin-inline-start`), so a later version can add right-to-left without breaking a theme.
+
 ## Fonts
 
 `fonts/fonts.css` self-hosts Google Sans (variable weight 400-700 with the optical size axis) with relative URLs, so
@@ -380,6 +398,8 @@ started explicitly; the build workflow needs `on: workflow_dispatch`. The templa
 - **Verify**: nothing was committed and the site keeps the old copy. Reproduce it locally (vendor `main` as in step 2,
   then run `VERIFY`), look in [CHANGELOG.md](../CHANGELOG.md) for deprecations and removals, check your code against
   the copy's `deprecations.json` (below), and commit the new copy together with your fix. If the fault is in Dashboard-Style, fix it there; the next run picks it up.
+  `tools/check-project.mjs` (rule `deprecated`) finds those names in your code; a major version has a "Migration"
+  section at the top of its changelog entry (for 2.0: `## 2.0.0`, "Migration") with what a project has to change.
 - **Commit and push**: usually branch protection (above).
 
 Afterwards start it again under Actions → "Update Dashboard-Style" → *Run workflow*, or wait for the next night.

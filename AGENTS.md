@@ -48,7 +48,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `themes/dark.css`, `themes/compact.css`, `themes/contrast.css` | the shipped themes, copied to `dist/themes/`: every non-derived colour role in the dark tones; compact type and heights (default heights back under a coarse pointer); palette-neutral contrast mixes. Contrast pairs and completeness tested in `test/tokens.test.js`; a package that adds a colour role adds its dark and contrast values |
 | `src/deprecations.json` | every deprecated and removed name as data (`dist/deprecations.json`); a removed name gets `removed` set |
 | `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`) |
-| `docs/` | `install`, `tokens`, `theming`, `components`, `motion`, `icons`, `rules` |
+| `docs/` | `install`, `tokens`, `theming`, `components`, `patterns`, `motion`, `icons`, `rules` (with the accessibility statement) |
 | `docs/images/` | the screenshots and GIFs of `README.md`, taken from the live tour, the reference app and the styleguide; retake them when the look changes |
 | `demo/` | the live tour, the start page on GitHub Pages: one page with a working demo of every behaviour (press, controls, live data, overlays, feedback, forms, theming, icons), wired as a project wires it (`theme.js` builds the theme from the choices under "Theme it" and shows its file, `demo.css` project components with the prefix `demo-`, `demo.js` the page; classic scripts on `../dist/`, so it works from disk); `test/browser/demo.spec.js` runs it |
 | `example/` | the reference app, published on GitHub Pages: a device console that uses the system as a project does (`theme.css` the project theme, `app.css` project components with the prefix `ex-`, `data.js` a fake backend, `app.js` the app; classic scripts on `../dist/`, so it works from disk); its `README.md` maps every pattern to its code. It follows the documented markup and the project rules of "Using Dashboard-Style in a project" below; `test/browser/example.spec.js` runs its flows |
@@ -262,7 +262,11 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`, `--ds-draw-length`,
   `--ds-scan-*`, `--ds-indicator-lag`, `--ds-indicator-dur`). Never wrap the theme in `@layer`.
 - `ds.css` sits in `@layer ds.*`, so unlayered project CSS beats every component. Load resets in a layer declared
-  before ds (`@layer reset;` first, or `@layer reset, ds, app;`).
+  before ds (`@layer reset;` first, or `@layer reset, ds, app;`). Never add a `[hidden]` rule: `ds.css` already
+  hides `[hidden]` inside `.ds-theme`.
+- Never write the attributes the system owns (the "system" rows of the "Attributes" table in
+  https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md, such as `data-scrolled`); the page
+  sets only the "page" ones.
 - Never change the look of a `.ds-*` component in project CSS (colour, radius, type, motion); set its hooks
   instead, in the theme or on the element. Placing a `.ds-*` element inside a project container is fine; document
   any deliberate deviation with its reason.

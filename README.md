@@ -162,6 +162,8 @@ Load a theme after `ds.css` and override tokens on the same `.ds-theme` selector
 ```
 
 [`themes/example.css`](themes/example.css) is a template listing every role. Guide: [docs/theming.md](docs/theming.md).
+Shipped themes in `dist/themes/`: `dark.css` (for `prefers-color-scheme: dark`), `compact.css` and `contrast.css` (for
+`prefers-contrast: more`). `node dist/tools/check-theme.mjs theme.css` checks a theme file.
 Want to play first? The [**Theme it**](https://saschazesiger.github.io/Dashboard-Style/#theme) stop of the tour builds
 a theme file from a few clicks and lets you copy it.
 
@@ -184,25 +186,26 @@ Which component fits which need: the table at the top of [docs/components.md](do
 
 | Topic | |
 |---|---|
-| 📦 [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy |
+| 📦 [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy, checking a project, language and locale |
 | 🎚️ [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |
 | 🎨 [Theming](docs/theming.md) | writing a project theme, component hooks |
 | 🧩 [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
+| 🗺️ [Patterns](docs/patterns.md) | page types and flows (list, record, settings, create, delete with undo, bulk actions ...) built from the components |
 | 🌊 [Motion](docs/motion.md) | principles, motion tokens, rules, the choreography of every component, interruption, keyframes and utilities, `DS.motion` (FLIP, `countUp`, `transition`), indicator, morph, ripple, overlays, recipes, view transitions, scroll-driven effects |
 | 🖼️ [Icons](docs/icons.md) | the outline set and its helpers |
-| 📐 [Rules](docs/rules.md) | the design rules the components follow |
+| 📐 [Rules](docs/rules.md) | the design rules the components follow, and the accessibility statement (WCAG 2.2 AA) |
 
 ## 🗂️ Files
 
 ```
-dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css/optional/, css/properties.css), js/, fonts/, LICENSE, SHA256SUMS
+dist/            what you ship (built, committed): ds.css, ds.js, css/ (with css/optional/, css/properties.css), js/, fonts/, themes/, tools/, tokens.json, LICENSE, SHA256SUMS
 src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, index.css (order)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
-themes/          example.css, the theme template
+themes/          example.css, the theme template; dark.css, compact.css, contrast.css, the shipped themes
 demo/            the live tour: one page that demonstrates every behaviour (the start page on GitHub Pages)
 example/         the reference app: a device console on top of dist/, as a project builds one (published on GitHub Pages)
 styleguide/      living styleguide (open index.html; motion.html: the Motion Lab; views.html: view transitions and scrolling)
-scripts/         build.mjs, motion-curves.mjs, vendor.sh, vendor.ps1, site.sh (assembles the GitHub Pages site)
+scripts/         build.mjs, motion-curves.mjs, vendor.sh, vendor.ps1, site.sh (assembles the GitHub Pages site); tools/: the sources of dist/tools/
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
 test/            node --test unit tests, no dependencies; test/browser/ Playwright tests (three engines)
 docs/            the documentation above (docs/images/: the pictures of this README)

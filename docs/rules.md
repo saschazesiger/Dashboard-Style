@@ -102,6 +102,37 @@ the tests in `test/`.
   no `<header>` inside dialogs or sheets (it would be a second banner landmark).
 - Icons are `aria-hidden`; icon-only buttons need `aria-label`.
 
+## Accessibility statement
+
+Dashboard-Style aims at **WCAG 2.2, level AA** for what it draws and does. A page built from it still owes its own
+content: the system guarantees the parts below, the tests named in each row check them, and the last column says what
+the page adds.
+
+| Criterion | What the system guarantees | How it is tested | What the page owes |
+|---|---|---|---|
+| 1.4.3 Contrast (minimum) | every text role passes 4.5:1 on the surfaces it is meant for, in the default palette and in the shipped dark and contrast themes | `test/tokens.test.js` (the pairs of `tools/theme-rules.mjs`); `tools/check-theme.mjs` for a project theme | keep its own colours and its theme at 4.5:1 |
+| 1.4.10 Reflow | the frame and every component work at 320 CSS px without sideways scrolling of the page (tables scroll inside their card) | phone-width screenshots and specs in `test/browser/` | no fixed widths of its own |
+| 1.4.11 Non-text contrast | checkbox and radio parts, field borders, outlines and status icons at 3:1; the focus ring at 3:1 against the surface | `test/tokens.test.js` (control and icon pairs) | the same for its own controls |
+| 1.4.13 Content on hover or focus | tooltips show on hover and focus, stay while the pointer moves onto them, close on Escape and never time out (on touch they stay until dismissed) | `test/browser/toast-tooltip.spec.js` | no tooltip that hides essential content |
+| 2.1.1 Keyboard | every control is a native element or a documented role with its keys: menus, the combobox, tabs, dialogs, sheets and the drawer work with the keyboard alone | `test/browser/popups.spec.js`, `overlay.spec.js`, `shell.spec.js` | use the documented markup; no click-only `div` |
+| 2.4.3 Focus order | overlays move focus in and back to their opener; a removed item hands focus to its neighbour; the drawer comes before the content with a skip link | `test/browser/overlay.spec.js`, `flip.spec.js` | focus the `<h1>` of a new view or page |
+| 2.4.7 Focus visible | a 2px ring (`--ds-focus-outline`) on `:focus-visible`, solid from the first frame, never clipped, kept in forced colours | `test/css.test.js`, focus screenshots in `test/browser/baseline.spec.js` | no `outline: none` of its own |
+| 2.4.11 Focus not obscured (minimum) | snackbars that stay reserve room at the end of the view, sheet body or dialog (`scroll-padding-bottom` from `--ds-toast-reserve`), so a focused control scrolls clear of them; sticky table heads stay inside their card | `test/browser/toast-tooltip.spec.js` | no fixed layer of its own over the content |
+| 2.5.3 Label in name | icon buttons take their name from `aria-label`, text buttons from their text; tooltips repeat the name, never replace it | the documented markup of `docs/components.md`; accessible names asserted in the specs of `test/browser/` | names that match the visible label |
+| 2.5.8 Target size (minimum) | every action is at least 24 by 24 CSS px (buttons 36px, small buttons and chips 32px, check and radio halos 40px; links inside text are exempt); `.ds-touch` raises them to `--ds-touch-target` for a finger | the hook defaults of `docs/theming.md`; `.ds-touch` in `test/browser/touch.spec.js` | keep `.ds-touch` where fingers are the input |
+| 4.1.2 Name, role, value | native inputs stay native; custom widgets carry their roles, `aria-expanded`, `aria-selected`, `aria-checked` and `aria-current`, kept in step by `DS.overlay` and `DS.indicator` | `test/browser/` specs per component | the names of its controls and regions |
+| 4.1.3 Status messages | snackbars are announced politely, errors assertively, once; busy and done faces change only what is seen | `test/browser/toast-tooltip.spec.js` | announce results (`DS.overlay.toast()` or `announce()`), set `lang` |
+
+Beyond the criteria: status is never colour alone (an icon and a word), forced colours keep every edge and state
+(one model per meaning, [AGENTS.md](../AGENTS.md)), and field text is 16px on phones.
+
+Not supported, by decision:
+
+- **The system setting to reduce motion** is not honoured: one motion scheme for every product, short, never
+  flashing, never parallax, and it carries no information on its own; WCAG 2.3.3 (Animation from interactions) is
+  level AAA.
+- **Right-to-left scripts**: the layout is left-to-right; `dir="rtl"` is not supported yet ([install.md](install.md#language-and-locale)).
+
 ## Code
 
 - Tokens on `.ds-theme`, never `:root`; classes and custom properties use the `ds-` prefix; project classes use their

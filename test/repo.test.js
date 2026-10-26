@@ -437,3 +437,37 @@ describe('repository', () => {
     }
   });
 });
+
+describe('language and locale', () => {
+  /** Key names of KeyboardEvent.key that scripts compare against: never UI text. */
+  const KEYS = new Set(['Escape', 'Enter', 'Tab', 'Home', 'End', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace', 'Delete', 'Shift', 'Control', 'Alt', 'Meta', 'Spacebar']);
+
+  it('gives every built-in UI string of src/js an option and a row in docs/install.md, "Language and locale"', () => {
+    const install = read('docs/install.md');
+    const section = install.slice(install.indexOf('## Language and locale'), install.indexOf('\n## ', install.indexOf('## Language and locale') + 1));
+    const rows = section.split('\n').filter((line) => line.startsWith('| `'));
+    const offenders = [];
+    let found = 0;
+    for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {
+      const lines = code(read(file)).split('\n');
+      for (const [index, line] of lines.entries()) {
+        // Messages for developers (errors, console) are not UI.
+        if (/\b(Error|TypeError|RangeError)\(|console\.|\bwarn\w*\(/.test(line)) continue;
+        for (const match of line.matchAll(/(['"`])([A-Z][a-z]+(?: [\w,.'-]+)*)\1/g)) {
+          const text = match[2];
+          if (KEYS.has(text)) continue;
+          found += 1;
+          const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const option = new RegExp(`(\\w+)\\s*(?:\\|\\||\\?\\?|=)\\s*['"\`]${escaped}['"\`]`).exec(line)?.[1];
+          if (!option) {
+            offenders.push(`${file}:${index + 1}: '${text}' has no option (write it as \`option || '${text}'\`)`);
+            continue;
+          }
+          if (!rows.some((row) => row.includes(`\`${text}\``) && row.includes(option))) offenders.push(`${file}:${index + 1}: '${text}' (option ${option}) has no row in "Language and locale"`);
+        }
+      }
+    }
+    assert.ok(found >= 1, 'the walk finds the built-in strings');
+    assert.deepEqual(offenders, []);
+  });
+});
