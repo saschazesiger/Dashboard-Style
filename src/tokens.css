@@ -484,12 +484,14 @@
      *   content-max    widest page content
      *   measure        reading measure of running text (leads, notes)
      *   toast-room     room kept free at a page's end for a two-line snackbar
+     *   touch-target   the smallest target under .ds-touch (utilities.css)
      */
     --ds-topbar-height: 64px;
     --ds-drawer-width: 256px;
     --ds-content-max: 1280px;
     --ds-measure: 76ch;
     --ds-toast-room: 64px;
+    --ds-touch-target: 48px;
   }
 
   /*

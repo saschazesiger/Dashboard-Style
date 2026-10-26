@@ -79,6 +79,72 @@ describe('icons', () => {
   });
 });
 
+describe('icons (2.0)', () => {
+  /** The glyphs that fill when on (.ds-icon--fillable), as docs/icons.md lists them. */
+  const FILLABLE = ['thumbUp', 'thumbDown', 'chat', 'shield', 'folder', 'flag', 'bell', 'home', 'moon', 'play'];
+
+  it('has the 27 glyphs of 2.0 (109 in all) and keeps the name map of fill() in step with the exports', () => {
+    const added = ['chevronFirst', 'chevronLast', 'cornerDownLeft', 'moreHorizontal', 'upload', 'clipboard', 'paperclip', 'send',
+      'printer', 'play', 'pause', 'stopCircle', 'grip', 'bell', 'mic', 'micOff', 'volume', 'helpCircle', 'eye', 'eyeOff', 'home',
+      'panelLeft', 'keyboard', 'terminal', 'tag', 'sun', 'moon'];
+    assert.equal(added.length, 27);
+    for (const name of added) assert.equal(typeof icons[name], 'string', name);
+    assert.equal(GLYPHS.length, 109);
+    const source = read('src/js/icons.js');
+    const map = source.slice(source.indexOf('const GLYPHS = {'), source.indexOf('};', source.indexOf('const GLYPHS = {')));
+    const mapped = [...map.slice(map.indexOf('{') + 1).matchAll(/[A-Za-z]+/g)].map((match) => match[0]);
+    assert.deepEqual([...mapped].sort(), GLYPHS.map(([name]) => name).sort());
+    // The count the README, AGENTS.md and the live tour state.
+    for (const file of ['README.md', 'AGENTS.md']) assert.ok(!/\b82\b (outline )?(icons|glyphs)|icons-82/.test(read(file)), `${file}: 109 icons`);
+  });
+
+  it('ends every fillable glyph with a closed shape (a closed path, rect, circle or ellipse), named in docs/icons.md', () => {
+    const docs = read('docs/icons.md');
+    for (const name of FILLABLE) {
+      const last = icons[name].match(/<(\w+)[^>]*\/>$/);
+      assert.ok(last, name);
+      const closed = last[1] === 'path' ? /[zZ]"\/>$/.test(icons[name]) : ['rect', 'circle', 'ellipse'].includes(last[1]);
+      assert.ok(closed, `${name}: the last element is closed`);
+      assert.match(docs, new RegExp(`\`${name}\``), name);
+    }
+    // flag: the pole first, the closed flag last (its two paths were swapped in 2.0).
+    assert.match(icons.flag, /^<path d="M4 22v-7"\/><path d="M4 15s[^"]*z"\/>$/);
+  });
+
+  it('fills [data-icon] elements through DOM APIs, idempotently, and names unknown glyphs', () => {
+    const make = (tag, attributes = {}) => ({
+      nodeType: 1, tagName: tag, attributes: { ...attributes }, childNodes: [], ownerDocument: null,
+      get firstChild() { return this.childNodes[0] ?? null; },
+      getAttribute(name) { return name in this.attributes ? this.attributes[name] : null; },
+      hasAttribute(name) { return name in this.attributes; },
+      setAttribute(name, value) { this.attributes[name] = String(value); },
+      appendChild(child) { this.childNodes.push(child); return child; },
+      replaceChildren(...nodes) { this.childNodes = nodes; },
+    });
+    const doc = { nodeType: 9, createElementNS: (ns, tag) => make(tag) };
+    const spans = [make('span', { 'data-icon': 'bell', 'data-icon-size': '16' }), make('span', { 'data-icon': 'check' })];
+    const root = { nodeType: 9, ...doc, querySelectorAll: () => spans };
+    root.createElementNS = doc.createElementNS;
+    assert.equal(icons.fill(root), 2);
+    assert.equal(spans[0].childNodes.length, 1);
+    const svg = spans[0].childNodes[0];
+    assert.equal(svg.tagName, 'svg');
+    assert.deepEqual([svg.attributes.width, svg.attributes['aria-hidden']], ['16', 'true']);
+    assert.equal(spans[1].childNodes[0].attributes.width, '20', 'default 20px');
+    assert.deepEqual(svg.childNodes.map((child) => child.tagName), ['path', 'path']);
+    // Again: nothing new; a changed size draws again.
+    assert.equal(icons.fill(root), 0);
+    assert.equal(spans[0].childNodes[0], svg);
+    spans[0].attributes['data-icon-size'] = '20';
+    assert.equal(icons.fill(root), 1);
+    // An unknown name throws after the known ones are drawn.
+    spans.push(make('span', { 'data-icon': 'nope' }), make('span', { 'data-icon': 'sun' }));
+    assert.throws(() => icons.fill(root), /Unknown icon: nope/);
+    assert.equal(spans[3].childNodes[0].tagName, 'svg');
+    assert.match(read('docs/icons.md'), /`fill\(root\?\)`/);
+  });
+});
+
 describe('indicator, dom, ripple and overlay', () => {
   it('exports the documented functions', () => {
     assert.equal(typeof indicator.createIndicator, 'function');

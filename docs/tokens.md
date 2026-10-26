@@ -178,6 +178,7 @@ Only floating layers cast shadows; hierarchy comes from hairlines, tonal surface
 | `--ds-content-max` | 1280px | widest page content |
 | `--ds-measure` | 76ch | reading measure of leads and notes |
 | `--ds-toast-room` | 64px | room at a page's end for a two-line snackbar |
+| `--ds-touch-target` | 48px | the smallest target under `.ds-touch` (every target hook, [theming.md](theming.md#touch-screens)) |
 
 ## 3. Hooks and runtime properties
 

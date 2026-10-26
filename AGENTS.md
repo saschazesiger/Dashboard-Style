@@ -6,7 +6,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 ## In brief
 
 - A **generic, themeable design system** for admin dashboards in the Material 3 / Google console style: CSS tokens
-  (`--ds-*`), components (`.ds-*`), motion, 82 outline icons and Google Sans. Plain CSS and dependency-free JS, MIT.
+  (`--ds-*`), components (`.ds-*`), motion, 109 outline icons and Google Sans. Plain CSS and dependency-free JS, MIT.
 - **Project-neutral.** Nothing in the repository names a project, organisation, place, brand colour or brand font
   that uses it; `test/repo.test.js` fails on a list of such names. Examples use generic content (devices, tickets,
   "Product", Ada Lovelace). Anything specific to one product stays in that product's repository.

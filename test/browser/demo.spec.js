@@ -35,7 +35,7 @@ test('starts without a console error; a drawer link takes the view to its sectio
   await open(page);
   await expect(page.locator('#facts .ds-tile')).toHaveCount(4);
   await expect(page.locator('#live-tiles .ds-tile')).toHaveCount(4);
-  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(82);
+  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(109);
   await expect(page.locator('html')).toHaveClass(/ds-ripples/);
   await expect(page.locator('#nav [aria-current="page"]')).toHaveAttribute('href', '#welcome');
   await page.locator('#nav a[href="#overlays"]').click();

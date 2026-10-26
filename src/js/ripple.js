@@ -20,7 +20,7 @@
  * the row or card; a press on another link or control inside a row or
  * a <div> card is that control's own, so the host gets none), .ds-radio (a radio card, also
  * when its own input is pressed), .ds-combo__toggle, .ds-menu__item,
- * .ds-errors summary and [data-ds-ripple]; data-ds-ripple="off" on a host
+ * .ds-errors summary, .ds-pressable and [data-ds-ripple]; data-ds-ripple="off" on a host
  * or an ancestor opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
  * card whose input is disabled, .ds-radio--disabled), switch, checkbox and
  * radio inputs (their halo is the press), and presses other than the
@@ -90,6 +90,7 @@ export const RIPPLE_HOSTS = [
   '.ds-combo__toggle',
   '.ds-menu__item',
   '.ds-errors summary',
+  '.ds-pressable',
   '[data-ds-ripple]',
 ].join(', ');
 

@@ -159,7 +159,7 @@ and keyed to your root like the tokens. The list holds every element the documen
 stays out: icons keep their own attributes):
 
 ```css
-.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td) {
+.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, hr, kbd) {
   all: revert-layer;
 }
 ```
@@ -212,6 +212,27 @@ names and tooltip ids never repeat, and a trigger inside both copies' tooltip ro
 innermost root). A copy before 1.6.1 keeps its own count of these: there, avoid overlays of both copies open at
 once.
 
+## Touch screens
+
+A touch screen or a kiosk needs bigger targets. `.ds-touch` on `.ds-theme` (or on any container) sets every target
+hook to `--ds-touch-target` (48px): `--ds-btn-height`, `--ds-btn-sm-height`, `--ds-btn-icon-size`,
+`--ds-btn-sm-icon-size`, `--ds-input-height`, `--ds-check-height`, `--ds-check-target`, `--ds-switch-height`,
+`--ds-switch-halo`, `--ds-chip-height`, `--ds-combo-option-height`, `--ds-menu-item-height`,
+`--ds-drawer-item-height`, `--ds-toast-close-size`, `--ds-tabs-height` and `--ds-disclosure-height`; fields take the
+input role (`--ds-input-font: var(--ds-font-input)`, 16px, so iOS does not zoom), and `.ds-hover-actions` always
+show. It is never automatic: a laptop with a touch screen keeps the dense layout unless the page opts in, for example
+when any pointer is coarse:
+
+```js
+const coarse = matchMedia('(any-pointer: coarse)');
+const touch = () => document.documentElement.classList.toggle('ds-touch', coarse.matches);
+touch();
+coarse.addEventListener('change', touch);
+```
+
+A theme value on the same element wins over `.ds-touch` (themes are unlayered): set `--ds-touch-target` to change
+the size, not each hook.
+
 ## Component hooks
 
 Hooks are read by one component with a fallback. Set them on `.ds-theme` to change every instance, or on an element
@@ -257,6 +278,9 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
 | `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
 | `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
+| `--ds-pressable-radius` | `--ds-radius-sm` | `.ds-pressable`, the press model on a project element |
+| `--ds-pressable-layer` | `currentColor` | the colour of the state layer of `.ds-pressable` |
+| `--ds-kbd-border`, `--ds-kbd-bg` | `--ds-line-2`, `--ds-surface` | `.ds-kbd`: the box of a key |
 | `--ds-status-radius` | `--ds-radius-md` | status chip |
 | `--ds-spinner-track`, `--ds-spinner-color` | none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`) | spinner: the track behind the arc, the arc |
 | `--ds-spinner-width` | 2px (`--determinate`: 4px) | the spinner's ring width (instead of `border-width`) |
