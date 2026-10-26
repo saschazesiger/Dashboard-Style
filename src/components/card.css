@@ -264,15 +264,20 @@
      ring on the card's own ::after (the state layer is ::before, the
      stretched link of the <div> form is the action's ::after), drawn over
      the hairline, so the focus ring stays free; the ring shows at once. */
+  /* The text roles turn to the ink on the card itself, so its title,
+     .ds-muted and .ds-meta follow by inheritance: a rule that reached them
+     through :has() (card:has(selected action) .ds-muted) put every text
+     change on the page through that check (perf.spec, style recalc). */
   .ds-card--interactive:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]),
   .ds-card--interactive:has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])) {
+    --ds-text: var(--ds-on-accent);
+    --ds-text-2: var(--ds-on-accent);
     border-color: transparent;
     background: var(--ds-card-selected-bg, var(--ds-accent));
     color: var(--ds-on-accent);
   }
 
-  .ds-card--interactive:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]) :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta),
-  .ds-card--interactive:has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])) :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta) {
+  .ds-card--interactive:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]) :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta) {
     color: var(--ds-on-accent);
   }
 
