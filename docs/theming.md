@@ -13,7 +13,10 @@ A theme is one stylesheet, loaded after `ds.css`, that overrides roles (layer 2)
 
 1. **Same element, same selector.** Write `.ds-theme { ... }` and load it after `ds.css`. Roles built from other
    tokens (every type role reads `--ds-font` and the weights; `--ds-link`, `--ds-focus` and `--ds-action-ink` read
-   `--ds-primary`; `--ds-focus-ring` reads `--ds-surface`) are resolved on the element that declares them. Change
+   `--ds-primary`; `--ds-focus-ring` reads `--ds-surface`; the derived mixes `--ds-primary-hover`,
+   `--ds-primary-pressed`, `--ds-link-underline`, `--ds-fill-round`, `--ds-disabled-fill` and `--ds-disabled-ink`
+   read `--ds-primary`, `--ds-link` and `--ds-text`; `--ds-surface-overlay` and `--ds-surface-popover` read
+   `--ds-surface`) are resolved on the element that declares them. Change
    the source token on that element and the derived roles follow; change it on a descendant and they silently keep
    the old value.
 2. **Never set motion tokens** (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`,
@@ -41,9 +44,10 @@ project component of your own lists its properties with the motion tokens.
 
 ## Recipes
 
-**Brand palette.** Usually six roles are enough; `--ds-link`, `--ds-focus` and `--ds-action-ink` follow
-`--ds-primary`, while `--ds-inverse-primary` (the snackbar icon on the dark inverse surface) is a light tint of the
-brand colour that the theme sets itself (at least 3:1 against `--ds-inverse`).
+**Brand palette.** Usually four roles are enough; `--ds-link`, `--ds-focus`, `--ds-action-ink`,
+`--ds-primary-hover`, `--ds-primary-pressed` and `--ds-link-underline` follow `--ds-primary`, while
+`--ds-inverse-primary` (the snackbar icon on the dark inverse surface) is a light tint of the brand colour that the
+theme sets itself (at least 3:1 against `--ds-inverse`). Add `--ds-backdrop` for a tinted page.
 
 ```css
 .ds-theme {
@@ -51,8 +55,6 @@ brand colour that the theme sets itself (at least 3:1 against `--ds-inverse`).
   --ds-accent: #d6e4f5;
   --ds-on-accent: #0b2440;
   --ds-inverse-primary: #a6c8ff;
-  --ds-backdrop: #f2f4f7;
-  --ds-link-underline: rgba(29, 78, 137, .4);
 }
 ```
 
@@ -397,8 +399,80 @@ brand with the drawer icons). The pill's corners, `--ds-indicator-radius`, belon
 drawer's sets half the item height); the property does not inherit, so set it on that class, never on `.ds-theme`.
 `--ds-indicator-lag` is a motion hook: themes never set it.
 
+## Dark, compact and contrast
+
+Three themes ship in `dist/themes/`. Load them after `ds.css` and after your own theme, each for the condition it
+serves; they set roles and hooks on `.ds-theme` like any theme, never motion tokens.
+
+| File | What it sets | Load it |
+|---|---|---|
+| `themes/dark.css` | every colour role that does not follow another role, in the Material 3 dark tones (backdrop `#131314`, surface `#1e1f20`, primary `#a8c7fa`), the floating surfaces a tone above the page (`--ds-surface-overlay`, `--ds-surface-popover`), lighter chart series (`--ds-chart-2` to `--ds-chart-4`), `--ds-color-scheme: dark` and shadows on black | `media="(prefers-color-scheme: dark)"`, or by the user's choice |
+| `themes/compact.css` | 13/18 UI text and shorter controls (`--ds-btn-height` 32px, `--ds-input-height` 36px, table rows, menu, drawer items and tabs 40px, chips 28px); under `@media (pointer: coarse)` the default heights come back, and field text keeps 16px on phones | for desktop consoles; touch density is `.ds-touch` (opt-in, never automatic) |
+| `themes/contrast.css` | `--ds-text-2` as the text colour, a stronger `--ds-text-3`, hairlines at the outline colour, darker outlines and field borders, 3px focus rings, solid link underlines, a stronger tint; mixed from your text and surface roles, so it works on any palette, dark included | `media="(prefers-contrast: more)"` |
+
+```html
+<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="vendor/dashboard-style/themes/dark.css" media="(prefers-color-scheme: dark)" id="ds-dark">
+<link rel="stylesheet" href="vendor/dashboard-style/themes/contrast.css" media="(prefers-contrast: more)">
+```
+
+A user's choice of appearance (light, dark or the system's) sets the dark link's `media` before the first paint, in an
+inline script right after the links:
+
+```html
+<script>
+  (function () {
+    var choice = null;
+    try { choice = localStorage.getItem('appearance'); } catch (e) { /* storage blocked: follow the system */ }
+    var link = document.getElementById('ds-dark');
+    link.media = choice === 'dark' ? 'all' : choice === 'light' ? 'not all' : '(prefers-color-scheme: dark)';
+  })();
+</script>
+```
+
+The dark theme replaces the brand colours with the system's own dark tones. A brand that needs a dark mode copies
+`themes/dark.css` into its own `theme-dark.css`, changes `--ds-primary`, `--ds-on-primary`, `--ds-accent` and
+`--ds-on-accent` (and the inverse primary), and checks the pairs (below). A project role of its own that carries a
+colour (`--<prefix>-*`) needs its dark value there too. Status keeps its words and icons in every theme; the
+contrast theme never relies on colour alone either.
+
 ## Checking a theme
 
-Open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component re-renders with it.
-Check text contrast with your browser's accessibility tools and look at the page with forced colors emulated
+The copy checks a theme file without network or dependencies (Node 18 or later):
+
+```sh
+node vendor/dashboard-style/tools/check-theme.mjs css/theme.css
+node vendor/dashboard-style/tools/check-theme.mjs css/theme-dark.css --with vendor/dashboard-style/themes/dark.css
+```
+
+It prints one line per finding, `<file>:<line> <error|warning|info> <rule> <message>`, and exits 1 on an error. The
+files are read as loaded after `ds.css`, in the order given; `--with` files load after them (a shipped theme your
+theme is used with) and count for the contrast pairs.
+
+| Rule | Level | What |
+|---|---|---|
+| `unknown` | error | a `--ds-*` name that is not a token of the copy (`tokens.json`): a typo or a name of another version |
+| `motion` | error | a motion token or motion hook (rule 2) |
+| `root` | error | a rule on `:root` (tokens live on `.ds-theme`) |
+| `layer` | error | `@layer` (a theme stays unlayered) |
+| `important` | error | `!important` |
+| `input-font` | error | `--ds-font-input` under 16px (a warning for `--ds-input-font`) |
+| `removed` | error | a name `deprecations.json` lists as removed, with its replacement |
+| `deprecated` | warning | a deprecated name, with its replacement |
+| `not-themeable` | warning | a scale, runtime or internal property (`tokens.json` says which) |
+| `contrast` | warning | a text pair under 4.5:1, a checkbox, icon, outline or chart mark pair under 3:1 (rule 3); `var()`, hex, `rgb()` and `color-mix(in srgb, ...)` are resolved, any other form is reported as `info`, "not checked" |
+| `restyle` | warning | a component selector with a property that is not a custom property |
+
+Every rule whose selector names `.ds-theme` sets roles: plain `.ds-theme` (or `.ds-theme.my-widget`) is the base, and
+every other selector (`.ds-theme[data-accent="teal"]`) or `@media` block is a variant, checked over the base and,
+with `--with`, over the base with those files; a variant warns only when it fails in each, so the dark tone of an
+accent (`.ds-theme[data-dark][data-accent="teal"]`) passes over the dark theme and the light tone over the base. The
+pairs are those of the repository's own tests (`tools/theme-rules.mjs`), so a theme that passes keeps what the default
+palette keeps.
+
+In the browser, open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component
+re-renders with it, and the "Theme check" card in the Colour section lists the same contrast pairs as the browser
+computes them (exactly, `color-mix()` included), the field text size, and the motion tokens, `:root`, `@layer` and
+`!important` of the loaded file; each row with an icon and a word. Look at the page with forced colors emulated too
 (DevTools, Rendering panel).

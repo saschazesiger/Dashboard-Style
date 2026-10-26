@@ -20,6 +20,12 @@
  *   deprecations.json  the deprecated and removed names as data
  *                   (src/deprecations.json, checked and written with the
  *                   version of package.json)
+ *   themes/         the shipped themes (dark.css, compact.css, contrast.css)
+ *   tools/          dependency-free checks for projects (scripts/tools/):
+ *                   verify.mjs and verify.sh (a copy against SHA256SUMS),
+ *                   check-theme.mjs, check-project.mjs, and the modules
+ *                   they share (theme-rules.mjs, css-scan.mjs)
+ *   tokens.json     every --ds-* name with its layer, default and type
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above
  *
@@ -94,6 +100,156 @@ export function deprecationsJson(source, info) {
     return Object.fromEntries(DEPRECATION_KEYS.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
   });
   return `${JSON.stringify({ version: info.version, names }, null, 2)}\n`;
+}
+
+/** The shipped themes (themes/<name>.css to dist/themes/); themes/example.css is the template, not shipped. */
+export const SHIPPED_THEMES = ['dark', 'compact', 'contrast'];
+
+const stripCssComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+const collapse = (value) => value.replace(/\s+/g, ' ').trim();
+
+/** The body of the first `.ds-theme {` rule of tokens.css (found by brace depth). */
+function mainThemeRule(source) {
+  const start = source.indexOf('.ds-theme {');
+  if (start < 0) throw new Error('src/tokens.css: no .ds-theme rule');
+  let depth = 0;
+  let end = source.indexOf('{', start);
+  do {
+    if (source[end] === '{') depth += 1;
+    else if (source[end] === '}') depth -= 1;
+    end += 1;
+  } while (depth > 0);
+  return source.slice(source.indexOf('{', start) + 1, end - 1);
+}
+
+/** The fallback of the first `var(<name>, <fallback>)` in a stylesheet (balanced parentheses), or undefined. */
+function fallbackOf(css, name) {
+  const at = css.search(new RegExp(`var\\(\\s*${name}\\s*,`));
+  if (at < 0) return undefined;
+  let i = css.indexOf(',', at) + 1;
+  let depth = 0;
+  let value = '';
+  for (; i < css.length; i += 1) {
+    const char = css[i];
+    if (char === '(') depth += 1;
+    else if (char === ')') {
+      if (depth === 0) break;
+      depth -= 1;
+    }
+    value += char;
+  }
+  return collapse(value);
+}
+
+const MOTION_FAMILY = /^--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)(?![a-z])/;
+
+/** The type of a token from its name and default value, following var() to other tokens. */
+function typeOf(name, value, known, seen = new Set()) {
+  if (/^--ds-(dur|delay|hold|loop)-|^--ds-stagger$|^--ds-indicator-dur$|-(duration|delay)$/.test(name)) return 'duration';
+  if (/-easing$/.test(name)) return 'easing';
+  if (/^--ds-ease/.test(name) || /-ease(-[a-z])?$/.test(name)) return 'easing';
+  if (/^--ds-font(-|$)|-font$/.test(name)) return 'font';
+  if (/^--ds-weight-|^--ds-z-|^--ds-state-|-opacity$/.test(name)) return 'number';
+  if (/^--ds-elev-|-shadow$|^--ds-focus-ring$/.test(name)) return 'shadow';
+  const text = value ?? '';
+  const reference = /^var\((--ds-[\w-]+)[,)]/.exec(text);
+  if (reference && known.has(reference[1]) && !seen.has(reference[1])) {
+    const target = known.get(reference[1]);
+    return typeOf(reference[1], target, known, new Set([...seen, name]));
+  }
+  if (/^(#[0-9a-f]{3,8}|rgba?\(|color-mix\(|transparent$|currentColor$)/i.test(text)) return 'color';
+  if (/^-?\d*\.?\d+$/.test(text)) return 'number';
+  if (/^(-?\d*\.?\d+(px|%|rem|em|ch|vw|vh|svh|dvh|deg)|0)$/.test(text) || /^(calc|min|max)\(.*\d(px|%|rem|ch|vw|vh)/.test(text)) return 'length';
+  if (/^(\d*\.?\d+m?s|calc\(\d*\.?\d+m?s )/.test(text)) return 'duration';
+  if (/^(cubic-bezier|linear)\(/.test(text)) return 'easing';
+  return 'other';
+}
+
+/**
+ * dist/tokens.json: every --ds-* name of the system as data, for tools and
+ * editors. `{ version, tokens: [{ name, layer, default, type, themeable,
+ * component?, deprecated? }] }`, sorted by name:
+ *   scale        layer 1 of tokens.css (before the "2. Palette" marker), and --ds-time-scale
+ *   role         layer 2 of tokens.css (after the marker): what a theme sets
+ *   hook         a row of the "Component hooks" table of docs/theming.md, read by one component with a fallback
+ *   motion-hook  a per-element motion setting (--ds-motion-*, --ds-enter-* ...): themes never set it
+ *   runtime      written by a script or the page (src/js/, @property registrations of tokens.css and the indicator)
+ *   internal     set by a component on itself (read it, never set it)
+ * `default` is the declared value (roles, scales), the component's fallback
+ * (hooks) or the registered initial value; `themeable` is true for roles and
+ * hooks only. `deprecated` is the version that deprecated a name still in
+ * use (src/deprecations.json); removed names are not listed.
+ */
+export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
+  const raw = mainThemeRule(read('src/tokens.css'));
+  const rawMarker = raw.indexOf('── 2. Palette');
+  if (rawMarker < 0) throw new Error('src/tokens.css: no "── 2. Palette" marker');
+  const declaredIn = (text) => [...stripCssComments(text).matchAll(/(--ds-[\w-]+)\s*:\s*([^;]+);/g)].map((m) => [m[1], collapse(m[2])]);
+  const entries = new Map();
+  const add = (name, fields) => { if (!entries.has(name)) entries.set(name, { name, ...fields }); };
+  for (const [name, value] of declaredIn(raw.slice(0, rawMarker))) add(name, { layer: 'scale', default: value });
+  for (const [name, value] of declaredIn(raw.slice(rawMarker))) add(name, { layer: 'role', default: value });
+
+  const cssFiles = stripCssComments(read('src/index.css')).match(/@import '([^']+)'/g).map((line) => `src/${line.slice(9, -1).replace(/^\.\//, '')}`);
+  const sources = new Map(cssFiles.map((path) => [path, stripCssComments(read(path))]));
+  const scripts = MODULES.map((name) => read(`src/js/${name}.js`)).join('\n');
+  const writtenByScript = (name) => scripts.includes(`'${name}'`) || scripts.includes(`"${name}"`) || scripts.includes(`${name}:`);
+
+  // Hooks: the first column of the docs/theming.md table.
+  const theming = read('docs/theming.md');
+  const from = theming.indexOf('## Component hooks');
+  const table = theming.slice(from, theming.indexOf('\n## ', from + 1));
+  const hookNames = table.split('\n').filter((line) => line.startsWith('| `')).flatMap((line) => [...line.split(' | ')[0].matchAll(/`(--ds-[\w-]+)`/g)].map((m) => m[1]));
+  for (const name of hookNames) {
+    const file = [...sources].find(([, css]) => new RegExp(`var\\(\\s*${name}\\s*,`).test(css));
+    add(name, { layer: MOTION_FAMILY.test(name) ? 'motion-hook' : 'hook', default: file ? fallbackOf(file[1], name) : null, component: file ? file[0].replace(/^src\/(components\/)?/, '').replace(/\.css$/, '') : null });
+  }
+
+  // Registered properties, then every other name the stylesheets and scripts use.
+  for (const [path, css] of sources) {
+    for (const match of css.matchAll(/@property\s+(--ds-[\w-]+)\s*\{([^}]*)\}/g)) {
+      const name = match[1];
+      const initial = /initial-value:\s*([^;]+);/.exec(match[2]);
+      let layer = 'internal';
+      if (name === '--ds-time-scale') layer = 'scale';
+      else if (MOTION_FAMILY.test(name)) layer = 'motion-hook';
+      else if (path === 'src/tokens.css' || writtenByScript(name)) layer = 'runtime';
+      add(name, { layer, default: initial ? collapse(initial[1]) : null });
+    }
+  }
+  const used = new Set();
+  // Custom properties only: read with var() or declared (timeline and view-transition names are dashed idents too).
+  for (const css of sources.values()) for (const match of css.matchAll(/var\(\s*(--ds-[\w-]+)|(--ds-[\w-]+)\s*:/g)) used.add(match[1] ?? match[2]);
+  for (const match of scripts.matchAll(/['"](--ds-[\w-]+)['"]/g)) used.add(match[1]);
+  const setInCss = (name) => [...sources.values()].some((css) => new RegExp(`${name}\\s*:`).test(css));
+  for (const name of [...used].sort()) {
+    if (entries.has(name)) continue;
+    let layer;
+    const readers = [...sources].filter(([, css]) => css.includes(name)).map(([path]) => path);
+    if (MOTION_FAMILY.test(name) || (readers.length === 1 && readers[0] === 'src/motion.css' && !writtenByScript(name))) layer = 'motion-hook';
+    else if (writtenByScript(name) || !setInCss(name)) layer = 'runtime';
+    else layer = 'internal';
+    const file = [...sources].find(([, css]) => new RegExp(`var\\(\\s*${name}\\s*,`).test(css));
+    add(name, { layer, default: file ? fallbackOf(file[1], name) : null });
+  }
+
+  const deprecations = JSON.parse(read('src/deprecations.json')).names;
+  const known = new Map([...entries.values()].map((entry) => [entry.name, entry.default]));
+  const tokens = [...entries.values()].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).flatMap((entry) => {
+    const deprecation = deprecations.find((d) => d.name === entry.name);
+    if (deprecation?.removed) return [];
+    const out = {
+      name: entry.name,
+      layer: entry.layer,
+      default: entry.default ?? null,
+      type: typeOf(entry.name, entry.default, known),
+      themeable: entry.layer === 'role' || entry.layer === 'hook',
+    };
+    if (entry.component) out.component = entry.component;
+    if (deprecation) out.deprecated = deprecation.deprecated;
+    return [out];
+  });
+  return `${JSON.stringify({ version: info.version, tokens }, null, 2)}\n`;
 }
 
 /** The JS modules bundled into ds.js, in this order, as DS.<name>. */
@@ -271,6 +427,9 @@ export function build() {
     const path = posix(relative(join(ROOT, 'fonts'), file));
     out.set(`fonts/${path}`, /\.(css|txt)$/.test(path) ? Buffer.from(readText(file), 'utf8') : readFileSync(file));
   }
+  for (const name of SHIPPED_THEMES) text(`themes/${name}.css`, readText(join(ROOT, 'themes', `${name}.css`)));
+  for (const file of filesIn(join(ROOT, 'scripts/tools'))) text(`tools/${posix(relative(join(ROOT, 'scripts/tools'), file))}`, readText(file));
+  text('tokens.json', tokensJson(info));
   text('LICENSE', readText(join(ROOT, 'LICENSE')));
 
   const sums = [...out.keys()].sort().map((path) => `${createHash('sha256').update(out.get(path)).digest('hex')}  ${path}`);

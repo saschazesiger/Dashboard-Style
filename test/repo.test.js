@@ -437,3 +437,47 @@ describe('repository', () => {
     }
   });
 });
+
+describe('language and locale', () => {
+  /** Key names of KeyboardEvent.key and DOM values that scripts compare against: never UI text. */
+  const NOT_UI = new Set(['Escape', 'Enter', 'Tab', 'Home', 'End', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace', 'Delete', 'Shift', 'Control', 'Alt', 'Meta', 'Spacebar',
+    // DataTransfer.types of a drag with files.
+    'Files']);
+
+  it('gives every built-in UI string of src/js an option and a row in docs/install.md, "Language and locale"', () => {
+    const install = read('docs/install.md');
+    const section = install.slice(install.indexOf('## Language and locale'), install.indexOf('\n## ', install.indexOf('## Language and locale') + 1));
+    const rows = section.split('\n').filter((line) => line.startsWith('| `'));
+    const offenders = [];
+    let found = 0;
+    for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {
+      // Comments blanked with their line breaks kept, so the line numbers hold.
+      const source = read(file).replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' ')).replace(/^[ \t]*\/\/.*$/gm, '');
+      const lines = source.split('\n');
+      for (const [index, line] of lines.entries()) {
+        // Messages for developers (errors, console) are not UI.
+        if (/\b(Error|TypeError|RangeError)\(|console\??\.|\bwarn\w*\??\.?\(/.test(line)) continue;
+        // A quoted word or phrase that starts with a capital ('Close', 'OK'), or a template that does (`Moved to ${n}`).
+        for (const match of line.matchAll(/(['"])([A-Z][a-z]+(?: [\w,.'-]+)*|OK)\1|`([A-Z][a-z]+ [^`]*)`/g)) {
+          const text = match[2] ?? match[3];
+          if (NOT_UI.has(text)) continue;
+          found += 1;
+          // The option is the name the string falls back from: `options.label ?? 'Close'`, `label || 'Close'`,
+          // `(options.announce ?? ((i, n) => `...`))`; a constant (`const TEXT = '...'`) takes the option it is the fallback of.
+          let option = [...line.slice(0, match.index).matchAll(/(\w+)\s*(?:\|\||\?\?)/g)].pop()?.[1];
+          const constant = /^\s*const ([A-Z_]+)\s*=\s*$/.exec(line.slice(0, match.index))?.[1];
+          if (!option && constant) option = new RegExp(`(\\w+)\\s*(?:\\|\\||\\?\\?)\\s*${constant}\\b`).exec(source)?.[1];
+          if (!option) {
+            offenders.push(`${file}:${index + 1}: '${text}' has no option (write it as \`option ?? '${text}'\`)`);
+            continue;
+          }
+          // The row names the string and the option (the public name may carry a prefix: label in closeLabel).
+          if (!rows.some((row) => row.includes(`\`${text}\``) && row.toLowerCase().includes(option.toLowerCase()))) offenders.push(`${file}:${index + 1}: '${text}' (option ${option}) has no row in "Language and locale"`);
+        }
+      }
+    }
+    assert.ok(found >= 1, 'the walk finds the built-in strings');
+    assert.deepEqual(offenders, []);
+  });
+});
+

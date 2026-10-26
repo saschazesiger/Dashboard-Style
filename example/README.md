@@ -6,7 +6,7 @@ fake backend. Copy from it. Live on GitHub Pages (`.github/workflows/pages.yml`)
 | File | What |
 |---|---|
 | `index.html` | the app frame, the overlays (side sheet, dialogs, menu) and the load order: fonts, `ds.css`, the theme, the project's own CSS, then `ds.js` and the scripts |
-| `theme.css` | the project theme: a component hook, the project's own `--ex-*` tokens, two accents as role overrides |
+| `theme.css` | the project theme: a component hook, the project's own `--ex-*` tokens, two accents as role overrides (and their dark tones for `themes/dark.css`) |
 | `app.css` | the project's own components, prefix `ex-`, from tokens only |
 | `data.js` | the fake backend (`window.ExampleApi`), promises with latency; a project calls its API here |
 | `app.js` | the app: rendering, navigation, live data, every interaction |
@@ -43,4 +43,5 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Dialog with a form, validation on submit (the count said with `DS.overlay.announce()`), combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |
 | Switches that apply at once | Settings | the `data-setting` change |
 | Radio cards that switch the theme (tokens on `.ds-theme`) | Settings | the `accent` change, `theme.css` |
+| Appearance: the shipped `themes/dark.css` on a link whose `media` follows the choice, set before the first paint | Settings | the `appearance` change, `applyAppearance()`, the script in `index.html` |
 | Form saved with `DS.motion.busy()`, a disclosure (`.ds-disclosure`), icon swap, a field and its button (`.ds-field__row`) | Settings | the `org-form` submit, `copy-key` |

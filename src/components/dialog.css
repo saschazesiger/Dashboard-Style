@@ -228,7 +228,7 @@
     gap: var(--ds-space-4);
     border: var(--ds-dialog-border, 1px solid transparent);
     border-radius: var(--ds-radius-dialog);
-    background: var(--ds-surface);
+    background: var(--ds-surface-overlay);
     box-shadow: var(--ds-dialog-shadow, var(--ds-elev-overlay));
     /* Its own ink on its own surface (a widget without .ds-base). */
     color: var(--ds-text);

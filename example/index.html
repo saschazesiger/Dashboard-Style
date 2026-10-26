@@ -11,10 +11,20 @@
 <link rel="stylesheet" href="../dist/fonts/fonts.css">
 <link rel="stylesheet" href="../dist/ds.css">
 <link rel="stylesheet" href="theme.css">
+<!-- The shipped dark theme, after the project theme: on when the device asks, or by the choice under Settings. -->
+<link rel="stylesheet" href="../dist/themes/dark.css" media="(prefers-color-scheme: dark)" id="ex-dark">
 <link rel="stylesheet" href="app.css">
 <script>
-  // The accent chosen under Settings, before the first paint (no flash of the default theme).
+  // The accent and the appearance chosen under Settings, before the first paint (no flash of the default theme).
   try { var accent = localStorage.getItem('ex-accent'); if (accent) document.documentElement.setAttribute('data-ex-accent', accent); } catch (error) { /* storage blocked */ }
+  (function () {
+    var choice = null;
+    try { choice = localStorage.getItem('ex-appearance'); } catch (error) { /* storage blocked: follow the system */ }
+    var link = document.getElementById('ex-dark');
+    link.media = choice === 'dark' ? 'all' : choice === 'light' ? 'not all' : '(prefers-color-scheme: dark)';
+    // data-ex-dark says the dark theme applies: theme.css keys the accents' dark tones to it.
+    document.documentElement.toggleAttribute('data-ex-dark', matchMedia(link.media).matches);
+  })();
 </script>
 </head>
 <body>

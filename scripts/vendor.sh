@@ -14,8 +14,9 @@
 set -eu
 
 REPO="saschazesiger/Dashboard-Style"
+ME=vendor.sh
 
-die() { echo "vendor.sh: $*" >&2; exit 1; }
+die() { echo "$ME: $*" >&2; exit 1; }
 
 usage() {
   sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
@@ -36,7 +37,9 @@ sums() {
   done
 }
 
-# Verifies <dir>/SHA256SUMS: every listed file matches, nothing is missing,
+# Verifies <dir>/SHA256SUMS (the copy's tools/verify.sh holds the same
+# function and tools/verify.mjs the same rules; a test keeps them in step):
+# every listed file matches, nothing is missing,
 # nothing unlisted was added (a symbolic link neither: the file listing
 # cannot see it, so any link fails the check).
 check_dir() {
@@ -44,14 +47,14 @@ check_dir() {
   [ -f "$dir/SHA256SUMS" ] || die "$dir/SHA256SUMS not found"
   links=$(cd "$dir" && find . -type l | sed 's|^\./||' | LC_ALL=C sort)
   if [ -n "$links" ]; then
-    echo "vendor.sh: $dir contains symbolic links, which SHA256SUMS cannot cover:" >&2
+    echo "$ME: $dir contains symbolic links, which SHA256SUMS cannot cover:" >&2
     printf '%s\n' "$links" >&2
     return 1
   fi
   expected=$(cd "$dir" && tr -d '\r' < SHA256SUMS)
   actual=$(cd "$dir" && sums)
   if [ "$expected" != "$actual" ]; then
-    echo "vendor.sh: $dir does not match its SHA256SUMS:" >&2
+    echo "$ME: $dir does not match its SHA256SUMS:" >&2
     printf '%s\n' "$expected" > "${TMPDIR:-/tmp}/ds-expected.$$"
     printf '%s\n' "$actual" > "${TMPDIR:-/tmp}/ds-actual.$$"
     diff "${TMPDIR:-/tmp}/ds-expected.$$" "${TMPDIR:-/tmp}/ds-actual.$$" >&2 || true

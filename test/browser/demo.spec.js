@@ -167,7 +167,7 @@ test('the theme choice restyles the page through its tokens, shows its file and 
   expect(await primary()).toBe('#006a6a');
   await expect(page.locator('#theme-code')).toContainText('--ds-primary: #006a6a;');
   await expect(page.locator('#theme-code')).toContainText('--ds-radius-action: 4px;');
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('demo-theme')))).toEqual({ accent: 'teal', shape: 'square', density: 'comfortable' });
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('demo-theme')))).toEqual({ accent: 'teal', shape: 'square', density: 'comfortable', scheme: 'light' });
   await page.locator('#theme-form [type="reset"]').click();
   expect(await primary()).toBe(before);
   await expect(page.locator('#theme-form input[value="blue"]')).toBeChecked();

@@ -14,6 +14,9 @@
  * - Set everything on .ds-theme, the element that carries the class (for a
  *   full app: <html>). Roles derived from others (type roles from --ds-font,
  *   --ds-link from --ds-primary, the focus ring) are resolved there.
+ * - Roles marked "derived; set only to differ" are colour mixes of their
+ *   source (--ds-primary, --ds-text, --ds-link): they follow a new palette
+ *   by themselves, so delete them unless you want another value.
  * - Never set motion tokens (--ds-dur-*, --ds-ease-*, --ds-distance-*,
  *   --ds-scale-*, --ds-loop-*, --ds-delay-*, --ds-hold-*, --ds-stagger,
  *   --ds-time-scale) or motion hooks (--ds-motion-*, --ds-enter-*,
@@ -32,6 +35,13 @@
   --ds-surface-low: #f6fafa;
   --ds-surface-high: #e3eaea;
   --ds-surface-highest: #d9e1e1;
+  /* Floating layers: dialog box and side sheet (overlay); menus, the
+     combobox list and the skip link (popover). A dark theme lifts them a
+     tone above --ds-surface. */
+  --ds-surface-overlay: var(--ds-surface);
+  --ds-surface-popover: var(--ds-surface);
+  /* light or dark: scrollbars, pickers and native controls follow it. */
+  --ds-color-scheme: light;
   --ds-skeleton-highlight: var(--ds-surface-high);
 
   /* ── Text and lines ── */
@@ -45,8 +55,9 @@
   /* ── Primary and tint ── */
   --ds-primary: #006a6a;
   --ds-on-primary: #ffffff;
-  --ds-primary-hover: #147575;
-  --ds-primary-pressed: #005a5a;
+  /* Derived; set only to differ. */
+  --ds-primary-hover: color-mix(in srgb, var(--ds-primary), var(--ds-on-primary) 8%);
+  --ds-primary-pressed: color-mix(in srgb, var(--ds-primary), #000 15%);
   --ds-accent: #cce8e7;
   --ds-on-accent: #002020;
   --ds-on-accent-icon: var(--ds-on-accent);
@@ -70,7 +81,7 @@
   --ds-inverse-primary: #4cdada;
   --ds-scrim: rgba(0, 0, 0, .32);
   --ds-scrim-nested: rgba(0, 0, 0, .16);   /* a dialog over an open sheet or drawer */
-  --ds-fill-round: rgba(25, 28, 28, .08);
+  --ds-fill-round: color-mix(in srgb, var(--ds-text) 8%, transparent);   /* derived; set only to differ */
   --ds-code-bg: var(--ds-surface-low);
 
   /* ── Charts ──
@@ -91,12 +102,13 @@
      var(--ds-state-disabled); --ds-disabled-fill: initial;
      --ds-disabled-ink: initial; */
   --ds-disabled-opacity: 1;
-  --ds-disabled-fill: rgba(25, 28, 28, .12);
-  --ds-disabled-ink: rgba(25, 28, 28, .38);
+  /* Derived; set only to differ. */
+  --ds-disabled-fill: color-mix(in srgb, var(--ds-text) 12%, transparent);
+  --ds-disabled-ink: color-mix(in srgb, var(--ds-text) 38%, transparent);
 
   /* ── Links and focus ── */
   --ds-link: var(--ds-primary);
-  --ds-link-underline: rgba(0, 106, 106, .4);
+  --ds-link-underline: color-mix(in srgb, var(--ds-link) 40%, transparent);   /* derived; set only to differ */
   --ds-link-underline-hover: var(--ds-link);
   --ds-link-underline-thickness: 1px;
   --ds-link-underline-offset: 3px;

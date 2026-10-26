@@ -77,6 +77,9 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-surface-low` | `#f8fafd` | tiles, filled cards, code, read-only fields, neutral alerts |
 | `--ds-surface-high` | `#e9eef6` | filled fields (search, toolbar select), neutral chips |
 | `--ds-surface-highest` | `#dde3ea` | tracks (switch), skeleton lines, hovered filled fields |
+| `--ds-surface-overlay` | `= --ds-surface` | floating panels: the dialog box, the side sheet panel (a dark theme lifts it a tone above the surface, where a shadow no longer shows) |
+| `--ds-surface-popover` | `= --ds-surface` | floating lists: menus, the combobox list, the skip link |
+| `--ds-color-scheme` | `light` | `light` or `dark`: `:where(.ds-theme)` sets `color-scheme` from it, so scrollbars, date pickers and native controls match the palette (zero specificity: a page or component that sets `color-scheme` wins) |
 | `--ds-skeleton-highlight` | `var(--ds-surface-high)` | the band of the skeleton wave that passes over the bones |
 | `--ds-text` | `#1f1f1f` | text, values, titles |
 | `--ds-text-2` | `#444746` | labels, leads, meta, inactive icons; on any surface |
@@ -85,7 +88,7 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-line-2` | `#c4c7c5` | outlines of controls: outlined buttons, chips |
 | `--ds-outline` | `#747775` | field borders, checkboxes, switch |
 | `--ds-primary` / `--ds-on-primary` | `#0b57d0` / `#ffffff` | strongest action, focus, switch on, progress, links |
-| `--ds-primary-hover` / `--ds-primary-pressed` | `#1f64d4` / `#094ab1` | reference values for controls that cannot lay a state layer |
+| `--ds-primary-hover` / `--ds-primary-pressed` | derived: `--ds-primary` with 8% of `--ds-on-primary` / with 15% black (`#1f64d4` / `#094ab1`) | reference values for controls that cannot lay a state layer; set them only to differ |
 | `--ds-accent` / `--ds-on-accent` | `#d3e3fd` / `#041e49` | the one tint: active navigation, selected chip, tonal button, tracks, selection |
 | `--ds-on-accent-icon` | `= --ds-on-accent` | icons on the tint (empty-state disc) |
 | `--ds-action-ink` | `= --ds-primary` | label of outlined and text buttons |
@@ -96,16 +99,21 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-inverse`, `--ds-on-inverse`, `--ds-inverse-primary` | `#303030`, `#f2f2f2`, `#a8c7fa` | snackbar, tooltip |
 | `--ds-scrim` | `rgba(0,0,0,.32)` | behind dialogs, sheets, the modal drawer; never blurred |
 | `--ds-scrim-nested` | `rgba(0,0,0,.16)` | behind a dialog over another open modal (`.ds-dialog--nested`): about 43% together instead of 54% |
-| `--ds-fill-round` | `rgba(31,31,31,.08)` | disc of `.ds-btn--disc` |
+| `--ds-fill-round` | derived: `--ds-text` at 8% (`rgba(31,31,31,.08)`) | disc of `.ds-btn--disc` |
 | `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`) |
 | `--ds-chart-1`, `--ds-chart-2`, `--ds-chart-3`, `--ds-chart-4` | `= --ds-primary`, `#c76a00`, `#00897b`, `#9334e6` | the four chart series, in this order ([Chart colours](#chart-colours)) |
 | `--ds-chart-track` | `= --ds-surface-high` | the track of a meter |
 | `--ds-chart-neutral` | `= --ds-outline` | the rest of a highlighted series (`.ds-columns--mini`), a neutral meter or key |
 | `--ds-chart-warning`, `--ds-chart-error` | `= --ds-warning`, `= --ds-error` | the tones of single-series marks |
 | `--ds-disabled-opacity` | 1 | opacity of every disabled control (buttons, chips, the switch, checkboxes and radios) |
-| `--ds-disabled-fill` / `--ds-disabled-ink` | `rgba(31,31,31,.12)` / `.38` | container or outline, and ink (label, check, handle, box) of every disabled control: buttons, chips, the switch, checkboxes and radios |
+| `--ds-disabled-fill` / `--ds-disabled-ink` | derived: `--ds-text` at 12% / 38% (`rgba(31,31,31,.12)` / `.38`) | container or outline, and ink (label, check, handle, box) of every disabled control: buttons, chips, the switch, checkboxes and radios |
 
-All text roles pass WCAG AA (4.5:1) on the surfaces they are meant for; the tests check the pairs. The tint is too
+Derived roles are `color-mix(in srgb, ...)` of their source, so a theme that sets `--ds-primary`, `--ds-text` or
+`--ds-link` on `.ds-theme` gets matching hover, pressed, disc, disabled and underline colours; set a derived role
+only to differ (it then keeps your value).
+
+All text roles pass WCAG AA (4.5:1) on the surfaces they are meant for; the tests check the pairs (including text on
+the floating surfaces). The tint is too
 light to carry a state alone: a selection always adds a check, a weight or an aria attribute.
 
 ### Chart colours
@@ -122,7 +130,7 @@ checks the same and keeps adjacent series apart for colour-blind readers (lightn
 | Token | Default | Use |
 |---|---|---|
 | `--ds-link` | `= --ds-primary` | link colour; links are always underlined |
-| `--ds-link-underline` / `--ds-link-underline-hover` | `rgba(11,87,208,.4)` / `= --ds-link` | underline at rest / on hover |
+| `--ds-link-underline` / `--ds-link-underline-hover` | derived: `--ds-link` at 40% (`rgba(11,87,208,.4)`) / `= --ds-link` | underline at rest / on hover |
 | `--ds-link-underline-thickness` / `--ds-link-underline-offset` | 1px / 3px | underline geometry, the same everywhere |
 | `--ds-focus` | `= --ds-primary` | colour of every focus indicator |
 | `--ds-focus-width` / `--ds-focus-offset` | 2px / 2px | |

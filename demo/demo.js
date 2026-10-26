@@ -837,7 +837,7 @@
 
   themeForm.addEventListener('change', () => {
     const data = new FormData(themeForm);
-    showTheme(DemoTheme.apply({ accent: data.get('accent'), shape: data.get('shape'), density: data.get('density') }));
+    showTheme(DemoTheme.apply({ accent: data.get('accent'), shape: data.get('shape'), density: data.get('density'), scheme: data.get('scheme') }));
   });
   themeForm.addEventListener('reset', (event) => {
     event.preventDefault();

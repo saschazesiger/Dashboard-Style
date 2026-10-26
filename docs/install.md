@@ -14,6 +14,9 @@ Everything a project needs is in `dist/`:
 | `deprecations.json` | every deprecated and removed name as data, for a project's own checks (see "Deprecated and removed names") |
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
+| `themes/` | the shipped themes `dark.css`, `compact.css` and `contrast.css`, loaded after your theme ([theming.md](theming.md#dark-compact-and-contrast)) |
+| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes) and `css-scan.mjs` (a small CSS reader) |
+| `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
 
 Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
 files name under "Progressive:"; older engines on that floor get the same page without them.
@@ -94,13 +97,38 @@ files:
   `1.0.0-dev`.
 - `SHA256SUMS`: `sha256sum` format, sorted by path, LF line ends, covering every file including `VERSION`.
 
-Verify it in your tests or CI so edits to the vendored files fail loudly: run `vendor.sh --check`, or compare the
-hashes yourself (`cd vendor/dashboard-style && sha256sum -c SHA256SUMS`, plus a check that no unlisted file or symbolic link
-was added). On Windows checkouts, mark the folder binary so Git does not rewrite line ends:
+Verify it in your tests or CI so edits to the vendored files fail loudly ("Verify a copy", below). On Windows
+checkouts, mark the folder binary so Git does not rewrite line ends:
 
 ```gitattributes
 vendor/dashboard-style/** -text
 ```
+
+### Verify a copy
+
+The copy carries its own check, so a project needs neither the network nor this repository to verify it:
+
+```sh
+node vendor/dashboard-style/tools/verify.mjs        # Node 18 or later, no dependency
+sh vendor/dashboard-style/tools/verify.sh           # POSIX sh with sha256sum or shasum (a Go or other non-Node project)
+sh vendor.sh --check vendor/dashboard-style         # the same check from the vendoring script
+```
+
+Each checks the copy it sits in (`verify.mjs --dir <path>` and `verify.sh <path>` check another one, a built `dist/`
+too) and exits 1 on any difference, naming the files. The three apply the same rules (`verify.sh` holds the very
+function of `vendor.sh`; a test keeps them and `verify.mjs` in step), and the format of `SHA256SUMS` is a contract
+that a project may check with its own code as well:
+
+- one line per file: the SHA-256 in lowercase hex, two spaces, the path relative to the copy with forward slashes;
+- every file of the copy is listed, `VERSION` included (a vendored copy) and `SHA256SUMS` itself excluded;
+- sorted by path in byte order (`LC_ALL=C sort`), LF line ends (a CR is ignored, so a Windows checkout still
+  verifies);
+- no symbolic link anywhere in the copy (a listing cannot cover one), nothing missing, changed or added.
+
+The file names of a copy stay the same across versions (`ds.css`, `ds.js`, `css/...`, `js/...`, `fonts/...`; new files
+only add to them), so a service worker that precaches them by name keeps working after an update. Only
+`fonts/fonts.css` refers to other files of the copy, with relative `url()`s; no other file depends on where the copy
+lives.
 
 ## CDN
 
@@ -228,6 +256,29 @@ From 1.6.1 on, the copies share the overlay state that belongs to the page (the 
 numbering of anchor names and tooltip ids, the tooltip roots) through `document[Symbol.for('ds.overlay')]`; see
 [theming.md](theming.md), "Embedded in someone else's page".
 
+## Language and locale
+
+The system has almost no text of its own: labels, titles and messages are the page's markup and arguments. The few
+strings a script adds have an option, so a page in another language passes its own:
+
+| Built-in string | Where | Option |
+|---|---|---|
+| `Close` | the accessible name of the close button of a snackbar that stays | `DS.overlay.toast(region, text, { closeLabel })` |
+| `OK` | the one button of a built alert dialog | `DS.overlay.alert({ closeLabel })` |
+| `Cancel` | the cancel button of a built confirm or prompt dialog | `DS.overlay.confirm({ cancelLabel })`, `DS.overlay.prompt({ cancelLabel })` |
+| `Confirm` | the confirm button of a built confirm or prompt dialog (name the consequence instead: "Delete device") | `DS.overlay.confirm({ confirmLabel })`, `DS.overlay.prompt({ confirmLabel })` |
+| `That did not work. Try again.` | the error snackbar when `onConfirm` of a built dialog fails | `DS.overlay.confirm({ errorText })`, `DS.overlay.prompt({ errorText })` |
+| `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
+
+A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates are the page's
+too: set `lang` on `<html>` (or the widget root), format figures with `countUp(el, value, { format: new
+Intl.NumberFormat(lang).format })`, and dates with `Intl.DateTimeFormat(lang, ...)`; the system never formats either
+by itself.
+
+**Direction.** The components are laid out for left-to-right scripts; `dir="rtl"` is not supported yet (a sheet
+still slides in from the right, the drawer sits on the left, motion does not mirror). Newer rules use logical
+properties (`margin-inline-start`), so a later version can add right-to-left without breaking a theme.
+
 ## Fonts
 
 `fonts/fonts.css` self-hosts Google Sans (variable weight 400-700 with the optical size axis) with relative URLs, so
@@ -243,6 +294,79 @@ in your theme and skip `fonts.css`.
 
 In a widget that lives in a shadow root, link `fonts.css` in the host document: Chromium and Firefox ignore
 `@font-face` inside a shadow root (see theming.md, "Embedded in someone else's page").
+
+## Tokens as data
+
+`tokens.json` lists every `--ds-*` name of the copy, generated by the build from `tokens.css`, the hooks table of
+[theming.md](theming.md#component-hooks) and the stylesheets (a test keeps the three in step), so editors, linters and
+your own checks need not parse CSS:
+
+```json
+{
+  "version": "2.0.0",
+  "tokens": [
+    { "name": "--ds-btn-height", "layer": "hook", "default": "36px", "type": "length", "themeable": true, "component": "button" },
+    { "name": "--ds-primary", "layer": "role", "default": "#0b57d0", "type": "color", "themeable": true }
+  ]
+}
+```
+
+- `layer`: `scale` (layer 1, the same in every theme), `role` (layer 2), `hook` (layer 3), `motion-hook` (a
+  per-element motion setting), `runtime` (written by a script or the page) or `internal` (set by a component on
+  itself; read it, never set it).
+- `default`: the declared value (scales, roles), the component's fallback (hooks) or the registered initial value;
+  `null` where there is none. `type`: `color`, `length`, `font`, `duration`, `easing`, `number`, `shadow` or
+  `other`.
+- `themeable`: `true` for roles and hooks only: a theme sets nothing else.
+- `component` (hooks): the stylesheet that reads it. `deprecated` (when present): the version that deprecated the
+  name; `deprecations.json` has the replacement, and removed names are not listed.
+
+## Check a project
+
+`tools/check-project.mjs` runs the project rules of AGENTS.md ("Using Dashboard-Style in a project") on your code,
+without dependencies (Node 18 or later). Describe the project once in `ds-check.json` (paths and globs relative to
+it; globs know `*`, `**` and `?`):
+
+```json
+{
+  "prefix": "app",
+  "css": ["css/**/*.css"],
+  "js": ["js/**/*.js"],
+  "html": ["*.html", "templates/**/*.html"],
+  "themes": ["css/theme.css"],
+  "themesWith": ["vendor/dashboard-style/themes/dark.css"],
+  "vendor": "vendor/dashboard-style",
+  "exceptions": [
+    { "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "the bar is dark; no hook for it yet" }
+  ]
+}
+```
+
+```sh
+node vendor/dashboard-style/tools/check-project.mjs --config ds-check.json
+```
+
+It prints `<file>:<line> <rule> <message>` per finding (warnings say so) and exits 1 on an error, 2 on a broken
+configuration. An exception silences one rule for a file (a path or a glob) and, when it names one, a selector; its
+`reason` is required. `themesWith` (optional) names the shipped themes your theme is used with; the `themes` rule passes
+them to `check-theme.mjs --with`.
+
+| Rule | Level | What |
+|---|---|---|
+| `vendor` | error | the copy verifies against its `SHA256SUMS` ("Verify a copy") |
+| `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links the one that defines it |
+| `deprecated` | error, warning | a name of `deprecations.json`: removed names fail, deprecated ones warn |
+| `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`) |
+| `keyframes` | error | an own `@keyframes`, or an animation that names anything but a `ds-*` keyframe of the copy |
+| `themes` | error, warning | the theme files, through `tools/check-theme.mjs` |
+| `layers` | error | an element-only rule (`button`, `body`, `*`) outside a layer, which beats every component (put resets in `@layer reset` declared before ds), and `!important` |
+| `hidden` | error | a `[hidden]` rule: `ds.css` hides `[hidden]` already |
+| `restyle` | error | a project rule that reaches a `.ds-*` element (`.ds-btn`, `.app-bar .ds-btn`, `.ds-card p`) and sets anything but `--ds-*` hooks and placement (margins, grid and flex placement, position and offsets, sizes, `z-index`) |
+| `attributes` | error | a script that writes an attribute the system owns (the "Attributes" table of [components.md](components.md#attributes)); `data-toast-reserve` only next to `reserve: false` |
+| `dom` | warning | `innerHTML` with ds markup: re-render with `DS.dom.morphHtml` |
+| `pressable` | warning | a `::before` state layer of your own (`currentColor` or a `--ds-state-*` opacity): `.ds-pressable` gives a project element the system's hover, press and focus |
+
+The nightly template runs it as its optional `CHECK` step.
 
 ## Updating
 
@@ -262,21 +386,27 @@ In a widget that lives in a shadow root, link `fonts.css` in the host document: 
 | Value | Meaning |
 |---|---|
 | `DEST` | path of the copy, e.g. `vendor/dashboard-style` |
+| `SETUP` | the toolchain your checks need: `node` (set up when the repository has a `package.json`, or for `CHECK`), `go` (when it has a `go.mod`) or `none`; another one is a commented step to fill in |
+| `CHECK` | optional project check of the new copy, e.g. `node "$DEST/tools/check-project.mjs" --config ds-check.json`; empty to skip |
 | `VERIFY` | command that must pass before the update is committed (`npm ci && npm test`); empty to skip |
 | `BUILD_WORKFLOW` | workflow file that builds and deploys, started with `workflow_dispatch`; empty if your build starts on push by itself (Cloudflare Pages, Netlify, Vercel) |
 
 It runs daily at 02:30 UTC and on demand (*Run workflow*). If the commit in `DEST/VERSION` equals `main` of
-Dashboard-Style, the run ends there. Otherwise it vendors `main`, runs `VERIFY`, commits the copy to the branch it runs
-on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
+Dashboard-Style, the run ends there. Otherwise it vendors `main`, verifies the copy (`tools/verify.sh`, no Node
+needed), runs `CHECK` and `VERIFY`, commits the copy to the branch it runs on and starts `BUILD_WORKFLOW`. A push made with `GITHUB_TOKEN` starts no other workflow, which is why the build is
 started explicitly; the build workflow needs `on: workflow_dispatch`. The template asks for `contents: write` and
 `actions: write`; a branch protection rule that blocks direct pushes also blocks the update.
 
 #### When the update fails
 
+- **Check**: the project check found a removed name, a restyled component or another rule broken by the new copy
+  (its output names file, line and rule); fix the project as for **Verify**.
 - **Compare** or **Vendor main**: a network or GitHub API problem; run it again.
 - **Verify**: nothing was committed and the site keeps the old copy. Reproduce it locally (vendor `main` as in step 2,
   then run `VERIFY`), look in [CHANGELOG.md](../CHANGELOG.md) for deprecations and removals, check your code against
   the copy's `deprecations.json` (below), and commit the new copy together with your fix. If the fault is in Dashboard-Style, fix it there; the next run picks it up.
+  `tools/check-project.mjs` (rule `deprecated`) finds those names in your code; a major version has a "Migration"
+  section at the top of its changelog entry (for 2.0: `## 2.0.0`, "Migration") with what a project has to change.
 - **Commit and push**: usually branch protection (above).
 
 Afterwards start it again under Actions → "Update Dashboard-Style" → *Run workflow*, or wait for the next night.
