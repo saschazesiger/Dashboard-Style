@@ -16,6 +16,8 @@
      button or a rail's drawer label hide their text. */
   .fx-collapsed { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .fx-dot { display: inline-grid; place-items: center; width: 32px; height: 32px; }
+  /* A content panel under 600px: .ds-btn--adaptive folds its label. */
+  .fx-narrow { width: 400px; }
 </style>
 </head>
 <body>
@@ -23,7 +25,8 @@
      text shows only while the text is cut off (a 160px column with a name
      that fits and one that does not, a td that clips an inline link), a tip
      that adds something always shows (a .ds-sr label, a label hidden as a
-     1×1px box); touch: a tap on an image or a blocked control, a long press
+     1×1px box: the generic declarations, a folded .ds-btn--adaptive label
+     and the rail foot's .ds-drawer__label); touch: a tap on an image or a blocked control, a long press
      on the others, a link that keeps its own long press; a trigger that the
      page removes (test/browser/tooltip-touch.spec.js). -->
 <div class="ds-theme fx-root" id="theme">
@@ -44,6 +47,14 @@
       <a href="#report" data-tip="Opens the monthly report" id="press-link">Report</a>
       <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Refresh" data-tip="Refresh the list" id="gone"><span data-icon="sync" data-size="20"></span></button>
     </p>
+    <div class="ds-content fx-narrow">
+      <p class="fx-row">
+        <button class="ds-btn ds-btn--adaptive" type="button" id="folded" data-tip="Download"><span data-icon="download" data-size="16"></span><span class="ds-btn__label">Download</span></button>
+      </p>
+    </div>
+    <div class="ds-drawer__foot ds-drawer__foot--rail">
+      <a class="ds-drawer__item" href="#settings" id="rail-item" data-tip="Settings"><span data-icon="settings" data-size="20"></span><span class="ds-drawer__label">Settings</span></a>
+    </div>
   </main>
 </div>
 

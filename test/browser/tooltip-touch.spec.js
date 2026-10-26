@@ -5,7 +5,9 @@
  * - A tip that repeats the trigger's visible text shows only while that
  *   text is cut off (a name in a 160px column; a td that clips an inline
  *   link) and never describes the trigger; a tip that adds something (a
- *   .ds-sr label, a label hidden as a 1×1px box) shows as before.
+ *   .ds-sr label, a label hidden as a 1×1px box: the generic declarations,
+ *   a folded .ds-btn--adaptive label, the rail foot's .ds-drawer__label)
+ *   shows as before.
  * - Touch: a tap on an image or a blocked control shows the tip at once and
  *   a second tap hides it; a long press shows the others and swallows the
  *   click that follows; a link keeps its long press; a press that moves is
@@ -65,9 +67,15 @@ test.describe('when a tip shows', () => {
 
   test('a label hidden by .ds-sr or as a 1×1px box is not visible text: the tip shows', async ({ page }) => {
     await load(page);
-    for (const id of ['adaptive', 'sr-label']) {
+    // The real classes first: their labels are 1×1px boxes, so the tip shows.
+    const boxes = await page.evaluate(() => ['#folded .ds-btn__label', '#rail-item .ds-drawer__label'].map((sel) => {
+      const rect = document.querySelector(sel).getBoundingClientRect();
+      return rect.width <= 1 && rect.height <= 1;
+    }));
+    expect(boxes, 'the folded label and the rail label are 1×1px boxes').toEqual([true, true]);
+    for (const [id, text] of [['adaptive', 'Export'], ['sr-label', 'Sync now'], ['folded', 'Download'], ['rail-item', 'Settings']]) {
       await focusByKeyboard(page, page.locator(`#${id}`));
-      expect((await tip(page)).state, id).toBe('open');
+      expect((await tip(page)), id).toMatchObject({ state: 'open', text });
     }
   });
 
