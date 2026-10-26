@@ -202,10 +202,13 @@
       ['--ds-on-warning-container', '--ds-warning-container'],
       ['--ds-text', '--ds-warning-surface'],
       ['--ds-on-inverse', '--ds-inverse'],
+      ['--ds-inverse-primary', '--ds-inverse'],
       ['--ds-on-error-container', '--ds-surface'],
       ['--ds-primary', '--ds-surface'],
       ['--ds-primary', '--ds-surface-low'],
       ['--ds-on-error-container', '--ds-surface-low'],
+      ['--ds-text', '--ds-surface-high'],
+      ['--ds-text', '--ds-surface-low'],
       ['--ds-text', '--ds-surface-overlay'],
       ['--ds-text-2', '--ds-surface-overlay'],
       ['--ds-text', '--ds-surface-popover'],
@@ -225,6 +228,8 @@
       ['--ds-outline', '--ds-surface'],
       ['--ds-inverse-primary', '--ds-inverse'],
       ['--ds-focus', '--ds-surface'],
+      ['--ds-surface-highest', '--ds-outline'],
+      ['--ds-primary', '--ds-on-primary'],
     ],
   };
   var PAIR_MIN = { text: 4.5, control: 3, icon: 3 };

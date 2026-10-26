@@ -388,10 +388,8 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
   const known = new Map(JSON.parse(tokensJson(packageInfo())).tokens.map((entry) => [entry.name, entry]));
   /** Hooks a shipped theme sets before the package that adds them merged (2.0 fan-out); the sweep empties it. */
   const ADDED_BY_LATER_MERGES = new Map([
-    ['--ds-input-height', 'FM-6 (WP8)'],
     ['--ds-table-head-height', 'TB-6 (WP5)'],
     ['--ds-table-row-height', 'TB-6 (WP5)'],
-    ['--ds-menu-item-height', 'OV-11 (WP3)'],
     ['--ds-tabs-height', 'FR-5 (WP9)'],
   ]);
   /** The declarations of a theme on .ds-theme outside @media (what applies without a condition). */
@@ -425,7 +423,7 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
       assert.doesNotMatch(css, /@layer|!important|:root/, `${file}: unlayered, on .ds-theme, no !important`);
       for (const match of css.matchAll(/(--ds-[\w-]+)\s*:/g)) {
         const entry = known.get(match[1]);
-        if (!entry && ADDED_BY_LATER_MERGES.has(match[1])) continue;
+        if (ADDED_BY_LATER_MERGES.has(match[1]) && entry?.layer !== 'hook') continue;
         assert.ok(entry, `${file}: ${match[1]} is a token of the system`);
         assert.ok(entry.themeable, `${file}: ${match[1]} is a role or a hook (${entry.layer})`);
       }
@@ -473,5 +471,9 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     }
     for (const name of Object.keys(compact).filter((n) => n.startsWith('--ds-font-'))) assert.match(compact[name], / 13px\/18px /, name);
     assert.ok(!('--ds-font-input' in compact) && !('--ds-font-reading' in compact), 'phones keep the 16px field text');
+    // A theme root with .ds-touch keeps its touch targets: an unlayered theme on that element would beat it.
+    for (const match of stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      if (/--[\w-]+-height\s*:/.test(match[2])) assert.equal(match[1].trim(), '.ds-theme:not(.ds-touch)', 'the heights skip a .ds-touch theme root');
+    }
   });
 });

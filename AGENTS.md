@@ -264,9 +264,9 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
 - `ds.css` sits in `@layer ds.*`, so unlayered project CSS beats every component. Load resets in a layer declared
   before ds (`@layer reset;` first, or `@layer reset, ds, app;`). Never add a `[hidden]` rule: `ds.css` already
   hides `[hidden]` inside `.ds-theme`.
-- Never write the attributes the system owns (the "system" rows of the "Attributes" table in
-  https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md, such as `data-scrolled`); the page
-  sets only the "page" ones.
+- Never write the attributes the system owns (those the "Attributes" table in
+  https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md lists as written by the system, such
+  as `data-scrolled`); the page sets only its own ones.
 - Never change the look of a `.ds-*` component in project CSS (colour, radius, type, motion); set its hooks
   instead, in the theme or on the element. Placing a `.ds-*` element inside a project container is fine; document
   any deliberate deviation with its reason.

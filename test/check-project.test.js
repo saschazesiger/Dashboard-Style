@@ -12,9 +12,12 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { build } from '../scripts/build.mjs';
 import { checkProject, globRegExp, literalKinds, RULES, SYSTEM_ATTRIBUTES } from '../scripts/tools/check-project.mjs';
 import { read } from './helpers.js';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const VENDOR = 'vendor/dashboard-style';
 
@@ -231,6 +234,14 @@ describe('tools/check-project.mjs', () => {
     assert.deepEqual(literalKinds('box-shadow', 'inset 0 0 0 1px var(--ds-line)'), [], 'a hairline ring in a token colour');
     assert.deepEqual(literalKinds('box-shadow', '0 2px 6px var(--ds-scrim)'), ['shadow'], 'an elevation of its own');
     assert.deepEqual(literalKinds('background', 'color-mix(in srgb, var(--ds-text) 8%, transparent)'), ['colour'], 'a mix of tokens is still a new colour: make it a token');
+  });
+
+  it('passes the reference app without an error (example/ keeps the project rules, AGENTS.md)', () => {
+    const files = Object.fromEntries(readdirSync(join(ROOT, 'example')).filter((name) => /\.(css|js|html)$/.test(name)).map((name) => [`example/${name}`, read(`example/${name}`)]));
+    const config = { prefix: 'ex', css: ['example/*.css'], js: ['example/*.js'], html: ['example/*.html'], themes: ['example/theme.css'], themesWith: [`${VENDOR}/themes/dark.css`], vendor: VENDOR };
+    const { findings, errors } = run(files, config);
+    assert.deepEqual(errors, []);
+    assert.deepEqual(findings.filter((f) => f.level === 'error').map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`), []);
   });
 
   it('keeps its rule ids in the AGENTS.md project block and its system attributes in the Attributes table', () => {

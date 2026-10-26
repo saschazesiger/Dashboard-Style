@@ -104,7 +104,7 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
         if (deprecation?.removed) add('error', path, line, 'removed', `${property} was removed in ${deprecation.removed}${deprecation.replacement ? `: use ${deprecation.replacement}` : ''}`);
         else if (deprecation) add('warning', path, line, 'deprecated', `${property} is deprecated since ${deprecation.deprecated}${deprecation.replacement ? `: use ${deprecation.replacement}` : ''}`);
         else if (!entry) add('error', path, line, 'unknown', `${property} is not a token of this version (tokens.json)`);
-        else if (!entry.themeable) add('warning', path, line, 'not-themeable', `${property} is a ${entry.layer} property: themes set roles and hooks only`);
+        else if (!entry.themeable) add('warning', path, line, 'not-themeable', `${property} is ${/^[aeiou]/.test(entry.layer) ? 'an' : 'a'} ${entry.layer} property: themes set roles and hooks only`);
         if (property === '--ds-input-font') {
           const size = fontSize(value.startsWith('var(') ? '' : value);
           if (size !== null && size < 16) add('warning', path, line, 'input-font', `${property}: ${size}px on phones makes iOS zoom into fields`);

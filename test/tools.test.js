@@ -150,8 +150,8 @@ describe('tools/check-theme.mjs', () => {
 
   it('passes the template, the shipped themes and the reference app theme without an error', () => {
     for (const file of ['themes/example.css', 'themes/dark.css', 'themes/contrast.css', 'themes/compact.css', 'example/theme.css']) {
-      // The compact hooks of other 2.0 packages are unknown until they merge.
-      const errors = check(read(file)).filter((f) => f.level === 'error' && !/--ds-(input|table-head|table-row|menu-item|tabs)-height/.test(f.message));
+      // The compact hooks of other 2.0 packages are unknown until they merge (tables: WP5, tabs: WP9).
+      const errors = check(read(file)).filter((f) => f.level === 'error' && !/--ds-(table-head|table-row|tabs)-height/.test(f.message));
       assert.deepEqual(errors, [], file);
     }
     assert.deepEqual(rules(check(read('themes/dark.css')), 'warning'), [], 'dark.css keeps its pairs');
