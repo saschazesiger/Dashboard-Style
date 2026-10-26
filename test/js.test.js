@@ -1653,6 +1653,12 @@ function helperDom() {
         set marginBottom(value) { self.props.set('margin-bottom', value); },
         get marginBottom() { return self.props.get('margin-bottom') ?? ''; },
         set flexShrink(value) { self.props.set('flex-shrink', value); },
+        set cssText(value) {
+          self.props.clear();
+          for (const part of String(value).split(';').map((each) => each.trim()).filter(Boolean)) {
+            self.props.set(part.slice(0, part.indexOf(':')).trim(), part.slice(part.indexOf(':') + 1).trim());
+          }
+        },
       };
     }
 
@@ -1791,16 +1797,23 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
   it('watchScrolled: one sentinel, data-scrolled on the default target only on a change, owned; destroy() takes it all back', () => {
     const { h, observers } = helperDom();
     const view = h('main', { class: 'ds-view' }, h('p', {}));
-    view.computed = { rowGap: '16px' };
+    view.computed = { rowGap: '16px', position: 'relative' };
     const app = h('div', { class: 'ds-app' }, view);
     const handle = dom.watchScrolled(view);
     assert.equal(dom.watchScrolled(view), handle, 'once per scroller');
     const sentinel = view.children[0];
     assert.deepEqual([sentinel.hasAttribute('data-ds-keep'), sentinel.hasAttribute('data-ds-sentinel'), sentinel.getAttribute('aria-hidden')], [true, true, 'true']);
-    assert.equal(sentinel.style.marginBottom, '-17px', 'the row gap is taken back');
+    assert.deepEqual([sentinel.style.getPropertyValue('position'), sentinel.style.getPropertyValue('top'), sentinel.style.marginBottom],
+      ['absolute', '0', ''], 'a positioned scroller: out of flow at the padding edge, no track, no gap');
+    // A static scroller would not contain it: in flow, its margin takes back a flex gap.
+    const plain = h('div', {}, h('p', {}));
+    plain.computed = { rowGap: '8px', position: 'static' };
+    const plainHandle = dom.watchScrolled(plain);
+    assert.deepEqual([plain.children[0].style.getPropertyValue('position'), plain.children[0].style.marginBottom], ['', '-9px']);
+    plainHandle.destroy();
     const [observer] = observers.intersection;
     assert.equal(observer.init.root, view);
-    const fire = (isIntersecting, height = 1) => observer.callback([{ isIntersecting, boundingClientRect: { height } }]);
+    const fire = (isIntersecting, height = 1, ratio = isIntersecting ? 1 : 0) => observer.callback([{ isIntersecting, intersectionRatio: ratio, boundingClientRect: { height } }]);
     fire(false, 0);
     assert.equal(app.hasAttribute('data-scrolled'), false, 'not rendered: nothing');
     fire(false);
@@ -1808,6 +1821,10 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     assert.equal(app[Symbol.for('ds.owned')].attrs.get('data-scrolled'), 1, 'owned state');
     fire(true);
     assert.equal(app.hasAttribute('data-scrolled'), false);
+    fire(true, 1, 0);
+    assert.equal(app.hasAttribute('data-scrolled'), true, 'one pixel of scroll: edge-adjacent, ratio 0, scrolled');
+    fire(true);
+    assert.deepEqual(observer.init.threshold, [0, 0.5, 1]);
     sentinel.remove();
     handle.update();
     assert.equal(view.children.filter((child) => child.hasAttribute('data-ds-sentinel')).length, 1, 'a removed sentinel comes back, once');

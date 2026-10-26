@@ -372,6 +372,47 @@ test('DS.overlay.open() watches a dialog body: data-scrolled on the box; an empt
   expect(result.back).toBe(false);
 });
 
+test('watchScrolled: the sentinel takes no grid row or gap in a padded dialog body, and the first pixel of scroll sets data-scrolled (2.0)', async ({ page }) => {
+  await load(page);
+  const result = await page.evaluate(async () => {
+    const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+    let rows = '<div class="ds-field"><label class="ds-label" for="pad-field">Name</label><input class="ds-input" id="pad-field"></div>';
+    for (let i = 0; i < 60; i += 1) rows += '<p>Line ' + (i + 1) + '</p>';
+    document.querySelector('.ds-theme').insertAdjacentHTML('beforeend',
+      '<dialog class="ds-dialog" id="padded" aria-labelledby="padded-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="padded-title">Rename</h2>' +
+      '<div class="ds-dialog__body" id="padded-body">' + rows + '</div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></div></dialog>');
+    const dialog = document.getElementById('padded');
+    const box = dialog.querySelector('.ds-dialog__box');
+    const body = document.getElementById('padded-body');
+    const field = body.querySelector('.ds-field');
+    const offset = () => field.getBoundingClientRect().top - body.getBoundingClientRect().top;
+    // The same layout without a sentinel: shown as a modal, never watched.
+    dialog.showModal();
+    await frames();
+    const before = offset();
+    dialog.close();
+    await DS.overlay.open(dialog);
+    await frames();
+    const after = offset();
+    const scrolledAt = [];
+    for (const top of [1, 0]) {
+      body.scrollTop = top;
+      await frames();
+      await settle();
+      scrolledAt.push([body.scrollTop, box.hasAttribute('data-scrolled')]);
+    }
+    await DS.overlay.close(dialog);
+    dialog.remove();
+    return { before, after, scrolledAt };
+  });
+  expect(Math.abs(result.after - result.before)).toBeLessThan(0.5);
+  expect(result.scrolledAt[0][0]).toBeGreaterThan(0);
+  expect(result.scrolledAt.map(([, scrolled]) => scrolled)).toEqual([true, false]);
+});
+
 test('scrollEdges: overflow at each end follows the scroll, the scrollbar room is reported, destroy() cleans up (2.0)', async ({ page }) => {
   await load(page);
   const result = await page.evaluate(async () => {

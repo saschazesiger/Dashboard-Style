@@ -5006,14 +5006,18 @@
      * a .ds-sheet__body, the .ds-dialog__box of a .ds-dialog__body, else the
      * scroller): the fallback of the scroll-driven hairlines and tints, and
      * what the filled top bar fields read. A 1px sentinel first in the
-     * scroller (aria-hidden, data-ds-keep, data-ds-sentinel; its negative
-     * margin takes back the scroller's row gap) is watched by an
+     * scroller (aria-hidden, data-ds-keep, data-ds-sentinel) is watched by an
      * IntersectionObserver, so the attribute changes twice per scroll, never
      * per scroll event; a scroller that is not rendered (a closed sheet)
-     * reports nothing. Back at the top it calls resyncScroll(scroller).
-     * data-scrolled is owned state (DS.dom.morphHtml keeps it). Once per
-     * scroller: a second call returns the same handle. update() re-reads the
-     * gap and puts back a sentinel the page removed; destroy() stops, removes
+     * reports nothing. In a positioned scroller (.ds-view, .ds-sheet__body
+     * and .ds-dialog__body are) the sentinel is absolute at the padding edge:
+     * it takes no grid row, flex line or gap, and the first pixel of scroll
+     * sets the attribute; in a static one it stays in flow and its negative
+     * margin takes back a flex gap. Back at the top it calls
+     * resyncScroll(scroller). data-scrolled is owned state (DS.dom.morphHtml
+     * keeps it). Once per scroller: a second call returns the same handle.
+     * update() re-reads the scroller's position and gap and puts back a
+     * sentinel the page removed; destroy() stops, removes
      * the sentinel and the attribute. Without IntersectionObserver (a test
      * fake) a passive scroll listener reads scrollTop.
      * @param {Element|null|undefined} scroller
@@ -5036,10 +5040,17 @@
       const host = () => (whole ? doc.body : scroller);
       const place = () => {
         const style = typeof view.getComputedStyle === 'function' ? view.getComputedStyle(host()) : null;
-        const gap = parseFloat(style?.rowGap) || 0;
-        sentinel.style.height = '1px';
-        sentinel.style.flexShrink = '0';
-        sentinel.style.marginBottom = `${-1 - gap}px`;
+        if (whole || !style || style.position !== 'static') {
+          // Out of flow at the scroller's padding edge: no grid track, no flex
+          // line, no gap (a grid row cannot shrink below 0, so a negative
+          // margin would leave the gap in), and the first pixel of scroll
+          // moves it out (in flow it would sit below the top padding).
+          sentinel.style.cssText = 'position: absolute; top: 0; inset-inline: 0; height: 1px; pointer-events: none';
+        } else {
+          // A static scroller would not contain an absolute sentinel: in flow,
+          // its negative margin takes back a flex gap.
+          sentinel.style.cssText = `height: 1px; flex-shrink: 0; margin-bottom: ${-1 - (parseFloat(style.rowGap) || 0)}px`;
+        }
         if (sentinel.parentNode !== host()) host().insertBefore(sentinel, host().firstChild);
       };
       const report = (scrolled) => {
@@ -5056,8 +5067,10 @@
         observer = new view.IntersectionObserver((entries) => {
           const entry = entries[entries.length - 1];
           if (!entry?.boundingClientRect.height) return;
-          report(!entry.isIntersecting);
-        }, { root: whole ? null : scroller });
+          // Scrolled once the sentinel is half out: one pixel of scroll leaves
+          // it edge-adjacent, which still counts as intersecting.
+          report(!entry.isIntersecting || entry.intersectionRatio < 0.5);
+        }, { root: whole ? null : scroller, threshold: [0, 0.5, 1] });
       } else {
         onScroll = () => report((whole ? view.scrollY : scroller.scrollTop) > 0);
         source.addEventListener?.('scroll', onScroll, { passive: true });

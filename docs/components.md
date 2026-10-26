@@ -2765,8 +2765,8 @@ overshoot, so the scrim never shows at the screen edge. By hand, close it like t
 leaves, the backdrop swallows them until the sheet is hidden. The `hidden` attribute hides the div sheet without
 `.ds-base` too. While the body is scrolled the panel carries `data-scrolled` (the head's hairline appears):
 `DS.overlay.open()` watches the body with `DS.dom.watchScrolled(body)` on its first open (2.0; a sheet shown without
-`DS.overlay` calls it once). It writes the attribute on the `.ds-sheet__panel`, and its sentinel takes the body's gap
-back by itself and stays through a record swap with `DS.dom.morphHtml(body, html)`. Where
+`DS.overlay` calls it once). It writes the attribute on the `.ds-sheet__panel`, and its sentinel takes no room
+in the body (absolute at its padding edge) and stays through a record swap with `DS.dom.morphHtml(body, html)`. Where
 scroll timelines exist the hairline follows the body's scroll by itself, over the first `--ds-space-2`: the body
 names its timeline `--ds-sheet-scroll` and the panel scopes it to the head (progressive: `timeline-scope`). Use a
 `<div>` for the head, not `<header>` (a second banner landmark).
