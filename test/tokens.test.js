@@ -236,6 +236,10 @@ function colour(name) {
   return value;
 }
 
+/** The chart marks (series, neutral, tones) and the grounds they sit on: 3:1 each (WCAG 1.4.11). */
+const CHART_MARKS = ['--ds-chart-1', '--ds-chart-2', '--ds-chart-3', '--ds-chart-4', '--ds-chart-neutral', '--ds-chart-warning', '--ds-chart-error'];
+const CHART_GROUNDS = ['--ds-surface', '--ds-surface-low', '--ds-chart-track'];
+
 /** The text pairs that pass AA (4.5:1), in the default palette and in the theme template. */
 const TEXT_PAIRS = [
   ['--ds-text', '--ds-surface'],
@@ -288,6 +292,19 @@ describe('default palette', () => {
       assert.ok(contrast(colour(fg), colour(bg)) >= 3, `${fg} on ${bg}`);
     }
   });
+
+  it('draws every chart series, the neutral and the tones at 3:1 on the surfaces and the track (2.0); four distinct series', () => {
+    for (const fg of CHART_MARKS) {
+      for (const bg of CHART_GROUNDS) {
+        const ratio = contrast(colour(fg), colour(bg));
+        assert.ok(ratio >= 3, `${fg} on ${bg}: ${ratio.toFixed(2)}:1`);
+      }
+    }
+    const series = CHART_MARKS.slice(0, 4).map((name) => colour(name).toLowerCase());
+    assert.equal(new Set(series).size, 4, series.join(' '));
+    assert.equal(token('--ds-chart-1'), 'var(--ds-primary)');
+    assert.equal(token('--ds-chart-track'), 'var(--ds-surface-high)');
+  });
 });
 
 describe('theme template (themes/example.css)', () => {
@@ -309,5 +326,13 @@ describe('theme template (themes/example.css)', () => {
       .filter(([, , ratio]) => ratio < 4.5)
       .map(([fg, bg, ratio]) => `${fg} on ${bg}: ${ratio.toFixed(2)}:1`);
     assert.deepEqual(failing, []);
+  });
+
+  it('keeps the chart marks at 3:1 on the surfaces and the track, four distinct series', () => {
+    const failing = CHART_MARKS.flatMap((fg) => CHART_GROUNDS.map((bg) => [fg, bg, contrast(resolve(fg), resolve(bg))]))
+      .filter(([, , ratio]) => ratio < 3)
+      .map(([fg, bg, ratio]) => `${fg} on ${bg}: ${ratio.toFixed(2)}:1`);
+    assert.deepEqual(failing, []);
+    assert.equal(new Set(CHART_MARKS.slice(0, 4).map((name) => resolve(name).toLowerCase())).size, 4);
   });
 });

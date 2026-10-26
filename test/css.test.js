@@ -1286,6 +1286,10 @@ describe('accessibility details', () => {
       ['src/components/tile.css', ':is(button, a).ds-tile:focus-visible::before', 'var(--ds-state-focus)'],
       ['src/components/table.css', '.ds-table__sort:focus-visible::before', 'var(--ds-state-focus)'],
       ['src/components/alert.css', '.ds-errors summary:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/list.css', '.ds-list--interactive > .ds-list__item:has(.ds-list__action:focus-visible)::before', 'var(--ds-state-focus)'],
+      ['src/components/list.css', ':is(a, button).ds-kv-list__row:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/disclosure.css', '.ds-disclosure > summary:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/chart.css', ':is(button, a).ds-columns__col:focus-visible::before', 'var(--ds-state-focus)'],
       // A radio card's input has no halo: the card's layer is its focus layer.
       ['src/components/form.css', '.ds-radio:has(:where(input):focus-visible):not(.ds-radio--disabled, :has(input:disabled))::before', 'var(--ds-state-focus)'],
     ];
@@ -1313,6 +1317,9 @@ describe('accessibility details', () => {
       ['src/components/tile.css', '.ds-tile__value'],
       ['src/components/tile.css', '.ds-tile__note'],
       ['src/components/list.css', '.ds-facts dd'],
+      ['src/components/list.css', '.ds-list__meta'],
+      ['src/components/timeline.css', '.ds-timeline__meta'],
+      ['src/components/chart.css', '.ds-columns__value'],
       ['src/components/table.css', '.ds-table'],
     ];
     for (const [file, selector] of cases) {
@@ -1415,6 +1422,7 @@ describe('controls (1.1.0)', () => {
     const cases = [
       ['src/components/tile.css', ':is(button, a).ds-tile', '[aria-disabled="true"]:focus-visible::before'],
       ['src/components/card.css', '.ds-card--interactive', '[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))::before'],
+      ['src/components/list.css', ':is(a, button).ds-kv-list__row', '[aria-disabled="true"]:focus-visible::before'],
     ];
     const opacityAt = (file, selector) => declarationsAt(read(file), selector).find((entry) => entry.property === 'opacity')?.value;
     for (const [file, host, focus] of cases) {
@@ -1944,5 +1952,111 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       const base = declarationsOf(withoutAtRuleBlocks(read(file), /@supports/), selector).filter((entry) => entry.property === 'opacity');
       assert.equal(base[0]?.value, '0', `${file}: ${selector} rests at opacity 0`);
     }
+  });
+});
+
+describe('lists, timeline, tasks and charts (2.0)', () => {
+  /** The declarations of `selector` in `file` outside forced colours (the screen rules). */
+  const own = (file, selector) => Object.fromEntries(declarationsAt(withoutAtRuleBlocks(read(file), /@media\s*\(forced-colors:\s*active\)/), selector).map((entry) => [entry.property, entry.value]));
+  const LIST = 'src/components/list.css';
+  const CHART = 'src/components/chart.css';
+
+  it('registers --ds-share at top level, a number that inherits, and fills marks from it once', () => {
+    const topLevel = withoutAtRuleBlocks(stripComments(read('src/tokens.css')), /^@layer\b/);
+    assert.match(topLevel, /@property --ds-share \{\s*syntax: '<number>';\s*inherits: true;\s*initial-value: 0;\s*\}/);
+    assert.match(KEYFRAMES['ds-fill-share'], /^\s*from\s*\{\s*--ds-share:\s*0;\s*\}\s*$/);
+    const fill = Object.fromEntries(declarationsOf(read('src/motion.css'), '.ds-enter--fill').map((entry) => [entry.property, entry.value]));
+    assert.equal(fill['--ds-enter-keyframes'], 'ds-fade-in, ds-fill-share');
+    assert.equal(fill['--ds-enter-duration'], 'var(--ds-dur-glide)');
+    assert.equal(fill['--ds-enter-easing'], 'var(--ds-ease-in-out), var(--ds-ease-value)');
+  });
+
+  it('clips chart fills at the share and never scales them; the share glides on the value curve', () => {
+    assert.ok(!declarations(read(CHART)).some(({ property }) => property === 'transform' || property === 'scale'), 'no transform or scale in chart.css');
+    assert.match(own(CHART, '.ds-meter::before')['clip-path'], /^inset\(0 calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 round var\(--ds-radius-action\)\)$/);
+    assert.match(own(CHART, '.ds-columns__fill')['clip-path'], /^inset\(calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 0 round /);
+    for (const selector of ['.ds-meter', '.ds-columns__col']) {
+      assert.equal(own(CHART, selector).transition, '--ds-share var(--ds-dur-glide) var(--ds-ease-value)', selector);
+    }
+    // The value rides on the share (translate only), and the track is the neutral role, not the tint.
+    assert.match(own(CHART, '.ds-columns__value').translate, /var\(--ds-share\)/);
+    assert.equal(own(CHART, '.ds-meter').background, 'var(--ds-meter-track, var(--ds-chart-track))');
+  });
+
+  it('hatches series 2 to 4 in forced colours, so they stay apart without colour', () => {
+    const forced = forcedColorBlocks(read(CHART)).join('\n');
+    for (const [series, angle] of [['s2', '45deg'], ['s3', '135deg'], ['s4', '90deg']]) {
+      const fill = declarationsOf(forced, `.ds-columns__col--${series} > .ds-columns__fill`).find((entry) => entry.property === 'background')?.value ?? '';
+      assert.match(fill, new RegExp(`^repeating-linear-gradient\\(${angle}, CanvasText`), series);
+      const key = declarationsOf(forced, `.ds-legend__key--${series}`).find((entry) => entry.property === 'background')?.value ?? '';
+      assert.equal(key, fill, `legend key ${series}`);
+    }
+  });
+
+  it('presses interactive list rows by layer only (no morph), with an inset ring and the blocked model', () => {
+    const row = '.ds-list--interactive > .ds-list__item';
+    const css = read(LIST);
+    assert.equal(own(LIST, row)['outline-offset'], '0');
+    assert.ok(!/border-radius/.test(own(LIST, row).transition), 'no morph');
+    assert.equal(own(LIST, `${row}:has(.ds-list__action:focus-visible)`)['outline-offset'], 'calc(-1 * var(--ds-focus-width))');
+    const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).flatMap((block) => declarationsOf(block, `${row}:hover::before`));
+    assert.equal(hover.find((entry) => entry.property === 'opacity')?.value, 'var(--ds-state-hover-lg)');
+    const blocked = `${row}:has(.ds-list__action:is(:disabled, [aria-disabled="true"]))`;
+    assert.equal(own(LIST, `${blocked}:is(:active, .ds-pressed)::before`).opacity, '0');
+    assert.equal(own(LIST, blocked).cursor, 'not-allowed');
+    assert.equal(own(LIST, `${row}:has(.ds-list__action[aria-disabled="true"]:focus-visible)::before`).opacity, 'var(--ds-state-focus)');
+    // Never clips: a row's menu must not be cut.
+    assert.ok(!('overflow' in own(LIST, '.ds-list')), '.ds-list sets no overflow');
+    // The current row: aria-current itself, SelectedItem in forced colours.
+    const forced = forcedColorBlocks(css).join('\n');
+    assert.match(forced, /\.ds-list__item:is\(\[aria-current\][^{]*\{[^}]*background: SelectedItem;[^}]*color: SelectedItemText;/);
+  });
+
+  it('gives clickable key-value rows the state layer, a snapping ring and the disabled model; the kv fixes', () => {
+    const row = ':is(a, button).ds-kv-list__row';
+    assert.equal(own(LIST, row)['outline-offset'], 'calc(var(--ds-focus-offset) + var(--ds-focus-width))');
+    assert.equal(own(LIST, `${row}:is(:disabled, [aria-disabled="true"])`).color, 'var(--ds-disabled-ink)');
+    assert.equal(own(LIST, `${row}:is(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed)::before`).opacity, '0');
+    assert.equal(own(LIST, `${row}[aria-disabled="true"]:focus-visible::before`).opacity, 'var(--ds-state-focus)');
+    // No bottom padding on the last row, wrapping parts, end alignment, no top margin.
+    assert.equal(own(LIST, '.ds-kv-list li:last-child')['padding-bottom'], '0');
+    assert.equal(own(LIST, '.ds-kv-list :is(li, .ds-kv-list__row) > :is(span, strong)')['overflow-wrap'], 'anywhere');
+    assert.equal(own(LIST, '.ds-kv-list strong')['text-align'], 'end');
+    assert.equal(own(LIST, ':where(.ds-kv-list, .ds-plain-list, .ds-list)')['margin-top'], '0');
+    assert.equal(own(LIST, '.ds-facts--rows').display, 'block');
+  });
+
+  it('morphs the plain disclosure summary like a pill; a row summary takes an inset ring and no morph', () => {
+    const file = 'src/components/disclosure.css';
+    const half = 'calc(var(--ds-disclosure-height, 40px) / 2)';
+    const rest = own(file, '.ds-disclosure > summary');
+    assert.equal(rest['border-radius'], `min(var(--ds-radius-action), ${half})`);
+    assert.match(rest.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/);
+    for (const state of [':active', '.ds-pressed']) {
+      const pressed = own(file, `.ds-disclosure:not(.ds-disclosure--row) > summary${state}`);
+      assert.equal(pressed['border-radius'], `min(var(--ds-radius-action-pressed), ${half})`, state);
+      assert.match(pressed.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/, state);
+    }
+    const row = own(file, '.ds-disclosure--row > summary');
+    assert.equal(row['border-radius'], '0');
+    assert.equal(row['outline-offset'], '0');
+    assert.equal(own(file, '.ds-disclosure--row > summary:focus-visible')['outline-offset'], 'calc(-1 * var(--ds-focus-width))');
+  });
+
+  it('draws timeline dots and rails with borders (they stay in forced colours) and has no motion of its own', () => {
+    const file = 'src/components/timeline.css';
+    const dot = own(file, '.ds-timeline__item::after');
+    assert.match(dot.border, /^calc\(var\(--ds-timeline-dot-size, 10px\) \/ 2\) solid var\(--ds-timeline-dot-color, var\(--ds-primary\)\)$/);
+    assert.ok(!('background' in dot) && !('background-color' in dot), 'a dot of borders, no background');
+    assert.match(own(file, '.ds-timeline__item::before')['border-inline-start'], /var\(--ds-timeline-line-width, 2px\) solid/);
+    assert.deepEqual(declarations(read(file)).filter(({ property }) => /^(transition|animation)/.test(property)), []);
+  });
+
+  it('shows the status of a task by the mark and the weight, never by colour alone', () => {
+    const file = 'src/components/tasks.css';
+    assert.match(own(file, '.ds-tasks__item[data-status="pending"] .ds-tasks__mark::before').border, /solid var\(--ds-outline\)/);
+    assert.equal(own(file, '.ds-tasks__item[data-status="running"] .ds-tasks__text')['font-weight'], 'var(--ds-weight-label)');
+    assert.match(own(file, '.ds-tasks__item[data-status="done"] .ds-tasks__mark > svg').animation, /^ds-draw var\(--ds-dur-medium\) var\(--ds-ease-out\)/);
+    assert.equal(own(file, '.ds-tasks__item[data-status="done"] .ds-tasks__mark [pathLength]')['stroke-dasharray'], '1');
   });
 });

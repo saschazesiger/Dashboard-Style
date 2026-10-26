@@ -106,6 +106,17 @@ describe('indicator, dom, ripple and overlay', () => {
     }
   });
 
+  it('ripples list rows, key-value rows, disclosures and chart columns (2.0)', () => {
+    const hosts = ripple.RIPPLE_HOSTS.split(/,\s*(?![^(]*\))/);
+    for (const host of ['.ds-list--interactive > .ds-list__item', ':is(a, button).ds-kv-list__row', '.ds-disclosure > summary', ':is(button, a).ds-columns__col']) {
+      assert.ok(hosts.includes(host), `${host} is a default host`);
+    }
+    // The row's action stands for the row (Enter ripples it); the row is a stretched host.
+    const source = read('src/js/ripple.js');
+    assert.match(source.match(/const HOST_LINK = \[([^\]]+)\]/)[1], /'\.ds-list__action'/);
+    assert.match(source.match(/const STRETCHED = \[([^\]]+)\]/)[1], /'\.ds-list--interactive > \.ds-list__item'/);
+  });
+
   it('counts the scroll lock and keeps the room of a scrollbar that the lock removed', () => {
     /** A page whose body scrollbar (`bar` px) goes while body.ds-no-scroll is set. */
     function stubPage(bar, gutter) {
