@@ -61,6 +61,8 @@
  * (and a skeleton's wave) keep moving while it fades out: .ds-leave keeps
  * their loops (motion.css).
  *
+ * Print: the band and the loading bar are left out.
+ *
  * Runtime property --ds-skeleton-x (registered, tokens.css): the band's
  * position; it rests at -150vw (off screen) whenever the wave does not
  * run, so an exit that replaces the wave never shows a band.
@@ -256,6 +258,18 @@
     .ds-loadbar::after {
       forced-color-adjust: none;
       background: Highlight;
+    }
+  }
+
+  /* Print: a fixed box repeats on every printed page, so the band goes;
+     the moving loading bar says nothing on paper. */
+  @media print {
+    .ds-skeleton__line::after {
+      content: none;
+    }
+
+    .ds-loadbar {
+      display: none;
     }
   }
 }
