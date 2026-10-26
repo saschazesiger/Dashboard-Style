@@ -314,16 +314,13 @@
   }
 
   /* Icons that fill when on: the last element of a fillable glyph is a closed outline. */
-  .ds-icon--filled > :last-child {
-    fill: currentColor;
-  }
-
   .ds-icon--fillable > :last-child {
     fill: transparent;
     transition: fill var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
-  :is([aria-pressed="true"], [aria-checked="true"]) .ds-icon--fillable > :last-child {
+  :is([aria-pressed="true"], [aria-checked="true"]) .ds-icon--fillable > :last-child,
+  .ds-icon--filled > :last-child {
     fill: currentColor;
   }
 

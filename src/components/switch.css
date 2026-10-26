@@ -52,7 +52,8 @@
  *
  * Hint and extras: small.ds-switch__hint (a line under the name, the meta
  * type), span.ds-switch__meta (non-interactive extras before the state
- * word: a count, a tag); the label wraps long words.
+ * word: a count, a tag); the label wraps long words. A switch with a hint
+ * lays its parts on a small grid, the hint under the name.
  *
  * Many settings, each a switch: .ds-switch-list holds .ds-switch rows on a
  * grid (track, name over hint, meta, state), at least
@@ -479,6 +480,17 @@
     padding: 0;
   }
 
+  /* A switch with a hint stacks the hint under its name (the same areas). */
+  .ds-switch:has(> .ds-switch__hint) {
+    display: inline-grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "track label meta state"
+      "track hint meta state";
+    align-items: center;
+    column-gap: var(--ds-space-3);
+  }
+
   .ds-switch-list > .ds-switch {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
@@ -496,23 +508,23 @@
     border-bottom: 0;
   }
 
-  .ds-switch-list > .ds-switch > .ds-switch__track {
+  .ds-switch > .ds-switch__track {
     grid-area: track;
   }
 
-  .ds-switch-list > .ds-switch > .ds-switch__label {
+  .ds-switch > .ds-switch__label {
     grid-area: label;
   }
 
-  .ds-switch-list > .ds-switch > .ds-switch__hint {
+  .ds-switch > .ds-switch__hint {
     grid-area: hint;
   }
 
-  .ds-switch-list > .ds-switch > .ds-switch__meta {
+  .ds-switch > .ds-switch__meta {
     grid-area: meta;
   }
 
-  .ds-switch-list > .ds-switch > .ds-switch__state {
+  .ds-switch > .ds-switch__state {
     grid-area: state;
   }
 
@@ -525,7 +537,7 @@
         "track meta state";
     }
 
-    .ds-switch-list > .ds-switch > .ds-switch__meta {
+    .ds-switch > .ds-switch__meta {
       justify-self: start;
     }
   }

@@ -1010,36 +1010,81 @@
 
   var PRESSES = [['corner', 30, 'Corner, a click'], ['centre', 30, 'Centre, a click'], ['corner', 600, 'Corner, held'], ['centre', 600, 'Centre, held']];
 
+  /* A row of chips that scrolls when dragged: it captures the pointer, so
+     the press on the chip under it ends (DS.ripple listens for
+     gotpointercapture) and the ripple fades as on release. */
+  var DRAG_CHIPS = ['Laptops', 'Desktops', 'Tablets', 'Printers', 'Phones', 'Monitors', 'Docks'];
+
+  function dragRow(row) {
+    var start = null;
+    row.addEventListener('pointerdown', function (event) {
+      start = { x: event.clientX, left: row.scrollLeft, id: event.pointerId, dragging: false };
+    });
+    row.addEventListener('pointermove', function (event) {
+      if (!start || !(event.buttons & 1)) return;
+      if (!start.dragging && Math.abs(event.clientX - start.x) > 6) {
+        start.dragging = true;
+        try { row.setPointerCapture(start.id); } catch (error) { /* a synthetic pointer: nothing to capture */ }
+      }
+      if (start.dragging) row.scrollLeft = start.left - (event.clientX - start.x);
+    });
+    var stop = function () { start = null; };
+    row.addEventListener('pointerup', stop);
+    row.addEventListener('pointercancel', stop);
+  }
+
+  /* What the browser does when the row captures a pointer, for Replay (a synthetic pointer cannot be captured). */
+  function captureBy(row) {
+    var View = row.ownerDocument.defaultView;
+    row.dispatchEvent(new View.PointerEvent('gotpointercapture', { bubbles: true, composed: true, pointerId: 1, pointerType: 'mouse', isPrimary: true }));
+  }
+
   LAB_DEMOS.push({
     id: 'press-ripple',
     group: 'keyframes',
     title: 'Pointer ripple',
-    note: '<code>DS.ripple.attach(grid)</code>: a press grows <code>ds-press-ripple</code> from the point that was pressed, out to the farthest corner, and fades it once the press ends, never before <code>--ds-dur-instant</code>, so a 30ms click still shows the whole press. Replay presses all four at once, as a mouse would; press them yourself too.',
-    shows: ['ds-press-ripple', 'ds-fade-out', 'DS.ripple.attach', '--ds-dur-medium', '--ds-dur-base', '--ds-dur-instant', '--ds-ease-out', '--ds-ease-in-out'],
+    note: '<code>DS.ripple.attach(grid)</code>: a press grows <code>ds-press-ripple</code> from the point that was pressed, out to the farthest corner, and fades it once the press ends, never before <code>--ds-dur-instant</code>, so a 30ms click still shows the whole press. Replay presses all four at once, as a mouse would; press them yourself too. The chip row below scrolls when dragged: it captures the pointer (<code>gotpointercapture</code>), so the press on the chip ends at once, as it would on release; <code>release()</code> of the handle does the same by hand.',
+    shows: ['ds-press-ripple', 'ds-fade-out', 'DS.ripple.attach', 'release()', 'gotpointercapture', '--ds-dur-medium', '--ds-dur-base', '--ds-dur-instant', '--ds-ease-out', '--ds-ease-in-out'],
     html: '<div class="sg-press-grid" id="sg-press-grid">' + PRESSES.map(function (item) {
       return '<button class="ds-btn ds-btn--tonal" type="button" data-press-at="' + item[0] + '" data-press-ms="' + item[1] + '">' + item[2] + '</button>';
-    }).join('') + '</div>',
-    setup: function (stage) { DS.ripple.attach($('#sg-press-grid', stage)); },
+    }).join('') + '</div>' +
+      '<div class="ds-chips sg-drag-row" id="sg-drag-row" role="group" aria-label="Device kinds (drag to scroll)">' + DRAG_CHIPS.map(function (name) {
+        return '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">' + name + '</span></span></button>';
+      }).join('') + '</div>',
+    height: 236,
+    setup: function (stage) {
+      DS.ripple.attach($('#sg-press-grid', stage));
+      DS.ripple.attach($('#sg-drag-row', stage));
+      dragRow($('#sg-drag-row', stage));
+    },
+    reset: function (stage) {
+      DS.ripple.attach($('#sg-drag-row', stage)).release();
+      $('#sg-drag-row', stage).scrollLeft = 0;
+    },
     play: function (stage, sg) {
       var hosts = $$('[data-press-at]', stage);
+      var chip = $$('#sg-drag-row .ds-chip', stage)[1];
+      var row = $('#sg-drag-row', stage);
+      var dragged = press(chip, sg, 'centre', 600);
+      var captured = wait(sg, 120).then(function () { captureBy(row); });
       return Promise.all(hosts.map(function (host) {
         return press(host, sg, host.getAttribute('data-press-at'), Number(host.getAttribute('data-press-ms')));
-      })).then(function () { return ripplesGone(stage, sg); });
+      }).concat([dragged, captured])).then(function () { return ripplesGone(stage, sg); });
     },
   });
 
   /* ── Keyframes: ds-pop-in / ds-pop-out ───────────────────────────── */
 
-  function badge(stage) { return $('.sg-badge', stage); }
+  function badge(stage) { return $('.ds-badge', stage); }
   function badgeShown(stage) { var el = badge(stage); return !el.hidden && !el.classList.contains('ds-leave'); }
 
   LAB_DEMOS.push({
     id: 'pop',
     group: 'keyframes',
     title: 'Badge',
-    note: 'A counter badge pops in from <code>--ds-scale-small</code> on the spring with its fade (<code>.ds-enter--pop</code>: <code>ds-fade-in</code>, <code>ds-pop-in</code>) and pops out the same way back, faster (<code>.ds-leave--pop</code>: <code>ds-fade-out</code>, <code>ds-pop-out</code>).',
+    note: 'A count badge (<code>.ds-badge</code>) pops in from <code>--ds-scale-small</code> on the spring with its fade (<code>.ds-enter--pop</code>: <code>ds-fade-in</code>, <code>ds-pop-in</code>) and pops out the same way back, faster (<code>.ds-leave--pop</code>: <code>ds-fade-out</code>, <code>ds-pop-out</code>). While it shows, the number changes at once.',
     shows: ['ds-pop-in', 'ds-pop-out', '.ds-enter--pop', '.ds-leave--pop', '--ds-scale-small', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-spatial', '--ds-ease-in'],
-    html: '<span class="sg-badge-host"><button class="ds-btn" type="button">' + icon('mail', 16) + 'Inbox</button><span class="sg-badge" hidden>3</span></span>',
+    html: '<span class="sg-badge-host"><button class="ds-btn" type="button">' + icon('mail', 16) + 'Inbox <span class="ds-badge" hidden>3</span></button></span>',
     reset: function (stage) {
       M.cancel(badge(stage));
       badge(stage).hidden = true;
@@ -1445,6 +1490,44 @@
     },
   });
 
+  /* ── Controls: the locked switch ─────────────────────────────────── */
+
+  function lockedRow(stage) { return $('.ds-switch', stage); }
+  function lockedOn(stage) { return lockedRow(stage).classList.contains('ds-switch--locked'); }
+
+  /* Locks or frees the switch: the lock fades in on --ds-dur-fast and out on --ds-dur-instant, the off handle grows to hold it. */
+  function lockSwitch(stage, on) {
+    var row = lockedRow(stage);
+    var input = $('input', row);
+    row.classList.toggle('ds-switch--locked', on);
+    if (on) input.setAttribute('aria-disabled', 'true');
+    else input.removeAttribute('aria-disabled');
+    $('.ds-switch__hint', row).textContent = on ? 'Set by the device policy' : 'You can change it';
+    return M.settled($('.ds-switch__icon', row), { transitions: true });
+  }
+
+  LAB_DEMOS.push({
+    id: 'switch-locked',
+    group: 'controls',
+    title: 'Locked switch',
+    note: 'A value another system sets: <code>.ds-switch--locked</code> with <code>aria-disabled</code>. The lock fades in on <code>--ds-dur-fast</code> and out faster on <code>--ds-dur-instant</code>, the off handle grows to hold it, and the lock rides the handle on the spring when the value changes (set by the system, not by a click). Replay locks the switch and lets the policy flip its value.',
+    shows: ['.ds-switch--locked', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-spatial', '--ds-ease-in-out'],
+    html: '<div class="ds-stack"><label class="ds-switch"><input type="checkbox" role="switch" aria-describedby="sg-lab-lock-why"><span class="ds-switch__track" aria-hidden="true">' + icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Disk encryption</span><small class="ds-switch__hint" id="sg-lab-lock-why">You can change it</small></label></div>',
+    reset: function (stage) {
+      lockSwitch(stage, false);
+      $('input', lockedRow(stage)).checked = false;
+    },
+    play: function (stage, sg) {
+      var input = $('input', lockedRow(stage));
+      return lockSwitch(stage, true).then(function () { return wait(sg, 300); }).then(function () {
+        input.checked = !input.checked;
+        return quiet(stage, sg);
+      });
+    },
+    state: lockedOn,
+    toggle: lockSwitch,
+  });
+
   /* ── Controls: busy and success ──────────────────────────────────── */
 
   function busyRun(button, ms, sg) {
@@ -1478,6 +1561,7 @@
     var copy = $('[data-pair="copy"] .ds-icon-swap', stage);
     var offline = $('[data-pair="offline"]', stage);
     offline.setAttribute('aria-pressed', String(on));
+    $('[data-pair="helpful"]', stage).setAttribute('aria-pressed', String(on));
     $('[data-pair="copy"]', stage).setAttribute('aria-label', on ? 'Link copied' : 'Copy link');
     return Promise.all([
       M.crossfade(copy, icon(on ? 'check' : 'copy', 20), { kind: 'icon' }),
@@ -1491,10 +1575,11 @@
     id: 'icon-swap',
     group: 'controls',
     title: 'Icon pairs',
-    note: 'Copy turns into a check (<code>DS.motion.crossfade(el, icon, { kind: \'icon\' })</code>), and a pressed toggle swaps wifi for wifi off by CSS alone (aria-pressed). The incoming icon fades in and springs up from <code>--ds-scale-small</code>, a check draws itself, the outgoing one only fades; a rapid toggle turns back from where both icons are. (The icon set has no play and pause glyphs; these are its pairs.)',
-    shows: ['DS.motion.crossfade', '.ds-icon-swap', 'ds-draw', '--ds-scale-small', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-spatial', '--ds-ease-in-out'],
+    note: 'Copy turns into a check (<code>DS.motion.crossfade(el, icon, { kind: \'icon\' })</code>), and a pressed toggle swaps wifi for wifi off by CSS alone (aria-pressed). The incoming icon fades in and springs up from <code>--ds-scale-small</code>, a check draws itself, the outgoing one only fades; a rapid toggle turns back from where both icons are. The thumb does not swap: it fills while pressed (<code>.ds-icon--fillable</code>, the fill on <code>--ds-dur-fast</code>).',
+    shows: ['DS.motion.crossfade', '.ds-icon-swap', '.ds-icon--fillable', 'ds-draw', '--ds-scale-small', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-spatial', '--ds-ease-in-out'],
     html: '<div class="sg-row"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-pair="copy"><span class="ds-icon-swap">' + icon('copy', 20) + '</span></button>' +
-      '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Work offline" aria-pressed="false" data-pair="offline"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('wifi', 20) + '</span><span class="ds-icon-swap__b">' + icon('wifiOff', 20) + '</span></span></button></div>',
+      '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Work offline" aria-pressed="false" data-pair="offline"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('wifi', 20) + '</span><span class="ds-icon-swap__b">' + icon('wifiOff', 20) + '</span></span></button>' +
+      '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Helpful" aria-pressed="false" data-pair="helpful">' + icon('thumbUp', 20, 'ds-icon--fillable') + '</button></div>',
     setup: function (stage) {
       stage.addEventListener('click', function (event) {
         if (event.target.closest('[data-pair]')) iconPairs(stage, !iconPairsOn(stage));
@@ -1539,6 +1624,48 @@
       setChip(stage, 'Archived', on);
       setChip(stage, 'In storage', on);
       return quiet(stage, sg);
+    },
+  });
+
+  /* ── Controls: input chips ───────────────────────────────────────── */
+
+  var INPUT_CHIPS = ['Building C', 'Owner: Ada Lovelace', 'Warranty ends this year', 'In repair'];
+
+  function inputChipsHtml() {
+    return INPUT_CHIPS.map(function (name) {
+      return '<button class="ds-chip ds-chip--input" type="button" data-ds-key="' + esc(name) + '"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>' + esc(name) + '</span>' + icon('close', 18, 'ds-chip__trailing') + '</span></button>';
+    }).join('');
+  }
+
+  /* Removes an input chip as a click would: focus to the neighbour, the chips after it glide into its place. */
+  function removeInputChip(stage, chip) {
+    var row = $('.ds-chips', stage);
+    var next = chip.nextElementSibling || chip.previousElementSibling;
+    if (next && row.contains(document.activeElement)) next.focus({ preventScroll: true });
+    return M.flip(row, function () { chip.remove(); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'input-chips',
+    group: 'controls',
+    title: 'Input chips',
+    note: 'Active filters as input chips (<code>.ds-chip--input</code>, buttons): a press ripples, and the chip removes its filter through <code>DS.motion.flip</code>: it fades out in place while the chips after it glide into its room on the spring, across a wrap too. Replay removes the second chip, then the filters come back.',
+    shows: ['.ds-chip--input', 'DS.motion.flip', 'DS.ripple.attach', 'ds-fade-out', '--ds-ease-spatial', '--ds-dur-fast'],
+    html: '<div class="ds-chips sg-chip-row" role="group" aria-label="Active filters">' + inputChipsHtml() + '</div>',
+    setup: function (stage) {
+      stage.addEventListener('click', function (event) {
+        var chip = event.target.closest('.ds-chip--input');
+        if (chip) removeInputChip(stage, chip);
+      });
+    },
+    reset: function (stage) { DS.dom.morphHtml($('.ds-chips', stage), inputChipsHtml()); },
+    play: function (stage, sg) {
+      var chip = $$('.ds-chip--input', stage)[1];
+      if (!chip) {
+        DS.dom.morphHtml($('.ds-chips', stage), inputChipsHtml());
+        return quiet(stage, sg);
+      }
+      return removeInputChip(stage, chip).then(function () { return quiet(stage, sg); });
     },
   });
 
@@ -2766,13 +2893,13 @@
     id: 'tiles',
     group: 'feedback',
     title: 'Tiles and cards',
-    note: 'A key figure counts from what it shows while its meter glides on the same curve and time; the note changes at once. A clickable tile and a clickable card press like every action: the state layer, the ripple and the shape turning squarer (16 to 12px, 12 to 8px), springing back. Replay counts and presses both.',
-    shows: ['DS.motion.countUp', '--ds-tile-radius-pressed', '--ds-radius-card-pressed', 'ds-press-ripple', '--ds-dur-glide', '--ds-ease-value', '--ds-dur-micro', '--ds-ease-spatial'],
+    note: 'A key figure counts from what it shows while its meter glides on the same curve and time; the note changes at once. A clickable tile and a clickable card press like every action: the state layer, the ripple and the shape turning squarer (16 to 12px, 12 to 8px), springing back. Replay counts and presses both. Rapid toggle selects them (aria-pressed): the tint glides on <code>--ds-dur-fast</code>, the inset ring shows at once.',
+    shows: ['DS.motion.countUp', '--ds-tile-radius-pressed', '--ds-radius-card-pressed', '--ds-selected-ring', 'ds-press-ripple', '--ds-dur-glide', '--ds-ease-value', '--ds-dur-micro', '--ds-dur-fast', '--ds-ease-spatial'],
     html: '<div class="sg-tiles-demo"><div class="ds-tile"><p class="ds-tile__label">' + icon('sync', 20) + '<span>Synced</span></p><p class="ds-tile__value" id="sg-lab-tile-value">1,210</p>' +
       '<div class="ds-progress ds-progress--flat sg-tile-progress" id="sg-lab-tile-meter" style="--ds-progress:.94"><div class="ds-progress__track" role="progressbar" aria-label="Synced devices" aria-valuemin="0" aria-valuemax="100" aria-valuenow="94"><div class="ds-progress__bar"></div></div></div>' +
       '<p class="ds-tile__note" id="sg-lab-tile-note">74 not synced yet</p></div>' +
-      '<button class="ds-tile" type="button" data-tile-press><span class="ds-tile__label">' + icon('alert', 20) + '<span>Overdue</span></span><span class="ds-tile__value">7</span><span class="ds-tile__note">clickable tile</span></button>' +
-      '<button class="ds-card ds-card--interactive" type="button" data-tile-press><span class="ds-card__title">PRINTER-0003</span><span class="ds-muted sg-card-text">Floor 2. The whole card is one button.</span></button></div>',
+      '<button class="ds-tile" type="button" aria-pressed="false" data-tile-press><span class="ds-tile__label">' + icon('alert', 20) + '<span>Overdue</span></span><span class="ds-tile__value">7</span><span class="ds-tile__note">clickable tile</span></button>' +
+      '<button class="ds-card ds-card--interactive" type="button" aria-pressed="false" data-tile-press><span class="ds-card__title">PRINTER-0003</span><span class="ds-muted sg-card-text">Floor 2. The whole card is one button.</span></button></div>',
     height: 240,
     wide: true,
     setup: function (stage) {
@@ -2782,6 +2909,33 @@
       var counting = tilesCount(stage);
       var pressing = Promise.all($$('[data-tile-press]', stage).map(function (host) { return press(host, sg, 'centre', 300); }));
       return Promise.all([counting, pressing]).then(function () { return ripplesGone(stage, sg); });
+    },
+    // Selected (a filter by the figure, a chosen card): the tint glides on --ds-dur-fast, the inset ring shows at once.
+    state: function (stage) { return $('[data-tile-press]', stage).getAttribute('aria-pressed') === 'true'; },
+    toggle: function (stage, on, sg) {
+      $$('[data-tile-press]', stage).forEach(function (host) { host.setAttribute('aria-pressed', String(on)); });
+      return quiet(stage, sg);
+    },
+  });
+
+  /* ── Feedback: the done state ────────────────────────────────────── */
+
+  function doneHtml() {
+    return '<div class="ds-empty ds-empty--done" role="status"><span class="ds-empty__disc" aria-hidden="true">' + icon('check', 24) + '</span><p class="ds-empty__title">Request sent</p><p class="ds-empty__text">IT answers within a day.</p></div>';
+  }
+
+  LAB_DEMOS.push({
+    id: 'done-state',
+    group: 'feedback',
+    title: 'Done state',
+    note: '<code>.ds-empty--done</code>: after <code>--ds-dur-base</code> the disc fades in and pops up on the spring (<code>ds-fade-in</code>, <code>ds-pop-in</code>, <code>--ds-dur-slow</code>), a ring widens and fades once behind it (<code>ds-ripple</code>), and the check draws itself (<code>ds-draw</code> over <code>--ds-dur-glide</code>). It plays when the element is inserted or shown, never when a re-render keeps it. Replay inserts it again.',
+    shows: ['.ds-empty--done', 'ds-fade-in', 'ds-pop-in', 'ds-ripple', 'ds-draw', '--ds-dur-base', '--ds-dur-slow', '--ds-dur-glide', '--ds-ease-spatial', '--ds-ease-out'],
+    html: '<div id="sg-lab-done">' + doneHtml() + '</div>',
+    height: 240,
+    play: function (stage, sg) {
+      var holder = $('#sg-lab-done', stage);
+      setHtml(holder, doneHtml());
+      return quiet(stage, sg);
     },
   });
 
@@ -2946,9 +3100,9 @@
   var ORDER = ['enter-leave', 'reveal', 'interrupt', 'stagger', 'stagger-once', 'disclosure', 'swap',
     'draw', 'roll', 'scan', 'ring', 'press-ripple', 'pop', 'clip',
     'count', 'data-list', 'morph', 'settle-loader',
-    'press', 'focus', 'busy', 'icon-swap', 'chips', 'switch', 'validation', 'checks',
+    'press', 'focus', 'busy', 'icon-swap', 'chips', 'input-chips', 'switch', 'switch-locked', 'validation', 'checks',
     'track', 'drawer', 'segmented', 'topbar',
-    'loaders', 'progress', 'indeterminate', 'status', 'skeleton', 'stale', 'table', 'tiles', 'alerts',
+    'loaders', 'progress', 'indeterminate', 'status', 'skeleton', 'stale', 'table', 'tiles', 'alerts', 'done-state',
     'views', 'scroll', 'view-leaving'];
   LAB_DEMOS = LAB_DEMOS.map(function (entry, index) { return { entry: entry, index: index }; }).sort(function (a, b) {
     var rank = function (item) { var at = ORDER.indexOf(item.entry.id); return at === -1 ? ORDER.length + item.index : at; };
