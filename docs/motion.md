@@ -474,7 +474,7 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `ds-lift-in` | `translate`: rise (`--ds-motion-distance`, default 8px) | snackbars, swapped content; with `ds-fade-in` |
 | `ds-grow-in` | `translate` + `scale`: rise from `--ds-motion-scale` (default `--ds-scale-enter`) | dialogs, tooltips (with distance 0) |
 | `ds-shift-in` | `translate`: from the side (default 24px) | side sheets (their full width, `--ds-distance-sheet`) |
-| `ds-pop-in` | `scale` from `--ds-motion-scale` (default `--ds-scale-small`) | badges, counters |
+| `ds-pop-in` | `scale` from `--ds-motion-scale` (default `--ds-scale-small`) | badges, counters, the disc of `.ds-empty--done` |
 | `ds-drop-out` | `translate`: down (default 8px) | small exits; with `ds-fade-out` |
 | `ds-shrink-out` | `translate` + `scale`: down (default 4px) to `--ds-motion-scale` (default `--ds-scale-enter`) | dialogs, cards leaving |
 | `ds-shift-out` | `translate`: sideways (default 12px) | side sheets (full width, no fade), drawers leaving |
@@ -484,7 +484,7 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `ds-fill-x` / `ds-fill-y` | `scale: 0 1` / `scale: 1 0`, multiplying the element's own `scaleX()` / `scaleY()` | bars and columns filling on first render |
 | `ds-roll-in` / `ds-roll-out` | `translate`: one line up into / out of its slot | a status line that changes (`roll()` starts the new line once the old one is half out, so they never cover each other) |
 | `ds-press-ripple` | `scale` from 0 (its fade is a separate track) | the pointer ripple of an action (`DS.ripple`) |
-| `ds-ripple` | a ring that widens (`scale` to `--ds-ripple-scale`, 1.6) and fades once | behind a confirmation |
+| `ds-ripple` | a ring that widens (`scale` to `--ds-ripple-scale`, 1.6) and fades once | behind a confirmation (`.ds-empty--done`) |
 | `ds-sink-out` / `ds-scale-out` / `ds-slide-out` | fade + down / smaller / sideways in one keyframe | **deprecated** (removed in 2.0): use `ds-fade-out` with `ds-drop-out` / `ds-shrink-out` / `ds-shift-out` |
 | `ds-spin` | `transform: rotate(360deg)`, a loop | one turn of the spinner (`--ds-loop-spin`) |
 | `ds-spinner-arc` | `--ds-spinner-arc` (sweep 10deg → 270deg → 10deg) and `--ds-spinner-start` (advancing 270deg per cycle), generated; a loop of four cycles | the M3 arc of the spinner, with `ds-spin` (`--ds-loop-arc`, linear) |

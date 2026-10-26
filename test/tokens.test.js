@@ -288,7 +288,9 @@ describe('default palette', () => {
   });
 
   it('keeps icons and outlines at 3:1 where they carry meaning', () => {
-    for (const [fg, bg] of [['--ds-error', '--ds-surface'], ['--ds-success', '--ds-surface'], ['--ds-warning', '--ds-surface'], ['--ds-outline', '--ds-surface'], ['--ds-inverse-primary', '--ds-inverse'], ['--ds-focus', '--ds-surface']]) {
+    for (const [fg, bg] of [['--ds-error', '--ds-surface'], ['--ds-success', '--ds-surface'], ['--ds-warning', '--ds-surface'], ['--ds-outline', '--ds-surface'], ['--ds-inverse-primary', '--ds-inverse'], ['--ds-focus', '--ds-surface'],
+      // The lock of a locked switch on its off and on handle (2.0).
+      ['--ds-surface-highest', '--ds-outline'], ['--ds-primary', '--ds-on-primary']]) {
       assert.ok(contrast(colour(fg), colour(bg)) >= 3, `${fg} on ${bg}`);
     }
   });

@@ -29,6 +29,7 @@ component live.
 | Label and value pairs | `.ds-kv-list` (rows) or `.ds-facts` (a grid, best with four) ([Lists](#lists)) |
 | A run of short counts ("3 new · 1 updated") | `.ds-parts` ([Lists](#lists)) |
 | Nothing to show yet | [Empty state](#empty-state) `.ds-empty` |
+| A confirmation after a request or a finished job | `.ds-empty--done` ([Empty state](#empty-state)) |
 | The state of one item (synced, failed, running) | [Status chip](#status-chip) `.ds-status` |
 | A count on a button or chip | [Badge](#badge) `.ds-badge` (tones `--neutral`, `--ok`, `--warning`, `--error`) |
 | A short label such as Preview | `.ds-tag` ([Status chip](#tags)) |
@@ -45,6 +46,8 @@ component live.
 | A yes/no value saved with the form | `.ds-check` ([Form](#form)) |
 | A checkbox without a label row (a table column, a list item) | `.ds-checkbox` ([Form](#form)); in a `.ds-table` any bare checkbox is drawn the same |
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
+| A value set by another system | `.ds-switch--locked` with `aria-disabled` and the reason ([Switch](#locked)) |
+| Many settings, each a switch | `.ds-switch-list` ([Switch](#switch-list)) |
 | Active filters that remove themselves | input chips: `.ds-chip--input` buttons in a `role="group"` row ([Chips](#action-and-input-chips)) |
 | Suggestions that act at once | action chips: `button.ds-chip`; long ones in `.ds-chips--wrap` ([Chips](#action-and-input-chips)) |
 | Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
@@ -614,6 +617,23 @@ At most one sentence and one action. It has no motion of its own; how it comes d
 | The filter was cleared | `DS.motion.leave(empty)` while the rows enter through `flip` |
 | The user deleted the last item | the disc pops in: `DS.motion.enter(disc, 'pop')` |
 
+A confirmation (a request sent, a job done) is the done state, with a drawn check in the disc:
+
+```html
+<div class="ds-empty ds-empty--done" role="status">
+  <span class="ds-empty__disc" aria-hidden="true">[icon check 24]</span>
+  <p class="ds-empty__title">Request sent</p>
+  <p class="ds-empty__text">We will answer within a day.</p>
+  <button class="ds-btn ds-btn--tonal" type="button">Send another</button>
+</div>
+```
+
+`.ds-empty--done` brings its own entrance: the disc fades in and pops up on the spring (`ds-fade-in`, `ds-pop-in`,
+`--ds-dur-slow`) after `--ds-dur-base`, a ring widens and fades once behind it (`ds-ripple`) after `--ds-dur-slow`, and
+the `pathLength="1"` check (`DS.icons.check`) draws itself (`ds-draw`, `--ds-dur-glide`, `--ds-ease-out`). It plays
+when the element is inserted or shown (`hidden` removed), never again while a re-render (`DS.dom.morphHtml`) keeps
+the node. Forced colours: the disc keeps an outline.
+
 **Motion:** [Data motion](motion.md#data-motion) in motion.md.
 
 ## Status chip
@@ -1080,6 +1100,72 @@ and a halo around it (`--ds-switch-halo`, 40px) shows hover, press and keyboard 
 Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-switch-disabled-handle`), no hover, halo
 or grow, the `not-allowed` cursor and the quieter label. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
 title next to the switch already names the setting.
+
+The input covers the track, so it is the hit target: put a `data-tip` on the input, not on the label or the track.
+The switch row is at least `--ds-switch-height` (40px) tall. In forced colours a focused checked switch rings in
+`CanvasText`.
+
+### Blocked with a reason
+
+`aria-disabled="true"` on the input looks like `disabled` (no hover, halo or grow, the `not-allowed` cursor, the
+quieter label; forced colours `GrayText`) and acts like it (the click, Space and a label click are blocked; no page
+guard needed), but the switch stays focusable with its ring and focus halo, so a tooltip can say why:
+
+```html
+<label class="ds-switch">
+  <input type="checkbox" role="switch" name="backup" aria-disabled="true" data-tip="Needs an admin">
+  <span class="ds-switch__track" aria-hidden="true"></span>
+  <span class="ds-switch__label">Cloud backup</span>
+</label>
+```
+
+### Locked
+
+A value another system sets (a device policy, a directory): `.ds-switch--locked` with `aria-disabled="true"`, the lock
+glyph as the track's last child and the reason in words:
+
+```html
+<label class="ds-switch ds-switch--locked">
+  <input type="checkbox" role="switch" checked aria-disabled="true" aria-describedby="sync-why">
+  <span class="ds-switch__track" aria-hidden="true">[icon lock 16 ds-switch__icon]</span>
+  <span class="ds-switch__label">Nightly sync</span>
+  <small class="ds-switch__hint" id="sync-why">Set by the device policy</small>
+</label>
+```
+
+It keeps its on and off looks at full strength; the off handle grows to 24px so the lock fits. The lock rides the
+handle (`--ds-dur-medium` on the spring), in `--ds-surface-highest` on the off handle and `--ds-primary` on the on
+handle, and fades in on `--ds-dur-fast` and out on `--ds-dur-instant` when the lock comes or goes. The reason in words
+is required (a hint, or the tooltip). Forced colours: the normal on and off colours, the lock in `Canvas` or
+`Highlight`. "Locked" always means a value set elsewhere; a value that is waiting is busy, not locked.
+
+### Hint and extras
+
+`small.ds-switch__hint` is a line under the name (the meta type, `--ds-text-2`); `span.ds-switch__meta` holds
+non-interactive extras before the state word (a count, a tag); the name wraps long words. Name the input with
+`aria-labelledby` (the label's id) and describe it with `aria-describedby` (the hint's id), so the extras stay out of
+its name.
+
+### Switch list
+
+Many settings, each a switch:
+
+```html
+<div class="ds-switch-list">
+  <label class="ds-switch">
+    <input type="checkbox" role="switch" name="mail" checked aria-labelledby="mail-name" aria-describedby="mail-hint">
+    <span class="ds-switch__track" aria-hidden="true"></span>
+    <span class="ds-switch__label" id="mail-name">Email reports</span>
+    <small class="ds-switch__hint" id="mail-hint">Every Monday at 08:00</small>
+    <span class="ds-switch__meta"><span class="ds-tag ds-tag--neutral">3 recipients</span></span>
+    <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+  </label>
+  ...
+</div>
+```
+
+Rows sit on one grid (track, name over hint, meta, state word), at least `--ds-switch-list-row-height` (56px) tall,
+with hairlines between them. At 560px of list width and below the meta wraps under the name.
 
 **Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
 

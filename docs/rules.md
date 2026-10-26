@@ -40,7 +40,8 @@ the tests in `test/`.
   press, ripple, morph or halo, take the `not-allowed` cursor where they can still be pointed at, and fade into that
   look on `--ds-dur-fast`.
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
-  why over a bare `disabled`.
+  why over a bare `disabled`. A value that another system sets is locked (`.ds-switch--locked`, the `lock` glyph) and
+  says by whom in words.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
   `--ds-hold-loader` (450ms). A block that waits shows the shape loader (`.ds-loader`), a small spot (a button, a
   chip, a cell) the arc spinner (it has no delay of its own: put it in `.ds-loading`, a busy button, or a

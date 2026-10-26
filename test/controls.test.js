@@ -356,3 +356,66 @@ describe('alerts (2.0)', () => {
     assert.equal(own(flat, '.ds-alert__actions > .ds-btn').margin, '0');
   });
 });
+
+describe('the done state (2.0)', () => {
+  const css = read('src/components/empty.css');
+
+  it('pops the disc in, rings once and draws the check, on tokens, as keyframes', () => {
+    const disc = own(withoutAtRuleBlocks(css, /@media/), '.ds-empty--done .ds-empty__disc');
+    assert.equal(disc.animation, 'ds-fade-in var(--ds-dur-slow) var(--ds-ease-in-out) var(--ds-dur-base) backwards, ds-pop-in var(--ds-dur-slow) var(--ds-ease-spatial) var(--ds-dur-base) backwards');
+    const ring = own(css, '.ds-empty--done .ds-empty__disc::after');
+    assert.equal(ring.animation, 'ds-ripple var(--ds-dur-slow) var(--ds-ease-out) var(--ds-dur-slow)');
+    assert.equal(ring.opacity, '0', 'invisible before and after its one play');
+    assert.equal(own(css, '.ds-empty--done .ds-empty__disc > svg').animation, 'ds-draw var(--ds-dur-glide) var(--ds-ease-out) var(--ds-dur-slow) backwards');
+    assert.equal(own(css, '.ds-empty--done .ds-empty__disc [pathLength]')['stroke-dasharray'], '1');
+    assert.equal(own(forcedColorBlocks(css).join('\n'), '.ds-empty--done .ds-empty__disc').outline, '1px solid CanvasText');
+  });
+});
+
+describe('the switch (2.0)', () => {
+  const css = read('src/components/switch.css');
+  const flat = withoutAtRuleBlocks(css, /@media|@container/);
+  const BLOCKED = 'input:is(:disabled, [aria-disabled="true"])';
+
+  it('lets the input cover the track and blocks aria-disabled like disabled', () => {
+    const input = own(flat, '.ds-switch input');
+    for (const [property, value] of [['position', 'absolute'], ['inset-block', '0'], ['inset-inline-start', '0'], ['width', '52px'], ['height', '32px'], ['margin', 'auto 0'], ['appearance', 'none'], ['opacity', '0'], ['cursor', 'inherit']]) {
+      assert.equal(input[property], value, property);
+    }
+    assert.equal(own(flat, '.ds-switch__track')['pointer-events'], 'none');
+    assert.equal(own(flat, '.ds-switch')['min-height'], 'var(--ds-switch-height, 40px)');
+    const source = stripComments(css);
+    assert.doesNotMatch(source, /input:disabled|:not\(:disabled\)|:checked:disabled/, 'every blocked look also for aria-disabled');
+    assert.ok(own(flat, `.ds-switch ${BLOCKED} + .ds-switch__track`).opacity);
+    assert.equal(own(flat, `.ds-switch:has(${BLOCKED})`).cursor, 'not-allowed');
+    const forced = forcedColorBlocks(css).join('\n');
+    assert.equal(own(forced, `.ds-switch ${BLOCKED} + .ds-switch__track`)['border-color'], 'GrayText');
+    assert.equal(own(forced, '.ds-switch input:checked:focus-visible + .ds-switch__track')['outline-color'], 'CanvasText');
+  });
+
+  it('keeps a locked switch at full strength with the lock riding the handle', () => {
+    assert.deepEqual(own(flat, `.ds-switch--locked ${BLOCKED} + .ds-switch__track`), { 'border-color': 'var(--ds-outline)', background: 'var(--ds-surface-highest)', opacity: '1' });
+    assert.equal(own(flat, `.ds-switch--locked ${BLOCKED} + .ds-switch__track::after`).scale, 'calc(6 / 7)');
+    // After the disabled rules (same weight), so it wins.
+    assert.ok(stripComments(css).indexOf(`.ds-switch--locked ${BLOCKED} + .ds-switch__track {`) > stripComments(css).indexOf(`.ds-switch ${BLOCKED} + .ds-switch__track {`));
+    const icon = own(flat, '.ds-switch__icon');
+    assert.deepEqual([icon['inset-block-start'], icon['inset-inline-start'], icon.color, icon.opacity], ['6px', '6px', 'var(--ds-surface-highest)', '0']);
+    assert.deepEqual(own(flat, '.ds-switch input:checked + .ds-switch__track .ds-switch__icon'), { color: 'var(--ds-primary)', translate: '20px 0' });
+    assert.match(icon.transition, /translate var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/);
+    assert.match(icon.transition, /^opacity var\(--ds-dur-instant\)/);
+    assert.match(own(flat, '.ds-switch--locked .ds-switch__icon').transition, /^opacity var\(--ds-dur-fast\)/);
+    const forced = forcedColorBlocks(css).join('\n');
+    assert.equal(own(forced, `.ds-switch--locked input:checked:is(:disabled, [aria-disabled="true"]) + .ds-switch__track`).background, 'Highlight');
+  });
+
+  it('lays out hints, extras and switch lists, wrapping the meta in a narrow list', () => {
+    assert.equal(own(flat, 'small.ds-switch__hint').font, 'var(--ds-font-meta)');
+    assert.equal(own(flat, '.ds-switch__label')['overflow-wrap'], 'anywhere');
+    assert.equal(own(flat, '.ds-switch-list').container, 'ds-switch-list / inline-size');
+    const row = own(flat, '.ds-switch-list > .ds-switch');
+    assert.equal(row['grid-template-columns'], 'auto minmax(0, 1fr) auto auto');
+    assert.equal(row['min-height'], 'var(--ds-switch-list-row-height, 56px)');
+    const narrow = atRuleBlocks(css, /@container ds-switch-list \(max-width: 560px\)/).join('\n');
+    assert.match(own(narrow, '.ds-switch-list > .ds-switch')['grid-template-areas'], /"track meta state"/);
+  });
+});

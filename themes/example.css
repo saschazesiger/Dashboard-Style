@@ -180,7 +180,8 @@
   --ds-chip-disabled-bg: var(--ds-disabled-fill);
   --ds-chip-input-bg: var(--ds-accent); --ds-chip-input-color: var(--ds-on-accent);
   --ds-chip-input-border: var(--ds-accent); --ds-chip-max-width: 240px;
-  --ds-switch-halo: 40px;
+  --ds-switch-halo: 40px;              --ds-switch-height: 40px;
+  --ds-switch-list-row-height: 56px;
   --ds-switch-disabled-track: var(--ds-disabled-fill);
   --ds-switch-disabled-handle: var(--ds-disabled-ink);
   --ds-drawer-item-height: 48px;

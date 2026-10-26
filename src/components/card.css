@@ -388,7 +388,7 @@
 
   .ds-card__row > .ds-switch,
   .ds-card__row > :has(> .ds-switch) {
-    margin-block: calc((var(--ds-card-title-line, 24px) - 40px) / 2);
+    margin-block: calc((var(--ds-card-title-line, 24px) - var(--ds-switch-height, 40px)) / 2);
   }
 
   .ds-card__subtitle {

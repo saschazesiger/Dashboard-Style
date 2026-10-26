@@ -268,6 +268,8 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border` | `--ds-accent`, `--ds-on-accent`, `--ds-accent` | an input chip (`.ds-chip--input`): fill, ink, edge |
 | `--ds-chip-max-width` | 240px | the widest body of an action or input chip; its label ends in an ellipsis |
 | `--ds-switch-halo` | 40px | the halo around the switch handle |
+| `--ds-switch-height` | 40px | the smallest height of a switch row |
+| `--ds-switch-list-row-height` | 56px | the smallest row of a `.ds-switch-list` |
 | `--ds-switch-disabled-track`, `--ds-switch-disabled-handle` | `--ds-disabled-fill`, `--ds-disabled-ink` | disabled switch track (and border) and off handle |
 | `--ds-drawer-item-height` | 48px | drawer item (its rest radius is half of it, so the press morph runs its whole way) |
 | `--ds-topbar-scrolled-bg` | `--ds-surface-high` | top bar while the view is scrolled (`data-scrolled`); `transparent` keeps a flat bar |
