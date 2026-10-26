@@ -62,10 +62,21 @@
  *   matched children of `target` in place and leaves moves, inserts and
  *   removals to a later call.
  *
+ * State reporters and helpers (2.0), each once per element with an
+ * { update?, destroy } handle: watchScrolled() (data-scrolled from a
+ * sentinel), scrollEdges() (which ends have more to scroll), progress()
+ * (a share and its ARIA), roving() (one tab stop for a set of items),
+ * followViewport() (the frame follows the on-screen keyboard), followEnd()
+ * (a log that sticks to its end), autosize() (a growing textarea) and
+ * dropzone() (files by drop, dialog and paste). What they write on
+ * elements is owned state, so a re-render keeps it.
+ *
  * ES2022 (Safari 16.4); a module may import from an earlier module; newer
  * APIs only behind feature detection, named under Progressive:.
  *
  * Progressive:
+ * - visualViewport (followViewport()): without it nothing follows the
+ *   keyboard and the frame keeps its height.
  * - moveBefore (a keyed move keeps the node's animations, focus and iframe
  *   state): without it insertBefore, and a moved node that held the focus
  *   gets it back with its selection. insertBefore makes the node new to
@@ -73,6 +84,8 @@
  *   would play again: it carries data-ds-moving (transition: none in
  *   motion.css) until one style flush at the end of the call.
  */
+
+import { resyncScroll } from './motion.js';
 
 /** How many candidate siblings the look-ahead for an identical node checks. */
 const LOOKAHEAD = 8;
@@ -713,4 +726,813 @@ export function morphHtml(target, html, options = {}) {
   const source = foreign ? template.content.firstChild : template.content;
   carryStyles(source);
   morphChildren(target, Array.from(source?.childNodes ?? []), options);
+}
+
+/* ── State reporters and DOM helpers (2.0) ──────────── */
+
+/** Takes a name of `kind` as owned runtime state (motion.js keeps the same helpers; the record is shared). */
+function own(element, kind, name) {
+  if (!element || typeof element !== 'object') return;
+  const record = element[OWNED] ?? (element[OWNED] = { attrs: new Map(), classes: new Map(), props: new Map() });
+  record[kind].set(name, (record[kind].get(name) ?? 0) + 1);
+}
+
+function disown(element, kind, name) {
+  const map = element?.[OWNED]?.[kind];
+  const count = map?.get(name) ?? 0;
+  if (count > 1) map.set(name, count - 1);
+  else map?.delete(name);
+}
+
+/** The window of a node (an iframe's own), or the global one. */
+const windowOf = (node) => node?.ownerDocument?.defaultView ?? globalThis;
+
+/** A handle that does nothing (no element, no DOM). */
+const idle = () => ({ update() {}, destroy() {} });
+
+/** Whether `scroller` is the document's own scroller (its scroll events come from the window). */
+function documentScroller(scroller) {
+  const doc = scroller?.ownerDocument;
+  return Boolean(doc) && (scroller === doc.scrollingElement || scroller === doc.documentElement || scroller === doc.body);
+}
+
+/* watchScrolled() */
+
+/** The live watch of each scroller. @type {WeakMap<Element, { handle: { update: () => void, destroy: () => void } }>} */
+const scrollWatches = new WeakMap();
+
+/** Where data-scrolled goes by default: the app of a view, the panel of a sheet body, the box of a dialog body. */
+function scrolledTarget(scroller) {
+  const is = (selector) => Boolean(scroller.matches?.(selector));
+  if (is('.ds-view')) return scroller.closest('.ds-app') ?? scroller;
+  if (is('.ds-sheet__body')) return scroller.closest('.ds-sheet__panel') ?? scroller;
+  if (is('.ds-dialog__body')) return scroller.closest('.ds-dialog__box') ?? scroller;
+  return scroller;
+}
+
+/**
+ * Reports whether `scroller` is scrolled away from its top as data-scrolled
+ * on `target` (default: the .ds-app of a .ds-view, the .ds-sheet__panel of
+ * a .ds-sheet__body, the .ds-dialog__box of a .ds-dialog__body, else the
+ * scroller): the fallback of the scroll-driven hairlines and tints, and
+ * what the filled top bar fields read. A 1px sentinel first in the
+ * scroller (aria-hidden, data-ds-keep, data-ds-sentinel; its negative
+ * margin takes back the scroller's row gap) is watched by an
+ * IntersectionObserver, so the attribute changes twice per scroll, never
+ * per scroll event; a scroller that is not rendered (a closed sheet)
+ * reports nothing. Back at the top it calls resyncScroll(scroller).
+ * data-scrolled is owned state (DS.dom.morphHtml keeps it). Once per
+ * scroller: a second call returns the same handle. update() re-reads the
+ * gap and puts back a sentinel the page removed; destroy() stops, removes
+ * the sentinel and the attribute. Without IntersectionObserver (a test
+ * fake) a passive scroll listener reads scrollTop.
+ * @param {Element|null|undefined} scroller
+ * @param {Element} [target]
+ * @returns {{ update: () => void, destroy: () => void }}
+ */
+export function watchScrolled(scroller, target) {
+  if (!scroller?.ownerDocument) return idle();
+  const existing = scrollWatches.get(scroller);
+  if (existing) return existing.handle;
+  const doc = scroller.ownerDocument;
+  const view = windowOf(scroller);
+  const owner = target ?? scrolledTarget(scroller);
+  const whole = documentScroller(scroller);
+  const sentinel = doc.createElement('div');
+  sentinel.setAttribute('aria-hidden', 'true');
+  sentinel.setAttribute('data-ds-keep', '');
+  sentinel.setAttribute('data-ds-sentinel', '');
+  own(owner, 'attrs', 'data-scrolled');
+  const host = () => (whole ? doc.body : scroller);
+  const place = () => {
+    const style = typeof view.getComputedStyle === 'function' ? view.getComputedStyle(host()) : null;
+    const gap = parseFloat(style?.rowGap) || 0;
+    sentinel.style.height = '1px';
+    sentinel.style.flexShrink = '0';
+    sentinel.style.marginBottom = `${-1 - gap}px`;
+    if (sentinel.parentNode !== host()) host().insertBefore(sentinel, host().firstChild);
+  };
+  const report = (scrolled) => {
+    if (scrolled === owner.hasAttribute('data-scrolled')) return;
+    if (scrolled) owner.setAttribute('data-scrolled', '');
+    else owner.removeAttribute('data-scrolled');
+    // Back at the top: content that shrank leaves no scroll-driven tint or hairline behind.
+    if (!scrolled) resyncScroll(scroller);
+  };
+  let observer = null;
+  let onScroll = null;
+  const source = whole ? view : scroller;
+  if (typeof view.IntersectionObserver === 'function') {
+    observer = new view.IntersectionObserver((entries) => {
+      const entry = entries[entries.length - 1];
+      if (!entry?.boundingClientRect.height) return;
+      report(!entry.isIntersecting);
+    }, { root: whole ? null : scroller });
+  } else {
+    onScroll = () => report((whole ? view.scrollY : scroller.scrollTop) > 0);
+    source.addEventListener?.('scroll', onScroll, { passive: true });
+  }
+  place();
+  observer?.observe(sentinel);
+  const handle = {
+    update() {
+      if (scrollWatches.get(scroller)?.handle !== handle) return;
+      const back = sentinel.parentNode !== host();
+      place();
+      if (back && observer) {
+        observer.unobserve(sentinel);
+        observer.observe(sentinel);
+      }
+      onScroll?.();
+    },
+    destroy() {
+      if (scrollWatches.get(scroller)?.handle !== handle) return;
+      scrollWatches.delete(scroller);
+      observer?.disconnect();
+      if (onScroll) source.removeEventListener?.('scroll', onScroll);
+      sentinel.remove();
+      disown(owner, 'attrs', 'data-scrolled');
+      owner.removeAttribute('data-scrolled');
+    },
+  };
+  scrollWatches.set(scroller, { handle });
+  return handle;
+}
+
+/* scrollEdges() */
+
+/** The live edge watch of each scroller, by axis. @type {WeakMap<Element, Map<string, { handle: object, update: () => void }>>} */
+const edgeWatches = new WeakMap();
+
+/** One ResizeObserver per window for every edge watch: element → the updates it drives. */
+const edgeObservers = new WeakMap();
+
+function edgeObserver(view) {
+  let entry = edgeObservers.get(view);
+  if (!entry && typeof view.ResizeObserver === 'function') {
+    const targets = new Map();
+    const observer = new view.ResizeObserver((records) => {
+      const run = new Set();
+      for (const record of records) for (const update of targets.get(record.target) ?? []) run.add(update);
+      for (const update of run) update();
+    });
+    entry = { observer, targets };
+    edgeObservers.set(view, entry);
+  }
+  return entry ?? null;
+}
+
+function watchSize(view, element, update) {
+  const entry = edgeObserver(view);
+  if (!entry || !element) return;
+  const list = entry.targets.get(element) ?? new Set();
+  if (!list.size) entry.observer.observe(element);
+  list.add(update);
+  entry.targets.set(element, list);
+}
+
+function unwatchSize(view, element, update) {
+  const entry = edgeObservers.get(view);
+  const list = element ? entry?.targets.get(element) : null;
+  if (!list) return;
+  list.delete(update);
+  if (!list.size) {
+    entry.targets.delete(element);
+    entry.observer.unobserve(element);
+  }
+}
+
+/** Sets or removes an attribute only when it changes. */
+function flag(element, name, on) {
+  if (on === element.hasAttribute(name)) return;
+  if (on) element.setAttribute(name, '');
+  else element.removeAttribute(name);
+}
+
+/**
+ * Reports which ends of a scroller have more to scroll, for the CSS that
+ * fades or shadows them (sideways tables, .ds-scroll-x, menus, a log
+ * above a composer). Owned state on the scroller: data-ds-edges (while it
+ * is watched), data-ds-overflow-start and data-ds-overflow-end (more to
+ * scroll at that end of `axis`; 'inline' reads Math.abs(scrollLeft), so a
+ * right-to-left scroller works), --ds-scrollbar-height ('inline') or
+ * --ds-scrollbar-width ('block') in px (the room of the scrollbar), and
+ * --ds-table-pin-width (the width of the first cell) when it holds a
+ * .ds-table--pin-first. A passive scroll listener updates once per frame,
+ * one ResizeObserver per window watches the scroller and its first child;
+ * when the overflow goes away it calls resyncScroll(scroller). Once per
+ * scroller and axis: a second call returns the same handle.
+ * watchScrolled() stays the reporter of the block start (a sentinel, for
+ * another target).
+ * @param {Element|null|undefined} scroller
+ * @param {{ axis?: 'inline'|'block' }} [options]
+ * @returns {{ update: () => void, destroy: () => void }}
+ */
+export function scrollEdges(scroller, options = {}) {
+  if (!scroller?.ownerDocument) return idle();
+  const axis = options.axis === 'block' ? 'block' : 'inline';
+  const watches = edgeWatches.get(scroller) ?? new Map();
+  edgeWatches.set(scroller, watches);
+  const existing = watches.get(axis);
+  if (existing) return existing.handle;
+  const view = windowOf(scroller);
+  const inline = axis === 'inline';
+  const bar = inline ? '--ds-scrollbar-height' : '--ds-scrollbar-width';
+  for (const name of ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end']) own(scroller, 'attrs', name);
+  for (const name of [bar, '--ds-table-pin-width']) own(scroller, 'props', name);
+  let frame = 0;
+  let overflowed = false;
+  let child = scroller.firstElementChild ?? null;
+  const measure = () => {
+    frame = 0;
+    const size = inline ? scroller.scrollWidth - scroller.clientWidth : scroller.scrollHeight - scroller.clientHeight;
+    const at = Math.abs(inline ? scroller.scrollLeft : scroller.scrollTop) || 0;
+    const overflow = size > 1;
+    flag(scroller, 'data-ds-edges', true);
+    flag(scroller, 'data-ds-overflow-start', overflow && at > 1);
+    flag(scroller, 'data-ds-overflow-end', overflow && size - at > 1);
+    const style = typeof view.getComputedStyle === 'function' ? view.getComputedStyle(scroller) : null;
+    const borders = inline
+      ? (parseFloat(style?.borderTopWidth) || 0) + (parseFloat(style?.borderBottomWidth) || 0)
+      : (parseFloat(style?.borderLeftWidth) || 0) + (parseFloat(style?.borderRightWidth) || 0);
+    const room = Math.max(0, (inline ? scroller.offsetHeight - scroller.clientHeight : scroller.offsetWidth - scroller.clientWidth) - borders);
+    scroller.style.setProperty(bar, `${Math.round(room)}px`);
+    const pinned = scroller.querySelector?.('.ds-table--pin-first') ?? null;
+    const first = pinned ? pinned.rows?.[0]?.cells?.[0] ?? pinned.querySelector('th, td') : null;
+    if (first) scroller.style.setProperty('--ds-table-pin-width', `${Math.round(first.getBoundingClientRect().width * 100) / 100}px`);
+    else scroller.style.removeProperty('--ds-table-pin-width');
+    if (overflowed && !overflow) resyncScroll(scroller);
+    overflowed = overflow;
+    // A new first child (a re-render) is watched instead of the old one.
+    const now = scroller.firstElementChild ?? null;
+    if (now !== child) {
+      unwatchSize(view, child, schedule);
+      child = now;
+      watchSize(view, child, schedule);
+    }
+  };
+  const schedule = () => {
+    if (frame) return;
+    if (typeof view.requestAnimationFrame !== 'function') {
+      measure();
+      return;
+    }
+    frame = view.requestAnimationFrame(measure);
+  };
+  scroller.addEventListener('scroll', schedule, { passive: true });
+  watchSize(view, scroller, schedule);
+  watchSize(view, child, schedule);
+  measure();
+  const handle = {
+    update() {
+      if (watches.get(axis)?.handle === handle) measure();
+    },
+    destroy() {
+      if (watches.get(axis)?.handle !== handle) return;
+      watches.delete(axis);
+      if (frame) view.cancelAnimationFrame?.(frame);
+      scroller.removeEventListener('scroll', schedule);
+      unwatchSize(view, scroller, schedule);
+      unwatchSize(view, child, schedule);
+      for (const name of ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end']) {
+        disown(scroller, 'attrs', name);
+        if (!watches.size) scroller.removeAttribute(name);
+      }
+      disown(scroller, 'props', bar);
+      disown(scroller, 'props', '--ds-table-pin-width');
+      scroller.style.removeProperty(bar);
+      if (!watches.size) scroller.style.removeProperty('--ds-table-pin-width');
+      if (scroller.getAttribute('style')?.trim() === '') scroller.removeAttribute('style');
+    },
+  };
+  watches.set(axis, { handle, update: measure });
+  return handle;
+}
+
+/* progress() */
+
+/** Warned once: a share of null without a valueText. */
+let warnedText = false;
+
+/**
+ * Sets a share and its ARIA in one call, on a .ds-progress (the ARIA on its
+ * .ds-progress__track[role="progressbar"]), a .ds-spinner (determinate,
+ * the ARIA on itself) or a .ds-meter (--ds-share; ARIA only with
+ * role="meter"; never indeterminate). `share` 0 to 1 (clamped, rounded to
+ * 0.001): the indeterminate and waiting modifiers go, the share is set
+ * through the CSSOM (--ds-progress, a meter's --ds-share), aria-valuenow
+ * is the share in percent and aria-valuetext `valueText` (or removed).
+ * `share` null: the share is unknown: .ds-progress--indeterminate (or
+ * --waiting with `waiting: true`), a spinner turns (no --determinate),
+ * aria-valuenow goes and aria-valuetext is `valueText` ("Preparing").
+ * Synchronous, so a countUp() started in the same task lands on the same
+ * frame. Page state, not owned: render it in the template or set it here,
+ * not both.
+ * @template {Element} E
+ * @param {E} el
+ * @param {number|null} share
+ * @param {{ valueText?: string, waiting?: boolean }} [options]
+ * @returns {E}
+ */
+export function progress(el, share, options = {}) {
+  if (!el) return el;
+  const list = el.classList;
+  const meter = list.contains('ds-meter');
+  const spinner = list.contains('ds-spinner');
+  const aria = spinner ? el : meter ? (el.getAttribute('role') === 'meter' ? el : null) : el.querySelector?.('.ds-progress__track[role="progressbar"], [role="progressbar"]') ?? null;
+  const text = options.valueText;
+  if (share === null || share === undefined || !Number.isFinite(Number(share))) {
+    if (meter) return el;
+    if (spinner) list.remove('ds-spinner--determinate');
+    else {
+      list.toggle('ds-progress--indeterminate', !options.waiting);
+      list.toggle('ds-progress--waiting', Boolean(options.waiting));
+    }
+    if (aria) {
+      aria.removeAttribute('aria-valuenow');
+      if (text) aria.setAttribute('aria-valuetext', String(text));
+      else {
+        aria.removeAttribute('aria-valuetext');
+        if (!warnedText) {
+          warnedText = true;
+          globalThis.console?.warn?.('DS.dom.progress: an unknown share needs a valueText ("Preparing", "Waiting") for assistive tech');
+        }
+      }
+    }
+    return el;
+  }
+  const value = Math.round(Math.min(1, Math.max(0, Number(share))) * 1000) / 1000;
+  if (spinner) list.add('ds-spinner--determinate');
+  else if (!meter) list.remove('ds-progress--indeterminate', 'ds-progress--waiting');
+  /** @type {HTMLElement} */ (/** @type {unknown} */ (el)).style.setProperty(meter ? '--ds-share' : '--ds-progress', String(value));
+  if (aria) {
+    aria.setAttribute('aria-valuenow', String(Math.round(value * 100)));
+    if (text) aria.setAttribute('aria-valuetext', String(text));
+    else aria.removeAttribute('aria-valuetext');
+  }
+  return el;
+}
+
+/* roving() */
+
+/** The live roving focus of each container. @type {WeakMap<Element, { handle: { destroy: () => void } }>} */
+const rovers = new WeakMap();
+
+/** The items roving() moves through by default. */
+const ROVING_ITEMS = '[role="tab"], [role="radio"], [role="option"]';
+
+/**
+ * One tab stop for a set of items (tabs, segmented buttons, a toolbar, a
+ * listbox): the arrow keys along `orientation` ('horizontal', 'vertical',
+ * or 'both' for a grid, where Up and Down go to the nearest item of the
+ * row above or below), Home and End; `wrap` (default true) goes round at
+ * the ends. The one tabindex="0" moves with the focus, every other item
+ * gets tabindex="-1". aria-disabled items stay reachable (their name is
+ * read), disabled ones are skipped. `activate`: 'focus' (default) clicks
+ * the item it moves to, so the page's click handler sets the state (or
+ * calls `onActivate(item)` instead); 'manual' waits for Enter or Space on
+ * an item that is no button; false only moves focus (a toolbar). Left and
+ * right swap where the container's computed direction is rtl. Delegated on
+ * the container, so it survives DS.dom.morphHtml; once per container (a
+ * second call returns the same handle).
+ * @param {Element|null|undefined} container
+ * @param {{ items?: string, orientation?: 'horizontal'|'vertical'|'both', wrap?: boolean, activate?: 'focus'|'manual'|false, onActivate?: (item: Element) => void }} [options]
+ * @returns {{ destroy: () => void }}
+ */
+export function roving(container, options = {}) {
+  if (!container?.ownerDocument) return { destroy() {} };
+  const existing = rovers.get(container);
+  if (existing) return existing.handle;
+  const selector = options.items ?? ROVING_ITEMS;
+  const orientation = options.orientation ?? 'horizontal';
+  const wrap = options.wrap !== false;
+  const activate = options.activate === undefined ? 'focus' : options.activate;
+  const view = windowOf(container);
+  const items = () => Array.from(container.querySelectorAll(selector)).filter((item) => !item.matches?.(':disabled') && !item.hidden && !item.closest?.('[hidden], [inert]'));
+  const chosen = (item) => ['aria-selected', 'aria-checked', 'aria-pressed'].some((name) => item.getAttribute(name) === 'true') || (item.hasAttribute('aria-current') && item.getAttribute('aria-current') !== 'false');
+  const stop = (current) => {
+    for (const item of items()) {
+      const value = item === current ? '0' : '-1';
+      if (item.getAttribute('tabindex') !== value) item.setAttribute('tabindex', value);
+    }
+  };
+  const all = items();
+  stop(all.find((item) => item.getAttribute('tabindex') === '0') ?? all.find(chosen) ?? all[0] ?? null);
+  const run = (item) => {
+    if (typeof options.onActivate === 'function') options.onActivate(item);
+    else item.click?.();
+  };
+  const nearest = (list, from, down) => {
+    const box = from.getBoundingClientRect();
+    const rows = list.filter((item) => item !== from).map((item) => ({ item, box: item.getBoundingClientRect() }))
+      .filter(({ box: other }) => (down ? other.top >= box.bottom - 1 : other.bottom <= box.top + 1));
+    if (!rows.length) return null;
+    const row = down ? Math.min(...rows.map(({ box: other }) => other.top)) : Math.max(...rows.map(({ box: other }) => other.top));
+    const centre = (rect) => rect.left + rect.width / 2;
+    return rows.filter(({ box: other }) => Math.abs(other.top - row) < 1)
+      .sort((a, b) => Math.abs(centre(a.box) - centre(box)) - Math.abs(centre(b.box) - centre(box)))[0].item;
+  };
+  const onKey = (/** @type {KeyboardEvent} */ event) => {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    const list = items();
+    const current = list.find((item) => item === event.target || item.contains(event.target));
+    if (!current) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      if (activate === 'manual' && current.tagName !== 'BUTTON' && current.tagName !== 'A' && current.tagName !== 'INPUT') {
+        event.preventDefault();
+        run(current);
+      }
+      return;
+    }
+    const rtl = typeof view.getComputedStyle === 'function' && view.getComputedStyle(container).direction === 'rtl';
+    const index = list.indexOf(current);
+    const step = (by) => {
+      const at = index + by;
+      if (at >= 0 && at < list.length) return list[at];
+      return wrap ? list[(at + list.length) % list.length] : null;
+    };
+    const across = orientation !== 'vertical';
+    const along = orientation !== 'horizontal';
+    let next;
+    if (event.key === 'Home') next = list[0];
+    else if (event.key === 'End') next = list[list.length - 1];
+    else if (across && event.key === 'ArrowRight') next = step(rtl ? -1 : 1);
+    else if (across && event.key === 'ArrowLeft') next = step(rtl ? 1 : -1);
+    else if (along && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+      const down = event.key === 'ArrowDown';
+      next = orientation === 'both' ? nearest(list, current, down) ?? (wrap ? (down ? list[0] : list[list.length - 1]) : null) : step(down ? 1 : -1);
+    } else return;
+    event.preventDefault();
+    if (!next || next === current) return;
+    stop(next);
+    next.focus();
+    if (activate === 'focus') run(next);
+  };
+  const onFocus = (/** @type {FocusEvent} */ event) => {
+    const item = items().find((each) => each === event.target);
+    if (item) stop(item);
+  };
+  container.addEventListener('keydown', onKey);
+  container.addEventListener('focusin', onFocus);
+  const handle = {
+    destroy() {
+      if (rovers.get(container)?.handle !== handle) return;
+      rovers.delete(container);
+      container.removeEventListener('keydown', onKey);
+      container.removeEventListener('focusin', onFocus);
+    },
+  };
+  rovers.set(container, { handle });
+  return handle;
+}
+
+/* followViewport() */
+
+/**
+ * The visual viewport must be this much shorter than its tallest height at
+ * the same width (px) before it counts as an on-screen keyboard (a
+ * distance, not a time; smaller changes are the browser's own bars).
+ */
+const KEYBOARD_MIN_PX = 150;
+
+/** The live viewport follower of each document. @type {WeakMap<Document, { handle: { destroy: () => void } }>} */
+const viewportFollowers = new WeakMap();
+
+/** Whether focus sits in a field that brings up a keyboard. */
+function editing(doc) {
+  let active = doc.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  if (!active || active === doc.body) return false;
+  if (active.isContentEditable) return true;
+  if (active.tagName === 'TEXTAREA') return !active.readOnly;
+  if (active.tagName !== 'INPUT') return false;
+  return !active.readOnly && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(active.type);
+}
+
+/**
+ * Lets the app frame follow the on-screen keyboard: writes
+ * --ds-viewport-height (the visual viewport's height, px) on <html>, sets
+ * data-ds-keyboard on <html> while the visual viewport is shorter than its
+ * tallest height at this width by more than 150px and focus is in a field
+ * that types, writes --ds-keyboard-inset (px of the layout viewport the
+ * keyboard covers, for the snackbars) and scrolls the window back to the
+ * top when the browser panned it up for the keyboard (an unzoomed page).
+ * shell.css and toast.css read them. Once per document (a second call
+ * returns the same handle); destroy() takes everything back.
+ * Progressive: visualViewport (feature-detected): without it nothing
+ * changes.
+ * @param {Document} [doc]
+ * @returns {{ destroy: () => void }}
+ */
+export function followViewport(doc = globalThis.document) {
+  const view = doc?.defaultView;
+  const viewport = view?.visualViewport;
+  if (!viewport || !doc.documentElement) return { destroy() {} };
+  const existing = viewportFollowers.get(doc);
+  if (existing) return existing.handle;
+  const root = doc.documentElement;
+  const tallest = new Map();
+  own(root, 'attrs', 'data-ds-keyboard');
+  for (const name of ['--ds-viewport-height', '--ds-keyboard-inset']) own(root, 'props', name);
+  let frame = 0;
+  const update = () => {
+    frame = 0;
+    const width = Math.round(viewport.width * (viewport.scale || 1));
+    const height = viewport.height;
+    const top = Math.max(height, tallest.get(width) ?? 0);
+    tallest.set(width, top);
+    root.style.setProperty('--ds-viewport-height', `${Math.round(height)}px`);
+    const keyboard = top - height > KEYBOARD_MIN_PX && editing(doc);
+    const covered = Math.max(0, Math.round((view.innerHeight || height) - height - viewport.offsetTop));
+    root.style.setProperty('--ds-keyboard-inset', `${keyboard ? covered : 0}px`);
+    if (keyboard !== root.hasAttribute('data-ds-keyboard')) {
+      if (keyboard) root.setAttribute('data-ds-keyboard', '');
+      else root.removeAttribute('data-ds-keyboard');
+    }
+    // The browser panned the page up to show the field: the frame follows the viewport, so it goes back.
+    if (keyboard && viewport.offsetTop > 0 && (viewport.scale || 1) === 1 && (view.scrollY || 0) > 0) view.scrollTo(view.scrollX || 0, 0);
+  };
+  const schedule = () => {
+    if (frame) return;
+    frame = typeof view.requestAnimationFrame === 'function' ? view.requestAnimationFrame(update) : (update(), 0);
+  };
+  viewport.addEventListener('resize', schedule);
+  viewport.addEventListener('scroll', schedule);
+  doc.addEventListener('focusin', schedule);
+  doc.addEventListener('focusout', schedule);
+  update();
+  const handle = {
+    destroy() {
+      if (viewportFollowers.get(doc)?.handle !== handle) return;
+      viewportFollowers.delete(doc);
+      if (frame) view.cancelAnimationFrame?.(frame);
+      viewport.removeEventListener('resize', schedule);
+      viewport.removeEventListener('scroll', schedule);
+      doc.removeEventListener('focusin', schedule);
+      doc.removeEventListener('focusout', schedule);
+      disown(root, 'attrs', 'data-ds-keyboard');
+      for (const name of ['--ds-viewport-height', '--ds-keyboard-inset']) {
+        disown(root, 'props', name);
+        root.style.removeProperty(name);
+      }
+      root.removeAttribute('data-ds-keyboard');
+      if (root.getAttribute('style')?.trim() === '') root.removeAttribute('style');
+    },
+  };
+  viewportFollowers.set(doc, { handle });
+  return handle;
+}
+
+/* followEnd() */
+
+/** The live end follower of each scroller. @type {WeakMap<Element, { handle: { stick: () => void, destroy: () => void } }>} */
+const endFollowers = new WeakMap();
+
+/**
+ * A log that sticks to its end (a chat, an import log): while the scroller
+ * is at its end (within `threshold` px) and its content grows, it stays at
+ * the end; scrolling up lets go, and `pill` (a .ds-presence element, its
+ * place is .ds-jump) shows while it is let go (`hidden` toggled). A click
+ * on the pill, or stick(), goes back to the end: smoothly within one
+ * viewport height, else at once. A ResizeObserver watches the content (the
+ * scroller's element children), so nothing polls. Once per scroller.
+ * @param {Element|null|undefined} scroller
+ * @param {{ pill?: HTMLElement|null, threshold?: number }} [options]
+ * @returns {{ stick: () => void, destroy: () => void }}
+ */
+export function followEnd(scroller, options = {}) {
+  if (!scroller?.ownerDocument) return { stick() {}, destroy() {} };
+  const existing = endFollowers.get(scroller);
+  if (existing) return existing.handle;
+  const view = windowOf(scroller);
+  const pill = options.pill ?? null;
+  const threshold = Math.max(0, Number(options.threshold ?? 1));
+  const gap = () => scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop;
+  let stuck = gap() <= threshold;
+  let last = scroller.scrollTop;
+  const show = () => {
+    if (pill && pill.hidden !== stuck) pill.hidden = stuck;
+  };
+  const toEnd = (smooth) => {
+    const end = scroller.scrollHeight - scroller.clientHeight;
+    if (smooth && typeof scroller.scrollTo === 'function') scroller.scrollTo({ top: end, behavior: 'smooth' });
+    else scroller.scrollTop = end;
+    last = end;
+  };
+  const onScroll = () => {
+    const top = scroller.scrollTop;
+    if (gap() <= threshold) stuck = true;
+    else if (top < last - 0.5) stuck = false;
+    last = top;
+    show();
+  };
+  const grew = () => {
+    if (stuck && gap() > threshold) toEnd(false);
+    show();
+  };
+  const sizes = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(grew) : null;
+  const watchChildren = () => {
+    for (const child of Array.from(scroller.children ?? [])) sizes?.observe(child);
+  };
+  const children = typeof view.MutationObserver === 'function' ? new view.MutationObserver(() => {
+    watchChildren();
+    grew();
+  }) : null;
+  watchChildren();
+  sizes?.observe(scroller);
+  children?.observe(scroller, { childList: true });
+  scroller.addEventListener('scroll', onScroll, { passive: true });
+  const stick = () => {
+    stuck = true;
+    toEnd(gap() <= scroller.clientHeight);
+    show();
+  };
+  const onPill = () => stick();
+  pill?.addEventListener('click', onPill);
+  show();
+  const handle = {
+    stick,
+    destroy() {
+      if (endFollowers.get(scroller)?.handle !== handle) return;
+      endFollowers.delete(scroller);
+      sizes?.disconnect();
+      children?.disconnect();
+      scroller.removeEventListener('scroll', onScroll);
+      pill?.removeEventListener('click', onPill);
+    },
+  };
+  endFollowers.set(scroller, { handle });
+  return handle;
+}
+
+/* autosize() */
+
+/** The live autosize of each textarea. @type {WeakMap<Element, { handle: { update: () => void, destroy: () => void } }>} */
+const autosized = new WeakMap();
+
+/**
+ * Grows a textarea with its text up to its computed max-height (then it
+ * scrolls), through the CSSOM; never animated. Where the textarea sizes
+ * itself (field-sizing: content, which .ds-input--grow sets where it
+ * exists) it does nothing. Once per textarea; update() measures again (a
+ * value set by script), destroy() removes the listener and the height.
+ * @param {HTMLTextAreaElement|null|undefined} textarea
+ * @returns {{ update: () => void, destroy: () => void }}
+ */
+export function autosize(textarea) {
+  if (!textarea?.ownerDocument) return idle();
+  const existing = autosized.get(textarea);
+  if (existing) return existing.handle;
+  const view = windowOf(textarea);
+  const style = () => (typeof view.getComputedStyle === 'function' ? view.getComputedStyle(textarea) : null);
+  const native = () => style()?.getPropertyValue?.('field-sizing') === 'content';
+  const update = () => {
+    if (native()) return;
+    const computed = style();
+    const borders = computed?.boxSizing === 'border-box' ? (parseFloat(computed.borderTopWidth) || 0) + (parseFloat(computed.borderBottomWidth) || 0) : 0;
+    const max = parseFloat(computed?.maxHeight);
+    textarea.style.height = 'auto';
+    const wanted = textarea.scrollHeight + borders;
+    const capped = Number.isFinite(max) && max > 0 ? Math.min(wanted, max) : wanted;
+    textarea.style.height = `${Math.ceil(capped)}px`;
+    textarea.style.overflowY = Number.isFinite(max) && wanted > max ? 'auto' : 'hidden';
+  };
+  textarea.addEventListener('input', update);
+  update();
+  const handle = {
+    update,
+    destroy() {
+      if (autosized.get(textarea)?.handle !== handle) return;
+      autosized.delete(textarea);
+      textarea.removeEventListener('input', update);
+      textarea.style.removeProperty('height');
+      textarea.style.removeProperty('overflow-y');
+      if (textarea.getAttribute('style')?.trim() === '') textarea.removeAttribute('style');
+    },
+  };
+  autosized.set(textarea, { handle });
+  return handle;
+}
+
+/* dropzone() */
+
+/** The live drop zone of each element. @type {WeakMap<Element, { handle: { destroy: () => void } }>} */
+const dropzones = new WeakMap();
+
+/** Whether a drag carries files. */
+const carriesFiles = (event) => Array.from(event.dataTransfer?.types ?? []).includes('Files');
+
+/**
+ * Whether `file` matches an `accept` list as the file input reads it:
+ * extensions (.csv), MIME types (text/csv) and families (image/*), comma
+ * separated, case-insensitive; an empty list takes everything.
+ */
+function accepts(file, accept) {
+  const rules = String(accept ?? '').split(',').map((rule) => rule.trim().toLowerCase()).filter(Boolean);
+  if (!rules.length) return true;
+  const name = String(file?.name ?? '').toLowerCase();
+  const type = String(file?.type ?? '').toLowerCase();
+  return rules.some((rule) => {
+    if (rule.startsWith('.')) return name.endsWith(rule);
+    if (rule.endsWith('/*')) return type.startsWith(rule.slice(0, -1));
+    return type === rule;
+  });
+}
+
+/**
+ * Files by drop, by the file dialog and (with `paste`) from the clipboard,
+ * for a .ds-dropzone or any page drop target (a pane, a chat). It counts
+ * dragenter and dragleave on `target` (default `zone`), so
+ * data-ds-dragover (owned state on `zone`; the CSS shows the drop state)
+ * stays on while a file is over a child too, takes dragover (and so the
+ * drop) only when the drag carries files, filters them by `accept`
+ * (default the input's accept: extensions, MIME types, image/*), keeps
+ * one unless `multiple` (default the input's multiple) and calls
+ * onFiles(files, event) with what is left. The zone's file input
+ * (.ds-dropzone__input, or its first input[type="file"]) goes the same way
+ * and is reset afterwards, so the same file can be chosen again. With
+ * `paste: true` files pasted while focus is inside `target` count too. A
+ * disabled input takes nothing. Once per zone.
+ * @param {Element|null|undefined} zone
+ * @param {{ onFiles: (files: File[], event: Event) => void, accept?: string, multiple?: boolean, paste?: boolean, target?: Element }} options
+ * @returns {{ destroy: () => void }}
+ */
+export function dropzone(zone, options) {
+  if (!zone?.ownerDocument) return { destroy() {} };
+  const existing = dropzones.get(zone);
+  if (existing) return existing.handle;
+  const doc = zone.ownerDocument;
+  const target = options?.target ?? zone;
+  const input = zone.querySelector?.('.ds-dropzone__input') ?? zone.querySelector?.('input[type="file"]') ?? null;
+  const accept = () => options?.accept ?? input?.accept ?? '';
+  const multiple = () => options?.multiple ?? Boolean(input?.multiple);
+  const blocked = () => Boolean(input?.disabled);
+  let depth = 0;
+  own(zone, 'attrs', 'data-ds-dragover');
+  const over = (on) => {
+    if (on === zone.hasAttribute('data-ds-dragover')) return;
+    if (on) zone.setAttribute('data-ds-dragover', '');
+    else zone.removeAttribute('data-ds-dragover');
+  };
+  const hand = (list, event) => {
+    const files = Array.from(list ?? []).filter((file) => accepts(file, accept()));
+    const taken = multiple() ? files : files.slice(0, 1);
+    if (taken.length) options?.onFiles?.(taken, event);
+    return taken.length > 0;
+  };
+  const onEnter = (event) => {
+    if (!carriesFiles(event) || blocked()) return;
+    event.preventDefault();
+    depth += 1;
+    over(true);
+  };
+  const onOver = (event) => {
+    if (!carriesFiles(event) || blocked()) return;
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+  };
+  const onLeave = (event) => {
+    if (!carriesFiles(event)) return;
+    depth = Math.max(0, depth - 1);
+    if (!depth) over(false);
+  };
+  const onDrop = (event) => {
+    if (!carriesFiles(event)) return;
+    event.preventDefault();
+    depth = 0;
+    over(false);
+    if (!blocked()) hand(event.dataTransfer?.files, event);
+  };
+  const onChange = (event) => {
+    hand(input.files, event);
+    input.value = '';
+  };
+  const onPaste = (event) => {
+    if (blocked() || !target.contains?.(doc.activeElement) && doc.activeElement !== target) return;
+    const files = event.clipboardData?.files;
+    if (!files?.length) return;
+    if (hand(files, event)) event.preventDefault();
+  };
+  target.addEventListener('dragenter', onEnter);
+  target.addEventListener('dragover', onOver);
+  target.addEventListener('dragleave', onLeave);
+  target.addEventListener('drop', onDrop);
+  input?.addEventListener('change', onChange);
+  if (options?.paste) doc.addEventListener('paste', onPaste);
+  const handle = {
+    destroy() {
+      if (dropzones.get(zone)?.handle !== handle) return;
+      dropzones.delete(zone);
+      target.removeEventListener('dragenter', onEnter);
+      target.removeEventListener('dragover', onOver);
+      target.removeEventListener('dragleave', onLeave);
+      target.removeEventListener('drop', onDrop);
+      input?.removeEventListener('change', onChange);
+      doc.removeEventListener('paste', onPaste);
+      disown(zone, 'attrs', 'data-ds-dragover');
+      zone.removeAttribute('data-ds-dragover');
+    },
+  };
+  dropzones.set(zone, { handle });
+  return handle;
 }

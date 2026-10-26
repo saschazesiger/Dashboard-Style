@@ -285,25 +285,6 @@
     return ready;
   }
 
-  /**
-   * data-scrolled from a 1px sentinel at the top of a scroller (the
-   * snippet of docs/components.md, App frame), in the frame's own window:
-   * the fallback of the scroll-driven tint and hairlines.
-   */
-  function watchScrolled(win, scroller, target) {
-    var sentinel = win.document.createElement('div');
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');
-    sentinel.style.cssText = 'height: 1px; margin-bottom: -1px; flex-shrink: 0';
-    scroller.insertBefore(sentinel, scroller.firstChild);
-    new win.IntersectionObserver(function (entries) {
-      var entry = entries[entries.length - 1];
-      if (!entry.boundingClientRect.height) return;
-      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
-      if (entry.isIntersecting) win.DS.motion.resyncScroll(scroller);
-    }, { root: scroller }).observe(sentinel);
-  }
-
   /* ── Overlays: the Escape stack and the scroll lock, read out ────── */
 
   var LAYERS = '.ds-dialog, .ds-sheet, .ds-menu, .ds-combo__popup';
@@ -1918,7 +1899,7 @@
     height: 360,
     setup: function (stage) {
       topbar.ready = openFrame(stage, appFrameHtml(false, pageHead('Devices', 'Scroll this view: the top bar tints.') + frameCards(6))).then(function (win) {
-        watchScrolled(win, win.document.getElementById('view'), win.document.getElementById('app'));
+        win.DS.dom.watchScrolled(win.document.getElementById('view'), win.document.getElementById('app'));
         return win;
       });
     },

@@ -19,7 +19,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 |---|---|---|
 | Skeleton on the first load, held with `settleLoader()`, then `staggerOnce()` | start | `start()` |
 | Hash routes with `DS.motion.transition()` (fade-through), focus on the new title | all | `go()`, `renderView()` |
-| Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled` | frame | Wiring, `watchScrolled()` |
+| Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled` | frame | Wiring, `DS.dom.watchScrolled()` |
 | Ripple, tooltips (`data-tip`) | all | `DS.ripple.attach()`, `DS.overlay.tooltips()` |
 | Tiles that count on (`countUp()`) | Overview | `updateTiles()` |
 | Alerts that come and go with the data (`flip()` on their stack, `live`) | Overview | `alertsHtml()`, `updateAlerts()` |

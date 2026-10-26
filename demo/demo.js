@@ -88,23 +88,8 @@
 
   DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
 
-  /* data-scrolled from a 1px sentinel (docs/components.md, App frame). */
-  function watchScrolled(scroller, target) {
-    const sentinel = document.createElement('div');
-    const gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');
-    sentinel.style.cssText = `height: 1px; margin-bottom: ${-1 - gap}px; flex-shrink: 0`;
-    scroller.prepend(sentinel);
-    new IntersectionObserver((entries) => {
-      const entry = entries.at(-1);
-      if (!entry.boundingClientRect.height) return;
-      if (entry.isIntersecting === !target.hasAttribute('data-scrolled')) return;
-      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
-      if (entry.isIntersecting) M.resyncScroll(scroller);
-    }, { root: scroller }).observe(sentinel);
-  }
-  watchScrolled(view, app);
+  /* data-scrolled from a 1px sentinel (DS.dom.watchScrolled, docs/components.md, App frame). */
+  DS.dom.watchScrolled(view);
 
   const sections = $$('.demo-section');
   const tourItems = $$('.ds-drawer__item[href^="#"]', nav);
@@ -472,7 +457,7 @@
   const sheet = $('#sheet');
   const sheetBody = $('#sheet-body');
   let sheetId = null;
-  watchScrolled(sheetBody, $('.ds-sheet__panel', sheet));
+  DS.dom.watchScrolled(sheetBody);
 
   function sheetHtml(device) {
     return `<p class="ds-meta">${esc(device.type)} · ${esc(device.model)}</p>` +

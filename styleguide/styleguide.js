@@ -1329,35 +1329,6 @@
     quietTimer = setTimeout(stopNavigating, M.motionDuration(view, '--ds-dur-fast'));
   }
 
-  /* data-scrolled from a 1px sentinel at the top of a scroller (the
-     snippet of docs/components.md, App frame): an IntersectionObserver
-     changes the attribute only when the state does, never per scroll
-     event. Where scroll timelines exist the hairlines and the top bar's
-     tint follow the scroll by themselves; the attribute is their fallback
-     (and the filled toolbar fields read it). The sentinel takes no room:
-     its negative margin also takes back the scroller's gap (a sheet body
-     is a flex column with one), and data-ds-keep keeps it through
-     DS.dom.morphHtml. A scroller that is not rendered (a closed sheet)
-     reports nothing. */
-  function watchScrolled(scroller, target) {
-    var sentinel = document.createElement('div');
-    var gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');
-    sentinel.style.cssText = 'height: 1px; margin-bottom: ' + (-1 - gap) + 'px; flex-shrink: 0';
-    scroller.insertBefore(sentinel, scroller.firstChild);
-    new IntersectionObserver(function (entries) {
-      var entry = entries[entries.length - 1];
-      if (!entry.boundingClientRect.height) return;
-      var scrolled = !entry.isIntersecting;
-      if (scrolled === target.hasAttribute('data-scrolled')) return;
-      target.toggleAttribute('data-scrolled', scrolled);
-      // Back at the top: content that shrank (the scroller fits now)
-      // leaves no scroll-driven tint or hairline behind.
-      if (!scrolled) DS.motion.resyncScroll(scroller);
-    }, { root: scroller }).observe(sentinel);
-  }
-
   /* The breakpoint snippet of docs/components.md: crossing 900px changes
      the drawer in place (no slide, no scrim fade) and closes a modal
      drawer that the wider window no longer shows. */
@@ -1393,8 +1364,9 @@
     // opening alone would take the pill off a hash's section on load.
     if (PAGE !== 'lab') $$('.sg-section').forEach(function (s) { spy.observe(s); });
 
-    watchScrolled(view, app);
-    $$('.ds-sheet__panel').forEach(function (panel) { watchScrolled($('.ds-sheet__body', panel), panel); });
+    // data-scrolled (DS.dom.watchScrolled): the fallback of the scroll-driven hairlines and the top bar's tint.
+    DS.dom.watchScrolled(view, app);
+    $$('.ds-sheet__panel').forEach(function (panel) { DS.dom.watchScrolled($('.ds-sheet__body', panel), panel); });
     view.addEventListener('scroll', function () {
       if (navigating && !('onscrollend' in view)) waitForQuiet();
     }, { passive: true });
@@ -1486,7 +1458,7 @@
       overlay = shownOverlays[name] = holder.firstChild;
       document.body.appendChild(overlay);
       $$('[data-sg-combo]', overlay).forEach(setupCombo);
-      $$('.ds-sheet__panel', overlay).forEach(function (panel) { watchScrolled($('.ds-sheet__body', panel), panel); });
+      $$('.ds-sheet__panel', overlay).forEach(function (panel) { DS.dom.watchScrolled($('.ds-sheet__body', panel), panel); });
       new MutationObserver(function (records, observer) {
         if (overlay.hasAttribute('data-state')) return;
         observer.disconnect();

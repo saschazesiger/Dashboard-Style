@@ -7,7 +7,7 @@
  *                       view with DS.motion.staggerOnce()
  *   navigation          hash routes, DS.motion.transition() (fade-through),
  *                       the drawer's pill (DS.indicator), the modal drawer
- *                       (DS.overlay), data-scrolled from a sentinel
+ *                       (DS.overlay), data-scrolled (DS.dom.watchScrolled)
  *   Overview            tiles that count (countUp), alerts that come and go
  *                       (flip), a sync with busy faces and a progress bar,
  *                       a chart of the project's own (.ex-chart), a live feed
@@ -861,35 +861,9 @@
 
   /* ── Wiring ───────────────────────────────────────────────────────── */
 
-  /* data-scrolled from a 1px sentinel (docs/components.md, App frame). */
-  function watchScrolled(scroller, target) {
-    const sentinel = document.createElement('div');
-    const gap = parseFloat(getComputedStyle(scroller).rowGap) || 0;
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');
-    sentinel.style.cssText = `height: 1px; margin-bottom: ${-1 - gap}px; flex-shrink: 0`;
-    scroller.prepend(sentinel);
-    new IntersectionObserver((entries) => {
-      const entry = entries.at(-1);
-      if (!entry.boundingClientRect.height) return;
-      if (entry.isIntersecting === !target.hasAttribute('data-scrolled')) return;
-      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
-      if (entry.isIntersecting) M.resyncScroll(scroller);
-    }, { root: scroller }).observe(sentinel);
-  }
-
-  /* Icons of the static markup: data-icon="name" puts the glyph first. */
-  for (const element of $$('[data-icon]')) {
-    element.insertAdjacentHTML('afterbegin', icon(element.getAttribute('data-icon'), 20));
-    element.removeAttribute('data-icon');
-  }
-  for (const element of $$('[data-icon-done]')) element.insertAdjacentHTML('afterbegin', icon('check', 16));
-
-  DS.ripple.attach(document);
-  DS.overlay.tooltips(document);
-  DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
-  watchScrolled(view, app);
-  watchScrolled(sheetBody, $('.ds-sheet__panel', sheet));
+  /* data-scrolled from a 1px sentinel (DS.dom.watchScrolled, docs/components.md, App frame). */
+  DS.dom.watchScrolled(view);
+  DS.dom.watchScrolled(sheetBody);
 
   menuButton.addEventListener('click', () => {
     if (app.hasAttribute('data-drawer-open')) DS.overlay.close(drawer);

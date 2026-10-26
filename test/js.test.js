@@ -1342,6 +1342,474 @@ describe('DS.motion.guard (2.0)', () => {
   });
 });
 
+/**
+ * Elements for the 2.0 DOM helpers: EventTarget-based, with attributes,
+ * classes, a CSSOM style (a Map), children, selectors (selectorMatches),
+ * focus and a window with the observers the helpers use, recorded so a
+ * test can fire them.
+ */
+function helperDom() {
+  const observers = { intersection: [], resize: [], mutation: [] };
+  const frames = [];
+  const win = new EventTarget();
+  Object.assign(win, {
+    innerWidth: 400,
+    innerHeight: 800,
+    scrollX: 0,
+    scrollY: 0,
+    requestAnimationFrame: (callback) => frames.push(callback),
+    cancelAnimationFrame() {},
+    getComputedStyle: (element) => ({ ...element.computed, getPropertyValue: (name) => element.computed?.[name] ?? '' }),
+    IntersectionObserver: class {
+      constructor(callback, init) { this.callback = callback; this.init = init; this.targets = []; observers.intersection.push(this); }
+      observe(target) { this.targets.push(target); }
+      unobserve(target) { this.targets = this.targets.filter((each) => each !== target); }
+      disconnect() { this.targets = []; this.disconnected = true; }
+    },
+    ResizeObserver: class {
+      constructor(callback) { this.callback = callback; this.targets = new Set(); observers.resize.push(this); }
+      observe(target) { this.targets.add(target); }
+      unobserve(target) { this.targets.delete(target); }
+      disconnect() { this.targets.clear(); }
+    },
+    MutationObserver: class {
+      constructor(callback) { this.callback = callback; observers.mutation.push(this); }
+      observe() {}
+      disconnect() {}
+    },
+  });
+  const doc = new EventTarget();
+  Object.assign(doc, { nodeType: 9, defaultView: win, activeElement: null });
+  class El extends EventTarget {
+    constructor(tag, attributes = {}, children = []) {
+      super();
+      this.nodeType = 1;
+      this.tagName = tag.toUpperCase();
+      this.ownerDocument = doc;
+      this.parentElement = null;
+      this.children = [];
+      this.attrs = new Map(Object.entries(attributes).map(([name, value]) => [name, String(value)]));
+      this.computed = {};
+      this.props = new Map();
+      this.scrollTop = 0;
+      this.scrollLeft = 0;
+      this.scrollHeight = 0;
+      this.clientHeight = 0;
+      this.scrollWidth = 0;
+      this.clientWidth = 0;
+      this.offsetHeight = 0;
+      this.offsetWidth = 0;
+      this.rect = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
+      for (const child of children) this.append(child);
+      const self = this;
+      this.style = {
+        get length() { return self.props.size; },
+        getPropertyValue: (name) => self.props.get(name) ?? '',
+        setProperty: (name, value) => self.props.set(name, String(value)),
+        removeProperty: (name) => self.props.delete(name),
+        set height(value) { self.props.set('height', value); },
+        get height() { return self.props.get('height') ?? ''; },
+        set overflowY(value) { self.props.set('overflow-y', value); },
+        get overflowY() { return self.props.get('overflow-y') ?? ''; },
+        set marginBottom(value) { self.props.set('margin-bottom', value); },
+        get marginBottom() { return self.props.get('margin-bottom') ?? ''; },
+        set flexShrink(value) { self.props.set('flex-shrink', value); },
+      };
+    }
+
+    get isConnected() { return true; }
+
+    get firstChild() { return this.children[0] ?? null; }
+
+    get firstElementChild() { return this.children[0] ?? null; }
+
+    get childNodes() { return this.children; }
+
+    get parentNode() { return this.parentElement; }
+
+    get classList() {
+      const names = () => (this.getAttribute('class') ?? '').split(/\s+/).filter(Boolean);
+      const write = (list) => this.setAttribute('class', list.join(' '));
+      return {
+        contains: (name) => names().includes(name),
+        add: (...added) => write([...names(), ...added.filter((name) => !names().includes(name))]),
+        remove: (...removed) => write(names().filter((name) => !removed.includes(name))),
+        toggle: (name, force) => {
+          const on = force ?? !names().includes(name);
+          write(on ? [...names().filter((other) => other !== name), name] : names().filter((other) => other !== name));
+          return on;
+        },
+      };
+    }
+
+    getAttribute(name) { return this.attrs.has(name) ? this.attrs.get(name) : null; }
+
+    setAttribute(name, value) { this.attrs.set(name, String(value)); }
+
+    removeAttribute(name) { this.attrs.delete(name); }
+
+    hasAttribute(name) { return this.attrs.has(name); }
+
+    get hidden() { return this.hasAttribute('hidden'); }
+
+    set hidden(value) { if (value) this.setAttribute('hidden', ''); else this.removeAttribute('hidden'); }
+
+    get disabled() { return this.hasAttribute('disabled'); }
+
+    matches(selector) {
+      if (selector === ':disabled') return this.disabled;
+      return selectorMatches(this, selector);
+    }
+
+    closest(selector) {
+      for (let current = this; current; current = current.parentElement) if (current.matches(selector)) return current;
+      return null;
+    }
+
+    contains(node) {
+      for (let current = node; current; current = current.parentElement) if (current === this) return true;
+      return false;
+    }
+
+    querySelectorAll(selector) {
+      const out = [];
+      const walk = (node) => {
+        for (const child of node.children) {
+          if (child.nodeType === 1 && child.matches(selector)) out.push(child);
+          if (child.children) walk(child);
+        }
+      };
+      walk(this);
+      return out;
+    }
+
+    querySelector(selector) { return this.querySelectorAll(selector)[0] ?? null; }
+
+    append(...nodes) {
+      for (const node of nodes) {
+        node.parentElement?.children.splice(node.parentElement.children.indexOf(node), 1);
+        node.parentElement = this;
+        this.children.push(node);
+      }
+    }
+
+    insertBefore(node, reference) {
+      node.parentElement?.children.splice(node.parentElement.children.indexOf(node), 1);
+      node.parentElement = this;
+      const at = reference ? this.children.indexOf(reference) : -1;
+      if (at < 0) this.children.push(node);
+      else this.children.splice(at, 0, node);
+      return node;
+    }
+
+    remove() {
+      this.parentElement?.children.splice(this.parentElement.children.indexOf(this), 1);
+      this.parentElement = null;
+    }
+
+    focus() { doc.activeElement = this; this.dispatchEvent(Object.assign(new Event('focusin', { bubbles: true }), {})); }
+
+    click() { this.clicked = (this.clicked ?? 0) + 1; }
+
+    getBoundingClientRect() { return this.rect; }
+
+    scrollTo({ top }) { this.scrollTop = top; this.smooth = true; }
+  }
+  // Events bubble to the parents (EventTarget alone does not).
+  const dispatch = El.prototype.dispatchEvent;
+  El.prototype.dispatchEvent = function (event) {
+    let result = dispatch.call(this, event);
+    if (event.bubbles) {
+      for (let node = this.parentElement; node && !event.cancelBubble; node = node.parentElement) {
+        Object.defineProperty(event, 'target', { value: this, configurable: true });
+        result = EventTarget.prototype.dispatchEvent.call(node, cloneEvent(event, this)) && result;
+      }
+    }
+    return result;
+  };
+  function cloneEvent(event, target) {
+    const copy = new Event(event.type, { bubbles: false, cancelable: event.cancelable });
+    for (const key of Object.keys(event)) copy[key] = event[key];
+    Object.defineProperty(copy, 'target', { value: target });
+    copy.preventDefault = () => { event.preventDefault(); };
+    Object.defineProperty(copy, 'defaultPrevented', { get: () => event.defaultPrevented });
+    return copy;
+  }
+  doc.createElement = (tag) => new El(tag);
+  doc.body = new El('body');
+  doc.documentElement = new El('html', {}, [doc.body]);
+  const h = (tag, attributes = {}, ...children) => new El(tag, attributes, children);
+  const key = (target, name, init = {}) => {
+    const event = new Event('keydown', { bubbles: true, cancelable: true });
+    Object.assign(event, { key: name, ...init });
+    target.dispatchEvent(event);
+    return event;
+  };
+  return { h, doc, win, observers, frames, key, runFrames: () => { while (frames.length) frames.shift()(0); } };
+}
+
+describe('DS.dom state reporters and helpers (2.0)', () => {
+  it('watchScrolled: one sentinel, data-scrolled on the default target only on a change, owned; destroy() takes it all back', () => {
+    const { h, observers } = helperDom();
+    const view = h('main', { class: 'ds-view' }, h('p', {}));
+    view.computed = { rowGap: '16px' };
+    const app = h('div', { class: 'ds-app' }, view);
+    const handle = dom.watchScrolled(view);
+    assert.equal(dom.watchScrolled(view), handle, 'once per scroller');
+    const sentinel = view.children[0];
+    assert.deepEqual([sentinel.hasAttribute('data-ds-keep'), sentinel.hasAttribute('data-ds-sentinel'), sentinel.getAttribute('aria-hidden')], [true, true, 'true']);
+    assert.equal(sentinel.style.marginBottom, '-17px', 'the row gap is taken back');
+    const [observer] = observers.intersection;
+    assert.equal(observer.init.root, view);
+    const fire = (isIntersecting, height = 1) => observer.callback([{ isIntersecting, boundingClientRect: { height } }]);
+    fire(false, 0);
+    assert.equal(app.hasAttribute('data-scrolled'), false, 'not rendered: nothing');
+    fire(false);
+    assert.equal(app.hasAttribute('data-scrolled'), true);
+    assert.equal(app[Symbol.for('ds.owned')].attrs.get('data-scrolled'), 1, 'owned state');
+    fire(true);
+    assert.equal(app.hasAttribute('data-scrolled'), false);
+    sentinel.remove();
+    handle.update();
+    assert.equal(view.children.filter((child) => child.hasAttribute('data-ds-sentinel')).length, 1, 'a removed sentinel comes back, once');
+    fire(false);
+    handle.destroy();
+    assert.equal(app.hasAttribute('data-scrolled'), false);
+    assert.equal(view.children.some((child) => child.hasAttribute('data-ds-sentinel')), false);
+    assert.equal(app[Symbol.for('ds.owned')].attrs.has('data-scrolled'), false);
+    // A sheet body reports on its panel, a dialog body on its box.
+    const body = h('div', { class: 'ds-sheet__body' });
+    const panel = h('div', { class: 'ds-sheet__panel' }, body);
+    dom.watchScrolled(body);
+    observers.intersection.at(-1).callback([{ isIntersecting: false, boundingClientRect: { height: 1 } }]);
+    assert.equal(panel.hasAttribute('data-scrolled'), true);
+  });
+
+  it('scrollEdges: overflow at each end of the axis, the scrollbar room and the pin width, owned; once per axis', () => {
+    const { h, runFrames } = helperDom();
+    const cell = h('th', {});
+    cell.rect = { width: 120.5 };
+    const table = h('table', { class: 'ds-table ds-table--pin-first' }, h('tr', {}, cell, h('td', {})));
+    const wrap = h('div', { class: 'ds-table-wrap' }, table);
+    Object.assign(wrap, { scrollWidth: 900, clientWidth: 300, offsetHeight: 212, clientHeight: 200, scrollLeft: 0 });
+    wrap.computed = { borderTopWidth: '1px', borderBottomWidth: '1px' };
+    const handle = dom.scrollEdges(wrap);
+    assert.equal(dom.scrollEdges(wrap), handle);
+    const state = () => ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end'].filter((name) => wrap.hasAttribute(name));
+    assert.deepEqual(state(), ['data-ds-edges', 'data-ds-overflow-end']);
+    assert.equal(wrap.style.getPropertyValue('--ds-scrollbar-height'), '10px');
+    assert.equal(wrap.style.getPropertyValue('--ds-table-pin-width'), '120.5px');
+    wrap.scrollLeft = -300;
+    wrap.dispatchEvent(new Event('scroll'));
+    runFrames();
+    assert.deepEqual(state(), ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end'], 'a right-to-left scroller counts by its distance');
+    wrap.scrollLeft = 600;
+    handle.update();
+    assert.deepEqual(state(), ['data-ds-edges', 'data-ds-overflow-start']);
+    const block = dom.scrollEdges(wrap, { axis: 'block' });
+    assert.notEqual(block, handle, 'another axis, another watch');
+    assert.equal(wrap[Symbol.for('ds.owned')].attrs.get('data-ds-overflow-end'), 2);
+    block.destroy();
+    handle.destroy();
+    assert.deepEqual(state(), []);
+    assert.equal(wrap.style.getPropertyValue('--ds-scrollbar-height'), '');
+  });
+
+  it('progress: a share and its ARIA on a progress bar, a spinner and a meter; an unknown share', (t) => {
+    const { h } = helperDom();
+    const track = h('div', { class: 'ds-progress__track', role: 'progressbar', 'aria-valuetext': 'Preparing' });
+    const bar = h('div', { class: 'ds-progress ds-progress--indeterminate' }, track);
+    assert.equal(dom.progress(bar, 0.4567), bar);
+    assert.equal(bar.style.getPropertyValue('--ds-progress'), '0.457');
+    assert.deepEqual([bar.classList.contains('ds-progress--indeterminate'), track.getAttribute('aria-valuenow'), track.getAttribute('aria-valuetext')], [false, '46', null]);
+    dom.progress(bar, 3, { valueText: 'Almost' });
+    assert.deepEqual([bar.style.getPropertyValue('--ds-progress'), track.getAttribute('aria-valuenow'), track.getAttribute('aria-valuetext')], ['1', '100', 'Almost']);
+    dom.progress(bar, null, { valueText: 'Waiting', waiting: true });
+    assert.deepEqual([bar.classList.contains('ds-progress--waiting'), bar.classList.contains('ds-progress--indeterminate'), track.getAttribute('aria-valuenow'), track.getAttribute('aria-valuetext')], [true, false, null, 'Waiting']);
+    const warn = t.mock.method(console, 'warn', () => {});
+    dom.progress(bar, null);
+    dom.progress(bar, null);
+    assert.equal(warn.mock.callCount(), 1, 'a missing valueText warns once');
+    const spinner = h('span', { class: 'ds-spinner', role: 'progressbar' });
+    dom.progress(spinner, 0.25);
+    assert.deepEqual([spinner.classList.contains('ds-spinner--determinate'), spinner.style.getPropertyValue('--ds-progress'), spinner.getAttribute('aria-valuenow')], [true, '0.25', '25']);
+    const meter = h('div', { class: 'ds-meter' });
+    dom.progress(meter, 0.5);
+    assert.deepEqual([meter.style.getPropertyValue('--ds-share'), meter.getAttribute('aria-valuenow')], ['0.5', null], 'ARIA only with role="meter"');
+    dom.progress(meter, null);
+    assert.equal(meter.style.getPropertyValue('--ds-share'), '0.5', 'a meter is never indeterminate');
+  });
+
+  it('roving: one tab stop, arrows and Home/End (wrapping, rtl), disabled skipped, aria-disabled reachable, activation', () => {
+    const { h, doc, key, win } = helperDom();
+    const tabs = ['a', 'b', 'c', 'd'].map((name) => h('button', { role: 'tab', id: name, 'aria-selected': name === 'b' ? 'true' : 'false' }));
+    tabs[2].setAttribute('disabled', '');
+    tabs[3].setAttribute('aria-disabled', 'true');
+    const list = h('div', { role: 'tablist' }, ...tabs);
+    list.computed = { direction: 'ltr' };
+    const handle = dom.roving(list);
+    assert.equal(dom.roving(list), handle);
+    assert.deepEqual(tabs.map((tab) => tab.getAttribute('tabindex')), ['-1', '0', null, '-1'], 'the selected tab is the stop; the disabled one is out');
+    tabs[1].focus();
+    key(tabs[1], 'ArrowRight');
+    assert.equal(doc.activeElement, tabs[3], 'skips the disabled tab, reaches the aria-disabled one');
+    assert.equal(tabs[3].clicked, 1, 'activate: focus clicks');
+    assert.deepEqual(tabs.map((tab) => tab.getAttribute('tabindex')), ['-1', '-1', null, '0']);
+    key(tabs[3], 'ArrowRight');
+    assert.equal(doc.activeElement, tabs[0], 'wraps');
+    key(tabs[0], 'End');
+    assert.equal(doc.activeElement, tabs[3]);
+    key(tabs[3], 'Home');
+    assert.equal(doc.activeElement, tabs[0]);
+    assert.equal(key(tabs[0], 'ArrowDown').defaultPrevented, false, 'horizontal: Up and Down are left alone');
+    list.computed = { direction: 'rtl' };
+    key(tabs[0], 'ArrowLeft');
+    assert.equal(doc.activeElement, tabs[1], 'rtl: left is next');
+    handle.destroy();
+    key(tabs[1], 'ArrowRight');
+    assert.equal(doc.activeElement, tabs[1], 'destroyed');
+    // A toolbar: activate false, vertical, no wrap; manual activation waits for Enter.
+    const tools = ['x', 'y'].map((name) => h('div', { role: 'option', id: name }));
+    const bar = h('div', {}, ...tools);
+    dom.roving(bar, { orientation: 'vertical', wrap: false, activate: 'manual' });
+    tools[0].focus();
+    key(tools[0], 'ArrowDown');
+    assert.deepEqual([doc.activeElement, tools[1].clicked], [tools[1], undefined]);
+    key(tools[1], 'ArrowDown');
+    assert.equal(doc.activeElement, tools[1], 'no wrap');
+    key(tools[1], 'Enter');
+    assert.equal(tools[1].clicked, 1, 'manual: Enter activates');
+    void win;
+  });
+
+  it('followViewport: --ds-viewport-height, data-ds-keyboard only with a field focused and 150px less, the inset; once per document', () => {
+    const { h, doc, win, runFrames } = helperDom();
+    const viewport = new EventTarget();
+    Object.assign(viewport, { width: 400, height: 800, offsetTop: 0, scale: 1 });
+    win.visualViewport = viewport;
+    const root = doc.documentElement;
+    const handle = dom.followViewport(doc);
+    assert.equal(dom.followViewport(doc), handle);
+    assert.equal(root.style.getPropertyValue('--ds-viewport-height'), '800px');
+    const field = h('input', { type: 'text' });
+    Object.assign(field, { type: 'text', readOnly: false });
+    doc.body.append(field);
+    viewport.height = 460;
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), false, 'no field focused: the browser bars, a split view');
+    doc.activeElement = field;
+    doc.dispatchEvent(new Event('focusin'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), true);
+    assert.equal(root.style.getPropertyValue('--ds-keyboard-inset'), '340px');
+    assert.equal(root[Symbol.for('ds.owned')].attrs.get('data-ds-keyboard'), 1);
+    viewport.height = 700;
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), false, 'within 150px: no keyboard');
+    handle.destroy();
+    assert.equal(root.style.getPropertyValue('--ds-viewport-height'), '');
+    // Without visualViewport nothing happens.
+    const other = helperDom();
+    other.doc.defaultView.visualViewport = undefined;
+    dom.followViewport(other.doc).destroy();
+    assert.equal(other.doc.documentElement.style.getPropertyValue('--ds-viewport-height'), '');
+  });
+
+  it('followEnd: sticks while at the end, lets go when scrolled up (the pill shows), stick() goes back', () => {
+    const { h, observers } = helperDom();
+    const pill = h('button', { class: 'ds-presence', hidden: '' });
+    const log = h('div', {}, h('p', {}));
+    Object.assign(log, { scrollHeight: 1000, clientHeight: 400, scrollTop: 600 });
+    const handle = dom.followEnd(log, { pill });
+    assert.equal(pill.hidden, true, 'at the end: no pill');
+    const [sizes] = observers.resize.slice(-1);
+    log.scrollHeight = 1200;
+    sizes.callback([]);
+    assert.equal(log.scrollTop, 800, 'the content grew: it stays at the end');
+    log.scrollTop = 500;
+    log.dispatchEvent(new Event('scroll'));
+    assert.equal(pill.hidden, false, 'scrolled up: the pill shows');
+    log.scrollHeight = 1400;
+    sizes.callback([]);
+    assert.equal(log.scrollTop, 500, 'let go: it stays where the reader is');
+    pill.dispatchEvent(new Event('click'));
+    assert.equal(log.scrollTop, 1000);
+    assert.equal(log.smooth, undefined, 'farther than a viewport: a jump');
+    assert.equal(pill.hidden, true);
+    log.scrollTop = 800;
+    log.dispatchEvent(new Event('scroll'));
+    log.smooth = undefined;
+    handle.stick();
+    assert.equal(log.smooth, true, 'within a viewport: smooth');
+    handle.destroy();
+  });
+
+  it('autosize: grows with the text to max-height, then scrolls; nothing where field-sizing does it', () => {
+    const { h } = helperDom();
+    const area = h('textarea', {});
+    area.computed = { boxSizing: 'border-box', borderTopWidth: '1px', borderBottomWidth: '1px', maxHeight: '200px' };
+    area.scrollHeight = 98;
+    const handle = dom.autosize(area);
+    assert.deepEqual([area.style.height, area.style.overflowY], ['100px', 'hidden']);
+    area.scrollHeight = 400;
+    area.dispatchEvent(new Event('input'));
+    assert.deepEqual([area.style.height, area.style.overflowY], ['200px', 'auto']);
+    handle.destroy();
+    assert.equal(area.style.height, '');
+    const native = h('textarea', {});
+    native.computed = { 'field-sizing': 'content' };
+    dom.autosize(native);
+    assert.equal(native.style.height, '', 'field-sizing: content sizes it');
+  });
+
+  it('dropzone: counts enter and leave, takes only file drags, filters by accept, cuts to one, resets the input, pastes', () => {
+    const { h, doc } = helperDom();
+    const input = h('input', { type: 'file', class: 'ds-dropzone__input', accept: '.csv, image/*' });
+    Object.assign(input, { accept: '.csv, image/*', multiple: false, value: 'C:\\fakepath\\a.csv' });
+    const child = h('span', {});
+    const zone = h('label', { class: 'ds-dropzone' }, input, child);
+    const got = [];
+    const handle = dom.dropzone(zone, { onFiles: (files) => got.push(files.map((file) => file.name)), paste: true });
+    const drag = (type, files = [], kinds = ['Files']) => {
+      const event = new Event(type, { cancelable: true });
+      event.dataTransfer = { types: kinds, files, dropEffect: 'none' };
+      zone.dispatchEvent(event);
+      return event;
+    };
+    assert.equal(drag('dragenter', [], ['text/plain']).defaultPrevented, false, 'text is no file drag');
+    assert.equal(zone.hasAttribute('data-ds-dragover'), false);
+    drag('dragenter');
+    drag('dragenter');
+    drag('dragleave');
+    assert.equal(zone.hasAttribute('data-ds-dragover'), true, 'over a child: still over');
+    assert.equal(drag('dragover').defaultPrevented, true);
+    const csv = { name: 'devices.CSV', type: 'text/csv' };
+    const photo = { name: 'room.jpg', type: 'image/jpeg' };
+    const doc1 = { name: 'notes.docx', type: 'application/vnd.openxmlformats' };
+    drag('drop', [doc1, csv, photo]);
+    assert.equal(zone.hasAttribute('data-ds-dragover'), false);
+    assert.deepEqual(got, [['devices.CSV']], 'filtered by accept, one without multiple');
+    input.files = [photo];
+    input.dispatchEvent(new Event('change'));
+    assert.deepEqual(got.at(-1), ['room.jpg']);
+    assert.equal(input.value, '', 'the input is reset');
+    doc.activeElement = input;
+    const paste = new Event('paste', { cancelable: true });
+    paste.clipboardData = { files: [csv] };
+    doc.dispatchEvent(paste);
+    assert.deepEqual(got.at(-1), ['devices.CSV']);
+    assert.equal(paste.defaultPrevented, true);
+    input.setAttribute('disabled', '');
+    Object.defineProperty(input, 'disabled', { value: true });
+    drag('drop', [csv]);
+    assert.equal(got.length, 3, 'a disabled input takes nothing');
+    handle.destroy();
+    assert.equal(zone[Symbol.for('ds.owned')].attrs.has('data-ds-dragover'), false);
+  });
+});
+
 describe('classic-script build (dist/ds.js)', () => {
   it('exposes the same exports as the modules under window.DS', () => {
     const sandbox = { window: undefined };

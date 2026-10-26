@@ -294,3 +294,67 @@ test('sentinel: scrolling the styleguide view 2000px changes data-scrolled on .d
   expect(mutations.count).toBeGreaterThanOrEqual(1);
   expect(mutations.count).toBeLessThanOrEqual(2);
 });
+
+/* ── 2.0: DS.dom.watchScrolled() and DS.dom.scrollEdges() ─────────── */
+
+test('watchScrolled: a sheet opened twice keeps one sentinel through re-renders; data-scrolled on the panel in every engine (2.0)', async ({ page }) => {
+  await load(page);
+  const result = await page.evaluate(async () => {
+    const body = document.getElementById('sheet-body');
+    const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const counts = [];
+    for (let i = 0; i < 2; i += 1) {
+      await window.fxViews.openSheet(i);
+      // A page that wires it on every open gets the same watch.
+      DS.dom.watchScrolled(body);
+      DS.dom.morphHtml(body, `<p>Record ${i}</p>`.repeat(80));
+      counts.push(body.querySelectorAll('[data-ds-sentinel]').length);
+      await window.fxViews.closeSheet();
+    }
+    await window.fxViews.openSheet(0);
+    body.scrollTop = 120;
+    await frames();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const panel = document.querySelector('#sheet .ds-sheet__panel');
+    const scrolled = panel.hasAttribute('data-scrolled');
+    body.scrollTop = 0;
+    await frames();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    return { counts, first: body.firstElementChild.hasAttribute('data-ds-sentinel'), scrolled, back: panel.hasAttribute('data-scrolled') };
+  });
+  expect(result).toEqual({ counts: [1, 1], first: true, scrolled: true, back: false });
+});
+
+test('scrollEdges: overflow at each end follows the scroll, the scrollbar room is reported, destroy() cleans up (2.0)', async ({ page }) => {
+  await load(page);
+  const result = await page.evaluate(async () => {
+    const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin', '<div id="edges"><div id="edges-wide">Wide content</div></div>');
+    const box = document.getElementById('edges');
+    Object.assign(box.style, { width: '200px', overflowX: 'auto', overflowY: 'hidden' });
+    document.getElementById('edges-wide').style.width = '800px';
+    const state = () => ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end'].filter((name) => box.hasAttribute(name)).join(' ');
+    const handle = DS.dom.scrollEdges(box);
+    const out = { start: state(), bar: box.style.getPropertyValue('--ds-scrollbar-height') };
+    box.scrollLeft = 300;
+    await frames();
+    out.middle = state();
+    box.scrollLeft = 600;
+    await frames();
+    out.end = state();
+    document.getElementById('edges-wide').style.width = '100px';
+    await frames();
+    await frames();
+    out.fits = state();
+    handle.destroy();
+    out.destroyed = state();
+    box.remove();
+    return out;
+  });
+  expect(result.start).toBe('data-ds-edges data-ds-overflow-end');
+  expect(result.bar).toMatch(/^\d+px$/);
+  expect(result.middle).toBe('data-ds-edges data-ds-overflow-start data-ds-overflow-end');
+  expect(result.end).toBe('data-ds-edges data-ds-overflow-start');
+  expect(result.fits).toBe('data-ds-edges');
+  expect(result.destroyed).toBe('');
+});

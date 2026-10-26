@@ -112,31 +112,18 @@ is the only scroller. At 900px and below the drawer becomes modal.
   hairline runs on `scroll(nearest block)`; the tint on the view's named timeline `--ds-view-scroll`, which
   `.ds-app` scopes to the bar (`timeline-scope`). The tint is a layer behind the bar's content (`.ds-topbar::before`),
   hidden in forced colours. Elsewhere `data-scrolled` shows both over `--ds-dur-fast`. Set `data-scrolled` in every
-  engine (the filled fields read it), from an `IntersectionObserver` on a 1px sentinel at the top of the view rather
-  than a scroll listener, so the attribute changes twice per scroll and not on every event:
+  engine (the filled fields read it) with `DS.dom.watchScrolled(view)` (2.0, [motion.md](motion.md#dsdom-jsdomjs)):
+  it watches a 1px sentinel at the top of the view with an `IntersectionObserver` rather than a scroll listener, so
+  the attribute changes twice per scroll and not on every event, and writes it on the `.ds-app`:
 
   ```js
-  function watchScrolled(scroller, target) {
-    const sentinel = document.createElement('div');
-    sentinel.setAttribute('aria-hidden', 'true');
-    sentinel.setAttribute('data-ds-keep', '');      // DS.dom.morphHtml leaves it in place
-    sentinel.style.cssText = 'height: 1px; margin-bottom: -1px; flex-shrink: 0';
-    scroller.prepend(sentinel);
-    new IntersectionObserver((entries) => {
-      const entry = entries.at(-1);
-      if (!entry.boundingClientRect.height) return;    // not rendered (a closed sheet)
-      if (entry.isIntersecting === !target.hasAttribute('data-scrolled')) return;   // only on a change
-      target.toggleAttribute('data-scrolled', !entry.isIntersecting);
-      if (entry.isIntersecting) DS.motion.resyncScroll(scroller);   // content that shrank: no tint left behind
-    }, { root: scroller }).observe(sentinel);
-  }
-  watchScrolled(document.querySelector('.ds-view'), document.querySelector('.ds-app'));
+  DS.dom.watchScrolled(document.querySelector('.ds-view'));   // data-scrolled on the .ds-app, owned state
   ```
 
   A scrolled view whose content shrinks until it no longer scrolls leaves its scroll timeline inactive, and Chromium
   and WebKit then keep the tint and the hairline at their last value. `DS.motion.resyncScroll(scroller)` restarts
-  them ([motion](motion.md#scroll-driven-effects)); `DS.motion.transition()` calls it after every update, and the
-  sentinel above when the view is back at its top.
+  them ([motion](motion.md#scroll-driven-effects)); `DS.motion.transition()` calls it after every update, and
+  `watchScrolled()` when the view is back at its top.
 - A drawer item may be a `<button class="ds-drawer__item">` when it shows a section in place instead of loading a
   page; it loses the browser's button look. The active one also carries `aria-current="page"`.
 - `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible.
@@ -1073,10 +1060,9 @@ from the bottom and falls back down. A strip of the panel's background past its 
 overshoot, so the scrim never shows at the screen edge. By hand, close it like the dialog with `.ds-sheet--closing`
 (`DS.motion.settled(panel)`, then hide and remove the class in one task): the panel lets clicks through while it
 leaves, the backdrop swallows them until the sheet is hidden. The `hidden` attribute hides the div sheet without
-`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears), with the
-sentinel of the [App frame](#app-frame) at the top of the body: `watchScrolled(body, panel)`. The body is a flex
-column with a gap, so its sentinel also takes the gap back: `margin-bottom: calc(-1px - var(--ds-space-3))`.
-`data-ds-keep` keeps it through a record swap with `DS.dom.morphHtml(body, html)`. Where
+`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears) with
+`DS.dom.watchScrolled(body)` (2.0): it writes the attribute on the `.ds-sheet__panel`, and its sentinel takes the
+body's gap back by itself and stays through a record swap with `DS.dom.morphHtml(body, html)`. Where
 scroll timelines exist the hairline follows the body's scroll by itself, over the first `--ds-space-2`: the body
 names its timeline `--ds-sheet-scroll` and the panel scopes it to the head (progressive: `timeline-scope`). Use a
 `<div>` for the head, not `<header>` (a second banner landmark).
@@ -1305,13 +1291,14 @@ same task. The bar is cut at the share (a clip, never a scale), so its round cap
   when the wait ends, and fades in over `--ds-dur-fast`.
 - **Accessibility**: while `--indeterminate` or `--waiting` is on, the share is unknown: remove `aria-valuenow` and
   set `aria-valuetext` ("Preparing", "Waiting"). With the first share, set `aria-valuenow` again and remove
-  `aria-valuetext`:
+  `aria-valuetext`. `DS.dom.progress(el, share, { valueText, waiting })` (2.0,
+  [motion.md](motion.md#dsdom-jsdomjs)) does all of it in one call, on a `.ds-progress`, a determinate spinner or a
+  meter; set the share there or in the template, not both:
 
 ```js
-progress.classList.remove('ds-progress--indeterminate');
-progress.style.setProperty('--ds-progress', .3);
-track.setAttribute('aria-valuenow', '30');
-track.removeAttribute('aria-valuetext');
+DS.dom.progress(progress, null, { valueText: 'Preparing' });   // --indeterminate, no aria-valuenow
+DS.dom.progress(progress, 0.3);                                  // the bar grows to 30%, aria-valuenow="30"
+DS.motion.countUp(label, 30, { format: (value) => `${Math.round(value)}%` });   // lands on the same frame
 ```
 
 **Motion:** the "Progress" row of [Feedback](motion.md#feedback) in motion.md.
@@ -1404,3 +1391,19 @@ spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` ag
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
 
 ## Attributes
+
+The attributes the system writes (owned state: a re-render with `DS.dom.morphHtml` keeps them; never set them) and
+the ones the page sets for it. The project check reads this table.
+
+| Attribute | Written by | On | Meaning |
+|---|---|---|---|
+| `data-scrolled` | the system (`DS.dom.watchScrolled`) | `.ds-app`, `.ds-sheet__panel`, `.ds-dialog__box` or the scroller | the scroller is scrolled away from its top (hairlines, top bar tint) |
+| `data-ds-sentinel` | the system (`DS.dom.watchScrolled`) | the 1px sentinel first in a watched scroller | marks the sentinel (with `data-ds-keep`) |
+| `data-ds-edges` | the system (`DS.dom.scrollEdges`) | the scroller | its edges are reported |
+| `data-ds-overflow-start` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the start of its axis |
+| `data-ds-overflow-end` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the end of its axis |
+| `data-ds-dragover` | the system (`DS.dom.dropzone`) | a `.ds-dropzone` or a page drop target | files are dragged over it |
+| `data-ds-dragging` | the system (`DS.motion.sortable`) | the item being moved | the dragged row |
+| `data-ds-keyboard` | the system (`DS.dom.followViewport`) | `<html>` | the on-screen keyboard is up |
+| `data-ds-guard="off"` | the page | any element around actions | its `aria-disabled` and busy actions explain themselves on click: `DS.motion.guard()` lets their activations through |
+| `data-ds-shown` | the page | a `.ds-presence--keep` element | shown (without it hidden, keeping its box) |
