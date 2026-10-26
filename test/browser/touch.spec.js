@@ -3,8 +3,8 @@
  * to --ds-touch-target (48px). The controls fixture rendered under it: every
  * interactive box is at least 48px: buttons, chips, switches, checks,
  * drawer items, fields, menu items, combobox options, the snackbar close
- * button, disclosure summaries and tabs (menu, list and snackbar opened
- * through DS.overlay).
+ * button, disclosure summaries, tabs (menu, list and snackbar opened
+ * through DS.overlay) and the top bar's brand link (the shell fixture).
  */
 import { test, expect } from './base-test.js';
 import { ready, settle } from './helpers/motion.js';
@@ -115,6 +115,17 @@ test('disclosure summaries are 48px tall (--ds-disclosure-height)', async ({ pag
 test('tabs are 48px tall (--ds-tabs-height)', async ({ page }) => {
   await open(page);
   for (const box of await present(page, '.ds-tabs [role="tab"]')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
+});
+
+test('the brand link is a 48px target under .ds-touch, and only there', async ({ page }) => {
+  await page.goto('/test/browser/fixtures/shell.html');
+  await ready(page);
+  const brand = () => page.$eval('.ds-topbar .ds-brand', (el) => { const rect = el.getBoundingClientRect(); return { width: rect.width, height: rect.height }; });
+  expect((await brand()).height).toBeLessThan(TARGET);
+  await page.evaluate(() => document.querySelector('.ds-theme').classList.add('ds-touch'));
+  const box = await brand();
+  expect(box.height).toBeGreaterThanOrEqual(TARGET - 0.5);
+  expect(box.width).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
 
 test('the controls fixture under .ds-touch (settled shot)', async ({ page }) => {

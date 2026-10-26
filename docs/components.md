@@ -475,6 +475,7 @@ menu.addEventListener('click', () => {
 - `.ds-topbar__actions`: icon buttons with `data-tip`, at the end of the bar (before the account).
 - A brand of only a name (no mark) lines its text up with the drawer's icon edge and keeps the name on phones. Between
   601 and 900px a bar without the drawer starts at `--ds-space-4`, like the panel. The menu button never shrinks.
+  Under `.ds-touch` the brand link is at least `--ds-touch-target` (48px) wide and tall.
 - `.ds-account--capsule`: the account as one outlined pill (`--ds-line`, `--ds-surface`): the avatar first at every
   width and the only carrier of the name (`role="img"`, `aria-label`, `data-tip`; a tap shows the tip), the text
   `aria-hidden` beside it (at most `--ds-account-text-max`, 240px; hidden below 720px), `.ds-account__divider` and a

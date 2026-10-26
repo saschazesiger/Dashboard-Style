@@ -53,8 +53,11 @@
  *                       filled fields in it step up to --ds-surface-highest.
  *                       Where scroll timelines exist, hairline and tint
  *                       follow the scroll position themselves (below); set
- *                       the attribute anyway, from an IntersectionObserver
- *                       on a 1px sentinel (docs/components.md, App frame)
+ *                       the attribute anyway: DS.dom.watchScrolled(view)
+ *                       writes it (a 1px sentinel, docs/components.md)
+ *
+ * Under .ds-touch the brand link is at least --ds-touch-target on both
+ * sides (the targets of the drawer and the buttons follow their hooks).
  *
  * .ds-drawer--instant on the drawer: no slide and no scrim fade while the
  * window crosses 900px (the page adds it on the matchMedia change and
@@ -613,6 +616,13 @@
     border-radius: var(--ds-radius-action);
     color: var(--ds-text);
     text-decoration: none;
+  }
+
+  /* Under .ds-touch the home link is a finger's target too, also when it
+     is a small mark only. */
+  .ds-touch .ds-brand {
+    min-width: var(--ds-touch-target);
+    min-height: var(--ds-touch-target);
   }
 
   .ds-brand__name {

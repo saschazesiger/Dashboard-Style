@@ -159,6 +159,27 @@ test.describe('drawer parts', () => {
     expect(['rgba(0, 0, 0, 0)', '']).toContain(await style(page, '#open', '-webkit-tap-highlight-color'));
   });
 
+  test('the row action shows on demand: hover, focus and a current item', async ({ page }) => {
+    await open(page);
+    const opacity = () => page.locator('#row-action').evaluate((el) => getComputedStyle(el).opacity);
+    const settled = async (value) => expect.poll(opacity).toBe(value);
+    await settled('0');
+    await page.locator('#waiting').hover();
+    await settled('1');
+    await page.mouse.move(1, 1);
+    await settled('0');
+    await page.locator('#row-action').focus();
+    await settled('1');
+    await page.locator('#row-action').blur();
+    await settled('0');
+    // The row is current through its item (the row itself carries nothing).
+    await page.evaluate(() => {
+      document.querySelector('#open').removeAttribute('aria-current');
+      document.querySelector('#waiting').setAttribute('aria-current', 'page');
+    });
+    await settled('1');
+  });
+
   test('the foot rail lays its items out icon-only in a row, their labels read but unseen', async ({ page }) => {
     await open(page);
     const items = await page.locator('#foot .ds-drawer__item').evaluateAll((els) => els.map((el) => {

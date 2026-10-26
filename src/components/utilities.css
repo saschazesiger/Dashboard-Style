@@ -42,8 +42,8 @@
  *
  * .ds-hover-actions fades in (opacity, --ds-dur-fast) while its host (a
  * tr, li, .ds-card, .ds-drawer__row or .ds-hover-host) is hovered (devices
- * that hover), holds the focus, is current or selected, holds an open
- * menu ([aria-expanded="true"]) or carries data-ds-shown; it fades out
+ * that hover), holds the focus, is current or selected (a drawer row:
+ * its item is current), holds an open menu ([aria-expanded="true"]) or carries data-ds-shown; it fades out
  * faster (--ds-dur-instant, 0.67). Always shown on touch screens
  * (hover: none) and under .ds-touch. Opacity only: the buttons stay in the
  * tab order and the accessibility tree, and hover moves nothing.
@@ -243,6 +243,7 @@
   }
 
   :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown], :has([aria-expanded="true"])) .ds-hover-actions,
+  .ds-drawer__row:has(> .ds-drawer__item[aria-current]:not([aria-current="false"])) .ds-hover-actions,
   .ds-hover-actions:is(:focus-within, [data-ds-shown], :has([aria-expanded="true"])) {
     opacity: 1;
     transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);

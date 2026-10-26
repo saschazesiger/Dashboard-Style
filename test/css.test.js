@@ -2286,6 +2286,13 @@ describe('app frame, page and base (2.0)', () => {
     assert.ok(!rules(css).some((rule) => splitSelectors(rule.selector).includes('.ds-segmented__option[aria-current="true"]')), 'the old selection selector is folded into :is()');
   });
 
+  it('gives the brand link the touch target under .ds-touch', () => {
+    const touch = declarationsOf(stripComments(read(SHELL)), '.ds-touch .ds-brand');
+    for (const property of ['min-width', 'min-height']) {
+      assert.ok(touch.some((entry) => entry.property === property && entry.value === 'var(--ds-touch-target)'), property);
+    }
+  });
+
   it('keeps the segmented switch\'s start margin to the top bar', () => {
     const css = withoutAtRuleBlocks(stripComments(read(SHELL)), /@media/);
     const own = declarationsOf(css, '.ds-segmented').map((entry) => entry.property);

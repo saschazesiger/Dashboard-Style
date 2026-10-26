@@ -82,6 +82,8 @@ describe('utilities (2.0)', () => {
       assert.ok(shown.some((part) => part.includes(state)), state);
     }
     assert.ok(shown.includes('.ds-touch .ds-hover-actions'));
+    // A drawer row is current through its item, not itself.
+    assert.ok(shown.includes('.ds-drawer__row:has(> .ds-drawer__item[aria-current]:not([aria-current="false"])) .ds-hover-actions'));
     const none = atRuleBlocks(css, /@media\s*\(hover:\s*none\)/).flatMap((block) => declarationsOf(block, '.ds-hover-actions'));
     assert.equal(none.find((entry) => entry.property === 'opacity')?.value, '1');
     // Opacity only: nothing else changes in any of its rules.

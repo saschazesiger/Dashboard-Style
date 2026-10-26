@@ -221,8 +221,8 @@ hook to `--ds-touch-target` (48px): `--ds-btn-height`, `--ds-btn-sm-height`, `--
 `--ds-btn-sm-icon-size`, `--ds-input-height`, `--ds-check-height`, `--ds-check-sm-height`, `--ds-check-target`, `--ds-switch-height`,
 `--ds-switch-halo`, `--ds-chip-height`, `--ds-combo-option-height`, `--ds-menu-item-height`,
 `--ds-drawer-item-height`, `--ds-toast-close-size`, `--ds-tabs-height` and `--ds-disclosure-height`; fields take the
-input role (`--ds-input-font: var(--ds-font-input)`, 16px, so iOS does not zoom), and `.ds-hover-actions` always
-show. It is never automatic: a laptop with a touch screen keeps the dense layout unless the page opts in, for example
+input role (`--ds-input-font: var(--ds-font-input)`, 16px, so iOS does not zoom), the top bar's `.ds-brand` link is at
+least `--ds-touch-target` wide and tall, and `.ds-hover-actions` always show. It is never automatic: a laptop with a touch screen keeps the dense layout unless the page opts in, for example
 when any pointer is coarse:
 
 ```js

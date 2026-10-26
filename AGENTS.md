@@ -270,8 +270,8 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   `--ds-time-scale`, `--ds-motion-*`, `--ds-enter-*`, `--ds-leave-*`, `--ds-clip-from`, `--ds-draw-length`,
   `--ds-scan-*`, `--ds-indicator-lag`, `--ds-indicator-dur`). Never wrap the theme in `@layer`.
 - `ds.css` sits in `@layer ds.*`, so unlayered project CSS beats every component. Load resets in a layer declared
-  before ds (`@layer reset;` first, or `@layer reset, ds, app;`). Never add a `[hidden]` rule: `ds.css` already
-  hides `[hidden]` inside `.ds-theme`.
+  before ds (`@layer reset;` first, or `@layer reset, ds, app;`). Under `.ds-base`, `hidden` always hides; never add
+  a `[hidden]` rule.
 - Never write the attributes the system owns (those the "Attributes" table in
   https://github.com/saschazesiger/Dashboard-Style/blob/main/docs/components.md lists as written by the system, such
   as `data-scrolled`); the page sets only its own ones.
