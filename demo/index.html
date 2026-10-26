@@ -259,7 +259,7 @@
             <div class="ds-grid-2">
               <section class="ds-card">
                 <h3 class="ds-card__title">Dialog and side sheet</h3>
-                <p class="ds-muted">The dialog grows from its opener on the spring; the sheet slides its full width in and steps between records with a shared-axis transition.</p>
+                <p class="ds-muted">The dialog grows from its opener on the spring and stays open while its delete runs (Escape waits); the sheet slides its full width in and steps between records with a shared-axis transition.</p>
                 <div class="demo-row">
                   <button class="ds-btn ds-btn--tonal" type="button" id="open-dialog" data-icon-sm="trash">Delete 3 devices</button>
                   <button class="ds-btn" type="button" id="open-sheet" data-icon-sm="fileText">Open details</button>
@@ -501,8 +501,13 @@
     <h2 class="ds-dialog__title" id="confirm-title">Delete 3 devices?</h2>
     <p class="ds-dialog__text" id="confirm-text">They disappear from every list. You can undo it for a moment.</p>
     <div class="ds-dialog__actions">
-      <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button" id="confirm-delete">Delete devices</button>
+      <button class="ds-btn ds-btn--text" type="button" id="confirm-cancel" data-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="confirm-delete">
+        <span class="ds-btn__faces">
+          <span class="ds-btn__face">Delete devices</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Deleting</span>
+        </span>
+      </button>
     </div>
   </div>
 </dialog>

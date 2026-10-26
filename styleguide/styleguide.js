@@ -617,7 +617,9 @@
         '<div class="ds-field"><label class="ds-field__label" for="f-since">Since</label><input class="ds-input ds-input--filled" id="f-since" type="date"></div>' +
         '</div></div>' +
         '<div class="ds-action-bar"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div><button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-sg="toggle">' + icon('filter', 16) + 'Filter</button><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 16) + 'Add</button><p class="ds-meta">128 devices</p></div>' +
-        '<div class="ds-inline-form"><div class="ds-field"><label class="ds-field__label" for="f-ticket">Ticket number</label><input class="ds-input" id="f-ticket" placeholder="12345"></div><button class="ds-btn" type="button">Look up</button></div>'));
+        '<div class="ds-inline-form"><div class="ds-field"><label class="ds-field__label" for="f-ticket">Ticket number</label><input class="ds-input" id="f-ticket" placeholder="12345"></div><button class="ds-btn" type="button">Look up</button></div>') +
+      card('Select-only combobox', '<p class="ds-muted">A button shows the choice with its meta (<code>.ds-combo--select</code>); Enter, Space or the arrows open the list, letters jump to an option. Premium cannot be chosen.</p>' +
+        '<div class="ds-field" style="max-width:420px">' + selectComboMarkup('f-plan', 'Plan') + '</div>'));
   }
 
   /* Chips, switch, combobox */
@@ -642,6 +644,25 @@
         '<div class="ds-field" style="max-width:420px">' + comboMarkup('f-combo', 'Model') + '</div>'));
   }
 
+  /* The plans of the select-only combobox: a name, a meta, a share of the quota; one is blocked. */
+  var PLANS = [['Basic', '2 devices', 0.2, false], ['Standard', '5 devices', 0.6, false], ['Premium', 'Needs a contract', 1, true], ['Team', '25 devices', 0.36, false]];
+
+  /* A select-only combobox (docs/components.md, Combobox); setupSelectCombo() wires it. */
+  function selectComboMarkup(id, name) {
+    return '<span class="ds-field__label" id="' + id + '-label">' + name + '</span>' +
+      '<div class="ds-combo ds-combo--select" data-sg-select>' +
+      '<button class="ds-input ds-combo__input" id="' + id + '" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="' + id + '-list" aria-labelledby="' + id + '-label ' + id + '-value">' +
+      '<span class="ds-combo__value" id="' + id + '-value">Standard</span><span class="ds-combo__meta">5 devices</span></button>' +
+      '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show plans">' + icon('chevronDown', 20) + '</button>' +
+      '<div class="ds-combo__popup" hidden><ul class="ds-combo__list" id="' + id + '-list" role="listbox" aria-labelledby="' + id + '-label">' +
+      PLANS.map(function (plan, index) {
+        return '<li class="ds-combo__option" id="' + id + '-' + index + '" role="option" aria-selected="' + (index === 1) + '"' + (plan[3] ? ' aria-disabled="true"' : '') + '>' +
+          '<span class="ds-combo__name">' + plan[0] + '</span><span class="ds-combo__meta">' + plan[1] + '</span>' +
+          '<div class="ds-progress" style="--ds-progress:' + plan[2] + '"><div class="ds-progress__track" role="presentation"><div class="ds-progress__bar"></div></div></div></li>';
+      }).join('') +
+      '</ul></div></div>';
+  }
+
   /* The models of the combobox demos. */
   var MODELS = [['Latitude 5430', '14 inch · 2022'], ['Latitude 7440', '14 inch · 2023'], ['Latitude 9450', '14 inch · 2024'], ['Precision 3581', '15 inch · 2023'], ['OptiPlex 7010', 'Desktop · 2023'], ['Surface Laptop 5', '13 inch · 2022']];
 
@@ -664,12 +685,28 @@
     };
     return section('overlays', 'Overlays', 'Dialogs, side sheets, menus, snackbars and tooltips float over the page and open through DS.overlay: focus moves in and back at once, Escape closes the top one, and every motion turns back from where it is. Open the real ones or inspect them in place.',
       card('Try them', '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-sg="dialog">Open dialog</button><button class="ds-btn" type="button" data-sg="dialog-div">Dialog (div markup)</button><button class="ds-btn" type="button" data-sg="dialog-combo">Dialog with a list</button><button class="ds-btn" type="button" data-sg="sheet">Open side sheet</button></div>' +
+        '<div class="sg-row"><button class="ds-btn" type="button" data-sg="dialog-long">Long form (body scrolls)</button><button class="ds-btn" type="button" data-sg="dialog-people">Pick one of 40 people</button><button class="ds-btn" type="button" data-sg="dialog-work">Delete (busy)</button><button class="ds-btn" type="button" data-sg="dialog-type">Type the name to delete</button></div>' +
+        '<div class="sg-row"><button class="ds-btn" type="button" data-sg="dialog-full">Full screen on phones</button><button class="ds-btn" type="button" data-sg="dialog-actions">Action sheet</button><button class="ds-btn" type="button" data-sg="dialog-confirm">DS.overlay.confirm()</button><button class="ds-btn" type="button" data-sg="dialog-prompt">DS.overlay.prompt()</button><button class="ds-btn" type="button" data-sg="sheet-filters">Filters (sheet with a foot)</button></div>' +
         '<div class="sg-row"><button class="ds-btn" type="button" data-sg="toast">Show snackbar</button><button class="ds-btn" type="button" data-sg="toast-error">Show error</button><button class="ds-btn" type="button" data-sg="toast-many">4 messages</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">' + icon('link', 20) + '</button>' +
         '<button class="ds-btn ds-btn--text" type="button" popovertarget="sg-presence">A popover (.ds-presence)</button></div>' +
         '<div class="ds-presence sg-presence" id="sg-presence" popover><p class="ds-card__title">A plain popover</p><p class="ds-muted">Toggled by popovertarget, no script: .ds-presence fades it in and out. Escape or a click outside closes it.</p></div>') +
       '<div class="ds-grid-2">' +
       card('Dialog', '<div class="sg-inline-overlay">' + dialogMarkup(true) + '</div>') +
       card('Side sheet', '<div class="sg-inline-overlay">' + sheetMarkup(true) + '</div>') +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      card('Dialog body in a 360px frame', '<p class="ds-muted">A contained dialog with a long list: only its body scrolls, title and actions stay; the hairline shows while the list is scrolled.</p><div class="sg-inline-overlay sg-inline-overlay--short">' + bodyDialogMarkup() + '</div>') +
+      '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">Sort and view</h3><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Sort and view" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-sort-menu" data-sg-sort-menu>' + icon('settings', 20) + '</button></div>' +
+        '<p class="ds-muted">A menu with a group of radio items under a heading, a checkbox item with its state word and a shortcut at an item\'s end. Type a letter to jump.</p>' +
+        '<div class="ds-menu" role="menu" id="sg-sort-menu" aria-label="Sort and view" hidden>' +
+        '<div role="group" aria-labelledby="sg-sort-h"><p class="ds-menu__heading" id="sg-sort-h">Sort by</p>' +
+        ['Name', 'Last seen', 'Load'].map(function (name, index) {
+          return '<button class="ds-menu__item" role="menuitemradio" type="button" aria-checked="' + (index === 0) + '" data-sg-radio>' + icon('check', 20, 'ds-menu__check') + '<span class="ds-menu__label">' + name + '</span></button>';
+        }).join('') + '</div>' +
+        '<div class="ds-menu__divider" role="separator"></div>' +
+        '<button class="ds-menu__item" role="menuitemcheckbox" type="button" aria-checked="true" data-sg-state>' + icon('check', 20, 'ds-menu__check') + '<span class="ds-menu__label">Compact rows</span><span class="ds-menu__meta">On</span></button>' +
+        '<button class="ds-menu__item" role="menuitem" type="button" data-sg-item="Copied the link.">' + icon('link', 20) + '<span class="ds-menu__label">Copy link</span><span class="ds-menu__meta">Ctrl L</span></button>' +
+        '</div></section>' +
       '</div>' +
       '<div class="ds-grid-2">' +
       '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Actions for LAPTOP-0042" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-menu" data-sg-menu>' + icon('moreVertical', 20) + '</button></div>' +
@@ -688,6 +725,100 @@
       card('Snackbar and tooltip', '<div class="ds-stack"><div class="ds-toast sg-toast-demo">' + icon('checkCircle', 20) + '<span class="ds-toast__text">Saved. The record is visible to everyone now.</span><button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">' + icon('close', 20) + '</button></div>' +
         '<div class="ds-toast ds-toast--error sg-toast-demo">' + icon('alertCircle', 20) + '<span class="ds-toast__text">Could not save. Check the connection and try again.</span></div>' +
         '<div class="ds-tooltip sg-tooltip-demo">Copy link</div></div>'));
+  }
+
+  /* A contained dialog whose body scrolls (the 360px frame of the overlays section). */
+  function bodyDialogMarkup() {
+    var rows = '';
+    for (var i = 0; i < 14; i += 1) rows += '<label class="ds-check"><input type="checkbox"' + (i < 2 ? ' checked' : '') + '> ' + PEOPLE[i % PEOPLE.length] + '</label>';
+    return '<div class="ds-dialog ds-dialog--contained"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box" role="group" aria-label="Notify people"><h2 class="ds-dialog__title">Notify people</h2>' +
+      '<div class="ds-dialog__body" data-sg-scrolled><p class="ds-dialog__text">They get an email when LAPTOP-0042 is back.</p>' + rows + '</div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--primary" type="button">Notify 2 people</button></div></div></div>';
+  }
+
+  /* The people of the list dialogs. */
+  var PEOPLE = ['Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Katherine Johnson', 'Margaret Hamilton', 'Edsger Dijkstra', 'Barbara Liskov', 'Donald Knuth', 'Frances Allen', 'John Backus'];
+
+  /* A form taller than the window: the body scrolls, title and actions stay (docs/components.md, Dialog). */
+  function longDialogMarkup() {
+    var field = function (id, label, extra) {
+      return '<div class="ds-field"><label class="ds-field__label" for="sg-long-' + id + '">' + label + '</label><input class="ds-input" id="sg-long-' + id + '"' + (extra || '') + '></div>';
+    };
+    return '<dialog class="ds-dialog ds-dialog--wide" id="sg-dialog-long" aria-labelledby="sg-long-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-long-title">Edit LAPTOP-0042</h2>' +
+      '<div class="ds-dialog__body" data-sg-scrolled><p class="ds-dialog__text">The changes apply to every list once you save.</p>' +
+      field('name', 'Name', ' value="LAPTOP-0042"') + field('owner', 'Owner', ' value="Ada Lovelace"') + field('place', 'Location', ' value="Building A, 1st floor"') +
+      field('model', 'Model', ' value="Latitude 7440"') + field('serial', 'Serial number', ' value="7H2K9Q3"') + field('bought', 'Bought', ' type="date" value="2023-04-12"') +
+      field('warranty', 'Warranty until', ' type="date" value="2026-04-12"') + field('note', 'Note', ' placeholder="Add a note"') +
+      '<label class="ds-check"><input type="checkbox" checked> Sync nightly</label></div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button><button class="ds-btn ds-btn--primary" type="button" data-close>Save</button></div></div></dialog>';
+  }
+
+  /* A search over a list (docs/components.md, Dialog): a fixed height, a count, Choose blocked until a choice. */
+  function peopleDialogMarkup() {
+    return '<dialog class="ds-dialog ds-dialog--wide" id="sg-dialog-people" aria-labelledby="sg-people-title" style="--ds-dialog-height: 560px"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-people-title">Choose the new owner</h2>' +
+      '<div class="ds-search">' + icon('search', 20) + '<input class="ds-input" id="sg-people-search" type="search" aria-label="Search people" placeholder="Search people" autocomplete="off"></div>' +
+      '<p class="ds-meta" id="sg-people-count" aria-live="polite">40 people</p>' +
+      '<div class="ds-dialog__body" id="sg-people-list" role="radiogroup" aria-label="People" data-sg-scrolled></div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>' +
+      '<button class="ds-btn ds-btn--primary" type="button" id="sg-people-ok" aria-disabled="true" data-tip="Choose a person first">Choose</button></div></div></dialog>';
+  }
+
+  /* Keeps the dialog open while its action runs (data-ds-busy); the switch lets the request fail. */
+  function workDialogMarkup() {
+    return '<dialog class="ds-dialog" id="sg-dialog-work" role="alertdialog" aria-labelledby="sg-work-title" aria-describedby="sg-work-text"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-work-title">Delete 3 devices?</h2>' +
+      '<div class="ds-dialog__body"><p class="ds-dialog__text" id="sg-work-text">They disappear from every list. Escape and the backdrop wait while it works.</p>' +
+      '<label class="ds-check"><input type="checkbox" id="sg-work-fail"> Let the request fail</label></div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="sg-work-cancel" data-close autofocus>Cancel</button>' +
+      '<button class="ds-btn ds-btn--primary" type="button" id="sg-work-ok">' + faces('Delete devices', 'Deleting', 'Deleted') + '</button></div></div></dialog>';
+  }
+
+  /* Confirm by typing the name (docs/components.md, Dialog). */
+  function typeDialogMarkup() {
+    return '<dialog class="ds-dialog ds-dialog--wide" id="sg-dialog-type" role="alertdialog" aria-labelledby="sg-type-title" aria-describedby="sg-type-text"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-type-title">Delete LAPTOP-0042 for good?</h2>' +
+      '<div class="ds-dialog__body"><p class="ds-dialog__text" id="sg-type-text">Its history, tickets and documents go with it. This cannot be undone.</p>' +
+      '<div class="ds-alert ds-alert--warning">' + icon('alert', 20) + '<span class="ds-alert__text">The device is still assigned to Ada Lovelace.</span></div>' +
+      '<div class="ds-field"><label class="ds-field__label" for="sg-type-field">Type LAPTOP-0042 to confirm</label><input class="ds-input" id="sg-type-field" autocomplete="off" spellcheck="false" autocapitalize="off" autofocus></div></div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" id="sg-type-cancel" data-close>Cancel</button>' +
+      '<button class="ds-btn ds-btn--primary" type="button" id="sg-type-ok" aria-disabled="true" data-tip="Type the name first">' + faces('Delete for good', 'Deleting', 'Deleted') + '</button></div></div></dialog>';
+  }
+
+  /* A task that needs the whole phone screen: full screen at 600px and below. */
+  function fullDialogMarkup() {
+    return '<dialog class="ds-dialog ds-dialog--full-narrow" id="sg-dialog-full" aria-labelledby="sg-full-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><div class="ds-dialog__head"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>' + icon('close', 20) + '</button>' +
+      '<h2 class="ds-dialog__title" id="sg-full-title">New ticket</h2><button class="ds-btn ds-btn--text" type="button" data-close>Save</button></div>' +
+      '<div class="ds-dialog__body"><div class="ds-field"><label class="ds-field__label" for="sg-full-subject">Subject</label><input class="ds-input" id="sg-full-subject" placeholder="What is wrong?"></div>' +
+      '<div class="ds-field"><label class="ds-field__label" for="sg-full-text">Description</label><textarea class="ds-input" id="sg-full-text"></textarea></div></div></div></dialog>';
+  }
+
+  /* The actions of a row on a phone: the menu's items in an action sheet. */
+  function actionsDialogMarkup() {
+    var item = function (glyph, label) {
+      return '<button class="ds-menu__item" type="button" data-close data-sg-item="' + label + ': done.">' + icon(glyph, 20) + '<span class="ds-menu__label">' + label + '</span></button>';
+    };
+    return '<dialog class="ds-dialog ds-dialog--bottom" id="sg-dialog-actions" aria-labelledby="sg-actions-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="sg-actions-title">LAPTOP-0042</h2><div class="ds-dialog__list">' +
+      item('pencil', 'Edit') + item('copy', 'Duplicate') + item('archive', 'Archive') + '</div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div></dialog>';
+  }
+
+  /* Filters in a side sheet: a live count in the subtitle, the actions in the foot. */
+  function filtersSheetMarkup() {
+    var types = [['Laptops', 128, true], ['Desktops', 54, false], ['Printers', 18, false], ['Tablets', 40, true]];
+    return '<dialog class="ds-sheet" id="sg-sheet-filters" aria-labelledby="sg-filters-title"><div class="ds-sheet__backdrop" data-close></div><section class="ds-sheet__panel">' +
+      '<div class="ds-sheet__head"><div class="ds-sheet__heading"><h2 class="ds-sheet__title" id="sg-filters-title">Filters</h2><p class="ds-sheet__subtitle" id="sg-filters-count" aria-live="polite"></p></div>' +
+      '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>' + icon('close', 20) + '</button></div>' +
+      '<div class="ds-sheet__body" tabindex="0"><fieldset class="ds-field"><legend class="ds-field__label">Type</legend>' +
+      types.map(function (type) {
+        return '<label class="ds-check"><input type="checkbox" data-count="' + type[1] + '"' + (type[2] ? ' checked' : '') + '> ' + type[0] + '</label>';
+      }).join('') + '</fieldset></div>' +
+      '<div class="ds-sheet__foot"><p class="ds-meta" id="sg-filters-meta"></p><button class="ds-btn ds-btn--text" type="button" id="sg-filters-reset">Reset</button>' +
+      '<button class="ds-btn ds-btn--primary" type="button" id="sg-filters-show" data-close>Show devices</button></div></section></dialog>';
   }
 
   /* The inline dialog (inspected in place, .ds-dialog--contained). */
@@ -1478,7 +1609,7 @@
      them again (it drops data-state then). */
   var shownOverlays = {};
 
-  function showOverlay(name, markup, opener) {
+  function showOverlay(name, markup, opener, wire) {
     var overlay = shownOverlays[name];
     if (!overlay || !overlay.isConnected) {
       var holder = document.createElement('div');
@@ -1487,6 +1618,9 @@
       document.body.appendChild(overlay);
       $$('[data-sg-combo]', overlay).forEach(setupCombo);
       $$('.ds-sheet__panel', overlay).forEach(function (panel) { watchScrolled($('.ds-sheet__body', panel), panel); });
+      // A dialog body that scrolls: the hairline on the box while it is scrolled.
+      $$('.ds-dialog__body[data-sg-scrolled]', overlay).forEach(function (body) { watchScrolled(body, body.parentNode); });
+      if (wire) wire(overlay);
       new MutationObserver(function (records, observer) {
         if (overlay.hasAttribute('data-state')) return;
         observer.disconnect();
@@ -1605,13 +1739,227 @@
     });
   }
 
+  /*
+   * The select-only combobox (docs/components.md, Combobox): the keys of
+   * the WAI select-only pattern are the page's script; DS.overlay opens and
+   * closes the list. Focus stays on the button; data-active and
+   * aria-activedescendant follow the keys; blocked options are passed by.
+   */
+  function setupSelectCombo(combo) {
+    var button = $('.ds-combo__input', combo);
+    var popup = $('.ds-combo__popup', combo);
+    var options = $$('.ds-combo__option', popup);
+    var usable = function () { return options.filter(function (option) { return option.getAttribute('aria-disabled') !== 'true'; }); };
+    var isOpen = function () { return button.getAttribute('aria-expanded') === 'true'; };
+    var active = function () { return options.filter(function (option) { return option.hasAttribute('data-active'); })[0] || null; };
+    var chosen = function () { return options.filter(function (option) { return option.getAttribute('aria-selected') === 'true'; })[0] || usable()[0]; };
+    var typed = '';
+    var typedAt = 0;
+
+    function setActive(option) {
+      options.forEach(function (each) { if (each !== option) each.removeAttribute('data-active'); });
+      if (!option) { button.removeAttribute('aria-activedescendant'); return; }
+      option.setAttribute('data-active', '');
+      button.setAttribute('aria-activedescendant', option.id);
+      option.scrollIntoView({ block: 'nearest' });
+    }
+    function open() {
+      if (isOpen()) return;
+      DS.overlay.open(popup, { opener: button });
+      setActive(chosen());
+    }
+    function close() {
+      setActive(null);
+      if (isOpen()) DS.overlay.close(popup);
+    }
+    function choose(option) {
+      if (!option || option.getAttribute('aria-disabled') === 'true') return;
+      options.forEach(function (each) { each.setAttribute('aria-selected', String(each === option)); });
+      $('.ds-combo__value', button).textContent = $('.ds-combo__name', option).textContent;
+      $('.ds-combo__meta', button).textContent = $('.ds-combo__meta', option).textContent;
+      close();
+    }
+    function move(step) {
+      var list = usable();
+      var index = list.indexOf(active());
+      setActive(list[Math.max(0, Math.min(list.length - 1, index + step))]);
+    }
+    button.addEventListener('click', function (event) {
+      if (event.detail > 1) return;
+      if (isOpen()) close(); else open();
+    });
+    button.addEventListener('keydown', function (event) {
+      var key = event.key;
+      if (key === 'ArrowDown' || key === 'ArrowUp') {
+        event.preventDefault();
+        if (!isOpen()) open(); else move(key === 'ArrowDown' ? 1 : -1);
+      } else if ((key === 'Home' || key === 'End') && isOpen()) {
+        event.preventDefault();
+        var list = usable();
+        setActive(key === 'Home' ? list[0] : list[list.length - 1]);
+      } else if ((key === 'Enter' || key === ' ') && isOpen()) {
+        event.preventDefault();
+        choose(active());
+      } else if (key.length === 1 && key !== ' ') {
+        // Type-ahead: the next usable option whose name starts with the letters.
+        var now = Date.now();
+        typed = now - typedAt > M.motionDuration(button, '--ds-delay-tooltip') ? key.toLowerCase() : typed + key.toLowerCase();
+        typedAt = now;
+        var match = usable().filter(function (option) { return $('.ds-combo__name', option).textContent.toLowerCase().indexOf(typed) === 0; })[0];
+        if (!match) return;
+        open();
+        setActive(match);
+      }
+    });
+    button.addEventListener('blur', close);
+    [popup, $('.ds-combo__toggle', combo)].forEach(function (part) {
+      part.addEventListener('mousedown', function (event) { event.preventDefault(); });
+    });
+    $('.ds-combo__toggle', combo).addEventListener('click', function () {
+      button.focus();
+      if (isOpen()) close(); else open();
+    });
+    popup.addEventListener('pointermove', function (event) {
+      var option = event.target.closest('.ds-combo__option');
+      if (option && option.getAttribute('aria-disabled') !== 'true' && option !== active()) setActive(option);
+    });
+    popup.addEventListener('click', function (event) { choose(event.target.closest('.ds-combo__option')); });
+  }
+
+  /* ── The dialogs of 2.0 (docs/components.md, Dialog) ─────────────── */
+
+  /* "Pick one of 40 people": the list filters through morphHtml inside flip; Choose waits for a choice. */
+  function wirePeople(dialog) {
+    var list = $('#sg-people-list', dialog);
+    var search = $('#sg-people-search', dialog);
+    var count = $('#sg-people-count', dialog);
+    var ok = $('#sg-people-ok', dialog);
+    var people = [];
+    for (var i = 0; i < 40; i += 1) people.push({ id: 'p' + i, name: PEOPLE[i % PEOPLE.length] + ' ' + (Math.floor(i / PEOPLE.length) + 1) });
+    var picked = '';
+    function render() {
+      var query = search.value.trim().toLowerCase();
+      var rows = people.filter(function (person) { return person.name.toLowerCase().indexOf(query) !== -1; });
+      var html = rows.length ? rows.map(function (person) {
+        return '<label class="ds-check" data-ds-key="' + person.id + '"><input type="radio" name="sg-person" value="' + person.id + '"' + (person.id === picked ? ' checked' : '') + '> ' + esc(person.name) + '</label>';
+      }).join('') : '<div class="ds-empty" data-ds-key="empty"><p class="ds-empty__title">Nobody matches</p><p class="ds-empty__text">Try a shorter name.</p></div>';
+      var empty = !rows.length && !$('.ds-empty', list);
+      M.flip(list, function () { DS.dom.morphHtml(list, html); });
+      if (empty) M.enter($('.ds-empty', list), 'fade');
+      count.textContent = rows.length + ' of ' + people.length + ' people';
+    }
+    render();
+    search.addEventListener('input', render);
+    list.addEventListener('change', function (event) {
+      picked = event.target.value;
+      ok.removeAttribute('aria-disabled');
+      ok.removeAttribute('data-tip');
+    });
+    ok.addEventListener('click', function () {
+      if (ok.getAttribute('aria-disabled') === 'true') return;
+      var person = people.filter(function (each) { return each.id === picked; })[0];
+      DS.overlay.close(dialog, { reason: 'confirm' });
+      toast(person.name + ' owns LAPTOP-0042 now.');
+    });
+  }
+
+  /* "Delete (busy)": data-ds-busy while a fake 2s request runs; it fails when the box is checked. */
+  function wireWork(dialog) {
+    var ok = $('#sg-work-ok', dialog);
+    var cancel = $('#sg-work-cancel', dialog);
+    ok.addEventListener('click', function (event) {
+      if (event.detail > 1 || dialog.hasAttribute('data-ds-busy')) return;
+      var fail = $('#sg-work-fail', dialog).checked;
+      dialog.setAttribute('data-ds-busy', '');
+      cancel.setAttribute('aria-disabled', 'true');
+      cancel.setAttribute('data-tip', 'Wait until the devices are deleted');
+      var settle = function () {
+        dialog.removeAttribute('data-ds-busy');
+        cancel.removeAttribute('aria-disabled');
+        cancel.removeAttribute('data-tip');
+      };
+      M.busy(ok, function () {
+        return new Promise(function (resolve, reject) {
+          setTimeout(function () { if (fail) reject(new Error('timeout')); else resolve(); }, slow(2000));
+        });
+      }, { done: false }).then(function () {
+        settle();
+        DS.overlay.close(dialog, { reason: 'confirm' });
+        toast('3 devices deleted.');
+      }, function () {
+        settle();
+        toast('Could not delete the devices. Try again.', true);
+        ok.focus();
+      });
+    });
+    dialog.addEventListener('ds-close', function (event) { toast('Closed: ' + event.detail.reason + '.', 'info'); });
+  }
+
+  /* "Type the name to delete": the action waits for the exact name; Enter runs it. */
+  function wireType(dialog) {
+    var name = 'LAPTOP-0042';
+    var field = $('#sg-type-field', dialog);
+    var ok = $('#sg-type-ok', dialog);
+    var cancel = $('#sg-type-cancel', dialog);
+    var ready = function () { return field.value.trim() === name; };
+    field.addEventListener('input', function () {
+      ok.setAttribute('aria-disabled', String(!ready()));
+      if (ready()) ok.removeAttribute('data-tip'); else ok.setAttribute('data-tip', 'Type the name first');
+    });
+    function run() {
+      if (!ready() || dialog.hasAttribute('data-ds-busy')) return;
+      dialog.setAttribute('data-ds-busy', '');
+      field.readOnly = true;
+      cancel.setAttribute('aria-disabled', 'true');
+      M.busy(ok, function () { return new Promise(function (resolve) { setTimeout(resolve, slow(1200)); }); }, { done: false }).then(function () {
+        dialog.removeAttribute('data-ds-busy');
+        field.readOnly = false;
+        cancel.removeAttribute('aria-disabled');
+        DS.overlay.close(dialog, { reason: 'confirm' });
+        toast(name + ' deleted.');
+      });
+    }
+    field.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !event.isComposing) { event.preventDefault(); run(); }
+    });
+    ok.addEventListener('click', function (event) { if (event.detail < 2) run(); });
+  }
+
+  /* "Filters": the subtitle counts the devices live, the foot counts the filters. */
+  function wireFilters(sheet) {
+    var boxes = $$('input[type="checkbox"]', sheet);
+    function update() {
+      var on = boxes.filter(function (box) { return box.checked; });
+      var devices = on.reduce(function (sum, box) { return sum + Number(box.getAttribute('data-count')); }, 0);
+      $('#sg-filters-count', sheet).textContent = devices + ' of 240 devices';
+      $('#sg-filters-meta', sheet).textContent = on.length === 1 ? '1 filter' : on.length + ' filters';
+      $('#sg-filters-show', sheet).textContent = 'Show ' + devices + ' devices';
+    }
+    update();
+    sheet.addEventListener('change', update);
+    $('#sg-filters-reset', sheet).addEventListener('click', function () {
+      boxes.forEach(function (box) { box.checked = false; });
+      update();
+    });
+  }
+
+  /* The action sheet's rows say what they did. */
+  function wireActions(dialog) {
+    dialog.addEventListener('click', function (event) {
+      var item = event.target.closest('[data-sg-item]');
+      if (item) toast(item.getAttribute('data-sg-item'));
+    });
+  }
+
   /* The overflow menu: the trigger toggles it, ArrowDown and ArrowUp open
      it on the first or last item; DS.overlay does the rest. Items say what
      they did in a snackbar; the checkable one flips its check. */
   function setupMenus() {
-    $$('[data-sg-menu]').forEach(function (trigger) {
+    $$('[data-sg-menu], [data-sg-sort-menu]').forEach(function (trigger) {
       var menu = document.getElementById(trigger.getAttribute('aria-controls'));
-      trigger.addEventListener('click', function () {
+      trigger.addEventListener('click', function (event) {
+        // The second click of a double click toggles nothing.
+        if (event.detail > 1) return;
         if (trigger.getAttribute('aria-expanded') === 'true') DS.overlay.close(menu);
         else DS.overlay.open(menu, { opener: trigger });
       });
@@ -1624,6 +1972,12 @@
         var item = event.target.closest('.ds-menu__item');
         if (!item || item.getAttribute('aria-disabled') === 'true') return;
         if (item.getAttribute('role') === 'menuitemcheckbox') item.setAttribute('aria-checked', String(item.getAttribute('aria-checked') !== 'true'));
+        // One radio of its group at a time; a checkbox item says its state at its end.
+        if (item.getAttribute('role') === 'menuitemradio') {
+          $$('[role="menuitemradio"]', item.closest('[role="group"]') || menu).forEach(function (each) { each.setAttribute('aria-checked', String(each === item)); });
+          toast('Sorted by ' + $('.ds-menu__label', item).textContent.toLowerCase() + '.', 'info');
+        }
+        if (item.hasAttribute('data-sg-state')) $('.ds-menu__meta', item).textContent = item.getAttribute('aria-checked') === 'true' ? 'On' : 'Off';
         if (item.hasAttribute('data-sg-item')) toast(item.getAttribute('data-sg-item'));
       });
     });
@@ -1677,6 +2031,24 @@
       if (action === 'dialog-combo') showOverlay('dialog-combo', comboDialogMarkup(), el);
       if (action === 'dialog-nested') showOverlay('dialog-nested', nativeDialogMarkup('sg-dialog-nested', 'Retire LAPTOP-0042?', 'It leaves the active lists; its history stays.', 'Retire device'), el);
       if (action === 'sheet') showOverlay('sheet', sheetMarkup(false), el);
+      if (action === 'dialog-long') showOverlay('dialog-long', longDialogMarkup(), el);
+      if (action === 'dialog-people') showOverlay('dialog-people', peopleDialogMarkup(), el, wirePeople);
+      if (action === 'dialog-work') showOverlay('dialog-work', workDialogMarkup(), el, wireWork);
+      if (action === 'dialog-type') showOverlay('dialog-type', typeDialogMarkup(), el, wireType);
+      if (action === 'dialog-full') showOverlay('dialog-full', fullDialogMarkup(), el);
+      if (action === 'dialog-actions') showOverlay('dialog-actions', actionsDialogMarkup(), el, wireActions);
+      if (action === 'sheet-filters') showOverlay('sheet-filters', filtersSheetMarkup(), el, wireFilters);
+      if (action === 'dialog-confirm') {
+        DS.overlay.confirm({
+          title: 'Archive 3 devices?', text: 'They leave the active lists and stay in the archive for a year.',
+          confirmLabel: 'Archive devices', destructive: true, opener: el,
+          onConfirm: function () { return new Promise(function (resolve) { setTimeout(resolve, slow(1200)); }); },
+        }).then(function (yes) { toast(yes ? '3 devices archived.' : 'Nothing archived.', yes ? 'success' : 'info'); });
+      }
+      if (action === 'dialog-prompt') {
+        DS.overlay.prompt({ title: 'Rename the device', label: 'Name', value: 'LAPTOP-0042', confirmLabel: 'Rename', opener: el, input: { autocomplete: 'off', required: true } })
+          .then(function (value) { if (value !== null) toast('Renamed to ' + value + '.'); });
+      }
       if (action === 'toast') toast('Saved. The record is visible to everyone now.');
       if (action === 'toast-error') toast('Could not save. Check the connection and try again.', true);
       if (action === 'toast-many') manyToasts();
@@ -1751,6 +2123,8 @@
     // hoverable, Escape (DS.overlay.tooltips creates its own tooltip).
     DS.overlay.tooltips(document);
     $$('#sg-page [data-sg-combo]').forEach(setupCombo);
+    $$('#sg-page [data-sg-select]').forEach(setupSelectCombo);
+    $$('#sg-page .ds-dialog__body[data-sg-scrolled]').forEach(function (body) { watchScrolled(body, body.parentNode); });
     setupMenus();
   }
 

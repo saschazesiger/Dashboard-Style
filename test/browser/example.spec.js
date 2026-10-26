@@ -82,11 +82,13 @@ test('select all is indeterminate for some rows; deleting asks first and the sna
   expect(await page.locator('#select-all').evaluate((box) => box.indeterminate)).toBe(true);
   await page.locator('[data-act="delete-selected"]').click();
   await settle(page);
-  await expect(page.locator('#confirm')).toHaveAttribute('data-state', 'open');
-  await expect(page.locator('#confirm-ok')).toHaveText('Delete 2 devices');
-  await expect(page.locator('#confirm [autofocus]')).toBeFocused();
-  await page.locator('#confirm-ok').click();
+  // DS.overlay.confirm() built the dialog: destructive, so Cancel has the first focus.
+  const confirm = page.locator('.ds-dialog[role="alertdialog"][data-state="open"]');
+  await expect(confirm).toHaveCount(1);
+  await expect(confirm.getByRole('button', { name: 'Cancel' })).toBeFocused();
+  await confirm.getByRole('button', { name: 'Delete 2 devices' }).click();
   await expect(rows).toHaveCount(total - 2);
+  await expect(page.locator('.ds-dialog[role="alertdialog"]')).toHaveCount(0);
   const toast = page.locator('.ds-toast', { hasText: '2 devices deleted.' });
   await expect(toast).toBeVisible();
   await toast.getByRole('button', { name: 'Undo' }).click();

@@ -31,7 +31,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Empty state after a filter, and back | Devices | `renderRows()` |
 | Refresh: `.ds-stale` and the loading bar | Devices | `refreshDevices()` |
 | Row menu (`DS.overlay`, keyboard included) | Devices | `toggleMenu()`, the `rowMenu` listener |
-| Confirm dialog, then undo in a snackbar | Devices | `confirmDelete()`, `deleteDevices()`, `undoToast()` |
+| Confirm dialog built by `DS.overlay.confirm()` (busy with `onConfirm`, open until the backend answered), then undo in a snackbar | Devices | `confirmDelete()`, `deleteDevices()`, `undoToast()` |
 | Side sheet, previous and next (`transition()` forward and back), live refresh without a transition | Devices | `openSheet()`, `stepSheet()`, `poll()` |
 | Expandable rows (`aria-expanded`, `inert`) | Tickets | `ticketRowsHtml()`, the `data-toggle-ticket` click |
 | Dialog with a form, validation on submit, combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |

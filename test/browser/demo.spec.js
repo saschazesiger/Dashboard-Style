@@ -81,6 +81,10 @@ test('the dialog asks first and the snackbar offers an undo; the menu toggles it
   await expect(page.locator('#confirm')).toHaveAttribute('data-state', 'open');
   await expect(page.locator('#confirm [autofocus]')).toBeFocused();
   await page.locator('#confirm-delete').click();
+  // Busy while the delete runs: Escape waits (data-ds-busy), the button works.
+  await expect(page.locator('#confirm')).toHaveAttribute('data-ds-busy', '');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#confirm')).toHaveAttribute('data-state', 'open');
   const toast = page.locator('.ds-toast', { hasText: '3 devices deleted.' });
   await expect(toast).toBeVisible();
   await expect(page.locator('#open-dialog')).toBeFocused();

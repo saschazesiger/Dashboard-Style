@@ -2053,6 +2053,101 @@
     markup: sheetHtml('sg-lab-sheet-div', false),
   });
 
+  /* ── Overlays: full screen and the action sheet (2.0) ───────────── */
+
+  overlayDemo({
+    id: 'dialog-full',
+    title: 'Full-screen dialog',
+    note: 'A <code>.ds-dialog--full</code> fills the window (on phones only: <code>--full-narrow</code>). Its box rises <code>--ds-distance-lg</code> on the spring over <code>--ds-dur-long</code> with the fade, without a scale, and drops back in <code>--ds-dur-base</code>, accelerating. Its head is the full-screen top bar: close, title, a text action.',
+    shows: ['DS.overlay.open', 'DS.overlay.close', '--ds-dur-long', '--ds-dur-base', '--ds-dur-fast', '--ds-ease-spatial', '--ds-ease-exit', '--ds-distance-lg'],
+    button: 'Open full screen',
+    markup: '<dialog class="ds-dialog ds-dialog--full" id="sg-lab-dialog-full" aria-labelledby="sg-lab-dialog-full-title"><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box">' +
+      '<div class="ds-dialog__head"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>' + icon('close', 20) + '</button><h2 class="ds-dialog__title" id="sg-lab-dialog-full-title">New ticket</h2><button class="ds-btn ds-btn--text" type="button" data-close>Save</button></div>' +
+      '<div class="ds-dialog__body"><div class="ds-field"><label class="ds-field__label" for="sg-lab-full-subject">Subject</label><input class="ds-input" id="sg-lab-full-subject" value="The screen flickers"></div></div></div></dialog>',
+  });
+
+  overlayDemo({
+    id: 'action-sheet',
+    title: 'Action sheet',
+    note: 'The actions of a row on a phone: <code>.ds-dialog--bottom</code> with the menu\'s items in a <code>.ds-dialog__list</code>. The box rises its full height (<code>--ds-distance-sheet</code>) from the bottom edge on the spring over <code>--ds-dur-long</code> with the fade, and drops back in <code>--ds-dur-base</code>. The arrow keys move through the rows, as in a menu.',
+    shows: ['DS.overlay.open', 'DS.overlay.close', '--ds-dur-long', '--ds-dur-base', '--ds-dur-fast', '--ds-ease-spatial', '--ds-ease-exit', '--ds-distance-sheet'],
+    button: 'Open action sheet',
+    markup: '<dialog class="ds-dialog ds-dialog--bottom" id="sg-lab-action-sheet" aria-labelledby="sg-lab-action-sheet-title"><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box">' +
+      '<h2 class="ds-dialog__title" id="sg-lab-action-sheet-title">LAPTOP-0042</h2><div class="ds-dialog__list">' +
+      '<button class="ds-menu__item" type="button" data-close>' + icon('pencil', 20) + '<span class="ds-menu__label">Edit</span></button>' +
+      '<button class="ds-menu__item" type="button" data-close>' + icon('copy', 20) + '<span class="ds-menu__label">Duplicate</span></button>' +
+      '<button class="ds-menu__item" type="button" data-close>' + icon('archive', 20) + '<span class="ds-menu__label">Archive</span></button></div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div></dialog>',
+  });
+
+  /* ── Overlays: a dialog that stays open while its action runs (2.0) ─ */
+
+  var work = { el: null };
+
+  /* Runs the dialog's action: data-ds-busy while a fake request of 2s runs; it fails when the box is checked. */
+  function workRun(sg) {
+    var dialog = work.el;
+    var ok = $('[data-work-ok]', dialog);
+    var cancel = $('[data-work-cancel]', dialog);
+    var fail = $('[data-work-fail]', dialog).checked;
+    if (dialog.hasAttribute('data-ds-busy')) return Promise.resolve();
+    dialog.setAttribute('data-ds-busy', '');
+    cancel.setAttribute('aria-disabled', 'true');
+    var done = function () {
+      dialog.removeAttribute('data-ds-busy');
+      cancel.removeAttribute('aria-disabled');
+    };
+    return M.busy(ok, function () { return wait(sg, 2000).then(function () { if (fail) throw new Error('fake failure'); }); }, { done: false })
+      .then(function () { done(); return DS.overlay.close(dialog, { reason: 'confirm' }); }, function () { done(); ok.focus(); });
+  }
+
+  function workTopmost(out) {
+    var top = DS.overlay.topmost();
+    setHtml(out, 'Topmost: <code>' + (top ? (top.id || top.className.split(' ')[0]) : 'none') + '</code>');
+  }
+
+  LAB_DEMOS.push({
+    id: 'dialog-work',
+    group: 'overlays',
+    title: 'A dialog busy with its action',
+    note: 'While the page sets <code>data-ds-busy</code>, Escape, the backdrop and Cancel do nothing; <code>DS.overlay.close(dialog, { reason })</code> still closes, and every close sends <code>ds-close</code> with its reason. A backdrop click within <code>--ds-delay-dismiss</code> of the open closes nothing (the second click of a double click). The read-outs show the last reason and <code>DS.overlay.topmost()</code>. <code>DS.overlay.confirm()</code>, <code>alert()</code> and <code>prompt()</code> build such a dialog for you.',
+    shows: ['DS.overlay.open', 'DS.overlay.close', 'DS.overlay.topmost', 'DS.overlay.confirm', 'DS.overlay.alert', 'DS.overlay.prompt', 'DS.motion.busy', '--ds-delay-dismiss', '--ds-dur-slow', '--ds-dur-base'],
+    html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-overlay-open>Delete devices</button>' +
+      '<button class="ds-btn" type="button" data-work-confirm>Ask with confirm()</button></div>',
+    after: readoutHtml('sg-work-close', 'Last close: none') + readoutHtml('sg-work-top', 'Topmost: <code>none</code>') + layersHtml(),
+    height: 120,
+    setup: function (stage) {
+      work.el = addToBody('<dialog class="ds-dialog" id="sg-lab-dialog-work" role="alertdialog" aria-labelledby="sg-lab-work-title" aria-describedby="sg-lab-work-text"><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box">' +
+        '<h2 class="ds-dialog__title" id="sg-lab-work-title">Delete 3 devices?</h2><div class="ds-dialog__body"><p class="ds-dialog__text" id="sg-lab-work-text">They disappear from every list. The dialog waits while it works.</p>' +
+        '<label class="ds-check"><input type="checkbox" data-work-fail> Let the request fail</label></div>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close data-work-cancel autofocus>Cancel</button>' +
+        '<button class="ds-btn ds-btn--primary" type="button" data-work-ok>' + facesHtml('Delete devices', 'Deleting', 'Deleted') + '</button></div></div></dialog>');
+      var opener = $('[data-overlay-open]', stage);
+      var top = $('#sg-work-top', stage.parentNode);
+      opener.addEventListener('click', function () { layer(work.el, true, opener); });
+      $('[data-work-ok]', work.el).addEventListener('click', function (event) { if (event.detail < 2) workRun(window.SG_LAB_HELPERS); });
+      $('[data-work-confirm]', stage).addEventListener('click', function (event) {
+        DS.overlay.confirm({ title: 'Archive 3 devices?', text: 'They stay in the archive for a year.', confirmLabel: 'Archive devices', opener: event.currentTarget })
+          .then(function (yes) { setHtml($('#sg-work-close', stage.parentNode), 'confirm() answered <code>' + yes + '</code>'); });
+      });
+      document.addEventListener('ds-close', function (event) {
+        if (event.target === work.el) setHtml($('#sg-work-close', stage.parentNode), 'Last close: <code>' + event.detail.reason + '</code>');
+        requestAnimationFrame(function () { workTopmost(top); });
+      });
+      new MutationObserver(function () { workTopmost(top); }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['data-state'] });
+      watchLayers($('[data-lab-layers]', stage.parentNode), document);
+    },
+    subject: function () { return work.el; },
+    play: function (stage, sg) {
+      return layer(work.el, true, $('[data-overlay-open]', stage))
+        .then(function () { return wait(sg, 300); })
+        .then(function () { return workRun(sg); })
+        .then(function () { return quiet(work.el, sg); });
+    },
+    state: function () { return isOpen(work.el); },
+    toggle: function (stage, on) { return layer(work.el, on, $('[data-overlay-open]', stage)); },
+  });
+
   /* ── Overlays: the modal drawer (in a phone-sized frame) ─────────── */
 
   var modalDrawer = { ready: null };

@@ -440,8 +440,22 @@
 
   const confirmDialog = $('#confirm');
   $('#open-dialog').addEventListener('click', (event) => DS.overlay.open(confirmDialog, { opener: event.currentTarget }));
-  $('#confirm-delete').addEventListener('click', () => {
-    DS.overlay.close(confirmDialog);
+  // While the delete runs the dialog stays open (data-ds-busy): Escape, the
+  // backdrop and Cancel wait; the button shows that it works. Then it closes
+  // with its reason, and the snackbar offers the undo.
+  $('#confirm-delete').addEventListener('click', async (event) => {
+    if (event.detail > 1 || confirmDialog.hasAttribute('data-ds-busy')) return;
+    const button = event.currentTarget;
+    const cancel = $('#confirm-cancel');
+    confirmDialog.setAttribute('data-ds-busy', '');
+    cancel.setAttribute('aria-disabled', 'true');
+    try {
+      await DS.motion.busy(button, () => new Promise((resolve) => { setTimeout(resolve, DS.motion.motionDuration(button, '--ds-dur-glide')); }), { done: false });
+    } finally {
+      confirmDialog.removeAttribute('data-ds-busy');
+      cancel.removeAttribute('aria-disabled');
+    }
+    DS.overlay.close(confirmDialog, { reason: 'confirm' });
     undoToast('3 devices deleted.');
   });
 

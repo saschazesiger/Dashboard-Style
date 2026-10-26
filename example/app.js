@@ -47,7 +47,6 @@
   const toasts = $('#toasts');
   const sheet = $('#sheet');
   const sheetBody = $('#sheet-body');
-  const confirmDialog = $('#confirm');
   const ticketDialog = $('#ticket-dialog');
   const ticketForm = $('#ticket-form');
   const rowMenu = $('#row-menu');
@@ -85,7 +84,6 @@
     sync: { running: false, done: 0, total: 0, finished: null, summary: null },
     sheetId: null,
     menuFor: null,
-    pendingDelete: [],
     dense: stored('ex-dense') === '1',
     savedAt: null,
   };
@@ -650,20 +648,28 @@
 
   /* ── Actions ──────────────────────────────────────────────────────── */
 
-  function confirmDelete(ids, opener) {
-    state.pendingDelete = ids;
+  /*
+   * Asks first with DS.overlay.confirm(): the dialog is built for us, and
+   * it stays open (busy, data-ds-busy) until the backend answered; a
+   * failure keeps it open with an error snackbar. Then the rows go.
+   */
+  async function confirmDelete(ids, opener) {
     const one = ids.length === 1 ? byId(ids[0]) : null;
-    $('#confirm-title').textContent = one ? `Delete ${one.name}?` : `Delete ${ids.length} devices?`;
-    $('#confirm-text').textContent = `${one ? 'It disappears' : 'They disappear'} from every list. The snackbar offers to undo it.`;
-    $('#confirm-ok').textContent = one ? 'Delete device' : `Delete ${ids.length} devices`;
-    DS.overlay.open(confirmDialog, { opener });
+    let removed = [];
+    const deleted = await DS.overlay.confirm({
+      title: one ? `Delete ${one.name}?` : `Delete ${ids.length} devices?`,
+      text: `${one ? 'It disappears' : 'They disappear'} from every list. The snackbar offers to undo it.`,
+      confirmLabel: one ? 'Delete device' : `Delete ${ids.length} devices`,
+      destructive: true,
+      opener,
+      onConfirm: async () => { removed = await api.removeDevices(ids); },
+      errorText: one ? `Could not delete ${one.name}.` : 'Could not delete the devices.',
+    });
+    if (deleted) deleteDevices(ids, removed);
   }
 
-  async function deleteDevices() {
-    const ids = state.pendingDelete;
-    DS.overlay.close(confirmDialog);
+  async function deleteDevices(ids, removed) {
     if (state.sheetId && ids.includes(state.sheetId) && sheet.open) DS.overlay.close(sheet);
-    const removed = await api.removeDevices(ids);
     state.devices = state.devices.filter((device) => !ids.includes(device.id));
     for (const id of ids) state.selected.delete(id);
     await renderRows();
@@ -1076,7 +1082,6 @@
     if (action === 'delete') confirmDelete([device.id], trigger);
   });
 
-  $('#confirm-ok').addEventListener('click', deleteDevices);
   $('#sheet-prev').addEventListener('click', () => stepSheet(-1));
   $('#sheet-next').addEventListener('click', () => stepSheet(1));
   sheetBody.addEventListener('click', (event) => {
