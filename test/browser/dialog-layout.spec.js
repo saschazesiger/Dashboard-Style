@@ -232,3 +232,61 @@ test.describe('side sheet head and foot (2.0)', () => {
     expect(read).toEqual({ titleLines: 2, subtitleLines: 1, footAtEnd: 0, footBorder: 'solid', bodyEnd: '12px', bodyPosition: 'relative', lone: true });
   });
 });
+
+test.describe('confirm by typing the name (2.0, the styleguide recipe)', () => {
+  test('the action is blocked until the name is typed; Enter runs it busy (Escape waits, the field read-only); then it closes with a snackbar', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/styleguide/index.html');
+    await ready(page);
+    await page.locator('[data-sg="dialog-type"]').click();
+    const dialog = page.locator('#sg-dialog-type');
+    await expect(dialog).toHaveAttribute('data-state', 'open');
+    const field = page.locator('#sg-type-field');
+    const ok = page.locator('#sg-type-ok');
+    await expect(field).toBeFocused();
+    await expect(ok).toHaveAttribute('aria-disabled', 'true');
+    // A wrong name: still blocked, and Enter runs nothing.
+    await field.fill('LAPTOP-004');
+    await page.keyboard.press('Enter');
+    await expect(ok).toHaveAttribute('aria-disabled', 'true');
+    expect(await dialog.evaluate((el) => el.hasAttribute('data-ds-busy'))).toBe(false);
+    // The name: the action is free; Enter runs it, busy.
+    await field.fill('LAPTOP-0042');
+    await expect(ok).toHaveAttribute('aria-disabled', 'false');
+    await page.keyboard.press('Enter');
+    await expect(dialog).toHaveAttribute('data-ds-busy', '');
+    expect(await field.evaluate((input) => input.readOnly)).toBe(true);
+    await expect(page.locator('#sg-type-cancel')).toHaveAttribute('aria-disabled', 'true');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveAttribute('data-state', 'open');
+    // Done: it closes, and the snackbar says what happened.
+    await expect(dialog).not.toHaveAttribute('data-state', 'open', { timeout: 5000 });
+    await expect(page.locator('.ds-toast', { hasText: 'LAPTOP-0042 deleted.' })).toBeVisible();
+  });
+});
+
+/*
+ * Settled shots of the 2.0 overlay parts (Chromium, like the phone and
+ * forced-colour shots of baseline.spec.js): the full-screen dialog and the
+ * action sheet at 390px, the side sheet's head and foot at 1280px and 390px.
+ */
+test.describe('baselines (2.0)', () => {
+  test.beforeEach(({ browserName, dsFallback }) => {
+    test.skip(browserName !== 'chromium' || dsFallback, 'one engine for the settled shots, as baseline.spec.js does for phones');
+  });
+
+  for (const [id, opener, width, name] of [
+    ['full', 'open-full', 390, 'dialog-full-390.png'],
+    ['actions', 'open-actions', 390, 'action-sheet-390.png'],
+    ['filters', 'open-filters', 1280, 'sheet-head-foot-1280.png'],
+    ['filters', 'open-filters', 390, 'sheet-head-foot-390.png'],
+  ]) {
+    test(name, async ({ page }) => {
+      await load(page, width, 800);
+      await openSettled(page, id, opener);
+      await page.evaluate(() => document.activeElement?.blur());
+      await settle(page);
+      await expect.soft(page, name).toHaveScreenshot(name, { animations: 'allow' });
+    });
+  }
+});

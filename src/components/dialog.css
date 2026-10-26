@@ -411,7 +411,10 @@
     flex-direction: column;
   }
 
-  .ds-dialog__box:has(> .ds-dialog__body) > * {
+  /* Only the column's items read it (without a body the box is a grid). A
+     :has() before a combinator would make Chromium restyle the whole page
+     on any text change, so this rule has none. */
+  .ds-dialog__box > * {
     flex-shrink: 0;
   }
 

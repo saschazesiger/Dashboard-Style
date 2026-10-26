@@ -1491,6 +1491,10 @@ test.describe('the dismiss guard on touch (2.0)', () => {
   test('a double tap on the opener opens and does not close', async ({ page, browserName }) => {
     test.skip(browserName === 'firefox', 'Playwright emulates touch in Chromium and WebKit');
     await load(page);
+    // A slower clock (the window is 1.2s): on a loaded machine the second
+    // tap may come later than the engine's double-tap interval (detail 1),
+    // and the dismiss window still holds it.
+    await page.evaluate(() => document.body.style.setProperty('--ds-time-scale', '4'));
     const button = await page.locator('#open-dialog').boundingBox();
     const x = button.x + button.width / 2;
     const y = button.y + button.height / 2;
@@ -1498,7 +1502,7 @@ test.describe('the dismiss guard on touch (2.0)', () => {
     await page.touchscreen.tap(x, y);
     await settle(page);
     expect(await isOpen(page, 'dialog')).toBe(true);
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(1300);
     await page.touchscreen.tap(4, 4);
     await closed(page, 'dialog');
   });

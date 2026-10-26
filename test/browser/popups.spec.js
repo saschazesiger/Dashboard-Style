@@ -693,7 +693,7 @@ function addSortMenu(page) {
 }
 
 test.describe('menu groups and type-ahead (2.0)', () => {
-  test('the arrow keys pass the heading by; the heading is caption type and not focusable', async ({ page }) => {
+  test('the arrow keys pass the heading by; the heading is caption type and not focusable', async ({ page, browserName, dsFallback }) => {
     await load(page);
     await addSortMenu(page);
     await page.focus('#sort-trigger');
@@ -717,6 +717,11 @@ test.describe('menu groups and type-ahead (2.0)', () => {
       return item.right - end.right;
     });
     expect(Math.abs(meta - 12)).toBeLessThan(1);
+    // The settled menu (one engine, as baseline.spec.js does for its extra shots).
+    if (browserName === 'chromium' && !dsFallback) {
+      await page.mouse.move(1, 1);
+      await expect.soft(page.locator('#sort-menu'), 'menu-groups.png').toHaveScreenshot('menu-groups.png', { animations: 'allow' });
+    }
   });
 
   test('type-ahead moves to the next item whose label starts with the typed letters; one letter again cycles', async ({ page }) => {
@@ -746,7 +751,7 @@ test.describe('menu groups and type-ahead (2.0)', () => {
 });
 
 test.describe('select-only combobox (2.0)', () => {
-  test('a button field shows value and meta in one row; DS.overlay opens its list and keeps focus on the button; a blocked option shows no active layer', async ({ page }) => {
+  test('a button field shows value and meta in one row; DS.overlay opens its list and keeps focus on the button; a blocked option shows no active layer', async ({ page, browserName, dsFallback }) => {
     await load(page);
     await page.evaluate(() => {
       const root = document.querySelector('.ds-theme') ?? document.body;
@@ -791,6 +796,13 @@ test.describe('select-only combobox (2.0)', () => {
       };
     });
     expect(open).toEqual({ expanded: 'true', focus: 'plan-button', layer: '0', height: 48 });
+    if (browserName === 'chromium' && !dsFallback) {
+      await page.mouse.move(1, 1);
+      const field = await page.locator('#plan').boundingBox();
+      const list = await page.locator('#plan-popup').boundingBox();
+      const clip = { x: field.x - 8, y: field.y - 8, width: Math.max(field.width, list.width) + 16, height: list.y + list.height - field.y + 16 };
+      await expect.soft(page, 'combo-select.png').toHaveScreenshot('combo-select.png', { clip, animations: 'allow' });
+    }
     await page.keyboard.press('Escape');
     await closed(page, 'plan-popup');
     expect(await focused(page)).toBe('plan-button');

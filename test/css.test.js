@@ -1749,7 +1749,7 @@ describe('overlays (1.3.0)', () => {
     const css = withoutAtRuleBlocks(withoutAtRuleBlocks(read('src/components/dialog.css'), /@media\s*\(max-height:\s*320px\)/), /@media\s*\(max-width:\s*600px\)/);
     const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
     assert.deepEqual([own('.ds-dialog__box:has(> .ds-dialog__body)').display, own('.ds-dialog__box:has(> .ds-dialog__body)')['flex-direction']], ['flex', 'column']);
-    assert.equal(own('.ds-dialog__box:has(> .ds-dialog__body) > *')['flex-shrink'], '0');
+    assert.equal(own('.ds-dialog__box > *')['flex-shrink'], '0');
     const body = own('.ds-dialog__body');
     assert.deepEqual([body['overflow-y'], body['min-height'], body.margin, body.padding, body['overscroll-behavior']],
       ['auto', '0', 'calc(-1 * var(--ds-space-3))', 'var(--ds-space-3)', 'contain']);
