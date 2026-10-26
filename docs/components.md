@@ -1296,7 +1296,9 @@ one controller per element (`.ds-savebar` or its `.ds-savebar__bar`):
   `.ds-view`: its `scroll-padding-bottom` and the content's bottom padding (at least `--ds-content-pad-bottom`) keep
   the bar's height, offset and `--ds-space-2` free, so the last field scrolls above the bar and the focused element
   scrolls clear of it at once (WCAG 2.4.11). The snackbars of its theme on the page rise above it
-  (`--ds-toast-lift`, [Snackbar](#snackbar)). A `ResizeObserver` measures again while it shows.
+  (`--ds-toast-lift`, [Snackbar](#snackbar)); while it shows, the room of the messages that stay
+  (`--ds-toast-reserve`) is kept by the content's bottom padding, not the view's, so the bar stays at the view's
+  bottom. A `ResizeObserver` measures again while it shows.
 - `hide()` moves focus inside the bar to `focusTarget()` (else the view), makes the bar inert while it leaves and
   sets `hidden`; the snackbars glide back down. Hidden while the view was at its end, the room stays
   (`data-ds-savebar-rest`) until the page scrolls away from the end, so nothing jumps.

@@ -29,7 +29,9 @@
  * the page (the room stays until the page scrolls away from the end), and
  * --ds-savebar-height (the bar's height, px). The view's scroll padding and
  * the content's bottom padding keep the bar's room: its height, its offset
- * and --ds-space-2.
+ * and --ds-space-2; the room of snackbars that stay (--ds-toast-reserve)
+ * moves into the content's padding meanwhile (a padding of the view would
+ * lift the sticky bar).
  *
  * Hooks: --ds-savebar-offset (distance from the view's bottom edge,
  * --ds-space-4), --ds-savebar-inset (from the view's sides, the page pad
@@ -108,11 +110,19 @@
      keeps its end clear of it: scrolling into view stops above the bar, and
      the content's last element can scroll above it. */
   .ds-view[data-ds-savebar] {
-    scroll-padding-bottom: calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2));
+    scroll-padding-bottom: max(calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)), var(--ds-toast-reserve, 0px));
+  }
+
+  /* The room of snackbars that stay (data-toast-reserve, toast.css) moves
+     from the view's padding to the content's: a padding of the view would
+     lift the sticky bar off the view's bottom, and the messages above it
+     with it. */
+  .ds-view[data-ds-savebar][data-toast-reserve] {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .ds-view:is([data-ds-savebar], [data-ds-savebar-rest]) > .ds-content {
-    padding-bottom: max(var(--ds-content-pad-bottom, calc(var(--ds-space-6) + var(--ds-toast-room) + var(--ds-space-2))), calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)));
+    padding-bottom: max(var(--ds-content-pad-bottom, calc(var(--ds-space-6) + var(--ds-toast-room) + var(--ds-space-2))), calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)), var(--ds-toast-reserve, 0px));
   }
 
   @media (max-width: 720px) {
@@ -127,7 +137,7 @@
     }
 
     .ds-view:is([data-ds-savebar], [data-ds-savebar-rest]) > .ds-content {
-      padding-bottom: max(var(--ds-content-pad-bottom, calc(var(--ds-space-4) + var(--ds-toast-room) + var(--ds-space-2))), calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)));
+      padding-bottom: max(var(--ds-content-pad-bottom, calc(var(--ds-space-4) + var(--ds-toast-room) + var(--ds-space-2))), calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)), var(--ds-toast-reserve, 0px));
     }
   }
 

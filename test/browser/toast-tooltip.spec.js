@@ -877,3 +877,310 @@ test.describe('tooltips', () => {
     expect((await tipState(page)).hidden).toBe(true);
   });
 });
+
+/* ── 2.0: announce, toastRegion, restart, key, closeToasts, reserve, action, lift ── */
+
+const APP = '/test/browser/fixtures/savebar.html';
+
+async function loadApp(page, { width = 1280, height = 800 } = {}) {
+  await page.setViewportSize({ width, height });
+  await page.goto(APP);
+  await ready(page);
+  await page.mouse.move(1, 1);
+  await settle(page);
+}
+
+/** The region's box and the inline lift DS.overlay wrote. */
+const regionBox = (page, id = 'toasts') => page.evaluate((name) => {
+  const region = document.getElementById(name);
+  const rect = region.getBoundingClientRect();
+  return { left: rect.left, bottom: rect.bottom, lift: region.style.getPropertyValue('--ds-toast-lift'), parent: region.parentNode.id };
+}, id);
+
+/** data-toast-reserve and --ds-toast-reserve of an element. */
+const reserveOf = (page, id) => page.evaluate((name) => {
+  const node = document.getElementById(name);
+  return { on: node.hasAttribute('data-toast-reserve'), value: node.style.getPropertyValue('--ds-toast-reserve') };
+}, id);
+
+test.describe('snackbars 2.0', () => {
+  test('announce() speaks through the announcers, the same text twice, nothing for empty text; toastRegion() finds or creates the region', async ({ page }) => {
+    await loadApp(page);
+    const said = await page.evaluate(async () => {
+      const frame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const region = DS.overlay.toastRegion();
+      const record = [];
+      DS.overlay.announce('');
+      DS.overlay.announce('3 devices match.');
+      const polite = region.nextElementSibling;
+      const assertive = polite.nextElementSibling;
+      new MutationObserver(() => record.push(polite.textContent)).observe(polite, { childList: true, characterData: true, subtree: true });
+      await frame();
+      DS.overlay.announce('3 devices match.');
+      DS.overlay.announce('Could not reach the server.', { assertive: true });
+      await frame();
+      const found = region.id;
+      region.remove();
+      polite.remove();
+      assertive.remove();
+      const made = DS.overlay.toastRegion();
+      return {
+        found,
+        polite: polite.textContent,
+        assertive: assertive.textContent,
+        again: record.slice(-2),
+        made: { className: made.className, attrs: made.attributes.length, after: made.previousElementSibling?.id },
+        same: DS.overlay.toastRegion() === made,
+      };
+    });
+    expect(said.found).toBe('toasts');
+    expect(said.polite).toBe('3 devices match.');
+    expect(said.again, 'cleared, then said again').toEqual(['', '3 devices match.']);
+    expect(said.assertive).toBe('Could not reach the server.');
+    expect(said.made).toEqual({ className: 'ds-toasts', attrs: 1, after: 'app' });
+    expect(said.same).toBe(true);
+  });
+
+  test('the same message again restarts the one on screen (one message, its timer starts over); restart: false stacks it', async ({ page }) => {
+    await loadApp(page);
+    const first = await page.evaluate(async () => {
+      const region = document.getElementById('toasts');
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const a = DS.overlay.toast(null, 'Offline.', { kind: 'info', timeout: 1500 });
+      await wait(1000);
+      const b = DS.overlay.toast(region, ' offline. ', { kind: 'info', timeout: 1500 });
+      await wait(1000);
+      // 2000ms after the first call, 1000ms after the restart: still there.
+      const count = region.querySelectorAll('.ds-toast:not([data-ds-leaving])').length;
+      window.__restart = a;
+      return { same: a === b, el: a.el === b.el, count };
+    });
+    expect(first).toEqual({ same: true, el: true, count: 1 });
+    await page.evaluate(() => window.__restart.closed);
+    expect(await shown(page)).toEqual([]);
+    const stacked = await page.evaluate(() => {
+      const one = DS.overlay.toast(null, 'Saved.');
+      const two = DS.overlay.toast(null, 'Saved.', { restart: false });
+      return one !== two;
+    });
+    expect(stacked).toBe(true);
+    expect(await shown(page)).toEqual(['Saved.', 'Saved.']);
+  });
+
+  test('a key replaces a message in place: the old one is closed, focus moves to the new close button, a waiting one keeps its slot', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => { window.__old = DS.overlay.toast(null, 'Could not save.', { kind: 'error', key: 'save' }); });
+    await settle(page);
+    await page.locator('#toasts .ds-toast__close').focus();
+    const replaced = await page.evaluate(async () => {
+      const next = DS.overlay.toast(null, 'Could not save, again.', { kind: 'error', key: 'save' });
+      await window.__old.closed;
+      return { focus: document.activeElement === next.el.querySelector('.ds-toast__close'), different: next !== window.__old };
+    });
+    expect(replaced).toEqual({ focus: true, different: true });
+    await settle(page);
+    expect(await shown(page)).toEqual(['Could not save, again.']);
+    const queued = await page.evaluate(async () => {
+      for (const text of ['One stays.', 'Two stay.']) DS.overlay.toast(null, text, { persistent: true });
+      const waiting = DS.overlay.toast(null, 'Waiting.', { persistent: true, key: 'wait' });
+      const taker = DS.overlay.toast(null, 'Waiting, newer.', { persistent: true, key: 'wait' });
+      await waiting.closed;
+      return { waiting: waiting.el.isConnected, taker: taker.el.isConnected };
+    });
+    expect(queued).toEqual({ waiting: false, taker: false });
+    // Closing one that stays lets the newer waiting one in.
+    await page.evaluate(() => DS.overlay.closeToasts(null, { key: 'save' }));
+    await settle(page);
+    expect(await shown(page)).toEqual(['One stays.', 'Two stay.', 'Waiting, newer.']);
+  });
+
+  test('closeToasts() closes by kind and by key, on screen and waiting, and resolves once they are gone', async ({ page }) => {
+    await loadApp(page);
+    const left = await page.evaluate(async () => {
+      DS.overlay.toast(null, 'Could not sync A.', { kind: 'error' });
+      DS.overlay.toast(null, 'Export ready.', { kind: 'info', persistent: true });
+      DS.overlay.toast(null, 'Could not sync B.', { kind: 'error', key: 'b' });
+      const waiting = DS.overlay.toast(null, 'Could not sync C.', { kind: 'error' });
+      await DS.overlay.closeToasts(null, { kind: 'error' });
+      const texts = [...document.querySelectorAll('#toasts .ds-toast:not([data-ds-leaving]) .ds-toast__text')].map((el) => el.textContent);
+      await waiting.closed;
+      await DS.overlay.closeToasts();
+      return { texts, after: document.querySelectorAll('#toasts .ds-toast').length };
+    });
+    expect(left).toEqual({ texts: ['Export ready.'], after: 0 });
+  });
+
+  test('a message that stays keeps room at the end of the view and gives it back; reserve: false leaves the page its own', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => { window.__err = DS.overlay.toast(null, 'Could not save. Check the connection and try again.', { kind: 'error' }); });
+    await settle(page);
+    const held = await page.evaluate(() => {
+      const view = document.getElementById('main').getBoundingClientRect();
+      const message = document.querySelector('#toasts .ds-toast').getBoundingClientRect();
+      return { expected: Math.ceil(view.bottom - message.top), value: parseFloat(document.getElementById('main').style.getPropertyValue('--ds-toast-reserve')) };
+    });
+    expect((await reserveOf(page, 'main')).on).toBe(true);
+    expect(Math.abs(held.value - held.expected)).toBeLessThanOrEqual(1);
+    await page.evaluate(() => window.__err.close());
+    await settle(page);
+    expect(await reserveOf(page, 'main')).toEqual({ on: false, value: '' });
+    // The page's own reserve stays with reserve: false.
+    await page.evaluate(() => {
+      const view = document.getElementById('main');
+      view.setAttribute('data-toast-reserve', '');
+      view.style.setProperty('--ds-toast-reserve', '10px');
+      window.__err = DS.overlay.toast(null, 'Could not save.', { kind: 'error', reserve: false });
+    });
+    await settle(page);
+    await page.evaluate(() => window.__err.close());
+    await settle(page);
+    expect(await reserveOf(page, 'main')).toEqual({ on: true, value: '10px' });
+  });
+
+  test('a focused element that a staying message covers scrolls clear of it', async ({ page }) => {
+    await loadApp(page, { height: 600 });
+    await page.evaluate(() => {
+      const view = document.getElementById('main');
+      const last = document.getElementById('last');
+      // The field right at the view's bottom edge, focused.
+      view.scrollTop += last.getBoundingClientRect().bottom - view.getBoundingClientRect().bottom + 4;
+      last.focus({ preventScroll: true });
+      DS.overlay.toast(null, 'Could not save.', { kind: 'error' });
+    });
+    await settle(page);
+    const clear = await page.evaluate(() => {
+      const top = document.querySelector('#toasts .ds-toast').getBoundingClientRect().top;
+      return document.getElementById('last').getBoundingClientRect().bottom <= top + 1;
+    });
+    expect(clear).toBe(true);
+  });
+
+  test('in a side sheet the body keeps the room and the messages rise above its foot, gliding on both axes; closing gives both back', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => DS.overlay.toast(null, 'Could not save.', { kind: 'error' }));
+    await settle(page);
+    const home = await regionBox(page);
+    const start = await page.evaluate(() => {
+      document.getElementById('open-sheet').click();
+      const region = document.getElementById('toasts');
+      const glide = region.getAnimations().filter((animation) => animation.transitionProperty === 'translate');
+      glide.forEach((animation) => animation.pause());
+      const rect = region.getBoundingClientRect();
+      glide.forEach((animation) => animation.play());
+      return { left: rect.left, bottom: rect.bottom, glides: glide.length };
+    });
+    expect(start.glides).toBe(1);
+    expect(Math.abs(start.left - home.left), 'starts where it stood (x)').toBeLessThan(1);
+    expect(Math.abs(start.bottom - home.bottom), 'starts where it stood (y)').toBeLessThan(1);
+    await settle(page);
+    const inSheet = await page.evaluate(() => {
+      const foot = document.getElementById('sheet-foot').getBoundingClientRect();
+      const region = document.getElementById('toasts');
+      return { parent: region.parentNode.id, gap: foot.top - region.getBoundingClientRect().bottom, lift: parseFloat(region.style.getPropertyValue('--ds-toast-lift')), foot: foot.height };
+    });
+    expect(inSheet.parent).toBe('sheet');
+    expect(inSheet.lift).toBeCloseTo(inSheet.foot + 8, 0);
+    expect(inSheet.gap).toBeGreaterThanOrEqual(7);
+    expect((await reserveOf(page, 'sheet-body')).on).toBe(true);
+    expect((await reserveOf(page, 'main')).on).toBe(false);
+    await page.locator('#sheet-close').click();
+    await settle(page);
+    const back = await regionBox(page);
+    expect(back.parent).toBe('theme');
+    expect(back.lift).toBe('');
+    expect(Math.abs(back.bottom - home.bottom)).toBeLessThan(1);
+    expect((await reserveOf(page, 'sheet-body')).on).toBe(false);
+    expect((await reserveOf(page, 'main')).on).toBe(true);
+  });
+
+  test('in a dialog the dialog makes room while its box would overlap the stack; released after its exit', async ({ page }) => {
+    await loadApp(page, { height: 420 });
+    await page.locator('#open-dialog').click();
+    await settle(page);
+    await page.evaluate(() => {
+      DS.overlay.toast(null, 'Could not delete LAPTOP-0042.', { kind: 'error' });
+      DS.overlay.toast(null, 'Could not delete TABLET-0121.', { kind: 'error' });
+    });
+    await settle(page);
+    const held = await page.evaluate(() => {
+      const box = document.getElementById('dialog-box').getBoundingClientRect();
+      const top = Math.min(...[...document.querySelectorAll('#toasts .ds-toast')].map((el) => el.getBoundingClientRect().top));
+      return { inDialog: document.getElementById('toasts').parentNode.id, clear: box.bottom <= top + 1 };
+    });
+    expect(held).toEqual({ inDialog: 'dialog', clear: true });
+    expect((await reserveOf(page, 'dialog')).on).toBe(true);
+    await page.locator('#dialog-cancel').click();
+    await settle(page);
+    expect((await reserveOf(page, 'dialog')).on).toBe(false);
+    expect(await page.evaluate(() => document.getElementById('toasts').parentNode.id)).toBe('theme');
+    expect((await reserveOf(page, 'main')).on).toBe(true);
+  });
+
+  test('beside the open modal drawer the region starts at its edge; on phones it rises above the drawer\'s foot', async ({ page }) => {
+    await loadApp(page, { width: 800 });
+    await page.evaluate(() => DS.overlay.toast(null, 'Export ready.', { persistent: true }));
+    await settle(page);
+    await page.locator('#menu').click();
+    await settle(page);
+    const beside = await page.evaluate(() => ({ left: document.getElementById('toasts').getBoundingClientRect().left, drawer: document.getElementById('drawer').getBoundingClientRect().right }));
+    expect(beside.left).toBeCloseTo(beside.drawer + 24, 0);
+    await page.keyboard.press('Escape');
+    await settle(page);
+    await page.setViewportSize({ width: 390, height: 800 });
+    await settle(page);
+    await page.locator('#menu').click();
+    await settle(page);
+    const phone = await page.evaluate(() => {
+      const foot = document.getElementById('drawer-foot').getBoundingClientRect();
+      const region = document.getElementById('toasts');
+      return { lift: parseFloat(region.style.getPropertyValue('--ds-toast-lift')), foot: foot.height, gap: foot.top - region.getBoundingClientRect().bottom };
+    });
+    expect(phone.lift).toBeCloseTo(phone.foot + 8, 0);
+    expect(phone.gap).toBeGreaterThanOrEqual(7);
+    await page.keyboard.press('Escape');
+    await settle(page);
+    expect((await regionBox(page)).lift).toBe('');
+  });
+
+  test('an action: a text button in the inverse primary ink; a click closes the message and calls onClick once; the message stays until used', async ({ page }) => {
+    await loadApp(page);
+    await page.evaluate(() => {
+      window.__calls = [];
+      window.__undo = DS.overlay.toast(null, '3 devices deleted.', { timeout: 500, action: { label: 'Undo', onClick: (event, handle) => window.__calls.push([event.type, handle === window.__undo]) } });
+    });
+    await page.waitForTimeout(1500);
+    const look = await page.evaluate(() => {
+      const button = document.querySelector('#toasts .ds-toast__action');
+      const probe = document.createElement('i');
+      probe.style.color = 'var(--ds-inverse-primary)';
+      document.getElementById('toasts').append(probe);
+      const ink = getComputedStyle(probe).color;
+      probe.remove();
+      return {
+        classes: button.className,
+        type: button.type,
+        color: getComputedStyle(button).color === ink,
+        order: [...button.parentNode.children].map((el) => (el.tagName === 'svg' ? 'svg' : el.classList[el.classList.length - 1])),
+      };
+    });
+    expect(look).toEqual({ classes: 'ds-btn ds-btn--text ds-btn--sm ds-toast__action', type: 'button', color: true, order: ['svg', 'ds-toast__text', 'ds-toast__action', 'ds-toast__close'] });
+    expect(await shown(page), 'stays past its timeout').toEqual(['3 devices deleted.']);
+    await page.locator('#toasts .ds-toast__action').dblclick();
+    await page.evaluate(() => window.__undo.closed);
+    expect(await page.evaluate(() => window.__calls)).toEqual([['click', true]]);
+  });
+
+  test('an element message that stays gets the close button with its tooltip; --ds-toast-close-size sizes it', async ({ page }) => {
+    await loadApp(page);
+    const built = await page.evaluate(() => {
+      document.getElementById('theme').style.setProperty('--ds-toast-close-size', '40px');
+      const el = document.createElement('div');
+      el.className = 'ds-toast';
+      el.innerHTML = '<span class="ds-toast__text">Firmware update waiting.</span>';
+      DS.overlay.toast(null, el, { persistent: true, closeLabel: 'Dismiss' });
+      const close = el.querySelector('.ds-toast__close');
+      return { label: close?.getAttribute('aria-label'), tip: close?.getAttribute('data-tip'), width: close?.getBoundingClientRect().width };
+    });
+    expect(built).toEqual({ label: 'Dismiss', tip: 'Dismiss', width: 40 });
+  });
+});
