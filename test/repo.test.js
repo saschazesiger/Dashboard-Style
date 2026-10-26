@@ -239,6 +239,12 @@ describe('repository', () => {
     assert.deepEqual(offenders, []);
   });
 
+  it('names every table header of the documented markup (an empty <th> fails axe empty-table-header, TB-6)', () => {
+    const empty = [...read('docs/components.md').matchAll(/```html\n([\s\S]*?)```/g)]
+      .flatMap((block) => [...block[1].matchAll(/<th\b[^>]*>\s*<\/th>/g)].map((match) => match[0]));
+    assert.deepEqual(empty, []);
+  });
+
   it('lists every @keyframes once in the docs/motion.md keyframe table, unused kept names marked deprecated', () => {
     const motion = read('src/motion.css');
     const names = [...stripComments(motion).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);

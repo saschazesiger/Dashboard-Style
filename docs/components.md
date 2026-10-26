@@ -1513,7 +1513,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 <table class="ds-table ds-table--interactive">
   <thead><tr>
     <th scope="col"><input type="checkbox" aria-label="Select all"></th>          <!-- indeterminate for some -->
-    <th scope="col"></th><th scope="col">Device</th><th scope="col">Status</th>
+    <th scope="col"><span class="ds-sr">Details</span></th><th scope="col">Device</th><th scope="col">Status</th>
   </tr></thead>
   <tbody>
     <tr data-ds-key="p2" class="ds-table__row--selected">                         <!-- or just the checked box -->
