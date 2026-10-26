@@ -1600,3 +1600,7 @@ spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` ag
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
 
 ## Attributes
+
+| Attribute | Set by | Meaning |
+|---|---|---|
+| `data-label` | the page | on a cell of `.ds-table--stack` / `--stack-wide`: the label shown above the cell's content while the rows stack ([Stacked rows](#stacked-rows)) |
