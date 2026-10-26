@@ -10,7 +10,7 @@ White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped act
 ![License: MIT](https://img.shields.io/badge/license-MIT-146c2e)
 ![Dependencies: 0](https://img.shields.io/badge/dependencies-0-146c2e)
 ![Build step: none](https://img.shields.io/badge/build%20step-none-146c2e)
-![Components: 26](https://img.shields.io/badge/components-26-6750a4)
+![Components: 39](https://img.shields.io/badge/components-39-6750a4)
 ![Icons: 109](https://img.shields.io/badge/icons-109-6750a4)
 
 [🚀 Live tour](https://saschazesiger.github.io/Dashboard-Style/) ·
@@ -60,7 +60,7 @@ to their new colour.
 </tr>
 <tr>
 <td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html"><img src="docs/images/styleguide.png" alt="The styleguide: every button variant and state"></a><br>🧩 <b>Styleguide</b>: every component, token and icon, with a theme switcher.</td>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html"><img src="docs/images/motion-lab.png" alt="The Motion Lab: the spring curve plotted as the browser plays it, and three boxes on one spring"></a><br>🎬 <b>Motion Lab</b>: every curve sampled from your browser, 60 replayable demos.</td>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html"><img src="docs/images/motion-lab.png" alt="The Motion Lab: the spring curve plotted as the browser plays it, and three boxes on one spring"></a><br>🎬 <b>Motion Lab</b>: every curve sampled from your browser, every choreography replayable.</td>
 </tr>
 <tr>
 <td><a href="https://saschazesiger.github.io/Dashboard-Style/#choose"><img src="docs/images/controls.png" alt="Switches, checkboxes with a parent in the indeterminate state, filter chips and radio cards"></a><br>✅ <b>Controls</b>: checks that draw themselves, switches on a spring, chips that make room.</td>
@@ -77,8 +77,8 @@ to their new colour.
 </p>
 
 MIT licensed. The bundled Google Sans font is under the SIL Open Font License 1.1; the icon shapes come from Lucide
-(ISC) and Feather (MIT), see [LICENSE](LICENSE). There is no dark theme yet: the default is light, and dark mode is not
-designed.
+(ISC) and Feather (MIT), see [LICENSE](LICENSE). Light by default; dark, compact and high-contrast themes ship with it
+([Theming](#-theming)).
 
 ## ⚡ Quick start
 
@@ -144,8 +144,16 @@ workflow that keeps the copy on `main` is in [`templates/`](templates/update-das
 <script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.js"></script>
 ```
 
-**🧰 Bundlers.** `dist/css/` and `dist/js/` hold the single stylesheets and ES modules; import only what you need.
-Details, updates and integrity checks: [docs/install.md](docs/install.md).
+**🧰 Bundlers.** `dist/css/` and `dist/js/` hold the single stylesheets and ES modules (with their `.d.ts` types);
+import only what you need. Details, updates and integrity checks: [docs/install.md](docs/install.md).
+
+**🔍 Checks.** `dist/tools/` runs without network or dependencies: `verify.mjs` (or `verify.sh`) checks a copy against
+its `SHA256SUMS`, `check-theme.mjs` a theme file, `check-project.mjs` your code against the project rules
+(deprecated and removed names from `dist/deprecations.json` included).
+
+**⬆️ From 1.x to 2.0.** 2.0.0 removes the names deprecated in 1.x and changes a few defaults. Work through the
+"Migration" table of [2.0.0 in the changelog](CHANGELOG.md#200), then run `tools/check-project.mjs`
+([docs/install.md](docs/install.md), "Updating").
 
 ## 🎨 Theming
 
@@ -171,14 +179,15 @@ a theme file from a few clicks and lets you copy it.
 
 | | |
 |---|---|
-| 🏗️ **Frame** | top bar, navigation drawer (modal on phones) with a sliding pill, segmented switch, one scrolling content panel |
-| 🃏 **Content** | page head, cards (also interactive), tiles, key-value lists, facts, empty states |
-| 🚦 **Status** | status chips, alerts, error lists, snackbars, tooltips |
-| 📊 **Data** | tables with sorting, selection, expandable rows and live updates; progress (linear and round), loaders, skeletons |
-| 📝 **Input** | buttons (busy and done faces, icon swaps), fields, selects, checkboxes, radio cards, switches, filter chips, combobox, search |
-| 🪟 **Overlays** | dialogs, side sheets, menus, through `DS.overlay` (focus, Escape, scroll lock, stacking) |
-| 🌊 **Motion** | `DS.motion` (`flip`, `countUp`, `busy`, `transition`, `crossfade` ...), `DS.indicator`, `DS.dom.morphHtml`, `DS.ripple` |
+| 🏗️ **Frame** | top bar (actions, search, title), navigation drawer (modal on phones, groups, counts, a rail) with a sliding pill, account capsule, avatars, a message for the whole app, segmented switch, tabs, steps, one scrolling content panel, a sign-in page |
+| 🃏 **Content** | page head with breadcrumbs and a way back, cards (also interactive and selectable), tiles, row lists, key-value lists and facts, disclosures, a timeline, task lists, prose and code blocks, empty states |
+| 🚦 **Status** | status chips, tags, badges, alerts, error lists, snackbars (with Undo), tooltips |
+| 📊 **Data** | tables with sorting, selection and a bulk selection bar, expandable, stacked and full-page rows, a pinned first column, pagination, sideways scrollers; meters, columns and legends; progress (linear and round), loaders, skeletons |
+| 📝 **Input** | buttons (busy and done faces, icon swaps), fields (input groups, counters, changed fields), selects, checkboxes, radio cards, switches (also locked), filter, action and input chips, combobox (also select-only), search, slider, a growing composer, file fields and drop zones, rows to reorder |
+| 🪟 **Overlays** | dialogs (also full screen and as an action sheet, with built-in `confirm()`, `alert()` and `prompt()`), side sheets, menus, a save bar, through `DS.overlay` (focus, Escape, scroll lock, stacking, busy overlays that stay open) |
+| 🌊 **Motion** | `DS.motion` (`flip`, `countUp`, `busy`, `transition`, `refresh`, `sortable`, `crossfade` ...), `DS.indicator`, `DS.dom` (`morphHtml`, `watchScrolled`, `scrollEdges`, `roving`, `progress` ...), `DS.ripple` with the action guard |
 | 🖼️ **Icons** | 109 outline glyphs in `DS.icons` |
+| 🎨 **Themes and tools** | dark, compact and contrast themes; `dist/tools/` checks a copy, a theme and a project; `tokens.json`, `deprecations.json` and TypeScript types |
 
 Which component fits which need: the table at the top of [docs/components.md](docs/components.md).
 
@@ -199,7 +208,7 @@ Which component fits which need: the table at the top of [docs/components.md](do
 
 ```
 dist/            what you ship (built, committed): ds.css, ds.js, ds.d.ts, css/ (with css/optional/, css/properties.css), js/, fonts/, themes/, tools/, tokens.json, LICENSE, SHA256SUMS
-src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, index.css (order)
+src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, types/ (ds.d.ts, js/*.d.ts), deprecations.json, index.css (order)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template; dark.css, compact.css, contrast.css, the shipped themes
 demo/            the live tour: one page that demonstrates every behaviour (the start page on GitHub Pages)
