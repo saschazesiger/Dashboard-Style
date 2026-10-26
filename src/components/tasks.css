@@ -12,12 +12,18 @@
  *
  * The status shows in the mark's shape and the text's weight, never in
  * colour alone: pending a ring in --ds-outline, running the small spinner
- * and the label weight, done the check in a circle (--ds-success; its
- * tick draws itself with ds-draw when the item turns done, and the text
- * turns --ds-text-2), failed the alert circle in --ds-error with the word
- * in the text. Put the status into the text for screen readers too (a
- * .ds-sr word), and keep the count in the head ("3 of 7") in step. In
+ * and the label weight, done the check in a circle (--ds-success) and
+ * the text in --ds-text-2, failed the alert circle in --ds-error with the
+ * word in the text. Put the status into the text for screen readers too
+ * (a .ds-sr word), and keep the count in the head ("3 of 7") in step. In
  * forced colours the marks take CanvasText.
+ *
+ * Motion: when a step turns done in place (DS.dom.morphHtml patches the
+ * keyed item, so its mark stays), the tick of the new check draws itself:
+ * the mark's stroke-dashoffset, which the pathLength="1" tick inherits,
+ * runs from 1 to 0 over --ds-dur-medium after --ds-dur-micro. A list
+ * rendered with done steps stays still on load (a transition, not a
+ * keyframe).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -66,6 +72,9 @@
     width: var(--ds-space-5);
     height: var(--ds-space-5);
     color: var(--ds-text-2);
+    /* Inherited by the tick of a done step: undrawn until the step is done. */
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro);
   }
 
   .ds-tasks__text {
@@ -92,6 +101,7 @@
 
   .ds-tasks__item[data-status="done"] .ds-tasks__mark {
     color: var(--ds-success);
+    stroke-dashoffset: 0;
   }
 
   .ds-tasks__item[data-status="done"] .ds-tasks__text {
@@ -100,13 +110,6 @@
 
   .ds-tasks__item[data-status="done"] .ds-tasks__mark [pathLength] {
     stroke-dasharray: 1;
-  }
-
-  /* The tick draws on its <svg>; the pathLength="1" path inherits the
-     stroke (Chromium can miss an attribute change above a [pathLength]
-     rule). */
-  .ds-tasks__item[data-status="done"] .ds-tasks__mark > svg {
-    animation: ds-draw var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro) backwards;
   }
 
   .ds-tasks__item[data-status="failed"] .ds-tasks__mark {

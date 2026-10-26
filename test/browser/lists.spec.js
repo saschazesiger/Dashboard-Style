@@ -366,23 +366,25 @@ test.describe('tasks', () => {
       };
       fxLists.tasks[1] = 'done';
       DS.dom.morphHtml(list, fxLists.tasksHtml());
-      const svg = item(1).querySelector('.ds-tasks__mark > svg');
-      const draw = svg.getAnimations().find((animation) => animation.animationName === 'ds-draw');
+      const mark = item(1).querySelector('.ds-tasks__mark');
+      void getComputedStyle(mark).strokeDashoffset;
+      const draw = mark.getAnimations().find((animation) => animation.transitionProperty === 'stroke-dashoffset');
       return { ...before, draws: Boolean(draw), status: item(1).getAttribute('data-status') };
     });
     expect(seen).toEqual({ pending: 'solid', running: '500', pendingWeight: '400', draws: true, status: 'done' });
     await settle(page);
   });
 
-  test('the tick draws from its start: the dash offset runs from 1 to 0', async ({ page }) => {
+  test('the tick draws from its start: the dash offset runs from 1 to 0; a step rendered done stays still', async ({ page }) => {
     await open(page);
-    await page.evaluate(() => {
+    expect(await page.evaluate(() => document.getElementById('tasks').getAnimations({ subtree: true }).filter((animation) => !animation.animationName?.startsWith('ds-spin')).length)).toBe(0);
+    const samples = await page.evaluate(() => {
       fxLists.tasks[1] = 'done';
       DS.dom.morphHtml(document.getElementById('tasks'), fxLists.tasksHtml());
-    });
-    const svg = page.locator('#tasks > li:nth-child(2) .ds-tasks__mark > svg');
-    const samples = await svg.evaluate((el) => {
-      const animation = el.getAnimations().find((each) => each.animationName === 'ds-draw');
+      const mark = document.querySelector('#tasks > li:nth-child(2) .ds-tasks__mark');
+      const el = mark.querySelector('svg');
+      void getComputedStyle(mark).strokeDashoffset;
+      const animation = mark.getAnimations().find((each) => each.transitionProperty === 'stroke-dashoffset');
       animation.pause();
       const timing = animation.effect.getComputedTiming();
       const delay = animation.effect.getTiming().delay;

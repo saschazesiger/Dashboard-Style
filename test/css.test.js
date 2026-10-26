@@ -200,7 +200,7 @@ const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color
 /** Declarations of the rules whose selector list (split at top-level commas) contains `selector`. */
 const declarationsAt = (css, selector) => rules(css).filter((rule) => splitSelectors(rule.selector).includes(selector)).flatMap((rule) => declarations(`${rule.body};`));
 /** A drawn glyph (pathLength="1") or what it inherits from (an icon-swap face, a chip's check): stroke-dashoffset may transition there (drawn checks). */
-const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$|\.ds-chip__check$/.test(part));
+const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$|\.ds-chip__check$|^\.ds-tasks__mark$/.test(part));
 /** The two timings of the press morph: the press-in (micro, decelerating) and the release (medium, on the spring). */
 const PRESS_MORPH = ['var(--ds-dur-micro) var(--ds-ease-out)', 'var(--ds-dur-medium) var(--ds-ease-spatial)'];
 /**
@@ -2059,7 +2059,10 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
     const file = 'src/components/tasks.css';
     assert.match(own(file, '.ds-tasks__item[data-status="pending"] .ds-tasks__mark::before').border, /solid var\(--ds-outline\)/);
     assert.equal(own(file, '.ds-tasks__item[data-status="running"] .ds-tasks__text')['font-weight'], 'var(--ds-weight-label)');
-    assert.match(own(file, '.ds-tasks__item[data-status="done"] .ds-tasks__mark > svg').animation, /^ds-draw var\(--ds-dur-medium\) var\(--ds-ease-out\)/);
+    // The tick draws through the mark's inherited dash offset: a transition, so a list rendered done stays still.
+    assert.equal(own(file, '.ds-tasks__mark').transition, 'stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro)');
+    assert.equal(own(file, '.ds-tasks__mark')['stroke-dashoffset'], '1');
+    assert.equal(own(file, '.ds-tasks__item[data-status="done"] .ds-tasks__mark')['stroke-dashoffset'], '0');
     assert.equal(own(file, '.ds-tasks__item[data-status="done"] .ds-tasks__mark [pathLength]')['stroke-dasharray'], '1');
   });
 });

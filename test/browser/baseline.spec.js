@@ -153,7 +153,7 @@ test.describe('styleguide sections', () => {
   test.use({ viewport: TALL });
 
   test('every section, settled', async ({ page }) => {
-    expect(SECTIONS, 'overview plus the section() calls of styleguide.js').toHaveLength(15);
+    expect(SECTIONS, 'overview plus the section() calls of styleguide.js').toHaveLength(16);
     await open(page, STYLEGUIDE);
     annotate('components/table.css:198-226');
     for (const id of SECTIONS) await shoot(page.locator(`#${id}`), `section-${id}.png`);

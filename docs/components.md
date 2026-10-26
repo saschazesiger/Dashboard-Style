@@ -673,7 +673,7 @@ The steps of a job (2.0): an import, a setup, a migration, each step pending, ru
 ```
 
 - `data-status` on each `.ds-tasks__item` (set by the page): `pending` a ring in `--ds-outline`, `running` the small
-  spinner and the label weight, `done` the check in a circle in `--ds-success` (its tick draws itself, `ds-draw`) and
+  spinner and the label weight, `done` the check in a circle in `--ds-success` (its tick draws itself when the step turns done in place) and
   the text in `--ds-text-2`, `failed` the alert circle in `--ds-error` with the word in the text. The status is in
   the shape of the mark and the weight of the text, never in colour alone; put it into the text for screen readers
   too (a `.ds-sr` word) and keep the count of `.ds-tasks__head` in step.
