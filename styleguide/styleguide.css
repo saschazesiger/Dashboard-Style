@@ -798,6 +798,8 @@
 
 /* The rules in two columns where there is room. */
 .sg-disclosure ol {
+  /* .ds-muted has no margin (2.0): the list keeps a list's own space. */
+  margin: 1em 0;
   columns: 2 22rem;
   column-gap: var(--ds-space-8);
 }
