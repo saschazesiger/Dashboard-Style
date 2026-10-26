@@ -510,8 +510,6 @@ describe('repository', () => {
       const base = file.includes('/') ? file.slice(0, file.lastIndexOf('/') + 1) : '';
       for (const match of read(file).matchAll(/\]\((?!https?:)([^)#]*\.md)?#([^)]+)\)/g)) {
         const target = match[1] ? posix.normalize(base + match[1]) : file;
-        // The changelog's section of the coming release is written when it is cut.
-        if (target === 'CHANGELOG.md') continue;
         if (!anchorsOf(target).has(match[2])) broken.push(`${file}: ${match[1] ?? ''}#${match[2]}`);
       }
     }

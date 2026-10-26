@@ -4,6 +4,321 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 2.0.0
+
+A major release. Every name deprecated in 1.0.0 to 1.6.2 is removed; a few defaults change where the old behaviour
+had no use; the system gains the parts that the projects built by hand (row lists, timelines, charts, tabs, the save
+bar, dialog bodies, a select-only combobox, input chips, badges, the action guard, touch density, dark, compact and
+contrast themes; 13 new component stylesheets, 39 in all) and tools to check a copy, a theme and a project. Read
+"Migration" first: the table lists every removed name with its replacement and a pattern to find it, and the list
+under it every default and look that changed without a rename. `dist/deprecations.json` holds the same names as data
+and `tools/check-project.mjs` finds them in a project.
+
+A 1.6 copy of `ds.js` in an embedded widget keeps coordinating Escape order and the scroll lock with a 2.0 page, and
+the other way round: the records behind `Symbol.for('ds.overlay')` and `Symbol.for('ds.owned')` keep their shape
+(fields may be added in 2.x, none is removed or retyped).
+
+### Migration
+
+| Kind | Old | New | What to change | Find it |
+|---|---|---|---|---|
+| token | `--ds-ease` | `--ds-ease-emphasized` | rename every `var(--ds-ease)` (same value; the `linear()` path where supported); `MOTION_FALLBACKS['--ds-ease']` is gone | `--ds-ease(?![\w-])` |
+| role | `--ds-spinner-sm-track` | none | delete it from the theme (no effect since 1.0) | `--ds-spinner-sm-track` |
+| scale | `--ds-state-pulse` | none | delete any use (only `ds-pulse` read it) | `--ds-state-pulse` |
+| token | `--ds-loop-pulse` | `--ds-loop-skeleton` (the wave of `.ds-skeleton`) | use the skeleton markup | `--ds-loop-pulse` |
+| keyframes | `ds-pulse` | `.ds-skeleton` (`ds-skeleton-wave`) | drop any `animation: ds-pulse …` (it plays nothing now) and use the skeleton markup | `ds-pulse(?![\w-])` |
+| keyframes | `ds-indeterminate` | `.ds-progress--indeterminate`, `.ds-loadbar` (`ds-progress-head` + `ds-progress-tail`) | use the markup | `ds-indeterminate` |
+| keyframes | `ds-sink-out`, `ds-scale-out`, `ds-slide-out` | `ds-fade-out` + `ds-drop-out` / `ds-shrink-out` / `ds-shift-out`, or `.ds-leave--sink` / `--scale` / `--slide`, or `DS.motion.leave(el, 'sink' \| 'scale' \| 'slide')` | two animation entries, or the utility | `ds-(sink\|scale\|slide)-out` |
+| export | `DS.motion.easeOutCubic` | none (`countUp()` runs on `--ds-ease-value`) | remove every call and import: an import of it from `js/motion.js` stops the module from loading | `easeOutCubic` |
+| class | `.ds-btn__swap` | `.ds-btn__faces` with `.ds-btn__face`, `.ds-btn__face--busy`, `.ds-btn__face--done`, driven by `DS.motion.busy()` | rewrite the markup | `ds-btn__swap` |
+| attribute | `data-open` on `.ds-combo` | `aria-expanded="true"` on `.ds-combo__input` (`DS.overlay.open(list, { opener: field })` sets it) | open the list through `DS.overlay` | `ds-combo[^>]*data-open` |
+| markup | `.ds-toasts` with `role` or `aria-live`, `role="alert"` on messages | `<div class="ds-toasts"></div>` | remove the attributes (`toast()` now strips them from an old region on first use and announces each message once through its own announcers) | `ds-toasts[^>]*(role\|aria-live)` |
+| recipe | page-set `--ds-toast-shift` / `--ds-toast-shift-y` to move snackbars into a side sheet; closing messages with `setTimeout` | `DS.overlay.open(sheet)` moves the region and glides the messages; `toast()` times them | delete the recipe; both properties stay, written by `DS.overlay` only | `--ds-toast-shift` |
+
+Changed defaults and looks (no rename; check your pages and your tests):
+
+- **Blocked actions are blocked for every input.** Once `DS.ripple.attach()` or `DS.motion.busy()` ran (or
+  `DS.motion.guard()`), a click, middle click, Enter, Space, label click or form submission on a busy or done
+  `.ds-btn`, or on any `aria-disabled="true"` action inside `.ds-theme`, never reaches your listeners or its default
+  action. Delete your own guards. A control that must explain itself on click gets `data-ds-guard="off"`.
+- `busy()` shows the done face only when the button has one (no `{ done: false }` needed for buttons without it).
+- `flip()` moves focus to the same control of the next item when the focused item goes (else the previous one,
+  skipping items that take no focus, such as a day heading); `refocus: false` turns it off. Delete "move focus before
+  a dismiss" code.
+- `toast()`: the same string message (same kind, same text, no action) while it shows restarts it instead of stacking
+  (`restart: false`); messages that stay reserve room at the end of the view, sheet body or dialog body
+  (`reserve: false`; a page writes `data-toast-reserve` only then); a text button in a message takes the inverse
+  primary ink; an element message that stays gets a close button (with its tooltip).
+- Tooltips: a tip equal to the trigger's visible text shows only while that text is cut off (also in a table cell or
+  another ancestor that clips it); on touch screens a tap shows the tip of an image or a blocked control, a long press
+  shows the others, and a tip stays until it is dismissed; a tip hides when its trigger leaves the document. Remove
+  page attributes such as a "truncated" marker and their measuring code: plain `data-tip` does it. On a `.ds-switch`,
+  put `data-tip` on the input.
+- A backdrop or scrim click within `--ds-delay-dismiss` (300ms) of the open, a press that began elsewhere, and the
+  second click of a double click (any `[data-close]` click with `detail > 1`) no longer close an overlay. A test that
+  clicks a backdrop right after opening waits 300ms or closes with Escape.
+- Focus returns to the opener's id twin when a re-render replaced the opener (or to `open(el, { returnTo })`);
+  `open()` without an opener takes the clicked control (Safari); `open(drawer)` focuses the current item.
+- `DS.overlay.open()` watches every `.ds-sheet__body` and `.ds-dialog__body` itself (`DS.dom.watchScrolled()`): remove
+  a page's own watch or sentinel recipe for them (left in place it adds a second sentinel, which is harmless).
+- `.ds-view`, `.ds-sheet__body` and `.ds-drawer__list` are positioned (`position: relative`, no stacking context): the
+  `offsetParent` of elements inside them changes, an absolutely placed element no longer escapes the scroller, and a
+  `.ds-sr` without a closer positioned ancestor sits at the top of the view's content.
+- A lone `.ds-btn` directly in `.ds-page`, `.ds-stack`, `.ds-sheet__body` or `.ds-dialog__body` keeps its own width.
+- `.ds-segmented` has its start margin only in the top bar; in a page toolbar it sits flush. Button options reset the
+  UA look.
+- Bare `h1` to `h6` under `.ds-base` take the type roles (`h1` headline, `h2` subtitle, `h3` to `h6` label, no
+  margins). Wrap rendered text (Markdown, help pages) in `.ds-prose`, or keep the project's own heading rules.
+- Interactive table rows without a `.ds-table__row-link` stay plain: no pointer, no press layer, no ripple (they
+  opened nothing).
+- `.ds-tiles` columns fill their container: up to four (`--ds-tiles-columns`), each at least `--ds-tile-min-width`
+  (176px); `.ds-tiles--3` caps at three. This replaces the 1100px window step: a lone tile fills its row, and a 390px
+  phone shows one tile per row.
+- `.ds-switch`: the input covers the track. `aria-disabled` switches, checkboxes, radios, radio cards and filter chips
+  look and act blocked (no hover or press, the disabled ink; the focus ring stays).
+- `.ds-kv-list` and `.ds-plain-list` lose the browser's top margin (pages sit higher by it); the last kv row loses its
+  bottom padding; long labels and values wrap and values align to the end. `.ds-muted` has no margin, like
+  `.ds-meta`.
+- `.ds-sheet__title` wraps; the sheet body has a thin scrollbar; `.ds-dialog__body:empty` and
+  `.ds-dialog__actions:empty` take no room.
+- Combobox options are at least 48px tall (`--ds-combo-option-height`); the toggle and the field's end room follow
+  `--ds-input-height`.
+- Size modifiers read their own hooks instead of setting the shared ones: `.ds-btn--sm` `--ds-btn-sm-height` and
+  `--ds-btn-sm-icon-size`, `.ds-check--sm` `--ds-check-sm-height`, `.ds-toast__close` `--ds-toast-close-size`,
+  `.ds-loader--sm` `--ds-loader-sm-size`, `.ds-spinner--determinate` `--ds-spinner-determinate-width`,
+  `.ds-status__spinner` `--ds-status-spinner-width`. Set those in the theme instead of overriding the component.
+- Forced colours follow one model per meaning: a choice in a set (the current drawer item, the selected segmented
+  option and tab, the current list row, the chosen combobox option) is `SelectedItem` / `SelectedItemText`, with a
+  `CanvasText` ring when focused; a toggle that is on (a pressed button, an open disclosure button, a checked chip, a
+  selected tile or card) is `Highlight` / `HighlightText`; blocked controls (`disabled` and `aria-disabled` buttons,
+  menu items, options, drawer items, tabs, cards, tiles, checks, rows) are `GrayText`; focused fields show a 2px
+  `Highlight` outline.
+- Derived roles follow their source: `--ds-link-underline`, `--ds-fill-round`, `--ds-disabled-fill`,
+  `--ds-disabled-ink`, `--ds-primary-hover`, `--ds-primary-pressed` are `color-mix()` of `--ds-link`, `--ds-text` and
+  `--ds-primary` (same default values). A theme that sets them keeps its value; a theme that sets only the sources
+  now moves them too.
+- `ds-spin` animates `rotate`: an element's own `transform` stays while it spins (a page `rotate` on a spinner is
+  overridden while it turns).
+- Snackbar regions glide on both axes (above a sheet foot, the drawer foot on phones or the save bar) and rise by
+  `--ds-keyboard-inset`; beside the open modal drawer (601px to 900px) the region starts at the drawer's edge.
+- The card table wrappers fade through the scroll-edge numbers and `--ds-scroll-fade` (`0px` turns every fade off).
+- Escape in a filled `input[type="search"]` inside a dialog, sheet or menu clears the search first; the next Escape
+  closes the layer.
+- A `.ds-btn` with `aria-haspopup="dialog"` (or `.ds-btn--disclosure`) and `aria-expanded="true"` takes the pressed
+  tint (and `Highlight` in forced colours) while its dialog or sheet is open, and `DS.overlay` keeps the
+  `aria-expanded` of such an opener in step; menu triggers stay plain. A pressed toggle that is `aria-disabled` keeps
+  its on look.
+- `.ds-chips:empty` takes no room; a row of button chips is a `div role="group"`. `.ds-action-bar > .ds-search` takes
+  its own row under 600px of content.
+- A long `.ds-check` label wraps beside its box, which aligns with the first line. The narrow date padding (720px
+  and below) applies only where fields stand side by side (`.ds-filters`, `.ds-inline-form`, `.ds-form-grid--2`,
+  `--3`).
+- `.ds-hover-actions`, the search key, the changed-field dot and other show-and-hide pairs leave faster than they come
+  (the exit ratio).
+- The skeleton band is a fixed `::after` on its own layer, clipped by each bone: a project that styled the
+  `background-image` or `background-attachment` of `.ds-skeleton__line` sets `--ds-skeleton-highlight` instead.
+- The hover underline of `.ds-link-btn` takes the link underline's thickness and offset.
+- The `flag` glyph draws its pole first: a project that copies glyph strings refreshes `flag` (no other glyph
+  changed).
+- Strict CSP: `DS.dom.morphHtml()` sets styles through the CSSOM, so a `style-src-attr 'unsafe-inline'` added only for
+  it can go.
+
+### Added
+
+- Overlays: `data-ds-busy` (an overlay stays open while its action runs), `close(el, { reason })` and the `ds-close`
+  event (why it closed), `DS.overlay.topmost()`, `open(el, { returnTo })`, `DS.overlay.confirm()`, `alert()` and
+  `prompt()` (built dialogs that resolve a promise), `DRAWER_QUERY`, `DISMISS_DELAY_MS`, the scale
+  `--ds-delay-dismiss`; `.ds-dialog__body`, `.ds-dialog__head`, `.ds-dialog--wide`, `--full`, `--full-narrow`,
+  `--bottom` (an action sheet), `.ds-dialog__list`, `--ds-dialog-width-wide`, `--ds-dialog-height`,
+  `--ds-dialog-full-radius`; `.ds-sheet__heading`, `__subtitle`, `__foot`, `--ds-sheet-foot-border`; menu groups,
+  `.ds-menu__heading`, `.ds-menu__meta`, radio items (`menuitemradio`), type-ahead, `--ds-menu-item-height`; menus and
+  combobox lists fade at their cut edges (`open()` attaches `DS.dom.scrollEdges()` on the block axis);
+  `.ds-combo--select` (a select-only combobox), `.ds-combo__value`, `--ds-combo-option-height`. Recipes: a search
+  over a list in a dialog, steps in one dialog, confirm by typing the name.
+- Snackbars and tooltips: `DS.overlay.announce()` (say a result without a message), `toastRegion()`, `closeToasts()`;
+  `toast()` takes `null` as its region and the options `key` (replace by key), `restart`, `reserve` and `action` (an
+  Undo button); `.ds-toast__action`, `--ds-toast-action-color`, `--ds-toast-close-size`, the runtime
+  `--ds-toast-lift`; tooltips on touch screens.
+- Save bar: `.ds-savebar` with `__bar`, `__text`, `__actions`, `DS.overlay.savebar()` (`{ show, hide, update,
+  shown, destroy }`), hooks `--ds-savebar-offset`, `--ds-savebar-inset`, `--ds-savebar-min-height`,
+  `--ds-savebar-radius`, `--ds-savebar-bg`, `--ds-savebar-shadow`; runtime `data-ds-savebar`, `data-ds-savebar-rest`,
+  `--ds-savebar-height`.
+- Motion and DOM: `DS.motion.guard()`, `refresh()` (the documented refresh as one call), `setLabel()`, `sortable()`
+  (reorder by drag and keyboard), `roll(…, { hold })` with `--ds-hold-status`, `transition(…, { focus })`,
+  `settleLoader(…, { now, element })`, `loaderHoldMs(…, { element })`, `flip(…, { refocus })`, `onKeep` for
+  `morphChildren()`, `morphHtml()` and `flip()`; `DS.dom.watchScrolled()`, `scrollEdges()`, `progress()` (a share and
+  its ARIA in one call), `roving()` (one tab stop for a set), `followViewport()` (the frame follows the on-screen
+  keyboard), `followEnd()` (a log that sticks to its end), `autosize()`, `dropzone()`; `.ds-presence--keep`
+  (`data-ds-shown`), `.ds-vt-view` (a view-transition target outside the frame), `.ds-swap--fade` (`--ds-swap-fade`);
+  the `DS.ripple.attach()` handle's `release()` and `destroy()` (a press also ends when another element captures the
+  pointer).
+- Drag, drop and files (`drag.css`): `.ds-grip`, the `[data-ds-dragging]` row, the styled `.ds-input[type="file"]`,
+  `.ds-dropzone` with `__input`, `__disc`, `__title`, `__idle`, `__over`, `__browse`, `__hint`,
+  `--ds-dropzone-border`, and `[data-ds-dragover]` on any page drop target.
+- Loading: `--ds-skeleton-radius`, `.ds-skeleton__note`, `.ds-loading__detail`.
+- Tables and scrollers: `.ds-table--stack` and `--stack-wide` (each row a block, each cell's `data-label` above its
+  value; always in sheets and dialogs, in a view at a content area of at most 600px / 840px), `.ds-table-wrap--fill`
+  (a full-page table with a sticky header and cut cells), `.ds-table--pin-first` (a pinned first column;
+  `DS.ripple.attach()` forwards a click on the row to its `.ds-table__row-link` and ripples it in two parts),
+  `td.ds-table__actions`, `tfoot` summary rows, `.ds-scroll-x` (a sideways strip with edge fades), `.ds-jump` (the
+  place of a "Latest" pill), `.ds-pagination` (`--simple`), `.ds-selection-bar`; hooks `--ds-scroll-fade`,
+  `--ds-table-head-height`, `--ds-table-row-height`, `--ds-table-dense-row-height`, `--ds-table-sticky-bg`,
+  `--ds-table-cell-max-width`, `--ds-table-fill-min-height`, `--ds-table-fill-max-height`; scales `--ds-z-pinned`,
+  `--ds-z-sticky-pinned`; keyframes `ds-scroll-edge-start` and `ds-scroll-edge-end` (registered
+  `--ds-scroll-edge-start` / `-end`).
+- Lists and data: `.ds-list` (rows that open a record: `__item`, `__icon`, `__text`, `__title`, `__meta`, `__actions`,
+  `__chevron`, `.ds-list--interactive` with `.ds-list__action`, the current row by `aria-current`;
+  `--ds-list-item-height`, `--ds-list-text-min`, `--ds-list-current-bg`); key-value rows that open
+  (`.ds-kv-list--interactive`, `.ds-kv-list__row`), row icons (`.ds-kv-list__icon` with `--ok`, `--warning`,
+  `--error`), quiet values (`strong.ds-muted`) and `.ds-kv-list--bars`; `.ds-facts--rows`
+  (`--ds-facts-label-width`) and `.ds-lock` (a value another system sets); `.ds-disclosure` (a styled `<details>`,
+  `__body`, `--row`, `.ds-disclosure-list`, `--ds-disclosure-height`, `--ds-disclosure-row-height`); `.ds-timeline`
+  (the history of a record, nine hooks); `.ds-tasks` (a checklist of a job's steps, `data-status`); chart roles
+  `--ds-chart-1` to `--ds-chart-4`, `--ds-chart-track`, `--ds-chart-neutral`, `--ds-chart-warning`,
+  `--ds-chart-error`; the runtime `--ds-share`, keyframes `ds-fill-share` and `.ds-enter--fill`; `.ds-meter`,
+  `.ds-columns` (`--mini`, `--grouped`) and `.ds-legend` with their hooks.
+- Controls: `.ds-pressable` (`--lg`, `--inset`, `--ds-pressable-radius`, `--ds-pressable-layer`: the press model for a
+  project element), `.ds-hover-actions` (with `.ds-hover-host`), `.ds-kbd`, `.ds-divider` (`--inset`, `--vertical`,
+  `--label`), `.ds-touch` and the role `--ds-touch-target` (48px: every target hook at once, opt-in),
+  `.ds-icon--filled`, `.ds-icon--fillable` (fills under `aria-pressed` / `aria-checked`), 27 glyphs (`chevronFirst`,
+  `chevronLast`, `cornerDownLeft`, `moreHorizontal`, `upload`, `clipboard`, `paperclip`, `send`, `printer`, `play`,
+  `pause`, `stopCircle`, `grip`, `bell`, `mic`, `micOff`, `volume`, `helpCircle`, `eye`, `eyeOff`, `home`,
+  `panelLeft`, `keyboard`, `terminal`, `tag`, `sun`, `moon`; 109 in all), `DS.icons.fill()` for `[data-icon]` /
+  `data-icon-size`; `.ds-btn--disclosure`, `.ds-btn--adaptive` with `.ds-btn__label`, `.ds-link--quiet`,
+  `.ds-link-btn--quiet`; action and input chips (`button.ds-chip`, `.ds-chip--input`, `.ds-chip__icon`, `__label`,
+  `__trailing`), `.ds-chips--wrap` and the chip hooks; `.ds-badge` (`--neutral`, `--ok`, `--warning`, `--error`) and
+  `.ds-tag` (`--neutral`); selected tiles and interactive cards (`aria-pressed`, `-checked`, `-selected`;
+  `--ds-tile-selected-bg`, `--ds-card-selected-bg`, `--ds-selected-ring`), the button form of `.ds-card__action`,
+  `.ds-card--elevated` (`--ds-card-shadow`), `.ds-tile__value--empty`, `.ds-tiles--3`, `--ds-tile-min-width`,
+  `--ds-tiles-columns`; alert hooks (`--ds-alert-bg`, `-color`, `-icon`, `-edge`, the per-kind
+  `--ds-alert-{success,warning,error}-{bg,color,icon}`, `--ds-alert-text-basis`), `.ds-alert--plain`,
+  `.ds-alert__title`, `.ds-alert__actions`; `.ds-empty--done` with `.ds-empty__disc` (a confirmation state);
+  `.ds-switch--locked` with `.ds-switch__icon`, `.ds-switch__hint`, `.ds-switch__meta`, `.ds-switch-list`,
+  `--ds-switch-height`; the size hooks named under Migration.
+- Forms: `.ds-field__hint--success` and icon-led hints, `--ds-field-error-color`, `--ds-field-success-color`; the
+  search key (`<kbd class="ds-kbd ds-search__key">`); `.ds-check-list` (`--ds-check-list-max-height`) and
+  `.ds-check__count`; `.ds-field--changed` with `.ds-field__changed`, `.ds-field__value`, `.ds-form--rows`;
+  `--ds-input-height`, `--ds-check-height`, `--ds-input-bg`, `--ds-input-border`, `--ds-input-radius`,
+  `--ds-input-focus-color`; `.ds-field--inset` (the filled field); `.ds-field__row`, `.ds-input-group` with `__affix`;
+  `.ds-field__optional`, `__required`, `__foot`, `__counter`; `.ds-check-group` with `__children`; `.ds-slider`
+  (`slider.css`); `.ds-input--grow` and `.ds-composer`; `.ds-form-actions--sticky`; `.ds-radios--tiles`; the other
+  date and time types (`datetime-local`, `month`, `week`, `time`).
+- App frame and page: segmented options as buttons (`aria-checked` / `aria-pressed`, `--ds-segmented-padding-x`);
+  `.ds-drawer__back`, `__count`, collapsible groups (`.ds-drawer__group`, `.ds-drawer__toggle`), `__row`, `__action`,
+  `__actions`, `__foot`, the rail (`data-drawer-collapsed`, `--ds-drawer-rail-width`); `createIndicator(…, { reveal })`;
+  `.ds-account--capsule`; `.ds-topbar__actions`, `__search`, `__title`; `.ds-tabs` (`tabs.css`); page head parts
+  (`.ds-page-head__back`, `__row`, `__text`, `__status`, `__actions`); `.ds-breadcrumbs`; `.ds-steps`; `.ds-banner` (a
+  message for the whole app); `.ds-avatar`; `.ds-view--fill`, `.ds-view--fixed`; `--ds-content-pad-*` on the view;
+  `.ds-app` height from `--ds-viewport-height`, `.ds-app--keyboard-hides-bar`; `--ds-stack-gap`, `.ds-stack--page`;
+  `.ds-prose`, `.ds-code-block`; `.ds-auth` (a sign-in page); `hr` and `mark` in the page base.
+- Theming: the roles `--ds-surface-overlay` (dialog box, side sheet panel) and `--ds-surface-popover` (menus, the
+  combobox list, the save bar, the skip link), both `var(--ds-surface)` by default, and `--ds-color-scheme`
+  (`light`), which sets `color-scheme` on the theme root. Shipped themes in `dist/themes/`: `dark.css` (load with
+  `media="(prefers-color-scheme: dark)"`), `compact.css` (13/18 UI text and shorter controls; the default heights
+  under a coarse pointer and on a `.ds-touch` theme root) and `contrast.css` (for `prefers-contrast: more`), all
+  contrast-tested like the default palette.
+- Data and tools in `dist/`: `deprecations.json` (every deprecated and removed name: kind, pattern, replacement,
+  versions), `tokens.json` (every `--ds-*` name with its layer, default, type, component and deprecation),
+  `ds.d.ts` and `js/*.d.ts` (types of `window.DS` and the ES modules), `tools/verify.mjs` and `tools/verify.sh` (a
+  copy against `SHA256SUMS`, offline), `tools/check-theme.mjs` (a theme file) and `tools/check-project.mjs` (the
+  project rules of AGENTS.md on a project, configured by `ds-check.json`, exceptions with reasons).
+- `templates/update-dashboard-style.yml`: `SETUP: node | go | none`, verification with `tools/verify.sh` (no Node
+  needed), an optional `CHECK` step.
+- Docs: `docs/patterns.md` (page types and flows), the accessibility statement in `docs/rules.md` (WCAG 2.2 AA),
+  "Language and locale" in `docs/install.md` (every built-in string and the option that replaces it), "Verify a copy"
+  with the `SHA256SUMS` format as a contract, "Check a project", "Tokens as data", "Types", and the "Attributes" table
+  of `docs/components.md` (what the system writes, what the page sets).
+- Styleguide: demos of every new part, a live "Theme check" in the Colour section, the dark, compact, contrast and
+  System presets; the Motion Lab has 86 demos (was 60). The live tour offers a colour scheme; the reference app an
+  Appearance setting, a full-page device table in pages, row lists, a timeline, tabs and the save bar.
+
+### Changed
+
+- `.ds-presence` keeps its element's own background, colour, border, shadow and focus-snap transitions (put it on a
+  wrapper, never on a `.ds-btn`, `.ds-chip` or `.ds-card`).
+- `flip()` ranks gliding items between `max(--ds-z-raised, --ds-z-pinned) + 1` and `--ds-z-sticky - 1`, so they stay
+  under sticky headers.
+- The skeleton wave repaints nothing: one band layer per bone, moved by `translate`, with the same look. A skeleton may
+  now sit beside other loops; the paint limit of skeletons leaves the docs.
+- Table rows decide their state layers and their cells paint them (internal `--ds-table-row-layer`, `-pace`, `-tint`,
+  `-line`): no table cell sits behind a row's `:has()`, so a DOM change anywhere no longer restyles every table cell
+  in Chromium (the styleguide: 27ms to 4ms per change). Same look and timing.
+- Direction: the components use logical properties (`margin-inline-*`, `padding-inline-*`, `inset-inline`,
+  `text-align: start | end`) where the browser floor has them; no left-to-right pixel changes. The system is
+  left-to-right only (said in `docs/install.md` and `docs/rules.md`); a test keeps new physical properties out of
+  `src/components/` outside a list of reasons.
+- Print: open menus, the combobox list, dialogs, side sheets, snackbars, tooltips, the shape loader, the skeleton band,
+  the loading bar, the banner, the save bar, the selection bar and pagination are left out; drawn checkboxes, radios,
+  switches, sliders, progress, spinners and steps keep their colours (`print-color-adjust: exact`); a closed table
+  detail row takes no room; short cards, tiles, alerts, kv rows and facts do not break across pages.
+- `dist/` gains the files named under Added; every file name of 1.x stays (service workers precache them) and
+  `SHA256SUMS` keeps its format. `scripts/vendor.sh` and the copy's `tools/verify.sh` share one check (tested).
+- The styleguide's `dim` preset no longer shrinks type and buttons (that is `compact` now).
+- `perf.spec.js` asserts the whole fixture, skeleton included.
+
+### Fixed
+
+- Forced colours: a focused `.ds-input`, date field, input group and composer show a focus outline (the inset-shadow
+  ring disappeared there); keyboard focus on the current drawer item shows; a checked, focused switch shows a
+  `CanvasText` ring; the selected segmented option is no longer told by weight alone; `aria-disabled` controls look
+  blocked.
+- Busy and done buttons took Enter, Space and form submissions (only the pointer was blocked); `busy()` blanked and
+  blocked a button without a done face for `--ds-hold-success`.
+- `flip()` dropped focus to `<body>` when the focused item went.
+- `DS.dom.morphHtml()` under a strict CSP (`style-src 'self'` without `style-src-attr`): styles go through the CSSOM.
+  Shells that differ only in class order, an empty `style` or runtime state are patched, never replaced;
+  `stagger()`, `countUp()` and `flip()` remove a `style` attribute they emptied.
+- An `aria-disabled` switch hovered, grew and coloured like an enabled one; `aria-disabled` checkboxes, radios and
+  filter chips looked enabled.
+- A tooltip outlived its removed trigger (Firefox and WebKit kept it at the old place or in the corner of the view).
+- `createIndicator()` added a second pill on a second call and leaked listeners through `document.fonts`: a second call
+  returns the live handle, listeners are held weakly, and a detached track places nothing.
+- `.ds-kv-list`: the last row kept its padding and long labels pushed the value out; lists kept the browser's top
+  margin and `.ds-muted` its margins.
+- A chip row glided by `flip()` showed `--ds-surface` behind the chips (the backing reads `--ds-flip-backdrop`).
+- A fallback focus on a dialog box showed a ring.
+- A staying element message without a close button could never be dismissed.
+- A sideways table wrapper could not be scrolled by keyboard in WebKit: a wrapper without focusable cells is documented
+  as a tab stop (`tabindex="0" role="region" aria-label`) with an inset ring.
+- A text button in a snackbar was unreadable (`--ds-primary` on `--ds-inverse`).
+- Derived colour roles were literals: a theme that set `--ds-text` kept near-black disabled ink.
+- A leading icon in button faces kept the long start padding; `.ds-alert .ds-btn` centred on a 32px button (now the
+  button's own height); `.ds-card__links` hung non-text buttons out of the card; card titles did not wrap long words.
+- `.ds-btn--sm`, `.ds-toast__close`, `.ds-loader--sm`, `.ds-spinner--determinate` and `.ds-status__spinner` set
+  shared size hooks on themselves, out of a theme's reach.
+- A text-only brand was misaligned and hidden on phones; `<a>` drawer items flashed on tap (iOS); the top bar's menu
+  button shrank at 320px.
+- Every date field lost 4px of padding at 720px and below.
+- `code` inside `pre` or a link got the inline chip on every line; a link's leading or trailing icon lost its
+  spacing; `text-size-adjust` is set unprefixed too; `.ds-account__email:empty` takes no room.
+- A menu placed by the script re-placed itself on its own scroll, so a menu scrolled to its end jumped back.
+- Header comments that disagreed with the docs: the side sheet's close button without `data-close`, the combobox status
+  without `role`, the menu button without `type` and `aria-expanded`, the drawer without `tabindex`, the toggle
+  column of expandable rows without a named header; a test now compares the header markup of dialogs, sheets, the
+  combobox and the frame with the docs.
+
+### Deprecated (removed in 3.0 at the earliest)
+
+All still work in 2.x, are marked **deprecated** in the docs and listed in `dist/deprecations.json`;
+`tools/check-project.mjs` and `tools/check-theme.mjs` warn on them.
+
+- `.ds-view--leaving` and its manual swap recipe: use `DS.motion.transition()`.
+- The numeric second argument of `settleLoader(startedAt, now)`: use `settleLoader(startedAt, { now })`.
+- `ds-fill-x`, `ds-fill-y`, `.ds-enter--fill-x`, `.ds-enter--fill-y` and the `enter()` variants `'fill-x'`,
+  `'fill-y'`: a scaled mark squashes its round end; set `--ds-share` on the mark and use `.ds-enter--fill` or
+  `enter(el, 'fill')`.
+- `ds-edge-fade`, `--ds-table-fade-start`, `--ds-table-fade-end` (internal, unused since the wrappers fade through
+  `ds-scroll-edge-start` / `-end`).
+- `detach()` of the `DS.ripple.attach()` handle: use `destroy()`.
+
+### Removed
+
+The names of the Migration table, with their docs, Motion Lab entries and tests: `--ds-ease`,
+`--ds-spinner-sm-track`, `--ds-state-pulse`, `--ds-loop-pulse`, `ds-pulse`, `ds-indeterminate`, `ds-sink-out`,
+`ds-scale-out`, `ds-slide-out`, `DS.motion.easeOutCubic`, `.ds-btn__swap`, `data-open` on `.ds-combo`, the live-region
+markup of the snackbar region and the hand recipe that moved snackbars into a side sheet. `src/deprecations.json` marks
+them removed, and a repository test keeps them out of everything the system ships.
+
 ## 1.6.2
 
 Fixes from the second and third final Motion 2 reviews. No class, token, hook or export was added, removed or
