@@ -1562,6 +1562,23 @@ describe('DS.motion.guard (2.0)', () => {
     motion.guard(doc).destroy();
     assert.equal(listeners.length, 3, 'a page handle never takes away the hold of busy()');
   });
+
+  it('is installed by DS.ripple.attach() on the root\'s document, and its destroy() lets go (CT-1)', () => {
+    const { h, doc, listeners, fire } = guardDom();
+    const blocked = h('button', { class: 'ds-btn', 'aria-disabled': 'true' });
+    const root = h('div', { class: 'ds-theme' }, blocked);
+    Object.assign(root, {
+      classList: { add() {}, remove() {} },
+      addEventListener() {},
+      removeEventListener() {},
+      contains: () => false,
+    });
+    const handle = ripple.attach(root);
+    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true]]);
+    assert.equal(fire('click', blocked).blocked, true, 'an aria-disabled action is blocked once attach() ran');
+    handle.destroy();
+    assert.equal(listeners.length, 0, 'destroy() takes its hold back');
+  });
 });
 
 /**

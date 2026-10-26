@@ -1427,8 +1427,9 @@ function releaseGuard(root) {
  * region with aria-busy (a container under a loading bar) is no action and
  * stays usable. Capture-phase listeners on the root's window (a shadow
  * root: on the root), installed once per document or shadow root and
- * shared by every holder: busy() installs it on its first call (for good);
- * a page that blocks actions without busy() calls it once at start-up.
+ * shared by every holder: busy() installs it on its first call (for good),
+ * DS.ripple.attach() while it is attached; a page that blocks actions with
+ * neither calls it once at start-up.
  * Only user input is blocked, never the page's own script.
  * @param {Document|ShadowRoot} [root]
  * @returns {{ destroy: () => void }} destroy() lets go of this call's hold (the last holder removes the listeners)

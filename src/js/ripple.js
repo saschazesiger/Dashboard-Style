@@ -49,6 +49,11 @@
  * iOS Safari applies :active only on pages with a touchstart listener:
  * attach() adds a passive one.
  *
+ * attach() also installs DS.motion.guard() on the root's document or
+ * shadow root: a busy or done .ds-btn and an aria-disabled action inside
+ * .ds-theme get no click, middle click, Enter, Space, label click or form
+ * submission (data-ds-guard="off" opts a control out).
+ *
  * Pinned columns (.ds-table--pin-first): the sticky first cell holds the
  * row link's stretched area and covers the row's ripple, so in an
  * interactive table attach() forwards a click on a row (outside its
@@ -85,7 +90,7 @@
  * build bundles it into dist/ds.js as DS.ripple); newer APIs only behind
  * feature detection, named under Progressive:.
  */
-import { MOTION_FALLBACKS, flip, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
+import { MOTION_FALLBACKS, flip, guard, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
 
 /** The actions that get a ripple. */
 export const RIPPLE_HOSTS = [
@@ -673,14 +678,17 @@ function activates(target, key) {
 
 /**
  * Adds the pointer ripple to every action inside `root` (delegated, so
- * actions rendered later have it too). Idempotent per root. An open shadow
- * root works as a root too: the listeners go on it (events keep their real
- * targets there) and .ds-ripples on the .ds-theme inside it, where ds.css
- * applies.
- * Returns a handle: destroy() takes it all back, release(host?) ends a
- * running press (the ripple fades as on release; without a host every
- * press under the root; nothing when there is none). detach() is the
- * deprecated alias of destroy().
+ * actions rendered later have it too), and installs the action guard
+ * (DS.motion.guard()) on its document or shadow root, so busy, done and
+ * aria-disabled actions are blocked for every input. Idempotent per root.
+ * An open shadow root works as a root too: the listeners go on it (events
+ * keep their real targets there) and .ds-ripples on the .ds-theme inside
+ * it, where ds.css applies.
+ * Returns a handle: destroy() takes it all back (its hold on the guard
+ * too; busy() keeps its own), release(host?) ends a running press (the
+ * ripple fades as on release; without a host every press under the root;
+ * nothing when there is none). detach() is the deprecated alias of
+ * destroy().
  * @param {Document|Element|ShadowRoot} [root]
  * @returns {RippleHandle}
  */
@@ -803,6 +811,10 @@ export function attach(root = document) {
   element.addEventListener('click', onRowClick);
   element.addEventListener('auxclick', onRowClick);
   element.addEventListener('mousedown', onRowMouseDown);
+  // The action guard (DS.motion.guard()) of the document or shadow root:
+  // a busy, done or aria-disabled action is blocked for every input.
+  const rootNode = root.nodeType === 9 || root.nodeType === 11 ? root : element.getRootNode?.() ?? doc;
+  const guarded = guard(/** @type {Document|ShadowRoot} */ (rootNode));
 
   /** @type {RippleHandle} */
   const handle = {
@@ -818,6 +830,7 @@ export function attach(root = document) {
       element.removeEventListener('click', onRowClick);
       element.removeEventListener('auxclick', onRowClick);
       element.removeEventListener('mousedown', onRowMouseDown);
+      guarded.destroy();
       marked.classList.remove('ds-ripples');
     },
     /** Ends the press of `host` (or of every host under the root) as a release would. */

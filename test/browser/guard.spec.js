@@ -5,8 +5,8 @@
  * reach the page, a label click on an aria-disabled switch never flips it,
  * a middle click on an aria-disabled link opens nothing; a control under
  * data-ds-guard="off" and a button in an aria-busy region stay usable, and
- * focus and the tooltip of a blocked control stay. Runs in the `fallback`
- * project too.
+ * focus and the tooltip of a blocked control stay; DS.ripple.attach()
+ * installs it too. Runs in the `fallback` project too.
  */
 import { test, expect } from './base-test.js';
 import { ready } from './helpers/motion.js';
@@ -100,6 +100,21 @@ test('data-ds-guard="off", a button in an aria-busy region and a usable button s
   await page.locator('#plain').click();
   expect(await seen(page)).toEqual(['click explains', 'click in-region', 'click plain']);
   await page.evaluate(() => { window.fxSeen.length = 0; window.fxGuard.destroy(); });
+  await page.locator('#publish').click({ force: true });
+  expect(await seen(page)).toEqual(['click publish']);
+});
+
+test('DS.ripple.attach() installs the guard, and its destroy() lets go (CT-1)', async ({ page }) => {
+  await open(page, { install: false });
+  await page.locator('#publish').click({ force: true });
+  expect(await seen(page)).toEqual(['click publish']);
+  await page.evaluate(() => { window.fxSeen.length = 0; window.fxRipples = DS.ripple.attach(document); });
+  await page.locator('#publish').click({ force: true });
+  await page.locator('#publish').focus();
+  await page.keyboard.press('Enter');
+  await page.locator('#plain').click();
+  expect(await seen(page)).toEqual(['click plain']);
+  await page.evaluate(() => { window.fxSeen.length = 0; window.fxRipples.destroy(); });
   await page.locator('#publish').click({ force: true });
   expect(await seen(page)).toEqual(['click publish']);
 });
