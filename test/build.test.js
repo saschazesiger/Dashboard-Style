@@ -1,14 +1,14 @@
 /**
  * scripts/build.mjs: inlining the stylesheets (quotes, newlines, cycles,
- * diamonds, leftovers), the one layer statement of dist/ds.css, and the
- * sibling imports of src/js in the classic build.
+ * diamonds, leftovers), the one layer statement of dist/ds.css, the
+ * sibling imports of src/js in the classic build, and dist/deprecations.json.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { inlineCss, moduleBody } from '../scripts/build.mjs';
+import { DEPRECATION_KINDS, build, deprecationsJson, inlineCss, moduleBody, packageInfo } from '../scripts/build.mjs';
 import { read } from './helpers.js';
 
 /** Writes `files` ({ name: css }) into a fresh temporary folder and runs `check` on it. */
@@ -82,6 +82,45 @@ describe('dist/css/properties.css', () => {
     // Only the registrations: no layer statement, no rule, nothing that styles.
     const code = properties.replace(/\/\*[\s\S]*?\*\//g, '');
     assert.equal(code.replace(/^@property\s+--[\w-]+\s*\{[^{}]*\}/gm, '').trim(), '');
+  });
+});
+
+describe('dist/deprecations.json', () => {
+  it('is src/deprecations.json with the version of package.json, built the same every time and checksummed', () => {
+    const info = packageInfo();
+    const built = JSON.parse(read('dist/deprecations.json'));
+    const source = JSON.parse(read('src/deprecations.json'));
+    assert.deepEqual(Object.keys(built), ['version', 'names']);
+    assert.equal(built.version, info.version);
+    assert.deepEqual(built.names, source.names, 'the entries as written, keys in the documented order');
+    assert.equal(build().get('deprecations.json').toString('utf8'), build().get('deprecations.json').toString('utf8'), 'deterministic');
+    const sums = read('dist/SHA256SUMS').split('\n').filter(Boolean).map((line) => line.split(/\s+/)[1]);
+    assert.ok(sums.includes('deprecations.json'), 'in SHA256SUMS, so the vendor copy verifies it');
+    for (const entry of built.names) {
+      assert.ok(DEPRECATION_KINDS.includes(entry.kind), entry.name);
+      // Following the migration silences the check: the replacement never matches the old name's pattern.
+      if (entry.pattern !== null && entry.replacement) assert.doesNotMatch(entry.replacement, new RegExp(entry.pattern), entry.name);
+    }
+  });
+
+  it('throws for an entry a project check could not trust', () => {
+    const info = { version: '9.9.9' };
+    const ok = { kind: 'class', name: '.ds-x', pattern: 'ds-x', replacement: null, deprecated: '1.0.0', removed: null };
+    const json = (names, extra = {}) => JSON.stringify({ names, ...extra });
+    assert.equal(JSON.parse(deprecationsJson(json([ok]), info)).version, '9.9.9');
+    const cases = [
+      [json([ok], { version: '1.0.0' }), /nothing else/],
+      [json([{ ...ok, kind: 'colour' }]), /kind/],
+      [json([{ ...ok, name: '' }]), /a name/],
+      [json([ok, ok]), /twice/],
+      [json([{ ...ok, pattern: '(' }]), /Invalid regular expression/],
+      [json([{ ...ok, pattern: undefined }]), /pattern/],
+      [json([{ ...ok, deprecated: 'soon' }]), /deprecated is a version/],
+      [json([{ ...ok, removed: '2.0' }]), /removed is a version or null/],
+      [json([{ ...ok, note: 1 }]), /note/],
+      [json([{ ...ok, since: '1.0.0' }]), /unknown keys since/],
+    ];
+    for (const [source, error] of cases) assert.throws(() => deprecationsJson(source, info), error, source);
   });
 });
 

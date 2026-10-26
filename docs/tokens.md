@@ -35,7 +35,6 @@ through `DS.motion` (or let the engine resolve the `calc()`), not with `parseInt
 | `--ds-state-dragged` | .16 | dragged |
 | `--ds-state-disabled` | .38 | disabled controls in a dimming theme (`--ds-disabled-opacity: var(--ds-state-disabled)`); the fallback of `--ds-disabled-opacity` |
 | `--ds-state-stale` | .55 | `.ds-stale`: content about to be replaced |
-| `--ds-state-pulse` | .45 | **deprecated** (removed in 2.0) with `ds-pulse`: the dimmest point of that loop; skeletons run the wave |
 
 ### Progress waves
 
@@ -101,7 +100,6 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`) |
 | `--ds-disabled-opacity` | 1 | opacity of every disabled control (buttons, chips, the switch, checkboxes and radios) |
 | `--ds-disabled-fill` / `--ds-disabled-ink` | `rgba(31,31,31,.12)` / `.38` | container or outline, and ink (label, check, handle, box) of every disabled control: buttons, chips, the switch, checkboxes and radios |
-| `--ds-spinner-sm-track` | `rgba(0,0,0,.18)` | **deprecated** (removed in 2.0): small spinner's ring where `color-mix()` is missing; every baseline browser has it |
 
 All text roles pass WCAG AA (4.5:1) on the surfaces they are meant for; the tests check the pairs. The tint is too
 light to carry a state alone: a selection always adds a check, a weight or an aria attribute.

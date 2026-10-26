@@ -42,8 +42,7 @@
  * the determinate ring). A project that set border-width on a spinner sets
  * --ds-spinner-width instead.
  *
- * The small spinner's faint ring mixes the text colour (color-mix());
- * --ds-spinner-sm-track is a deprecated fallback line (removed in 2.0).
+ * The small spinner's faint ring mixes the text colour (color-mix()).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -68,10 +67,8 @@
   .ds-spinner--sm {
     width: 12px;
     height: 12px;
-    /* The arc and a faint ring in the text colour. The first track line is
-       the deprecated fallback; the colour mix always replaces it. */
+    /* The arc and a faint ring in the text colour. */
     --ds-spinner-color: currentColor;
-    --ds-spinner-track: var(--ds-spinner-sm-track);
     --ds-spinner-track: color-mix(in srgb, currentColor 22%, transparent);
   }
 

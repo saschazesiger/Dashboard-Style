@@ -32,7 +32,7 @@
  *
  * The chevron follows aria-expanded on the field (DS.overlay sets it) and
  * turns 180deg on the spring with the list (the disclosure rotation of
- * the motion rules). data-open on .ds-combo still turns it (deprecated).
+ * the motion rules).
  * The active entry's layer fades in over --ds-dur-micro and goes at once,
  * so a held arrow key leaves no trail; pointer and keyboard share
  * data-active, there is no separate hover layer.
@@ -144,9 +144,7 @@
     transition: rotate var(--ds-dur-medium) var(--ds-ease-spatial);
   }
 
-  /* data-open on .ds-combo: deprecated (removed in 2.0). */
-  .ds-combo__input[aria-expanded="true"] ~ .ds-combo__toggle svg,
-  .ds-combo[data-open] .ds-combo__toggle svg {
+  .ds-combo__input[aria-expanded="true"] ~ .ds-combo__toggle svg {
     rotate: 180deg;
   }
 

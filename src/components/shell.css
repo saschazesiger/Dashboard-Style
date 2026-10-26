@@ -851,7 +851,9 @@
   }
 
   /* Fade-through, outgoing half: quick and accelerating. Leaving the state
-     snaps back without a transition, the incoming content enters itself. */
+     snaps back without a transition, the incoming content enters itself.
+     Deprecated in 2.0 (removed in 3.0 at the earliest) with its manual swap
+     recipe: DS.motion.transition() replaces both. */
   .ds-view--leaving > * {
     opacity: 0;
     transition: opacity var(--ds-dur-instant) var(--ds-ease-in);

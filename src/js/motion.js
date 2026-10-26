@@ -92,7 +92,6 @@ export const MOTION_FALLBACKS = Object.freeze({
   '--ds-ease-emphasized': 'cubic-bezier(.2, 0, 0, 1)',
   '--ds-ease-spatial': 'cubic-bezier(.05, .7, .1, 1)',
   '--ds-ease-value': 'cubic-bezier(.2, 0, 0, 1)',
-  '--ds-ease': 'cubic-bezier(.2, 0, 0, 1)',
 });
 
 /** --ds-delay-loader outside a theme (MOTION_FALLBACKS). */
@@ -631,8 +630,8 @@ function animationNames(element) {
 
 /* ── Interruption ───────────────────────────────────── */
 
-/** What a handoff reads and animates (transform: the deprecated combined exits). */
-const TRACKED = ['opacity', 'translate', 'scale', 'clip-path', 'transform', 'stroke-dashoffset'];
+/** What a handoff reads and animates (no keyframe animates transform). */
+const TRACKED = ['opacity', 'translate', 'scale', 'clip-path', 'stroke-dashoffset'];
 
 const camel = (property) => property.replace(/-([a-z])/g, (match, char) => char.toUpperCase());
 const kebab = (property) => property.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`);
@@ -666,7 +665,6 @@ function remainingShare(tracks, now) {
   const ordered = [...tracks].sort((a, b) => Number(b.properties.includes('opacity')) - Number(a.properties.includes('opacity')));
   for (const track of ordered) {
     for (const property of track.properties) {
-      if (property === 'transform') continue;
       const start = numbersOf(property, track.start[property]);
       const end = numbersOf(property, track.end[property]);
       const current = numbersOf(property, now[property]);
@@ -1305,12 +1303,6 @@ export function busy(button, work, options = {}) {
 
 /** --ds-dur-glide outside a theme (MOTION_FALLBACKS): how long countUp() counts. */
 export const COUNT_UP_MS = /** @type {number} */ (MOTION_FALLBACKS['--ds-dur-glide']);
-
-/**
- * Deprecated (removed in 2.0), no longer used: countUp() runs on
- * --ds-ease-value, the curve of progress bars.
- */
-export const easeOutCubic = (t) => 1 - (1 - t) ** 3;
 
 /**
  * @typedef {object} CountRun

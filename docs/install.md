@@ -11,6 +11,7 @@ Everything a project needs is in `dist/`:
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
 | `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
+| `deprecations.json` | every deprecated and removed name as data, for a project's own checks (see "Deprecated and removed names") |
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
 
@@ -240,7 +241,8 @@ In a widget that lives in a shadow root, link `fonts.css` in the host document: 
 
 1. Read [CHANGELOG.md](../CHANGELOG.md) since the version in your `VERSION` file. Versions follow semver: a minor
    version adds tokens, classes or hooks or deprecates one; a renamed name keeps working under its old name until a
-   later major version removes it. The number does not hold anything back: `main` is what you get.
+   later major version removes it. The number does not hold anything back: `main` is what you get. Coming from
+   1.x, work through the "Migration" table of [2.0.0](../CHANGELOG.md#200) first.
 2. Vendor again over the old copy (`vendor.sh vendor/dashboard-style` fetches the latest `main`); the CDN's `@main`
    URLs update by themselves.
 3. Open your pages and the styleguide with your theme loaded; run your tests (including the checksum check).
@@ -266,8 +268,50 @@ started explicitly; the build workflow needs `on: workflow_dispatch`. The templa
 
 - **Compare** or **Vendor main**: a network or GitHub API problem; run it again.
 - **Verify**: nothing was committed and the site keeps the old copy. Reproduce it locally (vendor `main` as in step 2,
-  then run `VERIFY`), look in [CHANGELOG.md](../CHANGELOG.md) for deprecations and removals, and commit the new copy
-  together with your fix. If the fault is in Dashboard-Style, fix it there; the next run picks it up.
+  then run `VERIFY`), look in [CHANGELOG.md](../CHANGELOG.md) for deprecations and removals, check your code against
+  the copy's `deprecations.json` (below), and commit the new copy together with your fix. If the fault is in Dashboard-Style, fix it there; the next run picks it up.
 - **Commit and push**: usually branch protection (above).
 
 Afterwards start it again under Actions → "Update Dashboard-Style" → *Run workflow*, or wait for the next night.
+
+### Deprecated and removed names
+
+`deprecations.json` in the copy lists every name that a version deprecated or removed, so a project test can read it
+instead of keeping a list by hand:
+
+```json
+{
+  "version": "<the copy's version>",
+  "names": [
+    {
+      "kind": "class",
+      "name": ".ds-view--leaving",
+      "pattern": "(?<![\\w-])ds-view--leaving(?![\\w-])",
+      "replacement": "DS.motion.transition()",
+      "deprecated": "2.0.0",
+      "removed": null,
+      "note": "…"
+    }
+  ]
+}
+```
+
+- `kind`: `token`, `role`, `hook`, `class`, `attribute`, `markup`, `keyframes`, `export` or `option` (an argument
+  form or a variant string).
+- `pattern`: the source of a JavaScript regular expression (no flags) that finds a use in CSS, HTML or JS; `null` for
+  an entry that only a `note` can describe. Some patterns cast a wide net (`detach()`): treat a hit as a place to look.
+- `deprecated`: the version that deprecated it. `removed`: the version that removed it, or `null` while it still
+  works (a later major version removes it).
+- `replacement` and `note` (optional): what to use instead and how; `replacement` may be `null` when nothing replaces
+  it.
+
+A project check fails on every entry with `removed` set and warns on the others, so a new deprecation never turns the
+nightly update red:
+
+```js
+import { readFileSync } from 'node:fs';
+const { names } = JSON.parse(readFileSync('vendor/dashboard-style/deprecations.json', 'utf8'));
+for (const entry of names.filter((name) => name.pattern)) {
+  if (new RegExp(entry.pattern).test(source)) (entry.removed ? errors : warnings).push(`${entry.name}: ${entry.replacement ?? entry.note}`);
+}
+```

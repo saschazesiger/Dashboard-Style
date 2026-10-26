@@ -22,9 +22,7 @@
  * the indicator, FLIP) and can be read back mid-flight. Entrances define
  * only `from`: the element animates to whatever its own styles say, so one
  * keyframe works for any final opacity or position. Exits define only `to`
- * and are movement-only; they always pair with ds-fade-out. The combined
- * ds-sink-out, ds-scale-out and ds-slide-out (fade + move) are deprecated
- * aliases, removed in 2.0.
+ * and are movement-only; they always pair with ds-fade-out.
  *
  * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
  * it moves with insertBefore, and by DS.indicator.createIndicator on its
@@ -241,22 +239,6 @@
     to { translate: 0 var(--ds-motion-distance, -100%); }
   }
 
-  /* Deprecated, removed in 2.0: fade + move in one keyframe, so the fade
-     cannot take its own curve. Use ds-fade-out with ds-drop-out,
-     ds-shrink-out or ds-shift-out. Unchanged, so a page that names one alone
-     keeps its fade. */
-  @keyframes ds-sink-out {
-    to { opacity: 0; transform: translate3d(0, var(--ds-motion-distance, var(--ds-distance-md)), 0); }
-  }
-
-  @keyframes ds-scale-out {
-    to { opacity: 0; transform: translate3d(0, var(--ds-distance-sm), 0) scale(var(--ds-scale-enter)); }
-  }
-
-  @keyframes ds-slide-out {
-    to { opacity: 0; transform: translate3d(var(--ds-motion-distance, var(--ds-distance-lg)), 0, 0); }
-  }
-
   /* ── Keyframes: popup reveal ───────────────────── */
   /* A popup (menu, combobox list) uncovers itself from the edge of its
      trigger: --ds-clip-from is the hidden state (DS.motion.originFrom()
@@ -292,17 +274,18 @@
 
   /* ── Keyframes: loops (loading indicators) ─────── */
   /* Skeletons: one synchronised, calm diagonal wave across the surface
-     (ds-skeleton-wave); ds-pulse is deprecated.
+     (ds-skeleton-wave).
 
      Loops run `linear` on their --ds-loop-* token: the curves of the
      generated loops are baked into their stops by scripts/motion-curves.mjs
      (never edit a generated block by hand). The registered properties they
      animate are in tokens.css. */
 
-  /* One turn: the spinner turns on top of its arc, and so does the old
-     ring. */
+  /* One turn: the spinner turns on top of its arc. The individual rotate
+     property composes with an element's own transform, which stays applied
+     while it spins. */
   @keyframes ds-spin {
-    to { transform: rotate(360deg); }
+    to { rotate: 1turn; }
   }
 
   /* The Material 3 arc of .ds-spinner: the sweep (--ds-spinner-arc) grows
@@ -686,19 +669,6 @@
     60% { --ds-skeleton-x: 50vw; }
     100% { --ds-skeleton-x: 50vw; }
     /* end generated: skeleton-wave */
-  }
-
-  /* Deprecated, removed in 2.0: skeletons run ds-skeleton-wave. */
-  @keyframes ds-pulse {
-    50% { opacity: var(--ds-state-pulse); }
-  }
-
-  /* Deprecated, removed in 2.0: indeterminate progress runs
-     ds-progress-head and ds-progress-tail. The segment (35% of the track)
-     enters left and leaves right. */
-  @keyframes ds-indeterminate {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(286%); }
   }
 
   /* A scan line over media being processed: a band travels from above the

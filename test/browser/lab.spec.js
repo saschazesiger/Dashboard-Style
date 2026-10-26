@@ -47,8 +47,7 @@ const VIDEO = !!process.env.DS_VIDEO;
 const STYLEGUIDE = '/styleguide/index.html';
 // The expected plots and ladder rows come from the tokens themselves, in
 // their order in src/tokens.css, so a new --ds-ease-* or --ds-dur-* token
-// without a plot or a row fails. --ds-ease is the deprecated alias of
-// --ds-ease-emphasized: named on its card, not plotted.
+// without a plot or a row fails.
 const TOKEN_NAMES = [...new Set([...readFileSync(resolve(ROOT, 'src/tokens.css'), 'utf8').matchAll(/^\s*(--ds-(?:ease|dur)(?:-[a-z0-9-]+)?)\s*:/gm)].map((match) => match[1]))];
 const EASINGS = TOKEN_NAMES.filter((name) => name.startsWith('--ds-ease-'));
 const DURATIONS = TOKEN_NAMES.filter((name) => name.startsWith('--ds-dur-'));
@@ -137,8 +136,6 @@ test.describe('curves and durations', () => {
       return [plot.getAttribute('data-lab-curve'), { peak: Number(svg.getAttribute('data-lab-peak')), values: svg.getAttribute('data-lab-values').split(' ').map(Number) }];
     })));
     expect(Object.keys(plots).sort()).toEqual([...EASINGS].sort());
-    // The deprecated alias is named, not plotted.
-    await expect(page.locator('[data-lab-demo="curve-emphasized"]')).toContainText('--ds-ease is its deprecated alias');
     for (const token of EASINGS) {
       const { values, peak } = plots[token];
       expect(values, token).toHaveLength(101);
@@ -183,12 +180,6 @@ const GROUPS = ['foundations', 'utilities', 'keyframes', 'data', 'controls', 'na
  * list cannot go stale.
  */
 const LAB_EXEMPT = {
-  'ds-sink-out': 'deprecated alias (removed in 2.0): ds-fade-out with ds-drop-out, shown by .ds-leave--sink',
-  'ds-scale-out': 'deprecated alias (removed in 2.0): ds-fade-out with ds-shrink-out, shown by .ds-leave--scale',
-  'ds-slide-out': 'deprecated alias (removed in 2.0): ds-fade-out with ds-shift-out, shown by .ds-leave--slide',
-  'ds-pulse': 'deprecated loop (removed in 2.0): skeletons run ds-skeleton-wave',
-  'ds-indeterminate': 'deprecated loop (removed in 2.0): indeterminate progress runs ds-progress-head and ds-progress-tail',
-  'DS.motion.easeOutCubic': 'deprecated and unused (removed in 2.0): countUp() runs on --ds-ease-value',
 };
 
 /** Closes what a demo left open (Rapid toggle ends on an open overlay) and waits until it is hidden. */

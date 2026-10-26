@@ -365,7 +365,7 @@
     ['--ds-ease-out', '--ds-dur-medium', 'Emphasized decelerate: entering movement without the spring, and sizes that push layout.'],
     ['--ds-ease-in', '--ds-dur-fast', 'Standard accelerate: small exits.'],
     ['--ds-ease-exit', '--ds-dur-base', 'Emphasized accelerate: large surfaces leaving (movement only).'],
-    ['--ds-ease-emphasized', '--ds-dur-slow', 'Movement that starts and ends on screen. --ds-ease is its deprecated alias (removed in 2.0) and has no plot of its own.'],
+    ['--ds-ease-emphasized', '--ds-dur-slow', 'Movement that starts and ends on screen.'],
     ['--ds-ease-value', '--ds-dur-glide', 'Values that travel: progress bars and countUp, so a figure and its bar land together.'],
   ];
 
@@ -459,7 +459,7 @@
       group: 'foundations',
       title: '<code>' + token + '</code>',
       note: curve[2],
-      shows: [token, curve[1], 'DS.motion.motionEasing'].concat(token === '--ds-ease-emphasized' ? ['--ds-ease'] : []),
+      shows: [token, curve[1], 'DS.motion.motionEasing'],
       html: plotHtml(token),
       after: '<p class="ds-meta sg-plot__caption" aria-live="polite"></p>',
       height: 200,
@@ -2896,7 +2896,7 @@
     id: 'view-leaving',
     group: 'views',
     title: 'Leaving view, by hand',
-    note: 'Without <code>DS.motion.transition()</code>: <code>.ds-view--leaving</code> fades the view\'s children out (<code>--ds-dur-instant</code>, accelerating), the page waits for that fade with <code>DS.motion.settled()</code>, replaces the content and lets it enter with <code>.ds-enter--swap</code>. Pressing again during a swap ends on the latest view.',
+    note: 'Deprecated since 2.0 (removed in 3.0 at the earliest): use <code>DS.motion.transition()</code>. Without it, <code>.ds-view--leaving</code> fades the view\'s children out (<code>--ds-dur-instant</code>, accelerating), the page waits for that fade with <code>DS.motion.settled()</code>, replaces the content and lets it enter with <code>.ds-enter--swap</code>. Pressing again during a swap ends on the latest view.',
     shows: ['DS.motion.settled', 'DS.motion.enter', '.ds-enter--swap', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-in', '--ds-distance-sm'],
     html: '<div class="sg-swap-view"><div class="sg-swap-page"><h4 class="ds-card__title">' + VIEW_PAGES[0][0] + '</h4><p class="ds-muted">' + VIEW_PAGES[0][1] + '</p></div></div>',
     height: 140,

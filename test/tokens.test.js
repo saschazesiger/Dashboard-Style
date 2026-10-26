@@ -188,8 +188,7 @@ describe('tokens', () => {
       assert.ok(scales.includes(name), `${name} is a scale`);
       assert.equal(ms(name), value, name);
     }
-    for (const name of ['--ds-state-pulse', '--ds-progress-wave-length', '--ds-progress-wave', '--ds-progress-ring-wave']) assert.ok(scales.includes(name), `${name} is a scale`);
-    assert.equal(token('--ds-state-pulse'), '.45');
+    for (const name of ['--ds-progress-wave-length', '--ds-progress-wave', '--ds-progress-ring-wave']) assert.ok(scales.includes(name), `${name} is a scale`);
     assert.equal(token('--ds-progress-wave-length'), `${WAVE.length}px`);
     for (const name of ['--ds-progress-wave', '--ds-progress-ring-wave']) assert.match(token(name), /^url\("data:image\/svg\+xml,%3Csvg [^"#]*%3C\/svg%3E"\)$/, name);
     assert.ok(roles.includes('--ds-skeleton-highlight'), '--ds-skeleton-highlight is a role');

@@ -40,7 +40,7 @@
  * The faces roll: a face that leaves rises and fades (--ds-dur-instant,
  * accelerating), the next one rises in from below (--ds-dur-fast); back to
  * rest they roll the other way. Announcing the result (aria-live) stays the
- * page's job. .ds-btn__swap (one face, swapped by the page) is deprecated.
+ * page's job.
  *
  * Hover and press lay the content colour over the button at the state-layer
  * opacities (::before), so one rule works on every fill and every palette.
@@ -319,17 +319,6 @@
      stroke (Chromium can miss a class change above a [pathLength] rule). */
   .ds-btn--done:not([aria-busy="true"]) .ds-btn__face--done > svg {
     animation: ds-draw var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro) backwards;
-  }
-
-  /* Deprecated (removed in 2.0): use the faces above. Spinner and label
-     fade in when the page swaps them while busy; laid out like the
-     button's own content. */
-  .ds-btn__swap {
-    --ds-enter-duration: var(--ds-dur-fast);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: inherit;
   }
 
   .ds-btn svg {

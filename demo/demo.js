@@ -339,7 +339,7 @@
   }
 
   const rowHtml = (device) => `<tr data-ds-key="${device.id}">` +
-    `<td class="ds-col--text"><button class="ds-link-btn" type="button" data-open="${device.id}">${esc(device.name)}</button></td>` +
+    `<td class="ds-col--text"><button class="ds-link-btn" type="button" data-device="${device.id}">${esc(device.name)}</button></td>` +
     `<td class="ds-col--secondary">${esc(device.type)}</td>` +
     `<td class="ds-num">${device.load}%</td>` +
     `<td class="demo-col-status">${statusHtml(device.status)}</td></tr>`;
@@ -392,8 +392,8 @@
   });
 
   liveBody.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-open]');
-    if (button) openSheet(button.getAttribute('data-open'), button);
+    const button = event.target.closest('[data-device]');
+    if (button) openSheet(button.getAttribute('data-device'), button);
   });
 
   /* One poll of the fake backend: loads wander, a status changes now and then. */
