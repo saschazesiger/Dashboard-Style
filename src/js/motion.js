@@ -61,6 +61,9 @@
  * - document.startViewTransition (same-document View Transitions, for
  *   transition(), only with .ds-theme on <html>): without it, or for an
  *   embedded widget, the new view fades through with .ds-enter--swap.
+ * - moveBefore (sortable() moves a row with it, so the row keeps its
+ *   focus and animations): without it insertBefore, and the handle gets
+ *   the focus back.
  * - ScrollTimeline (scroll-driven animations; settled(), the handoffs and
  *   flip() tell those animations apart and leave them be, and
  *   resyncScroll() restarts those whose scroller stopped overflowing):
@@ -1377,6 +1380,8 @@ function blockedAction(node) {
 
 /** Cancels the activation of a blocked action before any page listener sees it. */
 function blockActivation(event) {
+  // The page's own script (el.click(), requestSubmit()) is never blocked.
+  if (event.isTrusted === false) return;
   const source = event.type === 'submit' ? event.submitter : event.target;
   if (!blockedAction(source)) return;
   event.preventDefault();
@@ -2771,6 +2776,198 @@ export function flip(container, mutate, options = {}) {
   return flush(container, mutate, options, state);
 }
 
+
+/* ── Sortable lists ─────────────────────────────────── */
+
+/** The live sortable of each list. @type {WeakMap<Element, { handle: { destroy: () => void } }>} */
+const sortables = new WeakMap();
+
+/** The polite region each theme (or modal) speaks the positions through. @type {WeakMap<Element, HTMLElement>} */
+const sortRegions = new WeakMap();
+
+/** Speaks `text` through a private polite region in the list's modal, else its .ds-theme (never inert). */
+function speakPosition(list, text) {
+  const host = list.closest?.('dialog, .ds-dialog, .ds-sheet') ?? list.closest?.('.ds-theme') ?? list.ownerDocument?.body;
+  if (!host || !text) return;
+  let region = sortRegions.get(host);
+  if (!region || !region.isConnected) {
+    region = list.ownerDocument.createElement('div');
+    region.className = 'ds-sr';
+    region.setAttribute('aria-live', 'polite');
+    region.setAttribute('data-ds-keep', '');
+    host.append(region);
+    sortRegions.set(host, region);
+  }
+  // The same position twice is still news: the region empties first.
+  region.textContent = '';
+  const target = region;
+  setTimeout(() => { target.textContent = text; }, 0);
+}
+
+/**
+ * Reorders a list by drag and keyboard. A pointer drag starts on an item's
+ * `handle` (default '.ds-grip', a quiet icon button; pointer capture on
+ * it), the item follows the pointer (its inline translate) and carries
+ * data-ds-dragging (drag.css: a raised shadow and the dragged state
+ * layer; nothing scales), and every time it crosses the middle of a
+ * neighbour the others move through flip() (a move during a glide
+ * continues from where each item is). On release it glides into its place
+ * on the spring. On the handle ArrowUp, ArrowDown, Home and End move the
+ * item one place, or to the start or the end, through flip(); the handle
+ * keeps the focus. After each move `onChange(order, before)` gets the
+ * items in their new and their old order, and the position is spoken
+ * through a polite region in the list's modal, else its .ds-theme:
+ * `announce(index, count)` (1-based) returns the text, default "Moved to
+ * position 2 of 5". Pass `announce: () => ''` and speak it yourself (with
+ * DS.overlay.announce()) where the page wants one announcer. `items`: a
+ * selector (default: the list's element children). Once per list; destroy()
+ * removes the listeners.
+ * @param {Element|null|undefined} list
+ * @param {{ items?: string, handle?: string, onChange?: (order: Element[], before: Element[]) => void, announce?: (index: number, count: number) => string }} [options]
+ * @returns {{ destroy: () => void }}
+ */
+export function sortable(list, options = {}) {
+  if (!list?.ownerDocument) return { destroy() {} };
+  const existing = sortables.get(list);
+  if (existing) return existing.handle;
+  const handleSelector = options.handle ?? '.ds-grip';
+  const selector = options.items;
+  const items = () => flipItems(list, selector);
+  const others = selector ? `${selector}:not([data-ds-dragging])` : ':scope > :not([data-ds-dragging])';
+  const itemOf = (node) => items().find((item) => item.contains(node)) ?? null;
+  const say = (item) => {
+    const order = items();
+    const text = (options.announce ?? ((index, count) => `Moved to position ${index} of ${count}`))(order.indexOf(item) + 1, order.length);
+    speakPosition(list, text);
+  };
+  const changed = (before) => {
+    const after = items();
+    if (!sameItems(before, after)) options.onChange?.(after, before);
+  };
+  /** Puts `item` before `reference` (null: at the end of its parent), keeping the handle's focus. */
+  const place = (item, reference) => {
+    const parent = reference?.parentNode ?? item.parentNode;
+    const focused = activeIn(item);
+    const keep = focused && item.contains(focused) ? focused : null;
+    if (typeof parent.moveBefore === 'function') {
+      try {
+        parent.moveBefore(item, reference);
+      } catch {
+        parent.insertBefore(item, reference);
+      }
+    } else parent.insertBefore(item, reference);
+    if (keep && activeIn(item) !== keep) keep.focus({ preventScroll: true });
+  };
+
+  /* Keyboard: one place, or to an end. */
+  const onKey = (/** @type {KeyboardEvent} */ event) => {
+    const handle = event.target?.closest?.(handleSelector);
+    if (!handle || !list.contains(handle) || event.altKey || event.ctrlKey || event.metaKey) return;
+    const item = itemOf(handle);
+    if (!item) return;
+    const order = items();
+    const index = order.indexOf(item);
+    const to = { ArrowUp: index - 1, ArrowDown: index + 1, Home: 0, End: order.length - 1 }[event.key];
+    if (to === undefined) return;
+    event.preventDefault();
+    if (to < 0 || to >= order.length || to === index) return;
+    const before = order.slice();
+    flip(list, () => place(item, to > index ? order[to].nextSibling : order[to]), { items: selector });
+    changed(before);
+    say(item);
+  };
+
+  /* Pointer: the item follows, the others make room. */
+  let drag = null;
+  // Layout places (offsetTop ignores translate): the rows that glide aside
+  // are compared where they go, not where their glide shows them.
+  const layoutTop = (item) => item.offsetTop ?? 0;
+  const middle = (item) => layoutTop(item) + (item.offsetHeight ?? 0) / 2;
+  const onDown = (/** @type {PointerEvent} */ event) => {
+    if (drag || event.button !== 0) return;
+    const handle = event.target?.closest?.(handleSelector);
+    if (!handle || !list.contains(handle)) return;
+    const item = itemOf(handle);
+    if (!item) return;
+    event.preventDefault();
+    handle.setPointerCapture?.(event.pointerId);
+    for (const animation of item.getAnimations?.() ?? []) if (animation.id === 'ds-sort') animation.cancel();
+    drag = { item, handle, pointer: event.pointerId, startY: event.clientY, dy: 0, before: items(), z: item.style.zIndex };
+    own(item, 'attrs', 'data-ds-dragging');
+    for (const name of ['translate', 'z-index']) own(item, 'props', name);
+    item.setAttribute('data-ds-dragging', '');
+    const sticky = parseInt(computed(list)?.getPropertyValue('--ds-z-sticky') ?? '', 10);
+    item.style.zIndex = Number.isFinite(sticky) ? String(sticky - 1) : 'calc(var(--ds-z-sticky) - 1)';
+  };
+  const onMove = (/** @type {PointerEvent} */ event) => {
+    if (!drag || event.pointerId !== drag.pointer) return;
+    const { item } = drag;
+    drag.dy = event.clientY - drag.startY;
+    item.style.translate = `0px ${round(drag.dy)}px`;
+    const order = items();
+    const index = order.indexOf(item);
+    // A neighbour gives way once the dragged row's leading edge passes its middle.
+    const top = layoutTop(item) + drag.dy;
+    const bottom = top + (item.offsetHeight ?? 0);
+    let target = index;
+    while (target > 0 && top < middle(order[target - 1])) target -= 1;
+    while (target < order.length - 1 && bottom > middle(order[target + 1])) target += 1;
+    if (target === index) return;
+    const from = layoutTop(item);
+    flip(list, () => place(item, target > index ? order[target].nextSibling : order[target]), { items: others });
+    // The item moved in the layout: its translate takes the step back, so it stays under the pointer.
+    const shift = layoutTop(item) - from;
+    drag.startY += shift;
+    drag.dy -= shift;
+    item.style.translate = `0px ${round(drag.dy)}px`;
+    say(item);
+  };
+  const onUp = (/** @type {PointerEvent} */ event) => {
+    if (!drag || event.pointerId !== drag.pointer) return;
+    const { item, handle, dy, before, z } = drag;
+    drag = null;
+    handle.releasePointerCapture?.(event.pointerId);
+    item.style.removeProperty('translate');
+    // Into its place on the spring, from where the pointer let go.
+    if (Math.abs(dy) >= 0.5 && typeof item.animate === 'function') {
+      const glide = animateSafe(item, [{ translate: `0px ${round(dy)}px` }, { translate: '0px 0px' }], {
+        id: 'ds-sort',
+        duration: travelDuration(list, dy),
+        easing: motionEasing(list, '--ds-ease-spatial'),
+      }, '--ds-ease-spatial');
+      glide.id = 'ds-sort';
+    }
+    // The raised look leaves in --ds-dur-instant (drag.css: data-ds-dragging="end").
+    item.setAttribute('data-ds-dragging', 'end');
+    setTimeout(() => {
+      if (item.getAttribute('data-ds-dragging') !== 'end') return;
+      item.removeAttribute('data-ds-dragging');
+      item.style.zIndex = z;
+      tidyStyle(item);
+      disown(item, 'attrs', 'data-ds-dragging');
+      for (const name of ['translate', 'z-index']) disown(item, 'props', name);
+    }, Math.max(motionDuration(item, '--ds-dur-instant'), motionDuration(list, '--ds-dur-medium')));
+    changed(before);
+  };
+  list.addEventListener('keydown', onKey);
+  list.addEventListener('pointerdown', onDown);
+  list.addEventListener('pointermove', onMove);
+  list.addEventListener('pointerup', onUp);
+  list.addEventListener('pointercancel', onUp);
+  const handle = {
+    destroy() {
+      if (sortables.get(list)?.handle !== handle) return;
+      sortables.delete(list);
+      list.removeEventListener('keydown', onKey);
+      list.removeEventListener('pointerdown', onDown);
+      list.removeEventListener('pointermove', onMove);
+      list.removeEventListener('pointerup', onUp);
+      list.removeEventListener('pointercancel', onUp);
+    },
+  };
+  sortables.set(list, { handle });
+  return handle;
+}
 /* ── Views ──────────────────────────────────────────── */
 
 /** The types of transition(), written as data-ds-vt on <html> while one runs. */

@@ -213,6 +213,22 @@
     background-color: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
   }
 
+  /* The drop zone (drag.css, 2.0): positioned by its own rule; its flat
+     layer stays at the hover value while the ripple brings the press. */
+  :where(.ds-ripples) .ds-dropzone:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(:has(input:disabled))::before {
+    opacity: 0;
+  }
+
+  @media (hover: hover) {
+    :where(.ds-ripples) .ds-dropzone:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(:has(input:disabled))::before {
+      opacity: var(--ds-state-hover-lg);
+    }
+  }
+
+  :where(.ds-ripples) .ds-dropzone:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-dropzone__input:focus-visible):is(:active, .ds-pressed):not(:has(input:disabled))::before {
+    opacity: var(--ds-state-focus);
+  }
+
   @media (forced-colors: active) {
     .ds-press-ripple {
       display: none;

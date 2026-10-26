@@ -84,7 +84,7 @@ describe('indicator, dom, ripple and overlay', () => {
     assert.equal(typeof indicator.createIndicator, 'function');
     // DS.motion.transition (1.5.0), documented in docs/motion.md; its behaviour: test/motion.test.js.
     assert.equal(typeof motion.transition, 'function');
-    assert.match(read('docs/motion.md'), /\| `transition\(update, \{ type, from \}\)` \|/);
+    assert.match(read('docs/motion.md'), /\| `transition\(update, \{ type, from(, focus)? \}\)` \|/);
     // DS.motion.resyncScroll (1.5.0): scroll-driven animations of a scroller that stopped overflowing.
     assert.equal(typeof motion.resyncScroll, 'function');
     assert.match(read('docs/motion.md'), /\| `resyncScroll\(root\?\)` \|/);
@@ -1653,10 +1653,11 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     tabs[1].focus();
     key(tabs[1], 'ArrowRight');
     assert.equal(doc.activeElement, tabs[3], 'skips the disabled tab, reaches the aria-disabled one');
-    assert.equal(tabs[3].clicked, 1, 'activate: focus clicks');
+    assert.equal(tabs[3].clicked, undefined, 'an aria-disabled tab takes the focus, never the state');
     assert.deepEqual(tabs.map((tab) => tab.getAttribute('tabindex')), ['-1', '-1', null, '0']);
     key(tabs[3], 'ArrowRight');
     assert.equal(doc.activeElement, tabs[0], 'wraps');
+    assert.equal(tabs[0].clicked, 1, 'activate: focus clicks');
     key(tabs[0], 'End');
     assert.equal(doc.activeElement, tabs[3]);
     key(tabs[3], 'Home');

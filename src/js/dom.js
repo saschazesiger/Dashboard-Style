@@ -1119,6 +1119,8 @@ export function roving(container, options = {}) {
   const all = items();
   stop(all.find((item) => item.getAttribute('tabindex') === '0') ?? all.find(chosen) ?? all[0] ?? null);
   const run = (item) => {
+    // An aria-disabled item takes the focus (its name is read), never the state.
+    if (item.getAttribute('aria-disabled') === 'true') return;
     if (typeof options.onActivate === 'function') options.onActivate(item);
     else item.click?.();
   };

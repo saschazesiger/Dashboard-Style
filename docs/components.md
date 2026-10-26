@@ -44,6 +44,8 @@ component live.
 | Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |
 | A block of the page waits (a section, a sheet, the app start) against a small spot (a button, a chip, a cell) | the shape loader `.ds-loader` (in `.ds-boot`, `.ds-loading`) against the arc spinner `.ds-spinner` ([Loading](#loading)) |
 | A long job with a known or unknown share | [Progress](#progress) `.ds-progress` (`--indeterminate`); round: `.ds-spinner--determinate` |
+| Let people add files (by drop, the file dialog or paste) | [File upload](#file-upload): `.ds-dropzone` or the file field `.ds-input[type="file"]`, `DS.dom.dropzone()` |
+| Let people reorder rows by drag or keyboard | [Reorder rows](#reorder-rows): `.ds-grip` in each row, `DS.motion.sortable()` |
 | Content that opens and closes | `<details class="ds-collapsible">` ([Motion classes](#motion-classes)) |
 | Something new appearing, a view's first render | [Motion classes](#motion-classes) and `DS.motion` ([motion.md](motion.md)) |
 | Press feedback from the pointer on every action | [Ripple](#ripple): `DS.ripple.attach(document)` once (`.ds-ripples`) |
@@ -57,7 +59,8 @@ Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card
 [Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
 [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) ·
 [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Loading](#loading) ·
-[Progress](#progress) · [Ripple](#ripple) · [Utilities](#utilities) · [Motion classes](#motion-classes)
+[Progress](#progress) · [File upload](#file-upload) · [Reorder rows](#reorder-rows) · [Ripple](#ripple) ·
+[Utilities](#utilities) · [Motion classes](#motion-classes)
 
 ## App frame
 
@@ -1321,6 +1324,75 @@ DS.motion.countUp(label, 30, { format: (value) => `${Math.round(value)}%` });   
 ```
 
 **Motion:** the "Progress" row of [Feedback](motion.md#feedback) in motion.md.
+
+## File upload
+
+```html
+<label class="ds-dropzone">
+  <input class="ds-dropzone__input" type="file" accept=".csv" multiple>
+  <span class="ds-dropzone__disc" aria-hidden="true">[icon plus 24]</span>
+  <span class="ds-dropzone__title">
+    <span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span>
+    <span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span>
+  </span>
+  <span class="ds-dropzone__hint">Up to 10 MB each</span>
+</label>
+
+<input class="ds-input" type="file" accept="image/*">       <!-- the plain file field -->
+```
+
+```js
+DS.dom.dropzone(zone, { onFiles: (files) => addFiles(files), paste: true });   // drop, dialog, paste
+DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*' });              // a page's own drop target
+```
+
+- **The zone** (2.0) is a `<label>`: a click or Enter on its input opens the file dialog; the input stays in the tab
+  order, visually hidden, and the ring shows on the zone. Border `--ds-dropzone-border` (`1px dashed var(--ds-outline)`),
+  radius `--ds-radius-card`; the state layer at `--ds-state-hover-lg`, the ripple, and the press morph to
+  `--ds-radius-card-pressed` like a radio card. Disabled through its input (`disabled`).
+- **Dragging over**: `DS.dom.dropzone()` writes `data-ds-dragover` while files are over the zone (a child included):
+  the zone takes `--ds-accent` with an inset `--ds-primary` edge (no layout shift) over `--ds-dur-fast`, and the
+  title says it in words (`__over` crossfades with `__idle` in one cell, so the zone never changes its size). On
+  any other element (a pane, a chat) the attribute draws a dashed `--ds-primary` outline inside its edge; call
+  `DS.dom.dropzone(element, { onFiles })` on it rather than counting drag events yourself.
+- **The file field** `.ds-input[type="file"]`: the field box, the chosen file's name in `--ds-text-2`, and the browser's
+  button as a small tonal pill (`--ds-accent`, 32px) with the hover and press mixed into its fill and the press
+  morph. It has no ripple (a native field part).
+- **The chosen files** are the page's: a list of rows with a `.ds-progress` and a remove button each, rendered through
+  `DS.motion.flip()` (a removed row fades out, focus moves to the next remove button).
+- **Forced colours**: a dashed `ButtonText` edge (`Highlight` while dragged over), the file button in `ButtonFace` /
+  `ButtonText` with a `ButtonText` border, a page's drop target outlined in `Highlight`.
+
+**Motion:** the press and state layers of [Controls](motion.md#controls) in motion.md; the drop state is a
+`--ds-dur-fast` colour change.
+
+## Reorder rows
+
+```html
+<ul class="ds-plain-list" id="steps">
+  <li class="ex-step" data-ds-key="a">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Backup">[icon menu 20]</button>
+    Backup
+  </li>
+  ...
+</ul>
+```
+
+```js
+DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dataset.dsKey)) });
+```
+
+- `.ds-grip` (2.0) on a quiet icon button is the handle: `cursor: grab` and `touch-action: none`, so a drag on a
+  touch screen moves the row, not the page. Give it an `aria-label` that names the row.
+- **Pointer**: the row follows the pointer and carries `data-ds-dragging` (raised: `--ds-elev-2` and the dragged state
+  layer, `currentColor` at `--ds-state-dragged`, over `--ds-dur-fast`; nothing scales), the other rows make room
+  through `DS.motion.flip()` and, on release, the row glides into its place on the spring.
+- **Keyboard**: on the handle, ArrowUp and ArrowDown move the row one place, Home and End to the start or the end; the
+  handle keeps the focus. Each move is spoken ("Moved to position 2 of 5") through a polite region in the list's
+  dialog or sheet, else its `.ds-theme`.
+- **Forced colours**: the dragged row is outlined in `Highlight`.
+
+**Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
 
 ## Ripple
 
