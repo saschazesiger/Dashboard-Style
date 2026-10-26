@@ -78,6 +78,11 @@ const CLEAN = {
     '.app-panel .ds-btn {',
     '  --ds-btn-height: 40px;',
     '  margin-inline-start: auto;',
+    '  scroll-margin-block: var(--ds-space-4);',
+    '}',
+    // .ds-touch is a scope like .ds-theme: what sits under it is not restyled through it.
+    '.ds-touch .app-panel > header {',
+    '  gap: var(--ds-space-2);',
     '}',
   ].join('\n'),
   'js/app.js': [

@@ -74,9 +74,10 @@ export const SYSTEM_ATTRIBUTES = [
 const SHARED_ATTRIBUTES = ['data-toast-reserve'];
 
 /** Properties that place a ds element in a project container without changing its look. */
-const PLACEMENT = /^(margin(-[\w-]+)?|grid-(area|column|row)(-[\w-]+)?|flex(-grow|-shrink|-basis)?|order|align-self|justify-self|place-self|position|inset(-[\w-]+)?|top|right|bottom|left|z-index|width|min-width|max-width|inline-size|min-inline-size|max-inline-size|height|min-height|max-height|block-size|min-block-size|max-block-size|box-sizing|container(-[\w-]+)?)$/;
-/** Classes a project may name anywhere: the theme root and the page base. */
-const NEUTRAL = new Set(['ds-theme', 'ds-base']);
+const PLACEMENT = /^(margin(-[\w-]+)?|scroll-margin(-[\w-]+)?|grid-(area|column|row)(-[\w-]+)?|flex(-grow|-shrink|-basis)?|order|align-self|justify-self|place-self|position|inset(-[\w-]+)?|top|right|bottom|left|z-index|width|min-width|max-width|inline-size|min-inline-size|max-inline-size|height|min-height|max-height|block-size|min-block-size|max-block-size|box-sizing|container(-[\w-]+)?)$/;
+/** Classes a project may name anywhere (scopes, not components): the theme root, the page base and the touch
+ * opt-in (on .ds-theme or a container). */
+const NEUTRAL = new Set(['ds-theme', 'ds-base', 'ds-touch']);
 const ANIMATION_WORDS = new Set(['none', 'infinite', 'alternate', 'alternate-reverse', 'normal', 'reverse', 'forwards', 'backwards', 'both', 'running', 'paused', 'linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out', 'step-start', 'step-end', 'initial', 'inherit', 'unset', 'revert', 'revert-layer']);
 const COLOUR_WORDS = /(?:^|[\s,(])(white|black|red|green|blue|gray|grey|orange|yellow|purple|pink|silver|navy|teal|maroon)(?=$|[\s,)])/i;
 

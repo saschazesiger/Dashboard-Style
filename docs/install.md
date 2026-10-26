@@ -380,7 +380,7 @@ them to `check-theme.mjs --with`.
 | `themes` | error, warning | the theme files, through `tools/check-theme.mjs` |
 | `layers` | error | an element-only rule (`button`, `body`, `*`) outside a layer, which beats every component (put resets in `@layer reset` declared before ds), and `!important` |
 | `hidden` | error | a `[hidden]` rule: `ds.css` hides `[hidden]` already |
-| `restyle` | error | a project rule that reaches a `.ds-*` element (`.ds-btn`, `.app-bar .ds-btn`, `.ds-card p`) and sets anything but `--ds-*` hooks and placement (margins, grid and flex placement, position and offsets, sizes, `z-index`) |
+| `restyle` | error | a project rule that reaches a `.ds-*` element (`.ds-btn`, `.app-bar .ds-btn`, `.ds-card p`) and sets anything but `--ds-*` hooks and placement (margins and scroll margins, grid and flex placement, position and offsets, sizes, `z-index`); `.ds-theme`, `.ds-base` and `.ds-touch` are scopes, not components, so a rule under them reaches nothing through them |
 | `attributes` | error | a script that writes an attribute the system owns (the "Attributes" table of [components.md](components.md#attributes)); `data-toast-reserve` only next to `reserve: false` |
 | `dom` | warning | `innerHTML` with ds markup: re-render with `DS.dom.morphHtml` |
 | `pressable` | warning | a `::before` state layer of your own (`currentColor` or a `--ds-state-*` opacity): `.ds-pressable` gives a project element the system's hover, press and focus |
