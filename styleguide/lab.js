@@ -2786,6 +2786,8 @@
 
   function snackbar(text, options) {
     var handle = DS.overlay.toast(toastRegion(), text, options || {});
+    // The same message again returns the handle on screen (it restarted).
+    if (snack.shown.indexOf(handle) !== -1) return handle;
     snack.shown.push(handle);
     handle.closed.then(function () {
       var at = snack.shown.indexOf(handle);
@@ -2810,11 +2812,12 @@
     id: 'snackbars',
     group: 'overlays',
     title: 'Snackbar stack',
-    note: 'At most three snackbars show; the others glide (FLIP) while one enters or leaves. A fourth replaces the oldest one that would close by itself; behind three that stay (errors, persistent ones), it waits in the queue. Timers pause while the pointer is over a message or focus is in it. "Spam" sends five in one second; "Persistent" sends three that stay and a fourth that waits until you close one. Replay closes what is left first; Rapid toggle sends one message that stays and takes it back.',
-    shows: ['DS.overlay.toast', 'DS.motion.flip', 'ds-fade-in', 'ds-lift-in', 'ds-fade-out', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-slow', '--ds-ease-spatial'],
-    html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-snack="spam">Spam snackbars</button><button class="ds-btn" type="button" data-snack="persistent">Persistent</button><button class="ds-btn ds-btn--text" type="button" data-snack="clear">Close all</button></div>',
+    note: 'At most three snackbars show; the others glide (FLIP) while one enters or leaves. A fourth replaces the oldest one that would close by itself; behind three that stay (errors, persistent ones), it waits in the queue. Timers pause while the pointer is over a message or focus is in it. "Spam" sends five in one second; "Persistent" sends three that stay and a fourth that waits until you close one. "Fail twice" sends two errors with one <code>key</code>: the second takes the first one\'s place; "Save twice" sends the same message twice: it restarts, nothing moves. "In a sheet" and "In a dialog" open one and show an error in it: the region moves in, rises above the sheet\'s foot (<code>--ds-toast-lift</code>, both axes) and the layer keeps room for it (<code>data-toast-reserve</code>). "Beside the drawer" opens the modal drawer of the small app below it and shows a message there. Close all is <code>closeToasts()</code>. Replay closes what is left first; Rapid toggle sends one message that stays and takes it back.',
+    shows: ['DS.overlay.toast', 'DS.overlay.closeToasts', 'DS.motion.flip', 'ds-fade-in', 'ds-lift-in', 'ds-fade-out', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-slow', '--ds-ease-spatial'],
+    html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-snack="spam">Spam snackbars</button><button class="ds-btn" type="button" data-snack="persistent">Persistent</button><button class="ds-btn ds-btn--text" type="button" data-snack="clear">Close all</button></div>' +
+      '<div class="sg-row"><button class="ds-btn" type="button" data-snack="fail">Fail twice</button><button class="ds-btn" type="button" data-snack="save">Save twice</button><button class="ds-btn" type="button" data-snack="sheet">In a sheet</button><button class="ds-btn" type="button" data-snack="dialog">In a dialog</button><button class="ds-btn" type="button" data-snack="drawer">Beside the drawer</button></div>',
     after: readoutHtml('sg-snack-count'),
-    height: 120,
+    height: 160,
     setup: function (stage, sg) {
       stage.addEventListener('click', function (event) {
         var button = event.target.closest('[data-snack]');
@@ -2826,6 +2829,23 @@
           snackbar('Synced 3 devices.', { kind: 'success' });
         }
         if (kind === 'clear') clearSnacks();
+        if (kind === 'fail') {
+          snackbar('Could not sync LAPTOP-0042.', { kind: 'error', key: 'lab-sync' });
+          wait(sg, 900).then(function () { snackbar('Could not sync LAPTOP-0042 again.', { kind: 'error', key: 'lab-sync' }); });
+        }
+        if (kind === 'save') {
+          snackbar('Saved LAPTOP-0042.');
+          wait(sg, 900).then(function () { snackbar('Saved LAPTOP-0042.'); });
+        }
+        if (kind === 'sheet' || kind === 'dialog') {
+          var layer = $(kind === 'sheet' ? '#sg-lab-sheet' : '#sg-lab-dialog');
+          if (layer) DS.overlay.open(layer, { opener: button }).then(function () { snackbar('Could not save the changes.', { kind: 'error' }); });
+        }
+        if (kind === 'drawer' && modalDrawer.ready) {
+          modalDrawerTo(true).then(function () { return modalDrawer.ready; }).then(function (win) {
+            win.DS.overlay.toast(null, 'Export ready.', { persistent: true });
+          });
+        }
       });
       showSnack();
     },
@@ -2844,12 +2864,9 @@
     },
   });
 
-  /* Closes every message of the demo (on screen or waiting); resolves once all are gone. */
+  /* Closes every message of the region (on screen or waiting); resolves once all are gone. */
   function clearSnacks() {
-    return Promise.all(snack.shown.slice().map(function (handle) {
-      handle.close();
-      return handle.closed;
-    }));
+    return DS.overlay.closeToasts($('#sg-toasts'));
   }
 
   /* Five snackbars in one second (at the current speed). */
@@ -2863,6 +2880,58 @@
     });
     return step.then(function () { return quiet($('#sg-toasts'), sg); });
   }
+
+  /* ── Feedback: the save bar ──────────────────────────────────────── */
+
+  var saveBar = { ready: null, handle: null };
+
+  var SAVEBAR = '<div class="ds-savebar"><div class="ds-savebar__bar ds-presence" id="savebar-bar" role="region" aria-label="Unsaved changes" hidden>' +
+    '<p class="ds-savebar__text">1 unsaved change</p><div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button" id="discard">Discard</button>' +
+    '<button class="ds-btn ds-btn--primary" type="button" id="save">Save</button></div></div></div>';
+
+  /* Shows or hides the small app's bar; resolves once its motion is quiet. */
+  function savebarTo(on, sg) {
+    return saveBar.ready.then(function (win) {
+      if (on) saveBar.handle.show();
+      else saveBar.handle.hide();
+      return wait(sg, 50).then(function () { return quiet(win.document.documentElement, sg); });
+    });
+  }
+
+  LAB_DEMOS.push({
+    id: 'savebar',
+    group: 'feedback',
+    title: 'Save bar',
+    note: 'A change in the small app\'s form shows its save bar (<code>DS.overlay.savebar()</code>): it fades in and grows from <code>--ds-scale-enter</code> at its bottom edge on the spring (<code>.ds-presence</code>), and leaves faster. The view keeps its end clear of it, and a snackbar there rises above it (Save shows one). Replay shows and hides it; Rapid toggle and Reverse at 50% turn it back from where it is.',
+    shows: ['DS.overlay.savebar', '.ds-presence', '--ds-scale-enter', '--ds-dur-fast', '--ds-dur-medium', '--ds-ease-spatial'],
+    html: frameHtml('sg-frame--phone', 'A small app: the save bar'),
+    height: 360,
+    setup: function (stage) {
+      var page = pageHead('Settings', 'Change the name.') + '<form class="ds-card ds-form" id="form"><div class="ds-field"><label class="ds-field__label" for="name">Device name</label>' +
+        '<input class="ds-input" id="name" value="LAPTOP-0042"></div></form>' + frameCards(2);
+      // The bar is the view's last child, after its content.
+      saveBar.ready = openFrame(stage, appFrameHtml(false, page).replace('</div></div></main>', '</div></div>' + SAVEBAR + '</main>')).then(function (win) {
+        var doc = win.document;
+        saveBar.handle = win.DS.overlay.savebar(doc.querySelector('.ds-savebar'), { focusTarget: function () { return doc.getElementById('name'); } });
+        doc.getElementById('form').addEventListener('input', function () { saveBar.handle.show(); });
+        doc.getElementById('discard').addEventListener('click', function () { saveBar.handle.hide(); });
+        doc.getElementById('save').addEventListener('click', function () {
+          saveBar.handle.hide();
+          win.DS.overlay.toast(null, 'Saved LAPTOP-0042.');
+        });
+        return win;
+      });
+    },
+    subject: function (stage) {
+      var frame = $('iframe', stage);
+      return frame.contentDocument ? frame.contentDocument.getElementById('savebar-bar') : null;
+    },
+    play: function (stage, sg) {
+      return savebarTo(true, sg).then(function () { return wait(sg, 600); }).then(function () { return savebarTo(false, sg); });
+    },
+    state: function () { return !!saveBar.handle && saveBar.handle.shown; },
+    toggle: function (stage, on, sg) { return savebarTo(on, sg); },
+  });
 
   /* ── Feedback: loaders ───────────────────────────────────────────── */
 

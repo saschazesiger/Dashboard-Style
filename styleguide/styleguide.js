@@ -147,7 +147,7 @@
       '<p>White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and quiet motion. Every value comes from a token, so one theme file restyles everything below.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="../README.md">Get started</a><a class="ds-btn" href="../docs/theming.md">Theming guide</a><a class="ds-btn ds-btn--text" href="../docs/components.md">Component markup ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +
-      tile('Components', '29', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
+      tile('Components', '30', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
       '</div></section>';
   }
 
@@ -934,7 +934,7 @@
       card('Try them', '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-sg="dialog">Open dialog</button><button class="ds-btn" type="button" data-sg="dialog-div">Dialog (div markup)</button><button class="ds-btn" type="button" data-sg="dialog-combo">Dialog with a list</button><button class="ds-btn" type="button" data-sg="sheet">Open side sheet</button></div>' +
         '<div class="sg-row"><button class="ds-btn" type="button" data-sg="dialog-long">Long form (body scrolls)</button><button class="ds-btn" type="button" data-sg="dialog-people">Pick one of 40 people</button><button class="ds-btn" type="button" data-sg="dialog-work">Delete (busy)</button><button class="ds-btn" type="button" data-sg="dialog-type">Type the name to delete</button></div>' +
         '<div class="sg-row"><button class="ds-btn" type="button" data-sg="dialog-full">Full screen on phones</button><button class="ds-btn" type="button" data-sg="dialog-actions">Action sheet</button><button class="ds-btn" type="button" data-sg="dialog-confirm">DS.overlay.confirm()</button><button class="ds-btn" type="button" data-sg="dialog-prompt">DS.overlay.prompt()</button><button class="ds-btn" type="button" data-sg="sheet-filters">Filters (sheet with a foot)</button></div>' +
-        '<div class="sg-row"><button class="ds-btn" type="button" data-sg="toast">Show snackbar</button><button class="ds-btn" type="button" data-sg="toast-error">Show error</button><button class="ds-btn" type="button" data-sg="toast-many">4 messages</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">' + icon('link', 20) + '</button>' +
+        '<div class="sg-row"><button class="ds-btn" type="button" data-sg="toast">Show snackbar</button><button class="ds-btn" type="button" data-sg="toast-error">Show error</button><button class="ds-btn" type="button" data-sg="toast-many">4 messages</button><button class="ds-btn" type="button" data-sg="toast-undo">With undo</button><button class="ds-btn" type="button" data-sg="toast-retry">Fail twice (one key)</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">' + icon('link', 20) + '</button>' +
         '<button class="ds-btn ds-btn--text" type="button" popovertarget="sg-presence">A popover (.ds-presence)</button></div>' +
         '<div class="ds-presence sg-presence" id="sg-presence" popover><p class="ds-card__title">A plain popover</p><p class="ds-muted">Toggled by popovertarget, no script: .ds-presence fades it in and out. Escape or a click outside closes it.</p></div>') +
       '<div class="ds-grid-2">' +
@@ -971,7 +971,18 @@
       '</div>' +
       card('Snackbar and tooltip', '<div class="ds-stack"><div class="ds-toast sg-toast-demo">' + icon('checkCircle', 20) + '<span class="ds-toast__text">Saved. The record is visible to everyone now.</span><button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">' + icon('close', 20) + '</button></div>' +
         '<div class="ds-toast ds-toast--error sg-toast-demo">' + icon('alertCircle', 20) + '<span class="ds-toast__text">Could not save. Check the connection and try again.</span></div>' +
-        '<div class="ds-tooltip sg-tooltip-demo">Copy link</div></div>'));
+        '<div class="ds-toast sg-toast-demo">' + icon('checkCircle', 20) + '<span class="ds-toast__text">3 devices deleted.</span><button class="ds-btn ds-btn--text ds-btn--sm ds-toast__action" type="button">Undo</button><button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">' + icon('close', 20) + '</button></div>' +
+        '<div class="ds-tooltip sg-tooltip-demo">Copy link</div></div>') +
+      '<div class="ds-grid-2">' +
+      card('Tooltips that repeat the text', '<p class="ds-muted">A tip that says what the trigger shows appears only while the text is cut off: rest on both names. The icon button keeps its tip: its label is only for screen readers.</p>' +
+        '<div class="sg-tip-column"><a class="sg-tip-name" href="#overlays" data-tip="LAPTOP-0042">LAPTOP-0042</a><a class="sg-tip-name" href="#overlays" data-tip="LAPTOP-0042-FINANCE-BACKUP-WEST">LAPTOP-0042-FINANCE-BACKUP-WEST</a></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-tip="Sync now">' + icon('sync', 20) + '<span class="ds-sr">Sync now</span></button><button class="ds-btn ds-btn--primary" type="button" aria-disabled="true" data-tip="Fill in the serial number first">Publish</button></div>' +
+        '<p class="ds-meta">On a touch screen: a tap on Publish shows why it is blocked, a long press on the icon shows its name.</p>') +
+      card('Save bar', '<p class="ds-muted">Change a field: the save bar rises at the bottom of the view, the snackbars rise above it, and a field under it scrolls clear. Discard or Save hides it.</p>' +
+        '<form class="ds-form" id="sg-savebar-form"><div class="ds-field"><label class="ds-field__label" for="sg-sb-name">Device name</label><input class="ds-input" id="sg-sb-name" value="LAPTOP-0042"></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-sb-owner">Owner</label><input class="ds-input" id="sg-sb-owner" value="Ada Lovelace"></div></form>' +
+        '<div class="sg-savebar-demo"><div class="ds-savebar__bar"><p class="ds-savebar__text">2 unsaved changes</p><div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button">Discard</button><button class="ds-btn ds-btn--primary" type="button">Save</button></div></div></div>') +
+      '</div>');
   }
 
   /* A contained dialog whose body scrolls (the 360px frame of the overlays section). */
@@ -1859,11 +1870,78 @@
   /* Snackbars through DS.overlay.toast(): at most three, the others glide;
      an error stays until it is closed. */
   function toast(text, kind) {
+    return DS.overlay.toast(toastRegion(), text, { kind: kind === true ? 'error' : kind || 'success' });
+  }
+
+  /* The region, aligned with the content panel (the drawer is beside it);
+     while a side sheet has taken the region in, DS.overlay sets the edge. */
+  function toastRegion() {
     var region = $('#sg-toasts');
-    // Aligned with the content panel (the drawer is beside it); while a
-    // side sheet has taken the region in, DS.overlay sets the edge.
     if (region.parentNode === document.body) region.style.setProperty('--ds-toast-left', Math.round($('.ds-panel').getBoundingClientRect().left + 24) + 'px');
-    return DS.overlay.toast(region, text, { kind: kind === true ? 'error' : kind || 'success' });
+    return region;
+  }
+
+  /* With undo: the action closes the message and runs once; the message
+     stays until it is used or closed (DS.overlay.toast with `action`). */
+  function undoToast() {
+    DS.overlay.toast(toastRegion(), '3 devices deleted.', { action: { label: 'Undo', onClick: function () { toast('Restored 3 devices.'); } } });
+  }
+
+  /* Fail twice: the second error takes the first one's place (one key), so
+     a retry never stacks its errors; the success clears them (closeToasts). */
+  function retryToast() {
+    var region = toastRegion();
+    DS.overlay.toast(region, 'Could not sync. Retrying ...', { kind: 'error', key: 'sg-sync' });
+    setTimeout(function () { DS.overlay.toast(region, 'Could not sync again. Check the connection.', { kind: 'error', key: 'sg-sync' }); }, slow(1200));
+    setTimeout(function () {
+      DS.overlay.closeToasts(region, { key: 'sg-sync' }).then(function () { toast('Synced.'); });
+    }, slow(3600));
+  }
+
+  /* The page's save bar: a .ds-savebar after the view's content, shown by
+     the first change of the demo form (DS.overlay.savebar()). */
+  var savebarHandle = null;
+  function setupSavebar() {
+    var form = $('#sg-savebar-form');
+    if (!form || savebarHandle) return;
+    var wrapper = document.createElement('div');
+    wrapper.className = 'ds-savebar';
+    setHtml(wrapper, '<div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden><p class="ds-savebar__text" id="sg-savebar-text"></p>' +
+      '<div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button" data-sg-savebar="discard">Discard</button>' +
+      '<button class="ds-btn ds-btn--primary" type="button" data-sg-savebar="save">' + faces('Save', 'Saving', 'Saved') + '</button></div></div>');
+    $('#main').append(wrapper);
+    savebarHandle = DS.overlay.savebar(wrapper, { focusTarget: function () { return $('#sg-sb-name'); } });
+    var changed = {};
+    var count = function () { return Object.keys(changed).length; };
+    form.addEventListener('input', function (event) {
+      var field = event.target;
+      if (field.value === field.defaultValue) delete changed[field.id];
+      else changed[field.id] = true;
+      if (!count()) {
+        savebarHandle.hide();
+        return;
+      }
+      $('#sg-savebar-text').textContent = count() === 1 ? '1 unsaved change' : count() + ' unsaved changes';
+      savebarHandle.show();
+    });
+    wrapper.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-sg-savebar]');
+      if (!button) return;
+      if (button.getAttribute('data-sg-savebar') === 'discard') {
+        form.reset();
+        changed = {};
+        savebarHandle.hide();
+        return;
+      }
+      M.busy(button, function () {
+        return new Promise(function (resolve) { setTimeout(resolve, slow(900)); });
+      }).then(function () {
+        $$('input', form).forEach(function (field) { field.defaultValue = field.value; });
+        changed = {};
+        savebarHandle.hide();
+        toast('Changes saved.');
+      });
+    });
   }
 
   /* "4 messages": an error that waits for its close button, then three
@@ -2278,6 +2356,8 @@
       if (action === 'toast') toast('Saved. The record is visible to everyone now.');
       if (action === 'toast-error') toast('Could not save. Check the connection and try again.', true);
       if (action === 'toast-many') manyToasts();
+      if (action === 'toast-undo') undoToast();
+      if (action === 'toast-retry') retryToast();
       if (action === 'busy') busy(el);
       if (action === 'busy-fail') busyFail(el);
       if (action === 'copy') copied(el);
@@ -2388,6 +2468,7 @@
     setupMenus();
     setupFiles();
     setupForms();
+    setupSavebar();
   }
 
   /* Files and reordering (2.0): DS.dom.dropzone() names what it took,

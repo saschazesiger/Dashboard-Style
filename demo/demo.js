@@ -489,18 +489,10 @@
     undoToast('3 devices deleted.');
   });
 
-  /* A snackbar with an action stays until it is used or closed. */
+  /* A snackbar with an action stays until it is used or closed; the
+     action closes it and runs once. */
   function undoToast(text) {
-    const element = document.createElement('div');
-    element.className = 'ds-toast';
-    element.insertAdjacentHTML('beforeend', `${icon('checkCircle', 20)}<span class="ds-toast__text">${esc(text)}</span>` +
-      '<button class="ds-btn ds-btn--text ds-btn--sm" type="button">Undo</button>' +
-      `<button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">${icon('close', 20)}</button>`);
-    const message = toast(element);
-    element.querySelector('.ds-btn--text').addEventListener('click', () => {
-      message.close();
-      toast('Restored. Nothing was lost.');
-    }, { once: true });
+    toast(text, { action: { label: 'Undo', onClick: () => toast('Restored. Nothing was lost.') } });
   }
 
   for (const button of $$('[data-toast]')) {

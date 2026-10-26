@@ -24,6 +24,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Tiles that count on (`countUp()`) | Overview | `updateTiles()` |
 | Alerts that come and go with the data (`flip()` on their stack, `live`; a dismiss moves the focus to the next alert, `refocus`) | Overview | `alertsHtml()`, `updateAlerts()` |
 | Busy and done faces, progress bar and figure landing together (`DS.dom.progress()`, `countUp()`) | Overview | `runSync()`, `showSync()` |
+| One error per cause that a later sync replaces or closes (`toast()` with `key`, `closeToasts()`) | Overview | `runSync()` |
 | A chart of the project's own whose bars grow once (`.ds-enter--fill-y`) | Overview | `chartHtml()`, `growChart()` |
 | A live feed (`flip({ live: true })` with `morphHtml`) | Overview | `poll()` |
 | Search per keystroke, filter chips, sort with the turning arrow | Devices | `renderRows()` |
@@ -31,10 +32,10 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Empty state after a filter, and back | Devices | `renderRows()` |
 | Refresh: `.ds-stale` and the loading bar (`DS.motion.refresh()`) | Devices | `refreshDevices()` |
 | Row menu (`DS.overlay`, keyboard included) | Devices | `toggleMenu()`, the `rowMenu` listener |
-| Confirm dialog built by `DS.overlay.confirm()` (busy with `onConfirm`, open until the backend answered), then undo in a snackbar | Devices | `confirmDelete()`, `deleteDevices()`, `undoToast()` |
+| Confirm dialog built by `DS.overlay.confirm()` (busy with `onConfirm`, open until the backend answered), then undo in a snackbar (`toast()` with `action`) | Devices | `confirmDelete()`, `deleteDevices()`, `undoToast()` |
 | Side sheet, previous and next (`transition()` forward and back), live refresh without a transition | Devices | `openSheet()`, `stepSheet()`, `poll()` |
 | Expandable rows (`aria-expanded`, `inert`) | Tickets | `ticketRowsHtml()`, the `data-toggle-ticket` click |
-| Dialog with a form, validation on submit, combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |
+| Dialog with a form, validation on submit (the count said with `DS.overlay.announce()`), combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |
 | Switches that apply at once | Settings | the `data-setting` change |
 | Radio cards that switch the theme (tokens on `.ds-theme`) | Settings | the `accent` change, `theme.css` |
 | Form saved with `DS.motion.busy()`, collapsible section, icon swap, a field and its button (`.ds-field__row`) | Settings | the `org-form` submit, `copy-key` |

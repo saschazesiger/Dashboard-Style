@@ -40,8 +40,8 @@ the tests in `test/`.
   press, ripple, morph or halo, take the `not-allowed` cursor where they can still be pointed at, and fade into that
   look on `--ds-dur-fast`.
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
-  why over a bare `disabled`. A value that another system sets is locked (`.ds-switch--locked`, the `lock` glyph) and
-  says by whom in words.
+  why over a bare `disabled`: the reason shows on hover, on keyboard focus and on a tap on touch screens. A value that
+  another system sets is locked (`.ds-switch--locked`, the `lock` glyph) and says by whom in words.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
   `--ds-hold-loader` (450ms). A block that waits shows the shape loader (`.ds-loader`), a small spot (a button, a
   chip, a cell) the arc spinner (it has no delay of its own: put it in `.ds-loading`, a busy button, or a
@@ -85,8 +85,8 @@ the tests in `test/`.
 - Labels stay above fields, never only as a placeholder; hints and errors are linked with `aria-describedby`.
 - Checkboxes and radios stay native inputs, drawn on the input itself (`appearance: none`, no wrapper), so forms,
   labels, the keyboard and screen readers work as without CSS.
-- A busy button (`aria-busy`) and its done face change only what is seen: announce the result yourself (an
-  `aria-live` region or a snackbar).
+- A busy button (`aria-busy`) and its done face change only what is seen: announce the result yourself
+  (`DS.overlay.announce()` or a snackbar).
 - Blocked means blocked for every input: a busy or done button and an `aria-disabled` action ignore a click, a middle
   click, Enter, Space and a form submission alike. `DS.motion.guard()` (installed by `DS.motion.busy()`) cancels them
   before any listener of the page; focus, hover and the tooltip that says why stay.

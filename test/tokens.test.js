@@ -271,6 +271,8 @@ const TEXT_PAIRS = [
   ['--ds-on-warning-container', '--ds-warning-container'],
   ['--ds-text', '--ds-warning-surface'],
   ['--ds-on-inverse', '--ds-inverse'],
+  // A text button in a snackbar (the action, Undo).
+  ['--ds-inverse-primary', '--ds-inverse'],
   ['--ds-on-error-container', '--ds-surface'],
   // A field label tints with the ring, or takes the error ink: on every surface a field sits on.
   ['--ds-primary', '--ds-surface'],

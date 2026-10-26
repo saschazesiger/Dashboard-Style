@@ -194,6 +194,10 @@ page) are listed with their component in [components.md](components.md) and [mot
 `--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l` (its clip edges), `--ds-indicator-radius` (its corners, copied
 from a project class's `border-radius` when no class sets it), `--ds-indicator-dur` (the travel time, on the track),
 `--ds-progress`, `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`,
+`--ds-toast-lift` (a snackbar region's rise above a sheet's foot, the drawer's foot or a save bar, written by `DS.overlay` only;
+`--ds-toast-shift` and `--ds-toast-shift-y` too; `--ds-toast-reserve` is set by `toast()`, or by the page with `reserve: false`),
+`--ds-keyboard-inset` (the on-screen keyboard's height, written on `<html>` by `DS.dom.followViewport()`; the snackbars rise by it),
+`--ds-savebar-height` (the save bar's height on its `.ds-view`, written by `DS.overlay.savebar()`),
 `--ds-tooltip-x`, `--ds-tooltip-y` (the tooltip's place, written by `DS.overlay.tooltips()` where anchor positioning is missing),
 `--ds-menu-x`, `--ds-menu-y` (a menu's place, written by `DS.overlay.open()` where anchor positioning is missing),
 `--ds-chips-backdrop`, `--ds-flip-backdrop` (the colour behind a chip row or a `DS.motion.flip()` container while its items

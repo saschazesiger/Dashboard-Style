@@ -669,21 +669,20 @@
     undoToast(removed);
   }
 
-  /* A snackbar with an action stays until it is used or closed. */
+  /* A snackbar with an action stays until it is used or closed; the
+     action closes it and runs once. */
   function undoToast(removed) {
     const text = removed.length === 1 ? `${removed[0].name} deleted.` : `${removed.length} devices deleted.`;
-    const element = document.createElement('div');
-    element.className = 'ds-toast';
-    element.insertAdjacentHTML('beforeend', `${icon('checkCircle', 20)}<span class="ds-toast__text">${esc(text)}</span>` +
-      '<button class="ds-btn ds-btn--text ds-btn--sm" type="button">Undo</button>' +
-      `<button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close">${icon('close', 20)}</button>`);
-    const message = DS.overlay.toast(toasts, element);
-    element.querySelector('.ds-btn--text').addEventListener('click', async () => {
-      message.close();
-      state.devices = await api.restoreDevices(removed);
-      renderRows();
-      DS.overlay.toast(toasts, removed.length === 1 ? `${removed[0].name} restored.` : `${removed.length} devices restored.`);
-    }, { once: true });
+    DS.overlay.toast(toasts, text, {
+      action: {
+        label: 'Undo',
+        onClick: async () => {
+          state.devices = await api.restoreDevices(removed);
+          renderRows();
+          DS.overlay.toast(toasts, removed.length === 1 ? `${removed[0].name} restored.` : `${removed.length} devices restored.`);
+        },
+      },
+    });
   }
 
   async function restart(id, button) {
@@ -712,6 +711,12 @@
     state.sync.finished = Date.now();
     state.sync.summary = ['2 new', '1 updated', `${state.sync.total - 3} unchanged`];
     showSync();
+    // One error per cause: a second sync replaces the old one (key), a
+    // sync without offline devices closes it.
+    const offline = state.devices.filter((device) => device.status === 'error');
+    if (offline.length) {
+      DS.overlay.toast(toasts, offline.length === 1 ? `${offline[0].name} did not answer the sync.` : `${offline.length} devices did not answer the sync.`, { kind: 'error', key: 'sync-offline' });
+    } else DS.overlay.closeToasts(toasts, { key: 'sync-offline' });
     DS.overlay.toast(toasts, 'Sync finished.');
   }
 
@@ -756,6 +761,8 @@
     ].filter(Boolean);
     if (bad.length) {
       bad[0].focus();
+      // The field says its own error; the count is said once, inside the dialog.
+      DS.overlay.announce(bad.length === 1 ? 'The ticket was not created: one field needs attention.' : `The ticket was not created: ${bad.length} fields need attention.`, { assertive: true });
       return;
     }
     const data = new FormData(ticketForm);

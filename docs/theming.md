@@ -340,11 +340,20 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-sheet-foot-border` | `1px solid var(--ds-line)` | the hairline above `.ds-sheet__foot` |
 | `--ds-menu-item-height` | 48px | menu item (and action sheet row) |
 | `--ds-combo-option-height` | 48px | the least height of a combobox option |
+| `--ds-toast-action-color` | `--ds-inverse-primary` | a text button in a snackbar (`.ds-toast__action`, Undo) |
+| `--ds-toast-close-size` | 36px | the close button of a snackbar |
+| `--ds-savebar-offset` | `--ds-space-4` | save bar: distance from the view's bottom edge |
+| `--ds-savebar-inset` | the page pad (`--ds-content-pad-x`) | save bar: distance from the view's sides (the bar is at most `--ds-content-max` wide) |
+| `--ds-savebar-min-height` | 56px | save bar |
+| `--ds-savebar-radius` | `--ds-radius-card` | save bar |
+| `--ds-savebar-bg`, `--ds-savebar-shadow` | `--ds-surface`, `--ds-elev-overlay` | save bar surface and elevation |
 
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not
 set it. Runtime properties (set by scripts, not themes) are documented with their components: `--ds-progress`
-([progress](components.md#progress)), `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`,
-`--ds-toast-shift-y`, `--ds-toast-reserve` ([snackbar](components.md#snackbar)), `--ds-tooltip-x`, `--ds-tooltip-y`
+([progress](components.md#progress)), `--ds-toast-left`, `--ds-toast-bottom` (set by the page), `--ds-toast-lift`,
+`--ds-toast-shift`, `--ds-toast-shift-y` (written by `DS.overlay` only), `--ds-toast-reserve` (written by `toast()`,
+or by the page with `reserve: false`), `--ds-keyboard-inset` (written by `DS.dom.followViewport()`)
+([snackbar](components.md#snackbar)), `--ds-savebar-height` ([save bar](components.md#save-bar)), `--ds-tooltip-x`, `--ds-tooltip-y`
 ([tooltip](components.md#tooltip)), `--ds-menu-x`, `--ds-menu-y` ([menu](components.md#menu)), `--ds-i`, the indicator's box
 (`--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h`), its clip edges (`--ds-indicator-t`,
 `--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l`) and its travel time on the track (`--ds-indicator-dur`)

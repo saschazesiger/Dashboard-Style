@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Save bar and snackbars in the app frame · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  .fx-fields { display: grid; gap: var(--ds-space-4); }
+  .fx-tall { height: 900px; }
+  .fx-foot { display: flex; justify-content: flex-end; gap: var(--ds-space-2); padding: var(--ds-space-3) var(--ds-space-6); }
+</style>
+</head>
+<body>
+<!-- The app frame (docked drawer above 900px, modal below) with a form in
+     the view and its save bar (DS.overlay.savebar()), the snackbar region
+     right after .ds-app, a div side sheet with a foot, a native dialog,
+     and a drawer foot (the snackbars rise above it on phones while the
+     modal drawer is open). DS.overlay.toast(), savebar() and the reserve
+     run on it: test/browser/savebar.spec.js and the 2.0 snackbar tests of
+     test/browser/toast-tooltip.spec.js. -->
+<div class="ds-theme" id="theme">
+  <div class="ds-app ds-app--drawer" id="app">
+    <div class="ds-topbar">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" id="menu" aria-label="Menu" aria-expanded="false" aria-controls="drawer"><span data-icon="menu" data-size="20"></span></button>
+      <a class="ds-brand" href="#settings"><span class="ds-brand__name">Product</span></a>
+    </div>
+    <div class="ds-scrim" id="scrim"></div>
+    <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+      <div class="ds-drawer__head" aria-hidden="true"><span class="ds-brand__name">Product</span></div>
+      <div class="ds-drawer__list">
+        <a class="ds-drawer__item" href="#overview"><span data-icon="overview" data-size="20"></span><span class="ds-drawer__label">Overview</span></a>
+        <a class="ds-drawer__item" href="#settings" aria-current="page"><span data-icon="settings" data-size="20"></span><span class="ds-drawer__label">Settings</span></a>
+      </div>
+      <div class="ds-drawer__foot fx-foot" id="drawer-foot"><button class="ds-btn ds-btn--text" type="button">Help</button></div>
+    </nav>
+    <div class="ds-panel">
+      <main class="ds-view" id="main" tabindex="-1">
+        <div class="ds-content"><div class="ds-page">
+          <header class="ds-page-head"><h1 class="ds-page-head__title" id="title" tabindex="-1">Settings</h1></header>
+          <form class="ds-card fx-fields" id="form">
+            <div class="ds-field"><label class="ds-field__label" for="name">Organisation</label><input class="ds-input" id="name" value="Example Ltd"></div>
+            <div class="ds-field"><label class="ds-field__label" for="mail">Contact email</label><input class="ds-input" id="mail" value="it@example.org"></div>
+            <div class="fx-tall"></div>
+            <div class="ds-field"><label class="ds-field__label" for="last">Last field</label><input class="ds-input" id="last" value="end"></div>
+            <div class="fx-row">
+              <button class="ds-btn" type="button" id="open-sheet">Details</button>
+              <button class="ds-btn" type="button" id="open-dialog">Confirm</button>
+            </div>
+          </form>
+        </div></div>
+        <div class="ds-savebar" id="savebar">
+          <div class="ds-savebar__bar ds-presence" id="bar" role="region" aria-label="Unsaved changes" hidden>
+            <p class="ds-savebar__text" id="bar-text">1 unsaved change</p>
+            <div class="ds-savebar__actions">
+              <button class="ds-btn ds-btn--text" type="button" id="discard">Discard</button>
+              <button class="ds-btn ds-btn--primary" type="button" id="save">Save</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div class="ds-toasts" id="toasts"></div>
+
+  <div class="ds-sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+    <div class="ds-sheet__backdrop" data-close></div>
+    <section class="ds-sheet__panel">
+      <div class="ds-sheet__head">
+        <h2 class="ds-sheet__title" id="sheet-title">LAPTOP-0042</h2>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="sheet-close" aria-label="Close" data-close><span data-icon="close" data-size="20"></span></button>
+      </div>
+      <div class="ds-sheet__body" id="sheet-body" tabindex="0"><p>Synced nightly.</p><div class="fx-tall"></div><button class="ds-btn" type="button" id="sheet-last">Last action</button></div>
+      <div class="ds-sheet__foot fx-foot" id="sheet-foot"><button class="ds-btn ds-btn--primary" type="button" id="sheet-save">Save</button></div>
+    </section>
+  </div>
+
+  <dialog class="ds-dialog" id="dialog" aria-labelledby="dialog-title">
+    <div class="ds-dialog__backdrop" data-close></div>
+    <div class="ds-dialog__box" id="dialog-box">
+      <h2 class="ds-dialog__title" id="dialog-title">Delete 3 devices?</h2>
+      <p class="ds-dialog__text">They disappear from every list.</p>
+      <div class="ds-dialog__actions">
+        <button class="ds-btn ds-btn--text" type="button" id="dialog-cancel" data-close autofocus>Cancel</button>
+        <button class="ds-btn ds-btn--primary" type="button" id="dialog-ok">Delete</button>
+      </div>
+    </div>
+  </dialog>
+</div>
+
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  // As a project wires it: the menu opens the modal drawer, the form's
+  // edits show the save bar, Discard and Save hide it.
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+    $('menu').addEventListener('click', function () { DS.overlay.open($('drawer'), { opener: this }); });
+    $('scrim').addEventListener('click', function () { DS.overlay.close($('drawer')); });
+    $('open-sheet').addEventListener('click', function () { DS.overlay.open($('sheet'), { opener: this }); });
+    $('open-dialog').addEventListener('click', function () { DS.overlay.open($('dialog'), { opener: this }); });
+    window.bar = DS.overlay.savebar($('savebar'), { focusTarget: function () { return $('name'); } });
+    $('form').addEventListener('input', function () { window.bar.show(); });
+    $('discard').addEventListener('click', function () { window.bar.hide(); });
+    $('save').addEventListener('click', function () { window.bar.hide(); });
+  }());
+</script>
+</body>
+</html>

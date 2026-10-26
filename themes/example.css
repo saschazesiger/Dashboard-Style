@@ -238,5 +238,9 @@
   --ds-dialog-full-radius: 0;
   --ds-sheet-foot-border: 1px solid var(--ds-line);
   --ds-menu-item-height: 48px;         --ds-combo-option-height: 48px;
+  --ds-toast-action-color: var(--ds-inverse-primary); --ds-toast-close-size: 36px;
+  --ds-savebar-offset: var(--ds-space-4); --ds-savebar-inset: (the page pad, --ds-content-pad-x);
+  --ds-savebar-min-height: 56px;       --ds-savebar-radius: var(--ds-radius-card);
+  --ds-savebar-bg: var(--ds-surface);  --ds-savebar-shadow: var(--ds-elev-overlay);
   */
 }
