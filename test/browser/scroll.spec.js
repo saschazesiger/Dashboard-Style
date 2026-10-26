@@ -182,7 +182,8 @@ test('side sheet: the head hairline follows the body\'s first 8px of scroll, or 
     expect(at[1]).toBeGreaterThan(0.35);
     expect(at[1]).toBeLessThan(0.65);
     expect([at[2], at[3]]).toEqual([1, 1]);
-    expect(await page.locator('#sheet .ds-sheet__panel').getAttribute('data-scrolled')).toBeNull();
+    // DS.overlay.open() watches the body (2.0): data-scrolled is set from the first pixel, yet the timeline draws.
+    expect(await page.locator('#sheet .ds-sheet__panel').getAttribute('data-scrolled')).toBe('');
   } else {
     await load(page);
     await page.evaluate(() => window.fxViews.openSheet(0));
@@ -297,21 +298,26 @@ test('sentinel: scrolling the styleguide view 2000px changes data-scrolled on .d
 
 /* ── 2.0: DS.dom.watchScrolled() and DS.dom.scrollEdges() ─────────── */
 
-test('watchScrolled: a sheet opened twice keeps one sentinel through re-renders; data-scrolled on the panel in every engine (2.0)', async ({ page }) => {
+test('watchScrolled: DS.overlay.open() watches a sheet body; opened twice it keeps one sentinel through re-renders; data-scrolled on the panel in every engine (2.0)', async ({ page }) => {
   await load(page);
   const result = await page.evaluate(async () => {
     const body = document.getElementById('sheet-body');
     const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const counts = [];
+    const auto = [];
     for (let i = 0; i < 2; i += 1) {
       await window.fxViews.openSheet(i);
-      // A page that wires it on every open gets the same watch.
+      // open() watched it (OV-15); a page that still wires it on every open gets the same watch.
+      auto.push(body.querySelectorAll('[data-ds-sentinel]').length);
       DS.dom.watchScrolled(body);
       DS.dom.morphHtml(body, `<p>Record ${i}</p>`.repeat(80));
       counts.push(body.querySelectorAll('[data-ds-sentinel]').length);
       await window.fxViews.closeSheet();
     }
+    // A re-render that drops the sentinel while closed: the next open puts it back.
+    body.textContent = '';
     await window.fxViews.openSheet(0);
+    auto.push(body.querySelectorAll('[data-ds-sentinel]').length);
     body.scrollTop = 120;
     await frames();
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -320,9 +326,50 @@ test('watchScrolled: a sheet opened twice keeps one sentinel through re-renders;
     body.scrollTop = 0;
     await frames();
     await new Promise((resolve) => setTimeout(resolve, 50));
-    return { counts, first: body.firstElementChild.hasAttribute('data-ds-sentinel'), scrolled, back: panel.hasAttribute('data-scrolled') };
+    return { auto, counts, first: body.firstElementChild.hasAttribute('data-ds-sentinel'), scrolled, back: panel.hasAttribute('data-scrolled') };
   });
-  expect(result).toEqual({ counts: [1, 1], first: true, scrolled: true, back: false });
+  expect(result).toEqual({ auto: [1, 1, 1], counts: [1, 1], first: true, scrolled: true, back: false });
+});
+
+test('DS.overlay.open() watches a dialog body: data-scrolled on the box; an empty body (its sentinel aside) takes no room; the lead text keeps its pull-up (2.0)', async ({ page }) => {
+  await load(page);
+  const result = await page.evaluate(async () => {
+    const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+    document.querySelector('.ds-theme').insertAdjacentHTML('beforeend',
+      '<dialog class="ds-dialog" id="watched" aria-labelledby="watched-title"><div class="ds-dialog__backdrop" data-close></div>' +
+      '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="watched-title">Notify people</h2>' +
+      '<div class="ds-dialog__body" id="watched-body"></div>' +
+      '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close>Close</button></div></div></dialog>');
+    const dialog = document.getElementById('watched');
+    const box = dialog.querySelector('.ds-dialog__box');
+    const body = document.getElementById('watched-body');
+    await DS.overlay.open(dialog);
+    const out = { sentinels: body.querySelectorAll(':scope > [data-ds-sentinel]').length, emptyDisplay: getComputedStyle(body).display };
+    let rows = '<p class="ds-dialog__text" id="watched-lead">They get an email.</p>';
+    for (let i = 0; i < 40; i += 1) rows += '<p>Person ' + (i + 1) + '</p>';
+    DS.dom.morphHtml(body, rows);
+    await frames();
+    out.leadMargin = getComputedStyle(document.getElementById('watched-lead')).marginTop;
+    out.first = body.firstElementChild.hasAttribute('data-ds-sentinel');
+    body.scrollTop = 120;
+    await frames();
+    await settle();
+    out.scrolled = box.hasAttribute('data-scrolled');
+    body.scrollTop = 0;
+    await frames();
+    await settle();
+    out.back = box.hasAttribute('data-scrolled');
+    await DS.overlay.close(dialog);
+    dialog.remove();
+    return out;
+  });
+  expect(result.sentinels).toBe(1);
+  expect(result.emptyDisplay).toBe('none');
+  expect(result.first).toBe(true);
+  expect(parseFloat(result.leadMargin)).toBeLessThan(0);
+  expect(result.scrolled).toBe(true);
+  expect(result.back).toBe(false);
 });
 
 test('scrollEdges: overflow at each end follows the scroll, the scrollbar room is reported, destroy() cleans up (2.0)', async ({ page }) => {

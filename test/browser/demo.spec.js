@@ -141,7 +141,7 @@ test('the CSV import takes files from its dialog, uploads each with its progress
   await open(page);
   const csv = (name) => ({ name, mimeType: 'text/csv', buffer: Buffer.from('name,owner\nLAPTOP-0042,Ada Lovelace\n') });
   await page.locator('#csv-zone .ds-dropzone__input').setInputFiles([csv('devices.csv'), csv('owners.csv'), { name: 'photo.png', mimeType: 'image/png', buffer: Buffer.from('png') }]);
-  const rows = page.locator('#csv-files .demo-file');
+  const rows = page.locator('#csv-files .ds-list__item');
   // The accept filter of the input keeps the image out.
   await expect(rows).toHaveCount(2);
   await expect(rows.nth(0)).toContainText('devices.csv');

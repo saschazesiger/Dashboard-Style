@@ -1379,7 +1379,7 @@
     note: '<code>DS.motion.sortable()</code>: drag a row by its grip, or focus the grip and press the arrow keys, Home or End. The dragged row follows the pointer, raised (<code>data-ds-dragging</code>: the dragged state layer and a shadow, nothing scales); whenever it passes the middle of a neighbour the others glide through <code>DS.motion.flip()</code>, and a move during a glide continues from where each row is. The new position is spoken; the read-out shows what <code>onChange</code> got.',
     shows: ['DS.motion.sortable', 'DS.motion.flip', '--ds-state-dragged', '--ds-elev-2', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-slow', '--ds-ease-spatial'],
     html: '<ul class="ds-plain-list sg-sortable" id="sg-lab-sortable">' + SORT_ROWS.map(function (text, index) {
-      return '<li class="sg-sortable__row" data-ds-key="sort-' + index + '"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + text + '">' + icon('menu', 20) + '</button><span>' + text + '</span></li>';
+      return '<li class="sg-sortable__row" data-ds-key="sort-' + index + '"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + text + '">' + icon('grip', 20) + '</button><span>' + text + '</span></li>';
     }).join('') + '</ul>',
     after: readoutHtml('sg-lab-sortable-out', 'Order: 1, 2, 3, 4'),
     height: 220,
@@ -1401,12 +1401,14 @@
 
   function logAppend(stage, count) {
     var log = $('#sg-lab-log', stage);
+    // Lines go before the .ds-jump, the place of the pill, which stays the log's last child.
+    var jump = $('.ds-jump', log);
     for (var i = 0; i < count; i += 1) {
       logLine += 1;
       var line = document.createElement('p');
       line.className = 'sg-log__line';
       line.textContent = 'Row ' + logLine * 37 + ' imported';
-      log.append(line);
+      log.insertBefore(line, jump);
     }
   }
 
@@ -1426,10 +1428,10 @@
     id: 'follow-end',
     group: 'data',
     title: 'A log that follows its end',
-    note: '<code>DS.dom.followEnd()</code>: while the log is at its end, new lines keep it there (a ResizeObserver, nothing polls). Scroll up and it lets go: the "Latest" pill shows (a <code>.ds-presence</code> wrapper), and a click on it goes back to the end, smoothly within one view height, else at once. Replay adds three lines.',
-    shows: ['DS.dom.followEnd', '.ds-presence', '--ds-dur-fast', '--ds-ease-spatial'],
-    html: '<div class="sg-log-demo"><div class="sg-log" id="sg-lab-log" tabindex="0" aria-label="Import log"></div>' +
-      '<div class="sg-log__jump"><span class="ds-presence" id="sg-lab-log-pill" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></span></div></div>',
+    note: '<code>DS.dom.followEnd()</code>: while the log is at its end, new lines keep it there (a ResizeObserver, nothing polls). Scroll up and it lets go: the "Latest" pill shows (a <code>.ds-presence</code> wrapper in <code>.ds-jump</code>, the log\'s last child: sticky above its bottom edge, taking no room), and a click on it goes back to the end, smoothly within one view height, else at once. Replay adds three lines.',
+    shows: ['DS.dom.followEnd', '.ds-jump', '.ds-presence', '--ds-dur-fast', '--ds-ease-spatial'],
+    html: '<div class="sg-log-demo"><div class="sg-log" id="sg-lab-log" tabindex="0" aria-label="Import log">' +
+      '<div class="ds-jump"><div class="ds-presence" id="sg-lab-log-pill" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></div></div></div></div>',
     height: 200,
     setup: function (stage) {
       logAppend(stage, 8);
@@ -1771,7 +1773,7 @@
     note: 'A <code>.ds-dropzone</code> while files are dragged over it (<code>data-ds-dragover</code>, written by <code>DS.dom.dropzone()</code>): it takes the accent with an inset primary edge over <code>--ds-dur-fast</code>, so nothing shifts, and its title crossfades in one cell to say so in words; the old title leaves in <code>--ds-dur-instant</code>. It presses like a radio card. Drop a file on it, or Replay.',
     shows: ['--ds-dropzone-border', '--ds-radius-card-pressed', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-micro', '--ds-ease-in-out', '--ds-ease-spatial'],
     html: '<label class="ds-dropzone sg-lab-dropzone"><input class="ds-dropzone__input" type="file" accept=".csv" multiple>' +
-      '<span class="ds-dropzone__disc" aria-hidden="true">' + icon('plus', 24) + '</span>' +
+      '<span class="ds-dropzone__disc" aria-hidden="true">' + icon('upload', 24) + '</span>' +
       '<span class="ds-dropzone__title"><span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span><span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span></span>' +
       '<span class="ds-dropzone__hint">Up to 10 MB each</span></label>',
     after: readoutHtml('sg-lab-dropzone-out', 'No file yet.'),
@@ -2262,8 +2264,8 @@
     id: 'segmented',
     group: 'navigation',
     title: 'Segmented switch',
-    note: 'The tint glides between the options on the spring (<code>DS.indicator</code>) and the labels change colour while it arrives; the current option is also set in the label weight, and data-label keeps the width of the heavier weight, so the switch never changes width. The second switch is a mode of the same page: buttons (role="radio", aria-checked) under the same pill.',
-    shows: ['DS.indicator.createIndicator', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in-out'],
+    note: 'The tint glides between the options on the spring (<code>DS.indicator</code>) and the labels change colour while it arrives; the current option is also set in the label weight, and data-label keeps the width of the heavier weight, so the switch never changes width. The second switch is a mode of the same page: buttons (role="radio", aria-checked) under the same pill, one tab stop whose arrow keys, Home and End move and choose (<code>DS.dom.roving()</code>).',
+    shows: ['DS.indicator.createIndicator', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in-out'],
     html: '<div class="sg-lab-segmented-pair"><nav class="ds-segmented sg-lab-segmented" aria-label="Mode">' + MODES.map(function (mode, index) {
       return '<a class="ds-segmented__option" href="#navigation" data-label="' + mode + '"' + (index ? '' : ' aria-current="true"') + '>' + mode + '</a>';
     }).join('') + '</nav>' +
@@ -2276,6 +2278,8 @@
       var group = $('div.ds-segmented', stage);
       sg.indicator(nav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
       sg.indicator(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+      // One tab stop: the arrow keys click the next option, which the click handler below chooses.
+      DS.dom.roving(group);
       stage.addEventListener('click', function (event) {
         var option = event.target.closest('.ds-segmented__option');
         if (!option) return;
@@ -2315,8 +2319,8 @@
     id: 'tabs',
     group: 'navigation',
     title: 'Tabs',
-    note: 'The bar under the selected tab is the indicator: it stretches toward its target and lands on the spring, and the labels change colour as it arrives (the weight switches at once, data-label keeps the width). The new panel enters with <code>.ds-enter--swap</code>; a press morphs the pill inside the tab.',
-    shows: ['DS.indicator.createIndicator', '.ds-tabs__indicator', '.ds-enter--swap', 'DS.motion.enter', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
+    note: 'The bar under the selected tab is the indicator: it stretches toward its target and lands on the spring, and the labels change colour as it arrives (the weight switches at once, data-label keeps the width). The new panel enters with <code>.ds-enter--swap</code>; a press morphs the pill inside the tab. The tab list is one tab stop (<code>DS.dom.roving()</code>): the arrow keys, Home and End select as they move.',
+    shows: ['DS.indicator.createIndicator', '.ds-tabs__indicator', '.ds-enter--swap', 'DS.motion.enter', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
     html: '<div class="sg-lab-tabs"><div class="ds-tabs" role="tablist" aria-label="Device">' + TAB_NAMES.map(function (name, index) {
       return '<button class="ds-tabs__tab" role="tab" type="button" id="sg-lab-tab-' + index + '" aria-selected="' + (index === 0) + '" aria-controls="sg-lab-tabpanel-' + index + '"' + (index ? ' tabindex="-1"' : '') + ' data-label="' + name + '">' + name + '</button>';
     }).join('') + '</div>' + TAB_NAMES.map(function (name, index) {
@@ -2327,6 +2331,7 @@
     setup: function (stage, sg) {
       var tabs = $('.ds-tabs', stage);
       sg.indicator(tabs, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator' });
+      DS.dom.roving(tabs);
       tabs.addEventListener('click', function (event) {
         var tab = event.target.closest('[role="tab"]');
         if (tab) tabTo(stage, $$('[role="tab"]', stage).indexOf(tab), sg);
@@ -3992,15 +3997,14 @@
     group: 'views',
     title: 'Sideways strip',
     note: 'A strip wider than its panel (<code>.ds-scroll-x</code>) fades at each end that still has months to show: <code>ds-scroll-edge-start</code> grows the start fade while the first <code>--ds-space-8</code> scroll away, <code>ds-scroll-edge-end</code> takes the end fade away over the last, on the strip\'s own scroll timeline. Without scroll timelines <code>DS.dom.scrollEdges()</code> sets the same two numbers through <code>data-ds-overflow-start</code> and <code>-end</code>, over <code>--ds-dur-fast</code>. Replay scrolls to the end and back.',
-    // DS.dom.scrollEdges (2.0, js/dom.js) is named where the export exists.
-    shows: ['.ds-scroll-x', 'ds-scroll-edge-start', 'ds-scroll-edge-end', '--ds-dur-fast', '--ds-ease-in-out'].concat(DS.dom.scrollEdges ? ['DS.dom.scrollEdges'] : []),
+    shows: ['.ds-scroll-x', 'ds-scroll-edge-start', 'ds-scroll-edge-end', 'DS.dom.scrollEdges', '--ds-dur-fast', '--ds-ease-in-out'],
     html: '<div class="ds-scroll-x" tabindex="0" role="region" aria-label="Check-ins per month"><div class="sg-months">' + MONTHS.map(function (month, index) {
       return '<div class="sg-month"><span class="ds-meta">' + month + '</span><strong>' + (380 + ((index * 53) % 120)) + '</strong></div>';
     }).join('') + '</div></div>',
     height: 120,
     setup: function (stage) {
-      // The attribute fallback, where the export exists (DS.dom.scrollEdges, 2.0).
-      if (DS.dom.scrollEdges) DS.dom.scrollEdges($('.ds-scroll-x', stage));
+      // The attribute fallback of the scroll timeline.
+      DS.dom.scrollEdges($('.ds-scroll-x', stage));
     },
     play: function (stage, sg) {
       return stripTo(stage, 'end', sg).then(function () { return wait(sg, 300); }).then(function () { return stripTo(stage, 'start', sg); });

@@ -15,8 +15,8 @@
  *   feedback        progress with its figure, a status that changes, alerts
  *                   that come and go (flip)
  *   forms           validation on submit, a combobox, busy and done; a CSV
- *                   import (DS.dom.dropzone, a list of files through flip,
- *                   DS.dom.progress per file)
+ *                   import (DS.dom.dropzone, a .ds-list of files through
+ *                   flip, each with its progress)
  *   theme           theme.js: the choice restyles the page and shows its file
  *   icons           the set, filtered with flip, copied on click
  *
@@ -508,7 +508,6 @@
   const sheet = $('#sheet');
   const sheetBody = $('#sheet-body');
   let sheetId = null;
-  DS.dom.watchScrolled(sheetBody);
 
   function sheetHtml(device) {
     return `<p class="ds-meta">${esc(device.type)} · ${esc(device.model)}</p>` +
@@ -783,15 +782,16 @@
   const csvList = $('#csv-files');
   const csvZone = $('#csv-zone');
 
-  /* A row per file: its name, its upload progress (the share in the
-     template, so a re-render keeps it) and a remove button. */
+  /* A row of the list (.ds-list) per file: its name and state, its upload
+     progress (the share in the template, so a re-render keeps it) and a
+     remove button. */
   function csvHtml() {
     return csv.files.map((file) => {
       const percent = Math.round(file.share * 100);
-      return `<li class="demo-file" data-ds-key="${file.id}">${icon('fileText', 20)}<span class="demo-file__name">${esc(file.name)}</span>` +
+      return `<li class="ds-list__item" data-ds-key="${file.id}">${icon('fileText', 20, 'ds-list__icon')}` +
+        `<span class="ds-list__text"><span class="ds-list__title">${esc(file.name)}</span><span class="ds-list__meta">${percent === 100 ? 'Uploaded' : `${percent}%`}</span></span>` +
         `<div class="ds-progress ds-progress--flat demo-file__progress" style="--ds-progress: ${file.share}"><div class="ds-progress__track" role="progressbar" aria-label="Upload of ${esc(file.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><div class="ds-progress__bar"></div></div></div>` +
-        `<span class="ds-meta demo-file__state">${percent === 100 ? 'Uploaded' : `${percent}%`}</span>` +
-        `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove ${esc(file.name)}" data-tip="Remove" data-remove="${file.id}">${icon('close', 20)}</button></li>`;
+        `<span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove ${esc(file.name)}" data-tip="Remove" data-remove="${file.id}">${icon('close', 20)}</button></span></li>`;
     }).join('');
   }
   const renderCsv = () => M.flip(csvList, (morph) => DS.dom.morphHtml(csvList, csvHtml(), morph), { refocus: () => $('.ds-dropzone__input', csvZone) });

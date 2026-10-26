@@ -102,8 +102,9 @@
  *
  * Parts: .ds-dialog__body (with a title above and actions below, it is the
  * one part that scrolls: the box turns into a flex column; it shows a top
- * hairline while scrolled, data-scrolled on the box; at a window 320px
- * high or less the box scrolls instead, WCAG 1.4.10; empty, it takes no
+ * hairline while scrolled, data-scrolled on the box, which DS.overlay.open()
+ * keeps through DS.dom.watchScrolled(); at a window 320px high or less the
+ * box scrolls instead, WCAG 1.4.10; empty, its sentinel aside, it takes no
  * room, nor do empty actions), .ds-dialog__head (the full-screen top bar:
  * a close icon button with data-close, the title, an optional text button)
  * and .ds-dialog__list (.ds-menu__item rows full bleed in the box;
@@ -462,7 +463,9 @@
     outline-offset: calc(-1 * var(--ds-focus-width));
   }
 
-  .ds-dialog__title + .ds-dialog__body > .ds-dialog__text:first-child {
+  /* The sentinel of DS.dom.watchScrolled() (DS.overlay.open() adds it) comes first. */
+  .ds-dialog__title + .ds-dialog__body > .ds-dialog__text:first-child,
+  .ds-dialog__title + .ds-dialog__body > [data-ds-sentinel]:first-child + .ds-dialog__text {
     margin-top: calc(-1 * var(--ds-space-2));
   }
 
@@ -472,6 +475,7 @@
   }
 
   .ds-dialog__body:empty,
+  .ds-dialog__body:has(> [data-ds-sentinel]:only-child),
   .ds-dialog__actions:empty {
     display: none;
   }

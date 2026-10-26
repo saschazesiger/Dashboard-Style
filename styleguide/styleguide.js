@@ -1313,13 +1313,13 @@
       card('Files', label('The file field (.ds-input[type="file"]) and a drop zone (.ds-dropzone, DS.dom.dropzone): drop, browse or paste') +
         '<div class="ds-stack"><div class="ds-field"><label class="ds-field__label" for="sg-file">Photo</label><input class="ds-input" type="file" id="sg-file" accept="image/*"></div>' +
         '<label class="ds-dropzone" id="sg-dropzone"><input class="ds-dropzone__input" type="file" accept=".csv" multiple>' +
-        '<span class="ds-dropzone__disc" aria-hidden="true">' + icon('plus', 24) + '</span>' +
+        '<span class="ds-dropzone__disc" aria-hidden="true">' + icon('upload', 24) + '</span>' +
         '<span class="ds-dropzone__title"><span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span><span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span></span>' +
         '<span class="ds-dropzone__hint">Up to 10 MB each</span></label>' +
         '<p class="ds-muted" id="sg-dropzone-out" aria-live="polite">No file chosen yet.</p></div>') +
       card('Reorder rows', label('A grip per row (.ds-grip) and DS.motion.sortable(): drag the grip, or focus it and press the arrow keys') +
         '<ul class="ds-plain-list sg-sortable" id="sg-sortable">' + ['Back up the database', 'Update the agents', 'Restart the gateways', 'Send the report'].map(function (text, index) {
-          return '<li class="sg-sortable__row" data-ds-key="step-' + index + '"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + text + '">' + icon('menu', 20) + '</button><span>' + text + '</span></li>';
+          return '<li class="sg-sortable__row" data-ds-key="step-' + index + '"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + text + '">' + icon('grip', 20) + '</button><span>' + text + '</span></li>';
         }).join('') + '</ul>' +
         '<p class="ds-muted" id="sg-sortable-out">Order: 1, 2, 3, 4</p>') +
       '</div>' +
@@ -2494,7 +2494,8 @@
 
     // data-scrolled (DS.dom.watchScrolled): the fallback of the scroll-driven hairlines and the top bar's tint.
     DS.dom.watchScrolled(view, app);
-    $$('.ds-sheet__panel').forEach(function (panel) { DS.dom.watchScrolled($('.ds-sheet__body', panel), panel); });
+    // The inline sheets of the page are never opened through DS.overlay, which watches the others.
+    $$('.ds-sheet__panel').forEach(function (panel) { DS.dom.watchScrolled($('.ds-sheet__body', panel)); });
     view.addEventListener('scroll', function () {
       if (navigating && !('onscrollend' in view)) waitForQuiet();
     }, { passive: true });
@@ -2538,6 +2539,8 @@
   function setupFrameParts() {
     var buttons = $('#sg-segmented-buttons');
     addIndicator(buttons, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+    // One tab stop: the arrow keys, Home and End click the option they move to (Chart, aria-disabled, takes only the focus).
+    DS.dom.roving(buttons);
     buttons.addEventListener('click', function (event) {
       var option = event.target.closest('.ds-segmented__option');
       if (!option || option.getAttribute('aria-disabled') === 'true') return;
@@ -2562,6 +2565,7 @@
 
     var tabs = $('#sg-tabs');
     addIndicator(tabs, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true });
+    DS.dom.roving(tabs);
     tabs.addEventListener('click', function (event) {
       var tab = event.target.closest('[role="tab"]');
       if (!tab || tab.getAttribute('aria-disabled') === 'true' || tab.getAttribute('aria-selected') === 'true') return;
@@ -2679,9 +2683,7 @@
       overlay = shownOverlays[name] = holder.firstChild;
       document.body.appendChild(overlay);
       $$('[data-sg-combo]', overlay).forEach(setupCombo);
-      $$('.ds-sheet__panel', overlay).forEach(function (panel) { DS.dom.watchScrolled($('.ds-sheet__body', panel), panel); });
-      // A dialog body that scrolls: the hairline on the box while it is scrolled.
-      $$('.ds-dialog__body[data-sg-scrolled]', overlay).forEach(function (body) { DS.dom.watchScrolled(body, body.parentNode); });
+      // Sheet and dialog bodies: DS.overlay.open() watches them (data-scrolled on the panel or box).
       if (wire) wire(overlay);
       new MutationObserver(function (records, observer) {
         if (overlay.hasAttribute('data-state')) return;
@@ -3304,7 +3306,8 @@
     DS.overlay.tooltips(document);
     $$('#sg-page [data-sg-combo]').forEach(setupCombo);
     $$('#sg-page [data-sg-select]').forEach(setupSelectCombo);
-    $$('#sg-page .ds-dialog__body[data-sg-scrolled]').forEach(function (body) { DS.dom.watchScrolled(body, body.parentNode); });
+    // The contained dialog shown inline (never opened through DS.overlay, which watches the others).
+    $$('#sg-page .ds-dialog__body[data-sg-scrolled]').forEach(function (body) { DS.dom.watchScrolled(body); });
     setupMenus();
     setupFiles();
     setupForms();

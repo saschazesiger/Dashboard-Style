@@ -243,6 +243,7 @@
  *   ring stays as WebKit draws it.
  */
 import { busy, flip, motionDuration, originFrom, settled, transition } from './motion.js';
+import { watchScrolled } from './dom.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';
 
 /** How long a snackbar stays (ms) before its length adds time; --ds-time-scale stretches it. */
@@ -1019,6 +1020,21 @@ function wireDialogList(dialog) {
   });
 }
 
+/**
+ * data-scrolled on the box or panel while a dialog or sheet body is
+ * scrolled (the head's or body's hairline): DS.dom.watchScrolled() on
+ * every .ds-dialog__body and .ds-sheet__body of this overlay (not of one
+ * nested in it), once per body (a page's own call keeps its handle). On a
+ * later open, update() puts back a sentinel that a re-render took away.
+ */
+function watchBodies(element) {
+  for (const body of element.querySelectorAll?.('.ds-dialog__body, .ds-sheet__body') ?? []) {
+    if (body.closest('.ds-dialog, .ds-sheet') !== element) continue;
+    const handle = watchScrolled(body);
+    if (!body.querySelector(':scope > [data-ds-sentinel]')) handle.update();
+  }
+}
+
 /** The item ArrowUp, ArrowDown, Home or End moves to among `items` (wrapping), or null for another key. */
 function arrowTarget(items, event) {
   if (!items.length || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return null;
@@ -1630,7 +1646,10 @@ function dropDetached() {
  * Focus moves at once to [autofocus], else the first focusable element
  * (a menu: its first enabled item; a combobox keeps focus in its input;
  * the drawer: itself). A close in progress is taken back from where its
- * motion is. Resolves when the entrance has settled.
+ * motion is. Resolves when the entrance has settled. A dialog's or
+ * sheet's .ds-dialog__body / .ds-sheet__body is watched on its first open
+ * (DS.dom.watchScrolled(): data-scrolled on the box or panel), so the
+ * page needs no recipe for the scrolled hairline.
  *
  * `container: true` (a closed dialog or side sheet, with View Transitions
  * and .ds-theme on <html>): the opener grows into the box or panel as a
@@ -1744,6 +1763,7 @@ function show(element, options, transform) {
   pruneDetached();
   listen(doc);
   wire(element, state);
+  if (kind === 'dialog' || kind === 'sheet') watchBodies(element);
   let reopening = state.phase === 'closing';
   // Reopened mid-exit from another trigger (one menu for every row): the
   // placement, origin, aria-expanded and claims belong to the previous

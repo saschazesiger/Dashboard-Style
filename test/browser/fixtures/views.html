@@ -19,8 +19,9 @@
      side sheet with previous/next and Refresh, a snackbar region (#toasts). The first destination scrolls
      and holds a wide table (#wide), a table that fits (#narrow) and a
      .ds-reveal--scroll block below the fold (#reveal). A 1px sentinel sets
-     data-scrolled on .ds-app and the sheet panel (DS.dom.watchScrolled);
-     ?observe=0 leaves it out, so only scroll timelines draw. -->
+     data-scrolled on .ds-app (DS.dom.watchScrolled) and, through
+     DS.overlay.open(), on the sheet panel; ?observe=0 leaves the view's out,
+     so only scroll timelines draw there. -->
 <div class="ds-app ds-app--drawer" id="app">
   <div class="ds-topbar" id="topbar">
     <a class="ds-brand" href="#overview"><span class="ds-brand__name">Product</span></a>
@@ -222,10 +223,7 @@
     document.getElementById('sheet-prev').addEventListener('click', function () { window.fxViews.step(-1); });
     document.getElementById('sheet-next').addEventListener('click', function () { window.fxViews.step(1); });
     document.getElementById('ping').addEventListener('click', function () { pings += 1; });
-    if (new URLSearchParams(location.search).get('observe') !== '0') {
-      DS.dom.watchScrolled(view);
-      DS.dom.watchScrolled(body);
-    }
+    if (new URLSearchParams(location.search).get('observe') !== '0') DS.dom.watchScrolled(view);
   }());
 </script>
 </body>

@@ -79,12 +79,13 @@
  * Container transform (opt-in): DS.overlay.open(sheet, { opener: row,
  * container: true }) grows the row into the panel (js/overlay.js).
  *
- * Set data-scrolled on the panel while its body is scrolled: the head's
+ * data-scrolled on the panel while its body is scrolled: the head's
  * hairline shows then (where scroll timelines exist it follows the body's
- * scroll by itself). Set it from an IntersectionObserver on a 1px
- * sentinel at the top of the body (docs/components.md, Side sheet), not
- * from a scroll listener. Do not use <header> in the head: outside main
- * content it would be a second banner landmark.
+ * scroll by itself). DS.overlay.open() sets it through
+ * DS.dom.watchScrolled(body) (a 1px sentinel at the top of the body, never
+ * a scroll listener); a sheet shown without DS.overlay calls it once. Do
+ * not use <header> in the head: outside main content it would be a second
+ * banner landmark.
  *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px),
  * --ds-sheet-foot-border (1px solid --ds-line).

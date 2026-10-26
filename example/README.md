@@ -40,7 +40,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Row menu (`DS.overlay`, keyboard included) | Devices | `toggleMenu()`, the `rowMenu` listener |
 | Confirm dialog built by `DS.overlay.confirm()` (busy with `onConfirm`, open until the backend answered), then undo in a snackbar (`toast()` with `action`) | Devices | `confirmDelete()`, `deleteDevices()`, `undoToast()` |
 | Side sheet, previous and next (`transition()` forward and back), live refresh without a transition | Devices | `openSheet()`, `stepSheet()`, `poll()` |
-| Tabs in the sheet (Details, History): ARIA tabs, the gliding bar (`createIndicator()`), the panel entering with swap, arrow keys | Devices | `sheetHtml()`, `selectSheetTab()` |
+| Tabs in the sheet (Details, History): ARIA tabs, the gliding bar (`createIndicator()`), the panel entering with swap, arrow keys (`DS.dom.roving()`) | Devices | `sheetHtml()`, `selectSheetTab()` |
 | Expandable rows (`aria-expanded`, `inert`) | Tickets | `ticketRowsHtml()`, the `data-toggle-ticket` click |
 | Dialog with a form, validation on submit (the count said with `DS.overlay.announce()`), combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |
 | Switches that apply at once | Settings | the `data-setting` change |

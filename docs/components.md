@@ -788,8 +788,8 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
   changes colour on the pill's timing (`--ds-indicator-dur`).
 - `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why. `disabled` and
-  `aria-busy="true"` block the pointer. Blocked for every input (2.0): once `DS.motion.busy()` ran, or
-  `DS.motion.guard()` was called once ([motion.md](motion.md#dsmotion-jsmotionjs)), a click, middle click, Enter,
+  `aria-busy="true"` block the pointer. Blocked for every input (2.0): once `DS.ripple.attach()` or `DS.motion.busy()` ran,
+  or `DS.motion.guard()` was called once ([motion.md](motion.md#dsmotion-jsmotionjs)), a click, middle click, Enter,
   Space or form submission on a busy or done `.ds-btn`, or on any `aria-disabled="true"` action inside `.ds-theme`,
   never reaches your listeners: no page guard needed. A control that must explain itself on click gets
   `data-ds-guard="off"`. Forced colours: `GrayText`.
@@ -2520,9 +2520,10 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
 A dialog whose content can be taller than the window (a form, a long list) puts it in `.ds-dialog__body`: the box
 turns into a column, only the body scrolls, and title and actions stay in view. The body reaches 12px into the box's
 padding (focus rings and the halos of checks are never clipped) and shows a hairline at its top while it is scrolled
-(`data-scrolled` on the box, which `DS.dom.watchScrolled()` sets). A body that scrolls with nothing focusable in it
+(`data-scrolled` on the box: `DS.overlay.open()` watches every body with `DS.dom.watchScrolled()` on its first open,
+2.0; a dialog shown without `DS.overlay` calls `DS.dom.watchScrolled(body)` once). A body that scrolls with nothing focusable in it
 gets `tabindex="0"`, `role="region"` and a name, so the keyboard can scroll it (an inset ring). In a window 320px high
-or less the box scrolls as one instead (WCAG 1.4.10). An empty body or empty actions take no room. A lone `.ds-btn`
+or less the box scrolls as one instead (WCAG 1.4.10). An empty body (its sentinel aside) or empty actions take no room. A lone `.ds-btn`
 directly in the body keeps its own width.
 
 ```html
@@ -2742,9 +2743,10 @@ from the bottom and falls back down. A strip of the panel's background past its 
 overshoot, so the scrim never shows at the screen edge. By hand, close it like the dialog with `.ds-sheet--closing`
 (`DS.motion.settled(panel)`, then hide and remove the class in one task): the panel lets clicks through while it
 leaves, the backdrop swallows them until the sheet is hidden. The `hidden` attribute hides the div sheet without
-`.ds-base` too. Set `data-scrolled` on the panel while the body is scrolled (the head's hairline appears) with
-`DS.dom.watchScrolled(body)` (2.0): it writes the attribute on the `.ds-sheet__panel`, and its sentinel takes the
-body's gap back by itself and stays through a record swap with `DS.dom.morphHtml(body, html)`. Where
+`.ds-base` too. While the body is scrolled the panel carries `data-scrolled` (the head's hairline appears):
+`DS.overlay.open()` watches the body with `DS.dom.watchScrolled(body)` on its first open (2.0; a sheet shown without
+`DS.overlay` calls it once). It writes the attribute on the `.ds-sheet__panel`, and its sentinel takes the body's gap
+back by itself and stays through a record swap with `DS.dom.morphHtml(body, html)`. Where
 scroll timelines exist the hairline follows the body's scroll by itself, over the first `--ds-space-2`: the body
 names its timeline `--ds-sheet-scroll` and the panel scopes it to the head (progressive: `timeline-scope`). Use a
 `<div>` for the head, not `<header>` (a second banner landmark).
@@ -3198,7 +3200,7 @@ Meters, columns and legends (2.0), drawn from the chart roles ([tokens.md](token
 ```html
 <label class="ds-dropzone">
   <input class="ds-dropzone__input" type="file" accept=".csv" multiple>
-  <span class="ds-dropzone__disc" aria-hidden="true">[icon plus 24]</span>
+  <span class="ds-dropzone__disc" aria-hidden="true">[icon upload 24]</span>
   <span class="ds-dropzone__title">
     <span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span>
     <span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span>
@@ -3226,8 +3228,23 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*' });              
 - **The file field** `.ds-input[type="file"]`: the field box, the chosen file's name in `--ds-text-2`, and the browser's
   button as a small tonal pill (`--ds-accent`, 32px) with the hover and press mixed into its fill and the press
   morph. It has no ripple (a native field part).
-- **The chosen files** are the page's: a list of rows with a `.ds-progress` and a remove button each, rendered through
-  `DS.motion.flip()` (a removed row fades out, focus moves to the next remove button).
+- **The chosen files** are the page's: a [Row list](#row-list) (`.ds-list`, without `--interactive`) with a
+  `.ds-progress` and a remove button in each row, rendered through `DS.motion.flip()` (a removed row fades out, focus
+  moves to the next remove button). The bar has no width of its own in a row: give it its share in the page's CSS
+  (`flex: 0 1 160px; min-width: 80px`).
+
+```html
+<ul class="ds-list" aria-label="Chosen files">
+  <li class="ds-list__item" data-ds-key="f1">[icon fileText 20 .ds-list__icon]
+    <span class="ds-list__text"><span class="ds-list__title">devices.csv</span><span class="ds-list__meta">30%</span></span>
+    <div class="ds-progress ds-progress--flat" style="--ds-progress: 0.3">
+      <div class="ds-progress__track" role="progressbar" aria-label="Upload of devices.csv" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30"><div class="ds-progress__bar"></div></div>
+    </div>
+    <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove devices.csv" data-tip="Remove">[icon close 20]</button></span>
+  </li>
+</ul>
+```
+
 - **Forced colours**: a dashed `ButtonText` edge (`Highlight` while dragged over), the file button in `ButtonFace` /
   `ButtonText` with a `ButtonText` border, a page's drop target outlined in `Highlight`.
 
@@ -3239,7 +3256,7 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*' });              
 ```html
 <ul class="ds-plain-list" id="steps">
   <li class="ex-step" data-ds-key="a">
-    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Backup">[icon menu 20]</button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Backup">[icon grip 20]</button>
     Backup
   </li>
   ...

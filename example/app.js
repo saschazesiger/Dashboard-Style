@@ -1071,7 +1071,6 @@
   DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
   /* data-scrolled from a 1px sentinel (DS.dom.watchScrolled, docs/components.md, App frame). */
   DS.dom.watchScrolled(view);
-  DS.dom.watchScrolled(sheetBody);
 
   menuButton.addEventListener('click', () => {
     if (app.hasAttribute('data-drawer-open')) DS.overlay.close(drawer);
@@ -1294,19 +1293,10 @@
     if (button.getAttribute('data-sheet') === 'ticket') openTicketDialog(button, state.sheetId);
   });
 
-  // Arrow keys, Home and End move between the tabs and select (automatic activation).
-  sheetBody.addEventListener('keydown', (event) => {
-    const tab = event.target.closest('[role="tab"]');
-    if (!tab) return;
-    const tabs = $$('[role="tab"]', sheetBody);
-    const at = tabs.indexOf(tab);
-    const to = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: tabs.length - 1 }[event.key];
-    if (to === undefined) return;
-    event.preventDefault();
-    const next = tabs[(to + tabs.length) % tabs.length];
-    selectSheetTab(next.getAttribute('data-tab'));
-    next.focus();
-  });
+  // Arrow keys, Home and End move between the tabs and select (automatic
+  // activation: DS.dom.roving() clicks the tab, the click handler above
+  // selects it). Delegated on the body, so the re-rendered tabs keep it.
+  DS.dom.roving(sheetBody, { items: '[role="tab"]' });
 
   ticketForm.addEventListener('submit', (event) => {
     event.preventDefault();
