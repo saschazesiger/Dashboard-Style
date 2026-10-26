@@ -1369,6 +1369,9 @@
   .ds-check-list {
     position: relative;
     display: grid;
+    /* Rows keep their content's height in a box shorter than they are (an
+       auto row would shrink to the row's min-height there). */
+    grid-auto-rows: max-content;
     max-height: var(--ds-check-list-max-height, 264px);
     overflow-y: auto;
     border: 1px solid var(--ds-line);
@@ -1427,8 +1430,9 @@
    * pops from --ds-scale-small on the spring and fades in; it leaves faster,
    * accelerating. With the documented indicator
    * (createIndicator(group, { active: '.ds-radio:has(input:checked)',
-   * className: 'ds-radios__indicator' })) the tint is a pill that glides
-   * from tile to tile; the ring and the check change at once.
+   * className: 'ds-radios__indicator' }), and its update() on the group's
+   * change event) the tint is a pill that glides from tile to tile; the
+   * ring and the check change at once.
    */
   .ds-radios--tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));

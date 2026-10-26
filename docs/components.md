@@ -985,7 +985,8 @@ spring) on the checked tile, which keeps the card's ring; keyboard focus rings t
 morph (`--ds-radius-card-pressed`). For a tint that glides from tile to tile, add the indicator once:
 
 ```js
-DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+const pill = DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+group.addEventListener('change', () => pill.update()); // checking a radio changes no attribute
 ```
 
 **Slider**

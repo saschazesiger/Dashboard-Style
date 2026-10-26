@@ -617,7 +617,146 @@
         '<div class="ds-field"><label class="ds-field__label" for="f-since">Since</label><input class="ds-input ds-input--filled" id="f-since" type="date"></div>' +
         '</div></div>' +
         '<div class="ds-action-bar"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div><button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-sg="toggle">' + icon('filter', 16) + 'Filter</button><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 16) + 'Add</button><p class="ds-meta">128 devices</p></div>' +
-        '<div class="ds-inline-form"><div class="ds-field"><label class="ds-field__label" for="f-ticket">Ticket number</label><input class="ds-input" id="f-ticket" placeholder="12345"></div><button class="ds-btn" type="button">Look up</button></div>'));
+        '<div class="ds-inline-form"><div class="ds-field"><label class="ds-field__label" for="f-ticket">Ticket number</label><input class="ds-input" id="f-ticket" placeholder="12345"></div><button class="ds-btn" type="button">Look up</button></div>') +
+      formParts());
+  }
+
+  /* A glyph of the set, or a stand-in until the set has it. */
+  function glyph(name, fallback) { return I[name] ? name : fallback; }
+
+  /* The form parts of 2.0: hints, markers, the search key, field rows and
+     input groups, the filled field, check lists and groups, editing in
+     rows, radio tiles, the slider, the composer. setupForms() wires them. */
+  function formParts() {
+    var check = function (text, count, checked) {
+      return '<label class="ds-check"><input type="checkbox" name="sg-status"' + (checked ? ' checked' : '') + '><span>' + text + '</span><span class="ds-check__count">' + count + '</span></label>';
+    };
+    var tile = function (value, name, note, glyphName, checked) {
+      return '<label class="ds-radio"><input type="radio" name="sg-kind" value="' + value + '"' + (checked ? ' checked' : '') + '><span class="ds-radio__icon" aria-hidden="true">' + icon(glyphName, 20) + '</span>' +
+        '<span><strong>' + name + '</strong><small>' + note + '</small></span><span class="ds-radio__mark" aria-hidden="true">' + icon('check', 14) + '</span></label>';
+    };
+    return '<div class="ds-grid-2">' +
+      card('Hints, markers and a counter', '<p class="ds-muted">Type a name: the hint confirms it (or says it is taken) and its room opens. Optional fields say so; the counter follows the note.</p>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-user">Username <span class="ds-field__required" aria-hidden="true">*</span></label><input class="ds-input" id="sg-user" required autocomplete="off" placeholder="ada.lovelace" data-sg="live-check" aria-describedby="sg-user-hint"><small class="ds-field__hint" id="sg-user-hint"></small></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-room">Room <span class="ds-field__optional">(optional)</span></label><input class="ds-input" id="sg-room" aria-describedby="sg-room-hint"><small class="ds-field__hint" id="sg-room-hint">' + icon('info', 16) + 'As written on the door.</small></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-note-count">Note</label><textarea class="ds-input" id="sg-note-count" maxlength="80" data-sg="counter" aria-describedby="sg-note-count-hint"></textarea><div class="ds-field__foot"><small class="ds-field__hint" id="sg-note-count-hint">Shown to the next person.</small><span class="ds-field__counter" aria-hidden="true">0 / 80</span></div></div>') +
+      card('Search key, field rows and input groups', label('A search with its key (press / to focus it)') +
+        '<div class="ds-search">' + icon('search', 20) + '<input class="ds-input" id="sg-search-key" type="search" aria-label="Search devices" aria-keyshortcuts="/" placeholder="Search devices"><kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-api-key">API key</label><div class="ds-field__row"><input class="ds-input" id="sg-api-key" value="ex_7f3a9c21d4e8" readonly><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" data-tip="Copy the key" data-sg="copy"><span class="ds-icon-swap">' + icon('copy', 20) + '</span></button></div></div>' +
+        '<div class="ds-form-grid--2 ds-form-grid"><div class="ds-field"><label class="ds-field__label" for="sg-quota">Quota (GB)</label><div class="ds-input-group"><input class="ds-input" id="sg-quota" inputmode="numeric" value="50"><span class="ds-input-group__affix" aria-hidden="true">GB</span></div></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-site">Website</label><div class="ds-input-group"><span class="ds-input-group__affix" aria-hidden="true">https://</span><input class="ds-input" id="sg-site" value="example.org" aria-invalid="true" aria-describedby="sg-site-error"></div><small class="ds-field__hint ds-field__hint--error" id="sg-site-error">' + icon('alertCircle', 16) + 'Not reachable.</small></div></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-password">Password</label><div class="ds-input-group"><input class="ds-input" id="sg-password" type="password" value="correct horse" autocomplete="off"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="sg-password" data-sg="reveal"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon(glyph('eye', 'lock'), 18) + '</span><span class="ds-icon-swap__b">' + icon(glyph('eyeOff', 'key'), 18) + '</span></span></button></div></div>' +
+        '<div class="ds-form-grid--2 ds-form-grid"><div class="ds-field"><label class="ds-field__label" for="sg-start">Starts</label><input class="ds-input" id="sg-start" type="datetime-local" value="2025-03-12T09:30"></div><div class="ds-field"><label class="ds-field__label" for="sg-time">Daily at</label><input class="ds-input" id="sg-time" type="time" value="02:30"></div></div>') +
+      card('Filled field', '<p class="ds-muted">The label sits in the tonal box; the focus is a 2px line at its bottom.</p>' +
+        '<div class="ds-field ds-field--inset"><label class="ds-field__label" for="sg-inset-title">Title</label><input class="ds-input" id="sg-inset-title" value="Quarterly report" aria-describedby="sg-inset-title-hint"><small class="ds-field__hint" id="sg-inset-title-hint">Shown in the list.</small></div>' +
+        '<div class="ds-field ds-field--inset"><label class="ds-field__label" for="sg-inset-kind">Kind</label><select class="ds-input" id="sg-inset-kind"><option>Report</option><option>Note</option></select></div>' +
+        '<div class="ds-field ds-field--inset"><label class="ds-field__label" for="sg-inset-code">Code</label><input class="ds-input" id="sg-inset-code" value="Q1 25" aria-invalid="true" aria-describedby="sg-inset-code-error"><small class="ds-field__hint ds-field__hint--error" id="sg-inset-code-error">' + icon('alertCircle', 16) + 'Letters and digits only.</small></div>') +
+      card('Check list and check group', '<div class="ds-stack"><fieldset class="ds-field"><legend class="ds-field__label">Status</legend><div class="ds-check-list">' +
+        check('Active', 47, true) + check('In storage', 12) + check('Lent out', 8) + check('In repair', 3, true) + check('Waiting for parts from the manufacturer, ordered last week', 2) + check('Retired', 31) + check('Lost', 1) + check('Sold', 6) +
+        '</div></fieldset>' +
+        '<fieldset class="ds-field"><legend class="ds-field__label">Notify by</legend><div class="ds-check-group" data-sg="check-group"><label class="ds-check"><input type="checkbox" data-sg-all><span>All channels</span></label>' +
+        '<div class="ds-check-group__children" role="group" aria-label="Channels"><label class="ds-check"><input type="checkbox" checked><span>Email</span></label><label class="ds-check"><input type="checkbox"><span>Chat</span></label><label class="ds-check"><input type="checkbox" aria-disabled="true" data-tip="Needs a phone number first"><span>Phone (aria-disabled)</span></label></div></div></fieldset></div>') +
+      card('Editing in rows', '<p class="ds-muted">Change a field: a dot and the word "(changed)" mark it until you save. On a phone the actions stay at the bottom.</p>' +
+        '<form class="ds-form ds-form--rows" data-sg="rows" onsubmit="return false">' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-rows-name">Name <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="sg-rows-name" value="LAPTOP-0042" data-initial="LAPTOP-0042"></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-rows-room">Room <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="sg-rows-room" value="B 2.14" data-initial="B 2.14"></div>' +
+        '<div class="ds-field" role="group" aria-labelledby="sg-rows-serial"><span class="ds-field__label" id="sg-rows-serial">Serial number</span><span class="ds-field__value">5CD1234XYZ</span></div>' +
+        '<div class="ds-form-actions ds-form-actions--sticky"><button class="ds-btn ds-btn--primary" type="submit" data-sg="rows-save">Save</button><button class="ds-btn ds-btn--text" type="reset" data-sg="rows-reset">Discard</button></div></form>') +
+      card('Radio tiles', '<div class="ds-radios ds-radios--tiles" role="radiogroup" aria-label="Device type" data-sg="tiles">' +
+        tile('laptop', 'Laptop', 'With a dock.', 'laptop', true) + tile('desktop', 'Desktop', 'At one desk.', 'monitor') + tile('tablet', 'Tablet', 'For the field.', 'image') +
+        '<label class="ds-radio ds-radio--disabled"><input type="radio" name="sg-kind" value="server" disabled><span class="ds-radio__icon" aria-hidden="true">' + icon('server', 20) + '</span><span><strong>Server</strong><small class="ds-radio__note">' + icon('alert', 16) + 'Needs a rack.</small></span><span class="ds-radio__mark" aria-hidden="true">' + icon('check', 14) + '</span></label></div>') +
+      card('Slider', '<div class="ds-field"><label class="ds-field__label" for="sg-keep">Keep history for</label><div class="ds-field__row"><input class="ds-slider" id="sg-keep" type="range" min="7" max="365" value="90" aria-describedby="sg-keep-out" data-sg="slider" data-unit="days"><output class="ds-slider__value" id="sg-keep-out" for="sg-keep">90 days</output></div></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-load">Alert above</label><div class="ds-field__row"><input class="ds-slider" id="sg-load" type="range" min="0" max="100" value="80" step="5" aria-describedby="sg-load-out" data-sg="slider" data-unit="%"><output class="ds-slider__value" id="sg-load-out" for="sg-load">80%</output></div></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-locked">Retention (set by policy)</label><div class="ds-field__row"><input class="ds-slider" id="sg-locked" type="range" min="0" max="100" value="30" disabled aria-describedby="sg-locked-out" data-sg="slider" data-unit="%"><output class="ds-slider__value" id="sg-locked-out" for="sg-locked">30%</output></div></div>') +
+      card('Composer and a growing field', '<p class="ds-muted">Both grow with their text; the send button stays at the bottom.</p>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-grow">Note</label><textarea class="ds-input ds-input--grow" id="sg-grow" rows="1" data-sg="grow" placeholder="A line, or a few"></textarea></div>' +
+        '<form class="ds-composer" onsubmit="return false"><textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message" data-sg="grow"></textarea>' +
+        '<button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">' + icon(glyph('send', 'arrowUp'), 20) + '</button></form>') +
+      '</div>';
+  }
+
+  /* The behaviour of the form parts: the page's own few lines, as
+     docs/components.md shows them. */
+  function setupForms() {
+    var user = $('#sg-user');
+    if (!user) return;
+    // The live check: a verdict per keystroke, the hint changes only when it does.
+    user.addEventListener('input', function () {
+      var value = user.value.trim();
+      var hint = $('#sg-user-hint');
+      var verdict = !value ? '' : /^ada/i.test(value) ? 'taken' : 'free';
+      if (hint.getAttribute('data-verdict') === verdict) return;
+      hint.setAttribute('data-verdict', verdict);
+      hint.classList.toggle('ds-field__hint--error', verdict === 'taken');
+      hint.classList.toggle('ds-field__hint--success', verdict === 'free');
+      if (verdict === 'taken') user.setAttribute('aria-invalid', 'true');
+      else user.removeAttribute('aria-invalid');
+      setHtml(hint, verdict === 'taken' ? icon('alertCircle', 16) + 'Already taken.' : verdict === 'free' ? icon('checkCircle', 16) + 'Available.' : '');
+    });
+    $$('[data-sg="counter"]').forEach(function (area) {
+      var counter = $('.ds-field__counter', area.parentNode);
+      area.addEventListener('input', function () { counter.textContent = area.value.length + ' / ' + area.maxLength; });
+    });
+    // "/" focuses the search when the focus is not in a field.
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== '/' || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.target.closest && event.target.closest('input, textarea, select, [contenteditable]')) return;
+      var search = $('#sg-search-key');
+      if (!search || !search.getClientRects().length) return;
+      event.preventDefault();
+      search.focus();
+    });
+    document.addEventListener('click', function (event) {
+      var reveal = event.target.closest('[data-sg="reveal"]');
+      if (!reveal) return;
+      var shown = reveal.getAttribute('aria-pressed') !== 'true';
+      reveal.setAttribute('aria-pressed', String(shown));
+      reveal.setAttribute('aria-label', shown ? 'Hide password' : 'Show password');
+      $('#' + reveal.getAttribute('aria-controls')).type = shown ? 'text' : 'password';
+    });
+    // The parent checkbox follows its children (checked, or mixed while only some are).
+    $$('[data-sg="check-group"]').forEach(function (group) {
+      var all = $('[data-sg-all]', group);
+      var children = $$('.ds-check-group__children input:not([aria-disabled="true"])', group);
+      var sync = function () {
+        var on = children.filter(function (child) { return child.checked; }).length;
+        all.checked = on === children.length;
+        all.indeterminate = on > 0 && on < children.length;
+      };
+      all.addEventListener('change', function () { children.forEach(function (child) { child.checked = all.checked; }); });
+      group.addEventListener('change', sync);
+      sync();
+    });
+    // Changed fields: the class follows the difference from the saved value.
+    $$('[data-sg="rows"]').forEach(function (form) {
+      var mark = function () {
+        $$('[data-initial]', form).forEach(function (input) { input.closest('.ds-field').classList.toggle('ds-field--changed', input.value !== input.getAttribute('data-initial')); });
+      };
+      form.addEventListener('input', mark);
+      form.addEventListener('reset', function () { setTimeout(mark); });
+      $('[data-sg="rows-save"]', form).addEventListener('click', function () {
+        $$('[data-initial]', form).forEach(function (input) { input.setAttribute('data-initial', input.value); });
+        mark();
+      });
+    });
+    $$('[data-sg="tiles"]').forEach(function (group) {
+      // A checked radio changes no attribute: the change event moves the pill.
+      var pill = addIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+      group.addEventListener('change', function () { pill.update(); });
+    });
+    // The slider's share of its range for the active part, and its output.
+    $$('[data-sg="slider"]').forEach(function (slider) {
+      var output = $('#' + slider.getAttribute('aria-describedby'));
+      var unit = slider.getAttribute('data-unit');
+      var share = function () {
+        slider.style.setProperty('--ds-share', String((slider.value - slider.min) / (slider.max - slider.min)));
+        output.value = slider.value + (unit === '%' ? '%' : ' ' + unit);
+      };
+      slider.addEventListener('input', share);
+      share();
+    });
+    // field-sizing grows them where it exists; elsewhere DS.dom.autosize does.
+    if (DS.dom.autosize) $$('[data-sg="grow"]').forEach(function (area) { DS.dom.autosize(area); });
   }
 
   /* Chips, switch, combobox */
@@ -1752,6 +1891,7 @@
     DS.overlay.tooltips(document);
     $$('#sg-page [data-sg-combo]').forEach(setupCombo);
     setupMenus();
+    setupForms();
   }
 
   /* The header checkbox of the table: checked, mixed or empty by its shown rows. */
