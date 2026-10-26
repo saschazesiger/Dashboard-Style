@@ -109,6 +109,8 @@ const PROGRESSIVE = [
   [/text-wrap/, 'text-wrap'],
   [/scrollbar-color|scrollbar-width/, 'scrollbar-color'],
   [/scrollbar-gutter/, 'scrollbar-gutter'],
+  // An HTML attribute, not CSS: the note of disclosure.css names it (rows that share a name open one at a time).
+  [/details\[name\]/, 'details[name]'],
 ];
 
 /** Plain :focus selectors that may draw an outline, each with its reason. */
@@ -134,6 +136,7 @@ const RUNTIME = new Set([
   '--ds-indicator-l',
   '--ds-indicator-radius',
   '--ds-progress',
+  '--ds-share',
   '--ds-toast-left',
   '--ds-toast-bottom',
   '--ds-toast-shift',

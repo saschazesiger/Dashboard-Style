@@ -51,7 +51,7 @@
  * key-value list, or the values as text. In forced colours the fills
  * take CanvasText, series 2 to 4 a hatching of their own (45, 135 and 90
  * degrees), as do the legend keys; a meter's track becomes Canvas with a
- * CanvasText outline.
+ * CanvasText outline. Printed, the fills keep their colours.
  *
  * Hooks: --ds-meter-height (4px), --ds-meter-track (--ds-chart-track),
  * --ds-meter-color (--ds-chart-1), --ds-columns-height (120px),
@@ -405,6 +405,18 @@
 
     .ds-legend__key {
       outline: 1px solid CanvasText;
+    }
+  }
+
+  /* Printed, the fills keep their colours (browsers drop backgrounds by
+     default, which would print empty charts). */
+  @media print {
+    .ds-meter,
+    .ds-meter::before,
+    .ds-columns__fill,
+    .ds-legend__key {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
   }
 }
