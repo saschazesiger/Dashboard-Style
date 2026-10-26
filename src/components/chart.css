@@ -77,10 +77,7 @@
   .ds-meter::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     border-radius: inherit;
     background: var(--ds-meter-color, var(--ds-chart-1));
     clip-path: inset(0 calc((1 - var(--ds-share)) * 100%) 0 0 round var(--ds-radius-action));
@@ -282,10 +279,7 @@
   :is(button, a).ds-columns__col::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;

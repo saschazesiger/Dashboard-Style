@@ -54,7 +54,8 @@
     gap: var(--ds-space-1);
     min-height: 24px;
     max-width: 100%;
-    padding: var(--ds-space-1) var(--ds-space-2) var(--ds-space-1) 6px;
+    padding-block: var(--ds-space-1);
+    padding-inline: 6px var(--ds-space-2);
     border-radius: var(--ds-status-radius, var(--ds-radius-md));
     background: var(--ds-surface-high);
     color: var(--ds-text-2);

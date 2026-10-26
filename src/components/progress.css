@@ -84,6 +84,7 @@
    * segments are declared here, paused, so dropping --indeterminate stops
    * them where they are while they fade out.
    */
+  /* The gradients run left to right, like the bar's clip (LTR only, D9). */
   .ds-progress__track {
     position: relative;
     height: 4px;
@@ -113,8 +114,7 @@
   .ds-progress__bar::after {
     content: '';
     position: absolute;
-    right: 0;
-    left: 0;
+    inset-inline: 0;
     background: var(--ds-primary);
     transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
   }

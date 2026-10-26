@@ -284,20 +284,20 @@
   .ds-table td {
     padding: var(--ds-space-4);
     border-bottom: 1px solid var(--ds-line);
-    text-align: left;
+    text-align: start;
     vertical-align: middle;
   }
 
   .ds-card .ds-table-wrap :is(th, td):first-child {
-    padding-left: var(--ds-card-pad);
+    padding-inline-start: var(--ds-card-pad);
   }
 
   .ds-card .ds-table-wrap :is(th, td):last-child {
-    padding-right: var(--ds-card-pad);
+    padding-inline-end: var(--ds-card-pad);
   }
 
   .ds-table caption {
-    text-align: left;
+    text-align: start;
   }
 
   /* The heights are hooks (a compact theme); the block padding follows
@@ -414,10 +414,7 @@
   .ds-table__row-link::after {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     /* The ring rests at the row's edge and snaps inward. */
     outline-offset: 0;
     transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
@@ -575,7 +572,7 @@
     background: transparent;
     color: inherit;
     font: inherit;
-    text-align: left;
+    text-align: start;
     white-space: inherit;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -587,10 +584,7 @@
   .ds-table__sort::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;
@@ -665,6 +659,9 @@
    * scrollbars opaque: three mask layers, the fade over the padding box
    * (the box inside the border and the scrollbars) added to the ring
    * between the border box and the padding box.
+   *
+   * Every fade of a table wrapper runs left to right with the scroll
+   * (LTR only, D9): the gradients keep their physical directions.
    */
   .ds-table-wrap--fill {
     display: block;
@@ -1217,7 +1214,7 @@
      text. */
   .ds-table a > svg {
     display: inline-block;
-    margin-left: var(--ds-space-1);
+    margin-inline-start: var(--ds-space-1);
     vertical-align: -2px;
   }
 
@@ -1237,7 +1234,7 @@
     color: var(--ds-link);
     font: inherit;
     font-weight: var(--ds-weight-label);
-    text-align: left;
+    text-align: start;
     text-decoration: underline;
     text-decoration-thickness: var(--ds-link-underline-thickness);
     text-decoration-color: var(--ds-link-underline);

@@ -654,6 +654,9 @@
    * rest; Chromium's own arrow, which only appears on hover, stays on top of
    * it invisibly, so a click there still opens the list.
    */
+  /* Physical on purpose (D9): the arrow's background-position is
+     physical, so its padding and the invisible picker over it stay on the
+     right with it. */
   select.ds-input,
   input.ds-input[list] {
     padding-right: var(--ds-space-8);
@@ -746,14 +749,13 @@
 
   .ds-search > svg {
     position: absolute;
-    left: var(--ds-space-4);
+    inset-inline-start: var(--ds-space-4);
     color: var(--ds-text-2);
     pointer-events: none;
   }
 
   .ds-search .ds-input {
-    padding-left: calc(var(--ds-space-4) + 20px + var(--ds-space-3));
-    padding-right: var(--ds-space-4);
+    padding-inline: calc(var(--ds-space-4) + 20px + var(--ds-space-3)) var(--ds-space-4);
     border-color: transparent;
     border-radius: var(--ds-radius-action);
     background: var(--ds-surface-high);
@@ -818,7 +820,8 @@
     appearance: none;
     width: 20px;
     height: 20px;
-    margin: 0 0 0 var(--ds-space-2);
+    margin-block: 0;
+    margin-inline: var(--ds-space-2) 0;
     background: var(--ds-text-2);
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E") center / 20px no-repeat;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E") center / 20px no-repeat;
@@ -1219,8 +1222,7 @@
     content: '';
     position: absolute;
     top: calc(50% - 1px);
-    right: 2px;
-    left: 2px;
+    inset-inline: 2px;
     height: 2px;
     background: var(--ds-on-primary);
     clip-path: inset(0 50%);
@@ -1353,7 +1355,7 @@
   /* A hint under a checkbox lines up with the label text, not the box
      (the box plus the gap). */
   .ds-check + .ds-field__hint {
-    padding-left: calc(var(--ds-check-size, 18px) + var(--ds-space-3));
+    padding-inline-start: calc(var(--ds-check-size, 18px) + var(--ds-space-3));
   }
 
   /* Reads its own hook, so .ds-touch (and a theme) can size it too. */
@@ -1577,10 +1579,7 @@
   .ds-radio::before {
     content: '';
     position: absolute;
-    top: -1px;
-    right: -1px;
-    bottom: -1px;
-    left: -1px;
+    inset: -1px;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;
@@ -1699,7 +1698,7 @@
      into the gutter, so its icon lines up with the table's first column. */
   .ds-add-row {
     justify-self: start;
-    margin-left: calc(-1 * var(--ds-space-3));
+    margin-inline-start: calc(-1 * var(--ds-space-3));
   }
 
   /*

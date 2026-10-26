@@ -97,7 +97,8 @@
 
 @layer ds.components {
   /* Fixed, so no scrolling or clipping box cuts it off. inset, margin and
-     border double as the reset of the UA box of a popover. */
+     border double as the reset of the UA box of a popover. Physical on
+     purpose (D9): --ds-menu-x is a script coordinate from the left. */
   .ds-menu {
     position: fixed;
     inset: var(--ds-menu-y, 0px) auto auto var(--ds-menu-x, 0px);
@@ -234,10 +235,7 @@
   .ds-menu__item::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     background: currentColor;
     opacity: 0;
     pointer-events: none;

@@ -161,7 +161,7 @@
   .ds-combo__toggle {
     position: absolute;
     top: 0;
-    right: var(--ds-space-1);
+    inset-inline-end: var(--ds-space-1);
     isolation: isolate;
     display: inline-flex;
     align-items: center;
@@ -182,10 +182,7 @@
   .ds-combo__toggle::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;
@@ -226,8 +223,7 @@
   .ds-combo__popup {
     position: absolute;
     top: calc(100% + var(--ds-space-1));
-    left: 0;
-    right: 0;
+    inset-inline: 0;
     z-index: var(--ds-z-popover);
     /* A column: under a cap (the room on its side) the list scrolls inside
        it and the status line stays. */
@@ -403,10 +399,7 @@
   .ds-combo__option::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     background: var(--ds-text);
     opacity: 0;
     pointer-events: none;

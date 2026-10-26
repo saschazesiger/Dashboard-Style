@@ -126,6 +126,8 @@
      spatial spring (translate and scale; the spring from 6/7 peaks below
      1), the press grows it fast and decelerating, the colour changes on
      the standard curve. */
+  /* Physical on purpose (D9): the handle and its halo start at the left
+     and travel on translate (mirrored motion is not part of 2.0). */
   .ds-switch__track::after {
     content: '';
     position: absolute;
@@ -354,7 +356,7 @@
   .ds-switch__state {
     display: inline-grid;
     min-width: 3.5em;
-    margin-left: calc(-1 * var(--ds-space-1));
+    margin-inline-start: calc(-1 * var(--ds-space-1));
     color: var(--ds-text-2);
     font: var(--ds-font-body);
   }

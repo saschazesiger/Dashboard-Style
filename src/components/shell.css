@@ -459,7 +459,7 @@
   }
 
   .ds-segmented__option + .ds-segmented__option {
-    border-left: 1px solid var(--ds-outline);
+    border-inline-start: 1px solid var(--ds-outline);
   }
 
   /* State layer. The pill clips the options, so a pressed option cannot
@@ -468,10 +468,7 @@
   .ds-segmented__option::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     background: currentColor;
     opacity: 0;
     pointer-events: none;
@@ -503,11 +500,15 @@
   }
 
   .ds-segmented__option:first-of-type {
-    border-radius: var(--ds-radius-action) 0 0 var(--ds-radius-action);
+    border-radius: 0;
+    border-start-start-radius: var(--ds-radius-action);
+    border-end-start-radius: var(--ds-radius-action);
   }
 
   .ds-segmented__option:last-of-type {
-    border-radius: 0 var(--ds-radius-action) var(--ds-radius-action) 0;
+    border-radius: 0;
+    border-start-end-radius: var(--ds-radius-action);
+    border-end-end-radius: var(--ds-radius-action);
   }
 
   .ds-segmented__option:focus-visible {
@@ -636,12 +637,12 @@
     align-items: center;
     gap: var(--ds-space-3);
     min-width: 0;
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   .ds-account__text {
     min-width: 0;
-    text-align: right;
+    text-align: end;
   }
 
   .ds-account__name,
@@ -717,7 +718,8 @@
   .ds-account--capsule {
     gap: var(--ds-space-2);
     min-height: var(--ds-space-12);
-    padding: 0 var(--ds-space-1) 0 var(--ds-space-2);
+    padding-block: 0;
+    padding-inline: var(--ds-space-2) var(--ds-space-1);
     border: 1px solid var(--ds-line);
     border-radius: var(--ds-radius-action);
     background: var(--ds-surface);
@@ -872,7 +874,8 @@
     align-items: center;
     gap: var(--ds-space-3);
     min-height: var(--ds-drawer-item-height, 48px);
-    padding: 0 var(--ds-space-6) 0 var(--ds-space-4);
+    padding-block: 0;
+    padding-inline: var(--ds-space-4) var(--ds-space-6);
     border-radius: min(var(--ds-radius-action), calc(var(--ds-drawer-item-height, 48px) / 2));
     list-style: none;
     cursor: pointer;
@@ -971,7 +974,8 @@
     align-items: center;
     gap: var(--ds-space-3);
     min-height: var(--ds-drawer-item-height, 48px);
-    padding: 0 var(--ds-space-6) 0 var(--ds-space-4);
+    padding-block: 0;
+    padding-inline: var(--ds-space-4) var(--ds-space-6);
     /* Half the height, never 9999px, so the press morph interpolates over
        its whole run. */
     border-radius: min(var(--ds-radius-action), calc(var(--ds-drawer-item-height, 48px) / 2));
@@ -1019,10 +1023,7 @@
   .ds-drawer__item::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     border-radius: inherit;
     background: currentColor;
     opacity: 0;
@@ -1296,7 +1297,8 @@
     }
   }
 
-  /* The drawer brings its own inset on the left. */
+  /* The drawer brings its own inset on the left (physical, like the
+     safe-area margin it replaces, D9). */
   .ds-app--drawer .ds-panel {
     margin-left: 0;
   }
@@ -1393,7 +1395,8 @@
       width: 1px;
       min-width: 0;
       height: 1px;
-      margin: 0 -1px -1px 0;
+      margin-block: 0 -1px;
+      margin-inline: 0 -1px;
       padding: 0;
       overflow: hidden;
       clip-path: inset(50%);
@@ -1504,6 +1507,9 @@
       display: inline-flex;
     }
 
+    /* Physical on purpose (D9): the modal drawer slides in from the left
+       edge (mirrored motion is not part of 2.0), so its corners, its bleed
+       and its safe-area inset stay on that side. */
     .ds-drawer {
       position: fixed;
       top: 0;
@@ -1596,16 +1602,14 @@
       gap: var(--ds-space-3);
       flex-shrink: 0;
       height: var(--ds-topbar-height);
-      padding: 0 var(--ds-space-6) 0 calc(var(--ds-space-2) + var(--ds-space-10) + var(--ds-space-2));
+      padding-block: 0;
+      padding-inline: calc(var(--ds-space-2) + var(--ds-space-10) + var(--ds-space-2)) var(--ds-space-6);
     }
 
     .ds-scrim {
       display: block;
       position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      inset: 0;
       z-index: var(--ds-z-drawer);
       background: var(--ds-scrim);
       visibility: hidden;

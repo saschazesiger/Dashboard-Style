@@ -303,8 +303,8 @@ describe('tiles and cards (2.0)', () => {
     for (const [property, value] of [['margin', '0'], ['padding', '0'], ['border', '0'], ['background', 'none'], ['font', 'inherit'], ['text-align', 'start']]) assert.equal(action[property], value, property);
     assert.equal(own(flat, '.ds-card__title')['overflow-wrap'], 'anywhere');
     assert.equal(own(flat, '.ds-card__title:has(> svg:first-child)').display, 'flex');
-    assert.ok(own(flat, '.ds-card__links > :is(.ds-btn--text, .ds-card__link)')['margin-left']);
-    assert.equal(own(flat, '.ds-card__links > *')['margin-left'], undefined);
+    assert.ok(own(flat, '.ds-card__links > :is(.ds-btn--text, .ds-card__link)')['margin-inline-start']);
+    assert.equal(own(flat, '.ds-card__links > *')['margin-inline-start'], undefined);
     assert.equal(own(flat, '.ds-card__links')['align-items'], 'center');
     assert.equal(own(flat, '.ds-card--elevated')['box-shadow'], 'var(--ds-card-shadow, var(--ds-elev-1))');
     assert.equal(own(forcedColorBlocks(card).join('\n'), '.ds-card--elevated')['border-color'], 'CanvasText');

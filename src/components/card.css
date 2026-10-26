@@ -137,17 +137,14 @@
     width: 100%;
     color: var(--ds-text);
     font: inherit;
-    text-align: left;
+    text-align: start;
     text-decoration: none;
   }
 
   .ds-card--interactive::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;
@@ -250,10 +247,7 @@
   .ds-card__action::after {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     border-radius: var(--ds-radius-card);
   }
 
@@ -415,16 +409,16 @@
 
   /* Only text buttons hang their padding out; an outlined button or a link keeps its place. */
   .ds-card__links > :is(.ds-btn--text, .ds-card__link) {
-    margin-left: calc(-1 * var(--ds-space-3));
+    margin-inline-start: calc(-1 * var(--ds-space-3));
   }
 
   .ds-card__link {
     --ds-btn-padding-x: var(--ds-space-3);
   }
 
-  /* At the end of a card's header row the padding hangs out on the right. */
+  /* At the end of a card's header row the padding hangs out at the end. */
   .ds-card__row > .ds-card__link:last-child {
-    margin-right: calc(-1 * var(--ds-space-3));
+    margin-inline-end: calc(-1 * var(--ds-space-3));
   }
 
   /* A part of a card with its own small title: a hairline and room above,

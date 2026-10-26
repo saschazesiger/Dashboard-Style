@@ -295,8 +295,12 @@ Intl.NumberFormat(lang).format })`, and dates with `Intl.DateTimeFormat(lang, ..
 by itself.
 
 **Direction.** The components are laid out for left-to-right scripts; `dir="rtl"` is not supported yet (a sheet
-still slides in from the right, the drawer sits on the left, motion does not mirror). Newer rules use logical
-properties (`margin-inline-start`), so a later version can add right-to-left without breaking a theme.
+still slides in from the right, the drawer sits on the left, motion does not mirror). The components use logical
+properties (`margin-inline-start`, `inset-inline`, `text-align: start`) wherever the browser baseline has them, so a
+later version can add right-to-left without breaking a theme. What stays physical is a short list with reasons, kept
+by a test: script and pointer coordinates (menus, tooltips, snackbars, ripples, the gliding indicator), gradient
+directions (fades, progress, slider), the select arrow, the safe-area insets, and the sheet, modal drawer and switch
+handle that move from one side.
 
 ## Fonts
 

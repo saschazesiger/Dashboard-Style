@@ -199,7 +199,7 @@
      below the text. */
   .ds-facts a svg {
     display: inline-block;
-    margin-left: var(--ds-space-1);
+    margin-inline-start: var(--ds-space-1);
     vertical-align: -2px;
   }
 
@@ -235,13 +235,13 @@
   .ds-parts__list {
     display: flex;
     flex-wrap: wrap;
-    margin-left: calc(-1 * var(--ds-space-3));
+    margin-inline-start: calc(-1 * var(--ds-space-3));
   }
 
   .ds-parts__list > span {
     position: relative;
     min-width: 0;
-    padding-left: var(--ds-space-3);
+    padding-inline-start: var(--ds-space-3);
     overflow-wrap: anywhere;
   }
 
@@ -249,7 +249,7 @@
     content: '·';
     position: absolute;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
     /* As wide as « · » in running text. */
     width: var(--ds-space-3);
     text-align: center;
@@ -382,10 +382,7 @@
   .ds-list--interactive > .ds-list__item::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;
@@ -455,10 +452,7 @@
   .ds-list--interactive .ds-list__action::after {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
   }
 
   .ds-list--interactive .ds-list__action:focus-visible {
@@ -522,10 +516,7 @@
   :is(a, button).ds-kv-list__row::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;

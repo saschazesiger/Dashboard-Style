@@ -210,8 +210,7 @@
      nearest size container, so 100cqw is the panel's content box. Sides
      only, so the bottom margin of the 720px rule still applies. */
   .ds-page .ds-loadbar {
-    margin-right: calc(-1 * var(--ds-content-pad-x, var(--ds-space-8)) - max(0px, (100cqw - var(--ds-content-max)) / 2));
-    margin-left: calc(-1 * var(--ds-content-pad-x, var(--ds-space-8)) - max(0px, (100cqw - var(--ds-content-max)) / 2));
+    margin-inline: calc(-1 * var(--ds-content-pad-x, var(--ds-space-8)) - max(0px, (100cqw - var(--ds-content-max)) / 2));
   }
 
   @media (max-width: 720px) {

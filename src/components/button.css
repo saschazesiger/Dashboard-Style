@@ -138,10 +138,7 @@
   .ds-btn::before {
     content: '';
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: -1;
     border-radius: inherit;
     background: var(--ds-btn-state, currentColor);
@@ -484,7 +481,7 @@
     .ds-btn--adaptive .ds-btn__label {
       position: absolute;
       top: 0;
-      left: 0;
+      inset-inline-start: 0;
       width: 1px;
       height: 1px;
       padding: 0;
@@ -521,7 +518,7 @@
     :is(.ds-sheet, .ds-dialog) .ds-btn--adaptive .ds-btn__label {
       position: absolute;
       top: 0;
-      left: 0;
+      inset-inline-start: 0;
       width: 1px;
       height: 1px;
       padding: 0;

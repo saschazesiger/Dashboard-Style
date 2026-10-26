@@ -1084,7 +1084,7 @@ describe('CSS for the baseline', () => {
     }
     const allowed = new Set([
       'src/base.css: :where(.ds-base) [hidden]: display',
-      ...['position', 'top', 'left', 'width', 'height', 'padding', 'margin', 'overflow', 'clip', 'white-space', 'border']
+      ...['position', 'top', 'inset-inline-start', 'width', 'height', 'padding', 'margin', 'overflow', 'clip', 'white-space', 'border']
         .map((property) => `src/components/utilities.css: .ds-sr: ${property}`),
       'src/components/utilities.css: .ds-num: text-align',
       'src/components/utilities.css: .ds-center: text-align',

@@ -62,6 +62,9 @@
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components {
+  /* Physical on purpose (D9): --ds-toast-left is a script coordinate (the
+     left edge of the content panel), and DS.overlay reads the computed
+     left back. */
   .ds-toasts {
     position: fixed;
     left: var(--ds-toast-left, var(--ds-space-6));
@@ -184,7 +187,8 @@
     --ds-btn-quiet-color: var(--ds-on-inverse);
     --ds-btn-hover-color: var(--ds-on-inverse);
     flex-shrink: 0;
-    margin: calc(-1 * var(--ds-space-2)) calc(-1 * var(--ds-space-2)) calc(-1 * var(--ds-space-2)) auto;
+    margin-block: calc(-1 * var(--ds-space-2));
+    margin-inline: auto calc(-1 * var(--ds-space-2));
   }
 
   /* After an action the close button keeps close to it. */
@@ -221,8 +225,7 @@
   /* Phones: across the width, above the bottom edge. */
   @media (max-width: 600px) {
     .ds-toasts {
-      left: var(--ds-space-4);
-      right: var(--ds-space-4);
+      inset-inline: var(--ds-space-4);
       bottom: calc(var(--ds-toast-bottom, var(--ds-space-4)) + var(--ds-toast-lift, 0px) + var(--ds-keyboard-inset, 0px));
       max-width: none;
       justify-items: stretch;

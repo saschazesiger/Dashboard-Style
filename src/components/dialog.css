@@ -145,10 +145,7 @@
 @layer ds.components {
   .ds-dialog {
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: var(--ds-z-dialog);
     display: grid;
     place-items: center;
@@ -212,10 +209,7 @@
 
   .ds-dialog__backdrop {
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     background: var(--ds-dialog-scrim, var(--ds-scrim));
   }
 
@@ -233,7 +227,7 @@
     box-shadow: var(--ds-dialog-shadow, var(--ds-elev-overlay));
     /* Its own ink on its own surface (a widget without .ds-base). */
     color: var(--ds-text);
-    text-align: left;
+    text-align: start;
   }
 
   /* Only the box lets clicks through while it leaves; the backdrop swallows

@@ -129,7 +129,8 @@
     height: var(--ds-chip-height, 32px);
     /* The same in both states: the gap after the empty slot gives the
        label its 16px; selected the slot adds the check's room. */
-    padding: 0 var(--ds-space-4) 0 var(--ds-space-2);
+    padding-block: 0;
+    padding-inline: var(--ds-space-2) var(--ds-space-4);
     border: 1px solid var(--ds-line-2);
     border-radius: var(--ds-radius-chip);
     color: var(--ds-text-2);
@@ -149,10 +150,7 @@
   .ds-chip__body::before {
     content: '';
     position: absolute;
-    top: -1px;
-    right: -1px;
-    bottom: -1px;
-    left: -1px;
+    inset: -1px;
     z-index: -1;
     border-radius: inherit;
     background: currentColor;
@@ -232,7 +230,7 @@
   .ds-chip__check {
     position: absolute;
     top: calc(50% - var(--ds-chip-check-size, 18px) / 2);
-    left: var(--ds-space-2);
+    inset-inline-start: var(--ds-space-2);
     width: var(--ds-chip-check-size, 18px);
     height: var(--ds-chip-check-size, 18px);
     opacity: 0;

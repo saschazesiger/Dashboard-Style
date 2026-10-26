@@ -118,10 +118,7 @@
 @layer ds.components {
   .ds-sheet {
     position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     z-index: var(--ds-z-drawer);
     /* Out of flow: no rhythm margin from a parent card (.ds-card > * + *). */
     margin: 0;
@@ -161,15 +158,14 @@
 
   .ds-sheet__backdrop {
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     background: var(--ds-scrim);
   }
 
   /* With viewport-fit=cover the sheet keeps clear of the notch, the status
-     bar and the home indicator, like the app frame (shell.css). */
+     bar and the home indicator, like the app frame (shell.css). Physical
+     on purpose (D9): the panel slides in from the right edge, so its
+     rounded corners and its bleed stay on the left. */
   .ds-sheet__panel {
     position: relative;
     width: min(100%, var(--ds-sheet-width, 560px));
@@ -325,8 +321,7 @@
   .ds-sheet__head::after {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
+    inset-inline: 0;
     bottom: 0;
     height: 1px;
     background: var(--ds-line);
@@ -502,8 +497,7 @@
        off its head at the top edge; the exit keeps its tokens. */
     .ds-sheet__panel::after {
       top: 100%;
-      left: 0;
-      right: 0;
+      inset-inline: 0;
       bottom: auto;
       width: auto;
       height: var(--ds-space-12);

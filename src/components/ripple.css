@@ -80,7 +80,9 @@
     }
   }
 
-  /* Above the host's fill, below its content (the host is isolated). */
+  /* Above the host's fill, below its content (the host is isolated).
+     Physical on purpose (D9): --ds-ripple-x and -y are pointer
+     coordinates from the host's top left corner. */
   .ds-press-ripple {
     position: absolute;
     top: calc(var(--ds-ripple-y) - var(--ds-ripple-r));
@@ -114,10 +116,7 @@
   }
 
   .ds-ripples tr > :is(td, th) > .ds-press-ripple {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 0;
     width: auto;
     height: auto;
     overflow: clip;
@@ -283,9 +282,8 @@
 
   .ds-ripples .ds-tabs__tab > .ds-press-ripple {
     top: var(--ds-space-1);
-    right: 0;
+    inset-inline: 0;
     bottom: var(--ds-space-1);
-    left: 0;
     width: auto;
     height: auto;
     overflow: clip;

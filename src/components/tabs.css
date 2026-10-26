@@ -86,7 +86,7 @@
      is painted, in the hook colour (square: --ds-indicator-radius keeps its
      initial 0px). */
   .ds-tabs__indicator {
-    background: linear-gradient(var(--ds-tabs-indicator-color, var(--ds-primary)), var(--ds-tabs-indicator-color, var(--ds-primary))) left bottom / 100% var(--ds-tabs-indicator-height, 3px) no-repeat;
+    background: linear-gradient(var(--ds-tabs-indicator-color, var(--ds-primary)), var(--ds-tabs-indicator-color, var(--ds-primary))) bottom / 100% var(--ds-tabs-indicator-height, 3px) no-repeat;
   }
 
   .ds-tabs__tab {
