@@ -120,6 +120,10 @@ determinate `.ds-progress` and the arc of `.ds-spinner--determinate` disappear (
 `--ds-progress-ring-wave` in `tokens.css`), and the calendar glyph of date fields and the clear glyph of search
 fields go blank (`form.css`).
 
+Style attributes need no exception (no `'unsafe-inline'`, no `style-src-attr`): the scripts set styles through the
+CSSOM only, and since 2.0 `DS.dom.morphHtml` does too, so a re-rendered `style="--ds-progress: 0.6"` applies under
+`style-src 'self'` without a violation report. Markup a page puts in with `innerHTML` is the page's own matter.
+
 ## Bundlers and ES modules
 
 Import the single files from the vendored copy (or `dist/` of a checkout). A module only imports from its siblings

@@ -203,3 +203,85 @@ test('a re-render during leave(…, { then: "keep" }) patches the element and ke
   });
   expect(result).toEqual({ same: true, text: 'New', inert: true, opacity: '0' });
 });
+
+/* ── 2.0: CSP-safe styles, equal shells, onKeep ───────────────────── */
+
+test('under style-src \'self\' a morphed style applies without a violation, patched or inserted (2.0)', async ({ page }) => {
+  await page.goto('/test/browser/fixtures/csp.html');
+  await ready(page);
+  const result = await page.evaluate(async () => {
+    const target = document.getElementById('target');
+    const box = document.getElementById('box');
+    DS.dom.morphHtml(target, '<div class="fx-box" id="box" style="--x: 1; margin-top: 3px"></div><p class="fx-new" style="--y: 2">New</p>');
+    // A violation event comes in a task of its own.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const added = target.querySelector('.fx-new');
+    return {
+      same: target.firstElementChild === box,
+      x: getComputedStyle(box).getPropertyValue('--x').trim(),
+      margin: getComputedStyle(box).marginTop,
+      y: getComputedStyle(added).getPropertyValue('--y').trim(),
+      violations: window.fxViolations,
+    };
+  });
+  expect(result).toEqual({ same: true, x: '1', margin: '3px', y: '2', violations: [] });
+});
+
+test('stagger, countUp and an empty style leave identical nodes: { replace: true } keeps them (2.0)', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const list = document.getElementById('list');
+    const markup = fxData.list(fxData.names.slice(0, 4), [1, 2, 3, 4]);
+    DS.dom.morphHtml(list, markup);
+    const before = [...list.children];
+    await DS.motion.enterAll(before, 'fade');
+    const figure = before[0].querySelector('.ds-num');
+    await DS.motion.countUp(figure, 1, { from: 0 }).finished;
+    const styles = before.map((item) => item.getAttribute('style')).concat(figure.getAttribute('style'));
+    DS.dom.morphHtml(list, markup, { replace: true });
+    // A blank style in the template equals none.
+    DS.dom.morphHtml(list, markup.replace('<li class="fx-item"', '<li class="fx-item" style=" "'), { replace: true });
+    return { styles, same: before.every((item, index) => list.children[index] === item) };
+  });
+  expect(result.styles.filter((value) => value !== null && !/\S/.test(value)), 'no empty style left behind').toEqual([]);
+  expect(result.same).toBe(true);
+});
+
+test('onKeep tells the page which template a kept node now stands for (2.0)', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const list = document.getElementById('list');
+    const rows = (pairs) => pairs.map(([key, load]) => `<li class="fx-item" data-ds-key="${key}" data-load="${load}">${key}</li>`).join('');
+    DS.dom.morphHtml(list, rows([['LAPTOP-0042', 1], ['LAPTOP-0043', 2]]));
+    const before = [...list.children];
+    const kept = [];
+    // The template's attributes say what the node now stands for (its children may have moved into the page).
+    DS.dom.morphHtml(list, rows([['LAPTOP-0043', 7], ['LAPTOP-0042', 8]]), {
+      onKeep: (node, template) => kept.push([before.indexOf(node), template.getAttribute('data-ds-key'), template.getAttribute('data-load')]),
+    });
+    return kept;
+  });
+  expect(result).toEqual([[1, 'LAPTOP-0043', '7'], [0, 'LAPTOP-0042', '8']]);
+});
+
+test('a style= in text, in a quoted value or in a textarea is left alone by the CSP-safe parse (2.0)', async ({ page }) => {
+  await page.goto('/test/browser/fixtures/csp.html');
+  await ready(page);
+  const result = await page.evaluate(async () => {
+    const target = document.getElementById('target');
+    DS.dom.morphHtml(target, '<p data-tip=\'a style="x" > b\' style="--z: 4">width style="1"</p><textarea id="t"><b style="q"></textarea><svg viewBox="0 0 2 2" style="--w: 5"><rect width="1" height="1" style="fill: red"/></svg>');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const p = target.querySelector('p');
+    return {
+      tip: p.getAttribute('data-tip'),
+      text: p.textContent,
+      z: getComputedStyle(p).getPropertyValue('--z').trim(),
+      area: document.getElementById('t').value,
+      w: getComputedStyle(target.querySelector('svg')).getPropertyValue('--w').trim(),
+      fill: getComputedStyle(target.querySelector('rect')).fill,
+      carriers: target.querySelectorAll('[data-ds-style]').length,
+      violations: window.fxViolations,
+    };
+  });
+  expect(result).toEqual({ tip: 'a style="x" > b', text: 'width style="1"', z: '4', area: '<b style="q">', w: '5', fill: 'rgb(255, 0, 0)', carriers: 0, violations: [] });
+});

@@ -606,7 +606,7 @@ movement curve (the spring for an entrance without one); nothing snaps.
 
 ### DS.dom (js/dom.js)
 
-`morphHtml(target, html, { replace, holdOrder, onInsert, onRemove })` sets the content of `target` to `html` by
+`morphHtml(target, html, { replace, holdOrder, onInsert, onRemove, onKeep })` sets the content of `target` to `html` by
 patching the nodes that are there, so running animations (spinners, entrances) continue, transitions run (a status
 class, a new `--ds-progress`) and focus stays. `morphChildren(target, nodes, options)` does the same with detached
 nodes. An `<svg>` target works too (a chart or a sparkline re-rendered in place): its markup is parsed as SVG, so
@@ -615,6 +615,20 @@ root the focused element is the shadow tree's own.
 
 - A node of the same tag (and the same key, or both without one) is kept: its attributes are synced and its children
   patched; text changes in place. Listeners on kept nodes stay, so bind them once (or see `data-ds-replace`).
+- The shell (2.0): a node whose tag and attributes equal the template's, or are equivalent to them, counts as the same
+  shell and is patched, never replaced, also under `{ replace: true }` or `data-ds-replace`. Equivalent: the class
+  sets are equal as sets (order aside) without the runtime and owned classes; the styles are equal declaration by
+  declaration without the runtime and owned properties, and an empty or blank `style` equals none; every other
+  attribute is equal without the runtime and owned ones. `stagger()`, `countUp()` and `flip()` remove a `style`
+  attribute they emptied, so an element they touched equals its template again.
+- Styles go through the CSSOM (2.0): a changed `style` is written as `style.cssText` (runtime and owned properties put
+  back), the attribute goes once nothing is left, and the markup's style attributes travel through the parse under
+  another name and are applied through the CSSOM too. A strict `style-src 'self'` without `style-src-attr` needs no
+  exception and reports no violation ([install.md](install.md)).
+- `onKeep(kept, template)` (2.0) runs after a kept element was patched from `template`, so a page can carry state of
+  its own (a handler bound to a record, a chart instance) over to what the node now stands for without replacing it.
+  Read the template's attributes: its children may have moved into the page. `DS.motion.flip()` passes its own
+  `onKeep` option on with its hooks.
 - Keys: `data-ds-key`, else `id`. A keyed node is found among all old siblings and moved to its place; two
   different keys never morph into each other. Unkeyed nodes match by position, with a look-ahead of 8 siblings for an
   identical node. Key list rows, so a reorder moves them instead of rewriting each one.
@@ -658,7 +672,7 @@ root the focused element is the shadow tree's own.
   element that `DS.motion.leave()` is removing carries `data-ds-leaving` too, so a re-render during its exit patches
   the next item instead of turning the leaving node into it.
   `holdOrder: true` patches the matched children of `target` in place and leaves moves, inserts and removals for a
-  later call. `DS.motion.flip()` passes all four; hand its object straight on.
+  later call. `DS.motion.flip()` passes all four (and `onKeep` when its options have one); hand its object straight on.
 - Progressive: keyed moves use `moveBefore` where it exists (the node keeps its animations, focus and iframe state);
   elsewhere `insertBefore`, and a moved node that held the focus gets it back with its selection. `insertBefore`
   makes the node new to the style engine, so it carries `data-ds-moving` (transitions off in its subtree, from

@@ -503,11 +503,21 @@ const MOTION_CLASS = /^ds-(enter|leave)(--[\w-]+)?$/;
  */
 const stepOwners = new WeakMap();
 
+/**
+ * Removes a style attribute that a helper emptied (style="" left behind),
+ * so the element's shell equals its template again (DS.dom.morphHtml keeps
+ * identical nodes as they are).
+ */
+function tidyStyle(element) {
+  if (element?.getAttribute?.('style')?.trim() === '') element.removeAttribute('style');
+}
+
 /** Removes the `--ds-i` an enterAll() batch wrote: a single entrance never staggers. */
 function dropStep(element) {
   if (!stepOwners.has(element)) return;
   stepOwners.delete(element);
   /** @type {HTMLElement} */ (element).style.removeProperty('--ds-i');
+  tidyStyle(element);
 }
 
 /** Removes every .ds-enter / .ds-leave class and variant; true if there was one. */
@@ -1550,6 +1560,7 @@ function steady(element, fromText, toText) {
   }
   return () => {
     if (minWidth !== null) inline.minWidth = minWidth;
+    tidyStyle(element);
     if (busy === null) element.removeAttribute?.('aria-busy');
     else element.setAttribute?.('aria-busy', busy);
     for (const name of ['min-width', 'font-variant-numeric']) disown(element, 'props', name);
@@ -2070,6 +2081,7 @@ function unbackContainer(container, state) {
   state.backed = false;
   container.removeAttribute('data-ds-glide');
   container.style.removeProperty('--ds-flip-backdrop');
+  tidyStyle(container);
   disown(container, 'attrs', 'data-ds-glide');
   disown(container, 'props', '--ds-flip-backdrop');
 }
@@ -2129,11 +2141,13 @@ function lower(item) {
   raisedItems.delete(item);
   item.style.position = saved.position;
   item.style.zIndex = saved.zIndex;
+  tidyStyle(item);
   for (const name of ['position', 'z-index']) disown(item, 'props', name);
   const state = flipState(saved.container);
   state.raised = Math.max(0, state.raised - 1);
   if (!state.raised && state.isolation !== null) {
     saved.container.style.isolation = state.isolation;
+    tidyStyle(saved.container);
     state.isolation = null;
     disown(saved.container, 'props', 'isolation');
   }
@@ -2180,6 +2194,7 @@ function holdSize(container, state, height) {
 function releaseAlign(container, state) {
   if (state.align === null || state.minHeight !== null || state.sizeGlide) return;
   container.style.alignContent = state.align;
+  tidyStyle(container);
   state.align = null;
   disown(container, 'props', 'align-content');
 }
@@ -2223,12 +2238,14 @@ function landed(container, state, glide = true) {
   if (state.lifted) return Promise.resolve();
   if (state.position !== null) {
     container.style.position = state.position;
+    tidyStyle(container);
     state.position = null;
     disown(container, 'props', 'position');
   }
   if (state.minHeight === null) return Promise.resolve();
   const from = heightOf(container);
   container.style.minHeight = state.minHeight;
+  tidyStyle(container);
   state.minHeight = null;
   // The glide below runs above the inline value, which a morph may now set.
   disown(container, 'props', 'min-height');
@@ -2346,6 +2363,7 @@ function runFlip(container, mutate, options, state, first) {
   const removed = [];
   mutate({
     holdOrder: false,
+    ...(typeof options.onKeep === 'function' ? { onKeep: options.onKeep } : {}),
     onInsert(node) {
       if (isFlipItem(container, node, selector)) inserted.push(node);
     },
@@ -2568,8 +2586,8 @@ function watchLive(container, state) {
  * function returning one is the fallback without a neighbour; a page that
  * moved focus itself is left alone; false leaves it to leave().
  * @param {Element|null|undefined} container
- * @param {(options: { holdOrder: boolean, onInsert: (node: Node) => void, onRemove: (node: Node) => Promise<void>|undefined }) => void} mutate
- * @param {{ items?: string, live?: boolean, max?: number, hold?: number, refocus?: boolean|Element|(() => Element|null) }} [options]
+ * @param {(options: { holdOrder: boolean, onInsert: (node: Node) => void, onRemove: (node: Node) => Promise<void>|undefined, onKeep?: (kept: Element, template: Element) => void }) => void} mutate
+ * @param {{ items?: string, live?: boolean, max?: number, hold?: number, refocus?: boolean|Element|(() => Element|null), onKeep?: (kept: Element, template: Element) => void }} [options]
  *   items: a selector (default: the element children)
  * @returns {Promise<void>} resolves when the motion of this call (or its held reorder) finished
  */
@@ -2589,7 +2607,7 @@ export function flip(container, mutate, options = {}) {
         queued.steps.push({ mutate, aware: false });
       } else {
         const first = measure(container, state.items);
-        mutate({ holdOrder: true, onInsert() {}, onRemove() { return undefined; } });
+        mutate({ holdOrder: true, ...(typeof options.onKeep === 'function' ? { onKeep: options.onKeep } : {}), onInsert() {}, onRemove() { return undefined; } });
         // The latest mutate that honours holdOrder wins (it renders all the data).
         queued.steps = queued.steps.filter((step) => !step.aware);
         if (!sameItems(Array.from(first.before.keys()), flipItems(container, state.items))) {

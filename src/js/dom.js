@@ -9,6 +9,16 @@
  *   Its attributes are synced (changed ones set, missing ones removed) and
  *   its children patched the same way, so a class or --ds-progress change
  *   runs its transition. Text nodes change their text in place.
+ * - The shell: tag and attributes. Equal shells, or equivalent ones (the
+ *   class sets equal as sets, the styles declaration by declaration, an
+ *   empty style equal to none, every other attribute exact; runtime and
+ *   owned names aside), are patched, never replaced, also under
+ *   { replace: true }. onKeep(kept, template) runs after each kept element
+ *   was patched.
+ * - Styles go through the CSSOM (style.cssText), never setAttribute: the
+ *   markup's style attributes are renamed before the parse and applied
+ *   through the CSSOM after it, so a strict style-src without
+ *   style-src-attr applies them without a violation report.
  * - Keys: `data-ds-key`, else `id`. A keyed node is looked up among all old
  *   siblings and moved to its place; two different keys never morph into
  *   each other. Unkeyed nodes match by position, with a short look-ahead
@@ -109,6 +119,7 @@ function activeIn(node) {
  * @property {boolean} [holdOrder]  patch matched children of the target only (no moves, inserts or removals)
  * @property {(node: Element) => void} [onInsert]  after a new element was inserted
  * @property {(node: Element) => (Promise<unknown>|unknown)} [onRemove]  before an element goes; a Promise keeps it until it settles
+ * @property {(kept: Element, template: Element) => void} [onKeep]  after a kept element was patched from `template` (2.0)
  */
 
 /**
@@ -120,6 +131,46 @@ function activeIn(node) {
  */
 
 const isElement = (node) => node?.nodeType === 1;
+
+/** The declarations of a style text as name → "value priority" (a parse good enough to compare two). */
+function declarations(text) {
+  const out = new Map();
+  for (const part of String(text ?? '').split(';')) {
+    const colon = part.indexOf(':');
+    if (colon < 0) continue;
+    const name = part.slice(0, colon).trim();
+    if (name) out.set(name.startsWith('--') ? name : name.toLowerCase(), part.slice(colon + 1).trim().replace(/\s+/g, ' '));
+  }
+  return out;
+}
+
+/**
+ * Whether two element shells are equivalent where the exact check failed:
+ * the same tag; the class sets equal as sets, without the runtime classes
+ * and the classes a helper owns on `a`; the style equal declaration by
+ * declaration, without runtime and owned properties (an empty or blank
+ * style equals none); every other attribute exact, without runtime and
+ * owned ones. Such a node is patched, never replaced, also under
+ * `{ replace: true }` or data-ds-replace.
+ */
+function equivalentShell(a, b) {
+  if (!isElement(a) || !isElement(b) || a.tagName !== b.tagName) return false;
+  const classes = (element, other) => new Set((element.getAttribute('class') ?? '').split(/\s+/)
+    .filter((name) => name && !RUNTIME_CLASS.test(name) && !owned(other, 'classes', name)));
+  const ca = classes(a, a);
+  const cb = classes(b, a);
+  if (ca.size !== cb.size || [...ca].some((name) => !cb.has(name))) return false;
+  const styles = (element) => new Map([...declarations(element.getAttribute('style'))]
+    .filter(([name]) => !RUNTIME_STYLE.test(name) && !owned(a, 'props', name)));
+  const sa = styles(a);
+  const sb = styles(b);
+  if (sa.size !== sb.size || [...sa].some(([name, value]) => sb.get(name) !== value)) return false;
+  const others = (element) => Array.from(element.attributes).filter(({ name }) => name !== 'class' && name !== 'style'
+    && !RUNTIME_ATTRIBUTES.has(name) && !owned(a, 'attrs', name) && !(name === 'inert' && exiting(a)));
+  const oa = others(a);
+  const ob = others(b);
+  return oa.length === ob.length && oa.every(({ name, value }) => b.getAttribute(name) === value);
+}
 
 /** Same element "shell": tag and attributes, ignoring the children. */
 function sameShell(a, b) {
@@ -248,29 +299,34 @@ function syncClass(old, next) {
 }
 
 /**
- * Syncs the style attribute, then puts back the custom properties DS wrote
- * at runtime and the owned properties as they were (an owned property the
- * element lacked stays absent).
+ * Syncs the style, then puts back the custom properties DS wrote at
+ * runtime and the owned properties as they were (an owned property the
+ * element lacked stays absent). Through the CSSOM (style.cssText), so a
+ * strict Content-Security-Policy without style-src-attr applies it; the
+ * attribute goes only when nothing is left. An element without a style
+ * object (none in a browser) gets the attribute.
  */
 function syncStyle(old, next) {
   const wanted = next.getAttribute('style');
   if (old.getAttribute('style') === wanted) return;
   const style = old.style;
+  if (!style || typeof style.setProperty !== 'function') {
+    if (wanted === null) old.removeAttribute('style');
+    else old.setAttribute('style', wanted);
+    return;
+  }
   const runtime = [];
   const props = old[OWNED]?.props;
   const absent = [];
-  if (style) {
-    for (let index = 0; index < style.length; index += 1) {
-      const name = style[index];
-      if (RUNTIME_STYLE.test(name) || owned(old, 'props', name)) runtime.push([name, style.getPropertyValue(name), style.getPropertyPriority(name)]);
-    }
-    for (const [name, count] of props ?? []) if (count && !style.getPropertyValue(name)) absent.push(name);
+  for (let index = 0; index < style.length; index += 1) {
+    const name = style[index];
+    if (RUNTIME_STYLE.test(name) || owned(old, 'props', name)) runtime.push([name, style.getPropertyValue(name), style.getPropertyPriority(name)]);
   }
-  if (wanted === null) old.removeAttribute('style');
-  else old.setAttribute('style', wanted);
+  for (const [name, count] of props ?? []) if (count && !style.getPropertyValue(name)) absent.push(name);
+  style.cssText = wanted ?? '';
   for (const name of absent) style.removeProperty(name);
   for (const [name, value, priority] of runtime) style.setProperty(name, value, priority);
-  if (style && !style.length && wanted === null) old.removeAttribute('style');
+  if (!old.style.length) old.removeAttribute('style');
 }
 
 /** Whether `node` is a radio button. */
@@ -380,6 +436,7 @@ function patchNode(old, next, ctx) {
   patchChildren(old, Array.from(next.childNodes), inner, false);
   // A textarea's value follows its text only until it is edited.
   if (before !== null && old !== ctx.active && old.textContent !== before) old.value = old.textContent;
+  ctx.options.onKeep?.(old, next);
 }
 
 /**
@@ -392,6 +449,9 @@ function patchable(old, next, ctx) {
   if (holdsFocus(old, ctx)) return true;
   return !(ctx.replace || replacing(old) || replacing(next));
 }
+
+/** The same shell, exactly or up to runtime state, an empty style and class order (equivalentShell). */
+const shellOf = (old, next) => sameShell(old, next) || equivalentShell(old, next);
 
 /* ── Children ───────────────────────────────────────── */
 
@@ -479,7 +539,7 @@ function patchChildren(parent, desired, ctx, top) {
     const key = keyOf(node);
     if (key !== null) {
       const old = keyed.get(key);
-      if (old && !used.has(old) && sameKind(old, node) && (sameShell(old, node) || patchable(old, node, ctx))) {
+      if (old && !used.has(old) && sameKind(old, node) && (shellOf(old, node) || patchable(old, node, ctx))) {
         used.add(old);
         if (old === cursor) step();
         else moveNode(parent, old, cursor, ctx);
@@ -499,8 +559,8 @@ function patchChildren(parent, desired, ctx, top) {
       step();
       continue;
     }
-    // 2. Same shell: only the children differ.
-    if (!cursorKeyed && sameShell(cursor, node)) {
+    // 2. Same shell (or an equivalent one): only the children differ.
+    if (!cursorKeyed && shellOf(cursor, node)) {
       const current = cursor;
       step();
       patchNode(current, node, ctx);
@@ -581,6 +641,54 @@ function settleMoved(moved) {
   for (const node of moved) node.removeAttribute('data-ds-moving');
 }
 
+/** A comment, or a start tag with its attribute list (quoted values may hold `>`). */
+const START_TAG = /<!--[\s\S]*?-->|<([a-zA-Z][^\s/>]*)((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)*)\s*(\/?)>/g;
+
+/** One attribute of a start tag's list. */
+const ATTRIBUTE = /(\s+)([^\s"'>/=]+)((?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?)/g;
+
+/** Elements whose content is text: a `style=` inside them is no attribute. */
+const RAW_TEXT = /^(?:script|style|textarea|title|xmp|iframe|noembed|noframes|noscript|plaintext)$/i;
+
+/** The attribute a style attribute travels as through the parse (STYLE_CARRIER), so the parser never applies it. */
+const STYLE_CARRIER = 'data-ds-style';
+
+/**
+ * Renames every style attribute of the markup's start tags to
+ * STYLE_CARRIER before it is parsed: Chromium reports a style-src-attr
+ * violation for a style attribute parsed under a strict
+ * Content-Security-Policy, even in a template, and Firefox when such a node
+ * goes into the page. carryStyles() writes them back through the CSSOM,
+ * which no policy restricts.
+ */
+function hideStyles(html) {
+  if (!/\sstyle\s*=/i.test(html)) return html;
+  let out = '';
+  let last = 0;
+  START_TAG.lastIndex = 0;
+  for (let match = START_TAG.exec(html); match; match = START_TAG.exec(html)) {
+    if (!match[1]) continue;
+    const attributes = match[2].replace(ATTRIBUTE, (whole, space, name, value) => (name.toLowerCase() === 'style' ? `${space}${STYLE_CARRIER}${value}` : whole));
+    out += `${html.slice(last, match.index)}<${match[1]}${attributes}${match[3] ? ' /' : ''}>`;
+    last = START_TAG.lastIndex;
+    if (RAW_TEXT.test(match[1])) {
+      const close = html.toLowerCase().indexOf(`</${match[1].toLowerCase()}`, last);
+      START_TAG.lastIndex = close < 0 ? html.length : close;
+    }
+  }
+  return out + html.slice(last);
+}
+
+/** Gives the parsed nodes their styles back through the CSSOM (see hideStyles()). */
+function carryStyles(root) {
+  for (const element of Array.from(root?.querySelectorAll?.(`[${STYLE_CARRIER}]`) ?? [])) {
+    const text = element.getAttribute(STYLE_CARRIER);
+    element.removeAttribute(STYLE_CARRIER);
+    if (element.style && typeof element.style.setProperty === 'function') element.style.cssText = text;
+    else element.setAttribute('style', text);
+  }
+}
+
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
 
@@ -591,7 +699,7 @@ const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
  * HTML children of a <foreignObject> parse as HTML.
  * @param {Element} target
  * @param {string} html
- * @param {MorphOptions} [options]  replace, holdOrder, onInsert, onRemove (pass DS.motion.flip's object straight on)
+ * @param {MorphOptions} [options]  replace, holdOrder, onInsert, onRemove, onKeep (pass DS.motion.flip's object straight on)
  */
 export function morphHtml(target, html, options = {}) {
   const template = target.ownerDocument.createElement('template');
@@ -600,7 +708,9 @@ export function morphHtml(target, html, options = {}) {
   // a template runs no scripts).
   const foreign = target.namespaceURI === SVG_NS && target.localName !== 'foreignObject' ? 'svg'
     : target.namespaceURI === MATHML_NS ? 'math' : '';
-  template.innerHTML = foreign ? `<${foreign}>${html}</${foreign}>` : html;
+  const markup = hideStyles(String(html));
+  template.innerHTML = foreign ? `<${foreign}>${markup}</${foreign}>` : markup;
   const source = foreign ? template.content.firstChild : template.content;
+  carryStyles(source);
   morphChildren(target, Array.from(source?.childNodes ?? []), options);
 }

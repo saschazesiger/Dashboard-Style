@@ -313,6 +313,59 @@ describe('indicator, dom, ripple and overlay', () => {
       assert.ok([...cells, empty].every((cell) => cell.parentNode === row), 'every old cell is still there');
     });
 
+    it('patches an equivalent shell instead of replacing it: an empty style, class order, runtime and owned state (2.0)', () => {
+      const a = h('li', { class: 'fx-row ds-enter', style: '' }, text('A'));
+      const b = h('li', { class: 'b fx-row', style: 'color: red;  --ds-i: 2' }, text('B'));
+      const c = h('li', { class: 'fx-row', style: '--x: 1', 'data-ds-staggered': '' }, text('C'));
+      const list = h('ul', {}, a, b, c);
+      dom.morphChildren(list, [h('li', { class: 'fx-row' }, text('A2')), h('li', { class: 'fx-row b', style: 'color:red' }, text('B2')), h('li', { class: 'fx-row', style: '--x:1' }, text('C2'))], { replace: true });
+      assert.deepEqual(list.childNodes, [a, b, c], 'the same nodes');
+      assert.deepEqual(list.childNodes.map((node) => node.textContent), ['A2', 'B2', 'C2']);
+      assert.equal(b.style.getPropertyValue('--ds-i'), '2', 'runtime state survives');
+      // A real difference still replaces under { replace: true }.
+      dom.morphChildren(list, [h('li', { class: 'fx-row other' }, text('A3')), b.cloneNode(true), c.cloneNode(true)], { replace: true });
+      assert.notEqual(list.childNodes[0], a);
+    });
+
+    it('writes a changed style through the CSSOM (CSP-safe), never as an attribute (2.0)', () => {
+      const box = h('div', { style: '--x: 1' });
+      const target = h('div', {}, box);
+      // A CSSOM of its own that writes the attribute map directly, so any setAttribute('style') is the morph's.
+      const props = new Map([['--x', '1']]);
+      const reflect = () => (props.size ? box.attrs.set('style', [...props].map(([name, value]) => `${name}: ${value}`).join('; ')) : box.attrs.set('style', ''));
+      const style = {
+        get length() { return props.size; },
+        getPropertyValue: (name) => props.get(name) ?? '',
+        getPropertyPriority: () => '',
+        setProperty: (name, value) => { props.set(name, value); reflect(); },
+        removeProperty: (name) => { props.delete(name); reflect(); },
+        set cssText(value) {
+          props.clear();
+          for (const part of String(value).split(';').map((each) => each.trim()).filter(Boolean)) props.set(part.slice(0, part.indexOf(':')).trim(), part.slice(part.indexOf(':') + 1).trim());
+          reflect();
+        },
+      };
+      Object.defineProperty(box, 'style', { value: style });
+      const writes = [];
+      const set = box.setAttribute.bind(box);
+      box.setAttribute = (name, value) => { writes.push(name); set(name, value); };
+      dom.morphChildren(target, [h('div', { style: '--x: 2; color: red' })]);
+      assert.equal(props.get('--x'), '2');
+      assert.equal(props.get('color'), 'red');
+      dom.morphChildren(target, [h('div', {})]);
+      assert.equal(box.getAttribute('style'), null, 'nothing left: the attribute goes');
+      assert.deepEqual(writes, [], 'no setAttribute(\'style\')');
+    });
+
+    it('calls onKeep(kept, template) after a kept element was patched (2.0)', () => {
+      const row = h('li', { 'data-ds-key': 'a', class: 'x' }, text('A'));
+      const list = h('ul', {}, row);
+      const kept = [];
+      const template = h('li', { 'data-ds-key': 'a', class: 'y' }, text('A2'));
+      dom.morphChildren(list, [template, h('li', { 'data-ds-key': 'b' }, text('B'))], { onKeep: (node, from) => kept.push([node, from]) });
+      assert.deepEqual(kept, [[row, template]]);
+    });
+
     it('replaces again with data-ds-replace or { replace: true }', () => {
       const marked = h('div', { class: 'a', 'data-ds-replace': '' }, text('x'));
       const plain = h('p', { class: 'a' }, text('y'));
@@ -537,6 +590,9 @@ function miniDom() {
         getPropertyPriority: () => '',
         setProperty: (name, value) => write([...parse().filter(([key]) => key !== name), [name, value]]),
         removeProperty: (name) => write(parse().filter(([key]) => key !== name)),
+        // The CSSOM text (2.0: morphHtml writes styles through it, CSP-safe).
+        get cssText() { return list.map(([name, value]) => `${name}: ${value}`).join('; '); },
+        set cssText(value) { write(String(value).split(';').map((part) => part.trim()).filter(Boolean).map((part) => [part.slice(0, part.indexOf(':')).trim(), part.slice(part.indexOf(':') + 1).trim()])); },
       };
       list.forEach(([name], index) => { style[index] = name; });
       return style;
