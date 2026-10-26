@@ -937,8 +937,6 @@ describe('values come from tokens', () => {
     // Assignments of --ds-* inside src/components/ whose value, outside var() and outside
     // calc()/min()/max()/clamp()/color-mix() of tokens, still holds a length or a number other than 0 and 1.
     // Allowed: forced-colours blocks, the runtime properties, the registered ones and the motion hooks.
-    // TODO(2.0 integration): SN-4 (WP4) converts .ds-toast__close to --ds-toast-close-size; drop this entry then.
-    const AWAITING_SN4 = new Set(['src/components/toast.css: .ds-toast__close: --ds-btn-icon-size']);
     const strip = (value) => {
       let out = value;
       for (let i = 0; i < 8; i += 1) out = out.replace(/(?:var|calc|min|max|clamp|color-mix)\([^()]*\)/g, ' ');
@@ -951,10 +949,7 @@ describe('values come from tokens', () => {
           if (!property.startsWith('--ds-') || RUNTIME.has(property) || REGISTERED.has(property) || /^--ds-(motion|enter|leave)-/.test(property)) continue;
           const left = strip(value);
           if (!/(?<![\w.-])\d*\.?\d+(px|rem|em|vw|vh|%)(?![\w-])/.test(left) && !/(?<![\w.%-])(?![01](?![\d.]))\d*\.?\d+(?![\w.%-])/.test(left)) continue;
-          for (const part of splitSelectors(selector)) {
-            const entry = `${file}: ${part}: ${property}`;
-            if (!AWAITING_SN4.has(entry)) offenders.push(`${entry}: ${value}`);
-          }
+          for (const part of splitSelectors(selector)) offenders.push(`${file}: ${part}: ${property}: ${value}`);
         }
       }
     }
@@ -966,6 +961,8 @@ describe('values come from tokens', () => {
       ['src/components/loader.css', '.ds-loader--sm', '--ds-loader-size', 'var(--ds-loader-sm-size, 24px)'],
       ['src/components/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, 4px)'],
       ['src/components/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
+      // and the small check row, so .ds-touch reaches it.
+      ['src/components/form.css', '.ds-check--sm', '--ds-check-height', 'var(--ds-check-sm-height, 32px)'],
     ];
     for (const [file, selector, property, value] of reads) {
       assert.equal(declarationsAt(read(file), selector).find((entry) => entry.property === property)?.value, value, `${selector} { ${property} }`);

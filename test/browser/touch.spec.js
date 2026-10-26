@@ -1,22 +1,15 @@
 /**
  * Touch density (CT-5): .ds-touch on the theme root sets every target hook
  * to --ds-touch-target (48px). The controls fixture rendered under it: every
- * interactive box is at least 48px. Hooks that other parts of 2.0 add are
- * read only once those parts exist; each has its row here, skipped (with
- * the owning package named) while ds.css does not read the hook yet, so the
- * row turns itself on when that package merges; the owner then adds the
- * markup the row measures (the integrator checks that no row still skips).
+ * interactive box is at least 48px: buttons, chips, switches, checks,
+ * drawer items, fields, menu items, combobox options, the snackbar close
+ * button, disclosure summaries and tabs (menu, list and snackbar opened
+ * through DS.overlay).
  */
 import { test, expect } from './base-test.js';
 import { ready, settle } from './helpers/motion.js';
 
 const TARGET = 48;
-
-/** Whether dist/ds.css reads the hook (the part that owns it has merged). */
-async function reads(page, hook) {
-  const css = await (await page.request.get('/dist/ds.css')).text();
-  return css.includes(`var(${hook},`) || css.includes(`var(${hook})`);
-}
 
 async function open(page, { touch = true } = {}) {
   await page.goto('/test/browser/fixtures/controls.html');
@@ -26,7 +19,7 @@ async function open(page, { touch = true } = {}) {
   await settle(page);
 }
 
-/** Like boxes(), but at least one must be rendered (the owner of a row adds the markup it measures). */
+/** Like boxes(), but at least one must be rendered. */
 async function present(page, selector) {
   const found = await boxes(page, selector);
   expect(found.length, `${selector}: add it to controls.html`).toBeGreaterThan(0);
@@ -80,45 +73,46 @@ test('without .ds-touch nothing changes (opt-in, never automatic)', async ({ pag
   expect(await page.$eval('#btn-sm', (el) => el.getBoundingClientRect().height)).toBe(32);
 });
 
-// The hooks other packages add (CT-5): each owning package turns its row on.
-test('fields are 48px tall (--ds-input-height, WP8)', async ({ page }) => {
-  test.skip(!(await reads(page, '--ds-input-height')), 'awaits --ds-input-height of WP8 (CT-5): the row turns on when it merges');
+test('fields are 48px tall (--ds-input-height)', async ({ page }) => {
   await open(page);
   for (const box of await present(page, '.ds-input')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
 
-test('check and radio rows are 48px tall (--ds-check-height, WP8)', async ({ page }) => {
-  test.skip(!(await reads(page, '--ds-check-height')), 'awaits --ds-check-height of WP8 (CT-5): the row turns on when it merges');
+test('check and radio rows are 48px tall (--ds-check-height)', async ({ page }) => {
   await open(page);
   for (const box of await present(page, '.ds-check')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
 
-test('combobox options are 48px tall (--ds-combo-option-height, WP3)', async ({ page }) => {
-  test.skip(!(await reads(page, '--ds-combo-option-height')), 'awaits --ds-combo-option-height of WP3 (CT-5): the row turns on when it merges');
+test('combobox options are 48px tall (--ds-combo-option-height)', async ({ page }) => {
   await open(page);
+  await page.evaluate(() => DS.overlay.open(document.querySelector('#combo-popup'), { opener: document.querySelector('#combo-input') }));
+  await settle(page);
   for (const box of await present(page, '.ds-combo__option')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
 
-test('menu items are 48px tall (--ds-menu-item-height, WP3)', async ({ page }) => {
-  test.skip(!(await reads(page, '--ds-menu-item-height')), 'awaits --ds-menu-item-height of WP3 (CT-5): the row turns on when it merges');
+test('menu items are 48px tall (--ds-menu-item-height)', async ({ page }) => {
   await open(page);
+  await page.evaluate(() => DS.overlay.open(document.querySelector('#menu'), { opener: document.querySelector('#menu-trigger') }));
+  await settle(page);
   for (const box of await present(page, '.ds-menu__item')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
 
-test('the snackbar close button is 48px (--ds-toast-close-size, WP4)', async ({ page }) => {
-  test.skip(!(await reads(page, '--ds-toast-close-size')), 'awaits --ds-toast-close-size of WP4 (CT-5): the row turns on when it merges');
+test('the snackbar close button is 48px (--ds-toast-close-size)', async ({ page }) => {
   await open(page);
-  for (const box of await present(page, '.ds-toast__close')) expect(box.width, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
+  await page.evaluate(() => DS.overlay.toast(document.querySelector('#toasts'), 'Sync failed.', { kind: 'error', persistent: true }));
+  await settle(page);
+  for (const box of await present(page, '.ds-toast__close')) {
+    expect(box.width, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
+    expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
+  }
 });
 
-test('disclosure summaries are 48px tall (--ds-disclosure-height, WP6)', async ({ page }) => {
-  test.skip(!(await reads(page, '--ds-disclosure-height')), 'awaits --ds-disclosure-height of WP6 (CT-5): the row turns on when it merges');
+test('disclosure summaries are 48px tall (--ds-disclosure-height)', async ({ page }) => {
   await open(page);
   for (const box of await present(page, '.ds-disclosure > summary')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
 
-test('tabs are 48px tall (--ds-tabs-height, WP9)', async ({ page }) => {
-  test.skip(!(await reads(page, '--ds-tabs-height')), 'awaits --ds-tabs-height of WP9 (CT-5): the row turns on when it merges');
+test('tabs are 48px tall (--ds-tabs-height)', async ({ page }) => {
   await open(page);
   for (const box of await present(page, '.ds-tabs [role="tab"]')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });

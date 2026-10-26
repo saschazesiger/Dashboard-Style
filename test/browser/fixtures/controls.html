@@ -11,8 +11,10 @@
 <body>
 <!-- Every button variant and state, chips, switches, check and radio cards,
      a table with a checkbox column, fields, search, a segmented control and
-     a scrolling drawer list with its indicator, .ds-parts, .ds-link-btn and
-     .ds-errors. -->
+     a scrolling drawer list with its indicator, .ds-parts, .ds-link-btn,
+     .ds-errors, and a disclosure, tabs, a menu, a combobox and a snackbar
+     region (opened and filled by the tests: touch.spec measures their rows
+     under .ds-touch). -->
 <div class="ds-theme fx-root">
   <section class="fx-section" aria-labelledby="buttons-title">
     <h2 id="buttons-title">Buttons</h2>
@@ -133,6 +135,37 @@
     <p><button class="ds-link-btn" type="button" id="link-btn">Printer on floor 2</button></p>
     <details class="ds-errors" id="errors"><summary><span data-icon="alertCircle" data-size="16"></span>2 rows were skipped<span data-icon="chevronDown" data-size="16" data-class="ds-errors__chevron"></span></summary><ul><li>Row 4: unknown model</li><li>Row 9: duplicate serial number</li></ul></details>
   </section>
+
+  <section class="fx-section" aria-labelledby="rows-title">
+    <h2 id="rows-title">Disclosure, tabs, menu, combobox, snackbar</h2>
+    <details class="ds-collapsible ds-disclosure" id="disclosure"><summary>Advanced<span data-icon="chevronDown" data-size="20" data-class="ds-chevron"></span></summary><div class="ds-disclosure__body"><p>Sync runs every night at 02:00.</p></div></details>
+    <div class="ds-tabs" id="tabs" role="tablist" aria-label="Device" data-indicator='[aria-selected="true"]' data-indicator-class="ds-tabs__indicator">
+      <button class="ds-tabs__tab" role="tab" type="button" id="tab-overview" aria-selected="true" aria-controls="tab-panel" data-label="Overview">Overview</button>
+      <button class="ds-tabs__tab" role="tab" type="button" id="tab-activity" aria-selected="false" aria-controls="tab-panel" tabindex="-1" data-label="Activity">Activity</button>
+    </div>
+    <div class="ds-tabs__panel" role="tabpanel" id="tab-panel" aria-labelledby="tab-overview" tabindex="0"><p>Assigned to Ada Lovelace.</p></div>
+    <div class="fx-row">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="menu-trigger" aria-label="More actions" aria-haspopup="menu" aria-expanded="false" aria-controls="menu"><span data-icon="moreVertical" data-size="20"></span></button>
+      <div class="ds-menu" role="menu" id="menu" aria-label="Actions" hidden>
+        <button class="ds-menu__item" role="menuitem" type="button"><span data-icon="pencil" data-size="20"></span><span class="ds-menu__label">Edit</span></button>
+        <button class="ds-menu__item" role="menuitem" type="button"><span data-icon="copy" data-size="20"></span><span class="ds-menu__label">Duplicate</span></button>
+      </div>
+    </div>
+    <div class="ds-field fx-narrow">
+      <label class="ds-field__label" for="combo-input">Owner</label>
+      <div class="ds-combo" id="combo">
+        <input class="ds-input ds-combo__input" id="combo-input" role="combobox" aria-expanded="false" aria-controls="combo-list" aria-autocomplete="list" autocomplete="off">
+        <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show list"><span data-icon="chevronDown" data-size="20"></span></button>
+        <div class="ds-combo__popup" id="combo-popup" hidden>
+          <ul class="ds-combo__list" id="combo-list" role="listbox">
+            <li class="ds-combo__option" id="combo-a" role="option" aria-selected="false"><span class="ds-combo__name">Ada Lovelace</span></li>
+            <li class="ds-combo__option" id="combo-b" role="option" aria-selected="true"><span class="ds-combo__name">Grace Hopper</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="ds-toasts" id="toasts"></div>
 </div>
 <script src="/dist/ds.js"></script>
 <script src="fixture.js"></script>

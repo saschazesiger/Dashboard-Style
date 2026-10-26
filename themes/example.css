@@ -198,6 +198,7 @@
   --ds-input-font: (body; input role up to 600px)
   --ds-check-size: 18px;               --ds-check-target: 40px;
   --ds-input-height: 40px;             --ds-check-height: 40px;
+  --ds-check-sm-height: 32px;
   --ds-input-bg: var(--ds-surface);    --ds-input-border: var(--ds-outline);
   --ds-input-radius: var(--ds-radius-field);
   --ds-input-focus-color: var(--ds-primary);

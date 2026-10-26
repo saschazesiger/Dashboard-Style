@@ -112,7 +112,7 @@ describe('utilities (2.0)', () => {
   it('sets every target hook to --ds-touch-target under .ds-touch (opt-in, a role)', () => {
     const touch = own(css, '.ds-touch');
     const hooks = ['--ds-btn-height', '--ds-btn-sm-height', '--ds-btn-icon-size', '--ds-btn-sm-icon-size', '--ds-input-height', '--ds-check-height',
-      '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height',
+      '--ds-check-sm-height', '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height',
       '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height', '--ds-disclosure-height'];
     for (const hook of hooks) assert.equal(touch[hook], 'var(--ds-touch-target)', hook);
     assert.equal(touch['--ds-input-font'], 'var(--ds-font-input)');

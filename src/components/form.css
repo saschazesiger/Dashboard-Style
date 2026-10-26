@@ -26,7 +26,8 @@
  *     <div class="ds-check-group__children" role="group" aria-label="Sites"> <label class="ds-check">...</label> ...
  *
  * Hooks: --ds-check-size (18px box), --ds-check-target (40px halo),
- * --ds-check-height (40px row), --ds-check-list-max-height (264px).
+ * --ds-check-height (40px row; --sm: --ds-check-sm-height, 32px),
+ * --ds-check-list-max-height (264px).
  *
  *   <form class="ds-form">         (--rows: editing in rows, hairlines between the fields)
  *     <div class="ds-form-grid">  (3 columns, the first wider; --2: two; --3: three equal)
@@ -1355,9 +1356,9 @@
     padding-left: calc(var(--ds-check-size, 18px) + var(--ds-space-3));
   }
 
+  /* Reads its own hook, so .ds-touch (and a theme) can size it too. */
   .ds-check--sm {
-    min-height: 32px;
-    padding-block: calc((32px - 20px) / 2);
+    --ds-check-height: var(--ds-check-sm-height, 32px);
     color: var(--ds-text-2);
   }
 

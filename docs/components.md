@@ -1828,8 +1828,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   stays in the tab order and keeps its focus halo, so a tooltip with the reason can still be reached; the action
   guard of `DS.motion` ([motion.md](motion.md)) blocks its click, also a click on its label, so the page needs no
   guard of its own.
-- A `.ds-check` row is `--ds-check-height` tall (40px) around one line of its label. A long label wraps (even a bare
-  text node, `overflow-wrap: anywhere`) and the box stays beside its first line.
+- A `.ds-check` row is `--ds-check-height` tall (40px; `--sm`: `--ds-check-sm-height`, 32px) around one line of its
+  label. A long label wraps (even a bare text node, `overflow-wrap: anywhere`) and the box stays beside its first line.
 - Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
   (`--ds-radius-card-pressed`), springing back on release; keyboard focus rings the whole card and lays the focus
   layer (`--ds-state-focus`) at once (its input has no halo); `.ds-radio--disabled` and a card whose input is

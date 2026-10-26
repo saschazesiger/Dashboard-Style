@@ -218,7 +218,7 @@ once.
 
 A touch screen or a kiosk needs bigger targets. `.ds-touch` on `.ds-theme` (or on any container) sets every target
 hook to `--ds-touch-target` (48px): `--ds-btn-height`, `--ds-btn-sm-height`, `--ds-btn-icon-size`,
-`--ds-btn-sm-icon-size`, `--ds-input-height`, `--ds-check-height`, `--ds-check-target`, `--ds-switch-height`,
+`--ds-btn-sm-icon-size`, `--ds-input-height`, `--ds-check-height`, `--ds-check-sm-height`, `--ds-check-target`, `--ds-switch-height`,
 `--ds-switch-halo`, `--ds-chip-height`, `--ds-combo-option-height`, `--ds-menu-item-height`,
 `--ds-drawer-item-height`, `--ds-toast-close-size`, `--ds-tabs-height` and `--ds-disclosure-height`; fields take the
 input role (`--ds-input-font: var(--ds-font-input)`, 16px, so iOS does not zoom), and `.ds-hover-actions` always
@@ -266,6 +266,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-check-target` | 40px | their halo (hover, press, focus) across |
 | `--ds-input-height` | 40px | the minimum height of fields (`.ds-input`, the search pill), input groups and a growing textarea; the combobox toggle is that size and the field keeps room for it |
 | `--ds-check-height` | 40px | a `.ds-check` row (one line of its label; a longer label wraps and the box stays beside its first line) |
+| `--ds-check-sm-height` | 32px | `.ds-check--sm` (it sets `--ds-check-height` from it) |
 | `--ds-input-bg`, `--ds-input-border`, `--ds-input-radius` | `--ds-surface`, `--ds-outline`, `--ds-radius-field` | the outlined field and the input group at rest (fill, 1px border colour, corners; the filled field's top corners) |
 | `--ds-input-focus-color` | `--ds-primary` | the field's ring, the label tint while it has the focus, the filled field's bottom line, the input group and composer rings |
 | `--ds-input-grow-max` | 50vh | the tallest a `.ds-input--grow` textarea grows before it scrolls |

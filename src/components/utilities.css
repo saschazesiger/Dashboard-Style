@@ -335,6 +335,7 @@
     --ds-btn-sm-icon-size: var(--ds-touch-target);
     --ds-input-height: var(--ds-touch-target);
     --ds-check-height: var(--ds-touch-target);
+    --ds-check-sm-height: var(--ds-touch-target);
     --ds-check-target: var(--ds-touch-target);
     --ds-switch-height: var(--ds-touch-target);
     --ds-switch-halo: var(--ds-touch-target);
