@@ -207,6 +207,25 @@ test.describe('fields', () => {
       return colour;
     });
     expect((await read(page.locator('#site-group'))).border).toBe(error);
+    // Focused, an invalid group rings in the error colour alone (border and inset ring), and its label keeps the
+    // error ink at rest and while focused (the input sits in the group, not directly in the field).
+    const onError = await page.locator('.ds-theme').evaluate((el) => {
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--ds-on-error-container)';
+      el.append(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    });
+    const label = page.locator('label[for="site"]');
+    const ink = () => label.evaluate((el) => getComputedStyle(el).color);
+    expect(await ink(), 'the label at rest').toBe(onError);
+    await focusByKeyboard(page, page.locator('#site'));
+    await settle(page);
+    const invalid = await read(page.locator('#site-group'));
+    expect(invalid.border, 'the border of the focused invalid group').toBe(error);
+    expect(invalid.shadow).toContain(error);
+    expect(await ink(), 'the label while focused').toBe(onError);
   });
 
   test('the filled field keeps its label inside the box and turns its bottom line to 2px on focus', async ({ page }) => {
@@ -277,6 +296,30 @@ test.describe('tiles, actions, slider', () => {
     expect(await columns()).toBe(1);
   });
 
+  test('a radio card whose input is aria-disabled or disabled looks quiet and keeps its border on hover', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => {
+      const card = (id, attr) => `<label class="ds-radio" id="${id}"><input type="radio" name="x-blocked" value="${id}" ${attr}><span><strong>Rack server</strong><small>Not in this plan.</small></span></label>`;
+      document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin',
+        `<div class="ds-radios" style="width: 600px">${card('x-radio-aria', 'aria-disabled="true"')}${card('x-radio-disabled', 'disabled')}</div>`);
+    });
+    const line = await page.locator('.ds-theme').evaluate((el) => {
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--ds-line)';
+      el.append(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    });
+    const hasHover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+    for (const id of ['#x-radio-aria', '#x-radio-disabled']) {
+      if (hasHover) await page.locator(`${id} strong`).hover();
+      await settle(page);
+      expect(await page.locator(id).evaluate((el) => getComputedStyle(el).borderTopColor), id).toBe(line);
+      expect(await page.locator(`${id} strong`).evaluate((el) => getComputedStyle(el).color), id).not.toBe(await page.locator('#tile-desktop strong').evaluate((el) => getComputedStyle(el).color));
+    }
+  });
+
   test('the actions stick to the bottom on a phone only', async ({ page }) => {
     await open(page);
     expect(await page.locator('#actions').evaluate((el) => getComputedStyle(el).position)).toBe('static');
@@ -294,6 +337,29 @@ test.describe('tiles, actions, slider', () => {
     await page.locator('#keep').evaluate((el) => el.style.setProperty('--ds-share', String(el.value / 100)));
     await settle(page);
     await expect(page.locator('#sliders')).toHaveScreenshot('sliders-focused.png');
+  });
+
+  test('a disabled slider\'s handle is solid: the track does not show through it', async ({ page }) => {
+    await open(page);
+    const slider = page.locator('#locked');
+    await slider.scrollIntoViewIfNeeded();
+    const rect = await box(slider);
+    // The handle's centre (value 30 of 100, a 20px handle) and a point 7px above it, off the 4px track.
+    const x = Math.round(rect.left + 10 + (rect.width - 20) * 0.3);
+    const y = Math.round(rect.top + rect.height / 2);
+    const shot = await page.screenshot({ clip: { x: x - 2, y: y - 9, width: 5, height: 11 } });
+    const [centre, above] = await page.evaluate(async (data) => {
+      const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(bitmap, 0, 0);
+      const scale = bitmap.width / 5;
+      const at = (px, py) => [...context.getImageData(Math.round(px * scale), Math.round(py * scale), 1, 1).data].slice(0, 3);
+      return [at(2, 9), at(2, 2)];
+    }, shot.toString('base64'));
+    for (let i = 0; i < 3; i += 1) expect(Math.abs(centre[i] - above[i]), `channel ${i}: ${centre} vs ${above}`).toBeLessThanOrEqual(3);
   });
 
   test('settled shots: tiles, input groups, the filled field', async ({ page }) => {

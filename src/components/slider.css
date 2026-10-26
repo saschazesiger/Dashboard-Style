@@ -22,7 +22,8 @@
  * shows no active part and the slider still works.
  *
  * Disabled (and aria-disabled="true"): the neutral ink for the handle and
- * the active part, no halo; it fades on --ds-dur-fast. Forced colours: the
+ * the active part, no halo; the handle lays the ink over --ds-surface, so
+ * it stays solid; it fades on --ds-dur-fast. Forced colours: the
  * track in ButtonText, the handle in Highlight (GrayText when disabled).
  *
  * Hooks: --ds-slider-halo (40px).
@@ -161,6 +162,17 @@
     color: var(--ds-disabled-ink, var(--ds-primary));
     opacity: var(--ds-disabled-opacity, var(--ds-state-disabled));
     cursor: not-allowed;
+  }
+
+  /* The ink is translucent: laid over the surface, the handle stays solid
+     and the track does not show through it. One engine's pseudo-element
+     per rule. */
+  .ds-slider:is(:disabled, [aria-disabled="true"])::-webkit-slider-thumb {
+    background: linear-gradient(currentColor, currentColor) var(--ds-surface);
+  }
+
+  .ds-slider:is(:disabled, [aria-disabled="true"])::-moz-range-thumb {
+    background: linear-gradient(currentColor, currentColor) var(--ds-surface);
   }
 
   /* The value beside the slider: tabular, so the row keeps its width. */

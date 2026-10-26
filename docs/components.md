@@ -1812,7 +1812,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   border, the inner ring and the text colour fade back together, so the ring never fades as half a ring.
 - The label of a field (`.ds-field__label` before the field, or the `<legend>` of a fieldset) takes the primary
   colour with the ring, at once, and fades back on blur; the label of an invalid field keeps the error ink, also
-  while focused.
+  while focused (the control directly in `.ds-field` or in its `.ds-input-group`, `.ds-field__row` or `.ds-combo`).
+  A focused invalid input group rings in the error colour alone, like a focused invalid field.
 - Error: `aria-invalid="true"` plus a `.ds-field__hint--error` with an icon, linked by `aria-describedby`. The
   message fades in when it appears (inserted, or filled from empty), not when its text changes; where the browser
   can animate height to `auto` and focus is in its form (`<form>`, `.ds-form`) or `.ds-field` (validation on blur
@@ -1841,7 +1842,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 - Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
   (`--ds-radius-card-pressed`), springing back on release; keyboard focus rings the whole card and lays the focus
   layer (`--ds-state-focus`) at once (its input has no halo); `.ds-radio--disabled` and a card whose input is
-  disabled or `aria-disabled` have none.
+  disabled or `aria-disabled` have none, keep their border on hover and take the quiet look (`--ds-line` border,
+  `--ds-surface-low`, the title in `--ds-text-2`; a checked one keeps its selected look).
 - Date and time fields (`date`, `datetime-local`, `month`, `week`, `time`) draw their picker button as the icon
   set's `calendar` (`time`: `clock`) in the quieter text colour; side by side in `.ds-filters`, `.ds-inline-form`
   and the two- and three-column grids they take less padding at 720px and below, so the value is not cut off.

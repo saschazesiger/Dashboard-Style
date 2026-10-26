@@ -467,3 +467,31 @@ describe('blocked hosts and selected cards (2.0 review)', () => {
     assert.match(rule.body, /overflow-clip-margin: 1px/);
   });
 });
+
+describe('invalid groups, blocked radio cards and sliders (2.0 review)', () => {
+  const css = read('src/components/form.css');
+
+  it('turns a focused invalid input group\'s border and ring both to the error colour', () => {
+    assert.deepEqual(own(css, '.ds-input-group:has(> [aria-invalid="true"]:focus)'), { 'border-color': 'var(--ds-error)', 'box-shadow': 'inset 0 0 0 1px var(--ds-error)' });
+  });
+
+  it('keeps the error ink on the label of an invalid group, row or combobox, bounded to them', () => {
+    const label = rules(css).find((rule) => rule.selector.startsWith('.ds-field:has(> [aria-invalid="true"]') && rule.selector.endsWith('> .ds-field__label'));
+    assert.equal(label?.selector, '.ds-field:has(> [aria-invalid="true"], > :is(.ds-input-group, .ds-field__row, .ds-combo) > [aria-invalid="true"]) > .ds-field__label');
+  });
+
+  it('gives a radio card with a blocked input no hover border and the quiet look', () => {
+    const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).filter((rule) => /^\.ds-radio:hover/.test(rule.selector) && /border-color/.test(rule.body));
+    assert.ok(hover.length > 0);
+    for (const rule of hover) assert.ok(rule.selector.includes(':not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))'), rule.selector);
+    assert.deepEqual(own(css, '.ds-radio:has(input:is(:disabled, [aria-disabled="true"])):not(:has(input:checked))'), { 'border-color': 'var(--ds-line)', background: 'var(--ds-surface-low)' });
+    assert.equal(own(css, '.ds-radio:has(input:is(:disabled, [aria-disabled="true"])) strong').color, 'var(--ds-text-2)');
+  });
+
+  it('draws a blocked slider handle solid (the ink over the surface)', () => {
+    const css = read('src/components/slider.css');
+    for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
+      assert.equal(own(css, `.ds-slider:is(:disabled, [aria-disabled="true"])${pseudo}`).background, 'linear-gradient(currentColor, currentColor) var(--ds-surface)', pseudo);
+    }
+  });
+});

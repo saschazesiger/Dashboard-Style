@@ -8490,8 +8490,10 @@
  * tile's check pops from --ds-scale-small on the spring.
  *
  * aria-disabled="true" on a checkbox or radio looks like disabled (no
- * hover or press halo, the disabled ink) but keeps its focus halo and its
- * place in the tab order; DS.motion's action guard blocks its click.
+ * hover or press halo, the disabled ink; a radio card with a blocked input
+ * takes the quiet look of .ds-radio--disabled) but keeps its focus halo
+ * and its place in the tab order; DS.motion's action guard blocks its
+ * click.
  *
  * Forced colours: focused fields, input groups and the composer show a
  * Highlight outline (their inset ring is a shadow, which forced colours
@@ -8735,7 +8737,9 @@
     transition-duration: 0s;
   }
 
-  .ds-field:has(> [aria-invalid="true"]) > .ds-field__label {
+  /* Also through an input group, a field row or a combobox; bounded to
+     them, so an invalid field never reaches a field it sits in. */
+  .ds-field:has(> [aria-invalid="true"], > :is(.ds-input-group, .ds-field__row, .ds-combo) > [aria-invalid="true"]) > .ds-field__label {
     color: var(--ds-on-error-container);
   }
 
@@ -9334,6 +9338,7 @@
   }
 
   .ds-input-group:has(> [aria-invalid="true"]:focus) {
+    border-color: var(--ds-error);
     box-shadow: inset 0 0 0 1px var(--ds-error);
   }
 
@@ -10003,7 +10008,7 @@
   }
 
   @media (hover: hover) {
-    .ds-radio:hover {
+    .ds-radio:hover:not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"]))) {
       border-color: var(--ds-outline);
     }
 
@@ -10084,13 +10089,16 @@
     cursor: not-allowed;
   }
 
-  @media (hover: hover) {
-    .ds-radio--disabled:hover {
-      border-color: var(--ds-line);
-    }
+  /* A card whose input is blocked (disabled, aria-disabled) looks like
+     .ds-radio--disabled; a checked one keeps its selected look, like a
+     checked .ds-radio--disabled. */
+  .ds-radio:has(input:is(:disabled, [aria-disabled="true"])):not(:has(input:checked)) {
+    border-color: var(--ds-line);
+    background: var(--ds-surface-low);
   }
 
-  .ds-radio--disabled strong {
+  .ds-radio--disabled strong,
+  .ds-radio:has(input:is(:disabled, [aria-disabled="true"])) strong {
     color: var(--ds-text-2);
   }
 
@@ -11779,7 +11787,8 @@
  * shows no active part and the slider still works.
  *
  * Disabled (and aria-disabled="true"): the neutral ink for the handle and
- * the active part, no halo; it fades on --ds-dur-fast. Forced colours: the
+ * the active part, no halo; the handle lays the ink over --ds-surface, so
+ * it stays solid; it fades on --ds-dur-fast. Forced colours: the
  * track in ButtonText, the handle in Highlight (GrayText when disabled).
  *
  * Hooks: --ds-slider-halo (40px).
@@ -11916,6 +11925,17 @@
     color: var(--ds-disabled-ink, var(--ds-primary));
     opacity: var(--ds-disabled-opacity, var(--ds-state-disabled));
     cursor: not-allowed;
+  }
+
+  /* The ink is translucent: laid over the surface, the handle stays solid
+     and the track does not show through it. One engine's pseudo-element
+     per rule. */
+  .ds-slider:is(:disabled, [aria-disabled="true"])::-webkit-slider-thumb {
+    background: linear-gradient(currentColor, currentColor) var(--ds-surface);
+  }
+
+  .ds-slider:is(:disabled, [aria-disabled="true"])::-moz-range-thumb {
+    background: linear-gradient(currentColor, currentColor) var(--ds-surface);
   }
 
   /* The value beside the slider: tabular, so the row keeps its width. */
