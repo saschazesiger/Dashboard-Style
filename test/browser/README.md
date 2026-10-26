@@ -560,6 +560,17 @@ not change it: the limits are documented in `docs/components.md` ("Loading", "Pa
 is on the list for 2.0 in the CHANGELOG. The cost is the rasteriser's (the container has no GPU), so it hardly
 changes with the CPU throttling; a GPU-rasterised browser repaints the band far faster, but still every frame.
 
+2.0 (MO-22) moves the band onto a layer of its own: every bone clips itself (`clip-path` with its radius) and
+carries the band as a fixed `::after` that the wave moves with `translate` (`will-change: translate`), so it keeps
+the one band across the bones of D11 and nothing repaints while it runs. `spike.spec.js` (12) holds the look against
+the fixed background pixel by pixel in every engine and reads the paint from a Chromium trace: over 1s of the wave
+the fixed background repainted the whole view 6 to 16 times (6.1 to 16.4 million px²), the shipped band nothing
+(also without `will-change`: Chromium gives a fixed box a layer of its own anyway; a bone that still had
+`background-attachment: fixed` beside the band repainted every frame). The test above now asserts the whole fixture
+as well; its frame times were not taken for 2.0 on a machine with the CPU alone (the next CI `perf` job does). On a
+shared, loaded machine (not the container) the skeleton alone read a p95 of 33.3ms with 170 of 180 frames, where the
+container read 100-133ms before 2.0.
+
 ### Style recalc
 
 The second half of the style scope sweep: on both styleguide pages, with every loop paused, the same text change
@@ -623,3 +634,4 @@ capabilities the design relies on; a later gap gets its row and its `spike:` mar
 | 9 | A closing `<dialog>` above a sticky element | paints above | paints above | paints above | P5's `--closing` rule (`display: block; position: fixed; z-index`) keeps a closed dialog above sticky content in every engine. |
 | 10 | Skeleton wave in phase across bones (`background-attachment: fixed`) | one phase across bones; breaks under an ancestor's `translate` animation, also while a finished one fills; holds once it is gone | same as Chromium | one phase in every case | P6: the wave starts after the container's entrance, and no entrance around a skeleton fills forwards (`.ds-enter` fills `backwards` only). Noted in `plans/motion-2/P6.md`. |
 | 11 | Painting a frame (`<iframe>`) after a same-document View Transition inside it (recorded, not a spike test) | the same paint every run | now and then, under parallel load (2 of 20 with 10 workers), paints the frame's content 1px up and to the left while its border stays put; the DOM, the rects, the scroll, the transforms and the animations are those of a good run, and a forced repaint does not stop it | the same paint every run | Not a `src/` bug: the settled shot of the lab's `views` demo masks the `iframe` in Firefox only (`SHOT_MASKS`, `engines`); its timeline JSON and the state checks of the Replay stay the proof. |
+| 12 | The skeleton band as a fixed `::after` on its own layer, clipped by each bone (MO-22, 2.0) | the same band at the same screen place as the fixed background (worst grey error 2 of 255); the running wave paints nothing (the fixed background repainted the whole view 6 to 16 times a second); no scroll added around a translated parent | the same band (error 1) | the same band (error 1) | Shipped in 2.0 (`loading.css`); `perf.spec.js` asserts the whole fixture. |

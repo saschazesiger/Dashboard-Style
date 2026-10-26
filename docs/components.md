@@ -1260,10 +1260,11 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   and the arc glides like linear progress. Markup as for [progress](#progress): `role="progressbar"`,
   `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, a name.
 - **Skeleton**: one calm diagonal wave passes over the whole surface, after its entrance. Every bone shows its slice
-  of one band fixed to the viewport (`background-attachment: fixed`, the registered `--ds-skeleton-x`), so the bones
-  of a surface share one phase. Fallback: where `background-attachment: fixed` is ignored (iOS) or broken by a
-  transformed ancestor (a sheet mid-slide, `.ds-enter`), the bones stay in time but the band no longer runs across
-  them; never wrap a skeleton in an entrance that fills forwards.
+  of one band fixed to the viewport (the registered `--ds-skeleton-x`), so the bones of a surface share one phase.
+  Since 2.0 each bone clips the band to its own shape and the band moves on a compositor layer of its own (a fixed
+  `::after`, moved by `translate`), so the wave repaints nothing; before, a fixed background was repainted with the
+  whole view. Under a transformed ancestor (a sheet mid-slide, `.ds-enter`) the band is placed in that ancestor
+  instead of the viewport: the bones stay in time and share it.
 - **Loading line** (`.ds-loading`): the loader, then the text in a two-column grid; `.ds-loading__detail` lines (2.0)
   sit under the text in its column (`--ds-font-meta`, `--ds-text-2`), aligned with it whatever the loader's size.
 - **Skeleton note** (`p.ds-skeleton__note`, 2.0): a progress line under the lead bone ("Loading 3 of 12 reports",
@@ -1281,11 +1282,10 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   then `DS.motion.leave(loadbar)` (it fades out with its segments still moving, and is removed) and render the fresh
   content. `.ds-leave` keeps the loops of a loading bar and of a skeleton surface while they fade out.
 - **Paint cost** (measured by `test/browser/perf.spec.js`, budget: the p95 frame within 33ms, two frames at 60Hz,
-  at 4x CPU throttling): 50 table rows of wavy progress with four shape loaders stay within it. The skeleton wave
-  does not: its fixed band (`background-attachment: fixed`) is repainted with the whole view, so without GPU
-  rasterisation a full-width skeleton stalls a frame for three or more several times a second, at any CPU speed.
-  Limits: one skeleton surface per view, shown only while a page loads its first data and never beside other
-  loops (shape loaders, wavy bars, spinners; its own loading bar aside) in the same view; for a refresh use `.ds-stale` and the loading bar.
+  at 4x CPU throttling): 50 table rows of wavy progress with four shape loaders and a skeleton surface stay within
+  it. The skeleton's band moves on its own compositor layer (2.0), so its wave repaints nothing; before 2.0 it was
+  a fixed background, repainted with the whole view on every step, and a skeleton had to wait alone. Show a
+  skeleton only while a page loads its first data; for a refresh use `.ds-stale` and the loading bar.
   Keep shape loaders to a few per view, and use `.ds-progress--flat` in dense table cells (the wave reaches outside
   the 4px track).
 

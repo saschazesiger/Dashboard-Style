@@ -9,12 +9,13 @@
  * The budget is 33ms: two frames at 60Hz. rAF times come in whole frames
  * (16.7ms steps, a few tenths of jitter), so two frames read 33.2-33.5ms;
  * the check allows two frames plus 1ms of that jitter (34.3ms), nothing
- * between two and three frames. It is never raised. The whole fixture is over it: the skeleton wave
- * (background-attachment: fixed) is painted on the main thread and stalls
- * a frame for three about every half second, so docs/components.md limits
- * it ("Paint cost": a skeleton waits alone, no other loops beside it). The
- * test asserts the budget on what those limits allow, the table and the
- * loaders, and records the whole fixture and the skeleton alone.
+ * between two and three frames. It is never raised. Since 2.0 the whole
+ * fixture is held to it: the skeleton's band moves on a compositor layer of
+ * its own (loading.css; spike.spec.js, 12, reads that the wave paints
+ * nothing), where before 2.0 its fixed background was repainted with the
+ * whole view and stalled a frame for three about every half second. The
+ * test asserts the budget on the whole fixture and on the table with the
+ * loaders, and records the skeleton alone.
  *
  * It runs in the `perf` project, and measures only when that project runs
  * alone (npm run test:browser -- --project=perf; CI gives it a job of its
@@ -70,7 +71,7 @@ async function measure(page, parts) {
 
 const describe = (name, result) => `${name}: p95 ${result.p95.toFixed(1)}ms, median ${result.median.toFixed(1)}ms, ${result.frames} frames in 3s, ${result.long} of three or more frames, ${result.loops} loops`;
 
-test('50 rows of wavy progress and four shape loaders keep the p95 frame at 4x CPU throttling within 33ms; the skeleton is recorded', async ({ page, browserName }, testInfo) => {
+test('50 rows of wavy progress, four shape loaders and a skeleton keep the p95 frame at 4x CPU throttling within 33ms', async ({ page, browserName }, testInfo) => {
   test.skip(browserName !== 'chromium', 'CPU throttling is a CDP command: Chromium only');
   test.skip(!process.env.DS_PERF_ALONE, 'frame times need the CPU alone: run npm run test:browser -- --project=perf');
   test.setTimeout(60000);
@@ -79,13 +80,14 @@ test('50 rows of wavy progress and four shape loaders keep the p95 frame at 4x C
   const skeleton = await measure(page, 'skeleton');
   testInfo.annotations.push(
     { type: 'perf', description: describe('table and loaders (asserted)', limited) },
-    { type: 'perf', description: describe('whole fixture (recorded)', whole) },
+    { type: 'perf', description: describe('whole fixture (asserted, 2.0)', whole) },
     { type: 'perf', description: describe('skeleton alone (recorded)', skeleton) },
   );
   expect(limited.loops, 'every wave and loader loops').toBeGreaterThanOrEqual(54);
   expect(limited.frames, 'frames were recorded').toBeGreaterThan(20);
   // Two frames read 33.2-33.5ms; three are 50ms. Nothing between passes.
   expect(limited.p95, `p95 rAF interval ${limited.p95.toFixed(1)}ms (budget ${BUDGET} frames, 33ms, plus ${JITTER}ms of jitter)`).toBeLessThanOrEqual(BUDGET * FRAME + JITTER);
+  expect(whole.p95, `p95 rAF interval of the whole fixture, skeleton included, ${whole.p95.toFixed(1)}ms (the same budget)`).toBeLessThanOrEqual(BUDGET * FRAME + JITTER);
 });
 
 /**

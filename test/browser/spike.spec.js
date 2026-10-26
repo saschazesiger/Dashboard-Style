@@ -428,3 +428,128 @@ test('10. skeleton bones share one wave phase with background-attachment: fixed'
   expect(a, 'bone A follows the viewport-fixed wave').toBeLessThanOrEqual(4);
   expect(b, 'bone B follows the same phase').toBeLessThanOrEqual(4);
 });
+
+
+/* ── 12. Skeleton wave without a full-view repaint (MO-22, 2.0) ────── */
+
+/*
+ * Option A of MO-22, shipped in 2.0 (loading.css): every bone clips itself
+ * (clip-path with its radius) and carries the band as a fixed ::after that
+ * the wave moves with `translate` on a layer of its own (will-change),
+ * instead of a fixed background that the wave moves by
+ * background-position. Against the rule before 2.0 (LEGACY, put back
+ * here) it must paint the same band at the same screen place in every
+ * engine (the D11 look: one band across the bones), compared pixel by
+ * pixel at three frozen phases with a dark highlight so the band stands
+ * out; and in Chromium the running wave must paint next to nothing, read
+ * from a trace (the area of the Paint events over 1s). Frame times are not
+ * taken here: they need the CPU alone (perf.spec.js); the painted area
+ * does not. The band without will-change is recorded too (Chromium gives a
+ * fixed box a layer of its own anyway; will-change asks every engine).
+ */
+const LEGACY = `
+  .ds-skeleton__line, .ds-skeleton__line--heading {
+    clip-path: none;
+    background-image: linear-gradient(105deg, transparent 40%, var(--ds-skeleton-highlight) 50%, transparent 60%);
+    background-size: 200vw 100%;
+    background-attachment: fixed;
+    background-position: var(--ds-skeleton-x) 0;
+  }
+  .ds-skeleton__line::after { content: none; }`;
+
+const NO_LAYER = '.ds-skeleton__line::after { will-change: auto; }';
+
+const DARK_BAND = '.ds-theme { --ds-skeleton-highlight: #202124; }';
+
+/** Opens the skeleton of the paint fixture with extra CSS. */
+async function skeletonPage(page, css) {
+  await page.goto('/test/browser/fixtures/perf.html?parts=skeleton');
+  await ready(page);
+  await page.addStyleTag({ content: DARK_BAND + css });
+}
+
+/** The grey levels along the middle row of every bone, at a frozen phase of the wave. */
+async function bonePixels(page, ms) {
+  await freeze(page);
+  await seek(page, ms);
+  const boxes = await page.locator('.ds-skeleton__line').evaluateAll((bones) => bones.map((bone) => {
+    const rect = bone.getBoundingClientRect();
+    return { x: Math.ceil(rect.left) + 2, y: Math.round(rect.top + rect.height / 2), width: Math.floor(rect.width) - 4 };
+  }));
+  const out = [];
+  for (const box of boxes) {
+    const image = await pixels(page, { x: box.x, y: box.y, width: box.width, height: 1 });
+    for (let x = box.x; x < box.x + box.width; x += 2) out.push(image.at(x, box.y)[0]);
+  }
+  return out;
+}
+
+/** The painted area (px²) and count of the Paint events in 1s of the running page, from a Chromium trace. */
+async function paintedArea(page, browser) {
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 300)));
+  await browser.startTracing(page, { categories: ['devtools.timeline'] });
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 1000)));
+  const trace = JSON.parse((await browser.stopTracing()).toString('utf8'));
+  let area = 0;
+  let paints = 0;
+  for (const event of trace.traceEvents) {
+    if (event.name !== 'Paint' || !event.args?.data?.clip) continue;
+    const q = event.args.data.clip;
+    const xs = [q[0], q[2], q[4], q[6]];
+    const ys = [q[1], q[3], q[5], q[7]];
+    area += (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+    paints += 1;
+  }
+  return { area: Math.round(area), paints };
+}
+
+test('12. skeleton band on its own layer: the look of the fixed background, and no repaint per frame (MO-22)', async ({ page, browser, browserName }) => {
+  test.setTimeout(90000);
+  await skeletonPage(page, LEGACY);
+  // Phases past the wave's delay (it starts after the skeleton's entrance).
+  const delay = await page.evaluate(() => document.querySelector('.ds-skeleton').getAnimations().find((a) => a.animationName === 'ds-skeleton-wave').effect.getTiming().delay);
+  const times = [delay + 600, delay + 1000, delay + 1400];
+  const legacy = [];
+  for (const ms of times) legacy.push(await bonePixels(page, ms));
+  await skeletonPage(page, '');
+  const shipped = [];
+  for (const ms of times) shipped.push(await bonePixels(page, ms));
+  // The band must cross the bones at some phase, or the comparison says nothing.
+  const banded = legacy.some((row) => Math.max(...row) - Math.min(...row) > 40);
+  let worst = 0;
+  let off = 0;
+  legacy.forEach((row, i) => row.forEach((value, j) => {
+    const error = Math.abs(value - shipped[i][j]);
+    worst = Math.max(worst, error);
+    if (error > 8) off += 1;
+  }));
+  const total = legacy.reduce((sum, row) => sum + row.length, 0);
+  // A translated parent (an entrance, a sheet mid-slide) becomes the band's
+  // containing block: the band must not spill into the scroller around it.
+  const spill = await page.evaluate(() => {
+    const skeleton = document.querySelector('.ds-skeleton');
+    const scroller = document.createElement('div');
+    scroller.style.cssText = 'height: 300px; overflow: auto';
+    const moving = document.createElement('div');
+    moving.style.translate = '0 4px';
+    skeleton.before(scroller);
+    scroller.append(moving);
+    moving.append(skeleton);
+    return { x: scroller.scrollWidth - scroller.clientWidth, y: scroller.scrollHeight - scroller.clientHeight };
+  });
+  let paint = '';
+  if (browserName === 'chromium') {
+    await skeletonPage(page, LEGACY);
+    const before = await paintedArea(page, browser);
+    await skeletonPage(page, NO_LAYER);
+    const unlayered = await paintedArea(page, browser);
+    await skeletonPage(page, '');
+    const now = await paintedArea(page, browser);
+    paint = `; painted in 1s of the wave: before 2.0 ${before.area}px² in ${before.paints} paints, the band without its layer ${unlayered.area}px² in ${unlayered.paints}, shipped ${now.area}px² in ${now.paints}`;
+    expect(now.area, 'the running wave paints next to nothing (the band moves on its layer)').toBeLessThan(before.area / 10);
+  }
+  record(`the band on its layer against the fixed background before 2.0, three phases: worst grey error ${worst} (0-255), ${off} of ${total} samples off by more than 8; in a translated parent inside a scroller it adds ${spill.x}px of sideways and ${spill.y}px of vertical scroll${paint}`);
+  expect(banded, 'the dark band crosses the bones at one of the phases').toBe(true);
+  expect(off / total, 'the band is where the fixed background put it').toBeLessThan(0.02);
+  expect(spill, 'the band adds no scroll to a scroller around a translated parent').toEqual({ x: 0, y: 0 });
+});
