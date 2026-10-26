@@ -264,6 +264,11 @@ strings a script adds have an option, so a page in another language passes its o
 | Built-in string | Where | Option |
 |---|---|---|
 | `Close` | the accessible name of the close button of a snackbar that stays | `DS.overlay.toast(region, text, { closeLabel })` |
+| `OK` | the one button of a built alert dialog | `DS.overlay.alert({ closeLabel })` |
+| `Cancel` | the cancel button of a built confirm or prompt dialog | `DS.overlay.confirm({ cancelLabel })`, `DS.overlay.prompt({ cancelLabel })` |
+| `Confirm` | the confirm button of a built confirm or prompt dialog (name the consequence instead: "Delete device") | `DS.overlay.confirm({ confirmLabel })`, `DS.overlay.prompt({ confirmLabel })` |
+| `That did not work. Try again.` | the error snackbar when `onConfirm` of a built dialog fails | `DS.overlay.confirm({ errorText })`, `DS.overlay.prompt({ errorText })` |
+| `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates are the page's
 too: set `lang` on `<html>` (or the widget root), format figures with `countUp(el, value, { format: new

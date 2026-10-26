@@ -439,8 +439,10 @@ describe('repository', () => {
 });
 
 describe('language and locale', () => {
-  /** Key names of KeyboardEvent.key that scripts compare against: never UI text. */
-  const KEYS = new Set(['Escape', 'Enter', 'Tab', 'Home', 'End', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace', 'Delete', 'Shift', 'Control', 'Alt', 'Meta', 'Spacebar']);
+  /** Key names of KeyboardEvent.key and DOM values that scripts compare against: never UI text. */
+  const NOT_UI = new Set(['Escape', 'Enter', 'Tab', 'Home', 'End', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace', 'Delete', 'Shift', 'Control', 'Alt', 'Meta', 'Spacebar',
+    // DataTransfer.types of a drag with files.
+    'Files']);
 
   it('gives every built-in UI string of src/js an option and a row in docs/install.md, "Language and locale"', () => {
     const install = read('docs/install.md');
@@ -449,21 +451,28 @@ describe('language and locale', () => {
     const offenders = [];
     let found = 0;
     for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {
-      const lines = code(read(file)).split('\n');
+      // Comments blanked with their line breaks kept, so the line numbers hold.
+      const source = read(file).replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' ')).replace(/^[ \t]*\/\/.*$/gm, '');
+      const lines = source.split('\n');
       for (const [index, line] of lines.entries()) {
         // Messages for developers (errors, console) are not UI.
-        if (/\b(Error|TypeError|RangeError)\(|console\.|\bwarn\w*\(/.test(line)) continue;
-        for (const match of line.matchAll(/(['"`])([A-Z][a-z]+(?: [\w,.'-]+)*)\1/g)) {
-          const text = match[2];
-          if (KEYS.has(text)) continue;
+        if (/\b(Error|TypeError|RangeError)\(|console\??\.|\bwarn\w*\??\.?\(/.test(line)) continue;
+        // A quoted word or phrase that starts with a capital ('Close', 'OK'), or a template that does (`Moved to ${n}`).
+        for (const match of line.matchAll(/(['"])([A-Z][a-z]+(?: [\w,.'-]+)*|OK)\1|`([A-Z][a-z]+ [^`]*)`/g)) {
+          const text = match[2] ?? match[3];
+          if (NOT_UI.has(text)) continue;
           found += 1;
-          const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const option = new RegExp(`(\\w+)\\s*(?:\\|\\||\\?\\?|=)\\s*['"\`]${escaped}['"\`]`).exec(line)?.[1];
+          // The option is the name the string falls back from: `options.label ?? 'Close'`, `label || 'Close'`,
+          // `(options.announce ?? ((i, n) => `...`))`; a constant (`const TEXT = '...'`) takes the option it is the fallback of.
+          let option = [...line.slice(0, match.index).matchAll(/(\w+)\s*(?:\|\||\?\?)/g)].pop()?.[1];
+          const constant = /^\s*const ([A-Z_]+)\s*=\s*$/.exec(line.slice(0, match.index))?.[1];
+          if (!option && constant) option = new RegExp(`(\\w+)\\s*(?:\\|\\||\\?\\?)\\s*${constant}\\b`).exec(source)?.[1];
           if (!option) {
-            offenders.push(`${file}:${index + 1}: '${text}' has no option (write it as \`option || '${text}'\`)`);
+            offenders.push(`${file}:${index + 1}: '${text}' has no option (write it as \`option ?? '${text}'\`)`);
             continue;
           }
-          if (!rows.some((row) => row.includes(`\`${text}\``) && row.includes(option))) offenders.push(`${file}:${index + 1}: '${text}' (option ${option}) has no row in "Language and locale"`);
+          // The row names the string and the option (the public name may carry a prefix: label in closeLabel).
+          if (!rows.some((row) => row.includes(`\`${text}\``) && row.toLowerCase().includes(option.toLowerCase()))) offenders.push(`${file}:${index + 1}: '${text}' (option ${option}) has no row in "Language and locale"`);
         }
       }
     }
@@ -471,3 +480,4 @@ describe('language and locale', () => {
     assert.deepEqual(offenders, []);
   });
 });
+
