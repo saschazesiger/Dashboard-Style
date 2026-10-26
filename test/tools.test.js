@@ -12,7 +12,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { build, packageInfo, tokensJson } from '../scripts/build.mjs';
 import { checkTheme } from '../scripts/tools/check-theme.mjs';
-import { CONTROL_PAIRS, ICON_PAIRS, MOTION_FAMILIES, TEXT_PAIRS } from '../scripts/tools/theme-rules.mjs';
+import { CHART_PAIRS, CONTROL_PAIRS, ICON_PAIRS, MOTION_FAMILIES, TEXT_PAIRS } from '../scripts/tools/theme-rules.mjs';
 import { verify } from '../scripts/tools/verify.mjs';
 import { read, ROOT } from './helpers.js';
 
@@ -150,8 +150,8 @@ describe('tools/check-theme.mjs', () => {
 
   it('passes the template, the shipped themes and the reference app theme without an error', () => {
     for (const file of ['themes/example.css', 'themes/dark.css', 'themes/contrast.css', 'themes/compact.css', 'example/theme.css']) {
-      // The compact hooks of other 2.0 packages are unknown until they merge (tables: WP5, tabs: WP9).
-      const errors = check(read(file)).filter((f) => f.level === 'error' && !/--ds-(table-head|table-row|tabs)-height/.test(f.message));
+      // The compact table hooks are unknown until WP5 merges.
+      const errors = check(read(file)).filter((f) => f.level === 'error' && !/--ds-(table-head|table-row)-height/.test(f.message));
       assert.deepEqual(errors, [], file);
     }
     assert.deepEqual(rules(check(read('themes/dark.css')), 'warning'), [], 'dark.css keeps its pairs');
@@ -234,6 +234,7 @@ describe('tools/check-theme.mjs', () => {
     assert.deepEqual(list('text'), TEXT_PAIRS);
     assert.deepEqual(list('control'), CONTROL_PAIRS);
     assert.deepEqual(list('icon'), ICON_PAIRS);
+    assert.deepEqual(list('chart'), CHART_PAIRS);
     const families = /var THEME_MOTION = \/--ds-\(([^)]*)\)/.exec(source)?.[1].split('|');
     assert.deepEqual(families, MOTION_FAMILIES);
   });

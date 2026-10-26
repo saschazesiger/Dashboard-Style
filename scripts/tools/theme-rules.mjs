@@ -7,6 +7,7 @@
  *   TEXT_PAIRS                text on a surface: 4.5:1 (WCAG 1.4.3)
  *   CONTROL_PAIRS, ICON_PAIRS checkbox and radio parts, icons and outlines
  *                             that carry meaning: 3:1 (WCAG 1.4.11)
+ *   CHART_PAIRS               every chart mark on the grounds it sits on: 3:1
  *   parseColour(), mix(), resolveColour(), contrast()
  *
  * Copied to dist/tools/ by scripts/build.mjs; plain ES2022, no dependency.
@@ -105,6 +106,11 @@ export const ICON_PAIRS = [
   ['--ds-surface-highest', '--ds-outline'],
   ['--ds-primary', '--ds-on-primary'],
 ];
+
+/** The chart marks (series, neutral, tones) on the surfaces and the track, at 3:1 (WCAG 1.4.11). */
+export const CHART_MARKS = ['--ds-chart-1', '--ds-chart-2', '--ds-chart-3', '--ds-chart-4', '--ds-chart-neutral', '--ds-chart-warning', '--ds-chart-error'];
+export const CHART_GROUNDS = ['--ds-surface', '--ds-surface-low', '--ds-chart-track'];
+export const CHART_PAIRS = CHART_MARKS.flatMap((mark) => CHART_GROUNDS.map((ground) => [mark, ground]));
 
 const NAMED = { transparent: [0, 0, 0, 0], black: [0, 0, 0, 1], white: [255, 255, 255, 1] };
 
@@ -239,12 +245,12 @@ export function formatColour(colour) {
 }
 
 /**
- * Every pair of the three lists checked against `lookup`, as
- * { kind: 'text' | 'control' | 'icon', fg, bg, min, ratio } (ratio null:
- * not checked, a value this module cannot resolve).
+ * Every pair of the four lists checked against `lookup`, as
+ * { kind: 'text' | 'control' | 'icon' | 'chart', fg, bg, min, ratio }
+ * (ratio null: not checked, a value this module cannot resolve).
  */
 export function pairResults(lookup) {
-  const lists = [['text', TEXT_PAIRS, 4.5], ['control', CONTROL_PAIRS, 3], ['icon', ICON_PAIRS, 3]];
+  const lists = [['text', TEXT_PAIRS, 4.5], ['control', CONTROL_PAIRS, 3], ['icon', ICON_PAIRS, 3], ['chart', CHART_PAIRS, 3]];
   return lists.flatMap(([kind, pairs, min]) => pairs.map(([fg, bg]) => {
     const ratio = contrast(resolveColour(`var(${fg})`, lookup), resolveColour(`var(${bg})`, lookup));
     return { kind, fg, bg, min, ratio };

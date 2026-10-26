@@ -65,6 +65,11 @@
   --ds-on-inverse: #303030;
   --ds-inverse-primary: #0b57d0;
 
+  /* ── Chart series: lighter tones, 3:1 on the dark surfaces and the track ── */
+  --ds-chart-2: #f0a35c;
+  --ds-chart-3: #4fd8c4;
+  --ds-chart-4: #c58af9;
+
   /* ── Scrims and shadows on black ── */
   --ds-scrim: rgba(0, 0, 0, .48);
   --ds-scrim-nested: rgba(0, 0, 0, .24);

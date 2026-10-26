@@ -178,8 +178,8 @@
   /* ── Theme check ──────────────────────────────────────────────────── */
 
   /* The pairs of scripts/tools/theme-rules.mjs (TEXT_PAIRS, CONTROL_PAIRS,
-     ICON_PAIRS), copied for this classic script; test/tools.test.js keeps
-     the copy equal. */
+     ICON_PAIRS, CHART_PAIRS), copied for this classic script;
+     test/tools.test.js keeps the copy equal. */
   var THEME_PAIRS = {
     text: [
       ['--ds-text', '--ds-surface'],
@@ -231,8 +231,31 @@
       ['--ds-surface-highest', '--ds-outline'],
       ['--ds-primary', '--ds-on-primary'],
     ],
+    chart: [
+      ['--ds-chart-1', '--ds-surface'],
+      ['--ds-chart-1', '--ds-surface-low'],
+      ['--ds-chart-1', '--ds-chart-track'],
+      ['--ds-chart-2', '--ds-surface'],
+      ['--ds-chart-2', '--ds-surface-low'],
+      ['--ds-chart-2', '--ds-chart-track'],
+      ['--ds-chart-3', '--ds-surface'],
+      ['--ds-chart-3', '--ds-surface-low'],
+      ['--ds-chart-3', '--ds-chart-track'],
+      ['--ds-chart-4', '--ds-surface'],
+      ['--ds-chart-4', '--ds-surface-low'],
+      ['--ds-chart-4', '--ds-chart-track'],
+      ['--ds-chart-neutral', '--ds-surface'],
+      ['--ds-chart-neutral', '--ds-surface-low'],
+      ['--ds-chart-neutral', '--ds-chart-track'],
+      ['--ds-chart-warning', '--ds-surface'],
+      ['--ds-chart-warning', '--ds-surface-low'],
+      ['--ds-chart-warning', '--ds-chart-track'],
+      ['--ds-chart-error', '--ds-surface'],
+      ['--ds-chart-error', '--ds-surface-low'],
+      ['--ds-chart-error', '--ds-chart-track'],
+    ],
   };
-  var PAIR_MIN = { text: 4.5, control: 3, icon: 3 };
+  var PAIR_MIN = { text: 4.5, control: 3, icon: 3, chart: 3 };
   /* The motion families no theme sets (MOTION_FAMILIES of theme-rules.mjs). */
   var THEME_MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/;
 

@@ -390,7 +390,6 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
   const ADDED_BY_LATER_MERGES = new Map([
     ['--ds-table-head-height', 'TB-6 (WP5)'],
     ['--ds-table-row-height', 'TB-6 (WP5)'],
-    ['--ds-tabs-height', 'FR-5 (WP9)'],
   ]);
   /** The declarations of a theme on .ds-theme outside @media (what applies without a condition). */
   const declared = (file) => {
@@ -410,7 +409,7 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     .map((pair) => `${pair.fg} on ${pair.bg}: ${pair.ratio === null ? 'not resolved' : `${pair.ratio.toFixed(2)}:1 (needs ${pair.min}:1)`}`);
 
   for (const files of [['themes/dark.css'], ['themes/contrast.css'], ['themes/compact.css'], ['themes/dark.css', 'themes/contrast.css'], ['themes/example.css', 'themes/contrast.css']]) {
-    it(`keeps every text pair at 4.5:1 and every control, icon and outline pair at 3:1: ${files.join(' + ')}`, () => {
+    it(`keeps every text pair at 4.5:1 and every control, icon, outline and chart pair at 3:1: ${files.join(' + ')}`, () => {
       assert.deepEqual(failing(stack(...files)), []);
     });
   }

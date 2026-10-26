@@ -406,7 +406,7 @@ serves; they set roles and hooks on `.ds-theme` like any theme, never motion tok
 
 | File | What it sets | Load it |
 |---|---|---|
-| `themes/dark.css` | every colour role that does not follow another role, in the Material 3 dark tones (backdrop `#131314`, surface `#1e1f20`, primary `#a8c7fa`), the floating surfaces a tone above the page (`--ds-surface-overlay`, `--ds-surface-popover`), `--ds-color-scheme: dark` and shadows on black | `media="(prefers-color-scheme: dark)"`, or by the user's choice |
+| `themes/dark.css` | every colour role that does not follow another role, in the Material 3 dark tones (backdrop `#131314`, surface `#1e1f20`, primary `#a8c7fa`), the floating surfaces a tone above the page (`--ds-surface-overlay`, `--ds-surface-popover`), lighter chart series (`--ds-chart-2` to `--ds-chart-4`), `--ds-color-scheme: dark` and shadows on black | `media="(prefers-color-scheme: dark)"`, or by the user's choice |
 | `themes/compact.css` | 13/18 UI text and shorter controls (`--ds-btn-height` 32px, `--ds-input-height` 36px, table rows, menu, drawer items and tabs 40px, chips 28px); under `@media (pointer: coarse)` the default heights come back, and field text keeps 16px on phones | for desktop consoles; touch density is `.ds-touch` (opt-in, never automatic) |
 | `themes/contrast.css` | `--ds-text-2` as the text colour, a stronger `--ds-text-3`, hairlines at the outline colour, darker outlines and field borders, 3px focus rings, solid link underlines, a stronger tint; mixed from your text and surface roles, so it works on any palette, dark included | `media="(prefers-contrast: more)"` |
 
@@ -461,7 +461,7 @@ theme is used with) and count for the contrast pairs.
 | `removed` | error | a name `deprecations.json` lists as removed, with its replacement |
 | `deprecated` | warning | a deprecated name, with its replacement |
 | `not-themeable` | warning | a scale, runtime or internal property (`tokens.json` says which) |
-| `contrast` | warning | a text pair under 4.5:1, a checkbox, icon or outline pair under 3:1 (rule 3); `var()`, hex, `rgb()` and `color-mix(in srgb, ...)` are resolved, any other form is reported as `info`, "not checked" |
+| `contrast` | warning | a text pair under 4.5:1, a checkbox, icon, outline or chart mark pair under 3:1 (rule 3); `var()`, hex, `rgb()` and `color-mix(in srgb, ...)` are resolved, any other form is reported as `info`, "not checked" |
 | `restyle` | warning | a component selector with a property that is not a custom property |
 
 Every rule whose selector names `.ds-theme` sets roles: plain `.ds-theme` (or `.ds-theme.my-widget`) is the base, and
