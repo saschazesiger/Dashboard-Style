@@ -191,6 +191,9 @@
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);
   --ds-card-hover-shadow: none;        (for example var(--ds-elev-hover))
   --ds-tile-radius-pressed: var(--ds-radius-md);
+  --ds-tile-min-width: 176px;          --ds-tiles-columns: 4;
+  --ds-tile-selected-bg: var(--ds-accent); --ds-card-selected-bg: var(--ds-accent);
+  --ds-selected-ring: var(--ds-primary); --ds-card-shadow: var(--ds-elev-1);
   --ds-table-row-hover: (a currentColor layer at --ds-state-hover-lg);
   --ds-table-row-selected: var(--ds-accent);
   --ds-status-radius: var(--ds-radius-md);

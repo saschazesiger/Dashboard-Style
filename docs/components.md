@@ -24,6 +24,8 @@ component live.
 | A save that takes a moment, with a success moment after it | `.ds-btn__faces` and `DS.motion.busy()` ([Button](#button)) |
 | An icon that turns into another (copy to check, play to pause) | `.ds-icon-swap`, `DS.motion.crossfade(el, icon, { kind: 'icon' })` ([Button](#button)) |
 | Key figures at the top of a page | [Tiles](#tiles) `.ds-tiles`, `.ds-tile` |
+| Filter by a figure | a `button.ds-tile` with `aria-pressed` ([Tiles](#tiles)) |
+| Pick one of a few cards | `.ds-card--interactive` with `aria-pressed` (or `aria-checked`) ([Interactive card](#interactive-card)) |
 | Label and value pairs | `.ds-kv-list` (rows) or `.ds-facts` (a grid, best with four) ([Lists](#lists)) |
 | A run of short counts ("3 new · 1 updated") | `.ds-parts` ([Lists](#lists)) |
 | Nothing to show yet | [Empty state](#empty-state) `.ds-empty` |
@@ -463,7 +465,38 @@ A whole card that opens something (1.4):
   keeps its focus layer.
 - Nothing moves on hover, no lift and no scale. A theme may add a shadow on hover with `--ds-card-hover-shadow`
   (default none; for example `var(--ds-elev-hover)`), in over `--ds-dur-medium`, out over `--ds-dur-base`.
-- In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring.
+- In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring; an
+  `aria-disabled` card turns `GrayText`.
+
+Pick one of a few cards (a plan, a template): the card is a toggle. Put `aria-pressed` (or `aria-checked` in a
+`role="radiogroup"`, `aria-selected` in a listbox) on a `<button>` card, or on the `.ds-card__action` of the `<div>`
+form, which may be a `<button>` too (it loses its own look):
+
+```html
+<div class="ds-grid-2" role="group" aria-label="Plan">
+  <button class="ds-card ds-card--interactive" type="button" aria-pressed="true">
+    <span class="ds-card__title">[icon check 20]Standard</span>
+    <span class="ds-muted">Daily sync, 30 days of history</span>
+  </button>
+  <div class="ds-card ds-card--interactive">
+    <h2 class="ds-card__title"><button class="ds-card__action" type="button" aria-pressed="false">Extended</button></h2>
+    <p class="ds-muted">Hourly sync, a year of history</p>
+    <a class="ds-link--quiet" href="/plans">Compare plans</a>
+  </div>
+</div>
+```
+
+- Selected, the card takes `--ds-card-selected-bg` (`--ds-accent`) with `--ds-on-accent` ink and a static inset ring
+  (a border of `--ds-focus-width` in `--ds-selected-ring`, `--ds-primary`, on the card's own `::after`), so the
+  focus ring stays free and both read at once (a border survives forced colours; a `box-shadow` ring does not). The
+  colours change on `--ds-dur-fast`, the ring shows at once. Add a check or the label weight: never the tint alone.
+  Forced colours: `Highlight` / `HighlightText`.
+- `.ds-card--elevated`: a card that floats a little (`--ds-card-shadow`, `--ds-elev-1`) instead of the hairline; in
+  forced colours its edge comes back.
+- `.ds-card__title` wraps long words and lines up a leading icon (`[icon ... 20]` first) with its words.
+- `.ds-card__links` hangs only text buttons and `.ds-card__link` into the card's margin; an outlined button there keeps
+  its place.
+- Print: a short card is never split across pages.
 
 **Motion:** the press morph of [Controls](motion.md#controls) (`.ds-card--interactive`) and the "Alert, tile, card" row of [Feedback](motion.md#feedback).
 
@@ -476,16 +509,23 @@ A whole card that opens something (1.4):
     <p class="ds-tile__value">12</p>
     <p class="ds-tile__note">3 more than last week</p>
   </div>
-  ... (four per row, two below 1100px)
+  ... (as many per row as fit at 176px, at most four)
 </div>
 ```
+
+The row fills its container, whatever it is (a page, a dialog, a side sheet, beside the drawer): as many tiles per row
+as fit at `--ds-tile-min-width` (176px), never more than `--ds-tiles-columns` (4), each row filled. `.ds-tiles--3`
+caps the row at three. A single figure that opens a list is one `a.ds-tile`, also outside `.ds-tiles`.
 
 `DS.motion.countUp()` never takes the target from the markup. It counts from the figure it last wrote (or one a
 re-render wrote since, read back through `format`), and on its first call from 0. So keep the raw value in your own
 state (the styleguide demo keeps it in a data attribute of its own), and pass `{ from: <the value in the markup> }`
 on the first update of a tile rendered with its figure if it should count on rather than from 0.
 
-The value never takes a colour and never wraps (it shrinks on narrow tiles). Every new value goes through
+The value never takes a colour and never wraps (it shrinks on narrow tiles; a value still too wide ends in an
+ellipsis, the last resort: shorten figures, put the full value in `data-tip`). A missing value takes
+`.ds-tile__value--empty` (`<p class="ds-tile__value ds-tile__value--empty">No data</p>`): `--ds-text-2` in the display
+font. Every new value goes through
 `DS.motion.countUp(el, next)`: it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
 through `format`; from 0 the first time) on `--ds-ease-value` over
 `--ds-dur-glide`, so a refresh counts on from the old value, a new value mid-count retargets from where the figure
@@ -502,7 +542,28 @@ note.textContent = `${failed} failed`;                             // at once
 A tile that opens something is a `<button class="ds-tile">` or `<a class="ds-tile">` with `<span>`s instead of the
 `<p>`s: a 6% state layer, the focus ring, the ripple, and the press morph (16 to 12px, `--ds-tile-radius-pressed`,
 springing back on release); no lift, no scale. A disabled or `aria-disabled="true"` tile shows no hover or press
-layer and does not morph; an `aria-disabled` tile keeps its focus layer.
+layer and does not morph; an `aria-disabled` tile keeps its focus layer (forced colours: `GrayText`).
+
+Filter by a figure: a clickable tile that is a toggle (`aria-pressed`, or `aria-checked` / `aria-selected` in a group
+of that role):
+
+```html
+<div class="ds-tiles" role="group" aria-label="Filter devices">
+  <button class="ds-tile" type="button" aria-pressed="true">
+    <span class="ds-tile__label">[icon check 16]<span>Overdue</span></span>
+    <span class="ds-tile__value">12</span>
+  </button>
+  <button class="ds-tile" type="button" aria-pressed="false">
+    <span class="ds-tile__label"><span>In repair</span></span>
+    <span class="ds-tile__value">3</span>
+  </button>
+</div>
+```
+
+Selected, the tile takes `--ds-tile-selected-bg` (`--ds-accent`) with `--ds-on-accent` ink and a static inset ring
+(`--ds-selected-ring`, `--ds-primary`, at `--ds-focus-width`), so the focus ring stays free and both read at once.
+Colours on `--ds-dur-fast`, the ring at once; add a check or the label weight, never the tint alone. Forced colours:
+`Highlight` / `HighlightText`. A short tile is never split across printed pages.
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
 

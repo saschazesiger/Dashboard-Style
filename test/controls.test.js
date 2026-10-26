@@ -253,3 +253,59 @@ describe('chips, badges and tags (2.0)', () => {
     assert.ok(!rules(status).some((rule) => rule.selector.includes('.ds-tag') && /cursor|::before/.test(rule.selector + rule.body)));
   });
 });
+
+describe('tiles and cards (2.0)', () => {
+  const tile = read('src/components/tile.css');
+  const card = read('src/components/card.css');
+  const SEL = ':is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])';
+
+  it('marks a selected tile or card by the tint and a static border ring on a free ::after', () => {
+    const flatTile = withoutAtRuleBlocks(tile, /@media/);
+    assert.equal(own(flatTile, `:is(button, a).ds-tile${SEL}`).background, 'var(--ds-tile-selected-bg, var(--ds-accent))');
+    const flatCard = withoutAtRuleBlocks(card, /@media/);
+    assert.equal(own(flatCard, `.ds-card--interactive${SEL}`).background, 'var(--ds-card-selected-bg, var(--ds-accent))');
+    assert.equal(own(flatCard, `.ds-card--interactive:has(.ds-card__action${SEL})`).background, 'var(--ds-card-selected-bg, var(--ds-accent))');
+    for (const [css, selector] of [[flatTile, `:is(button, a).ds-tile${SEL}::after`], [flatCard, `.ds-card--interactive${SEL}::after`]]) {
+      const ring = own(css, selector);
+      assert.equal(ring.border, 'var(--ds-focus-width) solid var(--ds-selected-ring, var(--ds-primary))', selector);
+      assert.equal(ring['pointer-events'], 'none');
+      assert.equal(ring.transition, undefined, 'the ring shows at once');
+      assert.ok(!('box-shadow' in ring), 'a border, never a box-shadow ring');
+    }
+    // The colours glide on --ds-dur-fast (rest and pressed).
+    for (const [css, selector] of [[flatTile, ':is(button, a).ds-tile'], [flatCard, '.ds-card--interactive']]) {
+      assert.match(own(css, selector).transition, /background-color var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, selector);
+    }
+    const forcedTile = forcedColorBlocks(tile).join('\n');
+    assert.equal(own(forcedTile, `:is(button, a).ds-tile${SEL}`).background, 'Highlight');
+    assert.equal(own(forcedTile, `:is(button, a).ds-tile${SEL}`).color, 'HighlightText');
+    const forcedCard = forcedColorBlocks(card).join('\n');
+    assert.equal(own(forcedCard, `.ds-card--interactive${SEL}`).background, 'Highlight');
+    assert.equal(own(forcedCard, '.ds-card--interactive[aria-disabled="true"]').color, 'GrayText');
+  });
+
+  it('fills tile rows intrinsically (up to four, --3: three), without a window step', () => {
+    const flat = withoutAtRuleBlocks(tile, /@media/);
+    assert.equal(own(flat, '.ds-tiles')['grid-template-columns'],
+      'repeat(auto-fit, minmax(min(100%, max(var(--ds-tile-min-width, 176px), (100% - (var(--ds-tiles-columns, 4) - 1) * var(--ds-space-3)) / var(--ds-tiles-columns, 4))), 1fr))');
+    assert.match(own(flat, '.ds-tiles--3')['grid-template-columns'], /\/ 3\)\), 1fr\)\)$/);
+    assert.doesNotMatch(stripComments(tile), /max-width:\s*1100px/);
+    const value = own(flat, '.ds-tile__value');
+    assert.deepEqual([value['min-width'], value.overflow, value['text-overflow']], ['0', 'hidden', 'ellipsis']);
+    assert.equal(own(flat, '.ds-tile__value--empty').color, 'var(--ds-text-2)');
+  });
+
+  it('resets a button action, wraps titles, hangs only text links, elevates and keeps short cards whole in print', () => {
+    const flat = withoutAtRuleBlocks(card, /@media/);
+    const action = own(flat, 'button.ds-card__action');
+    for (const [property, value] of [['margin', '0'], ['padding', '0'], ['border', '0'], ['background', 'none'], ['font', 'inherit'], ['text-align', 'start']]) assert.equal(action[property], value, property);
+    assert.equal(own(flat, '.ds-card__title')['overflow-wrap'], 'anywhere');
+    assert.equal(own(flat, '.ds-card__title:has(> svg:first-child)').display, 'flex');
+    assert.ok(own(flat, '.ds-card__links > :is(.ds-btn--text, .ds-card__link)')['margin-left']);
+    assert.equal(own(flat, '.ds-card__links > *')['margin-left'], undefined);
+    assert.equal(own(flat, '.ds-card__links')['align-items'], 'center');
+    assert.equal(own(flat, '.ds-card--elevated')['box-shadow'], 'var(--ds-card-shadow, var(--ds-elev-1))');
+    assert.equal(own(forcedColorBlocks(card).join('\n'), '.ds-card--elevated')['border-color'], 'CanvasText');
+    for (const css of [card, tile]) assert.ok(atRuleBlocks(css, /@media\s+print/).some((block) => /break-inside:\s*avoid/.test(block)));
+  });
+});

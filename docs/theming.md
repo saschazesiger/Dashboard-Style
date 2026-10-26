@@ -279,6 +279,12 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-card-hover-shadow` | none | `.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift |
 | `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile |
 | `--ds-tile-radius-pressed` | `--ds-radius-md` | a clickable tile while pressed (never rounder than `--ds-tile-radius`) |
+| `--ds-tile-min-width` | 176px | the narrowest tile of a `.ds-tiles` row (fewer per row below it) |
+| `--ds-tiles-columns` | 4 | the most tiles per row (`.ds-tiles--3`: three) |
+| `--ds-tile-selected-bg` | `--ds-accent` | a selected tile (`aria-pressed`, `aria-checked`, `aria-selected`) |
+| `--ds-card-selected-bg` | `--ds-accent` | a selected interactive card |
+| `--ds-selected-ring` | `--ds-primary` | the inset ring of a selected tile or card |
+| `--ds-card-shadow` | `--ds-elev-1` | `.ds-card--elevated` |
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
 | `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
 | `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
