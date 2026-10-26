@@ -278,6 +278,9 @@ const CONTINUITY = {
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
+  'field-changed': { in: 'stage', sel: '#sg-lab-changed .ds-field__label', pseudo: '::after', props: ['opacity'] },
+  'search-key': { in: 'stage', sel: '.ds-search__key', props: ['opacity'] },
+  'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -288,6 +291,7 @@ const CONTINUITY_EXEMPT = {
   tooltips: 'a tooltip waits --ds-delay-tooltip before it moves, so the reversal comes before it shows',
   views: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
   scroll: 'scroll-driven: the reveal and the edge fades follow the scroll position, not time',
+  'live-check': 'a hint that goes is removed at once by design, like a validation message (its room opens on --ds-ease-out, removal is instant)',
 };
 
 /**
@@ -307,6 +311,7 @@ const LONG_RUNS = {
   focus: { ms: 12000, reason: 'walks the focus along five stops 400ms apart (the ring snaps at each)' },
   scroll: { ms: 12000, reason: 'scrolls the box to its end smoothly, holds 300ms and scrolls back (scroll-driven effects)' },
   validation: { ms: 12000, reason: 'focuses the field and validates it 300ms later (the message fades in while its room opens)' },
+  'live-check': { ms: 12000, reason: 'clears the field, then shows the error 200ms later and turns it into a confirmation 400ms after that' },
   views: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
 };
 
