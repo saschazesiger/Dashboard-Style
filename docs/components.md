@@ -140,6 +140,11 @@ is the only scroller. At 900px and below the drawer becomes modal.
   switch keeps its width when the current option changes. The option then stacks its content and the reserved copy
   in a column, so use it on an option whose content is its text (or wrap icon and text in one element); without it
   the switch behaves as before.
+- One tab stop for a set (2.0): tabs, segmented options that are buttons and toggle buttons in a track take
+  `DS.dom.roving(container, { items })` ([motion](motion.md#dsdom-jsdomjs)): Tab reaches the current item only, the
+  arrow keys, Home and End move between the items and (by default) press the one they reach, so your click handler
+  sets the state; `aria-disabled` items are reached, `disabled` ones skipped. Links in a `<nav>` (the drawer, a
+  segmented switch of links) stay separate tab stops and need nothing.
 - Scroll-spy with a programmatic smooth scroll: when a drawer link scrolls the view to its section, set the item
   current at once and ignore the scroll-spy (an `IntersectionObserver`) until the scroll ends: `scrollend` on the
   view where it exists, otherwise once no `scroll` event came for `DS.motion.motionDuration(view, '--ds-dur-fast')`
@@ -228,6 +233,11 @@ is the only scroller. At 900px and below the drawer becomes modal.
   symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
   scrollbars need no room; Safari before 18.2 ignores it.
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px.
+- With the keyboard up (2.0): on a phone the on-screen keyboard shortens the visual viewport, not the layout one.
+  Call `DS.dom.followViewport()` once ([motion](motion.md#dsdom-jsdomjs)): it writes `--ds-viewport-height` (px) and,
+  while the keyboard is up and a field has the focus, `data-ds-keyboard` on `<html>`, and `--ds-keyboard-inset` (px)
+  for the snackbars, and scrolls the window back where the browser panned it for the keyboard. Nothing moves when
+  there is no `visualViewport`.
 - Open and close the modal drawer with `DS.overlay.open(drawer, { opener: menu })` and `DS.overlay.close(drawer)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): it sets `data-drawer-open` and `aria-expanded`, makes the rest of
   the app inert (not the scrim), locks the scroll (`.ds-no-scroll` on `<body>`, counted), closes on Escape and a scrim
@@ -1493,8 +1503,24 @@ and keeps its box, in every engine.
 
 ```html
 <span class="ds-presence ds-presence--keep" data-ds-shown><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">Latest</button></span>
-``` A `[popover]` is centred by the browser's `margin: auto`; inside a container that
-spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` again or place it outside.
+```
+
+A `[popover]` is centred by the browser's `margin: auto`; inside a container that spaces its children with margins
+(`.ds-card > * + *`), give it `margin: auto` again or place it outside.
+
+A log that grows at its end (an import log, a chat) sticks to it with `DS.dom.followEnd(scroller, { pill })` (2.0):
+while the reader is at the end, new lines keep it there; scrolling up lets go and shows `pill` (a `.ds-presence`
+wrapper around a "Latest" button, toggled with `hidden`); a click on it, or `stick()`, goes back to the end
+([motion.md](motion.md#dsdom-jsdomjs)).
+
+```html
+<div class="ex-log" id="log" tabindex="0" aria-label="Import log">...</div>
+<span class="ds-presence" id="latest" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">[icon arrowDown 16] Latest</button></span>
+```
+
+```js
+DS.dom.followEnd(document.getElementById('log'), { pill: document.getElementById('latest') });
+```
 
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
 
