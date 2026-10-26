@@ -134,6 +134,10 @@ async function clipAround(locator, pad = 8) {
 /** Settles, pauses the loops at `loop`, then compares an element shot. */
 async function shoot(locator, name, { loop = 0 } = {}) {
   const page = locator.page();
+  // Scrolled there before settling: the scroll repaints a tall viewport and
+  // moves the styleguide's scroll-spy pill, which in the container's WebKit
+  // took the first capture past the screenshot timeout (section-charts).
+  await locator.scrollIntoViewIfNeeded();
   await settle(page);
   await pauseLoops(page, loop);
   await expect.soft(locator, name).toHaveScreenshot(name, { animations: 'allow' });
