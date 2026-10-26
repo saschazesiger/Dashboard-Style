@@ -561,8 +561,9 @@ DS.motion.flip(stack, () => stack.prepend(alert)); // insert: it fades in, the o
 DS.motion.flip(stack, () => stack.prepend(alert), { live: true }); // live data: waits while the stack is pointed at
 ```
 
-Move focus before a dismiss removes the focused button (to the next alert or the section's heading). An alert that
-replaces a placeholder takes `.ds-reveal`.
+A dismiss that removes the focused button needs nothing more: `flip()` moves focus to the same button of the next
+alert, else of the previous one (`refocus`, 2.0; pass `refocus: heading` to land on the section's heading when the
+last one goes). An alert that replaces a placeholder takes `.ds-reveal`.
 
 The summary of `.ds-errors` is pressable: a state layer in its colour (hover, press in `--ds-dur-micro`, keyboard
 focus with `--ds-state-focus`) in a 4px padding that hangs into the space around it, the ripple, and its own focus

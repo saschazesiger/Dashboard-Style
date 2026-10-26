@@ -166,6 +166,12 @@ describe('indicator, dom, ripple and overlay', () => {
     assert.equal(locked(page), false);
   });
 
+  it('keeps the focusable list of motion.js (flip refocus) equal to the one of overlay.js (2.0)', () => {
+    const list = (file) => /const FOCUSABLE = ('[^']+');/.exec(read(file))?.[1];
+    assert.ok(list('src/js/motion.js'));
+    assert.equal(list('src/js/motion.js'), list('src/js/overlay.js'));
+  });
+
   it('keeps the list of open modals of indicator.js equal to the one of motion.js (1.6.1)', () => {
     const list = (file) => /const MODAL_OPEN = \[([\s\S]*?)\]\.join\(/.exec(read(file))?.[1].trim();
     assert.ok(list('src/js/motion.js'));

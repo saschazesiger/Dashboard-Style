@@ -1173,6 +1173,19 @@ describe('js/motion', () => {
         assert.equal(container.style.minHeight, '2px', 'the page\'s own min-height is back');
       });
 
+      it('keeps every gliding item between --ds-z-pinned and --ds-z-sticky, however many glide (2.0)', async () => {
+        const styles = () => ({ position: 'static', '--ds-z-raised': '1', '--ds-z-pinned': '3', '--ds-z-sticky': '8' });
+        const names = Array.from({ length: 12 }, (_, index) => `i${index}`);
+        const { container, items, calls, order } = list(names, { styles });
+        flip(container, order(...[...names].reverse()));
+        const ranks = names.map((name) => Number(items.get(name).style.zIndex)).filter(Number.isFinite);
+        assert.ok(ranks.length >= 10, `${ranks.length} raised`);
+        assert.equal(Math.min(...ranks), 4, 'one above --ds-z-pinned');
+        assert.equal(Math.max(...ranks), 7, 'one below --ds-z-sticky: a sticky header stays on top');
+        calls.forEach((call) => call.animation.finish());
+        await flushPromises();
+      });
+
       it('raises the moving items while they glide (the farthest on top), then gives their styles back', async () => {
         const styles = () => ({ position: 'static', '--ds-z-raised': ' 1' });
         const { container, items, calls, order } = list(['a', 'b', 'c', 'd'], { styles });
@@ -1183,9 +1196,10 @@ describe('js/motion', () => {
         const z = (name) => items.get(name).style.zIndex;
         assert.equal(container.style.isolation, 'isolate', 'no rank reaches past the list');
         assert.equal(items.get('d').style.position, 'relative');
-        // From one above --ds-z-raised: controls an item lifts to --ds-z-raised stay under every gliding item.
-        assert.equal(z('d'), '5', 'the farthest travel on top');
-        assert.deepEqual(['a', 'b', 'c'].map(z).sort(), ['2', '3', '4']);
+        // From one above --ds-z-pinned (fallback --ds-z-raised + 1, 2.0): controls an item lifts to
+        // --ds-z-raised and a pinned table column stay under every gliding item.
+        assert.equal(z('d'), '6', 'the farthest travel on top');
+        assert.deepEqual(['a', 'b', 'c'].map(z).sort(), ['3', '4', '5']);
         // A second call mid-flight: d's glide is cancelled and d is raised again, not lowered.
         flip(container, order('a', 'd', 'b', 'c'));
         await flushPromises();
@@ -1207,6 +1221,37 @@ describe('js/motion', () => {
         flip(container, () => ['a', 'b', 'd'].forEach((name) => items.get(name).remove()));
         assert.deepEqual(container.children.map((item) => item.textContent), ['a', 'b', 'c', 'd']);
         for (const name of ['a', 'b', 'd']) assert.equal(items.get(name).style.getPropertyValue('position'), 'absolute', name);
+      });
+
+      it('refocus: focus in a removed item moves to the next item, else the previous, else the fallback; a page\'s own move stays (2.0)', () => {
+        const buttons = (names) => {
+          const made = list(names);
+          for (const item of made.items.values()) item.matches = (selector) => selector.includes('button');
+          return made;
+        };
+        const doc = (made) => made.container.ownerDocument;
+        let made = buttons(['a', 'b', 'c']);
+        made.items.get('b').focus();
+        flip(made.container, () => made.items.get('b').remove());
+        assert.equal(doc(made).activeElement, made.items.get('c'), 'the next item');
+        made = buttons(['a', 'b', 'c']);
+        made.items.get('c').focus();
+        flip(made.container, () => made.items.get('c').remove());
+        assert.equal(doc(made).activeElement, made.items.get('b'), 'the last one: the previous item');
+        made = buttons(['a']);
+        const fallback = new FakeElement(doc(made));
+        made.items.get('a').focus();
+        flip(made.container, () => made.items.get('a').remove(), { refocus: () => fallback });
+        assert.equal(doc(made).activeElement, fallback, 'no neighbour: the fallback');
+        made = buttons(['a', 'b']);
+        made.items.get('a').focus();
+        flip(made.container, () => made.items.get('a').remove(), { refocus: false });
+        assert.notEqual(doc(made).activeElement, made.items.get('b'), 'refocus: false leaves it to leave()');
+        made = buttons(['a', 'b']);
+        const search = new FakeElement(doc(made));
+        made.items.get('a').focus();
+        flip(made.container, () => { made.items.get('a').remove(); search.focus(); });
+        assert.equal(doc(made).activeElement, search, 'a page that moved focus itself is left alone');
       });
 
       it('moves without motion above `max` moving items', () => {

@@ -565,3 +565,106 @@ test('a re-render of the list\'s ancestor mid-glide keeps the held height, the l
   expect(await page.locator('#list').evaluate((el) => ({ position: el.style.position, isolation: el.style.isolation, minHeight: el.style.minHeight, glide: el.hasAttribute('data-ds-glide') })))
     .toEqual({ position: '', isolation: '', minHeight: '', glide: false });
 });
+
+/* ── 2.0: refocus and the z range ─────────────────────────────────── */
+
+/** Keyed rows with a Remove button each, as a page renders them. */
+const REMOVABLE = 'window.fxRemovable = (names) => names.map((name) => `<li class="fx-item" data-ds-key="${name}"><span>${name}</span><button class="ds-btn ds-btn--sm fx-remove" type="button">Remove</button></li>`).join("");';
+
+async function openRemovable(page) {
+  await open(page);
+  await page.addScriptTag({ content: REMOVABLE });
+}
+
+/** Focuses the Remove button of `name`, removes that row through flip() and returns where focus went. */
+function removeFocused(page, { names, name, options = {}, plain = false, moveFocus = false }) {
+  return page.evaluate(async ([all, gone, opts, plainDom, move]) => {
+    const list = document.getElementById('list');
+    DS.dom.morphHtml(list, window.fxRemovable(all));
+    list.querySelector(`[data-ds-key="${gone}"] .fx-remove`).focus();
+    const rest = all.filter((each) => each !== gone);
+    const fallback = document.getElementById('tile-button');
+    const settings = { ...opts };
+    if (opts.refocus === 'fallback') settings.refocus = () => fallback;
+    const done = DS.motion.flip(list, plainDom
+      ? () => { list.querySelector(`[data-ds-key="${gone}"]`).remove(); if (move) fallback.focus(); }
+      : (hooks) => { DS.dom.morphHtml(list, window.fxRemovable(rest), hooks); if (move) fallback.focus(); }, settings);
+    const active = document.activeElement;
+    const at = { key: active.closest('[data-ds-key]')?.getAttribute('data-ds-key') ?? (active.id || active.tagName), className: active.className };
+    await done;
+    return at;
+  }, [names, name, options, plain, moveFocus]);
+}
+
+test('refocus: removing the focused row moves focus to the same control of the next row, else the previous (2.0)', async ({ page }) => {
+  await openRemovable(page);
+  const names = ['LAPTOP-0042', 'LAPTOP-0043', 'DESKTOP-0107'];
+  expect(await removeFocused(page, { names, name: 'LAPTOP-0043' })).toEqual({ key: 'DESKTOP-0107', className: 'ds-btn ds-btn--sm fx-remove' });
+  expect(await removeFocused(page, { names, name: 'DESKTOP-0107' })).toEqual({ key: 'LAPTOP-0043', className: 'ds-btn ds-btn--sm fx-remove' });
+  // A plain DOM mutate (no hooks) the same way.
+  expect(await removeFocused(page, { names, name: 'LAPTOP-0042', plain: true })).toEqual({ key: 'LAPTOP-0043', className: 'ds-btn ds-btn--sm fx-remove' });
+});
+
+test('refocus: the last row goes to the fallback; a page that moved focus itself and refocus: false are left alone (2.0)', async ({ page }) => {
+  await openRemovable(page);
+  expect((await removeFocused(page, { names: ['LAPTOP-0042'], name: 'LAPTOP-0042', options: { refocus: 'fallback' } })).key).toBe('tile-button');
+  const names = ['LAPTOP-0042', 'LAPTOP-0043'];
+  expect((await removeFocused(page, { names, name: 'LAPTOP-0042', moveFocus: true })).key).toBe('tile-button');
+  const off = await removeFocused(page, { names, name: 'LAPTOP-0042', options: { refocus: false } });
+  expect(off.key).not.toBe('LAPTOP-0043');
+});
+
+test('refocus: also above `max` and for a held live reorder once it runs (2.0)', async ({ page }) => {
+  await openRemovable(page);
+  const names = ['LAPTOP-0042', 'LAPTOP-0043', 'DESKTOP-0107', 'LAPTOP-0051'];
+  expect((await removeFocused(page, { names, name: 'LAPTOP-0042', options: { max: 0 } })).key).toBe('LAPTOP-0043');
+  // Live: focus in a row holds the reorder; `hold` runs it, and the removed row's focus moves on.
+  const held = await page.evaluate(async (all) => {
+    const list = document.getElementById('list');
+    DS.dom.morphHtml(list, window.fxRemovable(all));
+    list.querySelector('[data-ds-key="LAPTOP-0043"] .fx-remove').focus();
+    const rest = all.filter((each) => each !== 'LAPTOP-0043');
+    const done = DS.motion.flip(list, (hooks) => DS.dom.morphHtml(list, window.fxRemovable(rest), hooks), { live: true, hold: 100 });
+    const during = document.activeElement.closest('[data-ds-key]')?.getAttribute('data-ds-key');
+    await done;
+    return { during, after: document.activeElement.closest('[data-ds-key]')?.getAttribute('data-ds-key') ?? null };
+  }, names);
+  expect(held).toEqual({ during: 'LAPTOP-0043', after: 'DESKTOP-0107' });
+});
+
+test('more than 20 gliding items stay under a sticky header inside the container (2.0)', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const names = Array.from({ length: 30 }, (_, index) => `ITEM-${String(index).padStart(2, '0')}`);
+    const item = (name) => `<div class="fx-item" data-ds-key="${name}">${name}</div>`;
+    document.querySelector('.ds-theme').insertAdjacentHTML('afterbegin',
+      '<div id="z-scroll"><div id="z-list"><div id="z-head">Header</div></div></div>');
+    const scroller = document.getElementById('z-scroll');
+    Object.assign(scroller.style, { height: '320px', overflow: 'auto', width: '320px', background: 'var(--ds-surface)' });
+    const head = document.getElementById('z-head');
+    Object.assign(head.style, { position: 'sticky', top: '0px', zIndex: 'var(--ds-z-sticky)', height: '48px', background: 'var(--ds-surface-high)' });
+    const list = document.getElementById('z-list');
+    scroller.scrollIntoView({ block: 'center' });
+    list.insertAdjacentHTML('beforeend', names.map(item).join(''));
+    for (const child of list.querySelectorAll('.fx-item')) child.style.background = 'var(--ds-surface)';
+    scroller.scrollTop = 200;
+    DS.motion.flip(list, () => {
+      for (const child of [...list.querySelectorAll('.fx-item')].reverse()) list.append(child);
+    }, { items: '.fx-item', max: 100 });
+    const animations = document.getAnimations().filter((animation) => animation.id === 'ds-flip');
+    for (const animation of animations) animation.pause();
+    const box = head.getBoundingClientRect();
+    const hits = [0.2, 0.4, 0.6].map((share) => {
+      for (const animation of animations) animation.currentTime = share * animation.effect.getComputedTiming().duration;
+      return document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)?.id ?? null;
+    });
+    const ranks = [...list.querySelectorAll('.fx-item')].map((child) => Number(child.style.zIndex)).filter(Boolean);
+    const sticky = parseInt(getComputedStyle(list).getPropertyValue('--ds-z-sticky'), 10);
+    for (const animation of animations) animation.finish();
+    scroller.remove();
+    return { movers: animations.length, hits, top: Math.max(...ranks), sticky };
+  });
+  expect(result.movers).toBeGreaterThan(20);
+  expect(result.hits).toEqual(['z-head', 'z-head', 'z-head']);
+  expect(result.top).toBe(result.sticky - 1);
+});

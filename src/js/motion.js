@@ -2087,7 +2087,7 @@ function unbackContainer(container, state) {
  * nothing else. Items without a background of their own get one from the
  * container's data-ds-glide (backContainer()).
  */
-function raise(container, state, item, rank) {
+function raise(container, state, item, rank, layers) {
   if (!raisedItems.has(item)) {
     raisedItems.set(item, { position: item.style.position, zIndex: item.style.zIndex, container });
     for (const name of ['position', 'z-index']) own(item, 'props', name);
@@ -2100,8 +2100,26 @@ function raise(container, state, item, rank) {
     }
     state.raised += 1;
   }
-  const base = parseInt(computed(container)?.getPropertyValue('--ds-z-raised') ?? '', 10);
-  item.style.zIndex = Number.isFinite(base) ? String(base + 1 + rank) : 'calc(var(--ds-z-raised) + 1)';
+  item.style.zIndex = layers ? String(Math.max(layers.base + 1, Math.min(layers.base + 1 + rank, layers.sticky - 1))) : 'calc(var(--ds-z-raised) + 1)';
+}
+
+/**
+ * The z range of gliding items, read once per flush: from one above
+ * max(--ds-z-raised, --ds-z-pinned) (a pinned table column; fallback
+ * raised + 1) up to one below --ds-z-sticky, so a mover never paints over
+ * a sticky header or a pinned cell however many glide. Null without the
+ * tokens (outside a theme).
+ * @returns {{ base: number, sticky: number }|null}
+ */
+function glideLayers(container) {
+  const style = computed(container);
+  const read = (name) => parseInt(style?.getPropertyValue(name) ?? '', 10);
+  const raised = read('--ds-z-raised');
+  if (!Number.isFinite(raised)) return null;
+  const pinned = read('--ds-z-pinned');
+  const sticky = read('--ds-z-sticky');
+  const base = Math.max(raised, Number.isFinite(pinned) ? pinned : raised + 1);
+  return { base, sticky: Number.isFinite(sticky) ? sticky : Infinity };
 }
 
 /** Gives a raised item (and, after the last one, its container) its inline styles back. */
@@ -2232,7 +2250,71 @@ function measure(container, selector) {
   for (const item of flipItems(container, selector)) before.set(item, item.getBoundingClientRect());
   const childrenOf = new Set(Array.from(before.keys()).filter((item) => item.parentElement === container));
   const nextOf = new Map(Array.from(container.childNodes, (node) => [node, node.nextSibling]));
-  return { before, childrenOf, nextOf, frame: edges(container.getBoundingClientRect()) };
+  // Where focus is (refocus): the focused element and the item that holds it.
+  const active = activeIn(container);
+  const owner = active && container.contains?.(active) ? Array.from(before.keys()).find((item) => item.contains(active)) ?? null : null;
+  return { before, childrenOf, nextOf, frame: edges(container.getBoundingClientRect()), focus: owner ? { active, owner } : null };
+}
+
+/**
+ * What takes focus and can hold it, as overlay.js counts it (test/js.test.js
+ * keeps the two lists equal).
+ */
+const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
+
+/** Whether `element` can take focus now: enabled, rendered, not inert and not leaving. */
+function focusable(element) {
+  if (!element || typeof element.focus !== 'function' || element.isConnected === false) return false;
+  if (element.disabled || element.closest?.('[inert], [data-ds-leaving], [hidden]')) return false;
+  if (typeof element.getClientRects === 'function' && !element.getClientRects().length) return false;
+  return true;
+}
+
+/** Whether an item of a FLIP is gone (removed, a pending removal, or leaving). */
+function itemGone(item, removed) {
+  return item.isConnected === false || removed.some((entry) => entry.node === item) || Boolean(item.hasAttribute?.('data-ds-leaving'));
+}
+
+/**
+ * The element of `item` that takes over the focus of `old`: one with the
+ * same classes (the next row's "Remove"), else the item when it is
+ * focusable, else its first focusable element.
+ */
+function focusIn(item, old) {
+  const list = (selector) => Array.from(item.querySelectorAll?.(selector) ?? []).filter(focusable);
+  const className = typeof old?.getAttribute === 'function' ? (old.getAttribute('class') ?? '').trim() : '';
+  if (className) {
+    const twin = list(FOCUSABLE).find((element) => element.getAttribute('class')?.trim().split(/\s+/).sort().join(' ') === className.split(/\s+/).sort().join(' '));
+    if (twin) return twin;
+  }
+  if (item.matches?.(FOCUSABLE) && focusable(item)) return item;
+  return list(FOCUSABLE)[0] ?? null;
+}
+
+/**
+ * refocus (flip()): when the item that held the focus went and focus is
+ * lost (on <body>, nowhere, or still inside the item), it moves to the next
+ * item that stays in the old order, else the previous one, else the
+ * fallback (`refocus` as an element or a function); with none, leave()
+ * moves it out as usual. A page that moved focus itself is left alone.
+ */
+function refocusAfter(container, focus, order, removed, refocus) {
+  if (!focus || refocus === false) return;
+  const { active, owner } = focus;
+  if (!itemGone(owner, removed)) return;
+  const now = activeIn(container);
+  const doc = container.ownerDocument;
+  const lost = !now || now === doc?.body || now === doc?.documentElement || owner.contains(now) || now === active && active.isConnected === false;
+  if (!lost) return;
+  const index = order.indexOf(owner);
+  const alive = (item) => !itemGone(item, removed) && !item.hasAttribute?.('data-ds-keep');
+  const next = order.slice(index + 1).find(alive) ?? order.slice(0, index).reverse().find(alive) ?? null;
+  let target = next ? focusIn(next, active) : null;
+  if (!target && refocus !== true && refocus !== undefined) {
+    const fallback = typeof refocus === 'function' ? refocus() : refocus;
+    if (focusable(fallback)) target = fallback;
+  }
+  target?.focus({ preventScroll: true });
 }
 
 /**
@@ -2248,7 +2330,7 @@ function runFlip(container, mutate, options, state, first) {
   const max = options.max ?? 50;
   const view = windowOf(container);
   // First.
-  const { before, childrenOf, nextOf, frame } = first ?? measure(container, selector);
+  const { before, childrenOf, nextOf, frame, focus } = first ?? measure(container, selector);
   const firstHeight = frame.bottom - frame.top;
   for (const item of before.keys()) {
     glides.get(item)?.cancel();
@@ -2303,6 +2385,8 @@ function runFlip(container, mutate, options, state, first) {
     lift(container, item, rect, frame, state);
     removed.push({ node: item, resolve() {} });
   }
+  // The focused item went: its neighbour takes the focus (before leave() would drop it).
+  refocusAfter(container, focus, Array.from(before.keys()), [...removed, ...back.filter((item) => !item.parentNode).map((node) => ({ node }))], options.refocus);
   for (const item of flipItems(container, selector)) {
     if (before.has(item) || inserted.includes(item) || removed.some((entry) => entry.node === item)) continue;
     // An item that brings its own entrance (a snackbar's keyframes) keeps it.
@@ -2336,9 +2420,10 @@ function runFlip(container, mutate, options, state, first) {
   const resizing = sizing && state.minHeight === null ? glideSize(container, state, firstHeight) : Promise.resolve();
   const easing = motionEasing(container, '--ds-ease-spatial');
   // The farthest travel paints on top; at equal distance, the rising item.
+  const layers = moves.length ? glideLayers(container) : null;
   moves.map((move) => ({ move, distance: Math.hypot(move.dx, move.dy) }))
     .sort((a, b) => (a.distance - b.distance) || (a.move.dy - b.move.dy))
-    .forEach(({ move }, rank) => raise(container, state, move.item, rank));
+    .forEach(({ move }, rank) => raise(container, state, move.item, rank, layers));
   const running = moves.map(({ item, dx, dy }) => {
     const animation = animateSafe(item, [{ translate: `${round(dx)}px ${round(dy)}px` }, { translate: '0px 0px' }], {
       id: 'ds-flip',
@@ -2442,8 +2527,10 @@ function watchLive(container, state) {
  * from its old place to the new one on `translate` (composite: 'add', so
  * an item's own translate stays) on the spring, for travelDuration().
  * Meanwhile the moving items paint above the others, the farthest travel
- * on top (inline z-index from one above --ds-z-raised, so the controls
- * that interactive table rows lift to --ds-z-raised stay under them;
+ * on top (inline z-index from one above the higher of --ds-z-raised and
+ * --ds-z-pinned, so the controls that interactive table rows lift to
+ * --ds-z-raised and a pinned column stay under them, and below
+ * --ds-z-sticky, so a sticky header stays above them all;
  * position: relative where
  * static, the container isolated and marked data-ds-glide with
  * --ds-flip-backdrop, the colour behind it, so table rows get an opaque
@@ -2473,9 +2560,16 @@ function watchLive(container, state) {
  * `() => stack.prepend(alert)`) cannot honour holdOrder: it waits whole
  * (every such call, in order) and glides on release. A call without
  * `live` (a user's sort) runs the held reorder with its own, at once.
+ *
+ * `refocus` (default true): when the item that held the focus goes and
+ * focus is lost, it moves to the next item that stays (the old order),
+ * else the previous one: its element with the classes of the old focus,
+ * else the item itself, else its first focusable element. An element or a
+ * function returning one is the fallback without a neighbour; a page that
+ * moved focus itself is left alone; false leaves it to leave().
  * @param {Element|null|undefined} container
  * @param {(options: { holdOrder: boolean, onInsert: (node: Node) => void, onRemove: (node: Node) => Promise<void>|undefined }) => void} mutate
- * @param {{ items?: string, live?: boolean, max?: number, hold?: number }} [options]
+ * @param {{ items?: string, live?: boolean, max?: number, hold?: number, refocus?: boolean|Element|(() => Element|null) }} [options]
  *   items: a selector (default: the element children)
  * @returns {Promise<void>} resolves when the motion of this call (or its held reorder) finished
  */
