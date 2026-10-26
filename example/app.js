@@ -534,7 +534,8 @@
   }
 
   /* A destination: fade-through. The modal drawer closes inside the update,
-     so the new view crossfades under it. Focus goes to the new title. */
+     so the new view crossfades under it; focus: true puts the focus it
+     took with it (the modal drawer) on the new title. */
   function go(hash, { push = true } = {}) {
     const { route, params } = parse(hash);
     if (push && location.hash !== hash) history.pushState(null, '', hash);

@@ -1101,6 +1101,11 @@
    * themselves: open, close, open continues from where it is. The exit
    * state is three separate rules, so an engine that does not know
    * :popover-open drops only its own rule. Elsewhere: an instant toggle.
+   * The lists also carry the element's own state transitions (background,
+   * colour, border, shadow on --ds-dur-fast, the focus snap of
+   * outline-offset), so a pill inside keeps its hover and focus motion; put
+   * .ds-presence on a wrapper, never on a .ds-btn, .ds-chip or .ds-card
+   * (their own transition lists would be replaced).
    */
   @supports (transition-behavior: allow-discrete) {
     .ds-presence {
@@ -1109,12 +1114,17 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-medium) var(--ds-ease-spatial),
         clip-path var(--ds-dur-medium) var(--ds-ease-spatial),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-medium) allow-discrete,
         overlay var(--ds-dur-medium) allow-discrete;
     }
 
     @starting-style {
-      .ds-presence {
+      .ds-presence:not(.ds-presence--keep) {
         opacity: 0;
         scale: var(--ds-motion-scale, var(--ds-scale-popup));
         clip-path: var(--ds-clip-from, inset(calc(-1 * var(--ds-space-6))));
@@ -1129,6 +1139,11 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-fast) var(--ds-ease-in),
         clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-fast) allow-discrete,
         overlay var(--ds-dur-fast) allow-discrete;
     }
@@ -1141,6 +1156,11 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-fast) var(--ds-ease-in),
         clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-fast) allow-discrete,
         overlay var(--ds-dur-fast) allow-discrete;
     }
@@ -1153,9 +1173,41 @@
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         scale var(--ds-dur-fast) var(--ds-ease-in),
         clip-path var(--ds-dur-fast) var(--ds-ease-in),
+        background-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        color var(--ds-dur-fast) var(--ds-ease-in-out),
+        border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+        box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
+        outline-offset var(--ds-dur-fast) var(--ds-ease-out),
         display var(--ds-dur-fast) allow-discrete,
         overlay var(--ds-dur-fast) allow-discrete;
     }
+  }
+
+  /*
+   * Presence that keeps its box (2.0): a pill that shows on hover, a "Saved"
+   * note, a jump button whose room stays reserved. The page toggles
+   * data-ds-shown; hidden is opacity 0 and visibility hidden (out of the
+   * tab order and the accessibility tree), so nothing around it moves. It
+   * fades in over --ds-dur-fast and out in --ds-dur-instant (exit 0.67);
+   * visibility steps at the end of the exit. Baseline: no @starting-style
+   * or allow-discrete needed.
+   *
+   *   <span class="ds-presence ds-presence--keep" [data-ds-shown]>...</span>
+   */
+  .ds-presence--keep {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--ds-dur-instant) var(--ds-ease-in-out),
+      visibility 0s linear var(--ds-dur-instant);
+  }
+
+  .ds-presence--keep[data-ds-shown] {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      visibility 0s;
   }
 
   /* A node that DS.dom.morphHtml moves with insertBefore (engines without
