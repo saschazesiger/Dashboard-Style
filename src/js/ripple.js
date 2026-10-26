@@ -5,7 +5,8 @@
  * press feedback.
  *
  *   const ripples = DS.ripple.attach(document);   // once, for every action on the page
- *   ripples.detach();
+ *   ripples.release(host);                        // end a running press (no argument: every press)
+ *   ripples.destroy();                            // detach() is its deprecated alias (removed in 3.0)
  *
  * attach(root) adds .ds-ripples to the root element (<html> for document),
  * which positions and clips the hosts (ripple.css), and listens once on
@@ -36,6 +37,14 @@
  * to the release, also at least --ds-dur-instant, so a quick click still
  * shows the whole press.
  *
+ * A press ends when another element takes the pointer: an ancestor that
+ * captures it (a row that drags to scroll, a sortable list) fires
+ * gotpointercapture, and the ripple fades as on release. Capture by the
+ * host or something inside it (touch captures the pressed element
+ * implicitly) keeps the press. release(host) ends a press by hand (a drag
+ * library that moves the pointer elsewhere); :active, and with it the
+ * flat press layer and the morph, lasts until the button is released.
+ *
  * iOS Safari applies :active only on pages with a touchstart listener:
  * attach() adds a passive one.
  *
@@ -56,7 +65,10 @@
  * glides its label. It measures the end layout with the row's
  * data-ds-snap (the slots without their transition) for one forced style
  * pass. A programmatic
- * `checked` change has no event: there CSS alone runs and a wrap jumps.
+ * `checked` change has no event: there CSS alone runs and a wrap jumps,
+ * unless the script dispatches one in the same task
+ * (`input.checked = next; input.dispatchEvent(new Event('change',
+ * { bubbles: true }))`), which glides like a click.
  *
  * ES2022 (Safari 16.4); a module may import from an earlier module (the
  * build bundles it into dist/ds.js as DS.ripple); newer APIs only behind
@@ -110,12 +122,23 @@ const CONTROLS = 'a[href], button, input, select, textarea, label, summary, [tab
  * @property {HTMLElement} span  the ripple
  * @property {number} at  when it started (performance.now())
  * @property {boolean} released
+ * @property {(() => void)|undefined} [stop]  takes the pointer listeners of the press away
  */
 
 /** The growing ripple of each host. @type {WeakMap<Element, Press>} */
 const presses = new WeakMap();
 
-/** The handle of each attached root. @type {WeakMap<Node, { detach: () => void }>} */
+/** The hosts whose press still grows (release() without a host ends them). @type {Set<Element>} */
+const pressing = new Set();
+
+/**
+ * @typedef {object} RippleHandle
+ * @property {() => void} destroy  removes the listeners and .ds-ripples; ripples already shown finish
+ * @property {(host?: Element) => void} release  ends the running press of `host`, or every press under the root
+ * @property {() => void} detach  deprecated alias of destroy() (removed in 3.0 at the earliest)
+ */
+
+/** The handle of each attached root. @type {WeakMap<Node, RippleHandle>} */
 const attached = new WeakMap();
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
@@ -144,17 +167,23 @@ function holderOf(surface) {
   return surface.tagName === 'TR' ? surface.cells[0] ?? null : surface;
 }
 
+/** Whether an element is blocked: disabled (also by its <fieldset>) or aria-disabled. */
+const blocked = (element) => Boolean(element && (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true'));
+
 /**
  * Hosts that take no press: disabled, aria-disabled, busy, done, a chip or
- * radio card whose input is disabled. `:disabled`, not the property: it also
- * holds for an input in a disabled <fieldset> (`.ds-chips` is one).
+ * radio card whose input is disabled or aria-disabled, a host that a link
+ * stretches over (a table, list or kv row, a <div> card) whose link is
+ * blocked. `:disabled`, not the property: it also holds for an input in a
+ * disabled <fieldset> (`.ds-chips` is one).
  */
 function inactive(host) {
-  if (host.matches(':disabled') || host.getAttribute('aria-disabled') === 'true' || host.getAttribute('aria-busy') === 'true') return true;
+  if (blocked(host) || host.getAttribute('aria-busy') === 'true') return true;
   if (host.classList.contains('ds-btn--done') || host.classList.contains('ds-radio--disabled')) return true;
-  if (host.matches(OWNS_INPUT)) {
-    const input = host.querySelector('input');
-    if (input?.matches(':disabled')) return true;
+  if (host.matches(OWNS_INPUT) && blocked(host.querySelector('input'))) return true;
+  if (host.matches(STRETCHED)) {
+    const link = host.querySelector(HOST_LINK);
+    if (link && blocked(link)) return true;
   }
   return false;
 }
@@ -185,6 +214,8 @@ function fade(span) {
 function release(host, press) {
   if (press.released) return;
   press.released = true;
+  press.stop?.();
+  pressing.delete(host);
   const wait = Math.max(0, motionDuration(host, '--ds-dur-instant') - (now() - press.at));
   setTimeout(() => {
     if (presses.get(host) === press) {
@@ -209,6 +240,7 @@ function start(host, x, y) {
   const previous = presses.get(host);
   if (previous && !previous.released) {
     previous.released = true;
+    previous.stop?.();
     fade(previous.span);
   }
   const holder = holderOf(surface);
@@ -237,6 +269,7 @@ function start(host, x, y) {
   /** @type {Press} */
   const press = { span, at: now(), released: false };
   presses.set(host, press);
+  pressing.add(host);
   return press;
 }
 
@@ -542,8 +575,12 @@ function activates(target, key) {
  * root works as a root too: the listeners go on it (events keep their real
  * targets there) and .ds-ripples on the .ds-theme inside it, where ds.css
  * applies.
+ * Returns a handle: destroy() takes it all back, release(host?) ends a
+ * running press (the ripple fades as on release; without a host every
+ * press under the root; nothing when there is none). detach() is the
+ * deprecated alias of destroy().
  * @param {Document|Element|ShadowRoot} [root]
- * @returns {{ detach: () => void }}
+ * @returns {RippleHandle}
  */
 export function attach(root = document) {
   const existing = attached.get(root);
@@ -561,16 +598,31 @@ export function attach(root = document) {
     const target = /** @type {Element} */ (event.target);
     if (target.closest?.(OWN_PRESS) && !host.matches(OWNS_INPUT)) return;
     if (pressesOther(host, target)) return;
-    if (!start(host, event.clientX, event.clientY)) return;
-    const up = () => {
+    const press = start(host, event.clientX, event.clientY);
+    if (!press) return;
+    const pointer = event.pointerId;
+    const stop = () => {
       host.removeEventListener('pointerleave', up);
       doc.removeEventListener('pointerup', up, true);
       doc.removeEventListener('pointercancel', up, true);
+      doc.removeEventListener('gotpointercapture', captured, true);
+    };
+    const up = () => {
+      stop();
       end(host);
     };
+    // Another element took the pointer (an ancestor that drags to scroll): the press is over.
+    const captured = (/** @type {PointerEvent} */ capture) => {
+      if (capture.pointerId !== pointer) return;
+      const owner = /** @type {Node} */ (capture.target);
+      if (owner && owner.nodeType === 1 && host.contains(owner)) return;
+      up();
+    };
+    press.stop = stop;
     host.addEventListener('pointerleave', up);
     doc.addEventListener('pointerup', up, true);
     doc.addEventListener('pointercancel', up, true);
+    doc.addEventListener('gotpointercapture', captured, true);
   };
 
   const onKeyDown = (/** @type {KeyboardEvent} */ event) => {
@@ -624,9 +676,10 @@ export function attach(root = document) {
   element.addEventListener('touchstart', onTouchStart, { passive: true });
   element.addEventListener('change', onChange);
 
+  /** @type {RippleHandle} */
   const handle = {
     /** Removes the listeners and .ds-ripples; ripples already shown finish. */
-    detach() {
+    destroy() {
       if (attached.get(root) !== handle) return;
       attached.delete(root);
       element.removeEventListener('pointerdown', onPointerDown);
@@ -635,6 +688,15 @@ export function attach(root = document) {
       element.removeEventListener('touchstart', onTouchStart);
       element.removeEventListener('change', onChange);
       marked.classList.remove('ds-ripples');
+    },
+    /** Ends the press of `host` (or of every host under the root) as a release would. */
+    release(host) {
+      const hosts = host ? [host] : [...pressing].filter((item) => element.contains(item));
+      for (const item of hosts) end(item);
+    },
+    /** Deprecated (removed in 3.0 at the earliest): destroy(). */
+    detach() {
+      handle.destroy();
     },
   };
   attached.set(root, handle);

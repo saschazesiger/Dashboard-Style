@@ -739,15 +739,24 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
 
 ### DS.ripple (js/ripple.js)
 
-`attach(root = document)` gives every action inside `root` the pointer ripple and returns `{ detach }`; a second
-call for the same root returns the same handle. It adds `.ds-ripples` to the root element (`<html>` for
+`attach(root = document)` gives every action inside `root` the pointer ripple and returns
+`{ destroy, release, detach }`; a second call for the same root returns the same handle. It adds `.ds-ripples` to the root element (`<html>` for
 `document`; for an open shadow root the `.ds-theme` inside it, else its host, see [theming.md](theming.md)) and
 listens on the root once (delegated): `pointerdown` with the primary button grows a ripple from the
 pointer, Enter or Space on a focused host one from the centre. Hosts, skips, the runtime properties
 (`--ds-ripple-x`, `--ds-ripple-y`, `--ds-ripple-r`), `.ds-pressed` and the markup:
 [components.md](components.md#ripple). `RIPPLE_HOSTS` is the selector of the default hosts (1.1). The ripple's timing comes from the tokens (`--ds-dur-instant` minimum press,
 read through `motionDuration()`). `attach()` also adds a passive `touchstart` listener, which makes iOS Safari apply
-`:active`; `detach()` removes the listeners and the class, ripples already shown finish.
+`:active`; `destroy()` removes the listeners and the class, ripples already shown finish (`detach()` is its
+**deprecated** alias, removed in 3.0 at the earliest).
+
+A press ends when another element takes the pointer (2.0): an ancestor that captures it (a chip row that drags to
+scroll, a sortable list's row) fires `gotpointercapture`, and the ripple fades as on release while `.ds-pressed`
+goes after the usual `--ds-dur-instant` minimum. Capture by the host or an element inside it (touch captures the
+pressed element by itself) keeps the press. `release(host)` ends the running press of `host` by hand (a drag library
+that moves the pointer elsewhere without capturing it); without an argument it ends every press under the root, and
+it does nothing when there is none. Limit: `:active`, with the flat press layer and the morph, lasts until the
+pointer button goes up; only the ripple and `.ds-pressed` end early.
 
 Chips (1.1): `attach()` also listens for `change` on `.ds-chip__input` in a `.ds-chips` row, the one call that
 wires control motion. A toggle that keeps every chip on its line plays the check slot's `width` from where it is
@@ -759,7 +768,8 @@ backing, so crossing chips never show through each other. The toggled chip keeps
 chip on its line: a body that grew opens from its old width with that chip's glide (`clip-path`) and its label glides
 from where it was (`translate`), so the two never overlap; a body that shrank cannot paint its old width, so only
 its label glides back. A script that sets `checked` fires no `change`:
-then the CSS alone runs, and a chip that wraps jumps to its new line.
+then the CSS alone runs, and a chip that wraps jumps to its new line. To glide a programmatic toggle, dispatch the
+event in the same task: `input.checked = next; input.dispatchEvent(new Event('change', { bubbles: true }))`.
 
 ### DS.overlay (js/overlay.js)
 

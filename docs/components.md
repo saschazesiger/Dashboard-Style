@@ -830,7 +830,9 @@ The native input stays in the form and the tab order; a selected chip shows the 
   from its short arm. Deselecting reverses it (the check leaves first). Radio chips trade the selection at once, so a
   pair keeps its width. A chip rendered selected does not animate.
 - When a toggle moves chips to another line, they glide there (FLIP) on pages that call `DS.ripple.attach(root)`;
-  without it, or when a script sets `checked`, the chips jump to the new line. During the glide the row carries
+  without it, or when a script sets `checked`, the chips jump to the new line. A script that toggles a chip and
+  wants the glide dispatches the event in the same task: `input.checked = next; input.dispatchEvent(new
+  Event('change', { bubbles: true }))`. During the glide the row carries
   `data-ds-glide` and every `.ds-chip` an opaque backing in the colour behind the row (`--ds-chips-backdrop`, written
   by the script; `--ds-surface` without one), so a chip that crosses another never shows it through its body.
 - Press: the state layer in `--ds-dur-micro` and the ripple. Chips are not pills, so they do not morph. Keyboard
@@ -1313,7 +1315,8 @@ A press on an action grows a circle of the content colour from the pointer (Ente
 fades it when the press ends. One call wires every action on the page, also the ones rendered later:
 
 ```js
-const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripples.detach() takes it back
+const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripples.destroy() takes it back
+ripples.release(host);                        // end a running press by hand (no argument: every press)
 ```
 
 ```html
@@ -1347,6 +1350,9 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
   touch screens), or its focus layer when a key pressed it, and the ripple adds the press. A button's layer also keeps what `--ds-btn-state-pressed-opacity`
   asks for beyond the ripple's `--ds-state-pressed`, so `.ds-btn--disc` shows its disc on press on touch screens
   too. Without `attach()` the flat layer stays the press feedback.
+- A press ends early when another element captures the pointer (an ancestor that drags to scroll): the ripple
+  fades as on release. `release(host?)` ends one by hand; `detach()` is the **deprecated** alias of `destroy()`
+  (removed in 3.0 at the earliest). `:active` (the flat layer and the morph) lasts until the pointer button goes up.
 - Colour: `--ds-ripple-color` (default `currentColor`), on `.ds-theme` or a host. Forced colours show no ripple.
 - iOS Safari applies `:active` only on pages that listen to `touchstart`. `attach()` adds a passive listener; a
   page without `ds.js` adds one itself (`document.addEventListener('touchstart', () => {}, { passive: true })`, or

@@ -106,6 +106,48 @@ describe('indicator, dom, ripple and overlay', () => {
     }
   });
 
+  it('returns a ripple handle with destroy(), release() and the deprecated detach() (2.0)', () => {
+    const listeners = new Map();
+    const classes = new Set();
+    const doc = { addEventListener() {}, removeEventListener() {} };
+    const root = {
+      nodeType: 1,
+      ownerDocument: doc,
+      classList: { add: (name) => classes.add(name), remove: (name) => classes.delete(name) },
+      addEventListener: (type, fn) => listeners.set(type, fn),
+      removeEventListener: (type) => listeners.delete(type),
+      contains: () => false,
+    };
+    const handle = ripple.attach(root);
+    assert.deepEqual(Object.keys(handle).sort(), ['destroy', 'detach', 'release']);
+    assert.equal(ripple.attach(root), handle, 'idempotent per root');
+    assert.ok(classes.has('ds-ripples'));
+    for (const type of ['pointerdown', 'keydown', 'keyup', 'touchstart', 'change']) assert.ok(listeners.has(type), type);
+    // Nothing to release: no error, nothing changes.
+    handle.release();
+    handle.release(/** @type {any} */ ({}));
+    assert.ok(classes.has('ds-ripples'));
+    // detach() is destroy(): the listeners and the class go, and a new attach() is a new handle.
+    handle.detach();
+    assert.equal(listeners.size, 0);
+    assert.ok(!classes.has('ds-ripples'));
+    const again = ripple.attach(root);
+    assert.notEqual(again, handle);
+    again.destroy();
+    assert.equal(listeners.size, 0);
+    // The source marks detach() deprecated, and the docs name the handle.
+    assert.match(read('src/js/ripple.js'), /\/\*\* Deprecated \(removed in 3\.0 at the earliest\): destroy\(\)\. \*\/\n\s+detach\(\)/);
+    assert.match(read('docs/motion.md'), /`\{ destroy, release, detach \}`/);
+  });
+
+  it('gives no press to a host whose own input or stretched link is blocked (2.0)', () => {
+    const source = read('src/js/ripple.js');
+    const inactive = source.slice(source.indexOf('function inactive('), source.indexOf('\n}\n', source.indexOf('function inactive(')));
+    assert.match(inactive, /host\.matches\(OWNS_INPUT\) && blocked\(host\.querySelector\('input'\)\)/);
+    assert.match(inactive, /host\.matches\(STRETCHED\)/);
+    assert.ok(source.includes("const blocked = (element) => Boolean(element && (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true'));"));
+  });
+
   it('counts the scroll lock and keeps the room of a scrollbar that the lock removed', () => {
     /** A page whose body scrollbar (`bar` px) goes while body.ds-no-scroll is set. */
     function stubPage(bar, gutter) {
