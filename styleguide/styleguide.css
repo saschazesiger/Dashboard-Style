@@ -1340,3 +1340,25 @@
 [data-sg-page="lab"] .sg-section:last-child {
   padding-bottom: 40vh;
 }
+
+/* Tooltips that repeat the text: a narrow column cuts the long name off. */
+.sg-tip-column {
+  display: grid;
+  gap: var(--ds-space-1);
+  width: 160px;
+  margin-bottom: var(--ds-space-3);
+}
+
+.sg-tip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The save bar inspected in place: the bar at rest inside the card. */
+.sg-savebar-demo {
+  position: relative;
+  height: calc(var(--ds-space-4) * 2 + 56px);
+  --ds-savebar-inset: 0px;
+  --ds-savebar-offset: var(--ds-space-2);
+}

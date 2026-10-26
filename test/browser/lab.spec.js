@@ -189,6 +189,8 @@ const LAB_EXEMPT = {
   'ds-pulse': 'deprecated loop (removed in 2.0): skeletons run ds-skeleton-wave',
   'ds-indeterminate': 'deprecated loop (removed in 2.0): indeterminate progress runs ds-progress-head and ds-progress-tail',
   'DS.motion.easeOutCubic': 'deprecated and unused (removed in 2.0): countUp() runs on --ds-ease-value',
+  'DS.overlay.announce': 'live region, no motion',
+  'DS.overlay.toastRegion': 'live region, no motion',
 };
 
 /** Closes what a demo left open (Rapid toggle ends on an open overlay) and waits until it is hidden. */
@@ -277,6 +279,7 @@ const CONTINUITY = {
   menu: { in: 'stage', sel: '#sg-lab-menu', props: ['opacity'] },
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
+  savebar: { in: 'frame', sel: '#savebar-bar', props: ['opacity'] },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
 };
 
@@ -304,6 +307,7 @@ const LONG_RUNS = {
   tooltips: { ms: 15000, reason: 'a cold tooltip waits --ds-delay-tooltip, the pointer rests 400ms, moves along four more buttons 250ms apart and leaves; the tooltip opens after the click task' },
   'modal-drawer': { ms: 15000, reason: 'opens the modal drawer in its frame, holds 400ms and closes it (the frame\'s animations are outside the stage)' },
   topbar: { ms: 15000, reason: 'scrolls the small app in its frame down smoothly, holds 400ms and scrolls back' },
+  savebar: { ms: 15000, reason: 'shows the save bar in its frame, holds 600ms and hides it (the frame\'s animations are outside the stage)' },
   focus: { ms: 12000, reason: 'walks the focus along five stops 400ms apart (the ring snaps at each)' },
   scroll: { ms: 12000, reason: 'scrolls the box to its end smoothly, holds 300ms and scrolls back (scroll-driven effects)' },
   validation: { ms: 12000, reason: 'focuses the field and validates it 300ms later (the message fades in while its room opens)' },

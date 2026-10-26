@@ -3491,7 +3491,11 @@ export function savebar(element, options = {}) {
       if (!style) return 0;
       const lifted = parseFloat(/** @type {HTMLElement} */ (region).style.getPropertyValue('--ds-toast-lift')) || 0;
       const floor = (doc.documentElement.clientHeight || view.innerHeight) - ((parseFloat(style.bottom) || 0) - lifted) - (parseFloat(style.marginBottom) || 0);
-      return Math.max(0, floor - (barTop() - gap()));
+      const top = barTop();
+      // A bar that ends above the stack (a view that does not reach the
+      // bottom edge) is not in its way.
+      if (top + height <= floor - /** @type {HTMLElement} */ (region).offsetHeight) return 0;
+      return Math.max(0, floor - (top - gap()));
     },
   };
 
