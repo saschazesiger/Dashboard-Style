@@ -32,8 +32,8 @@ the tests in `test/`.
   focus. No ring may be clipped: a container that clips takes an inset ring for its items.
 - **A press is a layer, a ripple and a shape.** The state layer comes in `--ds-dur-micro`, the ripple grows from the
   pointer (`DS.ripple.attach(document)`), and pills turn squarer (`--ds-radius-action-pressed`) and spring back on
-  release. Nothing scales on press except the switch handle; checkboxes, radios and the switch show a halo instead
-  of a ripple. Inline text links (`.ds-link-btn`, links in text) neither ripple nor morph.
+  release. Nothing scales on press except the switch handle; checkboxes, radios, the switch and the slider show a
+  halo instead of a ripple. Inline text links (`.ds-link-btn`, links in text) neither ripple nor morph.
 - **One disabled model.** Disabled controls take the neutral Material look (`--ds-disabled-fill` container or
   outline, `--ds-disabled-ink` content; a theme may dim them as a whole with `--ds-disabled-opacity`), show no hover,
   press, ripple, morph or halo, take the `not-allowed` cursor where they can still be pointed at, and fade into that

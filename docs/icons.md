@@ -44,8 +44,8 @@ The [styleguide](../styleguide/index.html#icons) shows them all. Notes:
   `DS.motion.crossfade(el, icon, { kind: 'icon' })` ([motion.md](motion.md#dsmotion-jsmotionjs)).
 - `thumbUp` and `thumbDown` end with the outline path: fill it (`path:last-child { fill: currentColor }`) to show a
   chosen state by shape, not only colour.
-- `calendar`, `close` and `check` are also drawn by `components/form.css` as masks (date fields, the search's clear
-  button, the drawn checkbox; its check at stroke width 3).
+- `calendar`, `clock`, `close` and `check` are also drawn by `components/form.css` as masks (date fields, time
+  fields, the search's clear button, the drawn checkbox; its check at stroke width 3).
 - `clock` means waiting, `ban` switched off or not set up.
 
 ## Adding glyphs

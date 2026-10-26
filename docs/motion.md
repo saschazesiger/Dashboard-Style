@@ -145,7 +145,7 @@ components never set it (`test/tokens.test.js`).
    - `mask-position`: the travelling progress wave (`ds-progress-wave`; with its `-webkit-mask-position` twin for
      Chrome/Edge before 120);
    - `width`: the chip check slot;
-   - `height`: `.ds-collapsible` and the validation message room (`height` through `interpolate-size`, only where
+   - `height`: `.ds-collapsible` and the validation message room (also a confirmation's, `height` through `interpolate-size`, only where
      it exists; elsewhere they show at once) and expandable rows (`grid-template-rows`). They open on
      `--ds-ease-out`; the collapsible and the rows close faster, accelerating on `--ds-ease-in`. None overshoots
      (D29);
@@ -302,10 +302,18 @@ The controls (1.1) share one timing. Press feedback is the state layer, the ripp
 | marks out, leaving faces and words | `--ds-dur-fast` or `--ds-dur-instant` | `--ds-ease-in` |
 | button faces roll by `--ds-distance-sm` (`DS.motion.busy()`: the busy face after `--ds-delay-loader`, the success face for `--ds-hold-success`) | `--ds-dur-fast` in, `--ds-dur-instant` out | in: fade `--ds-ease-in-out`, rise `--ds-ease-out`; out: `--ds-ease-in` |
 | validation message: fade, and its room opening while focus is in the form | fade `--ds-dur-fast`, room `--ds-dur-base` | fade `--ds-ease-in-out`, room `--ds-ease-out` |
+| confirmation under a field (`.ds-field__hint--success`): as the validation message; turning from error to success replays nothing | fade `--ds-dur-fast`, room `--ds-dur-base` | fade `--ds-ease-in-out`, room `--ds-ease-out` |
+| changed dot (`.ds-field--changed`): opacity only, its room always kept | `--ds-dur-fast` in, `--ds-dur-instant` out | in `--ds-ease-in-out`, out `--ds-ease-in` |
+| search key (`.ds-search__key`): goes once the field has the focus or a value, comes back when it rests empty | `--ds-dur-instant` out, `--ds-dur-fast` back | `--ds-ease-in-out` |
+| radio tile check (`.ds-radio__mark`): pops from `--ds-scale-small`, fades in; leaves faster | scale `--ds-dur-medium`, fade `--ds-dur-fast`; out `--ds-dur-fast` | scale `--ds-ease-spatial`, fade `--ds-ease-in-out`; out `--ds-ease-in` |
+| radio tile tint with the indicator (`.ds-radios__indicator`): the pill glides, ring and check change at once | the indicator's travel | the indicator's ([Navigation](#navigation)) |
+| slider handle halo (hover, press, focus); the value never glides while dragged | press `--ds-dur-micro`, release `--ds-dur-fast`, focus at once | `--ds-ease-in-out` |
+| field rings of input groups, the filled field's bottom line, the composer shell: at once on focus, back on blur | `--ds-dur-fast` (blur) | `--ds-ease-in-out` |
 | disabled look (colours and opacity) | `--ds-dur-fast` | `--ds-ease-in-out` |
 
 What leaves takes 0.4-0.67 of what enters: the chip check, the checkbox mark and the radio dot 250 to 150ms, the
-button faces and the switch words 150 to 100ms, the icon swap 250 to 100ms (tested). Everything here is a
+button faces and the switch words 150 to 100ms, the icon swap 250 to 100ms, the changed dot and the search key 150 to
+100ms, the radio tile check 250 to 150ms (tested). Everything here is a
 transition, so a control rendered in its end state (a chip rendered selected, a box rendered checked) stays still
 on load, and a rapid toggle turns back from where it is. A chip that wraps to another line glides there through
 `flip()` (`DS.ripple.attach()` wires it); a removed validation message goes at once.

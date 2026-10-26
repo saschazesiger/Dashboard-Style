@@ -109,6 +109,7 @@ const PROGRESSIVE = [
   [/text-wrap/, 'text-wrap'],
   [/scrollbar-color|scrollbar-width/, 'scrollbar-color'],
   [/scrollbar-gutter/, 'scrollbar-gutter'],
+  [/field-sizing/, 'field-sizing'],
 ];
 
 /** Plain :focus selectors that may draw an outline, each with its reason. */
@@ -247,6 +248,7 @@ const EXCEPTIONS = new Map([
       ['.ds-collapsible::details-content', 'the disclosure closes (0) on --ds-ease-in, only where interpolate-size exists'],
       ['.ds-collapsible[open]::details-content', 'the disclosure opens to auto on --ds-ease-out (D29), only where interpolate-size exists'],
       ['.ds-field__hint--error', 'the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists'],
+      ['.ds-field__hint--success', 'the room of a confirmation under a field opens like a validation message\'s (D29), only where interpolate-size exists'],
       ['.ds-table__expand', 'an expandable table row closes (0fr, grid-template-rows) on --ds-ease-in: a layout size (D29)'],
       ['tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand', 'an expandable table row opens (1fr, grid-template-rows) on --ds-ease-out (D29)'],
     ]),
@@ -376,6 +378,9 @@ const CONTROL_RATIOS = [
   ['button faces', [['src/components/button.css', '.ds-btn[aria-busy="true"] .ds-btn__face--busy', ['transition']]], [['src/components/button.css', '.ds-btn__face--busy', ['transition']]]],
   ['icon swap', [[M, SWAP_SHOWN, ['transition']]], [[M, '.ds-icon-swap > .ds-icon-swap__b', ['transition']]]],
   ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
+  ['changed dot', [['src/components/form.css', '.ds-field--changed > .ds-field__label::after', ['transition']]], [['src/components/form.css', '.ds-field__label::after', ['transition']]]],
+  ['search key', [['src/components/form.css', '.ds-search__key', ['transition']]], [['src/components/form.css', '.ds-search .ds-input:is(:focus, :not(:placeholder-shown), :disabled) ~ .ds-search__key', ['transition']]]],
+  ['radio tile check', [['src/components/form.css', '.ds-radio:has(input:checked) > .ds-radio__mark > svg', ['transition']]], [['src/components/form.css', '.ds-radio__mark > svg', ['transition']]]],
 ];
 const resolveDuration = (candidates) => candidates.map(([file, selector, properties]) => longest(file, selector, properties)).find((time) => time !== undefined);
 /** The popups of the ratio table: they may exit in --ds-dur-instant (motion-2.md). */
@@ -606,7 +611,7 @@ describe('motion in CSS', () => {
       assert.ok(ratio >= 0.4 && ratio <= 0.67 + 1e-9, `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
     }
     assert.deepEqual(CONTROL_RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
-      ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100']);
+      ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100', '150/100', '150/100', '250/150']);
   });
 
   it('has a ratio row for every component with an entrance and an exit', () => {
@@ -1085,9 +1090,10 @@ describe('CSS for the baseline', () => {
           if (ring(body) && plainFocus.test(part) && !FOCUS_EXEMPT.some(([pattern]) => pattern.test(part))) offenders.push(`${file}: ${part}: ring on :focus`);
           if (/(^|[;\s])outline\s*:\s*none/.test(body) && part.includes(':focus-visible')) {
             // The ring moved to another element: it must follow the same :focus-visible through :has(),
-            // or sit on the element's own pseudo-element (a link stretched over a row or card).
+            // or sit on the element's own pseudo-element (a link stretched over a row or card, the
+            // handle of a slider).
             const compound = part.split(/\s*[\s>+~]\s*/).find((piece) => piece.includes(':focus-visible'));
-            const own = new RegExp(`${literally(compound)}::(before|after)$`);
+            const own = new RegExp(`${literally(compound)}::(before|after|-webkit-slider-thumb|-moz-range-thumb)$`);
             const moved = all.some((other) => ring(other.body) && splitSelectors(other.selector).some((sel) => sel.includes(`:has(${compound})`) || own.test(sel)));
             if (!moved) offenders.push(`${file}: ${part}: outline: none without a ring on :has(${compound})`);
           }
@@ -1206,14 +1212,14 @@ describe('accessibility details', () => {
     const drawn = new Set();
     for (const svg of masks) {
       const inner = svg.replace(/^<svg[^>]*>|<\/svg>$/g, '').replace(/'/g, '"');
-      const name = ['calendar', 'close', 'check'].find((glyph) => icons[glyph] === inner);
+      const name = ['calendar', 'clock', 'close', 'check'].find((glyph) => icons[glyph] === inner);
       assert.ok(name, `not a glyph of the set: ${inner}`);
       drawn.add(name);
       // The checkbox check alone is heavier: stroke 3 is 2.25px in the 18px box.
       const width = name === 'check' ? 3 : 2;
       assert.match(svg, new RegExp(`stroke-width='${width}' stroke-linecap='round' stroke-linejoin='round'`));
     }
-    assert.deepEqual([...drawn].sort(), ['calendar', 'check', 'close']);
+    assert.deepEqual([...drawn].sort(), ['calendar', 'check', 'clock', 'close']);
   });
 
   it('rings a date field while its calendar button has the focus', () => {
@@ -1226,7 +1232,8 @@ describe('accessibility details', () => {
   });
 
   it('keeps the outlined field hover from outranking the filled toolbar fields', () => {
-    const hover = rules(read('src/components/form.css')).filter((rule) => /^\.ds-input[^\s,]*:hover/.test(rule.selector) && rule.body.includes('var(--ds-text)'));
+    // .ds-input itself: an input group draws a box of its own.
+    const hover = rules(read('src/components/form.css')).filter((rule) => /^\.ds-input(?![\w-])[^\s,]*:hover/.test(rule.selector) && rule.body.includes('var(--ds-text)'));
     assert.deepEqual(hover.map((rule) => rule.selector), ['.ds-input:where(:hover:not(:focus-within, :disabled, [readonly], [aria-invalid="true"]))']);
   });
 
@@ -1359,6 +1366,7 @@ const RIPPLE_EXEMPT = new Map([
   ['input', 'checkbox and radio inputs: an input cannot hold a ripple, the halo is the press'],
   ['.ds-checkbox', 'a checkbox input: the halo is the press'],
   ['.ds-radio-input', 'a radio input: the halo is the press'],
+  ['.ds-slider', 'a range input: the halo around its handle is the press (an input cannot hold a ripple), like the switch'],
   ['.ds-combo__option', 'pointer-down selects and closes the list; the state layer is the feedback'],
   ['.ds-input', 'native field parts (select, the calendar and clear buttons)'],
   ['.ds-brand', 'the home link in the top bar: identity, not a control; no state layer, ripple or morph (like a link in text)'],
@@ -1403,7 +1411,7 @@ describe('controls (1.1.0)', () => {
     const card = pressed('src/components/form.css', '.ds-radio');
     assert.equal(card.length, 2);
     for (const { part, own } of card) {
-      assert.ok(part.includes(':not(.ds-radio--disabled, :has(input:disabled))'), part);
+      assert.ok(part.includes(':not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))'), part);
       assert.equal(own['border-radius'], 'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
       assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/);
     }

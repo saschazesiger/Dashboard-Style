@@ -173,6 +173,18 @@
   --ds-btn-disabled-border: (from --ds-disabled-fill);
   --ds-input-font: (body; input role up to 600px)
   --ds-check-size: 18px;               --ds-check-target: 40px;
+  --ds-input-height: 40px;             --ds-check-height: 40px;
+  --ds-input-bg: var(--ds-surface);    --ds-input-border: var(--ds-outline);
+  --ds-input-radius: var(--ds-radius-field);
+  --ds-input-focus-color: var(--ds-primary);
+  --ds-input-grow-max: 50vh;
+  --ds-field-error-color: var(--ds-on-error-container);
+  --ds-field-success-color: var(--ds-text-2);
+  --ds-field-changed-color: var(--ds-primary);
+  --ds-form-rows-control-max: 480px;   --ds-check-list-max-height: 264px;
+  --ds-composer-radius: var(--ds-radius-2xl);
+  --ds-composer-max-height: 220px;
+  --ds-slider-halo: 40px;
   --ds-chip-height: 32px;              --ds-chip-check-size: 18px;
   --ds-chip-disabled-border: var(--ds-disabled-fill);
   --ds-chip-disabled-bg: var(--ds-disabled-fill);

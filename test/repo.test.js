@@ -137,6 +137,7 @@ describe('repository', () => {
       ['--ds-indicator-ease-r', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
       ['--ds-indicator-ease-b', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
       ['--ds-indicator-ease-l', 'a motion hook: the curve of each indicator edge, set by indicator.css'],
+      ['--ds-share', 'set by the page on a slider (the value\'s share of its range, 0 to 1) and on chart marks'],
     ]);
     const hooks = new Set();
     for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
