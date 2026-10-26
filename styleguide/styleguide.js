@@ -1353,7 +1353,7 @@
       card('Check list and check group', '<div class="ds-stack"><fieldset class="ds-field"><legend class="ds-field__label">Status</legend><div class="ds-check-list">' +
         check('Active', 47, true) + check('In storage', 12) + check('Lent out', 8) + check('In repair', 3, true) + check('Waiting for parts from the manufacturer, ordered last week', 2) + check('Retired', 31) + check('Lost', 1) + check('Sold', 6) +
         '</div></fieldset>' +
-        '<fieldset class="ds-field"><legend class="ds-field__label">Notify by</legend><div class="ds-check-group" data-sg="check-group"><label class="ds-check"><input type="checkbox" data-sg-all><span>All channels</span></label>' +
+        '<fieldset class="ds-field"><legend class="ds-field__label">Notify by</legend><div class="ds-check-group" data-sg="check-group"><label class="ds-check"><input type="checkbox" data-sg-all data-check-some><span>All channels</span></label>' +
         '<div class="ds-check-group__children" role="group" aria-label="Channels"><label class="ds-check"><input type="checkbox" checked><span>Email</span></label><label class="ds-check"><input type="checkbox"><span>Chat</span></label><label class="ds-check"><input type="checkbox" aria-disabled="true" data-tip="Needs a phone number first"><span>Phone (aria-disabled)</span></label></div></div></fieldset></div>') +
       card('Editing in rows', '<p class="ds-muted">Change a field: a dot and the word "(changed)" mark it until you save. On a phone the actions stay at the bottom.</p>' +
         '<form class="ds-form ds-form--rows" data-sg="rows" onsubmit="return false">' +
@@ -2006,8 +2006,13 @@
           '<div class="ds-account ds-account--capsule"><div class="ds-account__text" aria-hidden="true"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>' +
           '<span class="ds-account__avatar" role="img" aria-label="Ada Lovelace, ada@example.org" tabindex="0" data-tip="Ada Lovelace, ada@example.org">A</span><span class="ds-account__divider"></span><button class="ds-btn ds-btn--text" type="button">Sign out</button></div>' +
         '</div></div>' +
+        '<div class="sg-topbar-sample"><div class="ds-topbar">' +
+          '<a class="ds-brand" href="#frame"><span class="ds-brand__name">Inventory</span></a>' +
+          '<div class="ds-topbar__search"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"><kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div></div>' +
+          '<div class="ds-topbar__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Help" data-tip="Help">' + icon('info', 20) + '</button></div>' +
+        '</div></div>' +
         '<div class="sg-row"><span class="ds-avatar ds-avatar--sm" role="img" aria-label="Grace Hopper">G</span><span class="ds-avatar" role="img" aria-label="Alan Turing">A</span><span class="ds-avatar ds-avatar--lg" role="img" aria-label="Katherine Johnson">K</span><span class="ds-muted">Avatars: 24, 32 and 40px</span></div>' +
-        '<p class="ds-muted">A title in the bar (two lines of the label role on phones, where the brand gives way), icon actions with tooltips, and the account as a capsule: the avatar carries the name, the text beside it is aria-hidden and goes below 720px.</p>') +
+        '<p class="ds-muted">A title in the bar (two lines of the label role on phones, where the brand gives way), or a search centred in it (.ds-topbar__search, hidden below 720px), icon actions with tooltips, and the account as a capsule: the avatar carries the name, the text beside it is aria-hidden and goes below 720px.</p>') +
       card('Tabs', tabsSample() +
         '<p class="ds-muted">The bar under the selected tab glides like the drawer\'s pill and the labels change colour as it arrives; the selected tab also takes the label weight. Arrow keys move between the tabs; the new panel enters with swap. History carries a count; Reports is aria-disabled and says why in its tooltip.</p>') +
       card('Page head and breadcrumbs', '<div class="sg-stage sg-page-sample">' + pageHeadSample() + '</div>' +
