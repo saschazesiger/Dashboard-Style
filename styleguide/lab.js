@@ -3847,7 +3847,7 @@
   LAB_DEMOS.push({
     id: 'view-leaving',
     group: 'views',
-    title: 'Leaving view, by hand',
+    title: 'Leaving view, by hand (deprecated)',
     note: 'Deprecated since 2.0 (removed in 3.0 at the earliest): use <code>DS.motion.transition()</code>. Without it, <code>.ds-view--leaving</code> fades the view\'s children out (<code>--ds-dur-instant</code>, accelerating), the page waits for that fade with <code>DS.motion.settled()</code>, replaces the content and lets it enter with <code>.ds-enter--swap</code>. Pressing again during a swap ends on the latest view.',
     shows: ['DS.motion.settled', 'DS.motion.enter', '.ds-enter--swap', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-in', '--ds-distance-sm'],
     html: '<div class="sg-swap-view"><div class="sg-swap-page"><h4 class="ds-card__title">' + VIEW_PAGES[0][0] + '</h4><p class="ds-muted">' + VIEW_PAGES[0][1] + '</p></div></div>',
