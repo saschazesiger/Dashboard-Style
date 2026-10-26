@@ -18,7 +18,8 @@
  * .ds-table--interactive (a press on another link or control inside a
  * row or a <div> card is that control's own: no ripple, no .ds-pressed),
  * .ds-radio (radio cards), .ds-combo__toggle,
- * .ds-menu__item, .ds-errors summary and [data-ds-ripple] (any element,
+ * .ds-menu__item, .ds-errors summary, .ds-pressable (a project element
+ * with the system's state layer, utilities.css) and [data-ds-ripple] (any element,
  * made positioned here); inline links, the switch, checkbox and radio
  * inputs (their halo is the press), combobox options and native field
  * parts have none; data-ds-ripple="off" on a host or an ancestor opts out.
@@ -149,7 +150,8 @@
     opacity: calc(var(--ds-btn-state-pressed-opacity, var(--ds-state-pressed)) - var(--ds-state-pressed));
   }
 
-  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled) + .ds-chip__body::before,
+  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled, [aria-disabled="true"]) + .ds-chip__body::before,
+  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before,
   :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
@@ -158,7 +160,8 @@
   :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
   :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
     opacity: 0;
   }
 
@@ -172,19 +175,22 @@
       opacity: max(var(--ds-btn-state-opacity, var(--ds-state-hover)), calc(var(--ds-btn-state-pressed-opacity, var(--ds-state-pressed)) - var(--ds-state-pressed)));
     }
 
-    :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled) + .ds-chip__body::before,
+    :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled, [aria-disabled="true"]) + .ds-chip__body::before,
+    :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before,
     :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover);
     }
 
     :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before {
+    :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
+    :where(.ds-ripples) .ds-pressable.ds-pressable--lg:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover-lg);
     }
 
@@ -198,6 +204,7 @@
   }
 
   :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:focus-visible + .ds-chip__body::before,
+  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):focus-visible:is(:active, .ds-pressed) > .ds-chip__body::before,
   :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
@@ -205,7 +212,8 @@
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(:where(input):focus-visible):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
-  :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);
   }
 

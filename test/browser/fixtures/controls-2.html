@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controls 2.0 · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  /* Fixture layout only: containers of a set width for the container rules. */
+  .fx-content { container: ds-content / inline-size; }
+  .fx-w900 { width: 900px; }
+  .fx-w600 { width: 600px; }
+  .fx-w500 { width: 500px; }
+  .fx-w400 { width: 400px; }
+  .fx-w150 { width: 150px; }
+  .fx-drag { width: 260px; flex-wrap: nowrap; overflow-x: auto; touch-action: pan-y; }
+</style>
+</head>
+<body>
+<!-- The controls of 2.0: buttons (disclosure, locked, adaptive, faces with
+     an icon), quiet links, .ds-pressable, .ds-hover-actions, keys,
+     dividers, action and input chips, badges and tags, selected tiles and
+     cards, alerts, the done state, the switch (aria-disabled, locked, a
+     list) and a fillable icon. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="buttons-title">
+    <h2 id="buttons-title">Buttons</h2>
+    <div class="fx-row" id="buttons">
+      <button class="ds-btn ds-btn--disclosure" type="button" id="btn-disclosure" aria-expanded="true"><span data-icon="filter" data-size="16"></span>Filters</button>
+      <button class="ds-btn" type="button" id="btn-dialog-opener" aria-haspopup="dialog" aria-expanded="true">Details</button>
+      <button class="ds-btn" type="button" id="btn-menu-opener" aria-haspopup="menu" aria-expanded="true">More</button>
+      <button class="ds-btn" type="button" id="btn-locked" aria-pressed="true" aria-disabled="true">Approved</button>
+      <button class="ds-btn" type="button" id="btn-locked-off" aria-pressed="false" aria-disabled="true">Rejected</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="btn-faces-icon"><span class="ds-btn__faces"><span class="ds-btn__face"><span data-icon="save" data-size="16"></span>Save</span><span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="btn-rating" aria-pressed="false" aria-label="Helpful"><span data-icon="thumbUp" data-size="20" data-class="ds-icon--fillable"></span></button>
+      <a class="ds-link--quiet" href="#history" id="link-quiet">Show history</a>
+      <button class="ds-link-btn ds-link-btn--quiet" type="button" id="link-btn-quiet">Edit columns</button>
+    </div>
+    <div class="fx-content fx-w500" id="narrow">
+      <button class="ds-btn ds-btn--adaptive" type="button" id="btn-adaptive-narrow" data-tip="Export"><span data-icon="download" data-size="16"></span><span class="ds-btn__label">Export</span></button>
+    </div>
+    <div class="fx-content fx-w900" id="wide">
+      <button class="ds-btn ds-btn--adaptive" type="button" id="btn-adaptive-wide" data-tip="Export"><span data-icon="download" data-size="16"></span><span class="ds-btn__label">Export</span></button>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="utilities-title">
+    <h2 id="utilities-title">Pressable, actions on demand, keys, dividers</h2>
+    <ul class="ds-plain-list fx-narrow" id="rows">
+      <li class="ds-pressable" id="pressable" role="button" tabindex="0">LAPTOP-0042 <span class="ds-hover-actions" id="hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" id="hover-action" aria-label="Edit LAPTOP-0042"><span data-icon="pencil" data-size="18"></span></button></span></li>
+      <li class="ds-pressable ds-pressable--inset" id="pressable-blocked" role="button" tabindex="0" aria-disabled="true">PRINTER-0003</li>
+    </ul>
+    <p>Press <kbd class="ds-kbd" id="kbd">Ctrl</kbd> <kbd class="ds-kbd">K</kbd>.</p>
+    <hr class="ds-divider" id="divider">
+    <div class="ds-divider ds-divider--label" role="separator" id="divider-label"><span>Today</span></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="chips-title">
+    <h2 id="chips-title">Chips, badges, tags</h2>
+    <div class="ds-chips" role="group" aria-label="Active filters" id="input-chips">
+      <button class="ds-chip ds-chip--input" type="button" id="chip-input"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>Building C</span><span data-icon="close" data-size="18" data-class="ds-chip__trailing"></span></span></button>
+      <button class="ds-chip" type="button" id="chip-action"><span class="ds-chip__body"><span data-icon="user" data-size="18" data-class="ds-chip__icon"></span><span class="ds-chip__label">Only my devices</span></span></button>
+      <button class="ds-chip" type="button" id="chip-long"><span class="ds-chip__body"><span class="ds-chip__label">Show the devices that were not seen this month and are still assigned to someone</span></span></button>
+    </div>
+    <div class="ds-chips ds-chips--wrap fx-w400" role="group" aria-label="Suggestions" id="wrap-chips">
+      <button class="ds-chip" type="button" id="chip-wrap-short"><span class="ds-chip__body"><span class="ds-chip__label">Short</span></span></button>
+      <button class="ds-chip" type="button" id="chip-wrap-long"><span class="ds-chip__body"><span class="ds-chip__label">Show the devices that were not seen this month and are still assigned to someone</span></span></button>
+    </div>
+    <fieldset class="ds-chips" id="filter-chips">
+      <legend class="ds-sr">Status</legend>
+      <label class="ds-chip" id="chip-filter"><input class="ds-chip__input" type="checkbox" id="chip-filter-input"><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>Active</span></span></label>
+      <label class="ds-chip" id="chip-aria-disabled"><input class="ds-chip__input" type="checkbox" aria-disabled="true"><span class="ds-chip__body"><span data-icon="check" data-size="18" data-class="ds-chip__check"></span><span>Locked</span></span></label>
+    </fieldset>
+    <div class="ds-chips fx-drag" role="group" aria-label="Kinds" id="drag-row">
+      <button class="ds-chip" type="button" id="drag-chip"><span class="ds-chip__body"><span class="ds-chip__label">Laptops</span></span></button>
+      <button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Desktops</span></span></button>
+      <button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Tablets</span></span></button>
+      <button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Printers</span></span></button>
+      <button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Monitors</span></span></button>
+    </div>
+    <div class="ds-chips" id="empty-chips"></div>
+    <div class="fx-row">
+      <button class="ds-btn" type="button" id="btn-badge">Inbox <span class="ds-badge" id="badge">3</span></button>
+      <button class="ds-btn" type="button" id="btn-badge-pressed" aria-pressed="true">Filters <span class="ds-badge" id="badge-tinted">2</span></button>
+      <span class="ds-badge ds-badge--error" id="badge-error">2</span>
+      <span class="ds-badge" id="badge-empty"></span>
+      <span class="ds-tag" id="tag">Preview</span>
+      <span class="ds-tag ds-tag--neutral" id="tag-neutral"><span data-icon="tag" data-size="16"></span>External</span>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="tiles-title">
+    <h2 id="tiles-title">Tiles and cards</h2>
+    <div class="ds-tiles" role="group" aria-label="Filter devices" id="tiles-selected">
+      <button class="ds-tile" type="button" id="tile-selected" aria-pressed="true"><span class="ds-tile__label"><span data-icon="check" data-size="20"></span><span>Overdue</span></span><span class="ds-tile__value">12</span></button>
+      <button class="ds-tile" type="button" id="tile-plain" aria-pressed="false"><span class="ds-tile__label"><span>In repair</span></span><span class="ds-tile__value ds-tile__value--empty">No data</span></button>
+    </div>
+    <div class="fx-w900"><div class="ds-tiles" id="tiles-900"><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div></div></div>
+    <div class="fx-w600"><div class="ds-tiles" id="tiles-600"><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div></div></div>
+    <div class="fx-w400"><div class="ds-tiles" id="tiles-400"><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div></div></div>
+    <div class="fx-w150"><div class="ds-tiles" id="tiles-150"><div class="ds-tile"></div><div class="ds-tile"></div></div></div>
+    <div class="fx-w900"><div class="ds-tiles ds-tiles--3" id="tiles-3"><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div><div class="ds-tile"></div></div></div>
+    <div class="ds-grid-2">
+      <button class="ds-card ds-card--interactive" type="button" id="card-selected" aria-pressed="true"><span class="ds-card__title"><span data-icon="check" data-size="20"></span>Standard</span><span class="ds-muted">Daily sync</span></button>
+      <div class="ds-card ds-card--interactive ds-card--elevated" id="card-div"><h3 class="ds-card__title"><button class="ds-card__action" type="button" id="card-action" aria-pressed="true">Extended</button></h3><p class="ds-muted">Hourly sync</p></div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="alerts-title">
+    <h2 id="alerts-title">Alerts and the done state</h2>
+    <div class="ds-alert ds-alert--warning" id="alert-actions"><span data-icon="alert" data-size="20"></span><div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div><div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Remind me</button></div></div>
+    <section class="ds-card" id="findings">
+      <div class="ds-alert ds-alert--plain ds-alert--error" id="alert-plain"><span data-icon="alertCircle" data-size="20"></span><span class="ds-alert__text">Disk almost full.</span></div>
+      <div class="ds-alert ds-alert--plain ds-alert--warning" id="alert-plain-2"><span data-icon="alert" data-size="20"></span><span class="ds-alert__text">Warranty ends in 30 days.</span></div>
+    </section>
+    <div id="done-holder"><div class="ds-empty ds-empty--done" id="done" role="status" hidden><span class="ds-empty__disc" aria-hidden="true"><span data-icon="check" data-size="24"></span></span><p class="ds-empty__title">Request sent</p></div></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="switch-title">
+    <h2 id="switch-title">Switch</h2>
+    <div class="ds-stack fx-narrow">
+      <label class="ds-switch" id="switch-plain"><input type="checkbox" role="switch" id="switch-plain-input"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Nightly sync</span></label>
+      <label class="ds-switch" id="switch-aria"><input type="checkbox" role="switch" id="switch-aria-input" aria-disabled="true"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Cloud backup</span></label>
+      <label class="ds-switch ds-switch--locked" id="switch-locked"><input type="checkbox" role="switch" checked aria-disabled="true" aria-describedby="why"><span class="ds-switch__track" aria-hidden="true"><span data-icon="lock" data-size="16" data-class="ds-switch__icon"></span></span><span class="ds-switch__label">Encryption</span><small class="ds-switch__hint" id="why">Set by the device policy</small></label>
+      <label class="ds-switch ds-switch--locked" id="switch-locked-off"><input type="checkbox" role="switch" aria-disabled="true"><span class="ds-switch__track" aria-hidden="true"><span data-icon="lock" data-size="16" data-class="ds-switch__icon"></span></span><span class="ds-switch__label">Remote wipe</span></label>
+    </div>
+    <div class="ds-switch-list fx-w600" id="switch-list">
+      <label class="ds-switch" id="switch-row"><input type="checkbox" role="switch" checked aria-labelledby="row-name" aria-describedby="row-hint"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label" id="row-name">Email reports</span><small class="ds-switch__hint" id="row-hint">Every Monday</small><span class="ds-switch__meta" id="row-meta"><span class="ds-tag ds-tag--neutral">3 recipients</span></span><span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span></label>
+      <label class="ds-switch"><input type="checkbox" role="switch" aria-labelledby="row-2-name"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label" id="row-2-name">Push notifications</span></label>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

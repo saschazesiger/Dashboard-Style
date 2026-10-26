@@ -11,7 +11,7 @@ White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped act
 ![Dependencies: 0](https://img.shields.io/badge/dependencies-0-146c2e)
 ![Build step: none](https://img.shields.io/badge/build%20step-none-146c2e)
 ![Components: 26](https://img.shields.io/badge/components-26-6750a4)
-![Icons: 82](https://img.shields.io/badge/icons-82-6750a4)
+![Icons: 109](https://img.shields.io/badge/icons-109-6750a4)
 
 [🚀 Live tour](https://saschazesiger.github.io/Dashboard-Style/) ·
 [🖥️ Reference app](https://saschazesiger.github.io/Dashboard-Style/example/) ·
@@ -64,7 +64,7 @@ to their new colour.
 </tr>
 <tr>
 <td><a href="https://saschazesiger.github.io/Dashboard-Style/#choose"><img src="docs/images/controls.png" alt="Switches, checkboxes with a parent in the indeterminate state, filter chips and radio cards"></a><br>✅ <b>Controls</b>: checks that draw themselves, switches on a spring, chips that make room.</td>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/#icons"><img src="docs/images/icons.png" alt="A grid of the 82 outline icons with their names"></a><br>🖼️ <b>82 icons</b>: one outline set on a 24px grid, in <code>DS.icons</code>.</td>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/#icons"><img src="docs/images/icons.png" alt="A grid of the 109 outline icons with their names"></a><br>🖼️ <b>109 icons</b>: one outline set on a 24px grid, in <code>DS.icons</code>.</td>
 </tr>
 </table>
 
@@ -176,7 +176,7 @@ a theme file from a few clicks and lets you copy it.
 | 📝 **Input** | buttons (busy and done faces, icon swaps), fields, selects, checkboxes, radio cards, switches, filter chips, combobox, search |
 | 🪟 **Overlays** | dialogs, side sheets, menus, through `DS.overlay` (focus, Escape, scroll lock, stacking) |
 | 🌊 **Motion** | `DS.motion` (`flip`, `countUp`, `busy`, `transition`, `crossfade` ...), `DS.indicator`, `DS.dom.morphHtml`, `DS.ripple` |
-| 🖼️ **Icons** | 82 outline glyphs in `DS.icons` |
+| 🖼️ **Icons** | 109 outline glyphs in `DS.icons` |
 
 Which component fits which need: the table at the top of [docs/components.md](docs/components.md).
 

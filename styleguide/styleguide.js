@@ -227,6 +227,26 @@
         '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Work offline" aria-pressed="false" data-sg="toggle"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('wifi', 20) + '</span><span class="ds-icon-swap__b">' + icon('wifiOff', 20) + '</span></span></button>' +
         '<button class="ds-link-btn" type="button">A button that reads like a link</button></div>') +
       '</div>' +
+      '<div class="ds-grid-2">' +
+      card('Panels, adaptive labels, quiet links', label('Opens a panel: tinted while it is open (aria-expanded)') +
+        '<div class="sg-row"><button class="ds-btn ds-btn--disclosure" type="button" aria-expanded="false" data-sg="expand">' + icon('filter', 16) + 'Filters</button>' +
+        '<button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="true">Details (its sheet is open)</button>' +
+        '<button class="ds-btn ds-btn--quiet" type="button" aria-haspopup="menu" aria-expanded="true">A menu trigger stays plain</button></div>' +
+        label('Adaptive: the label folds away in a content panel of 600px or less') +
+        '<div class="sg-row"><button class="ds-btn ds-btn--adaptive" type="button" data-tip="Export">' + icon('download', 16) + '<span class="ds-btn__label">Export</span></button>' +
+        '<button class="ds-btn ds-btn--adaptive ds-btn--sm" type="button" data-tip="Share">' + icon('link', 16) + '<span class="ds-btn__label">Share</span></button></div>' +
+        label('Quiet links next to the main one') +
+        '<div class="sg-row"><a href="#buttons">Open the record</a><a class="ds-link--quiet" href="#buttons">Show history</a><button class="ds-link-btn ds-link-btn--quiet" type="button">Edit columns</button></div>' +
+        label('Touch targets: .ds-touch on the page sets every target to 48px') +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false" data-sg="touch">Touch targets</button></div>') +
+      card('A choice made once, then locked', '<p class="ds-muted">Vote once: the pressed toggle keeps its on look while aria-disabled, its sibling dims. The thumb fills while pressed (.ds-icon--fillable).</p>' +
+        '<div class="sg-row" role="group" aria-label="Was this helpful?" id="sg-vote">' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Helpful" data-tip="Helpful" data-sg="vote">' + icon('thumbUp', 20, 'ds-icon--fillable') + '</button>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Not helpful" data-tip="Not helpful" data-sg="vote">' + icon('thumbDown', 20, 'ds-icon--fillable') + '</button>' +
+        '<button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="vote-reset">Vote again</button></div>' +
+        label('Locked choices, rendered') +
+        '<div class="sg-row"><button class="ds-btn" type="button" aria-pressed="true" aria-disabled="true" data-tip="Sent on Monday">' + icon('check', 16) + 'Approved</button><button class="ds-btn" type="button" aria-pressed="false" aria-disabled="true" data-tip="Sent on Monday">Rejected</button></div>') +
+      '</div>' +
       card('Press, focus and disabled', '<p class="ds-muted">Point at a button in the first column for its hover, press and hold it for the morph and the ripple, or Tab to it for the ring that snaps in. The second column holds the press (a static .ds-pressed).</p>' +
         '<div class="ds-table-wrap"><table class="ds-table sg-states"><caption class="ds-sr">Button states</caption><thead><tr><th scope="col">Variant</th><th scope="col">Rest</th><th scope="col">Held press</th><th scope="col">Disabled</th><th scope="col">aria-disabled</th></tr></thead><tbody>' +
         BUTTON_VARIANTS.map(function (variant) {
@@ -263,6 +283,14 @@
         // The toggle first: the chip changes width on every tick, and the button the user presses again must not move.
         '<div class="sg-row"><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="status-poll" aria-pressed="false">Poll every 1.5s</button><span id="sg-status-poll">' + pollChip(0) + '</span></div>' +
         '<p class="ds-muted">A polled chip, rendered with DS.dom.morphHtml: the kept chip changes colour over 250ms, an icon that comes in new fades in and springs up, the word changes at once.</p>') +
+      card('Badges and tags', label('Badges: counts on buttons and chips (a toned badge has its word next to it)') +
+        '<div class="sg-row"><button class="ds-btn" type="button" data-sg="badge-add">' + icon('mail', 16) + 'Inbox <span class="ds-badge" id="sg-badge">3</span></button>' +
+        '<button class="ds-btn ds-btn--quiet" type="button" aria-pressed="true" data-sg="toggle">' + icon('filter', 16) + 'Filters <span class="ds-badge">2</span></button>' +
+        '<button class="ds-btn ds-btn--tonal" type="button">Updates <span class="ds-badge ds-badge--neutral">12</span></button>' +
+        '<span class="sg-row"><span>Failed</span><span class="ds-badge ds-badge--error">2</span><span>Warnings</span><span class="ds-badge ds-badge--warning">5</span><span>Passed</span><span class="ds-badge ds-badge--ok">41</span></span></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="badge-add">' + icon('plus', 16) + 'One more</button><button class="ds-btn ds-btn--sm" type="button" data-sg="badge-clear">Mark all read</button></div>' +
+        label('Tags: words, not states or counts') +
+        '<div class="sg-row"><span class="ds-tag">Preview</span><span class="ds-tag">' + icon('sparkles', 16) + 'Beta</span><span class="ds-tag ds-tag--neutral">' + icon('tag', 16) + 'External</span></div>') +
       card('Alerts',
         '<div class="sg-alerts" id="sg-alerts">' +
         '<div class="ds-alert ds-alert--info" role="status">' + icon('info', 20) + '<span class="ds-alert__text">The nightly sync runs at 02:00. Changes made now appear tomorrow.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="alert-dismiss">Dismiss</button></div>' +
@@ -272,7 +300,17 @@
         '</div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="alert-insert">' + icon('plus', 16) + 'Insert an alert</button></div>' +
         '<p class="ds-muted">Both through DS.motion.flip on the stack: a dismissed alert fades out in place while the ones below glide up; a new one fades in at the top while the others glide down (past six, the oldest goes in the same call).</p>' +
-        '<details class="ds-errors ds-collapsible"><summary>' + icon('alertCircle', 16) + '2 rows were skipped' + icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "XPS 13 9999"</li><li>Row 9: duplicate serial number</li></ul></details>'));
+        '<details class="ds-errors ds-collapsible"><summary>' + icon('alertCircle', 16) + '2 rows were skipped' + icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "XPS 13 9999"</li><li>Row 9: duplicate serial number</li></ul></details>') +
+      '<div class="ds-grid-2">' +
+      card('Titles and actions', '<div class="ds-stack">' +
+        '<div class="ds-alert ds-alert--warning">' + icon('alert', 20) + '<div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>The server certificate of the directory expires on 1 May.</p><p>Renew it before then, or sign-ins stop.</p></div>' +
+        '<div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Remind me</button></div></div>' +
+        '<div class="ds-alert">' + icon('info', 20) + '<span class="ds-alert__text"><span class="ds-alert__title">Maintenance tonight</span> The directory is read-only from 22:00 to 23:00.</span></div></div>' +
+        '<p class="ds-muted">The "Square containers" preset turns on --ds-alert-edge: an edge in the icon colour.</p>') +
+      card('Findings in a card', '<div class="ds-alert ds-alert--plain ds-alert--error">' + icon('alertCircle', 20) + '<span class="ds-alert__text"><strong class="ds-alert__title">Disk almost full</strong> 92% used on drive C.</span></div>' +
+        '<div class="ds-alert ds-alert--plain ds-alert--warning">' + icon('alert', 20) + '<span class="ds-alert__text">The warranty ends in 30 days.</span></div>' +
+        '<div class="ds-alert ds-alert--plain ds-alert--success">' + icon('checkCircle', 20) + '<span class="ds-alert__text">The disk is encrypted.</span></div>') +
+      '</div>');
   }
 
   /* The polled status chip: running, then ok, then error, and round again. */
@@ -338,6 +376,12 @@
       '<div class="ds-tile"><p class="ds-tile__label"><span>Average age</span></p><p class="ds-tile__value">3.1 y</p></div>' +
       '</div>' +
       '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="figures">' + icon('sync', 16) + 'Refresh the figures</button></div>' +
+      label('Filter by a figure: tiles that are toggles (aria-pressed)') +
+      '<div class="ds-tiles ds-tiles--3" role="group" aria-label="Filter devices" id="sg-filter-tiles">' +
+      '<button class="ds-tile" type="button" aria-pressed="true" data-sg="filter-tile"><span class="ds-tile__label">' + icon('check', 20) + '<span>Overdue</span></span><span class="ds-tile__value">12</span><span class="ds-tile__note">filtered</span></button>' +
+      '<button class="ds-tile" type="button" aria-pressed="false" data-sg="filter-tile"><span class="ds-tile__label">' + icon('wrench', 20) + '<span>In repair</span></span><span class="ds-tile__value">3</span><span class="ds-tile__note">select to filter</span></button>' +
+      '<button class="ds-tile" type="button" aria-pressed="false" data-sg="filter-tile"><span class="ds-tile__label">' + icon('ban', 20) + '<span>Retired</span></span><span class="ds-tile__value ds-tile__value--empty">No data</span><span class="ds-tile__note">select to filter</span></button>' +
+      '</div>' +
       '<p class="ds-muted">Every figure counts from the value it shows (DS.motion.countUp); the bar of the synced share is set in the same task and lands on the same frame; the note changes at once.</p>' +
       '<div class="ds-grid-2">' +
       '<section class="ds-card"><div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Managed</span></span></div>' +
@@ -353,8 +397,21 @@
       '<button class="ds-card ds-card--interactive" type="button" data-sg="card-open" data-name="PRINTER-0003"><span class="ds-card__row"><span class="ds-card__title">PRINTER-0003</span><span class="ds-status ds-status--warning">' + icon('alert', 16) + '<span>Toner low</span></span></span><span class="ds-muted sg-card-text">Floor 2, by the kitchen. The whole card is one button: hover lays a layer over it, a press turns it squarer and ripples from the pointer.</span></button>' +
       '<div class="ds-card ds-card--interactive"><div class="ds-card__row"><h3 class="ds-card__title"><a class="ds-card__action" href="#cards" data-sg="card-open" data-name="LAPTOP-0017">LAPTOP-0017</a></h3><button class="ds-btn ds-btn--sm" type="button" data-sg="card-restart">Restart</button></div><p class="ds-muted">Issued to Grace Hopper. The title link stretches over the card, so the whole card opens the record; Restart stays a button of its own.</p></div>' +
       '</div>' +
+      label('Pick one of a few cards: the card is a toggle (aria-pressed), the ring stays inside, the focus ring outside') +
+      '<div class="ds-grid-2" role="group" aria-label="Plan" id="sg-plans">' +
+      '<div class="ds-card ds-card--interactive"><h3 class="ds-card__title">' + icon('check', 20) + '<button class="ds-card__action" type="button" aria-pressed="true" data-sg="plan">Standard</button></h3><p class="ds-muted">Daily sync, 30 days of history.</p></div>' +
+      '<div class="ds-card ds-card--interactive ds-card--elevated"><h3 class="ds-card__title"><button class="ds-card__action" type="button" aria-pressed="false" data-sg="plan">Extended</button></h3><p class="ds-muted">Hourly sync, a year of history. An elevated card with a button action.</p><a class="ds-link--quiet" href="#cards">Compare plans</a></div>' +
+      '</div>' +
       '<div class="ds-grid-2">' +
       card('Empty state', '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('box', 24) + '</span><p class="ds-empty__title">No devices in storage</p><p class="ds-empty__text">Devices you take back appear here until they are issued again.</p><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 16) + 'Add device</button></div>') +
+      card('Done state', '<div id="sg-done">' + doneHtml(true) + '</div><div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="done-replay">Send the request</button></div><p class="ds-muted">.ds-empty--done plays its entrance when it is inserted: the disc pops in, a ring widens once, the check draws itself.</p>') +
+      card('Pressable rows, actions on demand, keys and dividers', '<ul class="ds-plain-list sg-press-rows">' +
+        '<li class="sg-press-row ds-pressable ds-pressable--inset" tabindex="0" role="button" data-sg="press-row">LAPTOP-0042 <span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit LAPTOP-0042" data-tip="Edit">' + icon('pencil', 18) + '</button></span></li>' +
+        '<li class="sg-press-row ds-pressable ds-pressable--inset" tabindex="0" role="button" data-sg="press-row">TABLET-0121 <span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit TABLET-0121" data-tip="Edit">' + icon('pencil', 18) + '</button></span></li>' +
+        '<li class="sg-press-row ds-pressable ds-pressable--inset" tabindex="0" role="button" aria-disabled="true" data-tip="Retired devices cannot be opened">PRINTER-0003 (aria-disabled)</li></ul>' +
+        '<div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>' +
+        '<p class="ds-muted">Press <kbd class="ds-kbd">Ctrl</kbd> <kbd class="ds-kbd">K</kbd> to search. The rows are project elements with .ds-pressable; the edit buttons show with the row\'s hover or focus (.ds-hover-actions).</p>' +
+        '<hr class="ds-divider"><div class="sg-row">Grid <span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span> List</div>') +
       '<section class="ds-card ds-card--filled"><h3 class="ds-card__title">Filled card</h3><p class="ds-muted">A quieter block inside a card or form, for example a test result.</p><ul class="ds-plain-list"><li><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Server reachable</span></span></li><li><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Signed in</span></span></li><li><span class="ds-status ds-status--error">' + icon('alert', 16) + '<span>No write access</span></span></li></ul><div class="ds-more"><button class="ds-btn" type="button">Show more</button></div></section>' +
       '</div>' +
       '<div class="ds-grid-2">' +
@@ -365,6 +422,11 @@
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stale-fast">Fast refresh (150ms)</button><button class="ds-btn ds-btn--sm" type="button" data-sg="stale-slow">Slow refresh (1200ms)</button></div>' +
         '<p class="ds-muted">While a refresh runs the list carries .ds-stale and aria-busy="true". It dims only after the loader delay, so the fast refresh never dims; the fresh values show at once.</p>') +
       '</div>');
+  }
+
+  /* The done state: a confirmation whose disc pops in and whose check draws itself. */
+  function doneHtml(still) {
+    return '<div class="ds-empty' + (still ? '' : ' ds-empty--done') + '" role="status"><span class="ds-empty__disc" aria-hidden="true">' + icon('check', 24) + '</span><p class="ds-empty__title">Request sent</p><p class="ds-empty__text">IT answers within a day.</p></div>';
   }
 
   /* Removing the last item: two devices on loan, each with its own button. */
@@ -650,10 +712,42 @@
       card('Filter chips', '<p class="ds-muted">The room of the check opens and the check draws itself; chips that move to another line glide there.</p><div><fieldset class="ds-chips"><legend class="ds-sr">Status</legend>' + chip('Active', true) + chip('In storage') + chip('Archived') + chip('Lent out') + chip('In repair') + '<span class="ds-chips__divider" aria-hidden="true"></span>' + chip('Older than 4 years', false, 'radio') + chip('Newer than 1 year', true, 'radio') + chip('Unavailable', false, 'checkbox', true) + chip('Required', true, 'checkbox', true) + '</fieldset></div>') +
       card('Switch', '<div class="ds-stack">' + switchRow('Nightly sync', 'checked') + switchRow('Email summary', '') +
         '<label class="ds-switch"><input type="checkbox" role="switch" data-sg="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Weekly report (one word)</span><span class="ds-switch__state" aria-hidden="true">Off</span></label>' +
-        switchRow('Locked by policy', 'disabled') + switchRow('Required by policy', 'checked disabled') + '</div>') +
+        switchRow('Locked by policy', 'disabled') + switchRow('Required by policy', 'checked disabled') +
+        switchRow('Blocked with a reason (aria-disabled)', 'aria-disabled="true" data-tip="Needs an admin"') + '</div>') +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      card('Action and input chips', '<p class="ds-muted">Active filters remove themselves (the chips after one glide into its place); suggestions act at once.</p>' +
+        '<div class="ds-chips" role="group" aria-label="Active filters" id="sg-input-chips">' + inputChipsHtml() + '</div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="chips-restore">Restore the filters</button></div>' +
+        '<div class="ds-chips ds-chips--wrap" role="group" aria-label="Suggestions">' +
+        '<button class="ds-chip" type="button" data-sg="suggest"><span class="ds-chip__body">' + icon('user', 18, 'ds-chip__icon') + '<span class="ds-chip__label">Only my devices</span></span></button>' +
+        '<button class="ds-chip" type="button" data-sg="suggest"><span class="ds-chip__body"><span class="ds-chip__label">Show the devices that were not seen this month and are still assigned to someone</span></span></button>' +
+        '<button class="ds-chip" type="button" disabled><span class="ds-chip__body"><span class="ds-chip__label">Unavailable</span></span></button></div>') +
+      card('Locked switches, hints and a switch list', '<div class="ds-stack">' +
+        '<label class="ds-switch ds-switch--locked"><input type="checkbox" role="switch" checked aria-disabled="true" aria-describedby="sg-lock-why"><span class="ds-switch__track" aria-hidden="true">' + icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Disk encryption</span><small class="ds-switch__hint" id="sg-lock-why">Set by the device policy</small></label>' +
+        '<label class="ds-switch ds-switch--locked"><input type="checkbox" role="switch" aria-disabled="true" aria-describedby="sg-lock-why-2"><span class="ds-switch__track" aria-hidden="true">' + icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Remote wipe</span><small class="ds-switch__hint" id="sg-lock-why-2">Set by the directory</small></label>' +
+        '<div class="ds-switch-list">' + switchListRow('sg-sw-mail', 'Email reports', 'Every Monday at 08:00', '<span class="ds-tag ds-tag--neutral">3 recipients</span>', true) +
+        switchListRow('sg-sw-push', 'Push notifications', 'On this device only', '', false) +
+        switchListRow('sg-sw-digest', 'A weekly digest of every device that changed its owner, its place or its warranty', 'Long names wrap', '<span class="ds-badge ds-badge--neutral">12</span>', false) + '</div></div>') +
       '</div>' +
       card('Combobox', '<p class="ds-muted">Type or use the chevron: the list grows out of the field, the chevron turns with it, and arrow keys move the active option.</p>' +
         '<div class="ds-field" style="max-width:420px">' + comboMarkup('f-combo', 'Model') + '</div>'));
+  }
+
+  /* The active filters of the input chip demo. */
+  var FILTERS = ['Building C, second floor', 'Owner: Ada Lovelace', 'Warranty ends this year'];
+
+  function inputChipsHtml() {
+    return FILTERS.map(function (text) {
+      return '<button class="ds-chip ds-chip--input" type="button" data-tip="' + text + '" data-sg="chip-remove"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>' + text + '</span>' + icon('close', 18, 'ds-chip__trailing') + '</span></button>';
+    }).join('');
+  }
+
+  /* A row of the switch list: named by its label, described by its hint. */
+  function switchListRow(id, name, hint, meta, checked) {
+    return '<label class="ds-switch"><input type="checkbox" role="switch"' + (checked ? ' checked' : '') + ' aria-labelledby="' + id + '-name" aria-describedby="' + id + '-hint"><span class="ds-switch__track" aria-hidden="true"></span>' +
+      '<span class="ds-switch__label" id="' + id + '-name">' + name + '</span><small class="ds-switch__hint" id="' + id + '-hint">' + hint + '</small>' + (meta ? '<span class="ds-switch__meta">' + meta + '</span>' : '') +
+      '<span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span></label>';
   }
 
   /* The models of the combobox demos. */
@@ -959,11 +1053,16 @@
     return Object.keys(I).filter(function (name) { return typeof I[name] === 'string' && I[name].charAt(0) === '<'; });
   }
 
+  /* The glyphs whose last element is a closed outline (docs/icons.md): they fill when on. */
+  var FILLABLE = ['thumbUp', 'thumbDown', 'chat', 'shield', 'folder', 'flag', 'bell', 'home', 'moon', 'play'];
+
   function icons() {
-    return section('icons', 'Icons', glyphs().length + ' outline glyphs on a 24px grid, stroke 2, colour from currentColor. DS.icons.icon(DS.icons.name, size).',
-      card('', '<div class="sg-icons">' + glyphs().map(function (name) {
-        return '<div class="sg-icon">' + icon(name, 20) + '<span>' + name + '</span></div>';
-      }).join('') + '</div>'));
+    return section('icons', 'Icons', glyphs().length + ' outline glyphs on a 24px grid, stroke 2, colour from currentColor. DS.icons.icon(DS.icons.name, size). The marked ones fill when on (.ds-icon--fillable in an aria-pressed control).',
+      card('', '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false" data-sg="fill-icons">' + icon('bell', 16, 'ds-icon--fillable') + 'Fill the fillable glyphs</button></div>' +
+        '<div class="sg-icons" id="sg-icons">' + glyphs().map(function (name) {
+          var fillable = FILLABLE.indexOf(name) !== -1;
+          return '<div class="sg-icon' + (fillable ? ' sg-icon--fillable' : '') + '">' + icon(name, 20, fillable ? 'ds-icon--fillable' : '') + '<span>' + name + (fillable ? ' (fills)' : '') + '</span></div>';
+        }).join('') + '</div>'));
   }
 
   /* ── Motion Lab (motion.html) ────────────────────────────────────── */
@@ -1684,6 +1783,40 @@
         toast('Opened ' + (el.getAttribute('data-name') || 'the overdue devices') + '.', 'info');
       }
       if (action === 'card-restart') toast('Restarting LAPTOP-0017.', 'info');
+      if (action === 'expand') el.setAttribute('aria-expanded', String(el.getAttribute('aria-expanded') !== 'true'));
+      if (action === 'touch') {
+        el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
+        document.documentElement.classList.toggle('ds-touch', el.getAttribute('aria-pressed') === 'true');
+      }
+      if (action === 'vote' && el.getAttribute('aria-disabled') !== 'true') {
+        $$('[data-sg="vote"]', $('#sg-vote')).forEach(function (button) {
+          button.setAttribute('aria-pressed', String(button === el));
+          button.setAttribute('aria-disabled', 'true');
+        });
+      }
+      if (action === 'vote-reset') {
+        $$('[data-sg="vote"]', $('#sg-vote')).forEach(function (button) {
+          button.setAttribute('aria-pressed', 'false');
+          button.removeAttribute('aria-disabled');
+        });
+      }
+      if (action === 'badge-add' || action === 'badge-clear') countBadge(action === 'badge-add');
+      if (action === 'filter-tile') {
+        $$('[data-sg="filter-tile"]', $('#sg-filter-tiles')).forEach(function (tile) { tile.setAttribute('aria-pressed', String(tile === el && el.getAttribute('aria-pressed') !== 'true')); });
+      }
+      if (action === 'plan') {
+        $$('[data-sg="plan"]', $('#sg-plans')).forEach(function (plan) { plan.setAttribute('aria-pressed', String(plan === el)); });
+      }
+      if (action === 'done-replay') DS.dom.morphHtml($('#sg-done'), '');
+      if (action === 'done-replay') DS.dom.morphHtml($('#sg-done'), doneHtml());
+      if (action === 'press-row') toast('Opened ' + el.firstChild.textContent.trim() + '.', 'info');
+      if (action === 'chip-remove') removeChip(el);
+      if (action === 'chips-restore') DS.dom.morphHtml($('#sg-input-chips'), inputChipsHtml());
+      if (action === 'suggest') toast('Applied: ' + el.textContent.trim() + '.', 'info');
+      if (action === 'fill-icons') {
+        el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
+        $$('.sg-icon--fillable svg', $('#sg-icons')).forEach(function (svg) { svg.classList.toggle('ds-icon--filled', el.getAttribute('aria-pressed') === 'true'); });
+      }
       if (action === 'table-sort' || action === 'row-toggle' || action === 'row-open' || action === 'table-live') tableAction(action, el);
       if (action === 'progress-run') progressRun();
       if (action === 'skeleton') skeletonDemo(el);
@@ -1757,6 +1890,31 @@
     });
   }
 
+  /* The inbox badge: it pops in when a count appears and out when it goes; the number changes at once. */
+  var badgeCount = 3;
+
+  function countBadge(add) {
+    var badge = $('#sg-badge');
+    var shown = !badge.hidden;
+    badgeCount = add ? badgeCount + 1 : 0;
+    if (badgeCount) badge.textContent = String(badgeCount);
+    if (badgeCount && !shown) {
+      badge.hidden = false;
+      M.enter(badge, 'pop');
+    } else if (!badgeCount && shown) {
+      M.leave(badge, 'pop', { then: 'hide' });
+    }
+  }
+
+  /* An input chip removes its filter: the chips after it glide into its place, focus goes to a neighbour. */
+  function removeChip(chip) {
+    var row = chip.parentNode;
+    var next = chip.nextElementSibling || chip.previousElementSibling;
+    if (next) next.focus();
+    else $('[data-sg="chips-restore"]').focus();
+    M.flip(row, function () { chip.remove(); });
+  }
+
   /* The header checkbox of the table: checked, mixed or empty by its shown rows. */
   function syncSelectAll() {
     var rows = tableShown();
@@ -1779,7 +1937,7 @@
   /* ── Themes ───────────────────────────────────────────────────────── */
 
   var PRESETS = {
-    square: '.ds-theme {\n  --ds-radius-xs: 0; --ds-radius-sm: 0; --ds-radius-md: 0; --ds-radius-lg: 0; --ds-radius-xl: 0; --ds-radius-2xl: 0;\n  --ds-radius-chip: 9999px;\n  --ds-elev-hover: none; --ds-elev-overlay: none;\n  --ds-dialog-border: 1px solid var(--ds-line);\n  --ds-backdrop: #ffffff; --ds-surface-low: #f6f6f6; --ds-surface-high: #f0f0f0;\n  --ds-text: #000000; --ds-primary: #202124; --ds-accent: #e8eaed; --ds-on-accent: #000000;\n  --ds-link-underline: rgba(0, 0, 0, .35);\n}',
+    square: '.ds-theme {\n  --ds-radius-xs: 0; --ds-radius-sm: 0; --ds-radius-md: 0; --ds-radius-lg: 0; --ds-radius-xl: 0; --ds-radius-2xl: 0;\n  --ds-radius-chip: 9999px;\n  --ds-elev-hover: none; --ds-elev-overlay: none;\n  --ds-dialog-border: 1px solid var(--ds-line);\n  --ds-backdrop: #ffffff; --ds-surface-low: #f6f6f6; --ds-surface-high: #f0f0f0;\n  --ds-text: #000000; --ds-primary: #202124; --ds-accent: #e8eaed; --ds-on-accent: #000000;\n  --ds-link-underline: rgba(0, 0, 0, .35);\n  --ds-alert-edge: 4px;\n}',
     dim: '.ds-theme {\n  --ds-disabled-opacity: var(--ds-state-disabled); --ds-disabled-fill: initial; --ds-disabled-ink: initial;\n  --ds-font-body: var(--ds-weight-regular) 13px/18px var(--ds-font);\n  --ds-font-dense: var(--ds-weight-regular) 13px/18px var(--ds-font);\n  --ds-font-label: var(--ds-weight-label) 13px/18px var(--ds-font);\n  --ds-btn-height: 32px;\n}',
   };
 

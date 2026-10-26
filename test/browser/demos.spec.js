@@ -383,7 +383,7 @@ for (const [kind, dims] of [['fast', false], ['slow', true]]) {
 test('card-open and tile-open: clickable cards and the tile say what they opened', async ({ page }) => {
   await press(page.locator('button.ds-card--interactive'));
   await expect(page.locator('#sg-toasts > .ds-toast').filter({ hasText: 'Opened PRINTER-0003.' })).toHaveCount(1);
-  await press(page.locator('.ds-card__action'));
+  await press(page.locator('a.ds-card__action'));
   await expect(page.locator('#sg-toasts > .ds-toast').filter({ hasText: 'Opened LAPTOP-0017.' })).toHaveCount(1);
   expect(new URL(page.url()).hash).toBe('');
 });

@@ -17,14 +17,24 @@ component live.
 | A whole card opens something (a device, a report) | `.ds-card--interactive` on `<a>` or `<button>`, or on a `<div>` with a `.ds-card__action` link ([Card](#card)) |
 | Any action | [Button](#button) `.ds-btn` with one variant; an action inside text or a table cell: `.ds-link-btn` |
 | A view option that stays on or off (filter, compact view) | `.ds-btn--quiet` with `aria-pressed` ([Button](#button)) |
+| A choice made once, then locked (a vote, a sent answer) | the pressed toggle with `aria-disabled="true"`: it keeps its on look ([Button](#button)) |
+| A button whose label folds away on phones | `.ds-btn--adaptive` with `.ds-btn__label` and a `data-tip` ([Button](#button)) |
+| A button that opens a panel, a dialog or a side sheet | `.ds-btn--disclosure` or `aria-haspopup="dialog"` with `aria-expanded`: tinted while open ([Button](#button)) |
+| A secondary link next to the main one | `.ds-link--quiet`, `.ds-link-btn--quiet` ([Button](#button)) |
 | A save that takes a moment, with a success moment after it | `.ds-btn__faces` and `DS.motion.busy()` ([Button](#button)) |
 | An icon that turns into another (copy to check, play to pause) | `.ds-icon-swap`, `DS.motion.crossfade(el, icon, { kind: 'icon' })` ([Button](#button)) |
 | Key figures at the top of a page | [Tiles](#tiles) `.ds-tiles`, `.ds-tile` |
+| Filter by a figure | a `button.ds-tile` with `aria-pressed` ([Tiles](#tiles)) |
+| Pick one of a few cards | `.ds-card--interactive` with `aria-pressed` (or `aria-checked`) ([Interactive card](#interactive-card)) |
 | Label and value pairs | `.ds-kv-list` (rows) or `.ds-facts` (a grid, best with four) ([Lists](#lists)) |
 | A run of short counts ("3 new · 1 updated") | `.ds-parts` ([Lists](#lists)) |
 | Nothing to show yet | [Empty state](#empty-state) `.ds-empty` |
+| A confirmation after a request or a finished job | `.ds-empty--done` ([Empty state](#empty-state)) |
 | The state of one item (synced, failed, running) | [Status chip](#status-chip) `.ds-status` |
+| A count on a button or chip | [Badge](#badge) `.ds-badge` (tones `--neutral`, `--ok`, `--warning`, `--error`) |
+| A short label such as Preview | `.ds-tag` ([Status chip](#tags)) |
 | A message about a page or section that stays | [Alert](#alert) `.ds-alert`; a list of errors to open: `.ds-errors` |
+| Findings in a card | `.ds-alert--plain` alerts in the card, one per finding ([Alert](#alert)) |
 | Short feedback after an action | [Snackbar](#snackbar) `.ds-toast` in `.ds-toasts` |
 | Records in rows and columns | [Table](#table) `.ds-table` in `.ds-table-wrap` |
 | Rows that open their record | `.ds-table--interactive` with a `.ds-table__row-link` per row ([Table](#table)) |
@@ -36,6 +46,10 @@ component live.
 | A yes/no value saved with the form | `.ds-check` ([Form](#form)) |
 | A checkbox without a label row (a table column, a list item) | `.ds-checkbox` ([Form](#form)); in a `.ds-table` any bare checkbox is drawn the same |
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
+| A value set by another system | `.ds-switch--locked` with `aria-disabled` and the reason ([Switch](#locked)) |
+| Many settings, each a switch | `.ds-switch-list` ([Switch](#switch-list)) |
+| Active filters that remove themselves | input chips: `.ds-chip--input` buttons in a `role="group"` row ([Chips](#action-and-input-chips)) |
+| Suggestions that act at once | action chips: `button.ds-chip`; long ones in `.ds-chips--wrap` ([Chips](#action-and-input-chips)) |
 | Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
 | Actions for one item or a toolbar overflow | [Menu](#menu) `.ds-menu` |
 | Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog` |
@@ -49,6 +63,12 @@ component live.
 | Content that opens and closes | `<details class="ds-collapsible">` ([Motion classes](#motion-classes)) |
 | Something new appearing, a view's first render | [Motion classes](#motion-classes) and `DS.motion` ([motion.md](motion.md)) |
 | Press feedback from the pointer on every action | [Ripple](#ripple): `DS.ripple.attach(document)` once (`.ds-ripples`) |
+| A project element that acts on a press (a row, a tile of its own) | `.ds-pressable` ([Utilities](#a-pressable-element-of-your-own)) |
+| Row or card actions that show on hover or focus | `.ds-hover-actions` ([Utilities](#actions-on-demand)) |
+| A keyboard shortcut in text | `.ds-kbd` ([Utilities](#keys)) |
+| A hairline between blocks, items or days | `.ds-divider` ([Utilities](#dividers)) |
+| Bigger targets on a touch screen or kiosk | `.ds-touch` ([theming.md](theming.md#touch-screens)) |
+| An icon toggle whose glyph fills when on (a rating) | `.ds-icon--fillable` in an `aria-pressed` button ([icons.md](icons.md#glyphs)) |
 | An icon | `DS.icons` ([icons.md](icons.md)); brand logos stay in the project |
 
 Nothing fits? If any dashboard could use it, add it to Dashboard-Style ([AGENTS.md](../AGENTS.md#making-a-change))
@@ -56,7 +76,7 @@ and update the copy; otherwise build it in the project with the project's own cl
 ([rules.md](rules.md#code)).
 
 Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card](#card) · [Tiles](#tiles) ·
-[Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
+[Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) · [Table](#table) ·
 [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) ·
 [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Loading](#loading) ·
 [Progress](#progress) · [File upload](#file-upload) · [Reorder rows](#reorder-rows) · [Ripple](#ripple) ·
@@ -327,6 +347,21 @@ DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.
   <span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">[icon copy 20]</span><span class="ds-icon-swap__b">[icon check 20]</span></span>
 </button>
 <button class="ds-link-btn" type="button">Printer on floor 2</button>                <!-- reads like a link -->
+<button class="ds-btn ds-btn--disclosure" type="button" aria-expanded="false" aria-controls="filters">[icon filter 16] Filters</button>  <!-- opens a panel -->
+<button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="false">Details</button>  <!-- opens a sheet or dialog -->
+<button class="ds-btn ds-btn--adaptive" type="button" data-tip="Export">[icon download 16]<span class="ds-btn__label">Export</span></button>  <!-- folds on phones -->
+<a class="ds-link--quiet" href="/devices/42/history">Show history</a>                 <!-- a quiet link -->
+<button class="ds-link-btn ds-link-btn--quiet" type="button">Edit columns</button>
+```
+
+A choice made once, then locked (a vote, an answer that was sent): the pressed toggle keeps its on look while
+`aria-disabled`, its siblings dim:
+
+```html
+<div role="group" aria-label="Was this helpful?">
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="true" aria-disabled="true" aria-label="Helpful">[icon thumbUp 20 ds-icon--fillable]</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-disabled="true" aria-label="Not helpful">[icon thumbDown 20 ds-icon--fillable]</button>
+</div>
 ```
 
 ```js
@@ -336,7 +371,9 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 
 - Every action is a pill. One filled `--primary` per area; there are no red buttons (name the consequence:
   "Delete 3 devices").
-- A leading icon pulls the start padding to 12px.
+- A leading icon pulls the start padding to 12px, also the icon of the first face of `.ds-btn__faces`.
+- `.ds-btn--sm` reads `--ds-btn-sm-height` (32px) and, with `--icon`, `--ds-btn-sm-icon-size` (32px): set those to
+  change every small button, never `--ds-btn-height` on the modifier.
 - A toggle that is on carries `aria-pressed="true"` and shows the tint (forced colors: the selection colours).
   Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
@@ -346,7 +383,24 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   `DS.motion.guard()` was called once ([motion.md](motion.md#dsmotion-jsmotionjs)), a click, middle click, Enter,
   Space or form submission on a busy or done `.ds-btn`, or on any `aria-disabled="true"` action inside `.ds-theme`,
   never reaches your listeners: no page guard needed. A control that must explain itself on click gets
-  `data-ds-guard="off"`.
+  `data-ds-guard="off"`. Forced colours: `GrayText`.
+- A choice made once, then locked: `aria-pressed="true"` with `aria-disabled="true"` keeps the on look at full
+  strength (no layer, the default cursor; forced colours keep `Highlight`); the unpressed siblings dim as usual.
+- A button that opens a panel (`.ds-btn--disclosure` with `aria-expanded`, or any `.ds-btn` with
+  `aria-haspopup="dialog"`) takes the pressed tint while `aria-expanded="true"` (forced colours: `Highlight` /
+  `HighlightText`, focused with a `CanvasText` ring). Keep `aria-expanded` in step yourself, or let `DS.overlay`
+  do it for dialog and sheet openers. Menu triggers (`aria-haspopup="menu"`) do not tint.
+- `.ds-btn--adaptive`: a button whose label folds away on phones. Wrap the label in `.ds-btn__label` after the icon;
+  in a content panel of 600px or less (sheets and dialogs: a window of 600px or less) the label is visually hidden
+  and the button turns into a round quiet icon button (`--ds-btn-icon-size`, with `--sm`
+  `--ds-btn-sm-icon-size`; the icon at 20px). Its accessible name stays the label; give it a `data-tip` with the
+  same words, which shows only while the label is folded (a tip equal to the visible text shows only while it is cut
+  off, [Tooltip](#tooltip)).
+- Quiet links: `.ds-link--quiet` on a link and `.ds-link-btn--quiet` with `.ds-link-btn` take the quieter ink
+  (`--ds-text-2`) and a hairline underline (`--ds-line-2`, the link underline geometry), the link colour and
+  `--ds-link-underline-hover` on hover; still underlined. For secondary links next to the main one.
+- A text button that underlines on hover (`--ds-btn-hover-decoration: underline`) draws it with the link geometry
+  (`--ds-link-underline-thickness`, `--ds-link-underline-offset`).
 - Press: the state layer comes in `--ds-dur-micro` and the shape turns squarer (`--ds-radius-action-pressed`, 12px;
   hook `--ds-btn-radius-pressed`), then springs back on release (`--ds-ease-spatial`, `--ds-dur-medium`); with
   `DS.ripple.attach(document)` a ripple grows from the pointer ([Ripple](#ripple)) and `.ds-pressed` keeps a quick
@@ -436,7 +490,38 @@ A whole card that opens something (1.4):
   keeps its focus layer.
 - Nothing moves on hover, no lift and no scale. A theme may add a shadow on hover with `--ds-card-hover-shadow`
   (default none; for example `var(--ds-elev-hover)`), in over `--ds-dur-medium`, out over `--ds-dur-base`.
-- In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring.
+- In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring; an
+  `aria-disabled` card turns `GrayText`.
+
+Pick one of a few cards (a plan, a template): the card is a toggle. Put `aria-pressed` (or `aria-checked` in a
+`role="radiogroup"`, `aria-selected` in a listbox) on a `<button>` card, or on the `.ds-card__action` of the `<div>`
+form, which may be a `<button>` too (it loses its own look):
+
+```html
+<div class="ds-grid-2" role="group" aria-label="Plan">
+  <button class="ds-card ds-card--interactive" type="button" aria-pressed="true">
+    <span class="ds-card__title">[icon check 20]Standard</span>
+    <span class="ds-muted">Daily sync, 30 days of history</span>
+  </button>
+  <div class="ds-card ds-card--interactive">
+    <h2 class="ds-card__title"><button class="ds-card__action" type="button" aria-pressed="false">Extended</button></h2>
+    <p class="ds-muted">Hourly sync, a year of history</p>
+    <a class="ds-link--quiet" href="/plans">Compare plans</a>
+  </div>
+</div>
+```
+
+- Selected, the card takes `--ds-card-selected-bg` (`--ds-accent`) with `--ds-on-accent` ink and a static inset ring
+  (a border of `--ds-focus-width` in `--ds-selected-ring`, `--ds-primary`, on the card's own `::after`), so the
+  focus ring stays free and both read at once (a border survives forced colours; a `box-shadow` ring does not). The
+  colours change on `--ds-dur-fast`, the ring shows at once. Add a check or the label weight: never the tint alone.
+  Forced colours: `Highlight` / `HighlightText`.
+- `.ds-card--elevated`: a card that floats a little (`--ds-card-shadow`, `--ds-elev-1`) instead of the hairline; in
+  forced colours its edge comes back.
+- `.ds-card__title` wraps long words and lines up a leading icon (`[icon ... 20]` first) with its words.
+- `.ds-card__links` hangs only text buttons and `.ds-card__link` into the card's margin; an outlined button there keeps
+  its place.
+- Print: a short card is never split across pages.
 
 **Motion:** the press morph of [Controls](motion.md#controls) (`.ds-card--interactive`) and the "Alert, tile, card" row of [Feedback](motion.md#feedback).
 
@@ -449,16 +534,23 @@ A whole card that opens something (1.4):
     <p class="ds-tile__value">12</p>
     <p class="ds-tile__note">3 more than last week</p>
   </div>
-  ... (four per row, two below 1100px)
+  ... (as many per row as fit at 176px, at most four)
 </div>
 ```
+
+The row fills its container, whatever it is (a page, a dialog, a side sheet, beside the drawer): as many tiles per row
+as fit at `--ds-tile-min-width` (176px), never more than `--ds-tiles-columns` (4), each row filled. `.ds-tiles--3`
+caps the row at three. A single figure that opens a list is one `a.ds-tile`, also outside `.ds-tiles`.
 
 `DS.motion.countUp()` never takes the target from the markup. It counts from the figure it last wrote (or one a
 re-render wrote since, read back through `format`), and on its first call from 0. So keep the raw value in your own
 state (the styleguide demo keeps it in a data attribute of its own), and pass `{ from: <the value in the markup> }`
 on the first update of a tile rendered with its figure if it should count on rather than from 0.
 
-The value never takes a colour and never wraps (it shrinks on narrow tiles). Every new value goes through
+The value never takes a colour and never wraps (it shrinks on narrow tiles; a value still too wide ends in an
+ellipsis, the last resort: shorten figures, put the full value in `data-tip`). A missing value takes
+`.ds-tile__value--empty` (`<p class="ds-tile__value ds-tile__value--empty">No data</p>`): `--ds-text-2` in the display
+font. Every new value goes through
 `DS.motion.countUp(el, next)`: it counts from the figure it shows (the last value it wrote, or one a re-render wrote since that reads back
 through `format`; from 0 the first time) on `--ds-ease-value` over
 `--ds-dur-glide`, so a refresh counts on from the old value, a new value mid-count retargets from where the figure
@@ -475,7 +567,28 @@ note.textContent = `${failed} failed`;                             // at once
 A tile that opens something is a `<button class="ds-tile">` or `<a class="ds-tile">` with `<span>`s instead of the
 `<p>`s: a 6% state layer, the focus ring, the ripple, and the press morph (16 to 12px, `--ds-tile-radius-pressed`,
 springing back on release); no lift, no scale. A disabled or `aria-disabled="true"` tile shows no hover or press
-layer and does not morph; an `aria-disabled` tile keeps its focus layer.
+layer and does not morph; an `aria-disabled` tile keeps its focus layer (forced colours: `GrayText`).
+
+Filter by a figure: a clickable tile that is a toggle (`aria-pressed`, or `aria-checked` / `aria-selected` in a group
+of that role):
+
+```html
+<div class="ds-tiles" role="group" aria-label="Filter devices">
+  <button class="ds-tile" type="button" aria-pressed="true">
+    <span class="ds-tile__label">[icon check 16]<span>Overdue</span></span>
+    <span class="ds-tile__value">12</span>
+  </button>
+  <button class="ds-tile" type="button" aria-pressed="false">
+    <span class="ds-tile__label"><span>In repair</span></span>
+    <span class="ds-tile__value">3</span>
+  </button>
+</div>
+```
+
+Selected, the tile takes `--ds-tile-selected-bg` (`--ds-accent`) with `--ds-on-accent` ink and a static inset ring
+(`--ds-selected-ring`, `--ds-primary`, at `--ds-focus-width`), so the focus ring stays free and both read at once.
+Colours on `--ds-dur-fast`, the ring at once; add a check or the label weight, never the tint alone. Forced colours:
+`Highlight` / `HighlightText`. A short tile is never split across printed pages.
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
 
@@ -525,6 +638,23 @@ At most one sentence and one action. It has no motion of its own; how it comes d
 | The filter was cleared | `DS.motion.leave(empty)` while the rows enter through `flip` |
 | The user deleted the last item | the disc pops in: `DS.motion.enter(disc, 'pop')` |
 
+A confirmation (a request sent, a job done) is the done state, with a drawn check in the disc:
+
+```html
+<div class="ds-empty ds-empty--done" role="status">
+  <span class="ds-empty__disc" aria-hidden="true">[icon check 24]</span>
+  <p class="ds-empty__title">Request sent</p>
+  <p class="ds-empty__text">We will answer within a day.</p>
+  <button class="ds-btn ds-btn--tonal" type="button">Send another</button>
+</div>
+```
+
+`.ds-empty--done` brings its own entrance: the disc fades in and pops up on the spring (`ds-fade-in`, `ds-pop-in`,
+`--ds-dur-slow`) after `--ds-dur-base`, a ring widens and fades once behind it (`ds-ripple`) after `--ds-dur-slow`, and
+the `pathLength="1"` check (`DS.icons.check`) draws itself (`ds-draw`, `--ds-dur-glide`, `--ds-ease-out`). It plays
+when the element is inserted or shown (`hidden` removed), never again while a re-render (`DS.dom.morphHtml`) keeps
+the node. Forced colours: the disc keeps an outline.
+
 **Motion:** [Data motion](motion.md#data-motion) in motion.md.
 
 ## Status chip
@@ -548,7 +678,48 @@ also plays on a chip's first render; elsewhere the icon swaps at once). A row th
 keeps its icon as it is: where `moveBefore` is missing, the moved node carries `data-ds-moving` for one style flush,
 so the entrance never plays again. The label text changes at once. A page that swaps the icon itself can cross-fade it with `DS.motion.crossfade(chip, icon, { kind: 'icon' })`.
 
+### Tags
+
+A tag is a label of words ("Preview", "Beta", "External"), not a state and not a count; it is not interactive:
+
+```html
+<span class="ds-tag">Preview</span>
+<span class="ds-tag ds-tag--neutral">[icon tag 16]External</span>
+```
+
+The caption type on the tint (hooks `--ds-tag-bg`, `--ds-tag-color`, from `--ds-accent` and `--ds-on-accent`;
+`--neutral`: `--ds-surface-high` and `--ds-text`), an optional leading 16px icon (`--ds-on-accent-icon`), the pill
+radius at half its height (`--ds-tag-height`, 24px). Forced colours draw a `CanvasText` outline. Tag = words, badge
+= counts ([Badge](#badge)), status chip = a state with an icon.
+
 **Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.
+
+## Badge
+
+A count on a button, chip, tab or drawer item:
+
+```html
+<button class="ds-btn" type="button">[icon mail 16]Inbox <span class="ds-badge">3</span></button>
+<label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="state" value="failed"><span class="ds-chip__body">[icon check 18 ds-chip__check]<span>Failed</span> <span class="ds-badge ds-badge--error">2</span></span></label>
+<span class="ds-badge ds-badge--neutral">12</span>
+```
+
+- A pill of at least `--ds-badge-size` (20px) in the caption type with tabular figures, on the tint
+  (`--ds-badge-bg`, `--ds-badge-color`: `--ds-accent`, `--ds-on-accent`; radius `--ds-badge-radius`, never above half
+  the size).
+  Tones `.ds-badge--neutral`, `.ds-badge--ok`, `.ds-badge--warning`, `.ds-badge--error` take their container pair; a toned badge needs its word in the
+  row ("Failed", "2 errors"): colour is never the only signal. An empty badge takes no room.
+- On a tinted host (a pressed toggle, `.ds-btn--tonal`, an open disclosure button, a checked chip, an input chip, a
+  selected table row) the default badge turns to `--ds-primary` / `--ds-on-primary` and the neutral one to
+  `--ds-surface` / `--ds-text-2`, so it never melts into the tint. It dims with a disabled host. Forced colours:
+  `Canvas` and `CanvasText` with a `CanvasText` outline.
+- Motion: colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
+  goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`); the number itself changes at once, and nothing
+  plays on load ([motion.md](motion.md#a-count-badge)).
+- Give the host an accessible name that includes the count where it matters (`aria-label="Inbox, 3 new"`), or keep the
+  number in the text as above.
+
+**Motion:** the recipe [A count badge](motion.md#a-count-badge) in motion.md.
 
 ## Alert
 
@@ -567,6 +738,33 @@ so the entrance never plays again. The label text changes at once. A page that s
 ```
 
 The plain `.ds-alert` is the neutral (information) alert: quiet surface, primary icon, no modifier.
+
+A title, more paragraphs and actions; findings in a card (`.ds-alert--plain`):
+
+```html
+<div class="ds-alert ds-alert--warning">[icon alert 20]
+  <div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div>
+  <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Remind me</button></div>
+</div>
+
+<section class="ds-card">
+  <h2 class="ds-card__title">Findings</h2>
+  <div class="ds-alert ds-alert--plain ds-alert--error">[icon alertCircle 20]<span class="ds-alert__text"><strong class="ds-alert__title">Disk almost full</strong> 92% used on drive C.</span></div>
+  <div class="ds-alert ds-alert--plain ds-alert--warning">[icon alert 20]<span class="ds-alert__text">Warranty ends in 30 days.</span></div>
+</section>
+```
+
+- `.ds-alert__title` (the label font, the alert's ink) opens `.ds-alert__text` in every alert; paragraphs in the text
+  lose their margins and stand `--ds-space-2` apart.
+- `.ds-alert__actions` after the text holds one or more buttons side by side; the alert then wraps, the text takes at
+  least `--ds-alert-text-basis` (256px) and the actions drop under it on a narrow row.
+- `.ds-alert--plain`: a finding in a card, on the card's surface: no fill, no edge, no inline padding, no radius, the
+  kind's icon; hairlines between consecutive plain alerts. Static findings carry no live role.
+- Hooks (13, [theming.md](theming.md#component-hooks)): `--ds-alert-bg`, `--ds-alert-color`, `--ds-alert-icon` (also the
+  edge colour), `--ds-alert-edge` (a leading edge's width, default none: `4px` gives the edge look), and per kind
+  `--ds-alert-success-bg`, `--ds-alert-success-color`, `--ds-alert-success-icon`, `--ds-alert-warning-bg`,
+  `--ds-alert-warning-color`, `--ds-alert-warning-icon`, `--ds-alert-error-bg`, `--ds-alert-error-color` (also the
+  ink of an error alert's buttons), `--ds-alert-error-icon`. Forced colours: a transparent outline becomes the edge.
 Alerts have no entrance of their own: one re-rendered with fresh data is patched in place and never fades in again.
 An alert that comes or goes, by a user action or live data, does it through `DS.motion.flip` on its stack (a flex or
 grid column with a gap), with no export of its own and no height animated
@@ -852,7 +1050,9 @@ The native input stays in the form and the tab order; a selected chip shows the 
   from its short arm. Deselecting reverses it (the check leaves first). Radio chips trade the selection at once, so a
   pair keeps its width. A chip rendered selected does not animate.
 - When a toggle moves chips to another line, they glide there (FLIP) on pages that call `DS.ripple.attach(root)`;
-  without it, or when a script sets `checked`, the chips jump to the new line. During the glide the row carries
+  without it, or when a script sets `checked`, the chips jump to the new line. A script that toggles a chip and
+  wants the glide dispatches the event in the same task: `input.checked = next; input.dispatchEvent(new
+  Event('change', { bubbles: true }))`. During the glide the row carries
   `data-ds-glide` and every `.ds-chip` an opaque backing in the colour behind the row (`--ds-chips-backdrop`, written
   by the script; `--ds-surface` without one), so a chip that crosses another never shows it through its body.
 - Press: the state layer in `--ds-dur-micro` and the ripple. Chips are not pills, so they do not morph. Keyboard
@@ -862,9 +1062,44 @@ The native input stays in the form and the tab order; a selected chip shows the 
 - Disabled chips (`disabled` on the input or its `<fieldset>`) show no hover, press or ripple and the `not-allowed` cursor, and take
   the button's disabled model: the outline (selected: the container) in `--ds-disabled-fill`, label and check in
   `--ds-disabled-ink`, fading on `--ds-dur-fast`. A theme that dims instead (`--ds-disabled-opacity`) keeps the
-  chip's own colours. Forced colours: GrayText.
+  chip's own colours. Forced colours: GrayText. `aria-disabled="true"` on the input looks the same and is blocked
+  the same (no page guard needed); it keeps its focus layer, so a tooltip can say why.
 - Hooks: `--ds-chip-height` (32px), `--ds-chip-check-size` (18px), `--ds-chip-disabled-border`,
-  `--ds-chip-disabled-bg` (the container of a disabled selected chip).
+  `--ds-chip-disabled-bg` (the container of a disabled selected chip), `--ds-chip-input-bg`, `--ds-chip-input-color`,
+  `--ds-chip-input-border` (input chips), `--ds-chip-max-width` (240px, button chips).
+
+### Action and input chips
+
+Chips that act at once are buttons in a `role="group"` row: an active filter that removes itself (`.ds-chip--input`),
+a suggestion (an action chip):
+
+```html
+<div class="ds-chips" role="group" aria-label="Active filters">
+  <button class="ds-chip ds-chip--input" type="button" data-tip="Building C, second floor">
+    <span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>Building C, second floor</span>[icon close 18 ds-chip__trailing]</span></button>
+  <button class="ds-chip" type="button"><span class="ds-chip__body">[icon user 18 ds-chip__icon]<span class="ds-chip__label">Only my devices</span></span></button>
+  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Clear filters</button>
+</div>
+
+<div class="ds-chips ds-chips--wrap" role="group" aria-label="Suggestions">
+  <button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Show the devices that were not seen this month</span></span></button>
+</div>
+```
+
+- The button's own look is reset; the body carries every visual. There is no check slot: the padding is 16px, 8px next
+  to a leading `.ds-chip__icon` or a trailing `.ds-chip__trailing` (both `--ds-chip-check-size`). The label ends in
+  an ellipsis once the body reaches `--ds-chip-max-width` (240px): put the full text in `data-tip`.
+- `.ds-chip--input` takes the tint (`--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border`, from
+  `--ds-accent` and `--ds-on-accent`) and the whole chip removes its value; name the action for screen readers
+  ("Remove filter"). Forced colours keep a real edge.
+- `.ds-chips--wrap` on the row lets long labels wrap inside the chip; a one-line chip keeps the 32px height and the
+  corners stay soft (`min(--ds-radius-chip, half the height)`).
+- States as for filter chips: hover, the focus ring (on the chip, snapping), the press in `--ds-dur-micro` with the
+  ripple, the disabled model; no morph (chips are not pills).
+- A chip that stays on or off is a filter chip (a checkbox), never a button chip with `aria-pressed`.
+- Removing a chip: `DS.motion.flip(row, () => chip.remove())`; the chips after it glide into its place and focus moves
+  to the neighbour. "Clear filters" moves focus to the search field. A row whose chips all went (`.ds-chips:empty`)
+  takes no room.
 
 **Motion:** the chip rows of [Controls](motion.md#controls) in motion.md.
 
@@ -890,6 +1125,72 @@ Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-swi
 or grow, the `not-allowed` cursor and the quieter label. An `aria-disabled="true"` switch input is blocked by
 `DS.motion.guard()` (a click on the switch or its label never flips it; no page guard needed). `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
 title next to the switch already names the setting.
+
+The input covers the track, so it is the hit target: put a `data-tip` on the input, not on the label or the track.
+The switch row is at least `--ds-switch-height` (40px) tall. In forced colours a focused checked switch rings in
+`CanvasText`.
+
+### Blocked with a reason
+
+`aria-disabled="true"` on the input looks like `disabled` (no hover, halo or grow, the `not-allowed` cursor, the
+quieter label; forced colours `GrayText`) and acts like it (the click, Space and a label click are blocked; no page
+guard needed), but the switch stays focusable with its ring and focus halo, so a tooltip can say why:
+
+```html
+<label class="ds-switch">
+  <input type="checkbox" role="switch" name="backup" aria-disabled="true" data-tip="Needs an admin">
+  <span class="ds-switch__track" aria-hidden="true"></span>
+  <span class="ds-switch__label">Cloud backup</span>
+</label>
+```
+
+### Locked
+
+A value another system sets (a device policy, a directory): `.ds-switch--locked` with `aria-disabled="true"`, the lock
+glyph as the track's last child and the reason in words:
+
+```html
+<label class="ds-switch ds-switch--locked">
+  <input type="checkbox" role="switch" checked aria-disabled="true" aria-describedby="sync-why">
+  <span class="ds-switch__track" aria-hidden="true">[icon lock 16 ds-switch__icon]</span>
+  <span class="ds-switch__label">Nightly sync</span>
+  <small class="ds-switch__hint" id="sync-why">Set by the device policy</small>
+</label>
+```
+
+It keeps its on and off looks at full strength; the off handle grows to 24px so the lock fits. The lock rides the
+handle (`--ds-dur-medium` on the spring), in `--ds-surface-highest` on the off handle and `--ds-primary` on the on
+handle, and fades in on `--ds-dur-fast` and out on `--ds-dur-instant` when the lock comes or goes. The reason in words
+is required (a hint, or the tooltip). Forced colours: the normal on and off colours, the lock in `Canvas` or
+`Highlight`. "Locked" always means a value set elsewhere; a value that is waiting is busy, not locked.
+
+### Hint and extras
+
+`small.ds-switch__hint` is a line under the name (the meta type, `--ds-text-2`); `span.ds-switch__meta` holds
+non-interactive extras before the state word (a count, a tag); the name wraps long words. Name the input with
+`aria-labelledby` (the label's id) and describe it with `aria-describedby` (the hint's id), so the extras stay out of
+its name.
+
+### Switch list
+
+Many settings, each a switch:
+
+```html
+<div class="ds-switch-list">
+  <label class="ds-switch">
+    <input type="checkbox" role="switch" name="mail" checked aria-labelledby="mail-name" aria-describedby="mail-hint">
+    <span class="ds-switch__track" aria-hidden="true"></span>
+    <span class="ds-switch__label" id="mail-name">Email reports</span>
+    <small class="ds-switch__hint" id="mail-hint">Every Monday at 08:00</small>
+    <span class="ds-switch__meta"><span class="ds-tag ds-tag--neutral">3 recipients</span></span>
+    <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
+  </label>
+  ...
+</div>
+```
+
+Rows sit on one grid (track, name over hint, meta, state word), at least `--ds-switch-list-row-height` (56px) tall,
+with hairlines between them. At 560px of list width and below the meta wraps under the name.
 
 **Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
 
@@ -1419,7 +1720,8 @@ A press on an action grows a circle of the content colour from the pointer (Ente
 fades it when the press ends. One call wires every action on the page, also the ones rendered later:
 
 ```js
-const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripples.detach() takes it back
+const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripples.destroy() takes it back
+ripples.release(host);                        // end a running press by hand (no argument: every press)
 ```
 
 ```html
@@ -1433,7 +1735,8 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
   form), `.ds-table__sort`, the body rows of `.ds-table--interactive` (the ripple goes into the row's first cell, a
   `<td>` or a `<th scope="row">` row header, as a box over the whole row that clips the circle; the row is isolated meanwhile, so the ripple paints under the
   cells' content), `.ds-radio` (a radio card, also when its own input is pressed), `.ds-combo__toggle`,
-  `.ds-menu__item`, `.ds-errors summary` and `[data-ds-ripple]`; Enter on a `.ds-table__row-link` or
+  `.ds-menu__item`, `.ds-errors summary`, `.ds-pressable` ([Utilities](#a-pressable-element-of-your-own)) and
+  `[data-ds-ripple]`; Enter on a `.ds-table__row-link` or
   `.ds-card__action` ripples its row or card from the centre, while a press on another link or control inside the
   row or `<div>` card (a plain link, a field, a label) is that control's own and ripples neither;
   `data-ds-ripple="off"` on a host or an ancestor opts out. Not hosts, by design: inline links (`.ds-link-btn`,
@@ -1453,6 +1756,9 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
   touch screens), or its focus layer when a key pressed it, and the ripple adds the press. A button's layer also keeps what `--ds-btn-state-pressed-opacity`
   asks for beyond the ripple's `--ds-state-pressed`, so `.ds-btn--disc` shows its disc on press on touch screens
   too. Without `attach()` the flat layer stays the press feedback.
+- A press ends early when another element captures the pointer (an ancestor that drags to scroll): the ripple
+  fades as on release. `release(host?)` ends one by hand; `detach()` is the **deprecated** alias of `destroy()`
+  (removed in 3.0 at the earliest). `:active` (the flat layer and the morph) lasts until the pointer button goes up.
 - Colour: `--ds-ripple-color` (default `currentColor`), on `.ds-theme` or a host. Forced colours show no ripple.
 - iOS Safari applies `:active` only on pages that listen to `touchstart`. `attach()` adds a passive listener; a
   page without `ds.js` adds one itself (`document.addEventListener('touchstart', () => {}, { passive: true })`, or
@@ -1473,8 +1779,70 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 | `.ds-center` | centred text |
 | `.ds-nowrap` | keeps a value and its unit together |
 | `.ds-no-scroll` | on `<body>` while a modal layer is open (with `.ds-base`); `DS.overlay` sets it, reference-counted |
+| `.ds-pressable` | the press model of the system on an element of your own (below) |
+| `.ds-hover-actions` | actions that show on demand: with their row's or card's hover, focus, selection or open menu (below) |
+| `.ds-kbd` | a key: `<kbd class="ds-kbd">Ctrl</kbd>` |
+| `.ds-divider` | a hairline: `<hr class="ds-divider">`, `--inset`, `--vertical`, `--label` (below) |
+| `.ds-icon--fillable`, `.ds-icon--filled` | an icon that fills when its control is on, or always ([icons.md](icons.md#glyphs)) |
+| `.ds-touch` | every target at least `--ds-touch-target` (48px), on `.ds-theme` or a container ([theming.md](theming.md#touch-screens)) |
 
 Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
+
+`.ds-muted` has no margin (like `.ds-meta`): space it with the layout around it (a card's rhythm, a stack's gap).
+
+### A pressable element of your own
+
+A project component that acts on a press (a row, a tile of its own) takes the system's press model instead of a
+hand-built one:
+
+```html
+<div class="x-row ds-pressable" role="button" tabindex="0">Printer on floor 2</div>
+<div class="x-panel ds-pressable ds-pressable--lg ds-pressable--inset" role="button" tabindex="0">...</div>
+```
+
+- A state layer in `currentColor` (hook `--ds-pressable-layer`): hover `--ds-state-hover` (`--lg`:
+  `--ds-state-hover-lg`, for large surfaces), press `--ds-state-pressed` in `--ds-dur-micro`, keyboard focus
+  `--ds-state-focus` at once with the ring. The ring rests at offset + width and snaps to `--ds-focus-offset`;
+  `--inset` rests at 0 and snaps inward (`-1 * --ds-focus-width`), for elements in a container that clips.
+- A ripple host: with `DS.ripple.attach()` the ripple brings the press. No morph: pills are `.ds-btn`.
+- Disabled, `aria-disabled="true"` and `aria-busy="true"` show no hover or press layer and no ripple and take the
+  `not-allowed` cursor; `aria-disabled` keeps its focus layer. Forced colours: no layer, the ring stays.
+- The radius: `--ds-pressable-radius` (`--ds-radius-sm`). Add the role, `tabindex` and the key handling yourself.
+
+### Actions on demand
+
+```html
+<tr>
+  <td>LAPTOP-0042</td>
+  <td class="ds-num"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit LAPTOP-0042">[icon pencil 18]</button></span></td>
+</tr>
+```
+
+`.ds-hover-actions` fades in on `--ds-dur-fast` while its host (a `tr`, `li`, `.ds-card`, `.ds-drawer__row` or any
+`.ds-hover-host`) is hovered (devices that hover), holds the focus, is current (`aria-current`) or selected
+(`aria-selected="true"`, `.ds-table__row--selected`), holds an open menu (`aria-expanded="true"`) or carries
+`data-ds-shown` (set by the page), and fades out faster (`--ds-dur-instant`). On touch screens (`hover: none`) and
+under `.ds-touch` it always shows. It changes opacity only: the buttons stay in the tab order and are read, and
+hover moves nothing. Name each button with its row ("Edit LAPTOP-0042").
+
+### Dividers
+
+```html
+<hr class="ds-divider">
+<hr class="ds-divider ds-divider--inset">
+<span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>
+<div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>
+```
+
+A hairline in `--ds-line` with no margin; `--inset` starts at `--ds-space-4`; `--vertical` stands between items of a
+row; `--label` draws hairlines on both sides of a caption in the meta font and `--ds-text-2`. They are borders, so
+they stay in forced colours.
+
+### Keys
+
+`<kbd class="ds-kbd">K</kbd>`: a key in the code font in a hairline box (`--ds-kbd-border`, `--ds-kbd-bg`), at least
+`--ds-space-5` wide. For a shortcut write each key in its own `kbd` (`<kbd class="ds-kbd">Ctrl</kbd> <kbd
+class="ds-kbd">K</kbd>`).
 
 **Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
 
@@ -1540,4 +1908,6 @@ the ones the page sets for it. The project check reads this table.
 | `data-ds-dragging` | the system (`DS.motion.sortable`) | the item being moved | the dragged row |
 | `data-ds-keyboard` | the system (`DS.dom.followViewport`) | `<html>` | the on-screen keyboard is up |
 | `data-ds-guard="off"` | the page | any element around actions | its `aria-disabled` and busy actions explain themselves on click: `DS.motion.guard()` lets their activations through |
-| `data-ds-shown` | the page | a `.ds-presence--keep` element | shown (without it hidden, keeping its box) |
+| `data-icon` | the page | any element | the glyph name that `DS.icons.fill()` draws into it ([icons.md](icons.md)) |
+| `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |
+| `data-ds-shown` | the page | a `.ds-presence--keep` element, a `.ds-hover-actions` host or its actions | shown (`.ds-presence--keep`: without it hidden, keeping its box; `.ds-hover-actions`: the actions show without hover or focus, [Utilities](#actions-on-demand)) |

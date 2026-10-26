@@ -151,6 +151,7 @@
   --ds-content-max: 1280px;
   --ds-measure: 76ch;
   --ds-toast-room: 64px;
+  --ds-touch-target: 48px;
 
   /* ── Component hooks (layer 3), with their defaults ──
   --ds-btn-height: 36px;               --ds-btn-padding-x: var(--ds-space-4);
@@ -165,6 +166,7 @@
   --ds-btn-hover-color: (resting color); --ds-btn-hover-border: (resting border);
   --ds-btn-hover-shadow: none;         --ds-btn-hover-decoration: none;
   --ds-btn-icon-size: 40px;            --ds-btn-quiet-color: var(--ds-text-2);
+  --ds-btn-sm-height: 32px;            --ds-btn-sm-icon-size: 32px;
   --ds-btn-disabled-bg: (from --ds-disabled-fill);
   --ds-btn-disabled-border: (from --ds-disabled-fill);
   --ds-input-font: (body; input role up to 600px)
@@ -172,7 +174,10 @@
   --ds-chip-height: 32px;              --ds-chip-check-size: 18px;
   --ds-chip-disabled-border: var(--ds-disabled-fill);
   --ds-chip-disabled-bg: var(--ds-disabled-fill);
-  --ds-switch-halo: 40px;
+  --ds-chip-input-bg: var(--ds-accent); --ds-chip-input-color: var(--ds-on-accent);
+  --ds-chip-input-border: var(--ds-accent); --ds-chip-max-width: 240px;
+  --ds-switch-halo: 40px;              --ds-switch-height: 40px;
+  --ds-switch-list-row-height: 56px;
   --ds-switch-disabled-track: var(--ds-disabled-fill);
   --ds-switch-disabled-handle: var(--ds-disabled-ink);
   --ds-drawer-item-height: 48px;
@@ -183,12 +188,31 @@
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);
   --ds-card-hover-shadow: none;        (for example var(--ds-elev-hover))
   --ds-tile-radius-pressed: var(--ds-radius-md);
+  --ds-tile-min-width: 176px;          --ds-tiles-columns: 4;
+  --ds-tile-selected-bg: var(--ds-accent); --ds-card-selected-bg: var(--ds-accent);
+  --ds-selected-ring: var(--ds-primary); --ds-card-shadow: var(--ds-elev-1);
   --ds-table-row-hover: (a currentColor layer at --ds-state-hover-lg);
   --ds-table-row-selected: var(--ds-accent);
   --ds-status-radius: var(--ds-radius-md);
+  --ds-alert-bg: var(--ds-surface-low); --ds-alert-color: var(--ds-text);
+  --ds-alert-icon: var(--ds-primary);  --ds-alert-edge: 0;
+  --ds-alert-success-bg: var(--ds-success-container); --ds-alert-success-color: var(--ds-on-success-container);
+  --ds-alert-success-icon: var(--ds-success);
+  --ds-alert-warning-bg: var(--ds-warning-surface); --ds-alert-warning-color: var(--ds-text);
+  --ds-alert-warning-icon: var(--ds-warning);
+  --ds-alert-error-bg: var(--ds-error-container); --ds-alert-error-color: var(--ds-on-error-container);
+  --ds-alert-error-icon: var(--ds-error);
+  --ds-alert-text-basis: 256px;
+  --ds-tag-bg: var(--ds-accent);       --ds-tag-color: var(--ds-on-accent);
+  --ds-tag-height: 24px;               --ds-badge-size: 20px;
+  --ds-badge-radius: var(--ds-radius-action);  --ds-badge-bg: var(--ds-accent);
+  --ds-badge-color: var(--ds-on-accent);
   --ds-ripple-color: currentColor;
+  --ds-pressable-radius: var(--ds-radius-sm); --ds-pressable-layer: currentColor;
+  --ds-kbd-border: var(--ds-line-2);   --ds-kbd-bg: var(--ds-surface);
   --ds-spinner-track: transparent;     --ds-spinner-color: var(--ds-primary);
-  --ds-spinner-width: 2px;
+  --ds-spinner-width: 2px;             --ds-spinner-determinate-width: 4px;
+  --ds-status-spinner-width: 2px;      --ds-loader-sm-size: 24px;
   --ds-loader-size: 48px;              --ds-loader-color: var(--ds-primary);
   --ds-progress-gap: 4px;
   --ds-progress-track: var(--ds-accent); --ds-progress-stop: var(--ds-primary);

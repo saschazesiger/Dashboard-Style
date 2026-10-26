@@ -33,13 +33,15 @@ the tests in `test/`.
 - **A press is a layer, a ripple and a shape.** The state layer comes in `--ds-dur-micro`, the ripple grows from the
   pointer (`DS.ripple.attach(document)`), and pills turn squarer (`--ds-radius-action-pressed`) and spring back on
   release. Nothing scales on press except the switch handle; checkboxes, radios and the switch show a halo instead
-  of a ripple. Inline text links (`.ds-link-btn`, links in text) neither ripple nor morph.
+  of a ripple. Inline text links (`.ds-link-btn`, links in text) neither ripple nor morph. Project controls use
+  `.ds-pressable` for their layer, focus snap and ripple instead of a hand-built state layer.
 - **One disabled model.** Disabled controls take the neutral Material look (`--ds-disabled-fill` container or
   outline, `--ds-disabled-ink` content; a theme may dim them as a whole with `--ds-disabled-opacity`), show no hover,
   press, ripple, morph or halo, take the `not-allowed` cursor where they can still be pointed at, and fade into that
   look on `--ds-dur-fast`.
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
-  why over a bare `disabled`.
+  why over a bare `disabled`. A value that another system sets is locked (`.ds-switch--locked`, the `lock` glyph) and
+  says by whom in words.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
   `--ds-hold-loader` (450ms). A block that waits shows the shape loader (`.ds-loader`), a small spot (a button, a
   chip, a cell) the arc spinner (it has no delay of its own: put it in `.ds-loading`, a busy button, or a
@@ -103,6 +105,8 @@ the tests in `test/`.
   own prefix.
 - Components read roles and hooks only: no colour, radius, font, shadow, duration or curve literals outside
   `tokens.css` and theme files.
+- Project controls take the press model from `.ds-pressable`, actions that show on hover from `.ds-hover-actions`
+  and touch sizes from `.ds-touch`: never a hand-built state layer, reveal or size override.
 - Plain CSS for Safari 16.4, Chrome/Edge 111 and Firefox 128 (no nesting); newer features only where they degrade
   gracefully, named under "Progressive:" in the file header.
 - Every stylesheet sits in `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities`; themes and project

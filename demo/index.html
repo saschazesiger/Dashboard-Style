@@ -79,7 +79,7 @@
             </div>
             <div class="ds-tiles" id="facts">
               <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="apps 16"></span><span>Components</span></p><p class="ds-tile__value" data-count="26">0</p><p class="ds-tile__note">one CSS file each</p></div>
-              <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="image 16"></span><span>Icons</span></p><p class="ds-tile__value" data-count="82">0</p><p class="ds-tile__note">outline, 24px grid</p></div>
+              <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="image 16"></span><span>Icons</span></p><p class="ds-tile__value" data-count="109">0</p><p class="ds-tile__note">outline, 24px grid</p></div>
               <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="settings 16"></span><span>Tokens</span></p><p class="ds-tile__value" data-count="120" data-suffix="+">0</p><p class="ds-tile__note">in three layers</p></div>
               <div class="ds-tile"><p class="ds-tile__label"><span data-icon-inline="box 16"></span><span>Dependencies</span></p><p class="ds-tile__value">0</p><p class="ds-tile__note">plain CSS and JS</p></div>
             </div>
@@ -209,7 +209,8 @@
               <h2 class="demo-section__title" id="live-title">Live data</h2>
               <p class="demo-section__lead">A fake backend reports new figures every few seconds. Tiles count on from what they show,
                 rows glide to their new place, status chips fade to their new colour. Point at the table: a live reorder waits
-                until you are done (at most 2s). Type in the search: the rows glide per keystroke.</p>
+                until you are done (at most 2s). Type in the search: the rows glide per keystroke. Every active filter shows as an
+                input chip: press one to remove its filter.</p>
             </header>
             <div class="ds-tiles" id="live-tiles"></div>
             <section class="ds-card">
@@ -237,6 +238,7 @@
                   <label class="ds-chip"><input class="ds-chip__input" type="checkbox" value="error"><span class="ds-chip__body"><span data-chip-check></span><span>Offline</span></span></label>
                 </fieldset>
               </div>
+              <div class="ds-chips" role="group" aria-label="Active filters" id="live-active"></div>
               <div class="ds-table-wrap">
                 <table class="ds-table">
                   <caption class="ds-sr">Devices, live</caption>
@@ -461,7 +463,7 @@
           <section class="demo-section" id="icons" aria-labelledby="icons-title">
             <header class="demo-section__head">
               <h2 class="demo-section__title" id="icons-title">Icons</h2>
-              <p class="demo-section__lead">82 outline glyphs on a 24px grid, in <code>DS.icons</code>. Filter them, then click one to copy
+              <p class="demo-section__lead">109 outline glyphs on a 24px grid, in <code>DS.icons</code>. Filter them, then click one to copy
                 the line that draws it.</p>
             </header>
             <section class="ds-card">

@@ -255,11 +255,12 @@ const CONTINUITY = {
   interrupt: { in: 'stage', sel: '#sg-bench-card', props: ['opacity'] },
   swap: { in: 'stage', sel: '[data-swap-toggle] .ds-icon-swap__b', props: ['opacity'] },
   disclosure: { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
-  pop: { in: 'stage', sel: '.sg-badge', props: ['opacity', 'scale.x'] },
+  pop: { in: 'stage', sel: '.ds-badge', props: ['opacity', 'scale.x'] },
   clip: { in: 'stage', sel: '.sg-clip__panel', props: ['opacity'] },
   'icon-swap': { in: 'stage', sel: '[data-pair="offline"] .ds-icon-swap__b', props: ['opacity'] },
   chips: { in: 'stage', sel: '.ds-chip__body', text: 'Archived', pseudo: '::after', props: ['width'] },
   switch: { in: 'stage', sel: '.ds-switch__track', pseudo: '::after', props: ['translate.x'] },
+  'switch-locked': { in: 'stage', sel: '.ds-switch__icon', props: ['opacity'] },
   checks: { in: 'stage', sel: '.sg-row .ds-radio-input:nth-of-type(2)', pseudo: '::after', props: ['scale.x'] },
   track: { in: 'stage', sel: '.ds-indicator', props: ['--ds-indicator-x', '--ds-indicator-l'], sum: true },
   segmented: { in: 'stage', sel: '.ds-indicator', props: ['--ds-indicator-x', '--ds-indicator-l'], sum: true },
@@ -287,6 +288,7 @@ const CONTINUITY_EXEMPT = {
   sortable: 'each toggle moves the row in the DOM and flip() glides it from where it is painted, so its translate restarts from a new layout place (continuity on screen is checked by flip.spec.js and the data-list demo)',
   'follow-end': 'scroll-driven: the log follows the scroll position the demo sets; the pill only toggles hidden (its fade is .ds-presence, timed in the presence demo)',
   wizard: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
+  tiles: 'selection is a colour transition (background-color, --ds-dur-fast) and a ring that shows at once: no number to sample',
 };
 
 /**

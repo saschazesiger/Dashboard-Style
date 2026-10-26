@@ -312,13 +312,16 @@ const fallbackOf = (value) => value.replace(/^var\(--[\w-]+,\s*/, '').replace(/\
 /** Whether a keyframe changes opacity or a colour. */
 const fades = (name) => /(^|[;{\s])(opacity|color|background(-color)?|border-color|outline-color|fill|stroke)\s*:/.test(KEYFRAMES[name] || '');
 
-/** The longest duration (ms) the rule `selector` of `file` sets through `properties` (first time of each list entry). */
-function longest(file, selector, properties) {
+/**
+ * The longest duration (ms) the rule `selector` of `file` sets through `properties` (first time of each list entry);
+ * `only`: the entries of that animated property alone (a fade whose element also travels).
+ */
+function longest(file, selector, properties, only) {
   const times = [];
   for (const { property, value } of declarationsAt(read(file), selector)) {
     if (!properties.includes(property)) continue;
     if (property === 'animation' || property === 'transition') {
-      for (const entry of entriesOf(value)) if (entry.times.length) times.push(entry.times[0]);
+      for (const entry of entriesOf(value)) if (entry.times.length && (!only || entry.name === only)) times.push(entry.times[0]);
     } else {
       const token = value.match(/--ds-dur-[\w-]+/);
       if (token) times.push(ms(token[0]));
@@ -376,8 +379,10 @@ const CONTROL_RATIOS = [
   ['icon swap', [[M, SWAP_SHOWN, ['transition']]], [[M, '.ds-icon-swap > .ds-icon-swap__b', ['transition']]]],
   ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
   ['presence that keeps its box', [[M, '.ds-presence--keep[data-ds-shown]', ['transition']]], [[M, '.ds-presence--keep', ['transition']]]],
+  ['switch lock (fade; it travels with the handle)', [['src/components/switch.css', '.ds-switch--locked .ds-switch__icon', ['transition'], 'opacity']], [['src/components/switch.css', '.ds-switch__icon', ['transition'], 'opacity']]],
+  ['hover actions', [['src/components/utilities.css', '.ds-hover-actions:is(:focus-within, [data-ds-shown], :has([aria-expanded="true"]))', ['transition']]], [['src/components/utilities.css', '.ds-hover-actions', ['transition']]]],
 ];
-const resolveDuration = (candidates) => candidates.map(([file, selector, properties]) => longest(file, selector, properties)).find((time) => time !== undefined);
+const resolveDuration = (candidates) => candidates.map(([file, selector, properties, only]) => longest(file, selector, properties, only)).find((time) => time !== undefined);
 /** The popups of the ratio table: they may exit in --ds-dur-instant (motion-2.md). */
 const POPUPS = ['src/components/tooltip.css', 'src/components/combobox.css', 'src/components/menu.css'];
 
@@ -496,8 +501,8 @@ describe('motion in CSS', () => {
     // transform moves the element back (the old disc loophole).
     // The switch handle may grow while pressed (D6), never above 1 (its 28px box).
     const ACTIVE_EXEMPT = new Map([
-      ['.ds-switch:active input:not(:disabled) + .ds-switch__track::after', 'the handle grows to its pressed size'],
-      ['.ds-switch.ds-pressed input:not(:disabled) + .ds-switch__track::after', 'the handle grows to its pressed size'],
+      ['.ds-switch:active input:not(:disabled, [aria-disabled="true"]) + .ds-switch__track::after', 'the handle grows to its pressed size'],
+      ['.ds-switch.ds-pressed input:not(:disabled, [aria-disabled="true"]) + .ds-switch__track::after', 'the handle grows to its pressed size'],
     ]);
     const offenders = [];
     for (const file of ALL_CSS) {
@@ -599,7 +604,7 @@ describe('motion in CSS', () => {
       assert.ok(ratio >= 0.4 && ratio <= 0.67 + 1e-9, `${name}: exit ${leave}ms / entrance ${enter}ms = ${ratio.toFixed(2)}`);
     }
     assert.deepEqual(CONTROL_RATIOS.map(([, entrance, exit]) => `${resolveDuration(entrance)}/${resolveDuration(exit)}`),
-      ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100', '150/100']);
+      ['250/150', '250/150', '250/150', '150/100', '250/100', '150/100', '150/100', '150/100', '150/100']);
   });
 
   it('has a ratio row for every component with an entrance and an exit', () => {
@@ -908,6 +913,45 @@ describe('values come from tokens', () => {
     const defined = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]));
     const used = [...css.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((match) => match[1]);
     assert.deepEqual([...new Set(used)].filter((name) => !defined.has(name) && !RUNTIME.has(name)).sort(), []);
+  });
+
+  it('never shadows a size hook with a literal on a component (D16: a modifier reads its own hook)', () => {
+    // Assignments of --ds-* inside src/components/ whose value, outside var() and outside
+    // calc()/min()/max()/clamp()/color-mix() of tokens, still holds a length or a number other than 0 and 1.
+    // Allowed: forced-colours blocks, the runtime properties, the registered ones and the motion hooks.
+    // TODO(2.0 integration): SN-4 (WP4) converts .ds-toast__close to --ds-toast-close-size; drop this entry then.
+    const AWAITING_SN4 = new Set(['src/components/toast.css: .ds-toast__close: --ds-btn-icon-size']);
+    const strip = (value) => {
+      let out = value;
+      for (let i = 0; i < 8; i += 1) out = out.replace(/(?:var|calc|min|max|clamp|color-mix)\([^()]*\)/g, ' ');
+      return out;
+    };
+    const offenders = [];
+    for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
+      for (const { selector, body } of rules(withoutAtRuleBlocks(read(file), /@media\s*\(forced-colors:\s*active\)/))) {
+        for (const { property, value } of declarations(`${body};`)) {
+          if (!property.startsWith('--ds-') || RUNTIME.has(property) || REGISTERED.has(property) || /^--ds-(motion|enter|leave)-/.test(property)) continue;
+          const left = strip(value);
+          if (!/(?<![\w.-])\d*\.?\d+(px|rem|em|vw|vh|%)(?![\w-])/.test(left) && !/(?<![\w.%-])(?![01](?![\d.]))\d*\.?\d+(?![\w.%-])/.test(left)) continue;
+          for (const part of splitSelectors(selector)) {
+            const entry = `${file}: ${part}: ${property}`;
+            if (!AWAITING_SN4.has(entry)) offenders.push(`${entry}: ${value}`);
+          }
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+    // The five size modifiers of 1.6 read their own hooks.
+    const reads = [
+      ['src/components/button.css', '.ds-btn--sm', '--ds-btn-height', 'var(--ds-btn-sm-height, 32px)'],
+      ['src/components/button.css', '.ds-btn--icon.ds-btn--sm', '--ds-btn-icon-size', 'var(--ds-btn-sm-icon-size, 32px)'],
+      ['src/components/loader.css', '.ds-loader--sm', '--ds-loader-size', 'var(--ds-loader-sm-size, 24px)'],
+      ['src/components/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, 4px)'],
+      ['src/components/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
+    ];
+    for (const [file, selector, property, value] of reads) {
+      assert.equal(declarationsAt(read(file), selector).find((entry) => entry.property === property)?.value, value, `${selector} { ${property} }`);
+    }
   });
 
   it('uses only the ds- prefix for classes and custom properties', () => {
@@ -1572,16 +1616,17 @@ describe('controls (1.1.0)', () => {
       assert.match(transitionOf(file, selector), /(^|, )opacity var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, `${selector}: opacity fades`);
     }
     const reads = (file, selector) => declarationsAt(read(file), selector).map((entry) => entry.value).join(' ');
-    const chip = reads('src/components/chip.css', '.ds-chip__input:disabled + .ds-chip__body');
+    const chip = reads('src/components/chip.css', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body');
     for (const token of ['--ds-disabled-fill', '--ds-disabled-ink', '--ds-disabled-opacity']) assert.ok(chip.includes(token), `chip: ${token}`);
-    const track = reads('src/components/switch.css', '.ds-switch input:disabled + .ds-switch__track');
+    const track = reads('src/components/switch.css', '.ds-switch input:is(:disabled, [aria-disabled="true"]) + .ds-switch__track');
     for (const token of ['--ds-disabled-fill', '--ds-disabled-opacity']) assert.ok(track.includes(token), `switch track: ${token}`);
-    assert.ok(reads('src/components/switch.css', '.ds-switch input:disabled + .ds-switch__track::after').includes('--ds-disabled-ink'), 'switch handle');
+    assert.ok(reads('src/components/switch.css', '.ds-switch input:is(:disabled, [aria-disabled="true"]) + .ds-switch__track::after').includes('--ds-disabled-ink'), 'switch handle');
     // Hover changes nothing on a disabled chip or switch.
     const hover = atRuleBlocks(read('src/components/switch.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
-    assert.ok(hover.length && hover.every((part) => part.includes(':not(:disabled)')), hover.join(' | '));
+    assert.ok(hover.length && hover.every((part) => part.includes(':not(:disabled, [aria-disabled="true"])')), hover.join(' | '));
     const chipHover = atRuleBlocks(read('src/components/chip.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
-    assert.ok(chipHover.length && chipHover.every((part) => part.includes(':not(:disabled)')), chipHover.join(' | '));
+    // aria-disabled (2.0) is blocked like disabled: :not(:disabled, [aria-disabled="true"]).
+    assert.ok(chipHover.length && chipHover.every((part) => part.includes(':not(:disabled, [aria-disabled="true"])')), chipHover.join(' | '));
   });
 
   it('keeps the spinner of a hidden busy face still (no endless loop per button at rest)', () => {

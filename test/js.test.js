@@ -79,6 +79,72 @@ describe('icons', () => {
   });
 });
 
+describe('icons (2.0)', () => {
+  /** The glyphs that fill when on (.ds-icon--fillable), as docs/icons.md lists them. */
+  const FILLABLE = ['thumbUp', 'thumbDown', 'chat', 'shield', 'folder', 'flag', 'bell', 'home', 'moon', 'play'];
+
+  it('has the 27 glyphs of 2.0 (109 in all) and keeps the name map of fill() in step with the exports', () => {
+    const added = ['chevronFirst', 'chevronLast', 'cornerDownLeft', 'moreHorizontal', 'upload', 'clipboard', 'paperclip', 'send',
+      'printer', 'play', 'pause', 'stopCircle', 'grip', 'bell', 'mic', 'micOff', 'volume', 'helpCircle', 'eye', 'eyeOff', 'home',
+      'panelLeft', 'keyboard', 'terminal', 'tag', 'sun', 'moon'];
+    assert.equal(added.length, 27);
+    for (const name of added) assert.equal(typeof icons[name], 'string', name);
+    assert.equal(GLYPHS.length, 109);
+    const source = read('src/js/icons.js');
+    const map = source.slice(source.indexOf('const GLYPHS = {'), source.indexOf('};', source.indexOf('const GLYPHS = {')));
+    const mapped = [...map.slice(map.indexOf('{') + 1).matchAll(/[A-Za-z]+/g)].map((match) => match[0]);
+    assert.deepEqual([...mapped].sort(), GLYPHS.map(([name]) => name).sort());
+    // The count the README, AGENTS.md and the live tour state.
+    for (const file of ['README.md', 'AGENTS.md']) assert.ok(!/\b82\b (outline )?(icons|glyphs)|icons-82/.test(read(file)), `${file}: 109 icons`);
+  });
+
+  it('ends every fillable glyph with a closed shape (a closed path, rect, circle or ellipse), named in docs/icons.md', () => {
+    const docs = read('docs/icons.md');
+    for (const name of FILLABLE) {
+      const last = icons[name].match(/<(\w+)[^>]*\/>$/);
+      assert.ok(last, name);
+      const closed = last[1] === 'path' ? /[zZ]"\/>$/.test(icons[name]) : ['rect', 'circle', 'ellipse'].includes(last[1]);
+      assert.ok(closed, `${name}: the last element is closed`);
+      assert.match(docs, new RegExp(`\`${name}\``), name);
+    }
+    // flag: the pole first, the closed flag last (its two paths were swapped in 2.0).
+    assert.match(icons.flag, /^<path d="M4 22v-7"\/><path d="M4 15s[^"]*z"\/>$/);
+  });
+
+  it('fills [data-icon] elements through DOM APIs, idempotently, and names unknown glyphs', () => {
+    const make = (tag, attributes = {}) => ({
+      nodeType: 1, tagName: tag, attributes: { ...attributes }, childNodes: [], ownerDocument: null,
+      get firstChild() { return this.childNodes[0] ?? null; },
+      getAttribute(name) { return name in this.attributes ? this.attributes[name] : null; },
+      hasAttribute(name) { return name in this.attributes; },
+      setAttribute(name, value) { this.attributes[name] = String(value); },
+      appendChild(child) { this.childNodes.push(child); return child; },
+      replaceChildren(...nodes) { this.childNodes = nodes; },
+    });
+    const doc = { nodeType: 9, createElementNS: (ns, tag) => make(tag) };
+    const spans = [make('span', { 'data-icon': 'bell', 'data-icon-size': '16' }), make('span', { 'data-icon': 'check' })];
+    const root = { nodeType: 9, ...doc, querySelectorAll: () => spans };
+    root.createElementNS = doc.createElementNS;
+    assert.equal(icons.fill(root), 2);
+    assert.equal(spans[0].childNodes.length, 1);
+    const svg = spans[0].childNodes[0];
+    assert.equal(svg.tagName, 'svg');
+    assert.deepEqual([svg.attributes.width, svg.attributes['aria-hidden']], ['16', 'true']);
+    assert.equal(spans[1].childNodes[0].attributes.width, '20', 'default 20px');
+    assert.deepEqual(svg.childNodes.map((child) => child.tagName), ['path', 'path']);
+    // Again: nothing new; a changed size draws again.
+    assert.equal(icons.fill(root), 0);
+    assert.equal(spans[0].childNodes[0], svg);
+    spans[0].attributes['data-icon-size'] = '20';
+    assert.equal(icons.fill(root), 1);
+    // An unknown name throws after the known ones are drawn.
+    spans.push(make('span', { 'data-icon': 'nope' }), make('span', { 'data-icon': 'sun' }));
+    assert.throws(() => icons.fill(root), /Unknown icon: nope/);
+    assert.equal(spans[3].childNodes[0].tagName, 'svg');
+    assert.match(read('docs/icons.md'), /`fill\(root\?\)`/);
+  });
+});
+
 describe('indicator, dom, ripple and overlay', () => {
   it('exports the documented functions', () => {
     assert.equal(typeof indicator.createIndicator, 'function');
@@ -104,6 +170,48 @@ describe('indicator, dom, ripple and overlay', () => {
     for (const host of [':is(button, a).ds-tile', '.ds-card--interactive', '.ds-table--interactive tbody tr:not(.ds-table__detail)']) {
       assert.ok(hosts.includes(host), `${host} is a default host`);
     }
+  });
+
+  it('returns a ripple handle with destroy(), release() and the deprecated detach() (2.0)', () => {
+    const listeners = new Map();
+    const classes = new Set();
+    const doc = { addEventListener() {}, removeEventListener() {} };
+    const root = {
+      nodeType: 1,
+      ownerDocument: doc,
+      classList: { add: (name) => classes.add(name), remove: (name) => classes.delete(name) },
+      addEventListener: (type, fn) => listeners.set(type, fn),
+      removeEventListener: (type) => listeners.delete(type),
+      contains: () => false,
+    };
+    const handle = ripple.attach(root);
+    assert.deepEqual(Object.keys(handle).sort(), ['destroy', 'detach', 'release']);
+    assert.equal(ripple.attach(root), handle, 'idempotent per root');
+    assert.ok(classes.has('ds-ripples'));
+    for (const type of ['pointerdown', 'keydown', 'keyup', 'touchstart', 'change']) assert.ok(listeners.has(type), type);
+    // Nothing to release: no error, nothing changes.
+    handle.release();
+    handle.release(/** @type {any} */ ({}));
+    assert.ok(classes.has('ds-ripples'));
+    // detach() is destroy(): the listeners and the class go, and a new attach() is a new handle.
+    handle.detach();
+    assert.equal(listeners.size, 0);
+    assert.ok(!classes.has('ds-ripples'));
+    const again = ripple.attach(root);
+    assert.notEqual(again, handle);
+    again.destroy();
+    assert.equal(listeners.size, 0);
+    // The source marks detach() deprecated, and the docs name the handle.
+    assert.match(read('src/js/ripple.js'), /\/\*\* Deprecated \(removed in 3\.0 at the earliest\): destroy\(\)\. \*\/\n\s+detach\(\)/);
+    assert.match(read('docs/motion.md'), /`\{ destroy, release, detach \}`/);
+  });
+
+  it('gives no press to a host whose own input or stretched link is blocked (2.0)', () => {
+    const source = read('src/js/ripple.js');
+    const inactive = source.slice(source.indexOf('function inactive('), source.indexOf('\n}\n', source.indexOf('function inactive(')));
+    assert.match(inactive, /host\.matches\(OWNS_INPUT\) && blocked\(host\.querySelector\('input'\)\)/);
+    assert.match(inactive, /host\.matches\(STRETCHED\)/);
+    assert.ok(source.includes("const blocked = (element) => Boolean(element && (element.matches(':disabled') || element.getAttribute('aria-disabled') === 'true'));"));
   });
 
   it('counts the scroll lock and keeps the room of a scrollbar that the lock removed', () => {

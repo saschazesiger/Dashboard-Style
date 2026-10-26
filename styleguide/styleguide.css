@@ -798,6 +798,8 @@
 
 /* The rules in two columns where there is room. */
 .sg-disclosure ol {
+  /* .ds-muted has no margin (2.0): the list keeps a list's own space. */
+  margin: 1em 0;
   columns: 2 22rem;
   column-gap: var(--ds-space-8);
 }
@@ -1071,25 +1073,21 @@
   --ds-btn-height: 56px;
 }
 
-/* ds-pop-in / ds-pop-out: a counter on a button. */
+/* ds-pop-in / ds-pop-out: a count badge (.ds-badge) in a button. */
 .sg-badge-host {
   position: relative;
   justify-self: center;
 }
 
-.sg-badge {
-  position: absolute;
-  top: calc(-1 * var(--ds-space-2));
-  right: calc(-1 * var(--ds-space-2));
-  display: grid;
-  place-items: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 var(--ds-space-1);
-  border-radius: var(--ds-radius-action);
-  background: var(--ds-primary);
-  color: var(--ds-on-primary);
-  font: var(--ds-font-caption);
+/* A chip row that scrolls when dragged (it captures the pointer). */
+.sg-drag-row {
+  flex-wrap: nowrap;
+  max-width: 100%;
+  margin-top: var(--ds-space-4);
+  padding-block: var(--ds-space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-y;
 }
 
 /* ds-clip-in / ds-clip-out: a panel between four triggers. The hooks pick
@@ -1417,4 +1415,25 @@
 .sg-wizard {
   display: block;
   padding: var(--ds-space-4);
+}
+
+/* ── 2.0 controls ───────────────────────────────── */
+
+/* Project rows that take the press model of the system (.ds-pressable). */
+.sg-press-rows {
+  display: grid;
+  gap: var(--ds-space-1);
+}
+
+.sg-press-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 var(--ds-space-2) 0 var(--ds-space-3);
+}
+
+/* A glyph that fills when on: its name says so. */
+.sg-icon--fillable > span {
+  color: var(--ds-text);
 }

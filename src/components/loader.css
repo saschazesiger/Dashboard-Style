@@ -15,7 +15,8 @@
  *   .ds-loader--sm          24px, for the loading line
  *   .ds-loader--contained   the shape on a --ds-accent disc
  *
- * Hooks: --ds-loader-size (48px), --ds-loader-color (--ds-primary).
+ * Hooks: --ds-loader-size (48px), --ds-loader-sm-size (24px, read by --sm),
+ * --ds-loader-color (--ds-primary).
  *
  * The loader is decoration: aria-hidden, and the surrounding role="status"
  * carries the text. Inside .ds-boot, .ds-loading and .ds-skeleton the
@@ -53,7 +54,7 @@
   }
 
   .ds-loader--sm {
-    --ds-loader-size: 24px;
+    --ds-loader-size: var(--ds-loader-sm-size, 24px);
   }
 
   .ds-loader--contained {

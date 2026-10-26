@@ -302,9 +302,14 @@ The controls (1.1) share one timing. Press feedback is the state layer, the ripp
 | button faces roll by `--ds-distance-sm` (`DS.motion.busy()`: the busy face after `--ds-delay-loader`, the success face for `--ds-hold-success`) | `--ds-dur-fast` in, `--ds-dur-instant` out | in: fade `--ds-ease-in-out`, rise `--ds-ease-out`; out: `--ds-ease-in` |
 | validation message: fade, and its room opening while focus is in the form | fade `--ds-dur-fast`, room `--ds-dur-base` | fade `--ds-ease-in-out`, room `--ds-ease-out` |
 | disabled look (colours and opacity) | `--ds-dur-fast` | `--ds-ease-in-out` |
+| an input chip removed: `flip()` glides the chips after it into its place, focus goes to the neighbour | `flip()` (travel) | `--ds-ease-spatial` |
+| an icon that fills when on (`.ds-icon--fillable`) | `--ds-dur-fast` | `--ds-ease-in-out` |
+| actions on demand (`.ds-hover-actions`): in, out | `--ds-dur-fast`, `--ds-dur-instant` | `--ds-ease-in-out` |
+| the lock of a locked switch rides its handle; it fades in, out | travel `--ds-dur-medium`; fade `--ds-dur-fast`, `--ds-dur-instant` | travel `--ds-ease-spatial`; fade `--ds-ease-in-out` |
 
 What leaves takes 0.4-0.67 of what enters: the chip check, the checkbox mark and the radio dot 250 to 150ms, the
-button faces and the switch words 150 to 100ms, the icon swap 250 to 100ms (tested). Everything here is a
+button faces, the switch words, the switch lock and the actions on demand 150 to 100ms, the icon swap 250 to 100ms
+(tested). Everything here is a
 transition, so a control rendered in its end state (a chip rendered selected, a box rendered checked) stays still
 on load, and a rapid toggle turns back from where it is. A chip that wraps to another line glides there through
 `flip()` (`DS.ripple.attach()` wires it); a removed validation message goes at once.
@@ -331,7 +336,9 @@ on load, and a rapid toggle turns back from where it is. A chip that wraps to an
 | `countUp()` | from the shown value on `--ds-ease-value` over `--ds-dur-glide`, landing on the same frame as a bar set in the same task |
 | Status chip | colour and icon glide over `--ds-dur-medium`; a new icon fades in and springs up from `--ds-scale-small` |
 | Table | sort, filter and live reorder glide through `flip()`; a selected row tints over `--ds-dur-fast`; an expandable row opens its room on `--ds-ease-out` (`--ds-dur-medium`) and closes accelerating (`--ds-dur-base`); the sort arrow and the toggle chevron turn on the spring |
-| Alert, tile, card | alerts come and go through `flip()`; a tile's figure counts with `countUp()`; clickable tiles and cards take the press morph |
+| Alert, tile, card | alerts come and go through `flip()`; a tile's figure counts with `countUp()`; clickable tiles and cards take the press morph; a selected tile or card tints over `--ds-dur-fast` and its ring shows at once |
+| Badge (`.ds-badge`) | colours glide on `--ds-dur-fast`; a count that appears pops in (`enter(badge, 'pop')`), one that goes pops out; the number changes at once ([A count badge](#a-count-badge)) |
+| Done state (`.ds-empty--done`) | the disc fades in and pops up on the spring (`ds-fade-in`, `ds-pop-in`, `--ds-dur-slow`) after `--ds-dur-base`; a ring widens and fades once behind it (`ds-ripple`) after `--ds-dur-slow`; the check draws itself (`ds-draw`, `--ds-dur-glide`, `--ds-ease-out`); only when the element is inserted or shown |
 
 ### Data motion
 
@@ -466,7 +473,7 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `ds-lift-in` | `translate`: rise (`--ds-motion-distance`, default 8px) | snackbars, swapped content; with `ds-fade-in` |
 | `ds-grow-in` | `translate` + `scale`: rise from `--ds-motion-scale` (default `--ds-scale-enter`) | dialogs, tooltips (with distance 0) |
 | `ds-shift-in` | `translate`: from the side (default 24px) | side sheets (their full width, `--ds-distance-sheet`) |
-| `ds-pop-in` | `scale` from `--ds-motion-scale` (default `--ds-scale-small`) | badges, counters |
+| `ds-pop-in` | `scale` from `--ds-motion-scale` (default `--ds-scale-small`) | badges, counters, the disc of `.ds-empty--done` |
 | `ds-drop-out` | `translate`: down (default 8px) | small exits; with `ds-fade-out` |
 | `ds-shrink-out` | `translate` + `scale`: down (default 4px) to `--ds-motion-scale` (default `--ds-scale-enter`) | dialogs, cards leaving |
 | `ds-shift-out` | `translate`: sideways (default 12px) | side sheets (full width, no fade), drawers leaving |
@@ -476,7 +483,7 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `ds-fill-x` / `ds-fill-y` | `scale: 0 1` / `scale: 1 0`, multiplying the element's own `scaleX()` / `scaleY()` | bars and columns filling on first render |
 | `ds-roll-in` / `ds-roll-out` | `translate`: one line up into / out of its slot | a status line that changes (`roll()` starts the new line once the old one is half out, so they never cover each other) |
 | `ds-press-ripple` | `scale` from 0 (its fade is a separate track) | the pointer ripple of an action (`DS.ripple`) |
-| `ds-ripple` | a ring that widens (`scale` to `--ds-ripple-scale`, 1.6) and fades once | behind a confirmation |
+| `ds-ripple` | a ring that widens (`scale` to `--ds-ripple-scale`, 1.6) and fades once | behind a confirmation (`.ds-empty--done`) |
 | `ds-spin` | `rotate`: one turn, a loop | one turn of the spinner (`--ds-loop-spin`) |
 | `ds-spinner-arc` | `--ds-spinner-arc` (sweep 10deg → 270deg → 10deg) and `--ds-spinner-start` (advancing 270deg per cycle), generated; a loop of four cycles | the M3 arc of the spinner, with `ds-spin` (`--ds-loop-arc`, linear) |
 | `ds-loader-morph` | `clip-path`: the 7 M3 shapes as 64-vertex `polygon()`s at k/7, generated; a loop | the shape loader, on `--ds-ease-spatial` over `--ds-loop-loader` (every step lands with the spring) |
@@ -770,15 +777,24 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
 
 ### DS.ripple (js/ripple.js)
 
-`attach(root = document)` gives every action inside `root` the pointer ripple and returns `{ detach }`; a second
-call for the same root returns the same handle. It adds `.ds-ripples` to the root element (`<html>` for
+`attach(root = document)` gives every action inside `root` the pointer ripple and returns
+`{ destroy, release, detach }`; a second call for the same root returns the same handle. It adds `.ds-ripples` to the root element (`<html>` for
 `document`; for an open shadow root the `.ds-theme` inside it, else its host, see [theming.md](theming.md)) and
 listens on the root once (delegated): `pointerdown` with the primary button grows a ripple from the
 pointer, Enter or Space on a focused host one from the centre. Hosts, skips, the runtime properties
 (`--ds-ripple-x`, `--ds-ripple-y`, `--ds-ripple-r`), `.ds-pressed` and the markup:
 [components.md](components.md#ripple). `RIPPLE_HOSTS` is the selector of the default hosts (1.1). The ripple's timing comes from the tokens (`--ds-dur-instant` minimum press,
 read through `motionDuration()`). `attach()` also adds a passive `touchstart` listener, which makes iOS Safari apply
-`:active`; `detach()` removes the listeners and the class, ripples already shown finish.
+`:active`; `destroy()` removes the listeners and the class, ripples already shown finish (`detach()` is its
+**deprecated** alias, removed in 3.0 at the earliest).
+
+A press ends when another element takes the pointer (2.0): an ancestor that captures it (a chip row that drags to
+scroll, a sortable list's row) fires `gotpointercapture`, and the ripple fades as on release while `.ds-pressed`
+goes after the usual `--ds-dur-instant` minimum. Capture by the host or an element inside it (touch captures the
+pressed element by itself) keeps the press. `release(host)` ends the running press of `host` by hand (a drag library
+that moves the pointer elsewhere without capturing it); without an argument it ends every press under the root, and
+it does nothing when there is none. Limit: `:active`, with the flat press layer and the morph, lasts until the
+pointer button goes up; only the ripple and `.ds-pressed` end early.
 
 Chips (1.1): `attach()` also listens for `change` on `.ds-chip__input` in a `.ds-chips` row, the one call that
 wires control motion. A toggle that keeps every chip on its line plays the check slot's `width` from where it is
@@ -790,7 +806,8 @@ backing, so crossing chips never show through each other. The toggled chip keeps
 chip on its line: a body that grew opens from its old width with that chip's glide (`clip-path`) and its label glides
 from where it was (`translate`), so the two never overlap; a body that shrank cannot paint its old width, so only
 its label glides back. A script that sets `checked` fires no `change`:
-then the CSS alone runs, and a chip that wraps jumps to its new line.
+then the CSS alone runs, and a chip that wraps jumps to its new line. To glide a programmatic toggle, dispatch the
+event in the same task: `input.checked = next; input.dispatchEvent(new Event('change', { bubbles: true }))`.
 
 ### DS.overlay (js/overlay.js)
 
@@ -1081,6 +1098,24 @@ DS.motion.countUp(total, rows.length);
 ```js
 const data = await DS.motion.refresh(list, () => api.load(), { signal });   // stale, loading bar, never a flash
 DS.dom.morphHtml(list, renderRows(data));                                     // right after: the stale state just went
+```
+
+### A count badge
+
+A `.ds-badge` ([components.md](components.md#badge)) pops in when a count appears and pops out when it goes; while it
+shows, the number changes at once (no count-up on a badge), and a badge rendered with the page plays nothing.
+
+```js
+function showCount(badge, count) {
+  const shown = !badge.hidden && badge.textContent !== '';
+  badge.textContent = count ? String(count) : badge.textContent;   // the number itself: at once
+  if (count && !shown) {
+    badge.hidden = false;
+    DS.motion.enter(badge, 'pop');                                 // ds-fade-in, ds-pop-in on the spring
+  } else if (!count && shown) {
+    DS.motion.leave(badge, 'pop', { then: 'hide' });              // faster, then hidden
+  }
+}
 ```
 
 ## View transitions

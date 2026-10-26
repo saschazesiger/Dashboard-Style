@@ -35,7 +35,7 @@ test('starts without a console error; a drawer link takes the view to its sectio
   await open(page);
   await expect(page.locator('#facts .ds-tile')).toHaveCount(4);
   await expect(page.locator('#live-tiles .ds-tile')).toHaveCount(4);
-  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(82);
+  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(109);
   await expect(page.locator('html')).toHaveClass(/ds-ripples/);
   await expect(page.locator('#nav [aria-current="page"]')).toHaveAttribute('href', '#welcome');
   await page.locator('#nav a[href="#overlays"]').click();
@@ -58,7 +58,7 @@ test('a search that leaves nothing shows the empty state; clearing the filters b
   await settle(page);
   await expect(rows).toHaveCount(0);
   await expect(page.locator('#live-empty .ds-empty')).toBeVisible();
-  await page.locator('[data-clear-filters]').click();
+  await page.locator('#live-empty [data-clear-filters]').click();
   await settle(page);
   await expect(rows).toHaveCount(total);
   await expect(page.locator('#live-empty .ds-empty')).toHaveCount(0);

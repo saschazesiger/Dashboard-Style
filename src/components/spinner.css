@@ -38,8 +38,8 @@
  * frame; it has no transition of its own there.
  *
  * Hooks: --ds-spinner-color (the arc), --ds-spinner-track (none, or
- * --ds-accent on the determinate ring), --ds-spinner-width (2px; 4px on
- * the determinate ring). A project that set border-width on a spinner sets
+ * --ds-accent on the determinate ring), --ds-spinner-width (2px; the
+ * determinate ring reads --ds-spinner-determinate-width, 4px). A project that set border-width on a spinner sets
  * --ds-spinner-width instead.
  *
  * The small spinner's faint ring mixes the text colour (color-mix()).
@@ -82,7 +82,7 @@
    * past 360deg).
    */
   .ds-spinner--determinate {
-    --ds-spinner-width: 4px;
+    --ds-spinner-width: var(--ds-spinner-determinate-width, 4px);
     position: relative;
     width: 40px;
     height: 40px;
