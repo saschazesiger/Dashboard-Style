@@ -12,9 +12,10 @@ import {
   emphasizedCurve, generate, LOADER_SHAPES, LOADER_VERTICES, loaderPolygons, problems, SPATIAL, springCurve, springFunction, TOLERANCE, WAVE,
 } from '../scripts/motion-curves.mjs';
 import {
-  CONTROL_PAIRS, contrast as ratioOf, formatColour, ICON_PAIRS, MOTION, parseColour, resolveColour, TEXT_PAIRS,
+  CONTROL_PAIRS, contrast as ratioOf, formatColour, ICON_PAIRS, MOTION, pairResults, parseColour, resolveColour, TEXT_PAIRS,
 } from '../scripts/tools/theme-rules.mjs';
-import { filesIn, ms, read, stripComments, token } from './helpers.js';
+import { packageInfo, SHIPPED_THEMES, tokensJson } from '../scripts/build.mjs';
+import { atRuleBlocks, filesIn, ms, read, stripComments, token, withoutAtRuleBlocks } from './helpers.js';
 
 const tokens = stripComments(read('src/tokens.css'));
 // MOTION (motion tokens and per-element motion hooks: no theme sets one, no role matches), the pair lists and the
@@ -380,5 +381,98 @@ describe('derived roles (2.0)', () => {
     assert.equal(background('src/components/menu.css', '.ds-menu'), 'var(--ds-surface-popover)');
     assert.equal(background('src/components/combobox.css', '.ds-combo__popup'), 'var(--ds-surface-popover)');
     assert.equal(background('src/components/shell.css', '.ds-skip'), 'var(--ds-surface-popover)');
+  });
+});
+
+describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
+  const known = new Map(JSON.parse(tokensJson(packageInfo())).tokens.map((entry) => [entry.name, entry]));
+  /** Hooks a shipped theme sets before the package that adds them merged (2.0 fan-out); the sweep empties it. */
+  const ADDED_BY_LATER_MERGES = new Map([
+    ['--ds-input-height', 'FM-6 (WP8)'],
+    ['--ds-table-head-height', 'TB-6 (WP5)'],
+    ['--ds-table-row-height', 'TB-6 (WP5)'],
+    ['--ds-menu-item-height', 'OV-11 (WP3)'],
+    ['--ds-tabs-height', 'FR-5 (WP9)'],
+  ]);
+  /** The declarations of a theme on .ds-theme outside @media (what applies without a condition). */
+  const declared = (file) => {
+    const css = withoutAtRuleBlocks(read(file), /^@media\b/);
+    return Object.fromEntries([...css.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((match) => [match[1], match[2].trim()]));
+  };
+  /** The value of a name with `files` loaded after ds.css, in this order. */
+  const stack = (...files) => {
+    const layers = files.map(declared);
+    return (name) => {
+      for (const layer of [...layers].reverse()) if (name in layer) return layer[name];
+      return token(name);
+    };
+  };
+  const failing = (lookup) => pairResults(lookup)
+    .filter((pair) => pair.ratio === null || pair.ratio < pair.min)
+    .map((pair) => `${pair.fg} on ${pair.bg}: ${pair.ratio === null ? 'not resolved' : `${pair.ratio.toFixed(2)}:1 (needs ${pair.min}:1)`}`);
+
+  for (const files of [['themes/dark.css'], ['themes/contrast.css'], ['themes/compact.css'], ['themes/dark.css', 'themes/contrast.css'], ['themes/example.css', 'themes/contrast.css']]) {
+    it(`keeps every text pair at 4.5:1 and every control, icon and outline pair at 3:1: ${files.join(' + ')}`, () => {
+      assert.deepEqual(failing(stack(...files)), []);
+    });
+  }
+
+  it('sets only known roles and hooks, never a scale, a motion token or a removed name', () => {
+    for (const name of SHIPPED_THEMES) {
+      const file = `themes/${name}.css`;
+      const css = stripComments(read(file));
+      assert.doesNotMatch(css, MOTION, `${file}: no motion token or hook`);
+      assert.doesNotMatch(css, /@layer|!important|:root/, `${file}: unlayered, on .ds-theme, no !important`);
+      for (const match of css.matchAll(/(--ds-[\w-]+)\s*:/g)) {
+        const entry = known.get(match[1]);
+        if (!entry && ADDED_BY_LATER_MERGES.has(match[1])) continue;
+        assert.ok(entry, `${file}: ${match[1]} is a token of the system`);
+        assert.ok(entry.themeable, `${file}: ${match[1]} is a role or a hook (${entry.layer})`);
+      }
+    }
+  });
+
+  it('gives the dark theme every colour role that does not follow another role, the floating surfaces and the scheme', () => {
+    const dark = declared('themes/dark.css');
+    const { roles } = layers();
+    // Literal colours of tokens.css; derived mixes and var() roles follow by themselves.
+    const DEPRECATED = new Set(['--ds-spinner-sm-track']);
+    const literal = roles.filter((name) => !DEPRECATED.has(name) && parseColour(token(name)));
+    assert.ok(literal.includes('--ds-surface') && literal.includes('--ds-scrim'), 'the walk finds the literal colours');
+    assert.deepEqual(literal.filter((name) => !(name in dark)), []);
+    assert.equal(dark['--ds-color-scheme'], 'dark');
+    for (const name of ['--ds-surface-overlay', '--ds-surface-popover', '--ds-elev-1', '--ds-elev-2', '--ds-elev-3']) assert.ok(name in dark, name);
+    // Shadows on black: a grey shadow on a dark surface would glow.
+    for (const name of ['--ds-elev-1', '--ds-elev-2', '--ds-elev-3']) assert.doesNotMatch(dark[name], /rgba\((?!0, 0, 0,)/, name);
+  });
+
+  it('keeps the contrast theme palette-neutral: roles only, mixed from the theme in use', () => {
+    const contrast = declared('themes/contrast.css');
+    assert.equal(contrast['--ds-text-2'], 'var(--ds-text)');
+    assert.equal(contrast['--ds-line'], 'var(--ds-outline)');
+    assert.equal(contrast['--ds-focus-width'], '3px');
+    assert.equal(contrast['--ds-link-underline'], 'currentColor');
+    for (const [name, value] of Object.entries(contrast)) {
+      assert.equal(known.get(name)?.layer, 'role', `${name} is a role`);
+      assert.doesNotMatch(value, /#[0-9a-f]{3,8}\b(?![^(]*\))|rgba?\(/i, `${name}: no literal colour (it would break the dark theme)`);
+    }
+  });
+
+  it('gives the compact theme the default heights back under a coarse pointer, and leaves field text alone', () => {
+    const css = read('themes/compact.css');
+    const compact = declared('themes/compact.css');
+    const coarse = atRuleBlocks(css, /^@media \(pointer: coarse\)$/);
+    assert.equal(coarse.length, 1, 'one @media (pointer: coarse) block');
+    const back = Object.fromEntries([...coarse[0].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((match) => [match[1], match[2].trim()]));
+    const heights = Object.keys(compact).filter((name) => /-height$/.test(name));
+    assert.ok(heights.length >= 8, `${heights.length} heights`);
+    assert.deepEqual(Object.keys(back).sort(), heights.sort(), 'every compact height comes back');
+    for (const name of heights) {
+      assert.ok(parseFloat(compact[name]) < parseFloat(back[name]), `${name}: compact is shorter`);
+      const fallback = known.get(name)?.default;
+      if (fallback) assert.equal(back[name], fallback, `${name}: the default height on a touch screen`);
+    }
+    for (const name of Object.keys(compact).filter((n) => n.startsWith('--ds-font-'))) assert.match(compact[name], / 13px\/18px /, name);
+    assert.ok(!('--ds-font-input' in compact) && !('--ds-font-reading' in compact), 'phones keep the 16px field text');
   });
 });

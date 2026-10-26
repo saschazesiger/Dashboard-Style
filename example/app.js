@@ -445,11 +445,27 @@
     ['violet', 'Violet', 'The same roles, another hue.'],
   ];
 
+  const APPEARANCES = [
+    ['system', 'System', 'Dark when the device is (prefers-color-scheme).'],
+    ['light', 'Light', 'The default palette.'],
+    ['dark', 'Dark', 'themes/dark.css of the vendored copy.'],
+  ];
+
+  /* The dark theme's link media for a choice, and data-ex-dark while it applies (the accents' dark tones). */
+  const DARK_QUERY = window.matchMedia('(prefers-color-scheme: dark)');
+  function applyAppearance(choice) {
+    const link = document.getElementById('ex-dark');
+    link.media = choice === 'dark' ? 'all' : choice === 'light' ? 'not all' : DARK_QUERY.media;
+    document.documentElement.toggleAttribute('data-ex-dark', window.matchMedia(link.media).matches);
+  }
+  DARK_QUERY.addEventListener('change', () => applyAppearance(stored('ex-appearance') || 'system'));
+
   function settingsHtml() {
     const s = state.settings;
     const accent = document.documentElement.getAttribute('data-ex-accent') || 'default';
+    const appearance = stored('ex-appearance') || 'system';
     const option = (value, label, current) => `<option value="${value}"${value === current ? ' selected' : ''}>${label}</option>`;
-    return head('Settings', 'Switches and the accent apply at once. The organisation saves with its button.') +
+    return head('Settings', 'Switches, the accent and the appearance apply at once. The organisation saves with its button.') +
       '<div class="ds-grid-2">' +
         '<section class="ds-card"><h2 class="ds-card__title">Sync</h2>' +
           switchHtml('nightlySync', 'Nightly sync at 02:00', s.nightlySync) +
@@ -462,6 +478,12 @@
           '<div class="ds-radios" role="radiogroup" aria-labelledby="accent-title">' + ACCENTS.map(([value, label, text]) =>
             `<label class="ds-radio"><input type="radio" name="accent" value="${value}"${value === accent ? ' checked' : ''}>` +
             `<span><strong><span class="ex-swatch" data-accent="${value}" aria-hidden="true"></span>${label}</strong><small>${text}</small></span></label>`).join('') +
+          '</div>' +
+        '</section>' +
+        '<section class="ds-card"><h2 class="ds-card__title" id="appearance-title">Appearance</h2>' +
+          '<div class="ds-radios" role="radiogroup" aria-labelledby="appearance-title">' + APPEARANCES.map(([value, label, text]) =>
+            `<label class="ds-radio"><input type="radio" name="appearance" value="${value}"${value === appearance ? ' checked' : ''}>` +
+            `<span><strong>${label}</strong><small>${text}</small></span></label>`).join('') +
           '</div>' +
         '</section>' +
       '</div>' +
@@ -1086,6 +1108,10 @@
       if (target.value === 'default') document.documentElement.removeAttribute('data-ex-accent');
       else document.documentElement.setAttribute('data-ex-accent', target.value);
       store('ex-accent', target.value === 'default' ? '' : target.value);
+    } else if (target.name === 'appearance') {
+      // Dark is the shipped theme on a link of its own: the choice sets its media.
+      store('ex-appearance', target.value === 'system' ? '' : target.value);
+      applyAppearance(target.value);
     } else if (target.hasAttribute('data-setting')) {
       const setting = target.getAttribute('data-setting');
       const on = target.checked;

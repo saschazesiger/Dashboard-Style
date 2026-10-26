@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="styleguide.css">
 <!-- The theme switcher fills one of these (a theme file or a preset). -->
 <link rel="stylesheet" id="sg-theme-link" disabled>
+<link rel="stylesheet" id="sg-theme-link-2" disabled>
 <style id="sg-theme-style"></style>
 <!-- The opt-in stylesheet for page loads (D15): over http, the move to the styleguide and back is a
      cross-document View Transition and the drawer's pill glides across it; from disk the pages just
@@ -43,9 +44,13 @@
         <label class="ds-sr" for="sg-theme-select">Theme</label>
         <select class="ds-input ds-input--filled" id="sg-theme-select">
           <option value="default">Default theme</option>
+          <option value="system">System: dark and contrast as the device asks</option>
+          <option value="dark">themes/dark.css</option>
+          <option value="compact">themes/compact.css</option>
+          <option value="contrast">themes/contrast.css</option>
           <option value="example">themes/example.css</option>
           <option value="square">Preset: square, flat</option>
-          <option value="dim">Preset: dimmed disabled, dense</option>
+          <option value="dim">Preset: dimmed disabled</option>
           <option value="file">Load theme file ...</option>
         </select>
         <input type="file" id="sg-theme-file" accept=".css,text/css" hidden>

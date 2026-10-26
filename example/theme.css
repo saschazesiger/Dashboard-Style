@@ -34,3 +34,21 @@
   --ds-on-accent: #1d192b;
   --ds-inverse-primary: #d0bcff;
 }
+
+/* The accents in the dark theme (data-ex-dark, set with the dark link's media): their dark tones. The extra
+   attribute outweighs the plain .ds-theme of themes/dark.css, which loads after this file. */
+.ds-theme[data-ex-dark][data-ex-accent="teal"] {
+  --ds-primary: #4cdada;
+  --ds-on-primary: #003737;
+  --ds-accent: #004f4f;
+  --ds-on-accent: #c1f5f4;
+  --ds-inverse-primary: #006a6a;
+}
+
+.ds-theme[data-ex-dark][data-ex-accent="violet"] {
+  --ds-primary: #d0bcff;
+  --ds-on-primary: #381e72;
+  --ds-accent: #4f378b;
+  --ds-on-accent: #eaddff;
+  --ds-inverse-primary: #6750a4;
+}

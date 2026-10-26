@@ -2977,7 +2977,18 @@
 
   var PRESETS = {
     square: '.ds-theme {\n  --ds-radius-xs: 0; --ds-radius-sm: 0; --ds-radius-md: 0; --ds-radius-lg: 0; --ds-radius-xl: 0; --ds-radius-2xl: 0;\n  --ds-radius-chip: 9999px;\n  --ds-elev-hover: none; --ds-elev-overlay: none;\n  --ds-dialog-border: 1px solid var(--ds-line);\n  --ds-backdrop: #ffffff; --ds-surface-low: #f6f6f6; --ds-surface-high: #f0f0f0;\n  --ds-text: #000000; --ds-primary: #202124; --ds-accent: #e8eaed; --ds-on-accent: #000000;\n  --ds-link-underline: rgba(0, 0, 0, .35);\n  --ds-alert-edge: 4px;\n}',
-    dim: '.ds-theme {\n  --ds-disabled-opacity: var(--ds-state-disabled); --ds-disabled-fill: initial; --ds-disabled-ink: initial;\n  --ds-font-body: var(--ds-weight-regular) 13px/18px var(--ds-font);\n  --ds-font-dense: var(--ds-weight-regular) 13px/18px var(--ds-font);\n  --ds-font-label: var(--ds-weight-label) 13px/18px var(--ds-font);\n  --ds-btn-height: 32px;\n}',
+    dim: '.ds-theme {\n  --ds-disabled-opacity: var(--ds-state-disabled); --ds-disabled-fill: initial; --ds-disabled-ink: initial;\n}',
+  };
+
+  /* Theme files, as [href, media] for the two theme links: the template
+     and the shipped themes of dist/themes/. "System" loads dark and
+     contrast for the media that ask for them, as a project does. */
+  var THEME_FILES = {
+    example: [['../themes/example.css', '']],
+    dark: [['../dist/themes/dark.css', '']],
+    compact: [['../dist/themes/compact.css', '']],
+    contrast: [['../dist/themes/contrast.css', '']],
+    system: [['../dist/themes/dark.css', '(prefers-color-scheme: dark)'], ['../dist/themes/contrast.css', '(prefers-contrast: more)']],
   };
 
   /* Counts theme changes: a slow load that a newer choice overtook still
@@ -3016,13 +3027,14 @@
     M.transition(apply, { type: 'fade-through' }).then(then, then);
   }
 
-  /* Applies a theme (a value of the select), then calls `done`. A theme
-     file loads first, its link on media "not all" (a disabled link would
-     not load at all); only then does the page switch, in one step, and
-     afterThemeChange() re-places the indicators. */
+  /* Applies a theme (a value of the select), then calls `done`. Theme
+     files load first, their links on media "not all" (a disabled link
+     would not load at all); only then does the page switch, in one step,
+     and afterThemeChange() re-places the indicators. */
   function applyTheme(value, done, instant) {
-    var link = $('#sg-theme-link');
+    var links = [$('#sg-theme-link'), $('#sg-theme-link-2')];
     var style = $('#sg-theme-style');
+    var files = THEME_FILES[value] || [];
     var run = themeRun += 1;
     var finish = function () {
       if (run === themeRun) afterThemeChange(value);
@@ -3031,20 +3043,25 @@
     var apply = function () {
       if (run !== themeRun) return;          // a newer choice took over
       style.textContent = PRESETS[value] || '';
-      link.media = '';
-      link.disabled = value !== 'example';
+      links.forEach(function (link, i) {
+        link.media = files[i] ? files[i][1] : '';
+        link.disabled = !files[i];
+      });
     };
     try { localStorage.setItem('ds-styleguide-theme', value === 'file' ? 'default' : value); } catch (e) { /* storage may be blocked */ }
-    if (value === 'example') {
+    if (!files.length) { swapTheme(apply, instant, finish); return; }
+    var waiting = files.length;
+    files.forEach(function (entry, i) {
+      var link = links[i];
       if (link.disabled) link.media = 'not all';
       link.disabled = false;
-      whenLinkLoaded(link, '../themes/example.css', function () {
+      whenLinkLoaded(link, entry[0], function () {
+        waiting -= 1;
+        if (waiting) return;
         if (run !== themeRun) { if (done) done(); return; }
         swapTheme(apply, instant, finish);
       });
-      return;
-    }
-    swapTheme(apply, instant, finish);
+    });
   }
 
   /* Wires the switcher and applies the saved theme, then calls `done`. */
@@ -3066,6 +3083,7 @@
         swapTheme(function () {
           if (run !== themeRun) return;
           $('#sg-theme-link').disabled = true;
+          $('#sg-theme-link-2').disabled = true;
           $('#sg-theme-style').textContent = String(reader.result);
         }, false, function () { if (run === themeRun) afterThemeChange('file'); });
         toast('Theme loaded: ' + chosen.name);

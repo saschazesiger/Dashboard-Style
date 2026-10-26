@@ -399,6 +399,44 @@ brand with the drawer icons). The pill's corners, `--ds-indicator-radius`, belon
 drawer's sets half the item height); the property does not inherit, so set it on that class, never on `.ds-theme`.
 `--ds-indicator-lag` is a motion hook: themes never set it.
 
+## Dark, compact and contrast
+
+Three themes ship in `dist/themes/`. Load them after `ds.css` and after your own theme, each for the condition it
+serves; they set roles and hooks on `.ds-theme` like any theme, never motion tokens.
+
+| File | What it sets | Load it |
+|---|---|---|
+| `themes/dark.css` | every colour role that does not follow another role, in the Material 3 dark tones (backdrop `#131314`, surface `#1e1f20`, primary `#a8c7fa`), the floating surfaces a tone above the page (`--ds-surface-overlay`, `--ds-surface-popover`), `--ds-color-scheme: dark` and shadows on black | `media="(prefers-color-scheme: dark)"`, or by the user's choice |
+| `themes/compact.css` | 13/18 UI text and shorter controls (`--ds-btn-height` 32px, `--ds-input-height` 36px, table rows, menu, drawer items and tabs 40px, chips 28px); under `@media (pointer: coarse)` the default heights come back, and field text keeps 16px on phones | for desktop consoles; touch density is `.ds-touch` (opt-in, never automatic) |
+| `themes/contrast.css` | `--ds-text-2` as the text colour, a stronger `--ds-text-3`, hairlines at the outline colour, darker outlines and field borders, 3px focus rings, solid link underlines, a stronger tint; mixed from your text and surface roles, so it works on any palette, dark included | `media="(prefers-contrast: more)"` |
+
+```html
+<link rel="stylesheet" href="vendor/dashboard-style/ds.css">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="vendor/dashboard-style/themes/dark.css" media="(prefers-color-scheme: dark)" id="ds-dark">
+<link rel="stylesheet" href="vendor/dashboard-style/themes/contrast.css" media="(prefers-contrast: more)">
+```
+
+A user's choice of appearance (light, dark or the system's) sets the dark link's `media` before the first paint, in an
+inline script right after the links:
+
+```html
+<script>
+  (function () {
+    var choice = null;
+    try { choice = localStorage.getItem('appearance'); } catch (e) { /* storage blocked: follow the system */ }
+    var link = document.getElementById('ds-dark');
+    link.media = choice === 'dark' ? 'all' : choice === 'light' ? 'not all' : '(prefers-color-scheme: dark)';
+  })();
+</script>
+```
+
+The dark theme replaces the brand colours with the system's own dark tones. A brand that needs a dark mode copies
+`themes/dark.css` into its own `theme-dark.css`, changes `--ds-primary`, `--ds-on-primary`, `--ds-accent` and
+`--ds-on-accent` (and the inverse primary), and checks the pairs (below). A project role of its own that carries a
+colour (`--<prefix>-*`) needs its dark value there too. Status keeps its words and icons in every theme; the
+contrast theme never relies on colour alone either.
+
 ## Checking a theme
 
 Open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component re-renders with it.

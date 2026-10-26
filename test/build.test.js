@@ -8,8 +8,8 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEPRECATION_KINDS, build, deprecationsJson, inlineCss, moduleBody, packageInfo } from '../scripts/build.mjs';
-import { read } from './helpers.js';
+import { DEPRECATION_KINDS, build, deprecationsJson, inlineCss, moduleBody, packageInfo, SHIPPED_THEMES, tokensJson } from '../scripts/build.mjs';
+import { filesIn, read, stripComments } from './helpers.js';
 
 /** Writes `files` ({ name: css }) into a fresh temporary folder and runs `check` on it. */
 function withFiles(files, check) {
@@ -145,5 +145,97 @@ describe('moduleBody()', () => {
       ["import {\n  enter,\n} from './motion.js';", /one line/],
     ];
     for (const [source, error, name = 'dom'] of cases) assert.throws(() => moduleBody(`${source}\nexport const x = 1;\n`, name), error, source);
+  });
+});
+
+describe('dist/themes/ and dist/tools/', () => {
+  const out = build();
+  it('ships the three themes and every tool, byte for byte, and lists them in SHA256SUMS', () => {
+    const sums = out.get('SHA256SUMS').toString('utf8');
+    for (const name of SHIPPED_THEMES) {
+      assert.equal(out.get(`themes/${name}.css`)?.toString('utf8'), read(`themes/${name}.css`), name);
+      assert.match(sums, new RegExp(`^[0-9a-f]{64}  themes/${name}\\.css$`, 'm'));
+    }
+    assert.ok(!out.has('themes/example.css'), 'the template is not shipped');
+    const tools = filesIn('scripts/tools').map((path) => path.slice('scripts/tools/'.length));
+    for (const name of ['theme-rules.mjs']) assert.ok(tools.includes(name), name);
+    for (const name of tools) assert.equal(out.get(`tools/${name}`)?.toString('utf8'), read(`scripts/tools/${name}`), name);
+    assert.ok(out.has('tokens.json'));
+  });
+});
+
+describe('dist/tokens.json', () => {
+  const data = JSON.parse(tokensJson(packageInfo()));
+  const byName = new Map(data.tokens.map((entry) => [entry.name, entry]));
+  const LAYERS = ['scale', 'role', 'hook', 'runtime', 'motion-hook', 'internal'];
+  const TYPES = ['color', 'length', 'font', 'duration', 'easing', 'number', 'shadow', 'other'];
+
+  it('is deterministic, carries the version and one sorted entry per name in the documented shape', () => {
+    assert.equal(tokensJson(packageInfo()), tokensJson(packageInfo()));
+    assert.equal(data.version, packageInfo().version);
+    assert.deepEqual(Object.keys(data), ['version', 'tokens']);
+    const names = data.tokens.map((entry) => entry.name);
+    assert.deepEqual(names, [...new Set(names)].sort((a, b) => (a < b ? -1 : 1)));
+    for (const entry of data.tokens) {
+      assert.ok(LAYERS.includes(entry.layer), `${entry.name}: layer ${entry.layer}`);
+      assert.ok(TYPES.includes(entry.type), `${entry.name}: type ${entry.type}`);
+      assert.equal(entry.themeable, entry.layer === 'role' || entry.layer === 'hook', `${entry.name}: themeable`);
+      assert.ok(entry.default === null || typeof entry.default === 'string', entry.name);
+      for (const key of Object.keys(entry)) assert.ok(['name', 'layer', 'default', 'type', 'themeable', 'component', 'deprecated'].includes(key), `${entry.name}: ${key}`);
+    }
+  });
+
+  it('keeps tokens.css, the hooks table of docs/theming.md and the stylesheets in step', () => {
+    const source = read('src/tokens.css');
+    const marker = source.indexOf('── 2. Palette');
+    const end = source.indexOf('\n  }\n', marker);
+    const names = (text) => [...stripComments(text).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]);
+    const first = source.indexOf('.ds-theme {');
+    for (const name of names(source.slice(first, marker))) assert.equal(byName.get(name)?.layer, 'scale', name);
+    for (const name of names(source.slice(marker, end))) assert.equal(byName.get(name)?.layer, 'role', name);
+    const theming = read('docs/theming.md');
+    const table = theming.slice(theming.indexOf('## Component hooks'), theming.indexOf('\n## ', theming.indexOf('## Component hooks') + 1));
+    const hooks = table.split('\n').filter((line) => line.startsWith('| `')).flatMap((line) => [...line.split(' | ')[0].matchAll(/`(--ds-[\w-]+)`/g)].map((match) => match[1]));
+    assert.ok(hooks.length > 40, `${hooks.length} hooks`);
+    for (const name of hooks) {
+      assert.equal(byName.get(name)?.layer, 'hook', name);
+      assert.ok(byName.get(name).component, `${name}: the component that reads it`);
+    }
+    assert.deepEqual(data.tokens.filter((entry) => entry.layer === 'hook').map((entry) => entry.name).sort(), [...new Set(hooks)].sort());
+    // Every custom property a stylesheet reads or declares is listed.
+    const used = new Set();
+    for (const file of filesIn('src', (path) => path.endsWith('.css'))) {
+      for (const match of stripComments(read(file)).matchAll(/var\(\s*(--ds-[\w-]+)|(--ds-[\w-]+)\s*:/g)) used.add(match[1] ?? match[2]);
+    }
+    assert.deepEqual([...used].filter((name) => !byName.has(name)).sort(), []);
+  });
+
+  it('reads defaults, types and layers the way a tool needs them', () => {
+    const expect = {
+      '--ds-primary': ['role', 'color', '#0b57d0'],
+      '--ds-primary-hover': ['role', 'color', 'color-mix(in srgb, var(--ds-primary), var(--ds-on-primary) 8%)'],
+      '--ds-dur-fast': ['scale', 'duration', 'calc(150ms * var(--ds-time-scale, 1))'],
+      '--ds-ease-out': ['scale', 'easing', 'cubic-bezier(.05, .7, .1, 1)'],
+      '--ds-space-4': ['scale', 'length', '16px'],
+      '--ds-z-toast': ['scale', 'number', '60'],
+      '--ds-font-body': ['role', 'font', 'var(--ds-weight-regular) 14px/20px var(--ds-font)'],
+      '--ds-elev-overlay': ['role', 'shadow', 'var(--ds-elev-3)'],
+      '--ds-btn-height': ['hook', 'length', '36px'],
+      '--ds-time-scale': ['scale', 'number', '1'],
+      '--ds-progress': ['runtime', 'number', '0'],
+      '--ds-menu-x': ['runtime', 'length', '0px'],
+      '--ds-motion-distance': ['motion-hook', null, null],
+      '--ds-btn-half': ['internal', null, null],
+    };
+    for (const [name, [layer, type, value]] of Object.entries(expect)) {
+      const entry = byName.get(name);
+      assert.ok(entry, name);
+      assert.equal(entry.layer, layer, `${name}: layer`);
+      if (type) assert.equal(entry.type, type, `${name}: type`);
+      if (value) assert.equal(entry.default, value, `${name}: default`);
+    }
+    assert.equal(byName.get('--ds-btn-height').component, 'button');
+    assert.equal(byName.get('--ds-ripple-scale')?.layer, 'motion-hook', 'read only by a keyframe of motion.css');
+    assert.ok(!byName.has('--ds-view-scroll'), 'a timeline name is not a custom property');
   });
 });
