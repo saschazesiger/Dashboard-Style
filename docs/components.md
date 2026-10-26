@@ -1763,3 +1763,9 @@ spaces its children with margins (`.ds-card > * + *`), give it `margin: auto` ag
 **Motion:** [Utilities](motion.md#utilities-css) and [Keyframes](motion.md#keyframes) in motion.md.
 
 ## Attributes
+
+| Attribute | Set by | On | What |
+|---|---|---|---|
+| `data-icon` | the page | any element | the glyph name that `DS.icons.fill()` draws into it ([icons.md](icons.md)) |
+| `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |
+| `data-ds-shown` | the page | a `.ds-hover-actions` host or the actions | shows actions on demand without hover or focus ([Utilities](#actions-on-demand)) |
