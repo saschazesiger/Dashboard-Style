@@ -24,6 +24,9 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `sh scripts/site.sh <dest>` | assemble the GitHub Pages site (`demo/`, `example/`, `styleguide/`, `dist/`, `docs/`, `themes/`, a root page that forwards to the live tour) into an empty `<dest>` (default `_site`, gitignored); `pages.yml` runs it |
 | `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
 | `sh scripts/vendor.sh --from . /tmp/ds && sh scripts/vendor.sh --check /tmp/ds` | the vendor round trip CI runs after `npm run check` |
+| `node dist/tools/verify.mjs` (or `sh dist/tools/verify.sh`) | verify a built `dist/` or a vendored copy against its `SHA256SUMS` without network (`--dir <path>` / a path for another copy); the same rules as `vendor.sh --check` |
+| `node dist/tools/check-theme.mjs <theme.css> [--with dist/themes/dark.css]` | check a theme file: unknown names, motion tokens, `:root`, `@layer`, `!important`, field text under 16px and removed names fail; contrast pairs, deprecated names and restyled components warn |
+| `node dist/tools/check-project.mjs --config ds-check.json` | the project rules of the block at the end of this file, run on a project (`docs/install.md`, "Check a project"); fixtures in `test/check-project.test.js` |
 | `npm ci` | once, for the browser tests only (installs the pinned `@playwright/test`, the only devDependency); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
 | `npm run test:browser` | browser tests in Chromium, Firefox and WebKit (`test/browser/`), plus the `fallback` project (Chromium as an engine on the browser floor: progressive CSS stripped, `linear()` rejected by `el.animate()`, no View Transitions, popover or `moveBefore`) for the specs that import `base-test.js`; run it before every push. Outside the Playwright container (other fonts and rasteriser) run `DS_SHOTS=local npm run test:browser`: screenshots then compare against the gitignored `__screenshots-local__/`, generated from the parent commit (`test/browser/README.md`, "CI"). `DS_TEST_PORT` picks another port for a second run or a worktree |
 | `npm run test:browser:update` | rewrite screenshots and JSON timelines, then review the diff. The committed `__screenshots__/` set is only ever rewritten from the CI container (Actions → check → Run workflow → "update screenshots"); elsewhere update with `DS_SHOTS=local`, see `test/browser/README.md` |
@@ -33,7 +36,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 
 | Path | What |
 |---|---|
-| `src/tokens.css` | all tokens on `.ds-theme` in `@layer ds.tokens`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the `linear()` refinements at the end; `@property --ds-time-scale` at top level |
+| `src/tokens.css` | all tokens on `.ds-theme` in `@layer ds.tokens`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the `linear()` refinements at the end; `@property --ds-time-scale` at top level; the one non-custom property, `color-scheme` from `--ds-color-scheme` on `:where(.ds-theme)` (zero specificity) |
 | `src/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, `.ds-swap`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
 | `src/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
 | `src/components/*.css` | one file per component; the header comment sketches markup, modifiers, hooks and "Progressive:" features |
@@ -42,14 +45,17 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `src/js/*.js` | ES modules `motion`, `indicator`, `dom`, `ripple`, `icons`, `overlay`; `scripts/build.mjs` (`MODULES`) wraps them into `dist/ds.js` as `window.DS.*` (a sibling `import` becomes a read of `DS.<module>`) |
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
+| `themes/dark.css`, `themes/compact.css`, `themes/contrast.css` | the shipped themes, copied to `dist/themes/`: every non-derived colour role in the dark tones; compact type and heights (default heights back under a coarse pointer); palette-neutral contrast mixes. Contrast pairs and completeness tested in `test/tokens.test.js`; a package that adds a colour role adds its dark and contrast values |
+| `src/deprecations.json` | every deprecated and removed name as data (`dist/deprecations.json`); a removed name gets `removed` set |
 | `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`) |
 | `docs/` | `install`, `tokens`, `theming`, `components`, `motion`, `icons`, `rules` |
 | `docs/images/` | the screenshots and GIFs of `README.md`, taken from the live tour, the reference app and the styleguide; retake them when the look changes |
 | `demo/` | the live tour, the start page on GitHub Pages: one page with a working demo of every behaviour (press, controls, live data, overlays, feedback, forms, theming, icons), wired as a project wires it (`theme.js` builds the theme from the choices under "Theme it" and shows its file, `demo.css` project components with the prefix `demo-`, `demo.js` the page; classic scripts on `../dist/`, so it works from disk); `test/browser/demo.spec.js` runs it |
 | `example/` | the reference app, published on GitHub Pages: a device console that uses the system as a project does (`theme.css` the project theme, `app.css` project components with the prefix `ex-`, `data.js` a fake backend, `app.js` the app; classic scripts on `../dist/`, so it works from disk); its `README.md` maps every pattern to its code. It follows the documented markup and the project rules of "Using Dashboard-Style in a project" below; `test/browser/example.spec.js` runs its flows |
-| `scripts/` | `build.mjs` (deterministic, `--check`), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects), `site.sh` (the GitHub Pages site) |
+| `scripts/` | `build.mjs` (deterministic, `--check`; also writes `dist/tokens.json` from `tokens.css`, the hooks table of `docs/theming.md` and the stylesheets), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects), `site.sh` (the GitHub Pages site) |
+| `scripts/tools/` | the tools shipped in `dist/tools/`, dependency-free: `verify.mjs` and `verify.sh` (a copy against `SHA256SUMS`; `verify.sh` holds `check_dir` of `vendor.sh` word for word), `check-theme.mjs`, `check-project.mjs`, and the modules they share: `theme-rules.mjs` (the contrast pairs, the motion prefixes and the colour resolver, also read by `test/tokens.test.js`) and `css-scan.mjs` |
 | `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
-| `test/` | `css`, `tokens`, `motion`, `js`, `build`, `repo`, `controls`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
+| `test/` | `css`, `tokens`, `motion`, `js`, `build`, `repo`, `controls`, `tools`, `check-project`, `helpers` and `browser-helpers` unit tests; `helpers.js` |
 | `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`, `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, `lab` for the Motion Lab: coverage, every demo, interruption, the overlay table; `review` for the whole-page sweeps; `perf` for the paint budget and style recalc times, alone) and the committed `__screenshots__/`; `README.md` explains them |
 | `plans/` | working plans (`motion-2.md` and its phases; `project-feedback.md`, proposals from a project migration, not yet decided; `project-feedback-2.md`, proposals from a second project migration, not yet decided); kept outside `docs/` so the docs tests do not count them |
 | `.github/workflows/pages.yml` | GitHub Pages (the live tour at the root): after `check` passed on a push to `main` (or by hand), `npm run check`, `scripts/site.sh`, deploy; the repository's Pages source is "GitHub Actions" |
@@ -110,7 +116,9 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   `outline-offset` (focus snap, transition only), `stroke-dashoffset` (drawn checks), `mask-position` (the
   progress wave), the chip check slot `width`, the heights of `.ds-collapsible`, validation messages and
   expandable rows (`grid-template-rows`), and the `min-height` of a `DS.motion.flip` container shrinking after removals. Never
-  `transition: all`, never `font-weight`. Exits take 0.3-0.8 of their entrance (tested). Hover never moves
+  `transition: all`, never `font-weight`. Exits take 0.3-0.8 of their entrance (tested); so does a state that shows
+  on one duration and hides on another (in on `--ds-dur-fast`, out on `--ds-dur-instant`; never `transition: none`
+  for the hide). Hover never moves
   anything; nothing scales on press except the switch handle. Data changes glide only through `countUp`, value bars and `DS.motion.flip`
   (live reorders wait while pointed at or focused, at most 2s); re-render with `DS.dom.morphHtml`, never
   `innerHTML`. Interrupted motion continues from its current state; JS timing comes from the computed tokens
@@ -148,8 +156,11 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   table rows keep their checkbox, the label weight or `aria-*` on active items.
 - **Forced colors** (`@media (forced-colors: active)`): floating layers (dialogs, sheets, the modal drawer,
   snackbars, tooltips, menus and the combobox list) keep a transparent outline or border that becomes their edge,
-  selected options show `SelectedItem` / `SelectedItemText`, selects get their native arrow back, spinner, switch,
-  progress and loading bar use system colours.
+  selects get their native arrow back, spinner, switch, progress and loading bar use system colours. One model per
+  meaning: a choice in a set (selected option, current drawer item, segmented option, current list row, selected
+  tab) is `SelectedItem` / `SelectedItemText`; an on/off toggle (`aria-pressed`, an open disclosure button, a
+  checked chip, a selected tile or card) is `Highlight` / `HighlightText`; blocked (`disabled`, `aria-disabled`) is
+  `GrayText`; a focused selected item takes a `CanvasText` ring inside its fill.
 - **Accessibility**: text roles pass WCAG AA (the default palette is tested), field text 16px on phones
   (`--ds-font-input`), labels above fields, icons `aria-hidden`.
 
@@ -205,8 +216,9 @@ the live tour in the same commit, so the published pages never show a deprecated
   - hook: components read `var(--ds-new, var(--ds-old, <fallback>))`;
   - class: list both selectors; keyframe or JS export: keep both names.
 
-  Mark the old name deprecated in the docs and the changelog. Remove it only in a later major version, once
-  projects have moved.
+  Mark the old name deprecated in the docs and the changelog, and add it to `src/deprecations.json`. Remove it only
+  in a later major version, once projects have moved; the entry stays, with `removed` set to that version, so
+  `tools/check-project.mjs` and the projects' own tests fail on it.
 - **Semver** in `package.json` and `CHANGELOG.md` is information, not protection: projects vendor `main` whatever
   the number says. The build writes the version into the banners and `DS.version`, and a test keeps them in step.
   Every change to what `dist/` does or offers gets a new version and a `## x.y.z` section at the top of the
@@ -261,4 +273,8 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   bind listeners once (or mark a subtree `data-ds-replace`). Reorders go through `DS.motion.flip`, figures through
   `DS.motion.countUp`; JS timing comes from `DS.motion.motionDuration()`, never ms literals.
 - Icons only from `DS.icons` / `js/icons.js`; status never by colour alone; actions are pills.
+- Run `node <dest>/tools/check-project.mjs --config ds-check.json` in CI (`docs/install.md`, "Check a project"): it
+  checks the bullets above (rules `vendor`, `classes`, `deprecated`, `literals`, `keyframes`, `themes`, `layers`,
+  `hidden`, `restyle`, `attributes`, `dom`, `pressable`); a deliberate deviation is an exception in
+  `ds-check.json` with its reason.
 ```

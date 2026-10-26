@@ -298,6 +298,51 @@ your own checks need not parse CSS:
 - `component` (hooks): the stylesheet that reads it. `deprecated` (when present): the version that deprecated the
   name; `deprecations.json` has the replacement, and removed names are not listed.
 
+## Check a project
+
+`tools/check-project.mjs` runs the project rules of AGENTS.md ("Using Dashboard-Style in a project") on your code,
+without dependencies (Node 18 or later). Describe the project once in `ds-check.json` (paths and globs relative to
+it; globs know `*`, `**` and `?`):
+
+```json
+{
+  "prefix": "app",
+  "css": ["css/**/*.css"],
+  "js": ["js/**/*.js"],
+  "html": ["*.html", "templates/**/*.html"],
+  "themes": ["css/theme.css"],
+  "vendor": "vendor/dashboard-style",
+  "exceptions": [
+    { "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "the bar is dark; no hook for it yet" }
+  ]
+}
+```
+
+```sh
+node vendor/dashboard-style/tools/check-project.mjs --config ds-check.json
+```
+
+It prints `<file>:<line> <rule> <message>` per finding (warnings say so) and exits 1 on an error, 2 on a broken
+configuration. An exception silences one rule for a file (a path or a glob) and, when it names one, a selector; its
+`reason` is required.
+
+| Rule | Level | What |
+|---|---|---|
+| `vendor` | error | the copy verifies against its `SHA256SUMS` ("Verify a copy") |
+| `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links the one that defines it |
+| `deprecated` | error, warning | a name of `deprecations.json`: removed names fail, deprecated ones warn |
+| `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`) |
+| `keyframes` | error | an own `@keyframes`, or an animation that names anything but a `ds-*` keyframe of the copy |
+| `themes` | error, warning | the theme files, through `tools/check-theme.mjs` |
+| `layers` | error | an element-only rule (`button`, `body`, `*`) outside a layer, which beats every component (put resets in `@layer reset` declared before ds), and `!important` |
+| `hidden` | error | a `[hidden]` rule: `ds.css` hides `[hidden]` already |
+| `restyle` | error | a project rule that reaches a `.ds-*` element (`.ds-btn`, `.app-bar .ds-btn`, `.ds-card p`) and sets anything but `--ds-*` hooks and placement (margins, grid and flex placement, position and offsets, sizes, `z-index`) |
+| `attributes` | error | a script that writes an attribute the system owns (the "Attributes" table of [components.md](components.md#attributes)); `data-toast-reserve` only next to `reserve: false` |
+| `dom` | warning | `innerHTML` with ds markup: re-render with `DS.dom.morphHtml` |
+| `pressable` | warning | a `::before` state layer of your own (`currentColor` or a `--ds-state-*` opacity): `.ds-pressable` gives a project element the system's hover, press and focus |
+
+The nightly template runs it as its optional `CHECK` step.
+
 ## Updating
 
 1. Read [CHANGELOG.md](../CHANGELOG.md) since the version in your `VERSION` file. Versions follow semver: a minor
