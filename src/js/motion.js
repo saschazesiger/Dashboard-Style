@@ -37,6 +37,12 @@
  * .ds-btn--done; the faces themselves are CSS. originFrom() writes where a
  * popup grows from.
  *
+ * Blocked actions (2.0): guard() cancels, in the capture phase on the
+ * window, every activation (click, middle click, Enter and Space, a label
+ * click, a form submission by its submitter) of a busy or done .ds-btn and
+ * of an aria-disabled action inside .ds-theme, before any page listener
+ * sees it; [data-ds-guard="off"] opts a control out. busy() installs it.
+ *
  * Views: transition() moves from one view to the next (navigation only,
  * never data): fade-through, shared axis X (forward, back) or a container
  * transform, as a View Transition keyed on data-ds-vt on <html> (the
@@ -1181,17 +1187,22 @@ export function staggerOnce(container, options = {}) {
 /**
  * How much longer a loading indicator inserted at `startedAt` must stay
  * before its content may replace it: none when it never became visible (it
- * fades in after `delay`, default LOADER_DELAY_MS), else until it was
- * visible for `minVisible` (default LOADER_MIN_VISIBLE_MS), so it never
- * flashes up and away half-faded.
+ * fades in after `delay`), else until it was visible for `minVisible`, so
+ * it never flashes up and away half-faded. With `element` (the indicator)
+ * the times come from its computed tokens, so they follow --ds-time-scale:
+ * the delay from --ds-delay-boot when it is or sits in a .ds-boot, else
+ * --ds-delay-loader, the minimum from --ds-hold-loader. Without it they are
+ * LOADER_DELAY_MS and LOADER_MIN_VISIBLE_MS. Explicit numbers win.
  * @param {number} startedAt  Date.now() when the indicator was inserted
  * @param {number} [now]
- * @param {{ delay?: number, minVisible?: number }} [options]  ms
+ * @param {{ element?: Element|null, delay?: number, minVisible?: number }} [options]  ms
  * @returns {number} ms
  */
 export function loaderHoldMs(startedAt, now = Date.now(), options = {}) {
-  const delay = options.delay ?? LOADER_DELAY_MS;
-  const minVisible = options.minVisible ?? LOADER_MIN_VISIBLE_MS;
+  const element = options.element ?? null;
+  const delayToken = element?.closest?.('.ds-boot') ? '--ds-delay-boot' : '--ds-delay-loader';
+  const delay = options.delay ?? (element ? motionDuration(element, delayToken) : LOADER_DELAY_MS);
+  const minVisible = options.minVisible ?? (element ? motionDuration(element, '--ds-hold-loader') : LOADER_MIN_VISIBLE_MS);
   const visible = now - startedAt - delay;
   if (visible <= 0 || visible >= minVisible) return 0;
   return minVisible - visible;
@@ -1199,26 +1210,139 @@ export function loaderHoldMs(startedAt, now = Date.now(), options = {}) {
 
 /**
  * Waits until a loading indicator inserted at `startedAt` may disappear
- * (see loaderHoldMs). With `element` (the indicator) the times come from
- * its computed tokens, so they follow --ds-time-scale: the delay from
- * --ds-delay-boot when it is or sits in a .ds-boot, else --ds-delay-loader,
- * the minimum from --ds-hold-loader. Explicit `delay` / `minVisible` win.
- * The second argument may be `now` (a number) or the options.
+ * (see loaderHoldMs, which takes the same `element`, `delay` and
+ * `minVisible`; `now` defaults to Date.now()).
+ *
+ * Deprecated (removed in 3.0 at the earliest): a number as the second
+ * argument (`now`, then the options third); it still works. Pass
+ * `{ now }` instead.
  * @param {number} startedAt  Date.now() when the indicator was inserted
- * @param {number|{ element?: Element, delay?: number, minVisible?: number }} [nowOrOptions]
- * @param {{ element?: Element, delay?: number, minVisible?: number }} [options]
+ * @param {{ now?: number, element?: Element|null, delay?: number, minVisible?: number }|number} [options]
+ * @param {{ element?: Element|null, delay?: number, minVisible?: number }} [legacy]  the options after a numeric `now`
  * @returns {Promise<void>}
  */
-export function settleLoader(startedAt, nowOrOptions, options = {}) {
-  const now = typeof nowOrOptions === 'number' ? nowOrOptions : Date.now();
-  const settings = nowOrOptions !== null && typeof nowOrOptions === 'object' ? nowOrOptions : options;
-  const element = settings.element;
-  const delayToken = element?.closest?.('.ds-boot') ? '--ds-delay-boot' : '--ds-delay-loader';
-  const ms = loaderHoldMs(startedAt, now, {
-    delay: settings.delay ?? (element ? motionDuration(element, delayToken) : undefined),
-    minVisible: settings.minVisible ?? (element ? motionDuration(element, '--ds-hold-loader') : undefined),
-  });
+export function settleLoader(startedAt, options, legacy = {}) {
+  const numeric = typeof options === 'number';
+  const settings = numeric ? legacy : (options !== null && typeof options === 'object' ? options : {});
+  const now = numeric ? options : settings.now ?? Date.now();
+  const ms = loaderHoldMs(startedAt, now, { element: settings.element, delay: settings.delay, minVisible: settings.minVisible });
   return ms ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+}
+
+/* ── Blocked actions ────────────────────────────────── */
+
+/** A busy button or one that shows its success face: blocked like a disabled one. */
+const BUSY_ACTION = '.ds-btn:is([aria-busy="true"], .ds-btn--done)';
+
+/** An action that says it is blocked (aria-disabled): it stays focusable, so its tooltip can say why. */
+const DISABLED_ACTION = `:is(${[
+  'a',
+  'button',
+  'input',
+  'summary',
+  '[role="button"]',
+  '[role="switch"]',
+  '[role="checkbox"]',
+  '[role="radio"]',
+  '[role="tab"]',
+  '[role="option"]',
+  '[role="menuitem"]',
+  '[role="menuitemcheckbox"]',
+  '[role="menuitemradio"]',
+].join(', ')})[aria-disabled="true"]`;
+
+/** The events of an activation: a click (Enter and Space on buttons and links too), a middle click, a submission. */
+const GUARDED_EVENTS = ['click', 'auxclick', 'submit'];
+
+/**
+ * The installed guard of each document or shadow root: the target it
+ * listens on and how many holders keep it.
+ * @type {WeakMap<object, { target: EventTarget, holders: number }>}
+ */
+const guards = new WeakMap();
+
+/** The blocked action that `node` (an event's target) sits in, or null. */
+function blockedAction(node) {
+  const element = node?.nodeType === 1 ? node : node?.parentElement ?? null;
+  if (typeof element?.closest !== 'function' || !element.closest('.ds-theme')) return null;
+  const action = element.closest(`${BUSY_ACTION}, ${DISABLED_ACTION}`);
+  return action && !action.closest('[data-ds-guard="off"]') ? action : null;
+}
+
+/** Cancels the activation of a blocked action before any page listener sees it. */
+function blockActivation(event) {
+  const source = event.type === 'submit' ? event.submitter : event.target;
+  if (!blockedAction(source)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+}
+
+/** Installs the guard on `root` (a document or a shadow root) once, or adds a holder. */
+function holdGuard(root) {
+  const installed = guards.get(root);
+  if (installed) {
+    installed.holders += 1;
+    return true;
+  }
+  const target = root.nodeType === 9 ? root.defaultView ?? root : root;
+  if (typeof target?.addEventListener !== 'function') return false;
+  for (const type of GUARDED_EVENTS) target.addEventListener(type, blockActivation, true);
+  guards.set(root, { target, holders: 1 });
+  return true;
+}
+
+/** Lets go of one holder; the last one removes the listeners. */
+function releaseGuard(root) {
+  const installed = guards.get(root);
+  if (!installed) return;
+  installed.holders -= 1;
+  if (installed.holders > 0) return;
+  for (const type of GUARDED_EVENTS) installed.target.removeEventListener(type, blockActivation, true);
+  guards.delete(root);
+}
+
+/**
+ * Blocks what says it is blocked, for every input: a click, a middle
+ * click (auxclick), Enter or Space (they arrive as clicks), a label click
+ * (it arrives as a click on its input) and a form submission (by its
+ * submitter, also the default button of Enter in a field) never reach the
+ * page's listeners or their default action when their target is inside
+ * .ds-theme and inside
+ *   - a busy or done button (.ds-btn[aria-busy="true"], .ds-btn--done), or
+ *   - an aria-disabled action (a, button, input, summary and the roles
+ *     button, switch, checkbox, radio, tab, option, menuitem,
+ *     menuitemcheckbox, menuitemradio with aria-disabled="true"),
+ * and not inside [data-ds-guard="off"] (a control that explains itself on
+ * click). Focus, hover and tooltips stay, so the reason still shows; a
+ * region with aria-busy (a container under a loading bar) is no action and
+ * stays usable. Capture-phase listeners on the root's window (a shadow
+ * root: on the root), installed once per document or shadow root and
+ * shared by every holder: busy() installs it on its first call (for good);
+ * a page that blocks actions without busy() calls it once at start-up.
+ * Only user input is blocked, never the page's own script.
+ * @param {Document|ShadowRoot} [root]
+ * @returns {{ destroy: () => void }} destroy() lets go of this call's hold (the last holder removes the listeners)
+ */
+export function guard(root = globalThis.document) {
+  let held = Boolean(root) && holdGuard(root);
+  return {
+    destroy() {
+      if (!held) return;
+      held = false;
+      releaseGuard(root);
+    },
+  };
+}
+
+/** The documents and shadow roots busy() guarded (for good). @type {WeakSet<object>} */
+const busyGuarded = new WeakSet();
+
+/** Guards the document or shadow root of `element` once for busy(). */
+function guardFor(element) {
+  const root = element?.getRootNode?.();
+  const usable = root && (root.nodeType === 9 || root.nodeType === 11) ? root : element?.ownerDocument;
+  if (!usable || busyGuarded.has(usable)) return;
+  if (holdGuard(usable)) busyGuarded.add(usable);
 }
 
 /* ── Busy buttons ───────────────────────────────────── */
@@ -1229,6 +1353,9 @@ const busyRuns = new WeakMap();
 /** The timer that ends each button's success face. @type {WeakMap<Element, any>} */
 const doneTimers = new WeakMap();
 
+/** A label setLabel() keeps until its button is back at rest. @type {WeakMap<Element, string>} */
+const pendingLabels = new WeakMap();
+
 /** Takes the success face off at once (a new busy() starts). */
 function clearDone(button) {
   if (doneTimers.has(button)) {
@@ -1237,24 +1364,70 @@ function clearDone(button) {
     disown(button, 'classes', 'ds-btn--done');
   }
   button.classList?.remove('ds-btn--done');
+  applyLabel(button);
+}
+
+/** The rest face of a faces button (the .ds-btn__face that is neither --busy nor --done), or null. */
+function restFace(button) {
+  const faces = Array.from(button.children ?? []).find((child) => child.classList?.contains('ds-btn__faces'));
+  if (!faces) return null;
+  return Array.from(faces.children ?? []).find((face) => face.classList?.contains('ds-btn__face')
+    && !face.classList.contains('ds-btn__face--busy') && !face.classList.contains('ds-btn__face--done')) ?? null;
+}
+
+/** Writes `text` into the text of `slot`, keeping its elements (an icon, the faces, the ripple layer). */
+function writeLabel(slot, text) {
+  const texts = Array.from(slot.childNodes ?? []).filter((node) => node.nodeType === 3 && node.nodeValue.trim());
+  if (!texts.length) {
+    slot.append(slot.ownerDocument.createTextNode(text));
+    return;
+  }
+  texts[0].nodeValue = text;
+  for (const node of texts.slice(1)) node.remove();
+}
+
+/** Writes the label setLabel() kept, once its button is at rest. */
+function applyLabel(button) {
+  if (!pendingLabels.has(button) || busyRuns.has(button) || doneTimers.has(button)) return;
+  const text = /** @type {string} */ (pendingLabels.get(button));
+  pendingLabels.delete(button);
+  writeLabel(restFace(button) ?? button, text);
+}
+
+/**
+ * Sets the label of a button without dropping what it holds: the text of
+ * its rest face (the .ds-btn__face that is neither --busy nor --done) on a
+ * faces button, else its own text; icons and the ripple layer stay. While
+ * busy() runs or the success face shows, the new label waits and shows
+ * once the button is back at rest, so the faces keep one width while
+ * they roll.
+ * @param {Element|null|undefined} button
+ * @param {string} text
+ */
+export function setLabel(button, text) {
+  if (!button) return;
+  pendingLabels.set(button, String(text ?? ''));
+  applyLabel(button);
 }
 
 /**
  * Runs `work` while `button` shows that it works, through the faces of
- * button.css: aria-busy="true" at once (blocked, the busy face shows after
- * --ds-delay-loader, so fast work changes nothing); once a busy face showed
- * it stays for the loader minimum (settleLoader(), --ds-hold-loader); on
- * success aria-busy goes and, unless `done` is false, .ds-btn--done shows
- * the success face for --ds-hold-success. On failure aria-busy goes at once
- * and the error is rethrown. A second call while the button is busy
- * returns the running promise and does not start `work` again; a call
- * during the success face takes it off first. Times are the computed
- * tokens (--ds-time-scale applies). Announcing the result stays the page's
- * job (aria-live).
+ * button.css: aria-busy="true" at once (blocked for every input: the first
+ * call installs guard(); the busy face shows after --ds-delay-loader, so
+ * fast work changes nothing); once a busy face showed it stays for the
+ * loader minimum (settleLoader(), --ds-hold-loader); on success aria-busy
+ * goes and, when the button has a success face (.ds-btn__face--done in its
+ * .ds-btn__faces) and `done` is not false, .ds-btn--done shows it for
+ * --ds-hold-success (`done: true` on a button without one changes
+ * nothing). On failure aria-busy goes at once and the error is rethrown. A
+ * second call while the button is busy returns the running promise and
+ * does not start `work` again; a call during the success face takes it off
+ * first. Times are the computed tokens (--ds-time-scale applies).
+ * Announcing the result stays the page's job (aria-live).
  * @template T
  * @param {Element|null|undefined} button  a .ds-btn, best with .ds-btn__faces
  * @param {(() => T|PromiseLike<T>)|PromiseLike<T>|T} work  a function (called at once) or a promise
- * @param {{ done?: boolean }} [options]  done: false skips the success face
+ * @param {{ done?: boolean }} [options]  done: false skips the success face (default: whether the button has one)
  * @returns {Promise<T>} the work's result, once the button is no longer busy
  */
 export function busy(button, work, options = {}) {
@@ -1268,7 +1441,9 @@ export function busy(button, work, options = {}) {
   if (!button) return Promise.resolve(start());
   const running = busyRuns.get(button);
   if (running) return running;
-  const done = options.done ?? true;
+  guardFor(button);
+  const face = Boolean(button.querySelector?.(':scope > .ds-btn__faces > .ds-btn__face--done'));
+  const done = face && (options.done ?? true);
   clearDone(button);
   // A re-render of the list around it (DS.dom.morphHtml) keeps both faces.
   own(button, 'attrs', 'aria-busy');
@@ -1289,11 +1464,12 @@ export function busy(button, work, options = {}) {
         own(button, 'classes', 'ds-btn--done');
         button.classList.add('ds-btn--done');
         doneTimers.set(button, setTimeout(() => clearDone(button), motionDuration(button, '--ds-hold-success')));
-      }
+      } else applyLabel(button);
       return value;
     }),
     (error) => {
       finish();
+      applyLabel(button);
       throw error;
     },
   );
@@ -2231,7 +2407,7 @@ function sameItems(a, b) {
  * from pointerover, because :hover sticks after a tap on touch screens and
  * touch never holds.
  */
-function guard(container, state) {
+function watchLive(container, state) {
   if (state.guarded) return;
   state.guarded = true;
   try {
@@ -2308,7 +2484,7 @@ export function flip(container, mutate, options = {}) {
   const state = flipState(container);
   if (options.live) {
     state.items = options.items;
-    guard(container, state);
+    watchLive(container, state);
     if (held(container, state)) {
       const queued = state.queued ?? (state.queued = { steps: [], options });
       queued.options = options;

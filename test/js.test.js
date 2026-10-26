@@ -1116,6 +1116,170 @@ describe('createIndicator on a fake track', () => {
   });
 });
 
+/**
+ * A small CSS selector matcher for the fake elements of the 2.0 helpers'
+ * tests: comma lists, tags, `.class`, `[attr]`, `[attr="value"]`,
+ * `:is(...)` and `:not(...)`, compounds only (no combinators).
+ */
+function selectorMatches(element, selector) {
+  const splitTop = (text) => {
+    const parts = [];
+    let depth = 0;
+    let current = '';
+    for (const char of text) {
+      if (char === '(' || char === '[') depth += 1;
+      if (char === ')' || char === ']') depth -= 1;
+      if (char === ',' && depth === 0) {
+        parts.push(current.trim());
+        current = '';
+      } else current += char;
+    }
+    if (current.trim()) parts.push(current.trim());
+    return parts;
+  };
+  const compound = (text) => {
+    let index = 0;
+    while (index < text.length) {
+      const rest = text.slice(index);
+      let match;
+      if ((match = /^\.([\w-]+)/.exec(rest))) {
+        if (!(element.getAttribute('class') ?? '').split(/\s+/).includes(match[1])) return false;
+      } else if ((match = /^\[([\w-]+)(?:="([^"]*)")?\]/.exec(rest))) {
+        const value = element.getAttribute(match[1]);
+        if (value === null || (match[2] !== undefined && value !== match[2])) return false;
+      } else if ((match = /^:(is|not)\(/.exec(rest))) {
+        let depth = 1;
+        let end = match[0].length;
+        while (depth > 0) {
+          if (rest[end] === '(') depth += 1;
+          if (rest[end] === ')') depth -= 1;
+          end += 1;
+        }
+        const inner = splitTop(rest.slice(match[0].length, end - 1)).some((part) => selectorMatches(element, part));
+        if (inner !== (match[1] === 'is')) return false;
+        match = [rest.slice(0, end)];
+      } else if ((match = /^([a-z][\w-]*)/i.exec(rest))) {
+        if (element.tagName.toLowerCase() !== match[1].toLowerCase()) return false;
+      } else throw new Error(`selectorMatches: cannot read "${rest}"`);
+      index += match[0].length;
+    }
+    return true;
+  };
+  return splitTop(selector).some(compound);
+}
+
+/** Elements for the guard: tag, attributes, children; closest() and matches() through selectorMatches(). */
+function guardDom() {
+  const listeners = [];
+  const win = {
+    addEventListener: (type, listener, capture) => listeners.push({ type, listener, capture }),
+    removeEventListener: (type, listener, capture) => {
+      const index = listeners.findIndex((entry) => entry.type === type && entry.listener === listener && entry.capture === capture);
+      if (index >= 0) listeners.splice(index, 1);
+    },
+  };
+  const doc = { nodeType: 9, defaultView: win };
+  const h = (tag, attributes = {}, ...children) => {
+    const element = {
+      nodeType: 1,
+      tagName: tag.toUpperCase(),
+      parentElement: null,
+      ownerDocument: doc,
+      children,
+      attributes: { ...attributes },
+      getAttribute(name) { return name in this.attributes ? String(this.attributes[name]) : null; },
+      setAttribute(name, value) { this.attributes[name] = String(value); },
+      removeAttribute(name) { delete this.attributes[name]; },
+      hasAttribute(name) { return name in this.attributes; },
+      matches(selector) { return selectorMatches(this, selector); },
+      closest(selector) {
+        for (let current = this; current; current = current.parentElement) if (current.matches(selector)) return current;
+        return null;
+      },
+      getRootNode() { return doc; },
+    };
+    for (const child of children) child.parentElement = element;
+    return element;
+  };
+  /** Dispatches `type` to the capture listeners on the window, as the browser would first; returns what they did. */
+  const fire = (type, target, init = {}) => {
+    const event = {
+      type, target, ...init, prevented: false, stopped: false,
+      preventDefault() { this.prevented = true; },
+      stopImmediatePropagation() { this.stopped = true; },
+    };
+    for (const entry of listeners.filter((each) => each.type === type && each.capture)) entry.listener(event);
+    return { blocked: event.prevented && event.stopped, prevented: event.prevented };
+  };
+  return { h, doc, win, listeners, fire };
+}
+
+describe('DS.motion.guard (2.0)', () => {
+  it('blocks a click, middle click and submission on busy, done and aria-disabled actions inside .ds-theme', () => {
+    const { h, doc, fire } = guardDom();
+    const busyFace = h('span', { class: 'ds-btn__face' });
+    const busyButton = h('button', { class: 'ds-btn', 'aria-busy': 'true' }, h('span', { class: 'ds-btn__faces' }, busyFace));
+    const doneButton = h('button', { class: 'ds-btn ds-btn--done' });
+    const link = h('a', { href: '#x', 'aria-disabled': 'true' });
+    const switchInput = h('input', { type: 'checkbox', role: 'switch', 'aria-disabled': 'true' });
+    const option = h('div', { role: 'option', 'aria-disabled': 'true' });
+    const plain = h('button', { class: 'ds-btn' });
+    const inBusyRegion = h('button', { class: 'ds-btn' });
+    const region = h('section', { 'aria-busy': 'true' }, inBusyRegion);
+    const explains = h('button', { class: 'ds-btn', 'aria-disabled': 'true' });
+    const off = h('div', { 'data-ds-guard': 'off' }, explains);
+    const form = h('form', {});
+    h('div', { class: 'ds-theme' }, busyButton, doneButton, link, switchInput, option, plain, region, off, form);
+    const outside = h('button', { class: 'ds-btn', 'aria-busy': 'true' });
+    h('div', {}, outside);
+    const handle = motion.guard(doc);
+    assert.equal(fire('click', busyFace).blocked, true, 'a click inside a busy button');
+    assert.equal(fire('click', doneButton).blocked, true, 'a done button');
+    assert.equal(fire('click', link).blocked, true, 'an aria-disabled link');
+    assert.equal(fire('auxclick', link).blocked, true, 'its middle click');
+    assert.equal(fire('click', switchInput).blocked, true, 'a label click arrives on the aria-disabled input');
+    assert.equal(fire('click', option).blocked, true, 'an aria-disabled option');
+    assert.equal(fire('submit', form, { submitter: busyButton }).blocked, true, 'a submission by a busy submitter (Enter in a field)');
+    assert.equal(fire('submit', form, { submitter: plain }).blocked, false);
+    assert.equal(fire('submit', form, { submitter: null }).blocked, false, 'form.requestSubmit() without a submitter');
+    assert.equal(fire('click', plain).blocked, false, 'a usable button');
+    assert.equal(fire('click', inBusyRegion).blocked, false, 'a region with aria-busy is no action');
+    assert.equal(fire('click', explains).blocked, false, 'data-ds-guard="off": the page explains on click');
+    assert.equal(fire('click', outside).blocked, false, 'outside .ds-theme');
+    handle.destroy();
+  });
+
+  it('installs once per root, counts its holders and removes its listeners with the last one', () => {
+    const { doc, listeners } = guardDom();
+    const first = motion.guard(doc);
+    const second = motion.guard(doc);
+    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true]]);
+    first.destroy();
+    first.destroy();
+    assert.equal(listeners.length, 3, 'one holder left');
+    second.destroy();
+    assert.equal(listeners.length, 0);
+    // A shadow root listens on itself.
+    const shadow = { nodeType: 11, added: [], addEventListener(type) { this.added.push(type); }, removeEventListener() {} };
+    motion.guard(shadow).destroy();
+    assert.deepEqual(shadow.added, ['click', 'auxclick', 'submit']);
+  });
+
+  it('is installed by busy() on its first call, for good', async () => {
+    const { h, doc, listeners } = guardDom();
+    const button = h('button', { class: 'ds-btn' });
+    button.classList = { contains: () => false, add() {}, remove() {} };
+    button.querySelector = () => null;
+    h('div', { class: 'ds-theme' }, button);
+    await motion.busy(button, () => 'saved');
+    assert.equal(listeners.length, 3);
+    await motion.busy(button, () => 'again');
+    assert.equal(listeners.length, 3, 'once');
+    motion.guard(doc).destroy();
+    assert.equal(listeners.length, 3, 'a page handle never takes away the hold of busy()');
+  });
+});
+
 describe('classic-script build (dist/ds.js)', () => {
   it('exposes the same exports as the modules under window.DS', () => {
     const sandbox = { window: undefined };

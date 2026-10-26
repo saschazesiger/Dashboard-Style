@@ -26,6 +26,7 @@ import {
   replay,
   resyncScroll,
   roll,
+  setLabel,
   settleLoader,
   settled,
   stagger,
@@ -885,9 +886,77 @@ describe('js/motion', () => {
         return handle;
       }
 
+      /** A button with a success face (busy() shows .ds-btn--done only when there is one, 2.0). */
+      function facesButton(doc = null) {
+        const button = new FakeElement(doc);
+        button.querySelector = (selector) => (selector === ':scope > .ds-btn__faces > .ds-btn__face--done' ? new FakeElement(doc) : null);
+        return button;
+      }
+
+      it('shows no success face on a button without one, even with done: true (2.0)', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        for (const options of [{}, { done: true }]) {
+          const button = new FakeElement();
+          const work = deferred();
+          const done = busy(button, () => work.promise, options);
+          t.mock.timers.tick(LOADER_DELAY_MS + 50);
+          work.resolve('ok');
+          await flushPromises();
+          t.mock.timers.tick(LOADER_MIN_VISIBLE_MS);
+          assert.equal(await done, 'ok');
+          assert.equal(button.getAttribute('aria-busy'), null);
+          assert.equal(button.classList.contains('ds-btn--done'), false, 'not blanked and blocked for --ds-hold-success');
+          // Usable at once: a new call runs.
+          let ran = false;
+          await busy(button, () => { ran = true; });
+          assert.ok(ran);
+        }
+      });
+
+      it('setLabel() writes the rest face, keeps the faces and waits while busy or done (2.0)', async (t) => {
+        t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
+        const label = (text) => Object.assign(new FakeElement(), { nodeType: 3, nodeValue: text });
+        const button = facesButton();
+        const faces = new FakeElement();
+        faces.className = 'ds-btn__faces';
+        const rest = new FakeElement();
+        rest.className = 'ds-btn__face';
+        const busyFace = new FakeElement();
+        busyFace.className = 'ds-btn__face ds-btn__face--busy';
+        const doneFace = new FakeElement();
+        doneFace.className = 'ds-btn__face ds-btn__face--done';
+        const icon = new FakeElement();
+        const text = label('Save');
+        rest.append(icon, text);
+        faces.append(rest, busyFace, doneFace);
+        button.append(faces);
+        setLabel(button, 'Save 3 changes');
+        assert.equal(text.nodeValue, 'Save 3 changes');
+        assert.deepEqual(rest.children, [icon, text], 'the icon stays');
+        assert.deepEqual(faces.children, [rest, busyFace, doneFace], 'the faces stay');
+        const work = deferred();
+        const done = busy(button, () => work.promise);
+        setLabel(button, 'Save 4 changes');
+        assert.equal(text.nodeValue, 'Save 3 changes', 'waits while busy');
+        work.resolve();
+        await done;
+        assert.ok(button.classList.contains('ds-btn--done'));
+        assert.equal(text.nodeValue, 'Save 3 changes', 'waits while the success face shows');
+        t.mock.timers.tick(MOTION_FALLBACKS['--ds-hold-success']);
+        assert.equal(text.nodeValue, 'Save 4 changes', 'shows once at rest');
+        // A button without faces: its own text, its elements stay.
+        const plain = new FakeElement();
+        const glyph = new FakeElement();
+        const own = label('Add');
+        plain.append(glyph, own);
+        setLabel(plain, 'Add device');
+        assert.equal(own.nodeValue, 'Add device');
+        assert.deepEqual(plain.children, [glyph, own]);
+      });
+
       it('sets aria-busy at once; work faster than the loader delay is never held', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         const done = busy(button, () => work.promise);
         assert.equal(button.getAttribute('aria-busy'), 'true');
@@ -901,7 +970,7 @@ describe('js/motion', () => {
 
       it('holds a busy face that showed for the loader minimum, then shows done for --ds-hold-success', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         const done = busy(button, () => work.promise);
         t.mock.timers.tick(LOADER_DELAY_MS + 50);
@@ -925,7 +994,7 @@ describe('js/motion', () => {
 
       it('done: false skips the success face', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         await busy(button, 'ready', { done: false });
         assert.equal(button.getAttribute('aria-busy'), null);
         assert.equal(button.classList.contains('ds-btn--done'), false);
@@ -933,7 +1002,7 @@ describe('js/motion', () => {
 
       it('clears at once on failure and rethrows', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         const done = busy(button, () => work.promise);
         t.mock.timers.tick(LOADER_DELAY_MS + 50);
@@ -949,7 +1018,7 @@ describe('js/motion', () => {
 
       it('a second call while busy returns the same promise and runs work once', async (t) => {
         t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
-        const button = new FakeElement();
+        const button = facesButton();
         const work = deferred();
         let calls = 0;
         const run = () => { calls += 1; return work.promise; };
@@ -973,7 +1042,7 @@ describe('js/motion', () => {
         const doc = fakeDocument(() => values);
         const theme = new FakeElement(doc);
         theme.matches = (selector) => selector === '.ds-theme';
-        const button = new FakeElement(doc);
+        const button = facesButton(doc);
         theme.append(button);
         const work = deferred();
         const done = busy(button, () => work.promise);
@@ -1238,6 +1307,19 @@ describe('js/motion', () => {
       assert.equal(loaderHoldMs(1000, 1500, { delay: 400 }), 350);
       assert.equal(loaderHoldMs(1000, 1500, { delay: 400, minVisible: 200 }), 100);
     });
+
+    it('reads its times from the element: --ds-delay-boot in a .ds-boot, else --ds-delay-loader, and --ds-hold-loader (2.0)', () => {
+      const values = { '--ds-delay-loader': 'calc(200ms * 10)', '--ds-delay-boot': 'calc(400ms * 10)', '--ds-hold-loader': 'calc(450ms * 10)' };
+      const loader = (inBoot) => ({
+        ownerDocument: { defaultView: { getComputedStyle: () => ({ getPropertyValue: (name) => values[name] ?? '' }) } },
+        closest: (selector) => (selector === '.ds-theme' || (inBoot && selector === '.ds-boot') ? {} : null),
+      });
+      // Time scale 10: visible after 2000ms (4000ms in a boot screen), for at least 4500ms.
+      assert.equal(loaderHoldMs(0, 2500, { element: loader(false) }), 4000);
+      assert.equal(loaderHoldMs(0, 2500, { element: loader(true) }), 0, 'a boot screen waits longer before it shows');
+      assert.equal(loaderHoldMs(0, 4500, { element: loader(true) }), 4000);
+      assert.equal(loaderHoldMs(0, 2500, { element: loader(false), delay: 0, minVisible: 3000 }), 500, 'explicit numbers win');
+    });
   });
 
   describe('settleLoader', () => {
@@ -1264,6 +1346,20 @@ describe('js/motion', () => {
 
     it('resolves at once when the indicator was visible long enough', async () => {
       await settleLoader(0, LOADER_DELAY_MS + LOADER_MIN_VISIBLE_MS);
+    });
+
+    it('takes `now` as an option; the numeric second argument (deprecated) still works (2.0)', async (t) => {
+      t.mock.timers.enable({ apis: ['setTimeout'] });
+      const startedAt = 10_000;
+      const states = [];
+      const modern = settleLoader(startedAt, { now: startedAt + LOADER_DELAY_MS + 50 }).then(() => states.push('modern'));
+      const legacy = settleLoader(startedAt, startedAt + LOADER_DELAY_MS + 50, { minVisible: 100 }).then(() => states.push('legacy'));
+      t.mock.timers.tick(50);
+      await legacy;
+      assert.deepEqual(states, ['legacy'], 'the options after a numeric now still apply');
+      t.mock.timers.tick(LOADER_MIN_VISIBLE_MS - 100);
+      await modern;
+      assert.deepEqual(states, ['legacy', 'modern']);
     });
   });
 

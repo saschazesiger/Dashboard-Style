@@ -81,6 +81,8 @@
 
   DS.ripple.attach(document);
   DS.overlay.tooltips(document);
+  // aria-disabled, busy and done actions ignore every input (click, Enter, Space, a submission): no own guard.
+  DS.motion.guard(document);
 
   /* ── Frame: drawer, scroll spy, modal drawer, data-scrolled ───────── */
 
@@ -219,8 +221,6 @@
     const button = event.currentTarget;
     button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
   });
-
-  $$('[aria-disabled="true"]').forEach((element) => element.addEventListener('click', (event) => event.preventDefault()));
 
   let copyBack = 0;
   $('#copy-link').addEventListener('click', (event) => {

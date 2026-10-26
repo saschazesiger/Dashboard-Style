@@ -323,8 +323,12 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
   changes colour on the pill's timing (`--ds-indicator-dur`).
-- `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why; your script
-  must ignore its clicks. `disabled` and `aria-busy="true"` block the pointer.
+- `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why. `disabled` and
+  `aria-busy="true"` block the pointer. Blocked for every input (2.0): once `DS.motion.busy()` ran, or
+  `DS.motion.guard()` was called once ([motion.md](motion.md#dsmotion-jsmotionjs)), a click, middle click, Enter,
+  Space or form submission on a busy or done `.ds-btn`, or on any `aria-disabled="true"` action inside `.ds-theme`,
+  never reaches your listeners: no page guard needed. A control that must explain itself on click gets
+  `data-ds-guard="off"`.
 - Press: the state layer comes in `--ds-dur-micro` and the shape turns squarer (`--ds-radius-action-pressed`, 12px;
   hook `--ds-btn-radius-pressed`), then springs back on release (`--ds-ease-spatial`, `--ds-dur-medium`); with
   `DS.ripple.attach(document)` a ripple grows from the pointer ([Ripple](#ripple)) and `.ds-pressed` keeps a quick
@@ -835,6 +839,8 @@ The native input stays in the form and the tab order; a selected chip shows the 
   by the script; `--ds-surface` without one), so a chip that crosses another never shows it through its body.
 - Press: the state layer in `--ds-dur-micro` and the ripple. Chips are not pills, so they do not morph. Keyboard
   focus: the ring, solid from the first frame, snaps to its offset, with the focus layer.
+- An `aria-disabled="true"` chip input is blocked by `DS.motion.guard()`: a click on the chip never changes it (no
+  page guard needed).
 - Disabled chips (`disabled` on the input or its `<fieldset>`) show no hover, press or ripple and the `not-allowed` cursor, and take
   the button's disabled model: the outline (selected: the container) in `--ds-disabled-fill`, label and check in
   `--ds-disabled-ink`, fading on `--ds-dur-fast`. A theme that dims instead (`--ds-disabled-opacity`) keeps the
@@ -863,7 +869,8 @@ change it.
 The handle glides and grows on the spatial spring (also when a script sets `checked`), grows to 28px while pressed,
 and a halo around it (`--ds-switch-halo`, 40px) shows hover, press and keyboard focus; the switch has no ripple.
 Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-switch-disabled-handle`), no hover, halo
-or grow, the `not-allowed` cursor and the quieter label. `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
+or grow, the `not-allowed` cursor and the quieter label. An `aria-disabled="true"` switch input is blocked by
+`DS.motion.guard()` (a click on the switch or its label never flips it; no page guard needed). `.ds-switch__label` has no styles of its own; add `.ds-sr` to it when a card
 title next to the switch already names the setting.
 
 **Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
@@ -961,7 +968,8 @@ trigger.addEventListener('keydown', (event) => {
   state layer for hover, press and focus, an inset focus ring and the ripple. `role="menuitemcheckbox"` with
   `aria-checked`: the check (`.ds-menu__check` on its icon) shows only when checked and keeps its room otherwise, so
   the labels line up; your click handler flips `aria-checked`. `aria-disabled="true"` keeps an item focusable (its name
-  is read) with the disabled ink, no hover, no press and no ripple; `DS.overlay` ignores its clicks.
+  is read) with the disabled ink, no hover, no press and no ripple; `DS.overlay` ignores its clicks, and
+  `DS.motion.guard()` keeps them from your handlers too (no page guard needed).
   `.ds-menu__divider` separates groups.
 - **Placement.** Below the trigger from its start edge, flipped towards the start edge when there is no room; above
   the trigger when it does not fit below and there is more room above; 112px to 280px wide, and never taller than the

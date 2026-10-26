@@ -85,6 +85,9 @@ the tests in `test/`.
   labels, the keyboard and screen readers work as without CSS.
 - A busy button (`aria-busy`) and its done face change only what is seen: announce the result yourself (an
   `aria-live` region or a snackbar).
+- Blocked means blocked for every input: a busy or done button and an `aria-disabled` action ignore a click, a middle
+  click, Enter, Space and a form submission alike. `DS.motion.guard()` (installed by `DS.motion.busy()`) cancels them
+  before any listener of the page; focus, hover and the tooltip that says why stay.
 - Forced colors (Windows contrast themes) drop backgrounds and shadows: floating layers (dialogs, sheets, the modal
   drawer, snackbars, tooltips, menus and the combobox list) carry a transparent outline that becomes their edge, a
   selected option shows `SelectedItem`, selects get their native arrow back, and the spinner, switch, progress and

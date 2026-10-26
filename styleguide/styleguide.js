@@ -888,7 +888,7 @@
       var answered = Date.now();
       var shown = answered - startedAt > times.delay;
       var held = M.loaderHoldMs(startedAt, answered, times) > 0;
-      M.settleLoader(startedAt, answered, times).then(function () {
+      M.settleLoader(startedAt, { now: answered, delay: times.delay, minVisible: times.minVisible }).then(function () {
         if (run !== loadRun) return;
         stage.innerHTML = '<p class="ds-muted">Loaded 1,284 devices after ' + ms + 'ms. ' +
           (!shown ? 'The loader never showed.' : held ? 'The loader had just appeared, so it stayed for the hold time.' : 'The loader showed and left at once.') + '</p>';
