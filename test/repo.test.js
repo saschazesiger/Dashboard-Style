@@ -129,6 +129,8 @@ describe('repository', () => {
     const NOT_HOOKS = new Map([
       ['--ds-content-pad-top', 'the panel padding of page.css at the current width: read it, never set it'],
       ['--ds-content-pad-x', 'the panel padding of page.css at the current width: read it, never set it'],
+      ['--ds-viewport-height', 'the visual viewport height, written on <html> by DS.dom.followViewport(): runtime state, never a theme value'],
+      ['--ds-content-pad-bottom', 'the bottom padding of page.css and the view at the current width: read it, never set it'],
       ['--ds-toast-reserve', 'set by the page (data-toast-reserve) for an open message'],
       ['--ds-toast-bottom', 'set by the page on the region over a bar pinned to the bottom edge'],
       ['--ds-toast-shift-y', 'set by the page with --ds-toast-shift, to glide a region it moved'],

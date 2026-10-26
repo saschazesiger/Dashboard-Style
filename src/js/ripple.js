@@ -78,6 +78,8 @@ export const RIPPLE_HOSTS = [
   '.ds-combo__toggle',
   '.ds-menu__item',
   '.ds-errors summary',
+  '.ds-drawer__toggle',
+  '.ds-tabs__tab',
   '[data-ds-ripple]',
 ].join(', ');
 

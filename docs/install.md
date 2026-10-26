@@ -118,7 +118,7 @@ needs only `'self'` there. Either way `img-src` must allow `data:` (`img-src 'se
 (`.ds-check`, `.ds-checkbox`, table checkboxes) loses its check and keeps only the filled box, the value of a
 determinate `.ds-progress` and the arc of `.ds-spinner--determinate` disappear (the masks `--ds-progress-wave` and
 `--ds-progress-ring-wave` in `tokens.css`), and the calendar glyph of date fields and the clear glyph of search
-fields go blank (`form.css`).
+fields go blank (`form.css`), and breadcrumbs lose the chevrons between their links (`page.css`).
 
 ## Bundlers and ES modules
 

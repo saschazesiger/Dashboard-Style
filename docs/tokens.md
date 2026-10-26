@@ -175,6 +175,7 @@ Only floating layers cast shadows; hierarchy comes from hairlines, tonal surface
 |---|---|---|
 | `--ds-topbar-height` | 64px | top app bar, modal drawer head |
 | `--ds-drawer-width` | 256px | navigation drawer |
+| `--ds-drawer-rail-width` | 72px | the drawer as a rail (`data-drawer-collapsed`, above 900px): 48px items in its 12px inset |
 | `--ds-content-max` | 1280px | widest page content |
 | `--ds-measure` | 76ch | reading measure of leads and notes |
 | `--ds-toast-room` | 64px | room at a page's end for a two-line snackbar |
@@ -189,7 +190,9 @@ clip edge of the sliding indicator (its `data-dir` rules put the trailing edge o
 properties (read them, never set them; set the spacing tokens instead): `--ds-content-pad-top` and
 `--ds-content-pad-x`, the top and side padding of `.ds-content` at the current width (`--ds-space-6` and
 `--ds-space-8`, at 720px and below `--ds-space-5` and `--ds-space-4`), which the loading bar reads to reach the panel
-edges. Properties set at runtime (by `js/` or by the
+edges, and `--ds-content-pad-bottom`, its bottom padding (`--ds-space-6` plus `--ds-toast-room` plus `--ds-space-2`;
+`--ds-space-4` instead of `--ds-space-6` at 600px and below; `--ds-space-6` alone in `.ds-view--fill` and
+`.ds-view--fixed`); `.ds-view` defines all three with the same values. Properties set at runtime (by `js/` or by the
 page) are listed with their component in [components.md](components.md) and [motion.md](motion.md): `--ds-i`,
 `--ds-indicator-x`, `--ds-indicator-y`, `--ds-indicator-w`, `--ds-indicator-h` (the indicator's box), `--ds-indicator-t`,
 `--ds-indicator-r`, `--ds-indicator-b`, `--ds-indicator-l` (its clip edges), `--ds-indicator-radius` (its corners, copied
@@ -197,6 +200,8 @@ from a project class's `border-radius` when no class sets it), `--ds-indicator-d
 `--ds-progress`, `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`,
 `--ds-tooltip-x`, `--ds-tooltip-y` (the tooltip's place, written by `DS.overlay.tooltips()` where anchor positioning is missing),
 `--ds-menu-x`, `--ds-menu-y` (a menu's place, written by `DS.overlay.open()` where anchor positioning is missing),
+`--ds-viewport-height` (the visual viewport's height, written on `<html>` by `DS.dom.followViewport()`; `.ds-app` takes it, else
+`100dvh`),
 `--ds-chips-backdrop`, `--ds-flip-backdrop` (the colour behind a chip row or a `DS.motion.flip()` container while its items
 glide: their opaque backing),
 and the per-element motion settings `--ds-motion-distance`, `--ds-motion-scale`, `--ds-motion-origin`, `--ds-clip-from`,

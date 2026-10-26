@@ -30,6 +30,7 @@
 @import './components/card.css';
 @import './components/tile.css';
 @import './components/list.css';
+@import './components/prose.css';
 @import './components/empty.css';
 @import './components/status.css';
 @import './components/alert.css';
@@ -45,5 +46,7 @@
 @import './components/toast.css';
 @import './components/tooltip.css';
 @import './components/shell.css';
+@import './components/tabs.css';
+@import './components/steps.css';
 @import './components/ripple.css';
 @import './components/page.css';

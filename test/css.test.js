@@ -109,6 +109,7 @@ const PROGRESSIVE = [
   [/text-wrap/, 'text-wrap'],
   [/scrollbar-color|scrollbar-width/, 'scrollbar-color'],
   [/scrollbar-gutter/, 'scrollbar-gutter'],
+  [/hyphenate-limit-chars/, 'hyphenate-limit-chars'],
 ];
 
 /** Plain :focus selectors that may draw an outline, each with its reason. */
@@ -145,6 +146,7 @@ const RUNTIME = new Set([
   '--ds-menu-y',
   '--ds-chips-backdrop',
   '--ds-flip-backdrop',
+  '--ds-viewport-height',
 ]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
@@ -1625,8 +1627,16 @@ describe('navigation (1.2.0)', () => {
   it('changes label colour on the pill timing, only under .ds-has-indicator', () => {
     const LABELS = /\.ds-drawer__item(?![\w-])(?!.*::)|\.ds-segmented__option(?![\w-])(?!.*::)/;
     const found = [];
+    // A blocked option (2.0) fades to the disabled model on --ds-dur-fast, the one other colour timing.
+    const BLOCKED = /:is\(:disabled, \[aria-disabled="true"\]\)$/;
     for (const { selector, body } of rules(read(SHELL))) {
       if (!animated(body).includes('color')) continue;
+      if (splitSelectors(selector).every((part) => BLOCKED.test(part))) {
+        const colour = declarations(`${body};`).filter(({ property }) => property === 'transition')
+          .flatMap(({ value }) => entriesOf(value)).find((entry) => entry.name === 'color');
+        assert.deepEqual(colour?.words, ['color', 'var(--ds-dur-fast)', 'var(--ds-ease-in-out)'], selector);
+        continue;
+      }
       for (const part of splitSelectors(selector).filter((text) => LABELS.test(text))) {
         assert.ok(part.includes('.ds-has-indicator'), `${part}: a colour transition without the pill`);
         found.push(part);

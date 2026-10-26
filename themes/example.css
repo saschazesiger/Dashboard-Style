@@ -152,6 +152,7 @@
   /* ── Layout ── */
   --ds-topbar-height: 64px;
   --ds-drawer-width: 256px;
+  --ds-drawer-rail-width: 72px;
   --ds-content-max: 1280px;
   --ds-measure: 76ch;
   --ds-toast-room: 64px;
@@ -182,6 +183,17 @@
   --ds-drawer-item-height: 48px;
   --ds-topbar-scrolled-bg: var(--ds-surface-high);
   --ds-view-scrollbar-gutter: stable;
+  --ds-segmented-padding-x: var(--ds-space-4);
+  --ds-topbar-search-max: 720px;       --ds-account-text-max: 240px;
+  --ds-avatar-size: 32px;
+  --ds-tabs-height: 48px;              --ds-tabs-indicator-height: 3px;
+  --ds-tabs-indicator-color: var(--ds-primary);
+  --ds-steps-bar-height: 4px;
+  --ds-stack-gap: var(--ds-space-4);   --ds-stack-gap-page: var(--ds-space-5);
+  --ds-page-head-text-basis: 320px;    --ds-page-head-title-line: 32px;
+  --ds-breadcrumbs-item-max: 240px;    --ds-auth-width: 400px;
+  --ds-prose-gap: var(--ds-space-2);   --ds-prose-font: var(--ds-font-reading);
+  --ds-prose-strong-weight: var(--ds-weight-label);
   --ds-card-padding: var(--ds-space-6); --ds-card-padding-sm: var(--ds-space-4);
   --ds-card-padding-filled: var(--ds-space-5);
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);
