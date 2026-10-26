@@ -336,7 +336,8 @@
             <header class="demo-section__head">
               <h2 class="demo-section__title" id="forms-title">Forms</h2>
               <p class="demo-section__lead">Labels above fields, a ring inside the field that is there at once. Submit the empty form:
-                messages open their room and fade in. The model field is a combobox: type, use the arrow keys, press Enter.</p>
+                messages open their room and fade in. The model field is a combobox: type, use the arrow keys, press Enter. Below it, a CSV
+                import takes files by drop, by the file dialog or from the clipboard.</p>
             </header>
             <form class="ds-card ds-form" id="demo-form" novalidate>
               <div class="ds-form-grid">
@@ -391,6 +392,21 @@
                 <p class="ds-meta">Nothing is sent anywhere.</p>
               </div>
             </form>
+            <section class="ds-card demo-import" aria-labelledby="csv-title">
+              <h3 class="ds-card__title" id="csv-title">Import a CSV file</h3>
+              <p class="ds-muted">Drop files on the zone, browse for them, or paste one while the zone has the focus. Each file uploads with its
+                progress; remove one and the focus moves to the next.</p>
+              <label class="ds-dropzone" id="csv-zone">
+                <input class="ds-dropzone__input" type="file" accept=".csv,text/csv" multiple>
+                <span class="ds-dropzone__disc" aria-hidden="true" data-icon="plus"></span>
+                <span class="ds-dropzone__title">
+                  <span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span>
+                  <span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span>
+                </span>
+                <span class="ds-dropzone__hint">CSV only. Nothing is uploaded: the tour reads the names.</span>
+              </label>
+              <ul class="demo-files" id="csv-files" aria-label="Chosen files"></ul>
+            </section>
           </section>
 
           <!-- ── Theme it ───────────────────────────────────────────── -->

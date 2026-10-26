@@ -14,7 +14,9 @@
  *                   snackbars with an undo
  *   feedback        progress with its figure, a status that changes, alerts
  *                   that come and go (flip)
- *   forms           validation on submit, a combobox, busy and done
+ *   forms           validation on submit, a combobox, busy and done; a CSV
+ *                   import (DS.dom.dropzone, a list of files through flip,
+ *                   DS.dom.progress per file)
  *   theme           theme.js: the choice restyles the page and shows its file
  *   icons           the set, filtered with flip, copied on click
  *
@@ -595,10 +597,9 @@
   alertStack.addEventListener('click', (event) => {
     const button = event.target.closest('[data-dismiss]');
     if (!button) return;
-    // Focus leaves the button before its alert goes.
-    $('#add-alert').focus({ preventScroll: true });
     alerts.list = alerts.list.filter((alert) => alert.id !== button.getAttribute('data-dismiss'));
-    renderAlerts();
+    // flip() moves the focus to the next alert's Dismiss, and to "Add an alert" once none is left.
+    M.flip(alertStack, (morph) => DS.dom.morphHtml(alertStack, alertsHtml(), morph), { refocus: () => $('#add-alert') });
   });
 
   /* ── Forms ────────────────────────────────────────────────────────── */
@@ -725,6 +726,51 @@
     const option = event.target.closest('.ds-combo__option');
     const model = option && combo.matches.find((m) => m.id === option.id);
     if (model) comboChoose(model);
+  });
+
+  /* ── Forms: a CSV import ──────────────────────────────────────────── */
+
+  const csv = { files: [], next: 1 };
+  const csvList = $('#csv-files');
+  const csvZone = $('#csv-zone');
+
+  /* A row per file: its name, its upload progress (the share in the
+     template, so a re-render keeps it) and a remove button. */
+  function csvHtml() {
+    return csv.files.map((file) => {
+      const percent = Math.round(file.share * 100);
+      return `<li class="demo-file" data-ds-key="${file.id}">${icon('fileText', 20)}<span class="demo-file__name">${esc(file.name)}</span>` +
+        `<div class="ds-progress ds-progress--flat demo-file__progress" style="--ds-progress: ${file.share}"><div class="ds-progress__track" role="progressbar" aria-label="Upload of ${esc(file.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><div class="ds-progress__bar"></div></div></div>` +
+        `<span class="ds-meta demo-file__state">${percent === 100 ? 'Uploaded' : `${percent}%`}</span>` +
+        `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove ${esc(file.name)}" data-tip="Remove" data-remove="${file.id}">${icon('close', 20)}</button></li>`;
+    }).join('');
+  }
+  const renderCsv = () => M.flip(csvList, (morph) => DS.dom.morphHtml(csvList, csvHtml(), morph), { refocus: () => $('.ds-dropzone__input', csvZone) });
+
+  async function upload(file) {
+    for (const share of [0.3, 0.65, 1]) {
+      await fake(500 + Math.random() * 500);
+      if (!csv.files.includes(file)) return;
+      file.share = share;
+      DS.dom.morphHtml(csvList, csvHtml());
+    }
+  }
+
+  // Files by drop, by the file dialog and, with the focus in the zone, from the clipboard: one handler.
+  DS.dom.dropzone(csvZone, {
+    paste: true,
+    onFiles: (files) => {
+      const added = files.map((file) => ({ id: `f${csv.next++}`, name: file.name, share: 0 }));
+      csv.files.push(...added);
+      renderCsv();
+      added.forEach(upload);
+    },
+  });
+  csvList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-remove]');
+    if (!button) return;
+    csv.files = csv.files.filter((file) => file.id !== button.getAttribute('data-remove'));
+    renderCsv();
   });
 
   /* ── Theme it ─────────────────────────────────────────────────────── */
