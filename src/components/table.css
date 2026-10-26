@@ -99,6 +99,12 @@
  * fallback): --ds-scrollbar-height (the scrollbar strip stays unmasked),
  * --ds-table-pin-width (focus never lands under a pinned column).
  *
+ * Internal (each body row sets them, its cells read them; never set
+ * them): --ds-table-row-layer, --ds-table-row-pace, --ds-table-row-tint,
+ * --ds-table-row-line. The row decides, the cells paint: no cell rule
+ * sits behind a row's :has() (Chromium would restyle every table cell
+ * of the page on each change anywhere in it).
+ *
  * The sort button presses in --ds-dur-micro (also while js/ripple.js holds
  * .ds-pressed) and ripples; it is not a pill and does not morph. Keyboard
  * focus on the sort button and .ds-link-btn: a ring that is solid from the
@@ -310,16 +316,36 @@
     padding-block: min(var(--ds-space-3), calc((var(--ds-table-row-height, 52px) - var(--ds-space-6) - 2px) / 2));
   }
 
-  /* The row holds the selection colour, its cells the state layer: the
-     layer adds to the selection instead of replacing it. */
-  .ds-table tbody tr,
-  .ds-table tbody tr > :is(td, th) {
+  /*
+   * The row holds the selection colour, its cells the state layer: the
+   * layer adds to the selection instead of replacing it. The row decides
+   * and its cells paint: each body row sets its state layer
+   * (--ds-table-row-layer) and how fast it changes (--ds-table-row-pace),
+   * the selection a pinned cell lays over its base (--ds-table-row-tint)
+   * and the style of its hairline (--ds-table-row-line); its cells read
+   * them. A cell rule behind a row's :has() would put every cell of the
+   * page into Chromium's one :has() invalidation set, so each change
+   * anywhere in the page restyled every table cell. Every body row starts
+   * from these values, so a nested table never takes its outer row's
+   * layer. Internal: a page never sets them.
+   */
+  .ds-table tbody tr {
+    --ds-table-row-layer: transparent;
+    --ds-table-row-pace: var(--ds-dur-fast);
+    --ds-table-row-tint: transparent;
+    --ds-table-row-line: solid;
     transition: background-color var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
+  .ds-table tbody tr > :is(td, th) {
+    border-bottom-style: var(--ds-table-row-line);
+    background-color: var(--ds-table-row-layer);
+    transition: background-color var(--ds-table-row-pace) var(--ds-ease-in-out);
+  }
+
   @media (hover: hover) {
-    .ds-table tbody tr:not(.ds-table__detail):hover > :is(td, th) {
-      background-color: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
+    .ds-table tbody tr:not(.ds-table__detail):hover {
+      --ds-table-row-layer: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
     }
   }
 
@@ -328,10 +354,12 @@
      own (set by the page), and the :has() rule picks up a row whose
      checkbox is checked. */
   .ds-table tbody tr.ds-table__row--selected {
+    --ds-table-row-tint: var(--ds-table-row-selected, var(--ds-accent));
     background-color: var(--ds-table-row-selected, var(--ds-accent));
   }
 
   .ds-table tbody tr:has(> :is(td, th) > input[type="checkbox"]:checked) {
+    --ds-table-row-tint: var(--ds-table-row-selected, var(--ds-accent));
     background-color: var(--ds-table-row-selected, var(--ds-accent));
   }
 
@@ -406,16 +434,16 @@
   }
 
   /* Keyboard focus: the focus layer on the cells, at once. */
-  .ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within > :is(td, th) {
-    background-color: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
-    transition-duration: 0s;
+  .ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within {
+    --ds-table-row-layer: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
+    --ds-table-row-pace: 0s;
   }
 
   /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it); not
      while a control inside the row is pressed (it has its own press). */
-  .ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))) > :is(td, th) {
-    background-color: color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
-    transition-duration: var(--ds-dur-micro);
+  .ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))) {
+    --ds-table-row-layer: color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
+    --ds-table-row-pace: var(--ds-dur-micro);
   }
 
   /*
@@ -424,8 +452,8 @@
    * detail, so there is one line, below the detail, which travels down as
    * it opens.
    */
-  .ds-table tbody tr:has(+ .ds-table__detail) > :is(td, th) {
-    border-bottom: 0;
+  .ds-table tbody tr:has(+ .ds-table__detail) {
+    --ds-table-row-line: none;
   }
 
   .ds-table .ds-table__detail > td,
@@ -737,30 +765,20 @@
       --ds-table-sticky-tint var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
+  /* A body row's pinned cell lays the row's layer and selection over its
+     base (the row decides them, as for the other cells). */
+  .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child {
+    --ds-table-sticky-layer: var(--ds-table-row-layer);
+    --ds-table-sticky-tint: var(--ds-table-row-tint);
+    transition:
+      background-color var(--ds-table-row-pace) var(--ds-ease-in-out),
+      --ds-table-sticky-layer var(--ds-table-row-pace) var(--ds-ease-in-out),
+      --ds-table-sticky-tint var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
   /* The corner over the sticky header and the pinned column. */
   .ds-table-wrap--fill > .ds-table--pin-first > thead th:first-child {
     z-index: var(--ds-z-sticky-pinned);
-  }
-
-  @media (hover: hover) {
-    .ds-table--pin-first tbody tr:not(.ds-table__detail):hover > :is(td, th):first-child {
-      --ds-table-sticky-layer: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
-    }
-  }
-
-  .ds-table--pin-first tbody tr.ds-table__row--selected > :is(td, th):first-child,
-  .ds-table--pin-first tbody tr:has(> :is(td, th) > input[type="checkbox"]:checked) > :is(td, th):first-child {
-    --ds-table-sticky-tint: var(--ds-table-row-selected, var(--ds-accent));
-  }
-
-  .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within > :is(td, th):first-child {
-    --ds-table-sticky-layer: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
-    transition-duration: 0s;
-  }
-
-  .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))) > :is(td, th):first-child {
-    --ds-table-sticky-layer: color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
-    transition-duration: var(--ds-dur-micro);
   }
 
   /* The hairline at the pinned column's end: it shows once the table has
@@ -1025,8 +1043,8 @@
   }
 
   @media (hover: hover) {
-    :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) > tbody > tr:not(.ds-table__detail):hover > :is(td, th) {
-      background-color: transparent;
+    :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) > tbody > tr:not(.ds-table__detail):hover {
+      --ds-table-row-layer: transparent;
     }
   }
 
@@ -1102,8 +1120,8 @@
     }
 
     @media (hover: hover) {
-      .ds-table--stack > tbody > tr:not(.ds-table__detail):hover > :is(td, th) {
-        background-color: transparent;
+      .ds-table--stack > tbody > tr:not(.ds-table__detail):hover {
+        --ds-table-row-layer: transparent;
       }
     }
 
@@ -1180,8 +1198,8 @@
     }
 
     @media (hover: hover) {
-      .ds-table--stack-wide > tbody > tr:not(.ds-table__detail):hover > :is(td, th) {
-        background-color: transparent;
+      .ds-table--stack-wide > tbody > tr:not(.ds-table__detail):hover {
+        --ds-table-row-layer: transparent;
       }
     }
 

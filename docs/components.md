@@ -706,6 +706,11 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   horizontal padding and its own vertical room; put the content straight into it. Name the toggle column's header
   for screen readers, `<th scope="col"><span class="ds-sr">Details</span></th>` (an empty header cell is an
   accessibility error).
+- The row decides its layers and its cells paint them (2.0): each body row sets `--ds-table-row-layer` (the state
+  layer), `--ds-table-row-pace` (how fast it changes), `--ds-table-row-tint` (the selection a pinned cell lays over
+  its base) and `--ds-table-row-line` (the style of its hairline). They are internal: a page never sets them; to
+  change the look, set `--ds-table-row-hover` and `--ds-table-row-selected`. A cell rule behind a row's `:has()`
+  would make Chromium restyle every table cell of the page on each change anywhere in it.
 
 ### Stacked rows
 

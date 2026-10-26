@@ -1496,15 +1496,15 @@ describe('controls (1.1.0)', () => {
     assert.deepEqual(offenders, []);
     assert.deepEqual([...RIPPLE_EXEMPT.keys()].filter((key) => !exemptUsed.has(key)), [], 'an exemption nothing needs: shorten RIPPLE_EXEMPT');
     // Every host with a pressed state layer has its .ds-ripples rule, so layer and ripple never stack.
-    // The layer is the host's ::before; a table row's is on its cells
+    // The layer is the host's ::before; a table row's is the --ds-table-row-layer its cells paint
     // (> :is(td, th), so a <th scope="row"> row header has it too).
-    const layer = (part) => part.endsWith('::before') || part.endsWith(' > :is(td, th)');
-    const ripple = rules(read('src/components/ripple.css')).flatMap((rule) => splitSelectors(rule.selector));
+    const layer = (part, body) => part.endsWith('::before') || part.endsWith(' > :is(td, th)') || /(^|[;{\s])--ds-table-row-layer\s*:/.test(body);
+    const ripple = rules(read('src/components/ripple.css')).flatMap((rule) => splitSelectors(rule.selector).map((part) => ({ part, body: rule.body })));
     for (const host of hosts.filter((item) => item !== '[data-ds-ripple]')) {
       const layered = COMPONENT_CSS.filter((path) => path !== 'src/components/ripple.css').some((file) => rules(read(file))
-        .some((rule) => splitSelectors(rule.selector).some((part) => new RegExp(`${literally(host)}(?![\\w-])[^,]*:active`).test(part) && layer(part))));
+        .some((rule) => splitSelectors(rule.selector).some((part) => new RegExp(`${literally(host)}(?![\\w-])[^,]*:active`).test(part) && layer(part, rule.body))));
       assert.ok(layered, `${host}: a pressed state layer`);
-      assert.ok(ripple.some((part) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && layer(part)), `${host}: its .ds-ripples rule`);
+      assert.ok(ripple.some(({ part, body }) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && layer(part, body)), `${host}: its .ds-ripples rule`);
     }
   });
 
@@ -2064,7 +2064,9 @@ describe('tables and scrollers (2.0)', () => {
     const base = Object.fromEntries(declarationsAt(screen, PINNED[0]).map((entry) => [entry.property, entry.value]));
     assert.deepEqual([base.position, base['inset-inline-start'], base['z-index']], ['sticky', '0', 'var(--ds-z-pinned)']);
     assert.match(base['background-image'], /^linear-gradient\(var\(--ds-table-sticky-layer\), var\(--ds-table-sticky-layer\)\), linear-gradient\(var\(--ds-table-sticky-tint\), var\(--ds-table-sticky-tint\)\), linear-gradient\(var\(--ds-table-sticky-bg, var\(--ds-surface\)\)/);
-    assert.match(base.transition, /--ds-table-sticky-layer var\(--ds-dur-fast\) var\(--ds-ease-in-out\), --ds-table-sticky-tint var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/);
+    // A body row's pinned cell lays the row's layer and selection over its base, at the row's pace.
+    assert.deepEqual([base['--ds-table-sticky-layer'], base['--ds-table-sticky-tint']], ['var(--ds-table-row-layer)', 'var(--ds-table-row-tint)']);
+    assert.match(base.transition, /--ds-table-sticky-layer var\(--ds-table-row-pace\) var\(--ds-ease-in-out\), --ds-table-sticky-tint var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/);
     for (const name of ['--ds-table-sticky-layer', '--ds-table-sticky-tint']) {
       assert.match(stripComments(table), new RegExp(`@property ${name} \\{\\s*syntax: '<color>';\\s*inherits: false;\\s*initial-value: transparent;`), name);
     }
@@ -2105,6 +2107,31 @@ describe('tables and scrollers (2.0)', () => {
         for (const part of splitSelectors(rule.selector)) {
           const subject = part.replace(/::[\w-]+(\([^)]*\))?$/, '').split(/\s*[\s>+~]\s*(?![^(]*\))/).pop();
           if (/^:(first|last|only|nth)-/.test(subject)) offenders.push(`${file}: ${part}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  it('never styles table rows or cells behind a :has() of another element (the row decides, its cells paint)', () => {
+    // Chromium keeps one invalidation set for every :has() that is not in the subject: the subjects of those rules.
+    // The root (.ds-theme:not(:has(...))) is in it, so each change anywhere in the page restyles every element that
+    // set names: a `tr:has(...) > :is(td, th)` rule restyled every table cell of the page on each text change
+    // (the styleguide: 1,170 cells, 27ms a change). Rows set --ds-table-row-* instead, which their cells read.
+    const offenders = [];
+    for (const file of SRC_CSS) {
+      for (const rule of rules(read(file))) {
+        for (const part of splitSelectors(rule.selector)) {
+          let depth = 0;
+          let last = 0;
+          for (let index = 0; index < part.length; index += 1) {
+            const char = part[index];
+            if (char === '(') depth += 1;
+            else if (char === ')') depth -= 1;
+            else if (depth === 0 && /[\s>+~]/.test(char)) last = index + 1;
+          }
+          const subject = part.slice(last).replace(/::[\w-]+(\([^)]*\))?$/, '').replace(/\.[\w-]+|\[[^\]]*\]/g, '');
+          if (part.slice(0, last).includes(':has(') && /(^|[^\w-])(td|th|tr)(?![\w-])/.test(subject)) offenders.push(`${file}: ${part}`);
         }
       }
     }
