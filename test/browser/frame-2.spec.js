@@ -14,7 +14,7 @@
  * item and the selected option) and print.
  */
 import { test, expect } from './base-test.js';
-import { ready, settle } from './helpers/motion.js';
+import { ready, settle, setSpeed } from './helpers/motion.js';
 
 const URL = '/test/browser/fixtures/frame-2.html';
 
@@ -155,7 +155,8 @@ test.describe('drawer parts', () => {
     const count = await box(page, '#waiting .ds-drawer__count');
     expect(count.right).toBeLessThanOrEqual(action.left);
     expect(await style(page, '#item-count', 'font-variant-numeric')).toContain('tabular-nums');
-    expect(await style(page, '#open', '-webkit-tap-highlight-color')).toBe('rgba(0, 0, 0, 0)');
+    // Firefox has no tap highlight (and no such property).
+    expect(['rgba(0, 0, 0, 0)', '']).toContain(await style(page, '#open', '-webkit-tap-highlight-color'));
   });
 
   test('the foot rail lays its items out icon-only in a row, their labels read but unseen', async ({ page }) => {
@@ -214,11 +215,15 @@ test.describe('rail', () => {
     // The pill follows its item's new size.
     const pill = await box(page, '#list .ds-indicator');
     expect(Math.abs(pill.width - 48)).toBeLessThan(1);
-    // The labels come back with a fade (in --ds-dur-fast).
+    // The labels come back with a fade (in --ds-dur-fast; slowed down, so a
+    // busy machine still catches it running).
+    await setSpeed(page, 0.1);
+    await page.evaluate(() => window.fxRail(true));
+    await settle(page, { timeout: 8000 });
     await page.evaluate(() => window.fxRail(false));
     const fading = await page.locator('#open .ds-drawer__label').evaluate((el) => el.getAnimations().map((a) => a.transitionProperty));
     expect(fading).toContain('opacity');
-    await settle(page);
+    await settle(page, { timeout: 8000 });
     expect(Math.round((await box(page, '#drawer')).width)).toBe(256);
   });
 

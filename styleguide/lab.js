@@ -2007,6 +2007,7 @@
     play: function (stage, sg) {
       return railTo(true, sg).then(function () { return wait(sg, 300); }).then(function () { return railTo(false, sg); });
     },
+    subject: function () { return $('#sg-nav .ds-drawer__label'); },
     state: railOn,
     toggle: function (stage, on, sg) { return railTo(on, sg); },
   });

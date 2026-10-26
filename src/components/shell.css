@@ -1375,11 +1375,15 @@
       gap: 0;
     }
 
+    /* Hidden in place (1px less a 1px margin takes no room), not taken out
+       of the flow: Firefox drops the fade of an element whose position
+       changes in the same style change. */
     .ds-app--drawer[data-drawer-collapsed] .ds-drawer :is(.ds-drawer__label, .ds-drawer__heading:not(.ds-drawer__toggle), .ds-drawer__toggle > span, .ds-drawer__count) {
-      position: absolute;
+      flex: none;
       width: 1px;
+      min-width: 0;
       height: 1px;
-      margin: -1px;
+      margin: 0 -1px -1px 0;
       padding: 0;
       overflow: hidden;
       clip-path: inset(50%);
