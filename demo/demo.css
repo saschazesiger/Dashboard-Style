@@ -14,7 +14,6 @@
  *   .demo-progress    a linear and a round progress side by side
  *   .demo-loaders     a row of loaders
  *   .demo-alerts      the stack the alerts come and go in (flip)
- *   .demo-disclosure  <details class="ds-collapsible demo-disclosure">: the summary row and its body
  *   .demo-radios      radio cards in two columns
  *   .demo-swatch      the colour dot of an accent choice
  *   .demo-code        a block of code
@@ -182,20 +181,6 @@
 }
 
 /* ── Forms ────────────────────────────────────────────────────────── */
-
-.demo-disclosure > summary {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-2);
-  width: fit-content;
-  color: var(--ds-text);
-  font: var(--ds-font-label);
-  cursor: pointer;
-}
-
-.demo-disclosure__body {
-  padding-top: var(--ds-space-4);
-}
 
 .demo-radios {
   grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));

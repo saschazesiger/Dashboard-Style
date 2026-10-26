@@ -28,8 +28,11 @@
 @import './components/indicator.css';
 @import './components/loading.css';
 @import './components/card.css';
+@import './components/disclosure.css';
 @import './components/tile.css';
 @import './components/list.css';
+@import './components/timeline.css';
+@import './components/tasks.css';
 @import './components/empty.css';
 @import './components/status.css';
 @import './components/alert.css';
@@ -43,6 +46,7 @@
 @import './components/combobox.css';
 @import './components/menu.css';
 @import './components/progress.css';
+@import './components/chart.css';
 @import './components/sheet.css';
 @import './components/dialog.css';
 @import './components/toast.css';

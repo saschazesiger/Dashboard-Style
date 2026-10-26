@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lists, disclosure, timeline and tasks · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  .fx-wide {
+    max-width: 720px;
+  }
+</style>
+</head>
+<body>
+<!-- The record parts of 2.0 (WP6): a row list with a current row, a row
+     menu button and a blocked row, a narrow row list whose trailing parts
+     wrap, key-value rows that open (with a static, a blocked and an icon
+     row), bars, facts in rows with a lock, a plain disclosure and accordion
+     rows in a card, a timeline with day groups, a muted and an icon entry,
+     and a task list. The specs drive them through window.fxLists. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="rows-title">
+    <h2 id="rows-title">Row list</h2>
+    <ul class="ds-list ds-list--interactive fx-wide" id="rows" aria-label="Devices"></ul>
+    <p class="fx-row"><span id="opened">none</span><span id="more">none</span></p>
+  </section>
+
+  <section class="fx-section" aria-labelledby="narrow-title">
+    <h2 id="narrow-title">Narrow row list</h2>
+    <ul class="ds-list fx-narrow" id="narrow" aria-label="Devices, narrow">
+      <li class="ds-list__item" id="narrow-row"><span data-icon="laptop" data-class="ds-list__icon"></span>
+        <span class="ds-list__text"><span class="ds-list__title">LAPTOP-0042</span><span class="ds-list__meta">Notebook 14 · Building A</span></span>
+        <span class="ds-status ds-status--warning"><span data-icon="alert" data-size="16"></span><span>Warranty ends</span></span>
+        <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for LAPTOP-0042"><span data-icon="moreVertical" data-size="18"></span></button></span>
+        <span data-icon="chevronRight" data-class="ds-list__chevron"></span></li>
+    </ul>
+  </section>
+
+  <section class="fx-section" aria-labelledby="kv-title">
+    <h2 id="kv-title">Key-value rows</h2>
+    <div class="ds-card fx-narrow" id="kv-card">
+      <ul class="ds-kv-list" id="kv-static"><li><span>Model</span><strong>Latitude 7440</strong></li><li><span>Warranty</span><strong>2027-03-31</strong></li></ul>
+      <ul class="ds-kv-list ds-kv-list--interactive" id="kv">
+        <li><a class="ds-kv-list__row" href="#owner" id="kv-link"><span>Owner</span><strong>Ada Lovelace</strong></a></li>
+        <li><button class="ds-kv-list__row" type="button" id="kv-button"><span>Tickets</span><strong>3 open</strong></button></li>
+        <li><button class="ds-kv-list__row" type="button" aria-disabled="true" id="kv-blocked"><span>Cost centre</span><strong>4100</strong></button></li>
+        <li><div class="ds-kv-list__row" id="kv-plain"><span>Backup</span><strong><span data-icon="checkCircle" data-size="16" data-class="ds-kv-list__icon ds-kv-list__icon--ok"></span><span class="ds-sr">Passed:</span> Today</strong></div></li>
+        <li><div class="ds-kv-list__row"><span>A label long enough to wrap inside its own part of the row</span><strong class="ds-muted" id="kv-quiet">Not set</strong></div></li>
+      </ul>
+      <ul class="ds-kv-list ds-kv-list--bars" id="bars">
+        <li><span id="bar-label">A storage label far too long to stay on one line</span><strong>78%</strong><span class="ds-meter" aria-hidden="true" style="--ds-share: .78"></span></li>
+      </ul>
+    </div>
+    <ul class="ds-kv-list fx-narrow" id="kv-bare"><li><span>Alone</span><strong>No card</strong></li></ul>
+  </section>
+
+  <section class="fx-section" aria-labelledby="facts-title">
+    <h2 id="facts-title">Facts in rows</h2>
+    <dl class="ds-facts ds-facts--rows fx-wide" id="facts">
+      <div><dt>Owner</dt><dd id="fact-owner">Ada Lovelace<span class="ds-lock" role="img" aria-label="Set by the directory sync" id="lock"><span data-icon="lock" data-size="16"></span></span></dd></div>
+      <div><dt>Location</dt><dd>Building A, 1st floor</dd></div>
+    </dl>
+  </section>
+
+  <section class="fx-section" aria-labelledby="disclosure-title">
+    <h2 id="disclosure-title">Disclosure</h2>
+    <div class="ds-card fx-wide" id="disclosure-card">
+      <details class="ds-collapsible ds-disclosure" id="disclosure"><summary>Advanced settings<span data-icon="chevronDown" data-class="ds-chevron"></span></summary>
+        <div class="ds-disclosure__body"><p>Asset tag and purchase date.</p></div></details>
+      <div class="ds-disclosure-list" id="accordion">
+        <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="fx-faq" id="row-a"><summary><span class="ds-disclosure__title">When does the sync run?</span><span class="ds-disclosure__meta">Nightly</span><span data-icon="chevronDown" data-class="ds-chevron"></span></summary>
+          <div class="ds-disclosure__body"><p>At 02:00.</p></div></details>
+        <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="fx-faq" id="row-b"><summary><span class="ds-disclosure__title">What does a lock mean?</span><span class="ds-disclosure__meta">Directory</span><span data-icon="chevronDown" data-class="ds-chevron"></span></summary>
+          <div class="ds-disclosure__body"><p>Another system sets it.</p></div></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="timeline-title">
+    <h2 id="timeline-title">Timeline</h2>
+    <ol class="ds-timeline fx-wide" id="timeline" role="list" aria-label="History"></ol>
+  </section>
+
+  <section class="fx-section" aria-labelledby="tasks-title">
+    <h2 id="tasks-title">Tasks</h2>
+    <ol class="ds-tasks fx-narrow" id="tasks" aria-label="Steps"></ol>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  // What a page script renders: rows, timeline entries and tasks as markup
+  // strings (DS.dom.morphHtml patches them in place).
+  var icon = function (name, size, cls) { return DS.icons.icon(DS.icons[name], size, cls); };
+  window.fxLists = {
+    rows: [['d42', 'LAPTOP-0042', 'warning'], ['d17', 'LAPTOP-0017', 'ok'], ['p03', 'PRINTER-0003', 'error'], ['m09', 'MONITOR-0009', '']],
+    current: 'd17',
+    row: function (row) {
+      var current = row[0] === this.current;
+      return '<li class="ds-list__item" data-ds-key="' + row[0] + '">' + icon('laptop', 20, 'ds-list__icon') +
+        '<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#' + row[0] + '"' + (current ? ' aria-current="page"' : '') +
+        (row[0] === 'm09' ? ' aria-disabled="true"' : '') + '>' + row[1] + '</a></span><span class="ds-list__meta">Notebook 14 · Building A</span></span>' +
+        (row[2] ? '<span class="ds-status ds-status--' + row[2] + '">' + icon('check', 16) + '<span>State</span></span>' : '') +
+        '<span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for ' + row[1] + '">' + icon('moreVertical', 18) + '</button></span>' +
+        icon('chevronRight', 20, 'ds-list__chevron') + '</li>';
+    },
+    rowsHtml: function () {
+      var self = this;
+      return this.rows.map(function (row) { return self.row(row); }).join('');
+    },
+    entries: [['e3', 'Issued', ''], ['e2', 'Return planned', 'muted'], ['e1', 'Owner changed', 'icon']],
+    entry: function (entry) {
+      return '<li class="ds-timeline__item' + (entry[2] ? ' ds-timeline__item--' + entry[2] : '') + '" data-ds-key="' + entry[0] + '">' +
+        (entry[2] === 'icon' ? '<span class="ds-timeline__marker" aria-hidden="true">' + icon('user', 16) + '</span>' : '') +
+        '<div class="ds-timeline__head"><p class="ds-timeline__title">' + entry[1] + '</p><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Active</span></span></div>' +
+        '<p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p><p class="ds-timeline__text">Line one.\nLine two.</p></li>';
+    },
+    timelineHtml: function () {
+      var self = this;
+      return '<li class="ds-timeline__group" role="presentation" id="day-1"><h3 class="ds-timeline__day">12 Oct 2026</h3></li>' +
+        this.entries.slice(0, 2).map(function (entry) { return self.entry(entry); }).join('') +
+        '<li class="ds-timeline__group" role="presentation" id="day-2"><h3 class="ds-timeline__day">3 Oct 2026</h3></li>' +
+        this.entries.slice(2).map(function (entry) { return self.entry(entry); }).join('');
+    },
+    tasks: ['done', 'running', 'pending', 'failed'],
+    tasksHtml: function () {
+      var marks = { done: icon('checkCircle', 20), running: '<span class="ds-spinner ds-spinner--sm"></span>', pending: '', failed: icon('alertCircle', 20) };
+      return this.tasks.map(function (status, index) {
+        return '<li class="ds-tasks__item" data-status="' + status + '" data-ds-key="t' + index + '"><span class="ds-tasks__mark">' + marks[status] + '</span><span class="ds-tasks__text">Step ' + (index + 1) + '</span></li>';
+      }).join('');
+    },
+  };
+  document.getElementById('rows').innerHTML = fxLists.rowsHtml();
+  document.getElementById('timeline').innerHTML = fxLists.timelineHtml();
+  document.getElementById('tasks').innerHTML = fxLists.tasksHtml();
+  document.addEventListener('click', function (event) {
+    var action = event.target.closest('.ds-list__action');
+    if (action) {
+      event.preventDefault();
+      if (action.getAttribute('aria-disabled') !== 'true') document.getElementById('opened').textContent = action.textContent;
+    }
+    var more = event.target.closest('#rows .ds-list__actions button');
+    if (more) document.getElementById('more').textContent = more.getAttribute('aria-label');
+    if (event.target.closest('.ds-kv-list__row[href]')) event.preventDefault();
+  });
+</script>
+</body>
+</html>

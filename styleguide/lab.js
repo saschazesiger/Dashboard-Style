@@ -914,9 +914,9 @@
     id: 'disclosure',
     group: 'utilities',
     title: 'Disclosure',
-    note: 'A <code>.ds-collapsible</code>: it opens over 250ms, decelerating, while the content fades in, and closes faster, accelerating; the <code>.ds-chevron</code> turns with it. The button sits flush with the content edge, and its focus ring still shows in full.',
-    shows: ['.ds-collapsible', '.ds-chevron', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in'],
-    html: '<details class="ds-collapsible sg-disclosure"><summary>Show the motion rules' + icon('chevronDown', 20, 'ds-chevron') + '</summary><ol class="ds-muted">' +
+    note: 'A <code>.ds-collapsible</code>: it opens over 250ms, decelerating, while the content fades in, and closes faster, accelerating; the <code>.ds-chevron</code> turns with it. The button sits flush with the content edge, and its focus ring still shows in full. The summary is a <code>.ds-disclosure</code>: a pill with the state layer, the press morph and the ripple.',
+    shows: ['.ds-collapsible', '.ds-chevron', '.ds-disclosure', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in'],
+    html: '<details class="ds-collapsible ds-disclosure sg-disclosure"><summary>Show the motion rules' + icon('chevronDown', 20, 'ds-chevron') + '</summary><ol class="ds-muted">' +
       RULES.map(function (rule) { return '<li>' + rule + '</li>'; }).join('') + '</ol>' +
       '<button class="ds-btn ds-btn--sm" type="button" data-sg="copy-rules">' + icon('copy', 16) + 'Copy the rules</button></details>',
     wide: true,
@@ -3602,6 +3602,150 @@
     },
     state: function (stage) { return $('.sg-scroll-box', stage).scrollTop > 0; },
     toggle: function (stage, on, sg) { return scrollBox(stage, on ? 'end' : 'start', sg); },
+  });
+
+  /* ── Data: a row list (2.0) ──────────────────────────────────────── */
+
+  var LAB_ROWS = [
+    ['r42', 'LAPTOP-0042', 'Notebook 14 · Building A', 'laptop'],
+    ['r17', 'LAPTOP-0017', 'Notebook 14 · Building B', 'laptop'],
+    ['r03', 'PRINTER-0003', 'Printer · Floor 2', 'box'],
+  ];
+
+  function labRowsHtml() {
+    return LAB_ROWS.map(function (row, index) {
+      return '<li class="ds-list__item" data-ds-key="' + row[0] + '">' + icon(row[3], 20, 'ds-list__icon') +
+        '<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#row-list"' + (index === 0 ? ' aria-current="true"' : '') + '>' + row[1] + '</a></span>' +
+        '<span class="ds-list__meta">' + row[2] + (index === 0 ? ' · <strong>Open</strong>' : '') + '</span></span>' + icon('chevronRight', 20, 'ds-list__chevron') + '</li>';
+    }).join('');
+  }
+
+  LAB_DEMOS.push({
+    id: 'row-list',
+    group: 'data',
+    title: 'A row list',
+    note: 'A <code>.ds-list--interactive</code>: a press on a row lays the state layer and the ripple over the whole row (no morph: rows stay rectangular); the first row is current (<code>aria-current</code>, tinted over <code>--ds-dur-fast</code>). Replay presses a row and moves the last one to the top: the rows glide through <code>DS.motion.flip</code> on an opaque backing, and the new current row takes its tint.',
+    shows: ['.ds-list', 'DS.motion.flip', 'DS.dom.morphHtml', 'ds-press-ripple', '--ds-dur-fast', '--ds-dur-micro', '--ds-ease-spatial'],
+    html: '<ul class="ds-list ds-list--interactive sg-lab-rows" aria-label="Devices">' + labRowsHtml() + '</ul>',
+    height: 220,
+    play: function (stage, sg) {
+      var list = $('.ds-list', stage);
+      var pressing = press($('.ds-list__item', list), sg, 'centre', 300);
+      var gliding = pressing.then(function () {
+        LAB_ROWS.unshift(LAB_ROWS.pop());
+        return M.flip(list, function (options) { DS.dom.morphHtml(list, labRowsHtml(), options); });
+      });
+      return gliding.then(function () { return ripplesGone(stage, sg); });
+    },
+  });
+
+  /* ── Data: a timeline (2.0) ──────────────────────────────────────── */
+
+  var LAB_FEED = [['f3', 'user', 'Grace Hopper took LAPTOP-0051', '08:47'], ['f2', 'sync', 'The nightly sync changed 4 devices', '02:00'], ['f1', 'pencil', 'Ada Lovelace renamed PRINTER-0003', 'Yesterday']];
+  var LAB_FRESH = [['ticket', 'Ticket #42 was closed'], ['shield', 'LAPTOP-0042 installed its updates'], ['user', 'Alan Turing took TABLET-0121']];
+  var labFeedNext = 0;
+
+  function labFeedHtml() {
+    return LAB_FEED.map(function (entry) {
+      return '<li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="' + entry[0] + '"><span class="ds-timeline__marker" aria-hidden="true">' + icon(entry[1], 16) + '</span>' +
+        '<div class="ds-timeline__head"><p class="ds-timeline__title">' + entry[2] + '</p></div><p class="ds-timeline__meta">' + entry[3] + '</p></li>';
+    }).join('');
+  }
+
+  LAB_DEMOS.push({
+    id: 'timeline',
+    group: 'data',
+    title: 'A timeline',
+    note: 'A <code>.ds-timeline</code> has no motion of its own (and nothing to do with scroll timelines): a new entry comes in through <code>DS.motion.flip</code>, fading in at the top while the others glide down on the spring and the oldest fades out. A live feed passes <code>live: true</code>, so the order waits while it is pointed at.',
+    shows: ['.ds-timeline', 'DS.motion.flip', 'DS.dom.morphHtml', 'ds-fade-in', 'ds-fade-out', '--ds-ease-spatial', '--ds-dur-medium'],
+    html: '<ol class="ds-timeline sg-lab-feed" role="list" aria-label="Activity">' + labFeedHtml() + '</ol>',
+    height: 240,
+    play: function (stage, sg) {
+      var list = $('.ds-timeline', stage);
+      var fresh = LAB_FRESH[labFeedNext % LAB_FRESH.length];
+      labFeedNext += 1;
+      LAB_FEED.unshift(['n' + labFeedNext, fresh[0], fresh[1], 'Just now']);
+      LAB_FEED.pop();
+      return M.flip(list, function (options) { DS.dom.morphHtml(list, labFeedHtml(), options); }).then(function () { return quiet(stage, sg); });
+    },
+  });
+
+  /* ── Feedback: tasks (2.0) ───────────────────────────────────────── */
+
+  var LAB_TASKS = ['Copy the image', 'Install updates', 'Join the domain', 'Restart'];
+  var labTasks = { done: 1 };
+
+  function labTasksHtml() {
+    return LAB_TASKS.map(function (text, index) {
+      var status = index < labTasks.done ? 'done' : index === labTasks.done ? 'running' : 'pending';
+      var mark = status === 'done' ? icon('checkCircle', 20) : status === 'running' ? '<span class="ds-spinner ds-spinner--sm"></span>' : '';
+      return '<li class="ds-tasks__item" data-status="' + status + '" data-ds-key="t' + index + '"><span class="ds-tasks__mark">' + mark + '</span>' +
+        '<span class="ds-tasks__text">' + text + '<span class="ds-sr">: ' + { done: 'done', running: 'running', pending: 'waiting' }[status] + '</span></span></li>';
+    }).join('');
+  }
+
+  function labTasksTo(stage, done, sg) {
+    labTasks.done = done;
+    DS.dom.morphHtml($('.ds-tasks', stage), labTasksHtml());
+    $('.sg-lab-tasks-count', stage).textContent = Math.min(done, LAB_TASKS.length) + ' of ' + LAB_TASKS.length;
+    return quiet(stage, sg);
+  }
+
+  LAB_DEMOS.push({
+    id: 'tasks',
+    group: 'feedback',
+    title: 'Steps of a job',
+    note: 'A <code>.ds-tasks</code> list: a status change swaps the mark at once (its shape is the status: a ring, the small spinner, the check, the alert), and a step that turns done draws its tick: the mark keeps its place (<code>DS.dom.morphHtml</code>) and its <code>stroke-dashoffset</code>, which the tick inherits, runs from 1 to 0 over <code>--ds-dur-medium</code> after <code>--ds-dur-micro</code>. A transition, so a list rendered with done steps stays still on load. Replay finishes the running step and starts the next.',
+    shows: ['.ds-tasks', 'DS.dom.morphHtml', '--ds-dur-medium', '--ds-dur-micro', '--ds-ease-out'],
+    html: '<div class="ds-tasks__head"><p class="ds-card__title">Set up LAPTOP-0042</p><p class="ds-meta sg-lab-tasks-count">1 of 4</p></div><ol class="ds-tasks" aria-label="Steps">' + labTasksHtml() + '</ol>',
+    height: 200,
+    play: function (stage, sg) { return labTasksTo(stage, labTasks.done >= LAB_TASKS.length ? 1 : labTasks.done + 1, sg); },
+    state: function () { return labTasks.done > 2; },
+    toggle: function (stage, on, sg) { return labTasksTo(stage, on ? 3 : 2, sg); },
+    reset: function (stage, sg) { return labTasksTo(stage, 1, sg); },
+  });
+
+  /* ── Feedback: charts (2.0) ──────────────────────────────────────── */
+
+  var LAB_CHART = { on: false, low: [0.42, 0.7, 0.55, 0.9, 0.35], high: [0.8, 0.5, 0.95, 0.6, 0.75], disk: [48, 87] };
+
+  function labChartHtml() {
+    return '<div class="sg-lab-chart"><div class="sg-lab-chart__meter"><p class="sg-meter-label"><span>Disk</span><strong class="ds-num sg-lab-chart__figure">48%</strong></p>' +
+      '<span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-valuetext="48% used" style="--ds-share:.48"></span></div>' +
+      '<figure class="ds-columns"><figcaption class="ds-sr">Devices that checked in, per day</figcaption><ol class="ds-columns__plot">' +
+      LAB_CHART.low.map(function (share, index) {
+        return '<li class="ds-columns__col" style="--ds-share:' + share + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">' + ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'][index] + '</span></li>';
+      }).join('') + '</ol></figure></div>';
+  }
+
+  /* The share toggle: the meter, the columns and the figure in one task, so they land together. */
+  function labChartTo(stage, on, sg) {
+    LAB_CHART.on = on;
+    var shares = on ? LAB_CHART.high : LAB_CHART.low;
+    var disk = LAB_CHART.disk[on ? 1 : 0];
+    $$('.ds-columns__col', stage).forEach(function (col, index) { col.style.setProperty('--ds-share', String(shares[index])); });
+    var meter = $('.ds-meter', stage);
+    meter.style.setProperty('--ds-share', String(disk / 100));
+    meter.setAttribute('aria-valuenow', String(disk));
+    meter.setAttribute('aria-valuetext', disk + '% used');
+    var counting = M.countUp($('.sg-lab-chart__figure', stage), disk, { format: function (value) { return Math.round(value) + '%'; } }).finished;
+    return Promise.all([counting, sg.frames(2).then(function () { return quiet(stage, sg); })]);
+  }
+
+  LAB_DEMOS.push({
+    id: 'charts',
+    group: 'feedback',
+    title: 'Charts',
+    note: 'A meter and columns set <code>--ds-share</code>, a registered number; their fills are clipped at it, never scaled, so the round ends keep their shape. Replay is the first render: <code>DS.motion.enterAll(marks, \'fill\', { stagger: false })</code> (<code>.ds-enter--fill</code>: <code>ds-fill-share</code> from 0 with the fade, over <code>--ds-dur-glide</code> on <code>--ds-ease-value</code>). The toggle sets new values: they glide on the same curve and time, and the figure counts in the same task, landing on the same frame.',
+    shows: ['.ds-enter--fill', 'ds-fill-share', 'ds-fade-in', 'DS.motion.enterAll', 'DS.motion.countUp', '--ds-dur-glide', '--ds-ease-value', '--ds-ease-in-out'],
+    html: labChartHtml(),
+    height: 260,
+    play: function (stage, sg) {
+      var marks = $$('.ds-meter, .ds-columns__col', stage);
+      return Promise.resolve(M.enterAll(marks, 'fill', { stagger: false })).then(function () { return quiet(stage, sg); });
+    },
+    state: function () { return LAB_CHART.on; },
+    toggle: function (stage, on, sg) { return labChartTo(stage, on, sg); },
   });
 
   /* The order of the cards inside each section (entries not named keep

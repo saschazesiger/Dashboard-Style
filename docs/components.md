@@ -27,6 +27,18 @@ component live.
 | Filter by a figure | a `button.ds-tile` with `aria-pressed` ([Tiles](#tiles)) |
 | Pick one of a few cards | `.ds-card--interactive` with `aria-pressed` (or `aria-checked`) ([Interactive card](#interactive-card)) |
 | Label and value pairs | `.ds-kv-list` (rows) or `.ds-facts` (a grid, best with four) ([Lists](#lists)) |
+| A short list of records that open | [Row list](#row-list) `.ds-list--interactive` with a `.ds-list__action` per row; more columns or bulk selection: a [Table](#table) |
+| Label and value rows that open their record (an owner, a ticket) | `.ds-kv-list--interactive` with a `.ds-kv-list__row` link or button per row ([Lists](#lists)) |
+| Shares per category as thin bars beside their figures | `.ds-kv-list--bars` with a `.ds-meter` per row ([Lists](#lists)) |
+| The fields of a record, label beside value | `.ds-facts--rows` ([Lists](#lists)) |
+| A value another system sets (a directory, a sync) | the value as text with `.ds-lock` and its reason, never a disabled field ([Lists](#lists)) |
+| Hide advanced settings | [Disclosure](#disclosure) `.ds-disclosure` |
+| Sections that open one at a time (questions, settings groups) | `.ds-disclosure--row` in a `.ds-disclosure-list`, one `name` for the group ([Disclosure](#disclosure)) |
+| The history of a record | [Timeline](#timeline) `.ds-timeline` |
+| Steps of a job (an import, a setup) | [Tasks](#tasks) `.ds-tasks` |
+| A share as a thin bar | [Charts](#charts) `.ds-meter` |
+| Counts per category | [Charts](#charts) `.ds-columns` with a `.ds-legend` for more than one series |
+| Values over time | [Charts](#charts) `.ds-columns` (`--grouped` for two or more series per period, `--mini` beside a figure); lines and areas are the project's own |
 | A run of short counts ("3 new · 1 updated") | `.ds-parts` ([Lists](#lists)) |
 | Nothing to show yet | [Empty state](#empty-state) `.ds-empty` |
 | A confirmation after a request or a finished job | `.ds-empty--done` ([Empty state](#empty-state)) |
@@ -98,10 +110,11 @@ and update the copy; otherwise build it in the project with the project's own cl
 ([rules.md](rules.md#code)).
 
 Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card](#card) · [Tiles](#tiles) ·
-[Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) · [Table](#table) ·
-[Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) ·
-[Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Save bar](#save-bar) · [Loading](#loading) ·
-[Progress](#progress) · [File upload](#file-upload) · [Reorder rows](#reorder-rows) · [Ripple](#ripple) ·
+[Disclosure](#disclosure) · [Lists](#lists) · [Timeline](#timeline) · [Tasks](#tasks) · [Empty state](#empty-state) ·
+[Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) · [Table](#table) · [Form](#form) · [Chips](#chips) ·
+[Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) · [Side sheet](#side-sheet) ·
+[Snackbar](#snackbar) · [Tooltip](#tooltip) · [Save bar](#save-bar) · [Loading](#loading) · [Progress](#progress) ·
+[Charts](#charts) · [File upload](#file-upload) · [Reorder rows](#reorder-rows) · [Ripple](#ripple) ·
 [Utilities](#utilities) · [Motion classes](#motion-classes)
 
 ## App frame
@@ -618,6 +631,40 @@ Colours on `--ds-dur-fast`, the ring at once; add a check or the label weight, n
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
 
+## Disclosure
+
+A `<details>` with the system's summary (2.0): advanced settings, or sections that open one at a time.
+
+```html
+<details class="ds-collapsible ds-disclosure">
+  <summary>Advanced settings [icon chevronDown 20 .ds-chevron]</summary>
+  <div class="ds-disclosure__body"> ... </div>
+</details>
+
+<div class="ds-disclosure-list">
+  <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="sync-help">
+    <summary><span class="ds-disclosure__title">When does the sync run?</span><span class="ds-disclosure__meta">Nightly</span>[icon chevronDown 20 .ds-chevron]</summary>
+    <div class="ds-disclosure__body"> ... </div>
+  </details>
+  <details class="ds-collapsible ds-disclosure ds-disclosure--row" name="sync-help"> ... </details>
+</div>
+```
+
+- The plain summary is a pill in the label font, at least `--ds-disclosure-height` (40px) high, whose state layer
+  hangs `--ds-space-2` into the space at its sides (its text stays in line with the content around it): hover
+  `--ds-state-hover`, press in `--ds-dur-micro`, the focus layer and a ring that snaps in, the press morph and the
+  ripple. `.ds-disclosure__body` starts `--ds-space-3` below it.
+- `.ds-disclosure--row`: a full-width summary (`--ds-disclosure-row-height`, 48px) with `.ds-disclosure__title`,
+  `.ds-disclosure__meta` in `--ds-text-2` and the chevron at the end. Rows in a `.ds-disclosure-list` are divided by
+  hairlines and run to the edges of a card (`--ds-card-pad`); a row takes a rectangular layer, an inset ring and the
+  ripple, no morph.
+- It opens and closes like every `.ds-collapsible` and the `.ds-chevron` turns with it. Rows with the same `name`
+  open one at a time where the browser supports it (progressive; elsewhere each opens on its own). The errors list
+  of an alert (`.ds-errors`) keeps its own summary.
+
+**Motion:** `.ds-collapsible` and `.ds-chevron` in [Utilities](motion.md#utilities-css) and the press of
+[Controls](motion.md#controls) in motion.md.
+
 ## Lists
 
 ```html
@@ -642,6 +689,159 @@ Colours on `--ds-dur-fast`, the ring at once; add a check or the label weight, n
 and never leaves a "·" at a line end; only a part wider than the whole line breaks inside. Links in parts
 (`<span><a href="#new">3 new</a></span>`) keep their focus ring: the line clips only sideways, and the links take an
 inset ring that snaps inward from the edge (also without `.ds-base`).
+
+`.ds-list` is a list of records, `.ds-plain-list` text in list form, `.ds-kv-list` label and value. The three lists
+have no top margin of their own (zero weight, so the rhythm of a card spaces them); the last key-value row has no
+bottom padding, and long labels and values wrap inside their own part.
+
+### Row list
+
+Records that open, in an outlined list (2.0). Use it for a short list on an overview or in a side sheet; a list that
+needs columns, sorting or bulk selection is a [Table](#table).
+
+```html
+<ul class="ds-list ds-list--interactive" aria-label="Devices">
+  <li class="ds-list__item" data-ds-key="d42">[icon laptop 20 .ds-list__icon]
+    <span class="ds-list__text">
+      <span class="ds-list__title"><a class="ds-list__action" href="/devices/42">LAPTOP-0042</a></span>
+      <span class="ds-list__meta">Notebook 14 · Building A</span>
+    </span>
+    <span class="ds-status ds-status--warning">[icon alert 16]<span>Warranty ends</span></span>
+    <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for LAPTOP-0042">[icon moreVertical 18]</button></span>
+    [icon chevronRight 20 .ds-list__chevron]
+  </li>
+</ul>
+```
+
+- `.ds-list`: an outlined surface (`--ds-line`, `--ds-radius-card`) with hairlines between rows, each at least
+  `--ds-list-item-height` (56px) high. It never clips, so a row's menu is not cut; an empty list takes no room.
+  `.ds-list__text` takes the room: below `--ds-list-text-min` (12rem) the trailing parts (a status chip,
+  `.ds-list__actions`, the chevron) drop to a second line by themselves. `.ds-list__title` is in the label font,
+  `.ds-list__meta` in the meta font and `--ds-text-2`, like `.ds-list__icon` and `.ds-list__chevron`.
+- `.ds-list--interactive`: one `.ds-list__action` (a link or a button) per row; its `::after` stretches over the
+  row, so the whole row opens the record, and the row's other links and controls stay above it and keep working. A
+  state layer (hover `--ds-state-hover-lg`, press `--ds-state-pressed` in `--ds-dur-micro`, not while another
+  control in the row is pressed), the focus layer and an inset ring on the row while the action has keyboard focus,
+  the ripple (`DS.ripple.attach()`), no morph. A row whose action is `disabled` or `aria-disabled="true"` shows no
+  hover or press layer (it keeps its focus layer) and takes the `not-allowed` cursor.
+- The current row: `aria-current` on the row or on its action (`aria-current="page"`, anything but `"false"`) tints
+  it with `--ds-list-current-bg` (`--ds-accent`) over `--ds-dur-fast`; say it in the row too (a word, the label
+  weight). In forced colours the current row is `SelectedItem`.
+- Re-render with `DS.dom.morphHtml` and keyed rows (`data-ds-key`) inside `DS.motion.flip(list, ...)`: rows glide to
+  their places on an opaque backing, new rows fade in over `--ds-dur-fast`, a removed row fades out while the rows
+  below close the gap, and focus moves to its neighbour.
+
+### Key-value rows that open, bars, facts in rows and the lock
+
+```html
+<ul class="ds-kv-list ds-kv-list--interactive">
+  <li><a class="ds-kv-list__row" href="/owners/7"><span>Owner</span><strong>Ada Lovelace</strong></a></li>
+  <li><button class="ds-kv-list__row" type="button"><span>Tickets</span><strong>3 open</strong></button></li>
+  <li><div class="ds-kv-list__row"><span>Serial</span><strong>5CD1234XYZ</strong></div></li>
+  <li><div class="ds-kv-list__row"><span>Backup</span><strong>[icon checkCircle 16 .ds-kv-list__icon .ds-kv-list__icon--ok]<span class="ds-sr">Passed:</span> Today, 02:00</strong></div></li>
+  <li><div class="ds-kv-list__row"><span>Asset tag</span><strong class="ds-muted">Not set</strong></div></li>
+</ul>
+
+<ul class="ds-kv-list ds-kv-list--bars">
+  <li><span>Disk</span><strong>78%</strong><span class="ds-meter ds-meter--warning" aria-hidden="true"></span></li>
+</ul>
+
+<dl class="ds-facts ds-facts--rows">
+  <div><dt>Owner</dt><dd>Ada Lovelace <span class="ds-lock" role="img" aria-label="Set by the directory sync" data-tip="Set by the directory sync">[icon lock 16]</span></dd></div>
+  <div><dt>Location</dt><dd>Building A, 1st floor</dd></div>
+</dl>
+<p class="ds-meta">Values with a lock are set by the directory sync: change them there.</p>
+```
+
+- `.ds-kv-list--interactive`: each row is a `.ds-kv-list__row`, a link or a button that takes the whole row and
+  hangs `--ds-space-2` into the space at its sides (the first and last rows also their outer padding), so its text
+  stays in line with static rows: a state layer (`--ds-state-hover-lg`, press in `--ds-dur-micro`), the focus layer
+  and a ring that snaps in, the ripple, no morph; `disabled` and `aria-disabled="true"` rows take the disabled
+  model. A `div.ds-kv-list__row` is a static row among them.
+- `.ds-kv-list__icon` before a value, with `.ds-kv-list__icon--ok`, `.ds-kv-list__icon--warning` or
+  `.ds-kv-list__icon--error` (`--ds-success`, `--ds-warning`, `--ds-error`), always with a `.ds-sr` word. `strong.ds-muted` is a quiet value ("Not set") in the regular weight.
+- `.ds-kv-list--bars` puts a [meter](#charts) under each row, `aria-hidden` (the figure is in the text); the label
+  stays on one line and ends in an ellipsis (give it a `data-tip` with the full text).
+- `.ds-facts--rows`: each fact on a row of its own, the label in a column of `--ds-facts-label-width` (36%) in the
+  body font, hairlines between; under 520px of content (or in a window of 600px and less) the label goes above its
+  value.
+- `.ds-lock` marks a value another system sets: the `lock` glyph, the reason in `aria-label` and `data-tip`. It is
+  not an action and takes no `tabindex` (a tap shows the tip); name the reason once per card in a `.ds-meta` line.
+  A locked value is text, never a disabled field ([rules.md](rules.md#state-and-feedback)).
+
+**Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) and the press of
+[Controls](motion.md#controls) in motion.md.
+
+## Timeline
+
+The history of a record (2.0): entries on a rail, grouped by day.
+
+```html
+<ol class="ds-timeline" role="list" aria-label="History of LAPTOP-0042">
+  <li class="ds-timeline__group" role="presentation"><h3 class="ds-timeline__day">12 Oct 2026</h3></li>
+  <li class="ds-timeline__item" data-ds-key="e3">
+    <div class="ds-timeline__head">
+      <p class="ds-timeline__title">Issued</p>
+      <span class="ds-status ds-status--ok">[icon check 16]<span>Active</span></span>
+    </div>
+    <p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p>
+    <p class="ds-timeline__text">Issued to Ada Lovelace.</p>
+    <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
+  </li>
+  <li class="ds-timeline__item ds-timeline__item--muted" data-ds-key="e2">
+    <div class="ds-timeline__head"><p class="ds-timeline__title">Return planned</p></div>
+    <p class="ds-timeline__text">Cancelled: the loan was extended.</p>
+  </li>
+  <li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="e1">
+    <span class="ds-timeline__marker" aria-hidden="true">[icon user 16]</span>
+    <div class="ds-timeline__head"><p class="ds-timeline__title">Owner changed</p></div>
+  </li>
+</ol>
+```
+
+- Each entry is indented by `--ds-timeline-indent` (`--ds-space-8`) and divided from the one before by a hairline
+  (`--ds-timeline-divider-color`) from its text edge. Its dot (`--ds-timeline-dot-size`, `--ds-timeline-dot-color`)
+  sits on the rail, centred on the head line (`--ds-timeline-head-line`, 24px, the height of a status chip); the rail
+  (`--ds-timeline-line-width`, `--ds-timeline-line-color`) runs from dot to dot with a gap around each, through the
+  day headings (`.ds-timeline__group` with `.ds-timeline__day`, no dot). `role="list"` keeps the list semantics in
+  Safari; the day heading's item is `role="presentation"`.
+- `.ds-timeline__item--muted`: a ring (`--ds-timeline-muted-color`, `--ds-outline`) for an entry that did not take
+  effect; say why in words. `.ds-timeline__item--icon` with `.ds-timeline__marker`: a disc of
+  `--ds-timeline-marker-size` (24px) on `--ds-surface-high` with a 16px icon instead of the dot (an activity feed:
+  who or what did it).
+- `.ds-timeline__head` (title and a status chip, wrapping), `.ds-timeline__title` (label font), `.ds-timeline__meta`
+  (meta font: the `<time>` and who), `.ds-timeline__text` (keeps its line breaks, `--ds-measure` wide),
+  `.ds-timeline__body` (a form in place) and `.ds-timeline__actions` (text buttons hang their padding, so their labels
+  line up with the text; name the entry in each button's `aria-label`).
+- No motion of its own: entries come and go through `DS.motion.flip` with keyed entries (a removed entry moves focus
+  to its neighbour; a live feed passes `live: true`), editing in place swaps the text and the form through
+  `DS.motion.crossfade` ([motion.md](motion.md#recipes)). The dot is drawn with borders, so it stays in forced colours.
+
+**Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) in motion.md.
+
+## Tasks
+
+The steps of a job (2.0): an import, a setup, a migration, each step pending, running, done or failed.
+
+```html
+<div class="ds-tasks__head"><h3 class="ds-card__title">Set up LAPTOP-0042</h3><p class="ds-meta">2 of 4</p></div>
+<ol class="ds-tasks" aria-label="Steps">
+  <li class="ds-tasks__item" data-status="done"><span class="ds-tasks__mark">[icon checkCircle 20]</span><span class="ds-tasks__text">Copy the image<span class="ds-sr">: done</span></span></li>
+  <li class="ds-tasks__item" data-status="failed"><span class="ds-tasks__mark">[icon alertCircle 20]</span><span class="ds-tasks__text">Join the domain: failed, the server did not answer</span></li>
+  <li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--sm"></span></span><span class="ds-tasks__text">Install updates<span class="ds-sr">: running</span></span></li>
+  <li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">Restart<span class="ds-sr">: waiting</span></span></li>
+</ol>
+```
+
+- `data-status` on each `.ds-tasks__item` (set by the page): `pending` a ring in `--ds-outline`, `running` the small
+  spinner and the label weight, `done` the check in a circle in `--ds-success` (its tick draws itself when the step turns done in place) and
+  the text in `--ds-text-2`, `failed` the alert circle in `--ds-error` with the word in the text. The status is in
+  the shape of the mark and the weight of the text, never in colour alone; put it into the text for screen readers
+  too (a `.ds-sr` word) and keep the count of `.ds-tasks__head` in step.
+- Re-render the list with `DS.dom.morphHtml` (the mark's glyph changes with the status). In forced colours the marks
+  take `CanvasText`.
+
+**Motion:** the "Tasks" row of [Feedback](motion.md#feedback) in motion.md.
 
 ## Empty state
 
@@ -2301,6 +2501,88 @@ DS.motion.countUp(label, 30, { format: (value) => `${Math.round(value)}%` });   
 
 **Motion:** the "Progress" row of [Feedback](motion.md#feedback) in motion.md.
 
+## Charts
+
+Meters, columns and legends (2.0), drawn from the chart roles ([tokens.md](tokens.md#chart-colours)): `--ds-chart-1` to
+`--ds-chart-4` (four series in a fixed order), `--ds-chart-neutral`, `--ds-chart-track`, `--ds-chart-warning` and
+`--ds-chart-error`.
+
+```html
+<span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="78" aria-valuetext="78% used"></span>
+
+<figure class="ds-columns">
+  <figcaption class="ds-sr">Devices that checked in, per day</figcaption>
+  <ol class="ds-columns__plot">
+    <li class="ds-columns__col">
+      <span class="ds-columns__value">42</span>
+      <span class="ds-columns__fill" aria-hidden="true"></span>
+      <span class="ds-columns__label">Mon</span>
+    </li>
+    <li><button class="ds-columns__col ds-columns__col--s2" type="button" aria-label="Tuesday: 38 devices"> ... </button></li>
+  </ol>
+</figure>
+
+<figure class="ds-columns ds-columns--mini" role="img" aria-label="Tickets per day, last 14 days: highest 12 today">
+  <ol class="ds-columns__plot" aria-hidden="true"><li class="ds-columns__col"><span class="ds-columns__fill"></span></li> ... <li class="ds-columns__col ds-columns__col--highlight"><span class="ds-columns__fill"></span></li></ol>
+</figure>
+
+<figure class="ds-columns ds-columns--grouped">
+  <figcaption class="ds-sr">Tickets opened and closed per week</figcaption>
+  <div class="ds-scroll-x" tabindex="0" role="group" aria-label="Tickets per week">
+    <ol class="ds-columns__groups">
+      <li class="ds-columns__group">
+        <ol class="ds-columns__plot">
+          <li class="ds-columns__col"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: 12</span></li>
+          <li class="ds-columns__col ds-columns__col--s2"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: 9</span></li>
+        </ol>
+        <span class="ds-columns__label">W41</span>
+      </li>
+      <li class="ds-columns__group ds-columns__group--current"> ... <span class="ds-columns__label">W42<span class="ds-sr">, this week</span></span></li>
+    </ol>
+  </div>
+</figure>
+
+<ul class="ds-legend">
+  <li><span class="ds-legend__key"></span>Opened</li>
+  <li><span class="ds-legend__key ds-legend__key--s2"></span>Closed</li>
+</ul>
+```
+
+- **The share**: `--ds-share` (0 to 1, a registered number) on each mark (the meter, each column), set with
+  `el.style.setProperty('--ds-share', share)` (a strict CSP allows it) or `DS.dom.progress()`. The fill is clipped at
+  the share, never scaled, so its round data end keeps its shape at any value; a new value glides there on
+  `--ds-ease-value` over `--ds-dur-glide`, and a column's value rides on the top of its fill. It is not
+  `--ds-progress`, which drives the whole progress choreography. On the first render the marks fill from zero:
+  `DS.motion.enterAll(marks, 'fill', { stagger: false })` (`.ds-enter--fill`); later values transition.
+- `.ds-meter`: a bar `--ds-meter-height` (4px) high on `--ds-meter-track` (`--ds-chart-track`), the fill in
+  `--ds-meter-color` (`--ds-chart-1`). Tones `.ds-meter--neutral`, `.ds-meter--warning`, `.ds-meter--error` (always
+  with words next to them). A meter with its own figure is `role="meter"` with `aria-valuenow` and `aria-valuetext`; next to a
+  figure in text (`.ds-kv-list--bars`) it is `aria-hidden`.
+- `.ds-columns`: a `<figure>` with a caption and an `ol.ds-columns__plot` of `.ds-columns__col`, each with
+  `.ds-columns__value`, `.ds-columns__fill` and `.ds-columns__label`, `--ds-columns-height` (120px) high, the data
+  end rounded by `--ds-columns-radius` (`--ds-radius-xs`). Series `.ds-columns__col--s2`, `.ds-columns__col--s3`,
+  `.ds-columns__col--s4` and tones `.ds-columns__col--warning`, `.ds-columns__col--error` set `--ds-chart-color`. A column that opens its category is a `<button>` or `<a>` with the
+  class inside a plain `<li>`: a state layer, an inset ring, the ripple, no morph.
+- `.ds-columns--mini`: a 32px sparkline beside a figure, no labels or values, the columns `aria-hidden` and the figure
+  `role="img"` with a summary; `.ds-columns__col--highlight` takes `--ds-chart-1`, the rest `--ds-chart-neutral`.
+- `.ds-columns--grouped`: `.ds-columns__groups` of `.ds-columns__group` (at least `--ds-columns-group-min`, 56px,
+  each), its columns 2px apart and its label under the group; `.ds-columns__group--current` lies on a band of
+  `--ds-surface-low` with its label in the label weight and a `.ds-sr` word. Put it in a `.ds-scroll-x` when it may
+  be wider than its card.
+- `.ds-legend`: keys of `--ds-legend-key-size` (12px) in the meta font; `.ds-legend__key--s2`, `.ds-legend__key--s3`,
+  `.ds-legend__key--s4`, `.ds-legend__key--neutral`, `.ds-legend__key--warning`, `.ds-legend__key--error`.
+- **Colours**: the series in their fixed order, never cycled; at most four, more fold into "Other"; the tones only on
+  single-series marks; text never takes a series colour. A theme that changes the roles keeps each at 3:1 on
+  `--ds-surface`, `--ds-surface-low` and `--ds-chart-track`, and adjacent series apart for colour-blind readers. In
+  forced colours the fills take `CanvasText`, series 2 to 4 a hatching of their own (45, 135 and 90 degrees), as do
+  the legend keys.
+- **Accessibility**: every chart has a text equivalent: its caption plus a table or a key-value list, or the values
+  as text.
+- **When to draw your own**: lines, areas, scatter plots and stacked bars are the project's, with the chart roles and
+  `--ds-share`.
+
+**Motion:** the "Charts" row of [Feedback](motion.md#feedback) in motion.md.
+
 ## File upload
 
 ```html
@@ -2505,7 +2787,7 @@ class="ds-kbd">K</kbd>`).
 ## Motion classes
 
 Documented in [motion.md](motion.md): `.ds-enter` with `.ds-enter--fade`, `.ds-enter--scale`, `.ds-enter--slide`,
-`.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill-x`, `.ds-enter--fill-y`; `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
+`.ds-enter--swap`, `.ds-enter--delayed`, `.ds-enter--pop`, `.ds-enter--fill` (a [chart](#charts) mark fills to its `--ds-share`), `.ds-enter--fill-x`, `.ds-enter--fill-y` (**deprecated** in 2.0, removed in 3.0 at the earliest: use `.ds-enter--fill`); `.ds-leave` with `.ds-leave--sink`, `.ds-leave--scale`, `.ds-leave--slide`, `.ds-leave--pop`;
 `.ds-stagger`; `.ds-reveal`; `.ds-reveal--scroll` (a block of a long read-only page fades in and rises while it
 scrolls into view, tied to the scroll position; static where `view()` timelines are missing and in print);
 `.ds-collapsible` (opens decelerating and closes faster, accelerating; focus rings at its content edge are not cut; a summary holding a `.ds-chevron` drops the native marker); `.ds-chevron` (a disclosure chevron that turns 180deg on the spring

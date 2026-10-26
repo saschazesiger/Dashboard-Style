@@ -237,6 +237,35 @@
     opacity: var(--ds-state-focus);
   }
 
+  /* Row lists, key-value rows, disclosures and chart columns (2.0): the
+     same model, in blocks of their own. */
+  :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-disclosure > summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(button, a).ds-columns__col:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    opacity: 0;
+  }
+
+  @media (hover: hover) {
+    :where(.ds-ripples) .ds-disclosure > summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) :is(button, a).ds-columns__col:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+      opacity: var(--ds-state-hover);
+    }
+
+    :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-disclosure--row > summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+      opacity: var(--ds-state-hover-lg);
+    }
+  }
+
+  :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-list__action:focus-visible):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-disclosure > summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(button, a).ds-columns__col:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
+    opacity: var(--ds-state-focus);
+  }
+
   @media (forced-colors: active) {
     .ds-press-ripple {
       display: none;

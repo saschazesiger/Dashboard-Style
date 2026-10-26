@@ -13,9 +13,6 @@
 
   /* The project's own tokens, read by app.css. */
   --ex-logo-size: 32px;
-  --ex-chart-height: 120px;
-  --ex-chart-bar: var(--ds-primary);
-  --ex-chart-track: var(--ds-surface-high);
   /* The dots of the accent choice under Settings: each accent's primary colour, whichever accent is on. */
   --ex-swatch-default: #0b57d0;
   --ex-swatch-teal: #006a6a;

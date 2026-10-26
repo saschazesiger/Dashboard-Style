@@ -159,7 +159,7 @@ and keyed to your root like the tokens. The list holds every element the documen
 stays out: icons keep their own attributes):
 
 ```css
-.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, hr, kbd, output) {
+.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, hr, kbd, output, figure, figcaption, time) {
   all: revert-layer;
 }
 ```
@@ -299,6 +299,19 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-card-selected-bg` | `--ds-accent` | a selected interactive card |
 | `--ds-selected-ring` | `--ds-primary` | the inset ring of a selected tile or card |
 | `--ds-card-shadow` | `--ds-elev-1` | `.ds-card--elevated` |
+| `--ds-list-item-height` | 56px | the least height of a `.ds-list` row |
+| `--ds-list-text-min` | 12rem | the width below which a row's trailing parts (status, actions, chevron) drop to a second line |
+| `--ds-list-current-bg` | `--ds-accent` | the current row of a `.ds-list` (`aria-current`) |
+| `--ds-facts-label-width` | 36% | the label column of `.ds-facts--rows` |
+| `--ds-disclosure-height` | 40px | the least height of a `.ds-disclosure` summary (its rest radius is half of it) |
+| `--ds-disclosure-row-height` | 48px | the least height of a `.ds-disclosure--row` summary |
+| `--ds-timeline-indent` | `--ds-space-8` | how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it) |
+| `--ds-timeline-dot-size`, `--ds-timeline-dot-color` | 10px, `--ds-primary` | the dot of a timeline entry |
+| `--ds-timeline-muted-color` | `--ds-outline` | the ring of a `.ds-timeline__item--muted` entry |
+| `--ds-timeline-line-width`, `--ds-timeline-line-color` | 2px, `--ds-line` | the rail (and the width of a muted ring) |
+| `--ds-timeline-divider-color` | `--ds-line` | the hairline between entries |
+| `--ds-timeline-marker-size` | 24px | the disc of `.ds-timeline__marker`; the rail runs through its centre |
+| `--ds-timeline-head-line` | 24px | the head line of an entry, on which its dot is centred (the height of a status chip) |
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
 | `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
 | `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
@@ -329,6 +342,13 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-skeleton-radius` | `--ds-radius-action` (the heading line: `--ds-radius-sm`) | skeleton lines ([loading](components.md#loading)) |
 | `--ds-swap-fade` | `--ds-space-2` | the soft edge of a `.ds-swap--fade` slot ([motion](motion.md#utilities-css)) |
 | `--ds-dropzone-border` | `1px dashed var(--ds-outline)` | the border of a `.ds-dropzone` ([file upload](components.md#file-upload)) |
+| `--ds-meter-height` | 4px | `.ds-meter` (its rest radius is half of it) |
+| `--ds-meter-track`, `--ds-meter-color` | `--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`) | `.ds-meter`: the track, the fill |
+| `--ds-columns-height` | 120px | the plot of `.ds-columns` (`--mini`: 32px) |
+| `--ds-columns-radius` | `--ds-radius-xs` | the rounded data end of a column |
+| `--ds-columns-group-min` | 56px | the least width of a group of `.ds-columns--grouped` |
+| `--ds-chart-color` | `--ds-chart-1` (series and tone modifiers set it) | the colour of a column or a legend key |
+| `--ds-legend-key-size` | 12px | the key of a `.ds-legend` entry |
 | `--ds-dialog-width` | 400px | dialog |
 | `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
 | `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
@@ -350,7 +370,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not
 set it. Runtime properties (set by scripts, not themes) are documented with their components: `--ds-progress`
-([progress](components.md#progress)), `--ds-toast-left`, `--ds-toast-bottom` (set by the page), `--ds-toast-lift`,
+([progress](components.md#progress)), `--ds-share` ([charts](components.md#charts)), `--ds-toast-left`, `--ds-toast-bottom` (set by the page), `--ds-toast-lift`,
 `--ds-toast-shift`, `--ds-toast-shift-y` (written by `DS.overlay` only), `--ds-toast-reserve` (written by `toast()`,
 or by the page with `reserve: false`), `--ds-keyboard-inset` (written by `DS.dom.followViewport()`)
 ([snackbar](components.md#snackbar)), `--ds-savebar-height` ([save bar](components.md#save-bar)), `--ds-tooltip-x`, `--ds-tooltip-y`

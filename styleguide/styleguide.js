@@ -116,7 +116,7 @@
   var NAV = [
     { group: 'Start', items: [['overview', 'Overview', 'overview']] },
     { group: 'Foundations', items: [['colour', 'Colour', 'image'], ['type', 'Type', 'fileText'], ['shape', 'Space and shape', 'columns']] },
-    { group: 'Components', items: [['buttons', 'Buttons', 'plus'], ['status', 'Status and alerts', 'alertCircle'], ['cards', 'Cards and lists', 'list'], ['table', 'Table', 'rows'], ['forms', 'Forms', 'pencil'], ['selection', 'Chips, switch, combobox', 'check'], ['overlays', 'Overlays', 'copy'], ['loading', 'Loading and progress', 'sync'], ['frame', 'App frame', 'monitor']] },
+    { group: 'Components', items: [['buttons', 'Buttons', 'plus'], ['status', 'Status and alerts', 'alertCircle'], ['cards', 'Cards and lists', 'list'], ['table', 'Table', 'rows'], ['forms', 'Forms', 'pencil'], ['selection', 'Chips, switch, combobox', 'check'], ['overlays', 'Overlays', 'copy'], ['loading', 'Loading and progress', 'sync'], ['charts', 'Charts', 'barChart'], ['frame', 'App frame', 'monitor']] },
     { group: 'Motion and icons', items: [['motion', 'Motion', 'sparkles'], ['lab', 'Motion Lab', 'activity', 'motion.html'], ['icons', 'Icons', 'apps']] },
   ];
 
@@ -147,7 +147,7 @@
       '<p>White panels on a tinted backdrop, hairlines instead of shadows, pill-shaped actions and quiet motion. Every value comes from a token, so one theme file restyles everything below.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="../README.md">Get started</a><a class="ds-btn" href="../docs/theming.md">Theming guide</a><a class="ds-btn ds-btn--text" href="../docs/components.md">Component markup ' + icon('arrowRight', 16) + '</a></div></div>' +
       '<div class="ds-tiles">' +
-      tile('Components', '30', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
+      tile('Components', '34', 'apps', 'one file each') + tile('Tokens', '120+', 'settings', 'three layers') + tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') +
       '</div></section>';
   }
 
@@ -421,7 +421,7 @@
       card('Refreshing data', '<div id="sg-stale" aria-busy="false"><ul class="ds-kv-list" id="sg-stale-list">' + staleHtml() + '</ul></div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stale-fast">Fast refresh (150ms)</button><button class="ds-btn ds-btn--sm" type="button" data-sg="stale-slow">Slow refresh (1200ms)</button></div>' +
         '<p class="ds-muted">While a refresh runs the list carries .ds-stale and aria-busy="true". It dims only after the loader delay, so the fast refresh never dims; the fresh values show at once.</p>') +
-      '</div>');
+      '</div>' + listCards());
   }
 
   /* The done state: a confirmation whose disc pops in and whose check draws itself. */
@@ -504,6 +504,248 @@
     $('#sg-synced').setAttribute('data-count', String(devices - Math.round(10 + Math.random() * 180)));
     syncShare();
     countTiles();
+  }
+
+  /* ── Lists, disclosure, timeline and tasks (2.0) ─────────────────── */
+
+  function statusChip(status) {
+    if (!status) return '';
+    return '<span class="ds-status ds-status--' + status[0] + '">' + icon(status[1], 16) + '<span>' + status[2] + '</span></span>';
+  }
+
+  /* Row list: keyed rows; the opened one is current, Reorder glides them through flip(). */
+  var ROWS = {
+    current: 'd17',
+    items: [
+      { id: 'd42', name: 'LAPTOP-0042', glyph: 'laptop', meta: 'Notebook 14 · Building A', status: ['warning', 'alert', 'Warranty ends'] },
+      { id: 'd17', name: 'LAPTOP-0017', glyph: 'laptop', meta: 'Notebook 14 · Building B, 2nd floor', status: ['ok', 'check', 'Managed'] },
+      { id: 'p03', name: 'PRINTER-0003', glyph: 'box', meta: 'Printer · Floor 2, by the kitchen', status: ['error', 'alertCircle', 'Offline'] },
+      { id: 'm09', name: 'MONITOR-0009', glyph: 'monitor', meta: 'Display · Retired, read only', status: null, blocked: true },
+    ],
+  };
+
+  function rowListHtml() {
+    return ROWS.items.map(function (row) {
+      var current = row.id === ROWS.current;
+      return '<li class="ds-list__item" data-ds-key="' + row.id + '">' + icon(row.glyph, 20, 'ds-list__icon') +
+        '<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#cards" data-sg="ls-open" data-name="' + row.name + '"' +
+        (current ? ' aria-current="true"' : '') + (row.blocked ? ' aria-disabled="true" data-tip="Retired devices are read only"' : '') + '>' + row.name + '</a></span>' +
+        '<span class="ds-list__meta">' + row.meta + (current ? ' · <strong>Open</strong>' : '') + '</span></span>' + statusChip(row.status) +
+        '<span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for ' + row.name + '" data-tip="More" data-sg="ls-more" data-name="' + row.name + '">' + icon('moreVertical', 18) + '</button></span>' +
+        icon('chevronRight', 20, 'ds-list__chevron') + '</li>';
+    }).join('');
+  }
+
+  function renderRows() {
+    var list = $('#sg-rows');
+    return M.flip(list, function (options) { DS.dom.morphHtml(list, rowListHtml(), options); });
+  }
+
+  /* History and activity: a timeline with day groups, a muted entry and actions; a feed with icon markers. */
+  function historyHtml() {
+    return '<li class="ds-timeline__group" role="presentation"><h4 class="ds-timeline__day">12 Oct 2026</h4></li>' +
+      '<li class="ds-timeline__item" data-ds-key="h3"><div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p>' + statusChip(['ok', 'check', 'Active']) + '</div>' +
+        '<p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p><p class="ds-timeline__text">Issued to Ada Lovelace.\nCharger and bag included.</p>' +
+        '<div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05" data-sg="ls-edit">Edit</button></div></li>' +
+      '<li class="ds-timeline__item ds-timeline__item--muted" data-ds-key="h2"><div class="ds-timeline__head"><p class="ds-timeline__title">Return planned</p></div>' +
+        '<p class="ds-timeline__meta"><time datetime="2026-10-12T09:40">09:40</time> · Grace Hopper</p><p class="ds-timeline__text">Cancelled: the loan was extended.</p></li>' +
+      '<li class="ds-timeline__group" role="presentation"><h4 class="ds-timeline__day">3 Oct 2026</h4></li>' +
+      '<li class="ds-timeline__item" data-ds-key="h1"><div class="ds-timeline__head"><p class="ds-timeline__title">Repaired</p></div>' +
+        '<p class="ds-timeline__meta"><time datetime="2026-10-03T09:30">09:30</time> · Service desk</p><p class="ds-timeline__text">Keyboard replaced under warranty.</p></li>';
+  }
+
+  var ACTIVITY = {
+    next: 0,
+    items: [
+      { id: 'a2', glyph: 'user', title: 'Grace Hopper took LAPTOP-0051', meta: 'Today, 08:47' },
+      { id: 'a1', glyph: 'sync', title: 'The nightly sync changed 4 devices', meta: 'Today, 02:00' },
+    ],
+    fresh: [['pencil', 'Ada Lovelace renamed PRINTER-0003'], ['ticket', 'Ticket #42 was closed'], ['shield', 'LAPTOP-0042 installed its updates']],
+  };
+
+  function activityHtml() {
+    return ACTIVITY.items.map(function (item) {
+      return '<li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="' + item.id + '"><span class="ds-timeline__marker" aria-hidden="true">' + icon(item.glyph, 16) + '</span>' +
+        '<div class="ds-timeline__head"><p class="ds-timeline__title">' + item.title + '</p></div><p class="ds-timeline__meta">' + item.meta + '</p></li>';
+    }).join('');
+  }
+
+  function addActivity() {
+    var fresh = ACTIVITY.fresh[ACTIVITY.next % ACTIVITY.fresh.length];
+    ACTIVITY.next += 1;
+    ACTIVITY.items.unshift({ id: 'a' + (ACTIVITY.items.length + ACTIVITY.next + 2), glyph: fresh[0], title: fresh[1], meta: 'Just now' });
+    if (ACTIVITY.items.length > 4) ACTIVITY.items.pop();
+    var list = $('#sg-activity');
+    M.flip(list, function (options) { DS.dom.morphHtml(list, activityHtml(), options); }, { live: true });
+  }
+
+  /* Tasks: Advance finishes the running step and starts the next one. */
+  var TASKS = ['Copy the image', 'Install updates', 'Join the domain', 'Restart'];
+  var tasksAt = { done: 1, failed: false };
+
+  function tasksHtml() {
+    return TASKS.map(function (text, index) {
+      var status = index < tasksAt.done ? 'done' : index === tasksAt.done ? (tasksAt.failed ? 'failed' : 'running') : 'pending';
+      var mark = status === 'done' ? icon('checkCircle', 20) : status === 'failed' ? icon('alertCircle', 20) : status === 'running' ? '<span class="ds-spinner ds-spinner--sm"></span>' : '';
+      var word = { done: ': done', running: ': running', pending: ': waiting' }[status];
+      return '<li class="ds-tasks__item" data-status="' + status + '" data-ds-key="t' + index + '"><span class="ds-tasks__mark">' + mark + '</span><span class="ds-tasks__text">' + text +
+        (status === 'failed' ? ': failed, the server did not answer' : '<span class="ds-sr">' + word + '</span>') + '</span></li>';
+    }).join('');
+  }
+
+  function renderTasks(action) {
+    if (action === 'ls-task-next') {
+      if (tasksAt.failed) tasksAt.failed = false;
+      else tasksAt.done = Math.min(TASKS.length, tasksAt.done + 1);
+    }
+    if (action === 'ls-task-fail' && tasksAt.done < TASKS.length) tasksAt.failed = true;
+    if (action === 'ls-task-reset') tasksAt = { done: 0, failed: false };
+    DS.dom.morphHtml($('#sg-tasks'), tasksHtml());
+    $('#sg-tasks-count').textContent = tasksAt.done + ' of ' + TASKS.length;
+  }
+
+  function listCards() {
+    return card('Row list', '<ul class="ds-list ds-list--interactive" id="sg-rows" aria-label="Devices">' + rowListHtml() + '</ul>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-reorder">' + icon('sort', 16) + 'Reorder</button></div>' +
+        '<p class="ds-muted">Each row opens its record: the title link stretches over the row, the menu button stays a control of its own. The open row is current (aria-current); the retired one is blocked. Reorder glides the rows through DS.motion.flip. In a narrow column the status, the actions and the chevron drop to a second line by themselves.</p>') +
+      '<div class="ds-grid-2">' +
+      card('Rows that open', '<ul class="ds-kv-list ds-kv-list--interactive">' +
+        '<li><a class="ds-kv-list__row" href="#cards" data-sg="ls-kv" data-name="Ada Lovelace"><span>Owner</span><strong>Ada Lovelace</strong></a></li>' +
+        '<li><button class="ds-kv-list__row" type="button" data-sg="ls-kv" data-name="the open tickets"><span>Tickets</span><strong>3 open</strong></button></li>' +
+        '<li><button class="ds-kv-list__row" type="button" aria-disabled="true" data-tip="Only an administrator can change it"><span>Cost centre</span><strong>4100</strong></button></li>' +
+        '<li><div class="ds-kv-list__row"><span>Serial</span><strong>5CD1234XYZ</strong></div></li>' +
+        '<li><div class="ds-kv-list__row"><span>Backup</span><strong>' + icon('checkCircle', 16, 'ds-kv-list__icon ds-kv-list__icon--ok') + '<span class="ds-sr">Passed:</span> Today, 02:00</strong></div></li>' +
+        '<li><div class="ds-kv-list__row"><span>Asset tag</span><strong class="ds-muted">Not set</strong></div></li></ul>' +
+        '<h4 class="ds-card__subtitle">Storage</h4><ul class="ds-kv-list ds-kv-list--bars" id="sg-bars">' +
+        '<li><span>System disk</span><strong>78%</strong><span class="ds-meter ds-meter--warning" aria-hidden="true" style="--ds-share:.78"></span></li>' +
+        '<li><span data-tip="Shared documents and project archives">Shared documents and project archives</span><strong>31%</strong><span class="ds-meter" aria-hidden="true" style="--ds-share:.31"></span></li></ul>') +
+      card('Facts in rows', '<dl class="ds-facts ds-facts--rows"><div><dt>Owner</dt><dd>Ada Lovelace<span class="ds-lock" role="img" aria-label="Set by the directory sync" data-tip="Set by the directory sync">' + icon('lock', 16) + '</span></dd></div>' +
+        '<div><dt>Department</dt><dd>Research<span class="ds-lock" role="img" aria-label="Set by the directory sync" data-tip="Set by the directory sync">' + icon('lock', 16) + '</span></dd></div>' +
+        '<div><dt>Location</dt><dd>Building A, 1st floor</dd></div><div><dt>Notes</dt><dd>Docking station at the desk by the window.</dd></div></dl>' +
+        '<p class="ds-meta">Values with a lock come from the directory sync: change them there.</p>') +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      card('History', '<ol class="ds-timeline" role="list" aria-label="History of LAPTOP-0042">' + historyHtml() + '</ol>') +
+      card('Activity', '<ol class="ds-timeline" id="sg-activity" role="list" aria-label="Activity">' + activityHtml() + '</ol>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-activity">' + icon('plus', 16) + 'Add an entry</button></div>' +
+        '<p class="ds-muted">A live feed: a new entry fades in at the top while the others glide down (DS.motion.flip with live: true).</p>') +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      card('Disclosure', '<details class="ds-collapsible ds-disclosure"><summary>Advanced settings' + icon('chevronDown', 20, 'ds-chevron') + '</summary>' +
+        '<div class="ds-disclosure__body"><p class="ds-muted">Asset tag, purchase date and the cost centre.</p></div></details>' +
+        '<div class="ds-disclosure-list">' + [['When does the sync run?', 'Nightly', 'Every night at 02:00; a manual run starts at once.'], ['What does a lock mean?', 'Directory', 'Another system sets the value: change it there.'], ['Who can retire a device?', 'Admins', 'Administrators of its building.']].map(function (row) {
+          return '<details class="ds-collapsible ds-disclosure ds-disclosure--row" name="sg-faq"><summary><span class="ds-disclosure__title">' + row[0] + '</span><span class="ds-disclosure__meta">' + row[1] + '</span>' + icon('chevronDown', 20, 'ds-chevron') + '</summary>' +
+            '<div class="ds-disclosure__body"><p class="ds-muted">' + row[2] + '</p></div></details>';
+        }).join('') + '</div>') +
+      card('', '<div class="ds-tasks__head"><h3 class="ds-card__title">Set up LAPTOP-0042</h3><p class="ds-meta" id="sg-tasks-count">' + tasksAt.done + ' of ' + TASKS.length + '</p></div>' +
+        '<ol class="ds-tasks" id="sg-tasks" aria-label="Steps">' + tasksHtml() + '</ol>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-task-next">Advance</button><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-task-fail">Fail the running step</button><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="ls-task-reset">Start over</button></div>') +
+      '</div>';
+  }
+
+  function listsAction(action, el, event) {
+    if (action === 'ls-open' || action === 'ls-kv') event.preventDefault();
+    if (el.getAttribute('aria-disabled') === 'true') return;
+    if (action === 'ls-open') {
+      ROWS.current = el.closest('.ds-list__item').getAttribute('data-ds-key');
+      renderRows();
+      toast('Opened ' + el.getAttribute('data-name') + '.', 'info');
+    }
+    if (action === 'ls-more') toast('More for ' + el.getAttribute('data-name') + '.', 'info');
+    if (action === 'ls-kv') toast('Opened ' + el.getAttribute('data-name') + '.', 'info');
+    if (action === 'ls-reorder') {
+      ROWS.items.push(ROWS.items.shift());
+      renderRows();
+    }
+    if (action === 'ls-edit') toast('Editing opens a form in place (DS.motion.crossfade).', 'info');
+    if (action === 'ls-activity') addActivity();
+    if (/^ls-task-/.test(action)) renderTasks(action);
+    if (/^ls-chart-/.test(action)) chartsAction(action, el);
+  }
+
+  /* ── Charts (2.0) ─────────────────────────────────────────────────── */
+
+  var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  var CHART_SETS = [[42, 38, 51, 47, 30, 8, 5], [36, 44, 40, 52, 41, 12, 9], [28, 31, 45, 39, 50, 6, 11]];
+  var chartsAt = 0;
+
+  function columnsHtml(values, interactive) {
+    var max = Math.max.apply(null, values);
+    return values.map(function (value, index) {
+      var share = 'style="--ds-share:' + (value / max).toFixed(3) + '"';
+      var parts = '<span class="ds-columns__value">' + value + '</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">' + DAYS[index] + '</span>';
+      if (interactive) return '<li><button class="ds-columns__col" type="button" ' + share + ' aria-label="' + DAYS[index] + ': ' + value + ' tickets" data-sg="ls-chart-col">' + parts + '</button></li>';
+      return '<li class="ds-columns__col" ' + share + '>' + parts + '</li>';
+    }).join('');
+  }
+
+  var WEEKS = [['W37', 12, 9, 2], ['W38', 15, 14, 4], ['W39', 9, 12, 1], ['W40', 18, 11, 3], ['W41', 11, 16, 5], ['W42', 14, 6, 2]];
+
+  function groupsHtml() {
+    var max = 18;
+    return WEEKS.map(function (week, index) {
+      var current = index === WEEKS.length - 1;
+      return '<li class="ds-columns__group' + (current ? ' ds-columns__group--current' : '') + '"><ol class="ds-columns__plot">' +
+        '<li class="ds-columns__col" style="--ds-share:' + (week[1] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: ' + week[1] + '</span></li>' +
+        '<li class="ds-columns__col ds-columns__col--s2" style="--ds-share:' + (week[2] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: ' + week[2] + '</span></li>' +
+        '<li class="ds-columns__col ds-columns__col--s3" style="--ds-share:' + (week[3] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Reopened: ' + week[3] + '</span></li></ol>' +
+        '<span class="ds-columns__label">' + week[0] + (current ? '<span class="ds-sr">, this week</span>' : '') + '</span></li>';
+    }).join('');
+  }
+
+  var SPARK = [3, 5, 4, 7, 6, 2, 8, 5, 9, 6, 4, 7, 10, 12];
+
+  function charts() {
+    var spark = SPARK.map(function (value, index) {
+      return '<li class="ds-columns__col' + (index === SPARK.length - 1 ? ' ds-columns__col--highlight' : '') + '" style="--ds-share:' + (value / 12).toFixed(3) + '"><span class="ds-columns__fill"></span></li>';
+    }).join('');
+    return section('charts', 'Charts', 'Meters, columns and legends from the chart roles: four series in a fixed order, each at 3:1. A fill is clipped at its share (--ds-share), never scaled, so its round end keeps its shape; the first render fills from zero, later values glide.',
+      '<div class="ds-grid-2">' +
+      card('Meters', '<div class="sg-meters" id="sg-meters">' +
+        '<p class="sg-meter-label"><span>Disk</span><strong class="ds-num" id="sg-meter-disk">62%</strong></p><span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-valuetext="62% used" style="--ds-share:.62"></span>' +
+        '<p class="sg-meter-label"><span>Memory: high</span><strong class="ds-num">91%</strong></p><span class="ds-meter ds-meter--warning" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-valuetext="91% used, high" style="--ds-share:.91"></span>' +
+        '<p class="sg-meter-label"><span>Battery health</span><strong class="ds-num">48%</strong></p><span class="ds-meter ds-meter--neutral" role="meter" aria-label="Battery health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-valuetext="48%" style="--ds-share:.48"></span></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-chart-meter">' + icon('sync', 16) + 'New disk value</button></div>' +
+        '<p class="ds-muted">The meter glides on --ds-ease-value while its figure counts (DS.motion.countUp) in the same task: both land on the same frame.</p>') +
+      card('Columns', '<figure class="ds-columns" id="sg-columns"><figcaption class="ds-sr">Devices that checked in, per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[0]) + '</ol></figure>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-chart-values">' + icon('sync', 16) + 'New values</button><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-chart-fill">Fill again</button></div>' +
+        '<p class="ds-muted">New values glide; Fill again plays the first render (DS.motion.enterAll(marks, \'fill\'), .ds-enter--fill).</p>') +
+      '</div>' +
+      '<div class="ds-grid-2">' +
+      card('Columns that open', '<figure class="ds-columns"><figcaption class="ds-sr">Tickets per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[1], true) + '</ol></figure>' +
+        '<p class="ds-muted">Each column is a button that opens its day: a state layer, an inset ring and the ripple, no morph.</p>') +
+      card('Grouped, with a sparkline', '<figure class="ds-columns ds-columns--grouped"><figcaption class="ds-sr">Tickets opened, closed and reopened per week</figcaption>' +
+        '<div class="ds-scroll-x" tabindex="0" role="group" aria-label="Tickets per week"><ol class="ds-columns__groups">' + groupsHtml() + '</ol></div></figure>' +
+        '<ul class="ds-legend"><li><span class="ds-legend__key"></span>Opened</li><li><span class="ds-legend__key ds-legend__key--s2"></span>Closed</li><li><span class="ds-legend__key ds-legend__key--s3"></span>Reopened</li></ul>' +
+        '<div class="sg-spark"><p class="sg-spark__figure">12</p><figure class="ds-columns ds-columns--mini" role="img" aria-label="Tickets per day, last 14 days: highest 12 today"><ol class="ds-columns__plot" aria-hidden="true">' + spark + '</ol></figure></div>') +
+      '</div>');
+  }
+
+  /* The marks of the charts section (meters and columns) that fill on the first render. */
+  function chartMarks(root) {
+    return $$('.ds-meter, .ds-columns__col', root || $('#charts'));
+  }
+
+  function chartsAction(action, el) {
+    if (action === 'ls-chart-values') {
+      chartsAt = (chartsAt + 1) % CHART_SETS.length;
+      var values = CHART_SETS[chartsAt];
+      var max = Math.max.apply(null, values);
+      $$('#sg-columns .ds-columns__col').forEach(function (col, index) {
+        col.style.setProperty('--ds-share', (values[index] / max).toFixed(3));
+        $('.ds-columns__value', col).textContent = String(values[index]);
+      });
+    }
+    if (action === 'ls-chart-fill') M.enterAll(chartMarks($('#sg-columns')), 'fill', { stagger: false });
+    if (action === 'ls-chart-meter') {
+      var meter = $('#sg-meters .ds-meter');
+      var next = Number(meter.getAttribute('aria-valuenow')) >= 60 ? 27 : 84;
+      meter.style.setProperty('--ds-share', String(next / 100));
+      meter.setAttribute('aria-valuenow', String(next));
+      meter.setAttribute('aria-valuetext', next + '% used');
+      M.countUp($('#sg-meter-disk'), next, { format: function (value) { return Math.round(value) + '%'; } });
+    }
+    if (action === 'ls-chart-col') toast('Opened the tickets of ' + el.getAttribute('aria-label').split(':')[0] + '.', 'info');
   }
 
   /* Table: keyed rows rendered through DS.motion.flip + DS.dom.morphHtml. */
@@ -1632,7 +1874,7 @@
     // the page is revealed (startLab).
     setHtml($('#sg-page'), PAGE === 'lab'
       ? labIntro()
-      : overview() + colour() + type() + shape() + buttons() + status() + cards() + table() + forms() + selection() + overlays() + loading() + frame() + motion() + icons(), presetStates);
+      : overview() + colour() + type() + shape() + buttons() + status() + cards() + table() + forms() + selection() + overlays() + loading() + charts() + frame() + motion() + icons(), presetStates);
     // The current item is part of the first render: its colour never fades
     // in on load. A lab address with a section's hash starts on that
     // section's item, before the section itself exists.
@@ -2408,6 +2650,7 @@
         el.setAttribute('aria-pressed', String(el.getAttribute('aria-pressed') !== 'true'));
         $$('.sg-icon--fillable svg', $('#sg-icons')).forEach(function (svg) { svg.classList.toggle('ds-icon--filled', el.getAttribute('aria-pressed') === 'true'); });
       }
+      if (action.indexOf('ls-') === 0) listsAction(action, el, event);
       if (action === 'table-sort' || action === 'row-toggle' || action === 'row-open' || action === 'table-live') tableAction(action, el);
       if (action === 'progress-run') progressRun();
       if (action === 'skeleton') skeletonDemo(el);
@@ -2656,5 +2899,7 @@
   // from 0.
   M.staggerOnce($('#sg-page'));
   if (PAGE === 'index') countTiles();
+  // The charts fill from zero once, on the first render (.ds-enter--fill).
+  if (PAGE === 'index') M.enterAll(chartMarks(), 'fill', { stagger: false });
   if (PAGE === 'index' && location.hash && $(location.hash)) $(location.hash).scrollIntoView();
 }());

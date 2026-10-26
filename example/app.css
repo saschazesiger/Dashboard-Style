@@ -2,7 +2,7 @@
  * The reference app's own components, with the project prefix ex-. They
  * read tokens only (--ds-* and the project's --ex-* from theme.css): no
  * colour, radius, font, shadow, duration or curve literals, no keyframes
- * of their own (the bars grow with .ds-enter--fill-y). Unlayered, like
+ * of their own (the columns fill with .ds-enter--fill). Unlayered, like
  * every project stylesheet, and never restyling a .ds-* component.
  *
  *   .ex-logo         the brand mark in the top bar and the drawer
@@ -10,9 +10,6 @@
  *   .ex-page-head    the page header with actions on the right
  *   .ex-detail       the content of an expanded table row
  *   .ex-col-time, .ex-col-status  stable widths for columns with live values
- *   .ex-chart        a column chart: .ex-chart__col > .ex-chart__bar (--ex-share 0..1), .ex-chart__label
- *   .ex-activity     a feed: .ex-activity__item > .ex-activity__icon, .ex-activity__text, .ex-activity__time
- *   .ex-disclosure   <details class="ds-collapsible ex-disclosure">: the summary row
  *   .ex-swatch       the colour dot of an accent choice
  */
 
@@ -61,130 +58,6 @@
 
 .ex-col-status {
   min-width: 136px;
-}
-
-/* ── Column chart ───────────────────────────────────────────────────── */
-
-.ex-chart {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: var(--ds-space-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.ex-chart__col {
-  display: grid;
-  gap: var(--ds-space-2);
-  justify-items: center;
-}
-
-.ex-chart__track {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  max-width: var(--ds-space-10);
-  height: var(--ex-chart-height);
-  border-radius: var(--ds-radius-xs);
-  background: var(--ex-chart-track);
-  overflow: hidden;
-}
-
-.ex-chart__bar {
-  width: 100%;
-  height: 100%;
-  border-radius: var(--ds-radius-xs);
-  background: var(--ex-chart-bar);
-  transform: scaleY(var(--ex-share, 0));
-  transform-origin: bottom;
-}
-
-.ex-chart__label {
-  font: var(--ds-font-caption);
-  color: var(--ds-text-2);
-}
-
-.ex-chart__value {
-  font: var(--ds-font-meta);
-  color: var(--ds-text);
-  font-variant-numeric: tabular-nums;
-}
-
-@media (forced-colors: active) {
-  .ex-chart__bar {
-    background: CanvasText;
-  }
-
-  .ex-chart__track {
-    background: Canvas;
-    outline: 1px solid CanvasText;
-  }
-}
-
-/* ── Activity feed ──────────────────────────────────────────────────── */
-
-/* A flex column with a gap: DS.motion.flip() glides the items when one comes in. */
-.ex-activity {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ds-space-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.ex-activity__item {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--ds-space-3);
-}
-
-.ex-activity__icon {
-  display: grid;
-  place-items: center;
-  width: var(--ds-space-8);
-  height: var(--ds-space-8);
-  border-radius: var(--ds-radius-action);
-  background: var(--ds-surface-high);
-  color: var(--ds-text-2);
-}
-
-.ex-activity__text {
-  font: var(--ds-font-body);
-  color: var(--ds-text);
-  overflow-wrap: anywhere;
-}
-
-.ex-activity__time {
-  font: var(--ds-font-meta);
-  color: var(--ds-text-3);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── Disclosure ─────────────────────────────────────────────────────── */
-
-/* The summary of a <details class="ds-collapsible ex-disclosure">; its .ds-chevron turns by itself. */
-.ex-disclosure > summary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ds-space-2);
-  font: var(--ds-font-label);
-  color: var(--ds-text);
-  cursor: pointer;
-  border-radius: var(--ds-radius-xs);
-}
-
-.ex-disclosure > summary:focus-visible {
-  outline: var(--ds-focus-outline);
-  outline-offset: var(--ds-focus-offset);
-}
-
-.ex-disclosure > :not(summary) {
-  margin-top: var(--ds-space-3);
 }
 
 /* ── Accent choice ──────────────────────────────────────────────────── */

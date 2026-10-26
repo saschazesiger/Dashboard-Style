@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Charts · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  .fx-chart {
+    max-width: 480px;
+  }
+</style>
+</head>
+<body>
+<!-- The charts of 2.0 (WP6): a meter with a figure, tone meters, columns
+     with values, columns of series 2 to 4, a column that opens its day, a
+     mini sparkline and a legend. Every mark sets --ds-share; the specs set
+     new shares and play the first render (DS.motion.enterAll(marks,
+     'fill')). -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="meter-title">
+    <h2 id="meter-title">Meters</h2>
+    <div class="fx-chart fx-demo">
+      <p class="ds-meta" id="figure">62%</p>
+      <span class="ds-meter fx-chart" id="meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-valuetext="62% used" style="--ds-share: .62; width: 400px"></span>
+      <span class="ds-meter ds-meter--warning" id="meter-warning" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-valuetext="91% used, high" style="--ds-share: .91; width: 400px"></span>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="columns-title">
+    <h2 id="columns-title">Columns</h2>
+    <figure class="ds-columns fx-chart" id="columns">
+      <figcaption class="ds-sr">Devices that checked in, per day</figcaption>
+      <ol class="ds-columns__plot">
+        <li class="ds-columns__col" style="--ds-share: 1"><span class="ds-columns__value">42</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">Mon</span></li>
+        <li class="ds-columns__col ds-columns__col--s2" style="--ds-share: .5"><span class="ds-columns__value">21</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">Tue</span></li>
+        <li class="ds-columns__col ds-columns__col--s3" style="--ds-share: .25"><span class="ds-columns__value">11</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">Wed</span></li>
+        <li class="ds-columns__col ds-columns__col--s4" style="--ds-share: .75"><span class="ds-columns__value">32</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">Thu</span></li>
+        <li><button class="ds-columns__col" type="button" id="col-button" aria-label="Friday: 8 devices" style="--ds-share: .2"><span class="ds-columns__value">8</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">Fri</span></button></li>
+      </ol>
+    </figure>
+    <ul class="ds-legend" id="legend"><li><span class="ds-legend__key"></span>Hardware</li><li><span class="ds-legend__key ds-legend__key--s2"></span>Software</li><li><span class="ds-legend__key ds-legend__key--s3"></span>Access</li><li><span class="ds-legend__key ds-legend__key--s4"></span>Other</li></ul>
+  </section>
+
+  <section class="fx-section" aria-labelledby="mini-title">
+    <h2 id="mini-title">Sparkline</h2>
+    <figure class="ds-columns ds-columns--mini fx-chart" id="mini" role="img" aria-label="Tickets per day: highest 12 today">
+      <ol class="ds-columns__plot" aria-hidden="true">
+        <li class="ds-columns__col" style="--ds-share: .4"><span class="ds-columns__fill"></span></li>
+        <li class="ds-columns__col" style="--ds-share: .6"><span class="ds-columns__fill"></span></li>
+        <li class="ds-columns__col ds-columns__col--highlight" style="--ds-share: 1"><span class="ds-columns__fill"></span></li>
+      </ol>
+    </figure>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

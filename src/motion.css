@@ -187,11 +187,21 @@
     from { stroke-dashoffset: var(--ds-draw-length, 1); }
   }
 
-  /* A bar that fills from its start (meters, chart bars and columns on their
-     first render). The element sets its own transform (the scaleX or scaleY
-     of its share) and transform-origin; the scale property multiplies it,
-     so the bar grows from zero to its share. A value that changes later
-     jumps or transitions, it never replays this. */
+  /* A chart mark that fills from zero to its share on its first render
+     (.ds-meter, .ds-columns__col): the registered --ds-share runs from 0
+     to the mark's own value, so its fill, clipped at the share, keeps its
+     round end the whole way. A value that changes later transitions, it
+     never replays this. */
+  @keyframes ds-fill-share {
+    from { --ds-share: 0; }
+  }
+
+  /* Deprecated in 2.0 (removed in 3.0 at the earliest): a scaled bar
+     squashes its round end; use --ds-share with ds-fill-share. A bar that
+     fills from its start: the element sets its own transform (the scaleX
+     or scaleY of its share) and transform-origin; the scale property
+     multiplies it, so the bar grows from zero to its share. A value that
+     changes later jumps or transitions, it never replays this. */
   @keyframes ds-fill-x {
     from { scale: 0 1; }
   }
@@ -846,9 +856,14 @@
      size, about 1%). */
   .ds-enter--pop { --ds-enter-keyframes: ds-fade-in, ds-pop-in; }
 
-  /* A bar or column grows to its share once (first render of a chart): a
+  /* A chart mark grows to its share once (first render of a chart): a
      value travelling, so it glides on the value curve like progress (data
-     never overshoots). */
+     never overshoots). The mark sets --ds-share; the animation runs it
+     from 0. */
+  .ds-enter--fill { --ds-enter-keyframes: ds-fade-in, ds-fill-share; --ds-enter-duration: var(--ds-dur-glide); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-value); }
+
+  /* Deprecated in 2.0 (removed in 3.0 at the earliest; use .ds-enter--fill
+     with --ds-share): a bar or column that scales to its share. */
   .ds-enter--fill-x { --ds-enter-keyframes: ds-fade-in, ds-fill-x; --ds-enter-duration: var(--ds-dur-glide); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-value); }
   .ds-enter--fill-y { --ds-enter-keyframes: ds-fade-in, ds-fill-y; --ds-enter-duration: var(--ds-dur-glide); --ds-enter-easing: var(--ds-ease-in-out), var(--ds-ease-value); }
 

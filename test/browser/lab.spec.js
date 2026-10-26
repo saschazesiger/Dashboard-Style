@@ -284,6 +284,7 @@ const CONTINUITY = {
   'field-changed': { in: 'stage', sel: '#sg-lab-changed .ds-field__label', pseudo: '::after', props: ['opacity'] },
   'search-key': { in: 'stage', sel: '.ds-search__key', props: ['opacity'] },
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
+  charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -299,6 +300,7 @@ const CONTINUITY_EXEMPT = {
   wizard: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
   tiles: 'selection is a colour transition (background-color, --ds-dur-fast) and a ring that shows at once: no number to sample',
   'live-check': 'a hint that goes is removed at once by design, like a validation message (its room opens on --ds-ease-out, removal is instant)',
+  tasks: 'a status change swaps the mark at once (its glyph is the state); only the tick of a step that turns done draws, and it starts anew by design',
 };
 
 /**

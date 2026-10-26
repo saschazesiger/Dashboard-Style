@@ -40,8 +40,10 @@ the tests in `test/`.
   press, ripple, morph or halo, take the `not-allowed` cursor where they can still be pointed at, and fade into that
   look on `--ds-dur-fast`.
 - **Disabled is explained where possible.** Prefer a focusable `aria-disabled` control with a tooltip that says
-  why over a bare `disabled`: the reason shows on hover, on keyboard focus and on a tap on touch screens. A value that
-  another system sets is locked (`.ds-switch--locked`, the `lock` glyph) and says by whom in words.
+  why over a bare `disabled`: the reason shows on hover, on keyboard focus and on a tap on touch screens.
+- **A value another system sets is locked, not disabled.** Show it as text with the lock (`.ds-lock`) and its reason
+  (where to change it), or as a locked switch (`.ds-switch--locked`, the `lock` glyph) that says by whom in words;
+  never a disabled field.
 - **No flicker.** Fast loads show nothing: loaders appear after `--ds-delay-loader` and then stay at least
   `--ds-hold-loader` (450ms). A block that waits shows the shape loader (`.ds-loader`), a small spot (a button, a
   chip, a cell) the arc spinner (it has no delay of its own: put it in `.ds-loading`, a busy button, or a
@@ -93,7 +95,8 @@ the tests in `test/`.
 - Forced colors (Windows contrast themes) drop backgrounds and shadows: floating layers (dialogs, sheets, the modal
   drawer, snackbars, tooltips, menus and the combobox list) carry a transparent outline that becomes their edge, a
   selected option shows `SelectedItem`, selects get their native arrow back, and the spinner, switch, progress and
-  loading bar use system colours. Keep these when you build your own floating layers.
+  loading bar use system colours; the current row of a list is `SelectedItem`, timeline dots and rails are borders,
+  and chart fills take `CanvasText` with series 2 to 4 hatched. Keep these when you build your own floating layers.
 - Hover effects only for devices that hover (`@media (hover: hover)`).
 - A skip link before the navigation; one `<h1>` per page that can take focus (`tabindex="-1"`) after a page change;
   no `<header>` inside dialogs or sheets (it would be a second banner landmark).

@@ -10,7 +10,8 @@
  *                       (DS.overlay), data-scrolled (DS.dom.watchScrolled)
  *   Overview            tiles that count (countUp), alerts that come and go
  *                       (flip), a sync with busy faces and a progress bar,
- *                       a chart of the project's own (.ex-chart), a live feed
+ *                       columns that fill once (.ds-columns), a live feed
+ *                       (.ds-timeline), open tickets in a row list (.ds-list)
  *   Devices             search, filter chips, sort, bulk selection, a row
  *                       menu, a confirm dialog, undo in a snackbar, an empty
  *                       state, a refresh with DS.motion.refresh(),
@@ -185,17 +186,30 @@
       `<p class="ds-progress__label">${label}</p><p class="ds-progress__detail">${detail}</p></div>`;
   }
 
+  /* Columns of the system: each sets its share (--ds-share), the fill is clipped at it. */
   function chartHtml() {
     const max = Math.max(state.devices.length, ...state.checkins.map(([, n]) => n), 1);
-    return '<ol class="ex-chart" aria-label="Devices that checked in, per day">' + state.checkins.map(([day, n]) =>
-      `<li class="ex-chart__col"><span class="ex-chart__value">${n}</span><span class="ex-chart__track" aria-hidden="true"><span class="ex-chart__bar" style="--ex-share: ${(n / max).toFixed(3)}"></span></span>` +
-      `<span class="ex-chart__label">${day}</span></li>`).join('') + '</ol>';
+    return '<figure class="ds-columns"><figcaption class="ds-sr">Devices that checked in, per day</figcaption><ol class="ds-columns__plot">' + state.checkins.map(([day, n]) =>
+      `<li class="ds-columns__col" style="--ds-share: ${(n / max).toFixed(3)}"><span class="ds-columns__value">${n}</span><span class="ds-columns__fill" aria-hidden="true"></span>` +
+      `<span class="ds-columns__label">${day}</span></li>`).join('') + '</ol></figure>';
   }
 
+  /* The feed as a timeline with icon markers, newest first. */
   function activityHtml() {
     return state.activity.slice(-6).reverse().map((entry) =>
-      `<li class="ex-activity__item" data-ds-key="${entry.id}"><span class="ex-activity__icon" aria-hidden="true">${icon(entry.glyph, 16)}</span>` +
-      `<span class="ex-activity__text">${esc(entry.text)}</span><time class="ex-activity__time" datetime="${new Date(entry.at).toISOString()}">${ago(entry.at)}</time></li>`).join('');
+      `<li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="${entry.id}"><span class="ds-timeline__marker" aria-hidden="true">${icon(entry.glyph, 16)}</span>` +
+      `<div class="ds-timeline__head"><p class="ds-timeline__title">${esc(entry.text)}</p></div>` +
+      `<p class="ds-timeline__meta"><time datetime="${new Date(entry.at).toISOString()}">${ago(entry.at)}</time></p></li>`).join('');
+  }
+
+  /* Open tickets as a row list: each row opens its ticket. */
+  function openTicketsHtml(open) {
+    return '<ul class="ds-list ds-list--interactive" aria-label="Open tickets">' + open.slice(0, 4).map((ticket) =>
+      `<li class="ds-list__item" data-ds-key="t${ticket.id}">${icon('ticket', 20, 'ds-list__icon')}` +
+      `<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#/tickets?open=${ticket.id}">${esc(ticket.subject)}</a></span>` +
+      `<span class="ds-list__meta">#${ticket.id} · ${esc(byId(ticket.device)?.name ?? '')} · opened ${ago(ticket.opened)}</span></span>` +
+      (ticket.priority === 'high' ? `<span class="ds-status ds-status--warning">${icon('flag', 16)}<span>High</span></span>` : '') +
+      `${icon('chevronRight', 20, 'ds-list__chevron')}</li>`).join('') + '</ul>';
   }
 
   function overviewHtml() {
@@ -214,11 +228,9 @@
         `<section class="ds-card"><h2 class="ds-card__title">Check-ins this week</h2>${chartHtml()}<p class="ds-meta">Devices that reported at least once that day.</p></section>` +
       '</div>' +
       '<div class="ds-grid-2">' +
-        `<section class="ds-card"><h2 class="ds-card__title">Recent activity</h2><ol class="ex-activity" id="activity">${activityHtml()}</ol></section>` +
+        `<section class="ds-card"><h2 class="ds-card__title">Recent activity</h2><ol class="ds-timeline" id="activity" role="list" aria-label="Recent activity">${activityHtml()}</ol></section>` +
         '<section class="ds-card"><h2 class="ds-card__title">Open tickets</h2>' +
-          (open.length ? `<ul class="ds-kv-list">${open.slice(0, 4).map((ticket) =>
-            `<li><span><a class="ds-link-btn" href="#/tickets?open=${ticket.id}">${esc(ticket.subject)}</a></span><strong>${PRIORITY[ticket.priority]}</strong></li>`).join('')}</ul>`
-            : '<p class="ds-muted">No open tickets.</p>') +
+          (open.length ? openTicketsHtml(open) : '<p class="ds-muted">No open tickets.</p>') +
           `<nav class="ds-card__links" aria-label="Tickets"><a class="ds-btn ds-btn--text ds-card__link" href="#/tickets">All tickets ${icon('arrowRight', 16)}</a></nav>` +
         '</section>' +
       '</div>';
@@ -448,11 +460,11 @@
           `<div class="ds-field"><label class="ds-field__label" for="org-timezone">Time zone</label><select class="ds-input" id="org-timezone" name="timezone">${['UTC', 'Europe/London', 'America/New_York', 'Asia/Tokyo'].map((zone) => option(zone, zone, s.timezone)).join('')}</select></div>` +
           `<div class="ds-field"><label class="ds-field__label" for="org-retention">Keep history for</label><select class="ds-input" id="org-retention" name="retention">${[['30', '30 days'], ['90', '90 days'], ['365', 'One year']].map(([v, l]) => option(v, l, s.retention)).join('')}</select></div>` +
         '</div>' +
-        `<details class="ds-collapsible ex-disclosure"><summary>Advanced${icon('chevronDown', 20, 'ds-chevron')}</summary>` +
-          '<div class="ds-field"><label class="ds-field__label" for="api-key">API key</label><div class="ds-field__row">' +
+        `<details class="ds-collapsible ds-disclosure"><summary>Advanced${icon('chevronDown', 20, 'ds-chevron')}</summary>` +
+          '<div class="ds-disclosure__body"><div class="ds-field"><label class="ds-field__label" for="api-key">API key</label><div class="ds-field__row">' +
             '<input class="ds-input" id="api-key" value="ex_7f3a9c21d4e8b605" readonly>' +
             `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" data-tip="Copy the key" data-act="copy-key"><span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">${icon('copy', 20)}</span><span class="ds-icon-swap__b">${icon('check', 20)}</span></span></button>` +
-          '</div></div>' +
+          '</div></div></div>' +
         '</details>' +
         '<div class="ds-form-actions">' +
           '<button class="ds-btn ds-btn--primary" type="submit"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
@@ -526,9 +538,9 @@
     view.scrollTop = 0;
   }
 
-  /* The bars of the chart grow from zero once, on the view's render. */
+  /* The columns fill from zero once, on the view's render (.ds-enter--fill). */
   function growChart() {
-    M.enterAll($$('.ex-chart__bar', page), 'fill-y');
+    M.enterAll($$('.ds-columns__col', page), 'fill', { stagger: false });
   }
 
   /* A destination: fade-through. The modal drawer closes inside the update,

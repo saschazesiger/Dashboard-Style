@@ -25,8 +25,9 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Alerts that come and go with the data (`flip()` on their stack, `live`; a dismiss moves the focus to the next alert, `refocus`) | Overview | `alertsHtml()`, `updateAlerts()` |
 | Busy and done faces, progress bar and figure landing together (`DS.dom.progress()`, `countUp()`) | Overview | `runSync()`, `showSync()` |
 | One error per cause that a later sync replaces or closes (`toast()` with `key`, `closeToasts()`) | Overview | `runSync()` |
-| A chart of the project's own whose bars grow once (`.ds-enter--fill-y`) | Overview | `chartHtml()`, `growChart()` |
-| A live feed (`flip({ live: true })` with `morphHtml`) | Overview | `poll()` |
+| Columns whose fills are clipped at their share (`.ds-columns`, `--ds-share`) and fill once (`.ds-enter--fill`) | Overview | `chartHtml()`, `growChart()` |
+| Open tickets in a row list: each row opens its ticket (`.ds-list--interactive`, `.ds-list__action`) | Overview | `openTicketsHtml()` |
+| A live feed as a timeline with icon markers (`.ds-timeline`, `flip({ live: true })` with `morphHtml`) | Overview | `activityHtml()`, `poll()` |
 | Search per keystroke, filter chips, sort with the turning arrow | Devices | `renderRows()` |
 | Bulk selection: header box with `indeterminate`, bulk actions | Devices | `syncSelection()`, `bulkHtml()` |
 | Empty state after a filter, and back | Devices | `renderRows()` |
@@ -38,4 +39,4 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Dialog with a form, validation on submit (the count said with `DS.overlay.announce()`), combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |
 | Switches that apply at once | Settings | the `data-setting` change |
 | Radio cards that switch the theme (tokens on `.ds-theme`) | Settings | the `accent` change, `theme.css` |
-| Form saved with `DS.motion.busy()`, collapsible section, icon swap, a field and its button (`.ds-field__row`) | Settings | the `org-form` submit, `copy-key` |
+| Form saved with `DS.motion.busy()`, a disclosure (`.ds-disclosure`), icon swap, a field and its button (`.ds-field__row`) | Settings | the `org-form` submit, `copy-key` |
