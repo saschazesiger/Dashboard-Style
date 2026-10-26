@@ -98,8 +98,11 @@
  * (data-placement="top" above; for the list, the viewport narrowed by
  * clipping boxes), never taller than that room (anchored: the CSS cap of
  * its position-area; else an inline max-height), so it never covers its
- * trigger. Over an open native dialog or sheet (showModal() makes the
- * rest inert, top-layer popovers too) a menu, popup, dialog or sheet (div
+ * trigger. While it is open, DS.dom.scrollEdges() watches the block axis
+ * of what scrolls (the menu, the combobox's list), so a cut edge fades
+ * where scroll timelines are missing too. Over an open native dialog or
+ * sheet (showModal() makes the rest inert, top-layer popovers too) a
+ * menu, popup, dialog or sheet (div
  * or native) moves inside it while it shows and back once closed; a native
  * one so that its exit, outside the top layer at once, stays above the
  * sheet's panel and its scrim keeps catching clicks. A menu focuses
@@ -243,7 +246,7 @@
  *   ring stays as WebKit draws it.
  */
 import { busy, flip, motionDuration, originFrom, settled, transition } from './motion.js';
-import { watchScrolled } from './dom.js';
+import { scrollEdges, watchScrolled } from './dom.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';
 
 /** How long a snackbar stays (ms) before its length adds time; --ds-time-scale stretches it. */
@@ -462,7 +465,7 @@ function releaseClaims(state) {
 function stateOf(element) {
   let state = overlays.get(element);
   if (!state) {
-    state = { gen: 0, phase: 'closed', kind: kindOf(element), opener: null, expander: null, inerted: [], locked: false, lockedDoc: null, hiddenClass: '', opening: null, closing: null, anchor: null, home: null, app: null, container: null, claims: [], openerId: '', openerRoot: null, returnTo: null, shownAt: 0, pressed: null, cancelled: false };
+    state = { gen: 0, phase: 'closed', kind: kindOf(element), opener: null, expander: null, inerted: [], locked: false, lockedDoc: null, hiddenClass: '', opening: null, closing: null, anchor: null, home: null, app: null, container: null, claims: [], openerId: '', openerRoot: null, returnTo: null, shownAt: 0, pressed: null, cancelled: false, edges: null };
     overlays.set(element, state);
   }
   return state;
@@ -890,7 +893,10 @@ function listen(doc) {
   // resizing, within one frame (an anchored one follows by itself).
   const view = doc.defaultView ?? globalThis;
   let frame = 0;
-  const follow = () => {
+  const follow = (/** @type {Event} */ event) => {
+    // A menu's own scroll moves nothing it is placed by, and placing it
+    // again (its cap lifted to measure) would clamp that scroll.
+    if (event?.type === 'scroll' && /** @type {Element} */ (event.target)?.closest?.('.ds-menu')) return;
     if (frame || !stack.some((element) => overlays.get(element)?.kind === 'menu')) return;
     const run = () => {
       frame = 0;
@@ -1350,6 +1356,32 @@ function releasePopup(element, state) {
   /** @type {HTMLElement} */ (element).style.removeProperty('max-height');
   releaseAnchor(state.anchor);
   state.anchor = null;
+  unwatchEdges(state);
+}
+
+/**
+ * The cut edges of a menu or a combobox list: DS.dom.scrollEdges() on the
+ * block axis of what scrolls (the menu, the list inside the popup) writes
+ * data-ds-overflow-start / -end (the fallback of the scroll-driven fades)
+ * and --ds-scrollbar-width (the strip the list's mask leaves opaque).
+ * Watched from the open until the popup is hidden, then let go, so a list
+ * the page replaces is not kept; a watch the page started itself is left
+ * alone. A reopen measures again (the content may have changed).
+ */
+function watchEdges(element, state) {
+  const scroller = state.kind === 'combo' ? element.querySelector('.ds-combo__list') ?? element : element;
+  if (state.edges?.scroller === scroller) {
+    state.edges.handle.update();
+    return;
+  }
+  unwatchEdges(state);
+  if (scroller.hasAttribute('data-ds-edges')) return;
+  state.edges = { scroller, handle: scrollEdges(scroller, { axis: 'block' }) };
+}
+
+function unwatchEdges(state) {
+  state.edges?.handle.destroy();
+  state.edges = null;
 }
 
 /* ── Over a native modal ────────────────────────────── */
@@ -1856,8 +1888,10 @@ function show(element, options, transform) {
 
   // Closed -> flush -> open: the entrance runs on transitions in every engine.
   if (kind !== 'drawer') {
-    if (reopening) element.setAttribute('data-state', 'open');
-    else if (kind === 'menu' || kind === 'combo') {
+    if (reopening) {
+      element.setAttribute('data-state', 'open');
+      if (kind === 'menu' || kind === 'combo') watchEdges(element, state);
+    } else if (kind === 'menu' || kind === 'combo') {
       // A popup is placed and measured at rest size (the closed state's
       // scale would shrink its box), then takes its closed state without a
       // transition, and grows from the trigger.
@@ -1872,6 +1906,7 @@ function show(element, options, transform) {
       flushStyle(element);
       style.removeProperty('transition');
       element.setAttribute('data-state', 'open');
+      watchEdges(element, state);
     } else if (!transform) {
       element.setAttribute('data-state', 'closed');
       flushStyle(box);

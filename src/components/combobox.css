@@ -63,6 +63,17 @@
  * where the progressive path below is missing: there the room is that
  * box's, so keep a combobox off the very end of a dialog.
  *
+ * Cut edges: a list that scrolls fades at each edge with more to show, a
+ * mask --ds-scroll-fade long (default --ds-space-8; 0px turns it off) on
+ * the registered numbers --ds-scroll-edge-start and --ds-scroll-edge-end
+ * of scroller.css (the .ds-scroll-x model on the block axis; the
+ * scrollbar strip, --ds-scrollbar-width, stays opaque). Where scroll
+ * timelines exist ds-scroll-edge-start and ds-scroll-edge-end drive them
+ * on the list's own scroll; elsewhere DS.overlay attaches
+ * DS.dom.scrollEdges(list, { axis: 'block' }) while the list is open, and
+ * data-ds-overflow-start / -end set them over --ds-dur-fast. The active
+ * option, scrolled into view, lands clear of them (scroll-padding).
+ *
  * Sizes: the field reads --ds-input-height (40px); the toggle is that size
  * and the field keeps room for it at its end; options are at least
  * --ds-combo-option-height (48px) tall. A .ds-progress on the chosen option
@@ -89,6 +100,10 @@
  *   popover="manual" in the top layer with data-anchored, as wide as the
  *   field, below it or flipped above, so a scrolling dialog never clips
  *   it): without them the list is absolute, and the script flips it up.
+ * - scroll-driven animations (animation-timeline: scroll(), animation-range;
+ *   the edge fades follow the scroll position): without them the
+ *   data-ds-overflow-* attributes of DS.dom.scrollEdges() (attached by
+ *   DS.overlay) set the fades, or none show.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -99,7 +114,7 @@
   }
 
   .ds-combo__input {
-    padding-right: calc(var(--ds-space-1) + var(--ds-input-height, 40px));
+    padding-inline-end: calc(var(--ds-space-1) + var(--ds-input-height, 40px));
     text-overflow: ellipsis;
   }
 
@@ -309,6 +324,48 @@
     list-style: none;
     scrollbar-width: thin;
     scrollbar-color: var(--ds-line-2) transparent;
+    /* The active option, scrolled into view, lands clear of the fades. */
+    scroll-padding-block: var(--ds-scroll-fade, var(--ds-space-8));
+    /* The cut edges fade (scroller.css, on the block axis): a gradient
+       whose ends are the registered numbers times --ds-scroll-fade, over
+       the content; the scrollbar strip at the end (--ds-scrollbar-width)
+       stays opaque. */
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-space-8))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-space-8))), transparent),
+      linear-gradient(#000, #000);
+    mask-image:
+      linear-gradient(to bottom, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-scroll-fade, var(--ds-space-8))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-scroll-fade, var(--ds-space-8))), transparent),
+      linear-gradient(#000, #000);
+    -webkit-mask-size: calc(100% - var(--ds-scrollbar-width, 0px)) 100%, var(--ds-scrollbar-width, 0px) 100%;
+    mask-size: calc(100% - var(--ds-scrollbar-width, 0px)) 100%, var(--ds-scrollbar-width, 0px) 100%;
+    -webkit-mask-position: 0 0, 100% 0;
+    mask-position: 0 0, 100% 0;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    transition:
+      --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
+      --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  /* The fallback: DS.dom.scrollEdges() (attached by DS.overlay while the
+     list is open) says which end has more. Where a scroll timeline drives
+     the numbers, the animation wins over these. */
+  .ds-combo__list[data-ds-overflow-start] {
+    --ds-scroll-edge-start: 1;
+  }
+
+  .ds-combo__list[data-ds-overflow-end] {
+    --ds-scroll-edge-end: 1;
+  }
+
+  /* Scroll-linked: the shorthand first (it resets animation-timeline);
+     one timeline for both animations. */
+  @supports (animation-timeline: scroll()) {
+    .ds-combo__list {
+      animation: ds-scroll-edge-start linear both, ds-scroll-edge-end linear both;
+      animation-timeline: scroll(self block);
+      animation-range: 0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%;
+    }
   }
 
   .ds-combo__option {

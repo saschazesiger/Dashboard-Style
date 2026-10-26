@@ -280,6 +280,7 @@ const CONTINUITY = {
   'modal-drawer': { in: 'frame', sel: '#drawer', props: ['translateX'] },
   menu: { in: 'stage', sel: '#sg-lab-menu', props: ['opacity'] },
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
+  'list-edges': { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
   savebar: { in: 'frame', sel: '#savebar-bar', props: ['opacity'] },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },

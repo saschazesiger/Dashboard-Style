@@ -703,10 +703,10 @@
   }
 
   /* The edge fades of a sideways scroller (.ds-scroll-x in scroller.css,
-     the table wrappers of table.css; menus reuse them on the block axis),
-     each on the scroller's own scroll timeline over an animation-range at
-     its end: the start fade grows while the first --ds-space-8 scroll
-     away, the end fade goes over the last. The numbers (registered in
+     the table wrappers of table.css; menus and combobox lists reuse them
+     on the block axis), each on the scroller's scroll timeline over an
+     animation-range at its end: the start fade grows while the first
+     --ds-space-8 scroll away, the end fade goes over the last. The numbers (registered in
      scroller.css) scale the fade length, so 0 is no fade. Both ends are
      named (a scroll position, not an entrance); a scroller without
      overflow has an inactive timeline and keeps 0, no fade. */

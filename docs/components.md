@@ -1724,7 +1724,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   the numbers over `--ds-dur-fast`; without it the strip shows no fade. The scrollbar strip stays unmasked
   (`--ds-scrollbar-height`, written by `scrollEdges()`). Left-to-right pages only.
 - One fade switch: `--ds-scroll-fade` is the fade length of `.ds-scroll-x` (default `--ds-space-8`), the card table
-  wrappers (default `--ds-card-pad`) and the menu edges; `--ds-scroll-fade: 0px` on the theme turns them all off.
+  wrappers (default `--ds-card-pad`) and the cut edges of menus and combobox lists; `--ds-scroll-fade: 0px` on the
+  theme turns them all off.
   Keyboard focus inside lands outside the fades (`scroll-padding-inline`).
 - When nothing inside can take focus, the strip is the tab stop (`tabindex="0" role="region" aria-label`), as WebKit
   gives a scroller none by itself: arrow keys scroll it, its ring is inset and the fades drop while it is focused.
@@ -2346,6 +2347,12 @@ colours `SelectedItem`). `aria-expanded="true"` on the field turns the chevron 1
   window narrowed by every box around the field that clips (a dialog's box, a sheet's body), with an inline
   `max-height` while it is open. There such a box still clips the list, so keep a combobox off the very end of a
   dialog.
+- **Cut edges.** A list longer than its room scrolls, and each edge with more to show fades over `--ds-scroll-fade`
+  (default `--ds-space-8`; `0px` on the theme turns it off), a mask on the registered numbers of the
+  [Horizontal scroller](#horizontal-scroller) turned to the block axis. Where scroll timelines exist the fades follow
+  the list's own scroll; elsewhere `DS.overlay.open()` attaches `DS.dom.scrollEdges(list, { axis: 'block' })` while
+  the list is open (its `data-ds-overflow-start` and `-end`), so the page adds nothing. The active option, scrolled
+  into view, lands clear of the fades (`scroll-padding-block`).
 
 **Select-only** (`.ds-combo--select`, pick one of a few rich options without typing): the field is a
 `<button class="ds-input ds-combo__input" type="button" role="combobox" aria-haspopup="listbox">` that shows the
@@ -2447,6 +2454,12 @@ trigger.addEventListener('keydown', (event) => {
   exist the menu is a `popover="manual"` in the top layer, anchored to the trigger (`data-anchored`); elsewhere
   `DS.overlay` writes `--ds-menu-x` and `--ds-menu-y` (`position: fixed`, plus an inline `max-height` when it is
   capped), sets `data-placement="top"` above and follows scrolling and resizing.
+- **Cut edges.** A menu capped by the room on its side scrolls, and each edge with more to show fades into the menu's
+  surface: a sticky shade in `--ds-surface-popover`, `--ds-scroll-fade` long (`0px` turns it off), above the items
+  and never in the way of the pointer (the menu is its own surface, so a mask would cut its shadow). Where scroll
+  timelines exist it follows the menu's scroll; elsewhere `DS.overlay.open()` attaches
+  `DS.dom.scrollEdges(menu, { axis: 'block' })` while the menu is open. Focus moved by the keys lands clear of the
+  shades. Forced colours drop them.
 - **Inside a dialog or sheet.** A native dialog or sheet opened with `showModal()` makes everything outside it inert,
   top-layer popovers included. A menu used from inside one goes inside it in the markup; a menu that sits elsewhere
   (at the end of the `.ds-theme`, as above) is moved into the open native dialog or sheet by `DS.overlay.open()` and

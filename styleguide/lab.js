@@ -3022,6 +3022,72 @@
     },
   });
 
+  /* ── Overlays: the cut edges of a long list ─────────────────────── */
+
+  var SITE_NAMES = ['Head office', 'Building A', 'Building B', 'Warehouse', 'Lab 1', 'Lab 2', 'Reception', 'Server room', 'Workshop', 'Branch north', 'Branch south', 'Home office'];
+
+  function edgeParts(stage) {
+    return { input: $('#sg-lab-edges', stage), popup: $('.ds-combo__popup', stage), list: $('.ds-combo__list', stage) };
+  }
+
+  /* Opens the list part-way down (both edges cut) or closes it. */
+  function edgesTo(stage, on) {
+    var parts = edgeParts(stage);
+    if (!on) return isOpen(parts.popup) || parts.popup.hasAttribute('data-state') ? DS.overlay.close(parts.popup) : Promise.resolve();
+    parts.input.focus({ preventScroll: true });
+    var opened = isOpen(parts.popup) ? Promise.resolve() : DS.overlay.open(parts.popup, { opener: parts.input });
+    parts.list.scrollTop = (parts.list.scrollHeight - parts.list.clientHeight) / 2;
+    return opened;
+  }
+
+  function listTo(stage, to, sg) {
+    var list = edgeParts(stage).list;
+    var target = to === 'end' ? list.scrollHeight - list.clientHeight : 0;
+    list.scrollTo({ top: target, behavior: 'smooth' });
+    return until(sg, function () { return Math.abs(list.scrollTop - target) < 1; }, 4000).then(function () { return quiet(stage, sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'list-edges',
+    group: 'overlays',
+    title: 'A long list fades at its cut edges',
+    note: 'A combobox list or a menu longer than its room scrolls inside, and each edge with more to show fades: <code>ds-scroll-edge-start</code> grows the top fade while the first <code>--ds-space-8</code> scroll away, <code>ds-scroll-edge-end</code> takes the bottom one away over the last, on the list\'s own block scroll. Without scroll timelines <code>DS.overlay.open()</code> attaches <code>DS.dom.scrollEdges()</code> on the block axis, whose <code>data-ds-overflow-start</code> and <code>-end</code> set the same numbers over <code>--ds-dur-fast</code>. A menu is its own surface, so it lays shades of that surface over its edges instead of a mask. Replay opens the list, scrolls to the end and back, and closes it; Rapid toggle opens it part-way down, both edges cut.',
+    shows: ['ds-scroll-edge-start', 'ds-scroll-edge-end', 'DS.dom.scrollEdges', 'DS.overlay.open', 'DS.overlay.close', '--ds-dur-fast', '--ds-ease-in-out'],
+    html: '<div class="sg-popup-stage sg-edges-stage"><div class="ds-field sg-combo-field"><label class="ds-field__label" for="sg-lab-edges">Site</label>' +
+      '<div class="ds-combo"><input class="ds-input ds-combo__input" id="sg-lab-edges" role="combobox" aria-expanded="false" aria-controls="sg-lab-edges-list" aria-autocomplete="list" autocomplete="off">' +
+      '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">' + icon('chevronDown', 20) + '</button>' +
+      '<div class="ds-combo__popup" hidden><ul class="ds-combo__list" id="sg-lab-edges-list" role="listbox">' + SITE_NAMES.map(function (name, index) {
+        return '<li class="ds-combo__option" id="sg-lab-edges-' + index + '" role="option" aria-selected="false"><span class="ds-combo__name">' + name + '</span></li>';
+      }).join('') + '</ul><p class="ds-combo__status" role="status">' + SITE_NAMES.length + ' sites</p></div></div></div></div>',
+    height: 460,
+    setup: function (stage) {
+      var parts = edgeParts(stage);
+      $('.ds-combo__toggle', stage).addEventListener('mousedown', function (event) { event.preventDefault(); });
+      parts.popup.addEventListener('mousedown', function (event) { event.preventDefault(); });
+      $('.ds-combo__toggle', stage).addEventListener('click', function () { edgesTo(stage, !isOpen(parts.popup)); });
+      parts.input.addEventListener('blur', function () { if (isOpen(parts.popup)) DS.overlay.close(parts.popup); });
+      parts.list.addEventListener('click', function (event) {
+        var option = event.target.closest('.ds-combo__option');
+        if (!option) return;
+        parts.input.value = option.textContent;
+        DS.overlay.close(parts.popup);
+      });
+    },
+    subject: function (stage) { return edgeParts(stage).popup; },
+    play: function (stage, sg) {
+      var parts = edgeParts(stage);
+      parts.input.focus({ preventScroll: true });
+      return DS.overlay.open(parts.popup, { opener: parts.input })
+        .then(function () { return listTo(stage, 'end', sg); })
+        .then(function () { return wait(sg, 300); })
+        .then(function () { return listTo(stage, 'start', sg); })
+        .then(function () { return DS.overlay.close(parts.popup); })
+        .then(function () { return quiet(stage, sg); });
+    },
+    state: function (stage) { return isOpen(edgeParts(stage).popup); },
+    toggle: edgesTo,
+  });
+
   /* Closes every message of the region (on screen or waiting); resolves once all are gone. */
   function clearSnacks() {
     return DS.overlay.closeToasts($('#sg-toasts'));

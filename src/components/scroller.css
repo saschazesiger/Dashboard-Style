@@ -39,8 +39,9 @@
  * The gradient runs left to right (left-to-right pages only).
  * Focus inside lands outside the fades (scroll-padding-inline).
  *
- * The table wrappers of table.css fade on the same two numbers, and menus
- * reuse them on the block axis.
+ * The table wrappers of table.css fade on the same two numbers, and the
+ * menus (menu.css: shades of their surface) and combobox lists
+ * (combobox.css: the same mask) reuse them on the block axis.
  *
  * Hook: --ds-scroll-fade (the fade length, default --ds-space-8; 0px turns
  * the fades of every scroller off: .ds-scroll-x, the card table wrappers
@@ -48,7 +49,7 @@
  *
  * Runtime property (written by DS.dom.scrollEdges(), read with a 0px
  * fallback): --ds-scrollbar-height (its block-axis twin,
- * --ds-scrollbar-width, is read by the menu edges).
+ * --ds-scrollbar-width, is read by the combobox list's mask).
  *
  * Print: the strip shows all of its content, unmasked; the jump pill is
  * hidden.

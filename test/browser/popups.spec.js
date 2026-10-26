@@ -21,8 +21,13 @@
  * the dialog closes its open list (off the Escape stack); the
  * active option's layer goes at once. .ds-presence turns back from where it
  * is, in opacity and scale (where the engine transitions display; Firefox
- * exits at once). Motion is read with the animations paused in the task
- * that starts them (state and timing, not frames).
+ * exits at once). Cut edges (2.0): open() watches the block axis of a menu
+ * and a combobox list (DS.dom.scrollEdges) until it is hidden; a menu cut
+ * by the window shades the edge with more to show (sticky, under no
+ * pointer), a list masks it, in every engine (scroll timelines, else the
+ * attributes); a menu's own scroll keeps its position. Motion is read
+ * with the animations paused in the task that starts them (state and
+ * timing, not frames).
  */
 import { test, expect } from './base-test.js';
 import {
@@ -806,5 +811,84 @@ test.describe('select-only combobox (2.0)', () => {
     await page.keyboard.press('Escape');
     await closed(page, 'plan-popup');
     expect(await focused(page)).toBe('plan-button');
+  });
+});
+
+test.describe('cut edges (2.0)', () => {
+  /** The edge state of a scroller and what its CSS draws from it. */
+  const edges = (page, id, menu) => page.evaluate(([name, isMenu]) => {
+    const el = document.getElementById(name);
+    const css = (pseudo) => getComputedStyle(el, pseudo);
+    return {
+      watched: el.hasAttribute('data-ds-edges'),
+      start: el.hasAttribute('data-ds-overflow-start'),
+      end: el.hasAttribute('data-ds-overflow-end'),
+      // The menu: the opacity of its shades; the list: the numbers of its mask.
+      drawn: isMenu
+        ? [Number(css('::before').opacity), Number(css('::after').opacity)]
+        : [Number(css().getPropertyValue('--ds-scroll-edge-start')), Number(css().getPropertyValue('--ds-scroll-edge-end'))],
+    };
+  }, [id, menu]);
+
+  test('a menu cut by the window fades at the edge with more to show; the watch goes with the close', async ({ page }) => {
+    await load(page);
+    await openMenu(page, 'trigger', 'menu');
+    expect(await edges(page, 'menu', true), 'a menu that fits fades nowhere').toEqual({ watched: true, start: false, end: false, drawn: [0, 0] });
+    await page.keyboard.press('Escape');
+    await closed(page, 'menu');
+    await page.setViewportSize({ width: 1000, height: 180 });
+    await openMenu(page, 'trigger', 'menu');
+    expect(await edges(page, 'menu', true), 'at the top: the end fades').toEqual({ watched: true, start: false, end: true, drawn: [0, 1] });
+    await page.evaluate(() => { const menu = document.getElementById('menu'); menu.scrollTop = menu.scrollHeight; });
+    // The fallback measures on the next frame and fades over --ds-dur-fast.
+    await expect.poll(() => edges(page, 'menu', true), { message: 'at the end: the start fades' }).toEqual({ watched: true, start: true, end: false, drawn: [1, 0] });
+    // The shade is the menu's surface, sticky at the edge, above the items and never in the way of the pointer.
+    const shade = await page.evaluate(() => {
+      const menu = document.getElementById('menu');
+      const style = getComputedStyle(menu, '::before');
+      const box = menu.getBoundingClientRect();
+      const last = document.getElementById('item-archive').getBoundingClientRect();
+      const hit = document.elementFromPoint(last.left + 20, last.top + last.height / 2)?.closest('.ds-menu__item')?.id;
+      return { position: style.position, pointer: style.pointerEvents, image: style.backgroundImage.startsWith('linear-gradient'), inside: last.bottom <= box.bottom + 0.5, hit };
+    });
+    expect(shade).toEqual({ position: 'sticky', pointer: 'none', image: true, inside: true, hit: 'item-archive' });
+    await page.keyboard.press('Escape');
+    await closed(page, 'menu');
+    expect(await page.evaluate(() => {
+      const menu = document.getElementById('menu');
+      return [menu.hasAttribute('data-ds-edges'), menu.hasAttribute('data-ds-overflow-start'), menu.style.getPropertyValue('--ds-scrollbar-width')];
+    }), 'closed: the watch and what it wrote are gone').toEqual([false, false, '']);
+  });
+
+  test('a combobox list that scrolls fades at its cut edges, its scrollbar strip measured', async ({ page }) => {
+    await load(page);
+    await page.evaluate(() => {
+      const list = document.getElementById('combo-list');
+      for (let i = 0; i < 12; i += 1) {
+        const option = document.createElement('li');
+        option.className = 'ds-combo__option';
+        option.id = `combo-more-${i}`;
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', 'false');
+        option.innerHTML = `<span class="ds-combo__name">Person ${i + 1}</span>`;
+        list.append(option);
+      }
+    });
+    await page.focus('#combo-input');
+    await page.evaluate(() => DS.overlay.open(document.getElementById('combo-popup'), { opener: document.getElementById('combo-input') }));
+    await settle(page);
+    expect(await edges(page, 'combo-list', false)).toEqual({ watched: true, start: false, end: true, drawn: [0, 1] });
+    const mask = await page.evaluate(() => {
+      const list = document.getElementById('combo-list');
+      const style = getComputedStyle(list);
+      return { image: (style.maskImage || style.webkitMaskImage).startsWith('linear-gradient'), bar: list.style.getPropertyValue('--ds-scrollbar-width'), room: list.offsetWidth - list.clientWidth };
+    });
+    expect(mask.image).toBe(true);
+    expect(mask.bar).toBe(`${mask.room}px`);
+    await page.evaluate(() => { const list = document.getElementById('combo-list'); list.scrollTop = list.scrollHeight; });
+    await expect.poll(() => edges(page, 'combo-list', false)).toEqual({ watched: true, start: true, end: false, drawn: [1, 0] });
+    await page.keyboard.press('Escape');
+    await closed(page, 'combo-popup');
+    expect(await page.evaluate(() => document.getElementById('combo-list').hasAttribute('data-ds-edges'))).toBe(false);
   });
 });

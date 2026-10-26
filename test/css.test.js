@@ -1790,7 +1790,8 @@ describe('overlays (1.3.0)', () => {
           if (property === 'animation') return entriesOf(value).map((entry) => entry.name);
           if (property === 'animation-name') return splitSelectors(value);
           return [];
-        }).filter((name) => name !== 'none');
+        // The scroll-linked edge numbers run on a scroll position, not on the open state.
+        }).filter((name) => name !== 'none' && !/^ds-scroll-edge-(start|end)$/.test(name));
         if (!names.length) continue;
         for (const part of splitSelectors(selector).filter((text) => root.test(text))) {
           keyframed += 1;
@@ -1875,7 +1876,7 @@ describe('overlays (1.3.0)', () => {
   it('sizes the combobox from the field hooks and draws blocked options and menu items in GrayText when forced (2.0)', () => {
     const combo = read('src/components/combobox.css');
     const own = (css, selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
-    assert.equal(own(combo, '.ds-combo__input')['padding-right'], 'calc(var(--ds-space-1) + var(--ds-input-height, 40px))');
+    assert.equal(own(combo, '.ds-combo__input')['padding-inline-end'], 'calc(var(--ds-space-1) + var(--ds-input-height, 40px))');
     assert.deepEqual([own(combo, '.ds-combo__toggle').width, own(combo, '.ds-combo__toggle').height], ['var(--ds-input-height, 40px)', 'var(--ds-input-height, 40px)']);
     assert.equal(own(combo, '.ds-combo__option')['min-height'], 'var(--ds-combo-option-height, 48px)');
     assert.equal(own(combo, '.ds-combo:not(:has(.ds-combo__toggle)) > .ds-combo__input')['padding-inline-end'], 'var(--ds-space-3)');
@@ -2087,14 +2088,22 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       assert.ok(REGISTERED.has(property), `${property} is registered`);
       assert.match(stripComments(read('src/components/scroller.css')), new RegExp(`@property ${property} \\{\\s*syntax: '<number>';\\s*inherits: false;\\s*initial-value: 0;`), property);
     }
-    // Every user of the edge numbers runs both on its own inline scroll, over the documented ranges.
-    const edges = users.filter((rule) => /ds-scroll-edge-start/.test(rule.own.animation));
-    assert.ok(edges.length >= 4, edges.map((rule) => rule.selector).join());
+    // Every user of the edge numbers runs both on its own scroll (inline; the combobox list block), over the documented ranges.
+    const shades = new Set(['.ds-menu::before', '.ds-menu::after']);
+    const edges = users.filter((rule) => /ds-scroll-edge-start/.test(rule.own.animation) && !shades.has(rule.selector));
+    assert.ok(edges.length >= 5, edges.map((rule) => rule.selector).join());
     for (const rule of edges) {
       assert.equal(rule.own.animation, 'ds-scroll-edge-start linear both, ds-scroll-edge-end linear both', rule.selector);
-      assert.equal(rule.own['animation-timeline'], 'scroll(self inline)', rule.selector);
+      assert.equal(rule.own['animation-timeline'], rule.selector === '.ds-combo__list' ? 'scroll(self block)' : 'scroll(self inline)', rule.selector);
       assert.equal(rule.own['animation-range'], '0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%', rule.selector);
     }
+    // The menu is its own surface: one shade per edge, each on the menu's block scroll (the nearest scroller of its pseudo-element).
+    const shade = Object.fromEntries(users.filter((rule) => shades.has(rule.selector)).map((rule) => [rule.selector, rule.own]));
+    assert.deepEqual(Object.keys(shade).sort(), ['.ds-menu::after', '.ds-menu::before']);
+    assert.deepEqual(['.ds-menu::before', '.ds-menu::after'].map((selector) => [shade[selector].animation, shade[selector]['animation-timeline'], shade[selector]['animation-range']]), [
+      ['ds-scroll-edge-start linear both', 'scroll(nearest block)', '0 var(--ds-space-8)'],
+      ['ds-scroll-edge-end linear both', 'scroll(nearest block)', 'calc(100% - var(--ds-space-8)) 100%'],
+    ]);
   });
 
   it('names View Transitions and scroll-driven animations under "Progressive:" in each file that uses them', () => {
@@ -2103,6 +2112,8 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       'src/components/sheet.css': ['View Transitions', 'scroll-driven'],
       'src/components/table.css': ['scroll-driven'],
       'src/components/scroller.css': ['scroll-driven'],
+      'src/components/menu.css': ['scroll-driven'],
+      'src/components/combobox.css': ['scroll-driven'],
       'src/motion.css': ['View Transitions', 'scroll-driven'],
       'src/optional/view-transitions.css': ['View Transitions'],
     };
@@ -2390,6 +2401,37 @@ describe('tables and scrollers (2.0)', () => {
     }
     // The hook is a length that themes may set: documented, never a motion hook.
     assert.doesNotMatch('--ds-scroll-fade:', /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave)/);
+  });
+
+  it('fades the cut edges of a menu and a combobox list on the same numbers, on the block axis (2.0)', () => {
+    const combo = read('src/components/combobox.css');
+    const menu = read('src/components/menu.css');
+    // The list: the .ds-scroll-x mask turned to the block axis, its scrollbar strip (--ds-scrollbar-width) opaque.
+    const list = Object.fromEntries(declarationsOf(combo, '.ds-combo__list').map((entry) => [entry.property, entry.value]));
+    for (const property of ['mask-image', '-webkit-mask-image']) {
+      assert.match(list[property], /^linear-gradient\(to bottom, transparent, #000 calc\(var\(--ds-scroll-edge-start\) \* var\(--ds-scroll-fade, var\(--ds-space-8\)\)\), #000 calc\(100% - var\(--ds-scroll-edge-end\) \* var\(--ds-scroll-fade, var\(--ds-space-8\)\)\), transparent\), linear-gradient\(#000, #000\)$/, property);
+    }
+    assert.equal(list['mask-size'], 'calc(100% - var(--ds-scrollbar-width, 0px)) 100%, var(--ds-scrollbar-width, 0px) 100%');
+    assert.equal(list['-webkit-mask-size'], list['mask-size']);
+    assert.equal(list['mask-position'], '0 0, 100% 0');
+    assert.equal(list['scroll-padding-block'], 'var(--ds-scroll-fade, var(--ds-space-8))');
+    assert.match(list.transition, /--ds-scroll-edge-start var\(--ds-dur-fast\) var\(--ds-ease-in-out\), --ds-scroll-edge-end var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/);
+    // The menu is its own surface (a mask would cut its shadow): a sticky shade of it at each edge.
+    const before = Object.fromEntries(declarationsOf(menu, '.ds-menu::before').map((entry) => [entry.property, entry.value]));
+    const after = Object.fromEntries(declarationsOf(menu, '.ds-menu::after').map((entry) => [entry.property, entry.value]));
+    assert.equal(before.background, 'linear-gradient(var(--ds-surface-popover), transparent)');
+    assert.equal(after.background, 'linear-gradient(transparent, var(--ds-surface-popover))');
+    assert.deepEqual([before.opacity, after.opacity], ['var(--ds-scroll-edge-start)', 'var(--ds-scroll-edge-end)']);
+    for (const own of [before, after]) assert.deepEqual([own.position, own.height, own['pointer-events']], ['sticky', 'var(--ds-scroll-fade, var(--ds-space-8))', 'none']);
+    assert.equal(declarationsOf(menu, '.ds-menu').find((entry) => entry.property === 'scroll-padding-block')?.value, 'var(--ds-scroll-fade, var(--ds-space-8))');
+    // The attribute fallback of DS.dom.scrollEdges() (attached by DS.overlay) sets the numbers.
+    for (const [css, start, end] of [[combo, '.ds-combo__list[data-ds-overflow-start]', '.ds-combo__list[data-ds-overflow-end]'], [menu, '.ds-menu[data-ds-overflow-start]::before', '.ds-menu[data-ds-overflow-end]::after']]) {
+      assert.equal(declarationsOf(css, start).find((entry) => entry.property === '--ds-scroll-edge-start')?.value, '1', start);
+      assert.equal(declarationsOf(css, end).find((entry) => entry.property === '--ds-scroll-edge-end')?.value, '1', end);
+    }
+    // Forced colours would keep the shades' gradient in the theme's colour: they go.
+    const forced = atRuleBlocks(menu, /@media \(forced-colors: active\)/).join('\n');
+    for (const selector of ['.ds-menu::before', '.ds-menu::after']) assert.equal(declarationsAt(forced, selector).find((entry) => entry.property === 'display')?.value, 'none', selector);
   });
 
   it('makes a sideways scroller a tab stop with an inset ring that drops the mask, and unmasks it in print', () => {

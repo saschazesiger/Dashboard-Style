@@ -61,8 +61,20 @@
  * .ds-menu__heading names a group (caption type, not focusable);
  * .ds-menu__meta sits at an item's end (meta type, tabular).
  *
+ * Cut edges: a menu capped by the room on its side scrolls, and each edge
+ * with more to show fades into the menu's surface: a sticky shade
+ * (::before, ::after) in --ds-surface-popover, --ds-scroll-fade long
+ * (default --ds-space-8; 0px turns it off), whose opacity is the
+ * registered number --ds-scroll-edge-start or --ds-scroll-edge-end of
+ * scroller.css. Not a mask: the menu is its own surface, and a mask would
+ * cut its shadow. Where scroll timelines exist ds-scroll-edge-start and
+ * ds-scroll-edge-end drive the numbers on the menu's scroll; elsewhere
+ * DS.overlay attaches DS.dom.scrollEdges(menu, { axis: 'block' }) while it
+ * is open, and data-ds-overflow-start / -end set them over --ds-dur-fast.
+ * Focus moved by the keys stays clear of the shades (scroll-padding).
+ *
  * Forced colours: the menu keeps an edge (its transparent outline), the
- * focused item its ring, a blocked item GrayText.
+ * focused item its ring, a blocked item GrayText; the edge shades go.
  *
  * Print: an open menu is not printed.
  *
@@ -75,6 +87,10 @@
  *   script writes --ds-menu-x/-y and sets data-placement="top" above.
  * - scrollbar-color and scrollbar-width (a thin scrollbar in a long menu):
  *   without them the platform scrollbar shows.
+ * - scroll-driven animations (animation-timeline: scroll(), animation-range;
+ *   the edge shades follow the scroll position): without them the
+ *   data-ds-overflow-* attributes of DS.dom.scrollEdges() (attached by
+ *   DS.overlay) set the shades, or none show.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -102,6 +118,8 @@
     box-shadow: var(--ds-elev-popover);
     scrollbar-width: thin;
     scrollbar-color: var(--ds-line-2) transparent;
+    /* Focus moved by the keys lands clear of the edge shades. */
+    scroll-padding-block: var(--ds-scroll-fade, var(--ds-space-8));
     /* Invisible; forced colors paint it, so the menu keeps an edge. */
     outline: 1px solid transparent;
     /* Grows at its trigger (originFrom() writes the origin); its clip rests
@@ -318,11 +336,76 @@
     color: inherit;
   }
 
-  /* Blocked is one system colour (D8). */
+  /* The cut edges of a long menu. The menu is its own surface (a mask
+     would cut its shadow away), so a shade of that surface lies over each
+     edge that has more to show, --ds-scroll-fade long, above the items:
+     sticky at the edge, taking no room (the negative margin). Its number
+     (--ds-scroll-edge-start or -end, registered in scroller.css) is 0 at
+     rest; the menu's scroll timeline drives it where it exists, else the
+     data-ds-overflow-* attributes of DS.dom.scrollEdges(), which
+     DS.overlay attaches while the menu is open. */
+  .ds-menu::before,
+  .ds-menu::after {
+    content: '';
+    position: sticky;
+    z-index: var(--ds-z-raised);
+    flex: none;
+    height: var(--ds-scroll-fade, var(--ds-space-8));
+    pointer-events: none;
+    transition:
+      --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
+      --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  .ds-menu::before {
+    inset-block-start: 0;
+    margin-block-end: calc(-1 * var(--ds-scroll-fade, var(--ds-space-8)));
+    background: linear-gradient(var(--ds-surface-popover), transparent);
+    opacity: var(--ds-scroll-edge-start);
+  }
+
+  .ds-menu::after {
+    inset-block-end: 0;
+    margin-block-start: calc(-1 * var(--ds-scroll-fade, var(--ds-space-8)));
+    background: linear-gradient(transparent, var(--ds-surface-popover));
+    opacity: var(--ds-scroll-edge-end);
+  }
+
+  .ds-menu[data-ds-overflow-start]::before {
+    --ds-scroll-edge-start: 1;
+  }
+
+  .ds-menu[data-ds-overflow-end]::after {
+    --ds-scroll-edge-end: 1;
+  }
+
+  /* Scroll-linked, on the menu's scroll (the nearest scroller of its own
+     shades): the shorthand first (it resets animation-timeline). */
+  @supports (animation-timeline: scroll()) {
+    .ds-menu::before {
+      animation: ds-scroll-edge-start linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: 0 var(--ds-space-8);
+    }
+
+    .ds-menu::after {
+      animation: ds-scroll-edge-end linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: calc(100% - var(--ds-space-8)) 100%;
+    }
+  }
+
+  /* Blocked is one system colour (D8). The shades go: forced colours
+     would keep their gradient in the theme's surface colour. */
   @media (forced-colors: active) {
     .ds-menu__item[aria-disabled="true"],
     .ds-menu__item:disabled {
       color: GrayText;
+    }
+
+    .ds-menu::before,
+    .ds-menu::after {
+      display: none;
     }
   }
 

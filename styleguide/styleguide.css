@@ -1604,3 +1604,8 @@
   --ds-savebar-inset: 0px;
   --ds-savebar-offset: var(--ds-space-2);
 }
+
+/* The long list opens below its field: the field sits at the top of its stage. */
+.sg-edges-stage {
+  align-items: flex-start;
+}
