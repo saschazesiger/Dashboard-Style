@@ -137,8 +137,12 @@ async function shoot(locator, name, { loop = 0 } = {}) {
   // Scrolled there before settling: the scroll repaints a tall viewport and
   // moves the styleguide's scroll-spy pill, which in the container's WebKit
   // took the first capture past the screenshot timeout (section-charts).
+  // Two frames let the repaint (up to 2.4s there under load) and the spy's
+  // callback pass, so the pill's glide has started when settle() looks; its
+  // longer deadline still covers a slow frame inside the glide.
   await locator.scrollIntoViewIfNeeded();
-  await settle(page);
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await settle(page, { timeout: 10000 });
   await pauseLoops(page, loop);
   await expect.soft(locator, name).toHaveScreenshot(name, { animations: 'allow' });
 }
