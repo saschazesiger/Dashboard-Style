@@ -392,7 +392,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-savebar-inset` | the page pad (`--ds-content-pad-x`) | save bar: distance from the view's sides (the bar is at most `--ds-content-max` wide) |
 | `--ds-savebar-min-height` | 56px | save bar |
 | `--ds-savebar-radius` | `--ds-radius-card` | save bar |
-| `--ds-savebar-bg`, `--ds-savebar-shadow` | `--ds-surface`, `--ds-elev-overlay` | save bar surface and elevation |
+| `--ds-savebar-bg`, `--ds-savebar-shadow` | `--ds-surface-popover`, `--ds-elev-overlay` | save bar surface and elevation |
 
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not
 set it. Runtime properties (set by scripts, not themes) are documented with their components: `--ds-progress`

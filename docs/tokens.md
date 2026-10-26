@@ -80,7 +80,7 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-surface-high` | `#e9eef6` | filled fields (search, toolbar select), neutral chips |
 | `--ds-surface-highest` | `#dde3ea` | tracks (switch), skeleton lines, hovered filled fields |
 | `--ds-surface-overlay` | `= --ds-surface` | floating panels: the dialog box, the side sheet panel (a dark theme lifts it a tone above the surface, where a shadow no longer shows) |
-| `--ds-surface-popover` | `= --ds-surface` | floating lists: menus, the combobox list, the skip link |
+| `--ds-surface-popover` | `= --ds-surface` | floating lists and bars: menus, the combobox list, the skip link, the save bar |
 | `--ds-color-scheme` | `light` | `light` or `dark`: `:where(.ds-theme)` sets `color-scheme` from it, so scrollbars, date pickers and native controls match the palette (zero specificity: a page or component that sets `color-scheme` wins) |
 | `--ds-skeleton-highlight` | `var(--ds-surface-high)` | the band of the skeleton wave that passes over the bones |
 | `--ds-text` | `#1f1f1f` | text, values, titles |

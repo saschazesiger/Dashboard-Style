@@ -36,8 +36,9 @@
  * Hooks: --ds-savebar-offset (distance from the view's bottom edge,
  * --ds-space-4), --ds-savebar-inset (from the view's sides, the page pad
  * --ds-content-pad-x), --ds-savebar-min-height (56px),
- * --ds-savebar-radius (--ds-radius-card), --ds-savebar-bg (--ds-surface),
- * --ds-savebar-shadow (--ds-elev-overlay).
+ * --ds-savebar-radius (--ds-radius-card), --ds-savebar-bg
+ * (--ds-surface-popover, the floating surface: the dark theme lifts it like
+ * a menu), --ds-savebar-shadow (--ds-elev-overlay).
  *
  * Progressive:
  * - @starting-style and transition-behavior: allow-discrete (the
@@ -75,7 +76,7 @@
     gap: var(--ds-space-2) var(--ds-space-4);
     padding: var(--ds-space-2) var(--ds-space-3) var(--ds-space-2) var(--ds-space-5);
     border-radius: var(--ds-savebar-radius, var(--ds-radius-card));
-    background: var(--ds-savebar-bg, var(--ds-surface));
+    background: var(--ds-savebar-bg, var(--ds-surface-popover));
     color: var(--ds-text);
     box-shadow: var(--ds-savebar-shadow, var(--ds-elev-overlay));
     /* Invisible; forced colors paint it, so the bar keeps an edge. */
@@ -121,10 +122,13 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
+  /* --ds-content-pad-bottom is the content's own (page.css), phones
+     included. */
   .ds-view:is([data-ds-savebar], [data-ds-savebar-rest]) > .ds-content {
-    padding-bottom: max(var(--ds-content-pad-bottom, calc(var(--ds-space-6) + var(--ds-toast-room) + var(--ds-space-2))), calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)), var(--ds-toast-reserve, 0px));
+    padding-bottom: max(var(--ds-content-pad-bottom), calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)), var(--ds-toast-reserve, 0px));
   }
 
+  /* Outside a .ds-view (no page pad to read) the phone pad. */
   @media (max-width: 720px) {
     .ds-savebar__bar {
       inset-inline: var(--ds-savebar-inset, var(--ds-content-pad-x, var(--ds-space-4)));
@@ -134,10 +138,6 @@
   @media (max-width: 600px) {
     .ds-savebar__bar {
       padding-inline-start: var(--ds-space-4);
-    }
-
-    .ds-view:is([data-ds-savebar], [data-ds-savebar-rest]) > .ds-content {
-      padding-bottom: max(var(--ds-content-pad-bottom, calc(var(--ds-space-4) + var(--ds-toast-room) + var(--ds-space-2))), calc(var(--ds-savebar-height, 0px) + var(--ds-savebar-offset, var(--ds-space-4)) + var(--ds-space-2)), var(--ds-toast-reserve, 0px));
     }
   }
 

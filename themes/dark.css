@@ -30,7 +30,7 @@
   --ds-surface-low: #1b1b1c;
   --ds-surface-high: #282a2c;
   --ds-surface-highest: #333537;
-  /* Dialogs, sheets, menus and lists sit a tone above the page. */
+  /* Dialogs, sheets, menus, lists and the save bar sit a tone above the page. */
   --ds-surface-overlay: #282a2c;
   --ds-surface-popover: #282a2c;
 

@@ -2998,8 +2998,8 @@ one controller per element (`.ds-savebar` or its `.ds-savebar__bar`):
 - Busy save: put the faces in the primary button and run it with `DS.motion.busy()` ([Button](#button)); hide the bar
   when it resolves and say the result with a snackbar.
 - Hooks: `--ds-savebar-offset`, `--ds-savebar-inset` (from the view's sides instead of the page column),
-  `--ds-savebar-min-height` (56px), `--ds-savebar-radius` (`--ds-radius-card`), `--ds-savebar-bg` (`--ds-surface`),
-  `--ds-savebar-shadow` (`--ds-elev-overlay`) ([theming.md](theming.md#component-hooks)). Print: hidden.
+  `--ds-savebar-min-height` (56px), `--ds-savebar-radius` (`--ds-radius-card`), `--ds-savebar-bg`
+  (`--ds-surface-popover`), `--ds-savebar-shadow` (`--ds-elev-overlay`) ([theming.md](theming.md#component-hooks)). Print: hidden.
 
 **Motion:** the "Save bar" row of [Feedback](motion.md#feedback) in motion.md.
 

@@ -36,8 +36,8 @@
   --ds-surface-high: #e3eaea;
   --ds-surface-highest: #d9e1e1;
   /* Floating layers: dialog box and side sheet (overlay); menus, the
-     combobox list and the skip link (popover). A dark theme lifts them a
-     tone above --ds-surface. */
+     combobox list, the skip link and the save bar (popover). A dark theme
+     lifts them a tone above --ds-surface. */
   --ds-surface-overlay: var(--ds-surface);
   --ds-surface-popover: var(--ds-surface);
   /* light or dark: scrollbars, pickers and native controls follow it. */
@@ -300,6 +300,6 @@
   --ds-toast-action-color: var(--ds-inverse-primary); --ds-toast-close-size: 36px;
   --ds-savebar-offset: var(--ds-space-4); --ds-savebar-inset: (the page pad, --ds-content-pad-x);
   --ds-savebar-min-height: 56px;       --ds-savebar-radius: var(--ds-radius-card);
-  --ds-savebar-bg: var(--ds-surface);  --ds-savebar-shadow: var(--ds-elev-overlay);
+  --ds-savebar-bg: var(--ds-surface-popover);  --ds-savebar-shadow: var(--ds-elev-overlay);
   */
 }
