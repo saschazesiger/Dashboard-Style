@@ -8,7 +8,6 @@
  *   .ex-logo         the brand mark in the top bar and the drawer
  *   .ex-row          a wrapping row of buttons
  *   .ex-page-head    the page header with actions on the right
- *   .ex-field-row    a field and an icon button side by side
  *   .ex-detail       the content of an expanded table row
  *   .ex-col-time, .ex-col-status  stable widths for columns with live values
  *   .ex-chart        a column chart: .ex-chart__col > .ex-chart__bar (--ex-share 0..1), .ex-chart__label
@@ -46,18 +45,6 @@
 
 .ex-page-head > .ds-page-head {
   flex: 1 1 320px;
-}
-
-/* A field with a button after it (copy, reveal). */
-.ex-field-row {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-2);
-}
-
-.ex-field-row > .ds-input {
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 .ex-detail {
