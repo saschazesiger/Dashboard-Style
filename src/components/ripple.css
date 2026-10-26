@@ -162,7 +162,7 @@
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
+  :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))::before,
   :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
@@ -194,7 +194,7 @@
     :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
+    :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))::before,
     :where(.ds-ripples) .ds-pressable.ds-pressable--lg:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover-lg);
     }
@@ -216,7 +216,7 @@
   :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:focus-visible, :has(.ds-card__action:focus-visible)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(:where(input):focus-visible):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:disabled))::before,
+  :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(:where(input):focus-visible):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);

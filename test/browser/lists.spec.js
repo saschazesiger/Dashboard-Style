@@ -148,6 +148,19 @@ test.describe('row list', () => {
     await page.mouse.up();
   });
 
+  test('a blocked row and a blocked key-value row start no ripple and hold no .ds-pressed (inactive() of DS.ripple)', async ({ page }) => {
+    await open(page, { attach: true });
+    for (const [target, spot] of [[row(page, 'm09'), row(page, 'm09').locator('.ds-list__meta')], [page.locator('#kv-blocked'), page.locator('#kv-blocked strong')]]) {
+      const box = await spot.boundingBox();
+      await page.mouse.move(box.x + 10, box.y + box.height / 2);
+      await page.mouse.down();
+      expect(await target.evaluate((el) => el.querySelectorAll('.ds-press-ripple').length)).toBe(0);
+      expect(await target.evaluate((el) => el.classList.contains('ds-pressed'))).toBe(false);
+      await page.mouse.up();
+      await page.mouse.move(1, 1);
+    }
+  });
+
   test('rows glide through flip() on an opaque backing; a new row fades in over --ds-dur-fast', async ({ page }) => {
     await open(page);
     const fast = await page.evaluate(() => DS.motion.motionDuration(document.querySelector('.ds-theme'), '--ds-dur-fast'));
