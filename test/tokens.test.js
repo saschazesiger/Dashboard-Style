@@ -424,6 +424,14 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     });
   }
 
+  it('keeps the four chart series distinct in every shipped theme', () => {
+    for (const files of [['themes/dark.css'], ['themes/contrast.css'], ['themes/compact.css'], ['themes/dark.css', 'themes/contrast.css']]) {
+      const lookup = stack(...files);
+      const series = CHART_MARKS.slice(0, 4).map((name) => formatColour(resolveColour(`var(${name})`, lookup)));
+      assert.equal(new Set(series).size, 4, `${files.join(' + ')}: ${series.join(' ')}`);
+    }
+  });
+
   it('sets only known roles and hooks, never a scale, a motion token or a removed name', () => {
     for (const name of SHIPPED_THEMES) {
       const file = `themes/${name}.css`;

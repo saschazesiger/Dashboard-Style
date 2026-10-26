@@ -15,8 +15,9 @@
 </head>
 <body>
 <!-- The charts of 2.0 (WP6): a meter with a figure, tone meters, columns
-     with values, columns of series 2 to 4, a column that opens its day, a
-     mini sparkline and a legend. Every mark sets --ds-share; the specs set
+     with values, columns of series 2 to 4, a column that opens its day,
+     grouped columns in a .ds-scroll-x narrower than they are, a mini
+     sparkline and a legend. Every mark sets --ds-share; the specs set
      new shares and play the first render (DS.motion.enterAll(marks,
      'fill')). -->
 <div class="ds-theme fx-root">
@@ -42,6 +43,23 @@
       </ol>
     </figure>
     <ul class="ds-legend" id="legend"><li><span class="ds-legend__key"></span>Hardware</li><li><span class="ds-legend__key ds-legend__key--s2"></span>Software</li><li><span class="ds-legend__key ds-legend__key--s3"></span>Access</li><li><span class="ds-legend__key ds-legend__key--s4"></span>Other</li></ul>
+  </section>
+
+  <section class="fx-section" aria-labelledby="grouped-title">
+    <h2 id="grouped-title">Grouped, in a sideways scroller</h2>
+    <figure class="ds-columns ds-columns--grouped" id="grouped" style="width: 200px">
+      <figcaption class="ds-sr">Tickets opened and closed per week</figcaption>
+      <div class="ds-scroll-x" tabindex="0" role="group" aria-label="Tickets per week" id="grouped-scroller">
+        <ol class="ds-columns__groups">
+        <li class="ds-columns__group"><ol class="ds-columns__plot"><li class="ds-columns__col" style="--ds-share: .667"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: 8</span></li><li class="ds-columns__col ds-columns__col--s2" style="--ds-share: .500"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: 6</span></li></ol><span class="ds-columns__label">W37</span></li>
+        <li class="ds-columns__group"><ol class="ds-columns__plot"><li class="ds-columns__col" style="--ds-share: 1"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: 12</span></li><li class="ds-columns__col ds-columns__col--s2" style="--ds-share: .750"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: 9</span></li></ol><span class="ds-columns__label">W38</span></li>
+        <li class="ds-columns__group"><ol class="ds-columns__plot"><li class="ds-columns__col" style="--ds-share: .417"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: 5</span></li><li class="ds-columns__col ds-columns__col--s2" style="--ds-share: .583"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: 7</span></li></ol><span class="ds-columns__label">W39</span></li>
+        <li class="ds-columns__group"><ol class="ds-columns__plot"><li class="ds-columns__col" style="--ds-share: .833"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: 10</span></li><li class="ds-columns__col ds-columns__col--s2" style="--ds-share: .333"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: 4</span></li></ol><span class="ds-columns__label">W40</span></li>
+        <li class="ds-columns__group"><ol class="ds-columns__plot"><li class="ds-columns__col" style="--ds-share: .500"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: 6</span></li><li class="ds-columns__col ds-columns__col--s2" style="--ds-share: .917"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: 11</span></li></ol><span class="ds-columns__label">W41</span></li>
+        <li class="ds-columns__group ds-columns__group--current"><ol class="ds-columns__plot"><li class="ds-columns__col" style="--ds-share: .750"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: 9</span></li><li class="ds-columns__col ds-columns__col--s2" style="--ds-share: .250"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: 3</span></li></ol><span class="ds-columns__label">W42<span class="ds-sr">, this week</span></span></li>
+        </ol>
+      </div>
+    </figure>
   </section>
 
   <section class="fx-section" aria-labelledby="mini-title">

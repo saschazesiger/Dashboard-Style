@@ -4022,10 +4022,7 @@
     var shares = on ? LAB_CHART.high : LAB_CHART.low;
     var disk = LAB_CHART.disk[on ? 1 : 0];
     $$('.ds-columns__col', stage).forEach(function (col, index) { col.style.setProperty('--ds-share', String(shares[index])); });
-    var meter = $('.ds-meter', stage);
-    meter.style.setProperty('--ds-share', String(disk / 100));
-    meter.setAttribute('aria-valuenow', String(disk));
-    meter.setAttribute('aria-valuetext', disk + '% used');
+    DS.dom.progress($('.ds-meter', stage), disk / 100, { valueText: disk + '% used' });
     var counting = M.countUp($('.sg-lab-chart__figure', stage), disk, { format: function (value) { return Math.round(value) + '%'; } }).finished;
     return Promise.all([counting, sg.frames(2).then(function () { return quiet(stage, sg); })]);
   }
@@ -4034,8 +4031,8 @@
     id: 'charts',
     group: 'feedback',
     title: 'Charts',
-    note: 'A meter and columns set <code>--ds-share</code>, a registered number; their fills are clipped at it, never scaled, so the round ends keep their shape. Replay is the first render: <code>DS.motion.enterAll(marks, \'fill\', { stagger: false })</code> (<code>.ds-enter--fill</code>: <code>ds-fill-share</code> from 0 with the fade, over <code>--ds-dur-glide</code> on <code>--ds-ease-value</code>). The toggle sets new values: they glide on the same curve and time, and the figure counts in the same task, landing on the same frame.',
-    shows: ['.ds-enter--fill', 'ds-fill-share', 'ds-fade-in', 'DS.motion.enterAll', 'DS.motion.countUp', '--ds-dur-glide', '--ds-ease-value', '--ds-ease-in-out'],
+    note: 'A meter and columns set <code>--ds-share</code>, a registered number; their fills are clipped at it, never scaled, so the round ends keep their shape. Replay is the first render: <code>DS.motion.enterAll(marks, \'fill\', { stagger: false })</code> (<code>.ds-enter--fill</code>: <code>ds-fill-share</code> from 0 with the fade, over <code>--ds-dur-glide</code> on <code>--ds-ease-value</code>). The toggle sets new values (the meter through <code>DS.dom.progress()</code>, its share and ARIA in one call): they glide on the same curve and time, and the figure counts in the same task, landing on the same frame.',
+    shows: ['.ds-enter--fill', 'ds-fill-share', 'ds-fade-in', 'DS.motion.enterAll', 'DS.motion.countUp', 'DS.dom.progress', '--ds-dur-glide', '--ds-ease-value', '--ds-ease-in-out'],
     html: labChartHtml(),
     height: 260,
     play: function (stage, sg) {

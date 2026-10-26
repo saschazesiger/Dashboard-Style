@@ -887,7 +887,7 @@
         '<p class="sg-meter-label"><span>Memory: high</span><strong class="ds-num">91%</strong></p><span class="ds-meter ds-meter--warning" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-valuetext="91% used, high" style="--ds-share:.91"></span>' +
         '<p class="sg-meter-label"><span>Battery health</span><strong class="ds-num">48%</strong></p><span class="ds-meter ds-meter--neutral" role="meter" aria-label="Battery health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-valuetext="48%" style="--ds-share:.48"></span></div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-chart-meter">' + icon('sync', 16) + 'New disk value</button></div>' +
-        '<p class="ds-muted">The meter glides on --ds-ease-value while its figure counts (DS.motion.countUp) in the same task: both land on the same frame.</p>') +
+        '<p class="ds-muted">DS.dom.progress sets the share and its ARIA; the meter glides on --ds-ease-value while its figure counts (DS.motion.countUp) in the same task: both land on the same frame.</p>') +
       card('Columns', '<figure class="ds-columns" id="sg-columns"><figcaption class="ds-sr">Devices that checked in, per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[0]) + '</ol></figure>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-chart-values">' + icon('sync', 16) + 'New values</button><button class="ds-btn ds-btn--sm" type="button" data-sg="ls-chart-fill">Fill again</button></div>' +
         '<p class="ds-muted">New values glide; Fill again plays the first render (DS.motion.enterAll(marks, \'fill\'), .ds-enter--fill).</p>') +
@@ -921,9 +921,8 @@
     if (action === 'ls-chart-meter') {
       var meter = $('#sg-meters .ds-meter');
       var next = Number(meter.getAttribute('aria-valuenow')) >= 60 ? 27 : 84;
-      meter.style.setProperty('--ds-share', String(next / 100));
-      meter.setAttribute('aria-valuenow', String(next));
-      meter.setAttribute('aria-valuetext', next + '% used');
+      // DS.dom.progress() sets the share and its ARIA in one call.
+      DS.dom.progress(meter, next / 100, { valueText: next + '% used' });
       M.countUp($('#sg-meter-disk'), next, { format: function (value) { return Math.round(value) + '%'; } });
     }
     if (action === 'ls-chart-col') toast('Opened the tickets of ' + el.getAttribute('aria-label').split(':')[0] + '.', 'info');

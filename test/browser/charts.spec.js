@@ -5,7 +5,8 @@
  * countUp() figure, the first render filling from zero
  * (.ds-enter--fill: ds-fill-share with the fade), a column's value riding
  * on its fill, the chart roles of the series, a column that opens its day
- * (the layer, an inset ring, the ripple), the mini sparkline, and forced
+ * (the layer, an inset ring, the ripple), grouped columns that scroll
+ * sideways in a .ds-scroll-x, the mini sparkline, and forced
  * colours (fills in CanvasText, series hatched).
  */
 import { test, expect } from './base-test.js';
@@ -154,6 +155,32 @@ test('a column that opens its day: the layer, an inset ring, the ripple, no morp
   await page.mouse.up();
   await page.mouse.move(1, 1);
   await settle(page, { timeout: 5000 });
+});
+
+test('grouped columns keep their least width and scroll sideways in a .ds-scroll-x, which reports its ends', async ({ page }) => {
+  await open(page);
+  const scroller = page.locator('#grouped-scroller');
+  const seen = await scroller.evaluate((el) => {
+    DS.dom.scrollEdges(el);
+    const groups = [...el.querySelectorAll('.ds-columns__group')].map((group) => group.getBoundingClientRect().width);
+    const current = el.querySelector('.ds-columns__group--current');
+    const probe = document.createElement('div');
+    probe.style.backgroundColor = 'var(--ds-surface-low)';
+    el.append(probe);
+    const low = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return {
+      overflows: el.scrollWidth > el.clientWidth + 1,
+      least: Math.min(...groups),
+      band: getComputedStyle(current).backgroundColor === low,
+      start: el.hasAttribute('data-ds-overflow-start'),
+      end: el.hasAttribute('data-ds-overflow-end'),
+    };
+  });
+  expect(seen).toEqual({ overflows: true, least: 56, band: true, start: false, end: true });
+  await scroller.evaluate((el) => { el.scrollLeft = el.scrollWidth; });
+  await expect(scroller).toHaveAttribute('data-ds-overflow-start', /.*/);
+  await expect(scroller).not.toHaveAttribute('data-ds-overflow-end', /.*/);
 });
 
 test('the sparkline: 32px high, the highlighted column in the first series, the rest neutral', async ({ page }) => {
