@@ -322,15 +322,54 @@
   text-overflow: ellipsis;
 }
 
-.sg-code {
-  margin: 0;
-  padding: var(--ds-space-4);
-  overflow-x: auto;
+/* The 2.0 frame parts (App frame), shown outside a frame: the drawer's
+   parts on the backdrop at the drawer's width, a top bar on the backdrop,
+   a page head and the sign-in page in a box of their own. */
+.sg-drawer-sample {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, var(--ds-drawer-width));
+  max-height: 420px;
+  padding-block: var(--ds-space-2);
   border-radius: var(--ds-radius-card);
-  background: var(--ds-surface-low);
-  color: var(--ds-text);
-  font: var(--ds-font-code);
-  white-space: pre;
+  background: var(--ds-backdrop);
+}
+
+.sg-topbar-sample {
+  overflow: hidden;
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-backdrop);
+}
+
+.sg-topbar-sample .ds-topbar {
+  min-height: var(--ds-topbar-height);
+  padding-inline: var(--ds-space-4) var(--ds-space-2);
+}
+
+.sg-page-sample {
+  place-items: stretch;
+  align-content: start;
+  gap: var(--ds-space-5);
+}
+
+.sg-tabpanel {
+  padding-top: var(--ds-space-4);
+}
+
+.sg-steps-sample {
+  display: grid;
+  gap: var(--ds-space-5);
+  max-width: 520px;
+}
+
+.sg-auth-sample {
+  overflow: hidden;
+  border-radius: var(--ds-radius-card);
+}
+
+/* In a box: as tall as its card, not the window. */
+.sg-auth-sample .ds-auth {
+  min-height: 0;
 }
 
 /* The view swap demo: a small stand-in for .ds-view, whose children fade
@@ -1190,11 +1229,6 @@
   gap: var(--ds-space-4);
 }
 
-.sg-press-all .ds-segmented,
-.sg-lab-segmented {
-  margin-left: 0;
-}
-
 .sg-press-cards,
 .sg-tiles-demo {
   display: grid;
@@ -1205,6 +1239,29 @@
 
 .sg-lab-segmented {
   justify-self: center;
+}
+
+/* The segmented demo: the links over the buttons. */
+.sg-lab-segmented-pair {
+  display: grid;
+  justify-items: center;
+  gap: var(--ds-space-4);
+}
+
+.sg-lab-tabs {
+  width: min(100%, 420px);
+}
+
+.sg-lab-tabpanel {
+  padding-top: var(--ds-space-3);
+}
+
+/* The drawer group demo: the drawer's list on the backdrop, at its width. */
+.sg-lab-drawer {
+  display: flex;
+  width: min(100%, var(--ds-drawer-width));
+  border-radius: var(--ds-radius-card);
+  background: var(--ds-backdrop);
 }
 
 /* Checkboxes, the little table and the radio cards side by side. */

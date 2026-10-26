@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en" class="ds-theme ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frame 2.0 · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- The app frame of 2.0 (frame-2.spec.js): segmented buttons, the drawer's
+     back item, actions, collapsible groups with counts, a row action and a
+     foot, the rail (data-drawer-collapsed, the menu button with
+     aria-pressed), the top bar's title, search and actions, the account
+     capsule, avatars and the banner in the panel. -->
+<div class="ds-app ds-app--drawer" id="app">
+  <a class="ds-skip" href="#main">Skip to content</a>
+  <div class="ds-topbar" id="topbar">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__menu" type="button" id="menu" aria-label="Menu" aria-expanded="false" aria-controls="drawer"><span data-icon="menu" data-size="20"></span></button>
+    <a class="ds-brand" id="brand" href="#overview"><span class="ds-brand__name">Product</span></a>
+    <h1 class="ds-topbar__title" id="title">LAPTOP-0042 in the store room on the second floor of Building B</h1>
+    <div class="ds-topbar__search" id="search"><div class="ds-search"><span data-icon="search" data-size="20"></span><input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div></div>
+    <div class="ds-topbar__actions" id="actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Help" data-tip="Help"><span data-icon="info" data-size="20"></span></button></div>
+    <div class="ds-account ds-account--capsule" id="account">
+      <div class="ds-account__text" aria-hidden="true"><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email" id="email"></div></div>
+      <span class="ds-account__avatar" id="avatar" role="img" aria-label="Ada Lovelace" tabindex="0" data-tip="Ada Lovelace">A</span>
+      <span class="ds-account__divider" id="divider"></span>
+      <button class="ds-btn ds-btn--text" type="button" id="signout">Sign out</button>
+    </div>
+  </div>
+  <div class="ds-scrim" id="scrim"></div>
+  <nav class="ds-drawer" id="drawer" aria-label="Main" tabindex="-1">
+    <div class="ds-drawer__head" aria-hidden="true"><span class="ds-brand__name">Product</span></div>
+    <div class="ds-drawer__back" id="back"><a class="ds-drawer__item" id="back-item" href="#devices" data-tip="All devices"><span data-icon="arrowLeft" data-size="20"></span><span class="ds-drawer__label">All devices</span></a></div>
+    <div class="ds-drawer__actions"><button class="ds-btn ds-btn--tonal" type="button"><span data-icon="plus" data-size="18"></span>New ticket</button></div>
+    <div class="ds-drawer__list" id="list">
+      <details class="ds-drawer__group ds-collapsible" id="group-a" open>
+        <summary class="ds-drawer__heading ds-drawer__toggle" id="toggle-a"><span data-icon="chevronDown" data-size="20" data-class="ds-chevron"></span><span>Tickets</span><span class="ds-drawer__count" id="group-count" aria-hidden="true">5</span></summary>
+        <a class="ds-drawer__item" id="open" href="#open" aria-current="page" data-tip="Open"><span data-icon="ticket" data-size="20"></span><span class="ds-drawer__label">Open</span><span class="ds-drawer__count" id="item-count"><span class="ds-sr">, </span>3</span></a>
+        <div class="ds-drawer__row" id="row">
+          <a class="ds-drawer__item" id="waiting" href="#waiting" data-tip="Waiting"><span data-icon="clock" data-size="20"></span><span class="ds-drawer__label">Waiting</span><span class="ds-drawer__count"><span class="ds-sr">, </span>2</span></a>
+          <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action" id="row-action" type="button" aria-label="Options for Waiting" data-tip="Options"><span data-icon="moreVertical" data-size="18"></span></button>
+        </div>
+      </details>
+      <details class="ds-drawer__group ds-collapsible" id="group-b" open>
+        <summary class="ds-drawer__heading ds-drawer__toggle"><span data-icon="chevronDown" data-size="20" data-class="ds-chevron"></span><span>Devices</span><span class="ds-drawer__count" aria-hidden="true">12</span></summary>
+        <a class="ds-drawer__item" id="laptops" href="#laptops" data-tip="Laptops"><span data-icon="laptop" data-size="20"></span><span class="ds-drawer__label">Laptops</span></a>
+        <a class="ds-drawer__item" id="desktops" href="#desktops" data-tip="Desktops"><span data-icon="monitor" data-size="20"></span><span class="ds-drawer__label">Desktops</span></a>
+      </details>
+      <div class="ds-drawer__group" id="group-c">
+        <p class="ds-drawer__heading">More</p>
+        <a class="ds-drawer__item" href="#m1" data-tip="Printers"><span data-icon="box" data-size="20"></span><span class="ds-drawer__label">Printers</span></a>
+        <a class="ds-drawer__item" href="#m2" data-tip="Phones"><span data-icon="phone" data-size="20"></span><span class="ds-drawer__label">Phones</span></a>
+        <a class="ds-drawer__item" href="#m3" data-tip="Tablets"><span data-icon="laptop" data-size="20"></span><span class="ds-drawer__label">Tablets</span></a>
+        <a class="ds-drawer__item" href="#m4" data-tip="Servers"><span data-icon="server" data-size="20"></span><span class="ds-drawer__label">Servers</span></a>
+        <a class="ds-drawer__item" id="last" href="#m5" data-tip="Cameras"><span data-icon="camera" data-size="20"></span><span class="ds-drawer__label">Cameras</span></a>
+      </div>
+    </div>
+    <div class="ds-drawer__foot ds-drawer__foot--rail" id="foot">
+      <a class="ds-drawer__item" href="#settings" data-tip="Settings"><span data-icon="settings" data-size="20"></span><span class="ds-drawer__label">Settings</span></a>
+      <a class="ds-drawer__item" href="#help" data-tip="Help"><span data-icon="info" data-size="20"></span><span class="ds-drawer__label">Help</span></a>
+    </div>
+  </nav>
+  <div class="ds-panel" id="panel">
+    <main class="ds-view" id="main" tabindex="-1">
+      <div class="ds-content"><div class="ds-page" id="page">
+        <header class="ds-page-head">
+          <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" id="head-back" href="#devices"><span data-icon="arrowLeft" data-size="18"></span><span class="ds-sr">Back to </span>Devices</a>
+          <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1>
+        </header>
+        <div class="fx-row" id="toolbar">
+          <div class="ds-segmented" id="modes" role="radiogroup" aria-label="View">
+            <button class="ds-segmented__option" id="mode-list" type="button" role="radio" aria-checked="true" data-label="List">List</button>
+            <button class="ds-segmented__option" id="mode-map" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Map">Map</button>
+            <button class="ds-segmented__option" id="mode-chart" type="button" role="radio" aria-checked="false" tabindex="-1" aria-disabled="true" data-label="Chart">Chart</button>
+          </div>
+          <span class="ds-avatar ds-avatar--sm" id="avatar-sm" role="img" aria-label="Grace Hopper">G</span>
+          <span class="ds-avatar" id="avatar-md" role="img" aria-label="Alan Turing">A</span>
+          <span class="ds-avatar ds-avatar--lg" id="avatar-lg" role="img" aria-label="Katherine Johnson">K</span>
+          <span id="probe-abs" style="position: absolute; top: 0">probe</span>
+        </div>
+        <div class="ds-stack" id="cards">
+          <section class="ds-card"><h2 class="ds-card__title">Building A</h2><p class="ds-muted">12 devices.</p></section>
+          <section class="ds-card"><h2 class="ds-card__title">Building B</h2><p class="ds-muted">24 devices.</p></section>
+          <section class="ds-card"><h2 class="ds-card__title">Building C</h2><p class="ds-muted">36 devices.</p></section>
+          <section class="ds-card"><h2 class="ds-card__title">Building D</h2><p class="ds-muted">48 devices.</p></section>
+          <section class="ds-card"><h2 class="ds-card__title">Building E</h2><p class="ds-muted">60 devices.</p></section>
+        </div>
+      </div></div>
+    </main>
+  </div>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  // Page script, as a project would write it: the drawer's pill (with
+  // reveal), the segmented buttons, the rail toggle and the banner.
+  (function () {
+    var app = document.getElementById('app');
+    var list = document.getElementById('list');
+    window.fxDrawer = DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
+    window.fxModes = DS.indicator.createIndicator(document.getElementById('modes'), { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+    list.addEventListener('click', function (event) {
+      var item = event.target.closest('.ds-drawer__item');
+      if (!item) return;
+      event.preventDefault();
+      list.querySelectorAll('.ds-drawer__item').forEach(function (other) {
+        if (other === item) other.setAttribute('aria-current', 'page');
+        else other.removeAttribute('aria-current');
+      });
+    });
+    document.getElementById('modes').addEventListener('click', function (event) {
+      var option = event.target.closest('.ds-segmented__option');
+      if (!option || option.getAttribute('aria-disabled') === 'true') return;
+      this.querySelectorAll('.ds-segmented__option').forEach(function (other) { other.setAttribute('aria-checked', String(other === option)); });
+    });
+    window.fxRail = function (on) {
+      app.toggleAttribute('data-drawer-collapsed', on);
+      var menu = document.getElementById('menu');
+      if (on) menu.setAttribute('aria-pressed', 'true');
+      else menu.removeAttribute('aria-pressed');
+    };
+    window.fxBanner = function (on) {
+      var panel = document.getElementById('panel');
+      return DS.motion.flip(panel, function () {
+        var banner = document.getElementById('banner');
+        if (!on) { if (banner) banner.remove(); return; }
+        var holder = document.createElement('div');
+        holder.innerHTML = '<div class="ds-banner" id="banner"><div class="ds-alert ds-alert--warning" role="status"><span class="ds-alert__text">You are offline.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Retry</button></div></div>';
+        panel.insertBefore(holder.firstChild, panel.firstChild);
+      }, { items: ':scope > *' });
+    };
+    DS.ripple.attach(document);
+  }());
+</script>
+</body>
+</html>
