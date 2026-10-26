@@ -79,12 +79,17 @@ export const RIPPLE_HOSTS = [
   '.ds-menu__item',
   '.ds-errors summary',
   '[data-ds-ripple]',
+  '.ds-list--interactive > .ds-list__item',
+  ':is(a, button).ds-kv-list__row',
+  '.ds-disclosure > summary',
+  ':is(button, a).ds-columns__col',
 ].join(', ');
 
 /** The link that stands for its host (stretched over a row or a <div> card): Enter on it ripples the host. */
 const HOST_LINK = [
   '.ds-table__row-link',
   '.ds-card__action',
+  '.ds-list__action',
 ].join(', ');
 
 /** Hosts whose own input is part of the host: pressing the input ripples the host. */
@@ -100,6 +105,7 @@ const OWN_PRESS = 'input[type="checkbox"], input[type="radio"], .ds-switch';
 const STRETCHED = [
   '.ds-card--interactive',
   '.ds-table--interactive tbody tr',
+  '.ds-list--interactive > .ds-list__item',
 ].join(', ');
 
 /** What a press inside a stretched host may land on besides its link (the CSS's press exclusion, plus [tabindex]). */

@@ -4,8 +4,9 @@
  * Every token lives on `.ds-theme`, never on :root: the system can run
  * inside a foreign page (an embedded widget) without touching that page's
  * variables. A full app puts class="ds-theme" on <html>. The exceptions
- * are the @property registrations at the top level: --ds-time-scale and the
- * runtime properties the loading indicators animate (below it).
+ * are the @property registrations at the top level: --ds-time-scale, the
+ * runtime properties the loading indicators animate (below it) and the
+ * share of a chart mark (--ds-share).
  *
  * Three layers:
  *   1. Scales: motion, spacing, state layers, layers (z), radius scale.
@@ -107,6 +108,20 @@
   syntax: '<length>';
   inherits: true;
   initial-value: 0px;
+}
+
+/*
+ * The share of a chart mark (a meter, a column; 0 ... 1), set by the page
+ * on the mark (style.setProperty). Registered so it glides: the mark's
+ * fill is clipped at it (never scaled, so its round end keeps its shape)
+ * and a column's value rides on it. Inherits, so the mark's parts follow
+ * the value of the mark. Not --ds-progress, which drives the whole
+ * progress choreography.
+ */
+@property --ds-share {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
 }
 
 @layer ds.tokens {
@@ -351,6 +366,20 @@
 
     /* Inline code. */
     --ds-code-bg: var(--ds-surface-low);
+
+    /* Charts (meters, columns, legends): four series in a fixed order,
+       never cycled (more fold into "Other"), each at 3:1 on the surfaces
+       and on the track; the neutral series for the rest of a highlighted
+       one; the tones only on single-series marks, always with words.
+       Text never takes a series colour. */
+    --ds-chart-1: var(--ds-primary);
+    --ds-chart-2: #c76a00;
+    --ds-chart-3: #00897b;
+    --ds-chart-4: #9334e6;
+    --ds-chart-track: var(--ds-surface-high);
+    --ds-chart-neutral: var(--ds-outline);
+    --ds-chart-warning: var(--ds-warning);
+    --ds-chart-error: var(--ds-error);
 
     /* Disabled controls: the neutral Material look (a 12% container and
        38% content) instead of dimming the whole control, so a filled button
