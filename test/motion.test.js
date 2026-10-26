@@ -953,6 +953,19 @@ describe('js/motion', () => {
         setLabel(plain, 'Add device');
         assert.equal(own.nodeValue, 'Add device');
         assert.deepEqual(plain.children, [glyph, own]);
+        // An adaptive button: the text in its .ds-btn__label, never a second label beside it.
+        const adaptive = new FakeElement();
+        adaptive.className = 'ds-btn ds-btn--adaptive';
+        const svg = new FakeElement();
+        const slot = new FakeElement();
+        slot.className = 'ds-btn__label';
+        const words = label('Export');
+        slot.append(words);
+        adaptive.append(svg, slot);
+        setLabel(adaptive, 'Download');
+        assert.equal(words.nodeValue, 'Download');
+        assert.deepEqual(adaptive.children, [svg, slot], 'no loose text beside the label');
+        assert.deepEqual(slot.children, [words]);
       });
 
       it('sets aria-busy at once; work faster than the loader delay is never held', async (t) => {

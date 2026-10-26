@@ -1526,16 +1526,20 @@
       if (!pendingLabels.has(button) || busyRuns.has(button) || doneTimers.has(button)) return;
       const text = /** @type {string} */ (pendingLabels.get(button));
       pendingLabels.delete(button);
-      writeLabel(restFace(button) ?? button, text);
+      const slot = restFace(button) ?? button;
+      // An adaptive button (or a face) keeps its text in .ds-btn__label, which folds away on phones.
+      const label = Array.from(slot.children ?? []).find((child) => child.classList?.contains('ds-btn__label'));
+      writeLabel(label ?? slot, text);
     }
 
     /**
      * Sets the label of a button without dropping what it holds: the text of
      * its rest face (the .ds-btn__face that is neither --busy nor --done) on a
-     * faces button, else its own text; icons and the ripple layer stay. While
-     * busy() runs or the success face shows, the new label waits and shows
-     * once the button is back at rest, so the faces keep one width while
-     * they roll.
+     * faces button, else its own text; in either, the text of a
+     * .ds-btn__label child (an adaptive button); icons and the ripple layer
+     * stay. While busy() runs or the success face shows, the new label
+     * waits and shows once the button is back at rest, so the faces keep one
+     * width while they roll.
      * @param {Element|null|undefined} button
      * @param {string} text
      */
