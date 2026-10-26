@@ -80,6 +80,8 @@ test('a new share glides on --ds-ease-value over --ds-dur-glide and lands with t
     void getComputedStyle(el).getPropertyValue('--ds-share');
     const transition = el.getAnimations().find((animation) => animation.transitionProperty === '--ds-share');
     const glide = DS.motion.motionDuration(el, '--ds-dur-glide');
+    // Held in the task that started it, so a busy machine cannot let it end before the samples.
+    if (transition) transition.pause();
     return { duration: transition ? Number(transition.effect.getComputedTiming().duration) : null, glide, counted: Boolean(counting) };
   });
   expect(run.duration).toBe(run.glide);
@@ -94,6 +96,8 @@ test('the first render fills every mark from zero (.ds-enter--fill), never by a 
   const seen = await page.evaluate(() => {
     const marks = [...document.querySelectorAll('#meter, #columns .ds-columns__col')];
     DS.motion.enterAll(marks, 'fill', { stagger: false });
+    // Held in the task that started them, so a busy machine cannot let them end before the samples.
+    for (const animation of marks.flatMap((mark) => mark.getAnimations())) animation.pause();
     const names = marks[0].getAnimations().map((animation) => `${animation.animationName} ${Number(animation.effect.getComputedTiming().duration)}`).sort();
     return { names, glide: DS.motion.motionDuration(marks[0], '--ds-dur-glide'), classes: marks[1].className };
   });
