@@ -1935,11 +1935,11 @@
   function drawerSample() {
     return '<div class="ds-drawer__back">' + drawerItem('arrowLeft', 'All sites') + '</div>' +
       '<div class="ds-drawer__actions"><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 18) + 'New ticket</button></div>' +
-      '<div class="ds-drawer__list" id="sg-drawer-sample-list">' +
+      '<div class="ds-drawer__list" id="sg-drawer-sample-list">' + drawerItem('home', 'Home') +
         '<details class="ds-drawer__group ds-collapsible" open><summary class="ds-drawer__heading ds-drawer__toggle">' + icon('chevronDown', 20, 'ds-chevron') + '<span>Tickets</span><span class="ds-drawer__count" aria-hidden="true">5</span></summary>' +
           drawerItem('ticket', 'Open', ' aria-current="page"', 3) +
           '<div class="ds-drawer__row">' + drawerItem('clock', 'Waiting', '', 2) +
-          '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action" type="button" aria-label="Options for Waiting" data-tip="Options">' + icon('moreVertical', 18) + '</button></div>' +
+          '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action ds-hover-actions" type="button" aria-label="Options for Waiting" data-tip="Options">' + icon('moreVertical', 18) + '</button></div>' +
         '</details>' +
         '<details class="ds-drawer__group ds-collapsible"><summary class="ds-drawer__heading ds-drawer__toggle">' + icon('chevronDown', 20, 'ds-chevron') + '<span>Devices</span><span class="ds-drawer__count" aria-hidden="true">12</span></summary>' +
           drawerItem('laptop', 'Laptops', '', 9) + drawerItem('monitor', 'Desktops', '', 3) +
@@ -1954,7 +1954,7 @@
     return '<div class="ds-tabs" id="sg-tabs" role="tablist" aria-label="Device">' + TABS.map(function (tab, index) {
       return '<button class="ds-tabs__tab" role="tab" type="button" id="sg-tab-' + tab[0] + '" aria-selected="' + (index === 0) + '" aria-controls="sg-tabpanel-' + tab[0] + '"' +
         (index ? ' tabindex="-1"' : '') + (tab[3] ? ' aria-disabled="true" data-tip="No reports for this device yet"' : '') + ' data-label="' + tab[1] + '">' + tab[1] +
-        (tab[2] ? '<span class="ds-meta"><span class="ds-sr">, </span>' + tab[2] + '</span>' : '') + '</button>';
+        (tab[2] ? '<span class="ds-badge">' + tab[2] + '</span>' : '') + '</button>';
     }).join('') + '</div>' +
     TABS.map(function (tab, index) {
       return '<div class="ds-tabs__panel sg-tabpanel" role="tabpanel" id="sg-tabpanel-' + tab[0] + '" aria-labelledby="sg-tab-' + tab[0] + '" tabindex="0"' + (index ? ' hidden' : '') + '>' +
@@ -1995,7 +1995,7 @@
         '<div class="sg-row"><div class="ds-segmented" id="sg-segmented-buttons" role="radiogroup" aria-label="View">' + radioSegment('List', true) + radioSegment('Map') + radioSegment('Chart', false, true) + '</div></div>' +
         '<p class="ds-muted">A mode of the same page: button options (role="radio", aria-checked) sit flush in a page toolbar; the margin after the brand is the top bar\'s. Chart is aria-disabled: no hover, press or ripple, but it keeps its focus and says why.</p>') +
       card('Drawer parts', '<div class="sg-drawer-sample" id="sg-drawer-sample">' + drawerSample() + '</div>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="rail-toggle" aria-pressed="false">Rail (this page\'s drawer)</button></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="rail-toggle" aria-pressed="false">' + icon('panelLeft', 18) + 'Rail (this page\'s drawer)</button></div>' +
         '<p class="ds-muted">A way back up with a hairline under it, a primary action, groups that close (their heading is a pressable row; the count shows while closed, and the pill leaves an item whose group closes), counts, an item with an action of its own at its end, and a foot of icon-only items. The rail narrows this page\'s drawer to its icons above 900px: labels stay readable and each item names itself in its tooltip.</p>') +
       card('Top bar parts', '<div class="sg-topbar-sample"><div class="ds-topbar">' +
           '<a class="ds-brand" href="#frame"><span class="ds-brand__name">Inventory</span></a>' +

@@ -787,7 +787,9 @@
     const shown = (name) => (state.sheetTab === name ? '' : ' hidden');
     return '<div class="ds-tabs" role="tablist" aria-label="Device" id="sheet-tabs">' +
       SHEET_TABS.map(([name, label]) => `<button class="ds-tabs__tab" role="tab" type="button" id="sheet-t-${name}" aria-controls="sheet-p-${name}" data-tab="${name}" data-label="${label}"` +
-        ` aria-selected="${state.sheetTab === name}"${state.sheetTab === name ? '' : ' tabindex="-1"'}>${label}</button>`).join('') + '</div>' +
+        ` aria-selected="${state.sheetTab === name}"${state.sheetTab === name ? '' : ' tabindex="-1"'}>${label}` +
+        // The device's tickets as a count on History (an empty badge takes no room).
+        `${name === 'history' ? `<span class="ds-badge">${tickets.length || ''}</span>` : ''}</button>`).join('') + '</div>' +
       `<div class="ds-tabs__panel ds-stack" role="tabpanel" id="sheet-p-details" aria-labelledby="sheet-t-details"${shown('details')}>` +
       `<dl class="ds-facts"><div><dt>Owner</dt><dd>${esc(device.owner)}</dd></div><div><dt>Location</dt><dd>${esc(device.location)}</dd></div>` +
       `<div><dt>Last seen</dt><dd>${ago(device.lastSeen)}</dd></div><div><dt>Status</dt><dd>${status(device.status)}</dd></div></dl>` +
