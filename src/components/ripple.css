@@ -150,7 +150,8 @@
     opacity: calc(var(--ds-btn-state-pressed-opacity, var(--ds-state-pressed)) - var(--ds-state-pressed));
   }
 
-  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled) + .ds-chip__body::before,
+  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled, [aria-disabled="true"]) + .ds-chip__body::before,
+  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before,
   :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
@@ -174,7 +175,8 @@
       opacity: max(var(--ds-btn-state-opacity, var(--ds-state-hover)), calc(var(--ds-btn-state-pressed-opacity, var(--ds-state-pressed)) - var(--ds-state-pressed)));
     }
 
-    :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled) + .ds-chip__body::before,
+    :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled, [aria-disabled="true"]) + .ds-chip__body::before,
+    :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before,
     :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
@@ -202,6 +204,7 @@
   }
 
   :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:focus-visible + .ds-chip__body::before,
+  :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):focus-visible:is(:active, .ds-pressed) > .ds-chip__body::before,
   :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,

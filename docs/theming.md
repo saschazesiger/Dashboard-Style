@@ -265,6 +265,8 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-chip-height` | 32px | filter chip |
 | `--ds-chip-check-size` | 18px | the check of a selected chip (and the room it opens) |
 | `--ds-chip-disabled-border`, `--ds-chip-disabled-bg` | `--ds-disabled-fill` | disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`) |
+| `--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border` | `--ds-accent`, `--ds-on-accent`, `--ds-accent` | an input chip (`.ds-chip--input`): fill, ink, edge |
+| `--ds-chip-max-width` | 240px | the widest body of an action or input chip; its label ends in an ellipsis |
 | `--ds-switch-halo` | 40px | the halo around the switch handle |
 | `--ds-switch-disabled-track`, `--ds-switch-disabled-handle` | `--ds-disabled-fill`, `--ds-disabled-ink` | disabled switch track (and border) and off handle |
 | `--ds-drawer-item-height` | 48px | drawer item (its rest radius is half of it, so the press morph runs its whole way) |
@@ -284,6 +286,11 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-pressable-layer` | `currentColor` | the colour of the state layer of `.ds-pressable` |
 | `--ds-kbd-border`, `--ds-kbd-bg` | `--ds-line-2`, `--ds-surface` | `.ds-kbd`: the box of a key |
 | `--ds-status-radius` | `--ds-radius-md` | status chip |
+| `--ds-tag-bg`, `--ds-tag-color` | `--ds-accent`, `--ds-on-accent` (`--neutral`: `--ds-surface-high`, `--ds-text`) | a tag (`.ds-tag`) |
+| `--ds-tag-height` | 24px | a tag's height (its radius is half of it) |
+| `--ds-badge-size` | 20px | a count badge (`.ds-badge`): height and smallest width |
+| `--ds-badge-radius` | `--ds-radius-action` (never above half the size) | a count badge's corners |
+| `--ds-badge-bg`, `--ds-badge-color` | `--ds-accent`, `--ds-on-accent` (tones: their container pair; on a tinted host `--ds-primary`, `--ds-on-primary`) | a count badge's fill and figure |
 | `--ds-spinner-track`, `--ds-spinner-color` | none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`) | spinner: the track behind the arc, the arc |
 | `--ds-spinner-width` | 2px (`--determinate`: `--ds-spinner-determinate-width`) | the spinner's ring width (instead of `border-width`) |
 | `--ds-spinner-determinate-width` | 4px | the ring width of `.ds-spinner--determinate` |

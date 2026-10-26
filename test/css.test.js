@@ -1600,7 +1600,7 @@ describe('controls (1.1.0)', () => {
       assert.match(transitionOf(file, selector), /(^|, )opacity var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, `${selector}: opacity fades`);
     }
     const reads = (file, selector) => declarationsAt(read(file), selector).map((entry) => entry.value).join(' ');
-    const chip = reads('src/components/chip.css', '.ds-chip__input:disabled + .ds-chip__body');
+    const chip = reads('src/components/chip.css', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body');
     for (const token of ['--ds-disabled-fill', '--ds-disabled-ink', '--ds-disabled-opacity']) assert.ok(chip.includes(token), `chip: ${token}`);
     const track = reads('src/components/switch.css', '.ds-switch input:disabled + .ds-switch__track');
     for (const token of ['--ds-disabled-fill', '--ds-disabled-opacity']) assert.ok(track.includes(token), `switch track: ${token}`);
@@ -1609,7 +1609,8 @@ describe('controls (1.1.0)', () => {
     const hover = atRuleBlocks(read('src/components/switch.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
     assert.ok(hover.length && hover.every((part) => part.includes(':not(:disabled)')), hover.join(' | '));
     const chipHover = atRuleBlocks(read('src/components/chip.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
-    assert.ok(chipHover.length && chipHover.every((part) => part.includes(':not(:disabled)')), chipHover.join(' | '));
+    // aria-disabled (2.0) is blocked like disabled: :not(:disabled, [aria-disabled="true"]).
+    assert.ok(chipHover.length && chipHover.every((part) => part.includes(':not(:disabled, [aria-disabled="true"])')), chipHover.join(' | '));
   });
 
   it('keeps the spinner of a hidden busy face still (no endless loop per button at rest)', () => {

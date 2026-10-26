@@ -303,9 +303,14 @@ The controls (1.1) share one timing. Press feedback is the state layer, the ripp
 | button faces roll by `--ds-distance-sm` (`DS.motion.busy()`: the busy face after `--ds-delay-loader`, the success face for `--ds-hold-success`) | `--ds-dur-fast` in, `--ds-dur-instant` out | in: fade `--ds-ease-in-out`, rise `--ds-ease-out`; out: `--ds-ease-in` |
 | validation message: fade, and its room opening while focus is in the form | fade `--ds-dur-fast`, room `--ds-dur-base` | fade `--ds-ease-in-out`, room `--ds-ease-out` |
 | disabled look (colours and opacity) | `--ds-dur-fast` | `--ds-ease-in-out` |
+| an input chip removed: `flip()` glides the chips after it into its place, focus goes to the neighbour | `flip()` (travel) | `--ds-ease-spatial` |
+| an icon that fills when on (`.ds-icon--fillable`) | `--ds-dur-fast` | `--ds-ease-in-out` |
+| actions on demand (`.ds-hover-actions`): in, out | `--ds-dur-fast`, `--ds-dur-instant` | `--ds-ease-in-out` |
+| the lock of a locked switch rides its handle; it fades in, out | travel `--ds-dur-medium`; fade `--ds-dur-fast`, `--ds-dur-instant` | travel `--ds-ease-spatial`; fade `--ds-ease-in-out` |
 
 What leaves takes 0.4-0.67 of what enters: the chip check, the checkbox mark and the radio dot 250 to 150ms, the
-button faces and the switch words 150 to 100ms, the icon swap 250 to 100ms (tested). Everything here is a
+button faces, the switch words, the switch lock and the actions on demand 150 to 100ms, the icon swap 250 to 100ms
+(tested). Everything here is a
 transition, so a control rendered in its end state (a chip rendered selected, a box rendered checked) stays still
 on load, and a rapid toggle turns back from where it is. A chip that wraps to another line glides there through
 `flip()` (`DS.ripple.attach()` wires it); a removed validation message goes at once.
@@ -332,7 +337,9 @@ on load, and a rapid toggle turns back from where it is. A chip that wraps to an
 | `countUp()` | from the shown value on `--ds-ease-value` over `--ds-dur-glide`, landing on the same frame as a bar set in the same task |
 | Status chip | colour and icon glide over `--ds-dur-medium`; a new icon fades in and springs up from `--ds-scale-small` |
 | Table | sort, filter and live reorder glide through `flip()`; a selected row tints over `--ds-dur-fast`; an expandable row opens its room on `--ds-ease-out` (`--ds-dur-medium`) and closes accelerating (`--ds-dur-base`); the sort arrow and the toggle chevron turn on the spring |
-| Alert, tile, card | alerts come and go through `flip()`; a tile's figure counts with `countUp()`; clickable tiles and cards take the press morph |
+| Alert, tile, card | alerts come and go through `flip()`; a tile's figure counts with `countUp()`; clickable tiles and cards take the press morph; a selected tile or card tints over `--ds-dur-fast` and its ring shows at once |
+| Badge (`.ds-badge`) | colours glide on `--ds-dur-fast`; a count that appears pops in (`enter(badge, 'pop')`), one that goes pops out; the number changes at once ([A count badge](#a-count-badge)) |
+| Done state (`.ds-empty--done`) | the disc fades in and pops up on the spring (`ds-fade-in`, `ds-pop-in`, `--ds-dur-slow`) after `--ds-dur-base`; a ring widens and fades once behind it (`ds-ripple`) after `--ds-dur-slow`; the check draws itself (`ds-draw`, `--ds-dur-glide`, `--ds-ease-out`); only when the element is inserted or shown |
 
 ### Data motion
 
@@ -1040,6 +1047,24 @@ Refreshes never replay an entrance: values update in place, figures count from w
 DS.motion.flip(list, (options) => DS.dom.morphHtml(list, renderRows(rows), options));          // a user's sort or filter
 DS.motion.flip(list, (options) => DS.dom.morphHtml(list, renderRows(rows), options), { live: true });  // polling
 DS.motion.countUp(total, rows.length);
+```
+
+### A count badge
+
+A `.ds-badge` ([components.md](components.md#badge)) pops in when a count appears and pops out when it goes; while it
+shows, the number changes at once (no count-up on a badge), and a badge rendered with the page plays nothing.
+
+```js
+function showCount(badge, count) {
+  const shown = !badge.hidden && badge.textContent !== '';
+  badge.textContent = count ? String(count) : badge.textContent;   // the number itself: at once
+  if (count && !shown) {
+    badge.hidden = false;
+    DS.motion.enter(badge, 'pop');                                 // ds-fade-in, ds-pop-in on the spring
+  } else if (!count && shown) {
+    DS.motion.leave(badge, 'pop', { then: 'hide' });              // faster, then hidden
+  }
+}
 ```
 
 ## View transitions

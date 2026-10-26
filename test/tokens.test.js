@@ -264,6 +264,8 @@ const TEXT_PAIRS = [
   ['--ds-primary', '--ds-surface'],
   ['--ds-primary', '--ds-surface-low'],
   ['--ds-on-error-container', '--ds-surface-low'],
+  // A neutral tag (.ds-tag--neutral) and a badge on a tinted host (2.0).
+  ['--ds-text', '--ds-surface-high'],
 ];
 
 describe('default palette', () => {

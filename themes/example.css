@@ -178,6 +178,8 @@
   --ds-chip-height: 32px;              --ds-chip-check-size: 18px;
   --ds-chip-disabled-border: var(--ds-disabled-fill);
   --ds-chip-disabled-bg: var(--ds-disabled-fill);
+  --ds-chip-input-bg: var(--ds-accent); --ds-chip-input-color: var(--ds-on-accent);
+  --ds-chip-input-border: var(--ds-accent); --ds-chip-max-width: 240px;
   --ds-switch-halo: 40px;
   --ds-switch-disabled-track: var(--ds-disabled-fill);
   --ds-switch-disabled-handle: var(--ds-disabled-ink);
@@ -192,6 +194,10 @@
   --ds-table-row-hover: (a currentColor layer at --ds-state-hover-lg);
   --ds-table-row-selected: var(--ds-accent);
   --ds-status-radius: var(--ds-radius-md);
+  --ds-tag-bg: var(--ds-accent);       --ds-tag-color: var(--ds-on-accent);
+  --ds-tag-height: 24px;               --ds-badge-size: 20px;
+  --ds-badge-radius: var(--ds-radius-action);  --ds-badge-bg: var(--ds-accent);
+  --ds-badge-color: var(--ds-on-accent);
   --ds-ripple-color: currentColor;
   --ds-pressable-radius: var(--ds-radius-sm); --ds-pressable-layer: currentColor;
   --ds-kbd-border: var(--ds-line-2);   --ds-kbd-bg: var(--ds-surface);

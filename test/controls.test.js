@@ -185,3 +185,71 @@ describe('buttons (2.0)', () => {
     assert.deepEqual(hover, { color: 'var(--ds-link)', 'text-decoration-color': 'var(--ds-link-underline-hover)' });
   });
 });
+
+describe('chips, badges and tags (2.0)', () => {
+  const chip = read('src/components/chip.css');
+  const flat = withoutAtRuleBlocks(chip, /@media/);
+
+  it('resets button chips, keeps every visual on the body and drops the check slot', () => {
+    const reset = own(flat, ':is(button, a).ds-chip');
+    for (const [property, value] of [['margin', '0'], ['padding', '0'], ['border', '0'], ['background', 'none'], ['font', 'inherit']]) assert.equal(reset[property], value, property);
+    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body::after').content, 'none');
+    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body')['max-width'], 'var(--ds-chip-max-width, 240px)');
+    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body:has(> .ds-chip__icon:first-child)')['padding-inline-start'], 'var(--ds-space-2)');
+    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body:has(> .ds-chip__trailing:last-child)')['padding-inline-end'], 'var(--ds-space-2)');
+    assert.equal(own(flat, '.ds-chip__label')['text-overflow'], 'ellipsis');
+    assert.deepEqual(own(flat, ':is(button, a).ds-chip:not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before'),
+      { opacity: 'var(--ds-state-pressed)', 'transition-duration': 'var(--ds-dur-micro)' });
+    // No morph: no radius changes on press; and a chip that stays on is a filter chip.
+    assert.ok(!rules(chip).some((rule) => /\.ds-chip[^,{]*:(active|is\(:active)/.test(rule.selector) && /border-radius/.test(rule.body)));
+    assert.ok(!selectorsOf(chip).some((part) => /\.ds-chip\[aria-pressed/.test(part)), 'no .ds-chip[aria-pressed]');
+    // The ripple rules of ripple.css know button chips (press and focus).
+    const ripple = selectorsOf(read('src/components/ripple.css')).filter((part) => part.includes('.ds-chip') && part.includes(':is(button, a)'));
+    assert.equal(ripple.length, 3);
+  });
+
+  it('tints input chips through hooks, wraps long chips at one-line height, hides an empty row', () => {
+    assert.deepEqual(own(flat, '.ds-chip--input > .ds-chip__body'), {
+      'border-color': 'var(--ds-chip-input-border, var(--ds-accent))', background: 'var(--ds-chip-input-bg, var(--ds-accent))', color: 'var(--ds-chip-input-color, var(--ds-on-accent))',
+    });
+    const wrap = own(flat, '.ds-chips--wrap .ds-chip__body');
+    assert.equal(wrap['padding-block'], 'calc((var(--ds-chip-height, 32px) - 1lh) / 2 - 1px)');
+    assert.equal(wrap['border-radius'], 'min(var(--ds-radius-chip), calc(var(--ds-chip-height, 32px) / 2))');
+    assert.equal(wrap['white-space'], 'normal');
+    assert.equal(own(flat, '.ds-chips:empty').display, 'none');
+    assert.equal(own(flat, '.ds-chips[data-ds-glide] .ds-chip')['background-color'], 'var(--ds-chips-backdrop, var(--ds-flip-backdrop, var(--ds-surface)))');
+    assert.equal(own(forcedColorBlocks(chip).join('\n'), '.ds-chip--input > .ds-chip__body')['border-color'], 'CanvasText');
+  });
+
+  it('blocks aria-disabled filter chips like disabled ones (looks, hover, press, cursor, forced colours)', () => {
+    assert.doesNotMatch(stripComments(chip), /\.ds-chip__input:disabled|\.ds-chip__input:not\(:disabled\)|:checked:disabled/);
+    assert.equal(own(flat, '.ds-chip:has(.ds-chip__input:is(:disabled, [aria-disabled="true"]))').cursor, 'not-allowed');
+    assert.equal(own(forcedColorBlocks(chip).join('\n'), '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body').color, 'GrayText');
+    assert.doesNotMatch(stripComments(read('src/components/ripple.css')), /\.ds-chip__input:not\(:disabled\)/);
+  });
+
+  it('draws badges and tags as pills from hooks, with tones and the strong pair on tinted hosts', () => {
+    const badge = read('src/components/badge.css');
+    const base = own(withoutAtRuleBlocks(badge, /@media/), '.ds-badge');
+    assert.equal(base['min-width'], 'var(--ds-badge-size, 20px)');
+    assert.equal(base['border-radius'], 'min(var(--ds-badge-radius, var(--ds-radius-action)), calc(var(--ds-badge-size, 20px) / 2))');
+    assert.equal(base.font, 'var(--ds-font-caption)');
+    assert.equal(base['font-variant-numeric'], 'tabular-nums');
+    assert.equal(own(badge, '.ds-badge:empty').display, 'none');
+    for (const tone of ['neutral', 'ok', 'warning', 'error']) assert.ok(own(badge, `.ds-badge--${tone}`)['--ds-badge-bg'], tone);
+    const tinted = selectorsOf(badge).find((part) => part.endsWith('.ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error)'));
+    for (const host of ['.ds-btn[aria-pressed="true"]', '.ds-btn--tonal', '.ds-chip--input', '.ds-chip__input:checked + .ds-chip__body', '.ds-table__row--selected']) assert.ok(tinted.includes(host), host);
+    assert.equal(own(forcedColorBlocks(badge).join('\n'), '.ds-badge').outline, '1px solid CanvasText');
+    assert.match(read('src/index.css'), /@import '\.\/components\/chip\.css';\n@import '\.\/components\/badge\.css';/);
+    const status = read('src/components/status.css');
+    const tag = own(withoutAtRuleBlocks(status, /@media/), '.ds-tag');
+    assert.equal(tag.background, 'var(--ds-tag-bg, var(--ds-accent))');
+    assert.equal(tag.color, 'var(--ds-tag-color, var(--ds-on-accent))');
+    assert.equal(tag['border-radius'], 'min(var(--ds-radius-action), calc(var(--ds-tag-height, 24px) / 2))');
+    assert.equal(own(status, '.ds-tag > svg').color, 'var(--ds-on-accent-icon)');
+    assert.deepEqual(own(status, '.ds-tag--neutral'), { '--ds-tag-bg': 'var(--ds-surface-high)', '--ds-tag-color': 'var(--ds-text)' });
+    assert.equal(own(forcedColorBlocks(status).join('\n'), '.ds-tag').outline, '1px solid CanvasText');
+    // Not interactive: no cursor, no state layer.
+    assert.ok(!rules(status).some((rule) => rule.selector.includes('.ds-tag') && /cursor|::before/.test(rule.selector + rule.body)));
+  });
+});

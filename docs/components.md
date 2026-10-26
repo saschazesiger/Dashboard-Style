@@ -28,6 +28,8 @@ component live.
 | A run of short counts ("3 new · 1 updated") | `.ds-parts` ([Lists](#lists)) |
 | Nothing to show yet | [Empty state](#empty-state) `.ds-empty` |
 | The state of one item (synced, failed, running) | [Status chip](#status-chip) `.ds-status` |
+| A count on a button or chip | [Badge](#badge) `.ds-badge` (tones `--neutral`, `--ok`, `--warning`, `--error`) |
+| A short label such as Preview | `.ds-tag` ([Status chip](#tags)) |
 | A message about a page or section that stays | [Alert](#alert) `.ds-alert`; a list of errors to open: `.ds-errors` |
 | Short feedback after an action | [Snackbar](#snackbar) `.ds-toast` in `.ds-toasts` |
 | Records in rows and columns | [Table](#table) `.ds-table` in `.ds-table-wrap` |
@@ -40,6 +42,8 @@ component live.
 | A yes/no value saved with the form | `.ds-check` ([Form](#form)) |
 | A checkbox without a label row (a table column, a list item) | `.ds-checkbox` ([Form](#form)); in a `.ds-table` any bare checkbox is drawn the same |
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
+| Active filters that remove themselves | input chips: `.ds-chip--input` buttons in a `role="group"` row ([Chips](#action-and-input-chips)) |
+| Suggestions that act at once | action chips: `button.ds-chip`; long ones in `.ds-chips--wrap` ([Chips](#action-and-input-chips)) |
 | Search and filter a list | `.ds-toolbar` with `.ds-search`, `.ds-filters`, [Chips](#chips) `.ds-chips`; in one row: `.ds-action-bar` ([Form](#form)) |
 | Actions for one item or a toolbar overflow | [Menu](#menu) `.ds-menu` |
 | Confirm an action with consequences | [Dialog](#dialog) `.ds-dialog` |
@@ -64,7 +68,7 @@ and update the copy; otherwise build it in the project with the project's own cl
 ([rules.md](rules.md#code)).
 
 Contents: [App frame](#app-frame) · [Page](#page) · [Button](#button) · [Card](#card) · [Tiles](#tiles) ·
-[Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Alert](#alert) · [Table](#table) ·
+[Lists](#lists) · [Empty state](#empty-state) · [Status chip](#status-chip) · [Badge](#badge) · [Alert](#alert) · [Table](#table) ·
 [Form](#form) · [Chips](#chips) · [Switch](#switch) · [Combobox](#combobox) · [Menu](#menu) · [Dialog](#dialog) ·
 [Side sheet](#side-sheet) · [Snackbar](#snackbar) · [Tooltip](#tooltip) · [Loading](#loading) ·
 [Progress](#progress) · [Ripple](#ripple) · [Utilities](#utilities) · [Motion classes](#motion-classes)
@@ -571,7 +575,48 @@ also plays on a chip's first render; elsewhere the icon swaps at once). A row th
 keeps its icon as it is: where `moveBefore` is missing, the moved node carries `data-ds-moving` for one style flush,
 so the entrance never plays again. The label text changes at once. A page that swaps the icon itself can cross-fade it with `DS.motion.crossfade(chip, icon, { kind: 'icon' })`.
 
+### Tags
+
+A tag is a label of words ("Preview", "Beta", "External"), not a state and not a count; it is not interactive:
+
+```html
+<span class="ds-tag">Preview</span>
+<span class="ds-tag ds-tag--neutral">[icon tag 16]External</span>
+```
+
+The caption type on the tint (hooks `--ds-tag-bg`, `--ds-tag-color`, from `--ds-accent` and `--ds-on-accent`;
+`--neutral`: `--ds-surface-high` and `--ds-text`), an optional leading 16px icon (`--ds-on-accent-icon`), the pill
+radius at half its height (`--ds-tag-height`, 24px). Forced colours draw a `CanvasText` outline. Tag = words, badge
+= counts ([Badge](#badge)), status chip = a state with an icon.
+
 **Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.
+
+## Badge
+
+A count on a button, chip, tab or drawer item:
+
+```html
+<button class="ds-btn" type="button">[icon mail 16]Inbox <span class="ds-badge">3</span></button>
+<label class="ds-chip"><input class="ds-chip__input" type="checkbox" name="state" value="failed"><span class="ds-chip__body">[icon check 18 ds-chip__check]<span>Failed</span> <span class="ds-badge ds-badge--error">2</span></span></label>
+<span class="ds-badge ds-badge--neutral">12</span>
+```
+
+- A pill of at least `--ds-badge-size` (20px) in the caption type with tabular figures, on the tint
+  (`--ds-badge-bg`, `--ds-badge-color`: `--ds-accent`, `--ds-on-accent`; radius `--ds-badge-radius`, never above half
+  the size).
+  Tones `.ds-badge--neutral`, `.ds-badge--ok`, `.ds-badge--warning`, `.ds-badge--error` take their container pair; a toned badge needs its word in the
+  row ("Failed", "2 errors"): colour is never the only signal. An empty badge takes no room.
+- On a tinted host (a pressed toggle, `.ds-btn--tonal`, an open disclosure button, a checked chip, an input chip, a
+  selected table row) the default badge turns to `--ds-primary` / `--ds-on-primary` and the neutral one to
+  `--ds-surface` / `--ds-text-2`, so it never melts into the tint. It dims with a disabled host. Forced colours:
+  `Canvas` and `CanvasText` with a `CanvasText` outline.
+- Motion: colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
+  goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`); the number itself changes at once, and nothing
+  plays on load ([motion.md](motion.md#a-count-badge)).
+- Give the host an accessible name that includes the count where it matters (`aria-label="Inbox, 3 new"`), or keep the
+  number in the text as above.
+
+**Motion:** the recipe [A count badge](motion.md#a-count-badge) in motion.md.
 
 ## Alert
 
@@ -884,9 +929,44 @@ The native input stays in the form and the tab order; a selected chip shows the 
 - Disabled chips (`disabled` on the input or its `<fieldset>`) show no hover, press or ripple and the `not-allowed` cursor, and take
   the button's disabled model: the outline (selected: the container) in `--ds-disabled-fill`, label and check in
   `--ds-disabled-ink`, fading on `--ds-dur-fast`. A theme that dims instead (`--ds-disabled-opacity`) keeps the
-  chip's own colours. Forced colours: GrayText.
+  chip's own colours. Forced colours: GrayText. `aria-disabled="true"` on the input looks the same and is blocked
+  the same (no page guard needed); it keeps its focus layer, so a tooltip can say why.
 - Hooks: `--ds-chip-height` (32px), `--ds-chip-check-size` (18px), `--ds-chip-disabled-border`,
-  `--ds-chip-disabled-bg` (the container of a disabled selected chip).
+  `--ds-chip-disabled-bg` (the container of a disabled selected chip), `--ds-chip-input-bg`, `--ds-chip-input-color`,
+  `--ds-chip-input-border` (input chips), `--ds-chip-max-width` (240px, button chips).
+
+### Action and input chips
+
+Chips that act at once are buttons in a `role="group"` row: an active filter that removes itself (`.ds-chip--input`),
+a suggestion (an action chip):
+
+```html
+<div class="ds-chips" role="group" aria-label="Active filters">
+  <button class="ds-chip ds-chip--input" type="button" data-tip="Building C, second floor">
+    <span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>Building C, second floor</span>[icon close 18 ds-chip__trailing]</span></button>
+  <button class="ds-chip" type="button"><span class="ds-chip__body">[icon user 18 ds-chip__icon]<span class="ds-chip__label">Only my devices</span></span></button>
+  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Clear filters</button>
+</div>
+
+<div class="ds-chips ds-chips--wrap" role="group" aria-label="Suggestions">
+  <button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Show the devices that were not seen this month</span></span></button>
+</div>
+```
+
+- The button's own look is reset; the body carries every visual. There is no check slot: the padding is 16px, 8px next
+  to a leading `.ds-chip__icon` or a trailing `.ds-chip__trailing` (both `--ds-chip-check-size`). The label ends in
+  an ellipsis once the body reaches `--ds-chip-max-width` (240px): put the full text in `data-tip`.
+- `.ds-chip--input` takes the tint (`--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border`, from
+  `--ds-accent` and `--ds-on-accent`) and the whole chip removes its value; name the action for screen readers
+  ("Remove filter"). Forced colours keep a real edge.
+- `.ds-chips--wrap` on the row lets long labels wrap inside the chip; a one-line chip keeps the 32px height and the
+  corners stay soft (`min(--ds-radius-chip, half the height)`).
+- States as for filter chips: hover, the focus ring (on the chip, snapping), the press in `--ds-dur-micro` with the
+  ripple, the disabled model; no morph (chips are not pills).
+- A chip that stays on or off is a filter chip (a checkbox), never a button chip with `aria-pressed`.
+- Removing a chip: `DS.motion.flip(row, () => chip.remove())`; the chips after it glide into its place and focus moves
+  to the neighbour. "Clear filters" moves focus to the search field. A row whose chips all went (`.ds-chips:empty`)
+  takes no room.
 
 **Motion:** the chip rows of [Controls](motion.md#controls) in motion.md.
 
