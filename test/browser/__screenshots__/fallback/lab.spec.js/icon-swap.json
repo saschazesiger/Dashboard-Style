@@ -5,6 +5,7 @@
   "transition border-right-color - 150 0 1 --ds-ease-in-out",
   "transition border-top-color - 150 0 1 --ds-ease-in-out",
   "transition color - 150 0 1 --ds-ease-in-out",
+  "transition fill - 150 0 1 --ds-ease-in-out",
   "transition opacity - 100 0 1 --ds-ease-in",
   "transition opacity - 150 0 1 --ds-ease-in-out",
   "transition scale - 0 100 1 ease",
