@@ -468,8 +468,11 @@
     justify-self: start;
   }
 
+  /* An empty body, its sentinel aside, takes no room. "No child but the
+     sentinel" rather than :only-child inside :has(): Firefox does not
+     restyle that when rows are added after the sentinel. */
   .ds-dialog__body:empty,
-  .ds-dialog__body:has(> [data-ds-sentinel]:only-child),
+  .ds-dialog__body:has(> [data-ds-sentinel]):not(:has(> :not([data-ds-sentinel]))),
   .ds-dialog__actions:empty {
     display: none;
   }
