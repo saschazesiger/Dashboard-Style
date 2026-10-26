@@ -1023,7 +1023,7 @@ export function settled(element, options = {}) {
  * as the opener (leave() returns focus there) and, when the element is
  * still moving (a running exit), continues from where it is.
  * @param {Element|null|undefined} element
- * @param {''|'fade'|'scale'|'slide'|'swap'|'delayed'|'pop'|'fill-x'|'fill-y'} [variant]
+ * @param {''|'fade'|'scale'|'slide'|'swap'|'delayed'|'pop'|'fill'|'fill-x'|'fill-y'} [variant]
  * @returns {Promise<void>} resolves without acting once a later call took over
  */
 export function enter(element, variant = '') {
@@ -2457,7 +2457,8 @@ function focusIn(item, old) {
 /**
  * refocus (flip()): when the item that held the focus went and focus is
  * lost (on <body>, nowhere, or still inside the item), it moves to the next
- * item that stays in the old order, else the previous one, else the
+ * item that stays in the old order and has something to focus, else the
+ * nearest such item before it, else the
  * fallback (`refocus` as an element or a function); with none, leave()
  * moves it out as usual. A page that moved focus itself is left alone.
  */
@@ -2471,8 +2472,13 @@ function refocusAfter(container, focus, order, removed, refocus) {
   if (!lost) return;
   const index = order.indexOf(owner);
   const alive = (item) => !itemGone(item, removed) && !item.hasAttribute?.('data-ds-keep');
-  const next = order.slice(index + 1).find(alive) ?? order.slice(0, index).reverse().find(alive) ?? null;
-  let target = next ? focusIn(next, active) : null;
+  // An item with nothing to focus (a timeline's day heading) is passed over.
+  let target = null;
+  for (const item of [...order.slice(index + 1), ...order.slice(0, index).reverse()]) {
+    if (!alive(item)) continue;
+    target = focusIn(item, active);
+    if (target) break;
+  }
   if (!target && refocus !== true && refocus !== undefined) {
     const fallback = typeof refocus === 'function' ? refocus() : refocus;
     if (focusable(fallback)) target = fallback;

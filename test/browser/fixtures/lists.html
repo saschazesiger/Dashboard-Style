@@ -50,7 +50,8 @@
         <li><div class="ds-kv-list__row"><span>A label long enough to wrap inside its own part of the row</span><strong class="ds-muted" id="kv-quiet">Not set</strong></div></li>
       </ul>
       <ul class="ds-kv-list ds-kv-list--bars" id="bars">
-        <li><span id="bar-label">A storage label far too long to stay on one line</span><strong>78%</strong><span class="ds-meter" aria-hidden="true" style="--ds-share: .78"></span></li>
+        <li><span id="bar-label" data-tip="A storage label far too long to stay on one line">A storage label far too long to stay on one line</span><strong>78%</strong><span class="ds-meter" aria-hidden="true" style="--ds-share: .78"></span></li>
+        <li><span id="bar-fits" data-tip="Disk">Disk</span><strong>31%</strong><span class="ds-meter" aria-hidden="true" style="--ds-share: .31"></span></li>
       </ul>
     </div>
     <ul class="ds-kv-list fx-narrow" id="kv-bare"><li><span>Alone</span><strong>No card</strong></li></ul>
@@ -59,7 +60,7 @@
   <section class="fx-section" aria-labelledby="facts-title">
     <h2 id="facts-title">Facts in rows</h2>
     <dl class="ds-facts ds-facts--rows fx-wide" id="facts">
-      <div><dt>Owner</dt><dd id="fact-owner">Ada Lovelace<span class="ds-lock" role="img" aria-label="Set by the directory sync" id="lock"><span data-icon="lock" data-size="16"></span></span></dd></div>
+      <div><dt>Owner</dt><dd id="fact-owner">Ada Lovelace<span class="ds-lock" role="img" aria-label="Set by the directory sync" data-tip="Set by the directory sync" id="lock"><span data-icon="lock" data-size="16"></span></span></dd></div>
       <div><dt>Location</dt><dd>Building A, 1st floor</dd></div>
     </dl>
   </section>
@@ -111,11 +112,14 @@
       return this.rows.map(function (row) { return self.row(row); }).join('');
     },
     entries: [['e3', 'Issued', ''], ['e2', 'Return planned', 'muted'], ['e1', 'Owner changed', 'icon']],
+    // true: each entry gets an Edit button (the refocus test).
+    actions: false,
     entry: function (entry) {
       return '<li class="ds-timeline__item' + (entry[2] ? ' ds-timeline__item--' + entry[2] : '') + '" data-ds-key="' + entry[0] + '">' +
         (entry[2] === 'icon' ? '<span class="ds-timeline__marker" aria-hidden="true">' + icon('user', 16) + '</span>' : '') +
         '<div class="ds-timeline__head"><p class="ds-timeline__title">' + entry[1] + '</p><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Active</span></span></div>' +
-        '<p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p><p class="ds-timeline__text">Line one.\nLine two.</p></li>';
+        '<p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p><p class="ds-timeline__text">Line one.\nLine two.</p>' +
+        (this.actions ? '<div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button" aria-label="Edit ' + entry[1] + '">Edit</button></div>' : '') + '</li>';
     },
     timelineHtml: function () {
       var self = this;

@@ -4,7 +4,9 @@
  * row, the current row, the ripple over the row, rows that glide and fade
  * in, trailing parts that wrap), key-value rows that open (their text in
  * line with static rows, the ring that snaps in, the blocked model, the
- * kv fixes, bars), facts in rows with the lock, the disclosure (the pill
+ * kv fixes, bars), facts in rows with the lock, focus that moves to the
+ * next row when its row goes through flip(), the tips of a cut bar label
+ * and of the lock (a tap), the disclosure (the pill
  * that morphs, rectangular accordion rows to the card's edges, one open at
  * a time where details[name] exists) and the task list (the tick that
  * draws when a step turns done). The timeline has a spec of its own
@@ -187,6 +189,24 @@ test.describe('row list', () => {
     expect(await page.evaluate(() => document.getElementById('rows').hasAttribute('data-ds-glide'))).toBe(false);
   });
 
+  test('removing the focused row through flip() moves focus to the same control of the next row, else the previous (MO-4)', async ({ page }) => {
+    await open(page);
+    /** Removes a row through flip() with a morphHtml re-render; the label of the focused element once it settled. */
+    const remove = async (key) => {
+      await page.evaluate((k) => {
+        const list = document.getElementById('rows');
+        fxLists.rows = fxLists.rows.filter((entry) => entry[0] !== k);
+        DS.motion.flip(list, (options) => DS.dom.morphHtml(list, fxLists.rowsHtml(), options));
+      }, key);
+      await settle(page, { timeout: 5000 });
+      return page.evaluate(() => document.activeElement.getAttribute('aria-label') ?? document.activeElement.textContent);
+    };
+    await focusByKeyboard(page, row(page, 'd17').getByRole('button', { name: 'More for LAPTOP-0017' }));
+    expect(await remove('d17'), 'the next row').toBe('More for PRINTER-0003');
+    await focusByKeyboard(page, row(page, 'm09').getByRole('button', { name: 'More for MONITOR-0009' }));
+    expect(await remove('m09'), 'the last row goes: the previous one').toBe('More for PRINTER-0003');
+  });
+
   test('trailing parts stay beside the text in a wide list and drop to a second line in a narrow one', async ({ page }) => {
     await open(page);
     const wide = await row(page, 'd42').evaluate((el) => {
@@ -307,6 +327,42 @@ test.describe('key-value rows, bars, facts and the lock', () => {
     expect(lock).toBeCloseTo(4, 0);
     await page.setViewportSize({ width: 560, height: 800 });
     expect(await place()).toEqual({ beside: false, below: true });
+  });
+});
+
+test.describe('tooltips on the record parts (DS.overlay.tooltips)', () => {
+  /** The page's tooltip: what it shows and whether it is open. */
+  const tip = (page) => page.evaluate(() => {
+    const el = document.querySelector('.ds-tooltip');
+    return el ? { text: el.textContent, state: el.dataset.state ?? null, hidden: el.hidden } : null;
+  });
+
+  test('a bar label cut by its ellipsis shows its full text; a label that fits shows none', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => DS.overlay.tooltips(document));
+    await page.hover('#bar-fits');
+    await page.waitForTimeout(1000);
+    expect((await tip(page))?.state ?? 'none', 'the label fits').not.toBe('open');
+    await page.hover('#bar-label', { position: { x: 12, y: 6 } });
+    await page.waitForFunction(() => document.querySelector('.ds-tooltip')?.dataset.state === 'open');
+    expect((await tip(page)).text).toBe('A storage label far too long to stay on one line');
+  });
+
+  test('a tap on the lock shows its reason at once; a second tap hides it', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => DS.overlay.tooltips(document));
+    // Synthetic touch pointer events, so every engine runs the same path (tooltip-touch.spec.js has real taps).
+    const tap = () => page.evaluate(() => {
+      const el = document.getElementById('lock');
+      const rect = el.getBoundingClientRect();
+      const init = { bubbles: true, cancelable: true, composed: true, pointerType: 'touch', pointerId: 7, isPrimary: true, clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
+      el.dispatchEvent(new PointerEvent('pointerdown', init));
+      el.dispatchEvent(new PointerEvent('pointerup', init));
+    });
+    await tap();
+    expect(await tip(page)).toMatchObject({ text: 'Set by the directory sync', state: 'open' });
+    await tap();
+    expect((await tip(page)).state).toBe('closed');
   });
 });
 

@@ -3,11 +3,12 @@
  * markers on the rail and on the head line, the rail in segments from dot
  * to dot (with a gap) and through day headings, a ring for a muted entry,
  * borders that stay in forced colours, text that keeps its line breaks,
- * and entries that come and go only through DS.motion.flip (no motion of
- * its own at rest).
+ * entries that come and go only through DS.motion.flip (no motion of
+ * its own at rest), and focus that moves to the next entry (past a day
+ * heading) when its entry goes.
  */
 import { test, expect } from './base-test.js';
-import { ready, settle } from './helpers/motion.js';
+import { ready, settle, focusByKeyboard } from './helpers/motion.js';
 
 const FIXTURE = '/test/browser/fixtures/lists.html';
 
@@ -135,6 +136,30 @@ test('entries come and go through flip(): a new one fades in, the others glide, 
   expect(seen.backing).toMatch(/gradient/);
   await settle(page, { timeout: 5000 });
   expect(await page.evaluate(() => getComputedStyle(document.querySelector('#timeline > .ds-timeline__item')).backgroundImage)).toBe('none');
+});
+
+test('removing the focused entry through flip() moves focus to the next entry, past a day heading, else the previous (MO-4)', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const list = document.getElementById('timeline');
+    fxLists.actions = true;
+    DS.dom.morphHtml(list, fxLists.timelineHtml());
+  });
+  /** Removes an entry through flip() with a morphHtml re-render; the label of the focused element once it settled. */
+  const remove = async (key) => {
+    await page.evaluate((k) => {
+      const list = document.getElementById('timeline');
+      fxLists.entries = fxLists.entries.filter((entry) => entry[0] !== k);
+      DS.motion.flip(list, (options) => DS.dom.morphHtml(list, fxLists.timelineHtml(), options));
+    }, key);
+    await settle(page, { timeout: 5000 });
+    return page.evaluate(() => document.activeElement.getAttribute('aria-label'));
+  };
+  // e2 is the last entry of its day: the next item is the heading of the next day, which has nothing to focus.
+  await focusByKeyboard(page, page.getByRole('button', { name: 'Edit Return planned' }));
+  expect(await remove('e2'), 'past the day heading').toBe('Edit Owner changed');
+  // e1 is the last entry: the previous one, again past the heading.
+  expect(await remove('e1'), 'the previous entry').toBe('Edit Issued');
 });
 
 test('dots and rails are borders, so they stay in forced colours', async ({ page, browserName }) => {
