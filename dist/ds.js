@@ -5178,13 +5178,15 @@
         const size = inline ? scroller.scrollWidth - scroller.clientWidth : scroller.scrollHeight - scroller.clientHeight;
         const at = Math.abs(inline ? scroller.scrollLeft : scroller.scrollTop) || 0;
         const overflow = size > 1;
-        flag(scroller, 'data-ds-edges', true);
         flag(scroller, 'data-ds-overflow-start', overflow && at > 1);
         flag(scroller, 'data-ds-overflow-end', overflow && size - at > 1);
         const style = typeof view.getComputedStyle === 'function' ? view.getComputedStyle(scroller) : null;
         const borders = inline
           ? (parseFloat(style?.borderTopWidth) || 0) + (parseFloat(style?.borderBottomWidth) || 0)
           : (parseFloat(style?.borderLeftWidth) || 0) + (parseFloat(style?.borderRightWidth) || 0);
+        // After that read styled the first edges: the fades transition only
+        // under data-ds-edges, so the first measurement shows them at once.
+        flag(scroller, 'data-ds-edges', true);
         const room = Math.max(0, (inline ? scroller.offsetHeight - scroller.clientHeight : scroller.offsetWidth - scroller.clientWidth) - borders);
         scroller.style.setProperty(bar, `${Math.round(room)}px`);
         const pinned = scroller.querySelector?.('.ds-table--pin-first') ?? null;

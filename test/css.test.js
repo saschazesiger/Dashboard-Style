@@ -206,8 +206,8 @@ const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color
   'text-decoration-color', 'fill', 'stroke', 'box-shadow', 'clip-path']);
 /** Declarations of the rules whose selector list (split at top-level commas) contains `selector`. */
 const declarationsAt = (css, selector) => rules(css).filter((rule) => splitSelectors(rule.selector).includes(selector)).flatMap((rule) => declarations(`${rule.body};`));
-/** A drawn glyph (pathLength="1") or what it inherits from (an icon-swap face, a chip's check): stroke-dashoffset may transition there (drawn checks). */
-const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$|\.ds-chip__check$|^\.ds-tasks__mark$/.test(part));
+/** A drawn glyph (pathLength="1") or what it inherits from (an icon-swap face, a chip's check, the mark of a task or a step): stroke-dashoffset may transition there (drawn checks). */
+const drawnGlyph = (selector) => splitSelectors(selector).every((part) => /\[pathLength\]$|> \.ds-icon-swap__[ab]$|\.ds-chip__check$|^\.ds-tasks__mark$|^\.ds-steps__mark$/.test(part));
 /** The two timings of the press morph: the press-in (micro, decelerating) and the release (medium, on the spring). */
 const PRESS_MORPH = ['var(--ds-dur-micro) var(--ds-ease-out)', 'var(--ds-dur-medium) var(--ds-ease-spatial)'];
 /**
@@ -2407,7 +2407,11 @@ describe('tables and scrollers (2.0)', () => {
       const css = read(file);
       assert.equal(declarationsOf(css, `${host}[data-ds-overflow-start]`).find((entry) => entry.property === '--ds-scroll-edge-start')?.value, '1', host);
       assert.equal(declarationsOf(css, `${host}[data-ds-overflow-end]`).find((entry) => entry.property === '--ds-scroll-edge-end')?.value, '1', host);
-      assert.match(declarationsOf(css, host).find((entry) => entry.property === 'transition')?.value ?? '', /--ds-scroll-edge-start var\(--ds-dur-fast\) var\(--ds-ease-in-out\), --ds-scroll-edge-end var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, host);
+      // The numbers glide only once DS.dom.scrollEdges() has measured
+      // (data-ds-edges comes after the first edges): nothing moves on load.
+      assert.match(declarationsOf(css, `${host}[data-ds-edges]`).find((entry) => entry.property === 'transition')?.value ?? '', /--ds-scroll-edge-start var\(--ds-dur-fast\) var\(--ds-ease-in-out\), --ds-scroll-edge-end var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, host);
+      for (const selector of [host, `${host}[tabindex]`]) assert.doesNotMatch(declarationsOf(css, selector).find((entry) => entry.property === 'transition')?.value ?? '', /--ds-scroll-edge/, selector);
+      assert.match(declarationsOf(css, `${host}[tabindex][data-ds-edges]`).find((entry) => entry.property === 'transition')?.value ?? '', /--ds-scroll-edge-end .*outline-offset var\(--ds-dur-fast\) var\(--ds-ease-out\)/, host);
     }
     // The hook is a length that themes may set: documented, never a motion hook.
     assert.doesNotMatch('--ds-scroll-fade:', /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave)/);

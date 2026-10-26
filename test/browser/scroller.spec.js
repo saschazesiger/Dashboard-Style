@@ -46,18 +46,29 @@ test('a strip fades at each end that still has content, nowhere when it fits', a
     expect(await edges(page, '#strip')).toEqual([1, 0]);
     expect(await edges(page, '#strip-fits')).toEqual([0, 0]);
   } else {
-    // Without scroll timelines: no fade until DS.dom.scrollEdges() says where there is more.
+    // Without scroll timelines: no fade until DS.dom.scrollEdges() says where
+    // there is more. Its first measurement shows at once (nothing moves on
+    // load); later changes glide over --ds-dur-fast.
     expect(await edges(page, '#strip')).toEqual([0, 0]);
-    const fast = await page.evaluate(() => Math.round(DS.motion.motionDuration(document.documentElement, '--ds-dur-fast')));
-    const transition = await page.evaluate(() => {
+    const first = await page.evaluate(() => {
       const strip = document.getElementById('strip');
       DS.dom.scrollEdges(strip);
       void getComputedStyle(strip).getPropertyValue('--ds-scroll-edge-end');
-      return strip.getAnimations().filter((a) => a.transitionProperty === '--ds-scroll-edge-end').map((a) => Math.round(a.effect.getTiming().duration));
+      return strip.getAnimations().filter((a) => /^--ds-scroll-edge-/.test(a.transitionProperty)).length;
+    });
+    expect(first).toBe(0);
+    expect(await edges(page, '#strip')).toEqual([0, 1]);
+    const fast = await page.evaluate(() => Math.round(DS.motion.motionDuration(document.documentElement, '--ds-dur-fast')));
+    const transition = await page.evaluate(() => {
+      const strip = document.getElementById('strip');
+      strip.scrollLeft = 100000;
+      DS.dom.scrollEdges(strip).update();
+      void getComputedStyle(strip).getPropertyValue('--ds-scroll-edge-start');
+      return strip.getAnimations().filter((a) => a.transitionProperty === '--ds-scroll-edge-start').map((a) => Math.round(a.effect.getTiming().duration));
     });
     expect(transition).toEqual([fast]);
     await settle(page);
-    expect(await edges(page, '#strip')).toEqual([0, 1]);
+    expect(await edges(page, '#strip')).toEqual([1, 0]);
     expect(await edges(page, '#strip-fits')).toEqual([0, 0]);
   }
   // The mask: transparent at a fading end, opaque between; the fade length is --ds-scroll-fade.

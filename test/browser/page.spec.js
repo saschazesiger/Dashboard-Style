@@ -178,14 +178,19 @@ test.describe('steps', () => {
     expect(await style(page, '#bar-2', 'clip-path', '::after')).toMatch(/inset\(0(px)?\)/);
     expect(await style(page, '#bar-3', 'clip-path', '::after')).toContain('100%');
     expect((await box(page, '#bar-2')).height).toBe(4);
-    // A step turning done draws its check.
+    // Rendered done, the check is drawn and still (nothing plays on load).
+    expect(await page.locator('#step-1 .ds-steps__mark').evaluate((el) => [getComputedStyle(el.querySelector('svg')).strokeDashoffset, el.getAnimations({ subtree: true }).length])).toEqual(['0px', 0]);
+    // A step turning done in place (its mark stays) draws its check: the
+    // mark's offset glides from 1 to 0 and the check inherits it.
     const drawn = await page.locator('#step-2').evaluate((el) => {
       el.setAttribute('data-status', 'done');
       el.removeAttribute('aria-current');
       el.querySelector('.ds-steps__mark').innerHTML = DS.icons.icon(DS.icons.check, 16);
-      return el.querySelector('svg').getAnimations().map((a) => a.animationName);
+      const mark = el.querySelector('.ds-steps__mark');
+      return mark.getAnimations().filter((a) => a.transitionProperty === 'stroke-dashoffset').map((a) => a.effect.getKeyframes().map((k) => String(k.strokeDashoffset)));
     });
-    expect(drawn).toContain('ds-draw');
+    expect(drawn).toHaveLength(1);
+    expect(drawn[0].map(parseFloat)).toEqual([1, 0]);
   });
 });
 

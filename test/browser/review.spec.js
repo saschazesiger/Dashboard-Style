@@ -57,9 +57,6 @@ const QUIET = [
   [(e) => /\.ds-status(\.|$)/.test(e.parent) && ['opacity', 'scale'].includes(e.name), 'a status icon in the markup comes in (@starting-style, status.css)'],
   [(e) => /\.ds-field__hint--error(\.|$)/.test(e.target) && e.name === 'ds-fade-in', 'a validation message in the markup fades in (form.css)'],
   [(e) => /^div\.ds-(dialog|sheet)(\.|$)/.test(e.parent) && /^ds-(fade|grow)-in$/.test(e.name), 'an overlay of the index shown in place by hand plays its entrance keyframes'],
-  [(e) => /^--ds-scroll-edge-(start|end)$/.test(e.name), 'the edge fades of a sideways scroller: the overflow that DS.dom.scrollEdges() reports once it measured (the attribute fallback under the scroll timeline)'],
-  [(e) => /\.ds-empty--done(\.|$)/.test(e.parent) || (/\.ds-empty__disc(\.|$)/.test(e.parent) && e.name === 'ds-draw'), 'a confirmation (.ds-empty--done) enters and draws its check when it renders (empty.css)'],
-  [(e) => e.name === 'ds-draw' && /\.ds-steps__mark(\.|$)/.test(e.parent), 'the check of a done step draws itself when the steps render (steps.css): a wizard re-renders them on each step'],
 ];
 
 test.describe('quiet load', () => {

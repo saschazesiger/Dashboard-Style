@@ -3658,8 +3658,10 @@
 
   /* ── Feedback: the done state ────────────────────────────────────── */
 
-  function doneHtml() {
-    return '<div class="ds-empty ds-empty--done" role="status"><span class="ds-empty__disc" aria-hidden="true">' + icon('check', 24) + '</span><p class="ds-empty__title">Request sent</p><p class="ds-empty__text">IT answers within a day.</p></div>';
+  /* Still on load (a plain .ds-empty, as the index's card): the page
+     plays nothing until Replay inserts the confirmation. */
+  function doneHtml(still) {
+    return '<div class="ds-empty' + (still ? '' : ' ds-empty--done') + '" role="status"><span class="ds-empty__disc" aria-hidden="true">' + icon('check', 24) + '</span><p class="ds-empty__title">Request sent</p><p class="ds-empty__text">IT answers within a day.</p></div>';
   }
 
   LAB_DEMOS.push({
@@ -3668,7 +3670,7 @@
     title: 'Done state',
     note: '<code>.ds-empty--done</code>: after <code>--ds-dur-base</code> the disc fades in and pops up on the spring (<code>ds-fade-in</code>, <code>ds-pop-in</code>, <code>--ds-dur-slow</code>), a ring widens and fades once behind it (<code>ds-ripple</code>), and the check draws itself (<code>ds-draw</code> over <code>--ds-dur-glide</code>). It plays when the element is inserted or shown, never when a re-render keeps it. Replay inserts it again.',
     shows: ['.ds-empty--done', 'ds-fade-in', 'ds-pop-in', 'ds-ripple', 'ds-draw', '--ds-dur-base', '--ds-dur-slow', '--ds-dur-glide', '--ds-ease-spatial', '--ds-ease-out'],
-    html: '<div id="sg-lab-done">' + doneHtml() + '</div>',
+    html: '<div id="sg-lab-done">' + doneHtml(true) + '</div>',
     height: 240,
     play: function (stage, sg) {
       var holder = $('#sg-lab-done', stage);

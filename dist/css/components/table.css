@@ -233,13 +233,18 @@
   .ds-table-wrap {
     position: relative;
     overflow-x: auto;
+  }
+
+  /* The edge numbers of scroller.css, from DS.dom.scrollEdges() where no
+     scroll timeline drives them (the animations win where one does). They
+     glide only once it has measured (data-ds-edges comes after the first
+     edges): the first fades show still on load. */
+  .ds-table-wrap[data-ds-edges] {
     transition:
       --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
       --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
-  /* The edge numbers of scroller.css, from DS.dom.scrollEdges() where no
-     scroll timeline drives them (the animations win where one does). */
   .ds-table-wrap[data-ds-overflow-start] {
     --ds-scroll-edge-start: 1;
   }
@@ -253,6 +258,10 @@
      fades would cut it, so the focused wrapper shows unmasked. */
   .ds-table-wrap[tabindex] {
     outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-table-wrap[tabindex][data-ds-edges] {
     transition:
       --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
       --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out),

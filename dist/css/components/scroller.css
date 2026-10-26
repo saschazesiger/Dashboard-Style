@@ -33,8 +33,10 @@
  * over the last --ds-space-8; a strip that fits has an inactive timeline
  * and fades nowhere. Elsewhere DS.dom.scrollEdges() writes
  * data-ds-overflow-start and data-ds-overflow-end (more to scroll at that
- * end), which set the numbers to 1 over --ds-dur-fast; without it the strip
- * shows no fade. The mask leaves the scrollbar strip opaque: its height is
+ * end), which set the numbers to 1 over --ds-dur-fast (the first
+ * measurement at once: the transition waits for data-ds-edges, which it
+ * writes after the first edges, so nothing moves on load); without it the
+ * strip shows no fade. The mask leaves the scrollbar strip opaque: its height is
  * --ds-scrollbar-height (written by DS.dom.scrollEdges(); 0px without it).
  * The gradient runs left to right (left-to-right pages only).
  * Focus inside lands outside the fades (scroll-padding-inline).
@@ -105,13 +107,18 @@
     mask-position: 0 0, 0 100%;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
+  }
+
+  /* The fallback: DS.dom.scrollEdges() says which end has more. Where a
+     scroll timeline drives the numbers, the animation wins over these.
+     The fades glide only once it has measured (data-ds-edges comes after
+     the first edges), so a strip shows its first fades still on load. */
+  .ds-scroll-x[data-ds-edges] {
     transition:
       --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
       --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
-  /* The fallback: DS.dom.scrollEdges() says which end has more. Where a
-     scroll timeline drives the numbers, the animation wins over these. */
   .ds-scroll-x[data-ds-overflow-start] {
     --ds-scroll-edge-start: 1;
   }
@@ -135,6 +142,10 @@
      focused strip shows unmasked. */
   .ds-scroll-x[tabindex] {
     outline-offset: 0;
+    transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  .ds-scroll-x[tabindex][data-ds-edges] {
     transition:
       --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
       --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out),

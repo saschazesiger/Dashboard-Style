@@ -18,7 +18,11 @@
  * aria-current="step" on the current one; the others are upcoming.
  *
  * Marks: a 24px disc. Done: --ds-primary with a check that draws itself
- * (ds-draw, --ds-dur-medium after --ds-dur-micro); current: --ds-primary
+ * when the step turns done in place (re-render with DS.dom.morphHtml, so
+ * the mark stays): the mark's stroke-dashoffset, which the pathLength="1"
+ * check inherits, runs from 1 to 0 over --ds-dur-medium after
+ * --ds-dur-micro; steps rendered with done ones stay still on load (a
+ * transition, not a keyframe). Current: --ds-primary
  * with --ds-on-primary figures and the label weight on its label;
  * upcoming: an --ds-outline ring in --ds-text-2. The connector after a
  * done step turns --ds-primary (colours on --ds-dur-medium). Status is
@@ -95,10 +99,15 @@
     color: var(--ds-text-2);
     font: var(--ds-font-caption);
     font-variant-numeric: tabular-nums;
+    /* Inherited by the check of a done step: undrawn until the step is
+       done. A transition, not a keyframe, so steps rendered with done ones
+       stay still on load. */
+    stroke-dashoffset: 1;
     transition:
       background-color var(--ds-dur-medium) var(--ds-ease-in-out),
       border-color var(--ds-dur-medium) var(--ds-ease-in-out),
-      color var(--ds-dur-medium) var(--ds-ease-in-out);
+      color var(--ds-dur-medium) var(--ds-ease-in-out),
+      stroke-dashoffset var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro);
   }
 
   .ds-steps__label {
@@ -126,10 +135,11 @@
     stroke-dasharray: 1;
   }
 
-  /* The check draws on its <svg>; the pathLength="1" path inherits the
-     stroke (Chromium can miss a change above a [pathLength] rule). */
-  .ds-steps__step[data-status="done"] > .ds-steps__mark > svg {
-    animation: ds-draw var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro) backwards;
+  /* The mark stays when a step turns done in place (DS.dom.morphHtml
+     patches it), so its offset glides to 0 and the new check draws itself;
+     the pathLength="1" path inherits it. */
+  .ds-steps__step[data-status="done"] > .ds-steps__mark {
+    stroke-dashoffset: 0;
   }
 
   /* Narrow pages: the current label only, the others read but unseen. */
