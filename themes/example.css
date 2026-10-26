@@ -170,7 +170,6 @@
   --ds-btn-disabled-bg: (from --ds-disabled-fill);
   --ds-btn-disabled-border: (from --ds-disabled-fill);
   --ds-input-font: (body; input role up to 600px)
-  --ds-input-height: 40px;             (fields and the combobox toggle)
   --ds-check-size: 18px;               --ds-check-target: 40px;
   --ds-input-height: 40px;             --ds-check-height: 40px;
   --ds-input-bg: var(--ds-surface);    --ds-input-border: var(--ds-outline);

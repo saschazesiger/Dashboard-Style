@@ -260,10 +260,9 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
 | `--ds-input-font` | body; input role at 600px and below | fields |
-| `--ds-input-height` | 40px | fields; the combobox toggle is that size and the field keeps room for it |
 | `--ds-check-size` | 18px | the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes) |
 | `--ds-check-target` | 40px | their halo (hover, press, focus) across |
-| `--ds-input-height` | 40px | the minimum height of fields (`.ds-input`, the search pill), input groups and a growing textarea |
+| `--ds-input-height` | 40px | the minimum height of fields (`.ds-input`, the search pill), input groups and a growing textarea; the combobox toggle is that size and the field keeps room for it |
 | `--ds-check-height` | 40px | a `.ds-check` row (one line of its label; a longer label wraps and the box stays beside its first line) |
 | `--ds-input-bg`, `--ds-input-border`, `--ds-input-radius` | `--ds-surface`, `--ds-outline`, `--ds-radius-field` | the outlined field and the input group at rest (fill, 1px border colour, corners; the filled field's top corners) |
 | `--ds-input-focus-color` | `--ds-primary` | the field's ring, the label tint while it has the focus, the filled field's bottom line, the input group and composer rings |
