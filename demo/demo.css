@@ -11,7 +11,6 @@
  *   .demo-hero        the welcome block on the accent: __kicker, __title, __lead
  *   .demo-row         a wrapping row of controls
  *   .demo-tip         a hint line with an icon
- *   .demo-checks      a parent checkbox with its children indented
  *   .demo-progress    a linear and a round progress side by side
  *   .demo-loaders     a row of loaders
  *   .demo-alerts      the stack the alerts come and go in (flip)
@@ -148,17 +147,6 @@
 }
 
 /* ── Controls ─────────────────────────────────────────────────────── */
-
-.demo-checks {
-  display: grid;
-  gap: var(--ds-space-1);
-}
-
-.demo-checks__children {
-  display: grid;
-  gap: var(--ds-space-1);
-  padding-left: var(--ds-space-6);
-}
 
 .demo-progress {
   display: flex;

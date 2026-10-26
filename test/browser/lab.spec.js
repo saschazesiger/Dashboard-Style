@@ -275,6 +275,9 @@ const CONTINUITY = {
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
   presence: { in: 'stage', sel: '.ds-presence--keep', props: ['opacity'] },
   dropzone: { in: 'stage', sel: '.ds-dropzone__over', props: ['opacity'] },
+  'field-changed': { in: 'stage', sel: '#sg-lab-changed .ds-field__label', pseudo: '::after', props: ['opacity'] },
+  'search-key': { in: 'stage', sel: '.ds-search__key', props: ['opacity'] },
+  'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -289,6 +292,7 @@ const CONTINUITY_EXEMPT = {
   'follow-end': 'scroll-driven: the log follows the scroll position the demo sets; the pill only toggles hidden (its fade is .ds-presence, timed in the presence demo)',
   wizard: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
   tiles: 'selection is a colour transition (background-color, --ds-dur-fast) and a ring that shows at once: no number to sample',
+  'live-check': 'a hint that goes is removed at once by design, like a validation message (its room opens on --ds-ease-out, removal is instant)',
 };
 
 /**
@@ -308,6 +312,7 @@ const LONG_RUNS = {
   focus: { ms: 12000, reason: 'walks the focus along five stops 400ms apart (the ring snaps at each)' },
   scroll: { ms: 12000, reason: 'scrolls the box to its end smoothly, holds 300ms and scrolls back (scroll-driven effects)' },
   validation: { ms: 12000, reason: 'focuses the field and validates it 300ms later (the message fades in while its room opens)' },
+  'live-check': { ms: 12000, reason: 'clears the field, then shows the error 200ms later and turns it into a confirmation 400ms after that' },
   views: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
   wizard: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
 };

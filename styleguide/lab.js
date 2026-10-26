@@ -1957,6 +1957,131 @@
     toggle: function (stage, on, sg) { return validate(stage, on, sg); },
   });
 
+  /* ── Controls: a live check, a changed field, the search key, radio tiles ── */
+
+  /* The username's verdict: 'taken' (an error), 'free' (a confirmation) or
+     '' (no hint). The hint element stays while the verdict changes, so a
+     turn from error to success replays nothing; a new hint fades in while
+     its room opens (focus is in the form). */
+  function liveCheck(stage, verdict, sg) {
+    var field = $('#sg-lab-user', stage);
+    var form = field.closest('form');
+    if (!form.contains(document.activeElement)) field.focus({ preventScroll: true });
+    var hint = $('#sg-lab-user-hint', stage);
+    field.value = verdict === 'taken' ? 'ada' : verdict === 'free' ? 'ada.byron' : '';
+    if (verdict === 'taken') field.setAttribute('aria-invalid', 'true');
+    else field.removeAttribute('aria-invalid');
+    if (!verdict) {
+      field.removeAttribute('aria-describedby');
+      if (hint) hint.remove();
+      return quiet(form, sg);
+    }
+    if (!hint) {
+      hint = document.createElement('small');
+      hint.id = 'sg-lab-user-hint';
+      field.parentNode.appendChild(hint);
+      field.setAttribute('aria-describedby', hint.id);
+    }
+    hint.className = 'ds-field__hint ds-field__hint--' + (verdict === 'taken' ? 'error' : 'success');
+    setHtml(hint, verdict === 'taken' ? icon('alertCircle', 16) + 'Already taken.' : icon('checkCircle', 16) + 'Available.');
+    return quiet(form, sg);
+  }
+
+  function confirmed(stage) { return $('#sg-lab-user-hint', stage) !== null && $('#sg-lab-user-hint', stage).classList.contains('ds-field__hint--success'); }
+
+  LAB_DEMOS.push({
+    id: 'live-check',
+    group: 'controls',
+    title: 'Live check',
+    note: 'A check while typing: the error turns into a confirmation (<code>.ds-field__hint--success</code>) in the same element, so only its text and icon change; a hint that appears fades in while its room opens, one that goes leaves at once. Speak a result at once with <code>DS.overlay.announce()</code>.',
+    shows: ['.ds-field__hint--success', 'ds-fade-in', '--ds-dur-base', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in-out'],
+    html: '<form class="ds-form" onsubmit="return false"><div class="ds-field"><label class="ds-field__label" for="sg-lab-user">Username</label><input class="ds-input" id="sg-lab-user" autocomplete="off" placeholder="ada.lovelace"></div>' +
+      '<div class="ds-field"><label class="ds-field__label" for="sg-lab-user-note">Note</label><input class="ds-input" id="sg-lab-user-note" placeholder="Optional"></div></form>',
+    height: 240,
+    play: function (stage, sg) {
+      return liveCheck(stage, '', sg)
+        .then(function () { return wait(sg, 200); })
+        .then(function () { return liveCheck(stage, 'taken', sg); })
+        .then(function () { return wait(sg, 400); })
+        .then(function () { return liveCheck(stage, 'free', sg); });
+    },
+    state: confirmed,
+    toggle: function (stage, on, sg) { return liveCheck(stage, on ? 'free' : '', sg); },
+  });
+
+  function changedTo(stage, on, sg) {
+    var field = $('#sg-lab-changed', stage);
+    field.classList.toggle('ds-field--changed', on);
+    $('input', field).value = on ? 'C 1.01' : 'B 2.14';
+    return quiet(stage, sg);
+  }
+
+  LAB_DEMOS.push({
+    id: 'field-changed',
+    group: 'controls',
+    title: 'Changed field',
+    note: 'The dot after the label of a <code>.ds-field--changed</code> fades in on <code>--ds-dur-fast</code> and out on <code>--ds-dur-instant</code> (an exit of 0.67); it always takes its room, so the label never shifts. The word "(changed)" joins the label\'s name only while it shows.',
+    shows: ['.ds-field--changed', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out', '--ds-ease-in'],
+    html: '<form class="ds-form ds-form--rows" onsubmit="return false"><div class="ds-field" id="sg-lab-changed"><label class="ds-field__label" for="sg-lab-room">Room <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="sg-lab-room" value="B 2.14"></div>' +
+      '<div class="ds-field" role="group" aria-labelledby="sg-lab-serial"><span class="ds-field__label" id="sg-lab-serial">Serial number</span><span class="ds-field__value">5CD1234XYZ</span></div></form>',
+    height: 200,
+    play: function (stage, sg) { return changedTo(stage, !$('#sg-lab-changed', stage).classList.contains('ds-field--changed'), sg); },
+    state: function (stage) { return $('#sg-lab-changed', stage).classList.contains('ds-field--changed'); },
+    toggle: changedTo,
+  });
+
+  /* The search key goes once the field has a value (or the focus) and
+     comes back when it rests empty. */
+  function keyTo(stage, gone, sg) {
+    $('#sg-lab-search', stage).value = gone ? 'laptop' : '';
+    return quiet(stage, sg);
+  }
+
+  LAB_DEMOS.push({
+    id: 'search-key',
+    group: 'controls',
+    title: 'Search key',
+    note: 'The "/" key in an empty search goes once the field has a value or the focus (in <code>--ds-dur-instant</code>, then hidden) and comes back on <code>--ds-dur-fast</code> when it rests empty again. The field keeps room for it, so nothing moves.',
+    shows: ['.ds-search__key', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out'],
+    html: '<div class="ds-search">' + icon('search', 20) + '<input class="ds-input" id="sg-lab-search" type="search" aria-label="Search devices" aria-keyshortcuts="/" placeholder="Search devices"><kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>',
+    height: 120,
+    play: function (stage, sg) { return keyTo(stage, $('#sg-lab-search', stage).value === '', sg); },
+    state: function (stage) { return $('#sg-lab-search', stage).value !== ''; },
+    toggle: keyTo,
+  });
+
+  var KINDS = [['laptop', 'Laptop', 'With a dock.', 'laptop'], ['desktop', 'Desktop', 'At one desk.', 'monitor']];
+  var tilePills = [];
+
+  function tilesTo(stage, second, sg) {
+    $$('.ds-radio input', stage)[second ? 1 : 0].checked = true;
+    // Checking a radio changes no attribute: the page moves the pill.
+    tilePills.forEach(function (pill) { pill.update(); });
+    return quiet(stage, sg);
+  }
+
+  LAB_DEMOS.push({
+    id: 'radio-tiles',
+    group: 'controls',
+    title: 'Radio tiles',
+    note: 'The check of the chosen tile pops from <code>--ds-scale-small</code> on the spring while it fades in, and leaves faster, accelerating; the icon disc fills. With the indicator the tint is a pill that glides from tile to tile (<code>.ds-radios__indicator</code>); the ring changes at once. Pressed, a tile turns squarer like every radio card.',
+    shows: ['.ds-radios--tiles', '.ds-radios__indicator', '--ds-scale-small', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in'],
+    html: '<div class="ds-radios ds-radios--tiles" role="radiogroup" aria-label="Device type">' + KINDS.map(function (kind, index) {
+      return '<label class="ds-radio"><input type="radio" name="sg-lab-kind" value="' + kind[0] + '"' + (index === 0 ? ' checked' : '') + '><span class="ds-radio__icon" aria-hidden="true">' + icon(kind[3], 20) + '</span>' +
+        '<span><strong>' + kind[1] + '</strong><small>' + kind[2] + '</small></span><span class="ds-radio__mark" aria-hidden="true">' + icon('check', 14) + '</span></label>';
+    }).join('') + '</div>',
+    height: 140,
+    setup: function (stage, sg) {
+      var group = $('.ds-radios', stage);
+      var pill = sg.indicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+      tilePills.push(pill);
+      group.addEventListener('change', function () { pill.update(); });
+    },
+    play: function (stage, sg) { return tilesTo(stage, !$$('.ds-radio input', stage)[1].checked, sg); },
+    state: function (stage) { return $$('.ds-radio input', stage)[1].checked; },
+    toggle: tilesTo,
+  });
+
   /* ── Navigation: the indicator on a track of buttons ─────────────── */
 
   var TRACK = ['Day', 'Week', 'Month', 'Quarter', 'Year', 'All time'];

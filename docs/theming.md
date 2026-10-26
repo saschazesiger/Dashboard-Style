@@ -159,7 +159,7 @@ and keyed to your root like the tokens. The list holds every element the documen
 stays out: icons keep their own attributes):
 
 ```css
-.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, hr, kbd) {
+.ds-theme.my-widget :where(button, h1, h2, h3, h4, h5, h6, p, small, strong, code, ul, ol, li, dl, dt, dd, a, section, header, nav, main, fieldset, legend, details, summary, dialog, input, select, textarea, label, table, caption, th, td, hr, kbd, output) {
   all: revert-layer;
 }
 ```
@@ -262,6 +262,18 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-input-font` | body; input role at 600px and below | fields |
 | `--ds-check-size` | 18px | the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes) |
 | `--ds-check-target` | 40px | their halo (hover, press, focus) across |
+| `--ds-input-height` | 40px | the minimum height of fields (`.ds-input`, the search pill), input groups and a growing textarea |
+| `--ds-check-height` | 40px | a `.ds-check` row (one line of its label; a longer label wraps and the box stays beside its first line) |
+| `--ds-input-bg`, `--ds-input-border`, `--ds-input-radius` | `--ds-surface`, `--ds-outline`, `--ds-radius-field` | the outlined field and the input group at rest (fill, 1px border colour, corners; the filled field's top corners) |
+| `--ds-input-focus-color` | `--ds-primary` | the field's ring, the label tint while it has the focus, the filled field's bottom line, the input group and composer rings |
+| `--ds-input-grow-max` | 50vh | the tallest a `.ds-input--grow` textarea grows before it scrolls |
+| `--ds-field-error-color`, `--ds-field-success-color` | `--ds-on-error-container`, `--ds-text-2` | the text of an error and a success hint (their icons stay `--ds-error`, `--ds-success`) |
+| `--ds-field-changed-color` | `--ds-primary` | the dot after the label of a `.ds-field--changed` (keep 3:1 on the surface) |
+| `--ds-form-rows-control-max` | 480px | the widest control in `.ds-form--rows` |
+| `--ds-check-list-max-height` | 264px | `.ds-check-list` scrolls on its own beyond it (`none`: every row shows) |
+| `--ds-composer-radius` | `--ds-radius-2xl` | the shell of `.ds-composer` |
+| `--ds-composer-max-height` | 220px | the tallest the composer's textarea grows before it scrolls |
+| `--ds-slider-halo` | 40px | the halo around the slider handle (hover, press, focus), and the slider's height |
 | `--ds-chip-height` | 32px | filter chip |
 | `--ds-chip-check-size` | 18px | the check of a selected chip (and the room it opens) |
 | `--ds-chip-disabled-border`, `--ds-chip-disabled-bg` | `--ds-disabled-fill` | disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`) |

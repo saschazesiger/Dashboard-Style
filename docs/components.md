@@ -43,6 +43,16 @@ component live.
 | Data entry | [Form](#form): `.ds-form`, `.ds-form-grid`, `.ds-field`, `.ds-input`, `.ds-form-actions` |
 | One choice from a short list | `<select class="ds-input">`; with an explanation per option: `.ds-radios` ([Form](#form)) |
 | One choice from a long list, by typing | [Combobox](#combobox) `.ds-combo` |
+| Choose one of a few big options | radio tiles: `.ds-radios--tiles` with `.ds-radio__icon` and `.ds-radio__mark` ([Form](#form)) |
+| Confirm a live check under a field | `.ds-field__hint--success` with an icon ([Form](#form)) |
+| Pick many values from a long set | `.ds-check-list` in a fieldset, with `.ds-check__count` ([Form](#form)) |
+| A parent checkbox with its children | `.ds-check-group` ([Form](#form)) |
+| A field and its button | `.ds-field__row` ([Form](#form)) |
+| A unit or a reveal inside a field | `.ds-input-group` with `.ds-input-group__affix` or a quiet icon button ([Form](#form)) |
+| Pick a value on a scale | `.ds-slider` with a `.ds-slider__value` ([Form](#form)) |
+| Edit a record's fields one under the other, and show what changed | `.ds-form--rows`, `.ds-field--changed`; a value that is read only: `.ds-field__value` ([Form](#form)) |
+| A message with its send button (chat, comments) | `.ds-composer` ([Form](#form)) |
+| A form on a phone | `.ds-form-actions--sticky` (the actions stay at the bottom); fields switch to 16px by themselves ([Form](#form)) |
 | A yes/no value saved with the form | `.ds-check` ([Form](#form)) |
 | A checkbox without a label row (a table column, a list item) | `.ds-checkbox` ([Form](#form)); in a `.ds-table` any bare checkbox is drawn the same |
 | A setting that applies at once | [Switch](#switch) `.ds-switch` |
@@ -987,10 +997,276 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   (`--ds-check-target`) shows hover (also on the whole `.ds-check` row), press and keyboard focus with the ring; on
   touch screens a tap grows it from the centre (inputs get no ripple). `aria-invalid="true"` draws the box in the
   error colour; disabled boxes take `--ds-disabled-ink`. Forced colours: system colours, no halo.
+- `aria-disabled="true"` on a checkbox or radio (also in a `.ds-check` row or a radio card) looks and acts blocked
+  like `disabled`: the disabled ink, no hover or press halo, the row's quieter ink, `GrayText` in forced colours. It
+  stays in the tab order and keeps its focus halo, so a tooltip with the reason can still be reached; the action
+  guard of `DS.motion` ([motion.md](motion.md)) blocks its click, also a click on its label, so the page needs no
+  guard of its own.
+- A `.ds-check` row is `--ds-check-height` tall (40px) around one line of its label. A long label wraps (even a bare
+  text node, `overflow-wrap: anywhere`) and the box stays beside its first line.
 - Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
   (`--ds-radius-card-pressed`), springing back on release; keyboard focus rings the whole card and lays the focus
   layer (`--ds-state-focus`) at once (its input has no halo); `.ds-radio--disabled` and a card whose input is
-  disabled have none.
+  disabled or `aria-disabled` have none.
+- Date and time fields (`date`, `datetime-local`, `month`, `week`, `time`) draw their picker button as the icon
+  set's `calendar` (`time`: `clock`) in the quieter text colour; side by side in `.ds-filters`, `.ds-inline-form`
+  and the two- and three-column grids they take less padding at 720px and below, so the value is not cut off.
+- Field hooks: `--ds-input-height`, `--ds-input-bg`, `--ds-input-border`, `--ds-input-radius` and
+  `--ds-input-focus-color` (the ring and the label tint), [theming.md](theming.md#component-hooks).
+- Forced colours: a focused field (also an input group, a filled field and the composer) shows a `Highlight`
+  outline, since its inset ring is a shadow that forced colours drop.
+
+**Hints that confirm, hints with an icon, markers and a counter**
+
+```html
+<div class="ds-field">
+  <label class="ds-field__label" for="user">Username <span class="ds-field__required" aria-hidden="true">*</span></label>
+  <input class="ds-input" id="user" required aria-describedby="user-hint">
+  <small class="ds-field__hint ds-field__hint--success" id="user-hint">[icon checkCircle 16]Available.</small>
+</div>
+<div class="ds-field">
+  <label class="ds-field__label" for="room">Room <span class="ds-field__optional">(optional)</span></label>
+  <input class="ds-input" id="room" aria-describedby="room-hint">
+  <small class="ds-field__hint" id="room-hint">[icon info 16]As written on the door.</small>
+</div>
+<div class="ds-field">
+  <label class="ds-field__label" for="note">Note</label>
+  <textarea class="ds-input" id="note" maxlength="200" aria-describedby="note-hint"></textarea>
+  <div class="ds-field__foot">
+    <small class="ds-field__hint" id="note-hint">Shown to the next person.</small>
+    <span class="ds-field__counter" aria-hidden="true">0 / 200</span>
+  </div>
+</div>
+```
+
+- A hint whose first child is an icon lays it out beside its first line (`--ds-text-2`). `.ds-field__hint--success`
+  confirms a live check ("Available"): text `--ds-field-success-color` (default `--ds-text-2`), icon `--ds-success`.
+  It enters like an error message (a fade, and its room opens while focus is in the form); a hint that turns from
+  error to success keeps its element, so only its text and icon change. The hint is a description
+  (`aria-describedby`), read on the next focus; when the result must be spoken at once, announce it too
+  (`DS.overlay.announce(text)`). The error text reads `--ds-field-error-color` (default
+  `--ds-on-error-container`).
+- `.ds-field__optional` marks the few optional fields (the recommended way); where most fields are optional, mark
+  the required ones with an `aria-hidden` `.ds-field__required` asterisk and `required` on the input (screen readers
+  announce that).
+- `.ds-field__foot` puts the hint and a `.ds-field__counter` in one row (the counter at the end, tabular). The counter
+  is `aria-hidden` and the page updates it on `input`; near the limit the page announces what is left once.
+
+**Search key**
+
+```html
+<div class="ds-search">[icon search 20]<input class="ds-input" id="q" type="search" aria-label="Search devices" aria-keyshortcuts="/" placeholder="Search devices"><kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>
+```
+
+The key shows while the search rests empty and goes (in `--ds-dur-instant`) once it has the focus, a value or is
+disabled; the field keeps room for it, so the caret is never under it. Touch screens never show it. The input needs
+a `placeholder` (the key reads `:placeholder-shown`). The shortcut is the page's:
+
+```js
+document.addEventListener('keydown', (event) => {
+  if (event.key !== '/' || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.target.closest('input, textarea, select, [contenteditable]')) return;
+  event.preventDefault(); // Firefox: no quick find
+  search.focus();
+});
+```
+
+**A field and its button, units and reveals inside a field**
+
+```html
+<div class="ds-field">
+  <label class="ds-field__label" for="key">API key</label>
+  <div class="ds-field__row">
+    <input class="ds-input" id="key" value="ex_7f3a9c21" readonly>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" data-tip="Copy the key">[icon copy 20]</button>
+  </div>
+</div>
+<div class="ds-field">
+  <label class="ds-field__label" for="quota">Quota (GB)</label>
+  <div class="ds-input-group">
+    <input class="ds-input" id="quota" inputmode="numeric" value="50">
+    <span class="ds-input-group__affix" aria-hidden="true">GB</span>
+  </div>
+</div>
+<div class="ds-field">
+  <label class="ds-field__label" for="pw">Password</label>
+  <div class="ds-input-group">
+    <input class="ds-input" id="pw" type="password" autocomplete="current-password">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="pw">
+      <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon eye 18]</span><span class="ds-icon-swap__b">[icon eyeOff 18]</span></span></button>
+  </div>
+</div>
+```
+
+- `.ds-field__row`: the field takes the room, its buttons keep their size; `.ds-field__row--top` aligns them to the
+  start, beside a textarea.
+- `.ds-input-group` draws the field (border, radius, background, `--ds-input-height`) and the `.ds-input` inside
+  loses its box. The ring moves to the group while the input has the focus (at once, fading back on blur); a focused
+  trailing button shows its own ring instead. `aria-invalid="true"` on the input turns the group's border, disabled
+  or `readonly` its surface. An affix (a unit, a prefix such as `https://`) is `aria-hidden`, so the unit belongs in
+  the label too.
+- The reveal is the page's two lines: toggle the input's `type` between `password` and `text`, and the button's
+  `aria-pressed` (the icon swap follows it).
+
+**The filled field**
+
+```html
+<div class="ds-field ds-field--inset">
+  <label class="ds-field__label" for="title">Title</label>
+  <input class="ds-input" id="title" value="Quarterly report">
+  <small class="ds-field__hint">Shown in the list.</small>
+</div>
+```
+
+The Material 3 filled field: the label sits inside a tonal box above the value (still a real `<label>`), a hairline
+closes the box at the bottom and turns into a 2px line in `--ds-input-focus-color` while the field has the focus.
+Hints follow below the box. In forced colours the fill is gone, so the box keeps a transparent border (its edge
+there) and a focused field shows the outline.
+
+**Many values from a long set, a parent and its children**
+
+```html
+<fieldset class="ds-field"><legend class="ds-field__label">Status</legend>
+  <div class="ds-check-list">
+    <label class="ds-check"><input type="checkbox" name="status" value="active" checked><span>Active</span><span class="ds-check__count">47</span></label>
+    <label class="ds-check"><input type="checkbox" name="status" value="storage"><span>In storage</span><span class="ds-check__count">12</span></label>
+  </div>
+</fieldset>
+
+<fieldset class="ds-field"><legend class="ds-field__label">Notify by</legend>
+  <div class="ds-check-group">
+    <label class="ds-check"><input type="checkbox" data-all><span>All channels</span></label>
+    <div class="ds-check-group__children" role="group" aria-label="Channels">
+      <label class="ds-check"><input type="checkbox" checked><span>Email</span></label>
+      <label class="ds-check"><input type="checkbox"><span>Chat</span></label>
+    </div>
+  </div>
+</fieldset>
+```
+
+- `.ds-check-list`: rows on hairlines in an outlined box that scrolls on its own beyond `--ds-check-list-max-height`
+  (264px, about six rows, so the cut row shows that it scrolls; `none` shows them all, also in a sheet). The row
+  padding keeps every halo and ring inside the box. A checked row's label takes the label weight, so the selection
+  shows by more than the check; `.ds-check__count` sits at the row's end. Tab walks the boxes and the list scrolls
+  each into view.
+- `.ds-check-group`: the children's boxes line up under the parent's label. The page keeps the parent in step:
+
+```js
+const all = group.querySelector('[data-all]');
+const children = [...group.querySelectorAll('.ds-check-group__children input')];
+all.addEventListener('change', () => children.forEach((child) => { child.checked = all.checked; }));
+group.addEventListener('change', () => { const on = children.filter((child) => child.checked).length;
+  all.checked = on === children.length; all.indeterminate = on > 0 && on < children.length; });
+```
+
+**Changed fields, read-only values, editing in rows**
+
+```html
+<form class="ds-form ds-form--rows">
+  <div class="ds-field ds-field--changed">
+    <label class="ds-field__label" for="place">Room <span class="ds-field__changed ds-sr">(changed)</span></label>
+    <input class="ds-input" id="place" value="B 2.14">
+  </div>
+  <div class="ds-field" role="group" aria-labelledby="serial-l">
+    <span class="ds-field__label" id="serial-l">Serial number</span>
+    <span class="ds-field__value">SN-0042</span>
+  </div>
+  <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button></div>
+</form>
+```
+
+- `.ds-field--changed`: a dot after the label (`--ds-field-changed-color`, default `--ds-primary`; `CanvasText` in
+  forced colours) fades in on `--ds-dur-fast` and out on `--ds-dur-instant`; it always takes its room, so the label
+  never shifts. The word in `.ds-field__changed.ds-sr` joins the label's name only while the field carries the class,
+  so the change never shows by colour alone. Put `.ds-field__changed` in every field that can change and toggle the
+  class.
+- `.ds-field__value`: a value that is read, not edited (set by another system), as tall as a field's text row, without
+  a box that would look like a field. A value that must be focusable or submitted is an
+  `<input class="ds-input" readonly>` instead.
+- `.ds-form--rows`: the fields sit on hairlines with row padding instead of the form's gap, a grid inside turns into
+  one column, and controls stop at `--ds-form-rows-control-max` (480px). Labels stay above their controls (never a
+  label column, unlike a read-only `.ds-facts--rows`), so switching from reading to editing changes the layout on
+  purpose.
+
+**Radio tiles**
+
+```html
+<div class="ds-radios ds-radios--tiles" role="radiogroup" aria-label="Device type">
+  <label class="ds-radio"><input type="radio" name="kind" value="laptop" checked><span class="ds-radio__icon" aria-hidden="true">[icon laptop 20]</span>
+    <span><strong>Laptop</strong><small>With a dock.</small></span><span class="ds-radio__mark" aria-hidden="true">[icon check 14]</span></label>
+  <label class="ds-radio"><input type="radio" name="kind" value="desktop"><span class="ds-radio__icon" aria-hidden="true">[icon monitor 20]</span>
+    <span><strong>Desktop</strong><small>At one desk.</small></span><span class="ds-radio__mark" aria-hidden="true">[icon check 14]</span></label>
+</div>
+```
+
+Two columns of radio cards (one below 480px of the content or the window). The radio itself is hidden: the icon disc
+fills (`--ds-primary` / `--ds-on-primary`) and the trailing check circle pops in (from `--ds-scale-small` on the
+spring) on the checked tile, which keeps the card's ring; keyboard focus rings the tile. The cards keep their press
+morph (`--ds-radius-card-pressed`). For a tint that glides from tile to tile, add the indicator once:
+
+```js
+const pill = DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+group.addEventListener('change', () => pill.update()); // checking a radio changes no attribute
+```
+
+**Slider**
+
+```html
+<div class="ds-field">
+  <label class="ds-field__label" for="keep">Keep history for</label>
+  <div class="ds-field__row">
+    <input class="ds-slider" id="keep" type="range" min="7" max="365" value="90" aria-describedby="keep-out">
+    <output class="ds-slider__value" id="keep-out" for="keep">90 days</output>
+  </div>
+</div>
+```
+
+A 4px track in `--ds-accent` with its active part in `--ds-primary`, a 20px handle with a halo
+(`--ds-slider-halo`, 40px) for hover, press and keyboard focus (like the switch: the halo is the press, no ripple,
+and the handle never scales), the focus ring on the handle. Firefox draws the active part itself; elsewhere the page
+sets `--ds-share` (the value's share of the range, 0 to 1) on the input when it renders and on every `input` event,
+and keeps the `<output>` in step (without `--ds-share` the track shows no active part, and the slider still works):
+
+```js
+const share = () => { slider.style.setProperty('--ds-share', String((slider.value - slider.min) / (slider.max - slider.min)));
+  output.value = `${slider.value} days`; };
+slider.addEventListener('input', share); share();
+```
+
+Disabled and `aria-disabled` sliders take the disabled ink and no halo. Forced colours: the track in `ButtonText`,
+the handle in `Highlight`.
+
+**Growing textarea and the composer**
+
+```html
+<textarea class="ds-input ds-input--grow" rows="1" aria-label="Note"></textarea>
+
+<form class="ds-composer">
+  <textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message"></textarea>
+  <button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">[icon send 20]</button>
+</form>
+```
+
+- `.ds-input--grow` starts one row tall (`--ds-input-height`) and grows with its text up to `--ds-input-grow-max`
+  (50vh), then scrolls. Where `field-sizing: content` is missing, call `DS.dom.autosize(textarea)` once; its height
+  then follows the text through the CSSOM (never animated).
+- `.ds-composer`: a filled shell (`--ds-composer-radius`) with the textarea and its actions, which stay at the
+  bottom while the text grows (up to `--ds-composer-max-height`, 220px). The ring follows the field model on the
+  shell: at once while the focus is inside, fading back on blur. Forced colours: the shell keeps a transparent border
+  (its edge there) and shows the outline while focused.
+
+**Actions that stay on a phone**
+
+```html
+<div class="ds-form-actions ds-form-actions--sticky">
+  <button class="ds-btn ds-btn--primary" type="submit">Save</button>
+  <button class="ds-btn ds-btn--text" type="button">Cancel</button>
+</div>
+```
+
+At 600px and below the action row of a long form sticks to the bottom of its scroller: a surface bar with a static
+hairline that bleeds to the page's padding (`--ds-content-pad-x`) or a card's (`--ds-card-pad`) and keeps clear of
+the home indicator (`env(safe-area-inset-bottom)`).
 
 **Toolbar, search, filters, inline form**
 
@@ -1023,7 +1299,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 
 `.ds-input--filled` is the toolbar variant on the tonal fill; `.ds-search` is a filled pill with a leading icon.
 
-**Motion:** the check, radio, focus and validation rows of [Controls](motion.md#controls) in motion.md.
+**Motion:** the check, radio, focus, validation, confirmation, changed dot, search key, radio tile and slider rows
+of [Controls](motion.md#controls) in motion.md.
 
 ## Chips
 

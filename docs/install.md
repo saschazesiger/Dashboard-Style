@@ -118,8 +118,8 @@ needs only `'self'` there. Either way `img-src` must allow `data:` (`img-src 'se
 `data:image/svg+xml` masks, and a blocked mask hides what it covers. Under `img-src 'self'` alone, a checked checkbox
 (`.ds-check`, `.ds-checkbox`, table checkboxes) loses its check and keeps only the filled box, the value of a
 determinate `.ds-progress` and the arc of `.ds-spinner--determinate` disappear (the masks `--ds-progress-wave` and
-`--ds-progress-ring-wave` in `tokens.css`), and the calendar glyph of date fields and the clear glyph of search
-fields go blank (`form.css`).
+`--ds-progress-ring-wave` in `tokens.css`), and the calendar glyph of date fields (the clock of time fields) and
+the clear glyph of search fields go blank (`form.css`).
 
 Style attributes need no exception (no `'unsafe-inline'`, no `style-src-attr`): the scripts set styles through the
 CSSOM only, and since 2.0 `DS.dom.morphHtml` does too, so a re-rendered `style="--ds-progress: 0.6"` applies under

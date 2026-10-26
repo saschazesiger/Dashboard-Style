@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forms · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- The form parts of 2.0 (docs/components.md, Form): hints, markers and a
+     counter, the search key, a field row and input groups, the filled
+     field, a check list and a check group, aria-disabled checks, editing in
+     rows with a changed field and sticky actions, radio tiles, the slider,
+     the composer and a growing field, date and time fields side by side. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section fx-narrow" aria-labelledby="hints-title">
+    <h2 id="hints-title">Hints and markers</h2>
+    <form class="ds-form" id="hints" onsubmit="return false">
+      <div class="ds-field">
+        <label class="ds-field__label" for="user">Username <span class="ds-field__required" aria-hidden="true">*</span></label>
+        <input class="ds-input" id="user" required value="ada.byron" aria-describedby="user-hint">
+        <small class="ds-field__hint ds-field__hint--success" id="user-hint"><span data-icon="checkCircle" data-size="16"></span>Available.</small>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="room">Room <span class="ds-field__optional">(optional)</span></label>
+        <input class="ds-input" id="room" aria-describedby="room-hint">
+        <small class="ds-field__hint" id="room-hint"><span data-icon="info" data-size="16"></span>As written on the door.</small>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="note">Note</label>
+        <textarea class="ds-input" id="note" maxlength="80" aria-describedby="note-hint"></textarea>
+        <div class="ds-field__foot"><small class="ds-field__hint" id="note-hint">Shown to the next person.</small><span class="ds-field__counter" aria-hidden="true">0 / 80</span></div>
+      </div>
+    </form>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="groups-title">
+    <h2 id="groups-title">Search key, field row, input groups</h2>
+    <div class="ds-form" id="groups">
+      <div class="ds-search" id="search"><span data-icon="search" data-size="20"></span><input class="ds-input" id="search-input" type="search" aria-label="Search devices" aria-keyshortcuts="/" placeholder="Search devices"><kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="api-key">API key</label>
+        <div class="ds-field__row" id="field-row"><input class="ds-input" id="api-key" value="ex_7f3a9c21" readonly><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" id="copy"><span data-icon="copy" data-size="20"></span></button></div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="quota">Quota (GB)</label>
+        <div class="ds-input-group" id="quota-group"><input class="ds-input" id="quota" inputmode="numeric" value="50"><span class="ds-input-group__affix" aria-hidden="true">GB</span></div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="password">Password</label>
+        <div class="ds-input-group" id="password-group"><input class="ds-input" id="password" type="password" value="correct horse" autocomplete="off"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" id="reveal" aria-label="Show password" aria-pressed="false" aria-controls="password"><span data-icon="lock" data-size="18"></span></button></div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-field__label" for="site">Website</label>
+        <div class="ds-input-group" id="site-group"><span class="ds-input-group__affix" aria-hidden="true">https://</span><input class="ds-input" id="site" value="example.org" aria-invalid="true"></div>
+      </div>
+      <div class="ds-form-grid ds-form-grid--2" id="when">
+        <div class="ds-field"><label class="ds-field__label" for="starts">Starts</label><input class="ds-input" id="starts" type="datetime-local" value="2025-03-12T09:30"></div>
+        <div class="ds-field"><label class="ds-field__label" for="daily">Daily at</label><input class="ds-input" id="daily" type="time" value="02:30"></div>
+      </div>
+      <div class="ds-field"><label class="ds-field__label" for="alone">Alone in its row</label><input class="ds-input" id="alone" type="time" value="02:30"></div>
+    </div>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="inset-title">
+    <h2 id="inset-title">Filled field</h2>
+    <div class="ds-form" id="inset">
+      <div class="ds-field ds-field--inset" id="inset-title-field"><label class="ds-field__label" for="inset-input">Title</label><input class="ds-input" id="inset-input" value="Quarterly report" aria-describedby="inset-hint"><small class="ds-field__hint" id="inset-hint">Shown in the list.</small></div>
+      <div class="ds-field ds-field--inset"><label class="ds-field__label" for="inset-code">Code</label><input class="ds-input" id="inset-code" value="Q1 25" aria-invalid="true"></div>
+    </div>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="checks-title">
+    <h2 id="checks-title">Check list, check group, aria-disabled</h2>
+    <fieldset class="ds-field" id="status"><legend class="ds-field__label">Status</legend>
+      <div class="ds-check-list" id="check-list">
+        <label class="ds-check"><input type="checkbox" name="status" checked><span>Active</span><span class="ds-check__count">47</span></label>
+        <label class="ds-check"><input type="checkbox" name="status"><span>In storage</span><span class="ds-check__count">12</span></label>
+        <label class="ds-check"><input type="checkbox" name="status"><span>Lent out</span><span class="ds-check__count">8</span></label>
+        <label class="ds-check" id="long-check"><input type="checkbox" name="status"><span>Waiting for parts from the manufacturer, ordered last week</span><span class="ds-check__count">2</span></label>
+        <label class="ds-check"><input type="checkbox" name="status"><span>Retired</span><span class="ds-check__count">31</span></label>
+        <label class="ds-check"><input type="checkbox" name="status"><span>Lost</span><span class="ds-check__count">1</span></label>
+        <label class="ds-check"><input type="checkbox" name="status"><span>Sold</span><span class="ds-check__count">6</span></label>
+        <label class="ds-check"><input type="checkbox" name="status"><span>Donated</span><span class="ds-check__count">4</span></label>
+      </div>
+    </fieldset>
+    <div class="ds-check-group" id="check-group">
+      <label class="ds-check"><input type="checkbox" id="all"><span>All channels</span></label>
+      <div class="ds-check-group__children" role="group" aria-label="Channels">
+        <label class="ds-check"><input type="checkbox" checked><span>Email</span></label>
+        <label class="ds-check"><input type="checkbox"><span>Chat</span></label>
+      </div>
+    </div>
+    <div class="fx-row">
+      <label class="ds-check" id="aria-row"><input type="checkbox" id="aria-box" aria-disabled="true"><span>Phone (aria-disabled)</span></label>
+      <label class="ds-check" id="disabled-row"><input type="checkbox" id="disabled-box" disabled><span>Fax (disabled)</span></label>
+      <label class="ds-check" id="plain-row"><input type="checkbox" id="plain-box"><span>Post</span></label>
+    </div>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="rows-title">
+    <h2 id="rows-title">Editing in rows</h2>
+    <form class="ds-form ds-form--rows" id="rows" onsubmit="return false">
+      <div class="ds-field" id="changed-field"><label class="ds-field__label" for="place">Room <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="place" value="B 2.14"></div>
+      <div class="ds-field" role="group" aria-labelledby="serial-l"><span class="ds-field__label" id="serial-l">Serial number</span><span class="ds-field__value" id="serial">5CD1234XYZ</span></div>
+      <div class="ds-form-actions ds-form-actions--sticky" id="actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button><button class="ds-btn ds-btn--text" type="reset">Discard</button></div>
+    </form>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="tiles-title">
+    <h2 id="tiles-title">Radio tiles</h2>
+    <div class="ds-radios ds-radios--tiles" role="radiogroup" aria-label="Device type" id="tiles">
+      <label class="ds-radio"><input type="radio" name="kind" value="laptop" checked><span class="ds-radio__icon" aria-hidden="true"><span data-icon="laptop" data-size="20"></span></span><span><strong>Laptop</strong><small>With a dock.</small></span><span class="ds-radio__mark" aria-hidden="true"><span data-icon="check" data-size="14"></span></span></label>
+      <label class="ds-radio" id="tile-desktop"><input type="radio" name="kind" value="desktop"><span class="ds-radio__icon" aria-hidden="true"><span data-icon="monitor" data-size="20"></span></span><span><strong>Desktop</strong><small>At one desk.</small></span><span class="ds-radio__mark" aria-hidden="true"><span data-icon="check" data-size="14"></span></span></label>
+    </div>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="slider-title">
+    <h2 id="slider-title">Slider</h2>
+    <div class="ds-form" id="sliders">
+      <div class="ds-field"><label class="ds-field__label" for="keep">Keep history for</label><div class="ds-field__row"><input class="ds-slider" id="keep" type="range" min="0" max="100" value="40" style="--ds-share: .4" aria-describedby="keep-out"><output class="ds-slider__value" id="keep-out" for="keep">40%</output></div></div>
+      <div class="ds-field"><label class="ds-field__label" for="locked">Set by policy</label><div class="ds-field__row"><input class="ds-slider" id="locked" type="range" min="0" max="100" value="30" style="--ds-share: .3" disabled><output class="ds-slider__value" for="locked">30%</output></div></div>
+    </div>
+  </section>
+
+  <section class="fx-section fx-narrow" aria-labelledby="composer-title">
+    <h2 id="composer-title">Composer</h2>
+    <form class="ds-composer" id="composer" onsubmit="return false"><textarea class="ds-composer__input ds-input--grow" id="message" rows="1" aria-label="Message" placeholder="Write a message"></textarea><button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" id="send" aria-label="Send"><span data-icon="arrowUp" data-size="20"></span></button></form>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  // Radio tiles: the indicator follows the checked tile (a checked radio
+  // changes no attribute, so the change event moves it).
+  (function () {
+    var group = document.getElementById('tiles');
+    var pill = DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+    group.addEventListener('change', function () { pill.update(); });
+  }());
+</script>
+</body>
+</html>

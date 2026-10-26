@@ -67,8 +67,8 @@ The [styleguide](../styleguide/index.html#icons) shows them all. Notes:
   ```html
   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-label="Helpful">[icon thumbUp 20 ds-icon--fillable]</button>
   ```
-- `calendar`, `close` and `check` are also drawn by `components/form.css` as masks (date fields, the search's clear
-  button, the drawn checkbox; its check at stroke width 3).
+- `calendar`, `clock`, `close` and `check` are also drawn by `components/form.css` as masks (date fields, time
+  fields, the search's clear button, the drawn checkbox; its check at stroke width 3).
 - `clock` means waiting, `ban` switched off or not set up.
 
 ## Adding glyphs

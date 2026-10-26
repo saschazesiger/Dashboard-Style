@@ -168,13 +168,15 @@
                   <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
                 </label>
                 <h3 class="ds-card__subtitle">Checkboxes</h3>
-                <fieldset class="ds-field demo-checks" id="check-group">
+                <fieldset class="ds-field" id="check-group">
                   <legend class="ds-field__label">Notify by</legend>
-                  <label class="ds-check"><input type="checkbox" id="check-all"><span>All channels</span></label>
-                  <div class="demo-checks__children">
-                    <label class="ds-check"><input type="checkbox" checked data-channel><span>Email</span></label>
-                    <label class="ds-check"><input type="checkbox" data-channel><span>Chat</span></label>
-                    <label class="ds-check"><input type="checkbox" data-channel><span>Phone</span></label>
+                  <div class="ds-check-group">
+                    <label class="ds-check"><input type="checkbox" id="check-all"><span>All channels</span></label>
+                    <div class="ds-check-group__children" role="group" aria-label="Channels">
+                      <label class="ds-check"><input type="checkbox" checked data-channel><span>Email</span></label>
+                      <label class="ds-check"><input type="checkbox" data-channel><span>Chat</span></label>
+                      <label class="ds-check"><input type="checkbox" data-channel><span>Phone</span></label>
+                    </div>
                   </div>
                 </fieldset>
                 <p class="ds-muted">"All channels" turns into a dash while only some are on.</p>

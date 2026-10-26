@@ -451,7 +451,7 @@
           `<div class="ds-field"><label class="ds-field__label" for="org-retention">Keep history for</label><select class="ds-input" id="org-retention" name="retention">${[['30', '30 days'], ['90', '90 days'], ['365', 'One year']].map(([v, l]) => option(v, l, s.retention)).join('')}</select></div>` +
         '</div>' +
         `<details class="ds-collapsible ex-disclosure"><summary>Advanced${icon('chevronDown', 20, 'ds-chevron')}</summary>` +
-          '<div class="ds-field"><label class="ds-field__label" for="api-key">API key</label><div class="ex-field-row">' +
+          '<div class="ds-field"><label class="ds-field__label" for="api-key">API key</label><div class="ds-field__row">' +
             '<input class="ds-input" id="api-key" value="ex_7f3a9c21d4e8b605" readonly>' +
             `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" data-tip="Copy the key" data-act="copy-key"><span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">${icon('copy', 20)}</span><span class="ds-icon-swap__b">${icon('check', 20)}</span></span></button>` +
           '</div></div>' +

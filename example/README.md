@@ -37,4 +37,4 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Dialog with a form, validation on submit, combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |
 | Switches that apply at once | Settings | the `data-setting` change |
 | Radio cards that switch the theme (tokens on `.ds-theme`) | Settings | the `accent` change, `theme.css` |
-| Form saved with `DS.motion.busy()`, collapsible section, icon swap | Settings | the `org-form` submit, `copy-key` |
+| Form saved with `DS.motion.busy()`, collapsible section, icon swap, a field and its button (`.ds-field__row`) | Settings | the `org-form` submit, `copy-key` |
