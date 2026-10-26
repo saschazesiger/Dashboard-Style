@@ -4,7 +4,8 @@
  * driven, else the data-ds-overflow-* attributes of DS.dom.scrollEdges(),
  * set here by hand where the export is missing), keeps the scrollbar strip
  * opaque, is a tab stop with an inset ring that drops the mask, prints
- * unmasked; .ds-jump holds a "Latest" pill at its log's bottom edge
+ * unmasked, keeps its owned edge state through morphHtml (once the copy
+ * has DS.dom.scrollEdges()); .ds-jump holds a "Latest" pill at its log's bottom edge
  * without taking room or the pointer. The card table wrappers move to the
  * same numbers (scroll.spec.js).
  */
@@ -123,4 +124,26 @@ test('print: the strip shows all of its content, unmasked; the jump pill is hidd
     return { overflow: strip.overflowX, mask: strip.maskImage || strip.webkitMaskImage, jump: getComputedStyle(document.getElementById('jump')).display };
   });
   expect(printed).toEqual({ overflow: 'visible', mask: 'none', jump: 'none' });
+});
+
+test('a re-render through morphHtml keeps the edge state that DS.dom.scrollEdges() owns', async ({ page }) => {
+  await open(page);
+  const has = await page.evaluate(() => typeof DS.dom.scrollEdges === 'function');
+  test.skip(!has, 'DS.dom.scrollEdges() is not in this copy yet (it owns the attributes that morphHtml keeps)');
+  const state = await page.evaluate(async () => {
+    const box = document.querySelector('.fx-strip-box');
+    const strip = document.getElementById('strip');
+    DS.dom.scrollEdges(strip);
+    strip.scrollLeft = 40;
+    for (let i = 0; i < 3; i += 1) await new Promise((resolve) => requestAnimationFrame(resolve));
+    const read = () => ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end'].filter((name) => strip.hasAttribute(name));
+    const before = read();
+    // The page renders the box again from markup without the owned attributes.
+    const html = box.innerHTML.replace(/\sdata-ds-(edges|overflow-start|overflow-end)(="[^"]*")?/g, '');
+    DS.dom.morphHtml(box, html);
+    return { before, after: read(), same: document.getElementById('strip') === strip };
+  });
+  expect(state.same, 'the strip is patched in place').toBe(true);
+  expect(state.before).toEqual(['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end']);
+  expect(state.after).toEqual(state.before);
 });

@@ -46,8 +46,9 @@
  * the fades of every scroller off: .ds-scroll-x, the card table wrappers
  * and the menu edges).
  *
- * Runtime properties (written by DS.dom.scrollEdges(), read with a 0px
- * fallback): --ds-scrollbar-height, --ds-scrollbar-width.
+ * Runtime property (written by DS.dom.scrollEdges(), read with a 0px
+ * fallback): --ds-scrollbar-height (its block-axis twin,
+ * --ds-scrollbar-width, is read by the menu edges).
  *
  * Print: the strip shows all of its content, unmasked; the jump pill is
  * hidden.

@@ -394,6 +394,20 @@ test('pagination sits under the table with a hairline, drops the size field in a
   expect((await read()).size).toBe('none');
 });
 
+test('pagination baselines: the table card with its pages at 1280px and at 390px (Chromium)', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'one baseline per width, in Chromium only, to keep the set lean');
+  await open(page);
+  await show(page, '#paged-card');
+  await page.mouse.move(1, 1);
+  await settle(page);
+  await expect.soft(page.locator('#paged-card'), 'pagination-1280.png').toHaveScreenshot('pagination-1280.png', { animations: 'allow' });
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.evaluate(() => document.getElementById('pages-content').style.setProperty('width', '358px'));
+  await show(page, '#paged-card');
+  await settle(page);
+  await expect.soft(page.locator('#paged-card'), 'pagination-390.png').toHaveScreenshot('pagination-390.png', { animations: 'allow' });
+});
+
 test('print: wrappers unmasked and unclipped, the full-page table unbounded and not sticky; pagination and the selection bar hidden', async ({ page }) => {
   await open(page);
   await page.emulateMedia({ media: 'print' });

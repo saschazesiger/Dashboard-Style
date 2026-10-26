@@ -146,6 +146,8 @@ const RUNTIME = new Set([
   '--ds-menu-y',
   '--ds-chips-backdrop',
   '--ds-flip-backdrop',
+  '--ds-scrollbar-height',
+  '--ds-table-pin-width',
 ]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
