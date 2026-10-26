@@ -1919,6 +1919,9 @@
       });
     },
     play: function (stage, sg) { return tabTo(stage, (tabAt(stage) + 1) % TAB_NAMES.length, sg); },
+    // Back to the first tab: the toggle runs between the first and the last,
+    // so a Replay that stopped on the middle one would leave another panel shown.
+    reset: function (stage, sg) { return tabTo(stage, 0, sg); },
     state: function (stage) { return tabAt(stage) === TAB_NAMES.length - 1; },
     toggle: function (stage, on, sg) { return tabTo(stage, on ? TAB_NAMES.length - 1 : 0, sg); },
   });
