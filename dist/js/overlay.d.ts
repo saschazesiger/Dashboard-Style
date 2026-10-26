@@ -1,6 +1,7 @@
 /**
  * Types of DS.overlay (js/overlay.js). Hand-written; test/build.test.js
- * keeps the declared exports and their parameters equal to the module's.
+ * keeps the declared exports and their parameters equal to the module's,
+ * and declares every `options.<name>` the module reads.
  */
 import type { Destroyable } from './motion.js';
 
@@ -25,8 +26,16 @@ export declare const DRAWER_QUERY: string;
 export declare function lockScroll(doc?: Document): void;
 export declare function unlockScroll(doc?: Document): void;
 
+export interface OpenOptions {
+  /** Gets focus back on close (default: the focused element, else the control the current event came from). */
+  opener?: Element | null;
+  /** Grows the opener into a dialog or sheet. */
+  container?: boolean;
+  /** Where focus goes on close when the opener is gone (2.0). */
+  returnTo?: () => Element | null | undefined;
+}
 /** Opens a dialog, side sheet, the modal drawer, a menu or the combobox list. */
-export declare function open(element: Element, options?: { opener?: Element | null; container?: boolean }): Promise<void>;
+export declare function open(element: Element, options?: OpenOptions): Promise<void>;
 
 /** What the ds-close event says; any other string is the page's own. */
 export type CloseReason = 'escape' | 'backdrop' | 'close' | 'item' | 'tab' | 'outside' | 'parent' | 'api' | 'removed' | 'breakpoint' | (string & {});

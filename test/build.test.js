@@ -300,6 +300,9 @@ describe('types (dist/ds.d.ts, dist/js/*.d.ts)', () => {
       for (const constant of constants) assert.notEqual(typeof mod[constant], 'function', `${constant} is a value`);
       assert.doesNotMatch(types, /export (?:default|=)|export (?:function|const|let|var|class) /, 'only `export declare` values and type exports');
       assert.deepEqual(exportedParams(types, true), exportedParams(read(`src/js/${name}.js`), false), 'parameter names in order');
+      // Every option the module reads is declared, so a documented option type-checks without a cast.
+      const optionNames = [...new Set([...read(`src/js/${name}.js`).matchAll(/\boptions\.([A-Za-z_$][\w$]*)/g)].map((m) => m[1]))];
+      assert.deepEqual(optionNames.filter((option) => !new RegExp(`\\b${option.replace(/\$/g, '\\$')}\\??:`).test(types)), [], 'options the module reads but its .d.ts does not declare');
     });
   }
 });
