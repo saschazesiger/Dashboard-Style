@@ -715,10 +715,15 @@
    * background colour, so they lie over the base as images of two
    * registered colours: --ds-table-sticky-tint (the selection) and
    * --ds-table-sticky-layer (hover, focus, press) above it.
+   * The first cell is named :is(td, th):first-child, never a bare
+   * :first-child: a bare one is tried on every element of the page and
+   * marks every parent as depending on its first child, so each inserted
+   * node restyles its siblings (Chromium: four times the style work of a
+   * page load).
    */
-  .ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child,
+  .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child,
   .ds-table--pin-first thead th:first-child,
-  .ds-table--pin-first tfoot tr > :first-child {
+  .ds-table--pin-first tfoot tr > :is(td, th):first-child {
     position: sticky;
     inset-inline-start: 0;
     z-index: var(--ds-z-pinned);
@@ -738,22 +743,22 @@
   }
 
   @media (hover: hover) {
-    .ds-table--pin-first tbody tr:not(.ds-table__detail):hover > :first-child {
+    .ds-table--pin-first tbody tr:not(.ds-table__detail):hover > :is(td, th):first-child {
       --ds-table-sticky-layer: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
     }
   }
 
-  .ds-table--pin-first tbody tr.ds-table__row--selected > :first-child,
-  .ds-table--pin-first tbody tr:has(> :is(td, th) > input[type="checkbox"]:checked) > :first-child {
+  .ds-table--pin-first tbody tr.ds-table__row--selected > :is(td, th):first-child,
+  .ds-table--pin-first tbody tr:has(> :is(td, th) > input[type="checkbox"]:checked) > :is(td, th):first-child {
     --ds-table-sticky-tint: var(--ds-table-row-selected, var(--ds-accent));
   }
 
-  .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within > :first-child {
+  .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within > :is(td, th):first-child {
     --ds-table-sticky-layer: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
     transition-duration: 0s;
   }
 
-  .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))) > :first-child {
+  .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))) > :is(td, th):first-child {
     --ds-table-sticky-layer: color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
     transition-duration: var(--ds-dur-micro);
   }
@@ -761,9 +766,9 @@
   /* The hairline at the pinned column's end: it shows once the table has
      scrolled away from its start (the cells under it are cut there).
      Without scroll timelines data-ds-overflow-start shows it. */
-  .ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child::after,
+  .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child::after,
   .ds-table--pin-first thead th:first-child::after,
-  .ds-table--pin-first tfoot tr > :first-child::after {
+  .ds-table--pin-first tfoot tr > :is(td, th):first-child::after {
     content: '';
     position: absolute;
     inset-block: 0;
@@ -775,16 +780,16 @@
     transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
-  .ds-table-wrap[data-ds-overflow-start] > .ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child::after,
+  .ds-table-wrap[data-ds-overflow-start] > .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child::after,
   .ds-table-wrap[data-ds-overflow-start] > .ds-table--pin-first thead th:first-child::after,
-  .ds-table-wrap[data-ds-overflow-start] > .ds-table--pin-first tfoot tr > :first-child::after {
+  .ds-table-wrap[data-ds-overflow-start] > .ds-table--pin-first tfoot tr > :is(td, th):first-child::after {
     opacity: 1;
   }
 
   @supports (animation-timeline: scroll()) {
-    .ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child::after,
+    .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child::after,
     .ds-table--pin-first thead th:first-child::after,
-    .ds-table--pin-first tfoot tr > :first-child::after {
+    .ds-table--pin-first tfoot tr > :is(td, th):first-child::after {
       animation: ds-scroll-fade linear both;
       animation-timeline: scroll(nearest inline);
       animation-range: 0 var(--ds-space-2);
@@ -1010,12 +1015,12 @@
     font: var(--ds-font-label);
   }
 
-  :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) > tbody > tr:not(.ds-table__detail) > :first-child {
+  :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) > tbody > tr:not(.ds-table__detail) > :is(td, th):first-child {
     position: static;
     background-image: none;
   }
 
-  :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) > tbody > tr:not(.ds-table__detail) > :first-child::after {
+  :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) > tbody > tr:not(.ds-table__detail) > :is(td, th):first-child::after {
     display: none;
   }
 
@@ -1087,12 +1092,12 @@
       font: var(--ds-font-label);
     }
 
-    .ds-table--stack > tbody > tr:not(.ds-table__detail) > :first-child {
+    .ds-table--stack > tbody > tr:not(.ds-table__detail) > :is(td, th):first-child {
       position: static;
       background-image: none;
     }
 
-    .ds-table--stack > tbody > tr:not(.ds-table__detail) > :first-child::after {
+    .ds-table--stack > tbody > tr:not(.ds-table__detail) > :is(td, th):first-child::after {
       display: none;
     }
 
@@ -1165,12 +1170,12 @@
       font: var(--ds-font-label);
     }
 
-    .ds-table--stack-wide > tbody > tr:not(.ds-table__detail) > :first-child {
+    .ds-table--stack-wide > tbody > tr:not(.ds-table__detail) > :is(td, th):first-child {
       position: static;
       background-image: none;
     }
 
-    .ds-table--stack-wide > tbody > tr:not(.ds-table__detail) > :first-child::after {
+    .ds-table--stack-wide > tbody > tr:not(.ds-table__detail) > :is(td, th):first-child::after {
       display: none;
     }
 
@@ -1254,9 +1259,9 @@
     }
 
     .ds-table-wrap--fill > .ds-table > thead th,
-    .ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child,
+    .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child,
     .ds-table--pin-first thead th:first-child,
-    .ds-table--pin-first tfoot tr > :first-child {
+    .ds-table--pin-first tfoot tr > :is(td, th):first-child {
       background-color: Canvas;
       background-image: none;
     }
@@ -1291,9 +1296,9 @@
     }
 
     .ds-table-wrap--fill > .ds-table > thead th,
-    .ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child,
+    .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child,
     .ds-table--pin-first thead th:first-child,
-    .ds-table--pin-first tfoot tr > :first-child {
+    .ds-table--pin-first tfoot tr > :is(td, th):first-child {
       position: static;
     }
 

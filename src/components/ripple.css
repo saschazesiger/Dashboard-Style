@@ -220,17 +220,17 @@
 
   /* A pinned first cell lays its layer over an opaque base (table.css):
      the same one press feedback, through its layer colour. */
-  :where(.ds-ripples) .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :first-child {
+  :where(.ds-ripples) .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :is(td, th):first-child {
     --ds-table-sticky-layer: transparent;
   }
 
   @media (hover: hover) {
-    :where(.ds-ripples) .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :first-child {
+    :where(.ds-ripples) .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :is(td, th):first-child {
       --ds-table-sticky-layer: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
     }
   }
 
-  :where(.ds-ripples) .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-table__row-link:focus-visible):is(:active, .ds-pressed) > :first-child {
+  :where(.ds-ripples) .ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-table__row-link:focus-visible):is(:active, .ds-pressed) > :is(td, th):first-child {
     --ds-table-sticky-layer: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
   }
 

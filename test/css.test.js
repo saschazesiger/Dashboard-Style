@@ -2051,7 +2051,7 @@ describe('tables and scrollers (2.0)', () => {
   });
 
   it('keeps pinned cells opaque: their layers are background images of two registered colours, never a translucent background colour', () => {
-    const PINNED = ['.ds-table--pin-first tbody tr:not(.ds-table__detail) > :first-child', '.ds-table--pin-first thead th:first-child'];
+    const PINNED = ['.ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child', '.ds-table--pin-first thead th:first-child'];
     const screen = withoutAtRuleBlocks(withoutAtRuleBlocks(table, /@media\s*\(forced-colors:\s*active\)/), /@media\s+print/);
     for (const rule of rules(screen)) {
       for (const part of splitSelectors(rule.selector)) {
@@ -2091,6 +2091,22 @@ describe('tables and scrollers (2.0)', () => {
     assert.deepEqual(offenders, []);
     assert.ok(splitSelectors(RIPPLE_HOSTS).includes(`${ROW}:has(.ds-table__row-link)`));
     assert.ok(!splitSelectors(RIPPLE_HOSTS).includes(ROW));
+  });
+
+  it('never puts a bare structural pseudo-class in the subject of a table or ripple rule (it is tried on every element)', () => {
+    // A subject such as `tr > :first-child` makes Chromium try it on every element and mark every parent as
+    // depending on its first child: each inserted node then restyles its siblings (four times the style work of
+    // the styleguide's load). Name the element first: `tr > :is(td, th):first-child`.
+    const offenders = [];
+    for (const file of [TABLE, 'src/components/ripple.css', SCROLLER, 'src/components/pagination.css']) {
+      for (const rule of rules(read(file))) {
+        for (const part of splitSelectors(rule.selector)) {
+          const subject = part.replace(/::[\w-]+(\([^)]*\))?$/, '').split(/\s*[\s>+~]\s*(?![^(]*\))/).pop();
+          if (/^:(first|last|only|nth)-/.test(subject)) offenders.push(`${file}: ${part}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
   });
 
   it('reads the density hooks for every cell height, and the cell padding from them', () => {
