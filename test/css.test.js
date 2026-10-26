@@ -380,7 +380,7 @@ const CONTROL_RATIOS = [
   ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
   ['changed dot', [['src/components/form.css', '.ds-field--changed > .ds-field__label::after', ['transition']]], [['src/components/form.css', '.ds-field__label::after', ['transition']]]],
   ['search key', [['src/components/form.css', '.ds-search__key', ['transition']]], [['src/components/form.css', '.ds-search .ds-input:is(:focus, :not(:placeholder-shown), :disabled) ~ .ds-search__key', ['transition']]]],
-  ['radio tile check', [['src/components/form.css', '.ds-radio:has(input:checked) > .ds-radio__mark > svg', ['transition']]], [['src/components/form.css', '.ds-radio__mark > svg', ['transition']]]],
+  ['radio tile check', [['src/components/form.css', '.ds-radio > input:checked ~ .ds-radio__mark > svg', ['transition']]], [['src/components/form.css', '.ds-radio__mark > svg', ['transition']]]],
 ];
 const resolveDuration = (candidates) => candidates.map(([file, selector, properties]) => longest(file, selector, properties)).find((time) => time !== undefined);
 /** The popups of the ratio table: they may exit in --ds-dur-instant (motion-2.md). */

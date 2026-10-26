@@ -1196,5 +1196,8 @@ The `fallback` project of the browser tests runs every spec without them.
   pill scrolled out of view): without View Transitions the name is ignored and the pill glides as always.
 - `text-wrap` (a lead, hints, radio card descriptions, empty states and `.ds-muted` paragraphs avoid a lone last
   word): without it the text wraps as usual.
-- `scrollbar-color` and `scrollbar-width` (thin, quiet scrollbars in the drawer, the panel, menus and the combobox
-  list): without them the platform scrollbar shows.
+- `scrollbar-color` and `scrollbar-width` (thin, quiet scrollbars in the drawer, the panel, menus, the combobox
+  list and a check list): without them the platform scrollbar shows.
+- `field-sizing: content` (`.ds-input--grow` and the composer grow with their text): without it
+  `DS.dom.autosize(textarea)` sets the height (never animated), and without that the field keeps its height and
+  scrolls.
