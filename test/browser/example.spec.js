@@ -38,6 +38,20 @@ test('a navigation from the modal drawer lands on the new title (transition({ fo
   await expect(page.locator('#page h1')).toBeFocused();
 });
 
+test('dismissing an alert moves the focus to the same action of a neighbour, else to the title (flip() refocus, 2.0)', async ({ page }) => {
+  await open(page);
+  const dismiss = page.locator('#alerts [data-dismiss]');
+  test.skip(await dismiss.count() === 0, 'the fake backend raised no alert');
+  await dismiss.first().focus();
+  await page.keyboard.press('Enter');
+  await settle(page);
+  await expect(dismiss).toHaveCount(0);
+  // The offline alert's "Show" is the same kind of action; without a neighbour the title takes it.
+  const left = await page.locator('#alerts .ds-alert').count();
+  if (left) await expect(page.locator('#alerts .ds-alert .ds-btn').first()).toBeFocused();
+  else await expect(page.locator('#page h1')).toBeFocused();
+});
+
 test('starts without a console error and renders every view; a navigation that took the focus lands on the title', async ({ page }) => {
   const errors = collectErrors(page);
   await open(page);

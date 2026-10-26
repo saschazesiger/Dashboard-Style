@@ -22,7 +22,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled` | frame | Wiring, `DS.dom.watchScrolled()` |
 | Ripple, tooltips (`data-tip`) | all | `DS.ripple.attach()`, `DS.overlay.tooltips()` |
 | Tiles that count on (`countUp()`) | Overview | `updateTiles()` |
-| Alerts that come and go with the data (`flip()` on their stack, `live`) | Overview | `alertsHtml()`, `updateAlerts()` |
+| Alerts that come and go with the data (`flip()` on their stack, `live`; a dismiss moves the focus to the next alert, `refocus`) | Overview | `alertsHtml()`, `updateAlerts()` |
 | Busy and done faces, progress bar and figure landing together (`DS.dom.progress()`, `countUp()`) | Overview | `runSync()`, `showSync()` |
 | A chart of the project's own whose bars grow once (`.ds-enter--fill-y`) | Overview | `chartHtml()`, `growChart()` |
 | A live feed (`flip({ live: true })` with `morphHtml`) | Overview | `poll()` |

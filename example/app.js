@@ -572,7 +572,8 @@
     if (!stack) return;
     const html = alertsHtml();
     if (html) stack.hidden = false;
-    M.flip(stack, (morph) => DS.dom.morphHtml(stack, html, morph), { live }).then(() => {
+    // A dismissed alert's focus moves to the next alert's Dismiss (flip's refocus), else to the page title.
+    M.flip(stack, (morph) => DS.dom.morphHtml(stack, html, morph), { live, refocus: () => $('h1', page) }).then(() => {
       if (!alertsHtml() && stack.isConnected) stack.hidden = true;
     });
   }
@@ -880,8 +881,6 @@
       state.sort = { key, dir: state.sort.key === key && state.sort.dir === 'ascending' ? 'descending' : 'ascending' };
       renderRows();
     } else if ((element = hit('[data-dismiss]'))) {
-      // Focus leaves the button before its alert goes.
-      $('h1', page).focus({ preventScroll: true });
       state.dismissed.add(element.getAttribute('data-dismiss'));
       updateAlerts(false);
     } else if ((element = hit('[data-toggle-ticket]'))) {
