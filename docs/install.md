@@ -127,9 +127,11 @@ that a project may check with its own code as well:
 - no symbolic link anywhere in the copy (a listing cannot cover one), nothing missing, changed or added.
 
 The file names of a copy stay the same across versions (`ds.css`, `ds.js`, `css/...`, `js/...`, `fonts/...`; new files
-only add to them), so a service worker that precaches them by name keeps working after an update. Only
-`fonts/fonts.css` refers to other files of the copy, with relative `url()`s; no other file depends on where the copy
-lives.
+only add to them), so a service worker that precaches them by name keeps working after an update. Files refer to
+each other only by relative paths inside the copy: `fonts/fonts.css` (its `url()`s), `css/index.css` (its
+`@import`s), the modules in `js/` (`./motion.js` and their other siblings) and their `.d.ts`, `ds.d.ts` (`./js/*.js`)
+and `tools/` (each other, `../tokens.json`, `../deprecations.json`). So the copy may live anywhere, but it stays
+together: precache all of it, and run the tools from inside it rather than copying one elsewhere.
 
 ## CDN
 

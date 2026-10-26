@@ -98,6 +98,29 @@ describe('repository', () => {
     assert.deepEqual(missing, []);
   });
 
+  it('uses only classes of the system in the markup of the docs, the styleguide, the tour and the reference app', () => {
+    // A project copies this markup; a class that no stylesheet knows renders as nothing (and check-project fails it).
+    const classes = new Set();
+    for (const file of filesIn('src', (path) => path.endsWith('.css'))) {
+      for (const { selector } of rules(read(file))) for (const match of selector.matchAll(/\.(ds-[\w-]+)/g)) classes.add(match[1]);
+    }
+    // Hook classes without a rule of their own, read by a module.
+    const HOOKS = new Map([['ds-toast__action', 'the action button of a snackbar: DS.overlay finds it next to .ds-toast__close']]);
+    const scope = ALL_FILES.filter((path) => /^(docs\/.*\.md|README\.md|(styleguide|example|demo)\/.*\.(html|js))$/.test(path));
+    assert.ok(scope.includes('docs/components.md') && scope.includes('styleguide/styleguide.js') && scope.includes('example/index.html'), 'the walk finds the files');
+    const offenders = [];
+    for (const path of scope) {
+      const source = read(path);
+      for (const attribute of source.matchAll(/\bclass(?:Name)?\s*=\s*\\?(["'])([\s\S]*?)\\?\1/g)) {
+        // A name built from a value (`ds-status--' + tone`) ends at the quote or the interpolation: not a class.
+        for (const word of attribute[2].matchAll(/(?<![\w-])(ds-[\w-]*\w)(?![\w-]|\$|')/g)) {
+          if (!classes.has(word[1]) && !HOOKS.has(word[1])) offenders.push(`${path}:${source.slice(0, attribute.index).split('\n').length}: .${word[1]}`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
   it('documents every custom property in docs/', () => {
     const docs = filesIn('docs', (path) => path.endsWith('.md')).map(read).join('\n') + read('themes/example.css');
     const names = new Set();

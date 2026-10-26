@@ -566,7 +566,7 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
     <div class="ds-page-head__text">
       <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1>
       <p class="ds-page-head__lead">Latitude 7440 · issued to Ada Lovelace</p>
-      <div class="ds-page-head__status"><span class="ds-status ds-status--success">[icon checkCircle 16]Synced</span></div>
+      <div class="ds-page-head__status"><span class="ds-status ds-status--ok">[icon check 16]<span>Synced</span></span></div>
     </div>
     <div class="ds-page-head__actions">
       <button class="ds-btn" type="button">Retire</button>

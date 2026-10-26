@@ -476,7 +476,7 @@
         '<div class="sg-row"><span class="ds-tag">Preview</span><span class="ds-tag">' + icon('sparkles', 16) + 'Beta</span><span class="ds-tag ds-tag--neutral">' + icon('tag', 16) + 'External</span></div>') +
       card('Alerts',
         '<div class="sg-alerts" id="sg-alerts">' +
-        '<div class="ds-alert ds-alert--info" role="status">' + icon('info', 20) + '<span class="ds-alert__text">The nightly sync runs at 02:00. Changes made now appear tomorrow.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="alert-dismiss">Dismiss</button></div>' +
+        '<div class="ds-alert" role="status">' + icon('info', 20) + '<span class="ds-alert__text">The nightly sync runs at 02:00. Changes made now appear tomorrow.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="alert-dismiss">Dismiss</button></div>' +
         '<div class="ds-alert ds-alert--success">' + icon('checkCircle', 20) + '<span class="ds-alert__text">All 128 devices are up to date.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="alert-dismiss">Dismiss</button></div>' +
         '<div class="ds-alert ds-alert--warning">' + icon('alert', 20) + '<span class="ds-alert__text">The certificate expires in 5 days.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>' +
         '<div class="ds-alert ds-alert--error" role="alert">' + icon('alertCircle', 20) + '<span class="ds-alert__text">Could not reach the directory server.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Try again</button></div>' +
@@ -1968,7 +1968,7 @@
     return '<header class="ds-page-head">' +
       '<a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="#frame">' + icon('arrowLeft', 18) + '<span class="ds-sr">Back to </span>Devices</a>' +
       '<div class="ds-page-head__row"><div class="ds-page-head__text"><h3 class="ds-page-head__title">LAPTOP-0042</h3><p class="ds-page-head__lead">Latitude 7440 · issued to Ada Lovelace · 2 of 128</p>' +
-      '<div class="ds-page-head__status"><span class="ds-status ds-status--success">' + icon('checkCircle', 16) + '<span>Synced</span></span></div></div>' +
+      '<div class="ds-page-head__status"><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Synced</span></span></div></div>' +
       '<div class="ds-page-head__actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--primary" type="button">Edit</button></div></div>' +
       '</header>' +
       '<nav class="ds-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="#frame">Inventory</a></li><li><a href="#frame">Devices</a></li><li><a href="#frame" aria-current="page">LAPTOP-0042</a></li></ol></nav>';
