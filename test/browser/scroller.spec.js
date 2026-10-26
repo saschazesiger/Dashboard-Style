@@ -1,11 +1,10 @@
 /**
  * Sideways scrollers of 2.0 on fixtures/tables.html: .ds-scroll-x fades
  * at each end that still has content and nowhere when it fits (scroll-
- * driven, else the data-ds-overflow-* attributes of DS.dom.scrollEdges(),
- * set here by hand where the export is missing), keeps the scrollbar strip
- * opaque, is a tab stop with an inset ring that drops the mask, prints
- * unmasked, keeps its owned edge state through morphHtml (once the copy
- * has DS.dom.scrollEdges()); .ds-jump holds a "Latest" pill at its log's bottom edge
+ * driven, else the data-ds-overflow-* attributes of DS.dom.scrollEdges()),
+ * keeps the scrollbar strip opaque, is a tab stop with an inset ring that
+ * drops the mask, prints unmasked, keeps its owned edge state through
+ * morphHtml; .ds-jump holds a "Latest" pill at its log's bottom edge
  * without taking room or the pointer. The card table wrappers move to the
  * same numbers (scroll.spec.js).
  */
@@ -52,8 +51,7 @@ test('a strip fades at each end that still has content, nowhere when it fits', a
     const fast = await page.evaluate(() => Math.round(DS.motion.motionDuration(document.documentElement, '--ds-dur-fast')));
     const transition = await page.evaluate(() => {
       const strip = document.getElementById('strip');
-      if (DS.dom.scrollEdges) DS.dom.scrollEdges(strip);
-      else strip.setAttribute('data-ds-overflow-end', '');
+      DS.dom.scrollEdges(strip);
       void getComputedStyle(strip).getPropertyValue('--ds-scroll-edge-end');
       return strip.getAnimations().filter((a) => a.transitionProperty === '--ds-scroll-edge-end').map((a) => Math.round(a.effect.getTiming().duration));
     });
@@ -128,8 +126,6 @@ test('print: the strip shows all of its content, unmasked; the jump pill is hidd
 
 test('a re-render through morphHtml keeps the edge state that DS.dom.scrollEdges() owns', async ({ page }) => {
   await open(page);
-  const has = await page.evaluate(() => typeof DS.dom.scrollEdges === 'function');
-  test.skip(!has, 'DS.dom.scrollEdges() is not in this copy yet (it owns the attributes that morphHtml keeps)');
   const state = await page.evaluate(async () => {
     const box = document.querySelector('.fx-strip-box');
     const strip = document.getElementById('strip');
