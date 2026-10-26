@@ -220,7 +220,7 @@
     flex-direction: column;
     overflow: hidden;
     border-radius: var(--ds-radius-xs);
-    background: var(--ds-surface);
+    background: var(--ds-surface-popover);
     box-shadow: var(--ds-elev-popover);
     /* Invisible; forced colors paint it, so the list keeps an edge. */
     outline: 1px solid transparent;

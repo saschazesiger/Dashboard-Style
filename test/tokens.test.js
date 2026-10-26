@@ -11,11 +11,14 @@ import { DISMISS_DELAY_MS, TOOLTIP_DELAY_MS, TOOLTIP_HIDE_MS, TOOLTIP_SKIP_MS } 
 import {
   emphasizedCurve, generate, LOADER_SHAPES, LOADER_VERTICES, loaderPolygons, problems, SPATIAL, springCurve, springFunction, TOLERANCE, WAVE,
 } from '../scripts/motion-curves.mjs';
+import {
+  CONTROL_PAIRS, contrast as ratioOf, formatColour, ICON_PAIRS, MOTION, parseColour, resolveColour, TEXT_PAIRS,
+} from '../scripts/tools/theme-rules.mjs';
 import { filesIn, ms, read, stripComments, token } from './helpers.js';
 
 const tokens = stripComments(read('src/tokens.css'));
-/** Motion tokens and per-element motion hooks: no theme sets one, no role matches. */
-const MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/;
+// MOTION (motion tokens and per-element motion hooks: no theme sets one, no role matches), the pair lists and the
+// contrast function live in scripts/tools/theme-rules.mjs, shared with tools/check-theme.mjs.
 /** Duration-like scales: written as calc(<n>ms * var(--ds-time-scale, 1)). */
 const TIMED = /^--ds-(dur-[\w-]+|loop-[\w-]+|delay-[\w-]+|hold-[\w-]+|stagger)$/;
 
@@ -229,16 +232,8 @@ describe('tokens', () => {
   });
 });
 
-/** WCAG relative luminance and contrast of two #rrggbb colours. */
-function contrast(a, b) {
-  const lum = (hex) => {
-    const [r, g, bl] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
-      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
-    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
-  };
-  const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
-  return (x + 0.05) / (y + 0.05);
-}
+/** The contrast of two #rrggbb colours (the shared WCAG function). */
+const contrast = (a, b) => ratioOf(parseColour(a), parseColour(b));
 
 /** A role's value, following var() references to a #rrggbb literal. */
 function colour(name) {
@@ -252,42 +247,6 @@ function colour(name) {
 const CHART_MARKS = ['--ds-chart-1', '--ds-chart-2', '--ds-chart-3', '--ds-chart-4', '--ds-chart-neutral', '--ds-chart-warning', '--ds-chart-error'];
 const CHART_GROUNDS = ['--ds-surface', '--ds-surface-low', '--ds-chart-track'];
 
-/** The text pairs that pass AA (4.5:1), in the default palette and in the theme template. */
-const TEXT_PAIRS = [
-  ['--ds-text', '--ds-surface'],
-  ['--ds-text', '--ds-backdrop'],
-  ['--ds-text', '--ds-surface-highest'],
-  ['--ds-text-2', '--ds-surface'],
-  ['--ds-text-2', '--ds-backdrop'],
-  ['--ds-text-2', '--ds-surface-low'],
-  ['--ds-text-2', '--ds-surface-high'],
-  ['--ds-text-3', '--ds-surface'],
-  ['--ds-on-primary', '--ds-primary'],
-  ['--ds-link', '--ds-surface'],
-  ['--ds-action-ink', '--ds-surface'],
-  ['--ds-action-ink', '--ds-backdrop'],
-  ['--ds-on-accent', '--ds-accent'],
-  // A selected table row (--ds-table-row-selected, default --ds-accent) keeps its text readable.
-  ['--ds-text', '--ds-accent'],
-  ['--ds-text-2', '--ds-accent'],
-  ['--ds-on-error-container', '--ds-error-container'],
-  ['--ds-on-success-container', '--ds-success-container'],
-  ['--ds-on-warning-container', '--ds-warning-container'],
-  ['--ds-text', '--ds-warning-surface'],
-  ['--ds-on-inverse', '--ds-inverse'],
-  // A text button in a snackbar (the action, Undo).
-  ['--ds-inverse-primary', '--ds-inverse'],
-  ['--ds-on-error-container', '--ds-surface'],
-  // A field label tints with the ring, or takes the error ink: on every surface a field sits on.
-  ['--ds-primary', '--ds-surface'],
-  ['--ds-primary', '--ds-surface-low'],
-  ['--ds-on-error-container', '--ds-surface-low'],
-  // A neutral tag (.ds-tag--neutral) and a badge on a tinted host (2.0).
-  ['--ds-text', '--ds-surface-high'],
-  // The neutral alert's defaults (--ds-alert-bg, --ds-alert-color), and the plain preset on a card.
-  ['--ds-text', '--ds-surface-low'],
-];
-
 describe('default palette', () => {
   const pairs = TEXT_PAIRS;
   for (const [fg, bg] of pairs) {
@@ -298,17 +257,14 @@ describe('default palette', () => {
   }
 
   it('draws checkboxes and radios at 3:1 (WCAG 1.4.11): box, fill, mark, error', () => {
-    for (const [fg, bg] of [['--ds-text-2', '--ds-surface'], ['--ds-primary', '--ds-surface'], ['--ds-error', '--ds-surface'],
-      ['--ds-on-primary', '--ds-primary'], ['--ds-surface', '--ds-error']]) {
+    for (const [fg, bg] of CONTROL_PAIRS) {
       const ratio = contrast(colour(fg), colour(bg));
       assert.ok(ratio >= 3, `${fg} on ${bg}: ${ratio.toFixed(2)}:1`);
     }
   });
 
   it('keeps icons and outlines at 3:1 where they carry meaning', () => {
-    for (const [fg, bg] of [['--ds-error', '--ds-surface'], ['--ds-success', '--ds-surface'], ['--ds-warning', '--ds-surface'], ['--ds-outline', '--ds-surface'], ['--ds-inverse-primary', '--ds-inverse'], ['--ds-focus', '--ds-surface'],
-      // The lock of a locked switch on its off and on handle (2.0).
-      ['--ds-surface-highest', '--ds-outline'], ['--ds-primary', '--ds-on-primary']]) {
+    for (const [fg, bg] of ICON_PAIRS) {
       assert.ok(contrast(colour(fg), colour(bg)) >= 3, `${fg} on ${bg}`);
     }
   });
@@ -354,5 +310,75 @@ describe('theme template (themes/example.css)', () => {
       .map(([fg, bg, ratio]) => `${fg} on ${bg}: ${ratio.toFixed(2)}:1`);
     assert.deepEqual(failing, []);
     assert.equal(new Set(CHART_MARKS.slice(0, 4).map((name) => resolve(name).toLowerCase())).size, 4);
+  });
+});
+
+describe('derived roles (2.0)', () => {
+  /** A role's colour on .ds-theme, `lookup` giving the raw value each name holds (default: tokens.css alone). */
+  const resolved = (name, lookup = token) => formatColour(resolveColour(`var(${name})`, lookup));
+
+  it('derives the reference colours from their source, at the values of 1.x', () => {
+    const derived = {
+      '--ds-link-underline': ['color-mix(in srgb, var(--ds-link) 40%, transparent)', 'rgba(11, 87, 208, .4)'],
+      '--ds-fill-round': ['color-mix(in srgb, var(--ds-text) 8%, transparent)', 'rgba(31, 31, 31, .08)'],
+      '--ds-disabled-fill': ['color-mix(in srgb, var(--ds-text) 12%, transparent)', 'rgba(31, 31, 31, .12)'],
+      '--ds-disabled-ink': ['color-mix(in srgb, var(--ds-text) 38%, transparent)', 'rgba(31, 31, 31, .38)'],
+      '--ds-primary-hover': ['color-mix(in srgb, var(--ds-primary), var(--ds-on-primary) 8%)', '#1f64d4'],
+      '--ds-primary-pressed': ['color-mix(in srgb, var(--ds-primary), #000 15%)', '#094ab1'],
+    };
+    for (const [name, [value, before]] of Object.entries(derived)) {
+      assert.equal(token(name), value, `${name} is derived`);
+      assert.equal(resolved(name), before, `${name} keeps its 1.x value`);
+    }
+  });
+
+  it('follows a theme that sets the source on .ds-theme, and keeps a value the theme sets itself', () => {
+    const theme = { '--ds-primary': '#006a6a', '--ds-text': '#191c1c', '--ds-link-underline': '#ff0000' };
+    const lookup = (name) => theme[name] ?? token(name);
+    assert.equal(resolved('--ds-primary-hover', lookup), '#147676');
+    assert.equal(resolved('--ds-primary-pressed', lookup), '#005a5a');
+    assert.equal(resolved('--ds-fill-round', lookup), 'rgba(25, 28, 28, .08)');
+    assert.equal(resolved('--ds-disabled-ink', lookup), 'rgba(25, 28, 28, .38)');
+    assert.equal(resolved('--ds-link-underline', lookup), '#ff0000');
+  });
+
+  it('resolves color-mix() as CSS Color 5 does (shares, alpha, premultiplied)', () => {
+    const none = () => undefined;
+    assert.equal(formatColour(resolveColour('color-mix(in srgb, #000, #fff)', none)), '#808080');
+    assert.equal(formatColour(resolveColour('color-mix(in srgb, #ff0000 25%, #0000ff)', none)), '#4000bf');
+    assert.equal(formatColour(resolveColour('color-mix(in srgb, #ff0000 20%, #0000ff 20%)', none)), 'rgba(128, 0, 128, .4)');
+    assert.equal(formatColour(resolveColour('color-mix(in srgb, rgba(255, 0, 0, .5), transparent)', none)), 'rgba(255, 0, 0, .25)');
+    assert.equal(resolveColour('color-mix(in oklab, #000, #fff)', none), null, 'other spaces are not checked');
+    assert.equal(resolveColour('var(--ds-missing)', none), null);
+    assert.equal(formatColour(resolveColour('var(--ds-missing, #123456)', none)), '#123456');
+  });
+
+  it('adds the floating surfaces and the colour scheme as roles, and sets color-scheme from it', () => {
+    const { roles } = layers();
+    for (const name of ['--ds-surface-overlay', '--ds-surface-popover', '--ds-color-scheme']) assert.ok(roles.includes(name), `${name} is a role`);
+    assert.equal(token('--ds-surface-overlay'), 'var(--ds-surface)');
+    assert.equal(token('--ds-surface-popover'), 'var(--ds-surface)');
+    assert.equal(token('--ds-color-scheme'), 'light');
+    // The one declaration of tokens.css that is not a custom property (or an @property descriptor), at zero
+    // specificity, so a page or component that sets color-scheme itself wins.
+    const plain = [...tokens.matchAll(/([^{};]+)\{([^{}]*)\}/g)]
+      .filter((match) => !/@property/.test(match[1]))
+      .flatMap((match) => [...match[2].matchAll(/(?:^|;)\s*([a-z][\w-]*)\s*:/g)].map((d) => `${match[1].trim()} ${d[1]}`));
+    assert.deepEqual(plain, [':where(.ds-theme) color-scheme']);
+    assert.match(tokens, /:where\(\.ds-theme\)\s*\{\s*color-scheme:\s*var\(--ds-color-scheme\);\s*\}/);
+  });
+
+  it('paints the floating layers on the floating surfaces', () => {
+    const background = (file, selector) => {
+      const css = stripComments(read(file));
+      const rule = new RegExp(`(?:^|[{};])\\s*${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`).exec(css);
+      assert.ok(rule, `${file}: ${selector}`);
+      return /(?:^|;)\s*background:\s*([^;]+);/.exec(rule[1])?.[1].trim();
+    };
+    assert.equal(background('src/components/dialog.css', '.ds-dialog__box'), 'var(--ds-surface-overlay)');
+    assert.equal(background('src/components/sheet.css', '.ds-sheet__panel'), 'var(--ds-surface-overlay)');
+    assert.equal(background('src/components/menu.css', '.ds-menu'), 'var(--ds-surface-popover)');
+    assert.equal(background('src/components/combobox.css', '.ds-combo__popup'), 'var(--ds-surface-popover)');
+    assert.equal(background('src/components/shell.css', '.ds-skip'), 'var(--ds-surface-popover)');
   });
 });

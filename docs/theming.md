@@ -13,7 +13,10 @@ A theme is one stylesheet, loaded after `ds.css`, that overrides roles (layer 2)
 
 1. **Same element, same selector.** Write `.ds-theme { ... }` and load it after `ds.css`. Roles built from other
    tokens (every type role reads `--ds-font` and the weights; `--ds-link`, `--ds-focus` and `--ds-action-ink` read
-   `--ds-primary`; `--ds-focus-ring` reads `--ds-surface`) are resolved on the element that declares them. Change
+   `--ds-primary`; `--ds-focus-ring` reads `--ds-surface`; the derived mixes `--ds-primary-hover`,
+   `--ds-primary-pressed`, `--ds-link-underline`, `--ds-fill-round`, `--ds-disabled-fill` and `--ds-disabled-ink`
+   read `--ds-primary`, `--ds-link` and `--ds-text`; `--ds-surface-overlay` and `--ds-surface-popover` read
+   `--ds-surface`) are resolved on the element that declares them. Change
    the source token on that element and the derived roles follow; change it on a descendant and they silently keep
    the old value.
 2. **Never set motion tokens** (`--ds-dur-*`, `--ds-ease-*`, `--ds-distance-*`, `--ds-scale-*`, `--ds-loop-*`,
@@ -41,9 +44,10 @@ project component of your own lists its properties with the motion tokens.
 
 ## Recipes
 
-**Brand palette.** Usually six roles are enough; `--ds-link`, `--ds-focus` and `--ds-action-ink` follow
-`--ds-primary`, while `--ds-inverse-primary` (the snackbar icon on the dark inverse surface) is a light tint of the
-brand colour that the theme sets itself (at least 3:1 against `--ds-inverse`).
+**Brand palette.** Usually four roles are enough; `--ds-link`, `--ds-focus`, `--ds-action-ink`,
+`--ds-primary-hover`, `--ds-primary-pressed` and `--ds-link-underline` follow `--ds-primary`, while
+`--ds-inverse-primary` (the snackbar icon on the dark inverse surface) is a light tint of the brand colour that the
+theme sets itself (at least 3:1 against `--ds-inverse`). Add `--ds-backdrop` for a tinted page.
 
 ```css
 .ds-theme {
@@ -51,8 +55,6 @@ brand colour that the theme sets itself (at least 3:1 against `--ds-inverse`).
   --ds-accent: #d6e4f5;
   --ds-on-accent: #0b2440;
   --ds-inverse-primary: #a6c8ff;
-  --ds-backdrop: #f2f4f7;
-  --ds-link-underline: rgba(29, 78, 137, .4);
 }
 ```
 

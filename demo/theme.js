@@ -21,23 +21,21 @@
     density: ['comfortable', 'compact'],
   };
 
-  /* The roles that follow the primary colour. Blue is the system's own. */
+  /* The roles a brand colour sets; hover, pressed and the link underline are derived from --ds-primary
+     by the system. Blue is the system's own. */
   var ACCENTS = {
     blue: null,
     teal: {
-      '--ds-primary': '#006a6a', '--ds-primary-hover': '#187979', '--ds-primary-pressed': '#005454',
+      '--ds-primary': '#006a6a',
       '--ds-accent': '#cce8e7', '--ds-on-accent': '#002020', '--ds-inverse-primary': '#4cdada',
-      '--ds-link-underline': 'rgba(0, 106, 106, .4)',
     },
     violet: {
-      '--ds-primary': '#6750a4', '--ds-primary-hover': '#7461ab', '--ds-primary-pressed': '#56418f',
+      '--ds-primary': '#6750a4',
       '--ds-accent': '#e8def8', '--ds-on-accent': '#1d192b', '--ds-inverse-primary': '#d0bcff',
-      '--ds-link-underline': 'rgba(103, 80, 164, .4)',
     },
     green: {
-      '--ds-primary': '#146c2e', '--ds-primary-hover': '#2a793e', '--ds-primary-pressed': '#0e5823',
+      '--ds-primary': '#146c2e',
       '--ds-accent': '#c4eed0', '--ds-on-accent': '#002109', '--ds-inverse-primary': '#8fd89f',
-      '--ds-link-underline': 'rgba(20, 108, 46, .4)',
     },
   };
 

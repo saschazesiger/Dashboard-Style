@@ -321,7 +321,7 @@
     min-height: 40px;
     padding: 0 var(--ds-space-5);
     border-radius: var(--ds-radius-action);
-    background: var(--ds-surface);
+    background: var(--ds-surface-popover);
     box-shadow: var(--ds-elev-popover);
     color: var(--ds-text);
     font: var(--ds-font-label);

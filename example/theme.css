@@ -19,23 +19,18 @@
   --ex-swatch-violet: #6750a4;
 }
 
-/* A second accent, chosen under Settings (data-ex-accent on <html>): the roles that follow the primary colour. */
+/* A second accent, chosen under Settings (data-ex-accent on <html>): the roles a brand colour sets
+   (hover, pressed and the link underline follow --ds-primary by themselves). */
 .ds-theme[data-ex-accent="teal"] {
   --ds-primary: #006a6a;
-  --ds-primary-hover: #187979;
-  --ds-primary-pressed: #005454;
   --ds-accent: #cce8e7;
   --ds-on-accent: #002020;
   --ds-inverse-primary: #4cdada;
-  --ds-link-underline: rgba(0, 106, 106, .4);
 }
 
 .ds-theme[data-ex-accent="violet"] {
   --ds-primary: #6750a4;
-  --ds-primary-hover: #7461ab;
-  --ds-primary-pressed: #56418f;
   --ds-accent: #e8def8;
   --ds-on-accent: #1d192b;
   --ds-inverse-primary: #d0bcff;
-  --ds-link-underline: rgba(103, 80, 164, .4);
 }

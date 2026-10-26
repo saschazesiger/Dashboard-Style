@@ -21,9 +21,15 @@
  *
  * Custom properties resolve var() where they are declared. Roles that are
  * built from other tokens (type roles from --ds-font, --ds-link from
- * --ds-primary, --ds-focus-ring from --ds-surface) follow a theme only when
- * the theme sets its values on the .ds-theme element itself, as this file
- * does. Set on a descendant, those derived roles keep the old value.
+ * --ds-primary, --ds-focus-ring from --ds-surface, and the color-mix()
+ * roles: --ds-primary-hover and --ds-primary-pressed from --ds-primary,
+ * --ds-link-underline from --ds-link, --ds-fill-round, --ds-disabled-fill
+ * and --ds-disabled-ink from --ds-text) follow a theme only when the theme
+ * sets its values on the .ds-theme element itself, as this file does. Set
+ * on a descendant, those derived roles keep the old value.
+ *
+ * Besides custom properties, one rule sets color-scheme from
+ * --ds-color-scheme on :where(.ds-theme), at the end of the layer.
  *
  * Baseline: Safari 16.4, Chrome/Edge 111, Firefox 128; no CSS nesting.
  * Every stylesheet declares the layer order and puts its rules in one of
@@ -300,6 +306,18 @@
     --ds-surface-high: #e9eef6;
     --ds-surface-highest: #dde3ea;
 
+    /* Floating surfaces: overlay for the dialog box and the side sheet
+       panel, popover for menus, the combobox list and the skip link. The
+       same white by default; a dark theme lifts them a tone above the page,
+       where a shadow no longer shows. */
+    --ds-surface-overlay: var(--ds-surface);
+    --ds-surface-popover: var(--ds-surface);
+
+    /* The colour scheme of the theme (light or dark): the browser draws
+       scrollbars, native pickers and form controls to match. Set it with
+       the palette; :where(.ds-theme) applies it below. */
+    --ds-color-scheme: light;
+
     /* The band of the skeleton wave that passes over the bones. */
     --ds-skeleton-highlight: var(--ds-surface-high);
 
@@ -317,11 +335,13 @@
 
     /* Primary: the strongest action, focus, switches, progress, links. The
        hover and pressed values are references for components that cannot
-       lay a state layer (a solid button drawn by a project). */
+       lay a state layer (a solid button drawn by a project). Derived: they
+       follow --ds-primary (hover mixes in 8% of --ds-on-primary, pressed 15%
+       black); a theme sets them only to differ. */
     --ds-primary: #0b57d0;
     --ds-on-primary: #ffffff;
-    --ds-primary-hover: #1f64d4;
-    --ds-primary-pressed: #094ab1;
+    --ds-primary-hover: color-mix(in srgb, var(--ds-primary), var(--ds-on-primary) 8%);
+    --ds-primary-pressed: color-mix(in srgb, var(--ds-primary), #000 15%);
 
     /* The one tint: active navigation, selected chips, the tonal button,
        tracks of progress, text selection. It is too light against white to
@@ -358,8 +378,9 @@
     --ds-scrim: rgba(0, 0, 0, .32);
     --ds-scrim-nested: rgba(0, 0, 0, .16);
 
-    /* The disc behind round icon buttons (.ds-btn--disc). */
-    --ds-fill-round: rgba(31, 31, 31, .08);
+    /* The disc behind round icon buttons (.ds-btn--disc): 8% of the text
+       colour (derived; set it only to differ). */
+    --ds-fill-round: color-mix(in srgb, var(--ds-text) 8%, transparent);
 
     /* Inline code. */
     --ds-code-bg: var(--ds-surface-low);
@@ -383,18 +404,20 @@
        does not fade into a pale brand colour. A theme that prefers dimming
        sets --ds-disabled-opacity: var(--ds-state-disabled) and
        --ds-disabled-fill / --ds-disabled-ink to `initial` (each control then
-       keeps its own fill and ink). */
+       keeps its own fill and ink). Fill and ink are derived from --ds-text
+       (12% and 38%), so a theme that sets the text colour gets them too. */
     --ds-disabled-opacity: 1;
-    --ds-disabled-fill: rgba(31, 31, 31, .12);
-    --ds-disabled-ink: rgba(31, 31, 31, .38);
+    --ds-disabled-fill: color-mix(in srgb, var(--ds-text) 12%, transparent);
+    --ds-disabled-ink: color-mix(in srgb, var(--ds-text) 38%, transparent);
 
     /* ── Links ──────────────────────────────────────────
      * Always underlined: colour alone does not tell a link from text. The
      * thickness and offset are the same everywhere (themes recolour only),
-     * so links in text, text buttons and tables stay alike.
+     * so links in text, text buttons and tables stay alike. The resting
+     * underline is the link colour at 40% (derived; set it only to differ).
      */
     --ds-link: var(--ds-primary);
-    --ds-link-underline: rgba(11, 87, 208, .4);
+    --ds-link-underline: color-mix(in srgb, var(--ds-link) 40%, transparent);
     --ds-link-underline-hover: var(--ds-link);
     --ds-link-underline-thickness: 1px;
     --ds-link-underline-offset: 3px;
@@ -516,6 +539,16 @@
     --ds-measure: 76ch;
     --ds-toast-room: 64px;
     --ds-touch-target: 48px;
+  }
+
+  /*
+   * The one property in this file that is not a custom property: the
+   * theme's colour scheme, so scrollbars, native pickers and form controls
+   * of the browser match the palette. Zero specificity, so a page or a
+   * component that sets color-scheme itself still wins.
+   */
+  :where(.ds-theme) {
+    color-scheme: var(--ds-color-scheme);
   }
 
   /*

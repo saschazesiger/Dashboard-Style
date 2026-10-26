@@ -97,7 +97,7 @@
     overflow-y: auto;
     border: 0;
     border-radius: var(--ds-radius-xs);
-    background: var(--ds-surface);
+    background: var(--ds-surface-popover);
     color: var(--ds-text);
     box-shadow: var(--ds-elev-popover);
     scrollbar-width: thin;
