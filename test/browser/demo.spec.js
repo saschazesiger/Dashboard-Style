@@ -58,7 +58,7 @@ test('a search that leaves nothing shows the empty state; clearing the filters b
   await settle(page);
   await expect(rows).toHaveCount(0);
   await expect(page.locator('#live-empty .ds-empty')).toBeVisible();
-  await page.locator('[data-clear-filters]').click();
+  await page.locator('#live-empty [data-clear-filters]').click();
   await settle(page);
   await expect(rows).toHaveCount(total);
   await expect(page.locator('#live-empty .ds-empty')).toHaveCount(0);

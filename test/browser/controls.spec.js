@@ -687,7 +687,8 @@ test.describe('switch', () => {
       halo: getComputedStyle(el, '::before').opacity,
     }));
     const rest = await read();
-    await handle.hover();
+    // The input covers the track (2.0): it is what the pointer meets.
+    await page.locator('#switch-disabled-off').hover();
     await settle(page);
     expect(await read()).toEqual(rest);
     await page.mouse.down();
@@ -845,8 +846,12 @@ test.describe('checkbox and radio', () => {
     for (const [name, { table, plain }] of Object.entries(result)) {
       expect(table.position, name).toBe('absolute');
       expect(table.opacity, name).toBe('0');
-      expect(table.appearance, name).not.toBe('none');
-      expect(table.width, name).toBe('1px');
+      // A chip's input stays a 1px native box; a switch's input covers its track (2.0), drawn by nothing.
+      if (name.startsWith('switch')) expect(table.width, name).toBe('52px');
+      else {
+        expect(table.appearance, name).not.toBe('none');
+        expect(table.width, name).toBe('1px');
+      }
       expect(table.before, name).toBe('none');
       // The track (or chip body) sits where it does outside a table.
       expect(Math.abs(table.offset - plain.offset), name).toBeLessThanOrEqual(0.5);

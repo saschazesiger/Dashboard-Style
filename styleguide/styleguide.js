@@ -399,12 +399,12 @@
       '</div>' +
       label('Pick one of a few cards: the card is a toggle (aria-pressed), the ring stays inside, the focus ring outside') +
       '<div class="ds-grid-2" role="group" aria-label="Plan" id="sg-plans">' +
-      '<button class="ds-card ds-card--interactive" type="button" aria-pressed="true" data-sg="plan"><span class="ds-card__title">' + icon('check', 20) + 'Standard</span><span class="ds-muted">Daily sync, 30 days of history.</span></button>' +
+      '<div class="ds-card ds-card--interactive"><h3 class="ds-card__title">' + icon('check', 20) + '<button class="ds-card__action" type="button" aria-pressed="true" data-sg="plan">Standard</button></h3><p class="ds-muted">Daily sync, 30 days of history.</p></div>' +
       '<div class="ds-card ds-card--interactive ds-card--elevated"><h3 class="ds-card__title"><button class="ds-card__action" type="button" aria-pressed="false" data-sg="plan">Extended</button></h3><p class="ds-muted">Hourly sync, a year of history. An elevated card with a button action.</p><a class="ds-link--quiet" href="#cards">Compare plans</a></div>' +
       '</div>' +
       '<div class="ds-grid-2">' +
       card('Empty state', '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('box', 24) + '</span><p class="ds-empty__title">No devices in storage</p><p class="ds-empty__text">Devices you take back appear here until they are issued again.</p><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 16) + 'Add device</button></div>') +
-      card('Done state', '<div id="sg-done">' + doneHtml() + '</div><div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="done-replay">Send again</button></div>') +
+      card('Done state', '<div id="sg-done">' + doneHtml(true) + '</div><div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="done-replay">Send the request</button></div><p class="ds-muted">.ds-empty--done plays its entrance when it is inserted: the disc pops in, a ring widens once, the check draws itself.</p>') +
       card('Pressable rows, actions on demand, keys and dividers', '<ul class="ds-plain-list sg-press-rows">' +
         '<li class="sg-press-row ds-pressable ds-pressable--inset" tabindex="0" role="button" data-sg="press-row">LAPTOP-0042 <span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit LAPTOP-0042" data-tip="Edit">' + icon('pencil', 18) + '</button></span></li>' +
         '<li class="sg-press-row ds-pressable ds-pressable--inset" tabindex="0" role="button" data-sg="press-row">TABLET-0121 <span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit TABLET-0121" data-tip="Edit">' + icon('pencil', 18) + '</button></span></li>' +
@@ -425,8 +425,8 @@
   }
 
   /* The done state: a confirmation whose disc pops in and whose check draws itself. */
-  function doneHtml() {
-    return '<div class="ds-empty ds-empty--done" role="status"><span class="ds-empty__disc" aria-hidden="true">' + icon('check', 24) + '</span><p class="ds-empty__title">Request sent</p><p class="ds-empty__text">IT answers within a day.</p></div>';
+  function doneHtml(still) {
+    return '<div class="ds-empty' + (still ? '' : ' ds-empty--done') + '" role="status"><span class="ds-empty__disc" aria-hidden="true">' + icon('check', 24) + '</span><p class="ds-empty__title">Request sent</p><p class="ds-empty__text">IT answers within a day.</p></div>';
   }
 
   /* Removing the last item: two devices on loan, each with its own button. */
