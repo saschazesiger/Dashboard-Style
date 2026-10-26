@@ -2702,6 +2702,80 @@
     play: function (stage, sg) { return tableSortBy(stage, 'load').then(function () { return quiet(stage, sg); }); },
   });
 
+  /* ── Feedback: the bar of a bulk selection (2.0) ─────────────────── */
+
+  function selectionToolbar() {
+    return '<div class="ds-action-bar"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div><p class="ds-meta">3 devices</p></div>';
+  }
+
+  function selectionBar(count) {
+    return '<div class="ds-selection-bar" role="toolbar" aria-label="Selected devices"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear selection" data-selection-clear>' + icon('close', 20) + '</button>' +
+      '<p class="ds-selection-bar__count" aria-live="polite">' + count + ' selected</p><div class="ds-selection-bar__actions"><button class="ds-btn ds-btn--text" type="button">' + icon('trash', 18) + 'Delete</button></div></div>';
+  }
+
+  /* The bar and the toolbar cross only when the count goes from 0 to 1 and back; the count text changes at once. */
+  function selectionSync(stage) {
+    var boxes = $$('tbody input', stage);
+    var count = boxes.filter(function (box) { return box.checked; }).length;
+    var slot = $('.ds-swap', stage);
+    var bar = $(':scope > .ds-selection-bar:not([data-ds-leaving])', slot);
+    var all = $('thead input', stage);
+    all.checked = count === boxes.length;
+    all.indeterminate = count > 0 && count < boxes.length;
+    var template = document.createElement('template');
+    if (count && !bar) {
+      template.innerHTML = selectionBar(count);
+      return M.crossfade(slot, template.content.firstElementChild);
+    }
+    if (!count && bar) {
+      template.innerHTML = selectionToolbar();
+      return M.crossfade(slot, template.content.firstElementChild);
+    }
+    if (bar) $('.ds-selection-bar__count', bar).textContent = count + ' selected';
+    return Promise.resolve();
+  }
+
+  LAB_DEMOS.push({
+    id: 'selection-bar',
+    group: 'feedback',
+    title: 'Bulk selection bar',
+    note: 'Check a row: the <code>.ds-selection-bar</code> crosses with the toolbar in one <code>.ds-swap</code> slot (<code>DS.motion.crossfade()</code>: the bar fades in over <code>--ds-dur-fast</code>, the toolbar out over <code>--ds-dur-instant</code>), so the table never moves. More rows only change the count, at once; clearing the selection crosses back.',
+    shows: ['.ds-selection-bar', 'DS.motion.crossfade', '.ds-swap', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out'],
+    html: '<div class="ds-toolbar"><div class="ds-swap">' + selectionToolbar() + '</div></div>' +
+      '<div class="ds-table-wrap"><table class="ds-table"><caption class="ds-sr">Devices to select</caption><thead><tr><th scope="col"><input type="checkbox" aria-label="Select all devices"></th><th scope="col">Device</th></tr></thead><tbody>' +
+      ['LAPTOP-0042', 'TABLET-0121', 'PRINTER-0003'].map(function (name) { return '<tr><td><input type="checkbox" aria-label="Select ' + name + '"></td><td>' + name + '</td></tr>'; }).join('') + '</tbody></table></div>',
+    height: 280,
+    setup: function (stage) {
+      stage.addEventListener('change', function (event) {
+        if (event.target.closest('thead')) $$('tbody input', stage).forEach(function (box) { box.checked = event.target.checked; });
+        selectionSync(stage);
+      });
+      stage.addEventListener('click', function (event) {
+        if (!event.target.closest('[data-selection-clear]')) return;
+        $$('tbody input', stage).forEach(function (box) { box.checked = false; });
+        selectionSync(stage);
+        $('thead input', stage).focus();
+      });
+    },
+    play: function (stage, sg) {
+      var boxes = $$('tbody input', stage);
+      boxes[0].checked = true;
+      return selectionSync(stage).then(function () { return wait(sg, 300); }).then(function () {
+        boxes[1].checked = true;
+        selectionSync(stage);
+        return wait(sg, 300);
+      }).then(function () {
+        boxes.forEach(function (box) { box.checked = false; });
+        return selectionSync(stage);
+      }).then(function () { return quiet(stage, sg); });
+    },
+    state: function (stage) { return Boolean($('.ds-swap > .ds-selection-bar:not([data-ds-leaving])', stage)); },
+    toggle: function (stage, on) {
+      $$('tbody input', stage).forEach(function (box, index) { box.checked = on && index === 0; });
+      return selectionSync(stage);
+    },
+  });
+
   /* ── Feedback: alerts and the errors disclosure ──────────────────── */
 
   var ALERT_NEWS = ['Synced LAPTOP-0042.', 'Imported 12 devices.', 'TABLET-0121 is back online.', 'Exported the list as CSV.'];
@@ -2920,8 +2994,8 @@
     id: 'scroll',
     group: 'views',
     title: 'Reveal on scroll and edge fades',
-    note: 'In a long read-only page each block fades in and rises while it scrolls into view (<code>.ds-reveal--scroll</code>, tied to the scroll position: scrolling back reverses it). A table wider than its card fades its edges while it scrolls sideways (<code>ds-edge-fade</code> on the wrapper\'s scroll timeline). Without scroll timelines both stay static, never hidden. Replay scrolls both to the end and back.',
-    shows: ['.ds-reveal--scroll', 'ds-edge-fade', 'ds-fade-in', 'ds-lift-in', '--ds-distance-md'],
+    note: 'In a long read-only page each block fades in and rises while it scrolls into view (<code>.ds-reveal--scroll</code>, tied to the scroll position: scrolling back reverses it). A table wider than its card fades its edges while it scrolls sideways (<code>ds-scroll-edge-start</code> and <code>ds-scroll-edge-end</code> on the wrapper\'s scroll timeline). Without scroll timelines both stay static, never hidden. Replay scrolls both to the end and back.',
+    shows: ['.ds-reveal--scroll', 'ds-scroll-edge-start', 'ds-scroll-edge-end', 'ds-fade-in', 'ds-lift-in', '--ds-distance-md'],
     html: '<div class="sg-scroll-demo"><div class="sg-scroll-box" tabindex="0" aria-label="A report">' + REPORT.map(function (block) {
       return '<section class="ds-card ds-reveal--scroll"><h4 class="ds-card__title">' + block[0] + '</h4><p class="ds-muted">' + block[1] + '</p></section>';
     }).join('') + '</div>' +
@@ -2939,6 +3013,40 @@
     toggle: function (stage, on, sg) { return scrollBox(stage, on ? 'end' : 'start', sg); },
   });
 
+  /* ── Views: a sideways strip with its edge fades (2.0) ───────────── */
+
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'];
+
+  /* Scrolls the strip to its start or end; the fades follow the scroll (or scrollEdges()'s attributes). */
+  function stripTo(stage, to, sg) {
+    var strip = $('.ds-scroll-x', stage);
+    var target = to === 'end' ? strip.scrollWidth - strip.clientWidth : 0;
+    strip.scrollTo({ left: target, behavior: 'smooth' });
+    return until(sg, function () { return Math.abs(strip.scrollLeft - target) < 1; }, 4000).then(function () { return quiet(stage, sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'scroll-x',
+    group: 'views',
+    title: 'Sideways strip',
+    note: 'A strip wider than its panel (<code>.ds-scroll-x</code>) fades at each end that still has months to show: <code>ds-scroll-edge-start</code> grows the start fade while the first <code>--ds-space-8</code> scroll away, <code>ds-scroll-edge-end</code> takes the end fade away over the last, on the strip\'s own scroll timeline. Without scroll timelines <code>DS.dom.scrollEdges()</code> sets the same two numbers through <code>data-ds-overflow-start</code> and <code>-end</code>, over <code>--ds-dur-fast</code>. Replay scrolls to the end and back.',
+    // DS.dom.scrollEdges (2.0, js/dom.js) is named where the export exists.
+    shows: ['.ds-scroll-x', 'ds-scroll-edge-start', 'ds-scroll-edge-end', '--ds-dur-fast', '--ds-ease-in-out'].concat(DS.dom.scrollEdges ? ['DS.dom.scrollEdges'] : []),
+    html: '<div class="ds-scroll-x" tabindex="0" role="region" aria-label="Check-ins per month"><div class="sg-months">' + MONTHS.map(function (month, index) {
+      return '<div class="sg-month"><span class="ds-meta">' + month + '</span><strong>' + (380 + ((index * 53) % 120)) + '</strong></div>';
+    }).join('') + '</div></div>',
+    height: 120,
+    setup: function (stage) {
+      // The attribute fallback, where the export exists (DS.dom.scrollEdges, 2.0).
+      if (DS.dom.scrollEdges) DS.dom.scrollEdges($('.ds-scroll-x', stage));
+    },
+    play: function (stage, sg) {
+      return stripTo(stage, 'end', sg).then(function () { return wait(sg, 300); }).then(function () { return stripTo(stage, 'start', sg); });
+    },
+    state: function (stage) { return $('.ds-scroll-x', stage).scrollLeft > 0; },
+    toggle: function (stage, on, sg) { return stripTo(stage, on ? 'end' : 'start', sg); },
+  });
+
   /* The order of the cards inside each section (entries not named keep
      their place after these). Half-width cards come in pairs before a wide
      card, so none sits alone beside an empty column; an odd one goes last
@@ -2950,6 +3058,9 @@
     'track', 'drawer', 'segmented', 'topbar',
     'loaders', 'progress', 'indeterminate', 'status', 'skeleton', 'stale', 'table', 'tiles', 'alerts',
     'views', 'scroll', 'view-leaving'];
+  // 2.0: the bulk selection bar after the table, the sideways strip after the reveal on scroll.
+  ORDER.splice(ORDER.indexOf('table') + 1, 0, 'selection-bar');
+  ORDER.splice(ORDER.indexOf('scroll') + 1, 0, 'scroll-x');
   LAB_DEMOS = LAB_DEMOS.map(function (entry, index) { return { entry: entry, index: index }; }).sort(function (a, b) {
     var rank = function (item) { var at = ORDER.indexOf(item.entry.id); return at === -1 ? ORDER.length + item.index : at; };
     return rank(a) - rank(b);

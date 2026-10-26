@@ -200,13 +200,13 @@ test('side sheet: the head hairline follows the body\'s first 8px of scroll, or 
 test('table edge fades: a fade on each side that still has columns, none on a table that fits; else the static fade', async ({ page }) => {
   await load(page);
   const has = await supports(page);
+  // 2.0: the wrappers fade on the edge numbers of scroller.css (0 or 1, times the fade length).
   const fades = (selector) => page.evaluate((sel) => {
     const wrap = document.querySelector(sel);
     const style = getComputedStyle(wrap);
     return {
-      start: style.getPropertyValue('--ds-table-fade-start').trim(),
-      end: style.getPropertyValue('--ds-table-fade-end').trim(),
-      pad: style.getPropertyValue('--ds-card-pad').trim(),
+      start: Number(style.getPropertyValue('--ds-scroll-edge-start')),
+      end: Number(style.getPropertyValue('--ds-scroll-edge-end')),
       mask: style.maskImage || style.webkitMaskImage,
       scrolls: wrap.scrollWidth > wrap.clientWidth,
     };
@@ -214,14 +214,14 @@ test('table edge fades: a fade on each side that still has columns, none on a ta
   const wide = await fades('#wide');
   expect(wide.scrolls, 'the wide table scrolls sideways').toBe(true);
   if (has.scroll) {
-    expect([wide.start, wide.end]).toEqual(['0px', wide.pad]);
+    expect([wide.start, wide.end]).toEqual([0, 1]);
     await scrollTo(page, '#wide', { left: 100000 });
     const end = await fades('#wide');
-    expect([end.start, end.end]).toEqual([wide.pad, '0px']);
+    expect([end.start, end.end]).toEqual([1, 0]);
     const narrow = await fades('#narrow');
     expect(narrow.scrolls).toBe(false);
-    expect([narrow.start, narrow.end], 'a table that fits fades nowhere').toEqual(['0px', '0px']);
-    // Scrolled to its end, then columns hidden until it fits: resyncScroll() drops the left fade it kept.
+    expect([narrow.start, narrow.end], 'a table that fits fades nowhere').toEqual([0, 0]);
+    // Scrolled to its end, then columns hidden until it fits: resyncScroll() drops the start fade it kept.
     await page.evaluate(() => {
       const wrap = document.getElementById('wide');
       for (const cell of wrap.querySelectorAll('th:nth-child(n+3), td:nth-child(n+3)')) cell.hidden = true;
@@ -230,8 +230,8 @@ test('table edge fades: a fade on each side that still has columns, none on a ta
     await scrollTo(page, '#wide', {});
     const fits = await fades('#wide');
     expect(fits.scrolls, 'the table fits now').toBe(false);
-    expect(await page.evaluate(() => document.getElementById('wide').getAnimations().length), 'it keeps its edge fades').toBe(1);
-    expect([fits.start, fits.end], 'a table that fits now fades nowhere').toEqual(['0px', '0px']);
+    expect(await page.evaluate(() => document.getElementById('wide').getAnimations().length), 'it keeps its edge fades').toBe(2);
+    expect([fits.start, fits.end], 'a table that fits now fades nowhere').toEqual([0, 0]);
   } else {
     // The static fade at the right edge, without a timeline.
     expect(wide.mask).toMatch(/linear-gradient\(to left, /);

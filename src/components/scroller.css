@@ -150,13 +150,15 @@
    * The place of a "Latest" pill: sticky at the bottom of its log, no room
    * of its own (height 0), so the log's content never moves when the pill
    * comes; only the pill takes the pointer, the place lets clicks through
-   * to the log under it.
+   * to the log under it. The pill keeps its own height (not stretched to
+   * the place's 0) and is lifted by its whole height.
    */
   .ds-jump {
     position: sticky;
     inset-block-end: var(--ds-space-4);
     z-index: var(--ds-z-sticky);
     display: flex;
+    align-items: flex-start;
     justify-content: center;
     height: 0;
     overflow: visible;

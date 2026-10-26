@@ -189,6 +189,7 @@ const LAB_EXEMPT = {
   'ds-pulse': 'deprecated loop (removed in 2.0): skeletons run ds-skeleton-wave',
   'ds-indeterminate': 'deprecated loop (removed in 2.0): indeterminate progress runs ds-progress-head and ds-progress-tail',
   'DS.motion.easeOutCubic': 'deprecated and unused (removed in 2.0): countUp() runs on --ds-ease-value',
+  'ds-edge-fade': 'deprecated in 2.0 and unused (removed in 3.0 at the earliest): the table wrappers run ds-scroll-edge-start and ds-scroll-edge-end',
 };
 
 /** Closes what a demo left open (Rapid toggle ends on an open overlay) and waits until it is hidden. */
@@ -278,6 +279,7 @@ const CONTINUITY = {
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
+  'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -288,6 +290,7 @@ const CONTINUITY_EXEMPT = {
   tooltips: 'a tooltip waits --ds-delay-tooltip before it moves, so the reversal comes before it shows',
   views: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
   scroll: 'scroll-driven: the reveal and the edge fades follow the scroll position, not time',
+  'scroll-x': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
 };
 
 /**

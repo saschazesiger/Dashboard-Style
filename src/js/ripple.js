@@ -198,10 +198,13 @@ function pinnedTwin(row, rect, left, top, radius) {
  * confines the link's stretched area, so the click would open nothing.
  * A plain click clicks the link; Ctrl, Meta or Shift and the middle
  * button open an a[href] in a new tab. A page that called
- * preventDefault() keeps the click. Returns whether it forwarded.
+ * preventDefault() keeps the click. `ownPrevent`: the middle press that
+ * led to this auxclick was cancelled by attach() itself (no autoscroll),
+ * which some engines carry over to the auxclick. Returns whether it
+ * forwarded.
  */
-function forwardRowClick(event, root) {
-  if (event.defaultPrevented || (event.button !== 0 && event.button !== 1)) return false;
+function forwardRowClick(event, root, ownPrevent = false) {
+  if ((event.defaultPrevented && !ownPrevent) || (event.button !== 0 && event.button !== 1)) return false;
   const element = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
   const row = element?.closest?.(PINNED_ROW);
   if (!row || !root.contains(row)) return false;
@@ -210,8 +213,10 @@ function forwardRowClick(event, root) {
   const link = row.querySelector('.ds-table__row-link');
   if (!link || link.matches(':disabled') || link.getAttribute('aria-disabled') === 'true') return false;
   const view = row.ownerDocument.defaultView;
+  // Text selected by a drag ends in a click that opens nothing. Ctrl, Meta and the middle button skip
+  // the check: Firefox selects the table cell on Ctrl + click, and nothing selects text with them.
   const selection = view?.getSelection?.();
-  if (selection && !selection.isCollapsed) return false;
+  if (selection && !selection.isCollapsed && !(event.ctrlKey || event.metaKey || event.button === 1)) return false;
   const away = event.button === 1 || event.ctrlKey || event.metaKey || event.shiftKey;
   if (away) {
     if (!link.matches('a[href]')) {
@@ -697,17 +702,27 @@ export function attach(root = document) {
   // A passive no-op: iOS Safari applies :active only with a touchstart listener.
   const onTouchStart = () => {};
 
+  // The row whose middle press attach() cancelled (Chromium marks the auxclick that follows as prevented too).
+  /** @type {Element|null} */
+  let middleRow = null;
+
   // Pinned rows: a click on the row opens its link (bubble phase, after the page's own handlers).
   const onRowClick = (/** @type {MouseEvent} */ event) => {
-    forwardRowClick(event, element);
+    const own = event.type === 'auxclick' && middleRow !== null && middleRow.contains(/** @type {Node} */ (event.target));
+    if (event.type === 'auxclick') middleRow = null;
+    forwardRowClick(event, element, own);
   };
 
   // A middle press on a pinned row opens its link in a new tab, never the platform autoscroll.
   const onRowMouseDown = (/** @type {MouseEvent} */ event) => {
-    if (event.button !== 1) return;
+    middleRow = null;
+    if (event.button !== 1 || event.defaultPrevented) return;
     const target = /** @type {Element} */ (event.target);
-    const row = (target?.nodeType === 1 ? target : target?.parentElement)?.closest?.(PINNED_ROW);
-    if (row && element.contains(row) && row.querySelector('a[href].ds-table__row-link') && !target.closest?.(CONTROLS)) event.preventDefault();
+    const node = target?.nodeType === 1 ? target : target?.parentElement;
+    const row = node?.closest?.(PINNED_ROW);
+    if (!row || !element.contains(row) || !row.querySelector('a[href].ds-table__row-link') || node.closest(CONTROLS)) return;
+    event.preventDefault();
+    middleRow = row;
   };
 
   const onChange = (/** @type {Event} */ event) => {

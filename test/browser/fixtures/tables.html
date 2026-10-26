@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tables and scrollers · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  /* Fixed widths, so the container queries and the sideways scroll do not depend on the window. */
+  .fx-content-560 { width: 560px; }
+  .fx-content-800 { width: 800px; }
+  .fx-card-480 { width: 480px; }
+  .fx-fill-frame { display: flex; flex-direction: column; width: 640px; height: 360px; }
+  .fx-strip { display: flex; gap: var(--ds-space-2); width: max-content; }
+  .fx-strip > span { display: block; width: 96px; padding: var(--ds-space-3); border: 1px solid var(--ds-line); }
+  .fx-strip-box { width: 400px; }
+  .fx-log { position: relative; width: 320px; height: 160px; overflow-y: auto; }
+  .fx-log p { margin: 0; padding-block: var(--ds-space-2); }
+</style>
+</head>
+<body>
+<!-- Tables and scrollers of 2.0 (tables.spec.js, scroller.spec.js):
+     stacked rows in a 560px and an 800px content area and in a side sheet
+     body; a full-page table (30 rows x 9 columns, pinned first column) in
+     a bounded 640x360 frame; a pinned interactive card table that scrolls
+     sideways (row links are a[href] to #open-<key>), with a selected row,
+     row actions and a summary row; an interactive table with and without
+     row links; sideways strips that scroll and that fit; a log with the
+     place of its "Latest" pill; pagination in a card; a selection bar.
+     The rows are built by the script below. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="stack-title">
+    <h2 id="stack-title">Stacked rows</h2>
+    <div class="ds-content fx-content-560" id="content-560">
+      <section class="ds-card"><div class="ds-table-wrap" id="stack-wrap"><table class="ds-table ds-table--stack" id="stack">
+        <caption class="ds-sr">Sources</caption>
+        <thead><tr><th scope="col">Name</th><th scope="col">URL</th><th scope="col"><span class="ds-sr">Remove</span></th></tr></thead>
+        <tbody>
+          <tr data-ds-key="s1"><td data-label="Name"><input class="ds-input" aria-label="Name" value="Status page"></td><td data-label="URL"><input class="ds-input" aria-label="URL" value="https://status.example.org"></td><td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove source 1"><span data-icon="close"></span></button></td></tr>
+          <tr data-ds-key="s2"><td data-label="Name"><input class="ds-input" aria-label="Name" value="Mail relay"></td><td data-label="URL"><input class="ds-input" aria-label="URL" value="https://mail.example.org"></td><td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove source 2"><span data-icon="close"></span></button></td></tr>
+        </tbody>
+      </table></div></section>
+    </div>
+    <div class="ds-content fx-content-800" id="content-800">
+      <table class="ds-table ds-table--stack-wide" id="stack-wide">
+        <thead><tr><th scope="col">Name</th><th scope="col">URL</th></tr></thead>
+        <tbody><tr><td data-label="Name">Status page</td><td data-label="URL">https://status.example.org</td></tr></tbody>
+      </table>
+      <table class="ds-table ds-table--stack" id="stack-800">
+        <thead><tr><th scope="col">Name</th><th scope="col">URL</th></tr></thead>
+        <tbody><tr><td data-label="Name">Status page</td><td data-label="URL">https://status.example.org</td></tr></tbody>
+      </table>
+    </div>
+    <div class="ds-sheet__body fx-content-800" id="sheet-body">
+      <table class="ds-table ds-table--stack" id="stack-sheet">
+        <thead><tr><th scope="col">Name</th><th scope="col">URL</th></tr></thead>
+        <tbody><tr><td data-label="Name">Status page</td><td data-label="URL">https://status.example.org</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="fill-title">
+    <h2 id="fill-title">Full-page table</h2>
+    <div class="fx-fill-frame" id="fill-frame">
+      <div class="ds-table-wrap ds-table-wrap--fill" id="fill"><table class="ds-table ds-table--interactive ds-table--pin-first" id="fill-table">
+        <caption class="ds-sr">Fleet</caption><thead id="fill-head"></thead><tbody id="fill-body"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="pinned-title">
+    <h2 id="pinned-title">Pinned card table</h2>
+    <section class="ds-card fx-card-480" id="pinned-card"><div class="ds-table-wrap" id="pinned-wrap"><table class="ds-table ds-table--interactive ds-table--pin-first" id="pinned">
+      <caption class="ds-sr">Devices</caption><thead id="pinned-head"></thead><tbody id="pinned-body"></tbody>
+      <tfoot><tr><th scope="row" id="foot-first">4 devices</th><td></td><td></td><td></td><td></td><td></td><td class="ds-num" id="foot-load">50%</td><td></td></tr></tfoot>
+    </table></div></section>
+  </section>
+
+  <section class="fx-section" aria-labelledby="plain-title">
+    <h2 id="plain-title">Rows with and without a row link</h2>
+    <table class="ds-table ds-table--interactive" id="plain">
+      <thead><tr><th scope="col">Device</th><th scope="col">State</th></tr></thead>
+      <tbody>
+        <tr id="row-linked"><td><a class="ds-link-btn ds-table__row-link" href="#open-linked">LAPTOP-0042</a></td><td>Active</td></tr>
+        <tr id="row-plain"><td>LAPTOP-0043</td><td>Active</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="fx-section" aria-labelledby="strip-title">
+    <h2 id="strip-title">Sideways strips</h2>
+    <div class="fx-strip-box">
+      <div class="ds-scroll-x" tabindex="0" role="region" aria-label="Months" id="strip"><div class="fx-strip" id="strip-track"></div></div>
+      <div class="ds-scroll-x" id="strip-fits"><div class="fx-strip"><span>Jan</span><span>Feb</span></div></div>
+    </div>
+    <div class="fx-log" id="log">
+      <div class="ds-jump" id="jump"><div class="ds-presence" id="jump-pill-wrap"><button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Latest" id="jump-pill"><span data-icon="arrowDown"></span></button></div></div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="pages-title">
+    <h2 id="pages-title">Pagination and selection</h2>
+    <div class="ds-content fx-content-800" id="pages-content">
+      <section class="ds-card" id="paged-card">
+        <div class="ds-toolbar"><div class="ds-swap" id="bulk-slot">
+          <div class="ds-selection-bar" role="toolbar" aria-label="Selected devices" id="selection-bar">
+            <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear selection"><span data-icon="close"></span></button>
+            <p class="ds-selection-bar__count" aria-live="polite">3 selected</p>
+            <div class="ds-selection-bar__actions"><button class="ds-btn ds-btn--text" type="button">Delete</button></div>
+          </div>
+        </div></div>
+        <div class="ds-table-wrap" id="paged-wrap"><table class="ds-table"><thead><tr><th scope="col">Device</th><th scope="col" class="ds-num">Load</th></tr></thead>
+          <tbody><tr><td>LAPTOP-0042</td><td class="ds-num">32%</td></tr><tr><td>LAPTOP-0043</td><td class="ds-num">14%</td></tr></tbody></table></div>
+        <nav class="ds-pagination" aria-label="Pages of devices" id="pages">
+          <div class="ds-pagination__size" id="pages-size"><label class="ds-pagination__label" for="pp">Rows per page</label>
+            <select class="ds-input ds-input--filled" id="pp"><option>25</option><option selected>50</option></select></div>
+          <p class="ds-pagination__range" aria-live="polite" id="pages-range">1–50 of 128</p>
+          <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="First page" aria-disabled="true" id="page-first"><span data-icon="chevronLeft"></span></button>
+          <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous page" aria-disabled="true"><span data-icon="chevronLeft"></span></button>
+          <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next page"><span data-icon="chevronRight"></span></button>
+          <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Last page" id="page-last"><span data-icon="chevronRight"></span></button>
+        </nav>
+      </section>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script>
+  (function () {
+    'use strict';
+    var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var head = ['Device', 'Model', 'Owner', 'Location', 'Bought', 'System', 'Serial', 'Address', 'Load'];
+    var row = function (i, cells) {
+      var key = 'd' + i;
+      return '<tr data-ds-key="' + key + '"><td class="ds-nowrap"><a class="ds-link-btn ds-table__row-link" href="#open-' + key + '">LAPTOP-' + String(100 + i) + '</a></td>' +
+        cells.map(function (text) { return '<td class="ds-nowrap">' + esc(text) + '</td>'; }).join('') + '</tr>';
+    };
+    var cells = function (i) {
+      return ['Notebook 14', 'Ada Lovelace', i === 2 ? 'Building B, ground floor, the open-plan office next to the stairs on the left' : 'Building A, 1st floor', '2024-03-1' + (i % 10), 'Release 24.2', 'SN-' + (4096 + i), '10.0.4.' + i, (i * 7) % 100 + '%'];
+    };
+    document.getElementById('fill-head').innerHTML = '<tr>' + head.map(function (name) { return '<th scope="col">' + name + '</th>'; }).join('') + '</tr>';
+    var fill = [];
+    for (var i = 1; i <= 30; i += 1) fill.push(row(i, cells(i)));
+    document.getElementById('fill-body').innerHTML = fill.join('');
+    // The pinned card table: a checkbox column first (pinned), the row link second, an action at the end.
+    document.getElementById('pinned-head').innerHTML = '<tr><th scope="col"><input type="checkbox" aria-label="Select all"></th><th scope="col">Device</th><th scope="col">Model</th><th scope="col">Owner</th><th scope="col">Location</th><th scope="col">Serial</th><th scope="col" class="ds-num">Load</th><th scope="col"><span class="ds-sr">Actions</span></th></tr>';
+    var pinned = [];
+    for (var j = 1; j <= 4; j += 1) {
+      pinned.push('<tr data-ds-key="p' + j + '" id="pinned-' + j + '"><td><input type="checkbox" aria-label="Select device ' + j + '"' + (j === 2 ? ' checked' : '') + '></td>' +
+        '<td class="ds-nowrap"><a class="ds-link-btn ds-table__row-link" href="#open-p' + j + '" id="link-' + j + '">DESKTOP-' + String(200 + j) + '</a></td>' +
+        '<td class="ds-nowrap">Workstation 7</td><td class="ds-nowrap">Grace Hopper</td><td class="ds-nowrap">Building C, 3rd floor</td><td class="ds-nowrap">SN-' + (8000 + j) + '</td><td class="ds-num">' + (j * 20) + '%</td>' +
+        '<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit device ' + j + '" id="edit-' + j + '">E</button></td></tr>');
+    }
+    document.getElementById('pinned-body').innerHTML = pinned.join('');
+    var track = [];
+    for (var m = 1; m <= 16; m += 1) track.push('<span>Month ' + m + '</span>');
+    document.getElementById('strip-track').innerHTML = track.join('');
+    var log = document.getElementById('log');
+    for (var n = 1; n <= 20; n += 1) {
+      var line = document.createElement('p');
+      line.textContent = 'Line ' + n;
+      log.insertBefore(line, document.getElementById('jump'));
+    }
+    window.fxTables = { opened: [] };
+  }());
+</script>
+<script src="fixture.js"></script>
+</body>
+</html>
