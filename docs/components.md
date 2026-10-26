@@ -17,6 +17,10 @@ component live.
 | A whole card opens something (a device, a report) | `.ds-card--interactive` on `<a>` or `<button>`, or on a `<div>` with a `.ds-card__action` link ([Card](#card)) |
 | Any action | [Button](#button) `.ds-btn` with one variant; an action inside text or a table cell: `.ds-link-btn` |
 | A view option that stays on or off (filter, compact view) | `.ds-btn--quiet` with `aria-pressed` ([Button](#button)) |
+| A choice made once, then locked (a vote, a sent answer) | the pressed toggle with `aria-disabled="true"`: it keeps its on look ([Button](#button)) |
+| A button whose label folds away on phones | `.ds-btn--adaptive` with `.ds-btn__label` and a `data-tip` ([Button](#button)) |
+| A button that opens a panel, a dialog or a side sheet | `.ds-btn--disclosure` or `aria-haspopup="dialog"` with `aria-expanded`: tinted while open ([Button](#button)) |
+| A secondary link next to the main one | `.ds-link--quiet`, `.ds-link-btn--quiet` ([Button](#button)) |
 | A save that takes a moment, with a success moment after it | `.ds-btn__faces` and `DS.motion.busy()` ([Button](#button)) |
 | An icon that turns into another (copy to check, play to pause) | `.ds-icon-swap`, `DS.motion.crossfade(el, icon, { kind: 'icon' })` ([Button](#button)) |
 | Key figures at the top of a page | [Tiles](#tiles) `.ds-tiles`, `.ds-tile` |
@@ -315,6 +319,21 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
   <span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">[icon copy 20]</span><span class="ds-icon-swap__b">[icon check 20]</span></span>
 </button>
 <button class="ds-link-btn" type="button">Printer on floor 2</button>                <!-- reads like a link -->
+<button class="ds-btn ds-btn--disclosure" type="button" aria-expanded="false" aria-controls="filters">[icon filter 16] Filters</button>  <!-- opens a panel -->
+<button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="false">Details</button>  <!-- opens a sheet or dialog -->
+<button class="ds-btn ds-btn--adaptive" type="button" data-tip="Export">[icon download 16]<span class="ds-btn__label">Export</span></button>  <!-- folds on phones -->
+<a class="ds-link--quiet" href="/devices/42/history">Show history</a>                 <!-- a quiet link -->
+<button class="ds-link-btn ds-link-btn--quiet" type="button">Edit columns</button>
+```
+
+A choice made once, then locked (a vote, an answer that was sent): the pressed toggle keeps its on look while
+`aria-disabled`, its siblings dim:
+
+```html
+<div role="group" aria-label="Was this helpful?">
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="true" aria-disabled="true" aria-label="Helpful">[icon thumbUp 20 ds-icon--fillable]</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-pressed="false" aria-disabled="true" aria-label="Not helpful">[icon thumbDown 20 ds-icon--fillable]</button>
+</div>
 ```
 
 ```js
@@ -324,13 +343,32 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 
 - Every action is a pill. One filled `--primary` per area; there are no red buttons (name the consequence:
   "Delete 3 devices").
-- A leading icon pulls the start padding to 12px.
+- A leading icon pulls the start padding to 12px, also the icon of the first face of `.ds-btn__faces`.
+- `.ds-btn--sm` reads `--ds-btn-sm-height` (32px) and, with `--icon`, `--ds-btn-sm-icon-size` (32px): set those to
+  change every small button, never `--ds-btn-height` on the modifier.
 - A toggle that is on carries `aria-pressed="true"` and shows the tint (forced colors: the selection colours).
   Toggles in a track with a sliding indicator ([DS.indicator](motion.md), `.ds-has-indicator`) leave the tint to
   the pill (give it `--ds-accent`): the button stays clear, so only one pill shows while it travels, and its label
   changes colour on the pill's timing (`--ds-indicator-dur`).
 - `aria-disabled="true"` looks disabled but stays focusable and hoverable, so a tooltip can say why; your script
-  must ignore its clicks. `disabled` and `aria-busy="true"` block the pointer.
+  must ignore its clicks. `disabled` and `aria-busy="true"` block the pointer. Forced colours: `GrayText`.
+- A choice made once, then locked: `aria-pressed="true"` with `aria-disabled="true"` keeps the on look at full
+  strength (no layer, the default cursor; forced colours keep `Highlight`); the unpressed siblings dim as usual.
+- A button that opens a panel (`.ds-btn--disclosure` with `aria-expanded`, or any `.ds-btn` with
+  `aria-haspopup="dialog"`) takes the pressed tint while `aria-expanded="true"` (forced colours: `Highlight` /
+  `HighlightText`, focused with a `CanvasText` ring). Keep `aria-expanded` in step yourself, or let `DS.overlay`
+  do it for dialog and sheet openers. Menu triggers (`aria-haspopup="menu"`) do not tint.
+- `.ds-btn--adaptive`: a button whose label folds away on phones. Wrap the label in `.ds-btn__label` after the icon;
+  in a content panel of 600px or less (sheets and dialogs: a window of 600px or less) the label is visually hidden
+  and the button turns into a round quiet icon button (`--ds-btn-icon-size`, with `--sm`
+  `--ds-btn-sm-icon-size`; the icon at 20px). Its accessible name stays the label; give it a `data-tip` with the
+  same words, which shows only while the label is folded (a tip equal to the visible text shows only while it is cut
+  off, [Tooltip](#tooltip)).
+- Quiet links: `.ds-link--quiet` on a link and `.ds-link-btn--quiet` with `.ds-link-btn` take the quieter ink
+  (`--ds-text-2`) and a hairline underline (`--ds-line-2`, the link underline geometry), the link colour and
+  `--ds-link-underline-hover` on hover; still underlined. For secondary links next to the main one.
+- A text button that underlines on hover (`--ds-btn-hover-decoration: underline`) draws it with the link geometry
+  (`--ds-link-underline-thickness`, `--ds-link-underline-offset`).
 - Press: the state layer comes in `--ds-dur-micro` and the shape turns squarer (`--ds-radius-action-pressed`, 12px;
   hook `--ds-btn-radius-pressed`), then springs back on release (`--ds-ease-spatial`, `--ds-dur-medium`); with
   `DS.ripple.attach(document)` a ripple grows from the pointer ([Ripple](#ripple)) and `.ds-pressed` keeps a quick

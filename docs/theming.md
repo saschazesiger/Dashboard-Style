@@ -242,7 +242,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 
 | Hook | Default | Component |
 |---|---|---|
-| `--ds-btn-height` | 36px (`--sm`: 32px) | button |
+| `--ds-btn-height` | 36px (`--sm`: `--ds-btn-sm-height`) | button |
 | `--ds-btn-padding-x` | `--ds-space-4` (`--text`, `--sm`: `--ds-space-3`) | button |
 | `--ds-btn-padding-start` | `= padding-x`; `--ds-space-3` before a leading icon | button |
 | `--ds-btn-radius` | `--ds-radius-action` | button |
@@ -255,6 +255,8 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-hover-shadow` | none (`--primary`: `--ds-elev-hover`) | hover elevation |
 | `--ds-btn-hover-decoration` | none | e.g. `underline` for text buttons |
 | `--ds-btn-icon-size` | 40px | `--icon` buttons |
+| `--ds-btn-sm-height` | 32px | `.ds-btn--sm` (it sets `--ds-btn-height` from it) |
+| `--ds-btn-sm-icon-size` | 32px | `.ds-btn--sm.ds-btn--icon` (it sets `--ds-btn-icon-size` from it) |
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
 | `--ds-input-font` | body; input role at 600px and below | fields |
@@ -283,8 +285,11 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-kbd-border`, `--ds-kbd-bg` | `--ds-line-2`, `--ds-surface` | `.ds-kbd`: the box of a key |
 | `--ds-status-radius` | `--ds-radius-md` | status chip |
 | `--ds-spinner-track`, `--ds-spinner-color` | none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`) | spinner: the track behind the arc, the arc |
-| `--ds-spinner-width` | 2px (`--determinate`: 4px) | the spinner's ring width (instead of `border-width`) |
-| `--ds-loader-size`, `--ds-loader-color` | 48px (`--sm`: 24px), `--ds-primary` | the shape loader's container and its shape ([loading](components.md#loading)) |
+| `--ds-spinner-width` | 2px (`--determinate`: `--ds-spinner-determinate-width`) | the spinner's ring width (instead of `border-width`) |
+| `--ds-spinner-determinate-width` | 4px | the ring width of `.ds-spinner--determinate` |
+| `--ds-status-spinner-width` | 2px | the ring width of the spinner in a running status chip |
+| `--ds-loader-size`, `--ds-loader-color` | 48px (`--sm`: `--ds-loader-sm-size`), `--ds-primary` | the shape loader's container and its shape ([loading](components.md#loading)) |
+| `--ds-loader-sm-size` | 24px | `.ds-loader--sm` |
 | `--ds-progress-gap` | 4px | linear progress: the gap between the bar and the remaining track |
 | `--ds-progress-track`, `--ds-progress-stop` | `--ds-accent`, `--ds-primary` | linear progress: the remaining track, the stop dot at its end |
 | `--ds-dialog-width` | 400px | dialog |

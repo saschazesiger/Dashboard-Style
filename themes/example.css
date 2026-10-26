@@ -170,6 +170,7 @@
   --ds-btn-hover-color: (resting color); --ds-btn-hover-border: (resting border);
   --ds-btn-hover-shadow: none;         --ds-btn-hover-decoration: none;
   --ds-btn-icon-size: 40px;            --ds-btn-quiet-color: var(--ds-text-2);
+  --ds-btn-sm-height: 32px;            --ds-btn-sm-icon-size: 32px;
   --ds-btn-disabled-bg: (from --ds-disabled-fill);
   --ds-btn-disabled-border: (from --ds-disabled-fill);
   --ds-input-font: (body; input role up to 600px)
@@ -195,7 +196,8 @@
   --ds-pressable-radius: var(--ds-radius-sm); --ds-pressable-layer: currentColor;
   --ds-kbd-border: var(--ds-line-2);   --ds-kbd-bg: var(--ds-surface);
   --ds-spinner-track: transparent;     --ds-spinner-color: var(--ds-primary);
-  --ds-spinner-width: 2px;
+  --ds-spinner-width: 2px;             --ds-spinner-determinate-width: 4px;
+  --ds-status-spinner-width: 2px;      --ds-loader-sm-size: 24px;
   --ds-loader-size: 48px;              --ds-loader-color: var(--ds-primary);
   --ds-progress-gap: 4px;
   --ds-progress-track: var(--ds-accent); --ds-progress-stop: var(--ds-primary);

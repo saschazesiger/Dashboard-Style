@@ -10,7 +10,8 @@
  *
  * Fully round at one line (radius = half the height); a long label that
  * wraps keeps soft corners instead of turning into a stadium.
- * Hook: --ds-status-radius.
+ * Hooks: --ds-status-radius, --ds-status-spinner-width (2px, the ring of
+ * the running spinner).
  *
  * Status changes glide, for a user action and a poll alike: colour and
  * icon change smoothly for every status change, the text at once. The
@@ -97,7 +98,7 @@
 
   /* The arc at its own pace, the turn a little faster than on a surface. */
   .ds-status__spinner {
-    --ds-spinner-width: 2px;
+    --ds-spinner-width: var(--ds-status-spinner-width, 2px);
     width: 14px;
     height: 14px;
     margin: 1px;

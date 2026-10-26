@@ -128,3 +128,60 @@ describe('utilities (2.0)', () => {
     for (const hook of hooks) assert.ok(theming.includes(`\`${hook}\``), `docs/theming.md names ${hook}`);
   });
 });
+
+describe('buttons (2.0)', () => {
+  const B = 'src/components/button.css';
+  const css = read(B);
+  const DISCLOSURE = ':is(.ds-btn--disclosure, .ds-btn[aria-haspopup="dialog"])[aria-expanded="true"]';
+  const LOCKED = '.ds-btn[aria-pressed="true"][aria-disabled="true"]:not([aria-busy="true"])';
+
+  it('tints an open disclosure button like a pressed toggle, in forced colours too; menu triggers stay plain', () => {
+    const tint = own(withoutAtRuleBlocks(css, /@media/), DISCLOSURE);
+    assert.equal(tint['--ds-btn-bg'], 'var(--ds-accent)');
+    assert.deepEqual(tint, own(withoutAtRuleBlocks(css, /@media/), '.ds-btn[aria-pressed="true"]'));
+    const forced = forcedColorBlocks(css).join('\n');
+    assert.equal(own(forced, DISCLOSURE).background, 'Highlight');
+    assert.equal(own(forced, `${DISCLOSURE}:focus-visible`)['outline-color'], 'CanvasText');
+    assert.doesNotMatch(stripComments(css), /aria-haspopup="menu"/);
+  });
+
+  it('keeps a locked choice in its on look, GrayText for other aria-disabled buttons in forced colours', () => {
+    const locked = own(withoutAtRuleBlocks(css, /@media/), LOCKED);
+    assert.deepEqual(locked, {
+      opacity: '1', color: 'var(--ds-btn-color, var(--ds-action-ink))', background: 'var(--ds-btn-bg, transparent)',
+      'border-color': 'var(--ds-btn-border, var(--ds-line-2))', cursor: 'default',
+    });
+    const forced = forcedColorBlocks(css).join('\n');
+    assert.equal(own(forced, '.ds-btn[aria-disabled="true"]:not([aria-busy="true"])').color, 'GrayText');
+    assert.equal(own(forced, LOCKED).background, 'Highlight');
+  });
+
+  it('pulls the start padding in before a leading icon of a face, and underlines with the link geometry', () => {
+    assert.equal(own(css, '.ds-btn:is(:has(> svg:first-child), :has(> .ds-btn__faces:first-child > .ds-btn__face:first-child > svg:first-child))')['--ds-btn-padding-start'], 'var(--ds-space-3)');
+    const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).map((block) => declarations(rules(block).find((rule) => rule.selector === '.ds-btn:hover')?.body ?? '')).find((list) => list.length);
+    const names = hover.map((entry) => entry.property);
+    assert.ok(names.indexOf('text-decoration-thickness') > names.indexOf('text-decoration'), 'after the shorthand');
+    assert.ok(names.indexOf('text-underline-offset') > names.indexOf('text-decoration'));
+  });
+
+  it('folds the label of .ds-btn--adaptive in a narrow content panel and, in sheets and dialogs, a narrow window', () => {
+    const container = atRuleBlocks(css, /@container ds-content \(max-width: 600px\)/).join('\n');
+    const media = atRuleBlocks(css, /@media \(max-width: 600px\)/).join('\n');
+    assert.equal(own(container, '.ds-btn--adaptive').width, 'var(--ds-btn-icon-size, 40px)');
+    assert.equal(own(container, '.ds-btn--adaptive')['--ds-btn-bg'], 'transparent');
+    assert.equal(own(container, '.ds-btn--adaptive.ds-btn--sm')['--ds-btn-icon-size'], 'var(--ds-btn-sm-icon-size, 32px)');
+    assert.equal(own(container, '.ds-btn--adaptive .ds-btn__label').clip, 'rect(0, 0, 0, 0)');
+    assert.deepEqual(own(media, ':is(.ds-sheet, .ds-dialog) .ds-btn--adaptive .ds-btn__label'), own(container, '.ds-btn--adaptive .ds-btn__label'));
+    assert.deepEqual(own(media, ':is(.ds-sheet, .ds-dialog) .ds-btn--adaptive'), own(container, '.ds-btn--adaptive'));
+  });
+
+  it('keeps quiet links underlined, in the quieter ink, the link colour on hover', () => {
+    const quiet = own(withoutAtRuleBlocks(css, /@media/), '.ds-link--quiet');
+    assert.equal(quiet.color, 'var(--ds-text-2)');
+    assert.equal(quiet['text-decoration-line'], 'underline');
+    assert.equal(quiet['text-decoration-color'], 'var(--ds-line-2)');
+    assert.deepEqual(own(withoutAtRuleBlocks(css, /@media/), '.ds-link-btn.ds-link-btn--quiet'), quiet);
+    const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).map((block) => own(block, '.ds-link--quiet:hover')).find((entry) => entry.color);
+    assert.deepEqual(hover, { color: 'var(--ds-link)', 'text-decoration-color': 'var(--ds-link-underline-hover)' });
+  });
+});
