@@ -96,8 +96,8 @@ test('select all is indeterminate for some rows; deleting asks first and the sna
 
 test('a row opens the side sheet, whose arrows step through the devices', async ({ page }) => {
   await open(page, '#/devices');
-  const first = page.locator('#devices-body tr').nth(0).locator('[data-open]');
-  const second = await page.locator('#devices-body tr').nth(1).locator('[data-open]').textContent();
+  const first = page.locator('#devices-body tr').nth(0).locator('[data-device]');
+  const second = await page.locator('#devices-body tr').nth(1).locator('[data-device]').textContent();
   await first.click();
   await settle(page);
   await expect(page.locator('#sheet-title')).toHaveText(await first.textContent());

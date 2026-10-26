@@ -149,6 +149,23 @@ test.describe('loaders', () => {
     expect(Math.min(...arc)).toBeLessThan(20);
   });
 
+  test('ds-spin turns rotate, so the spinner keeps its own transform while it spins (2.0)', async ({ page }) => {
+    await open(page);
+    const turns = await page.locator('#spinner').evaluate((el) => {
+      el.style.transform = 'translateX(10px)';
+      const spin = el.getAnimations().find((animation) => animation.animationName === 'ds-spin');
+      spin.pause();
+      const duration = Number(spin.effect.getComputedTiming().duration);
+      return [0.25, 0.5].map((share) => {
+        spin.currentTime = share * duration;
+        const style = getComputedStyle(el);
+        return { transform: style.transform, rotate: style.rotate };
+      });
+    });
+    for (const { transform } of turns) expect(transform).toBe('matrix(1, 0, 0, 1, 10, 0)');
+    expect(turns.map(({ rotate }) => Math.round(parseFloat(rotate)))).toEqual([90, 180]);
+  });
+
   test('the determinate ring never spins and glides its share', async ({ page }) => {
     await open(page);
     const ring = page.locator('#ring');

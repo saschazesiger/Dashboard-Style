@@ -14,7 +14,6 @@ import {
   cancel,
   countUp,
   crossfade,
-  easeOutCubic,
   enter,
   enterAll,
   flip,
@@ -314,7 +313,7 @@ describe('js/motion', () => {
       t.mock.timers.enable({ apis: ['setTimeout'] });
       const element = new FakeElement();
       const own = new FakeAnimation({ name: 'ds-fade-out' });
-      const other = new FakeAnimation({ name: 'ds-pulse' });
+      const other = new FakeAnimation({ name: 'ds-spin' });
       const height = new FakeAnimation({ transition: 'height' });
       const color = new FakeAnimation({ transition: 'color' });
       element.getAnimations = () => [own, other, height, color];
@@ -1302,7 +1301,6 @@ describe('js/motion', () => {
       // cubic-bezier(.2, 0, 0, 1) is about halfway at 20% of the time.
       win.advance(20);
       assert.ok(Math.abs(Number(element.textContent) - 100) <= 2, element.textContent);
-      assert.notEqual(easeOutCubic(0.5), 0.5, 'easeOutCubic stays exported (deprecated)');
       win.advance(90);
       assert.equal(element.textContent, '200');
       assert.equal(win.frames.length, 0);

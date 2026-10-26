@@ -145,7 +145,6 @@
      *               path below where supported
      *   value       progress bars and countUp(), so figures and bars land
      *               together
-     *   ease        deprecated alias of emphasized, removed in 2.0
      * Spatial: the spring for movement that floats (translate, scale,
      * clip-path). Its linear() below peaks at most at 1.05 and settles; it is
      * normalised to its settle time, so one curve serves every duration.
@@ -158,8 +157,6 @@
     --ds-ease-emphasized: cubic-bezier(.2, 0, 0, 1);
     --ds-ease-spatial: var(--ds-ease-out);
     --ds-ease-value: var(--ds-ease-in-out);
-    /* Deprecated, removed in 2.0: use --ds-ease-emphasized. */
-    --ds-ease: var(--ds-ease-emphasized);
 
     /* ── Motion: choreography ───────────────────────────
      * Distances of entering elements (4-12 px, 24 px for side sheets, a full
@@ -203,7 +200,6 @@
      * loader         one round of the shape loader: 7 shapes x 650ms
      * skeleton       one pass of the skeleton wave (sweep, then rest)
      * wave           one wavelength of the travelling progress wave
-     * pulse          deprecated with ds-pulse (removed in 2.0)
      */
     --ds-loop-spin: calc(1568ms * var(--ds-time-scale, 1));
     --ds-loop-spin-fast: calc(.8s * var(--ds-time-scale, 1));
@@ -212,7 +208,6 @@
     --ds-loop-loader: calc(4550ms * var(--ds-time-scale, 1));
     --ds-loop-skeleton: calc(2s * var(--ds-time-scale, 1));
     --ds-loop-wave: calc(1.2s * var(--ds-time-scale, 1));
-    --ds-loop-pulse: calc(2s * var(--ds-time-scale, 1));
 
     /* ── Progress waves ─────────────────────────────────
      * The masks that make progress wavy (scripts/motion-curves.mjs writes
@@ -236,8 +231,7 @@
      * targets (rows, navigation items) take the lighter hover. Keyboard
      * focus lays its own layer under the ring (focus); a press stays on top
      * of it. Disabled content dims to 38%; stale content (about to be
-     * replaced) to 55%. pulse is deprecated with ds-pulse (removed in
-     * 2.0): its dimmest point.
+     * replaced) to 55%.
      */
     --ds-state-hover: .08;
     --ds-state-hover-lg: .06;
@@ -246,7 +240,6 @@
     --ds-state-dragged: .16;
     --ds-state-disabled: .38;
     --ds-state-stale: .55;
-    --ds-state-pulse: .45;
 
     /* ── Spacing (4 px grid) ──────────────────────────── */
     --ds-space-1: 4px;
@@ -361,10 +354,6 @@
     --ds-disabled-opacity: 1;
     --ds-disabled-fill: rgba(31, 31, 31, .12);
     --ds-disabled-ink: rgba(31, 31, 31, .38);
-
-    /* Deprecated (removed in 2.0): the small spinner's track where
-       color-mix() is missing; every engine of the baseline has color-mix(). */
-    --ds-spinner-sm-track: rgba(0, 0, 0, .18);
 
     /* ── Links ──────────────────────────────────────────
      * Always underlined: colour alone does not tell a link from text. The

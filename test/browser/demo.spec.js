@@ -70,7 +70,7 @@ test('sorting by name puts the rows in order and turns the header', async ({ pag
   await page.locator('[data-sort="name"]').click();
   await settle(page);
   await expect(page.locator('#live-head th[aria-sort]')).toHaveAttribute('aria-sort', 'ascending');
-  const names = await page.locator('#live-body [data-open]').allTextContents();
+  const names = await page.locator('#live-body [data-device]').allTextContents();
   expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
 });
 
@@ -98,7 +98,7 @@ test('the dialog asks first and the snackbar offers an undo; the menu toggles it
 
 test('a row opens the side sheet, whose arrows step through the devices', async ({ page }) => {
   await open(page);
-  const first = page.locator('#live-body [data-open]').first();
+  const first = page.locator('#live-body [data-device]').first();
   await first.click();
   await settle(page);
   const name = await first.textContent();

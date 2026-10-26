@@ -269,7 +269,7 @@
     const selected = state.selected.has(device.id);
     return `<tr data-ds-key="${device.id}">` +
       `<td><input type="checkbox" data-select="${device.id}" aria-label="Select ${esc(device.name)}"${selected ? ' checked' : ''}></td>` +
-      `<td class="ds-nowrap"><button class="ds-link-btn ds-table__row-link" type="button" data-open="${device.id}">${esc(device.name)}</button></td>` +
+      `<td class="ds-nowrap"><button class="ds-link-btn ds-table__row-link" type="button" data-device="${device.id}">${esc(device.name)}</button></td>` +
       `<td class="ds-col--secondary ds-nowrap">${esc(device.model)}</td>` +
       `<td class="ds-col--secondary ds-nowrap">${esc(device.owner)}</td>` +
       `<td class="ds-col--secondary">${esc(device.location)}</td>` +
@@ -396,7 +396,7 @@
         `<tr class="ds-table__detail" id="${key}-detail" data-ds-key="${key}-detail"${open ? '' : ' inert'}><td colspan="7"><div class="ds-table__expand"><div class="ex-detail">` +
           `<p>${esc(ticket.text || 'No description.')}</p><div class="ex-row">` +
           (ticket.status !== 'closed' ? facesButton('ds-btn ds-btn--sm', 'Close ticket', 'Closing', 'Closed', `data-close-ticket="${ticket.id}"`) : '') +
-          (device ? `<button class="ds-link-btn" type="button" data-open="${device.id}">Open ${esc(device.name)}</button>` : '') +
+          (device ? `<button class="ds-link-btn" type="button" data-device="${device.id}">Open ${esc(device.name)}</button>` : '') +
         '</div></div></div></td></tr>';
     }).join('');
   }
@@ -918,7 +918,7 @@
     const target = event.target;
     const hit = (selector) => target.closest(selector);
     let element;
-    if ((element = hit('[data-open]'))) openSheet(element.getAttribute('data-open'), element);
+    if ((element = hit('[data-device]'))) openSheet(element.getAttribute('data-device'), element);
     else if ((element = hit('[data-menu]'))) toggleMenu(element);
     else if ((element = hit('[data-sort]'))) {
       const key = element.getAttribute('data-sort');

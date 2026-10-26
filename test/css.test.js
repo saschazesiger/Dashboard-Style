@@ -149,12 +149,8 @@ const RUNTIME = new Set([
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
 const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
-/** The deprecated combined exits (fade + move in one keyframe), removed in 2.0. */
-const DEPRECATED_EXITS = ['ds-sink-out', 'ds-scale-out', 'ds-slide-out'];
 /** The selector of a keyframe stop: from, to, percentages (with decimals), or a list of them ("0%, 100%"). */
 const KEYFRAME_STOP = /^(from|to|\d+(\.\d+)?%)(\s*,\s*(from|to|\d+(\.\d+)?%))*$/;
-/** Loops of loading indicators that keep transform: the turn of the spinner and the deprecated ds-indeterminate. */
-const LOOPS = ['ds-spin', 'ds-pulse', 'ds-indeterminate'];
 /**
  * The loops of the loading indicators (1.4.0), each with its reason: many
  * stops or one end only. Their stops come from scripts/motion-curves.mjs
@@ -173,9 +169,7 @@ const LOADER_LOOPS = new Map([
 const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-clip-in', 'clip-path does not interpolate to none, so both ends are named'],
   ['ds-clip-out', 'clip-path does not interpolate to none, so both ends are named'],
-  ['ds-spin', 'a loop: one full turn to 360deg'],
-  ['ds-pulse', 'a loop: dims at 50% and comes back'],
-  ['ds-indeterminate', 'a loop: the segment enters on one side and leaves on the other'],
+  ['ds-spin', 'a loop: one full turn to 1turn'],
   ['ds-scan', 'a loop: the band travels from above the frame to below it'],
   ['ds-ripple', 'a ring that grows and fades from a set start (--ds-ripple-opacity)'],
   ['ds-scroll-fade', 'scroll-linked: both ends named, so an inactive timeline (a scroller without overflow) leaves the element\'s own opacity 0'],
@@ -258,7 +252,7 @@ const EXCEPTION_SPEC = ['rotate', 'border-radius', 'outline-offset', 'stroke-das
 /** Whether a named exception lets `selector` transition `property` (`entry`: the transition's list entry). */
 const transitionException = (selector, property, entry) => [...EXCEPTIONS].some(([key, exception]) => (exception.properties || [key]).includes(property)
   && (typeof exception.transitions === 'function' ? exception.transitions(selector, entry) : exception.transitions.has(selector)));
-/** Whether the @keyframes `name` may animate `property` (rotate also through transform: rotate()). */
+/** Whether the @keyframes `name` may animate `property`. */
 const keyframeException = (name, property) => [...EXCEPTIONS].some(([key, exception]) => (exception.properties || [key]).includes(property) && exception.keyframes.includes(name));
 /** The registered custom properties of src/ (they animate like any other property). */
 const REGISTERED = new Set(SRC_CSS.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
@@ -560,7 +554,7 @@ describe('motion in CSS', () => {
     assert.deepEqual(offenders, []);
   });
 
-  it('pairs every movement exit with ds-fade-out and keeps the deprecated exits unused', () => {
+  it('pairs every movement exit with ds-fade-out', () => {
     const offenders = [];
     for (const file of SRC_CSS) {
       for (const { selector, body } of rules(read(file))) {
@@ -577,13 +571,6 @@ describe('motion in CSS', () => {
       }
     }
     assert.deepEqual(offenders, []);
-    for (const file of [...SRC_CSS, ...filesIn('src/js')]) {
-      const source = file.endsWith('.css') ? stripComments(read(file)) : read(file).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
-      for (const name of DEPRECATED_EXITS) {
-        const uses = source.split(name).length - 1 - (source.includes(`@keyframes ${name} `) ? 1 : 0);
-        assert.equal(uses, 0, `${file} uses the deprecated ${name}`);
-      }
-    }
   });
 
   it('keeps every exit at 0.3-0.8 of its entrance (longest track)', () => {
@@ -645,8 +632,9 @@ describe('motion in CSS', () => {
     for (const [name, body] of Object.entries(KEYFRAMES)) {
       const stops = rules(body).map((rule) => rule.selector);
       if (!KEYFRAME_SHAPE_EXEMPT.has(name)) assert.deepEqual(stops, [/-out$/.test(name) ? 'to' : 'from'], name);
-      if (/-out$/.test(name) && name !== 'ds-fade-out' && !DEPRECATED_EXITS.includes(name)) assert.ok(!/opacity\s*:/.test(body), `${name}: an exit is movement only`);
-      if (!LOOPS.includes(name) && !DEPRECATED_EXITS.includes(name)) assert.doesNotMatch(body, /(^|[;{\s])transform\s*:/, `${name}: use translate and scale`);
+      if (/-out$/.test(name) && name !== 'ds-fade-out') assert.ok(!/opacity\s*:/.test(body), `${name}: an exit is movement only`);
+      // No keyframe writes transform (the spinner turns on rotate), so an element's own transform always stays.
+      assert.doesNotMatch(body, /(^|[;{\s])transform\s*:/, `${name}: use translate, scale and rotate`);
     }
     assert.deepEqual(rules(KEYFRAMES['ds-press-ripple']).map((rule) => rule.selector), ['from']);
   });
@@ -693,11 +681,9 @@ describe('motion in CSS', () => {
       }
     }
     for (const [name, body] of Object.entries(KEYFRAMES)) {
-      for (const { property, value } of declarations(body)) {
-        // transform: rotate() counts as rotate (the turn of ds-spin).
-        const animated = property === 'transform' && /rotate/.test(value) ? 'rotate' : property;
-        if (ANIMATABLE.has(animated) || REGISTERED.has(animated)) continue;
-        if (!keyframeException(name, animated)) offenders.push(`@keyframes ${name}: ${animated}`);
+      for (const { property } of declarations(body)) {
+        if (ANIMATABLE.has(property) || REGISTERED.has(property)) continue;
+        if (!keyframeException(name, property)) offenders.push(`@keyframes ${name}: ${property}`);
       }
     }
     assert.deepEqual(offenders, []);
@@ -773,7 +759,7 @@ describe('motion in CSS', () => {
     assert.match(KEYFRAMES['ds-loader-turn'], /^\s*to\s*\{\s*rotate:\s*1turn;\s*\}\s*$/);
     // The -webkit- twin is for Chrome/Edge 111-119, which know only the prefixed mask properties.
     assert.match(KEYFRAMES['ds-progress-wave'], /^\s*to\s*\{\s*-webkit-mask-position:\s*var\(--ds-progress-wave-length\) 0;\s*mask-position:\s*var\(--ds-progress-wave-length\) 0;\s*\}\s*$/);
-    assert.match(KEYFRAMES['ds-pulse'], /^\s*50%\s*\{\s*opacity:\s*var\(--ds-state-pulse\);\s*\}\s*$/);
+    assert.match(KEYFRAMES['ds-spin'], /^\s*to\s*\{\s*rotate:\s*1turn;\s*\}\s*$/);
   });
 
   it('registers exactly the canonical motion hooks, as documented', () => {

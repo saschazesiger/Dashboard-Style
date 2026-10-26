@@ -214,7 +214,8 @@ is the only scroller. At 900px and below the drawer becomes modal.
   });
   ```
 - `.ds-view--leaving` fades the current view out quickly before you swap it (fade-through), the manual recipe that
-  `transition()` replaces (it never waits before the update). A page that keeps it swaps in this order, so the new
+  `transition()` replaces (it never waits before the update). It is **deprecated** (since 2.0, removed in 3.0 at the
+  earliest) with this recipe: use `DS.motion.transition()`. A page that keeps it until then swaps in this order, so the new
   view never shows at full opacity for a frame and a second navigation during a swap ends on the latest content
   (the fade sits on the children, so wait on the content element, never on `view`, and never on
   `view.firstElementChild`, which is the sentinel):
@@ -341,8 +342,7 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   face rises and fades in `--ds-dur-instant`, the next one rises in over `--ds-dur-fast`; back to rest they roll
   down. `DS.motion.busy(button, work, { done })` ([motion.md](motion.md)) sets and clears both, keeps a busy face
   that showed for the loader minimum and the success face for `--ds-hold-success`. Announce the result yourself
-  (`aria-live`, a snackbar). `.ds-btn__swap` (one face the page swaps in) is **deprecated** (removed in 2.0): use
-  the faces.
+  (`aria-live`, a snackbar).
 - Icon swap: `.ds-icon-swap` holds `.ds-icon-swap__a` and `.ds-icon-swap__b` in one cell; `data-swap="b"`, or an
   `aria-pressed="true"` ancestor (a play/pause toggle), shows b. The incoming icon fades in and springs up from
   `--ds-scale-small`, a `pathLength="1"` glyph draws itself, the outgoing icon only fades; a crossfade with a scale,
@@ -895,7 +895,7 @@ DS.overlay.close(popup);                     // Escape closes it too; focus stay
 `data-active` marks the keyboard or pointer option (its layer fades in over `--ds-dur-micro` and goes at once, so a
 held arrow key leaves no trail), `aria-selected="true"` the chosen one (the tint and the label weight; in forced
 colours `SelectedItem`). `aria-expanded="true"` on the field turns the chevron 180deg on the spatial spring;
-`DS.overlay` sets it. `data-open` on `.ds-combo` still turns it but is **deprecated** (removed in 2.0).
+`DS.overlay` sets it.
 
 - **Open and close** with `DS.overlay` ([motion.md](motion.md#dsoverlay-jsoverlayjs)). The page filters and chooses:
   filtering never re-creates or re-hides the list, and when nothing matches the list keeps showing with the status
