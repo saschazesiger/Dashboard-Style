@@ -2034,12 +2034,10 @@
         '<p class="ds-muted">.ds-auth: one centred card on the backdrop, the alert slot above it, the primary action as wide as the card. Shown here in a box; the page itself is at least the window\'s height.</p>') +
       card('Drawer and view', '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="drawer-toggle" aria-pressed="false">View without the drawer</button><button class="ds-btn ds-btn--sm" type="button" data-sg="swap-view">Swap the view</button></div>' +
         '<div class="sg-stage sg-swap-stage"><div class="sg-swap-view" id="sg-swap-view">' + swapPage(0) + '</div></div>' +
-        '<p class="ds-muted">Inside DS.motion.transition() the panel takes the width on the spring while the drawer leaves to the left, and gives it back while the drawer comes in; without View Transitions the grid changes at once and the returning drawer slides in from the left (DS.motion.enter(drawer)). The swap, by hand, fades the view\'s children out (.ds-view--leaving, deprecated since 2.0: DS.motion.transition() replaces it), waits for that fade, replaces the content and lets it enter (swap); pressing again during a swap ends on the latest view.</p>' +
-        '<pre class="ds-code-block" tabindex="0" aria-label="The breakpoint snippet">const modal = matchMedia(\'(max-width: 900px)\');\nmodal.addEventListener(\'change\', () =&gt; {\n  drawer.classList.add(\'ds-drawer--instant\');\n  if (!modal.matches) {\n    app.removeAttribute(\'data-drawer-open\');\n    document.body.classList.remove(\'ds-no-scroll\');\n  }\n  requestAnimationFrame(() =&gt; requestAnimationFrame(() =&gt;\n    drawer.classList.remove(\'ds-drawer--instant\')));\n});</pre>' +
-        '<p class="ds-muted">The breakpoint snippet this page runs: the drawer turns modal (or back) in place, and a modal drawer that a wider window no longer shows is closed.</p>') +
+        '<p class="ds-muted">Inside DS.motion.transition() the panel takes the width on the spring while the drawer leaves to the left, and gives it back while the drawer comes in; without View Transitions the grid changes at once and the returning drawer slides in from the left (DS.motion.enter(drawer)). The swap goes through DS.motion.transition() (fade-through): a View Transition where the browser has them, else the new content enters (swap); pressing again during a swap ends on the latest view. Crossing 900px (DS.overlay.DRAWER_QUERY) the drawer turns modal or back in place, and a modal drawer that a wider window no longer shows closes: DS.overlay does both by itself.</p>') +
       card('Views and scrolling', '<p class="ds-muted">The motion between views and the motion that follows scrolling, in a small app of its own: fade-through between destinations, shared axis for previous and next, a card growing into its detail or into a side sheet, a destination without the drawer, a record swap in a sheet, a report that reveals itself on scroll, a wide table with live edge fades, and page loads with the opt-in stylesheet (needs http).</p>' +
         '<div class="sg-row"><a class="ds-btn" href="views.html">Open the views page ' + icon('arrowRight', 16) + '</a></div>') +
-      card('Markup', '<pre class="ds-code-block" tabindex="0" aria-label="The frame markup">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
+      card('Markup', '<pre class="ds-code-block" tabindex="0" aria-label="The frame markup">&lt;div class="ds-app ds-app--drawer"&gt;\n  &lt;div class="ds-topbar"&gt; menu button, .ds-brand, .ds-account &lt;/div&gt;\n  &lt;div class="ds-scrim"&gt;&lt;/div&gt;\n  &lt;nav class="ds-drawer"&gt; .ds-drawer__list &gt; .ds-drawer__group &gt; .ds-drawer__item &lt;/nav&gt;\n  &lt;div class="ds-panel"&gt;&lt;main class="ds-view"&gt;\n    &lt;div class="ds-content"&gt;&lt;div class="ds-page"&gt; ... &lt;/div&gt;&lt;/div&gt;\n  &lt;/main&gt;&lt;/div&gt;\n&lt;/div&gt;</pre><p class="ds-muted">Full markup in docs/components.md.</p>'));
   }
 
   /* Motion: the principles in short; every demo is in the Motion Lab. */
@@ -2396,7 +2394,7 @@
 
   var app = $('#sg-app');
   var view = $('#main');
-  var modal = window.matchMedia('(max-width: 900px)');
+  var modal = window.matchMedia(DS.overlay.DRAWER_QUERY);
 
   /* The indicators follow aria-current and aria-pressed by themselves
      (their MutationObserver): no update() after a change. */
@@ -2449,20 +2447,6 @@
     quietTimer = setTimeout(stopNavigating, M.motionDuration(view, '--ds-dur-fast'));
   }
 
-  /* The breakpoint snippet of docs/components.md: crossing 900px changes
-     the drawer in place (no slide, no scrim fade) and closes a modal
-     drawer that the wider window no longer shows. */
-  function setupBreakpoint() {
-    var drawer = $('#sg-drawer');
-    modal.addEventListener('change', function () {
-      drawer.classList.add('ds-drawer--instant');
-      if (!modal.matches && app.hasAttribute('data-drawer-open')) openDrawer(false);
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () { drawer.classList.remove('ds-drawer--instant'); });
-      });
-    });
-  }
-
   function setupNavigation() {
     // Named, so the pill glides across the load between the two pages
     // (css/optional/view-transitions.css).
@@ -2507,7 +2491,6 @@
       history.replaceState(null, '', '#' + id);
       if (modal.matches) openDrawer(false);
     });
-    setupBreakpoint();
     // The scrim and Escape close the drawer by themselves (DS.overlay).
     $('[data-sg="menu"]').addEventListener('click', function () {
       // Above 900px the menu button shows only with the rail: it widens the drawer again.
@@ -2618,23 +2601,20 @@
   }
 
   /* Drawer and view demos (App frame). */
-  var swapRun = 0;
   var swapIndex = 0;
 
-  /* The documented swap sequence (docs/components.md, App frame): fade the
-     children out, wait for that fade, replace, and let the new content
-     enter in the same task; a newer swap takes over. */
+  /* A change of view as a page makes it (docs/components.md, App frame):
+     DS.motion.transition() with fade-through, the new content rendered in
+     the update; without View Transitions it enters with swap. A newer swap
+     takes over from the running one. */
   function swapView() {
     var target = $('#sg-swap-view');
-    var run = swapRun += 1;
     swapIndex += 1;
-    target.classList.add('ds-view--leaving');
-    M.settled(target.firstElementChild, { event: 'transitionend', property: 'opacity' }).then(function () {
-      if (run !== swapRun) return;
-      target.innerHTML = swapPage(swapIndex);
-      target.classList.remove('ds-view--leaving');
-      M.enter(target.firstElementChild, 'swap');
-    });
+    var index = swapIndex;
+    M.transition(function () {
+      DS.dom.morphHtml(target, swapPage(index), { replace: true });
+      return target.firstElementChild;
+    }, { type: 'fade-through' });
   }
 
   function toggleDrawer(button) {

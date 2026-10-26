@@ -565,7 +565,7 @@
     id: 'enter-leave',
     group: 'utilities',
     title: 'Enter and leave',
-    note: 'Every <code>.ds-enter</code> and <code>.ds-leave</code> variant through <code>DS.motion.enter()</code> and leave(). enter() and leave() continue from where the card is, whenever they are pressed; enter() also cleans up whatever variant played before. "delayed" waits for the loader delay first; "fill-x" and "fill-y" grow a bar or a column to its share. Cancel stops at the rest state at once.',
+    note: 'Every <code>.ds-enter</code> and <code>.ds-leave</code> variant through <code>DS.motion.enter()</code> and leave(). enter() and leave() continue from where the card is, whenever they are pressed; enter() also cleans up whatever variant played before. "delayed" waits for the loader delay first; "fill-x" and "fill-y" scale a bar or a column to its share (deprecated in 2.0, removed in 3.0 at the earliest: a chart mark fills with <code>.ds-enter--fill</code> and <code>--ds-share</code>, as in Stagger and Charts). Cancel stops at the rest state at once.',
     shows: ['.ds-enter', '.ds-enter--fade', '.ds-enter--scale', '.ds-enter--slide', '.ds-enter--swap', '.ds-enter--delayed', '.ds-enter--pop', '.ds-enter--fill-x', '.ds-enter--fill-y',
       '.ds-leave', '.ds-leave--sink', '.ds-leave--scale', '.ds-leave--slide', '.ds-leave--pop',
       'ds-fade-in', 'ds-lift-in', 'ds-grow-in', 'ds-shift-in', 'ds-pop-in', 'ds-fill-x', 'ds-fill-y', 'ds-fade-out', 'ds-drop-out', 'ds-shrink-out', 'ds-shift-out', 'ds-pop-out',
@@ -613,8 +613,8 @@
     id: 'stagger',
     group: 'utilities',
     title: 'Stagger',
-    note: '<code>DS.motion.enterAll()</code>: one batch, each square enters one step after the other (30ms, at most six steps); the classes and <code>--ds-i</code> go once each one landed. "Fill as bars" grows them from their left edge.',
-    shows: ['DS.motion.enterAll', '.ds-enter--scale', '.ds-enter--fill-x', '--ds-stagger', '--ds-dur-medium', '--ds-dur-glide', '--ds-ease-value'],
+    note: '<code>DS.motion.enterAll()</code>: one batch, each square enters one step after the other (30ms, at most six steps); the classes and <code>--ds-i</code> go once each one landed. "Fill as bars" fills them from their left edge (<code>.ds-enter--fill</code>: each bar is clipped at <code>--ds-share</code>, which runs from 0, so its rounded end keeps its shape).',
+    shows: ['DS.motion.enterAll', '.ds-enter--scale', '.ds-enter--fill', 'ds-fill-share', '--ds-share', '--ds-stagger', '--ds-dur-medium', '--ds-dur-glide', '--ds-ease-value'],
     html: '<div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div>',
     after: readoutHtml('sg-stagger-left'),
     controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stagger">Stagger</button><button class="ds-btn ds-btn--sm" type="button" data-sg="fill">Fill as bars</button></div>',
@@ -624,7 +624,7 @@
         var action = event.target.closest('[data-sg]');
         if (!action) return;
         list.classList.toggle('sg-fill', action.getAttribute('data-sg') === 'fill');
-        staggerSquares(stage, action.getAttribute('data-sg') === 'fill' ? 'fill-x' : 'scale');
+        staggerSquares(stage, action.getAttribute('data-sg') === 'fill' ? 'fill' : 'scale');
       });
     },
     play: function (stage) {

@@ -869,9 +869,11 @@
   background: var(--ds-accent);
 }
 
-/* The fill demo grows each item from its left edge (.ds-enter--fill-x). */
+/* The fill demo fills each bar from its left edge (.ds-enter--fill): the
+   bar is clipped at the registered --ds-share, which runs from 0 to 1. */
 .sg-stagger-list.sg-fill > span {
-  transform-origin: left center;
+  --ds-share: 1;
+  clip-path: inset(0 calc((1 - var(--ds-share)) * 100%) 0 0 round var(--ds-radius-sm));
 }
 
 /* Count: two tiles, then a figure and its bar. */
