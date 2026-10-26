@@ -43,12 +43,17 @@ test('Enter in a field submits, until the default button is busy (busy() install
 
 test('a done button is blocked like a busy one', async ({ page }) => {
   await open(page);
-  await page.evaluate(() => DS.motion.busy(document.getElementById('save'), () => 'saved'));
+  // Slowed tenfold, so the success face (--ds-hold-success) outlasts the key presses on a loaded machine.
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty('--ds-time-scale', '10');
+    DS.motion.busy(document.getElementById('save'), () => 'saved');
+  });
   await expect(page.locator('#save')).toHaveClass(/ds-btn--done/);
   await page.locator('#save').focus();
   await page.keyboard.press('Enter');
   await page.keyboard.press('Space');
   expect(await seen(page)).toEqual([]);
+  await expect(page.locator('#save')).toHaveClass(/ds-btn--done/);
 });
 
 test('an aria-disabled button keeps focus and its tooltip, but no click, Enter or Space reaches the page', async ({ page }) => {
