@@ -150,3 +150,76 @@ test('the accent radio cards switch the theme through its tokens and keep the ch
   await expect(page.locator('html')).not.toHaveAttribute('data-ex-accent', /./);
   expect(await primary()).toBe(blue);
 });
+
+test('a view opened from the overview offers the way back in its page head', async ({ page }) => {
+  await open(page);
+  await page.locator('.ds-tile[href="#/devices?status=warning"]').click();
+  await settle(page);
+  const back = page.locator('#page .ds-page-head__back');
+  await expect(back).toHaveText('Back to Overview');
+  await expect(page.locator('#page .ds-page-head__actions [data-act="refresh"]')).toBeVisible();
+  await back.click();
+  await settle(page);
+  await expect(page.locator('#page h1')).toHaveText('Overview');
+  await page.locator('.ds-drawer__item[data-route="tickets"]').click();
+  await settle(page);
+  await expect(page.locator('#page .ds-page-head__back')).toHaveCount(0);
+});
+
+test('the sheet\'s tabs switch between Details and History, by click and by arrow key', async ({ page }) => {
+  await open(page, '#/devices');
+  await page.locator('#devices-body tr').nth(0).locator('[data-open]').click();
+  await settle(page);
+  const details = page.locator('#sheet-t-details');
+  const history = page.locator('#sheet-t-history');
+  await expect(details).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#sheet-p-history')).toBeHidden();
+  await expect(page.locator('#sheet-tabs > .ds-indicator')).toHaveCount(1);
+  await history.click();
+  await expect(history).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#sheet-p-history')).toBeVisible();
+  await expect(page.locator('#sheet-p-details')).toBeHidden();
+  await settle(page);
+  // The choice holds while the sheet steps to the next device.
+  await page.locator('#sheet-next').click();
+  await settle(page);
+  await expect(history).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#sheet-tabs > .ds-indicator')).toHaveCount(1);
+  await history.focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(details).toBeFocused();
+  await expect(details).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#sheet-p-details')).toBeVisible();
+});
+
+test('a drawer group closes and opens, shows its count while closed and keeps its state', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await open(page);
+  const group = page.locator('#nav-design');
+  const count = group.locator('summary .ds-drawer__count');
+  await expect(count).toBeHidden();
+  await group.locator('summary').click();
+  await settle(page);
+  await expect(group).not.toHaveAttribute('open', '');
+  await expect(count).toBeVisible();
+  await page.reload();
+  await ready(page);
+  await expect(page.locator('#nav-design')).not.toHaveAttribute('open', '');
+  await page.locator('#nav-design summary').click();
+  await expect(page.locator('#nav-design')).toHaveAttribute('open', '');
+});
+
+test('a lost connection shows the banner above the view; it goes once the backend answers', async ({ page }) => {
+  await open(page, '#/settings');
+  const toggle = page.locator('[data-setting="offline"]');
+  await toggle.check({ force: true });
+  const banner = page.locator('.ds-panel > .ds-banner');
+  await expect(banner).toBeVisible();
+  await expect(banner.locator('.ds-alert')).toHaveAttribute('role', 'status');
+  await expect(banner).toContainText('offline');
+  expect(await page.evaluate(() => document.querySelector('.ds-panel').firstElementChild.classList.contains('ds-banner'))).toBe(true);
+  await banner.getByRole('button', { name: 'Retry' }).click();
+  await expect(banner).toBeVisible();
+  await toggle.uncheck({ force: true });
+  await expect(banner).toHaveCount(0);
+});

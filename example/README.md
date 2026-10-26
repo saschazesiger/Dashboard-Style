@@ -21,6 +21,9 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Hash routes with `DS.motion.transition()` (fade-through), focus on the new title | all | `go()`, `renderView()` |
 | Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled` | frame | Wiring, `watchScrolled()` |
 | Ripple, tooltips (`data-tip`) | all | `DS.ripple.attach()`, `DS.overlay.tooltips()` |
+| A drawer group that closes (`<details class="ds-drawer__group">`, `.ds-drawer__toggle`, `.ds-drawer__count`), kept across loads | frame | `index.html`, Wiring |
+| Page head: the way back (`.ds-page-head__back`) on a view opened from the overview, actions at the end of the title's line | Devices, Tickets | `head()`, `applyParams()` |
+| A message for the whole app (`.ds-banner`) while the backend does not answer, in and out through `flip()` on the panel | all (Settings cuts the connection) | `showOffline()`, `poll()` |
 | Tiles that count on (`countUp()`) | Overview | `updateTiles()` |
 | Alerts that come and go with the data (`flip()` on their stack, `live`) | Overview | `alertsHtml()`, `updateAlerts()` |
 | Busy and done faces, progress bar and figure landing together | Overview | `runSync()`, `showSync()` |
@@ -33,6 +36,7 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 | Row menu (`DS.overlay`, keyboard included) | Devices | `toggleMenu()`, the `rowMenu` listener |
 | Confirm dialog, then undo in a snackbar | Devices | `confirmDelete()`, `deleteDevices()`, `undoToast()` |
 | Side sheet, previous and next (`transition()` forward and back), live refresh without a transition | Devices | `openSheet()`, `stepSheet()`, `poll()` |
+| Tabs in the sheet (Details, History): ARIA tabs, the gliding bar (`createIndicator()`), the panel entering with swap, arrow keys | Devices | `sheetHtml()`, `selectSheetTab()` |
 | Expandable rows (`aria-expanded`, `inert`) | Tickets | `ticketRowsHtml()`, the `data-toggle-ticket` click |
 | Dialog with a form, validation on submit, combobox | Tickets | `openTicketDialog()`, `createTicket()`, `setError()`, the combobox section |
 | Switches that apply at once | Settings | the `data-setting` change |

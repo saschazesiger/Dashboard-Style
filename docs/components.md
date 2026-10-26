@@ -1770,6 +1770,9 @@ const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripple
 
 Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
+Under `.ds-base`, `hidden` always hides (the page base holds it with `!important`, whatever `display` a component or
+the page sets); never add a `[hidden]` rule of your own.
+
 **Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
 
 ## Motion classes

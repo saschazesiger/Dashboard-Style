@@ -57,6 +57,8 @@ A project with its own layers lists `ds` where it belongs, for example `@layer r
 loads. The `!important` that ds keeps (`[hidden]` under `.ds-base`, `.ds-sr`, `.ds-num`, `.ds-center`) sits in a
 layer, so it beats an unlayered `!important` of the page.
 
+Under `.ds-base`, `hidden` always hides: never add a `[hidden]` rule to the project's CSS.
+
 An embedded widget cannot move the host page's CSS into a layer: the host's unlayered element rules (`button`, `h2`,
 `p`, `dialog`) then beat the widget's components. [theming.md](theming.md), "Embedded in someone else's page", has the
 guard that hands those elements back to ds.
