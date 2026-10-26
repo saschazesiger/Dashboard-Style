@@ -28,18 +28,20 @@
  * Rules (RULES below, one per bullet of the project block):
  *   vendor      the copy verifies against its SHA256SUMS (tools/verify.mjs)
  *   classes     every ds- class in markup, scripts and stylesheets exists in
- *               ds.css; a page that links single stylesheets links the one
- *               that defines it
+ *               ds.css; a page that links single stylesheets links one that
+ *               defines it (definingFiles: not one that only places it)
  *   deprecated  no removed name (deprecations.json; deprecated ones warn)
  *   literals    no colour, radius, font, shadow, duration or curve literal in
- *               <prefix>- rules: tokens only
+ *               <prefix>- rules: tokens only (`linear` on a --ds-loop-*
+ *               duration and zero durations pass, as in the system)
  *   keyframes   no own @keyframes; animations name existing ds-* keyframes
  *   themes      every theme file passes tools/check-theme.mjs
  *   layers      no unlayered reset (element-only rules) and no !important
  *   hidden      no [hidden] rule: ds.css handles the attribute
  *   restyle     no project rule that changes the look of a .ds-* element
  *               (only --ds-* hooks and placement), unless excepted
- *   attributes  the page never writes the attributes the system owns
+ *   attributes  the page never writes the attributes the system owns (a
+ *               write deprecations.json lists is left to deprecated)
  *   dom         a warning for innerHTML on ds markup (use DS.dom.morphHtml)
  *   pressable   a warning for a project ::before state layer (use .ds-pressable)
  */
@@ -47,7 +49,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkTheme } from './check-theme.mjs';
-import { lineAt, scan, selectorList } from './css-scan.mjs';
+import { lineAt, scan, selectorList, splitOutside } from './css-scan.mjs';
 import { verify } from './verify.mjs';
 
 /** The rule ids, in the order of the project block of AGENTS.md. */
@@ -128,8 +130,15 @@ function literalPart(value) {
   return current;
 }
 
-/** The kinds of literal in one declaration of a project rule (empty: tokens only). */
-export function literalKinds(property, value) {
+/**
+ * The kinds of literal in one declaration of a project rule (empty: tokens
+ * only). `rule` is the text of the whole rule body, for the longhands. The
+ * keyword `linear` is the curve of the system's loops (there is no token
+ * for it): it passes in a part that runs on a --ds-loop-* duration (or a
+ * longhand of a rule that does), and in a part with no duration (`0s`), as
+ * do zero durations themselves.
+ */
+export function literalKinds(property, value, rule = '') {
   const kinds = [];
   const literal = literalPart(value);
   if (/#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color|color-mix)\(/i.test(literal) || COLOUR_WORDS.test(` ${literal} `)) kinds.push('colour');
@@ -140,33 +149,83 @@ export function literalKinds(property, value) {
     const lengths = [...shadow.matchAll(/(?:^|\s)(-?\d*\.?\d+)(px)?(?=\s|$)/g)].map((match) => Number(match[1]));
     return lengths.length >= 3 && lengths[2] !== 0;
   })) kinds.push('shadow');
-  if (/^(transition|animation)/.test(property) && /(?:^|[\s,])\d*\.?\d+m?s\b/.test(literal)) kinds.push('duration');
-  if (/^(transition|animation)/.test(property) && (/\b(cubic-bezier|linear|steps)\(/.test(literal) || /(?:^|[\s,])(ease|ease-in|ease-out|ease-in-out|linear|step-start|step-end)(?=$|[\s,])/.test(literal))) kinds.push('curve');
+  const timed = /^(transition|animation)/.test(property);
+  if (timed && /(?:^|[\s,])(?!0m?s\b)\d*\.?\d+m?s\b/.test(literal)) kinds.push('duration');
+  const loop = /var\(\s*--ds-loop-/;
+  const curve = (part) => {
+    const text = literalPart(part);
+    if (/\b(cubic-bezier|linear|steps)\(/.test(text) || /(?:^|[\s,])(ease|ease-in|ease-out|ease-in-out|step-start|step-end)(?=$|[\s,])/.test(text)) return true;
+    if (!/(?:^|[\s,])linear(?=$|[\s,])/.test(text)) return false;
+    if (loop.test(part) || (/-timing-function$/.test(property) && loop.test(rule))) return false;
+    // The first time of a part is its duration: `linear` on one of 0s runs nothing.
+    const duration = splitOutside(part.trim(), ' ').map((word) => word.text.trim()).find((word) => /^\d*\.?\d+m?s$|^var\(\s*--ds-(dur|loop)-/.test(word));
+    return !/^0m?s$/.test(duration ?? '');
+  };
+  if (timed && splitOutside(value, ',').some((part) => curve(part.text))) kinds.push('curve');
   return kinds;
 }
 
 /** The compounds of a selector (descendant and child combinators split), pseudo-elements included. */
 function compounds(selector) {
-  return selector.replace(/\([^()]*\)/g, (inner) => inner.replace(/[\s>+~]/g, '_')).split(/\s*[\s>+~]\s*/).filter(Boolean);
+  // The combinators inside :has() / :is() become a character outside [\w-], so `.ds-chip input` there keeps its name.
+  return selector.replace(/\([^()]*\)/g, (inner) => inner.replace(/[\s>+~]/g, '\u0001')).split(/\s*[\s>+~]\s*/).filter(Boolean);
 }
 
-/** The ds- classes of the copy's stylesheets, the keyframes and the file of each class (css/...). */
+/**
+ * The files of the copy (css/...) that define each class. A file defines a
+ * class when one of its selectors has the class in the subject compound and
+ * no other component's class before it (`.ds-alert .ds-btn` in alert.css
+ * places a button, it does not define one); a class only ever used in
+ * context falls back to the files whose subjects carry it, then to every
+ * file that mentions it. The scopes are fixed: .ds-theme is tokens.css,
+ * .ds-base is base.css.
+ */
+export function definingFiles(sheets) {
+  const tiers = [new Map(), new Map(), new Map()];
+  const note = (tier, name, path) => {
+    if (!tiers[tier].has(name)) tiers[tier].set(name, new Map());
+    tiers[tier].get(name).set(path, (tiers[tier].get(name).get(path) ?? 0) + 1);
+  };
+  const block = (name) => name.replace(/^ds-/, '').split(/__|--/)[0];
+  for (const { path, css } of sheets) {
+    for (const rule of scan(css).rules) {
+      if (rule.context.some((at) => /^@keyframes\b/.test(at))) continue;
+      for (const selector of selectorList(rule.selector)) {
+        const parts = compounds(selector);
+        const names = (part) => [...part.matchAll(/\.(ds-[\w-]+)/g)].map((match) => match[1]);
+        // A class inside :has() or :not() is a condition on the subject, not the subject.
+        const subject = names((parts.at(-1) ?? '').replace(/:(has|not)\([^()]*\)/g, ''));
+        const context = parts.slice(0, -1).flatMap(names).filter((name) => !NEUTRAL.has(name));
+        for (const name of names(selector)) note(2, name, path);
+        for (const name of subject) {
+          note(1, name, path);
+          if (context.every((other) => block(other) === block(name))) note(0, name, path);
+        }
+      }
+    }
+  }
+  // The file with the most defining rules comes first: it is the one the message names.
+  const defined = new Map();
+  for (const tier of [...tiers].reverse()) {
+    for (const [name, files] of tier) defined.set(name, [...files.keys()].sort((a, b) => files.get(b) - files.get(a) || a.localeCompare(b)));
+  }
+  defined.set('ds-theme', ['css/tokens.css']);
+  defined.set('ds-base', ['css/base.css']);
+  return defined;
+}
+
+/** The ds- classes of the copy's stylesheets, the keyframes and the files that define each class (css/...). */
 function readCopy(vendorDir) {
   const classes = new Set();
   const keyframes = new Set();
-  const fileOf = new Map();
   const strip = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
   const ds = existsSync(join(vendorDir, 'ds.css')) ? strip(readFileSync(join(vendorDir, 'ds.css'), 'utf8')) : '';
   for (const match of ds.matchAll(/\.(ds-[\w-]+)/g)) classes.add(match[1]);
   for (const match of ds.matchAll(/@keyframes\s+(ds-[\w-]+)/g)) keyframes.add(match[1]);
   const cssDir = join(vendorDir, 'css');
-  if (existsSync(cssDir)) {
-    for (const path of walk(cssDir)) {
-      if (!path.endsWith('.css')) continue;
-      const css = strip(readFileSync(join(cssDir, path), 'utf8'));
-      for (const match of css.matchAll(/\.(ds-[\w-]+)/g)) if (!fileOf.has(match[1])) fileOf.set(match[1], `css/${path}`);
-    }
-  }
+  const sheets = existsSync(cssDir) ? walk(cssDir).filter((path) => path.endsWith('.css') && !path.startsWith('optional/') && path !== 'index.css')
+    .map((path) => ({ path: `css/${path}`, css: readFileSync(join(cssDir, path), 'utf8') })) : [];
+  const fileOf = definingFiles(sheets);
   const json = (name) => (existsSync(join(vendorDir, name)) ? JSON.parse(readFileSync(join(vendorDir, name), 'utf8')) : null);
   return { classes, keyframes, fileOf, tokens: json('tokens.json'), deprecations: json('deprecations.json') };
 }
@@ -254,9 +313,13 @@ export function checkProject(config, root) {
       if (!copy.classes.has(name)) add('error', file, lineAt(source, index), 'classes', `.${name} is not a class of this copy (ds.css)`);
       else if (kind === 'html') {
         const sheets = linked.get(file) ?? [];
-        const single = sheets.some((href) => /\/css\/[\w/.-]+\.css$/.test(href)) && !sheets.some((href) => /(^|\/)ds\.css$/.test(href));
-        const needs = copy.fileOf.get(name);
-        if (single && needs && !sheets.some((href) => href.endsWith(needs))) add('error', file, lineAt(source, index), 'classes', `.${name} needs ${needs}, which this page does not link`);
+        // ds.css and css/index.css (which imports every stylesheet) bring every class.
+        const single = sheets.some((href) => /\/css\/[\w/.-]+\.css$/.test(href)) && !sheets.some((href) => /(^|\/)ds\.css$|\/css\/index\.css$/.test(href));
+        const needs = copy.fileOf.get(name) ?? [];
+        if (single && needs.length && !needs.some((path) => sheets.some((href) => href.endsWith(`/${path}`) || href === path))) {
+          const others = needs.length > 1 ? ` (or ${needs.slice(1).join(', ')})` : '';
+          add('error', file, lineAt(source, index), 'classes', `.${name} needs ${needs[0]}${others}, which this page does not link`);
+        }
       }
     }
   }
@@ -287,10 +350,11 @@ export function checkProject(config, root) {
         if (dsClass(subject)) return true;
         return parts.slice(0, -1).some(dsClass) && !subject.includes(`.${prefix}-`);
       });
+      const body = rule.declarations.map((d) => `${d.property}:${d.value}`).join(';');
       for (const declaration of rule.declarations) {
         if (declaration.important) add('error', file, declaration.line, 'layers', `${declaration.property}: no !important; unlayered project CSS already wins over every ds layer`, rule.selector);
         if (own && !reaching.length) {
-          for (const kind of literalKinds(declaration.property, declaration.value)) {
+          for (const kind of literalKinds(declaration.property, declaration.value, body)) {
             add('error', file, declaration.line, 'literals', `${rule.selector} { ${declaration.property}: ${declaration.value} }: a ${kind} literal; read a token (--ds-* or --${prefix}-*)`, rule.selector);
           }
         }
@@ -308,7 +372,6 @@ export function checkProject(config, root) {
       }
       // A project state layer of its own: ::before in currentColor at a state opacity.
       if (own && selectors.some((selector) => /::before/.test(selector) && selector.includes(`.${prefix}-`))) {
-        const body = rule.declarations.map((d) => `${d.property}:${d.value}`).join(';');
         if (/--ds-state-(hover|pressed|focus)/.test(body) || /background(-color)?:currentColor/i.test(body)) add('warning', file, rule.line, 'pressable', `${rule.selector}: a state layer of its own; .ds-pressable gives a project element the hover, press and focus of the system`, rule.selector);
       }
     }
@@ -330,11 +393,17 @@ export function checkProject(config, root) {
   for (const file of jsFiles) {
     const source = read(file);
     const reserveOff = /reserve\s*:\s*false/.test(source);
+    // A write that deprecations.json lists (the 1.x hand data-scrolled recipe) is reported once, by deprecated:
+    // a warning while it is only deprecated, an error once it is removed.
+    const listed = names.filter((entry) => entry.pattern).flatMap((entry) => [...source.matchAll(new RegExp(entry.pattern, 'g'))])
+      .map((match) => [match.index, match.index + match[0].length]);
     for (const match of source.matchAll(attribute)) {
       if (SHARED_ATTRIBUTES.includes(match[1]) && reserveOff) continue;
+      if (listed.some(([start, end]) => match.index >= start && match.index < end)) continue;
       add('error', file, lineAt(source, match.index), 'attributes', `${match[1]} is written by the system; the page never writes it${SHARED_ATTRIBUTES.includes(match[1]) ? ' (unless it passes reserve: false to toast())' : ''}`);
     }
     for (const match of source.matchAll(/\.dataset\.(scrolled|dsSentinel|dsEdges|dsOverflowStart|dsOverflowEnd|dsDragover|dsDragging|dsKeyboard|dsSavebar|dsSavebarRest)\s*=(?!=)/g)) {
+      if (listed.some(([start, end]) => match.index >= start && match.index < end)) continue;
       add('error', file, lineAt(source, match.index), 'attributes', `dataset.${match[1]} is written by the system; the page never writes it`);
     }
     for (const match of source.matchAll(/\.innerHTML\s*\+?=(?!=)([^;]*)/g)) {

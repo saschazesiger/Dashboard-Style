@@ -239,6 +239,48 @@ describe('tools/check-project.mjs', () => {
     assert.deepEqual(literalKinds('box-shadow', 'inset 0 0 0 1px var(--ds-line)'), [], 'a hairline ring in a token colour');
     assert.deepEqual(literalKinds('box-shadow', '0 2px 6px var(--ds-scrim)'), ['shadow'], 'an elevation of its own');
     assert.deepEqual(literalKinds('background', 'color-mix(in srgb, var(--ds-text) 8%, transparent)'), ['colour'], 'a mix of tokens is still a new colour: make it a token');
+    // `linear` is the curve of the system's loops (no token for it), and nothing runs in 0s.
+    assert.deepEqual(literalKinds('animation', 'ds-spin var(--ds-loop-spin) linear infinite'), [], 'a ds loop runs linear');
+    assert.deepEqual(literalKinds('animation-timing-function', 'linear', 'animation-name:ds-spin;animation-duration:var(--ds-loop-spin);animation-timing-function:linear'), [], 'the longhand of a loop');
+    assert.deepEqual(literalKinds('transition', 'visibility 0s linear var(--ds-dur-fast), opacity var(--ds-dur-fast) var(--ds-ease-out)'), [], 'a 0s step');
+    assert.deepEqual(literalKinds('animation-timing-function', 'linear'), ['curve'], 'linear outside a loop');
+    assert.deepEqual(literalKinds('transition', 'opacity var(--ds-dur-fast) linear'), ['curve'], 'linear on a motion duration');
+    assert.deepEqual(literalKinds('animation', 'ds-spin var(--ds-loop-spin) cubic-bezier(0, 0, 1, 1) infinite'), ['curve'], 'a curve of its own on a loop');
+    assert.deepEqual(literalKinds('transition', 'opacity 200ms ease'), ['duration', 'curve']);
+  });
+
+  it('maps a class to a stylesheet that defines it, not one that only places it', () => {
+    const files = {
+      // alert.css places a button (.ds-alert .ds-btn) and comes first; .ds-theme is in tokens.css; css/index.css imports all.
+      'button.html': `<link rel="stylesheet" href="${VENDOR}/css/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
+      'alert.html': `<link rel="stylesheet" href="${VENDOR}/css/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/alert.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
+      'bare.html': `<link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
+      'index.html': `<link rel="stylesheet" href="${VENDOR}/css/index.css">\n<body class="ds-theme"><div class="ds-card"><button class="ds-btn" type="button">Save</button></div></body>\n`,
+    };
+    const { findings } = run(files, { ...CONFIG, html: ['*.html'], themes: [] });
+    assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`).sort(), [
+      'alert.html:2 classes .ds-btn needs css/components/button.css, which this page does not link',
+      'bare.html:2 classes .ds-theme needs css/tokens.css, which this page does not link',
+    ]);
+  });
+
+  it('leaves the 1.x hand data-scrolled recipe to deprecated: a warning, not an attributes error', () => {
+    const files = {
+      'js/app.js': [
+        'new IntersectionObserver(([entry]) => {',
+        "  app.toggleAttribute('data-scrolled', !entry.isIntersecting);",
+        '}).observe(sentinel);',
+        'app.dataset.scrolled = "";',
+        "row.setAttribute('data-ds-dragging', '');",
+      ].join('\n'),
+    };
+    const { findings } = run(files, { ...CONFIG, html: [], css: [], themes: [] });
+    assert.deepEqual(findings.map((f) => `${f.level} ${f.file}:${f.line} ${f.rule}`).sort(), [
+      'error js/app.js:5 attributes',
+      'warning js/app.js:2 deprecated',
+      'warning js/app.js:4 deprecated',
+    ]);
+    assert.match(findings.find((f) => f.rule === 'deprecated').message, /DS\.dom\.watchScrolled\(view\)/);
   });
 
   // The published pages never show a deprecated or hand-built pattern (AGENTS.md): no error and no warning.

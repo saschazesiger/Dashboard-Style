@@ -380,15 +380,15 @@ them to `check-theme.mjs --with`.
 | Rule | Level | What |
 |---|---|---|
 | `vendor` | error | the copy verifies against its `SHA256SUMS` ("Verify a copy") |
-| `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links the one that defines it |
+| `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links one that defines it: a file whose rules style the class itself, not one that only places it inside another component (`.ds-alert .ds-btn` in `alert.css`); `.ds-theme` needs `css/tokens.css` |
 | `deprecated` | error, warning | a name of `deprecations.json`: removed names fail, deprecated ones warn |
-| `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`) |
+| `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`). `linear` is the curve of the system's loops and has no token: it passes on a `--ds-loop-*` duration (`animation: ds-spin var(--ds-loop-spin) linear infinite`), as do a zero duration (`0s`) and its curve |
 | `keyframes` | error | an own `@keyframes`, or an animation that names anything but a `ds-*` keyframe of the copy |
 | `themes` | error, warning | the theme files, through `tools/check-theme.mjs` |
 | `layers` | error | an element-only rule (`button`, `body`, `*`) outside a layer, which beats every component (put resets in `@layer reset` declared before ds), and `!important` |
 | `hidden` | error | a `[hidden]` rule: `ds.css` hides `[hidden]` already |
 | `restyle` | error | a project rule that reaches a `.ds-*` element (`.ds-btn`, `.app-bar .ds-btn`, `.ds-card p`) and sets anything but `--ds-*` hooks and placement (margins and scroll margins, grid and flex placement, position and offsets, sizes, `z-index`); `.ds-theme`, `.ds-base` and `.ds-touch` are scopes, not components, so a rule under them reaches nothing through them |
-| `attributes` | error | a script that writes an attribute the system owns (the "Attributes" table of [components.md](components.md#attributes)); `data-toast-reserve` only next to `reserve: false` |
+| `attributes` | error | a script that writes an attribute the system owns (the "Attributes" table of [components.md](components.md#attributes)); `data-toast-reserve` only next to `reserve: false`. A write that `deprecations.json` lists, such as the 1.x hand `data-scrolled` recipe, is reported by `deprecated` instead (a warning in 2.x) |
 | `dom` | warning | `innerHTML` with ds markup: re-render with `DS.dom.morphHtml` |
 | `pressable` | warning | a `::before` state layer of your own (`currentColor` or a `--ds-state-*` opacity): `.ds-pressable` gives a project element the system's hover, press and focus |
 

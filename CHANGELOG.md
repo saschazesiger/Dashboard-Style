@@ -33,6 +33,7 @@ the other way round: the records behind `Symbol.for('ds.overlay')` and `Symbol.f
 | class | `.ds-btn__swap` | `.ds-btn__faces` with `.ds-btn__face`, `.ds-btn__face--busy`, `.ds-btn__face--done`, driven by `DS.motion.busy()` | rewrite the markup | `ds-btn__swap` |
 | attribute | `data-open` on `.ds-combo` | `aria-expanded="true"` on `.ds-combo__input` (`DS.overlay.open(list, { opener: field })` sets it) | open the list through `DS.overlay` | `ds-combo[^>]*data-open` |
 | markup | `.ds-toasts` with `role` or `aria-live`, `role="alert"` on messages | `<div class="ds-toasts"></div>` | remove the attributes (`toast()` now strips them from an old region on first use and announces each message once through its own announcers) | `ds-toasts[^>]*(role\|aria-live)` |
+| recipe (deprecated, still works) | the page writes `data-scrolled` from its own `IntersectionObserver` on a sentinel (the 1.x App frame snippet) | `DS.dom.watchScrolled(view)` | delete the observer, the sentinel and the page's own `watchScrolled` function, and call `DS.dom.watchScrolled(view)` once; `tools/check-project.mjs` warns on the write | `(setAttribute\|toggleAttribute)\(\s*['"`]data-scrolled\|\.dataset\.scrolled\s*=` |
 | recipe | page-set `--ds-toast-shift` / `--ds-toast-shift-y` to move snackbars into a side sheet; closing messages with `setTimeout` | `DS.overlay.open(sheet)` moves the region and glides the messages; `toast()` times them | delete the recipe; both properties stay, written by `DS.overlay` only | `--ds-toast-shift` |
 
 Changed defaults and looks (no rename; check your pages and your tests):
@@ -62,7 +63,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
 - Focus returns to the opener's id twin when a re-render replaced the opener (or to `open(el, { returnTo })`);
   `open()` without an opener takes the clicked control (Safari); `open(drawer)` focuses the current item.
 - `DS.overlay.open()` watches every `.ds-sheet__body` and `.ds-dialog__body` itself (`DS.dom.watchScrolled()`): remove
-  a page's own watch or sentinel recipe for them (left in place it adds a second sentinel, which is harmless).
+  a page's own watch or sentinel recipe for them. Left in place it still works (a second sentinel), but the hand
+  recipe is deprecated: `tools/check-project.mjs` warns on its `data-scrolled` write (Migration, above).
 - `.ds-view`, `.ds-sheet__body` and `.ds-drawer__list` are positioned (`position: relative`, no stacking context): the
   `offsetParent` of elements inside them changes, an absolutely placed element no longer escapes the scroller, and a
   `.ds-sr` without a closer positioned ancestor sits at the top of the view's content.
@@ -230,7 +232,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
   versions), `tokens.json` (every `--ds-*` name with its layer, default, type, component and deprecation),
   `ds.d.ts` and `js/*.d.ts` (types of `window.DS` and the ES modules), `tools/verify.mjs` and `tools/verify.sh` (a
   copy against `SHA256SUMS`, offline), `tools/check-theme.mjs` (a theme file) and `tools/check-project.mjs` (the
-  project rules of AGENTS.md on a project, configured by `ds-check.json`, exceptions with reasons).
+  project rules of AGENTS.md on a project, configured by `ds-check.json`, exceptions with reasons; a page that links
+  single stylesheets needs one that defines each class it uses, and `linear` passes on a `--ds-loop-*` loop).
 - `templates/update-dashboard-style.yml`: `SETUP: node | go | none`, verification with `tools/verify.sh` (no Node
   needed), an optional `CHECK` step.
 - Docs: `docs/patterns.md` (page types and flows), the accessibility statement in `docs/rules.md` (WCAG 2.2 AA),
@@ -313,6 +316,8 @@ All still work in 2.x, are marked **deprecated** in the docs and listed in `dist
 `tools/check-project.mjs` and `tools/check-theme.mjs` warn on them.
 
 - `.ds-view--leaving` and its manual swap recipe: use `DS.motion.transition()`.
+- The hand `data-scrolled` recipe of 1.x (a page's own `IntersectionObserver` on a sentinel writes
+  `data-scrolled`): use `DS.dom.watchScrolled(view)`.
 - The numeric second argument of `settleLoader(startedAt, now)`: use `settleLoader(startedAt, { now })`.
 - `ds-fill-x`, `ds-fill-y`, `.ds-enter--fill-x`, `.ds-enter--fill-y` and the `enter()` variants `'fill-x'`,
   `'fill-y'`: a scaled mark squashes its round end; set `--ds-share` on the mark and use `.ds-enter--fill` or

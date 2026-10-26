@@ -128,6 +128,15 @@
       "note": "A page no longer sets --ds-toast-shift or --ds-toast-shift-y, nor closes snackbars with setTimeout: DS.overlay moves the region into an open sheet and glides the messages (both properties stay, written by DS.overlay only), and toast() times them."
     },
     {
+      "kind": "markup",
+      "name": "the hand data-scrolled recipe",
+      "pattern": "(?:setAttribute|toggleAttribute)\\(\\s*['\"`]data-scrolled['\"`]|\\.dataset\\.scrolled\\s*=(?!=)",
+      "replacement": "DS.dom.watchScrolled(view)",
+      "deprecated": "2.0.0",
+      "removed": null,
+      "note": "The 1.x App frame recipe: a page's own IntersectionObserver on a sentinel writes data-scrolled. Delete the observer, the sentinel and the page's own watchScrolled function, and call DS.dom.watchScrolled(view) once; DS.overlay.open() watches sheet and dialog bodies itself."
+    },
+    {
       "kind": "class",
       "name": ".ds-view--leaving",
       "pattern": "(?<![\\w-])ds-view--leaving(?![\\w-])",

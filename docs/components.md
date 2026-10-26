@@ -198,6 +198,11 @@ is the only scroller. At 900px and below the drawer becomes modal.
   DS.dom.watchScrolled(document.querySelector('.ds-view'));   // data-scrolled on the .ds-app, owned state
   ```
 
+  **Deprecated** (2.0): the 1.x hand recipe, a page's own `IntersectionObserver` on a sentinel that writes
+  `target.toggleAttribute('data-scrolled', …)`. It still works in 2.x, and `tools/check-project.mjs` warns on it:
+  delete the observer, the sentinel and the page's own `watchScrolled` function, and call
+  `DS.dom.watchScrolled(view)` once.
+
   A scrolled view whose content shrinks until it no longer scrolls leaves its scroll timeline inactive, and Chromium
   and WebKit then keep the tint and the hairline at their last value. `DS.motion.resyncScroll(scroller)` restarts
   them ([motion](motion.md#scroll-driven-effects)); `DS.motion.transition()` calls it after every update, and

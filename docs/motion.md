@@ -1441,10 +1441,10 @@ is the scroll position (the scroll-linked keyframes `ds-scroll-fade`, `ds-scroll
 | The hairline at a pinned column's end (`.ds-table--pin-first`) | `ds-scroll-fade` on `scroll(nearest inline)` over the first `--ds-space-2` | `data-ds-overflow-start` on the wrapper, faded over `--ds-dur-fast` |
 | `.ds-reveal--scroll` | a block of a long read-only page fades in and rises while it enters the scrollport (`view()`) | none: static, never hidden (also in print) |
 
-- **The `data-scrolled` fallback.** Set it in every engine (filled toolbar fields read it too), from an
-  `IntersectionObserver` on a 1px sentinel at the top of the scroller, so it changes twice per scroll instead of on
-  every scroll event; the snippet is in the [App frame](components.md#app-frame). Where the timelines run, the
-  attribute changes nothing they draw.
+- **The `data-scrolled` fallback.** Set it in every engine (filled toolbar fields read it too) with
+  `DS.dom.watchScrolled(view)`: an `IntersectionObserver` on a 1px sentinel at the top of the scroller, so it changes
+  twice per scroll instead of on every scroll event ([App frame](components.md#app-frame)); `DS.overlay.open()`
+  watches sheet and dialog bodies itself. Where the timelines run, the attribute changes nothing they draw.
 - **The order.** `animation-timeline` and `animation-range` come after the `animation` shorthand in the same rule:
   the shorthand resets both, so written first they would be lost. A named timeline (`--ds-view-scroll`,
   `--ds-sheet-scroll`) sits behind `@supports (timeline-scope: none)`, an anonymous one (`scroll()`, `view()`)
