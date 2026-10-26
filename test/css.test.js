@@ -1802,6 +1802,17 @@ describe('feedback and data (1.4.0)', () => {
     for (const selector of ['.ds-chevron', '.ds-errors .ds-errors__chevron', '.ds-table__sort-arrow']) assert.ok(EXCEPTIONS.get('rotate').transitions.has(selector), selector);
   });
 
+  it('gives the loading parts of 2.0 their hooks and layout: bone radius, the skeleton note, detail lines', () => {
+    const css = read('src/components/loading.css');
+    const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
+    assert.equal(own('.ds-skeleton__line')['border-radius'], 'var(--ds-skeleton-radius, var(--ds-radius-action))');
+    assert.match(stripComments(css), /\.ds-skeleton__line--heading \{[^}]*border-radius: var\(--ds-skeleton-radius, var\(--ds-radius-sm\)\)/);
+    assert.deepEqual([own('.ds-skeleton__note').color, own('.ds-skeleton__note').font, own('.ds-skeleton__note')['font-variant-numeric']], ['var(--ds-text-2)', 'var(--ds-font-meta)', 'tabular-nums']);
+    assert.equal(own('.ds-skeleton__note:empty').display, 'none');
+    assert.equal(own('.ds-loading').display, 'grid');
+    assert.equal(own('.ds-loading__detail')['grid-column'], '2');
+  });
+
   it('keeps the waiting track in the layout (hidden, not display: none) and fades it in', () => {
     const file = 'src/components/progress.css';
     const waiting = rulesWith(file, /^\.ds-progress--waiting \.ds-progress__track$/);

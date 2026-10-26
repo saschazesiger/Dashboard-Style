@@ -8,10 +8,13 @@
  *
  *   <div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
  *                                                     app start, after --ds-delay-boot
- *   <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
+ *   <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...
+ *     <p class="ds-loading__detail">812 of 2,030 rows</p></div>   detail lines under the text (2.0)
  *   <div class="ds-skeleton" role="status"> <span class="ds-sr">Loading ...</span>
  *     <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
  *     <span class="ds-skeleton__line ds-skeleton__line--heading"></span> ...
+ *     <span class="ds-skeleton__line ds-skeleton__line--lead"></span>
+ *     <p class="ds-skeleton__note">Loading 3 of 12 reports</p>      a progress line (2.0); hidden while empty
  *     <div class="ds-skeleton__card"> <span class="ds-skeleton__line ds-skeleton__line--title"></span> ...
  *
  *   .ds-skeleton__line  a body line; --heading (a page title), --lead (its
@@ -20,6 +23,9 @@
  *
  * The older markup with a .ds-spinner in .ds-boot or .ds-loading keeps
  * working; the spinner is the inline variant (a row in a list, a cell).
+ *
+ * Hooks: --ds-skeleton-radius (the bones' corners; default
+ * --ds-radius-action, the heading line --ds-radius-sm).
  *
  * Skeleton: one synchronised, calm diagonal wave across the whole surface.
  * The surface runs ds-skeleton-wave once its own entrance is over (its
@@ -72,11 +78,15 @@
     animation: ds-fade-in var(--ds-dur-slow) var(--ds-ease-in-out) var(--ds-delay-boot) backwards;
   }
 
-  /* Small loading line (side sheets, "load more"). */
+  /* Small loading line (side sheets, "load more"): the loader, then the
+     text; detail lines (2.0) sit under the text in its column, aligned
+     with it whatever the loader's size. */
   .ds-loading {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
-    gap: var(--ds-space-3);
+    column-gap: var(--ds-space-3);
+    row-gap: var(--ds-space-1);
     padding: var(--ds-space-4) 0;
     color: var(--ds-text-2);
     font: var(--ds-font-body);
@@ -97,6 +107,26 @@
       ds-skeleton-wave var(--ds-loop-skeleton) linear calc(var(--ds-delay-loader) + var(--ds-dur-medium)) infinite backwards;
   }
 
+  .ds-loading__detail {
+    grid-column: 2;
+    margin: 0;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+  }
+
+  /* A progress line under the lead bone (2.0), inside the role="status"
+     skeleton, so it is announced. */
+  .ds-skeleton__note {
+    margin: calc(-1 * var(--ds-space-2)) 0 0;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ds-skeleton__note:empty {
+    display: none;
+  }
+
   .ds-skeleton__card {
     display: grid;
     gap: var(--ds-space-3);
@@ -111,7 +141,7 @@
     display: block;
     width: 100%;
     height: 12px;
-    border-radius: var(--ds-radius-action);
+    border-radius: var(--ds-skeleton-radius, var(--ds-radius-action));
     background-color: var(--ds-surface-highest);
     background-image: linear-gradient(105deg, transparent 40%, var(--ds-skeleton-highlight) 50%, transparent 60%);
     background-size: 200vw 100%;
@@ -124,7 +154,7 @@
     animation: ds-skeleton-wave var(--ds-loop-skeleton) linear infinite;
   }
 
-  .ds-skeleton__line--heading { width: 28%; height: 28px; border-radius: var(--ds-radius-sm); }
+  .ds-skeleton__line--heading { width: 28%; height: 28px; border-radius: var(--ds-skeleton-radius, var(--ds-radius-sm)); }
   .ds-skeleton__line--lead { width: 56%; margin-bottom: var(--ds-space-2); }
   .ds-skeleton__line--title { width: 24%; height: 16px; }
   .ds-skeleton__line--short { width: 44%; }

@@ -1340,3 +1340,17 @@
 [data-sg-page="lab"] .sg-section:last-child {
   padding-bottom: 40vh;
 }
+
+/* Reorder rows (2.0): a grip and its text per row. */
+.sg-sortable {
+  display: grid;
+  gap: var(--ds-space-1);
+}
+
+.sg-sortable__row {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface);
+}

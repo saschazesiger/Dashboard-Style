@@ -1217,6 +1217,8 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 <!-- Block loader: the shape loader (M3 Expressive), 48px; --sm 24px; --contained on an --ds-accent disc -->
 <div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
 <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
+<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Importing devices
+  <p class="ds-loading__detail">812 of 2,030 rows</p></div>                       <!-- a detail line under the text -->
 <span class="ds-loader ds-loader--contained" aria-hidden="true"></span>
 
 <!-- Inline spinner: the M3 arc, for buttons, chips, status chips and table cells -->
@@ -1228,6 +1230,7 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
   <span class="ds-loadbar" aria-hidden="true"><span class="ds-loadbar__bar"></span></span>
   <span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span>
   <span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>
+  <p class="ds-skeleton__note">Loading 3 of 12 reports</p>                        <!-- optional progress line -->
   <div class="ds-skeleton__card">
     <span class="ds-skeleton__line ds-skeleton__line--title"></span>
     <span class="ds-skeleton__line"></span>
@@ -1261,6 +1264,12 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   of a surface share one phase. Fallback: where `background-attachment: fixed` is ignored (iOS) or broken by a
   transformed ancestor (a sheet mid-slide, `.ds-enter`), the bones stay in time but the band no longer runs across
   them; never wrap a skeleton in an entrance that fills forwards.
+- **Loading line** (`.ds-loading`): the loader, then the text in a two-column grid; `.ds-loading__detail` lines (2.0)
+  sit under the text in its column (`--ds-font-meta`, `--ds-text-2`), aligned with it whatever the loader's size.
+- **Skeleton note** (`p.ds-skeleton__note`, 2.0): a progress line under the lead bone ("Loading 3 of 12 reports",
+  `--ds-font-meta` in `--ds-text-2`, tabular figures); it sits inside the `role="status"` skeleton, so its text is
+  announced: update it at most every 10% or once a second. Empty, it takes no room. The bones' corners follow
+  `--ds-skeleton-radius` (2.0; default `--ds-radius-action`, the heading line `--ds-radius-sm`).
 - **Loading bar** (`.ds-loadbar`): the two-segment indeterminate choreography, flat, at the top of the content
   panel (inside `.ds-content`, whose read-only `--ds-content-pad-top` and `--ds-content-pad-x` it reads to reach the
   panel edges; inside `.ds-page` it also spans the page's centring, measured as `100cqw` of `.ds-content`, so it

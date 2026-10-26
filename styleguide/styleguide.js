@@ -617,7 +617,21 @@
         '<div class="ds-field"><label class="ds-field__label" for="f-since">Since</label><input class="ds-input ds-input--filled" id="f-since" type="date"></div>' +
         '</div></div>' +
         '<div class="ds-action-bar"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div><button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-sg="toggle">' + icon('filter', 16) + 'Filter</button><button class="ds-btn ds-btn--tonal" type="button">' + icon('plus', 16) + 'Add</button><p class="ds-meta">128 devices</p></div>' +
-        '<div class="ds-inline-form"><div class="ds-field"><label class="ds-field__label" for="f-ticket">Ticket number</label><input class="ds-input" id="f-ticket" placeholder="12345"></div><button class="ds-btn" type="button">Look up</button></div>'));
+        '<div class="ds-inline-form"><div class="ds-field"><label class="ds-field__label" for="f-ticket">Ticket number</label><input class="ds-input" id="f-ticket" placeholder="12345"></div><button class="ds-btn" type="button">Look up</button></div>') +
+      '<div class="ds-grid-2">' +
+      card('Files', label('The file field (.ds-input[type="file"]) and a drop zone (.ds-dropzone, DS.dom.dropzone): drop, browse or paste') +
+        '<div class="ds-stack"><div class="ds-field"><label class="ds-field__label" for="sg-file">Photo</label><input class="ds-input" type="file" id="sg-file" accept="image/*"></div>' +
+        '<label class="ds-dropzone" id="sg-dropzone"><input class="ds-dropzone__input" type="file" accept=".csv" multiple>' +
+        '<span class="ds-dropzone__disc" aria-hidden="true">' + icon('plus', 24) + '</span>' +
+        '<span class="ds-dropzone__title"><span class="ds-dropzone__idle">Drop CSV files here or <span class="ds-dropzone__browse">browse</span></span><span class="ds-dropzone__over" aria-hidden="true">Release to add the files</span></span>' +
+        '<span class="ds-dropzone__hint">Up to 10 MB each</span></label>' +
+        '<p class="ds-muted" id="sg-dropzone-out" aria-live="polite">No file chosen yet.</p></div>') +
+      card('Reorder rows', label('A grip per row (.ds-grip) and DS.motion.sortable(): drag the grip, or focus it and press the arrow keys') +
+        '<ul class="ds-plain-list sg-sortable" id="sg-sortable">' + ['Back up the database', 'Update the agents', 'Restart the gateways', 'Send the report'].map(function (text, index) {
+          return '<li class="sg-sortable__row" data-ds-key="step-' + index + '"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + text + '">' + icon('menu', 20) + '</button><span>' + text + '</span></li>';
+        }).join('') + '</ul>' +
+        '<p class="ds-muted" id="sg-sortable-out">Order: 1, 2, 3, 4</p>') +
+      '</div>');
   }
 
   /* Chips, switch, combobox */
@@ -750,6 +764,7 @@
   function skeletonHtml() {
     return '<div class="ds-skeleton" role="status" style="position:relative"><span class="ds-sr">Loading the page ...</span>' +
       '<span class="ds-skeleton__line ds-skeleton__line--heading" aria-hidden="true"></span><span class="ds-skeleton__line ds-skeleton__line--lead" aria-hidden="true"></span>' +
+      '<p class="ds-skeleton__note">Loading 3 of 12 reports</p>' +
       '<div class="ds-skeleton__card"><span class="ds-skeleton__line ds-skeleton__line--title"></span><span class="ds-skeleton__line"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span></div>' +
       '<div class="ds-skeleton__card"><span class="ds-skeleton__line ds-skeleton__line--title"></span><span class="ds-skeleton__line"></span><span class="ds-skeleton__line ds-skeleton__line--mid"></span></div></div>';
   }
@@ -766,6 +781,7 @@
       card('Shape loader', '<div class="sg-row sg-loaders"><span class="ds-loader" aria-hidden="true"></span><span class="ds-loader ds-loader--sm" aria-hidden="true"></span><span class="ds-loader ds-loader--contained" aria-hidden="true"></span></div>' +
         '<div class="ds-boot sg-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting the console ...</div>' +
         '<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading more devices ...</div>' +
+        '<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Importing devices<p class="ds-loading__detail">812 of 2,030 rows</p></div>' +
         '<p class="ds-muted">The block loader (48px, --sm 24px, --contained on a tinted disc) for a section, a sheet or the app start: the shape morphs through the seven Material shapes while it turns. A few per view at most; inline spots keep the spinner.</p>') +
       card('Spinners', '<div class="sg-row"><span class="ds-spinner" aria-hidden="true"></span><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span><span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Importing</span></span><button class="ds-btn ds-btn--primary" type="button" aria-busy="true">' + faces('Save', 'Saving', 'Saved') + '</button></div>' +
         '<div class="sg-row">' + ring(0.05) + ring(0.4) + ring(1) + ring(0.4, true) + '</div>' +
@@ -1724,6 +1740,21 @@
     DS.overlay.tooltips(document);
     $$('#sg-page [data-sg-combo]').forEach(setupCombo);
     setupMenus();
+    setupFiles();
+  }
+
+  /* Files and reordering (2.0): DS.dom.dropzone() names what it took,
+     DS.motion.sortable() what order the rows are in. */
+  function setupFiles() {
+    var out = $('#sg-dropzone-out');
+    var names = function (files) { return files.map(function (file) { return file.name; }).join(', '); };
+    DS.dom.dropzone($('#sg-dropzone'), { paste: true, onFiles: function (files) { out.textContent = 'Added ' + names(files) + '.'; } });
+    var list = $('#sg-sortable');
+    DS.motion.sortable(list, {
+      onChange: function (order) {
+        $('#sg-sortable-out').textContent = 'Order: ' + order.map(function (row) { return Number(row.getAttribute('data-ds-key').slice(5)) + 1; }).join(', ');
+      },
+    });
   }
 
   /* The header checkbox of the table: checked, mixed or empty by its shown rows. */
