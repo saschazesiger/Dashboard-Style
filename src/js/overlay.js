@@ -6,6 +6,9 @@
  *
  *   DS.overlay.open(dialog, { opener: button });   // a Promise: the entrance settled
  *   DS.overlay.close(dialog);                      // a Promise: hidden again
+ *   DS.overlay.close(dialog, { reason: 'confirm' }); // why: the ds-close event says it
+ *   DS.overlay.topmost();                          // the top open layer, or null
+ *   await DS.overlay.confirm({ title, text });     // a built dialog: true or false
  *
  * Kinds, recognised by class: a native <dialog class="ds-dialog | ds-sheet">
  * (showModal() is the focus trap and makes the page inert), the div
@@ -31,14 +34,28 @@
  * trap (native: dialog.close() at once plus .ds-dialog--closing /
  * .ds-sheet--closing, which keeps it displayed and stacked outside the top
  * layer; div: restore the inert it set), focus the opener at once (gone:
- * the nearest tabindex="-1" landmark, never <body>), make only the box or
- * panel inert (the backdrop keeps swallowing clicks, and a mousedown on
- * it or the drawer's scrim is prevented, so focus stays on the opener), set
- * data-state="closed", wait for settled(), then hide (div: hidden; native:
- * drop --closing), clear the box's inert and .ds-dialog--nested, unlock
- * the scroll and leave the Escape stack, in one task. Popups return focus
- * to their opener only when it was inside them and the close was not a
- * click outside.
+ * returnTo(), the opener's id twin, the nearest tabindex="-1" ancestor or
+ * landmark, never <body>), make only the box or panel inert (the backdrop
+ * keeps swallowing clicks, and a mousedown on it or the drawer's scrim is
+ * prevented, so focus stays on the opener), set data-state="closed", send
+ * ds-close ({ detail: { reason } }, bubbling, once), wait for settled(),
+ * then hide (div: hidden; native: drop --closing), clear the box's inert
+ * and .ds-dialog--nested, unlock the scroll and leave the Escape stack, in
+ * one task. Popups return focus to their opener only when it was inside
+ * them and the close was not a click outside.
+ *
+ * Busy: while the page sets data-ds-busy on a dialog, sheet or drawer, the
+ * user's close attempts do nothing (Escape, the native cancel, a
+ * [data-close] click, the backdrop and the drawer's scrim): one guard at
+ * the top of closeFrom(), before the popups inside close, so a refused
+ * attempt changes nothing and sends no ds-close. close(el) and the forced
+ * closes (removed, breakpoint) still close; menus and lists ignore it.
+ *
+ * Dismiss guard: a backdrop or scrim click from a pointer closes only when
+ * the press began on it, it is the first click (event.detail 1) and
+ * --ds-delay-dismiss has passed since the open; a [data-close] click with
+ * detail > 1 never closes. click(), Enter and Space (detail 0) close at
+ * once.
  *
  * Container transform (opt-in): open(el, { opener, container: true }) on
  * a dialog or side sheet runs the open inside DS.motion.transition() with
@@ -57,7 +74,9 @@
  * Escape stack: one keydown listener on the document (bubble phase, so a
  * widget inside the overlay that handles Escape itself and calls
  * preventDefault() keeps it open) closes the topmost overlay that is not
- * already closing, unless a tooltip took the key; the stack is shared by
+ * already closing, unless a tooltip took the key or the key came from a
+ * filled input[type="search"] inside that overlay (it clears the search
+ * and fires input; the next Escape closes); the stack is shared by
  * every copy of ds.js on the page (sharedOf), so the topmost layer closes
  * whichever copy opened it. A native dialog's cancel
  * event is turned into close(), so its exit plays. Closing a dialog, sheet
@@ -85,8 +104,11 @@
  * one so that its exit, outside the top layer at once, stays above the
  * sheet's panel and its scrim keeps catching clicks. A menu focuses
  * its first enabled item (the last one when an ArrowUp keydown opened it),
- * moves focus with ArrowUp, ArrowDown, Home and End (wrapping) and closes a
- * task after an item's click, once the item's handlers ran.
+ * moves focus with ArrowUp, ArrowDown, Home and End (wrapping), to the next
+ * item whose label starts with the typed letters (type-ahead; the letters
+ * reset after --ds-delay-tooltip) and closes a task after an item's click,
+ * once the item's handlers ran. The items of a dialog's .ds-dialog__list
+ * (an action sheet) take the same arrow keys.
  *
  * Scroll lock: reference-counted per document (lockScroll(doc) /
  * unlockScroll(doc), default the global one; modal kinds lock their own
@@ -122,6 +144,20 @@
  * opener, anchor-name on the anchor, the `inert` of what a trap took, a
  * tooltip's aria-describedby) is owned (Symbol.for('ds.owned'), see
  * motion.js), so a live re-render with DS.dom.morphHtml keeps it.
+ *
+ * Openers: open(el, { opener }) without an opener takes the focused
+ * element, or, with focus on <body> (Safari does not focus a clicked
+ * button), the focusable control the current event came from. A dialog or
+ * sheet keeps aria-expanded on its opener in step only when the opener
+ * already carries the attribute (opt-in by markup). open(drawer) focuses
+ * the drawer's [aria-current="page"] item when it has one.
+ *
+ * Promise dialogs: confirm(), alert() and prompt() build a dialog.ds-dialog
+ * with DOM APIs inside the opener's .ds-theme, open it through open() and
+ * remove it after its exit; the promise resolves with the answer when the
+ * close starts. onConfirm runs with busy() on the confirm button and
+ * data-ds-busy on the dialog; a rejection keeps it open with an error
+ * snackbar (errorText) and focus back on the confirm button.
  *
  * Snackbars (D19): toast(region, content, options) builds or takes a
  * .ds-toast and shows at most TOAST_LIMIT at once; insertions and removals
@@ -185,7 +221,7 @@
  *   what showModal() and close() focus as :focus-visible): without it that
  *   ring stays as WebKit draws it.
  */
-import { flip, motionDuration, originFrom, settled, transition } from './motion.js';
+import { busy, flip, motionDuration, originFrom, settled, transition } from './motion.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';
 
 /** How long a snackbar stays (ms) before its length adds time; --ds-time-scale stretches it. */
@@ -206,10 +242,13 @@ export const TOOLTIP_SKIP_MS = 300;
 /** --ds-delay-tooltip-hide outside a theme: the grace before a tooltip hides (it is hoverable). */
 export const TOOLTIP_HIDE_MS = 100;
 
+/** --ds-delay-dismiss outside a theme: a backdrop or scrim click this soon after the open does not close. */
+export const DISMISS_DELAY_MS = 300;
+
 /* ── State ──────────────────────────────────────────── */
 
-/** The modal drawer exists only below this width (shell.css). */
-const DRAWER_QUERY = '(max-width: 900px)';
+/** The modal drawer exists only at this width and below: the media query of shell.css (tested). */
+export const DRAWER_QUERY = '(max-width: 900px)';
 
 /** Tabbable candidates; canFocus() filters them. */
 const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
@@ -224,11 +263,19 @@ const MODAL = new Set(['dialog', 'sheet', 'drawer']);
  * One state per overlay element. `anchor`: the element a popup gave an
  * anchor-name (removed again on close). `home`: where an overlay that
  * moved into an open native modal came from (put back on close).
+ * `openerId` and `openerRoot`: the opener's id and its document or shadow
+ * root, so focus finds the twin of an opener a re-render replaced;
+ * `returnTo`: the page's own fallback. `shownAt`: when it opened, and
+ * `pressed`: where the last press inside it (or on the drawer's scrim)
+ * began (the dismiss guard). `cancelled`: a native cancel the engine
+ * would not let us prevent (Android Back), so the close that follows is an
+ * Escape.
  * @typedef {{ gen: number, phase: 'closed'|'open'|'closing', kind: string, opener: Element|null,
  *   expander: Element|null, inerted: Element[], locked: boolean, lockedDoc: Document|null, hiddenClass: string,
  *   opening: Promise<void>|null, closing: Promise<void>|null, anchor: HTMLElement|null,
  *   home: { parent: Node, next: Node|null }|null, container: object|null,
- *   claims: Array<[Element, string, string]> }} OverlayState
+ *   claims: Array<[Element, string, string]>, openerId: string, openerRoot: any,
+ *   returnTo: (() => Element|null|undefined)|null, shownAt: number, pressed: Node|null, cancelled: boolean }} OverlayState
  * @type {WeakMap<Element, OverlayState>}
  */
 const overlays = new WeakMap();
@@ -393,7 +440,7 @@ function releaseClaims(state) {
 function stateOf(element) {
   let state = overlays.get(element);
   if (!state) {
-    state = { gen: 0, phase: 'closed', kind: kindOf(element), opener: null, expander: null, inerted: [], locked: false, lockedDoc: null, hiddenClass: '', opening: null, closing: null, anchor: null, home: null, app: null, container: null, claims: [] };
+    state = { gen: 0, phase: 'closed', kind: kindOf(element), opener: null, expander: null, inerted: [], locked: false, lockedDoc: null, hiddenClass: '', opening: null, closing: null, anchor: null, home: null, app: null, container: null, claims: [], openerId: '', openerRoot: null, returnTo: null, shownAt: 0, pressed: null, cancelled: false };
     overlays.set(element, state);
   }
   return state;
@@ -459,7 +506,10 @@ function firstItem(menu) {
 /**
  * Where focus goes when `element` closes: its opener, or, when that is
  * gone or hidden inside another closed overlay, that overlay's opener;
- * else the nearest tabindex="-1" ancestor or landmark. Never <body>.
+ * else what the page's returnTo() gives (a focusable element outside the
+ * overlay; an error is reported and passed over), the element that now
+ * holds the opener's id (a re-render replaced the opener), the nearest
+ * tabindex="-1" ancestor or landmark. Never <body>.
  */
 function returnTarget(element, state) {
   let opener = state.opener;
@@ -468,10 +518,47 @@ function returnTarget(element, state) {
     const host = [...stack, ...hostsOf(opener)].find((node) => node !== element && node.contains(opener));
     opener = host ? overlays.get(host)?.opener ?? null : null;
   }
+  const outside = (node) => canFocus(node) && !element.contains(node);
+  if (typeof state.returnTo === 'function') {
+    try {
+      const target = state.returnTo();
+      if (outside(target)) return target;
+    } catch (error) {
+      report(element, error);
+    }
+  }
+  const twin = state.openerId ? state.openerRoot?.getElementById?.(state.openerId) : null;
+  if (twin && twin !== state.opener && outside(twin)) return twin;
   const doc = element.ownerDocument;
   const near = element.parentElement?.closest('[tabindex="-1"]');
-  return [near, doc.querySelector(LANDMARK)].find((node) => canFocus(node) && !element.contains(node)) ?? null;
+  return [near, doc.querySelector(LANDMARK)].find(outside) ?? null;
 }
+
+/** Reports an error of a page callback without stopping the close (reportError where it exists). */
+function report(element, error) {
+  const view = viewOf(element);
+  if (typeof view.reportError === 'function') view.reportError(error);
+  else view.console?.error(error);
+}
+
+/**
+ * The opener when open() got none: the focused element outside the
+ * overlay, or, with focus on <body> (Safari does not focus a clicked
+ * button), the focusable control the current event came from.
+ */
+function defaultOpener(element) {
+  const doc = element.ownerDocument;
+  const active = activeIn(element);
+  if (active && active !== doc.body && !element.contains(active)) return active;
+  if (active && active !== doc.body) return null;
+  const event = /** @type {any} */ (viewOf(element)).event;
+  const origin = event?.composedPath?.()[0] ?? event?.target;
+  const control = origin?.closest?.(OPENER_CONTROL);
+  return control && canFocus(control) && !element.contains(control) ? control : null;
+}
+
+/** Controls that open overlays: the targets of defaultOpener(). */
+const OPENER_CONTROL = 'button, a[href], input:not([type="hidden"]), select, textarea, summary, [role="button"], [tabindex]:not([tabindex="-1"])';
 
 /** The overlay elements around a node that DS.overlay has seen (closed ones included). */
 function hostsOf(node) {
@@ -523,6 +610,14 @@ function focusInto(element, state, box) {
     const last = event?.type === 'keydown' && event.key === 'ArrowUp';
     (last ? menuItems(element).filter(enabled).at(-1) : firstItem(element))?.focus({ preventScroll: true });
     return;
+  }
+  if (state.kind === 'drawer') {
+    // The page the user is on, so the list reads from there.
+    const current = element.querySelector('[aria-current="page"]');
+    if (canFocus(current)) {
+      current.focus({ preventScroll: true });
+      return;
+    }
   }
   if (state.kind === 'drawer' && element.hasAttribute('tabindex')) {
     element.focus({ preventScroll: true });
@@ -741,6 +836,8 @@ function listen(doc) {
     const order = doc[SHARED]?.order ?? [];
     for (let i = order.length - 1; i >= 0; i -= 1) {
       if (!order[i].open()) continue;
+      // A filled search in that layer takes the first Escape: it clears.
+      if (clearSearch(order[i].element, event)) return;
       order[i].escape(event);
       return;
     }
@@ -783,6 +880,36 @@ function listen(doc) {
   view.addEventListener?.('resize', follow);
 }
 
+/**
+ * Escape in a filled input[type="search"] inside `layer`: the value goes,
+ * an input event tells the page's filter, the key is taken and the layer
+ * stays. An empty search lets the key through.
+ */
+function clearSearch(layer, event) {
+  const target = /** @type {any} */ (event.composedPath?.()[0] ?? event.target);
+  if (!target || target.localName !== 'input' || target.type !== 'search' || !target.value) return false;
+  if (!composedContains(layer, target) || target.readOnly || target.disabled) return false;
+  event.preventDefault();
+  target.value = '';
+  const view = viewOf(target);
+  target.dispatchEvent(new view.Event('input', { bubbles: true, composed: true }));
+  return true;
+}
+
+/** Close causes that the user started: refused while the overlay is busy (data-ds-busy). */
+const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
+
+/**
+ * Whether a pointer click on a backdrop or scrim may close: the first
+ * click of a press that began on it, --ds-delay-dismiss after the open.
+ * click(), Enter and Space (detail 0) always may.
+ */
+function dismissable(element, state, part, event) {
+  if (event.detail === 0) return true;
+  if (event.detail > 1 || !state.pressed || !composedContains(part, state.pressed)) return false;
+  return clock() - state.shownAt >= motionDuration(element, '--ds-delay-dismiss');
+}
+
 /** [data-close] clicks, the drawer's scrim and a native dialog's cancel. */
 function wire(element, state) {
   if (wired.has(element)) return;
@@ -794,36 +921,87 @@ function wire(element, state) {
     if (overlays.get(element)?.phase === 'closing') event.preventDefault();
   };
   element.addEventListener('mousedown', holdFocus, true);
+  // Where a press began: a drag from the box that ends on the backdrop
+  // is no click on the backdrop (the dismiss guard).
+  const pressAt = (/** @type {PointerEvent} */ event) => {
+    const own = overlays.get(element);
+    if (own) own.pressed = /** @type {Node} */ (event.composedPath?.()[0] ?? event.target);
+  };
+  element.addEventListener('pointerdown', pressAt, true);
   element.addEventListener('click', (/** @type {MouseEvent} */ event) => {
     const target = /** @type {Element} */ (event.target);
     const closer = target.closest?.('[data-close]');
     if (!closer || !element.contains(closer)) return;
     // A closer inside a nested overlay belongs to that one.
     if (hostsOf(closer)[0] !== element && closer !== element) return;
-    if (overlays.get(element)?.phase !== 'open') return;
-    closeFrom(element, 'close');
+    const own = overlays.get(element);
+    if (own?.phase !== 'open') return;
+    // The second click of a double click never closes (it may be the
+    // opener's second click, landing on the dialog that just opened).
+    if (event.detail > 1) return;
+    const backdrop = closer.matches('.ds-dialog__backdrop, .ds-sheet__backdrop');
+    if (backdrop && !dismissable(element, own, closer, event)) return;
+    closeFrom(element, backdrop ? 'backdrop' : 'close');
   });
   if (state.kind === 'menu') wireMenu(element);
+  if (state.kind === 'dialog') wireDialogList(element);
   if (state.kind === 'drawer') {
     const scrim = element.parentElement?.querySelector(':scope > .ds-scrim');
-    scrim?.addEventListener('click', () => {
-      if (overlays.get(element)?.phase === 'open') closeFrom(element, 'close');
+    scrim?.addEventListener('click', (/** @type {MouseEvent} */ event) => {
+      const own = overlays.get(element);
+      if (own?.phase === 'open' && dismissable(element, own, scrim, event)) closeFrom(element, 'backdrop');
     });
     scrim?.addEventListener('mousedown', holdFocus, true);
+    scrim?.addEventListener('pointerdown', pressAt, true);
   }
   if (isNative(element)) {
     element.addEventListener('cancel', (event) => {
       // Escape or another close request: play the exit instead of vanishing.
+      // A request the engine does not let us refuse (Android Back without
+      // a user activation) closes anyway: the close that follows is an Escape.
+      const own = overlays.get(element);
+      if (own && !event.cancelable) own.cancelled = true;
       event.preventDefault();
-      if (overlays.get(element)?.phase === 'open') closeFrom(element, 'escape');
+      if (own?.phase === 'open') closeFrom(element, 'escape');
     });
     // Closed natively (a <form method="dialog">, dialog.close() of the
-    // page): the state follows, and the exit still plays. The event of
-    // close() itself arrives later, when the dialog may be open again.
+    // page, a cancel the engine forced): the state follows, and the exit
+    // still plays. The event of close() itself arrives later, when the
+    // dialog may be open again.
     element.addEventListener('close', () => {
-      if (overlays.get(element)?.phase === 'open' && !element.open) closeFrom(element, 'close');
+      const own = overlays.get(element);
+      if (own?.phase !== 'open' || element.open) return;
+      const reason = own.cancelled ? 'escape' : 'api';
+      own.cancelled = false;
+      closeFrom(element, 'native', reason);
     });
   }
+}
+
+/**
+ * An action sheet's list (.ds-dialog__list): ArrowUp, ArrowDown, Home and
+ * End move focus among its .ds-menu__item rows (wrapping), as in a menu.
+ */
+function wireDialogList(dialog) {
+  dialog.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+    const list = /** @type {Element} */ (event.target)?.closest?.('.ds-dialog__list');
+    if (!list || !dialog.contains(list)) return;
+    const next = arrowTarget([...list.querySelectorAll('.ds-menu__item')].filter(canFocus), event);
+    if (!next) return;
+    event.preventDefault();
+    next.focus();
+  });
+}
+
+/** The item ArrowUp, ArrowDown, Home or End moves to among `items` (wrapping), or null for another key. */
+function arrowTarget(items, event) {
+  if (!items.length || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return null;
+  const current = items.indexOf(/** @type {Element} */ (event.target)?.closest?.('.ds-menu__item'));
+  if (event.key === 'Home') return items[0];
+  if (event.key === 'End') return items.at(-1);
+  if (event.key === 'ArrowDown') return items[(current + 1) % items.length];
+  return items[current < 0 ? items.length - 1 : (current - 1 + items.length) % items.length];
 }
 
 /**
@@ -832,19 +1010,29 @@ function wire(element, state) {
  * task later, so a handler further up the tree still sees it open).
  */
 function wireMenu(menu) {
+  // Type-ahead: the letters typed within --ds-delay-tooltip of each other.
+  let typed = '';
+  let typedAt = 0;
   menu.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
     const items = menuItems(menu);
-    if (!items.length) return;
-    const current = items.indexOf(/** @type {Element} */ (event.target)?.closest?.('.ds-menu__item'));
-    let next;
-    if (event.key === 'Home') next = items[0];
-    else if (event.key === 'End') next = items.at(-1);
-    else if (event.key === 'ArrowDown') next = items[(current + 1) % items.length];
-    else next = items[current < 0 ? items.length - 1 : (current - 1 + items.length) % items.length];
+    const next = arrowTarget(items, event);
+    if (next) {
+      typed = '';
+      event.preventDefault();
+      next.focus();
+      return;
+    }
+    // A printable key; a space only within a word (alone it activates the item).
+    if (event.key.length !== 1 || (event.key === ' ' && !typed)) return;
+    const now = clock();
+    if (now - typedAt > motionDuration(menu, '--ds-delay-tooltip')) typed = '';
+    typedAt = now;
+    typed += event.key.toLowerCase();
+    const match = typeAhead(items, /** @type {Element} */ (event.target)?.closest?.('.ds-menu__item'), typed);
+    if (!match) return;
     event.preventDefault();
-    next.focus();
+    match.focus();
   });
   menu.addEventListener('click', (/** @type {MouseEvent} */ event) => {
     const item = /** @type {Element} */ (event.target)?.closest?.('.ds-menu__item');
@@ -856,6 +1044,26 @@ function wireMenu(menu) {
       if (state.gen === gen && state.phase === 'open') closeFrom(menu, 'item');
     });
   });
+}
+
+/**
+ * The item the typed letters lead to: the next one after `current`
+ * (wrapping) whose label starts with them; one letter typed again and
+ * again cycles through the items with that letter.
+ */
+function typeAhead(items, current, typed) {
+  const label = (item) => (item.querySelector('.ds-menu__label') ?? item).textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+  const repeated = typed.length > 1 && [...typed].every((char) => char === typed[0]);
+  const start = items.indexOf(current);
+  // A new search starts after the current item; a longer one may stay on it.
+  const from = typed.length === 1 || repeated ? start + 1 : Math.max(0, start);
+  for (const text of repeated ? [typed, typed[0]] : [typed]) {
+    for (let step = 0; step < items.length; step += 1) {
+      const item = items[(from + step) % items.length];
+      if (label(item).startsWith(text)) return item;
+    }
+  }
+  return null;
 }
 
 /* ── Popups: placement ──────────────────────────────── */
@@ -1261,6 +1469,7 @@ if (typeof globalThis.matchMedia === 'function' && typeof globalThis.document?.q
 
 /** Closes the drawer without motion (the window widened): every bit of state goes at once. */
 function closeNow(drawer, state) {
+  const wasOpen = state.phase === 'open';
   state.gen += 1;
   state.closing = null;
   state.opening = null;
@@ -1270,6 +1479,7 @@ function closeNow(drawer, state) {
   restoreInert(state);
   drawer.inert = false;
   finishClose(drawer, state);
+  if (wasOpen) announceClose(drawer, 'breakpoint');
 }
 
 /* ── Open and close ─────────────────────────────────── */
@@ -1349,6 +1559,8 @@ function dropDetached() {
       continue;
     }
     const kind = state.kind;
+    // A closing one told the page already, as the close started.
+    const wasOpen = state.phase === 'open';
     dropProbe(element);
     // A pending exit's settled() callback no longer acts.
     state.gen += 1;
@@ -1381,6 +1593,7 @@ function dropDetached() {
       giveBack(element, state);
     } else if (home) keepHome(element, home.kept);
     finishClose(element, state);
+    if (wasOpen) announceClose(element, 'removed');
   }
 }
 
@@ -1433,8 +1646,7 @@ function containerOpen(element, options) {
   if (state.phase !== 'closed' || state.container) return state.container?.done ?? null;
   const viewTransitions = typeof doc.startViewTransition === 'function' && doc.documentElement.classList.contains('ds-theme');
   if (!viewTransitions) return null;
-  const active = activeIn(element);
-  const opener = options.opener ?? (active && active !== doc.body && !element.contains(active) ? active : null);
+  const opener = options.opener ?? defaultOpener(element);
   if (!opener?.isConnected || typeof opener.getBoundingClientRect !== 'function') return null;
 
   const lifted = new Map();
@@ -1471,6 +1683,14 @@ function containerOpen(element, options) {
     (error) => { restore(); throw error; },
   );
   return pending.done;
+}
+
+/** Keeps what finds the opener again: its id and root (for a twin after a re-render) and the page's returnTo. */
+function remember(state, options) {
+  const opener = state.opener;
+  state.openerId = typeof opener?.id === 'string' ? opener.id : '';
+  state.openerRoot = state.openerId ? opener.getRootNode?.() ?? opener.ownerDocument : null;
+  state.returnTo = typeof options.returnTo === 'function' ? options.returnTo : null;
 }
 
 /**
@@ -1512,11 +1732,13 @@ function show(element, options, transform) {
   state.phase = 'open';
 
   if (!reopening) {
-    const active = activeIn(element);
-    const focused = active && active !== doc.body && !element.contains(active) ? active : null;
+    const focused = defaultOpener(element);
     const menuButton = app?.querySelector('.ds-topbar__menu') ?? null;
     state.opener = options.opener ?? (kind === 'drawer' ? menuButton ?? focused : focused);
-    state.expander = kind === 'drawer' ? menuButton ?? state.opener : MODAL.has(kind) ? null : state.opener;
+    // A dialog's or sheet's opener says expanded only when its markup asks for it.
+    const expands = Boolean(state.opener?.hasAttribute?.('aria-expanded'));
+    state.expander = kind === 'drawer' ? menuButton ?? state.opener : MODAL.has(kind) ? (expands ? state.opener : null) : state.opener;
+    remember(state, options);
     // Until its close settled, a live re-render (DS.dom.morphHtml) keeps
     // what this module writes on the overlay, its box, opener and frame.
     releaseClaims(state);
@@ -1526,7 +1748,12 @@ function show(element, options, transform) {
     claim(state, app, 'attrs', ['data-drawer-open']);
     // Kept: a drawer the page replaced is no longer inside its frame.
     state.app = app;
-  } else if (options.opener) state.opener = options.opener;
+  } else if (options.opener) {
+    state.opener = options.opener;
+    remember(state, options);
+  }
+  state.shownAt = clock();
+  state.pressed = null;
 
   // A contained dialog covers its container in a panel (an embedded
   // widget): it traps only there and takes no scroll lock.
@@ -1624,24 +1851,264 @@ function show(element, options, transform) {
  * data-state="closed" plays the exit, and once it settled the overlay is
  * hidden and leaves the lock and the Escape stack. A second call during
  * the exit returns the same promise; an open() meanwhile takes it back.
+ * `reason` (default 'api') is what the ds-close event says; it also closes
+ * a busy overlay (data-ds-busy refuses only the user's attempts).
  * @param {Element} element
+ * @param {{ reason?: string }} [options]
  * @returns {Promise<void>}
  */
-export function close(element) {
+export function close(element, options = {}) {
   if (!element) return Promise.resolve();
   // A container open still waiting for its snapshot does not open.
   const pending = overlays.get(element);
   if (pending?.container) pending.container = null;
   if (element.matches('.ds-drawer')) watchDrawer(element, drawerQuery(element));
-  return closeFrom(element, 'close');
+  return closeFrom(element, 'api', typeof options.reason === 'string' && options.reason ? options.reason : 'api');
 }
 
 /**
- * close() with its reason: 'close' (a call, [data-close], the scrim),
- * 'escape', 'tab' (a menu; focus is on the trigger already) or 'outside'
- * (a pointerdown outside a menu: focus stays where the pointer puts it).
+ * The topmost open layer of the page (`doc`): a dialog, side sheet, the
+ * modal drawer, a menu, a combobox list or a contained dialog, whichever
+ * copy of ds.js (1.6.1 and later) opened it; null when none is open or
+ * without a DOM. A layer that is closing no longer counts.
+ * @param {Document} [doc]
+ * @returns {Element|null}
  */
-function closeFrom(element, reason) {
+export function topmost(doc = globalThis.document) {
+  if (!doc) return null;
+  pruneDetached();
+  const order = doc[SHARED]?.order ?? [];
+  for (let i = order.length - 1; i >= 0; i -= 1) if (order[i].open()) return order[i].element;
+  return null;
+}
+
+/* ── Promise dialogs ────────────────────────────────── */
+
+/** What a failed onConfirm says by default (never the raw error message). */
+const CONFIRM_ERROR = 'That did not work. Try again.';
+
+/**
+ * Asks with a built dialog: Cancel and a confirm button. `destructive`
+ * makes it an alertdialog whose first focus is Cancel; the confirm label
+ * names the consequence (there are no red buttons). `onConfirm` (async)
+ * runs with busy() on the confirm button and data-ds-busy on the dialog: a
+ * rejection keeps it open, shows `errorText` as an error snackbar above it
+ * (in the theme's .ds-toasts region) and focuses the confirm button again.
+ * Resolves true when it closed through the confirm button, else false.
+ * @param {{ title?: string, text?: string, confirmLabel?: string, cancelLabel?: string, destructive?: boolean,
+ *   opener?: Element|null, onConfirm?: () => unknown, errorText?: string }} [options]
+ * @returns {Promise<boolean>}
+ */
+export function confirm(options = {}) {
+  return /** @type {Promise<boolean>} */ (ask('confirm', options));
+}
+
+/**
+ * Tells something with a built alertdialog and one button (`closeLabel`,
+ * default "OK"); resolves once it closes.
+ * @param {{ title?: string, text?: string, closeLabel?: string, opener?: Element|null }} [options]
+ * @returns {Promise<void>}
+ */
+export function alert(options = {}) {
+  return /** @type {Promise<void>} */ (ask('alert', options));
+}
+
+/**
+ * Asks for one value with a built dialog: a field (`label`, `value`;
+ * `input` sets its type, autocomplete, inputmode and required), Cancel and
+ * a confirm button; Enter in the field confirms. `onConfirm(value)` runs as
+ * in confirm(). Resolves the value when it closed through the confirm
+ * button, else null.
+ * @param {{ title?: string, text?: string, label?: string, value?: string, confirmLabel?: string,
+ *   cancelLabel?: string, opener?: Element|null, onConfirm?: (value: string) => unknown, errorText?: string,
+ *   input?: { type?: string, autocomplete?: string, inputmode?: string, required?: boolean } }} [options]
+ * @returns {Promise<string|null>}
+ */
+export function prompt(options = {}) {
+  return /** @type {Promise<string|null>} */ (ask('prompt', options));
+}
+
+/** The answer of a promise dialog that closed without its confirm button. */
+const declined = (kind) => (kind === 'confirm' ? false : kind === 'prompt' ? null : undefined);
+
+/**
+ * Builds, opens and answers a promise dialog (confirm(), alert(),
+ * prompt()): native <dialog> markup inside the opener's .ds-theme (else
+ * the first one), DOM APIs only (no HTML strings, CSP-safe), removed once
+ * its exit settled.
+ */
+function ask(kind, options) {
+  const opener = options.opener ?? null;
+  const doc = opener?.ownerDocument ?? globalThis.document;
+  if (!doc?.createElement || !doc.body) return Promise.resolve(declined(kind));
+  const theme = opener?.closest?.('.ds-theme') ?? activeIn(doc.body)?.closest?.('.ds-theme') ?? doc.querySelector('.ds-theme');
+  const home = !theme || theme === doc.documentElement ? doc.body : theme;
+  const id = `ds-ask-${sharedOf(doc).seq += 1}`;
+  const make = (tag, className, text) => {
+    const node = doc.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = String(text);
+    return node;
+  };
+  const native = typeof make('dialog').showModal === 'function';
+  const dialog = make(native ? 'dialog' : 'div', 'ds-dialog');
+  const box = make('div', 'ds-dialog__box');
+  // The modal semantics: a native dialog has them; the div markup's box takes the role.
+  const labelled = native ? dialog : box;
+  const role = kind === 'alert' || options.destructive ? 'alertdialog' : 'dialog';
+  if (native) {
+    if (role === 'alertdialog') dialog.setAttribute('role', role);
+  } else {
+    dialog.hidden = true;
+    box.setAttribute('role', role);
+    box.setAttribute('aria-modal', 'true');
+  }
+  const backdrop = make('div', 'ds-dialog__backdrop');
+  backdrop.setAttribute('data-close', '');
+  const title = make('h2', 'ds-dialog__title', options.title ?? '');
+  title.id = `${id}-title`;
+  labelled.setAttribute('aria-labelledby', title.id);
+  box.append(title);
+  if (options.text) {
+    const text = make('p', 'ds-dialog__text', options.text);
+    text.id = `${id}-text`;
+    labelled.setAttribute('aria-describedby', text.id);
+    box.append(text);
+  }
+  /** @type {HTMLInputElement|null} */
+  let field = null;
+  if (kind === 'prompt') {
+    const wrap = make('div', 'ds-field');
+    const label = make('label', 'ds-field__label', options.label ?? '');
+    field = /** @type {HTMLInputElement} */ (make('input', 'ds-input'));
+    field.id = `${id}-field`;
+    label.htmlFor = field.id;
+    const input = options.input ?? {};
+    field.type = input.type ?? 'text';
+    if (input.autocomplete) field.setAttribute('autocomplete', input.autocomplete);
+    if (input.inputmode) field.setAttribute('inputmode', input.inputmode);
+    if (input.required) field.required = true;
+    field.value = options.value ?? '';
+    field.setAttribute('autofocus', '');
+    wrap.append(label, field);
+    box.append(wrap);
+  }
+  const actions = make('div', 'ds-dialog__actions');
+  const button = (className, text) => {
+    const node = /** @type {HTMLButtonElement} */ (make('button', className, text));
+    node.type = 'button';
+    return node;
+  };
+  /** @type {HTMLButtonElement|null} */
+  let cancel = null;
+  let confirmButton;
+  if (kind === 'alert') {
+    confirmButton = button('ds-btn ds-btn--primary', options.closeLabel ?? 'OK');
+    confirmButton.setAttribute('data-close', '');
+    confirmButton.setAttribute('autofocus', '');
+    actions.append(confirmButton);
+  } else {
+    cancel = button('ds-btn ds-btn--text', options.cancelLabel ?? 'Cancel');
+    cancel.setAttribute('data-close', '');
+    // The faces of busy(): the label, and the spinner with it while onConfirm runs.
+    const label = options.confirmLabel ?? 'Confirm';
+    confirmButton = button('ds-btn ds-btn--primary');
+    const faces = make('span', 'ds-btn__faces');
+    const rest = make('span', 'ds-btn__face', label);
+    const working = make('span', 'ds-btn__face ds-btn__face--busy');
+    working.setAttribute('aria-hidden', 'true');
+    working.append(make('span', 'ds-spinner ds-spinner--sm'), doc.createTextNode(label));
+    faces.append(rest, working);
+    confirmButton.append(faces);
+    // The safe choice first in a destructive question; else the answer, or the field.
+    if (options.destructive) cancel.setAttribute('autofocus', '');
+    else if (!field) confirmButton.setAttribute('autofocus', '');
+    actions.append(cancel, confirmButton);
+  }
+  box.append(actions);
+  dialog.append(backdrop, box);
+
+  return new Promise((resolve) => {
+    dialog.addEventListener('ds-close', (event) => {
+      if (event.target !== dialog) return;
+      const reason = /** @type {CustomEvent} */ (event).detail?.reason;
+      resolve(reason === 'confirm' ? (kind === 'confirm' ? true : kind === 'prompt' ? field?.value ?? '' : undefined) : declined(kind));
+      // Gone once its exit settled (unless it opened again meanwhile).
+      Promise.resolve(overlays.get(dialog)?.closing).then(() => {
+        if (overlays.get(dialog)?.phase !== 'open') dialog.remove();
+      });
+    });
+    if (kind === 'alert') {
+      home.append(dialog);
+      open(dialog, { opener });
+      return;
+    }
+    const attempt = async () => {
+      if (dialog.hasAttribute('data-ds-busy') || overlays.get(dialog)?.phase !== 'open') return;
+      if (field?.required && !field.value.trim()) {
+        field.setAttribute('aria-invalid', 'true');
+        field.focus();
+        return;
+      }
+      field?.removeAttribute('aria-invalid');
+      if (typeof options.onConfirm !== 'function') {
+        close(dialog, { reason: 'confirm' });
+        return;
+      }
+      // Busy: the dialog refuses the user's closes, Cancel says it is blocked, the value stays.
+      dialog.setAttribute('data-ds-busy', '');
+      cancel?.setAttribute('aria-disabled', 'true');
+      if (field) field.readOnly = true;
+      const settle = () => {
+        dialog.removeAttribute('data-ds-busy');
+        cancel?.removeAttribute('aria-disabled');
+        if (field) field.readOnly = false;
+      };
+      try {
+        await busy(confirmButton, () => options.onConfirm(field?.value ?? undefined), { done: false });
+      } catch {
+        settle();
+        if (!dialog.isConnected) return;
+        const region = (theme ?? doc).querySelector('.ds-toasts');
+        if (region) toast(region, options.errorText ?? CONFIRM_ERROR, { kind: 'error' });
+        confirmButton.focus({ preventScroll: true });
+        return;
+      }
+      settle();
+      close(dialog, { reason: 'confirm' });
+    };
+    confirmButton.addEventListener('click', (/** @type {MouseEvent} */ event) => {
+      if (event.detail > 1) return;
+      attempt();
+    });
+    field?.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
+      if (event.key !== 'Enter' || event.isComposing || event.defaultPrevented) return;
+      event.preventDefault();
+      attempt();
+    });
+    field?.addEventListener('input', () => field?.removeAttribute('aria-invalid'));
+    home.append(dialog);
+    open(dialog, { opener });
+  });
+}
+
+/** Tells the page why an overlay closed (once per close, after its state turned closed). */
+function announceClose(element, reason) {
+  const view = viewOf(element);
+  if (typeof view.CustomEvent !== 'function') return;
+  element.dispatchEvent(new view.CustomEvent('ds-close', { bubbles: true, detail: { reason } }));
+}
+
+/**
+ * close() by its cause, which steers focus and the busy guard: 'api' (a
+ * call), 'close' ([data-close]), 'backdrop' (the backdrop or the drawer's
+ * scrim), 'escape', 'native' (the native dialog closed itself), 'parent'
+ * (the overlay around it closes), 'item' (a menu item ran), 'tab' (a menu;
+ * focus is on the trigger already) or 'outside' (a pointerdown outside a
+ * menu: focus stays where the pointer puts it). `reason` is what ds-close
+ * tells (by default the cause).
+ */
+function closeFrom(element, cause, reason = cause) {
   const state = overlays.get(element);
   if (!state || state.phase === 'closed') return Promise.resolve();
   if (state.phase === 'closing') return state.closing ?? Promise.resolve();
@@ -1651,6 +2118,9 @@ function closeFrom(element, reason) {
     return Promise.resolve();
   }
   const kind = state.kind;
+  // Busy (data-ds-busy, set by the page while its action runs): the user's
+  // attempts change nothing, not even the popups inside.
+  if (MODAL.has(kind) && USER_CLOSE.has(cause) && element.hasAttribute('data-ds-busy')) return Promise.resolve();
   const box = boxOf(element, kind);
   const doc = element.ownerDocument;
   if (MODAL.has(kind)) {
@@ -1661,7 +2131,7 @@ function closeFrom(element, reason) {
     for (const other of [...stack].reverse()) {
       const inner = overlays.get(other);
       if (other === element || inner?.phase !== 'open') continue;
-      if (element.contains(other) || (!MODAL.has(inner.kind) && element.contains(inner.opener))) closeFrom(other, 'close');
+      if (element.contains(other) || (!MODAL.has(inner.kind) && element.contains(inner.opener))) closeFrom(other, 'parent');
     }
   }
   const gen = ++state.gen;
@@ -1680,7 +2150,7 @@ function closeFrom(element, reason) {
 
   // 2. Focus back on the opener at once.
   state.expander?.setAttribute('aria-expanded', 'false');
-  const returns = MODAL.has(kind) ? focusInside : reason !== 'outside' && element.contains(activeIn(element));
+  const returns = MODAL.has(kind) ? focusInside : cause !== 'outside' && element.contains(activeIn(element));
   if (returns) returnTarget(element, state)?.focus({ preventScroll: true });
   // The snackbars glide back to their place (from a sheet, with the
   // leaving panel) and stay inside it, above its scrim, until it settled.
@@ -1718,6 +2188,9 @@ function closeFrom(element, reason) {
     finishClose(element, state);
   });
   state.closing = exit;
+  // Why it closed, once, as soon as the close started (a listener sees
+  // focus back on the opener and the overlay closing).
+  announceClose(element, reason);
   return exit;
 }
 

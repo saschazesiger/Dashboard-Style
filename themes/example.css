@@ -170,6 +170,7 @@
   --ds-btn-disabled-bg: (from --ds-disabled-fill);
   --ds-btn-disabled-border: (from --ds-disabled-fill);
   --ds-input-font: (body; input role up to 600px)
+  --ds-input-height: 40px;             (fields and the combobox toggle)
   --ds-check-size: 18px;               --ds-check-target: 40px;
   --ds-input-height: 40px;             --ds-check-height: 40px;
   --ds-input-bg: var(--ds-surface);    --ds-input-border: var(--ds-outline);
@@ -234,5 +235,9 @@
   --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
   --ds-dialog-shadow: var(--ds-elev-overlay); --ds-dialog-scrim: var(--ds-scrim);
   --ds-sheet-width: 560px;             --ds-sheet-width-wide: 720px;
+  --ds-dialog-width-wide: 560px;       --ds-dialog-height: auto;
+  --ds-dialog-full-radius: 0;
+  --ds-sheet-foot-border: 1px solid var(--ds-line);
+  --ds-menu-item-height: 48px;         --ds-combo-option-height: 48px;
   */
 }

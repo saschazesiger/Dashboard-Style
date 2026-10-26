@@ -347,6 +347,8 @@ const RATIOS = [
   ['.ds-enter--pop / .ds-leave--pop', [[M, '.ds-enter--pop', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--pop', ['--ds-leave-duration']], LEAVE_BASE]],
   ['dialog (DS.overlay)', [['src/components/dialog.css', '.ds-dialog[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog[data-state="closed"] .ds-dialog__box', ['transition']]]],
   ['dialog (keyframes)', [['src/components/dialog.css', '.ds-dialog:not([data-state]) .ds-dialog__box', ['animation']]], [['src/components/dialog.css', '.ds-dialog--closing:not([data-state]) .ds-dialog__box', ['animation']]]],
+  ['full-screen dialog (DS.overlay)', [['src/components/dialog.css', '.ds-dialog--full[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog--full[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['action sheet (DS.overlay)', [['src/components/dialog.css', '.ds-dialog--bottom[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog--bottom[data-state="closed"] .ds-dialog__box', ['transition']]]],
   ['side sheet (DS.overlay)', [['src/components/sheet.css', '.ds-sheet[data-state] .ds-sheet__panel', ['transition']]], [['src/components/sheet.css', '.ds-sheet[data-state="closed"] .ds-sheet__panel', ['transition']]]],
   ['side sheet (keyframes)', [['src/components/sheet.css', '.ds-sheet:not([data-state]) .ds-sheet__panel', ['animation']]], [['src/components/sheet.css', '.ds-sheet--closing:not([data-state]) .ds-sheet__panel', ['animation']]]],
   ['modal drawer', [['src/components/shell.css', '.ds-app[data-drawer-open] .ds-drawer', ['transition']]], [['src/components/shell.css', '.ds-drawer', ['transition']]]],
@@ -1434,7 +1436,7 @@ describe('controls (1.1.0)', () => {
   const PILLS = [
     ['src/components/button.css', '.ds-btn', 'var(--ds-btn-half)', 'var(--ds-btn-radius-pressed, var(--ds-radius-action-pressed))'],
     ['src/components/shell.css', '.ds-drawer__item', 'calc(var(--ds-drawer-item-height, 48px) / 2)', 'var(--ds-radius-action-pressed)'],
-    ['src/components/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-space-10) / 2)', 'var(--ds-radius-action-pressed)'],
+    ['src/components/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-input-height, 40px) / 2)', 'var(--ds-radius-action-pressed)'],
   ];
   const BLOCKED = [':disabled', '[aria-disabled="true"]', '[aria-busy="true"]'];
 
@@ -1805,6 +1807,70 @@ describe('overlays (1.3.0)', () => {
 
   it('exempts only the full-distance side sheet slide from the fade pairing', () => {
     assert.deepEqual([...EXIT_UNPAIRED.keys()], ['.ds-sheet--closing:not([data-state]) .ds-sheet__panel']);
+  });
+
+  it('scrolls only the body of a dialog that has one, with room for rings, and lets the box scroll in a short window (2.0)', () => {
+    // The screen rules outside the short-window and phone blocks.
+    const css = withoutAtRuleBlocks(withoutAtRuleBlocks(read('src/components/dialog.css'), /@media\s*\(max-height:\s*320px\)/), /@media\s*\(max-width:\s*600px\)/);
+    const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
+    assert.deepEqual([own('.ds-dialog__box:has(> .ds-dialog__body)').display, own('.ds-dialog__box:has(> .ds-dialog__body)')['flex-direction']], ['flex', 'column']);
+    assert.equal(own('.ds-dialog__box > *')['flex-shrink'], '0');
+    const body = own('.ds-dialog__body');
+    assert.deepEqual([body['overflow-y'], body['min-height'], body.margin, body.padding, body['overscroll-behavior']],
+      ['auto', '0', 'calc(-1 * var(--ds-space-3))', 'var(--ds-space-3)', 'contain']);
+    // The hairline is a border (forced colours keep it), shown while scrolled.
+    assert.equal(body['border-top'], '1px solid transparent');
+    assert.equal(own('.ds-dialog__box[data-scrolled] > .ds-dialog__body')['border-top-color'], 'var(--ds-line)');
+    const short = atRuleBlocks(read('src/components/dialog.css'), /@media\s*\(max-height:\s*320px\)/).join('\n');
+    assert.equal(declarationsOf(short, '.ds-dialog__body').find((entry) => entry.property === 'overflow')?.value, 'visible', 'a window 320px high: the box scrolls');
+    assert.equal(own('.ds-dialog__box').height, 'var(--ds-dialog-height, auto)');
+    assert.equal(own('.ds-dialog--wide .ds-dialog__box').width, 'min(var(--ds-dialog-width-wide, 560px), 100%)');
+    assert.equal(own('.ds-dialog__body:empty').display, 'none');
+    assert.equal(own('.ds-dialog__actions:empty').display, 'none');
+    // The fallback focus of the box shows no ring (it beats the ds.base ring by layer).
+    assert.equal(own('.ds-dialog__box[tabindex="-1"]:focus').outline, 'none');
+    assert.equal(own('.ds-dialog--full .ds-dialog__box')['border-radius'], 'var(--ds-dialog-full-radius, 0)');
+  });
+
+  it('gives the side sheet a wrapping title, a subtitle, a foot and a positioned body with a thin scrollbar (2.0)', () => {
+    const css = read('src/components/sheet.css');
+    const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
+    const title = own('.ds-sheet__title');
+    assert.equal(title['overflow-wrap'], 'anywhere');
+    assert.equal(title['white-space'], undefined, 'the title wraps');
+    assert.equal(own('.ds-sheet__subtitle')['text-overflow'], 'ellipsis');
+    assert.equal(own('.ds-sheet__subtitle:empty').display, 'none');
+    assert.equal(own('.ds-sheet__foot')['border-top'], 'var(--ds-sheet-foot-border, 1px solid var(--ds-line))');
+    assert.equal(own('.ds-sheet__foot:empty').display, 'none');
+    const body = own('.ds-sheet__body');
+    assert.deepEqual([body.position, body['scrollbar-width'], body['scrollbar-color']], ['relative', 'thin', 'var(--ds-line-2) transparent']);
+    assert.equal(own('.ds-sheet__body > .ds-btn')['align-self'], 'flex-start');
+    assert.match(read('src/components/sheet.css').match(/^\/\*[\s\S]*?\*\//)[0], /aria-label="Close" data-close>/, 'the header markup closes with data-close');
+  });
+
+  it('sizes the combobox from the field hooks and draws blocked options and menu items in GrayText when forced (2.0)', () => {
+    const combo = read('src/components/combobox.css');
+    const own = (css, selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
+    assert.equal(own(combo, '.ds-combo__input')['padding-right'], 'calc(var(--ds-space-1) + var(--ds-input-height, 40px))');
+    assert.deepEqual([own(combo, '.ds-combo__toggle').width, own(combo, '.ds-combo__toggle').height], ['var(--ds-input-height, 40px)', 'var(--ds-input-height, 40px)']);
+    assert.equal(own(combo, '.ds-combo__option')['min-height'], 'var(--ds-combo-option-height, 48px)');
+    assert.equal(own(combo, '.ds-combo:not(:has(.ds-combo__toggle)) > .ds-combo__input')['padding-inline-end'], 'var(--ds-space-3)');
+    assert.equal(own(read('src/components/menu.css'), '.ds-menu__item')['min-height'], 'var(--ds-menu-item-height, 48px)');
+    for (const [file, selector] of [['src/components/menu.css', '.ds-menu__item[aria-disabled="true"]'], ['src/components/combobox.css', '.ds-combo__option[aria-disabled="true"]']]) {
+      const forced = forcedColorBlocks(read(file)).flatMap((block) => declarationsOf(block, selector));
+      assert.equal(forced.find((entry) => entry.property === 'color')?.value, 'GrayText', `${file}: ${selector}`);
+    }
+    // The header markup names the live status and the list autocomplete.
+    const header = combo.match(/^\/\*[\s\S]*?\*\//)[0];
+    assert.match(header, /class="ds-combo__status" role="status"/);
+    assert.match(header, /aria-autocomplete="list"/);
+  });
+
+  it('prints no open overlay: menus, the combobox list, dialogs and side sheets are hidden in print (2.0)', () => {
+    for (const [file, selector] of [['src/components/menu.css', '.ds-menu'], ['src/components/combobox.css', '.ds-combo__popup'], ['src/components/dialog.css', '.ds-dialog'], ['src/components/sheet.css', '.ds-sheet']]) {
+      const print = atRuleBlocks(read(file), /@media\s+print/).flatMap((block) => declarationsOf(block, selector));
+      assert.equal(print.find((entry) => entry.property === 'display')?.value, 'none', `${file}: ${selector} in print`);
+    }
   });
 });
 

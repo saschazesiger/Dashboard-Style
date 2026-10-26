@@ -165,6 +165,32 @@ describe('indicator, dom, ripple and overlay', () => {
     );
   });
 
+  it('exports the overlay additions of 2.0 and documents the ds-close event and its reasons', () => {
+    for (const name of ['topmost', 'confirm', 'alert', 'prompt']) assert.equal(typeof overlay[name], 'function', name);
+    assert.equal(overlay.DISMISS_DELAY_MS, 300);
+    // Without a DOM: no layer, no throw.
+    assert.equal(overlay.topmost(undefined), null);
+    const docs = read('docs/motion.md');
+    assert.match(docs, /\| `close\(el, \{ reason \}\)` \|/);
+    assert.match(docs, /\| `open\(el, \{ opener, container, returnTo \}\)` \|/);
+    assert.match(read('src/js/overlay.js'), /new view\.CustomEvent\('ds-close', \{ bubbles: true, detail: \{ reason \} \}\)/);
+    const event = docs.slice(docs.indexOf('**Why it closed: `ds-close`**'));
+    assert.ok(event.length > 0, 'docs/motion.md documents the ds-close event');
+    for (const reason of ['escape', 'backdrop', 'close', 'item', 'tab', 'outside', 'parent', 'api', 'removed', 'breakpoint']) {
+      assert.ok(event.slice(0, 1600).includes(`\`'${reason}'\``), `the reason ${reason} is documented`);
+      if (!['item', 'tab', 'outside', 'api'].includes(reason)) assert.ok(read('src/js/overlay.js').includes(`'${reason}'`), `overlay.js sends ${reason}`);
+    }
+  });
+
+  it('keeps DRAWER_QUERY equal to the modal drawer breakpoint of shell.css', () => {
+    assert.equal(overlay.DRAWER_QUERY, '(max-width: 900px)');
+    const shell = read('src/components/shell.css');
+    assert.ok(shell.includes(`@media ${overlay.DRAWER_QUERY}`), 'shell.css switches the drawer at DRAWER_QUERY');
+    // The drawer rules sit under that query (the modal drawer's transform), never under another width.
+    const block = shell.slice(shell.indexOf(`@media ${overlay.DRAWER_QUERY}`));
+    assert.match(block.slice(0, block.indexOf('\n  }\n')), /\.ds-drawer/);
+  });
+
   it('ripples clickable cards, clickable tiles and interactive table rows by default (1.4.0)', () => {
     const hosts = ripple.RIPPLE_HOSTS.split(/,\s*(?![^(]*\))/);
     for (const host of [':is(button, a).ds-tile', '.ds-card--interactive', '.ds-table--interactive tbody tr:not(.ds-table__detail)']) {
@@ -2032,6 +2058,7 @@ describe('timing in src/js', () => {
       ['src/js/overlay.js: TOOLTIP_DELAY_MS = 500', 'mirrors --ds-delay-tooltip (fallback outside a theme)'],
       ['src/js/overlay.js: TOOLTIP_SKIP_MS = 300', 'mirrors --ds-delay-tooltip-skip (fallback outside a theme)'],
       ['src/js/overlay.js: TOOLTIP_HIDE_MS = 100', 'mirrors --ds-delay-tooltip-hide (fallback outside a theme)'],
+      ['src/js/overlay.js: DISMISS_DELAY_MS = 300', 'mirrors --ds-delay-dismiss (fallback outside a theme)'],
     ]);
     const found = [];
     for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {

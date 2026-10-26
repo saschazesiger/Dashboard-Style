@@ -268,6 +268,9 @@ const CONTINUITY = {
   'dialog-div': { in: 'doc', sel: '#sg-lab-dialog-div .ds-dialog__box', props: ['opacity', 'scale.x'] },
   sheet: { in: 'doc', sel: '#sg-lab-sheet .ds-sheet__panel', props: ['translate.x'] },
   'sheet-div': { in: 'doc', sel: '#sg-lab-sheet-div .ds-sheet__panel', props: ['translate.x'] },
+  'dialog-full': { in: 'doc', sel: '#sg-lab-dialog-full .ds-dialog__box', props: ['opacity', 'translate.y'] },
+  'action-sheet': { in: 'doc', sel: '#sg-lab-action-sheet .ds-dialog__box', props: ['opacity', 'translate.y'] },
+  'dialog-work': { in: 'doc', sel: '#sg-lab-dialog-work .ds-dialog__box', props: ['opacity', 'scale.x'] },
   'modal-drawer': { in: 'frame', sel: '#drawer', props: ['translateX'] },
   menu: { in: 'stage', sel: '#sg-lab-menu', props: ['opacity'] },
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
@@ -308,6 +311,7 @@ const LONG_RUNS = {
   snackbars: { ms: 15000, reason: 'sends five messages 200ms apart into the page\'s region, each entering while the stack glides (FLIP), then waits until the region is quiet' },
   tooltips: { ms: 15000, reason: 'a cold tooltip waits --ds-delay-tooltip, the pointer rests 400ms, moves along four more buttons 250ms apart and leaves; the tooltip opens after the click task' },
   'modal-drawer': { ms: 15000, reason: 'opens the modal drawer in its frame, holds 400ms and closes it (the frame\'s animations are outside the stage)' },
+  'dialog-work': { ms: 15000, reason: 'opens the dialog, holds 300ms, runs a fake request of 2s while the dialog is busy, then closes it (the dialog sits outside the stage)' },
   topbar: { ms: 15000, reason: 'scrolls the small app in its frame down smoothly, holds 400ms and scrolls back' },
   focus: { ms: 12000, reason: 'walks the focus along five stops 400ms apart (the ring snaps at each)' },
   scroll: { ms: 12000, reason: 'scrolls the box to its end smoothly, holds 300ms and scrolls back (scroll-driven effects)' },
@@ -451,6 +455,7 @@ function reverseTrace(page, id, spec) {
       for (const key of what.props) {
         if (key === 'opacity') out[key] = parseFloat(cs.opacity);
         else if (key === 'translate.x') out[key] = pair(cs.translate)[0] || 0;
+        else if (key === 'translate.y') out[key] = pair(cs.translate)[1] || 0;
         else if (key === 'scale.x') out[key] = cs.scale === 'none' ? 1 : pair(cs.scale)[0];
         else if (key === 'rotate') out[key] = cs.rotate === 'none' ? 0 : parseFloat(cs.rotate);
         else if (key === 'translateX') out[key] = new DOMMatrixReadOnly(cs.transform === 'none' ? undefined : cs.transform).m41;
@@ -640,6 +645,8 @@ const LAYERS = {
   Dialog: { drive: 'modal', part: '.ds-dialog__box', variants: [['sg-lab-dialog', 'dialog'], ['sg-lab-dialog-div', 'dialog-div']] },
   'Nested dialog': { drive: 'nested', part: '.ds-dialog__box', variants: [['sg-lab-dialog-nested', 'dialog'], ['sg-lab-dialog-div-nested', 'dialog-div']] },
   'Dialog on a phone': { drive: 'modal', phone: true, part: '.ds-dialog__box', variants: [['sg-lab-dialog', 'dialog'], ['sg-lab-dialog-div', 'dialog-div']] },
+  'Full-screen dialog': { drive: 'modal', part: '.ds-dialog__box', variants: [['sg-lab-dialog-full', 'dialog-full']] },
+  'Action sheet': { drive: 'modal', part: '.ds-dialog__box', variants: [['sg-lab-action-sheet', 'action-sheet']] },
   'Side sheet': { drive: 'modal', part: '.ds-sheet__panel', variants: [['sg-lab-sheet', 'sheet'], ['sg-lab-sheet-div', 'sheet-div']] },
   'Side sheet on a phone': { drive: 'modal', phone: true, part: '.ds-sheet__panel', variants: [['sg-lab-sheet', 'sheet'], ['sg-lab-sheet-div', 'sheet-div']] },
   'Modal drawer': { drive: 'drawer', part: '#drawer', variants: [['drawer', 'modal-drawer']] },

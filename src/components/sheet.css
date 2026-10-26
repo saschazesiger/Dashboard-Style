@@ -24,10 +24,18 @@
  *     <div class="ds-sheet__backdrop" data-close></div>
  *     <section class="ds-sheet__panel [ds-sheet__panel--wide]">
  *       <div class="ds-sheet__head">
- *         <h2 class="ds-sheet__title" id="sheet-title">Details</h2>
- *         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close">(close)</button>
+ *         <div class="ds-sheet__heading">
+ *           <h2 class="ds-sheet__title" id="sheet-title">Details</h2>
+ *           <p class="ds-sheet__subtitle">12 of 240 devices</p>      (optional)
+ *         </div>
+ *         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>(close)</button>
  *       </div>
  *       <div class="ds-sheet__body" tabindex="0"> ... </div>
+ *       <div class="ds-sheet__foot">                                    (optional)
+ *         <p class="ds-meta">3 filters</p>
+ *         <button class="ds-btn ds-btn--text" type="button">Reset</button>
+ *         <button class="ds-btn ds-btn--primary" type="button">Show 12 devices</button>
+ *       </div>
  *
  * Open and close both with DS.overlay.open(sheet, { opener }) and
  * DS.overlay.close(sheet) (js/overlay.js): focus, trap, Escape, the
@@ -46,6 +54,14 @@
  *                        nothing reaches the page under it.
  *
  * The hidden attribute hides the div sheet, also without .ds-base.
+ *
+ * Head: the title wraps (a long record name stays readable); in
+ * .ds-sheet__heading a .ds-sheet__subtitle under it (meta type, one line,
+ * ellipsis; empty, it takes no room). The head's buttons never shrink.
+ * Foot: the sheet's actions, at the end, wrapping, above a hairline
+ * (--ds-sheet-foot-border); a leading .ds-meta takes the start; it holds
+ * the safe area, so the body above it ends with the normal gap; empty, it
+ * takes no room. A lone .ds-btn directly in the body keeps its own width.
  *
  * Another record in an open sheet (previous/next, another row of the
  * table): keep the sheet open and swap only the body, inside
@@ -70,7 +86,10 @@
  * from a scroll listener. Do not use <header> in the head: outside main
  * content it would be a second banner landmark.
  *
- * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px).
+ * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px),
+ * --ds-sheet-foot-border (1px solid --ds-line).
+ *
+ * Print: an open sheet is not printed (it floats over the page).
  *
  * Progressive:
  * - @starting-style, allow-discrete transitions and the overlay property
@@ -89,6 +108,8 @@
  *   first --ds-space-2 of the body's scroll, on the named timeline
  *   --ds-sheet-scroll scoped on the panel): without them data-scrolled
  *   shows it over --ds-dur-fast.
+ * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar on the
+ *   body): without them the platform scrollbar shows.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -339,20 +360,47 @@
     }
   }
 
+  /* The title wraps: a long record name stays readable (2.0). */
   .ds-sheet__title {
     margin: 0;
     min-width: 0;
-    overflow: hidden;
     color: var(--ds-text);
     font: var(--ds-font-title);
     letter-spacing: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .ds-sheet__head > .ds-btn {
+    flex-shrink: 0;
+  }
+
+  /* Title and subtitle as one block that takes the head's free width. */
+  .ds-sheet__heading {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ds-sheet__subtitle {
+    margin: 0;
+    overflow: hidden;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
+  .ds-sheet__subtitle:empty {
+    display: none;
+  }
+
   .ds-sheet__body {
+    position: relative;
     flex: 1;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-line-2) transparent;
     padding:
       var(--ds-space-2)
       max(var(--ds-space-6), env(safe-area-inset-right))
@@ -372,6 +420,44 @@
   .ds-sheet__body[data-toast-reserve] {
     padding-bottom: calc(var(--ds-space-8) + env(safe-area-inset-bottom) + var(--ds-toast-reserve, 0px));
     scroll-padding-bottom: var(--ds-toast-reserve, 0px);
+  }
+
+  /* A lone button keeps its own width (a column would stretch it). */
+  .ds-sheet__body > .ds-btn {
+    align-self: flex-start;
+  }
+
+  /* The sheet's actions: at the end, wrapping, above a hairline. The foot
+     holds the safe area, so the body above it ends with its normal gap. */
+  .ds-sheet__foot {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--ds-space-2);
+    padding:
+      var(--ds-space-3)
+      max(var(--ds-space-6), env(safe-area-inset-right))
+      calc(var(--ds-space-3) + env(safe-area-inset-bottom))
+      var(--ds-space-6);
+    border-top: var(--ds-sheet-foot-border, 1px solid var(--ds-line));
+  }
+
+  .ds-sheet__foot > .ds-meta:first-child {
+    margin-inline-end: auto;
+  }
+
+  .ds-sheet__foot:empty {
+    display: none;
+  }
+
+  .ds-sheet__body:has(+ .ds-sheet__foot:not(:empty)) {
+    padding-bottom: var(--ds-space-3);
+  }
+
+  .ds-sheet__body[data-toast-reserve]:has(+ .ds-sheet__foot:not(:empty)) {
+    padding-bottom: calc(var(--ds-space-3) + var(--ds-toast-reserve, 0px));
   }
 
   /* A tab stop for scrolling: the ring only for the keyboard, inside the
@@ -446,6 +532,10 @@
     .ds-sheet__body {
       padding-inline: max(var(--ds-space-4), env(safe-area-inset-left)) max(var(--ds-space-4), env(safe-area-inset-right));
     }
+
+    .ds-sheet__foot {
+      padding-inline: max(var(--ds-space-4), env(safe-area-inset-left)) max(var(--ds-space-4), env(safe-area-inset-right));
+    }
   }
 
   @supports (transition-behavior: allow-discrete) {
@@ -465,6 +555,12 @@
       dialog.ds-sheet[open]:not([data-state]) .ds-sheet__panel {
         translate: 0 var(--ds-distance-sheet);
       }
+    }
+  }
+
+  @media print {
+    .ds-sheet {
+      display: none;
     }
   }
 }

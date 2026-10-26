@@ -250,6 +250,11 @@
   position: absolute;
 }
 
+/* A frame 360px high: a contained dialog whose body scrolls inside it. */
+.sg-inline-overlay--short {
+  height: 360px;
+}
+
 .sg-inline-overlay .ds-sheet__panel {
   animation: none;
 }

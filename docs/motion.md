@@ -110,6 +110,7 @@ jump takes longer but never drags.
 | `--ds-delay-tooltip` | 500ms | a tooltip shows after the pointer rested this long on its trigger (`TOOLTIP_DELAY_MS`, `DS.overlay.tooltips()`) |
 | `--ds-delay-tooltip-skip` | 300ms | within this of the last hide, the next tooltip shows at once (warm-up along a toolbar; `TOOLTIP_SKIP_MS`) |
 | `--ds-delay-tooltip-hide` | 100ms | the grace before a tooltip hides, so the pointer can cross onto it (WCAG 1.4.13; `TOOLTIP_HIDE_MS`) |
+| `--ds-delay-dismiss` | 300ms | a backdrop or scrim click this soon after an overlay opened does not close it (the second click of a double click on its opener; `DISMISS_DELAY_MS`); shorter than the dialog's `--ds-dur-slow` entrance |
 | `--ds-loop-spin`, `--ds-loop-spin-fast` | 1568ms, .8s | one turn of the spinner (the M3 rotation period) / of the spinner in a status chip |
 | `--ds-loop-arc` | 5332ms | one loop of the spinner's arc (`ds-spinner-arc`): four 1333ms cycles of growing and shrinking, so the start comes back to where it began (4 x 270deg = 3 turns) |
 | `--ds-loop-indeterminate` | 1800ms | one cycle of two-segment indeterminate progress (`ds-progress-head`, `ds-progress-tail`) |
@@ -182,6 +183,8 @@ components never set it (`test/tokens.test.js`).
    | `.ds-enter--pop` / `.ds-leave--pop` | `--ds-dur-medium` | `--ds-dur-fast` |
    | dialog (`DS.overlay`) | `--ds-dur-slow` | `--ds-dur-base` |
    | dialog (keyframes) | `--ds-dur-medium` | `--ds-dur-base` |
+   | full-screen dialog (`DS.overlay`) | `--ds-dur-long` | `--ds-dur-base` |
+   | action sheet (`DS.overlay`) | `--ds-dur-long` | `--ds-dur-base` |
    | side sheet (`DS.overlay`) | `--ds-dur-long` | `--ds-dur-base` |
    | side sheet (keyframes) | `--ds-dur-long` | `--ds-dur-base` |
    | modal drawer | `--ds-dur-long` | `--ds-dur-base` |
@@ -260,14 +263,16 @@ with this table, so the table and the code are one source.
 
 | Layer | Path | Entrance | Exit | Moves | Origin | Delays | Interrupted | Focus during the exit |
 |---|---|---|---|---|---|---|---|---|
-| Scrim | native and div | `opacity` `--ds-dur-medium` `--ds-ease-in-out` | `opacity` `--ds-dur-base` `--ds-ease-in-out` | fades only (`--ds-dialog-scrim`) | none | none | turns back from its opacity | catches clicks until the layer is hidden |
+| Scrim | native and div | `opacity` `--ds-dur-medium` `--ds-ease-in-out` | `opacity` `--ds-dur-base` `--ds-ease-in-out` | fades only (`--ds-dialog-scrim`) | none | a click closes only after `--ds-delay-dismiss`, as the first click of a press that began on it | turns back from its opacity | catches clicks until the layer is hidden |
 | Dialog | native and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `translate` `--ds-dur-slow` `--ds-ease-spatial` | `opacity` `--ds-dur-base` `--ds-ease-in-out`; `scale` `translate` `--ds-dur-base` `--ds-ease-exit` | grows from `--ds-scale-enter` and rises `--ds-distance-sm`; leaves the same way back, accelerating | `--ds-motion-origin`: the opener (`originFrom()`), else the centre | none | an `open()` during the exit (or a `close()` during the entrance) turns back from the current values on the new direction's curves | on the opener at once (D18); the box is `inert` |
 | Nested dialog | native and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `translate` `--ds-dur-slow` `--ds-ease-spatial` | `opacity` `--ds-dur-base` `--ds-ease-in-out`; `scale` `translate` `--ds-dur-base` `--ds-ease-exit` | as the dialog, over the lighter `--ds-scrim-nested` (`.ds-dialog--nested`) | `--ds-motion-origin`: the opener inside the lower layer | none | as the dialog; overlays over each other close in any order | on its opener in the lower layer |
 | Dialog on a phone | native and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `translate` `--ds-dur-slow` `--ds-ease-out` | `opacity` `--ds-dur-base` `--ds-ease-in-out`; `scale` `translate` `--ds-dur-base` `--ds-ease-exit` | at 600px and below a box nearly as wide as the window decelerates instead of springing, so it never passes the window's edge | `--ds-motion-origin`: the opener | none | as the dialog | as the dialog |
+| Full-screen dialog | native and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `translate` `--ds-dur-long` `--ds-ease-spatial` | `opacity` `--ds-dur-base` `--ds-ease-in-out`; `translate` `--ds-dur-base` `--ds-ease-exit` | `.ds-dialog--full` (and `--full-narrow` at 600px and below): the box fills the window and rises `--ds-distance-lg` on the spring with the fade, no scale; it drops back the same way, accelerating | none: it rises from below | as the scrim | an `open()` during the exit turns back from the current values | on the opener at once; the box is `inert` |
+| Action sheet | native and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `translate` `--ds-dur-long` `--ds-ease-spatial` | `opacity` `--ds-dur-base` `--ds-ease-in-out`; `translate` `--ds-dur-base` `--ds-ease-exit` | `.ds-dialog--bottom`: the box at the bottom edge rises its full height (`--ds-distance-sheet`) on the spring with the fade, and drops back, accelerating | the bottom edge | as the scrim | as the full-screen dialog | as the full-screen dialog |
 | Side sheet | native and div | `translate` `--ds-dur-long` `--ds-ease-spatial` | `translate` `--ds-dur-base` `--ds-ease-exit` | the opaque panel slides its full width (`--ds-distance-sheet`) in from the end edge, no fade; a strip of its background past its outer edge covers the overshoot | the end edge | none | turns back from where the panel is | on the opener at once; the panel is `inert` |
 | Side sheet on a phone | native and div | `translate` `--ds-dur-long` `--ds-ease-out` | `translate` `--ds-dur-base` `--ds-ease-exit` | rises its full height from the bottom (as tall as the screen, so it decelerates: the spring would cut off its head) | the bottom edge | none | as the side sheet | as the side sheet |
 | Modal drawer | div | `transform` `--ds-dur-long` `--ds-ease-spatial` | `transform` `--ds-dur-base` `--ds-ease-exit` | slides its full width in from the start edge below 900px; its bleed covers the overshoot; `visibility` steps after the exit | the start edge | none | turns back from where the drawer is | on the menu button at once |
-| Modal drawer scrim | div | `opacity` `--ds-dur-medium` `--ds-ease-in-out` | `opacity` `--ds-dur-base` `--ds-ease-in` | fades only (`--ds-scrim`) | none | none | turns back from its opacity | closes the drawer on a click |
+| Modal drawer scrim | div | `opacity` `--ds-dur-medium` `--ds-ease-in-out` | `opacity` `--ds-dur-base` `--ds-ease-in` | fades only (`--ds-scrim`) | none | a click closes only after `--ds-delay-dismiss`, as the first click of a press that began on it | turns back from its opacity | closes the drawer on a click |
 | Snackbar | div | `ds-fade-in` `--ds-dur-medium` `--ds-ease-in-out`; `ds-lift-in` `--ds-dur-medium` `--ds-ease-spatial` | `ds-fade-out` `--ds-dur-fast` `--ds-ease-in` | rises `--ds-distance-md`; a closed message fades out in place, out of flow, while the stack glides (`flip()`: `translate` on the spring for `travelDuration()`); at most three, a fourth replaces the oldest that closes by itself or waits (D19, D32) | none | closes after its timeout (time-scaled); the timers pause on hover, focus and a hidden tab | a message that leaves mid-entrance continues from its current opacity (`DS.motion.leave()`) | to the next message's close button, else where focus came from, else the view |
 | Tooltip | popover and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out`; `scale` `--ds-dur-medium` `--ds-ease-spatial` | `opacity` `--ds-dur-instant` `--ds-ease-in-out` | grows from `--ds-scale-tooltip` at its anchor; the exit only fades | `--ds-motion-origin`: the side of the anchor | shows after `--ds-delay-tooltip` for a resting mouse or pen, at once on keyboard focus; hides after `--ds-delay-tooltip-hide` | a hide taken back turns back from its opacity; a visible tooltip swaps text and place in place | focus stays on the trigger |
 | Tooltip warm-up | popover and div | `opacity` `--ds-dur-fast` `--ds-ease-in-out` | `opacity` `--ds-dur-instant` `--ds-ease-in-out` | within `--ds-delay-tooltip-skip` of the last hide the next tooltip of a toolbar shows at once and only fades in (`data-warm`) | `--ds-motion-origin`: the side of the anchor | none: it shows at once | as the tooltip | focus stays on the trigger |
@@ -828,13 +833,19 @@ the entrance, turns the motion back from its current value in every engine, with
 
 | Export | |
 |---|---|
-| `open(el, { opener, container })` | shows `el` and moves focus into it at once; `opener` (default: the focused element) gets focus back on close; `container: true` (1.5) grows the opener into a dialog or sheet (below) |
-| `close(el)` | plays the exit and hides `el`; a second call during the exit returns the same promise |
+| `open(el, { opener, container, returnTo })` | shows `el` and moves focus into it at once; `opener` (default: the focused element, else the control the current event came from) gets focus back on close; `returnTo()` (2.0) names where focus goes when the opener is gone (below); `container: true` (1.5) grows the opener into a dialog or sheet (below) |
+| `close(el, { reason })` | plays the exit and hides `el`; a second call during the exit returns the same promise; `reason` (2.0, default `'api'`) is what the `ds-close` event says, and it closes a busy overlay too |
+| `topmost(doc = document)` | (2.0) the top open layer of the page (a dialog, side sheet, the modal drawer, a menu, a combobox list, a contained dialog; whichever copy of `ds.js` from 1.6.1 on opened it), else `null`; a layer that is closing no longer counts |
+| `confirm({ title, text, confirmLabel, cancelLabel, destructive, opener, onConfirm, errorText })` | (2.0) a built dialog with Cancel and a confirm button; resolves `true` or `false` (below) |
+| `alert({ title, text, closeLabel, opener })` | (2.0) a built dialog with one button; resolves once it closes |
+| `prompt({ title, text, label, value, confirmLabel, cancelLabel, opener, input, onConfirm, errorText })` | (2.0) a built dialog with one field; resolves the value, or `null` |
 | `lockScroll(doc?)` / `unlockScroll(doc?)` | the reference-counted scroll lock of `doc` (default: the document of the page; 1.6.1) that the modal kinds take for their own document; a page may take it for a layer of its own |
 | `toast(region, content, { kind, persistent, timeout, closeLabel })` | shows a snackbar in a `.ds-toasts` region; returns `{ el, close(), closed }` (below) |
 | `tooltips(root = document)` | tooltips for every `[data-tip]` in `root` (a document, an element or an open shadow root); returns `{ destroy() }` (below) |
 | `TOAST_MS`, `TOAST_MAX_MS`, `TOAST_LIMIT` | snackbar fallbacks: 4000ms, at most 10000ms, at most 3 at once |
 | `TOOLTIP_DELAY_MS`, `TOOLTIP_SKIP_MS`, `TOOLTIP_HIDE_MS` | tooltip fallbacks: 500, 300 and 100ms |
+| `DISMISS_DELAY_MS` | (2.0) the fallback of `--ds-delay-dismiss`: 300ms |
+| `DRAWER_QUERY` | (2.0) `'(max-width: 900px)'`: the width at which the drawer is modal, the media query of `shell.css` (a test keeps them equal); `matchMedia(DS.overlay.DRAWER_QUERY)` tells a page which drawer it has |
 
 The constants are fallbacks only (outside a `.ds-theme`): JS timing comes from the computed tokens through
 `motionDuration()`, so `--ds-time-scale` slows the overlays' JS and CSS together.
@@ -846,7 +857,9 @@ The constants are fallbacks only (outside a `.ds-theme`): JS timing comes from t
    motion reverses from where it is by flipping `data-state`); an overlay that is already open stays as it is. A
    popup (a menu, a combobox list or another popup) reopened during its exit from another `opener` (one menu shared by
    every row) opens afresh instead, placed at, growing from and marking `aria-expanded` on the new trigger (1.6.2);
-3. records the opener;
+3. records the opener: `options.opener`, else the focused element outside the overlay, else, with focus on `<body>`
+   (Safari does not focus a clicked button), the focusable control the current event came from (2.0); with it its
+   `id` and `options.returnTo`, for the close;
 4. modal kinds (dialog, sheet, drawer) take the scroll lock of their document, except a `.ds-dialog--contained`
    (1.6.1); every overlay joins the Escape stack. A dialog opened while another modal is open gets
    `.ds-dialog--nested` (a contained dialog neither gets it nor counts as that other modal);
@@ -868,8 +881,9 @@ The constants are fallbacks only (outside a `.ds-theme`): JS timing comes from t
    hand), flushes style, writes the origin (`originFrom(opener, box)` for dialogs and popups) and
    sets `data-state="open"`: the entrance runs on the transitions keyed on `data-state` in every engine;
 7. moves focus: `[autofocus]` inside, else the first focusable element (a menu: its first enabled item; a combobox
-   keeps focus in its input);
-8. popups set `aria-expanded="true"` on the opener.
+   keeps focus in its input; the modal drawer: its `[aria-current="page"]` item, 2.0, else the drawer);
+8. popups set `aria-expanded="true"` on the opener; a dialog or side sheet does so only when the opener already has
+   `aria-expanded` (opt-in by markup, 2.0), and `aria-expanded="false"` comes back as soon as the close starts.
 
 `close()`, the same for the dialog, the sheet and the modal drawer: the trap goes first (native `dialog.close()` at
 once plus `.ds-dialog--closing` / `.ds-sheet--closing`, which keep it displayed and stacked outside the top layer;
@@ -882,6 +896,53 @@ leaves the stack, all in one task. Closing a dialog, sheet or the drawer first c
 open inside it (or opened from a trigger inside it) and hides the tooltip, so no popup outlives its overlay. Popups
 return focus to their opener only for Escape or when focus was inside them, never for a click outside, and set
 `aria-expanded="false"`.
+
+Where focus goes on close (2.0): the opener; when it is gone or hidden inside another closed overlay, that
+overlay's opener; else `returnTo()` of `open()` (called only then, in a `try`; an error goes to `reportError` and the
+next step runs), when it returns a focusable element outside the overlay; else the element that now holds the
+opener's `id` in its document or shadow root (a re-render with `DS.dom.morphHtml` or `replaceWith` replaced the row
+button: give row buttons stable ids); else the nearest `tabindex="-1"` ancestor, else the landmark. Never `<body>`.
+
+```js
+DS.overlay.open(sheet, { opener: rowButton, returnTo: () => table.querySelector('[data-ds-key="d-42"] button') });
+```
+
+**Why it closed: `ds-close`** (2.0). Once per close, as soon as it starts (the trap released, focus back on the
+opener, the box inert, `data-state="closed"`), the overlay dispatches
+`new CustomEvent('ds-close', { bubbles: true, detail: { reason } })`, synchronously and not cancelable. `reason`:
+`'escape'` (Escape, the native `cancel`, Android Back), `'backdrop'` (`.ds-dialog__backdrop`, `.ds-sheet__backdrop`,
+the drawer's `.ds-scrim`), `'close'` (another `[data-close]`), `'item'`, `'tab'` and `'outside'` (menus), `'parent'`
+(closed with the overlay around it; sent before the parent's own event), `'api'` (`close()` without a reason,
+`dialog.close()`, a `<form method="dialog">`), `'removed'` (it left the document; sent on the detached element),
+`'breakpoint'` (the drawer's window widened past 900px); any other string is the page's own
+(`close(el, { reason: 'confirm' })`). It is not sent for a `close()` during an exit, for a refused attempt (busy,
+below) or for an element that was never open.
+
+```js
+dialog.addEventListener('ds-close', (event) => { if (event.detail.reason === 'confirm') saveDraft(); });
+```
+
+**Busy: `data-ds-busy`** (2.0). While the page sets the attribute on a `.ds-dialog`, `.ds-sheet` or `.ds-drawer`, the
+user's close attempts do nothing: Escape (the listener still calls `preventDefault()`, so a native dialog fires no
+`cancel`; a visible tooltip still takes the key first), the native `cancel`, a `[data-close]` click, the backdrop and
+the modal drawer's scrim. One guard at the top of the close, before the popups inside close, so a refused attempt
+changes nothing and sends no `ds-close`. `close(el)` and the forced closes (`removed`, `breakpoint`) still close;
+menus and combobox lists ignore the attribute. `DS.overlay` never writes it, and it changes nothing visible: the busy
+button is the feedback ([components.md](components.md#dialog), "While its action runs"). A morph that drops the
+attribute frees the overlay; Android Back can still force a native close (it follows with reason `'escape'`); never
+set `closedby` on a dialog that `DS.overlay` drives; a `<form method="dialog">` submit closes natively (use
+`type="button"`).
+
+**Dismiss guard** (2.0). A backdrop or scrim click from a pointer closes only as the first click (`event.detail` 1)
+of a press that began on that backdrop, and only `--ds-delay-dismiss` (300ms, time-scaled) after the open: the second
+click of a double click on the opener (it lands on the backdrop that just appeared), a touch double tap and a drag
+from the box that ends on the backdrop close nothing. Every `[data-close]` click with `detail > 1` is ignored.
+`click()`, Enter and Space (`detail` 0) close at once. A trigger that toggles (a menu button) ignores
+`event.detail > 1` itself.
+
+`topmost()` (2.0) tells which layer would take the next Escape. Whether one overlay is open:
+`el.matches('[data-state="open"]')`, or `.ds-app[data-drawer-open]` for the modal drawer. Copies of `ds.js` before
+1.6.1 keep their own stack and are not seen.
 
 Container transform (1.5, opt-in): `open(el, { opener, container: true })` on a closed dialog or side sheet runs the
 open inside `DS.motion.transition(open, { type: 'container', from: opener })`, so the opener (a card, a table row)
@@ -917,11 +978,17 @@ more room (`data-placement="top"` above; for a combobox list the room is the win
 the field that clips its overflow), and it is never taller than the room on that side: anchored, the CSS caps it to
 its `position-area`; placed by the script, an inline `max-height` (removed on close). The list or the menu scrolls
 inside, so it never covers its trigger or the field being typed into. A menu focuses its first enabled item (the last when an ArrowUp keydown opened it), moves focus with ArrowUp,
-ArrowDown, Home and End (wrapping) and closes a task after an item's `click` (its handlers run first; disabled
-items close nothing). On close the popup leaves the top layer once its fade ended.
+ArrowDown, Home and End (wrapping; a `.ds-menu__heading` is no item), to the next item whose label starts with the
+typed letters (type-ahead, 2.0: the letters reset after `--ds-delay-tooltip`, read through `motionDuration()`; one
+letter again and again cycles through the items with it) and closes a task after an item's `click` (its handlers run
+first; disabled items close nothing). The `.ds-menu__item` rows of a dialog's `.ds-dialog__list` (an action sheet)
+take the same arrow keys (2.0). On close the popup leaves the top layer once its fade ended.
 
 Escape stack: one `keydown` listener on the document in the bubble phase (installed by the first `open()`) closes
-only the topmost overlay that is not already closing, and only when no tooltip took the key. A widget inside the
+only the topmost overlay that is not already closing, and only when no tooltip took the key. A filled
+`input[type="search"]` inside that overlay takes the key first (2.0): its value goes, an `input` event tells the
+page's filter, and the layer stays; the next Escape (an empty search) closes it. So the order is: tooltip, filled
+search, top layer. A widget inside the
 overlay that handles Escape itself (an inline edit, a picker) runs first: when it calls `preventDefault()`, the
 overlay stays open, as with a plain `<dialog>`. The listener calls `preventDefault()` itself (which also keeps a
 native dialog from its own `cancel`) but does not stop the event. A native dialog's `cancel` is turned into
@@ -939,7 +1006,8 @@ the page, its room stays: `scrollbar-gutter: stable` on `<html>` where supported
 `<body>`. In the app frame, where `.ds-view` scrolls, nothing is reserved.
 
 Modal drawer: `open(drawer, { opener })` acts only while `(max-width: 900px)` matches (wider, it resolves at once).
-It sets `data-drawer-open` on `.ds-app` and `aria-expanded` on the menu button, focuses the drawer, makes its
+It sets `data-drawer-open` on `.ds-app` and `aria-expanded` on the menu button, focuses the drawer's
+`[aria-current="page"]` item (2.0; without one, the drawer), makes its
 siblings inert (not `.ds-scrim`, nor the snackbar regions, their announcers and the tooltips), takes the lock, joins the Escape stack and closes on a click on the scrim.
 `close(drawer)` returns focus to the menu button at once. From load on (1.6.1; before, from the first `open(drawer)` or
 `close(drawer)`), a window crossing 900px sets `.ds-drawer--instant` for two frames on every `.ds-app > .ds-drawer`
@@ -955,6 +1023,23 @@ and that left the document only with that host goes back to its place too, so a 
 modal drawer's frame loses `data-drawer-open` also when only the drawer element was replaced). A `MutationObserver`,
 connected only while an overlay is open, notices the removal; a `close()` of the removed element does the same at
 once.
+
+Promise dialogs (2.0): `confirm()`, `alert()` and `prompt()` build a native `dialog.ds-dialog` with DOM APIs
+(no HTML strings, so a strict CSP is fine) inside the opener's `.ds-theme` (else the first one): the backdrop with
+`data-close`, the title (`aria-labelledby`), the text (`aria-describedby`), for `prompt()` a `.ds-field` whose input
+takes `input.type`, `autocomplete`, `inputmode` and `required`, and the actions. They open it with `open()`, remove it
+once its exit settled and resolve when the close starts: `confirm()` `true` only for the confirm button,
+`prompt()` the value or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is
+Cancel (else the confirm button, or the prompt's field). `onConfirm` (a function returning a promise) runs with
+`busy(confirmButton, …, { done: false })` and `data-ds-busy` on the dialog (Cancel `aria-disabled`, the field
+`readOnly`); a rejection keeps the dialog open, shows `errorText` (default "That did not work. Try again."; never the
+raw message) as an error snackbar in the theme's `.ds-toasts` region (inside the open dialog, so above it) and returns
+focus to the confirm button; success closes it with reason `'confirm'`. The labels default to "Confirm", "Cancel" and
+"OK".
+
+```js
+if (await DS.overlay.confirm({ title: 'Archive 3 devices?', confirmLabel: 'Archive devices', opener: button })) archive();
+```
 
 Snackbars: `toast(region, content, options)` takes a `.ds-toast` element or builds one from a string (`kind`
 `'success'`, `'error'` or `'info'` picks the icon and the modifier; a message that stays gets a close button) and
