@@ -436,8 +436,7 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     const dark = declared('themes/dark.css');
     const { roles } = layers();
     // Literal colours of tokens.css; derived mixes and var() roles follow by themselves.
-    const DEPRECATED = new Set(['--ds-spinner-sm-track']);
-    const literal = roles.filter((name) => !DEPRECATED.has(name) && parseColour(token(name)));
+    const literal = roles.filter((name) => parseColour(token(name)));
     assert.ok(literal.includes('--ds-surface') && literal.includes('--ds-scrim'), 'the walk finds the literal colours');
     assert.deepEqual(literal.filter((name) => !(name in dark)), []);
     assert.equal(dark['--ds-color-scheme'], 'dark');

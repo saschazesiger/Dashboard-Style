@@ -197,6 +197,17 @@ describe('tools/check-theme.mjs', () => {
     assert.ok(together.some((f) => f.rule === 'contrast' && /with dark\.css/.test(f.message)), 'a link colour that dark.css does not reset fails on its surfaces');
   });
 
+  it('lets a variant pass where it is meant to be used: over the base or with a --with theme', () => {
+    const dark = [{ path: 'dark.css', css: read('themes/dark.css') }];
+    const warnings = (css, extra) => check(css, extra).filter((f) => f.rule === 'contrast' && f.level === 'warning').map((f) => f.message);
+    // The reference app: a light and a dark tone of each accent (the dark ones under data-ex-dark).
+    assert.ok(warnings(read('example/theme.css')).some((m) => m.includes('[data-ex-dark]')), 'a dark variant over the light base fails');
+    assert.deepEqual(warnings(read('example/theme.css'), { withFiles: dark }), [], 'each variant passes over the base or with dark.css');
+    // A variant that fails in every context still warns, in each of them.
+    const pale = warnings('.ds-theme[data-brand="pale"] { --ds-primary: #c2e7ff; --ds-on-primary: #d3e3fd; }', { withFiles: dark });
+    assert.ok(pale.some((m) => m.includes('(.ds-theme[data-brand="pale"])')) && pale.some((m) => m.includes('(.ds-theme[data-brand="pale"], with dark.css)')), pale.join('\n'));
+  });
+
   it('runs as a CLI from a copy: file:line level rule message, exit 1 on an error', () => {
     const dir = copyOfDist();
     try {

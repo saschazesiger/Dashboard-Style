@@ -190,6 +190,14 @@ describe('tools/check-project.mjs', () => {
     assert.match(run(files, { ...CONFIG, exceptions: [{ rule: 'nope', file: 'x', reason: 'y' }] }).errors.join('\n'), /unknown rule "nope"/);
   });
 
+  it('checks the themes together with the shipped themes of "themesWith"', () => {
+    const files = { ...CLEAN, 'css/theme.css': '.ds-theme { --ds-primary: #0b57d0; }\n.ds-theme[data-app-dark] { --ds-primary: #a8c7fa; --ds-on-primary: #062e6f; }\n' };
+    assert.ok(run(files).findings.some((f) => f.rule === 'themes' && f.message.includes('[data-app-dark]')), 'a dark variant over the light base warns');
+    assert.deepEqual(run(files, { ...CONFIG, themesWith: [`${VENDOR}/themes/dark.css`] }).findings, [], 'with the dark theme it passes');
+    const missing = run(files, { ...CONFIG, themesWith: ['css/dark.css'] }).findings;
+    assert.deepEqual(missing.filter((f) => f.level === 'error').map((f) => `${f.file} ${f.rule}`), ['css/dark.css themes']);
+  });
+
   it('runs as a CLI from the copy: file:line rule message, exit 1 on an error, 2 on a bad config', () => {
     const root = project({ ...CLEAN, 'css/app.css': '.app-x { color: red; }\n', 'ds-check.json': JSON.stringify(CONFIG) });
     try {

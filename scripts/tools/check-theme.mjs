@@ -22,7 +22,9 @@
  *
  * Every rule whose selector names .ds-theme sets roles: plain .ds-theme
  * (or .ds-theme.<widget>) is the base, every other selector or @media
- * block a variant checked over the base.
+ * block a variant checked over the base and, with --with, over the base
+ * with those files; a variant warns only when it fails in each of them (a
+ * dark variant of an accent passes over the dark theme).
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -124,28 +126,38 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
   const theme = collect(files);
   const extra = collect(withFiles);
   const first = files[0]?.path ?? 'theme';
-  const scenarios = [{ label: null, layers: [theme.base] }];
-  for (const [label, variant] of theme.variants) scenarios.push({ label, layers: [theme.base, variant.values] });
-  if (withFiles.length) {
-    const withLabel = `with ${withFiles.map((file) => file.path).join(', ')}`;
-    scenarios.push({ label: withLabel, layers: [theme.base, extra.base] });
-    for (const [label, variant] of theme.variants) scenarios.push({ label: `${label}, ${withLabel}`, layers: [theme.base, extra.base, variant.values] });
+  // A group is one way the theme is used; a variant is fine when one of its
+  // contexts passes (a dark variant passes over the --with dark theme, a
+  // light one over the base), so only a variant that fails everywhere warns.
+  const groups = [[{ label: null, layers: [theme.base] }]];
+  const withLabel = withFiles.length ? `with ${withFiles.map((file) => file.path).join(', ')}` : null;
+  if (withLabel) groups.push([{ label: withLabel, layers: [theme.base, extra.base] }]);
+  for (const [label, variant] of theme.variants) {
+    const group = [{ label, layers: [theme.base, variant.values] }];
+    if (withLabel) group.push({ label: `${label}, ${withLabel}`, layers: [theme.base, extra.base, variant.values] });
+    groups.push(group);
   }
-  for (const { label, layers } of scenarios) {
-    const lookup = (name) => {
-      for (const layer of [...layers].reverse()) if (name in layer) return layer[name];
-      return defaults(name);
-    };
-    const where = label ? ` (${label})` : '';
-    // Field text: the input role (or the reading role it follows) at 16px or more.
-    let input = lookup('--ds-font-input');
-    for (let hops = 0; input && /^var\(--ds-[\w-]+\)$/.test(input) && hops < 8; hops += 1) input = lookup(input.slice(4, -1));
-    const size = input ? fontSize(input) : null;
-    if (size !== null && size < 16) add('error', first, 0, 'input-font', `--ds-font-input resolves to ${size}px${where}: keep field text at 16px or more (iOS zooms into smaller fields)`);
-    for (const pair of pairResults(lookup)) {
-      if (pair.ratio === null) add('info', first, 0, 'contrast', `${pair.fg} on ${pair.bg}${where}: not checked (a colour form this check does not resolve)`);
-      else if (pair.ratio < pair.min) add('warning', first, 0, 'contrast', `${pair.fg} on ${pair.bg}${where}: ${pair.ratio.toFixed(2)}:1, needs ${pair.min}:1 (${pair.kind})`);
-    }
+  for (const group of groups) {
+    const results = group.map(({ label, layers }) => {
+      const found = [];
+      const lookup = (name) => {
+        for (const layer of [...layers].reverse()) if (name in layer) return layer[name];
+        return defaults(name);
+      };
+      const where = label ? ` (${label})` : '';
+      // Field text: the input role (or the reading role it follows) at 16px or more.
+      let input = lookup('--ds-font-input');
+      for (let hops = 0; input && /^var\(--ds-[\w-]+\)$/.test(input) && hops < 8; hops += 1) input = lookup(input.slice(4, -1));
+      const size = input ? fontSize(input) : null;
+      if (size !== null && size < 16) found.push({ level: 'error', file: first, line: 0, rule: 'input-font', message: `--ds-font-input resolves to ${size}px${where}: keep field text at 16px or more (iOS zooms into smaller fields)` });
+      for (const pair of pairResults(lookup)) {
+        if (pair.ratio === null) found.push({ level: 'info', file: first, line: 0, rule: 'contrast', message: `${pair.fg} on ${pair.bg}${where}: not checked (a colour form this check does not resolve)` });
+        else if (pair.ratio < pair.min) found.push({ level: 'warning', file: first, line: 0, rule: 'contrast', message: `${pair.fg} on ${pair.bg}${where}: ${pair.ratio.toFixed(2)}:1, needs ${pair.min}:1 (${pair.kind})` });
+      }
+      return found;
+    });
+    if (results.length > 1 && results.some((found) => !found.some((finding) => finding.level !== 'info'))) continue;
+    for (const found of results) findings.push(...found);
   }
   return findings;
 }

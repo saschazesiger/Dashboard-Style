@@ -14,6 +14,8 @@
  *     "js": ["js/**\/*.js"],                   project scripts
  *     "html": ["*.html"],                      pages and templates (optional)
  *     "themes": ["css/theme.css"],             theme files (tools/check-theme.mjs)
+ *     "themesWith": ["vendor/dashboard-style/themes/dark.css"],  shipped themes the
+ *                                              theme is used with (check-theme --with; optional)
  *     "vendor": "vendor/dashboard-style",      the copy
  *     "exceptions": [{ "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "why" }]
  *   }
@@ -214,6 +216,7 @@ export function checkProject(config, root) {
   const cssFiles = matchFiles(root, config.css, all, vendor).filter((path) => !themes.includes(path));
   const jsFiles = matchFiles(root, config.js, all, vendor);
   const htmlFiles = matchFiles(root, config.html, all, vendor);
+  const themesWith = (config.themesWith ?? []).map(posix);
   const read = (path) => readFileSync(join(root, path), 'utf8').replace(/\r\n/g, '\n');
   const add = (level, file, line, rule, message, selector) => findings.push({ level, file, line, rule, message, ...(selector ? { selector } : {}) });
 
@@ -311,7 +314,10 @@ export function checkProject(config, root) {
 
   // themes
   if (themes.length && copy.tokens) {
-    for (const finding of checkTheme({ files: themes.map((path) => ({ path, css: read(path) })), tokens: copy.tokens, deprecations: copy.deprecations })) {
+    const missing = themesWith.filter((path) => !existsSync(join(root, path)));
+    for (const path of missing) add('error', path, 0, 'themes', 'a file of "themesWith" is missing');
+    const withFiles = themesWith.filter((path) => !missing.includes(path)).map((path) => ({ path, css: read(path) }));
+    for (const finding of checkTheme({ files: themes.map((path) => ({ path, css: read(path) })), withFiles, tokens: copy.tokens, deprecations: copy.deprecations })) {
       if (finding.level === 'info') continue;
       add(finding.level, finding.file, finding.line, 'themes', `${finding.rule}: ${finding.message}`);
     }

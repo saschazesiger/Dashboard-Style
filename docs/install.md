@@ -329,6 +329,7 @@ it; globs know `*`, `**` and `?`):
   "js": ["js/**/*.js"],
   "html": ["*.html", "templates/**/*.html"],
   "themes": ["css/theme.css"],
+  "themesWith": ["vendor/dashboard-style/themes/dark.css"],
   "vendor": "vendor/dashboard-style",
   "exceptions": [
     { "rule": "restyle", "file": "css/app.css", "selector": ".app-bar .ds-btn", "reason": "the bar is dark; no hook for it yet" }
@@ -342,7 +343,8 @@ node vendor/dashboard-style/tools/check-project.mjs --config ds-check.json
 
 It prints `<file>:<line> <rule> <message>` per finding (warnings say so) and exits 1 on an error, 2 on a broken
 configuration. An exception silences one rule for a file (a path or a glob) and, when it names one, a selector; its
-`reason` is required.
+`reason` is required. `themesWith` (optional) names the shipped themes your theme is used with; the `themes` rule passes
+them to `check-theme.mjs --with`.
 
 | Rule | Level | What |
 |---|---|---|

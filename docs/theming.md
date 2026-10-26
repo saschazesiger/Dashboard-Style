@@ -465,7 +465,9 @@ theme is used with) and count for the contrast pairs.
 | `restyle` | warning | a component selector with a property that is not a custom property |
 
 Every rule whose selector names `.ds-theme` sets roles: plain `.ds-theme` (or `.ds-theme.my-widget`) is the base, and
-every other selector (`.ds-theme[data-accent="teal"]`) or `@media` block is a variant, checked over the base. The
+every other selector (`.ds-theme[data-accent="teal"]`) or `@media` block is a variant, checked over the base and,
+with `--with`, over the base with those files; a variant warns only when it fails in each, so the dark tone of an
+accent (`.ds-theme[data-dark][data-accent="teal"]`) passes over the dark theme and the light tone over the base. The
 pairs are those of the repository's own tests (`tools/theme-rules.mjs`), so a theme that passes keeps what the default
 palette keeps.
 

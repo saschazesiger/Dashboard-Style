@@ -23,7 +23,8 @@
  *   themes/         the shipped themes (dark.css, compact.css, contrast.css)
  *   tools/          dependency-free checks for projects (scripts/tools/):
  *                   verify.mjs and verify.sh (a copy against SHA256SUMS),
- *                   check-theme.mjs, check-project.mjs, theme-rules.mjs
+ *                   check-theme.mjs, check-project.mjs, and the modules
+ *                   they share (theme-rules.mjs, css-scan.mjs)
  *   tokens.json     every --ds-* name with its layer, default and type
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above
@@ -177,7 +178,7 @@ function typeOf(name, value, known, seen = new Set()) {
  * `default` is the declared value (roles, scales), the component's fallback
  * (hooks) or the registered initial value; `themeable` is true for roles and
  * hooks only. `deprecated` is the version that deprecated a name still in
- * use (src/deprecations.json, when it is there); removed names are not listed.
+ * use (src/deprecations.json); removed names are not listed.
  */
 export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
   const raw = mainThemeRule(read('src/tokens.css'));
@@ -232,12 +233,7 @@ export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
     add(name, { layer, default: file ? fallbackOf(file[1], name) : null });
   }
 
-  let deprecations = [];
-  try {
-    deprecations = JSON.parse(read('src/deprecations.json')).names ?? [];
-  } catch {
-    deprecations = [];
-  }
+  const deprecations = JSON.parse(read('src/deprecations.json')).names;
   const known = new Map([...entries.values()].map((entry) => [entry.name, entry.default]));
   const tokens = [...entries.values()].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).flatMap((entry) => {
     const deprecation = deprecations.find((d) => d.name === entry.name);
