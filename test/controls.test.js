@@ -309,3 +309,50 @@ describe('tiles and cards (2.0)', () => {
     for (const css of [card, tile]) assert.ok(atRuleBlocks(css, /@media\s+print/).some((block) => /break-inside:\s*avoid/.test(block)));
   });
 });
+
+describe('alerts (2.0)', () => {
+  const css = read('src/components/alert.css');
+  const flat = withoutAtRuleBlocks(css, /@media/);
+
+  it('reads its look from 13 hooks with the 1.6 values as fallbacks', () => {
+    const base = own(flat, '.ds-alert');
+    assert.equal(base.background, 'var(--ds-alert-bg, var(--ds-surface-low))');
+    assert.equal(base.color, 'var(--ds-alert-color, var(--ds-text))');
+    assert.equal(base['border-inline-start'], 'var(--ds-alert-edge, 0px) solid var(--ds-alert-icon, var(--ds-primary))');
+    assert.equal(own(flat, '.ds-alert > svg').color, 'var(--ds-alert-icon, var(--ds-primary))');
+    const kinds = {
+      success: ['--ds-success-container', '--ds-on-success-container', '--ds-success'],
+      warning: ['--ds-warning-surface', '--ds-text', '--ds-warning'],
+      error: ['--ds-error-container', '--ds-on-error-container', '--ds-error'],
+    };
+    const hooks = new Set(['--ds-alert-bg', '--ds-alert-color', '--ds-alert-icon', '--ds-alert-edge']);
+    for (const [kind, [bg, color, icon]] of Object.entries(kinds)) {
+      assert.deepEqual(own(flat, `.ds-alert--${kind}`), {
+        '--ds-alert-bg': `var(--ds-alert-${kind}-bg, var(${bg}))`,
+        '--ds-alert-color': `var(--ds-alert-${kind}-color, var(${color}))`,
+        '--ds-alert-icon': `var(--ds-alert-${kind}-icon, var(${icon}))`,
+      }, kind);
+      for (const part of ['bg', 'color', 'icon']) hooks.add(`--ds-alert-${kind}-${part}`);
+    }
+    assert.equal(hooks.size, 13);
+    assert.equal(own(flat, '.ds-alert--error:not(.ds-alert--plain) .ds-btn')['--ds-btn-color'], 'var(--ds-alert-error-color, var(--ds-on-error-container))');
+    const theming = read('docs/theming.md');
+    for (const hook of hooks) assert.ok(theming.includes(`\`${hook}\``), hook);
+    assert.equal(own(forcedColorBlocks(css).join('\n'), '.ds-alert:not(.ds-alert--plain)').outline, '1px solid transparent');
+  });
+
+  it('has a plain preset after the kinds, titles, paragraphs and an actions row; centres buttons on their own height', () => {
+    const plain = own(flat, '.ds-alert--plain');
+    assert.deepEqual(plain, { '--ds-alert-bg': 'transparent', '--ds-alert-color': 'var(--ds-text)', '--ds-alert-edge': '0', 'padding-inline': '0', 'border-radius': '0' });
+    assert.ok(stripComments(css).indexOf('.ds-alert--plain {') > stripComments(css).indexOf('.ds-alert--error {'), 'after the kinds');
+    assert.equal(own(flat, '.ds-alert--plain + .ds-alert--plain')['border-top'], '1px solid var(--ds-line)');
+    assert.equal(own(flat, '.ds-alert__title').font, 'var(--ds-font-label)');
+    assert.equal(own(flat, '.ds-alert__text > p').margin, '0');
+    assert.equal(own(flat, '.ds-alert__text > p + p')['margin-top'], 'var(--ds-space-2)');
+    assert.equal(own(flat, '.ds-alert:has(> .ds-alert__actions) > .ds-alert__text').flex, '1 1 var(--ds-alert-text-basis, 256px)');
+    for (const selector of ['.ds-alert .ds-btn', '.ds-alert__actions']) {
+      assert.equal(own(flat, selector)['margin-block'], 'calc((var(--ds-space-5) - var(--ds-btn-height, 36px)) / 2)', selector);
+    }
+    assert.equal(own(flat, '.ds-alert__actions > .ds-btn').margin, '0');
+  });
+});

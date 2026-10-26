@@ -197,6 +197,15 @@
   --ds-table-row-hover: (a currentColor layer at --ds-state-hover-lg);
   --ds-table-row-selected: var(--ds-accent);
   --ds-status-radius: var(--ds-radius-md);
+  --ds-alert-bg: var(--ds-surface-low); --ds-alert-color: var(--ds-text);
+  --ds-alert-icon: var(--ds-primary);  --ds-alert-edge: 0;
+  --ds-alert-success-bg: var(--ds-success-container); --ds-alert-success-color: var(--ds-on-success-container);
+  --ds-alert-success-icon: var(--ds-success);
+  --ds-alert-warning-bg: var(--ds-warning-surface); --ds-alert-warning-color: var(--ds-text);
+  --ds-alert-warning-icon: var(--ds-warning);
+  --ds-alert-error-bg: var(--ds-error-container); --ds-alert-error-color: var(--ds-on-error-container);
+  --ds-alert-error-icon: var(--ds-error);
+  --ds-alert-text-basis: 256px;
   --ds-tag-bg: var(--ds-accent);       --ds-tag-color: var(--ds-on-accent);
   --ds-tag-height: 24px;               --ds-badge-size: 20px;
   --ds-badge-radius: var(--ds-radius-action);  --ds-badge-bg: var(--ds-accent);

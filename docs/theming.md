@@ -292,6 +292,13 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-pressable-layer` | `currentColor` | the colour of the state layer of `.ds-pressable` |
 | `--ds-kbd-border`, `--ds-kbd-bg` | `--ds-line-2`, `--ds-surface` | `.ds-kbd`: the box of a key |
 | `--ds-status-radius` | `--ds-radius-md` | status chip |
+| `--ds-alert-bg`, `--ds-alert-color` | `--ds-surface-low`, `--ds-text` | the neutral alert (kinds set them from their own hooks) |
+| `--ds-alert-icon` | `--ds-primary` | the neutral alert's icon and edge colour |
+| `--ds-alert-edge` | 0 | the width of an alert's leading edge (`4px`: an edge in the icon colour) |
+| `--ds-alert-success-bg`, `--ds-alert-success-color`, `--ds-alert-success-icon` | `--ds-success-container`, `--ds-on-success-container`, `--ds-success` | `.ds-alert--success` |
+| `--ds-alert-warning-bg`, `--ds-alert-warning-color`, `--ds-alert-warning-icon` | `--ds-warning-surface`, `--ds-text`, `--ds-warning` | `.ds-alert--warning` |
+| `--ds-alert-error-bg`, `--ds-alert-error-color`, `--ds-alert-error-icon` | `--ds-error-container`, `--ds-on-error-container`, `--ds-error` | `.ds-alert--error` (its buttons take `--ds-alert-error-color`) |
+| `--ds-alert-text-basis` | 256px | the narrowest text of an alert with `.ds-alert__actions` before the actions wrap |
 | `--ds-tag-bg`, `--ds-tag-color` | `--ds-accent`, `--ds-on-accent` (`--neutral`: `--ds-surface-high`, `--ds-text`) | a tag (`.ds-tag`) |
 | `--ds-tag-height` | 24px | a tag's height (its radius is half of it) |
 | `--ds-badge-size` | 20px | a count badge (`.ds-badge`): height and smallest width |

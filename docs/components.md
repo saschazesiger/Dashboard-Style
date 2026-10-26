@@ -33,6 +33,7 @@ component live.
 | A count on a button or chip | [Badge](#badge) `.ds-badge` (tones `--neutral`, `--ok`, `--warning`, `--error`) |
 | A short label such as Preview | `.ds-tag` ([Status chip](#tags)) |
 | A message about a page or section that stays | [Alert](#alert) `.ds-alert`; a list of errors to open: `.ds-errors` |
+| Findings in a card | `.ds-alert--plain` alerts in the card, one per finding ([Alert](#alert)) |
 | Short feedback after an action | [Snackbar](#snackbar) `.ds-toast` in `.ds-toasts` |
 | Records in rows and columns | [Table](#table) `.ds-table` in `.ds-table-wrap` |
 | Rows that open their record | `.ds-table--interactive` with a `.ds-table__row-link` per row ([Table](#table)) |
@@ -696,6 +697,33 @@ A count on a button, chip, tab or drawer item:
 ```
 
 The plain `.ds-alert` is the neutral (information) alert: quiet surface, primary icon, no modifier.
+
+A title, more paragraphs and actions; findings in a card (`.ds-alert--plain`):
+
+```html
+<div class="ds-alert ds-alert--warning">[icon alert 20]
+  <div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div>
+  <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Remind me</button></div>
+</div>
+
+<section class="ds-card">
+  <h2 class="ds-card__title">Findings</h2>
+  <div class="ds-alert ds-alert--plain ds-alert--error">[icon alertCircle 20]<span class="ds-alert__text"><strong class="ds-alert__title">Disk almost full</strong> 92% used on drive C.</span></div>
+  <div class="ds-alert ds-alert--plain ds-alert--warning">[icon alert 20]<span class="ds-alert__text">Warranty ends in 30 days.</span></div>
+</section>
+```
+
+- `.ds-alert__title` (the label font, the alert's ink) opens `.ds-alert__text` in every alert; paragraphs in the text
+  lose their margins and stand `--ds-space-2` apart.
+- `.ds-alert__actions` after the text holds one or more buttons side by side; the alert then wraps, the text takes at
+  least `--ds-alert-text-basis` (256px) and the actions drop under it on a narrow row.
+- `.ds-alert--plain`: a finding in a card, on the card's surface: no fill, no edge, no inline padding, no radius, the
+  kind's icon; hairlines between consecutive plain alerts. Static findings carry no live role.
+- Hooks (13, [theming.md](theming.md#component-hooks)): `--ds-alert-bg`, `--ds-alert-color`, `--ds-alert-icon` (also the
+  edge colour), `--ds-alert-edge` (a leading edge's width, default none: `4px` gives the edge look), and per kind
+  `--ds-alert-success-bg`, `--ds-alert-success-color`, `--ds-alert-success-icon`, `--ds-alert-warning-bg`,
+  `--ds-alert-warning-color`, `--ds-alert-warning-icon`, `--ds-alert-error-bg`, `--ds-alert-error-color` (also the
+  ink of an error alert's buttons), `--ds-alert-error-icon`. Forced colours: a transparent outline becomes the edge.
 Alerts have no entrance of their own: one re-rendered with fresh data is patched in place and never fades in again.
 An alert that comes or goes, by a user action or live data, does it through `DS.motion.flip` on its stack (a flex or
 grid column with a gap), with no export of its own and no height animated
