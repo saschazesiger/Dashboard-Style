@@ -333,6 +333,9 @@ on load, and a rapid toggle turns back from where it is. A chip that wraps to an
 | Status chip | colour and icon glide over `--ds-dur-medium`; a new icon fades in and springs up from `--ds-scale-small` |
 | Table | sort, filter and live reorder glide through `flip()`; a selected row tints over `--ds-dur-fast`; an expandable row opens its room on `--ds-ease-out` (`--ds-dur-medium`) and closes accelerating (`--ds-dur-base`); the sort arrow and the toggle chevron turn on the spring |
 | Alert, tile, card | alerts come and go through `flip()`; a tile's figure counts with `countUp()`; clickable tiles and cards take the press morph |
+| Row list, timeline | rows and entries come and go and reorder through `flip()` with keyed items: they glide on an opaque backing, new ones fade in over `--ds-dur-fast` (`.ds-list__item` sets `--ds-enter-duration`), a removed one fades out while the ones below close the gap and focus moves to its neighbour; live feeds pass `live: true`; the current row tints over `--ds-dur-fast`; interactive rows press with the state layer and the ripple, no morph. The timeline has no motion of its own (and is unrelated to scroll timelines) |
+| Tasks | a status change swaps the mark at once (its glyph is the state); a step that turns done draws its tick (`ds-draw`, `--ds-dur-medium` after `--ds-dur-micro`, `--ds-ease-out`); the running mark is the small spinner |
+| Charts | meters and columns fill from zero on the first render (`.ds-enter--fill`: `ds-fill-share` over `--ds-dur-glide` on `--ds-ease-value`, with the fade); later values glide on the same curve and time (`--ds-share`, a registered number), landing on the same frame as a `countUp()` figure set in the same task; a column's value rides on its fill; interactive columns press with the state layer and the ripple, no morph |
 
 ### Data motion
 
@@ -474,7 +477,8 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `ds-pop-out` | `scale` to `--ds-motion-scale` (default `--ds-scale-small`) | badges, counters leaving |
 | `ds-clip-in` / `ds-clip-out` | `clip-path` from / to `--ds-clip-from` (default: closed towards the top edge), open `--ds-space-6` beyond the box (the resting clip of the popups) so the shadow shows | a popup revealed from its trigger edge: the combobox list and the menu shown by hand (`DS.overlay` uses transitions) |
 | `ds-draw` | `stroke-dashoffset` from `--ds-draw-length` (default 1): the glyph carries `pathLength="1"` (e.g. `check`) and the element sets `stroke-dasharray: 1` | a check after success; play it on the `<svg>` and let the path inherit the offset (the chip check does): Chromium can miss a class or state change above a `[pathLength]` selector and restyle the path late |
-| `ds-fill-x` / `ds-fill-y` | `scale: 0 1` / `scale: 1 0`, multiplying the element's own `scaleX()` / `scaleY()` | bars and columns filling on first render |
+| `ds-fill-share` | the registered `--ds-share` from 0 to the mark's own value | chart marks (`.ds-meter`, `.ds-columns__col`) filling on first render: their fill is clipped at the share, so its round end keeps its shape (`.ds-enter--fill`) |
+| `ds-fill-x` / `ds-fill-y` | `scale: 0 1` / `scale: 1 0`, multiplying the element's own `scaleX()` / `scaleY()` | bars and columns filling on first render; deprecated in 2.0 (removed in 3.0 at the earliest) with `.ds-enter--fill-x` / `--fill-y`, which still play them: a scaled bar squashes its round end, use `ds-fill-share` |
 | `ds-roll-in` / `ds-roll-out` | `translate`: one line up into / out of its slot | a status line that changes (`roll()` starts the new line once the old one is half out, so they never cover each other) |
 | `ds-press-ripple` | `scale` from 0 (its fade is a separate track) | the pointer ripple of an action (`DS.ripple`) |
 | `ds-ripple` | a ring that widens (`scale` to `--ds-ripple-scale`, 1.6) and fades once | behind a confirmation |
@@ -517,7 +521,8 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `.ds-enter--swap` | fade + 4px: content replacing a placeholder or another view |
 | `.ds-enter--delayed` | fade after `--ds-delay-loader` (loaders) |
 | `.ds-enter--pop` | fade + scale from `--ds-scale-small` (a badge or counter that appears) |
-| `.ds-enter--fill-x` / `--fill-y` | fade + a bar or column growing from zero to its own `scaleX` / `scaleY` (the element sets `transform` and `transform-origin`), 600ms on the value curve (`--ds-ease-value`, never overshoots): meters and charts, first render only |
+| `.ds-enter--fill` | fade + a chart mark filling from zero to its `--ds-share` (`ds-fill-share`), 600ms on the value curve (`--ds-ease-value`, never overshoots): meters and columns, first render only (`enterAll(marks, 'fill', { stagger: false })`); later values transition on the same curve |
+| `.ds-enter--fill-x` / `--fill-y` | **deprecated** in 2.0 (removed in 3.0 at the earliest; use `.ds-enter--fill` with `--ds-share`): fade + a bar or column growing from zero to its own `scaleX` / `scaleY` (the element sets `transform` and `transform-origin`), 600ms on the value curve (`--ds-ease-value`, never overshoots): meters and charts, first render only |
 | `.ds-leave` | one-shot exit: fade, 150ms, accelerating (`--ds-leave-easing`, default `--ds-ease-in`), starts at once |
 | `.ds-leave--sink` / `--scale` / `--slide` | `ds-fade-out` plus 8px down (150ms) / smaller to .98 (200ms) / 12px sideways (200ms) |
 | `.ds-leave--pop` | `ds-fade-out` plus a scale to `--ds-scale-small`, 150ms (a badge or counter that goes) |
@@ -574,7 +579,7 @@ movement curve (the spring for an entrance without one); nothing snaps.
 
 | Export | |
 |---|---|
-| `enter(el, variant?)` | plays `.ds-enter` (+ `fade`, `scale`, `slide`, `swap`, `delayed`, `pop`, `fill-x`, `fill-y`) once, removes every `ds-enter*` / `ds-leave*` class afterwards; clears `hidden` and `inert` first and records the focused element outside `el` as its opener; returns a Promise |
+| `enter(el, variant?)` | plays `.ds-enter` (+ `fade`, `scale`, `slide`, `swap`, `delayed`, `pop`, `fill`, `fill-x`, `fill-y`; the last two **deprecated**) once, removes every `ds-enter*` / `ds-leave*` class afterwards; clears `hidden` and `inert` first and records the focused element outside `el` as its opener; returns a Promise |
 | `leave(el, variant?, { then, focus })` | plays `.ds-leave` (+ `sink`, `scale`, `slide`, `pop`). Focus inside `el` first moves to `focus` (an element or a function returning one), else the opener, else the closest `tabindex="-1"` ancestor, else it is dropped; then `el` is `inert` for the exit. `then`: `'remove'` (default; meanwhile `el` carries `data-ds-leaving`, a pending removal that `DS.dom.morphHtml` and `flip()` skip, taken back by `enter()` or `cancel()`), `'hide'` (sets `hidden`, which hides any ds component inside `.ds-theme`, also without `.ds-base`; clears `inert` and the classes) or `'keep'` (stays in the DOM, invisible and inert, until `enter()` continues from there or `cancel()`) |
 | `cancel(el)` | calls off what `enter()` / `leave()` started: no continuation runs, the classes and handoffs go, the `inert` that `leave()` set is cleared; the element shows its rest state at once |
 | `enterAll(elements, variant?, { stagger, max, visibleOnly })` | `enter()` for many elements in batches (one style flush, one read of the rects): staggered by `--ds-i` (`stagger: true`, at most `max` = `STAGGER_MAX`), items entirely outside the viewport show at rest (`visibleOnly: true`), items still moving continue without a step; each batch removes the `--ds-i` it wrote once everything settled, and a later `enter()` or `enterAll()` on an item drops it at once (a page's own `stagger()` steps stay) |
@@ -969,6 +974,41 @@ sortButton.addEventListener('click', () => {
   rows = sort(rows, key);
   DS.motion.flip(list, render);                                                   // a user action glides at once
 });
+```
+
+### A timeline entry edited in place
+
+The entry's text and its form share one `.ds-swap` slot: `crossfade()` swaps them without a height jump of the
+slot, and the entries below follow through `flip()` (a timeline has no motion of its own; it is unrelated to
+scroll timelines).
+
+```js
+// <div class="ds-swap ds-timeline__body"><p class="ds-timeline__text">...</p></div> in the entry
+edit.addEventListener('click', () => {
+  DS.motion.flip(timeline, () => DS.motion.crossfade(slot, formFor(entry)));
+});
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  await save(entry);
+  DS.motion.flip(timeline, () => DS.motion.crossfade(slot, textFor(entry)));
+  edit.focus();
+});
+```
+
+### Charts: the first render, then values that glide
+
+The marks set `--ds-share`; the first render fills them from zero, later values transition on the same curve and
+land with a figure counted in the same task.
+
+```js
+const marks = columns.map((column, index) => {
+  column.style.setProperty('--ds-share', String(values[index] / max));
+  return column;
+});
+DS.motion.enterAll(marks, 'fill', { stagger: false });      // first render only
+// later:
+meter.style.setProperty('--ds-share', String(used / total));
+DS.motion.countUp(figure, used);                             // lands on the same frame as the meter
 ```
 
 ### A view swap with `transition`

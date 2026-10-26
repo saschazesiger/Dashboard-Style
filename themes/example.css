@@ -73,6 +73,19 @@
   --ds-fill-round: rgba(25, 28, 28, .08);
   --ds-code-bg: var(--ds-surface-low);
 
+  /* ── Charts ──
+     Four series in a fixed order, each at 3:1 on the surfaces and on the
+     track, adjacent ones apart in lightness as well as hue. The third
+     series is blue here: the default teal would sit next to this primary. */
+  --ds-chart-1: var(--ds-primary);
+  --ds-chart-2: #c76a00;
+  --ds-chart-3: #0b57d0;
+  --ds-chart-4: #9334e6;
+  --ds-chart-track: var(--ds-surface-high);
+  --ds-chart-neutral: var(--ds-outline);
+  --ds-chart-warning: var(--ds-warning);
+  --ds-chart-error: var(--ds-error);
+
   /* ── Disabled controls ──
      Dim the whole control instead: --ds-disabled-opacity:
      var(--ds-state-disabled); --ds-disabled-fill: initial;
@@ -187,6 +200,16 @@
   --ds-card-title-line: 24px;          --ds-tile-radius: var(--ds-radius-lg);
   --ds-card-hover-shadow: none;        (for example var(--ds-elev-hover))
   --ds-tile-radius-pressed: var(--ds-radius-md);
+  --ds-list-item-height: 56px;         --ds-list-text-min: 12rem;
+  --ds-list-current-bg: var(--ds-accent);
+  --ds-facts-label-width: 36%;
+  --ds-disclosure-height: 40px;        --ds-disclosure-row-height: 48px;
+  --ds-timeline-indent: var(--ds-space-8); --ds-timeline-dot-size: 10px;
+  --ds-timeline-dot-color: var(--ds-primary);
+  --ds-timeline-muted-color: var(--ds-outline);
+  --ds-timeline-line-width: 2px;       --ds-timeline-line-color: var(--ds-line);
+  --ds-timeline-divider-color: var(--ds-line);
+  --ds-timeline-marker-size: 24px;     --ds-timeline-head-line: 24px;
   --ds-table-row-hover: (a currentColor layer at --ds-state-hover-lg);
   --ds-table-row-selected: var(--ds-accent);
   --ds-status-radius: var(--ds-radius-md);
@@ -196,6 +219,11 @@
   --ds-loader-size: 48px;              --ds-loader-color: var(--ds-primary);
   --ds-progress-gap: 4px;
   --ds-progress-track: var(--ds-accent); --ds-progress-stop: var(--ds-primary);
+  --ds-meter-height: 4px;              --ds-meter-track: var(--ds-chart-track);
+  --ds-meter-color: var(--ds-chart-1);
+  --ds-columns-height: 120px;          --ds-columns-radius: var(--ds-radius-xs);
+  --ds-columns-group-min: 56px;        --ds-chart-color: (set by the series modifiers);
+  --ds-legend-key-size: 12px;
   --ds-dialog-width: 400px;            --ds-dialog-border: 1px solid transparent;
   --ds-dialog-shadow: var(--ds-elev-overlay); --ds-dialog-scrim: var(--ds-scrim);
   --ds-sheet-width: 560px;             --ds-sheet-width-wide: 720px;

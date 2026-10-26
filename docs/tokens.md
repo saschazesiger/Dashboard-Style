@@ -99,12 +99,25 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-scrim-nested` | `rgba(0,0,0,.16)` | behind a dialog over another open modal (`.ds-dialog--nested`): about 43% together instead of 54% |
 | `--ds-fill-round` | `rgba(31,31,31,.08)` | disc of `.ds-btn--disc` |
 | `--ds-code-bg` | `= --ds-surface-low` | inline code (`.ds-base`) |
+| `--ds-chart-1`, `--ds-chart-2`, `--ds-chart-3`, `--ds-chart-4` | `= --ds-primary`, `#c76a00`, `#00897b`, `#9334e6` | the four chart series, in this order ([Chart colours](#chart-colours)) |
+| `--ds-chart-track` | `= --ds-surface-high` | the track of a meter |
+| `--ds-chart-neutral` | `= --ds-outline` | the rest of a highlighted series (`.ds-columns--mini`), a neutral meter or key |
+| `--ds-chart-warning`, `--ds-chart-error` | `= --ds-warning`, `= --ds-error` | the tones of single-series marks |
 | `--ds-disabled-opacity` | 1 | opacity of every disabled control (buttons, chips, the switch, checkboxes and radios) |
 | `--ds-disabled-fill` / `--ds-disabled-ink` | `rgba(31,31,31,.12)` / `.38` | container or outline, and ink (label, check, handle, box) of every disabled control: buttons, chips, the switch, checkboxes and radios |
 | `--ds-spinner-sm-track` | `rgba(0,0,0,.18)` | **deprecated** (removed in 2.0): small spinner's ring where `color-mix()` is missing; every baseline browser has it |
 
 All text roles pass WCAG AA (4.5:1) on the surfaces they are meant for; the tests check the pairs. The tint is too
 light to carry a state alone: a selection always adds a check, a weight or an aria attribute.
+
+### Chart colours
+
+The roles of [Charts](components.md#charts): four series in a fixed order (`--ds-chart-1` first), never cycled; at
+most four in one chart, more fold into "Other". `--ds-chart-neutral` draws what is not highlighted, the tones
+(`--ds-chart-warning`, `--ds-chart-error`) only single-series marks, always with words. Text never takes a series
+colour. Every series, the neutral and the tones reach 3:1 on `--ds-surface`, `--ds-surface-low` and
+`--ds-chart-track` (WCAG 1.4.11; the tests check it), and the four series are distinct. A theme that changes them
+checks the same and keeps adjacent series apart for colour-blind readers (lightness as well as hue).
 
 ### Links and focus
 
@@ -213,3 +226,7 @@ indeterminate segments, animated on the track and read by its pseudo-elements), 
 and `--ds-skeleton-x` (`<length>`, inheriting: the position of the skeleton wave, animated on the surface and read by
 every bone; a surface rests at -150vw, off screen, so an exit or entrance that replaces the wave shows no band).
 Themes never set them.
+
+The share of a chart mark, `--ds-share` (`<number>`, 0 to 1, inheriting, top-level `@property` in `tokens.css`), is set
+by the page on a `.ds-meter` or a `.ds-columns__col`; its fill is clipped at it, and it glides on `--ds-ease-value`
+over `--ds-dur-glide` (`ds-fill-share` runs it from 0 on the first render). Themes never set it.
