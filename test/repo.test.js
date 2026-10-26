@@ -198,6 +198,46 @@ describe('repository', () => {
     assert.deepEqual([...names].filter((name) => !guarded.has(name) && !EXEMPT.has(name)).sort(), []);
   });
 
+  it('gives the header markup of dialogs, sheets, the combobox and the frame the attributes of their docs (rule 2)', () => {
+    // A project that copies the header must get the same roles, names, close buttons and tab stops as the docs.
+    const docs = read('docs/components.md');
+    const section = (title) => {
+      const start = docs.indexOf(`\n## ${title}\n`);
+      assert.ok(start >= 0, `docs/components.md has "## ${title}"`);
+      const end = docs.indexOf('\n## ', start + 1);
+      return docs.slice(start, end < 0 ? undefined : end);
+    };
+    /** Every tag with a ds- class; [...] groups are optional (an attribute or a modifier) and left out. */
+    const tags = (text) => [...text.matchAll(/<([a-z][a-z0-9]*)\b((?:[^<>"]|"[^"]*")*)>/g)].map(([, tag, raw]) => {
+      const attrs = new Map([...raw.replace(/\[[^\]]*\]/g, ' ').matchAll(/([a-z][\w:-]*)(?:="([^"]*)")?/g)].map((match) => [match[1], match[2] ?? '']));
+      return { tag, attrs };
+    }).filter(({ attrs }) => /(^|\s)ds-/.test(attrs.get('class') ?? ''));
+    // An element by its tag and classes without modifiers; what it carries: role, tabindex, data-close and its aria-* names.
+    const key = ({ tag, attrs }) => [tag, ...attrs.get('class').split(/\s+/).filter((name) => name && !name.includes('--')).sort()].join('.');
+    const carries = ({ attrs }) => [
+      ...['role', 'tabindex'].filter((name) => attrs.has(name)).map((name) => `${name}="${attrs.get(name)}"`),
+      ...(attrs.has('data-close') ? ['data-close'] : []),
+      ...[...attrs.keys()].filter((name) => name.startsWith('aria-')).sort(),
+    ].join(' ');
+    const CASES = [['dialog', 'Dialog'], ['sheet', 'Side sheet'], ['combobox', 'Combobox'], ['shell', 'App frame']];
+    const offenders = [];
+    let compared = 0;
+    for (const [file, title] of CASES) {
+      const css = read(`src/components/${file}.css`);
+      const documented = tags(section(title));
+      for (const element of tags(css.slice(0, css.indexOf('*/')))) {
+        const twins = documented.filter((other) => key(other) === key(element));
+        if (!twins.length) { offenders.push(`${file}.css: <${key(element)}> is not in the docs of ${title}`); continue; }
+        compared += 1;
+        if (!twins.some((other) => carries(other) === carries(element))) {
+          offenders.push(`${file}.css: <${key(element)}> carries "${carries(element)}", the docs "${[...new Set(twins.map(carries))].join('" or "')}"`);
+        }
+      }
+    }
+    assert.ok(compared > 40, 'the walk finds the header markup');
+    assert.deepEqual(offenders, []);
+  });
+
   it('lists every @keyframes once in the docs/motion.md keyframe table, unused kept names marked deprecated', () => {
     const motion = read('src/motion.css');
     const names = [...stripComments(motion).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);

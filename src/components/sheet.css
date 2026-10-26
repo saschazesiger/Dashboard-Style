@@ -26,7 +26,7 @@
  *       <div class="ds-sheet__head">
  *         <div class="ds-sheet__heading">
  *           <h2 class="ds-sheet__title" id="sheet-title">Details</h2>
- *           <p class="ds-sheet__subtitle">12 of 240 devices</p>      (optional)
+ *           <p class="ds-sheet__subtitle" aria-live="polite">12 of 240 devices</p>   (optional)
  *         </div>
  *         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>(close)</button>
  *       </div>
@@ -34,7 +34,7 @@
  *       <div class="ds-sheet__foot">                                    (optional)
  *         <p class="ds-meta">3 filters</p>
  *         <button class="ds-btn ds-btn--text" type="button">Reset</button>
- *         <button class="ds-btn ds-btn--primary" type="button">Show 12 devices</button>
+ *         <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
  *       </div>
  *
  * Open and close both with DS.overlay.open(sheet, { opener }) and

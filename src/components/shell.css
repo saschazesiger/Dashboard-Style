@@ -20,7 +20,7 @@
  *     </div>
  *     <div class="ds-scrim"></div>     (before the drawer, so it covers the page only)
  *     <nav class="ds-drawer" aria-label="Main" tabindex="-1">
- *       <div class="ds-drawer__head"> (brand again, shown in the modal drawer) </div>
+ *       <div class="ds-drawer__head" aria-hidden="true"> (brand again, shown in the modal drawer) </div>
  *       [<div class="ds-drawer__back"> <a class="ds-drawer__item" href="/">(arrowLeft 20) <span class="ds-drawer__label">All devices</span></a> </div>]
  *       [<div class="ds-drawer__actions"> a primary action </div>]
  *       <div class="ds-drawer__list">

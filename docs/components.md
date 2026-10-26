@@ -2494,8 +2494,8 @@ carries no role.
 ```
 
 Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same tree in
-`<div class="ds-dialog" hidden>`, with `role="alertdialog" aria-modal="true" aria-labelledby aria-describedby` on
-`.ds-dialog__box`.
+`<div class="ds-dialog" hidden>`, with the roles on the box: `<div class="ds-dialog__box" role="alertdialog"
+aria-modal="true" aria-labelledby="del-title" aria-describedby="del-text">`.
 
 - Open and close with `DS.overlay.open(dialog, { opener: button })` and `DS.overlay.close(dialog)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): focus moves in at once (`autofocus` marks the intended first focus,
