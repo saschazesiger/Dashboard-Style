@@ -190,7 +190,10 @@ the live tour in the same commit, so the published pages never show a deprecated
   reason). An overlay's timing also goes into the Overlays table of `docs/motion.md`, which the same spec compares
   with what every engine plays.
 - **Token**: a role goes after the `── 2. Palette` marker in `src/tokens.css`, into `docs/tokens.md` and
-  `themes/example.css` (tested); a new text colour pair gets a contrast check in `test/tokens.test.js`. A scale goes
+  `themes/example.css` (tested); a new colour role gets its dark tone in `themes/dark.css` (unless it is derived or
+  a `var()` of another role; tested) and, where it carries text or a line, its value in `themes/contrast.css`; its
+  pair goes into `scripts/tools/theme-rules.mjs` (`TEXT_PAIRS`, `CONTROL_PAIRS`, `ICON_PAIRS` or the chart lists,
+  copied into the styleguide's theme check; tested), which checks the default palette and every shipped theme. A scale goes
   before the marker; a duration-like scale is written as `calc(<n>ms * var(--ds-time-scale, 1))` (tested). Every
   `--ds-*` name must appear in `docs/` (tested).
 - **Icon**: a named export in `src/js/icons.js` (24px grid, flat shapes, no `stroke`, `fill`, `class` or colour of
