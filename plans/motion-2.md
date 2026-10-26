@@ -1,5 +1,7 @@
 # Plan: Motion 2 (Dashboard-Style 1.0)
 
+**Status:** complete at 1.6.0; the names marked "removed in 2.0" were removed in 2.0.0.
+
 Working plan for the motion overhaul and the code review that came with it. It was worked out with the owner on
 2026-10-19 from a full audit of the repository (six area audits, each finding checked by a second reviewer, 203
 findings plus 46 that the reviewers added). Every finding is assigned to a phase or dropped with a reason:

@@ -211,7 +211,72 @@ describe('repository', () => {
       }
     }
     assert.deepEqual(offenders, []);
-    for (const name of ['ds-sink-out', 'ds-scale-out', 'ds-slide-out']) assert.ok(DEPRECATED.test(rows.find((row) => row.names.includes(name)).line), `${name} is deprecated`);
+  });
+
+  it('keeps every removed name of src/deprecations.json out of the repository (RM-14)', () => {
+    const { names } = JSON.parse(read('src/deprecations.json'));
+    const removed = names.filter((entry) => entry.removed !== null && entry.pattern !== null);
+    assert.ok(removed.some((entry) => entry.name === '--ds-ease'), 'the removed names of 2.0 are listed');
+    // History (CHANGELOG.md, plans/) and the tests may name them; so may the data itself and the tools that read it.
+    const EXEMPT = /^(src\/deprecations\.json|dist\/deprecations\.json|dist\/tools\/.*)$/;
+    // A file that keeps an old form on purpose, for the entries it names (file → { reason, applies }).
+    const KEEPS = new Map([
+      ['test/browser/fixtures/toast-tooltip.html', {
+        reason: 'its #old-markup region tests that toast() strips the old live-region attributes',
+        applies: (entry) => entry.kind === 'markup' && /ds-toasts/.test(entry.pattern),
+      }],
+    ]);
+    const scope = ALL_FILES.filter((path) => TEXT.test(path) && !EXEMPT.test(path)
+      && (/^(src|dist|docs|themes|styleguide|example|demo|templates|test\/browser\/fixtures)\//.test(path) || ['README.md', 'AGENTS.md'].includes(path)));
+    assert.ok(scope.includes('src/tokens.css') && scope.includes('test/browser/fixtures/controls.html') && scope.includes('AGENTS.md'), 'the walk finds the files');
+    const offenders = [];
+    for (const path of scope) {
+      const source = readFileSync(join(ROOT, path), 'utf8');
+      for (const entry of removed) {
+        if (KEEPS.get(path)?.applies(entry)) continue;
+        for (const match of source.matchAll(new RegExp(entry.pattern, 'g'))) {
+          const line = source.slice(0, match.index).split('\n').length;
+          offenders.push(`${path}:${line}: ${entry.name} was removed in ${entry.removed} (${entry.replacement ?? 'no replacement'})`);
+        }
+      }
+    }
+    assert.deepEqual(offenders, []);
+  });
+
+  // TODO(2.0 integrator): remove the todo option once WP2, WP4, WP5, WP6 and WP7 merged; each writes the
+  // **deprecated** marker of its RM-15 names in docs/ (WP1 wrote the entries and .ds-view--leaving), and WP4
+  // removes the old snackbar region bullet. Until then this test runs and reports without failing.
+  it('marks every deprecated name of src/deprecations.json **deprecated** in docs/, and only those (RM-14)', {
+    todo: 'TODO(2.0 integrator): strict after the merge of every package (RM-15 markers)',
+  }, () => {
+    const { names } = JSON.parse(read('src/deprecations.json'));
+    const deprecated = names.filter((entry) => entry.removed === null);
+    // A block is a table row, a list item or a paragraph; it covers an entry when it names it or its pattern matches.
+    const blocks = filesIn('docs', (path) => path.endsWith('.md')).flatMap((file) => read(file).split(/\n\s*\n/)
+      .flatMap((paragraph) => paragraph.split(/\n(?=\||\s*(?:[-*]|\d+\.)\s)/))
+      .map((text) => ({ file, text: text.replace(/\s*\n\s*/g, ' ') })));
+    const MARKER = /\*\*deprecated\*\*/i;
+    const covers = (text, entry) => text.includes(entry.name) || (entry.pattern !== null && new RegExp(entry.pattern).test(text));
+    const marked = blocks.filter((block) => MARKER.test(block.text));
+    const unmarked = deprecated.filter((entry) => !marked.some((block) => covers(block.text, entry))).map((entry) => entry.name);
+    assert.deepEqual(unmarked, [], 'deprecated in src/deprecations.json, but no **deprecated** marker in docs/ names it');
+    const strays = marked.filter((block) => !deprecated.some((entry) => covers(block.text, entry))).map((block) => `${block.file}: ${block.text.slice(0, 100)}`);
+    assert.deepEqual(strays, [], 'a **deprecated** marker in docs/ without its entry in src/deprecations.json');
+  });
+
+  it('exempts deprecated names from the Motion Lab coverage only while src/deprecations.json lists them (RM-14)', () => {
+    const { names } = JSON.parse(read('src/deprecations.json'));
+    const spec = read('test/browser/lab.spec.js');
+    const block = /^const LAB_EXEMPT = \{\n([\s\S]*?)^\};/m.exec(spec)?.[1];
+    assert.ok(block !== undefined, 'LAB_EXEMPT in test/browser/lab.spec.js');
+    const rows = [...block.matchAll(/^\s*'([^']+)':\s*'((?:[^'\\]|\\.)*)'/gm)].map((match) => ({ name: match[1], reason: match[2] }));
+    const offenders = [];
+    for (const row of rows.filter((entry) => /deprecated/i.test(entry.reason))) {
+      const entry = names.find((candidate) => candidate.name === row.name || (candidate.pattern !== null && new RegExp(candidate.pattern).test(row.name)));
+      if (!entry) offenders.push(`${row.name}: says deprecated, but src/deprecations.json does not list it`);
+      else if (entry.removed !== null) offenders.push(`${row.name}: removed in ${entry.removed}, so it is no primitive to exempt`);
+    }
+    assert.deepEqual(offenders, []);
   });
 
   it('has no reduced-motion remnants and no wording of the old motion rules (D8, D1, D3)', () => {

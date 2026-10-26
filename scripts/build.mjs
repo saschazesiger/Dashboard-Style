@@ -17,6 +17,9 @@
  *                   that loads ds.css inside a shadow root links it in the
  *                   host document (@property applies only there)
  *   fonts/          Google Sans woff2, fonts.css, OFL.txt
+ *   deprecations.json  the deprecated and removed names as data
+ *                   (src/deprecations.json, checked and written with the
+ *                   version of package.json)
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above
  *
@@ -52,6 +55,45 @@ export function propertiesCss(css, info) {
 
 ${blocks.join('\n\n')}
 `;
+}
+
+/** The kinds of name in deprecations.json. */
+export const DEPRECATION_KINDS = ['token', 'role', 'hook', 'class', 'attribute', 'markup', 'keyframes', 'export', 'option'];
+const DEPRECATION_KEYS = ['kind', 'name', 'pattern', 'replacement', 'deprecated', 'removed', 'note'];
+const SEMVER = /^\d+\.\d+\.\d+$/;
+
+/**
+ * dist/deprecations.json from src/deprecations.json: `{ version, names }`,
+ * the version from package.json (like the banners and DS.version). Every
+ * entry is checked, so a project check can trust the file: a known kind, a
+ * name, a pattern that compiles (or null for a note-only entry), the
+ * version it was deprecated in, and `removed` (a version, or null while it
+ * still works); `replacement` and `note` are optional strings or null.
+ */
+export function deprecationsJson(source, info) {
+  const data = JSON.parse(source);
+  if (!data || !Array.isArray(data.names) || Object.keys(data).join() !== 'names') throw new Error('src/deprecations.json: { "names": [ ... ] } and nothing else');
+  const seen = new Set();
+  const names = data.names.map((entry, index) => {
+    const where = `src/deprecations.json, entry ${index} (${entry?.name})`;
+    const extra = Object.keys(entry ?? {}).filter((key) => !DEPRECATION_KEYS.includes(key));
+    if (extra.length) throw new Error(`${where}: unknown keys ${extra.join(', ')}`);
+    if (!DEPRECATION_KINDS.includes(entry.kind)) throw new Error(`${where}: kind must be one of ${DEPRECATION_KINDS.join(', ')}`);
+    if (typeof entry.name !== 'string' || !entry.name) throw new Error(`${where}: a name`);
+    if (seen.has(entry.name)) throw new Error(`${where}: listed twice`);
+    seen.add(entry.name);
+    if (entry.pattern !== null) {
+      if (typeof entry.pattern !== 'string') throw new Error(`${where}: pattern is a regular expression source or null`);
+      new RegExp(entry.pattern);
+    }
+    if (!SEMVER.test(entry.deprecated)) throw new Error(`${where}: deprecated is a version`);
+    if (entry.removed !== null && !SEMVER.test(entry.removed)) throw new Error(`${where}: removed is a version or null`);
+    for (const key of ['replacement', 'note']) {
+      if (entry[key] !== undefined && entry[key] !== null && typeof entry[key] !== 'string') throw new Error(`${where}: ${key} is a string or null`);
+    }
+    return Object.fromEntries(DEPRECATION_KEYS.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
+  });
+  return `${JSON.stringify({ version: info.version, names }, null, 2)}\n`;
 }
 
 /** The JS modules bundled into ds.js, in this order, as DS.<name>. */
@@ -222,6 +264,7 @@ export function build() {
     if (path === 'properties.css') throw new Error('src/properties.css would replace the generated css/properties.css');
     if (path.endsWith('.css')) text(`css/${path}`, readText(file));
     else if (path.startsWith('js/') && path.endsWith('.js')) text(path, readText(file));
+    else if (path === 'deprecations.json') text(path, deprecationsJson(readText(file), info));
     else throw new Error(`Unexpected file in src/: ${path}`);
   }
   for (const file of filesIn(join(ROOT, 'fonts'))) {
