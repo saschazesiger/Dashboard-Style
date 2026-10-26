@@ -265,6 +265,8 @@
   function roleColours(names) {
     var box = document.createElement('div');
     box.hidden = true;
+    /* The theme's colours, not the ones forced colours put in their place. */
+    box.style.forcedColorAdjust = 'none';
     var probes = names.map(function (name) {
       var probe = document.createElement('span');
       probe.style.color = 'var(' + name + ')';

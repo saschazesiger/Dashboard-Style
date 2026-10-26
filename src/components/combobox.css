@@ -87,7 +87,7 @@
  *
  * Forced colours: the list keeps an edge (its transparent outline), the
  * chosen option is SelectedItem / SelectedItemText, the active one has a
- * Highlight outline, a blocked one GrayText.
+ * Highlight outline (CanvasText on the chosen one), a blocked one GrayText.
  *
  * Print: an open list is not printed.
  *
@@ -475,6 +475,12 @@
     .ds-combo__option[aria-selected="true"] .ds-combo__name,
     .ds-combo__option[aria-selected="true"] .ds-combo__meta {
       color: inherit;
+    }
+
+    /* The active option on the chosen one: a ring of the text colour
+       inside the fill (Highlight would vanish on SelectedItem). */
+    .ds-combo__option[aria-selected="true"][data-active] {
+      outline-color: CanvasText;
     }
 
     /* Blocked is one system colour (D8). */

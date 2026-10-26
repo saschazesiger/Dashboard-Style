@@ -50,7 +50,7 @@
  * Forced colours: the dragged row and a drop target are outlined in
  * Highlight; the zone's dashed edge is ButtonText (Highlight while dragged
  * over); the file button is ButtonFace / ButtonText with a ButtonText
- * border.
+ * border; a disabled zone or file field is GrayText.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -331,6 +331,19 @@
       border: 1px solid ButtonText;
       background: ButtonFace;
       color: ButtonText;
+    }
+
+    /* Blocked is one system colour (D8). */
+    .ds-dropzone:has(input:disabled),
+    .ds-dropzone:has(input:disabled) .ds-dropzone__disc {
+      border-color: GrayText;
+      color: GrayText;
+    }
+
+    .ds-input[type="file"]:disabled,
+    .ds-input[type="file"]:disabled::file-selector-button {
+      border-color: GrayText;
+      color: GrayText;
     }
   }
 }

@@ -33,18 +33,18 @@
  * not-allowed cursor; it keeps its focus layer. The current row
  * (aria-current on the row or on its action, not "false") takes
  * --ds-list-current-bg over --ds-dur-fast; in forced colours
- * SelectedItem. Rows that enter through DS.motion.flip fade in over
+ * SelectedItem, its other controls and chips on Canvas. Rows that enter through DS.motion.flip fade in over
  * --ds-dur-fast; while rows glide they stand on an opaque backing
  * (data-ds-glide and --ds-flip-backdrop on the list).
  *
  * Key-value rows: .ds-kv-list--interactive rows are links or buttons
  * (.ds-kv-list__row) with the state layer, an outer focus ring that snaps
- * in, the ripple and the disabled model; a div.ds-kv-list__row is a
- * static row among them. .ds-kv-list__icon (--ok, --warning, --error)
- * marks a value, always with a .ds-sr word. strong.ds-muted is a quiet
- * value (regular weight). .ds-kv-list--bars puts a .ds-meter under each
- * row (aria-hidden: the figure is in the text); the label stays on one
- * line and ends in an ellipsis.
+ * in, the ripple and the disabled model (GrayText in forced colours); a
+ * div.ds-kv-list__row is a static row among them. .ds-kv-list__icon
+ * (--ok, --warning, --error) marks a value, always with a .ds-sr word.
+ * strong.ds-muted is a quiet value (regular weight). .ds-kv-list--bars
+ * puts a .ds-meter under each row (aria-hidden: the figure is in the
+ * text); the label stays on one line and ends in an ellipsis.
  *
  * Facts take as many 220px columns as fit; exactly four facts get a
  * layout of their own, by the width of the content area. .ds-facts--rows
@@ -684,9 +684,25 @@
       color: inherit;
     }
 
+    /* forced-color-adjust inherits: the row's other controls and chips
+       take the system colours again, on Canvas, so they stay legible on
+       the selection fill (a status chip or a menu button at the row's end). */
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, input, select, textarea, label, .ds-status, .ds-tag, .ds-chip):not(.ds-list__action) {
+      forced-color-adjust: auto;
+    }
+
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, select, textarea, input:not([type="checkbox"], [type="radio"])):not(.ds-list__action) {
+      background-color: Canvas;
+    }
+
     /* A focused current row: a ring of the text colour inside the fill. */
     .ds-list--interactive > .ds-list__item:has(.ds-list__action[aria-current]:not([aria-current="false"]):focus-visible) {
       outline-color: CanvasText;
+    }
+
+    /* Blocked key-value rows: one system colour (D8). */
+    :is(a, button).ds-kv-list__row:is(:disabled, [aria-disabled="true"]) {
+      color: GrayText;
     }
   }
 }

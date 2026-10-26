@@ -1097,7 +1097,8 @@ needs columns, sorting or bulk selection is a [Table](#table).
   hover or press layer (it keeps its focus layer) and takes the `not-allowed` cursor.
 - The current row: `aria-current` on the row or on its action (`aria-current="page"`, anything but `"false"`) tints
   it with `--ds-list-current-bg` (`--ds-accent`) over `--ds-dur-fast`; say it in the row too (a word, the label
-  weight). In forced colours the current row is `SelectedItem`.
+  weight). In forced colours the current row is `SelectedItem`; its other controls and chips take the system
+  colours again, on `Canvas`, so they stay legible on the fill.
 - Re-render with `DS.dom.morphHtml` and keyed rows (`data-ds-key`) inside `DS.motion.flip(list, ...)`: rows glide to
   their places on an opaque backing, new rows fade in over `--ds-dur-fast`, a removed row fades out while the rows
   below close the gap, and focus moves to its neighbour.
@@ -1128,7 +1129,7 @@ needs columns, sorting or bulk selection is a [Table](#table).
   hangs `--ds-space-2` into the space at its sides (the first and last rows also their outer padding), so its text
   stays in line with static rows: a state layer (`--ds-state-hover-lg`, press in `--ds-dur-micro`), the focus layer
   and a ring that snaps in, the ripple, no morph; `disabled` and `aria-disabled="true"` rows take the disabled
-  model. A `div.ds-kv-list__row` is a static row among them.
+  model (`GrayText` in forced colours). A `div.ds-kv-list__row` is a static row among them.
 - `.ds-kv-list__icon` before a value, with `.ds-kv-list__icon--ok`, `.ds-kv-list__icon--warning` or
   `.ds-kv-list__icon--error` (`--ds-success`, `--ds-warning`, `--ds-error`), always with a `.ds-sr` word. `strong.ds-muted` is a quiet value ("Not set") in the regular weight.
 - `.ds-kv-list--bars` puts a [meter](#charts) under each row, `aria-hidden` (the figure is in the text); the label
@@ -2329,7 +2330,7 @@ DS.overlay.close(popup);                     // Escape closes it too; focus stay
 
 `data-active` marks the keyboard or pointer option (its layer fades in over `--ds-dur-micro` and goes at once, so a
 held arrow key leaves no trail), `aria-selected="true"` the chosen one (the tint and the label weight; in forced
-colours `SelectedItem`). `aria-expanded="true"` on the field turns the chevron 180deg on the spatial spring;
+colours `SelectedItem`, and while it is also the active one a `CanvasText` ring inside). `aria-expanded="true"` on the field turns the chevron 180deg on the spatial spring;
 `DS.overlay` sets it.
 
 - **Open and close** with `DS.overlay` ([motion.md](motion.md#dsoverlay-jsoverlayjs)). The page filters and chooses:
@@ -3261,7 +3262,8 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*' });              
 ```
 
 - **Forced colours**: a dashed `ButtonText` edge (`Highlight` while dragged over), the file button in `ButtonFace` /
-  `ButtonText` with a `ButtonText` border, a page's drop target outlined in `Highlight`.
+  `ButtonText` with a `ButtonText` border, a page's drop target outlined in `Highlight`; a disabled zone or file
+  field is `GrayText`.
 
 **Motion:** the press and state layers of [Controls](motion.md#controls) in motion.md; the drop state is a
 `--ds-dur-fast` colour change.
