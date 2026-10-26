@@ -416,8 +416,9 @@
 
   /* A snackbar shown inside the sheet (toast.css) that stays until closed:
      the body keeps room for it at its end on top of its own padding
-     (data-toast-reserve and --ds-toast-reserve, set by the page), so the
-     sheet's actions can scroll clear of it. */
+     (data-toast-reserve and --ds-toast-reserve, set by toast(), or by the
+     page with reserve: false), so the sheet's actions can scroll clear of
+     it. */
   .ds-sheet__body[data-toast-reserve] {
     padding-bottom: calc(var(--ds-space-8) + env(safe-area-inset-bottom) + var(--ds-toast-reserve, 0px));
     scroll-padding-bottom: var(--ds-toast-reserve, 0px);

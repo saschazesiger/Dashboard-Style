@@ -825,8 +825,8 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   `.ds-btn__face--done`, whose `pathLength="1"` check (`DS.icons.check`) draws itself. The faces roll: the leaving
   face rises and fades in `--ds-dur-instant`, the next one rises in over `--ds-dur-fast`; back to rest they roll
   down. `DS.motion.busy(button, work, { done })` ([motion.md](motion.md)) sets and clears both, keeps a busy face
-  that showed for the loader minimum and the success face for `--ds-hold-success`. Announce the result yourself
-  (`aria-live`, a snackbar).
+  that showed for the loader minimum and the success face for `--ds-hold-success`. Announce the result with
+  `DS.overlay.announce()` (or a snackbar, which announces itself).
 - Icon swap: `.ds-icon-swap` holds `.ds-icon-swap__a` and `.ds-icon-swap__b` in one cell; `data-swap="b"`, or an
   `aria-pressed="true"` ancestor (a play/pause toggle), shows b. The incoming icon fades in and springs up from
   `--ds-scale-small`, a `pathLength="1"` glyph draws itself, the outgoing icon only fades; a crossfade with a scale,
