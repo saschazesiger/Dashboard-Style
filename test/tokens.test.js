@@ -401,11 +401,6 @@ describe('derived roles (2.0)', () => {
 
 describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
   const known = new Map(JSON.parse(tokensJson(packageInfo())).tokens.map((entry) => [entry.name, entry]));
-  /** Hooks a shipped theme sets before the package that adds them merged (2.0 fan-out); the sweep empties it. */
-  const ADDED_BY_LATER_MERGES = new Map([
-    ['--ds-table-head-height', 'TB-6 (WP5)'],
-    ['--ds-table-row-height', 'TB-6 (WP5)'],
-  ]);
   /** The declarations of a theme on .ds-theme outside @media (what applies without a condition). */
   const declared = (file) => {
     const css = withoutAtRuleBlocks(read(file), /^@media\b/);
@@ -437,7 +432,6 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
       assert.doesNotMatch(css, /@layer|!important|:root/, `${file}: unlayered, on .ds-theme, no !important`);
       for (const match of css.matchAll(/(--ds-[\w-]+)\s*:/g)) {
         const entry = known.get(match[1]);
-        if (ADDED_BY_LATER_MERGES.has(match[1]) && entry?.layer !== 'hook') continue;
         assert.ok(entry, `${file}: ${match[1]} is a token of the system`);
         assert.ok(entry.themeable, `${file}: ${match[1]} is a role or a hook (${entry.layer})`);
       }
@@ -480,8 +474,8 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     assert.deepEqual(Object.keys(back).sort(), heights.sort(), 'every compact height comes back');
     for (const name of heights) {
       assert.ok(parseFloat(compact[name]) < parseFloat(back[name]), `${name}: compact is shorter`);
-      const fallback = known.get(name)?.default;
-      if (fallback) assert.equal(back[name], fallback, `${name}: the default height on a touch screen`);
+      assert.equal(known.get(name)?.layer, 'hook', `${name}: a documented hook`);
+      assert.equal(back[name], known.get(name).default, `${name}: the default height on a touch screen`);
     }
     for (const name of Object.keys(compact).filter((n) => n.startsWith('--ds-font-'))) assert.match(compact[name], / 13px\/18px /, name);
     assert.ok(!('--ds-font-input' in compact) && !('--ds-font-reading' in compact), 'phones keep the 16px field text');
