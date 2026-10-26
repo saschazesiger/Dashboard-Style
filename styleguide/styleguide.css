@@ -1354,3 +1354,67 @@
   border-radius: var(--ds-radius-sm);
   background: var(--ds-surface);
 }
+
+/* Motion Lab (2.0): the presence pair, a log that follows its end, the drop
+   zone and a wizard outside the app frame. */
+.sg-presence-demo {
+  display: grid;
+  gap: var(--ds-space-3);
+  justify-items: center;
+}
+
+.sg-presence-demo .sg-row {
+  min-height: 32px;
+  align-items: center;
+}
+
+.sg-presence-demo .ds-presence--keep {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+}
+
+.sg-log-demo {
+  position: relative;
+  width: min(100%, 420px);
+  justify-self: center;
+}
+
+.sg-log {
+  height: 168px;
+  overflow-y: auto;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+}
+
+.sg-log__line {
+  margin: 0;
+  color: var(--ds-text-2);
+  font: var(--ds-font-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.sg-log__jump {
+  position: absolute;
+  inset-inline: 0;
+  bottom: var(--ds-space-2);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.sg-log__jump > * {
+  pointer-events: auto;
+}
+
+.sg-lab-dropzone {
+  width: min(100%, 420px);
+  justify-self: center;
+}
+
+.sg-wizard {
+  display: block;
+  padding: var(--ds-space-4);
+}
