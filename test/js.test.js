@@ -1742,8 +1742,16 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     log.scrollTop = 800;
     log.dispatchEvent(new Event('scroll'));
     log.smooth = undefined;
+    log.scrollTop = 800;
     handle.stick();
     assert.equal(log.smooth, true, 'within a viewport: smooth');
+    // The glide's own scroll events on the way down keep it stuck; a move up lets go.
+    log.scrollTop = 900;
+    log.dispatchEvent(new Event('scroll'));
+    assert.equal(pill.hidden, true, 'gliding down to the end: still stuck');
+    log.scrollTop = 850;
+    log.dispatchEvent(new Event('scroll'));
+    assert.equal(pill.hidden, false, 'scrolled up against the glide: let go');
     handle.destroy();
   });
 

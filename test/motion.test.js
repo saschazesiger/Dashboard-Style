@@ -30,6 +30,7 @@ import {
   setLabel,
   settleLoader,
   settled,
+  sortable,
   stagger,
   staggerOnce,
   transition,
@@ -1278,6 +1279,49 @@ describe('js/motion', () => {
         made.items.get('a').focus();
         flip(made.container, () => { made.items.get('a').remove(); search.focus(); });
         assert.equal(doc(made).activeElement, search, 'a page that moved focus itself is left alone');
+      });
+
+      it('sortable(): the keys of a grip move its item through flip(), report the order and speak the position (2.0)', () => {
+        const { container, items, calls } = list(['a', 'b', 'c', 'd']);
+        const doc = container.ownerDocument;
+        doc.createElement = () => new FakeElement(doc);
+        const grips = new Map();
+        for (const [name, item] of items) {
+          const grip = new FakeElement(doc);
+          grip.matches = (selector) => selector === '.ds-grip';
+          item.append(grip);
+          grips.set(name, grip);
+        }
+        // The fake has no event tree: take the list's listeners and call them with the grip as the target.
+        const listeners = {};
+        container.addEventListener = (type, listener) => { listeners[type] = listener; };
+        container.removeEventListener = (type) => { delete listeners[type]; };
+        const changes = [];
+        const handle = sortable(container, { onChange: (order, before) => changes.push([order, before].map((list) => list.map((item) => item.textContent).join(''))) });
+        assert.equal(sortable(container), handle, 'once per list');
+        const press = (name, key) => {
+          const event = { key, target: grips.get(name), defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+          listeners.keydown(event);
+          return event;
+        };
+        grips.get('a').focus();
+        assert.equal(press('a', 'ArrowDown').defaultPrevented, true);
+        assert.deepEqual(container.children.map((item) => item.textContent), ['b', 'a', 'c', 'd']);
+        assert.deepEqual(changes, [['bacd', 'abcd']]);
+        assert.ok(calls.length > 0, 'the rows glide (flip)');
+        assert.equal(doc.activeElement, grips.get('a'), 'the grip keeps the focus');
+        press('a', 'End');
+        assert.deepEqual(container.children.map((item) => item.textContent), ['b', 'c', 'd', 'a']);
+        press('a', 'ArrowDown');
+        assert.equal(changes.length, 2, 'nothing below the last place');
+        press('d', 'Home');
+        assert.deepEqual(container.children.map((item) => item.textContent), ['d', 'b', 'c', 'a']);
+        assert.equal(press('d', 'x').defaultPrevented, false, 'other keys pass');
+        const region = doc.body.children.find((child) => child.getAttribute('aria-live') === 'polite');
+        assert.ok(region, 'a polite region in the theme (here the body)');
+        assert.equal(region.classList.contains('ds-sr'), true);
+        handle.destroy();
+        assert.equal(listeners.keydown, undefined, 'destroy() removes the listeners');
       });
 
       it('moves without motion above `max` moving items', () => {

@@ -1317,9 +1317,15 @@ export function followEnd(scroller, options = {}) {
   };
   const toEnd = (smooth) => {
     const end = scroller.scrollHeight - scroller.clientHeight;
-    if (smooth && typeof scroller.scrollTo === 'function') scroller.scrollTo({ top: end, behavior: 'smooth' });
-    else scroller.scrollTop = end;
-    last = end;
+    if (smooth && typeof scroller.scrollTo === 'function') {
+      // The glide's own scroll events go down from here: only a move up
+      // against it (the user) lets go again.
+      last = scroller.scrollTop;
+      scroller.scrollTo({ top: end, behavior: 'smooth' });
+    } else {
+      scroller.scrollTop = end;
+      last = end;
+    }
   };
   const onScroll = () => {
     const top = scroller.scrollTop;
