@@ -2837,7 +2837,8 @@ export function sortable(list, options = {}) {
   const handleSelector = options.handle ?? '.ds-grip';
   const selector = options.items;
   const items = () => flipItems(list, selector);
-  const others = selector ? `${selector}:not([data-ds-dragging])` : ':scope > :not([data-ds-dragging])';
+  // :is() keeps a selector list whole (`li, .row:not(...)` would leave the dragged li in).
+  const others = selector ? `:is(${selector}):not([data-ds-dragging])` : ':scope > :not([data-ds-dragging])';
   const itemOf = (node) => items().find((item) => item.contains(node)) ?? null;
   const say = (item) => {
     const order = items();
@@ -2883,6 +2884,20 @@ export function sortable(list, options = {}) {
 
   /* Pointer: the item follows, the others make room. */
   let drag = null;
+  /** Items whose raised look is still leaving after a drop: item → { timer, z }. */
+  const ending = new Map();
+  /** Ends a drop's leave at once: the z-index it had before the drag, nothing owned. */
+  const finish = (item) => {
+    const end = ending.get(item);
+    if (!end) return;
+    ending.delete(item);
+    clearTimeout(end.timer);
+    item.removeAttribute('data-ds-dragging');
+    item.style.zIndex = end.z;
+    tidyStyle(item);
+    disown(item, 'attrs', 'data-ds-dragging');
+    for (const name of ['translate', 'z-index']) disown(item, 'props', name);
+  };
   // Layout places (offsetTop ignores translate): the rows that glide aside
   // are compared where they go, not where their glide shows them.
   const layoutTop = (item) => item.offsetTop ?? 0;
@@ -2896,6 +2911,9 @@ export function sortable(list, options = {}) {
     event.preventDefault();
     handle.setPointerCapture?.(event.pointerId);
     for (const animation of item.getAnimations?.() ?? []) if (animation.id === 'ds-sort') animation.cancel();
+    // Grabbed again while the last drop leaves: that drop ends first, so the
+    // z-index kept is the one before any drag and nothing is owned twice.
+    finish(item);
     drag = { item, handle, pointer: event.pointerId, startY: event.clientY, dy: 0, before: items(), z: item.style.zIndex };
     own(item, 'attrs', 'data-ds-dragging');
     for (const name of ['translate', 'z-index']) own(item, 'props', name);
@@ -2943,14 +2961,8 @@ export function sortable(list, options = {}) {
     }
     // The raised look leaves in --ds-dur-instant (drag.css: data-ds-dragging="end").
     item.setAttribute('data-ds-dragging', 'end');
-    setTimeout(() => {
-      if (item.getAttribute('data-ds-dragging') !== 'end') return;
-      item.removeAttribute('data-ds-dragging');
-      item.style.zIndex = z;
-      tidyStyle(item);
-      disown(item, 'attrs', 'data-ds-dragging');
-      for (const name of ['translate', 'z-index']) disown(item, 'props', name);
-    }, Math.max(motionDuration(item, '--ds-dur-instant'), motionDuration(list, '--ds-dur-medium')));
+    const timer = setTimeout(() => finish(item), Math.max(motionDuration(item, '--ds-dur-instant'), motionDuration(list, '--ds-dur-medium')));
+    ending.set(item, { timer, z });
     changed(before);
   };
   list.addEventListener('keydown', onKey);
@@ -2962,6 +2974,7 @@ export function sortable(list, options = {}) {
     destroy() {
       if (sortables.get(list)?.handle !== handle) return;
       sortables.delete(list);
+      for (const item of Array.from(ending.keys())) finish(item);
       list.removeEventListener('keydown', onKey);
       list.removeEventListener('pointerdown', onDown);
       list.removeEventListener('pointermove', onMove);
