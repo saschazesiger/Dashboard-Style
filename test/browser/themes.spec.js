@@ -101,6 +101,12 @@ test.describe('shipped themes', () => {
       return { button: button.getBoundingClientRect().height, font: getComputedStyle(button).fontSize };
     });
     expect(sizes).toEqual({ button: 32, font: '13px' });
+    // A theme root that opted into touch targets keeps them.
+    const touch = await page.evaluate(() => {
+      document.querySelector('.ds-theme').classList.add('ds-touch');
+      return document.querySelector('#btn-outlined').getBoundingClientRect().height;
+    });
+    expect(touch).toBe(48);
     expect(await page.evaluate(() => getComputedStyle(document.querySelector('.ds-theme')).getPropertyValue('--ds-font-input').trim())).toMatch(/ 16px\/24px /);
   });
 
