@@ -250,12 +250,7 @@ describe('repository', () => {
     assert.deepEqual(offenders, []);
   });
 
-  // TODO(2.0 integrator): remove the todo option once WP2, WP4, WP5, WP6 and WP7 merged; each writes the
-  // **deprecated** marker of its RM-15 names in docs/ (WP1 wrote the entries and .ds-view--leaving), and WP4
-  // removes the old snackbar region bullet. Until then this test runs and reports without failing.
-  it('marks every deprecated name of src/deprecations.json **deprecated** in docs/, and only those (RM-14)', {
-    todo: 'TODO(2.0 integrator): strict after the merge of every package (RM-15 markers)',
-  }, () => {
+  it('marks every deprecated name of src/deprecations.json **deprecated** in docs/, and only those (RM-14)', () => {
     const { names } = JSON.parse(read('src/deprecations.json'));
     const deprecated = names.filter((entry) => entry.removed === null);
     // A block is a table row, a list item or a paragraph; it covers an entry when it names it or its pattern matches.

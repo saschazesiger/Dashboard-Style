@@ -404,9 +404,10 @@ started explicitly; the build workflow needs `on: workflow_dispatch`. The templa
 - **Compare** or **Vendor main**: a network or GitHub API problem; run it again.
 - **Verify**: nothing was committed and the site keeps the old copy. Reproduce it locally (vendor `main` as in step 2,
   then run `VERIFY`), look in [CHANGELOG.md](../CHANGELOG.md) for deprecations and removals, check your code against
-  the copy's `deprecations.json` (below), and commit the new copy together with your fix. If the fault is in Dashboard-Style, fix it there; the next run picks it up.
-  `tools/check-project.mjs` (rule `deprecated`) finds those names in your code; a major version has a "Migration"
-  section at the top of its changelog entry (for 2.0: `## 2.0.0`, "Migration") with what a project has to change.
+  the copy's `deprecations.json` (below; `tools/check-project.mjs`, rule `deprecated`, finds those names in your
+  code), and commit the new copy together with your fix. A major version has a "Migration" section at the top of its
+  changelog entry (for 2.0: `## 2.0.0`, "Migration") with what a project has to change. If the fault is in
+  Dashboard-Style, fix it there; the next run picks it up.
 - **Commit and push**: usually branch protection (above).
 
 Afterwards start it again under Actions → "Update Dashboard-Style" → *Run workflow*, or wait for the next night.
