@@ -454,9 +454,12 @@
    * which lie outside that container, follow the window) the label goes
    * visually hidden and the button turns into a round quiet icon button.
    * Its accessible name stays the label; a data-tip names it to the eye
-   * while it is folded.
+   * while it is folded. The 1px floor: Firefox can style the button
+   * before its container's first layout and read that container as 0px
+   * wide; without the floor the button would come folded and unfold on
+   * load (its colours and radius transitioning).
    */
-  @container ds-content (max-width: 600px) {
+  @container ds-content (min-width: 1px) and (max-width: 600px) {
     .ds-btn--adaptive {
       --ds-btn-half: calc(var(--ds-btn-icon-size, 40px) / 2);
       --ds-btn-border: transparent;

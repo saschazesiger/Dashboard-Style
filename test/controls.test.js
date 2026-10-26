@@ -167,7 +167,8 @@ describe('buttons (2.0)', () => {
   });
 
   it('folds the label of .ds-btn--adaptive in a narrow content panel and, in sheets and dialogs, a narrow window', () => {
-    const container = atRuleBlocks(css, /@container ds-content \(max-width: 600px\)/).join('\n');
+    // The 1px floor: a container that Firefox styles before its first layout reads 0px wide (no fold on load).
+    const container = atRuleBlocks(css, /@container ds-content \(min-width: 1px\) and \(max-width: 600px\)/).join('\n');
     const media = atRuleBlocks(css, /@media \(max-width: 600px\)/).join('\n');
     assert.equal(own(container, '.ds-btn--adaptive').width, 'var(--ds-btn-icon-size, 40px)');
     assert.equal(own(container, '.ds-btn--adaptive')['--ds-btn-bg'], 'transparent');
