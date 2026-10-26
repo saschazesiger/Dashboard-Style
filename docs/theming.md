@@ -331,6 +331,14 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-timeline-head-line` | 24px | the head line of an entry, on which its dot is centred (the height of a status chip) |
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
 | `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
+| `--ds-table-head-height` | 48px | table header cells (the block padding follows) |
+| `--ds-table-row-height` | 52px | table body cells (the block padding follows) |
+| `--ds-table-dense-row-height` | 40px | the cells of `.ds-table--dense` |
+| `--ds-table-sticky-bg` | `--ds-surface` | the opaque base of the sticky header and the pinned column, and the background of `.ds-table-wrap--fill` |
+| `--ds-table-cell-max-width` | 280px | where a cell of `.ds-table-wrap--fill` is cut with an ellipsis |
+| `--ds-table-fill-min-height` | 240px | the least height of `.ds-table-wrap--fill` (a short window scrolls the view instead) |
+| `--ds-table-fill-max-height` | none | the most height of `.ds-table-wrap--fill` |
+| `--ds-scroll-fade` | `--ds-space-8` (card table wrappers: `--ds-card-pad`) | the length of the edge fades of `.ds-scroll-x`, the table wrappers and the menu edges; `0px` turns every fade off |
 | `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
 | `--ds-pressable-radius` | `--ds-radius-sm` | `.ds-pressable`, the press model on a project element |
 | `--ds-pressable-layer` | `currentColor` | the colour of the state layer of `.ds-pressable` |

@@ -14,9 +14,11 @@
  *                       (flip), a sync with busy faces and a progress bar,
  *                       columns that fill once (.ds-columns), a live feed
  *                       (.ds-timeline), open tickets in a row list (.ds-list)
- *   Devices             search, filter chips, sort, bulk selection, a row
- *                       menu, a confirm dialog, undo in a snackbar, an empty
- *                       state, a refresh with DS.motion.refresh(),
+ *   Devices             a full-page table (.ds-table-wrap--fill) with a
+ *                       pinned first column and pagination, search, filter
+ *                       chips, sort, bulk selection with the selection bar,
+ *                       a row menu, a confirm dialog, undo in a snackbar, an
+ *                       empty state, a refresh with DS.motion.refresh(),
  *                       live status through flip({ live: true }), a side
  *                       sheet with Details and History tabs, previous and
  *                       next
@@ -79,6 +81,8 @@
     settings: {},
     route: 'overview',
     sort: { key: 'name', dir: 'ascending' },
+    page: 0,
+    pageSize: 25,
     query: '',
     type: 'all',
     statuses: new Set(),
@@ -275,37 +279,94 @@
       });
   }
 
+  /* The page of rows on show (the page holds the page number; a smaller list pulls it back). */
+  function pageCount() {
+    return Math.max(1, Math.ceil(visibleDevices().length / state.pageSize));
+  }
+
+  function pageDevices() {
+    state.page = Math.min(state.page, pageCount() - 1);
+    const start = state.page * state.pageSize;
+    return visibleDevices().slice(start, start + state.pageSize);
+  }
+
+  /* The first column is pinned (.ds-table--pin-first): it holds the row's
+     checkbox and its link, so both stay while the others scroll. */
   function theadHtml() {
-    const all = visibleDevices();
-    return '<tr><th scope="col"><input type="checkbox" id="select-all" aria-label="Select all shown devices"' +
-      (all.length && all.every((d) => state.selected.has(d.id)) ? ' checked' : '') + '></th>' +
-      COLUMNS.map((column) => {
-        const sorted = state.sort.key === column.key;
-        return `<th scope="col"${column.className ? ` class="${column.className}"` : ''}${sorted ? ` aria-sort="${state.sort.dir}"` : ''}>` +
-          `<button class="ds-table__sort" type="button" data-sort="${column.key}">${column.label}${sorted ? icon('arrowUp', 16, 'ds-table__sort-arrow') : ''}</button></th>`;
-      }).join('') + '<th scope="col"><span class="ds-sr">Actions</span></th></tr>';
+    const shown = pageDevices();
+    const sorted = (key) => state.sort.key === key;
+    const sortButton = (column) => `<button class="ds-table__sort" type="button" data-sort="${column.key}">${column.label}${sorted(column.key) ? icon('arrowUp', 16, 'ds-table__sort-arrow') : ''}</button>`;
+    return '<tr>' + COLUMNS.map((column, index) => `<th scope="col" class="${index === 0 ? 'ex-pick ' : ''}${column.className || ''}"${sorted(column.key) ? ` aria-sort="${state.sort.dir}"` : ''}>` +
+      (index === 0 ? '<input type="checkbox" id="select-all" aria-label="Select all shown devices"' +
+        (shown.length && shown.every((d) => state.selected.has(d.id)) ? ' checked' : '') + `>${sortButton(column)}` : sortButton(column)) + '</th>').join('') +
+      '<th scope="col"><span class="ds-sr">Actions</span></th></tr>';
   }
 
   function rowHtml(device) {
     const selected = state.selected.has(device.id);
     return `<tr data-ds-key="${device.id}">` +
-      `<td><input type="checkbox" data-select="${device.id}" aria-label="Select ${esc(device.name)}"${selected ? ' checked' : ''}></td>` +
-      `<td class="ds-nowrap"><button class="ds-link-btn ds-table__row-link" type="button" data-device="${device.id}">${esc(device.name)}</button></td>` +
+      `<td class="ex-pick ds-nowrap"><input type="checkbox" data-select="${device.id}" aria-label="Select ${esc(device.name)}"${selected ? ' checked' : ''}>` +
+      `<button class="ds-link-btn ds-table__row-link" type="button" data-device="${device.id}">${esc(device.name)}</button></td>` +
       `<td class="ds-col--secondary ds-nowrap">${esc(device.model)}</td>` +
       `<td class="ds-col--secondary ds-nowrap">${esc(device.owner)}</td>` +
       `<td class="ds-col--secondary">${esc(device.location)}</td>` +
       `<td class="ds-num">${ago(device.lastSeen)}</td>` +
       `<td>${status(device.status)}</td>` +
-      `<td class="ds-num"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" data-menu="${device.id}" aria-label="Actions for ${esc(device.name)}" ` +
+      `<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" data-menu="${device.id}" aria-label="Actions for ${esc(device.name)}" ` +
       `aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu">${icon('moreVertical', 18)}</button></td></tr>`;
   }
 
-  function bulkHtml() {
+  /* The bulk slot holds the list's title and count, or the selection bar
+     while rows are selected; they cross (crossfade) only when the count
+     goes from 0 to 1 and back, so the table never moves. */
+  function bulkToolsHtml() {
+    return `<div class="ds-card__row" id="bulk-tools"><h2 class="ds-card__title" id="devices-title" tabindex="-1">Fleet</h2><p class="ds-meta" id="bulk-shown">${plural(visibleDevices().length, 'device')} shown</p></div>`;
+  }
+
+  function selectionBarHtml() {
     const count = state.selected.size;
-    if (!count) return `<p class="ds-meta">${plural(visibleDevices().length, 'device')} shown</p>`;
-    return `<p class="ds-meta">${count} selected</p>` +
-      '<button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-act="clear-selection">Clear</button>' +
-      `<button class="ds-btn ds-btn--sm" type="button" data-act="delete-selected">${icon('trash', 16)} Delete ${plural(count, 'device')}</button>`;
+    return '<div class="ds-selection-bar" role="toolbar" aria-label="Selected devices">' +
+      `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-act="clear-selection" aria-label="Clear selection" data-tip="Clear selection">${icon('close', 20)}</button>` +
+      `<p class="ds-selection-bar__count" aria-live="polite" id="bulk-count">${count} selected</p>` +
+      `<div class="ds-selection-bar__actions"><button class="ds-btn ds-btn--text" type="button" data-act="delete-selected">${icon('trash', 18)} Delete ${plural(count, 'device')}</button></div></div>`;
+  }
+
+  function bulkHtml() {
+    return state.selected.size ? selectionBarHtml() : bulkToolsHtml();
+  }
+
+  /* One element from the app's own markup (a crossfade takes an element). */
+  function element(html) {
+    const holder = document.createElement('div');
+    holder.insertAdjacentHTML('beforeend', html);
+    return holder.firstElementChild;
+  }
+
+  /* The footer of the table: rows per page, the range, first, previous, next, last. A button
+     that leads nowhere is aria-disabled: it keeps the focus, and its tooltip still names it. */
+  function paginationButtonsHtml() {
+    const last = pageCount() - 1;
+    const button = (to, label, glyph, blocked) => `<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" data-page="${to}" aria-label="${label}" data-tip="${label}"${blocked ? ' aria-disabled="true"' : ''}>${icon(glyph, 20)}</button>`;
+    return button('first', 'First page', DS.icons.chevronFirst ? 'chevronFirst' : 'chevronLeft', state.page === 0) +
+      button('previous', 'Previous page', 'chevronLeft', state.page === 0) +
+      button('next', 'Next page', 'chevronRight', state.page >= last) +
+      button('last', 'Last page', DS.icons.chevronLast ? 'chevronLast' : 'chevronRight', state.page >= last);
+  }
+
+  function rangeText() {
+    const total = visibleDevices().length;
+    const start = state.page * state.pageSize;
+    return total ? `${start + 1}–${Math.min(total, start + state.pageSize)} of ${total}` : '0 of 0';
+  }
+
+  function paginationInnerHtml() {
+    return '<div class="ds-pagination__size"><label class="ds-pagination__label" for="page-size">Rows per page</label>' +
+      `<select class="ds-input ds-input--filled" id="page-size">${[25, 50, 100].map((size) => `<option${size === state.pageSize ? ' selected' : ''}>${size}</option>`).join('')}</select></div>` +
+      `<p class="ds-pagination__range" aria-live="polite" id="devices-range">${rangeText()}</p>${paginationButtonsHtml()}`;
+  }
+
+  function paginationHtml() {
+    return `<nav class="ds-pagination" id="devices-pages" aria-label="Pages of devices">${paginationInnerHtml()}</nav>`;
   }
 
   function chip(name, value, label, checked, type = 'checkbox') {
@@ -325,27 +386,51 @@
             `<option value="all">All types</option>${Object.keys(TYPES).map((type) => `<option value="${type}"${state.type === type ? ' selected' : ''}>${TYPES[type]}</option>`).join('')}</select></div>` +
         '</div>' +
         `<fieldset class="ds-chips" id="status-chips"><legend class="ds-sr">Status</legend>${['error', 'warning', 'running', 'ok'].map((kind) => chip('status', kind, STATUS[kind].label, state.statuses.has(kind))).join('')}</fieldset>` +
+        `<div class="ds-swap" id="bulk">${bulkHtml()}</div>` +
         '</div>' +
-        `<div class="ds-card__row"><h2 class="ds-card__title" id="devices-title" tabindex="-1">Fleet</h2><div class="ex-row" id="bulk">${bulkHtml()}</div></div>` +
-        `<div class="ds-table-wrap"><table class="ds-table ds-table--interactive${state.dense ? ' ds-table--dense' : ''}" id="devices-table"><caption class="ds-sr">Devices</caption>` +
-          `<thead id="devices-head">${theadHtml()}</thead><tbody id="devices-body">${rows.map(rowHtml).join('')}</tbody></table></div>` +
-        `<div class="ds-empty" id="devices-empty"${rows.length ? ' hidden' : ''}><span class="ds-empty__disc" aria-hidden="true">${icon('search', 24)}</span>` +
-          '<p class="ds-empty__title">No device matches</p><p class="ds-empty__text">Try another search or clear the filters.</p>' +
-          '<button class="ds-btn ds-btn--tonal" type="button" data-act="clear-filters">Clear filters</button></div>' +
-      '</section>';
+      '</section>' +
+      // The last child of the page: in a .ds-view--fill it takes what is left of the view.
+      '<div class="ex-list" id="devices-list">' +
+        '<div class="ds-table-wrap ds-table-wrap--fill" id="devices-wrap">' +
+          `<table class="ds-table ds-table--interactive ds-table--pin-first${state.dense ? ' ds-table--dense' : ''}" id="devices-table"><caption class="ds-sr">Devices</caption>` +
+          `<thead id="devices-head">${theadHtml()}</thead><tbody id="devices-body">${pageDevices().map(rowHtml).join('')}</tbody></table>` +
+          `<div class="ds-empty" id="devices-empty"${rows.length ? ' hidden' : ''}><span class="ds-empty__disc" aria-hidden="true">${icon('search', 24)}</span>` +
+            '<p class="ds-empty__title">No device matches</p><p class="ds-empty__text">Try another search or clear the filters.</p>' +
+            '<button class="ds-btn ds-btn--tonal" type="button" data-act="clear-filters">Clear filters</button></div>' +
+        '</div>' +
+        paginationHtml() +
+      '</div>';
   }
 
   /* After the selection changed: the header box (indeterminate for some),
-     the bulk actions. The rows take their colour from their checked box. */
+     the bulk slot. The rows take their colour from their checked box. */
   function syncSelection() {
     const all = $('#select-all');
     if (!all) return;
-    const shown = visibleDevices();
+    const shown = pageDevices();
     const picked = shown.filter((device) => state.selected.has(device.id)).length;
     all.checked = shown.length > 0 && picked === shown.length;
     all.indeterminate = picked > 0 && picked < shown.length;
     for (const box of $$('[data-select]', page)) box.checked = state.selected.has(box.getAttribute('data-select'));
-    DS.dom.morphHtml($('#bulk'), bulkHtml());
+    const slot = $('#bulk');
+    const bar = $(':scope > .ds-selection-bar:not([data-ds-leaving])', slot);
+    const count = state.selected.size;
+    if (count && !bar) M.crossfade(slot, element(selectionBarHtml()));
+    else if (!count && bar) M.crossfade(slot, element(bulkToolsHtml()));
+    else if (bar) {
+      // The count changes at once, never with a crossfade.
+      $('#bulk-count', bar).textContent = `${count} selected`;
+      DS.dom.morphHtml($('.ds-selection-bar__actions', bar), `<button class="ds-btn ds-btn--text" type="button" data-act="delete-selected">${icon('trash', 18)} Delete ${plural(count, 'device')}</button>`);
+    } else {
+      const shownText = $('#bulk-shown', slot);
+      if (shownText) shownText.textContent = `${plural(visibleDevices().length, 'device')} shown`;
+    }
+  }
+
+  /* The footer follows the list: the range at once, the buttons patched in place (focus stays). */
+  function syncPagination() {
+    const nav = $('#devices-pages');
+    if (nav) DS.dom.morphHtml(nav, paginationInnerHtml());
   }
 
   let emptyShown = false;
@@ -356,9 +441,11 @@
     const body = $('#devices-body');
     if (!body) return Promise.resolve();
     const rows = visibleDevices();
+    const shown = pageDevices();
     DS.dom.morphHtml($('#devices-head'), theadHtml());
-    const glide = M.flip(body, (morph) => DS.dom.morphHtml(body, rows.map(rowHtml).join(''), morph), { items: 'tr', live: !!options.live });
+    const glide = M.flip(body, (morph) => DS.dom.morphHtml(body, shown.map(rowHtml).join(''), morph), { items: 'tr', live: !!options.live });
     syncSelection();
+    syncPagination();
     const empty = $('#devices-empty');
     if (!rows.length && !emptyShown) {
       emptyShown = true;
@@ -371,11 +458,11 @@
     return glide;
   }
 
-  /* The refresh pattern as one call (DS.motion.refresh): the card dims
+  /* The refresh pattern as one call (DS.motion.refresh): the list dims
      (.ds-stale), the loading bar runs at the top of the page, and both go
      once the data is in; render right after. */
   async function refreshDevices() {
-    const devices = await M.refresh($('#devices-card'), () => api.devices());
+    const devices = await M.refresh($('#devices-list'), () => api.devices());
     state.devices = devices;
     renderRows();
     DS.overlay.toast(toasts, 'Devices refreshed.');
@@ -554,6 +641,7 @@
       state.statuses = new Set(params.get('status').split(',').filter((kind) => STATUS[kind]));
       state.query = '';
       state.type = 'all';
+      state.page = 0;
     }
     if (route === 'tickets' && params.has('open')) {
       const id = Number(params.get('open'));
@@ -564,6 +652,8 @@
   }
 
   function renderView() {
+    // The devices view fills the window: its full-page table takes what is left (.ds-view--fill).
+    view.classList.toggle('ds-view--fill', state.route === 'devices');
     DS.dom.morphHtml(page, VIEWS[state.route].html(), { replace: true });
     emptyShown = state.route === 'devices' && !visibleDevices().length;
     for (const item of $$('[data-route]', nav)) {
@@ -1012,9 +1102,17 @@
     let element;
     if ((element = hit('[data-device]'))) openSheet(element.getAttribute('data-device'), element);
     else if ((element = hit('[data-menu]'))) toggleMenu(element);
-    else if ((element = hit('[data-sort]'))) {
+    else if ((element = hit('[data-page]'))) {
+      // A blocked end (aria-disabled) does nothing; its tooltip says why.
+      if (element.getAttribute('aria-disabled') === 'true') return;
+      const to = element.getAttribute('data-page');
+      const last = pageCount() - 1;
+      state.page = to === 'first' ? 0 : to === 'previous' ? Math.max(0, state.page - 1) : to === 'next' ? Math.min(last, state.page + 1) : last;
+      renderRows();
+    } else if ((element = hit('[data-sort]'))) {
       const key = element.getAttribute('data-sort');
       state.sort = { key, dir: state.sort.key === key && state.sort.dir === 'ascending' ? 'descending' : 'ascending' };
+      state.page = 0;
       renderRows();
     } else if ((element = hit('[data-dismiss]'))) {
       state.dismissed.add(element.getAttribute('data-dismiss'));
@@ -1043,6 +1141,8 @@
       if (act === 'delete-selected') confirmDelete([...state.selected], element);
       if (act === 'clear-selection') {
         state.selected.clear();
+        // The bar goes: focus to the header checkbox.
+        $('#select-all').focus();
         syncSelection();
       }
       if (act === 'clear-filters') {
@@ -1052,6 +1152,7 @@
         $('#q').value = '';
         $('#f-type').value = 'all';
         for (const box of $$('#status-chips input')) box.checked = false;
+        state.page = 0;
         renderRows();
         $('#q').focus();
       }
@@ -1077,20 +1178,27 @@
   page.addEventListener('input', (event) => {
     if (event.target.id !== 'q') return;
     state.query = event.target.value;
+    state.page = 0;
     renderRows();
   });
 
   page.addEventListener('change', (event) => {
     const target = event.target;
-    if (target.id === 'f-type') {
+    if (target.id === 'page-size') {
+      state.pageSize = Number(target.value);
+      state.page = 0;
+      renderRows();
+    } else if (target.id === 'f-type') {
       state.type = target.value;
+      state.page = 0;
       renderRows();
     } else if (target.name === 'status') {
       if (target.checked) state.statuses.add(target.value);
       else state.statuses.delete(target.value);
+      state.page = 0;
       renderRows();
     } else if (target.id === 'select-all') {
-      for (const device of visibleDevices()) {
+      for (const device of pageDevices()) {
         if (target.checked) state.selected.add(device.id);
         else state.selected.delete(device.id);
       }

@@ -104,8 +104,15 @@ test('select all is indeterminate for some rows; deleting asks first and the sna
   await open(page, '#/devices');
   const rows = page.locator('#devices-body tr');
   const total = await rows.count();
+  // The devices come in pages; the range counts them all.
+  const range = page.locator('#devices-range');
+  const all = Number(/of (\d+)$/.exec(await range.textContent())[1]);
+  const picked = [await rows.nth(0).locator('[data-device]').textContent(), await rows.nth(1).locator('[data-device]').textContent()];
   await page.locator('#devices-body tr').nth(0).locator('[data-select]').check();
+  // The selection bar takes the toolbar's place; its count changes at once.
+  await expect(page.locator('#bulk .ds-selection-bar__count')).toHaveText('1 selected');
   await page.locator('#devices-body tr').nth(1).locator('[data-select]').check();
+  await expect(page.locator('#bulk .ds-selection-bar__count')).toHaveText('2 selected');
   expect(await page.locator('#select-all').evaluate((box) => box.indeterminate)).toBe(true);
   await page.locator('[data-act="delete-selected"]').click();
   await settle(page);
@@ -114,13 +121,43 @@ test('select all is indeterminate for some rows; deleting asks first and the sna
   await expect(confirm).toHaveCount(1);
   await expect(confirm.getByRole('button', { name: 'Cancel' })).toBeFocused();
   await confirm.getByRole('button', { name: 'Delete 2 devices' }).click();
-  await expect(rows).toHaveCount(total - 2);
+  await expect(range).toHaveText(new RegExp(`of ${all - 2}$`));
+  for (const name of picked) await expect(page.locator('#devices-body [data-device]', { hasText: name })).toHaveCount(0);
+  await expect(rows).toHaveCount(Math.min(total, all - 2));
   await expect(page.locator('.ds-dialog[role="alertdialog"]')).toHaveCount(0);
   const toast = page.locator('.ds-toast', { hasText: '2 devices deleted.' });
   await expect(toast).toBeVisible();
   await toast.getByRole('button', { name: 'Undo' }).click();
+  await expect(range).toHaveText(new RegExp(`of ${all}$`));
   await expect(rows).toHaveCount(total);
   await expect(page.locator('.ds-toast', { hasText: '2 devices restored.' })).toBeVisible();
+});
+
+test('the devices come in pages: next and last move the range, the ends are blocked there, clearing the selection hands focus to select all', async ({ page }) => {
+  await open(page, '#/devices');
+  const range = page.locator('#devices-range');
+  await expect(range).toHaveText(/^1–25 of \d+$/);
+  const all = Number(/of (\d+)$/.exec(await range.textContent())[1]);
+  await expect(page.locator('[data-page="first"]')).toHaveAttribute('aria-disabled', 'true');
+  const first = await page.locator('#devices-body [data-device]').first().textContent();
+  await page.locator('[data-page="next"]').click();
+  await settle(page);
+  await expect(range).toHaveText(`26–50 of ${all}`);
+  expect(await page.locator('#devices-body [data-device]').first().textContent()).not.toBe(first);
+  await page.locator('[data-page="last"]').click();
+  await settle(page);
+  await expect(range).toHaveText(new RegExp(`–${all} of ${all}$`));
+  await expect(page.locator('[data-page="next"]')).toHaveAttribute('aria-disabled', 'true');
+  await page.locator('#page-size').selectOption('50');
+  await expect(range).toHaveText(`1–50 of ${all}`);
+  await expect(page.locator('#devices-body tr')).toHaveCount(50);
+  // The selection bar: Clear moves focus to the header checkbox, and the toolbar comes back.
+  await page.locator('#devices-body tr').nth(0).locator('[data-select]').check();
+  await page.locator('#bulk [data-act="clear-selection"]').click();
+  await expect(page.locator('#select-all')).toBeFocused();
+  await settle(page);
+  await expect(page.locator('#bulk .ds-selection-bar')).toHaveCount(0);
+  await expect(page.locator('#devices-title')).toHaveText('Fleet');
 });
 
 test('a row opens the side sheet, whose arrows step through the devices', async ({ page }) => {
@@ -197,7 +234,7 @@ test('a view opened from the overview offers the way back in its page head', asy
 
 test('the sheet\'s tabs switch between Details and History, by click and by arrow key', async ({ page }) => {
   await open(page, '#/devices');
-  await page.locator('#devices-body tr').nth(0).locator('[data-open]').click();
+  await page.locator('#devices-body tr').nth(0).locator('[data-device]').click();
   await settle(page);
   const details = page.locator('#sheet-t-details');
   const history = page.locator('#sheet-t-history');

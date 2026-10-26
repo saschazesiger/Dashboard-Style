@@ -9,6 +9,8 @@
  *   .ex-row          a wrapping row of buttons
  *   .ex-detail       the content of an expanded table row
  *   .ex-col-time, .ex-col-status  stable widths for columns with live values
+ *   .ex-list         the devices list: its full-page table and pagination in one column that fills
+ *   .ex-pick         the pinned first cell: a row's checkbox (directly in the cell, so the row takes the selection colour) before its link
  *   .ex-swatch       the colour dot of an accent choice
  */
 
@@ -45,6 +47,22 @@
 
 .ex-col-status {
   min-width: 136px;
+}
+
+/* The last child of the devices page: a column that takes what is left of
+   a .ds-view--fill, the full-page table filling it above its pagination. */
+.ex-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  min-height: 0;
+}
+
+/* The pinned first cell: the row's checkbox, then its link. */
+.ex-pick > input[type="checkbox"] {
+  margin-inline-end: var(--ds-space-4);
+  vertical-align: middle;
 }
 
 /* ── Accent choice ──────────────────────────────────────────────────── */

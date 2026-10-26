@@ -34,7 +34,11 @@ const SECTIONS = ['overview', ...[...readFileSync(new URL('../../styleguide/styl
 
 /** Tall enough for the tallest section, so an element shot is never cut by the scrolling view. */
 const TALL = { width: 1280, height: 2200 };
-const PHONE_TALL = { width: 390, height: 2400 };
+/* The section shots: taller than the longest section (the table section
+   with its 2.0 demos, 3,124px; 4,276px at 390px), since the view scrolls
+   and a shot paints only what is inside the viewport. */
+const SECTIONS_TALL = { width: 1280, height: 3400 };
+const PHONE_SECTIONS_TALL = { width: 390, height: 4800 };
 
 function annotate(...anchors) {
   for (const anchor of anchors) test.info().annotations.push({ type: 'src', description: anchor });
@@ -150,7 +154,7 @@ async function shootViewport(page, name) {
 /* ── Styleguide sections ───────────────────────────────────────────── */
 
 test.describe('styleguide sections', () => {
-  test.use({ viewport: TALL });
+  test.use({ viewport: SECTIONS_TALL });
 
   test('every section, settled', async ({ page }) => {
     expect(SECTIONS, 'overview plus the section() calls of styleguide.js').toHaveLength(16);
@@ -436,7 +440,7 @@ for (const fixture of ['reset', 'reset-layered']) {
 /* ── Chromium only: phone width, theme presets ─────────────────────── */
 
 test.describe('phone width (Chromium)', () => {
-  test.use({ viewport: PHONE_TALL });
+  test.use({ viewport: PHONE_SECTIONS_TALL });
 
   test('frame, table and overlays sections at 390px', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'phone variants are Chromium only, to keep the set lean');

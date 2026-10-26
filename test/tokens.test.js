@@ -166,6 +166,21 @@ describe('tokens', () => {
     assert.equal(token('--ds-state-disabled'), '.38');
   });
 
+  it('orders the layers: raised < pinned < sticky < sticky-pinned < popover (2.0)', () => {
+    const { scales } = layers();
+    for (const name of ['--ds-z-pinned', '--ds-z-sticky-pinned']) assert.ok(scales.includes(name), `${name} is a scale`);
+    assert.equal(token('--ds-z-pinned'), 'calc(var(--ds-z-raised) + 1)');
+    assert.equal(token('--ds-z-sticky-pinned'), 'calc(var(--ds-z-sticky) + 1)');
+    const value = (name) => {
+      const text = token(name);
+      const step = /^calc\(var\((--ds-z-[\w-]+)\) \+ (\d+)\)$/.exec(text);
+      return step ? value(step[1]) + Number(step[2]) : Number(text);
+    };
+    const order = ['--ds-z-raised', '--ds-z-pinned', '--ds-z-sticky', '--ds-z-sticky-pinned', '--ds-z-popover'].map(value);
+    assert.deepEqual([...order].sort((a, b) => a - b), order);
+    assert.equal(new Set(order).size, order.length, order.join());
+  });
+
   it('starts the scales and roles where the docs say (layers are documented)', () => {
     const { scales, roles } = layers();
     assert.ok(scales.includes('--ds-dur-fast') && scales.includes('--ds-space-4') && scales.includes('--ds-z-toast'));

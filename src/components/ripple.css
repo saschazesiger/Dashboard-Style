@@ -48,6 +48,11 @@
  * over the whole row (against the positioned row) that clips the circle,
  * its ::before. The row is isolated while it ripples, so the ripple
  * paints over the row's colour and under the cells' content and layers.
+ * A row of a pinned table (.ds-table--pin-first) ripples in two parts with
+ * one centre: the box over the row goes into its second cell (the pinned
+ * first cell paints over it), a second box into the pinned cell, which
+ * places and clips it; the pinned cell lays the row's layer over its
+ * opaque base, so it follows the same rule as the other cells.
  *
  * Progressive:
  * - overflow-clip-margin (a chip's ripple covers the chip's 1px border
@@ -58,7 +63,7 @@
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components {
-  :where(.ds-ripples :is(.ds-btn, .ds-chip__body, .ds-segmented__option, .ds-drawer__item, button.ds-tile, a.ds-tile, .ds-card--interactive, .ds-table__sort, .ds-table--interactive tbody tr, .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]:not([data-ds-ripple="off"]))) {
+  :where(.ds-ripples :is(.ds-btn, .ds-chip__body, .ds-segmented__option, .ds-drawer__item, button.ds-tile, a.ds-tile, .ds-card--interactive, .ds-table__sort, .ds-table--interactive tbody tr:has(.ds-table__row-link), .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]:not([data-ds-ripple="off"]))) {
     position: relative;
   }
 
@@ -165,9 +170,9 @@
     opacity: 0;
   }
 
-  /* A row's layer is on its cells (table.css). */
-  :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :is(td, th) {
-    background-color: transparent;
+  /* A row's layer is the one its cells paint (table.css). */
+  :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) {
+    --ds-table-row-layer: transparent;
   }
 
   @media (hover: hover) {
@@ -194,8 +199,8 @@
       opacity: var(--ds-state-hover-lg);
     }
 
-    :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) > :is(td, th) {
-      background-color: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
+    :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) {
+      --ds-table-row-layer: var(--ds-table-row-hover, color-mix(in srgb, currentColor calc(var(--ds-state-hover-lg) * 100%), transparent));
     }
   }
 
@@ -217,8 +222,8 @@
     opacity: var(--ds-state-focus);
   }
 
-  :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-table__row-link:focus-visible):is(:active, .ds-pressed) > :is(td, th) {
-    background-color: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
+  :where(.ds-ripples) .ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-table__row-link:focus-visible):is(:active, .ds-pressed) {
+    --ds-table-row-layer: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
   }
 
   /* The drop zone (drag.css, 2.0): positioned by its own rule; its flat

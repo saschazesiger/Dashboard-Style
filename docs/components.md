@@ -68,6 +68,13 @@ component live.
 | Rows that open their record | `.ds-table--interactive` with a `.ds-table__row-link` per row ([Table](#table)) |
 | Pick several rows for one action (bulk selection) | a checkbox in each row and in the header cell; the row takes the selection colour ([Table](#table)) |
 | More about one row without leaving the table | an expandable row: `.ds-table__toggle` and a `.ds-table__detail` row ([Table](#table)) |
+| Editable rows on a phone or in a side sheet | `.ds-table--stack` (`--stack-wide` for five or more field columns): each row a block, each cell a label above its field ([Table](#stacked-rows)) |
+| A full-page list of records with a header that stays | `.ds-table-wrap--fill` in a `.ds-view--fill`; a first column that stays while the others scroll: `.ds-table--pin-first` ([Table](#full-page-tables-and-pinned-columns)) |
+| Actions of one row, a totals row | `td.ds-table__actions` at the row's end; a `<tfoot>` row ([Table](#row-actions-summary-rows-and-density)) |
+| Act on the selected rows | `.ds-selection-bar` in the toolbar's place ([Table](#bulk-selection-bar)) |
+| Records in pages | [Pagination](#pagination) `.ds-pagination` under the table |
+| A strip wider than its panel (months, a row of cards) | [Horizontal scroller](#horizontal-scroller) `.ds-scroll-x` |
+| A log that sticks to its end, with a "Latest" pill | `.ds-jump` and `DS.dom.followEnd()` ([Horizontal scroller](#horizontal-scroller)) |
 | Data entry | [Form](#form): `.ds-form`, `.ds-form-grid`, `.ds-field`, `.ds-input`, `.ds-form-actions` |
 | One choice from a short list | `<select class="ds-input">`; with an explanation per option: `.ds-radios` ([Form](#form)) |
 | One choice from a long list, by typing | [Combobox](#combobox) `.ds-combo` |
@@ -1452,13 +1459,21 @@ the list opens and closes with the collapsible timing.
   descending column keeps showing it as drawn.
 - Short values that must not break (an ID with a hyphen) take `.ds-nowrap`.
 - A table that scrolls sideways in a card (on phones, or `.ds-table--wide` in a narrow content area) fades at the
-  card's right edge while columns follow. Where scroll timelines exist (progressive: `animation-timeline`) the fades
-  follow the scroll position: the right fade goes over the last 5% of the travel, a left fade grows over the first
-  5% once the table has left its start, and a table that fits shows neither. `ds-edge-fade` drives the registered
-  lengths `--ds-table-fade-start` and `--ds-table-fade-end` (internal, set nowhere else) on the wrapper's own scroll
-  timeline. Elsewhere the static right fade stays. A table scrolled sideways that then fits (columns hidden, a
-  filter, a wider window) keeps its last fade in Chromium and WebKit: call `DS.motion.resyncScroll(wrapper)` after
-  such a change.
+  card's edge while columns follow (2.0: the one fade model of the [Horizontal scroller](#horizontal-scroller)).
+  Where scroll timelines exist (progressive: `animation-timeline`) the fades follow the scroll position: the end fade
+  goes over the last `--ds-space-8` of the travel, a start fade grows over the first `--ds-space-8` once the table has
+  left its start, and a table that fits shows neither. `ds-scroll-edge-start` and `ds-scroll-edge-end` drive the
+  registered numbers `--ds-scroll-edge-start` and `--ds-scroll-edge-end` (0 or 1, times the fade length) on the
+  wrapper's own scroll timeline. Elsewhere `DS.dom.scrollEdges(wrapper)` sets them through `data-ds-overflow-start`
+  and `data-ds-overflow-end`; without it the static fade at the right edge stays. The fade is `--ds-scroll-fade`
+  long (default `--ds-card-pad`); `--ds-scroll-fade: 0px` on the theme turns every fade off. The scrollbar strip stays
+  unmasked (`--ds-scrollbar-height`, written by `scrollEdges()`). A wrapper with stacked rows never fades. A table
+  scrolled sideways that then fits (columns hidden, a filter, a wider window) keeps its last fade in Chromium and
+  WebKit: call `DS.motion.resyncScroll(wrapper)` after such a change. `ds-edge-fade`, `--ds-table-fade-start` and
+  `--ds-table-fade-end` (the 1.x model, internal) are deprecated in 2.0 and unused (removed in 3.0 at the earliest).
+- A wrapper whose cells hold nothing focusable cannot be reached by the keyboard (WebKit gives a scroller no tab stop
+  of its own): make it one, `<div class="ds-table-wrap" tabindex="0" role="region" aria-label="Devices">`. Its ring is
+  inset (it rests at the edge and snaps inward) and the fades drop while it is focused.
 - `.ds-table__sort` presses in `--ds-dur-micro` and ripples (it is not a pill, so it does not morph); keyboard focus
   shows the ring, which snaps to its offset, and the focus layer.
 - `.ds-link-btn` is an inline link: no ripple and no morph, which would reach outside its line of text. Keyboard
@@ -1521,7 +1536,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   the row and the ring around the row, inset so the scroller never clips it. The press is the cell layer at
   `--ds-state-pressed` in `--ds-dur-micro`; with `DS.ripple.attach()` the row ripples from the pointer instead
   (Enter on the row link ripples from the centre). A row's first cell may be a `<th scope="row">` row header: it
-  takes the row's layers and holds the ripple like a `<td>`.
+  takes the row's layers and holds the ripple like a `<td>`. A row without a `.ds-table__row-link` stays plain (2.0):
+  no pointer, no press layer, no ripple, since it opens nothing.
 - **Selected** (`.ds-table__row--selected`, or any row with a checked checkbox directly in a cell): the row takes
   `--ds-table-row-selected` (default `--ds-accent`) over `--ds-dur-fast`; select all changes every row in the same
   frame, with no stagger. The checkbox is the cue that does not rely on colour, in every row and in the header cell
@@ -1533,9 +1549,203 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   on the spring. There is one hairline, below the detail, which travels down as it opens. The page toggles
   `aria-expanded`, sets `inert` on the collapsed detail row (which also hides it from assistive technology) and
   keys both rows with `data-ds-key`, so `flip()` and `morphHtml` keep them together. The child takes the cells'
-  horizontal padding and its own vertical room; put the content straight into it.
+  horizontal padding and its own vertical room; put the content straight into it. Name the toggle column's header
+  for screen readers, `<th scope="col"><span class="ds-sr">Details</span></th>` (an empty header cell is an
+  accessibility error).
+- The row decides its layers and its cells paint them (2.0): each body row sets `--ds-table-row-layer` (the state
+  layer), `--ds-table-row-pace` (how fast it changes), `--ds-table-row-tint` (the selection a pinned cell lays over
+  its base) and `--ds-table-row-line` (the style of its hairline). They are internal: a page never sets them; to
+  change the look, set `--ds-table-row-hover` and `--ds-table-row-selected`. A cell rule behind a row's `:has()`
+  would make Chromium restyle every table cell of the page on each change anywhere in it.
+
+### Stacked rows
+
+```html
+<div class="ds-table-wrap">
+  <table class="ds-table ds-table--stack">                <!-- ds-table--stack-wide: five or more field columns -->
+    <thead><tr><th scope="col">Name</th><th scope="col">URL</th><th scope="col"><span class="ds-sr">Remove</span></th></tr></thead>
+    <tbody>
+      <tr data-ds-key="s1">
+        <td data-label="Name"><input class="ds-input" aria-label="Name" value="Status page"></td>
+        <td data-label="URL"><input class="ds-input" aria-label="URL" value="https://status.example.org"></td>
+        <td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Remove source 1">[icon close 20]</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+```
+
+- A table of fields (one row per entry) stacks where a row of fields has no room: always inside `.ds-sheet__body` and
+  `.ds-dialog`, and in a view when the content area is at most 600px wide (`--stack`) or 840px (`--stack-wide`).
+  Stacked, each row is a block with a hairline border and the card radius, `--ds-space-3` apart; each cell shows its
+  `data-label` above its content in the field label's type (labels above fields), and a `.ds-table__actions` cell
+  sits at the block's top end. The header stays for screen readers only, and the labels are not read a second time
+  where alt text for generated content exists (progressive; Safari 16.4 reads them once more). The table keeps its
+  table roles in every engine.
+- In a card the blocks keep the card's padding. No row hover and no edge fade; rows keep `data-ds-key`, so `flip()`
+  and `morphHtml` work as in any table.
+- Not combinable: `.ds-table--interactive`, expandable rows and sort buttons (the header is hidden: offer sorting
+  elsewhere). A `.ds-table-wrap--fill` or `.ds-table--pin-first` steps aside while the rows stack.
+
+### Full-page tables and pinned columns
+
+```html
+<div class="ds-view ds-view--fill">                      <!-- the view stops scrolling, its last child fills -->
+  ...
+  <div class="ds-table-wrap ds-table-wrap--fill">
+    <table class="ds-table ds-table--interactive ds-table--pin-first">
+      <thead><tr><th scope="col">Device</th><th scope="col">Model</th> ... </tr></thead>
+      <tbody><tr data-ds-key="p2"><td><a class="ds-link-btn ds-table__row-link" href="/devices/p2">Printer on floor 2</a></td> ... </tr></tbody>
+    </table>
+  </div>
+</div>
+```
+
+- **`.ds-table-wrap--fill`**: the wrapper is its own card (hairline border `--ds-line`, `--ds-radius-card`, the
+  opaque `--ds-table-sticky-bg`, default `--ds-surface`), takes what is left of a bounded parent (`flex: 1 1 auto`;
+  `.ds-view--fill`, or any flex column with a height) and scrolls both ways, so its header row sticks to its top
+  (`--ds-z-sticky`). It is at least `--ds-table-fill-min-height` (240px) tall, at most `--ds-table-fill-max-height`
+  (none). Use it outside a card. Cells stay on one line and end in an ellipsis at `--ds-table-cell-max-width`
+  (280px); a tooltip (`data-tip` with the full text) shows a cut cell. Keyboard focus never lands under the header
+  (`scroll-padding`). The ends fade as in a card ([Horizontal scroller](#horizontal-scroller)), while the border and
+  the scrollbars stay opaque.
+- **`.ds-table--pin-first`** (in a fill wrapper or a card): the first column stays while the others scroll under it,
+  above their controls (`--ds-z-pinned`; the corner over a sticky header `--ds-z-sticky-pinned`). Its cells are
+  opaque (`--ds-table-sticky-bg`, or the selection colour of a selected row) and the row's hover, focus and press lie
+  over them as two registered colours (`--ds-table-sticky-layer`, `--ds-table-sticky-tint`, internal), so they fade
+  like the other cells. A hairline at the column's end shows once the table has scrolled (scroll-driven, else
+  `data-ds-overflow-start` from `DS.dom.scrollEdges()`).
+- In an interactive table the pinned cell holds the row link's stretched area, so `DS.ripple.attach()` forwards a
+  click anywhere on the row (outside its controls, with no text selected) to the `.ds-table__row-link`: a plain click
+  clicks it, Ctrl, Meta, Shift or the middle button open an `a[href]` in a new tab, and a page that called
+  `preventDefault()` on the click keeps it. Without `attach()` only the link's own cell opens the row. The row ripples
+  in two parts from one centre. The keyboard ring of the row link wraps the pinned cell only, while the focus layer
+  covers the whole row. `DS.dom.scrollEdges()` writes `--ds-table-pin-width` (the pinned column's width), so focus
+  moved by the keyboard never lands under the pinned column.
+- Forced colours: sticky and pinned cells are `Canvas`, the wrapper border `CanvasText`. Print: unbounded, not
+  sticky, every cell wraps.
+
+### Row actions, summary rows and density
+
+```html
+<tr data-ds-key="d4">
+  ...
+  <td class="ds-table__actions">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit LAPTOP-0051" data-tip="Edit">[icon pencil 20]</button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Actions for LAPTOP-0051" aria-haspopup="menu" aria-expanded="false">[icon moreVertical 20]</button>
+  </td>
+</tr>
+...
+<tfoot><tr><th scope="row">Total</th><td class="ds-num">128</td><td></td></tr></tfoot>
+```
+
+- `td.ds-table__actions` holds a row's own buttons at its end: end-aligned, no wider than its buttons, which hang
+  into the cell's padding, so the row keeps its height and the last icon lines up with the column's edge. Inside an
+  element with `.ds-hover-actions` the buttons show on demand (row hover, focus, selection, an open menu; always on
+  touch screens).
+- `<tfoot>` rows sum up the table: the label type in `--ds-text`, tabular figures, a hairline (`--ds-line-2`) above,
+  no hover, press or row link.
+- Density hooks: the header cells are `--ds-table-head-height` (48px), the rows `--ds-table-row-height` (52px) and
+  `.ds-table--dense` rows `--ds-table-dense-row-height` (40px); the cells' block padding follows the heights.
+
+### Bulk selection bar
+
+```html
+<div class="ds-toolbar">
+  <div class="ds-swap" id="bulk-slot">                   <!-- one slot: the action bar or the selection bar -->
+    <div class="ds-selection-bar" role="toolbar" aria-label="Selected devices">
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear selection" data-tip="Clear selection">[icon close 20]</button>
+      <p class="ds-selection-bar__count" aria-live="polite">3 selected</p>
+      <div class="ds-selection-bar__actions">
+        <button class="ds-btn ds-btn--text" type="button">[icon trash 18] Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+- While rows are selected, the selection bar stands where the toolbar (or action bar) stood: both share one slot,
+  and `DS.motion.crossfade(slot, bar)` swaps them when the count goes from 0 to 1 and back
+  (`crossfade(slot, toolbar)`), so the table never moves. The count changes at once, never with a crossfade, and
+  says the state (the `--ds-accent` tint with `--ds-on-accent` ink does not). The slot sits in a grid (a
+  `.ds-toolbar`), where it takes the full width.
+- "Clear selection" unchecks every row and moves focus to the header checkbox (the bar goes). In forced colours the
+  bar keeps an outline; in print it is hidden.
 
 **Motion:** the "Table" row of [Feedback](motion.md#feedback) and [Data motion](motion.md#data-motion) in motion.md.
+
+## Pagination
+
+```html
+<section class="ds-card">
+  <div class="ds-table-wrap"><table class="ds-table">...</table></div>
+  <nav class="ds-pagination" aria-label="Pages of devices">        <!-- ds-pagination--simple: previous and next only -->
+    <div class="ds-pagination__size">
+      <label class="ds-pagination__label" for="pp">Rows per page</label>
+      <select class="ds-input ds-input--filled" id="pp"><option>25</option><option selected>50</option><option>100</option></select>
+    </div>
+    <p class="ds-pagination__range" aria-live="polite">1–50 of 128</p>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="First page" aria-disabled="true" data-tip="First page">[icon chevronFirst 20]</button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous page" aria-disabled="true" data-tip="Previous page">[icon chevronLeft 20]</button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next page" data-tip="Next page">[icon chevronRight 20]</button>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Last page" data-tip="Last page">[icon chevronLast 20]</button>
+  </nav>
+</section>
+```
+
+- The footer of a table whose records come in pages: rows per page, the range shown (`--ds-font-meta`, tabular
+  figures) and the buttons, end-aligned. After the `.ds-table-wrap` of a card it sits right under the table with a
+  hairline and runs to the card's edges. When the content area is at most 600px wide the size field drops and the
+  range leads. No numbered pages (a project that needs them builds them from `.ds-btn`s).
+- A button that leads nowhere (first and previous on the first page) takes `aria-disabled="true"`, not `disabled`:
+  a focused "Next" that turns blocked on the last page keeps the focus, the click is blocked, and its tooltip still
+  names it. `.ds-pagination--simple` leaves out first and last.
+- The page holds the page number. A page change dims the rows (`.ds-stale` and the loading bar) while the page
+  loads, then renders them with `DS.motion.flip(tbody, (o) => DS.dom.morphHtml(tbody, rows, o), { items: 'tr' })`:
+  every key is new, so the old rows go at once and the new ones fade in; the range text changes at once. Hidden in
+  print.
+
+**Motion:** a page change in [Data motion](motion.md#data-motion) in motion.md.
+
+## Horizontal scroller
+
+```html
+<div class="ds-scroll-x" tabindex="0" role="region" aria-label="Months">   <!-- the tab stop: only when nothing inside takes focus -->
+  <div class="my-months">...</div>                                         <!-- content wider than the panel -->
+</div>
+```
+
+- A strip wider than its panel (months, a row of cards, a wide chart) scrolls sideways on its own, with a thin
+  scrollbar and room for the focus rings of its content. A fade at each end says that more follows: where scroll
+  timelines exist (progressive) `ds-scroll-edge-start` and `ds-scroll-edge-end` run on its own scroll and drive the
+  registered numbers `--ds-scroll-edge-start` and `--ds-scroll-edge-end` (0 to 1, times the fade length): the start
+  fade grows while the first `--ds-space-8` scroll away, the end fade goes over the last, and a strip that fits fades
+  nowhere. Elsewhere call `DS.dom.scrollEdges(strip)`: its `data-ds-overflow-start` and `data-ds-overflow-end` set
+  the numbers over `--ds-dur-fast`; without it the strip shows no fade. The scrollbar strip stays unmasked
+  (`--ds-scrollbar-height`, written by `scrollEdges()`). Left-to-right pages only.
+- One fade switch: `--ds-scroll-fade` is the fade length of `.ds-scroll-x` (default `--ds-space-8`), the card table
+  wrappers (default `--ds-card-pad`) and the menu edges; `--ds-scroll-fade: 0px` on the theme turns them all off.
+  Keyboard focus inside lands outside the fades (`scroll-padding-inline`).
+- When nothing inside can take focus, the strip is the tab stop (`tabindex="0" role="region" aria-label`), as WebKit
+  gives a scroller none by itself: arrow keys scroll it, its ring is inset and the fades drop while it is focused.
+- Print: the strip shows all of its content, unmasked.
+
+```html
+<div class="my-log">                                                       <!-- a scroller -->
+  ... messages ...
+  <div class="ds-jump"><div class="ds-presence" hidden>
+    <button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Latest" data-tip="Latest">[icon arrowDown 20]</button>
+  </div></div>
+</div>
+```
+
+- `.ds-jump`, the last child of a scrolling log, is the place of a "Latest" pill: sticky `--ds-space-4` above the
+  log's bottom edge, centred, taking no room, so the log never moves when the pill comes. `DS.dom.followEnd(log,
+  { pill })` keeps the log at its end while it grows and shows the pill (a `.ds-presence`) while the reader has
+  scrolled up; a click on it scrolls to the end. Only the pill takes the pointer. Hidden in print.
+
+**Motion:** the scroll-linked keyframes in [Keyframes](motion.md#keyframes) and
+[Scroll-driven effects](motion.md#scroll-driven-effects) in motion.md.
 
 ## Form
 
@@ -3258,4 +3468,5 @@ the ones the page sets for it. The project check reads this table.
 | `data-ds-shown` | the page | a `.ds-presence--keep` element, a `.ds-hover-actions` host or its actions | shown (`.ds-presence--keep`: without it hidden, keeping its box; `.ds-hover-actions`: the actions show without hover or focus, [Utilities](#actions-on-demand)) |
 | `data-drawer-collapsed` | the page | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
 | `data-label` | the page | `.ds-segmented__option`, `.ds-tabs__tab` | the option's text again: keeps the width of the selected weight |
+| `data-label` | the page | a cell of `.ds-table--stack` / `--stack-wide` | the label shown above the cell's content while the rows stack ([Stacked rows](#stacked-rows)) |
 | `data-status` | the page | `.ds-steps__step` | `done`: a finished step ([Steps](#steps)) |

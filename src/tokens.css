@@ -279,13 +279,18 @@
     --ds-space-12: 48px;
 
     /* ── Layers (inside one stacking context) ───────────
+     * pinned   a pinned first table column, above the raised controls of
+     *          the cells that scroll under it
+     * sticky-pinned  the corner cell of a sticky header over a pinned column
      * popover  menus and listboxes
      * drawer   side sheets and the modal navigation drawer
      * dialog   dialogs, above an open side sheet (they may ask from inside one)
      * toast    snackbars, tooltips, the skip link
      */
     --ds-z-raised: 1;
+    --ds-z-pinned: calc(var(--ds-z-raised) + 1);
     --ds-z-sticky: 20;
+    --ds-z-sticky-pinned: calc(var(--ds-z-sticky) + 1);
     --ds-z-popover: 40;
     --ds-z-drawer: 50;
     --ds-z-dialog: calc(var(--ds-z-drawer) + 1);

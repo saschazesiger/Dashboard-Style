@@ -22,6 +22,7 @@
 @import './base.css';
 
 @import './components/utilities.css';
+@import './components/scroller.css';
 @import './components/button.css';
 @import './components/spinner.css';
 @import './components/loader.css';
@@ -38,6 +39,7 @@
 @import './components/status.css';
 @import './components/alert.css';
 @import './components/table.css';
+@import './components/pagination.css';
 @import './components/form.css';
 @import './components/drag.css';
 @import './components/chip.css';

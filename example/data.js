@@ -33,7 +33,7 @@
 
   const TYPES = ['laptop', 'laptop', 'laptop', 'desktop', 'desktop', 'tablet', 'printer'];
   const devices = [];
-  for (let i = 0; i < 24; i += 1) {
+  for (let i = 0; i < 128; i += 1) {
     const type = TYPES[i % TYPES.length];
     const prefix = type.toUpperCase();
     const number = String(40 + i * 3).padStart(4, '0');

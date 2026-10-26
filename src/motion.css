@@ -51,10 +51,11 @@
  *   .ds-vt-view) through with .ds-enter--swap.
  * - scroll-driven animations (animation-timeline: view(), animation-range;
  *   .ds-reveal--scroll ties its fade and rise to the scroll position, and
- *   ds-scroll-fade and ds-edge-fade run on the scroll timelines of
- *   shell.css, sheet.css and table.css): without them .ds-reveal--scroll
- *   stays static, never hidden, and data-scrolled and the static table
- *   fade stay.
+ *   ds-scroll-fade, ds-scroll-edge-start and ds-scroll-edge-end run on the
+ *   scroll timelines of shell.css, sheet.css, table.css and scroller.css):
+ *   without them .ds-reveal--scroll stays static, never hidden, and
+ *   data-scrolled, the data-ds-overflow-* attributes of
+ *   DS.dom.scrollEdges() and the static table fade stay.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -701,7 +702,27 @@
     to { opacity: 1; }
   }
 
-  /* The edge fades of a table that scrolls sideways (table.css), on the
+  /* The edge fades of a sideways scroller (.ds-scroll-x in scroller.css,
+     the table wrappers of table.css; menus reuse them on the block axis),
+     each on the scroller's own scroll timeline over an animation-range at
+     its end: the start fade grows while the first --ds-space-8 scroll
+     away, the end fade goes over the last. The numbers (registered in
+     scroller.css) scale the fade length, so 0 is no fade. Both ends are
+     named (a scroll position, not an entrance); a scroller without
+     overflow has an inactive timeline and keeps 0, no fade. */
+  @keyframes ds-scroll-edge-start {
+    from { --ds-scroll-edge-start: 0; }
+    to { --ds-scroll-edge-start: 1; }
+  }
+
+  @keyframes ds-scroll-edge-end {
+    from { --ds-scroll-edge-end: 1; }
+    to { --ds-scroll-edge-end: 0; }
+  }
+
+  /* Deprecated in 2.0 (removed in 3.0 at the earliest), unused: the table
+     wrappers run ds-scroll-edge-start and ds-scroll-edge-end. The edge
+     fades of a table that scrolls sideways (table.css), on the
      wrapper's own scroll timeline, so progress is the scroll position:
      the start fade grows over the first 5% of the travel, the end fade
      goes over the last 5%. Both ends are named (a scroll position, not an
