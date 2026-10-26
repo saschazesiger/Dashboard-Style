@@ -159,7 +159,8 @@ Changed defaults and looks (no rename; check your pages and your tests):
 - Drag, drop and files (`drag.css`): `.ds-grip`, the `[data-ds-dragging]` row, the styled `.ds-input[type="file"]`,
   `.ds-dropzone` with `__input`, `__disc`, `__title`, `__idle`, `__over`, `__browse`, `__hint`,
   `--ds-dropzone-border`, and `[data-ds-dragover]` on any page drop target.
-- Loading: `--ds-skeleton-radius`, `.ds-skeleton__note`, `.ds-loading__detail`.
+- Loading: `--ds-skeleton-radius`, `.ds-skeleton__note`, `.ds-loading__detail` (with detail lines `.ds-loading`
+  becomes a two-column grid; without them it stays the one-row flex line of 1.x).
 - Tables and scrollers: `.ds-table--stack` and `--stack-wide` (each row a block, each cell's `data-label` above its
   value; always in sheets and dialogs, in a view at a content area of at most 600px / 840px), `.ds-table-wrap--fill`
   (a full-page table with a sticky header and cut cells), `.ds-table--pin-first` (a pinned first column;

@@ -1939,7 +1939,10 @@ describe('feedback and data (1.4.0)', () => {
     assert.match(stripComments(css), /\.ds-skeleton__line--heading \{[^}]*border-radius: var\(--ds-skeleton-radius, var\(--ds-radius-sm\)\)/);
     assert.deepEqual([own('.ds-skeleton__note').color, own('.ds-skeleton__note').font, own('.ds-skeleton__note')['font-variant-numeric']], ['var(--ds-text-2)', 'var(--ds-font-meta)', 'tabular-nums']);
     assert.equal(own('.ds-skeleton__note:empty').display, 'none');
-    assert.equal(own('.ds-loading').display, 'grid');
+    // A flex row as in 1.x (inline markup and a trailing button stay on it); the grid only with detail lines.
+    assert.equal(own('.ds-loading').display, 'flex');
+    assert.equal(own('.ds-loading:has(> .ds-loading__detail)').display, 'grid');
+    assert.equal(own('.ds-loading:has(> .ds-loading__detail)')['grid-template-columns'], 'auto minmax(0, 1fr)');
     assert.equal(own('.ds-loading__detail')['grid-column'], '2');
   });
 

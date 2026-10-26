@@ -3070,8 +3070,10 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   `::after`, moved by `translate`), so the wave repaints nothing; before, a fixed background was repainted with the
   whole view. Under a transformed ancestor (a sheet mid-slide, `.ds-enter`) the band is placed in that ancestor
   instead of the viewport: the bones stay in time and share it.
-- **Loading line** (`.ds-loading`): the loader, then the text in a two-column grid; `.ds-loading__detail` lines (2.0)
-  sit under the text in its column (`--ds-font-meta`, `--ds-text-2`), aligned with it whatever the loader's size.
+- **Loading line** (`.ds-loading`): the loader, then the text, in one row (inline markup in the text or a trailing
+  button stays on it). With `.ds-loading__detail` lines (2.0) it becomes a two-column grid: the lines sit under the
+  text in its column (`--ds-font-meta`, `--ds-text-2`), aligned with it whatever the loader's size; keep the text one
+  run (or one element) there, since each piece of it takes a cell.
 - **Skeleton note** (`p.ds-skeleton__note`, 2.0): a progress line under the lead bone ("Loading 3 of 12 reports",
   `--ds-font-meta` in `--ds-text-2`, tabular figures); it sits inside the `role="status"` skeleton, so its text is
   announced: update it at most every 10% or once a second. Empty, it takes no room. The bones' corners follow

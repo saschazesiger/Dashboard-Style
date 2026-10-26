@@ -3981,14 +3981,12 @@
   }
 
   /* Small loading line (side sheets, "load more"): the loader, then the
-     text; detail lines (2.0) sit under the text in its column, aligned
-     with it whatever the loader's size. */
+     text, in one row as in 1.x (inline markup in the text or a trailing
+     button stays on it). */
   .ds-loading {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    display: flex;
     align-items: center;
-    column-gap: var(--ds-space-3);
-    row-gap: var(--ds-space-1);
+    gap: var(--ds-space-3);
     padding: var(--ds-space-4) 0;
     color: var(--ds-text-2);
     font: var(--ds-font-body);
@@ -4007,6 +4005,15 @@
     animation:
       ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards,
       ds-skeleton-wave var(--ds-loop-skeleton) linear calc(var(--ds-delay-loader) + var(--ds-dur-medium)) infinite backwards;
+  }
+
+  /* With detail lines (2.0) it becomes two columns: the lines sit under the
+     text in its column, aligned with it whatever the loader's size. Keep
+     the text one run there (or one element): each piece is a cell. */
+  .ds-loading:has(> .ds-loading__detail) {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: var(--ds-space-1);
   }
 
   .ds-loading__detail {

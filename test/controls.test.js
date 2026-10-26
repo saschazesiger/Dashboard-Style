@@ -495,3 +495,11 @@ describe('invalid groups, blocked radio cards and sliders (2.0 review)', () => {
     }
   });
 });
+
+describe('the loading line (2.0 review)', () => {
+  it('keeps the loading line a flex row; only detail lines make it a grid', () => {
+    const css = read('src/components/loading.css');
+    assert.equal(own(css, '.ds-loading').display, 'flex');
+    assert.equal(own(css, '.ds-loading:has(> .ds-loading__detail)').display, 'grid');
+  });
+});

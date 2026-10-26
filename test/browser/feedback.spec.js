@@ -178,6 +178,34 @@ test.describe('loaders', () => {
     expect(values[0]).toBeCloseTo(0.4, 3);
     expect(values.at(-1)).toBeCloseTo(0.9, 3);
   });
+
+  test('a loading line keeps inline markup and a trailing button on its row; detail lines go under the text', async ({ page }) => {
+    await open(page);
+    const rows = await page.evaluate(() => {
+      const theme = document.querySelector('.ds-theme');
+      theme.insertAdjacentHTML('afterbegin',
+        '<div class="ds-loading" id="x-inline" style="width: 600px"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading <strong>devices</strong> ...<button class="ds-btn ds-btn--sm" type="button">Cancel</button></div>' +
+        '<div class="ds-loading" id="x-detail" style="width: 600px"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span><span>Importing devices</span><p class="ds-loading__detail">812 of 2,030 rows</p></div>');
+      const middle = (el) => { const r = el.getBoundingClientRect(); return { top: r.top, middle: r.top + r.height / 2, left: r.left }; };
+      const inline = document.querySelector('#x-inline');
+      const detail = document.querySelector('#x-detail');
+      const out = {
+        loader: middle(inline.querySelector('.ds-loader')),
+        strong: middle(inline.querySelector('strong')),
+        button: middle(inline.querySelector('button')),
+        text: middle(detail.querySelector('span:not(.ds-loader)')),
+        line: middle(detail.querySelector('.ds-loading__detail')),
+      };
+      inline.remove();
+      detail.remove();
+      return out;
+    });
+    expect(Math.abs(rows.strong.middle - rows.loader.middle)).toBeLessThanOrEqual(4);
+    expect(Math.abs(rows.button.middle - rows.loader.middle)).toBeLessThanOrEqual(4);
+    expect(rows.button.left).toBeGreaterThan(rows.strong.left);
+    expect(rows.line.top).toBeGreaterThan(rows.text.top);
+    expect(rows.line.left).toBe(rows.text.left);
+  });
 });
 
 test.describe('skeleton', () => {
