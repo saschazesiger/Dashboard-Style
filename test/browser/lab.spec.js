@@ -278,6 +278,7 @@ const CONTINUITY = {
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
+  charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -288,6 +289,7 @@ const CONTINUITY_EXEMPT = {
   tooltips: 'a tooltip waits --ds-delay-tooltip before it moves, so the reversal comes before it shows',
   views: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
   scroll: 'scroll-driven: the reveal and the edge fades follow the scroll position, not time',
+  tasks: 'a status change swaps the mark at once (its glyph is the state); only the tick of a step that turns done draws, and it starts anew by design',
 };
 
 /**

@@ -43,8 +43,15 @@
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components {
+  /* No top margin of its own: inside a card the card's rhythm spaces it
+     (zero weight). */
+  :where(.ds-timeline) {
+    margin-top: 0;
+  }
+
   .ds-timeline {
-    margin: 0;
+    margin-inline: 0;
+    margin-bottom: 0;
     padding: 0;
     list-style: none;
     color: var(--ds-text);

@@ -31,10 +31,17 @@
     gap: var(--ds-space-1) var(--ds-space-3);
   }
 
+  /* No top margin of its own: inside a card the card's rhythm spaces it
+     (zero weight). */
+  :where(.ds-tasks) {
+    margin-top: 0;
+  }
+
   .ds-tasks {
     display: grid;
     gap: var(--ds-space-2);
-    margin: 0;
+    margin-inline: 0;
+    margin-bottom: 0;
     padding: 0;
     list-style: none;
   }
