@@ -555,7 +555,11 @@ function returnTarget(element, state) {
   return [near, doc.querySelector(LANDMARK)].find(outside) ?? null;
 }
 
-/** Reports an error of a page callback without stopping the close (reportError where it exists). */
+/**
+ * Reports an error of a page callback (returnTo, a toast action, a save
+ * bar's focusTarget) to the window's error handling, without stopping
+ * what DS is doing (reportError where it exists).
+ */
 function report(element, error) {
   const view = viewOf(element);
   if (typeof view.reportError === 'function') view.reportError(error);
@@ -2364,13 +2368,6 @@ function regionState(region) {
 function appOf(region) {
   const scope = region.closest?.('.ds-theme') ?? region.ownerDocument;
   return /** @type {HTMLElement|null} */ (scope?.querySelector?.('.ds-app') ?? null);
-}
-
-/** An error thrown by a page's callback goes to the window's error handling, not into DS. */
-function report(node, error) {
-  const view = viewOf(node);
-  if (typeof view.reportError === 'function') view.reportError(error);
-  else view.console?.error(error);
 }
 
 const paused = (region, state) => state.pointer || state.focus || Boolean(region.ownerDocument.hidden);
