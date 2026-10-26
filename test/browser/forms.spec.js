@@ -19,7 +19,7 @@
  * - the sticky actions stick on a phone only; date and time fields side by
  *   side take less padding at 720px and below, a field alone keeps its own;
  * - the composer keeps its button at the bottom while its text grows
- *   (where field-sizing exists);
+ *   (field-sizing, else DS.dom.autosize()) up to its cap, then scrolls;
  * - forced colours: a focused field shows an outline (Chromium emulates
  *   forced colours);
  * - settled shots of the slider and the tiles.
@@ -234,17 +234,28 @@ test.describe('fields', () => {
     expect(await pad('#alone')).toBe('12px');
   });
 
-  test('the composer keeps its button at the bottom while the text grows (field-sizing)', async ({ page }) => {
+  test('the composer keeps its button at the bottom while the text grows, up to its cap', async ({ page }) => {
     await open(page);
-    // The refinement applies (the fallback project drops every @supports block).
-    const grows = await page.locator('#message').evaluate((el) => getComputedStyle(el).getPropertyValue('field-sizing') === 'content');
-    test.skip(!grows, 'no field-sizing here: DS.dom.autosize() grows the field (motion.md)');
+    // field-sizing grows the field where the refinement applies; elsewhere
+    // (Firefox, the fallback project, which drops every @supports block)
+    // DS.dom.autosize() sets its height from the text.
+    const native = await page.locator('#message').evaluate((el) => getComputedStyle(el).getPropertyValue('field-sizing') === 'content');
     const before = await box(page.locator('#message'));
     await page.locator('#message').fill('One\nTwo\nThree\nFour');
     const after = await box(page.locator('#message'));
     expect(after.height).toBeGreaterThan(before.height + 40);
+    expect(await page.locator('#message').evaluate((el) => el.style.height !== '')).toBe(!native);
     const shell = await page.locator('#composer').evaluate((el) => { const r = el.getBoundingClientRect(); return r.bottom - parseFloat(getComputedStyle(el).paddingBottom) - parseFloat(getComputedStyle(el).borderBottomWidth); });
     expect(Math.abs((await box(page.locator('#send'))).bottom - shell)).toBeLessThanOrEqual(1);
+    // --ds-composer-max-height (220px) caps it; then the text scrolls.
+    await page.locator('#message').fill(Array.from({ length: 20 }, (_, i) => `Line ${i + 1}`).join('\n'));
+    const capped = await page.locator('#message').evaluate((el) => ({ height: el.getBoundingClientRect().height, scrolls: el.scrollHeight > el.clientHeight && getComputedStyle(el).overflowY !== 'hidden' }));
+    expect(capped.height).toBeLessThanOrEqual(220.5);
+    expect(capped.height).toBeGreaterThan(200);
+    expect(capped.scrolls).toBe(true);
+    // Emptied, it shrinks back to one row.
+    await page.locator('#message').fill('');
+    expect(Math.abs((await box(page.locator('#message'))).height - before.height)).toBeLessThanOrEqual(1);
   });
 });
 

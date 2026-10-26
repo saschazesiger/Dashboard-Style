@@ -140,6 +140,9 @@
     var pill = DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
     group.addEventListener('change', function () { pill.update(); });
   }());
+  // The composer grows with its text: field-sizing where it exists (then
+  // this is a no-op), else DS.dom.autosize() (docs/components.md).
+  DS.dom.autosize(document.getElementById('message'));
 </script>
 </body>
 </html>

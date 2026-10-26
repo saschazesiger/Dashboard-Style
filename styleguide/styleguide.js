@@ -1458,7 +1458,7 @@
       share();
     });
     // field-sizing grows them where it exists; elsewhere DS.dom.autosize does.
-    if (DS.dom.autosize) $$('[data-sg="grow"]').forEach(function (area) { DS.dom.autosize(area); });
+    $$('[data-sg="grow"]').forEach(function (area) { DS.dom.autosize(area); });
   }
 
   /* Chips, switch, combobox */
