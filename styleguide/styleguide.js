@@ -2534,6 +2534,8 @@
 
     var sample = $('#sg-drawer-sample-list');
     addIndicator(sample, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
+    // The sample is cut at its max-height too: its end shade where scroll timelines are missing.
+    DS.dom.scrollEdges(sample, { axis: 'block' });
     $('#sg-drawer-sample').addEventListener('click', function (event) {
       var item = event.target.closest('.ds-drawer__item');
       if (!item) return;
