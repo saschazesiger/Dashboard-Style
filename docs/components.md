@@ -2291,7 +2291,8 @@ is required (a hint, or the tooltip). Forced colours: the normal on and off colo
 ### Hint and extras
 
 `small.ds-switch__hint` is a line under the name (the meta type, `--ds-text-2`); `span.ds-switch__meta` holds
-non-interactive extras before the state word (a count, a tag); the name wraps long words. Name the input with
+non-interactive extras before the state word (a count, a tag); the name wraps long words. The hint sits directly under
+the name, and the two centre together on the track. Name the input with
 `aria-labelledby` (the label's id) and describe it with `aria-describedby` (the hint's id), so the extras stay out of
 its name.
 
@@ -2314,7 +2315,9 @@ Many settings, each a switch:
 ```
 
 Rows sit on one grid (track, name over hint, meta, state word), at least `--ds-switch-list-row-height` (56px) tall,
-with hairlines between them. At 560px of list width and below the meta wraps under the name.
+with hairlines between them. The name and its hint stand together on the switch's centre line: no gap between them,
+and a row without a hint (or with a name that wraps) still centres its text on the track. At 560px of list width and
+below the meta wraps under the name (under the hint when there is one).
 
 **Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
 

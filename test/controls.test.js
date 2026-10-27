@@ -430,6 +430,29 @@ describe('the switch (2.0)', () => {
     const narrow = atRuleBlocks(css, /@container ds-switch-list \(max-width: 560px\)/).join('\n');
     assert.match(own(narrow, '.ds-switch-list > .ds-switch')['grid-template-areas'], /"track meta state"/);
   });
+
+  it('stands the name on its hint and centres the text on the track: no row gap, flexible rows around the text (2.1)', () => {
+    const narrow = atRuleBlocks(css, /@container ds-switch-list \(max-width: 560px\)/).join('\n');
+    const grids = [
+      ['.ds-switch:has(> .ds-switch__hint)', own(flat, '.ds-switch:has(> .ds-switch__hint)'), 4],
+      ['.ds-switch-list > .ds-switch', own(flat, '.ds-switch-list > .ds-switch'), 4],
+      ['narrow .ds-switch-list > .ds-switch', { ...own(flat, '.ds-switch-list > .ds-switch'), ...own(narrow, '.ds-switch-list > .ds-switch') }, 5],
+    ];
+    for (const [name, grid, count] of grids) {
+      // .ds-switch's gap would stand between the name and the hint (12px).
+      assert.equal(grid['row-gap'], '0', name);
+      const tracks = grid['grid-template-rows'].split(' ');
+      assert.equal(tracks.length, count, name);
+      assert.deepEqual([tracks[0], tracks.at(-1)], ['1fr', '1fr'], `${name}: the free height goes around the text`);
+      assert.ok(tracks.slice(1, -1).every((track) => track === 'auto'), name);
+      const areas = [...grid['grid-template-areas'].matchAll(/"([^"]+)"/g)].map((match) => match[1].split(' '));
+      assert.equal(areas.length, count, name);
+      assert.deepEqual([areas[0][1], areas.at(-1)[1]], ['.', '.'], `${name}: no text in the flexible rows`);
+      assert.deepEqual(areas.slice(1, 3).map((row) => row[1]), ['label', 'hint'], `${name}: the hint directly under the name`);
+      assert.ok(areas.every((row) => row[0] === 'track'), `${name}: the track spans every row`);
+    }
+    assert.equal(own(narrow, '.ds-switch > .ds-switch__meta')['margin-top'], 'var(--ds-space-1)');
+  });
 });
 
 describe('blocked hosts and selected cards (2.0 review)', () => {

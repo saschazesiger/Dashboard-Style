@@ -5,8 +5,9 @@
  * demand, buttons (disclosure tint, a locked choice, the adaptive label,
  * faces with an icon), action and input chips, badges, selected tiles and
  * cards with intrinsic tile columns, alerts, the done state, the switch
- * (the input covers the track, aria-disabled, locked, a list), icons that
- * fill and DS.icons.fill(), forced colours and the settled shots.
+ * (the input covers the track, aria-disabled, locked, a list, the text
+ * centred on the track), icons that fill and DS.icons.fill(), forced
+ * colours and the settled shots.
  */
 import { test, expect } from './base-test.js';
 import { ready, settle, focusByKeyboard } from './helpers/motion.js';
@@ -418,6 +419,41 @@ test.describe('the switch (CT-13)', () => {
     const metaNarrow = await page.locator('#row-meta').boundingBox();
     const nameNarrow = await page.locator('#row-name').boundingBox();
     expect(metaNarrow.y).toBeGreaterThan(nameNarrow.y + nameNarrow.height - 1);
+  });
+
+  test('the name and its hint stand together and centre on the track, with or without a hint, wide and narrow (2.1)', async ({ page }) => {
+    await open(page);
+    // A row whose long name wraps, with a hint; a row with a meta and no hint.
+    await page.evaluate(() => {
+      const list = document.getElementById('switch-list');
+      list.insertAdjacentHTML('beforeend', '<label class="ds-switch" id="fx-row-long"><input type="checkbox" role="switch" aria-labelledby="fx-long-name" aria-describedby="fx-long-hint"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label" id="fx-long-name">Send a summary of every failed nightly backup to the owners of the affected devices</span><small class="ds-switch__hint" id="fx-long-hint">Once a day, after the last run</small><span class="ds-switch__state" aria-hidden="true">Off</span></label>'
+        + '<label class="ds-switch" id="fx-row-meta"><input type="checkbox" role="switch" aria-labelledby="fx-meta-name"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label" id="fx-meta-name">Weekly digest</span><span class="ds-switch__meta"><span class="ds-tag ds-tag--neutral">2 lists</span></span></label>');
+      list.children[1].id = 'fx-row-plain';
+    });
+    /** Per switch: the gap from the name to its hint, and the text block's centre less the track's centre. */
+    const measure = (ids) => page.evaluate((list) => list.map((id) => {
+      const row = document.getElementById(id);
+      const box = (el) => el && el.getBoundingClientRect();
+      const track = box(row.querySelector('.ds-switch__track'));
+      const name = box(row.querySelector('.ds-switch__label'));
+      const hint = box(row.querySelector('.ds-switch__hint'));
+      const metaEl = row.querySelector('.ds-switch__meta');
+      const meta = metaEl && { top: box(metaEl).top - parseFloat(getComputedStyle(metaEl).marginTop), bottom: box(metaEl).bottom };
+      // The meta (with its air above) belongs to the text block when it wraps under it.
+      const parts = [name, hint, meta && meta.top >= name.bottom - 1 ? meta : null].filter(Boolean);
+      const top = Math.min(...parts.map((b) => b.top));
+      const bottom = Math.max(...parts.map((b) => b.bottom));
+      return { id, gap: hint ? hint.top - name.bottom : 0, off: (top + bottom) / 2 - (track.top + track.bottom) / 2 };
+    }), ids);
+    const rows = ['switch-row', 'fx-row-plain', 'fx-row-long', 'fx-row-meta', 'switch-locked'];
+    for (const width of ['600px', '400px']) {
+      await page.locator('#switch-list').evaluate((el, w) => { el.style.width = w; }, width);
+      await settle(page);
+      for (const { id, gap, off } of await measure(rows)) {
+        expect(Math.abs(gap), `${id} at ${width}: name to hint`).toBeLessThanOrEqual(1);
+        expect(Math.abs(off), `${id} at ${width}: text centre to track centre`).toBeLessThanOrEqual(1);
+      }
+    }
   });
 });
 
