@@ -810,7 +810,8 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
   `HighlightText`, focused with a `CanvasText` ring). Keep `aria-expanded` in step yourself, or let `DS.overlay`
   do it for dialog and sheet openers. Menu triggers (`aria-haspopup="menu"`) do not tint.
 - `.ds-btn--adaptive`: a button whose label folds away on phones. Wrap the label in `.ds-btn__label` after the icon;
-  in a content panel of 600px or less (sheets and dialogs: a window of 600px or less) the label is visually hidden
+  in a content panel of 600px or less (anywhere else, such as the top bar, sheets, dialogs and a page outside the
+  frame: in a window of 600px or less) the label is visually hidden
   and the button turns into a round quiet icon button (`--ds-btn-icon-size`, with `--sm`
   `--ds-btn-sm-icon-size`; the icon at 20px). Its accessible name stays the label; give it a `data-tip` with the
   same words, which shows only while the label is folded (a tip equal to the visible text shows only while it is cut

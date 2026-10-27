@@ -6,8 +6,8 @@
  *   text is cut off (a name in a 160px column; a td that clips an inline
  *   link) and never describes the trigger; a tip that adds something (a
  *   .ds-sr label, a label hidden as a 1×1px box: the generic declarations,
- *   a folded .ds-btn--adaptive label, the rail foot's .ds-drawer__label)
- *   shows as before.
+ *   a folded .ds-btn--adaptive label, also in the top bar of a narrow
+ *   window, the rail foot's .ds-drawer__label) shows as before.
  * - Touch: a tap on an image or a blocked control shows the tip at once and
  *   a second tap hides it; a long press shows the others and swallows the
  *   click that follows; a link keeps its long press; a press that moves is
@@ -77,6 +77,19 @@ test.describe('when a tip shows', () => {
       await focusByKeyboard(page, page.locator(`#${id}`));
       expect((await tip(page)), id).toMatchObject({ state: 'open', text });
     }
+  });
+
+  test('an adaptive button in the top bar folds in a narrow window, and its tip shows (2.1)', async ({ page }) => {
+    await load(page);
+    await page.setViewportSize({ width: 390, height: 700 });
+    await page.evaluate(() => {
+      document.getElementById('theme').insertAdjacentHTML('afterbegin', '<header class="ds-topbar"><div class="ds-topbar__actions"><button class="ds-btn ds-btn--adaptive" type="button" id="topbar-folded" data-tip="Sign out"><span data-icon="download" data-size="16"></span><span class="ds-btn__label">Sign out</span></button></div></header>');
+      DS.icons.fill(document.getElementById('theme'));
+    });
+    const label = await page.evaluate(() => document.querySelector('#topbar-folded .ds-btn__label').getBoundingClientRect().toJSON());
+    expect(label.width <= 1 && label.height <= 1, 'the label folds outside a content panel').toBe(true);
+    await focusByKeyboard(page, page.locator('#topbar-folded'));
+    expect(await tip(page)).toMatchObject({ state: 'open', text: 'Sign out' });
   });
 
   test('a shown tooltip whose trigger is removed hides at once', async ({ page }) => {

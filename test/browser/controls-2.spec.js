@@ -270,6 +270,34 @@ test.describe('buttons, chips, badges (CT-6 to CT-8)', () => {
     expect(wide.width).toBeGreaterThan(60);
   });
 
+  test('an adaptive button outside a content panel (top bar, a page outside the frame) folds in a narrow window (2.1)', async ({ page }) => {
+    await open(page);
+    // A top bar, a .ds-vt-view page and a 900px .ds-content as a page would write them.
+    await page.evaluate(() => {
+      const button = (id, text) => `<button class="ds-btn ds-btn--adaptive" type="button" id="${id}" data-tip="${text}"><span data-icon="download" data-size="16"></span><span class="ds-btn__label">${text}</span></button>`;
+      const root = document.querySelector('.ds-theme');
+      root.insertAdjacentHTML('afterbegin', `<header class="ds-topbar"><div class="ds-topbar__actions">${button('btn-adaptive-topbar', 'Sign out')}</div></header>`
+        + `<main class="ds-vt-view" tabindex="-1"><section>${button('btn-adaptive-page', 'Back')}</section></main>`
+        + `<div class="ds-content" style="width: 900px">${button('btn-adaptive-panel', 'Export')}</div>`);
+      DS.icons.fill(root);
+    });
+    const read = () => page.evaluate(() => ['btn-adaptive-topbar', 'btn-adaptive-page', 'btn-adaptive-narrow', 'btn-adaptive-panel'].map((id) => {
+      const el = document.getElementById(id);
+      const label = el.querySelector('.ds-btn__label').getBoundingClientRect();
+      return { id, width: Math.round(el.getBoundingClientRect().width), label: label.width <= 1 && label.height <= 1, text: el.textContent.trim() };
+    }));
+    const icon = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.ds-theme')).getPropertyValue('--ds-btn-icon-size')) || 40);
+    // A wide window: outside a panel the label shows; in the panels as before (the 500px one folds).
+    for (const entry of await read()) expect(entry.label, entry.id).toBe(entry.id === 'btn-adaptive-narrow');
+    // A 390px window: the top bar and the page fold to the icon size and keep their names; a panel decides by its own width.
+    await page.setViewportSize({ width: 390, height: 800 });
+    const narrow = await read();
+    for (const entry of narrow.slice(0, 2)) expect(entry, entry.id).toMatchObject({ width: icon, label: true });
+    expect(narrow.map((entry) => entry.text)).toEqual(['Sign out', 'Back', 'Export', 'Export']);
+    expect(narrow[2]).toMatchObject({ width: icon, label: true });
+    expect(narrow[3].label, 'a 900px .ds-content keeps its label in a narrow window').toBe(false);
+  });
+
   test('quiet links are underlined in the quieter ink', async ({ page }) => {
     await open(page);
     const text2 = await colourOf(page, '--ds-text-2');

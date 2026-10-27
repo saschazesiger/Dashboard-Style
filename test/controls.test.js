@@ -175,7 +175,7 @@ describe('buttons (2.0)', () => {
     assert.ok(names.indexOf('text-underline-offset') > names.indexOf('text-decoration'));
   });
 
-  it('folds the label of .ds-btn--adaptive in a narrow content panel and, in sheets and dialogs, a narrow window', () => {
+  it('folds the label of .ds-btn--adaptive in a narrow content panel and, outside one and in sheets and dialogs, a narrow window (2.1)', () => {
     // The 1px floor: a container that Firefox styles before its first layout reads 0px wide (no fold on load).
     const container = atRuleBlocks(css, /@container ds-content \(min-width: 1px\) and \(max-width: 600px\)/).join('\n');
     const media = atRuleBlocks(css, /@media \(max-width: 600px\)/).join('\n');
@@ -183,8 +183,19 @@ describe('buttons (2.0)', () => {
     assert.equal(own(container, '.ds-btn--adaptive')['--ds-btn-bg'], 'transparent');
     assert.equal(own(container, '.ds-btn--adaptive.ds-btn--sm')['--ds-btn-icon-size'], 'var(--ds-btn-sm-icon-size, 32px)');
     assert.equal(own(container, '.ds-btn--adaptive .ds-btn__label').clip, 'rect(0, 0, 0, 0)');
-    assert.deepEqual(own(media, ':is(.ds-sheet, .ds-dialog) .ds-btn--adaptive .ds-btn__label'), own(container, '.ds-btn--adaptive .ds-btn__label'));
-    assert.deepEqual(own(media, ':is(.ds-sheet, .ds-dialog) .ds-btn--adaptive'), own(container, '.ds-btn--adaptive'));
+    // The window rules repeat the panel's for every button outside a .ds-content (the top bar, a page outside the
+    // frame) and in sheets and dialogs, at the weight of the old sheet and dialog rules (0,2,0).
+    const OUTSIDE = ':is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *)';
+    for (const [window, panel] of [
+      [`.ds-btn--adaptive${OUTSIDE}`, '.ds-btn--adaptive'],
+      [`.ds-btn--adaptive.ds-btn--sm${OUTSIDE}`, '.ds-btn--adaptive.ds-btn--sm'],
+      [`.ds-btn--adaptive${OUTSIDE} > svg`, '.ds-btn--adaptive > svg'],
+      [`.ds-btn--adaptive${OUTSIDE} .ds-btn__label`, '.ds-btn--adaptive .ds-btn__label'],
+    ]) {
+      assert.ok(Object.keys(own(container, panel)).length, panel);
+      assert.deepEqual(own(media, window), own(container, panel), window);
+    }
+    assert.ok(!media.includes(':is(.ds-sheet, .ds-dialog) .ds-btn--adaptive'), 'no rule for sheets and dialogs alone');
   });
 
   it('keeps quiet links underlined, in the quieter ink, the link colour on hover', () => {

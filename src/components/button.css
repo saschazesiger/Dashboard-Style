@@ -26,8 +26,10 @@
  *                            pressed toggle (so does a button with
  *                            aria-haspopup="dialog"; menu triggers do not)
  *   .ds-btn--adaptive        a labelled button whose label folds away in a
- *                            narrow content panel (600px), leaving a round
- *                            quiet icon button that keeps its name:
+ *                            narrow content panel (600px); anywhere else,
+ *                            sheets and dialogs included, in a window of
+ *                            600px or less; it leaves a round quiet icon
+ *                            button that keeps its name:
  *     <button class="ds-btn ds-btn--adaptive" type="button" data-tip="Export">(download 16)<span class="ds-btn__label">Export</span></button>
  *
  * Quiet links: .ds-link--quiet (a link) and .ds-link-btn--quiet (with
@@ -450,9 +452,12 @@
   }
 
   /*
-   * Adaptive label: in a narrow content panel (600px; sheets and dialogs,
-   * which lie outside that container, follow the window) the label goes
+   * Adaptive label: in a narrow content panel (600px) the label goes
    * visually hidden and the button turns into a round quiet icon button.
+   * Everything outside a content panel (the top bar, a page outside the
+   * frame) and sheets and dialogs (which may sit inside one but are not
+   * its width) follow the window instead; no container on new elements
+   * (layout containment would re-anchor popups).
    * Its accessible name stays the label; a data-tip names it to the eye
    * while it is folded. The 1px floor: Firefox can style the button
    * before its container's first layout and read that container as 0px
@@ -497,7 +502,7 @@
   }
 
   @media (max-width: 600px) {
-    :is(.ds-sheet, .ds-dialog) .ds-btn--adaptive {
+    .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) {
       --ds-btn-half: calc(var(--ds-btn-icon-size, 40px) / 2);
       --ds-btn-border: transparent;
       --ds-btn-bg: transparent;
@@ -509,16 +514,16 @@
       padding: 0;
     }
 
-    :is(.ds-sheet, .ds-dialog) .ds-btn--adaptive.ds-btn--sm {
+    .ds-btn--adaptive.ds-btn--sm:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) {
       --ds-btn-icon-size: var(--ds-btn-sm-icon-size, 32px);
     }
 
-    :is(.ds-sheet, .ds-dialog) .ds-btn--adaptive > svg {
+    .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) > svg {
       width: 20px;
       height: 20px;
     }
 
-    :is(.ds-sheet, .ds-dialog) .ds-btn--adaptive .ds-btn__label {
+    .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) .ds-btn__label {
       position: absolute;
       top: 0;
       inset-inline-start: 0;
