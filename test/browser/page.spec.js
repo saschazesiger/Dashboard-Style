@@ -61,6 +61,38 @@ test.describe('page head', () => {
     expect(Math.abs(actions.left - title.left)).toBeLessThan(1);
   });
 
+  test('a text button in the actions hangs its padding out: the last ends on the card edge, under the title each starts on its edge', async ({ page }) => {
+    await open(page);
+    await page.locator('#actions').evaluate((actions) => {
+      actions.innerHTML = '<button class="ds-btn" type="button" id="retire">Retire</button>'
+        + '<button class="ds-btn ds-btn--text" type="button" id="history">History</button>'
+        + '<button class="ds-btn ds-btn--text" type="button" id="export">Export</button>';
+    });
+    await settle(page);
+    /** The box of a button's text, not of the button. */
+    const text = (selector) => page.locator(selector).evaluate((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const rect = range.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, top: rect.top };
+    });
+    const card = await box(page, '#filler');
+    expect(Math.abs((await text('#export')).right - card.right)).toBeLessThan(1.5);
+    // An outlined button keeps its place: its edge, not its text, is the end of the row when it comes last.
+    expect((await box(page, '#retire')).right).toBeLessThan(card.right - 1);
+    await page.setViewportSize({ width: 400, height: 800 });
+    await settle(page);
+    const title = await box(page, '#title');
+    expect(Math.abs((await box(page, '#retire')).left - title.left)).toBeLessThan(1);
+    await page.locator('#retire').evaluate((el) => el.remove());
+    await settle(page);
+    expect(Math.abs((await text('#history')).left - title.left)).toBeLessThan(1.5);
+    const history = await text('#history');
+    const exported = await text('#export');
+    if (Math.abs(exported.top - history.top) > 1) expect(Math.abs(exported.left - title.left)).toBeLessThan(1.5); // wrapped: it starts the line
+    else expect(Math.abs((await box(page, '#export')).left - (await box(page, '#history')).right - 8)).toBeLessThan(1); // the boxes 8px apart, as before
+  });
+
   test('print leaves out the back link and the actions', async ({ page }) => {
     await open(page);
     await page.emulateMedia({ media: 'print' });

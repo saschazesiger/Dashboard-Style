@@ -2787,4 +2787,19 @@ describe('tables, cards and buttons (2.1)', () => {
     // The same weight (0,2,0) as the overhang, so the later rule wins.
     for (const selector of [SMALL, '.ds-card__row > .ds-chip']) assert.ok(CARD.indexOf(`${selector} {`) > CARD.indexOf(`${GENERAL} {`), selector);
   });
+
+  it('hangs a page head\'s text buttons into the gutter: the last at the end, under the title each at the start', () => {
+    const PAGE = stripComments(read('src/components/page.css'));
+    const LAST = '.ds-page-head__actions > .ds-btn--text:last-child';
+    const HANG = 'calc(-1 * var(--ds-space-3))';
+    const wide = withoutAtRuleBlocks(PAGE, /@container|@media/);
+    assert.equal(at(wide, LAST)['margin-inline-end'], HANG);
+    assert.equal(at(wide, '.ds-page-head__actions > .ds-btn--text')['margin-inline-start'], undefined, 'on the title line only the end hangs');
+    const narrow = atRuleBlocks(PAGE, /^@container ds-content \(max-width: 600px\)$/).join('\n');
+    assert.equal(at(narrow, '.ds-page-head__actions > .ds-btn--text')['margin-inline-start'], HANG);
+    assert.equal(at(narrow, LAST)['margin-inline-end'], '0');
+    assert.equal(at(narrow, '.ds-page-head__actions:has(> .ds-btn--text)')['column-gap'], 'calc(var(--ds-space-2) + var(--ds-space-3))');
+    // Only text buttons hang: an outlined or filled one keeps its place.
+    assert.doesNotMatch(PAGE, /\.ds-page-head__actions > (?:\*|\.ds-btn)(?![\w-])/);
+  });
 });
