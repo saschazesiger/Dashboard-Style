@@ -959,8 +959,10 @@ function flag(element, name, on) {
  * --ds-scrollbar-width ('block') in px (the room of the scrollbar), and
  * --ds-table-pin-width (the width of the first cell) when it holds a
  * .ds-table--pin-first. A passive scroll listener updates once per frame,
- * one ResizeObserver per window watches the scroller and its first child;
- * when the overflow goes away it calls resyncScroll(scroller). Once per
+ * one ResizeObserver per window watches the scroller and its children (a
+ * MutationObserver adds the children that come and drops the ones that
+ * go), so rows added or opened update the edges; when the overflow goes
+ * away it calls resyncScroll(scroller). Once per
  * scroller and axis: a second call returns the same handle.
  * watchScrolled() stays the reporter of the block start (a sentinel, for
  * another target).
@@ -982,7 +984,28 @@ export function scrollEdges(scroller, options = {}) {
   for (const name of [bar, '--ds-table-pin-width']) own(scroller, 'props', name);
   let frame = 0;
   let overflowed = false;
-  let child = scroller.firstElementChild ?? null;
+  // Every element child is watched, not only the first: a list grows by new
+  // siblings, and its first child may be an absolute .ds-indicator.
+  const watched = new Set();
+  const syncChildren = () => {
+    const now = new Set(Array.from(scroller.children ?? []));
+    for (const node of watched) {
+      if (now.has(node)) continue;
+      unwatchSize(view, node, schedule);
+      watched.delete(node);
+    }
+    for (const node of now) {
+      if (watched.has(node)) continue;
+      watchSize(view, node, schedule);
+      watched.add(node);
+    }
+  };
+  const children = typeof view.MutationObserver === 'function'
+    ? new view.MutationObserver(() => {
+      syncChildren();
+      schedule();
+    })
+    : null;
   const measure = () => {
     frame = 0;
     const size = inline ? scroller.scrollWidth - scroller.clientWidth : scroller.scrollHeight - scroller.clientHeight;
@@ -1005,13 +1028,8 @@ export function scrollEdges(scroller, options = {}) {
     else scroller.style.removeProperty('--ds-table-pin-width');
     if (overflowed && !overflow) resyncScroll(scroller);
     overflowed = overflow;
-    // A new first child (a re-render) is watched instead of the old one.
-    const now = scroller.firstElementChild ?? null;
-    if (now !== child) {
-      unwatchSize(view, child, schedule);
-      child = now;
-      watchSize(view, child, schedule);
-    }
+    // Without a MutationObserver, the children are synced per measure.
+    if (!children) syncChildren();
   };
   const schedule = () => {
     if (frame) return;
@@ -1023,7 +1041,8 @@ export function scrollEdges(scroller, options = {}) {
   };
   scroller.addEventListener('scroll', schedule, { passive: true });
   watchSize(view, scroller, schedule);
-  watchSize(view, child, schedule);
+  syncChildren();
+  children?.observe(scroller, { childList: true });
   measure();
   const handle = {
     update() {
@@ -1035,7 +1054,9 @@ export function scrollEdges(scroller, options = {}) {
       if (frame) view.cancelAnimationFrame?.(frame);
       scroller.removeEventListener('scroll', schedule);
       unwatchSize(view, scroller, schedule);
-      unwatchSize(view, child, schedule);
+      children?.disconnect();
+      for (const node of watched) unwatchSize(view, node, schedule);
+      watched.clear();
       for (const name of ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end']) {
         disown(scroller, 'attrs', name);
         if (!watches.size) scroller.removeAttribute(name);

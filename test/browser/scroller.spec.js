@@ -5,8 +5,9 @@
  * keeps the scrollbar strip opaque, is a tab stop with an inset ring that
  * drops the mask, prints unmasked, keeps its owned edge state through
  * morphHtml; .ds-jump holds a "Latest" pill at its log's bottom edge
- * without taking room or the pointer. The card table wrappers move to the
- * same numbers (scroll.spec.js).
+ * without taking room or the pointer; a block-axis list that grows or
+ * shrinks by rows updates its end edge without a scroll (2.1). The card
+ * table wrappers move to the same numbers (scroll.spec.js).
  */
 import { test, expect } from './base-test.js';
 import { ready, settle, focusByKeyboard } from './helpers/motion.js';
@@ -153,4 +154,34 @@ test('a re-render through morphHtml keeps the edge state that DS.dom.scrollEdges
   expect(state.same, 'the strip is patched in place').toBe(true);
   expect(state.before).toEqual(['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end']);
   expect(state.after).toEqual(state.before);
+});
+
+test('a block-axis list with an indicator first updates its end edge as rows come and go, without a scroll (2.1)', async ({ page }) => {
+  await open(page);
+  const frames = (count) => page.evaluate((n) => new Promise((resolve) => {
+    const step = (left) => (left ? requestAnimationFrame(() => step(left - 1)) : resolve());
+    step(n);
+  }), count);
+  await page.evaluate(() => {
+    const list = document.createElement('div');
+    list.id = 'grow-list';
+    Object.assign(list.style, { position: 'relative', height: '160px', overflowY: 'auto', width: '240px' });
+    // A fixed height, as a drawer list's: only its rows change size. As
+    // createIndicator() leaves it, the absolute indicator is the first child.
+    list.insertAdjacentHTML('beforeend', '<span class="ds-indicator" style="position: absolute; inset-block-start: 0; block-size: 40px"></span><p style="margin: 0; block-size: 40px">Row 1</p>');
+    document.querySelector('.ds-theme').append(list);
+    DS.dom.scrollEdges(list, { axis: 'block' });
+  });
+  await frames(2);
+  const end = () => page.locator('#grow-list').evaluate((el) => ({ overflows: el.scrollHeight > el.clientHeight, end: el.hasAttribute('data-ds-overflow-end') }));
+  expect(await end()).toEqual({ overflows: false, end: false });
+  await page.evaluate(() => {
+    const list = document.getElementById('grow-list');
+    for (let index = 2; index <= 16; index += 1) list.insertAdjacentHTML('beforeend', `<p class="fx-grown" style="margin: 0; block-size: 40px">Row ${index}</p>`);
+  });
+  await frames(3);
+  expect(await end()).toEqual({ overflows: true, end: true });
+  await page.evaluate(() => document.querySelectorAll('#grow-list .fx-grown').forEach((row) => row.remove()));
+  await frames(3);
+  expect(await end()).toEqual({ overflows: false, end: false });
 });

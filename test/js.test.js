@@ -1885,6 +1885,35 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     assert.equal(wrap.style.getPropertyValue('--ds-scrollbar-height'), '');
   });
 
+  it('scrollEdges: watches every child of the scroller, the ones that come and not the ones that go (2.1)', () => {
+    const { h, observers, frames, runFrames } = helperDom();
+    // A drawer list: the absolute indicator first, then the rows.
+    const indicator = h('span', { class: 'ds-indicator' });
+    const first = h('a', {});
+    const list = h('div', { class: 'ds-drawer__list' }, indicator, first);
+    Object.assign(list, { scrollHeight: 200, clientHeight: 200, scrollTop: 0 });
+    const handle = dom.scrollEdges(list, { axis: 'block' });
+    const sizes = observers.resize.find((observer) => observer.targets.has(list));
+    assert.deepEqual([indicator, first].map((node) => sizes.targets.has(node)), [true, true], 'every child, not only the first');
+    const added = Array.from({ length: 16 }, () => h('a', {}));
+    for (const row of added) list.append(row);
+    list.scrollHeight = 800;
+    const children = observers.mutation.at(-1);
+    children.callback([{ addedNodes: added, removedNodes: [] }]);
+    assert.ok(added.every((row) => sizes.targets.has(row)), 'the rows that came are watched');
+    assert.ok(frames.length > 0, 'a measure is scheduled');
+    runFrames();
+    assert.equal(list.hasAttribute('data-ds-overflow-end'), true, 'the list that grew has more to scroll');
+    for (const row of added) list.children.splice(list.children.indexOf(row), 1);
+    list.scrollHeight = 200;
+    children.callback([{ addedNodes: [], removedNodes: added }]);
+    runFrames();
+    assert.equal(added.some((row) => sizes.targets.has(row)), false, 'the rows that went are not');
+    assert.equal(list.hasAttribute('data-ds-overflow-end'), false);
+    handle.destroy();
+    assert.deepEqual([indicator, first, list].map((node) => sizes.targets.has(node)), [false, false, false], 'destroy() unwatches them');
+  });
+
   it('progress: a share and its ARIA on a progress bar, a spinner and a meter; an unknown share', (t) => {
     const { h } = helperDom();
     const track = h('div', { class: 'ds-progress__track', role: 'progressbar', 'aria-valuetext': 'Preparing' });
