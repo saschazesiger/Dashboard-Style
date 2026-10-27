@@ -136,6 +136,27 @@ test('the form shows its errors on submit, takes a model from the combobox and a
   await expect(page.locator('#f-name')).toHaveValue('');
 });
 
+test.describe('the combobox under touch (WebKit)', () => {
+  // A phone: Firefox cannot create an isMobile context, and the tap's click is WebKit's question.
+  test.skip(({ browserName }) => browserName !== 'webkit', 'the iOS engine');
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 664 } });
+
+  test('a tap on an option chooses it: the list cancels mousedown, never pointerdown', async ({ page }) => {
+    await open(page);
+    const field = page.locator('#f-model');
+    await field.scrollIntoViewIfNeeded();
+    await field.tap();
+    await page.locator('#f-model ~ .ds-combo__toggle').tap();
+    await expect(field).toHaveAttribute('aria-expanded', 'true');
+    await settle(page);
+    const option = page.locator('#model-list [role="option"]').first();
+    const name = (await option.locator('.ds-combo__name').textContent()).trim();
+    await option.tap();
+    await expect(field).toHaveValue(name);
+    await expect(field).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
 test('the CSV import takes files from its dialog, uploads each with its progress, and a removal moves the focus on (2.0)', async ({ page }) => {
   const errors = collectErrors(page);
   await open(page);

@@ -2360,7 +2360,9 @@ colours `SelectedItem`, and while it is also the active one a `CanvasText` ring 
 - **Open and close** with `DS.overlay` ([motion.md](motion.md#dsoverlay-jsoverlayjs)). The page filters and chooses:
   filtering never re-creates or re-hides the list, and when nothing matches the list keeps showing with the status
   line (`.ds-combo__list` `hidden`, the status says "No match") instead of closing. Closing on blur and on a choice
-  is the page's script (`DS.overlay.close(popup)`).
+  is the page's script (`DS.overlay.close(popup)`). Keep the field focused while an option is pressed by cancelling
+  `mousedown` on the list (and the toggle) and choose on `click`, never by cancelling `pointerdown`: in WebKit that
+  swallows the click of a tap, so a tap on an option would choose nothing.
 - **Motion.** The list grows out of the field: it fades in (`--ds-dur-fast`) while its clip opens from the field's
   edge and it grows from `--ds-scale-popup` at the field, both on the spatial spring (`--ds-dur-medium`); the shadow
   is there from the first frame. It leaves with a fade only (`--ds-dur-instant`). The motion runs on transitions

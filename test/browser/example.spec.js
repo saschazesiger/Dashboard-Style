@@ -201,6 +201,27 @@ test('a new ticket shows its errors on submit, takes a device from the combobox 
   await expect(page.locator('.ds-toast', { hasText: 'created' })).toBeVisible();
 });
 
+test.describe('the combobox under touch (WebKit)', () => {
+  // A phone: Firefox cannot create an isMobile context, and the tap's click is WebKit's question.
+  test.skip(({ browserName }) => browserName !== 'webkit', 'the iOS engine');
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 664 } });
+
+  test('a tap on an option chooses it: the list cancels mousedown, never pointerdown', async ({ page }) => {
+    await open(page, '#/tickets');
+    await page.locator('[data-act="new-ticket"]').tap();
+    await settle(page);
+    const field = page.locator('#ticket-device');
+    await field.tap();
+    await page.locator('#ticket-device ~ .ds-combo__toggle').tap();
+    await expect(field).toHaveAttribute('aria-expanded', 'true');
+    await settle(page);
+    const option = page.locator('#ticket-device-list [role="option"]').first();
+    await option.tap();
+    await expect(field).toHaveValue(/^[A-Z]+-\d{4}$/);
+    await expect(field).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
 test('the accent radio cards switch the theme through its tokens and keep the choice', async ({ page }) => {
   await open(page, '#/settings');
   const primary = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ds-primary').trim());

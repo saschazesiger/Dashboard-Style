@@ -262,6 +262,18 @@ describe('repository', () => {
     assert.deepEqual(offenders, []);
   });
 
+  it('keeps a combobox field focused through mousedown, never pointerdown (docs, styleguide, tour, reference app)', () => {
+    // A cancelled pointerdown swallows the click of a tap in WebKit: an option tapped on a phone chose nothing.
+    const docs = read('docs/components.md');
+    const combo = docs.slice(docs.indexOf('\n## Combobox\n'), docs.indexOf('\n## Menu\n'));
+    assert.match(combo, /cancelling\s+`mousedown` on the list/);
+    for (const file of ['demo/demo.js', 'example/app.js', 'styleguide/styleguide.js']) {
+      const source = code(read(file));
+      assert.doesNotMatch(source, /addEventListener\(\s*'pointerdown',\s*(?:function\s*)?\(?\s*event\s*\)?\s*(?:=>)?\s*\{?\s*event\.preventDefault\(\)/, `${file} cancels pointerdown`);
+      if (/ds-combo__list|combo\.list/.test(source)) assert.match(source, /addEventListener\(\s*'mousedown'/, `${file} keeps the field focused through mousedown`);
+    }
+  });
+
   it('names every table header of the documented markup (an empty <th> fails axe empty-table-header, TB-6)', () => {
     const empty = [...read('docs/components.md').matchAll(/```html\n([\s\S]*?)```/g)]
       .flatMap((block) => [...block[1].matchAll(/<th\b[^>]*>\s*<\/th>/g)].map((match) => match[0]));

@@ -771,8 +771,9 @@
     else comboShow('');
     combo.input.focus();
   });
-  // Pressing an option keeps the focus in the field, then chooses it.
-  combo.list.addEventListener('pointerdown', (event) => event.preventDefault());
+  // A mouse press on an option keeps the focus in the field, then the click chooses it.
+  // Cancel mousedown, never pointerdown: that would swallow a tap's click in WebKit.
+  combo.list.addEventListener('mousedown', (event) => event.preventDefault());
   combo.list.addEventListener('click', (event) => {
     const option = event.target.closest('.ds-combo__option');
     const model = option && combo.matches.find((m) => m.id === option.id);
