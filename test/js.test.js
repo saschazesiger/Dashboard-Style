@@ -1456,6 +1456,28 @@ describe('createIndicator on a fake track', () => {
     assert.equal(env.track.classList.contains('ds-drawer__list--overflow'), false, 'a list that fits loses the mark');
     handle.destroy();
   });
+
+  it('reveal keeps the track\'s scroll-padding where it is larger than --ds-space-2: clear of a drawer list\'s edge shades (2.1)', () => {
+    const env = indicatorTrack({ count: 12, current: 0 });
+    Object.assign(env.track, { clientHeight: 200, clientWidth: 216, scrollHeight: 600 });
+    env.track.computed = { 'scroll-padding-top': '32px', 'scroll-padding-bottom': '32px', 'scroll-padding-left': 'auto', 'scroll-padding-right': 'auto' };
+    const scrolls = [];
+    env.track.scrollTo = (options) => {
+      scrolls.push(options);
+      const dy = options.top - env.track.scrollTop;
+      for (const item of env.items) item.rect = { ...item.rect, top: item.rect.top - dy, bottom: item.rect.bottom - dy };
+      env.track.scrollTop = options.top;
+    };
+    const { handle } = create(env, { reveal: true });
+    env.setCurrent(9);
+    handle.update();
+    assert.equal(scrolls[0].top, env.slot(9).bottom + 32 - 200, 'the item ends a shade above the bottom edge');
+    assert.equal(scrolls[0].left, 0, 'auto inline padding: the inline axis stays');
+    env.setCurrent(3);
+    handle.update();
+    assert.equal(scrolls[1].top, env.slot(3).top - 32, 'and starts a shade below the top edge');
+    handle.destroy();
+  });
 });
 
 /**

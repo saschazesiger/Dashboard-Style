@@ -211,13 +211,14 @@ is the only scroller. At 900px and below the drawer becomes modal.
   page; it loses the browser's button look. The active one also carries `aria-current="page"`.
 - `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible;
   `createIndicator(list, { ..., reveal: true })` sets it by itself and scrolls the list (only the list) so the
-  current item stays `--ds-space-2` clear of its edges.
+  current item stays clear of its edges and their shades (below).
 - Cut edges (2.1): a list longer than the drawer shades each edge that has more to show, as a menu does: a sticky
   shade of the drawer's surface (`--ds-backdrop`), `--ds-scroll-fade` long (`0px` turns it off), above the items and
   the pill, taking no room (the list keeps `--ds-space-1` above its rows and `--ds-space-6` below them). Scroll
   timelines drive it; elsewhere call `DS.dom.scrollEdges(list, { axis: 'block' })` once, whose
-  `data-ds-overflow-start` / `-end` show the shades over `--ds-dur-fast` (it follows rows that come and go). Hidden in
-  forced colours.
+  `data-ds-overflow-start` / `-end` show the shades over `--ds-dur-fast` (it follows rows that come and go). An item
+  focused by the keys or revealed by `createIndicator()` lands clear of the shades (`scroll-padding-block`, as
+  long). Hidden in forced colours.
 - Sliding pills: `DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })`
   and the same on `.ds-segmented` with `className: 'ds-segmented__indicator'`. The pill follows `aria-current` and
   the size of the items by itself ([motion](motion.md#dsindicator-jsindicatorjs)); no `update()` is needed. While it

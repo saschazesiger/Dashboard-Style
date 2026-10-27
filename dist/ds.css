@@ -16493,6 +16493,9 @@
     /* The block padding (--ds-space-1 above, --ds-space-6 below) lives in
        the edge shades (below), so the end shade reaches the cut edge. */
     padding: 0 var(--ds-space-3);
+    /* An item focused by the keys or scrolled into view lands clear of the
+       edge shades, focus ring and all. */
+    scroll-padding-block: var(--ds-scroll-fade, var(--ds-space-8));
     /* Classic scrollbars (Chrome on Windows) would draw a grey rail between
        drawer and panel, a divider the drawer must not have: the thumb only
        shows while the pointer or focus is in the list. */

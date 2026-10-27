@@ -616,6 +616,70 @@ test.describe('drawer list edges (2.1)', () => {
     }
   });
 
+  /** Where an item rests against the list's visible part and its shades. */
+  const against = (page, selector) => page.locator(selector).evaluate((item) => {
+    const list = item.closest('.ds-drawer__list');
+    const box = list.getBoundingClientRect();
+    const top = box.top + list.clientTop;
+    const rect = item.getBoundingClientRect();
+    return {
+      fromTop: rect.top - top,
+      toBottom: top + list.clientHeight - rect.bottom,
+      shade: parseFloat(getComputedStyle(list, '::after').height),
+      start: Number(getComputedStyle(list, '::before').opacity),
+      end: Number(getComputedStyle(list, '::after').opacity),
+      atEnd: list.scrollTop >= list.scrollHeight - list.clientHeight - 1,
+    };
+  });
+
+  test('an item focused at a cut edge and a revealed current item rest clear of the shades, ring and all', async ({ page }) => {
+    await longList(page);
+    // The first item cut by the bottom edge: focus scrolls it in (block nearest), clear of the end shade.
+    const cut = await page.locator('#drawer-list').evaluate((list) => {
+      const bottom = list.getBoundingClientRect().top + list.clientTop + list.clientHeight;
+      const items = [...list.querySelectorAll('.ds-drawer__item')];
+      const index = items.findIndex((item) => item.getBoundingClientRect().bottom > bottom);
+      items[index].id = 'cut-end';
+      return index;
+    });
+    expect(cut).toBeGreaterThan(0);
+    await page.locator('#cut-end').focus();
+    await frames(page);
+    await settle(page);
+    let at = await against(page, '#cut-end');
+    expect(at.end, 'more lies below').toBe(1);
+    // The drawer item's ring is inset: the item's box holds it.
+    expect(at.toBottom, 'the focused item ends above the end shade').toBeGreaterThanOrEqual(at.shade - 0.5);
+    // At the end of the list, the first item cut by the top edge: clear of the start shade.
+    await page.locator('#drawer-list').evaluate((list) => {
+      list.scrollTop = list.scrollHeight;
+      const top = list.getBoundingClientRect().top + list.clientTop;
+      const items = [...list.querySelectorAll('.ds-drawer__item')];
+      items.findLast((item) => item.getBoundingClientRect().top < top).id = 'cut-start';
+    });
+    await page.locator('#cut-start').focus();
+    await frames(page);
+    await settle(page);
+    at = await against(page, '#cut-start');
+    expect(at.start, 'more lies above').toBe(1);
+    expect(at.fromTop, 'the focused item starts below the start shade').toBeGreaterThanOrEqual(at.shade - 0.5);
+    // A current item further down, revealed by the indicator: it lands clear of the end shade.
+    await page.locator('#drawer-list').evaluate((list) => {
+      list.scrollTop = 0;
+      document.activeElement?.blur();
+      list.querySelector('[aria-current]')?.removeAttribute('aria-current');
+      const item = list.querySelector('a[href="#site-8"]');
+      item.id = 'revealed';
+      item.setAttribute('aria-current', 'page');
+      DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
+    });
+    await frames(page);
+    await settle(page);
+    at = await against(page, '#revealed');
+    expect(at.fromTop).toBeGreaterThan(0);
+    if (!at.atEnd) expect(at.toBottom, 'the revealed item ends above the end shade').toBeGreaterThanOrEqual(at.shade - 0.5);
+  });
+
   test('--ds-scroll-fade: 0px turns the shades off; the rows keep their room', async ({ page }) => {
     await longList(page);
     await page.evaluate(() => document.querySelector('.ds-theme').style.setProperty('--ds-scroll-fade', '0px'));

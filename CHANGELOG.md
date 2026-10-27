@@ -30,7 +30,10 @@ too.
   shade of the drawer's surface (`--ds-backdrop`), `--ds-scroll-fade` long (`0px` turns it off), above the items and
   the pill, taking no room. Scroll timelines drive it; elsewhere `DS.dom.scrollEdges(list, { axis: 'block' })`,
   which the page calls once (the styleguide, the live tour and the reference app now do): its first measure shows
-  the shades at once, later changes fade them over `--ds-dur-fast`, so nothing moves on load. The list's block padding
+  the shades at once, later changes fade them over `--ds-dur-fast`, so nothing moves on load. An item focused by the
+  keys lands clear of the shades, focus ring and all (`scroll-padding-block`, `--ds-scroll-fade` long), and so does
+  the current item that `createIndicator(list, { reveal: true })` scrolls into view: `reveal` now keeps a track's
+  `scroll-padding` at each edge where it is larger than `--ds-space-2`. The list's block padding
   moved into the two shades, so its rows keep `--ds-space-1` above and `--ds-space-6` below them and nothing moves;
   a project rule that set the list's `padding` shorthand now adds its block padding to the shades' room. Hidden in
   forced colours. Screenshots of drawers with a list longer than the window change.

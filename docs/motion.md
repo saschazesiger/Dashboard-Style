@@ -773,9 +773,11 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
   page `DS.motion.transition()` lifts the name while it runs: the docked drawer shows live and its pill glides as on
   a click, under its labels.
 - **`reveal`** (2.0, default `false`): when the active item changes or the track resizes, the track scrolls itself
-  (never its ancestors; smoothly, at once on the first placement) so the item is `--ds-space-2` clear of its edges,
-  and a `.ds-drawer__list` gets `.ds-drawer__list--overflow` while it is taller than its view (the drawer's long
-  lists, a row of tabs that scrolls sideways).
+  (never its ancestors; smoothly, at once on the first placement) so the item is `--ds-space-2` clear of its edges, or
+  the track's `scroll-padding` where that is larger (2.1: a `.ds-drawer__list` keeps `--ds-scroll-fade`, so the item
+  rests clear of its edge shades, where keyboard focus lands too), and a `.ds-drawer__list` gets
+  `.ds-drawer__list--overflow` while it is taller than its view (the drawer's long lists, a row of tabs that scrolls
+  sideways).
 - **What it observes.** `aria-current`, `aria-pressed`, `aria-selected` and `aria-checked` anywhere in the track and
   items added or removed (never `class`; its own span and `data-ds-keep` nodes such as ripples are ignored); the size
   of the track, of each element child of the track and of the active item (a badge or a wrap in an earlier item, a
