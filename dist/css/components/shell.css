@@ -186,7 +186,8 @@
  *   the edge shades of a long .ds-drawer__list follow its scroll position):
  *   without them the data-ds-overflow-* attributes of
  *   DS.dom.scrollEdges(list, { axis: 'block' }) (attached by the page) set
- *   the shades, or none show.
+ *   the shades (at once at its first measure, then over --ds-dur-fast), or
+ *   none show.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -892,6 +893,13 @@
     height: var(--ds-scroll-fade, var(--ds-space-8));
     margin-inline: calc(-1 * var(--ds-space-3));
     pointer-events: none;
+  }
+
+  /* The shades glide only once it has measured (data-ds-edges comes after
+     the first edges), so a drawer that loads with a long list shows its end
+     shade at once instead of fading it in on load. */
+  .ds-drawer__list[data-ds-edges]::before,
+  .ds-drawer__list[data-ds-edges]::after {
     transition:
       --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
       --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out);

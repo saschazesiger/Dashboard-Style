@@ -2150,6 +2150,9 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
     const css = stripComments(read('src/components/shell.css'));
     assert.match(css, /\.ds-drawer__list\[data-ds-overflow-start\]::before \{\s*--ds-scroll-edge-start: 1;/);
     assert.match(css, /\.ds-drawer__list\[data-ds-overflow-end\]::after \{\s*--ds-scroll-edge-end: 1;/);
+    // The fallback shades glide only once scrollEdges() has measured (data-ds-edges), never on load.
+    assert.equal(own('.ds-drawer__list::before, .ds-drawer__list::after').transition, undefined, 'no transition before the first measure');
+    assert.match(css, /\.ds-drawer__list\[data-ds-edges\]::before,\s*\.ds-drawer__list\[data-ds-edges\]::after \{\s*transition:\s*--ds-scroll-edge-start var\(--ds-dur-fast\) var\(--ds-ease-in-out\),\s*--ds-scroll-edge-end var\(--ds-dur-fast\) var\(--ds-ease-in-out\);/);
     assert.match(css, /@media \(forced-colors: active\) \{[\s\S]*?\.ds-drawer__list::before,\s*\.ds-drawer__list::after \{\s*visibility: hidden;/);
   });
 
