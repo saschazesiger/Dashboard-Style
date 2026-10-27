@@ -307,7 +307,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-card-padding` | `--ds-space-6` | card padding |
 | `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
 | `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
-| `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button or switch in the header row overhangs it (set it with a type role that changes the subtitle line) |
+| `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button, switch or chip in the header row overhangs it, a status chip, badge or tag sits on it (set it with a type role that changes the subtitle line) |
 | `--ds-card-hover-shadow` | none | `.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift |
 | `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile |
 | `--ds-tile-radius-pressed` | `--ds-radius-md` | a clickable tile while pressed (never rounder than `--ds-tile-radius`) |

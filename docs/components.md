@@ -869,8 +869,9 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 <div class="ds-more"><button class="ds-btn" type="button">Load more</button></div>
 ```
 
-Children of a card are 16px apart; a button or switch in `.ds-card__row` overhangs the title line so all card titles
-start at the same height. Cards in `.ds-grid-2` share their height and line up their `.ds-card__links`, the tallest
+Children of a card are 16px apart; a button, switch or `.ds-chip` in `.ds-card__row` overhangs the title line so all
+card titles start at the same height; a status chip, badge or tag fits the line and sits on it, so a row that wraps
+keeps the card's 16px below it. Cards in `.ds-grid-2` share their height and line up their `.ds-card__links`, the tallest
 card's still 16px below its content. Padding: the `--ds-card-padding*` hooks ([theming.md](theming.md#component-hooks)).
 
 ### Interactive card

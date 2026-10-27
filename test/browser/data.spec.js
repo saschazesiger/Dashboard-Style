@@ -770,6 +770,21 @@ test.describe('card layout (2.1)', () => {
     // A shorter card still pushes its links down to the shared line.
     expect(shortRow.top - shortText.bottom).toBeGreaterThan(16 + 1);
   });
+
+  test('card head row: a status chip sits on the title line and, wrapped, keeps the card\'s 16px to the text below', async ({ page }) => {
+    await open(page);
+    const read = (width) => page.evaluate((w) => {
+      document.getElementById('head-card').style.setProperty('width', w);
+      const [title, chip, text] = ['head-title', 'head-status', 'head-text'].map((id) => document.getElementById(id).getBoundingClientRect());
+      return { wrapped: chip.top >= title.bottom, below: text.top - chip.bottom, offset: (chip.top + chip.bottom) / 2 - (title.top + title.bottom) / 2 };
+    }, width);
+    const narrow = await read('300px');
+    expect(narrow.wrapped).toBe(true);
+    expect(narrow.below).toBeGreaterThanOrEqual(16 - 0.5);
+    const wide = await read('720px');
+    expect(wide.wrapped).toBe(false);
+    expect(Math.abs(wide.offset)).toBeLessThanOrEqual(1);
+  });
 });
 
 test.describe('forced colours', () => {

@@ -2776,4 +2776,15 @@ describe('tables, cards and buttons (2.1)', () => {
     assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--ds-space-4)');
     assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'var(--ds-space-4)', 'the floor is the rhythm');
   });
+
+  it('lets a status chip, badge or tag sit on the card title line and a chip hang by its own height, after the button overhang', () => {
+    const CARD = stripComments(read('src/components/card.css'));
+    const GENERAL = '.ds-card__row > :not(.ds-card__title, :has(> .ds-card__title))';
+    const SMALL = '.ds-card__row > :is(.ds-status, .ds-badge, .ds-tag)';
+    assert.equal(at(CARD, GENERAL)['margin-block'], 'calc((var(--ds-card-title-line, 24px) - var(--ds-btn-height, 36px)) / 2)');
+    assert.equal(at(CARD, SMALL)['margin-block'], '0');
+    assert.equal(at(CARD, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - var(--ds-chip-height, 32px)) / 2)');
+    // The same weight (0,2,0) as the overhang, so the later rule wins.
+    for (const selector of [SMALL, '.ds-card__row > .ds-chip']) assert.ok(CARD.indexOf(`${selector} {`) > CARD.indexOf(`${GENERAL} {`), selector);
+  });
 });
