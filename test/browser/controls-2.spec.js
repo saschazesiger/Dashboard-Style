@@ -510,6 +510,42 @@ test.describe('icons (CT-3)', () => {
     });
     expect(result).toEqual({ first: 2, second: 0, kept: true, sizes: ['16', '20'] });
   });
+  test('DS.icons.fill() with data-icon-place="start" keeps the label: the button matches its markup form (2.1)', async ({ page }) => {
+    await open(page);
+    const result = await page.evaluate(() => {
+      const holder = document.createElement('div');
+      holder.style.cssText = 'display: flex; gap: 8px; align-items: flex-start';
+      holder.innerHTML =
+        `<button class="ds-btn" type="button" id="fx-markup">${DS.icons.icon(DS.icons.plus, 18)}Add device</button>` +
+        '<button class="ds-btn" type="button" id="fx-filled" data-icon="plus" data-icon-size="18" data-icon-place="start">Add device</button>' +
+        '<button class="ds-btn" type="button" id="fx-end" data-icon="external" data-icon-size="18" data-icon-place="end">Open the guide</button>';
+      document.querySelector('.ds-theme').append(holder);
+      const first = DS.icons.fill(holder);
+      const glyph = document.querySelector('#fx-filled svg');
+      const second = DS.icons.fill(holder);
+      const metrics = (id) => {
+        const button = document.getElementById(id);
+        const box = button.getBoundingClientRect();
+        const svg = button.querySelector('svg').getBoundingClientRect();
+        const style = getComputedStyle(button);
+        return {
+          width: box.width, height: box.height, paddingLeft: style.paddingLeft, paddingRight: style.paddingRight,
+          svg: [svg.left - box.left, svg.top - box.top, svg.width],
+        };
+      };
+      const end = document.getElementById('fx-end');
+      return {
+        first, second, kept: document.querySelector('#fx-filled svg') === glyph,
+        markup: metrics('fx-markup'), filled: metrics('fx-filled'),
+        text: document.getElementById('fx-filled').textContent,
+        end: { last: end.lastElementChild?.tagName.toLowerCase(), text: end.textContent, children: end.childNodes.length },
+      };
+    });
+    expect([result.first, result.second, result.kept]).toEqual([2, 0, true]);
+    expect(result.text).toBe('Add device');
+    expect(result.filled).toEqual(result.markup);
+    expect(result.end).toEqual({ last: 'svg', text: 'Open the guide', children: 2 });
+  });
 });
 
 test.describe('forced colours', () => {

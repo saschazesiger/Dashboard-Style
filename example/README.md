@@ -19,7 +19,8 @@ In a project the links point at the vendored copy (`vendor/dashboard-style/ds.cs
 |---|---|---|
 | Skeleton on the first load, held with `settleLoader()`, then `staggerOnce()` | start | `start()` |
 | Hash routes with `DS.motion.transition()` (fade-through), focus on the new title when the navigation took it (`focus: true`: from the modal drawer) | all | `go()`, `renderView()` |
-| Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled` | frame | Wiring, `DS.dom.watchScrolled()` |
+| Drawer pill (`DS.indicator`), modal drawer and scrim (`DS.overlay`), `data-scrolled`, the drawer list's cut edges shaded in a low window (`DS.dom.scrollEdges(nav, { axis: 'block' })`) | frame | Wiring, `DS.dom.watchScrolled()` |
+| Icons of the static markup: `data-icon` with `data-icon-place="start"`, drawn by `DS.icons.fill(document)` in front of the label | frame | `index.html`, Wiring |
 | Ripple, tooltips (`data-tip`) | all | `DS.ripple.attach()`, `DS.overlay.tooltips()` |
 | A drawer group that closes (`<details class="ds-drawer__group">`, `.ds-drawer__toggle`, `.ds-drawer__count`), kept across loads | frame | `index.html`, Wiring |
 | Page head: the way back (`.ds-page-head__back`) on a view opened from the overview, actions at the end of the title's line | Devices, Tickets | `head()`, `applyParams()` |

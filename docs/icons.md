@@ -17,17 +17,22 @@ Markup that names its icons (a server template, a static page) draws them with o
 
 ```html
 <span data-icon="bell" data-icon-size="16"></span>
+<button class="ds-btn" type="button" data-icon="plus" data-icon-size="18" data-icon-place="start">Add device</button>
 ```
 
 ```js
 DS.icons.fill(document);   // every [data-icon] element gets its glyph, through DOM APIs (no innerHTML)
 ```
 
+The glyph replaces the element's content. With `data-icon-place="start"` or `"end"` (2.1) it goes in as the first or
+last child and the content stays: a labelled button, chip or alert written as markup gets its leading icon where the
+component rules expect it (`> svg:first-child`).
+
 | Export | |
 |---|---|
 | `icon(glyph, size?, className?)` | SVG markup; size defaults to `ICON_SIZE`; throws `Unknown icon` for anything that is not a glyph (a misspelt name is `undefined`) |
 | `iconElement(glyph, size?, className?, doc?)` | the same SVG built with `createElementNS`, for pages that forbid parsing HTML |
-| `fill(root?)` | fills every `[data-icon]` element inside `root` (default `document`, `root` itself included) with the named glyph at `data-icon-size` px (default 20), built like `iconElement()`; idempotent (an element that shows the same glyph at the same size keeps its `<svg>`, a new name or size draws again); returns how many it drew and throws `Unknown icon: <names>` after drawing the known ones |
+| `fill(root?)` | fills every `[data-icon]` element inside `root` (default `document`, `root` itself included) with the named glyph at `data-icon-size` px (default 20), built like `iconElement()`; the glyph replaces the content, or with `data-icon-place="start"` / `"end"` (2.1) goes in first or last beside it; idempotent (an element that shows the same glyph at the same size keeps its `<svg>`, a new name or size draws again, replacing only that `<svg>` where it stands; a placed glyph that went missing is put back); returns how many it drew and throws `Unknown icon: <names>` after drawing the known ones |
 | `ICON_SIZE` | 20 |
 | every glyph | a named export holding inner SVG markup; bundlers ship only the ones you import |
 

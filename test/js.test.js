@@ -143,6 +143,64 @@ describe('icons (2.0)', () => {
     assert.equal(spans[3].childNodes[0].tagName, 'svg');
     assert.match(read('docs/icons.md'), /`fill\(root\?\)`/);
   });
+
+  it('fill(): data-icon-place="start" or "end" puts the glyph beside the content, idempotently (2.1)', () => {
+    const make = (tag, attributes = {}) => {
+      const node = {
+        nodeType: 1, tagName: tag, attributes: { ...attributes }, childNodes: [], parentNode: null, ownerDocument: null,
+        get firstChild() { return this.childNodes[0] ?? null; },
+        get lastChild() { return this.childNodes[this.childNodes.length - 1] ?? null; },
+        getAttribute(name) { return name in this.attributes ? this.attributes[name] : null; },
+        hasAttribute(name) { return name in this.attributes; },
+        setAttribute(name, value) { this.attributes[name] = String(value); },
+        appendChild(child) { this.append(child); return child; },
+        append(...nodes) { for (const child of nodes) { child.parentNode = this; this.childNodes.push(child); } },
+        prepend(...nodes) { for (const child of nodes) child.parentNode = this; this.childNodes.unshift(...nodes); },
+        replaceChildren(...nodes) { this.childNodes = nodes; for (const child of nodes) child.parentNode = this; },
+        replaceWith(other) {
+          const parent = this.parentNode;
+          parent.childNodes[parent.childNodes.indexOf(this)] = other;
+          other.parentNode = parent;
+          this.parentNode = null;
+        },
+        remove() {
+          const parent = this.parentNode;
+          parent.childNodes.splice(parent.childNodes.indexOf(this), 1);
+          this.parentNode = null;
+        },
+      };
+      return node;
+    };
+    const text = (value) => ({ nodeType: 3, data: value, parentNode: null });
+    const start = make('button', { 'data-icon': 'plus', 'data-icon-size': '18', 'data-icon-place': 'start' });
+    const end = make('a', { 'data-icon': 'external', 'data-icon-place': 'end' });
+    start.append(text('Add device'));
+    end.append(text('Open the guide'));
+    const root = { nodeType: 9, createElementNS: (ns, tag) => make(tag), querySelectorAll: () => [start, end] };
+    assert.equal(icons.fill(root), 2);
+    assert.deepEqual(start.childNodes.map((node) => node.tagName ?? node.data), ['svg', 'Add device'], 'first, the label kept');
+    assert.deepEqual(end.childNodes.map((node) => node.tagName ?? node.data), ['Open the guide', 'svg'], 'last, the label kept');
+    assert.equal(start.firstChild.attributes.width, '18');
+    // Again: nothing new, nothing doubled.
+    const glyph = start.firstChild;
+    assert.equal(icons.fill(root), 0);
+    assert.equal(start.childNodes.length, 2);
+    assert.equal(start.firstChild, glyph);
+    // A new name replaces only the glyph, where it stands; the label stays.
+    start.attributes['data-icon'] = 'pencil';
+    assert.equal(icons.fill(root), 1);
+    assert.deepEqual(start.childNodes.map((node) => node.tagName ?? node.data), ['svg', 'Add device']);
+    assert.notEqual(start.firstChild, glyph);
+    // A glyph that went missing (a re-render dropped it) is put back at its place.
+    end.lastChild.remove();
+    assert.equal(icons.fill(root), 1);
+    assert.deepEqual(end.childNodes.map((node) => node.tagName ?? node.data), ['Open the guide', 'svg']);
+    // Without the attribute the glyph replaces the content, as before.
+    const plain = make('span', { 'data-icon': 'bell' });
+    plain.append(text('old'));
+    assert.equal(icons.fill({ ...root, querySelectorAll: () => [plain] }), 1);
+    assert.deepEqual(plain.childNodes.map((node) => node.tagName ?? node.data), ['svg']);
+  });
 });
 
 describe('indicator, dom, ripple and overlay', () => {

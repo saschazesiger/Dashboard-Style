@@ -1076,11 +1076,8 @@
 
   /* ── Wiring ───────────────────────────────────────────────────────── */
 
-  /* Icons of the static markup: data-icon="name" puts the glyph first. */
-  for (const element of $$('[data-icon]')) {
-    element.insertAdjacentHTML('afterbegin', icon(element.getAttribute('data-icon'), 20));
-    element.removeAttribute('data-icon');
-  }
+  /* Icons of the static markup: data-icon="name" with data-icon-place="start" puts the glyph first (docs/icons.md). */
+  DS.icons.fill(document);
   for (const element of $$('[data-icon-done]')) element.insertAdjacentHTML('afterbegin', icon('check', 16));
   for (const element of $$('[data-icon-chevron]')) element.insertAdjacentHTML('afterbegin', icon('chevronDown', 20, 'ds-chevron'));
 
