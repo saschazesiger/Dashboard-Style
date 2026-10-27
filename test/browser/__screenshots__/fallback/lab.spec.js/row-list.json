@@ -1,0 +1,4 @@
+[
+  "animation ds-press-ripple - 250 0 1 --ds-ease-out",
+  "transition opacity ::before 50 0 1 --ds-ease-in-out"
+]

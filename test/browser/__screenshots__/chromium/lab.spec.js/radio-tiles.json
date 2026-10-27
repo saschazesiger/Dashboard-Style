@@ -1,0 +1,17 @@
+[
+  "transition --ds-indicator-l - 289 50 1 --ds-ease-in-out",
+  "transition --ds-indicator-r - 289 0 1 --ds-ease-spatial",
+  "transition background-color - 150 0 1 --ds-ease-in-out",
+  "transition border-bottom-color - 150 0 1 --ds-ease-in-out",
+  "transition border-left-color - 150 0 1 --ds-ease-in-out",
+  "transition border-right-color - 150 0 1 --ds-ease-in-out",
+  "transition border-top-color - 150 0 1 --ds-ease-in-out",
+  "transition box-shadow - 150 0 1 --ds-ease-in-out",
+  "transition color - 150 0 1 --ds-ease-in-out",
+  "transition opacity - 150 0 1 --ds-ease-in",
+  "transition opacity - 150 0 1 --ds-ease-in-out",
+  "transition scale - 150 0 1 --ds-ease-in",
+  "transition scale - 250 0 1 --ds-ease-spatial",
+  "transition scale ::after 150 0 1 --ds-ease-in",
+  "transition scale ::after 250 0 1 --ds-ease-spatial"
+]

@@ -1,0 +1,6 @@
+[
+  "transition background-color - 150 0 1 --ds-ease-in-out",
+  "transition box-shadow - 150 0 1 --ds-ease-in-out",
+  "transition opacity - 100 0 1 --ds-ease-in-out",
+  "transition opacity - 150 0 1 --ds-ease-in-out"
+]
