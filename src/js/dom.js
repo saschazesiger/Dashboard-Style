@@ -1453,10 +1453,13 @@ const autosized = new WeakMap();
  * Grows a textarea with its text up to its computed max-height (then it
  * scrolls), through the CSSOM; never animated. Where the textarea sizes
  * itself (field-sizing: content, which .ds-input--grow sets where it
- * exists) it does nothing. The height and overflow-y it writes are owned
- * state, so a re-render keeps a grown textarea's size. Once per textarea;
- * update() measures again (a value set by script), destroy() removes the
- * listener and the height.
+ * exists) it does nothing (and drops a height it wrote before). It measures
+ * once the textarea is rendered (and again when its width changes), so it
+ * is safe to call before the field is in the page or while it is hidden:
+ * a ResizeObserver measures when it gets a width. The height and overflow-y
+ * it writes are owned state, so a re-render keeps a grown textarea's size.
+ * Once per textarea; update() measures again (a value set by script),
+ * destroy() removes the listener, the observer and the height.
  * @param {HTMLTextAreaElement|null|undefined} textarea
  * @returns {{ update: () => void, destroy: () => void }}
  */
@@ -1468,8 +1471,26 @@ export function autosize(textarea) {
   const style = () => (typeof view.getComputedStyle === 'function' ? view.getComputedStyle(textarea) : null);
   const native = () => style()?.getPropertyValue?.('field-sizing') === 'content';
   let owned = false;
+  /** Drops the height and overflow-y this handle wrote (and disowns them). */
+  const release = () => {
+    if (owned) {
+      owned = false;
+      disown(textarea, 'props', 'height');
+      disown(textarea, 'props', 'overflow-y');
+    }
+    textarea.style.removeProperty('height');
+    textarea.style.removeProperty('overflow-y');
+    if (textarea.getAttribute('style')?.trim() === '') textarea.removeAttribute('style');
+  };
   const update = () => {
-    if (native()) return;
+    // A detached or hidden field has no computed style and a scrollHeight of
+    // 0: a height measured now would stick (the ResizeObserver measures
+    // again once it is rendered).
+    if (textarea.isConnected === false || typeof textarea.getClientRects === 'function' && !textarea.getClientRects().length) return;
+    if (native()) {
+      if (owned) release();
+      return;
+    }
     if (!owned) {
       // Owned state: a re-render around a focused, grown textarea keeps its height.
       owned = true;
@@ -1485,6 +1506,20 @@ export function autosize(textarea) {
     textarea.style.height = `${Math.ceil(capped)}px`;
     textarea.style.overflowY = Number.isFinite(max) && wanted > max ? 'auto' : 'hidden';
   };
+  // Measures again when the inline size changes: 0 to a width when the field
+  // is inserted or shown, a narrower window that wraps more lines. The block
+  // size update() writes does not change it, so it never loops; it writes in
+  // the next frame, outside the observer's delivery (a size written there
+  // would be an undelivered notification, an error event in every engine).
+  let width = -1;
+  let frame = 0;
+  const sizes = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver((entries) => {
+    const inline = entries[entries.length - 1]?.contentRect?.width ?? 0;
+    if (inline === width) return;
+    width = inline;
+    if (inline > 0 && !frame) frame = view.requestAnimationFrame(() => { frame = 0; update(); });
+  }) : null;
+  sizes?.observe(textarea);
   textarea.addEventListener('input', update);
   update();
   const handle = {
@@ -1492,14 +1527,10 @@ export function autosize(textarea) {
     destroy() {
       if (autosized.get(textarea)?.handle !== handle) return;
       autosized.delete(textarea);
+      sizes?.disconnect();
+      if (frame) view.cancelAnimationFrame(frame);
       textarea.removeEventListener('input', update);
-      if (owned) {
-        disown(textarea, 'props', 'height');
-        disown(textarea, 'props', 'overflow-y');
-      }
-      textarea.style.removeProperty('height');
-      textarea.style.removeProperty('overflow-y');
-      if (textarea.getAttribute('style')?.trim() === '') textarea.removeAttribute('style');
+      release();
     },
   };
   autosized.set(textarea, { handle });

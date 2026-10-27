@@ -2081,6 +2081,36 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     assert.equal(native.style.height, '', 'field-sizing: content sizes it');
   });
 
+  it('autosize: measures only a rendered field, again when its width changes; drops its height where field-sizing takes over (2.1)', () => {
+    const { h, observers, frames } = helperDom();
+    const area = h('textarea', {});
+    area.computed = { maxHeight: 'none' };
+    area.scrollHeight = 0;
+    let rendered = false;
+    area.getClientRects = () => (rendered ? [{}] : []);
+    const handle = dom.autosize(area);
+    assert.equal(area.style.height, '', 'not rendered: no height written');
+    const sizes = observers.resize.find((observer) => observer.targets.has(area));
+    assert.ok(sizes, 'a ResizeObserver watches the field');
+    rendered = true;
+    area.scrollHeight = 72;
+    sizes.callback([{ target: area, contentRect: { width: 300, height: 0 } }]);
+    assert.equal(area.style.height, '', 'measured in the next frame, outside the observer');
+    frames.splice(0).forEach((callback) => callback(0));
+    assert.equal(area.style.height, '72px', 'rendered with a width: measured');
+    area.scrollHeight = 96;
+    sizes.callback([{ target: area, contentRect: { width: 300, height: 72 } }]);
+    assert.equal(frames.length, 0, 'its own block size: nothing to do');
+    sizes.callback([{ target: area, contentRect: { width: 200, height: 72 } }]);
+    frames.splice(0).forEach((callback) => callback(0));
+    assert.equal(area.style.height, '96px', 'a narrower field wraps more lines');
+    area.computed = { 'field-sizing': 'content' };
+    handle.update();
+    assert.deepEqual([area.style.height, area.style.overflowY, area[Symbol.for('ds.owned')].props.size], ['', '', 0], 'field-sizing: the old height goes');
+    handle.destroy();
+    assert.equal(sizes.targets.size, 0, 'destroy() disconnects it');
+  });
+
   it('dropzone: counts enter and leave, takes only file drags, filters by accept, cuts to one, resets the input, pastes', () => {
     const { h, doc } = helperDom();
     const input = h('input', { type: 'file', class: 'ds-dropzone__input', accept: '.csv, image/*' });

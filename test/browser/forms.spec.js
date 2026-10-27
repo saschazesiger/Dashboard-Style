@@ -20,6 +20,8 @@
  *   side take less padding at 720px and below, a field alone keeps its own;
  * - the composer keeps its button at the bottom while its text grows
  *   (field-sizing, else DS.dom.autosize()) up to its cap, then scrolls;
+ * - autosize() called before the field is in the page (or while it is
+ *   hidden) sizes it once it is rendered (2.1);
  * - a re-render with DS.dom.morphHtml keeps an autosized textarea's height
  *   and a followEnd() pill's hidden (owned state);
  * - forced colours: a focused field shows an outline (Chromium emulates
@@ -277,6 +279,51 @@ test.describe('fields', () => {
     // Emptied, it shrinks back to one row.
     await page.locator('#message').fill('');
     expect(Math.abs((await box(page.locator('#message'))).height - before.height)).toBeLessThanOrEqual(1);
+  });
+});
+
+test.describe('autosize() before the field is rendered (2.1)', () => {
+  test('called before insertion, the field grows with its text once in the page; a hidden field shown later has its text\'s height', async ({ page }) => {
+    await open(page);
+    const frames = (count) => page.evaluate((n) => new Promise((resolve) => {
+      const step = (left) => (left ? requestAnimationFrame(() => step(left - 1)) : resolve());
+      step(n);
+    }), count);
+    const made = await page.evaluate(() => {
+      const theme = document.querySelector('.ds-theme');
+      const area = document.createElement('textarea');
+      area.className = 'ds-input ds-input--grow';
+      area.id = 'early';
+      area.rows = 1;
+      area.setAttribute('aria-label', 'Early');
+      // Before insertion: no computed style, a scrollHeight of 0.
+      DS.dom.autosize(area);
+      const detached = area.style.height;
+      theme.append(area);
+      // Hidden: no box until it is shown.
+      const box = document.createElement('div');
+      box.hidden = true;
+      box.insertAdjacentHTML('beforeend', '<textarea class="ds-input" id="later" rows="1" aria-label="Later"></textarea>');
+      theme.append(box);
+      const later = document.getElementById('later');
+      DS.dom.autosize(later);
+      later.value = 'One\nTwo\nThree\nFour';
+      return { detached, hidden: later.style.height };
+    });
+    expect(made).toEqual({ detached: '', hidden: '' });
+    await frames(2);
+    const early = page.locator('#early');
+    const before = (await box(early)).height;
+    await early.click();
+    await page.keyboard.type('One\nTwo\nThree\nFour');
+    await frames(2);
+    expect((await box(early)).height).toBeGreaterThan(before + 40);
+    expect(await early.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
+    await page.evaluate(() => { document.getElementById('later').parentElement.hidden = false; });
+    await frames(3);
+    const later = await page.locator('#later').evaluate((el) => ({ height: el.getBoundingClientRect().height, fits: el.scrollHeight - el.clientHeight <= 1 }));
+    expect(later.fits).toBe(true);
+    expect(later.height).toBeGreaterThan(80);
   });
 });
 
