@@ -4,6 +4,137 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 2.1.0
+
+Fixes and small additions from the first projects on 2.0. Additive: no class, token, hook or export was removed or
+renamed; `DS.overlay.prompt()` and `DS.dom.dropzone()` take new options, `DS.icons.fill()` reads a new attribute,
+and there are two new hooks and one new page-set attribute. No migration is required. A few looks move to where the
+docs already put them (check your pages and screenshots): a text button that ends a page head moves 12px into the
+gutter, a `.ds-btn--adaptive` outside a `.ds-content` now folds in a window of 600px or less, a 16px icon leading a
+meta line moves onto its text line, and switch rows with a hint, phone tables in cards and wrapped card heads move
+by a few pixels. A page that links `table.css` but not `button.css` and uses `.ds-link-btn` now links `button.css`
+too.
+
+### Added
+
+- `DS.overlay.prompt({ input })` takes `spellcheck` (a boolean, written as `"true"` or `"false"`), `autocapitalize`,
+  `autocorrect` and `enterkeyhint` (strings, written as the attributes of the same name), so a path or a code field
+  turns spellcheck, capitals and autocorrect off and labels Enter without patching the built field from a `ds-open`
+  listener. Absent, nothing is written, as before. Declared in `js/overlay.d.ts`.
+- `data-ds-toast-room="off"` (page-set) on a `.ds-view`, `.ds-sheet__body` or `.ds-dialog`: that layer keeps no room
+  for snackbars that stay (no `data-toast-reserve`, no padding, nothing scrolled clear), while the other layers keep
+  theirs, so a fixed view that must not shrink (a terminal that refits) no longer needs `reserve: false` on every
+  message, which also cost the dialogs opened later their room. Read at every measure: setting or removing it applies
+  on the next change of the stack. A row in the Attributes table of `docs/components.md`.
+- A `.ds-drawer__list` longer than the drawer shades each cut edge that has more to show, as a menu does: a sticky
+  shade of the drawer's surface (`--ds-backdrop`), `--ds-scroll-fade` long (`0px` turns it off), above the items and
+  the pill, taking no room. Scroll timelines drive it; elsewhere `DS.dom.scrollEdges(list, { axis: 'block' })`,
+  which the page calls once (the styleguide, the live tour and the reference app now do). The list's block padding
+  moved into the two shades, so its rows keep `--ds-space-1` above and `--ds-space-6` below them and nothing moves;
+  a project rule that set the list's `padding` shorthand now adds its block padding to the shades' room. Hidden in
+  forced colours. Screenshots of drawers with a list longer than the window change.
+- `DS.icons.fill()` reads `data-icon-place="start"` or `"end"`: the glyph goes in as the first or last child and the
+  element's content stays, so a labelled control written as markup
+  (`<button class="ds-btn" data-icon="plus" data-icon-size="18" data-icon-place="start">Add</button>`) gets its
+  leading icon where the component rules read it (`> svg:first-child`). Idempotent as before: the same name and size
+  draw nothing, a new name or size replaces only that `<svg>` where it stands, a placed glyph that went missing is put
+  back. Without the attribute the glyph replaces the content, as before. A row in the Attributes table of
+  `docs/components.md`. The reference app draws its static icons this way instead of its own loop.
+- `DS.dom.dropzone(zone, { input })` names the file input whose picks go to `onFiles` (absent: the zone's
+  `.ds-dropzone__input`, else its first `input[type="file"]`, as before), or `input: null` for none: a page drop
+  target (a chat pane) whose composer has its own attach button, whose picks the page already handles, takes drops
+  and paste only, instead of handing that input's picks to `onFiles` a second time. Declared in `js/dom.d.ts`.
+- A 16px icon leading a meta line (the first child of `.ds-meta` or `.ds-timeline__meta`: a source, a clock) sits on
+  its text line, `--ds-space-1` before the text, and the line keeps its 16px; it stood on the baseline, 3-4px above
+  the text's centre, touching the text and growing the line by 4px. A project rule or `ds-check.json` exception that
+  aligned such an icon can go.
+- Hook `--ds-empty-disc-size` (48px), the width and height of `.ds-empty__disc`, so a confirmation page
+  (`.ds-empty--done`, a request sent) can show a larger disc than an empty table; the ring follows, the glyph keeps
+  the size of its markup. In `docs/theming.md` and `themes/example.css`.
+- Hook `--ds-form-actions-bleed`, how far a `.ds-form-actions--sticky` bar bleeds on a phone (default
+  `--ds-content-pad-x`, in a `.ds-card` `--ds-card-pad`, as before): set on a padded container of the page's own (a
+  project card, a sheet section) to its inline padding, the bar meets that container's edges instead of stopping
+  short of them. It inherits, so it goes on the nearest container the bar runs through. In `docs/theming.md` and
+  `themes/example.css`.
+
+### Changed
+
+- Docs: `ds-close` bubbles, so a listener on an overlay also hears the dialogs, menus and combobox lists inside it (a
+  confirmation opened from a side sheet closes, and the sheet's listener runs). `docs/motion.md` and the Dialog
+  section of `docs/components.md` say so, and the example checks `event.target === dialog`; a project listener that
+  reacts to a reason without that check should add it. The styleguide's busy-dialog demo checks it too.
+- Docs: Tiles on phones. The default `--ds-tile-min-width` (176px) stays and gives one tile per row on a phone, so a
+  long value fits whole; `docs/components.md` (Tiles) and `docs/theming.md` now say that
+  `--ds-tile-min-width: 128px` on the `.ds-tiles` or in the theme keeps two per row down to a 360px phone. The open
+  row in `plans/after-2.0.md` is closed with that decision.
+- Docs: `docs/components.md`, Combobox, "Open and close": keep the field focused while an option is pressed by
+  cancelling `mousedown` on the list (and the toggle), never `pointerdown`.
+- `.ds-link-btn` is defined in `css/components/button.css` (its base rule, hover, press and focus ring moved
+  unchanged from `table.css`), so a page that links single stylesheets no longer needs `table.css` for it: a quiet
+  link button without `table.css` kept the browser's button padding, border and fill. Nothing changes in `ds.css`.
+  A page that links `table.css` but not `button.css` and uses `.ds-link-btn` now links `button.css` too;
+  `tools/check-project.mjs` (rule `classes`) names it.
+
+### Fixed
+
+- A top-bar brand of only a name (no mark) now starts its text on the docked drawer's icon edge, as documented. The
+  rule nested a `:has()` inside a `:has()`, which every engine rejects, so it never applied; it now matches the name
+  as the brand's only child. A unit test fails on any `:has()` inside a `:has()` argument in `src/`.
+- A switch with a hint and the rows of `.ds-switch-list` stand the name directly on its hint (the switch's 12px gap
+  stood between them) and centre the text on the track whatever rows are empty: a row without a hint no longer sits
+  8px above the track's centre (12px in the narrow list), nor does a wrapped name. In the narrow list (560px and
+  below) the meta sits under the hint with `--ds-space-1` above it. Switch list screenshots change.
+- An account capsule without a shown sign-out button (none in the markup, or `hidden`) ends with the room it starts
+  with: `--ds-space-4` after the text instead of 4px, and a round capsule around the avatar below 720px.
+- A `.ds-drawer__row` item keeps room for its action at the action's size (`--ds-btn-sm-icon-size`, the hook the
+  small icon button reads), so a long label no longer runs under the 48px action under `.ds-touch`; 40px as before
+  without it.
+- In a card, the last table column still shown keeps the card's gutter at its end when trailing
+  `.ds-col--secondary` columns drop (on phones, and in a `.ds-table--wide` when the content area is narrow); it kept
+  the cell padding (12px on phones) against the fade and the card edge. Phone table screenshots with trailing
+  secondary columns change.
+- In `.ds-grid-2`, the tallest card with a `.ds-card__links` row keeps 16px between its content and the link row's
+  hairline (the auto margin that lines the link rows up left none there); shorter cards still line their link rows
+  up at the bottom.
+- A status chip, badge or tag in `.ds-card__row` sits on the title line instead of overhanging it like a 36px
+  button, so on a wrapped head row (phones) it keeps the card's 16px to the block below (it hung 6px into it); a
+  `.ds-chip` overhangs by its own height (`--ds-chip-height`). On one line nothing moves. Phone screenshots of card
+  heads that wrap change.
+- `.ds-btn--adaptive` outside a content panel (the top bar, a `.ds-vt-view` page, any page without a `.ds-content`
+  around the button) folds its label in a window of 600px or less, as sheets and dialogs already did; it never folded
+  there. Inside a `.ds-content` the panel's width still decides. A project that set `container: ds-content` on an
+  element of its own (not `.ds-content`) now folds by the window there too.
+- `DS.motion.flip()`'s `refocus` finds the twin of the old focus again when the system had put a state class on it
+  for a moment (`ds-pressed` of `DS.ripple`, `ds-btn--done` of `busy()`, the `ds-enter*` / `ds-leave*` classes): a
+  "Remove" pressed by mouse or Enter moves focus to the next row's "Remove", no longer to the row's first field. A
+  twin in an item before the removed one now wins over a different control that comes next: removing the last chip of
+  a row focuses the chip before it, not the "Clear filters" after it. With no twin left, focus goes to the next
+  item's first focusable element as before.
+- `DS.dom.autosize()` called before the textarea is in the page (or while it is hidden) no longer writes
+  `height: 0px`, which stuck: on a `.ds-input--grow` field where the browser sizes it (`field-sizing: content`) the
+  stale height kept it at one row, elsewhere it stayed at 0 until the first input. It measures once the field is
+  rendered and again when its width changes (a `ResizeObserver`, so a narrower window that wraps more lines grows it
+  too), and drops a height it wrote before where the browser takes over.
+- `DS.overlay.toastRegion()` on a page with the theme on `<html>` and no `.ds-app` (a sign-in page) creates the
+  snackbar region as the last child of `<body>`; it appended it to `<html>`, after `<body>`. The same mapping as the
+  promise dialogs; `toast(null, ...)`, `announce()` and `savebar()` follow.
+- `DS.dom.scrollEdges()` watches every child of the scroller, not only the first (a `MutationObserver` adds the
+  children that come and drops the ones that go), so a list that grows or shrinks by rows (a drawer list, whose first
+  child is its absolute `.ds-indicator`, a menu-like list) updates `data-ds-overflow-start` / `-end` without a
+  scroll; a list that filled up showed no end edge until it was scrolled.
+- `DS.dom.followViewport()` counts a field focused inside a same-origin `<iframe>` (an embedded editor) as editing,
+  through the frame's open shadow roots too, so `data-ds-keyboard` and `--ds-keyboard-inset` come with the keyboard
+  there as well (`.ds-app--keyboard-hides-bar` hides the bar, snackbars stay above the keyboard). A cross-origin
+  frame's focus is unknown and still does not count.
+- The combobox of the live tour and of the reference app keeps the field focused by cancelling `mousedown` on the
+  list instead of `pointerdown`, which in WebKit swallowed the click of a tap: an option tapped on a phone chose
+  nothing and the list stayed open.
+- A text button (`.ds-btn--text`) in `.ds-page-head__actions` hangs its padding into the gutter, as in a card's link
+  row: the last one's text ends on the content edge the title, the cards and the banners share (it stood 12px
+  inside), and under the title (600px of the content) each text button's text starts on the title's edge, the gap
+  between them growing by the same amount. Outlined and filled buttons keep their place. A page whose head ends in a
+  text button moves it by 12px; a project exception for it can go.
+
 ## 2.0.0
 
 A major release. Every name deprecated in 1.0.0 to 1.6.2 is removed; a few defaults change where the old behaviour
