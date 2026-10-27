@@ -1344,6 +1344,57 @@ describe('js/motion', () => {
         assert.equal(made.doc.activeElement, made.items.get('clear'), 'the only chip: no twin left, the next focusable');
       });
 
+      it('refocus: twins by distance, next before previous: a twin next door wins over one far down (2.1)', () => {
+        const control = (doc, classes, tag = 'button') => {
+          const element = new FakeElement(doc);
+          element.setAttribute('class', classes);
+          element.matches = (selector) => selector.includes(tag);
+          element.getClientRects = () => [{}];
+          return element;
+        };
+        // Rows a ... h with an input and a "Remove"; the locked rows keep their input (a non-twin gap), and
+        // bare ones have nothing to focus at all (passed over, as a day heading).
+        const rows = (names, locked, bare = []) => {
+          const made = list(names);
+          const doc = made.container.ownerDocument;
+          const removes = new Map();
+          for (const [name, item] of made.items) {
+            const parts = [];
+            if (!bare.includes(name)) parts.push(control(doc, 'ds-input', 'input'));
+            if (!locked.includes(name)) {
+              const remove = control(doc, 'ds-btn ds-btn--text ds-btn--sm remove');
+              removes.set(name, remove);
+              parts.push(remove);
+            }
+            item.append(...parts);
+            item.matches = () => false;
+            item.querySelectorAll = () => parts;
+          }
+          return { ...made, doc, removes };
+        };
+        const names = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        let made = rows(names, ['c', 'd', 'e', 'f', 'g']);
+        made.removes.get('b').focus();
+        flip(made.container, () => made.items.get('b').remove());
+        assert.equal(made.doc.activeElement, made.removes.get('a'), 'the Remove right before, not the one far below');
+        made = rows(names, ['c'], ['c']);
+        made.removes.get('b').focus();
+        flip(made.container, () => made.items.get('b').remove());
+        assert.equal(made.doc.activeElement, made.removes.get('d'), 'an item with nothing to focus is passed over: the next Remove after it');
+        made = rows(names, ['c', 'd', 'a']);
+        made.removes.get('b').focus();
+        flip(made.container, () => made.items.get('b').remove());
+        assert.equal(made.doc.activeElement, made.removes.get('e'), 'none within one step: the next one at the second step wins');
+        made = rows(names, ['c', 'e', 'f', 'g', 'h']);
+        made.removes.get('b').focus();
+        flip(made.container, () => made.items.get('b').remove());
+        assert.equal(made.doc.activeElement, made.removes.get('a'), 'the nearer one: a (one step back) before d (two steps on)');
+        made = rows(names, ['a', 'c', 'd', 'e', 'f', 'g', 'h']);
+        made.removes.get('b').focus();
+        flip(made.container, () => made.items.get('b').remove());
+        assert.equal(made.doc.activeElement, made.items.get('c').children[0], 'no twin left: the next item\'s first focusable');
+      });
+
       it('sortable(): the keys of a grip move its item through flip(), report the order and speak the position (2.0)', () => {
         const { container, items, calls } = list(['a', 'b', 'c', 'd']);
         const doc = container.ownerDocument;

@@ -112,8 +112,12 @@ too.
   for a moment (`ds-pressed` of `DS.ripple`, `ds-btn--done` of `busy()`, the `ds-enter*` / `ds-leave*` classes): a
   "Remove" pressed by mouse or Enter moves focus to the next row's "Remove", no longer to the row's first field. A
   twin in an item before the removed one now wins over a different control that comes next: removing the last chip of
-  a row focuses the chip before it, not the "Clear filters" after it. With no twin left, focus goes to the next
-  item's first focusable element as before.
+  a row focuses the chip before it, not the "Clear filters" after it. Twins are searched by distance (the next item,
+  the previous one, the second next, the second previous ..., counting only items with something to focus, so a day
+  heading is still passed over), so a twin next door always wins over one further down: when the rows after the
+  removed one have no "Remove" (locked rows), focus goes to the row before it, never to a "Remove" far below and off
+  screen. With no twin left, focus goes
+  to the next item's first focusable element as before.
 - `DS.dom.autosize()` called before the textarea is in the page (or while it is hidden) no longer writes
   `height: 0px`, which stuck: on a `.ds-input--grow` field where the browser sizes it (`field-sizing: content`) the
   stale height kept it at one row, elsewhere it stayed at 0 until the first input. It measures once the field is

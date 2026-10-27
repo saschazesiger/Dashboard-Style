@@ -2527,10 +2527,13 @@
      * refocus (flip()): when the item that held the focus went and focus is
      * lost (on <body>, nowhere, or still inside the item), it moves to the
      * element with the same classes as the old focus (state classes aside) in
-     * the next item that stays in the old order, else in the nearest item before
-     * it; with no such twin, to the next item that has something to focus, else
-     * the nearest such item before it, else the fallback (`refocus` as an
-     * element or a function); with none, leave() moves it out as usual. A page that moved focus itself is left alone.
+     * the nearest item that stays and holds one, by distance in the old order
+     * counted over the items with something to focus, the next item before the
+     * previous one at the same distance; with no such twin, to the next item
+     * that has something to focus, else the nearest such item before it, else
+     * the fallback (`refocus` as an element or a
+     * function); with none, leave() moves it out as usual. A page that moved
+     * focus itself is left alone.
      */
     function refocusAfter(container, focus, order, removed, refocus) {
       if (!focus || refocus === false) return;
@@ -2542,14 +2545,21 @@
       if (!lost) return;
       const index = order.indexOf(owner);
       const alive = (item) => !itemGone(item, removed) && !item.hasAttribute?.('data-ds-keep');
-      // Two passes over the neighbours, next first, then the previous ones
-      // nearest first: a twin of the old focus wins wherever it is (a chip
-      // row's previous chip over the "Clear filters" after it), else the first
-      // item with something to focus (a timeline's day heading is passed over).
-      const neighbours = [...order.slice(index + 1), ...order.slice(0, index).reverse()].filter(alive);
+      // Only items with something to focus count (a timeline's day heading is
+      // passed over). The twin of the old focus by distance, the next item
+      // before the previous one at each step: a chip row's previous chip wins
+      // over the "Clear filters" after it, and a twin next door over one far
+      // down the list (locked rows between without one). With no twin, the
+      // next item, else the previous one.
+      const bearing = (items) => items.filter((item) => alive(item) && firstIn(item));
+      const later = bearing(order.slice(index + 1));
+      const earlier = bearing(order.slice(0, index).reverse());
       let target = null;
-      for (const item of neighbours) if ((target = twinIn(item, active))) break;
-      if (!target) for (const item of neighbours) if ((target = firstIn(item))) break;
+      for (let step = 0; !target && step < Math.max(later.length, earlier.length); step += 1) {
+        target = (later[step] && twinIn(later[step], active)) || (earlier[step] && twinIn(earlier[step], active)) || null;
+      }
+      const nearest = later[0] ?? earlier[0];
+      if (!target && nearest) target = firstIn(nearest);
       if (!target && refocus !== true && refocus !== undefined) {
         const fallback = typeof refocus === 'function' ? refocus() : refocus;
         if (focusable(fallback)) target = fallback;
