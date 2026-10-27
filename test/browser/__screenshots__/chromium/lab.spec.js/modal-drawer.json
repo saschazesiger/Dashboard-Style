@@ -1,1 +1,4 @@
-[]
+[
+  "script (script) ::after NaN 0 1 --ds-ease-in-out",
+  "script (script) ::before NaN 0 1 --ds-ease-in-out"
+]
