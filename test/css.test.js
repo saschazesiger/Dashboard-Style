@@ -2111,7 +2111,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       assert.match(stripComments(read('src/components/scroller.css')), new RegExp(`@property ${property} \\{\\s*syntax: '<number>';\\s*inherits: false;\\s*initial-value: 0;`), property);
     }
     // Every user of the edge numbers runs both on its own scroll (inline; the combobox list block), over the documented ranges.
-    const shades = new Set(['.ds-menu::before', '.ds-menu::after']);
+    const shades = new Set(['.ds-menu::before', '.ds-menu::after', '.ds-drawer__list::before', '.ds-drawer__list::after']);
     const edges = users.filter((rule) => /ds-scroll-edge-start/.test(rule.own.animation) && !shades.has(rule.selector));
     assert.ok(edges.length >= 5, edges.map((rule) => rule.selector).join());
     for (const rule of edges) {
@@ -2119,13 +2119,38 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       assert.equal(rule.own['animation-timeline'], rule.selector === '.ds-combo__list' ? 'scroll(self block)' : 'scroll(self inline)', rule.selector);
       assert.equal(rule.own['animation-range'], '0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%', rule.selector);
     }
-    // The menu is its own surface: one shade per edge, each on the menu's block scroll (the nearest scroller of its pseudo-element).
+    // The menu and the drawer list (2.1) are surfaces of their own: one shade per edge, each on the block scroll
+    // of the nearest scroller of its pseudo-element.
     const shade = Object.fromEntries(users.filter((rule) => shades.has(rule.selector)).map((rule) => [rule.selector, rule.own]));
-    assert.deepEqual(Object.keys(shade).sort(), ['.ds-menu::after', '.ds-menu::before']);
-    assert.deepEqual(['.ds-menu::before', '.ds-menu::after'].map((selector) => [shade[selector].animation, shade[selector]['animation-timeline'], shade[selector]['animation-range']]), [
-      ['ds-scroll-edge-start linear both', 'scroll(nearest block)', '0 var(--ds-space-8)'],
-      ['ds-scroll-edge-end linear both', 'scroll(nearest block)', 'calc(100% - var(--ds-space-8)) 100%'],
-    ]);
+    assert.deepEqual(Object.keys(shade).sort(), [...shades].sort());
+    for (const host of ['.ds-menu', '.ds-drawer__list']) {
+      assert.deepEqual([`${host}::before`, `${host}::after`].map((selector) => [shade[selector].animation, shade[selector]['animation-timeline'], shade[selector]['animation-range']]), [
+        ['ds-scroll-edge-start linear both', 'scroll(nearest block)', '0 var(--ds-space-8)'],
+        ['ds-scroll-edge-end linear both', 'scroll(nearest block)', 'calc(100% - var(--ds-space-8)) 100%'],
+      ], host);
+    }
+  });
+
+  it('shades the cut edges of a long drawer list in the drawer\'s surface, holding the list\'s block padding (2.1)', () => {
+    const shell = all.filter((rule) => rule.file === 'src/components/shell.css');
+    const own = (selector) => shell.find((rule) => rule.selector === selector && !rule.media)?.own ?? {};
+    assert.equal(own('.ds-drawer__list').padding, '0 var(--ds-space-3)', 'the block padding moved into the shades');
+    for (const [selector, edge, margin, room, gradient] of [
+      ['.ds-drawer__list::before', 'inset-block-start', 'margin-block-end', '--ds-space-1', 'linear-gradient(var(--ds-backdrop), transparent)'],
+      ['.ds-drawer__list::after', 'inset-block-end', 'margin-block-start', '--ds-space-6', 'linear-gradient(transparent, var(--ds-backdrop))'],
+    ]) {
+      const rule = { ...own('.ds-drawer__list::before, .ds-drawer__list::after'), ...own(selector) };
+      assert.equal(rule.position, 'sticky', selector);
+      assert.equal(rule[edge], '0', selector);
+      assert.equal(rule.height, 'var(--ds-scroll-fade, var(--ds-space-8))', selector);
+      assert.equal(rule[margin], `calc(var(${room}) - var(--ds-scroll-fade, var(--ds-space-8)))`, selector);
+      assert.equal(rule.background, gradient, selector);
+      assert.equal(rule['pointer-events'], 'none', selector);
+    }
+    const css = stripComments(read('src/components/shell.css'));
+    assert.match(css, /\.ds-drawer__list\[data-ds-overflow-start\]::before \{\s*--ds-scroll-edge-start: 1;/);
+    assert.match(css, /\.ds-drawer__list\[data-ds-overflow-end\]::after \{\s*--ds-scroll-edge-end: 1;/);
+    assert.match(css, /@media \(forced-colors: active\) \{[\s\S]*?\.ds-drawer__list::before,\s*\.ds-drawer__list::after \{\s*visibility: hidden;/);
   });
 
   it('names View Transitions and scroll-driven animations under "Progressive:" in each file that uses them', () => {

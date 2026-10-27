@@ -212,6 +212,12 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible;
   `createIndicator(list, { ..., reveal: true })` sets it by itself and scrolls the list (only the list) so the
   current item stays `--ds-space-2` clear of its edges.
+- Cut edges (2.1): a list longer than the drawer shades each edge that has more to show, as a menu does: a sticky
+  shade of the drawer's surface (`--ds-backdrop`), `--ds-scroll-fade` long (`0px` turns it off), above the items and
+  the pill, taking no room (the list keeps `--ds-space-1` above its rows and `--ds-space-6` below them). Scroll
+  timelines drive it; elsewhere call `DS.dom.scrollEdges(list, { axis: 'block' })` once, whose
+  `data-ds-overflow-start` / `-end` show the shades over `--ds-dur-fast` (it follows rows that come and go). Hidden in
+  forced colours.
 - Sliding pills: `DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })`
   and the same on `.ds-segmented` with `className: 'ds-segmented__indicator'`. The pill follows `aria-current` and
   the size of the items by itself ([motion](motion.md#dsindicator-jsindicatorjs)); no `update()` is needed. While it
@@ -1747,8 +1753,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   the numbers over `--ds-dur-fast`; without it the strip shows no fade. The scrollbar strip stays unmasked
   (`--ds-scrollbar-height`, written by `scrollEdges()`). Left-to-right pages only.
 - One fade switch: `--ds-scroll-fade` is the fade length of `.ds-scroll-x` (default `--ds-space-8`), the card table
-  wrappers (default `--ds-card-pad`) and the cut edges of menus and combobox lists; `--ds-scroll-fade: 0px` on the
-  theme turns them all off.
+  wrappers (default `--ds-card-pad`) and the cut edges of menus, combobox lists and drawer lists;
+  `--ds-scroll-fade: 0px` on the theme turns them all off.
   Keyboard focus inside lands outside the fades (`scroll-padding-inline`).
 - When nothing inside can take focus, the strip is the tab stop (`tabindex="0" role="region" aria-label`), as WebKit
   gives a scroller none by itself: arrow keys scroll it, its ring is inset and the fades drop while it is focused.

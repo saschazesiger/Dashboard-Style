@@ -1998,7 +1998,7 @@
         '<p class="ds-muted">A mode of the same page: button options (role="radio", aria-checked) sit flush in a page toolbar; the margin after the brand is the top bar\'s. Chart is aria-disabled: no hover, press or ripple, but it keeps its focus and says why.</p>') +
       card('Drawer parts', '<div class="sg-drawer-sample" id="sg-drawer-sample">' + drawerSample() + '</div>' +
         '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="rail-toggle" aria-pressed="false">' + icon('panelLeft', 18) + 'Rail (this page\'s drawer)</button></div>' +
-        '<p class="ds-muted">A way back up with a hairline under it, a primary action, groups that close (their heading is a pressable row; the count shows while closed, and the pill leaves an item whose group closes), counts, an item with an action of its own at its end, and a foot of icon-only items. The rail narrows this page\'s drawer to its icons above 900px: labels stay readable and each item names itself in its tooltip.</p>') +
+        '<p class="ds-muted">A way back up with a hairline under it, a primary action, groups that close (their heading is a pressable row; the count shows while closed, and the pill leaves an item whose group closes), counts, an item with an action of its own at its end, and a foot of icon-only items. The rail narrows this page\'s drawer to its icons above 900px: labels stay readable and each item names itself in its tooltip. This page\'s drawer list is longer than a low window: it shades each cut edge that has more to show in the drawer\'s surface (on its scroll, else through DS.dom.scrollEdges(list, { axis: \'block\' })).</p>') +
       card('Top bar parts', '<div class="sg-topbar-sample"><div class="ds-topbar">' +
           '<a class="ds-brand" href="#frame"><span class="ds-brand__name">Inventory</span></a>' +
           '<h1 class="ds-topbar__title">LAPTOP-0042</h1>' +
@@ -2461,6 +2461,8 @@
     var list = $('#sg-nav');
     var overflow = function () { list.classList.toggle('ds-drawer__list--overflow', list.scrollHeight > list.clientHeight + 1); };
     overflow();
+    // The shades of the cut edges where scroll timelines are missing.
+    DS.dom.scrollEdges(list, { axis: 'block' });
     window.addEventListener('resize', overflow);
     var visible = {};
     spy = new IntersectionObserver(function (entries) {

@@ -550,6 +550,82 @@ test.describe('top bar and view', () => {
   });
 });
 
+test.describe('drawer list edges (2.1)', () => {
+  /** Fills the fixture's drawer list past a low window and attaches DS.dom.scrollEdges() as the docs say. */
+  async function longList(page) {
+    await page.setViewportSize({ width: 1000, height: 420 });
+    await page.goto(FIXTURES + 'shell.html');
+    await ready(page);
+    await page.mouse.move(1, 1);
+    await page.evaluate(() => {
+      const group = document.querySelector('#drawer-list .ds-drawer__group');
+      for (let index = 1; index <= 12; index += 1) {
+        group.insertAdjacentHTML('beforeend', `<a class="ds-drawer__item" href="#site-${index}"><span class="ds-drawer__label">Site ${index}</span></a>`);
+      }
+      DS.dom.scrollEdges(document.getElementById('drawer-list'), { axis: 'block' });
+    });
+    await settle(page);
+  }
+
+  /** The shades' opacity and length; the room above the group and below it. */
+  const edges = (page) => page.locator('#drawer-list').evaluate((list) => {
+    const top = list.getBoundingClientRect().top + list.clientTop;
+    const group = list.querySelector('.ds-drawer__group');
+    const shade = (pseudo) => getComputedStyle(list, pseudo);
+    return {
+      overflows: list.scrollHeight > list.clientHeight,
+      start: Number(shade('::before').opacity),
+      end: Number(shade('::after').opacity),
+      height: parseFloat(shade('::after').height),
+      // The list's room before its first row and after its last one (the padding the shades hold).
+      above: group.getBoundingClientRect().top - top + list.scrollTop,
+      below: list.scrollHeight - (group.getBoundingClientRect().bottom - top + list.scrollTop),
+    };
+  });
+
+  const frames = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+
+  test('a long drawer list shades the edge with more to show in the drawer\'s surface; the rows keep their room', async ({ page }) => {
+    await longList(page);
+    const backdrop = await colourOf(page, '--ds-backdrop');
+    const look = await page.locator('#drawer-list').evaluate((list) => ({
+      before: getComputedStyle(list, '::before').backgroundImage,
+      after: getComputedStyle(list, '::after').backgroundImage,
+      position: getComputedStyle(list, '::after').position,
+      events: getComputedStyle(list, '::after').pointerEvents,
+    }));
+    expect(look.before).toBe(`linear-gradient(${backdrop}, rgba(0, 0, 0, 0))`);
+    expect(look.after).toBe(`linear-gradient(rgba(0, 0, 0, 0), ${backdrop})`);
+    expect([look.position, look.events]).toEqual(['sticky', 'none']);
+    const rest = await edges(page);
+    expect(rest.overflows).toBe(true);
+    expect([rest.start, rest.end], 'at the top: only the end').toEqual([0, 1]);
+    // The list keeps --ds-space-1 above its rows and --ds-space-6 below them (once the padding).
+    expect(rest.above).toBeCloseTo(4, 0);
+    expect(rest.below).toBeCloseTo(24, 0);
+    expect(rest.height).toBe(32);
+    for (const [where, start, end] of [['middle', 1, 1], ['end', 1, 0], ['top', 0, 1]]) {
+      await page.locator('#drawer-list').evaluate((list, place) => {
+        const max = list.scrollHeight - list.clientHeight;
+        list.scrollTop = place === 'middle' ? Math.round(max / 2) : place === 'end' ? max : 0;
+      }, where);
+      await frames(page);
+      await settle(page);
+      const now = await edges(page);
+      expect([now.start, now.end], where).toEqual([start, end]);
+    }
+  });
+
+  test('--ds-scroll-fade: 0px turns the shades off; the rows keep their room', async ({ page }) => {
+    await longList(page);
+    await page.evaluate(() => document.querySelector('.ds-theme').style.setProperty('--ds-scroll-fade', '0px'));
+    const off = await edges(page);
+    expect(off.height).toBe(0);
+    expect(off.above).toBeCloseTo(4, 0);
+    expect(off.below).toBeCloseTo(24, 0);
+  });
+});
+
 test.describe('styleguide navigation', () => {
   test('a drawer link sets its item at once and the pill glides there once', async ({ page }) => {
     await page.goto('/styleguide/index.html');

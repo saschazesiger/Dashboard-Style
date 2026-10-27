@@ -339,7 +339,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-table-cell-max-width` | 280px | where a cell of `.ds-table-wrap--fill` is cut with an ellipsis |
 | `--ds-table-fill-min-height` | 240px | the least height of `.ds-table-wrap--fill` (a short window scrolls the view instead) |
 | `--ds-table-fill-max-height` | none | the most height of `.ds-table-wrap--fill` |
-| `--ds-scroll-fade` | `--ds-space-8` (card table wrappers: `--ds-card-pad`) | the length of the edge fades of `.ds-scroll-x`, the table wrappers and the cut edges of menus and combobox lists; `0px` turns every fade off |
+| `--ds-scroll-fade` | `--ds-space-8` (card table wrappers: `--ds-card-pad`) | the length of the edge fades of `.ds-scroll-x`, the table wrappers and the cut edges of menus, combobox lists and drawer lists (2.1); `0px` turns every fade off |
 | `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
 | `--ds-pressable-radius` | `--ds-radius-sm` | `.ds-pressable`, the press model on a project element |
 | `--ds-pressable-layer` | `currentColor` | the colour of the state layer of `.ds-pressable` |

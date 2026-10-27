@@ -182,6 +182,11 @@
  *   frame widens to the bar, both with ds-scroll-fade; a view without
  *   overflow shows neither): without them data-scrolled shows both over
  *   --ds-dur-fast.
+ * - scroll-driven animations (animation-timeline: scroll(), animation-range;
+ *   the edge shades of a long .ds-drawer__list follow its scroll position):
+ *   without them the data-ds-overflow-* attributes of
+ *   DS.dom.scrollEdges(list, { axis: 'block' }) (attached by the page) set
+ *   the shades, or none show.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -845,7 +850,9 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: var(--ds-space-1) var(--ds-space-3) var(--ds-space-6);
+    /* The block padding (--ds-space-1 above, --ds-space-6 below) lives in
+       the edge shades (below), so the end shade reaches the cut edge. */
+    padding: 0 var(--ds-space-3);
     /* Classic scrollbars (Chrome on Windows) would draw a grey rail between
        drawer and panel, a divider the drawer must not have: the thumb only
        shows while the pointer or focus is in the list. */
@@ -862,6 +869,70 @@
      that more destinations lie below the fold. */
   .ds-drawer__list--overflow {
     scrollbar-color: var(--ds-line-2) transparent;
+  }
+
+  /* The cut edges of a long list, as a menu's (menu.css): a mask would
+     fade the pill and the focus rings, so a shade of the drawer's surface
+     lies over each edge that has more to show, --ds-scroll-fade long,
+     above the items, across the item inset: sticky at the edge, taking no
+     room. Each holds the list's padding at its end (the negative margin
+     gives back only the rest), so the list keeps --ds-space-1 above and
+     --ds-space-6 below its items, and the end shade sticks flush to the
+     scroller's edge down to the last pixel of scroll. Its number
+     (--ds-scroll-edge-start or -end, registered in scroller.css) is 0 at
+     rest; the list's scroll timeline drives it where it exists, else the
+     data-ds-overflow-* attributes of DS.dom.scrollEdges(list, { axis:
+     'block' }), which the page attaches. */
+  .ds-drawer__list::before,
+  .ds-drawer__list::after {
+    content: '';
+    position: sticky;
+    z-index: var(--ds-z-raised);
+    display: block;
+    height: var(--ds-scroll-fade, var(--ds-space-8));
+    margin-inline: calc(-1 * var(--ds-space-3));
+    pointer-events: none;
+    transition:
+      --ds-scroll-edge-start var(--ds-dur-fast) var(--ds-ease-in-out),
+      --ds-scroll-edge-end var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  .ds-drawer__list::before {
+    inset-block-start: 0;
+    margin-block-end: calc(var(--ds-space-1) - var(--ds-scroll-fade, var(--ds-space-8)));
+    background: linear-gradient(var(--ds-backdrop), transparent);
+    opacity: var(--ds-scroll-edge-start);
+  }
+
+  .ds-drawer__list::after {
+    inset-block-end: 0;
+    margin-block-start: calc(var(--ds-space-6) - var(--ds-scroll-fade, var(--ds-space-8)));
+    background: linear-gradient(transparent, var(--ds-backdrop));
+    opacity: var(--ds-scroll-edge-end);
+  }
+
+  .ds-drawer__list[data-ds-overflow-start]::before {
+    --ds-scroll-edge-start: 1;
+  }
+
+  .ds-drawer__list[data-ds-overflow-end]::after {
+    --ds-scroll-edge-end: 1;
+  }
+
+  /* Scroll-linked, on the list's own scroll: the shorthand first (it
+     resets animation-timeline). */
+  @supports (animation-timeline: scroll()) {
+    .ds-drawer__list::before {
+      animation: ds-scroll-edge-start linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: 0 var(--ds-space-8);
+    }
+
+    .ds-drawer__list::after {
+      animation: ds-scroll-edge-end linear both;
+      animation-timeline: scroll(nearest block);
+      animation-range: calc(100% - var(--ds-space-8)) 100%;
+    }
   }
 
   .ds-drawer__group {
@@ -1762,6 +1833,13 @@
        flat (the hairline still marks the scrolled view). */
     .ds-topbar::before {
       display: none;
+    }
+
+    /* The shades would keep their gradient in the theme's surface colour:
+       their opacity goes, the room they hold stays. */
+    .ds-drawer__list::before,
+    .ds-drawer__list::after {
+      visibility: hidden;
     }
 
     .ds-drawer__indicator,

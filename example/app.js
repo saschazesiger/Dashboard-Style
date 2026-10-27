@@ -1093,6 +1093,8 @@
   DS.ripple.attach(document);
   DS.overlay.tooltips(document);
   DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
+  /* A low window cuts the list: its edges shade where scroll timelines are missing too (docs/components.md, Drawer parts). */
+  DS.dom.scrollEdges(nav, { axis: 'block' });
   /* data-scrolled from a 1px sentinel (DS.dom.watchScrolled, docs/components.md, App frame). */
   DS.dom.watchScrolled(view);
 
