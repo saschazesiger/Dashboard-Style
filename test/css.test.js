@@ -1017,6 +1017,25 @@ describe('CSS for the baseline', () => {
     }
   });
 
+  it('never nests :has() inside a :has() argument (every engine drops the whole rule), 2.1', () => {
+    const offenders = [];
+    for (const file of SRC_CSS) {
+      for (const { selector } of rules(read(file))) {
+        for (const match of selector.matchAll(/:has\(/g)) {
+          let depth = 1;
+          let end = match.index + match[0].length;
+          while (depth > 0 && end < selector.length) {
+            if (selector[end] === '(') depth += 1;
+            else if (selector[end] === ')') depth -= 1;
+            end += 1;
+          }
+          if (selector.slice(match.index + match[0].length, end - 1).includes(':has(')) offenders.push(`${file}: ${selector}`);
+        }
+      }
+    }
+    assert.deepEqual([...new Set(offenders)], []);
+  });
+
   it('puts .ds-presence on a wrapper, never on a button, chip or card (their own transitions would go), 2.0', () => {
     const files = [...filesIn('docs', (path) => path.endsWith('.md')), ...filesIn('styleguide', (path) => /\.(js|html)$/.test(path)),
       ...filesIn('example', (path) => /\.(js|html)$/.test(path)), ...filesIn('demo', (path) => /\.(js|html)$/.test(path))];

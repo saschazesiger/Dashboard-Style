@@ -9,7 +9,8 @@
  * to the pill, its labels on the pill's timing; a segmented switch with
  * data-label keeps its
  * width, one without keeps its content in a row; the top bar tints while
- * the view is scrolled and its filled fields stay distinct; .ds-view keeps a
+ * the view is scrolled and its filled fields stay distinct; a brand of
+ * only a name starts on the drawer's icon edge; .ds-view keeps a
  * stable gutter; the documented view swap never shows the new view at full
  * opacity before its entrance and ends on the latest content; the
  * styleguide's nav click glides the pill once.
@@ -432,6 +433,45 @@ test.describe('top bar and view', () => {
       probe.remove();
       return value;
     }));
+  });
+
+  test('a brand of only a name starts its text on the drawer\'s icon edge, with and without the menu button first; a mark centres on the axis (2.1)', async ({ page }) => {
+    await open(page, 'shell.html');
+    /** The name's and the mark's left edges against the bar, and the icon axis resolved through a probe. */
+    const measure = () => page.evaluate(() => {
+      const app = document.getElementById('app');
+      const probe = document.createElement('div');
+      probe.style.cssText = 'position: absolute; width: var(--ds-drawer-icon-axis); height: 0';
+      app.append(probe);
+      const axis = probe.getBoundingClientRect().width;
+      probe.remove();
+      const bar = document.querySelector('.ds-topbar').getBoundingClientRect().left;
+      const name = document.querySelector('.ds-topbar .ds-brand__name').getBoundingClientRect().left;
+      const mark = document.getElementById('fx-mark');
+      return { axis, name: name - bar, mark: mark ? mark.getBoundingClientRect().left + mark.getBoundingClientRect().width / 2 - bar : null };
+    });
+    // The menu button first (shown only with the modal drawer, so hidden here).
+    const first = await measure();
+    expect(first.axis).toBeGreaterThan(20);
+    expect(Math.abs(first.name - (first.axis - 10))).toBeLessThan(0.5);
+    // The brand first.
+    await page.evaluate(() => document.getElementById('menu').remove());
+    const alone = await measure();
+    expect(Math.abs(alone.name - (alone.axis - 10))).toBeLessThan(0.5);
+    // A 32px mark before the name: the mark centres on the axis instead. A
+    // new brand, as a page renders it (Firefox does not re-match the rule
+    // when a child is inserted before the name later).
+    await page.evaluate(() => {
+      const brand = document.querySelector('.ds-topbar .ds-brand');
+      const copy = brand.cloneNode(true);
+      const mark = document.createElement('span');
+      mark.id = 'fx-mark';
+      mark.style.cssText = 'display: block; width: 32px; height: 32px';
+      copy.prepend(mark);
+      brand.replaceWith(copy);
+    });
+    const marked = await measure();
+    expect(Math.abs(marked.mark - marked.axis)).toBeLessThan(0.5);
   });
 
   test('.ds-view keeps a stable scrollbar gutter', async ({ page }) => {

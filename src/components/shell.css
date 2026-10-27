@@ -1427,8 +1427,10 @@
     }
 
     /* A brand of only a name: its text starts on the icons' edge (the
-       axis less half a 20px icon) instead of a 32px mark centring there. */
-    .ds-app--drawer:not([data-drawer-hidden]) .ds-topbar:has(> .ds-brand:not(:has(> :not(.ds-brand__name))):first-child, > .ds-topbar__menu:not([aria-pressed]):first-child + .ds-brand:not(:has(> :not(.ds-brand__name)))) {
+       axis less half a 20px icon) instead of a 32px mark centring there.
+       The name as the brand's only child, not a :has() inside the :has()
+       (no engine allows that nesting; it would drop the rule). */
+    .ds-app--drawer:not([data-drawer-hidden]) .ds-topbar:has(> .ds-brand:first-child > .ds-brand__name:only-child, > .ds-topbar__menu:not([aria-pressed]):first-child + .ds-brand > .ds-brand__name:only-child) {
       padding-left: max(calc(var(--ds-drawer-icon-axis) - 10px), env(safe-area-inset-left));
     }
   }
