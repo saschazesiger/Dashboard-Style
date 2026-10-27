@@ -8,7 +8,7 @@
  * highlight; the rail (data-drawer-collapsed) above 900px only, its labels
  * readable but 1px; createIndicator() idempotent and reveal scrolling only
  * the list; the top bar's title, search and actions, the account capsule
- * and avatars; positioned views, the frame's height from
+ * (its end room without a sign-out button) and avatars; positioned views, the frame's height from
  * --ds-viewport-height and the bar hidden for the keyboard; the banner
  * gliding the view; forced colours (SelectedItem on the current drawer
  * item and the selected option) and print.
@@ -290,6 +290,32 @@ test.describe('top bar and account', () => {
     await page.setViewportSize({ width: 340, height: 700 });
     await settle(page);
     expect(await page.locator('#avatar').isVisible()).toBe(true);
+  });
+
+  test('a capsule without a shown sign-out button ends with the room it starts with, wide and round (2.1)', async ({ page }) => {
+    await open(page, 1280);
+    /** The room from the capsule's edges (borders included) to its first and last shown part. */
+    const room = () => page.evaluate(() => {
+      const account = document.getElementById('account').getBoundingClientRect();
+      const shown = [...document.getElementById('account').children].filter((el) => el.getClientRects().length && getComputedStyle(el).position !== 'absolute');
+      const rects = shown.map((el) => el.getBoundingClientRect());
+      return { start: Math.min(...rects.map((r) => r.left)) - account.left, end: account.right - Math.max(...rects.map((r) => r.right)) };
+    });
+    const withButton = await room();
+    expect(withButton.end).toBeCloseTo(1 + 4, 0); // the text button brings its own padding
+    await page.evaluate(() => { document.getElementById('signout').hidden = true; });
+    const hidden = await room();
+    expect(hidden.end).toBeCloseTo(1 + 16, 0);
+    await page.evaluate(() => { document.getElementById('signout').remove(); document.getElementById('divider').remove(); });
+    expect((await room()).end).toBeCloseTo(1 + 16, 0);
+    // Below 720px only the avatar shows: as much room after it as before it
+    // (without the fixture's long title, which leaves the account no room).
+    await page.evaluate(() => document.getElementById('title').remove());
+    await page.setViewportSize({ width: 390, height: 800 });
+    await settle(page);
+    const round = await room();
+    expect(round.start).toBeCloseTo(1 + 8, 0);
+    expect(round.end).toBeCloseTo(round.start, 0);
   });
 
   test('avatars are 24, 32 and 40px discs', async ({ page }) => {

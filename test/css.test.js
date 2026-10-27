@@ -2729,3 +2729,18 @@ describe('forced colours and print after the merges (2.0)', () => {
     assert.ok(has(printed('src/components/table.css'), '.ds-table tr:not(:has(.ds-table__toggle[aria-expanded="true"])) + .ds-table__detail', 'display', 'none'));
   });
 });
+
+describe('the app frame (2.1)', () => {
+  const SHELL = stripComments(read('src/components/shell.css'));
+  const NO_BUTTON = '.ds-account--capsule:not(:has(> .ds-btn:not([hidden])))';
+  const at = (css, selector) => Object.fromEntries(declarationsOf(css, selector).map((entry) => [entry.property, entry.value]));
+
+  it('ends a capsule without a shown sign-out button with its start\'s room, round below 720px', () => {
+    // The end padding of 4px counts on the text button's own padding.
+    assert.equal(at(withoutAtRuleBlocks(SHELL, /@media/), '.ds-account--capsule')['padding-inline'], 'var(--ds-space-2) var(--ds-space-1)');
+    assert.equal(at(withoutAtRuleBlocks(SHELL, /@media/), NO_BUTTON)['padding-inline-end'], 'var(--ds-space-4)');
+    const narrow = atRuleBlocks(SHELL, /@media \(max-width: 720px\)/).join('\n');
+    assert.equal(at(narrow, NO_BUTTON)['padding-inline-end'], 'var(--ds-space-2)', 'only the avatar: the start padding');
+    assert.ok(SHELL.indexOf(NO_BUTTON) > SHELL.indexOf('.ds-account--capsule {'), 'after the capsule rule');
+  });
+});

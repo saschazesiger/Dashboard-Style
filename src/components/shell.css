@@ -130,8 +130,10 @@
  * .ds-account--capsule: an outlined pill with the avatar first at every
  * width (the only carrier of the name: role="img", aria-label, data-tip),
  * the text aria-hidden (at most --ds-account-text-max, hidden below
- * 720px), .ds-account__divider and a text button. .ds-avatar (32px,
- * --sm 24px, --lg 40px, --ds-avatar-size) is the same disc anywhere.
+ * 720px), .ds-account__divider and a text button; without the button
+ * (none, or hidden) the capsule ends with its start's room. .ds-avatar
+ * (32px, --sm 24px, --lg 40px, --ds-avatar-size) is the same disc
+ * anywhere.
  *
  * .ds-banner: a message for the whole app, the first child of .ds-panel
  * above the view, holding one .ds-alert (role="status", or role="alert"
@@ -714,7 +716,7 @@
    * Account capsule: one outlined pill, the avatar first at every width and
    * the only carrier of the name (role="img", aria-label, data-tip); the
    * text beside it is aria-hidden and gives way below 720px. A divider
-   * goes with a hidden sign-out button.
+   * goes with a hidden sign-out button, and so does the end padding.
    */
   .ds-account--capsule {
     gap: var(--ds-space-2);
@@ -744,6 +746,13 @@
 
   .ds-account__divider:has(+ [hidden]) {
     display: none;
+  }
+
+  /* Without a shown sign-out button (none, or a hidden one) the capsule
+     ends with the room it starts with: the start padding counts on the
+     text button's own padding at the end. */
+  .ds-account--capsule:not(:has(> .ds-btn:not([hidden]))) {
+    padding-inline-end: var(--ds-space-4);
   }
 
   /* ── Navigation drawer ────────────────────────── */
@@ -1650,6 +1659,11 @@
 
     .ds-account__avatar {
       display: grid;
+    }
+
+    /* Only the avatar shows: without a button the capsule is round. */
+    .ds-account--capsule:not(:has(> .ds-btn:not([hidden]))) {
+      padding-inline-end: var(--ds-space-2);
     }
 
     /* The page offers its search in the view instead. */

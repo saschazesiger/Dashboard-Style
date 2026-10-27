@@ -484,7 +484,9 @@ menu.addEventListener('click', () => {
 - `.ds-account--capsule`: the account as one outlined pill (`--ds-line`, `--ds-surface`): the avatar first at every
   width and the only carrier of the name (`role="img"`, `aria-label`, `data-tip`; a tap shows the tip), the text
   `aria-hidden` beside it (at most `--ds-account-text-max`, 240px; hidden below 720px), `.ds-account__divider` and a
-  text button. The divider goes with a `[hidden]` sign-out button. `.ds-account__email:empty` takes no room.
+  text button. The divider goes with a `[hidden]` sign-out button. Without a shown sign-out button (none in the markup,
+  or `hidden`) the capsule ends with the room it starts with: `--ds-space-4` after the text, a round capsule around
+  the avatar below 720px. `.ds-account__email:empty` takes no room.
 
 ### Avatar
 
