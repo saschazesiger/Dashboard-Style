@@ -274,6 +274,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-field-changed-color` | `--ds-primary` | the dot after the label of a `.ds-field--changed` (keep 3:1 on the surface) |
 | `--ds-form-rows-control-max` | 480px | the widest control in `.ds-form--rows` |
 | `--ds-check-list-max-height` | 264px | `.ds-check-list` scrolls on its own beyond it (`none`: every row shows) |
+| `--ds-form-actions-bleed` | `--ds-content-pad-x` (in a `.ds-card`: `--ds-card-pad`) | how far a `.ds-form-actions--sticky` bar bleeds on a phone: set it on a padded container of the page's own to its inline padding (it inherits) |
 | `--ds-composer-radius` | `--ds-radius-2xl` | the shell of `.ds-composer` |
 | `--ds-composer-max-height` | 220px | the tallest the composer's textarea grows before it scrolls |
 | `--ds-slider-halo` | 40px | the halo around the slider handle (hover, press, focus), and the slider's height |

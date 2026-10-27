@@ -207,6 +207,7 @@
   --ds-field-success-color: var(--ds-text-2);
   --ds-field-changed-color: var(--ds-primary);
   --ds-form-rows-control-max: 480px;   --ds-check-list-max-height: 264px;
+  --ds-form-actions-bleed: (--ds-content-pad-x; in a card --ds-card-pad)
   --ds-composer-radius: var(--ds-radius-2xl);
   --ds-composer-max-height: 220px;
   --ds-slider-halo: 40px;

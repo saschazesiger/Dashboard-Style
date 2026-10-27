@@ -2846,4 +2846,13 @@ describe('additions (2.1)', () => {
     assert.equal(disc.height, 'var(--ds-empty-disc-size, 48px)');
     assert.equal(at(css, '.ds-empty--done .ds-empty__disc::after').inset, '0');
   });
+
+  it('bleeds the sticky action bar by --ds-form-actions-bleed, else the page or the card padding', () => {
+    const phone = atRuleBlocks(stripComments(read('src/components/form.css')), /^@media \(max-width: 600px\)$/).join('\n');
+    for (const [selector, fallback] of [['.ds-form-actions--sticky', 'var(--ds-content-pad-x, 0px)'], ['.ds-card .ds-form-actions--sticky', 'var(--ds-card-pad)']]) {
+      const bar = at(phone, selector);
+      assert.equal(bar['margin-inline'], `calc(-1 * var(--ds-form-actions-bleed, ${fallback}))`, selector);
+      assert.equal(bar['padding-inline'], `var(--ds-form-actions-bleed, ${fallback})`, selector);
+    }
+  });
 });

@@ -374,6 +374,36 @@ test.describe('tiles, actions, slider', () => {
     expect(await page.locator('#actions').evaluate((el) => getComputedStyle(el).position)).toBe('sticky');
   });
 
+  test('a sticky bar in a padded project box meets its edges through --ds-form-actions-bleed; in a card it bleeds by the card padding (2.1)', async ({ page }) => {
+    await open(page);
+    await page.setViewportSize({ width: 390, height: 700 });
+    const edges = await page.evaluate(() => {
+      const actions = '<div class="ds-form-actions ds-form-actions--sticky"><button class="ds-btn ds-btn--primary" type="submit">Save</button></div>';
+      const host = document.createElement('div');
+      host.innerHTML =
+        '<div id="x-box" style="padding: 20px; border: 1px solid; --ds-form-actions-bleed: 20px"><form class="ds-form" onsubmit="return false">' + actions + '</form></div>' +
+        '<div class="ds-card" id="x-card"><form class="ds-form" onsubmit="return false">' + actions + '</form></div>';
+      document.querySelector('.ds-theme').append(host);
+      return ['#x-box', '#x-card'].map((id) => {
+        const box = document.querySelector(id);
+        const outer = box.getBoundingClientRect();
+        const bar = box.querySelector('.ds-form-actions').getBoundingClientRect();
+        const button = box.querySelector('.ds-btn').getBoundingClientRect();
+        return {
+          id,
+          start: bar.left - (outer.left + box.clientLeft),
+          end: outer.left + box.clientLeft + box.clientWidth - bar.right,
+          inset: button.left - bar.left,
+          pad: parseFloat(getComputedStyle(box).paddingLeft),
+        };
+      });
+    });
+    for (const edge of edges) {
+      expect([edge.start, edge.end], `${edge.id}: the bar meets the padding box's edges`).toEqual([0, 0]);
+      expect(edge.inset, `${edge.id}: the content keeps the container's padding`).toBe(edge.pad);
+    }
+  });
+
   test('a slider rests and focuses with its halo, its value as tall as the halo', async ({ page }) => {
     await open(page);
     expect((await box(page.locator('#keep'))).height).toBe(40);

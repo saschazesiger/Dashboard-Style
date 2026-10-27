@@ -2129,7 +2129,15 @@ the handle in `Highlight`.
 
 At 600px and below the action row of a long form sticks to the bottom of its scroller: a surface bar with a static
 hairline that bleeds to the page's padding (`--ds-content-pad-x`) or a card's (`--ds-card-pad`) and keeps clear of
-the home indicator (`env(safe-area-inset-bottom)`).
+the home indicator (`env(safe-area-inset-bottom)`). In a padded container of the page's own (a project card, a sheet
+section) set `--ds-form-actions-bleed` on that container to its inline padding, and the bar meets its edges:
+
+```css
+.x-panel { padding: var(--ds-space-5); --ds-form-actions-bleed: var(--ds-space-5); }
+```
+
+The hook inherits, so set it on the nearest container the bar runs through (inside a `.ds-card` in such a container,
+set it on the card too).
 
 **Toolbar, search, filters, inline form**
 
