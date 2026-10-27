@@ -1312,6 +1312,9 @@ the `pathLength="1"` check (`DS.icons.check`) draws itself (`ds-draw`, `--ds-dur
 when the element is inserted or shown (`hidden` removed), never again while a re-render (`DS.dom.morphHtml`) keeps
 the node. Forced colours: the disc keeps an outline.
 
+The disc is 48px; `--ds-empty-disc-size` (on the element or in the theme) makes it larger, say for a confirmation
+page: the ring follows, the glyph keeps the size of its markup (`[icon check 32]` in a 72px disc).
+
 **Motion:** [Data motion](motion.md#data-motion) in motion.md.
 
 ## Status chip

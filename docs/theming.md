@@ -368,6 +368,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-skeleton-radius` | `--ds-radius-action` (the heading line: `--ds-radius-sm`) | skeleton lines ([loading](components.md#loading)) |
 | `--ds-swap-fade` | `--ds-space-2` | the soft edge of a `.ds-swap--fade` slot ([motion](motion.md#utilities-css)) |
 | `--ds-dropzone-border` | `1px dashed var(--ds-outline)` | the border of a `.ds-dropzone` ([file upload](components.md#file-upload)) |
+| `--ds-empty-disc-size` | 48px | the disc of `.ds-empty__disc` ([empty state](components.md#empty-state)); the ring of `.ds-empty--done` follows, the glyph keeps its markup's size |
 | `--ds-meter-height` | 4px | `.ds-meter` (its rest radius is half of it) |
 | `--ds-meter-track`, `--ds-meter-color` | `--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`) | `.ds-meter`: the track, the fill |
 | `--ds-columns-height` | 120px | the plot of `.ds-columns` (`--mini`: 32px) |

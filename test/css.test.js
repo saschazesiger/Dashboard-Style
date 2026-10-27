@@ -2838,4 +2838,12 @@ describe('additions (2.1)', () => {
       assert.deepEqual(at(css, selector), { display: 'inline-block', 'margin-inline-end': 'var(--ds-space-1)', 'vertical-align': 'top' }, selector);
     }
   });
+
+  it('sizes the empty-state disc by --ds-empty-disc-size (48px); the done ring fills it', () => {
+    const css = stripComments(read('src/components/empty.css'));
+    const disc = at(css, '.ds-empty__disc');
+    assert.equal(disc.width, 'var(--ds-empty-disc-size, 48px)');
+    assert.equal(disc.height, 'var(--ds-empty-disc-size, 48px)');
+    assert.equal(at(css, '.ds-empty--done .ds-empty__disc::after').inset, '0');
+  });
 });

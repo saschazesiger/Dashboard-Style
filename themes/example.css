@@ -285,6 +285,7 @@
   --ds-skeleton-radius: var(--ds-radius-action);
   --ds-swap-fade: var(--ds-space-2);
   --ds-dropzone-border: 1px dashed var(--ds-outline);
+  --ds-empty-disc-size: 48px;
   --ds-meter-height: 4px;              --ds-meter-track: var(--ds-chart-track);
   --ds-meter-color: var(--ds-chart-1);
   --ds-columns-height: 120px;          --ds-columns-radius: var(--ds-radius-xs);

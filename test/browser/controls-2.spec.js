@@ -391,6 +391,23 @@ test.describe('tiles, cards, alerts, the done state (CT-9 to CT-12)', () => {
     await page.evaluate(() => { const holder = document.getElementById('done-holder'); DS.dom.morphHtml(holder, holder.innerHTML); });
     expect(await names()).toEqual([]);
   });
+
+  test('the disc takes --ds-empty-disc-size, the ring follows, the glyph keeps its size (2.1)', async ({ page }) => {
+    await open(page);
+    await page.locator('#done').evaluate((el) => { el.hidden = false; });
+    await settle(page, { timeout: 8000 });
+    const sizes = () => page.locator('#done .ds-empty__disc').evaluate((disc) => {
+      const box = disc.getBoundingClientRect();
+      const ring = getComputedStyle(disc, '::after');
+      const glyph = disc.querySelector('svg').getBoundingClientRect();
+      return { width: box.width, height: box.height, ring: [parseFloat(ring.width), parseFloat(ring.height)], glyph: glyph.width, centre: Math.abs(glyph.left + glyph.width / 2 - (box.left + box.width / 2)) };
+    });
+    expect(await sizes()).toMatchObject({ width: 48, height: 48, ring: [48, 48], glyph: 24 });
+    await page.locator('#done').evaluate((el) => el.style.setProperty('--ds-empty-disc-size', '72px'));
+    const large = await sizes();
+    expect(large).toMatchObject({ width: 72, height: 72, ring: [72, 72], glyph: 24 });
+    expect(large.centre).toBeLessThanOrEqual(0.5);
+  });
 });
 
 test.describe('the switch (CT-13)', () => {
