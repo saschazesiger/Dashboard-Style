@@ -2265,6 +2265,44 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
     assert.deepEqual(doc.documentElement.children, [doc.body], 'nothing after <body>');
   });
 
+  it('prompt({ input }): spellcheck, autocapitalize, autocorrect and enterkeyhint are written when given, else none (2.1)', () => {
+    // A bare fake: prompt() builds its field synchronously, before open() (which the fake does not support).
+    const made = [];
+    const node = (tag) => {
+      const attrs = new Map();
+      const element = {
+        tagName: tag.toUpperCase(), className: '', id: '', children: [], parentElement: null, style: {}, attrs,
+        setAttribute(name, value) { attrs.set(name, String(value)); },
+        getAttribute(name) { return attrs.has(name) ? attrs.get(name) : null; },
+        hasAttribute(name) { return attrs.has(name); },
+        removeAttribute(name) { attrs.delete(name); },
+        append(...children) {
+          for (const child of children) {
+            if (child && typeof child === 'object') child.parentElement = this;
+            this.children.push(child);
+          }
+        },
+        addEventListener() {},
+      };
+      made.push(element);
+      return element;
+    };
+    const doc = { createElement: node, createTextNode: (text) => ({ text }), querySelector: () => null };
+    doc.body = node('body');
+    doc.documentElement = node('html');
+    const field = (input) => {
+      made.length = 0;
+      overlay.prompt({ title: 'Path', label: 'Path', input, opener: /** @type {any} */ ({ ownerDocument: doc }) }).catch(() => {});
+      const built = made.find((element) => element.tagName === 'INPUT');
+      return Object.fromEntries([...built.attrs].filter(([name]) => name !== 'autofocus'));
+    };
+    assert.deepEqual(field({ spellcheck: false, autocapitalize: 'off', autocorrect: 'off', enterkeyhint: 'done' }),
+      { spellcheck: 'false', autocapitalize: 'off', autocorrect: 'off', enterkeyhint: 'done' });
+    assert.deepEqual(field({ spellcheck: true }), { spellcheck: 'true' });
+    assert.deepEqual(field(undefined), {}, 'nothing without the options');
+    assert.deepEqual(field({ autocomplete: 'off', inputmode: 'text' }), { autocomplete: 'off', inputmode: 'text' });
+  });
+
   it('has no legacy branch: the region is never left mute (R11)', () => {
     const source = withoutComments(read('src/js/overlay.js'));
     assert.doesNotMatch(source, /\blegacy\b/);

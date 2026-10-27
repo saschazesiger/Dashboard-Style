@@ -1087,10 +1087,12 @@ once.
 Promise dialogs (2.0): `confirm()`, `alert()` and `prompt()` build a native `dialog.ds-dialog` with DOM APIs (no HTML
 strings, so a strict CSP is fine) inside the opener's `.ds-theme` (else the first one): the backdrop with
 `data-close`, the title (`aria-labelledby`), the text (`aria-describedby`), for `prompt()` a `.ds-field` whose input
-takes `input.type`, `autocomplete`, `inputmode` and `required`, and the actions. A required field left empty keeps
-the dialog open with the documented field error: `aria-invalid`, a `.ds-field__hint--error` with the alertCircle icon
-and `requiredText` (default "Enter a value.") linked by `aria-describedby`, said at once through
-`announce(text, { assertive: true })`; the next input takes it away. They open it with `open()`, remove it once its
+takes `input.type`, `autocomplete`, `inputmode` and `required`, plus `spellcheck` (a boolean, written as `"true"` or
+`"false"`), `autocapitalize`, `autocorrect` and `enterkeyhint` (2.1; each written only when given, so a path or a code
+field turns them off), and the actions. A required field left empty keeps the dialog open with the documented field
+error: `aria-invalid`, a `.ds-field__hint--error` with the alertCircle icon and `requiredText` (default "Enter a
+value.") linked by `aria-describedby`, said at once through `announce(text, { assertive: true })`; the next input
+takes it away. They open it with `open()`, remove it once its
 exit settled and resolve when the close starts: `confirm()` `true` only for the confirm button, `prompt()` the value
 or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is Cancel (else the
 confirm button, or the prompt's field). `onConfirm` (a function returning a promise) runs with

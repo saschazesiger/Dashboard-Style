@@ -221,6 +221,25 @@ test.describe('prompt() and alert() (2.0)', () => {
     await gone(page);
   });
 
+  test('prompt(): spellcheck, autocapitalize, autocorrect and enterkeyhint reach the field when given, else none (2.1)', async ({ page }) => {
+    await load(page);
+    const read = () => page.evaluate(() => {
+      const input = document.querySelector('.ds-dialog[data-state="open"] .ds-input');
+      return Object.fromEntries(['spellcheck', 'autocapitalize', 'autocorrect', 'enterkeyhint'].map((name) => [name, input.getAttribute(name)]));
+    });
+    await ask(page, 'prompt', { title: 'Mount path', label: 'Path', input: { spellcheck: false, autocapitalize: 'off', autocorrect: 'off', enterkeyhint: 'done' } });
+    await settle(page);
+    expect(await read()).toEqual({ spellcheck: 'false', autocapitalize: 'off', autocorrect: 'off', enterkeyhint: 'done' });
+    expect(await page.evaluate(() => document.querySelector('.ds-dialog[data-state="open"] .ds-input').spellcheck)).toBe(false);
+    await page.keyboard.press('Escape');
+    await gone(page);
+    await ask(page, 'prompt', { title: 'Rename', label: 'Name' });
+    await settle(page);
+    expect(await read()).toEqual({ spellcheck: null, autocapitalize: null, autocorrect: null, enterkeyhint: null });
+    await page.keyboard.press('Escape');
+    await gone(page);
+  });
+
   test('prompt(): a required field left empty stays open with the field error (icon, text, aria-describedby, announced); typing clears it', async ({ page }) => {
     await load(page, { region: false });
     await ask(page, 'prompt', { title: 'Name the group', label: 'Name', input: { required: true }, requiredText: 'Name the group.' });

@@ -2005,8 +2005,9 @@ export function alert(options = {}) {
 
 /**
  * Asks for one value with a built dialog: a field (`label`, `value`;
- * `input` sets its type, autocomplete, inputmode and required), Cancel and
- * a confirm button; Enter in the field confirms. A required field left
+ * `input` sets its type, autocomplete, inputmode, required, spellcheck,
+ * autocapitalize, autocorrect and enterkeyhint), Cancel and a confirm
+ * button; Enter in the field confirms. A required field left
  * empty stays open with the field error `requiredText` (default "Enter a
  * value."; aria-invalid, a .ds-field__hint--error linked by
  * aria-describedby, announced assertively) until the next input.
@@ -2015,7 +2016,8 @@ export function alert(options = {}) {
  * @param {{ title?: string, text?: string, label?: string, value?: string, confirmLabel?: string,
  *   cancelLabel?: string, opener?: Element|null, onConfirm?: (value: string) => unknown, errorText?: string,
  *   requiredText?: string,
- *   input?: { type?: string, autocomplete?: string, inputmode?: string, required?: boolean } }} [options]
+ *   input?: { type?: string, autocomplete?: string, inputmode?: string, required?: boolean,
+ *     spellcheck?: boolean, autocapitalize?: string, autocorrect?: string, enterkeyhint?: string } }} [options]
  * @returns {Promise<string|null>}
  */
 export function prompt(options = {}) {
@@ -2082,6 +2084,11 @@ function ask(kind, options) {
     if (input.autocomplete) field.setAttribute('autocomplete', input.autocomplete);
     if (input.inputmode) field.setAttribute('inputmode', input.inputmode);
     if (input.required) field.required = true;
+    // Typing hints for a path or a code: written only when given, so the browser's defaults stay otherwise.
+    if (typeof input.spellcheck === 'boolean') field.setAttribute('spellcheck', String(input.spellcheck));
+    for (const name of ['autocapitalize', 'autocorrect', 'enterkeyhint']) {
+      if (input[name]) field.setAttribute(name, input[name]);
+    }
     field.value = options.value ?? '';
     field.setAttribute('autofocus', '');
     wrap.append(label, field);

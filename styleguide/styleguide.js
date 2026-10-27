@@ -3154,7 +3154,7 @@
         }).then(function (yes) { toast(yes ? '3 devices archived.' : 'Nothing archived.', yes ? 'success' : 'info'); });
       }
       if (action === 'dialog-prompt') {
-        DS.overlay.prompt({ title: 'Rename the device', label: 'Name', value: 'LAPTOP-0042', confirmLabel: 'Rename', opener: el, input: { autocomplete: 'off', required: true } })
+        DS.overlay.prompt({ title: 'Rename the device', label: 'Name', value: 'LAPTOP-0042', confirmLabel: 'Rename', opener: el, input: { autocomplete: 'off', required: true, spellcheck: false, autocapitalize: 'off', enterkeyhint: 'done' } })
           .then(function (value) { if (value !== null) toast('Renamed to ' + value + '.'); });
       }
       if (action === 'toast') toast('Saved. The record is visible to everyone now.');
