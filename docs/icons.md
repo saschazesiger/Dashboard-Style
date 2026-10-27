@@ -39,7 +39,9 @@ component rules expect it (`> svg:first-child`).
 ## Sizes
 
 20px for navigation, icon buttons, alerts and tile labels; 16px inside buttons, chips, status chips, lists and meta
-lines; 18px for the check in a filter chip; 24px in the empty-state disc.
+lines; 18px for the check in a filter chip; 24px in the empty-state disc. A 16px glyph leading a meta line
+(`.ds-meta`, `.ds-timeline__meta`, as its first child) sits on its text line, `--ds-space-1` before the text, without
+growing the line.
 
 ## Glyphs
 

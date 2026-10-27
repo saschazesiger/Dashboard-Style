@@ -1187,6 +1187,7 @@ The history of a record (2.0): entries on a rail, grouped by day.
   <li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="e1">
     <span class="ds-timeline__marker" aria-hidden="true">[icon user 16]</span>
     <div class="ds-timeline__head"><p class="ds-timeline__title">Owner changed</p></div>
+    <p class="ds-timeline__meta">[icon sync 16]Directory sync</p>
   </li>
 </ol>
 ```
@@ -1202,7 +1203,8 @@ The history of a record (2.0): entries on a rail, grouped by day.
   `--ds-timeline-marker-size` (24px) on `--ds-surface-high` with a 16px icon instead of the dot (an activity feed:
   who or what did it).
 - `.ds-timeline__head` (title and a status chip, wrapping), `.ds-timeline__title` (label font), `.ds-timeline__meta`
-  (meta font: the `<time>` and who), `.ds-timeline__text` (keeps its line breaks, `--ds-measure` wide),
+  (meta font: the `<time>` and who; a leading 16px icon, the source say, sits on its text line, `--ds-space-1`
+  before the text), `.ds-timeline__text` (keeps its line breaks, `--ds-measure` wide),
   `.ds-timeline__body` (a form in place) and `.ds-timeline__actions` (text buttons hang their padding, so their labels
   line up with the text; name the entry in each button's `aria-label`).
 - No motion of its own: entries come and go through `DS.motion.flip` with keyed entries (a removed entry moves focus
@@ -3404,7 +3406,7 @@ ripples.release(host);                        // end a running press by hand (no
 |---|---|
 | `.ds-sr` | visually hidden, read by screen readers |
 | `.ds-muted` | quieter body text, tabular figures (`p.ds-muted` keeps the reading measure) |
-| `.ds-meta` | meta line, 12px, tabular figures |
+| `.ds-meta` | meta line, 12px, tabular figures; a leading 16px icon (`[icon clock 16]Synced 09:12`) sits on its text line, `--ds-space-1` before the text |
 | `.ds-stale` | dims content until its replacement arrives (filter applied, request running), after `--ds-delay-loader`, so an answer within 200ms never dims; removing it is instant. Set `aria-busy="true"` on the container while it is stale |
 | `.ds-num` | right-aligned tabular figures |
 | `.ds-center` | centred text |

@@ -181,3 +181,32 @@ test('dots and rails are borders, so they stay in forced colours', async ({ page
   expect(plain.dot.colour).not.toBe(canvas[1]);
   expect(plain.rail.width).toBe(2);
 });
+
+test('a 16px icon leading a meta line sits on its text line, 4px before the text, and keeps the line (2.1)', async ({ page }) => {
+  await open(page);
+  const lines = await page.evaluate(() => ['ds-timeline__meta', 'ds-meta'].map((name) => {
+    const line = document.createElement('p');
+    line.className = name;
+    line.innerHTML = DS.icons.icon(DS.icons.sync, 16) + 'Directory sync';
+    (name === 'ds-meta' ? document.querySelector('.ds-theme') : document.querySelector('.ds-timeline__item')).append(line);
+    const range = document.createRange();
+    range.selectNodeContents(line.lastChild);
+    const text = range.getBoundingClientRect();
+    const glyph = line.firstElementChild.getBoundingClientRect();
+    const box = line.getBoundingClientRect();
+    const result = {
+      name,
+      offset: glyph.top + glyph.height / 2 - (text.top + text.height / 2),
+      gap: text.left - glyph.right,
+      height: box.height,
+      lineHeight: parseFloat(getComputedStyle(line).lineHeight),
+    };
+    line.remove();
+    return result;
+  }));
+  for (const line of lines) {
+    expect(Math.abs(line.offset), `${line.name}: centred on the text`).toBeLessThanOrEqual(1);
+    expect(line.gap, `${line.name}: --ds-space-1 before the text`).toBeCloseTo(4, 0);
+    expect(line.height, `${line.name}: the line does not grow`).toBeLessThanOrEqual(line.lineHeight + 0.5);
+  }
+});

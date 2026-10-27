@@ -2828,3 +2828,14 @@ describe('tables, cards and buttons (2.1)', () => {
     assert.doesNotMatch(PAGE, /\.ds-page-head__actions > (?:\*|\.ds-btn)(?![\w-])/);
   });
 });
+
+describe('additions (2.1)', () => {
+  const at = (css, selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
+
+  it('sets a 16px icon leading a meta line on its text line, --ds-space-1 before the text, without growing the line', () => {
+    for (const [file, selector] of [['utilities', '.ds-meta > svg:first-child'], ['timeline', '.ds-timeline__meta > svg:first-child']]) {
+      const css = stripComments(read(`src/components/${file}.css`));
+      assert.deepEqual(at(css, selector), { display: 'inline-block', 'margin-inline-end': 'var(--ds-space-1)', 'vertical-align': 'top' }, selector);
+    }
+  });
+});
