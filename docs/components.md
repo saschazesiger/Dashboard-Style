@@ -2752,6 +2752,8 @@ Android Back can still force a native close (it follows with reason `escape`); n
 
 - **Why it closed.** Every close sends `ds-close` with `detail.reason` (`escape`, `backdrop`, `close`, `api`, your own
   string from `close(dialog, { reason })` ...; [motion.md](motion.md#dsoverlay-jsoverlayjs)), once, as soon as it starts.
+  It bubbles: a listener on the dialog also hears the menus, lists and dialogs inside it, so check
+  `event.target === dialog`.
 - **Focus back.** Give row buttons that open a dialog stable `id`s: when a re-render replaced the opener, focus goes to
   the element that now has its `id`; `open(dialog, { opener, returnTo: () => element })` names another place.
 - **A double click on the opener** never closes the dialog it opened: a backdrop click closes only as the first click

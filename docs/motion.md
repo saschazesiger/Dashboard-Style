@@ -976,10 +976,11 @@ the drawer's `.ds-scrim`), `'close'` (another `[data-close]`), `'item'`, `'tab'`
 `dialog.close()`, a `<form method="dialog">`), `'removed'` (it left the document; sent on the detached element),
 `'breakpoint'` (the drawer's window widened past 900px); any other string is the page's own
 (`close(el, { reason: 'confirm' })`). It is not sent for a `close()` during an exit, for a refused attempt (busy,
-below) or for an element that was never open.
+below) or for an element that was never open. It bubbles: a listener on an overlay also hears the dialogs, menus and
+combobox lists inside it (a confirmation opened from a side sheet, a menu in a dialog), so check `event.target`.
 
 ```js
-dialog.addEventListener('ds-close', (event) => { if (event.detail.reason === 'confirm') saveDraft(); });
+dialog.addEventListener('ds-close', (event) => { if (event.target === dialog && event.detail.reason === 'confirm') saveDraft(); });
 ```
 
 **Busy: `data-ds-busy`** (2.0). While the page sets the attribute on a `.ds-dialog`, `.ds-sheet` or `.ds-drawer`, the

@@ -3002,7 +3002,7 @@
         ok.focus();
       });
     });
-    dialog.addEventListener('ds-close', function (event) { toast('Closed: ' + event.detail.reason + '.', 'info'); });
+    dialog.addEventListener('ds-close', function (event) { if (event.target === dialog) toast('Closed: ' + event.detail.reason + '.', 'info'); });
   }
 
   /* "Type the name to delete": the action waits for the exact name; Enter runs it. */
