@@ -4,14 +4,15 @@
  * aria-checked, the disabled model, the start margin only in the top bar);
  * the drawer's back item standing in for the page head's back link above
  * 900px, counts that show on a closed group, the pill leaving an item whose
- * group closes and coming back, the row action, the foot rail and the tap
- * highlight; the rail (data-drawer-collapsed) above 900px only, its labels
- * readable but 1px; createIndicator() idempotent and reveal scrolling only
- * the list; the top bar's title, search and actions, the account capsule
- * (its end room without a sign-out button) and avatars; positioned views, the frame's height from
- * --ds-viewport-height and the bar hidden for the keyboard; the banner
- * gliding the view; forced colours (SelectedItem on the current drawer
- * item and the selected option) and print.
+ * group closes and coming back, the row action (the item's room for it,
+ * also under .ds-touch), the foot rail and the tap highlight; the rail
+ * (data-drawer-collapsed) above 900px only, its labels readable but 1px;
+ * createIndicator() idempotent and reveal scrolling only the list; the top
+ * bar's title, search and actions, the account capsule (its end room
+ * without a sign-out button) and avatars; positioned views, the frame's
+ * height from --ds-viewport-height and the bar hidden for the keyboard;
+ * the banner gliding the view; forced colours (SelectedItem on the current
+ * drawer item and the selected option) and print.
  */
 import { test, expect } from './base-test.js';
 import { ready, settle, setSpeed } from './helpers/motion.js';
@@ -157,6 +158,23 @@ test.describe('drawer parts', () => {
     expect(await style(page, '#item-count', 'font-variant-numeric')).toContain('tabular-nums');
     // Firefox has no tap highlight (and no such property).
     expect(['rgba(0, 0, 0, 0)', '']).toContain(await style(page, '#open', '-webkit-tap-highlight-color'));
+  });
+
+  test('a row with a long label keeps room for its action at the action\'s size, also under .ds-touch (2.1)', async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => {
+      const label = document.querySelector('#waiting .ds-drawer__label');
+      label.textContent = 'Waiting for the customer to answer the last question';
+      document.querySelector('#waiting .ds-drawer__count').remove();
+    });
+    for (const touch of [false, true]) {
+      await page.evaluate((on) => document.querySelector('.ds-theme').classList.toggle('ds-touch', on), touch);
+      await settle(page);
+      const action = await box(page, '#row-action');
+      const label = await box(page, '#waiting .ds-drawer__label');
+      expect(action.width, touch ? 'under .ds-touch' : 'default').toBe(touch ? 48 : 32);
+      expect(label.right, touch ? 'under .ds-touch' : 'default').toBeLessThanOrEqual(action.left + 0.5);
+    }
   });
 
   test('the row action shows on demand: hover, focus and a current item', async ({ page }) => {

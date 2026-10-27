@@ -258,7 +258,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-hover-decoration` | none | e.g. `underline` for text buttons |
 | `--ds-btn-icon-size` | 40px | `--icon` buttons |
 | `--ds-btn-sm-height` | 32px | `.ds-btn--sm` (it sets `--ds-btn-height` from it) |
-| `--ds-btn-sm-icon-size` | 32px | `.ds-btn--sm.ds-btn--icon` (it sets `--ds-btn-icon-size` from it) |
+| `--ds-btn-sm-icon-size` | 32px | `.ds-btn--sm.ds-btn--icon` (it sets `--ds-btn-icon-size` from it); a `.ds-drawer__row` item keeps that much room for its action |
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
 | `--ds-input-font` | body; input role at 600px and below | fields |

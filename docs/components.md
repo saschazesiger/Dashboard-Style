@@ -424,7 +424,7 @@ group.addEventListener('click', (event) => {
   `.ds-collapsible` timing. The pill follows the current item across groups; an item inside a closed group has no pill
   (it contracts, and comes back when the group opens). Keep the open groups across loads in the page (`open`).
 - `.ds-drawer__row` holds an item and a `.ds-drawer__action`, a quiet small icon button at the item's end (the item
-  keeps room for it). With `.ds-hover-actions` the action shows on hover, focus, the current item and an open menu, and
+  keeps room for it at the action's size, `--ds-btn-sm-icon-size`, so also under `.ds-touch`). With `.ds-hover-actions` the action shows on hover, focus, the current item and an open menu, and
   always on touch; it stays in the tab order.
 - `<a>` drawer items no longer flash on tap in iOS (`-webkit-tap-highlight-color` on every item).
 - Forced colours: the current item is `SelectedItem` / `SelectedItemText` (with its icon), a focused current item

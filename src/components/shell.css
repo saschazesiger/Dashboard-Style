@@ -115,7 +115,8 @@
  * groups (<details class="ds-drawer__group ds-collapsible"> with a
  * pressable .ds-drawer__toggle summary: state layer, ring snap, ripple),
  * .ds-drawer__row with a .ds-drawer__action (a quiet icon button at the
- * end of an item, shown on demand through .ds-hover-actions). The pill
+ * end of an item, shown on demand through .ds-hover-actions; the item
+ * keeps room for it at its size, --ds-btn-sm-icon-size). The pill
  * follows the current item across groups; an item inside a closed group
  * has no pill. The rail (data-drawer-collapsed) switches its column at
  * once; the labels fade back in on --ds-dur-fast when it widens again
@@ -961,7 +962,9 @@
 
   /* An item with an action of its own at its end (a quiet icon button,
      .ds-hover-actions: shown on hover, focus, the current item and an open
-     menu, always on touch). The item keeps room for it. */
+     menu, always on touch). The item keeps room for it at the action's
+     own size (the hook the small icon button reads: 48px under
+     .ds-touch) plus --ds-space-2 (its margin and as much air). */
   .ds-drawer__row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -970,7 +973,7 @@
 
   .ds-drawer__row > .ds-drawer__item {
     grid-area: 1 / 1 / 2 / 3;
-    padding-inline-end: calc(var(--ds-space-8) + var(--ds-space-2));
+    padding-inline-end: calc(var(--ds-btn-sm-icon-size, var(--ds-space-8)) + var(--ds-space-2));
   }
 
   .ds-drawer__action {

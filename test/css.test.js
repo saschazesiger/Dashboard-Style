@@ -2743,4 +2743,13 @@ describe('the app frame (2.1)', () => {
     assert.equal(at(narrow, NO_BUTTON)['padding-inline-end'], 'var(--ds-space-2)', 'only the avatar: the start padding');
     assert.ok(SHELL.indexOf(NO_BUTTON) > SHELL.indexOf('.ds-account--capsule {'), 'after the capsule rule');
   });
+
+  it('keeps a drawer row item\'s room for its action at the action\'s size (the hook .ds-touch raises to 48px)', () => {
+    assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(var(--ds-btn-sm-icon-size, var(--ds-space-8)) + var(--ds-space-2))');
+    // The same hook sizes the small icon button and .ds-touch sets it.
+    assert.match(read('src/components/button.css'), /\.ds-btn--icon\.ds-btn--sm \{\s*--ds-btn-icon-size: var\(--ds-btn-sm-icon-size, 32px\);/);
+    assert.equal(at(stripComments(read('src/components/utilities.css')), '.ds-touch')['--ds-btn-sm-icon-size'], 'var(--ds-touch-target)');
+    // The room's second part (--ds-space-2) covers the action's margin and as much air.
+    assert.equal(at(SHELL, '.ds-drawer__action')['margin-inline-end'], 'var(--ds-space-1)');
+  });
 });
