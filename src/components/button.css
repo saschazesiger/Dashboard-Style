@@ -32,6 +32,15 @@
  *                            button that keeps its name:
  *     <button class="ds-btn ds-btn--adaptive" type="button" data-tip="Export">(download 16)<span class="ds-btn__label">Export</span></button>
  *
+ * Link button: .ds-link-btn, a button that reads like a link (an action
+ * inside text or a table cell, the subject that opens a detail): the link
+ * colour and underline, no padding, border or fill. An inline link: no
+ * ripple, no morph; a press darkens its underline (the press feedback on
+ * touch screens); keyboard focus a ring solid from the first frame that
+ * snaps from offset + width to the offset (outline-offset, --ds-dur-fast).
+ *
+ *   <button class="ds-link-btn" type="button">LAPTOP-0042</button>
+ *
  * Quiet links: .ds-link--quiet (a link) and .ds-link-btn--quiet (with
  * .ds-link-btn): the quieter ink and a hairline underline in --ds-line-2,
  * the link colour and its hover underline on hover; still underlined.
@@ -536,6 +545,47 @@
       white-space: nowrap;
       border: 0;
     }
+  }
+
+  /* A button that reads like a link: an action inside text or a table cell
+     (the subject that opens the detail). */
+  .ds-link-btn {
+    padding: 0;
+    border: 0;
+    border-radius: var(--ds-radius-xs);
+    background: none;
+    color: var(--ds-link);
+    font: inherit;
+    font-weight: var(--ds-weight-label);
+    text-align: start;
+    text-decoration: underline;
+    text-decoration-thickness: var(--ds-link-underline-thickness);
+    text-decoration-color: var(--ds-link-underline);
+    text-underline-offset: var(--ds-link-underline-offset);
+    cursor: pointer;
+    /* The ring rests (invisible) one width further out and snaps in. */
+    outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
+    transition:
+      text-decoration-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+  }
+
+  @media (hover: hover) {
+    .ds-link-btn:hover {
+      text-decoration-color: var(--ds-link-underline-hover);
+    }
+  }
+
+  /* The press on touch screens, which show no hover: the underline darkens
+     like on hover. An inline link has no ripple and no morph. */
+  .ds-link-btn:active {
+    text-decoration-color: var(--ds-link-underline-hover);
+  }
+
+  /* Its own ring, also without .ds-base; it follows the small radius. */
+  .ds-link-btn:focus-visible {
+    outline: var(--ds-focus-outline);
+    outline-offset: var(--ds-focus-offset);
   }
 
   /* Quiet links: the quieter ink with a hairline underline, the link colour

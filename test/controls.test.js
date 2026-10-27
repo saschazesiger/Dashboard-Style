@@ -198,6 +198,19 @@ describe('buttons (2.0)', () => {
     assert.ok(!media.includes(':is(.ds-sheet, .ds-dialog) .ds-btn--adaptive'), 'no rule for sheets and dialogs alone');
   });
 
+  it('defines .ds-link-btn in button.css, reset included, so a page without table.css gets it whole', () => {
+    const base = own(withoutAtRuleBlocks(css, /@media/), '.ds-link-btn');
+    for (const [name, value] of [['padding', '0'], ['border', '0'], ['background', 'none'], ['color', 'var(--ds-link)'], ['font', 'inherit'], ['text-decoration', 'underline']]) {
+      assert.equal(base[name], value, name);
+    }
+    assert.equal(own(withoutAtRuleBlocks(css, /@media/), '.ds-link-btn:focus-visible').outline, 'var(--ds-focus-outline)');
+    const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).map((block) => own(block, '.ds-link-btn:hover')).find((entry) => Object.keys(entry).length);
+    assert.deepEqual(hover, { 'text-decoration-color': 'var(--ds-link-underline-hover)' });
+    // The base comes before the quiet links in the file, and table.css no longer has a rule of its own for it.
+    assert.ok(css.indexOf('.ds-link-btn {') < css.indexOf('.ds-link-btn.ds-link-btn--quiet {'));
+    assert.doesNotMatch(stripComments(read('src/components/table.css')), /\.ds-link-btn\b/);
+  });
+
   it('keeps quiet links underlined, in the quieter ink, the link colour on hover', () => {
     const quiet = own(withoutAtRuleBlocks(css, /@media/), '.ds-link--quiet');
     assert.equal(quiet.color, 'var(--ds-text-2)');
