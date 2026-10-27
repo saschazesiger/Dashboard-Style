@@ -2468,28 +2468,45 @@ function itemGone(item, removed) {
 }
 
 /**
- * The element of `item` that takes over the focus of `old`: one with the
- * same classes (the next row's "Remove"), else the item when it is
- * focusable, else its first focusable element.
+ * Classes the system puts on an element for a moment: the press of
+ * DS.ripple (ds-pressed), the done state of busy() (ds-btn--done) and the
+ * classes of enter() / leave(). A twin is matched without them: the pressed
+ * "Remove" still carries ds-pressed when its click removes the row.
  */
-function focusIn(item, old) {
-  const list = (selector) => Array.from(item.querySelectorAll?.(selector) ?? []).filter(focusable);
-  const className = typeof old?.getAttribute === 'function' ? (old.getAttribute('class') ?? '').trim() : '';
-  if (className) {
-    const twin = list(FOCUSABLE).find((element) => element.getAttribute('class')?.trim().split(/\s+/).sort().join(' ') === className.split(/\s+/).sort().join(' '));
-    if (twin) return twin;
-  }
-  if (item.matches?.(FOCUSABLE) && focusable(item)) return item;
-  return list(FOCUSABLE)[0] ?? null;
+const TRANSIENT_CLASS = /^ds-(pressed|btn--done|enter|leave)(--|$)/;
+
+/** The classes of `element` that say what it is, sorted ('' for none). */
+function lastingClasses(element) {
+  const value = typeof element?.getAttribute === 'function' ? element.getAttribute('class') ?? '' : '';
+  return value.split(/\s+/).filter((name) => name && !TRANSIENT_CLASS.test(name)).sort().join(' ');
+}
+
+/** The focusable elements of `item`, the item itself first. */
+function focusablesIn(item) {
+  const own = item.matches?.(FOCUSABLE) ? [item] : [];
+  return [...own, ...Array.from(item.querySelectorAll?.(FOCUSABLE) ?? [])].filter(focusable);
+}
+
+/** The element of `item` with the same classes as `old` (the next row's "Remove"), or null. */
+function twinIn(item, old) {
+  const classes = lastingClasses(old);
+  if (!classes) return null;
+  return focusablesIn(item).find((element) => lastingClasses(element) === classes) ?? null;
+}
+
+/** The item when it is focusable, else its first focusable element, or null. */
+function firstIn(item) {
+  return focusablesIn(item)[0] ?? null;
 }
 
 /**
  * refocus (flip()): when the item that held the focus went and focus is
- * lost (on <body>, nowhere, or still inside the item), it moves to the next
- * item that stays in the old order and has something to focus, else the
- * nearest such item before it, else the
- * fallback (`refocus` as an element or a function); with none, leave()
- * moves it out as usual. A page that moved focus itself is left alone.
+ * lost (on <body>, nowhere, or still inside the item), it moves to the
+ * element with the same classes as the old focus (state classes aside) in
+ * the next item that stays in the old order, else in the nearest item before
+ * it; with no such twin, to the next item that has something to focus, else
+ * the nearest such item before it, else the fallback (`refocus` as an
+ * element or a function); with none, leave() moves it out as usual. A page that moved focus itself is left alone.
  */
 function refocusAfter(container, focus, order, removed, refocus) {
   if (!focus || refocus === false) return;
@@ -2501,13 +2518,14 @@ function refocusAfter(container, focus, order, removed, refocus) {
   if (!lost) return;
   const index = order.indexOf(owner);
   const alive = (item) => !itemGone(item, removed) && !item.hasAttribute?.('data-ds-keep');
-  // An item with nothing to focus (a timeline's day heading) is passed over.
+  // Two passes over the neighbours, next first, then the previous ones
+  // nearest first: a twin of the old focus wins wherever it is (a chip
+  // row's previous chip over the "Clear filters" after it), else the first
+  // item with something to focus (a timeline's day heading is passed over).
+  const neighbours = [...order.slice(index + 1), ...order.slice(0, index).reverse()].filter(alive);
   let target = null;
-  for (const item of [...order.slice(index + 1), ...order.slice(0, index).reverse()]) {
-    if (!alive(item)) continue;
-    target = focusIn(item, active);
-    if (target) break;
-  }
+  for (const item of neighbours) if ((target = twinIn(item, active))) break;
+  if (!target) for (const item of neighbours) if ((target = firstIn(item))) break;
   if (!target && refocus !== true && refocus !== undefined) {
     const fallback = typeof refocus === 'function' ? refocus() : refocus;
     if (focusable(fallback)) target = fallback;

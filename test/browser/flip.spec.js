@@ -632,6 +632,72 @@ test('refocus: also above `max` and for a held live reorder once it runs (2.0)',
   expect(held).toEqual({ during: 'LAPTOP-0043', after: 'DESKTOP-0107' });
 });
 
+/* ── 2.1: the twin despite state classes, and a twin before a different next control ── */
+
+/** Rows of a field and a Remove each, removed by their click through flip(), with DS.ripple attached. */
+const PRESSABLE = `window.fxPressable = () => {
+  DS.ripple.attach(document);
+  const list = document.getElementById('list');
+  DS.dom.morphHtml(list, ['a', 'b', 'c'].map((name) => '<li class="fx-item" data-ds-key="' + name + '"><input class="ds-input" aria-label="Note ' + name + '">'
+    + '<button class="ds-btn ds-btn--text ds-btn--sm fx-remove" type="button">Remove ' + name + '</button></li>').join(''));
+  window.fxAtClick = [];
+  list.addEventListener('click', (event) => {
+    const button = event.target.closest('.fx-remove');
+    if (!button) return;
+    window.fxAtClick.push(button.className);
+    const row = button.closest('li');
+    DS.motion.flip(list, () => row.remove());
+  });
+};`;
+
+/** Where focus is: the row key and the class of the focused element. */
+const focusAt = (page) => page.evaluate(() => ({ key: document.activeElement.closest('[data-ds-key]')?.getAttribute('data-ds-key') ?? null, className: document.activeElement.className }));
+
+test('refocus: a Remove still pressed (ds-pressed of DS.ripple) lands on the next row\'s Remove, by Enter and by mouse (2.1)', async ({ page, browserName }) => {
+  await open(page);
+  await page.addScriptTag({ content: PRESSABLE });
+  await page.evaluate(() => window.fxPressable());
+  await page.locator('[data-ds-key="a"] .fx-remove').focus();
+  await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => window.fxAtClick[0])).toContain('ds-pressed');
+  expect(await focusAt(page)).toEqual({ key: 'b', className: expect.stringContaining('fx-remove') });
+  await settle(page);
+  // WebKit never focuses a button on a mouse press: nothing to move there.
+  if (browserName !== 'webkit') {
+    await page.locator('[data-ds-key="b"] .fx-remove').click();
+    expect(await focusAt(page)).toEqual({ key: 'c', className: expect.stringContaining('fx-remove') });
+  }
+});
+
+test('refocus: removing the last chip of a row focuses the chip before it, not the "Clear filters" after it; the only chip goes to Clear (2.1)', async ({ page }) => {
+  await open(page);
+  const removeLast = (count) => page.evaluate((chips) => {
+    DS.ripple.attach(document);
+    document.getElementById('fx-chip-row')?.remove();
+    const row = document.createElement('div');
+    row.className = 'ds-chips';
+    row.id = 'fx-chip-row';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', 'Active filters');
+    row.insertAdjacentHTML('beforeend', chips.map((label) => `<button class="ds-chip ds-chip--input" type="button"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>${label}</span></span></button>`).join('')
+      + '<button class="ds-btn ds-btn--text ds-btn--sm" type="button" id="fx-clear">Clear filters</button>');
+    document.getElementById('list').before(row);
+    row.addEventListener('click', (event) => {
+      const chip = event.target.closest('.ds-chip');
+      if (chip) DS.motion.flip(row, () => chip.remove());
+    });
+  }, ['Building C', 'Online', 'Laptops'].slice(0, count));
+  await removeLast(3);
+  await page.locator('#fx-chip-row .ds-chip').last().focus();
+  await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => document.activeElement.textContent)).toContain('Online');
+  await settle(page);
+  await removeLast(1);
+  await page.locator('#fx-chip-row .ds-chip').focus();
+  await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => document.activeElement.id)).toBe('fx-clear');
+});
+
 test('more than 20 gliding items stay under a sticky header inside the container (2.0)', async ({ page }) => {
   await open(page);
   const result = await page.evaluate(() => {

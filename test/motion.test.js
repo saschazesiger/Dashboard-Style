@@ -1293,6 +1293,57 @@ describe('js/motion', () => {
         assert.equal(doc(made).activeElement, search, 'a page that moved focus itself is left alone');
       });
 
+      it('refocus: the twin of the old focus wins, state classes aside, next first, then the previous items (2.1)', () => {
+        // Rows of an input and a "Remove"; chips and a "Clear filters" as items of their own.
+        const control = (doc, classes, tag = 'button') => {
+          const element = new FakeElement(doc);
+          element.setAttribute('class', classes);
+          element.matches = (selector) => selector.includes(tag);
+          element.getClientRects = () => [{}];
+          return element;
+        };
+        const rows = (names) => {
+          const made = list(names);
+          for (const item of made.items.values()) {
+            const doc = made.container.ownerDocument;
+            const input = control(doc, 'ds-input', 'input');
+            const remove = control(doc, 'ds-btn ds-btn--text ds-btn--sm remove');
+            item.append(input, remove);
+            item.matches = () => false;
+            item.querySelectorAll = () => [input, remove];
+          }
+          return made;
+        };
+        const removeOf = (made, name) => made.items.get(name).children[1];
+        for (const state of ['ds-pressed', 'ds-btn--done', 'ds-leave ds-leave--fade']) {
+          const made = rows(['a', 'b', 'c']);
+          const old = removeOf(made, 'b');
+          old.setAttribute('class', `${old.getAttribute('class')} ${state}`);
+          old.focus();
+          flip(made.container, () => made.items.get('b').remove());
+          assert.equal(made.container.ownerDocument.activeElement, removeOf(made, 'c'), `the next row's Remove with ${state}`);
+        }
+        const chips = (names) => {
+          const made = list(names);
+          const doc = made.container.ownerDocument;
+          for (const [name, item] of made.items) {
+            item.setAttribute('class', name === 'clear' ? 'ds-btn ds-btn--text ds-btn--sm' : 'ds-chip ds-chip--input');
+            item.matches = (selector) => selector.includes('button');
+            item.getClientRects = () => [{}];
+          }
+          return { ...made, doc };
+        };
+        let made = chips(['x', 'y', 'clear']);
+        made.items.get('y').setAttribute('class', 'ds-chip ds-chip--input ds-pressed');
+        made.items.get('y').focus();
+        flip(made.container, () => made.items.get('y').remove());
+        assert.equal(made.doc.activeElement, made.items.get('x'), 'the last chip: the chip before it, not Clear filters');
+        made = chips(['y', 'clear']);
+        made.items.get('y').focus();
+        flip(made.container, () => made.items.get('y').remove());
+        assert.equal(made.doc.activeElement, made.items.get('clear'), 'the only chip: no twin left, the next focusable');
+      });
+
       it('sortable(): the keys of a grip move its item through flip(), report the order and speak the position (2.0)', () => {
         const { container, items, calls } = list(['a', 'b', 'c', 'd']);
         const doc = container.ownerDocument;

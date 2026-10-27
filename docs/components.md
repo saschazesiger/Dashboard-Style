@@ -2226,8 +2226,10 @@ a suggestion (an action chip):
   ripple, the disabled model; no morph (chips are not pills).
 - A chip that stays on or off is a filter chip (a checkbox), never a button chip with `aria-pressed`.
 - Removing a chip: `DS.motion.flip(row, () => chip.remove())`; the chips after it glide into its place and focus moves
-  to the neighbour. "Clear filters" moves focus to the search field. A row whose chips all went (`.ds-chips:empty`)
-  takes no room.
+  to the neighbouring chip of the same kind, the next one, else the one before it (never to "Clear filters" while a
+  chip is left; 2.1). When the last chip goes, remove "Clear filters" in the same mutate and pass
+  `refocus: () => searchField`. "Clear filters" moves focus to the search field. A row whose chips all went
+  (`.ds-chips:empty`) takes no room.
 
 **Motion:** the chip rows of [Controls](motion.md#controls) in motion.md.
 
