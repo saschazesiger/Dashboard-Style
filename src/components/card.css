@@ -343,7 +343,9 @@
   }
 
   /* Cards side by side share one height; their link rows line up at the
-     bottom edge. */
+     bottom edge. The auto margin replaces the rhythm's 16px, so the block
+     before the links keeps it as a floor: the tallest card has no free
+     space, and flex margins add up instead of collapsing. */
   .ds-grid-2 > .ds-card:has(> .ds-card__links) {
     display: flex;
     flex-direction: column;
@@ -351,6 +353,10 @@
 
   .ds-grid-2 > .ds-card > .ds-card__links {
     margin-top: auto;
+  }
+
+  .ds-grid-2 > .ds-card > :has(+ .ds-card__links) {
+    margin-bottom: var(--ds-space-4);
   }
 
   .ds-card__title {

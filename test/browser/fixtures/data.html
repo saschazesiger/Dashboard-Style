@@ -14,7 +14,8 @@
      DS.dom.morphHtml), a field that a morph re-renders per keystroke, and
      a segmented control with an indicator (fixture.js); an interactive
      table with selection, expandable rows and a sort button, an alert
-     stack, clickable cards and a clickable tile. The specs render the list
+     stack, clickable cards and a clickable tile; cards with link rows side
+     by side and a card head with a status chip. The specs render the list
      and the rows themselves through window.fxData. -->
 <div class="ds-theme fx-root">
   <section class="fx-section" aria-labelledby="figure-title">
@@ -123,6 +124,20 @@
     <div class="ds-tiles fx-wide">
       <button class="ds-tile" type="button" id="tile-button"><span class="ds-tile__label"><span>Open tickets</span></span><span class="ds-tile__value">12</span><span class="ds-tile__note">3 more than last week</span></button>
     </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="layout-title">
+    <h2 id="layout-title">Card layout</h2>
+    <div class="ds-grid-2 fx-wide" id="link-cards">
+      <section class="ds-card" id="links-short"><h3 class="ds-card__title">LAPTOP-0042</h3><p class="ds-muted" id="links-short-text">Issued to Ada Lovelace.</p>
+        <nav class="ds-card__links" aria-label="Related" id="links-short-row"><a class="ds-btn ds-btn--text ds-card__link" href="#history">History</a></nav></section>
+      <section class="ds-card" id="links-tall"><h3 class="ds-card__title">DESKTOP-0107</h3><p class="ds-muted" id="links-tall-text">Issued to Alan Turing. Last seen today, 09:12, in the office on the 2nd floor. The warranty ends in five weeks; the replacement is ordered.</p>
+        <nav class="ds-card__links" aria-label="Related" id="links-tall-row"><a class="ds-btn ds-btn--text ds-card__link" href="#tickets">Tickets</a></nav></section>
+    </div>
+    <section class="ds-card" id="head-card">
+      <div class="ds-card__row" id="head-row"><h3 class="ds-card__title" id="head-title">Workstation in the second floor office</h3><span class="ds-status ds-status--ok" id="head-status"><span data-icon="check" data-size="16"></span><span>Managed</span></span></div>
+      <p class="ds-muted" id="head-text">Issued to Grace Hopper.</p>
+    </section>
   </section>
 </div>
 <script src="/dist/ds.js"></script>

@@ -2769,4 +2769,11 @@ describe('tables, cards and buttons (2.1)', () => {
     assert.ok(has(TABLE_CSS, '.ds-card .ds-table-wrap .ds-table__detail > td', 'padding', '0'));
     assert.ok(has(TABLE_CSS, '.ds-card .ds-table-wrap > .ds-table--stack > tbody > tr > td', 'padding', '0'));
   });
+
+  it('keeps the rhythm\'s 16px as a floor above a .ds-grid-2 card\'s link row (its auto margin takes the free space)', () => {
+    const CARD = stripComments(read('src/components/card.css'));
+    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > .ds-card__links')['margin-top'], 'auto');
+    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--ds-space-4)');
+    assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'var(--ds-space-4)', 'the floor is the rhythm');
+  });
 });

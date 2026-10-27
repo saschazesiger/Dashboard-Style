@@ -759,6 +759,19 @@ test.describe('status line', () => {
   });
 });
 
+test.describe('card layout (2.1)', () => {
+  test('.ds-grid-2: the link rows share one bottom line and the tallest card keeps 16px above its hairline', async ({ page }) => {
+    await open(page);
+    const box = (id) => page.evaluate((el) => document.getElementById(el).getBoundingClientRect().toJSON(), id);
+    const [shortText, shortRow, tallText, tallRow] = await Promise.all(['links-short-text', 'links-short-row', 'links-tall-text', 'links-tall-row'].map(box));
+    expect(Math.abs(shortRow.bottom - tallRow.bottom)).toBeLessThanOrEqual(1);
+    // The tallest card has no free space: the floor alone stands between its text and the hairline.
+    expect(Math.abs(tallRow.top - tallText.bottom - 16)).toBeLessThanOrEqual(1);
+    // A shorter card still pushes its links down to the shared line.
+    expect(shortRow.top - shortText.bottom).toBeGreaterThan(16 + 1);
+  });
+});
+
 test.describe('forced colours', () => {
   test('a selected row and the interactive cards keep their cues', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'forced colours are emulated in Chromium only (one baseline)');
