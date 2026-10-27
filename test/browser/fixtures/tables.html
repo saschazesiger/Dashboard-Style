@@ -28,8 +28,9 @@
      sideways (row links are a[href] to #open-<key>), with a selected row,
      row actions and a summary row; an interactive table with and without
      row links; sideways strips that scroll and that fit; a log with the
-     place of its "Latest" pill; pagination in a card; a selection bar.
-     The rows are built by the script below. -->
+     place of its "Latest" pill; pagination in a card; a selection bar;
+     card tables whose trailing columns are secondary. The rows are built
+     by the script below. -->
 <div class="ds-theme fx-root">
   <section class="fx-section" aria-labelledby="stack-title">
     <h2 id="stack-title">Stacked rows</h2>
@@ -123,6 +124,18 @@
           <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Last page" id="page-last"><span data-icon="chevronLast"></span></button>
         </nav>
       </section>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="gutter-title">
+    <h2 id="gutter-title">Trailing secondary columns</h2>
+    <div class="ds-content" id="gutter-content">
+      <section class="ds-card"><div class="ds-table-wrap"><table class="ds-table" id="gutter">
+        <thead><tr><th scope="col">Device</th><th scope="col" class="ds-num">Load</th><th scope="col" class="ds-col--secondary">Owner</th><th scope="col" class="ds-col--secondary">Location</th></tr></thead>
+        <tbody><tr><td>LAPTOP-0042</td><td class="ds-num">32%</td><td class="ds-col--secondary">Ada Lovelace</td><td class="ds-col--secondary">Building A</td></tr></tbody></table></div></section>
+      <section class="ds-card"><div class="ds-table-wrap"><table class="ds-table ds-table--wide" id="gutter-wide">
+        <thead><tr><th scope="col">Device</th><th scope="col" class="ds-num">Load</th><th scope="col" class="ds-col--secondary">Owner</th><th scope="col" class="ds-col--secondary">Location</th></tr></thead>
+        <tbody><tr><td>LAPTOP-0043</td><td class="ds-num">14%</td><td class="ds-col--secondary">Alan Turing</td><td class="ds-col--secondary">Building B</td></tr></tbody></table></div></section>
     </div>
   </section>
 </div>

@@ -408,6 +408,47 @@ test('pagination baselines: the table card with its pages at 1280px and at 390px
   await expect.soft(page.locator('#paged-card'), 'pagination-390.png').toHaveScreenshot('pagination-390.png', { animations: 'allow' });
 });
 
+test('card tables: the last column still shown keeps the card gutter when trailing secondary columns drop', async ({ page }) => {
+  await open(page);
+  // Per table: the card's padding, and the end padding of every shown header cell in order.
+  const read = () => page.evaluate(() => ['gutter', 'gutter-wide'].map((id) => {
+    const table = document.getElementById(id);
+    const shown = [...table.tHead.rows[0].cells].filter((cell) => getComputedStyle(cell).display !== 'none');
+    return {
+      pad: getComputedStyle(table.closest('.ds-card')).paddingRight,
+      shown: shown.length,
+      ends: shown.map((cell) => getComputedStyle(cell).paddingRight),
+      body: getComputedStyle(table.tBodies[0].rows[0].cells[shown.length - 1]).paddingRight,
+    };
+  }));
+  const content = (width) => page.evaluate((w) => document.getElementById('gutter-content').style.setProperty('width', w), width);
+
+  // Wide window, wide content: every column shows, the last cell has the gutter, the others their own 16px.
+  await content('1200px');
+  for (const table of await read()) {
+    expect(table.shown).toBe(4);
+    expect(table.ends).toEqual(['16px', '16px', '16px', table.pad]);
+  }
+
+  // A 700px content area: the wide table drops its secondary columns, its last shown column takes the gutter.
+  await content('700px');
+  const [plain, wide] = await read();
+  expect(plain.ends).toEqual(['16px', '16px', '16px', plain.pad]);
+  expect(wide.shown).toBe(2);
+  expect(wide.ends).toEqual(['16px', wide.pad]);
+  expect(wide.body).toBe(wide.pad);
+  expect(wide.pad).not.toBe('16px');
+
+  // A phone: every table drops them; the gutter (16px there) instead of the phone's 12px.
+  await page.setViewportSize({ width: 390, height: 800 });
+  await content('');
+  for (const table of await read()) {
+    expect(table.shown).toBe(2);
+    expect(table.ends).toEqual(['12px', table.pad]);
+    expect(table.body).toBe(table.pad);
+  }
+});
+
 test('print: wrappers unmasked and unclipped, the full-page table unbounded and not sticky; pagination and the selection bar hidden', async ({ page }) => {
   await open(page);
   await page.emulateMedia({ media: 'print' });

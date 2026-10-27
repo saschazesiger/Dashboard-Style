@@ -2753,3 +2753,20 @@ describe('the app frame (2.1)', () => {
     assert.equal(at(SHELL, '.ds-drawer__action')['margin-inline-end'], 'var(--ds-space-1)');
   });
 });
+
+describe('tables, cards and buttons (2.1)', () => {
+  const TABLE_CSS = stripComments(read('src/components/table.css'));
+  const at = (css, selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
+  const has = (css, selector, property, value) => declarationsAt(css, selector).some((entry) => entry.property === property && entry.value === value);
+  const LAST_SHOWN = ':is(th, td):where(:not(.ds-col--secondary):not(:has(~ :not(.ds-col--secondary))))';
+
+  it('gives the card gutter to the last column still shown wherever secondary columns drop, at a plain card cell\'s weight', () => {
+    const phone = atRuleBlocks(TABLE_CSS, /^@media \(max-width: 600px\)$/).join('\n');
+    assert.equal(at(phone, `.ds-card .ds-table-wrap ${LAST_SHOWN}`)['padding-inline-end'], 'var(--ds-card-pad)');
+    const narrow = atRuleBlocks(TABLE_CSS, /^@container ds-content \(max-width: 1040px\)$/).join('\n');
+    assert.equal(at(narrow, `.ds-card .ds-table-wrap :where(.ds-table--wide) ${LAST_SHOWN}`)['padding-inline-end'], 'var(--ds-card-pad)');
+    // (0,2,1): above the phone padding of every cell, below the detail row's and the stacked rows' padding: 0.
+    assert.ok(has(TABLE_CSS, '.ds-card .ds-table-wrap .ds-table__detail > td', 'padding', '0'));
+    assert.ok(has(TABLE_CSS, '.ds-card .ds-table-wrap > .ds-table--stack > tbody > tr > td', 'padding', '0'));
+  });
+});

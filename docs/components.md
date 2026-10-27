@@ -1463,7 +1463,8 @@ the list opens and closes with the collapsible timing.
 - Row hover is a state layer on the cells (`currentColor` at `--ds-state-hover-lg`, `--ds-dur-fast`), so it adds to
   a selected row's colour; `--ds-table-row-hover` sets a fixed colour instead.
 - `.ds-num` right-aligns tabular figures; `.ds-col--text` keeps a readable width; `.ds-col--secondary` is dropped on
-  phones. `.ds-table--wide` also drops secondary columns when the page is narrow (next to the drawer).
+  phones. `.ds-table--wide` also drops secondary columns when the page is narrow (next to the drawer). In a card the
+  last column still shown keeps the card's gutter at its end, so trailing secondary columns can drop.
 - Sortable columns: a `.ds-table__sort` button in the header cell and `aria-sort` on the cell; the arrow shows at the
   sorted column only; every sort button keeps room for it (1.6.1), so moving the sort never shifts the columns. In a
   `.ds-num` column the arrow leads. Render the same up arrow for both directions and mark
