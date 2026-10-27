@@ -36,7 +36,8 @@ jobs:
   browser:
     needs: check
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # WebKit is the slowest engine: its run passed 20 minutes as the suite grew (869 tests); the limit only catches a hang.
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
