@@ -132,3 +132,34 @@ test('the controls fixture under .ds-touch (settled shot)', async ({ page }) => 
   await open(page);
   await expect(page).toHaveScreenshot('controls-touch.png', { fullPage: true });
 });
+
+test('followViewport: a field focused inside a same-origin iframe brings data-ds-keyboard', async ({ page }) => {
+  await page.goto('/test/browser/fixtures/controls.html');
+  await ready(page);
+  const keyboard = await page.evaluate(async () => {
+    const frame = document.createElement('iframe');
+    frame.srcdoc = '<!doctype html><input type="text" aria-label="Embedded editor">';
+    const loaded = new Promise((resolve) => frame.addEventListener('load', resolve, { once: true }));
+    document.querySelector('.ds-theme').append(frame);
+    await loaded;
+    const handle = DS.dom.followViewport(document);
+    const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await frames();
+    // The keyboard: the visual viewport 300px shorter than its tallest height at this width.
+    const height = visualViewport.height - 300;
+    Object.defineProperty(visualViewport, 'height', { configurable: true, get: () => height });
+    frame.contentDocument.querySelector('input').focus();
+    visualViewport.dispatchEvent(new Event('resize'));
+    await frames();
+    const result = {
+      focus: document.activeElement === frame,
+      attr: document.documentElement.hasAttribute('data-ds-keyboard'),
+      inset: document.documentElement.style.getPropertyValue('--ds-keyboard-inset'),
+    };
+    handle.destroy();
+    return result;
+  });
+  expect(keyboard.focus).toBe(true);
+  expect(keyboard.attr).toBe(true);
+  expect(keyboard.inset).not.toBe('0px');
+});

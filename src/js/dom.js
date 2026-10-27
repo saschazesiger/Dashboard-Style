@@ -1285,10 +1285,32 @@ const KEYBOARD_MIN_PX = 150;
 /** The live viewport follower of each document. @type {WeakMap<Document, { handle: { destroy: () => void } }>} */
 const viewportFollowers = new WeakMap();
 
-/** Whether focus sits in a field that brings up a keyboard. */
+/**
+ * The document of a same-origin frame, or null: a cross-origin frame throws
+ * or hides it, and its focus stays unknown (not editing).
+ */
+function frameDocument(frame) {
+  try {
+    return frame.contentDocument || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Whether focus sits in a field that brings up a keyboard, through open
+ * shadow roots and same-origin frames (an embedded editor).
+ */
 function editing(doc) {
   let active = doc.activeElement;
-  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  for (;;) {
+    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+    if (!/^i?frame$/i.test(active?.tagName || '')) break;
+    const inner = frameDocument(active);
+    if (!inner) return false;
+    active = inner.activeElement;
+    doc = inner;
+  }
   if (!active || active === doc.body) return false;
   if (active.isContentEditable) return true;
   if (active.tagName === 'TEXTAREA') return !active.readOnly;
@@ -1301,7 +1323,7 @@ function editing(doc) {
  * --ds-viewport-height (the visual viewport's height, px) on <html>, sets
  * data-ds-keyboard on <html> while the visual viewport is shorter than its
  * tallest height at this width by more than 150px and focus is in a field
- * that types, writes --ds-keyboard-inset (px of the layout viewport the
+ * that types (also inside a same-origin iframe), writes --ds-keyboard-inset (px of the layout viewport the
  * keyboard covers, for the snackbars) and scrolls the window back to the
  * top when the browser panned it up for the keyboard (an unzoomed page).
  * shell.css and toast.css read them. Once per document (a second call

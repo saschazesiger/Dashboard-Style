@@ -2043,6 +2043,41 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     assert.equal(other.doc.documentElement.style.getPropertyValue('--ds-viewport-height'), '');
   });
 
+  it('followViewport: a field focused inside a same-origin iframe counts as editing, a cross-origin frame does not', () => {
+    const { h, doc, win, runFrames } = helperDom();
+    const viewport = new EventTarget();
+    Object.assign(viewport, { width: 400, height: 800, offsetTop: 0, scale: 1 });
+    win.visualViewport = viewport;
+    const root = doc.documentElement;
+    const handle = dom.followViewport(doc);
+    viewport.height = 460;
+    const inner = helperDom();
+    const field = inner.h('input', { type: 'text' });
+    Object.assign(field, { type: 'text', readOnly: false });
+    inner.doc.body.append(field);
+    inner.doc.activeElement = field;
+    const frame = h('iframe', {});
+    Object.defineProperty(frame, 'contentDocument', { configurable: true, get: () => inner.doc });
+    doc.body.append(frame);
+    doc.activeElement = frame;
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), true, 'the field in the frame types');
+    inner.doc.activeElement = inner.doc.body;
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), false, 'nothing focused in the frame');
+    Object.defineProperty(frame, 'contentDocument', { configurable: true, get: () => { throw new Error('SecurityError'); } });
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), false, 'a cross-origin frame: unknown, not editing');
+    Object.defineProperty(frame, 'contentDocument', { configurable: true, get: () => null });
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), false, 'a cross-origin frame without a document');
+    handle.destroy();
+  });
+
   it('followEnd: sticks while at the end, lets go when scrolled up (the pill shows), stick() goes back', () => {
     const { h, observers } = helperDom();
     const pill = h('button', { class: 'ds-presence', hidden: '' });

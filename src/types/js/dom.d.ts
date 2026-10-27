@@ -40,7 +40,7 @@ export interface RovingOptions {
 }
 /** One tab stop for a group; the arrow keys move between its items. */
 export declare function roving(container: Element | null | undefined, options?: RovingOptions): Destroyable;
-/** The app frame follows the on-screen keyboard (never in an embedded widget). */
+/** The app frame follows the on-screen keyboard, also for a field in a same-origin iframe (never in an embedded widget). */
 export declare function followViewport(doc?: Document): Destroyable;
 /** A log that sticks to its end while the reader is there. */
 export declare function followEnd(scroller: Element | null | undefined, options?: { pill?: HTMLElement | null; threshold?: number }): Destroyable & { stick(): void };
