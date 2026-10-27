@@ -2277,6 +2277,31 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     handle.destroy();
     assert.equal(zone[Symbol.for('ds.owned')].attrs.has('data-ds-dragover'), false);
   });
+
+  it('dropzone({ input }): null takes no input, an element names the one to use (2.1)', () => {
+    const { h } = helperDom();
+    const attach = h('input', { type: 'file' });
+    Object.assign(attach, { accept: '', multiple: false, value: '' });
+    const pane = h('div', {}, h('form', {}, attach));
+    const got = [];
+    const none = dom.dropzone(pane, { onFiles: (files) => got.push(files.map((file) => file.name)), input: null });
+    attach.files = [{ name: 'a.png', type: 'image/png' }];
+    attach.dispatchEvent(new Event('change'));
+    assert.deepEqual(got, [], 'the composer\'s own input is the page\'s');
+    const event = new Event('drop', { cancelable: true });
+    event.dataTransfer = { types: ['Files'], files: [{ name: 'b.png', type: 'image/png' }], dropEffect: 'none' };
+    pane.dispatchEvent(event);
+    assert.deepEqual(got, [['b.png']], 'drops still count');
+    none.destroy();
+    const named = h('input', { type: 'file' });
+    Object.assign(named, { accept: '.csv', multiple: true, value: '' });
+    const zone = h('label', { class: 'ds-dropzone' }, h('input', { type: 'file', class: 'ds-dropzone__input' }));
+    const handle = dom.dropzone(zone, { onFiles: (files) => got.push(files.map((file) => file.name)), input: named });
+    named.files = [{ name: 'a.csv', type: 'text/csv' }, { name: 'b.csv', type: 'text/csv' }, { name: 'c.png', type: 'image/png' }];
+    named.dispatchEvent(new Event('change'));
+    assert.deepEqual(got.at(-1), ['a.csv', 'b.csv'], 'the named input: its picks, its accept and multiple');
+    handle.destroy();
+  });
 });
 
 describe('snackbars, tooltips and the save bar (2.0)', () => {

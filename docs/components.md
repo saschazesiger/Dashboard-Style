@@ -3275,7 +3275,7 @@ Meters, columns and legends (2.0), drawn from the chart roles ([tokens.md](token
 
 ```js
 DS.dom.dropzone(zone, { onFiles: (files) => addFiles(files), paste: true });   // drop, dialog, paste
-DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*' });              // a page's own drop target
+DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*', input: null }); // a page's own drop target
 ```
 
 - **The zone** (2.0) is a `<label>`: a click or Enter on its input opens the file dialog; the input stays in the tab
@@ -3287,6 +3287,9 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*' });              
   title says it in words (`__over` crossfades with `__idle` in one cell, so the zone never changes its size). On
   any other element (a pane, a chat) the attribute draws a dashed `--ds-primary` outline inside its edge; call
   `DS.dom.dropzone(element, { onFiles })` on it rather than counting drag events yourself.
+- **Which file input**: the zone's `.ds-dropzone__input` (else its first `input[type="file"]`) hands its picks to
+  `onFiles` too. A page drop target with a file input of its own inside (a composer's attach button, whose picks the
+  page already handles) passes `input: null` (drops and paste only), or names the input to use (`input: element`).
 - **The file field** `.ds-input[type="file"]`: the field box, the chosen file's name in `--ds-text-2`, and the browser's
   button as a small tonal pill (`--ds-accent`, 32px) with the hover and press mixed into its fill and the press
   morph. It has no ripple (a native field part).

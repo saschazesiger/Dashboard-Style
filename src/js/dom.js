@@ -1615,12 +1615,15 @@ function accepts(file, accept) {
  * (default the input's accept: extensions, MIME types, image/*), keeps
  * one unless `multiple` (default the input's multiple) and calls
  * onFiles(files, event) with what is left. The zone's file input
- * (.ds-dropzone__input, or its first input[type="file"]) goes the same way
- * and is reset afterwards, so the same file can be chosen again. With
- * `paste: true` files pasted while focus is inside `target` count too. A
- * disabled input takes nothing. Once per zone.
+ * (`input`; absent: .ds-dropzone__input, or the zone's first
+ * input[type="file"]) goes the same way and is reset afterwards, so the
+ * same file can be chosen again; `input: null` takes no input (drops and
+ * paste only), for a pane whose own file input (a composer's attach
+ * button) the page already handles. With `paste: true` files pasted while
+ * focus is inside `target` count too. A disabled input takes nothing. Once
+ * per zone.
  * @param {Element|null|undefined} zone
- * @param {{ onFiles: (files: File[], event: Event) => void, accept?: string, multiple?: boolean, paste?: boolean, target?: Element }} options
+ * @param {{ onFiles: (files: File[], event: Event) => void, accept?: string, multiple?: boolean, paste?: boolean, target?: Element, input?: HTMLInputElement|null }} options
  * @returns {{ destroy: () => void }}
  */
 export function dropzone(zone, options) {
@@ -1629,7 +1632,9 @@ export function dropzone(zone, options) {
   if (existing) return existing.handle;
   const doc = zone.ownerDocument;
   const target = options?.target ?? zone;
-  const input = zone.querySelector?.('.ds-dropzone__input') ?? zone.querySelector?.('input[type="file"]') ?? null;
+  const input = options?.input !== undefined
+    ? options.input
+    : zone.querySelector?.('.ds-dropzone__input') ?? zone.querySelector?.('input[type="file"]') ?? null;
   const accept = () => options?.accept ?? input?.accept ?? '';
   const multiple = () => options?.multiple ?? Boolean(input?.multiple);
   const blocked = () => Boolean(input?.disabled);

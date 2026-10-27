@@ -53,6 +53,8 @@ export interface DropzoneOptions {
   multiple?: boolean;
   paste?: boolean;
   target?: Element;
+  /** The file input that hands its picks on too; absent: the zone's own, `null`: none (drops and paste only). */
+  input?: HTMLInputElement | null;
 }
 /** Files dropped on (or pasted into) `zone`; data-ds-dragover while files hover. */
 export declare function dropzone(zone: Element | null | undefined, options: DropzoneOptions): Destroyable;

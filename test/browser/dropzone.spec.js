@@ -118,3 +118,21 @@ test('a paste with focus in the zone takes the clipboard\'s file; the zone rings
   test.skip(!pasted, 'no ClipboardEvent with files');
   expect(await page.evaluate(() => window.fxFiles)).toEqual(['zone: shot.png']);
 });
+
+test('input: null leaves a file input inside the target to the page (2.1)', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const pane = document.createElement('div');
+    pane.id = 'composer-pane';
+    pane.innerHTML = '<form><input type="file" id="attach"></form>';
+    document.querySelector('.ds-theme').append(pane);
+    window.fxComposer = DS.dom.dropzone(pane, {
+      onFiles: (files) => window.fxFiles.push('composer: ' + files.map((file) => file.name).join(', ')),
+      input: null,
+    });
+  });
+  await page.locator('#attach').setInputFiles([{ name: 'photo.png', mimeType: 'image/png', buffer: Buffer.from('x') }]);
+  await settle(page);
+  expect(await page.evaluate(() => window.fxFiles), 'the attach button is the page\'s').toEqual([]);
+  expect(await page.evaluate(() => document.getElementById('attach').files.length), 'and keeps its pick').toBe(1);
+});
