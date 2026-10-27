@@ -12,7 +12,8 @@
  * over an open dialog (native, div) or sheet a new error is above the
  * scrim, announced and closes by its own button, and through the exit it
  * stays above the leaving scrim and panel (Chromium keeps a closing native
- * dialog in the top layer); a reopen during the exit keeps it inside.
+ * dialog in the top layer); a reopen during the exit keeps it inside; with
+ * the theme on <html> and no frame, a new region ends <body> (2.1).
  *
  * Tooltips: the delay, the entrance (fade and --ds-scale-tooltip at the
  * anchor side, below and above), a tooltip that the page places with an
@@ -939,6 +940,31 @@ test.describe('snackbars 2.0', () => {
     expect(said.assertive).toBe('Could not reach the server.');
     expect(said.made).toEqual({ className: 'ds-toasts', attrs: 1, after: 'app' });
     expect(said.same).toBe(true);
+  });
+
+  test('a page with the theme on <html> and no .ds-app: the region toastRegion() makes ends <body>, its message shows and is announced (2.1)', async ({ page }) => {
+    // The tabs fixture: <html class="ds-theme">, no frame, no .ds-toasts.
+    await page.setViewportSize({ width: 1000, height: 800 });
+    await page.goto('/test/browser/fixtures/tabs.html');
+    await ready(page);
+    await page.mouse.move(1, 1);
+    await page.evaluate(() => DS.overlay.toast(null, 'Signed out.', { kind: 'info' }));
+    await settle(page);
+    const result = await page.evaluate(() => {
+      const region = document.querySelector('.ds-toasts');
+      const message = region.querySelector('.ds-toast');
+      const rect = message.getBoundingClientRect();
+      const announcers = [...document.querySelectorAll('.ds-sr[aria-live]')];
+      return {
+        parent: region.parentNode === document.body,
+        last: document.documentElement.lastElementChild === document.body,
+        hit: message.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)),
+        onScreen: rect.top >= 0 && rect.bottom <= innerHeight,
+        announcers: announcers.length === 2 && announcers.every((node) => document.body.contains(node)),
+        said: announcers.find((node) => node.getAttribute('aria-live') === 'polite')?.textContent,
+      };
+    });
+    expect(result).toEqual({ parent: true, last: true, hit: true, onScreen: true, announcers: true, said: 'Signed out.' });
   });
 
   test('a region toastRegion() creates while a dialog or sheet is open goes into it: the message is above the modal, usable and announced', async ({ page }) => {

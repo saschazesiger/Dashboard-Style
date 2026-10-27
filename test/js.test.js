@@ -2178,6 +2178,29 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
     await overlay.closeToasts(null, { kind: 'error' });
   });
 
+  it('toastRegion: a theme on <html> without a .ds-app puts the new region at the end of <body>, never after it (2.1)', () => {
+    const node = (tag) => {
+      const element = {
+        tagName: tag.toUpperCase(), className: '', parentElement: null, children: [],
+        get isConnected() { return Boolean(this.parentElement) || this === doc.documentElement; },
+        append(child) { child.parentElement = this; this.children.push(child); },
+        after(child) { child.parentElement = this.parentElement; this.parentElement.children.push(child); },
+      };
+      return element;
+    };
+    const doc = {
+      createElement: node,
+      querySelector: (selector) => (selector === '.ds-theme' ? doc.documentElement : null),
+    };
+    doc.documentElement = node('html');
+    doc.body = node('body');
+    doc.documentElement.append(doc.body);
+    const region = overlay.toastRegion(/** @type {any} */ (doc));
+    assert.equal(region?.className, 'ds-toasts');
+    assert.equal(region.parentElement, doc.body, 'inside <body>');
+    assert.deepEqual(doc.documentElement.children, [doc.body], 'nothing after <body>');
+  });
+
   it('has no legacy branch: the region is never left mute (R11)', () => {
     const source = withoutComments(read('src/js/overlay.js'));
     assert.doesNotMatch(source, /\blegacy\b/);

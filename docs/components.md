@@ -2853,8 +2853,8 @@ The action button comes only with `action`, the close button with every message 
   set `--ds-toast-left` on the region to the panel's left edge plus 24px
   (`region.style.setProperty('--ds-toast-left', panel.getBoundingClientRect().left + 24 + 'px')`).
   `DS.overlay.toastRegion(doc)` returns the page's region: the `.ds-toasts` in the theme of the first `.ds-app` (else
-  the first in the document); without one it creates `<div class="ds-toasts"></div>` right after `.ds-app` (else at
-  the end of the `.ds-theme`). `toast(null, ...)`, `announce()` and the save bar use it. A region first used while a
+  the first in the document); without one it creates `<div class="ds-toasts"></div>` right after `.ds-app` (else as
+  the last child of the `.ds-theme`, or of `<body>` when the theme is `<html>`; 2.1). `toast(null, ...)`, `announce()` and the save bar use it. A region first used while a
   dialog or side sheet of its theme is open (created then, or rendered by the page after the open) moves into it on
   that first use, like one that was there at the open, so its messages and announcements are above the modal.
 - **Stack.** At most three show at once (`TOAST_LIMIT`), the newest at the bottom; the others glide to their places

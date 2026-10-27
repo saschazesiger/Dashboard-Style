@@ -2747,8 +2747,9 @@ function toastTimeout(region, text, options) {
  * The page's snackbar region: the .ds-toasts in the theme of the first
  * .ds-app (else the first in the document). Without one it creates
  * <div class="ds-toasts"></div> right after the .ds-app (else as the last
- * child of the .ds-theme, else of <body>). toast(null, ...), announce()
- * and savebar() use it.
+ * child of the .ds-theme, else of <body>; a theme on <html> puts it at the
+ * end of <body>, never after it). toast(null, ...), announce() and
+ * savebar() use it.
  * @param {Document} [doc]
  * @returns {HTMLElement|null}
  */
@@ -2766,12 +2767,16 @@ function ownOf(theme, selector) {
   return [...theme.querySelectorAll(selector)].find((node) => node.closest('.ds-theme') === theme) ?? null;
 }
 
-/** A new empty .ds-toasts right after `app` (else the last child of `parent`); null when it is not in the document. */
+/**
+ * A new empty .ds-toasts right after `app` (else the last child of
+ * `parent`, <body> for a theme on <html>, as ask() places its dialog);
+ * null when it is not in the document.
+ */
 function newRegion(doc, app, parent) {
   const region = doc.createElement('div');
   region.className = 'ds-toasts';
   if (app) app.after(region);
-  else parent?.append(region);
+  else (parent === doc.documentElement && doc.body ? doc.body : parent)?.append(region);
   return region.isConnected ? region : null;
 }
 

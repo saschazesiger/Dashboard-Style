@@ -898,7 +898,7 @@ the entrance, turns the motion back from its current value in every engine, with
 | `toast(region, content, { kind, persistent, timeout, closeLabel, action, key, restart, reserve })` | shows a snackbar in a `.ds-toasts` region (`null`: `toastRegion()`); returns `{ el, close(), closed }` (below; `action`, `key`, `restart` and `reserve` 2.0) |
 | `closeToasts(region = toastRegion(), { kind, key })` | closes every message on screen or waiting that matches, as one change of the stack; a Promise that resolves once they are gone (2.0) |
 | `announce(text, { assertive, region })` | says `text` through the announcers of a snackbar region (default `toastRegion()`) without a message; polite, or assertive; the same text twice is said twice, empty text nothing (2.0) |
-| `toastRegion(doc = document)` | the page's snackbar region: the `.ds-toasts` in the theme of the first `.ds-app`, else the first in the document, else a new one right after `.ds-app` (2.0) |
+| `toastRegion(doc = document)` | the page's snackbar region: the `.ds-toasts` in the theme of the first `.ds-app`, else the first in the document, else a new one right after `.ds-app`, else at the end of the `.ds-theme` (of `<body>` when the theme is `<html>`, 2.1) (2.0) |
 | `savebar(element, { focusTarget })` | the controller of a `.ds-savebar`: `{ element, show(), hide(), update(fn), shown, destroy() }`, one per element (below; 2.0) |
 | `tooltips(root = document)` | tooltips for every `[data-tip]` in `root` (a document, an element or an open shadow root); returns `{ destroy() }` (below) |
 | `TOAST_MS`, `TOAST_MAX_MS`, `TOAST_LIMIT` | snackbar fallbacks: 4000ms, at most 10000ms, at most 3 at once |
