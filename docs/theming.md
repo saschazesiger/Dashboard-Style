@@ -312,7 +312,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-card-hover-shadow` | none | `.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift |
 | `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile |
 | `--ds-tile-radius-pressed` | `--ds-radius-md` | a clickable tile while pressed (never rounder than `--ds-tile-radius`) |
-| `--ds-tile-min-width` | 176px | the narrowest tile of a `.ds-tiles` row (fewer per row below it) |
+| `--ds-tile-min-width` | 176px | the narrowest tile of a `.ds-tiles` row (fewer per row below it; one per row on a phone, 128px keeps two down to a 360px phone) |
 | `--ds-tiles-columns` | 4 | the most tiles per row (`.ds-tiles--3`: three) |
 | `--ds-tile-selected-bg` | `--ds-accent` | a selected tile (`aria-pressed`, `aria-checked`, `aria-selected`) |
 | `--ds-card-selected-bg` | `--ds-accent` | a selected interactive card |

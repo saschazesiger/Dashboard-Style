@@ -970,7 +970,8 @@ form, which may be a `<button>` too (it loses its own look):
 
 The row fills its container, whatever it is (a page, a dialog, a side sheet, beside the drawer): as many tiles per row
 as fit at `--ds-tile-min-width` (176px), never more than `--ds-tiles-columns` (4), each row filled. `.ds-tiles--3`
-caps the row at three. A single figure that opens a list is one `a.ds-tile`, also outside `.ds-tiles`.
+caps the row at three. On a phone the default gives one tile per row, so a long value fits whole;
+`--ds-tile-min-width: 128px` on the `.ds-tiles` or in the theme keeps two per row down to a 360px phone. A single figure that opens a list is one `a.ds-tile`, also outside `.ds-tiles`.
 
 `DS.motion.countUp()` never takes the target from the markup. It counts from the figure it last wrote (or one a
 re-render wrote since, read back through `format`), and on its first call from 0. So keep the raw value in your own
