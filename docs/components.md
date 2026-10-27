@@ -2894,7 +2894,11 @@ The action button comes only with `action`, the close button with every message 
   sheet that hosts the region, or on a hosting `.ds-dialog` while its box would overlap the stack (the box then
   re-centres above it). It measures again after every change of the stack, after the region moves and when the
   region resizes, and scrolls a focused element that the stack covers clear of it. Both are owned (a re-render
-  keeps them). `reserve: false` leaves both to the page.
+  keeps them). `reserve: false` leaves both to the page for that message. A layer that must never shrink (a fixed
+  view that refits its content, such as a terminal) takes `data-ds-toast-room="off"` (2.1): `toast()` keeps no room
+  there (no attribute, no padding, nothing scrolled), while the dialogs and sheets that host the region later keep
+  theirs. It is read at every measure, so setting or removing it applies on the next change of the stack; the page
+  then keeps its own content clear of the messages.
 - **Focus.** A focused message that leaves hands focus to the next message's close button, else back to where focus
   came from into the region, else to the view (`.ds-view` with `tabindex="-1"`), never to `<body>`.
 - **Screen readers.** The region and the messages are not live regions, so their buttons stay usable. On first use
@@ -3535,6 +3539,7 @@ the ones the page sets for it. The project check reads this table.
 | `data-ds-savebar` (with `--ds-savebar-height`) | the system (`DS.overlay.savebar()`) | `.ds-view` | the save bar shows: scroll padding and the content's end keep its room ([Save bar](#save-bar)) |
 | `data-ds-savebar-rest` | the system (`DS.overlay.savebar()`) | `.ds-view` | the bar hid at the end of the page: its room stays until the page scrolls away from the end ([Save bar](#save-bar)) |
 | `data-ds-busy` | the page | `.ds-dialog`, `.ds-sheet`, `.ds-drawer` | keeps the overlay open while its action runs: the user's close attempts do nothing, `DS.overlay.close()` still closes ([Dialog](#dialog), "While its action runs") |
+| `data-ds-toast-room` | the page | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | `off`: this layer keeps no room for snackbars that stay; the page keeps the messages clear itself ([Snackbar](#snackbar), "Room at the end") |
 | `data-ds-guard="off"` | the page | any element around actions | its `aria-disabled` and busy actions explain themselves on click: `DS.motion.guard()` lets their activations through |
 | `data-icon` | the page | any element | the glyph name that `DS.icons.fill()` draws into it ([icons.md](icons.md)) |
 | `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |

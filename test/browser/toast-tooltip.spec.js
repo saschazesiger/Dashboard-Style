@@ -1104,6 +1104,36 @@ test.describe('snackbars 2.0', () => {
     expect(await reserveOf(page, 'main')).toEqual({ on: true, value: '10px' });
   });
 
+  test('data-ds-toast-room="off" on the view: no room there, a dialog opened later still keeps its own; removed, the next change of the stack gives the view room (2.1)', async ({ page }) => {
+    await loadApp(page, { height: 420 });
+    await page.evaluate(() => {
+      document.getElementById('main').setAttribute('data-ds-toast-room', 'off');
+      DS.overlay.toast(null, 'Could not delete LAPTOP-0042.', { kind: 'error' });
+      DS.overlay.toast(null, 'Could not delete TABLET-0121.', { kind: 'error' });
+    });
+    await settle(page);
+    expect(await reserveOf(page, 'main')).toEqual({ on: false, value: '' });
+    await page.locator('#open-dialog').click();
+    await settle(page);
+    expect(await page.evaluate(() => document.getElementById('toasts').parentNode.id)).toBe('dialog');
+    expect((await reserveOf(page, 'dialog')).on, 'the dialog keeps its room').toBe(true);
+    await page.locator('#dialog-cancel').click();
+    await settle(page);
+    expect(await reserveOf(page, 'main')).toEqual({ on: false, value: '' });
+    await page.evaluate(() => {
+      document.getElementById('main').removeAttribute('data-ds-toast-room');
+      window.__phone = DS.overlay.toast(null, 'Could not delete PHONE-0007.', { kind: 'error' });
+    });
+    await settle(page);
+    expect((await reserveOf(page, 'main')).on, 'read at the next measure').toBe(true);
+    await page.evaluate(() => {
+      document.getElementById('main').setAttribute('data-ds-toast-room', 'off');
+      window.__phone.close();
+    });
+    await settle(page);
+    expect(await reserveOf(page, 'main'), 'set again: the room goes').toEqual({ on: false, value: '' });
+  });
+
   test('a focused element that a staying message covers scrolls clear of it', async ({ page }) => {
     await loadApp(page, { height: 600 });
     await page.evaluate(() => {

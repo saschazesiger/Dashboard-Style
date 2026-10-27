@@ -1132,7 +1132,8 @@ one enters in its slot, focus inside the old one moves to the new close button),
 `.ds-dialog` (the stack, its bottom offset and `--ds-space-3`) only while the box would overlap the stack; measured
 after each change of the stack settled, after the region moved, and by one `ResizeObserver` on the region while
 held; a focused element (or the focus origin) under the stack is brought clear with `scrollIntoView({ block:
-'nearest' })`; both names are owned and go once no staying message shows (in a dialog, after its exit).
+'nearest' })`; both names are owned and go once no staying message shows (in a dialog, after its exit). A layer
+with `data-ds-toast-room="off"` (page-set, 2.1) is skipped at each measure: it keeps no room, the others still do.
 A focused message that leaves first hands focus to the
 next message's close button, else to the element focused before focus entered the region, else to the view
 (`tabindex="-1"`); never `<body>`. The text is announced through two `.ds-sr` live regions that `toast()` adds next to

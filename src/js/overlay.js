@@ -3079,11 +3079,19 @@ function hostOf(region) {
   return last && !last.leaving ? last.host : null;
 }
 
-/** Where a region keeps room for messages that stay: a hosting dialog, a hosting sheet's body, else the .ds-view of its app. */
+/**
+ * Where a region keeps room for messages that stay: a hosting dialog, a
+ * hosting sheet's body, else the .ds-view of its app. A layer the page
+ * marked data-ds-toast-room="off" keeps none (a fixed view that must not
+ * shrink); the others still do. Read at every measure, so a toggle
+ * applies on the next change of the stack.
+ */
 function reserveTarget(region) {
   const host = hostOf(region);
-  if (host) return /** @type {HTMLElement|null} */ (host.matches('.ds-dialog') ? host : host.querySelector('.ds-sheet__body'));
-  return /** @type {HTMLElement|null} */ (appOf(region)?.querySelector('.ds-view') ?? null);
+  const node = /** @type {HTMLElement|null} */ (host
+    ? (host.matches('.ds-dialog') ? host : host.querySelector('.ds-sheet__body'))
+    : appOf(region)?.querySelector('.ds-view') ?? null);
+  return node?.getAttribute('data-ds-toast-room') === 'off' ? null : node;
 }
 
 /** Gives the room back: the attribute and the property toast() wrote go. */

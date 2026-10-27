@@ -2303,6 +2303,18 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
     assert.deepEqual(field({ autocomplete: 'off', inputmode: 'text' }), { autocomplete: 'off', inputmode: 'text' });
   });
 
+  it('data-ds-toast-room="off": reserveTarget() skips a marked layer; the page-set attribute is documented (2.1)', () => {
+    const source = withoutComments(read('src/js/overlay.js'));
+    const body = source.match(/function reserveTarget\(region\) \{[\s\S]*?\n\}/)?.[0] ?? '';
+    assert.match(body, /getAttribute\('data-ds-toast-room'\) === 'off' \? null/, 'a marked layer keeps no room');
+    // Only toast() reads it: the page owns it, DS never writes it.
+    assert.doesNotMatch(source, /setAttribute\('data-ds-toast-room'/);
+    const row = read('docs/components.md').split('\n').find((line) => line.startsWith('| `data-ds-toast-room` |'));
+    assert.ok(row, 'a row in the Attributes table');
+    assert.match(row, /\| the page \| `\.ds-view`, `\.ds-sheet__body`, `\.ds-dialog` \| `off`/);
+    assert.match(read('src/components/toast.css'), /data-ds-toast-room="off"/);
+  });
+
   it('has no legacy branch: the region is never left mute (R11)', () => {
     const source = withoutComments(read('src/js/overlay.js'));
     assert.doesNotMatch(source, /\blegacy\b/);
