@@ -139,9 +139,11 @@ too.
   nothing and the list stayed open.
 - A text button (`.ds-btn--text`) in `.ds-page-head__actions` hangs its padding into the gutter, as in a card's link
   row: the last one's text ends on the content edge the title, the cards and the banners share (it stood 12px
-  inside), and under the title (600px of the content) each text button's text starts on the title's edge, the gap
-  between them growing by the same amount. Outlined and filled buttons keep their place. A page whose head ends in a
-  text button moves it by 12px; a project exception for it can go.
+  inside), and under the title (600px of the content) a text button that comes first starts its text on the title's
+  edge. Outlined and filled buttons keep their place, and so do the buttons after the first under the title, 8px
+  apart as on a wide page (a "Cancel" before a "Save" keeps its 20px from text to button), and a `.ds-btn--adaptive`
+  while it is folded into a round icon button. A page whose head ends in a text button, or starts with one under the
+  title, moves it by 12px; a project exception for it can go.
 
 ## 2.0.0
 

@@ -27,6 +27,13 @@ const box = (page, selector) => page.locator(selector).first().evaluate((el) => 
   const rect = el.getBoundingClientRect();
   return { left: rect.left, top: rect.top, width: rect.width, height: rect.height, right: rect.right, bottom: rect.bottom };
 });
+/** The box of a button's text, not of the button. */
+const text = (page, selector) => page.locator(selector).evaluate((el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el.querySelector('.ds-btn__label') ?? el);
+  const rect = range.getBoundingClientRect();
+  return { left: rect.left, right: rect.right, top: rect.top };
+});
 const style = (page, selector, property, pseudo = null) => page.locator(selector).first().evaluate((el, [name, which]) => getComputedStyle(el, which).getPropertyValue(name), [property, pseudo]);
 
 test.describe('page head', () => {
@@ -61,7 +68,7 @@ test.describe('page head', () => {
     expect(Math.abs(actions.left - title.left)).toBeLessThan(1);
   });
 
-  test('a text button in the actions hangs its padding out: the last ends on the card edge, under the title each starts on its edge', async ({ page }) => {
+  test('a text button in the actions hangs its padding out: the last ends on the card edge, under the title the first starts on its edge', async ({ page }) => {
     await open(page);
     await page.locator('#actions').evaluate((actions) => {
       actions.innerHTML = '<button class="ds-btn" type="button" id="retire">Retire</button>'
@@ -69,28 +76,73 @@ test.describe('page head', () => {
         + '<button class="ds-btn ds-btn--text" type="button" id="export">Export</button>';
     });
     await settle(page);
-    /** The box of a button's text, not of the button. */
-    const text = (selector) => page.locator(selector).evaluate((el) => {
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const rect = range.getBoundingClientRect();
-      return { left: rect.left, right: rect.right, top: rect.top };
-    });
     const card = await box(page, '#filler');
-    expect(Math.abs((await text('#export')).right - card.right)).toBeLessThan(1.5);
+    expect(Math.abs((await text(page, '#export')).right - card.right)).toBeLessThan(1.5);
     // An outlined button keeps its place: its edge, not its text, is the end of the row when it comes last.
     expect((await box(page, '#retire')).right).toBeLessThan(card.right - 1);
     await page.setViewportSize({ width: 400, height: 800 });
     await settle(page);
     const title = await box(page, '#title');
     expect(Math.abs((await box(page, '#retire')).left - title.left)).toBeLessThan(1);
+    // After an outlined button the text buttons keep their padding and the 8px gap.
+    expect(Math.abs((await box(page, '#history')).left - (await box(page, '#retire')).right - 8)).toBeLessThan(1);
     await page.locator('#retire').evaluate((el) => el.remove());
     await settle(page);
-    expect(Math.abs((await text('#history')).left - title.left)).toBeLessThan(1.5);
-    const history = await text('#history');
-    const exported = await text('#export');
-    if (Math.abs(exported.top - history.top) > 1) expect(Math.abs(exported.left - title.left)).toBeLessThan(1.5); // wrapped: it starts the line
-    else expect(Math.abs((await box(page, '#export')).left - (await box(page, '#history')).right - 8)).toBeLessThan(1); // the boxes 8px apart, as before
+    expect(Math.abs((await text(page, '#history')).left - title.left)).toBeLessThan(1.5);
+    // Only the first hangs: the next keeps its padding, the boxes 8px apart (or it starts a line of its own).
+    const history = await text(page, '#history');
+    const exported = await text(page, '#export');
+    if (Math.abs(exported.top - history.top) > 1) expect(Math.abs((await box(page, '#export')).left - title.left)).toBeLessThan(1);
+    else expect(Math.abs((await box(page, '#export')).left - (await box(page, '#history')).right - 8)).toBeLessThan(1);
+  });
+
+  test('under the title: [text, filled] and [outlined, filled, text] keep the 8px gaps; a folded adaptive text button keeps its place (2.1)', async ({ page }) => {
+    await open(page, { width: 400 });
+    const title = await box(page, '#title');
+    const actions = (html) => page.locator('#actions').evaluate((el, markup) => { el.innerHTML = markup; }, html);
+    const gap = async (a, b) => (await box(page, b)).left - (await box(page, a)).right;
+
+    await actions('<button class="ds-btn ds-btn--text" type="button" id="cancel">Cancel</button>'
+      + '<button class="ds-btn ds-btn--primary" type="button" id="save">Save</button>');
+    await settle(page);
+    expect(Math.abs((await text(page, '#cancel')).left - title.left)).toBeLessThan(1.5);
+    expect(Math.abs(await gap('#cancel', '#save') - 8)).toBeLessThan(1);
+    // From Cancel's text to Save's edge: its 12px end padding and the gap, as on a wide page.
+    const pad = parseFloat(await style(page, '#cancel', 'padding-inline-end'));
+    expect(Math.abs((await box(page, '#save')).left - (await text(page, '#cancel')).right - (pad + 8))).toBeLessThan(1.5);
+
+    await actions('<button class="ds-btn" type="button" id="retire">Retire</button>'
+      + '<button class="ds-btn ds-btn--primary" type="button" id="edit2">Edit</button>'
+      + '<button class="ds-btn ds-btn--text" type="button" id="undo">Undo</button>');
+    await settle(page);
+    expect(Math.abs((await box(page, '#retire')).left - title.left)).toBeLessThan(1);
+    expect(Math.abs(await gap('#retire', '#edit2') - 8)).toBeLessThan(1);
+    expect(Math.abs(await gap('#edit2', '#undo') - 8)).toBeLessThan(1);
+    expect(await style(page, '#undo', 'margin-inline-start')).toBe('0px');
+    expect(await style(page, '#undo', 'margin-inline-end')).toBe('0px');
+
+    // A folded adaptive text button is a 40px round icon button: its circle starts on the title's edge.
+    await actions('<button class="ds-btn ds-btn--text ds-btn--adaptive" type="button" id="share" data-tip="Share">'
+      + '<svg viewBox="0 0 24 24" aria-hidden="true"></svg><span class="ds-btn__label">Share</span></button>'
+      + '<button class="ds-btn ds-btn--primary" type="button" id="save2">Save</button>');
+    await settle(page);
+    const share = await box(page, '#share');
+    expect(share.width).toBeLessThan(48);
+    expect(Math.abs(share.left - title.left)).toBeLessThan(1);
+    expect(Math.abs(await gap('#share', '#save2') - 8)).toBeLessThan(1);
+  });
+
+  test('a folded adaptive text button that ends a head outside a content panel keeps its place (2.1)', async ({ page }) => {
+    await open(page, { width: 400 });
+    // Without .ds-content the head has no container: the wide layout, the button folded by the window.
+    await page.locator('#content').evaluate((el) => el.classList.remove('ds-content'));
+    await page.locator('#actions').evaluate((el) => {
+      el.innerHTML = '<button class="ds-btn ds-btn--text ds-btn--adaptive" type="button" id="share" data-tip="Share">'
+        + '<svg viewBox="0 0 24 24" aria-hidden="true"></svg><span class="ds-btn__label">Share</span></button>';
+    });
+    await settle(page);
+    expect((await box(page, '#share')).width).toBeLessThan(48);
+    expect(await style(page, '#share', 'margin-inline-end')).toBe('0px');
   });
 
   test('print leaves out the back link and the actions', async ({ page }) => {

@@ -2816,7 +2816,7 @@ describe('tables, cards and buttons (2.1)', () => {
     for (const selector of [SMALL, '.ds-card__row > .ds-chip']) assert.ok(CARD.indexOf(`${selector} {`) > CARD.indexOf(`${GENERAL} {`), selector);
   });
 
-  it('hangs a page head\'s text buttons into the gutter: the last at the end, under the title each at the start', () => {
+  it('hangs a page head\'s text buttons into the gutter: the last at the end, under the title the first at the start', () => {
     const PAGE = stripComments(read('src/components/page.css'));
     const LAST = '.ds-page-head__actions > .ds-btn--text:last-child';
     const HANG = 'calc(-1 * var(--ds-space-3))';
@@ -2824,9 +2824,15 @@ describe('tables, cards and buttons (2.1)', () => {
     assert.equal(at(wide, LAST)['margin-inline-end'], HANG);
     assert.equal(at(wide, '.ds-page-head__actions > .ds-btn--text')['margin-inline-start'], undefined, 'on the title line only the end hangs');
     const narrow = atRuleBlocks(PAGE, /^@container ds-content \(max-width: 600px\)$/).join('\n');
-    assert.equal(at(narrow, '.ds-page-head__actions > .ds-btn--text')['margin-inline-start'], HANG);
+    // Only a first text button hangs (the others keep the 8px gap), never a folded adaptive one.
+    assert.equal(at(narrow, '.ds-page-head__actions > .ds-btn--text:first-child:not(.ds-btn--adaptive)')['margin-inline-start'], HANG);
+    assert.equal(at(narrow, '.ds-page-head__actions > .ds-btn--text')['margin-inline-start'], undefined);
     assert.equal(at(narrow, LAST)['margin-inline-end'], '0');
-    assert.equal(at(narrow, '.ds-page-head__actions:has(> .ds-btn--text)')['column-gap'], 'calc(var(--ds-space-2) + var(--ds-space-3))');
+    assert.doesNotMatch(narrow, /column-gap/, 'the gap stays --ds-space-2');
+    // A folded adaptive button by the window (button.css's fold outside a content panel) does not hang at the end.
+    const fold = atRuleBlocks(PAGE, /^@media \(max-width: 600px\)$/).join('\n');
+    assert.equal(at(fold, '.ds-page-head__actions > .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *)')['margin-inline'], '0');
+    assert.ok(PAGE.indexOf('.ds-page-head__actions > .ds-btn--adaptive') > PAGE.indexOf(`${LAST} {`), 'after the end hang, at its weight');
     // Only text buttons hang: an outlined or filled one keeps its place.
     assert.doesNotMatch(PAGE, /\.ds-page-head__actions > (?:\*|\.ds-btn)(?![\w-])/);
   });

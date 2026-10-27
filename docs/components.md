@@ -596,8 +596,10 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
   `--ds-page-head-text-basis` (320px) and grows; `.ds-page-head__actions` sit at the row's end on the title's centre
   line (`--ds-page-head-title-line`, the headline's 32px line) and start under the title at 600px of the content.
 - A text button (`.ds-btn--text`) in the actions hangs its padding into the gutter, as in a card's link row: the last
-  one's text ends on the content edge the cards share, and under the title each text button's text starts on the
-  title's edge (the gap between them grows by the same amount). Outlined and filled buttons keep their place.
+  one's text ends on the content edge the cards share, and under the title the text of a text button that comes
+  first starts on the title's edge. Outlined and filled buttons keep their place, and so do the buttons after the
+  first under the title (8px apart, as on a wide page) and a `.ds-btn--adaptive` while it is folded into a round icon
+  button.
 - Empty parts take no room (`:empty`: the head, the lead, the status and the actions). The lead's figures are
   tabular. Print leaves out the back link and the actions.
 

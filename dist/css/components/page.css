@@ -34,12 +34,14 @@
  * centre line (--ds-page-head-title-line, the headline's line height) and
  * start under the title at 600px of the content. A text button hangs its
  * padding into the gutter, as in a card's link row: the last one ends on
- * the content edge, and under the title each starts on the title's edge
- * (outlined and filled buttons keep their place). Empty parts (and an empty
- * head) take no room. Breadcrumbs are inline links (underlined, no ripple,
- * the link ring) with a chevron between them; at 600px of the content only
- * the parent shows. A docked drawer with a back item (.ds-drawer__back)
- * hides the page head's back link (shell.css).
+ * the content edge, and under the title the first one starts on the
+ * title's edge (outlined and filled buttons, the buttons after the first
+ * under the title and a folded .ds-btn--adaptive keep their place and the
+ * 8px gap). Empty parts (and an empty head) take no room. Breadcrumbs
+ * are inline links (underlined, no ripple, the link ring) with a chevron
+ * between them; at 600px of the content only the parent shows. A docked
+ * drawer with a back item (.ds-drawer__back) hides the page head's back
+ * link (shell.css).
  *
  * A lone .ds-btn directly in .ds-page or .ds-stack keeps its own width.
  *
@@ -203,9 +205,19 @@
     display: none;
   }
 
-  /* Under the title the actions start on its edge: every text button hangs
-     its start padding out instead (the first of each line lines up with the
-     title, the wider gap makes up for it between them). */
+  /* A folded .ds-btn--adaptive (button.css: outside a content panel, by
+     the window) is a round icon button: it keeps its place. */
+  @media (max-width: 600px) {
+    .ds-page-head__actions > .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) {
+      margin-inline: 0;
+    }
+  }
+
+  /* Under the title the actions start on its edge: a text button that
+     comes first hangs its start padding out instead, so its text lines up
+     with the title; the buttons after it keep the 8px gap and their place.
+     A folded .ds-btn--adaptive (a round icon button at this width) keeps
+     its place too. */
   @container ds-content (max-width: 600px) {
     .ds-page-head__actions {
       flex-basis: 100%;
@@ -213,11 +225,7 @@
       margin: 0;
     }
 
-    .ds-page-head__actions:has(> .ds-btn--text) {
-      column-gap: calc(var(--ds-space-2) + var(--ds-space-3));
-    }
-
-    .ds-page-head__actions > .ds-btn--text {
+    .ds-page-head__actions > .ds-btn--text:first-child:not(.ds-btn--adaptive) {
       margin-inline-start: calc(-1 * var(--ds-space-3));
     }
 
