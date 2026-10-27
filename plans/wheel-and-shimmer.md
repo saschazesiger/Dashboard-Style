@@ -16,7 +16,7 @@ independent: a wheel can roll lines without a shimmer, and a shimmer can run on 
 
 | Need | Today | Why that is not enough |
 |---|---|---|
-| A status line whose text changes often, readable at every step, quiet enough to stay in the background | `DS.motion.roll()` on a `.ds-swap`: the old line rolls up a whole line and out, the new one rolls up from below on the spring | `roll()` needs the imperative call: a line drawn by `DS.dom.morphHtml()` changes its text in place and never rolls. Its travel (a whole line) and spring draw the eye on a line that changes every few seconds, and its new line starts while the old one is still half there |
+| A status line whose text changes often, readable at every step, quiet enough to stay in the background | `DS.motion.roll()` on a `.ds-swap`: the old line rolls up a whole line and out, the new one rolls up from below on the spring | `roll()` needs the imperative call: a line drawn by `DS.dom.morphHtml()` changes its text in place and never rolls. Its two lines run on different curves (the exit accelerating, the entrance on the spring, half a `--ds-dur-fast` later), so they read as one line leaving and another arriving, not as one replacing the other, and the spring draws the eye on a line that changes every few seconds |
 | "Something is at work" on the text itself | A spinner, the shape loader, an indeterminate bar | All three add an element beside the text. The look asked for is the one of current AI assistants: a soft white wave that travels over the words, left to right, a pass and a pause, and nothing else on the line moves |
 
 ## The wheel
@@ -42,20 +42,24 @@ DS.motion.wheel(slot, 'Running npm test');                           // without 
 
 | | Old line | New line |
 |---|---|---|
-| Glide | `translateY(0)` to `translateY(calc(-1 * var(--ds-wheel-travel)))`, `--ds-dur-medium`, `--ds-ease-in` | `translateY(var(--ds-wheel-travel))` to `translateY(0)`, `--ds-dur-slow`, `--ds-ease-out` (no overshoot) |
-| Fade | to 0 within `--ds-dur-fast`, `--ds-ease-out` | from 0 over `--ds-dur-slow`, `--ds-ease-in-out` |
-| Start | at once | `--ds-dur-fast` later, once the old line has faded: one line at a time, never two on each other |
+| Glide | `translateY(0)` to `translateY(calc(-1 * var(--ds-wheel-travel)))` | `translateY(var(--ds-wheel-travel))` to `translateY(0)` |
+| Curve | `--ds-dur-slow`, `--ds-ease-in-out`, the same for both lines and starting together: one strip | |
+| Fade | to 0 on `--ds-ease-in` (it holds until it is at the edge) | from 0 on `--ds-ease-out` |
 
+- **The new line pushes the old one out.** `--ds-wheel-travel` is 100%, a line's own height: the two lines stand one
+  line apart and move as one strip, like the drum of a counter. The old line leaves through the slot's soft top
+  edge, the new one comes up through the soft bottom edge; they never lie on each other. A version that faded the
+  old line in place first and brought the new one after it read as "gone, then something else", not as "replaced".
 - **Only translate and opacity.** A first version turned the lines round a drum (`rotateX` with a perspective) and
   blurred them as they turned away. In Chromium the text of a 3D-transformed or filtered layer is drawn soft while
   it moves and turns sharp only once it rests, and the filter repaints every frame: the new line came in blurry,
-  seemed larger, and snapped sharp at the end. A short vertical glide with a fade keeps the text as sharp in
-  motion as at rest, and reads as a turn of a drum through the slot's soft edges.
-- **Quiet on purpose.** `--ds-wheel-travel` is `--ds-distance-md` (8px), not a whole line; the new line decelerates
-  into place without a spring. The line is background information, so its change should be noticed, not watched.
+  seemed larger, and snapped sharp at the end. A glide keeps the text as sharp in motion as at rest.
+- **Quiet on purpose.** No spring and no overshoot: the strip decelerates into place on the standard curve. The line
+  is background information, so its change should be noticed, not watched.
 - The slot is one grid cell (like `.ds-swap`) with a soft edge (like `.ds-swap--fade`): `--ds-wheel-fade` of room
   above and below, given back by a negative margin, and a static vertical mask. Nothing in the mask animates. Each
-  line is as wide as its text (`justify-self: start`, capped at the slot).
+  line is as wide as its text (`justify-self: start`, capped at the slot). The edge is `--ds-space-3`: wide enough
+  that a line fades on its way out rather than being cut.
 - **Hold.** Every line is shown for at least `--ds-hold-status` from the start of its roll. A change during the hold
   waits (its line hidden in the delay phase of its entrance, `fill: backwards`; the old line's exit waits as
   long); a later change takes the waiting line's place, and the waiting line goes at once without ever showing. A
@@ -63,7 +67,8 @@ DS.motion.wheel(slot, 'Running npm test');                           // without 
   nothing: the line that replaces it takes its time instead of waiting out a new hold, so the slot is never left
   empty (the first version left it empty for most of a hold when a line was replaced before it came in).
 - **Interruption.** A line removed during its own entrance glides out from where it is (its computed transform and
-  opacity), never from the start. A line removed before its entrance began goes at once. The line that goes and
+  opacity), never from the start. A line removed before its entrance began (one that waited out a hold) goes at
+  once. The line that goes and
   the line that comes in one change (one morph, one task) share the roll's delay.
 - **First render.** A slot that is new shows its line at once; only a line inserted into a slot that was already
   there rolls.
@@ -77,14 +82,14 @@ CSS (a utility in `src/motion.css`, `ds.utilities`, next to `.ds-swap`):
 
 ```css
 .ds-wheel {
-  --ds-wheel-travel: var(--ds-distance-md);
+  --ds-wheel-travel: 100%;
   display: inline-grid;
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
-  padding-block: var(--ds-wheel-fade, var(--ds-space-2));
-  margin-block: calc(-1 * var(--ds-wheel-fade, var(--ds-space-2)));
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-wheel-fade, var(--ds-space-2)), #000 calc(100% - var(--ds-wheel-fade, var(--ds-space-2))), transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-wheel-fade, var(--ds-space-2)), #000 calc(100% - var(--ds-wheel-fade, var(--ds-space-2))), transparent);
+  padding-block: var(--ds-wheel-fade, var(--ds-space-3));
+  margin-block: calc(-1 * var(--ds-wheel-fade, var(--ds-space-3)));
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-wheel-fade, var(--ds-space-3)), #000 calc(100% - var(--ds-wheel-fade, var(--ds-space-3))), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--ds-wheel-fade, var(--ds-space-3)), #000 calc(100% - var(--ds-wheel-fade, var(--ds-space-3))), transparent);
 }
 
 .ds-wheel > * {
@@ -117,18 +122,23 @@ function wheelDelay(slot) {
   return Math.max(0, state.turn.at - performance.now());
 }
 
-const travelOf = (slot) => getComputedStyle(slot).getPropertyValue('--ds-wheel-travel').trim() || '0.5em';
+const travelOf = (slot) => getComputedStyle(slot).getPropertyValue('--ds-wheel-travel').trim() || '100%';
+
+// One line's part of the turn: the same glide for both lines (one strip), the opacity along with it.
+function wheelGlide(line, slot, from, to, opacity, delay, fill) {
+  const duration = motionDuration(slot, '--ds-dur-slow');
+  const glide = line.animate([{ transform: from }, { transform: to }], {
+    duration, delay, easing: motionEasing(slot, '--ds-ease-in-out'), fill,
+  });
+  const fade = line.animate([{ opacity: opacity[0] }, { opacity: opacity[1] }], {
+    duration, delay, easing: motionEasing(slot, opacity[1] ? '--ds-ease-out' : '--ds-ease-in'), fill,
+  });
+  return Promise.all([glide.finished, fade.finished]).then(() => {}, () => {});
+}
 
 function wheelIn(line, slot, delay) {
   wheels.get(slot).last = line;
-  const late = delay + motionDuration(slot, '--ds-dur-fast');
-  const slow = motionDuration(slot, '--ds-dur-slow');
-  line.animate([{ transform: `translateY(${travelOf(slot)})` }, { transform: 'translateY(0)' }], {
-    duration: slow, delay: late, easing: motionEasing(slot, '--ds-ease-out'), fill: 'backwards',
-  });
-  line.animate([{ opacity: 0 }, { opacity: 1 }], {
-    duration: slow, delay: late, easing: motionEasing(slot, '--ds-ease-in-out'), fill: 'backwards',
-  });
+  wheelGlide(line, slot, `translateY(${travelOf(slot)})`, 'translateY(0)', [0, 1], delay, 'backwards');
 }
 
 function wheelOut(line, slot, delay) {
@@ -141,13 +151,7 @@ function wheelOut(line, slot, delay) {
   const from = style.transform === 'none' ? 'translateY(0)' : style.transform;
   const opacity = Number(style.opacity);
   running.forEach((a) => a.cancel());
-  const glide = line.animate([{ transform: from }, { transform: `translateY(calc(-1 * ${travelOf(slot)}))` }], {
-    duration: motionDuration(slot, '--ds-dur-medium'), delay, easing: motionEasing(slot, '--ds-ease-in'), fill: 'forwards',
-  });
-  const fade = line.animate([{ opacity }, { opacity: 0 }], {
-    duration: motionDuration(slot, '--ds-dur-fast'), delay, easing: motionEasing(slot, '--ds-ease-out'), fill: 'forwards',
-  });
-  return Promise.all([glide.finished, fade.finished]).then(() => {}, () => {});
+  return wheelGlide(line, slot, from, `translateY(calc(-1 * ${travelOf(slot)}))`, [opacity, 0], delay, 'forwards');
 }
 
 const wheelOf = (line) => (line?.parentElement?.classList.contains('ds-wheel') ? line.parentElement : null);
@@ -244,8 +248,8 @@ progress bar go away.
 | `--ds-shimmer-peak` | colour role | `color-mix(in srgb, var(--ds-text) 55%, transparent)` | the mask at the crest: only its alpha counts |
 | `--ds-loop-shimmer` | loop | `calc(4550ms * var(--ds-time-scale, 1))` | one tile's travel |
 | `--ds-shimmer-length` | hook | `480px` | one tile: the band and the pause after it |
-| `--ds-wheel-travel` | hook | `--ds-distance-md` | how far a line glides as it goes or comes |
-| `--ds-wheel-fade` | hook | `--ds-space-2` | the soft edge above and below the slot |
+| `--ds-wheel-travel` | hook | `100%` | how far a line glides as it goes or comes: one line, its own height |
+| `--ds-wheel-fade` | hook | `--ds-space-3` | the soft edge above and below the slot |
 
 ## Adoption checklist
 
@@ -261,6 +265,6 @@ progress bar go away.
   demo at every speed of the speed select; `styleguide/lab.js` `shows` lists `ds-shimmer`, `.ds-wheel`,
   `.ds-shimmer`, `wheelHooks`, `wheel`.
 - Tests: the hold (a change 200ms after a roll waits `--ds-hold-status` minus 200ms), the never-shown line (two
-  changes in one task leave one leaving line, not two), a line replaced before it came in (the next one waits no
-  new hold), an interrupted entrance (the exit starts at the computed offset), one line at a time (the new line
-  starts once the old one has faded), the accessible name without the copy, forced colours.
+  changes in one task leave one leaving line, not two), a line replaced while it waited out a hold (the next one takes
+  its time, no second hold), an interrupted entrance (the exit starts at the computed offset), one strip (both
+  lines start together on the same curve, one line apart), the accessible name without the copy, forced colours.
