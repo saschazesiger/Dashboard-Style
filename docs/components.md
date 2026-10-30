@@ -327,7 +327,9 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - With the keyboard up (2.0): on a phone the on-screen keyboard shortens the visual viewport, not the layout one.
   Call `DS.dom.followViewport()` once ([motion](motion.md#dsdom-jsdomjs)): it writes `--ds-viewport-height` (px) and,
   while the keyboard is up and a field has the focus, `data-ds-keyboard` on `<html>`, and `--ds-keyboard-inset` (px)
-  for the snackbars, and scrolls the window back where the browser panned it for the keyboard. Nothing moves when
+  for the snackbars, dialogs and side sheets (2.1.1: a centred dialog centres above the keyboard, a full-screen one
+  and a side sheet end at its top edge, an action sheet sits on it; the scrim keeps covering the whole window), and
+  scrolls the window back where the browser panned it for the keyboard. Nothing moves when
   there is no `visualViewport`.
 - Open and close the modal drawer with `DS.overlay.open(drawer, { opener: menu })` and `DS.overlay.close(drawer)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): it sets `data-drawer-open` and `aria-expanded`, makes the rest of
@@ -2570,6 +2572,10 @@ aria-modal="true" aria-labelledby="del-title" aria-describedby="del-text">`.
   spatial spring (`--ds-dur-slow`), from an origin towards its opener; it leaves the same way back in `--ds-dur-base`,
   accelerating. It runs on transitions keyed on `data-state`, so a close taken back mid-way continues from where the
   box is. At 600px and below the box decelerates instead of springing (no overshoot past the window).
+- **Above the on-screen keyboard** (2.1.1). With `DS.dom.followViewport()` on the page every dialog keeps clear of the
+  keyboard (`--ds-keyboard-inset`): a centred box centres in the window above it, a full-screen box (`--full`, and
+  `--full-narrow` on phones) ends at its top edge, the action sheet (`--bottom`) sits on it and a contained box sticks
+  above it; the scrim keeps covering the whole window. A box taller than the room left scrolls its body.
 - **Over another overlay.** A dialog opened from a side sheet, from the modal drawer or from another dialog takes input
   while the overlay under it stays inert (the div trap follows the stack). Over an open native dialog or sheet, which
   makes everything outside it inert, a dialog or sheet (div or native, and a menu) must sit inside it:
@@ -2832,7 +2838,9 @@ leaves, the backdrop swallows them until the sheet is hidden. The `hidden` attri
 in the body (absolute at its padding edge) and stays through a record swap with `DS.dom.morphHtml(body, html)`. Where
 scroll timelines exist the hairline follows the body's scroll by itself, over the first `--ds-space-2`: the body
 names its timeline `--ds-sheet-scroll` and the panel scopes it to the head (progressive: `timeline-scope`). Use a
-`<div>` for the head, not `<header>` (a second banner landmark).
+`<div>` for the head, not `<header>` (a second banner landmark). With `DS.dom.followViewport()` on the page the panel
+ends above the on-screen keyboard (`--ds-keyboard-inset`, 2.1.1), so its foot and the field being typed in stay in
+view; the scrim keeps covering the whole window.
 
 **Another record in an open sheet** (previous and next, another row of the table): keep the sheet open and swap only
 the body with `DS.dom.morphHtml` inside [`DS.motion.transition()`](motion.md#dsmotion-jsmotionjs):

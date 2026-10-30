@@ -267,6 +267,58 @@ test.describe('confirm by typing the name (2.0, the styleguide recipe)', () => {
 });
 
 /*
+ * The on-screen keyboard (2.1.1): DS.dom.followViewport() writes its height as
+ * --ds-keyboard-inset on <html>; here the test writes it, as a phone with the
+ * keyboard up would. Every dialog and the side sheet keep clear of it, the
+ * scrims still cover the whole window.
+ */
+test.describe('above the on-screen keyboard (2.1.1)', () => {
+  const KEYBOARD = 300;
+  const rects = (page, id, box) => page.evaluate(([name, part]) => {
+    const rect = (el) => { const r = el.getBoundingClientRect(); return { top: Math.round(r.top), bottom: Math.round(r.bottom), height: Math.round(r.height) }; };
+    const root = document.getElementById(name);
+    return { box: rect(root.querySelector(part)), scrim: rect(root.querySelector('.ds-dialog__backdrop, .ds-sheet__backdrop')) };
+  }, [id, box]);
+
+  for (const width of [390, 1280]) {
+    test(`a centred dialog centres above the keyboard and returns when it goes (${width}px)`, async ({ page }) => {
+      await load(page, width, 800);
+      await page.evaluate((px) => document.documentElement.style.setProperty('--ds-keyboard-inset', `${px}px`), KEYBOARD);
+      await openSettled(page, 'note', 'open-note');
+      const up = await rects(page, 'note', '.ds-dialog__box');
+      expect(Math.abs((up.box.top + up.box.bottom) / 2 - (800 - KEYBOARD) / 2)).toBeLessThanOrEqual(1);
+      expect(up.box.bottom).toBeLessThanOrEqual(800 - KEYBOARD - 16);
+      expect([up.scrim.top, up.scrim.bottom]).toEqual([0, 800]);
+      await page.evaluate(() => document.documentElement.style.setProperty('--ds-keyboard-inset', '0px'));
+      await settle(page);
+      const down = await rects(page, 'note', '.ds-dialog__box');
+      expect(Math.abs((down.box.top + down.box.bottom) / 2 - 400)).toBeLessThanOrEqual(1);
+    });
+  }
+
+  test('a full-screen dialog and the side sheet end at the keyboard, the action sheet sits on it (390px)', async ({ page }) => {
+    await load(page, 390, 800);
+    await page.evaluate((px) => document.documentElement.style.setProperty('--ds-keyboard-inset', `${px}px`), KEYBOARD);
+    for (const [id, opener, part, bottom] of [
+      ['full', 'open-full', '.ds-dialog__box', 800 - KEYBOARD],
+      ['actions', 'open-actions', '.ds-dialog__box', 800 - KEYBOARD - 16],
+      ['filters', 'open-filters', '.ds-sheet__panel', 800 - KEYBOARD],
+    ]) {
+      await openSettled(page, id, opener);
+      const at = await rects(page, id, part);
+      expect(at.box.bottom, id).toBe(bottom);
+      expect([at.scrim.top, at.scrim.bottom], id).toEqual([0, 800]);
+      await page.evaluate((name) => DS.overlay.close(document.getElementById(name)), id);
+      await settle(page);
+    }
+    // Without the keyboard (no followViewport, or 0px) they reach the window's end as before.
+    await page.evaluate(() => document.documentElement.style.removeProperty('--ds-keyboard-inset'));
+    await openSettled(page, 'full', 'open-full');
+    expect((await rects(page, 'full', '.ds-dialog__box')).box.bottom).toBe(800);
+  });
+});
+
+/*
  * Settled shots of the 2.0 overlay parts (Chromium, like the phone and
  * forced-colour shots of baseline.spec.js): the full-screen dialog and the
  * action sheet at 390px, the side sheet's head and foot at 1280px and 390px.

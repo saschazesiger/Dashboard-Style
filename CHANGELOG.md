@@ -6,9 +6,10 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 
 ## 2.1.1
 
-Two fixes found on real devices. No class, token, hook or export changed; no migration is required. Interactive
-table rows are now stacking contexts (see the first entry): check a page that places its own `position: fixed`
-element inside such a row.
+Fixes found on real devices. No class, token, hook or export changed; no migration is required. Interactive table
+rows are now stacking contexts (see the first entry): check a page that places its own `position: fixed` element
+inside such a row. Dialogs and side sheets now keep clear of the on-screen keyboard: a project rule that lifted them
+itself can go.
 
 ### Fixed
 
@@ -35,6 +36,14 @@ element inside such a row.
   lies over its trigger (a trigger inside the topmost dialog or menu, as before); otherwise the same Escape hides it
   and closes the layer. The opener of an open layer shows no tooltip at all while that layer is open. The shared
   Escape order records each layer's opener (`opener()`), so copies of ds.js from 2.1.1 on see each other's.
+- **Dialogs and side sheets above the on-screen keyboard.** A phone's keyboard shortens only the visual viewport, and
+  a dialog was centred in the whole window, so with its field focused its buttons sat under the keys (a 801px window
+  with the keyboard from 461px: the buttons at 435-483px) and a tap meant for them reached the keyboard. With
+  `DS.dom.followViewport()` on the page every dialog now keeps clear of `--ds-keyboard-inset`: a centred box centres
+  in the window above the keyboard, a full-screen box (`--full`, and `--full-narrow` on phones) and a side sheet's
+  panel end at its top edge, the action sheet (`--bottom`) sits on it and a contained box sticks above it. The scrim
+  keeps covering the whole window; a box taller than the room scrolls its body. Without `followViewport()` (or with
+  the keyboard down, 0px) nothing moves.
 
 ## 2.1.0
 
