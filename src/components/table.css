@@ -134,7 +134,11 @@
  *                          rows out static (a row is then a stacking
  *                          context and the box of fixed descendants; not
  *                          while it holds a menu or combobox list that the
- *                          script places); the press is the cell layer at
+ *                          script places); WebKit makes the area as tall
+ *                          as the table below the row's top, the rows
+ *                          below, painted above it, keep their own
+ *                          clicks, and a focused row clips its ring to
+ *                          itself; the press is the cell layer at
  *                          --ds-state-pressed in --ds-dur-micro, or the
  *                          ripple (js/ripple.js, the row is a host); other
  *                          controls in the row stay above the link and
@@ -198,12 +202,6 @@
  *   reads the label once more.
  * - scrollbar-color and scrollbar-width (a thin scrollbar on the full-page
  *   table): without them the platform scrollbar shows.
- * - anchor positioning with anchor-scope (the row link's stretched area
- *   takes its height from the row's cells): without it the area is
- *   inset: 0 against the row, which WebKit before anchor-scope makes as
- *   tall as the table below the row's top (the rows below, painted above
- *   it, still take their own clicks; the focus ring and the last row's
- *   area reach the table's end).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -454,7 +452,7 @@
      URL of every row. An identity transform makes the row their containing
      block in every engine (it is also a stacking context, which the
      raised controls and the pinned cell stay inside). Every body row gets
-     it: without anchor-scope WebKit makes the area as tall as the table
+     it: WebKit makes the area as tall as the table
      below the row's top, and a later row, painted above, keeps its own
      clicks also when it has no row link (or is a detail row). */
   .ds-table--interactive tbody tr {
@@ -483,30 +481,6 @@
     transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
-  /* WebKit places a transformed row's absolute boxes at the row's top and
-     width but gives them the table's height: the stretched area (and its
-     focus ring) would reach down to the table's end, under the rows
-     below. Where anchor-scope exists the area takes its top and bottom
-     from the row's cells, which every engine sizes to the row; a link in
-     a pinned cell (its own box) finds no cell to anchor to and keeps
-     inset: 0. Internal names: never set them. */
-  @supports (anchor-scope: all) {
-    .ds-table--interactive tbody tr {
-      anchor-scope: --ds-table-row;
-    }
-
-    .ds-table--interactive tbody tr > :is(td, th) {
-      anchor-name: --ds-table-row;
-    }
-
-    .ds-table__row-link::after {
-      position-anchor: --ds-table-row;
-      position-visibility: always;
-      top: anchor(top, 0px);
-      bottom: anchor(bottom, 0px);
-    }
-  }
-
   .ds-table--interactive .ds-table__row-link:focus-visible {
     outline: none;
   }
@@ -517,10 +491,18 @@
     outline-offset: calc(-1 * var(--ds-focus-width));
   }
 
-  /* Keyboard focus: the focus layer on the cells, at once. */
+  /* Keyboard focus: the focus layer on the cells, at once. WebKit gives a
+     transformed row's absolute boxes the row's top and width but the
+     table's height, so the link's ring would run on down to the table's
+     end: the focused row clips what it holds to its own box (the inset
+     ring and the cells' content lie inside it in every engine). Anchor
+     positioning would size the area itself, but WebKit then restyles the
+     link from its initial values on every load, so its underline and
+     ring offset transition. */
   .ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within {
     --ds-table-row-layer: color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
     --ds-table-row-pace: 0s;
+    clip-path: inset(0);
   }
 
   /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it); not

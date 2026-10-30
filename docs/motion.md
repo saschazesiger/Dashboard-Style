@@ -844,8 +844,11 @@ pointer, Enter or Space on a focused host one from the centre. Hosts, skips, the
 [components.md](components.md#ripple). `RIPPLE_HOSTS` is the selector of the default hosts (1.1). The ripple's timing comes from the tokens (`--ds-dur-instant` minimum press,
 read through `motionDuration()`). `attach()` also adds a passive `touchstart` listener, which makes iOS Safari apply
 `:active`. It also installs the action guard, `DS.motion.guard()`, on the root's document or shadow root (2.0), so a
-busy, done or `aria-disabled` action is blocked for every input on any page that calls `attach()`. `destroy()` removes
-the listeners, the class and its hold on the guard (a guard that `busy()` installed stays); ripples already shown
+busy, done or `aria-disabled` action is blocked for every input on any page that calls `attach()`, and it starts
+remembering the document's last input (a press or a key, under `Symbol.for('ds.input')`, 2.1.1), which a focus that
+`DS.overlay` moves outside any input event follows (no keyboard ring after a tap). `destroy()` removes
+the listeners, the class and its hold on the guard (a guard that `busy()` installed stays; the shared input record
+stays too); ripples already shown
 finish (`detach()` is its **deprecated** alias, removed in 3.0 at the earliest).
 
 A press ends when another element takes the pointer (2.0): an ancestor that captures it (a chip row that drags to

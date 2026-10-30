@@ -6087,7 +6087,10 @@
      * attach() also installs DS.motion.guard() on the root's document or
      * shadow root: a busy or done .ds-btn and an aria-disabled action inside
      * .ds-theme get no click, middle click, Enter, Space, label click or form
-     * submission (data-ds-guard="off" opts a control out).
+     * submission (data-ds-guard="off" opts a control out). It also starts
+     * remembering the document's last input (a press or a key) for
+     * DS.overlay, whose focus moves outside any input event follow it; that
+     * record is shared and stays after destroy().
      *
      * Pinned columns (.ds-table--pin-first): the sticky first cell holds the
      * row link's stretched area and covers the row's ripple, so in an
@@ -6718,6 +6721,25 @@
       return false;
     }
 
+    /** Keys that alone never ask for the keyboard ring (js/overlay.js keeps the same list). */
+    const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'AltGraph', 'CapsLock']);
+
+    /**
+     * The last input of a document for js/overlay.js (a focus it moves outside
+     * any input event follows it): the record under Symbol.for('ds.input'),
+     * installed once by whichever of attach(), DS.overlay.open() and
+     * DS.overlay.tooltips() comes first, also across copies of ds.js.
+     */
+    function watchInput(doc) {
+      const key = Symbol.for('ds.input');
+      if (typeof doc?.addEventListener !== 'function' || doc[key]) return;
+      const record = (doc[key] = { last: '' });
+      for (const type of ['pointerdown', 'mousedown']) doc.addEventListener(type, () => { record.last = 'pointer'; }, { capture: true, passive: true });
+      doc.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
+        if (!MODIFIER_KEYS.has(event.key)) record.last = 'key';
+      }, true);
+    }
+
     /**
      * Adds the pointer ripple to every action inside `root` (delegated, so
      * actions rendered later have it too), and installs the action guard
@@ -6740,6 +6762,7 @@
       const element = /** @type {Element} */ (root.nodeType === 9 ? /** @type {Document} */ (root).documentElement : root);
       const marked = root.nodeType === 11 ? /** @type {ShadowRoot} */ (root).querySelector('.ds-theme') ?? /** @type {ShadowRoot} */ (root).host : element;
       const doc = element.ownerDocument;
+      watchInput(doc);
       /** The pending blur that ends a key press, per focused target. @type {WeakMap<Element, () => void>} */
       const blurs = new WeakMap();
 
@@ -7934,26 +7957,28 @@
     const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'AltGraph', 'CapsLock']);
 
     /**
-     * The last input of each document that watchModality() serves: 'pointer'
-     * (a press of a mouse, pen or finger) or 'key' (a key other than a
-     * modifier), '' before either.
-     * @type {WeakMap<Document, string>}
+     * The last input of a document, shared under a symbol of the global
+     * registry with js/ripple.js (attach() installs the same listeners) and
+     * every other copy of ds.js on the page: { last } is 'pointer' (a press of
+     * a mouse, pen or finger), 'key' (a key other than a modifier) or '' before
+     * either. Only known once something of DS listens: DS.ripple.attach(), the
+     * first open() or tooltips().
      */
-    const modalities = new WeakMap();
+    const INPUT = Symbol.for('ds.input');
 
     /**
      * Remembers the last input modality of `doc` (capture listeners, passive
      * for the pointer), for a focus that moves outside any input event: an
      * overlay opened once another one's exit settled, after a fetch or a
-     * timer. Installed by the first open() and by tooltips().
+     * timer. Once per document, whichever module or copy comes first.
      */
     function watchModality(doc) {
-      if (!doc || modalities.has(doc)) return;
-      modalities.set(doc, '');
+      if (typeof doc?.addEventListener !== 'function' || doc[INPUT]) return;
+      const record = (doc[INPUT] = { last: '' });
       // mousedown too: a tap that only WebKit's compatibility mouse events report (an automated tap on iOS).
-      for (const type of ['pointerdown', 'mousedown']) doc.addEventListener(type, () => modalities.set(doc, 'pointer'), { capture: true, passive: true });
+      for (const type of ['pointerdown', 'mousedown']) doc.addEventListener(type, () => { record.last = 'pointer'; }, { capture: true, passive: true });
       doc.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
-        if (!MODIFIER_KEYS.has(event.key)) modalities.set(doc, 'key');
+        if (!MODIFIER_KEYS.has(event.key)) record.last = 'key';
       }, true);
     }
 
@@ -7982,7 +8007,7 @@
       const type = event?.type ?? '';
       const key = /^key/.test(type) || (type === 'click' && event.detail === 0);
       const press = !key && /^(pointer|mouse|touch|click$)/.test(type);
-      const pointer = press || (!key && modalities.get(element.ownerDocument) === 'pointer');
+      const pointer = press || (!key && element.ownerDocument[INPUT]?.last === 'pointer');
       run();
       const now = activeIn(element);
       if (was || !pointer || !now || now === before || now === body || now.matches(TEXT_ENTRY) || !now.matches(':focus-visible')) return;
@@ -8495,9 +8520,6 @@
      */
     const anchorClaims = new WeakMap();
 
-    /** The anchor names ds.css gives elements itself (table.css: the cells of an interactive row). */
-    const INTERNAL_ANCHORS = new Set(['--ds-table-row']);
-
     /**
      * The anchor-name to point at `element`: one this module wrote (counted),
      * the page's own (never touched; `mine` false), or a new one written
@@ -8511,13 +8533,9 @@
         return { name: held.name, mine: true };
       }
       const css = view.getComputedStyle(element).getPropertyValue('anchor-name').trim();
-      const names = css && css !== 'none' ? css.split(',').map((part) => part.trim()) : [];
-      // The cells of an interactive table carry ds.css's own scoped name (the
-      // row link's height): not the page's, and kept beside the new one.
-      const pages = names.filter((part) => !INTERNAL_ANCHORS.has(part));
-      if (pages.length) return { name: pages[0], mine: false };
+      if (css && css !== 'none') return { name: css.split(',')[0].trim(), mine: false };
       const name = `--ds-anchor-${sharedOf(element.ownerDocument).seq += 1}`;
-      /** @type {HTMLElement} */ (element).style.setProperty('anchor-name', [name, ...names].join(', '));
+      /** @type {HTMLElement} */ (element).style.setProperty('anchor-name', name);
       own(element, 'props', 'anchor-name');
       anchorClaims.set(element, { name, count: 1 });
       return { name, mine: true };

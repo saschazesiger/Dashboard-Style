@@ -52,7 +52,10 @@
  * attach() also installs DS.motion.guard() on the root's document or
  * shadow root: a busy or done .ds-btn and an aria-disabled action inside
  * .ds-theme get no click, middle click, Enter, Space, label click or form
- * submission (data-ds-guard="off" opts a control out).
+ * submission (data-ds-guard="off" opts a control out). It also starts
+ * remembering the document's last input (a press or a key) for
+ * DS.overlay, whose focus moves outside any input event follow it; that
+ * record is shared and stays after destroy().
  *
  * Pinned columns (.ds-table--pin-first): the sticky first cell holds the
  * row link's stretched area and covers the row's ripple, so in an
@@ -683,6 +686,25 @@ function activates(target, key) {
   return false;
 }
 
+/** Keys that alone never ask for the keyboard ring (js/overlay.js keeps the same list). */
+const MODIFIER_KEYS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'AltGraph', 'CapsLock']);
+
+/**
+ * The last input of a document for js/overlay.js (a focus it moves outside
+ * any input event follows it): the record under Symbol.for('ds.input'),
+ * installed once by whichever of attach(), DS.overlay.open() and
+ * DS.overlay.tooltips() comes first, also across copies of ds.js.
+ */
+function watchInput(doc) {
+  const key = Symbol.for('ds.input');
+  if (typeof doc?.addEventListener !== 'function' || doc[key]) return;
+  const record = (doc[key] = { last: '' });
+  for (const type of ['pointerdown', 'mousedown']) doc.addEventListener(type, () => { record.last = 'pointer'; }, { capture: true, passive: true });
+  doc.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
+    if (!MODIFIER_KEYS.has(event.key)) record.last = 'key';
+  }, true);
+}
+
 /**
  * Adds the pointer ripple to every action inside `root` (delegated, so
  * actions rendered later have it too), and installs the action guard
@@ -705,6 +727,7 @@ export function attach(root = document) {
   const element = /** @type {Element} */ (root.nodeType === 9 ? /** @type {Document} */ (root).documentElement : root);
   const marked = root.nodeType === 11 ? /** @type {ShadowRoot} */ (root).querySelector('.ds-theme') ?? /** @type {ShadowRoot} */ (root).host : element;
   const doc = element.ownerDocument;
+  watchInput(doc);
   /** The pending blur that ends a key press, per focused target. @type {WeakMap<Element, () => void>} */
   const blurs = new WeakMap();
 

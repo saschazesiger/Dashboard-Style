@@ -1580,10 +1580,11 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   the last row took every click, the hover, the status bar URL and WebDriver's element clicks. A row is therefore a
   stacking context and the box of `position: fixed` descendants, except while it holds a `.ds-menu` or
   `.ds-combo__popup` that the script places (no popover or anchor positioning), which then stays fixed against the
-  viewport. WebKit gives the stretched area the table's height below the row's top; where `anchor-scope` exists
-  (Safari 26, Chromium) it takes its top and bottom from the row's cells (the internal anchor name `--ds-table-row`),
-  elsewhere the rows below, painted above it, still take their own clicks and only the focus ring and the last row's
-  area reach down to the table's end. `DS.ripple` sizes a row's ripple to the row itself.
+  viewport. WebKit gives the stretched area the table's height below the row's top: the rows below, painted above
+  it, still take their own clicks, the last row's area ends at the wrapper, and a focused row clips what it holds to
+  itself (`clip-path: inset(0)`), so in WebKit its ring shows on the top and the sides only. `DS.ripple` sizes a
+  row's ripple to the row itself. (Anchor positioning would size the area exactly, but WebKit then restyles the link
+  from its initial values on every load and its underline and ring offset transition.)
 - **Selected** (`.ds-table__row--selected`, or any row with a checked checkbox directly in a cell): the row takes
   `--ds-table-row-selected` (default `--ds-accent`) over `--ds-dur-fast`; select all changes every row in the same
   frame, with no stagger. The checkbox is the cue that does not rely on colour, in every row and in the header cell

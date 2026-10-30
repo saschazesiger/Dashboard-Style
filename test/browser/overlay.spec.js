@@ -1015,7 +1015,10 @@ test.describe('focus and pointer during the close', () => {
     // 2.1.1: a dialog opened once an action sheet's exit settled showed the keyboard ring on its first button after
     // taps on an iPhone (WebKit marks a script's focus() as :focus-visible); the document's last input decides now.
     await load(page);
+    // DS knows the last input once something of it listens: a page calls DS.ripple.attach() at start-up (the
+    // first open() and tooltips() start listening too; here the first open comes after the press).
     await page.evaluate(() => {
+      window.fxRipples = DS.ripple.attach(document);
       document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="x-later">Later</button>');
       const later = document.getElementById('x-later');
       later.addEventListener('click', () => setTimeout(() => DS.overlay.open(document.getElementById(window.fxLater), { opener: later }), 50));

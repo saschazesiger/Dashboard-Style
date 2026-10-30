@@ -23,10 +23,9 @@ itself can go.
   is therefore a stacking context and the box of `position: fixed` descendants; while it holds a `.ds-menu` or
   `.ds-combo__popup` that the script places (no popover or anchor positioning) the transform is dropped, so that
   popup stays unclipped and above the rows below. WebKit gives such a box the table's height below the row's top:
-  where `anchor-scope` exists (Safari 26, Chromium) the stretched area takes its top and bottom from the row's cells
-  (the internal anchor name `--ds-table-row`; `DS.overlay` adds its own name beside it when a cell is a tooltip or
-  popup anchor); in older WebKit the rows below, painted above it, still take their own clicks (also a row without a
-  link) and only the focus ring and the last row's area reach the table's end. `DS.ripple.attach()` now ripples
+  the rows below, painted above it, still take their own clicks (also a row without a link), the last row's area
+  ends at the wrapper, and a focused row clips what it holds to itself (`clip-path: inset(0)`), so there its ring
+  shows on the top and the sides only. `DS.ripple.attach()` now ripples
   such rows in Safari (it skipped a row that computes `static`; a transformed host counts as positioned) and gives
   a row's ripple box the row's height. A project that worked around the stale hit area (rerouting a row click by
   its coordinates) can drop that.
@@ -49,7 +48,8 @@ itself can go.
   own event: a dialog opened once an action sheet's exit settled (a delete confirmation from one of its items), after
   a fetch or a timer showed the ring on its first button after real taps on an iPhone. `DS.overlay` now remembers
   each document's last input (a `pointerdown` or `mousedown`, or a key other than a modifier; capture listeners
-  installed by the first `open()` and by `tooltips()`) and, outside any input event, a press decides as one inside
+  installed by `DS.ripple.attach()`, the first `open()` or `tooltips()`, shared by every copy of ds.js under
+  `Symbol.for('ds.input')`) and, outside any input event, a press decides as one inside
   it would. Focusing into a layer and giving focus back on close follow the same rule, for div overlays and menus
   too. A key press still keeps the engine's ring.
 

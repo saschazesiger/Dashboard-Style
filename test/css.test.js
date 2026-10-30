@@ -2607,7 +2607,7 @@ describe('tables and scrollers (2.0)', () => {
     assert.deepEqual(offenders, []);
   });
 
-  it('makes an interactive row the box of its link in WebKit: an identity transform on every body row, none while it holds a script-placed popup, the height from the cells behind anchor-scope', () => {
+  it('makes an interactive row the box of its link in WebKit: an identity transform on every body row, none while it holds a script-placed popup, a focused row clipping its ring', () => {
     // WebKit computes a <tr> static whatever its position: the transform is what makes the row the
     // containing block of .ds-table__row-link::after (and of the ripple box) there.
     const ROW = '.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link)';
@@ -2618,15 +2618,14 @@ describe('tables and scrollers (2.0)', () => {
     // A menu or combobox list placed by the script (not in the top layer) stays fixed against the viewport.
     const popup = Object.fromEntries(declarationsAt(base, '.ds-table--interactive tbody tr:has(:is(.ds-menu, .ds-combo__popup):not([hidden], [data-anchored]))').map((entry) => [entry.property, entry.value]));
     assert.equal(popup.transform, 'none');
-    // Without anchor-scope the stretched area is inset: 0 against the row.
+    // The stretched area is inset: 0 against the row, and no anchor positioning: WebKit restyles an
+    // anchor-positioned pseudo-element's host from its initial values on load, so the link's underline and ring
+    // offset would transition. WebKit gives the area the table's height below the row's top; a focused row
+    // clips its ring to itself.
     assert.equal(declarationsAt(base, '.ds-table__row-link::after').find((entry) => entry.property === 'inset')?.value, '0');
-    // WebKit gives the row's absolute boxes the table's height: behind anchor-scope the area's top and bottom come
-    // from the row's cells (scoped to the row), falling back to the row's edges when no cell can anchor it.
-    const anchored = atRuleBlocks(table, /@supports \(anchor-scope: all\)/).join('\n');
-    const at = (selector) => Object.fromEntries(declarationsAt(anchored, selector).map((entry) => [entry.property, entry.value]));
-    assert.equal(at('.ds-table--interactive tbody tr')['anchor-scope'], '--ds-table-row');
-    assert.equal(at('.ds-table--interactive tbody tr > :is(td, th)')['anchor-name'], '--ds-table-row');
-    assert.deepEqual(at('.ds-table__row-link::after'), { 'position-anchor': '--ds-table-row', 'position-visibility': 'always', top: 'anchor(top, 0px)', bottom: 'anchor(bottom, 0px)' });
+    assert.ok(!/anchor-scope|position-anchor|anchor\(/.test(stripComments(table)), 'no anchor positioning in table.css');
+    const focus = declarationsAt(base, '.ds-table--interactive tbody tr:not(.ds-table__detail):where(:has(.ds-table__row-link:focus-visible)):focus-within');
+    assert.equal(focus.find((entry) => entry.property === 'clip-path')?.value, 'inset(0)');
   });
 
   it('reads the density hooks for every cell height, and the cell padding from them', () => {
