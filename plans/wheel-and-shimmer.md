@@ -44,12 +44,16 @@ DS.motion.wheel(slot, 'Running npm test');                           // without 
 |---|---|---|
 | Glide | `translateY(0)` to `translateY(calc(-1 * var(--ds-wheel-travel)))` | `translateY(var(--ds-wheel-travel))` to `translateY(0)` |
 | Curve | `--ds-dur-slow`, `--ds-ease-in-out`, the same for both lines and starting together: one strip | |
-| Fade | to 0 on `--ds-ease-in` (it holds until it is at the edge) | from 0 on `--ds-ease-out` |
+| Fade | to 0 on the slide's curve, `--ds-ease-in-out` | from 0 on the slide's curve, `--ds-ease-in-out` |
 
 - **The new line pushes the old one out.** `--ds-wheel-travel` is 100%, a line's own height: the two lines stand one
   line apart and move as one strip, like the drum of a counter. The old line leaves through the slot's soft top
   edge, the new one comes up through the soft bottom edge; they never lie on each other. A version that faded the
   old line in place first and brought the new one after it read as "gone, then something else", not as "replaced".
+- **Each fade runs on its line's slide.** A line is only as visible as it is inside the slot: its opacity follows how
+  far it has come in or gone out, so the fade and the glide share the curve and the timing. A first version faded
+  the new line in on `--ds-ease-out` while it slid on `--ds-ease-in-out`: the fade ran ahead of the slide, and a line
+  that was still half below the slot's edge already showed nearly opaque, cut in two by the edge.
 - **Only translate and opacity.** A first version turned the lines round a drum (`rotateX` with a perspective) and
   blurred them as they turned away. In Chromium the text of a 3D-transformed or filtered layer is drawn soft while
   it moves and turns sharp only once it rests, and the filter repaints every frame: the new line came in blurry,
@@ -124,14 +128,15 @@ function wheelDelay(slot) {
 
 const travelOf = (slot) => getComputedStyle(slot).getPropertyValue('--ds-wheel-travel').trim() || '100%';
 
-// One line's part of the turn: the same glide for both lines (one strip), the opacity along with it.
+// One line's part of the turn: the same glide for both lines (one strip), the opacity on the glide's own
+// curve, so a line is only as visible as it is inside the slot.
 function wheelGlide(line, slot, from, to, opacity, delay, fill) {
   const duration = motionDuration(slot, '--ds-dur-slow');
   const glide = line.animate([{ transform: from }, { transform: to }], {
     duration, delay, easing: motionEasing(slot, '--ds-ease-in-out'), fill,
   });
   const fade = line.animate([{ opacity: opacity[0] }, { opacity: opacity[1] }], {
-    duration, delay, easing: motionEasing(slot, opacity[1] ? '--ds-ease-out' : '--ds-ease-in'), fill,
+    duration, delay, easing: motionEasing(slot, '--ds-ease-in-out'), fill,
   });
   return Promise.all([glide.finished, fade.finished]).then(() => {}, () => {});
 }
@@ -267,4 +272,4 @@ progress bar go away.
 - Tests: the hold (a change 200ms after a roll waits `--ds-hold-status` minus 200ms), the never-shown line (two
   changes in one task leave one leaving line, not two), a line replaced while it waited out a hold (the next one takes
   its time, no second hold), an interrupted entrance (the exit starts at the computed offset), one strip (both
-  lines start together on the same curve, one line apart), the accessible name without the copy, forced colours.
+  lines start together on the same curve, one line apart, and each fade runs on that curve), the accessible name without the copy, forced colours.
