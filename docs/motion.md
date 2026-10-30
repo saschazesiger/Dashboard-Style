@@ -1048,7 +1048,9 @@ first; disabled items close nothing). The `.ds-menu__item` rows of a dialog's `.
 take the same arrow keys (2.0). On close the popup leaves the top layer once its fade ended.
 
 Escape stack: one `keydown` listener on the document in the bubble phase (installed by the first `open()`) closes
-only the topmost overlay that is not already closing, and only when no tooltip took the key. A filled
+only the topmost overlay that is not already closing, and only when no tooltip took the key. A tooltip takes it
+only when no open layer lies over its trigger: a tip whose trigger is outside the topmost layer (a contained dialog
+counts only over its container) hides and leaves the same Escape to that layer (2.1.1). A filled
 `input[type="search"]` inside that overlay takes the key first (2.0): its value goes, an `input` event tells the
 page's filter, and the layer stays; the next Escape (an empty search) closes it. So the order is: tooltip, filled
 search, top layer. A widget inside the
@@ -1177,8 +1179,9 @@ icon changes nothing) and at once on `focusin` with `:focus-visible`. On touch (
 `--ds-delay-tooltip-skip` of the last hide, the next trigger shows at once: a visible tooltip swaps text and place
 in place (a fade under way turns back from its current opacity), a hidden one opens with `data-warm` and only fades
 in. It hides after `--ds-delay-tooltip-hide`, unless the pointer crossed onto it or the trigger keeps keyboard
-focus; Escape hides it (with `preventDefault()` and `stopPropagation()`, only when one was visible), as do any
-`pointerdown`, `open()` and a trigger that scrolls out of view; a trigger removed from the document hides it at once, without the fade (a `MutationObserver` on the root, connected only while a tooltip shows; 2.0). Timing reads the tokens through `motionDuration()`,
+focus; Escape hides it (with `preventDefault()` and `stopPropagation()`, only when one was visible and no open
+layer lies over its trigger; under such a layer it hides and the key goes on to close the layer, 2.1.1), as do any
+`pointerdown`, `open()` and a trigger that scrolls out of view; a trigger removed from the document hides it at once, without the fade (a `MutationObserver` on the root, connected only while a tooltip shows; 2.0). The opener of an open layer shows no tip (the shared Escape order records each layer's opener; 2.1.1). Timing reads the tokens through `motionDuration()`,
 so `--ds-time-scale` stretches the delays too. Motion runs on the `data-state` transitions of tooltip.css; the origin
 comes from `originFrom(trigger, tip)`. Placement: with `showPopover` and CSS anchor positioning the tooltip is a
 `popover="manual"` with `data-anchored`, the trigger gets an inline `anchor-name` (`--ds-anchor-<n>`, shared with a

@@ -711,6 +711,41 @@ test.describe('tooltips', () => {
     expect(await focused(page)).toBe('open-native');
   });
 
+  test('the opener of an open menu shows no tip; one Escape closes the menu, also with another trigger\'s tip beside it', async ({ page }) => {
+    await load(page);
+    const center = async (selector) => {
+      const box = await page.locator(selector).boundingBox();
+      return [box.x + box.width / 2, box.y + box.height / 2];
+    };
+    const menuState = () => page.evaluate(() => { const menu = document.getElementById('sort-menu'); return menu.hidden ? 'hidden' : menu.dataset.state; });
+    const trigger = await center('#tip-menu');
+    await page.mouse.move(...trigger);
+    await page.waitForFunction(() => document.querySelector('.ds-tooltip').dataset.state === 'open');
+    expect((await tipState(page)).text).toBe('Sort by');
+    await page.mouse.click(...trigger);
+    await settle(page);
+    expect(await menuState()).toBe('open');
+    expect((await tipState(page)).state).toBe('closed');
+    // The pointer goes onto the menu and back onto its opener: no tip over the open menu (it would take
+    // the Escape that closes the menu).
+    await page.mouse.move(...(await center('#sort-name')));
+    await page.mouse.move(...trigger);
+    await page.waitForTimeout(1200);
+    expect((await tipState(page)).hidden, 'no tip for the opener of an open menu').toBe(true);
+    // Another trigger beside the open menu shows its tip; the menu lies over it, so one Escape hides
+    // the tip and closes the menu, and focus goes back to the opener.
+    await page.mouse.move(...(await center('#after')));
+    await page.mouse.move(...(await center('#tip-copy')));
+    await page.waitForFunction(() => document.querySelector('.ds-tooltip').dataset.state === 'open');
+    expect((await tipState(page)).text).toBe('Copy link');
+    await page.keyboard.press('Escape');
+    await expect.poll(menuState).toBe('hidden');
+    expect(await page.evaluate(() => document.getElementById('tip-menu').getAttribute('aria-expanded'))).toBe('false');
+    expect(await focused(page)).toBe('tip-menu');
+    // Closed, the opener has its tip again (keyboard focus came back to it).
+    await expect.poll(async () => (await tipState(page)).text).toBe('Sort by');
+  });
+
   test('Tab from one trigger to the next keeps it shown and swaps in place without a new entrance', async ({ page }) => {
     await load(page);
     await focusByKeyboard(page, page.locator('#tip-archive'));

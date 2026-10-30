@@ -4,6 +4,38 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 2.1.1
+
+Two fixes found on real devices. No class, token, hook or export changed; no migration is required. Interactive
+table rows are now stacking contexts (see the first entry): check a page that places its own `position: fixed`
+element inside such a row.
+
+### Fixed
+
+- **An interactive table row is its link's box in WebKit too.** macOS Safari (26) computes a `<tr>` as
+  `position: static` whatever the stylesheet says, so every row's `.ds-table__row-link::after` stretched over the
+  nearest positioned box around the table (the `.ds-table-wrap`): the last row's link lay over every row and took
+  each click, the hover, the status bar URL, a middle or ⌘-click and WebDriver's element clicks ("click
+  intercepted"); a focused link's ring went round the whole table. Every body row of an interactive table now gets an
+  identity transform (`transform: translateX(0)`), which WebKit honours as the containing block, so each link covers
+  exactly its row in every engine, the row's other controls stay above it and a pinned cell still confines it. A row
+  is therefore a stacking context and the box of `position: fixed` descendants; while it holds a `.ds-menu` or
+  `.ds-combo__popup` that the script places (no popover or anchor positioning) the transform is dropped, so that
+  popup stays unclipped and above the rows below. WebKit gives such a box the table's height below the row's top:
+  where `anchor-scope` exists (Safari 26, Chromium) the stretched area takes its top and bottom from the row's cells
+  (the internal anchor name `--ds-table-row`; `DS.overlay` adds its own name beside it when a cell is a tooltip or
+  popup anchor); in older WebKit the rows below, painted above it, still take their own clicks (also a row without a
+  link) and only the focus ring and the last row's area reach the table's end. `DS.ripple.attach()` now ripples
+  such rows in Safari (it skipped a row that computes `static`; a transformed host counts as positioned) and gives
+  a row's ripple box the row's height. A project that worked around the stale hit area (rerouting a row click by
+  its coordinates) can drop that.
+- **Escape closes a menu even while a tooltip shows under it.** A tooltip took the first Escape whenever it was
+  visible, so with a menu open from a toolbar the tip of its opener (the pointer back on the button) or of a
+  neighbouring button needed one Escape and the menu a second. A tooltip now keeps the key only when no open layer
+  lies over its trigger (a trigger inside the topmost dialog or menu, as before); otherwise the same Escape hides it
+  and closes the layer. The opener of an open layer shows no tooltip at all while that layer is open. The shared
+  Escape order records each layer's opener (`opener()`), so copies of ds.js from 2.1.1 on see each other's.
+
 ## 2.1.0
 
 Fixes and small additions from the first projects on 2.0. Additive: no class, token, hook or export was removed or

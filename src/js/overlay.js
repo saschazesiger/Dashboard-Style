@@ -198,7 +198,9 @@
  * (warm-up; a visible one swaps text and place in place; anchored, its
  * data-placement is read again two frames later), hoverable during
  * the --ds-delay-tooltip-hide grace, hidden by Escape (only then is the key
- * the tooltip's), by any pointerdown and by open(). A tip that repeats the
+ * the tooltip's, unless an open layer lies over its trigger: then the same
+ * Escape also closes that layer), by any pointerdown and by open(); the
+ * opener of an open layer shows no tip. A tip that repeats the
  * trigger's visible text shows only while that text is cut off. On touch a
  * tap shows the tip of an image or a blocked control, a long press the
  * others. A trigger that leaves the document takes its tooltip with it.
@@ -314,13 +316,14 @@ const stack = /** @type {Element[]} */ ([]);
  * a symbol of the global registry like the owned record:
  * - `order`: the open overlays of every copy, the topmost last, each with
  *   its copy's `open()` and `escape(event)`, so Escape closes the topmost
- *   layer whichever copy opened it;
+ *   layer whichever copy opened it, and (2.1.1) `opener()`, so no copy
+ *   shows a tooltip for the opener of an open layer;
  * - `lock`: the scroll lock's count and the inline styles it replaced;
  * - `seq`: the counter of anchor names and tooltip ids, so two copies
  *   never write the same one;
  * - `tipRoots`: the roots tooltips() serves, root element to handle.
  * Copies before 1.6.1 keep their own.
- * @returns {{ order: Array<{ element: Element, open: () => boolean, escape: (event: Event) => void }>, lock: { count: number, saved: { gutter: string, padding: string } | null }, seq: number, tipRoots: WeakMap<Element, { destroy: () => void }> }}
+ * @returns {{ order: Array<{ element: Element, open: () => boolean, opener?: () => Element|null, escape: (event: Event) => void }>, lock: { count: number, saved: { gutter: string, padding: string } | null }, seq: number, tipRoots: WeakMap<Element, { destroy: () => void }> }}
  */
 /**
  * The focused element as seen from `node`'s tree: inside a shadow root its
@@ -373,6 +376,7 @@ function enterOrder(element) {
   order.push({
     element,
     open: () => element.isConnected && overlays.get(element)?.phase === 'open',
+    opener: () => overlays.get(element)?.opener ?? null,
     escape(event) {
       // A contained dialog owns Escape only inside its container: the host
       // page around an embedded widget keeps the key (its own dialogs, its
@@ -1129,6 +1133,9 @@ function typeAhead(items, current, typed) {
  */
 const anchorClaims = new WeakMap();
 
+/** The anchor names ds.css gives elements itself (table.css: the cells of an interactive row). */
+const INTERNAL_ANCHORS = new Set(['--ds-table-row']);
+
 /**
  * The anchor-name to point at `element`: one this module wrote (counted),
  * the page's own (never touched; `mine` false), or a new one written
@@ -1142,9 +1149,13 @@ function claimAnchor(element, view) {
     return { name: held.name, mine: true };
   }
   const css = view.getComputedStyle(element).getPropertyValue('anchor-name').trim();
-  if (css && css !== 'none') return { name: css.split(',')[0].trim(), mine: false };
+  const names = css && css !== 'none' ? css.split(',').map((part) => part.trim()) : [];
+  // The cells of an interactive table carry ds.css's own scoped name (the
+  // row link's height): not the page's, and kept beside the new one.
+  const pages = names.filter((part) => !INTERNAL_ANCHORS.has(part));
+  if (pages.length) return { name: pages[0], mine: false };
   const name = `--ds-anchor-${sharedOf(element.ownerDocument).seq += 1}`;
-  /** @type {HTMLElement} */ (element).style.setProperty('anchor-name', name);
+  /** @type {HTMLElement} */ (element).style.setProperty('anchor-name', [name, ...names].join(', '));
   own(element, 'props', 'anchor-name');
   anchorClaims.set(element, { name, count: 1 });
   return { name, mine: true };
@@ -1966,6 +1977,35 @@ export function topmost(doc = globalThis.document) {
   const order = doc[SHARED]?.order ?? [];
   for (let i = order.length - 1; i >= 0; i -= 1) if (order[i].open()) return order[i].element;
   return null;
+}
+
+/**
+ * The open layer over `node`: the topmost open overlay of its page when
+ * `node` lies outside it (a menu over the button that opened it), else
+ * null. A contained dialog lies only over its container. A tooltip whose
+ * trigger is under such a layer leaves Escape to the layer.
+ * @param {Element} node
+ * @returns {Element|null}
+ */
+function layerOver(node) {
+  const top = topmost(node.ownerDocument);
+  if (!top || composedContains(top, node)) return null;
+  if (containedDialog(top) && !composedContains(containerOf(top), node)) return null;
+  return top;
+}
+
+/**
+ * Whether `node` opened a layer that is open now (a menu button while its
+ * menu shows), in any copy of ds.js that records openers (2.1.1 and
+ * later): its tooltip would sit over or beside that layer and take its
+ * Escape, so it does not show.
+ * @param {Element} node
+ * @returns {boolean}
+ */
+function opensOpenLayer(node) {
+  pruneDetached();
+  const order = node.ownerDocument?.[SHARED]?.order ?? [];
+  return order.some((entry) => entry.open() && entry.opener?.() === node);
 }
 
 /* ── Promise dialogs ────────────────────────────────── */
@@ -3733,7 +3773,9 @@ export function tooltips(root = globalThis.document) {
   function show(next, touch = false) {
     cancelTimers();
     const text = next.getAttribute('data-tip') ?? '';
-    const why = next.isConnected ? tipWanted(next) : null;
+    // The opener of an open menu (or dialog) shows no tip: it would cover
+    // the layer or take the Escape that closes it.
+    const why = next.isConnected && !opensOpenLayer(next) ? tipWanted(next) : null;
     if (!text.trim() || !why) return;
     touchShown = touch;
     if (watcher && !watching) {
@@ -4020,13 +4062,18 @@ export function tooltips(root = globalThis.document) {
     if (!frame) update();
   }
 
-  /** Escape: hides a visible tooltip and reports that the key was its. */
+  /**
+   * Escape: hides a visible tooltip and reports whether the key was its.
+   * It is not when an open layer lies over the trigger (a menu over its
+   * opener's tip): the tooltip hides and the same Escape closes the layer.
+   */
   function escape() {
     if (phase !== 'open') return false;
+    const under = Boolean(trigger?.isConnected && layerOver(trigger));
     hovering = false;
     focusing = false;
     hide();
-    return true;
+    return !under;
   }
 
   const controller = {

@@ -17,8 +17,9 @@
      (announcers), one with the markup removed in 2.0 (role="status": toast()
      takes it off and adds the announcers), a toolbar of five
      tooltip icon buttons, a trigger whose tip equals its name, a trigger at
-     the bottom edge (the tooltip flips above), a native dialog with a
-     trigger, and a div side sheet that the region follows. -->
+     the bottom edge (the tooltip flips above), a menu button with a tip,
+     a native dialog with a trigger, and a div side sheet that the region
+     follows. -->
 <div class="ds-theme fx-root" id="theme">
   <main id="page" tabindex="-1">
     <p class="fx-row">
@@ -33,7 +34,12 @@
       <button class="ds-btn" type="button" id="open-native">Open dialog</button>
       <button class="ds-btn" type="button" id="open-sheet">Details</button>
     </p>
-    <p><button class="ds-btn" type="button" id="after">After the toolbar</button></p>
+    <p><button class="ds-btn" type="button" id="after">After the toolbar</button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Sort by" data-tip="Sort by" id="tip-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="sort-menu"><span data-icon="sort" data-size="20"></span></button></p>
+    <div class="ds-menu" role="menu" id="sort-menu" aria-label="Sort by" hidden>
+      <button class="ds-menu__item" role="menuitem" type="button" id="sort-name"><span class="ds-menu__label">Name</span></button>
+      <button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__label">Last seen</span></button>
+    </div>
     <div class="fx-tall"></div>
     <button class="ds-btn ds-btn--quiet ds-btn--icon fx-bottom" type="button" aria-label="Help" data-tip="Help for this page" id="tip-bottom"><span data-icon="info" data-size="20"></span></button>
   </main>
@@ -71,6 +77,11 @@
     var $ = function (id) { return document.getElementById(id); };
     $('open-native').addEventListener('click', function () { DS.overlay.open($('native'), { opener: this }); });
     $('open-sheet').addEventListener('click', function () { DS.overlay.open($('sheet'), { opener: this }); });
+    $('tip-menu').addEventListener('click', function (event) {
+      if (event.detail > 1) return;
+      if (this.getAttribute('aria-expanded') === 'true') DS.overlay.close($('sort-menu'));
+      else DS.overlay.open($('sort-menu'), { opener: this });
+    });
     window.tips = DS.overlay.tooltips(document);
   }());
 </script>

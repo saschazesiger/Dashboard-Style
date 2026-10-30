@@ -336,6 +336,73 @@ test('pinned rows ripple in two parts from one centre; a row without a row link 
   }
 });
 
+test('each row link stretches over its own row only: hit tests, clicks, hover, the ripple box; a row keeps a menu placed inside it unclipped', async ({ page }) => {
+  await open(page, { attach: true });
+  await show(page, '#rows-card');
+  // WebKit lays table rows out static whatever their position: without the row's transform every
+  // row's stretched link covered the whole wrapper, the last row's on top.
+  const hits = await page.evaluate(() => [...document.querySelectorAll('#rows tbody tr')].map((row) => [...row.cells].slice(0, 3).map((cell) => {
+    const box = cell.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.right - 4, box.top + box.height / 2);
+    return hit?.closest('a')?.getAttribute('href') ?? hit?.tagName;
+  })));
+  expect(hits).toEqual([1, 2, 3].map((n) => Array(3).fill(`#run-${n}`)));
+  // A row without a row link below a linked one keeps its own cells.
+  expect(await page.evaluate(() => {
+    const box = document.querySelector('#row-plain > :nth-child(2)').getBoundingClientRect();
+    return document.elementFromPoint(box.left + 8, box.top + box.height / 2)?.closest('tr, a')?.id;
+  })).toBe('row-plain');
+  // The row actions stay above the stretched link.
+  expect(await page.evaluate(() => {
+    const box = document.getElementById('rows-1-more').getBoundingClientRect();
+    return document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)?.closest('button')?.id;
+  })).toBe('rows-1-more');
+  // A real click on another cell opens that row, and the hover layer is that row's.
+  const hash = () => page.evaluate(() => location.hash);
+  for (const n of [1, 3]) {
+    const box = await page.locator(`#rows-${n} > :nth-child(3)`).boundingBox();
+    await page.mouse.move(box.x + 8, box.y + box.height / 2);
+    await settle(page);
+    const layers = await page.evaluate(() => [...document.querySelectorAll('#rows tbody tr')].map((row) => getComputedStyle(row.cells[1]).backgroundColor));
+    expect(layers.map((layer) => !/^(transparent|rgba\(0, 0, 0, 0\))$/.test(layer)), `hover on row ${n}`).toEqual([1, 2, 3].map((m) => m === n));
+    await page.mouse.click(box.x + 8, box.y + box.height / 2);
+    await expect.poll(hash).toBe(`#run-${n}`);
+  }
+  // The ripple box is the row's, not the table's.
+  const box = await page.locator('#rows-2 > :nth-child(3)').boundingBox();
+  await page.mouse.move(box.x + 8, box.y + box.height / 2);
+  await page.mouse.down();
+  const ripple = await page.evaluate(() => {
+    const [span, row] = [document.querySelector('#rows-2 .ds-press-ripple'), document.getElementById('rows-2')];
+    const [a, b] = [span.getBoundingClientRect(), row.getBoundingClientRect()];
+    return [a.left - b.left, a.top - b.top, a.width - b.width, a.height - b.height].map((value) => Math.round(value));
+  });
+  expect(ripple).toEqual([0, 0, 0, 0]);
+  await page.mouse.up();
+  await page.evaluate(() => history.replaceState(null, '', location.pathname));
+  // A menu inside a row: in the top layer (popover and anchor positioning) the row keeps its transform;
+  // placed by the script it is fixed against the viewport, so the row drops its transform while it shows
+  // (it would be the menu's box, clipped by the wrapper and painted under the rows below).
+  const transformOf = () => page.evaluate(() => getComputedStyle(document.getElementById('rows-2')).transform);
+  expect(await transformOf()).not.toBe('none');
+  await page.evaluate(() => DS.overlay.open(document.getElementById('rows-menu'), { opener: document.getElementById('rows-2-more') }));
+  await settle(page);
+  const placed = await page.evaluate(() => {
+    const menu = document.getElementById('rows-menu');
+    const [m, t, w] = [menu.getBoundingClientRect(), document.getElementById('rows-2-more').getBoundingClientRect(), document.getElementById('rows-wrap').getBoundingClientRect()];
+    const x = m.left + m.width / 2;
+    const y = Math.min(m.bottom - 4, Math.max(w.bottom + 4, m.top + 4));
+    return { anchored: menu.hasAttribute('data-anchored'), below: m.top >= t.bottom - 1, out: m.bottom > w.bottom, hit: Boolean(document.elementFromPoint(x, y)?.closest('#rows-menu')) };
+  });
+  if (placed.anchored) expect(await transformOf()).not.toBe('none');
+  else expect(await transformOf()).toBe('none');
+  // Below its trigger, reaching past the wrapper, and on top there.
+  expect(placed).toMatchObject({ below: true, out: true, hit: true });
+  await page.keyboard.press('Escape');
+  await settle(page);
+  expect(await transformOf()).not.toBe('none');
+});
+
 test('row actions keep the row height and end at the column edge; the summary row has a hairline above', async ({ page }) => {
   await open(page);
   const rows = await page.evaluate(() => {

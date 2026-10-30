@@ -1572,6 +1572,16 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   (Enter on the row link ripples from the centre). A row's first cell may be a `<th scope="row">` row header: it
   takes the row's layers and holds the ripple like a `<td>`. A row without a `.ds-table__row-link` stays plain (2.0):
   no pointer, no press layer, no ripple, since it opens nothing.
+- **The row is the link's box** (2.1.1): such a row is positioned, and every body row of an interactive table has
+  an identity transform (`transform: translateX(0)`), because WebKit (macOS Safari 26, iOS before 27) lays a table
+  row out static whatever its `position`; without the transform every row's link stretched over the whole table and
+  the last row took every click, the hover, the status bar URL and WebDriver's element clicks. A row is therefore a
+  stacking context and the box of `position: fixed` descendants, except while it holds a `.ds-menu` or
+  `.ds-combo__popup` that the script places (no popover or anchor positioning), which then stays fixed against the
+  viewport. WebKit gives the stretched area the table's height below the row's top; where `anchor-scope` exists
+  (Safari 26, Chromium) it takes its top and bottom from the row's cells (the internal anchor name `--ds-table-row`),
+  elsewhere the rows below, painted above it, still take their own clicks and only the focus ring and the last row's
+  area reach down to the table's end. `DS.ripple` sizes a row's ripple to the row itself.
 - **Selected** (`.ds-table__row--selected`, or any row with a checked checkbox directly in a cell): the row takes
   `--ds-table-row-selected` (default `--ds-accent`) over `--ds-dur-fast`; select all changes every row in the same
   frame, with no stagger. The checkbox is the cue that does not rely on colour, in every row and in the header cell
@@ -2995,9 +3005,11 @@ handle; a trigger inside nested roots (a host page's `document` and a widget's r
 - **Hoverable and persistent** (WCAG 1.4.13). It hides `--ds-delay-tooltip-hide` (100ms) after the pointer or focus
   left the trigger; the pointer may cross onto the tooltip meanwhile, and it stays while the pointer is on it or the
   trigger keeps keyboard focus.
-- **Dismissable.** Escape hides it, and only then is the key the tooltip's (an open dialog under it stays open). Any
-  pointerdown, `DS.overlay.open()` and a trigger scrolled out of view hide it too; a trigger that leaves the document
-  (a re-render, a closed message) takes its tooltip with it at once.
+- **Dismissable.** Escape hides it, and only then is the key the tooltip's (an open dialog under it stays open),
+  unless an open layer lies over its trigger (a menu over the toolbar whose button shows a tip): then the same Escape
+  hides the tip and closes that layer (2.1.1). Any pointerdown, `DS.overlay.open()` and a trigger scrolled out of view
+  hide it too; a trigger that leaves the document (a re-render, a closed message) takes its tooltip with it at once.
+  The opener of an open layer (a menu button while its menu shows) shows no tip at all (2.1.1).
 - **Description.** While it shows, the trigger gets `aria-describedby` pointing at it, unless the trigger's accessible
   name already says the same (an icon button whose `aria-label` equals the tip is not described twice).
 - **Placement.** Below the trigger and centred on it, above it when there is no room, 8px from the viewport edges.

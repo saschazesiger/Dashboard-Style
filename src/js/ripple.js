@@ -339,7 +339,11 @@ function start(host, x, y) {
   if (!surface) return null;
   const view = surface.ownerDocument?.defaultView;
   // The defensive guard: a ripple outside a positioned host would escape it.
-  if (view?.getComputedStyle(surface).position === 'static') return null;
+  // A transform makes the box too: WebKit computes a table row static
+  // whatever its position, and an interactive row's identity transform
+  // (table.css) is what holds its ripple there.
+  const style = view?.getComputedStyle(surface);
+  if (style?.position === 'static' && style.transform === 'none') return null;
   // One growing ripple per host: a new press fades the one still held.
   const previous = presses.get(host);
   if (previous && !previous.released) {
@@ -369,6 +373,9 @@ function start(host, x, y) {
   span.style.setProperty('--ds-ripple-x', `${Math.round(left * 100) / 100}px`);
   span.style.setProperty('--ds-ripple-y', `${Math.round(top * 100) / 100}px`);
   span.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
+  // WebKit gives a transformed row's absolute boxes the table's height:
+  // the row's own height keeps the circle inside the row.
+  if (row) span.style.height = `${Math.round(height * 100) / 100}px`;
   holder.append(span);
   const twin = row ? pinnedTwin(surface, rect, left, top, radius) : null;
   host.classList.add('ds-pressed');

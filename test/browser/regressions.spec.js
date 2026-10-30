@@ -741,7 +741,7 @@ test.describe('fixed in 1.6.1', () => {
     expect(await page.evaluate(() => [document.activeElement.id, document.getElementById('w-text').inert])).toEqual(['w-open', false]);
   });
 
-  test('a menu opened from a trigger with a tooltip stays anchored once the tooltip has gone, and the other way round', async ({ page }) => {
+  test('a menu opened from a trigger with a tooltip stays anchored once the tooltip has gone, and the tooltip anchors again once the menu closed', async ({ page }) => {
     await open(page, 'popups.html');
     const anchoring = await page.evaluate(() => typeof HTMLElement.prototype.showPopover === 'function' && CSS.supports('position-area: block-end') && 'anchorName' in document.documentElement.style);
     test.skip(!anchoring, 'needs popover and CSS anchor positioning (the shared anchor-name)');
@@ -764,11 +764,19 @@ test.describe('fixed in 1.6.1', () => {
     await page.waitForFunction(() => document.querySelector('.ds-tooltip').hidden);
     await frames(page);
     expect(await placed()).toEqual({ name: expect.stringMatching(/^--ds-anchor-\d+$/), below: true, menuOpen: 'open' });
-    // The other way round: the menu closes while the tooltip shows.
+    // The other way round no longer happens (2.1.1): while its menu is open the trigger shows no tooltip, which
+    // would take the Escape that closes the menu. Once the menu closed, the tooltip anchors to the trigger again.
+    await page.mouse.move(1, 1);
+    await page.locator('#trigger').hover();
+    await page.waitForTimeout(1200);
+    expect(await tip.evaluate((el) => el.hidden)).toBe(true);
+    expect((await placed()).below).toBe(true);
+    await page.evaluate(() => DS.overlay.close(document.getElementById('menu')));
+    await frames(page);
+    await page.evaluate(() => document.activeElement?.blur());
     await page.mouse.move(1, 1);
     await page.locator('#trigger').hover();
     await expect(tip).toHaveAttribute('data-state', 'open');
-    await page.evaluate(() => DS.overlay.close(document.getElementById('menu')));
     await frames(page);
     const kept = await page.evaluate(() => {
       const trigger = document.getElementById('trigger');
@@ -779,7 +787,7 @@ test.describe('fixed in 1.6.1', () => {
     });
     expect(kept.name).toMatch(/^--ds-anchor-\d+$/);
     expect(kept).toEqual({ name: kept.name, anchor: kept.name, near: true });
-    // Neither uses it any more: the name goes (the close gave focus back to the trigger, which holds a tooltip too).
+    // Neither uses it any more: the name goes.
     await page.evaluate(() => document.activeElement?.blur());
     await page.mouse.move(1, 1);
     await page.waitForFunction(() => document.querySelector('.ds-tooltip').hidden);
