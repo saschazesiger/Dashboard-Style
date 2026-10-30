@@ -1011,6 +1011,37 @@ test.describe('focus and pointer during the close', () => {
     }
   });
 
+  test('an overlay opened a moment after the input (outside any event) follows the last input: no ring after a press, a ring after a key', async ({ page }) => {
+    // 2.1.1: a dialog opened once an action sheet's exit settled showed the keyboard ring on its first button after
+    // taps on an iPhone (WebKit marks a script's focus() as :focus-visible); the document's last input decides now.
+    await load(page);
+    await page.evaluate(() => {
+      document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="x-later">Later</button>');
+      const later = document.getElementById('x-later');
+      later.addEventListener('click', () => setTimeout(() => DS.overlay.open(document.getElementById(window.fxLater), { opener: later }), 50));
+    });
+    const ring = () => page.evaluate(() => ({ id: document.activeElement?.id, ring: document.activeElement?.matches(':focus-visible') ?? false }));
+    for (const [id, inside] of [['native', 'native-cancel'], ['dialog', 'dialog-cancel']]) {
+      // The focus left behind by the last round's Escape showed a ring, which the open would rightly keep.
+      await page.evaluate((name) => { window.fxLater = name; document.activeElement?.blur(); }, id);
+      await page.click('#x-later');
+      await page.waitForFunction((name) => document.getElementById(name).dataset.state === 'open', id);
+      await settle(page);
+      expect(await ring(), `${id}: opened after a press`).toEqual({ id: inside, ring: false });
+      await page.keyboard.press('Escape');
+      await closed(page, id);
+      await page.mouse.move(1, 1);
+      await focusByKeyboard(page, page.locator('#x-later'));
+      await page.keyboard.press('Enter');
+      await page.waitForFunction((name) => document.getElementById(name).dataset.state === 'open', id);
+      await settle(page);
+      expect(await ring(), `${id}: opened after a key`).toEqual({ id: inside, ring: true });
+      await page.keyboard.press('Escape');
+      await closed(page, id);
+      expect(await leftovers(page)).toEqual(clean);
+    }
+  });
+
   test('a native dialog opened with the mouse leaves the text field it focuses alone: no blur, and it keeps its ring', async ({ page }) => {
     // The WebKit ring correction runs only where there is something to correct: a text field always shows the ring.
     await load(page);

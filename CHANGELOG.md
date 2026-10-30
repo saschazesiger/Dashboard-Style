@@ -44,6 +44,14 @@ itself can go.
   panel end at its top edge, the action sheet (`--bottom`) sits on it and a contained box sticks above it. The scrim
   keeps covering the whole window; a box taller than the room scrolls its body. Without `followViewport()` (or with
   the keyboard down, 0px) nothing moves.
+- **No keyboard ring after a tap on an overlay opened a moment later.** `DS.overlay` takes back the ring WebKit puts
+  on what it focuses after a pointer press (`focus({ focusVisible: false })`), but only when it ran inside the press's
+  own event: a dialog opened once an action sheet's exit settled (a delete confirmation from one of its items), after
+  a fetch or a timer showed the ring on its first button after real taps on an iPhone. `DS.overlay` now remembers
+  each document's last input (a `pointerdown` or `mousedown`, or a key other than a modifier; capture listeners
+  installed by the first `open()` and by `tooltips()`) and, outside any input event, a press decides as one inside
+  it would. Focusing into a layer and giving focus back on close follow the same rule, for div overlays and menus
+  too. A key press still keeps the engine's ring.
 
 ## 2.1.0
 

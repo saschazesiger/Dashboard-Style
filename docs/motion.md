@@ -1502,9 +1502,11 @@ The `fallback` project of the browser tests runs every spec without them.
   `insertBefore`, focus put back, and `data-ds-moving` for one style flush so no entrance replays.
 - `scrollbar-gutter` (the room of a removed page scrollbar under the scroll lock): without it a `padding-right` on
   `<body>`.
-- `focus({ focusVisible: false })` (a native dialog or sheet opened or closed with the pointer shows no keyboard ring
-  in WebKit, which marks what `showModal()` and `close()` focus as `:focus-visible`): without it that ring stays as
-  WebKit draws it.
+- `focus({ focusVisible: false })` (an overlay opened or closed with the pointer shows no keyboard ring in WebKit,
+  which marks what `showModal()`, `close()` and a script's `focus()` focus as `:focus-visible`; outside any input
+  event, a dialog opened once an action sheet's exit settled or after a fetch, the document's last input decides: a
+  press of a mouse, pen or finger, or a key other than a modifier, 2.1.1): without it that ring stays as WebKit draws
+  it.
 - `view-transition-name` on a named indicator, and the `pageswap` and `pagereveal` events (they lift the name for a
   pill scrolled out of view): without View Transitions the name is ignored and the pill glides as always.
 - `text-wrap` (a lead, hints, radio card descriptions, empty states and `.ds-muted` paragraphs avoid a lone last

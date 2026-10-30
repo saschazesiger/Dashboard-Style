@@ -742,8 +742,11 @@ test.describe('tooltips', () => {
     await expect.poll(menuState).toBe('hidden');
     expect(await page.evaluate(() => document.getElementById('tip-menu').getAttribute('aria-expanded'))).toBe('false');
     expect(await focused(page)).toBe('tip-menu');
-    // Closed, the opener has its tip again (keyboard focus came back to it).
-    await expect.poll(async () => (await tipState(page)).text).toBe('Sort by');
+    // Closed, the opener may have its tip again: where the engine marks the focus that came back with the key as
+    // :focus-visible (Firefox does not after a menu opened by the mouse), the tip shows on it.
+    if (await page.evaluate(() => document.activeElement.matches(':focus-visible'))) {
+      await expect.poll(async () => (await tipState(page)).text).toBe('Sort by');
+    }
   });
 
   test('Tab from one trigger to the next keeps it shown and swaps in place without a new entrance', async ({ page }) => {
