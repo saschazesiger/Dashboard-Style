@@ -222,12 +222,12 @@ from a project class's `border-radius` when no class sets it), `--ds-indicator-d
 `--ds-progress`, `--ds-toast-left`, `--ds-toast-bottom`, `--ds-toast-shift`, `--ds-toast-shift-y`, `--ds-toast-reserve`,
 `--ds-toast-lift` (a snackbar region's rise above a sheet's foot, the drawer's foot or a save bar, written by `DS.overlay` only;
 `--ds-toast-shift` and `--ds-toast-shift-y` too; `--ds-toast-reserve` is set by `toast()`, or by the page with `reserve: false`),
-`--ds-keyboard-inset` (the on-screen keyboard's height, written on `<html>` by `DS.dom.followViewport()`; the snackbars rise by it, dialogs and side sheets keep clear of it, 2.1.1),
+`--ds-keyboard-inset` (the on-screen keyboard's height, written on `<html>` by `DS.dom.followViewport()`; the snackbars rise by it, dialogs and side sheets keep clear of it, 2.1.1; with a bottom inset the keyboard took away, 2.1.2),
 `--ds-savebar-height` (the save bar's height on its `.ds-view`, written by `DS.overlay.savebar()`),
 `--ds-tooltip-x`, `--ds-tooltip-y` (the tooltip's place, written by `DS.overlay.tooltips()` where anchor positioning is missing),
 `--ds-menu-x`, `--ds-menu-y` (a menu's place, written by `DS.overlay.open()` where anchor positioning is missing),
-`--ds-viewport-height` (the visual viewport's height, written on `<html>` by `DS.dom.followViewport()`; `.ds-app` takes it, else
-`100dvh`),
+`--ds-viewport-height` (the visual viewport's height, less a bottom inset the keyboard covers, written on `<html>` by
+`DS.dom.followViewport()`; `.ds-app` takes it, else `100dvh`),
 `--ds-chips-backdrop`, `--ds-flip-backdrop` (the colour behind a chip row or a `DS.motion.flip()` container while its items
 glide: their opaque backing),
 and the per-element motion settings `--ds-motion-distance`, `--ds-motion-scale`, `--ds-motion-origin`, `--ds-clip-from`,

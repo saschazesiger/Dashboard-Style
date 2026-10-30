@@ -4,6 +4,32 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 2.1.2
+
+Fixes found on real Android phones. No class, token, hook or export changed; no migration is required. A project
+that panned the page back or took the lost bottom inset off its frame itself can drop that.
+
+### Fixed
+
+- **The page goes back when the visual viewport was panned down under the keyboard.** Chrome on Android shrinks only
+  the visual viewport for the keyboard: the layout viewport keeps the whole window, so under a frame sized by
+  `--ds-viewport-height` lies a keyboard's height of empty page. Anything scrolled into view (`scrollIntoView()`, a
+  focus) panned the visual viewport down into it (`visualViewport.offsetTop` 206.9 with `window.scrollY` 0 on a
+  Pixel 9, Android 16, Chrome 152; 114.8 on a Galaxy Tab S9), and the frame stood half above the screen until the
+  keyboard went: `followViewport()` only scrolled the window back, which moves nothing there. While a field has the
+  keyboard and the page is not zoomed, it now pans the visual viewport back to the top (an element at the top
+  scrolled into view, `behavior: "instant"`); a window scrolled up (iOS) scrolls back as before.
+- **A bar at the frame's foot stays above the keyboard with `viewport-fit=cover`.** Chrome on Android draws such a
+  page edge to edge, under the gesture bar (`env(safe-area-inset-bottom)` 24px on a Pixel 9). With the keyboard up it
+  reads that inset as 0, yet its visual viewport still ends where the inset began: 460.6px tall while the keyboard's
+  top edge is at 436.6px, so the bottom 24px of the frame (a composer, a key bar) and of the snackbars, dialogs and
+  sheets that keep clear of `--ds-keyboard-inset` lay under the keys. `followViewport()` now reads the inset off a
+  hidden probe in `<body>` (`data-ds-keep`, so morphs leave it), remembers it while the viewport is full height and
+  no field has the focus, and while the keyboard is up and the inset reads 0 takes it off `--ds-viewport-height` and
+  adds it to `--ds-keyboard-inset` (Pixel 9: 437px and 364px, the frame's foot at the keyboard's edge). Without
+  `viewport-fit=cover` the inset is 0 and nothing changes; iOS keeps its inset under the keyboard (an iPhone 15 on
+  its side: 20px with and without the keyboard), so nothing changes there either.
+
 ## 2.1.1
 
 Fixes found on real devices. No class, token, hook or export changed; no migration is required. Interactive table

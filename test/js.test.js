@@ -2123,6 +2123,120 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     assert.equal(other.doc.documentElement.style.getPropertyValue('--ds-viewport-height'), '');
   });
 
+  it('followViewport: a bottom inset the keyboard took away comes off the height and onto the inset (2.1.2)', () => {
+    const { h, doc, win, observers, runFrames } = helperDom();
+    const viewport = new EventTarget();
+    Object.assign(viewport, { width: 412, height: 801.5, offsetTop: 0, scale: 1 });
+    Object.assign(win, { innerHeight: 801 });
+    win.visualViewport = viewport;
+    const root = doc.documentElement;
+    const handle = dom.followViewport(doc);
+    const probe = doc.body.children.find((child) => child.hasAttribute('data-ds-keep'));
+    assert.ok(probe, 'a probe in <body>, kept by morphs');
+    assert.deepEqual([probe.getAttribute('aria-hidden'), probe.style.getPropertyValue('height'), probe.style.getPropertyValue('position')], ['true', 'env(safe-area-inset-bottom, 0px)', 'fixed']);
+    const sizes = observers.resize.find((observer) => observer.targets.has(probe));
+    assert.ok(sizes, 'the probe is watched: the inset can go a frame after the viewport shrank');
+    // Drawn edge to edge: 24px under the gesture bar.
+    probe.rect = { ...probe.rect, height: 24 };
+    sizes.callback([]);
+    runFrames();
+    assert.equal(root.style.getPropertyValue('--ds-viewport-height'), '802px');
+    const field = h('input', { type: 'text' });
+    Object.assign(field, { type: 'text', readOnly: false });
+    doc.body.append(field);
+    field.focus();
+    // The keyboard on its way: the inset reads 0 before the viewport shrinks, and is not taken for the open one.
+    probe.rect = { ...probe.rect, height: 0 };
+    sizes.callback([]);
+    runFrames();
+    assert.equal(root.style.getPropertyValue('--ds-viewport-height'), '802px', 'no keyboard yet');
+    // Chrome on Android, Pixel 9: the visual viewport ends 24px below the keyboard's top edge (436.6).
+    viewport.height = 460.6;
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.hasAttribute('data-ds-keyboard'), true);
+    assert.equal(root.style.getPropertyValue('--ds-viewport-height'), '437px', 'the frame ends at the keyboard');
+    assert.equal(root.style.getPropertyValue('--ds-keyboard-inset'), '364px', 'the inset counts the strip in');
+    // An engine that keeps the inset under the keyboard (iOS) changes nothing.
+    probe.rect = { ...probe.rect, height: 24 };
+    sizes.callback([]);
+    runFrames();
+    assert.equal(root.style.getPropertyValue('--ds-viewport-height'), '461px');
+    assert.equal(root.style.getPropertyValue('--ds-keyboard-inset'), '340px');
+    // A pinch zoom is no keyboard's doing.
+    probe.rect = { ...probe.rect, height: 0 };
+    viewport.scale = 2;
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    assert.equal(root.style.getPropertyValue('--ds-viewport-height'), '461px', 'zoomed: the height as it is');
+    handle.destroy();
+    assert.equal(doc.body.children.includes(probe), false, 'destroy() takes the probe out');
+    assert.equal(sizes.targets.size, 0);
+  });
+
+  it('followViewport: puts the page back at its top when the browser scrolled the window or panned the visual viewport (2.1.2)', () => {
+    const { h, doc, win, runFrames } = helperDom();
+    const viewport = new EventTarget();
+    Object.assign(viewport, { width: 412, height: 801, offsetTop: 0, scale: 1 });
+    win.visualViewport = viewport;
+    const scrolls = [];
+    win.scrollTo = (x, y) => { scrolls.push([x, y]); win.scrollY = y; };
+    const root = doc.documentElement;
+    const pans = [];
+    root.scrollIntoView = (options) => {
+      pans.push(options);
+      viewport.offsetTop = 0;
+    };
+    const handle = dom.followViewport(doc);
+    const field = h('input', { type: 'text' });
+    Object.assign(field, { type: 'text', readOnly: false });
+    doc.body.append(field);
+    field.focus();
+    viewport.height = 460;
+    viewport.dispatchEvent(new Event('resize'));
+    runFrames();
+    // Chrome on Android: a field scrolled into view pans the visual viewport into the empty page under the frame.
+    viewport.offsetTop = 206.9;
+    viewport.dispatchEvent(new Event('scroll'));
+    runFrames();
+    assert.deepEqual(pans, [{ block: 'start', inline: 'nearest', behavior: 'instant' }], 'an element at the top scrolled into view pans it back');
+    assert.deepEqual(scrolls, [], 'the window did not scroll: scrolling it would move nothing');
+    // iOS: the window scrolled up to show the field.
+    Object.assign(win, { scrollY: 120 });
+    viewport.offsetTop = 120;
+    viewport.dispatchEvent(new Event('scroll'));
+    runFrames();
+    assert.deepEqual(scrolls, [[0, 0]]);
+    assert.equal(pans.length, 1);
+    // A pinch zoom is the person's; a sub-pixel offset is no pan.
+    viewport.scale = 1.5;
+    viewport.offsetTop = 80;
+    viewport.dispatchEvent(new Event('scroll'));
+    runFrames();
+    viewport.scale = 1;
+    viewport.offsetTop = 0.4;
+    viewport.dispatchEvent(new Event('scroll'));
+    runFrames();
+    assert.equal(pans.length, 1);
+    // No field focused (a keyboard DS does not count): left alone.
+    field.blur?.();
+    doc.activeElement = doc.body;
+    viewport.offsetTop = 200;
+    viewport.dispatchEvent(new Event('scroll'));
+    runFrames();
+    assert.equal(pans.length, 1);
+    // An engine that rejects behavior "instant" scrolls with the boolean form.
+    doc.activeElement = field;
+    root.scrollIntoView = (options) => {
+      if (typeof options === 'object') throw new TypeError('behavior');
+      pans.push(options);
+    };
+    viewport.dispatchEvent(new Event('scroll'));
+    runFrames();
+    assert.deepEqual(pans.at(-1), true);
+    handle.destroy();
+  });
+
   it('followViewport: a field focused inside a same-origin iframe counts as editing, a cross-origin frame does not', () => {
     const { h, doc, win, runFrames } = helperDom();
     const viewport = new EventTarget();

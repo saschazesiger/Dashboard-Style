@@ -163,3 +163,46 @@ test('followViewport: a field focused inside a same-origin iframe brings data-ds
   expect(keyboard.attr).toBe(true);
   expect(keyboard.inset).not.toBe('0px');
 });
+
+test('followViewport: a hidden probe reads the bottom inset, a morph keeps it; a panned viewport pans back (2.1.2)', async ({ page }) => {
+  await page.goto('/test/browser/fixtures/controls.html');
+  await ready(page);
+  const result = await page.evaluate(async () => {
+    const frames = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const before = document.documentElement.scrollHeight;
+    const handle = DS.dom.followViewport(document);
+    await frames();
+    const probes = () => [...document.body.children].filter((child) => child.hasAttribute('data-ds-keep') && child.style.height.startsWith('env('));
+    const [probe] = probes();
+    const style = getComputedStyle(probe);
+    const placed = { count: probes().length, position: style.position, visibility: style.visibility, height: probe.getBoundingClientRect().height, scrollHeight: document.documentElement.scrollHeight === before };
+    // A re-render of the body by a morph leaves it in place.
+    DS.dom.morphHtml(document.body, document.body.innerHTML.replace(/<div[^>]*data-ds-keep[^>]*><\/div>/g, ''));
+    const kept = probes()[0] === probe;
+    // The keyboard is up for a field and the browser panned the visual viewport down: the page pans back.
+    const field = document.querySelector('input[type="text"], input:not([type])');
+    const height = visualViewport.height - 300;
+    let offset = 120;
+    Object.defineProperty(visualViewport, 'height', { configurable: true, get: () => height });
+    Object.defineProperty(visualViewport, 'offsetTop', { configurable: true, get: () => offset });
+    const calls = [];
+    const pan = Element.prototype.scrollIntoView;
+    document.documentElement.scrollIntoView = function (options) {
+      calls.push(options);
+      pan.call(this, options);
+      offset = 0;
+    };
+    // The window itself has not scrolled (Chrome on Android): scrolling it would move nothing.
+    field.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+    visualViewport.dispatchEvent(new Event('scroll'));
+    await frames();
+    handle.destroy();
+    delete document.documentElement.scrollIntoView;
+    return { placed, kept, calls, gone: probes().length };
+  });
+  expect(result.placed).toEqual({ count: 1, position: 'fixed', visibility: 'hidden', height: 0, scrollHeight: true });
+  expect(result.kept).toBe(true);
+  expect(result.calls).toEqual([{ block: 'start', inline: 'nearest', behavior: 'instant' }]);
+  expect(result.gone).toBe(0);
+});

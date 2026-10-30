@@ -329,8 +329,10 @@ is the only scroller. At 900px and below the drawer becomes modal.
   while the keyboard is up and a field has the focus, `data-ds-keyboard` on `<html>`, and `--ds-keyboard-inset` (px)
   for the snackbars, dialogs and side sheets (2.1.1: a centred dialog centres above the keyboard, a full-screen one
   and a side sheet end at its top edge, an action sheet sits on it; the scrim keeps covering the whole window), and
-  scrolls the window back where the browser panned it for the keyboard. Nothing moves when
-  there is no `visualViewport`.
+  puts the page back at its top where the browser scrolled or panned it for the keyboard (2.1.2: also the visual
+  viewport Chrome on Android pans into the empty page under the frame). With `viewport-fit=cover`, a bottom inset the
+  keyboard covers although the visual viewport counts it in (Chrome on Android) comes off the height and onto the
+  inset (2.1.2), so a bar at the frame's foot stays above the keys. Nothing moves when there is no `visualViewport`.
 - Open and close the modal drawer with `DS.overlay.open(drawer, { opener: menu })` and `DS.overlay.close(drawer)`
   ([motion.md](motion.md#dsoverlay-jsoverlayjs)): it sets `data-drawer-open` and `aria-expanded`, makes the rest of
   the app inert (not the scrim), locks the scroll (`.ds-no-scroll` on `<body>`, counted), focuses the current item
