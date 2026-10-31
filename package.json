@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "A neutral, themeable design system for admin dashboards in the Material 3 / Google console style: CSS tokens, components, motion and icons, without dependencies.",
   "license": "MIT",
   "type": "module",

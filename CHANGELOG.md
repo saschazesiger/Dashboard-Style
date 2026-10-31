@@ -4,6 +4,25 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 2.1.3
+
+Performance. No class, token, hook or export changed, and nothing looks or moves differently; no migration is
+required.
+
+### Fixed
+
+- **A FLIP that brings and takes many items recalculates style a few times, not several times per item.**
+  `DS.motion.flip()` read the page between its own writes: a removed item's display, then the container's borders
+  and scroll, before each item it lifted out of flow; each moving item's position before raising it, and the
+  backdrop after the first; the travel tokens for every glide; an entering or leaving item's animations around its
+  classes. Each of those reads made the browser recalculate style (and often layout) for the whole page again, which
+  on a page with many `:has()` rules and a slow phone was most of what a live list cost. Every read now comes before
+  the writes it would have followed: `measure()` keeps each item's display with its rect, the container's box is
+  read once per FLIP, the positions, the backdrop and the two travel tokens once before the glides start, and the
+  items that come and go play their entrance and exit as one batch of reads and writes (the same classes, the same
+  handoffs, the same promises as `enter()` and `leave()` for each). Ten items that go and ten that come took 105 to
+  145 style and layout passes in Chromium; now 9 (`test/browser/flip.spec.js`).
+
 ## 2.1.2
 
 Fixes found on real Android phones. No class, token, hook or export changed; no migration is required. A project

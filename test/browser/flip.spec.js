@@ -229,6 +229,31 @@ test('60 moving items update without motion (cap of 50)', async ({ page }) => {
   expect(await order(page)).toEqual([...names].reverse());
 });
 
+test('ten items that go and ten that come cost a few style recalculations, not some for each (2.1.3)', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'the counts are a CDP metric: Chromium only');
+  await page.setViewportSize({ width: 1280, height: 2000 });
+  const names = Array.from({ length: 30 }, (_, index) => `DEVICE-${String(index + 1).padStart(4, '0')}`);
+  await open(page, { names });
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Performance.enable');
+  const passes = async () => {
+    const metrics = Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map((m) => [m.name, m.value]));
+    return metrics.RecalcStyleCount + metrics.LayoutCount;
+  };
+  // Every read between two writes of the FLIP's own (a removed item's
+  // display, the container's borders and scroll, an entering item's
+  // animations) used to recalculate style once per item: 145 passes here.
+  const before = await passes();
+  await flipTo(page, [...names.slice(10), ...Array.from({ length: 10 }, (_, index) => `PHONE-${String(index + 1).padStart(4, '0')}`)]);
+  const during = (await passes()) - before;
+  await cdp.detach();
+  expect(during, 'style and layout passes of the call').toBeLessThanOrEqual(16);
+  await finishAll(page);
+  await page.evaluate(() => window.fxFlip);
+  await settle(page);
+  expect((await order(page)).length).toBe(30);
+});
+
 test('a removed item fades out of flow while its neighbours close the gap', async ({ page }) => {
   await open(page);
   const next = page.locator('#list > li[data-ds-key="LAPTOP-0051"]');
