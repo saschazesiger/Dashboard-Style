@@ -83,19 +83,16 @@ describe('icons (2.0)', () => {
   /** The glyphs that fill when on (.ds-icon--fillable), as docs/icons.md lists them. */
   const FILLABLE = ['thumbUp', 'thumbDown', 'chat', 'shield', 'folder', 'flag', 'bell', 'home', 'moon', 'play'];
 
-  it('has the 27 glyphs of 2.0 (109 in all) and keeps the name map of fill() in step with the exports', () => {
+  it('has the 27 glyphs of 2.0 and keeps the name map of fill() in step with the exports', () => {
     const added = ['chevronFirst', 'chevronLast', 'cornerDownLeft', 'moreHorizontal', 'upload', 'clipboard', 'paperclip', 'send',
       'printer', 'play', 'pause', 'stopCircle', 'grip', 'bell', 'mic', 'micOff', 'volume', 'helpCircle', 'eye', 'eyeOff', 'home',
       'panelLeft', 'keyboard', 'terminal', 'tag', 'sun', 'moon'];
     assert.equal(added.length, 27);
     for (const name of added) assert.equal(typeof icons[name], 'string', name);
-    assert.equal(GLYPHS.length, 109);
     const source = read('src/js/icons.js');
     const map = source.slice(source.indexOf('const GLYPHS = {'), source.indexOf('};', source.indexOf('const GLYPHS = {')));
     const mapped = [...map.slice(map.indexOf('{') + 1).matchAll(/[A-Za-z]+/g)].map((match) => match[0]);
     assert.deepEqual([...mapped].sort(), GLYPHS.map(([name]) => name).sort());
-    // The count the README, AGENTS.md and the live tour state.
-    for (const file of ['README.md', 'AGENTS.md']) assert.ok(!/\b82\b (outline )?(icons|glyphs)|icons-82/.test(read(file)), `${file}: 109 icons`);
   });
 
   it('ends every fillable glyph with a closed shape (a closed path, rect, circle or ellipse), named in docs/icons.md', () => {
@@ -200,6 +197,110 @@ describe('icons (2.0)', () => {
     plain.append(text('old'));
     assert.equal(icons.fill({ ...root, querySelectorAll: () => [plain] }), 1);
     assert.deepEqual(plain.childNodes.map((node) => node.tagName ?? node.data), ['svg']);
+  });
+});
+
+describe('icons (3.0)', () => {
+  /** Every end point a path visits (control points aside), in absolute coordinates. */
+  function pathPoints(d) {
+    const ARGS = { m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0 };
+    const tokens = d.match(/[a-zA-Z]|-?(?:\d+\.?\d*|\.\d+)(?:e-?\d+)?/g);
+    const points = [];
+    let x = 0, y = 0, startX = 0, startY = 0, command = '', i = 0;
+    while (i < tokens.length) {
+      if (/[a-zA-Z]/.test(tokens[i])) command = tokens[i++];
+      const lower = command.toLowerCase();
+      const relative = command === lower;
+      const n = ARGS[lower];
+      assert.ok(n !== undefined, `unknown command ${command} in ${d}`);
+      if (lower === 'z') { x = startX; y = startY; continue; }
+      const args = tokens.slice(i, i + n).map(Number);
+      assert.equal(args.length, n, `missing arguments in ${d}`);
+      i += n;
+      if (lower === 'h') x = relative ? x + args[0] : args[0];
+      else if (lower === 'v') y = relative ? y + args[0] : args[0];
+      else {
+        x = relative ? x + args[n - 2] : args[n - 2];
+        y = relative ? y + args[n - 1] : args[n - 1];
+      }
+      if (lower === 'm') { startX = x; startY = y; command = relative ? 'l' : 'L'; }
+      points.push([x, y]);
+    }
+    return points;
+  }
+
+  it('has 275 glyphs, each with its own drawing, and says so in the docs, the README, AGENTS.md and the live tour', () => {
+    assert.equal(GLYPHS.length, 275);
+    const drawings = new Map();
+    for (const [name, body] of GLYPHS) {
+      assert.ok(!drawings.has(body), `${name} draws the same as ${drawings.get(body)}`);
+      drawings.set(body, name);
+    }
+    const count = String(GLYPHS.length);
+    assert.match(read('docs/icons.md'), new RegExp(`^${count} glyphs\\.`, 'm'));
+    const readme = read('README.md');
+    assert.match(readme, new RegExp(`icons-${count}-`));
+    assert.match(readme, new RegExp(`<b>${count} icons</b>`));
+    assert.match(readme, new RegExp(`\\| ${count} outline glyphs in`));
+    assert.match(read('AGENTS.md'), new RegExp(`motion, ${count} outline icons`));
+    const demo = read('demo/index.html');
+    assert.match(demo, new RegExp(`data-count="${count}"`));
+    assert.match(demo, new RegExp(`>${count} outline glyphs on a 24px grid`));
+    assert.match(read('test/browser/demo.spec.js'), new RegExp(`demo-icon'\\)\\)\\.toHaveCount\\(${count}\\)`));
+  });
+
+  it('names every glyph exactly once in the glyph table of docs/icons.md, and nothing else', () => {
+    const docs = read('docs/icons.md');
+    const table = docs.slice(docs.indexOf('## Glyphs'), docs.indexOf('\n\n', docs.indexOf('| Group | Names |')));
+    const named = table.split('\n').filter((line) => /^\| [A-Z]/.test(line) && !line.startsWith('| Group'))
+      .flatMap((line) => [...line.matchAll(/`(\w+)`/g)].map((match) => match[1]));
+    assert.deepEqual([...named].sort(), GLYPHS.map(([name]) => name).sort());
+    assert.equal(new Set(named).size, named.length, 'no name twice');
+  });
+
+  it('keeps every glyph on the 24px grid', () => {
+    const inGrid = (value, what) => assert.ok(value >= 0 && value <= 24, what);
+    for (const [name, body] of GLYPHS) {
+      for (const element of body.matchAll(/<(\w+)((?:\s+[\w:-]+="[^"]*")*)\s*\/>/g)) {
+        const attributes = Object.fromEntries([...element[2].matchAll(/([\w:-]+)="([^"]*)"/g)].map((match) => [match[1], match[2]]));
+        const tag = element[1];
+        if (tag === 'path') {
+          for (const [x, y] of pathPoints(attributes.d)) {
+            inGrid(Math.round(x * 1000) / 1000, `${name}: x ${x}`);
+            inGrid(Math.round(y * 1000) / 1000, `${name}: y ${y}`);
+          }
+        } else if (tag === 'circle') {
+          const [cx, cy, r] = ['cx', 'cy', 'r'].map((key) => Number(attributes[key]));
+          for (const value of [cx - r, cx + r, cy - r, cy + r]) inGrid(value, `${name}: circle`);
+        } else if (tag === 'ellipse') {
+          const [cx, cy, rx, ry] = ['cx', 'cy', 'rx', 'ry'].map((key) => Number(attributes[key]));
+          for (const value of [cx - rx, cx + rx, cy - ry, cy + ry]) inGrid(value, `${name}: ellipse`);
+        } else if (tag === 'rect') {
+          const [x, y, width, height] = ['x', 'y', 'width', 'height'].map((key) => Number(attributes[key] ?? 0));
+          for (const value of [x, y, x + width, y + height]) inGrid(value, `${name}: rect`);
+        }
+      }
+    }
+  });
+
+  it('draws a family with the outline of its first glyph: files, calendars and chat bubbles', () => {
+    const outline = (glyph) => glyph.match(/^<[^>]*\/>/)[0];
+    // fileArchive and calendarPlus open their outline for the zipper and the plus.
+    const open = ['fileArchive', 'calendarPlus'];
+    const families = [
+      [icons.file.match(/<[^>]*\/>/g), /^file[A-Z]/],
+      [icons.calendar.match(/<rect[^>]*\/>/g), /^calendar[A-Z]/],
+      [[outline(icons.chat)], /^chat[A-Z]/],
+    ];
+    for (const [parts, pattern] of families) {
+      const members = GLYPHS.filter(([name]) => pattern.test(name) && !open.includes(name));
+      assert.ok(members.length > 1, String(pattern));
+      for (const [name, body] of members) for (const part of parts) assert.ok(body.includes(part), `${name}: ${part}`);
+    }
+  });
+
+  it('keeps the export names in letters only (the name map of fill() reads them so)', () => {
+    for (const [name] of GLYPHS) assert.match(name, /^[a-z][A-Za-z]*$/, name);
   });
 });
 
