@@ -5,11 +5,11 @@ Everything a project needs is in `dist/`:
 | Path | What |
 |---|---|
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
-| `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, ripple, icons, overlay }` (see "Two copies on one page") |
+| `ds.js` | classic script, sets `window.DS = { version, core, motion, indicator, dom, ripple, icons, overlay }` (see "Two copies on one page") |
 | `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
-| `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`), each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself |
+| `js/` | the ES modules (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`), each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
 | `ds.d.ts` | types of `ds.js`: the global `DS` (every module's exports, their options and handles) and `DashboardStyle.versions` (see "Types") |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `deprecations.json` | every deprecated and removed name as data, for a project's own checks (see "Deprecated and removed names") |
@@ -265,16 +265,21 @@ the `pagereveal` snippet that sets `data-ds-vt` from `navigation.activation`.
 
 A host page and an embedded widget may each load their own `ds.js`. Every copy registers itself in
 `window.DashboardStyle.versions['<version>']`; `window.DS` is set only when it is absent or holds the same version,
-so the first copy keeps it. A second copy of the same version does nothing. A copy of another version leaves
-`window.DS` alone and logs one warning naming both versions; a `window.DS` that is not Dashboard-Style (no
-`version` string) is never touched either. Code that must run on its own copy reads it by version:
+so the first copy keeps it. A second copy of the same version adds into the first, by name, only what the first
+lacks (a module, or an export of a module; the first copy's own stay), so two bundles of one version make one
+`DS`. A copy of another version leaves `window.DS` alone and logs one warning naming both versions; a `window.DS`
+that is not Dashboard-Style (no `version` string) is never touched either. Code that must run on its own copy reads
+it by version:
 
 ```js
 const ds = window.DashboardStyle.versions['1.0.0'] || window.DS;
 ```
 
-From 1.6.1 on, the copies share the overlay state that belongs to the page (the Escape stack, the scroll lock, the
-numbering of anchor names and tooltip ids, the tooltip roots) through `document[Symbol.for('ds.overlay')]`; see
+Every copy, of any version, and the ES modules next to it share one runtime, `window.DashboardStyle.runtime`
+(`DS.core.runtime`, made by whichever loads first; [core.md](core.md#one-runtime-per-page)): the overlay state that
+belongs to the page (the Escape stack, the scroll lock, the numbering of anchor names and tooltip ids, the tooltip
+roots), the action guard of each document, the ripple of each root and the behaviour registry. Copies from 1.6.1
+to 2.x share the overlay state through `document[Symbol.for('ds.overlay')]`, which the runtime adopts and keeps; see
 [theming.md](theming.md), "Embedded in someone else's page".
 
 ## Language and locale
@@ -290,6 +295,25 @@ strings a script adds have an option, so a page in another language passes its o
 | `Confirm` | the confirm button of a built confirm or prompt dialog (name the consequence instead: "Delete device") | `DS.overlay.confirm({ confirmLabel })`, `DS.overlay.prompt({ confirmLabel })` |
 | `That did not work. Try again.` | the error snackbar when `onConfirm` of a built dialog fails | `DS.overlay.confirm({ errorText })`, `DS.overlay.prompt({ errorText })` |
 | `Enter a value.` | the field error of a built prompt's required field left empty | `DS.overlay.prompt({ requiredText })` |
+| `Close` | the system's string `close` (behaviours read it with `DS.core.t('close')`) | `DS.core.config({ strings: { close } })` |
+| `Copy` | the system's string `copy` | `DS.core.config({ strings: { copy } })` |
+| `Copied` | the system's string `copied` | `DS.core.config({ strings: { copied } })` |
+| `Show more` | the system's string `showMore` | `DS.core.config({ strings: { showMore } })` |
+| `Show less` | the system's string `showLess` | `DS.core.config({ strings: { showLess } })` |
+| `Clear` | the system's string `clear` | `DS.core.config({ strings: { clear } })` |
+| `Loading` | the system's string `loading` | `DS.core.config({ strings: { loading } })` |
+| `More` | the system's string `more` | `DS.core.config({ strings: { more } })` |
+| `Dismiss` | the system's string `dismiss` | `DS.core.config({ strings: { dismiss } })` |
+| `Required` | the system's string `required` | `DS.core.config({ strings: { required } })` |
+| `Optional` | the system's string `optional` | `DS.core.config({ strings: { optional } })` |
+| `OK` | the system's string `ok` | `DS.core.config({ strings: { ok } })` |
+| `Cancel` | the system's string `cancel` | `DS.core.config({ strings: { cancel } })` |
+| `Expand` | the system's string `expand` | `DS.core.config({ strings: { expand } })` |
+| `Collapse` | the system's string `collapse` | `DS.core.config({ strings: { collapse } })` |
+| `Remove` | the system's string `remove` | `DS.core.config({ strings: { remove } })` |
+| `Previous` | the system's string `previous` | `DS.core.config({ strings: { previous } })` |
+| `Next` | the system's string `next` | `DS.core.config({ strings: { next } })` |
+| `No results` | the system's string `noResults` | `DS.core.config({ strings: { noResults } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates are the page's

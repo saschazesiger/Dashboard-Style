@@ -248,6 +248,7 @@
  *   focus() focus as :focus-visible): without it that ring stays as WebKit
  *   draws it.
  */
+import { define, runtime } from './core.js';
 import { busy, flip, motionDuration, originFrom, settled, transition } from './motion.js';
 import { scrollEdges, watchScrolled } from './dom.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';
@@ -361,8 +362,17 @@ function inside(node, event) {
 
 const SHARED = Symbol.for('ds.overlay');
 
+/** The record of each document, in the page's runtime (DS.core.runtime). @type {WeakMap<Document, any>} */
+const sharedRecords = runtime.state('overlay', () => new WeakMap());
+
 function sharedOf(doc) {
-  const record = doc[SHARED] ?? (doc[SHARED] = {});
+  let record = sharedRecords.get(doc);
+  if (!record) {
+    // A copy before 3.0 keeps the record on the document: adopt it, and leave it there for such copies.
+    record = doc[SHARED] ?? {};
+    sharedRecords.set(doc, record);
+    doc[SHARED] = record;
+  }
   record.order ??= [];
   record.lock ??= { count: 0, saved: null };
   record.seq ??= 0;
@@ -4396,3 +4406,13 @@ export function savebar(element, options = {}) {
   }
   return handle;
 }
+
+/* DS.core.init() serves the tooltips of every root it initialises; a root served before keeps its own handle. */
+define('tooltips', {
+  global(root) {
+    const doc = root.nodeType === 9 ? root : root.ownerDocument;
+    const existed = Boolean(doc) && sharedOf(doc).tipRoots.has(root.nodeType === 9 ? doc.documentElement : root);
+    const handle = tooltips(root);
+    return existed ? () => {} : () => handle.destroy();
+  },
+});

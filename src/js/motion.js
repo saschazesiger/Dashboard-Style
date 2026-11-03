@@ -70,6 +70,8 @@
  *   without it there are none.
  */
 
+import { define, runtime } from './core.js';
+
 /**
  * The motion tokens outside a .ds-theme (or without a DOM): durations and
  * delays in ms, easings as their cubic-bezier() fallbacks. The spring
@@ -1428,10 +1430,11 @@ const NATIVE_ACTION = new Set(['A', 'BUTTON', 'INPUT', 'SUMMARY']);
 
 /**
  * The installed guard of each document or shadow root: the target it
- * listens on and how many holders keep it.
- * @type {WeakMap<object, { target: EventTarget, holders: number }>}
+ * listens on, its listeners and how many holders keep it. Shared by every
+ * copy on the page (DS.core.runtime), so a document has one guard.
+ * @type {WeakMap<object, { target: EventTarget, holders: number, activation: (event: Event) => void, keys: (event: KeyboardEvent) => void }>}
  */
-const guards = new WeakMap();
+const guards = runtime.state('guard', () => new WeakMap());
 
 /** The blocked action that `node` (an event's target) sits in, or null. */
 function blockedAction(node) {
@@ -1476,7 +1479,7 @@ function holdGuard(root) {
   if (typeof target?.addEventListener !== 'function') return false;
   for (const type of GUARDED_EVENTS) target.addEventListener(type, blockActivation, true);
   for (const type of GUARDED_KEY_EVENTS) target.addEventListener(type, blockKeys, true);
-  guards.set(root, { target, holders: 1 });
+  guards.set(root, { target, holders: 1, activation: blockActivation, keys: blockKeys });
   return true;
 }
 
@@ -1486,8 +1489,9 @@ function releaseGuard(root) {
   if (!installed) return;
   installed.holders -= 1;
   if (installed.holders > 0) return;
-  for (const type of GUARDED_EVENTS) installed.target.removeEventListener(type, blockActivation, true);
-  for (const type of GUARDED_KEY_EVENTS) installed.target.removeEventListener(type, blockKeys, true);
+  // The listeners of the copy that installed it.
+  for (const type of GUARDED_EVENTS) installed.target.removeEventListener(type, installed.activation, true);
+  for (const type of GUARDED_KEY_EVENTS) installed.target.removeEventListener(type, installed.keys, true);
   guards.delete(root);
 }
 
@@ -1527,6 +1531,14 @@ export function guard(root = globalThis.document) {
     },
   };
 }
+
+/* DS.core.init() holds the guard of every root it initialises (its document or shadow root). */
+define('guard', {
+  global(root) {
+    const held = guard(root.nodeType === 9 || root.nodeType === 11 ? root : root.getRootNode?.() ?? root.ownerDocument);
+    return () => held.destroy();
+  },
+});
 
 /** The documents and shadow roots busy() guarded (for good). @type {WeakSet<object>} */
 const busyGuarded = new WeakSet();

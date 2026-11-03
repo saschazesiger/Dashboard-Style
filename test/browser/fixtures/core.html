@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" class="ds-base">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  /* The body scrolls, so the scroll lock has something to lock. */
+  .fx-tall { height: 2400px; }
+</style>
+</head>
+<body class="ds-theme">
+<!-- DS.core (3.0): a test behaviour `fx` (data-ds-fx, its option
+     data-ds-fx-label) counts its controllers in window.fxCore ({ log, made });
+     core.spec.js calls DS.core.init() itself. A list keyed for
+     DS.dom.morphHtml, a morph target, a data-ds-managed subtree, a blocked
+     button for the guard, and two dialogs for two copies of ds.js. -->
+<main class="fx-root">
+  <section class="fx-section" aria-labelledby="list-title">
+    <h2 id="list-title">Keyed list</h2>
+    <ul id="list">
+      <li data-ds-key="a" id="a" data-ds-fx>Alpha</li>
+      <li data-ds-key="b" id="b" data-ds-fx>Bravo</li>
+      <li data-ds-key="c" id="c" data-ds-fx>Charlie</li>
+    </ul>
+  </section>
+
+  <section class="fx-section" aria-labelledby="morph-title">
+    <h2 id="morph-title">Morph target</h2>
+    <div id="morph"><p id="para">A paragraph without a behaviour.</p></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="managed-title">
+    <h2 id="managed-title">Managed</h2>
+    <div id="managed" data-ds-managed>
+      <span id="inside" data-ds-fx>Owned by someone else</span>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="actions-title">
+    <h2 id="actions-title">Actions</h2>
+    <div class="fx-row">
+      <button class="ds-btn" type="button" id="plain">Export</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="blocked" aria-disabled="true">Publish</button>
+      <button class="ds-btn" type="button" id="open-first">Open the first dialog</button>
+    </div>
+  </section>
+  <div class="fx-tall"></div>
+</main>
+
+<div class="ds-dialog" id="first" hidden>
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="first-title">
+    <h2 class="ds-dialog__title" id="first-title">First copy</h2>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn" type="button" id="open-second">Open the second dialog</button>
+      <button class="ds-btn ds-btn--text" type="button" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="ds-dialog" id="second" hidden>
+  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__box" role="dialog" aria-modal="true" aria-labelledby="second-title">
+    <h2 class="ds-dialog__title" id="second-title">Second copy</h2>
+    <div class="ds-dialog__actions">
+      <button class="ds-btn ds-btn--text" type="button" id="second-close" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  (function () {
+    var log = [];
+    var made = [];
+    window.fxCore = { log: log, made: made };
+    window.fxSeen = [];
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest && event.target.closest('button');
+      if (button) window.fxSeen.push(button.id);
+    });
+    DS.core.define('fx', {
+      attribute: 'data-ds-fx',
+      attributes: ['data-ds-fx-label'],
+      init: function (el, ctx) {
+        var controller = {
+          id: made.length + 1,
+          key: el.id,
+          signal: ctx.signal,
+          destroy: function () { log.push('destroy ' + el.id); },
+        };
+        made.push(controller);
+        log.push('init ' + el.id);
+        return controller;
+      },
+    });
+  }());
+</script>
+</body>
+</html>

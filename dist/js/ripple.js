@@ -93,6 +93,7 @@
  * build bundles it into dist/ds.js as DS.ripple); newer APIs only behind
  * feature detection, named under Progressive:.
  */
+import { define, runtime } from './core.js';
 import { MOTION_FALLBACKS, flip, guard, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
 
 /** The actions that get a ripple. */
@@ -168,8 +169,8 @@ const pressing = new Set();
  * @property {() => void} detach  deprecated alias of destroy() (removed in 3.0 at the earliest)
  */
 
-/** The handle of each attached root. @type {WeakMap<Node, RippleHandle>} */
-const attached = new WeakMap();
+/** The handle of each attached root, shared by every copy on the page (DS.core.runtime). @type {WeakMap<Node, RippleHandle>} */
+const attached = runtime.state('ripple', () => new WeakMap());
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 
@@ -876,3 +877,12 @@ export function attach(root = document) {
   attached.set(root, handle);
   return handle;
 }
+
+/* DS.core.init() attaches the ripple to every root it initialises; a root attached before keeps its own handle. */
+define('ripple', {
+  global(root) {
+    const existed = attached.has(root);
+    const handle = attach(root);
+    return existed ? () => {} : () => handle.destroy();
+  },
+});

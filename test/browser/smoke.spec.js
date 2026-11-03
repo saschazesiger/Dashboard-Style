@@ -1,7 +1,7 @@
 /**
  * Smoke tests of the harness itself: the static server, the styleguide's
  * test hooks (`data-sg-ready`, `data-sg-theme`, `?speed=`), the version of
- * the loaded `dist/ds.js` and the four ES modules of `dist/js/`. When one of
+ * the loaded `dist/ds.js` and the seven ES modules of `dist/js/`. When one of
  * these fails, every other spec fails for the same reason; start here.
  */
 import { test, expect } from '@playwright/test';
@@ -56,7 +56,7 @@ test('the styleguide reaches data-sg-ready without a console error and runs this
 
 test('every fixture loads without a console error', async ({ page }) => {
   const errors = collectErrors(page);
-  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'shell-overlay', 'overlay', 'module', 'reset', 'reset-layered', 'spike', 'views', 'mpa-a', 'mpa-b', 'popups', 'toast-tooltip', 'perf', 'dialog-layout']) {
+  for (const name of ['motion', 'controls', 'feedback', 'data', 'shell', 'shell-overlay', 'overlay', 'module', 'reset', 'reset-layered', 'spike', 'views', 'mpa-a', 'mpa-b', 'popups', 'toast-tooltip', 'perf', 'dialog-layout', 'core']) {
     await page.goto(`${FIXTURES}${name}.html`);
     // module.html has no fixture.js: it reports through window.moduleResult.
     if (name === 'module') await page.waitForFunction(() => window.moduleResult);
@@ -65,12 +65,12 @@ test('every fixture loads without a console error', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('module.html imports the six ES modules and they export what window.DS exposes', async ({ page }) => {
+test('module.html imports the seven ES modules and they export what window.DS exposes', async ({ page }) => {
   await page.goto(`${FIXTURES}module.html`);
   const result = await page.waitForFunction(() => window.moduleResult).then((handle) => handle.jsonValue());
   expect(result.error).toBeUndefined();
   expect(result.missing).toEqual({});
-  expect(Object.keys(result.modules).sort()).toEqual(['dom', 'icons', 'indicator', 'motion', 'overlay', 'ripple']);
+  expect(Object.keys(result.modules).sort()).toEqual(['core', 'dom', 'icons', 'indicator', 'motion', 'overlay', 'ripple']);
   expect(result.ok).toBe(true);
 });
 
