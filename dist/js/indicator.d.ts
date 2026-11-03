@@ -1,3 +1,4 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Types of DS.indicator (js/indicator.js). Hand-written; test/build.test.js
  * keeps the declared exports and their parameters equal to the module's.

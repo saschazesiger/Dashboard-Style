@@ -1,0 +1,51 @@
+{
+  "name": "card",
+  "group": "layout",
+  "order": 80,
+  "docsOrder": 60,
+  "classes": [
+    "ds-card",
+    "ds-card--elevated",
+    "ds-card--filled",
+    "ds-card--interactive",
+    "ds-card__action",
+    "ds-card__link",
+    "ds-card__links",
+    "ds-card__row",
+    "ds-card__subtitle",
+    "ds-card__title",
+    "ds-more",
+    "ds-subsection"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "utilities"
+  ],
+  "context": [
+    "badge",
+    "chip",
+    "page",
+    "ripple",
+    "status",
+    "switch",
+    "table"
+  ],
+  "hooks": [
+    "--ds-btn-height",
+    "--ds-card-hover-shadow",
+    "--ds-card-padding",
+    "--ds-card-padding-filled",
+    "--ds-card-padding-sm",
+    "--ds-card-selected-bg",
+    "--ds-card-shadow",
+    "--ds-card-title-line",
+    "--ds-chip-height",
+    "--ds-selected-ring",
+    "--ds-switch-height"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": true
+}

@@ -1,0 +1,29 @@
+{
+  "name": "loader",
+  "group": "feedback",
+  "order": 50,
+  "docsOrder": null,
+  "classes": [
+    "ds-loader",
+    "ds-loader--contained",
+    "ds-loader--sm"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "loading"
+  ],
+  "hooks": [
+    "--ds-loader-color",
+    "--ds-loader-size",
+    "--ds-loader-sm-size"
+  ],
+  "keyframes": [
+    "ds-fade-in",
+    "ds-loader-morph",
+    "ds-loader-turn"
+  ],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

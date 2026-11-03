@@ -1,0 +1,49 @@
+{
+  "name": "utilities",
+  "group": "layout",
+  "order": 10,
+  "docsOrder": 350,
+  "classes": [
+    "ds-center",
+    "ds-divider",
+    "ds-divider--inset",
+    "ds-divider--label",
+    "ds-divider--vertical",
+    "ds-hover-actions",
+    "ds-hover-host",
+    "ds-icon--fillable",
+    "ds-icon--filled",
+    "ds-kbd",
+    "ds-meta",
+    "ds-muted",
+    "ds-nowrap",
+    "ds-num",
+    "ds-pressable",
+    "ds-pressable--inset",
+    "ds-pressable--lg",
+    "ds-sr",
+    "ds-touch"
+  ],
+  "attributes": [
+    "data-ds-shown"
+  ],
+  "requires": [],
+  "context": [
+    "card",
+    "ripple",
+    "shell",
+    "table"
+  ],
+  "hooks": [
+    "--ds-kbd-bg",
+    "--ds-kbd-border",
+    "--ds-pressable-layer",
+    "--ds-pressable-radius"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [
+    "text-wrap"
+  ],
+  "ripple": true
+}

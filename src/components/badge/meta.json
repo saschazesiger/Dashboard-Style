@@ -1,0 +1,33 @@
+{
+  "name": "badge",
+  "group": "feedback",
+  "order": 230,
+  "docsOrder": 150,
+  "classes": [
+    "ds-badge",
+    "ds-badge--error",
+    "ds-badge--neutral",
+    "ds-badge--ok",
+    "ds-badge--warning"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [
+    "chip",
+    "shell",
+    "table",
+    "tabs"
+  ],
+  "hooks": [
+    "--ds-badge-bg",
+    "--ds-badge-color",
+    "--ds-badge-radius",
+    "--ds-badge-size"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

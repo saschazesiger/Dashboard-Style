@@ -1,3 +1,4 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Motion helpers: the JS half of motion.css.
  *

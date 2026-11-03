@@ -5,8 +5,11 @@ Everything a project needs is in `dist/`:
 | Path | What |
 |---|---|
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
+| `ds.min.css` | `ds.css` minified (3.0), with its source map `ds.min.css.map`: the same rules, layers and order |
 | `ds.js` | classic script, sets `window.DS = { version, motion, indicator, dom, ripple, icons, overlay }` (see "Two copies on one page") |
-| `css/` | the single stylesheets (`tokens.css`, `motion.css`, `base.css`, `components/*.css`, `index.css`) |
+| `ds.min.js` | `ds.js` without comments and indentation (3.0): the same code, nothing renamed |
+| `css/` | the single stylesheets: `core/tokens.css`, `core/motion.css`, `core/base.css`, `components/<name>.css` and `index.css` (their `@import` list in cascade order); each starts with the layer statement and the statement of the component sublayers, and a `.min.css` with its `.min.css.map` sits next to each (3.0) |
+| `manifest.json` | the components as data (3.0): per component its files, group, classes, attributes, keyframes, hooks, the modules it needs, what it requires and its size; the core stylesheets and their classes; the JS modules with their imports and exports. Tools such as a bundler read it |
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
 | `js/` | the ES modules (`motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`), each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself |
@@ -172,14 +175,14 @@ import { icon, check } from './vendor/dashboard-style/js/icons.js';
 
 ```css
 @import './vendor/dashboard-style/css/index.css';   /* everything, or pick files: */
-@import './vendor/dashboard-style/css/tokens.css';
-@import './vendor/dashboard-style/css/motion.css';
+@import './vendor/dashboard-style/css/core/tokens.css';
+@import './vendor/dashboard-style/css/core/motion.css';
 @import './vendor/dashboard-style/css/components/utilities.css';
 @import './vendor/dashboard-style/css/components/button.css';
 @import './vendor/dashboard-style/css/components/ripple.css';   /* with DS.ripple */
 ```
 
-When you pick files, keep the order of `css/index.css` and always include `tokens.css`, `motion.css` (components
+When you pick files, keep the order of `css/index.css` and always include `core/tokens.css`, `core/motion.css` (components
 name the keyframes in it) and `components/utilities.css` (border-box sizing inside `.ds-theme`, `.ds-sr`). Add
 `components/ripple.css` whenever you call `DS.ripple.attach()`: without it the ripple span sits in the flow and
 widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
@@ -380,7 +383,7 @@ them to `check-theme.mjs --with`.
 | Rule | Level | What |
 |---|---|---|
 | `vendor` | error | the copy verifies against its `SHA256SUMS` ("Verify a copy") |
-| `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links one that defines it: a file whose rules style the class itself, not one that only places it inside another component (`.ds-alert .ds-btn` in `alert.css`); `.ds-theme` needs `css/tokens.css` |
+| `classes` | error | every `ds-` class in markup (`class="..."` in pages and template strings), in selectors of scripts and stylesheets and in `classList` calls exists in `ds.css`; a page that links single stylesheets (`css/components/*.css`) links one that defines it: a file whose rules style the class itself, not one that only places it inside another component (`.ds-alert .ds-btn` in `alert.css`); `.ds-theme` needs `css/core/tokens.css`; the `.min.css` of a stylesheet counts as the stylesheet |
 | `deprecated` | error, warning | a name of `deprecations.json`: removed names fail, deprecated ones warn |
 | `literals` | error | a colour, radius, font, shadow, duration or curve literal in a rule of your prefix (`.app-*`): read tokens (`--ds-*`, `--app-*`). `linear` is the curve of the system's loops and has no token: it passes on a `--ds-loop-*` duration (`animation: ds-spin var(--ds-loop-spin) linear infinite`), as do a zero duration (`0s`) and its curve |
 | `keyframes` | error | an own `@keyframes`, or an animation that names anything but a `ds-*` keyframe of the copy |

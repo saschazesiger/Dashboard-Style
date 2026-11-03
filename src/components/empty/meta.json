@@ -1,0 +1,32 @@
+{
+  "name": "empty",
+  "group": "feedback",
+  "order": 150,
+  "docsOrder": 130,
+  "classes": [
+    "ds-empty",
+    "ds-empty--done",
+    "ds-empty__disc",
+    "ds-empty__text",
+    "ds-empty__title"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": [
+    "--ds-empty-disc-size"
+  ],
+  "keyframes": [
+    "ds-draw",
+    "ds-fade-in",
+    "ds-pop-in",
+    "ds-ripple"
+  ],
+  "js": [],
+  "progressive": [
+    "text-wrap"
+  ],
+  "ripple": false
+}

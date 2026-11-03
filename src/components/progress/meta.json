@@ -1,0 +1,32 @@
+{
+  "name": "progress",
+  "group": "feedback",
+  "order": 280,
+  "docsOrder": 310,
+  "classes": [
+    "ds-progress",
+    "ds-progress--flat",
+    "ds-progress--indeterminate",
+    "ds-progress--waiting",
+    "ds-progress__bar",
+    "ds-progress__detail",
+    "ds-progress__label",
+    "ds-progress__track"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": [
+    "--ds-progress-gap",
+    "--ds-progress-stop",
+    "--ds-progress-track"
+  ],
+  "keyframes": [
+    "ds-progress-head",
+    "ds-progress-tail",
+    "ds-progress-wave"
+  ],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

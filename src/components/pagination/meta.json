@@ -1,0 +1,25 @@
+{
+  "name": "pagination",
+  "group": "navigation",
+  "order": 190,
+  "docsOrder": 180,
+  "classes": [
+    "ds-pagination",
+    "ds-pagination__label",
+    "ds-pagination__range",
+    "ds-pagination__size"
+  ],
+  "attributes": [],
+  "requires": [
+    "form"
+  ],
+  "context": [
+    "card",
+    "table"
+  ],
+  "hooks": [],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

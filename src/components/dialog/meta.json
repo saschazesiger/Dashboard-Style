@@ -1,0 +1,61 @@
+{
+  "name": "dialog",
+  "group": "overlays",
+  "order": 310,
+  "docsOrder": 250,
+  "classes": [
+    "ds-dialog",
+    "ds-dialog--bottom",
+    "ds-dialog--closing",
+    "ds-dialog--contained",
+    "ds-dialog--full",
+    "ds-dialog--full-narrow",
+    "ds-dialog--hidden",
+    "ds-dialog--nested",
+    "ds-dialog--wide",
+    "ds-dialog__actions",
+    "ds-dialog__backdrop",
+    "ds-dialog__body",
+    "ds-dialog__box",
+    "ds-dialog__head",
+    "ds-dialog__list",
+    "ds-dialog__text",
+    "ds-dialog__title"
+  ],
+  "attributes": [
+    "data-ds-sentinel",
+    "data-ds-text",
+    "data-scrolled",
+    "data-state"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": [
+    "--ds-dialog-border",
+    "--ds-dialog-full-radius",
+    "--ds-dialog-height",
+    "--ds-dialog-scrim",
+    "--ds-dialog-shadow",
+    "--ds-dialog-width",
+    "--ds-dialog-width-wide"
+  ],
+  "keyframes": [
+    "ds-drop-out",
+    "ds-fade-in",
+    "ds-fade-out",
+    "ds-grow-in",
+    "ds-lift-in",
+    "ds-shrink-out"
+  ],
+  "js": [
+    "overlay"
+  ],
+  "progressive": [
+    "@starting-style",
+    "allow-discrete",
+    "scrollbar-color"
+  ],
+  "ripple": false
+}

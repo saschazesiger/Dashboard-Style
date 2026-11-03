@@ -1,0 +1,30 @@
+{
+  "name": "disclosure",
+  "group": "content",
+  "order": 90,
+  "docsOrder": 80,
+  "classes": [
+    "ds-disclosure",
+    "ds-disclosure--row",
+    "ds-disclosure-list",
+    "ds-disclosure__body",
+    "ds-disclosure__meta",
+    "ds-disclosure__title"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "card",
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-disclosure-height",
+    "--ds-disclosure-row-height"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [
+    "details[name]"
+  ],
+  "ripple": true
+}

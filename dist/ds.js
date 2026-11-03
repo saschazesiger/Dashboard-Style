@@ -1,4 +1,4 @@
-/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Classic-script build of src/js (no modules needed): window.DS.motion,
  * DS.indicator, DS.dom, DS.ripple, DS.icons and DS.overlay hold the same
@@ -15,7 +15,7 @@
  */
 (function (root) {
   'use strict';
-  var version = '2.1.3';
+  var version = '3.0.0-alpha.0';
   var registry = root.DashboardStyle || (root.DashboardStyle = {});
   var versions = registry.versions || (registry.versions = {});
   if (versions[version]) return;

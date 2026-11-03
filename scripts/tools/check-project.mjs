@@ -209,8 +209,8 @@ export function definingFiles(sheets) {
   for (const tier of [...tiers].reverse()) {
     for (const [name, files] of tier) defined.set(name, [...files.keys()].sort((a, b) => files.get(b) - files.get(a) || a.localeCompare(b)));
   }
-  defined.set('ds-theme', ['css/tokens.css']);
-  defined.set('ds-base', ['css/base.css']);
+  defined.set('ds-theme', ['css/core/tokens.css']);
+  defined.set('ds-base', ['css/core/base.css']);
   return defined;
 }
 
@@ -223,7 +223,8 @@ function readCopy(vendorDir) {
   for (const match of ds.matchAll(/\.(ds-[\w-]+)/g)) classes.add(match[1]);
   for (const match of ds.matchAll(/@keyframes\s+(ds-[\w-]+)/g)) keyframes.add(match[1]);
   const cssDir = join(vendorDir, 'css');
-  const sheets = existsSync(cssDir) ? walk(cssDir).filter((path) => path.endsWith('.css') && !path.startsWith('optional/') && path !== 'index.css')
+  // The single stylesheets (a .min.css is the same file minified: linking either one counts, see `single` below).
+  const sheets = existsSync(cssDir) ? walk(cssDir).filter((path) => path.endsWith('.css') && !path.endsWith('.min.css') && !path.startsWith('optional/') && path !== 'index.css')
     .map((path) => ({ path: `css/${path}`, css: readFileSync(join(cssDir, path), 'utf8') })) : [];
   const fileOf = definingFiles(sheets);
   const json = (name) => (existsSync(join(vendorDir, name)) ? JSON.parse(readFileSync(join(vendorDir, name), 'utf8')) : null);
@@ -316,7 +317,8 @@ export function checkProject(config, root) {
         // ds.css and css/index.css (which imports every stylesheet) bring every class.
         const single = sheets.some((href) => /\/css\/[\w/.-]+\.css$/.test(href)) && !sheets.some((href) => /(^|\/)ds\.css$|\/css\/index\.css$/.test(href));
         const needs = copy.fileOf.get(name) ?? [];
-        if (single && needs.length && !needs.some((path) => sheets.some((href) => href.endsWith(`/${path}`) || href === path))) {
+        const linkedAs = (path) => [path, path.replace(/\.css$/, '.min.css')];
+        if (single && needs.length && !needs.some((path) => linkedAs(path).some((form) => sheets.some((href) => href.endsWith(`/${form}`) || href === form)))) {
           const others = needs.length > 1 ? ` (or ${needs.slice(1).join(', ')})` : '';
           add('error', file, lineAt(source, index), 'classes', `.${name} needs ${needs[0]}${others}, which this page does not link`);
         }

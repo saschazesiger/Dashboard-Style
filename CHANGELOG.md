@@ -4,6 +4,50 @@ All notable changes. Versions follow [semver](https://semver.org): renaming or r
 export is a major change; adding one is a minor change. Identifiers such as D7 refer to the design decisions in
 [plans/motion-2.md](plans/motion-2.md).
 
+## 3.0.0 (unreleased)
+
+A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
+`3.0.0-alpha.<n>`.
+
+### Wave 0: restructure (3.0.0-alpha.0)
+
+The repository moves to the 3.0 layout and the generated-registry model. What the CSS does is unchanged: apart from
+file markers and comments, `ds.css` gains one statement (the reserved sublayers, below), and a comparison of the
+computed styles of every element (and its `::before` and `::after`) of the styleguide, the Motion Lab and the
+reference app against 2.1.3 found no difference. `ds.min.css` renders the same as `ds.css` in all three engines
+(`test/browser/minified.spec.js`).
+
+- **Layout.** `src/tokens.css`, `src/base.css` and `src/motion.css` moved to `src/core/`. Every component is a
+  folder, `src/components/<name>/`, holding `<name>.css`, `meta.json`, its section of the docs (`<name>.md`) and,
+  where split, its styleguide demo (`<name>.demo.js`).
+- **`meta.json`** per component: `name`, `group`, `order` (the cascade order), `docsOrder`, `classes`,
+  `attributes`, `requires` (what the component needs, which a bundle resolves), `context` (components it only
+  styles where both meet, never pulled in), `hooks`, `keyframes`, `js`, `progressive` and `ripple`. Written once by
+  `scripts/gen-meta.mjs`, maintained by hand; the build checks each against its stylesheet and stops with the
+  reason on a mismatch.
+- **Generated:** `src/index.css` (from `order`), `docs/components.md` (from the partials in
+  `src/components/_partials/` and every `<name>.md`; byte for byte the 2.1.3 file) and `styleguide/demos.js` (the
+  demos as `window.SG_DEMOS`, a classic script, so the styleguide still works from disk; the Charts section is the
+  first one split). `npm run build -- --check` covers them.
+- **dist/ paths:** the single stylesheets are now `css/core/{tokens,base,motion}.css` and
+  `css/components/<name>.css` (2.x: `css/tokens.css` ...). Every file of `dist/css/` carries the layer statement and
+  the sublayer statement, so a subset loads in the right order.
+- **Sublayers, reserved.** `src/index.css` declares `ds.components.<name>` for every component, in cascade order.
+  The components do not use them yet: moving them in would change the cascade, because 2.x lets an earlier
+  component's heavier rule beat a later one's `:where()` default in several places that form cycles (the ripple
+  host's position, card spacing against the lists, a link button's hover inside an alert). Each component moves
+  into its sublayer when it is ported.
+- **Minified builds:** `ds.min.css` (lightningcss, at the floor Safari 17.5, Chrome 123, Firefox 130, lowering and
+  prefixing nothing) and a `.min.css` next to every stylesheet of `css/`, each with a source map; `ds.min.js`
+  (comments and indentation stripped, nothing renamed). lightningcss is a pinned devDependency of the build:
+  `npm ci` before `npm run build` or `npm test`; `dist/` and the tools stay dependency-free.
+- **`dist/manifest.json`:** the layer statements, the core stylesheets and their classes (`pseudo`), the component
+  order, per component its files, group, requires, context, classes, attributes, keyframes, js, hooks and sizes
+  (`bytes`, `gzip` of its `.min.css`), and the JS modules with their imports and exports.
+- **Version banner** on every CSS, JS, MJS, `.d.ts` and shell file of `dist/`, the themes and tools included.
+- **Tools:** `check-project.mjs` knows the new paths (`.ds-theme` needs `css/core/tokens.css`) and accepts the
+  `.min.css` of a stylesheet as that stylesheet.
+
 ## 2.1.3
 
 Performance. No class, token, hook or export changed, and nothing looks or moves differently; no migration is

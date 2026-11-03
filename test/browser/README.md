@@ -87,6 +87,7 @@ npm run test:browser -- --project=perf   # the paint budget and style recalc tim
 | `roving.spec.js` | all, `fallback` | `DS.dom.roving()` (2.0): a tab list is one tab stop; the arrows, Home and End move the focus and the selection, skip a disabled tab and reach an `aria-disabled` one; a toolbar moves the focus only and does not wrap; a re-render keeps the keys working |
 | `sortable.spec.js` | all, `fallback` | `DS.motion.sortable()` (2.0): the keys of the grip move the row, keep the focus and speak the position; a pointer drag carries the row past two others, lands and reports the order; `destroy()` lets go |
 | `dropzone.spec.js` | all, `fallback` (a synthetic file drag where the engine builds a `DataTransfer` with files; WebKit drives the attribute) | `DS.dom.dropzone()` and `.ds-dropzone` (2.0): a file drag over the zone and its children shows the drop state, a drop hands on the accepted file, a text drag changes nothing, a page drop target gets the dashed outline and several files, a paste with the focus inside takes the clipboard's file |
+| `minified.spec.js` | all | `dist/ds.min.css` against `dist/ds.css` (3.0) on `minified.html` (`?min` loads the minified file): every element of a sample of all component groups and its `::before` and `::after` compute the same styles; custom properties count as the same when the browser computes both alike as a real property (lightningcss writes `#fff`, `.15s`, double quotes) |
 | `regressions.spec.js`, `styleguide-regressions.spec.js` | per marker | the known bugs as `test.fail` ("Known bugs"); a fixed bug's test stays and passes |
 | `lab.spec.js` | all, `fallback` (videos with `DS_VIDEO=1`) | the Motion Lab ("Motion Lab: `lab.spec.js`"): the speed select, the curve plots and the ladder, coverage of every primitive by a demo, every demo's Replay timeline (JSON) and settled stage (PNG) per engine, Rapid toggle ending on the far state, Reverse at 50% continuous at `?speed=0.1`, the Overlays table of `docs/motion.md` against what each engine plays, and every stage holding its demo at 1280, 1000 and 390px (the open disclosure keeps its stage's height; the skeleton keeps the height of the page that replaces it) |
 | `review.spec.js` | all (forced colours, style scope: Chromium; page loads: Chromium, WebKit) | the review sweeps over both styleguide pages ("Review sweeps: `review.spec.js`"): quiet load, hover, disabled, forced colours, the page load transition, the style scope of a DOM change |
@@ -322,7 +323,7 @@ older runs of another branch are.
 
 | Job | What |
 |---|---|
-| `check` | Node 22 and 24: `npm run check` and the vendor round trip; no `npm ci`, the unit tests need nothing installed |
+| `check` | Node 22 and 24: `npm ci` (lightningcss, the minifier of the build), `npm run check` and the vendor round trip |
 | `browser` | after `check`; one job per project, the three engines and `fallback` (`fail-fast: false`) in `mcr.microsoft.com/playwright:v1.63.0-noble` as user 1001: `npm ci`, then the engine's project; uploads `playwright-report/` and `test-results/` on failure (14 days) and, with "update screenshots", the rewritten `__screenshots__/` |
 
 The container tag and the pinned `@playwright/test` version change together (`test/repo.test.js`).

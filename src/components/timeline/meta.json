@@ -1,0 +1,41 @@
+{
+  "name": "timeline",
+  "group": "data",
+  "order": 120,
+  "docsOrder": 100,
+  "classes": [
+    "ds-timeline",
+    "ds-timeline__actions",
+    "ds-timeline__body",
+    "ds-timeline__day",
+    "ds-timeline__group",
+    "ds-timeline__head",
+    "ds-timeline__item",
+    "ds-timeline__item--icon",
+    "ds-timeline__item--muted",
+    "ds-timeline__marker",
+    "ds-timeline__meta",
+    "ds-timeline__text",
+    "ds-timeline__title"
+  ],
+  "attributes": [
+    "data-ds-glide"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": [
+    "--ds-timeline-divider-color",
+    "--ds-timeline-dot-color",
+    "--ds-timeline-dot-size",
+    "--ds-timeline-head-line",
+    "--ds-timeline-indent",
+    "--ds-timeline-line-color",
+    "--ds-timeline-line-width",
+    "--ds-timeline-marker-size",
+    "--ds-timeline-muted-color"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

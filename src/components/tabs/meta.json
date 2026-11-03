@@ -1,0 +1,35 @@
+{
+  "name": "tabs",
+  "group": "navigation",
+  "order": 360,
+  "docsOrder": 30,
+  "classes": [
+    "ds-tabs",
+    "ds-tabs--fill",
+    "ds-tabs--flush",
+    "ds-tabs__indicator",
+    "ds-tabs__panel",
+    "ds-tabs__tab"
+  ],
+  "attributes": [
+    "data-label"
+  ],
+  "requires": [],
+  "context": [
+    "indicator",
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-tabs-height",
+    "--ds-tabs-indicator-color",
+    "--ds-tabs-indicator-height"
+  ],
+  "keyframes": [],
+  "js": [
+    "indicator"
+  ],
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": true
+}

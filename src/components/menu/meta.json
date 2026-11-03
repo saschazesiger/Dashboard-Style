@@ -1,0 +1,46 @@
+{
+  "name": "menu",
+  "group": "overlays",
+  "order": 270,
+  "docsOrder": 240,
+  "classes": [
+    "ds-menu",
+    "ds-menu__check",
+    "ds-menu__divider",
+    "ds-menu__heading",
+    "ds-menu__item",
+    "ds-menu__label",
+    "ds-menu__meta"
+  ],
+  "attributes": [
+    "data-anchored",
+    "data-ds-overflow-end",
+    "data-ds-overflow-start",
+    "data-placement",
+    "data-state"
+  ],
+  "requires": [],
+  "context": [
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-menu-item-height",
+    "--ds-scroll-fade"
+  ],
+  "keyframes": [
+    "ds-clip-in",
+    "ds-fade-in",
+    "ds-scroll-edge-end",
+    "ds-scroll-edge-start"
+  ],
+  "js": [
+    "overlay"
+  ],
+  "progressive": [
+    "popover",
+    "anchor positioning",
+    "scroll-driven",
+    "scrollbar-color"
+  ],
+  "ripple": true
+}

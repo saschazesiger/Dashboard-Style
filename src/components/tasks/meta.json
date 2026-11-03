@@ -1,0 +1,23 @@
+{
+  "name": "tasks",
+  "group": "data",
+  "order": 130,
+  "docsOrder": 110,
+  "classes": [
+    "ds-tasks",
+    "ds-tasks__head",
+    "ds-tasks__item",
+    "ds-tasks__mark",
+    "ds-tasks__text"
+  ],
+  "attributes": [
+    "data-status"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": [],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

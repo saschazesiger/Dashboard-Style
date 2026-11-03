@@ -2,7 +2,7 @@
 
 Character comes from shape and colour, not movement. Motion should only be noticed as calm and fluid: short
 distances, Material curves and a gentle spring for movement that floats. All timing lives in tokens
-([Tokens](#tokens)), all keyframes in `src/motion.css`. Motion is the same on every device.
+([Tokens](#tokens)), all keyframes in `src/core/motion.css`. Motion is the same on every device.
 
 This page is the one reference for motion: the principles, the tokens, the numbered rules (each with the test that
 holds it), the choreography of every component, interruption, the keyframes and utilities, the JS modules, recipes,
@@ -81,7 +81,7 @@ never decrease (both tested, in `test/tokens.test.js` and in every engine by the
 spring is normalised to its settle time, so one curve serves every size and the duration picks it: small controls,
 menus and popups take `--ds-dur-medium`, dialogs, FLIP and the indicator `--ds-dur-slow`, sheets, the drawer and
 container transforms `--ds-dur-long`. `scripts/motion-curves.mjs` generates both `linear()` values of
-`src/tokens.css` (the spring and the exact emphasized path) and the stops of the generated loops
+`src/core/tokens.css` (the spring and the exact emphasized path) and the stops of the generated loops
 (`node scripts/motion-curves.mjs`; its `--check` mode runs in `npm run check`). Where `linear()` is missing the
 spring falls back to `--ds-ease-out`, which lands without overshoot.
 
@@ -592,7 +592,7 @@ staggered grid never flash), a `.ds-spinner` its loop (it has no delay of its ow
 `.ds-enter` and `.ds-leave` still replace a loader's animation, except that `.ds-leave` on a `.ds-loadbar` or a
 `.ds-skeleton` keeps its loop running (the segments and the wave move on while the exit fades them out).
 
-Per-element settings, registered in `src/motion.css` with `inherits: false`: they take tokens only, are set on the
+Per-element settings, registered in `src/core/motion.css` with `inherits: false`: they take tokens only, are set on the
 animating element and never reach its descendants: `--ds-motion-distance` (travel of lift, grow, shift, roll, drop,
 shrink), `--ds-motion-scale` (start of grow and pop-in, end of shrink and pop-out), `--ds-motion-origin` (where a
 popup grows from), `--ds-clip-from` (the hidden end of `ds-clip-in` / `ds-clip-out`), `--ds-draw-length` (start of

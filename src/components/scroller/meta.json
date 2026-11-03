@@ -1,0 +1,32 @@
+{
+  "name": "scroller",
+  "group": "layout",
+  "order": 20,
+  "docsOrder": 190,
+  "classes": [
+    "ds-jump",
+    "ds-scroll-x"
+  ],
+  "attributes": [
+    "data-ds-edges",
+    "data-ds-overflow-end",
+    "data-ds-overflow-start"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": [
+    "--ds-scroll-fade"
+  ],
+  "keyframes": [
+    "ds-scroll-edge-end",
+    "ds-scroll-edge-start"
+  ],
+  "js": [
+    "dom"
+  ],
+  "progressive": [
+    "scroll-driven",
+    "scrollbar-color"
+  ],
+  "ripple": false
+}

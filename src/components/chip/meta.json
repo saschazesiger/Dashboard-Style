@@ -1,0 +1,41 @@
+{
+  "name": "chip",
+  "group": "forms",
+  "order": 220,
+  "docsOrder": 210,
+  "classes": [
+    "ds-chip",
+    "ds-chip--input",
+    "ds-chip__body",
+    "ds-chip__check",
+    "ds-chip__icon",
+    "ds-chip__input",
+    "ds-chip__label",
+    "ds-chip__trailing",
+    "ds-chips",
+    "ds-chips--wrap",
+    "ds-chips__divider"
+  ],
+  "attributes": [
+    "data-ds-glide",
+    "data-ds-snap"
+  ],
+  "requires": [],
+  "context": [
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-chip-check-size",
+    "--ds-chip-disabled-bg",
+    "--ds-chip-disabled-border",
+    "--ds-chip-height",
+    "--ds-chip-input-bg",
+    "--ds-chip-input-border",
+    "--ds-chip-input-color",
+    "--ds-chip-max-width"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": true
+}

@@ -1,0 +1,20 @@
+{
+  "name": "slider",
+  "group": "forms",
+  "order": 250,
+  "docsOrder": null,
+  "classes": [
+    "ds-slider",
+    "ds-slider__value"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": [
+    "--ds-slider-halo"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

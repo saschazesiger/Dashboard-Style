@@ -1,0 +1,55 @@
+{
+  "name": "sheet",
+  "group": "overlays",
+  "order": 300,
+  "docsOrder": 260,
+  "classes": [
+    "ds-sheet",
+    "ds-sheet--closing",
+    "ds-sheet__backdrop",
+    "ds-sheet__body",
+    "ds-sheet__foot",
+    "ds-sheet__head",
+    "ds-sheet__heading",
+    "ds-sheet__panel",
+    "ds-sheet__panel--wide",
+    "ds-sheet__subtitle",
+    "ds-sheet__title"
+  ],
+  "attributes": [
+    "data-ds-vt",
+    "data-scrolled",
+    "data-state",
+    "data-toast-reserve"
+  ],
+  "requires": [
+    "button",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": [
+    "--ds-sheet-foot-border",
+    "--ds-sheet-width",
+    "--ds-sheet-width-wide"
+  ],
+  "keyframes": [
+    "ds-drop-out",
+    "ds-fade-in",
+    "ds-fade-out",
+    "ds-lift-in",
+    "ds-scroll-fade",
+    "ds-shift-in",
+    "ds-shift-out"
+  ],
+  "js": [
+    "overlay"
+  ],
+  "progressive": [
+    "@starting-style",
+    "allow-discrete",
+    "View Transitions",
+    "scroll-driven",
+    "scrollbar-color"
+  ],
+  "ripple": false
+}

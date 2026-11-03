@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEPRECATION_KINDS, MODULES, build, deprecationsJson, inlineCss, moduleBody, packageInfo, SHIPPED_THEMES, tokensJson } from '../scripts/build.mjs';
+import { DEPRECATION_KINDS, MODULES, build, deprecationsJson, inlineCss, moduleBody, packageInfo, SHIPPED_THEMES, tokensJson, withBanner } from '../scripts/build.mjs';
 import { filesIn, read, stripComments } from './helpers.js';
 
 /** Writes `files` ({ name: css }) into a fresh temporary folder and runs `check` on it. */
@@ -150,16 +150,17 @@ describe('moduleBody()', () => {
 
 describe('dist/themes/ and dist/tools/', () => {
   const out = build();
-  it('ships the three themes and every tool, byte for byte, and lists them in SHA256SUMS', () => {
+  const info = packageInfo();
+  it('ships the three themes and every tool, byte for byte under the version banner, and lists them in SHA256SUMS', () => {
     const sums = out.get('SHA256SUMS').toString('utf8');
     for (const name of SHIPPED_THEMES) {
-      assert.equal(out.get(`themes/${name}.css`)?.toString('utf8'), read(`themes/${name}.css`), name);
+      assert.equal(out.get(`themes/${name}.css`)?.toString('utf8'), withBanner(`${name}.css`, read(`themes/${name}.css`), info), name);
       assert.match(sums, new RegExp(`^[0-9a-f]{64}  themes/${name}\\.css$`, 'm'));
     }
     assert.ok(!out.has('themes/example.css'), 'the template is not shipped');
     const tools = filesIn('scripts/tools').map((path) => path.slice('scripts/tools/'.length));
     for (const name of ['verify.mjs', 'verify.sh', 'check-theme.mjs', 'check-project.mjs', 'css-scan.mjs', 'theme-rules.mjs']) assert.ok(tools.includes(name), name);
-    for (const name of tools) assert.equal(out.get(`tools/${name}`)?.toString('utf8'), read(`scripts/tools/${name}`), name);
+    for (const name of tools) assert.equal(out.get(`tools/${name}`)?.toString('utf8'), withBanner(name, read(`scripts/tools/${name}`), info), name);
     assert.ok(out.has('tokens.json'));
   });
 });
@@ -186,7 +187,7 @@ describe('dist/tokens.json', () => {
   });
 
   it('keeps tokens.css, the hooks table of docs/theming.md and the stylesheets in step', () => {
-    const source = read('src/tokens.css');
+    const source = read('src/core/tokens.css');
     const marker = source.indexOf('── 2. Palette');
     const end = source.indexOf('\n  }\n', marker);
     const names = (text) => [...stripComments(text).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]);
@@ -273,10 +274,11 @@ describe('types (dist/ds.d.ts, dist/js/*.d.ts)', () => {
   const out = build();
   it('ships src/types/ds.d.ts and one .d.ts next to every module, listed in SHA256SUMS', () => {
     const sums = out.get('SHA256SUMS').toString('utf8');
-    assert.equal(out.get('ds.d.ts')?.toString('utf8'), read('src/types/ds.d.ts'));
+    const info = packageInfo();
+    assert.equal(out.get('ds.d.ts')?.toString('utf8'), withBanner('ds.d.ts', read('src/types/ds.d.ts'), info));
     assert.match(sums, /^[0-9a-f]{64} {2}ds\.d\.ts$/m);
     for (const name of MODULES) {
-      assert.equal(out.get(`js/${name}.d.ts`)?.toString('utf8'), read(`src/types/js/${name}.d.ts`), name);
+      assert.equal(out.get(`js/${name}.d.ts`)?.toString('utf8'), withBanner(`${name}.d.ts`, read(`src/types/js/${name}.d.ts`), info), name);
       assert.match(sums, new RegExp(`^[0-9a-f]{64}  js/${name}\\.d\\.ts$`, 'm'));
     }
     const global = stripComments(read('src/types/ds.d.ts'));

@@ -1,0 +1,70 @@
+{
+  "name": "button",
+  "group": "actions",
+  "order": 30,
+  "docsOrder": 50,
+  "classes": [
+    "ds-btn",
+    "ds-btn--adaptive",
+    "ds-btn--disc",
+    "ds-btn--disclosure",
+    "ds-btn--done",
+    "ds-btn--icon",
+    "ds-btn--outlined",
+    "ds-btn--primary",
+    "ds-btn--quiet",
+    "ds-btn--sm",
+    "ds-btn--text",
+    "ds-btn--tonal",
+    "ds-btn__face",
+    "ds-btn__face--busy",
+    "ds-btn__face--done",
+    "ds-btn__faces",
+    "ds-btn__label",
+    "ds-link--quiet",
+    "ds-link-btn",
+    "ds-link-btn--quiet"
+  ],
+  "attributes": [],
+  "requires": [
+    "spinner"
+  ],
+  "context": [
+    "dialog",
+    "indicator",
+    "page",
+    "ripple",
+    "sheet"
+  ],
+  "hooks": [
+    "--ds-btn-bg",
+    "--ds-btn-border",
+    "--ds-btn-color",
+    "--ds-btn-disabled-bg",
+    "--ds-btn-disabled-border",
+    "--ds-btn-font",
+    "--ds-btn-height",
+    "--ds-btn-hover-border",
+    "--ds-btn-hover-color",
+    "--ds-btn-hover-decoration",
+    "--ds-btn-hover-shadow",
+    "--ds-btn-icon-size",
+    "--ds-btn-padding-start",
+    "--ds-btn-padding-x",
+    "--ds-btn-quiet-color",
+    "--ds-btn-radius",
+    "--ds-btn-radius-pressed",
+    "--ds-btn-sm-height",
+    "--ds-btn-sm-icon-size",
+    "--ds-btn-state",
+    "--ds-btn-state-focus-opacity",
+    "--ds-btn-state-opacity",
+    "--ds-btn-state-pressed-opacity"
+  ],
+  "keyframes": [
+    "ds-draw"
+  ],
+  "js": [],
+  "progressive": [],
+  "ripple": true
+}

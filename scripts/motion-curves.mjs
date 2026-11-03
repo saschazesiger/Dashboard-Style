@@ -3,10 +3,10 @@
  * The one generator of sampled motion data, without dependencies and
  * deterministic: easing curves, loop keyframe stops and the wave masks.
  *
- *   node scripts/motion-curves.mjs           rewrite the generated parts of src/tokens.css and src/motion.css
+ *   node scripts/motion-curves.mjs           rewrite the generated parts of src/core/tokens.css and src/core/motion.css
  *   node scripts/motion-curves.mjs --check   exit 1 if they differ from the output or break their contract
  *
- * Easing curves (src/tokens.css, inside the
+ * Easing curves (src/core/tokens.css, inside the
  * `@supports (transition-timing-function: linear(0, 1))` block): each becomes
  * a linear() easing (Progressive: older engines keep the cubic-bezier
  * fallback of the main .ds-theme rule). The stops are chosen adaptively on
@@ -19,12 +19,12 @@
  *
  * Generated blocks, each between a `/* generated: <name> *\/` and an
  * `/* end generated: <name> *\/` marker (never edit them by hand):
- *   src/motion.css  loader-morph      the 7 Material 3 loader shapes as polygon()s
+ *   src/core/motion.css  loader-morph      the 7 Material 3 loader shapes as polygon()s
  *                   progress-head     the heads of the two-segment indeterminate bar
  *                   progress-tail     its tails
  *                   spinner-arc       the arc of the spinner (sweep and start)
  *                   skeleton-wave     the sweep of the skeleton wave
- *   src/tokens.css  progress-masks    the wave length and the wave masks of progress
+ *   src/core/tokens.css  progress-masks    the wave length and the wave masks of progress
  *
  * The loop curves are baked into the keyframe stops (linear interpolation
  * between them), so the loops run `linear` timing and need no curve token;
@@ -35,8 +35,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const TOKENS = 'src/tokens.css';
-const MOTION = 'src/motion.css';
+const TOKENS = 'src/core/tokens.css';
+const MOTION = 'src/core/motion.css';
 
 /** Largest distance between the sampled line and the analytic curve. */
 export const TOLERANCE = 0.002;
@@ -659,7 +659,7 @@ const SUPPORTS = '@supports (transition-timing-function: linear(0, 1))';
 /** tokens.css with every owned value inside the linear() @supports block replaced. */
 export function rewrite(source) {
   const start = source.indexOf(SUPPORTS);
-  if (start < 0) throw new Error(`src/tokens.css: no "${SUPPORTS}" block`);
+  if (start < 0) throw new Error(`src/core/tokens.css: no "${SUPPORTS}" block`);
   let depth = 0;
   let end = source.indexOf('{', start);
   do {
@@ -670,7 +670,7 @@ export function rewrite(source) {
   let block = source.slice(start, end);
   for (const [name, value] of Object.entries(curves())) {
     const pattern = new RegExp(`(${name}:\\s*)linear\\([^;]*\\);`);
-    if (!pattern.test(block)) throw new Error(`src/tokens.css: ${name}: linear(...); missing in the ${SUPPORTS} block`);
+    if (!pattern.test(block)) throw new Error(`src/core/tokens.css: ${name}: linear(...); missing in the ${SUPPORTS} block`);
     block = block.replace(pattern, (match, head) => `${head}${value};`);
   }
   return source.slice(0, start) + block + source.slice(end);

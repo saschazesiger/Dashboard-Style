@@ -207,16 +207,16 @@ Which component fits which need: the table at the top of [docs/components.md](do
 ## 🗂️ Files
 
 ```
-dist/            what you ship (built, committed): ds.css, ds.js, ds.d.ts, css/ (with css/optional/, css/properties.css), js/, fonts/, themes/, tools/, tokens.json, LICENSE, SHA256SUMS
-src/             sources: tokens.css, motion.css, base.css, components/*.css, optional/*.css, js/*.js, types/ (ds.d.ts, js/*.d.ts), deprecations.json, index.css (order)
+dist/            what you ship (built, committed): ds.css, ds.min.css, ds.js, ds.min.js, ds.d.ts, css/ (core/, components/, optional/, properties.css; a .min.css next to each), js/, fonts/, themes/, tools/, manifest.json, tokens.json, LICENSE, SHA256SUMS
+src/             sources: core/ (tokens.css, motion.css, base.css), components/<name>/ (<name>.css, meta.json, <name>.md, <name>.demo.js), optional/*.css, js/*.js, types/ (ds.d.ts, js/*.d.ts), deprecations.json, index.css (generated)
 fonts/           Google Sans (latin, latin-ext) with fonts.css and OFL.txt
 themes/          example.css, the theme template; dark.css, compact.css, contrast.css, the shipped themes
 demo/            the live tour: one page that demonstrates every behaviour (the start page on GitHub Pages)
 example/         the reference app: a device console on top of dist/, as a project builds one (published on GitHub Pages)
 styleguide/      living styleguide (open index.html; motion.html: the Motion Lab; views.html: view transitions and scrolling)
-scripts/         build.mjs, motion-curves.mjs, vendor.sh, vendor.ps1, site.sh (assembles the GitHub Pages site); tools/: the sources of dist/tools/
+scripts/         build.mjs, gen-meta.mjs, motion-curves.mjs, vendor.sh, vendor.ps1, site.sh (assembles the GitHub Pages site); tools/: the sources of dist/tools/
 templates/       update-dashboard-style.yml, a GitHub Actions workflow that keeps a copy on main
-test/            node --test unit tests, no dependencies; test/browser/ Playwright tests (three engines)
+test/            node --test unit tests (npm ci once, for lightningcss); test/browser/ Playwright tests (three engines)
 docs/            the documentation above (docs/images/: the pictures of this README)
 AGENTS.md        how to work on the system (CLAUDE.md points to it)
 ```

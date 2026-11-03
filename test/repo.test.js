@@ -70,18 +70,28 @@ describe('repository', () => {
     assert.match(read('fonts/fonts.css'), /url\('google-sans-latin-opsz-normal\.woff2'\)/, 'relative font URLs');
   });
 
-  it('keeps version numbers in step (package.json, CHANGELOG, banners)', () => {
+  it('keeps version numbers in step (package.json, CHANGELOG, banners, DS.version)', () => {
     const { version } = JSON.parse(read('package.json'));
-    assert.match(read('CHANGELOG.md'), new RegExp(`^## ${version.replace(/\./g, '\\.')}\\b`, 'm'));
-    assert.match(read('dist/ds.css'), new RegExp(`^/\\*! Dashboard-Style ${version.replace(/\./g, '\\.')} `));
+    assert.match(version, /^\d+\.\d+\.\d+(-(alpha|beta|rc)\.\d+)?$/, 'a release or a pre-release of one');
+    // A pre-release (3.0.0-alpha.0) writes into the section of its release, marked unreleased: "## 3.0.0 (unreleased)".
+    const release = version.replace(/-.*$/, '');
+    const heading = version === release ? `^## ${release.replace(/\./g, '\\.')}\\b` : `^## ${release.replace(/\./g, '\\.')} \\(unreleased\\)$`;
+    assert.match(read('CHANGELOG.md'), new RegExp(heading, 'm'));
+    assert.equal(read('CHANGELOG.md').match(/^## .*$/m)[0].startsWith(`## ${release}`), true, 'the newest section comes first');
+    const escaped = version.replace(/[.-]/g, (c) => `\\${c}`);
+    for (const file of ['dist/ds.css', 'dist/ds.min.css', 'dist/ds.js', 'dist/ds.min.js', 'dist/css/components/button.css', 'dist/css/components/button.min.css', 'dist/css/core/tokens.css', 'dist/js/motion.js', 'dist/themes/dark.css']) {
+      assert.match(read(file), new RegExp(`^/\\*! Dashboard-Style ${escaped} `), `${file}: the version banner`);
+    }
+    assert.match(read('dist/ds.js'), new RegExp(`var version = '${escaped}';`), 'DS.version');
+    assert.equal(JSON.parse(read('dist/manifest.json')).version, version, 'manifest.json');
   });
 
   it('counts the components right in the styleguide overview and the README badge, and lists them in AGENTS.md', () => {
-    const files = filesIn('src/components', (path) => path.endsWith('.css')).map((path) => path.slice('src/components/'.length, -'.css'.length));
+    const files = filesIn('src/components', (path) => path.endsWith('.css')).map((path) => path.slice(path.lastIndexOf('/') + 1, -'.css'.length));
     assert.match(read('styleguide/styleguide.js'), new RegExp(`tile\\('Components', '${files.length}'`));
     assert.match(read('README.md'), new RegExp(`badge/components-${files.length}-`), 'the Components badge of README.md');
-    const row = read('AGENTS.md').split('\n').find((line) => line.startsWith('| `src/components/*.css` |')) ?? '';
-    const listed = /\((\d+): ([^;]+);/.exec(row);
+    const row = read('AGENTS.md').split('\n').find((line) => line.startsWith('| `src/components/<name>/` |')) ?? '';
+    const listed = /The components \((\d+): ([^;]+);/.exec(row);
     assert.ok(listed, 'the Files row of AGENTS.md counts and names the component files');
     assert.equal(Number(listed[1]), files.length);
     assert.deepEqual([...listed[2].matchAll(/`([\w-]+)`/g)].map((match) => match[1]).sort(), files.sort());
@@ -151,7 +161,7 @@ describe('repository', () => {
     // A hook (layer 3) is a --ds-* read with a fallback in src/components/ that tokens.css does not declare.
     // Not hooks: the registered per-element motion settings (motion.css), the runtime properties that
     // src/js/ writes, and the read-only or page-set values named below (each documented in docs/).
-    const declared = new Set([...stripComments(read('src/tokens.css')).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]));
+    const declared = new Set([...stripComments(read('src/core/tokens.css')).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]));
     const css = filesIn('src', (path) => path.endsWith('.css'));
     const registered = new Set(css.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
     const scripts = filesIn('src/js', (path) => path.endsWith('.js')).map(read).join('\n');
@@ -247,7 +257,7 @@ describe('repository', () => {
     const offenders = [];
     let compared = 0;
     for (const [file, title] of CASES) {
-      const css = read(`src/components/${file}.css`);
+      const css = read(`src/components/${file}/${file}.css`);
       const documented = tags(section(title));
       for (const element of tags(css.slice(0, css.indexOf('*/')))) {
         const twins = documented.filter((other) => key(other) === key(element));
@@ -281,13 +291,13 @@ describe('repository', () => {
   });
 
   it('lists every @keyframes once in the docs/motion.md keyframe table, unused kept names marked deprecated', () => {
-    const motion = read('src/motion.css');
+    const motion = read('src/core/motion.css');
     const names = [...stripComments(motion).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
     const docs = read('docs/motion.md');
     const section = docs.slice(docs.indexOf('\n## Keyframes'), docs.indexOf('\n## ', docs.indexOf('\n## Keyframes') + 1));
     const rows = section.split('\n').filter((line) => /^\| `ds-/.test(line)).map((line) => ({ names: [...line.split(' | ')[0].matchAll(/`(ds-[\w-]+)`/g)].map((match) => match[1]), line }));
     const listed = rows.flatMap((row) => row.names);
-    assert.deepEqual([...listed].sort(), [...names].sort(), 'each @keyframes of src/motion.css in one row, once');
+    assert.deepEqual([...listed].sort(), [...names].sort(), 'each @keyframes of src/core/motion.css in one row, once');
     // A name no stylesheet or module of src/ uses (outside its own @keyframes) is either deprecated or kept for pages.
     const KEPT_FOR_PAGES = new Map([
       ['ds-scan', 'a band across media being processed: no component of its own, used by pages (the Motion Lab shows it)'],
@@ -322,7 +332,7 @@ describe('repository', () => {
     ]);
     const scope = ALL_FILES.filter((path) => TEXT.test(path) && !EXEMPT.test(path)
       && (/^(src|dist|docs|themes|styleguide|example|demo|templates|test\/browser\/fixtures)\//.test(path) || ['README.md', 'AGENTS.md'].includes(path)));
-    assert.ok(scope.includes('src/tokens.css') && scope.includes('test/browser/fixtures/controls.html') && scope.includes('AGENTS.md'), 'the walk finds the files');
+    assert.ok(scope.includes('src/core/tokens.css') && scope.includes('test/browser/fixtures/controls.html') && scope.includes('AGENTS.md'), 'the walk finds the files');
     const offenders = [];
     for (const path of scope) {
       const source = readFileSync(join(ROOT, path), 'utf8');
@@ -378,7 +388,7 @@ describe('repository', () => {
       'Safari ' + '14', 'no ' + 'spring', 'nothing that ' + 'bounces', 'nothing ' + '(overshoots|bounces)', '(no|motion|curves?|animations?|everything) never ' + 'overshoots?',
       'no curve ' + 'leaves'].join('|'), 'i');
     const scope = ALL_FILES.filter((path) => TEXT.test(path) && (/^(src|dist|styleguide|example|themes|docs)\//.test(path) || ['README.md', 'AGENTS.md'].includes(path)));
-    assert.ok(scope.includes('src/tokens.css') && scope.includes('AGENTS.md') && scope.includes('styleguide/lab.js'), 'the walk finds the files');
+    assert.ok(scope.includes('src/core/tokens.css') && scope.includes('AGENTS.md') && scope.includes('styleguide/lab.js'), 'the walk finds the files');
     const offenders = [];
     for (const path of scope) {
       const lines = readFileSync(join(ROOT, path), 'utf8').split('\n');
@@ -399,14 +409,15 @@ describe('repository', () => {
     assert.equal(read('CLAUDE.md'), '@AGENTS.md\n');
   });
 
-  it('keeps the unit tests dependency-free', () => {
-    // npm test and npm run check must run without npm ci: node:* or files of this repository only.
+  it('keeps the unit tests dependency-free, lightningcss aside', () => {
+    // npm test and npm run check need only npm ci for lightningcss (the build minifies with it, D12; the
+    // tests of the minified output parse it with it too): node:*, lightningcss or files of this repository.
     const unit = ALL_FILES.filter((path) => /^test\/[^/]+\.test\.js$/.test(path) || path === 'test/helpers.js' || /^test\/browser\/helpers\/[^/]+\.js$/.test(path));
     assert.ok(unit.includes('test/browser/helpers/motion.js') && unit.includes('test/helpers.js'), 'the walk finds the helpers');
     const offenders = [];
     for (const file of unit) {
       for (const specifier of importsOf(read(file))) {
-        if (specifier.startsWith('node:')) continue;
+        if (specifier.startsWith('node:') || specifier === 'lightningcss') continue;
         const target = posix.join(posix.dirname(file), specifier);
         if (!/^\.\.?\//.test(specifier) || !/^(src|scripts|test)\//.test(target)) offenders.push(`${file}: ${specifier}`);
       }
@@ -420,13 +431,18 @@ describe('repository', () => {
     assert.deepEqual(playwright.filter((path) => !/^test\/browser\/([^/]+\.spec\.js|playwright\.config\.js|base-test\.js)$/.test(path)), []);
   });
 
-  it('pins Playwright as the only devDependency', () => {
+  it('pins Playwright and lightningcss (the minifier of the build, D12) as the only devDependencies', () => {
     const pkg = JSON.parse(read('package.json'));
     assert.equal(pkg.dependencies, undefined, 'no dependencies: nothing reaches projects');
-    assert.deepEqual(Object.keys(pkg.devDependencies || {}), ['@playwright/test']);
-    assert.match(pkg.devDependencies['@playwright/test'], /^\d+\.\d+\.\d+$/, 'an exact version, no ^ or ~');
+    assert.deepEqual(Object.keys(pkg.devDependencies || {}), ['@playwright/test', 'lightningcss']);
     const lock = JSON.parse(read('package-lock.json'));
-    assert.equal(lock.packages['node_modules/@playwright/test'].version, pkg.devDependencies['@playwright/test'], 'package-lock.json');
+    for (const name of ['@playwright/test', 'lightningcss']) {
+      assert.match(pkg.devDependencies[name], /^\d+\.\d+\.\d+$/, `${name}: an exact version, no ^ or ~`);
+      assert.equal(lock.packages[`node_modules/${name}`].version, pkg.devDependencies[name], `${name}: package-lock.json`);
+    }
+    // dist/ and the shipped tools stay dependency-free: only the build and the tests of its output load lightningcss.
+    const loaders = ALL_FILES.filter((path) => /\.(js|mjs)$/.test(path) && /\bimport\(\s*['"]lightningcss['"]|\bfrom\s*['"]lightningcss['"]/.test(code(read(path))) && !path.startsWith('_site/'));
+    assert.deepEqual(loaders, ['scripts/build.mjs', 'test/registry.test.js']);
     assert.deepEqual(pkg.files, ['dist', 'LICENSE', 'README.md']);
     for (const target of Object.values(pkg.exports)) assert.match(target, /^\.\/dist\//);
   });

@@ -1,0 +1,45 @@
+{
+  "name": "toast",
+  "group": "overlays",
+  "order": 320,
+  "docsOrder": 270,
+  "classes": [
+    "ds-toast",
+    "ds-toast--error",
+    "ds-toast--info",
+    "ds-toast--shown",
+    "ds-toast__close",
+    "ds-toast__text",
+    "ds-toasts"
+  ],
+  "attributes": [
+    "data-drawer-collapsed",
+    "data-drawer-hidden",
+    "data-drawer-open",
+    "data-ds-vt",
+    "data-follow",
+    "data-toast-reserve"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [
+    "dialog",
+    "shell"
+  ],
+  "hooks": [
+    "--ds-toast-action-color",
+    "--ds-toast-close-size"
+  ],
+  "keyframes": [
+    "ds-fade-in",
+    "ds-lift-in"
+  ],
+  "js": [
+    "overlay"
+  ],
+  "progressive": [
+    "View Transitions"
+  ],
+  "ripple": false
+}

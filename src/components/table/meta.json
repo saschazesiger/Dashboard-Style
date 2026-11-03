@@ -1,0 +1,79 @@
+{
+  "name": "table",
+  "group": "data",
+  "order": 180,
+  "docsOrder": 170,
+  "classes": [
+    "ds-col--secondary",
+    "ds-col--text",
+    "ds-selection-bar",
+    "ds-selection-bar__actions",
+    "ds-selection-bar__count",
+    "ds-table",
+    "ds-table--dense",
+    "ds-table--interactive",
+    "ds-table--pin-first",
+    "ds-table--stack",
+    "ds-table--stack-wide",
+    "ds-table--wide",
+    "ds-table-wrap",
+    "ds-table-wrap--fill",
+    "ds-table__actions",
+    "ds-table__detail",
+    "ds-table__expand",
+    "ds-table__row--selected",
+    "ds-table__row-link",
+    "ds-table__sort",
+    "ds-table__sort-arrow",
+    "ds-table__toggle"
+  ],
+  "attributes": [
+    "data-anchored",
+    "data-ds-edges",
+    "data-ds-glide",
+    "data-ds-overflow-end",
+    "data-ds-overflow-start",
+    "data-label"
+  ],
+  "requires": [
+    "button",
+    "utilities"
+  ],
+  "context": [
+    "card",
+    "combobox",
+    "dialog",
+    "menu",
+    "ripple",
+    "sheet",
+    "status"
+  ],
+  "hooks": [
+    "--ds-btn-height",
+    "--ds-btn-icon-size",
+    "--ds-scroll-fade",
+    "--ds-table-cell-max-width",
+    "--ds-table-dense-row-height",
+    "--ds-table-fill-max-height",
+    "--ds-table-fill-min-height",
+    "--ds-table-head-height",
+    "--ds-table-row-height",
+    "--ds-table-row-hover",
+    "--ds-table-row-selected",
+    "--ds-table-sticky-bg"
+  ],
+  "keyframes": [
+    "ds-scroll-edge-end",
+    "ds-scroll-edge-start",
+    "ds-scroll-fade"
+  ],
+  "js": [
+    "dom"
+  ],
+  "progressive": [
+    "scroll-driven",
+    "scrollbar-color",
+    "alt text for generated content"
+  ],
+  "ripple": true
+}

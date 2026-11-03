@@ -1,0 +1,35 @@
+{
+  "name": "switch",
+  "group": "forms",
+  "order": 240,
+  "docsOrder": 220,
+  "classes": [
+    "ds-switch",
+    "ds-switch--locked",
+    "ds-switch-list",
+    "ds-switch__hint",
+    "ds-switch__icon",
+    "ds-switch__label",
+    "ds-switch__meta",
+    "ds-switch__off",
+    "ds-switch__on",
+    "ds-switch__state",
+    "ds-switch__track"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-switch-disabled-handle",
+    "--ds-switch-disabled-track",
+    "--ds-switch-halo",
+    "--ds-switch-height",
+    "--ds-switch-list-row-height"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

@@ -1,0 +1,53 @@
+{
+  "name": "combobox",
+  "group": "forms",
+  "order": 260,
+  "docsOrder": 230,
+  "classes": [
+    "ds-combo",
+    "ds-combo--select",
+    "ds-combo__input",
+    "ds-combo__list",
+    "ds-combo__meta",
+    "ds-combo__name",
+    "ds-combo__option",
+    "ds-combo__popup",
+    "ds-combo__status",
+    "ds-combo__toggle",
+    "ds-combo__value"
+  ],
+  "attributes": [
+    "data-active",
+    "data-anchored",
+    "data-ds-overflow-end",
+    "data-ds-overflow-start",
+    "data-placement",
+    "data-state"
+  ],
+  "requires": [],
+  "context": [
+    "progress",
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-combo-option-height",
+    "--ds-input-height",
+    "--ds-scroll-fade"
+  ],
+  "keyframes": [
+    "ds-clip-in",
+    "ds-fade-in",
+    "ds-scroll-edge-end",
+    "ds-scroll-edge-start"
+  ],
+  "js": [
+    "overlay"
+  ],
+  "progressive": [
+    "popover",
+    "anchor positioning",
+    "scroll-driven",
+    "scrollbar-color"
+  ],
+  "ripple": true
+}

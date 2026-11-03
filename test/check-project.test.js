@@ -124,7 +124,7 @@ describe('tools/check-project.mjs', () => {
     const files = {
       ...CLEAN,
       'index.html': `${CLEAN['index.html']}\n<div class="ds-cardd ds-view--leaving"></div>\n<div class="ds-old"></div>\n`,
-      'single.html': `<link rel="stylesheet" href="${VENDOR}/css/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<div class="ds-card"></div>\n`,
+      'single.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<div class="ds-card"></div>\n`,
       'css/theme.css': '.ds-theme {\n  --ds-dur-fast: 1ms;\n}\n',
       'css/app.css': [
         'button { border: 0; }',                                             // 1 layers
@@ -252,18 +252,18 @@ describe('tools/check-project.mjs', () => {
   it('maps a class to a stylesheet that defines it, not one that only places it', () => {
     const files = {
       // alert.css places a button (.ds-alert .ds-btn) and comes first; .ds-theme is in tokens.css; css/index.css imports all.
-      'button.html': `<link rel="stylesheet" href="${VENDOR}/css/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
-      'alert.html': `<link rel="stylesheet" href="${VENDOR}/css/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/alert.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
+      'button.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
+      'alert.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/alert.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
       'bare.html': `<link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><button class="ds-btn" type="button">Save</button></body>\n`,
       'index.html': `<link rel="stylesheet" href="${VENDOR}/css/index.css">\n<body class="ds-theme"><div class="ds-card"><button class="ds-btn" type="button">Save</button></div></body>\n`,
       // .ds-link-btn is defined in button.css (no longer in table.css): a page without the table has it whole.
-      'link.html': `<link rel="stylesheet" href="${VENDOR}/css/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><p>See <button class="ds-link-btn ds-link-btn--quiet" type="button">the log</button>.</p></body>\n`,
-      'table.html': `<link rel="stylesheet" href="${VENDOR}/css/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/table.css">\n<body class="ds-theme"><table class="ds-table"><tr><td><button class="ds-link-btn" type="button">LAPTOP-0042</button></td></tr></table></body>\n`,
+      'link.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/button.css">\n<body class="ds-theme"><p>See <button class="ds-link-btn ds-link-btn--quiet" type="button">the log</button>.</p></body>\n`,
+      'table.html': `<link rel="stylesheet" href="${VENDOR}/css/core/tokens.css"><link rel="stylesheet" href="${VENDOR}/css/components/table.css">\n<body class="ds-theme"><table class="ds-table"><tr><td><button class="ds-link-btn" type="button">LAPTOP-0042</button></td></tr></table></body>\n`,
     };
     const { findings } = run(files, { ...CONFIG, html: ['*.html'], themes: [] });
     assert.deepEqual(findings.map((f) => `${f.file}:${f.line} ${f.rule} ${f.message}`).sort(), [
       'alert.html:2 classes .ds-btn needs css/components/button.css, which this page does not link',
-      'bare.html:2 classes .ds-theme needs css/tokens.css, which this page does not link',
+      'bare.html:2 classes .ds-theme needs css/core/tokens.css, which this page does not link',
       'table.html:2 classes .ds-link-btn needs css/components/button.css, which this page does not link',
     ]);
   });

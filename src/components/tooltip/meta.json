@@ -1,0 +1,30 @@
+{
+  "name": "tooltip",
+  "group": "overlays",
+  "order": 330,
+  "docsOrder": 280,
+  "classes": [
+    "ds-tooltip"
+  ],
+  "attributes": [
+    "data-anchored",
+    "data-placement",
+    "data-state",
+    "data-warm"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": [],
+  "keyframes": [
+    "ds-fade-in",
+    "ds-grow-in"
+  ],
+  "js": [
+    "overlay"
+  ],
+  "progressive": [
+    "popover",
+    "anchor positioning"
+  ],
+  "ripple": false
+}

@@ -46,9 +46,9 @@ const LAB = '/styleguide/motion.html';
 const VIDEO = !!process.env.DS_VIDEO;
 const STYLEGUIDE = '/styleguide/index.html';
 // The expected plots and ladder rows come from the tokens themselves, in
-// their order in src/tokens.css, so a new --ds-ease-* or --ds-dur-* token
+// their order in src/core/tokens.css, so a new --ds-ease-* or --ds-dur-* token
 // without a plot or a row fails.
-const TOKEN_NAMES = [...new Set([...readFileSync(resolve(ROOT, 'src/tokens.css'), 'utf8').matchAll(/^\s*(--ds-(?:ease|dur)(?:-[a-z0-9-]+)?)\s*:/gm)].map((match) => match[1]))];
+const TOKEN_NAMES = [...new Set([...readFileSync(resolve(ROOT, 'src/core/tokens.css'), 'utf8').matchAll(/^\s*(--ds-(?:ease|dur)(?:-[a-z0-9-]+)?)\s*:/gm)].map((match) => match[1]))];
 const EASINGS = TOKEN_NAMES.filter((name) => name.startsWith('--ds-ease-'));
 const DURATIONS = TOKEN_NAMES.filter((name) => name.startsWith('--ds-dur-'));
 
