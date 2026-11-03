@@ -1,3 +1,4 @@
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Pointer ripple (components/ripple.css): a press on an action grows a
  * circle of its content colour from the point that was pressed, and fades

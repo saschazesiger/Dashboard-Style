@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Checks a theme file against the rules of docs/theming.md, without
  * dependencies (Node 18 or later):

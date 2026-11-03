@@ -1,0 +1,28 @@
+{
+  "name": "prose",
+  "group": "content",
+  "order": 140,
+  "docsOrder": 120,
+  "classes": [
+    "ds-code-block",
+    "ds-code-block--wrap",
+    "ds-prose",
+    "ds-prose--dense"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": [
+    "--ds-prose-font",
+    "--ds-prose-gap",
+    "--ds-prose-strong-weight"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [
+    "text-wrap",
+    "scrollbar-color",
+    "hyphenate-limit-chars"
+  ],
+  "ripple": false
+}

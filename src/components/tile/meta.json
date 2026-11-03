@@ -1,0 +1,32 @@
+{
+  "name": "tile",
+  "group": "data",
+  "order": 100,
+  "docsOrder": 70,
+  "classes": [
+    "ds-tile",
+    "ds-tile__label",
+    "ds-tile__note",
+    "ds-tile__value",
+    "ds-tile__value--empty",
+    "ds-tiles",
+    "ds-tiles--3"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-selected-ring",
+    "--ds-tile-min-width",
+    "--ds-tile-radius",
+    "--ds-tile-radius-pressed",
+    "--ds-tile-selected-bg",
+    "--ds-tiles-columns"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": true
+}

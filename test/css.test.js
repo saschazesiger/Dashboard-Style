@@ -18,8 +18,8 @@ import {
 const ALL_CSS = [...filesIn('src', (path) => path.endsWith('.css')), 'fonts/fonts.css', ...filesIn('themes', (path) => path.endsWith('.css'))];
 const SRC_CSS = filesIn('src', (path) => path.endsWith('.css'));
 /** Files whose values must all come from tokens: everything but tokens.css. */
-const COMPONENT_CSS = SRC_CSS.filter((path) => path !== 'src/tokens.css' && path !== 'src/index.css');
-const KEYFRAME_NAMES = new Set([...read('src/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]));
+const COMPONENT_CSS = SRC_CSS.filter((path) => path !== 'src/core/tokens.css' && path !== 'src/index.css');
+const KEYFRAME_NAMES = new Set([...read('src/core/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]));
 /** A selector list split at its top-level commas (not inside :is() or :where()). */
 function splitSelectors(selector) {
   const parts = [];
@@ -53,9 +53,9 @@ function hoverOutsideHoverBlocks(css) {
 const LAYER_STATEMENT = '@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;';
 /** The layer block(s) of each file; every other file of src/components/ is ds.components. */
 const LAYERS_OF = {
-  'src/tokens.css': ['ds.tokens'],
-  'src/base.css': ['ds.base'],
-  'src/motion.css': ['ds.motion', 'ds.utilities'],
+  'src/core/tokens.css': ['ds.tokens'],
+  'src/core/base.css': ['ds.base'],
+  'src/core/motion.css': ['ds.motion', 'ds.utilities'],
   'src/optional/view-transitions.css': ['ds.utilities'],
 };
 
@@ -162,7 +162,7 @@ const RUNTIME = new Set([
 ]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
-const KEYFRAMES = Object.fromEntries([...stripComments(read('src/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
+const KEYFRAMES = Object.fromEntries([...stripComments(read('src/core/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
 /** The selector of a keyframe stop: from, to, percentages (with decimals), or a list of them ("0%, 100%"). */
 const KEYFRAME_STOP = /^(from|to|\d+(\.\d+)?%)(\s*,\s*(from|to|\d+(\.\d+)?%))*$/;
 /**
@@ -347,7 +347,7 @@ function longest(file, selector, properties, only) {
  * side lists candidates [file, selector, properties], the first that sets
  * a duration wins (a variant without its own duration takes the base's).
  */
-const M = 'src/motion.css';
+const M = 'src/core/motion.css';
 const ENTER_BASE = [M, '.ds-enter', ['animation-duration']];
 const LEAVE_BASE = [M, '.ds-leave', ['animation-duration']];
 const RATIOS = [
@@ -355,18 +355,18 @@ const RATIOS = [
   ['.ds-enter--scale / .ds-leave--scale', [[M, '.ds-enter--scale', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--scale', ['--ds-leave-duration']], LEAVE_BASE]],
   ['.ds-enter--slide / .ds-leave--slide', [[M, '.ds-enter--slide', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--slide', ['--ds-leave-duration']], LEAVE_BASE]],
   ['.ds-enter--pop / .ds-leave--pop', [[M, '.ds-enter--pop', ['--ds-enter-duration']], ENTER_BASE], [[M, '.ds-leave--pop', ['--ds-leave-duration']], LEAVE_BASE]],
-  ['dialog (DS.overlay)', [['src/components/dialog.css', '.ds-dialog[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog[data-state="closed"] .ds-dialog__box', ['transition']]]],
-  ['dialog (keyframes)', [['src/components/dialog.css', '.ds-dialog:not([data-state]) .ds-dialog__box', ['animation']]], [['src/components/dialog.css', '.ds-dialog--closing:not([data-state]) .ds-dialog__box', ['animation']]]],
-  ['full-screen dialog (DS.overlay)', [['src/components/dialog.css', '.ds-dialog--full[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog--full[data-state="closed"] .ds-dialog__box', ['transition']]]],
-  ['action sheet (DS.overlay)', [['src/components/dialog.css', '.ds-dialog--bottom[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog.css', '.ds-dialog--bottom[data-state="closed"] .ds-dialog__box', ['transition']]]],
-  ['side sheet (DS.overlay)', [['src/components/sheet.css', '.ds-sheet[data-state] .ds-sheet__panel', ['transition']]], [['src/components/sheet.css', '.ds-sheet[data-state="closed"] .ds-sheet__panel', ['transition']]]],
-  ['side sheet (keyframes)', [['src/components/sheet.css', '.ds-sheet:not([data-state]) .ds-sheet__panel', ['animation']]], [['src/components/sheet.css', '.ds-sheet--closing:not([data-state]) .ds-sheet__panel', ['animation']]]],
-  ['modal drawer', [['src/components/shell.css', '.ds-app[data-drawer-open] .ds-drawer', ['transition']]], [['src/components/shell.css', '.ds-drawer', ['transition']]]],
-  ['snackbar', [['src/components/toast.css', '.ds-toast', ['animation']]], [['src/components/toast.css', '.ds-toast', ['--ds-leave-duration']]]],
-  ['tooltip (DS.overlay)', [['src/components/tooltip.css', '.ds-tooltip[data-state]', ['transition']]], [['src/components/tooltip.css', '.ds-tooltip[data-state="closed"]', ['transition']]]],
-  ['tooltip (keyframes)', [['src/components/tooltip.css', '.ds-tooltip:not([data-state])', ['animation']]], [['src/components/tooltip.css', '.ds-tooltip:not([data-state])', ['--ds-leave-duration']]]],
-  ['combobox list', [['src/components/combobox.css', '.ds-combo__popup[data-state]', ['transition']]], [['src/components/combobox.css', '.ds-combo__popup[data-state="closed"]', ['transition']]]],
-  ['menu', [['src/components/menu.css', '.ds-menu[data-state]', ['transition']]], [['src/components/menu.css', '.ds-menu[data-state="closed"]', ['transition']]]],
+  ['dialog (DS.overlay)', [['src/components/dialog/dialog.css', '.ds-dialog[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog/dialog.css', '.ds-dialog[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['dialog (keyframes)', [['src/components/dialog/dialog.css', '.ds-dialog:not([data-state]) .ds-dialog__box', ['animation']]], [['src/components/dialog/dialog.css', '.ds-dialog--closing:not([data-state]) .ds-dialog__box', ['animation']]]],
+  ['full-screen dialog (DS.overlay)', [['src/components/dialog/dialog.css', '.ds-dialog--full[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog/dialog.css', '.ds-dialog--full[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['action sheet (DS.overlay)', [['src/components/dialog/dialog.css', '.ds-dialog--bottom[data-state] .ds-dialog__box', ['transition']]], [['src/components/dialog/dialog.css', '.ds-dialog--bottom[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['side sheet (DS.overlay)', [['src/components/sheet/sheet.css', '.ds-sheet[data-state] .ds-sheet__panel', ['transition']]], [['src/components/sheet/sheet.css', '.ds-sheet[data-state="closed"] .ds-sheet__panel', ['transition']]]],
+  ['side sheet (keyframes)', [['src/components/sheet/sheet.css', '.ds-sheet:not([data-state]) .ds-sheet__panel', ['animation']]], [['src/components/sheet/sheet.css', '.ds-sheet--closing:not([data-state]) .ds-sheet__panel', ['animation']]]],
+  ['modal drawer', [['src/components/shell/shell.css', '.ds-app[data-drawer-open] .ds-drawer', ['transition']]], [['src/components/shell/shell.css', '.ds-drawer', ['transition']]]],
+  ['snackbar', [['src/components/toast/toast.css', '.ds-toast', ['animation']]], [['src/components/toast/toast.css', '.ds-toast', ['--ds-leave-duration']]]],
+  ['tooltip (DS.overlay)', [['src/components/tooltip/tooltip.css', '.ds-tooltip[data-state]', ['transition']]], [['src/components/tooltip/tooltip.css', '.ds-tooltip[data-state="closed"]', ['transition']]]],
+  ['tooltip (keyframes)', [['src/components/tooltip/tooltip.css', '.ds-tooltip:not([data-state])', ['animation']]], [['src/components/tooltip/tooltip.css', '.ds-tooltip:not([data-state])', ['--ds-leave-duration']]]],
+  ['combobox list', [['src/components/combobox/combobox.css', '.ds-combo__popup[data-state]', ['transition']]], [['src/components/combobox/combobox.css', '.ds-combo__popup[data-state="closed"]', ['transition']]]],
+  ['menu', [['src/components/menu/menu.css', '.ds-menu[data-state]', ['transition']]], [['src/components/menu/menu.css', '.ds-menu[data-state="closed"]', ['transition']]]],
 ];
 /**
  * Old/new pairs outside the ratio, each with its reason (the test checks
@@ -386,28 +386,28 @@ const CHECKBOX = ':is(.ds-check input[type="checkbox"], .ds-table input[type="ch
 const RADIO = ':is(.ds-check input[type="radio"], .ds-radio input, .ds-radio-input)';
 const SWAP_SHOWN = '.ds-icon-swap:where([data-swap="b"], [aria-pressed="true"] :not([data-swap])) > .ds-icon-swap__b';
 const CONTROL_RATIOS = [
-  ['chip check', [['src/components/chip.css', '.ds-chip__input:checked + .ds-chip__body .ds-chip__check', ['transition']]], [['src/components/chip.css', '.ds-chip__check', ['transition']]]],
-  ['checkbox mark', [['src/components/form.css', `${CHECKBOX}:checked::before`, ['transition']]], [['src/components/form.css', `${CHECKBOX}::before`, ['transition']]]],
-  ['radio dot', [['src/components/form.css', `${RADIO}:checked::after`, ['transition']]], [['src/components/form.css', `${RADIO}::after`, ['transition']]]],
-  ['button faces', [['src/components/button.css', '.ds-btn[aria-busy="true"] .ds-btn__face--busy', ['transition']]], [['src/components/button.css', '.ds-btn__face--busy', ['transition']]]],
+  ['chip check', [['src/components/chip/chip.css', '.ds-chip__input:checked + .ds-chip__body .ds-chip__check', ['transition']]], [['src/components/chip/chip.css', '.ds-chip__check', ['transition']]]],
+  ['checkbox mark', [['src/components/form/form.css', `${CHECKBOX}:checked::before`, ['transition']]], [['src/components/form/form.css', `${CHECKBOX}::before`, ['transition']]]],
+  ['radio dot', [['src/components/form/form.css', `${RADIO}:checked::after`, ['transition']]], [['src/components/form/form.css', `${RADIO}::after`, ['transition']]]],
+  ['button faces', [['src/components/button/button.css', '.ds-btn[aria-busy="true"] .ds-btn__face--busy', ['transition']]], [['src/components/button/button.css', '.ds-btn__face--busy', ['transition']]]],
   ['icon swap', [[M, SWAP_SHOWN, ['transition']]], [[M, '.ds-icon-swap > .ds-icon-swap__b', ['transition']]]],
-  ['switch state word', [['src/components/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch.css', '.ds-switch__on', ['transition']]]],
+  ['switch state word', [['src/components/switch/switch.css', '.ds-switch input:checked ~ .ds-switch__state .ds-switch__on', ['transition']]], [['src/components/switch/switch.css', '.ds-switch__on', ['transition']]]],
   ['presence that keeps its box', [[M, '.ds-presence--keep[data-ds-shown]', ['transition']]], [[M, '.ds-presence--keep', ['transition']]]],
-  ['switch lock (fade; it travels with the handle)', [['src/components/switch.css', '.ds-switch--locked .ds-switch__icon', ['transition'], 'opacity']], [['src/components/switch.css', '.ds-switch__icon', ['transition'], 'opacity']]],
-  ['hover actions', [['src/components/utilities.css', '.ds-hover-actions:is(:focus-within, [data-ds-shown], [aria-expanded="true"], :has([aria-expanded="true"]))', ['transition']]], [['src/components/utilities.css', '.ds-hover-actions', ['transition']]]],
-  ['changed dot', [['src/components/form.css', '.ds-field--changed > .ds-field__label::after', ['transition']]], [['src/components/form.css', '.ds-field__label::after', ['transition']]]],
-  ['search key', [['src/components/form.css', '.ds-search__key', ['transition']]], [['src/components/form.css', '.ds-search .ds-input:is(:focus, :not(:placeholder-shown), :disabled) ~ .ds-search__key', ['transition']]]],
-  ['radio tile check', [['src/components/form.css', '.ds-radio > input:checked ~ .ds-radio__mark > svg', ['transition']]], [['src/components/form.css', '.ds-radio__mark > svg', ['transition']]]],
-  ['rail labels', [['src/components/shell.css', '.ds-drawer__label', ['transition']]], [['src/components/shell.css', '.ds-app--drawer[data-drawer-collapsed] .ds-drawer :is(.ds-drawer__label, .ds-drawer__heading:not(.ds-drawer__toggle), .ds-drawer__toggle > span, .ds-drawer__count)', ['transition']]]],
+  ['switch lock (fade; it travels with the handle)', [['src/components/switch/switch.css', '.ds-switch--locked .ds-switch__icon', ['transition'], 'opacity']], [['src/components/switch/switch.css', '.ds-switch__icon', ['transition'], 'opacity']]],
+  ['hover actions', [['src/components/utilities/utilities.css', '.ds-hover-actions:is(:focus-within, [data-ds-shown], [aria-expanded="true"], :has([aria-expanded="true"]))', ['transition']]], [['src/components/utilities/utilities.css', '.ds-hover-actions', ['transition']]]],
+  ['changed dot', [['src/components/form/form.css', '.ds-field--changed > .ds-field__label::after', ['transition']]], [['src/components/form/form.css', '.ds-field__label::after', ['transition']]]],
+  ['search key', [['src/components/form/form.css', '.ds-search__key', ['transition']]], [['src/components/form/form.css', '.ds-search .ds-input:is(:focus, :not(:placeholder-shown), :disabled) ~ .ds-search__key', ['transition']]]],
+  ['radio tile check', [['src/components/form/form.css', '.ds-radio > input:checked ~ .ds-radio__mark > svg', ['transition']]], [['src/components/form/form.css', '.ds-radio__mark > svg', ['transition']]]],
+  ['rail labels', [['src/components/shell/shell.css', '.ds-drawer__label', ['transition']]], [['src/components/shell/shell.css', '.ds-app--drawer[data-drawer-collapsed] .ds-drawer :is(.ds-drawer__label, .ds-drawer__heading:not(.ds-drawer__toggle), .ds-drawer__toggle > span, .ds-drawer__count)', ['transition']]]],
 ];
 const resolveDuration = (candidates) => candidates.map(([file, selector, properties, only]) => longest(file, selector, properties, only)).find((time) => time !== undefined);
 /** The popups of the ratio table: they may exit in --ds-dur-instant (motion-2.md). */
-const POPUPS = ['src/components/tooltip.css', 'src/components/combobox.css', 'src/components/menu.css'];
+const POPUPS = ['src/components/tooltip/tooltip.css', 'src/components/combobox/combobox.css', 'src/components/menu/menu.css'];
 
 describe('motion in CSS', () => {
   it('defines @keyframes only in motion.css, each name once', () => {
-    assert.deepEqual(ALL_CSS.filter((file) => file !== 'src/motion.css' && /@keyframes/.test(read(file))), []);
-    const names = [...read('src/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
+    assert.deepEqual(ALL_CSS.filter((file) => file !== 'src/core/motion.css' && /@keyframes/.test(read(file))), []);
+    const names = [...read('src/core/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
     assert.deepEqual(names, [...new Set(names)]);
     assert.ok(names.every((name) => name.startsWith('ds-')), names.join());
   });
@@ -441,7 +441,7 @@ describe('motion in CSS', () => {
   });
 
   it('fades every .ds-enter variant on the standard curve and moves it separately', () => {
-    const motion = stripComments(read('src/motion.css'));
+    const motion = stripComments(read('src/core/motion.css'));
     const keyframes = Object.fromEntries([...motion.matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
     const enter = declarations(motion.slice(motion.indexOf('.ds-enter {'), motion.indexOf('.ds-leave {')));
     const fallback = (property) => enter.find((entry) => entry.property === property).value.replace(/^var\(--[\w-]+,\s*/, '').replace(/\)$/, '');
@@ -456,12 +456,12 @@ describe('motion in CSS', () => {
   });
 
   it('fills bars from zero only, gliding on the value curve (first render of a chart)', () => {
-    const motion = stripComments(read('src/motion.css'));
+    const motion = stripComments(read('src/core/motion.css'));
     // The scale property multiplies the bar's own transform: scaleX(<share>).
     assert.match(motion, /@keyframes ds-fill-x\s*\{\s*from\s*\{\s*scale:\s*0 1;\s*\}\s*\}/);
     assert.match(motion, /@keyframes ds-fill-y\s*\{\s*from\s*\{\s*scale:\s*1 0;\s*\}\s*\}/);
     for (const axis of ['x', 'y']) {
-      const fill = Object.fromEntries(declarationsOf(read('src/motion.css'), `.ds-enter--fill-${axis}`).map((entry) => [entry.property, entry.value]));
+      const fill = Object.fromEntries(declarationsOf(read('src/core/motion.css'), `.ds-enter--fill-${axis}`).map((entry) => [entry.property, entry.value]));
       assert.equal(fill['--ds-enter-keyframes'], `ds-fade-in, ds-fill-${axis}`);
       assert.equal(fill['--ds-enter-duration'], 'var(--ds-dur-glide)');
       assert.equal(fill['--ds-enter-easing'], 'var(--ds-ease-in-out), var(--ds-ease-value)');
@@ -469,13 +469,13 @@ describe('motion in CSS', () => {
   });
 
   it('starts every exit at once and plays it once', () => {
-    const leave = Object.fromEntries(declarationsOf(read('src/motion.css'), '.ds-leave').map((entry) => [entry.property, entry.value]));
+    const leave = Object.fromEntries(declarationsOf(read('src/core/motion.css'), '.ds-leave').map((entry) => [entry.property, entry.value]));
     assert.equal(leave['animation-delay'], '0ms');
     assert.equal(leave['animation-iteration-count'], '1');
   });
 
   it('fades every .ds-leave variant out first and moves it separately', () => {
-    const motion = stripComments(read('src/motion.css'));
+    const motion = stripComments(read('src/core/motion.css'));
     const leave = declarations(motion.slice(motion.indexOf('.ds-leave {'), motion.indexOf('.ds-collapsible')));
     const variants = [fallbackOf(leave.find((entry) => entry.property === 'animation-name').value), ...leave.filter((entry) => entry.property === '--ds-leave-keyframes').map((entry) => entry.value)];
     assert.ok(variants.length >= 5, variants.join(' | '));
@@ -508,7 +508,7 @@ describe('motion in CSS', () => {
   });
 
   it('falls back from the spring to the decelerate curve where linear() is missing', () => {
-    const declarations = [...stripComments(read('src/tokens.css')).matchAll(/--ds-ease-spatial:\s*([^;]+);/g)].map((match) => match[1]);
+    const declarations = [...stripComments(read('src/core/tokens.css')).matchAll(/--ds-ease-spatial:\s*([^;]+);/g)].map((match) => match[1]);
     assert.equal(declarations.length, 2);
     assert.equal(declarations[0], 'var(--ds-ease-out)');
     assert.match(declarations[1], /^linear\(/);
@@ -542,7 +542,7 @@ describe('motion in CSS', () => {
     // The exemption is the switch handle only, and it never grows above its box.
     for (const selector of ACTIVE_EXEMPT.keys()) {
       assert.match(selector, /\.ds-switch__track::after$/, selector);
-      for (const { property, value } of declarationsAt(read('src/components/switch.css'), selector)) {
+      for (const { property, value } of declarationsAt(read('src/components/switch/switch.css'), selector)) {
         if (property === 'scale') assert.ok(Number(value) <= 1, `${selector}: scale ${value}`);
         assert.ok(!/^(transform|translate)$/.test(property), `${selector}: ${property}`);
       }
@@ -648,7 +648,7 @@ describe('motion in CSS', () => {
 
   it('brings the drawer back like .ds-enter--slide, from the left (enter(drawer) equals enter(drawer, "slide"))', () => {
     const own = (file, selector) => Object.fromEntries(declarationsOf(read(file), selector).map((entry) => [entry.property, entry.value]));
-    const drawer = own('src/components/shell.css', '.ds-drawer.ds-enter');
+    const drawer = own('src/components/shell/shell.css', '.ds-drawer.ds-enter');
     const slide = own(M, '.ds-enter--slide');
     for (const hook of ['--ds-enter-keyframes', '--ds-enter-duration', '--ds-enter-easing']) {
       assert.ok(slide[hook], `.ds-enter--slide sets ${hook}`);
@@ -755,7 +755,7 @@ describe('motion in CSS', () => {
     const keyframe = /^ds-[\w-]+$/;
     const token = /var\(--ds-(dur|ease|distance|delay|scale)-[\w-]+\)|var\(--ds-stagger\)/g;
     const offenders = [];
-    for (const file of SRC_CSS.filter((path) => path !== 'src/tokens.css')) {
+    for (const file of SRC_CSS.filter((path) => path !== 'src/core/tokens.css')) {
       for (const { property, value } of declarations(read(file))) {
         if (!/^--ds-[\w-]*(duration|delay|easing|distance|scale|keyframes)/.test(property)) continue;
         // `none` on a keyframes hook: no entrance (the drawer inside a View Transition, shell.css).
@@ -768,7 +768,7 @@ describe('motion in CSS', () => {
   });
 
   it('registers the runtime properties of the loading indicators at top level, typed (1.4.0)', () => {
-    const topLevel = withoutAtRuleBlocks(stripComments(read('src/tokens.css')), /^@layer\b/);
+    const topLevel = withoutAtRuleBlocks(stripComments(read('src/core/tokens.css')), /^@layer\b/);
     const expected = [
       ['--ds-progress', '<number>', true, '0'],
       ['--ds-progress-head-1', '<percentage>', true, '0%'], ['--ds-progress-head-2', '<percentage>', true, '0%'],
@@ -802,7 +802,7 @@ describe('motion in CSS', () => {
   });
 
   it('closes dialog and sheet with the backdrop still catching clicks', () => {
-    for (const [file, block, part] of [['src/components/dialog.css', 'ds-dialog', 'ds-dialog__box'], ['src/components/sheet.css', 'ds-sheet', 'ds-sheet__panel']]) {
+    for (const [file, block, part] of [['src/components/dialog/dialog.css', 'ds-dialog', 'ds-dialog__box'], ['src/components/sheet/sheet.css', 'ds-sheet', 'ds-sheet__panel']]) {
       const blocked = rules(read(file)).filter((rule) => /pointer-events:\s*none/.test(rule.body)).flatMap((rule) => splitSelectors(rule.selector));
       assert.ok(blocked.includes(`.${block}--closing .${part}`), `${file}: the ${part} lets clicks through while it leaves`);
       assert.deepEqual(blocked.filter((selector) => selector.includes(`${block}--closing`) && !selector.endsWith(`.${part}`)), [], `${file}: only the ${part}`);
@@ -814,24 +814,24 @@ describe('motion in CSS', () => {
       .flatMap((rule) => declarations(`${rule.body};`)).some((entry) => entry.property === property && entry.value === value);
     // Bootstrap's reboot floats, widens and spaces a legend.
     for (const [property, value] of [['float', 'none'], ['width', 'auto'], ['margin', '0'], ['padding', '0']]) {
-      assert.ok(has('src/components/form.css', 'legend.ds-field__label', property, value), `legend.ds-field__label { ${property}: ${value} }`);
+      assert.ok(has('src/components/form/form.css', 'legend.ds-field__label', property, value), `legend.ds-field__label { ${property}: ${value} }`);
     }
     // A bare table checkbox keeps no UA margin (a 48px head stays 48px).
-    assert.ok(has('src/components/form.css', '.ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *))', 'margin', '0'));
+    assert.ok(has('src/components/form/form.css', '.ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *))', 'margin', '0'));
     // Inline code keeps the ink of its text.
-    assert.ok(has('src/base.css', ':where(.ds-base) code', 'color', 'inherit'));
+    assert.ok(has('src/core/base.css', ':where(.ds-base) code', 'color', 'inherit'));
     // Out of flow: no rhythm margin of .ds-card > * + * moves a div dialog or sheet.
-    assert.ok(has('src/components/dialog.css', '.ds-dialog', 'margin', '0'));
-    assert.ok(has('src/components/sheet.css', '.ds-sheet', 'margin', '0'));
+    assert.ok(has('src/components/dialog/dialog.css', '.ds-dialog', 'margin', '0'));
+    assert.ok(has('src/components/sheet/sheet.css', '.ds-sheet', 'margin', '0'));
   });
 
   it('hides with the hidden attribute without .ds-base', () => {
     const hides = (file, selector) => rules(read(file)).some((rule) => splitSelectors(rule.selector).includes(`${selector}[hidden]`) && /display:\s*none/.test(rule.body));
-    for (const [file, selector] of [['src/components/dialog.css', '.ds-dialog'], ['src/components/sheet.css', '.ds-sheet'], ['src/components/combobox.css', '.ds-combo__popup'], ['src/components/tooltip.css', '.ds-tooltip']]) {
+    for (const [file, selector] of [['src/components/dialog/dialog.css', '.ds-dialog'], ['src/components/sheet/sheet.css', '.ds-sheet'], ['src/components/combobox/combobox.css', '.ds-combo__popup'], ['src/components/tooltip/tooltip.css', '.ds-tooltip']]) {
       assert.ok(hides(file, selector), `${file}: ${selector}[hidden] { display: none }`);
     }
     // Any ds component, for DS.motion.leave(el, v, { then: 'hide' }): a zero-specificity rule in ds.utilities, scoped by .ds-theme.
-    const motion = stripComments(read('src/motion.css'));
+    const motion = stripComments(read('src/core/motion.css'));
     const utilities = motion.slice(motion.indexOf('@layer ds.utilities {'));
     assert.ok(rules(utilities).some((rule) => /^:where\(\.ds-theme\)\s+:where\(\[hidden\]/.test(rule.selector) && /display:\s*none/.test(rule.body)),
       'motion.css: :where(.ds-theme) :where([hidden]...) { display: none } in ds.utilities');
@@ -956,13 +956,13 @@ describe('values come from tokens', () => {
     assert.deepEqual(offenders, []);
     // The five size modifiers of 1.6 read their own hooks.
     const reads = [
-      ['src/components/button.css', '.ds-btn--sm', '--ds-btn-height', 'var(--ds-btn-sm-height, 32px)'],
-      ['src/components/button.css', '.ds-btn--icon.ds-btn--sm', '--ds-btn-icon-size', 'var(--ds-btn-sm-icon-size, 32px)'],
-      ['src/components/loader.css', '.ds-loader--sm', '--ds-loader-size', 'var(--ds-loader-sm-size, 24px)'],
-      ['src/components/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, 4px)'],
-      ['src/components/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
+      ['src/components/button/button.css', '.ds-btn--sm', '--ds-btn-height', 'var(--ds-btn-sm-height, 32px)'],
+      ['src/components/button/button.css', '.ds-btn--icon.ds-btn--sm', '--ds-btn-icon-size', 'var(--ds-btn-sm-icon-size, 32px)'],
+      ['src/components/loader/loader.css', '.ds-loader--sm', '--ds-loader-size', 'var(--ds-loader-sm-size, 24px)'],
+      ['src/components/spinner/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, 4px)'],
+      ['src/components/status/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
       // and the small check row, so .ds-touch reaches it.
-      ['src/components/form.css', '.ds-check--sm', '--ds-check-height', 'var(--ds-check-sm-height, 32px)'],
+      ['src/components/form/form.css', '.ds-check--sm', '--ds-check-height', 'var(--ds-check-sm-height, 32px)'],
     ];
     for (const [file, selector, property, value] of reads) {
       assert.equal(declarationsAt(read(file), selector).find((entry) => entry.property === property)?.value, value, `${selector} { ${property} }`);
@@ -1007,12 +1007,15 @@ describe('CSS for the baseline', () => {
   it('puts every rule of src/ into its file\'s layer (only @property stays outside)', () => {
     for (const file of SRC_CSS) {
       const items = topLevel(stripComments(read(file))).slice(1);
+      // Components stay directly in ds.components: the sublayers that src/index.css declares are reserved
+      // (empty) until the components no longer outweigh a later one by specificity (scripts/build.mjs, INDEX_HEADER).
       const expected = file === 'src/index.css' ? [] : LAYERS_OF[file] || ['ds.components'];
       // @view-transition is a document-wide at-rule, only in the opt-in src/optional/ files.
       const blocks = items.filter((item) => item.body !== undefined && !/^@property\s/.test(item.prelude) && !(file.startsWith('src/optional/') && item.prelude === '@view-transition'));
       assert.deepEqual(blocks.map((item) => item.prelude), expected.map((name) => `@layer ${name}`), file);
       const statements = items.filter((item) => item.body === undefined);
-      const allowed = file === 'src/index.css' ? /^@import '[^']+';$/ : /^$/;
+      // src/index.css: the sublayer statement, then the imports.
+      const allowed = file === 'src/index.css' ? /^@import '[^']+';$|^@layer ds\.components\.[\w-]+(, ds\.components\.[\w-]+)*;$/ : /^$/;
       assert.deepEqual(statements.map((item) => item.text).filter((text) => !allowed.test(text)), [], file);
     }
   });
@@ -1048,13 +1051,13 @@ describe('CSS for the baseline', () => {
     }
     assert.deepEqual(offenders, []);
     // The keep variant toggles a page-set attribute, outside every feature query.
-    const outside = withoutAtRuleBlocks(stripComments(read('src/motion.css')), /@supports/);
+    const outside = withoutAtRuleBlocks(stripComments(read('src/core/motion.css')), /@supports/);
     assert.match(outside, /\.ds-presence--keep\s*\{[^}]*visibility:\s*hidden/);
     assert.match(outside, /\.ds-presence--keep\[data-ds-shown\]\s*\{[^}]*visibility:\s*visible/);
   });
 
   it('keeps keyframes in ds.motion and the motion utilities in ds.utilities', () => {
-    const items = topLevel(stripComments(read('src/motion.css')));
+    const items = topLevel(stripComments(read('src/core/motion.css')));
     const motion = items.find((item) => item.prelude === '@layer ds.motion').body;
     const utilities = items.find((item) => item.prelude === '@layer ds.utilities').body;
     assert.equal([...motion.matchAll(/@keyframes\s+([\w-]+)/g)].length, KEYFRAME_NAMES.size);
@@ -1102,12 +1105,12 @@ describe('CSS for the baseline', () => {
       }
     }
     const allowed = new Set([
-      'src/base.css: :where(.ds-base) [hidden]: display',
+      'src/core/base.css: :where(.ds-base) [hidden]: display',
       ...['position', 'top', 'inset-inline-start', 'width', 'height', 'padding', 'margin', 'overflow', 'clip', 'white-space', 'border']
-        .map((property) => `src/components/utilities.css: .ds-sr: ${property}`),
-      'src/components/utilities.css: .ds-num: text-align',
-      'src/components/utilities.css: .ds-center: text-align',
-      'src/components/shell.css: .ds-theme svg: color',
+        .map((property) => `src/components/utilities/utilities.css: .ds-sr: ${property}`),
+      'src/components/utilities/utilities.css: .ds-num: text-align',
+      'src/components/utilities/utilities.css: .ds-center: text-align',
+      'src/components/shell/shell.css: .ds-theme svg: color',
     ]);
     assert.deepEqual(found.filter((entry) => !allowed.has(entry)), []);
     assert.deepEqual([...allowed].filter((entry) => !found.includes(entry)), [], 'an allowlisted !important is gone: shorten the list');
@@ -1189,7 +1192,7 @@ describe('CSS for the baseline', () => {
   });
 
   it('scopes the page base to .ds-base without adding specificity', () => {
-    for (const { selector } of rules(read('src/base.css'))) {
+    for (const { selector } of rules(read('src/core/base.css'))) {
       for (const part of splitSelectors(selector)) assert.match(part, /:where\(\.ds-base\)/, part);
     }
   });
@@ -1200,7 +1203,7 @@ describe('CSS for the baseline', () => {
 
   it('styles no bare element outside a .ds- scope', () => {
     const offenders = [];
-    for (const file of COMPONENT_CSS.filter((path) => path !== 'src/base.css')) {
+    for (const file of COMPONENT_CSS.filter((path) => path !== 'src/core/base.css')) {
       for (const { selector } of rules(read(file))) {
         if (KEYFRAME_STOP.test(selector) || selector === '@view-transition') continue;
         for (const part of splitSelectors(selector)) if (!/\.ds-/.test(part)) offenders.push(`${file}: ${part}`);
@@ -1243,26 +1246,26 @@ describe('accessibility details', () => {
   });
 
   it('lets aria-disabled buttons keep the pointer (tooltips), but blocks busy and disabled ones', () => {
-    const button = rules(read('src/components/button.css'));
+    const button = rules(read('src/components/button/button.css'));
     const blocked = button.filter((rule) => /pointer-events:\s*none/.test(rule.body)).flatMap((rule) => splitSelectors(rule.selector));
     assert.ok(blocked.includes('.ds-btn:disabled') && blocked.includes('.ds-btn[aria-busy="true"]'), blocked.join());
     assert.ok(!blocked.some((part) => part.includes('aria-disabled')), blocked.join());
   });
 
   it('pads cards only through the padding hooks, so a theme can set them', () => {
-    const sets = declarations(read('src/components/card.css')).filter((entry) => entry.property === '--ds-card-pad');
+    const sets = declarations(read('src/components/card/card.css')).filter((entry) => entry.property === '--ds-card-pad');
     assert.equal(sets.length, 3);
     for (const { value } of sets) assert.match(value, /^var\(--ds-card-padding(-sm|-filled)?, var\(--ds-space-\d\)\)$/);
   });
 
   it('keeps an edge on floating layers in forced colors (transparent outlines)', () => {
     const cases = [
-      ['src/components/sheet.css', '.ds-sheet__panel'],
-      ['src/components/toast.css', '.ds-toast'],
-      ['src/components/tooltip.css', '.ds-tooltip'],
-      ['src/components/shell.css', '.ds-drawer'],
-      ['src/components/combobox.css', '.ds-combo__popup'],
-      ['src/components/menu.css', '.ds-menu'],
+      ['src/components/sheet/sheet.css', '.ds-sheet__panel'],
+      ['src/components/toast/toast.css', '.ds-toast'],
+      ['src/components/tooltip/tooltip.css', '.ds-tooltip'],
+      ['src/components/shell/shell.css', '.ds-drawer'],
+      ['src/components/combobox/combobox.css', '.ds-combo__popup'],
+      ['src/components/menu/menu.css', '.ds-menu'],
     ];
     for (const [file, selector] of cases) {
       const outline = declarationsOf(read(file), selector).find((entry) => entry.property === 'outline');
@@ -1270,22 +1273,22 @@ describe('accessibility details', () => {
     }
     // The combobox list keeps that edge (no CanvasText outline of its own), and the
     // chosen option shows the system's selection colours, not a forced Canvas.
-    const combo = forcedColorBlocks(read('src/components/combobox.css'));
+    const combo = forcedColorBlocks(read('src/components/combobox/combobox.css'));
     assert.deepEqual(combo.flatMap((block) => declarationsOf(block, '.ds-combo__popup')).filter((entry) => entry.property === 'outline'), []);
     const selected = Object.fromEntries(combo.flatMap((block) => declarationsOf(block, '.ds-combo__option[aria-selected="true"]')).map((entry) => [entry.property, entry.value]));
     assert.deepEqual([selected['forced-color-adjust'], selected.background, selected.color], ['none', 'SelectedItem', 'SelectedItemText']);
-    const border = declarationsOf(read('src/components/dialog.css'), '.ds-dialog__box').find((entry) => entry.property === 'border');
+    const border = declarationsOf(read('src/components/dialog/dialog.css'), '.ds-dialog__box').find((entry) => entry.property === 'border');
     assert.equal(border?.value, 'var(--ds-dialog-border, 1px solid transparent)');
   });
 
   it('brings native selects back in forced colors, where background images vanish', () => {
-    const select = forcedColorBlocks(read('src/components/form.css')).flatMap((block) => declarationsOf(block, 'select.ds-input'));
+    const select = forcedColorBlocks(read('src/components/form/form.css')).flatMap((block) => declarationsOf(block, 'select.ds-input'));
     assert.equal(select.find((entry) => entry.property === 'appearance')?.value, 'auto');
     assert.equal(select.find((entry) => entry.property === 'background-image')?.value, 'none');
   });
 
   it('keeps the loading bar visible in forced colors, where both fills become Canvas', () => {
-    const blocks = forcedColorBlocks(read('src/components/loading.css'));
+    const blocks = forcedColorBlocks(read('src/components/loading/loading.css'));
     const bar = blocks.flatMap((block) => declarationsOf(block, '.ds-loadbar__bar'));
     assert.equal(bar.find((entry) => entry.property === 'forced-color-adjust')?.value, 'none');
     assert.equal(bar.find((entry) => entry.property === 'background')?.value, 'Highlight');
@@ -1293,7 +1296,7 @@ describe('accessibility details', () => {
   });
 
   it('draws the masked glyphs of the fields (calendar, clear, the checkbox check) from the icon set', () => {
-    const masks = [...read('src/components/form.css').matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)].map((match) => decodeURIComponent(match[1]));
+    const masks = [...read('src/components/form/form.css').matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)].map((match) => decodeURIComponent(match[1]));
     const drawn = new Set();
     for (const svg of masks) {
       const inner = svg.replace(/^<svg[^>]*>|<\/svg>$/g, '').replace(/'/g, '"');
@@ -1308,7 +1311,7 @@ describe('accessibility details', () => {
   });
 
   it('rings a date field while its calendar button has the focus', () => {
-    const form = read('src/components/form.css');
+    const form = read('src/components/form/form.css');
     const ring = rules(form).find((rule) => rule.selector.split(/\s*,\s*/).includes('.ds-input:focus'));
     assert.ok(ring.selector.includes('.ds-input[type="date"]:focus-within'), ring.selector);
     // The error ring as well: a focused date field in error keeps its red ring.
@@ -1318,7 +1321,7 @@ describe('accessibility details', () => {
 
   it('keeps the outlined field hover from outranking the filled toolbar fields', () => {
     // .ds-input itself: an input group draws a box of its own.
-    const hover = rules(read('src/components/form.css')).filter((rule) => /^\.ds-input(?![\w-])[^\s,]*:hover/.test(rule.selector) && rule.body.includes('var(--ds-text)'));
+    const hover = rules(read('src/components/form/form.css')).filter((rule) => /^\.ds-input(?![\w-])[^\s,]*:hover/.test(rule.selector) && rule.body.includes('var(--ds-text)'));
     assert.deepEqual(hover.map((rule) => rule.selector), ['.ds-input:where(:hover:not(:focus-within, :disabled, [readonly], [aria-invalid="true"]))']);
   });
 
@@ -1362,7 +1365,7 @@ describe('accessibility details', () => {
       }
     }
     for (const selector of [':where(.ds-base) a', ':where(.ds-base) :where(summary, [tabindex]:not([tabindex^="-"]))']) {
-      const entries = Object.fromEntries(declarationsAt(read('src/base.css'), selector).map((entry) => [entry.property, entry.value]));
+      const entries = Object.fromEntries(declarationsAt(read('src/core/base.css'), selector).map((entry) => [entry.property, entry.value]));
       assert.equal(entries['outline-offset'], SNAP, selector);
       assert.match(entries.transition, /outline-offset var\(--ds-dur-fast\) var\(--ds-ease-out\)/, selector);
     }
@@ -1371,19 +1374,19 @@ describe('accessibility details', () => {
 
   it('lays the focus layer under the ring (--ds-state-focus), at once', () => {
     const cases = [
-      ['src/components/button.css', '.ds-btn:focus-visible::before', 'var(--ds-btn-state-focus-opacity, var(--ds-state-focus))'],
-      ['src/components/chip.css', '.ds-chip__input:focus-visible + .ds-chip__body::before', 'var(--ds-state-focus)'],
-      ['src/components/shell.css', '.ds-segmented__option:focus-visible::before', 'var(--ds-state-focus)'],
-      ['src/components/shell.css', '.ds-drawer__item:focus-visible::before', 'var(--ds-state-focus)'],
-      ['src/components/tile.css', ':is(button, a).ds-tile:focus-visible::before', 'var(--ds-state-focus)'],
-      ['src/components/table.css', '.ds-table__sort:focus-visible::before', 'var(--ds-state-focus)'],
-      ['src/components/alert.css', '.ds-errors summary:focus-visible::before', 'var(--ds-state-focus)'],
-      ['src/components/list.css', '.ds-list--interactive > .ds-list__item:has(.ds-list__action:focus-visible)::before', 'var(--ds-state-focus)'],
-      ['src/components/list.css', ':is(a, button).ds-kv-list__row:focus-visible::before', 'var(--ds-state-focus)'],
-      ['src/components/disclosure.css', '.ds-disclosure > summary:focus-visible::before', 'var(--ds-state-focus)'],
-      ['src/components/chart.css', ':is(button, a).ds-columns__col:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/button/button.css', '.ds-btn:focus-visible::before', 'var(--ds-btn-state-focus-opacity, var(--ds-state-focus))'],
+      ['src/components/chip/chip.css', '.ds-chip__input:focus-visible + .ds-chip__body::before', 'var(--ds-state-focus)'],
+      ['src/components/shell/shell.css', '.ds-segmented__option:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/shell/shell.css', '.ds-drawer__item:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/tile/tile.css', ':is(button, a).ds-tile:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/table/table.css', '.ds-table__sort:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/alert/alert.css', '.ds-errors summary:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/list/list.css', '.ds-list--interactive > .ds-list__item:has(.ds-list__action:focus-visible)::before', 'var(--ds-state-focus)'],
+      ['src/components/list/list.css', ':is(a, button).ds-kv-list__row:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/disclosure/disclosure.css', '.ds-disclosure > summary:focus-visible::before', 'var(--ds-state-focus)'],
+      ['src/components/chart/chart.css', ':is(button, a).ds-columns__col:focus-visible::before', 'var(--ds-state-focus)'],
       // A radio card's input has no halo: the card's layer is its focus layer.
-      ['src/components/form.css', '.ds-radio:has(:where(input):focus-visible):not(.ds-radio--disabled, :has(input:disabled))::before', 'var(--ds-state-focus)'],
+      ['src/components/form/form.css', '.ds-radio:has(:where(input):focus-visible):not(.ds-radio--disabled, :has(input:disabled))::before', 'var(--ds-state-focus)'],
     ];
     for (const [file, selector, opacity] of cases) {
       const entries = Object.fromEntries(declarationsAt(read(file), selector).map((entry) => [entry.property, entry.value]));
@@ -1393,26 +1396,26 @@ describe('accessibility details', () => {
       assert.equal(entries['transition-duration']?.split(',')[0].trim(), '0s', `${file}: ${selector}`);
     }
     // The halos of the switch and of checkboxes and radios are their focus layer.
-    const halo = Object.fromEntries(declarationsAt(read('src/components/switch.css'), '.ds-switch input:focus-visible + .ds-switch__track::before').map((entry) => [entry.property, entry.value]));
+    const halo = Object.fromEntries(declarationsAt(read('src/components/switch/switch.css'), '.ds-switch input:focus-visible + .ds-switch__track::before').map((entry) => [entry.property, entry.value]));
     assert.equal(halo.opacity, 'var(--ds-state-focus)');
     assert.match(halo.transition, /(^|, )opacity 0s(,|$)/);
     const unforced = (file) => withoutAtRuleBlocks(read(file), /@media\s*\(forced-colors:\s*active\)/);
-    const check = Object.fromEntries(declarationsAt(unforced('src/components/form.css'), ':is(.ds-check input, .ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *)), .ds-checkbox, .ds-radio-input):focus-visible:not(:disabled)').map((entry) => [entry.property, entry.value]));
+    const check = Object.fromEntries(declarationsAt(unforced('src/components/form/form.css'), ':is(.ds-check input, .ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *)), .ds-checkbox, .ds-radio-input):focus-visible:not(:disabled)').map((entry) => [entry.property, entry.value]));
     assert.match(check['box-shadow'], /var\(--ds-state-focus\)/);
     assert.match(check.transition, /(^|, )box-shadow 0s(,|$)/);
   });
 
   it('lines up the figures of counts, times and key figures (tabular)', () => {
     const cases = [
-      ['src/components/utilities.css', '.ds-muted'],
-      ['src/components/utilities.css', '.ds-meta'],
-      ['src/components/tile.css', '.ds-tile__value'],
-      ['src/components/tile.css', '.ds-tile__note'],
-      ['src/components/list.css', '.ds-facts dd'],
-      ['src/components/list.css', '.ds-list__meta'],
-      ['src/components/timeline.css', '.ds-timeline__meta'],
-      ['src/components/chart.css', '.ds-columns__value'],
-      ['src/components/table.css', '.ds-table'],
+      ['src/components/utilities/utilities.css', '.ds-muted'],
+      ['src/components/utilities/utilities.css', '.ds-meta'],
+      ['src/components/tile/tile.css', '.ds-tile__value'],
+      ['src/components/tile/tile.css', '.ds-tile__note'],
+      ['src/components/list/list.css', '.ds-facts dd'],
+      ['src/components/list/list.css', '.ds-list__meta'],
+      ['src/components/timeline/timeline.css', '.ds-timeline__meta'],
+      ['src/components/chart/chart.css', '.ds-columns__value'],
+      ['src/components/table/table.css', '.ds-table'],
     ];
     for (const [file, selector] of cases) {
       const entries = declarationsOf(read(file), selector);
@@ -1468,9 +1471,9 @@ const RIPPLE_EXEMPT = new Map([
 describe('controls (1.1.0)', () => {
   /** The pills that morph: rest radius min(..., half the height), pressed radius from the role. */
   const PILLS = [
-    ['src/components/button.css', '.ds-btn', 'var(--ds-btn-half)', 'var(--ds-btn-radius-pressed, var(--ds-radius-action-pressed))'],
-    ['src/components/shell.css', '.ds-drawer__item', 'calc(var(--ds-drawer-item-height, 48px) / 2)', 'var(--ds-radius-action-pressed)'],
-    ['src/components/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-input-height, 40px) / 2)', 'var(--ds-radius-action-pressed)'],
+    ['src/components/button/button.css', '.ds-btn', 'var(--ds-btn-half)', 'var(--ds-btn-radius-pressed, var(--ds-radius-action-pressed))'],
+    ['src/components/shell/shell.css', '.ds-drawer__item', 'calc(var(--ds-drawer-item-height, 48px) / 2)', 'var(--ds-radius-action-pressed)'],
+    ['src/components/combobox/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-input-height, 40px) / 2)', 'var(--ds-radius-action-pressed)'],
   ];
   const BLOCKED = [':disabled', '[aria-disabled="true"]', '[aria-busy="true"]'];
 
@@ -1496,26 +1499,26 @@ describe('controls (1.1.0)', () => {
       }
     }
     // A round icon button morphs from half its own size; done buttons are blocked too.
-    const icon = Object.fromEntries(declarationsOf(read('src/components/button.css'), '.ds-btn--icon').map((entry) => [entry.property, entry.value]));
+    const icon = Object.fromEntries(declarationsOf(read('src/components/button/button.css'), '.ds-btn--icon').map((entry) => [entry.property, entry.value]));
     assert.equal(icon['--ds-btn-half'], 'calc(var(--ds-btn-icon-size, 40px) / 2)');
-    for (const { part } of pressed('src/components/button.css', '.ds-btn')) assert.ok(part.includes('.ds-btn--done'), part);
+    for (const { part } of pressed('src/components/button/button.css', '.ds-btn')) assert.ok(part.includes('.ds-btn--done'), part);
     // Radio cards go to the card's pressed role, never rounder than at rest.
-    const card = pressed('src/components/form.css', '.ds-radio');
+    const card = pressed('src/components/form/form.css', '.ds-radio');
     assert.equal(card.length, 2);
     for (const { part, own } of card) {
       assert.ok(part.includes(':not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))'), part);
       assert.equal(own['border-radius'], 'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
       assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/);
     }
-    const cardRest = Object.fromEntries(declarationsAt(read('src/components/form.css'), '.ds-radio').map((entry) => [entry.property, entry.value]));
+    const cardRest = Object.fromEntries(declarationsAt(read('src/components/form/form.css'), '.ds-radio').map((entry) => [entry.property, entry.value]));
     assert.match(cardRest.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/);
   });
 
   it('shows no hover or press layer on a blocked tile or card, but keeps the focus layer', () => {
     const cases = [
-      ['src/components/tile.css', ':is(button, a).ds-tile', '[aria-disabled="true"]:focus-visible::before'],
-      ['src/components/card.css', '.ds-card--interactive', '[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))::before'],
-      ['src/components/list.css', ':is(a, button).ds-kv-list__row', '[aria-disabled="true"]:focus-visible::before'],
+      ['src/components/tile/tile.css', ':is(button, a).ds-tile', '[aria-disabled="true"]:focus-visible::before'],
+      ['src/components/card/card.css', '.ds-card--interactive', '[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))::before'],
+      ['src/components/list/list.css', ':is(a, button).ds-kv-list__row', '[aria-disabled="true"]:focus-visible::before'],
     ];
     const opacityAt = (file, selector) => declarationsAt(read(file), selector).find((entry) => entry.property === 'opacity')?.value;
     for (const [file, host, focus] of cases) {
@@ -1528,7 +1531,7 @@ describe('controls (1.1.0)', () => {
   it('presses every state layer in --ds-dur-micro (no --ds-dur-instant press-in)', () => {
     const offenders = [];
     let layers = 0;
-    for (const file of COMPONENT_CSS.filter((path) => path !== 'src/components/ripple.css')) {
+    for (const file of COMPONENT_CSS.filter((path) => path !== 'src/components/ripple/ripple.css')) {
       for (const { selector, body } of rules(read(file))) {
         const parts = splitSelectors(selector).filter((part) => /:active|\.ds-pressed\b/.test(part) && part.endsWith('::before'));
         if (!parts.length) continue;
@@ -1595,9 +1598,9 @@ describe('controls (1.1.0)', () => {
     // The layer is the host's ::before; a table row's is the --ds-table-row-layer its cells paint
     // (> :is(td, th), so a <th scope="row"> row header has it too).
     const layer = (part, body) => part.endsWith('::before') || part.endsWith(' > :is(td, th)') || /(^|[;{\s])--ds-table-row-layer\s*:/.test(body);
-    const ripple = rules(read('src/components/ripple.css')).flatMap((rule) => splitSelectors(rule.selector).map((part) => ({ part, body: rule.body })));
+    const ripple = rules(read('src/components/ripple/ripple.css')).flatMap((rule) => splitSelectors(rule.selector).map((part) => ({ part, body: rule.body })));
     for (const host of hosts.filter((item) => item !== '[data-ds-ripple]')) {
-      const layered = COMPONENT_CSS.filter((path) => path !== 'src/components/ripple.css').some((file) => rules(read(file))
+      const layered = COMPONENT_CSS.filter((path) => path !== 'src/components/ripple/ripple.css').some((file) => rules(read(file))
         .some((rule) => splitSelectors(rule.selector).some((part) => new RegExp(`${literally(host)}(?![\\w-])[^,]*:active`).test(part) && layer(part, rule.body))));
       assert.ok(layered, `${host}: a pressed state layer`);
       assert.ok(ripple.some(({ part, body }) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && layer(part, body)), `${host}: its .ds-ripples rule`);
@@ -1619,13 +1622,13 @@ describe('controls (1.1.0)', () => {
         }
       }
     }
-    assert.equal(declarationsAt(read('src/components/chip.css'), '.ds-chip__body::after').find((entry) => entry.property === 'transition')?.value,
+    assert.equal(declarationsAt(read('src/components/chip/chip.css'), '.ds-chip__body::after').find((entry) => entry.property === 'transition')?.value,
       'width var(--ds-dur-medium) var(--ds-ease-out) var(--ds-dur-micro)');
   });
 
   it('draws checkboxes and radios on the native input (no accent-color), in system colours when forced', () => {
     for (const file of ALL_CSS) assert.doesNotMatch(stripComments(read(file)), /accent-color/, file);
-    const form = read('src/components/form.css');
+    const form = read('src/components/form/form.css');
     const drawn = rules(form).filter((rule) => /(^|;\s*)appearance:\s*none/.test(rule.body) && /-webkit-appearance:\s*none/.test(rule.body))
       .flatMap((rule) => splitSelectors(rule.selector));
     for (const selector of ['.ds-check input[type="checkbox"]', '.ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *))', '.ds-checkbox', '.ds-check input[type="radio"]', '.ds-radio input', '.ds-radio-input']) {
@@ -1642,7 +1645,7 @@ describe('controls (1.1.0)', () => {
   });
 
   it('fades the blur of a field as one unit and shows its ring at once', () => {
-    const form = read('src/components/form.css');
+    const form = read('src/components/form/form.css');
     const input = Object.fromEntries(declarationsOf(form, '.ds-input').map((entry) => [entry.property, entry.value]));
     const names = entriesOf(input.transition).map((entry) => entry.name);
     for (const name of ['border-color', 'box-shadow', 'color']) assert.ok(names.includes(name), `.ds-input transitions ${name}`);
@@ -1653,36 +1656,36 @@ describe('controls (1.1.0)', () => {
   it('fades every control to one disabled model', () => {
     const transitionOf = (file, selector) => declarationsAt(read(file), selector).find((entry) => entry.property === 'transition')?.value || '';
     for (const [file, selector] of [
-      ['src/components/button.css', '.ds-btn'],
-      ['src/components/chip.css', '.ds-chip__body'],
-      ['src/components/switch.css', '.ds-switch__track'],
-      ['src/components/form.css', '.ds-checkbox'],
+      ['src/components/button/button.css', '.ds-btn'],
+      ['src/components/chip/chip.css', '.ds-chip__body'],
+      ['src/components/switch/switch.css', '.ds-switch__track'],
+      ['src/components/form/form.css', '.ds-checkbox'],
     ]) {
       assert.match(transitionOf(file, selector), /(^|, )opacity var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/, `${selector}: opacity fades`);
     }
     const reads = (file, selector) => declarationsAt(read(file), selector).map((entry) => entry.value).join(' ');
-    const chip = reads('src/components/chip.css', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body');
+    const chip = reads('src/components/chip/chip.css', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body');
     for (const token of ['--ds-disabled-fill', '--ds-disabled-ink', '--ds-disabled-opacity']) assert.ok(chip.includes(token), `chip: ${token}`);
-    const track = reads('src/components/switch.css', '.ds-switch input:is(:disabled, [aria-disabled="true"]) + .ds-switch__track');
+    const track = reads('src/components/switch/switch.css', '.ds-switch input:is(:disabled, [aria-disabled="true"]) + .ds-switch__track');
     for (const token of ['--ds-disabled-fill', '--ds-disabled-opacity']) assert.ok(track.includes(token), `switch track: ${token}`);
-    assert.ok(reads('src/components/switch.css', '.ds-switch input:is(:disabled, [aria-disabled="true"]) + .ds-switch__track::after').includes('--ds-disabled-ink'), 'switch handle');
+    assert.ok(reads('src/components/switch/switch.css', '.ds-switch input:is(:disabled, [aria-disabled="true"]) + .ds-switch__track::after').includes('--ds-disabled-ink'), 'switch handle');
     // Hover changes nothing on a disabled chip or switch.
-    const hover = atRuleBlocks(read('src/components/switch.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
+    const hover = atRuleBlocks(read('src/components/switch/switch.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
     assert.ok(hover.length && hover.every((part) => part.includes(':not(:disabled, [aria-disabled="true"])')), hover.join(' | '));
-    const chipHover = atRuleBlocks(read('src/components/chip.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
+    const chipHover = atRuleBlocks(read('src/components/chip/chip.css'), /@media\s*\(hover:\s*hover\)/).flatMap((block) => rules(block)).flatMap((rule) => splitSelectors(rule.selector));
     // aria-disabled (2.0) is blocked like disabled: :not(:disabled, [aria-disabled="true"]).
     assert.ok(chipHover.length && chipHover.every((part) => part.includes(':not(:disabled, [aria-disabled="true"])')), chipHover.join(' | '));
   });
 
   it('keeps the spinner of a hidden busy face still (no endless loop per button at rest)', () => {
-    const paused = declarationsAt(read('src/components/button.css'), '.ds-btn:not([aria-busy="true"]) .ds-btn__face--busy .ds-spinner');
+    const paused = declarationsAt(read('src/components/button/button.css'), '.ds-btn:not([aria-busy="true"]) .ds-btn__face--busy .ds-spinner');
     assert.deepEqual(paused.map(({ property, value }) => `${property}: ${value}`), ['animation-play-state: paused']);
   });
 });
 
 describe('navigation (1.2.0)', () => {
-  const SHELL = 'src/components/shell.css';
-  const INDICATOR = 'src/components/indicator.css';
+  const SHELL = 'src/components/shell/shell.css';
+  const INDICATOR = 'src/components/indicator/indicator.css';
   const PILL_PROPERTIES = ['--ds-indicator-t', '--ds-indicator-r', '--ds-indicator-b', '--ds-indicator-l', '--ds-indicator-radius'];
   /** The properties a rule's transition or transition-property animates. */
   const animated = (body) => declarations(`${body};`)
@@ -1759,11 +1762,11 @@ describe('navigation (1.2.0)', () => {
 describe('overlays (1.3.0)', () => {
   /** The overlays whose motion is keyed on data-state, with the class of their root. */
   const STATEFUL = [
-    ['src/components/dialog.css', /\.ds-dialog(?![\w-])/],
-    ['src/components/sheet.css', /\.ds-sheet(?![\w-])/],
-    ['src/components/tooltip.css', /\.ds-tooltip(?![\w-])/],
-    ['src/components/combobox.css', /\.ds-combo__popup(?![\w-])/],
-    ['src/components/menu.css', /\.ds-menu(?![\w-])/],
+    ['src/components/dialog/dialog.css', /\.ds-dialog(?![\w-])/],
+    ['src/components/sheet/sheet.css', /\.ds-sheet(?![\w-])/],
+    ['src/components/tooltip/tooltip.css', /\.ds-tooltip(?![\w-])/],
+    ['src/components/combobox/combobox.css', /\.ds-combo__popup(?![\w-])/],
+    ['src/components/menu/menu.css', /\.ds-menu(?![\w-])/],
   ];
 
   /**
@@ -1790,7 +1793,7 @@ describe('overlays (1.3.0)', () => {
   }
 
   it('hides a closed native dialog or sheet (display outranks the UA rule) and keeps its ::backdrop transparent', () => {
-    for (const [file, block] of [['src/components/dialog.css', 'ds-dialog'], ['src/components/sheet.css', 'ds-sheet']]) {
+    for (const [file, block] of [['src/components/dialog/dialog.css', 'ds-dialog'], ['src/components/sheet/sheet.css', 'ds-sheet']]) {
       const css = read(file);
       const selector = `dialog.${block}:not([open]):not(.${block}--closing):not([data-state="open"])`;
       const hidden = declarationsAt(css, selector);
@@ -1855,7 +1858,7 @@ describe('overlays (1.3.0)', () => {
 
   it('scrolls only the body of a dialog that has one, with room for rings, and lets the box scroll in a short window (2.0)', () => {
     // The screen rules outside the short-window and phone blocks.
-    const css = withoutAtRuleBlocks(withoutAtRuleBlocks(read('src/components/dialog.css'), /@media\s*\(max-height:\s*320px\)/), /@media\s*\(max-width:\s*600px\)/);
+    const css = withoutAtRuleBlocks(withoutAtRuleBlocks(read('src/components/dialog/dialog.css'), /@media\s*\(max-height:\s*320px\)/), /@media\s*\(max-width:\s*600px\)/);
     const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
     assert.deepEqual([own('.ds-dialog__box:has(> .ds-dialog__body)').display, own('.ds-dialog__box:has(> .ds-dialog__body)')['flex-direction']], ['flex', 'column']);
     assert.equal(own('.ds-dialog__box > *')['flex-shrink'], '0');
@@ -1865,7 +1868,7 @@ describe('overlays (1.3.0)', () => {
     // The hairline is a border (forced colours keep it), shown while scrolled.
     assert.equal(body['border-top'], '1px solid transparent');
     assert.equal(own('.ds-dialog__box[data-scrolled] > .ds-dialog__body')['border-top-color'], 'var(--ds-line)');
-    const short = atRuleBlocks(read('src/components/dialog.css'), /@media\s*\(max-height:\s*320px\)/).join('\n');
+    const short = atRuleBlocks(read('src/components/dialog/dialog.css'), /@media\s*\(max-height:\s*320px\)/).join('\n');
     assert.equal(declarationsOf(short, '.ds-dialog__body').find((entry) => entry.property === 'overflow')?.value, 'visible', 'a window 320px high: the box scrolls');
     assert.equal(own('.ds-dialog__box').height, 'var(--ds-dialog-height, auto)');
     assert.equal(own('.ds-dialog--wide .ds-dialog__box').width, 'min(var(--ds-dialog-width-wide, 560px), 100%)');
@@ -1877,7 +1880,7 @@ describe('overlays (1.3.0)', () => {
   });
 
   it('gives the side sheet a wrapping title, a subtitle, a foot and a positioned body with a thin scrollbar (2.0)', () => {
-    const css = read('src/components/sheet.css');
+    const css = read('src/components/sheet/sheet.css');
     const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
     const title = own('.ds-sheet__title');
     assert.equal(title['overflow-wrap'], 'anywhere');
@@ -1889,18 +1892,18 @@ describe('overlays (1.3.0)', () => {
     const body = own('.ds-sheet__body');
     assert.deepEqual([body.position, body['scrollbar-width'], body['scrollbar-color']], ['relative', 'thin', 'var(--ds-line-2) transparent']);
     assert.equal(own('.ds-sheet__body > .ds-btn')['align-self'], 'flex-start');
-    assert.match(read('src/components/sheet.css').match(/^\/\*[\s\S]*?\*\//)[0], /aria-label="Close" data-close>/, 'the header markup closes with data-close');
+    assert.match(read('src/components/sheet/sheet.css').match(/^\/\*[\s\S]*?\*\//)[0], /aria-label="Close" data-close>/, 'the header markup closes with data-close');
   });
 
   it('sizes the combobox from the field hooks and draws blocked options and menu items in GrayText when forced (2.0)', () => {
-    const combo = read('src/components/combobox.css');
+    const combo = read('src/components/combobox/combobox.css');
     const own = (css, selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
     assert.equal(own(combo, '.ds-combo__input')['padding-inline-end'], 'calc(var(--ds-space-1) + var(--ds-input-height, 40px))');
     assert.deepEqual([own(combo, '.ds-combo__toggle').width, own(combo, '.ds-combo__toggle').height], ['var(--ds-input-height, 40px)', 'var(--ds-input-height, 40px)']);
     assert.equal(own(combo, '.ds-combo__option')['min-height'], 'var(--ds-combo-option-height, 48px)');
     assert.equal(own(combo, '.ds-combo:not(:has(.ds-combo__toggle)) > .ds-combo__input')['padding-inline-end'], 'var(--ds-space-3)');
-    assert.equal(own(read('src/components/menu.css'), '.ds-menu__item')['min-height'], 'var(--ds-menu-item-height, 48px)');
-    for (const [file, selector] of [['src/components/menu.css', '.ds-menu__item[aria-disabled="true"]'], ['src/components/combobox.css', '.ds-combo__option[aria-disabled="true"]']]) {
+    assert.equal(own(read('src/components/menu/menu.css'), '.ds-menu__item')['min-height'], 'var(--ds-menu-item-height, 48px)');
+    for (const [file, selector] of [['src/components/menu/menu.css', '.ds-menu__item[aria-disabled="true"]'], ['src/components/combobox/combobox.css', '.ds-combo__option[aria-disabled="true"]']]) {
       const forced = forcedColorBlocks(read(file)).flatMap((block) => declarationsOf(block, selector));
       assert.equal(forced.find((entry) => entry.property === 'color')?.value, 'GrayText', `${file}: ${selector}`);
     }
@@ -1911,7 +1914,7 @@ describe('overlays (1.3.0)', () => {
   });
 
   it('prints no open overlay: menus, the combobox list, dialogs and side sheets are hidden in print (2.0)', () => {
-    for (const [file, selector] of [['src/components/menu.css', '.ds-menu'], ['src/components/combobox.css', '.ds-combo__popup'], ['src/components/dialog.css', '.ds-dialog'], ['src/components/sheet.css', '.ds-sheet'], ['src/components/toast.css', '.ds-toasts'], ['src/components/tooltip.css', '.ds-tooltip'], ['src/components/loader.css', '.ds-loader']]) {
+    for (const [file, selector] of [['src/components/menu/menu.css', '.ds-menu'], ['src/components/combobox/combobox.css', '.ds-combo__popup'], ['src/components/dialog/dialog.css', '.ds-dialog'], ['src/components/sheet/sheet.css', '.ds-sheet'], ['src/components/toast/toast.css', '.ds-toasts'], ['src/components/tooltip/tooltip.css', '.ds-tooltip'], ['src/components/loader/loader.css', '.ds-loader']]) {
       const print = atRuleBlocks(read(file), /@media\s+print/).flatMap((block) => declarationsOf(block, selector));
       assert.equal(print.find((entry) => entry.property === 'display')?.value, 'none', `${file}: ${selector} in print`);
     }
@@ -1926,7 +1929,7 @@ describe('feedback and data (1.4.0)', () => {
     .map((rule) => ({ selector: rule.selector, own: Object.fromEntries(declarations(`${rule.body};`).map((entry) => [entry.property, entry.value])) }));
 
   it('presses clickable cards and tiles by radius and layer only: nothing moves on hover or press', () => {
-    for (const [file, host] of [['src/components/card.css', /\.ds-card--interactive/], ['src/components/tile.css', /\.ds-tile/]]) {
+    for (const [file, host] of [['src/components/card/card.css', /\.ds-card--interactive/], ['src/components/tile/tile.css', /\.ds-tile/]]) {
       const states = rulesWith(file, new RegExp(`${host.source}[^\\s,]*(:hover|:active|\\.ds-pressed)`));
       assert.ok(states.length >= 3, `${file}: hover and press rules`);
       for (const { selector, own } of states) {
@@ -1939,9 +1942,9 @@ describe('feedback and data (1.4.0)', () => {
       assert.match(morph[0].selector, /:active/);
       assert.match(morph[0].selector, /\.ds-pressed/);
     }
-    assert.equal(rulesWith('src/components/card.css', /^\.ds-card--interactive:active/).find(({ own }) => own['border-radius']).own['border-radius'],
+    assert.equal(rulesWith('src/components/card/card.css', /^\.ds-card--interactive:active/).find(({ own }) => own['border-radius']).own['border-radius'],
       'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
-    assert.equal(rulesWith('src/components/tile.css', /^:is\(button, a\)\.ds-tile:active/).find(({ own }) => own['border-radius']).own['border-radius'],
+    assert.equal(rulesWith('src/components/tile/tile.css', /^:is\(button, a\)\.ds-tile:active/).find(({ own }) => own['border-radius']).own['border-radius'],
       'min(var(--ds-tile-radius-pressed, var(--ds-radius-md)), var(--ds-tile-radius, var(--ds-radius-lg)))');
   });
 
@@ -1952,7 +1955,7 @@ describe('feedback and data (1.4.0)', () => {
   });
 
   it('gives the loading parts of 2.0 their hooks and layout: bone radius, the skeleton note, detail lines', () => {
-    const css = read('src/components/loading.css');
+    const css = read('src/components/loading/loading.css');
     const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
     assert.equal(own('.ds-skeleton__line')['border-radius'], 'var(--ds-skeleton-radius, var(--ds-radius-action))');
     assert.match(stripComments(css), /\.ds-skeleton__line--heading \{[^}]*border-radius: var\(--ds-skeleton-radius, var\(--ds-radius-sm\)\)/);
@@ -1966,7 +1969,7 @@ describe('feedback and data (1.4.0)', () => {
   });
 
   it('keeps the waiting track in the layout (hidden, not display: none) and fades it in', () => {
-    const file = 'src/components/progress.css';
+    const file = 'src/components/progress/progress.css';
     const waiting = rulesWith(file, /^\.ds-progress--waiting \.ds-progress__track$/);
     assert.equal(waiting.length, 1);
     assert.deepEqual(waiting[0].own, { visibility: 'hidden', opacity: '0', 'animation-play-state': 'paused' });
@@ -1976,16 +1979,16 @@ describe('feedback and data (1.4.0)', () => {
   });
 
   it('waits the loader delay once: loaders in a waiting container and a loading bar in a skeleton have no fade of their own', () => {
-    const loader = rulesWith('src/components/loader.css', /^\.ds-(boot|loading|skeleton) \.ds-loader$/);
+    const loader = rulesWith('src/components/loader/loader.css', /^\.ds-(boot|loading|skeleton) \.ds-loader$/);
     assert.equal(loader.length, 1);
     assert.equal(loader[0].own.animation, 'none');
     assert.equal(splitSelectors(loader[0].selector).length, 3);
-    const standalone = declarationsAt(read('src/components/loading.css'), '.ds-loadbar:not(.ds-skeleton > .ds-loadbar)').find((entry) => entry.property === 'animation');
+    const standalone = declarationsAt(read('src/components/loading/loading.css'), '.ds-loadbar:not(.ds-skeleton > .ds-loadbar)').find((entry) => entry.property === 'animation');
     assert.match(standalone.value, /^ds-fade-in var\(--ds-dur-medium\) var\(--ds-ease-in-out\) var\(--ds-delay-loader\) backwards,/);
-    const inSkeleton = declarationsAt(read('src/components/loading.css'), '.ds-loadbar').find((entry) => entry.property === 'animation');
+    const inSkeleton = declarationsAt(read('src/components/loading/loading.css'), '.ds-loadbar').find((entry) => entry.property === 'animation');
     assert.doesNotMatch(inSkeleton.value, /ds-fade-in/);
     // The skeleton's wave starts after its entrance.
-    const skeleton = declarationsAt(read('src/components/loading.css'), '.ds-skeleton').find((entry) => entry.property === 'animation');
+    const skeleton = declarationsAt(read('src/components/loading/loading.css'), '.ds-skeleton').find((entry) => entry.property === 'animation');
     assert.match(skeleton.value, /ds-skeleton-wave var\(--ds-loop-skeleton\) linear calc\(var\(--ds-delay-loader\) \+ var\(--ds-dur-medium\)\) infinite/);
   });
 });
@@ -2108,7 +2111,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       assert.deepEqual(Object.keys(stops), ['from', 'to'], name);
       assert.deepEqual([stops.from, stops.to].map((list) => list.map((entry) => `${entry.property}: ${entry.value}`)), [[`${property}: ${from}`], [`${property}: ${to}`]], name);
       assert.ok(REGISTERED.has(property), `${property} is registered`);
-      assert.match(stripComments(read('src/components/scroller.css')), new RegExp(`@property ${property} \\{\\s*syntax: '<number>';\\s*inherits: false;\\s*initial-value: 0;`), property);
+      assert.match(stripComments(read('src/components/scroller/scroller.css')), new RegExp(`@property ${property} \\{\\s*syntax: '<number>';\\s*inherits: false;\\s*initial-value: 0;`), property);
     }
     // Every user of the edge numbers runs both on its own scroll (inline; the combobox list block), over the documented ranges.
     const shades = new Set(['.ds-menu::before', '.ds-menu::after', '.ds-drawer__list::before', '.ds-drawer__list::after']);
@@ -2132,7 +2135,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
   });
 
   it('shades the cut edges of a long drawer list in the drawer\'s surface, holding the list\'s block padding (2.1)', () => {
-    const shell = all.filter((rule) => rule.file === 'src/components/shell.css');
+    const shell = all.filter((rule) => rule.file === 'src/components/shell/shell.css');
     const own = (selector) => shell.find((rule) => rule.selector === selector && !rule.media)?.own ?? {};
     assert.equal(own('.ds-drawer__list').padding, '0 var(--ds-space-3)', 'the block padding moved into the shades');
     for (const [selector, edge, margin, room, gradient] of [
@@ -2147,7 +2150,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       assert.equal(rule.background, gradient, selector);
       assert.equal(rule['pointer-events'], 'none', selector);
     }
-    const css = stripComments(read('src/components/shell.css'));
+    const css = stripComments(read('src/components/shell/shell.css'));
     assert.match(css, /\.ds-drawer__list\[data-ds-overflow-start\]::before \{\s*--ds-scroll-edge-start: 1;/);
     assert.match(css, /\.ds-drawer__list\[data-ds-overflow-end\]::after \{\s*--ds-scroll-edge-end: 1;/);
     // The fallback shades glide only once scrollEdges() has measured (data-ds-edges), never on load.
@@ -2158,13 +2161,13 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
 
   it('names View Transitions and scroll-driven animations under "Progressive:" in each file that uses them', () => {
     const expected = {
-      'src/components/shell.css': ['View Transitions', 'scroll-driven'],
-      'src/components/sheet.css': ['View Transitions', 'scroll-driven'],
-      'src/components/table.css': ['scroll-driven'],
-      'src/components/scroller.css': ['scroll-driven'],
-      'src/components/menu.css': ['scroll-driven'],
-      'src/components/combobox.css': ['scroll-driven'],
-      'src/motion.css': ['View Transitions', 'scroll-driven'],
+      'src/components/shell/shell.css': ['View Transitions', 'scroll-driven'],
+      'src/components/sheet/sheet.css': ['View Transitions', 'scroll-driven'],
+      'src/components/table/table.css': ['scroll-driven'],
+      'src/components/scroller/scroller.css': ['scroll-driven'],
+      'src/components/menu/menu.css': ['scroll-driven'],
+      'src/components/combobox/combobox.css': ['scroll-driven'],
+      'src/core/motion.css': ['View Transitions', 'scroll-driven'],
       'src/optional/view-transitions.css': ['View Transitions'],
     };
     for (const [file, names] of Object.entries(expected)) {
@@ -2176,15 +2179,15 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
   });
 
   it('hides the top bar tint in forced colours and prints scroll-revealed blocks at their end state', () => {
-    const tint = forcedColorBlocks(read('src/components/shell.css')).flatMap((block) => declarationsOf(block, '.ds-topbar::before'));
+    const tint = forcedColorBlocks(read('src/components/shell/shell.css')).flatMap((block) => declarationsOf(block, '.ds-topbar::before'));
     assert.equal(tint.find((entry) => entry.property === 'display')?.value, 'none');
-    const print = atRuleBlocks(read('src/motion.css'), /@media\s+print/).flatMap((block) => declarationsOf(block, '.ds-reveal--scroll'));
+    const print = atRuleBlocks(read('src/core/motion.css'), /@media\s+print/).flatMap((block) => declarationsOf(block, '.ds-reveal--scroll'));
     assert.equal(print.find((entry) => entry.property === 'animation')?.value, 'none');
     // The reveal hides nothing without view(): its only rules sit behind the feature query (and print).
-    const outside = rules(withoutAtRuleBlocks(withoutAtRuleBlocks(read('src/motion.css'), /@supports\s*\(animation-timeline/), /@media\s+print/));
+    const outside = rules(withoutAtRuleBlocks(withoutAtRuleBlocks(read('src/core/motion.css'), /@supports\s*\(animation-timeline/), /@media\s+print/));
     assert.deepEqual(outside.filter((rule) => rule.selector.includes('.ds-reveal--scroll')).map((rule) => rule.selector), []);
     // Its base opacity is the element's own: the hairline, tint and sheet hairline rest at 0 and only the timeline shows them.
-    for (const [file, selector] of [['src/components/shell.css', '.ds-view::before'], ['src/components/shell.css', '.ds-topbar::before'], ['src/components/sheet.css', '.ds-sheet__head::after']]) {
+    for (const [file, selector] of [['src/components/shell/shell.css', '.ds-view::before'], ['src/components/shell/shell.css', '.ds-topbar::before'], ['src/components/sheet/sheet.css', '.ds-sheet__head::after']]) {
       const base = declarationsOf(withoutAtRuleBlocks(read(file), /@supports/), selector).filter((entry) => entry.property === 'opacity');
       assert.equal(base[0]?.value, '0', `${file}: ${selector} rests at opacity 0`);
     }
@@ -2194,14 +2197,14 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
 describe('lists, timeline, tasks and charts (2.0)', () => {
   /** The declarations of `selector` in `file` outside forced colours (the screen rules). */
   const own = (file, selector) => Object.fromEntries(declarationsAt(withoutAtRuleBlocks(read(file), /@media\s*\(forced-colors:\s*active\)/), selector).map((entry) => [entry.property, entry.value]));
-  const LIST = 'src/components/list.css';
-  const CHART = 'src/components/chart.css';
+  const LIST = 'src/components/list/list.css';
+  const CHART = 'src/components/chart/chart.css';
 
   it('registers --ds-share at top level, a number that inherits, and fills marks from it once', () => {
-    const topLevel = withoutAtRuleBlocks(stripComments(read('src/tokens.css')), /^@layer\b/);
+    const topLevel = withoutAtRuleBlocks(stripComments(read('src/core/tokens.css')), /^@layer\b/);
     assert.match(topLevel, /@property --ds-share \{\s*syntax: '<number>';\s*inherits: true;\s*initial-value: 0;\s*\}/);
     assert.match(KEYFRAMES['ds-fill-share'], /^\s*from\s*\{\s*--ds-share:\s*0;\s*\}\s*$/);
-    const fill = Object.fromEntries(declarationsOf(read('src/motion.css'), '.ds-enter--fill').map((entry) => [entry.property, entry.value]));
+    const fill = Object.fromEntries(declarationsOf(read('src/core/motion.css'), '.ds-enter--fill').map((entry) => [entry.property, entry.value]));
     assert.equal(fill['--ds-enter-keyframes'], 'ds-fade-in, ds-fill-share');
     assert.equal(fill['--ds-enter-duration'], 'var(--ds-dur-glide)');
     assert.equal(fill['--ds-enter-easing'], 'var(--ds-ease-in-out), var(--ds-ease-value)');
@@ -2263,7 +2266,7 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
   });
 
   it('morphs the plain disclosure summary like a pill; a row summary takes an inset ring and no morph', () => {
-    const file = 'src/components/disclosure.css';
+    const file = 'src/components/disclosure/disclosure.css';
     const half = 'calc(var(--ds-disclosure-height, 40px) / 2)';
     const rest = own(file, '.ds-disclosure > summary');
     assert.equal(rest['border-radius'], `min(var(--ds-radius-action), ${half})`);
@@ -2280,7 +2283,7 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
   });
 
   it('draws timeline dots and rails with borders (they stay in forced colours) and has no motion of its own', () => {
-    const file = 'src/components/timeline.css';
+    const file = 'src/components/timeline/timeline.css';
     const dot = own(file, '.ds-timeline__item::after');
     assert.match(dot.border, /^calc\(var\(--ds-timeline-dot-size, 10px\) \/ 2\) solid var\(--ds-timeline-dot-color, var\(--ds-primary\)\)$/);
     assert.ok(!('background' in dot) && !('background-color' in dot), 'a dot of borders, no background');
@@ -2289,7 +2292,7 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
   });
 
   it('shows the status of a task by the mark and the weight, never by colour alone', () => {
-    const file = 'src/components/tasks.css';
+    const file = 'src/components/tasks/tasks.css';
     assert.match(own(file, '.ds-tasks__item[data-status="pending"] .ds-tasks__mark::before').border, /solid var\(--ds-outline\)/);
     assert.equal(own(file, '.ds-tasks__item[data-status="running"] .ds-tasks__text')['font-weight'], 'var(--ds-weight-label)');
     // The tick draws through the mark's inherited dash offset: a transition, so a list rendered done stays still.
@@ -2301,7 +2304,7 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
 });
 
 describe('app frame, page and base (2.0)', () => {
-  const SHELL = 'src/components/shell.css';
+  const SHELL = 'src/components/shell/shell.css';
   const COMPONENT_FILES = filesIn('src/components', (path) => path.endsWith('.css'));
   /** The block a selector part styles: its last compound's first .ds- class, without a modifier. */
   const blockOf = (part) => {
@@ -2356,12 +2359,12 @@ describe('app frame, page and base (2.0)', () => {
       && /background(-color)?:\s*SelectedItem\b/.test(rule.body) && /color:\s*SelectedItemText/.test(rule.body) && /forced-color-adjust:\s*none/.test(rule.body));
     assert.ok(selectedIn(blocks(SHELL), '.ds-drawer__item[aria-current="page"]'), 'current drawer item');
     assert.ok(selectedIn(blocks(SHELL), '.ds-segmented__option:is([aria-current="true"], [aria-checked="true"], [aria-pressed="true"])'), 'selected option');
-    assert.ok(selectedIn(blocks('src/components/tabs.css'), '.ds-tabs__tab:is([aria-selected="true"], [aria-current="page"])'), 'selected tab');
-    for (const file of [SHELL, 'src/components/tabs.css']) assert.match(blocks(file), /\[aria-disabled="true"\][^{]*\{[^}]*GrayText/, `${file}: blocked is GrayText`);
+    assert.ok(selectedIn(blocks('src/components/tabs/tabs.css'), '.ds-tabs__tab:is([aria-selected="true"], [aria-current="page"])'), 'selected tab');
+    for (const file of [SHELL, 'src/components/tabs/tabs.css']) assert.match(blocks(file), /\[aria-disabled="true"\][^{]*\{[^}]*GrayText/, `${file}: blocked is GrayText`);
   });
 
   it('imports tabs and steps after the shell and prose after the lists, the timeline and the tasks', () => {
-    const order = [...read('src/index.css').matchAll(/@import '\.\/components\/([\w-]+)\.css'/g)].map((match) => match[1]);
+    const order = [...read('src/index.css').matchAll(/@import '\.\/components\/([\w-]+)\/[\w-]+\.css'/g)].map((match) => match[1]);
     assert.equal(order.indexOf('tabs'), order.indexOf('shell') + 1);
     assert.equal(order.indexOf('steps'), order.indexOf('tabs') + 1);
     // The lists of 2.0 (list, timeline, tasks) stay together; prose follows the last of them.
@@ -2369,7 +2372,7 @@ describe('app frame, page and base (2.0)', () => {
   });
 
   it('gives bare headings under .ds-base the type roles by the element alone', () => {
-    const css = stripComments(read('src/base.css'));
+    const css = stripComments(read('src/core/base.css'));
     const roles = { h1: '--ds-font-headline', h2: '--ds-font-subtitle', h3: '--ds-font-label', h6: '--ds-font-label' };
     for (const [element, role] of Object.entries(roles)) {
       const found = rules(css).filter((rule) => splitSelectors(rule.selector).some((part) => part === `:where(.ds-base) ${element}` || (part.startsWith(':where(.ds-base) :is(') && part.includes(element))))
@@ -2389,7 +2392,7 @@ describe('app frame, page and base (2.0)', () => {
         assert.deepEqual(entriesOf(entry.value).map((part) => part.name), ['opacity'], rule.selector);
       }
     }
-    assert.ok(/--ds-drawer-rail-width:\s*72px/.test(read('src/tokens.css')), 'the rail width is a layout role');
+    assert.ok(/--ds-drawer-rail-width:\s*72px/.test(read('src/core/tokens.css')), 'the rail width is a layout role');
   });
 
   it('hides the banner, keeps stale content at full strength and keeps cards whole in print', () => {
@@ -2404,8 +2407,8 @@ describe('app frame, page and base (2.0)', () => {
 });
 
 describe('tables and scrollers (2.0)', () => {
-  const TABLE = 'src/components/table.css';
-  const SCROLLER = 'src/components/scroller.css';
+  const TABLE = 'src/components/table/table.css';
+  const SCROLLER = 'src/components/scroller/scroller.css';
   const table = read(TABLE);
 
   it('keeps the three copies of the stacked block identical (sheet and dialog, 600px, 840px)', () => {
@@ -2468,8 +2471,8 @@ describe('tables and scrollers (2.0)', () => {
   });
 
   it('fades the cut edges of a menu and a combobox list on the same numbers, on the block axis (2.0)', () => {
-    const combo = read('src/components/combobox.css');
-    const menu = read('src/components/menu.css');
+    const combo = read('src/components/combobox/combobox.css');
+    const menu = read('src/components/menu/menu.css');
     // The list: the .ds-scroll-x mask turned to the block axis, its scrollbar strip (--ds-scrollbar-width) opaque.
     const list = Object.fromEntries(declarationsOf(combo, '.ds-combo__list').map((entry) => [entry.property, entry.value]));
     for (const property of ['mask-image', '-webkit-mask-image']) {
@@ -2514,7 +2517,7 @@ describe('tables and scrollers (2.0)', () => {
     assert.equal(print(TABLE, '.ds-table th')['white-space'], 'normal');
     assert.equal(print(TABLE, '.ds-table tr')['break-inside'], 'avoid');
     assert.equal(print(TABLE, '.ds-selection-bar').display, 'none');
-    assert.equal(print('src/components/pagination.css', '.ds-pagination').display, 'none');
+    assert.equal(print('src/components/pagination/pagination.css', '.ds-pagination').display, 'none');
     // The jump place takes no room and lets the pointer through to the log; only the pill takes it.
     const jump = Object.fromEntries(declarationsOf(read(SCROLLER), '.ds-jump').map((entry) => [entry.property, entry.value]));
     assert.deepEqual([jump.position, jump.height, jump['pointer-events']], ['sticky', '0', 'none']);
@@ -2553,7 +2556,7 @@ describe('tables and scrollers (2.0)', () => {
   it('scopes the interactive row rules to rows with a row link (a row without one stays plain)', () => {
     const ROW = '.ds-table--interactive tbody tr:not(.ds-table__detail)';
     const offenders = [];
-    for (const file of [TABLE, 'src/components/ripple.css']) {
+    for (const file of [TABLE, 'src/components/ripple/ripple.css']) {
       for (const rule of rules(read(file))) {
         for (const part of splitSelectors(rule.selector)) {
           // The row's own pointer and press: only with a row link (focus already follows the link).
@@ -2571,7 +2574,7 @@ describe('tables and scrollers (2.0)', () => {
     // depending on its first child: each inserted node then restyles its siblings (four times the style work of
     // the styleguide's load). Name the element first: `tr > :is(td, th):first-child`.
     const offenders = [];
-    for (const file of [TABLE, 'src/components/ripple.css', SCROLLER, 'src/components/pagination.css']) {
+    for (const file of [TABLE, 'src/components/ripple/ripple.css', SCROLLER, 'src/components/pagination/pagination.css']) {
       for (const rule of rules(read(file))) {
         for (const part of splitSelectors(rule.selector)) {
           const subject = part.replace(/::[\w-]+(\([^)]*\))?$/, '').split(/\s*[\s>+~]\s*(?![^(]*\))/).pop();
@@ -2650,7 +2653,7 @@ describe('tables and scrollers (2.0)', () => {
  * listed below with its reason; a declaration on the safe area
  * (env(safe-area-inset-left | right)) is physical by nature and passes.
  */
-const DIRECTION_FILES = [...filesIn('src/components', (path) => path.endsWith('.css')), 'src/base.css'];
+const DIRECTION_FILES = [...filesIn('src/components', (path) => path.endsWith('.css')), 'src/core/base.css'];
 /** A box shorthand's values at the top level (not inside var() or calc()). */
 function boxValues(value) {
   const parts = [];
@@ -2685,40 +2688,40 @@ function physicalReason(property, value) {
 }
 /** `file: selector: property` of every physical declaration that stays, with its reason. */
 const PHYSICAL_ALLOWED = new Map([
-  ['src/components/form.css: select.ds-input, input.ds-input[list]: padding-right', 'the room of the arrow, which sits at the right'],
-  ['src/components/form.css: select.ds-input, input.ds-input[list]: background-position', 'the select arrow: two gradients placed from the right edge'],
-  ['src/components/form.css: input.ds-input[list]::-webkit-calendar-picker-indicator: margin', 'the invisible picker laid over the arrow at the right'],
-  ['src/components/indicator.css: .ds-indicator: left', 'DS.indicator writes viewport-measured x from the left'],
-  ['src/components/menu.css: .ds-menu: inset', 'script coordinates: --ds-menu-x from the left'],
-  ['src/components/progress.css: .ds-progress__track: background', 'gradient direction: the bar fills left to right with its clip'],
-  ['src/components/ripple.css: .ds-press-ripple: left', 'pointer coordinates: --ds-ripple-x from the host\'s left'],
-  ['src/components/ripple.css: .ds-ripples tr > :is(td, th) > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the cell\'s left'],
-  ['src/components/ripple.css: .ds-ripples .ds-tabs__tab > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the tab\'s left'],
-  ['src/components/scroller.css: .ds-scroll-x: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/scroller.css: .ds-scroll-x: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/sheet.css: .ds-sheet__panel: border-radius', 'the side sheet slides in from the right edge: its open side is the left'],
-  ['src/components/sheet.css: .ds-sheet__panel::after: left', 'the bleed beyond the right edge covers the slide\'s overshoot'],
-  ['src/components/shell.css: .ds-app--drawer .ds-panel: margin-left', 'clears the safe-area margin-left of the panel, which stays physical'],
-  ['src/components/shell.css: .ds-drawer: left', 'the modal drawer slides in from the left edge'],
-  ['src/components/shell.css: .ds-drawer: border-radius', 'the modal drawer slides in from the left edge: its open side is the right'],
-  ['src/components/shell.css: .ds-drawer::before: right', 'the bleed left of the modal drawer covers the slide\'s overshoot'],
-  ['src/components/slider.css: .ds-slider::-webkit-slider-runnable-track: background', 'gradient direction: the active part fills from the left, as the native thumb moves'],
-  ['src/components/switch.css: .ds-switch__track::after: left', 'the handle starts at the left and travels on translate'],
-  ['src/components/switch.css: .ds-switch__track::before: left', 'the halo starts at the left and travels on translate with the handle'],
-  ['src/components/table.css: .ds-table-wrap--fill: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-table-wrap--fill: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/toast.css: .ds-toasts: left', 'script coordinate: --ds-toast-left, and DS.overlay reads the computed left back'],
-  ['src/components/tooltip.css: .ds-tooltip: left', 'script coordinates: --ds-tooltip-x from the left'],
-  ['src/components/tooltip.css: .ds-tooltip[popover]: inset', 'script coordinates: --ds-tooltip-x from the left'],
-  ['src/components/tooltip.css: .ds-tooltip[data-anchored]: left', 'clears the script coordinate for anchor positioning'],
+  ['src/components/form/form.css: select.ds-input, input.ds-input[list]: padding-right', 'the room of the arrow, which sits at the right'],
+  ['src/components/form/form.css: select.ds-input, input.ds-input[list]: background-position', 'the select arrow: two gradients placed from the right edge'],
+  ['src/components/form/form.css: input.ds-input[list]::-webkit-calendar-picker-indicator: margin', 'the invisible picker laid over the arrow at the right'],
+  ['src/components/indicator/indicator.css: .ds-indicator: left', 'DS.indicator writes viewport-measured x from the left'],
+  ['src/components/menu/menu.css: .ds-menu: inset', 'script coordinates: --ds-menu-x from the left'],
+  ['src/components/progress/progress.css: .ds-progress__track: background', 'gradient direction: the bar fills left to right with its clip'],
+  ['src/components/ripple/ripple.css: .ds-press-ripple: left', 'pointer coordinates: --ds-ripple-x from the host\'s left'],
+  ['src/components/ripple/ripple.css: .ds-ripples tr > :is(td, th) > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the cell\'s left'],
+  ['src/components/ripple/ripple.css: .ds-ripples .ds-tabs__tab > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the tab\'s left'],
+  ['src/components/scroller/scroller.css: .ds-scroll-x: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/scroller/scroller.css: .ds-scroll-x: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/sheet/sheet.css: .ds-sheet__panel: border-radius', 'the side sheet slides in from the right edge: its open side is the left'],
+  ['src/components/sheet/sheet.css: .ds-sheet__panel::after: left', 'the bleed beyond the right edge covers the slide\'s overshoot'],
+  ['src/components/shell/shell.css: .ds-app--drawer .ds-panel: margin-left', 'clears the safe-area margin-left of the panel, which stays physical'],
+  ['src/components/shell/shell.css: .ds-drawer: left', 'the modal drawer slides in from the left edge'],
+  ['src/components/shell/shell.css: .ds-drawer: border-radius', 'the modal drawer slides in from the left edge: its open side is the right'],
+  ['src/components/shell/shell.css: .ds-drawer::before: right', 'the bleed left of the modal drawer covers the slide\'s overshoot'],
+  ['src/components/slider/slider.css: .ds-slider::-webkit-slider-runnable-track: background', 'gradient direction: the active part fills from the left, as the native thumb moves'],
+  ['src/components/switch/switch.css: .ds-switch__track::after: left', 'the handle starts at the left and travels on translate'],
+  ['src/components/switch/switch.css: .ds-switch__track::before: left', 'the halo starts at the left and travels on translate with the handle'],
+  ['src/components/table/table.css: .ds-table-wrap--fill: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-table-wrap--fill: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
+  ['src/components/toast/toast.css: .ds-toasts: left', 'script coordinate: --ds-toast-left, and DS.overlay reads the computed left back'],
+  ['src/components/tooltip/tooltip.css: .ds-tooltip: left', 'script coordinates: --ds-tooltip-x from the left'],
+  ['src/components/tooltip/tooltip.css: .ds-tooltip[popover]: inset', 'script coordinates: --ds-tooltip-x from the left'],
+  ['src/components/tooltip/tooltip.css: .ds-tooltip[data-anchored]: left', 'clears the script coordinate for anchor positioning'],
 ]);
 
 describe('direction (2.0, D9)', () => {
@@ -2758,29 +2761,29 @@ describe('forced colours and print after the merges (2.0)', () => {
 
   it('maps the states of the new parts per D8', () => {
     // A focused chosen option: a CanvasText ring inside its SelectedItem fill.
-    assert.ok(has(forced('src/components/combobox.css'), '.ds-combo__option[aria-selected="true"][data-active]', 'outline-color', 'CanvasText'));
+    assert.ok(has(forced('src/components/combobox/combobox.css'), '.ds-combo__option[aria-selected="true"][data-active]', 'outline-color', 'CanvasText'));
     // Blocked is GrayText: key-value rows, the drop zone and the file field.
-    assert.ok(has(forced('src/components/list.css'), ':is(a, button).ds-kv-list__row:is(:disabled, [aria-disabled="true"])', 'color', 'GrayText'));
-    assert.ok(has(forced('src/components/drag.css'), '.ds-dropzone:has(input:disabled)', 'color', 'GrayText'));
-    assert.ok(has(forced('src/components/drag.css'), '.ds-input[type="file"]:disabled::file-selector-button', 'color', 'GrayText'));
+    assert.ok(has(forced('src/components/list/list.css'), ':is(a, button).ds-kv-list__row:is(:disabled, [aria-disabled="true"])', 'color', 'GrayText'));
+    assert.ok(has(forced('src/components/drag/drag.css'), '.ds-dropzone:has(input:disabled)', 'color', 'GrayText'));
+    assert.ok(has(forced('src/components/drag/drag.css'), '.ds-input[type="file"]:disabled::file-selector-button', 'color', 'GrayText'));
     // forced-color-adjust inherits: the other controls of a current row take the system colours again, on Canvas.
-    const list = rules(forced('src/components/list.css'));
+    const list = rules(forced('src/components/list/list.css'));
     assert.ok(list.some((rule) => /\.ds-list__item:is\(\[aria-current\]/.test(rule.selector) && /:not\(\.ds-list__action\)$/.test(rule.selector) && /forced-color-adjust: auto/.test(rule.body)));
     assert.ok(list.some((rule) => /\.ds-list__item:is\(\[aria-current\]/.test(rule.selector) && /:not\(\.ds-list__action\)$/.test(rule.selector) && /background-color: Canvas/.test(rule.body)));
   });
 
   it('prints the state of controls drawn with backgrounds, and no closed detail row', () => {
-    for (const [file, selector] of [['src/components/spinner.css', '.ds-spinner'], ['src/components/progress.css', '.ds-progress'], ['src/components/switch.css', '.ds-switch'], ['src/components/steps.css', '.ds-steps'], ['src/components/slider.css', '.ds-slider'], ['src/components/form.css', '.ds-radio > :is(.ds-radio__icon, .ds-radio__mark)']]) {
+    for (const [file, selector] of [['src/components/spinner/spinner.css', '.ds-spinner'], ['src/components/progress/progress.css', '.ds-progress'], ['src/components/switch/switch.css', '.ds-switch'], ['src/components/steps/steps.css', '.ds-steps'], ['src/components/slider/slider.css', '.ds-slider'], ['src/components/form/form.css', '.ds-radio > :is(.ds-radio__icon, .ds-radio__mark)']]) {
       assert.ok(has(printed(file), selector, 'print-color-adjust', 'exact'), `${file}: ${selector}`);
       assert.ok(has(printed(file), selector, '-webkit-print-color-adjust', 'exact'), `${file}: ${selector} (prefixed)`);
       assert.match(read(file).match(/^\/\*[\s\S]*?\*\//)[0], /Print:/, `${file}: a Print: note in the header`);
     }
-    assert.ok(has(printed('src/components/table.css'), '.ds-table tr:not(:has(.ds-table__toggle[aria-expanded="true"])) + .ds-table__detail', 'display', 'none'));
+    assert.ok(has(printed('src/components/table/table.css'), '.ds-table tr:not(:has(.ds-table__toggle[aria-expanded="true"])) + .ds-table__detail', 'display', 'none'));
   });
 });
 
 describe('the app frame (2.1)', () => {
-  const SHELL = stripComments(read('src/components/shell.css'));
+  const SHELL = stripComments(read('src/components/shell/shell.css'));
   const NO_BUTTON = '.ds-account--capsule:not(:has(> .ds-btn:not([hidden])))';
   const at = (css, selector) => Object.fromEntries(declarationsOf(css, selector).map((entry) => [entry.property, entry.value]));
 
@@ -2796,15 +2799,15 @@ describe('the app frame (2.1)', () => {
   it('keeps a drawer row item\'s room for its action at the action\'s size (the hook .ds-touch raises to 48px)', () => {
     assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(var(--ds-btn-sm-icon-size, var(--ds-space-8)) + var(--ds-space-2))');
     // The same hook sizes the small icon button and .ds-touch sets it.
-    assert.match(read('src/components/button.css'), /\.ds-btn--icon\.ds-btn--sm \{\s*--ds-btn-icon-size: var\(--ds-btn-sm-icon-size, 32px\);/);
-    assert.equal(at(stripComments(read('src/components/utilities.css')), '.ds-touch')['--ds-btn-sm-icon-size'], 'var(--ds-touch-target)');
+    assert.match(read('src/components/button/button.css'), /\.ds-btn--icon\.ds-btn--sm \{\s*--ds-btn-icon-size: var\(--ds-btn-sm-icon-size, 32px\);/);
+    assert.equal(at(stripComments(read('src/components/utilities/utilities.css')), '.ds-touch')['--ds-btn-sm-icon-size'], 'var(--ds-touch-target)');
     // The room's second part (--ds-space-2) covers the action's margin and as much air.
     assert.equal(at(SHELL, '.ds-drawer__action')['margin-inline-end'], 'var(--ds-space-1)');
   });
 });
 
 describe('tables, cards and buttons (2.1)', () => {
-  const TABLE_CSS = stripComments(read('src/components/table.css'));
+  const TABLE_CSS = stripComments(read('src/components/table/table.css'));
   const at = (css, selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
   const has = (css, selector, property, value) => declarationsAt(css, selector).some((entry) => entry.property === property && entry.value === value);
   const LAST_SHOWN = ':is(th, td):where(:not(.ds-col--secondary):not(:has(~ :not(.ds-col--secondary))))';
@@ -2820,14 +2823,14 @@ describe('tables, cards and buttons (2.1)', () => {
   });
 
   it('keeps the rhythm\'s 16px as a floor above a .ds-grid-2 card\'s link row (its auto margin takes the free space)', () => {
-    const CARD = stripComments(read('src/components/card.css'));
+    const CARD = stripComments(read('src/components/card/card.css'));
     assert.equal(at(CARD, '.ds-grid-2 > .ds-card > .ds-card__links')['margin-top'], 'auto');
     assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--ds-space-4)');
     assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'var(--ds-space-4)', 'the floor is the rhythm');
   });
 
   it('lets a status chip, badge or tag sit on the card title line and a chip hang by its own height, after the button overhang', () => {
-    const CARD = stripComments(read('src/components/card.css'));
+    const CARD = stripComments(read('src/components/card/card.css'));
     const GENERAL = '.ds-card__row > :not(.ds-card__title, :has(> .ds-card__title))';
     const SMALL = '.ds-card__row > :is(.ds-status, .ds-badge, .ds-tag)';
     assert.equal(at(CARD, GENERAL)['margin-block'], 'calc((var(--ds-card-title-line, 24px) - var(--ds-btn-height, 36px)) / 2)');
@@ -2838,7 +2841,7 @@ describe('tables, cards and buttons (2.1)', () => {
   });
 
   it('hangs a page head\'s text buttons into the gutter: the last at the end, under the title the first at the start', () => {
-    const PAGE = stripComments(read('src/components/page.css'));
+    const PAGE = stripComments(read('src/components/page/page.css'));
     const LAST = '.ds-page-head__actions > .ds-btn--text:last-child';
     const HANG = 'calc(-1 * var(--ds-space-3))';
     const wide = withoutAtRuleBlocks(PAGE, /@container|@media/);
@@ -2864,13 +2867,13 @@ describe('additions (2.1)', () => {
 
   it('sets a 16px icon leading a meta line on its text line, --ds-space-1 before the text, without growing the line', () => {
     for (const [file, selector] of [['utilities', '.ds-meta > svg:first-child'], ['timeline', '.ds-timeline__meta > svg:first-child']]) {
-      const css = stripComments(read(`src/components/${file}.css`));
+      const css = stripComments(read(`src/components/${file}/${file}.css`));
       assert.deepEqual(at(css, selector), { display: 'inline-block', 'margin-inline-end': 'var(--ds-space-1)', 'vertical-align': 'top' }, selector);
     }
   });
 
   it('sizes the empty-state disc by --ds-empty-disc-size (48px); the done ring fills it', () => {
-    const css = stripComments(read('src/components/empty.css'));
+    const css = stripComments(read('src/components/empty/empty.css'));
     const disc = at(css, '.ds-empty__disc');
     assert.equal(disc.width, 'var(--ds-empty-disc-size, 48px)');
     assert.equal(disc.height, 'var(--ds-empty-disc-size, 48px)');
@@ -2878,7 +2881,7 @@ describe('additions (2.1)', () => {
   });
 
   it('bleeds the sticky action bar by --ds-form-actions-bleed, else the page or the card padding', () => {
-    const phone = atRuleBlocks(stripComments(read('src/components/form.css')), /^@media \(max-width: 600px\)$/).join('\n');
+    const phone = atRuleBlocks(stripComments(read('src/components/form/form.css')), /^@media \(max-width: 600px\)$/).join('\n');
     for (const [selector, fallback] of [['.ds-form-actions--sticky', 'var(--ds-content-pad-x, 0px)'], ['.ds-card .ds-form-actions--sticky', 'var(--ds-card-pad)']]) {
       const bar = at(phone, selector);
       assert.equal(bar['margin-inline'], `calc(-1 * var(--ds-form-actions-bleed, ${fallback}))`, selector);

@@ -1,3 +1,4 @@
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * A small CSS scanner for the tools (no dependency, not a full parser): it
  * reads the stylesheets that themes and projects write, keeping line

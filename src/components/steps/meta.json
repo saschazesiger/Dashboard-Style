@@ -1,0 +1,25 @@
+{
+  "name": "steps",
+  "group": "navigation",
+  "order": 370,
+  "docsOrder": 40,
+  "classes": [
+    "ds-steps",
+    "ds-steps--bar",
+    "ds-steps__label",
+    "ds-steps__mark",
+    "ds-steps__step"
+  ],
+  "attributes": [
+    "data-status"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": [
+    "--ds-steps-bar-height"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

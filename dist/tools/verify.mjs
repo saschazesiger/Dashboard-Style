@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Verifies a copy of Dashboard-Style against its SHA256SUMS, without
  * network and without dependencies (Node 18 or later):

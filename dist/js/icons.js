@@ -1,3 +1,4 @@
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Icons: one outline set on a 24px grid (shapes from Lucide, ISC, partly
  * from Feather, MIT; notices in LICENSE): stroke width 2, round caps and

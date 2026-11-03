@@ -1,0 +1,37 @@
+{
+  "name": "drag",
+  "group": "forms",
+  "order": 210,
+  "docsOrder": 330,
+  "classes": [
+    "ds-dropzone",
+    "ds-dropzone__browse",
+    "ds-dropzone__disc",
+    "ds-dropzone__hint",
+    "ds-dropzone__idle",
+    "ds-dropzone__input",
+    "ds-dropzone__over",
+    "ds-dropzone__title",
+    "ds-grip"
+  ],
+  "attributes": [
+    "data-ds-dragging",
+    "data-ds-dragover"
+  ],
+  "requires": [
+    "form"
+  ],
+  "context": [
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-dropzone-border"
+  ],
+  "keyframes": [],
+  "js": [
+    "dom",
+    "motion"
+  ],
+  "progressive": [],
+  "ripple": true
+}

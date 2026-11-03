@@ -17,7 +17,7 @@ import {
 import { packageInfo, SHIPPED_THEMES, tokensJson } from '../scripts/build.mjs';
 import { atRuleBlocks, filesIn, ms, read, stripComments, token, withoutAtRuleBlocks } from './helpers.js';
 
-const tokens = stripComments(read('src/tokens.css'));
+const tokens = stripComments(read('src/core/tokens.css'));
 // MOTION (motion tokens and per-element motion hooks: no theme sets one, no role matches), the pair lists and the
 // contrast function live in scripts/tools/theme-rules.mjs, shared with tools/check-theme.mjs.
 /** Duration-like scales: written as calc(<n>ms * var(--ds-time-scale, 1)). */
@@ -41,7 +41,7 @@ function stops(linear) {
 
 /** Names declared in the main .ds-theme rule, split at the palette marker. */
 function layers() {
-  const source = read('src/tokens.css');
+  const source = read('src/core/tokens.css');
   // The rule ends at its matching brace (the file is indented inside @layer).
   const start = source.indexOf('.ds-theme {');
   let depth = 0;
@@ -391,11 +391,11 @@ describe('derived roles (2.0)', () => {
       assert.ok(rule, `${file}: ${selector}`);
       return /(?:^|;)\s*background:\s*([^;]+);/.exec(rule[1])?.[1].trim();
     };
-    assert.equal(background('src/components/dialog.css', '.ds-dialog__box'), 'var(--ds-surface-overlay)');
-    assert.equal(background('src/components/sheet.css', '.ds-sheet__panel'), 'var(--ds-surface-overlay)');
-    assert.equal(background('src/components/menu.css', '.ds-menu'), 'var(--ds-surface-popover)');
-    assert.equal(background('src/components/combobox.css', '.ds-combo__popup'), 'var(--ds-surface-popover)');
-    assert.equal(background('src/components/shell.css', '.ds-skip'), 'var(--ds-surface-popover)');
+    assert.equal(background('src/components/dialog/dialog.css', '.ds-dialog__box'), 'var(--ds-surface-overlay)');
+    assert.equal(background('src/components/sheet/sheet.css', '.ds-sheet__panel'), 'var(--ds-surface-overlay)');
+    assert.equal(background('src/components/menu/menu.css', '.ds-menu'), 'var(--ds-surface-popover)');
+    assert.equal(background('src/components/combobox/combobox.css', '.ds-combo__popup'), 'var(--ds-surface-popover)');
+    assert.equal(background('src/components/shell/shell.css', '.ds-skip'), 'var(--ds-surface-popover)');
   });
 });
 

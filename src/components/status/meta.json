@@ -1,0 +1,34 @@
+{
+  "name": "status",
+  "group": "feedback",
+  "order": 160,
+  "docsOrder": 140,
+  "classes": [
+    "ds-status",
+    "ds-status--error",
+    "ds-status--ok",
+    "ds-status--running",
+    "ds-status--warning",
+    "ds-status__spinner",
+    "ds-tag",
+    "ds-tag--neutral"
+  ],
+  "attributes": [],
+  "requires": [
+    "spinner"
+  ],
+  "context": [],
+  "hooks": [
+    "--ds-status-radius",
+    "--ds-status-spinner-width",
+    "--ds-tag-bg",
+    "--ds-tag-color",
+    "--ds-tag-height"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [
+    "@starting-style"
+  ],
+  "ripple": false
+}

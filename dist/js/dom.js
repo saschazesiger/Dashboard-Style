@@ -1,3 +1,4 @@
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Updating rendered HTML in place, without restarting animations.
  *

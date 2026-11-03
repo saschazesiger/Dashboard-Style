@@ -1,0 +1,53 @@
+{
+  "name": "ripple",
+  "group": "motion",
+  "order": 380,
+  "docsOrder": 340,
+  "classes": [
+    "ds-press-ripple",
+    "ds-press-ripple--out",
+    "ds-pressed",
+    "ds-ripples"
+  ],
+  "attributes": [
+    "data-ds-ripple"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [
+    "alert",
+    "card",
+    "chart",
+    "chip",
+    "combobox",
+    "disclosure",
+    "drag",
+    "form",
+    "list",
+    "menu",
+    "shell",
+    "table",
+    "tabs",
+    "tile",
+    "utilities"
+  ],
+  "hooks": [
+    "--ds-btn-state-focus-opacity",
+    "--ds-btn-state-opacity",
+    "--ds-btn-state-pressed-opacity",
+    "--ds-ripple-color",
+    "--ds-table-row-hover",
+    "--ds-tabs-height"
+  ],
+  "keyframes": [
+    "ds-press-ripple"
+  ],
+  "js": [
+    "ripple"
+  ],
+  "progressive": [
+    "overflow-clip-margin"
+  ],
+  "ripple": false
+}

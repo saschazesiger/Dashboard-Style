@@ -1,3 +1,4 @@
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Sliding selection indicator for segmented controls and navigation lists:
  * one element behind the items that glides to the active one instead of

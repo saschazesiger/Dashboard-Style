@@ -1,6 +1,6 @@
 # Tokens
 
-All tokens are custom properties on `.ds-theme` (never `:root`), defined in `src/tokens.css`. Three layers:
+All tokens are custom properties on `.ds-theme` (never `:root`), defined in `src/core/tokens.css`. Three layers:
 
 | Layer | What | Who sets it |
 |---|---|---|

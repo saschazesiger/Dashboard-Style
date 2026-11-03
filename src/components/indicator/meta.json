@@ -1,0 +1,25 @@
+{
+  "name": "indicator",
+  "group": "motion",
+  "order": 60,
+  "docsOrder": null,
+  "classes": [
+    "ds-has-indicator",
+    "ds-indicator",
+    "ds-indicator--instant"
+  ],
+  "attributes": [
+    "data-dir",
+    "data-empty",
+    "data-glide"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": [],
+  "keyframes": [],
+  "js": [
+    "indicator"
+  ],
+  "progressive": [],
+  "ripple": false
+}

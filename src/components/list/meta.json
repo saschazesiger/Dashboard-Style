@@ -1,0 +1,56 @@
+{
+  "name": "list",
+  "group": "data",
+  "order": 110,
+  "docsOrder": 90,
+  "classes": [
+    "ds-facts",
+    "ds-facts--rows",
+    "ds-kv-list",
+    "ds-kv-list--bars",
+    "ds-kv-list--interactive",
+    "ds-kv-list__icon",
+    "ds-kv-list__icon--error",
+    "ds-kv-list__icon--ok",
+    "ds-kv-list__icon--warning",
+    "ds-kv-list__row",
+    "ds-list",
+    "ds-list--interactive",
+    "ds-list__action",
+    "ds-list__actions",
+    "ds-list__chevron",
+    "ds-list__icon",
+    "ds-list__item",
+    "ds-list__meta",
+    "ds-list__text",
+    "ds-list__title",
+    "ds-lock",
+    "ds-parts",
+    "ds-parts__list",
+    "ds-plain-list"
+  ],
+  "attributes": [
+    "data-ds-glide"
+  ],
+  "requires": [
+    "chart",
+    "status"
+  ],
+  "context": [
+    "card",
+    "chip",
+    "ripple",
+    "tile",
+    "utilities"
+  ],
+  "hooks": [
+    "--ds-facts-label-width",
+    "--ds-list-current-bg",
+    "--ds-list-item-height",
+    "--ds-list-text-min"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": true
+}

@@ -1,3 +1,4 @@
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Types of the classic script ds.js: the global DS and the registry
  * DashboardStyle.versions. Hand-written, like the module types next to

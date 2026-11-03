@@ -1,3 +1,4 @@
+/*! Dashboard-Style 2.1.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The rules a theme keeps, as data and small functions, shared by
  * tools/check-theme.mjs, the styleguide's theme check and the repository

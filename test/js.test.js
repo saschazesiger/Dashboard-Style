@@ -242,7 +242,7 @@ describe('indicator, dom, ripple and overlay', () => {
 
   it('keeps DRAWER_QUERY equal to the modal drawer breakpoint of shell.css', () => {
     assert.equal(overlay.DRAWER_QUERY, '(max-width: 900px)');
-    const shell = read('src/components/shell.css');
+    const shell = read('src/components/shell/shell.css');
     assert.ok(shell.includes(`@media ${overlay.DRAWER_QUERY}`), 'shell.css switches the drawer at DRAWER_QUERY');
     // The drawer rules sit under that query (the modal drawer's transform), never under another width.
     const block = shell.slice(shell.indexOf(`@media ${overlay.DRAWER_QUERY}`));
@@ -2531,7 +2531,7 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
     const row = read('docs/components.md').split('\n').find((line) => line.startsWith('| `data-ds-toast-room` |'));
     assert.ok(row, 'a row in the Attributes table');
     assert.match(row, /\| the page \| `\.ds-view`, `\.ds-sheet__body`, `\.ds-dialog` \| `off`/);
-    assert.match(read('src/components/toast.css'), /data-ds-toast-room="off"/);
+    assert.match(read('src/components/toast/toast.css'), /data-ds-toast-room="off"/);
   });
 
   it('has no legacy branch: the region is never left mute (R11)', () => {

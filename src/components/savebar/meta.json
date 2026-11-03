@@ -1,0 +1,39 @@
+{
+  "name": "savebar",
+  "group": "forms",
+  "order": 340,
+  "docsOrder": 290,
+  "classes": [
+    "ds-savebar",
+    "ds-savebar__actions",
+    "ds-savebar__bar",
+    "ds-savebar__text"
+  ],
+  "attributes": [
+    "data-ds-savebar",
+    "data-ds-savebar-rest",
+    "data-toast-reserve"
+  ],
+  "requires": [],
+  "context": [
+    "page",
+    "shell"
+  ],
+  "hooks": [
+    "--ds-savebar-bg",
+    "--ds-savebar-inset",
+    "--ds-savebar-min-height",
+    "--ds-savebar-offset",
+    "--ds-savebar-radius",
+    "--ds-savebar-shadow"
+  ],
+  "keyframes": [],
+  "js": [
+    "overlay"
+  ],
+  "progressive": [
+    "@starting-style",
+    "allow-discrete"
+  ],
+  "ripple": false
+}

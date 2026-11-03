@@ -135,7 +135,7 @@ export function forcedColorBlocks(css) {
 
 /** Value of a custom property declared in the first `.ds-theme` rule of tokens.css. */
 export function token(name) {
-  const tokens = stripComments(read('src/tokens.css'));
+  const tokens = stripComments(read('src/core/tokens.css'));
   const match = tokens.match(new RegExp(`${name}:\\s*([^;]+);`));
   return match ? match[1].trim() : undefined;
 }

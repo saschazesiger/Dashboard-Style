@@ -1,0 +1,50 @@
+{
+  "name": "page",
+  "group": "navigation",
+  "order": 390,
+  "docsOrder": 20,
+  "classes": [
+    "ds-auth",
+    "ds-auth__alert",
+    "ds-auth__card",
+    "ds-breadcrumbs",
+    "ds-content",
+    "ds-grid-2",
+    "ds-page",
+    "ds-page-head",
+    "ds-page-head__actions",
+    "ds-page-head__back",
+    "ds-page-head__lead",
+    "ds-page-head__row",
+    "ds-page-head__status",
+    "ds-page-head__text",
+    "ds-page-head__title",
+    "ds-stack",
+    "ds-stack--page"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "form"
+  ],
+  "context": [
+    "dialog",
+    "sheet"
+  ],
+  "hooks": [
+    "--ds-auth-width",
+    "--ds-breadcrumbs-item-max",
+    "--ds-btn-height",
+    "--ds-btn-padding-start",
+    "--ds-page-head-text-basis",
+    "--ds-page-head-title-line",
+    "--ds-stack-gap",
+    "--ds-stack-gap-page"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [
+    "text-wrap"
+  ],
+  "ripple": false
+}

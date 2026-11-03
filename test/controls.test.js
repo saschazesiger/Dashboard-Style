@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { RIPPLE_HOSTS } from '../src/js/ripple.js';
 import { atRuleBlocks, declarations, declarationsOf, forcedColorBlocks, read, rules, stripComments, withoutAtRuleBlocks } from './helpers.js';
 
-const U = 'src/components/utilities.css';
+const U = 'src/components/utilities/utilities.css';
 
 /** A selector list split at its top-level commas. */
 function splitSelectors(selector) {
@@ -63,7 +63,7 @@ describe('.ds-pressable (2.0)', () => {
     assert.equal(own(css, blocked).cursor, 'not-allowed');
     assert.equal(own(css, `${blocked}:is(:active, .ds-pressed)::before`).opacity, '0');
     assert.ok(splitSelectors(RIPPLE_HOSTS).includes('.ds-pressable'));
-    const ripple = selectorsOf(read('src/components/ripple.css'));
+    const ripple = selectorsOf(read('src/components/ripple/ripple.css'));
     assert.ok(ripple.some((part) => part.startsWith(':where(.ds-ripples) .ds-pressable:where(') && part.includes(':is(:active, .ds-pressed)')));
     const forced = forcedColorBlocks(css).flatMap((block) => declarationsOf(block, '.ds-pressable::before'));
     assert.equal(forced.find((entry) => entry.property === 'display')?.value, 'none');
@@ -129,11 +129,11 @@ describe('utilities (2.0)', () => {
     assert.equal(touch['--ds-input-font'], 'var(--ds-font-input)');
     assert.deepEqual(Object.keys(touch).sort(), [...hooks, '--ds-input-font'].sort());
     // The role sits after the palette marker, 48px; never automatic on a coarse pointer.
-    const tokens = stripComments(read('src/tokens.css'));
-    const marker = read('src/tokens.css').indexOf('── 2. Palette');
-    assert.ok(read('src/tokens.css').indexOf('--ds-touch-target: 48px') > marker);
+    const tokens = stripComments(read('src/core/tokens.css'));
+    const marker = read('src/core/tokens.css').indexOf('── 2. Palette');
+    assert.ok(read('src/core/tokens.css').indexOf('--ds-touch-target: 48px') > marker);
     assert.match(tokens, /--ds-touch-target:\s*48px/);
-    for (const file of ['src/components/utilities.css', 'src/base.css']) assert.doesNotMatch(stripComments(read(file)), /pointer:\s*coarse/, file);
+    for (const file of ['src/components/utilities/utilities.css', 'src/core/base.css']) assert.doesNotMatch(stripComments(read(file)), /pointer:\s*coarse/, file);
     const theming = read('docs/theming.md');
     assert.match(theming, /## Touch screens/);
     for (const hook of hooks) assert.ok(theming.includes(`\`${hook}\``), `docs/theming.md names ${hook}`);
@@ -141,7 +141,7 @@ describe('utilities (2.0)', () => {
 });
 
 describe('buttons (2.0)', () => {
-  const B = 'src/components/button.css';
+  const B = 'src/components/button/button.css';
   const css = read(B);
   const DISCLOSURE = ':is(.ds-btn--disclosure, .ds-btn[aria-haspopup="dialog"])[aria-expanded="true"]';
   const LOCKED = '.ds-btn[aria-pressed="true"][aria-disabled="true"]:not([aria-busy="true"])';
@@ -208,7 +208,7 @@ describe('buttons (2.0)', () => {
     assert.deepEqual(hover, { 'text-decoration-color': 'var(--ds-link-underline-hover)' });
     // The base comes before the quiet links in the file, and table.css no longer has a rule of its own for it.
     assert.ok(css.indexOf('.ds-link-btn {') < css.indexOf('.ds-link-btn.ds-link-btn--quiet {'));
-    assert.doesNotMatch(stripComments(read('src/components/table.css')), /\.ds-link-btn\b/);
+    assert.doesNotMatch(stripComments(read('src/components/table/table.css')), /\.ds-link-btn\b/);
   });
 
   it('keeps quiet links underlined, in the quieter ink, the link colour on hover', () => {
@@ -223,7 +223,7 @@ describe('buttons (2.0)', () => {
 });
 
 describe('chips, badges and tags (2.0)', () => {
-  const chip = read('src/components/chip.css');
+  const chip = read('src/components/chip/chip.css');
   const flat = withoutAtRuleBlocks(chip, /@media/);
 
   it('resets button chips, keeps every visual on the body and drops the check slot', () => {
@@ -240,7 +240,7 @@ describe('chips, badges and tags (2.0)', () => {
     assert.ok(!rules(chip).some((rule) => /\.ds-chip[^,{]*:(active|is\(:active)/.test(rule.selector) && /border-radius/.test(rule.body)));
     assert.ok(!selectorsOf(chip).some((part) => /\.ds-chip\[aria-pressed/.test(part)), 'no .ds-chip[aria-pressed]');
     // The ripple rules of ripple.css know button chips (press and focus).
-    const ripple = selectorsOf(read('src/components/ripple.css')).filter((part) => part.includes('.ds-chip') && part.includes(':is(button, a)'));
+    const ripple = selectorsOf(read('src/components/ripple/ripple.css')).filter((part) => part.includes('.ds-chip') && part.includes(':is(button, a)'));
     assert.equal(ripple.length, 3);
   });
 
@@ -261,11 +261,11 @@ describe('chips, badges and tags (2.0)', () => {
     assert.doesNotMatch(stripComments(chip), /\.ds-chip__input:disabled|\.ds-chip__input:not\(:disabled\)|:checked:disabled/);
     assert.equal(own(flat, '.ds-chip:has(.ds-chip__input:is(:disabled, [aria-disabled="true"]))').cursor, 'not-allowed');
     assert.equal(own(forcedColorBlocks(chip).join('\n'), '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body').color, 'GrayText');
-    assert.doesNotMatch(stripComments(read('src/components/ripple.css')), /\.ds-chip__input:not\(:disabled\)/);
+    assert.doesNotMatch(stripComments(read('src/components/ripple/ripple.css')), /\.ds-chip__input:not\(:disabled\)/);
   });
 
   it('draws badges and tags as pills from hooks, with tones and the strong pair on tinted hosts', () => {
-    const badge = read('src/components/badge.css');
+    const badge = read('src/components/badge/badge.css');
     const base = own(withoutAtRuleBlocks(badge, /@media/), '.ds-badge');
     assert.equal(base['min-width'], 'var(--ds-badge-size, 20px)');
     assert.equal(base['border-radius'], 'min(var(--ds-badge-radius, var(--ds-radius-action)), calc(var(--ds-badge-size, 20px) / 2))');
@@ -276,8 +276,8 @@ describe('chips, badges and tags (2.0)', () => {
     const tinted = selectorsOf(badge).find((part) => part.endsWith('.ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error)'));
     for (const host of ['.ds-btn[aria-pressed="true"]', '.ds-btn--tonal', '.ds-chip--input', '.ds-chip__input:checked + .ds-chip__body', '.ds-table__row--selected']) assert.ok(tinted.includes(host), host);
     assert.equal(own(forcedColorBlocks(badge).join('\n'), '.ds-badge').outline, '1px solid CanvasText');
-    assert.match(read('src/index.css'), /@import '\.\/components\/chip\.css';\n@import '\.\/components\/badge\.css';/);
-    const status = read('src/components/status.css');
+    assert.match(read('src/index.css'), /@import '\.\/components\/chip\/chip\.css';\n@import '\.\/components\/badge\/badge\.css';/);
+    const status = read('src/components/status/status.css');
     const tag = own(withoutAtRuleBlocks(status, /@media/), '.ds-tag');
     assert.equal(tag.background, 'var(--ds-tag-bg, var(--ds-accent))');
     assert.equal(tag.color, 'var(--ds-tag-color, var(--ds-on-accent))');
@@ -291,8 +291,8 @@ describe('chips, badges and tags (2.0)', () => {
 });
 
 describe('tiles and cards (2.0)', () => {
-  const tile = read('src/components/tile.css');
-  const card = read('src/components/card.css');
+  const tile = read('src/components/tile/tile.css');
+  const card = read('src/components/card/card.css');
   const SEL = ':is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])';
 
   it('marks a selected tile or card by the tint and a static border ring on a free ::after', () => {
@@ -347,7 +347,7 @@ describe('tiles and cards (2.0)', () => {
 });
 
 describe('alerts (2.0)', () => {
-  const css = read('src/components/alert.css');
+  const css = read('src/components/alert/alert.css');
   const flat = withoutAtRuleBlocks(css, /@media/);
 
   it('reads its look from 13 hooks with the 1.6 values as fallbacks', () => {
@@ -394,7 +394,7 @@ describe('alerts (2.0)', () => {
 });
 
 describe('the done state (2.0)', () => {
-  const css = read('src/components/empty.css');
+  const css = read('src/components/empty/empty.css');
 
   it('pops the disc in, rings once and draws the check, on tokens, as keyframes', () => {
     const disc = own(withoutAtRuleBlocks(css, /@media/), '.ds-empty--done .ds-empty__disc');
@@ -409,7 +409,7 @@ describe('the done state (2.0)', () => {
 });
 
 describe('the switch (2.0)', () => {
-  const css = read('src/components/switch.css');
+  const css = read('src/components/switch/switch.css');
   const flat = withoutAtRuleBlocks(css, /@media|@container/);
   const BLOCKED = 'input:is(:disabled, [aria-disabled="true"])';
 
@@ -482,11 +482,11 @@ describe('the switch (2.0)', () => {
 describe('blocked hosts and selected cards (2.0 review)', () => {
   it('rings a focused aria-disabled control in a system colour in forced colours (its colours are not forced)', () => {
     for (const [file, selector] of [
-      ['src/components/button.css', '.ds-btn[aria-disabled="true"]:focus-visible'],
-      ['src/components/chip.css', '.ds-chip__input[aria-disabled="true"]:focus-visible + .ds-chip__body'],
-      ['src/components/switch.css', '.ds-switch input[aria-disabled="true"]:focus-visible + .ds-switch__track'],
-      ['src/components/card.css', '.ds-card--interactive[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))'],
-      ['src/components/tile.css', ':is(button, a).ds-tile[aria-disabled="true"]:focus-visible'],
+      ['src/components/button/button.css', '.ds-btn[aria-disabled="true"]:focus-visible'],
+      ['src/components/chip/chip.css', '.ds-chip__input[aria-disabled="true"]:focus-visible + .ds-chip__body'],
+      ['src/components/switch/switch.css', '.ds-switch input[aria-disabled="true"]:focus-visible + .ds-switch__track'],
+      ['src/components/card/card.css', '.ds-card--interactive[aria-disabled="true"]:is(:focus-visible, :has(.ds-card__action:focus-visible))'],
+      ['src/components/tile/tile.css', ':is(button, a).ds-tile[aria-disabled="true"]:focus-visible'],
     ]) {
       const forced = forcedColorBlocks(read(file)).join('\n');
       assert.equal(own(forced, selector)['outline-color'], 'CanvasText', `${file}: ${selector}`);
@@ -494,7 +494,7 @@ describe('blocked hosts and selected cards (2.0 review)', () => {
   });
 
   it('gives a badge in a blocked host the disabled model, GrayText in forced colours', () => {
-    const css = read('src/components/badge.css');
+    const css = read('src/components/badge/badge.css');
     const blocked = rules(withoutAtRuleBlocks(css, /@media/)).find((rule) => rule.selector.includes('.ds-btn:disabled') && rule.selector.endsWith(' .ds-badge'));
     assert.ok(blocked, 'a rule for a badge in a blocked host');
     for (const host of ['.ds-btn[aria-disabled="true"]:not([aria-busy="true"])', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body', '.ds-tabs__tab:is(:disabled, [aria-disabled="true"])']) {
@@ -508,7 +508,7 @@ describe('blocked hosts and selected cards (2.0 review)', () => {
   });
 
   it('keeps the outer pixel of a selected card\'s ring while a ripple clips it', () => {
-    const block = atRuleBlocks(read('src/components/ripple.css'), /@supports \(overflow-clip-margin: 1px\)/).join('\n');
+    const block = atRuleBlocks(read('src/components/ripple/ripple.css'), /@supports \(overflow-clip-margin: 1px\)/).join('\n');
     const rule = rules(block).find((item) => item.selector.includes('.ds-card--interactive'));
     assert.ok(rule && /\[aria-pressed="true"\]/.test(rule.selector) && rule.selector.includes(':has(> .ds-press-ripple)'));
     assert.match(rule.body, /overflow-clip-margin: 1px/);
@@ -516,7 +516,7 @@ describe('blocked hosts and selected cards (2.0 review)', () => {
 });
 
 describe('invalid groups, blocked radio cards and sliders (2.0 review)', () => {
-  const css = read('src/components/form.css');
+  const css = read('src/components/form/form.css');
 
   it('turns a focused invalid input group\'s border and ring both to the error colour', () => {
     assert.deepEqual(own(css, '.ds-input-group:has(> [aria-invalid="true"]:focus)'), { 'border-color': 'var(--ds-error)', 'box-shadow': 'inset 0 0 0 1px var(--ds-error)' });
@@ -536,7 +536,7 @@ describe('invalid groups, blocked radio cards and sliders (2.0 review)', () => {
   });
 
   it('draws a blocked slider handle solid (the ink over the surface)', () => {
-    const css = read('src/components/slider.css');
+    const css = read('src/components/slider/slider.css');
     for (const pseudo of ['::-webkit-slider-thumb', '::-moz-range-thumb']) {
       assert.equal(own(css, `.ds-slider:is(:disabled, [aria-disabled="true"])${pseudo}`).background, 'linear-gradient(currentColor, currentColor) var(--ds-surface)', pseudo);
     }
@@ -545,7 +545,7 @@ describe('invalid groups, blocked radio cards and sliders (2.0 review)', () => {
 
 describe('the loading line (2.0 review)', () => {
   it('keeps the loading line a flex row; only detail lines make it a grid', () => {
-    const css = read('src/components/loading.css');
+    const css = read('src/components/loading/loading.css');
     assert.equal(own(css, '.ds-loading').display, 'flex');
     assert.equal(own(css, '.ds-loading:has(> .ds-loading__detail)').display, 'grid');
   });

@@ -29,7 +29,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
-      # No npm ci: the unit tests and the build need nothing installed (test/repo.test.js keeps it so).
+      # npm ci for lightningcss, the build's one dependency (D12); dist/ and its tools need nothing installed.
+      - run: npm ci
       - run: npm run check
       - run: sh scripts/vendor.sh --from . "$RUNNER_TEMP/vendor" && sh scripts/vendor.sh --check "$RUNNER_TEMP/vendor"
 

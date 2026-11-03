@@ -1,0 +1,46 @@
+{
+  "name": "alert",
+  "group": "feedback",
+  "order": 170,
+  "docsOrder": 160,
+  "classes": [
+    "ds-alert",
+    "ds-alert--error",
+    "ds-alert--plain",
+    "ds-alert--success",
+    "ds-alert--warning",
+    "ds-alert__actions",
+    "ds-alert__text",
+    "ds-alert__title",
+    "ds-errors",
+    "ds-errors__chevron"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [
+    "ripple"
+  ],
+  "hooks": [
+    "--ds-alert-bg",
+    "--ds-alert-color",
+    "--ds-alert-edge",
+    "--ds-alert-error-bg",
+    "--ds-alert-error-color",
+    "--ds-alert-error-icon",
+    "--ds-alert-icon",
+    "--ds-alert-success-bg",
+    "--ds-alert-success-color",
+    "--ds-alert-success-icon",
+    "--ds-alert-text-basis",
+    "--ds-alert-warning-bg",
+    "--ds-alert-warning-color",
+    "--ds-alert-warning-icon",
+    "--ds-btn-height"
+  ],
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": true
+}

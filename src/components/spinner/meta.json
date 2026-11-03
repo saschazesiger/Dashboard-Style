@@ -1,0 +1,30 @@
+{
+  "name": "spinner",
+  "group": "feedback",
+  "order": 40,
+  "docsOrder": null,
+  "classes": [
+    "ds-spinner",
+    "ds-spinner--determinate",
+    "ds-spinner--flat",
+    "ds-spinner--sm"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "progress"
+  ],
+  "hooks": [
+    "--ds-spinner-color",
+    "--ds-spinner-determinate-width",
+    "--ds-spinner-track",
+    "--ds-spinner-width"
+  ],
+  "keyframes": [
+    "ds-spin",
+    "ds-spinner-arc"
+  ],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}

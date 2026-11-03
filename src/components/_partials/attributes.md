@@ -1,0 +1,30 @@
+## Attributes
+
+The attributes the system writes (owned state: a re-render with `DS.dom.morphHtml` keeps them; never set them) and
+the ones the page sets for it. The project check reads this table.
+
+| Attribute | Written by | On | Meaning |
+|---|---|---|---|
+| `data-scrolled` | the system (`DS.dom.watchScrolled`) | `.ds-app`, `.ds-sheet__panel`, `.ds-dialog__box` or the scroller | the scroller is scrolled away from its top (hairlines, top bar tint) |
+| `data-ds-sentinel` | the system (`DS.dom.watchScrolled`) | the 1px sentinel first in a watched scroller | marks the sentinel (with `data-ds-keep`) |
+| `data-ds-text` | the system (`DS.dom.watchScrolled`) | a watched `.ds-dialog__body` | bare text stands among its children, so a body of text and the sentinel is not taken for empty |
+| `data-ds-edges` | the system (`DS.dom.scrollEdges`) | the scroller | its edges are reported |
+| `data-ds-overflow-start` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the start of its axis |
+| `data-ds-overflow-end` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the end of its axis |
+| `data-ds-dragover` | the system (`DS.dom.dropzone`) | a `.ds-dropzone` or a page drop target | files are dragged over it |
+| `data-ds-dragging` | the system (`DS.motion.sortable`) | the item being moved | the dragged row |
+| `data-ds-keyboard` | the system (`DS.dom.followViewport`) | `<html>` | the on-screen keyboard is up |
+| `data-toast-reserve` (with `--ds-toast-reserve`) | both: `DS.overlay.toast()` by default, the page only with `reserve: false` | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | the layer keeps room at its end for snackbars that stay ([Snackbar](#snackbar)) |
+| `data-ds-savebar` (with `--ds-savebar-height`) | the system (`DS.overlay.savebar()`) | `.ds-view` | the save bar shows: scroll padding and the content's end keep its room ([Save bar](#save-bar)) |
+| `data-ds-savebar-rest` | the system (`DS.overlay.savebar()`) | `.ds-view` | the bar hid at the end of the page: its room stays until the page scrolls away from the end ([Save bar](#save-bar)) |
+| `data-ds-busy` | the page | `.ds-dialog`, `.ds-sheet`, `.ds-drawer` | keeps the overlay open while its action runs: the user's close attempts do nothing, `DS.overlay.close()` still closes ([Dialog](#dialog), "While its action runs") |
+| `data-ds-toast-room` | the page | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | `off`: this layer keeps no room for snackbars that stay; the page keeps the messages clear itself ([Snackbar](#snackbar), "Room at the end") |
+| `data-ds-guard="off"` | the page | any element around actions | its `aria-disabled` and busy actions explain themselves on click: `DS.motion.guard()` lets their activations through |
+| `data-icon` | the page | any element | the glyph name that `DS.icons.fill()` draws into it ([icons.md](icons.md)) |
+| `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |
+| `data-icon-place` | the page | an element with `data-icon` | `start` or `end`: `DS.icons.fill()` puts the glyph first or last and keeps the content (without it the glyph replaces the content; [icons.md](icons.md)) |
+| `data-ds-shown` | the page | a `.ds-presence--keep` element, a `.ds-hover-actions` host or its actions | shown (`.ds-presence--keep`: without it hidden, keeping its box; `.ds-hover-actions`: the actions show without hover or focus, [Utilities](#actions-on-demand)) |
+| `data-drawer-collapsed` | the page | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
+| `data-label` | the page | `.ds-segmented__option`, `.ds-tabs__tab` | the option's text again: keeps the width of the selected weight |
+| `data-label` | the page | a cell of `.ds-table--stack` / `--stack-wide` | the label shown above the cell's content while the rows stack ([Stacked rows](#stacked-rows)) |
+| `data-status` | the page | `.ds-steps__step` | `done`: a finished step ([Steps](#steps)) |

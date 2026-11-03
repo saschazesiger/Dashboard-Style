@@ -1,0 +1,40 @@
+{
+  "name": "loading",
+  "group": "feedback",
+  "order": 70,
+  "docsOrder": 300,
+  "classes": [
+    "ds-loadbar",
+    "ds-loadbar__bar",
+    "ds-loading",
+    "ds-loading__detail",
+    "ds-skeleton__card",
+    "ds-skeleton__line",
+    "ds-skeleton__line--heading",
+    "ds-skeleton__line--lead",
+    "ds-skeleton__line--mid",
+    "ds-skeleton__line--short",
+    "ds-skeleton__line--title",
+    "ds-skeleton__note"
+  ],
+  "attributes": [],
+  "requires": [
+    "loader",
+    "spinner"
+  ],
+  "context": [
+    "page"
+  ],
+  "hooks": [
+    "--ds-skeleton-radius"
+  ],
+  "keyframes": [
+    "ds-fade-in",
+    "ds-progress-head",
+    "ds-progress-tail",
+    "ds-skeleton-wave"
+  ],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}
