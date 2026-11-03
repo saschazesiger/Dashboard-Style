@@ -1,0 +1,9 @@
+{
+  "requires": [],
+  "exportRequires": {
+    "busy": ["button", "spinner"],
+    "refresh": ["loading", "utilities"],
+    "setLabel": ["button"],
+    "sortable": ["drag", "utilities"]
+  }
+}

@@ -1981,7 +1981,9 @@
         "emit",
         "config",
         "t"
-      ]
+      ],
+      "requires": [],
+      "exportRequires": {}
     },
     "motion": {
       "file": "js/motion.js",
@@ -2020,7 +2022,25 @@
         "flip",
         "sortable",
         "transition"
-      ]
+      ],
+      "requires": [],
+      "exportRequires": {
+        "busy": [
+          "button",
+          "spinner"
+        ],
+        "refresh": [
+          "loading",
+          "utilities"
+        ],
+        "setLabel": [
+          "button"
+        ],
+        "sortable": [
+          "drag",
+          "utilities"
+        ]
+      }
     },
     "indicator": {
       "file": "js/indicator.js",
@@ -2031,7 +2051,11 @@
       "exports": [
         "OVERSHOOT",
         "createIndicator"
-      ]
+      ],
+      "requires": [
+        "indicator"
+      ],
+      "exportRequires": {}
     },
     "dom": {
       "file": "js/dom.js",
@@ -2050,7 +2074,17 @@
         "followEnd",
         "autosize",
         "dropzone"
-      ]
+      ],
+      "requires": [],
+      "exportRequires": {
+        "dropzone": [
+          "drag"
+        ],
+        "progress": [
+          "progress",
+          "spinner"
+        ]
+      }
     },
     "ripple": {
       "file": "js/ripple.js",
@@ -2062,7 +2096,11 @@
       "exports": [
         "RIPPLE_HOSTS",
         "attach"
-      ]
+      ],
+      "requires": [
+        "ripple"
+      ],
+      "exportRequires": {}
     },
     "icons": {
       "file": "js/icons.js",
@@ -2348,7 +2386,9 @@
         "icon",
         "iconElement",
         "fill"
-      ]
+      ],
+      "requires": [],
+      "exportRequires": {}
     },
     "overlay": {
       "file": "js/overlay.js",
@@ -2382,7 +2422,49 @@
         "closeToasts",
         "tooltips",
         "savebar"
-      ]
+      ],
+      "requires": [],
+      "exportRequires": {
+        "alert": [
+          "button",
+          "dialog",
+          "spinner"
+        ],
+        "announce": [
+          "toast",
+          "utilities"
+        ],
+        "closeToasts": [
+          "toast"
+        ],
+        "confirm": [
+          "button",
+          "dialog",
+          "spinner"
+        ],
+        "prompt": [
+          "button",
+          "dialog",
+          "form",
+          "spinner"
+        ],
+        "savebar": [
+          "button",
+          "savebar"
+        ],
+        "toast": [
+          "button",
+          "toast",
+          "utilities"
+        ],
+        "toastRegion": [
+          "toast",
+          "utilities"
+        ],
+        "tooltips": [
+          "tooltip"
+        ]
+      }
     }
   }
 }

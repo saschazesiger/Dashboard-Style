@@ -846,13 +846,77 @@ export function stripJs(source) {
 
 // ── dist/manifest.json ─────────────────────────────────────────────────
 
-/** The exports and sibling imports of each module of MODULES. */
-function moduleFacts() {
+/** The keys of src/js/<module>.requires.json, in order. */
+export const MODULE_REQUIRES_KEYS = ['requires', 'exportRequires'];
+
+/**
+ * The CSS each module of MODULES needs, from data, as manifest.json
+ * "js.<module>" writes it (tools/bundle.mjs resolves both):
+ *   requires        the components the module needs whatever it is used
+ *                   for: its own component (the component of its name,
+ *                   whose meta.json "js" lists it: the meta.json "js"
+ *                   arrays inverted) plus the "requires" of
+ *                   src/js/<module>.requires.json
+ *   exportRequires  per export, the components whose markup that export
+ *                   writes itself (a confirm dialog, a toast, a live
+ *                   region on .ds-sr): "exportRequires" of
+ *                   src/js/<module>.requires.json, kept next to the module
+ * The sidecar is optional (none: no extra requirement).
+ */
+export function moduleRequires(list = components()) {
+  const usedBy = new Map(MODULES.map((name) => [name, list.filter((component) => component.meta.js.includes(name)).map((component) => component.name)]));
+  return Object.fromEntries(MODULES.map((name) => {
+    const path = `src/js/${name}.requires.json`;
+    const data = repoHas(path) ? JSON.parse(repoText(path)) : { requires: [], exportRequires: {} };
+    const own = usedBy.get(name).filter((component) => component === name);
+    return [name, { requires: sorted([...own, ...data.requires]), exportRequires: data.exportRequires }];
+  }));
+}
+
+/** Checks every src/js/<module>.requires.json (keys, known exports and components, sorted lists); returns the problems. */
+export function verifyModuleRequires(list = components()) {
+  const problems = [];
+  const names = new Set(list.map((component) => component.name));
+  for (const name of MODULES) {
+    const path = `src/js/${name}.requires.json`;
+    if (!repoHas(path)) continue;
+    let data;
+    try {
+      data = JSON.parse(repoText(path));
+    } catch (error) {
+      problems.push(`${path}: ${error.message}`);
+      continue;
+    }
+    if (Object.keys(data).join() !== MODULE_REQUIRES_KEYS.join()) {
+      problems.push(`${path}: the keys ${MODULE_REQUIRES_KEYS.join(', ')}, in this order`);
+      continue;
+    }
+    const exports = [...repoText(`src/js/${name}.js`).matchAll(/^export (?:const|function) ([\w$]+)/gm)].map((match) => match[1]);
+    const lists = [['requires', data.requires], ...Object.entries(data.exportRequires ?? {}).map(([key, value]) => [`exportRequires.${key}`, value])];
+    for (const [where, value] of lists) {
+      // "requires" may be empty; an export listed in "exportRequires" needs something.
+      if (!Array.isArray(value) || value.some((other) => typeof other !== 'string') || (!value.length && where !== 'requires')) {
+        problems.push(`${path}: "${where}" is a list of component names`);
+        continue;
+      }
+      for (const other of value) if (!names.has(other)) problems.push(`${path}: "${where}" names ${other}, no component`);
+      if ([...value].sort().join() !== value.join()) problems.push(`${path}: "${where}" is not sorted`);
+    }
+    const keys = Object.keys(data.exportRequires ?? {});
+    for (const key of keys) if (!exports.includes(key)) problems.push(`${path}: "exportRequires" names ${key}, no export of src/js/${name}.js`);
+    if ([...keys].sort().join() !== keys.join()) problems.push(`${path}: the exports of "exportRequires" are not sorted`);
+  }
+  return problems;
+}
+
+/** The exports and sibling imports of each module of MODULES, and the CSS it needs (moduleRequires). */
+function moduleFacts(list) {
+  const needs = moduleRequires(list);
   return Object.fromEntries(MODULES.map((name) => {
     const source = repoText(`src/js/${name}.js`);
     const imports = sorted([...source.matchAll(/^import\s*\{[^}]*\}\s*from\s*['"]\.\/([\w-]+)\.js['"]/gm)].map((match) => match[1]));
     const exports = [...source.matchAll(/^export (?:const|function) ([\w$]+)/gm)].map((match) => match[1]);
-    return [name, { file: `js/${name}.js`, types: `js/${name}.d.ts`, imports, exports }];
+    return [name, { file: `js/${name}.js`, types: `js/${name}.d.ts`, imports, exports, ...needs[name] }];
   }));
 }
 
@@ -875,7 +939,9 @@ function moduleFacts() {
  *                     attributes, keyframes, js, hooks, ripple, progressive,
  *                     and bytes and gzip, the sizes of its .min.css (gzip -9)
  *   js                per module of MODULES: its file, types, the modules it
- *                     imports and its exports
+ *                     imports, its exports, and the CSS it needs: requires
+ *                     (always) and exportRequires (per export), see
+ *                     moduleRequires()
  */
 export function manifestJson(list, sizes, info) {
   const { facts, core } = componentFacts(list);
@@ -915,7 +981,7 @@ export function manifestJson(list, sizes, info) {
         gzip: sizes.get(min).gzip,
       }];
     })),
-    js: moduleFacts(),
+    js: moduleFacts(list),
   };
   return `${JSON.stringify(manifest, null, 2)}\n`;
 }
@@ -998,6 +1064,8 @@ function buildDist() {
   const list = components();
   const problems = verifyComponents(list);
   if (problems.length) throw new Error(`meta.json does not match the stylesheets:\n  ${problems.join('\n  ')}`);
+  const moduleProblems = verifyModuleRequires(list);
+  if (moduleProblems.length) throw new Error(`src/js/<module>.requires.json:\n  ${moduleProblems.join('\n  ')}`);
   const sublayers = sublayerStatement(list);
   const out = new Map();
   const sizes = new Map();
@@ -1041,6 +1109,7 @@ function buildDist() {
     } else if (/^components\/_partials\/[\w-]+\.md$/.test(path)) continue; // the partials of docs/components.md
     else if (/^optional\/[\w-]+\.css$/.test(path)) stylesheet(`css/${path}`, withBanner(path, readText(file), info));
     else if (path.startsWith('js/') && path.endsWith('.js')) text(path, withBanner(path, readText(file), info));
+    else if ((match = /^js\/([\w-]+)\.requires\.json$/.exec(path)) && MODULES.includes(match[1])) continue; // manifest.json "js.<module>" (moduleRequires)
     else if (path === 'deprecations.json') text(path, deprecationsJson(readText(file), info));
     else if (path === 'types/ds.d.ts') text('ds.d.ts', withBanner(path, readText(file), info));
     else if (/^types\/js\/[\w-]+\.d\.ts$/.test(path) && MODULES.includes(path.slice(9, -5))) text(path.slice(6), withBanner(path, readText(file), info));

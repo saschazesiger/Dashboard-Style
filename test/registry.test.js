@@ -12,7 +12,7 @@ import vm from 'node:vm';
 import { transform } from 'lightningcss';
 import {
   CORE, CSS_TARGETS, LAYERS, META_KEYS, MODULES, build, componentNames, components, componentsMd, cssFacts, diffGenerated, generatedFiles,
-  indexCss, packageInfo, stripJs, sublayerStatement, verifyComponents, withBanner,
+  indexCss, moduleRequires, packageInfo, stripJs, sublayerStatement, verifyComponents, verifyModuleRequires, withBanner,
 } from '../scripts/build.mjs';
 import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
 import { filesIn, read, rules, stripComments } from './helpers.js';
@@ -194,12 +194,31 @@ describe('dist/manifest.json', () => {
     for (const name of MODULES) {
       const source = read(`src/js/${name}.js`);
       const entry = manifest.js[name];
-      assert.deepEqual(Object.keys(entry), ['file', 'types', 'imports', 'exports']);
+      assert.deepEqual(Object.keys(entry), ['file', 'types', 'imports', 'exports', 'requires', 'exportRequires']);
       assert.ok(out.has(entry.file) && out.has(entry.types), name);
       assert.deepEqual(entry.exports, [...source.matchAll(/^export (?:const|function) ([\w$]+)/gm)].map((match) => match[1]));
       for (const other of entry.imports) assert.ok(MODULES.indexOf(other) < MODULES.indexOf(name), `${name} imports ${other}, an earlier module`);
     }
     assert.deepEqual(manifest.js.dom.imports, ['motion']);
+  });
+
+  it('writes the CSS each module needs from data: its own component (meta.json "js" inverted) and src/js/<module>.requires.json', () => {
+    assert.deepEqual(verifyModuleRequires(list), []);
+    assert.deepEqual(moduleRequires(list), Object.fromEntries(MODULES.map((name) => [name, { requires: manifest.js[name].requires, exportRequires: manifest.js[name].exportRequires }])));
+    for (const name of MODULES) {
+      const entry = manifest.js[name];
+      const own = list.find((component) => component.name === name);
+      if (own?.meta.js.includes(name)) assert.ok(entry.requires.includes(name), `${name}: its own stylesheet`);
+      for (const [key, needs] of Object.entries(entry.exportRequires)) {
+        assert.ok(entry.exports.includes(key), `${name}.${key}: an export`);
+        for (const other of needs) assert.ok(other in manifest.components, `${name}.${key} needs ${other}`);
+      }
+    }
+    assert.deepEqual(manifest.js.ripple.requires, ['ripple']);
+    assert.deepEqual(manifest.js.indicator.requires, ['indicator']);
+    assert.deepEqual(manifest.js.overlay.exportRequires.confirm, ['button', 'dialog', 'spinner']);
+    // Every module that writes a .ds-sr live region names utilities for that export.
+    assert.ok(manifest.js.overlay.exportRequires.announce.includes('utilities') && manifest.js.motion.exportRequires.sortable.includes('utilities'));
   });
 });
 

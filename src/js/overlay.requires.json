@@ -1,0 +1,14 @@
+{
+  "requires": [],
+  "exportRequires": {
+    "alert": ["button", "dialog", "spinner"],
+    "announce": ["toast", "utilities"],
+    "closeToasts": ["toast"],
+    "confirm": ["button", "dialog", "spinner"],
+    "prompt": ["button", "dialog", "form", "spinner"],
+    "savebar": ["button", "savebar"],
+    "toast": ["button", "toast", "utilities"],
+    "toastRegion": ["toast", "utilities"],
+    "tooltips": ["tooltip"]
+  }
+}

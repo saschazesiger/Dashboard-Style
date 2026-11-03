@@ -1,9 +1,8 @@
 /**
  * A partial bundle renders like the full ds.css and ds.js: the bundle tool
  * (scripts/tools/bundle.mjs) scans fixtures/bundle.html and writes a
- * minified classic bundle from a stand-in copy of dist/
- * (test/fixtures/bundle/make-manifest.mjs, until the build writes
- * dist/manifest.json) into test-results/. The page then loads once with the
+ * minified classic bundle from this checkout's dist/ (its manifest.json)
+ * into test-results/. The page then loads once with the
  * bundle and once with ds.css and ds.js: every computed property of the
  * elements it uses is the same, the ripple grows from a press, and the
  * dialog opens, takes focus and closes on Escape.
@@ -13,7 +12,6 @@ import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundle } from '../../scripts/tools/bundle.mjs';
-import { writeStandIn } from '../fixtures/bundle/make-manifest.mjs';
 import { ready, settle } from './helpers/motion.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -27,11 +25,10 @@ test.beforeAll(({}, testInfo) => {
   const out = join(ROOT, 'test-results', name);
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
-  writeStandIn(join(out, 'copy'));
   const result = bundle({
     config: { content: ['test/browser/fixtures/bundle.html'], out: `test-results/${name}`, minify: true, js: 'classic' },
     cwd: ROOT,
-    dist: join(out, 'copy'),
+    dist: join(ROOT, 'dist'),
   });
   if (result.errors.length) throw new Error(result.errors.join('\n'));
   sizes = result.entries[0].report;
@@ -82,8 +79,8 @@ function differences(a, b) {
 }
 
 test('the bundle holds what the page uses, at a fraction of ds.css and ds.js', () => {
-  expect(sizes.components.map((item) => item.name)).toEqual(['button', 'card', 'status', 'alert', 'chip', 'dialog', 'ripple']);
-  expect(sizes.modules.map((item) => item.name)).toEqual(['motion', 'dom', 'ripple', 'icons', 'overlay']);
+  expect(sizes.components.map((item) => item.name)).toEqual(['utilities', 'button', 'spinner', 'card', 'status', 'alert', 'chip', 'dialog', 'ripple']);
+  expect(sizes.modules.map((item) => item.name)).toEqual(['core', 'motion', 'dom', 'ripple', 'icons', 'overlay']);
   expect(sizes.icons.map((item) => item.name).sort()).toEqual(['alertCircle', 'check', 'checkCircle', 'close', 'info', 'wifiOff']);
   expect(sizes.files.css.gzip).toBeLessThan(40 * 1024);
 });
@@ -97,7 +94,7 @@ test('a partial bundle computes the same styles as ds.css, at rest and with the 
 
   await load(page, 'bundle');
   expect(await page.evaluate(() => [Object.keys(DS).sort(), document.styleSheets[1].href])).toEqual([
-    ['dom', 'icons', 'motion', 'overlay', 'ripple', 'version'],
+    ['config', 'core', 'define', 'dom', 'get', 'icons', 'init', 'motion', 'overlay', 'ripple', 'version'],
     expect.stringContaining('/ds.bundle.css'),
   ]);
   expect(differences(full, await styles(page))).toEqual([]);

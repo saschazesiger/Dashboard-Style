@@ -8,14 +8,16 @@ bundles on one page all cascade exactly as the whole of `ds.css` does.
 | Way | What the page links | Setup | When |
 |---|---|---|---|
 | Everything, minified | `ds.min.css` and `ds.min.js` | none | a small internal app; the default |
-| Single files | `css/core.css`, then the `css/components/<name>.css` it needs (`.min.css` next to each) | by hand: `manifest.json` lists what each component requires | a few static pages |
+| Single files | the `css/core/*.css` files (`manifest.json` "core"), then the `css/components/<name>.css` it needs (`.min.css` next to each) | by hand: `manifest.json` lists what each component requires | a few static pages |
 | Project bundle | `ds.bundle.css` and `ds.bundle.js`, written by `tools/bundle.mjs` | `ds.config.json` and one command | recommended for every project with a build step or CI |
 
 With single files, `tools/check-project.mjs` fails a page that uses a class whose stylesheet it does not link
 ([install.md](install.md#check-a-project), rule `classes`).
 
 The bundle tool and the Vite plugin read `manifest.json` of the copy: every component with its stylesheets, classes,
-attributes, the modules it needs and what it requires, and every module with its imports and exports.
+attributes, the modules it needs and what it requires, and every module with its imports, its exports, the components
+it always needs (`requires`) and the components one of its exports needs because it writes their markup itself
+(`exportRequires`: `DS.overlay.confirm` needs the dialog, the button and the spinner).
 
 ## The project bundle
 
@@ -124,7 +126,8 @@ A safelist entry that names nothing in the copy is an error (a component or modu
 
 Per bundle (`ds.bundle.*`, or `ds.<entry>.*` with `entries`):
 
-- `ds.bundle.css`: one banner, the layer statement, the sublayer statement, the core (tokens, base, motion), then
+- `ds.bundle.css`: one banner, the layer statement, the sublayer statement, the core (tokens, base, motion and
+  global, the rules for every element inside `.ds-theme`), then
   the components in manifest order. `@property` registrations stay at the top level.
 - `ds.bundle.js`:
   - `"classic"`: one script with only the modules the project needs, plus `core`, and an icons module that holds only

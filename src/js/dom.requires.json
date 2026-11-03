@@ -1,0 +1,7 @@
+{
+  "requires": [],
+  "exportRequires": {
+    "dropzone": ["drag"],
+    "progress": ["progress", "spinner"]
+  }
+}

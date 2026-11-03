@@ -3,9 +3,7 @@
  * the classic wrapper it shares with the build (js-wrap.mjs) and the Vite
  * plugin (vite-plugin.mjs, against a stub of the plugin API), on the small
  * fake copy in test/fixtures/bundle/dist/ and its fixture projects, and on
- * a stand-in copy made from this checkout's 2.x dist/
- * (test/fixtures/bundle/make-manifest.mjs) until the build writes the real
- * manifest.json.
+ * this checkout's dist/ and the manifest.json the build writes.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,7 +17,6 @@ import { MODULES, buildJs, packageInfo } from '../scripts/build.mjs';
 import { bundle, expandGlobs, globRegExp, loadCopy, main, pruneIcons, scanText } from '../scripts/tools/bundle.mjs';
 import { classicScript, stripComments } from '../scripts/tools/js-wrap.mjs';
 import dashboardStyle, { CSS_ID, JS_ID } from '../scripts/tools/vite-plugin.mjs';
-import { makeManifest, writeStandIn } from './fixtures/bundle/make-manifest.mjs';
 import { ROOT, read } from './helpers.js';
 
 const FIXTURE = join(ROOT, 'test/fixtures/bundle');
@@ -421,45 +418,45 @@ describe('tools/bundle.mjs --check', () => {
   });
 });
 
-describe('the stand-in manifest of the 2.x copy (until the build writes dist/manifest.json)', () => {
-  const manifest = makeManifest();
+describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () => {
+  const dist = join(ROOT, 'dist');
 
-  it('follows the schema of the 3.0 manifest', () => {
-    assert.deepEqual(Object.keys(manifest), ['name', 'version', 'layers', 'sublayers', 'core', 'order', 'components', 'js']);
-    assert.equal(manifest.version, packageInfo().version);
-    assert.match(manifest.layers, /^@layer ds\.tokens, ds\.base, ds\.components, ds\.motion, ds\.utilities;$/);
-    assert.equal(manifest.order.length, 38, 'the 39 component files but utilities.css, which is core in 2.x');
-    assert.deepEqual(manifest.core.css, ['css/tokens.css', 'css/motion.css', 'css/base.css', 'css/components/utilities.css']);
-    assert.deepEqual(Object.keys(manifest.components), manifest.order);
-    for (const [name, component] of Object.entries(manifest.components)) {
-      assert.deepEqual(Object.keys(component), ['css', 'min', 'group', 'requires', 'classes', 'attributes', 'keyframes', 'js', 'hooks', 'bytes', 'gzip'], name);
-      assert.ok(existsSync(join(ROOT, 'dist', component.css)), component.css);
-      for (const required of component.requires) assert.ok(required in manifest.components, `${name} requires ${required}`);
-    }
-    assert.deepEqual(Object.keys(manifest.js), MODULES);
-    assert.ok(manifest.components.button.classes.includes('ds-btn--primary'));
-    assert.ok(!manifest.components.card.classes.includes('ds-btn'), 'a class belongs to the file that defines it');
-  });
-
-  it('bundles a 2.x page from a stand-in copy, smaller than ds.css and ds.js', () => {
+  it('bundles a page from the built copy, a fraction of ds.css and ds.js', () => {
     withTemp((dir) => {
-      const copy = join(dir, 'copy');
-      writeStandIn(copy);
-      const config = tempProject(join(dir, 'app'), {
+      const config = tempProject(dir, {
         'index.html': '<div class="ds-theme"><button class="ds-btn ds-btn--primary">Go</button><span data-icon="bell"></span></div>\n<script>DS.ripple.attach(document); DS.icons.fill(document);</script>',
-      }, { dist: '../copy' });
+      }, { dist: relative(dir, dist) });
       const result = bundle({ config });
       assert.deepEqual(result.errors, []);
       const report = result.entries[0].report;
-      assert.deepEqual(names(report.components), ['button', 'ripple']);
-      assert.deepEqual(names(report.modules), ['motion', 'ripple', 'icons']);
+      assert.deepEqual(names(report.components), ['button', 'spinner', 'ripple'], 'button requires spinner (its busy face); the ripple module its stylesheet');
+      assert.deepEqual(names(report.modules), ['core', 'motion', 'ripple', 'icons']);
       assert.deepEqual(names(report.icons), ['bell']);
-      const css = readFileSync(join(dir, 'app/out/ds.bundle.css'), 'utf8');
-      const js = readFileSync(join(dir, 'app/out/ds.bundle.js'), 'utf8');
+      const css = readFileSync(join(dir, 'out/ds.bundle.css'), 'utf8');
+      const js = readFileSync(join(dir, 'out/ds.bundle.js'), 'utf8');
       assert.ok(css.length < read('dist/ds.css').length / 4);
       assert.ok(js.length < read('dist/ds.js').length / 3);
-      assert.match(js, /export const bell|const bell = '</);
+      assert.match(css, /box-sizing:border-box/, 'the core global rules are in every bundle');
+      assert.match(js, /const bell = '</);
       assert.doesNotMatch(js, /const trash = '</, 'pruned');
+      const page = runClassic(js);
+      for (const key of ['init', 'get', 'define', 'config']) assert.equal(page.DS[key], page.DS.core[key], `DS.${key}`);
+    });
+  });
+
+  it('adds the stylesheets an export writes markup for (manifest.json js.<module>.exportRequires)', () => {
+    withTemp((dir) => {
+      const config = tempProject(dir, {
+        'app.js': "DS.overlay.confirm({ title: 'Delete?' });\nDS.overlay.toast(region, 'Saved.');\nDS.motion.sortable(list);",
+      }, { dist: relative(dir, dist) });
+      const result = bundle({ config, write: false });
+      assert.deepEqual(result.errors, []);
+      const components = new Map(result.entries[0].report.components.map((item) => [item.name, item.reason]));
+      for (const name of ['button', 'dialog', 'spinner']) assert.match(components.get(name) ?? '', /DS\.overlay\.confirm|required by/, name);
+      assert.match(components.get('toast'), /DS\.overlay\.toast/);
+      assert.match(components.get('drag'), /DS\.motion\.sortable/);
+      assert.ok(components.has('utilities'), 'the live regions on .ds-sr');
+      assert.ok(!components.has('menu') && !components.has('sheet'), 'nothing the page does not use');
     });
   });
 });
