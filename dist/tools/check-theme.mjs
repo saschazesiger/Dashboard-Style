@@ -18,7 +18,8 @@
  * (../deprecations.json). Warnings: a deprecated name (with its
  * replacement); a scale, runtime or internal property set; a text pair
  * under 4.5:1, a control, icon or outline pair under 3:1 (pairResults(),
- * resolving var(), hex, rgb() and color-mix(in srgb, ...); anything else is
+ * resolving var(), hex, rgb(), color-mix(in srgb, ...) and light-dark() in
+ * each scheme (below); anything else is
  * reported as "not checked"); a component selector restyled in a theme.
  *
  * Every rule whose selector names .ds-theme sets roles: plain .ds-theme
@@ -26,12 +27,18 @@
  * block a variant checked over the base and, with --with, over the base
  * with those files; a variant warns only when it fails in each of them (a
  * dark variant of an accent passes over the dark theme).
+ *
+ * One file for both schemes: where a role is light-dark(<light>, <dark>),
+ * every pair is checked in each scheme the theme shows (the schemes its
+ * --ds-color-scheme names: "light dark" both, a pinned
+ * [data-ds-scheme="dark"] variant dark only), and a finding names its
+ * scheme ("(dark)").
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scan, selectorList } from './css-scan.mjs';
-import { isMotion, pairResults } from './theme-rules.mjs';
+import { hasLightDark, isMotion, pairResults, pickLightDark, schemesOf } from './theme-rules.mjs';
 
 const BASE = /^\.ds-theme(\.[\w-]+)*$/;
 const THEME_SCOPE = /\.ds-theme\b/;
@@ -141,19 +148,24 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
   for (const group of groups) {
     const results = group.map(({ label, layers }) => {
       const found = [];
-      const lookup = (name) => {
+      const raw = (name) => {
         for (const layer of [...layers].reverse()) if (name in layer) return layer[name];
         return defaults(name);
       };
       const where = label ? ` (${label})` : '';
       // Field text: the input role (or the reading role it follows) at 16px or more.
-      let input = lookup('--ds-font-input');
-      for (let hops = 0; input && /^var\(--ds-[\w-]+\)$/.test(input) && hops < 8; hops += 1) input = lookup(input.slice(4, -1));
+      let input = raw('--ds-font-input');
+      for (let hops = 0; input && /^var\(--ds-[\w-]+\)$/.test(input) && hops < 8; hops += 1) input = raw(input.slice(4, -1));
       const size = input ? fontSize(input) : null;
       if (size !== null && size < 16) found.push({ level: 'error', file: first, line: 0, rule: 'input-font', message: `--ds-font-input resolves to ${size}px${where}: keep field text at 16px or more (iOS zooms into smaller fields)` });
-      for (const pair of pairResults(lookup)) {
-        if (pair.ratio === null) found.push({ level: 'info', file: first, line: 0, rule: 'contrast', message: `${pair.fg} on ${pair.bg}${where}: not checked (a colour form this check does not resolve)` });
-        else if (pair.ratio < pair.min) found.push({ level: 'warning', file: first, line: 0, rule: 'contrast', message: `${pair.fg} on ${pair.bg}${where}: ${pair.ratio.toFixed(2)}:1, needs ${pair.min}:1 (${pair.kind})` });
+      // light-dark() roles: each scheme the theme shows, as that scheme sees every value.
+      const both = layers.some((layer) => Object.values(layer).some(hasLightDark));
+      const views = both ? schemesOf(raw('--ds-color-scheme')).map((scheme) => ({ lookup: (name) => pickLightDark(raw(name), scheme), where: ` (${label ? `${label}, ` : ''}${scheme})` })) : [{ lookup: raw, where }];
+      for (const view of views) {
+        for (const pair of pairResults(view.lookup)) {
+          if (pair.ratio === null) found.push({ level: 'info', file: first, line: 0, rule: 'contrast', message: `${pair.fg} on ${pair.bg}${view.where}: not checked (a colour form this check does not resolve)` });
+          else if (pair.ratio < pair.min) found.push({ level: 'warning', file: first, line: 0, rule: 'contrast', message: `${pair.fg} on ${pair.bg}${view.where}: ${pair.ratio.toFixed(2)}:1, needs ${pair.min}:1 (${pair.kind})` });
+        }
       }
       return found;
     });

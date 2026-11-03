@@ -174,6 +174,50 @@ export function splitTop(text, separator = ',') {
 }
 
 /**
+ * A value (or a whole stylesheet) as one colour scheme sees it: every
+ * light-dark(<light>, <dark>) replaced by its light or its dark argument,
+ * at any depth. A light-dark( without two arguments (named in a comment)
+ * stays as it is.
+ * @param {string} text
+ * @param {'light'|'dark'} scheme
+ */
+export function pickLightDark(text, scheme) {
+  if (scheme !== 'light' && scheme !== 'dark') throw new TypeError('scheme: light or dark');
+  const source = String(text ?? '');
+  let out = '';
+  let index = 0;
+  for (;;) {
+    const at = source.indexOf('light-dark(', index);
+    if (at < 0) break;
+    let depth = 0;
+    let end = at + 'light-dark'.length;
+    do {
+      if (source[end] === '(') depth += 1;
+      else if (source[end] === ')') depth -= 1;
+      end += 1;
+    } while (depth > 0 && end < source.length);
+    const parts = splitTop(source.slice(at + 'light-dark('.length, end - 1));
+    out += source.slice(index, at) + (parts.length === 2 ? pickLightDark(scheme === 'light' ? parts[0] : parts[1], scheme) : source.slice(at, end));
+    index = end;
+  }
+  return out + source.slice(index);
+}
+
+/** Whether a value holds light-dark(). */
+export const hasLightDark = (value) => /\blight-dark\(/.test(String(value ?? ''));
+
+/**
+ * The colour schemes a theme shows, from the value of --ds-color-scheme
+ * (`light`, `dark` or `light dark`): the ones it names, else light.
+ * @returns {('light'|'dark')[]}
+ */
+export function schemesOf(value) {
+  const words = String(value ?? '').split(/\s+/);
+  const found = /** @type {('light'|'dark')[]} */ (['light', 'dark'].filter((scheme) => words.includes(scheme)));
+  return found.length ? found : ['light'];
+}
+
+/**
  * The colour of a value, following var() through `lookup(name)` (the raw
  * value a name holds on the theme element, or undefined) and resolving
  * color-mix(in srgb, ...). null when a part is not a colour this module

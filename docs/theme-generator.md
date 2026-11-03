@@ -110,8 +110,8 @@ darken in the dark scheme as in `themes/dark.css`.
   white, gets its tone moved: the foreground moves away from its ground, and the ground only when the foreground is
   already black or white. The surfaces never move. The header of the file lists every moved tone.
 - **The theme check passes.** The CLI runs `tools/check-theme.mjs` on the light and the dark view of what it writes
-  and exits 1 on a finding. The 2.x check does not read `light-dark()` itself: on the file as written it reports
-  every pair as "not checked" (info), with no error and no warning.
+  and exits 1 on a finding. `check-theme.mjs` also reads `light-dark()` itself: on the file as written it checks every
+  pair in both schemes, so `node tools/check-theme.mjs themes/presets/ocean.css` passes as well.
 - **The roles of `themes/dark.css`, and nothing else.** It sets every colour role that does not follow another role
   by itself, plus the floating surfaces (`--ds-surface-overlay`, `--ds-surface-popover`), `--ds-color-scheme`, the
   scrims and the shadows. It never sets a scale, a hook or a motion token, and it stays unlayered.
@@ -159,7 +159,7 @@ const { css, light, dark, moves, report } = generateTheme({ seed: '#0b57d0', sch
 | Export | What |
 |---|---|
 | `generateTheme(options)` | the options of the CLI as `{ seed, scheme, contrast, neutral, accent, error, success, warning, name }` (colours as text or ARGB integers); returns `{ css, light, dark, moves, report, options }`: the stylesheet, the hex of every role per scheme, the moved tones (`{ scheme, role, from, to }`), every pair per scheme (`{ scheme, kind, fg, bg, min, ratio, apca }`) and the options as read |
-| `pickScheme(css, scheme)` | the stylesheet as `light` or `dark` sees it: every `light-dark(a, b)` replaced by one branch, for tools that do not read `light-dark()` |
+| `pickScheme(css, scheme)` | the stylesheet as `light` or `dark` sees it: every `light-dark(a, b)` replaced by one branch (`pickLightDark()` of `theme-rules.mjs`) and `--ds-color-scheme` set to that scheme, for tools that do not read `light-dark()` |
 | `presetFiles()` | the preset files, `Map` of file name to CSS |
 | `PRESETS`, `SCHEMES`, `CONTRAST_LEVELS`, `ROLES`, `FOLLOWS` | the presets, the scheme names and their HCT variants, the minimums per level, the role table (palette and tones), the roles checked through another |
 

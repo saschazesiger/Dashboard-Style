@@ -156,6 +156,18 @@ describe('tools/check-theme.mjs', () => {
     assert.deepEqual(rules(check(read('themes/dark.css')), 'warning'), [], 'dark.css keeps its pairs');
   });
 
+  it('checks a light-dark() theme in each scheme it shows, and names the scheme of a finding', () => {
+    const theme = (scheme, dark) => `.ds-theme {\n  --ds-color-scheme: ${scheme};\n  --ds-surface: light-dark(#ffffff, #1b1b1f);\n  --ds-text: light-dark(#1b1b1f, ${dark});\n}\n`;
+    const contrast = (findings) => findings.filter((f) => f.rule === 'contrast' && /^--ds-text on --ds-surface(?= \(|:)/.test(f.message)).map((f) => `${f.level} ${f.message.replace(/: .*$/, '')}`);
+    assert.deepEqual(contrast(check(theme('light dark', '#e3e2e6'))), [], 'both schemes pass');
+    assert.deepEqual(contrast(check(theme('light dark', '#303034'))), ['warning --ds-text on --ds-surface (dark)'], 'the dark text on the dark surface fails, in dark only');
+    assert.deepEqual(contrast(check(theme('light', '#303034'))), [], 'a theme that shows only light is checked in light');
+    // A region pinned to dark ([data-ds-scheme="dark"]) is checked in dark.
+    const pinned = `${theme('light', '#303034')}.ds-theme[data-ds-scheme="dark"] {\n  --ds-color-scheme: dark;\n}\n`;
+    assert.deepEqual(contrast(check(pinned)), ['warning --ds-text on --ds-surface (.ds-theme[data-ds-scheme="dark"], dark)']);
+    assert.ok(!check(theme('light dark', '#e3e2e6')).some((f) => /not checked/.test(f.message) && /--ds-(text|surface)\b/.test(f.message)), 'nothing left unchecked');
+  });
+
   it('fails on the rules of docs/theming.md, each with its line', () => {
     const css = [
       '@layer theme;',

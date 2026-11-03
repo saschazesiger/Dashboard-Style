@@ -207,6 +207,20 @@ test.describe('where the themes are offered', () => {
     await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default', { timeout: 15000 });
     await expect(check.locator('.sg-finding[data-ok="false"]')).toHaveCount(0);
   });
+
+  test('the styleguide theme check reads a light-dark() theme in each scheme it shows', async ({ page }) => {
+    await page.goto('/styleguide/index.html');
+    await ready(page);
+    const check = page.locator('#sg-theme-check');
+    // Passes in light, fails in dark: the dark text-2 tone on the dark surface.
+    const css = '.ds-theme {\n  --ds-color-scheme: light dark;\n  --ds-surface: light-dark(#ffffff, #1b1b1f);\n  --ds-text-2: light-dark(#444746, #303034);\n}\n';
+    await page.locator('#sg-theme-file').setInputFiles({ name: 'both.css', mimeType: 'text/css', buffer: Buffer.from(css) });
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'file', { timeout: 15000 });
+    const failing = check.locator('.sg-finding[data-ok="false"]');
+    await expect(failing.filter({ hasText: /^.*--ds-text-2 on --ds-surface \(dark\): .*needs 4\.5:1 \(text\)/ })).toHaveCount(1);
+    await expect(failing.filter({ hasText: '--ds-text-2 on --ds-surface (light)' })).toHaveCount(0);
+    await expect(check.locator('.sg-finding[data-ok="true"]')).toContainText('contrast pairs pass in both schemes');
+  });
 });
 
 test.describe('dark baseline (Chromium)', () => {

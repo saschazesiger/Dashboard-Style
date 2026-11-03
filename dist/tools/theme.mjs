@@ -32,7 +32,7 @@
  * black or white, the ground. The pairs themselves are never changed.
  */
 import { Contrast, Hct, TonalPalette, apcaContrast, hexFromArgb, parseColor, sanitizeDegreesDouble, schemePalettes } from './color.mjs';
-import { CHART_PAIRS, CONTROL_PAIRS, ICON_PAIRS, TEXT_PAIRS, contrast, parseColour, splitTop } from './theme-rules.mjs';
+import { CHART_PAIRS, CONTROL_PAIRS, ICON_PAIRS, TEXT_PAIRS, contrast, parseColour, pickLightDark } from './theme-rules.mjs';
 
 /** The scheme names of the CLI, and the MCU variant each one runs. */
 export const SCHEMES = { tonal: 'tonal-spot', vibrant: 'vibrant', neutral: 'neutral', fidelity: 'fidelity', monochrome: 'monochrome' };
@@ -387,30 +387,12 @@ export function generateTheme(options = {}) {
 
 /**
  * A stylesheet as one scheme sees it: every light-dark(a, b) replaced by a
- * (light) or b (dark), and --ds-color-scheme set to that scheme. For tools
- * that do not read light-dark(), such as check-theme.mjs in 2.x.
+ * (light) or b (dark), and --ds-color-scheme set to that scheme (the
+ * light-dark() part is pickLightDark() of theme-rules.mjs, which
+ * check-theme.mjs uses to check every pair in both schemes).
  */
 export function pickScheme(css, scheme) {
-  if (scheme !== 'light' && scheme !== 'dark') throw new TypeError('scheme: light or dark');
-  let out = '';
-  let index = 0;
-  for (;;) {
-    const at = css.indexOf('light-dark(', index);
-    if (at < 0) break;
-    let depth = 0;
-    let end = at + 'light-dark'.length;
-    do {
-      if (css[end] === '(') depth += 1;
-      else if (css[end] === ')') depth -= 1;
-      end += 1;
-    } while (depth > 0 && end < css.length);
-    const parts = splitTop(css.slice(at + 'light-dark('.length, end - 1));
-    // light-dark() named in a comment, without two arguments, stays as it is.
-    out += css.slice(index, at) + (parts.length === 2 ? pickScheme(scheme === 'light' ? parts[0] : parts[1], scheme) : css.slice(at, end));
-    index = end;
-  }
-  out += css.slice(index);
-  return out.replace(/--ds-color-scheme:\s*light dark;/g, `--ds-color-scheme: ${scheme};`);
+  return pickLightDark(css, scheme).replace(/--ds-color-scheme:\s*light dark;/g, `--ds-color-scheme: ${scheme};`);
 }
 
 /** The preset files: Map of file name -> css (<name>.css and <name>-contrast.css). */

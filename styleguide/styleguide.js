@@ -171,7 +171,7 @@
           return '<div class="sg-swatch"><span class="sg-swatch__chip" style="background:var(' + name + ')"></span><code>' + name + '</code><span class="ds-meta" data-value="' + name + '"></span></div>';
         }).join('') + '</div>');
       }).join('') +
-      card('Theme check', '<p class="ds-muted">The active theme against the rules of tools/check-theme.mjs: contrast as the browser computes it (color-mix() included), field text at 16px, and for a loaded file its motion tokens, :root, @layer and !important.</p>' +
+      card('Theme check', '<p class="ds-muted">The active theme against the rules of tools/check-theme.mjs: contrast as the browser computes it (color-mix() included; light-dark() in each scheme the theme shows), field text at 16px, and for a loaded file its motion tokens, :root, @layer and !important.</p>' +
         '<div data-sg="theme-check" aria-live="polite"></div>', ' id="sg-theme-check"'));
   }
 
@@ -260,13 +260,16 @@
   var THEME_MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/;
 
   /* The computed colours of roles on the theme root, as { name: [r, g, b, a] or
-     null } (rgb() or color(srgb ...)). Every probe goes in at once and is read
-     after, so the page computes its styles once, not once per role. */
-  function roleColours(names) {
+     null } (rgb() or color(srgb ...)), in the colour scheme `scheme` ('light'
+     or 'dark'; a light-dark() role resolves by the probe's color-scheme).
+     Every probe goes in at once and is read after, so the page computes its
+     styles once, not once per role. */
+  function roleColours(names, scheme) {
     var box = document.createElement('div');
     box.hidden = true;
     /* The theme's colours, not the ones forced colours put in their place. */
     box.style.forcedColorAdjust = 'none';
+    box.style.colorScheme = scheme;
     var probes = names.map(function (name) {
       var probe = document.createElement('span');
       probe.style.color = 'var(' + name + ')';
@@ -304,8 +307,19 @@
     return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
   }
 
+  /* The colour schemes the active theme shows: those its --ds-color-scheme
+     names ("light dark": both, as a light-dark() theme sets it), else light
+     (schemesOf() of theme-rules.mjs). */
+  function themeSchemes() {
+    var words = getComputedStyle(document.documentElement).getPropertyValue('--ds-color-scheme').trim().split(/\s+/);
+    var found = ['light', 'dark'].filter(function (scheme) { return words.indexOf(scheme) >= 0; });
+    return found.length ? found : ['light'];
+  }
+
   /* The findings for the active theme: [{ ok, text }]. `source` is the
-     loaded file's text (checked for what only the file can show), or null. */
+     loaded file's text (checked for what only the file can show), or null.
+     Every pair is checked in each scheme the theme shows, so a light-dark()
+     theme is checked light and dark, and a failing row names its scheme. */
   function themeFindings(source) {
     var rows = [];
     var passed = 0;
@@ -315,15 +329,22 @@
         pair.forEach(function (name) { if (names.indexOf(name) < 0) names.push(name); });
       });
     });
-    var colours = roleColours(names);
+    var schemes = themeSchemes();
+    var views = schemes.map(function (scheme) { return { scheme: scheme, colours: roleColours(names, scheme) }; });
     Object.keys(THEME_PAIRS).forEach(function (kind) {
       THEME_PAIRS[kind].forEach(function (pair) {
-        var fg = colours[pair[0]];
-        var bg = colours[pair[1]];
-        if (!fg || !bg) { rows.push({ ok: false, text: '<code>' + pair[0] + '</code> on <code>' + pair[1] + '</code>: not a colour' }); return; }
-        var value = ratio(fg, bg);
-        if (value >= PAIR_MIN[kind]) { passed += 1; return; }
-        rows.push({ ok: false, text: '<code>' + pair[0] + '</code> on <code>' + pair[1] + '</code>: ' + value.toFixed(2) + ':1, needs ' + PAIR_MIN[kind] + ':1 (' + kind + ')' });
+        var ok = true;
+        views.forEach(function (view) {
+          var where = schemes.length > 1 ? ' (' + view.scheme + ')' : '';
+          var fg = view.colours[pair[0]];
+          var bg = view.colours[pair[1]];
+          if (!fg || !bg) { ok = false; rows.push({ ok: false, text: '<code>' + pair[0] + '</code> on <code>' + pair[1] + '</code>' + where + ': not a colour' }); return; }
+          var value = ratio(fg, bg);
+          if (value >= PAIR_MIN[kind]) return;
+          ok = false;
+          rows.push({ ok: false, text: '<code>' + pair[0] + '</code> on <code>' + pair[1] + '</code>' + where + ': ' + value.toFixed(2) + ':1, needs ' + PAIR_MIN[kind] + ':1 (' + kind + ')' });
+        });
+        if (ok) passed += 1;
       });
     });
     var probe = document.createElement('span');
@@ -340,7 +361,7 @@
       if (/@layer\b/.test(text)) rows.push({ ok: false, text: 'Uses <code>@layer</code>: a theme stays unlayered' });
       if (/!\s*important/.test(text)) rows.push({ ok: false, text: 'Uses <code>!important</code>' });
     }
-    rows.unshift({ ok: true, text: passed + ' contrast pairs pass' });
+    rows.unshift({ ok: true, text: passed + ' contrast pairs pass' + (schemes.length > 1 ? ' in both schemes' : '') });
     return rows;
   }
 

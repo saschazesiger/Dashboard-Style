@@ -475,7 +475,7 @@ theme is used with) and count for the contrast pairs.
 | `removed` | error | a name `deprecations.json` lists as removed, with its replacement |
 | `deprecated` | warning | a deprecated name, with its replacement |
 | `not-themeable` | warning | a scale, runtime or internal property (`tokens.json` says which) |
-| `contrast` | warning | a text pair under 4.5:1, a checkbox, icon, outline or chart mark pair under 3:1 (rule 3); `var()`, hex, `rgb()` and `color-mix(in srgb, ...)` are resolved, any other form is reported as `info`, "not checked" |
+| `contrast` | warning | a text pair under 4.5:1, a checkbox, icon, outline or chart mark pair under 3:1 (rule 3); `var()`, hex, `rgb()`, `color-mix(in srgb, ...)` and `light-dark()` (in each scheme, below) are resolved, any other form is reported as `info`, "not checked" |
 | `restyle` | warning | a component selector with a property that is not a custom property |
 
 Every rule whose selector names `.ds-theme` sets roles: plain `.ds-theme` (or `.ds-theme.my-widget`) is the base, and
@@ -485,8 +485,13 @@ accent (`.ds-theme[data-dark][data-accent="teal"]`) passes over the dark theme a
 pairs are those of the repository's own tests (`tools/theme-rules.mjs`), so a theme that passes keeps what the default
 palette keeps.
 
+A theme for both schemes in one file writes its colour roles as `light-dark(<light>, <dark>)` (the generated presets
+do, [theme-generator.md](theme-generator.md)). The check then takes every pair in each scheme the theme shows: those
+its `--ds-color-scheme` names (`light dark`: both; a variant that pins `--ds-color-scheme: dark`, such as
+`.ds-theme[data-ds-scheme="dark"]`, dark only), and a finding names its scheme: `--ds-text on --ds-surface (dark)`.
+
 In the browser, open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component
 re-renders with it, and the "Theme check" card in the Colour section lists the same contrast pairs as the browser
-computes them (exactly, `color-mix()` included), the field text size, and the motion tokens, `:root`, `@layer` and
+computes them (exactly, `color-mix()` included, and a `light-dark()` theme in each scheme it shows), the field text size, and the motion tokens, `:root`, `@layer` and
 `!important` of the loaded file; each row with an icon and a word. Look at the page with forced colors emulated too
 (DevTools, Rendering panel).

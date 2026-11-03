@@ -414,8 +414,8 @@ describe('themes/presets/', () => {
     const tokens = JSON.parse(tokensJson(packageInfo()));
     const deprecations = JSON.parse(read('src/deprecations.json'));
     for (const [file, css] of files) {
-      // As written: light-dark() is not resolved by the 2.x check, so no error and no warning, only "not checked".
-      assert.deepEqual(checkTheme({ files: [{ path: file, css }], tokens, deprecations }).filter((f) => f.level !== 'info'), [], file);
+      // As written: check-theme.mjs reads light-dark() and checks every pair in both schemes, so nothing is left unchecked.
+      assert.deepEqual(checkTheme({ files: [{ path: file, css }], tokens, deprecations }).map((f) => `${f.level} ${f.rule} ${f.message}`), [], file);
       for (const scheme of ['light', 'dark']) {
         const found = checkTheme({ files: [{ path: file, css: pickScheme(css, scheme) }], tokens, deprecations });
         assert.deepEqual(found.map((f) => `${f.level} ${f.rule} ${f.message}`), [], `${file} (${scheme})`);
