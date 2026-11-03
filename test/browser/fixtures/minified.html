@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ds.css and ds.min.css · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<!-- ?min loads dist/ds.min.css instead of dist/ds.css; minified.spec.js compares the two (3.0). -->
+<script>
+  document.write('<link rel="stylesheet" href="/dist/ds' + (/[?&]min\b/.test(location.search) ? '.min' : '') + '.css">');
+</script>
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- A sample of every group: actions, forms, data, feedback, navigation, overlays (contained), content.
+     No script: the markup is all there is, so the two loads differ in their stylesheet only. -->
+<div class="ds-theme fx-root" id="sample">
+  <section class="fx-section">
+    <div class="fx-row">
+      <button class="ds-btn" type="button">Outlined</button>
+      <button class="ds-btn ds-btn--primary" type="button">Primary</button>
+      <button class="ds-btn ds-btn--tonal" type="button">Tonal</button>
+      <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Text</button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="More"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 12h16"/></svg></button>
+      <button class="ds-btn" type="button" aria-pressed="true">On <span class="ds-badge">3</span></button>
+      <button class="ds-btn ds-btn--primary" type="button" disabled>Disabled</button>
+      <button class="ds-link-btn" type="button">A link button</button>
+    </div>
+  </section>
+
+  <section class="fx-section ds-card">
+    <div class="ds-card__row"><h2 class="ds-card__title">Card</h2><span class="ds-status ds-status--ok">Synced</span></div>
+    <p class="ds-muted">A quiet line under the title.</p>
+    <ul class="ds-kv-list"><li><span>Name</span><strong>LAPTOP-0042</strong></li><li><span>Owner</span><strong>Ada Lovelace</strong></li></ul>
+    <dl class="ds-facts"><div><dt>Model</dt><dd>Latitude 7440</dd></div><div><dt>Disk</dt><dd>78%</dd></div></dl>
+    <span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="78" style="--ds-share: .78"></span>
+    <nav class="ds-card__links"><a class="ds-btn ds-btn--text ds-card__link" href="#x">Open</a></nav>
+  </section>
+
+  <section class="fx-section">
+    <div class="ds-tiles">
+      <div class="ds-tile"><p class="ds-tile__label"><span>Devices</span></p><p class="ds-tile__value">128</p><p class="ds-tile__note">in use</p></div>
+      <button class="ds-tile" type="button"><span class="ds-tile__label">Open</span><span class="ds-tile__value">12</span></button>
+    </div>
+  </section>
+
+  <section class="fx-section">
+    <ul class="ds-list ds-list--interactive" aria-label="Devices">
+      <li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#d1">LAPTOP-0042</a></span><span class="ds-list__meta">Notebook 14</span></span><span class="ds-tag">New</span></li>
+      <li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#d2" aria-current="true">TABLET-0121</a></span><span class="ds-list__meta">Tablet</span></span></li>
+    </ul>
+  </section>
+
+  <section class="fx-section">
+    <form class="ds-form" action="#">
+      <div class="ds-field"><label class="ds-label" for="f-name">Name</label><input class="ds-input" id="f-name" value="LAPTOP-0042"><p class="ds-hint">The asset tag.</p></div>
+      <div class="ds-field"><label class="ds-label" for="f-kind">Kind</label><select class="ds-input ds-select" id="f-kind"><option>Laptop</option></select></div>
+      <div class="ds-field"><label class="ds-label" for="f-note">Note</label><textarea class="ds-input" id="f-note">Two lines</textarea></div>
+      <label class="ds-check"><input type="checkbox" checked> Managed</label>
+      <label class="ds-radio"><input type="radio" name="plan" checked><span><strong>Standard</strong><small>Five devices</small></span></label>
+      <label class="ds-switch"><input class="ds-switch__input" type="checkbox" role="switch" checked><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Sync</span></label>
+      <input class="ds-slider" type="range" min="0" max="100" value="40" aria-label="Volume" style="--ds-share: .4">
+      <fieldset class="ds-chips"><legend class="ds-sr">Status</legend>
+        <label class="ds-chip"><input class="ds-chip__input" type="checkbox" checked><span class="ds-chip__body"><span>Open</span></span></label>
+        <label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span>Closed</span></span></label>
+      </fieldset>
+      <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button></div>
+    </form>
+  </section>
+
+  <section class="fx-section">
+    <div class="ds-table-wrap">
+      <table class="ds-table">
+        <thead><tr><th scope="col">Device</th><th scope="col" class="ds-num">Disk</th></tr></thead>
+        <tbody>
+          <tr><td>LAPTOP-0042</td><td class="ds-num">78%</td></tr>
+          <tr class="ds-table__row--selected"><td>TABLET-0121</td><td class="ds-num">12%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <nav class="ds-pagination" aria-label="Pages"><span class="ds-pagination__range">1-5 of 128</span></nav>
+  </section>
+
+  <section class="fx-section">
+    <div class="ds-alert ds-alert--warning" role="status"><span class="ds-alert__text">The certificate expires in 5 days.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>
+    <div class="ds-alert ds-alert--error"><div class="ds-alert__text"><p class="ds-alert__title">Sync failed</p><p>Try again later.</p></div></div>
+    <span class="ds-badge ds-badge--error">2</span>
+    <div class="ds-progress" role="progressbar" aria-label="Upload" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" style="--ds-progress: .4"><div class="ds-progress__track"></div></div>
+    <span class="ds-spinner" aria-hidden="true"></span>
+    <span class="ds-loader ds-loader--sm" aria-hidden="true"></span>
+    <div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true"></span><p class="ds-empty__title">No devices yet</p><p class="ds-empty__text">Add the first one.</p></div>
+  </section>
+
+  <section class="fx-section">
+    <div class="ds-tabs" role="tablist" aria-label="Record">
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="true">Details</button>
+      <button class="ds-tabs__tab" role="tab" type="button" aria-selected="false">History</button>
+    </div>
+    <ol class="ds-steps"><li class="ds-steps__step" data-step-state="done">Device</li><li class="ds-steps__step" aria-current="step">Problem</li><li class="ds-steps__step">Contact</li></ol>
+    <header class="ds-page-head"><h1 class="ds-page-head__title">Devices</h1><p class="ds-page-head__lead">Every device of the fleet.</p></header>
+  </section>
+
+  <section class="fx-section">
+    <details class="ds-collapsible ds-disclosure" open><summary>Advanced</summary><div class="ds-disclosure__body">Hidden settings.</div></details>
+    <ol class="ds-timeline"><li class="ds-timeline__item"><p class="ds-timeline__title">Synced</p><p class="ds-timeline__meta">Today</p></li></ol>
+    <div class="ds-prose"><h2>Prose</h2><p>Rendered <code>text</code> with a <a href="#x">link</a>.</p><ul><li>One</li><li>Two</li></ul></div>
+    <div class="ds-dialog ds-dialog--contained" role="dialog" aria-label="Delete"><div class="ds-dialog__box"><h2 class="ds-dialog__title">Delete 3 devices?</h2><p class="ds-dialog__text">They are removed for everyone.</p><div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--primary" type="button">Delete</button></div></div></div>
+  </section>
+</div>
+</body>
+</html>
