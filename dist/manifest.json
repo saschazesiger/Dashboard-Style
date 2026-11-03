@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "2.1.3",
+  "version": "3.0.0-alpha.0",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
   "sublayers": "@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;",
   "core": {
@@ -205,8 +205,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 6665,
-      "gzip": 1749
+      "bytes": 6673,
+      "gzip": 1754
     },
     "scroller": {
       "css": "css/components/scroller.css",
@@ -239,8 +239,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 3892,
-      "gzip": 1118
+      "bytes": 3900,
+      "gzip": 1123
     },
     "button": {
       "css": "css/components/button.css",
@@ -311,8 +311,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 13928,
-      "gzip": 2411
+      "bytes": 13936,
+      "gzip": 2417
     },
     "spinner": {
       "css": "css/components/spinner.css",
@@ -343,8 +343,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 4227,
-      "gzip": 1074
+      "bytes": 4235,
+      "gzip": 1079
     },
     "loader": {
       "css": "css/components/loader.css",
@@ -374,8 +374,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 1988,
-      "gzip": 724
+      "bytes": 1996,
+      "gzip": 729
     },
     "indicator": {
       "css": "css/components/indicator.css",
@@ -401,8 +401,8 @@
       "hooks": [],
       "ripple": false,
       "progressive": [],
-      "bytes": 3814,
-      "gzip": 852
+      "bytes": 3822,
+      "gzip": 857
     },
     "loading": {
       "css": "css/components/loading.css",
@@ -443,8 +443,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 4945,
-      "gzip": 1433
+      "bytes": 4953,
+      "gzip": 1438
     },
     "card": {
       "css": "css/components/card.css",
@@ -496,8 +496,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 10018,
-      "gzip": 2072
+      "bytes": 10026,
+      "gzip": 2077
     },
     "disclosure": {
       "css": "css/components/disclosure.css",
@@ -528,8 +528,8 @@
       "progressive": [
         "details[name]"
       ],
-      "bytes": 3968,
-      "gzip": 1146
+      "bytes": 3976,
+      "gzip": 1151
     },
     "tile": {
       "css": "css/components/tile.css",
@@ -562,8 +562,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 5845,
-      "gzip": 1493
+      "bytes": 5853,
+      "gzip": 1498
     },
     "list": {
       "css": "css/components/list.css",
@@ -620,8 +620,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 12570,
-      "gzip": 2600
+      "bytes": 12578,
+      "gzip": 2606
     },
     "timeline": {
       "css": "css/components/timeline.css",
@@ -663,8 +663,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 4894,
-      "gzip": 1234
+      "bytes": 4902,
+      "gzip": 1240
     },
     "tasks": {
       "css": "css/components/tasks.css",
@@ -688,8 +688,8 @@
       "hooks": [],
       "ripple": false,
       "progressive": [],
-      "bytes": 2674,
-      "gzip": 881
+      "bytes": 2682,
+      "gzip": 886
     },
     "prose": {
       "css": "css/components/prose.css",
@@ -718,8 +718,8 @@
         "scrollbar-color",
         "hyphenate-limit-chars"
       ],
-      "bytes": 4437,
-      "gzip": 1305
+      "bytes": 4445,
+      "gzip": 1310
     },
     "empty": {
       "css": "css/components/empty.css",
@@ -752,8 +752,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 2473,
-      "gzip": 857
+      "bytes": 2481,
+      "gzip": 863
     },
     "status": {
       "css": "css/components/status.css",
@@ -788,8 +788,8 @@
       "progressive": [
         "@starting-style"
       ],
-      "bytes": 3125,
-      "gzip": 1003
+      "bytes": 3133,
+      "gzip": 1008
     },
     "alert": {
       "css": "css/components/alert.css",
@@ -836,8 +836,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 5018,
-      "gzip": 1439
+      "bytes": 5026,
+      "gzip": 1444
     },
     "table": {
       "css": "css/components/table.css",
@@ -917,8 +917,8 @@
         "scrollbar-color",
         "alt text for generated content"
       ],
-      "bytes": 26367,
-      "gzip": 4054
+      "bytes": 26375,
+      "gzip": 4062
     },
     "pagination": {
       "css": "css/components/pagination.css",
@@ -944,8 +944,8 @@
       "hooks": [],
       "ripple": false,
       "progressive": [],
-      "bytes": 1956,
-      "gzip": 686
+      "bytes": 1964,
+      "gzip": 691
     },
     "form": {
       "css": "css/components/form.css",
@@ -1055,8 +1055,8 @@
         "scrollbar-color",
         "field-sizing"
       ],
-      "bytes": 39539,
-      "gzip": 5848
+      "bytes": 39547,
+      "gzip": 5854
     },
     "drag": {
       "css": "css/components/drag.css",
@@ -1094,8 +1094,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 7335,
-      "gzip": 1692
+      "bytes": 7343,
+      "gzip": 1697
     },
     "chip": {
       "css": "css/components/chip.css",
@@ -1137,8 +1137,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 8476,
-      "gzip": 1806
+      "bytes": 8484,
+      "gzip": 1811
     },
     "badge": {
       "css": "css/components/badge.css",
@@ -1172,8 +1172,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 3854,
-      "gzip": 1042
+      "bytes": 3862,
+      "gzip": 1048
     },
     "switch": {
       "css": "css/components/switch.css",
@@ -1209,8 +1209,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 11534,
-      "gzip": 2113
+      "bytes": 11542,
+      "gzip": 2119
     },
     "slider": {
       "css": "css/components/slider.css",
@@ -1231,8 +1231,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6361,
-      "gzip": 1224
+      "bytes": 6369,
+      "gzip": 1229
     },
     "combobox": {
       "css": "css/components/combobox.css",
@@ -1286,8 +1286,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 8771,
-      "gzip": 2242
+      "bytes": 8779,
+      "gzip": 2246
     },
     "menu": {
       "css": "css/components/menu.css",
@@ -1334,8 +1334,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 6667,
-      "gzip": 1890
+      "bytes": 6675,
+      "gzip": 1895
     },
     "progress": {
       "css": "css/components/progress.css",
@@ -1368,8 +1368,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 6009,
-      "gzip": 1387
+      "bytes": 6017,
+      "gzip": 1393
     },
     "chart": {
       "css": "css/components/chart.css",
@@ -1426,8 +1426,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 7169,
-      "gzip": 1832
+      "bytes": 7177,
+      "gzip": 1837
     },
     "sheet": {
       "css": "css/components/sheet.css",
@@ -1483,8 +1483,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 8736,
-      "gzip": 2012
+      "bytes": 8744,
+      "gzip": 2017
     },
     "dialog": {
       "css": "css/components/dialog.css",
@@ -1546,8 +1546,8 @@
         "allow-discrete",
         "scrollbar-color"
       ],
-      "bytes": 13633,
-      "gzip": 2288
+      "bytes": 13641,
+      "gzip": 2293
     },
     "toast": {
       "css": "css/components/toast.css",
@@ -1593,8 +1593,8 @@
       "progressive": [
         "View Transitions"
       ],
-      "bytes": 4497,
-      "gzip": 1341
+      "bytes": 4505,
+      "gzip": 1345
     },
     "tooltip": {
       "css": "css/components/tooltip.css",
@@ -1625,8 +1625,8 @@
         "popover",
         "anchor positioning"
       ],
-      "bytes": 2739,
-      "gzip": 961
+      "bytes": 2747,
+      "gzip": 966
     },
     "savebar": {
       "css": "css/components/savebar.css",
@@ -1666,8 +1666,8 @@
         "@starting-style",
         "allow-discrete"
       ],
-      "bytes": 2941,
-      "gzip": 972
+      "bytes": 2949,
+      "gzip": 976
     },
     "shell": {
       "css": "css/components/shell.css",
@@ -1783,8 +1783,8 @@
         "scrollbar-color",
         "scrollbar-gutter"
       ],
-      "bytes": 30324,
-      "gzip": 5315
+      "bytes": 30332,
+      "gzip": 5321
     },
     "tabs": {
       "css": "css/components/tabs.css",
@@ -1820,8 +1820,8 @@
       "progressive": [
         "scrollbar-color"
       ],
-      "bytes": 4850,
-      "gzip": 1366
+      "bytes": 4858,
+      "gzip": 1371
     },
     "steps": {
       "css": "css/components/steps.css",
@@ -1847,8 +1847,8 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 4153,
-      "gzip": 1160
+      "bytes": 4161,
+      "gzip": 1165
     },
     "ripple": {
       "css": "css/components/ripple.css",
@@ -1902,8 +1902,8 @@
       "progressive": [
         "overflow-clip-margin"
       ],
-      "bytes": 14304,
-      "gzip": 1714
+      "bytes": 14312,
+      "gzip": 1719
     },
     "page": {
       "css": "css/components/page.css",
@@ -1954,8 +1954,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 6522,
-      "gzip": 1887
+      "bytes": 6530,
+      "gzip": 1892
     }
   },
   "js": {
