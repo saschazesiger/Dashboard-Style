@@ -35,7 +35,7 @@ test('starts without a console error; a drawer link takes the view to its sectio
   await open(page);
   await expect(page.locator('#facts .ds-tile')).toHaveCount(4);
   await expect(page.locator('#live-tiles .ds-tile')).toHaveCount(4);
-  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(109);
+  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(275);
   await expect(page.locator('html')).toHaveClass(/ds-ripples/);
   await expect(page.locator('#nav [aria-current="page"]')).toHaveAttribute('href', '#welcome');
   await page.locator('#nav a[href="#overlays"]').click();
@@ -198,7 +198,8 @@ test('the icon filter narrows the grid and an unknown name shows the empty state
   await open(page);
   await page.locator('#icon-search').fill('arrow');
   await settle(page);
-  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(4);
+  // The four arrows, the four diagonals and arrowLeftRight.
+  await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(9);
   await page.locator('#icon-search').fill('zzz');
   await settle(page);
   await expect(page.locator('#icon-grid .demo-icon')).toHaveCount(0);
