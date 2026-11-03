@@ -196,6 +196,7 @@ Which component fits which need: the table at the top of [docs/components.md](do
 | Topic | |
 |---|---|
 | 📦 [Install and update](docs/install.md) | vendoring, CDN, bundlers, fonts, verifying a copy, checking a project, language and locale |
+| ✂️ [Bundle](docs/bundle.md) | loading only what a page uses: the bundle tool, its scan, the safelist, `--check` in CI, the Vite plugin |
 | 🎚️ [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |
 | 🎨 [Theming](docs/theming.md) | writing a project theme, component hooks |
 | 🧩 [Components](docs/components.md) | which component for which need, copy-paste markup for every component |

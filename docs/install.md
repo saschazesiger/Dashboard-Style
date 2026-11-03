@@ -16,7 +16,7 @@ Everything a project needs is in `dist/`:
 | `LICENSE` | the MIT notice; keep it with the copy |
 | `SHA256SUMS` | checksums of every file |
 | `themes/` | the shipped themes `dark.css`, `compact.css` and `contrast.css`, loaded after your theme ([theming.md](theming.md#dark-compact-and-contrast)) |
-| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes) and `css-scan.mjs` (a small CSS reader) |
+| `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), `bundle.mjs` and `vite-plugin.mjs` (a project bundle of only what it uses, [bundle.md](bundle.md)), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes), `css-scan.mjs` (a small CSS reader) and `js-wrap.mjs` (the classic-script wrapper of `ds.js`) |
 | `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
 
 Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
@@ -184,6 +184,10 @@ name the keyframes in it) and `components/utilities.css` (border-box sizing insi
 `components/ripple.css` whenever you call `DS.ripple.attach()`: without it the ripple span sits in the flow and
 widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
 `package.json` lets both the bundler and Node tests write `#ds/js/motion.js`.
+
+To load only what a project uses without picking files by hand, let `tools/bundle.mjs` scan the project and write
+its bundle, or use the Vite plugin: [bundle.md](bundle.md) (the three ways to load, the config, the scanning rules,
+`--check` in CI and the nightly update).
 
 ### Types
 
