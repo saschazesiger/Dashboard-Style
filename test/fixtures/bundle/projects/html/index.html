@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en" class="ds-theme">
+<head>
+  <meta charset="utf-8">
+  <title>Devices</title>
+  <link rel="stylesheet" href="out/ds.bundle.css">
+  <script src="out/ds.bundle.js" defer></script>
+</head>
+<body class="ds-base">
+  <section class="ds-card">
+    <h2 class="ds-card__title">Devices</h2>
+    <button class="ds-btn ds-btn--filled" type="button" data-ds-dialog>Add a device</button>
+    <span data-icon="bell"></span>
+  </section>
+  <script>
+    addEventListener('DOMContentLoaded', () => {
+      DS.ripple.attach(document);
+      DS.icons.fill(document);
+    });
+  </script>
+</body>
+</html>

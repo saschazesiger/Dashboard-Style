@@ -1,0 +1,12 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */
+@property --ds-time-scale {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+@property --ds-chart-progress {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}

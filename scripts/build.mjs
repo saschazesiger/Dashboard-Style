@@ -56,7 +56,8 @@
  *                   and the generated presets (themes/presets/)
  *   tools/          dependency-free tools for projects: every file of
  *                   scripts/tools/ (verify.mjs and verify.sh, check-theme.mjs,
- *                   check-project.mjs, the theme generator theme.mjs and the
+ *                   check-project.mjs, the theme generator theme.mjs, the
+ *                   project bundle bundle.mjs and vite-plugin.mjs, and the
  *                   modules they share); a new file there ships by itself
  *   tokens.json     every --ds-* name with its layer, default and type
  *   LICENSE         MIT notice (it must travel with every copy)

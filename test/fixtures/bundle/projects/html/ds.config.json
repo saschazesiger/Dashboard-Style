@@ -1,0 +1,5 @@
+{
+  "content": ["**/*.html"],
+  "out": "out",
+  "dist": "../../dist"
+}

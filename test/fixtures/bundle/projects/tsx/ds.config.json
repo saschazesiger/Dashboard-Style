@@ -1,0 +1,6 @@
+{
+  "content": ["src/**/*.tsx"],
+  "out": "dist",
+  "dist": "../../dist",
+  "js": "esm"
+}

@@ -1,0 +1,1 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@property --ds-time-scale{syntax: '<number>';inherits: true;initial-value: 1}@layer ds.tokens{.ds-theme{--ds-primary: #3367d6;--ds-on-primary: #ffffff;--ds-surface: #ffffff;--ds-radius-action: 18px;--ds-dur-fast: calc(150ms * var(--ds-time-scale,1))}}

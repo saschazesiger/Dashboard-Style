@@ -159,7 +159,7 @@ describe('dist/themes/ and dist/tools/', () => {
     }
     assert.ok(!out.has('themes/example.css'), 'the template is not shipped');
     const tools = filesIn('scripts/tools').map((path) => path.slice('scripts/tools/'.length));
-    for (const name of ['verify.mjs', 'verify.sh', 'check-theme.mjs', 'check-project.mjs', 'css-scan.mjs', 'theme-rules.mjs']) assert.ok(tools.includes(name), name);
+    for (const name of ['verify.mjs', 'verify.sh', 'check-theme.mjs', 'check-project.mjs', 'css-scan.mjs', 'theme-rules.mjs', 'bundle.mjs', 'vite-plugin.mjs', 'js-wrap.mjs']) assert.ok(tools.includes(name), name);
     for (const name of tools) assert.equal(out.get(`tools/${name}`)?.toString('utf8'), withBanner(name, read(`scripts/tools/${name}`), info), name);
     assert.ok(out.has('tokens.json'));
   });
