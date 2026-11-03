@@ -2662,6 +2662,8 @@ describe('classic-script build (dist/ds.js)', () => {
     for (const [name, module] of Object.entries({ core, motion, indicator, dom, ripple, icons, overlay })) {
       assert.deepEqual(Object.keys(DS[name]).sort(), Object.keys(module).sort(), name);
     }
+    // The entry points of the core at the top level (3.0).
+    for (const key of ['init', 'get', 'define', 'config']) assert.equal(DS[key], DS.core[key], `DS.${key}`);
     assert.equal(DS.icons.icon(DS.icons.plus, 16), icons.icon(icons.plus, 16));
     assert.equal(DS.motion.loaderHoldMs(1000, 1300), motion.loaderHoldMs(1000, 1300));
     assert.equal(sandbox.DashboardStyle.versions[DS.version], DS);

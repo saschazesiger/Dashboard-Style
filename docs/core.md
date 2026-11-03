@@ -5,9 +5,13 @@ the one runtime a page shares, the registry of behaviours, declarative initialis
 system's own strings.
 
 ```js
-DS.core.init(document);                        // every behaviour on the page, now and for later markup
-DS.core.config({ strings: { close: 'Schliessen' } });
+DS.init(document);                             // every behaviour on the page, now and for later markup
+DS.config({ strings: { close: 'Schliessen' } });
 ```
+
+`DS.init`, `DS.get`, `DS.define` and `DS.config` are `DS.core.init`, `DS.core.get`, `DS.core.define` and
+`DS.core.config` at the top level of `window.DS` (`ds.js` and every classic bundle). An ES module project imports
+them from `js/core.js`.
 
 | Export | What |
 |---|---|

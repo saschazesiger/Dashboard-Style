@@ -6,7 +6,7 @@ Everything a project needs is in `dist/`:
 |---|---|
 | `ds.css` | all stylesheets in cascade order (tokens, motion, base, components), in `@layer ds.*` (see "Cascade layers and resets") |
 | `ds.min.css` | `ds.css` minified (3.0), with its source map `ds.min.css.map`: the same rules, layers and order |
-| `ds.js` | classic script, sets `window.DS = { version, core, motion, indicator, dom, ripple, icons, overlay }` (see "Two copies on one page") |
+| `ds.js` | classic script, sets `window.DS = { version, core, motion, indicator, dom, ripple, icons, overlay }` plus `DS.init`, `DS.get`, `DS.define` and `DS.config` (those of `DS.core`, [core.md](core.md)); see "Two copies on one page" |
 | `ds.min.js` | `ds.js` without comments and indentation (3.0): the same code, nothing renamed |
 | `css/` | the single stylesheets: `core/tokens.css`, `core/motion.css`, `core/base.css`, `components/<name>.css` and `index.css` (their `@import` list in cascade order); each starts with the layer statement and the statement of the component sublayers, and a `.min.css` with its `.min.css.map` sits next to each (3.0) |
 | `manifest.json` | the components as data (3.0): per component its files, group, classes, attributes, keyframes, hooks, the modules it needs, what it requires and its size; the core stylesheets and their classes; the JS modules with their imports and exports. Tools such as a bundler read it |

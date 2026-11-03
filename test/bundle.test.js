@@ -59,11 +59,30 @@ function runClassic(...scripts) {
 const names = (list) => list.map((item) => item.name);
 
 describe('tools/js-wrap.mjs', () => {
-  it('writes ds.js exactly as the build does (the build can switch to it)', () => {
+  it('writes ds.js exactly as the build does (the build writes it with classicScript)', () => {
     const info = packageInfo();
     const banner = `/*! ${info.name} ${info.version} | ${info.license} License | ${info.homepage} */\n`;
     const modules = MODULES.map((name) => ({ name, source: read(`src/js/${name}.js`) }));
     assert.equal(classicScript({ version: info.version, banner, modules }), buildJs(info));
+    assert.equal(buildJs(info), read('dist/ds.js'));
+  });
+
+  it('adds only what the page lacks: a module made in full is not made again, a missing export joins a frozen copy', () => {
+    const counter = 'export const made = (globalThis.made = (globalThis.made || 0) + 1);';
+    const one = classicScript({ version: '9.0.0', modules: [{ name: 'core', source: `${counter}\nexport const a = 1;` }, { name: 'icons', source: 'export const x = 1;' }] });
+    const two = classicScript({ version: '9.0.0', modules: [{ name: 'core', source: `${counter}\nexport const a = 2;` }, { name: 'icons', source: 'export const x = 2;\nexport const y = 3;' }] });
+    const page = runClassic(one, two);
+    assert.equal(page.made, 1, 'core is made once');
+    assert.equal(page.DS.core.a, 1);
+    assert.deepEqual({ ...page.DS.icons }, { x: 1, y: 3 }, 'the page keeps x, the second script adds y');
+    assert.ok(Object.isFrozen(page.DS.icons));
+  });
+
+  it('puts DS.init, DS.get, DS.define and DS.config of the core at the top level', () => {
+    const core = 'export function init() { return 1; }\nexport function get() {}\nexport function define() {}\nexport function config() {}';
+    const page = runClassic(classicScript({ version: '9.0.0', modules: [{ name: 'core', source: core }] }));
+    for (const key of ['init', 'get', 'define', 'config']) assert.equal(page.DS[key], page.DS.core[key], key);
+    assert.equal(runClassic(classicScript({ version: '9.0.0', modules: [{ name: 'one', source: 'export const one = 1;' }] })).DS.init, undefined, 'only with a core');
   });
 
   it('merges a second script of the same version by name instead of returning early (merge: true)', () => {
@@ -73,7 +92,7 @@ describe('tools/js-wrap.mjs', () => {
     assert.equal(page.DS.one.one, 1);
     assert.equal(page.DS.two.two, 1, 'the second script reads the core already on the page');
     assert.equal(page.DashboardStyle.versions['9.0.0'], page.DS);
-    const plain = runClassic(classicScript({ version: '9.0.0', modules: [{ name: 'one', source: 'export const one = 1;' }] }), classicScript({ version: '9.0.0', modules: [{ name: 'two', source: 'export const two = 2;' }] }));
+    const plain = runClassic(classicScript({ version: '9.0.0', merge: false, modules: [{ name: 'one', source: 'export const one = 1;' }] }), classicScript({ version: '9.0.0', merge: false, modules: [{ name: 'two', source: 'export const two = 2;' }] }));
     assert.equal(plain.DS.two, undefined, 'without merge, the 2.x behaviour: the second copy does nothing');
   });
 
@@ -116,7 +135,8 @@ describe('tools/js-wrap.mjs', () => {
   it('strips every module of src/js into a script that keeps the same exports and constants', () => {
     const full = MODULES.map((name) => ({ name, source: read(`src/js/${name}.js`) }));
     const stripped = full.map(({ name, source }) => ({ name, source: stripComments(source) }));
-    for (const [index, module] of stripped.entries()) assert.ok(module.source.length < full[index].source.length * 0.85, `${module.name} gets smaller`);
+    // The icons module is nearly all glyph strings, which stay as they are.
+    for (const [index, module] of stripped.entries()) if (module.name !== 'icons') assert.ok(module.source.length < full[index].source.length * 0.85, `${module.name} gets smaller`);
     const a = runClassic(classicScript({ version: '1.0.0', modules: full })).DS;
     const b = runClassic(classicScript({ version: '1.0.0', modules: stripped })).DS;
     for (const name of MODULES) {

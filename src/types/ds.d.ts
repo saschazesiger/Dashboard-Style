@@ -17,10 +17,18 @@ import type * as ripple from './js/ripple.js';
 import type * as icons from './js/icons.js';
 import type * as overlay from './js/overlay.js';
 
-/** What window.DS holds: the version and one namespace per module. */
+/** What window.DS holds: the version, one namespace per module and the entry points of DS.core at the top level. */
 export interface DashboardStyleApi {
   /** The version of this copy (package.json at build time). */
   readonly version: string;
+  /** DS.core.init: attaches every registered behaviour under a root and keeps watching it. */
+  readonly init: typeof core.init;
+  /** DS.core.get: the controller of an element. */
+  readonly get: typeof core.get;
+  /** DS.core.define: registers a behaviour by name. */
+  readonly define: typeof core.define;
+  /** DS.core.config: locale and strings. */
+  readonly config: typeof core.config;
   readonly core: typeof core;
   readonly motion: typeof motion;
   readonly indicator: typeof indicator;

@@ -28,7 +28,9 @@
  *   ds.css, ds.min.css   every stylesheet in cascade order (src/index.css
  *                   inlined), the layer and sublayer order declared once at
  *                   the top; the minified copy with ds.min.css.map
- *   ds.js, ds.min.js     classic script: window.DS = { version, motion, indicator, dom, ripple, icons, overlay },
+ *   ds.js, ds.min.js     classic script (tools/js-wrap.mjs, merge mode): window.DS =
+ *                   { version, core, motion, indicator, dom, ripple, icons, overlay }
+ *                   plus DS.init, DS.get, DS.define and DS.config (DS.core's),
  *                   each copy also under DashboardStyle.versions[version];
  *                   ds.min.js without comments and indentation (stripJs)
  *   css/core/{tokens,base,motion}.css, css/components/<name>.css
@@ -74,6 +76,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { scan, selectorList } from './tools/css-scan.mjs';
+import { classicScript, moduleBody as wrapModule } from './tools/js-wrap.mjs';
 
 /** lightningcss, the build's one dependency (npm ci); null when it is not installed. */
 const lightning = await import('lightningcss').catch(() => null);
@@ -948,116 +951,26 @@ export function layerStatementOnce(css) {
   return head + rest;
 }
 
-/** `import { a, b as c } from './motion.js';` on one line. */
-const SIBLING_IMPORT = /^import\s*\{([^}]*)\}\s*from\s*(?:'\.\/([\w-]+)\.js'|"\.\/([\w-]+)\.js")\s*;?[ \t]*$/;
-
-/**
- * Rewrites the imports of one module for the classic build: a module may
- * import named exports of a module earlier in MODULES (`import { a, b as c }
- * from './motion.js';`, on one line), which becomes
- * `const a = DS.motion.a, c = DS.motion.b;` inside its closure. Default,
- * namespace and bare imports, later or unknown modules and imports over
- * several lines throw.
- */
-function rewriteImports(source, name) {
-  const position = MODULES.indexOf(name);
-  return source.replace(/^[ \t]*import\b.*$/gm, (line) => {
-    const statement = line.trim();
-    const match = SIBLING_IMPORT.exec(statement);
-    if (!match) {
-      if (/^import\s*\{[^}]*$/.test(statement)) throw new Error(`${name}.js: an import must sit on one line: ${statement}`);
-      if (/^import\s*\*/.test(statement)) throw new Error(`${name}.js: namespace imports are not supported: ${statement}`);
-      if (/^import\s*['"]/.test(statement)) throw new Error(`${name}.js: bare imports are not supported: ${statement}`);
-      if (/^import\s*\{/.test(statement)) throw new Error(`${name}.js: only sibling modules (./<name>.js) can be imported: ${statement}`);
-      if (/^import\s+[\w$]/.test(statement)) throw new Error(`${name}.js: default imports are not supported: ${statement}`);
-      throw new Error(`${name}.js: unsupported import: ${statement}`);
-    }
-    const from = match[2] ?? match[3];
-    const index = MODULES.indexOf(from);
-    if (index < 0) throw new Error(`${name}.js: unknown module ./${from}.js (not in MODULES)`);
-    if (index >= position) throw new Error(`${name}.js: ./${from}.js is not earlier in MODULES; import only from an earlier module`);
-    const bindings = match[1].split(',').map((part) => part.trim()).filter(Boolean).map((part) => {
-      const names = /^([\w$]+)(?:\s+as\s+([\w$]+))?$/.exec(part);
-      if (!names) throw new Error(`${name}.js: cannot read the import binding "${part}"`);
-      return `${names[2] || names[1]} = DS.${from}.${names[1]}`;
-    });
-    if (!bindings.length) throw new Error(`${name}.js: an empty import: ${statement}`);
-    return `const ${bindings.join(', ')};`;
-  });
-}
-
 /**
  * Turns one ES module of src/js into a function body that returns its
- * exports. Only `export const` and `export function` are allowed; imports
- * only from an earlier module (rewriteImports).
+ * exports, as `<namespace>.<name> = (function () { ... })();`
+ * (tools/js-wrap.mjs moduleBody over MODULES): `export const` and
+ * `export function` only, imports only from an earlier module. The
+ * styleguide's demos use it with the namespace SG.
  */
 export function moduleBody(source, name, namespace = 'DS') {
-  const exports = [];
-  const body = rewriteImports(source, name).replace(/^export (const|function) ([\w$]+)/gm, (match, kind, id) => {
-    exports.push(id);
-    return `${kind} ${id}`;
-  });
-  if (/^\s*export\b/m.test(body)) throw new Error(`${name}.js: only "export const" and "export function" are supported`);
-  const members = exports.map((id) => `      ${id}: ${id}`).join(',\n');
-  const indented = body.trimEnd().split('\n').map((line) => (line ? `    ${line}` : line)).join('\n');
-  return `  ${namespace}.${name} = (function () {\n${indented}\n\n    return Object.freeze({\n${members}\n    });\n  })();\n`;
+  return wrapModule(source, name, MODULES.includes(name) ? MODULES : [name], { namespace });
 }
 
-export function buildJs(info) {
-  const parts = MODULES.map((name) => moduleBody(readText(join(ROOT, 'src/js', `${name}.js`)), name));
-  return `${banner(info)}/*
- * Classic-script build of src/js (no modules needed): window.DS.${MODULES.join(', DS.')}
- * hold the same exports as the ES modules in js/. Generated by
- * scripts/build.mjs; do not edit.
- * Icon shapes: Lucide (ISC) and Feather (MIT), see LICENSE.
- *
- * Two copies on one page (a host page and an embedded widget, two
- * bundles): every copy registers itself in DashboardStyle.versions[version]
- * and shares the page's one DashboardStyle.runtime (DS.core). A second copy
- * of the same version adds what the first lacks into it by name (a module,
- * or an export of a module) and keeps everything the first has.
- * window.DS is set only when it is absent or holds the same version, so the
- * first copy keeps it; a copy of another version warns once and leaves DS
- * alone. A widget reads DashboardStyle.versions['<its version>'] || DS.
+/**
+ * dist/ds.js: every module of MODULES through tools/js-wrap.mjs, in merge
+ * mode (a later copy or bundle of the same version adds what the page
+ * lacks instead of returning early), with DS.init, DS.get, DS.define and
+ * DS.config as the top-level aliases of DS.core.
  */
-(function (root) {
-  'use strict';
-  var version = '${info.version}';
-  var registry = root.DashboardStyle || (root.DashboardStyle = {});
-  var versions = registry.versions || (registry.versions = {});
-  var DS = { version: version };
-
-${parts.join('\n')}
-  var first = versions[version];
-  if (first) {
-    Object.keys(DS).forEach(function (name) {
-      var mine = DS[name];
-      var theirs = first[name];
-      if (theirs === undefined) {
-        first[name] = mine;
-        return;
-      }
-      if (!mine || typeof mine !== 'object' || !theirs || typeof theirs !== 'object') return;
-      var extra = Object.keys(mine).filter(function (key) { return !(key in theirs); });
-      if (!extra.length) return;
-      var merged = {};
-      Object.keys(theirs).forEach(function (key) { merged[key] = theirs[key]; });
-      extra.forEach(function (key) { merged[key] = mine[key]; });
-      first[name] = Object.freeze(merged);
-    });
-    // window.DS and the warning are the first copy's business.
-    return;
-  }
-  versions[version] = DS;
-  var current = root.DS;
-  var warn = function (message) {
-    if (root.console && typeof root.console.warn === 'function') root.console.warn(message);
-  };
-  if (current === undefined || current === null || (typeof current === 'object' && current.version === version)) root.DS = DS;
-  else if (typeof current.version === 'string') warn('Dashboard-Style ' + version + ' loaded on a page that already runs ' + current.version + ': window.DS stays ' + current.version + '; this copy is DashboardStyle.versions[\\'' + version + '\\'].');
-  else warn('Dashboard-Style ' + version + ': window.DS already holds something else; it is left alone, this copy is DashboardStyle.versions[\\'' + version + '\\'].');
-})(typeof globalThis !== 'undefined' ? globalThis : this);
-`;
+export function buildJs(info) {
+  const modules = MODULES.map((name) => ({ name, source: readText(join(ROOT, 'src/js', `${name}.js`)) }));
+  return classicScript({ version: info.version, banner: banner(info), modules, merge: true });
 }
 
 let built = null;
