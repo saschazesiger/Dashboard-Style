@@ -1959,10 +1959,27 @@
     }
   },
   "js": {
+    "core": {
+      "file": "js/core.js",
+      "types": "js/core.d.ts",
+      "imports": [],
+      "exports": [
+        "runtime",
+        "define",
+        "get",
+        "init",
+        "destroy",
+        "emit",
+        "config",
+        "t"
+      ]
+    },
     "motion": {
       "file": "js/motion.js",
       "types": "js/motion.d.ts",
-      "imports": [],
+      "imports": [
+        "core"
+      ],
       "exports": [
         "MOTION_FALLBACKS",
         "LOADER_DELAY_MS",
@@ -2030,6 +2047,7 @@
       "file": "js/ripple.js",
       "types": "js/ripple.d.ts",
       "imports": [
+        "core",
         "motion"
       ],
       "exports": [
@@ -2327,6 +2345,7 @@
       "file": "js/overlay.js",
       "types": "js/overlay.d.ts",
       "imports": [
+        "core",
         "dom",
         "icons",
         "motion"

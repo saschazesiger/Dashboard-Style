@@ -141,12 +141,12 @@ describe('repository', () => {
     assert.deepEqual(missing, []);
   });
 
-  it('documents every JS export of every built module (MODULES): icons in docs/icons.md, the rest in docs/motion.md', () => {
+  it('documents every JS export of every built module (MODULES): core in docs/core.md, icons in docs/icons.md, the rest in docs/motion.md', () => {
     // A module in src/js/ that the build leaves out fails here too.
     assert.deepEqual(filesIn('src/js', (path) => path.endsWith('.js')).map((path) => path.slice('src/js/'.length, -3)).sort(), [...MODULES].sort(), 'src/js/ is MODULES');
     const missing = [];
     for (const name of MODULES) {
-      const docs = read(name === 'icons' ? 'docs/icons.md' : 'docs/motion.md');
+      const docs = read(name === 'core' ? 'docs/core.md' : name === 'icons' ? 'docs/icons.md' : 'docs/motion.md');
       // In a code span of its own or as a call or member in one (`flip(container, ...)`, `DS.motion.flip`).
       const spans = [...docs.matchAll(/`([^`\n]+)`/g)].map((match) => match[1]);
       for (const match of read(`src/js/${name}.js`).matchAll(/^export (?:const|function) ([\w$]+)/gm)) {
@@ -584,6 +584,12 @@ describe('language and locale', () => {
       // Comments blanked with their line breaks kept, so the line numbers hold.
       const source = read(file).replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' ')).replace(/^[ \t]*\/\/.*$/gm, '');
       const lines = source.split('\n');
+      // The defaults of DS.core.config({ strings }) in core.js: each takes its key as the option (`close: 'Close'`).
+      const defaults = file === 'src/js/core.js' ? [lines.findIndex((line) => /^const DEFAULT_STRINGS = Object\.freeze\(\{$/.test(line))] : [];
+      if (defaults.length) {
+        assert.ok(defaults[0] >= 0, 'core.js: const DEFAULT_STRINGS = Object.freeze({');
+        defaults.push(lines.findIndex((line, index) => index > defaults[0] && line === '});'));
+      }
       for (const [index, line] of lines.entries()) {
         // Messages for developers (errors, console) are not UI.
         if (/\b(Error|TypeError|RangeError)\(|console\??\.|\bwarn\w*\??\.?\(/.test(line)) continue;
@@ -595,6 +601,7 @@ describe('language and locale', () => {
           // The option is the name the string falls back from: `options.label ?? 'Close'`, `label || 'Close'`,
           // `(options.announce ?? ((i, n) => `...`))`; a constant (`const TEXT = '...'`) takes the option it is the fallback of.
           let option = [...line.slice(0, match.index).matchAll(/(\w+)\s*(?:\|\||\?\?)/g)].pop()?.[1];
+          if (!option && defaults.length && index > defaults[0] && index < defaults[1]) option = /^\s*(\w+):\s*$/.exec(line.slice(0, match.index))?.[1];
           const constant = /^\s*const ([A-Z_]+)\s*=\s*$/.exec(line.slice(0, match.index))?.[1];
           if (!option && constant) option = new RegExp(`(\\w+)\\s*(?:\\|\\||\\?\\?)\\s*${constant}\\b`).exec(source)?.[1];
           if (!option) {

@@ -6,6 +6,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { runInNewContext } from 'node:vm';
+import * as core from '../src/js/core.js';
 import * as icons from '../src/js/icons.js';
 import * as motion from '../src/js/motion.js';
 import * as indicator from '../src/js/indicator.js';
@@ -2658,7 +2659,7 @@ describe('classic-script build (dist/ds.js)', () => {
     runInNewContext(read('dist/ds.js'), sandbox);
     const DS = sandbox.DS;
     assert.equal(DS.version, JSON.parse(read('package.json')).version);
-    for (const [name, module] of Object.entries({ motion, indicator, dom, ripple, icons, overlay })) {
+    for (const [name, module] of Object.entries({ core, motion, indicator, dom, ripple, icons, overlay })) {
       assert.deepEqual(Object.keys(DS[name]).sort(), Object.keys(module).sort(), name);
     }
     assert.equal(DS.icons.icon(DS.icons.plus, 16), icons.icon(icons.plus, 16));
@@ -2695,9 +2696,46 @@ describe('classic-script build (dist/ds.js)', () => {
       const { sandbox, warnings, load } = page();
       load(read('dist/ds.js'));
       const first = sandbox.DS;
+      const modules = Object.fromEntries(Object.entries(first));
       load(read('dist/ds.js'));
       assert.equal(sandbox.DS, first);
+      // Nothing new in the second copy: every module stays the first copy's.
+      for (const [name, value] of Object.entries(modules)) assert.equal(sandbox.DS[name], value, name);
       assert.deepEqual(warnings, []);
+    });
+
+    it('merges a second copy of the same version into the first by name: missing modules and exports, never its own', () => {
+      const { sandbox, warnings, load } = page();
+      // A first bundle without DS.icons and with an older DS.dom (one export fewer), as a per-entry bundle would be.
+      load(read('dist/ds.js'));
+      const first = sandbox.DS;
+      const { icons: _icons, ...rest } = first;
+      const { morphHtml: _morph, ...partialDom } = first.dom;
+      for (const key of Object.keys(first)) delete first[key];
+      Object.assign(first, rest, { dom: Object.freeze(partialDom) });
+      const overlay = first.overlay;
+      load(read('dist/ds.js'));
+      assert.equal(sandbox.DS, first);
+      assert.equal(sandbox.DashboardStyle.versions[version], first);
+      assert.equal(typeof sandbox.DS.icons.icon, 'function', 'the missing module was added');
+      assert.equal(typeof sandbox.DS.dom.morphHtml, 'function', 'the missing export was added');
+      assert.equal(sandbox.DS.dom.watchScrolled, partialDom.watchScrolled, 'the first copy keeps its own exports');
+      assert.ok(Object.isFrozen(sandbox.DS.dom));
+      assert.equal(sandbox.DS.overlay, overlay, 'a module both have stays the first copy\'s');
+      assert.deepEqual(warnings, []);
+    });
+
+    it('shares one runtime between every copy, also of another version', () => {
+      const { sandbox, load } = page();
+      load(read('dist/ds.js'));
+      const runtime = sandbox.DashboardStyle.runtime;
+      assert.equal(sandbox.DS.core.runtime, runtime);
+      load(asVersion('9.9.9'));
+      assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.runtime, runtime);
+      assert.notEqual(sandbox.DashboardStyle.versions['9.9.9'].core, sandbox.DS.core);
+      // The behaviours of the first copy stay registered; the second copy's definitions are ignored.
+      assert.deepEqual([...runtime.state('core').specs.keys()], ['guard', 'ripple', 'tooltips']);
+      assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.define('guard', { global() {} }), false);
     });
 
     it('leaves a foreign DS without a version untouched', () => {
