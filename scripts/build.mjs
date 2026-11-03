@@ -53,10 +53,11 @@
  *                   (src/deprecations.json, checked and written with the
  *                   version of package.json)
  *   themes/         the shipped themes (dark.css, compact.css, contrast.css)
+ *                   and the generated presets (themes/presets/)
  *   tools/          dependency-free tools for projects: every file of
  *                   scripts/tools/ (verify.mjs and verify.sh, check-theme.mjs,
- *                   check-project.mjs and the modules they share); a new
- *                   file there ships by itself
+ *                   check-project.mjs, the theme generator theme.mjs and the
+ *                   modules they share); a new file there ships by itself
  *   tokens.json     every --ds-* name with its layer, default and type
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above
@@ -151,7 +152,7 @@ const collapse = (value) => value.replace(/\s+/g, ' ').trim();
 /** The body of the first `.ds-theme {` rule of tokens.css (found by brace depth). */
 function mainThemeRule(source) {
   const start = source.indexOf('.ds-theme {');
-  if (start < 0) throw new Error('src/tokens.css: no .ds-theme rule');
+  if (start < 0) throw new Error('src/core/tokens.css: no .ds-theme rule');
   let depth = 0;
   let end = source.indexOf('{', start);
   do {
@@ -1130,6 +1131,10 @@ function buildDist() {
     out.set(`fonts/${path}`, /\.(css|txt)$/.test(path) ? Buffer.from(withBanner(path, readText(file), info), 'utf8') : readFileSync(file));
   }
   for (const name of SHIPPED_THEMES) text(`themes/${name}.css`, withBanner(`${name}.css`, readText(join(ROOT, 'themes', `${name}.css`)), info));
+  for (const file of filesIn(join(ROOT, 'themes/presets'))) {
+    const path = posix(relative(join(ROOT, 'themes/presets'), file));
+    text(`themes/presets/${path}`, withBanner(path, readText(file), info));
+  }
   // Every file of scripts/tools/ ships: a new tool needs no entry here.
   for (const file of filesIn(join(ROOT, 'scripts/tools'))) {
     const path = posix(relative(join(ROOT, 'scripts/tools'), file));
