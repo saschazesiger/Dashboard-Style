@@ -6,11 +6,14 @@
 <title>Bundle · fixture</title>
 <link rel="stylesheet" href="/dist/fonts/fonts.css">
 <script>
-  // ?bundle=<folder> loads the partial bundle that bundle.spec.js writes there; without it, ds.css and ds.js.
+  // ?bundle=<folder> loads the partial bundle that bundle.spec.js writes there; without it, ds.css and ds.js
+  // (with ?min, ds.min.css and ds.min.js: the minified files a minified bundle is made of).
   (function () {
-    var folder = new URLSearchParams(location.search).get('bundle');
-    var css = folder ? folder + '/ds.bundle.css' : '/dist/ds.css';
-    var js = folder ? folder + '/ds.bundle.js' : '/dist/ds.js';
+    var params = new URLSearchParams(location.search);
+    var folder = params.get('bundle');
+    var min = params.has('min') ? '.min' : '';
+    var css = folder ? folder + '/ds.bundle.css' : '/dist/ds' + min + '.css';
+    var js = folder ? folder + '/ds.bundle.js' : '/dist/ds' + min + '.js';
     document.write('<link rel="stylesheet" href="' + css + '"><script src="' + js + '"><\/script>');
   })();
 </script>

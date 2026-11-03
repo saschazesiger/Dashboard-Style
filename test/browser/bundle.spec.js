@@ -2,9 +2,9 @@
  * A partial bundle renders like the full ds.css and ds.js: the bundle tool
  * (scripts/tools/bundle.mjs) scans fixtures/bundle.html and writes a
  * minified classic bundle from this checkout's dist/ (its manifest.json)
- * into test-results/. The page then loads once with the
- * bundle and once with ds.css and ds.js: every computed property of the
- * elements it uses is the same, the ripple grows from a press, and the
+ * into test-results/. The page then loads once with the bundle and once
+ * with ds.min.css and ds.min.js: every computed property of the elements it
+ * uses is the same, the ripple grows from a press, and the
  * dialog opens, takes focus and closes on Escape.
  */
 import { test, expect } from '@playwright/test';
@@ -48,8 +48,9 @@ const styles = (page) => page.evaluate(() => {
   return out;
 });
 
+/** mode: 'bundle', 'full' (ds.css and ds.js) or 'min' (ds.min.css and ds.min.js). */
 async function load(page, mode) {
-  await page.goto(mode === 'bundle' ? `${PAGE}?bundle=${encodeURIComponent(folder)}` : PAGE);
+  await page.goto(mode === 'bundle' ? `${PAGE}?bundle=${encodeURIComponent(folder)}` : mode === 'min' ? `${PAGE}?min` : PAGE);
   await ready(page);
   await page.mouse.move(1, 1);
   await settle(page);
@@ -86,7 +87,9 @@ test('the bundle holds what the page uses, at a fraction of ds.css and ds.js', (
 });
 
 test('a partial bundle computes the same styles as ds.css, at rest and with the dialog open', async ({ page }) => {
-  await load(page, 'full');
+  // Against ds.min.css: the bundle is made of the .min.css files, whose custom properties keep lightningcss's
+  // spelling of their text (.4s for 400ms); minified.spec.js shows that ds.min.css renders as ds.css does.
+  await load(page, 'min');
   const full = await styles(page);
   await page.locator('#open').click();
   await settle(page);
