@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bundle · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<script>
+  // ?bundle=<folder> loads the partial bundle that bundle.spec.js writes there; without it, ds.css and ds.js.
+  (function () {
+    var folder = new URLSearchParams(location.search).get('bundle');
+    var css = folder ? folder + '/ds.bundle.css' : '/dist/ds.css';
+    var js = folder ? folder + '/ds.bundle.js' : '/dist/ds.js';
+    document.write('<link rel="stylesheet" href="' + css + '"><script src="' + js + '"><\/script>');
+  })();
+</script>
+</head>
+<body>
+<!-- A small page for test/browser/bundle.spec.js: the bundle tool scans this
+     file, so the partial bundle holds exactly what it uses (buttons, a chip,
+     a card, a status, an alert, a dialog, the ripple and three icons). -->
+<div class="ds-theme ds-base" id="root">
+  <main>
+    <section class="ds-card" data-probe="card">
+      <h2 class="ds-card__title" data-probe="card-title">Devices</h2>
+      <div class="ds-card__row">
+        <button class="ds-btn ds-btn--primary" type="button" id="open" data-probe="primary">Delete devices</button>
+        <button class="ds-btn ds-btn--text" type="button" data-probe="text">Details</button>
+      </div>
+      <label class="ds-chip" data-probe="chip"><input class="ds-chip__input" type="checkbox" checked><span class="ds-chip__body"><span>Failed</span></span></label>
+      <span class="ds-status ds-status--ok" data-probe="status"><span data-icon="check" data-icon-size="16"></span><span>Synced</span></span>
+      <div class="ds-alert ds-alert--warning" role="status" data-probe="alert"><span data-icon="wifiOff"></span><span class="ds-alert__text">You are offline.</span></div>
+    </section>
+  </main>
+  <dialog class="ds-dialog" role="alertdialog" aria-labelledby="del-title" aria-describedby="del-text" id="dialog">
+    <div class="ds-dialog__backdrop" data-close></div>
+    <div class="ds-dialog__box" data-probe="dialog-box">
+      <h2 class="ds-dialog__title" id="del-title" data-probe="dialog-title">Delete 3 devices?</h2>
+      <p class="ds-dialog__text" id="del-text">They disappear from every list.</p>
+      <div class="ds-dialog__actions" data-probe="dialog-actions">
+        <button class="ds-btn ds-btn--text" type="button" data-close autofocus id="cancel">Cancel</button>
+        <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
+      </div>
+    </div>
+  </dialog>
+</div>
+<script>
+  DS.ripple.attach(document);
+  DS.icons.fill(document);
+  document.getElementById('open').addEventListener('click', function (event) {
+    DS.overlay.open(document.getElementById('dialog'), { opener: event.currentTarget });
+  });
+  document.documentElement.setAttribute('data-fixture-ready', '');
+</script>
+</body>
+</html>

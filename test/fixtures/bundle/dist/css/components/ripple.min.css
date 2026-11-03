@@ -1,0 +1,1 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.components.ripple{.ds-ripples{position: absolute;inset: 0}.ds-pressable{position: relative}[data-ds-ripple]{overflow: hidden}}

@@ -1,0 +1,6 @@
+{
+  "content": ["src/**/*.{js,ts}"],
+  "out": "public",
+  "dist": "../../dist",
+  "minify": false
+}

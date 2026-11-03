@@ -27,6 +27,7 @@
  *                   verify.mjs and verify.sh (a copy against SHA256SUMS),
  *                   check-theme.mjs, check-project.mjs, and the modules
  *                   they share (theme-rules.mjs, css-scan.mjs)
+ *                   bundle.mjs, vite-plugin.mjs and js-wrap.mjs (a project's bundle)
  *   tokens.json     every --ds-* name with its layer, default and type
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above

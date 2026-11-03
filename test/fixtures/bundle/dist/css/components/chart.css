@@ -1,0 +1,9 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.chart {
+  .ds-chart { display: grid; }
+  .ds-chart__bar { scale: 1 var(--ds-chart-progress); }
+  .ds-chart__bar--accent { background: var(--ds-primary); }
+  .ds-chart__bar--muted { opacity: 0.5; }
+}

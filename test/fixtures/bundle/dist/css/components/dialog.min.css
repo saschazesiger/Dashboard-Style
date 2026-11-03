@@ -1,0 +1,1 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | fixture */ @layer ds.tokens,ds.base,ds.components,ds.motion,ds.utilities;@layer ds.components.dialog{.ds-dialog{width: var(--ds-dialog-width,480px)}.ds-dialog__box{display: grid}.ds-dialog__actions{display: flex}[data-ds-dialog]{cursor: pointer}}

@@ -1,0 +1,71 @@
+{
+  "name": "dashboard-style",
+  "version": "3.0.0-alpha.0",
+  "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
+  "sublayers": "@layer ds.components.button, ds.components.chip, ds.components.card, ds.components.scrim, ds.components.listbox, ds.components.combobox, ds.components.dialog, ds.components.toast, ds.components.chart, ds.components.ripple;",
+  "core": {
+    "css": ["css/core/tokens.css", "css/core/base.css", "css/core/motion.css"],
+    "properties": "css/properties.css"
+  },
+  "order": ["button", "chip", "card", "scrim", "listbox", "combobox", "dialog", "toast", "chart", "ripple"],
+  "components": {
+    "utilities": {
+      "css": "css/components/utilities.css", "min": "css/components/utilities.min.css", "group": "foundations",
+      "requires": [], "classes": ["ds-sr", "ds-num"], "attributes": [], "keyframes": [], "js": [], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "button": {
+      "css": "css/components/button.css", "min": "css/components/button.min.css", "group": "actions",
+      "requires": [], "classes": ["ds-btn", "ds-btn--filled", "ds-btn--text", "ds-btn--icon"], "attributes": [], "keyframes": [],
+      "js": [], "hooks": ["--ds-btn-height"], "bytes": 0, "gzip": 0
+    },
+    "chip": {
+      "css": "css/components/chip.css", "min": "css/components/chip.min.css", "group": "actions",
+      "requires": [], "classes": ["ds-chip", "ds-chip--selected"], "attributes": [], "keyframes": [], "js": [], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "card": {
+      "css": "css/components/card.css", "min": "css/components/card.min.css", "group": "data-display",
+      "requires": [], "classes": ["ds-card", "ds-card__title"], "attributes": [], "keyframes": [], "js": [], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "scrim": {
+      "css": "css/components/scrim.css", "min": "css/components/scrim.min.css", "group": "overlays",
+      "requires": [], "classes": ["ds-scrim"], "attributes": [], "keyframes": ["ds-fade-in"], "js": [], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "listbox": {
+      "css": "css/components/listbox.css", "min": "css/components/listbox.min.css", "group": "forms",
+      "requires": ["scrim"], "classes": ["ds-listbox", "ds-listbox__option"], "attributes": [], "keyframes": [], "js": [], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "combobox": {
+      "css": "css/components/combobox.css", "min": "css/components/combobox.min.css", "group": "forms",
+      "requires": ["listbox"], "classes": ["ds-combo"], "attributes": [], "keyframes": [], "js": ["overlay"], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "dialog": {
+      "css": "css/components/dialog.css", "min": "css/components/dialog.min.css", "group": "overlays",
+      "requires": ["button", "scrim"], "classes": ["ds-dialog", "ds-dialog__box", "ds-dialog__actions"], "attributes": ["data-ds-dialog"],
+      "keyframes": ["ds-fade-in"], "js": ["overlay"], "hooks": ["--ds-dialog-width"], "bytes": 0, "gzip": 0
+    },
+    "toast": {
+      "css": "css/components/toast.css", "min": "css/components/toast.min.css", "group": "overlays",
+      "requires": ["button"], "classes": ["ds-toast", "ds-toasts"], "attributes": [], "keyframes": [], "js": ["overlay"], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "chart": {
+      "css": "css/components/chart.css", "min": "css/components/chart.min.css", "group": "charts",
+      "requires": [], "classes": ["ds-chart", "ds-chart__bar", "ds-chart__bar--accent", "ds-chart__bar--muted"], "attributes": [],
+      "keyframes": [], "js": [], "hooks": [], "bytes": 0, "gzip": 0
+    },
+    "ripple": {
+      "css": "css/components/ripple.css", "min": "css/components/ripple.min.css", "group": "foundations",
+      "requires": [], "classes": ["ds-ripples", "ds-pressable"], "attributes": ["data-ds-ripple"], "keyframes": [], "js": ["ripple"], "hooks": [], "bytes": 0, "gzip": 0
+    }
+  },
+  "js": {
+    "core": { "file": "js/core.js", "imports": [], "exports": ["runtime"] },
+    "motion": { "file": "js/motion.js", "imports": ["core"], "exports": ["motionDuration", "flip"] },
+    "dom": { "file": "js/dom.js", "imports": ["core"], "exports": ["morphHtml"] },
+    "icons": { "file": "js/icons.js", "imports": [], "exports": ["check", "close", "bell", "info", "plus", "ICON_SIZE", "icon", "iconElement", "fill"] },
+    "ripple": { "file": "js/ripple.js", "imports": ["motion"], "exports": ["attach"], "requires": ["ripple"] },
+    "overlay": {
+      "file": "js/overlay.js", "imports": ["motion", "icons"], "exports": ["open", "close", "toast", "confirm"],
+      "exportRequires": { "toast": ["toast"], "confirm": ["dialog"] }
+    }
+  }
+}
