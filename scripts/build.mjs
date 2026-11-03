@@ -23,10 +23,12 @@
  *                   (src/deprecations.json, checked and written with the
  *                   version of package.json)
  *   themes/         the shipped themes (dark.css, compact.css, contrast.css)
+ *                   and the generated presets (themes/presets/)
  *   tools/          dependency-free checks for projects (scripts/tools/):
  *                   verify.mjs and verify.sh (a copy against SHA256SUMS),
- *                   check-theme.mjs, check-project.mjs, and the modules
- *                   they share (theme-rules.mjs, css-scan.mjs)
+ *                   check-theme.mjs, check-project.mjs, the theme generator
+ *                   theme.mjs, and the modules they share (theme-rules.mjs,
+ *                   css-scan.mjs, color.mjs)
  *   tokens.json     every --ds-* name with its layer, default and type
  *   LICENSE         MIT notice (it must travel with every copy)
  *   SHA256SUMS      checksums of all files above
@@ -434,6 +436,7 @@ export function build() {
     out.set(`fonts/${path}`, /\.(css|txt)$/.test(path) ? Buffer.from(readText(file), 'utf8') : readFileSync(file));
   }
   for (const name of SHIPPED_THEMES) text(`themes/${name}.css`, readText(join(ROOT, 'themes', `${name}.css`)));
+  for (const file of filesIn(join(ROOT, 'themes/presets'))) text(`themes/presets/${posix(relative(join(ROOT, 'themes/presets'), file))}`, readText(file));
   for (const file of filesIn(join(ROOT, 'scripts/tools'))) text(`tools/${posix(relative(join(ROOT, 'scripts/tools'), file))}`, readText(file));
   text('tokens.json', tokensJson(info));
   text('LICENSE', readText(join(ROOT, 'LICENSE')));

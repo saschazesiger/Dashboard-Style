@@ -448,6 +448,9 @@ The dark theme replaces the brand colours with the system's own dark tones. A br
 colour (`--<prefix>-*`) needs its dark value there too. Status keeps its words and icons in every theme; the
 contrast theme never relies on colour alone either.
 
+Or generate both schemes from one seed: the [theme generator](theme-generator.md) (`tools/theme.mjs`) writes light,
+dark and contrast themes that pass every pair, and eight generated presets ship in `themes/presets/`.
+
 ## Checking a theme
 
 The copy checks a theme file without network or dependencies (Node 18 or later):
