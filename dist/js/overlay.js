@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Overlays (D18): the dialog, the side sheet, the modal drawer and the
  * popups (.ds-menu, .ds-combo__popup) open and close through one pair of

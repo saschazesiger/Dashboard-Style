@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Checks a theme file against the rules of docs/theming.md, without
  * dependencies (Node 18 or later):
@@ -19,8 +19,8 @@
  * replacement); a scale, runtime or internal property set; a text pair
  * under 4.5:1, a control, icon or outline pair under 3:1 (pairResults(),
  * resolving var(), hex, rgb(), color-mix(in srgb, ...) and light-dark() in
- * each scheme (below); anything else is
- * reported as "not checked"); a component selector restyled in a theme.
+ * each scheme (below); anything else is reported as "not checked"); a
+ * component selector restyled in a theme.
  *
  * Every rule whose selector names .ds-theme sets roles: plain .ds-theme
  * (or .ds-theme.<widget>) is the base, every other selector or @media

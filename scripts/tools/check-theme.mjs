@@ -18,8 +18,8 @@
  * replacement); a scale, runtime or internal property set; a text pair
  * under 4.5:1, a control, icon or outline pair under 3:1 (pairResults(),
  * resolving var(), hex, rgb(), color-mix(in srgb, ...) and light-dark() in
- * each scheme (below); anything else is
- * reported as "not checked"); a component selector restyled in a theme.
+ * each scheme (below); anything else is reported as "not checked"); a
+ * component selector restyled in a theme.
  *
  * Every rule whose selector names .ds-theme sets roles: plain .ds-theme
  * (or .ds-theme.<widget>) is the base, every other selector or @media

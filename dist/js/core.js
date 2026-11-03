@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Core runtime (3.0): one shared runtime per page, the behaviour registry,
  * declarative initialisation, events and the system's own strings.

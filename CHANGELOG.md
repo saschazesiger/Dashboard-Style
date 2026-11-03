@@ -9,6 +9,54 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
 `3.0.0-alpha.<n>`.
 
+### Wave 0: icons, core, theme generator, bundle; the integration (3.0.0-alpha.1)
+
+The four other branches of wave 0, merged into `next` after the restructure, and the work that joins them. What the
+CSS does is still that of 2.1.3: the one rule that changed place (below) cannot change a cascade.
+
+- **Icons: 275 glyphs** (166 new) in `js/icons.js` for the 3.0 catalogue: files, charts, editing, status, people,
+  devices, time, navigation, AI and chat, commerce and admin. Taken from Lucide (ISC, already in `LICENSE`):
+  0.460 first, so the new file, calendar and chat glyphs share the outlines of the old ones, 1.67 where 0.460 lacks
+  a glyph; lines become paths, `donutChart` is drawn for the set. `docs/icons.md` lists every glyph once.
+- **`js/core.js`, `DS.core`:** the first module, which every other imports from. One runtime per page
+  (`DashboardStyle.runtime`, made by whichever copy loads first, of any version), `define(name, spec)`,
+  `init(root, { observe })` with one `MutationObserver` per root (batched to a microtask; a keyed move keeps its
+  controller), `get`, `destroy`, `emit` (bubbling `ds:<type>` events), `config({ locale, strings })` and `t()`. The
+  overlay stack, the scroll lock, the action guard and the ripple delegation live in the runtime, so two copies or
+  bundles share them; `init()` always installs the guard and the ripple. [docs/core.md](docs/core.md).
+- **`DS.init`, `DS.get`, `DS.define`, `DS.config`** at the top level of `window.DS` (`ds.js` and every classic
+  bundle): `DS.core`'s functions, typed in `ds.d.ts`.
+- **`ds.js` merges instead of returning early.** It is written by `tools/js-wrap.mjs` (the wrapper the bundle tool
+  uses), in merge mode: a later `ds.js` or bundle of the same version adds the modules the page lacks, and the
+  exports a module on the page lacks (a frozen copy), by name; a module the page has in full is not made again;
+  `window.DS` and the version warning stay the first copy's. 2.x returned at once.
+- **Theme generator:** `tools/theme.mjs` turns one seed colour (plus optional neutral, accent and status seeds, a
+  scheme `tonal`, `vibrant`, `neutral`, `fidelity` or `monochrome`, and a contrast level) into one `.ds-theme`
+  file with every colour role of `themes/dark.css` as `light-dark(<light>, <dark>)`, checked against every pair in
+  both schemes (a failing seed moves tones, never the pairs). `--ds-color-scheme: light dark`; `data-ds-scheme="light"`
+  or `"dark"` pins a region. `tools/color.mjs` is a dependency-free port of Material Color Utilities' HCT
+  (Apache-2.0, notice in `LICENSE`). [docs/theme-generator.md](docs/theme-generator.md).
+- **Presets** in `themes/presets/` (shipped in `dist/themes/presets/`): `default` (the 2.x palette), `slate`,
+  `ocean`, `forest`, `violet`, `amber`, `rose`, `graphite`, each with a `-contrast` file. Generated; never edit them.
+- **`check-theme.mjs` reads `light-dark()`**: every pair in each scheme the theme shows (those its
+  `--ds-color-scheme` names; a variant pinned to dark, dark only), each finding with its scheme. So does the
+  styleguide's theme check.
+- **Project bundle:** `tools/bundle.mjs --config ds.config.json` scans a project as plain text (complete `ds-*`
+  classes, `data-ds-*` attributes, `DS.<module>.<export>`, imports, icon names; a name built at run time fails with
+  its file and line unless the safelist covers it), resolves what they need and writes `ds.bundle.css`,
+  `ds.bundle.js` (classic with only the glyphs used, or an ES entry), the report `ds.bundle.json` and
+  `properties.css`; `--check` fails a stale bundle, `entries` writes one set per entry. `tools/vite-plugin.mjs` runs
+  the same scan in Vite. [docs/bundle.md](docs/bundle.md).
+- **`manifest.json` `js.<module>`** gains `requires` (the components a module always needs: its own, from the
+  `meta.json` `js` arrays) and `exportRequires` (per export, the components whose markup it writes itself:
+  `DS.overlay.confirm` needs the dialog, the button and the spinner), from `src/js/<module>.requires.json`; the
+  bundle tool resolves both.
+- **`css/core/global.css`**, a new core stylesheet: the rules for every element inside `.ds-theme`, so every
+  bundle carries them. Border-box sizing moves there from `utilities.css`, the forced-colours icon colour
+  (`.ds-theme svg`) from `shell.css`. `ds.css` inlines it right before the first component, where border-box stood;
+  the icon colour is the only `!important` colour declaration of `ds.css`, so its earlier place in the layer
+  decides nothing (tested). A page that links single files adds `css/core/global.css` after `css/core/base.css`.
+
 ### Wave 0: restructure (3.0.0-alpha.0)
 
 The repository moves to the 3.0 layout and the generated-registry model. What the CSS does is unchanged: apart from

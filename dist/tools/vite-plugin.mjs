@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Dashboard-Style for Vite, without dependencies: the scan of
  * tools/bundle.mjs over the files Vite transforms, served as two virtual

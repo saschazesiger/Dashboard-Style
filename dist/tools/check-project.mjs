@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Checks a project that vendors Dashboard-Style against the project rules
  * of AGENTS.md ("Using Dashboard-Style in a project"), without

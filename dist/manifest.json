@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "3.0.0-alpha.0",
+  "version": "3.0.0-alpha.1",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
   "sublayers": "@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;",
   "core": {
@@ -798,7 +798,7 @@
         "@starting-style"
       ],
       "bytes": 3133,
-      "gzip": 1008
+      "gzip": 1009
     },
     "alert": {
       "css": "css/components/alert.css",
@@ -1296,7 +1296,7 @@
         "scrollbar-color"
       ],
       "bytes": 8779,
-      "gzip": 2246
+      "gzip": 2247
     },
     "menu": {
       "css": "css/components/menu.css",
@@ -1556,7 +1556,7 @@
         "scrollbar-color"
       ],
       "bytes": 13641,
-      "gzip": 2293
+      "gzip": 2294
     },
     "toast": {
       "css": "css/components/toast.css",
@@ -1603,7 +1603,7 @@
         "View Transitions"
       ],
       "bytes": 4505,
-      "gzip": 1345
+      "gzip": 1346
     },
     "tooltip": {
       "css": "css/components/tooltip.css",
