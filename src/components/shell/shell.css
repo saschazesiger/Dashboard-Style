@@ -1834,9 +1834,8 @@
    * Forced colors (Windows contrast themes) drop the pill's fill: the
    * current destination and the selected option paint the selection
    * themselves, a choice in a set (SelectedItem, D8); the outline stays for
-   * focus, a CanvasText ring inside that fill. Icons coloured on the <svg>
-   * itself keep their authored colour there (dark grey on black), so every
-   * icon follows the forced text colour of its control; status stays
+   * focus, a CanvasText ring inside that fill. Every icon follows the
+   * forced text colour of its control (src/core/global.css); status stays
    * readable through the text that always goes with it.
    */
   @media (forced-colors: active) {
@@ -1881,10 +1880,6 @@
     .ds-avatar,
     .ds-account__avatar {
       outline: 1px solid transparent;
-    }
-
-    .ds-theme svg {
-      color: inherit !important;
     }
   }
 

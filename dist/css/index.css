@@ -41,6 +41,7 @@
 @import './core/tokens.css';
 @import './core/motion.css';
 @import './core/base.css';
+@import './core/global.css';
 
 @import './components/utilities.css';
 @import './components/scroller.css';

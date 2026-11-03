@@ -1,0 +1,38 @@
+/*! Dashboard-Style 3.0.0-alpha.0 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*
+ * Global: the rules for every element inside .ds-theme, whatever
+ * components a page uses, so every bundle and every set of single files
+ * carries them (tools/bundle.mjs writes the core first).
+ *
+ * - Border-box sizing: every component is measured as border-box (a 100%
+ *   wide field with its padding, a dialog of min(400px, 100%)). Zero
+ *   specificity, so a host page that embeds .ds-theme keeps any sizing it
+ *   sets itself.
+ * - Forced colours: icons coloured on the <svg> itself would keep their
+ *   authored colour (dark grey on black), so every icon follows the forced
+ *   text colour of its control.
+ *
+ * The rules sit in ds.components, first in it (ds.css inlines this file
+ * right before the first component): they held that place in 2.x, at the
+ * top of utilities.css (border-box) and in shell.css (the !important icon
+ * colour, which no other rule sets with !important, so its place within
+ * the layer decides nothing).
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+
+@layer ds.components {
+  :where(.ds-theme),
+  :where(.ds-theme) *,
+  :where(.ds-theme) *::before,
+  :where(.ds-theme) *::after {
+    box-sizing: border-box;
+  }
+
+  @media (forced-colors: active) {
+    .ds-theme svg {
+      color: inherit !important;
+    }
+  }
+}

@@ -1,7 +1,8 @@
 /*
- * Utilities: border-box sizing inside .ds-theme, screen-reader text and
- * small text helpers, the press model for a project element, actions that
- * show on demand, keys, dividers, icons that fill and touch targets.
+ * Utilities: screen-reader text and small text helpers, the press model
+ * for a project element, actions that show on demand, keys, dividers,
+ * icons that fill and touch targets. (Border-box sizing inside .ds-theme
+ * is core: src/core/global.css.)
  *
  *   .ds-sr       visually hidden, still read by screen readers
  *   .ds-muted    quieter body text (tabular figures, no margin)
@@ -76,16 +77,6 @@
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components {
-  /* Every component is measured as border-box (a 100% wide field with its
-     padding, a dialog of min(400px, 100%)). Zero specificity, so a host page
-     that embeds .ds-theme keeps any sizing it sets itself. */
-  :where(.ds-theme),
-  :where(.ds-theme) *,
-  :where(.ds-theme) *::before,
-  :where(.ds-theme) *::after {
-    box-sizing: border-box;
-  }
-
   /* Placed at the top left of its positioned ancestor: left where it stands
      (the end of a row that scrolls sideways) it would widen the nearest
      positioned scroller, up to a sideways scroll of the page. */

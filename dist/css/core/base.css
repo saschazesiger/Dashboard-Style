@@ -8,7 +8,7 @@
  * and the focus ring. Rendered rich text keeps a hierarchy of its own in
  * .ds-prose. Under .ds-base `hidden` always hides; never add a [hidden]
  * rule of your own. (Border-box sizing applies to all of .ds-theme, see
- * utilities.css.)
+ * global.css.)
  *
  *   <html class="ds-theme ds-base">
  *

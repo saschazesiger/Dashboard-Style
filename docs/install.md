@@ -8,7 +8,7 @@ Everything a project needs is in `dist/`:
 | `ds.min.css` | `ds.css` minified (3.0), with its source map `ds.min.css.map`: the same rules, layers and order |
 | `ds.js` | classic script, sets `window.DS = { version, core, motion, indicator, dom, ripple, icons, overlay }` plus `DS.init`, `DS.get`, `DS.define` and `DS.config` (those of `DS.core`, [core.md](core.md)); see "Two copies on one page" |
 | `ds.min.js` | `ds.js` without comments and indentation (3.0): the same code, nothing renamed |
-| `css/` | the single stylesheets: `core/tokens.css`, `core/motion.css`, `core/base.css`, `components/<name>.css` and `index.css` (their `@import` list in cascade order); each starts with the layer statement and the statement of the component sublayers, and a `.min.css` with its `.min.css.map` sits next to each (3.0) |
+| `css/` | the single stylesheets: `core/tokens.css`, `core/motion.css`, `core/base.css`, `core/global.css` (the rules for every element inside `.ds-theme`), `components/<name>.css` and `index.css` (their `@import` list in cascade order); each starts with the layer statement and the statement of the component sublayers, and a `.min.css` with its `.min.css.map` sits next to each (3.0) |
 | `manifest.json` | the components as data (3.0): per component its files, group, classes, attributes, keyframes, hooks, the modules it needs, what it requires and its size; the core stylesheets and their classes; the JS modules with their imports and exports. Tools such as a bundler read it |
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
@@ -177,13 +177,15 @@ import { icon, check } from './vendor/dashboard-style/js/icons.js';
 @import './vendor/dashboard-style/css/index.css';   /* everything, or pick files: */
 @import './vendor/dashboard-style/css/core/tokens.css';
 @import './vendor/dashboard-style/css/core/motion.css';
+@import './vendor/dashboard-style/css/core/global.css';
 @import './vendor/dashboard-style/css/components/utilities.css';
 @import './vendor/dashboard-style/css/components/button.css';
 @import './vendor/dashboard-style/css/components/ripple.css';   /* with DS.ripple */
 ```
 
 When you pick files, keep the order of `css/index.css` and always include `core/tokens.css`, `core/motion.css` (components
-name the keyframes in it) and `components/utilities.css` (border-box sizing inside `.ds-theme`, `.ds-sr`). Add
+name the keyframes in it), `core/global.css` (the rules for every element inside `.ds-theme`: border-box sizing, the
+forced-colours icon colour) and `components/utilities.css` (`.ds-sr`, which the scripts' live regions use). Add
 `components/ripple.css` whenever you call `DS.ripple.attach()`: without it the ripple span sits in the flow and
 widens the pressed control. With Node subpath imports, `"imports": { "#ds/*": "./vendor/dashboard-style/*" }` in
 `package.json` lets both the bundler and Node tests write `#ds/js/motion.js`.

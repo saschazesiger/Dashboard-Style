@@ -7,12 +7,14 @@
     "css": [
       "css/core/tokens.css",
       "css/core/base.css",
-      "css/core/motion.css"
+      "css/core/motion.css",
+      "css/core/global.css"
     ],
     "min": [
       "css/core/tokens.min.css",
       "css/core/base.min.css",
-      "css/core/motion.min.css"
+      "css/core/motion.min.css",
+      "css/core/global.min.css"
     ],
     "properties": "css/properties.css"
   },
@@ -113,6 +115,13 @@
       ],
       "attributes": [],
       "keyframes": []
+    },
+    "global": {
+      "css": "css/core/global.css",
+      "min": "css/core/global.min.css",
+      "classes": [],
+      "attributes": [],
+      "keyframes": []
     }
   },
   "order": [
@@ -205,8 +214,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 6673,
-      "gzip": 1754
+      "bytes": 6562,
+      "gzip": 1717
     },
     "scroller": {
       "css": "css/components/scroller.css",
@@ -1783,8 +1792,8 @@
         "scrollbar-color",
         "scrollbar-gutter"
       ],
-      "bytes": 30332,
-      "gzip": 5321
+      "bytes": 30294,
+      "gzip": 5306
     },
     "tabs": {
       "css": "css/components/tabs.css",

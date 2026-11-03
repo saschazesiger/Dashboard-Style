@@ -56,6 +56,7 @@ const LAYERS_OF = {
   'src/core/tokens.css': ['ds.tokens'],
   'src/core/base.css': ['ds.base'],
   'src/core/motion.css': ['ds.motion', 'ds.utilities'],
+  'src/core/global.css': ['ds.components'],
   'src/optional/view-transitions.css': ['ds.utilities'],
 };
 
@@ -1110,7 +1111,7 @@ describe('CSS for the baseline', () => {
         .map((property) => `src/components/utilities/utilities.css: .ds-sr: ${property}`),
       'src/components/utilities/utilities.css: .ds-num: text-align',
       'src/components/utilities/utilities.css: .ds-center: text-align',
-      'src/components/shell/shell.css: .ds-theme svg: color',
+      'src/core/global.css: .ds-theme svg: color',
     ]);
     assert.deepEqual(found.filter((entry) => !allowed.has(entry)), []);
     assert.deepEqual([...allowed].filter((entry) => !found.includes(entry)), [], 'an allowlisted !important is gone: shorten the list');

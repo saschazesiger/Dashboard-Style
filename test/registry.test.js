@@ -14,6 +14,7 @@ import {
   CORE, CSS_TARGETS, LAYERS, META_KEYS, MODULES, build, componentNames, components, componentsMd, cssFacts, diffGenerated, generatedFiles,
   indexCss, packageInfo, stripJs, sublayerStatement, verifyComponents, withBanner,
 } from '../scripts/build.mjs';
+import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
 import { filesIn, read, rules, stripComments } from './helpers.js';
 
 const list = components();
@@ -126,6 +127,39 @@ describe('generated files of the repository', () => {
   });
 });
 
+describe('src/core/global.css: the rules for every element of .ds-theme', () => {
+  const flat = (css) => scan(css).rules.map((rule) => ({ layer: rule.context[0], key: `${rule.context.join(' ')} | ${rule.selector}`, rule }));
+
+  it('holds every rule of a stylesheet that no class or data-ds-* attribute keys, so every bundle has it', () => {
+    for (const { name, css } of list) {
+      for (const rule of scan(read(css)).rules) {
+        if (rule.context.some((at) => /^@keyframes\b/.test(at))) continue;
+        for (const selector of selectorList(rule.selector)) {
+          const keyed = [...selector.matchAll(/\.(ds-[\w-]+)/g)].some((match) => !['ds-theme', 'ds-base'].includes(match[1])) || /\[\s*data-ds-/.test(selector);
+          assert.ok(keyed, `${css}: ${selector} styles every element of the theme: it belongs in src/core/global.css (${name})`);
+        }
+      }
+    }
+  });
+
+  it('keeps the cascade of ds.css: its rules lead ds.components, and its !important declarations have no rival', () => {
+    const own = flat(read('src/core/global.css'));
+    const all = flat(text('ds.css'));
+    const components = all.filter((entry) => entry.layer === '@layer ds.components');
+    // First in the layer: where the border-box rule stood in 2.x, at the top of utilities.css, the first component.
+    assert.deepEqual(components.slice(0, own.length).map((entry) => entry.key), own.map((entry) => entry.key));
+    assert.equal(manifest.order[0], 'utilities');
+    // An !important declaration beats every normal one in its layer, so only another !important one of the same
+    // property could depend on its place: there is none.
+    for (const { rule } of own) {
+      for (const declaration of rule.declarations.filter((d) => d.important)) {
+        const rivals = all.filter((entry) => !own.some((o) => o.key === entry.key) && entry.rule.declarations.some((d) => d.important && d.property === declaration.property));
+        assert.deepEqual(rivals.map((entry) => entry.key), [], `${rule.selector} { ${declaration.property} !important }`);
+      }
+    }
+  });
+});
+
 describe('dist/manifest.json', () => {
   it('follows the documented shape', () => {
     const info = packageInfo();
@@ -135,7 +169,7 @@ describe('dist/manifest.json', () => {
     assert.equal(manifest.layers, LAYERS);
     assert.equal(manifest.sublayers, sublayerStatement(list));
     assert.ok(text('ds.css').includes(`\n${manifest.sublayers}\n`), 'ds.css declares the same sublayers');
-    assert.deepEqual(manifest.core.css, ['css/core/tokens.css', 'css/core/base.css', 'css/core/motion.css']);
+    assert.deepEqual(manifest.core.css, ['css/core/tokens.css', 'css/core/base.css', 'css/core/motion.css', 'css/core/global.css']);
     assert.equal(manifest.core.properties, 'css/properties.css');
     assert.deepEqual(manifest.order, list.map(({ name }) => name));
     assert.deepEqual(Object.keys(manifest.pseudo), CORE);

@@ -2108,7 +2108,7 @@
  * and the focus ring. Rendered rich text keeps a hierarchy of its own in
  * .ds-prose. Under .ds-base `hidden` always hides; never add a [hidden]
  * rule of your own. (Border-box sizing applies to all of .ds-theme, see
- * utilities.css.)
+ * global.css.)
  *
  *   <html class="ds-theme ds-base">
  *
@@ -2278,12 +2278,49 @@
   }
 }
 
+/* ── core/global.css ── */
+/*
+ * Global: the rules for every element inside .ds-theme, whatever
+ * components a page uses, so every bundle and every set of single files
+ * carries them (tools/bundle.mjs writes the core first).
+ *
+ * - Border-box sizing: every component is measured as border-box (a 100%
+ *   wide field with its padding, a dialog of min(400px, 100%)). Zero
+ *   specificity, so a host page that embeds .ds-theme keeps any sizing it
+ *   sets itself.
+ * - Forced colours: icons coloured on the <svg> itself would keep their
+ *   authored colour (dark grey on black), so every icon follows the forced
+ *   text colour of its control.
+ *
+ * The rules sit in ds.components, first in it (ds.css inlines this file
+ * right before the first component): they held that place in 2.x, at the
+ * top of utilities.css (border-box) and in shell.css (the !important icon
+ * colour, which no other rule sets with !important, so its place within
+ * the layer decides nothing).
+ */
+
+@layer ds.components {
+  :where(.ds-theme),
+  :where(.ds-theme) *,
+  :where(.ds-theme) *::before,
+  :where(.ds-theme) *::after {
+    box-sizing: border-box;
+  }
+
+  @media (forced-colors: active) {
+    .ds-theme svg {
+      color: inherit !important;
+    }
+  }
+}
+
 
 /* ── components/utilities/utilities.css ── */
 /*
- * Utilities: border-box sizing inside .ds-theme, screen-reader text and
- * small text helpers, the press model for a project element, actions that
- * show on demand, keys, dividers, icons that fill and touch targets.
+ * Utilities: screen-reader text and small text helpers, the press model
+ * for a project element, actions that show on demand, keys, dividers,
+ * icons that fill and touch targets. (Border-box sizing inside .ds-theme
+ * is core: src/core/global.css.)
  *
  *   .ds-sr       visually hidden, still read by screen readers
  *   .ds-muted    quieter body text (tabular figures, no margin)
@@ -2356,16 +2393,6 @@
  */
 
 @layer ds.components {
-  /* Every component is measured as border-box (a 100% wide field with its
-     padding, a dialog of min(400px, 100%)). Zero specificity, so a host page
-     that embeds .ds-theme keeps any sizing it sets itself. */
-  :where(.ds-theme),
-  :where(.ds-theme) *,
-  :where(.ds-theme) *::before,
-  :where(.ds-theme) *::after {
-    box-sizing: border-box;
-  }
-
   /* Placed at the top left of its positioned ancestor: left where it stands
      (the end of a row that scrolls sideways) it would widen the nearest
      positioned scroller, up to a sideways scroll of the page. */
@@ -17557,9 +17584,8 @@
    * Forced colors (Windows contrast themes) drop the pill's fill: the
    * current destination and the selected option paint the selection
    * themselves, a choice in a set (SelectedItem, D8); the outline stays for
-   * focus, a CanvasText ring inside that fill. Icons coloured on the <svg>
-   * itself keep their authored colour there (dark grey on black), so every
-   * icon follows the forced text colour of its control; status stays
+   * focus, a CanvasText ring inside that fill. Every icon follows the
+   * forced text colour of its control (src/core/global.css); status stays
    * readable through the text that always goes with it.
    */
   @media (forced-colors: active) {
@@ -17604,10 +17630,6 @@
     .ds-avatar,
     .ds-account__avatar {
       outline: 1px solid transparent;
-    }
-
-    .ds-theme svg {
-      color: inherit !important;
     }
   }
 

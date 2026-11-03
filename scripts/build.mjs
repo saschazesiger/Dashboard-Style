@@ -8,7 +8,7 @@
  *   node scripts/build.mjs           write dist/ and the generated files
  *   node scripts/build.mjs --check   exit 1 if any of them is not what src/ builds
  *
- * Sources: src/core/{tokens,base,motion}.css, one folder per component
+ * Sources: src/core/{tokens,base,motion,global}.css, one folder per component
  * (src/components/<name>/ holds <name>.css, meta.json, an optional
  * <name>.md and an optional <name>.demo.js), the partials of
  * docs/components.md (src/components/_partials/), src/optional/, src/js/,
@@ -33,7 +33,7 @@
  *                   plus DS.init, DS.get, DS.define and DS.config (DS.core's),
  *                   each copy also under DashboardStyle.versions[version];
  *                   ds.min.js without comments and indentation (stripJs)
- *   css/core/{tokens,base,motion}.css, css/components/<name>.css
+ *   css/core/{tokens,base,motion,global}.css, css/components/<name>.css
  *                   the single stylesheets, each with the layer and the
  *                   sublayer statement, so any subset in any order cascades
  *                   as ds.css does; a .min.css with its .min.css.map next
@@ -331,8 +331,16 @@ export function withBanner(path, text, info) {
 
 // ── Components: folders, meta.json and their check ─────────────────────
 
-/** The core stylesheets (src/core/<name>.css) in cascade order: the tokens, the motion keyframes and utilities, the page base. */
-export const CORE = ['tokens', 'motion', 'base'];
+/**
+ * The core stylesheets (src/core/<name>.css) in cascade order: the tokens,
+ * the motion keyframes and utilities, the page base, and the rules for
+ * every element of .ds-theme (global.css, in ds.components, so it comes
+ * right before the first component).
+ */
+export const CORE = ['tokens', 'motion', 'base', 'global'];
+
+/** The core stylesheets in the order of manifest.json "core" (the order a bundle writes them; the layers decide between them). */
+const CORE_FILES = ['tokens', 'base', 'motion', 'global'];
 
 /** The order statement every stylesheet starts with. */
 export const LAYERS = '@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;';
@@ -465,7 +473,7 @@ function rippleHosts() {
  * The facts every check and the manifest share: per component and per
  * core stylesheet, what its CSS styles (cssFacts); which component owns
  * each class (meta.json "classes"); the classes of the core stylesheets
- * that no component owns (pseudo-components tokens, motion, base).
+ * that no component owns (pseudo-components tokens, motion, base, global).
  */
 function componentFacts(list) {
   const hooks = documentedHooks(repoText('docs/theming.md'));
@@ -473,9 +481,9 @@ function componentFacts(list) {
   const facts = new Map(list.map((component) => [component.name, cssFacts(repoText(component.css), { hooks, keyframes })]));
   const owner = new Map();
   for (const component of list) for (const name of component.meta.classes ?? []) if (!owner.has(name)) owner.set(name, component.name);
-  // A class of several core stylesheets belongs to the first of tokens, base, motion (.ds-theme to tokens).
+  // A class of several core stylesheets belongs to the first of tokens, base, motion, global (.ds-theme to tokens).
   const taken = new Set(owner.keys());
-  const core = new Map(['tokens', 'base', 'motion'].map((name) => {
+  const core = new Map(CORE_FILES.map((name) => {
     const found = cssFacts(repoText(`src/core/${name}.css`), { hooks, keyframes });
     const classes = found.classes.filter((cls) => !taken.has(cls));
     for (const cls of classes) taken.add(cls);
@@ -881,8 +889,8 @@ export function manifestJson(list, sizes, info) {
     layers: LAYERS,
     sublayers: sublayerStatement(list),
     core: {
-      css: ['css/core/tokens.css', 'css/core/base.css', 'css/core/motion.css'],
-      min: ['css/core/tokens.min.css', 'css/core/base.min.css', 'css/core/motion.min.css'],
+      css: CORE_FILES.map((name) => `css/core/${name}.css`),
+      min: CORE_FILES.map((name) => `css/core/${name}.min.css`),
       properties: 'css/properties.css',
     },
     pseudo,

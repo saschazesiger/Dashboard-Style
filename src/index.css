@@ -40,6 +40,7 @@
 @import './core/tokens.css';
 @import './core/motion.css';
 @import './core/base.css';
+@import './core/global.css';
 
 @import './components/utilities/utilities.css';
 @import './components/scroller/scroller.css';
