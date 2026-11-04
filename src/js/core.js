@@ -151,6 +151,18 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  createOption: 'Create “{text}”',
+  resultsOne: '1 result',
+  resultsOther: '{count} results',
+  typeToSearch: 'Type to search',
+  added: 'Added {label}',
+  removed: 'Removed {label}',
+  apply: 'Apply',
+  selectedCount: '{count} selected',
+  tagDuplicate: '{label} is in the list already',
+  tagInvalid: '{label} is not valid',
+  tagMax: 'Up to {max} items',
+  allSelected: 'All selected',
 });
 
 /**

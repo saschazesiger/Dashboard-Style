@@ -43,6 +43,12 @@ export interface ListboxOptions {
   prefix?: string;
   /** Render the check mark (default on for ds-listbox). */
   check?: boolean;
+  /** Home and End move the active option (default on for a standalone listbox; a field keeps them). */
+  homeEnd?: boolean;
+  /** Letters jump to a name (default on for a standalone listbox). */
+  typeahead?: boolean;
+  /** Space chooses (default on for a standalone listbox). */
+  space?: boolean;
   /** The arrows go round (default off). */
   wrap?: boolean;
   /** The inner markup of a data option; `name` is its label with the matched letters marked. */
@@ -62,8 +68,8 @@ export interface ListboxController {
   get(): string | string[] | null;
   set(value: string | string[] | null): void;
   on(type: 'change', fn: (detail: ListboxChange) => void): () => void;
-  setItems(items: ListboxItem[]): number;
-  filter(text: string): number;
+  setItems(items: ListboxItem[], how?: { keep?: boolean, query?: string }): number;
+  filter(text: string, how?: { keep?: boolean }): number;
   shown(): ListboxEntry[];
   entries(): ListboxEntry[];
   active(): ListboxEntry | null;

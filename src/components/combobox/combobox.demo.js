@@ -98,6 +98,45 @@ function statesList(h) {
     '</ul></div>';
 }
 
+/* The same markup, its behaviour by the system: data-ds-combobox (DS.combobox). */
+function sysField(h, id, label, attrs, classes, rest, list) {
+  return '<div class="ds-field"><label class="ds-field__label" for="' + id + '">' + label + '</label>' +
+    '<div class="ds-combo' + (classes || '') + '" data-ds-combobox' + (attrs || '') + '>' +
+    '<input class="ds-input ds-combo__input" id="' + id + '" role="combobox" aria-expanded="false" aria-controls="' + id + '-list" aria-autocomplete="list">' +
+    (rest || '') + '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">' + h.icon('chevronDown', 20) + '</button>' +
+    '<div class="ds-combo__popup" hidden>' + (list || '<ul class="ds-combo__list" id="' + id + '-list" role="listbox"></ul>') + '<p class="ds-combo__status" role="status"></p></div></div></div>';
+}
+
+function sysOptions(id) {
+  return '<ul class="ds-combo__list" id="' + id + '-list" role="listbox">' + MODELS.map(function (model, index) {
+    return '<li class="ds-combo__option" id="' + id + '-' + index + '" role="option" aria-selected="false"><span class="ds-combo__name">' + model[0] + '</span><span class="ds-combo__meta">' + model[1] + '</span></li>';
+  }).join('') + '</ul>';
+}
+
+function sysClear(h, label) {
+  return '<button class="ds-combo__clear" type="button" aria-label="Clear ' + label + '" hidden>' + h.icon('close', 20) + '</button>';
+}
+
+function systemSections(h) {
+  var fuzzy = h.uid('combo');
+  var remote = h.uid('combo');
+  var many = h.uid('combo');
+  var tags = h.uid('combo');
+  return h.section('By the system: filter, clear and create', '<div class="ds-form" data-demo="sys">' +
+      sysField(h, fuzzy, 'Model', ' data-ds-combobox-creatable data-demo="sys-fuzzy"', '', sysClear(h, 'model'), sysOptions(fuzzy)) +
+      '<p class="ds-field__hint" data-demo-out="sys-fuzzy">Nothing chosen</p></div>',
+    'The same markup with data-ds-combobox: the system filters as you type, best match first, words in any order and letters in order ("lp 16"), and marks the letters. A name no model has gets a last option that creates it. The clear button shows while there is something to clear.') +
+    h.section('By the system: a search on a server', '<div class="ds-form">' +
+      sysField(h, remote, 'Assignee', ' data-demo="sys-remote"', '', sysClear(h, 'assignee')) + '</div>',
+    'A source asked after a pause in typing: a spinner while it runs, a newer query aborts the older one, the status line counts what came back. Try "ada", or "zz" for nothing found.') +
+    h.section('By the system: several values', '<div class="ds-form">' +
+      sysField(h, tags, 'Models to order', ' data-ds-combobox-creatable data-demo="sys-multi"', ' ds-combo--multi', '', sysOptions(tags).replace('role="listbox"', 'role="listbox" aria-multiselectable="true"')) + '</div>',
+    'Choosing keeps the list open; each value becomes an input chip, and a press on a chip or Backspace in the empty field removes it, which a screen reader hears.') +
+    h.section('By the system: 5,000 options', '<div class="ds-form">' +
+      sysField(h, many, 'Device', ' data-demo="sys-many"', '', sysClear(h, 'device')) + '</div>',
+    'Only the options near the viewport exist (DS.virtual through DS.listbox), so a long list opens and filters at once.');
+}
+
 SG.demo('combobox', {
   title: 'Combobox',
   group: 'forms',
@@ -131,6 +170,8 @@ SG.demo('combobox', {
 
       h.section('Select-only', '<div class="ds-form">' + selectField(h, select) + '</div>',
       'A button shows the choice with its meta: pick one of a few rich options without typing. Premium cannot be chosen.') +
+
+      systemSections(h) +
 
       h.section('States', '<div class="ds-form">' +
         '<div class="ds-field"><label class="ds-field__label" for="' + disabled + '">Disabled</label><div class="ds-combo"><input class="ds-input ds-combo__input" id="' + disabled + '" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Laptop 14" disabled><button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all" disabled>' + h.icon('chevronDown', 20) + '</button></div></div>' +
@@ -395,5 +436,33 @@ SG.demo('combobox', {
     h.$$('[data-demo="combo"]', root).forEach(setupCombo);
     h.$$('[data-demo="multi"]', root).forEach(setupMulti);
     h.$$('[data-demo="select"]', root).forEach(setupSelect);
+
+    /* By the system: only data and what the page does with a choice. */
+    var fuzzy = h.$('[data-demo="sys-fuzzy"]', root);
+    var out = h.$('[data-demo-out="sys-fuzzy"]', root);
+    fuzzy.addEventListener('ds:change', function (event) { out.textContent = event.detail.value ? 'Chosen: ' + event.detail.value : 'Nothing chosen'; });
+    fuzzy.addEventListener('ds:create', function (event) { h.toast('Created ' + event.detail.text + '.', 'success'); });
+
+    var PEOPLE = ['Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Katherine Johnson', 'Edsger Dijkstra', 'Barbara Liskov', 'Donald Knuth', 'Margaret Hamilton', 'Frances Allen', 'Dorothy Vaughan'];
+    var timers = [];
+    DS.combobox.create(h.$('[data-demo="sys-remote"]', root), {
+      source: function (query, context) {
+        return new Promise(function (resolve, reject) {
+          var timer = setTimeout(function () {
+            resolve(PEOPLE.filter(function (person) { return DS.listbox.fuzzy(query, person); }).map(function (person, index) {
+              return { value: 'u-' + index, label: person, meta: person.split(' ')[0].toLowerCase() + '@example.com' };
+            }));
+          }, h.slow(700));
+          timers.push(timer);
+          context.signal.addEventListener('abort', function () { clearTimeout(timer); reject(new DOMException('aborted', 'AbortError')); });
+        });
+      },
+    });
+
+    var kinds = ['Laptop', 'Workstation', 'Mini desktop', 'Field tablet', 'Monitor'];
+    var devices = [];
+    for (var i = 0; i < 5000; i += 1) devices.push({ value: 'd-' + i, label: kinds[i % kinds.length] + ' ' + (1000 + i), meta: 'Row ' + (i % 40 + 1) });
+    DS.combobox.create(h.$('[data-demo="sys-many"]', root), { items: devices });
+    return function () { timers.forEach(clearTimeout); };
   },
 });

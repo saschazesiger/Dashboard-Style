@@ -126,7 +126,7 @@
  * Cut edges: a list that scrolls fades at each edge with more to show, a
  * mask --ds-scroll-fade long (default --ds-space-8; 0px turns it off) on
  * the registered numbers --ds-scroll-edge-start and --ds-scroll-edge-end
- * of scroller.css (the .ds-scroll-x model on the block axis; the
+ * (registered here as in scroller.css; the .ds-scroll-x model on the block axis; the
  * scrollbar strip, --ds-scrollbar-width, stays opaque). Where scroll
  * timelines exist ds-scroll-edge-start and ds-scroll-edge-end drive them
  * on the list's own scroll; elsewhere DS.overlay attaches
@@ -154,6 +154,13 @@
  * the box of several values keeps its border (GrayText disabled) and takes a
  * 2px Highlight outline while focused, as a single field does.
  *
+ * Behaviour by the system (data-ds-combobox, DS.combobox): the module
+ * filters as the field changes and marks the matched letters of each name
+ * in a .ds-combo__match (the label weight and an underline, never colour
+ * alone), asks a source with a spinner in the status line, adds the
+ * "Create" option, the clear button's state and the chips of several
+ * values; the markup and the look stay the same.
+ *
  * Print: an open list is not printed.
  *
  * Progressive:
@@ -172,6 +179,21 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+/* The two ends of the list's fade, registered as in scroller.css: a page
+   that links combobox.css without scroller.css keeps the fades (an
+   unregistered number would neither interpolate nor animate). */
+@property --ds-scroll-edge-start {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --ds-scroll-edge-end {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
 
 @layer ds.components.combobox {
   /* The field's height, which the field, its toggle and its clear button
@@ -746,6 +768,17 @@
     position: relative;
     color: var(--ds-text-2);
     font: var(--ds-font-meta);
+  }
+
+  /* The letters the filter matched (DS.combobox): weight and a line, not
+     colour. */
+  .ds-combo__match {
+    background: transparent;
+    color: inherit;
+    font-weight: var(--ds-weight-label);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
   }
 
   .ds-combo__option[aria-selected="true"] :is(.ds-combo__meta, .ds-combo__description) {

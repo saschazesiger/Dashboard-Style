@@ -229,6 +229,8 @@ function entryOf(item, index) {
     meta: item.meta ? String(item.meta) : '',
     group: item.group ? String(item.group) : '',
     disabled: Boolean(item.disabled),
+    className: item.className ? String(item.className) : '',
+    pinned: item.pinned ?? false,
     item,
     el: null,
   };
@@ -286,6 +288,11 @@ export function create(element, options = {}) {
   const focusEl = /** @type {HTMLElement} */ (options.focus ?? element);
   const standalone = focusEl === element;
   const follow = !multiple && (options.follow ?? standalone);
+  /* The keys a field keeps for itself: Home, End and Space move its caret
+     and type; letters filter instead of jumping. */
+  const homeEnd = options.homeEnd ?? standalone;
+  const typeaheadOn = options.typeahead ?? standalone;
+  const spaceChooses = options.space ?? standalone;
   const wrap = options.wrap ?? false;
   const withCheck = options.check ?? prefix === 'ds-listbox';
   const scroller = /** @type {HTMLElement} */ (options.scroller ?? element);
@@ -374,7 +381,7 @@ export function create(element, options = {}) {
       : `<span class="${part('name')}">${name}</span>`
         + (entry.description ? `<span class="${part('description')}">${esc(entry.description)}</span>` : '')
         + (entry.meta ? `<span class="${part('meta')}">${esc(entry.meta)}</span>` : '');
-    return `<${optionTag} class="${part('option')}" id="${esc(id)}" data-ds-key="${esc(id)}" role="option" aria-selected="${selected.has(entry.value)}"`
+    return `<${optionTag} class="${part('option')}${entry.className ? ` ${esc(entry.className)}` : ''}" id="${esc(id)}" data-ds-key="${esc(id)}" role="option" aria-selected="${selected.has(entry.value)}"`
       + `${entry.disabled ? ' aria-disabled="true"' : ''}${entry.index === active ? ' data-active=""' : ''}>${checkHtml()}${inner}</${optionTag}>`;
   }
 
@@ -599,17 +606,29 @@ export function create(element, options = {}) {
   }
 
   /** Runs a query: who shows, and the marks. */
-  function runFilter(text) {
+  function runFilter(text, how = {}) {
     query = String(text ?? '');
     marks = new Map();
-    if (!query.trim()) visible = entries.map((entry) => entry.index);
-    else {
-      const hits = filter(entries, query, { label: (entry) => entry.label });
+    const pinned = entries.filter((entry) => entry.pinned);
+    const pool = entries.filter((entry) => !entry.pinned);
+    if (!query.trim()) visible = pool.map((entry) => entry.index);
+    else if (how.keep) {
+      // Matched elsewhere (a server): every entry stays, in its order, marked where the query is found.
+      visible = pool.map((entry) => entry.index);
+      for (const entry of pool) {
+        const hit = fuzzy(query, entry.label);
+        if (hit?.ranges.length) marks.set(entry.index, hit.ranges);
+      }
+    } else {
+      const hits = filter(pool, query, { label: (entry) => entry.label });
       // The page's markup keeps its order; data comes best first.
       if (data === null) hits.sort((a, b) => a.index - b.index);
-      visible = hits.map((hit) => hit.index);
-      for (const hit of hits) marks.set(hit.index, hit.ranges);
+      visible = hits.map((hit) => hit.item.index);
+      for (const hit of hits) marks.set(hit.item.index, hit.ranges);
     }
+    // Pinned entries (a "Create" option) come last, when they say so.
+    const matches = visible.length;
+    for (const entry of pinned) if (typeof entry.pinned !== 'function' || entry.pinned(query, matches)) visible.push(entry.index);
     if (data === null) applyMarkupFilter();
     else render();
     if (!visible.includes(active)) setActive(-1);
@@ -625,13 +644,13 @@ export function create(element, options = {}) {
     if (k === 'ArrowDown' || k === 'ArrowUp') {
       if (event.altKey) return false;
       target = stepFrom(k === 'ArrowDown' ? 1 : -1);
-    } else if ((k === 'Home' || k === 'End') && standalone) target = edge(k === 'Home' ? 'first' : 'last');
+    } else if ((k === 'Home' || k === 'End') && homeEnd) target = edge(k === 'Home' ? 'first' : 'last');
     else if (k === 'PageDown' || k === 'PageUp') target = stepFrom(k === 'PageDown' ? PAGE : -PAGE);
     else if (k === 'Enter' && !mod) {
       if (active < 0) return false;
       choose(active);
       return true;
-    } else if (k === ' ' && standalone && !mod) {
+    } else if (k === ' ' && spaceChooses && !mod) {
       if (active < 0) target = stepFrom(1);
       else {
         choose(active);
@@ -640,7 +659,7 @@ export function create(element, options = {}) {
     } else if (multiple && mod && !event.shiftKey && (k === 'a' || k === 'A') && standalone) {
       selectAll();
       return true;
-    } else if (standalone && k.length === 1 && !mod && !event.altKey) {
+    } else if (typeaheadOn && k.length === 1 && !mod && !event.altKey) {
       return typeahead(k);
     } else return false;
     if (target < 0) return k === 'ArrowDown' || k === 'ArrowUp';
@@ -739,10 +758,10 @@ export function create(element, options = {}) {
       element.addEventListener(`ds:${type}`, listener);
       return () => element.removeEventListener(`ds:${type}`, listener);
     },
-    /** New data: rendered again, the query kept. */
-    setItems(items) {
+    /** New data: rendered again, the query kept (`keep`: matched elsewhere, only marked). */
+    setItems(items, how = {}) {
       setData(items);
-      return runFilter(query);
+      return runFilter(how.query ?? query, how);
     },
     /** Shows the options that match `text` (marks in their names); returns how many show. */
     filter: runFilter,
