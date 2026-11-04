@@ -125,6 +125,13 @@ const DEFAULT_STRINGS = Object.freeze({
   previous: 'Previous',
   next: 'Next',
   noResults: 'No results',
+  dragHint: 'Press Space to pick up. Then the arrow keys move it, Space drops it and Escape cancels.',
+  dragGrabbed: 'Picked up {label}, position {position} of {total}.',
+  dragMoved: 'Moved {label} to position {position} of {total}.',
+  dragMovedZone: 'Moved {label} to {zone}, position {position} of {total}.',
+  dragDropped: 'Dropped {label} at position {position} of {total}.',
+  dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
+  dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
 });
 
 /**

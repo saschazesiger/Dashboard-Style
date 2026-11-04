@@ -338,12 +338,19 @@ strings a script adds have an option, so a page in another language passes its o
 | `Previous` | the system's string `previous` | `DS.core.config({ strings: { previous } })` |
 | `Next` | the system's string `next` | `DS.core.config({ strings: { next } })` |
 | `No results` | the system's string `noResults` | `DS.core.config({ strings: { noResults } })` |
+| `Press Space to pick up. Then the arrow keys move it, Space drops it and Escape cancels.` | what a focused handle of `DS.dnd.create()` describes (`aria-describedby`) (the system's string `dragHint`) | `DS.core.config({ strings: { dragHint } })` |
+| `Picked up {label}, position {position} of {total}.` | what `DS.dnd.create()` announces on a lift (the system's string `dragGrabbed`) | `DS.core.config({ strings: { dragGrabbed } })` |
+| `Moved {label} to position {position} of {total}.` | what `DS.dnd.create()` announces on a move (the system's string `dragMoved`) | `DS.core.config({ strings: { dragMoved } })` |
+| `Moved {label} to {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragMovedZone`) | `DS.core.config({ strings: { dragMovedZone } })` |
+| `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
+| `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
+| `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
-A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates are the page's
-too: set `lang` on `<html>` (or the widget root), format figures with `countUp(el, value, { format: new
-Intl.NumberFormat(lang).format })`, and dates with `Intl.DateTimeFormat(lang, ...)`; the system never formats either
-by itself.
+A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
+the locale of `DS.core.config()` (`lang` on `<html>` by default): `DS.format` ([core.md](core.md#dsformat-numbers-dates-and-the-shared-clock))
+formats figures, sizes, durations, lists, plurals and relative time through `Intl`, and nothing else in the system
+formats either by itself (`countUp(el, value, { format: DS.format.number })` for a figure that counts).
 
 **Direction.** The components are laid out for left-to-right scripts; `dir="rtl"` is not supported yet (a sheet
 still slides in from the right, the drawer sits on the left, motion does not mirror). The components use logical
