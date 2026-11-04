@@ -21,11 +21,12 @@
  * (`external: true`), and dispatches a bubbling ds:store on the document. A
  * write of the same value is no change. A clear from another tab that does
  * not say which keys went (localStorage.clear()) arrives as `key: null`:
- * read again. The memory fallback cannot reach other tabs.
+ * read again. The memory fallback cannot reach other tabs. Other tabs are heard
+ * from the first open() until the last handle's destroy().
  *
- * Shared through runtime.state('store'): the memory values, the listeners
- * and the one `storage` listener, so two copies on a page see each other's
- * writes at once.
+ * Shared through runtime.state('store'): the memory values of each storage,
+ * the listeners, the handles and the one `storage` listener, so two copies on
+ * a page see each other's writes at once.
  *
  * ES2022; no DOM or storage is touched until open() is used.
  */
@@ -36,13 +37,27 @@ const PREFIX = 'ds';
 
 /**
  * This module's shared state.
- * @type {{ memory: Map<string, string>, listeners: Set<{ namespace: string, area: any, fn: (detail: any) => void }>, stop: (() => void)|null }}
+ * @type {{ memory: Map<any, Map<string, string>>, listeners: Set<{ namespace: string, area: any, fn: (detail: any) => void }>, handles: Set<{ namespace: string, area: any }>, stop: (() => void)|null }}
  */
 const shared = runtime.state('store', () => ({
   memory: new Map(),
   listeners: new Set(),
+  handles: new Set(),
   stop: null,
 }));
+
+/** The values kept in memory for one storage area (null: memory only), by full key. */
+const memoryOf = (area) => shared.memory.get(area);
+
+function remember(area, full, raw) {
+  if (!shared.memory.has(area)) shared.memory.set(area, new Map());
+  shared.memory.get(area).set(full, raw);
+}
+
+function forget(area, full) {
+  const values = shared.memory.get(area);
+  if (values?.delete(full) && !values.size) shared.memory.delete(area);
+}
 
 /** localStorage, or null where reaching it throws (blocked, a sandboxed frame). */
 function defaultStorage() {
@@ -87,16 +102,17 @@ const parse = (raw) => {
   }
 };
 
-/** What a `storage` event from another tab means for the namespaces with listeners. */
+/** What a `storage` event from another tab means for the namespaces open here. */
 function onStorage(event) {
   if (event.key === null) {
     // localStorage.clear() elsewhere: every namespace of that area.
-    for (const key of [...shared.memory.keys()]) if (key.startsWith(`${PREFIX}:`)) shared.memory.delete(key);
+    for (const key of [...(memoryOf(event.storageArea)?.keys() ?? [])]) if (key.startsWith(`${PREFIX}:`)) forget(event.storageArea, key);
     const told = new Set();
-    for (const listener of [...shared.listeners]) {
-      if (listener.area !== event.storageArea || told.has(listener.namespace)) continue;
-      told.add(listener.namespace);
-      publish(listener.area, listener.namespace, { key: null, value: undefined, previous: undefined, external: true });
+    // The handles too: ds:store tells a namespace that holds no on() of its own.
+    for (const { namespace, area } of [...shared.handles, ...shared.listeners]) {
+      if (area !== event.storageArea || told.has(namespace)) continue;
+      told.add(namespace);
+      publish(area, namespace, { key: null, value: undefined, previous: undefined, external: true });
     }
     return;
   }
@@ -104,7 +120,7 @@ function onStorage(event) {
   const separator = event.key.indexOf(':', PREFIX.length + 1);
   if (separator < 0) return;
   // The other tab's value is newer than a write only this page kept.
-  shared.memory.delete(event.key);
+  forget(event.storageArea, event.key);
   publish(event.storageArea, event.key.slice(PREFIX.length + 1, separator), {
     key: event.key.slice(separator + 1),
     value: parse(event.newValue),
@@ -113,9 +129,9 @@ function onStorage(event) {
   });
 }
 
-/** One `storage` listener while anything listens. */
+/** One `storage` listener while a handle is open: ds:store tells a page that holds no on() of its own too. */
 function listenStorage() {
-  if (shared.stop || !shared.listeners.size) return;
+  if (shared.stop) return;
   const view = globalThis.window ?? globalThis;
   if (typeof view.addEventListener !== 'function') return;
   view.addEventListener('storage', onStorage);
@@ -123,7 +139,7 @@ function listenStorage() {
 }
 
 function unlistenStorage() {
-  if (shared.listeners.size) return;
+  if (shared.handles.size || shared.listeners.size) return;
   shared.stop?.();
   shared.stop = null;
 }
@@ -162,11 +178,15 @@ export function open(namespace, options = {}) {
   const storage = options.storage === undefined ? defaultStorage() : options.storage;
   const prefix = `${PREFIX}:${namespace}:`;
   const mine = new Set();
+  const record = { namespace, area: storage };
+  shared.handles.add(record);
+  listenStorage();
   const fullKey = (key) => `${prefix}${key}`;
 
   /** The stored text of a key: a value kept in memory goes first (it is what storage refused). */
   const readRaw = (full) => {
-    if (shared.memory.has(full)) return shared.memory.get(full);
+    const kept = memoryOf(storage);
+    if (kept?.has(full)) return kept.get(full);
     return storage ? attempt(() => storage.getItem(full)) ?? null : null;
   };
 
@@ -194,14 +214,14 @@ export function open(namespace, options = {}) {
           // Quota or blocked: memory keeps it, below.
         }
       }
-      if (written) shared.memory.delete(full);
-      else shared.memory.set(full, raw);
+      if (written) forget(storage, full);
+      else remember(storage, full, raw);
       publish(storage, namespace, { key, value: parse(raw), previous: parse(before), external: false });
     },
     remove(key) {
       const full = fullKey(key);
       const before = readRaw(full);
-      shared.memory.delete(full);
+      forget(storage, full);
       if (storage) attempt(() => storage.removeItem(full));
       if (before !== null) publish(storage, namespace, { key, value: undefined, previous: parse(before), external: false });
     },
@@ -217,7 +237,7 @@ export function open(namespace, options = {}) {
           if (name?.startsWith(prefix)) found.add(name.slice(prefix.length));
         }
       }
-      for (const name of shared.memory.keys()) if (name.startsWith(prefix)) found.add(name.slice(prefix.length));
+      for (const name of memoryOf(storage)?.keys() ?? []) if (name.startsWith(prefix)) found.add(name.slice(prefix.length));
       return [...found].sort();
     },
     on(type, fn) {
@@ -235,6 +255,7 @@ export function open(namespace, options = {}) {
     destroy() {
       for (const listener of mine) shared.listeners.delete(listener);
       mine.clear();
+      shared.handles.delete(record);
       unlistenStorage();
     },
   };

@@ -84,6 +84,51 @@ test('another tab hears a change as external; a clear there arrives as key null'
   await other.close();
 });
 
+test('ds:store tells of another tab with no on() of its own, until the last handle is destroyed', async ({ context, page }) => {
+  const other = await context.newPage();
+  await open(page);
+  await open(other);
+  await page.evaluate(() => {
+    localStorage.clear();
+    window.fxEvents = [];
+    document.addEventListener('ds:store', (event) => window.fxEvents.push(event.detail));
+    window.fxFirst = DS.store.open('devices');
+    window.fxSecond = DS.store.open('tickets');
+  });
+  await other.evaluate(() => DS.store.open('devices').set('a', 1));
+  await expect.poll(() => page.evaluate(() => fxEvents.length)).toBe(1);
+  expect(await page.evaluate(() => fxEvents[0])).toMatchObject({ namespace: 'devices', key: 'a', value: 1, external: true });
+  // A clear elsewhere says no key: each open namespace hears it, once.
+  await other.evaluate(() => localStorage.clear());
+  await expect.poll(() => page.evaluate(() => fxEvents.length)).toBe(3);
+  expect(await page.evaluate(() => fxEvents.slice(1).map((detail) => [detail.namespace, detail.key]))).toEqual([['devices', null], ['tickets', null]]);
+  await page.evaluate(() => fxFirst.destroy());
+  await other.evaluate(() => DS.store.open('devices').set('a', 2));
+  await expect.poll(() => page.evaluate(() => fxEvents.length)).toBe(4);
+  await page.evaluate(() => {
+    fxSecond.destroy();
+    fxFirst.destroy();
+    // The page's own listener runs after the system's would have.
+    window.fxArrived = new Promise((resolve) => { addEventListener('storage', () => resolve(true), { once: true }); });
+  });
+  await other.evaluate(() => DS.store.open('devices').set('a', 3));
+  expect(await page.evaluate(() => fxArrived)).toBe(true);
+  expect(await page.evaluate(() => fxEvents.length)).toBe(4);
+  await other.close();
+});
+
+test('a value kept in memory for one storage is not read from another', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const refusing = { getItem: () => null, setItem() { throw new Error('quota'); }, removeItem() {}, key: () => null, length: 0 };
+    const refused = DS.store.open('prefs', { storage: refusing });
+    refused.set('x', 'kept');
+    const session = DS.store.open('prefs', { storage: sessionStorage });
+    return { refused: refused.get('x'), session: session.get('x', 'none') };
+  });
+  expect(result).toEqual({ refused: 'kept', session: 'none' });
+});
+
 test('where the browser refuses, the choice holds in memory and nothing throws', async ({ page }) => {
   await open(page);
   const result = await page.evaluate(() => {
