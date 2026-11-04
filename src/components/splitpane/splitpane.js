@@ -151,7 +151,8 @@ function controller(el, options, signal) {
   let dividers = [];
   let drag = null;
 
-  const axis = () => (el.classList.contains('ds-splitpane--stacked') ? 'y' : 'x');
+  const axis = () => (el.classList.contains('ds-splitpane--stacked') || el.getAttribute('data-state') === 'stacked' ? 'y' : 'x');
+  const stackBelow = Number(options.stack) > 0 ? Number(options.stack) : 0;
   const extent = (node) => {
     const rect = node.getBoundingClientRect();
     return axis() === 'y' ? rect.height : rect.width;
@@ -434,7 +435,25 @@ function controller(el, options, signal) {
     divider.el.addEventListener('dblclick', onDoubleClick, opts);
   }
 
-  const resize = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => describe()) : null;
+  /** Stacks the panes while the split pane is narrower than data-ds-splitpane-stack; true when that changed. */
+  function fold() {
+    if (!stackBelow) return false;
+    const narrow = el.getBoundingClientRect().width < stackBelow;
+    if (narrow === (el.getAttribute('data-state') === 'stacked')) return false;
+    if (drag) cancelDrag();
+    if (narrow) el.setAttribute('data-state', 'stacked');
+    else el.removeAttribute('data-state');
+    for (const divider of dividers) prepare(divider);
+    return true;
+  }
+
+  fold();
+  describe();
+
+  const resize = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(() => {
+    fold();
+    describe();
+  }) : null;
   resize?.observe(el);
 
   const handle = {
@@ -498,6 +517,7 @@ function controller(el, options, signal) {
     },
     destroy() {
       cancelDrag();
+      if (stackBelow && el.getAttribute('data-state') === 'stacked') el.removeAttribute('data-state');
       resize?.disconnect();
       listeners.clear();
       prefs?.destroy();
@@ -508,9 +528,13 @@ function controller(el, options, signal) {
 
 define('splitpane', {
   attribute: 'data-ds-splitpane',
-  attributes: ['data-ds-splitpane-store', 'data-ds-splitpane-step'],
+  attributes: ['data-ds-splitpane-store', 'data-ds-splitpane-step', 'data-ds-splitpane-stack'],
   init(el, ctx) {
-    return controller(el, { store: el.getAttribute('data-ds-splitpane-store'), step: el.getAttribute('data-ds-splitpane-step') }, ctx.signal);
+    return controller(el, {
+      store: el.getAttribute('data-ds-splitpane-store'),
+      step: el.getAttribute('data-ds-splitpane-step'),
+      stack: el.getAttribute('data-ds-splitpane-stack'),
+    }, ctx.signal);
   },
   // A toggle anywhere: by the id of a pane, or by its index inside the split pane.
   global(root) {
@@ -530,13 +554,14 @@ define('splitpane', {
 /**
  * A split pane driven from the page; the same controller the attribute path
  * makes (its toggle buttons need DS.init(), or call toggle()). `store` names
- * the remembered sizes (DS.store), `step` the px a key moves a divider.
+ * the remembered sizes (DS.store), `step` the px a key moves a divider,
+ * `stack` the width in px under which the panes stack.
  * @param {Element} el
- * @param {{ store?: string, step?: number }} [options]
+ * @param {{ store?: string, step?: number, stack?: number }} [options]
  */
 export function create(el, options = {}) {
   const abort = new AbortController();
-  const handle = controller(el, { store: options.store ?? '', step: options.step }, abort.signal);
+  const handle = controller(el, { store: options.store ?? '', step: options.step, stack: options.stack }, abort.signal);
   const destroy = handle.destroy;
   handle.destroy = () => {
     destroy();

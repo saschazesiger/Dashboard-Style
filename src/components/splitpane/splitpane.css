@@ -47,6 +47,12 @@
  *   .ds-splitpane--stacked     the panes one above the other, the divider
  *                              across (it moves with ArrowUp and ArrowDown)
  *
+ * Narrow: data-ds-splitpane-stack="<px>" stacks the panes while the split
+ * pane is narrower than that (a phone): DS.splitpane measures it and writes
+ * data-state="stacked", which lays it out as --stacked (the sizes and the
+ * limits then apply to the heights, the divider moves with ArrowUp and
+ * ArrowDown).
+ *
  * Height: --ds-splitpane-height (100%: it fills a parent of a set height;
  * set a length where the parent grows with its content).
  *
@@ -61,7 +67,8 @@
  * data-ds-splitpane-toggle="<pane id>" collapses and restores that pane and
  * carries aria-expanded.
  *
- * State (written by DS.splitpane): a pane collapses to nothing with
+ * State (written by DS.splitpane): the split pane has data-state="stacked"
+ * while it is narrower than data-ds-splitpane-stack; a pane collapses to nothing with
  * data-state="collapsed" (inert, its minimum lifted) and comes back through
  * data-state="expanding"; a divider being dragged has data-state="dragging"
  * (the line and the grip turn --ds-primary, the cursor stays on the whole
@@ -125,7 +132,7 @@
     overflow: hidden;
   }
 
-  .ds-splitpane--stacked {
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]) {
     flex-direction: column;
   }
 
@@ -144,7 +151,7 @@
     overflow: auto;
   }
 
-  .ds-splitpane--stacked > .ds-splitpane__pane {
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]) > .ds-splitpane__pane {
     min-inline-size: 0;
     max-inline-size: none;
     min-block-size: var(--ds-splitpane-min, 0px);
@@ -158,8 +165,8 @@
     max-inline-size: none;
   }
 
-  .ds-splitpane--stacked > .ds-splitpane__pane--fill,
-  .ds-splitpane--stacked:not(:has(> .ds-splitpane__pane--fill)) > .ds-splitpane__pane:last-child {
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]) > .ds-splitpane__pane--fill,
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]):not(:has(> .ds-splitpane__pane--fill)) > .ds-splitpane__pane:last-child {
     max-block-size: none;
   }
 
@@ -199,7 +206,7 @@
     transition: background-color var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
-  .ds-splitpane--stacked > .ds-splitpane__divider {
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]) > .ds-splitpane__divider {
     cursor: row-resize;
   }
 
@@ -213,7 +220,7 @@
     translate: -50% 0;
   }
 
-  .ds-splitpane--stacked > .ds-splitpane__divider::before {
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]) > .ds-splitpane__divider::before {
     inset-block: auto;
     inset-inline: 0;
     inset-block-start: 50%;
@@ -240,7 +247,7 @@
       outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
-  .ds-splitpane--stacked > .ds-splitpane__divider::after {
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]) > .ds-splitpane__divider::after {
     inline-size: min(var(--_grip), 100%);
     block-size: 4px;
   }
@@ -272,7 +279,7 @@
     user-select: none;
   }
 
-  .ds-splitpane--stacked:has(> .ds-splitpane__divider[data-state="dragging"]) {
+  :is(.ds-splitpane--stacked, .ds-splitpane[data-state="stacked"]):has(> .ds-splitpane__divider[data-state="dragging"]) {
     cursor: row-resize;
   }
 

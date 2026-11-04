@@ -9,6 +9,8 @@ export interface SplitpaneOptions {
   store?: string;
   /** The px a key moves a divider (default 16; with Shift four times that). */
   step?: number;
+  /** The width in px under which the panes stack (data-state="stacked"); none: never. */
+  stack?: number;
 }
 
 export interface SplitpaneState {

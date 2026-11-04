@@ -15,10 +15,10 @@ var SPLIT_DEVICES = [
   ['ROUTER-0002', 'router', 'Router · Server room'],
 ];
 
-function splitList(h, label) {
+function splitList(h, label, current) {
   return '<ul class="ds-list ds-list--interactive" aria-label="' + label + '">' + SPLIT_DEVICES.map(function (row, index) {
     return '<li class="ds-list__item">' + h.icon(row[1], 20, 'ds-list__icon') +
-      '<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#device"' + (index === 0 ? ' aria-current="true"' : '') + '>' + row[0] + '</a></span>' +
+      '<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#device"' + (current && index === 0 ? ' aria-current="true"' : '') + '>' + row[0] + '</a></span>' +
       '<span class="ds-list__meta">' + row[2] + '</span></span></li>';
   }).join('') + '</ul>';
 }
@@ -48,12 +48,12 @@ SG.demo('splitpane', {
       '<div class="sg-row">' +
         '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Device list" data-tip="Device list" data-ds-splitpane-toggle="' + list + '" data-demo="toggle">' + h.icon('panelLeft', 20) + '</button>' +
         '<button class="ds-btn ds-btn--text" type="button" data-demo="reset">' + h.icon('reset', 16) + 'Reset sizes</button></div>' +
-      '<div class="ds-splitpane ds-splitpane--outlined" data-ds-splitpane data-ds-splitpane-store="sg-devices" style="--ds-splitpane-height: 360px" data-demo="two">' +
-        '<section class="ds-splitpane__pane" id="' + list + '" aria-label="Devices" data-ds-splitpane-collapsible style="--ds-splitpane-size: 280px; --ds-splitpane-min: 200px; --ds-splitpane-max: 60%">' + splitList(h, 'Devices') + '</section>' +
+      '<div class="ds-splitpane ds-splitpane--outlined" data-ds-splitpane data-ds-splitpane-store="sg-devices" data-ds-splitpane-stack="560" style="--ds-splitpane-height: 360px" data-demo="two">' +
+        '<section class="ds-splitpane__pane" id="' + list + '" aria-label="Devices" data-ds-splitpane-collapsible style="--ds-splitpane-size: 280px; --ds-splitpane-min: 200px; --ds-splitpane-max: 60%">' + splitList(h, 'Devices', true) + '</section>' +
         '<div class="ds-splitpane__divider" role="separator" tabindex="0" aria-label="Resize the device list"></div>' +
         '<section class="ds-splitpane__pane ds-splitpane__pane--fill" aria-labelledby="' + record + '">' + splitRecord(h, record) + '</section>' +
       '</div>',
-      'The list starts at 280px, between 200px and 60%. It collapses: Enter or a double click on the divider, a drag below 100px, or the button above. Its size is remembered (data-ds-splitpane-store); Reset sizes forgets it.') +
+      'The list starts at 280px, between 200px and 60%. It collapses: Enter or a double click on the divider, a drag below 100px, or the button above. Its size is remembered (data-ds-splitpane-store); Reset sizes forgets it. Under 560px (a phone; try the width option) the panes stack (data-ds-splitpane-stack).') +
 
       h.section('Three panes',
         '<div class="ds-splitpane ds-splitpane--outlined" data-ds-splitpane style="--ds-splitpane-height: 320px" data-demo="three">' +

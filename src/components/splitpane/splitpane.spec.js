@@ -105,6 +105,25 @@ test('stacked: ArrowUp and ArrowDown move the divider; a percentage stays a shar
   expect(await height(page, pane)).toBeCloseTo((500 - 2) * ((whole * 0.4 + 16) / whole), 0);
 });
 
+test('narrow: under data-ds-splitpane-stack the panes stack, the divider turns and moves with the vertical arrows', async ({ page }) => {
+  await open(page);
+  await page.$eval(two, (el) => { el.style.inlineSize = '340px'; });
+  await expect(page.locator(two)).toHaveAttribute('data-state', 'stacked');
+  await expect(page.locator(divider)).toHaveAttribute('aria-orientation', 'horizontal');
+  expect(await page.$eval(two, (el) => getComputedStyle(el).flexDirection)).toBe('column');
+  expect(await width(page, list)).toBeCloseTo(338, 0);
+  expect(await height(page, list)).toBeCloseTo(Math.min(280, 358 * 0.6), 0);
+  await focusByKeyboard(page, page.locator(divider));
+  const before = await height(page, list);
+  await page.keyboard.press('ArrowUp');
+  expect(await height(page, list)).toBeCloseTo(Math.max(200, before - 16), 0);
+  // No sideways scroll on a phone.
+  expect(await page.$eval(two, (el) => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
+  await page.$eval(two, (el) => { el.style.inlineSize = ''; });
+  await expect(page.locator(two)).not.toHaveAttribute('data-state');
+  await expect(page.locator(divider)).toHaveAttribute('aria-orientation', 'vertical');
+});
+
 test('three panes: each divider resizes its outer neighbour, the filling pane keeps its minimum', async ({ page }) => {
   await open(page);
   const panes = page.locator('[data-demo="three"] > .ds-splitpane__pane');

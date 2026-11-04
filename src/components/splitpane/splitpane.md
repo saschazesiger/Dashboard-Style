@@ -54,6 +54,10 @@ then resizes its outer neighbour.
 - `data-ds-splitpane-store="<key>"` remembers the sizes and the collapsed panes (`DS.store`, namespace `splitpane`),
   restored at the next load while the number of panes still matches.
 - `data-ds-splitpane-step="<px>"`: how far a key moves the divider (default 16; with `Shift` four times that).
+- `data-ds-splitpane-stack="<px>"`: stack the panes while the split pane is narrower than that (a phone). The system
+  measures its own width and writes `data-state="stacked"` on it, which lays it out as `--stacked`: the sizes and the
+  limits then apply to the heights, the divider runs across and moves with `ArrowUp` and `ArrowDown`
+  (`aria-orientation="horizontal"`). Give such a split pane sizes in percent, which read well either way.
 - A size keeps the unit the markup gave it: a percentage stays a share when the split pane resizes, anything else is
   written in px. The browser holds the limits and shrinks the sized panes when the split pane gets narrower; a move is
   clamped to the same limits and to the room the other panes leave (the filling pane keeps its minimum).
@@ -61,7 +65,7 @@ then resizes its outer neighbour.
 **JS API.** The attribute path makes the controller (`DS.core.get(el, 'splitpane')`); from the page:
 
 ```js
-const split = DS.splitpane.create(el, { store: 'devices', step: 16 });
+const split = DS.splitpane.create(el, { store: 'devices', step: 16, stack: 560 });
 split.get();                          // { sizes: [320, null], collapsed: [false, false] } (px; null: the filling pane)
 split.set({ sizes: [400], collapsed: [false] });   // px, or CSS text ('30%')
 split.collapse(0); split.expand('device-list'); split.toggle(0);
@@ -99,4 +103,5 @@ frame, snapping from offset + width to the offset.
 <!-- changelog -->
 - Split pane (`.ds-splitpane`, `DS.splitpane`): two or three panes, side by side or stacked, with dividers that drag
   and move by keyboard (APG window splitter), limits per pane, collapse and restore (keys, double click, toggle
-  buttons), sizes remembered through `DS.store`. New strings `splitpaneResize`, `splitpaneCollapsed`.
+  buttons), sizes remembered through `DS.store`, stacking under a width of its own on a phone
+  (`data-ds-splitpane-stack`). New strings `splitpaneResize`, `splitpaneCollapsed`.
