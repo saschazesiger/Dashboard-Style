@@ -326,7 +326,7 @@ const readText = (path) => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 // ── JS modules: the core (src/js/) and one per component folder ─────────
 
 /** The core modules of src/js/, in this order (core first): DS.<name>. */
-export const CORE_MODULES = ['core', 'motion', 'indicator', 'dom', 'ripple', 'icons', 'overlay'];
+export const CORE_MODULES = ['core', 'motion', 'indicator', 'dom', 'ripple', 'icons', 'position', 'overlay'];
 
 /** An import line of a module or its .d.ts (one line: named bindings, or in a .d.ts `import type` and `* as`): the head, the quote and the path. */
 const IMPORT_FROM = /^(import\s+(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+[\w$]+)\s*from\s*|import\s*\{[^}]*\}\s*from\s*)(['"])([^'"]+)\2(\s*;?[ \t]*)$/;
