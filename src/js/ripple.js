@@ -71,6 +71,14 @@
  * parts with one centre: a span in the second cell covers the row under
  * the pinned cell, a second span in the pinned cell covers that cell.
  *
+ * A pinned last column (.ds-table--pin-last) stands above the row link, and
+ * its own room opens nothing: a press there, outside the cell's controls,
+ * neither ripples the row nor holds .ds-pressed, its click and middle click
+ * forward nothing and its middle press keeps the platform's autoscroll. A
+ * press on the rest of the row reaches the cell the same way: one more span
+ * with the same centre, first in the cell, so the cell's buttons keep their
+ * :last-child.
+ *
  * Chips (D22): attach() also listens for change on .ds-chip__input in a
  * .ds-chips row, the one call that wires control motion. A toggle that
  * keeps every chip on its line plays the check slot's width from where
@@ -161,7 +169,7 @@ const CONTROLS = 'a[href], button, input, select, textarea, label, summary, [tab
 /**
  * @typedef {object} Press
  * @property {HTMLElement} span  the ripple
- * @property {HTMLElement} [twin]  its part in a pinned first cell (two-part ripple of a pinned row)
+ * @property {HTMLElement[]} [twins]  its parts in the pinned cells of a row
  * @property {number} at  when it started (performance.now())
  * @property {boolean} released
  * @property {(() => void)|undefined} [stop]  takes the pointer listeners of the press away
@@ -215,34 +223,53 @@ function holderOf(surface) {
 /** A row of a pinned interactive table (.ds-table--pin-first): what a click on it may forward to. */
 const PINNED_ROW = '.ds-table--pin-first.ds-table--interactive tbody tr:not(.ds-table__detail)';
 
-/**
- * The pinned first cell of a table row, when it is pinned now (sticky:
- * stacked rows and print unpin it), else null.
- */
-function pinnedCell(row) {
-  const cell = row.cells?.[0];
-  if (!cell || row.cells.length < 2 || !row.closest('.ds-table--pin-first')) return null;
+/** A row's `cell` when it is pinned now (sticky: stacked rows and print unpin it), else null. */
+function stuck(row, cell, pin) {
+  if (!cell || row.cells.length < 2 || !row.closest(pin)) return null;
   return row.ownerDocument.defaultView?.getComputedStyle(cell).position === 'sticky' ? cell : null;
 }
 
+/** The pinned first cell of a table row, else null. */
+const pinnedCell = (row) => stuck(row, row.cells?.[0], '.ds-table--pin-first');
+
+/** The pinned last cell of a table row, else null. */
+const pinnedLastCell = (row) => stuck(row, row.cells?.[row.cells.length - 1], '.ds-table--pin-last');
+
 /**
- * The part of a row's ripple in its pinned first cell: the same circle
- * (centre and radius), placed against the cell, which paints over the
- * row's own part.
+ * Whether `element` is the room of a row's pinned last cell: in the cell,
+ * outside its controls. The cell stands above the row link, so that room
+ * opens nothing.
  */
-function pinnedTwin(row, rect, left, top, radius) {
-  const cell = pinnedCell(row);
-  if (!cell) return null;
+function inPinnedRoom(row, element) {
+  const cell = pinnedLastCell(row);
+  if (!cell?.contains(element)) return false;
+  const control = element.closest(CONTROLS);
+  return !(control && cell.contains(control));
+}
+
+/** A ripple span with its centre and radius, in px from the box that places it. */
+function rippleSpan(doc, x, y, radius) {
+  const span = doc.createElement('span');
+  span.className = 'ds-press-ripple';
+  span.setAttribute('aria-hidden', 'true');
+  span.setAttribute('data-ds-keep', '');
+  span.style.setProperty('--ds-ripple-x', `${Math.round(x * 100) / 100}px`);
+  span.style.setProperty('--ds-ripple-y', `${Math.round(y * 100) / 100}px`);
+  span.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
+  return span;
+}
+
+/**
+ * The part of a row's ripple in a pinned cell: the same circle (centre and
+ * radius), placed against the cell, which paints over the row's own part.
+ * First in a last cell, so the buttons there keep their :last-child.
+ */
+function pinnedPart(row, cell, rect, left, top, radius) {
   const box = cell.getBoundingClientRect();
-  const twin = row.ownerDocument.createElement('span');
-  twin.className = 'ds-press-ripple';
-  twin.setAttribute('aria-hidden', 'true');
-  twin.setAttribute('data-ds-keep', '');
-  twin.style.setProperty('--ds-ripple-x', `${Math.round((left + rect.left - box.left) * 100) / 100}px`);
-  twin.style.setProperty('--ds-ripple-y', `${Math.round((top + rect.top - box.top) * 100) / 100}px`);
-  twin.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
-  cell.append(twin);
-  return twin;
+  const part = rippleSpan(row.ownerDocument, left + rect.left - box.left, top + rect.top - box.top, radius);
+  if (cell === row.cells[0]) cell.append(part);
+  else cell.prepend(part);
+  return part;
 }
 
 /**
@@ -263,6 +290,7 @@ function forwardRowClick(event, root, ownPrevent = false) {
   if (!row || !root.contains(row)) return false;
   const control = element.closest(CONTROLS);
   if (control && row.contains(control)) return false;
+  if (inPinnedRoom(row, element)) return false;
   const link = row.querySelector('.ds-table__row-link');
   if (!link || link.matches(':disabled') || link.getAttribute('aria-disabled') === 'true') return false;
   const view = row.ownerDocument.defaultView;
@@ -341,7 +369,7 @@ function release(host, press) {
       host.classList.remove('ds-pressed');
     }
     fade(press.span);
-    if (press.twin) fade(press.twin);
+    press.twins?.forEach(fade);
   }, wait);
 }
 
@@ -365,7 +393,7 @@ function start(host, x, y) {
     previous.released = true;
     previous.stop?.();
     fade(previous.span);
-    if (previous.twin) fade(previous.twin);
+    previous.twins?.forEach(fade);
   }
   const holder = holderOf(surface);
   if (!holder) return null;
@@ -381,22 +409,26 @@ function start(host, x, y) {
   const left = x === undefined ? width / 2 : (x - rect.left) / (scaleX || 1) - (row ? 0 : surface.clientLeft);
   const top = y === undefined ? height / 2 : (y - rect.top) / (scaleY || 1) - (row ? 0 : surface.clientTop);
   const radius = Math.hypot(Math.max(left, width - left), Math.max(top, height - top));
-  const span = surface.ownerDocument.createElement('span');
-  span.className = 'ds-press-ripple';
-  span.setAttribute('aria-hidden', 'true');
-  span.setAttribute('data-ds-keep', '');
-  span.style.setProperty('--ds-ripple-x', `${Math.round(left * 100) / 100}px`);
-  span.style.setProperty('--ds-ripple-y', `${Math.round(top * 100) / 100}px`);
-  span.style.setProperty('--ds-ripple-r', `${Math.round(radius * 100) / 100}px`);
-  // WebKit gives a transformed row's absolute boxes the table's height:
-  // the row's own height keeps the circle inside the row.
-  if (row) span.style.height = `${Math.round(height * 100) / 100}px`;
-  holder.append(span);
-  const twin = row ? pinnedTwin(surface, rect, left, top, radius) : null;
+  const first = row ? pinnedCell(surface) : null;
+  const last = row ? pinnedLastCell(surface) : null;
+  /** @type {HTMLElement} */
+  let span;
+  if (holder === last) {
+    // Both of a row's two cells are pinned: nothing scrolls under them.
+    span = pinnedPart(surface, last, rect, left, top, radius);
+  } else {
+    span = rippleSpan(surface.ownerDocument, left, top, radius);
+    // WebKit gives a transformed row's absolute boxes the table's height:
+    // the row's own height keeps the circle inside the row.
+    if (row) span.style.height = `${Math.round(height * 100) / 100}px`;
+    holder.append(span);
+  }
+  const twins = [first, holder === last ? null : last].filter(Boolean)
+    .map((cell) => pinnedPart(surface, cell, rect, left, top, radius));
   host.classList.add('ds-pressed');
   /** @type {Press} */
   const press = { span, at: now(), released: false };
-  if (twin) press.twin = twin;
+  if (twins.length) press.twins = twins;
   presses.set(host, press);
   pressing.add(host);
   return press;
@@ -740,7 +772,7 @@ export function attach(root = document) {
     if (!host || inactive(host)) return;
     const target = /** @type {Element} */ (event.target);
     if (target.closest?.(OWN_PRESS) && !host.matches(OWNS_INPUT)) return;
-    if (pressesOther(host, target)) return;
+    if (pressesOther(host, target) || inPinnedRoom(host, target)) return;
     const press = start(host, event.clientX, event.clientY);
     if (!press) return;
     const pointer = event.pointerId;
@@ -823,7 +855,7 @@ export function attach(root = document) {
     const target = /** @type {Element} */ (event.target);
     const node = target?.nodeType === 1 ? target : target?.parentElement;
     const row = node?.closest?.(PINNED_ROW);
-    if (!row || !element.contains(row) || !row.querySelector('a[href].ds-table__row-link') || node.closest(CONTROLS)) return;
+    if (!row || !element.contains(row) || !row.querySelector('a[href].ds-table__row-link') || node.closest(CONTROLS) || inPinnedRoom(row, node)) return;
     event.preventDefault();
     middleRow = row;
   };

@@ -8,19 +8,43 @@
   "status": "stable",
   "classes": [
     "ds-pagination",
+    "ds-pagination--cursor",
+    "ds-pagination--numbered",
+    "ds-pagination--simple",
+    "ds-pagination__gap",
+    "ds-pagination__jump",
     "ds-pagination__label",
+    "ds-pagination__page",
+    "ds-pagination__pages",
     "ds-pagination__range",
     "ds-pagination__size"
   ],
   "attributes": [],
   "requires": [
+    "button",
     "form"
   ],
   "context": [
     "card",
     "table"
   ],
-  "hooks": {},
+  "hooks": {
+    "--ds-pagination-current-bg": {
+      "default": "`--ds-accent`",
+      "description": "the fill of the current `.ds-pagination__page`"
+    },
+    "--ds-pagination-current-color": {
+      "default": "`--ds-on-accent`",
+      "description": "the figure of the current `.ds-pagination__page`"
+    },
+    "--ds-pagination-jump-width": {
+      "default": "72px",
+      "description": "the number field of `.ds-pagination__jump`"
+    },
+    "--ds-btn-height": {
+      "owner": "button"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],

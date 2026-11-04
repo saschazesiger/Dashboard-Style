@@ -127,7 +127,6 @@ const PROGRESSIVE = [
   [/scrollbar-gutter/, 'scrollbar-gutter'],
   [/field-sizing/, 'field-sizing'],
   [/hyphenate-limit-chars/, 'hyphenate-limit-chars'],
-  [/content:\s*[^;]*\/\s*["']/, 'alt text for generated content'],
   [/\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(\s*from\b/, 'relative colour'],
   [/@scope\b/, '@scope'],
   [/@container[^{]*\bstyle\s*\(/, 'style queries'],
@@ -2477,32 +2476,29 @@ describe('tables and scrollers (2.0)', () => {
     const own = (selector) => Object.fromEntries(declarationsAt(atRuleBlocks(table, /@container ds-content \(max-width: 600px\)/).join('\n'), selector).map((entry) => [entry.property, entry.value]));
     assert.equal(own('.ds-table--stack > thead')['clip-path'], 'inset(50%)');
     assert.equal(own('.ds-table--stack > tbody > tr').border, '1px solid var(--ds-line)');
-    assert.equal(own('.ds-table--stack > tbody > tr')['border-radius'], 'var(--ds-radius-card)');
+    assert.equal(own('.ds-table--stack > tbody > tr')['border-radius'], 'calc(var(--ds-radius-card) * var(--ds-shape, 1))');
     const label = declarationsAt(atRuleBlocks(table, /@container ds-content \(max-width: 600px\)/).join('\n'), '.ds-table--stack > tbody > tr > td[data-label]::before');
-    assert.deepEqual(label.filter((entry) => entry.property === 'content').map((entry) => entry.value), ['attr(data-label)', 'attr(data-label) / ""'], 'the plain label first, the alt text form after it');
+    assert.deepEqual(label.filter((entry) => entry.property === 'content').map((entry) => entry.value), ['attr(data-label) / ""'], 'the alt text form: the label is not read twice (at the floor)');
     assert.equal(label.find((entry) => entry.property === 'font')?.value, 'var(--ds-font-label)');
     // A wrapper of stacked rows never fades.
     const quiet = Object.fromEntries(declarationsAt(table, '.ds-card .ds-table-wrap:has(> :is(.ds-table--stack, .ds-table--stack-wide))').map((entry) => [entry.property, entry.value]));
-    assert.deepEqual([quiet['mask-image'], quiet['-webkit-mask-image'], quiet.animation], ['none', 'none', 'none']);
+    assert.deepEqual([quiet['mask-image'], quiet.animation], ['none', 'none']);
   });
 
   it('fades every sideways scroller on the two edge numbers, through --ds-scroll-fade, and leaves the scrollbar strip opaque', () => {
     const masks = [...rules(read(SCROLLER)), ...rules(table)].flatMap((rule) => declarations(`${rule.body};`).filter((entry) => /mask-image$/.test(entry.property) && entry.value !== 'none').map((entry) => ({ selector: rule.selector, ...entry })));
-    assert.ok(masks.length >= 12, `${masks.length} masks`);
+    assert.ok(masks.length >= 9, `${masks.length} masks`);
     for (const { selector, property, value } of masks) {
       assert.match(value, /var\(--ds-scroll-fade, var\(--ds-(space-8|card-pad)\)\)/, `${selector}: ${property} reads the one fade switch`);
       // Only transparent and #000 as stops (a mask reads alpha), never a colour or a deprecated length.
       assert.doesNotMatch(value, /--ds-table-fade-|rgb|#(?!000\b)/, `${selector}: ${property}`);
       if (/to right/.test(value)) assert.match(value, /calc\(var\(--ds-scroll-edge-start\) \* .*calc\(100% - var\(--ds-scroll-edge-end\) \* /, `${selector}: the numbers scale the fade`);
     }
-    // Every masked scroller has its -webkit- twin (Chrome and Edge before 120).
-    for (const { selector, property } of masks.filter((entry) => entry.property === 'mask-image')) assert.ok(masks.some((entry) => entry.selector === selector && entry.property === '-webkit-mask-image'), selector);
     // The scrollbar strip: a second, opaque layer the size of --ds-scrollbar-height (the fill wrapper: the padding box ring).
     const size = declarationsOf(read(SCROLLER), '.ds-scroll-x').find((entry) => entry.property === 'mask-size')?.value;
     assert.equal(size, '100% calc(100% - var(--ds-scrollbar-height, 0px)), 100% var(--ds-scrollbar-height, 0px)');
     const fill = Object.fromEntries(declarationsOf(table, '.ds-table-wrap--fill').map((entry) => [entry.property, entry.value]));
     assert.equal(fill['mask-composite'], 'add, exclude');
-    assert.equal(fill['-webkit-mask-composite'], 'source-over, xor');
     assert.equal(fill['mask-clip'], 'padding-box, padding-box, border-box');
     // The attribute fallback sets the numbers; the scroll timeline wins where it runs.
     for (const [file, host] of [[SCROLLER, '.ds-scroll-x'], [TABLE, '.ds-table-wrap']]) {
@@ -2555,7 +2551,6 @@ describe('tables and scrollers (2.0)', () => {
       assert.equal(focus.outline, 'var(--ds-focus-outline)', host);
       assert.equal(focus['outline-offset'], 'calc(-1 * var(--ds-focus-width))', host);
       assert.equal(focus['mask-image'], 'none', host);
-      assert.equal(focus['-webkit-mask-image'], 'none', host);
     }
     const print = (file, selector) => Object.fromEntries(atRuleBlocks(read(file), /@media\s+print/).flatMap((block) => declarationsOf(block, selector)).map((entry) => [entry.property, entry.value]));
     assert.deepEqual([print(SCROLLER, '.ds-scroll-x').overflow, print(SCROLLER, '.ds-scroll-x')['mask-image']], ['visible', 'none']);
@@ -2680,11 +2675,19 @@ describe('tables and scrollers (2.0)', () => {
   });
 
   it('reads the density hooks for every cell height, and the cell padding from them', () => {
-    for (const [selector, hook, fallback] of [['.ds-table th', '--ds-table-head-height', '48px'], ['.ds-table td', '--ds-table-row-height', '52px'], ['.ds-table--dense :is(th, td)', '--ds-table-dense-row-height', '40px']]) {
-      const own = Object.fromEntries(declarationsAt(withoutAtRuleBlocks(table, /@media|@container/), selector).map((entry) => [entry.property, entry.value]));
-      assert.equal(own.height, `var(${hook}, ${fallback})`, selector);
-      assert.ok(own['padding-block'].startsWith('min(var(--ds-space-3), calc((') && own['padding-block'].includes(`var(${hook}, ${fallback})`), `${selector}: ${own['padding-block']}`);
+    const screen = withoutAtRuleBlocks(table, /@media|@container/);
+    const declared = (selector) => Object.fromEntries(declarationsAt(screen, selector).map((entry) => [entry.property, entry.value]));
+    // The hook is the base at size md and comfortable density; size and density step from it, in the cell's own rule (3.0).
+    for (const [selector, hook, fallback] of [['.ds-table th', '--ds-table-head-height', '48px'], ['.ds-table td', '--ds-table-row-height', '52px']]) {
+      assert.equal(declared(selector)['--_h'], `calc(var(${hook}, ${fallback}) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)`, selector);
+      // Every cell measures the box, which touch keeps at its minimum; the block padding follows it.
+      assert.equal(declared(selector)['--_box'], 'max(var(--ds-target-min, 0px), var(--_h))', selector);
+      assert.equal(declared(selector).height, 'var(--_box)', selector);
+      assert.equal(declared(selector)['padding-block'], 'min(var(--ds-space-3), max(0px, calc((var(--_box) - var(--_room)) / 2)))', selector);
+      assert.equal(declared(selector)['--_pad'], 'calc(var(--ds-table-padding, var(--ds-space-4)) + var(--ds-density, 0) * 2px)', selector);
     }
+    // The deprecated alias keeps its fixed 2.x height (no size or density step).
+    assert.equal(declared('.ds-table--dense :is(th, td)')['--_h'], 'var(--ds-table-dense-row-height, 40px)');
     // Summary rows: label type, a hairline above, none below.
     const foot = Object.fromEntries(declarationsAt(table, '.ds-table tfoot :is(th, td)').map((entry) => [entry.property, entry.value]));
     assert.deepEqual([foot['border-top'], foot['border-bottom'], foot.font, foot['font-variant-numeric']], ['1px solid var(--ds-line-2)', '0', 'var(--ds-font-label)', 'tabular-nums']);

@@ -13,12 +13,18 @@
     "ds-selection-bar__actions",
     "ds-selection-bar__count",
     "ds-table",
+    "ds-table--bordered",
     "ds-table--dense",
     "ds-table--interactive",
     "ds-table--pin-first",
+    "ds-table--pin-last",
+    "ds-table--plain",
     "ds-table--stack",
     "ds-table--stack-wide",
+    "ds-table--sticky-foot",
+    "ds-table--sticky-head",
     "ds-table--wide",
+    "ds-table--zebra",
     "ds-table-wrap",
     "ds-table-wrap--fill",
     "ds-table__actions",
@@ -46,6 +52,7 @@
     "card",
     "combobox",
     "dialog",
+    "form",
     "menu",
     "ripple",
     "sheet",
@@ -62,19 +69,35 @@
     },
     "--ds-table-head-height": {
       "default": "48px",
-      "description": "table header cells (the block padding follows)"
+      "description": "table header cells: the base (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); the block padding follows"
     },
     "--ds-table-row-height": {
       "default": "52px",
-      "description": "table body cells (the block padding follows)"
+      "description": "table body cells: the base (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); the block padding follows"
     },
     "--ds-table-dense-row-height": {
       "default": "40px",
-      "description": "the cells of `.ds-table--dense`"
+      "description": "the fixed height of the cells of `.ds-table--dense` (deprecated, with the class)"
+    },
+    "--ds-table-padding": {
+      "default": "`--ds-space-4`",
+      "description": "the side padding of table cells and of an open detail: the base that density steps apply to (2px per step); on phones (600px) three quarters of it, below 360px half"
+    },
+    "--ds-table-zebra": {
+      "default": "`--ds-surface-low`",
+      "description": "the even rows of `.ds-table--zebra`"
     },
     "--ds-table-sticky-bg": {
       "default": "`--ds-surface`",
-      "description": "the opaque base of the sticky header and the pinned column, and the background of `.ds-table-wrap--fill`"
+      "description": "the opaque base of sticky rows and pinned columns, and the background of `.ds-table-wrap--fill`"
+    },
+    "--ds-table-max-height": {
+      "default": "none",
+      "description": "the most height of a wrapper around `.ds-table--sticky-head` or `.ds-table--sticky-foot`: set it, so the rows scroll under the sticky ones"
+    },
+    "--ds-table-pin-last-width": {
+      "default": "0px",
+      "description": "the width of a `.ds-table--pin-last` column, set by the page on the wrapper: its end `scroll-padding`, so focus moved by the keyboard never lands under the column"
     },
     "--ds-table-cell-max-width": {
       "default": "280px",
@@ -87,6 +110,10 @@
     "--ds-table-fill-max-height": {
       "default": "none",
       "description": "the most height of `.ds-table-wrap--fill`"
+    },
+    "--ds-selection-bar-height": {
+      "default": "48px",
+      "description": "the least height of `.ds-selection-bar`: the base that size and density steps apply to"
     },
     "--ds-btn-height": {
       "owner": "button"
@@ -108,8 +135,7 @@
   ],
   "progressive": [
     "scroll-driven",
-    "scrollbar-color",
-    "alt text for generated content"
+    "scrollbar-color"
   ],
   "ripple": true,
   "rippleHosts": [
@@ -118,15 +144,10 @@
   ],
   "exceptions": {
     "physical": {
-      ".ds-table-wrap--fill: -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
       ".ds-table-wrap--fill: mask-image": "gradient direction: the edge fades follow the sideways scroll",
-      ".ds-card .ds-table-wrap:has(> .ds-table--wide): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
       ".ds-card .ds-table-wrap:has(> .ds-table--wide): mask-image": "gradient direction: the edge fades follow the sideways scroll",
-      ".ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
       ".ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): mask-image": "gradient direction: the edge fades follow the sideways scroll",
-      ".ds-card .ds-table-wrap: -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
       ".ds-card .ds-table-wrap: mask-image": "gradient direction: the edge fades follow the sideways scroll",
-      ".ds-card .ds-table-wrap:where([data-ds-edges]): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
       ".ds-card .ds-table-wrap:where([data-ds-edges]): mask-image": "gradient direction: the edge fades follow the sideways scroll"
     }
   },
