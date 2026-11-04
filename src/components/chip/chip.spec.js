@@ -56,9 +56,8 @@ test('the height at every size x density, never below its line, and .ds-touch as
           region.className = `ds-chips ${density} ${size}${touch ? ' ds-touch' : ''}`;
           region.innerHTML = html;
           main.prepend(region);
-          const base = parseFloat(getComputedStyle(region).getPropertyValue('--ds-chip-height')) || 32;
           for (const chip of region.querySelectorAll('.ds-chip__body')) {
-            out.push({ touch, density, size, base, height: chip.getBoundingClientRect().height, line: parseFloat(getComputedStyle(chip).lineHeight) });
+            out.push({ touch, density, size, height: chip.getBoundingClientRect().height, line: parseFloat(getComputedStyle(chip).lineHeight) });
           }
           region.remove();
         }
@@ -71,8 +70,17 @@ test('the height at every size x density, never below its line, and .ds-touch as
     const step = SIZES.find(([size]) => size === entry.size)[1];
     const density = DENSITIES.find(([name]) => name === entry.density)[1];
     const name = `${entry.size} ${entry.density}${entry.touch ? ' touch' : ''}`;
-    expect(entry.height, name).toBeCloseTo(Math.max(entry.touch ? TOUCH : 0, entry.base + step * 8 + density * 4, entry.line + 2), 0);
+    expect(entry.height, name).toBeCloseTo(Math.max(entry.touch ? TOUCH : 0, 32 + step * 8 + density * 4, entry.line + 2), 0);
   }
+});
+
+test('the compact theme: a chip is its density\'s 24px', async ({ page }) => {
+  await open(page);
+  await page.addStyleTag({ url: '/dist/themes/compact.css' });
+  await add(page, filter('', '', 'c-plain') + action('', '', 'c-action') + `<div class="ds-density-comfortable">${filter('', '', 'c-back')}</div>`);
+  await expect.poll(async () => (await body(page, '#c-plain')).height).toBe(24);
+  expect((await body(page, '#c-action')).height).toBe(24);
+  expect((await body(page, '#c-back')).height).toBe(32);
 });
 
 test('the default chip is 32px; type, side padding and check follow size, not density', async ({ page }) => {

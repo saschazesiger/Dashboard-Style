@@ -5,8 +5,8 @@
  *   <link rel="stylesheet" href="vendor/dashboard-style/themes/compact.css">
  *
  * In 3.0 it is the dense density (--ds-density: -2, docs/options.md) plus
- * its type roles: the components on the options model (the button) take
- * their compact height from the density. The others keep their compact
+ * its type roles: the components on the options model (buttons, fields, chips)
+ * take their compact height from the density. The others keep their compact
  * heights as hooks below until they are ported, so the page looks as it
  * did in 2.x; each hook goes when its component computes its height from
  * the density.
@@ -34,12 +34,10 @@
 /* ── Density, and the heights of the components not ported yet (not where the theme root opted into touch targets) ── */
 .ds-theme:not(.ds-touch) {
   --ds-density: -2;
-  --ds-input-height: 36px;
   --ds-table-head-height: 40px;
   --ds-table-row-height: 40px;
   --ds-menu-item-height: 40px;
   --ds-drawer-item-height: 40px;
-  --ds-chip-height: 28px;
   --ds-tabs-height: 40px;
 }
 
@@ -47,12 +45,10 @@
 @media (pointer: coarse) {
   .ds-theme:not(.ds-touch) {
     --ds-density: 0;
-    --ds-input-height: 40px;
     --ds-table-head-height: 48px;
     --ds-table-row-height: 52px;
     --ds-menu-item-height: 48px;
     --ds-drawer-item-height: 48px;
-    --ds-chip-height: 32px;
     --ds-tabs-height: 48px;
   }
 }

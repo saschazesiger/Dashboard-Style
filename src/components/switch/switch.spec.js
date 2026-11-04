@@ -55,8 +55,7 @@ test('track and row at every size x density, and .ds-touch as a minimum', async 
             touch, density, size,
             row: region.querySelector('.ds-switch').getBoundingClientRect().height,
             track: [track.width, track.height], input: [input.width, input.height],
-            halo: parseFloat(before.width), base: parseFloat(getComputedStyle(region).getPropertyValue('--ds-switch-height')) || 40,
-            haloBase: parseFloat(getComputedStyle(region).getPropertyValue('--ds-switch-halo')) || 40,
+            halo: parseFloat(before.width),
             line: parseFloat(getComputedStyle(region.querySelector('.ds-switch')).lineHeight),
           });
           region.remove();
@@ -78,10 +77,10 @@ test('track and row at every size x density, and .ds-touch as a minimum', async 
     expect(entry.input[1], `${name} input`).toBeCloseTo(track, 0);
     expect(entry.input[0], `${name} input width`).toBeCloseTo(track * 13 / 8, 0);
     // The row: 8px per size step, 4px per density step; never below the track or the line; touch at least 48px.
-    const expected = Math.max(entry.touch ? TOUCH : 0, entry.base + step * 8 + density * 4, track, entry.line);
+    const expected = Math.max(entry.touch ? TOUCH : 0, 40 + step * 8 + density * 4, track, entry.line);
     expect(entry.row, name).toBeCloseTo(expected, 0);
     // The halo: size only.
-    expect(entry.halo, `${name} halo`).toBeCloseTo(Math.max(entry.touch ? TOUCH : 0, entry.haloBase + step * 8), 0);
+    expect(entry.halo, `${name} halo`).toBeCloseTo(Math.max(entry.touch ? TOUCH : 0, 40 + step * 8), 0);
   }
 });
 

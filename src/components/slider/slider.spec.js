@@ -76,11 +76,16 @@ test('the height at every size x density, and .ds-touch as a minimum; the handle
 test('shape: the handle and the track square at 0, round at the default', async ({ page }) => {
   await open(page);
   await add(page, ['square', 'soft', 'default', 'round'].map((shape) => `<div class="ds-shape-${shape}"><input class="ds-slider" id="s-${shape}" type="range" aria-label="Value" value="50"></div>`).join(''));
-  const radius = (id) => page.$eval(`#${id}`, (el, source) => new Function(`return (${source})`)()(el, '--_thumb-radius'), resolved.toString());
-  expect(await radius('s-square')).toBe(0);
-  expect(await radius('s-soft')).toBe(5);
-  expect(await radius('s-default')).toBe(10);
-  expect(await radius('s-round')).toBe(10);
+  const radius = (id, name) => page.$eval(`#${id}`, (el, { source, part }) => new Function(`return (${source})`)()(el, part), { source: resolved.toString(), part: name });
+  expect(await radius('s-square', '--_thumb-radius')).toBe(0);
+  expect(await radius('s-soft', '--_thumb-radius')).toBe(5);
+  expect(await radius('s-default', '--_thumb-radius')).toBe(10);
+  expect(await radius('s-round', '--_thumb-radius')).toBe(10);
+  // The track: --ds-radius-xs (4px) times the shape, at most half of its 4px.
+  expect(await radius('s-square', '--_track-radius')).toBe(0);
+  expect(await radius('s-soft', '--_track-radius')).toBe(2);
+  expect(await radius('s-default', '--_track-radius')).toBe(2);
+  expect(await radius('s-round', '--_track-radius')).toBe(2);
 });
 
 test('keyboard and names: Tab reaches it, the arrows, Home and End move it, a disabled one is skipped, its label names it', async ({ page }) => {
@@ -96,6 +101,52 @@ test('keyboard and names: Tab reaches it, the arrows, Home and End move it, a di
   await page.keyboard.press('Tab');
   await expect(page.locator('#k3')).toBeFocused();
   await expect(page.locator('#fx-added').getByRole('slider', { name: 'Keep history for' })).toHaveCount(1);
+});
+
+test('an aria-disabled slider holds its value: keys, a press and a drag move nothing, and the page hears nothing', async ({ page }) => {
+  await open(page);
+  await add(page, '<input class="ds-slider" id="b" type="range" min="0" max="100" value="50" aria-label="Blocked" aria-disabled="true">'
+    + '<div data-ds-guard="off"><input class="ds-slider" id="off" type="range" min="0" max="100" value="50" aria-label="Explains itself" aria-disabled="true"></div>'
+    + '<input class="ds-slider" id="free" type="range" min="0" max="100" value="50" aria-label="Free">');
+  await page.evaluate(() => {
+    window.heard = [];
+    for (const type of ['input', 'change']) document.addEventListener(type, (event) => window.heard.push(`${type} ${event.target.id}`));
+  });
+  const blocked = page.locator('#b');
+  // It stays in the tab order, and every value key does nothing.
+  await blocked.focus();
+  await expect(blocked).toBeFocused();
+  for (const key of ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown']) {
+    await page.keyboard.press(key);
+    await expect(blocked, key).toHaveValue('50');
+  }
+  // A press far along the track, and a drag.
+  const box = await blocked.boundingBox();
+  const y = box.y + box.height / 2;
+  await page.mouse.click(box.x + box.width * 0.9, y);
+  await expect(blocked).toHaveValue('50');
+  await page.mouse.move(box.x + box.width / 2, y);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.2, y, { steps: 4 });
+  await expect(blocked).toHaveValue('50');
+  await page.mouse.up();
+  await expect(blocked).toHaveValue('50');
+  expect(await page.evaluate(() => window.heard)).toEqual([]);
+  // The page's own value stays and is the one held from then on.
+  await blocked.evaluate((el) => { el.value = '20'; });
+  await page.mouse.click(box.x + box.width * 0.9, y);
+  await expect(blocked).toHaveValue('20');
+  // Once unblocked it moves; so does one that opted out of the guard, and a usable one.
+  await blocked.evaluate((el) => el.removeAttribute('aria-disabled'));
+  await blocked.focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(blocked).toHaveValue('21');
+  for (const id of ['off', 'free']) {
+    await page.locator(`#${id}`).focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.locator(`#${id}`), id).toHaveValue('51');
+  }
+  expect(await page.evaluate(() => window.heard)).toEqual(expect.arrayContaining(['input b', 'input off', 'input free']));
 });
 
 test('the demo keeps its output in step with the value', async ({ page }) => {

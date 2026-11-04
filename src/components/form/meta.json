@@ -225,6 +225,7 @@
     },
     "physical": {
       "select.ds-input, input.ds-input[list]: padding-right": "the room of the arrow, which sits at the right",
+      ".ds-field--inset > select.ds-input, .ds-field--inset > select.ds-input:focus, .ds-field--inset > input.ds-input[list], .ds-field--inset > input.ds-input[list]:focus: padding-right": "the room of the arrow in the inset box, whose padding-inline would take it away",
       "select.ds-input, input.ds-input[list]: background-position": "the select arrow: two gradients placed from the right edge",
       "input.ds-input[list]::-webkit-calendar-picker-indicator: margin": "the invisible picker laid over the arrow at the right"
     },

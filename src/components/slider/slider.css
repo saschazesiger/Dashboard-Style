@@ -28,12 +28,16 @@
  *   density   .ds-density-*: 4px of height and halo per step, never the
  *             handle or the track
  *   shape     .ds-shape-*: multiplies the radius of the track and of the
- *             handle (round at the default, square at 0); the halo stays round
+ *             handle (round at the default, square at 0); the halo is the
+ *             handle's shadow, so it follows the handle's shape
  *   touch     .ds-touch: at least --ds-touch-target (48px) high
  *
  * Disabled (and aria-disabled="true"): the neutral ink for the handle and
  * the active part, no halo; the handle lays the ink over --ds-surface, so
- * it stays solid; it fades on --ds-dur-fast. Forced colours: the
+ * it stays solid; it fades on --ds-dur-fast. aria-disabled stays in the tab
+ * order, and the action guard (DS.motion.guard) holds its value: a press, a
+ * drag or a key moves nothing and no input event reaches the page. Forced
+ * colours: the
  * track in ButtonText, the handle in Highlight (GrayText when disabled).
  *
  * Hooks: --ds-slider-halo (40px), --ds-slider-thumb-size (20px),

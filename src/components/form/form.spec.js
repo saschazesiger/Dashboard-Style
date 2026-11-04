@@ -61,13 +61,11 @@ test('the height at every size x density, and .ds-touch as a minimum over both',
             + '<label class="ds-check" data-kind="check"><input type="checkbox"><span>Row</span></label>'
             + '<div class="ds-search"><input class="ds-input" aria-label="Search" placeholder="Search" data-kind="search"></div>';
           main.prepend(region);
-          const base = parseFloat(getComputedStyle(region).getPropertyValue('--ds-input-height')) || 40;
-          const checkBase = parseFloat(getComputedStyle(region).getPropertyValue('--ds-check-height')) || 40;
           for (const el of region.querySelectorAll('[data-kind]')) {
             const css = getComputedStyle(el);
             // A group holds the line of its input.
             const line = parseFloat(el.dataset.kind === 'group' ? getComputedStyle(el.firstElementChild).lineHeight : css.lineHeight);
-            out.push({ touch, density, size, kind: el.dataset.kind, height: el.getBoundingClientRect().height, line, base: el.dataset.kind === 'check' ? checkBase : base });
+            out.push({ touch, density, size, kind: el.dataset.kind, height: el.getBoundingClientRect().height, line });
           }
           region.remove();
         }
@@ -82,7 +80,7 @@ test('the height at every size x density, and .ds-touch as a minimum over both',
     const name = `${entry.kind} ${entry.size} ${entry.density}${entry.touch ? ' touch' : ''}`;
     // 40px at md and comfortable, 8px per size step, 4px per density step; never below its own line and border; touch: at least 48px.
     const content = entry.line + (entry.kind === 'check' ? 0 : 2);
-    const expected = Math.max(entry.touch ? TOUCH : 0, entry.base + step * 8 + density * 4, content);
+    const expected = Math.max(entry.touch ? TOUCH : 0, 40 + step * 8 + density * 4, content);
     expect(Math.abs(entry.height - expected), `${name}: ${entry.height} against ${expected}`).toBeLessThanOrEqual(2);
     if (entry.touch) expect(entry.height, `${name} touch minimum`).toBeGreaterThanOrEqual(TOUCH);
   }
@@ -96,6 +94,28 @@ test('the default field is 40px; a nested region follows its own density, a comf
   expect((await style(page, '#dense')).height).toBe(32);
   expect((await style(page, '#back')).height).toBe(40);
   expect((await style(page, '#dense-lg')).height).toBe(40);
+});
+
+test('the compact theme: a field and an input group are its density\'s 32px', async ({ page }) => {
+  await open(page);
+  await page.addStyleTag({ url: '/dist/themes/compact.css' });
+  await add(page, '<input class="ds-input" id="c-field" aria-label="Field"><select class="ds-input" id="c-select" aria-label="Select"><option>One</option></select><div class="ds-input-group" id="c-group"><input class="ds-input" aria-label="Group"></div><div class="ds-density-comfortable"><input class="ds-input" id="c-back" aria-label="Back"></div>');
+  await expect.poll(async () => (await style(page, '#c-field')).height).toBe(32);
+  expect((await style(page, '#c-select')).height).toBe(32);
+  expect((await style(page, '#c-group')).height).toBe(32);
+  expect((await style(page, '#c-back')).height).toBe(40);
+});
+
+test('an inline form centres its button on the field at every option', async ({ page }) => {
+  await open(page);
+  const form = (cls, button = '') => `<div class="ds-inline-form ${cls}" data-inline><div class="ds-field"><label class="ds-field__label" for="if-${cls}${button}">Ticket</label><input class="ds-input" id="if-${cls}${button}"></div><button class="ds-btn ${button}" type="button">Look up</button></div>`;
+  await add(page, form('') + form('ds-sm') + form('ds-lg') + form('ds-density-dense') + form('ds-touch') + form('', 'ds-sm') + form('', 'ds-lg'));
+  const offsets = await page.$$eval('[data-inline]', (forms) => forms.map((el) => {
+    const centre = (part) => { const rect = el.querySelector(part).getBoundingClientRect(); return (rect.top + rect.bottom) / 2; };
+    return Math.abs(centre('.ds-input') - centre('.ds-btn'));
+  }));
+  expect(offsets).toHaveLength(7);
+  for (const offset of offsets) expect(offset).toBeLessThanOrEqual(0.5);
 });
 
 test('type follows size, side padding follows size and not density, labels keep their role', async ({ page }) => {
@@ -208,6 +228,57 @@ test('the looks: outlined on the surface, filled on the tone without a border, i
   expect((await style(page, '#inset-group .ds-input-group')).shadow).toBe('none');
 });
 
+test('filled reaches an input group in a field row: the readable placeholder, its own hover', async ({ page }) => {
+  await open(page);
+  await add(page, '<div class="ds-field ds-field--filled"><label class="ds-field__label" for="rg">Key</label><div class="ds-field__row"><div class="ds-input-group" id="rg-box"><input class="ds-input" id="rg" placeholder="Paste it"></div><button class="ds-btn" type="button">Copy</button></div></div>');
+  await settle(page);
+  expect(await page.$eval('#rg', (el) => getComputedStyle(el, '::placeholder').color)).toBe(await role(page, 'var(--ds-text-2)'));
+  await page.hover('#rg-box');
+  await settle(page);
+  expect(await style(page, '#rg-box')).toMatchObject({ background: await role(page, 'var(--ds-surface-highest)'), borderTop: 'rgba(0, 0, 0, 0)' });
+});
+
+test('inset takes a select with the triangle\'s room, and a counter in line with the label', async ({ page }) => {
+  await open(page);
+  await add(page, '<select class="ds-input" id="plain-select" aria-label="Plain"><option>One</option></select>'
+    + '<div class="ds-field ds-field--inset"><label class="ds-field__label" for="is">Kind</label><select class="ds-input" id="is"><option>One</option></select></div>'
+    + '<div class="ds-field ds-field--inset"><label class="ds-field__label" for="il">Kind</label><input class="ds-input" id="il" list="il-list"><datalist id="il-list"><option value="One"></option></datalist></div>'
+    + '<div class="ds-field ds-field--inset" id="if"><label class="ds-field__label" id="if-l" for="ifi">Note</label><input class="ds-input" id="ifi"><div class="ds-field__foot" id="if-f"><small class="ds-field__hint">Hint</small><span class="ds-field__counter" aria-hidden="true">1 / 80</span></div></div>');
+  const paddingRight = (id) => page.$eval(`#${id}`, (el) => parseFloat(getComputedStyle(el).paddingRight));
+  const room = await paddingRight('plain-select');
+  expect(room).toBeGreaterThan(12);
+  expect(await paddingRight('is')).toBe(room);
+  expect(await paddingRight('il')).toBe(room);
+  // Also while focused: the inset's focus rule sets the padding as well.
+  await page.focus('#is');
+  expect(await paddingRight('is')).toBe(room);
+  await page.focus('#il');
+  expect(await paddingRight('il')).toBe(room);
+  // The foot lines up with the label's text and keeps a gap to the box.
+  const foot = await page.evaluate(() => {
+    const [label, row, input] = ['#if-l', '#if-f', '#ifi'].map((selector) => document.querySelector(selector));
+    return {
+      label: label.getBoundingClientRect().left + parseFloat(getComputedStyle(label).paddingInlineStart),
+      foot: row.getBoundingClientRect().left + parseFloat(getComputedStyle(row).paddingInlineStart),
+      gap: row.getBoundingClientRect().top - input.getBoundingClientRect().bottom,
+    };
+  });
+  expect(foot.foot).toBe(foot.label);
+  expect(foot.gap).toBe(4);
+});
+
+test('on a phone an inset box is one height with a plain input and with an input group', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await open(page);
+  await add(page, '<div class="ds-field ds-field--inset" id="pi"><label class="ds-field__label" for="pii">Title</label><input class="ds-input" id="pii"></div>'
+    + '<div class="ds-field ds-field--inset" id="pg"><label class="ds-field__label" for="pgi">Site</label><div class="ds-input-group"><input class="ds-input" id="pgi"></div></div>');
+  const heights = () => page.evaluate(() => ['#pi', '#pg'].map((id) => document.querySelector(id).getBoundingClientRect().height));
+  const [plain, group] = await heights();
+  expect(group).toBe(plain);
+  await page.focus('#pgi');
+  expect((await heights())[1], 'also focused').toBe(plain);
+});
+
 test('inset follows size, density and touch', async ({ page }) => {
   await open(page);
   const measure = (cls, id) => `<div class="${cls}"><div class="ds-field ds-field--inset" id="${id}"><label class="ds-field__label" for="${id}-i">Title</label><input class="ds-input" id="${id}-i" value="Value"></div></div>`;
@@ -241,6 +312,14 @@ test('the slots: in the order of the markup, the same type as the value, a trail
   expect((await style(page, '#slot-btn')).outline).toBe('solid');
 });
 
+test('a button in the trailing slot adds nothing to the field\'s height, like a direct one', async ({ page }) => {
+  await open(page);
+  const group = (id, cls, button) => `<div class="${cls}"><div class="ds-input-group" id="${id}"><input class="ds-input" aria-label="Group"><span class="ds-input-group__trailing"><button class="ds-btn ds-btn--quiet ds-btn--icon ${button}" type="button" aria-label="Clear"><span>x</span></button></span></div></div>`;
+  await add(page, group('slot-md', '', '') + group('slot-sm', '', 'ds-sm') + group('slot-dense', 'ds-density-dense', 'ds-sm') + group('slot-xs', 'ds-xs', 'ds-xs')
+    + '<div class="ds-input-group" id="direct"><input class="ds-input" aria-label="Group"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear"><span>x</span></button></div>');
+  for (const [id, height] of [['slot-md', 40], ['slot-sm', 40], ['slot-dense', 32], ['slot-xs', 24], ['direct', 40]]) expect((await style(page, `#${id}`)).height, id).toBe(height);
+});
+
 test('warning and success colour the control and its ring, the hint says it; aria-invalid stays the error', async ({ page }) => {
   await open(page);
   await add(page, '<div class="ds-field ds-field--warning"><label class="ds-field__label" for="w">Cert</label><input class="ds-input" id="w" aria-describedby="w-h"><small class="ds-field__hint ds-field__hint--warning" id="w-h"><svg width="16" height="16" aria-hidden="true"></svg>Expires in 3 days.</small></div>'
@@ -259,8 +338,11 @@ test('warning and success colour the control and its ring, the hint says it; ari
   const focused = await style(page, '#w');
   expect(focused.borderTop).toBe(warning);
   expect(focused.shadow).toContain(warning);
+  // The label takes the ring's colour with the ring.
+  expect((await style(page, 'label[for="w"]')).color).toBe(warning);
   await page.focus('#s');
   expect((await style(page, '#s-box')).shadow).toContain(success);
+  expect((await style(page, 'label[for="s"]')).color).toBe(success);
   // Filled line of the inset field.
   expect((await style(page, '#w-inset', '::before')).shadow).toContain(warning);
   // aria-invalid wins over a state class.
@@ -280,6 +362,37 @@ test('read-only: the quiet look, focusable and selectable; a select through aria
   await expect(page.locator('#after')).toBeFocused();
 });
 
+test('a focused read-only field shows the whole ring or focus line of its look, on the quiet surface', async ({ page }) => {
+  await open(page);
+  await add(page, '<input class="ds-input" id="ro" aria-label="Serial" value="SN-0042" readonly>'
+    + '<div class="ds-input-group" id="rog"><input class="ds-input" id="rogi" aria-label="Key" value="abc" readonly></div>'
+    + '<div class="ds-field ds-field--filled"><label class="ds-field__label" for="rof">Owner</label><input class="ds-input" id="rof" value="Ada" readonly></div>'
+    + '<div class="ds-field ds-field--inset" id="roi"><label class="ds-field__label" for="roii">Title</label><input class="ds-input" id="roii" value="Report" readonly></div>'
+    + '<div class="ds-field ds-field--inset" id="roig"><label class="ds-field__label" for="roigi">Site</label><div class="ds-input-group"><input class="ds-input" id="roigi" value="example.org" readonly></div></div>');
+  await settle(page);
+  const [primary, low, line] = [await role(page, 'var(--ds-primary)'), await role(page, 'var(--ds-surface-low)'), await role(page, 'var(--ds-line)')];
+  for (const [id, box] of [['ro', 'ro'], ['rogi', 'rog'], ['rof', 'rof']]) {
+    await page.focus(`#${id}`);
+    const ring = await style(page, `#${box}`);
+    expect(ring.borderTop, `${box} border`).toBe(primary);
+    expect(ring.shadow, `${box} ring`).toContain(primary);
+    expect(ring.background, `${box} surface`).toBe(low);
+  }
+  for (const [id, box] of [['roii', 'roi'], ['roigi', 'roig']]) {
+    await page.focus(`#${id}`);
+    const focused = await style(page, `#${box}`, '::before');
+    expect(focused.shadow, `${box} line`).toContain(primary);
+    expect(focused.shadow, `${box} line`).toMatch(/-2px/);
+    expect(focused.background, `${box} surface`).toBe(low);
+  }
+  // Back at rest: the quiet look returns.
+  await page.evaluate(() => document.activeElement.blur());
+  await settle(page);
+  for (const box of ['ro', 'rog']) expect((await style(page, `#${box}`)).borderTop, box).toBe(line);
+  expect((await style(page, '#roi', '::before')).shadow).toContain(line);
+  expect((await style(page, '#roig', '::before')).shadow).toMatch(/-1px/);
+});
+
 test('the counter past its limit takes the error ink beside its figures', async ({ page }) => {
   await open(page);
   await add(page, '<div class="ds-field__foot"><small class="ds-field__hint">Hint</small><span class="ds-field__counter" id="c1" aria-hidden="true">12 / 80</span></div><div class="ds-field__foot"><span class="ds-field__counter ds-field__counter--over" id="c2" aria-hidden="true">90 / 80</span></div>');
@@ -287,7 +400,7 @@ test('the counter past its limit takes the error ink beside its figures', async 
   expect((await style(page, '#c1')).color).toBe(await role(page, 'var(--ds-text-2)'));
 });
 
-test('a checkbox card: its layer and ring on the card, no halo on the input, Space toggles, the ripple presses it', async ({ page, browserName }) => {
+test('a checkbox card: its layer and ring on the card, no halo on the input, Space toggles, the ripple presses it', async ({ page }) => {
   await open(page);
   await add(page, '<button class="ds-btn" id="cc-before" type="button">Before</button><div class="ds-check-cards" role="group" aria-label="Add-ons"><label class="ds-check-card" id="cc"><input class="ds-checkbox" type="checkbox" id="cc-i"><span><strong>Backups</strong><small>Every night.</small></span></label>'
     + '<label class="ds-check-card" id="cc-off"><input class="ds-checkbox" type="checkbox" disabled><span><strong>Audit log</strong></span></label><label class="ds-check-card" id="cc-blocked"><input class="ds-checkbox" type="checkbox" aria-disabled="true" id="cc-b"><span><strong>Blocked</strong></span></label></div>');
@@ -331,7 +444,6 @@ test('a checkbox card: its layer and ring on the card, no halo on the input, Spa
   await expect(page.locator('#cc-b')).not.toBeChecked();
   await page.locator('#cc-blocked').click({ force: true });
   await expect(page.locator('#cc-b')).not.toBeChecked();
-  expect(browserName).toBeTruthy();
 });
 
 test('the size reaches the box, the halo and the dot of checks; the deprecated --sm keeps its 32px row', async ({ page }) => {
@@ -404,14 +516,17 @@ test('keyboard: Tab walks fields and boxes, Space toggles, the arrows move withi
   await expect(page.locator('#fx-added').getByRole('radiogroup', { name: 'Plan' }).getByRole('radio')).toHaveCount(2);
 });
 
-test('forced colours: focus an outline, a state keeps a word, the card input in system colours', async ({ page, browserName }) => {
+test('forced colours: focus an outline, a state keeps a word, cards and blocked words in system colours', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
   await page.emulateMedia({ forcedColors: 'active' });
   await open(page);
   await add(page, '<div class="ds-field ds-field--warning"><label class="ds-field__label" for="fw">Cert</label><input class="ds-input" id="fw"><small class="ds-field__hint ds-field__hint--warning">Expires.</small></div>'
     + '<div class="ds-field ds-field--inset" id="fi"><label class="ds-field__label" for="fii">Title</label><div class="ds-input-group"><input class="ds-input" id="fii"></div></div>'
     + '<div class="ds-input-group" id="fg"><input class="ds-input" id="fgi" aria-label="Group"></div>'
-    + '<label class="ds-check-card" id="fc"><input class="ds-checkbox" type="checkbox" id="fci" checked><span><strong>Card</strong></span></label><label class="ds-check-card"><input class="ds-checkbox" type="checkbox" id="fcd" checked disabled><span><strong>Off</strong></span></label>');
+    + '<label class="ds-check-card" id="fc"><input class="ds-checkbox" type="checkbox" id="fci" checked><span><strong>Card</strong></span></label><label class="ds-check-card" id="fcc"><input class="ds-checkbox" type="checkbox" id="fcd" checked disabled><span><strong id="fcs">Off</strong></span></label>'
+    + '<label class="ds-radio" id="fr"><input type="radio" name="fr" checked><span><strong>On</strong></span></label><label class="ds-radio ds-radio--disabled"><input type="radio" name="fr2" disabled><span><strong id="frs">Off</strong></span></label><label class="ds-check-card"><input class="ds-checkbox" type="checkbox" aria-disabled="true"><span><strong id="fbs">Blocked</strong></span></label>'
+    + '<input class="ds-input" id="fdi" aria-label="Off" value="Off" disabled><input class="ds-input" id="fen" aria-label="On" value="On"><div class="ds-input-group" id="fdg"><input class="ds-input" aria-label="Off" disabled></div>'
+    + '<fieldset class="ds-fieldset" disabled><legend class="ds-fieldset__legend" id="fdl">Off</legend></fieldset>');
   await settle(page);
   const system = await page.evaluate(() => {
     const probe = (property, value) => {
@@ -436,4 +551,14 @@ test('forced colours: focus an outline, a state keeps a word, the card input in 
   // A box in a card: the system's selection colours; disabled GrayText.
   expect((await style(page, '#fci')).background).toBe(system.highlight);
   expect((await style(page, '#fcd')).background).toBe(system.gray);
+  // A selected card: its edge too; checked and blocked, GrayText.
+  expect((await style(page, '#fc')).borderTop).toBe(system.highlight);
+  expect((await style(page, '#fr')).borderTop).toBe(system.highlight);
+  expect((await style(page, '#fcc')).borderTop).toBe(system.gray);
+  // Blocked is GrayText: a disabled field and group, unlike an enabled field; the words of a blocked choice.
+  const disabled = await style(page, '#fdi');
+  expect(disabled).toMatchObject({ borderTop: system.gray, color: system.gray });
+  expect((await style(page, '#fen')).borderTop).not.toBe(system.gray);
+  expect((await style(page, '#fdg')).borderTop).toBe(system.gray);
+  for (const id of ['fdl', 'fcs', 'frs', 'fbs']) expect((await style(page, `#${id}`)).color, id).toBe(system.gray);
 });

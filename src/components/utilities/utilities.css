@@ -62,11 +62,11 @@
  * while an ancestor is [aria-pressed="true"] or [aria-checked="true"]
  * (fill on --ds-dur-fast); .ds-icon--filled fills it always.
  *
- * Touch screens: .ds-touch (on .ds-theme or any container) sets every
- * target hook to --ds-touch-target (48px) and fields to the input type
- * role; buttons take it from --ds-target-min, which core/options.css sets
- * on .ds-touch. Opt in (docs/theming.md, "Touch screens"); never
- * automatic.
+ * Touch screens: .ds-touch (on .ds-theme or any container) sets the target
+ * hook of each component not on the options model yet to --ds-touch-target
+ * (48px) and fields to the input type role; the others take it from
+ * --ds-target-min, which core/options.css sets on .ds-touch. Opt in
+ * (docs/theming.md, "Touch screens"); never automatic.
  *
  * Hooks: --ds-pressable-radius (--ds-radius-sm), --ds-pressable-layer
  * (currentColor), --ds-kbd-border (--ds-line-2), --ds-kbd-bg (--ds-surface).
@@ -342,18 +342,12 @@
   /*
    * Touch screens (opt-in, docs/theming.md): every target at least
    * --ds-touch-target, fields at the input role (no zoom on focus in iOS).
-   * Buttons take it from --ds-target-min (core/options.css), as every
-   * component will once it is on the options model; the hooks below are
-   * those of the components not ported yet.
+   * A component on the options model takes it from --ds-target-min
+   * (core/options.css), as a minimum over its computed height: setting its
+   * base hook here would add the size step on top. The hooks below are those
+   * of the components not ported yet.
    */
   .ds-touch {
-    --ds-input-height: var(--ds-touch-target);
-    --ds-check-height: var(--ds-touch-target);
-    --ds-check-sm-height: var(--ds-touch-target);
-    --ds-check-target: var(--ds-touch-target);
-    --ds-switch-height: var(--ds-touch-target);
-    --ds-switch-halo: var(--ds-touch-target);
-    --ds-chip-height: var(--ds-touch-target);
     --ds-combo-option-height: var(--ds-touch-target);
     --ds-menu-item-height: var(--ds-touch-target);
     --ds-drawer-item-height: var(--ds-touch-target);

@@ -62,7 +62,7 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 | Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | a control, a field, a form | fields 24, 32, 40, 48, 56px high (8px per step), side padding 4px per step, the size's type role at the regular weight (16px on phones at every size); a `.ds-check` row and the halo 8px per step, the box 2px per step; labels and hints keep their roles |
 | Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container (the compact theme sets dense) | 4px less height per step (fields, groups, the inset box, `.ds-check` rows, halos); 2px less padding per step on cards; side padding and type stay |
 | Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius of fields, the search pill, the composer, checkboxes, the check list and the cards times 0, .5, 1, 1.5; a card's press morph too. A radio stays round |
-| Touch | `.ds-touch` | the theme or a container | at least `--ds-touch-target` (48px) whatever the size and density: fields, `.ds-check` rows, cards, halos; field text at `--ds-font-input` |
+| Touch | `.ds-touch` | the theme or a container | at least `--ds-touch-target` (48px) whatever the size and density, a minimum and no addition (`.ds-lg` stays 48px, `.ds-xl` 56px): fields, `.ds-check` rows, cards, halos; field text at `--ds-font-input`. A halo is painted: a bare `.ds-checkbox` or `.ds-radio-input` still takes a tap only on its box, so under touch give it a `.ds-check` label or an equally large label around it |
 | State | `aria-invalid="true"`, `.ds-field--warning`, `.ds-field--success`, `readonly`, `aria-readonly="true"`, `disabled` | the control, the field | the border and ring, always with a hint in words; there is no tone class on a field |
 
 - 40px fields, label above (never only a placeholder), focus as an instant 2px ring inside the field. On blur the
@@ -70,8 +70,9 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 - Field text stays `--ds-font-input` (16px) at 600px and below at every size: iOS zooms into smaller text; the padding
   stays around that taller line, so an md field is 42px there. A `--ds-input-font` of a theme wins, so keep it at 16px
   on phones.
-- The label of a field (`.ds-field__label` before the field, or the `<legend>` of a fieldset) takes the primary
-  colour with the ring, at once, and fades back on blur; the label of an invalid field keeps the error ink, also
+- The label of a field (`.ds-field__label` before the field, or the `<legend>` of a fieldset) takes the ring's colour
+  with the ring (primary, or the state's on a warning or success field), at once, and fades back on blur; the label of
+  an invalid field keeps the error ink, also
   while focused (the control directly in `.ds-field` or in its `.ds-input-group`, `.ds-field__row` or `.ds-combo`).
   A focused invalid input group rings in the error colour alone, like a focused invalid field.
 - Error: `aria-invalid="true"` plus a `.ds-field__hint--error` with an icon, linked by `aria-describedby`. The
@@ -80,8 +81,8 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
   or on submit), its room also opens from 0 (on `--ds-ease-out`, so the form below never overshoots). A message
   already in the markup only fades in, so nothing shifts on load. Removing it is instant.
 - Disabled and read-only (`readonly`, or `aria-readonly="true"` on a select, whose value the page then keeps) fields
-  take the quiet surface; a read-only field stays focusable and its text can be copied. A `<datalist>` field shows
-  the select triangle.
+  take the quiet surface; a read-only field stays focusable, shows the ring or the focus line of its look while
+  focused, and its text can be copied. A `<datalist>` field shows the select triangle.
 - Form grids drop to one column when the page is 760px or narrower, and in sheets and dialogs when the window is.
 - A form in a card: `<form class="ds-card ds-form">` (16px rhythm).
 - A `<textarea class="ds-input">` starts about three lines tall and grows only vertically, by hand.
@@ -113,13 +114,15 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
   and the two- and three-column grids they take less padding at 720px and below, so the value is not cut off.
 - Field hooks: `--ds-input-height`, `--ds-input-padding-x`, `--ds-input-bg`, `--ds-input-border`,
   `--ds-input-radius`, `--ds-input-weight` and `--ds-input-focus-color` (the ring and the label tint),
-  [theming.md](theming.md#component-hooks). Cards: `--ds-radio-padding`.
+  [theming.md](theming.md#component-hooks). Checkboxes and radios: `--ds-check-size` (18px at md). Cards:
+  `--ds-radio-padding`.
 - Keyboard and names: native controls, so Tab reaches every field, checkbox and radio, Space toggles, the arrows move
   within a radio group and step a number. Every field has a `<label>` (`.ds-sr` when the design shows none) and its
   hint by `aria-describedby`; a group of radios a `role="radiogroup"` with a name.
 - Forced colours: a focused field (also an input group, a filled field and the composer) shows a `Highlight`
-  outline, since its inset ring is a shadow that forced colours drop; a card's checked input carries its choice in
-  `Highlight`; a warning or success field keeps the system's edge and its word says which.
+  outline, since its inset ring is a shadow that forced colours drop; a selected card's edge and checked input are
+  `Highlight`; blocked is `GrayText` (a disabled field or group, a disabled fieldset's legend, a blocked card's title
+  and edge when checked); a warning or success field keeps the system's edge and its word says which.
 
 **Hints that confirm, hints with an icon, markers and a counter**
 
@@ -226,6 +229,9 @@ document.addEventListener('keydown', (event) => {
 - Its slots: `.ds-input-group__leading` (an `aria-hidden` icon, no pointer), `.ds-input-group__prefix` (text before
   the value, such as `https://`), `.ds-input-group__suffix` (a unit after it), `.ds-input-group__trailing` (an icon, a
   tag such as "Suggested", or a button). A prefix and a suffix are `aria-hidden`, so the unit belongs in the label too.
+- A button in the group, direct or in the trailing slot, adds nothing to the field's height as long as it is no taller
+  than the field. It keeps its own size: `.ds-sm` fits md and the dense density; at `.ds-xs`, or `.ds-sm` with a dense
+  density, put `.ds-xs` on it.
 - `.ds-input-group__affix` is **deprecated** (3.0, removed when 3.0 ships): `.ds-input-group__prefix` before the
   input, `.ds-input-group__suffix` after it, the same look.
 - The reveal is the page's two lines: toggle the input's `type` between `password` and `text`, and the button's
@@ -252,7 +258,7 @@ outlined one in a filled field `.ds-input--outlined`.
 `.ds-field--inset` is the Material 3 filled field: the label sits inside a tonal box above the value (still a real
 `<label>`), a hairline closes the box at the bottom and turns into a 2px line in `--ds-input-focus-color` while the
 field has the focus. The box is 56px at md and comfortable, and follows size and density. It holds a `.ds-input` or a
-`.ds-input-group` with its slots. Hints follow below the box. In forced colours the fill is gone, so the box keeps a
+`.ds-input-group` with its slots. Hints and a `.ds-field__foot` follow below the box, in line with the label. In forced colours the fill is gone, so the box keeps a
 transparent border (its edge there) and a focused field shows the outline.
 
 **Fieldset and form section**
@@ -463,8 +469,8 @@ hint does.
 
 <!-- changelog -->
 - Form: on the options model: fields, input groups, `.ds-check` rows, halos and cards compute size, density, shape and
-  touch in their own rules (`--ds-input-height` is the md, comfortable base; the compact theme's field is now its
-  density's 32px). New: `.ds-field--filled`, `.ds-field--outlined`, `.ds-input--outlined`, `.ds-input-group--filled`;
+  touch in their own rules (`--ds-input-height` is the md, comfortable base, and `.ds-touch` no longer sets it; the
+  compact theme's field is now its density's 32px, 2.x 36px). New: `.ds-field--filled`, `.ds-field--outlined`, `.ds-input--outlined`, `.ds-input-group--filled`;
   the slots `.ds-input-group__leading`, `__prefix`, `__suffix`, `__trailing`; `.ds-field--warning`, `.ds-field--success`,
   `.ds-field__hint--warning`, `--ds-field-warning-color`; `aria-readonly="true"` on a select; `.ds-field__counter--over`;
   `.ds-fieldset`; `.ds-form-section`; `.ds-check-card`, `.ds-check-cards`; an inset field holds an input group; hooks

@@ -124,8 +124,7 @@ describe('utilities (2.0)', () => {
     const touch = own(css, '.ds-touch');
     // 3.0: buttons take the touch target from --ds-target-min (core/options.css), as a minimum over size and density.
     assert.deepEqual(own(stripComments(read('src/core/options.css')), '.ds-touch'), { '--ds-target-min': 'var(--ds-touch-target)' });
-    const hooks = ['--ds-input-height', '--ds-check-height',
-      '--ds-check-sm-height', '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height',
+    const hooks = ['--ds-combo-option-height', '--ds-menu-item-height',
       '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height', '--ds-disclosure-height'];
     for (const hook of hooks) assert.equal(touch[hook], 'var(--ds-touch-target)', hook);
     assert.equal(touch['--ds-input-font'], 'var(--ds-font-input)');
