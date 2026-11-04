@@ -17,9 +17,12 @@
     "ds-page-head",
     "ds-page-head__actions",
     "ds-page-head__back",
+    "ds-page-head__detail",
+    "ds-page-head__details",
     "ds-page-head__lead",
     "ds-page-head__row",
     "ds-page-head__status",
+    "ds-page-head__tabs",
     "ds-page-head__text",
     "ds-page-head__title",
     "ds-stack",
@@ -54,6 +57,10 @@
     "--ds-breadcrumbs-item-max": {
       "default": "240px",
       "description": "a breadcrumb item before its ellipsis"
+    },
+    "--ds-breadcrumbs-font": {
+      "default": "the size's role, `--ds-font-label`",
+      "description": "the type of the breadcrumbs"
     },
     "--ds-auth-width": {
       "default": "400px",

@@ -611,6 +611,24 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "A part of a card is .ds-card__<part>, like every part in 3.0. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-avatar--sm",
+      "pattern": "(?<![\\w-])ds-avatar--sm(?![\\w-])",
+      "replacement": ".ds-sm",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Sizes are option classes on the avatar or any ancestor (.ds-xs ... .ds-xl, docs/options.md). The alias keeps the fixed 2.x disc (24px, the caption role) until 3.0 ships; .ds-sm is 24px too, in the size's type role."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-avatar--lg",
+      "pattern": "(?<![\\w-])ds-avatar--lg(?![\\w-])",
+      "replacement": ".ds-lg",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Sizes are option classes on the avatar or any ancestor (.ds-xs ... .ds-xl, docs/options.md). The alias keeps the fixed 2.x disc (40px, the subtitle role) until 3.0 ships; .ds-lg is the same."
     }
   ]
 }

@@ -5,11 +5,15 @@
  *   <link rel="stylesheet" href="vendor/dashboard-style/themes/compact.css">
  *
  * In 3.0 it is the dense density (--ds-density: -2, docs/options.md) plus
- * its type roles: the components on the options model (buttons, fields, chips)
- * take their compact height from the density. The others keep their compact
- * heights as hooks below until they are ported, so the page looks as it
- * did in 2.x; each hook goes when its component computes its height from
- * the density.
+ * its type roles: every control and row computes its height from the
+ * density (buttons, fields and tabs step 8px down, menus and the drawer
+ * too). Alert, empty state, loading and progress take their block padding from
+ * the density, tighter than 2.x on purpose; status chip, tag and badge do not
+ * read it. Two hooks stay, because the density alone would leave 2.x: table
+ * rows (48px and a side padding of 20px, so two steps give 2.x's 40px rows
+ * and 16px beside the text) and the segmented switch (its comfortable track,
+ * 32px, is already what 2.x's compact theme showed, so 40px less the two
+ * steps keeps it level with a compact button instead of 24px).
  *
  * Under a coarse pointer (a phone, a tablet) the default density and
  * heights come back, so a compact theme never shrinks a target below the
@@ -31,24 +35,20 @@
   --ds-font-chip: var(--ds-weight-label) calc(13px * var(--ds-type-scale))/calc(18px * var(--ds-type-scale)) var(--ds-font);
 }
 
-/* ── Density, and the heights of the components not ported yet (not where the theme root opted into touch targets) ── */
+/* ── Density, and the two hooks it needs (not where the theme root opted into touch targets) ── */
 .ds-theme:not(.ds-touch) {
   --ds-density: -2;
-  --ds-table-head-height: 40px;
-  --ds-table-row-height: 40px;
-  --ds-menu-item-height: 40px;
-  --ds-drawer-item-height: 40px;
-  --ds-tabs-height: 40px;
+  --ds-table-row-height: 48px;
+  --ds-table-padding: 20px;
+  --ds-segmented-height: 40px;
 }
 
-/* A finger gets the default density and heights back (not the larger touch targets of .ds-touch). */
+/* A finger gets the default density, heights and padding back (not the larger touch targets of .ds-touch). */
 @media (pointer: coarse) {
   .ds-theme:not(.ds-touch) {
     --ds-density: 0;
-    --ds-table-head-height: 48px;
     --ds-table-row-height: 52px;
-    --ds-menu-item-height: 48px;
-    --ds-drawer-item-height: 48px;
-    --ds-tabs-height: 48px;
+    --ds-table-padding: var(--ds-space-4);
+    --ds-segmented-height: 32px;
   }
 }

@@ -30,6 +30,7 @@
     "ds-drawer__back",
     "ds-drawer__count",
     "ds-drawer__foot",
+    "ds-drawer__foot--pinned",
     "ds-drawer__foot--rail",
     "ds-drawer__group",
     "ds-drawer__head",
@@ -89,7 +90,7 @@
   "hooks": {
     "--ds-drawer-item-height": {
       "default": "48px",
-      "description": "drawer item (its rest radius is half of it, so the press morph runs its whole way)"
+      "description": "drawer item at size md and comfortable (8px per size step, 4px per density step; its rest radius is half of what it computes to, so the press morph runs its whole way)"
     },
     "--ds-topbar-scrolled-bg": {
       "default": "`--ds-surface-high`",
@@ -112,8 +113,27 @@
       "description": "the name and email beside the avatar in `.ds-account--capsule`"
     },
     "--ds-avatar-size": {
-      "default": "32px (`--sm` 24px, `--lg` 40px)",
-      "description": "`.ds-avatar` and the account's avatar"
+      "default": "32px",
+      "description": "`.ds-avatar` and the account's avatar at size md (8px per size step)"
+    },
+    "--ds-drawer-font": {
+      "default": "the size's role, `--ds-font-body`",
+      "description": "the type of a drawer item (always at the regular weight; the current item takes the label weight) and of a group toggle (in the label weight)"
+    },
+    "--ds-drawer-indent": {
+      "default": "`--ds-space-8`",
+      "description": "one level of a nested drawer group"
+    },
+    "--ds-segmented-height": {
+      "default": "32px",
+      "description": "the segmented track at size md and comfortable (8px per size step, 4px per density step)"
+    },
+    "--ds-segmented-font": {
+      "default": "the size's role, `--ds-font-body`",
+      "description": "the type of a segmented option (always at the regular weight; the current option takes the label weight)"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
     },
     "--ds-btn-sm-icon-size": {
       "owner": "button"

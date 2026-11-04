@@ -65,9 +65,8 @@
  * while an ancestor is [aria-pressed="true"] or [aria-checked="true"]
  * (fill on --ds-dur-fast); .ds-icon--filled fills it always.
  *
- * Touch screens: .ds-touch (on .ds-theme or any container) sets the target
- * hook of each component not on the options model yet to --ds-touch-target
- * (48px) and fields to the input type role; the others take it from
+ * Touch screens: .ds-touch (on .ds-theme or any container) sets fields to the
+ * input type role; every component takes --ds-touch-target (48px) from
  * --ds-target-min, which core/options.css sets on .ds-touch. Opt in
  * (docs/theming.md, "Touch screens"); never automatic.
  *
@@ -346,17 +345,11 @@
   /*
    * Touch screens (opt-in, docs/theming.md): every target at least
    * --ds-touch-target, fields at the input role (no zoom on focus in iOS).
-   * A component on the options model takes it from --ds-target-min
-   * (core/options.css), as a minimum over its computed height: setting its
-   * base hook here would add the size step on top. The hooks below are those
-   * of the components not ported yet.
+   * A component takes it from --ds-target-min (core/options.css), as a
+   * minimum over its computed height: setting its base hook here would add
+   * the size step on top.
    */
   .ds-touch {
-    --ds-combo-option-height: var(--ds-touch-target);
-    --ds-menu-item-height: var(--ds-touch-target);
-    --ds-drawer-item-height: var(--ds-touch-target);
-    --ds-toast-close-size: var(--ds-touch-target);
-    --ds-tabs-height: var(--ds-touch-target);
     --ds-input-font: var(--ds-font-input);
   }
 

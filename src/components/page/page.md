@@ -1,5 +1,8 @@
 ## Page
 
+The padded content area, one page of cards and its head: back link or breadcrumbs, title, status, actions, key facts
+and tabs.
+
 ```html
 <div class="ds-content">                         <!-- padding; container "ds-content" -->
   <div class="ds-page">                          <!-- max --ds-content-max, 20px rhythm -->
@@ -19,6 +22,9 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 - `.ds-stack` spaces its children by `--ds-stack-gap` (`--ds-space-4`); a stack directly in the page, and
   `.ds-stack--page` wherever it sits, by `--ds-stack-gap-page` (`--ds-space-5`, the page's rhythm). A lone `.ds-btn`
   directly in `.ds-page` or `.ds-stack` keeps its own width.
+- Options ([options.md](options.md)): size, density, shape and tone reach the controls inside the page, each of which
+  computes its own. The page's own rhythm, padding and head stay: they are layout, set through the spacing tokens and the
+  hooks. Only the breadcrumbs read options themselves (below).
 - `.ds-content` exposes its padding as `--ds-content-pad-top`, `--ds-content-pad-x` and `--ds-content-pad-bottom`
   (read them, never set them; `.ds-view` defines the same).
 
@@ -38,6 +44,13 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
       <button class="ds-btn ds-btn--filled" type="button">Edit</button>
     </div>
   </div>
+  <dl class="ds-page-head__details">
+    <div class="ds-page-head__detail"><dt>Owner</dt><dd>Ada Lovelace</dd></div>
+    <div class="ds-page-head__detail"><dt>Last sync</dt><dd>Today, 09:12</dd></div>
+  </dl>
+  <div class="ds-page-head__tabs">
+    <nav class="ds-tabs ds-tabs--flush" aria-label="LAPTOP-0042"> ... </nav>
+  </div>
 </header>
 ```
 
@@ -51,8 +64,12 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
   first starts on the title's edge. Outlined and filled buttons keep their place, and so do the buttons after the
   first under the title (8px apart, as on a wide page) and a `.ds-btn--adaptive` while it is folded into a round icon
   button.
-- Empty parts take no room (`:empty`: the head, the lead, the status and the actions). The lead's figures are
-  tabular. Print leaves out the back link and the actions.
+- `.ds-page-head__details` is a row of key facts under the title row: `.ds-page-head__detail` holds a `dt` in the meta
+  role over its `dd` in the body role (tabular figures; a long value breaks). It wraps, and it prints.
+- `.ds-page-head__tabs` holds the record's [Tabs](#tabs) as the head's last row: the head's gap plus `--ds-space-3`
+  under the rest, 16px in all.
+- Empty parts take no room (`:empty`: the head, the lead, the status, the actions, the details and the tabs). The lead's
+  figures are tabular. Print leaves out the back link and the actions.
 
 ### Breadcrumbs
 
@@ -70,6 +87,8 @@ In the page head's first row instead of the back link (one or the other). Inline
 `--ds-text-2`, underlined, with the link focus ring and no ripple; a chevron (a `chevronRight` mask) between them, in
 `CanvasText` under forced colours; each item ends in an ellipsis past `--ds-breadcrumbs-item-max` (240px); the last is
 the page itself (`aria-current="page"`, the text colour). At 600px of the content only the parent shows: the way up.
+Type follows the size (`--ds-breadcrumbs-font`, default the size's role, else `--ds-font-label`), and under `.ds-touch` a
+link is at least `--ds-touch-target` high. Keyboard: each link is a tab stop.
 
 ### Page states
 
@@ -114,4 +133,9 @@ page, never inside `.ds-app`.
 ```js
 DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
 ```
+
+<!-- changelog -->
+- Page head (3.0): `.ds-page-head__details` and `.ds-page-head__detail`, a row of key facts; `.ds-page-head__tabs`, the
+  record's tabs as its last row.
+- Breadcrumbs (3.0): `--ds-breadcrumbs-font`, the size's type role; at least `--ds-target-min` high under `.ds-touch`.
 

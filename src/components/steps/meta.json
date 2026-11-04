@@ -3,12 +3,14 @@
   "group": "navigation",
   "order": 370,
   "docsOrder": 40,
-  "need": "Show where the user is in a form of a few steps",
+  "need": "Show where the user is in a form of a few steps: done, current, upcoming, optional or in error, in a row, a column or a bar",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-steps",
     "ds-steps--bar",
+    "ds-steps--vertical",
+    "ds-steps__hint",
     "ds-steps__label",
     "ds-steps__mark",
     "ds-steps__step"
@@ -22,6 +24,18 @@
     "--ds-steps-bar-height": {
       "default": "4px",
       "description": "the segments of `.ds-steps--bar`"
+    },
+    "--ds-steps-mark-size": {
+      "default": "`--ds-space-6`",
+      "description": "a step's mark at size md (4px per size step)"
+    },
+    "--ds-steps-font": {
+      "default": "the size's role, `--ds-font-body`",
+      "description": "the type of a step (always at the regular weight; the current label takes the label weight)"
+    },
+    "--ds-steps-gap": {
+      "default": "`--ds-space-5`",
+      "description": "the room between the steps of `.ds-steps--vertical` (2px per density step)"
     }
   },
   "keyframes": [],

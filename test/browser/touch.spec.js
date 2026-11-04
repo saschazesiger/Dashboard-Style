@@ -113,7 +113,7 @@ test('disclosure summaries are 48px tall (--ds-target-min)', async ({ page }) =>
   for (const box of await present(page, '.ds-disclosure > summary')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
 
-test('tabs are 48px tall (--ds-tabs-height)', async ({ page }) => {
+test('tabs are 48px tall (--ds-target-min)', async ({ page }) => {
   await open(page);
   for (const box of await present(page, '.ds-tabs [role="tab"]')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });

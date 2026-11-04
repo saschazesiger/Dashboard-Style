@@ -480,12 +480,18 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     // 3.0: the dense density (the button computes its 32px from it), and the heights of the components not ported yet.
     assert.equal(compact['--ds-density'], '-2');
     assert.equal(back['--ds-density'], '0', 'the default density comes back');
-    for (const name of ['--ds-btn-height', '--ds-input-height', '--ds-chip-height']) assert.ok(!(name in compact), `${name}: its component takes the compact height from the density`);
+    for (const name of ['--ds-btn-height', '--ds-input-height', '--ds-chip-height', '--ds-tabs-height', '--ds-drawer-item-height', '--ds-menu-item-height', '--ds-table-head-height']) assert.ok(!(name in compact), `${name}: its compact height comes from the density`);
+    // The switch's hook goes against the density on purpose: 40px less two steps is 2.x's 32px, its default under a finger.
+    assert.equal(compact['--ds-segmented-height'], '40px');
+    assert.equal(back['--ds-segmented-height'], '32px');
+    // 2.x's compact table: rows of 40px (48px less two steps) with 16px beside the text (20px less two steps), and the defaults back under a finger.
+    assert.deepEqual([compact['--ds-table-row-height'], compact['--ds-table-padding']], ['48px', '20px']);
+    assert.deepEqual([back['--ds-table-row-height'], back['--ds-table-padding']], ['52px', 'var(--ds-space-4)']);
     const heights = Object.keys(compact).filter((name) => /-height$/.test(name));
-    assert.ok(heights.length >= 5, `${heights.length} heights`);
-    assert.deepEqual(Object.keys(back).filter((name) => name !== '--ds-density').sort(), heights.sort(), 'every compact height comes back');
+    assert.deepEqual(heights.sort(), ['--ds-segmented-height', '--ds-table-row-height']);
+    assert.deepEqual(Object.keys(back).filter((name) => /-height$/.test(name)).sort(), heights.sort(), 'every compact height comes back');
     for (const name of heights) {
-      assert.ok(parseFloat(compact[name]) < parseFloat(back[name]), `${name}: compact is shorter`);
+      if (name !== '--ds-segmented-height') assert.ok(parseFloat(compact[name]) < parseFloat(back[name]), `${name}: compact is shorter`);
       assert.equal(known.get(name)?.layer, 'hook', `${name}: a documented hook`);
       assert.equal(back[name], known.get(name).default, `${name}: the default height on a touch screen`);
     }

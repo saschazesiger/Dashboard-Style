@@ -303,24 +303,22 @@
    * The drawer's group toggles (a large row, like its items) and the tabs
    * (2.0): the same one-feedback rule. A tab's layer is a pill inside the
    * tab (tabs.css), so its ripple is a box over that pill that clips the
-   * circle, its ::before (like a table row's). The box takes what the tab
-   * computes for its layer (--_inset, --_layer, inherited from the tab: a
-   * contained tab's layer has no inset), so the two cannot part; without them
-   * (a tab that has not computed them) the options formula of a tab: half of
-   * the layer's height at most, times the shape. Here and not in tabs.css: a
-   * rule there would lose to .ds-press-ripple above once this file sits in a
-   * later sublayer.
+   * circle, its ::before (like a table row's). It reads the tab's private
+   * --_inset and --_layer, inherited from the tab: a deliberate exception to
+   * "private to its rule" (the box is the tab's own layer again, and a public
+   * name would invite setting it), so size, density, shape and the contained
+   * look reach the press as they reach the layer. tabs.css names this reader.
+   * Here and not in tabs.css: a rule there would lose to .ds-press-ripple above
+   * once this file sits in a later sublayer.
    */
   .ds-ripples .ds-tabs__tab > .ds-press-ripple {
-    --_half: calc(max(var(--ds-target-min, 0px), calc(var(--ds-tabs-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)) / 2 - var(--ds-space-1));
-    --_formula: min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half));
-    top: var(--_inset, var(--ds-space-1));
+    top: var(--_inset);
     inset-inline: 0;
-    bottom: var(--_inset, var(--ds-space-1));
+    bottom: var(--_inset);
     width: auto;
     height: auto;
     overflow: clip;
-    border-radius: var(--_layer, var(--_formula));
+    border-radius: var(--_layer);
     background: none;
     animation: none;
   }
@@ -328,7 +326,7 @@
   .ds-ripples .ds-tabs__tab > .ds-press-ripple::before {
     content: '';
     position: absolute;
-    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r) - var(--_inset, var(--ds-space-1)));
+    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r) - var(--_inset));
     left: calc(var(--ds-ripple-x) - var(--ds-ripple-r));
     width: calc(var(--ds-ripple-r) * 2);
     height: calc(var(--ds-ripple-r) * 2);
