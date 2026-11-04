@@ -22,21 +22,25 @@
   ],
   "context": [],
   "hooks": {
+    "--ds-status-height": {
+      "default": "24px",
+      "description": "a status chip's height at md, before size and density"
+    },
     "--ds-status-radius": {
       "default": "`--ds-radius-md`",
       "description": "status chip"
     },
     "--ds-tag-bg": {
-      "default": "`--ds-accent`, `--ds-on-accent` (`--neutral`: `--ds-surface-high`, `--ds-text`)",
+      "default": "`--ds-accent`, `--ds-on-accent` (a tone: its container pair; neutral `--ds-surface-high`, `--ds-text`)",
       "description": "a tag (`.ds-tag`)"
     },
     "--ds-tag-color": {
-      "default": "`--ds-accent`, `--ds-on-accent` (`--neutral`: `--ds-surface-high`, `--ds-text`)",
+      "default": "`--ds-accent`, `--ds-on-accent` (a tone: its container pair; neutral `--ds-surface-high`, `--ds-text`)",
       "description": "a tag (`.ds-tag`)"
     },
     "--ds-tag-height": {
       "default": "24px",
-      "description": "a tag's height (its radius is half of it)"
+      "description": "a tag's height at md, before size and density (its radius is half of it)"
     },
     "--ds-status-spinner-width": {
       "default": "2px",
@@ -45,8 +49,6 @@
   },
   "keyframes": [],
   "js": [],
-  "progressive": [
-    "@starting-style"
-  ],
+  "progressive": [],
   "ripple": false
 }
