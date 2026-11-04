@@ -7,7 +7,9 @@
  *     <div class="ds-tile">
  *       <p class="ds-tile__label">[icon] <span>Open items</span></p>
  *       <p class="ds-tile__value">128</p>
- *       <p class="ds-tile__note">+12 this week</p>
+ *       <p class="ds-tile__delta ds-tone-success">[icon arrowUp 16]<span>12% more</span></p>
+ *       <p class="ds-tile__note">Target 140</p>
+ *       <div class="ds-tile__trend">[a sparkline: .ds-columns--mini, or the project's own]</div>
  *
  * The value never wraps and never takes a colour: on narrow tiles it gets
  * smaller instead (a broken number reads as another number). Status goes
@@ -42,8 +44,27 @@
  * figures, the full value in data-tip). .ds-tile__value--empty: a value
  * that is missing ("No data"), in --ds-text-2 with the display font.
  *
- * Hooks: --ds-tile-radius, --ds-tile-radius-pressed, --ds-tile-min-width
- * (176px), --ds-tiles-columns (4), --ds-tile-selected-bg, --ds-selected-ring.
+ * The delta (.ds-tile__delta): how the figure moved, always an arrow and a
+ * word. Without a tone it stays quiet; a .ds-tone-* on the delta itself
+ * (the page decides whether up is good) lays it on the tone's tint. The
+ * value itself never takes the colour. The trend (.ds-tile__trend): a slot
+ * at the foot of the tile for a sparkline in --ds-tile-trend-color, so the
+ * sparklines of a row line up whatever stands above them.
+ *
+ * Options (src/core/options.css, docs/options.md), on the tile, the row or
+ * any ancestor; each is computed here, in the rule that uses it:
+ *   size      .ds-xs ... .ds-xl: the value's size, an eighth of the display
+ *             size per step; never the label, the note or the padding
+ *   density   .ds-density-*: the padding 2px per step, the row's gap 2px
+ *             per step; never the type
+ *   shape     .ds-shape-*: multiplies the rest and the pressed radius
+ *   touch     .ds-touch: a clickable tile at least --ds-touch-target high
+ *   tone      .ds-tone-* on .ds-tile__delta only
+ *
+ * Hooks: --ds-tile-radius, --ds-tile-radius-pressed, --ds-tile-padding
+ * (--ds-space-5, on a phone --ds-space-4; the head 4px less), --ds-tile-min-width
+ * (176px), --ds-tiles-columns (4), --ds-tile-trend-color (--ds-chart-1),
+ * --ds-tile-selected-bg, --ds-selected-ring.
  *
  * On narrow tiles the value shrinks with the tile (container units).
  */
@@ -54,13 +75,14 @@
   /* Intrinsic columns: as many tiles per row as fit at their smallest width,
      never more than --ds-tiles-columns, each row filled. */
   .ds-tiles {
+    --_gap: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px);
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--ds-tile-min-width, 176px), (100% - (var(--ds-tiles-columns, 4) - 1) * var(--ds-space-3)) / var(--ds-tiles-columns, 4))), 1fr));
-    gap: var(--ds-space-3);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--ds-tile-min-width, 176px), (100% - (var(--ds-tiles-columns, 4) - 1) * var(--_gap)) / var(--ds-tiles-columns, 4))), 1fr));
+    gap: var(--_gap);
   }
 
   .ds-tiles--3 {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--ds-tile-min-width, 176px), (100% - 2 * var(--ds-space-3)) / 3)), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--ds-tile-min-width, 176px), (100% - 2 * var(--_gap)) / 3)), 1fr));
   }
 
   .ds-tile {
@@ -68,19 +90,21 @@
     container-type: inline-size;
     display: flex;
     flex-direction: column;
+    --_pad: calc(var(--ds-tile-padding, var(--ds-space-5)) + var(--ds-density, 0) * 2px);
+    --_radius: calc(var(--ds-tile-radius, var(--ds-radius-lg)) * var(--ds-shape, 1));
     min-width: 0;
-    padding: var(--ds-space-4) var(--ds-space-5) var(--ds-space-5);
-    border-radius: var(--ds-tile-radius, var(--ds-radius-lg));
+    padding: calc(var(--_pad) - var(--ds-space-1)) var(--_pad) var(--_pad);
+    border-radius: var(--_radius);
     background: var(--ds-surface-low);
   }
 
   @media (max-width: 600px) {
     .ds-tiles {
-      gap: var(--ds-space-2);
+      --_gap: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px);
     }
 
     .ds-tile {
-      padding: var(--ds-space-3) var(--ds-space-4) var(--ds-space-4);
+      --_pad: calc(var(--ds-tile-padding, var(--ds-space-4)) + var(--ds-density, 0) * 2px);
     }
   }
 
@@ -98,11 +122,14 @@
   }
 
   .ds-tile__value {
+    --_size: calc(var(--ds-size-display) * (1 + var(--ds-size-step, 0) / 8));
     margin: var(--ds-space-2) 0 0;
     color: var(--ds-text);
     font: var(--ds-font-display);
     /* Tiles of a row are equally wide, so their values keep one size. */
-    font-size: min(var(--ds-size-display), 26cqi);
+    font-size: min(var(--_size), 26cqi);
+    /* The display role's 44/36, also on the size steps. */
+    line-height: calc(var(--_size) * 11 / 9);
     letter-spacing: 0;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -122,6 +149,7 @@
     position: relative;
     isolation: isolate;
     width: 100%;
+    min-height: var(--ds-target-min, 0px);
     margin: 0;
     border: 0;
     color: inherit;
@@ -143,7 +171,7 @@
      the layer follows through border-radius: inherit. */
   :is(button, a).ds-tile:active:not(:disabled, [aria-disabled="true"]),
   :is(button, a).ds-tile.ds-pressed:not(:disabled, [aria-disabled="true"]) {
-    border-radius: min(var(--ds-tile-radius-pressed, var(--ds-radius-md)), var(--ds-tile-radius, var(--ds-radius-lg)));
+    border-radius: min(calc(var(--ds-tile-radius-pressed, var(--ds-radius-md)) * var(--ds-shape, 1)), var(--_radius));
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       color var(--ds-dur-fast) var(--ds-ease-in-out),
@@ -209,10 +237,55 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* How the figure moved: an arrow and a word. Quiet without a tone. */
+  .ds-tile__delta {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    gap: var(--ds-space-1);
+    max-width: 100%;
+    margin: var(--ds-space-1) 0 0;
+    color: var(--_delta-ink, var(--ds-text-2));
+    font: var(--ds-font-caption);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ds-tile__delta svg {
+    flex: none;
+  }
+
+  /* On the delta itself: an inherited tone would colour every delta in a
+     tinted region. The tint and its ink are a tested pair of each palette. */
+  .ds-tile__delta:is(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+    padding: 2px var(--ds-space-2);
+    border-radius: calc(var(--ds-radius-chip) * var(--ds-shape, 1));
+    background: var(--ds-tone-container);
+    color: var(--ds-on-tone-container);
+  }
+
+  /* A meter under the figure: how far it is to its target. */
+  .ds-tile > .ds-meter {
+    margin-top: var(--ds-space-2);
+  }
+
+  /* The foot of the tile: the sparklines of a row line up. */
+  .ds-tile__trend {
+    min-width: 0;
+    margin-top: auto;
+    padding-top: var(--ds-space-2);
+    color: var(--ds-tile-trend-color, var(--ds-chart-1));
+  }
+
+  .ds-tile__trend svg {
+    display: block;
+    width: 100%;
+  }
+
   /* Selected (a filter by this figure): the tint and a static inset ring on
      the free ::after (the state layer is ::before), so the focus ring stays
      free; the ring shows at once, the colours glide. */
   :is(button, a).ds-tile:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]) {
+    --_delta-ink: var(--ds-on-accent);
     background: var(--ds-tile-selected-bg, var(--ds-accent));
     color: var(--ds-on-accent);
   }
@@ -232,8 +305,21 @@
 
   @media (forced-colors: active) {
     :is(button, a).ds-tile:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]) {
+      --_delta-ink: HighlightText;
       forced-color-adjust: none;
       background: Highlight;
+      color: HighlightText;
+    }
+
+    /* forced-color-adjust inherits: a toned delta and a sparkline drop their
+       own colours for the selection's. */
+    :is(button, a).ds-tile:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]) .ds-tile__delta {
+      background: transparent;
+      color: HighlightText;
+    }
+
+    :is(button, a).ds-tile:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]) .ds-tile__trend {
+      --ds-chart-forced-ink: HighlightText;
       color: HighlightText;
     }
 
@@ -255,8 +341,13 @@
       color: GrayText;
     }
 
-    :is(button, a).ds-tile[aria-disabled="true"] :is(.ds-tile__label, .ds-tile__value, .ds-tile__note) {
+    :is(button, a).ds-tile[aria-disabled="true"] :is(.ds-tile__label, .ds-tile__value, .ds-tile__note, .ds-tile__delta, .ds-tile__trend) {
+      background: transparent;
       color: GrayText;
+    }
+
+    :is(button, a).ds-tile[aria-disabled="true"] .ds-tile__trend {
+      --ds-chart-forced-ink: GrayText;
     }
 
     /* It stays focusable; unforced, its ring would keep the brand colour. */
