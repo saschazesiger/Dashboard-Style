@@ -8,34 +8,47 @@
   "status": "stable",
   "classes": [
     "ds-switch",
+    "ds-switch--icons",
     "ds-switch--locked",
     "ds-switch-list",
     "ds-switch__hint",
     "ds-switch__icon",
+    "ds-switch__icon--off",
+    "ds-switch__icon--on",
     "ds-switch__label",
     "ds-switch__meta",
     "ds-switch__off",
     "ds-switch__on",
+    "ds-switch__spinner",
     "ds-switch__state",
     "ds-switch__track"
   ],
   "attributes": [],
   "requires": [],
   "context": [
-    "ripple"
+    "ripple",
+    "spinner"
   ],
   "hooks": {
     "--ds-switch-halo": {
       "default": "40px",
-      "description": "the halo around the switch handle"
+      "description": "the halo around the switch handle: the base, 8px per size step"
+    },
+    "--ds-switch-track-height": {
+      "default": "32px",
+      "description": "the track: the base height, 4px per size step; the width (13 : 8), the handle, its travel and the icon follow"
     },
     "--ds-switch-height": {
       "default": "40px",
-      "description": "the smallest height of a switch row"
+      "description": "the smallest height of a switch row: the base that size and density steps apply to"
+    },
+    "--ds-switch-font": {
+      "default": "the size's role, else `--ds-font-label`",
+      "description": "the name of a switch"
     },
     "--ds-switch-list-row-height": {
       "default": "56px",
-      "description": "the smallest row of a `.ds-switch-list`"
+      "description": "the smallest row of a `.ds-switch-list`: the base that size and density steps apply to"
     },
     "--ds-switch-disabled-track": {
       "default": "`--ds-disabled-fill`, `--ds-disabled-ink`",

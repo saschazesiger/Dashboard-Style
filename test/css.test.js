@@ -977,7 +977,7 @@ describe('values come from tokens', () => {
       ['src/components/spinner/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, 4px)'],
       ['src/components/status/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
       // and the small check row, so .ds-touch reaches it.
-      ['src/components/form/form.css', '.ds-check--sm', '--ds-check-height', 'var(--ds-check-sm-height, 32px)'],
+      ['src/components/form/form.css', '.ds-check--sm', '--_h', 'var(--ds-check-sm-height, 32px)'],
     ];
     for (const [file, selector, property, value] of reads) {
       assert.equal(declarationsAt(read(file), selector).find((entry) => entry.property === property)?.value, value, `${selector} { ${property} }`);
@@ -1339,7 +1339,7 @@ describe('accessibility details', () => {
   it('keeps the outlined field hover from outranking the filled toolbar fields', () => {
     // .ds-input itself: an input group draws a box of its own.
     const hover = rules(read('src/components/form/form.css')).filter((rule) => /^\.ds-input(?![\w-])[^\s,]*:hover/.test(rule.selector) && rule.body.includes('var(--ds-text)'));
-    assert.deepEqual(hover.map((rule) => rule.selector), ['.ds-input:where(:hover:not(:focus-within, :disabled, [readonly], [aria-invalid="true"]))']);
+    assert.deepEqual(hover.map((rule) => rule.selector), ['.ds-input:where(:hover:not(:focus-within, :disabled, [readonly], [aria-readonly="true"], [aria-invalid="true"]))']);
   });
 
   it('shows the focus ring solid from the first frame and snaps only its offset', () => {
@@ -1529,7 +1529,7 @@ describe('controls (1.1.0)', () => {
     assert.equal(card.length, 2);
     for (const { part, own } of card) {
       assert.ok(part.includes(':not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))'), part);
-      assert.equal(own['border-radius'], 'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
+      assert.equal(own['border-radius'], 'min(calc(var(--ds-radius-card-pressed) * var(--ds-shape, 1)), var(--_radius))');
       assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/);
     }
     const cardRest = Object.fromEntries(declarationsAt(read('src/components/form/form.css'), '.ds-radio').map((entry) => [entry.property, entry.value]));
@@ -1656,7 +1656,7 @@ describe('controls (1.1.0)', () => {
   it('draws checkboxes and radios on the native input (no accent-color), in system colours when forced', () => {
     for (const file of ALL_CSS) assert.doesNotMatch(stripComments(read(file)), /accent-color/, file);
     const form = read('src/components/form/form.css');
-    const drawn = rules(form).filter((rule) => /(^|;\s*)appearance:\s*none/.test(rule.body) && /-webkit-appearance:\s*none/.test(rule.body))
+    const drawn = rules(form).filter((rule) => /(^|;\s*)appearance:\s*none/.test(rule.body))
       .flatMap((rule) => splitSelectors(rule.selector));
     for (const selector of ['.ds-check input[type="checkbox"]', '.ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *))', '.ds-checkbox', '.ds-check input[type="radio"]', '.ds-radio input', '.ds-radio-input']) {
       assert.ok(drawn.includes(selector) || drawn.includes(selector.replace(/\[type="\w+"\]$/, '')), `${selector}: appearance: none`);

@@ -30,11 +30,23 @@
   "hooks": {
     "--ds-chip-height": {
       "default": "32px",
-      "description": "filter chip"
+      "description": "a chip: the base height (size md, comfortable density) that size and density steps apply to ([options.md](options.md))"
+    },
+    "--ds-chip-padding-x": {
+      "default": "`--ds-space-4`",
+      "description": "a chip: the base side padding, 4px per size step; next to a check, icon or glyph 8px less"
+    },
+    "--ds-chip-radius": {
+      "default": "`--ds-radius-chip`",
+      "description": "a chip (at most half the height, times `--ds-shape`)"
+    },
+    "--ds-chip-font": {
+      "default": "the size's role, else `--ds-font-chip`",
+      "description": "the label of a chip"
     },
     "--ds-chip-check-size": {
       "default": "18px",
-      "description": "the check of a selected chip (and the room it opens)"
+      "description": "the check of a selected chip (and the room it opens), its icon and trailing glyph: the base, 2px per size step"
     },
     "--ds-chip-disabled-border": {
       "default": "`--ds-disabled-fill`",

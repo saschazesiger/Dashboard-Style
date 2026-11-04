@@ -286,6 +286,7 @@ const CONTINUITY = {
   chips: { in: 'stage', sel: '.ds-chip__body', text: 'Archived', pseudo: '::after', props: ['width'] },
   switch: { in: 'stage', sel: '.ds-switch__track', pseudo: '::after', props: ['translate.x'] },
   'switch-locked': { in: 'stage', sel: '.ds-switch__icon', props: ['opacity'] },
+  'switch-icons': { in: 'stage', sel: '.ds-switch__icon--on', props: ['opacity', 'translate.x'] },
   checks: { in: 'stage', sel: '.sg-row .ds-radio-input:nth-of-type(2)', pseudo: '::after', props: ['scale.x'] },
   track: { in: 'stage', sel: '.ds-indicator', props: ['--ds-indicator-x', '--ds-indicator-l'], sum: true },
   segmented: { in: 'stage', sel: '.ds-indicator', props: ['--ds-indicator-x', '--ds-indicator-l'], sum: true },

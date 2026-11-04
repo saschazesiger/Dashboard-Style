@@ -1681,10 +1681,13 @@ function guardDom() {
       stopImmediatePropagation() { this.stopped = true; },
     };
     for (const entry of listeners.filter((each) => each.type === type && each.capture)) entry.listener(event);
-    return { blocked: event.prevented && event.stopped, prevented: event.prevented };
+    return { blocked: event.prevented && event.stopped, prevented: event.prevented, stopped: event.stopped };
   };
   return { h, doc, win, listeners, fire };
 }
+
+/** Every capture listener of an installed guard, in the order it adds them. */
+const GUARD_LISTENERS = ['click', 'auxclick', 'submit', 'keydown', 'keyup', 'pointerdown', 'keydown', 'focusin', 'input', 'change'];
 
 describe('DS.motion.guard (2.0)', () => {
   it('blocks a click, middle click and submission on busy, done and aria-disabled actions inside .ds-theme', () => {
@@ -1735,20 +1738,58 @@ describe('DS.motion.guard (2.0)', () => {
     handle.destroy();
   });
 
+  it('holds the value of an aria-disabled range, which moves without a click; the page\'s script and a usable range go through', () => {
+    const { h, doc, fire } = guardDom();
+    const range = (attributes) => Object.assign(h('input', { type: 'range', ...attributes }), { type: 'range', value: '50' });
+    const blocked = range({ 'aria-disabled': 'true' });
+    const usable = range({});
+    const explains = range({ 'aria-disabled': 'true' });
+    const text = Object.assign(h('input', { 'aria-disabled': 'true' }), { type: 'text', value: 'typed' });
+    h('div', { class: 'ds-theme' }, blocked, usable, h('div', { 'data-ds-guard': 'off' }, explains), text);
+    const outside = range({ 'aria-disabled': 'true' });
+    h('div', {}, outside);
+    const handle = motion.guard(doc);
+    for (const [hold, move] of [['pointerdown', 'input'], ['keydown', 'input'], ['focusin', 'change']]) {
+      blocked.value = '50';
+      fire(hold, blocked);
+      blocked.value = '91';
+      assert.equal(fire(move, blocked).stopped, true, `${move} after ${hold} stays from the page`);
+      assert.equal(blocked.value, '50', `${move} after ${hold} puts it back`);
+    }
+    // The page may set another value: the next press holds that one.
+    blocked.value = '20';
+    fire('pointerdown', blocked);
+    blocked.value = '91';
+    fire('input', blocked);
+    assert.equal(blocked.value, '20');
+    blocked.value = '30';
+    assert.equal(fire('input', blocked, { isTrusted: false }).stopped, false, 'the page\'s own event');
+    assert.equal(blocked.value, '30');
+    for (const [element, label] of [[usable, 'a usable range'], [explains, 'data-ds-guard="off"'], [outside, 'outside .ds-theme'], [text, 'a text field']]) {
+      const before = element.value;
+      fire('pointerdown', element);
+      element.value = '91';
+      assert.equal(fire('input', element).stopped, false, label);
+      assert.equal(element.value, '91', label);
+      element.value = before;
+    }
+    handle.destroy();
+  });
+
   it('installs once per root, counts its holders and removes its listeners with the last one', () => {
     const { doc, listeners } = guardDom();
     const first = motion.guard(doc);
     const second = motion.guard(doc);
-    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true], ['keydown', true], ['keyup', true]]);
+    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), GUARD_LISTENERS.map((type) => [type, true]));
     first.destroy();
     first.destroy();
-    assert.equal(listeners.length, 5, 'one holder left');
+    assert.equal(listeners.length, GUARD_LISTENERS.length, 'one holder left');
     second.destroy();
     assert.equal(listeners.length, 0);
     // A shadow root listens on itself.
     const shadow = { nodeType: 11, added: [], addEventListener(type) { this.added.push(type); }, removeEventListener() {} };
     motion.guard(shadow).destroy();
-    assert.deepEqual(shadow.added, ['click', 'auxclick', 'submit', 'keydown', 'keyup']);
+    assert.deepEqual(shadow.added, GUARD_LISTENERS);
   });
 
   it('is installed by busy() on its first call, for good', async () => {
@@ -1758,11 +1799,11 @@ describe('DS.motion.guard (2.0)', () => {
     button.querySelector = () => null;
     h('div', { class: 'ds-theme' }, button);
     await motion.busy(button, () => 'saved');
-    assert.equal(listeners.length, 5);
+    assert.equal(listeners.length, GUARD_LISTENERS.length);
     await motion.busy(button, () => 'again');
-    assert.equal(listeners.length, 5, 'once');
+    assert.equal(listeners.length, GUARD_LISTENERS.length, 'once');
     motion.guard(doc).destroy();
-    assert.equal(listeners.length, 5, 'a page handle never takes away the hold of busy()');
+    assert.equal(listeners.length, GUARD_LISTENERS.length, 'a page handle never takes away the hold of busy()');
   });
 
   it('is installed by DS.ripple.attach() on the root\'s document, and its destroy() lets go (CT-1)', () => {
@@ -1776,7 +1817,7 @@ describe('DS.motion.guard (2.0)', () => {
       contains: () => false,
     });
     const handle = ripple.attach(root);
-    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), [['click', true], ['auxclick', true], ['submit', true], ['keydown', true], ['keyup', true]]);
+    assert.deepEqual(listeners.map((entry) => [entry.type, entry.capture]), GUARD_LISTENERS.map((type) => [type, true]));
     assert.equal(fire('click', blocked).blocked, true, 'an aria-disabled action is blocked once attach() ran');
     handle.destroy();
     assert.equal(listeners.length, 0, 'destroy() takes its hold back');

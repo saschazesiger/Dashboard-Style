@@ -3,7 +3,7 @@
   "group": "forms",
   "order": 200,
   "docsOrder": 200,
-  "need": "Collect input: labelled fields, checks, radios, filters, action bars and a composer",
+  "need": "Collect input: labelled fields in three looks, slots, states, checks and cards, form sections, filters, action bars and a composer",
   "tier": 1,
   "status": "stable",
   "classes": [
@@ -11,6 +11,8 @@
     "ds-add-row",
     "ds-check",
     "ds-check--sm",
+    "ds-check-card",
+    "ds-check-cards",
     "ds-check-group",
     "ds-check-group__children",
     "ds-check-list",
@@ -20,21 +22,31 @@
     "ds-composer__input",
     "ds-field",
     "ds-field--changed",
+    "ds-field--filled",
     "ds-field--full",
     "ds-field--grow",
     "ds-field--inset",
+    "ds-field--outlined",
+    "ds-field--success",
+    "ds-field--warning",
     "ds-field__changed",
     "ds-field__counter",
+    "ds-field__counter--over",
     "ds-field__foot",
     "ds-field__hint",
     "ds-field__hint--error",
     "ds-field__hint--success",
+    "ds-field__hint--warning",
     "ds-field__label",
     "ds-field__optional",
     "ds-field__required",
     "ds-field__row",
     "ds-field__row--top",
     "ds-field__value",
+    "ds-fieldset",
+    "ds-fieldset--outlined",
+    "ds-fieldset__hint",
+    "ds-fieldset__legend",
     "ds-filters",
     "ds-form",
     "ds-form--rows",
@@ -43,12 +55,24 @@
     "ds-form-grid",
     "ds-form-grid--2",
     "ds-form-grid--3",
+    "ds-form-section",
+    "ds-form-section--columns",
+    "ds-form-section__body",
+    "ds-form-section__head",
+    "ds-form-section__text",
+    "ds-form-section__title",
     "ds-inline-form",
     "ds-input",
     "ds-input--filled",
     "ds-input--grow",
+    "ds-input--outlined",
     "ds-input-group",
+    "ds-input-group--filled",
     "ds-input-group__affix",
+    "ds-input-group__leading",
+    "ds-input-group__prefix",
+    "ds-input-group__suffix",
+    "ds-input-group__trailing",
     "ds-radio",
     "ds-radio--disabled",
     "ds-radio-input",
@@ -62,7 +86,9 @@
     "ds-search__key",
     "ds-toolbar"
   ],
-  "attributes": [],
+  "attributes": [
+    "data-ds-ripple"
+  ],
   "requires": [
     "button"
   ],
@@ -77,28 +103,40 @@
   ],
   "hooks": {
     "--ds-input-font": {
-      "default": "body; input role at 600px and below",
-      "description": "fields"
+      "default": "the size's role, else body; input role at 600px and below",
+      "description": "fields: the type role of the text (its weight comes from `--ds-input-weight`)"
+    },
+    "--ds-input-weight": {
+      "default": "`--ds-weight-regular`",
+      "description": "the weight of field text, also in the roles of the sizes"
     },
     "--ds-check-size": {
       "default": "18px",
-      "description": "the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes)"
+      "description": "the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes): the base, 2px per size step"
     },
     "--ds-check-target": {
       "default": "40px",
-      "description": "their halo (hover, press, focus) across"
+      "description": "their halo (hover, press, focus) across: the base, 8px per size step and 4px per density step"
     },
     "--ds-input-height": {
       "default": "40px",
-      "description": "the minimum height of fields (`.ds-input`, the search pill), input groups and a growing textarea; the combobox toggle is that size and the field keeps room for it"
+      "description": "fields: the base height (size md, comfortable density) of `.ds-input`, the search pill, input groups and a growing textarea, which size and density steps apply to ([options.md](options.md)); the combobox toggle lines up with it"
+    },
+    "--ds-input-padding-x": {
+      "default": "`--ds-space-3`",
+      "description": "fields and input groups: the base side padding, 4px more or less per size step"
     },
     "--ds-check-height": {
       "default": "40px",
-      "description": "a `.ds-check` row (one line of its label; a longer label wraps and the box stays beside its first line)"
+      "description": "a `.ds-check` row: the base height that size and density steps apply to (one line of its label; a longer label wraps and the box stays beside its first line)"
     },
     "--ds-check-sm-height": {
       "default": "32px",
-      "description": "`.ds-check--sm` (it sets `--ds-check-height` from it)"
+      "description": "the deprecated `.ds-check--sm`: its fixed height"
+    },
+    "--ds-radio-padding": {
+      "default": "`--ds-space-4`",
+      "description": "radio and checkbox cards: the base padding, 2px less per density step"
     },
     "--ds-input-bg": {
       "default": "`--ds-surface`, `--ds-outline`, `--ds-radius-field`",
@@ -121,12 +159,16 @@
       "description": "the tallest a `.ds-input--grow` textarea grows before it scrolls"
     },
     "--ds-field-error-color": {
-      "default": "`--ds-on-error-container`, `--ds-text-2`",
-      "description": "the text of an error and a success hint (their icons stay `--ds-error`, `--ds-success`)"
+      "default": "`--ds-on-error-container`, `--ds-on-warning-container`, `--ds-text-2`",
+      "description": "the text of an error, a warning and a success hint (their icons stay `--ds-error`, `--ds-warning`, `--ds-success`)"
+    },
+    "--ds-field-warning-color": {
+      "default": "`--ds-on-error-container`, `--ds-on-warning-container`, `--ds-text-2`",
+      "description": "the text of an error, a warning and a success hint (their icons stay `--ds-error`, `--ds-warning`, `--ds-success`)"
     },
     "--ds-field-success-color": {
-      "default": "`--ds-on-error-container`, `--ds-text-2`",
-      "description": "the text of an error and a success hint (their icons stay `--ds-error`, `--ds-success`)"
+      "default": "`--ds-on-error-container`, `--ds-on-warning-container`, `--ds-text-2`",
+      "description": "the text of an error, a warning and a success hint (their icons stay `--ds-error`, `--ds-warning`, `--ds-success`)"
     },
     "--ds-field-changed-color": {
       "default": "`--ds-primary`",
@@ -161,7 +203,6 @@
   ],
   "js": [],
   "progressive": [
-    "@starting-style",
     "interpolate-size",
     "text-wrap",
     "scrollbar-color",
@@ -169,7 +210,8 @@
   ],
   "ripple": true,
   "rippleHosts": [
-    ".ds-radio"
+    ".ds-radio",
+    ".ds-check-card:not(:has(input:is(:disabled,[aria-disabled=\"true\"])))"
   ],
   "exceptions": {
     "ripple": {
@@ -183,6 +225,7 @@
     },
     "physical": {
       "select.ds-input, input.ds-input[list]: padding-right": "the room of the arrow, which sits at the right",
+      ".ds-field--inset > select.ds-input, .ds-field--inset > select.ds-input:focus, .ds-field--inset > input.ds-input[list], .ds-field--inset > input.ds-input[list]:focus: padding-right": "the room of the arrow in the inset box, whose padding-inline would take it away",
       "select.ds-input, input.ds-input[list]: background-position": "the select arrow: two gradients placed from the right edge",
       "input.ds-input[list]::-webkit-calendar-picker-indicator: margin": "the invisible picker laid over the arrow at the right"
     },
@@ -194,7 +237,8 @@
     "transition": {
       "height": {
         ".ds-field__hint--error": "the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists",
-        ".ds-field__hint--success": "the room of a confirmation under a field opens like a validation message's (D29), only where interpolate-size exists"
+        ".ds-field__hint--success": "the room of a confirmation under a field opens like a validation message's (D29), only where interpolate-size exists",
+        ".ds-field__hint--warning": "the room of a warning under a field opens like a validation message's (D29), only where interpolate-size exists"
       }
     }
   }

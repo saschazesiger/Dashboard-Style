@@ -1,5 +1,8 @@
 ## Form
 
+Everything that collects input: labelled fields in three looks, slots inside a field, states in words, checkboxes,
+radios and their cards, fieldsets and form sections, filters and an action bar. Labels stay above their fields.
+
 ```html
 <form class="ds-form">
   <div class="ds-form-grid">                <!-- 3 columns, the first wider; ds-form-grid--2: two; ds-form-grid--3: three equal -->
@@ -29,7 +32,7 @@
 
   <label class="ds-check"><input type="checkbox" name="managed" checked><span>Managed</span></label>
   <small class="ds-field__hint">Updates install automatically.</small>
-  <label class="ds-check ds-check--sm"><input type="checkbox" name="clear"><span>Delete the saved key</span></label>
+  <label class="ds-check ds-sm"><input type="checkbox" name="clear"><span>Delete the saved key</span></label>
 
   <input class="ds-checkbox" type="checkbox" aria-label="Select all">       <!-- a checkbox anywhere -->
   <input class="ds-radio-input" type="radio" name="size" aria-label="Small"> <!-- a radio anywhere -->
@@ -51,10 +54,25 @@
 </form>
 ```
 
+**Options** ([options.md](options.md)): classes on the control or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-field--outlined` (default), `.ds-field--filled`, `.ds-field--inset`; on one control `.ds-input--outlined`, `.ds-input--filled`, `.ds-input-group--filled` | the field, or one control | the look: an outline, the tonal fill, the tonal box with the label inside |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | a control, a field, a form | fields 24, 32, 40, 48, 56px high (8px per step), side padding 4px per step, the size's type role at the regular weight (16px on phones at every size); a `.ds-check` row and the halo 8px per step, the box 2px per step; labels and hints keep their roles |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container (the compact theme sets dense) | 4px less height per step (fields, groups, the inset box, `.ds-check` rows, halos); 2px less padding per step on cards; side padding and type stay |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius of fields, the search pill, the composer, checkboxes, the check list and the cards times 0, .5, 1, 1.5; a card's press morph too. A radio stays round |
+| Touch | `.ds-touch` | the theme or a container | at least `--ds-touch-target` (48px) whatever the size and density, a minimum and no addition (`.ds-lg` stays 48px, `.ds-xl` 56px): fields, `.ds-check` rows, cards, halos; field text at `--ds-font-input`. A halo is painted: a bare `.ds-checkbox` or `.ds-radio-input` still takes a tap only on its box, so under touch give it a `.ds-check` label or an equally large label around it |
+| State | `aria-invalid="true"`, `.ds-field--warning`, `.ds-field--success`, `readonly`, `aria-readonly="true"`, `disabled` | the control, the field | the border and ring, always with a hint in words; there is no tone class on a field |
+
 - 40px fields, label above (never only a placeholder), focus as an instant 2px ring inside the field. On blur the
   border, the inner ring and the text colour fade back together, so the ring never fades as half a ring.
-- The label of a field (`.ds-field__label` before the field, or the `<legend>` of a fieldset) takes the primary
-  colour with the ring, at once, and fades back on blur; the label of an invalid field keeps the error ink, also
+- Field text stays `--ds-font-input` (16px) at 600px and below at every size: iOS zooms into smaller text; the padding
+  stays around that taller line, so an md field is 42px there. A `--ds-input-font` of a theme wins, so keep it at 16px
+  on phones.
+- The label of a field (`.ds-field__label` before the field, or the `<legend>` of a fieldset) takes the ring's colour
+  with the ring (primary, or the state's on a warning or success field), at once, and fades back on blur; the label of
+  an invalid field keeps the error ink, also
   while focused (the control directly in `.ds-field` or in its `.ds-input-group`, `.ds-field__row` or `.ds-combo`).
   A focused invalid input group rings in the error colour alone, like a focused invalid field.
 - Error: `aria-invalid="true"` plus a `.ds-field__hint--error` with an icon, linked by `aria-describedby`. The
@@ -62,7 +80,9 @@
   can animate height to `auto` and focus is in its form (`<form>`, `.ds-form`) or `.ds-field` (validation on blur
   or on submit), its room also opens from 0 (on `--ds-ease-out`, so the form below never overshoots). A message
   already in the markup only fades in, so nothing shifts on load. Removing it is instant.
-- Disabled and read-only (`readonly`) fields take the quiet surface. A `<datalist>` field shows the select triangle.
+- Disabled and read-only (`readonly`, or `aria-readonly="true"` on a select, whose value the page then keeps) fields
+  take the quiet surface; a read-only field stays focusable, shows the ring or the focus line of its look while
+  focused, and its text can be copied. A `<datalist>` field shows the select triangle.
 - Form grids drop to one column when the page is 760px or narrower, and in sheets and dialogs when the window is.
 - A form in a card: `<form class="ds-card ds-form">` (16px rhythm).
 - A `<textarea class="ds-input">` starts about three lines tall and grows only vertically, by hand.
@@ -80,20 +100,29 @@
   stays in the tab order and keeps its focus halo, so a tooltip with the reason can still be reached; the action
   guard of `DS.motion` ([motion.md](motion.md)) blocks its click, also a click on its label, so the page needs no
   guard of its own.
-- A `.ds-check` row is `--ds-check-height` tall (40px; `--sm`: `--ds-check-sm-height`, 32px) around one line of its
+- A `.ds-check` row is `--ds-check-height` tall (40px, with the size and density steps) around one line of its
   label. A long label wraps (even a bare text node, `overflow-wrap: anywhere`) and the box stays beside its first line.
+- `.ds-check--sm` is **deprecated** (3.0, removed when 3.0 ships): `.ds-sm`. Until then it keeps the fixed 2.x row
+  (`--ds-check-sm-height`, 32px, **deprecated** with it) and the quieter ink; density does not change it.
 - Radio cards (`.ds-radio`) have a state layer and the ripple, and turn squarer while pressed
-  (`--ds-radius-card-pressed`), springing back on release; keyboard focus rings the whole card and lays the focus
+  (`--ds-radius-card-pressed` times `--ds-shape`), springing back on release; keyboard focus rings the whole card and lays the focus
   layer (`--ds-state-focus`) at once (its input has no halo); `.ds-radio--disabled` and a card whose input is
   disabled or `aria-disabled` have none, keep their border on hover and take the quiet look (`--ds-line` border,
   `--ds-surface-low`, the title in `--ds-text-2`; a checked one keeps its selected look).
 - Date and time fields (`date`, `datetime-local`, `month`, `week`, `time`) draw their picker button as the icon
   set's `calendar` (`time`: `clock`) in the quieter text colour; side by side in `.ds-filters`, `.ds-inline-form`
   and the two- and three-column grids they take less padding at 720px and below, so the value is not cut off.
-- Field hooks: `--ds-input-height`, `--ds-input-bg`, `--ds-input-border`, `--ds-input-radius` and
-  `--ds-input-focus-color` (the ring and the label tint), [theming.md](theming.md#component-hooks).
+- Field hooks: `--ds-input-height`, `--ds-input-padding-x`, `--ds-input-bg`, `--ds-input-border`,
+  `--ds-input-radius`, `--ds-input-weight` and `--ds-input-focus-color` (the ring and the label tint),
+  [theming.md](theming.md#component-hooks). Checkboxes and radios: `--ds-check-size` (18px at md). Cards:
+  `--ds-radio-padding`.
+- Keyboard and names: native controls, so Tab reaches every field, checkbox and radio, Space toggles, the arrows move
+  within a radio group and step a number. Every field has a `<label>` (`.ds-sr` when the design shows none) and its
+  hint by `aria-describedby`; a group of radios a `role="radiogroup"` with a name.
 - Forced colours: a focused field (also an input group, a filled field and the composer) shows a `Highlight`
-  outline, since its inset ring is a shadow that forced colours drop.
+  outline, since its inset ring is a shadow that forced colours drop; a selected card's edge and checked input are
+  `Highlight`; blocked is `GrayText` (a disabled field or group, a disabled fieldset's legend, a blocked card's title
+  and edge when checked); a warning or success field keeps the system's edge and its word says which.
 
 **Hints that confirm, hints with an icon, markers and a counter**
 
@@ -125,11 +154,16 @@
   (`aria-describedby`), read on the next focus; when the result must be spoken at once, announce it too
   (`DS.overlay.announce(text)`). The error text reads `--ds-field-error-color` (default
   `--ds-on-error-container`).
+- A warning (`.ds-field--warning` with a `.ds-field__hint--warning`, "Expires in 3 days") and a success
+  (`.ds-field--success` with a `.ds-field__hint--success`) colour the control's border, ring and the line of the
+  filled field; `aria-invalid="true"` stays the only error. Each needs its hint with an icon and words: the colour
+  never stands alone. Hook: `--ds-field-warning-color` (default `--ds-on-warning-container`).
 - `.ds-field__optional` marks the few optional fields (the recommended way); where most fields are optional, mark
   the required ones with an `aria-hidden` `.ds-field__required` asterisk and `required` on the input (screen readers
   announce that).
 - `.ds-field__foot` puts the hint and a `.ds-field__counter` in one row (the counter at the end, tabular). The counter
-  is `aria-hidden` and the page updates it on `input`; near the limit the page announces what is left once.
+  is `aria-hidden` and the page updates it on `input`; near the limit the page announces what is left once. Past the
+  limit it takes `.ds-field__counter--over` (the figures say it, the error ink repeats it).
 
 **Search key**
 
@@ -164,7 +198,16 @@ document.addEventListener('keydown', (event) => {
   <label class="ds-field__label" for="quota">Quota (GB)</label>
   <div class="ds-input-group">
     <input class="ds-input" id="quota" inputmode="numeric" value="50">
-    <span class="ds-input-group__affix" aria-hidden="true">GB</span>
+    <span class="ds-input-group__suffix" aria-hidden="true">GB</span>
+  </div>
+</div>
+<div class="ds-field">
+  <label class="ds-field__label" for="site">Website</label>
+  <div class="ds-input-group">
+    <span class="ds-input-group__leading" aria-hidden="true">[icon globe 18]</span>
+    <span class="ds-input-group__prefix" aria-hidden="true">https://</span>
+    <input class="ds-input" id="site" value="example.org">
+    <span class="ds-input-group__trailing"><span class="ds-tag ds-tag--neutral">Suggested</span></span>
   </div>
 </div>
 <div class="ds-field">
@@ -179,17 +222,28 @@ document.addEventListener('keydown', (event) => {
 
 - `.ds-field__row`: the field takes the room, its buttons keep their size; `.ds-field__row--top` aligns them to the
   start, beside a textarea.
-- `.ds-input-group` draws the field (border, radius, background, `--ds-input-height`) and the `.ds-input` inside
-  loses its box. The ring moves to the group while the input has the focus (at once, fading back on blur); a focused
-  trailing button shows its own ring instead. `aria-invalid="true"` on the input turns the group's border, disabled
-  or `readonly` its surface. An affix (a unit, a prefix such as `https://`) is `aria-hidden`, so the unit belongs in
-  the label too.
+- `.ds-input-group` draws the field (border, radius, background, `--ds-input-height` with its steps) and the
+  `.ds-input` inside loses its box. The ring moves to the group while the input has the focus (at once, fading back
+  on blur); a focused trailing button shows its own ring instead. `aria-invalid="true"` on the input turns the
+  group's border, disabled or `readonly` its surface.
+- Its slots: `.ds-input-group__leading` (an `aria-hidden` icon, no pointer), `.ds-input-group__prefix` (text before
+  the value, such as `https://`), `.ds-input-group__suffix` (a unit after it), `.ds-input-group__trailing` (an icon, a
+  tag such as "Suggested", or a button). A prefix and a suffix are `aria-hidden`, so the unit belongs in the label too.
+- A button in the group, direct or in the trailing slot, adds nothing to the field's height as long as it is no taller
+  than the field. It keeps its own size: `.ds-sm` fits md and the dense density; at `.ds-xs`, or `.ds-sm` with a dense
+  density, put `.ds-xs` on it.
+- `.ds-input-group__affix` is **deprecated** (3.0, removed when 3.0 ships): `.ds-input-group__prefix` before the
+  input, `.ds-input-group__suffix` after it, the same look.
 - The reveal is the page's two lines: toggle the input's `type` between `password` and `text`, and the button's
   `aria-pressed` (the icon swap follows it).
 
-**The filled field**
+**Filled and inset fields**
 
 ```html
+<div class="ds-field ds-field--filled">
+  <label class="ds-field__label" for="owner">Owner</label>
+  <input class="ds-input" id="owner" value="Ada Lovelace">
+</div>
 <div class="ds-field ds-field--inset">
   <label class="ds-field__label" for="title">Title</label>
   <input class="ds-input" id="title" value="Quarterly report">
@@ -197,10 +251,58 @@ document.addEventListener('keydown', (event) => {
 </div>
 ```
 
-The Material 3 filled field: the label sits inside a tonal box above the value (still a real `<label>`), a hairline
-closes the box at the bottom and turns into a 2px line in `--ds-input-focus-color` while the field has the focus.
-Hints follow below the box. In forced colours the fill is gone, so the box keeps a transparent border (its edge
-there) and a focused field shows the outline.
+`.ds-field--filled` puts the field's control (a `.ds-input` or a `.ds-input-group`) on the tonal fill, without an
+outline at rest, the label above it. A single control takes `.ds-input--filled` or `.ds-input-group--filled`, a single
+outlined one in a filled field `.ds-input--outlined`.
+
+`.ds-field--inset` is the Material 3 filled field: the label sits inside a tonal box above the value (still a real
+`<label>`), a hairline closes the box at the bottom and turns into a 2px line in `--ds-input-focus-color` while the
+field has the focus. The box is 56px at md and comfortable, and follows size and density. It holds a `.ds-input` or a
+`.ds-input-group` with its slots. Hints and a `.ds-field__foot` follow below the box, in line with the label. In forced colours the fill is gone, so the box keeps a
+transparent border (its edge there) and a focused field shows the outline.
+
+**Fieldset and form section**
+
+```html
+<fieldset class="ds-fieldset">
+  <legend class="ds-fieldset__legend">Address</legend>
+  <p class="ds-fieldset__hint">Where the device stands.</p>
+  <div class="ds-field"><label class="ds-field__label" for="street">Street</label><input class="ds-input" id="street"></div>
+</fieldset>
+
+<section class="ds-form-section ds-form-section--columns" aria-labelledby="alerts-title">
+  <div class="ds-form-section__head">
+    <h3 class="ds-form-section__title" id="alerts-title">Alerts</h3>
+    <p class="ds-form-section__text">Who hears about a device that went offline.</p>
+  </div>
+  <div class="ds-form-section__body">
+    <div class="ds-field"><label class="ds-field__label" for="alert-mail">Email</label><input class="ds-input" id="alert-mail" type="email"></div>
+  </div>
+</section>
+```
+
+- `.ds-fieldset`: fields that belong together under a `.ds-fieldset__legend`, without the browser's frame and indent;
+  `.ds-fieldset--outlined` puts them in a frame. A disabled fieldset quiets its legend and disables its controls. A
+  fieldset that reads as one field (a set of checkboxes under a field label) stays a `fieldset.ds-field`.
+- `.ds-form-section`: a titled part of a long form; a section after a section stands on a hairline. With
+  `.ds-form-section--columns` (settings) the head stands beside the body; the labels stay above their fields. It falls
+  to one column when the page is 760px or narrower, and in sheets and dialogs when the window is.
+
+**Checkbox cards**
+
+```html
+<div class="ds-check-cards" role="group" aria-label="Add-ons">
+  <label class="ds-check-card"><input class="ds-checkbox" type="checkbox" name="addon" value="backup" checked>
+    <span><strong>Backups</strong><small>Every night, kept for 30 days.</small></span></label>
+  <label class="ds-check-card"><input class="ds-checkbox" type="checkbox" name="addon" value="audit" disabled>
+    <span><strong>Audit log</strong><small class="ds-radio__note">[icon alert 16]Needs a licence.</small></span></label>
+</div>
+```
+
+The checkbox sibling of the radio card: several may be on. Its `.ds-checkbox` keeps the wipe, the indeterminate dash
+and the error ink, without a halo: the card's own layer is its hover, press and focus layer, and it has the ripple
+and the press morph of a radio card (`--ds-radius-card-pressed` times `--ds-shape`). A checked card takes the 2px
+primary outline, never the tint alone. Keyboard focus rings the whole card.
 
 **Many values from a long set, a parent and its children**
 
@@ -288,33 +390,6 @@ const pill = DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:
 group.addEventListener('change', () => pill.update()); // checking a radio changes no attribute
 ```
 
-**Slider**
-
-```html
-<div class="ds-field">
-  <label class="ds-field__label" for="keep">Keep history for</label>
-  <div class="ds-field__row">
-    <input class="ds-slider" id="keep" type="range" min="7" max="365" value="90" aria-describedby="keep-out">
-    <output class="ds-slider__value" id="keep-out" for="keep">90 days</output>
-  </div>
-</div>
-```
-
-A 4px track in `--ds-accent` with its active part in `--ds-primary`, a 20px handle with a halo
-(`--ds-slider-halo`, 40px) for hover, press and keyboard focus (like the switch: the halo is the press, no ripple,
-and the handle never scales), the focus ring on the handle. Firefox draws the active part itself; elsewhere the page
-sets `--ds-share` (the value's share of the range, 0 to 1) on the input when it renders and on every `input` event,
-and keeps the `<output>` in step (without `--ds-share` the track shows no active part, and the slider still works):
-
-```js
-const share = () => { slider.style.setProperty('--ds-share', String((slider.value - slider.min) / (slider.max - slider.min)));
-  output.value = `${slider.value} days`; };
-slider.addEventListener('input', share); share();
-```
-
-Disabled and `aria-disabled` sliders take the disabled ink and no halo. Forced colours: the track in `ButtonText`,
-the handle in `Highlight`.
-
 **Growing textarea and the composer**
 
 ```html
@@ -388,6 +463,18 @@ set it on the card too).
 Inside a dialog, a side sheet or a menu, Escape in a filled `type="search"` field clears it first (an `input` event
 follows, so the page's filter runs) and the next Escape closes the layer (2.0, `DS.overlay`).
 
-**Motion:** the check, radio, focus, validation, confirmation, changed dot, search key, radio tile and slider rows
-of [Controls](motion.md#controls) in motion.md.
+**Motion:** the check, radio, focus, validation, confirmation, changed dot, search key and radio tile rows of
+[Controls](motion.md#controls) in motion.md. A checkbox card moves as a radio card; a warning hint enters as an error
+hint does.
+
+<!-- changelog -->
+- Form: on the options model: fields, input groups, `.ds-check` rows, halos and cards compute size, density, shape and
+  touch in their own rules (`--ds-input-height` is the md, comfortable base, and `.ds-touch` no longer sets it; the
+  compact theme's field is now its density's 32px, 2.x 36px). New: `.ds-field--filled`, `.ds-field--outlined`, `.ds-input--outlined`, `.ds-input-group--filled`;
+  the slots `.ds-input-group__leading`, `__prefix`, `__suffix`, `__trailing`; `.ds-field--warning`, `.ds-field--success`,
+  `.ds-field__hint--warning`, `--ds-field-warning-color`; `aria-readonly="true"` on a select; `.ds-field__counter--over`;
+  `.ds-fieldset`; `.ds-form-section`; `.ds-check-card`, `.ds-check-cards`; an inset field holds an input group; hooks
+  `--ds-input-padding-x`, `--ds-input-weight`, `--ds-radio-padding`.
+- Deprecated, removed when 3.0 ships: `.ds-check--sm` and `--ds-check-sm-height` (`.ds-sm`, `--ds-check-height`),
+  `.ds-input-group__affix` (`.ds-input-group__prefix`, `.ds-input-group__suffix`).
 

@@ -1,5 +1,7 @@
 ## Chips
 
+Small pills that filter a list, pick a few options or hold entered values.
+
 ```html
 <fieldset class="ds-chips">
   <legend class="ds-sr">Status</legend>
@@ -17,6 +19,17 @@
 ```
 
 The native input stays in the form and the tab order; a selected chip shows the tint and the check.
+
+**Options** ([options.md](options.md)): classes on the chip or any ancestor (the tone: on the chip); the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-chip--input`; a `<button>` or a link is an action chip | the chip | below |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | a chip or a row | 16, 24, 32, 40, 48px high (8px per step, never below its own line), side padding 4px per step, check and icon 2px per step, the size's type role |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | 4px less height per step; side padding and type stay |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius times 0, .5, 1, 1.5, at most half the height |
+| Touch | `.ds-touch` | the theme or a container | at least `--ds-touch-target` (48px) high |
+| Tone | `.ds-tone-neutral`, `-primary`, `-info`, `-success`, `-warning`, `-error` | the chip itself | a selected filter chip, an input chip and an action chip take `--ds-tone-container` and its ink; a resting filter chip stays neutral; an inherited tone is ignored. The word carries the meaning, the tone repeats it |
 
 - Selecting opens the room of the check: an empty slot before the label grows to `--ds-chip-check-size` on
   `--ds-ease-out` (a layout size never overshoots) and the chips after it on the line follow; the check draws itself
@@ -37,9 +50,15 @@ The native input stays in the form and the tab order; a selected chip shows the 
   `--ds-disabled-ink`, fading on `--ds-dur-fast`. A theme that dims instead (`--ds-disabled-opacity`) keeps the
   chip's own colours. Forced colours: GrayText. `aria-disabled="true"` on the input looks the same and is blocked
   the same (no page guard needed); it keeps its focus layer, so a tooltip can say why.
-- Hooks: `--ds-chip-height` (32px), `--ds-chip-check-size` (18px), `--ds-chip-disabled-border`,
-  `--ds-chip-disabled-bg` (the container of a disabled selected chip), `--ds-chip-input-bg`, `--ds-chip-input-color`,
-  `--ds-chip-input-border` (input chips), `--ds-chip-max-width` (240px, button chips).
+- Keyboard and names: Tab reaches every chip input, Space toggles it, the arrows move within a radio group of chips;
+  name the row with a `<legend>` (`.ds-sr` is enough) or `aria-label`.
+- Forced colours: a selected chip `Highlight` / `HighlightText` (focused: a `CanvasText` ring), a blocked one
+  `GrayText`, an input chip or a toned action chip a real edge. A tone becomes the system's colours, so the word carries
+  the meaning.
+- Hooks: `--ds-chip-height` (32px), `--ds-chip-padding-x` (16px), `--ds-chip-radius`, `--ds-chip-font`,
+  `--ds-chip-check-size` (18px), `--ds-chip-disabled-border`, `--ds-chip-disabled-bg` (the container of a disabled
+  selected chip), `--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border` (input chips),
+  `--ds-chip-max-width` (240px, button chips).
 
 ### Action and input chips
 
@@ -65,8 +84,8 @@ a suggestion (an action chip):
 - `.ds-chip--input` takes the tint (`--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border`, from
   `--ds-accent` and `--ds-on-accent`) and the whole chip removes its value; name the action for screen readers
   ("Remove filter"). Forced colours keep a real edge.
-- `.ds-chips--wrap` on the row lets long labels wrap inside the chip; a one-line chip keeps the 32px height and the
-  corners stay soft (`min(--ds-radius-chip, half the height)`).
+- `.ds-chips--wrap` on the row lets long labels wrap inside the chip; a one-line chip keeps its height and the corners
+  stay soft (`--ds-radius-chip` times the shape, at most half the height).
 - States as for filter chips: hover, the focus ring (on the chip, snapping), the press in `--ds-dur-micro` with the
   ripple, the disabled model; no morph (chips are not pills).
 - A chip that stays on or off is a filter chip (a checkbox), never a button chip with `aria-pressed`.
@@ -77,4 +96,9 @@ a suggestion (an action chip):
   (`.ds-chips:empty`) takes no room.
 
 **Motion:** the chip rows of [Controls](motion.md#controls) in motion.md.
+
+<!-- changelog -->
+- Chips: on the options model: size, density, shape, touch and tone computed in the chip's own rule. Hooks
+  `--ds-chip-padding-x`, `--ds-chip-radius`, `--ds-chip-font`. `.ds-touch` no longer sets `--ds-chip-height`, and the
+  compact theme neither: a chip there is its dense density's 24px (2.x 28px), like every control on that density.
 
