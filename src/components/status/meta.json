@@ -3,6 +3,9 @@
   "group": "feedback",
   "order": 160,
   "docsOrder": 140,
+  "need": "Show the state of one item with an icon and a word, or label it with a tag",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-status",
     "ds-status--error",

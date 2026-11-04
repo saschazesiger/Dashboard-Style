@@ -4,10 +4,8 @@
  * (sg-core.js, demos.js) and from the registry of the meta.json files
  * (registry.js), plus the foundation pages, a search, the "Which component
  * for which need" overview and the theme generator. A classic script on
- * top of dist/ds.js, so the page runs from disk. The live theme generator
- * imports dist/tools/theme.mjs as an ES module: from disk that works only
- * in Firefox; Chromium and WebKit load no module from file://, so there the
- * page falls back to the shipped presets and says how to serve it.
+ * top of dist/ds.js, so the page runs from disk, the theme generator
+ * included (theme-generator.js, generated from scripts/tools/).
  *
  * Routes (the hash): #/ overview · #/needs · #/components/<n> · #/colour ·
  * #/type · #/shape · #/elevation · #/motion · #/icons · #/tokens[?q=] ·
@@ -200,7 +198,7 @@
       var spec = SG.get(entry.name);
       var item = {
         name: entry.name, group: entry.group || (spec && spec.group), order: entry.order, title: spec ? spec.title : titleOf(entry.name),
-        need: entry.need || (spec && spec.need) || '', tier: entry.tier || null, status: entry.status || (spec ? 'ported' : '2.x'),
+        need: entry.need || (spec && spec.need) || '', tier: entry.tier || null, status: entry.status || null,
         classes: entry.classes || [], hooks: entry.hooks || [], attributes: entry.attributes || [], docs: entry.docs || null, spec: spec,
       };
       byName[item.name] = item;
@@ -209,7 +207,7 @@
     // A demo whose folder the registry does not know yet (registry.js not rebuilt).
     SG.list().forEach(function (spec) {
       if (byName[spec.name]) return;
-      var item = { name: spec.name, group: spec.group, order: 9999, title: spec.title, need: spec.need || '', tier: null, status: 'ported', classes: [], hooks: [], attributes: [], spec: spec };
+      var item = { name: spec.name, group: spec.group, order: 9999, title: spec.title, need: spec.need || '', tier: null, status: null, classes: [], hooks: [], attributes: [], spec: spec };
       byName[item.name] = item;
       list.push(item);
     });
@@ -255,7 +253,7 @@
     var groups = groupsOf(COMPONENTS);
     return '<section class="sg-hero" aria-labelledby="sg-hero-title"><h1 id="sg-hero-title" tabindex="-1">Dashboard-Style ' + esc(DS.version) + '</h1>' +
       '<p>A calm, themeable design system for admin dashboards. Every component on its own page with every option: size, density, shape, tone, variant, colour scheme, contrast, theme preset and touch, at any width.</p>' +
-      '<div class="sg-row"><a class="ds-btn ds-btn--primary" href="#/needs">Which component for which need</a><a class="ds-btn" href="#/theme">' + icon('wand', 18) + 'Theme generator</a><a class="ds-btn ds-btn--text" href="motion.html">Motion Lab ' + icon('arrowRight', 16) + '</a></div></section>' +
+      '<div class="sg-row"><a class="ds-btn ds-btn--filled" href="#/needs">Which component for which need</a><a class="ds-btn" href="#/theme">' + icon('wand', 18) + 'Theme generator</a><a class="ds-btn ds-btn--text" href="motion.html">Motion Lab ' + icon('arrowRight', 16) + '</a></div></section>' +
       '<div class="ds-tiles">' + tile('Components', String(COMPONENTS.length), 'apps', DEMOED.length + ' with a 3.0 demo') + tile('Tokens', String(REG.tokens.length), 'braces', 'roles, scales and seeds') +
       tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') + '</div>' +
       '<div class="sg-group-grid">' + groups.map(function (group) {
@@ -325,9 +323,9 @@
   function componentPage(c) {
     var spec = c.spec;
     var links = '<div class="sg-row sg-row--meta">' + '<span class="ds-tag ds-tag--neutral">' + icon(groupIcon(c.group), 16) + esc(groupTitle(c.group)) + '</span>' +
-      (c.tier ? '<span class="ds-tag ds-tag--neutral">Tier ' + esc(c.tier) + '</span>' : '') + statusTag(c) +
-      '<a class="ds-btn ds-btn--text ds-btn--sm" href="../docs/components.md' + (c.docs ? '#' + c.docs : '') + '">' + icon('fileText', 16) + 'Docs</a>' +
-      (LEGACY[c.name] ? '<a class="ds-btn ds-btn--text ds-btn--sm" href="legacy.html#' + LEGACY[c.name] + '">' + icon('history', 16) + '2.x section</a>' : '') + '</div>';
+      (c.tier ? '<span class="ds-tag ds-tag--neutral">Tier ' + esc(c.tier) + '</span>' : '') + (c.status ? '<span class="ds-tag ds-tag--neutral">' + esc(cap(c.status)) + '</span>' : '') + statusTag(c) +
+      '<a class="ds-btn ds-btn--text ds-sm" href="../docs/components.md' + (c.docs ? '#' + c.docs : '') + '">' + icon('fileText', 16) + 'Docs</a>' +
+      (LEGACY[c.name] ? '<a class="ds-btn ds-btn--text ds-sm" href="legacy.html#' + LEGACY[c.name] + '">' + icon('history', 16) + '2.x section</a>' : '') + '</div>';
     return head(esc(spec.title), esc(spec.need || c.need), links) +
       (spec.lead ? '<p class="sg-lead">' + spec.lead + '</p>' : '') +
       optionsPanel(spec) +
@@ -406,8 +404,8 @@
     parts.push('<div class="sg-switches">' + toggle('contrast', 'High contrast', theme.contrast) + toggle('touch', 'Touch', stageChoice.touch, '.ds-touch') + '</div>');
     var open = optionsOpen();
     return '<section class="ds-card sg-options" aria-labelledby="sg-options-title"><div class="sg-options__head"><h2 class="ds-card__title" id="sg-options-title">' + icon('sliders', 20) + '<span>Options</span></h2>' +
-      '<div class="sg-row"><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-sg="reset-options">' + icon('reset', 16) + 'Reset</button>' +
-      '<button class="ds-btn ds-btn--sm ds-btn--disclosure" type="button" data-sg="toggle-options" aria-expanded="' + open + '" aria-controls="sg-options-body">' + (open ? 'Hide' : 'Show') + '</button></div></div>' +
+      '<div class="sg-row"><button class="ds-btn ds-btn--text ds-sm" type="button" data-sg="reset-options">' + icon('reset', 16) + 'Reset</button>' +
+      '<button class="ds-btn ds-sm ds-btn--disclosure" type="button" data-sg="toggle-options" aria-expanded="' + open + '" aria-controls="sg-options-body">' + (open ? 'Hide' : 'Show') + '</button></div></div>' +
       '<div id="sg-options-body"' + (open ? '' : ' hidden') + '><div class="sg-options__grid">' + parts.join('') + '</div>' +
       '<p class="ds-meta sg-options__note">Size, density, shape, tone and touch are classes on the stage, which is a <code>.ds-theme</code> of its own; the scheme, contrast and preset apply to the whole page.</p></div></section>';
   }
@@ -508,7 +506,7 @@
       field('Colour scheme', segmented('scheme', 'Colour scheme', [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']], theme.scheme)) +
       select('preset', 'Theme preset', PRESETS.map(function (p) { return [p, cap(p)]; }), theme.preset) +
       '<div class="sg-switches">' + toggle('contrast', 'High contrast', theme.contrast) + '</div>' +
-      '<div class="sg-row sg-load"><button class="ds-btn ds-btn--sm" type="button" data-sg="load-theme">' + icon('upload', 16) + 'Load theme file\u2026</button>' +
+      '<div class="sg-row sg-load"><button class="ds-btn ds-sm" type="button" data-sg="load-theme">' + icon('upload', 16) + 'Load theme file\u2026</button>' +
       '<input type="file" id="sg-theme-file" accept=".css,text/css" hidden></div></div></section>';
   }
 
@@ -818,7 +816,7 @@
   function iconsPage() {
     return head('Icons', glyphs().length + ' outline glyphs on a 24px grid, colour from currentColor: <code>DS.icons.icon(DS.icons.name, size)</code>. The marked ones fill when on (<code>.ds-icon--fillable</code> in an aria-pressed control).') +
       card('', '<div class="ds-toolbar sg-filter"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" id="sg-icon-filter" type="search" aria-label="Filter icons" placeholder="Filter icons"></div>' +
-        '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="false" data-sg="fill-icons">' + icon('bell', 16, 'ds-icon--fillable') + 'Fill the fillable glyphs</button></div>' +
+        '<button class="ds-btn ds-sm" type="button" aria-pressed="false" data-sg="fill-icons">' + icon('bell', 16, 'ds-icon--fillable') + 'Fill the fillable glyphs</button></div>' +
         '<div class="sg-icons" id="sg-icons">' + glyphs().map(function (name) {
           var fillable = FILLABLE.indexOf(name) !== -1;
           return '<div class="sg-icon' + (fillable ? ' sg-icon--fillable' : '') + '" data-name="' + name.toLowerCase() + '">' + icon(name, 20, fillable ? 'ds-icon--fillable' : '') + '<span>' + name + (fillable ? ' (fills)' : '') + '</span></div>';
@@ -965,8 +963,7 @@
 
   /* ── The theme generator (#/theme) ─────────────────────────────────── */
 
-  var generator = null;          // the module of dist/tools/theme.mjs, once loaded
-  var generatorError = null;
+  var generator = window.SG_THEME_GENERATOR;   // theme-generator.js: tools/theme.mjs as a classic script
   var THEME_INPUT = { seed: '#0b57d0', scheme: 'tonal', contrast: 'standard', density: '0', shape: '1', type: '1', name: 'custom' };
   var lastTheme = null;
 
@@ -978,7 +975,6 @@
     var t = THEME_INPUT;
     var opt = function (items, current) { return items.map(function (i) { return '<option value="' + i[0] + '"' + (i[0] === current ? ' selected' : '') + '>' + i[1] + '</option>'; }).join(''); };
     return head('Theme generator', 'One seed colour in, one theme file out: every colour role in the light and the dark scheme, checked against the contrast pairs. The same code as <code>node tools/theme.mjs</code>, running in this page.') +
-      '<div id="sg-generator-status"></div>' +
       '<div class="sg-theme-layout">' +
       card('Input', '<form class="ds-form sg-theme-form" id="sg-theme-form">' +
         '<div class="ds-field"><label class="ds-field__label" for="sg-seed">Seed colour</label><div class="ds-field__row sg-seed-row">' +
@@ -991,7 +987,7 @@
         '<div class="ds-field"><label class="ds-field__label" for="sg-shape">Shape</label><select class="ds-input" id="sg-shape" name="shape">' + opt(SHAPES, t.shape) + '</select></div>' +
         '<div class="ds-field"><label class="ds-field__label" for="sg-type">Type scale</label><select class="ds-input" id="sg-type" name="type">' + opt(TYPE_SCALES, t.type) + '</select></div>' +
         '<div class="ds-field"><label class="ds-field__label" for="sg-name">Name</label><input class="ds-input" id="sg-name" name="name" value="' + t.name + '" spellcheck="false" autocomplete="off"></div>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-sg="download-theme" disabled>' + icon('download', 18) + 'Download theme</button>' +
+        '<div class="sg-row"><button class="ds-btn ds-btn--filled" type="button" data-sg="download-theme" disabled>' + icon('download', 18) + 'Download theme</button>' +
         '<button class="ds-btn" type="button" data-sg="use-theme" aria-pressed="' + Boolean(generated) + '" disabled>Use in the styleguide</button></div></form>') +
       '<div class="sg-previews">' + ['light', 'dark'].map(function (scheme) {
         return '<section class="ds-theme sg-preview" data-ds-scheme="' + scheme + '" aria-label="Preview, ' + scheme + '"><p class="sg-preview__label">' + cap(scheme) + '</p>' + previewSample(scheme) + '</section>';
@@ -1003,7 +999,7 @@
   function previewSample(scheme) {
     var id = 'sg-pv-' + scheme;
     return '<div class="sg-preview__body">' +
-      '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button">Save</button><button class="ds-btn ds-btn--tonal" type="button">Export</button><button class="ds-btn" type="button">Cancel</button></div>' +
+      '<div class="sg-row"><button class="ds-btn ds-btn--filled" type="button">Save</button><button class="ds-btn ds-btn--tonal" type="button">Export</button><button class="ds-btn" type="button">Cancel</button></div>' +
       '<div class="sg-row"><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Synced</span></span><span class="ds-status ds-status--warning">' + icon('alert', 16) + '<span>Expires soon</span></span><span class="ds-status ds-status--error">' + icon('alert', 16) + '<span>Failed</span></span></div>' +
       '<div class="ds-card"><h3 class="ds-card__title">LAPTOP-0042</h3><p class="ds-muted">Latitude 7440 · Ada Lovelace</p>' +
       '<div class="ds-field"><label class="ds-field__label" for="' + id + '-f">Asset tag</label><input class="ds-input" id="' + id + '-f" value="A-1042"></div>' +
@@ -1012,20 +1008,8 @@
       '<span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" style="--ds-share:.62"></span></div>';
   }
 
-  function generatorUrl() { return new URL('../dist/tools/theme.mjs', location.href).href; }
-
-  /* Loads the generator once, as an ES module. From disk only Firefox
-     loads it: Chromium and WebKit load no module from file:// (the origin
-     is opaque, so the CORS check fails, with a console error), and the page
-     offers the shipped presets instead. */
-  function loadGenerator() {
-    if (generator) return Promise.resolve(generator);
-    return import(generatorUrl()).then(function (module) { generator = module; return module; });
-  }
-
   function wireTheme(page) {
     var form = $('#sg-theme-form', page);
-    var status = $('#sg-generator-status', page);
     var run = function () {
       var data = {};
       $$('[name]', form).forEach(function (input) { data[input.name] = input.value; });
@@ -1041,29 +1025,14 @@
       showTheme(page, result, data);
       if (generated) { generated = lastTheme; applyTheme(); }
     };
-    loadGenerator().then(function () {
-      $$('[data-sg="download-theme"], [data-sg="use-theme"]', page).forEach(function (b) { b.disabled = false; });
-      form.addEventListener('input', function (event) {
-        if (event.target.id === 'sg-seed-picker') $('#sg-seed', page).value = event.target.value;
-        if (event.target.id === 'sg-seed' && /^#[0-9a-f]{6}$/i.test(event.target.value.trim())) $('#sg-seed-picker', page).value = event.target.value.trim();
-        run();
-      });
-      form.addEventListener('change', run);
+    $$('[data-sg="download-theme"], [data-sg="use-theme"]', page).forEach(function (b) { b.disabled = false; });
+    form.addEventListener('input', function (event) {
+      if (event.target.id === 'sg-seed-picker') $('#sg-seed', page).value = event.target.value;
+      if (event.target.id === 'sg-seed' && /^#[0-9a-f]{6}$/i.test(event.target.value.trim())) $('#sg-seed-picker', page).value = event.target.value.trim();
       run();
-    }, function (error) {
-      generatorError = error;
-      DS.dom.morphHtml(status, '<div class="ds-alert ds-alert--warning" role="note">' + icon('alert', 20) + '<div class="ds-alert__text"><p><strong>The live generator needs http in this browser.</strong> It is an ES module (<code>dist/tools/theme.mjs</code>), and this browser loads none from a file:// page (Chromium and Safari; Firefox does). Serve the repository (for example <code>npx serve .</code> or <code>python3 -m http.server</code>) and open <code>styleguide/index.html#/theme</code>, or generate on the command line: <code>node dist/tools/theme.mjs --seed \'#0b57d0\'</code>. Meanwhile, the shipped presets:</p>' +
-        '<div class="sg-row">' + PRESETS.map(function (p) { return '<button class="ds-btn ds-btn--sm" type="button" data-sg-preset="' + p + '" aria-pressed="' + (theme.preset === p) + '">' + cap(p) + '</button>'; }).join('') + '</div></div></div>');
-      $$('[data-sg-preset]', status).forEach(function (button) {
-        button.addEventListener('click', function () {
-          $$('[data-sg-preset]', status).forEach(function (other) { other.setAttribute('aria-pressed', String(other === button)); });
-          choose('preset', button.getAttribute('data-sg-preset'));
-        });
-      });
-      $$('.sg-preview', page).forEach(function (preview) { preview.removeAttribute('style'); });
-      DS.dom.morphHtml($('#sg-theme-report', page), '<p class="ds-muted">No report without the generator: each shipped preset was checked when it was built (<code>node tools/theme.mjs --presets --check</code>).</p>');
-      html.setAttribute('data-sg-generator', 'unavailable');
     });
+    form.addEventListener('change', run);
+    run();
     $('[data-sg="download-theme"]', page).addEventListener('click', function () {
       if (!lastTheme) return;
       var link = document.createElement('a');

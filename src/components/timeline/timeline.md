@@ -12,7 +12,7 @@ The history of a record (2.0): entries on a rail, grouped by day.
     </div>
     <p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p>
     <p class="ds-timeline__text">Issued to Ada Lovelace.</p>
-    <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
+    <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
   </li>
   <li class="ds-timeline__item ds-timeline__item--muted" data-ds-key="e2">
     <div class="ds-timeline__head"><p class="ds-timeline__title">Return planned</p></div>

@@ -3,6 +3,9 @@
   "group": "forms",
   "order": 210,
   "docsOrder": 330,
+  "need": "Reorder rows by a grip, or drop files onto a zone",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-dropzone",
     "ds-dropzone__browse",

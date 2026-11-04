@@ -44,7 +44,7 @@
   <button class="ds-btn ds-btn--text ds-add-row" type="button">[icon plus 16] Add a row</button>
 
   <div class="ds-form-actions">
-    <button class="ds-btn ds-btn--primary" type="submit">Save</button>
+    <button class="ds-btn ds-btn--filled" type="submit">Save</button>
     <button class="ds-btn ds-btn--text" type="button">Cancel</button>
     <p class="ds-meta">Last saved today, 09:12</p>
   </div>
@@ -171,7 +171,7 @@ document.addEventListener('keydown', (event) => {
   <label class="ds-field__label" for="pw">Password</label>
   <div class="ds-input-group">
     <input class="ds-input" id="pw" type="password" autocomplete="current-password">
-    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="pw">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="pw">
       <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon eye 18]</span><span class="ds-icon-swap__b">[icon eyeOff 18]</span></span></button>
   </div>
 </div>
@@ -250,7 +250,7 @@ group.addEventListener('change', () => { const on = children.filter((child) => c
     <span class="ds-field__label" id="serial-l">Serial number</span>
     <span class="ds-field__value">SN-0042</span>
   </div>
-  <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button></div>
+  <div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Save</button></div>
 </form>
 ```
 
@@ -322,7 +322,7 @@ the handle in `Highlight`.
 
 <form class="ds-composer">
   <textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message"></textarea>
-  <button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">[icon send 20]</button>
+  <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">[icon send 20]</button>
 </form>
 ```
 
@@ -338,7 +338,7 @@ the handle in `Highlight`.
 
 ```html
 <div class="ds-form-actions ds-form-actions--sticky">
-  <button class="ds-btn ds-btn--primary" type="submit">Save</button>
+  <button class="ds-btn ds-btn--filled" type="submit">Save</button>
   <button class="ds-btn ds-btn--text" type="button">Cancel</button>
 </div>
 ```

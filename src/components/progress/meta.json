@@ -3,6 +3,9 @@
   "group": "feedback",
   "order": 280,
   "docsOrder": 310,
+  "need": "Show how far a known or unknown amount of work has come",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-progress",
     "ds-progress--flat",

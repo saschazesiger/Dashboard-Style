@@ -3,6 +3,9 @@
   "group": "overlays",
   "order": 330,
   "docsOrder": 280,
+  "need": "Name an icon button or explain a control on hover and focus",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-tooltip"
   ],

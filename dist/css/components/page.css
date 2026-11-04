@@ -8,7 +8,7 @@
  *   <div class="ds-content">            padding, container "ds-content"
  *     <div class="ds-page">             one page, gap 20px
  *       <header class="ds-page-head">
- *         <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="/devices">(arrowLeft 18) <span class="ds-sr">Back to </span>Devices</a>
+ *         <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="/devices">(arrowLeft 18) <span class="ds-sr">Back to </span>Devices</a>
  *         (or <nav class="ds-breadcrumbs" aria-label="Breadcrumb"> <ol> <li><a href="/">Home</a></li> <li><a href="/devices">Devices</a></li> <li><a href="/devices/42" aria-current="page">LAPTOP-0042</a></li> </ol> </nav>)
  *         <div class="ds-page-head__row">
  *           <div class="ds-page-head__text"> <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1> <p class="ds-page-head__lead">...</p>
@@ -21,7 +21,7 @@
  *
  *   Sign-in: <body class="ds-auth"> (or a <main class="ds-auth">)
  *     <div class="ds-auth__alert"> an alert, when there is one </div>
- *     <section class="ds-card ds-card--elevated ds-auth__card"> <h1>...</h1> <form class="ds-form"> ... <div class="ds-form-actions"> <button class="ds-btn ds-btn--primary" type="submit">Sign in</button> </div> </form> </section>
+ *     <section class="ds-card ds-card--elevated ds-auth__card"> <h1>...</h1> <form class="ds-form"> ... <div class="ds-form-actions"> <button class="ds-btn ds-btn--filled" type="submit">Sign in</button> </div> </form> </section>
  *
  * The panel's width, not the window's, decides when tables and form grids
  * get narrow: the persistent drawer takes --ds-drawer-width of it. Those
@@ -379,7 +379,7 @@
     display: none;
   }
 
-  .ds-auth .ds-form-actions > .ds-btn--primary {
+  .ds-auth .ds-form-actions > :is(.ds-btn--filled, .ds-btn--primary) {
     flex: 1;
   }
 

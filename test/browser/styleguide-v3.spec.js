@@ -3,7 +3,7 @@
  * the drawer generated from the registered demos and the registry of the
  * meta.json files, every demo rendering without a console error, the
  * options panel putting its classes and attributes around the demo, the
- * search, the theme generator (live over http, the presets from disk) and
+ * search, the theme generator (over http and from disk) and
  * the page working from file://. The 2.x sections are tested on
  * legacy.html by the older specs.
  */
@@ -69,16 +69,14 @@ test.describe('navigation', () => {
     await expect(page.locator('html')).toHaveAttribute('data-sg-route', '');
   });
 
-  test('the need overview lists the need line of each demo and the 2.x need rows; a row without a demo links to the 2.x page; the filter narrows it', async ({ page }) => {
+  test('the need overview lists the need line of each component and the 2.x need rows; a row without a demo links to the 2.x page; the filter narrows it', async ({ page }) => {
     await open(page, 'needs');
-    const expected = await page.evaluate(() => {
-      const own = window.SG.list().map((spec) => [spec.need, spec.name]);
-      return [...new Set([...own, ...window.SG_REGISTRY.needs].map(([, name]) => name))].sort();
-    });
+    // Every component has a need line in its meta.json, so every component has a row.
+    const expected = await page.evaluate(() => window.SG_REGISTRY.components.map((c) => c.name).sort());
     const shown = await page.locator('tr[data-sg-need]').evaluateAll((rows) => [...new Set(rows.map((row) => row.getAttribute('data-sg-need')))].sort());
     expect(shown).toEqual(expected);
     const first = await page.evaluate(() => window.SG.list()[0]);
-    await expect(page.locator('tbody tr').first().locator('td').first()).toHaveText(first.need);
+    await expect(page.locator(`tr[data-sg-need="${first.name}"]`).first().locator('td').first()).toHaveText(first.need);
     await expect(page.locator(`tr[data-sg-need="${first.name}"] a`).first()).toHaveAttribute('href', `#/components/${first.name}`);
     const missing = await page.evaluate(() => window.SG_REGISTRY.needs.map(([, name]) => name).find((name) => !window.SG.get(name)));
     if (missing) await expect(page.locator(`tr[data-sg-need="${missing}"] a`).first()).toHaveAttribute('href', /^legacy\.html#/);
@@ -221,6 +219,100 @@ test.describe('options panel', () => {
     await expect(stage).not.toHaveClass(/\bds-(xs|density-dense|shape-square|touch)\b/);
   });
 
+  test('size, density, shape, touch, tone and variant really change the button demo', async ({ page }) => {
+    await open(page);
+    await go(page, 'components/button');
+    const panel = page.locator('.sg-options');
+    const size = (value) => panel.locator(`[data-sg-option="size"] [data-sg-value="${value}"]`).click();
+    const filled = page.locator('#sg-stage [data-demo="variants"] .ds-btn--filled');
+    const icon = page.locator('#sg-stage [data-demo="icons"] .ds-btn--icon').first();
+    const measure = (locator) => locator.evaluate((el) => {
+      const style = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return { height: rect.height, width: rect.width, radius: parseFloat(style.borderTopLeftRadius), font: parseFloat(style.fontSize) };
+    });
+    const height = async (locator, value) => expect.poll(async () => (await measure(locator)).height).toBe(value);
+    const radius = async (value) => expect.poll(async () => (await measure(filled)).radius).toBe(value);
+
+    // At rest: 40px and the pill, label type.
+    await height(filled, 40);
+    await radius(20);
+    expect((await measure(filled)).font).toBe(14);
+
+    // Size: 8px per step, the type role with it.
+    await size('xs');
+    await height(filled, 24);
+    await size('sm');
+    await height(filled, 32);
+    await size('lg');
+    await height(filled, 48);
+    await radius(24);
+    expect((await measure(filled)).font).toBe(16);
+    await size('xl');
+    await height(filled, 56);
+    await size('md');
+    await height(filled, 40);
+
+    // Density: 4px per step, the icon button stays.
+    for (const [level, value] of [['compact', 36], ['dense', 32], ['tight', 28]]) {
+      await panel.locator('select[data-sg-option="density"]').selectOption(level);
+      await height(filled, value);
+      expect((await measure(icon)).height).toBe(40);
+    }
+    await panel.locator('select[data-sg-option="density"]').selectOption('');
+    await height(filled, 40);
+
+    // Shape: the radius times the shape, never above half the height.
+    await panel.locator('select[data-sg-option="shape"]').selectOption('square');
+    await radius(0);
+    await panel.locator('select[data-sg-option="shape"]').selectOption('soft');
+    await radius(10);
+    await panel.locator('select[data-sg-option="shape"]').selectOption('round');
+    await radius(20);
+    await panel.locator('select[data-sg-option="shape"]').selectOption('');
+
+    // Touch wins over a small size and a tight density; an icon button is as wide.
+    await size('xs');
+    await panel.locator('select[data-sg-option="density"]').selectOption('tight');
+    // Without touch the box stops at its label and border: 12px computed, 18px measured.
+    await height(filled, 18);
+    await panel.locator('input[data-sg-option="touch"]').check();
+    await height(filled, 48);
+    expect(await measure(icon)).toMatchObject({ height: 48, width: 48 });
+    await panel.locator('input[data-sg-option="touch"]').uncheck();
+    await size('md');
+    await panel.locator('select[data-sg-option="density"]').selectOption('');
+
+    // Tone: only the filled button of the confirmation turns red (D10); every other button ignores the stage's tone.
+    const confirm = page.locator('#sg-stage [data-demo="confirm-action"]');
+    const colours = (locator) => locator.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const token = (name) => page.locator('#sg-stage').evaluate((el, role) => {
+      const probe = document.createElement('i');
+      probe.style.background = `var(${role})`;
+      el.append(probe);
+      const value = getComputedStyle(probe).backgroundColor;
+      probe.remove();
+      return value;
+    }, name);
+    const [primary, error] = [await token('--ds-primary'), await token('--ds-error')];
+    expect(primary).not.toBe(error);
+    await expect.poll(() => colours(confirm)).toBe(primary);
+    await panel.locator('select[data-sg-option="tone"]').selectOption('error');
+    await expect(page.locator('#sg-stage')).toHaveClass(/\bds-tone-error\b/);
+    await expect(confirm).toHaveClass(/\bds-tone-error\b/);
+    await expect.poll(() => colours(confirm)).toBe(error);
+    await expect.poll(() => colours(filled)).toBe(primary);
+    await panel.locator('select[data-sg-option="tone"]').selectOption('');
+    await expect.poll(() => colours(confirm)).toBe(primary);
+
+    // Variant: the row shows that look alone; size classes stayed on the stage, not on the buttons.
+    await panel.locator('select[data-sg-option="variant"]').selectOption('tonal');
+    await expect(page.locator('#sg-stage [data-demo="variants"] .ds-btn')).toHaveCount(1);
+    await expect(page.locator('#sg-stage [data-demo="variants"] .ds-btn--tonal')).toHaveCount(1);
+    await panel.locator('select[data-sg-option="variant"]').selectOption('');
+    await expect(page.locator('#sg-stage [data-demo="variants"] .ds-btn')).toHaveCount(7);
+  });
+
   test('SG.mount renders a demo with tone and variant, re-renders only for them, and runs the cleanup of wire', async ({ page }) => {
     await open(page);
     const result = await page.evaluate(() => {
@@ -339,7 +431,7 @@ test.describe('theme generator', () => {
 });
 
 test.describe('from disk (file://)', () => {
-  test('the shell, a demo page and the 2.x page load without a console error; the generator runs in Firefox and falls back to the presets elsewhere', async ({ page, browserName }) => {
+  test('the shell, a demo page, the theme generator and the 2.x page run without a console error', async ({ page, browserName }) => {
     const errors = collectErrors(page);
     await page.goto(FILE);
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-sg-ready'));
@@ -350,25 +442,31 @@ test.describe('from disk (file://)', () => {
     await expect(page.locator(`#sg-stage [data-sg-demo="${name}"]`)).toHaveCount(1);
     await page.locator('#sg-nav a[href="#/theme"]').click();
     await expect(page.locator('html')).toHaveAttribute('data-sg-route', 'theme');
-    if (browserName !== 'firefox') {
-      // Chromium and WebKit load no ES module from file://: the page says so and offers the presets.
-      await expect(page.locator('html')).toHaveAttribute('data-sg-generator', 'unavailable');
-      await expect(page.locator('#sg-generator-status .ds-alert')).toContainText('needs http');
-      await page.locator('#sg-generator-status [data-sg-preset="forest"]').click();
-      await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'forest auto');
-      // Its one console error is the blocked module.
-      expect(errors.filter((text) => !/Failed to load resource|theme\.mjs|CORS|[Oo]rigin/.test(text)), browserName).toEqual([]);
-      errors.length = 0;
-    } else {
-      await expect(page.locator('html')).toHaveAttribute('data-sg-generated', '#0b57d0 tonal standard');
-      expect(errors, browserName).toEqual([]);
-    }
+    // theme-generator.js is a classic script: every engine runs it from disk, seed to file.
+    await expect(page.locator('html')).toHaveAttribute('data-sg-generated', '#0b57d0 tonal standard');
+    await expect(page.locator('#sg-theme-report .sg-finding').first()).toContainText(/(\d+) of \1 pairs pass in both schemes/);
+    await page.locator('#sg-seed').fill('#2f6b3a');
+    await expect(page.locator('html')).toHaveAttribute('data-sg-generated', '#2f6b3a tonal standard');
+    await expect(page.locator('#sg-theme-css')).toContainText("--seed '#2f6b3a'");
+    await page.locator('[data-sg="use-theme"]').click();
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', /^generated /);
+    expect(errors, browserName).toEqual([]);
 
     await page.goto(new URL('legacy.html', FILE).href);
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-sg-ready'));
     await expect(page.locator('#charts')).toHaveCount(1);
     expect(errors).toEqual([]);
   });
+});
+
+test('the Components tile of both pages counts the registry the build writes', async ({ page }) => {
+  await open(page);
+  const count = await page.evaluate(() => window.SG_REGISTRY.components.length);
+  const tile = (name) => page.locator('.ds-tile').filter({ hasText: name }).first();
+  await expect(tile('Components')).toContainText(String(count));
+  await page.goto('/styleguide/legacy.html');
+  await page.waitForFunction(() => document.documentElement.hasAttribute('data-sg-ready'));
+  await expect(tile('Components')).toContainText(String(count));
 });
 
 test('the paths of this spec exist', () => {

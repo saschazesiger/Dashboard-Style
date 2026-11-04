@@ -531,9 +531,13 @@
     --ds-weight-regular: 400;
     --ds-weight-title: 400;
     --ds-weight-label: 500;
+    /* Multiplies the size and line height of every type role. Theme-level:
+       the roles resolve it here, on .ds-theme, so it does not nest
+       (docs/options.md). */
+    --ds-type-scale: 1;
     /* Size of the display role, for a component that caps or scales it
        (key figures shrink with their tile). */
-    --ds-size-display: 36px;
+    --ds-size-display: calc(36px * var(--ds-type-scale));
 
     /*
      * Type roles as `font` shorthands: one declaration sets size, line
@@ -544,7 +548,8 @@
      *   title     dialog, sheet and section titles, product name
      *   subtitle  card titles
      *   reading   running text to read (messages, long notes)
-     *   input     typed text on phones (16px: iOS zooms into smaller fields)
+     *   input     typed text on phones (at least 16px at any --ds-type-scale:
+     *             iOS zooms into smaller fields)
      *   body      default UI text, fields
      *   dense     table cells
      *   label     buttons, labels, navigation, column heads
@@ -554,19 +559,19 @@
      *   display   key figures (tabular)
      *   code      code blocks
      */
-    --ds-font-headline: var(--ds-weight-title) 24px/32px var(--ds-font);
-    --ds-font-title: var(--ds-weight-title) 22px/28px var(--ds-font);
-    --ds-font-subtitle: var(--ds-weight-label) 16px/24px var(--ds-font);
-    --ds-font-reading: var(--ds-weight-regular) 16px/24px var(--ds-font);
-    --ds-font-input: var(--ds-font-reading);
-    --ds-font-body: var(--ds-weight-regular) 14px/20px var(--ds-font);
-    --ds-font-dense: var(--ds-weight-regular) 14px/20px var(--ds-font);
-    --ds-font-label: var(--ds-weight-label) 14px/20px var(--ds-font);
-    --ds-font-chip: var(--ds-weight-label) 14px/20px var(--ds-font);
-    --ds-font-meta: var(--ds-weight-regular) 12px/16px var(--ds-font);
-    --ds-font-caption: var(--ds-weight-label) 12px/16px var(--ds-font);
-    --ds-font-display: var(--ds-weight-regular) var(--ds-size-display)/44px var(--ds-font);
-    --ds-font-code: var(--ds-weight-regular) 13px/20px var(--ds-font-mono);
+    --ds-font-headline: var(--ds-weight-title) calc(24px * var(--ds-type-scale))/calc(32px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-title: var(--ds-weight-title) calc(22px * var(--ds-type-scale))/calc(28px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-subtitle: var(--ds-weight-label) calc(16px * var(--ds-type-scale))/calc(24px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-reading: var(--ds-weight-regular) calc(16px * var(--ds-type-scale))/calc(24px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-input: var(--ds-weight-regular) max(16px, calc(16px * var(--ds-type-scale)))/max(24px, calc(24px * var(--ds-type-scale))) var(--ds-font);
+    --ds-font-body: var(--ds-weight-regular) calc(14px * var(--ds-type-scale))/calc(20px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-dense: var(--ds-weight-regular) calc(14px * var(--ds-type-scale))/calc(20px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-label: var(--ds-weight-label) calc(14px * var(--ds-type-scale))/calc(20px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-chip: var(--ds-weight-label) calc(14px * var(--ds-type-scale))/calc(20px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-meta: var(--ds-weight-regular) calc(12px * var(--ds-type-scale))/calc(16px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-caption: var(--ds-weight-label) calc(12px * var(--ds-type-scale))/calc(16px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-display: var(--ds-weight-regular) var(--ds-size-display)/calc(44px * var(--ds-type-scale)) var(--ds-font);
+    --ds-font-code: var(--ds-weight-regular) calc(13px * var(--ds-type-scale))/calc(20px * var(--ds-type-scale)) var(--ds-font-mono);
 
     /* ── Elevation ──────────────────────────────────────
      * Only floating layers cast shadows. The three Material levels, and the
@@ -2557,7 +2562,7 @@
  *
  * Actions that show on demand (a row's edit button):
  *
- *   <td><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit">...</button></span></td>
+ *   <td><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Edit">...</button></span></td>
  *
  * .ds-hover-actions fades in (opacity, --ds-dur-fast) while its nearest
  * host (a tr, li, .ds-card, .ds-drawer__row or .ds-hover-host: a table in
@@ -5003,7 +5008,7 @@
     flex-wrap: wrap;
   }
 
-  /* A button (36px) or a switch (40px) next to the title hangs out of the
+  /* A button (40px) or a switch (40px) next to the title hangs out of the
      title's line (--ds-card-title-line) on both sides instead of making the row taller: every
      card title starts at the same height, whatever its head holds. When the
      row wraps (phones), the row gap makes up for the overhang. A status
@@ -5567,7 +5572,7 @@
  *       <span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="/devices/42">LAPTOP-0042</a></span>
  *         <span class="ds-list__meta">Notebook 14 · Building A</span></span>
  *       <span class="ds-status ...">...</span>
- *       <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for LAPTOP-0042">...</button></span>
+ *       <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="More for LAPTOP-0042">...</button></span>
  *       [icon chevronRight .ds-list__chevron]</li></ul>
  *   <ul class="ds-kv-list"><li><span>Name</span><strong>Value</strong></li></ul>
  *   <ul class="ds-kv-list ds-kv-list--interactive"><li><a class="ds-kv-list__row" href="/owners/7"><span>Owner</span><strong>Ada Lovelace</strong></a></li></ul>
@@ -6276,7 +6281,7 @@
  *       <div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p><span class="ds-status ds-status--ok">...</span></div>
  *       <p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p>
  *       <p class="ds-timeline__text">Issued to Ada Lovelace.</p>
- *       <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
+ *       <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
  *     </li>
  *     <li class="ds-timeline__item ds-timeline__item--muted"> ... </li>
  *     <li class="ds-timeline__item ds-timeline__item--icon"><span class="ds-timeline__marker" aria-hidden="true">[icon user 16]</span> ... </li>
@@ -7168,7 +7173,7 @@
  *   <div class="ds-alert ds-alert--warning" role="status">
  *     <svg ...>(alert, 20)</svg>
  *     <span class="ds-alert__text">The certificate expires in 5 days.</span>
- *     <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button>
+ *     <button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button>
  *   </div>
  *
  *   (none: neutral info)  --success  --warning  --error
@@ -7181,7 +7186,7 @@
  *   <div class="ds-alert ds-alert--warning">
  *     <svg ...>(alert, 20)</svg>
  *     <div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div>
- *     <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>
+ *     <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button></div>
  *   </div>
  *
  * With .ds-alert__actions the alert wraps: the text takes at least
@@ -8971,14 +8976,14 @@
  *         <div class="ds-field__foot"> <small class="ds-field__hint">...</small> <span class="ds-field__counter" aria-hidden="true">12 / 80</span>
  *       <div class="ds-field" role="group" aria-labelledby="serial-l">
  *         <span class="ds-field__label" id="serial-l">Serial</span> <span class="ds-field__value">SN-0042</span>
- *     <div class="ds-form-actions"> <button class="ds-btn ds-btn--primary">Save</button> ...   (--sticky: stays at the bottom on phones)
+ *     <div class="ds-form-actions"> <button class="ds-btn ds-btn--filled">Save</button> ...   (--sticky: stays at the bottom on phones)
  *
  *   <label class="ds-field__label" for="a">Name <span class="ds-field__required" aria-hidden="true">*</span></label>  (with required on the input)
  *   <div class="ds-search">(search icon)<input class="ds-input" type="search" aria-keyshortcuts="/" placeholder="Search">
  *     <kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>
  *   <textarea class="ds-input ds-input--grow" rows="1"></textarea>   (grows with its text)
  *   <div class="ds-composer"><textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message"></textarea>
- *     <button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send">(send)</button></div>
+ *     <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send">(send)</button></div>
  *
  * Field hooks: --ds-input-height (40px), --ds-input-bg, --ds-input-border,
  * --ds-input-radius, --ds-input-focus-color (the ring and the label tint),
@@ -14203,7 +14208,7 @@
  *       <div class="ds-sheet__foot">                                    (optional)
  *         <p class="ds-meta">3 filters</p>
  *         <button class="ds-btn ds-btn--text" type="button">Reset</button>
- *         <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
+ *         <button class="ds-btn ds-btn--filled" type="button" data-close>Show 12 devices</button>
  *       </div>
  *
  * Open and close both with DS.overlay.open(sheet, { opener }) and
@@ -14754,7 +14759,7 @@
  *       <p class="ds-dialog__text" id="d-text">They are removed for everyone.</p>
  *       <div class="ds-dialog__actions">
  *         <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
- *         <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
+ *         <button class="ds-btn ds-btn--filled" type="button">Delete devices</button>
  *
  * Content taller than the window (a form, a long list): the body scrolls,
  * title and actions stay. A body with nothing focusable that scrolls is a
@@ -15536,7 +15541,7 @@
  *   <div class="ds-toast [ds-toast--error | ds-toast--info]">  what toast() builds from a string
  *     <svg ...>(checkCircle | alertCircle, 20)</svg>
  *     <span class="ds-toast__text">Saved.</span>
- *     <button class="ds-btn ds-btn--text ds-btn--sm ds-toast__action" type="button">Undo</button>   with `action`
+ *     <button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button>   with `action`
  *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">(close)</button>
  *
  *   .ds-toast--shown  runtime: toast() marks a message whose entrance has
@@ -15703,6 +15708,13 @@
     flex-shrink: 0;
     margin-block: calc(-1 * var(--ds-space-2));
     margin-inline-start: auto;
+  }
+
+  /* The action is 32px with 12px of side padding at any density: a snackbar
+     floats above the region it reports on and keeps one size. */
+  .ds-toast__action.ds-sm {
+    --ds-density: 0;
+    --ds-btn-padding-x: var(--ds-space-4);
   }
 
   .ds-toast > .ds-btn--text:focus-visible {
@@ -15939,7 +15951,7 @@
  *         <p class="ds-savebar__text">2 unsaved changes</p>
  *         <div class="ds-savebar__actions">
  *           <button class="ds-btn ds-btn--text" type="button">Discard</button>
- *           <button class="ds-btn ds-btn--primary" type="button"><span class="ds-btn__faces">...</span></button>
+ *           <button class="ds-btn ds-btn--filled" type="button"><span class="ds-btn__faces">...</span></button>
  *         </div>
  *       </div>
  *     </div>
@@ -16107,7 +16119,7 @@
  *           (or <button class="ds-drawer__item"> that shows a section in place; also aria-current="page" when active)
  *         <details class="ds-drawer__group ds-collapsible" open>   (a group that closes)
  *           <summary class="ds-drawer__heading ds-drawer__toggle">(chevronDown .ds-chevron) <span>Group</span> <span class="ds-drawer__count">3</span></summary> items ...
- *         <div class="ds-drawer__row"> <a class="ds-drawer__item" ...> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action ds-hover-actions" type="button" aria-label="..." data-tip="...">(moreVertical)</button> </div>
+ *         <div class="ds-drawer__row"> <a class="ds-drawer__item" ...> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-drawer__action ds-hover-actions" type="button" aria-label="..." data-tip="...">(moreVertical)</button> </div>
  *       </div>
  *       [<div class="ds-drawer__foot [ds-drawer__foot--rail]"> drawer items (settings, help) </div>]
  *     </nav>
@@ -18842,7 +18854,7 @@
  *   <div class="ds-content">            padding, container "ds-content"
  *     <div class="ds-page">             one page, gap 20px
  *       <header class="ds-page-head">
- *         <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="/devices">(arrowLeft 18) <span class="ds-sr">Back to </span>Devices</a>
+ *         <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="/devices">(arrowLeft 18) <span class="ds-sr">Back to </span>Devices</a>
  *         (or <nav class="ds-breadcrumbs" aria-label="Breadcrumb"> <ol> <li><a href="/">Home</a></li> <li><a href="/devices">Devices</a></li> <li><a href="/devices/42" aria-current="page">LAPTOP-0042</a></li> </ol> </nav>)
  *         <div class="ds-page-head__row">
  *           <div class="ds-page-head__text"> <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1> <p class="ds-page-head__lead">...</p>
@@ -18855,7 +18867,7 @@
  *
  *   Sign-in: <body class="ds-auth"> (or a <main class="ds-auth">)
  *     <div class="ds-auth__alert"> an alert, when there is one </div>
- *     <section class="ds-card ds-card--elevated ds-auth__card"> <h1>...</h1> <form class="ds-form"> ... <div class="ds-form-actions"> <button class="ds-btn ds-btn--primary" type="submit">Sign in</button> </div> </form> </section>
+ *     <section class="ds-card ds-card--elevated ds-auth__card"> <h1>...</h1> <form class="ds-form"> ... <div class="ds-form-actions"> <button class="ds-btn ds-btn--filled" type="submit">Sign in</button> </div> </form> </section>
  *
  * The panel's width, not the window's, decides when tables and form grids
  * get narrow: the persistent drawer takes --ds-drawer-width of it. Those
@@ -19210,7 +19222,7 @@
     display: none;
   }
 
-  .ds-auth .ds-form-actions > .ds-btn--primary {
+  .ds-auth .ds-form-actions > :is(.ds-btn--filled, .ds-btn--primary) {
     flex: 1;
   }
 

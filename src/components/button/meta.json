@@ -3,6 +3,9 @@
   "group": "actions",
   "order": 30,
   "docsOrder": 50,
+  "need": "Start an action: one look per weight, any size and density, busy and done states",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-btn",
     "ds-btn--adaptive",

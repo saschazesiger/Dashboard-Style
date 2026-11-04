@@ -489,7 +489,7 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
       assert.equal(known.get(name)?.layer, 'hook', `${name}: a documented hook`);
       assert.equal(back[name], known.get(name).default, `${name}: the default height on a touch screen`);
     }
-    for (const name of Object.keys(compact).filter((n) => n.startsWith('--ds-font-'))) assert.match(compact[name], / 13px\/18px /, name);
+    for (const name of Object.keys(compact).filter((n) => n.startsWith('--ds-font-'))) assert.match(compact[name], / calc\(13px \* var\(--ds-type-scale\)\)\/calc\(18px \* var\(--ds-type-scale\)\) /, name);
     assert.ok(!('--ds-font-input' in compact) && !('--ds-font-reading' in compact), 'phones keep the 16px field text');
     // A theme root with .ds-touch keeps its touch targets: an unlayered theme on that element would beat it.
     for (const match of stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {

@@ -30,7 +30,7 @@
  *           (or <button class="ds-drawer__item"> that shows a section in place; also aria-current="page" when active)
  *         <details class="ds-drawer__group ds-collapsible" open>   (a group that closes)
  *           <summary class="ds-drawer__heading ds-drawer__toggle">(chevronDown .ds-chevron) <span>Group</span> <span class="ds-drawer__count">3</span></summary> items ...
- *         <div class="ds-drawer__row"> <a class="ds-drawer__item" ...> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action ds-hover-actions" type="button" aria-label="..." data-tip="...">(moreVertical)</button> </div>
+ *         <div class="ds-drawer__row"> <a class="ds-drawer__item" ...> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-drawer__action ds-hover-actions" type="button" aria-label="..." data-tip="...">(moreVertical)</button> </div>
  *       </div>
  *       [<div class="ds-drawer__foot [ds-drawer__foot--rail]"> drawer items (settings, help) </div>]
  *     </nav>

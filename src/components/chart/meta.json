@@ -3,6 +3,9 @@
   "group": "data",
   "order": 290,
   "docsOrder": 320,
+  "need": "Show a share, a figure per day or week, or a trend at a glance",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-columns",
     "ds-columns--grouped",

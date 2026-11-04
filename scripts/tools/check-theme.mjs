@@ -45,7 +45,12 @@ const THEME_SCOPE = /\.ds-theme\b/;
 const NEUTRAL_CLASSES = new Set(['ds-theme', 'ds-base']);
 
 /** The pixel size of a `font` shorthand (the first `<n>px` before a `/` or the family). */
-function fontSize(value) {
+function fontSize(value, scale = 1) {
+  // The default roles: the size times the type scale, and the input role's floor over it.
+  const floor = /max\(\s*(\d*\.?\d+)px\s*,\s*calc\(\s*(\d*\.?\d+)px \* var\(--ds-type-scale[^)]*\)\s*\)\s*\)/.exec(value);
+  if (floor) return Math.max(Number(floor[1]), Number(floor[2]) * scale);
+  const scaled = /calc\(\s*(\d*\.?\d+)px \* var\(--ds-type-scale[^)]*\)\s*\)/.exec(value);
+  if (scaled) return Number(scaled[1]) * scale;
   const match = /(?:^|\s)(\d*\.?\d+)px(?:\s*\/|\s)/.exec(` ${value} `);
   return match ? Number(match[1]) : null;
 }
@@ -155,7 +160,7 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
       // Field text: the input role (or the reading role it follows) at 16px or more.
       let input = raw('--ds-font-input');
       for (let hops = 0; input && /^var\(--ds-[\w-]+\)$/.test(input) && hops < 8; hops += 1) input = raw(input.slice(4, -1));
-      const size = input ? fontSize(input) : null;
+      const size = input ? fontSize(input, Number(raw('--ds-type-scale')) || 1) : null;
       if (size !== null && size < 16) found.push({ level: 'error', file: first, line: 0, rule: 'input-font', message: `--ds-font-input resolves to ${size}px${where}: keep field text at 16px or more (iOS zooms into smaller fields)` });
       // light-dark() roles: each scheme the theme shows, as that scheme sees every value.
       const both = layers.some((layer) => Object.values(layer).some(hasLightDark));

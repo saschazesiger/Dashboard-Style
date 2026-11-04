@@ -3,6 +3,9 @@
   "group": "forms",
   "order": 200,
   "docsOrder": 200,
+  "need": "Collect input: labelled fields, checks, radios, filters, action bars and a composer",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-action-bar",
     "ds-add-row",

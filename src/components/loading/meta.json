@@ -3,6 +3,9 @@
   "group": "feedback",
   "order": 70,
   "docsOrder": 300,
+  "need": "Hold the place of content that is loading: skeleton lines and a page load bar",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-loadbar",
     "ds-loadbar__bar",

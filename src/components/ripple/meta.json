@@ -3,6 +3,9 @@
   "group": "motion",
   "order": 380,
   "docsOrder": 340,
+  "need": "Answer a press with a ripple from the pointer, and hold quick presses visible",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-press-ripple",
     "ds-press-ripple--out",

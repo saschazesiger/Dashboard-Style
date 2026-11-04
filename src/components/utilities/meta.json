@@ -3,6 +3,9 @@
   "group": "layout",
   "order": 10,
   "docsOrder": 350,
+  "need": "Small helpers: the theme root, screen-reader text, dividers, numerals, keys and bigger touch targets",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-center",
     "ds-divider",

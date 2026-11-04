@@ -3,6 +3,9 @@
   "group": "forms",
   "order": 240,
   "docsOrder": 220,
+  "need": "Turn a setting on or off, alone or in a list of settings",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-switch",
     "ds-switch--locked",

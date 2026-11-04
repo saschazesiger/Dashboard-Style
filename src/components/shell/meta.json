@@ -3,6 +3,9 @@
   "group": "navigation",
   "order": 350,
   "docsOrder": 10,
+  "need": "Frame an app: top bar, navigation drawer, content panel, account and banners",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-account",
     "ds-account--capsule",

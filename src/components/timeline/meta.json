@@ -3,6 +3,9 @@
   "group": "data",
   "order": 120,
   "docsOrder": 100,
+  "need": "Show the history of a record, on a rail grouped by day",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-timeline",
     "ds-timeline__actions",

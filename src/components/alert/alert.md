@@ -4,9 +4,9 @@
 <div class="ds-alert" role="status">[icon info 20]<span class="ds-alert__text">Sync runs at night.</span></div>
 <div class="ds-alert ds-alert--success">[icon checkCircle 20]<span class="ds-alert__text">All devices synced.</span></div>
 <div class="ds-alert ds-alert--warning">[icon alert 20]<span class="ds-alert__text">The certificate expires in 5 days.</span>
-  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>
+  <button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button></div>
 <div class="ds-alert ds-alert--error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">Could not load devices.</span>
-  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Try again</button></div>
+  <button class="ds-btn ds-btn--text ds-sm" type="button">Try again</button></div>
 
 <details class="ds-errors ds-collapsible">
   <summary>[icon alertCircle 16]2 errors[icon chevronDown 16 ds-errors__chevron]</summary>
@@ -21,7 +21,7 @@ A title, more paragraphs and actions; findings in a card (`.ds-alert--plain`):
 ```html
 <div class="ds-alert ds-alert--warning">[icon alert 20]
   <div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div>
-  <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Remind me</button></div>
+  <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-sm" type="button">Remind me</button></div>
 </div>
 
 <section class="ds-card">

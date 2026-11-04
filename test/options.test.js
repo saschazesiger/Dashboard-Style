@@ -9,7 +9,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { packageInfo, tokensJson } from '../scripts/build.mjs';
 import { ICON_PAIRS, TEXT_PAIRS } from '../scripts/tools/theme-rules.mjs';
-import { atRuleBlocks, declarations, declarationsOf, read, rules, stripComments, token } from './helpers.js';
+import { atRuleBlocks, declarations, declarationsOf, filesIn, read, rules, stripComments, token } from './helpers.js';
 
 const OPTIONS = 'src/core/options.css';
 const css = read(OPTIONS);
@@ -122,6 +122,23 @@ describe('options (3.0, src/core/options.css)', () => {
         for (const name of OPTION_VARS) assert.ok(!value.includes(`var(${name}`), `${file}: ${property} reads ${name}`);
       }
     }
+  });
+
+  it('multiplies every type role by --ds-type-scale, theme-level, and never takes field text under 16px', () => {
+    const theme = Object.fromEntries(declarations(themeRule()).map(({ property, value }) => [property, value]));
+    assert.equal(theme['--ds-type-scale'], '1');
+    assert.equal(theme['--ds-size-display'], 'calc(36px * var(--ds-type-scale))');
+    const SIZED = /^var\(--ds-weight-\w+\) calc\(\d+px \* var\(--ds-type-scale\)\)\/calc\(\d+px \* var\(--ds-type-scale\)\) var\(--ds-font(-mono)?\)$/;
+    const roles = Object.keys(theme).filter((name) => /^--ds-font-/.test(name) && !['--ds-font-mono', '--ds-font-input', '--ds-font-display'].includes(name));
+    assert.ok(roles.length >= 10, 'finds the type roles');
+    for (const name of roles) assert.match(theme[name], SIZED, name);
+    assert.equal(theme['--ds-font-display'], 'var(--ds-weight-regular) var(--ds-size-display)/calc(44px * var(--ds-type-scale)) var(--ds-font)');
+    assert.equal(theme['--ds-font-input'], 'var(--ds-weight-regular) max(16px, calc(16px * var(--ds-type-scale)))/max(24px, calc(24px * var(--ds-type-scale))) var(--ds-font)');
+    // Say so where a theme author looks: it is theme-level and does not nest.
+    assert.match(read('docs/options.md'), /`--ds-type-scale`[\s\S]*do not nest/);
+    assert.ok(read('docs/tokens.md').includes('`--ds-type-scale`'));
+    // No component sets it: only a theme does.
+    for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) assert.ok(!/--ds-type-scale\s*:/.test(stripComments(read(file))), file);
   });
 
   it('keeps every tone pair in the contrast lists (text on the full colour and on the container, the ink on the surface)', () => {

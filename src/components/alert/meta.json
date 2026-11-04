@@ -3,6 +3,9 @@
   "group": "feedback",
   "order": 170,
   "docsOrder": 160,
+  "need": "Tell the user something about a page or a section, in place, with an icon and a word",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-alert",
     "ds-alert--error",

@@ -3,6 +3,9 @@
   "group": "feedback",
   "order": 40,
   "docsOrder": null,
+  "need": "Show a short wait in place, or a known share as a ring",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-spinner",
     "ds-spinner--determinate",

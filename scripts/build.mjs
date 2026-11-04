@@ -23,6 +23,9 @@
  *   docs/components.md   the partials and every <name>.md in meta.json "docsOrder"
  *   styleguide/demos.js  the classic script of every <name>.demo.js (each calls SG.demo())
  *   styleguide/registry.js  the components, groups and tokens (window.SG_REGISTRY)
+ *   styleguide/theme-generator.js  scripts/tools/{color,theme-rules,theme}.mjs as one
+ *                        classic script (window.SG_THEME_GENERATOR), so the theme panel
+ *                        runs from file:// in every engine
  *   styleguide/lab-components.js  every <name>.lab.js after SG_LAB.add()
  *   README.md            the count of its Components badge
  *   Blocks between "generated:" markers inside hand-written files
@@ -213,6 +216,7 @@ function typeOf(name, value, known, seen = new Set()) {
   if (/-easing$/.test(name)) return 'easing';
   if (/^--ds-ease/.test(name) || /-ease(-[a-z])?$/.test(name)) return 'easing';
   if (/^--ds-font(-|$)|-font$/.test(name)) return 'font';
+  if (/-(height|size)-exact$/.test(name)) return 'length';
   if (/^--ds-weight-|^--ds-z-|^--ds-state-|-opacity$/.test(name)) return 'number';
   if (/^--ds-elev-|-shadow$|^--ds-focus-ring$/.test(name)) return 'shadow';
   const text = value ?? '';
@@ -264,7 +268,9 @@ export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
   const hookNames = documentedHooks(read('docs/theming.md'));
   for (const name of hookNames) {
     const file = [...sources].find(([, css]) => new RegExp(`var\\(\\s*${name}\\s*,`).test(css));
-    add(name, { layer: MOTION_FAMILY.test(name) ? 'motion-hook' : 'hook', default: file ? fallbackOf(file[1], name) : null, component: file ? cssName(file[0]) : null });
+    // A hook documented as unset has no default: its fallback is what the component computes without it.
+    const unset = unsetHooks(read('docs/theming.md')).has(name);
+    add(name, { layer: MOTION_FAMILY.test(name) ? 'motion-hook' : 'hook', default: file && !unset ? fallbackOf(file[1], name) : null, component: file ? cssName(file[0]) : null });
   }
 
   // Registered properties, then every other name the stylesheets and scripts use.
@@ -618,6 +624,13 @@ export function documentedHooks(theming) {
   const from = theming.indexOf('## Component hooks');
   const table = theming.slice(from, theming.indexOf('\n## ', from + 1));
   return table.split('\n').filter((line) => line.startsWith('| `')).flatMap((line) => [...line.split(' | ')[0].matchAll(/`(--ds-[\w-]+)`/g)].map((m) => m[1]));
+}
+
+/** The hooks the table documents with the default `unset` (a fixed value only a theme or a page sets). */
+export function unsetHooks(theming) {
+  const from = theming.indexOf('## Component hooks');
+  const table = theming.slice(from, theming.indexOf('\n## ', from + 1));
+  return new Set(table.split('\n').filter((line) => line.startsWith('| `') && line.split(' | ')[1] === 'unset').flatMap((line) => [...line.split(' | ')[0].matchAll(/`(--ds-[\w-]+)`/g)].map((m) => m[1])));
 }
 
 const sorted = (values) => [...new Set(values)].sort();
@@ -1051,11 +1064,11 @@ export function hooksTable(list) {
  * fallback its stylesheet reads it with.
  */
 export function exampleHooks(list) {
-  const sources = [{ name: 'motion', css: 'src/core/motion.css', hooks: Object.keys(coreHooks()) }, ...list.map((component) => ({ ...component, hooks: ownedHooks(component.meta) }))];
+  const sources = [{ name: 'motion', css: 'src/core/motion.css', hooks: Object.keys(coreHooks()) }, ...list.map((component) => ({ ...component, hooks: Object.assign(ownedHooks(component.meta), { unset: new Set(ownedHooks(component.meta).filter((name) => component.meta.hooks[name].default === 'unset')) }) }))];
   return sources.flatMap(({ css, hooks }) => {
     const code = stripCssComments(repoText(css));
     return hooks.map((name) => {
-      const value = fallbackOf(code, name) ?? '(set by the component)';
+      const value = hooks.unset?.has(name) ? '(unset)' : fallbackOf(code, name) ?? '(set by the component)';
       if (value.includes('*/')) throw new Error(`${css}: the fallback of ${name} would end the comment of themes/example.css`);
       return `  ${name}: ${value};`;
     });
@@ -1104,6 +1117,49 @@ export function rippleHostLines(list) {
     if (selector.includes("'")) throw new Error(`src/components/${component.name}/meta.json: a ripple host without ' (${selector})`);
     return `  '${selector}',`;
   })).join('\n');
+}
+
+/** The modules of the theme generator, in dependency order: the classic script holds these three. */
+const THEME_GENERATOR_MODULES = ['color', 'theme-rules', 'theme'];
+
+/**
+ * styleguide/theme-generator.js: the library part of tools/theme.mjs and the
+ * two modules it imports as one classic script, because engines load no ES
+ * module from file:// (only Firefox does) and the theme panel works from
+ * disk. Each module keeps its own function, so their private names cannot
+ * meet. The CLI of theme.mjs stays out: it needs Node and top-level await.
+ */
+export function themeGeneratorJs(read = repoText) {
+  const parts = THEME_GENERATOR_MODULES.map((name) => {
+    const path = `scripts/tools/${name}.mjs`;
+    const cli = read(path).indexOf('// ── CLI');
+    const source = (cli < 0 ? read(path) : read(path).slice(0, cli)).replace(/^#!.*\n/, '');
+    const exported = [];
+    const body = source
+      .replace(/^export (async function|function|const|let|class) ([\w$]+)/gm, (_, kind, id) => { exported.push(id); return `${kind} ${id}`; })
+      .replace(/^import \{([^}]*)\} from '\.\/([\w-]+)\.mjs';$/gm, (_, names, from) => {
+        if (!THEME_GENERATOR_MODULES.slice(0, THEME_GENERATOR_MODULES.indexOf(name)).includes(from)) throw new Error(`${path}: imports ./${from}.mjs, which the classic theme generator does not hold before it`);
+        if (/\bas\b/.test(names)) throw new Error(`${path}: no renamed import in the theme generator's modules`);
+        return `const {${names}} = modules['${from}'];`;
+      });
+    if (/^(export|import)\b|\bimport\.meta\b|\bawait import\(/m.test(body)) throw new Error(`${path}: the library part of a theme generator module has an export or import the classic script cannot hold`);
+    return `  // ── ${path}\n  modules['${name}'] = (function () {\n${body.trimEnd()}\n\n  return { ${exported.join(', ')} };\n  })();\n`;
+  });
+  return `/*
+ * The theme generator as one classic script: scripts/tools/color.mjs,
+ * theme-rules.mjs and the library part of theme.mjs. Generated by
+ * scripts/build.mjs; do not edit. The theme panel of the styleguide reads
+ * window.SG_THEME_GENERATOR; a classic script, so it works from disk in every
+ * engine (test/browser/styleguide-v3.spec.js).
+ */
+(function (root) {
+  'use strict';
+  var modules = {};
+
+${parts.join('\n')}
+  root.SG_THEME_GENERATOR = modules['theme'];
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+`;
 }
 
 /**
@@ -1238,6 +1294,7 @@ export function generatedFiles(list = components()) {
     ['README.md', readmeCount(repoText('README.md'), list.length)],
     ['themes/example.css', replaceBlock(repoText('themes/example.css'), 'themes/example.css', 'hooks', exampleHooks(list))],
     ['styleguide/registry.js', registryJs(list)],
+    ['styleguide/theme-generator.js', themeGeneratorJs()],
   ]);
 }
 

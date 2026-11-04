@@ -304,7 +304,7 @@ export function checkProject(config, root) {
   }
 
   // classes in pages and scripts (a removed class is reported once, by deprecated)
-  const removedClasses = new Set(names.filter((d) => d.removed && d.kind === 'class').map((d) => d.name.replace(/^\./, '')));
+  const removedClasses = new Set(names.filter((d) => gone(d) && d.kind === 'class').map((d) => d.name.replace(/^\./, '')));
   const linked = new Map();
   for (const file of htmlFiles) {
     const source = read(file);

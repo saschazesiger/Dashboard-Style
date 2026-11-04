@@ -3,6 +3,9 @@
   "group": "navigation",
   "order": 390,
   "docsOrder": 20,
+  "need": "Lay out a page: its head, breadcrumbs, columns of cards, and a sign-in page",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-auth",
     "ds-auth__alert",

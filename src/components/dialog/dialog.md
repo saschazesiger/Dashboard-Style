@@ -11,7 +11,7 @@ carries no role.
     <p class="ds-dialog__text" id="del-text">They disappear from every list. This cannot be undone.</p>
     <div class="ds-dialog__actions">
       <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
+      <button class="ds-btn ds-btn--filled" type="button">Delete devices</button>
     </div>
   </div>
 </dialog>
@@ -79,7 +79,7 @@ directly in the body keeps its own width.
     <div class="ds-dialog__body"> ... a form or a list ... </div>
     <div class="ds-dialog__actions">
       <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button">Choose</button>
+      <button class="ds-btn ds-btn--filled" type="button">Choose</button>
     </div>
   </div>
 </dialog>

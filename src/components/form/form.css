@@ -45,14 +45,14 @@
  *         <div class="ds-field__foot"> <small class="ds-field__hint">...</small> <span class="ds-field__counter" aria-hidden="true">12 / 80</span>
  *       <div class="ds-field" role="group" aria-labelledby="serial-l">
  *         <span class="ds-field__label" id="serial-l">Serial</span> <span class="ds-field__value">SN-0042</span>
- *     <div class="ds-form-actions"> <button class="ds-btn ds-btn--primary">Save</button> ...   (--sticky: stays at the bottom on phones)
+ *     <div class="ds-form-actions"> <button class="ds-btn ds-btn--filled">Save</button> ...   (--sticky: stays at the bottom on phones)
  *
  *   <label class="ds-field__label" for="a">Name <span class="ds-field__required" aria-hidden="true">*</span></label>  (with required on the input)
  *   <div class="ds-search">(search icon)<input class="ds-input" type="search" aria-keyshortcuts="/" placeholder="Search">
  *     <kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>
  *   <textarea class="ds-input ds-input--grow" rows="1"></textarea>   (grows with its text)
  *   <div class="ds-composer"><textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message"></textarea>
- *     <button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send">(send)</button></div>
+ *     <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send">(send)</button></div>
  *
  * Field hooks: --ds-input-height (40px), --ds-input-bg, --ds-input-border,
  * --ds-input-radius, --ds-input-focus-color (the ring and the label tint),

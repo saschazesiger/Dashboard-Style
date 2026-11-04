@@ -3,6 +3,9 @@
   "group": "navigation",
   "order": 190,
   "docsOrder": 180,
+  "need": "Move through the pages of a long table or list",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-pagination",
     "ds-pagination__label",

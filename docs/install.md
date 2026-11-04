@@ -379,7 +379,7 @@ your own checks need not parse CSS:
 {
   "version": "2.0.0",
   "tokens": [
-    { "name": "--ds-btn-height", "layer": "hook", "default": "36px", "type": "length", "themeable": true, "component": "button" },
+    { "name": "--ds-btn-height", "layer": "hook", "default": "40px", "type": "length", "themeable": true, "component": "button" },
     { "name": "--ds-primary", "layer": "role", "default": "#0b57d0", "type": "color", "themeable": true }
   ]
 }

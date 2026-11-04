@@ -3,6 +3,9 @@
   "group": "navigation",
   "order": 370,
   "docsOrder": 40,
+  "need": "Show where the user is in a form of a few steps",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-steps",
     "ds-steps--bar",

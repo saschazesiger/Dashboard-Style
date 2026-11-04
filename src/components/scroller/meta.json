@@ -3,6 +3,9 @@
   "group": "layout",
   "order": 20,
   "docsOrder": 190,
+  "need": "Let a wide strip scroll sideways with edge fades, and float a jump pill in a log",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-jump",
     "ds-scroll-x"

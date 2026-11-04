@@ -40,7 +40,7 @@
  *
  * Actions that show on demand (a row's edit button):
  *
- *   <td><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit">...</button></span></td>
+ *   <td><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Edit">...</button></span></td>
  *
  * .ds-hover-actions fades in (opacity, --ds-dur-fast) while its nearest
  * host (a tr, li, .ds-card, .ds-drawer__row or .ds-hover-host: a table in

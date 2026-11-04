@@ -76,7 +76,7 @@
       '--ds-font-body': 'var(--ds-weight-regular) 13px/18px var(--ds-font)',
       '--ds-font-dense': 'var(--ds-weight-regular) 13px/18px var(--ds-font)',
       '--ds-font-label': 'var(--ds-weight-label) 13px/18px var(--ds-font)',
-      '--ds-btn-height': '32px',
+      '--ds-density': '-2',
     },
   };
 

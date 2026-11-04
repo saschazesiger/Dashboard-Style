@@ -80,7 +80,7 @@ test.describe('confirm() (2.0)', () => {
       tag: 'dialog', role: null, inTheme: true, labelled: true, described: true,
       buttons: ['Cancel', 'Delete devices'], backdrop: true, focus: 'Delete devices',
     });
-    await page.locator('.ds-dialog[data-state="open"] .ds-btn--primary').click();
+    await page.locator('.ds-dialog[data-state="open"] .ds-btn--filled').click();
     expect(await answer(page)).toBe(true);
     await gone(page);
     expect(await page.evaluate(() => document.activeElement.id)).toBe('open-dialog');
@@ -112,12 +112,12 @@ test.describe('confirm() (2.0)', () => {
     await load(page);
     await ask(page, 'confirm', { work: 'ok', confirmLabel: 'Delete devices' });
     await settle(page);
-    await page.locator('.ds-dialog[data-state="open"] .ds-btn--primary').click();
+    await page.locator('.ds-dialog[data-state="open"] .ds-btn--filled').click();
     const during = await page.evaluate(() => {
       const dialog = document.querySelector('.ds-dialog[data-state="open"]');
       return {
         busy: dialog.hasAttribute('data-ds-busy'),
-        button: dialog.querySelector('.ds-btn--primary').getAttribute('aria-busy'),
+        button: dialog.querySelector('.ds-btn--filled').getAttribute('aria-busy'),
         cancel: dialog.querySelector('.ds-btn--text').getAttribute('aria-disabled'),
       };
     });
@@ -135,7 +135,7 @@ test.describe('confirm() (2.0)', () => {
     await load(page);
     await ask(page, 'confirm', { work: 'fail', confirmLabel: 'Delete devices', errorText: 'Could not delete the devices.' });
     await settle(page);
-    await page.locator('.ds-dialog[data-state="open"] .ds-btn--primary').click();
+    await page.locator('.ds-dialog[data-state="open"] .ds-btn--filled').click();
     await page.waitForFunction(() => document.querySelector('.ds-toast--error'));
     const after = await page.evaluate(() => {
       const dialog = document.querySelector('.ds-dialog[data-state="open"]');
@@ -145,7 +145,7 @@ test.describe('confirm() (2.0)', () => {
         cancel: dialog.querySelector('.ds-btn--text').hasAttribute('aria-disabled'),
         toast: document.querySelector('.ds-toast--error .ds-toast__text').textContent,
         toastAbove: dialog.contains(document.querySelector('.ds-toast--error')),
-        focus: document.activeElement === dialog.querySelector('.ds-btn--primary'),
+        focus: document.activeElement === dialog.querySelector('.ds-btn--filled'),
         answer: window.__answer,
       };
     });
@@ -165,7 +165,7 @@ test.describe('confirm() (2.0)', () => {
     });
     await ask(page, 'confirm', { work: 'fail', confirmLabel: 'Delete devices', errorText: 'Could not delete the devices.' });
     await settle(page);
-    await page.locator('.ds-dialog[data-state="open"] .ds-btn--primary').click();
+    await page.locator('.ds-dialog[data-state="open"] .ds-btn--filled').click();
     await page.waitForFunction(() => document.querySelector('.ds-toast--error'));
     await settle(page);
     const after = await page.evaluate(() => {
@@ -186,7 +186,7 @@ test.describe('confirm() (2.0)', () => {
     await load(page);
     await ask(page, 'confirm', { work: 'fail' });
     await settle(page);
-    await page.locator('.ds-dialog[data-state="open"] .ds-btn--primary').click();
+    await page.locator('.ds-dialog[data-state="open"] .ds-btn--filled').click();
     await page.waitForFunction(() => document.querySelector('.ds-toast--error'));
     expect(await page.evaluate(() => document.querySelector('.ds-toast--error .ds-toast__text').textContent)).toBe('That did not work. Try again.');
   });

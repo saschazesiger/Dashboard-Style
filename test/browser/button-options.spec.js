@@ -208,3 +208,33 @@ test('forced colours: the error tone becomes the system button colours; a toggle
   // The square shape and the touch minimum hold in forced colours too.
   expect((await box(page, '#shape-square')).radius).toBe(0);
 });
+
+test('--ds-type-scale on the theme rescales every type role, does not nest, and leaves field text at 16px or more', async ({ page }) => {
+  await open(page);
+  const fonts = () => page.evaluate(() => {
+    const host = document.querySelector('.ds-theme');
+    const read = (parent, role) => {
+      const probe = document.createElement('span');
+      probe.style.font = `var(${role})`;
+      parent.append(probe);
+      const { fontSize, lineHeight } = getComputedStyle(probe);
+      probe.remove();
+      return [parseFloat(fontSize), parseFloat(lineHeight)];
+    };
+    const region = document.createElement('div');
+    region.style.setProperty('--ds-type-scale', '3');
+    host.append(region);
+    const out = { body: read(host, '--ds-font-body'), headline: read(host, '--ds-font-headline'), display: read(host, '--ds-font-display'), input: read(host, '--ds-font-input'), region: read(region, '--ds-font-body') };
+    region.remove();
+    return out;
+  });
+  expect(await fonts()).toEqual({ body: [14, 20], headline: [24, 32], display: [36, 44], input: [16, 24], region: [14, 20] });
+  const bigger = await page.addStyleTag({ content: '.ds-theme { --ds-type-scale: 1.25; }' });
+  expect(await fonts()).toEqual({ body: [17.5, 25], headline: [30, 40], display: [45, 55], input: [20, 30], region: [17.5, 25] });
+  await bigger.evaluate((el) => el.remove());
+  await page.addStyleTag({ content: '.ds-theme { --ds-type-scale: 0.875; }' });
+  const smaller = await fonts();
+  expect(smaller.body).toEqual([12.25, 17.5]);
+  expect(smaller.input).toEqual([16, 24]);
+  expect(smaller.region).toEqual([12.25, 17.5]);
+});

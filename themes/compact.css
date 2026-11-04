@@ -25,10 +25,10 @@
 
 .ds-theme {
   /* ── Type: the UI roles at 13/18 (headings, reading text and meta keep theirs) ── */
-  --ds-font-body: var(--ds-weight-regular) 13px/18px var(--ds-font);
-  --ds-font-dense: var(--ds-weight-regular) 13px/18px var(--ds-font);
-  --ds-font-label: var(--ds-weight-label) 13px/18px var(--ds-font);
-  --ds-font-chip: var(--ds-weight-label) 13px/18px var(--ds-font);
+  --ds-font-body: var(--ds-weight-regular) calc(13px * var(--ds-type-scale))/calc(18px * var(--ds-type-scale)) var(--ds-font);
+  --ds-font-dense: var(--ds-weight-regular) calc(13px * var(--ds-type-scale))/calc(18px * var(--ds-type-scale)) var(--ds-font);
+  --ds-font-label: var(--ds-weight-label) calc(13px * var(--ds-type-scale))/calc(18px * var(--ds-type-scale)) var(--ds-font);
+  --ds-font-chip: var(--ds-weight-label) calc(13px * var(--ds-type-scale))/calc(18px * var(--ds-type-scale)) var(--ds-font);
 }
 
 /* ── Density, and the heights of the components not ported yet (not where the theme root opted into touch targets) ── */

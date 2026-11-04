@@ -3,6 +3,9 @@
   "group": "overlays",
   "order": 310,
   "docsOrder": 250,
+  "need": "Ask for a decision or a short task that blocks the page until it is done",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-dialog",
     "ds-dialog--bottom",

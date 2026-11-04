@@ -48,7 +48,7 @@ hand-built one:
 ```html
 <tr>
   <td>LAPTOP-0042</td>
-  <td class="ds-num"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit LAPTOP-0042">[icon pencil 18]</button></span></td>
+  <td class="ds-num"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Edit LAPTOP-0042">[icon pencil 18]</button></span></td>
 </tr>
 ```
 

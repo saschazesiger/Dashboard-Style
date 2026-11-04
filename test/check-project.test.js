@@ -113,6 +113,27 @@ describe('tools/check-project.mjs', () => {
     assert.deepEqual(summary(findings), []);
   });
 
+  it('warns on a name removed in 3.0.0 while the copy is a pre-release, and fails on it from the release on', () => {
+    const entry = (name, kind) => ({ kind, name, pattern: `(?<![\\w-])${name.replace(/^\./, '')}(?![\\w-])`, replacement: '.ds-new', deprecated: '3.0.0', removed: '3.0.0' });
+    const names = [entry('.ds-btn--primary', 'class'), entry('--ds-btn-sm-height', 'hook')];
+    const files = {
+      ...CLEAN,
+      'index.html': `${CLEAN['index.html']}\n<button class="ds-btn ds-btn--primary">Save</button>\n`,
+      'css/theme.css': `${CLEAN['css/theme.css']}.ds-theme {\n  --ds-btn-sm-height: 30px;\n}\n`,
+    };
+    const levels = (version) => {
+      const { findings } = run(files, CONFIG, { deprecations: { version, names } });
+      return [...new Set(findings.filter((f) => f.rule === 'deprecated').map((f) => `${f.level} ${f.file}`))].sort();
+    };
+    assert.deepEqual(levels('3.0.0-alpha.2'), ['warning css/theme.css', 'warning index.html']);
+    assert.deepEqual(levels('3.0.0'), ['error css/theme.css', 'error index.html']);
+    // In this copy they are planned removals: warnings, and the aliases are still classes of ds.css.
+    const today = run(files);
+    assert.deepEqual(today.errors, []);
+    assert.deepEqual([...new Set(today.findings.filter((f) => f.rule === 'deprecated').map((f) => f.level))], ['warning']);
+    assert.match(today.findings.find((f) => f.message.includes('ds-btn--primary')).message, /deprecated since 3\.0\.0, removed in 3\.0\.0: use \.ds-btn--filled/);
+  });
+
   it('finds each broken rule, with its file and line', () => {
     const deprecations = {
       version: '9.9.9',

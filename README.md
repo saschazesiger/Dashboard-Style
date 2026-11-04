@@ -100,7 +100,7 @@ Copy `dist/` into your project (or use the CDN, see below) and write:
     <section class="ds-card">
       <h2 class="ds-card__title">Inventory</h2>
       <p class="ds-muted">128 devices, 3 need attention.</p>
-      <button class="ds-btn ds-btn--primary" type="button">Add device</button>
+      <button class="ds-btn ds-btn--filled" type="button">Add device</button>
     </section>
   </div></div>
   <script src="dist/ds.js"></script>

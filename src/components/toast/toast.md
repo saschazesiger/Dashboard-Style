@@ -18,7 +18,7 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
 
 ```html
 <div class="ds-toast [ds-toast--error | ds-toast--info]">[icon checkCircle | alertCircle | info 20]<span class="ds-toast__text">Saved.</span>
-  <button class="ds-btn ds-btn--text ds-btn--sm ds-toast__action" type="button">Undo</button>
+  <button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button>
   <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">[icon close 20]</button></div>
 ```
 

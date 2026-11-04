@@ -10731,7 +10731,7 @@
       let cancel = null;
       let confirmButton;
       if (kind === 'alert') {
-        confirmButton = button('ds-btn ds-btn--primary', options.closeLabel ?? 'OK');
+        confirmButton = button('ds-btn ds-btn--filled', options.closeLabel ?? 'OK');
         confirmButton.setAttribute('data-close', '');
         confirmButton.setAttribute('autofocus', '');
         actions.append(confirmButton);
@@ -10740,7 +10740,7 @@
         cancel.setAttribute('data-close', '');
         // The faces of busy(): the label, and the spinner with it while onConfirm runs.
         const label = options.confirmLabel ?? 'Confirm';
-        confirmButton = button('ds-btn ds-btn--primary');
+        confirmButton = button('ds-btn ds-btn--filled');
         const faces = make('span', 'ds-btn__faces');
         const rest = make('span', 'ds-btn__face', label);
         const working = make('span', 'ds-btn__face ds-btn__face--busy');
@@ -11312,7 +11312,7 @@
       el.append(span);
       if (actionLabel) {
         const action = doc.createElement('button');
-        action.className = 'ds-btn ds-btn--text ds-btn--sm ds-toast__action';
+        action.className = 'ds-btn ds-btn--text ds-sm ds-toast__action';
         action.type = 'button';
         action.textContent = actionLabel;
         el.append(action);

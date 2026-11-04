@@ -3,6 +3,9 @@
   "group": "forms",
   "order": 220,
   "docsOrder": 210,
+  "need": "Filter a list, pick a few options or hold entered values as small pills",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-chip",
     "ds-chip--input",

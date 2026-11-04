@@ -3,6 +3,9 @@
   "group": "data",
   "order": 130,
   "docsOrder": 110,
+  "need": "Follow the steps of a job: pending, running, done or failed",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-tasks",
     "ds-tasks__head",

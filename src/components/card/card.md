@@ -4,7 +4,7 @@
 <section class="ds-card">
   <div class="ds-card__row">
     <h2 class="ds-card__title">Sync</h2>
-    <button class="ds-btn ds-btn--sm" type="button">Run now</button>
+    <button class="ds-btn ds-sm" type="button">Run now</button>
   </div>
   <p class="ds-muted">Runs every night at 02:00.</p>
   <h3 class="ds-card__subtitle">Sources</h3>
@@ -44,7 +44,7 @@ A whole card that opens something (1.4):
 <div class="ds-card ds-card--interactive">                          <!-- with other controls inside -->
   <div class="ds-card__row">
     <h2 class="ds-card__title"><a class="ds-card__action" href="/devices/42">Printer on floor 2</a></h2>
-    <button class="ds-btn ds-btn--sm" type="button">Restart</button>
+    <button class="ds-btn ds-sm" type="button">Restart</button>
   </div>
   <p class="ds-muted">Last seen today, 09:12</p>
 </div>

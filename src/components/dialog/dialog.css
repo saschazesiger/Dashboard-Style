@@ -16,7 +16,7 @@
  *       <p class="ds-dialog__text" id="d-text">They are removed for everyone.</p>
  *       <div class="ds-dialog__actions">
  *         <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
- *         <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
+ *         <button class="ds-btn ds-btn--filled" type="button">Delete devices</button>
  *
  * Content taller than the window (a form, a long list): the body scrolls,
  * title and actions stay. A body with nothing focusable that scrolls is a

@@ -8,7 +8,7 @@
       <p class="ds-savebar__text">2 unsaved changes</p>
       <div class="ds-savebar__actions">
         <button class="ds-btn ds-btn--text" type="button">Discard</button>
-        <button class="ds-btn ds-btn--primary" type="button"><span class="ds-btn__faces"> ... </span></button>   <!-- the faces of Button -->
+        <button class="ds-btn ds-btn--filled" type="button"><span class="ds-btn__faces"> ... </span></button>   <!-- the faces of Button -->
       </div>
     </div>
   </div>

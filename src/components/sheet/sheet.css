@@ -34,7 +34,7 @@
  *       <div class="ds-sheet__foot">                                    (optional)
  *         <p class="ds-meta">3 filters</p>
  *         <button class="ds-btn ds-btn--text" type="button">Reset</button>
- *         <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
+ *         <button class="ds-btn ds-btn--filled" type="button" data-close>Show 12 devices</button>
  *       </div>
  *
  * Open and close both with DS.overlay.open(sheet, { opener }) and

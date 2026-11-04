@@ -112,6 +112,20 @@ coarse.
 
 ## Type scale
 
-The type ramp is theme-level: the `--ds-font-*` roles and `--ds-font` are set on `.ds-theme` and resolve there, so
-they do not nest. A region changes a control's type through its size class (`--ds-size-font`), never by rescaling the
-roles; a theme rescales the whole ramp by setting the roles (as `themes/compact.css` does at 13/18).
+`--ds-type-scale` (default 1) multiplies the size and line height of every `--ds-font-*` role, and
+`--ds-size-display`, so a theme rescales the whole ramp with one number:
+
+```css
+.ds-theme { --ds-type-scale: 1.125; }   /* body text 15.75/22.5, the headline 27/36 */
+```
+
+The scale and the font (`--ds-font`) are theme-level. The roles resolve them on `.ds-theme`, so they do not nest: the
+value on a region other than a `.ds-theme` changes nothing, and a nested `.ds-theme` starts from 1 again. A region
+changes a control's type through its size class (`--ds-size-font`), never through the scale.
+
+- `--ds-font-input` never goes under 16/24, whatever the scale: iOS zooms into a field with smaller text.
+- A theme that sets a role itself decides whether that role scales (`themes/compact.css` writes its 13/18 times the
+  scale; `calc(13px * var(--ds-type-scale))`). It may also set the roles instead of the scale.
+- Heights do not follow the scale: controls keep their size and density steps. The alignment hooks that name a line
+  height (`--ds-page-head-title-line`, `--ds-card-title-line`) are for a theme to set when its scale moves the line
+  far from their default.

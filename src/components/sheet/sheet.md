@@ -30,7 +30,7 @@ The head can hold a subtitle under the title, and the sheet a foot with its acti
 <div class="ds-sheet__foot">
   <p class="ds-meta">3 filters</p>
   <button class="ds-btn ds-btn--text" type="button">Reset</button>
-  <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
+  <button class="ds-btn ds-btn--filled" type="button" data-close>Show 12 devices</button>
 </div>
 ```
 

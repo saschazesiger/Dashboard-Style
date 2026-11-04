@@ -9,7 +9,7 @@
  *       <span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="/devices/42">LAPTOP-0042</a></span>
  *         <span class="ds-list__meta">Notebook 14 · Building A</span></span>
  *       <span class="ds-status ...">...</span>
- *       <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for LAPTOP-0042">...</button></span>
+ *       <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="More for LAPTOP-0042">...</button></span>
  *       [icon chevronRight .ds-list__chevron]</li></ul>
  *   <ul class="ds-kv-list"><li><span>Name</span><strong>Value</strong></li></ul>
  *   <ul class="ds-kv-list ds-kv-list--interactive"><li><a class="ds-kv-list__row" href="/owners/7"><span>Owner</span><strong>Ada Lovelace</strong></a></li></ul>

@@ -3,6 +3,9 @@
   "group": "forms",
   "order": 250,
   "docsOrder": null,
+  "need": "Pick a value on a range by dragging or with the arrow keys",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-slider",
     "ds-slider__value"

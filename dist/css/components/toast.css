@@ -14,7 +14,7 @@
  *   <div class="ds-toast [ds-toast--error | ds-toast--info]">  what toast() builds from a string
  *     <svg ...>(checkCircle | alertCircle, 20)</svg>
  *     <span class="ds-toast__text">Saved.</span>
- *     <button class="ds-btn ds-btn--text ds-btn--sm ds-toast__action" type="button">Undo</button>   with `action`
+ *     <button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button>   with `action`
  *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">(close)</button>
  *
  *   .ds-toast--shown  runtime: toast() marks a message whose entrance has
@@ -184,6 +184,13 @@
     flex-shrink: 0;
     margin-block: calc(-1 * var(--ds-space-2));
     margin-inline-start: auto;
+  }
+
+  /* The action is 32px with 12px of side padding at any density: a snackbar
+     floats above the region it reports on and keeps one size. */
+  .ds-toast__action.ds-sm {
+    --ds-density: 0;
+    --ds-btn-padding-x: var(--ds-space-4);
   }
 
   .ds-toast > .ds-btn--text:focus-visible {

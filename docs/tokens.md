@@ -160,19 +160,21 @@ checks the same and keeps adjacent series apart for colour-blind readers (lightn
 ### Type
 
 Roles are `font` shorthands (size, line height, weight, family in one declaration). The shorthand resets
-`font-variant-numeric`, so figures set `tabular-nums` after it. Sizes in px, tracking 0, no uppercase eyebrows.
+`font-variant-numeric`, so figures set `tabular-nums` after it. Sizes in px, times `--ds-type-scale`; tracking 0, no
+uppercase eyebrows.
 
 | Token | Default | Use |
 |---|---|---|
 | `--ds-font` | `'Google Sans', Roboto, 'Segoe UI', system-ui, sans-serif` | family |
 | `--ds-font-mono` | `ui-monospace, SFMono-Regular, Menlo, Consolas, ...` | code |
 | `--ds-weight-regular` / `--ds-weight-title` / `--ds-weight-label` | 400 / 400 / 500 | text / headings (never bold) / labels, buttons, emphasis |
+| `--ds-type-scale` | 1 | multiplies the size and line height of every type role; theme-level, it does not nest ([options.md](options.md#type-scale)) |
 | `--ds-size-display` | 36px | size of the display role, for components that cap it |
 | `--ds-font-headline` | 400 24/32 | page title |
 | `--ds-font-title` | 400 22/28 | dialog, sheet and section titles, product name |
 | `--ds-font-subtitle` | 500 16/24 | card titles, empty-state title |
 | `--ds-font-reading` | 400 16/24 | running text meant to be read |
-| `--ds-font-input` | `= reading` | field text on phones (16px stops the iOS zoom) |
+| `--ds-font-input` | 400 16/24, never under that at any `--ds-type-scale` | field text on phones (16px stops the iOS zoom) |
 | `--ds-font-body` | 400 14/20 | default UI text, fields |
 | `--ds-font-dense` | 400 14/20 | table cells |
 | `--ds-font-label` | 500 14/20 | buttons, labels, navigation, column heads |

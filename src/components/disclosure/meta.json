@@ -3,6 +3,9 @@
   "group": "content",
   "order": 90,
   "docsOrder": 80,
+  "need": "Hide advanced settings or sections until asked, one at a time if needed",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-disclosure",
     "ds-disclosure--row",

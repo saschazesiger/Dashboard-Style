@@ -70,7 +70,7 @@ Exit codes: 0 done, 1 a scan error (or a stale bundle with `--check`), 2 a broke
 The scan reads every file as plain text, as Tailwind does, so it works on HTML, JavaScript, TypeScript, JSX and TSX,
 Vue, Svelte, Markdown and server templates alike. It looks for:
 
-- **Classes**: every complete `ds-*` name (`ds-btn`, `ds-btn--primary`, `ds-dialog__box`), matched against the
+- **Classes**: every complete `ds-*` name (`ds-btn`, `ds-btn--filled`, `ds-dialog__box`), matched against the
   classes of the manifest. A custom property (`--ds-btn-height`) and an attribute (`data-ds-busy`) are not classes.
   A name the copy does not know goes into the report's `unknown` list (`tools/check-project.mjs` fails it).
 - **Attributes**: `data-ds-*` names that a component styles (`data-ds-ripple`), also written as `dataset.dsRipple`.

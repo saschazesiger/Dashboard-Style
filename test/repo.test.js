@@ -90,7 +90,9 @@ describe('repository', () => {
   it('counts the components right in the styleguide overview and the README badge (generated), and lists them nowhere by hand', () => {
     const files = componentNames();
     assert.ok(files.length >= 39, `${files.length} component folders`);
-    assert.match(read('styleguide/styleguide.js'), new RegExp(`tile\\('Components', '${files.length}'`));
+    // The tile of legacy.html and the one of index.html both count registry.js, which the build writes from the folders.
+    assert.match(read('styleguide/styleguide.js'), /tile\('Components', String\(window\.SG_REGISTRY\.components\.length\)/);
+    assert.match(read('styleguide/shell.js'), /tile\('Components', String\(COMPONENTS\.length\)/);
     assert.match(read('README.md'), new RegExp(`!\\[Components: ${files.length}\\]\\(https://img\\.shields\\.io/badge/components-${files.length}-`), 'the Components badge of README.md');
     // A shared hand-edited list of the components would collide between parallel branches.
     const row = read('AGENTS.md').split('\n').find((line) => line.startsWith('| `src/components/<name>/` |')) ?? '';

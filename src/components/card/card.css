@@ -385,7 +385,7 @@
     flex-wrap: wrap;
   }
 
-  /* A button (36px) or a switch (40px) next to the title hangs out of the
+  /* A button (40px) or a switch (40px) next to the title hangs out of the
      title's line (--ds-card-title-line) on both sides instead of making the row taller: every
      card title starts at the same height, whatever its head holds. When the
      row wraps (phones), the row gap makes up for the overhang. A status

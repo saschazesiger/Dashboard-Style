@@ -51,7 +51,7 @@ a suggestion (an action chip):
   <button class="ds-chip ds-chip--input" type="button" data-tip="Building C, second floor">
     <span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>Building C, second floor</span>[icon close 18 ds-chip__trailing]</span></button>
   <button class="ds-chip" type="button"><span class="ds-chip__body">[icon user 18 ds-chip__icon]<span class="ds-chip__label">Only my devices</span></span></button>
-  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Clear filters</button>
+  <button class="ds-btn ds-btn--text ds-sm" type="button">Clear filters</button>
 </div>
 
 <div class="ds-chips ds-chips--wrap" role="group" aria-label="Suggestions">

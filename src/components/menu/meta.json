@@ -3,6 +3,9 @@
   "group": "overlays",
   "order": 270,
   "docsOrder": 240,
+  "need": "Offer the actions of one item, or the overflow of a toolbar, from a button",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-menu",
     "ds-menu__check",

@@ -194,6 +194,22 @@ describe('tools/check-theme.mjs', () => {
     assert.match(findings.find((f) => f.rule === 'input-font').message, /14px/);
   });
 
+  it('warns on a name removed in 3.0.0 from a pre-release copy, and fails on it from the release on', () => {
+    const planned = { names: [{ kind: 'hook', name: '--ds-btn-sm-height', pattern: '(?<![\\w-])--ds-btn-sm-height(?![\\w-])', replacement: '--ds-btn-height', deprecated: '3.0.0', removed: '3.0.0' }] };
+    const theme = '.ds-theme {\n  --ds-btn-sm-height: 30px;\n}\n';
+    const seen = (version) => check(theme, { deprecations: { ...planned, version } }).filter((f) => f.message.includes('--ds-btn-sm-height')).map((f) => `${f.level} ${f.rule}`);
+    assert.deepEqual(seen('3.0.0-alpha.2'), ['warning deprecated']);
+    assert.deepEqual(seen('3.0.0'), ['error removed']);
+  });
+
+  it('reads the type scale for field text: the default input role keeps its floor, a role that follows another does not', () => {
+    const input = (css) => check(css).filter((f) => f.rule === 'input-font');
+    assert.deepEqual(input('.ds-theme { --ds-type-scale: 0.8; }'), [], 'the input role has a floor of 16px');
+    assert.deepEqual(input('.ds-theme { --ds-type-scale: 1.25; --ds-font-input: var(--ds-font-reading); }'), []);
+    assert.match(input('.ds-theme { --ds-type-scale: 0.8; --ds-font-input: var(--ds-font-reading); }')[0].message, /12\.8px/);
+    assert.match(input('.ds-theme { --ds-font-input: var(--ds-font-body); }')[0].message, /14px/);
+  });
+
   it('checks the contrast pairs with var(), color-mix() and variants, and says what it cannot resolve', () => {
     const weak = check('.ds-theme { --ds-text-2: #9aa0a6; --ds-primary: color-mix(in srgb, #0b57d0 30%, white); }');
     const warned = weak.filter((f) => f.rule === 'contrast' && f.level === 'warning').map((f) => f.message);

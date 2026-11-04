@@ -1612,6 +1612,7 @@
         "ds-toast--error",
         "ds-toast--info",
         "ds-toast--shown",
+        "ds-toast__action",
         "ds-toast__close",
         "ds-toast__text",
         "ds-toasts"
@@ -1639,8 +1640,8 @@
       "progressive": [
         "View Transitions"
       ],
-      "bytes": 4505,
-      "gzip": 1346
+      "bytes": 4581,
+      "gzip": 1370
     },
     "tooltip": {
       "css": "css/components/tooltip.css",
@@ -2000,8 +2001,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 6625,
-      "gzip": 1938
+      "bytes": 6646,
+      "gzip": 1951
     }
   },
   "js": {

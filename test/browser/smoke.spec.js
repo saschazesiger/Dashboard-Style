@@ -2,7 +2,7 @@
  * Smoke tests of the harness itself: the static server, the styleguide's
  * test hooks (`data-sg-ready`, `data-sg-theme`, `?speed=`), the version of
  * the loaded `dist/ds.js`, every ES module of `dist/js/` and the generated
- * per-component fixture page (serve.js, fixtures/sg-stub.js). When one of
+ * per-component fixture page (serve.js, styleguide/sg-core.js). When one of
  * these fails, every other spec fails for the same reason; start here.
  */
 import { test, expect } from '@playwright/test';
@@ -77,8 +77,8 @@ test('module.html imports every ES module of manifest.json and they export what 
   expect(result.ok).toBe(true);
 });
 
-test('component.html?c=<name> renders a component\'s demo alone through the SG stub, then DS.init()', async ({ page }) => {
-  // A demo file of a component that does not exist, served by the test: the route and the stub alone.
+test('component.html?c=<name> renders a component\'s demo alone through sg-core.js, then DS.init()', async ({ page }) => {
+  // A demo file of a component that does not exist, served by the test: the route and sg-core.js alone.
   await page.route('**/src/components/smoke-sample/smoke-sample.demo.js', (route) => route.fulfill({
     contentType: 'text/javascript',
     body: `SG.demo('smoke-sample', {
@@ -86,7 +86,7 @@ test('component.html?c=<name> renders a component\'s demo alone through the SG s
       render: function (h) { return '<p id="' + h.uid('p') + '">' + h.esc('<one>') + '</p>' + h.icon('check', 16) + '<button class="ds-btn" data-wired>Go</button>'; },
       wire: function (root) { root.querySelector('[data-wired]').setAttribute('data-wired', 'yes'); },
     });
-    SG.demo('smoke-other', { render: function () { return '<p>other</p>'; } });`,
+    SG.demo('smoke-other', { title: 'Other', render: function () { return '<p>other</p>'; } });`,
   }));
   const errors = collectErrors(page);
   await page.goto(`${FIXTURES}component.html?c=smoke-sample&demo=smoke-sample`);

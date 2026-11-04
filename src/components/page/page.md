@@ -26,7 +26,7 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 
 ```html
 <header class="ds-page-head">
-  <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="/devices">[icon arrowLeft 18]<span class="ds-sr">Back to </span>Devices</a>
+  <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="/devices">[icon arrowLeft 18]<span class="ds-sr">Back to </span>Devices</a>
   <div class="ds-page-head__row">
     <div class="ds-page-head__text">
       <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1>
@@ -35,7 +35,7 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
     </div>
     <div class="ds-page-head__actions">
       <button class="ds-btn" type="button">Retire</button>
-      <button class="ds-btn ds-btn--primary" type="button">Edit</button>
+      <button class="ds-btn ds-btn--filled" type="button">Edit</button>
     </div>
   </div>
 </header>
@@ -89,7 +89,7 @@ leave a stale body visible under the state.
   <div class="ds-auth__alert"><div class="ds-alert ds-alert--error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">The password is wrong.</span></div></div>
   <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="auth-title">
     <h1 class="ds-card__title" id="auth-title">Sign in</h1>
-    <form class="ds-form"> ...fields... <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Sign in</button></div></form>
+    <form class="ds-form"> ...fields... <div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Sign in</button></div></form>
   </section>
 </body>
 ```

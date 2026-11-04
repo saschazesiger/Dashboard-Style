@@ -222,7 +222,9 @@ describe('dist/tokens.json', () => {
       '--ds-ease-out': ['scale', 'easing', 'cubic-bezier(.05, .7, .1, 1)'],
       '--ds-space-4': ['scale', 'length', '16px'],
       '--ds-z-toast': ['scale', 'number', '60'],
-      '--ds-font-body': ['role', 'font', 'var(--ds-weight-regular) 14px/20px var(--ds-font)'],
+      '--ds-font-body': ['role', 'font', 'var(--ds-weight-regular) calc(14px * var(--ds-type-scale))/calc(20px * var(--ds-type-scale)) var(--ds-font)'],
+      '--ds-type-scale': ['role', 'number', '1'],
+      '--ds-btn-height-exact': ['hook', 'length', null],
       '--ds-elev-overlay': ['role', 'shadow', 'var(--ds-elev-3)'],
       '--ds-btn-height': ['hook', 'length', '40px'],
       // The option defaults (3.0): themeable numbers on .ds-theme; the tone colours the option classes set.
@@ -242,6 +244,11 @@ describe('dist/tokens.json', () => {
       if (value) assert.equal(entry.default, value, `${name}: default`);
     }
     assert.equal(byName.get('--ds-btn-height').component, 'button');
+    // Documented as unset: no default, though its stylesheet computes a fallback.
+    assert.equal(byName.get('--ds-btn-height-exact').default, null);
+    // Removed in 3.0.0, seen from a 3.0.0 pre-release: still listed, as deprecated.
+    assert.equal(byName.get('--ds-btn-sm-height').deprecated, '3.0.0');
+    assert.ok(!new Map(JSON.parse(tokensJson({ ...packageInfo(), version: '3.0.0' })).tokens.map((token) => [token.name, token])).has('--ds-btn-sm-height'), 'gone at the release');
     assert.equal(byName.get('--ds-ripple-scale')?.layer, 'motion-hook', 'read only by a keyframe of motion.css');
     assert.ok(!byName.has('--ds-view-scroll'), 'a timeline name is not a custom property');
   });

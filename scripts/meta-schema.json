@@ -5,7 +5,7 @@
   "description": "The facts of one component folder. scripts/build.mjs validates every meta.json against this schema (validateSchema(): type, enum, pattern, minimum, maximum, minLength, items, uniqueItems, properties, required, additionalProperties, propertyNames, anyOf and local $ref), then against the folder and its stylesheet (verifyComponents()). The keys are written in the order of \"properties\"; the optional ones may be left out.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["name", "group", "order", "docsOrder", "classes", "attributes", "requires", "context", "hooks", "keyframes", "js", "progressive", "ripple"],
+  "required": ["name", "group", "order", "docsOrder", "need", "tier", "status", "classes", "attributes", "requires", "context", "hooks", "keyframes", "js", "progressive", "ripple"],
   "properties": {
     "name": { "description": "The folder's name: lower-case words joined by -.", "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
     "group": { "description": "The styleguide and docs group.", "enum": ["actions", "forms", "data", "overlays", "navigation", "feedback", "layout", "content", "motion"] },

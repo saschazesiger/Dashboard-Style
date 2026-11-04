@@ -3,6 +3,9 @@
   "group": "forms",
   "order": 260,
   "docsOrder": 230,
+  "need": "Choose one value from a long list by typing to filter it",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-combo",
     "ds-combo--select",

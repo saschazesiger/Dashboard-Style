@@ -113,12 +113,14 @@ describe('browser test helpers', () => {
 
 describe('the component fixture route of serve.js', async () => {
   const { COMPONENT_FIXTURE, componentFixture } = await import('./browser/serve.js');
-  it('writes the page of one component: dist, the SG stub, its demo file, then the mount and DS.init()', () => {
+  it('writes the page of one component: dist, sg-core.js, its demo file, then the mount, DS.init() and the ripple', () => {
     assert.equal(COMPONENT_FIXTURE, '/test/browser/fixtures/component.html');
     const page = componentFixture(new URLSearchParams('c=date-picker&demo=range'));
     const scripts = [...page.matchAll(/<script src="([^"]+)"><\/script>/g)].map((match) => match[1]);
-    assert.deepEqual(scripts, ['/dist/ds.js', '/test/browser/fixtures/sg-stub.js', '/src/components/date-picker/date-picker.demo.js', '/test/browser/fixtures/fixture.js']);
-    assert.match(page, /SG\.mount\(document\.getElementById\('fx-component'\), \{ only: "range" \}\)/);
+    assert.deepEqual(scripts, ['/dist/ds.js', '/styleguide/sg-core.js', '/src/components/date-picker/date-picker.demo.js', '/test/browser/fixtures/fixture.js']);
+    assert.match(page, /var only = "range";/);
+    assert.match(page, /SG\.mount\(spec\.name, /);
+    assert.match(page, /DS\.ripple\.attach\(document\);/);
     assert.match(page, /DS\.init\(document\);/);
     assert.match(componentFixture(new URLSearchParams('c=x&min=1')), /\/dist\/ds\.min\.css[\s\S]*\/dist\/ds\.min\.js/);
   });

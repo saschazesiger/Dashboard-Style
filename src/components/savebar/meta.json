@@ -3,6 +3,9 @@
   "group": "forms",
   "order": 340,
   "docsOrder": 290,
+  "need": "Save or discard unsaved changes from a bar that appears when something changed",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-savebar",
     "ds-savebar__actions",

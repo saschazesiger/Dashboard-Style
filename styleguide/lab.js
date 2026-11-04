@@ -573,9 +573,9 @@
       '--ds-dur-medium', '--ds-dur-slow', '--ds-dur-fast', '--ds-dur-base', '--ds-dur-glide', '--ds-delay-loader', '--ds-ease-in-out', '--ds-ease-spatial', '--ds-ease-in', '--ds-ease-value',
       '--ds-distance-md', '--ds-distance-xl', '--ds-scale-enter', '--ds-scale-small'],
     html: '<div class="ds-card sg-lab-card" id="sg-motion-card" data-lab-keep><h4 class="ds-card__title">A card</h4><p class="ds-muted">Plays the chosen entrance or exit.</p></div>',
-    controls: '<div class="sg-row">' + ['', 'fade', 'scale', 'slide', 'swap', 'delayed', 'pop', 'fill-x', 'fill-y'].map(function (v) { return '<button class="ds-btn ds-btn--sm" type="button" data-enter="' + v + '">enter' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>' +
-      '<div class="sg-row">' + ['', 'sink', 'scale', 'slide', 'pop'].map(function (v) { return '<button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-leave="' + v + '">leave' + (v ? ' ' + v : '') + '</button>'; }).join('') +
-      '<button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-motion-cancel>Cancel</button></div>',
+    controls: '<div class="sg-row">' + ['', 'fade', 'scale', 'slide', 'swap', 'delayed', 'pop', 'fill-x', 'fill-y'].map(function (v) { return '<button class="ds-btn ds-sm" type="button" data-enter="' + v + '">enter' + (v ? ' ' + v : '') + '</button>'; }).join('') + '</div>' +
+      '<div class="sg-row">' + ['', 'sink', 'scale', 'slide', 'pop'].map(function (v) { return '<button class="ds-btn ds-sm ds-btn--text" type="button" data-leave="' + v + '">leave' + (v ? ' ' + v : '') + '</button>'; }).join('') +
+      '<button class="ds-btn ds-sm ds-btn--quiet" type="button" data-motion-cancel>Cancel</button></div>',
     setup: function (stage, sg) {
       stage.parentNode.addEventListener('click', function (event) {
         var el = event.target.closest('[data-enter], [data-leave], [data-motion-cancel]');
@@ -617,7 +617,7 @@
     shows: ['DS.motion.enterAll', '.ds-enter--scale', '.ds-enter--fill', 'ds-fill-share', '--ds-share', '--ds-stagger', '--ds-dur-medium', '--ds-dur-glide', '--ds-ease-value'],
     html: '<div class="sg-stagger-list" id="sg-stagger">' + new Array(9).join('<span></span>') + '</div>',
     after: readoutHtml('sg-stagger-left'),
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="stagger">Stagger</button><button class="ds-btn ds-btn--sm" type="button" data-sg="fill">Fill as bars</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-sg="stagger">Stagger</button><button class="ds-btn ds-sm" type="button" data-sg="fill">Fill as bars</button></div>',
     setup: function (stage) {
       var list = $('#sg-stagger', stage);
       stage.parentNode.addEventListener('click', function (event) {
@@ -666,7 +666,7 @@
     shows: ['DS.motion.staggerOnce', 'DS.motion.stagger', '.ds-stagger', '.ds-enter--swap', '--ds-stagger', '--ds-dur-medium', '--ds-distance-sm'],
     html: '<div class="sg-stagger-list sg-once"></div>',
     after: readoutHtml('sg-once-left'),
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-once="css">CSS only (.ds-stagger)</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-once="again">Call staggerOnce() again</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-once="css">CSS only (.ds-stagger)</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-once="again">Call staggerOnce() again</button></div>',
     setup: function (stage, sg) {
       var list = freshList(stage, false);
       list.setAttribute('data-ds-staggered', '');
@@ -789,7 +789,7 @@
     html: '<div class="sg-bench"><div class="ds-card sg-lab-card" id="sg-bench-card" data-lab-keep><h4 class="ds-card__title">A card</h4><p class="ds-muted">Interrupted on purpose.</p></div><div>' + traceHtml() + '</div></div>',
     height: 220,
     wide: true,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-bench="enter">Leave at 50% of an enter</button><button class="ds-btn ds-btn--sm" type="button" data-bench="leave">Enter during a leave</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-bench="enter">Leave at 50% of an enter</button><button class="ds-btn ds-sm" type="button" data-bench="leave">Enter during a leave</button></div>',
     setup: function (stage, sg) {
       stage.parentNode.addEventListener('click', function (event) {
         var button = event.target.closest('[data-bench]');
@@ -881,8 +881,8 @@
     title: 'Presence',
     note: '<code>.ds-presence</code> on a wrapper toggled with <code>hidden</code>: it fades in and grows on the spring, and leaves faster; the pill inside keeps its own hover and focus motion. <code>.ds-presence--keep</code> keeps its box, so nothing around it moves: the page sets <code>data-ds-shown</code>, it fades in over <code>--ds-dur-fast</code> and out in <code>--ds-dur-instant</code> (exit 0.67), and while hidden it is out of the tab order.',
     shows: ['.ds-presence', '.ds-presence--keep', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-in-out', '--ds-ease-spatial', '--ds-scale-popup'],
-    html: '<div class="sg-presence-demo"><div class="sg-row"><span class="ds-presence" id="sg-presence-pill" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></span></div>' +
-      '<p class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-presence-save>Save</button><span class="ds-presence ds-presence--keep ds-muted">' + icon('check', 16) + 'Saved</span><span class="ds-muted">Nothing moves.</span></p></div>',
+    html: '<div class="sg-presence-demo"><div class="sg-row"><span class="ds-presence" id="sg-presence-pill" hidden><button class="ds-btn ds-btn--tonal ds-sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></span></div>' +
+      '<p class="sg-row"><button class="ds-btn ds-sm" type="button" data-presence-save>Save</button><span class="ds-presence ds-presence--keep ds-muted">' + icon('check', 16) + 'Saved</span><span class="ds-muted">Nothing moves.</span></p></div>',
     height: 140,
     setup: function (stage, sg) {
       $('[data-presence-save]', stage).addEventListener('click', function () { presenceTo(stage, !presenceOn(stage), sg); });
@@ -918,7 +918,7 @@
     shows: ['.ds-collapsible', '.ds-chevron', '.ds-disclosure', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in'],
     html: '<details class="ds-collapsible ds-disclosure sg-disclosure"><summary>Show the motion rules' + icon('chevronDown', 20, 'ds-chevron') + '</summary><ol class="ds-muted">' +
       RULES.map(function (rule) { return '<li>' + rule + '</li>'; }).join('') + '</ol>' +
-      '<button class="ds-btn ds-btn--sm" type="button" data-sg="copy-rules">' + icon('copy', 16) + 'Copy the rules</button></details>',
+      '<button class="ds-btn ds-sm" type="button" data-sg="copy-rules">' + icon('copy', 16) + 'Copy the rules</button></details>',
     wide: true,
     setup: function (stage, sg) {
       $('[data-sg="copy-rules"]', stage).addEventListener('click', function () { sg.toast('Copied the motion rules.', 'info'); });
@@ -969,7 +969,7 @@
     note: '<code>DS.motion.roll()</code> on a status line (a <code>.ds-swap</code> slot): the old line leaves upwards (<code>ds-roll-out</code>, fast, accelerating), and once it is half out the new one comes up from below on the spring (<code>ds-roll-in</code> after <code>--ds-enter-delay</code>, half of <code>--ds-dur-fast</code>), so the two lines never cover each other. A roll during a roll continues from where each line is. <code>.ds-swap--fade</code> gives the slot soft edges (<code>--ds-swap-fade</code>, a static mask), and <code>{ hold: true }</code> keeps each line up for <code>--ds-hold-status</code>: of five quick changes only the latest rolls in after the wait.',
     shows: ['ds-roll-in', 'ds-roll-out', 'DS.motion.roll', '.ds-swap', '.ds-swap--fade', '--ds-swap-fade', '--ds-hold-status', '--ds-dur-fast', '--ds-dur-medium', '--ds-ease-spatial', '--ds-ease-in', '--ds-enter-delay'],
     html: '<p class="sg-roll ds-swap--fade" id="sg-roll" aria-live="polite">' + ROLL[0] + '</p>',
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-roll="twice">Roll twice, 80ms apart</button><button class="ds-btn ds-btn--sm" type="button" data-roll="hold">Five changes, holding each</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-roll="twice">Roll twice, 80ms apart</button><button class="ds-btn ds-sm" type="button" data-roll="hold">Five changes, holding each</button></div>',
     setup: function (stage, sg) {
       $('[data-roll="twice"]', stage.parentNode).addEventListener('click', function () {
         rollNext(stage);
@@ -1147,7 +1147,7 @@
     note: 'A panel shown by hand with <code>ds-clip-in</code> and <code>ds-clip-out</code> (set through the <code>--ds-enter-*</code> and <code>--ds-leave-*</code> hooks, so enter() and leave() keep their interruption). <code>DS.motion.originFrom(trigger, panel)</code> writes <code>--ds-motion-origin</code> and <code>--ds-clip-from</code>: the panel uncovers itself from the edge that faces its trigger. Replay opens it from each trigger in turn.',
     shows: ['ds-clip-in', 'ds-clip-out', 'DS.motion.originFrom', '--ds-clip-from', '--ds-motion-origin', '--ds-enter-keyframes', '--ds-leave-keyframes', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial', '--ds-ease-in'],
     html: '<div class="sg-clip">' + CLIP_SIDES.map(function (side) {
-      return '<button class="ds-btn ds-btn--sm sg-clip__trigger sg-clip__trigger--' + side + '" type="button" aria-expanded="false" data-clip="' + side + '">' + side.charAt(0).toUpperCase() + side.slice(1) + '</button>';
+      return '<button class="ds-btn ds-sm sg-clip__trigger sg-clip__trigger--' + side + '" type="button" aria-expanded="false" data-clip="' + side + '">' + side.charAt(0).toUpperCase() + side.slice(1) + '</button>';
     }).join('') + '<div class="sg-clip__panel" hidden><p class="ds-card__title">Device actions</p><p class="ds-muted sg-clip__side"></p></div></div>',
     height: 260,
     setup: function (stage) {
@@ -1209,7 +1209,7 @@
       '<div class="ds-progress sg-count-progress" id="sg-count-progress" style="--ds-progress:.6"><div class="ds-progress__track" role="progressbar" aria-label="Share counted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60"><div class="ds-progress__bar"></div></div><p class="ds-progress__label" id="sg-count-figure">60%</p><p class="ds-progress__detail">figure and bar land together</p></div>',
     height: 240,
     wide: true,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="count">Count up the tiles</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-count-twice>Press twice (again mid-count)</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-sg="count">Count up the tiles</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-count-twice>Press twice (again mid-count)</button></div>',
     setup: function (stage) {
       // The shown values are where the first count starts from.
       countTiles(stage, { instant: true });
@@ -1333,7 +1333,7 @@
       '<ul class="ds-kv-list sg-data-list" id="sg-data-list">' + dataHtml() + '</ul>',
     height: 440,
     wide: true,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-sg="data-add">' + icon('plus', 16) + 'Add</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-remove">Remove</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-shuffle">Shuffle</button><button class="ds-btn ds-btn--sm" type="button" data-sg="data-sort">Sort by load</button></div>' +
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-sg="data-add">' + icon('plus', 16) + 'Add</button><button class="ds-btn ds-sm" type="button" data-sg="data-remove">Remove</button><button class="ds-btn ds-sm" type="button" data-sg="data-shuffle">Shuffle</button><button class="ds-btn ds-sm" type="button" data-sg="data-sort">Sort by load</button></div>' +
       '<div class="sg-row">' + switchHtml('sg-data-live', 'Live data (every 700ms)') + '</div>' +
       '<div class="ds-field sg-data-filter"><label class="ds-field__label" for="sg-data-filter">Filter</label><input class="ds-input" id="sg-data-filter" type="search" autocomplete="off" placeholder="Device name"></div>',
     setup: function (stage, sg) {
@@ -1431,7 +1431,7 @@
     note: '<code>DS.dom.followEnd()</code>: while the log is at its end, new lines keep it there (a ResizeObserver, nothing polls). Scroll up and it lets go: the "Latest" pill shows (a <code>.ds-presence</code> wrapper in <code>.ds-jump</code>, the log\'s last child: sticky above its bottom edge, taking no room), and a click on it goes back to the end, smoothly within one view height, else at once. Replay adds three lines.',
     shows: ['DS.dom.followEnd', '.ds-jump', '.ds-presence', '--ds-dur-fast', '--ds-ease-spatial'],
     html: '<div class="sg-log-demo"><div class="sg-log" id="sg-lab-log" tabindex="0" aria-label="Import log">' +
-      '<div class="ds-jump"><div class="ds-presence" id="sg-lab-log-pill" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></div></div></div></div>',
+      '<div class="ds-jump"><div class="ds-presence" id="sg-lab-log-pill" hidden><button class="ds-btn ds-btn--tonal ds-sm" type="button">' + icon('arrowDown', 16) + 'Latest</button></div></div></div></div>',
     height: 200,
     setup: function (stage) {
       logAppend(stage, 8);
@@ -1543,7 +1543,7 @@
   /* ── Controls: press on every action type ────────────────────────── */
 
   var ACTIONS = [
-    '<button class="ds-btn ds-btn--primary" type="button">Primary</button>',
+    '<button class="ds-btn ds-btn--filled" type="button">Primary</button>',
     '<button class="ds-btn ds-btn--tonal" type="button">Tonal</button>',
     '<button class="ds-btn" type="button">Outlined</button>',
     '<button class="ds-btn ds-btn--text" type="button">Text</button>',
@@ -1588,7 +1588,7 @@
     title: 'Focus snap',
     note: 'Keyboard focus: the ring is solid from the first frame, one ring width further out, then its offset snaps in over <code>--ds-dur-fast</code> (a transition of outline-offset, decelerating); colour and width never animate. Replay walks the focus along the row as Tab would; press Tab yourself to see it.',
     shows: ['--ds-focus-outline', '--ds-focus-offset', '--ds-focus-width', '--ds-dur-fast', '--ds-ease-out'],
-    html: '<div class="sg-row sg-focus-row"><button class="ds-btn ds-btn--primary" type="button">Save</button><button class="ds-btn" type="button">Export</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Settings">' + icon('settings', 20) + '</button>' +
+    html: '<div class="sg-row sg-focus-row"><button class="ds-btn ds-btn--filled" type="button">Save</button><button class="ds-btn" type="button">Export</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Settings">' + icon('settings', 20) + '</button>' +
       '<label class="ds-chip"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body">' + icon('check', 18, 'ds-chip__check') + '<span>Active</span></span></label><input class="ds-input sg-focus-input" aria-label="Search" placeholder="Search"></div>',
     play: function (stage, sg) {
       var stops = $$('button, input', stage);
@@ -1658,7 +1658,7 @@
     title: 'Busy and success',
     note: '<code>DS.motion.busy()</code> on two saves and a retry. The fast one (150ms) answers before the loader delay: nothing changes but the success face. The slow one (1200ms) shows its spinner after <code>--ds-delay-loader</code>, keeps it at least <code>--ds-hold-loader</code>, then the label and spinner crossfade to the success face, whose check draws itself, for <code>--ds-hold-success</code>; its new label (<code>DS.motion.setLabel()</code>, set as the run starts) shows once it is back at rest. The retry has no success face, so it goes straight back to its label. The width never changes: the faces share one cell. While a button works or shows its success, <code>DS.motion.guard()</code> blocks every click, Enter and Space on it (the read-out counts them).',
     shows: ['DS.motion.busy', 'DS.motion.guard', 'DS.motion.setLabel', 'ds-draw', 'ds-spinner-arc', '--ds-delay-loader', '--ds-hold-loader', '--ds-hold-success', '--ds-dur-fast', '--ds-dur-medium'],
-    html: '<div class="sg-row"><button class="ds-btn ds-btn--primary" type="button" data-busy="150">' + facesHtml('Save (150ms)', 'Saving', 'Saved') + '</button>' +
+    html: '<div class="sg-row"><button class="ds-btn ds-btn--filled" type="button" data-busy="150">' + facesHtml('Save (150ms)', 'Saving', 'Saved') + '</button>' +
       '<button class="ds-btn" type="button" data-busy="1200" data-busy-next="Save again (1200ms)">' + facesHtml('Save (1200ms)', 'Saving', 'Saved') + '</button>' +
       '<button class="ds-btn ds-btn--text" type="button" data-busy="1200"><span class="ds-btn__faces"><span class="ds-btn__face">Retry (1200ms)</span>' +
       '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Retrying</span></span></button></div>',
@@ -2096,7 +2096,7 @@
 
   function trackHtml(names) {
     return names.map(function (name, index) {
-      return '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="' + (index === trackLast) + '" tabindex="' + (index === trackLast ? 0 : -1) + '">' + name + '</button>';
+      return '<button class="ds-btn ds-sm" type="button" aria-pressed="' + (index === trackLast) + '" tabindex="' + (index === trackLast ? 0 : -1) + '">' + name + '</button>';
     }).join('');
   }
 
@@ -2164,7 +2164,7 @@
     after: readoutHtml('sg-track-move', 'Press an item, or hop and jump.'),
     height: 120,
     wide: true,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-hop">Hop to the neighbour</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-jump">Jump across</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-interrupt">Interrupt (two targets 80ms apart)</button><button class="ds-btn ds-btn--sm ds-btn--text" type="button" data-sg="track-morph">Re-render (morphHtml)</button><button class="ds-btn ds-btn--sm ds-btn--quiet" type="button" data-sg="track-clear" aria-pressed="false">No active item</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-hop">Hop to the neighbour</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-jump">Jump across</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-interrupt">Interrupt (two targets 80ms apart)</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-morph">Re-render (morphHtml)</button><button class="ds-btn ds-sm ds-btn--quiet" type="button" data-sg="track-clear" aria-pressed="false">No active item</button></div>',
     setup: function (stage, sg) {
       var track = $('#sg-track', stage);
       sg.indicator(track, { active: '[aria-pressed="true"]', className: 'sg-track__indicator' });
@@ -2221,7 +2221,7 @@
     shows: ['DS.motion.transition', 'DS.motion.enter', 'ds-shift-in', 'ds-shift-out', '--ds-dur-long', '--ds-dur-slow', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
     html: '<p class="ds-muted sg-drawer-state" id="sg-drawer-state">The drawer is on the left of this page.</p>',
     height: 120,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-drawer-toggle>Hide or show the drawer</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-drawer-toggle>Hide or show the drawer</button></div>',
     setup: function (stage) {
       $('[data-drawer-toggle]', stage.parentNode).addEventListener('click', function () { drawerTo(!drawerHidden()); });
       new MutationObserver(function () {
@@ -2419,7 +2419,7 @@
     shows: ['--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out', 'DS.indicator.createIndicator'],
     html: '<p class="ds-muted" id="sg-rail-state">The drawer shows its labels.</p>',
     height: 120,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-rail-toggle>Rail or full drawer</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-rail-toggle>Rail or full drawer</button></div>',
     setup: function (stage, sg) {
       $('[data-rail-toggle]', stage.parentNode).addEventListener('click', function () { railTo(!railOn(), sg); });
       new MutationObserver(function () {
@@ -2520,7 +2520,7 @@
   function dialogHtml(id, native, title, text, action, extra) {
     var labels = ' aria-labelledby="' + id + '-title" aria-describedby="' + id + '-text"';
     var box = '<h2 class="ds-dialog__title" id="' + id + '-title">' + title + '</h2><p class="ds-dialog__text" id="' + id + '-text">' + text + '</p>' +
-      '<div class="ds-dialog__actions">' + (extra || '') + '<button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button><button class="ds-btn ds-btn--primary" type="button" data-close>' + action + '</button></div>';
+      '<div class="ds-dialog__actions">' + (extra || '') + '<button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button><button class="ds-btn ds-btn--filled" type="button" data-close>' + action + '</button></div>';
     return native
       ? '<dialog class="ds-dialog" id="' + id + '" role="alertdialog"' + labels + '><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box">' + box + '</div></dialog>'
       : '<div class="ds-dialog" id="' + id + '" hidden><div class="ds-dialog__backdrop" data-close></div><div class="ds-dialog__box" role="alertdialog" aria-modal="true"' + labels + '>' + box + '</div></div>';
@@ -2532,7 +2532,7 @@
       '<div class="ds-sheet__backdrop" data-close></div><section class="ds-sheet__panel">' +
       '<div class="ds-sheet__head"><h2 class="ds-sheet__title" id="' + id + '-title">LAPTOP-0042</h2><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>' + icon('close', 20) + '</button></div>' +
       '<div class="ds-sheet__body" tabindex="0"><dl class="ds-facts"><div><dt>Owner</dt><dd>Ada Lovelace</dd></div><div><dt>Location</dt><dd>Building A, 1st floor</dd></div><div><dt>Model</dt><dd>Latitude 7440</dd></div></dl>' +
-      '<div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="button" data-close>Save</button><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div></section></' + tag + '>';
+      '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="button" data-close>Save</button><button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button></div></div></section></' + tag + '>';
   }
 
   function isOpen(el) { return el.getAttribute('data-state') === 'open'; }
@@ -2693,7 +2693,7 @@
         '<h2 class="ds-dialog__title" id="sg-lab-work-title">Delete 3 devices?</h2><div class="ds-dialog__body"><p class="ds-dialog__text" id="sg-lab-work-text">They disappear from every list. The dialog waits while it works.</p>' +
         '<label class="ds-check"><input type="checkbox" data-work-fail> Let the request fail</label></div>' +
         '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-close data-work-cancel autofocus>Cancel</button>' +
-        '<button class="ds-btn ds-btn--primary" type="button" data-work-ok>' + facesHtml('Delete devices', 'Deleting', 'Deleted') + '</button></div></div></dialog>');
+        '<button class="ds-btn ds-btn--filled" type="button" data-work-ok>' + facesHtml('Delete devices', 'Deleting', 'Deleted') + '</button></div></div></dialog>');
       var opener = $('[data-overlay-open]', stage);
       var top = $('#sg-work-top', stage.parentNode);
       opener.addEventListener('click', function () { layer(work.el, true, opener); });
@@ -3111,7 +3111,7 @@
 
   var SAVEBAR = '<div class="ds-savebar"><div class="ds-savebar__bar ds-presence" id="savebar-bar" role="region" aria-label="Unsaved changes" hidden>' +
     '<p class="ds-savebar__text">1 unsaved change</p><div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button" id="discard">Discard</button>' +
-    '<button class="ds-btn ds-btn--primary" type="button" id="save">Save</button></div></div></div>';
+    '<button class="ds-btn ds-btn--filled" type="button" id="save">Save</button></div></div></div>';
 
   /* Shows or hides the small app's bar; resolves once its motion is quiet. */
   function savebarTo(on, sg) {
@@ -3573,7 +3573,7 @@
   var alertCount = 0;
 
   function alertHtml(text) {
-    return '<div class="ds-alert ds-alert--success">' + icon('checkCircle', 20) + '<span class="ds-alert__text">' + text + '</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-alert-dismiss>Dismiss</button></div>';
+    return '<div class="ds-alert ds-alert--success">' + icon('checkCircle', 20) + '<span class="ds-alert__text">' + text + '</span><button class="ds-btn ds-btn--text ds-sm" type="button" data-alert-dismiss>Dismiss</button></div>';
   }
 
   function alertInsert(stage) {
@@ -3599,7 +3599,7 @@
     html: '<div class="sg-alerts">' + alertHtml('The nightly sync runs at 02:00.') + '</div>' +
       '<details class="ds-errors ds-collapsible"><summary>' + icon('alertCircle', 16) + '2 rows were skipped' + icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "XPS 13 9999"</li><li>Row 9: duplicate serial number</li></ul></details>',
     height: 340,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-alert-insert>' + icon('plus', 16) + 'Insert an alert</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-alert-insert>' + icon('plus', 16) + 'Insert an alert</button></div>',
     setup: function (stage) {
       stage.addEventListener('click', function (event) {
         var dismiss = event.target.closest('[data-alert-dismiss]');
@@ -3742,7 +3742,7 @@
     after: readoutHtml('sg-views-at', 'Pick a navigation.'),
     height: 380,
     wide: true,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-view="fade-through">Fade-through</button><button class="ds-btn ds-btn--sm" type="button" data-view="back">' + icon('arrowLeft', 16) + 'Back</button><button class="ds-btn ds-btn--sm" type="button" data-view="forward">Forward' + icon('arrowRight', 16) + '</button><button class="ds-btn ds-btn--sm" type="button" data-view="container">Card into its detail</button></div>' +
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-view="fade-through">Fade-through</button><button class="ds-btn ds-sm" type="button" data-view="back">' + icon('arrowLeft', 16) + 'Back</button><button class="ds-btn ds-sm" type="button" data-view="forward">Forward' + icon('arrowRight', 16) + '</button><button class="ds-btn ds-sm" type="button" data-view="container">Card into its detail</button></div>' +
       '<div class="sg-row">' + switchHtml('sg-views-fallback', 'Without View Transitions') + '</div>',
     setup: function (stage) {
       views.ready = openFrame(stage, appFrameHtml(false, viewPage(0)));
@@ -3802,7 +3802,7 @@
     shows: ['.ds-vt-view', 'DS.motion.transition', '.ds-enter--swap', 'ds-shift-in', 'ds-shift-out', '--ds-dur-long', '--ds-ease-spatial', '--ds-distance-xl'],
     html: frameHtml('', 'A wizard without the app frame'),
     height: 220,
-    controls: '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-wizard="back">' + icon('arrowLeft', 16) + 'Back</button><button class="ds-btn ds-btn--sm" type="button" data-wizard="forward">Next' + icon('arrowRight', 16) + '</button></div>',
+    controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-wizard="back">' + icon('arrowLeft', 16) + 'Back</button><button class="ds-btn ds-sm" type="button" data-wizard="forward">Next' + icon('arrowRight', 16) + '</button></div>',
     setup: function (stage) {
       wizard.ready = openFrame(stage, '<main class="ds-vt-view sg-wizard" id="wizard">' + wizardStep(0) + '</main>');
       stage.parentNode.addEventListener('click', function (event) {

@@ -177,7 +177,7 @@ describe('generated files of the repository', () => {
   it('are up to date (npm run build writes them, --check compares them)', () => {
     assert.deepEqual(diffGenerated(), []);
     assert.deepEqual([...generatedFiles().keys()], ['src/index.css', 'docs/components.md', 'styleguide/demos.js', 'styleguide/lab-components.js', 'docs/theming.md',
-      'docs/motion.md', 'docs/install.md', 'src/types/ds.d.ts', 'src/js/ripple.js', 'README.md', 'themes/example.css', 'styleguide/registry.js']);
+      'docs/motion.md', 'docs/install.md', 'src/types/ds.d.ts', 'src/js/ripple.js', 'README.md', 'themes/example.css', 'styleguide/registry.js', 'styleguide/theme-generator.js']);
   });
 
   it('src/index.css: the layer statement, the sublayers and the imports in meta.json "order"', () => {
@@ -204,6 +204,10 @@ describe('generated files of the repository', () => {
       assert.ok(found >= at, `${component.md} in its place`);
       at = found + part.length;
     }
+  });
+
+  it('themes/example.css: a hook documented as unset is written so, with no fallback of its stylesheet', () => {
+    assert.match(read('themes/example.css'), /--ds-btn-height-exact: \(unset\);/);
   });
 
   it('styleguide/lab-components.js: every <name>.lab.js after SG_LAB.add(), loaded by the Motion Lab between lab.js and styleguide.js', () => {
@@ -239,12 +243,28 @@ describe('generated files of the repository', () => {
     for (const spec of context.SG.list()) {
       const meta = list.find((entry) => entry.name === spec.name).meta;
       assert.equal(spec.group, meta.group, `${spec.name}: the demo's group is meta.json's`);
-      assert.ok(spec.title && spec.need && typeof spec.render === 'function', `${spec.name}: title, need and render`);
+      assert.ok(spec.title && typeof spec.render === 'function', `${spec.name}: title and render`);
+      assert.equal(spec.need, meta.need, `${spec.name}: the demo's need is meta.json's`);
     }
     // A demo file is a classic script: its top-level names stay inside its own function.
     assert.equal(context.DAYS, undefined);
-    assert.match(read('styleguide/index.html'), /<script src="sg-core\.js"><\/script>\n<script src="registry\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="shell\.js"><\/script>/);
-    assert.match(read('styleguide/legacy.html'), /<script src="sg-core\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
+    assert.match(read('styleguide/index.html'), /<script src="sg-core\.js"><\/script>\n<script src="registry\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="theme-generator\.js"><\/script>\n<script src="shell\.js"><\/script>/);
+    assert.match(read('styleguide/legacy.html'), /<script src="sg-core\.js"><\/script>\n<script src="registry\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
+  });
+
+  it('styleguide/theme-generator.js: tools/theme.mjs as a classic script, the same themes from the same options', async () => {
+    const { generateTheme } = await import('../scripts/tools/theme.mjs');
+    const context = {};
+    context.globalThis = context;
+    vm.runInNewContext(read('styleguide/theme-generator.js'), context);
+    const generator = context.SG_THEME_GENERATOR;
+    assert.equal(typeof generator.generateTheme, 'function');
+    assert.doesNotMatch(read('styleguide/theme-generator.js'), /import\.meta|^export |^import /m);
+    for (const options of [{ seed: '#0b57d0' }, { seed: '#2f6b3a', scheme: 'vibrant', contrast: 'high', name: 'probe' }]) {
+      assert.equal(generator.generateTheme(options).css, generateTheme(options).css, options.seed);
+    }
+    assert.match(read('styleguide/shell.js'), /var generator = window\.SG_THEME_GENERATOR;/);
+    assert.doesNotMatch(read('styleguide/shell.js'), /import\(|data-sg-generator/, 'no module import and no fallback from disk');
   });
 
   it('styleguide/registry.js: every component of meta.json, the tokens of tokens.css and the 2.x need rows', () => {

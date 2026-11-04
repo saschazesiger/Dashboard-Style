@@ -3,6 +3,9 @@
   "group": "data",
   "order": 180,
   "docsOrder": 170,
+  "need": "Compare records in columns: sort, select in bulk, act per row",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-col--secondary",
     "ds-col--text",

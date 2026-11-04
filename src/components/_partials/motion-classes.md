@@ -22,7 +22,7 @@ hover, a "Latest" button whose room stays) takes `.ds-presence--keep` and the pa
 and keeps its box, in every engine.
 
 ```html
-<span class="ds-presence ds-presence--keep" data-ds-shown><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">Latest</button></span>
+<span class="ds-presence ds-presence--keep" data-ds-shown><button class="ds-btn ds-btn--tonal ds-sm" type="button">Latest</button></span>
 ```
 
 A `[popover]` is centred by the browser's `margin: auto`; inside a container that spaces its children with margins
@@ -35,7 +35,7 @@ wrapper around a "Latest" button, toggled with `hidden`); a click on it, or `sti
 
 ```html
 <div class="ex-log" id="log" tabindex="0" aria-label="Import log">...</div>
-<span class="ds-presence" id="latest" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">[icon arrowDown 16] Latest</button></span>
+<span class="ds-presence" id="latest" hidden><button class="ds-btn ds-btn--tonal ds-sm" type="button">[icon arrowDown 16] Latest</button></span>
 ```
 
 ```js

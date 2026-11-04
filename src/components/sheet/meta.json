@@ -3,6 +3,9 @@
   "group": "overlays",
   "order": 300,
   "docsOrder": 260,
+  "need": "Show details or a form beside the page, in a panel from the side",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-sheet",
     "ds-sheet--closing",

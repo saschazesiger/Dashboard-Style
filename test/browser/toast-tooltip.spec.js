@@ -1298,7 +1298,7 @@ test.describe('snackbars 2.0', () => {
         order: [...button.parentNode.children].map((el) => (el.tagName === 'svg' ? 'svg' : el.classList[el.classList.length - 1])),
       };
     });
-    expect(look).toEqual({ classes: 'ds-btn ds-btn--text ds-btn--sm ds-toast__action', type: 'button', color: true, order: ['svg', 'ds-toast__text', 'ds-toast__action', 'ds-toast__close'] });
+    expect(look).toEqual({ classes: 'ds-btn ds-btn--text ds-sm ds-toast__action', type: 'button', color: true, order: ['svg', 'ds-toast__text', 'ds-toast__action', 'ds-toast__close'] });
     expect(await shown(page), 'stays past its timeout').toEqual(['3 devices deleted.']);
     await page.locator('#toasts .ds-toast__action').dblclick();
     await page.evaluate(() => window.__undo.closed);

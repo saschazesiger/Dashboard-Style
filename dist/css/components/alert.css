@@ -7,7 +7,7 @@
  *   <div class="ds-alert ds-alert--warning" role="status">
  *     <svg ...>(alert, 20)</svg>
  *     <span class="ds-alert__text">The certificate expires in 5 days.</span>
- *     <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button>
+ *     <button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button>
  *   </div>
  *
  *   (none: neutral info)  --success  --warning  --error
@@ -20,7 +20,7 @@
  *   <div class="ds-alert ds-alert--warning">
  *     <svg ...>(alert, 20)</svg>
  *     <div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div>
- *     <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>
+ *     <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button></div>
  *   </div>
  *
  * With .ds-alert__actions the alert wraps: the text takes at least

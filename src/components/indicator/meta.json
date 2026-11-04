@@ -3,6 +3,9 @@
   "group": "motion",
   "order": 60,
   "docsOrder": null,
+  "need": "Slide one pill between the items of a tab bar or segmented switch",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-has-indicator",
     "ds-indicator",

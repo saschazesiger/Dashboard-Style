@@ -3,6 +3,9 @@
   "group": "layout",
   "order": 80,
   "docsOrder": 60,
+  "need": "Group related content in a block, or let a whole block open or pick something",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-card",
     "ds-card--elevated",

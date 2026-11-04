@@ -3,6 +3,9 @@
   "group": "navigation",
   "order": 360,
   "docsOrder": 30,
+  "need": "Switch between the sections of one page or record",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-tabs",
     "ds-tabs--fill",

@@ -3,6 +3,9 @@
   "group": "content",
   "order": 140,
   "docsOrder": 120,
+  "need": "Show rendered rich text and blocks of code",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-code-block",
     "ds-code-block--wrap",

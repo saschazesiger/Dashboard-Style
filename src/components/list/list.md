@@ -40,7 +40,7 @@ needs columns, sorting or bulk selection is a [Table](#table).
       <span class="ds-list__meta">Notebook 14 · Building A</span>
     </span>
     <span class="ds-status ds-status--warning">[icon alert 16]<span>Warranty ends</span></span>
-    <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for LAPTOP-0042">[icon moreVertical 18]</button></span>
+    <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="More for LAPTOP-0042">[icon moreVertical 18]</button></span>
     [icon chevronRight 20 .ds-list__chevron]
   </li>
 </ul>

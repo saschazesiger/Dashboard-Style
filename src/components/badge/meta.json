@@ -3,6 +3,9 @@
   "group": "feedback",
   "order": 230,
   "docsOrder": 150,
+  "need": "Show a count on a button, chip, tab or drawer item",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-badge",
     "ds-badge--error",

@@ -4,9 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Styleguide · Dashboard-Style</title>
-<!-- Works from disk (file://): plain links to dist/, classic scripts. The live theme generator (#/theme)
-     imports dist/tools/theme.mjs as an ES module, which Chromium and Safari load only over http
-     (Firefox also from disk); there it falls back to the shipped presets. -->
+<!-- Works from disk (file://): plain links to dist/, classic scripts, the theme generator included. -->
 <link rel="stylesheet" href="../dist/fonts/fonts.css">
 <link rel="stylesheet" href="../dist/ds.css">
 <!-- The theme preset (a light-dark() theme of dist/themes/presets/), on two links so a new one
@@ -79,6 +77,7 @@
 <script src="sg-core.js"></script>
 <script src="registry.js"></script>
 <script src="demos.js"></script>
+<script src="theme-generator.js"></script>
 <script src="shell.js"></script>
 <div id="sg-rendered" hidden></div>
 </body>

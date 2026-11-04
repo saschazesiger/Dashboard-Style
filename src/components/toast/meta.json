@@ -3,11 +3,15 @@
   "group": "overlays",
   "order": 320,
   "docsOrder": 270,
+  "need": "Confirm or report something briefly in a snackbar, with an optional action",
+  "tier": 1,
+  "status": "stable",
   "classes": [
     "ds-toast",
     "ds-toast--error",
     "ds-toast--info",
     "ds-toast--shown",
+    "ds-toast__action",
     "ds-toast__close",
     "ds-toast__text",
     "ds-toasts"

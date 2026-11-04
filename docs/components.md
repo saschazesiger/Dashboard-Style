@@ -410,7 +410,7 @@ group.addEventListener('click', (event) => {
       <a class="ds-drawer__item" href="/tickets" aria-current="page" data-tip="Open tickets">[icon ticket 20]<span class="ds-drawer__label">Open</span><span class="ds-drawer__count"><span class="ds-sr">, </span>3</span></a>
       <div class="ds-drawer__row">
         <a class="ds-drawer__item" href="/tickets/waiting" data-tip="Waiting">[icon clock 20]<span class="ds-drawer__label">Waiting</span><span class="ds-drawer__count"><span class="ds-sr">, </span>2</span></a>
-        <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm ds-drawer__action ds-hover-actions" type="button" aria-label="Options for Waiting" data-tip="Options">[icon moreVertical 18]</button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-drawer__action ds-hover-actions" type="button" aria-label="Options for Waiting" data-tip="Options">[icon moreVertical 18]</button>
       </div>
     </details>
   </div>
@@ -517,7 +517,7 @@ a status goes next to the name as a word. Forced colours keep its edge.
 ```html
 <div class="ds-panel">
   <div class="ds-banner">
-    <div class="ds-alert ds-alert--warning" role="status">[icon wifiOff 20]<span class="ds-alert__text">You are offline. Changes are saved when the connection is back.</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Retry</button></div>
+    <div class="ds-alert ds-alert--warning" role="status">[icon wifiOff 20]<span class="ds-alert__text">You are offline. Changes are saved when the connection is back.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>
   </div>
   <main class="ds-view" id="main" tabindex="-1"> ... </main>
 </div>
@@ -580,7 +580,7 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
 
 ```html
 <header class="ds-page-head">
-  <a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="/devices">[icon arrowLeft 18]<span class="ds-sr">Back to </span>Devices</a>
+  <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="/devices">[icon arrowLeft 18]<span class="ds-sr">Back to </span>Devices</a>
   <div class="ds-page-head__row">
     <div class="ds-page-head__text">
       <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1>
@@ -589,7 +589,7 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
     </div>
     <div class="ds-page-head__actions">
       <button class="ds-btn" type="button">Retire</button>
-      <button class="ds-btn ds-btn--primary" type="button">Edit</button>
+      <button class="ds-btn ds-btn--filled" type="button">Edit</button>
     </div>
   </div>
 </header>
@@ -643,7 +643,7 @@ leave a stale body visible under the state.
   <div class="ds-auth__alert"><div class="ds-alert ds-alert--error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">The password is wrong.</span></div></div>
   <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="auth-title">
     <h1 class="ds-card__title" id="auth-title">Sign in</h1>
-    <form class="ds-form"> ...fields... <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Sign in</button></div></form>
+    <form class="ds-form"> ...fields... <div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Sign in</button></div></form>
   </section>
 </body>
 ```
@@ -925,7 +925,7 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 <section class="ds-card">
   <div class="ds-card__row">
     <h2 class="ds-card__title">Sync</h2>
-    <button class="ds-btn ds-btn--sm" type="button">Run now</button>
+    <button class="ds-btn ds-sm" type="button">Run now</button>
   </div>
   <p class="ds-muted">Runs every night at 02:00.</p>
   <h3 class="ds-card__subtitle">Sources</h3>
@@ -965,7 +965,7 @@ A whole card that opens something (1.4):
 <div class="ds-card ds-card--interactive">                          <!-- with other controls inside -->
   <div class="ds-card__row">
     <h2 class="ds-card__title"><a class="ds-card__action" href="/devices/42">Printer on floor 2</a></h2>
-    <button class="ds-btn ds-btn--sm" type="button">Restart</button>
+    <button class="ds-btn ds-sm" type="button">Restart</button>
   </div>
   <p class="ds-muted">Last seen today, 09:12</p>
 </div>
@@ -1163,7 +1163,7 @@ needs columns, sorting or bulk selection is a [Table](#table).
       <span class="ds-list__meta">Notebook 14 · Building A</span>
     </span>
     <span class="ds-status ds-status--warning">[icon alert 16]<span>Warranty ends</span></span>
-    <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="More for LAPTOP-0042">[icon moreVertical 18]</button></span>
+    <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="More for LAPTOP-0042">[icon moreVertical 18]</button></span>
     [icon chevronRight 20 .ds-list__chevron]
   </li>
 </ul>
@@ -1243,7 +1243,7 @@ The history of a record (2.0): entries on a rail, grouped by day.
     </div>
     <p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p>
     <p class="ds-timeline__text">Issued to Ada Lovelace.</p>
-    <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
+    <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
   </li>
   <li class="ds-timeline__item ds-timeline__item--muted" data-ds-key="e2">
     <div class="ds-timeline__head"><p class="ds-timeline__title">Return planned</p></div>
@@ -1454,9 +1454,9 @@ A count on a button, chip, tab or drawer item:
 <div class="ds-alert" role="status">[icon info 20]<span class="ds-alert__text">Sync runs at night.</span></div>
 <div class="ds-alert ds-alert--success">[icon checkCircle 20]<span class="ds-alert__text">All devices synced.</span></div>
 <div class="ds-alert ds-alert--warning">[icon alert 20]<span class="ds-alert__text">The certificate expires in 5 days.</span>
-  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button></div>
+  <button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button></div>
 <div class="ds-alert ds-alert--error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">Could not load devices.</span>
-  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Try again</button></div>
+  <button class="ds-btn ds-btn--text ds-sm" type="button">Try again</button></div>
 
 <details class="ds-errors ds-collapsible">
   <summary>[icon alertCircle 16]2 errors[icon chevronDown 16 ds-errors__chevron]</summary>
@@ -1471,7 +1471,7 @@ A title, more paragraphs and actions; findings in a card (`.ds-alert--plain`):
 ```html
 <div class="ds-alert ds-alert--warning">[icon alert 20]
   <div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div>
-  <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-btn--sm" type="button">Remind me</button></div>
+  <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-sm" type="button">Remind me</button></div>
 </div>
 
 <section class="ds-card">
@@ -1904,7 +1904,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   <button class="ds-btn ds-btn--text ds-add-row" type="button">[icon plus 16] Add a row</button>
 
   <div class="ds-form-actions">
-    <button class="ds-btn ds-btn--primary" type="submit">Save</button>
+    <button class="ds-btn ds-btn--filled" type="submit">Save</button>
     <button class="ds-btn ds-btn--text" type="button">Cancel</button>
     <p class="ds-meta">Last saved today, 09:12</p>
   </div>
@@ -2031,7 +2031,7 @@ document.addEventListener('keydown', (event) => {
   <label class="ds-field__label" for="pw">Password</label>
   <div class="ds-input-group">
     <input class="ds-input" id="pw" type="password" autocomplete="current-password">
-    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="pw">
+    <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="pw">
       <span class="ds-icon-swap"><span class="ds-icon-swap__a">[icon eye 18]</span><span class="ds-icon-swap__b">[icon eyeOff 18]</span></span></button>
   </div>
 </div>
@@ -2110,7 +2110,7 @@ group.addEventListener('change', () => { const on = children.filter((child) => c
     <span class="ds-field__label" id="serial-l">Serial number</span>
     <span class="ds-field__value">SN-0042</span>
   </div>
-  <div class="ds-form-actions"><button class="ds-btn ds-btn--primary" type="submit">Save</button></div>
+  <div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Save</button></div>
 </form>
 ```
 
@@ -2182,7 +2182,7 @@ the handle in `Highlight`.
 
 <form class="ds-composer">
   <textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message" placeholder="Write a message"></textarea>
-  <button class="ds-btn ds-btn--primary ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">[icon send 20]</button>
+  <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send" data-tip="Send">[icon send 20]</button>
 </form>
 ```
 
@@ -2198,7 +2198,7 @@ the handle in `Highlight`.
 
 ```html
 <div class="ds-form-actions ds-form-actions--sticky">
-  <button class="ds-btn ds-btn--primary" type="submit">Save</button>
+  <button class="ds-btn ds-btn--filled" type="submit">Save</button>
   <button class="ds-btn ds-btn--text" type="button">Cancel</button>
 </div>
 ```
@@ -2304,7 +2304,7 @@ a suggestion (an action chip):
   <button class="ds-chip ds-chip--input" type="button" data-tip="Building C, second floor">
     <span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>Building C, second floor</span>[icon close 18 ds-chip__trailing]</span></button>
   <button class="ds-chip" type="button"><span class="ds-chip__body">[icon user 18 ds-chip__icon]<span class="ds-chip__label">Only my devices</span></span></button>
-  <button class="ds-btn ds-btn--text ds-btn--sm" type="button">Clear filters</button>
+  <button class="ds-btn ds-btn--text ds-sm" type="button">Clear filters</button>
 </div>
 
 <div class="ds-chips ds-chips--wrap" role="group" aria-label="Suggestions">
@@ -2611,7 +2611,7 @@ carries no role.
     <p class="ds-dialog__text" id="del-text">They disappear from every list. This cannot be undone.</p>
     <div class="ds-dialog__actions">
       <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button">Delete devices</button>
+      <button class="ds-btn ds-btn--filled" type="button">Delete devices</button>
     </div>
   </div>
 </dialog>
@@ -2679,7 +2679,7 @@ directly in the body keeps its own width.
     <div class="ds-dialog__body"> ... a form or a list ... </div>
     <div class="ds-dialog__actions">
       <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button">Choose</button>
+      <button class="ds-btn ds-btn--filled" type="button">Choose</button>
     </div>
   </div>
 </dialog>
@@ -2875,7 +2875,7 @@ The head can hold a subtitle under the title, and the sheet a foot with its acti
 <div class="ds-sheet__foot">
   <p class="ds-meta">3 filters</p>
   <button class="ds-btn ds-btn--text" type="button">Reset</button>
-  <button class="ds-btn ds-btn--primary" type="button" data-close>Show 12 devices</button>
+  <button class="ds-btn ds-btn--filled" type="button" data-close>Show 12 devices</button>
 </div>
 ```
 
@@ -2949,7 +2949,7 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
 
 ```html
 <div class="ds-toast [ds-toast--error | ds-toast--info]">[icon checkCircle | alertCircle | info 20]<span class="ds-toast__text">Saved.</span>
-  <button class="ds-btn ds-btn--text ds-btn--sm ds-toast__action" type="button">Undo</button>
+  <button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button>
   <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">[icon close 20]</button></div>
 ```
 
@@ -3104,7 +3104,7 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
       <p class="ds-savebar__text">2 unsaved changes</p>
       <div class="ds-savebar__actions">
         <button class="ds-btn ds-btn--text" type="button">Discard</button>
-        <button class="ds-btn ds-btn--primary" type="button"><span class="ds-btn__faces"> ... </span></button>   <!-- the faces of Button -->
+        <button class="ds-btn ds-btn--filled" type="button"><span class="ds-btn__faces"> ... </span></button>   <!-- the faces of Button -->
       </div>
     </div>
   </div>
@@ -3547,7 +3547,7 @@ hand-built one:
 ```html
 <tr>
   <td>LAPTOP-0042</td>
-  <td class="ds-num"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" aria-label="Edit LAPTOP-0042">[icon pencil 18]</button></span></td>
+  <td class="ds-num"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Edit LAPTOP-0042">[icon pencil 18]</button></span></td>
 </tr>
 ```
 
@@ -3605,7 +3605,7 @@ hover, a "Latest" button whose room stays) takes `.ds-presence--keep` and the pa
 and keeps its box, in every engine.
 
 ```html
-<span class="ds-presence ds-presence--keep" data-ds-shown><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">Latest</button></span>
+<span class="ds-presence ds-presence--keep" data-ds-shown><button class="ds-btn ds-btn--tonal ds-sm" type="button">Latest</button></span>
 ```
 
 A `[popover]` is centred by the browser's `margin: auto`; inside a container that spaces its children with margins
@@ -3618,7 +3618,7 @@ wrapper around a "Latest" button, toggled with `hidden`); a click on it, or `sti
 
 ```html
 <div class="ex-log" id="log" tabindex="0" aria-label="Import log">...</div>
-<span class="ds-presence" id="latest" hidden><button class="ds-btn ds-btn--tonal ds-btn--sm" type="button">[icon arrowDown 16] Latest</button></span>
+<span class="ds-presence" id="latest" hidden><button class="ds-btn ds-btn--tonal ds-sm" type="button">[icon arrowDown 16] Latest</button></span>
 ```
 
 ```js

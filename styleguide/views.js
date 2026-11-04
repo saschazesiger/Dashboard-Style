@@ -116,8 +116,8 @@
     var next = (index + 1) % PAGES.length;
     return '<header class="ds-page-head"><h1 class="ds-page-head__title" tabindex="-1">' + p.title + '</h1>' +
       '<p class="ds-page-head__lead">' + p.lead + '</p></header>' +
-      '<div class="sg-row"><a class="ds-btn ds-btn--sm" data-vw-step="-1" href="' + hrefFor(prev, 'back') + '">' + icon('arrowLeft', 16) + ' ' + PAGES[prev].title + '</a>' +
-      '<a class="ds-btn ds-btn--sm" data-vw-step="1" href="' + hrefFor(next, 'forward') + '">' + PAGES[next].title + ' ' + icon('arrowRight', 16) + '</a></div>';
+      '<div class="sg-row"><a class="ds-btn ds-sm" data-vw-step="-1" href="' + hrefFor(prev, 'back') + '">' + icon('arrowLeft', 16) + ' ' + PAGES[prev].title + '</a>' +
+      '<a class="ds-btn ds-sm" data-vw-step="1" href="' + hrefFor(next, 'forward') + '">' + PAGES[next].title + ' ' + icon('arrowRight', 16) + '</a></div>';
   }
 
   function facts(d, refreshed) {
@@ -129,7 +129,7 @@
     return head(0) + '<div class="ds-grid-2">' + DEVICES.slice(0, 4).map(function (d, i) {
       return '<div class="ds-card ds-card--interactive" data-ds-key="card-' + i + '">' +
         '<div class="ds-card__row"><h2 class="ds-card__title"><a class="ds-card__action" href="#' + d.name + '" data-vw-detail="' + i + '">' + esc(d.name) + '</a></h2>' +
-        '<button class="ds-btn ds-btn--sm" type="button" data-vw-quick="' + i + '">Quick look</button></div>' +
+        '<button class="ds-btn ds-sm" type="button" data-vw-quick="' + i + '">Quick look</button></div>' +
         '<p class="ds-muted">' + esc(d.model) + ', ' + esc(d.owner) + '</p>' + status(d.status) + '</div>';
     }).join('') + '</div>';
   }
