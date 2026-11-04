@@ -1,5 +1,7 @@
 ## File upload
 
+A drop zone and a file field: files by drop, the file dialog or paste.
+
 ```html
 <label class="ds-dropzone">
   <input class="ds-dropzone__input" type="file" accept=".csv" multiple>
@@ -51,9 +53,30 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*', input: null }); 
 </ul>
 ```
 
+- **In one row** (`.ds-dropzone--inline`): the disc, the words and the hint at the end (under the words where the row
+  is too narrow), for a form where the full zone would take too much room.
+- **A file over a limit**: `aria-invalid="true"` on the input gives the zone a solid `--ds-error` edge and its hint the
+  error ink (`--ds-field-error-color`); say what is wrong in the hint, never with the colour alone.
+
+**Options** ([options.md](options.md)): classes on the zone, the field or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-dropzone--inline` | the zone | one row |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | a zone, a field or a group | the disc 32 to 64px (inline: 24 to 48px) and the title's type role; the file field 24 to 56px and its button 16 to 48px, never less than its own line |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the zone's block padding and gap 2px less per step; the file field and its button 4px less per step |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the zone's rest and pressed radius, its disc and the file button times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the theme or a container | the zone (inline too) and the file field at least `--ds-touch-target` (48px) high |
+| Tone | none | | the error edge follows `aria-invalid`, always with words |
+
+- **Keyboard and names**: the input takes the focus, so Tab reaches the zone and Enter or Space opens the file dialog;
+  its name comes from the label's text. A page's drop target adds no tab stop of its own: paste works with focus inside.
 - **Forced colours**: a dashed `ButtonText` edge (`Highlight` while dragged over), the file button in `ButtonFace` /
   `ButtonText` with a `ButtonText` border, a page's drop target outlined in `Highlight`; a disabled zone or file
   field is `GrayText`.
+- **Hooks**: `--ds-dropzone-border`, `--ds-dropzone-padding` (block padding, `--ds-space-6`), `--ds-dropzone-radius`
+  (`--ds-radius-card`), `--ds-file-button-height` (32px); the file field reads `--ds-input-height`, the hint of an
+  invalid zone `--ds-field-error-color` ([theming.md](theming.md#component-hooks)).
 
 **Motion:** the press and state layers of [Controls](motion.md#controls) in motion.md; the drop state is a
 `--ds-dur-fast` colour change.
@@ -84,5 +107,14 @@ DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dat
   dialog or sheet, else its `.ds-theme`.
 - **Forced colours**: the dragged row is outlined in `Highlight`.
 
+- **Options**: the grip is a `.ds-btn--icon`, so size, shape and touch reach it through the [Button](#button); density
+  leaves it alone, as every icon button. The row's look has no option of its own.
+
 **Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
+
+<!-- changelog -->
+- File field and drop zone on the options model (size, density, shape, touch, computed in `drag.css`); the file field is
+  40px at the default like every field (2.x: 42px).
+- New: `.ds-dropzone--inline`, the zone's error state through `aria-invalid` on its input, hooks
+  `--ds-dropzone-padding`, `--ds-dropzone-radius`, `--ds-file-button-height`.
 

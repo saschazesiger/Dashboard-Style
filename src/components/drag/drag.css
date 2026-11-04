@@ -45,7 +45,27 @@
  * (:has(input:disabled)). The list of chosen files is the page's (.ds-list
  * rows with a .ds-progress and a remove button, rendered through flip()).
  *
- * Hooks: --ds-dropzone-border (1px dashed --ds-outline).
+ * .ds-dropzone--inline: one row (the disc, the words, the hint at the end)
+ * for a form where the full zone would take too much room. A file over a
+ * limit: aria-invalid="true" on its input gives the zone the field's error
+ * edge, and its hint (say it there, in words) the error ink.
+ *
+ * Options (src/core/options.css, docs/options.md), on the zone or any
+ * ancestor; each is computed here, in the rule that uses it:
+ *   size      .ds-xs ... .ds-xl: the disc 8px per step, the title's type role
+ *             (--ds-size-font); the file field and its button 8px per step
+ *   density   .ds-density-*: the zone's block padding and gap 2px per step;
+ *             the file field and its button 4px per step
+ *   shape     .ds-shape-*: multiplies the zone's rest and pressed radius, the
+ *             disc's and the file button's (square at 0, as every action)
+ *   touch     .ds-touch: the inline zone and the file field at least
+ *             --ds-touch-target high; the grip is a button and takes it there
+ *   tone      none: the error edge follows aria-invalid, always with words
+ *
+ * Hooks: --ds-dropzone-border (1px dashed --ds-outline),
+ * --ds-dropzone-padding (block padding, --ds-space-6), --ds-dropzone-radius
+ * (--ds-radius-card), --ds-file-button-height (32px). The private --_h, --_box,
+ * --_half and --_radius are computed here: never set them.
  *
  * Forced colours: the dragged row and a drop target are outlined in
  * Highlight; the zone's dashed edge is ButtonText (Highlight while dragged
@@ -98,10 +118,17 @@
 
   /* ── The file field ───────────────────────────── */
 
+  /* The field's height (the formula of every field, form.css) and, inside
+     it, the button's: 4px off the field on each side at any step. */
   .ds-input[type="file"] {
+    --_box: max(var(--ds-target-min, 0px), var(--ds-space-6), calc(var(--ds-input-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    --_h: calc(var(--ds-file-button-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
+    --_half: calc(var(--_h) / 2);
+    --_radius: min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half));
     display: flex;
     align-items: center;
-    padding-block: var(--ds-space-1);
+    min-height: var(--_box);
+    padding-block: 0;
     padding-inline-start: var(--ds-space-1);
     color: var(--ds-text-2);
     cursor: pointer;
@@ -110,14 +137,15 @@
   /* A pseudo-element has no ::before of its own: its hover and press mix
      the state layer into its fill. */
   .ds-input[type="file"]::file-selector-button {
-    block-size: 32px;
+    /* Never less than its own line, on the steps that would cut it. */
+    block-size: max(var(--_h), 1lh);
     margin-inline-end: var(--ds-space-3);
     padding-inline: var(--ds-space-3);
     border: 0;
-    border-radius: min(var(--ds-radius-action), var(--ds-space-4));
+    border-radius: var(--_radius);
     background: var(--ds-accent);
     color: var(--ds-on-accent);
-    font: var(--ds-font-label);
+    font: var(--ds-size-font, var(--ds-font-label));
     cursor: pointer;
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
@@ -131,7 +159,7 @@
   }
 
   .ds-input[type="file"]:not(:disabled):active::file-selector-button {
-    border-radius: min(var(--ds-radius-action-pressed), var(--ds-radius-action), var(--ds-space-4));
+    border-radius: min(calc(var(--ds-radius-action-pressed) * var(--ds-shape, 1)), var(--_radius));
     background: color-mix(in srgb, var(--ds-on-accent) calc(var(--ds-state-pressed) * 100%), var(--ds-accent));
     transition:
       background-color var(--ds-dur-micro) var(--ds-ease-out),
@@ -151,14 +179,16 @@
   /* ── The drop zone ────────────────────────────── */
 
   .ds-dropzone {
+    --_radius: calc(var(--ds-dropzone-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
     position: relative;
     isolation: isolate;
     display: grid;
     justify-items: center;
-    gap: var(--ds-space-2);
-    padding: var(--ds-space-6) var(--ds-space-5);
+    gap: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px);
+    min-block-size: var(--ds-target-min, 0px);
+    padding: calc(var(--ds-dropzone-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px) var(--ds-space-5);
     border: var(--ds-dropzone-border, 1px dashed var(--ds-outline));
-    border-radius: var(--ds-radius-card);
+    border-radius: var(--_radius);
     background: var(--ds-surface);
     color: var(--ds-text);
     text-align: center;
@@ -199,7 +229,7 @@
 
   .ds-dropzone:active:not(:has(input:disabled)),
   .ds-dropzone.ds-pressed:not(:has(input:disabled)) {
-    border-radius: min(var(--ds-radius-card-pressed), var(--ds-radius-card));
+    border-radius: min(calc(var(--ds-radius-card-pressed) * var(--ds-shape, 1)), var(--_radius));
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       box-shadow var(--ds-dur-fast) var(--ds-ease-in-out),
@@ -235,18 +265,19 @@
   }
 
   .ds-dropzone__disc {
+    --_h: calc(48px + var(--ds-size-step, 0) * 8px);
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    width: var(--_h);
+    height: var(--_h);
+    border-radius: min(calc(var(--_h) / 2 * var(--ds-shape, 1)), calc(var(--_h) / 2));
     background: var(--ds-accent);
     color: var(--ds-on-accent);
   }
 
   .ds-dropzone__title {
     display: grid;
-    font: var(--ds-font-label);
+    font: var(--ds-size-font, var(--ds-font-label));
   }
 
   /* The two titles share one cell, so the zone never changes its size. */
@@ -287,6 +318,38 @@
   .ds-dropzone[data-ds-dragover] .ds-dropzone__over {
     opacity: 1;
     transition-duration: var(--ds-dur-fast);
+  }
+
+  /* One row: the disc, the words, and the hint at the end (under the words
+     where the row is too narrow). */
+  .ds-dropzone--inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--ds-space-1) var(--ds-space-3);
+    padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px) var(--ds-space-3);
+    text-align: start;
+  }
+
+  /* Never less than the icon it holds. */
+  .ds-dropzone--inline > .ds-dropzone__disc {
+    --_h: max(var(--ds-space-6), calc(32px + var(--ds-size-step, 0) * 8px));
+  }
+
+  .ds-dropzone--inline > .ds-dropzone__hint {
+    margin-inline-start: auto;
+  }
+
+  /* A file over a limit: the field's error edge, and the words in the hint
+     (never the colour alone). */
+  .ds-dropzone:has(.ds-dropzone__input[aria-invalid="true"]) {
+    border-color: var(--ds-error);
+    border-style: solid;
+  }
+
+  .ds-dropzone:has(.ds-dropzone__input[aria-invalid="true"]) .ds-dropzone__hint {
+    color: var(--ds-field-error-color, var(--ds-on-error-container));
   }
 
   .ds-dropzone:has(input:disabled) {
