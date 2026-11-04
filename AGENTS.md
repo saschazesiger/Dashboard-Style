@@ -30,7 +30,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `node scripts/tools/theme.mjs --seed <colour> [--scheme tonal] [--contrast high] --out <file>` | the theme generator: one seed (HCT, `tools/color.mjs`) to one `.ds-theme` file with every colour role as `light-dark()`, checked against every pair in both schemes (`docs/theme-generator.md`); `--presets` rewrites `themes/presets/`, `--presets --check` compares them (the unit tests do too) |
 | `node dist/tools/check-project.mjs --config ds-check.json` | the project rules of the block at the end of this file, run on a project (`docs/install.md`, "Check a project"); fixtures in `test/check-project.test.js` |
 | `npm ci` | once, before the build and the tests (installs the pinned devDependencies `@playwright/test` and `lightningcss`; dist/ and its tools need neither); add `npx playwright install --with-deps chromium firefox webkit` when the pinned browsers are not cached |
-| `npm run test:browser` | browser tests in Chromium, Firefox and WebKit (`test/browser/`), plus the `fallback` project (Chromium as an engine on the browser floor: progressive CSS stripped, `linear()` rejected by `el.animate()`, no View Transitions, popover or `moveBefore`) for the specs that import `base-test.js`; run it before every push. Outside the Playwright container (other fonts and rasteriser) run `DS_SHOTS=local npm run test:browser`: screenshots then compare against the gitignored `__screenshots-local__/`, generated from the parent commit (`test/browser/README.md`, "CI"). `DS_TEST_PORT` picks another port for a second run or a worktree |
+| `npm run test:browser` | browser tests in Chromium, Firefox and WebKit (`test/browser/`), plus the `fallback` project (Chromium as an engine on the browser floor: the progressive CSS stripped, no View Transitions or `moveBefore`) for the specs that import `base-test.js`; run it before every push. Outside the Playwright container (other fonts and rasteriser) run `DS_SHOTS=local npm run test:browser`: screenshots then compare against the gitignored `__screenshots-local__/`, generated from the parent commit (`test/browser/README.md`, "CI"). `DS_TEST_PORT` picks another port for a second run or a worktree |
 | `npm run test:browser:update` | rewrite screenshots and JSON timelines, then review the diff. The committed `__screenshots__/` set is only ever rewritten from the CI container (Actions → check → Run workflow → "update screenshots"); elsewhere update with `DS_SHOTS=local`, see `test/browser/README.md` |
 | open `styleguide/index.html` and `styleguide/motion.html` | the styleguide (every component, token and icon) and the Motion Lab (every curve, duration and choreography, replayable, with rapid toggles and reversals); both work from disk. "Load theme file ..." tries a theme; the speed select in the top bar (1×, 0.5×, 0.25×, 0.1×) or `?speed=0.1` slows every duration and delay tenfold |
 
@@ -40,6 +40,7 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 |---|---|
 | `src/core/tokens.css` | all tokens on `.ds-theme` in `@layer ds.tokens`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the `linear()` refinements at the end; `@property --ds-time-scale` at top level; the one non-custom property, `color-scheme` from `--ds-color-scheme` on `:where(.ds-theme)` (zero specificity) |
 | `src/core/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, `.ds-swap`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
+| `src/core/options.css` | the option classes (size, density, shape, tone, touch; `docs/options.md`), in `ds.utilities`: they set only custom properties, which components compute from in their own rules; their defaults are the "Options" block of `tokens.css` |
 | `src/core/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
 | `src/core/global.css` | the rules for every element inside `.ds-theme`, whatever components a page uses (border-box sizing, the forced-colours icon colour), in `ds.components` and inlined right before the first component, so every bundle and every set of single files carries them; a rule that no class or `data-ds-*` attribute keys belongs here (tested, with the proof that `ds.css` cascades as before) |
 | `src/components/<name>/` | one folder per component: `<name>.css`, `meta.json` (name, group, order = cascade order, docsOrder, classes, attributes, requires, context, hooks, keyframes, js, progressive, ripple; maintained by hand, checked against the stylesheet by the build; `scripts/gen-meta.mjs` shows how the first ones were derived), its section of `docs/components.md` (`<name>.md`) and, where split, its styleguide demo (`<name>.demo.js`, exports only, built into `styleguide/demos.js`); `_partials/` holds the parts of `docs/components.md` that belong to no component. The components (39: `alert`, `badge`, `button`, `card`, `chart`, `chip`, `combobox`, `dialog`, `disclosure`, `drag`, `empty`, `form`, `indicator`, `list`, `loader`, `loading`, `menu`, `page`, `pagination`, `progress`, `prose`, `ripple`, `savebar`, `scroller`, `sheet`, `shell`, `slider`, `spinner`, `status`, `steps`, `switch`, `table`, `tabs`, `tasks`, `tile`, `timeline`, `toast`, `tooltip`, `utilities`; the styleguide's `Components` tile counts them, tested); the header comment sketches markup, modifiers, hooks and "Progressive:" features |
@@ -50,11 +51,11 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
 | `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
 | `themes/presets/` | generated by `scripts/tools/theme.mjs --presets` (never by hand): `default`, `slate`, `ocean`, `forest`, `violet`, `amber`, `rose`, `graphite`, each `<name>.css` and `<name>-contrast.css`, one file for both schemes (`light-dark()`, `data-ds-scheme` pins a region); copied to `dist/themes/presets/`; a test keeps them equal to the generator |
-| `themes/dark.css`, `themes/compact.css`, `themes/contrast.css` | the shipped themes, copied to `dist/themes/`: every non-derived colour role in the dark tones; compact type and heights (default heights back under a coarse pointer); palette-neutral contrast mixes. Contrast pairs and completeness tested in `test/tokens.test.js`; a package that adds a colour role adds its dark and contrast values |
+| `themes/dark.css`, `themes/compact.css`, `themes/contrast.css` | the shipped themes, copied to `dist/themes/`: every non-derived colour role in the dark tones; compact type and the dense density (`--ds-density: -2`, plus the heights of the components not on the options model yet; the default density and heights back under a coarse pointer); palette-neutral contrast mixes. Contrast pairs and completeness tested in `test/tokens.test.js`; a package that adds a colour role adds its dark and contrast values |
 | `src/types/` | hand-written TypeScript declarations: `ds.d.ts` (the global `DS` with its module namespaces and the `DS.init`/`get`/`define`/`config` aliases, and `DashboardStyle.runtime`; copied to `dist/ds.d.ts`) and `js/<module>.d.ts` (each module's exports with their options and handles, copied next to the module in `dist/js/`); `test/build.test.js` keeps the declared exports and their parameter names equal to the modules |
 | `src/deprecations.json` | every deprecated and removed name as data (`dist/deprecations.json`); a removed name gets `removed` set |
 | `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`) |
-| `docs/` | `install`, `bundle` (loading only what a page uses), `core` (`js/core.js`: runtime, behaviours, `init()`, events, strings), `tokens`, `theming`, `theme-generator` (`tools/theme.mjs` and the presets), `components` (**generated** from `src/components/_partials/` and every `<name>.md`; edit those), `patterns`, `motion`, `icons`, `rules` (with the accessibility statement) |
+| `docs/` | `install`, `bundle` (loading only what a page uses), `core` (`js/core.js`: runtime, behaviours, `init()`, events, strings), `tokens`, `options` (size, density, shape, tone, touch and how a component computes them), `theming`, `theme-generator` (`tools/theme.mjs` and the presets), `components` (**generated** from `src/components/_partials/` and every `<name>.md`; edit those), `patterns`, `motion`, `icons`, `rules` (with the accessibility statement) |
 | `docs/images/` | the screenshots and GIFs of `README.md`, taken from the live tour, the reference app and the styleguide; retake them when the look changes |
 | `demo/` | the live tour, the start page on GitHub Pages: one page with a working demo of every behaviour (press, controls, live data, overlays, feedback, forms, theming, icons), wired as a project wires it (`theme.js` builds the theme from the choices under "Theme it" and shows its file, `demo.css` project components with the prefix `demo-`, `demo.js` the page; classic scripts on `../dist/`, so it works from disk); `test/browser/demo.spec.js` runs it |
 | `example/` | the reference app, published on GitHub Pages: a device console that uses the system as a project does (`theme.css` the project theme, `app.css` project components with the prefix `ex-`, `data.js` a fake backend, `app.js` the app; classic scripts on `../dist/`, so it works from disk); its `README.md` maps every pattern to its code. It follows the documented markup and the project rules of "Using Dashboard-Style in a project" below; `test/browser/example.spec.js` runs its flows |
@@ -92,15 +93,27 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
 - **No literals in components**: colours, radii, shadows, type (`font` roles), durations, curves, opacities
   (`--ds-state-*`) and z-indices (`--ds-z-*`) come from tokens. Literal values live only in `src/core/tokens.css` and
   theme files. A missing value becomes a token (with docs), never a literal.
-- **Baseline: Safari 16.4, Chrome/Edge 111, Firefox 128.** Everything in `src/` may run in an embedded widget on
-  such a browser. Allowed directly: `:focus-visible`, `:has()`, `inset`, container queries, `color-mix()`,
-  `svh`/`dvh`, `<dialog>`, `inert`, `@layer`, `@property` and the individual `translate`/`scale`/`rotate`. No
-  CSS nesting. Progressive only, behind a feature query where it matters, and named by feature under
-  "Progressive:" in the file header with its fallback (tested): `linear()`, `@starting-style`,
-  `transition-behavior: allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven
-  animations, `interpolate-size`, `::details-content`, `overflow-clip-margin`, `sibling-index()`,
-  `moveBefore()`, `scrollbar-gutter`, `focus({ focusVisible: false })`, plus `text-wrap` and `scrollbar-color`.
-  JS is ES2022; a module may import named exports from an earlier module in `MODULES`
+- **Options are computed where they are used** (`src/core/options.css`, `docs/options.md`). The option classes
+  (`.ds-xs` … `.ds-xl`, `.ds-density-*`, `.ds-shape-*`, `.ds-tone-*`, `.ds-touch`) set only their numeric or tone
+  custom properties (`--ds-size-step`, `--ds-size-font`, `--ds-density`, `--ds-shape`, `--ds-target-min`,
+  `--ds-tone`, `--ds-on-tone`, `--ds-tone-container`, `--ds-on-tone-container`), in `ds.utilities`; their
+  defaults sit on `.ds-theme` and no role reads them (tested), so a class on a region applies inside it. A component
+  computes its sizes in its own rule into private `--_<x>` properties (never documented, never set from outside):
+  8px of height per size step, 4px per density step, `max(--ds-target-min, …)` so touch wins, every radius times
+  `--ds-shape`. `plans/3.0-conventions.md` section 11 shows the button as the reference port.
+- **Floor: Safari 17.5, Chrome/Edge 123, Firefox 130** (D9). Everything in `src/` may run in an embedded widget on
+  such a browser. Allowed directly: `:focus-visible`, `:has()`, `inset`, container size queries, `color-mix()`,
+  `oklch()`, `light-dark()` (colours only), `svh`/`dvh`, `<dialog>`, `inert`, `@layer`, `@property`, the
+  individual `translate`/`scale`/`rotate`, `linear()`, `@starting-style`, `transition-behavior: allow-discrete`,
+  `popover` (always `manual`; closing stays in `DS.overlay`), `details[name]`, `text-wrap: balance`,
+  `:user-invalid` and subgrid; in JS `Promise.withResolvers`, the Set methods and `structuredClone`. No CSS nesting
+  in `src/`. Progressive only, behind a feature query where it matters, and named by feature under "Progressive:"
+  in the file header with its fallback (tested): relative colour syntax, anchor positioning, View Transitions,
+  scroll-driven animations, `interpolate-size`, `::details-content`, `field-sizing`, `text-wrap: pretty`, style
+  queries, `@scope`, `closedby`, invoker commands, `appearance: base-select`, `moveBefore()`, the Navigation API,
+  iterator helpers, `sibling-index()`, `overflow-clip-margin`, `scrollbar-gutter`, `focus({ focusVisible: false })`,
+  plus `scrollbar-color`. A port drops the fallbacks of what is now at the floor (a `linear()` fallback, a keyframe
+  twin of a `@starting-style` entrance). JS is ES2022; a module may import named exports from an earlier module in `MODULES`
   (`import { a } from './motion.js';`, one line), exports only as `export const` / `export function`, newer APIs
   only behind feature detection, named under "Progressive:".
 - **Cascade layers.** `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;` is the first statement
@@ -158,7 +171,11 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   Snackbars stay above every modal, usable and announced. The scroll lock is reference-counted (`lockScroll` /
   `unlockScroll`). Motion is state-driven: transitions keyed on `data-state` reverse from the current value;
   keyframes only on `:not([data-state])` (the hand path).
-- **Every action is a pill** (`--ds-radius-action`). One filled button per area, no red buttons. Inline text links
+- **Every action is a pill at the default shape** (D11): its rest radius is `min(--ds-radius-action, half the
+  height)` times `--ds-shape`, so a square theme or region (`.ds-shape-square`) has square actions and the default
+  keeps the pill; the pressed radius scales with it. One filled button per area. No red buttons on pages; the one
+  exception (D10) is a filled button in the error tone (`.ds-btn--filled.ds-tone-error`) that confirms a destructive
+  action in the confirm dialog or the type-to-confirm pattern, its label naming the consequence. Inline text links
   (`.ds-link-btn`, links in text) are the exception to ripple and morph.
 - **Status never by colour alone**: icon and word on status chips and alerts, a check on selected chips, selected
   table rows keep their checkbox, the label weight or `aria-*` on active items.
@@ -300,13 +317,16 @@ Copy this block into the project's own `AGENTS.md` and fill in the placeholders 
   colour, radius, font, shadow, duration or curve literals, no own `@keyframes` (use the `ds-*` keyframes and
   motion tokens). A project element that acts on a press (a row, a tile of its own) takes `.ds-pressable` (state
   layer, focus ring, ripple), never a `::before` state layer of its own.
+- Size, density, shape and tone are option classes (`.ds-sm`, `.ds-density-dense`, `.ds-shape-square`,
+  `.ds-tone-error` …) on the element or a container, never hooks set per size in project CSS.
 - Bigger targets for a finger are opt-in: `.ds-touch` on the `.ds-theme` element or a container, never a
   `pointer: coarse` rule of the project's own. A widget embedded in someone else's page never calls
   `DS.dom.followViewport()`: the host page owns the viewport.
 - Re-render with `DS.dom.morphHtml` (key list rows with `data-ds-key`), never `innerHTML`; it patches in place, so
   bind listeners once (or mark a subtree `data-ds-replace`). Reorders go through `DS.motion.flip`, figures through
   `DS.motion.countUp`; JS timing comes from `DS.motion.motionDuration()`, never ms literals.
-- Icons only from `DS.icons` / `js/icons.js`; status never by colour alone; actions are pills.
+- Icons only from `DS.icons` / `js/icons.js`; status never by colour alone; actions are pills at the default shape
+  (a square theme makes them square); no red buttons except the filled error button of a destructive confirmation.
 - Run `node <dest>/tools/check-project.mjs --config ds-check.json` in CI (`docs/install.md`, "Check a project"): it
   checks the bullets above (rules `vendor`, `classes`, `deprecated`, `literals`, `keyframes`, `themes`, `layers`,
   `hidden`, `restyle`, `attributes`, `dom`, `pressable`); a deliberate deviation is an exception in

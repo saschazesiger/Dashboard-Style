@@ -22,7 +22,7 @@ Everything a project needs is in `dist/`:
 | `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), `bundle.mjs` and `vite-plugin.mjs` (a project bundle of only what it uses, [bundle.md](bundle.md)), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes), `css-scan.mjs` (a small CSS reader) and `js-wrap.mjs` (the classic-script wrapper of `ds.js`) |
 | `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
 
-Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
+Browsers: Safari 17.5, Chrome and Edge 123, Firefox 130 and later (3.0). Newer features are refinements that the
 files name under "Progressive:"; older engines on that floor get the same page without them.
 
 Load order on a page: fonts (optional), `ds.css`, your theme, then your own styles.

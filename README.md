@@ -201,6 +201,7 @@ Which component fits which need: the table at the top of [docs/components.md](do
 | ⚙️ [Core](docs/core.md) | `DS.init()`, the behaviour registry, the one runtime per page, `ds:` events, strings and locale |
 | ✂️ [Bundle](docs/bundle.md) | loading only what a page uses: the bundle tool, its scan, the safelist, `--check` in CI, the Vite plugin |
 | 🎚️ [Tokens](docs/tokens.md) | the three layers and every token (the motion scales in [Motion](docs/motion.md#tokens)) |
+| 📏 [Options](docs/options.md) | size, density, shape, tone and touch as classes on any element, and how a component computes them |
 | 🎨 [Theming](docs/theming.md) | writing a project theme, component hooks |
 | 🌈 [Theme generator](docs/theme-generator.md) | one seed colour to a checked theme for both schemes (`tools/theme.mjs`), and the generated presets |
 | 🧩 [Components](docs/components.md) | which component for which need, copy-paste markup for every component |
@@ -228,17 +229,19 @@ AGENTS.md        how to work on the system (CLAUDE.md points to it)
 
 ## 🌐 Browser support
 
-Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Everything in `src/` may run in an embedded widget
-on such a browser, so the CSS uses `:focus-visible`, `:has()`, `inset`, container queries, `color-mix()`,
-`svh`/`dvh`, `<dialog>`, `inert`, `@layer`, `@property` and the individual `translate`/`scale`/`rotate` directly,
-but no CSS nesting; the JS is ES2022.
+Safari 17.5, Chrome and Edge 123, Firefox 130 and later. Everything in `src/` may run in an embedded widget on such
+a browser, so the CSS uses `:focus-visible`, `:has()`, `inset`, container size queries, `color-mix()`, `oklch()`,
+`light-dark()`, `svh`/`dvh`, `<dialog>`, `inert`, `@layer`, `@property`, the individual `translate`/`scale`/`rotate`,
+`linear()`, `@starting-style`, `transition-behavior: allow-discrete`, `popover`, `details[name]`,
+`text-wrap: balance`, `:user-invalid` and subgrid directly, but no CSS nesting; the JS is ES2022.
 
 Newer features are refinements only, behind a feature query where it matters, and each file names them under
-"Progressive:" in its header with its fallback: `linear()`, `@starting-style`, `transition-behavior:
-allow-discrete`, `popover`, anchor positioning, View Transitions, scroll-driven animations, `interpolate-size`,
-`::details-content`, `overflow-clip-margin`, `sibling-index()`, `moveBefore()`, `scrollbar-gutter`,
-`focus({ focusVisible: false })`, plus `text-wrap` and `scrollbar-color`. Older browsers get the same page without the refinement (a cubic curve instead of the spring,
-a disclosure that toggles instead of gliding).
+"Progressive:" in its header with its fallback: relative colour syntax, anchor positioning, View Transitions,
+scroll-driven animations, `interpolate-size`, `::details-content`, `field-sizing`, `text-wrap: pretty`, style queries,
+`@scope`, `closedby`, invoker commands, `appearance: base-select`, `moveBefore()`, the Navigation API, iterator
+helpers, `sibling-index()`, `overflow-clip-margin`, `scrollbar-gutter`, `focus({ focusVisible: false })`, plus
+`scrollbar-color`. Older browsers get the same page without the refinement (a disclosure that toggles instead of
+gliding, a tooltip placed by script instead of anchor positioning).
 
 ## 🛠️ Develop
 
