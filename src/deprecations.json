@@ -278,6 +278,132 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Read by the deprecated .ds-btn--sm.ds-btn--icon (and the room a drawer row keeps for it). .ds-sm takes --ds-btn-icon-size less one 8px size step."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-alert--success",
+      "pattern": "(?<![\\w-])ds-alert--success(?![\\w-])",
+      "replacement": ".ds-tone-success",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-alert--warning",
+      "pattern": "(?<![\\w-])ds-alert--warning(?![\\w-])",
+      "replacement": ".ds-tone-warning",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-alert--error",
+      "pattern": "(?<![\\w-])ds-alert--error(?![\\w-])",
+      "replacement": ".ds-tone-error",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-badge--neutral",
+      "pattern": "(?<![\\w-])ds-badge--neutral(?![\\w-])",
+      "replacement": ".ds-tone-neutral",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-badge--ok",
+      "pattern": "(?<![\\w-])ds-badge--ok(?![\\w-])",
+      "replacement": ".ds-tone-success",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-badge--warning",
+      "pattern": "(?<![\\w-])ds-badge--warning(?![\\w-])",
+      "replacement": ".ds-tone-warning",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-badge--error",
+      "pattern": "(?<![\\w-])ds-badge--error(?![\\w-])",
+      "replacement": ".ds-tone-error",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-status--ok",
+      "pattern": "(?<![\\w-])ds-status--ok(?![\\w-])",
+      "replacement": ".ds-tone-success",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-status--warning",
+      "pattern": "(?<![\\w-])ds-status--warning(?![\\w-])",
+      "replacement": ".ds-tone-warning",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-status--error",
+      "pattern": "(?<![\\w-])ds-status--error(?![\\w-])",
+      "replacement": ".ds-tone-error",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-tag--neutral",
+      "pattern": "(?<![\\w-])ds-tag--neutral(?![\\w-])",
+      "replacement": ".ds-tone-neutral",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes on the element (.ds-tone-*, docs/options.md), shared by every component that shows meaning. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-spinner--sm",
+      "pattern": "(?<![\\w-])ds-spinner--sm(?![\\w-])",
+      "replacement": ".ds-spinner--ink",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "The text colour on a faint ring is .ds-spinner--ink; the size is the option .ds-sm (docs/options.md), so write both for the same 12px. The alias keeps its fixed 12px until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-loader--sm",
+      "pattern": "(?<![\\w-])ds-loader--sm(?![\\w-])",
+      "replacement": ".ds-sm",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Sizes are option classes on the loader or any ancestor (.ds-xs ... .ds-xl, docs/options.md). .ds-sm is the same 24px."
+    },
+    {
+      "kind": "hook",
+      "name": "--ds-loader-sm-size",
+      "pattern": "(?<![\\w-])--ds-loader-sm-size(?![\\w-])",
+      "replacement": "--ds-loader-size",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Read only by the deprecated .ds-loader--sm. .ds-sm takes --ds-loader-size (the md base) less one 24px size step."
     }
   ]
 }
