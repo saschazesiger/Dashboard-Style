@@ -115,6 +115,19 @@
     </div>
   </dialog>
 
+  <!-- A contained dialog: it lies only over its positioned container, and the page around it stays live. -->
+  <section class="fx-section" id="contained-host" aria-label="Contained host" style="position: relative">
+    <button class="ds-btn" type="button" id="ch-open">Open contained</button>
+    <section id="ch-region" aria-label="Region under the contained dialog"><button class="ds-btn" type="button" id="ch-inner">Inner</button></section>
+    <div class="ds-dialog ds-dialog--contained" id="contained" role="dialog" aria-labelledby="contained-title" hidden>
+      <div class="ds-dialog__box">
+        <h2 class="ds-dialog__title" id="contained-title">Contained</h2>
+        <button class="ds-btn" type="button" id="contained-a">A</button>
+        <button class="ds-btn" type="button" id="contained-b">B</button>
+      </div>
+    </div>
+  </section>
+
   <div class="ds-toasts" id="toasts"></div>
 </div>
 <script type="module">

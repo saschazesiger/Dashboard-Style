@@ -27,8 +27,8 @@ export interface HotkeyLabel {
 export type HotkeyRoot = Document | ShadowRoot | Element | null;
 
 export interface HotkeyOptions {
-  /** What it does, for list(); without one it stays off the sheet. */
-  description?: string | null;
+  /** What it does, for list(): a string, or a function list() asks each time; without one it stays off the sheet. */
+  description?: string | null | (() => string | null | undefined);
   /** The group of list(). Default: the string hotkeysGeneral. */
   group?: string | null;
   /** Default: 'global'. */
@@ -74,5 +74,5 @@ export declare function scope(name: string, options?: { exclusive?: boolean; roo
 export declare function scopes(options?: { root?: HotkeyRoot }): string[];
 /** The data of a shortcut sheet. */
 export declare function list(options?: { root?: HotkeyRoot; activeOnly?: boolean; apple?: boolean }): { name: string; items: HotkeyItem[] }[];
-/** Calls `fn` after every change of what list() or scopes() give; returns the unsubscribe. */
+/** Calls `fn` after a registration or scope change; returns the unsubscribe. */
 export declare function onChange(fn: () => void, options?: { root?: HotkeyRoot }): () => void;

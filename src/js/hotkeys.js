@@ -26,7 +26,11 @@
  * PageUp and PageDown on what they move (`fields` changes that). An open
  * overlay masks the registrations behind it, so letters reach a menu's
  * type-ahead and no shortcut acts on the inert page (`within` or `owner` in that layer, or
- * `overlays: true`, still count). Of what is left the innermost `within`
+ * `overlays: true`, still count); a contained dialog masks only inside its
+ * container. Escape stays the layer's: over one, it reaches only a `within`
+ * inside that layer, a widget that handles its own Escape, which listens on
+ * its element so it comes first whatever was added first. A function key
+ * types nothing, so it also works from a field. Of what is left the innermost `within`
  * wins, then the scope activated last, then the registration made last; a
  * handler that returns false passes the key on. The one that takes it
  * prevents the default.
@@ -42,7 +46,7 @@
 
 import { define, runtime, t } from './core.js';
 import { disown, own } from './dom.js';
-import { topmost } from './overlay.js';
+import { layerAt } from './overlay.js';
 import { canTakeFocus, readsKeys } from './a11y.js';
 
 /** The scope of a registration that names none; always on, below the others. */
@@ -129,6 +133,8 @@ export function matches(event, combo) {
   if (digit && name === key && (!spec.shift || event.shiftKey)) return true;
   if (event.shiftKey !== spec.shift) return false;
   if (name === key) return true;
+  // AltGr typed another character, and an IME holds the key: neither is the key at this place.
+  if (altGr || pressed === 'process' || event.keyCode === 229) return false;
   if (letter) return event.code === `Key${key.toUpperCase()}` && !/^[\x20-\x7e]$/.test(event.key ?? '');
   if (digit) return event.code === `Digit${key}` && !/^[a-z0-9]$/i.test(event.key ?? '');
   return false;
@@ -216,19 +222,24 @@ function reads(target, key) {
 /** Whether the entry may take this key press on `target`, for the combo that matched. */
 function allowedOn(entry, spec, target) {
   if (entry.fields !== undefined) return entry.fields === true || !reads(target, spec.key);
-  return spec.mod || spec.ctrl || spec.meta || !reads(target, spec.key);
+  return spec.mod || spec.ctrl || spec.meta || /^f\d+$/.test(spec.key) || !reads(target, spec.key);
 }
 
-/** Runs the registration a key press belongs to (the file comment has the order). */
-function dispatch(root, state, event) {
+/**
+ * Runs the registration a key press belongs to (the file comment has the
+ * order). `early`: the one registration asked from its `within` element, for
+ * an Escape inside an open layer.
+ */
+function dispatch(root, state, event, early = null) {
   if (event.defaultPrevented || event.isComposing) return;
   const path = event.composedPath?.() ?? [];
   const target = path[0] ?? event.target;
-  const layer = topmost(root.ownerDocument ?? root);
+  const layer = layerAt(target, root.ownerDocument ?? root);
   const active = activeScopes(state);
   const found = [];
   let held = false;
-  for (const entry of state.entries) {
+  for (const entry of early ? [early] : state.entries) {
+    if (entry.askedBy === event) continue;
     const rank = active.indexOf(entry.scope);
     if (rank < 0) continue;
     const spec = entry.specs.find((each) => matches(event, each));
@@ -237,6 +248,9 @@ function dispatch(root, state, event) {
     if (depth < 0) continue;
     const home = entry.owner ?? entry.within;
     if (layer && !entry.overlays && !(home && layer.contains(home))) continue;
+    // Escape stays the layer's, but for a `within` inside it (an inline editor); the document's turn comes too late for that.
+    const layersEscape = Boolean(layer && spec.key === 'escape');
+    if (layersEscape ? !early || depth > path.indexOf(layer) : early) continue;
     if (!allowedOn(entry, spec, target)) continue;
     if (entry.available && !entry.available()) continue;
     if (entry.when && !entry.when(event)) continue;
@@ -250,6 +264,7 @@ function dispatch(root, state, event) {
   // Two entries without `within` give Infinity - Infinity, NaN: falsy, a tie, as it should.
   found.sort((a, b) => a.depth - b.depth || a.rank - b.rank || b.entry.order - a.entry.order);
   for (const { entry } of found) {
+    if (early) entry.askedBy = event;
     entry.passed = entry.handler(event) === false;
     if (entry.passed) continue;
     event.preventDefault();
@@ -273,11 +288,13 @@ function changed(root, state) {
 /**
  * Registers a shortcut: `combo` (a string, or a list of alternatives) calls
  * `handler(event)`; a handler that returns false passes the key on.
- * `description` and `group` (default: the string hotkeysGeneral) are for
- * list(), which leaves out a registration without a description. `scope`
+ * `description` (a string, or a function list() asks each time) and `group`
+ * (default: the string hotkeysGeneral) are for list(), which leaves out a
+ * registration without a description. `scope`
  * (default 'global'). `within`: an element the key press must come from.
  * `owner`: the element this belongs to, when it is no `within`: in an open
- * overlay it still counts. `overlays: true` counts over any overlay.
+ * overlay it still counts. `overlays: true` counts over any overlay. Escape
+ * stays the layer's: over one it counts only with a `within` inside that layer.
  * `fields`: true counts in fields too, false never (default: only a combo
  * with Control or Command; plain combos also stay off the keys a native
  * control uses itself). `repeat: true` takes a held key. `when(event)`: false
@@ -288,7 +305,7 @@ function changed(root, state) {
  * the one before it back. A bad combo throws here.
  * @param {string|string[]} combo
  * @param {(event: KeyboardEvent) => unknown} handler
- * @param {{ description?: string|null, group?: string|null, scope?: string, within?: Element|null, owner?: Element|null, overlays?: boolean, fields?: boolean, repeat?: boolean, when?: (event: KeyboardEvent) => boolean, available?: () => boolean, root?: Document|ShadowRoot|Element|null }} [options]
+ * @param {{ description?: string|null|(() => string|null|undefined), group?: string|null, scope?: string, within?: Element|null, owner?: Element|null, overlays?: boolean, fields?: boolean, repeat?: boolean, when?: (event: KeyboardEvent) => boolean, available?: () => boolean, root?: Document|ShadowRoot|Element|null }} [options]
  * @returns {{ destroy: () => void }}
  */
 export function register(combo, handler, options = {}) {
@@ -319,12 +336,16 @@ export function register(combo, handler, options = {}) {
     passed: false,
   };
   state.entries.push(entry);
+  // On the element itself: an overlay's Escape listens on the document too, and whichever was added first would run first.
+  const early = entry.within && specs.some((spec) => spec.key === 'escape') ? (event) => dispatch(root, state, event, entry) : null;
+  if (early) entry.within.addEventListener('keydown', early);
   changed(root, state);
   return {
     destroy() {
       const at = state.entries.indexOf(entry);
       if (at < 0) return;
       state.entries.splice(at, 1);
+      if (early) entry.within.removeEventListener('keydown', early);
       changed(root, state);
     },
   };
@@ -377,6 +398,9 @@ const elementOf = (entry) => entry.owner ?? entry.within;
 /** Whether the registration can take its key as the page stands, whatever the scopes say. */
 const usable = (entry) => shown(elementOf(entry)) && (!entry.available || entry.available());
 
+/** What a registration says on the sheet as the page stands. */
+const describe = (entry) => (typeof entry.description === 'function' ? entry.description() : entry.description);
+
 /**
  * The data of a shortcut sheet: the groups in the order they were first
  * registered, each `{ name, items }`, an item `{ description, scope, active,
@@ -396,7 +420,8 @@ export function list(options = {}) {
   const active = activeScopes(state);
   const groups = new Map();
   for (const [at, entry] of state.entries.entries()) {
-    if (!entry.description) continue;
+    const description = describe(entry);
+    if (!description) continue;
     if (!shown(elementOf(entry))) continue;
     // Only a later one that can take the key replaces this one (two buttons, one for each breakpoint).
     if (state.entries.slice(at + 1).some((later) => later.scope === entry.scope && later.within === entry.within && later.identity === entry.identity && usable(later))) continue;
@@ -405,7 +430,7 @@ export function list(options = {}) {
     const name = entry.group ?? t('hotkeysGeneral');
     if (!groups.has(name)) groups.set(name, []);
     groups.get(name).push({
-      description: entry.description,
+      description,
       scope: entry.scope,
       active: isActive,
       combos: entry.combos.map((combo) => ({ combo, ...format(combo, { apple: options.apple }) })),
@@ -415,8 +440,9 @@ export function list(options = {}) {
 }
 
 /**
- * Calls `fn` after every change of what list() or scopes() give, so an open
- * sheet stays true. Returns the unsubscribe.
+ * Calls `fn` after a registration or scope change. A control's own state is
+ * no change here: call list() again when opening a sheet or after changing
+ * it. Returns the unsubscribe.
  * @param {() => void} fn
  * @param {{ root?: Document|ShadowRoot|Element|null }} [options]
  * @returns {() => void}
@@ -448,14 +474,14 @@ define('hotkey', {
   init(el) {
     const combos = (el.getAttribute('data-ds-hotkey') ?? '').split(/\s+/).filter(Boolean);
     if (!combos.length) return undefined;
-    const text = (el.getAttribute('aria-label') || el.labels?.[0]?.textContent || el.textContent || '').replace(/\s+/g, ' ').trim();
+    const text = () => (el.getAttribute('aria-label') || el.labels?.[0]?.textContent || el.textContent || '').replace(/\s+/g, ' ').trim();
     const registration = register(combos, () => {
       if (el.matches(FOCUSED_BY_HOTKEY)) {
         /** @type {HTMLElement} */ (el).focus();
         /** @type {HTMLInputElement} */ (el).select?.();
       } else /** @type {HTMLElement} */ (el).click();
     }, {
-      description: el.getAttribute('data-ds-hotkey-description') || text || null,
+      description: () => el.getAttribute('data-ds-hotkey-description') || text() || null,
       group: el.getAttribute('data-ds-hotkey-group'),
       scope: el.getAttribute('data-ds-hotkey-scope') ?? undefined,
       owner: el,

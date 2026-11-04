@@ -257,6 +257,168 @@ test('trap(): a dialog inside the trapped region makes it rest', async ({ page }
   await page.evaluate(() => window.hold.destroy());
 });
 
+test('trap(): a region the page removed lets go: Tab works, and the trap below wakes in the same press', async ({ page }) => {
+  await open(page);
+  await page.locator('#before').focus();
+  await page.evaluate(() => { window.hold = window.fx.a11y.trap(document.getElementById('region')); });
+  await page.evaluate(() => { document.getElementById('region').remove(); });
+  await page.locator('#before').focus();
+  for (let press = 0; press < 3; press += 1) {
+    await page.locator('#before').focus();
+    await page.keyboard.press('Tab');
+    expect(await focused(page), 'Tab leaves it').not.toBe('before');
+  }
+  await page.evaluate(() => window.hold.destroy());
+});
+
+test('trap(): removed from above a trap, focus held by the one below wraps at once', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.below = window.fx.a11y.trap(document.getElementById('inner-region'));
+    window.above = window.fx.a11y.trap(document.getElementById('region'));
+  });
+  await expect(page.locator('#first')).toBeFocused();
+  await page.evaluate(() => { document.getElementById('region').remove(); });
+  await page.locator('#inner-last').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#inner-first'), 'the first press after the removal').toBeFocused();
+  // A later destroy() of the handle that let go does nothing.
+  await page.evaluate(() => window.above.destroy());
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.locator('#inner-last')).toBeFocused();
+  await page.evaluate(() => window.below.destroy());
+});
+
+test('trap(): a region that stops rendering lets go until it shows again', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.below = window.fx.a11y.trap(document.getElementById('inner-region'));
+    window.hold = window.fx.a11y.trap(document.getElementById('region'));
+  });
+  await expect(page.locator('#first')).toBeFocused();
+  await page.evaluate(() => { document.getElementById('region').hidden = true; document.getElementById('inner-region').hidden = true; });
+  await page.locator('#before').focus();
+  for (let press = 0; press < 3; press += 1) {
+    await page.locator('#before').focus();
+    await page.keyboard.press('Tab');
+    expect(await focused(page), 'Tab works natively').not.toBe('before');
+  }
+  await page.evaluate(() => { document.getElementById('inner-region').hidden = false; });
+  await page.locator('#inner-last').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#inner-first'), 'the one below holds meanwhile').toBeFocused();
+  await page.evaluate(() => { document.getElementById('region').hidden = false; });
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#first'), 'shown again, it holds').toBeFocused();
+  await page.evaluate(() => { window.hold.destroy(); window.below.destroy(); });
+});
+
+test('trap(): a contained dialog elsewhere lies only over its container', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.hold = window.fx.a11y.trap(document.getElementById('region')); });
+  await page.evaluate(() => window.fx.overlay.open(document.getElementById('contained'), { opener: document.getElementById('first') }));
+  await expect(page.locator('#contained-a'), 'the dialog keeps its focus').toBeFocused();
+  await page.locator('#last').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#first'), 'the region stays held').toBeFocused();
+  await page.evaluate(() => window.fx.overlay.close(document.getElementById('contained')));
+  await settle(page);
+  await page.evaluate(() => window.hold.destroy());
+});
+
+test('trap(): a contained dialog over the region makes it rest', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.hold = window.fx.a11y.trap(document.getElementById('ch-region')); });
+  await expect(page.locator('#ch-inner')).toBeFocused();
+  await page.evaluate(() => window.fx.overlay.open(document.getElementById('contained'), { opener: document.getElementById('ch-inner') }));
+  await expect(page.locator('#contained-a')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#contained-b'), 'Tab belongs to the dialog').toBeFocused();
+  await page.evaluate(() => window.fx.overlay.close(document.getElementById('contained')));
+  await settle(page);
+  await page.evaluate(() => window.hold.destroy());
+});
+
+test('inert(): counted, composes with an overlay in any order, what the page made inert stays', async ({ page }) => {
+  await open(page);
+  const inert = (id) => page.evaluate((target) => document.getElementById(target).inert, id);
+  const div = () => page.evaluate(() => {
+    const box = document.createElement('div');
+    box.className = 'ds-dialog';
+    box.id = 'div-dialog';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', 'Div');
+    box.hidden = true;
+    box.innerHTML = '<div class="ds-dialog__box"><button class="ds-btn" type="button">In</button></div>';
+    document.querySelector('.ds-theme').append(box);
+  });
+  await div();
+  const openDiv = () => page.evaluate(() => { window.fx.overlay.open(document.getElementById('div-dialog')); });
+  const closeDiv = async () => { await page.evaluate(() => window.fx.overlay.close(document.getElementById('div-dialog'))); await settle(page); };
+
+  // Two holds on one element: the last one lets go.
+  await page.evaluate(() => {
+    const after = document.getElementById('after');
+    window.one = window.fx.a11y.inert(after);
+    window.two = window.fx.a11y.inert([after]);
+  });
+  expect(await inert('after')).toBe(true);
+  await page.evaluate(() => { window.one.destroy(); window.one.destroy(); });
+  expect(await inert('after'), 'one hold left, and a second destroy() counts once').toBe(true);
+  await page.evaluate(() => window.two.destroy());
+  expect(await inert('after')).toBe(false);
+
+  // Hold, overlay, overlay closes, hold ends.
+  await page.evaluate(() => { window.one = window.fx.a11y.inert(document.getElementById('after')); });
+  await openDiv();
+  await closeDiv();
+  expect(await inert('after'), 'the overlay leaves the hold alone').toBe(true);
+  await page.evaluate(() => window.one.destroy());
+  expect(await inert('after')).toBe(false);
+
+  // Hold, overlay, hold ends, overlay closes.
+  await page.evaluate(() => { window.one = window.fx.a11y.inert(document.getElementById('after')); });
+  await openDiv();
+  await page.evaluate(() => window.one.destroy());
+  expect(await inert('after'), 'the open overlay keeps it').toBe(true);
+  await closeDiv();
+  expect(await inert('after')).toBe(false);
+
+  // Overlay, hold, overlay closes, hold ends.
+  await openDiv();
+  await page.evaluate(() => { window.one = window.fx.a11y.inert(document.getElementById('after')); });
+  await closeDiv();
+  expect(await inert('after'), 'the hold keeps it').toBe(true);
+  await page.evaluate(() => window.one.destroy());
+  expect(await inert('after')).toBe(false);
+
+  // Overlay, hold, hold ends, overlay closes.
+  await openDiv();
+  await page.evaluate(() => { window.one = window.fx.a11y.inert(document.getElementById('after')); window.one.destroy(); });
+  expect(await inert('after'), 'the open overlay keeps it').toBe(true);
+  await closeDiv();
+  expect(await inert('after')).toBe(false);
+
+  // What the page made inert itself.
+  await page.evaluate(() => {
+    const after = document.getElementById('after');
+    after.inert = true;
+    window.fx.a11y.inert(after).destroy();
+  });
+  expect(await inert('after'), 'the page\'s own inert stays').toBe(true);
+  await page.evaluate(() => { document.getElementById('after').inert = false; });
+
+  // morphHtml keeps it, and nothing given does nothing.
+  await page.evaluate(() => {
+    const before = document.getElementById('before');
+    window.one = window.fx.a11y.inert(before);
+    window.fx.dom.morphHtml(before.parentElement, before.parentElement.innerHTML.replace(/ inert=""/, ''));
+  });
+  expect(await inert('before'), 'a re-render keeps it').toBe(true);
+  await page.evaluate(() => { window.one.destroy(); window.fx.a11y.inert(null).destroy(); });
+  expect(await inert('before')).toBe(false);
+});
+
 test('trap(): a snackbar stays usable above it, and the next Tab out returns', async ({ page }) => {
   await open(page);
   await page.evaluate(() => {
@@ -274,6 +436,17 @@ test('trap(): a snackbar stays usable above it, and the next Tab out returns', a
   await page.keyboard.press('Shift+Tab');
   await expect(page.locator('#last'), 'and backwards').toBeFocused();
   await page.evaluate(() => window.hold.destroy());
+});
+
+test('roving(): the documented toolbar: items button, arrow keys move, one stop', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.fx.a11y.roving(document.getElementById('inner-region'), { items: 'button', activate: false }); });
+  const stops = () => page.evaluate(() => ['inner-first', 'inner-last'].map((id) => document.getElementById(id).getAttribute('tabindex')));
+  expect(await stops()).toEqual(['0', '-1']);
+  await page.locator('#inner-first').focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('#inner-last')).toBeFocused();
+  expect(await stops()).toEqual(['-1', '0']);
 });
 
 test('roving(): the function of DS.dom, one handle per container', async ({ page }) => {

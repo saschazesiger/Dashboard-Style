@@ -21,6 +21,36 @@ const item = (text, extra = {}) => ({
   ...extra,
 });
 
+describe('inert()', () => {
+  const doc = {};
+  const node = (inert = false) => ({ nodeType: 1, ownerDocument: doc, inert });
+
+  it('counts per element and lets go with the last hold; a second destroy() counts once', () => {
+    const one = node();
+    const first = a11y.inert(one);
+    const second = a11y.inert([one, one]);
+    assert.equal(one.inert, true);
+    first.destroy();
+    first.destroy();
+    assert.equal(one.inert, true);
+    second.destroy();
+    assert.equal(one.inert, false);
+  });
+
+  it('leaves what the page made inert itself; takes one element, a list, or nothing', () => {
+    const own = node(true);
+    a11y.inert(own).destroy();
+    assert.equal(own.inert, true);
+    const iterable = node();
+    iterable[Symbol.iterator] = function* each() { yield {}; };
+    const hold = a11y.inert(iterable);
+    assert.equal(iterable.inert, true, 'an iterable element (a form) is one element');
+    hold.destroy();
+    assert.doesNotThrow(() => a11y.inert(null).destroy());
+    assert.doesNotThrow(() => a11y.inert([null]).destroy());
+  });
+});
+
 describe('typeaheadMatch()', () => {
   const items = ['Ada', 'Alan', 'Barbara', 'Grace'].map((text) => item(text));
   const [ada, alan, barbara, grace] = items;
@@ -234,7 +264,7 @@ describe('what the module takes from the others', () => {
 
   it('builds on the functions of DS.dom and DS.overlay, and writes no focusable list of its own', () => {
     assert.match(source, /^import \{ roving as rovingOf, typesText \} from '\.\/dom\.js';$/m);
-    assert.match(source, /^import \{ announce as announceOf, canFocus, FOCUSABLE, topmost, typeAhead \} from '\.\/overlay\.js';$/m);
+    assert.match(source, /^import \{ announce as announceOf, canFocus, FOCUSABLE, holdInert, layerAt, typeAhead \} from '\.\/overlay\.js';$/m);
     assert.doesNotMatch(source, /const FOCUSABLE/);
     assert.doesNotMatch(source, /a\[href\]/);
     assert.doesNotMatch(source, /startsWith/, 'the matcher is the menus\' (DS.overlay.typeAhead)');

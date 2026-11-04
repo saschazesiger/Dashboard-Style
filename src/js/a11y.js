@@ -3,21 +3,25 @@
  * needs, in one module, so no component writes its own.
  *
  *   const hold = DS.a11y.trap(panel);             // Tab stays inside; hold.destroy() returns focus
- *   DS.a11y.roving(toolbar, { activate: false }); // one tab stop, arrow keys (DS.dom.roving)
+ *   DS.a11y.roving(toolbar, { items: 'button', activate: false }); // one tab stop, arrow keys (DS.dom.roving)
  *   DS.a11y.typeahead(list);                      // typing a label moves focus to its item
  *   DS.a11y.announce('Saved');                    // spoken, not shown (DS.overlay.announce)
+ *   const still = DS.a11y.inert(others);          // inert until still.destroy() (DS.overlay.holdInert)
  *
  * trap() is for a region that is no overlay (a tour step, a full-screen
  * editor): it keeps the Tab key inside and pulls stray focus back. It does
- * not make the page inert and takes no scroll lock: a dialog, a sheet or
- * the modal drawer goes through DS.overlay.open(), which is their trap.
- * Traps stack per document (the last one holds; destroying it wakes the one
- * below), and a trap rests while an overlay it does not sit in is open, so
- * a dialog opened from a trapped region keeps its focus. Snackbars stay
- * usable above a trap, as above every modal.
+ * not make the page inert (inert() does) and takes no scroll lock: a dialog,
+ * a sheet or the modal drawer goes through DS.overlay.open(), which is their
+ * trap. Traps stack per document (the last one holds; destroying it wakes the
+ * one below), and a trap rests while an overlay over its region is open, so
+ * a dialog opened from a trapped region keeps its focus; a contained dialog
+ * elsewhere lies only over its container, and keeps only the focus inside it.
+ * A region that stops rendering lets go until it shows again, one the page
+ * removed lets go for good (like destroy(), at the next Tab or focus change).
+ * Snackbars stay usable above a trap, as above every modal.
  *
- * roving() and announce() are the functions of DS.dom and DS.overlay under
- * this name, so what a behaviour needs for its keys is one import. The
+ * roving(), announce() and inert() are the functions of DS.dom and DS.overlay
+ * under this name, so what a behaviour needs for its keys is one import. The
  * focusable list, the canFocus() test and the type-ahead matcher are
  * DS.overlay's, the test for a field that takes text is DS.dom's.
  *
@@ -28,7 +32,7 @@
 import { runtime } from './core.js';
 import { motionDuration } from './motion.js';
 import { roving as rovingOf, typesText } from './dom.js';
-import { announce as announceOf, canFocus, FOCUSABLE, topmost, typeAhead } from './overlay.js';
+import { announce as announceOf, canFocus, FOCUSABLE, holdInert, layerAt, typeAhead } from './overlay.js';
 
 /**
  * This module's shared state (runtime.state('a11y')): per document the
@@ -105,6 +109,14 @@ function aroundNode(list, node, backwards) {
   return list.find((each) => node.compareDocumentPosition(each) & node.DOCUMENT_POSITION_FOLLOWING) ?? list[0];
 }
 
+/** Whether a trap can hold: its region, or something in it, can take focus. One that stopped rendering lets go until it shows again. */
+const holds = (item) => canTakeFocus(item.container) || tabbables(item.container).length > 0;
+
+/** Lets go of the regions the page removed without destroy() (a re-render, a route change), as an overlay does: Tab works, and the trap below wakes. */
+function pruneRemoved(stack) {
+  for (const item of [...stack]) if (!item.container.isConnected) item.destroy();
+}
+
 /**
  * Keeps the Tab key inside `container` until destroy(), and pulls focus
  * that lands outside back to where it was inside. It moves focus in at once:
@@ -113,7 +125,8 @@ function aroundNode(list, node, backwards) {
  * inside without an `initial`, leaves it. destroy() gives focus back to
  * `returnFocus` (default: what had it before; false: nowhere) when focus is
  * still inside or nowhere. Once per container (a second call returns the
- * same handle).
+ * same handle). A region that stops rendering lets go until it shows again;
+ * one the page removed lets go for good.
  * @param {Element|null|undefined} container
  * @param {{ initial?: Element|string|false, returnFocus?: Element|false }} [options]
  * @returns {{ destroy: () => void }}
@@ -130,21 +143,27 @@ export function trap(container, options = {}) {
   const addedTabindex = !container.hasAttribute('tabindex');
   const stack = shared.stacks.get(doc) ?? [];
   shared.stacks.set(doc, stack);
-  const entry = { last: null };
+  const entry = { last: null, container, destroy: () => handle.destroy() };
   stack.push(entry);
 
   const focusBox = () => {
     if (!container.hasAttribute('tabindex')) container.setAttribute('tabindex', '-1');
     /** @type {HTMLElement} */ (container).focus();
   };
-  /** Not the top trap, or an overlay it does not sit in is open: everything stays as it is. */
-  const resting = () => {
-    if (stack[stack.length - 1] !== entry) return true;
-    const layer = topmost(doc);
+  /** Whether an open layer the region does not sit in rules at `node`. */
+  const under = (node) => {
+    const layer = node ? layerAt(node, doc) : null;
     return Boolean(layer && !layer.contains(container));
   };
+  /**
+   * Not the top trap that can hold, an overlay over the region, or focus at
+   * `node` in a layer elsewhere (a contained dialog): everything stays as it is.
+   */
+  const resting = (node) => [...stack].reverse().find(holds) !== entry || under(container) || under(node);
   const onKey = (/** @type {KeyboardEvent} */ event) => {
-    if (event.key !== 'Tab' || event.defaultPrevented || resting()) return;
+    if (event.key !== 'Tab') return;
+    pruneRemoved(stack);
+    if (event.defaultPrevented || resting(deepActive(doc))) return;
     const active = activeNow();
     // A snackbar's buttons are usable above the trap: Tab walks them, and from the end of the region comes back in.
     const toasts = active?.closest?.('.ds-toasts');
@@ -168,12 +187,13 @@ export function trap(container, options = {}) {
     else next.focus();
   };
   const onFocus = (/** @type {FocusEvent} */ event) => {
+    pruneRemoved(stack);
     const path = event.composedPath?.() ?? [event.target];
     if (path.includes(container)) {
       entry.last = path[0];
       return;
     }
-    if (resting() || path.some((node) => node.matches?.('.ds-toasts'))) return;
+    if (resting(path[0]) || path.some((node) => node.matches?.('.ds-toasts'))) return;
     const back = canTakeFocus(entry.last) && container.contains(entry.last) ? entry.last : tabbables(container)[0];
     if (back) back.focus();
     else focusBox();
@@ -321,4 +341,20 @@ export function typeahead(container, options = {}) {
  */
 export function announce(text, options = {}) {
   announceOf(text, options);
+}
+
+/**
+ * Makes `elements` (one element or a list) inert until destroy(), for a modal
+ * region that is no overlay: trap() holds the keyboard, this the pointer and a
+ * screen reader's cursor. DS.overlay.holdInert() under this module's name:
+ * counted per element, and it composes with the overlays' own inert in any
+ * order. Leave out what must stay usable (the snackbar region, what holds the
+ * region); an overlay opened inside a held element is inert with it.
+ * @param {Element|Iterable<Element>|null|undefined} elements
+ * @returns {{ destroy: () => void }}
+ */
+export function inert(elements) {
+  if (!elements) return holdInert([]);
+  // By nodeType: a form and a select are iterable too.
+  return holdInert(elements.nodeType ? [elements] : elements);
 }

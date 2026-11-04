@@ -222,6 +222,107 @@ test('an open overlay masks what is behind it; within, owner and overlays: true 
   expect((await log(page)).at(-1), 'closed: it counts again').toBe('behind');
 });
 
+test('a contained dialog masks only inside its container: the page around it stays live', async ({ page }) => {
+  await open(page);
+  await bind(page, 'mod+j', 'global');
+  await page.evaluate(() => window.fx.overlay.open(document.getElementById('contained'), { opener: document.getElementById('ch-open') }));
+  await expect(page.locator('#contained-a')).toBeFocused();
+  await page.keyboard.press('Control+j');
+  expect(await log(page), 'from inside the dialog: masked').toEqual([]);
+  await page.locator('#before').focus();
+  await page.keyboard.press('Control+j');
+  expect(await log(page), 'from the page around it: it runs').toEqual(['global']);
+  // A full modal over the page masks again, past the contained dialog below or above it.
+  await page.evaluate(() => window.fx.overlay.open(document.getElementById('dialog'), { opener: document.getElementById('before') }));
+  await expect(page.locator('#dialog-a')).toBeFocused();
+  await page.keyboard.press('Control+j');
+  expect(await log(page), 'a modal on top: masked').toEqual(['global']);
+  await page.evaluate(() => window.fx.overlay.close(document.getElementById('dialog')));
+  await settle(page);
+  await page.evaluate(() => window.fx.overlay.close(document.getElementById('contained')));
+  await settle(page);
+});
+
+const topLayer = (page) => page.evaluate(() => window.fx.overlay.topmost()?.id ?? null);
+const openDialog = async (page) => {
+  await page.locator('#open-dialog').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#dialog-a')).toBeFocused();
+};
+/** With no registration left, the registry's listener goes: the next one comes after the overlay's on the document. */
+const overlayListensFirst = async (page) => {
+  await page.evaluate(() => { for (const el of document.querySelectorAll('[data-ds-hotkey]')) el.removeAttribute('data-ds-hotkey'); });
+  await settle(page);
+  await openDialog(page);
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#open-dialog')).toBeFocused();
+  await settle(page);
+  expect(await topLayer(page)).toBe(null);
+};
+
+for (const order of ['the registry listens first', 'the overlay listens first']) {
+  test(`Escape stays the overlay's: overlays: true, owner and data-ds-hotkey leave it (${order})`, async ({ page }) => {
+    await open(page);
+    if (order === 'the overlay listens first') await overlayListensFirst(page);
+    await bind(page, 'escape', 'everywhere', { overlays: true });
+    await bind(page, 'esc', 'owned', { ownerId: 'dialog-a' });
+    await page.evaluate(() => { document.getElementById('dialog-b').setAttribute('data-ds-hotkey', 'escape'); });
+    await settle(page);
+    await openDialog(page);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#open-dialog'), 'the dialog closes').toBeFocused();
+    expect(await topLayer(page)).toBe(null);
+    expect(await log(page), 'and no registration ran').toEqual([]);
+    await settle(page);
+    await page.keyboard.press('Escape');
+    expect((await log(page)).length, 'no layer: it counts again').toBe(1);
+  });
+
+  test(`Escape: a widget inside the layer handles its own, whichever listens first (${order})`, async ({ page }) => {
+    await open(page);
+    if (order === 'the overlay listens first') await overlayListensFirst(page);
+    await bind(page, 'escape', 'widget', { withinId: 'dialog-region' });
+    await openDialog(page);
+    await page.keyboard.press('Escape');
+    expect(await log(page), 'pressed outside the widget: not its').toEqual([]);
+    await expect(page.locator('#open-dialog'), 'the dialog closes').toBeFocused();
+    await settle(page);
+    await openDialog(page);
+    await page.locator('#dr-a').focus();
+    await page.keyboard.press('Escape');
+    expect(await log(page)).toEqual(['widget']);
+    expect(await topLayer(page), 'the widget took it: the dialog stays').toBe('dialog');
+    await page.evaluate(() => window.fx.overlay.close(document.getElementById('dialog')));
+    await settle(page);
+  });
+
+  test(`Escape: a within around the layer is no widget in it; a handler that passes leaves the key to the dialog, once (${order})`, async ({ page }) => {
+    await open(page);
+    if (order === 'the overlay listens first') await overlayListensFirst(page);
+    await page.evaluate(() => {
+      const { hotkeys, log } = window.fx;
+      hotkeys.register('escape', () => { log.push('around'); }, { within: document.querySelector('.ds-theme') });
+      hotkeys.register('escape', () => { log.push('passes'); return false; }, { within: document.getElementById('dr-b') });
+    });
+    await openDialog(page);
+    await page.locator('#dr-b').focus();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#open-dialog'), 'the dialog closes').toBeFocused();
+    expect(await topLayer(page)).toBe(null);
+    expect(await log(page), 'the handler inside ran once, the one around it not').toEqual(['passes']);
+  });
+}
+
+test('a function key works from a field and takes the key; fields: false keeps it out', async ({ page }) => {
+  await open(page);
+  await bind(page, 'f2', 'help');
+  await bind(page, 'f4', 'never', { fields: false });
+  await page.locator('#plain-field').focus();
+  await page.keyboard.press('F2');
+  await page.keyboard.press('F4');
+  expect(await log(page)).toEqual(['help']);
+});
+
 test('the page comes first; a composing IME and a held key get nothing, repeat: true takes it', async ({ page }) => {
   await open(page);
   await bind(page, 'j', 'plain');
@@ -358,6 +459,25 @@ test('list() and onChange(): the data of a shortcut sheet', async ({ page }) => 
   expect(data.after, 'unsubscribed').toBe(data.before);
   // The markup of the page is on the sheet too.
   expect(data.first.find((group) => group.name === 'Devices').items[0].description).toBe('Search devices');
+});
+
+test('list(): a description follows the label as the page stands; a function is asked each time', async ({ page }) => {
+  await open(page);
+  const described = (combo) => page.evaluate((wanted) => window.fx.hotkeys.list({ apple: false }).flatMap((group) => group.items).find((item) => item.combos.some((each) => each.combo === wanted))?.description ?? null, combo);
+  expect(await described('o')).toBe('Own name');
+  await page.evaluate(() => { document.getElementById('hk-named').textContent = 'New text'; });
+  expect(await described('o'), 'the text as it is now').toBe('New text');
+  await page.evaluate(() => { document.getElementById('hk-named').setAttribute('aria-label', 'Renamed'); });
+  expect(await described('o'), 'its aria-label first').toBe('Renamed');
+  await page.evaluate(() => {
+    window.label = 'One';
+    window.fx.hotkeys.register('mod+e', () => {}, { description: () => window.label });
+  });
+  expect(await described('mod+e')).toBe('One');
+  await page.evaluate(() => { window.label = 'Two'; });
+  expect(await described('mod+e')).toBe('Two');
+  await page.evaluate(() => { window.label = null; });
+  expect(await described('mod+e'), 'none now: off the sheet').toBe(null);
 });
 
 test('list(): only keys that work are active; what is not shown is not listed', async ({ page }) => {

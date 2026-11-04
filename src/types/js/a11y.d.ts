@@ -39,3 +39,5 @@ export interface TypeaheadOptions {
 export declare function typeahead(container: Element | null | undefined, options?: TypeaheadOptions): Destroyable;
 /** DS.overlay.announce(): says `text` to screen readers without showing anything. */
 export declare function announce(text: string, options?: { assertive?: boolean; region?: Element | null }): void;
+/** DS.overlay.holdInert(): makes the elements inert until destroy(), for a modal region that is no overlay. */
+export declare function inert(elements: Element | Iterable<Element> | null | undefined): Destroyable;

@@ -197,6 +197,8 @@ const LAB_EXEMPT = {
   'DS.dom.own': 'bookkeeping for morphHtml, no motion',
   'DS.dom.disown': 'bookkeeping for morphHtml, no motion',
   'DS.overlay.canFocus': 'a test on a node, no motion',
+  'DS.overlay.layerAt': 'a query on the stack, no motion',
+  'DS.overlay.holdInert': 'the inert attribute, no motion',
   'DS.overlay.typeAhead': 'a matcher on a list, no motion; the menu demo plays its use',
   'DS.dom.dropzone': 'events, no motion: the dropzone demo plays the data-ds-dragover look it writes',
   'DS.overlay.announce': 'live region, no motion',

@@ -100,6 +100,17 @@ describe('matches()', () => {
     assert.equal(hotkeys.matches(key({ key: 'q', ctrlKey: true, altKey: true }), 'ctrl+alt+q'), true);
   });
 
+  it('takes no fallback by place from AltGr or an IME; a dead key keeps it', () => {
+    const altGr = { getModifierState: (name) => name === 'AltGraph', ctrlKey: true, altKey: true };
+    assert.equal(hotkeys.matches(key({ key: 'ł', code: 'KeyL', ...altGr }), 'l'), false, 'AltGr+L on a Polish layout');
+    assert.equal(hotkeys.matches(key({ key: '²', code: 'Digit2', ...altGr }), '2'), false, 'a digit too');
+    assert.equal(hotkeys.matches(key({ key: 'l', code: 'KeyL', ...altGr }), 'l'), true, 'what it types still counts');
+    assert.equal(hotkeys.matches(key({ key: 'Process', code: 'KeyK', keyCode: 229 }), 'k'), false, 'the first key of a composition');
+    assert.equal(hotkeys.matches(key({ key: 'Process', code: 'KeyK' }), 'k'), false, 'by its name alone');
+    assert.equal(hotkeys.matches(key({ key: 'Unidentified', code: 'KeyK', keyCode: 229 }), 'k'), false, 'by its keyCode alone');
+    assert.equal(hotkeys.matches(key({ key: 'Dead', code: 'KeyE', altKey: true, view: MAC }), 'alt+e'), true, 'Option on a Mac');
+  });
+
   it('takes what parse() gives', () => {
     assert.equal(hotkeys.matches(key({ key: 'k' }), hotkeys.parse('k')), true);
   });
@@ -146,6 +157,30 @@ describe('the registry', () => {
     return { root, log, press, bind };
   }
   const field = { tagName: 'INPUT', type: 'text', readOnly: false, closest: () => null };
+
+  it('lets a function key through in a field: it types nothing; fields: false still keeps it out', () => {
+    const { log, press, bind } = setup();
+    bind('f2', 'help');
+    bind('f3', 'never', { fields: false });
+    bind('k', 'letter');
+    const target = () => ({ composedPath: () => [field] });
+    press({ key: 'F2', ...target() });
+    press({ key: 'F3', ...target() });
+    press({ key: 'k', ...target() });
+    assert.deepEqual(log, ['help']);
+  });
+
+  it('lets a description be a function, asked by list() each time', () => {
+    const { root, bind } = setup();
+    let label = 'One';
+    bind('mod+e', 'x', { description: () => label });
+    const said = () => hotkeys.list({ root }).flatMap((group) => group.items).map((item) => item.description);
+    assert.deepEqual(said(), ['One']);
+    label = 'Two';
+    assert.deepEqual(said(), ['Two']);
+    label = null;
+    assert.deepEqual(said(), []);
+  });
 
   it('takes the last registration, passes on after false, prevents the default of the one that took it', () => {
     const { log, press, bind } = setup();
