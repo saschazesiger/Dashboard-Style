@@ -1,9 +1,0 @@
-@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-
-@layer ds.motion {
-  @keyframes ds-fanout-in {
-    from {
-      opacity: 0;
-    }
-  }
-}
