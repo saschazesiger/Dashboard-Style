@@ -90,7 +90,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.chip {
   .ds-chips {
     display: flex;
     flex-wrap: wrap;
@@ -476,6 +476,20 @@
       border-color: GrayText;
       background: Canvas;
       color: GrayText;
+    }
+  }
+
+  /* In a card's head row (card.css, an earlier sublayer) a chip hangs out of
+     the title's line by its own height. */
+  .ds-card__row > .ds-chip {
+    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
+  }
+
+  /* A chip in a current list row (list.css) takes the system colours again
+     in forced colours, as the row's other controls do. */
+  @media (forced-colors: active) {
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) .ds-chip {
+      forced-color-adjust: auto;
     }
   }
 }

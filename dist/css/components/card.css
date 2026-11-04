@@ -106,9 +106,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.card {
   .ds-card {
     --ds-card-pad: calc(var(--ds-card-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
     --_radius: calc(var(--ds-card-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
@@ -128,12 +128,9 @@
     color: var(--ds-text);
   }
 
-  /* The rhythm below decides all spacing: no browser margins of paragraphs
-     (a last one would add 1em to the bottom padding). Zero specificity, so
-     every component's own margin still wins. */
-  :where(.ds-card) p {
-    margin-block: 0;
-  }
+  /* The rhythm below decides all spacing; the browser margins of paragraphs
+     go in src/core/global.css (zero weight, in the first sublayer, so every
+     component's own margin still wins). */
 
   .ds-card > * + *,
   .ds-card__body > * + * {
@@ -596,23 +593,6 @@
     }
   }
 
-  /* Cards side by side share one height; their link rows line up at the
-     bottom edge. The auto margin replaces the rhythm's 16px, so the block
-     before the links keeps it as a floor: the tallest card has no free
-     space, and flex margins add up instead of collapsing. */
-  .ds-grid-2 > .ds-card:has(> .ds-card__links) {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .ds-grid-2 > .ds-card > .ds-card__links {
-    margin-top: auto;
-  }
-
-  .ds-grid-2 > .ds-card > :has(+ .ds-card__links) {
-    margin-bottom: var(--_card-gap);
-  }
-
   .ds-card__title {
     min-width: 0;
     margin: 0;
@@ -644,7 +624,8 @@
      row wraps (phones), the row gap makes up for the overhang. A status
      chip, badge or tag fits the title line and sits on it (an overhang
      would hang into the block below a wrapped row); a chip hangs by its
-     own height. */
+     own height. A badge and a chip come after the card (their own margins
+     beat its rhythm), so their rules are in badge.css and chip.css. */
   .ds-card__row {
     row-gap: calc(var(--ds-space-3) + (max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)) - var(--ds-card-title-line, 24px)) / 2);
   }
@@ -658,12 +639,8 @@
     margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px), calc(var(--ds-switch-track-height, 32px) + var(--ds-size-step, 0) * 4px))) / 2);
   }
 
-  .ds-card__row > :is(.ds-status, .ds-badge, .ds-tag) {
+  .ds-card__row > :is(.ds-status, .ds-tag) {
     margin-block: 0;
-  }
-
-  .ds-card__row > .ds-chip {
-    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
   }
 
   .ds-card__subtitle {
@@ -735,6 +712,45 @@
   .ds-card .ds-disclosure-list {
     --ds-disclosure-row-padding-exact: var(--ds-card-pad);
     margin-inline: calc(-1 * var(--ds-card-pad));
+  }
+
+  /* Key facts (list.css) under a card's title: the page's rhythm above
+     them. A card gives the context, so the rules of what sits in it are
+     here, in the card's later sublayer. */
+  .ds-card > .ds-facts {
+    margin-top: var(--ds-space-5);
+  }
+
+  /* Facts above key figures follow the tiles' grid: two equal columns with
+     the tiles' gap, so the second fact starts where the third tile does
+     (four tiles per row) or the second one does (two per row); phones
+     stack them. No per-fact rule: a structural or tag subject under a
+     :has() ancestor made Chromium restyle a large part of the page on
+     every DOM change inside a card (about 10ms per change on the
+     styleguide, every frame of a countUp). */
+  .ds-card:has(.ds-tiles) > .ds-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px);
+  }
+
+  @media (max-width: 600px) {
+    .ds-card:has(.ds-tiles) > .ds-facts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  /* Actions on demand (.ds-hover-actions, utilities.css) with a card as
+     their nearest host: the card's hover and states reveal them. */
+  @media (hover: hover) {
+    .ds-card:hover .ds-hover-actions:not(:is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):not(:hover) .ds-hover-actions) {
+      opacity: 1;
+      transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+    }
+  }
+
+  .ds-card:is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], [data-ds-shown]) .ds-hover-actions:not(:is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):not(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) .ds-hover-actions) {
+    opacity: 1;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
   /* Print: a short card is never split across pages (one that holds a table may). */

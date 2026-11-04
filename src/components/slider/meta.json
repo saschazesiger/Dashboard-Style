@@ -1,7 +1,7 @@
 {
   "name": "slider",
   "group": "forms",
-  "order": 250,
+  "order": 140,
   "docsOrder": 225,
   "need": "Pick a value on a range by dragging or with the arrow keys",
   "tier": 1,

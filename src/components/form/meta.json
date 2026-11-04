@@ -1,7 +1,7 @@
 {
   "name": "form",
   "group": "forms",
-  "order": 200,
+  "order": 290,
   "docsOrder": 200,
   "need": "Collect input: labelled fields in three looks, slots, states, checks and cards, form sections, filters, action bars and a composer",
   "tier": 1,
@@ -96,8 +96,8 @@
     "card",
     "chip",
     "combobox",
+    "dialog",
     "indicator",
-    "ripple",
     "switch",
     "table"
   ],
@@ -196,6 +196,12 @@
     },
     "--ds-btn-height": {
       "owner": "button"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
+    },
+    "--ds-selection-bar-height": {
+      "owner": "table"
     }
   },
   "keyframes": [

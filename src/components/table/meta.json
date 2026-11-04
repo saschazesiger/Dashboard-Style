@@ -1,7 +1,7 @@
 {
   "name": "table",
   "group": "data",
-  "order": 180,
+  "order": 270,
   "docsOrder": 170,
   "need": "Compare records in columns: sort, select in bulk, act per row",
   "tier": 1,
@@ -42,6 +42,7 @@
     "data-ds-glide",
     "data-ds-overflow-end",
     "data-ds-overflow-start",
+    "data-ds-shown",
     "data-label"
   ],
   "requires": [
@@ -49,13 +50,13 @@
     "utilities"
   ],
   "context": [
+    "badge",
     "card",
     "combobox",
     "dialog",
-    "form",
     "menu",
-    "ripple",
     "sheet",
+    "shell",
     "status"
   ],
   "hooks": {

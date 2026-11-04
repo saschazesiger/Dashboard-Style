@@ -1,7 +1,7 @@
 {
   "name": "indicator",
   "group": "motion",
-  "order": 60,
+  "order": 50,
   "docsOrder": 345,
   "need": "Slide one pill between the items of a tab bar or segmented switch",
   "tier": 1,

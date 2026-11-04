@@ -1,7 +1,7 @@
 {
   "name": "disclosure",
   "group": "content",
-  "order": 90,
+  "order": 80,
   "docsOrder": 80,
   "need": "Hide advanced settings or sections until asked, one at a time if needed",
   "tier": 1,
@@ -16,9 +16,7 @@
   ],
   "attributes": [],
   "requires": [],
-  "context": [
-    "ripple"
-  ],
+  "context": [],
   "hooks": {
     "--ds-disclosure-height": {
       "default": "40px",

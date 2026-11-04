@@ -1,7 +1,7 @@
 {
   "name": "shell",
   "group": "navigation",
-  "order": 350,
+  "order": 340,
   "docsOrder": 10,
   "need": "Frame an app: top bar, navigation drawer, content panel, account and banners",
   "tier": 1,
@@ -48,7 +48,6 @@
     "ds-segmented__indicator",
     "ds-segmented__option",
     "ds-skip",
-    "ds-stale",
     "ds-topbar",
     "ds-topbar__actions",
     "ds-topbar__menu",
@@ -67,6 +66,7 @@
     "data-ds-keyboard",
     "data-ds-overflow-end",
     "data-ds-overflow-start",
+    "data-ds-shown",
     "data-ds-vt",
     "data-label",
     "data-scrolled"
@@ -79,11 +79,11 @@
   ],
   "context": [
     "alert",
+    "badge",
     "card",
     "indicator",
     "list",
     "loading",
-    "ripple",
     "table",
     "tile"
   ],
@@ -140,6 +140,12 @@
     },
     "--ds-scroll-fade": {
       "owner": "scroller"
+    },
+    "--ds-badge-bg": {
+      "owner": "badge"
+    },
+    "--ds-badge-color": {
+      "owner": "badge"
     }
   },
   "keyframes": [

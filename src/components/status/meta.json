@@ -1,7 +1,7 @@
 {
   "name": "status",
   "group": "feedback",
-  "order": 160,
+  "order": 110,
   "docsOrder": 140,
   "need": "Show the state of one item with an icon and a word, or label it with a tag",
   "tier": 1,

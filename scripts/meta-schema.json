@@ -41,6 +41,7 @@
     "progressive": { "description": "The features newer than the floor that the stylesheet's \"Progressive:\" note names, in PROGRESSIVE_NAMES order.", "type": "array", "items": { "type": "string" }, "uniqueItems": true },
     "ripple": { "description": "Whether the component has a ripple host (rippleHosts, or a selector of RIPPLE_HOSTS that starts with one of its classes).", "type": "boolean" },
     "rippleHosts": { "description": "The ripple host selectors this component adds to RIPPLE_HOSTS (src/js/ripple.js, generated block), in order. Each host also needs its pressed .ds-ripples rule, in its own stylesheet or in ripple.css.", "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "stateClasses": { "description": "Classes of \"classes\" that this component's module writes on other components' elements or on the root (ripple: .ds-pressed on a pressed host, .ds-ripples on the root), sorted. Another stylesheet names them in its own rules (.ds-btn.ds-pressed) without listing this component in \"context\", and naming one sets no cascade order (a state, like an attribute).", "$ref": "#/$defs/names", "items": { "type": "string", "pattern": "^ds-[\\w-]+$" } },
     "roles": {
       "description": "Colour roles the component asks for (conventions section 6); the integrator moves them into tokens.css and the themes.",
       "type": "object",

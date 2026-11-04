@@ -73,7 +73,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.tile {
   /* Intrinsic columns: as many tiles per row as fit at their smallest width,
      never more than --ds-tiles-columns, each row filled. */
   .ds-tiles {

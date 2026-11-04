@@ -1,7 +1,7 @@
 {
   "name": "list",
   "group": "data",
-  "order": 110,
+  "order": 180,
   "docsOrder": 90,
   "need": "Show label and value pairs, short record lists or runs of small counts",
   "tier": 1,
@@ -47,10 +47,7 @@
     "status"
   ],
   "context": [
-    "card",
-    "chip",
     "ripple",
-    "tile",
     "utilities"
   ],
   "hooks": {

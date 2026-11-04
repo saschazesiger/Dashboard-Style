@@ -460,8 +460,8 @@ export function withBanner(path, text, info) {
  * The core stylesheets (src/core/<name>.css) in cascade order: the tokens,
  * the option classes (options.css, in ds.utilities), the motion keyframes
  * and utilities, the page base, and the rules for every element of
- * .ds-theme (global.css, in ds.components, so it comes right before the
- * first component).
+ * .ds-theme (global.css, in ds.components.global, the first sublayer of
+ * ds.components, so every component may override it).
  */
 export const CORE = ['tokens', 'options', 'motion', 'base', 'global'];
 
@@ -614,9 +614,16 @@ function cssName(path) {
   return path.replace(/^src\/(core\/|components\/[\w-]+\/)?/, '').replace(/\.css$/, '');
 }
 
-/** `@layer ds.components.<a>, ds.components.<b>, ...;` in cascade order. */
+/**
+ * The sublayers of ds.components that hold no component: global.css, first
+ * (the rules for every element of .ds-theme, which every component may
+ * override).
+ */
+export const CORE_SUBLAYERS = ['global'];
+
+/** `@layer ds.components.global, ds.components.<a>, ds.components.<b>, ...;` in cascade order. */
 export function sublayerStatement(list) {
-  return `@layer ${list.map((component) => `ds.components.${component.name}`).join(', ')};`;
+  return `@layer ${[...CORE_SUBLAYERS, ...list.map((component) => component.name)].map((name) => `ds.components.${name}`).join(', ')};`;
 }
 
 /** The hooks of the "Component hooks" table of docs/theming.md (its first column). */
@@ -662,6 +669,48 @@ export function cssFacts(css, { hooks = [], keyframes = [] } = {}) {
     keyframes: sorted(keyframes.filter((name) => new RegExp(`(?<![\\w.-])${name}(?![\\w-])`).test(uses))),
     defines: sorted(defines),
   };
+}
+
+/**
+ * A selector without its :not() and :has() arguments: a class there only
+ * narrows what the rule matches (an element that is not one, or that holds
+ * one), so the rule never competes with that component's own rules.
+ */
+export function withoutConditions(selector) {
+  let rest = selector;
+  for (let at = rest.search(/:(not|has)\(/); at >= 0; at = rest.search(/:(not|has)\(/)) {
+    let depth = 0;
+    let end = rest.indexOf('(', at) + 1;
+    for (; end < rest.length; end += 1) {
+      if (rest[end] === '(') depth += 1;
+      else if (rest[end] === ')') {
+        if (depth === 0) break;
+        depth -= 1;
+      }
+    }
+    rest = rest.slice(0, at) + rest.slice(end + 1);
+  }
+  return rest;
+}
+
+/**
+ * The cascade facts of a component stylesheet: `outside`, every rule (or
+ * at-rule statement) that is not in its own sublayer,
+ * ds.components.<name> (the layer statement first aside), and `names`,
+ * every selector with the ds- classes it names outside :not() and :has()
+ * (withoutConditions).
+ */
+export function cascadeFacts(css, name) {
+  const { rules, statements } = scan(css);
+  const own = `@layer ds.components.${name}`;
+  const outside = [
+    ...statements.filter((statement, index) => !(index === 0 && `${statement.text};` === LAYERS)).map((statement) => `line ${statement.line}: ${statement.text}`),
+    ...rules.filter((rule) => rule.context[0] !== own).map((rule) => `line ${rule.line}: ${rule.selector}`),
+  ];
+  const names = rules.flatMap((rule) => selectorList(rule.selector).map((selector) => ({
+    selector, line: rule.line, classes: [...new Set([...withoutConditions(selector).matchAll(/\.(ds-[\w-]+)/g)].map((match) => match[1]))],
+  })));
+  return { outside, names };
 }
 
 /** The entries of a stylesheet's "Progressive:" header note, one string each. */
@@ -840,6 +889,7 @@ export function verifyComponents(list = components()) {
   const describedBy = new Map();
   const defined = new Map(cssFacts(repoText('src/core/motion.css')).defines.map((keyframe) => [keyframe, 'src/core/motion.css']));
   for (const { name, meta } of list) for (const hook of ownedHooks(meta)) describedBy.set(hook, [...(describedBy.get(hook) ?? []), name]);
+  const stateClasses = new Map(list.map((component) => [component.name, component.meta.stateClasses ?? []]));
   const listedHosts = new Set(list.filter((component) => component.meta.rippleHosts?.length).map((component) => component.name));
   const hosts = new Set([...listedHosts, ...rippleHosts().map((selector) => owner.get(/\.(ds-[\w-]+)/.exec(selector)?.[1])).filter(Boolean)]);
   const same = (field, listed, found, where, order = true) => {
@@ -853,6 +903,9 @@ export function verifyComponents(list = components()) {
     const { name, meta, css, md } = component;
     const where = `src/components/${name}/meta.json`;
     if (meta.name !== name) problems.push(`${where}: "name" is "${meta.name}", the folder "${name}"`);
+    if (CORE_SUBLAYERS.includes(name)) problems.push(`${where}: ds.components.${name} is the sublayer of src/core/${name}.css: name the component otherwise`);
+    for (const cls of meta.stateClasses ?? []) if (!meta.classes.includes(cls)) problems.push(`${where}: "stateClasses" lists .${cls}, which is not one of its "classes"`);
+    if (meta.stateClasses && [...meta.stateClasses].sort().join() !== meta.stateClasses.join()) problems.push(`${where}: "stateClasses" is not sorted`);
     if (orders.has(meta.order)) problems.push(`${where}: "order" ${meta.order} is also ${orders.get(meta.order)}'s`);
     else orders.set(meta.order, name);
     if (md === null && meta.docsOrder !== null) problems.push(`${where}: "docsOrder" is null without ${name}.md`);
@@ -871,8 +924,27 @@ export function verifyComponents(list = components()) {
       if (meta.classes.includes(cls) || coreClasses.has(cls)) continue;
       const other = owner.get(cls);
       if (!other) problems.push(`${css} styles .${cls}, which no meta.json lists: add it to "classes" of the component that owns it`);
+      else if (stateClasses.get(other).includes(cls)) continue;
       else if (!meta.requires.includes(other) && !meta.context.includes(other)) problems.push(`${where}: ${css} styles .${cls} of ${other}: add "${other}" to "context" (or to "requires" when ${name} needs it)`);
     }
+    const named = new Set(styled.classes.filter((cls) => !meta.classes.includes(cls) && owner.has(cls) && !stateClasses.get(owner.get(cls)).includes(cls)).map((cls) => owner.get(cls)));
+    const stale = meta.context.filter((other) => !named.has(other));
+    if (stale.length) problems.push(`${where}: "context" lists ${stale.join(', ')}, whose classes ${css} does not name`);
+    // The cascade: every rule in the component's own sublayer, and a rule that names another component's class
+    // (outside :not() and :has(), a state class aside) comes after that component's rules, so it wins by layer
+    // as it did by specificity (plans/3.0-conventions.md, section 1).
+    const cascade = cascadeFacts(repoText(css), name);
+    for (const entry of cascade.outside) problems.push(`${css}: ${entry} sits outside @layer ds.components.${name} (one block holds every rule; @property and @font-face stay at the top level)`);
+    const late = new Map();
+    for (const { selector, line, classes } of cascade.names) {
+      for (const cls of classes) {
+        const other = owner.get(cls);
+        if (!other || other === name || stateClasses.get(other).includes(cls)) continue;
+        const theirs = list.find((entry) => entry.name === other).meta.order;
+        if (theirs > meta.order && !late.has(`${other} ${line}`)) late.set(`${other} ${line}`, `${css}: line ${line}: ${selector} names .${cls} of ${other}, whose sublayer comes later (order ${theirs} > ${meta.order}): move the rule to ${other}'s stylesheet (the component that gives the context), or order ${name} after ${other}`);
+      }
+    }
+    problems.push(...late.values());
     same('attributes', meta.attributes, styled.attributes, where);
     // Hooks: in the docs/theming.md order, so not sorted; each described once.
     same('hooks', Object.keys(meta.hooks), styled.hooks, where, false);
@@ -937,7 +1009,7 @@ const INDEX_HEADER = `/*
  * after it.
  *
  * Order: tokens, motion, the opt-in page base, then components from the
- * smallest building blocks to the app frame.
+ * smallest building blocks to the containers and the app frame.
  *
  * Cascade layers: every stylesheet starts with the same layer statement
  * (so a single file keeps the order too) and puts its rules into one of
@@ -947,22 +1019,21 @@ const INDEX_HEADER = `/*
  * declared before this file (@layer reset;). @property and @font-face
  * stay outside the layers.
  *
- * Sublayers (reserved): the second statement declares one sublayer per
- * component, ds.components.<name>, in this order, and every file of
- * dist/css/ and every bundle carries it, so the order is fixed by the
- * first stylesheet a page loads. The components do not use them yet: their
- * rules still sit directly in ds.components, which beats every (empty)
- * sublayer, so the statement changes nothing today. Moving a component into
- * its sublayer makes a later component win over an earlier one whatever
- * the specificity, and 2.x relies on the opposite in places: zero-weight
- * :where() defaults of one file that a later file's heavier rule overrides
- * the other way round (the ripple host's position, the spacing of card
- * children against the lists, a button's hover colour inside an alert, a
- * fieldset after a card subtitle). Those pairs form cycles, so no order
- * of sublayers keeps today's cascade; each component moves into its
- * sublayer when it is ported and its pairs are resolved. Until then a
- * page that links single files links them in this order (css/index.css),
- * and a bundle writes them in it.
+ * Sublayers: the second statement declares ds.components.global (the
+ * rules for every element of .ds-theme, global.css) and one sublayer per
+ * component, ds.components.<name>, in this order. Every component puts
+ * all its rules into its own sublayer, and every file of dist/css/ and
+ * every bundle carries the statement, so the first stylesheet a page loads
+ * fixes the order: single files linked in any order, a partial bundle and
+ * several bundles on one page cascade exactly as ds.css does. A later
+ * component wins over an earlier one whatever the specificity, so a rule
+ * that names another component's class sits in the later of the two: the
+ * component that gives the context (a card for what sits in it) comes
+ * after what it places, and the build fails a stylesheet that names a
+ * class of a later component (outside :not() and :has(); the ripple's
+ * state classes aside) or a rule outside its own sublayer. ripple comes
+ * last: the ripple's own box and its press rules for the 2.x hosts win
+ * over every host (plans/3.0-conventions.md, section 1).
  */
 `;
 
@@ -1589,8 +1660,9 @@ function moduleFacts(list) {
 /**
  * dist/manifest.json, for tools/bundle.mjs and check-project:
  *   name, version     the package
- *   layers, sublayers the two statements every bundle starts with (the
- *                     sublayers are reserved: see INDEX_HEADER)
+ *   layers, sublayers the two statements every bundle starts with: the
+ *                     layers, then ds.components.global and one sublayer
+ *                     per component in cascade order (INDEX_HEADER)
  *   core              the core stylesheets (css, min) and css/properties.css
  *   pseudo            tokens, motion and base as pseudo-components: the
  *                     classes, attributes and keyframes of the core
@@ -1598,8 +1670,8 @@ function moduleFacts(list) {
  *                     class of ds.css resolves to a file
  *   order             the components in cascade order
  *   components        per component: its files, the layer its rules sit in
- *                     (ds.components for now, so a bundle writes the
- *                     components in order), group, requires (what a
+ *                     (its own sublayer, ds.components.<name>), group,
+ *                     requires (what a
  *                     bundle resolves, transitively), context (styled where
  *                     both meet, never pulled in), classes,
  *                     attributes, keyframes, js, hooks, ripple, progressive,
@@ -1633,7 +1705,7 @@ export function manifestJson(list, sizes, info) {
       return [name, {
         css: `css/components/${name}.css`,
         min,
-        layer: 'ds.components',
+        layer: `ds.components.${name}`,
         group: meta.group,
         requires: meta.requires,
         context: meta.context,

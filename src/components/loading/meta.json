@@ -36,9 +36,7 @@
     "loader",
     "spinner"
   ],
-  "context": [
-    "page"
-  ],
+  "context": [],
   "hooks": {
     "--ds-input-height": {
       "owner": "form"

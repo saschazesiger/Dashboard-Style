@@ -147,9 +147,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.button {
   .ds-btn {
     /* The options, computed here (docs/options.md). The height: the hook
        (size md, comfortable) plus 8px per size step and 4px per density
@@ -594,7 +594,11 @@
    * Everything outside a content panel (the top bar, a page outside the
    * frame) and sheets and dialogs (which may sit inside one but are not
    * its width) follow the window instead; no container on new elements
-   * (layout containment would re-anchor popups).
+   * (layout containment would re-anchor popups). The window rule names the
+   * overlays only in its exclusion ("in a content panel and not in a sheet
+   * or dialog", at the weight of one class): they are a condition here,
+   * not a component this file styles, so button.css keeps its early
+   * sublayer.
    * Its accessible name stays the label; a data-tip names it to the eye
    * while it is folded. The 1px floor: Firefox can style the button
    * before its container's first layout and read that container as 0px
@@ -639,7 +643,7 @@
   }
 
   @media (max-width: 600px) {
-    .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) {
+    .ds-btn--adaptive:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) {
       --_box: max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px));
       --ds-btn-border: transparent;
       --ds-btn-bg: transparent;
@@ -651,16 +655,16 @@
       padding: 0;
     }
 
-    .ds-btn--adaptive.ds-btn--sm:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) {
+    .ds-btn--adaptive.ds-btn--sm:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) {
       --_box: max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px));
     }
 
-    .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) > svg {
+    .ds-btn--adaptive:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) > svg {
       width: 20px;
       height: 20px;
     }
 
-    .ds-btn--adaptive:is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *) .ds-btn__label {
+    .ds-btn--adaptive:not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *)) .ds-btn__label {
       position: absolute;
       top: 0;
       inset-inline-start: 0;

@@ -5,8 +5,8 @@
  * every other host presses at the default shape and at shape 0; the tab's
  * ripple box is the tab's layer at every option; the demo's row link stays on
  * the page; tone and the hook; keyboard; names; forced
- * colours; and the cascade: ripple.css played in a later layer than every
- * component, as sublayers will do, changes nothing (blocked hosts stay
+ * colours; and the cascade: ripple.css, in the last sublayer, played once
+ * more in a later layer than every component changes nothing (blocked hosts stay
  * unpressed, hosts keep their own position, a cell its own overflow). The
  * 2.x behaviour stays with test/browser/ripple.spec.js. Runs in `fallback`.
  */
@@ -312,11 +312,14 @@ test.describe('the cascade: ripple.css in a later layer than every component', (
     return { id: host.id, layer, rowLayer, position: getComputedStyle(surface).position };
   }));
 
-  /** The file as dist/ ships it, in ds.utilities: after every component, whatever the specificity. */
+  /**
+   * The file as dist/ ships it (its own sublayer, the last of ds.components), again in ds.utilities: after every
+   * component and every sublayer, whatever the specificity.
+   */
   const later = async (page) => {
     const css = await page.evaluate(() => fetch('/dist/css/components/ripple.css').then((response) => response.text()));
-    expect(css).toContain('@layer ds.components {');
-    await page.addStyleTag({ content: css.replace('@layer ds.components {', '@layer ds.utilities {') });
+    expect(css).toContain('@layer ds.components.ripple {');
+    await page.addStyleTag({ content: css.replace('@layer ds.components.ripple {', '@layer ds.utilities {') });
   };
 
   test('every host keeps its pressed layer and its own position; blocked hosts stay unpressed', async ({ page }) => {

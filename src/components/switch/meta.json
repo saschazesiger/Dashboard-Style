@@ -1,7 +1,7 @@
 {
   "name": "switch",
   "group": "forms",
-  "order": 240,
+  "order": 130,
   "docsOrder": 220,
   "need": "Turn a setting on or off, alone or in a list of settings",
   "tier": 1,
@@ -25,10 +25,7 @@
   ],
   "attributes": [],
   "requires": [],
-  "context": [
-    "ripple",
-    "spinner"
-  ],
+  "context": [],
   "hooks": {
     "--ds-switch-halo": {
       "default": "40px",

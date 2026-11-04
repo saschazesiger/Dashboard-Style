@@ -103,7 +103,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.loading {
   /* App start: appears only when the start takes a moment. */
   .ds-boot {
     min-height: 100svh;
@@ -364,15 +364,6 @@
       ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards,
       ds-progress-head var(--ds-loop-indeterminate) linear infinite,
       ds-progress-tail var(--ds-loop-indeterminate) linear infinite;
-  }
-
-  /* In a page (the skeleton of a loading page, a refresh above its
-     content) the bar also spans the page's centring: .ds-page is
-     min(100%, --ds-content-max) wide and centred in .ds-content, the
-     nearest size container, so 100cqw is the panel's content box. Sides
-     only, so the bottom margin of the 720px rule still applies. */
-  .ds-page .ds-loadbar {
-    margin-inline: calc(-1 * var(--ds-content-pad-x, var(--ds-space-8)) - max(0px, (100cqw - var(--ds-content-max)) / 2));
   }
 
   @media (max-width: 720px) {

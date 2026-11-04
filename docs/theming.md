@@ -255,6 +255,13 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-scroll-reel-item` | `min(80%, 280px)` | the width of each child of `.ds-scroll-x--reel` |
 | `--ds-scroll-reel-gap` | `--ds-space-4` | the gap of `.ds-scroll-x--reel`: the base, 2px less per density step |
 | `--ds-scroll-max-height` | none | the height from which `.ds-scroll-y` scrolls |
+| `--ds-spinner-size` | 16px | a spinner at md, before the size step |
+| `--ds-spinner-determinate-size` | 40px | `.ds-spinner--determinate` at md, before the size step |
+| `--ds-spinner-track`, `--ds-spinner-color` | none (`--ink`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--ink`: `currentColor`) | spinner: the track behind the arc, the arc |
+| `--ds-spinner-width` | 2px (`--determinate`: `--ds-spinner-determinate-width`) | the spinner's ring width (instead of `border-width`) |
+| `--ds-spinner-determinate-width` | a tenth of its size (4px at md) | the ring width of `.ds-spinner--determinate` |
+| `--ds-loader-size`, `--ds-loader-color` | 48px, `--ds-primary` | the shape loader's container at md, before the size step, and its shape ([shape loader](components.md#shape-loader)) |
+| `--ds-loader-sm-size` | 24px | `.ds-loader--sm`, both **deprecated**: `.ds-sm` |
 | `--ds-btn-height` | 40px | button: the base height (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); other components read it to line up with a button |
 | `--ds-btn-height-exact` | unset | button: a fixed height that ignores size and density (never the touch minimum) |
 | `--ds-btn-padding-x` | `--ds-space-4` (`--text`, `--ghost`, `--sm`: `--ds-space-3`) | button: the base side padding, 4px more or less per size step |
@@ -274,31 +281,8 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-sm-icon-size` | 32px | the fixed size of the deprecated `.ds-btn--sm.ds-btn--icon`; a `.ds-drawer__row` item keeps that much room for its action |
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
-| `--ds-spinner-size` | 16px | a spinner at md, before the size step |
-| `--ds-spinner-determinate-size` | 40px | `.ds-spinner--determinate` at md, before the size step |
-| `--ds-spinner-track`, `--ds-spinner-color` | none (`--ink`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--ink`: `currentColor`) | spinner: the track behind the arc, the arc |
-| `--ds-spinner-width` | 2px (`--determinate`: `--ds-spinner-determinate-width`) | the spinner's ring width (instead of `border-width`) |
-| `--ds-spinner-determinate-width` | a tenth of its size (4px at md) | the ring width of `.ds-spinner--determinate` |
-| `--ds-loader-size`, `--ds-loader-color` | 48px, `--ds-primary` | the shape loader's container at md, before the size step, and its shape ([shape loader](components.md#shape-loader)) |
-| `--ds-loader-sm-size` | 24px | `.ds-loader--sm`, both **deprecated**: `.ds-sm` |
 | `--ds-skeleton-radius` | `--ds-radius-action` (the heading line and a field: `--ds-radius-sm`; a media bone: `--ds-radius-card`) | the bones of a skeleton, times `--ds-shape` ([loading](components.md#loading)) |
 | `--ds-skeleton-media-ratio` | 16 / 9 | the aspect ratio of `.ds-skeleton__media` |
-| `--ds-card-padding` | `--ds-space-6` | card padding: the base, 2px less per density step |
-| `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
-| `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
-| `--ds-card-radius` | `--ds-radius-card` | card radius, times `--ds-shape` |
-| `--ds-card-radius-pressed` | `--ds-radius-card-pressed` | an interactive card while pressed (times `--ds-shape`; never rounder than at rest) |
-| `--ds-card-bg` | `--ds-surface` | the fill of `.ds-card` and `.ds-card--outlined` |
-| `--ds-card-border` | `--ds-line` | the hairline of a card and of `.ds-card__section` |
-| `--ds-card-filled-bg` | `--ds-surface-low` | the fill of `.ds-card--filled` |
-| `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button, switch or chip in the header row overhangs it, a status chip, badge or tag sits on it (set it with a type role that changes the subtitle line) |
-| `--ds-card-hover-shadow` | none (`--elevated`: its own shadow) | `.ds-card--interactive` on hover, not when blocked (a theme may set `var(--ds-elev-hover)`); never a lift |
-| `--ds-card-selected-bg` | `--ds-accent` | a selected interactive card |
-| `--ds-selected-ring` | `--ds-primary` | the inset ring of a selected tile or card |
-| `--ds-card-shadow` | `--ds-elev-1` | `.ds-card--elevated` |
-| `--ds-card-check-size` | `--ds-space-5` | the round mark of `.ds-card--selectable` |
-| `--ds-card-media-size` | 160px | `.ds-card__media` in the row of `.ds-card--horizontal` |
-| `--ds-card-body-min` | 240px | the room `.ds-card__body` asks for before a horizontal card wraps |
 | `--ds-disclosure-height` | 40px | a `.ds-disclosure` summary: the base height (size md, comfortable density) the size and density steps apply to; its rest radius is at most half of it |
 | `--ds-disclosure-row-height` | 48px | a `.ds-disclosure--row` summary: the base height |
 | `--ds-disclosure-radius` | `--ds-radius-action` | the plain summary (at most half the height, times `--ds-shape`) |
@@ -306,6 +290,52 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-disclosure-font` | `--ds-size-font` of the size class, else `--ds-font-label` | the summary |
 | `--ds-disclosure-row-padding` | `--ds-space-4` | the side padding of a row and its body: the base, 2px less per density step |
 | `--ds-disclosure-row-padding-exact` | unset | a fixed side padding that ignores density; a card sets it to `--ds-card-pad` so its rows run to its edges |
+| `--ds-timeline-indent` | `--ds-space-8` | how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it), 4px per size step |
+| `--ds-timeline-padding` | `--ds-space-3` (`--activity`: `--ds-space-2`) | an entry's block padding, 2px per density step |
+| `--ds-timeline-dot-size`, `--ds-timeline-dot-color` | 10px, `--ds-primary` | the dot of a timeline entry (2px per size step) |
+| `--ds-timeline-muted-color` | `--ds-outline` | the ring of a `.ds-timeline__item--muted` entry, around its dot or its marker |
+| `--ds-timeline-line-width`, `--ds-timeline-line-color` | 2px, `--ds-line` | the rail (and the width of a muted ring) |
+| `--ds-timeline-divider-color` | `--ds-line` | the hairline between entries |
+| `--ds-timeline-marker-size` | 24px | the disc of `.ds-timeline__marker`, 4px per size step; the rail runs through its centre |
+| `--ds-timeline-head-line` | 24px | the head line of an entry, on which its dot is centred (the height of a status chip), 4px per size step above md |
+| `--ds-timeline-comment-bg` | `--ds-surface-low` | the box of a `.ds-timeline__item--comment` entry's text |
+| `--ds-timeline-comment-radius` | `--ds-radius-card` | the box of a `.ds-timeline__item--comment` entry's text (times `--ds-shape`) |
+| `--ds-tasks-gap` | `--ds-space-2` | the space between the steps of a `.ds-tasks` list, 2px per size step and per density step |
+| `--ds-status-height` | 24px | a status chip's height at md, before size |
+| `--ds-status-radius` | `--ds-radius-md`, or half the height of a taller chip | status chip |
+| `--ds-tag-bg`, `--ds-tag-color` | `--ds-accent`, `--ds-on-accent` (a tone: its container pair; neutral `--ds-surface-high`, `--ds-text`) | a tag (`.ds-tag`) |
+| `--ds-tag-height` | 24px | a tag's height at md, before size (its radius is half of it) |
+| `--ds-status-spinner-width` | 2px | the ring width of the spinner in a running status chip |
+| `--ds-alert-bg`, `--ds-alert-color` | `--ds-surface-low`, `--ds-text` | the neutral alert (kinds set them from their own hooks) |
+| `--ds-alert-icon` | `--ds-primary` | the neutral alert's icon and edge colour |
+| `--ds-alert-edge` | 0 | the width of an alert's leading edge (`4px`: an edge in the icon colour) |
+| `--ds-alert-radius` | `--ds-radius-card` | an alert's corners, times `--ds-shape` |
+| `--ds-alert-padding-block`, `--ds-alert-padding-inline` | 12px, 16px (`--section`: 16px, 20px) | an alert's padding at md, before size and density |
+| `--ds-alert-success-bg`, `--ds-alert-success-color`, `--ds-alert-success-icon` | `--ds-success-container`, `--ds-on-success-container`, `--ds-success` | an alert in `.ds-tone-success` |
+| `--ds-alert-warning-bg`, `--ds-alert-warning-color`, `--ds-alert-warning-icon` | `--ds-warning-surface`, `--ds-text`, `--ds-warning` | an alert in `.ds-tone-warning` |
+| `--ds-alert-error-bg`, `--ds-alert-error-color`, `--ds-alert-error-icon` | `--ds-error-container`, `--ds-on-error-container`, `--ds-error` | an alert in `.ds-tone-error` (its buttons take `--ds-alert-error-color`) |
+| `--ds-alert-text-basis` | 256px | the narrowest text of an alert with `.ds-alert__actions` before the actions wrap |
+| `--ds-switch-halo` | 40px | the halo around the switch handle: the base, 8px per size step |
+| `--ds-switch-track-height` | 32px | the track: the base height, 4px per size step; the width (13 : 8), the handle, its travel and the icon follow |
+| `--ds-switch-height` | 40px | the smallest height of a switch row: the base that size and density steps apply to |
+| `--ds-switch-font` | the size's role, else `--ds-font-label` | the name of a switch |
+| `--ds-switch-list-row-height` | 56px | the smallest row of a `.ds-switch-list`: the base that size and density steps apply to |
+| `--ds-switch-disabled-track`, `--ds-switch-disabled-handle` | `--ds-disabled-fill`, `--ds-disabled-ink` | disabled switch track (and border) and off handle |
+| `--ds-slider-halo` | 40px | the halo around the slider handle (hover, press, focus), and the slider's height: the base that size and density steps apply to |
+| `--ds-slider-thumb-size` | 20px | the slider handle: the base, 4px per size step |
+| `--ds-slider-track-height` | 4px | the slider track: the base, 1px per size step |
+| `--ds-progress-height` | 4px | linear progress: the track's thickness at md, before the size step |
+| `--ds-progress-bar` | `--ds-primary` (a tone: `--ds-tone`) | linear progress: the bar, over any tone |
+| `--ds-progress-gap` | 4px | linear progress: the gap between the bar and the remaining track |
+| `--ds-progress-track`, `--ds-progress-stop` | `--ds-accent`, `--ds-primary` (a tone: `--ds-tone-container`, `--ds-tone`) | linear progress: the remaining track, the stop dot at its end |
+| `--ds-meter-height` | 4px | `.ds-meter`: the base height, 1px per size step (its rest radius is half of it) |
+| `--ds-meter-track`, `--ds-meter-color` | `--ds-chart-track`, `--ds-chart-1` (tones: `--ds-tone`, or `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`) | `.ds-meter`: the track, the fill |
+| `--ds-columns-height` | 120px | the plot of `.ds-columns` at size md, comfortable density: 24px per size step, 12px per density step (`--mini`: 32px) |
+| `--ds-columns-radius` | `--ds-radius-xs` | the rounded data end of a column (times `--ds-shape`) |
+| `--ds-columns-group-min` | 56px | the least width of a group of `.ds-columns--grouped` |
+| `--ds-chart-color` | `--ds-chart-1` (series and tone modifiers set it) | the colour of a column or a legend key |
+| `--ds-legend-key-size` | 12px | the key of a `.ds-legend` entry, 2px per size step |
+| `--ds-chart-forced-ink` | `CanvasText` | the fills of columns and legend keys in forced colours; a component that lays them on a system fill of its own sets it |
 | `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile (times `--ds-shape`) |
 | `--ds-tile-radius-pressed` | `--ds-radius-md` | a clickable tile while pressed (times `--ds-shape`; never rounder than the rest radius) |
 | `--ds-tile-padding` | `--ds-space-5`, on a phone `--ds-space-4` | a tile's padding (the head 4px less), 2px per density step |
@@ -327,17 +357,22 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-list-group-top` | 0px | where a `.ds-list__group` row sticks (the height of a sticky page head above it) |
 | `--ds-kv-list-padding` | `--ds-space-3` | the block padding of a `.ds-kv-list` row and of `.ds-facts--rows`, 4px per size step, 2px per density step |
 | `--ds-facts-label-width` | 36% | the label column of `.ds-facts--rows` |
-| `--ds-timeline-indent` | `--ds-space-8` | how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it), 4px per size step |
-| `--ds-timeline-padding` | `--ds-space-3` (`--activity`: `--ds-space-2`) | an entry's block padding, 2px per density step |
-| `--ds-timeline-dot-size`, `--ds-timeline-dot-color` | 10px, `--ds-primary` | the dot of a timeline entry (2px per size step) |
-| `--ds-timeline-muted-color` | `--ds-outline` | the ring of a `.ds-timeline__item--muted` entry, around its dot or its marker |
-| `--ds-timeline-line-width`, `--ds-timeline-line-color` | 2px, `--ds-line` | the rail (and the width of a muted ring) |
-| `--ds-timeline-divider-color` | `--ds-line` | the hairline between entries |
-| `--ds-timeline-marker-size` | 24px | the disc of `.ds-timeline__marker`, 4px per size step; the rail runs through its centre |
-| `--ds-timeline-head-line` | 24px | the head line of an entry, on which its dot is centred (the height of a status chip), 4px per size step above md |
-| `--ds-timeline-comment-bg` | `--ds-surface-low` | the box of a `.ds-timeline__item--comment` entry's text |
-| `--ds-timeline-comment-radius` | `--ds-radius-card` | the box of a `.ds-timeline__item--comment` entry's text (times `--ds-shape`) |
-| `--ds-tasks-gap` | `--ds-space-2` | the space between the steps of a `.ds-tasks` list, 2px per size step and per density step |
+| `--ds-card-padding` | `--ds-space-6` | card padding: the base, 2px less per density step |
+| `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
+| `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
+| `--ds-card-radius` | `--ds-radius-card` | card radius, times `--ds-shape` |
+| `--ds-card-radius-pressed` | `--ds-radius-card-pressed` | an interactive card while pressed (times `--ds-shape`; never rounder than at rest) |
+| `--ds-card-bg` | `--ds-surface` | the fill of `.ds-card` and `.ds-card--outlined` |
+| `--ds-card-border` | `--ds-line` | the hairline of a card and of `.ds-card__section` |
+| `--ds-card-filled-bg` | `--ds-surface-low` | the fill of `.ds-card--filled` |
+| `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button, switch or chip in the header row overhangs it, a status chip, badge or tag sits on it (set it with a type role that changes the subtitle line) |
+| `--ds-card-hover-shadow` | none (`--elevated`: its own shadow) | `.ds-card--interactive` on hover, not when blocked (a theme may set `var(--ds-elev-hover)`); never a lift |
+| `--ds-card-selected-bg` | `--ds-accent` | a selected interactive card |
+| `--ds-selected-ring` | `--ds-primary` | the inset ring of a selected tile or card |
+| `--ds-card-shadow` | `--ds-elev-1` | `.ds-card--elevated` |
+| `--ds-card-check-size` | `--ds-space-5` | the round mark of `.ds-card--selectable` |
+| `--ds-card-media-size` | 160px | `.ds-card__media` in the row of `.ds-card--horizontal` |
+| `--ds-card-body-min` | 240px | the room `.ds-card__body` asks for before a horizontal card wraps |
 | `--ds-prose-gap` | `--ds-space-2` (`--compact`: `--ds-space-1`) | the gap between blocks of `.ds-prose`: the base, 1px less per density step |
 | `--ds-prose-font` | `--ds-font-reading` (`--dense`, `--compact`: `--ds-font-body`) | the text of `.ds-prose` |
 | `--ds-prose-strong-weight` | `--ds-weight-label` | `strong` and `b` in `.ds-prose` |
@@ -347,20 +382,41 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-empty-disc-bg`, `--ds-empty-disc-color` | `--ds-accent`, `--ds-on-accent-icon` (a cause or tone: its pair) | the disc's fill and glyph, over any cause or tone |
 | `--ds-empty-padding` | 32px (`--page`: 96px, twice this hook or 48px) | an empty state's block padding at md, before size and density (`--inline` has its own, 12px) |
 | `--ds-empty-media-size` | 120px (`--page`: 160px, `--inline`: 32px) | the height of `.ds-empty__media`, the slot for a picture |
-| `--ds-status-height` | 24px | a status chip's height at md, before size |
-| `--ds-status-radius` | `--ds-radius-md`, or half the height of a taller chip | status chip |
-| `--ds-tag-bg`, `--ds-tag-color` | `--ds-accent`, `--ds-on-accent` (a tone: its container pair; neutral `--ds-surface-high`, `--ds-text`) | a tag (`.ds-tag`) |
-| `--ds-tag-height` | 24px | a tag's height at md, before size (its radius is half of it) |
-| `--ds-status-spinner-width` | 2px | the ring width of the spinner in a running status chip |
-| `--ds-alert-bg`, `--ds-alert-color` | `--ds-surface-low`, `--ds-text` | the neutral alert (kinds set them from their own hooks) |
-| `--ds-alert-icon` | `--ds-primary` | the neutral alert's icon and edge colour |
-| `--ds-alert-edge` | 0 | the width of an alert's leading edge (`4px`: an edge in the icon colour) |
-| `--ds-alert-radius` | `--ds-radius-card` | an alert's corners, times `--ds-shape` |
-| `--ds-alert-padding-block`, `--ds-alert-padding-inline` | 12px, 16px (`--section`: 16px, 20px) | an alert's padding at md, before size and density |
-| `--ds-alert-success-bg`, `--ds-alert-success-color`, `--ds-alert-success-icon` | `--ds-success-container`, `--ds-on-success-container`, `--ds-success` | an alert in `.ds-tone-success` |
-| `--ds-alert-warning-bg`, `--ds-alert-warning-color`, `--ds-alert-warning-icon` | `--ds-warning-surface`, `--ds-text`, `--ds-warning` | an alert in `.ds-tone-warning` |
-| `--ds-alert-error-bg`, `--ds-alert-error-color`, `--ds-alert-error-icon` | `--ds-error-container`, `--ds-on-error-container`, `--ds-error` | an alert in `.ds-tone-error` (its buttons take `--ds-alert-error-color`) |
-| `--ds-alert-text-basis` | 256px | the narrowest text of an alert with `.ds-alert__actions` before the actions wrap |
+| `--ds-menu-item-height` | 48px | menu item (and action sheet row) at size md and the comfortable density |
+| `--ds-menu-font` | `--ds-size-font`, else `--ds-font-body` | the items' type |
+| `--ds-menu-padding` | `--ds-space-2` | the menu's block padding at the comfortable density |
+| `--ds-menu-radius` | `--ds-radius-xs` | the menu's radius at the default shape |
+| `--ds-menu-danger-color` | `--ds-error` | the ink of `.ds-menu__item--danger` |
+| `--ds-chip-height` | 32px | a chip: the base height (size md, comfortable density) that size and density steps apply to ([options.md](options.md)) |
+| `--ds-chip-padding-x` | `--ds-space-4` | a chip: the base side padding, 4px per size step; next to a check, icon or glyph 8px less |
+| `--ds-chip-radius` | `--ds-radius-chip` | a chip (at most half the height, times `--ds-shape`) |
+| `--ds-chip-font` | the size's role, else `--ds-font-chip` | the label of a chip |
+| `--ds-chip-check-size` | 18px | the check of a selected chip (and the room it opens), its icon and trailing glyph: the base, 2px per size step |
+| `--ds-chip-disabled-border`, `--ds-chip-disabled-bg` | `--ds-disabled-fill` | disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`) |
+| `--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border` | `--ds-accent`, `--ds-on-accent`, `--ds-accent` | an input chip (`.ds-chip--input`): fill, ink, edge |
+| `--ds-chip-max-width` | 240px | the widest body of an action or input chip; its label ends in an ellipsis |
+| `--ds-badge-size` | 20px | a count badge (`.ds-badge`): height and smallest width at md |
+| `--ds-badge-dot-size` | 8px | `.ds-badge--dot` at md |
+| `--ds-badge-radius` | `--ds-radius-action` (never above half the size) | a count badge's corners |
+| `--ds-badge-bg`, `--ds-badge-color` | `--ds-accent`, `--ds-on-accent` (tones: their container pair; a dot: `--ds-primary`, a tone's full colour; on a tinted host `--ds-primary`, `--ds-on-primary`) | a badge's fill and figure |
+| `--ds-sheet-width`, `--ds-sheet-width-wide` | 560px, 720px | side sheet |
+| `--ds-sheet-foot-border` | `1px solid var(--ds-line)` | the hairline above `.ds-sheet__foot` |
+| `--ds-sheet-padding` | `--ds-space-6` | the side padding of head, body and foot at the comfortable density |
+| `--ds-sheet-head-height` | 64px | `.ds-sheet__head` at the comfortable density |
+| `--ds-sheet-radius` | `--ds-radius-dialog` | the panel's leading corners at the default shape |
+| `--ds-dialog-width` | 400px | dialog |
+| `--ds-dialog-width-sm` | 320px | `.ds-dialog--sm` |
+| `--ds-dialog-width-lg` | 560px | `.ds-dialog--lg` |
+| `--ds-dialog-width-xl` | 720px | `.ds-dialog--xl` |
+| `--ds-dialog-width-wide` | 560px | **deprecated** name of `--ds-dialog-width-lg`, read after it |
+| `--ds-dialog-padding` | `--ds-space-6` | the box's padding at the comfortable density |
+| `--ds-dialog-radius` | `--ds-radius-dialog` | the box's radius at the default shape |
+| `--ds-dialog-head-height` | 56px | `.ds-dialog__head` at the comfortable density |
+| `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
+| `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
+| `--ds-dialog-scrim` | `--ds-scrim` | the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested` |
+| `--ds-dialog-height` | auto (capped by the window) | the dialog box; a fixed height keeps a box with a filtered list from jumping |
+| `--ds-dialog-full-radius` | 0px | the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`) |
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
 | `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
 | `--ds-table-head-height` | 48px | table header cells: the base (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); the block padding follows |
@@ -400,68 +456,15 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-dropzone-padding` | `--ds-space-6` | `.ds-dropzone`: the block padding at comfortable density, 2px less per density step (the inline padding stays `--ds-space-5`) |
 | `--ds-dropzone-radius` | `--ds-radius-card` | `.ds-dropzone`, times `--ds-shape` |
 | `--ds-file-button-height` | 32px | the browser's button in `.ds-input[type="file"]`: the base height that size and density steps apply to |
-| `--ds-chip-height` | 32px | a chip: the base height (size md, comfortable density) that size and density steps apply to ([options.md](options.md)) |
-| `--ds-chip-padding-x` | `--ds-space-4` | a chip: the base side padding, 4px per size step; next to a check, icon or glyph 8px less |
-| `--ds-chip-radius` | `--ds-radius-chip` | a chip (at most half the height, times `--ds-shape`) |
-| `--ds-chip-font` | the size's role, else `--ds-font-chip` | the label of a chip |
-| `--ds-chip-check-size` | 18px | the check of a selected chip (and the room it opens), its icon and trailing glyph: the base, 2px per size step |
-| `--ds-chip-disabled-border`, `--ds-chip-disabled-bg` | `--ds-disabled-fill` | disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`) |
-| `--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border` | `--ds-accent`, `--ds-on-accent`, `--ds-accent` | an input chip (`.ds-chip--input`): fill, ink, edge |
-| `--ds-chip-max-width` | 240px | the widest body of an action or input chip; its label ends in an ellipsis |
-| `--ds-badge-size` | 20px | a count badge (`.ds-badge`): height and smallest width at md |
-| `--ds-badge-dot-size` | 8px | `.ds-badge--dot` at md |
-| `--ds-badge-radius` | `--ds-radius-action` (never above half the size) | a count badge's corners |
-| `--ds-badge-bg`, `--ds-badge-color` | `--ds-accent`, `--ds-on-accent` (tones: their container pair; a dot: `--ds-primary`, a tone's full colour; on a tinted host `--ds-primary`, `--ds-on-primary`) | a badge's fill and figure |
-| `--ds-switch-halo` | 40px | the halo around the switch handle: the base, 8px per size step |
-| `--ds-switch-track-height` | 32px | the track: the base height, 4px per size step; the width (13 : 8), the handle, its travel and the icon follow |
-| `--ds-switch-height` | 40px | the smallest height of a switch row: the base that size and density steps apply to |
-| `--ds-switch-font` | the size's role, else `--ds-font-label` | the name of a switch |
-| `--ds-switch-list-row-height` | 56px | the smallest row of a `.ds-switch-list`: the base that size and density steps apply to |
-| `--ds-switch-disabled-track`, `--ds-switch-disabled-handle` | `--ds-disabled-fill`, `--ds-disabled-ink` | disabled switch track (and border) and off handle |
-| `--ds-slider-halo` | 40px | the halo around the slider handle (hover, press, focus), and the slider's height: the base that size and density steps apply to |
-| `--ds-slider-thumb-size` | 20px | the slider handle: the base, 4px per size step |
-| `--ds-slider-track-height` | 4px | the slider track: the base, 1px per size step |
 | `--ds-combo-option-height` | 48px | combobox option: the base height (size md, comfortable density) that size and density steps apply to; a least height, its text may need more |
 | `--ds-combo-radius` | `--ds-radius-xs` | the corners of the combobox list, times `--ds-shape` |
-| `--ds-menu-item-height` | 48px | menu item (and action sheet row) at size md and the comfortable density |
-| `--ds-menu-font` | `--ds-size-font`, else `--ds-font-body` | the items' type |
-| `--ds-menu-padding` | `--ds-space-2` | the menu's block padding at the comfortable density |
-| `--ds-menu-radius` | `--ds-radius-xs` | the menu's radius at the default shape |
-| `--ds-menu-danger-color` | `--ds-error` | the ink of `.ds-menu__item--danger` |
-| `--ds-progress-height` | 4px | linear progress: the track's thickness at md, before the size step |
-| `--ds-progress-bar` | `--ds-primary` (a tone: `--ds-tone`) | linear progress: the bar, over any tone |
-| `--ds-progress-gap` | 4px | linear progress: the gap between the bar and the remaining track |
-| `--ds-progress-track`, `--ds-progress-stop` | `--ds-accent`, `--ds-primary` (a tone: `--ds-tone-container`, `--ds-tone`) | linear progress: the remaining track, the stop dot at its end |
-| `--ds-meter-height` | 4px | `.ds-meter`: the base height, 1px per size step (its rest radius is half of it) |
-| `--ds-meter-track`, `--ds-meter-color` | `--ds-chart-track`, `--ds-chart-1` (tones: `--ds-tone`, or `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`) | `.ds-meter`: the track, the fill |
-| `--ds-columns-height` | 120px | the plot of `.ds-columns` at size md, comfortable density: 24px per size step, 12px per density step (`--mini`: 32px) |
-| `--ds-columns-radius` | `--ds-radius-xs` | the rounded data end of a column (times `--ds-shape`) |
-| `--ds-columns-group-min` | 56px | the least width of a group of `.ds-columns--grouped` |
-| `--ds-chart-color` | `--ds-chart-1` (series and tone modifiers set it) | the colour of a column or a legend key |
-| `--ds-legend-key-size` | 12px | the key of a `.ds-legend` entry, 2px per size step |
-| `--ds-chart-forced-ink` | `CanvasText` | the fills of columns and legend keys in forced colours; a component that lays them on a system fill of its own sets it |
-| `--ds-sheet-width`, `--ds-sheet-width-wide` | 560px, 720px | side sheet |
-| `--ds-sheet-foot-border` | `1px solid var(--ds-line)` | the hairline above `.ds-sheet__foot` |
-| `--ds-sheet-padding` | `--ds-space-6` | the side padding of head, body and foot at the comfortable density |
-| `--ds-sheet-head-height` | 64px | `.ds-sheet__head` at the comfortable density |
-| `--ds-sheet-radius` | `--ds-radius-dialog` | the panel's leading corners at the default shape |
-| `--ds-dialog-width` | 400px | dialog |
-| `--ds-dialog-width-sm` | 320px | `.ds-dialog--sm` |
-| `--ds-dialog-width-lg` | 560px | `.ds-dialog--lg` |
-| `--ds-dialog-width-xl` | 720px | `.ds-dialog--xl` |
-| `--ds-dialog-width-wide` | 560px | **deprecated** name of `--ds-dialog-width-lg`, read after it |
-| `--ds-dialog-padding` | `--ds-space-6` | the box's padding at the comfortable density |
-| `--ds-dialog-radius` | `--ds-radius-dialog` | the box's radius at the default shape |
-| `--ds-dialog-head-height` | 56px | `.ds-dialog__head` at the comfortable density |
-| `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
-| `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
-| `--ds-dialog-scrim` | `--ds-scrim` | the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested` |
-| `--ds-dialog-height` | auto (capped by the window) | the dialog box; a fixed height keeps a box with a filtered list from jumping |
-| `--ds-dialog-full-radius` | 0px | the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`) |
-| `--ds-toast-action-color` | `--ds-inverse-primary` | a text button in a snackbar (`.ds-toast__action`, Undo) |
-| `--ds-toast-close-size` | 36px | the close button of a snackbar |
-| `--ds-toast-radius` | `--ds-radius-sm` | a snackbar's radius at the default shape |
 | `--ds-tooltip-radius` | `--ds-radius-xs` | the tooltip's radius at the default shape |
+| `--ds-stack-gap`, `--ds-stack-gap-page` | `--ds-space-4`, `--ds-space-5` | `.ds-stack`; a stack directly in the page and `.ds-stack--page` |
+| `--ds-page-head-text-basis` | 320px | the room the page head's title and lead take before the actions wrap under them |
+| `--ds-page-head-title-line` | 32px | the title line the page head's actions centre on (set it with a theme that changes `--ds-font-headline`) |
+| `--ds-breadcrumbs-item-max` | 240px | a breadcrumb item before its ellipsis |
+| `--ds-breadcrumbs-font` | the size's role, `--ds-font-label` | the type of the breadcrumbs |
+| `--ds-auth-width` | 400px | the card of `.ds-auth` |
 | `--ds-drawer-item-height` | 48px | drawer item at size md and comfortable (8px per size step, 4px per density step; its rest radius is half of what it computes to, so the press morph runs its whole way) |
 | `--ds-topbar-scrolled-bg` | `--ds-surface-high` | top bar while the view is scrolled (`data-scrolled`); `transparent` keeps a flat bar |
 | `--ds-view-scrollbar-gutter` | `stable` | the view's scrollbar gutter: `stable both-edges` (symmetric) or `auto` (no reserved room) |
@@ -482,13 +485,9 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-steps-mark-size` | `--ds-space-6` | a step's mark at size md (4px per size step) |
 | `--ds-steps-font` | the size's role, `--ds-font-body` | the type of a step (always at the regular weight; the current label takes the label weight) |
 | `--ds-steps-gap` | `--ds-space-5` | the room between the steps of `.ds-steps--vertical` (2px per density step) |
-| `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
-| `--ds-stack-gap`, `--ds-stack-gap-page` | `--ds-space-4`, `--ds-space-5` | `.ds-stack`; a stack directly in the page and `.ds-stack--page` |
-| `--ds-page-head-text-basis` | 320px | the room the page head's title and lead take before the actions wrap under them |
-| `--ds-page-head-title-line` | 32px | the title line the page head's actions centre on (set it with a theme that changes `--ds-font-headline`) |
-| `--ds-breadcrumbs-item-max` | 240px | a breadcrumb item before its ellipsis |
-| `--ds-breadcrumbs-font` | the size's role, `--ds-font-label` | the type of the breadcrumbs |
-| `--ds-auth-width` | 400px | the card of `.ds-auth` |
+| `--ds-toast-action-color` | `--ds-inverse-primary` | a text button in a snackbar (`.ds-toast__action`, Undo) |
+| `--ds-toast-close-size` | 36px | the close button of a snackbar |
+| `--ds-toast-radius` | `--ds-radius-sm` | a snackbar's radius at the default shape |
 | `--ds-savebar-offset` | `--ds-space-4` | save bar: distance from the view's bottom edge |
 | `--ds-savebar-inset` | the page pad (`--ds-content-pad-x`) | save bar: distance from the view's sides (the bar is at most `--ds-content-max` wide) |
 | `--ds-savebar-min-height` | 56px | save bar: the base of its least height (size md, comfortable density) |
@@ -496,6 +495,7 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-savebar-bg`, `--ds-savebar-shadow` | `--ds-surface-popover`, `--ds-elev-overlay` | save bar surface and elevation |
 | `--ds-savebar-bleed` | `--ds-content-pad-x` | `.ds-savebar--inline`: how far the bar runs beyond its form on both sides; set it to the inline padding of a container of the page's own |
 | `--ds-savebar-room` | its least height at the largest size, `--ds-space-8`, `--ds-space-2` and the safe area | `.ds-savebar--inline`: the room its scroller and the snackbars keep clear of it; set it for a bar taller than two rows |
+| `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
 <!-- /generated: hooks -->
 
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not

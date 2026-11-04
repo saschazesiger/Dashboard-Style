@@ -65,13 +65,13 @@ function hoverOutsideHoverBlocks(css) {
 
 /** The order statement every stylesheet of src/ starts with (dist/ds.css keeps one). */
 const LAYER_STATEMENT = '@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;';
-/** The layer block(s) of each file; every other file of src/components/ is ds.components. */
+/** The layer block(s) of each file; every other file, src/components/<name>/<name>.css, is ds.components.<name>. */
 const LAYERS_OF = {
   'src/core/tokens.css': ['ds.tokens'],
   'src/core/options.css': ['ds.utilities'],
   'src/core/base.css': ['ds.base'],
   'src/core/motion.css': ['ds.motion', 'ds.utilities'],
-  'src/core/global.css': ['ds.components'],
+  'src/core/global.css': ['ds.components.global'],
   'src/optional/view-transitions.css': ['ds.utilities'],
   ...Object.fromEntries(KEYFRAME_FILES.map((file) => [file, ['ds.motion']])),
 };
@@ -1026,9 +1026,9 @@ describe('CSS for the baseline', () => {
   it('puts every rule of src/ into its file\'s layer (only @property stays outside)', () => {
     for (const file of SRC_CSS) {
       const items = topLevel(stripComments(read(file))).slice(1);
-      // Components stay directly in ds.components: the sublayers that src/index.css declares are reserved
-      // (empty) until the components no longer outweigh a later one by specificity (scripts/build.mjs, INDEX_HEADER).
-      const expected = file === 'src/index.css' ? [] : LAYERS_OF[file] || ['ds.components'];
+      // A component's rules sit in its own sublayer, so its place in the cascade is its sublayer's (scripts/build.mjs, INDEX_HEADER).
+      const component = /^src\/components\/([\w-]+)\/\1\.css$/.exec(file)?.[1];
+      const expected = file === 'src/index.css' ? [] : LAYERS_OF[file] || [`ds.components.${component}`];
       // @view-transition is a document-wide at-rule, only in the opt-in src/optional/ files.
       const blocks = items.filter((item) => item.body !== undefined && !/^@property\s/.test(item.prelude) && !(file.startsWith('src/optional/') && item.prelude === '@view-transition'));
       assert.deepEqual(blocks.map((item) => item.prelude), expected.map((name) => `@layer ${name}`), file);
@@ -2438,12 +2438,12 @@ describe('app frame, page and base (2.0)', () => {
     for (const file of [SHELL, 'src/components/tabs/tabs.css']) assert.match(blocks(file), /\[aria-disabled="true"\][^{]*\{[^}]*GrayText/, `${file}: blocked is GrayText`);
   });
 
-  it('imports tabs and steps after the shell and prose after the lists, the timeline and the tasks', () => {
+  it('imports tabs and steps right after the shell and prose after the lists, the timeline and the tasks', () => {
     const order = [...read('src/index.css').matchAll(/@import '\.\/components\/([\w-]+)\/[\w-]+\.css'/g)].map((match) => match[1]);
     assert.equal(order.indexOf('tabs'), order.indexOf('shell') + 1);
     assert.equal(order.indexOf('steps'), order.indexOf('tabs') + 1);
-    // The lists of 2.0 (list, timeline, tasks) stay together; prose follows the last of them.
-    assert.equal(order.indexOf('prose'), Math.max(...['list', 'timeline', 'tasks'].map((name) => order.indexOf(name))) + 1);
+    // Prose comes after the lists of 2.0 (list, timeline, tasks).
+    assert.ok(order.indexOf('prose') > Math.max(...['list', 'timeline', 'tasks'].map((name) => order.indexOf(name))));
   });
 
   it('gives bare headings under .ds-base the type roles by the element alone', () => {
@@ -2867,26 +2867,34 @@ describe('tables, cards and buttons (2.1)', () => {
 
   it('keeps the rhythm\'s 16px as a floor above a .ds-grid-2 card\'s link row (its auto margin takes the free space)', () => {
     const CARD = stripComments(read('src/components/card/card.css'));
-    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > .ds-card__links')['margin-top'], 'auto');
+    // The grid gives the context, so its rules sit in page.css, whose sublayer comes after the card's.
+    const PAGE = stripComments(read('src/components/page/page.css'));
+    assert.equal(at(PAGE, '.ds-grid-2 > .ds-card > .ds-card__links')['margin-top'], 'auto');
     // 3.0: the rhythm follows the density, and the floor with it.
     assert.equal(at(CARD, '.ds-card')['--_card-gap'], 'calc(var(--ds-space-4) + var(--ds-density, 0) * 2px)');
-    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--_card-gap)');
+    assert.equal(at(PAGE, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--_card-gap)');
     assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'var(--_card-gap)', 'the floor is the rhythm');
   });
 
   it('lets a status chip, badge or tag sit on the card title line and a chip hang by its own height, after the button overhang', () => {
     const CARD = stripComments(read('src/components/card/card.css'));
+    // The badge and the chip come after the card (their own margins beat its rhythm): their rules are in their files.
+    const BADGE = stripComments(read('src/components/badge/badge.css'));
+    const CHIP = stripComments(read('src/components/chip/chip.css'));
     const GENERAL = '.ds-card__row > :not(.ds-card__title, :has(> .ds-card__title))';
-    const SMALL = '.ds-card__row > :is(.ds-status, .ds-badge, .ds-tag)';
+    const SMALL = '.ds-card__row > :is(.ds-status, .ds-tag)';
     // The button's height as the button computes it (3.0: the base, size and density steps, the touch minimum).
     assert.equal(at(CARD, GENERAL)['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
     assert.equal(at(CARD, SMALL)['margin-block'], '0');
+    assert.equal(at(BADGE, '.ds-card__row > .ds-badge')['margin-block'], '0');
     // The chip's height as a control on the options model computes it (plans/3.0-conventions.md, section 3).
-    assert.equal(at(CARD, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
+    assert.equal(at(CHIP, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
     // The switch's box as the switch computes it, on the same steps.
     assert.equal(at(CARD, '.ds-card__row > .ds-switch')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px), calc(var(--ds-switch-track-height, 32px) + var(--ds-size-step, 0) * 4px))) / 2)');
-    // The same weight (0,2,0) as the overhang, so the later rule wins.
-    for (const selector of [SMALL, '.ds-card__row > .ds-chip']) assert.ok(CARD.indexOf(`${selector} {`) > CARD.indexOf(`${GENERAL} {`), selector);
+    // The same weight (0,2,0) as the overhang, so the later rule wins: later in card.css, or in a later sublayer.
+    assert.ok(CARD.indexOf(`${SMALL} {`) > CARD.indexOf(`${GENERAL} {`), SMALL);
+    const order = Object.fromEntries(COMPONENTS.map(({ name, meta }) => [name, meta.order]));
+    for (const name of ['badge', 'chip']) assert.ok(order[name] > order.card, `${name} after card`);
   });
 
   it('hangs a page head\'s text buttons into the gutter: the last at the end, under the title the first at the start', () => {

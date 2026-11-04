@@ -118,7 +118,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.tabs {
   .ds-tabs {
     position: relative;
     display: flex;
@@ -421,6 +421,20 @@
   .ds-tabs__panel:focus-visible {
     outline: var(--ds-focus-outline);
     outline-offset: var(--ds-focus-offset);
+  }
+
+  /* A badge (badge.css) in a blocked tab: the disabled model, as in a
+     blocked button (the badge's own --_fill as its colour). */
+  .ds-tabs__tab:is(:disabled, [aria-disabled="true"]) .ds-badge {
+    background: var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)));
+    color: var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)));
+  }
+
+  @media (forced-colors: active) {
+    .ds-tabs__tab:is(:disabled, [aria-disabled="true"]) .ds-badge {
+      outline-color: GrayText;
+      color: GrayText;
+    }
   }
 
   @media (forced-colors: active) {

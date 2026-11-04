@@ -1,7 +1,7 @@
 {
   "name": "timeline",
   "group": "data",
-  "order": 120,
+  "order": 90,
   "docsOrder": 100,
   "need": "Show the history of a record, an activity feed or comments, on a rail grouped by day",
   "tier": 1,
@@ -28,9 +28,7 @@
     "data-ds-glide"
   ],
   "requires": [],
-  "context": [
-    "button"
-  ],
+  "context": [],
   "hooks": {
     "--ds-timeline-indent": {
       "default": "`--ds-space-8`",

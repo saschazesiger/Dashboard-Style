@@ -7,6 +7,8 @@
  *   wide field with its padding, a dialog of min(400px, 100%)). Zero
  *   specificity, so a host page that embeds .ds-theme keeps any sizing it
  *   sets itself.
+ * - Zero-weight defaults that a component of an earlier sublayer must still
+ *   beat: the browser margins of paragraphs in a card.
  * - Forced colours: icons coloured on the <svg> itself would keep their
  *   authored colour (dark grey on black), so every icon follows the forced
  *   text colour of its control.
@@ -20,12 +22,21 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.global {
   :where(.ds-theme),
   :where(.ds-theme) *,
   :where(.ds-theme) *::before,
   :where(.ds-theme) *::after {
     box-sizing: border-box;
+  }
+
+  /* A card's rhythm decides its spacing: no browser margins of paragraphs
+     in it (a last one would add 1em to the bottom padding). Here and not in
+     card.css: a zero-weight default holds only in the first sublayer, and
+     the paragraphs of components that come before the card (a tile's
+     value, a progress label) keep their own margins. */
+  :where(.ds-card) p {
+    margin-block: 0;
   }
 
   @media (forced-colors: active) {

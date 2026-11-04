@@ -78,15 +78,20 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.drag {
   /* ── The grip and the dragged row ─────────────── */
 
+  /* A grip that is a blocked button keeps the button's cursor (button.css,
+     an earlier sublayer): the grab cursors leave it out by selector. */
   .ds-grip {
-    cursor: grab;
     touch-action: none;
   }
 
-  .ds-grip:active {
+  .ds-grip:where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"])) {
+    cursor: grab;
+  }
+
+  .ds-grip:where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"])):active {
     cursor: grabbing;
   }
 

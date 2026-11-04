@@ -1,7 +1,7 @@
 {
   "name": "button",
   "group": "actions",
-  "order": 30,
+  "order": 60,
   "docsOrder": 50,
   "need": "Start an action: one look per weight, any size and density, busy and done states",
   "tier": 1,
@@ -42,7 +42,6 @@
     "dialog",
     "indicator",
     "page",
-    "ripple",
     "sheet"
   ],
   "hooks": {

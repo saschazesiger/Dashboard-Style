@@ -1,7 +1,7 @@
 {
   "name": "dialog",
   "group": "overlays",
-  "order": 310,
+  "order": 260,
   "docsOrder": 250,
   "need": "Ask for a decision or a short task that blocks the page until it is done",
   "tier": 1,

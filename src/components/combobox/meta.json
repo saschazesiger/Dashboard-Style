@@ -1,7 +1,7 @@
 {
   "name": "combobox",
   "group": "forms",
-  "order": 260,
+  "order": 310,
   "docsOrder": 230,
   "need": "Choose a value from a long list by typing to filter it: groups, descriptions, several values",
   "tier": 1,
@@ -39,8 +39,7 @@
   ],
   "context": [
     "chip",
-    "progress",
-    "ripple"
+    "progress"
   ],
   "hooks": {
     "--ds-combo-option-height": {
@@ -68,6 +67,9 @@
     },
     "--ds-scroll-fade": {
       "owner": "scroller"
+    },
+    "--ds-form-rows-control-max": {
+      "owner": "form"
     }
   },
   "keyframes": [

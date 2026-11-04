@@ -50,10 +50,15 @@
  *   tone                  the default ink is the host's content colour, so a
  *                         filled error button ripples in its on-tone colour
  *
- * Cascade: this file comes after every host (meta.json "order"). Its rules
- * leave out what they must not touch by selector instead of losing to the
- * host by specificity, so they hold when every component has a sublayer of
- * its own (the spec plays the file in a later layer).
+ * Cascade: this file's sublayer, ds.components.ripple, is the last one
+ * (meta.json "order"; the build fails a host that comes later), so the
+ * ripple's own box wins over any rule of a host that reaches its children,
+ * and the press rules below over each host's own. They leave out what they
+ * must not touch by selector instead of losing to the host by specificity,
+ * so they hold in any later layer too (the spec plays the file once more in
+ * ds.utilities). Hosts name .ds-pressed and .ds-ripples in their own rules
+ * freely: they are this component's state classes (meta.json
+ * "stateClasses"), written by js/ripple.js, and set no cascade order.
  *
  * The flat state layer and the ripple never stack: under .ds-ripples a
  * pressed host keeps its hover layer (devices that hover) or none (touch),
@@ -84,7 +89,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.ripple {
   /* An element of the page's that asks for a ripple. Every other host
      positions itself in its own stylesheet (the combobox toggle absolutely):
      this file must not decide that, whatever the cascade order. */
@@ -176,7 +181,7 @@
    * :where() keeps the specificity of each component's own press rule. Each
    * rule also leaves out the host's blocked states by itself (the zero-weight
    * :not()), so the host's own rule for them applies in any cascade order,
-   * also with this file in a later sublayer. A host that adds a blocked
+   * with this file in its later sublayer. A host that adds a blocked
    * state adds it here too.
    */
   :where(.ds-ripples) .ds-btn:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"], .ds-btn--done)):is(:active, .ds-pressed)::before {
@@ -308,8 +313,8 @@
    * "private to its rule" (the box is the tab's own layer again, and a public
    * name would invite setting it), so size, density, shape and the contained
    * look reach the press as they reach the layer. tabs.css names this reader.
-   * Here and not in tabs.css: a rule there would lose to .ds-press-ripple above
-   * once this file sits in a later sublayer.
+   * Here and not in tabs.css: a rule there would lose to .ds-press-ripple
+   * above, in this later sublayer.
    */
   .ds-ripples .ds-tabs__tab > .ds-press-ripple {
     top: var(--_inset);

@@ -1,7 +1,7 @@
 {
   "name": "tile",
   "group": "data",
-  "order": 100,
+  "order": 170,
   "docsOrder": 70,
   "need": "Show key figures at the top of a page, how they moved, and filter by one",
   "tier": 1,
@@ -20,8 +20,7 @@
   "attributes": [],
   "requires": [],
   "context": [
-    "chart",
-    "ripple"
+    "chart"
   ],
   "hooks": {
     "--ds-tile-radius": {

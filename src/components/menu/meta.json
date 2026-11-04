@@ -1,7 +1,7 @@
 {
   "name": "menu",
   "group": "overlays",
-  "order": 270,
+  "order": 220,
   "docsOrder": 240,
   "need": "Offer the actions of one item, or the overflow of a toolbar, from a button",
   "tier": 1,
@@ -27,9 +27,7 @@
     "data-state"
   ],
   "requires": [],
-  "context": [
-    "ripple"
-  ],
+  "context": [],
   "hooks": {
     "--ds-menu-item-height": {
       "default": "48px",

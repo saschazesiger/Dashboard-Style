@@ -60,7 +60,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.badge {
   .ds-badge {
     --_h: calc(var(--ds-badge-size, 20px) + var(--ds-size-step, 0) * 2px);
     --_fill: var(--ds-accent);
@@ -134,13 +134,15 @@
     --ds-badge-color: var(--ds-on-error-container);
   }
 
-  /* On a tinted host the tint badge would vanish: the strong pair instead. */
-  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input, .ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+  /* On a tinted host the tint badge would vanish: the strong pair instead.
+     The hosts of later components (a selected table row, a blocked tab or
+     drawer item) repeat these rules in their own stylesheets. */
+  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --ds-badge-bg: var(--ds-primary);
     --ds-badge-color: var(--ds-on-primary);
   }
 
-  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input, .ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
+  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
     --ds-badge-bg: var(--ds-surface);
     --ds-badge-color: var(--ds-text-2);
   }
@@ -154,7 +156,7 @@
      any tone: the 12% container and the 38% ink. A theme that dims instead
      (--ds-disabled-fill and -ink set to initial) keeps the badge's colours
      and the host's opacity fades it. */
-  :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"]), .ds-tabs__tab:is(:disabled, [aria-disabled="true"]), .ds-drawer__item:is(:disabled, [aria-disabled="true"])) .ds-badge {
+  :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"])) .ds-badge {
     background: var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)));
     color: var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)));
   }
@@ -168,9 +170,15 @@
       color: CanvasText;
     }
 
-    :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"]), .ds-tabs__tab:is(:disabled, [aria-disabled="true"]), .ds-drawer__item:is(:disabled, [aria-disabled="true"])) .ds-badge {
+    :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"])) .ds-badge {
       outline-color: GrayText;
       color: GrayText;
     }
+  }
+
+  /* In a card's head row (card.css, an earlier sublayer) a badge sits on the
+     title's line. */
+  .ds-card__row > .ds-badge {
+    margin-block: 0;
   }
 }

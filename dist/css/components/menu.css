@@ -114,9 +114,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.menu {
   /* Fixed, so no scrolling or clipping box cuts it off. inset, margin and
      border double as the reset of the UA box of a popover. Physical on
      purpose (D9): --ds-menu-x is a script coordinate from the left. */

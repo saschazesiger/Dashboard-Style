@@ -83,7 +83,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.chart {
   /* ── Meter ── */
 
   .ds-meter {

@@ -1,7 +1,7 @@
 {
   "name": "tasks",
   "group": "data",
-  "order": 130,
+  "order": 100,
   "docsOrder": 110,
   "need": "Follow the steps of a job: pending, running, done or failed",
   "tier": 1,

@@ -25,6 +25,7 @@
     "ds-pressable--inset",
     "ds-pressable--lg",
     "ds-sr",
+    "ds-stale",
     "ds-touch"
   ],
   "attributes": [
@@ -33,7 +34,6 @@
   "requires": [],
   "context": [
     "card",
-    "ripple",
     "shell",
     "table"
   ],

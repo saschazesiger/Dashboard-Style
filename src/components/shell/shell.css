@@ -223,7 +223,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.shell {
   /* As tall as the visual viewport where DS.dom.followViewport() writes
      it (the on-screen keyboard shrinks it), else the dynamic viewport. */
   .ds-app {
@@ -1180,6 +1180,21 @@
     margin-inline-end: var(--ds-space-1);
   }
 
+  /* The row's action (.ds-hover-actions, utilities.css): the row's hover
+     and states reveal it, and so does its current item. */
+  @media (hover: hover) {
+    .ds-drawer__row:hover .ds-hover-actions:not(:is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):not(:hover) .ds-hover-actions) {
+      opacity: 1;
+      transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+    }
+  }
+
+  .ds-drawer__row:is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], [data-ds-shown]) .ds-hover-actions:not(:is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):not(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) .ds-hover-actions),
+  .ds-drawer__row:has(> .ds-drawer__item[aria-current]:not([aria-current="false"])) .ds-hover-actions {
+    opacity: 1;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
   .ds-drawer__item {
     position: relative;
     display: flex;
@@ -1318,6 +1333,20 @@
 
   .ds-drawer__item[aria-disabled="true"]:focus-visible::before {
     opacity: var(--ds-state-focus);
+  }
+
+  /* A badge (badge.css) in a blocked drawer item: the disabled model, as in a
+     blocked button (the badge's own --_fill as its colour). */
+  .ds-drawer__item:is(:disabled, [aria-disabled="true"]) .ds-badge {
+    background: var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)));
+    color: var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)));
+  }
+
+  @media (forced-colors: active) {
+    .ds-drawer__item:is(:disabled, [aria-disabled="true"]) .ds-badge {
+      outline-color: GrayText;
+      color: GrayText;
+    }
   }
 
   /* The active pill: the tint glides between the items (js/indicator.js);

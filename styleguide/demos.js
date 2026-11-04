@@ -151,114 +151,6 @@
     });
   })();
 
-  // src/components/button/button.demo.js
-  (function () {
-    /*
-     * The Button demo: every variant, icons and states, then the one place a
-     * button may be red. Registered through SG.demo() (styleguide/sg-core.js).
-     * Size, density, shape and touch come from the options panel around it, so
-     * no button here carries a size class; the tone goes on the confirmation's
-     * filled button only (D10). Fake work stands for what a project's save does.
-     */
-    var LOOKS = [
-      ['outlined', 'Export'],
-      ['filled', 'Save'],
-      ['tonal', 'Add entry'],
-      ['elevated', 'Open map'],
-      ['text', 'Details'],
-      ['quiet', 'Filter'],
-      ['ghost', 'Dismiss'],
-    ];
-
-    function faces(h, rest, busy, done, failed) {
-      return '<span class="ds-btn__faces"><span class="ds-btn__face">' + rest + '</span>' +
-        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>' + busy + '</span>' +
-        '<span class="ds-btn__face ds-btn__face--done" aria-hidden="true">' + h.icon('check', 16) + done + '</span>' +
-        '<span class="ds-btn__face ds-btn__face--failed" aria-hidden="true">' + h.icon('alertCircle', 16) + failed + '</span></span>';
-    }
-
-    SG.demo('button', {
-      title: 'Button',
-      group: 'actions',
-      need: 'Start an action: one look per weight, any size and density, busy and done states',
-      lead: 'One component for every action: a pill at the default shape. The options panel changes size, density, shape and touch around the demo; the tone applies to a filled button in a confirmation, nowhere else.',
-      options: { variants: LOOKS.map(function (look) { return look[0]; }), sizes: true, density: true, shape: true, tones: ['error'] },
-
-      render: function (h) {
-        var looks = LOOKS.filter(function (look) { return !h.variant || look[0] === h.variant; });
-        var reason = h.uid('why');
-        var panel = h.uid('filters');
-        return h.section('Variants', '<div class="sg-row" data-demo="variants">' + looks.map(function (look) {
-          return '<button class="ds-btn ds-btn--' + look[0] + '" type="button" title="' + h.esc(look[2]) + '">' + look[1] + '</button>';
-        }).join('') + '</div>') +
-
-          h.section('With icons', '<div class="sg-row" data-demo="icons">' +
-            '<button class="ds-btn ds-btn--filled" type="button">' + h.icon('plus', 16) + 'New device</button>' +
-            '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit" data-tip="Edit">' + h.icon('pencil', 20) + '</button>' +
-            '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--disc" type="button" aria-label="Minimize" data-tip="Minimize">' + h.icon('minimize', 20) + '</button>' +
-            '<button class="ds-btn ds-btn--adaptive" type="button" data-tip="Download">' + h.icon('download', 16) + '<span class="ds-btn__label">Download</span></button>' +
-            '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-demo="copy"><span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">' + h.icon('copy', 20) + '</span><span class="ds-icon-swap__b">' + h.icon('check', 20) + '</span></span></button>' +
-            '</div><p class="ds-muted">The adaptive button folds to its icon in a panel of 600px or less: narrow the width in the options panel.</p>') +
-
-          h.section('States', '<div class="sg-row" data-demo="states">' +
-            '<button class="ds-btn ds-btn--filled" type="button" disabled>Disabled</button>' +
-            '<button class="ds-btn ds-btn--filled" type="button" aria-disabled="true" aria-describedby="' + reason + '">Publish</button>' +
-            '<button class="ds-btn ds-btn--filled" type="button" data-demo="save">' + faces(h, 'Save changes', 'Saving', 'Saved', 'Not saved') + '</button>' +
-            '<button class="ds-btn" type="button" data-demo="sync">' + faces(h, 'Sync now', 'Syncing', 'Synced', 'Not synced') + '</button>' +
-            '<button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-demo="toggle">' + h.icon('filter', 16) + 'Only open</button>' +
-            '<button class="ds-btn" type="button" aria-pressed="true" aria-disabled="true">' + h.icon('check', 16) + 'Approved</button>' +
-            '</div><p class="ds-meta" id="' + reason + '">Publish stays focusable, so it can say why: fill in the serial number first.</p>') +
-
-          h.section('Opens something', '<div class="sg-row">' +
-            '<button class="ds-btn ds-btn--disclosure" type="button" aria-expanded="false" aria-controls="' + panel + '" data-demo="expand">' + h.icon('filter', 16) + 'Filters</button>' +
-            '<button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="true">Details (its sheet is open)</button>' +
-            '<button class="ds-link-btn" type="button">Printer on floor 2</button>' +
-            '<button class="ds-link-btn ds-link-btn--quiet" type="button">Edit columns</button>' +
-            '<a class="ds-link--quiet" href="#">Show history</a>' +
-            '</div><p class="ds-muted" id="' + panel + '" hidden>The filters of the list go here.</p>') +
-
-          h.section('Full width', '<button class="ds-btn ds-btn--filled ds-btn--block" type="button">Sign in</button>') +
-
-          h.section('Confirmation', '<div class="ds-card" data-demo="confirm" role="group" aria-label="Delete 3 devices?">' +
-            '<h3 class="ds-card__title">Delete 3 devices?</h3><p class="ds-muted">Their history goes with them. This cannot be undone.</p>' +
-            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button>' +
-            '<button class="ds-btn ds-btn--filled' + (h.tone === 'error' ? ' ds-tone-error' : '') + '" type="button" data-demo="confirm-action">Delete 3 devices</button></div></div>',
-            'The one red button: a destructive confirmation, in a confirm dialog or a type-to-confirm only, its label naming the consequence. Pick the error tone in the options panel.') +
-
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each button; <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> presses it. A busy, done or <code>aria-disabled</code> button ignores both.</p>');
-      },
-
-      wire: function (root, h) {
-        var wait = function (fail) {
-          return function () {
-            return new Promise(function (resolve, reject) {
-              setTimeout(function () { if (fail) reject(new Error('The device did not answer.')); else resolve(); }, h.slow(900));
-            });
-          };
-        };
-        root.addEventListener('click', function (event) {
-          var button = event.target.closest('[data-demo]');
-          if (!button) return;
-          var kind = button.getAttribute('data-demo');
-          if (kind === 'save') DS.motion.busy(button, wait(false));
-          if (kind === 'sync') DS.motion.busy(button, wait(true), { failed: true }).catch(function (error) { h.toast(error.message, 'error'); });
-          if (kind === 'toggle') button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
-          if (kind === 'copy') {
-            var swap = h.$('.ds-icon-swap', button);
-            swap.setAttribute('data-swap', 'b');
-            setTimeout(function () { swap.setAttribute('data-swap', 'a'); }, h.slow(1200));
-          }
-          if (kind === 'expand') {
-            var open = button.getAttribute('aria-expanded') !== 'true';
-            button.setAttribute('aria-expanded', String(open));
-            h.$('#' + button.getAttribute('aria-controls'), root).hidden = !open;
-          }
-          if (kind === 'confirm-action') h.toast('Deleted 3 devices.', 'success');
-        });
-      },
-    });
-  })();
-
   // src/components/spinner/spinner.demo.js
   (function () {
     /*
@@ -438,6 +330,114 @@
     });
   })();
 
+  // src/components/button/button.demo.js
+  (function () {
+    /*
+     * The Button demo: every variant, icons and states, then the one place a
+     * button may be red. Registered through SG.demo() (styleguide/sg-core.js).
+     * Size, density, shape and touch come from the options panel around it, so
+     * no button here carries a size class; the tone goes on the confirmation's
+     * filled button only (D10). Fake work stands for what a project's save does.
+     */
+    var LOOKS = [
+      ['outlined', 'Export'],
+      ['filled', 'Save'],
+      ['tonal', 'Add entry'],
+      ['elevated', 'Open map'],
+      ['text', 'Details'],
+      ['quiet', 'Filter'],
+      ['ghost', 'Dismiss'],
+    ];
+
+    function faces(h, rest, busy, done, failed) {
+      return '<span class="ds-btn__faces"><span class="ds-btn__face">' + rest + '</span>' +
+        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>' + busy + '</span>' +
+        '<span class="ds-btn__face ds-btn__face--done" aria-hidden="true">' + h.icon('check', 16) + done + '</span>' +
+        '<span class="ds-btn__face ds-btn__face--failed" aria-hidden="true">' + h.icon('alertCircle', 16) + failed + '</span></span>';
+    }
+
+    SG.demo('button', {
+      title: 'Button',
+      group: 'actions',
+      need: 'Start an action: one look per weight, any size and density, busy and done states',
+      lead: 'One component for every action: a pill at the default shape. The options panel changes size, density, shape and touch around the demo; the tone applies to a filled button in a confirmation, nowhere else.',
+      options: { variants: LOOKS.map(function (look) { return look[0]; }), sizes: true, density: true, shape: true, tones: ['error'] },
+
+      render: function (h) {
+        var looks = LOOKS.filter(function (look) { return !h.variant || look[0] === h.variant; });
+        var reason = h.uid('why');
+        var panel = h.uid('filters');
+        return h.section('Variants', '<div class="sg-row" data-demo="variants">' + looks.map(function (look) {
+          return '<button class="ds-btn ds-btn--' + look[0] + '" type="button" title="' + h.esc(look[2]) + '">' + look[1] + '</button>';
+        }).join('') + '</div>') +
+
+          h.section('With icons', '<div class="sg-row" data-demo="icons">' +
+            '<button class="ds-btn ds-btn--filled" type="button">' + h.icon('plus', 16) + 'New device</button>' +
+            '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit" data-tip="Edit">' + h.icon('pencil', 20) + '</button>' +
+            '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--disc" type="button" aria-label="Minimize" data-tip="Minimize">' + h.icon('minimize', 20) + '</button>' +
+            '<button class="ds-btn ds-btn--adaptive" type="button" data-tip="Download">' + h.icon('download', 16) + '<span class="ds-btn__label">Download</span></button>' +
+            '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-demo="copy"><span class="ds-icon-swap" data-swap="a"><span class="ds-icon-swap__a">' + h.icon('copy', 20) + '</span><span class="ds-icon-swap__b">' + h.icon('check', 20) + '</span></span></button>' +
+            '</div><p class="ds-muted">The adaptive button folds to its icon in a panel of 600px or less: narrow the width in the options panel.</p>') +
+
+          h.section('States', '<div class="sg-row" data-demo="states">' +
+            '<button class="ds-btn ds-btn--filled" type="button" disabled>Disabled</button>' +
+            '<button class="ds-btn ds-btn--filled" type="button" aria-disabled="true" aria-describedby="' + reason + '">Publish</button>' +
+            '<button class="ds-btn ds-btn--filled" type="button" data-demo="save">' + faces(h, 'Save changes', 'Saving', 'Saved', 'Not saved') + '</button>' +
+            '<button class="ds-btn" type="button" data-demo="sync">' + faces(h, 'Sync now', 'Syncing', 'Synced', 'Not synced') + '</button>' +
+            '<button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-demo="toggle">' + h.icon('filter', 16) + 'Only open</button>' +
+            '<button class="ds-btn" type="button" aria-pressed="true" aria-disabled="true">' + h.icon('check', 16) + 'Approved</button>' +
+            '</div><p class="ds-meta" id="' + reason + '">Publish stays focusable, so it can say why: fill in the serial number first.</p>') +
+
+          h.section('Opens something', '<div class="sg-row">' +
+            '<button class="ds-btn ds-btn--disclosure" type="button" aria-expanded="false" aria-controls="' + panel + '" data-demo="expand">' + h.icon('filter', 16) + 'Filters</button>' +
+            '<button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="true">Details (its sheet is open)</button>' +
+            '<button class="ds-link-btn" type="button">Printer on floor 2</button>' +
+            '<button class="ds-link-btn ds-link-btn--quiet" type="button">Edit columns</button>' +
+            '<a class="ds-link--quiet" href="#">Show history</a>' +
+            '</div><p class="ds-muted" id="' + panel + '" hidden>The filters of the list go here.</p>') +
+
+          h.section('Full width', '<button class="ds-btn ds-btn--filled ds-btn--block" type="button">Sign in</button>') +
+
+          h.section('Confirmation', '<div class="ds-card" data-demo="confirm" role="group" aria-label="Delete 3 devices?">' +
+            '<h3 class="ds-card__title">Delete 3 devices?</h3><p class="ds-muted">Their history goes with them. This cannot be undone.</p>' +
+            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button>' +
+            '<button class="ds-btn ds-btn--filled' + (h.tone === 'error' ? ' ds-tone-error' : '') + '" type="button" data-demo="confirm-action">Delete 3 devices</button></div></div>',
+            'The one red button: a destructive confirmation, in a confirm dialog or a type-to-confirm only, its label naming the consequence. Pick the error tone in the options panel.') +
+
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each button; <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> presses it. A busy, done or <code>aria-disabled</code> button ignores both.</p>');
+      },
+
+      wire: function (root, h) {
+        var wait = function (fail) {
+          return function () {
+            return new Promise(function (resolve, reject) {
+              setTimeout(function () { if (fail) reject(new Error('The device did not answer.')); else resolve(); }, h.slow(900));
+            });
+          };
+        };
+        root.addEventListener('click', function (event) {
+          var button = event.target.closest('[data-demo]');
+          if (!button) return;
+          var kind = button.getAttribute('data-demo');
+          if (kind === 'save') DS.motion.busy(button, wait(false));
+          if (kind === 'sync') DS.motion.busy(button, wait(true), { failed: true }).catch(function (error) { h.toast(error.message, 'error'); });
+          if (kind === 'toggle') button.setAttribute('aria-pressed', String(button.getAttribute('aria-pressed') !== 'true'));
+          if (kind === 'copy') {
+            var swap = h.$('.ds-icon-swap', button);
+            swap.setAttribute('data-swap', 'b');
+            setTimeout(function () { swap.setAttribute('data-swap', 'a'); }, h.slow(1200));
+          }
+          if (kind === 'expand') {
+            var open = button.getAttribute('aria-expanded') !== 'true';
+            button.setAttribute('aria-expanded', String(open));
+            h.$('#' + button.getAttribute('aria-controls'), root).hidden = !open;
+          }
+          if (kind === 'confirm-action') h.toast('Deleted 3 devices.', 'success');
+        });
+      },
+    });
+  })();
+
   // src/components/loading/loading.demo.js
   (function () {
     /*
@@ -525,96 +525,6 @@
     });
   })();
 
-  // src/components/card/card.demo.js
-  (function () {
-    /*
-     * The Card demo: the looks, the parts of a card, clickable and selectable
-     * cards and the horizontal layout. Density, shape and touch come from the
-     * options panel around it, so no card here carries an option class; the
-     * panel's variant goes on the plain cards. What a project writes itself:
-     * toggling the selected attribute and the toast after a click.
-     */
-    var LOOKS = [
-      ['outlined', 'The default look: a hairline on the surface.'],
-      ['filled', 'A quieter block inside a card or form.'],
-      ['elevated', 'Floats a little, instead of the hairline.'],
-    ];
-
-    function look(h, name) { return name ? ' ds-card--' + name : ''; }
-
-    function plan(h, title, text, on, extra) {
-      return '<button class="ds-card ds-card--interactive ds-card--selectable" type="button" aria-pressed="' + on + '" data-demo="pick"' + (extra || '') + '>' +
-        '<span class="ds-card__title">' + title + '</span><span class="ds-muted">' + text + '</span>' +
-        '<span class="ds-card__check" aria-hidden="true">' + h.icon('check', 16) + '</span></button>';
-    }
-
-    SG.demo('card', {
-      title: 'Card',
-      group: 'layout',
-      need: 'Group related content in a block, or let a whole block open or pick something',
-      lead: 'A block on a surface. Hierarchy comes from type and hairlines. A card can open something, be one choice among a few, or set its media beside its text. The options panel changes density, shape and touch around the demo.',
-      options: { variants: LOOKS.map(function (entry) { return entry[0]; }), sizes: false, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        var looks = LOOKS.filter(function (entry) { return !h.variant || entry[0] === h.variant; });
-        return h.section('Variants', '<div class="ds-grid-2" data-demo="variants">' + looks.map(function (entry) {
-          return '<section class="ds-card ds-card--' + entry[0] + '"><h3 class="ds-card__title">' + entry[0].charAt(0).toUpperCase() + entry[0].slice(1) + '</h3><p class="ds-muted">' + entry[1] + '</p></section>';
-        }).join('') + '</div>') +
-
-          h.section('The parts of a card', '<section class="ds-card' + look(h, h.variant) + '" data-demo="parts">' +
-            '<div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><span class="ds-status ds-tone-success">' + h.icon('check', 16) + '<span>Managed</span></span></div>' +
-            '<p class="ds-muted">Issued to Ada Lovelace. <a href="#card-demo">Open the record</a> or copy the serial <code>5CD1234XYZ</code>.</p>' +
-            '<h4 class="ds-card__subtitle">Sources</h4><p class="ds-muted">Directory and device management.</p>' +
-            '<div class="ds-card__section"><h4 class="ds-card__subtitle">Advanced</h4><p class="ds-muted">Asset tag, purchase date and the cost centre.</p></div>' +
-            '<nav class="ds-card__links" aria-label="Related"><a class="ds-btn ds-btn--text ds-card__link" href="#card-demo">History ' + h.icon('arrowRight', 16) + '</a><a class="ds-btn ds-btn--text ds-card__link" href="#card-demo">Tickets ' + h.icon('arrowRight', 16) + '</a></nav>' +
-            '<div class="ds-card__more"><button class="ds-btn" type="button">Load more</button></div>' +
-            '</section>') +
-
-          h.section('Clickable', '<div class="ds-grid-2" data-demo="clickable">' +
-            '<a class="ds-card ds-card--interactive' + look(h, h.variant) + '" href="#card-demo" data-demo="open" data-name="MONITOR-0007"><h3 class="ds-card__title">MONITOR-0007</h3><p class="ds-muted">A link: the whole card goes somewhere.</p></a>' +
-            '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" data-demo="open" data-name="PRINTER-0003"><span class="ds-card__row"><span class="ds-card__title">PRINTER-0003</span><span class="ds-status ds-tone-warning">' + h.icon('alert', 16) + '<span>Toner low</span></span></span><span class="ds-muted">A button: hover lays a layer over it, a press turns it squarer and ripples.</span></button>' +
-            '<div class="ds-card ds-card--interactive' + look(h, h.variant) + '"><div class="ds-card__row"><h3 class="ds-card__title"><a class="ds-card__action" href="#card-demo" data-demo="open" data-name="LAPTOP-0017">LAPTOP-0017</a></h3><button class="ds-btn ds-sm" type="button" data-demo="restart">Restart</button></div><p class="ds-muted">The title link stretches over the card; Restart stays a button of its own.</p></div>' +
-            '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" disabled><span class="ds-card__title">Disabled</span><span class="ds-muted">Dimmed, with no hover, no press and no morph.</span></button>' +
-            '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" aria-disabled="true"><span class="ds-card__title">Blocked</span><span class="ds-muted">aria-disabled: stays focusable, so it can say why.</span></button>' +
-            '</div>') +
-
-          h.section('Selectable', '<div class="ds-grid-2" role="group" aria-label="Plan" data-demo="plans">' +
-            plan(h, 'Standard', 'Daily sync, 30 days of history.', 'true') +
-            plan(h, 'Extended', 'Hourly sync, a year of history.', 'false') +
-            plan(h, 'Archive', 'Monthly sync, kept for ten years. Blocked for this tenant.', 'false', ' aria-disabled="true"') +
-            '<div class="ds-card ds-card--interactive ds-card--selectable"><h3 class="ds-card__title"><button class="ds-card__action" type="button" aria-pressed="false" data-demo="pick">Custom</button></h3><p class="ds-muted">The button form of the action, with a link of its own.</p><a class="ds-link--quiet" href="#card-demo">Compare plans</a><span class="ds-card__check" aria-hidden="true">' + h.icon('check', 16) + '</span></div>' +
-            '</div>', 'The tint, the ring and the check say the same: a selected card is never told by colour alone.') +
-
-          h.section('Horizontal', '<div class="ds-stack" data-demo="horizontal">' +
-            '<section class="ds-card ds-card--horizontal' + look(h, h.variant) + '"><div class="ds-card__media" role="img" aria-label="A printer">' + h.icon('printer', 24) + '</div><div class="ds-card__body"><h3 class="ds-card__title">PRINTER-0003</h3><p class="ds-muted">Media beside the body. Narrow the width in the options panel: below 416px they stack.</p></div></section>' +
-            '<button class="ds-card ds-card--interactive ds-card--horizontal' + look(h, h.variant) + '" type="button" data-demo="open" data-name="MONITOR-0007"><span class="ds-card__media">' + h.icon('monitor', 24) + '</span><span class="ds-card__body"><span class="ds-card__title">MONITOR-0007</span><span class="ds-muted">Clickable and horizontal: one button.</span></span></button>' +
-            '</div>') +
-
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each clickable card and each control inside one; <kbd class="ds-kbd">Enter</kbd> opens a card, <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> presses a button card or picks a selectable one.</p>');
-      },
-
-      wire: function (root, h) {
-        root.addEventListener('click', function (event) {
-          var target = event.target.closest('[data-demo]');
-          if (!target) {
-            if (event.target.closest('a[href="#card-demo"]')) event.preventDefault();
-            return;
-          }
-          var kind = target.getAttribute('data-demo');
-          if (kind === 'open') {
-            event.preventDefault();
-            h.toast('Opened ' + target.getAttribute('data-name') + '.', 'info');
-          }
-          if (kind === 'restart') h.toast('Restarting LAPTOP-0017.', 'info');
-          if (kind === 'pick' && target.getAttribute('aria-disabled') !== 'true') {
-            h.$$('[data-demo="pick"]', root).forEach(function (other) { if (other !== target) other.setAttribute('aria-pressed', 'false'); });
-            target.setAttribute('aria-pressed', 'true');
-          }
-        });
-      },
-    });
-  })();
-
   // src/components/disclosure/disclosure.demo.js
   (function () {
     /*
@@ -658,6 +568,654 @@
 
           h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each summary; <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> opens and closes it.</p>');
       },
+    });
+  })();
+
+  // src/components/timeline/timeline.demo.js
+  (function () {
+    /*
+     * The Timeline demo: the history of a record with day groups and muted
+     * entries; an activity feed with avatars and a live entry; comments in a
+     * box of their own. Registered through SG.demo() (styleguide/sg-core.js).
+     * Size, density and shape come from the options panel around it. The
+     * entries are fake, as a project's would come from its data layer.
+     */
+    function chip(h, status) {
+      return '<span class="ds-status ds-tone-' + (status[0] === 'ok' ? 'success' : status[0]) + '">' + h.icon(status[1], 16) + '<span>' + status[2] + '</span></span>';
+    }
+
+    function historyHtml(h) {
+      return '<li class="ds-timeline__group" role="presentation"><h4 class="ds-timeline__day">12 Oct 2026</h4></li>' +
+        '<li class="ds-timeline__item" data-ds-key="h3"><div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p>' + chip(h, ['ok', 'check', 'Active']) + '</div>' +
+          '<p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p><p class="ds-timeline__text">Issued to Ada Lovelace.\nCharger and bag included.</p>' +
+          '<div class="ds-timeline__actions ds-sm"><button class="ds-btn ds-btn--text" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05" data-demo="edit">Edit</button></div></li>' +
+        '<li class="ds-timeline__item ds-timeline__item--muted" data-ds-key="h2"><div class="ds-timeline__head"><p class="ds-timeline__title">Return planned</p></div>' +
+          '<p class="ds-timeline__meta"><time datetime="2026-10-12T09:40">09:40</time> · Grace Hopper</p><p class="ds-timeline__text">Cancelled: the loan was extended.</p></li>' +
+        '<li class="ds-timeline__group" role="presentation"><h4 class="ds-timeline__day">3 Oct 2026</h4></li>' +
+        '<li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="h1"><span class="ds-timeline__marker" aria-hidden="true">' + h.icon('wrench', 16) + '</span><div class="ds-timeline__head"><p class="ds-timeline__title">Repaired</p></div>' +
+          '<p class="ds-timeline__meta">' + h.icon('user', 16) + 'Service desk</p><p class="ds-timeline__text">Keyboard replaced under warranty.</p></li>';
+    }
+
+    var FEED = [
+      { id: 'a3', initials: 'GH', who: 'Grace Hopper', what: 'took LAPTOP-0051', when: '08:47', at: '2026-10-12T08:47' },
+      { id: 'a2', glyph: 'sync', who: 'The nightly sync', what: 'changed nothing', when: '02:00', at: '2026-10-12T02:00', muted: true },
+      { id: 'a1', initials: 'AL', who: 'Ada Lovelace', what: 'renamed PRINTER-0003', when: 'Yesterday', at: '2026-10-11T16:20' },
+    ];
+    var FRESH = [['AT', 'Alan Turing', 'took TABLET-0121', '2026-10-12T09:15'], ['AL', 'Ada Lovelace', 'closed ticket #42', '2026-10-12T09:16'], ['GH', 'Grace Hopper', 'returned LAPTOP-0051', '2026-10-12T09:17']];
+
+    function feedHtml(h, items) {
+      return items.map(function (item) {
+        return '<li class="ds-timeline__item ds-timeline__item--icon' + (item.muted ? ' ds-timeline__item--muted' : '') + '" data-ds-key="' + item.id + '"><span class="ds-timeline__marker" aria-hidden="true">' + (item.glyph ? h.icon(item.glyph, 16) : item.initials) + '</span>' +
+          '<div class="ds-timeline__head"><p class="ds-timeline__title"><strong>' + item.who + '</strong> ' + item.what + '</p><time class="ds-timeline__time" datetime="' + item.at + '">' + item.when + '</time></div></li>';
+      }).join('');
+    }
+
+    function commentsHtml(h) {
+      return '<li class="ds-timeline__item ds-timeline__item--icon ds-timeline__item--comment" data-ds-key="c2"><span class="ds-timeline__marker" aria-hidden="true">GH</span>' +
+          '<div class="ds-timeline__head"><p class="ds-timeline__title">Grace Hopper</p><time class="ds-timeline__time" datetime="2026-10-12T09:40">09:40</time></div>' +
+          '<p class="ds-timeline__text">The keyboard is back from the service desk.\nCan you check the battery too?</p>' +
+          '<div class="ds-timeline__actions ds-sm"><button class="ds-btn ds-btn--text" type="button" aria-label="Reply to Grace Hopper" data-demo="reply">Reply</button></div></li>' +
+        '<li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="c1"><span class="ds-timeline__marker" aria-hidden="true">' + h.icon('pencil', 16) + '</span>' +
+          '<div class="ds-timeline__head"><p class="ds-timeline__title">Status changed to In repair</p>' + chip(h, ['warning', 'wrench', 'In repair']) + '</div><p class="ds-timeline__meta">Service desk, 09:12</p></li>';
+    }
+
+    SG.demo('timeline', {
+      title: 'Timeline',
+      group: 'data',
+      need: 'Show the history of a record, an activity feed or comments, on a rail grouped by day',
+      lead: 'Entries on a rail, grouped by day: a dot, or a marker with an icon or an avatar. An activity feed reads as sentences, comments stand in a box of their own, and a muted entry takes a ring. Size, density and shape change the rail and its marks together.',
+      options: { sizes: true, density: true, shape: true, tones: false, variants: ['history', 'activity', 'comments'] },
+
+      render: function (h) {
+        var show = function (name) { return !h.variant || h.variant === name; };
+        return (show('history') ? h.section('History', '<ol class="ds-timeline" role="list" aria-label="History of LAPTOP-0042" data-demo="history">' + historyHtml(h) + '</ol>',
+          'A muted entry did not take effect: it says why in words. An icon marker says who or what did it.') : '') +
+
+          (show('activity') ? h.section('Activity', '<ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Activity" data-demo="activity">' + feedHtml(h, FEED) + '</ol>' +
+            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="add">' + h.icon('plus', 16) + 'Add an entry</button></div>',
+            'A live feed: a new entry fades in at the top while the others glide down (DS.motion.flip with live: true). The sync\'s own entry is muted.') : '') +
+
+          (show('comments') ? h.section('Comments', '<ol class="ds-timeline" role="list" aria-label="Comments on ticket #42" data-demo="comments">' + commentsHtml(h) + '</ol>',
+            'What someone wrote stands in a box, apart from what happened.') : '') +
+
+          h.section('Empty', '<ol class="ds-timeline" role="list" aria-label="No entries"></ol><p class="ds-muted">An empty timeline takes no room: show an empty state instead.</p>') +
+
+          h.section('Keyboard', '<p class="ds-muted">An entry is no target. <kbd class="ds-kbd">Tab</kbd> reaches its buttons and links; name the entry in each button\'s <code>aria-label</code>.</p>');
+      },
+
+      // What a page writes itself: a new entry, and what its buttons do.
+      wire: function (root, h) {
+        var items = FEED.slice();
+        var next = 0;
+        var onClick = function (event) {
+          var target = event.target.closest('[data-demo="add"], [data-demo="edit"], [data-demo="reply"]');
+          if (!target || !root.contains(target)) return;
+          var action = target.getAttribute('data-demo');
+          if (action === 'edit') h.toast('Editing opens a form in place (DS.motion.crossfade).', 'info');
+          if (action === 'reply') h.toast('A reply opens a form in place.', 'info');
+          if (action === 'add') {
+            var fresh = FRESH[next % FRESH.length];
+            next += 1;
+            items.unshift({ id: 'n' + next, initials: fresh[0], who: fresh[1], what: fresh[2], when: 'Just now', at: fresh[3] });
+            if (items.length > 4) items.pop();
+            var list = h.$('[data-demo="activity"]', root);
+            window.DS.motion.flip(list, function (options) { window.DS.dom.morphHtml(list, feedHtml(h, items), options); }, { live: true });
+          }
+        };
+        root.addEventListener('click', onClick);
+        return function () { root.removeEventListener('click', onClick); };
+      }
+    });
+  })();
+
+  // src/components/tasks/tasks.demo.js
+  (function () {
+    /*
+     * The Tasks demo: the steps of a job, advanced by hand. Registered through
+     * SG.demo() (styleguide/sg-core.js). Size and density come from the options
+     * panel around it and only space the steps; the shape reaches the pending
+     * ring. A project's job would report
+     * the status; here the buttons stand for it.
+     */
+    var STEPS = ['Copy the image', 'Install updates', 'Join the domain', 'Restart'];
+
+    function stepsHtml(h, state) {
+      return STEPS.map(function (text, index) {
+        var status = index < state.done ? 'done' : index === state.done ? (state.failed ? 'failed' : 'running') : 'pending';
+        var mark = status === 'done' ? h.icon('checkCircle', 20) : status === 'failed' ? h.icon('alertCircle', 20) : status === 'running' ? '<span class="ds-spinner ds-spinner--ink ds-sm"></span>' : '';
+        var word = { done: ': done', running: ': running', pending: ': waiting' }[status];
+        return '<li class="ds-tasks__item" data-status="' + status + '" data-ds-key="t' + index + '"><span class="ds-tasks__mark">' + mark + '</span><span class="ds-tasks__text">' + text +
+          (status === 'failed' ? ': failed, the server did not answer' : '<span class="ds-sr">' + word + '</span>') + '</span></li>';
+      }).join('');
+    }
+
+    SG.demo('tasks', {
+      title: 'Tasks',
+      group: 'data',
+      need: 'Follow the steps of a job: pending, running, done or failed',
+      lead: 'The steps of a job, each pending, running, done or failed. The status shows in the shape of the mark and the weight of the text, never in colour alone, and a step that turns done in place draws its tick.',
+      options: { sizes: true, density: true, shape: true, tones: false },
+
+      render: function (h) {
+        var state = { done: 1, failed: false };
+        return h.section('A job', '<div class="ds-tasks__head"><h3 class="ds-card__title">Set up LAPTOP-0042</h3><p class="ds-meta" data-demo="count">1 of ' + STEPS.length + '</p></div>' +
+          '<ol class="ds-tasks" aria-label="Steps" data-demo="steps">' + stepsHtml(h, state) + '</ol>' +
+          '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="next">Advance</button><button class="ds-btn ds-sm" type="button" data-demo="fail">Fail the running step</button><button class="ds-btn ds-btn--text ds-sm" type="button" data-demo="reset">Start over</button></div>') +
+
+          h.section('Every status', '<ol class="ds-tasks" aria-label="Every status" data-demo="all">' +
+            '<li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">Pending: a ring<span class="ds-sr">: waiting</span></span></li>' +
+            '<li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--ink ds-sm"></span></span><span class="ds-tasks__text">Running: the small spinner and the label weight<span class="ds-sr">: running</span></span></li>' +
+            '<li class="ds-tasks__item" data-status="done"><span class="ds-tasks__mark">' + h.icon('checkCircle', 20) + '</span><span class="ds-tasks__text">Done: the check in a circle<span class="ds-sr">: done</span></span></li>' +
+            '<li class="ds-tasks__item" data-status="failed"><span class="ds-tasks__mark">' + h.icon('alertCircle', 20) + '</span><span class="ds-tasks__text">Join the domain: failed, the server did not answer</span></li>' +
+            '</ol>') +
+
+          h.section('Empty', '<ol class="ds-tasks" aria-label="No steps"></ol><p class="ds-muted">An empty list takes no room.</p>') +
+
+          h.section('Keyboard', '<p class="ds-muted">A step is no target, so the list adds no tab stop; a link in a step\'s text is reached as usual. Each step says its status in words.</p>');
+      },
+
+      // What a page writes itself: the status of each step, the count in the head.
+      wire: function (root, h) {
+        var state = { done: 1, failed: false };
+        var onClick = function (event) {
+          var target = event.target.closest('[data-demo="next"], [data-demo="fail"], [data-demo="reset"]');
+          if (!target || !root.contains(target)) return;
+          var action = target.getAttribute('data-demo');
+          if (action === 'next') {
+            if (state.failed) state.failed = false;
+            else state.done = Math.min(STEPS.length, state.done + 1);
+          }
+          if (action === 'fail' && state.done < STEPS.length) state.failed = true;
+          if (action === 'reset') state = { done: 0, failed: false };
+          window.DS.dom.morphHtml(h.$('[data-demo="steps"]', root), stepsHtml(h, state));
+          h.$('[data-demo="count"]', root).textContent = state.done + ' of ' + STEPS.length;
+        };
+        root.addEventListener('click', onClick);
+        return function () { root.removeEventListener('click', onClick); };
+      }
+    });
+  })();
+
+  // src/components/status/status.demo.js
+  (function () {
+    /*
+     * The Status demo: every tone with its icon and word, the running chip, a
+     * polled chip patched in place by DS.dom.morphHtml, and tags. Registered
+     * through SG.demo() (styleguide/sg-core.js). Size, density and shape come from
+     * the options panel around it; the panel's tone goes on the chips of the tone
+     * row, since a chip reads only its own.
+     */
+    var TONES = [['success', 'check', 'Synced'], ['warning', 'alert', 'Expires soon'], ['error', 'alertCircle', 'Failed'], ['info', 'info', 'Update ready'], ['primary', 'sparkles', 'Assigned'], ['neutral', 'clock', 'Queued']];
+    var POLL = [['ds-status--running', '', 'Syncing'], ['ds-tone-success', 'check', 'Synced'], ['ds-tone-error', 'alertCircle', 'Failed']];
+
+    function chip(h, cls, glyph, word) {
+      var mark = glyph ? h.icon(glyph, 16) : '<span class="ds-spinner ds-status__spinner" aria-hidden="true"></span>';
+      return '<span class="ds-status' + (cls ? ' ' + cls : '') + '">' + mark + '<span>' + word + '</span></span>';
+    }
+
+    SG.demo('status', {
+      title: 'Status chip and tag',
+      group: 'feedback',
+      need: 'Show the state of one item with an icon and a word, or label it with a tag',
+      lead: 'Status is never colour alone: always an icon and a word, on the tonal container of its tone. Show chips for deviations, not for the normal case.',
+      options: { sizes: true, density: false, shape: true, tones: true },
+
+      render: function (h) {
+        var tones = TONES.filter(function (row) { return !h.tone || row[0] === h.tone; });
+        return h.section('Tones', '<div class="sg-row" data-demo="tones">' + tones.map(function (row) {
+          return chip(h, 'ds-tone-' + row[0], row[1], row[2]);
+        }).join('') + '</div>') +
+
+          h.section('Running and idle', '<div class="sg-row">' +
+            chip(h, 'ds-status--running', '', 'Running') + chip(h, '', 'clock', 'Waiting') + chip(h, '', 'ban', 'Off') + '</div>') +
+
+          h.section('A live chip', '<div class="sg-row"><button class="ds-btn ds-sm ds-btn--quiet" type="button" data-demo="poll" aria-pressed="false">Poll every 1.5s</button><span data-demo="polled">' + chip(h, POLL[0][0], POLL[0][1], POLL[0][2]) + '</span></div>' +
+            '<p class="ds-muted">Rendered with DS.dom.morphHtml: the kept chip changes colour over 250ms, an icon that comes in new fades in and springs up, the word changes at once.</p>') +
+
+          h.section('A long label', '<div style="max-width:200px">' + chip(h, 'ds-tone-warning', 'alert', 'The warranty of this device ends within the next thirty days') + '</div>' +
+            '<p class="ds-muted">Fully round at one line; a label that wraps keeps soft corners.</p>') +
+
+          h.section('Tags: words, not states or counts', '<div class="sg-row"><span class="ds-tag">Preview</span><span class="ds-tag">' + h.icon('sparkles', 16) + 'Beta</span><span class="ds-tag ds-tone-neutral">' + h.icon('tag', 16) + 'External</span><span class="ds-tag ds-tone-info">Internal</span><span class="ds-tag ds-tone-success">Verified</span></div>') +
+
+          h.section('Keyboard', '<p class="ds-muted">Chips and tags are no stops of their own; a status that changes while the user waits goes through a live region.</p>');
+      },
+
+      wire: function (root, h) {
+        var holder = h.$('[data-demo="polled"]', root);
+        var button = h.$('[data-demo="poll"]', root);
+        var step = 0;
+        var timer = 0;
+        button.addEventListener('click', function () {
+          var on = button.getAttribute('aria-pressed') !== 'true';
+          button.setAttribute('aria-pressed', String(on));
+          clearInterval(timer);
+          if (!on) return;
+          timer = setInterval(function () {
+            step += 1;
+            var state = POLL[step % POLL.length];
+            DS.dom.morphHtml(holder, chip(h, state[0], state[1], state[2]));
+          }, h.slow(1500));
+        });
+        return function () { clearInterval(timer); };
+      },
+    });
+  })();
+
+  // src/components/alert/alert.demo.js
+  (function () {
+    /*
+     * The Alert demo: every tone, the three variants, titles and actions, the
+     * collapsible errors list, and alerts that come and go through
+     * DS.motion.flip. Registered through SG.demo() (styleguide/sg-core.js). Size,
+     * density, shape and touch come from the options panel around it; the panel's
+     * tone goes on the sample alert itself, since an alert reads only its own.
+     */
+    var TONES = [
+      ['', 'info', 'The nightly sync runs at 02:00. Changes made now appear tomorrow.'],
+      ['info', 'info', 'A new agent version is available for 12 devices.'],
+      ['primary', 'sparkles', 'Bulk edit is on for this list.'],
+      ['neutral', 'clock', 'The report covers the last 30 days.'],
+      ['success', 'checkCircle', 'All 128 devices are up to date.'],
+      ['warning', 'alert', 'The certificate expires in 5 days.'],
+      ['error', 'alertCircle', 'Could not reach the directory server.'],
+    ];
+    var NEWS = ['Synced LAPTOP-0042.', 'Imported 12 devices.', 'TABLET-0121 is back online.', 'Exported the list as CSV.'];
+
+    function alertHtml(h, tone, glyph, text, extra) {
+      return '<div class="ds-alert' + (tone ? ' ds-tone-' + tone : '') + '"' + (tone === 'error' ? ' role="alert"' : ' role="status"') + '>' + h.icon(glyph, 20) +
+        '<span class="ds-alert__text">' + text + '</span>' + (extra || '') + '</div>';
+    }
+
+    function dismiss() {
+      return '<button class="ds-btn ds-btn--text ds-sm" type="button" data-demo="dismiss">Dismiss</button>';
+    }
+
+    SG.demo('alert', {
+      title: 'Alert',
+      group: 'feedback',
+      need: 'Tell the user something about a page or a section, in place, with an icon and a word',
+      lead: 'A notice on a tonal container, always with an icon and a word. The options panel pads it (size, density) and rounds it (shape); the tone goes on the alert itself.',
+      options: { variants: ['plain', 'inline', 'section'], sizes: true, density: true, shape: true, tones: true },
+
+      render: function (h) {
+        var sample = h.tone || 'warning';
+        var variant = function (name) { return !h.variant || h.variant === name; };
+        var serial = h.uid('serial');
+        return h.section('Tones', '<div class="ds-stack" data-demo="stack">' + TONES.map(function (row) {
+          return alertHtml(h, row[0], row[1], row[2], row[0] === 'warning' ? '<button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button>' : row[0] === 'error' ? '<button class="ds-btn ds-btn--text ds-sm" type="button">Try again</button>' : dismiss());
+        }).join('') + '</div>' +
+          '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="insert">' + h.icon('plus', 16) + 'Insert an alert</button></div>' +
+          '<p class="ds-muted">Both through DS.motion.flip on the stack: a dismissed alert fades out in place while the ones below glide up; a new one fades in at the top while the others glide down.</p>') +
+
+          h.section('Titles and actions',
+            '<div class="ds-stack"><div class="ds-alert ds-tone-' + sample + '" data-demo="sample">' + h.icon('alert', 20) + '<div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>The server certificate of the directory expires on 1 May.</p><p>Renew it before then, or sign-ins stop.</p></div>' +
+            '<div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-sm" type="button">Remind me</button></div></div>' +
+            '<div class="ds-alert">' + h.icon('info', 20) + '<span class="ds-alert__text"><span class="ds-alert__title">Maintenance tonight</span> The directory is read-only from 22:00 to 23:00.</span></div></div>' +
+            '<p class="ds-muted">Narrow the width in the options panel: the actions drop under the text once it has less than its 256px.</p>') +
+
+          (variant('plain') ? h.section('Plain: findings in a card', h.card('Findings',
+            '<div class="ds-alert ds-alert--plain ds-tone-error">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text"><strong class="ds-alert__title">Disk almost full</strong> 92% used on drive C.</span></div>' +
+            '<div class="ds-alert ds-alert--plain ds-tone-warning">' + h.icon('alert', 20) + '<span class="ds-alert__text">The warranty ends in 30 days.</span></div>' +
+            '<div class="ds-alert ds-alert--plain ds-tone-success">' + h.icon('checkCircle', 20) + '<span class="ds-alert__text">The disk is encrypted.</span></div>')) : '') +
+
+          (variant('inline') ? h.section('Inline: under a field or in a row',
+            '<div class="ds-field"><label class="ds-field__label" for="' + serial + '">Serial number</label><input class="ds-input" id="' + serial + '" value="CN-0042"></div>' +
+            '<p class="ds-alert ds-alert--inline ds-tone-warning">' + h.icon('alert', 16) + '<span class="ds-alert__text">Used by 3 other devices.</span></p> ' +
+            '<p class="ds-alert ds-alert--inline ds-tone-success">' + h.icon('check', 16) + '<span class="ds-alert__text">Checked a minute ago.</span></p> ' +
+            '<p class="ds-alert ds-alert--inline">' + h.icon('info', 16) + '<span class="ds-alert__text">Printed on the back of the device.</span></p>') : '') +
+
+          (variant('section') ? h.section('Section: a block with its actions',
+            '<div class="ds-alert ds-alert--section ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<div class="ds-alert__text"><p class="ds-alert__title">The import stopped</p><p>Row 812 has no serial number. Nothing was saved.</p></div>' +
+            '<div class="ds-alert__actions"><button class="ds-btn ds-btn--filled" type="button">Open the file</button><button class="ds-btn ds-btn--text" type="button">Discard</button></div></div>') : '') +
+
+          h.section('Errors list',
+            '<details class="ds-errors ds-collapsible"><summary>' + h.icon('alertCircle', 16) + '2 rows were skipped' + h.icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "Notebook 99"</li><li>Row 9: duplicate serial number</li></ul></details>') +
+
+          h.section('Keyboard', '<p class="ds-muted">An alert has no stop of its own. <kbd class="ds-kbd">Tab</kbd> reaches its buttons and the errors summary; <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> presses them. The word says the meaning, never the colour alone.</p>');
+      },
+
+      wire: function (root, h) {
+        var stack = h.$('[data-demo="stack"]', root);
+        var count = 0;
+        var holder = document.createElement('template');
+        root.addEventListener('click', function (event) {
+          var button = event.target.closest('[data-demo]');
+          if (!button) return;
+          var kind = button.getAttribute('data-demo');
+          if (kind === 'dismiss') {
+            var alert = button.closest('.ds-alert');
+            DS.motion.flip(stack, function () { alert.remove(); });
+          }
+          if (kind === 'insert') {
+            holder.innerHTML = alertHtml(h, 'success', 'checkCircle', NEWS[count % NEWS.length], dismiss());
+            count += 1;
+            var fresh = holder.content.firstChild;
+            var shown = h.$$(':scope > .ds-alert:not([data-ds-leaving])', stack);
+            var oldest = shown.length >= 8 ? shown[shown.length - 1] : null;
+            DS.motion.flip(stack, function () {
+              if (oldest) oldest.remove();
+              stack.prepend(fresh);
+            });
+          }
+        });
+      },
+    });
+  })();
+
+  // src/components/switch/switch.demo.js
+  (function () {
+    /*
+     * The Switch demo: on and off with their words, icons, busy, blocked, locked,
+     * a hint and a list of settings. Registered through SG.demo()
+     * (styleguide/sg-core.js). Size, density, shape and touch come from the
+     * options panel around it. Fake work stands for what a project's save does.
+     */
+    var WORDS = '<span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>';
+
+    function row(name, attributes, track) {
+      return '<label class="ds-switch"><input type="checkbox" role="switch" ' + (attributes || '') + '><span class="ds-switch__track" aria-hidden="true">' + (track || '') + '</span><span class="ds-switch__label">' + name + '</span>' + WORDS + '</label>';
+    }
+
+    function listRow(h, name, hint, meta, checked) {
+      var label = h.uid('switch-name');
+      var note = h.uid('switch-hint');
+      return '<label class="ds-switch"><input type="checkbox" role="switch"' + (checked ? ' checked' : '') + ' aria-labelledby="' + label + '" aria-describedby="' + note + '"><span class="ds-switch__track" aria-hidden="true"></span>' +
+        '<span class="ds-switch__label" id="' + label + '">' + name + '</span><small class="ds-switch__hint" id="' + note + '">' + hint + '</small>' +
+        (meta ? '<span class="ds-switch__meta">' + meta + '</span>' : '') + WORDS + '</label>';
+    }
+
+    SG.demo('switch', {
+      title: 'Switch',
+      group: 'forms',
+      need: 'Turn a setting on or off, alone or in a list of settings',
+      lead: 'One setting, on or off, with its name and the state in a word, so it never shows through the handle alone. The options panel changes size, density, shape and touch around the demo.',
+      options: { sizes: true, density: true, shape: true, tones: false },
+
+      render: function (h) {
+        var reason = h.uid('why');
+        var icons = h.icon('close', 16, 'ds-switch__icon ds-switch__icon--off') + h.icon('check', 16, 'ds-switch__icon ds-switch__icon--on');
+        return h.section('On and off', '<div class="ds-stack" data-demo="plain">' + row('Nightly sync', 'checked') + row('Email summary') + '</div>') +
+
+          h.section('With icons', '<div class="ds-stack" data-demo="icons">' +
+            '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch" checked><span class="ds-switch__track" aria-hidden="true">' + icons + '</span><span class="ds-switch__label">Automatic updates</span></label>' +
+            '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch"><span class="ds-switch__track" aria-hidden="true">' + icons + '</span><span class="ds-switch__label">Beta channel</span></label>' +
+            '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch" checked disabled><span class="ds-switch__track" aria-hidden="true">' + icons + '</span><span class="ds-switch__label">Disabled, on</span></label></div>') +
+
+          h.section('Busy', '<div class="ds-stack" data-demo="busy">' + row('Remote access', 'data-demo="save"', '<span class="ds-spinner ds-switch__spinner"></span>') +
+            row('Remote access, waiting', 'checked aria-busy="true" aria-disabled="true"', '<span class="ds-spinner ds-switch__spinner"></span>') + '</div>',
+            'While the page waits for the answer: aria-busy with aria-disabled on the input. The spinner shows after a moment, so a fast answer shows nothing.') +
+
+          h.section('Blocked and locked', '<div class="ds-stack" data-demo="states">' + row('Disabled', 'disabled') + row('Disabled, on', 'checked disabled') +
+            row('Blocked with a reason', 'aria-disabled="true" data-tip="Needs an admin"') +
+            '<label class="ds-switch ds-switch--locked"><input type="checkbox" role="switch" checked aria-disabled="true" aria-describedby="' + reason + '"><span class="ds-switch__track" aria-hidden="true">' + h.icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Disk encryption</span><small class="ds-switch__hint" id="' + reason + '">Set by the device policy</small></label>' +
+            '</div>') +
+
+          h.section('List of settings', '<div class="ds-switch-list" data-demo="list">' +
+            listRow(h, 'Email reports', 'Every Monday at 08:00', '<span class="ds-tag ds-tone-neutral">3 recipients</span>', true) +
+            listRow(h, 'Push notifications', 'On this device only', '', false) +
+            listRow(h, 'A weekly digest of every device that changed its owner, its place or its warranty', 'Long names wrap', '<span class="ds-badge ds-tone-neutral">12</span>', false) +
+            '</div>', 'Narrow the width in the options panel: at 560px the extras wrap under the name.') +
+
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each switch; <kbd class="ds-kbd">Space</kbd> toggles it. A blocked, busy or locked switch keeps its ring and ignores <kbd class="ds-kbd">Space</kbd>.</p>');
+      },
+
+      wire: function (root, h) {
+        root.addEventListener('change', function (event) {
+          var input = event.target;
+          if (!input.matches('[data-demo="save"]')) return;
+          input.setAttribute('aria-busy', 'true');
+          input.setAttribute('aria-disabled', 'true');
+          setTimeout(function () {
+            input.removeAttribute('aria-busy');
+            input.removeAttribute('aria-disabled');
+          }, h.slow(1500));
+        });
+      },
+    });
+  })();
+
+  // src/components/slider/slider.demo.js
+  (function () {
+    /*
+     * The Slider demo: a labelled slider with its value, the states, and a slider
+     * without a value row. Registered through SG.demo() (styleguide/sg-core.js).
+     * Size, density, shape and touch come from the options panel around it. The
+     * one line of behaviour is what a project writes: --ds-share and the output.
+     */
+    function slider(h, label, value, attributes, unit) {
+      var id = h.uid('slider');
+      var out = h.uid('slider-out');
+      return '<div class="ds-field"><label class="ds-field__label" for="' + id + '">' + label + '</label><div class="ds-field__row">' +
+        '<input class="ds-slider" id="' + id + '" type="range" min="7" max="365" value="' + value + '" aria-describedby="' + out + '" data-unit="' + unit + '"' + (attributes || '') + '>' +
+        '<output class="ds-slider__value" id="' + out + '" for="' + id + '">' + value + ' ' + unit + '</output></div></div>';
+    }
+
+    SG.demo('slider', {
+      title: 'Slider',
+      group: 'forms',
+      need: 'Pick a value on a range by dragging or with the arrow keys',
+      lead: 'A value on a scale, on the native range input, so keyboard, forms and labels stay native. The options panel changes size, density, shape and touch around the demo.',
+      options: { sizes: true, density: true, shape: true, tones: false },
+
+      render: function (h) {
+        return h.section('With its value', '<div class="ds-stack" data-demo="value">' + slider(h, 'Keep history for', 90, '', 'days') + '</div>') +
+          h.section('States', '<div class="ds-stack" data-demo="states">' + slider(h, 'Disabled', 180, ' disabled', 'days') +
+            slider(h, 'Blocked with a reason', 30, ' aria-disabled="true" data-tip="Needs an admin"', 'days') + '</div>') +
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches the slider; the arrow keys step, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> jump, <kbd class="ds-kbd">Page Up</kbd> and <kbd class="ds-kbd">Page Down</kbd> take bigger steps.</p>');
+      },
+
+      wire: function (root, h) {
+        function share(input) {
+          input.style.setProperty('--ds-share', String((input.value - input.min) / (input.max - input.min)));
+          var output = h.$('#' + input.getAttribute('aria-describedby'), root);
+          if (output) output.textContent = input.value + ' ' + input.getAttribute('data-unit');
+        }
+        h.$$('.ds-slider', root).forEach(share);
+        root.addEventListener('input', function (event) {
+          if (event.target.matches('.ds-slider')) share(event.target);
+        });
+      },
+    });
+  })();
+
+  // src/components/progress/progress.demo.js
+  (function () {
+    /*
+     * The Progress demo: shares, the flat look, an unknown share, the run from
+     * waiting to done, the label's places and the tones. Registered through
+     * SG.demo() (styleguide/sg-core.js). Size, density and shape come from the
+     * options panel around it; the panel's tone goes on the bars of the tone row,
+     * since progress reads only its own.
+     */
+    var TONES = [['primary', 'Sync'], ['info', 'Notes'], ['success', 'Backup done'], ['warning', 'Disk almost full'], ['error', 'Import failing'], ['neutral', 'Queue']];
+
+    function bar(share, name, label, detail, cls, text) {
+      return '<div class="ds-progress' + (cls ? ' ' + cls : '') + '"' + (share === null ? '' : ' style="--ds-progress:' + share + '"') + '>' +
+        '<div class="ds-progress__track" role="progressbar" aria-label="' + name + '" aria-valuemin="0" aria-valuemax="100"' + (share === null ? ' aria-valuetext="' + text + '"' : ' aria-valuenow="' + Math.round(share * 100) + '"') + '><div class="ds-progress__bar"></div></div>' +
+        '<p class="ds-progress__label">' + label + '</p>' + (detail ? '<p class="ds-progress__detail">' + detail + '</p>' : '') + '</div>';
+    }
+
+    SG.demo('progress', {
+      title: 'Progress',
+      group: 'feedback',
+      need: 'Show how far a known or unknown amount of work has come',
+      lead: 'A bar that ends at the share, a gap, the remaining track and a stop dot; its value glides. The label says what it means, never the colour alone.',
+      options: { variants: ['flat'], sizes: true, density: true, shape: true, tones: true },
+
+      render: function (h) {
+        var flat = h.variant === 'flat' ? 'ds-progress--flat' : '';
+        var tones = TONES.filter(function (row) { return !h.tone || row[0] === h.tone; });
+        return h.section('A known share', '<div class="ds-stack" data-demo="shares">' +
+          bar(0.05, 'Export', '5%', '102 of 2,030 rows', flat) +
+          bar(0.4, 'Import', '40%', '812 of 2,030 rows', flat) +
+          bar(1, 'Backup', '100%', 'Done', flat) +
+          bar(0.4, 'Upload (flat)', '40%', 'flat: no gap, no stop dot, no wave', 'ds-progress--flat') + '</div>' +
+          '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="advance">Advance</button></div>') +
+
+          h.section('An unknown share', '<div class="ds-stack">' +
+            bar(null, 'Preparing', 'Preparing the import ...', '', 'ds-progress--indeterminate', 'Preparing') +
+            bar(null, 'Queued export', 'Waiting for a free worker ...', '', 'ds-progress--waiting', 'Waiting') +
+            '<div data-demo="run-holder">' + bar(0, 'Import run', 'Ready', 'Start runs waiting, preparing, 30%, done') + '</div></div>' +
+            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="run">Start</button></div>' +
+            '<p class="ds-muted">While the share is unknown the bar has no aria-valuenow but an aria-valuetext; the first share sets aria-valuenow again. The segments stop and fade out, and the bar grows from 0 to its share.</p>') +
+
+          h.section('Where the label sits', '<div class="ds-stack" data-demo="labels">' +
+            bar(0.6, 'Under the track', 'Under the track (60%)', '1,218 of 2,030 rows') +
+            bar(0.6, 'Above the track', 'Above the track (60%)', '1,218 of 2,030 rows', 'ds-progress--label-above') +
+            bar(0.6, 'At the end', '60%', '1,218 of 2,030 rows', 'ds-progress--label-end') + '</div>') +
+
+          h.section('Tones, each with its word', '<div class="ds-stack" data-demo="tones">' + tones.map(function (row) {
+            return bar(0.7, row[1], row[1], '', 'ds-tone-' + row[0] + (flat ? ' ' + flat : ''));
+          }).join('') + '</div>') +
+
+          h.section('Keyboard', '<p class="ds-muted">No stop of its own. The track is a progressbar with a name and a value; a share that matters at once also goes through a live region.</p>');
+      },
+
+      wire: function (root, h) {
+        var timers = [];
+        var share = 0.4;
+        var run = function () {
+          var p = h.$('[data-demo="run-holder"] .ds-progress', root);
+          var label = h.$('.ds-progress__label', p);
+          var detail = h.$('.ds-progress__detail', p);
+          var say = function (one, two) { label.textContent = one; detail.textContent = two; };
+          timers.forEach(clearTimeout);
+          timers = [];
+          p.style.setProperty('--ds-progress', '0');
+          DS.dom.progress(p, null, { waiting: true, valueText: 'Waiting' });
+          say('Waiting for a free worker ...', 'queued');
+          timers.push(setTimeout(function () {
+            DS.dom.progress(p, null, { valueText: 'Preparing' });
+            say('Preparing the import ...', 'reading the file');
+          }, h.slow(1200)));
+          timers.push(setTimeout(function () { DS.dom.progress(p, 0.3); say('30%', '609 of 2,030 rows'); }, h.slow(3000)));
+          timers.push(setTimeout(function () { DS.dom.progress(p, 1); say('100%', 'Done'); }, h.slow(4500)));
+        };
+        root.addEventListener('click', function (event) {
+          var button = event.target.closest('[data-demo]');
+          if (!button) return;
+          var kind = button.getAttribute('data-demo');
+          if (kind === 'run') run();
+          if (kind === 'advance') {
+            share = share >= 1 ? 0.1 : Math.min(1, share + 0.2);
+            h.$$('[data-demo="shares"] .ds-progress', root).slice(1, 2).forEach(function (el) {
+              DS.dom.progress(el, share);
+              DS.motion.countUp(h.$('.ds-progress__label', el), Math.round(share * 100), { format: function (value) { return Math.round(value) + '%'; } });
+            });
+          }
+        });
+        return function () { timers.forEach(clearTimeout); };
+      },
+    });
+  })();
+
+  // src/components/chart/chart.demo.js
+  (function () {
+    /*
+     * The Charts demo: meters with their tones, columns, columns that open,
+     * grouped columns with a sparkline. Registered through SG.demo()
+     * (styleguide/sg-core.js); the build wraps this file into
+     * styleguide/demos.js. legacy.html renders the same spec as its Charts
+     * section until it goes. Size, density and shape come from the options
+     * panel around it; a tone goes on the mark it means, with words next to it.
+     */
+    var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    var CHART_SETS = [[42, 38, 51, 47, 30, 8, 5], [36, 44, 40, 52, 41, 12, 9], [28, 31, 45, 39, 50, 6, 11]];
+
+    function columnsHtml(values, interactive) {
+      var max = Math.max.apply(null, values);
+      return values.map(function (value, index) {
+        var share = 'style="--ds-share:' + (value / max).toFixed(3) + '"';
+        var parts = '<span class="ds-columns__value">' + value + '</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">' + DAYS[index] + '</span>';
+        if (interactive) return '<li><button class="ds-columns__col" type="button" ' + share + ' aria-label="' + DAYS[index] + ': ' + value + ' tickets" data-chart-action="open">' + parts + '</button></li>';
+        return '<li class="ds-columns__col" ' + share + '>' + parts + '</li>';
+      }).join('');
+    }
+
+    var WEEKS = [['W37', 12, 9, 2], ['W38', 15, 14, 4], ['W39', 9, 12, 1], ['W40', 18, 11, 3], ['W41', 11, 16, 5], ['W42', 14, 6, 2]];
+
+    function groupsHtml() {
+      var max = 18;
+      return WEEKS.map(function (week, index) {
+        var current = index === WEEKS.length - 1;
+        return '<li class="ds-columns__group' + (current ? ' ds-columns__group--current' : '') + '"><ol class="ds-columns__plot">' +
+          '<li class="ds-columns__col" style="--ds-share:' + (week[1] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: ' + week[1] + '</span></li>' +
+          '<li class="ds-columns__col ds-columns__col--s2" style="--ds-share:' + (week[2] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: ' + week[2] + '</span></li>' +
+          '<li class="ds-columns__col ds-columns__col--s3" style="--ds-share:' + (week[3] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Reopened: ' + week[3] + '</span></li></ol>' +
+          '<span class="ds-columns__label">' + week[0] + (current ? '<span class="ds-sr">, this week</span>' : '') + '</span></li>';
+      }).join('');
+    }
+
+    var SPARK = [3, 5, 4, 7, 6, 2, 8, 5, 9, 6, 4, 7, 10, 12];
+
+    SG.demo('chart', {
+      title: 'Charts',
+      group: 'data',
+      need: 'Show a share, a figure per day or week, or a trend at a glance',
+      lead: 'Meters, columns and legends from the chart roles: four series in a fixed order, each at 3:1. A fill is clipped at its share (--ds-share), never scaled, so its round end keeps its shape; the first render fills from zero, later values glide. The chart module (axes, lines, a cursor) comes later.',
+      options: { sizes: true, density: true, shape: true, tones: ['neutral', 'primary', 'info', 'success', 'warning', 'error'] },
+
+      render: function (h) {
+        var spark = SPARK.map(function (value, index) {
+          return '<li class="ds-columns__col' + (index === SPARK.length - 1 ? ' ds-columns__col--highlight' : '') + '" style="--ds-share:' + (value / 12).toFixed(3) + '"><span class="ds-columns__fill"></span></li>';
+        }).join('');
+        // The panel's tone goes on the first meter's fill and its legend key: tones read their own class.
+        var tone = h.tone ? ' ds-tone-' + h.tone : '';
+        return '<div class="ds-grid-2">' +
+          h.card('Meters', '<div class="sg-meters" data-chart="meters">' +
+            '<p class="sg-meter-label"><span>Disk</span><strong class="ds-num" data-chart="disk">62%</strong></p><span class="ds-meter' + tone + '" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-valuetext="62% used" style="--ds-share:.62"></span>' +
+            '<p class="sg-meter-label"><span>Memory: high</span><strong class="ds-num">91%</strong></p><span class="ds-meter ds-tone-warning" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-valuetext="91% used, high" style="--ds-share:.91"></span>' +
+            '<p class="sg-meter-label"><span>Battery health</span><strong class="ds-num">48%</strong></p><span class="ds-meter ds-tone-neutral" role="meter" aria-label="Battery health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-valuetext="48%" style="--ds-share:.48"></span></div>' +
+            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-chart-action="meter">' + h.icon('sync', 16) + 'New disk value</button></div>' +
+            '<p class="ds-muted">DS.dom.progress sets the share and its ARIA; the meter glides on --ds-ease-value while its figure counts (DS.motion.countUp) in the same task: both land on the same frame.</p>') +
+          h.card('Columns', '<figure class="ds-columns" data-chart="columns"><figcaption class="ds-sr">Devices that checked in, per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[0]) + '</ol></figure>' +
+            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-chart-action="values">' + h.icon('sync', 16) + 'New values</button><button class="ds-btn ds-sm" type="button" data-chart-action="fill">Fill again</button></div>' +
+            '<p class="ds-muted">New values glide; Fill again plays the first render (DS.motion.enterAll(marks, \'fill\'), .ds-enter--fill).</p>') +
+          '</div>' +
+          '<div class="ds-grid-2">' +
+          h.card('Columns that open', '<figure class="ds-columns"><figcaption class="ds-sr">Tickets per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[1], true) + '</ol></figure>' +
+            '<p class="ds-muted">Each column is a button that opens its day: a state layer, an inset ring and the ripple, no morph.</p>') +
+          h.card('Grouped, with a sparkline', '<figure class="ds-columns ds-columns--grouped"><figcaption class="ds-sr">Tickets opened, closed and reopened per week</figcaption>' +
+            '<div class="ds-scroll-x" tabindex="0" role="group" aria-label="Tickets per week"><ol class="ds-columns__groups">' + groupsHtml() + '</ol></div></figure>' +
+            '<ul class="ds-legend"><li><span class="ds-legend__key"></span>Opened</li><li><span class="ds-legend__key ds-legend__key--s2"></span>Closed</li><li><span class="ds-legend__key ds-legend__key--s3"></span>Reopened</li></ul>' +
+            '<div class="sg-spark"><p class="sg-spark__figure">12</p><figure class="ds-columns ds-columns--mini" role="img" aria-label="Tickets per day, last 14 days: highest 12 today"><ol class="ds-columns__plot" aria-hidden="true">' + spark + '</ol></figure></div>') +
+          '</div>';
+      },
+
+      // What a page writes itself: new values, a new meter reading, the first fill, opening a day.
+      wire: function (root, h) {
+        var M = window.DS.motion;
+        var at = 0;
+        var marks = function (scope) { return h.$$('.ds-meter, .ds-columns__col', scope); };
+        // The marks fill from zero once, on the first render (.ds-enter--fill).
+        M.enterAll(marks(root), 'fill', { stagger: false });
+        var onClick = function (event) {
+          var button = event.target.closest('[data-chart-action]');
+          if (!button || !root.contains(button)) return;
+          var action = button.getAttribute('data-chart-action');
+          var columns = h.$('[data-chart="columns"]', root);
+          if (action === 'values') {
+            at = (at + 1) % CHART_SETS.length;
+            var values = CHART_SETS[at];
+            var max = Math.max.apply(null, values);
+            h.$$('.ds-columns__col', columns).forEach(function (col, index) {
+              col.style.setProperty('--ds-share', (values[index] / max).toFixed(3));
+              h.$('.ds-columns__value', col).textContent = String(values[index]);
+            });
+          }
+          if (action === 'fill') M.enterAll(marks(columns), 'fill', { stagger: false });
+          if (action === 'meter') {
+            var meter = h.$('[data-chart="meters"] .ds-meter', root);
+            var next = Number(meter.getAttribute('aria-valuenow')) >= 60 ? 27 : 84;
+            // DS.dom.progress() sets the share and its ARIA in one call.
+            window.DS.dom.progress(meter, next / 100, { valueText: next + '% used' });
+            M.countUp(h.$('[data-chart="disk"]', root), next, { format: function (value) { return Math.round(value) + '%'; } });
+          }
+          if (action === 'open') h.toast('Opened the tickets of ' + button.getAttribute('aria-label').split(':')[0] + '.', 'info');
+        };
+        root.addEventListener('click', onClick);
+        return function () { root.removeEventListener('click', onClick); };
+      }
     });
   })();
 
@@ -884,168 +1442,93 @@
     });
   })();
 
-  // src/components/timeline/timeline.demo.js
+  // src/components/card/card.demo.js
   (function () {
     /*
-     * The Timeline demo: the history of a record with day groups and muted
-     * entries; an activity feed with avatars and a live entry; comments in a
-     * box of their own. Registered through SG.demo() (styleguide/sg-core.js).
-     * Size, density and shape come from the options panel around it. The
-     * entries are fake, as a project's would come from its data layer.
+     * The Card demo: the looks, the parts of a card, clickable and selectable
+     * cards and the horizontal layout. Density, shape and touch come from the
+     * options panel around it, so no card here carries an option class; the
+     * panel's variant goes on the plain cards. What a project writes itself:
+     * toggling the selected attribute and the toast after a click.
      */
-    function chip(h, status) {
-      return '<span class="ds-status ds-tone-' + (status[0] === 'ok' ? 'success' : status[0]) + '">' + h.icon(status[1], 16) + '<span>' + status[2] + '</span></span>';
-    }
-
-    function historyHtml(h) {
-      return '<li class="ds-timeline__group" role="presentation"><h4 class="ds-timeline__day">12 Oct 2026</h4></li>' +
-        '<li class="ds-timeline__item" data-ds-key="h3"><div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p>' + chip(h, ['ok', 'check', 'Active']) + '</div>' +
-          '<p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p><p class="ds-timeline__text">Issued to Ada Lovelace.\nCharger and bag included.</p>' +
-          '<div class="ds-timeline__actions ds-sm"><button class="ds-btn ds-btn--text" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05" data-demo="edit">Edit</button></div></li>' +
-        '<li class="ds-timeline__item ds-timeline__item--muted" data-ds-key="h2"><div class="ds-timeline__head"><p class="ds-timeline__title">Return planned</p></div>' +
-          '<p class="ds-timeline__meta"><time datetime="2026-10-12T09:40">09:40</time> · Grace Hopper</p><p class="ds-timeline__text">Cancelled: the loan was extended.</p></li>' +
-        '<li class="ds-timeline__group" role="presentation"><h4 class="ds-timeline__day">3 Oct 2026</h4></li>' +
-        '<li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="h1"><span class="ds-timeline__marker" aria-hidden="true">' + h.icon('wrench', 16) + '</span><div class="ds-timeline__head"><p class="ds-timeline__title">Repaired</p></div>' +
-          '<p class="ds-timeline__meta">' + h.icon('user', 16) + 'Service desk</p><p class="ds-timeline__text">Keyboard replaced under warranty.</p></li>';
-    }
-
-    var FEED = [
-      { id: 'a3', initials: 'GH', who: 'Grace Hopper', what: 'took LAPTOP-0051', when: '08:47', at: '2026-10-12T08:47' },
-      { id: 'a2', glyph: 'sync', who: 'The nightly sync', what: 'changed nothing', when: '02:00', at: '2026-10-12T02:00', muted: true },
-      { id: 'a1', initials: 'AL', who: 'Ada Lovelace', what: 'renamed PRINTER-0003', when: 'Yesterday', at: '2026-10-11T16:20' },
+    var LOOKS = [
+      ['outlined', 'The default look: a hairline on the surface.'],
+      ['filled', 'A quieter block inside a card or form.'],
+      ['elevated', 'Floats a little, instead of the hairline.'],
     ];
-    var FRESH = [['AT', 'Alan Turing', 'took TABLET-0121', '2026-10-12T09:15'], ['AL', 'Ada Lovelace', 'closed ticket #42', '2026-10-12T09:16'], ['GH', 'Grace Hopper', 'returned LAPTOP-0051', '2026-10-12T09:17']];
 
-    function feedHtml(h, items) {
-      return items.map(function (item) {
-        return '<li class="ds-timeline__item ds-timeline__item--icon' + (item.muted ? ' ds-timeline__item--muted' : '') + '" data-ds-key="' + item.id + '"><span class="ds-timeline__marker" aria-hidden="true">' + (item.glyph ? h.icon(item.glyph, 16) : item.initials) + '</span>' +
-          '<div class="ds-timeline__head"><p class="ds-timeline__title"><strong>' + item.who + '</strong> ' + item.what + '</p><time class="ds-timeline__time" datetime="' + item.at + '">' + item.when + '</time></div></li>';
-      }).join('');
+    function look(h, name) { return name ? ' ds-card--' + name : ''; }
+
+    function plan(h, title, text, on, extra) {
+      return '<button class="ds-card ds-card--interactive ds-card--selectable" type="button" aria-pressed="' + on + '" data-demo="pick"' + (extra || '') + '>' +
+        '<span class="ds-card__title">' + title + '</span><span class="ds-muted">' + text + '</span>' +
+        '<span class="ds-card__check" aria-hidden="true">' + h.icon('check', 16) + '</span></button>';
     }
 
-    function commentsHtml(h) {
-      return '<li class="ds-timeline__item ds-timeline__item--icon ds-timeline__item--comment" data-ds-key="c2"><span class="ds-timeline__marker" aria-hidden="true">GH</span>' +
-          '<div class="ds-timeline__head"><p class="ds-timeline__title">Grace Hopper</p><time class="ds-timeline__time" datetime="2026-10-12T09:40">09:40</time></div>' +
-          '<p class="ds-timeline__text">The keyboard is back from the service desk.\nCan you check the battery too?</p>' +
-          '<div class="ds-timeline__actions ds-sm"><button class="ds-btn ds-btn--text" type="button" aria-label="Reply to Grace Hopper" data-demo="reply">Reply</button></div></li>' +
-        '<li class="ds-timeline__item ds-timeline__item--icon" data-ds-key="c1"><span class="ds-timeline__marker" aria-hidden="true">' + h.icon('pencil', 16) + '</span>' +
-          '<div class="ds-timeline__head"><p class="ds-timeline__title">Status changed to In repair</p>' + chip(h, ['warning', 'wrench', 'In repair']) + '</div><p class="ds-timeline__meta">Service desk, 09:12</p></li>';
-    }
-
-    SG.demo('timeline', {
-      title: 'Timeline',
-      group: 'data',
-      need: 'Show the history of a record, an activity feed or comments, on a rail grouped by day',
-      lead: 'Entries on a rail, grouped by day: a dot, or a marker with an icon or an avatar. An activity feed reads as sentences, comments stand in a box of their own, and a muted entry takes a ring. Size, density and shape change the rail and its marks together.',
-      options: { sizes: true, density: true, shape: true, tones: false, variants: ['history', 'activity', 'comments'] },
+    SG.demo('card', {
+      title: 'Card',
+      group: 'layout',
+      need: 'Group related content in a block, or let a whole block open or pick something',
+      lead: 'A block on a surface. Hierarchy comes from type and hairlines. A card can open something, be one choice among a few, or set its media beside its text. The options panel changes density, shape and touch around the demo.',
+      options: { variants: LOOKS.map(function (entry) { return entry[0]; }), sizes: false, density: true, shape: true, tones: false },
 
       render: function (h) {
-        var show = function (name) { return !h.variant || h.variant === name; };
-        return (show('history') ? h.section('History', '<ol class="ds-timeline" role="list" aria-label="History of LAPTOP-0042" data-demo="history">' + historyHtml(h) + '</ol>',
-          'A muted entry did not take effect: it says why in words. An icon marker says who or what did it.') : '') +
+        var looks = LOOKS.filter(function (entry) { return !h.variant || entry[0] === h.variant; });
+        return h.section('Variants', '<div class="ds-grid-2" data-demo="variants">' + looks.map(function (entry) {
+          return '<section class="ds-card ds-card--' + entry[0] + '"><h3 class="ds-card__title">' + entry[0].charAt(0).toUpperCase() + entry[0].slice(1) + '</h3><p class="ds-muted">' + entry[1] + '</p></section>';
+        }).join('') + '</div>') +
 
-          (show('activity') ? h.section('Activity', '<ol class="ds-timeline ds-timeline--activity" role="list" aria-label="Activity" data-demo="activity">' + feedHtml(h, FEED) + '</ol>' +
-            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="add">' + h.icon('plus', 16) + 'Add an entry</button></div>',
-            'A live feed: a new entry fades in at the top while the others glide down (DS.motion.flip with live: true). The sync\'s own entry is muted.') : '') +
+          h.section('The parts of a card', '<section class="ds-card' + look(h, h.variant) + '" data-demo="parts">' +
+            '<div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><span class="ds-status ds-tone-success">' + h.icon('check', 16) + '<span>Managed</span></span></div>' +
+            '<p class="ds-muted">Issued to Ada Lovelace. <a href="#card-demo">Open the record</a> or copy the serial <code>5CD1234XYZ</code>.</p>' +
+            '<h4 class="ds-card__subtitle">Sources</h4><p class="ds-muted">Directory and device management.</p>' +
+            '<div class="ds-card__section"><h4 class="ds-card__subtitle">Advanced</h4><p class="ds-muted">Asset tag, purchase date and the cost centre.</p></div>' +
+            '<nav class="ds-card__links" aria-label="Related"><a class="ds-btn ds-btn--text ds-card__link" href="#card-demo">History ' + h.icon('arrowRight', 16) + '</a><a class="ds-btn ds-btn--text ds-card__link" href="#card-demo">Tickets ' + h.icon('arrowRight', 16) + '</a></nav>' +
+            '<div class="ds-card__more"><button class="ds-btn" type="button">Load more</button></div>' +
+            '</section>') +
 
-          (show('comments') ? h.section('Comments', '<ol class="ds-timeline" role="list" aria-label="Comments on ticket #42" data-demo="comments">' + commentsHtml(h) + '</ol>',
-            'What someone wrote stands in a box, apart from what happened.') : '') +
+          h.section('Clickable', '<div class="ds-grid-2" data-demo="clickable">' +
+            '<a class="ds-card ds-card--interactive' + look(h, h.variant) + '" href="#card-demo" data-demo="open" data-name="MONITOR-0007"><h3 class="ds-card__title">MONITOR-0007</h3><p class="ds-muted">A link: the whole card goes somewhere.</p></a>' +
+            '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" data-demo="open" data-name="PRINTER-0003"><span class="ds-card__row"><span class="ds-card__title">PRINTER-0003</span><span class="ds-status ds-tone-warning">' + h.icon('alert', 16) + '<span>Toner low</span></span></span><span class="ds-muted">A button: hover lays a layer over it, a press turns it squarer and ripples.</span></button>' +
+            '<div class="ds-card ds-card--interactive' + look(h, h.variant) + '"><div class="ds-card__row"><h3 class="ds-card__title"><a class="ds-card__action" href="#card-demo" data-demo="open" data-name="LAPTOP-0017">LAPTOP-0017</a></h3><button class="ds-btn ds-sm" type="button" data-demo="restart">Restart</button></div><p class="ds-muted">The title link stretches over the card; Restart stays a button of its own.</p></div>' +
+            '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" disabled><span class="ds-card__title">Disabled</span><span class="ds-muted">Dimmed, with no hover, no press and no morph.</span></button>' +
+            '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" aria-disabled="true"><span class="ds-card__title">Blocked</span><span class="ds-muted">aria-disabled: stays focusable, so it can say why.</span></button>' +
+            '</div>') +
 
-          h.section('Empty', '<ol class="ds-timeline" role="list" aria-label="No entries"></ol><p class="ds-muted">An empty timeline takes no room: show an empty state instead.</p>') +
+          h.section('Selectable', '<div class="ds-grid-2" role="group" aria-label="Plan" data-demo="plans">' +
+            plan(h, 'Standard', 'Daily sync, 30 days of history.', 'true') +
+            plan(h, 'Extended', 'Hourly sync, a year of history.', 'false') +
+            plan(h, 'Archive', 'Monthly sync, kept for ten years. Blocked for this tenant.', 'false', ' aria-disabled="true"') +
+            '<div class="ds-card ds-card--interactive ds-card--selectable"><h3 class="ds-card__title"><button class="ds-card__action" type="button" aria-pressed="false" data-demo="pick">Custom</button></h3><p class="ds-muted">The button form of the action, with a link of its own.</p><a class="ds-link--quiet" href="#card-demo">Compare plans</a><span class="ds-card__check" aria-hidden="true">' + h.icon('check', 16) + '</span></div>' +
+            '</div>', 'The tint, the ring and the check say the same: a selected card is never told by colour alone.') +
 
-          h.section('Keyboard', '<p class="ds-muted">An entry is no target. <kbd class="ds-kbd">Tab</kbd> reaches its buttons and links; name the entry in each button\'s <code>aria-label</code>.</p>');
+          h.section('Horizontal', '<div class="ds-stack" data-demo="horizontal">' +
+            '<section class="ds-card ds-card--horizontal' + look(h, h.variant) + '"><div class="ds-card__media" role="img" aria-label="A printer">' + h.icon('printer', 24) + '</div><div class="ds-card__body"><h3 class="ds-card__title">PRINTER-0003</h3><p class="ds-muted">Media beside the body. Narrow the width in the options panel: below 416px they stack.</p></div></section>' +
+            '<button class="ds-card ds-card--interactive ds-card--horizontal' + look(h, h.variant) + '" type="button" data-demo="open" data-name="MONITOR-0007"><span class="ds-card__media">' + h.icon('monitor', 24) + '</span><span class="ds-card__body"><span class="ds-card__title">MONITOR-0007</span><span class="ds-muted">Clickable and horizontal: one button.</span></span></button>' +
+            '</div>') +
+
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each clickable card and each control inside one; <kbd class="ds-kbd">Enter</kbd> opens a card, <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> presses a button card or picks a selectable one.</p>');
       },
 
-      // What a page writes itself: a new entry, and what its buttons do.
       wire: function (root, h) {
-        var items = FEED.slice();
-        var next = 0;
-        var onClick = function (event) {
-          var target = event.target.closest('[data-demo="add"], [data-demo="edit"], [data-demo="reply"]');
-          if (!target || !root.contains(target)) return;
-          var action = target.getAttribute('data-demo');
-          if (action === 'edit') h.toast('Editing opens a form in place (DS.motion.crossfade).', 'info');
-          if (action === 'reply') h.toast('A reply opens a form in place.', 'info');
-          if (action === 'add') {
-            var fresh = FRESH[next % FRESH.length];
-            next += 1;
-            items.unshift({ id: 'n' + next, initials: fresh[0], who: fresh[1], what: fresh[2], when: 'Just now', at: fresh[3] });
-            if (items.length > 4) items.pop();
-            var list = h.$('[data-demo="activity"]', root);
-            window.DS.motion.flip(list, function (options) { window.DS.dom.morphHtml(list, feedHtml(h, items), options); }, { live: true });
+        root.addEventListener('click', function (event) {
+          var target = event.target.closest('[data-demo]');
+          if (!target) {
+            if (event.target.closest('a[href="#card-demo"]')) event.preventDefault();
+            return;
           }
-        };
-        root.addEventListener('click', onClick);
-        return function () { root.removeEventListener('click', onClick); };
-      }
-    });
-  })();
-
-  // src/components/tasks/tasks.demo.js
-  (function () {
-    /*
-     * The Tasks demo: the steps of a job, advanced by hand. Registered through
-     * SG.demo() (styleguide/sg-core.js). Size and density come from the options
-     * panel around it and only space the steps; the shape reaches the pending
-     * ring. A project's job would report
-     * the status; here the buttons stand for it.
-     */
-    var STEPS = ['Copy the image', 'Install updates', 'Join the domain', 'Restart'];
-
-    function stepsHtml(h, state) {
-      return STEPS.map(function (text, index) {
-        var status = index < state.done ? 'done' : index === state.done ? (state.failed ? 'failed' : 'running') : 'pending';
-        var mark = status === 'done' ? h.icon('checkCircle', 20) : status === 'failed' ? h.icon('alertCircle', 20) : status === 'running' ? '<span class="ds-spinner ds-spinner--ink ds-sm"></span>' : '';
-        var word = { done: ': done', running: ': running', pending: ': waiting' }[status];
-        return '<li class="ds-tasks__item" data-status="' + status + '" data-ds-key="t' + index + '"><span class="ds-tasks__mark">' + mark + '</span><span class="ds-tasks__text">' + text +
-          (status === 'failed' ? ': failed, the server did not answer' : '<span class="ds-sr">' + word + '</span>') + '</span></li>';
-      }).join('');
-    }
-
-    SG.demo('tasks', {
-      title: 'Tasks',
-      group: 'data',
-      need: 'Follow the steps of a job: pending, running, done or failed',
-      lead: 'The steps of a job, each pending, running, done or failed. The status shows in the shape of the mark and the weight of the text, never in colour alone, and a step that turns done in place draws its tick.',
-      options: { sizes: true, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        var state = { done: 1, failed: false };
-        return h.section('A job', '<div class="ds-tasks__head"><h3 class="ds-card__title">Set up LAPTOP-0042</h3><p class="ds-meta" data-demo="count">1 of ' + STEPS.length + '</p></div>' +
-          '<ol class="ds-tasks" aria-label="Steps" data-demo="steps">' + stepsHtml(h, state) + '</ol>' +
-          '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="next">Advance</button><button class="ds-btn ds-sm" type="button" data-demo="fail">Fail the running step</button><button class="ds-btn ds-btn--text ds-sm" type="button" data-demo="reset">Start over</button></div>') +
-
-          h.section('Every status', '<ol class="ds-tasks" aria-label="Every status" data-demo="all">' +
-            '<li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">Pending: a ring<span class="ds-sr">: waiting</span></span></li>' +
-            '<li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--ink ds-sm"></span></span><span class="ds-tasks__text">Running: the small spinner and the label weight<span class="ds-sr">: running</span></span></li>' +
-            '<li class="ds-tasks__item" data-status="done"><span class="ds-tasks__mark">' + h.icon('checkCircle', 20) + '</span><span class="ds-tasks__text">Done: the check in a circle<span class="ds-sr">: done</span></span></li>' +
-            '<li class="ds-tasks__item" data-status="failed"><span class="ds-tasks__mark">' + h.icon('alertCircle', 20) + '</span><span class="ds-tasks__text">Join the domain: failed, the server did not answer</span></li>' +
-            '</ol>') +
-
-          h.section('Empty', '<ol class="ds-tasks" aria-label="No steps"></ol><p class="ds-muted">An empty list takes no room.</p>') +
-
-          h.section('Keyboard', '<p class="ds-muted">A step is no target, so the list adds no tab stop; a link in a step\'s text is reached as usual. Each step says its status in words.</p>');
+          var kind = target.getAttribute('data-demo');
+          if (kind === 'open') {
+            event.preventDefault();
+            h.toast('Opened ' + target.getAttribute('data-name') + '.', 'info');
+          }
+          if (kind === 'restart') h.toast('Restarting LAPTOP-0017.', 'info');
+          if (kind === 'pick' && target.getAttribute('aria-disabled') !== 'true') {
+            h.$$('[data-demo="pick"]', root).forEach(function (other) { if (other !== target) other.setAttribute('aria-pressed', 'false'); });
+            target.setAttribute('aria-pressed', 'true');
+          }
+        });
       },
-
-      // What a page writes itself: the status of each step, the count in the head.
-      wire: function (root, h) {
-        var state = { done: 1, failed: false };
-        var onClick = function (event) {
-          var target = event.target.closest('[data-demo="next"], [data-demo="fail"], [data-demo="reset"]');
-          if (!target || !root.contains(target)) return;
-          var action = target.getAttribute('data-demo');
-          if (action === 'next') {
-            if (state.failed) state.failed = false;
-            else state.done = Math.min(STEPS.length, state.done + 1);
-          }
-          if (action === 'fail' && state.done < STEPS.length) state.failed = true;
-          if (action === 'reset') state = { done: 0, failed: false };
-          window.DS.dom.morphHtml(h.$('[data-demo="steps"]', root), stepsHtml(h, state));
-          h.$('[data-demo="count"]', root).textContent = state.done + ' of ' + STEPS.length;
-        };
-        root.addEventListener('click', onClick);
-        return function () { root.removeEventListener('click', onClick); };
-      }
     });
   })();
 
@@ -1194,168 +1677,435 @@
     });
   })();
 
-  // src/components/status/status.demo.js
+  // src/components/menu/menu.demo.js
   (function () {
     /*
-     * The Status demo: every tone with its icon and word, the running chip, a
-     * polled chip patched in place by DS.dom.morphHtml, and tags. Registered
-     * through SG.demo() (styleguide/sg-core.js). Size, density and shape come from
-     * the options panel around it; the panel's tone goes on the chips of the tone
-     * row, since a chip reads only its own.
+     * The Menu demo: the overflow menu of a row, groups with headings, check and
+     * radio items, descriptions, shortcuts, a danger item and a blocked one.
+     * Opening, the keys and the flipped checks come from the system (data-ds-open,
+     * data-ds-menu-checks); wire() holds only the message after an action.
      */
-    var TONES = [['success', 'check', 'Synced'], ['warning', 'alert', 'Expires soon'], ['error', 'alertCircle', 'Failed'], ['info', 'info', 'Update ready'], ['primary', 'sparkles', 'Assigned'], ['neutral', 'clock', 'Queued']];
-    var POLL = [['ds-status--running', '', 'Syncing'], ['ds-tone-success', 'check', 'Synced'], ['ds-tone-error', 'alertCircle', 'Failed']];
-
-    function chip(h, cls, glyph, word) {
-      var mark = glyph ? h.icon(glyph, 16) : '<span class="ds-spinner ds-status__spinner" aria-hidden="true"></span>';
-      return '<span class="ds-status' + (cls ? ' ' + cls : '') + '">' + mark + '<span>' + word + '</span></span>';
+    function item(h, icon, label, extra, attrs) {
+      return '<button class="ds-menu__item' + (extra || '') + '" role="menuitem" type="button"' + (attrs || '') + '>' + h.icon(icon, 20) +
+        '<span class="ds-menu__label">' + label + '</span></button>';
     }
 
-    SG.demo('status', {
-      title: 'Status chip and tag',
-      group: 'feedback',
-      need: 'Show the state of one item with an icon and a word, or label it with a tag',
-      lead: 'Status is never colour alone: always an icon and a word, on the tonal container of its tone. Show chips for deviations, not for the normal case.',
-      options: { sizes: true, density: false, shape: true, tones: true },
+    function check(h, role, label, checked) {
+      return '<button class="ds-menu__item" role="' + role + '" type="button" aria-checked="' + checked + '">' + h.icon('check', 20, 'ds-menu__check') +
+        '<span class="ds-menu__label">' + label + '</span></button>';
+    }
+
+    SG.demo('menu', {
+      title: 'Menu',
+      group: 'overlays',
+      need: 'Offer the actions of one item, or the overflow of a toolbar, from a button',
+      lead: 'A list of actions that grows out of its button. The options panel changes the rows through size, density, touch and shape; the danger item is the one that carries a tone, always with its label.',
+      options: { sizes: true, density: true, shape: true, tones: false },
 
       render: function (h) {
-        var tones = TONES.filter(function (row) { return !h.tone || row[0] === h.tone; });
-        return h.section('Tones', '<div class="sg-row" data-demo="tones">' + tones.map(function (row) {
-          return chip(h, 'ds-tone-' + row[0], row[1], row[2]);
-        }).join('') + '</div>') +
+        var plain = h.uid('actions');
+        var rich = h.uid('rich');
+        var picks = h.uid('picks');
+        var sort = h.uid('sort');
+        return h.section('Actions', '<div class="sg-row">' +
+          '<button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="' + plain + '" data-ds-open="#' + plain + '" data-demo="plain">' + h.icon('moreVertical', 16) + 'Actions</button></div>' +
+          '<div class="ds-menu" role="menu" id="' + plain + '" aria-label="Actions" hidden data-demo="actions">' +
+          item(h, 'pencil', 'Edit', '', ' data-toast="Opened the record."') +
+          item(h, 'copy', 'Duplicate', '', ' data-toast="Duplicated as LAPTOP-0043."') +
+          item(h, 'archive', 'Archive', '', ' data-toast="Archived."') +
+          '<div class="ds-menu__divider" role="separator"></div>' +
+          item(h, 'trash', 'Delete (needs admin rights)', '', ' aria-disabled="true"') +
+          item(h, 'trash', 'Delete device', ' ds-menu__item--danger', ' data-toast="Deleted LAPTOP-0042."') +
+          '</div>') +
 
-          h.section('Running and idle', '<div class="sg-row">' +
-            chip(h, 'ds-status--running', '', 'Running') + chip(h, '', 'clock', 'Waiting') + chip(h, '', 'ban', 'Off') + '</div>') +
+          h.section('Descriptions and shortcuts', '<div class="sg-row">' +
+            '<button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="' + rich + '" data-ds-open="#' + rich + '" data-demo="rich">Export</button></div>' +
+            '<div class="ds-menu" role="menu" id="' + rich + '" aria-label="Export" hidden data-demo="export">' +
+            '<button class="ds-menu__item" role="menuitem" type="button" aria-keyshortcuts="Control+E">' + h.icon('download', 20) +
+            '<span class="ds-menu__content"><span class="ds-menu__label">Download</span><span class="ds-menu__description">A CSV file with every column.</span></span>' +
+            '<span class="ds-menu__shortcut">Ctrl E</span></button>' +
+            '<button class="ds-menu__item" role="menuitem" type="button" aria-keyshortcuts="Control+L">' + h.icon('link', 20) +
+            '<span class="ds-menu__content"><span class="ds-menu__label">Copy link</span><span class="ds-menu__description">Anyone with access can open it.</span></span>' +
+            '<span class="ds-menu__shortcut">Ctrl L</span></button></div>') +
 
-          h.section('A live chip', '<div class="sg-row"><button class="ds-btn ds-sm ds-btn--quiet" type="button" data-demo="poll" aria-pressed="false">Poll every 1.5s</button><span data-demo="polled">' + chip(h, POLL[0][0], POLL[0][1], POLL[0][2]) + '</span></div>' +
-            '<p class="ds-muted">Rendered with DS.dom.morphHtml: the kept chip changes colour over 250ms, an icon that comes in new fades in and springs up, the word changes at once.</p>') +
+          h.section('Groups, check and radio items', '<div class="sg-row">' +
+            '<button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="' + picks + '" data-ds-open="#' + picks + '" data-demo="picks">' + h.icon('settings', 16) + 'Sort and view</button></div>' +
+            '<div class="ds-menu" role="menu" id="' + picks + '" aria-label="Sort and view" hidden data-ds-menu-checks data-demo="checks">' +
+            '<div role="group" aria-labelledby="' + sort + '"><p class="ds-menu__heading" id="' + sort + '">Sort by</p>' +
+            check(h, 'menuitemradio', 'Name', true) + check(h, 'menuitemradio', 'Last seen', false) + check(h, 'menuitemradio', 'Owner', false) + '</div>' +
+            '<div class="ds-menu__divider" role="separator"></div>' +
+            check(h, 'menuitemcheckbox', 'Compact rows', true) + check(h, 'menuitemcheckbox', 'Show retired', false) + '</div>',
+            'With data-ds-menu-checks the system moves the checks and sends ds:change.') +
 
-          h.section('A long label', '<div style="max-width:200px">' + chip(h, 'ds-tone-warning', 'alert', 'The warranty of this device ends within the next thirty days') + '</div>' +
-            '<p class="ds-muted">Fully round at one line; a label that wraps keeps soft corners.</p>') +
-
-          h.section('Tags: words, not states or counts', '<div class="sg-row"><span class="ds-tag">Preview</span><span class="ds-tag">' + h.icon('sparkles', 16) + 'Beta</span><span class="ds-tag ds-tone-neutral">' + h.icon('tag', 16) + 'External</span><span class="ds-tag ds-tone-info">Internal</span><span class="ds-tag ds-tone-success">Verified</span></div>') +
-
-          h.section('Keyboard', '<p class="ds-muted">Chips and tags are no stops of their own; a status that changes while the user waits goes through a live region.</p>');
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">ArrowDown</kbd> on the button opens on the first item, <kbd class="ds-kbd">ArrowUp</kbd> on the last. The arrows, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> move, a letter jumps, <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button, <kbd class="ds-kbd">Tab</kbd> closes and moves on. A blocked item keeps its focus, so its name is read.</p>');
       },
 
       wire: function (root, h) {
-        var holder = h.$('[data-demo="polled"]', root);
-        var button = h.$('[data-demo="poll"]', root);
-        var step = 0;
-        var timer = 0;
-        button.addEventListener('click', function () {
-          var on = button.getAttribute('aria-pressed') !== 'true';
-          button.setAttribute('aria-pressed', String(on));
-          clearInterval(timer);
-          if (!on) return;
-          timer = setInterval(function () {
-            step += 1;
-            var state = POLL[step % POLL.length];
-            DS.dom.morphHtml(holder, chip(h, state[0], state[1], state[2]));
-          }, h.slow(1500));
+        root.addEventListener('click', function (event) {
+          var row = event.target.closest('[data-toast]');
+          if (row && row.getAttribute('aria-disabled') !== 'true') h.toast(row.getAttribute('data-toast'), 'info');
         });
-        return function () { clearInterval(timer); };
       },
     });
   })();
 
-  // src/components/alert/alert.demo.js
+  // src/components/chip/chip.demo.js
   (function () {
     /*
-     * The Alert demo: every tone, the three variants, titles and actions, the
-     * collapsible errors list, and alerts that come and go through
-     * DS.motion.flip. Registered through SG.demo() (styleguide/sg-core.js). Size,
-     * density, shape and touch come from the options panel around it; the panel's
-     * tone goes on the sample alert itself, since an alert reads only its own.
+     * The Chip demo: filter chips (checkboxes and radios), action and input chips,
+     * wrapping labels, the states and the tones. Registered through SG.demo()
+     * (styleguide/sg-core.js). Size, density, shape and touch come from the
+     * options panel around it; the tone goes on the chips themselves (an
+     * inherited one is ignored).
      */
-    var TONES = [
-      ['', 'info', 'The nightly sync runs at 02:00. Changes made now appear tomorrow.'],
-      ['info', 'info', 'A new agent version is available for 12 devices.'],
-      ['primary', 'sparkles', 'Bulk edit is on for this list.'],
-      ['neutral', 'clock', 'The report covers the last 30 days.'],
-      ['success', 'checkCircle', 'All 128 devices are up to date.'],
-      ['warning', 'alert', 'The certificate expires in 5 days.'],
-      ['error', 'alertCircle', 'Could not reach the directory server.'],
-    ];
-    var NEWS = ['Synced LAPTOP-0042.', 'Imported 12 devices.', 'TABLET-0121 is back online.', 'Exported the list as CSV.'];
+    var FILTERS = ['Active', 'In storage', 'Retired'];
 
-    function alertHtml(h, tone, glyph, text, extra) {
-      return '<div class="ds-alert' + (tone ? ' ds-tone-' + tone : '') + '"' + (tone === 'error' ? ' role="alert"' : ' role="status"') + '>' + h.icon(glyph, 20) +
-        '<span class="ds-alert__text">' + text + '</span>' + (extra || '') + '</div>';
+    function filter(h, type, name, label, attributes, cls) {
+      return '<label class="ds-chip' + (cls ? ' ' + cls : '') + '"><input class="ds-chip__input" type="' + type + '" name="' + name + '" ' + (attributes || '') + '><span class="ds-chip__body">' + h.icon('check', 18, 'ds-chip__check') + '<span>' + label + '</span></span></label>';
     }
 
-    function dismiss() {
-      return '<button class="ds-btn ds-btn--text ds-sm" type="button" data-demo="dismiss">Dismiss</button>';
+    function inputChips(h) {
+      return ['Building C, second floor', 'Laptops', 'Warranty ending this quarter'].map(function (name) {
+        return '<button class="ds-chip ds-chip--input" type="button" data-ds-key="' + h.esc(name) + '" data-tip="' + h.esc(name) + '"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>' + h.esc(name) + '</span>' + h.icon('close', 18, 'ds-chip__trailing') + '</span></button>';
+      }).join('');
     }
 
-    SG.demo('alert', {
-      title: 'Alert',
-      group: 'feedback',
-      need: 'Tell the user something about a page or a section, in place, with an icon and a word',
-      lead: 'A notice on a tonal container, always with an icon and a word. The options panel pads it (size, density) and rounds it (shape); the tone goes on the alert itself.',
-      options: { variants: ['plain', 'inline', 'section'], sizes: true, density: true, shape: true, tones: true },
+    SG.demo('chip', {
+      title: 'Chips',
+      group: 'forms',
+      need: 'Filter a list, pick a few options or hold entered values as small pills',
+      lead: 'Small pills on native checkboxes, radios or buttons. A selected chip shows the tint and a check, never the tint alone. The options panel changes size, density, shape and touch around the demo; pick a tone to see it on the chips that carry one.',
+      options: { sizes: true, density: true, shape: true, tones: true },
 
       render: function (h) {
-        var sample = h.tone || 'warning';
-        var variant = function (name) { return !h.variant || h.variant === name; };
-        var serial = h.uid('serial');
-        return h.section('Tones', '<div class="ds-stack" data-demo="stack">' + TONES.map(function (row) {
-          return alertHtml(h, row[0], row[1], row[2], row[0] === 'warning' ? '<button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button>' : row[0] === 'error' ? '<button class="ds-btn ds-btn--text ds-sm" type="button">Try again</button>' : dismiss());
-        }).join('') + '</div>' +
-          '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="insert">' + h.icon('plus', 16) + 'Insert an alert</button></div>' +
-          '<p class="ds-muted">Both through DS.motion.flip on the stack: a dismissed alert fades out in place while the ones below glide up; a new one fades in at the top while the others glide down.</p>') +
+        var status = h.uid('status');
+        var age = h.uid('age');
+        var tone = h.tone ? 'ds-tone-' + h.tone : '';
+        return h.section('Filter chips', '<fieldset class="ds-chips" data-demo="filters"><legend class="ds-sr">Status</legend>' +
+            FILTERS.map(function (name, index) { return filter(h, 'checkbox', status, name, index ? '' : 'checked', tone); }).join('') +
+            '<span class="ds-chips__divider" aria-hidden="true"></span>' +
+            filter(h, 'radio', age, 'Older than 4 years', 'checked', tone) + filter(h, 'radio', age, 'Newer', '', tone) + '</fieldset>') +
 
-          h.section('Titles and actions',
-            '<div class="ds-stack"><div class="ds-alert ds-tone-' + sample + '" data-demo="sample">' + h.icon('alert', 20) + '<div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>The server certificate of the directory expires on 1 May.</p><p>Renew it before then, or sign-ins stop.</p></div>' +
-            '<div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button><button class="ds-btn ds-btn--text ds-sm" type="button">Remind me</button></div></div>' +
-            '<div class="ds-alert">' + h.icon('info', 20) + '<span class="ds-alert__text"><span class="ds-alert__title">Maintenance tonight</span> The directory is read-only from 22:00 to 23:00.</span></div></div>' +
-            '<p class="ds-muted">Narrow the width in the options panel: the actions drop under the text once it has less than its 256px.</p>') +
+          h.section('Action and input chips', '<div class="ds-chips" role="group" aria-label="Active filters" data-demo="input-chips">' + inputChips(h) +
+            '<button class="ds-btn ds-btn--text ds-sm" type="button" data-demo="clear">Clear filters</button></div>' +
+            '<div class="ds-chips" role="group" aria-label="Suggestions" data-demo="action-chips">' +
+            '<button class="ds-chip' + (tone ? ' ' + tone : '') + '" type="button"><span class="ds-chip__body">' + h.icon('user', 18, 'ds-chip__icon') + '<span class="ds-chip__label">Only my devices</span></span></button>' +
+            '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Not seen this month</span></span></button></div>') +
 
-          (variant('plain') ? h.section('Plain: findings in a card', h.card('Findings',
-            '<div class="ds-alert ds-alert--plain ds-tone-error">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text"><strong class="ds-alert__title">Disk almost full</strong> 92% used on drive C.</span></div>' +
-            '<div class="ds-alert ds-alert--plain ds-tone-warning">' + h.icon('alert', 20) + '<span class="ds-alert__text">The warranty ends in 30 days.</span></div>' +
-            '<div class="ds-alert ds-alert--plain ds-tone-success">' + h.icon('checkCircle', 20) + '<span class="ds-alert__text">The disk is encrypted.</span></div>')) : '') +
+          h.section('Long suggestions', '<div class="ds-chips ds-chips--wrap" role="group" aria-label="Long suggestions">' +
+            '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Show the devices that were not seen this month and whose warranty ends this quarter</span></span></button>' +
+            '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">One line</span></span></button></div>',
+            '.ds-chips--wrap lets a long label wrap inside the chip; a one-line chip keeps its height. Narrow the width to see it.') +
 
-          (variant('inline') ? h.section('Inline: under a field or in a row',
-            '<div class="ds-field"><label class="ds-field__label" for="' + serial + '">Serial number</label><input class="ds-input" id="' + serial + '" value="CN-0042"></div>' +
-            '<p class="ds-alert ds-alert--inline ds-tone-warning">' + h.icon('alert', 16) + '<span class="ds-alert__text">Used by 3 other devices.</span></p> ' +
-            '<p class="ds-alert ds-alert--inline ds-tone-success">' + h.icon('check', 16) + '<span class="ds-alert__text">Checked a minute ago.</span></p> ' +
-            '<p class="ds-alert ds-alert--inline">' + h.icon('info', 16) + '<span class="ds-alert__text">Printed on the back of the device.</span></p>') : '') +
+          h.section('States', '<fieldset class="ds-chips" data-demo="states"><legend class="ds-sr">States</legend>' +
+            filter(h, 'checkbox', status + '-s', 'Disabled', 'disabled') + filter(h, 'checkbox', status + '-s', 'Disabled, selected', 'disabled checked') +
+            filter(h, 'checkbox', status + '-s', 'Blocked with a reason', 'aria-disabled="true" data-tip="Needs an admin"') +
+            '<button class="ds-chip" type="button" disabled><span class="ds-chip__body"><span class="ds-chip__label">Disabled action</span></span></button></fieldset>') +
 
-          (variant('section') ? h.section('Section: a block with its actions',
-            '<div class="ds-alert ds-alert--section ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<div class="ds-alert__text"><p class="ds-alert__title">The import stopped</p><p>Row 812 has no serial number. Nothing was saved.</p></div>' +
-            '<div class="ds-alert__actions"><button class="ds-btn ds-btn--filled" type="button">Open the file</button><button class="ds-btn ds-btn--text" type="button">Discard</button></div></div>') : '') +
-
-          h.section('Errors list',
-            '<details class="ds-errors ds-collapsible"><summary>' + h.icon('alertCircle', 16) + '2 rows were skipped' + h.icon('chevronDown', 16, 'ds-errors__chevron') + '</summary><ul><li>Row 4: unknown model "Notebook 99"</li><li>Row 9: duplicate serial number</li></ul></details>') +
-
-          h.section('Keyboard', '<p class="ds-muted">An alert has no stop of its own. <kbd class="ds-kbd">Tab</kbd> reaches its buttons and the errors summary; <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> presses them. The word says the meaning, never the colour alone.</p>');
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each chip; <kbd class="ds-kbd">Space</kbd> toggles a filter chip, the arrow keys move within radio chips; <kbd class="ds-kbd">Enter</kbd> presses an action chip.</p>');
       },
 
       wire: function (root, h) {
-        var stack = h.$('[data-demo="stack"]', root);
-        var count = 0;
-        var holder = document.createElement('template');
+        root.addEventListener('click', function (event) {
+          var row = h.$('[data-demo="input-chips"]', root);
+          var chip = event.target.closest('.ds-chip--input');
+          var clear = event.target.closest('[data-demo="clear"]');
+          if (chip) DS.motion.flip(row, function () { chip.remove(); });
+          if (clear) DS.motion.flip(row, function () { h.$$('.ds-chip--input', row).forEach(function (each) { each.remove(); }); });
+          if (clear && clear.textContent === 'Clear filters') clear.textContent = 'Restore filters';
+          else if (clear) { DS.dom.morphHtml(row, inputChips(h) + clear.outerHTML.replace('Restore filters', 'Clear filters')); }
+        });
+      },
+    });
+  })();
+
+  // src/components/badge/badge.demo.js
+  (function () {
+    /*
+     * The Badge demo: a count on its hosts, every tone with its word, the dot, a
+     * count with a maximum, and the states of a host. Registered through SG.demo()
+     * (styleguide/sg-core.js). Size and shape come from the options panel around
+     * it; the panel's tone goes on the badges of the tone row, since a badge reads
+     * only its own.
+     */
+    var TONES = [['neutral', 'Queued', 12], ['primary', 'Assigned', 4], ['info', 'Notes', 7], ['success', 'Passed', 41], ['warning', 'Warnings', 5], ['error', 'Failed', 2]];
+
+    SG.demo('badge', {
+      title: 'Badge',
+      group: 'feedback',
+      need: 'Show a count or a dot on a button, chip, tab or drawer item',
+      lead: 'A count on a control, or a dot that says something is new. A toned badge has its word next to it: colour is never the only signal.',
+      options: { variants: ['dot'], sizes: true, density: false, shape: true, tones: true },
+
+      render: function (h) {
+        var tones = TONES.filter(function (row) { return !h.tone || row[0] === h.tone; });
+        var dots = h.section('Dot', '<div class="sg-row" data-demo="dots">' + tones.map(function (row) {
+          return '<span class="sg-row"><span class="ds-badge ds-badge--dot ds-tone-' + row[0] + '"></span><span>' + row[1] + '</span></span>';
+        }).join('') +
+          '<span class="sg-row" data-demo="default-dot"><span class="ds-badge ds-badge--dot"></span><span>New</span></span>' +
+          '<button class="ds-btn ds-btn--quiet" type="button">Tasks <span class="ds-badge ds-badge--dot ds-tone-primary"><span class="ds-sr">New tasks</span></span></button>' +
+          '<button class="ds-btn ds-btn--filled" type="button">Messages <span class="ds-badge ds-badge--dot"><span class="ds-sr">New messages</span></span></button>' +
+          '</div><p class="ds-muted">A dot says nothing by itself: its word sits beside it or in .ds-sr.</p>');
+        if (h.variant === 'dot') return dots;
+        return h.section('On a control', '<div class="sg-row">' +
+          '<button class="ds-btn" type="button" data-demo="add">' + h.icon('mail', 16) + 'Inbox <span class="ds-badge" data-demo="count">3</span></button>' +
+          '<button class="ds-btn ds-btn--quiet" type="button" aria-pressed="true">' + h.icon('filter', 16) + 'Filters <span class="ds-badge">2</span></button>' +
+          '<button class="ds-btn ds-btn--tonal" type="button">Updates <span class="ds-badge ds-tone-neutral">12</span></button>' +
+          '<label class="ds-chip"><input class="ds-chip__input" type="checkbox" checked><span class="ds-chip__body">' + h.icon('check', 18, 'ds-chip__check') + '<span>Failed</span> <span class="ds-badge">2</span></span></label>' +
+          '</div><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="add">' + h.icon('plus', 16) + 'One more</button><button class="ds-btn ds-sm" type="button" data-demo="clear">Mark all read</button></div>' +
+          '<p class="ds-muted">A count that appears pops in, one that goes pops out; the figure changes at once.</p>') +
+
+          h.section('Tones, each with its word', '<div class="sg-row" data-demo="tones">' + tones.map(function (row) {
+            return '<span class="sg-row"><span>' + row[1] + '</span><span class="ds-badge ds-tone-' + row[0] + '">' + row[2] + '</span></span>';
+          }).join('') + '</div>') +
+
+          h.section('A count with a maximum', '<div class="sg-row">' +
+            '<span class="ds-badge" data-ds-badge="7"></span>' +
+            '<span class="ds-badge" data-ds-badge="99"></span>' +
+            '<span class="ds-badge" data-ds-badge="128" data-ds-badge-max="99" data-demo="max"></span>' +
+            '<span class="ds-badge ds-tone-error" data-ds-badge="12" data-ds-badge-max="9"></span>' +
+            '</div><p class="ds-muted">data-ds-badge holds the count, data-ds-badge-max the largest figure (99 by default). At zero it takes no room.</p>') +
+
+          dots +
+
+          h.section('States of the host', '<div class="sg-row">' +
+            '<button class="ds-btn" type="button" disabled>Disabled <span class="ds-badge ds-tone-error">2</span></button>' +
+            '<button class="ds-btn" type="button" aria-disabled="true">Blocked <span class="ds-badge">3</span></button>' +
+            '<span class="ds-badge" data-demo="empty"></span>' +
+            '</div><p class="ds-muted">A blocked host takes the disabled model over any tone. An empty badge sits after the second button and takes no room.</p>') +
+
+          h.section('Keyboard', '<p class="ds-muted">A badge is no stop of its own: <kbd class="ds-kbd">Tab</kbd> reaches its host. Give the host a name that includes the count where it matters.</p>');
+      },
+
+      wire: function (root, h) {
+        var count = h.$('[data-demo="count"]', root);
+        if (!count) return;
+        var inbox = DS.badge.create(count, { value: 3 });
         root.addEventListener('click', function (event) {
           var button = event.target.closest('[data-demo]');
           if (!button) return;
           var kind = button.getAttribute('data-demo');
-          if (kind === 'dismiss') {
-            var alert = button.closest('.ds-alert');
-            DS.motion.flip(stack, function () { alert.remove(); });
-          }
-          if (kind === 'insert') {
-            holder.innerHTML = alertHtml(h, 'success', 'checkCircle', NEWS[count % NEWS.length], dismiss());
-            count += 1;
-            var fresh = holder.content.firstChild;
-            var shown = h.$$(':scope > .ds-alert:not([data-ds-leaving])', stack);
-            var oldest = shown.length >= 8 ? shown[shown.length - 1] : null;
-            DS.motion.flip(stack, function () {
-              if (oldest) oldest.remove();
-              stack.prepend(fresh);
-            });
-          }
+          if (kind === 'add') inbox.set(Number(inbox.get()) + 1);
+          if (kind === 'clear') inbox.set(0);
         });
+      },
+    });
+  })();
+
+  // src/components/sheet/sheet.demo.js
+  (function () {
+    /*
+     * The Side sheet demo: the default and the wide panel, a head with a subtitle
+     * and a foot with actions, and a busy save. Opening and closing come from the
+     * system (data-ds-open, data-ds-close); wire() holds what a project writes.
+     */
+    function panel(h, id, wide, foot) {
+      return '<dialog class="ds-sheet" id="' + id + '" aria-labelledby="' + id + '-title">' +
+        '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel' + (wide ? ' ds-sheet__panel--wide' : '') + '">' +
+        '<div class="ds-sheet__head"><div class="ds-sheet__heading">' +
+        '<h2 class="ds-sheet__title" id="' + id + '-title">LAPTOP-0042</h2>' +
+        '<p class="ds-sheet__subtitle">Issued to Ada Lovelace</p></div>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + h.icon('close', 20) + '</button></div>' +
+        '<div class="ds-sheet__body" tabindex="0"><dl class="ds-facts"><div><dt>Owner</dt><dd>Ada Lovelace</dd></div>' +
+        '<div><dt>Location</dt><dd>Building A, 1st floor</dd></div><div><dt>Model</dt><dd>Laptop 14</dd></div></dl>' +
+        '<p class="ds-muted">The record of the device goes here.</p></div>' +
+        (foot ? '<div class="ds-sheet__foot"><p class="ds-meta">Last saved today</p>' +
+          '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
+          '<button class="ds-btn ds-btn--filled" type="button" data-demo="save"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
+          '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span></button></div>' : '') +
+        '</section></dialog>';
+    }
+
+    SG.demo('sheet', {
+      title: 'Side sheet',
+      group: 'overlays',
+      need: 'Show details or a form beside the page, in a panel from the side',
+      lead: 'A panel that slides in from the side, from the bottom on phones. The options panel changes density and shape around it; a sheet shows no meaning of its own, so it has no tone.',
+      options: { variants: ['default', 'wide'], sizes: false, density: true, shape: true, tones: false },
+
+      render: function (h) {
+        var plain = h.uid('sheet');
+        var wide = h.uid('wide');
+        var foot = h.uid('foot');
+        return h.section('Variants', '<div class="sg-row">' +
+          (h.variant === 'wide' ? '' : '<button class="ds-btn" type="button" data-ds-open="#' + plain + '">Open a sheet</button>') +
+          (h.variant === 'default' ? '' : '<button class="ds-btn" type="button" data-ds-open="#' + wide + '">Wide</button>') +
+          '</div>' +
+          (h.variant === 'wide' ? '' : panel(h, plain, false, false)) +
+          (h.variant === 'default' ? '' : panel(h, wide, true, false))) +
+
+          h.section('With a foot, busy while it saves', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + foot + '">Edit the record</button></div>' +
+            panel(h, foot, false, true),
+            'data-ds-busy keeps it open while the save runs: Escape, the backdrop and Cancel do nothing.') +
+
+          h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; the body scrolls with the arrow keys when it has focus.</p>');
+      },
+
+      wire: function (root, h) {
+        var save = h.$('[data-demo="save"]', root);
+        var sheet = save.closest('.ds-sheet');
+        save.addEventListener('click', function () {
+          sheet.setAttribute('data-ds-busy', '');
+          DS.motion.busy(save, function () {
+            return new Promise(function (resolve) { setTimeout(resolve, h.slow(800)); });
+          }, { done: false }).then(function () {
+            sheet.removeAttribute('data-ds-busy');
+            DS.overlay.close(sheet, { reason: 'confirm' });
+            h.toast('Saved LAPTOP-0042.');
+          });
+        });
+        return function () {
+          for (const open of root.querySelectorAll('dialog[open]')) open.close();
+        };
+      },
+    });
+  })();
+
+  // src/components/dialog/dialog.demo.js
+  (function () {
+    /*
+     * The Dialog demo: every size, the full-screen and bottom forms, a form
+     * dialog, the promise dialogs and a dialog whose action is busy. Opening and
+     * closing come from the system (data-ds-open, data-ds-close); wire() holds
+     * only what a project writes: the fake work and the messages after it.
+     */
+    var SIZES = [
+      ['sm', 'Small', 'ds-dialog--sm', 'A short question: 320px.'],
+      ['md', 'Default', '', 'The default: 400px.'],
+      ['lg', 'Large', 'ds-dialog--lg', 'A list, a form or a confirmation with a field: 560px.'],
+      ['xl', 'Extra large', 'ds-dialog--xl', 'A table or a long form: 720px.'],
+    ];
+
+    function plain(h, id, classes, title, text) {
+      var titleId = id + '-title';
+      return '<dialog class="ds-dialog' + (classes ? ' ' + classes : '') + '" id="' + id + '" aria-labelledby="' + titleId + '">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<h2 class="ds-dialog__title" id="' + titleId + '">' + h.esc(title) + '</h2>' +
+        '<p class="ds-dialog__text">' + h.esc(text) + '</p>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
+        '<button class="ds-btn ds-btn--filled" type="button" data-ds-close>Keep it</button></div></div></dialog>';
+    }
+
+    SG.demo('dialog', {
+      title: 'Dialog',
+      group: 'overlays',
+      need: 'Ask for a decision or a short task that blocks the page until it is done',
+      lead: 'A modal box over the whole window. The options panel changes density and shape around it; its size is the width of the box, because a size class would also change every control inside.',
+      options: { variants: SIZES.map(function (size) { return size[0]; }), sizes: false, density: true, shape: true, tones: false },
+
+      render: function (h) {
+        var sizes = SIZES.filter(function (size) { return !h.variant || size[0] === h.variant; });
+        var full = h.uid('full');
+        var narrow = h.uid('narrow');
+        var bottom = h.uid('bottom');
+        var form = h.uid('form');
+        var name = h.uid('name');
+        var busy = h.uid('busy');
+        var sizeIds = sizes.map(function (size) { return h.uid('size-' + size[0]); });
+        return h.section('Sizes', '<div class="sg-row" data-demo="sizes">' + sizes.map(function (size, index) {
+          return '<button class="ds-btn" type="button" data-ds-open="#' + sizeIds[index] + '">' + size[1] + '</button>';
+        }).join('') + '</div>' + sizes.map(function (size, index) {
+          return plain(h, sizeIds[index], size[2], 'Archive LAPTOP-0042?', size[3] + ' It stays in the archive for a year.');
+        }).join('')) +
+
+          h.section('Questions', '<div class="sg-row" data-demo="questions">' +
+            '<button class="ds-btn" type="button" data-demo="confirm">Confirm</button>' +
+            '<button class="ds-btn" type="button" data-demo="destructive">Destructive</button>' +
+            '<button class="ds-btn" type="button" data-demo="alert">Alert</button>' +
+            '<button class="ds-btn" type="button" data-demo="prompt">Prompt</button></div>',
+            'A destructive confirmation is the one place a filled button is red; its label names the consequence.') +
+
+          h.section('Form', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + form + '">Rename the device</button></div>' +
+            '<dialog class="ds-dialog" id="' + form + '" aria-labelledby="' + form + '-title" data-demo="form">' +
+            '<div class="ds-dialog__backdrop" data-ds-close></div><form class="ds-dialog__box" data-ds-dialog-form>' +
+            '<h2 class="ds-dialog__title" id="' + form + '-title">Rename the device</h2>' +
+            '<div class="ds-dialog__body"><div class="ds-field"><label class="ds-field__label" for="' + name + '">Name</label>' +
+            '<input class="ds-input" id="' + name + '" name="name" required autofocus value="LAPTOP-0042"></div></div>' +
+            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
+            '<button class="ds-btn ds-btn--filled" type="submit"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
+            '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span></button></div>' +
+            '</form></dialog>',
+            'The box is the form: Enter submits, the browser validates first, and it stays open while the save runs.') +
+
+          h.section('Full screen and action sheet', '<div class="sg-row">' +
+            '<button class="ds-btn" type="button" data-ds-open="#' + full + '">Full screen</button>' +
+            '<button class="ds-btn" type="button" data-ds-open="#' + narrow + '">Full screen on phones</button>' +
+            '<button class="ds-btn" type="button" data-ds-open="#' + bottom + '">Action sheet</button></div>' +
+            [[full, 'ds-dialog--full'], [narrow, 'ds-dialog--full-narrow']].map(function (entry) {
+              return '<dialog class="ds-dialog ' + entry[1] + '" id="' + entry[0] + '" aria-labelledby="' + entry[0] + '-title">' +
+                '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box"><div class="ds-dialog__head">' +
+                '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + h.icon('close', 20) + '</button>' +
+                '<h2 class="ds-dialog__title" id="' + entry[0] + '-title">New ticket</h2>' +
+                '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Save</button></div>' +
+                '<div class="ds-dialog__body"><p class="ds-dialog__text">The form of the ticket goes here.</p></div></div></dialog>';
+            }).join('') +
+            '<dialog class="ds-dialog ds-dialog--bottom" id="' + bottom + '" aria-labelledby="' + bottom + '-title">' +
+            '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+            '<h2 class="ds-dialog__title" id="' + bottom + '-title">LAPTOP-0042</h2><div class="ds-dialog__list">' +
+            '<button class="ds-menu__item" type="button" data-ds-close>' + h.icon('pencil', 20) + '<span class="ds-menu__label">Edit</span></button>' +
+            '<button class="ds-menu__item" type="button" data-ds-close>' + h.icon('archive', 20) + '<span class="ds-menu__label">Archive</span></button></div>' +
+            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button></div></div></dialog>') +
+
+          h.section('Busy', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + busy + '">Delete 3 devices</button></div>' +
+            '<dialog class="ds-dialog" role="alertdialog" id="' + busy + '" aria-labelledby="' + busy + '-title" aria-describedby="' + busy + '-text" data-demo="busy">' +
+            '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+            '<h2 class="ds-dialog__title" id="' + busy + '-title">Delete 3 devices?</h2>' +
+            '<p class="ds-dialog__text" id="' + busy + '-text">They disappear from every list. This cannot be undone.</p>' +
+            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Cancel</button>' +
+            '<button class="ds-btn ds-btn--filled ds-tone-error" type="button" data-demo="busy-action"><span class="ds-btn__faces"><span class="ds-btn__face">Delete 3 devices</span>' +
+            '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Delete 3 devices</span></span></button></div></div></dialog>',
+            'Escape, the backdrop and Cancel do nothing while the action runs.') +
+
+          h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; <kbd class="ds-kbd">Enter</kbd> submits a form dialog; the arrow keys move through an action sheet.</p>');
+      },
+
+      wire: function (root, h) {
+        var work = function (fail) {
+          return function () {
+            return new Promise(function (resolve, reject) {
+              setTimeout(function () { if (fail) reject(new Error('The device did not answer.')); else resolve(); }, h.slow(800));
+            });
+          };
+        };
+        var on = function (name, run) {
+          h.$('[data-demo="' + name + '"]', root).addEventListener('click', function (event) { run(event.currentTarget); });
+        };
+        on('confirm', function (button) {
+          DS.overlay.confirm({ title: 'Archive 3 devices?', text: 'They stay in the archive for a year.', confirmLabel: 'Archive devices', opener: button })
+            .then(function (yes) { if (yes) h.toast('Archived 3 devices.'); });
+        });
+        on('destructive', function (button) {
+          DS.overlay.confirm({ title: 'Delete 3 devices?', text: 'They disappear from every list. This cannot be undone.', confirmLabel: 'Delete devices', destructive: true, opener: button, onConfirm: work(false) })
+            .then(function (yes) { if (yes) h.toast('Deleted 3 devices.'); });
+        });
+        on('alert', function (button) {
+          DS.overlay.alert({ title: 'Export ready', text: 'The file is in your downloads.', opener: button });
+        });
+        on('prompt', function (button) {
+          DS.overlay.prompt({ title: 'Rename', label: 'Name', value: 'LAPTOP-0042', input: { required: true }, opener: button })
+            .then(function (value) { if (value) h.toast('Renamed to ' + value + '.'); });
+        });
+        var form = h.$('[data-demo="form"]', root);
+        DS.dialog.form(form, { onSubmit: work(false), errorText: 'Could not rename the device.' });
+        form.addEventListener('ds:close', function (event) {
+          if (event.target === form && event.detail.reason === 'submit') h.toast('Saved.');
+        });
+        var busy = h.$('[data-demo="busy"]', root);
+        var action = h.$('[data-demo="busy-action"]', root);
+        var cancel = h.$('.ds-dialog__actions [data-ds-close]', busy);
+        action.addEventListener('click', function () {
+          busy.setAttribute('data-ds-busy', '');
+          cancel.setAttribute('aria-disabled', 'true');
+          DS.motion.busy(action, work(false), { done: false }).then(function () {
+            busy.removeAttribute('data-ds-busy');
+            cancel.removeAttribute('aria-disabled');
+            DS.overlay.close(busy, { reason: 'confirm' });
+            h.toast('Deleted 3 devices.');
+          });
+        });
+        return function () {
+          for (const open of root.querySelectorAll('dialog[open]')) open.close();
+        };
       },
     });
   })();
@@ -2137,265 +2887,6 @@
     });
   })();
 
-  // src/components/chip/chip.demo.js
-  (function () {
-    /*
-     * The Chip demo: filter chips (checkboxes and radios), action and input chips,
-     * wrapping labels, the states and the tones. Registered through SG.demo()
-     * (styleguide/sg-core.js). Size, density, shape and touch come from the
-     * options panel around it; the tone goes on the chips themselves (an
-     * inherited one is ignored).
-     */
-    var FILTERS = ['Active', 'In storage', 'Retired'];
-
-    function filter(h, type, name, label, attributes, cls) {
-      return '<label class="ds-chip' + (cls ? ' ' + cls : '') + '"><input class="ds-chip__input" type="' + type + '" name="' + name + '" ' + (attributes || '') + '><span class="ds-chip__body">' + h.icon('check', 18, 'ds-chip__check') + '<span>' + label + '</span></span></label>';
-    }
-
-    function inputChips(h) {
-      return ['Building C, second floor', 'Laptops', 'Warranty ending this quarter'].map(function (name) {
-        return '<button class="ds-chip ds-chip--input" type="button" data-ds-key="' + h.esc(name) + '" data-tip="' + h.esc(name) + '"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove filter </span>' + h.esc(name) + '</span>' + h.icon('close', 18, 'ds-chip__trailing') + '</span></button>';
-      }).join('');
-    }
-
-    SG.demo('chip', {
-      title: 'Chips',
-      group: 'forms',
-      need: 'Filter a list, pick a few options or hold entered values as small pills',
-      lead: 'Small pills on native checkboxes, radios or buttons. A selected chip shows the tint and a check, never the tint alone. The options panel changes size, density, shape and touch around the demo; pick a tone to see it on the chips that carry one.',
-      options: { sizes: true, density: true, shape: true, tones: true },
-
-      render: function (h) {
-        var status = h.uid('status');
-        var age = h.uid('age');
-        var tone = h.tone ? 'ds-tone-' + h.tone : '';
-        return h.section('Filter chips', '<fieldset class="ds-chips" data-demo="filters"><legend class="ds-sr">Status</legend>' +
-            FILTERS.map(function (name, index) { return filter(h, 'checkbox', status, name, index ? '' : 'checked', tone); }).join('') +
-            '<span class="ds-chips__divider" aria-hidden="true"></span>' +
-            filter(h, 'radio', age, 'Older than 4 years', 'checked', tone) + filter(h, 'radio', age, 'Newer', '', tone) + '</fieldset>') +
-
-          h.section('Action and input chips', '<div class="ds-chips" role="group" aria-label="Active filters" data-demo="input-chips">' + inputChips(h) +
-            '<button class="ds-btn ds-btn--text ds-sm" type="button" data-demo="clear">Clear filters</button></div>' +
-            '<div class="ds-chips" role="group" aria-label="Suggestions" data-demo="action-chips">' +
-            '<button class="ds-chip' + (tone ? ' ' + tone : '') + '" type="button"><span class="ds-chip__body">' + h.icon('user', 18, 'ds-chip__icon') + '<span class="ds-chip__label">Only my devices</span></span></button>' +
-            '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Not seen this month</span></span></button></div>') +
-
-          h.section('Long suggestions', '<div class="ds-chips ds-chips--wrap" role="group" aria-label="Long suggestions">' +
-            '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">Show the devices that were not seen this month and whose warranty ends this quarter</span></span></button>' +
-            '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">One line</span></span></button></div>',
-            '.ds-chips--wrap lets a long label wrap inside the chip; a one-line chip keeps its height. Narrow the width to see it.') +
-
-          h.section('States', '<fieldset class="ds-chips" data-demo="states"><legend class="ds-sr">States</legend>' +
-            filter(h, 'checkbox', status + '-s', 'Disabled', 'disabled') + filter(h, 'checkbox', status + '-s', 'Disabled, selected', 'disabled checked') +
-            filter(h, 'checkbox', status + '-s', 'Blocked with a reason', 'aria-disabled="true" data-tip="Needs an admin"') +
-            '<button class="ds-chip" type="button" disabled><span class="ds-chip__body"><span class="ds-chip__label">Disabled action</span></span></button></fieldset>') +
-
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each chip; <kbd class="ds-kbd">Space</kbd> toggles a filter chip, the arrow keys move within radio chips; <kbd class="ds-kbd">Enter</kbd> presses an action chip.</p>');
-      },
-
-      wire: function (root, h) {
-        root.addEventListener('click', function (event) {
-          var row = h.$('[data-demo="input-chips"]', root);
-          var chip = event.target.closest('.ds-chip--input');
-          var clear = event.target.closest('[data-demo="clear"]');
-          if (chip) DS.motion.flip(row, function () { chip.remove(); });
-          if (clear) DS.motion.flip(row, function () { h.$$('.ds-chip--input', row).forEach(function (each) { each.remove(); }); });
-          if (clear && clear.textContent === 'Clear filters') clear.textContent = 'Restore filters';
-          else if (clear) { DS.dom.morphHtml(row, inputChips(h) + clear.outerHTML.replace('Restore filters', 'Clear filters')); }
-        });
-      },
-    });
-  })();
-
-  // src/components/badge/badge.demo.js
-  (function () {
-    /*
-     * The Badge demo: a count on its hosts, every tone with its word, the dot, a
-     * count with a maximum, and the states of a host. Registered through SG.demo()
-     * (styleguide/sg-core.js). Size and shape come from the options panel around
-     * it; the panel's tone goes on the badges of the tone row, since a badge reads
-     * only its own.
-     */
-    var TONES = [['neutral', 'Queued', 12], ['primary', 'Assigned', 4], ['info', 'Notes', 7], ['success', 'Passed', 41], ['warning', 'Warnings', 5], ['error', 'Failed', 2]];
-
-    SG.demo('badge', {
-      title: 'Badge',
-      group: 'feedback',
-      need: 'Show a count or a dot on a button, chip, tab or drawer item',
-      lead: 'A count on a control, or a dot that says something is new. A toned badge has its word next to it: colour is never the only signal.',
-      options: { variants: ['dot'], sizes: true, density: false, shape: true, tones: true },
-
-      render: function (h) {
-        var tones = TONES.filter(function (row) { return !h.tone || row[0] === h.tone; });
-        var dots = h.section('Dot', '<div class="sg-row" data-demo="dots">' + tones.map(function (row) {
-          return '<span class="sg-row"><span class="ds-badge ds-badge--dot ds-tone-' + row[0] + '"></span><span>' + row[1] + '</span></span>';
-        }).join('') +
-          '<span class="sg-row" data-demo="default-dot"><span class="ds-badge ds-badge--dot"></span><span>New</span></span>' +
-          '<button class="ds-btn ds-btn--quiet" type="button">Tasks <span class="ds-badge ds-badge--dot ds-tone-primary"><span class="ds-sr">New tasks</span></span></button>' +
-          '<button class="ds-btn ds-btn--filled" type="button">Messages <span class="ds-badge ds-badge--dot"><span class="ds-sr">New messages</span></span></button>' +
-          '</div><p class="ds-muted">A dot says nothing by itself: its word sits beside it or in .ds-sr.</p>');
-        if (h.variant === 'dot') return dots;
-        return h.section('On a control', '<div class="sg-row">' +
-          '<button class="ds-btn" type="button" data-demo="add">' + h.icon('mail', 16) + 'Inbox <span class="ds-badge" data-demo="count">3</span></button>' +
-          '<button class="ds-btn ds-btn--quiet" type="button" aria-pressed="true">' + h.icon('filter', 16) + 'Filters <span class="ds-badge">2</span></button>' +
-          '<button class="ds-btn ds-btn--tonal" type="button">Updates <span class="ds-badge ds-tone-neutral">12</span></button>' +
-          '<label class="ds-chip"><input class="ds-chip__input" type="checkbox" checked><span class="ds-chip__body">' + h.icon('check', 18, 'ds-chip__check') + '<span>Failed</span> <span class="ds-badge">2</span></span></label>' +
-          '</div><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="add">' + h.icon('plus', 16) + 'One more</button><button class="ds-btn ds-sm" type="button" data-demo="clear">Mark all read</button></div>' +
-          '<p class="ds-muted">A count that appears pops in, one that goes pops out; the figure changes at once.</p>') +
-
-          h.section('Tones, each with its word', '<div class="sg-row" data-demo="tones">' + tones.map(function (row) {
-            return '<span class="sg-row"><span>' + row[1] + '</span><span class="ds-badge ds-tone-' + row[0] + '">' + row[2] + '</span></span>';
-          }).join('') + '</div>') +
-
-          h.section('A count with a maximum', '<div class="sg-row">' +
-            '<span class="ds-badge" data-ds-badge="7"></span>' +
-            '<span class="ds-badge" data-ds-badge="99"></span>' +
-            '<span class="ds-badge" data-ds-badge="128" data-ds-badge-max="99" data-demo="max"></span>' +
-            '<span class="ds-badge ds-tone-error" data-ds-badge="12" data-ds-badge-max="9"></span>' +
-            '</div><p class="ds-muted">data-ds-badge holds the count, data-ds-badge-max the largest figure (99 by default). At zero it takes no room.</p>') +
-
-          dots +
-
-          h.section('States of the host', '<div class="sg-row">' +
-            '<button class="ds-btn" type="button" disabled>Disabled <span class="ds-badge ds-tone-error">2</span></button>' +
-            '<button class="ds-btn" type="button" aria-disabled="true">Blocked <span class="ds-badge">3</span></button>' +
-            '<span class="ds-badge" data-demo="empty"></span>' +
-            '</div><p class="ds-muted">A blocked host takes the disabled model over any tone. An empty badge sits after the second button and takes no room.</p>') +
-
-          h.section('Keyboard', '<p class="ds-muted">A badge is no stop of its own: <kbd class="ds-kbd">Tab</kbd> reaches its host. Give the host a name that includes the count where it matters.</p>');
-      },
-
-      wire: function (root, h) {
-        var count = h.$('[data-demo="count"]', root);
-        if (!count) return;
-        var inbox = DS.badge.create(count, { value: 3 });
-        root.addEventListener('click', function (event) {
-          var button = event.target.closest('[data-demo]');
-          if (!button) return;
-          var kind = button.getAttribute('data-demo');
-          if (kind === 'add') inbox.set(Number(inbox.get()) + 1);
-          if (kind === 'clear') inbox.set(0);
-        });
-      },
-    });
-  })();
-
-  // src/components/switch/switch.demo.js
-  (function () {
-    /*
-     * The Switch demo: on and off with their words, icons, busy, blocked, locked,
-     * a hint and a list of settings. Registered through SG.demo()
-     * (styleguide/sg-core.js). Size, density, shape and touch come from the
-     * options panel around it. Fake work stands for what a project's save does.
-     */
-    var WORDS = '<span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>';
-
-    function row(name, attributes, track) {
-      return '<label class="ds-switch"><input type="checkbox" role="switch" ' + (attributes || '') + '><span class="ds-switch__track" aria-hidden="true">' + (track || '') + '</span><span class="ds-switch__label">' + name + '</span>' + WORDS + '</label>';
-    }
-
-    function listRow(h, name, hint, meta, checked) {
-      var label = h.uid('switch-name');
-      var note = h.uid('switch-hint');
-      return '<label class="ds-switch"><input type="checkbox" role="switch"' + (checked ? ' checked' : '') + ' aria-labelledby="' + label + '" aria-describedby="' + note + '"><span class="ds-switch__track" aria-hidden="true"></span>' +
-        '<span class="ds-switch__label" id="' + label + '">' + name + '</span><small class="ds-switch__hint" id="' + note + '">' + hint + '</small>' +
-        (meta ? '<span class="ds-switch__meta">' + meta + '</span>' : '') + WORDS + '</label>';
-    }
-
-    SG.demo('switch', {
-      title: 'Switch',
-      group: 'forms',
-      need: 'Turn a setting on or off, alone or in a list of settings',
-      lead: 'One setting, on or off, with its name and the state in a word, so it never shows through the handle alone. The options panel changes size, density, shape and touch around the demo.',
-      options: { sizes: true, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        var reason = h.uid('why');
-        var icons = h.icon('close', 16, 'ds-switch__icon ds-switch__icon--off') + h.icon('check', 16, 'ds-switch__icon ds-switch__icon--on');
-        return h.section('On and off', '<div class="ds-stack" data-demo="plain">' + row('Nightly sync', 'checked') + row('Email summary') + '</div>') +
-
-          h.section('With icons', '<div class="ds-stack" data-demo="icons">' +
-            '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch" checked><span class="ds-switch__track" aria-hidden="true">' + icons + '</span><span class="ds-switch__label">Automatic updates</span></label>' +
-            '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch"><span class="ds-switch__track" aria-hidden="true">' + icons + '</span><span class="ds-switch__label">Beta channel</span></label>' +
-            '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch" checked disabled><span class="ds-switch__track" aria-hidden="true">' + icons + '</span><span class="ds-switch__label">Disabled, on</span></label></div>') +
-
-          h.section('Busy', '<div class="ds-stack" data-demo="busy">' + row('Remote access', 'data-demo="save"', '<span class="ds-spinner ds-switch__spinner"></span>') +
-            row('Remote access, waiting', 'checked aria-busy="true" aria-disabled="true"', '<span class="ds-spinner ds-switch__spinner"></span>') + '</div>',
-            'While the page waits for the answer: aria-busy with aria-disabled on the input. The spinner shows after a moment, so a fast answer shows nothing.') +
-
-          h.section('Blocked and locked', '<div class="ds-stack" data-demo="states">' + row('Disabled', 'disabled') + row('Disabled, on', 'checked disabled') +
-            row('Blocked with a reason', 'aria-disabled="true" data-tip="Needs an admin"') +
-            '<label class="ds-switch ds-switch--locked"><input type="checkbox" role="switch" checked aria-disabled="true" aria-describedby="' + reason + '"><span class="ds-switch__track" aria-hidden="true">' + h.icon('lock', 16, 'ds-switch__icon') + '</span><span class="ds-switch__label">Disk encryption</span><small class="ds-switch__hint" id="' + reason + '">Set by the device policy</small></label>' +
-            '</div>') +
-
-          h.section('List of settings', '<div class="ds-switch-list" data-demo="list">' +
-            listRow(h, 'Email reports', 'Every Monday at 08:00', '<span class="ds-tag ds-tone-neutral">3 recipients</span>', true) +
-            listRow(h, 'Push notifications', 'On this device only', '', false) +
-            listRow(h, 'A weekly digest of every device that changed its owner, its place or its warranty', 'Long names wrap', '<span class="ds-badge ds-tone-neutral">12</span>', false) +
-            '</div>', 'Narrow the width in the options panel: at 560px the extras wrap under the name.') +
-
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each switch; <kbd class="ds-kbd">Space</kbd> toggles it. A blocked, busy or locked switch keeps its ring and ignores <kbd class="ds-kbd">Space</kbd>.</p>');
-      },
-
-      wire: function (root, h) {
-        root.addEventListener('change', function (event) {
-          var input = event.target;
-          if (!input.matches('[data-demo="save"]')) return;
-          input.setAttribute('aria-busy', 'true');
-          input.setAttribute('aria-disabled', 'true');
-          setTimeout(function () {
-            input.removeAttribute('aria-busy');
-            input.removeAttribute('aria-disabled');
-          }, h.slow(1500));
-        });
-      },
-    });
-  })();
-
-  // src/components/slider/slider.demo.js
-  (function () {
-    /*
-     * The Slider demo: a labelled slider with its value, the states, and a slider
-     * without a value row. Registered through SG.demo() (styleguide/sg-core.js).
-     * Size, density, shape and touch come from the options panel around it. The
-     * one line of behaviour is what a project writes: --ds-share and the output.
-     */
-    function slider(h, label, value, attributes, unit) {
-      var id = h.uid('slider');
-      var out = h.uid('slider-out');
-      return '<div class="ds-field"><label class="ds-field__label" for="' + id + '">' + label + '</label><div class="ds-field__row">' +
-        '<input class="ds-slider" id="' + id + '" type="range" min="7" max="365" value="' + value + '" aria-describedby="' + out + '" data-unit="' + unit + '"' + (attributes || '') + '>' +
-        '<output class="ds-slider__value" id="' + out + '" for="' + id + '">' + value + ' ' + unit + '</output></div></div>';
-    }
-
-    SG.demo('slider', {
-      title: 'Slider',
-      group: 'forms',
-      need: 'Pick a value on a range by dragging or with the arrow keys',
-      lead: 'A value on a scale, on the native range input, so keyboard, forms and labels stay native. The options panel changes size, density, shape and touch around the demo.',
-      options: { sizes: true, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        return h.section('With its value', '<div class="ds-stack" data-demo="value">' + slider(h, 'Keep history for', 90, '', 'days') + '</div>') +
-          h.section('States', '<div class="ds-stack" data-demo="states">' + slider(h, 'Disabled', 180, ' disabled', 'days') +
-            slider(h, 'Blocked with a reason', 30, ' aria-disabled="true" data-tip="Needs an admin"', 'days') + '</div>') +
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches the slider; the arrow keys step, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> jump, <kbd class="ds-kbd">Page Up</kbd> and <kbd class="ds-kbd">Page Down</kbd> take bigger steps.</p>');
-      },
-
-      wire: function (root, h) {
-        function share(input) {
-          input.style.setProperty('--ds-share', String((input.value - input.min) / (input.max - input.min)));
-          var output = h.$('#' + input.getAttribute('aria-describedby'), root);
-          if (output) output.textContent = input.value + ' ' + input.getAttribute('data-unit');
-        }
-        h.$$('.ds-slider', root).forEach(share);
-        root.addEventListener('input', function (event) {
-          if (event.target.matches('.ds-slider')) share(event.target);
-        });
-      },
-    });
-  })();
-
   // src/components/combobox/combobox.demo.js
   (function () {
     /*
@@ -2799,564 +3290,6 @@
     });
   })();
 
-  // src/components/menu/menu.demo.js
-  (function () {
-    /*
-     * The Menu demo: the overflow menu of a row, groups with headings, check and
-     * radio items, descriptions, shortcuts, a danger item and a blocked one.
-     * Opening, the keys and the flipped checks come from the system (data-ds-open,
-     * data-ds-menu-checks); wire() holds only the message after an action.
-     */
-    function item(h, icon, label, extra, attrs) {
-      return '<button class="ds-menu__item' + (extra || '') + '" role="menuitem" type="button"' + (attrs || '') + '>' + h.icon(icon, 20) +
-        '<span class="ds-menu__label">' + label + '</span></button>';
-    }
-
-    function check(h, role, label, checked) {
-      return '<button class="ds-menu__item" role="' + role + '" type="button" aria-checked="' + checked + '">' + h.icon('check', 20, 'ds-menu__check') +
-        '<span class="ds-menu__label">' + label + '</span></button>';
-    }
-
-    SG.demo('menu', {
-      title: 'Menu',
-      group: 'overlays',
-      need: 'Offer the actions of one item, or the overflow of a toolbar, from a button',
-      lead: 'A list of actions that grows out of its button. The options panel changes the rows through size, density, touch and shape; the danger item is the one that carries a tone, always with its label.',
-      options: { sizes: true, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        var plain = h.uid('actions');
-        var rich = h.uid('rich');
-        var picks = h.uid('picks');
-        var sort = h.uid('sort');
-        return h.section('Actions', '<div class="sg-row">' +
-          '<button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="' + plain + '" data-ds-open="#' + plain + '" data-demo="plain">' + h.icon('moreVertical', 16) + 'Actions</button></div>' +
-          '<div class="ds-menu" role="menu" id="' + plain + '" aria-label="Actions" hidden data-demo="actions">' +
-          item(h, 'pencil', 'Edit', '', ' data-toast="Opened the record."') +
-          item(h, 'copy', 'Duplicate', '', ' data-toast="Duplicated as LAPTOP-0043."') +
-          item(h, 'archive', 'Archive', '', ' data-toast="Archived."') +
-          '<div class="ds-menu__divider" role="separator"></div>' +
-          item(h, 'trash', 'Delete (needs admin rights)', '', ' aria-disabled="true"') +
-          item(h, 'trash', 'Delete device', ' ds-menu__item--danger', ' data-toast="Deleted LAPTOP-0042."') +
-          '</div>') +
-
-          h.section('Descriptions and shortcuts', '<div class="sg-row">' +
-            '<button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="' + rich + '" data-ds-open="#' + rich + '" data-demo="rich">Export</button></div>' +
-            '<div class="ds-menu" role="menu" id="' + rich + '" aria-label="Export" hidden data-demo="export">' +
-            '<button class="ds-menu__item" role="menuitem" type="button" aria-keyshortcuts="Control+E">' + h.icon('download', 20) +
-            '<span class="ds-menu__content"><span class="ds-menu__label">Download</span><span class="ds-menu__description">A CSV file with every column.</span></span>' +
-            '<span class="ds-menu__shortcut">Ctrl E</span></button>' +
-            '<button class="ds-menu__item" role="menuitem" type="button" aria-keyshortcuts="Control+L">' + h.icon('link', 20) +
-            '<span class="ds-menu__content"><span class="ds-menu__label">Copy link</span><span class="ds-menu__description">Anyone with access can open it.</span></span>' +
-            '<span class="ds-menu__shortcut">Ctrl L</span></button></div>') +
-
-          h.section('Groups, check and radio items', '<div class="sg-row">' +
-            '<button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="' + picks + '" data-ds-open="#' + picks + '" data-demo="picks">' + h.icon('settings', 16) + 'Sort and view</button></div>' +
-            '<div class="ds-menu" role="menu" id="' + picks + '" aria-label="Sort and view" hidden data-ds-menu-checks data-demo="checks">' +
-            '<div role="group" aria-labelledby="' + sort + '"><p class="ds-menu__heading" id="' + sort + '">Sort by</p>' +
-            check(h, 'menuitemradio', 'Name', true) + check(h, 'menuitemradio', 'Last seen', false) + check(h, 'menuitemradio', 'Owner', false) + '</div>' +
-            '<div class="ds-menu__divider" role="separator"></div>' +
-            check(h, 'menuitemcheckbox', 'Compact rows', true) + check(h, 'menuitemcheckbox', 'Show retired', false) + '</div>',
-            'With data-ds-menu-checks the system moves the checks and sends ds:change.') +
-
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">ArrowDown</kbd> on the button opens on the first item, <kbd class="ds-kbd">ArrowUp</kbd> on the last. The arrows, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> move, a letter jumps, <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button, <kbd class="ds-kbd">Tab</kbd> closes and moves on. A blocked item keeps its focus, so its name is read.</p>');
-      },
-
-      wire: function (root, h) {
-        root.addEventListener('click', function (event) {
-          var row = event.target.closest('[data-toast]');
-          if (row && row.getAttribute('aria-disabled') !== 'true') h.toast(row.getAttribute('data-toast'), 'info');
-        });
-      },
-    });
-  })();
-
-  // src/components/progress/progress.demo.js
-  (function () {
-    /*
-     * The Progress demo: shares, the flat look, an unknown share, the run from
-     * waiting to done, the label's places and the tones. Registered through
-     * SG.demo() (styleguide/sg-core.js). Size, density and shape come from the
-     * options panel around it; the panel's tone goes on the bars of the tone row,
-     * since progress reads only its own.
-     */
-    var TONES = [['primary', 'Sync'], ['info', 'Notes'], ['success', 'Backup done'], ['warning', 'Disk almost full'], ['error', 'Import failing'], ['neutral', 'Queue']];
-
-    function bar(share, name, label, detail, cls, text) {
-      return '<div class="ds-progress' + (cls ? ' ' + cls : '') + '"' + (share === null ? '' : ' style="--ds-progress:' + share + '"') + '>' +
-        '<div class="ds-progress__track" role="progressbar" aria-label="' + name + '" aria-valuemin="0" aria-valuemax="100"' + (share === null ? ' aria-valuetext="' + text + '"' : ' aria-valuenow="' + Math.round(share * 100) + '"') + '><div class="ds-progress__bar"></div></div>' +
-        '<p class="ds-progress__label">' + label + '</p>' + (detail ? '<p class="ds-progress__detail">' + detail + '</p>' : '') + '</div>';
-    }
-
-    SG.demo('progress', {
-      title: 'Progress',
-      group: 'feedback',
-      need: 'Show how far a known or unknown amount of work has come',
-      lead: 'A bar that ends at the share, a gap, the remaining track and a stop dot; its value glides. The label says what it means, never the colour alone.',
-      options: { variants: ['flat'], sizes: true, density: true, shape: true, tones: true },
-
-      render: function (h) {
-        var flat = h.variant === 'flat' ? 'ds-progress--flat' : '';
-        var tones = TONES.filter(function (row) { return !h.tone || row[0] === h.tone; });
-        return h.section('A known share', '<div class="ds-stack" data-demo="shares">' +
-          bar(0.05, 'Export', '5%', '102 of 2,030 rows', flat) +
-          bar(0.4, 'Import', '40%', '812 of 2,030 rows', flat) +
-          bar(1, 'Backup', '100%', 'Done', flat) +
-          bar(0.4, 'Upload (flat)', '40%', 'flat: no gap, no stop dot, no wave', 'ds-progress--flat') + '</div>' +
-          '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="advance">Advance</button></div>') +
-
-          h.section('An unknown share', '<div class="ds-stack">' +
-            bar(null, 'Preparing', 'Preparing the import ...', '', 'ds-progress--indeterminate', 'Preparing') +
-            bar(null, 'Queued export', 'Waiting for a free worker ...', '', 'ds-progress--waiting', 'Waiting') +
-            '<div data-demo="run-holder">' + bar(0, 'Import run', 'Ready', 'Start runs waiting, preparing, 30%, done') + '</div></div>' +
-            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="run">Start</button></div>' +
-            '<p class="ds-muted">While the share is unknown the bar has no aria-valuenow but an aria-valuetext; the first share sets aria-valuenow again. The segments stop and fade out, and the bar grows from 0 to its share.</p>') +
-
-          h.section('Where the label sits', '<div class="ds-stack" data-demo="labels">' +
-            bar(0.6, 'Under the track', 'Under the track (60%)', '1,218 of 2,030 rows') +
-            bar(0.6, 'Above the track', 'Above the track (60%)', '1,218 of 2,030 rows', 'ds-progress--label-above') +
-            bar(0.6, 'At the end', '60%', '1,218 of 2,030 rows', 'ds-progress--label-end') + '</div>') +
-
-          h.section('Tones, each with its word', '<div class="ds-stack" data-demo="tones">' + tones.map(function (row) {
-            return bar(0.7, row[1], row[1], '', 'ds-tone-' + row[0] + (flat ? ' ' + flat : ''));
-          }).join('') + '</div>') +
-
-          h.section('Keyboard', '<p class="ds-muted">No stop of its own. The track is a progressbar with a name and a value; a share that matters at once also goes through a live region.</p>');
-      },
-
-      wire: function (root, h) {
-        var timers = [];
-        var share = 0.4;
-        var run = function () {
-          var p = h.$('[data-demo="run-holder"] .ds-progress', root);
-          var label = h.$('.ds-progress__label', p);
-          var detail = h.$('.ds-progress__detail', p);
-          var say = function (one, two) { label.textContent = one; detail.textContent = two; };
-          timers.forEach(clearTimeout);
-          timers = [];
-          p.style.setProperty('--ds-progress', '0');
-          DS.dom.progress(p, null, { waiting: true, valueText: 'Waiting' });
-          say('Waiting for a free worker ...', 'queued');
-          timers.push(setTimeout(function () {
-            DS.dom.progress(p, null, { valueText: 'Preparing' });
-            say('Preparing the import ...', 'reading the file');
-          }, h.slow(1200)));
-          timers.push(setTimeout(function () { DS.dom.progress(p, 0.3); say('30%', '609 of 2,030 rows'); }, h.slow(3000)));
-          timers.push(setTimeout(function () { DS.dom.progress(p, 1); say('100%', 'Done'); }, h.slow(4500)));
-        };
-        root.addEventListener('click', function (event) {
-          var button = event.target.closest('[data-demo]');
-          if (!button) return;
-          var kind = button.getAttribute('data-demo');
-          if (kind === 'run') run();
-          if (kind === 'advance') {
-            share = share >= 1 ? 0.1 : Math.min(1, share + 0.2);
-            h.$$('[data-demo="shares"] .ds-progress', root).slice(1, 2).forEach(function (el) {
-              DS.dom.progress(el, share);
-              DS.motion.countUp(h.$('.ds-progress__label', el), Math.round(share * 100), { format: function (value) { return Math.round(value) + '%'; } });
-            });
-          }
-        });
-        return function () { timers.forEach(clearTimeout); };
-      },
-    });
-  })();
-
-  // src/components/chart/chart.demo.js
-  (function () {
-    /*
-     * The Charts demo: meters with their tones, columns, columns that open,
-     * grouped columns with a sparkline. Registered through SG.demo()
-     * (styleguide/sg-core.js); the build wraps this file into
-     * styleguide/demos.js. legacy.html renders the same spec as its Charts
-     * section until it goes. Size, density and shape come from the options
-     * panel around it; a tone goes on the mark it means, with words next to it.
-     */
-    var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    var CHART_SETS = [[42, 38, 51, 47, 30, 8, 5], [36, 44, 40, 52, 41, 12, 9], [28, 31, 45, 39, 50, 6, 11]];
-
-    function columnsHtml(values, interactive) {
-      var max = Math.max.apply(null, values);
-      return values.map(function (value, index) {
-        var share = 'style="--ds-share:' + (value / max).toFixed(3) + '"';
-        var parts = '<span class="ds-columns__value">' + value + '</span><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">' + DAYS[index] + '</span>';
-        if (interactive) return '<li><button class="ds-columns__col" type="button" ' + share + ' aria-label="' + DAYS[index] + ': ' + value + ' tickets" data-chart-action="open">' + parts + '</button></li>';
-        return '<li class="ds-columns__col" ' + share + '>' + parts + '</li>';
-      }).join('');
-    }
-
-    var WEEKS = [['W37', 12, 9, 2], ['W38', 15, 14, 4], ['W39', 9, 12, 1], ['W40', 18, 11, 3], ['W41', 11, 16, 5], ['W42', 14, 6, 2]];
-
-    function groupsHtml() {
-      var max = 18;
-      return WEEKS.map(function (week, index) {
-        var current = index === WEEKS.length - 1;
-        return '<li class="ds-columns__group' + (current ? ' ds-columns__group--current' : '') + '"><ol class="ds-columns__plot">' +
-          '<li class="ds-columns__col" style="--ds-share:' + (week[1] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Opened: ' + week[1] + '</span></li>' +
-          '<li class="ds-columns__col ds-columns__col--s2" style="--ds-share:' + (week[2] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Closed: ' + week[2] + '</span></li>' +
-          '<li class="ds-columns__col ds-columns__col--s3" style="--ds-share:' + (week[3] / max).toFixed(3) + '"><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-sr">Reopened: ' + week[3] + '</span></li></ol>' +
-          '<span class="ds-columns__label">' + week[0] + (current ? '<span class="ds-sr">, this week</span>' : '') + '</span></li>';
-      }).join('');
-    }
-
-    var SPARK = [3, 5, 4, 7, 6, 2, 8, 5, 9, 6, 4, 7, 10, 12];
-
-    SG.demo('chart', {
-      title: 'Charts',
-      group: 'data',
-      need: 'Show a share, a figure per day or week, or a trend at a glance',
-      lead: 'Meters, columns and legends from the chart roles: four series in a fixed order, each at 3:1. A fill is clipped at its share (--ds-share), never scaled, so its round end keeps its shape; the first render fills from zero, later values glide. The chart module (axes, lines, a cursor) comes later.',
-      options: { sizes: true, density: true, shape: true, tones: ['neutral', 'primary', 'info', 'success', 'warning', 'error'] },
-
-      render: function (h) {
-        var spark = SPARK.map(function (value, index) {
-          return '<li class="ds-columns__col' + (index === SPARK.length - 1 ? ' ds-columns__col--highlight' : '') + '" style="--ds-share:' + (value / 12).toFixed(3) + '"><span class="ds-columns__fill"></span></li>';
-        }).join('');
-        // The panel's tone goes on the first meter's fill and its legend key: tones read their own class.
-        var tone = h.tone ? ' ds-tone-' + h.tone : '';
-        return '<div class="ds-grid-2">' +
-          h.card('Meters', '<div class="sg-meters" data-chart="meters">' +
-            '<p class="sg-meter-label"><span>Disk</span><strong class="ds-num" data-chart="disk">62%</strong></p><span class="ds-meter' + tone + '" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-valuetext="62% used" style="--ds-share:.62"></span>' +
-            '<p class="sg-meter-label"><span>Memory: high</span><strong class="ds-num">91%</strong></p><span class="ds-meter ds-tone-warning" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-valuetext="91% used, high" style="--ds-share:.91"></span>' +
-            '<p class="sg-meter-label"><span>Battery health</span><strong class="ds-num">48%</strong></p><span class="ds-meter ds-tone-neutral" role="meter" aria-label="Battery health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-valuetext="48%" style="--ds-share:.48"></span></div>' +
-            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-chart-action="meter">' + h.icon('sync', 16) + 'New disk value</button></div>' +
-            '<p class="ds-muted">DS.dom.progress sets the share and its ARIA; the meter glides on --ds-ease-value while its figure counts (DS.motion.countUp) in the same task: both land on the same frame.</p>') +
-          h.card('Columns', '<figure class="ds-columns" data-chart="columns"><figcaption class="ds-sr">Devices that checked in, per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[0]) + '</ol></figure>' +
-            '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-chart-action="values">' + h.icon('sync', 16) + 'New values</button><button class="ds-btn ds-sm" type="button" data-chart-action="fill">Fill again</button></div>' +
-            '<p class="ds-muted">New values glide; Fill again plays the first render (DS.motion.enterAll(marks, \'fill\'), .ds-enter--fill).</p>') +
-          '</div>' +
-          '<div class="ds-grid-2">' +
-          h.card('Columns that open', '<figure class="ds-columns"><figcaption class="ds-sr">Tickets per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[1], true) + '</ol></figure>' +
-            '<p class="ds-muted">Each column is a button that opens its day: a state layer, an inset ring and the ripple, no morph.</p>') +
-          h.card('Grouped, with a sparkline', '<figure class="ds-columns ds-columns--grouped"><figcaption class="ds-sr">Tickets opened, closed and reopened per week</figcaption>' +
-            '<div class="ds-scroll-x" tabindex="0" role="group" aria-label="Tickets per week"><ol class="ds-columns__groups">' + groupsHtml() + '</ol></div></figure>' +
-            '<ul class="ds-legend"><li><span class="ds-legend__key"></span>Opened</li><li><span class="ds-legend__key ds-legend__key--s2"></span>Closed</li><li><span class="ds-legend__key ds-legend__key--s3"></span>Reopened</li></ul>' +
-            '<div class="sg-spark"><p class="sg-spark__figure">12</p><figure class="ds-columns ds-columns--mini" role="img" aria-label="Tickets per day, last 14 days: highest 12 today"><ol class="ds-columns__plot" aria-hidden="true">' + spark + '</ol></figure></div>') +
-          '</div>';
-      },
-
-      // What a page writes itself: new values, a new meter reading, the first fill, opening a day.
-      wire: function (root, h) {
-        var M = window.DS.motion;
-        var at = 0;
-        var marks = function (scope) { return h.$$('.ds-meter, .ds-columns__col', scope); };
-        // The marks fill from zero once, on the first render (.ds-enter--fill).
-        M.enterAll(marks(root), 'fill', { stagger: false });
-        var onClick = function (event) {
-          var button = event.target.closest('[data-chart-action]');
-          if (!button || !root.contains(button)) return;
-          var action = button.getAttribute('data-chart-action');
-          var columns = h.$('[data-chart="columns"]', root);
-          if (action === 'values') {
-            at = (at + 1) % CHART_SETS.length;
-            var values = CHART_SETS[at];
-            var max = Math.max.apply(null, values);
-            h.$$('.ds-columns__col', columns).forEach(function (col, index) {
-              col.style.setProperty('--ds-share', (values[index] / max).toFixed(3));
-              h.$('.ds-columns__value', col).textContent = String(values[index]);
-            });
-          }
-          if (action === 'fill') M.enterAll(marks(columns), 'fill', { stagger: false });
-          if (action === 'meter') {
-            var meter = h.$('[data-chart="meters"] .ds-meter', root);
-            var next = Number(meter.getAttribute('aria-valuenow')) >= 60 ? 27 : 84;
-            // DS.dom.progress() sets the share and its ARIA in one call.
-            window.DS.dom.progress(meter, next / 100, { valueText: next + '% used' });
-            M.countUp(h.$('[data-chart="disk"]', root), next, { format: function (value) { return Math.round(value) + '%'; } });
-          }
-          if (action === 'open') h.toast('Opened the tickets of ' + button.getAttribute('aria-label').split(':')[0] + '.', 'info');
-        };
-        root.addEventListener('click', onClick);
-        return function () { root.removeEventListener('click', onClick); };
-      }
-    });
-  })();
-
-  // src/components/sheet/sheet.demo.js
-  (function () {
-    /*
-     * The Side sheet demo: the default and the wide panel, a head with a subtitle
-     * and a foot with actions, and a busy save. Opening and closing come from the
-     * system (data-ds-open, data-ds-close); wire() holds what a project writes.
-     */
-    function panel(h, id, wide, foot) {
-      return '<dialog class="ds-sheet" id="' + id + '" aria-labelledby="' + id + '-title">' +
-        '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel' + (wide ? ' ds-sheet__panel--wide' : '') + '">' +
-        '<div class="ds-sheet__head"><div class="ds-sheet__heading">' +
-        '<h2 class="ds-sheet__title" id="' + id + '-title">LAPTOP-0042</h2>' +
-        '<p class="ds-sheet__subtitle">Issued to Ada Lovelace</p></div>' +
-        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + h.icon('close', 20) + '</button></div>' +
-        '<div class="ds-sheet__body" tabindex="0"><dl class="ds-facts"><div><dt>Owner</dt><dd>Ada Lovelace</dd></div>' +
-        '<div><dt>Location</dt><dd>Building A, 1st floor</dd></div><div><dt>Model</dt><dd>Laptop 14</dd></div></dl>' +
-        '<p class="ds-muted">The record of the device goes here.</p></div>' +
-        (foot ? '<div class="ds-sheet__foot"><p class="ds-meta">Last saved today</p>' +
-          '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
-          '<button class="ds-btn ds-btn--filled" type="button" data-demo="save"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
-          '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span></button></div>' : '') +
-        '</section></dialog>';
-    }
-
-    SG.demo('sheet', {
-      title: 'Side sheet',
-      group: 'overlays',
-      need: 'Show details or a form beside the page, in a panel from the side',
-      lead: 'A panel that slides in from the side, from the bottom on phones. The options panel changes density and shape around it; a sheet shows no meaning of its own, so it has no tone.',
-      options: { variants: ['default', 'wide'], sizes: false, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        var plain = h.uid('sheet');
-        var wide = h.uid('wide');
-        var foot = h.uid('foot');
-        return h.section('Variants', '<div class="sg-row">' +
-          (h.variant === 'wide' ? '' : '<button class="ds-btn" type="button" data-ds-open="#' + plain + '">Open a sheet</button>') +
-          (h.variant === 'default' ? '' : '<button class="ds-btn" type="button" data-ds-open="#' + wide + '">Wide</button>') +
-          '</div>' +
-          (h.variant === 'wide' ? '' : panel(h, plain, false, false)) +
-          (h.variant === 'default' ? '' : panel(h, wide, true, false))) +
-
-          h.section('With a foot, busy while it saves', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + foot + '">Edit the record</button></div>' +
-            panel(h, foot, false, true),
-            'data-ds-busy keeps it open while the save runs: Escape, the backdrop and Cancel do nothing.') +
-
-          h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; the body scrolls with the arrow keys when it has focus.</p>');
-      },
-
-      wire: function (root, h) {
-        var save = h.$('[data-demo="save"]', root);
-        var sheet = save.closest('.ds-sheet');
-        save.addEventListener('click', function () {
-          sheet.setAttribute('data-ds-busy', '');
-          DS.motion.busy(save, function () {
-            return new Promise(function (resolve) { setTimeout(resolve, h.slow(800)); });
-          }, { done: false }).then(function () {
-            sheet.removeAttribute('data-ds-busy');
-            DS.overlay.close(sheet, { reason: 'confirm' });
-            h.toast('Saved LAPTOP-0042.');
-          });
-        });
-        return function () {
-          for (const open of root.querySelectorAll('dialog[open]')) open.close();
-        };
-      },
-    });
-  })();
-
-  // src/components/dialog/dialog.demo.js
-  (function () {
-    /*
-     * The Dialog demo: every size, the full-screen and bottom forms, a form
-     * dialog, the promise dialogs and a dialog whose action is busy. Opening and
-     * closing come from the system (data-ds-open, data-ds-close); wire() holds
-     * only what a project writes: the fake work and the messages after it.
-     */
-    var SIZES = [
-      ['sm', 'Small', 'ds-dialog--sm', 'A short question: 320px.'],
-      ['md', 'Default', '', 'The default: 400px.'],
-      ['lg', 'Large', 'ds-dialog--lg', 'A list, a form or a confirmation with a field: 560px.'],
-      ['xl', 'Extra large', 'ds-dialog--xl', 'A table or a long form: 720px.'],
-    ];
-
-    function plain(h, id, classes, title, text) {
-      var titleId = id + '-title';
-      return '<dialog class="ds-dialog' + (classes ? ' ' + classes : '') + '" id="' + id + '" aria-labelledby="' + titleId + '">' +
-        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
-        '<h2 class="ds-dialog__title" id="' + titleId + '">' + h.esc(title) + '</h2>' +
-        '<p class="ds-dialog__text">' + h.esc(text) + '</p>' +
-        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
-        '<button class="ds-btn ds-btn--filled" type="button" data-ds-close>Keep it</button></div></div></dialog>';
-    }
-
-    SG.demo('dialog', {
-      title: 'Dialog',
-      group: 'overlays',
-      need: 'Ask for a decision or a short task that blocks the page until it is done',
-      lead: 'A modal box over the whole window. The options panel changes density and shape around it; its size is the width of the box, because a size class would also change every control inside.',
-      options: { variants: SIZES.map(function (size) { return size[0]; }), sizes: false, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        var sizes = SIZES.filter(function (size) { return !h.variant || size[0] === h.variant; });
-        var full = h.uid('full');
-        var narrow = h.uid('narrow');
-        var bottom = h.uid('bottom');
-        var form = h.uid('form');
-        var name = h.uid('name');
-        var busy = h.uid('busy');
-        var sizeIds = sizes.map(function (size) { return h.uid('size-' + size[0]); });
-        return h.section('Sizes', '<div class="sg-row" data-demo="sizes">' + sizes.map(function (size, index) {
-          return '<button class="ds-btn" type="button" data-ds-open="#' + sizeIds[index] + '">' + size[1] + '</button>';
-        }).join('') + '</div>' + sizes.map(function (size, index) {
-          return plain(h, sizeIds[index], size[2], 'Archive LAPTOP-0042?', size[3] + ' It stays in the archive for a year.');
-        }).join('')) +
-
-          h.section('Questions', '<div class="sg-row" data-demo="questions">' +
-            '<button class="ds-btn" type="button" data-demo="confirm">Confirm</button>' +
-            '<button class="ds-btn" type="button" data-demo="destructive">Destructive</button>' +
-            '<button class="ds-btn" type="button" data-demo="alert">Alert</button>' +
-            '<button class="ds-btn" type="button" data-demo="prompt">Prompt</button></div>',
-            'A destructive confirmation is the one place a filled button is red; its label names the consequence.') +
-
-          h.section('Form', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + form + '">Rename the device</button></div>' +
-            '<dialog class="ds-dialog" id="' + form + '" aria-labelledby="' + form + '-title" data-demo="form">' +
-            '<div class="ds-dialog__backdrop" data-ds-close></div><form class="ds-dialog__box" data-ds-dialog-form>' +
-            '<h2 class="ds-dialog__title" id="' + form + '-title">Rename the device</h2>' +
-            '<div class="ds-dialog__body"><div class="ds-field"><label class="ds-field__label" for="' + name + '">Name</label>' +
-            '<input class="ds-input" id="' + name + '" name="name" required autofocus value="LAPTOP-0042"></div></div>' +
-            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
-            '<button class="ds-btn ds-btn--filled" type="submit"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
-            '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span></button></div>' +
-            '</form></dialog>',
-            'The box is the form: Enter submits, the browser validates first, and it stays open while the save runs.') +
-
-          h.section('Full screen and action sheet', '<div class="sg-row">' +
-            '<button class="ds-btn" type="button" data-ds-open="#' + full + '">Full screen</button>' +
-            '<button class="ds-btn" type="button" data-ds-open="#' + narrow + '">Full screen on phones</button>' +
-            '<button class="ds-btn" type="button" data-ds-open="#' + bottom + '">Action sheet</button></div>' +
-            [[full, 'ds-dialog--full'], [narrow, 'ds-dialog--full-narrow']].map(function (entry) {
-              return '<dialog class="ds-dialog ' + entry[1] + '" id="' + entry[0] + '" aria-labelledby="' + entry[0] + '-title">' +
-                '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box"><div class="ds-dialog__head">' +
-                '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + h.icon('close', 20) + '</button>' +
-                '<h2 class="ds-dialog__title" id="' + entry[0] + '-title">New ticket</h2>' +
-                '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Save</button></div>' +
-                '<div class="ds-dialog__body"><p class="ds-dialog__text">The form of the ticket goes here.</p></div></div></dialog>';
-            }).join('') +
-            '<dialog class="ds-dialog ds-dialog--bottom" id="' + bottom + '" aria-labelledby="' + bottom + '-title">' +
-            '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
-            '<h2 class="ds-dialog__title" id="' + bottom + '-title">LAPTOP-0042</h2><div class="ds-dialog__list">' +
-            '<button class="ds-menu__item" type="button" data-ds-close>' + h.icon('pencil', 20) + '<span class="ds-menu__label">Edit</span></button>' +
-            '<button class="ds-menu__item" type="button" data-ds-close>' + h.icon('archive', 20) + '<span class="ds-menu__label">Archive</span></button></div>' +
-            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button></div></div></dialog>') +
-
-          h.section('Busy', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + busy + '">Delete 3 devices</button></div>' +
-            '<dialog class="ds-dialog" role="alertdialog" id="' + busy + '" aria-labelledby="' + busy + '-title" aria-describedby="' + busy + '-text" data-demo="busy">' +
-            '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
-            '<h2 class="ds-dialog__title" id="' + busy + '-title">Delete 3 devices?</h2>' +
-            '<p class="ds-dialog__text" id="' + busy + '-text">They disappear from every list. This cannot be undone.</p>' +
-            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Cancel</button>' +
-            '<button class="ds-btn ds-btn--filled ds-tone-error" type="button" data-demo="busy-action"><span class="ds-btn__faces"><span class="ds-btn__face">Delete 3 devices</span>' +
-            '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Delete 3 devices</span></span></button></div></div></dialog>',
-            'Escape, the backdrop and Cancel do nothing while the action runs.') +
-
-          h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; <kbd class="ds-kbd">Enter</kbd> submits a form dialog; the arrow keys move through an action sheet.</p>');
-      },
-
-      wire: function (root, h) {
-        var work = function (fail) {
-          return function () {
-            return new Promise(function (resolve, reject) {
-              setTimeout(function () { if (fail) reject(new Error('The device did not answer.')); else resolve(); }, h.slow(800));
-            });
-          };
-        };
-        var on = function (name, run) {
-          h.$('[data-demo="' + name + '"]', root).addEventListener('click', function (event) { run(event.currentTarget); });
-        };
-        on('confirm', function (button) {
-          DS.overlay.confirm({ title: 'Archive 3 devices?', text: 'They stay in the archive for a year.', confirmLabel: 'Archive devices', opener: button })
-            .then(function (yes) { if (yes) h.toast('Archived 3 devices.'); });
-        });
-        on('destructive', function (button) {
-          DS.overlay.confirm({ title: 'Delete 3 devices?', text: 'They disappear from every list. This cannot be undone.', confirmLabel: 'Delete devices', destructive: true, opener: button, onConfirm: work(false) })
-            .then(function (yes) { if (yes) h.toast('Deleted 3 devices.'); });
-        });
-        on('alert', function (button) {
-          DS.overlay.alert({ title: 'Export ready', text: 'The file is in your downloads.', opener: button });
-        });
-        on('prompt', function (button) {
-          DS.overlay.prompt({ title: 'Rename', label: 'Name', value: 'LAPTOP-0042', input: { required: true }, opener: button })
-            .then(function (value) { if (value) h.toast('Renamed to ' + value + '.'); });
-        });
-        var form = h.$('[data-demo="form"]', root);
-        DS.dialog.form(form, { onSubmit: work(false), errorText: 'Could not rename the device.' });
-        form.addEventListener('ds:close', function (event) {
-          if (event.target === form && event.detail.reason === 'submit') h.toast('Saved.');
-        });
-        var busy = h.$('[data-demo="busy"]', root);
-        var action = h.$('[data-demo="busy-action"]', root);
-        var cancel = h.$('.ds-dialog__actions [data-ds-close]', busy);
-        action.addEventListener('click', function () {
-          busy.setAttribute('data-ds-busy', '');
-          cancel.setAttribute('aria-disabled', 'true');
-          DS.motion.busy(action, work(false), { done: false }).then(function () {
-            busy.removeAttribute('data-ds-busy');
-            cancel.removeAttribute('aria-disabled');
-            DS.overlay.close(busy, { reason: 'confirm' });
-            h.toast('Deleted 3 devices.');
-          });
-        });
-        return function () {
-          for (const open of root.querySelectorAll('dialog[open]')) open.close();
-        };
-      },
-    });
-  })();
-
-  // src/components/toast/toast.demo.js
-  (function () {
-    /*
-     * The Snackbar demo: each kind, an action, a message that stays, a stack and
-     * replacing by key, shown through DS.overlay.toast as a project shows them;
-     * the static messages show the markup toast() builds. Fake failures stand for
-     * what a project's save does.
-     */
-    SG.demo('toast', {
-      title: 'Snackbar',
-      group: 'overlays',
-      need: 'Confirm or report something briefly in a snackbar, with an optional action',
-      lead: 'A short message at the bottom of the content panel. It keeps one size whatever the density around it; the options panel changes its shape.',
-      options: { sizes: false, density: false, shape: true, tones: ['error', 'info'] },
-
-      render: function (h) {
-        var tone = h.tone === 'error' || h.tone === 'info' ? ' ds-tone-' + h.tone : '';
-        var glyph = h.tone === 'error' ? 'alertCircle' : h.tone === 'info' ? 'info' : 'checkCircle';
-        return h.section('Try them', '<div class="sg-row" data-demo="buttons">' +
-          '<button class="ds-btn" type="button" data-toast-demo="saved">Saved</button>' +
-          '<button class="ds-btn" type="button" data-toast-demo="info">Info</button>' +
-          '<button class="ds-btn" type="button" data-toast-demo="error">Error, stays</button>' +
-          '<button class="ds-btn" type="button" data-toast-demo="undo">With undo</button>' +
-          '<button class="ds-btn" type="button" data-toast-demo="many">Four at once</button>' +
-          '<button class="ds-btn" type="button" data-toast-demo="retry">A retry keeps one error</button>' +
-          '<button class="ds-btn ds-btn--text" type="button" data-toast-demo="clear">Close all</button></div>') +
-
-          h.section('The markup', '<div class="ds-stack" data-demo="static">' +
-            '<div class="ds-toast' + tone + '">' + h.icon(glyph, 20) + '<span class="ds-toast__text">Saved. The record is visible to everyone now.</span></div>' +
-            '<div class="ds-toast ds-toast--error">' + h.icon('alertCircle', 20) + '<span class="ds-toast__text">Could not save. Check the connection and try again.</span>' +
-            '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">' + h.icon('close', 20) + '</button></div>' +
-            '<div class="ds-toast">' + h.icon('checkCircle', 20) + '<span class="ds-toast__text">3 devices deleted.</span>' +
-            '<button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button>' +
-            '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">' + h.icon('close', 20) + '</button></div></div>',
-            'Status is never colour alone: an icon and a word. A message is never focused by itself, and its text is announced.') +
-
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches a message\'s buttons where the region sits; focus inside the region pauses the timers, and a message that leaves hands focus on, never to the body.</p>');
-      },
-
-      wire: function (root, h) {
-        var attempts = 0;
-        var region = function () { return DS.overlay.toastRegion(document); };
-        var show = {
-          saved: function () { DS.overlay.toast(region(), 'Saved LAPTOP-0042.'); },
-          info: function () { DS.overlay.toast(region(), 'The nightly sync runs at 02:30.', { kind: 'info' }); },
-          error: function () { DS.overlay.toast(region(), 'Could not save the changes.', { kind: 'error' }); },
-          undo: function () {
-            DS.overlay.toast(region(), '3 devices deleted.', { action: { label: 'Undo', onClick: function () { DS.overlay.toast(region(), 'Restored 3 devices.'); } } });
-          },
-          many: function () {
-            ['First', 'Second', 'Third', 'Fourth'].forEach(function (name) { DS.overlay.toast(region(), name + ' device saved.', { restart: false }); });
-          },
-          retry: function () {
-            attempts += 1;
-            DS.overlay.toast(region(), 'Could not save (attempt ' + attempts + ').', { kind: 'error', key: 'demo-save' });
-          },
-          clear: function () { DS.overlay.closeToasts(region()); },
-        };
-        root.addEventListener('click', function (event) {
-          var button = event.target.closest('[data-toast-demo]');
-          if (button) show[button.getAttribute('data-toast-demo')]();
-        });
-        return function () { DS.overlay.closeToasts(region()); };
-      },
-    });
-  })();
-
   // src/components/tooltip/tooltip.demo.js
   (function () {
     /*
@@ -3388,6 +3321,95 @@
             'A tip that repeats the text shows only while that text is cut off, and never describes the link.') +
 
           h.section('Keyboard', '<p class="ds-muted">Keyboard focus shows the tooltip at once, <kbd class="ds-kbd">Escape</kbd> hides it, and it never takes focus. While it shows, the trigger is described by it, unless its name says the same.</p>');
+      },
+    });
+  })();
+
+  // src/components/page/page.demo.js
+  (function () {
+    /*
+     * The Page demo: a record's head with its back link, status, actions, key
+     * facts and tabs; breadcrumbs; the layout helpers; the page states; a sign-in
+     * page in a box. Registered through SG.demo() (styleguide/sg-core.js). The
+     * options panel reaches the controls inside: the page's own rhythm is layout.
+     */
+    function head(h, tabs) {
+      return '<header class="ds-page-head">' +
+        '<a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="#">' + h.icon('arrowLeft', 18) + '<span class="ds-sr">Back to </span>Devices</a>' +
+        '<div class="ds-page-head__row"><div class="ds-page-head__text">' +
+          '<h3 class="ds-page-head__title">LAPTOP-0042</h3>' +
+          '<p class="ds-page-head__lead">Laptop 14 · issued to Ada Lovelace · 2 of 128</p>' +
+          '<div class="ds-page-head__status"><span class="ds-status ds-tone-success">' + h.icon('check', 16) + '<span>Synced</span></span></div>' +
+        '</div><div class="ds-page-head__actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--filled" type="button">Edit</button></div></div>' +
+        '<dl class="ds-page-head__details">' +
+          '<div class="ds-page-head__detail"><dt>Owner</dt><dd>Ada Lovelace</dd></div>' +
+          '<div class="ds-page-head__detail"><dt>Site</dt><dd>Building B</dd></div>' +
+          '<div class="ds-page-head__detail"><dt>Last sync</dt><dd>Today, 09:12</dd></div>' +
+          '<div class="ds-page-head__detail"><dt>Serial</dt><dd>SN-7440-0042</dd></div>' +
+        '</dl>' +
+        (tabs ? '<div class="ds-page-head__tabs"><nav class="ds-tabs" aria-label="LAPTOP-0042" data-demo="tabs"><a class="ds-tabs__tab" href="#" aria-current="page" data-label="Overview">Overview</a><a class="ds-tabs__tab" href="#" data-label="Activity">Activity</a><a class="ds-tabs__tab" href="#" data-label="Settings">Settings</a></nav></div>' : '') +
+      '</header>';
+    }
+
+    SG.demo('page', {
+      title: 'Page',
+      group: 'navigation',
+      need: 'Lay out a page: its head, breadcrumbs, columns of cards, and a sign-in page',
+      lead: 'The padded content area, one page of cards and its head. The options panel reaches the controls inside; the page\'s own rhythm and padding are layout.',
+      options: { sizes: true, density: true, shape: true, tones: false },
+
+      render: function (h) {
+        var email = h.uid('auth-email');
+        return h.section('A record\'s head', head(h, true),
+          'The way back, the title with its lead and status, the actions on the title\'s centre line (under the title at 600px of the content), a row of key facts and the record\'s tabs.') +
+
+          h.section('A plain head', '<header class="ds-page-head"><h3 class="ds-page-head__title">Devices</h3><p class="ds-page-head__lead">Every laptop and desktop, synced nightly.</p></header>') +
+
+          h.section('Breadcrumbs', '<nav class="ds-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="#">Inventory</a></li><li><a href="#">Devices</a></li><li><a href="#" aria-current="page">LAPTOP-0042</a></li></ol></nav>',
+            'In place of the back link. At 600px of the content only the parent shows: the way up.') +
+
+          h.section('Columns', '<div class="ds-page" style="inline-size: 100%;">' +
+            '<div class="ds-grid-2">' + h.card('Devices', '<p class="ds-muted">128 devices.</p>') + h.card('Tickets', '<p class="ds-muted">3 open.</p>') + '</div>' +
+            '<div class="ds-stack">' + h.card('Sites', '<p class="ds-muted">Building A and Building B.</p>') + h.card('People', '<p class="ds-muted">Grace Hopper joined on Monday.</p>') + '</div>' +
+            '<button class="ds-btn" type="button">Add a card</button>' +
+            '</div>', '.ds-grid-2 is two columns (one below 900px), .ds-stack one; a stack directly in the page keeps the page\'s rhythm, and a lone button keeps its own width.') +
+
+          h.section('States', '<div class="ds-stack">' +
+            '<div class="ds-alert ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The device list did not load.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>' +
+            '<div class="ds-empty"><p class="ds-empty__title">This device is gone</p><p class="ds-empty__text">It was deleted on Monday.</p><a class="ds-btn" href="#">Back to devices</a></div>' +
+            '</div>', 'A page that fails or is gone says so in its body; the head stays where it can.') +
+
+          h.section('Empty parts', '<header class="ds-page-head"><div class="ds-page-head__row"><div class="ds-page-head__text"><h3 class="ds-page-head__title">No status yet</h3><p class="ds-page-head__lead"></p><div class="ds-page-head__status"></div></div><div class="ds-page-head__actions"></div></div><dl class="ds-page-head__details"></dl><div class="ds-page-head__tabs"></div></header>',
+            'Empty parts take no room, so a page may render them before it has their content.') +
+
+          h.section('Sign-in page', '<div style="overflow: hidden; border-radius: var(--ds-radius-card);"><div class="ds-auth" style="min-height: 0;">' +
+            '<div class="ds-auth__alert"><div class="ds-alert ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The password is wrong.</span></div></div>' +
+            '<section class="ds-card ds-card--elevated ds-auth__card" aria-label="Sign in"><h3 class="ds-card__title">Sign in</h3><form class="ds-form" data-demo="auth">' +
+              '<div class="ds-field"><label class="ds-field__label" for="' + email + '">Email</label><input class="ds-input" id="' + email + '" type="email" autocomplete="off" value="ada@example.org"></div>' +
+              '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Sign in</button></div>' +
+            '</form></section></div></div>', '.ds-auth is a page that is one centred card on the backdrop; shown in a box here.') +
+
+          h.section('Keyboard', '<p class="ds-muted">The title takes the focus after a page change (<code>tabindex="-1"</code>); the back link, breadcrumbs and actions are tab stops in reading order.</p>');
+      },
+
+      wire: function (root, h) {
+        var nav = h.$('[data-demo="tabs"]', root);
+        var pill = DS.indicator.create(nav, { active: '[aria-current="page"]', className: 'ds-tabs__indicator' });
+        root.addEventListener('click', function (event) {
+          var link = event.target.closest('a[href="#"]');
+          if (link) event.preventDefault();
+          if (link && nav.contains(link)) {
+            h.$$('a', nav).forEach(function (other) {
+              if (other === link) other.setAttribute('aria-current', 'page');
+              else other.removeAttribute('aria-current');
+            });
+          }
+        });
+        h.$('[data-demo="auth"]', root).addEventListener('submit', function (event) {
+          event.preventDefault();
+          h.toast('Signed in.', 'success');
+        });
+        return function () { pill.destroy(); };
       },
     });
   })();
@@ -3802,158 +3824,69 @@
     });
   })();
 
-  // src/components/ripple/ripple.demo.js
+  // src/components/toast/toast.demo.js
   (function () {
     /*
-     * The Ripple demo: every kind of host, the opt-out, an element of the page's
-     * own, the blocked hosts and the keyboard. The page has already called
-     * DS.ripple.attach(document), so nothing here wires a press. Size, density,
-     * shape and touch come from the options panel around it: the ripple follows
-     * each host, also the square ones.
+     * The Snackbar demo: each kind, an action, a message that stays, a stack and
+     * replacing by key, shown through DS.overlay.toast as a project shows them;
+     * the static messages show the markup toast() builds. Fake failures stand for
+     * what a project's save does.
      */
-    /* What a project's own element brings: its frame, from the tokens. */
-    var OWN = 'padding: var(--ds-space-3) var(--ds-space-4); border: 1px solid var(--ds-line-2); border-radius: calc(var(--ds-radius-card) * var(--ds-shape, 1));';
-
-    function chip(label) {
-      return '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">' + label + '</span></span></button>';
-    }
-
-    SG.demo('ripple', {
-      title: 'Ripple',
-      group: 'motion',
-      need: 'Answer a press with a ripple from the pointer, and hold quick presses visible',
-      lead: 'Press and hold anything on this page: a circle of the content colour grows from the pointer out to the farthest corner, and fades when the press ends. One DS.ripple.attach(document) wires every action, also the ones rendered later. The options panel changes the hosts around it: the ripple measures each one and is clipped by its radius, so a square host ripples in a square.',
-      options: { sizes: true, density: true, shape: true, tones: false },
+    SG.demo('toast', {
+      title: 'Snackbar',
+      group: 'overlays',
+      need: 'Confirm or report something briefly in a snackbar, with an optional action',
+      lead: 'A short message at the bottom of the content panel. It keeps one size whatever the density around it; the options panel changes its shape.',
+      options: { sizes: false, density: false, shape: true, tones: ['error', 'info'] },
 
       render: function (h) {
-        var row = h.uid('row');
-        return h.section('Actions', '<div class="sg-row" data-demo="buttons">' +
-          '<button class="ds-btn" type="button">Export</button>' +
-          '<button class="ds-btn ds-btn--filled" type="button">Save</button>' +
-          '<button class="ds-btn ds-btn--tonal" type="button">Add entry</button>' +
-          '<button class="ds-btn ds-btn--text" type="button">Details</button>' +
-          '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit">' + h.icon('pencil', 20) + '</button>' +
-          '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--disc" type="button" aria-label="Minimize">' + h.icon('minimize', 20) + '</button>' +
-          '</div>') +
+        var tone = h.tone === 'error' || h.tone === 'info' ? ' ds-tone-' + h.tone : '';
+        var glyph = h.tone === 'error' ? 'alertCircle' : h.tone === 'info' ? 'info' : 'checkCircle';
+        return h.section('Try them', '<div class="sg-row" data-demo="buttons">' +
+          '<button class="ds-btn" type="button" data-toast-demo="saved">Saved</button>' +
+          '<button class="ds-btn" type="button" data-toast-demo="info">Info</button>' +
+          '<button class="ds-btn" type="button" data-toast-demo="error">Error, stays</button>' +
+          '<button class="ds-btn" type="button" data-toast-demo="undo">With undo</button>' +
+          '<button class="ds-btn" type="button" data-toast-demo="many">Four at once</button>' +
+          '<button class="ds-btn" type="button" data-toast-demo="retry">A retry keeps one error</button>' +
+          '<button class="ds-btn ds-btn--text" type="button" data-toast-demo="clear">Close all</button></div>') +
 
-          h.section('Other hosts', '<div class="sg-row" data-demo="hosts">' + chip('Laptops') + chip('Printers') + '</div>' +
-            '<div class="ds-grid-2">' +
-            '<button class="ds-card ds-card--interactive" type="button" data-demo="card"><span class="ds-card__title">PRINTER-0003</span><span class="ds-muted">The whole card is one button.</span></button>' +
-            '<ul class="ds-list ds-list--interactive" aria-label="Devices"><li class="ds-list__item"><span class="ds-list__title"><a class="ds-list__action" href="#' + row + '">LAPTOP-0042</a></span></li></ul>' +
-            '</div>') +
+          h.section('The markup', '<div class="ds-stack" data-demo="static">' +
+            '<div class="ds-toast' + tone + '">' + h.icon(glyph, 20) + '<span class="ds-toast__text">Saved. The record is visible to everyone now.</span></div>' +
+            '<div class="ds-toast ds-toast--error">' + h.icon('alertCircle', 20) + '<span class="ds-toast__text">Could not save. Check the connection and try again.</span>' +
+            '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">' + h.icon('close', 20) + '</button></div>' +
+            '<div class="ds-toast">' + h.icon('checkCircle', 20) + '<span class="ds-toast__text">3 devices deleted.</span>' +
+            '<button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button>' +
+            '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">' + h.icon('close', 20) + '</button></div></div>',
+            'Status is never colour alone: an icon and a word. A message is never focused by itself, and its text is announced.') +
 
-          h.section('Your own element', '<div class="sg-row">' +
-            '<div class="ds-pressable" role="button" tabindex="0" data-demo="pressable" style="' + OWN + '">.ds-pressable: the state layer, the ring and the ripple</div>' +
-            '<div data-ds-ripple tabindex="0" role="button" data-demo="own" style="' + OWN + '">data-ds-ripple: only the ripple</div>' +
-            '</div>') +
-
-          h.section('Colour', '<div class="sg-row"><button class="ds-btn" type="button" style="--ds-ripple-color: var(--ds-primary)">--ds-ripple-color on one button</button></div>') +
-
-          h.section('No ripple', '<div class="sg-row" data-demo="blocked">' +
-            '<button class="ds-btn ds-btn--filled" type="button" disabled>Disabled</button>' +
-            '<button class="ds-btn ds-btn--filled" type="button" aria-disabled="true">aria-disabled</button>' +
-            '<button class="ds-btn ds-btn--filled" type="button" aria-busy="true">Busy</button>' +
-            '<span data-ds-ripple="off"><button class="ds-btn" type="button">data-ds-ripple="off"</button></span>' +
-            '<button class="ds-link-btn" type="button">An inline link</button>' +
-            '</div><p class="ds-muted">Blocked hosts and inline links never ripple; data-ds-ripple="off" opts a host or a whole region out. A page that calls neither DS.ripple.attach() nor DS.init() keeps the flat state layer as the press feedback.</p>') +
-
-          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> on a focused host ripples from its centre. The span is aria-hidden, so it never changes the host\'s name. In forced colours there is no ripple.</p>');
-      },
-
-      /* The row's link goes nowhere here: a press only shows the ripple, and the styleguide routes on the hash. */
-      wire: function (root) {
-        root.addEventListener('click', function (event) {
-          if (event.target.closest('.ds-list__action')) event.preventDefault();
-        });
-      },
-    });
-  })();
-
-  // src/components/page/page.demo.js
-  (function () {
-    /*
-     * The Page demo: a record's head with its back link, status, actions, key
-     * facts and tabs; breadcrumbs; the layout helpers; the page states; a sign-in
-     * page in a box. Registered through SG.demo() (styleguide/sg-core.js). The
-     * options panel reaches the controls inside: the page's own rhythm is layout.
-     */
-    function head(h, tabs) {
-      return '<header class="ds-page-head">' +
-        '<a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="#">' + h.icon('arrowLeft', 18) + '<span class="ds-sr">Back to </span>Devices</a>' +
-        '<div class="ds-page-head__row"><div class="ds-page-head__text">' +
-          '<h3 class="ds-page-head__title">LAPTOP-0042</h3>' +
-          '<p class="ds-page-head__lead">Laptop 14 · issued to Ada Lovelace · 2 of 128</p>' +
-          '<div class="ds-page-head__status"><span class="ds-status ds-tone-success">' + h.icon('check', 16) + '<span>Synced</span></span></div>' +
-        '</div><div class="ds-page-head__actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--filled" type="button">Edit</button></div></div>' +
-        '<dl class="ds-page-head__details">' +
-          '<div class="ds-page-head__detail"><dt>Owner</dt><dd>Ada Lovelace</dd></div>' +
-          '<div class="ds-page-head__detail"><dt>Site</dt><dd>Building B</dd></div>' +
-          '<div class="ds-page-head__detail"><dt>Last sync</dt><dd>Today, 09:12</dd></div>' +
-          '<div class="ds-page-head__detail"><dt>Serial</dt><dd>SN-7440-0042</dd></div>' +
-        '</dl>' +
-        (tabs ? '<div class="ds-page-head__tabs"><nav class="ds-tabs" aria-label="LAPTOP-0042" data-demo="tabs"><a class="ds-tabs__tab" href="#" aria-current="page" data-label="Overview">Overview</a><a class="ds-tabs__tab" href="#" data-label="Activity">Activity</a><a class="ds-tabs__tab" href="#" data-label="Settings">Settings</a></nav></div>' : '') +
-      '</header>';
-    }
-
-    SG.demo('page', {
-      title: 'Page',
-      group: 'navigation',
-      need: 'Lay out a page: its head, breadcrumbs, columns of cards, and a sign-in page',
-      lead: 'The padded content area, one page of cards and its head. The options panel reaches the controls inside; the page\'s own rhythm and padding are layout.',
-      options: { sizes: true, density: true, shape: true, tones: false },
-
-      render: function (h) {
-        var email = h.uid('auth-email');
-        return h.section('A record\'s head', head(h, true),
-          'The way back, the title with its lead and status, the actions on the title\'s centre line (under the title at 600px of the content), a row of key facts and the record\'s tabs.') +
-
-          h.section('A plain head', '<header class="ds-page-head"><h3 class="ds-page-head__title">Devices</h3><p class="ds-page-head__lead">Every laptop and desktop, synced nightly.</p></header>') +
-
-          h.section('Breadcrumbs', '<nav class="ds-breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="#">Inventory</a></li><li><a href="#">Devices</a></li><li><a href="#" aria-current="page">LAPTOP-0042</a></li></ol></nav>',
-            'In place of the back link. At 600px of the content only the parent shows: the way up.') +
-
-          h.section('Columns', '<div class="ds-page" style="inline-size: 100%;">' +
-            '<div class="ds-grid-2">' + h.card('Devices', '<p class="ds-muted">128 devices.</p>') + h.card('Tickets', '<p class="ds-muted">3 open.</p>') + '</div>' +
-            '<div class="ds-stack">' + h.card('Sites', '<p class="ds-muted">Building A and Building B.</p>') + h.card('People', '<p class="ds-muted">Grace Hopper joined on Monday.</p>') + '</div>' +
-            '<button class="ds-btn" type="button">Add a card</button>' +
-            '</div>', '.ds-grid-2 is two columns (one below 900px), .ds-stack one; a stack directly in the page keeps the page\'s rhythm, and a lone button keeps its own width.') +
-
-          h.section('States', '<div class="ds-stack">' +
-            '<div class="ds-alert ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The device list did not load.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>' +
-            '<div class="ds-empty"><p class="ds-empty__title">This device is gone</p><p class="ds-empty__text">It was deleted on Monday.</p><a class="ds-btn" href="#">Back to devices</a></div>' +
-            '</div>', 'A page that fails or is gone says so in its body; the head stays where it can.') +
-
-          h.section('Empty parts', '<header class="ds-page-head"><div class="ds-page-head__row"><div class="ds-page-head__text"><h3 class="ds-page-head__title">No status yet</h3><p class="ds-page-head__lead"></p><div class="ds-page-head__status"></div></div><div class="ds-page-head__actions"></div></div><dl class="ds-page-head__details"></dl><div class="ds-page-head__tabs"></div></header>',
-            'Empty parts take no room, so a page may render them before it has their content.') +
-
-          h.section('Sign-in page', '<div style="overflow: hidden; border-radius: var(--ds-radius-card);"><div class="ds-auth" style="min-height: 0;">' +
-            '<div class="ds-auth__alert"><div class="ds-alert ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The password is wrong.</span></div></div>' +
-            '<section class="ds-card ds-card--elevated ds-auth__card" aria-label="Sign in"><h3 class="ds-card__title">Sign in</h3><form class="ds-form" data-demo="auth">' +
-              '<div class="ds-field"><label class="ds-field__label" for="' + email + '">Email</label><input class="ds-input" id="' + email + '" type="email" autocomplete="off" value="ada@example.org"></div>' +
-              '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Sign in</button></div>' +
-            '</form></section></div></div>', '.ds-auth is a page that is one centred card on the backdrop; shown in a box here.') +
-
-          h.section('Keyboard', '<p class="ds-muted">The title takes the focus after a page change (<code>tabindex="-1"</code>); the back link, breadcrumbs and actions are tab stops in reading order.</p>');
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches a message\'s buttons where the region sits; focus inside the region pauses the timers, and a message that leaves hands focus on, never to the body.</p>');
       },
 
       wire: function (root, h) {
-        var nav = h.$('[data-demo="tabs"]', root);
-        var pill = DS.indicator.create(nav, { active: '[aria-current="page"]', className: 'ds-tabs__indicator' });
+        var attempts = 0;
+        var region = function () { return DS.overlay.toastRegion(document); };
+        var show = {
+          saved: function () { DS.overlay.toast(region(), 'Saved LAPTOP-0042.'); },
+          info: function () { DS.overlay.toast(region(), 'The nightly sync runs at 02:30.', { kind: 'info' }); },
+          error: function () { DS.overlay.toast(region(), 'Could not save the changes.', { kind: 'error' }); },
+          undo: function () {
+            DS.overlay.toast(region(), '3 devices deleted.', { action: { label: 'Undo', onClick: function () { DS.overlay.toast(region(), 'Restored 3 devices.'); } } });
+          },
+          many: function () {
+            ['First', 'Second', 'Third', 'Fourth'].forEach(function (name) { DS.overlay.toast(region(), name + ' device saved.', { restart: false }); });
+          },
+          retry: function () {
+            attempts += 1;
+            DS.overlay.toast(region(), 'Could not save (attempt ' + attempts + ').', { kind: 'error', key: 'demo-save' });
+          },
+          clear: function () { DS.overlay.closeToasts(region()); },
+        };
         root.addEventListener('click', function (event) {
-          var link = event.target.closest('a[href="#"]');
-          if (link) event.preventDefault();
-          if (link && nav.contains(link)) {
-            h.$$('a', nav).forEach(function (other) {
-              if (other === link) other.setAttribute('aria-current', 'page');
-              else other.removeAttribute('aria-current');
-            });
-          }
+          var button = event.target.closest('[data-toast-demo]');
+          if (button) show[button.getAttribute('data-toast-demo')]();
         });
-        h.$('[data-demo="auth"]', root).addEventListener('submit', function (event) {
-          event.preventDefault();
-          h.toast('Signed in.', 'success');
-        });
-        return function () { pill.destroy(); };
+        return function () { DS.overlay.closeToasts(region()); };
       },
     });
   })();
@@ -4049,6 +3982,73 @@
           h.toast('Changes saved.', 'success');
         });
         return function () { bar.destroy(); };
+      },
+    });
+  })();
+
+  // src/components/ripple/ripple.demo.js
+  (function () {
+    /*
+     * The Ripple demo: every kind of host, the opt-out, an element of the page's
+     * own, the blocked hosts and the keyboard. The page has already called
+     * DS.ripple.attach(document), so nothing here wires a press. Size, density,
+     * shape and touch come from the options panel around it: the ripple follows
+     * each host, also the square ones.
+     */
+    /* What a project's own element brings: its frame, from the tokens. */
+    var OWN = 'padding: var(--ds-space-3) var(--ds-space-4); border: 1px solid var(--ds-line-2); border-radius: calc(var(--ds-radius-card) * var(--ds-shape, 1));';
+
+    function chip(label) {
+      return '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">' + label + '</span></span></button>';
+    }
+
+    SG.demo('ripple', {
+      title: 'Ripple',
+      group: 'motion',
+      need: 'Answer a press with a ripple from the pointer, and hold quick presses visible',
+      lead: 'Press and hold anything on this page: a circle of the content colour grows from the pointer out to the farthest corner, and fades when the press ends. One DS.ripple.attach(document) wires every action, also the ones rendered later. The options panel changes the hosts around it: the ripple measures each one and is clipped by its radius, so a square host ripples in a square.',
+      options: { sizes: true, density: true, shape: true, tones: false },
+
+      render: function (h) {
+        var row = h.uid('row');
+        return h.section('Actions', '<div class="sg-row" data-demo="buttons">' +
+          '<button class="ds-btn" type="button">Export</button>' +
+          '<button class="ds-btn ds-btn--filled" type="button">Save</button>' +
+          '<button class="ds-btn ds-btn--tonal" type="button">Add entry</button>' +
+          '<button class="ds-btn ds-btn--text" type="button">Details</button>' +
+          '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit">' + h.icon('pencil', 20) + '</button>' +
+          '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--disc" type="button" aria-label="Minimize">' + h.icon('minimize', 20) + '</button>' +
+          '</div>') +
+
+          h.section('Other hosts', '<div class="sg-row" data-demo="hosts">' + chip('Laptops') + chip('Printers') + '</div>' +
+            '<div class="ds-grid-2">' +
+            '<button class="ds-card ds-card--interactive" type="button" data-demo="card"><span class="ds-card__title">PRINTER-0003</span><span class="ds-muted">The whole card is one button.</span></button>' +
+            '<ul class="ds-list ds-list--interactive" aria-label="Devices"><li class="ds-list__item"><span class="ds-list__title"><a class="ds-list__action" href="#' + row + '">LAPTOP-0042</a></span></li></ul>' +
+            '</div>') +
+
+          h.section('Your own element', '<div class="sg-row">' +
+            '<div class="ds-pressable" role="button" tabindex="0" data-demo="pressable" style="' + OWN + '">.ds-pressable: the state layer, the ring and the ripple</div>' +
+            '<div data-ds-ripple tabindex="0" role="button" data-demo="own" style="' + OWN + '">data-ds-ripple: only the ripple</div>' +
+            '</div>') +
+
+          h.section('Colour', '<div class="sg-row"><button class="ds-btn" type="button" style="--ds-ripple-color: var(--ds-primary)">--ds-ripple-color on one button</button></div>') +
+
+          h.section('No ripple', '<div class="sg-row" data-demo="blocked">' +
+            '<button class="ds-btn ds-btn--filled" type="button" disabled>Disabled</button>' +
+            '<button class="ds-btn ds-btn--filled" type="button" aria-disabled="true">aria-disabled</button>' +
+            '<button class="ds-btn ds-btn--filled" type="button" aria-busy="true">Busy</button>' +
+            '<span data-ds-ripple="off"><button class="ds-btn" type="button">data-ds-ripple="off"</button></span>' +
+            '<button class="ds-link-btn" type="button">An inline link</button>' +
+            '</div><p class="ds-muted">Blocked hosts and inline links never ripple; data-ds-ripple="off" opts a host or a whole region out. A page that calls neither DS.ripple.attach() nor DS.init() keeps the flat state layer as the press feedback.</p>') +
+
+          h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> on a focused host ripples from its centre. The span is aria-hidden, so it never changes the host\'s name. In forced colours there is no ripple.</p>');
+      },
+
+      /* The row's link goes nowhere here: a press only shows the ripple, and the styleguide routes on the hash. */
+      wire: function (root) {
+        root.addEventListener('click', function (event) {
+          if (event.target.closest('.ds-list__action')) event.preventDefault();
+        });
       },
     });
   })();

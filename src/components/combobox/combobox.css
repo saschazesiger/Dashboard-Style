@@ -173,7 +173,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.combobox {
   /* The field's height, which the field, its toggle and its clear button
      share: the formula of every field (form.css), so a combobox lines up
      with the fields around it, and never less than the toggle's icon. --_end
@@ -183,6 +183,12 @@
     --_box: max(var(--ds-target-min, 0px), var(--_h));
     --_end: calc(var(--ds-space-1) + var(--_box));
     position: relative;
+  }
+
+  /* A field of a row form (form.css, .ds-form--rows) caps its control as it
+     caps an input. */
+  .ds-form--rows .ds-field > .ds-combo {
+    max-width: var(--ds-form-rows-control-max, 480px);
   }
 
   /* Without a toggle there is nothing to keep room for. */

@@ -1,7 +1,7 @@
 {
   "name": "loader",
   "group": "feedback",
-  "order": 50,
+  "order": 40,
   "docsOrder": 304,
   "need": "Show that a whole region is loading, with a morphing shape",
   "tier": 1,

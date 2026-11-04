@@ -173,9 +173,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.combobox {
   /* The field's height, which the field, its toggle and its clear button
      share: the formula of every field (form.css), so a combobox lines up
      with the fields around it, and never less than the toggle's icon. --_end
@@ -185,6 +185,12 @@
     --_box: max(var(--ds-target-min, 0px), var(--_h));
     --_end: calc(var(--ds-space-1) + var(--_box));
     position: relative;
+  }
+
+  /* A field of a row form (form.css, .ds-form--rows) caps its control as it
+     caps an input. */
+  .ds-form--rows .ds-field > .ds-combo {
+    max-width: var(--ds-form-rows-control-max, 480px);
   }
 
   /* Without a toggle there is nothing to keep room for. */

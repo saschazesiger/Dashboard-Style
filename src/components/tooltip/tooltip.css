@@ -60,7 +60,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.tooltip {
   /* Physical on purpose (D9): --ds-tooltip-x is a script coordinate from
      the left, and the anchored placement (below) clears it. */
   .ds-tooltip {

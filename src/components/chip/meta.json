@@ -1,7 +1,7 @@
 {
   "name": "chip",
   "group": "forms",
-  "order": 220,
+  "order": 230,
   "docsOrder": 210,
   "need": "Filter a list, pick a few options or hold entered values as small pills",
   "tier": 1,
@@ -25,7 +25,8 @@
   ],
   "requires": [],
   "context": [
-    "ripple"
+    "card",
+    "list"
   ],
   "hooks": {
     "--ds-chip-height": {
@@ -71,6 +72,9 @@
     "--ds-chip-max-width": {
       "default": "240px",
       "description": "the widest body of an action or input chip; its label ends in an ellipsis"
+    },
+    "--ds-card-title-line": {
+      "owner": "card"
     }
   },
   "keyframes": [],

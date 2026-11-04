@@ -1,7 +1,7 @@
 {
   "name": "chart",
   "group": "data",
-  "order": 290,
+  "order": 160,
   "docsOrder": 320,
   "need": "Show a share, a figure per day or week, or a trend at a glance",
   "tier": 1,
@@ -39,9 +39,7 @@
   ],
   "attributes": [],
   "requires": [],
-  "context": [
-    "ripple"
-  ],
+  "context": [],
   "hooks": {
     "--ds-meter-height": {
       "default": "4px",

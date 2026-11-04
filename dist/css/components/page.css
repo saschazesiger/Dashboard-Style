@@ -92,9 +92,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.page {
   .ds-content {
     --ds-content-pad-top: var(--ds-space-6);
     --ds-content-pad-x: var(--ds-space-8);
@@ -399,10 +399,39 @@
     gap: var(--ds-space-5);
   }
 
+  /* Cards side by side share one height; their link rows line up at the
+     bottom edge. The auto margin replaces the rhythm's 16px, so the block
+     before the links keeps it as a floor: the tallest card has no free
+     space, and flex margins add up instead of collapsing. The card owns
+     the gap (its private --_card-gap, inherited); these rules sit here, in
+     the later sublayer, because the grid gives the context. */
+  .ds-grid-2 > .ds-card:has(> .ds-card__links) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ds-grid-2 > .ds-card > .ds-card__links {
+    margin-top: auto;
+  }
+
+  .ds-grid-2 > .ds-card > :has(+ .ds-card__links) {
+    margin-bottom: var(--_card-gap);
+  }
+
   @media (max-width: 900px) {
     .ds-grid-2 {
       grid-template-columns: minmax(0, 1fr);
     }
+  }
+
+  /* In a page (the skeleton of a loading page, a refresh above its
+     content) the bar also spans the page's centring: .ds-page is
+     min(100%, --ds-content-max) wide and centred in .ds-content, the
+     nearest size container, so 100cqw is the panel's content box. Sides
+     only, so the bottom margin of loading.css's 720px rule still
+     applies. */
+  .ds-page .ds-loadbar {
+    margin-inline: calc(-1 * var(--ds-content-pad-x, var(--ds-space-8)) - max(0px, (100cqw - var(--ds-content-max)) / 2));
   }
 
   /* ── Sign-in page ─────────────────────────────── */

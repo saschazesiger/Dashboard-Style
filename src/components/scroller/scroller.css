@@ -108,7 +108,7 @@
   initial-value: 0;
 }
 
-@layer ds.components {
+@layer ds.components.scroller {
   /* Positioned: absolutely placed content (a .ds-sr label) is clipped by
      the strip instead of widening the page. The block padding is the room
      of the focus rings inside; the mask covers the content box and leaves

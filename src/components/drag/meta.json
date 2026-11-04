@@ -1,7 +1,7 @@
 {
   "name": "drag",
   "group": "forms",
-  "order": 210,
+  "order": 300,
   "docsOrder": 330,
   "need": "Reorder rows by a grip, or drop files onto a zone",
   "tier": 1,
@@ -25,9 +25,7 @@
   "requires": [
     "form"
   ],
-  "context": [
-    "ripple"
-  ],
+  "context": [],
   "hooks": {
     "--ds-dropzone-border": {
       "default": "`1px dashed var(--ds-outline)`",

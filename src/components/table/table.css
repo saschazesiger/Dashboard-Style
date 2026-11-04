@@ -293,7 +293,7 @@
   initial-value: transparent;
 }
 
-@layer ds.components {
+@layer ds.components.table {
   /* Positioned, so absolutely placed descendants (the visually hidden header
      text .ds-sr) are clipped by the scroller instead of widening the page. */
   .ds-table-wrap {
@@ -1134,15 +1134,10 @@
   /*
    * The bar of a bulk selection: it stands where the toolbar stood (one
    * .ds-swap slot, DS.motion.crossfade()), so the table never moves. The
-   * count says the state, not the tint; it changes at once.
+   * count says the state, not the tint; it changes at once. The slot keeps
+   * the bar's height (.ds-toolbar > .ds-swap: in form.css, the toolbar's
+   * own stylesheet, which comes after this one).
    */
-  /* The slot keeps the bar's height, so the table stays where it is while
-     a shorter toolbar stands in it. */
-  .ds-toolbar > .ds-swap {
-    /* The bar's own least height, or its icon buttons, which step with size only: so the crossing never moves the table. */
-    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-selection-bar-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px));
-  }
-
   .ds-selection-bar {
     display: flex;
     align-items: center;
@@ -1557,6 +1552,26 @@
   .ds-table small {
     font: var(--ds-font-meta);
     white-space: nowrap;
+  }
+
+  /* A badge (badge.css) in a selected row: the tint badge would vanish on
+     the selection's tint, so the strong pair instead, as on a tinted
+     button. */
+  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+    --ds-badge-bg: var(--ds-primary);
+    --ds-badge-color: var(--ds-on-primary);
+  }
+
+  :is(.ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
+    --ds-badge-bg: var(--ds-surface);
+    --ds-badge-color: var(--ds-text-2);
+  }
+
+  /* Actions on demand (.ds-hover-actions, utilities.css) in a row selected
+     by its checkbox: the selection reveals them, as aria-selected does. */
+  :is(tr, li, .ds-hover-host).ds-table__row--selected .ds-hover-actions:not(:is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):is(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) :is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host):not(:focus-within, [aria-current]:not([aria-current="false"]), [aria-selected="true"], .ds-table__row--selected, [data-ds-shown]) .ds-hover-actions) {
+    opacity: 1;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
   /* Forced colours: sticky and pinned cells are opaque in the system

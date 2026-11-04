@@ -146,8 +146,11 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
-  .ds-form {
+@layer ds.components.form {
+  /* A dialog's box that is the form (<form class="ds-dialog__box ds-form">)
+     keeps the dialog's layout: dialog.css comes earlier, so the base rule
+     leaves it out by selector. */
+  .ds-form:where(:not(.ds-dialog__box)) {
     display: grid;
     gap: var(--ds-space-5);
   }
@@ -250,7 +253,7 @@
     border-block-start: 0;
   }
 
-  .ds-form--rows .ds-field > :is(.ds-input, .ds-input-group, .ds-combo, .ds-field__row) {
+  .ds-form--rows .ds-field > :is(.ds-input, .ds-input-group, .ds-field__row) {
     max-width: var(--ds-form-rows-control-max, 480px);
   }
 
@@ -304,6 +307,15 @@
   .ds-toolbar {
     display: grid;
     gap: var(--ds-space-3);
+  }
+
+  /* A toolbar with a table's selection bar in a .ds-swap slot (table.css):
+     the slot keeps the bar's height, so the table stays where it is while
+     a shorter toolbar stands in it. The bar's own least height, or its icon
+     buttons, which step with size only: so the crossing never moves the
+     table. */
+  .ds-toolbar > .ds-swap {
+    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-selection-bar-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px));
   }
 
   /* An action bar above a list: search, buttons and a count in one row that
@@ -395,9 +407,16 @@
   /* A group of checkboxes or radio cards is a fieldset whose legend is the
      label: without the browser's frame and indent. */
   fieldset.ds-field {
-    margin: 0;
+    margin-inline: 0;
+    margin-block-end: 0;
     padding: 0;
     border: 0;
+  }
+
+  /* Its top margin too, but under a card's subtitle the card's own spacing
+     (card.css, an earlier sublayer) stays: the selector leaves it out. */
+  fieldset.ds-field:where(:not(.ds-card__subtitle + *)) {
+    margin-block-start: 0;
   }
 
   /* A layered reset (Bootstrap's reboot) floats a legend, widens it and

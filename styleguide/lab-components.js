@@ -232,32 +232,6 @@
     })();
   }());
 
-  // ── components/card/card.lab.js
-  (function () {
-    /* A selectable card: the tint, the ring and the check, on --ds-dur-fast. */
-    SG_LAB.add({
-      id: 'card-selectable',
-      group: 'controls',
-      title: 'A selectable card',
-      note: 'A choice among a few cards: <code>aria-pressed</code> turns the tint on over <code>--ds-dur-fast</code>, the ring shows at once, and the mark of <code>.ds-card--selectable</code> fills with its check on the same timing. A reversal continues from the current colours.',
-      shows: ['.ds-card--selectable', '.ds-card__check', '--ds-dur-fast', '--ds-ease-in-out'],
-      html: '<button class="ds-card ds-card--interactive ds-card--selectable" type="button" aria-pressed="false" style="max-width:320px"><span class="ds-card__title">Extended</span><span class="ds-muted">Hourly sync, a year of history.</span><span class="ds-card__check" aria-hidden="true"></span></button>',
-      setup: function (stage) { stage.querySelector('.ds-card__check').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.check, 16)); },
-      height: 160,
-      play: function (stage) {
-        var card = stage.querySelector('.ds-card');
-        card.setAttribute('aria-pressed', String(card.getAttribute('aria-pressed') !== 'true'));
-        return DS.motion.settled(card, { transitions: true, subtree: true });
-      },
-      state: function (stage) { return stage.querySelector('.ds-card').getAttribute('aria-pressed') === 'true'; },
-      toggle: function (stage, on) {
-        var card = stage.querySelector('.ds-card');
-        card.setAttribute('aria-pressed', String(on));
-        return DS.motion.settled(card, { transitions: true, subtree: true });
-      },
-    });
-  }());
-
   // ── components/disclosure/disclosure.lab.js
   (function () {
     /* An exclusive accordion: details[name], the one that closes plays the same motion. */
@@ -284,6 +258,271 @@
       toggle: function (stage, on) {
         stage.querySelectorAll('details')[on ? 1 : 0].open = true;
         return DS.motion.settled(stage, { transitions: true, subtree: true });
+      },
+    });
+  }());
+
+  // ── components/switch/switch.lab.js
+  (function () {
+    /*
+     * The switch's motion of 3.0: the glyphs of .ds-switch--icons crossfade while
+     * they ride the handle, and the spinner of a busy switch waits for
+     * --ds-delay-loader. The 2.x rows (toggle, locked) stay in styleguide/lab.js.
+     */
+    SG_LAB.add({
+      id: 'switch-icons',
+      group: 'controls',
+      title: 'Switch with icons',
+      note: 'One glyph per state on the handle (<code>.ds-switch--icons</code>): both ride the handle on the spring and crossfade, in on <code>--ds-dur-fast</code> and out on <code>--ds-dur-instant</code>; the off handle stays at 24px.',
+      shows: ['.ds-switch--icons', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Automatic updates</span></label>',
+      setup: function (stage) {
+        stage.querySelector('.ds-switch__track').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.close, 16, 'ds-switch__icon ds-switch__icon--off') + DS.icons.icon(DS.icons.check, 16, 'ds-switch__icon ds-switch__icon--on'));
+      },
+      play: function (stage) {
+        var input = stage.querySelector('input');
+        input.checked = !input.checked;
+        return DS.motion.settled(stage.querySelector('.ds-switch__icon--on'), { transitions: true });
+      },
+      state: function (stage) { return stage.querySelector('input').checked; },
+      toggle: function (stage, on) {
+        stage.querySelector('input').checked = on;
+        return DS.motion.settled(stage.querySelector('.ds-switch__icon--on'), { transitions: true });
+      },
+    });
+
+    function setBusy(stage, on) {
+      var input = stage.querySelector('input');
+      if (on) {
+        input.setAttribute('aria-busy', 'true');
+        input.setAttribute('aria-disabled', 'true');
+      } else {
+        input.removeAttribute('aria-busy');
+        input.removeAttribute('aria-disabled');
+      }
+    }
+
+    SG_LAB.add({
+      id: 'switch-busy',
+      group: 'controls',
+      title: 'Busy switch',
+      note: 'While the page waits: <code>aria-busy</code> with <code>aria-disabled</code> on the input. The handle grows to hold the spinner, which fades in only after <code>--ds-delay-loader</code> on <code>--ds-dur-fast</code> and goes on <code>--ds-dur-instant</code>.',
+      shows: ['.ds-switch__spinner', '--ds-delay-loader', '--ds-dur-fast', '--ds-dur-instant'],
+      html: '<label class="ds-switch"><input type="checkbox" role="switch" checked><span class="ds-switch__track" aria-hidden="true"><span class="ds-spinner ds-switch__spinner"></span></span><span class="ds-switch__label">Remote access</span></label>',
+      // A wait that ends is not a motion that reverses: Replay starts it again.
+      reset: function (stage) { setBusy(stage, false); },
+      play: function (stage) {
+        var spinner = stage.querySelector('.ds-switch__spinner');
+        setBusy(stage, true);
+        // The spinner's own loop never settles: wait for its opacity alone.
+        return Promise.all(spinner.getAnimations().filter(function (animation) { return animation.transitionProperty === 'opacity'; }).map(function (animation) { return animation.finished.catch(function () {}); }));
+      },
+    });
+  }());
+
+  // ── components/card/card.lab.js
+  (function () {
+    /* A selectable card: the tint, the ring and the check, on --ds-dur-fast. */
+    SG_LAB.add({
+      id: 'card-selectable',
+      group: 'controls',
+      title: 'A selectable card',
+      note: 'A choice among a few cards: <code>aria-pressed</code> turns the tint on over <code>--ds-dur-fast</code>, the ring shows at once, and the mark of <code>.ds-card--selectable</code> fills with its check on the same timing. A reversal continues from the current colours.',
+      shows: ['.ds-card--selectable', '.ds-card__check', '--ds-dur-fast', '--ds-ease-in-out'],
+      html: '<button class="ds-card ds-card--interactive ds-card--selectable" type="button" aria-pressed="false" style="max-width:320px"><span class="ds-card__title">Extended</span><span class="ds-muted">Hourly sync, a year of history.</span><span class="ds-card__check" aria-hidden="true"></span></button>',
+      setup: function (stage) { stage.querySelector('.ds-card__check').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.check, 16)); },
+      height: 160,
+      play: function (stage) {
+        var card = stage.querySelector('.ds-card');
+        card.setAttribute('aria-pressed', String(card.getAttribute('aria-pressed') !== 'true'));
+        return DS.motion.settled(card, { transitions: true, subtree: true });
+      },
+      state: function (stage) { return stage.querySelector('.ds-card').getAttribute('aria-pressed') === 'true'; },
+      toggle: function (stage, on) {
+        var card = stage.querySelector('.ds-card');
+        card.setAttribute('aria-pressed', String(on));
+        return DS.motion.settled(card, { transitions: true, subtree: true });
+      },
+    });
+  }());
+
+  // ── components/menu/menu.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.menu: a menu with descriptions and a danger item.
+     * The menu's other entries (near the bottom edge, the cut edges) sit in
+     * styleguide/lab.js, shared with the overlay table of docs/motion.md.
+     */
+    SG_LAB.add({
+      id: 'menu-rich',
+      group: 'overlays',
+      title: 'Menu through DS.menu, with descriptions',
+      note: 'It grows out of its trigger on the spring whatever its rows hold, and leaves with a quick fade; closed mid-way, it turns back from where it is.',
+      shows: ['DS.menu.open', 'DS.menu.close', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div class="sg-popup-stage"><button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menu-rich" data-lab-open>Export</button>' +
+        '<div class="ds-menu" role="menu" id="sg-lab-menu-rich" aria-label="Export" hidden>' +
+        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__content"><span class="ds-menu__label">Download</span><span class="ds-menu__description">A CSV file with every column.</span></span><span class="ds-menu__shortcut">Ctrl E</span></button>' +
+        '<button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button"><span class="ds-menu__label">Delete the export</span></button></div></div>',
+      height: 200,
+      setup: function (stage) {
+        var trigger = stage.querySelector('[data-lab-open]');
+        var menu = stage.querySelector('.ds-menu');
+        trigger.addEventListener('click', function () {
+          if (menu.getAttribute('data-state') === 'open') DS.menu.close(menu);
+          else DS.menu.open(menu, { opener: trigger });
+        });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-menu'); },
+      state: function (stage) { return stage.querySelector('.ds-menu').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var menu = stage.querySelector('.ds-menu');
+        return DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.menu.close(menu); })
+          .then(function () { return DS.motion.settled(menu); });
+      },
+      toggle: function (stage, on) {
+        var menu = stage.querySelector('.ds-menu');
+        return on ? DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') }) : DS.menu.close(menu);
+      },
+    });
+  }());
+
+  // ── components/badge/badge.lab.js
+  (function () {
+    /* The count badge through its controller: a count that appears pops in, one that goes pops out, the figure changes at once. */
+    SG_LAB.add({
+      id: 'badge-count',
+      group: 'feedback',
+      title: 'Badge count',
+      note: '<code>DS.badge.create()</code>: the count stops at its maximum (<code>99+</code>). A count that appears pops in, one that goes pops out on <code>DS.motion.enter</code> and <code>leave</code>; the figure itself changes at once.',
+      shows: ['DS.badge.create', '.ds-badge', '.ds-enter--pop', '.ds-leave--pop', 'ds-pop-in', 'ds-pop-out'],
+      html: '<button class="ds-btn" type="button">Inbox <span class="ds-badge" data-lab-badge></span></button>',
+      height: 120,
+      setup: function (stage) {
+        stage.badge = DS.badge.create(stage.querySelector('[data-lab-badge]'), { value: 0 });
+      },
+      play: function (stage) {
+        var el = stage.querySelector('[data-lab-badge]');
+        stage.badge = stage.badge || DS.badge.create(el, { value: 0 });
+        stage.badge.set(stage.badge.get() ? 0 : 128);
+        return DS.motion.settled(el);
+      },
+      toggle: function (stage, on) {
+        var el = stage.querySelector('[data-lab-badge]');
+        stage.badge = stage.badge || DS.badge.create(el, { value: 0 });
+        stage.badge.set(on ? 128 : 0);
+        return DS.motion.settled(el);
+      },
+      state: function (stage) {
+        return Boolean(stage.badge && stage.badge.get());
+      },
+      reset: function (stage) {
+        var el = stage.querySelector('[data-lab-badge]');
+        DS.motion.cancel(el);
+        el.hidden = false;
+        el.textContent = '';
+        stage.badge = DS.badge.create(el, { value: 0 });
+      },
+    });
+  }());
+
+  // ── components/sheet/sheet.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.sheet: the wide panel. The sheet's other entries
+     * (native, div, on a phone) sit in styleguide/lab.js, shared with the overlay
+     * table of docs/motion.md.
+     */
+    var made = null;
+
+    function sheetOf() {
+      if (made) return made;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-sheet" id="sg-lab-sheet-wide" aria-labelledby="sg-lab-sheet-wide-title">' +
+        '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel ds-sheet__panel--wide">' +
+        '<div class="ds-sheet__head"><h2 class="ds-sheet__title" id="sg-lab-sheet-wide-title">LAPTOP-0042</h2>' +
+        '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div>' +
+        '<div class="ds-sheet__body" tabindex="0"><p class="ds-muted">The record of the device goes here.</p></div></section></dialog>';
+      made = host.firstChild;
+      document.body.append(made);
+      return made;
+    }
+
+    SG_LAB.add({
+      id: 'sheet-wide',
+      group: 'overlays',
+      title: 'Side sheet through DS.sheet, the wide panel',
+      note: 'The panel slides its full width in from the edge on the spring and goes back accelerating, while the scrim fades.',
+      shows: ['DS.sheet.open', 'DS.sheet.close', '--ds-dur-long', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a wide sheet</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.sheet.open(sheetOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return sheetOf(); },
+      state: function () { return sheetOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var sheet = sheetOf();
+        return DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.sheet.close(sheet); })
+          .then(function () { return DS.motion.settled(sheet.querySelector('.ds-sheet__panel')); });
+      },
+      toggle: function (stage, on) {
+        var sheet = sheetOf();
+        return on ? DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.sheet.close(sheet);
+      },
+    });
+  }());
+
+  // ── components/dialog/dialog.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of the dialog's sizes: the same motion at every width,
+     * through DS.dialog. The dialog's other entries (native, div, nested, full
+     * screen, action sheet, busy) sit in styleguide/lab.js, shared with the
+     * overlay table of docs/motion.md.
+     */
+    var made = null;
+
+    function dialogOf() {
+      if (made) return made;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-dialog ds-dialog--xl" id="sg-lab-dialog-xl" aria-labelledby="sg-lab-dialog-xl-title">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<h2 class="ds-dialog__title" id="sg-lab-dialog-xl-title">Archive LAPTOP-0042?</h2>' +
+        '<p class="ds-dialog__text">The widest box: it stays in the archive for a year.</p>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--filled" type="button" data-ds-close>Keep it</button></div></div></dialog>';
+      made = host.firstChild;
+      document.body.append(made);
+      return made;
+    }
+
+    SG_LAB.add({
+      id: 'dialog-sizes',
+      group: 'overlays',
+      title: 'Dialog through DS.dialog, the widest size',
+      note: 'The sizes change the width of the box, not its motion: the scrim fades while the box fades, grows and rises on the spring.',
+      shows: ['DS.dialog.open', 'DS.dialog.close', '--ds-dur-slow', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a large dialog</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.dialog.open(dialogOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return dialogOf(); },
+      state: function () { return dialogOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var dialog = dialogOf();
+        return DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.dialog.close(dialog); })
+          .then(function () { return DS.motion.settled(dialog.querySelector('.ds-dialog__box')); });
+      },
+      toggle: function (stage, on) {
+        var dialog = dialogOf();
+        return on ? DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') }) : DS.dialog.close(dialog);
       },
     });
   }());
@@ -599,103 +838,6 @@
     });
   }());
 
-  // ── components/badge/badge.lab.js
-  (function () {
-    /* The count badge through its controller: a count that appears pops in, one that goes pops out, the figure changes at once. */
-    SG_LAB.add({
-      id: 'badge-count',
-      group: 'feedback',
-      title: 'Badge count',
-      note: '<code>DS.badge.create()</code>: the count stops at its maximum (<code>99+</code>). A count that appears pops in, one that goes pops out on <code>DS.motion.enter</code> and <code>leave</code>; the figure itself changes at once.',
-      shows: ['DS.badge.create', '.ds-badge', '.ds-enter--pop', '.ds-leave--pop', 'ds-pop-in', 'ds-pop-out'],
-      html: '<button class="ds-btn" type="button">Inbox <span class="ds-badge" data-lab-badge></span></button>',
-      height: 120,
-      setup: function (stage) {
-        stage.badge = DS.badge.create(stage.querySelector('[data-lab-badge]'), { value: 0 });
-      },
-      play: function (stage) {
-        var el = stage.querySelector('[data-lab-badge]');
-        stage.badge = stage.badge || DS.badge.create(el, { value: 0 });
-        stage.badge.set(stage.badge.get() ? 0 : 128);
-        return DS.motion.settled(el);
-      },
-      toggle: function (stage, on) {
-        var el = stage.querySelector('[data-lab-badge]');
-        stage.badge = stage.badge || DS.badge.create(el, { value: 0 });
-        stage.badge.set(on ? 128 : 0);
-        return DS.motion.settled(el);
-      },
-      state: function (stage) {
-        return Boolean(stage.badge && stage.badge.get());
-      },
-      reset: function (stage) {
-        var el = stage.querySelector('[data-lab-badge]');
-        DS.motion.cancel(el);
-        el.hidden = false;
-        el.textContent = '';
-        stage.badge = DS.badge.create(el, { value: 0 });
-      },
-    });
-  }());
-
-  // ── components/switch/switch.lab.js
-  (function () {
-    /*
-     * The switch's motion of 3.0: the glyphs of .ds-switch--icons crossfade while
-     * they ride the handle, and the spinner of a busy switch waits for
-     * --ds-delay-loader. The 2.x rows (toggle, locked) stay in styleguide/lab.js.
-     */
-    SG_LAB.add({
-      id: 'switch-icons',
-      group: 'controls',
-      title: 'Switch with icons',
-      note: 'One glyph per state on the handle (<code>.ds-switch--icons</code>): both ride the handle on the spring and crossfade, in on <code>--ds-dur-fast</code> and out on <code>--ds-dur-instant</code>; the off handle stays at 24px.',
-      shows: ['.ds-switch--icons', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-spatial'],
-      html: '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Automatic updates</span></label>',
-      setup: function (stage) {
-        stage.querySelector('.ds-switch__track').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.close, 16, 'ds-switch__icon ds-switch__icon--off') + DS.icons.icon(DS.icons.check, 16, 'ds-switch__icon ds-switch__icon--on'));
-      },
-      play: function (stage) {
-        var input = stage.querySelector('input');
-        input.checked = !input.checked;
-        return DS.motion.settled(stage.querySelector('.ds-switch__icon--on'), { transitions: true });
-      },
-      state: function (stage) { return stage.querySelector('input').checked; },
-      toggle: function (stage, on) {
-        stage.querySelector('input').checked = on;
-        return DS.motion.settled(stage.querySelector('.ds-switch__icon--on'), { transitions: true });
-      },
-    });
-
-    function setBusy(stage, on) {
-      var input = stage.querySelector('input');
-      if (on) {
-        input.setAttribute('aria-busy', 'true');
-        input.setAttribute('aria-disabled', 'true');
-      } else {
-        input.removeAttribute('aria-busy');
-        input.removeAttribute('aria-disabled');
-      }
-    }
-
-    SG_LAB.add({
-      id: 'switch-busy',
-      group: 'controls',
-      title: 'Busy switch',
-      note: 'While the page waits: <code>aria-busy</code> with <code>aria-disabled</code> on the input. The handle grows to hold the spinner, which fades in only after <code>--ds-delay-loader</code> on <code>--ds-dur-fast</code> and goes on <code>--ds-dur-instant</code>.',
-      shows: ['.ds-switch__spinner', '--ds-delay-loader', '--ds-dur-fast', '--ds-dur-instant'],
-      html: '<label class="ds-switch"><input type="checkbox" role="switch" checked><span class="ds-switch__track" aria-hidden="true"><span class="ds-spinner ds-switch__spinner"></span></span><span class="ds-switch__label">Remote access</span></label>',
-      // A wait that ends is not a motion that reverses: Replay starts it again.
-      reset: function (stage) { setBusy(stage, false); },
-      play: function (stage) {
-        var spinner = stage.querySelector('.ds-switch__spinner');
-        setBusy(stage, true);
-        // The spinner's own loop never settles: wait for its opacity alone.
-        return Promise.all(spinner.getAnimations().filter(function (animation) { return animation.transitionProperty === 'opacity'; }).map(function (animation) { return animation.finished.catch(function () {}); }));
-      },
-    });
-  }());
-
   // ── components/combobox/combobox.lab.js
   (function () {
     /*
@@ -720,148 +862,6 @@
           clear.classList.remove('ds-pressed');
           return DS.motion.settled(clear, { transitions: true });
         });
-      },
-    });
-  }());
-
-  // ── components/menu/menu.lab.js
-  (function () {
-    /*
-     * The Motion Lab entry of DS.menu: a menu with descriptions and a danger item.
-     * The menu's other entries (near the bottom edge, the cut edges) sit in
-     * styleguide/lab.js, shared with the overlay table of docs/motion.md.
-     */
-    SG_LAB.add({
-      id: 'menu-rich',
-      group: 'overlays',
-      title: 'Menu through DS.menu, with descriptions',
-      note: 'It grows out of its trigger on the spring whatever its rows hold, and leaves with a quick fade; closed mid-way, it turns back from where it is.',
-      shows: ['DS.menu.open', 'DS.menu.close', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-spatial'],
-      html: '<div class="sg-popup-stage"><button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menu-rich" data-lab-open>Export</button>' +
-        '<div class="ds-menu" role="menu" id="sg-lab-menu-rich" aria-label="Export" hidden>' +
-        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__content"><span class="ds-menu__label">Download</span><span class="ds-menu__description">A CSV file with every column.</span></span><span class="ds-menu__shortcut">Ctrl E</span></button>' +
-        '<button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button"><span class="ds-menu__label">Delete the export</span></button></div></div>',
-      height: 200,
-      setup: function (stage) {
-        var trigger = stage.querySelector('[data-lab-open]');
-        var menu = stage.querySelector('.ds-menu');
-        trigger.addEventListener('click', function () {
-          if (menu.getAttribute('data-state') === 'open') DS.menu.close(menu);
-          else DS.menu.open(menu, { opener: trigger });
-        });
-      },
-      subject: function (stage) { return stage.querySelector('.ds-menu'); },
-      state: function (stage) { return stage.querySelector('.ds-menu').getAttribute('data-state') === 'open'; },
-      play: function (stage) {
-        var menu = stage.querySelector('.ds-menu');
-        return DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') })
-          .then(function () { return DS.menu.close(menu); })
-          .then(function () { return DS.motion.settled(menu); });
-      },
-      toggle: function (stage, on) {
-        var menu = stage.querySelector('.ds-menu');
-        return on ? DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') }) : DS.menu.close(menu);
-      },
-    });
-  }());
-
-  // ── components/sheet/sheet.lab.js
-  (function () {
-    /*
-     * The Motion Lab entry of DS.sheet: the wide panel. The sheet's other entries
-     * (native, div, on a phone) sit in styleguide/lab.js, shared with the overlay
-     * table of docs/motion.md.
-     */
-    var made = null;
-
-    function sheetOf() {
-      if (made) return made;
-      var host = document.createElement('div');
-      host.innerHTML = '<dialog class="ds-sheet" id="sg-lab-sheet-wide" aria-labelledby="sg-lab-sheet-wide-title">' +
-        '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel ds-sheet__panel--wide">' +
-        '<div class="ds-sheet__head"><h2 class="ds-sheet__title" id="sg-lab-sheet-wide-title">LAPTOP-0042</h2>' +
-        '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div>' +
-        '<div class="ds-sheet__body" tabindex="0"><p class="ds-muted">The record of the device goes here.</p></div></section></dialog>';
-      made = host.firstChild;
-      document.body.append(made);
-      return made;
-    }
-
-    SG_LAB.add({
-      id: 'sheet-wide',
-      group: 'overlays',
-      title: 'Side sheet through DS.sheet, the wide panel',
-      note: 'The panel slides its full width in from the edge on the spring and goes back accelerating, while the scrim fades.',
-      shows: ['DS.sheet.open', 'DS.sheet.close', '--ds-dur-long', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
-      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a wide sheet</button></div>',
-      height: 120,
-      setup: function (stage) {
-        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
-          DS.sheet.open(sheetOf(), { opener: event.currentTarget });
-        });
-      },
-      subject: function () { return sheetOf(); },
-      state: function () { return sheetOf().getAttribute('data-state') === 'open'; },
-      play: function (stage) {
-        var sheet = sheetOf();
-        return DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') })
-          .then(function () { return DS.sheet.close(sheet); })
-          .then(function () { return DS.motion.settled(sheet.querySelector('.ds-sheet__panel')); });
-      },
-      toggle: function (stage, on) {
-        var sheet = sheetOf();
-        return on ? DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.sheet.close(sheet);
-      },
-    });
-  }());
-
-  // ── components/dialog/dialog.lab.js
-  (function () {
-    /*
-     * The Motion Lab entry of the dialog's sizes: the same motion at every width,
-     * through DS.dialog. The dialog's other entries (native, div, nested, full
-     * screen, action sheet, busy) sit in styleguide/lab.js, shared with the
-     * overlay table of docs/motion.md.
-     */
-    var made = null;
-
-    function dialogOf() {
-      if (made) return made;
-      var host = document.createElement('div');
-      host.innerHTML = '<dialog class="ds-dialog ds-dialog--xl" id="sg-lab-dialog-xl" aria-labelledby="sg-lab-dialog-xl-title">' +
-        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
-        '<h2 class="ds-dialog__title" id="sg-lab-dialog-xl-title">Archive LAPTOP-0042?</h2>' +
-        '<p class="ds-dialog__text">The widest box: it stays in the archive for a year.</p>' +
-        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--filled" type="button" data-ds-close>Keep it</button></div></div></dialog>';
-      made = host.firstChild;
-      document.body.append(made);
-      return made;
-    }
-
-    SG_LAB.add({
-      id: 'dialog-sizes',
-      group: 'overlays',
-      title: 'Dialog through DS.dialog, the widest size',
-      note: 'The sizes change the width of the box, not its motion: the scrim fades while the box fades, grows and rises on the spring.',
-      shows: ['DS.dialog.open', 'DS.dialog.close', '--ds-dur-slow', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
-      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a large dialog</button></div>',
-      height: 120,
-      setup: function (stage) {
-        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
-          DS.dialog.open(dialogOf(), { opener: event.currentTarget });
-        });
-      },
-      subject: function () { return dialogOf(); },
-      state: function () { return dialogOf().getAttribute('data-state') === 'open'; },
-      play: function (stage) {
-        var dialog = dialogOf();
-        return DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') })
-          .then(function () { return DS.dialog.close(dialog); })
-          .then(function () { return DS.motion.settled(dialog.querySelector('.ds-dialog__box')); });
-      },
-      toggle: function (stage, on) {
-        var dialog = dialogOf();
-        return on ? DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') }) : DS.dialog.close(dialog);
       },
     });
   }());

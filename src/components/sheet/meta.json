@@ -1,7 +1,7 @@
 {
   "name": "sheet",
   "group": "overlays",
-  "order": 300,
+  "order": 250,
   "docsOrder": 260,
   "need": "Show details or a form beside the page, in a panel from the side",
   "tier": 1,

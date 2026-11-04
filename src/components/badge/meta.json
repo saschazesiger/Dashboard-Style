@@ -1,7 +1,7 @@
 {
   "name": "badge",
   "group": "feedback",
-  "order": 230,
+  "order": 240,
   "docsOrder": 150,
   "need": "Show a count or a dot on a button, chip, tab or drawer item",
   "tier": 1,
@@ -18,10 +18,8 @@
   "requires": [],
   "context": [
     "button",
-    "chip",
-    "shell",
-    "table",
-    "tabs"
+    "card",
+    "chip"
   ],
   "hooks": {
     "--ds-badge-size": {

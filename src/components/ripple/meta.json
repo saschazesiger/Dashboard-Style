@@ -1,7 +1,7 @@
 {
   "name": "ripple",
   "group": "motion",
-  "order": 380,
+  "order": 390,
   "docsOrder": 340,
   "need": "Answer a press with a ripple from the pointer, and hold quick presses visible",
   "tier": 1,
@@ -65,6 +65,10 @@
   "ripple": true,
   "rippleHosts": [
     "[data-ds-ripple]"
+  ],
+  "stateClasses": [
+    "ds-pressed",
+    "ds-ripples"
   ],
   "exceptions": {
     "physical": {

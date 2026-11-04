@@ -1,7 +1,7 @@
 {
   "name": "page",
   "group": "navigation",
-  "order": 390,
+  "order": 330,
   "docsOrder": 20,
   "need": "Lay out a page: its head, breadcrumbs, columns of cards, and a sign-in page",
   "tier": 1,
@@ -34,7 +34,9 @@
     "form"
   ],
   "context": [
+    "card",
     "dialog",
+    "loading",
     "sheet"
   ],
   "hooks": {

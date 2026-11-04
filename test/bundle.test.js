@@ -429,7 +429,7 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
       const result = bundle({ config });
       assert.deepEqual(result.errors, []);
       const report = result.entries[0].report;
-      assert.deepEqual(names(report.components), ['button', 'spinner', 'ripple'], 'button requires spinner (its busy face); the ripple module its stylesheet');
+      assert.deepEqual(names(report.components), ['spinner', 'button', 'ripple'], 'button requires spinner (its busy face); the ripple module its stylesheet; in cascade order');
       assert.deepEqual(names(report.modules), ['core', 'motion', 'ripple', 'icons']);
       assert.deepEqual(names(report.icons), ['bell']);
       const css = readFileSync(join(dir, 'out/ds.bundle.css'), 'utf8');

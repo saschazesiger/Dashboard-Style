@@ -79,9 +79,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.savebar {
   .ds-savebar {
     position: sticky;
     bottom: 0;
@@ -175,9 +175,11 @@
      counts as in view, so the scroller keeps the room itself: the least height
      at the largest size and a row for the words the bar wraps over its actions.
      It reads no size or density: those may sit on the bar, out of the scroller's
-     reach, and too much room only moves a scroll a little further. No
-     specificity, so a floating bar's measured room above wins. */
-  :where(.ds-view, .ds-savebar-scroller):where(:has(.ds-savebar--inline > .ds-savebar__bar:not([hidden]))) {
+     reach, and too much room only moves a scroll a little further. A measured
+     room wins: no specificity, so the floating bar's above does, and not on a
+     view that keeps the room of snackbars that stay (toast.css, whose rule
+     sits in an earlier sublayer). */
+  :where(.ds-view:not([data-toast-reserve]), .ds-savebar-scroller):where(:has(.ds-savebar--inline > .ds-savebar__bar:not([hidden]))) {
     scroll-padding-block-end: var(--ds-savebar-room, calc(var(--ds-savebar-min-height, 56px) + 2 * 8px + var(--ds-space-8) + var(--ds-space-2) + env(safe-area-inset-bottom)));
   }
 

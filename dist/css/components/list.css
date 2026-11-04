@@ -99,9 +99,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.list {
   .ds-kv-list,
   .ds-plain-list {
     list-style: none;
@@ -181,10 +181,6 @@
     display: none;
   }
 
-  .ds-card > .ds-facts {
-    margin-top: var(--ds-space-5);
-  }
-
   /* Exactly four facts on a page never split three and one: four in a row,
      two and two on a narrower content area, one column on phones. Only
      inside the content area: a side sheet lives outside it and keeps the
@@ -203,24 +199,6 @@
 
   @container ds-content (max-width: 520px) {
     .ds-facts:has(> :nth-child(4):last-child) {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
-  /* Facts above key figures follow the tiles' grid: two equal columns with
-     the tiles' gap, so the second fact starts where the third tile does
-     (four tiles per row) or the second one does (two per row); phones
-     stack them. No per-fact rule: a structural or tag subject under a
-     :has() ancestor made Chromium restyle a large part of the page on
-     every DOM change inside a card (about 10ms per change on the
-     styleguide, every frame of a countUp). */
-  .ds-card:has(.ds-tiles) > .ds-facts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px);
-  }
-
-  @media (max-width: 600px) {
-    .ds-card:has(.ds-tiles) > .ds-facts {
       grid-template-columns: minmax(0, 1fr);
     }
   }
@@ -854,8 +832,9 @@
     /* forced-color-adjust inherits: the row's other controls, chips and media
        take the system colours again, on Canvas, so they stay legible on
        the selection fill (a status chip or a menu button at the row's end, an
-       avatar's initials, whose border is their edge again). */
-    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, input, select, textarea, label, .ds-status, .ds-tag, .ds-chip, .ds-list__media):not(.ds-list__action) {
+       avatar's initials, whose border is their edge again; a chip: chip.css,
+       which comes later). */
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, input, select, textarea, label, .ds-status, .ds-tag, .ds-list__media):not(.ds-list__action) {
       forced-color-adjust: auto;
     }
 

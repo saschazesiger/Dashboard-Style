@@ -63,7 +63,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.status {
   .ds-status {
     --_h: calc(var(--ds-status-height, 24px) + var(--ds-size-step, 0) * 4px);
     /* Round at one line whatever the size; a label that wraps keeps these

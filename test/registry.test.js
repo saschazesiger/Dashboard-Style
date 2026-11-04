@@ -13,7 +13,7 @@ import { transform } from 'lightningcss';
 import {
   COMPONENT_FILES, CORE, CSS_TARGETS, LAYERS, META_KEYS, META_REQUIRED, META_SCHEMA, MODULES, build, componentNames, components, componentsMd, cssFacts,
   componentKeyframes, diffGenerated, generatedFiles, hooksTable, indexCss, labComponentsJs, motionCss, moduleRequires, ownedHooks, packageInfo, replaceBlock, stripJs, sublayerStatement, validateSchema,
-  moduleFiles, verifyComponents, verifyModuleRequires, withBanner,
+  moduleFiles, verifyComponents, verifyModuleRequires, withBanner, cascadeFacts, withoutConditions,
 } from '../scripts/build.mjs';
 import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
 import { filesIn, read, rules, stripComments } from './helpers.js';
@@ -86,11 +86,25 @@ describe('src/components/<name>/', () => {
       [tamper('badge', (meta) => ({ ...meta, extra: true })), /unknown key "extra"/],
       [tamper('dialog', (meta) => ({ ...meta, progressive: [] })), /"progressive" is \[\], the "Progressive:" note/],
       [tamper('table', (meta) => ({ ...meta, attributes: [] })), /table\/meta\.json: "attributes" misses data-/],
+      // The cascade between sublayers: a rule that names a later component's class, a stale context, the state classes.
+      [tamper('card', (meta) => ({ ...meta, order: 5 })), /card\.css: line \d+: .* names \.ds-switch of switch, whose sublayer comes later \(order \d+ > 5\)/],
+      [tamper('badge', (meta) => ({ ...meta, context: [...meta.context, 'table'].sort() })), /badge\/meta\.json: "context" lists table, whose classes src\/components\/badge\/badge\.css does not name/],
+      [tamper('ripple', (meta) => ({ ...meta, stateClasses: ['ds-pressed', 'ds-x'] })), /ripple\/meta\.json: "stateClasses" lists \.ds-x, which is not one of its "classes"/],
+      [tamper('ripple', (meta) => { const { stateClasses, ...rest } = meta; return rest; }), /button\.css styles \.ds-pressed of ripple: add "ripple" to "context"/],
     ];
     for (const [changed, reason] of cases) {
       const problems = verifyComponents(changed);
       assert.ok(problems.some((problem) => reason.test(problem)), `${reason}: ${problems.join(' | ')}`);
     }
+  });
+
+  it('finds the rules outside a component\'s own sublayer and the classes a selector names outside :not() and :has()', () => {
+    const css = `${LAYERS}\n@layer ds.components.a {\n  .ds-a:not(.ds-b) > .ds-c:has(.ds-d) { color: red; }\n}\n@layer ds.components {\n  .ds-a { color: blue; }\n}\n@media print {\n  .ds-a { color: green; }\n}\n@property --ds-a-x { syntax: '*'; inherits: false; }\n`;
+    const { outside, names } = cascadeFacts(css, 'a');
+    assert.deepEqual(outside, ['line 6: .ds-a', 'line 9: .ds-a']);
+    assert.deepEqual(names[0].classes, ['ds-a', 'ds-c']);
+    assert.equal(withoutConditions('.ds-a:not(.ds-b, :has(.ds-c)) .ds-d:has(> .ds-e:not(.ds-f)) .ds-g'), '.ds-a .ds-d .ds-g');
+    assert.deepEqual(cascadeFacts(`${LAYERS}\n@layer ds.components;\n@layer ds.components.a { .ds-a { color: red; } }\n`, 'a').outside, ['line 2: @layer ds.components']);
   });
 
   it('reads classes, attributes, hooks and keyframes the way the meta.json fields mean them', () => {
@@ -186,7 +200,8 @@ describe('generated files of the repository', () => {
     const code = stripComments(index).trim().split('\n').filter(Boolean);
     assert.equal(code[0], LAYERS);
     assert.equal(code[1], sublayerStatement(list));
-    assert.deepEqual(code[1].slice('@layer '.length, -1).split(', '), list.map(({ name }) => `ds.components.${name}`));
+    // global.css first (every component may override it), then one sublayer per component in cascade order.
+    assert.deepEqual(code[1].slice('@layer '.length, -1).split(', '), ['ds.components.global', ...list.map(({ name }) => `ds.components.${name}`)]);
     assert.deepEqual(code.slice(2), [...CORE.map((name) => `@import './core/${name}.css';`), ...list.map(({ name }) => `@import './components/${name}/${name}.css';`)]);
     assert.deepEqual(list.map(({ meta }) => meta.order), [...list.map(({ meta }) => meta.order)].sort((a, b) => a - b));
   });
@@ -302,10 +317,12 @@ describe('src/core/global.css: the rules for every element of .ds-theme', () => 
   it('keeps the cascade of ds.css: its rules lead ds.components, and its !important declarations have no rival', () => {
     const own = flat(read('src/core/global.css'));
     const all = flat(text('ds.css'));
-    const components = all.filter((entry) => entry.layer === '@layer ds.components');
-    // First in the layer: where the border-box rule stood in 2.x, at the top of utilities.css, the first component.
-    assert.deepEqual(components.slice(0, own.length).map((entry) => entry.key), own.map((entry) => entry.key));
-    assert.equal(manifest.order[0], 'utilities');
+    // Its own sublayer, the first of ds.components: where the border-box rule stood in 2.x, at the top of
+    // utilities.css, the first component. Every component's sublayer comes after it, so every component may override it.
+    assert.deepEqual(own.map((entry) => entry.layer), own.map(() => '@layer ds.components.global'));
+    assert.deepEqual(all.filter((entry) => entry.layer === '@layer ds.components.global').map((entry) => entry.key), own.map((entry) => entry.key));
+    assert.ok(manifest.sublayers.startsWith('@layer ds.components.global, '), 'the first sublayer');
+    assert.ok(!all.some((entry) => entry.layer === '@layer ds.components'), 'no rule directly in ds.components (it would beat every sublayer)');
     // An !important declaration beats every normal one in its layer, so only another !important one of the same
     // property could depend on its place: there is none.
     for (const { rule } of own) {
@@ -339,6 +356,7 @@ describe('dist/manifest.json', () => {
       assert.equal(entry.css, `css/components/${name}.css`);
       assert.equal(entry.min, `css/components/${name}.min.css`);
       for (const field of ['group', 'requires', 'context', 'classes', 'keyframes', 'js', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
+      assert.equal(entry.layer, `ds.components.${name}`, `${name}: its own sublayer`);
       // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them), but for those a core module claims.
       const claimed = Object.values(manifest.js).flatMap((module) => module.attributes);
       const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.includes(attribute)) : [];

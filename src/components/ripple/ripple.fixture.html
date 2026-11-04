@@ -8,8 +8,8 @@
 <link rel="stylesheet" href="/dist/ds.css">
 <link rel="stylesheet" href="/test/browser/fixtures/fixture.css">
 <style>
-  /* A truncated first cell, as a component would set it: the press must not touch it. */
-  @layer ds.components {
+  /* A truncated first cell, as a component would set it (in its sublayer): the press must not touch it. */
+  @layer ds.components.table {
     #h-cell {
       overflow: hidden;
     }

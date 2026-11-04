@@ -2,7 +2,7 @@
   "name": "dashboard-style",
   "version": "3.0.0-alpha.3",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
-  "sublayers": "@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;",
+  "sublayers": "@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;",
   "core": {
     "css": [
       "css/core/tokens.css",
@@ -156,54 +156,53 @@
   "order": [
     "utilities",
     "scroller",
-    "button",
     "spinner",
     "loader",
     "indicator",
+    "button",
     "loading",
-    "card",
     "disclosure",
-    "tile",
-    "list",
     "timeline",
     "tasks",
-    "prose",
-    "empty",
     "status",
     "alert",
+    "switch",
+    "slider",
+    "progress",
+    "chart",
+    "tile",
+    "list",
+    "card",
+    "prose",
+    "empty",
+    "menu",
+    "chip",
+    "badge",
+    "sheet",
+    "dialog",
     "table",
     "pagination",
     "form",
     "drag",
-    "chip",
-    "badge",
-    "switch",
-    "slider",
     "combobox",
-    "menu",
-    "progress",
-    "chart",
-    "sheet",
-    "dialog",
-    "toast",
     "tooltip",
+    "page",
     "shell",
     "tabs",
     "steps",
-    "ripple",
-    "page",
-    "savebar"
+    "toast",
+    "savebar",
+    "ripple"
   ],
   "components": {
     "utilities": {
       "css": "css/components/utilities.css",
       "min": "css/components/utilities.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.utilities",
       "group": "layout",
       "requires": [],
       "context": [
         "card",
-        "ripple",
         "shell",
         "table"
       ],
@@ -226,6 +225,7 @@
         "ds-pressable--inset",
         "ds-pressable--lg",
         "ds-sr",
+        "ds-stale",
         "ds-touch"
       ],
       "attributes": [
@@ -243,13 +243,13 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 5922,
-      "gzip": 1647
+      "bytes": 5782,
+      "gzip": 1635
     },
     "scroller": {
       "css": "css/components/scroller.css",
       "min": "css/components/scroller.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.scroller",
       "group": "layout",
       "requires": [],
       "context": [],
@@ -283,13 +283,102 @@
         "scrollbar-color",
         "scrollbar-gutter"
       ],
-      "bytes": 5061,
-      "gzip": 1328
+      "bytes": 5092,
+      "gzip": 1333
+    },
+    "spinner": {
+      "css": "css/components/spinner.css",
+      "min": "css/components/spinner.min.css",
+      "layer": "ds.components.spinner",
+      "group": "feedback",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-spinner",
+        "ds-spinner--determinate",
+        "ds-spinner--flat",
+        "ds-spinner--ink",
+        "ds-spinner--sm"
+      ],
+      "attributes": [],
+      "keyframes": [
+        "ds-spin",
+        "ds-spinner-arc"
+      ],
+      "js": [],
+      "hooks": [
+        "--ds-spinner-color",
+        "--ds-spinner-determinate-size",
+        "--ds-spinner-determinate-width",
+        "--ds-spinner-size",
+        "--ds-spinner-track",
+        "--ds-spinner-width"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 4289,
+      "gzip": 1183
+    },
+    "loader": {
+      "css": "css/components/loader.css",
+      "min": "css/components/loader.min.css",
+      "layer": "ds.components.loader",
+      "group": "feedback",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-loader",
+        "ds-loader--contained",
+        "ds-loader--sm"
+      ],
+      "attributes": [],
+      "keyframes": [
+        "ds-fade-in",
+        "ds-loader-morph",
+        "ds-loader-turn"
+      ],
+      "js": [],
+      "hooks": [
+        "--ds-loader-color",
+        "--ds-loader-size",
+        "--ds-loader-sm-size"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 1977,
+      "gzip": 748
+    },
+    "indicator": {
+      "css": "css/components/indicator.css",
+      "min": "css/components/indicator.min.css",
+      "layer": "ds.components.indicator",
+      "group": "motion",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-has-indicator",
+        "ds-indicator",
+        "ds-indicator--instant"
+      ],
+      "attributes": [
+        "data-dir",
+        "data-empty",
+        "data-glide"
+      ],
+      "keyframes": [],
+      "js": [
+        "indicator"
+      ],
+      "hooks": [],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 3922,
+      "gzip": 904
     },
     "button": {
       "css": "css/components/button.css",
       "min": "css/components/button.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.button",
       "group": "actions",
       "requires": [
         "spinner"
@@ -298,7 +387,6 @@
         "dialog",
         "indicator",
         "page",
-        "ripple",
         "sheet"
       ],
       "classes": [
@@ -363,112 +451,19 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 15715,
-      "gzip": 2745
-    },
-    "spinner": {
-      "css": "css/components/spinner.css",
-      "min": "css/components/spinner.min.css",
-      "layer": "ds.components",
-      "group": "feedback",
-      "requires": [],
-      "context": [
-        "progress"
-      ],
-      "classes": [
-        "ds-spinner",
-        "ds-spinner--determinate",
-        "ds-spinner--flat",
-        "ds-spinner--ink",
-        "ds-spinner--sm"
-      ],
-      "attributes": [],
-      "keyframes": [
-        "ds-spin",
-        "ds-spinner-arc"
-      ],
-      "js": [],
-      "hooks": [
-        "--ds-spinner-color",
-        "--ds-spinner-determinate-size",
-        "--ds-spinner-determinate-width",
-        "--ds-spinner-size",
-        "--ds-spinner-track",
-        "--ds-spinner-width"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 4259,
-      "gzip": 1178
-    },
-    "loader": {
-      "css": "css/components/loader.css",
-      "min": "css/components/loader.min.css",
-      "layer": "ds.components",
-      "group": "feedback",
-      "requires": [],
-      "context": [],
-      "classes": [
-        "ds-loader",
-        "ds-loader--contained",
-        "ds-loader--sm"
-      ],
-      "attributes": [],
-      "keyframes": [
-        "ds-fade-in",
-        "ds-loader-morph",
-        "ds-loader-turn"
-      ],
-      "js": [],
-      "hooks": [
-        "--ds-loader-color",
-        "--ds-loader-size",
-        "--ds-loader-sm-size"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 1948,
-      "gzip": 743
-    },
-    "indicator": {
-      "css": "css/components/indicator.css",
-      "min": "css/components/indicator.min.css",
-      "layer": "ds.components",
-      "group": "motion",
-      "requires": [],
-      "context": [],
-      "classes": [
-        "ds-has-indicator",
-        "ds-indicator",
-        "ds-indicator--instant"
-      ],
-      "attributes": [
-        "data-dir",
-        "data-empty",
-        "data-glide"
-      ],
-      "keyframes": [],
-      "js": [
-        "indicator"
-      ],
-      "hooks": [],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 3890,
-      "gzip": 897
+      "bytes": 15776,
+      "gzip": 2757
     },
     "loading": {
       "css": "css/components/loading.css",
       "min": "css/components/loading.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.loading",
       "group": "feedback",
       "requires": [
         "loader",
         "spinner"
       ],
-      "context": [
-        "page"
-      ],
+      "context": [],
       "classes": [
         "ds-loadbar",
         "ds-loadbar__bar",
@@ -511,89 +506,16 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 8026,
-      "gzip": 1986
-    },
-    "card": {
-      "css": "css/components/card.css",
-      "min": "css/components/card.min.css",
-      "layer": "ds.components",
-      "group": "layout",
-      "requires": [
-        "button",
-        "utilities"
-      ],
-      "context": [
-        "badge",
-        "chip",
-        "disclosure",
-        "page",
-        "ripple",
-        "status",
-        "switch",
-        "table"
-      ],
-      "classes": [
-        "ds-card",
-        "ds-card--elevated",
-        "ds-card--filled",
-        "ds-card--horizontal",
-        "ds-card--interactive",
-        "ds-card--outlined",
-        "ds-card--selectable",
-        "ds-card__action",
-        "ds-card__body",
-        "ds-card__check",
-        "ds-card__link",
-        "ds-card__links",
-        "ds-card__media",
-        "ds-card__more",
-        "ds-card__row",
-        "ds-card__section",
-        "ds-card__subtitle",
-        "ds-card__title",
-        "ds-more",
-        "ds-subsection"
-      ],
-      "attributes": [],
-      "keyframes": [],
-      "js": [],
-      "hooks": [
-        "--ds-btn-height",
-        "--ds-card-bg",
-        "--ds-card-body-min",
-        "--ds-card-border",
-        "--ds-card-check-size",
-        "--ds-card-filled-bg",
-        "--ds-card-hover-shadow",
-        "--ds-card-media-size",
-        "--ds-card-padding",
-        "--ds-card-padding-filled",
-        "--ds-card-padding-sm",
-        "--ds-card-radius",
-        "--ds-card-radius-pressed",
-        "--ds-card-selected-bg",
-        "--ds-card-shadow",
-        "--ds-card-title-line",
-        "--ds-chip-height",
-        "--ds-selected-ring",
-        "--ds-switch-height",
-        "--ds-switch-track-height"
-      ],
-      "ripple": true,
-      "progressive": [],
-      "bytes": 17027,
-      "gzip": 2839
+      "bytes": 7919,
+      "gzip": 1957
     },
     "disclosure": {
       "css": "css/components/disclosure.css",
       "min": "css/components/disclosure.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.disclosure",
       "group": "content",
       "requires": [],
-      "context": [
-        "ripple"
-      ],
+      "context": [],
       "classes": [
         "ds-disclosure",
         "ds-disclosure--row",
@@ -616,18 +538,341 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 4388,
-      "gzip": 1298
+      "bytes": 4421,
+      "gzip": 1306
+    },
+    "timeline": {
+      "css": "css/components/timeline.css",
+      "min": "css/components/timeline.min.css",
+      "layer": "ds.components.timeline",
+      "group": "data",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-timeline",
+        "ds-timeline--activity",
+        "ds-timeline__actions",
+        "ds-timeline__body",
+        "ds-timeline__day",
+        "ds-timeline__group",
+        "ds-timeline__head",
+        "ds-timeline__item",
+        "ds-timeline__item--comment",
+        "ds-timeline__item--icon",
+        "ds-timeline__item--muted",
+        "ds-timeline__marker",
+        "ds-timeline__meta",
+        "ds-timeline__text",
+        "ds-timeline__time",
+        "ds-timeline__title"
+      ],
+      "attributes": [
+        "data-ds-glide"
+      ],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-timeline-comment-bg",
+        "--ds-timeline-comment-radius",
+        "--ds-timeline-divider-color",
+        "--ds-timeline-dot-color",
+        "--ds-timeline-dot-size",
+        "--ds-timeline-head-line",
+        "--ds-timeline-indent",
+        "--ds-timeline-line-color",
+        "--ds-timeline-line-width",
+        "--ds-timeline-marker-size",
+        "--ds-timeline-muted-color",
+        "--ds-timeline-padding"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 6565,
+      "gzip": 1655
+    },
+    "tasks": {
+      "css": "css/components/tasks.css",
+      "min": "css/components/tasks.min.css",
+      "layer": "ds.components.tasks",
+      "group": "data",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-tasks",
+        "ds-tasks__head",
+        "ds-tasks__item",
+        "ds-tasks__mark",
+        "ds-tasks__text"
+      ],
+      "attributes": [
+        "data-status"
+      ],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-tasks-gap"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 2918,
+      "gzip": 970
+    },
+    "status": {
+      "css": "css/components/status.css",
+      "min": "css/components/status.min.css",
+      "layer": "ds.components.status",
+      "group": "feedback",
+      "requires": [
+        "spinner"
+      ],
+      "context": [],
+      "classes": [
+        "ds-status",
+        "ds-status--error",
+        "ds-status--ok",
+        "ds-status--running",
+        "ds-status--warning",
+        "ds-status__spinner",
+        "ds-tag",
+        "ds-tag--neutral"
+      ],
+      "attributes": [],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-status-height",
+        "--ds-status-radius",
+        "--ds-status-spinner-width",
+        "--ds-tag-bg",
+        "--ds-tag-color",
+        "--ds-tag-height"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 4218,
+      "gzip": 1206
+    },
+    "alert": {
+      "css": "css/components/alert.css",
+      "min": "css/components/alert.min.css",
+      "layer": "ds.components.alert",
+      "group": "feedback",
+      "requires": [
+        "button"
+      ],
+      "context": [],
+      "classes": [
+        "ds-alert",
+        "ds-alert--error",
+        "ds-alert--inline",
+        "ds-alert--plain",
+        "ds-alert--section",
+        "ds-alert--success",
+        "ds-alert--warning",
+        "ds-alert__actions",
+        "ds-alert__text",
+        "ds-alert__title",
+        "ds-errors",
+        "ds-errors__chevron"
+      ],
+      "attributes": [],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-alert-bg",
+        "--ds-alert-color",
+        "--ds-alert-edge",
+        "--ds-alert-error-bg",
+        "--ds-alert-error-color",
+        "--ds-alert-error-icon",
+        "--ds-alert-icon",
+        "--ds-alert-padding-block",
+        "--ds-alert-padding-inline",
+        "--ds-alert-radius",
+        "--ds-alert-success-bg",
+        "--ds-alert-success-color",
+        "--ds-alert-success-icon",
+        "--ds-alert-text-basis",
+        "--ds-alert-warning-bg",
+        "--ds-alert-warning-color",
+        "--ds-alert-warning-icon",
+        "--ds-btn-height"
+      ],
+      "ripple": true,
+      "progressive": [],
+      "bytes": 7245,
+      "gzip": 1855
+    },
+    "switch": {
+      "css": "css/components/switch.css",
+      "min": "css/components/switch.min.css",
+      "layer": "ds.components.switch",
+      "group": "forms",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-switch",
+        "ds-switch--icons",
+        "ds-switch--locked",
+        "ds-switch-list",
+        "ds-switch__hint",
+        "ds-switch__icon",
+        "ds-switch__icon--off",
+        "ds-switch__icon--on",
+        "ds-switch__label",
+        "ds-switch__meta",
+        "ds-switch__off",
+        "ds-switch__on",
+        "ds-switch__spinner",
+        "ds-switch__state",
+        "ds-switch__track"
+      ],
+      "attributes": [],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-switch-disabled-handle",
+        "--ds-switch-disabled-track",
+        "--ds-switch-font",
+        "--ds-switch-halo",
+        "--ds-switch-height",
+        "--ds-switch-list-row-height",
+        "--ds-switch-track-height"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 15038,
+      "gzip": 2555
+    },
+    "slider": {
+      "css": "css/components/slider.css",
+      "min": "css/components/slider.min.css",
+      "layer": "ds.components.slider",
+      "group": "forms",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-slider",
+        "ds-slider__value"
+      ],
+      "attributes": [],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-slider-halo",
+        "--ds-slider-thumb-size",
+        "--ds-slider-track-height"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 6765,
+      "gzip": 1378
+    },
+    "progress": {
+      "css": "css/components/progress.css",
+      "min": "css/components/progress.min.css",
+      "layer": "ds.components.progress",
+      "group": "feedback",
+      "requires": [],
+      "context": [
+        "spinner"
+      ],
+      "classes": [
+        "ds-progress",
+        "ds-progress--flat",
+        "ds-progress--indeterminate",
+        "ds-progress--label-above",
+        "ds-progress--label-end",
+        "ds-progress--waiting",
+        "ds-progress__bar",
+        "ds-progress__detail",
+        "ds-progress__label",
+        "ds-progress__track"
+      ],
+      "attributes": [],
+      "keyframes": [
+        "ds-progress-head",
+        "ds-progress-tail",
+        "ds-progress-wave"
+      ],
+      "js": [],
+      "hooks": [
+        "--ds-progress-bar",
+        "--ds-progress-gap",
+        "--ds-progress-height",
+        "--ds-progress-stop",
+        "--ds-progress-track"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 7062,
+      "gzip": 1719
+    },
+    "chart": {
+      "css": "css/components/chart.css",
+      "min": "css/components/chart.min.css",
+      "layer": "ds.components.chart",
+      "group": "data",
+      "requires": [],
+      "context": [],
+      "classes": [
+        "ds-columns",
+        "ds-columns--grouped",
+        "ds-columns--mini",
+        "ds-columns__col",
+        "ds-columns__col--error",
+        "ds-columns__col--highlight",
+        "ds-columns__col--s2",
+        "ds-columns__col--s3",
+        "ds-columns__col--s4",
+        "ds-columns__col--warning",
+        "ds-columns__fill",
+        "ds-columns__group",
+        "ds-columns__group--current",
+        "ds-columns__groups",
+        "ds-columns__label",
+        "ds-columns__plot",
+        "ds-columns__value",
+        "ds-legend",
+        "ds-legend__key",
+        "ds-legend__key--error",
+        "ds-legend__key--neutral",
+        "ds-legend__key--s2",
+        "ds-legend__key--s3",
+        "ds-legend__key--s4",
+        "ds-legend__key--warning",
+        "ds-meter",
+        "ds-meter--error",
+        "ds-meter--neutral",
+        "ds-meter--warning"
+      ],
+      "attributes": [],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-chart-color",
+        "--ds-chart-forced-ink",
+        "--ds-columns-group-min",
+        "--ds-columns-height",
+        "--ds-columns-radius",
+        "--ds-legend-key-size",
+        "--ds-meter-color",
+        "--ds-meter-height",
+        "--ds-meter-track"
+      ],
+      "ripple": true,
+      "progressive": [],
+      "bytes": 8222,
+      "gzip": 2067
     },
     "tile": {
       "css": "css/components/tile.css",
       "min": "css/components/tile.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.tile",
       "group": "data",
       "requires": [],
       "context": [
-        "chart",
-        "ripple"
+        "chart"
       ],
       "classes": [
         "ds-tile",
@@ -656,23 +901,20 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 7591,
-      "gzip": 1902
+      "bytes": 7618,
+      "gzip": 1906
     },
     "list": {
       "css": "css/components/list.css",
       "min": "css/components/list.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.list",
       "group": "data",
       "requires": [
         "chart",
         "status"
       ],
       "context": [
-        "card",
-        "chip",
         "ripple",
-        "tile",
         "utilities"
       ],
       "classes": [
@@ -730,91 +972,84 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 15822,
-      "gzip": 3254
+      "bytes": 15556,
+      "gzip": 3214
     },
-    "timeline": {
-      "css": "css/components/timeline.css",
-      "min": "css/components/timeline.min.css",
-      "layer": "ds.components",
-      "group": "data",
-      "requires": [],
+    "card": {
+      "css": "css/components/card.css",
+      "min": "css/components/card.min.css",
+      "layer": "ds.components.card",
+      "group": "layout",
+      "requires": [
+        "button",
+        "utilities"
+      ],
       "context": [
-        "button"
+        "disclosure",
+        "list",
+        "shell",
+        "status",
+        "switch",
+        "table",
+        "tile"
       ],
       "classes": [
-        "ds-timeline",
-        "ds-timeline--activity",
-        "ds-timeline__actions",
-        "ds-timeline__body",
-        "ds-timeline__day",
-        "ds-timeline__group",
-        "ds-timeline__head",
-        "ds-timeline__item",
-        "ds-timeline__item--comment",
-        "ds-timeline__item--icon",
-        "ds-timeline__item--muted",
-        "ds-timeline__marker",
-        "ds-timeline__meta",
-        "ds-timeline__text",
-        "ds-timeline__time",
-        "ds-timeline__title"
+        "ds-card",
+        "ds-card--elevated",
+        "ds-card--filled",
+        "ds-card--horizontal",
+        "ds-card--interactive",
+        "ds-card--outlined",
+        "ds-card--selectable",
+        "ds-card__action",
+        "ds-card__body",
+        "ds-card__check",
+        "ds-card__link",
+        "ds-card__links",
+        "ds-card__media",
+        "ds-card__more",
+        "ds-card__row",
+        "ds-card__section",
+        "ds-card__subtitle",
+        "ds-card__title",
+        "ds-more",
+        "ds-subsection"
       ],
       "attributes": [
-        "data-ds-glide"
+        "data-ds-shown"
       ],
       "keyframes": [],
       "js": [],
       "hooks": [
-        "--ds-timeline-comment-bg",
-        "--ds-timeline-comment-radius",
-        "--ds-timeline-divider-color",
-        "--ds-timeline-dot-color",
-        "--ds-timeline-dot-size",
-        "--ds-timeline-head-line",
-        "--ds-timeline-indent",
-        "--ds-timeline-line-color",
-        "--ds-timeline-line-width",
-        "--ds-timeline-marker-size",
-        "--ds-timeline-muted-color",
-        "--ds-timeline-padding"
+        "--ds-btn-height",
+        "--ds-card-bg",
+        "--ds-card-body-min",
+        "--ds-card-border",
+        "--ds-card-check-size",
+        "--ds-card-filled-bg",
+        "--ds-card-hover-shadow",
+        "--ds-card-media-size",
+        "--ds-card-padding",
+        "--ds-card-padding-filled",
+        "--ds-card-padding-sm",
+        "--ds-card-radius",
+        "--ds-card-radius-pressed",
+        "--ds-card-selected-bg",
+        "--ds-card-shadow",
+        "--ds-card-title-line",
+        "--ds-selected-ring",
+        "--ds-switch-height",
+        "--ds-switch-track-height"
       ],
-      "ripple": false,
+      "ripple": true,
       "progressive": [],
-      "bytes": 6534,
-      "gzip": 1650
-    },
-    "tasks": {
-      "css": "css/components/tasks.css",
-      "min": "css/components/tasks.min.css",
-      "layer": "ds.components",
-      "group": "data",
-      "requires": [],
-      "context": [],
-      "classes": [
-        "ds-tasks",
-        "ds-tasks__head",
-        "ds-tasks__item",
-        "ds-tasks__mark",
-        "ds-tasks__text"
-      ],
-      "attributes": [
-        "data-status"
-      ],
-      "keyframes": [],
-      "js": [],
-      "hooks": [
-        "--ds-tasks-gap"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 2890,
-      "gzip": 964
+      "bytes": 17660,
+      "gzip": 2950
     },
     "prose": {
       "css": "css/components/prose.css",
       "min": "css/components/prose.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.prose",
       "group": "content",
       "requires": [],
       "context": [],
@@ -844,13 +1079,13 @@
         "scrollbar-color",
         "hyphenate-limit-chars"
       ],
-      "bytes": 10106,
-      "gzip": 2056
+      "bytes": 10134,
+      "gzip": 2061
     },
     "empty": {
       "css": "css/components/empty.css",
       "min": "css/components/empty.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.empty",
       "group": "feedback",
       "requires": [
         "button"
@@ -894,114 +1129,303 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 4895,
-      "gzip": 1456
+      "bytes": 4923,
+      "gzip": 1463
     },
-    "status": {
-      "css": "css/components/status.css",
-      "min": "css/components/status.min.css",
-      "layer": "ds.components",
-      "group": "feedback",
-      "requires": [
-        "spinner"
-      ],
+    "menu": {
+      "css": "css/components/menu.css",
+      "min": "css/components/menu.min.css",
+      "layer": "ds.components.menu",
+      "group": "overlays",
+      "requires": [],
       "context": [],
       "classes": [
-        "ds-status",
-        "ds-status--error",
-        "ds-status--ok",
-        "ds-status--running",
-        "ds-status--warning",
-        "ds-status__spinner",
-        "ds-tag",
-        "ds-tag--neutral"
+        "ds-menu",
+        "ds-menu__check",
+        "ds-menu__content",
+        "ds-menu__description",
+        "ds-menu__divider",
+        "ds-menu__heading",
+        "ds-menu__item",
+        "ds-menu__item--danger",
+        "ds-menu__label",
+        "ds-menu__meta",
+        "ds-menu__shortcut"
       ],
-      "attributes": [],
-      "keyframes": [],
-      "js": [],
+      "attributes": [
+        "data-anchored",
+        "data-ds-menu",
+        "data-ds-menu-checks",
+        "data-ds-overflow-end",
+        "data-ds-overflow-start",
+        "data-placement",
+        "data-state"
+      ],
+      "keyframes": [
+        "ds-clip-in",
+        "ds-fade-in",
+        "ds-scroll-edge-end",
+        "ds-scroll-edge-start"
+      ],
+      "js": [
+        "menu",
+        "overlay"
+      ],
       "hooks": [
-        "--ds-status-height",
-        "--ds-status-radius",
-        "--ds-status-spinner-width",
-        "--ds-tag-bg",
-        "--ds-tag-color",
-        "--ds-tag-height"
+        "--ds-menu-danger-color",
+        "--ds-menu-font",
+        "--ds-menu-item-height",
+        "--ds-menu-padding",
+        "--ds-menu-radius",
+        "--ds-scroll-fade"
       ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 4189,
-      "gzip": 1202
+      "ripple": true,
+      "progressive": [
+        "anchor positioning",
+        "scroll-driven",
+        "scrollbar-color"
+      ],
+      "bytes": 7603,
+      "gzip": 2102
     },
-    "alert": {
-      "css": "css/components/alert.css",
-      "min": "css/components/alert.min.css",
-      "layer": "ds.components",
-      "group": "feedback",
-      "requires": [
-        "button"
-      ],
+    "chip": {
+      "css": "css/components/chip.css",
+      "min": "css/components/chip.min.css",
+      "layer": "ds.components.chip",
+      "group": "forms",
+      "requires": [],
       "context": [
-        "ripple"
+        "card",
+        "list"
       ],
       "classes": [
-        "ds-alert",
-        "ds-alert--error",
-        "ds-alert--inline",
-        "ds-alert--plain",
-        "ds-alert--section",
-        "ds-alert--success",
-        "ds-alert--warning",
-        "ds-alert__actions",
-        "ds-alert__text",
-        "ds-alert__title",
-        "ds-errors",
-        "ds-errors__chevron"
+        "ds-chip",
+        "ds-chip--input",
+        "ds-chip__body",
+        "ds-chip__check",
+        "ds-chip__icon",
+        "ds-chip__input",
+        "ds-chip__label",
+        "ds-chip__trailing",
+        "ds-chips",
+        "ds-chips--wrap",
+        "ds-chips__divider"
       ],
-      "attributes": [],
+      "attributes": [
+        "data-ds-glide",
+        "data-ds-snap"
+      ],
       "keyframes": [],
       "js": [],
       "hooks": [
-        "--ds-alert-bg",
-        "--ds-alert-color",
-        "--ds-alert-edge",
-        "--ds-alert-error-bg",
-        "--ds-alert-error-color",
-        "--ds-alert-error-icon",
-        "--ds-alert-icon",
-        "--ds-alert-padding-block",
-        "--ds-alert-padding-inline",
-        "--ds-alert-radius",
-        "--ds-alert-success-bg",
-        "--ds-alert-success-color",
-        "--ds-alert-success-icon",
-        "--ds-alert-text-basis",
-        "--ds-alert-warning-bg",
-        "--ds-alert-warning-color",
-        "--ds-alert-warning-icon",
-        "--ds-btn-height"
+        "--ds-card-title-line",
+        "--ds-chip-check-size",
+        "--ds-chip-disabled-bg",
+        "--ds-chip-disabled-border",
+        "--ds-chip-font",
+        "--ds-chip-height",
+        "--ds-chip-input-bg",
+        "--ds-chip-input-border",
+        "--ds-chip-input-color",
+        "--ds-chip-max-width",
+        "--ds-chip-padding-x",
+        "--ds-chip-radius"
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 7217,
-      "gzip": 1849
+      "bytes": 9760,
+      "gzip": 2160
+    },
+    "badge": {
+      "css": "css/components/badge.css",
+      "min": "css/components/badge.min.css",
+      "layer": "ds.components.badge",
+      "group": "feedback",
+      "requires": [],
+      "context": [
+        "button",
+        "card",
+        "chip"
+      ],
+      "classes": [
+        "ds-badge",
+        "ds-badge--dot",
+        "ds-badge--error",
+        "ds-badge--neutral",
+        "ds-badge--ok",
+        "ds-badge--warning"
+      ],
+      "attributes": [
+        "data-ds-badge",
+        "data-ds-badge-max"
+      ],
+      "keyframes": [],
+      "js": [
+        "badge"
+      ],
+      "hooks": [
+        "--ds-badge-bg",
+        "--ds-badge-color",
+        "--ds-badge-dot-size",
+        "--ds-badge-radius",
+        "--ds-badge-size"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 4588,
+      "gzip": 1193
+    },
+    "sheet": {
+      "css": "css/components/sheet.css",
+      "min": "css/components/sheet.min.css",
+      "layer": "ds.components.sheet",
+      "group": "overlays",
+      "requires": [
+        "button",
+        "utilities"
+      ],
+      "context": [],
+      "classes": [
+        "ds-sheet",
+        "ds-sheet--closing",
+        "ds-sheet__backdrop",
+        "ds-sheet__body",
+        "ds-sheet__foot",
+        "ds-sheet__head",
+        "ds-sheet__heading",
+        "ds-sheet__panel",
+        "ds-sheet__panel--wide",
+        "ds-sheet__subtitle",
+        "ds-sheet__title"
+      ],
+      "attributes": [
+        "data-ds-sheet",
+        "data-ds-vt",
+        "data-scrolled",
+        "data-state",
+        "data-toast-reserve"
+      ],
+      "keyframes": [
+        "ds-drop-out",
+        "ds-fade-in",
+        "ds-fade-out",
+        "ds-lift-in",
+        "ds-scroll-fade",
+        "ds-shift-in",
+        "ds-shift-out"
+      ],
+      "js": [
+        "overlay",
+        "sheet"
+      ],
+      "hooks": [
+        "--ds-sheet-foot-border",
+        "--ds-sheet-head-height",
+        "--ds-sheet-padding",
+        "--ds-sheet-radius",
+        "--ds-sheet-width",
+        "--ds-sheet-width-wide"
+      ],
+      "ripple": false,
+      "progressive": [
+        "View Transitions",
+        "scroll-driven",
+        "scrollbar-color"
+      ],
+      "bytes": 9210,
+      "gzip": 2056
+    },
+    "dialog": {
+      "css": "css/components/dialog.css",
+      "min": "css/components/dialog.min.css",
+      "layer": "ds.components.dialog",
+      "group": "overlays",
+      "requires": [
+        "button"
+      ],
+      "context": [],
+      "classes": [
+        "ds-dialog",
+        "ds-dialog--bottom",
+        "ds-dialog--closing",
+        "ds-dialog--contained",
+        "ds-dialog--full",
+        "ds-dialog--full-narrow",
+        "ds-dialog--hidden",
+        "ds-dialog--lg",
+        "ds-dialog--nested",
+        "ds-dialog--sm",
+        "ds-dialog--wide",
+        "ds-dialog--xl",
+        "ds-dialog__actions",
+        "ds-dialog__backdrop",
+        "ds-dialog__body",
+        "ds-dialog__box",
+        "ds-dialog__head",
+        "ds-dialog__list",
+        "ds-dialog__text",
+        "ds-dialog__title"
+      ],
+      "attributes": [
+        "data-ds-dialog",
+        "data-ds-dialog-form",
+        "data-ds-sentinel",
+        "data-ds-text",
+        "data-scrolled",
+        "data-state",
+        "data-toast-reserve"
+      ],
+      "keyframes": [
+        "ds-drop-out",
+        "ds-fade-in",
+        "ds-fade-out",
+        "ds-grow-in",
+        "ds-lift-in",
+        "ds-shrink-out"
+      ],
+      "js": [
+        "dialog",
+        "overlay"
+      ],
+      "hooks": [
+        "--ds-dialog-border",
+        "--ds-dialog-full-radius",
+        "--ds-dialog-head-height",
+        "--ds-dialog-height",
+        "--ds-dialog-padding",
+        "--ds-dialog-radius",
+        "--ds-dialog-scrim",
+        "--ds-dialog-shadow",
+        "--ds-dialog-width",
+        "--ds-dialog-width-lg",
+        "--ds-dialog-width-sm",
+        "--ds-dialog-width-wide",
+        "--ds-dialog-width-xl"
+      ],
+      "ripple": false,
+      "progressive": [
+        "scrollbar-color"
+      ],
+      "bytes": 14363,
+      "gzip": 2403
     },
     "table": {
       "css": "css/components/table.css",
       "min": "css/components/table.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.table",
       "group": "data",
       "requires": [
         "button",
         "utilities"
       ],
       "context": [
+        "badge",
         "card",
         "combobox",
         "dialog",
-        "form",
         "menu",
-        "ripple",
         "sheet",
+        "shell",
         "status"
       ],
       "classes": [
@@ -1040,6 +1464,7 @@
         "data-ds-glide",
         "data-ds-overflow-end",
         "data-ds-overflow-start",
+        "data-ds-shown",
         "data-label"
       ],
       "keyframes": [
@@ -1073,13 +1498,13 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 33137,
-      "gzip": 4830
+      "bytes": 33971,
+      "gzip": 5037
     },
     "pagination": {
       "css": "css/components/pagination.css",
       "min": "css/components/pagination.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.pagination",
       "group": "navigation",
       "requires": [
         "button",
@@ -1113,13 +1538,13 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 3718,
-      "gzip": 1084
+      "bytes": 3751,
+      "gzip": 1087
     },
     "form": {
       "css": "css/components/form.css",
       "min": "css/components/form.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.form",
       "group": "forms",
       "requires": [
         "button"
@@ -1128,8 +1553,8 @@
         "card",
         "chip",
         "combobox",
+        "dialog",
         "indicator",
-        "ripple",
         "switch",
         "table"
       ],
@@ -1222,6 +1647,7 @@
       "js": [],
       "hooks": [
         "--ds-btn-height",
+        "--ds-btn-icon-size",
         "--ds-check-height",
         "--ds-check-list-max-height",
         "--ds-check-size",
@@ -1244,7 +1670,8 @@
         "--ds-input-padding-x",
         "--ds-input-radius",
         "--ds-input-weight",
-        "--ds-radio-padding"
+        "--ds-radio-padding",
+        "--ds-selection-bar-height"
       ],
       "ripple": true,
       "progressive": [
@@ -1253,20 +1680,18 @@
         "scrollbar-color",
         "field-sizing"
       ],
-      "bytes": 49181,
-      "gzip": 7034
+      "bytes": 49555,
+      "gzip": 7114
     },
     "drag": {
       "css": "css/components/drag.css",
       "min": "css/components/drag.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.drag",
       "group": "forms",
       "requires": [
         "form"
       ],
-      "context": [
-        "ripple"
-      ],
+      "context": [],
       "classes": [
         "ds-dropzone",
         "ds-dropzone--inline",
@@ -1298,176 +1723,20 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 9314,
-      "gzip": 2159
-    },
-    "chip": {
-      "css": "css/components/chip.css",
-      "min": "css/components/chip.min.css",
-      "layer": "ds.components",
-      "group": "forms",
-      "requires": [],
-      "context": [
-        "ripple"
-      ],
-      "classes": [
-        "ds-chip",
-        "ds-chip--input",
-        "ds-chip__body",
-        "ds-chip__check",
-        "ds-chip__icon",
-        "ds-chip__input",
-        "ds-chip__label",
-        "ds-chip__trailing",
-        "ds-chips",
-        "ds-chips--wrap",
-        "ds-chips__divider"
-      ],
-      "attributes": [
-        "data-ds-glide",
-        "data-ds-snap"
-      ],
-      "keyframes": [],
-      "js": [],
-      "hooks": [
-        "--ds-chip-check-size",
-        "--ds-chip-disabled-bg",
-        "--ds-chip-disabled-border",
-        "--ds-chip-font",
-        "--ds-chip-height",
-        "--ds-chip-input-bg",
-        "--ds-chip-input-border",
-        "--ds-chip-input-color",
-        "--ds-chip-max-width",
-        "--ds-chip-padding-x",
-        "--ds-chip-radius"
-      ],
-      "ripple": true,
-      "progressive": [],
-      "bytes": 9342,
-      "gzip": 2066
-    },
-    "badge": {
-      "css": "css/components/badge.css",
-      "min": "css/components/badge.min.css",
-      "layer": "ds.components",
-      "group": "feedback",
-      "requires": [],
-      "context": [
-        "button",
-        "chip",
-        "shell",
-        "table",
-        "tabs"
-      ],
-      "classes": [
-        "ds-badge",
-        "ds-badge--dot",
-        "ds-badge--error",
-        "ds-badge--neutral",
-        "ds-badge--ok",
-        "ds-badge--warning"
-      ],
-      "attributes": [
-        "data-ds-badge",
-        "data-ds-badge-max"
-      ],
-      "keyframes": [],
-      "js": [
-        "badge"
-      ],
-      "hooks": [
-        "--ds-badge-bg",
-        "--ds-badge-color",
-        "--ds-badge-dot-size",
-        "--ds-badge-radius",
-        "--ds-badge-size"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 4855,
-      "gzip": 1226
-    },
-    "switch": {
-      "css": "css/components/switch.css",
-      "min": "css/components/switch.min.css",
-      "layer": "ds.components",
-      "group": "forms",
-      "requires": [],
-      "context": [
-        "ripple",
-        "spinner"
-      ],
-      "classes": [
-        "ds-switch",
-        "ds-switch--icons",
-        "ds-switch--locked",
-        "ds-switch-list",
-        "ds-switch__hint",
-        "ds-switch__icon",
-        "ds-switch__icon--off",
-        "ds-switch__icon--on",
-        "ds-switch__label",
-        "ds-switch__meta",
-        "ds-switch__off",
-        "ds-switch__on",
-        "ds-switch__spinner",
-        "ds-switch__state",
-        "ds-switch__track"
-      ],
-      "attributes": [],
-      "keyframes": [],
-      "js": [],
-      "hooks": [
-        "--ds-switch-disabled-handle",
-        "--ds-switch-disabled-track",
-        "--ds-switch-font",
-        "--ds-switch-halo",
-        "--ds-switch-height",
-        "--ds-switch-list-row-height",
-        "--ds-switch-track-height"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 15009,
-      "gzip": 2548
-    },
-    "slider": {
-      "css": "css/components/slider.css",
-      "min": "css/components/slider.min.css",
-      "layer": "ds.components",
-      "group": "forms",
-      "requires": [],
-      "context": [],
-      "classes": [
-        "ds-slider",
-        "ds-slider__value"
-      ],
-      "attributes": [],
-      "keyframes": [],
-      "js": [],
-      "hooks": [
-        "--ds-slider-halo",
-        "--ds-slider-thumb-size",
-        "--ds-slider-track-height"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 6736,
-      "gzip": 1373
+      "bytes": 9472,
+      "gzip": 2190
     },
     "combobox": {
       "css": "css/components/combobox.css",
       "min": "css/components/combobox.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.combobox",
       "group": "forms",
       "requires": [
         "form"
       ],
       "context": [
         "chip",
-        "progress",
-        "ripple"
+        "progress"
       ],
       "classes": [
         "ds-combo",
@@ -1509,6 +1778,7 @@
       "hooks": [
         "--ds-combo-option-height",
         "--ds-combo-radius",
+        "--ds-form-rows-control-max",
         "--ds-input-bg",
         "--ds-input-border",
         "--ds-input-focus-color",
@@ -1522,355 +1792,13 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 14218,
-      "gzip": 3211
-    },
-    "menu": {
-      "css": "css/components/menu.css",
-      "min": "css/components/menu.min.css",
-      "layer": "ds.components",
-      "group": "overlays",
-      "requires": [],
-      "context": [
-        "ripple"
-      ],
-      "classes": [
-        "ds-menu",
-        "ds-menu__check",
-        "ds-menu__content",
-        "ds-menu__description",
-        "ds-menu__divider",
-        "ds-menu__heading",
-        "ds-menu__item",
-        "ds-menu__item--danger",
-        "ds-menu__label",
-        "ds-menu__meta",
-        "ds-menu__shortcut"
-      ],
-      "attributes": [
-        "data-anchored",
-        "data-ds-menu",
-        "data-ds-menu-checks",
-        "data-ds-overflow-end",
-        "data-ds-overflow-start",
-        "data-placement",
-        "data-state"
-      ],
-      "keyframes": [
-        "ds-clip-in",
-        "ds-fade-in",
-        "ds-scroll-edge-end",
-        "ds-scroll-edge-start"
-      ],
-      "js": [
-        "menu",
-        "overlay"
-      ],
-      "hooks": [
-        "--ds-menu-danger-color",
-        "--ds-menu-font",
-        "--ds-menu-item-height",
-        "--ds-menu-padding",
-        "--ds-menu-radius",
-        "--ds-scroll-fade"
-      ],
-      "ripple": true,
-      "progressive": [
-        "anchor positioning",
-        "scroll-driven",
-        "scrollbar-color"
-      ],
-      "bytes": 7576,
-      "gzip": 2096
-    },
-    "progress": {
-      "css": "css/components/progress.css",
-      "min": "css/components/progress.min.css",
-      "layer": "ds.components",
-      "group": "feedback",
-      "requires": [],
-      "context": [
-        "spinner"
-      ],
-      "classes": [
-        "ds-progress",
-        "ds-progress--flat",
-        "ds-progress--indeterminate",
-        "ds-progress--label-above",
-        "ds-progress--label-end",
-        "ds-progress--waiting",
-        "ds-progress__bar",
-        "ds-progress__detail",
-        "ds-progress__label",
-        "ds-progress__track"
-      ],
-      "attributes": [],
-      "keyframes": [
-        "ds-progress-head",
-        "ds-progress-tail",
-        "ds-progress-wave"
-      ],
-      "js": [],
-      "hooks": [
-        "--ds-progress-bar",
-        "--ds-progress-gap",
-        "--ds-progress-height",
-        "--ds-progress-stop",
-        "--ds-progress-track"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 7031,
-      "gzip": 1714
-    },
-    "chart": {
-      "css": "css/components/chart.css",
-      "min": "css/components/chart.min.css",
-      "layer": "ds.components",
-      "group": "data",
-      "requires": [],
-      "context": [
-        "ripple"
-      ],
-      "classes": [
-        "ds-columns",
-        "ds-columns--grouped",
-        "ds-columns--mini",
-        "ds-columns__col",
-        "ds-columns__col--error",
-        "ds-columns__col--highlight",
-        "ds-columns__col--s2",
-        "ds-columns__col--s3",
-        "ds-columns__col--s4",
-        "ds-columns__col--warning",
-        "ds-columns__fill",
-        "ds-columns__group",
-        "ds-columns__group--current",
-        "ds-columns__groups",
-        "ds-columns__label",
-        "ds-columns__plot",
-        "ds-columns__value",
-        "ds-legend",
-        "ds-legend__key",
-        "ds-legend__key--error",
-        "ds-legend__key--neutral",
-        "ds-legend__key--s2",
-        "ds-legend__key--s3",
-        "ds-legend__key--s4",
-        "ds-legend__key--warning",
-        "ds-meter",
-        "ds-meter--error",
-        "ds-meter--neutral",
-        "ds-meter--warning"
-      ],
-      "attributes": [],
-      "keyframes": [],
-      "js": [],
-      "hooks": [
-        "--ds-chart-color",
-        "--ds-chart-forced-ink",
-        "--ds-columns-group-min",
-        "--ds-columns-height",
-        "--ds-columns-radius",
-        "--ds-legend-key-size",
-        "--ds-meter-color",
-        "--ds-meter-height",
-        "--ds-meter-track"
-      ],
-      "ripple": true,
-      "progressive": [],
-      "bytes": 8194,
-      "gzip": 2061
-    },
-    "sheet": {
-      "css": "css/components/sheet.css",
-      "min": "css/components/sheet.min.css",
-      "layer": "ds.components",
-      "group": "overlays",
-      "requires": [
-        "button",
-        "utilities"
-      ],
-      "context": [],
-      "classes": [
-        "ds-sheet",
-        "ds-sheet--closing",
-        "ds-sheet__backdrop",
-        "ds-sheet__body",
-        "ds-sheet__foot",
-        "ds-sheet__head",
-        "ds-sheet__heading",
-        "ds-sheet__panel",
-        "ds-sheet__panel--wide",
-        "ds-sheet__subtitle",
-        "ds-sheet__title"
-      ],
-      "attributes": [
-        "data-ds-sheet",
-        "data-ds-vt",
-        "data-scrolled",
-        "data-state",
-        "data-toast-reserve"
-      ],
-      "keyframes": [
-        "ds-drop-out",
-        "ds-fade-in",
-        "ds-fade-out",
-        "ds-lift-in",
-        "ds-scroll-fade",
-        "ds-shift-in",
-        "ds-shift-out"
-      ],
-      "js": [
-        "overlay",
-        "sheet"
-      ],
-      "hooks": [
-        "--ds-sheet-foot-border",
-        "--ds-sheet-head-height",
-        "--ds-sheet-padding",
-        "--ds-sheet-radius",
-        "--ds-sheet-width",
-        "--ds-sheet-width-wide"
-      ],
-      "ripple": false,
-      "progressive": [
-        "View Transitions",
-        "scroll-driven",
-        "scrollbar-color"
-      ],
-      "bytes": 9182,
-      "gzip": 2052
-    },
-    "dialog": {
-      "css": "css/components/dialog.css",
-      "min": "css/components/dialog.min.css",
-      "layer": "ds.components",
-      "group": "overlays",
-      "requires": [
-        "button"
-      ],
-      "context": [],
-      "classes": [
-        "ds-dialog",
-        "ds-dialog--bottom",
-        "ds-dialog--closing",
-        "ds-dialog--contained",
-        "ds-dialog--full",
-        "ds-dialog--full-narrow",
-        "ds-dialog--hidden",
-        "ds-dialog--lg",
-        "ds-dialog--nested",
-        "ds-dialog--sm",
-        "ds-dialog--wide",
-        "ds-dialog--xl",
-        "ds-dialog__actions",
-        "ds-dialog__backdrop",
-        "ds-dialog__body",
-        "ds-dialog__box",
-        "ds-dialog__head",
-        "ds-dialog__list",
-        "ds-dialog__text",
-        "ds-dialog__title"
-      ],
-      "attributes": [
-        "data-ds-dialog",
-        "data-ds-dialog-form",
-        "data-ds-sentinel",
-        "data-ds-text",
-        "data-scrolled",
-        "data-state",
-        "data-toast-reserve"
-      ],
-      "keyframes": [
-        "ds-drop-out",
-        "ds-fade-in",
-        "ds-fade-out",
-        "ds-grow-in",
-        "ds-lift-in",
-        "ds-shrink-out"
-      ],
-      "js": [
-        "dialog",
-        "overlay"
-      ],
-      "hooks": [
-        "--ds-dialog-border",
-        "--ds-dialog-full-radius",
-        "--ds-dialog-head-height",
-        "--ds-dialog-height",
-        "--ds-dialog-padding",
-        "--ds-dialog-radius",
-        "--ds-dialog-scrim",
-        "--ds-dialog-shadow",
-        "--ds-dialog-width",
-        "--ds-dialog-width-lg",
-        "--ds-dialog-width-sm",
-        "--ds-dialog-width-wide",
-        "--ds-dialog-width-xl"
-      ],
-      "ripple": false,
-      "progressive": [
-        "scrollbar-color"
-      ],
-      "bytes": 14334,
-      "gzip": 2398
-    },
-    "toast": {
-      "css": "css/components/toast.css",
-      "min": "css/components/toast.min.css",
-      "layer": "ds.components",
-      "group": "overlays",
-      "requires": [
-        "button"
-      ],
-      "context": [
-        "shell"
-      ],
-      "classes": [
-        "ds-toast",
-        "ds-toast--error",
-        "ds-toast--info",
-        "ds-toast--shown",
-        "ds-toast__action",
-        "ds-toast__close",
-        "ds-toast__text",
-        "ds-toasts"
-      ],
-      "attributes": [
-        "data-drawer-collapsed",
-        "data-drawer-hidden",
-        "data-drawer-open",
-        "data-ds-keep",
-        "data-ds-toast-room",
-        "data-ds-vt",
-        "data-follow",
-        "data-toast-reserve"
-      ],
-      "keyframes": [
-        "ds-fade-in",
-        "ds-lift-in"
-      ],
-      "js": [
-        "overlay",
-        "toast"
-      ],
-      "hooks": [
-        "--ds-toast-action-color",
-        "--ds-toast-close-size",
-        "--ds-toast-radius"
-      ],
-      "ripple": false,
-      "progressive": [
-        "View Transitions"
-      ],
-      "bytes": 4614,
-      "gzip": 1388
+      "bytes": 14332,
+      "gzip": 3255
     },
     "tooltip": {
       "css": "css/components/tooltip.css",
       "min": "css/components/tooltip.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.tooltip",
       "group": "overlays",
       "requires": [],
       "context": [],
@@ -1900,13 +1828,71 @@
       "progressive": [
         "anchor positioning"
       ],
-      "bytes": 2902,
-      "gzip": 1017
+      "bytes": 2932,
+      "gzip": 1022
+    },
+    "page": {
+      "css": "css/components/page.css",
+      "min": "css/components/page.min.css",
+      "layer": "ds.components.page",
+      "group": "navigation",
+      "requires": [
+        "button",
+        "form"
+      ],
+      "context": [
+        "card",
+        "dialog",
+        "loading",
+        "sheet"
+      ],
+      "classes": [
+        "ds-auth",
+        "ds-auth__alert",
+        "ds-auth__card",
+        "ds-breadcrumbs",
+        "ds-content",
+        "ds-grid-2",
+        "ds-page",
+        "ds-page-head",
+        "ds-page-head__actions",
+        "ds-page-head__back",
+        "ds-page-head__detail",
+        "ds-page-head__details",
+        "ds-page-head__lead",
+        "ds-page-head__row",
+        "ds-page-head__status",
+        "ds-page-head__tabs",
+        "ds-page-head__text",
+        "ds-page-head__title",
+        "ds-stack",
+        "ds-stack--page"
+      ],
+      "attributes": [],
+      "keyframes": [],
+      "js": [],
+      "hooks": [
+        "--ds-auth-width",
+        "--ds-breadcrumbs-font",
+        "--ds-breadcrumbs-item-max",
+        "--ds-btn-height",
+        "--ds-btn-padding-start",
+        "--ds-page-head-text-basis",
+        "--ds-page-head-title-line",
+        "--ds-stack-gap",
+        "--ds-stack-gap-page"
+      ],
+      "ripple": false,
+      "progressive": [
+        "text-wrap"
+      ],
+      "bytes": 7366,
+      "gzip": 2131
     },
     "shell": {
       "css": "css/components/shell.css",
       "min": "css/components/shell.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.shell",
       "group": "navigation",
       "requires": [
         "button",
@@ -1916,11 +1902,11 @@
       ],
       "context": [
         "alert",
+        "badge",
         "card",
         "indicator",
         "list",
         "loading",
-        "ripple",
         "table",
         "tile"
       ],
@@ -1966,7 +1952,6 @@
         "ds-segmented__indicator",
         "ds-segmented__option",
         "ds-skip",
-        "ds-stale",
         "ds-topbar",
         "ds-topbar__actions",
         "ds-topbar__menu",
@@ -1985,6 +1970,7 @@
         "data-ds-keyboard",
         "data-ds-overflow-end",
         "data-ds-overflow-start",
+        "data-ds-shown",
         "data-ds-vt",
         "data-label",
         "data-scrolled"
@@ -2003,6 +1989,8 @@
       "hooks": [
         "--ds-account-text-max",
         "--ds-avatar-size",
+        "--ds-badge-bg",
+        "--ds-badge-color",
         "--ds-btn-icon-size",
         "--ds-btn-sm-icon-size",
         "--ds-drawer-font",
@@ -2023,20 +2011,20 @@
         "scrollbar-color",
         "scrollbar-gutter"
       ],
-      "bytes": 32758,
-      "gzip": 5726
+      "bytes": 34000,
+      "gzip": 5922
     },
     "tabs": {
       "css": "css/components/tabs.css",
       "min": "css/components/tabs.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.tabs",
       "group": "navigation",
       "requires": [
         "button"
       ],
       "context": [
-        "indicator",
-        "ripple"
+        "badge",
+        "indicator"
       ],
       "classes": [
         "ds-tabs",
@@ -2061,6 +2049,8 @@
         "indicator"
       ],
       "hooks": [
+        "--ds-badge-bg",
+        "--ds-badge-color",
         "--ds-btn-icon-size",
         "--ds-tabs-contained-bg",
         "--ds-tabs-font",
@@ -2073,13 +2063,13 @@
       "progressive": [
         "scrollbar-color"
       ],
-      "bytes": 8167,
-      "gzip": 2116
+      "bytes": 8488,
+      "gzip": 2177
     },
     "steps": {
       "css": "css/components/steps.css",
       "min": "css/components/steps.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.steps",
       "group": "navigation",
       "requires": [],
       "context": [],
@@ -2105,13 +2095,107 @@
       ],
       "ripple": false,
       "progressive": [],
-      "bytes": 7029,
-      "gzip": 1688
+      "bytes": 7057,
+      "gzip": 1693
+    },
+    "toast": {
+      "css": "css/components/toast.css",
+      "min": "css/components/toast.min.css",
+      "layer": "ds.components.toast",
+      "group": "overlays",
+      "requires": [
+        "button"
+      ],
+      "context": [
+        "shell"
+      ],
+      "classes": [
+        "ds-toast",
+        "ds-toast--error",
+        "ds-toast--info",
+        "ds-toast--shown",
+        "ds-toast__action",
+        "ds-toast__close",
+        "ds-toast__text",
+        "ds-toasts"
+      ],
+      "attributes": [
+        "data-drawer-collapsed",
+        "data-drawer-hidden",
+        "data-drawer-open",
+        "data-ds-keep",
+        "data-ds-toast-room",
+        "data-ds-vt",
+        "data-follow",
+        "data-toast-reserve"
+      ],
+      "keyframes": [
+        "ds-fade-in",
+        "ds-lift-in"
+      ],
+      "js": [
+        "overlay",
+        "toast"
+      ],
+      "hooks": [
+        "--ds-toast-action-color",
+        "--ds-toast-close-size",
+        "--ds-toast-radius"
+      ],
+      "ripple": false,
+      "progressive": [
+        "View Transitions"
+      ],
+      "bytes": 4642,
+      "gzip": 1392
+    },
+    "savebar": {
+      "css": "css/components/savebar.css",
+      "min": "css/components/savebar.min.css",
+      "layer": "ds.components.savebar",
+      "group": "forms",
+      "requires": [],
+      "context": [
+        "page",
+        "shell",
+        "toast"
+      ],
+      "classes": [
+        "ds-savebar",
+        "ds-savebar--inline",
+        "ds-savebar-scroller",
+        "ds-savebar__actions",
+        "ds-savebar__bar",
+        "ds-savebar__text"
+      ],
+      "attributes": [
+        "data-ds-savebar",
+        "data-ds-savebar-rest",
+        "data-toast-reserve"
+      ],
+      "keyframes": [],
+      "js": [
+        "overlay"
+      ],
+      "hooks": [
+        "--ds-savebar-bg",
+        "--ds-savebar-bleed",
+        "--ds-savebar-inset",
+        "--ds-savebar-min-height",
+        "--ds-savebar-offset",
+        "--ds-savebar-radius",
+        "--ds-savebar-room",
+        "--ds-savebar-shadow"
+      ],
+      "ripple": false,
+      "progressive": [],
+      "bytes": 4201,
+      "gzip": 1242
     },
     "ripple": {
       "css": "css/components/ripple.css",
       "min": "css/components/ripple.min.css",
-      "layer": "ds.components",
+      "layer": "ds.components.ripple",
       "group": "motion",
       "requires": [
         "button"
@@ -2159,107 +2243,8 @@
       "progressive": [
         "overflow-clip-margin"
       ],
-      "bytes": 14975,
-      "gzip": 1670
-    },
-    "page": {
-      "css": "css/components/page.css",
-      "min": "css/components/page.min.css",
-      "layer": "ds.components",
-      "group": "navigation",
-      "requires": [
-        "button",
-        "form"
-      ],
-      "context": [
-        "dialog",
-        "sheet"
-      ],
-      "classes": [
-        "ds-auth",
-        "ds-auth__alert",
-        "ds-auth__card",
-        "ds-breadcrumbs",
-        "ds-content",
-        "ds-grid-2",
-        "ds-page",
-        "ds-page-head",
-        "ds-page-head__actions",
-        "ds-page-head__back",
-        "ds-page-head__detail",
-        "ds-page-head__details",
-        "ds-page-head__lead",
-        "ds-page-head__row",
-        "ds-page-head__status",
-        "ds-page-head__tabs",
-        "ds-page-head__text",
-        "ds-page-head__title",
-        "ds-stack",
-        "ds-stack--page"
-      ],
-      "attributes": [],
-      "keyframes": [],
-      "js": [],
-      "hooks": [
-        "--ds-auth-width",
-        "--ds-breadcrumbs-font",
-        "--ds-breadcrumbs-item-max",
-        "--ds-btn-height",
-        "--ds-btn-padding-start",
-        "--ds-page-head-text-basis",
-        "--ds-page-head-title-line",
-        "--ds-stack-gap",
-        "--ds-stack-gap-page"
-      ],
-      "ripple": false,
-      "progressive": [
-        "text-wrap"
-      ],
-      "bytes": 6999,
-      "gzip": 2032
-    },
-    "savebar": {
-      "css": "css/components/savebar.css",
-      "min": "css/components/savebar.min.css",
-      "layer": "ds.components",
-      "group": "forms",
-      "requires": [],
-      "context": [
-        "page",
-        "shell",
-        "toast"
-      ],
-      "classes": [
-        "ds-savebar",
-        "ds-savebar--inline",
-        "ds-savebar-scroller",
-        "ds-savebar__actions",
-        "ds-savebar__bar",
-        "ds-savebar__text"
-      ],
-      "attributes": [
-        "data-ds-savebar",
-        "data-ds-savebar-rest",
-        "data-toast-reserve"
-      ],
-      "keyframes": [],
-      "js": [
-        "overlay"
-      ],
-      "hooks": [
-        "--ds-savebar-bg",
-        "--ds-savebar-bleed",
-        "--ds-savebar-inset",
-        "--ds-savebar-min-height",
-        "--ds-savebar-offset",
-        "--ds-savebar-radius",
-        "--ds-savebar-room",
-        "--ds-savebar-shadow"
-      ],
-      "ripple": false,
-      "progressive": [],
-      "bytes": 4145,
-      "gzip": 1230
+      "bytes": 15004,
+      "gzip": 1676
     }
   },
   "js": {

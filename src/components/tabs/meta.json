@@ -1,7 +1,7 @@
 {
   "name": "tabs",
   "group": "navigation",
-  "order": 360,
+  "order": 350,
   "docsOrder": 30,
   "need": "Switch between the sections of one page or record: line or contained, across or down, with counts, icons and tabs that close",
   "tier": 1,
@@ -28,8 +28,8 @@
     "button"
   ],
   "context": [
-    "indicator",
-    "ripple"
+    "badge",
+    "indicator"
   ],
   "hooks": {
     "--ds-tabs-height": {
@@ -58,6 +58,12 @@
     },
     "--ds-btn-icon-size": {
       "owner": "button"
+    },
+    "--ds-badge-bg": {
+      "owner": "badge"
+    },
+    "--ds-badge-color": {
+      "owner": "badge"
     }
   },
   "keyframes": [],

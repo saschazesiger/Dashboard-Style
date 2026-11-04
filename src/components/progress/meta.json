@@ -1,7 +1,7 @@
 {
   "name": "progress",
   "group": "feedback",
-  "order": 280,
+  "order": 150,
   "docsOrder": 310,
   "need": "Show how far a known or unknown amount of work has come",
   "tier": 1,

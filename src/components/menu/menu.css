@@ -114,7 +114,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.menu {
   /* Fixed, so no scrolling or clipping box cuts it off. inset, margin and
      border double as the reset of the UA box of a popover. Physical on
      purpose (D9): --ds-menu-x is a script coordinate from the left. */

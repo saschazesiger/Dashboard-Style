@@ -1,7 +1,7 @@
 {
   "name": "toast",
   "group": "overlays",
-  "order": 320,
+  "order": 370,
   "docsOrder": 270,
   "need": "Confirm or report something briefly in a snackbar, with an optional action",
   "tier": 1,

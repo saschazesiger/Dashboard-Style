@@ -1,7 +1,7 @@
 {
   "name": "card",
   "group": "layout",
-  "order": 80,
+  "order": 190,
   "docsOrder": 60,
   "need": "Group related content in a block, or let a whole block open or pick something",
   "tier": 1,
@@ -28,20 +28,21 @@
     "ds-more",
     "ds-subsection"
   ],
-  "attributes": [],
+  "attributes": [
+    "data-ds-shown"
+  ],
   "requires": [
     "button",
     "utilities"
   ],
   "context": [
-    "badge",
-    "chip",
     "disclosure",
-    "page",
-    "ripple",
+    "list",
+    "shell",
     "status",
     "switch",
-    "table"
+    "table",
+    "tile"
   ],
   "hooks": {
     "--ds-card-padding": {
@@ -110,9 +111,6 @@
     },
     "--ds-btn-height": {
       "owner": "button"
-    },
-    "--ds-chip-height": {
-      "owner": "chip"
     },
     "--ds-switch-height": {
       "owner": "switch"

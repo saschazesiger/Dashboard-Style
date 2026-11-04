@@ -184,7 +184,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.dialog {
   .ds-dialog {
     position: fixed;
     inset: 0;

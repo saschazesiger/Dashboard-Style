@@ -74,7 +74,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.alert {
   /* No entrance of their own: an alert re-rendered with fresh data is
      patched in place and never fades in again. An alert that comes or goes
      (a user action or live data) does it through DS.motion.flip on its

@@ -75,28 +75,35 @@ describe('utilities (2.0)', () => {
 
   it('shows .ds-hover-actions by opacity only, on demand, and always without hover', () => {
     assert.deepEqual(own(withoutAtRuleBlocks(css, /@media/), '.ds-hover-actions'), { opacity: '0', transition: 'opacity var(--ds-dur-instant) var(--ds-ease-in-out)' });
-    const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).flatMap((block) => selectorsOf(block)).filter((part) => part.includes('.ds-hover-actions'));
+    // The hosts of later components reveal the actions in their own stylesheets (their sublayers come later):
+    // the card, the drawer row (shell) and the selected table row; every rule keeps the whole host list in its exclusion.
+    const hosts = ['src/components/card/card.css', 'src/components/shell/shell.css', 'src/components/table/table.css'].map(read).join('\n');
+    const all = `${css}\n${hosts}`;
+    const hover = atRuleBlocks(all, /@media\s*\(hover:\s*hover\)/).flatMap((block) => selectorsOf(block)).filter((part) => part.includes('.ds-hover-actions'));
     // Only the nearest host: a table in a card answers to its rows (every host around the actions is hovered).
     const host = ':is(tr, li, .ds-card, .ds-drawer__row, .ds-hover-host)';
-    assert.deepEqual(hover, [`${host}:hover .ds-hover-actions:not(${host}:not(:hover) .ds-hover-actions)`]);
-    const shown = selectorsOf(withoutAtRuleBlocks(css, /@media/)).filter((part) => part.includes('.ds-hover-actions') && part !== '.ds-hover-actions');
-    for (const state of [':focus-within', '[aria-current]', '[aria-selected="true"]', '[data-ds-shown]', ':has([aria-expanded="true"])']) {
+    const nearest = `.ds-hover-actions:not(${host}:not(:hover) .ds-hover-actions)`;
+    assert.deepEqual(hover, [`:is(tr, li, .ds-hover-host):hover ${nearest}`, `.ds-card:hover ${nearest}`, `.ds-drawer__row:hover ${nearest}`]);
+    const shown = selectorsOf(withoutAtRuleBlocks(all, /@media/)).filter((part) => part.includes('.ds-hover-actions') && part !== '.ds-hover-actions');
+    for (const state of [':focus-within', '[aria-current]', '[aria-selected="true"]', '[data-ds-shown]', ':has([aria-expanded="true"])', '.ds-table__row--selected .ds-hover-actions']) {
       assert.ok(shown.some((part) => part.includes(state)), state);
     }
     assert.ok(shown.includes('.ds-touch .ds-hover-actions'));
     // A host in a state reveals unless a nearer host is in none; an open menu counts in the actions only (no
     // :has() on every row and card).
-    const states = shown.find((part) => part.startsWith(`${host}:is(:focus-within`));
-    assert.ok(states, 'the host states');
-    assert.match(states, /\.ds-hover-actions:not\(:is\(tr, li, .*\):is\(:focus-within, .*\) :is\(tr, li, .*\):not\(:focus-within, .*\) \.ds-hover-actions\)$/);
-    assert.ok(!shown.some((part) => part.startsWith(host) && part.includes(':has(')), 'no :has() on the hosts');
+    const states = shown.filter((part) => /^(:is\(tr, li, \.ds-hover-host\)|\.ds-card|\.ds-drawer__row):is\(:focus-within/.test(part));
+    assert.equal(states.length, 3, 'the host states: utilities, card, shell');
+    for (const part of [...states, shown.find((item) => item.includes('.ds-table__row--selected .ds-hover-actions'))]) {
+      assert.match(part, /\.ds-hover-actions:not\(:is\(tr, li, \.ds-card, \.ds-drawer__row, \.ds-hover-host\):is\(:focus-within, .*\.ds-table__row--selected.*\) :is\(tr, li, .*\):not\(:focus-within, .*\) \.ds-hover-actions\)$/);
+    }
+    assert.ok(!shown.some((part) => /^(:is\(tr|\.ds-card)/.test(part) && part.split(' .ds-hover-actions')[0].includes(':has(')), 'no :has() on the hosts');
     assert.ok(shown.includes('.ds-hover-actions:is(:focus-within, [data-ds-shown], [aria-expanded="true"], :has([aria-expanded="true"]))'));
     // A drawer row is current through its item, not itself.
     assert.ok(shown.includes('.ds-drawer__row:has(> .ds-drawer__item[aria-current]:not([aria-current="false"])) .ds-hover-actions'));
     const none = atRuleBlocks(css, /@media\s*\(hover:\s*none\)/).flatMap((block) => declarationsOf(block, '.ds-hover-actions'));
     assert.equal(none.find((entry) => entry.property === 'opacity')?.value, '1');
     // Opacity only: nothing else changes in any of its rules.
-    for (const rule of rules(css).filter((item) => item.selector.includes('.ds-hover-actions'))) {
+    for (const rule of rules(all).filter((item) => item.selector.includes('.ds-hover-actions'))) {
       for (const { property } of declarations(`${rule.body};`)) assert.ok(['opacity', 'transition'].includes(property), `${rule.selector}: ${property}`);
     }
   });
@@ -184,8 +191,9 @@ describe('buttons (2.0)', () => {
     assert.equal(own(container, '.ds-btn--adaptive.ds-btn--sm')['--_box'], 'max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px))');
     assert.equal(own(container, '.ds-btn--adaptive .ds-btn__label').clip, 'rect(0, 0, 0, 0)');
     // The window rules repeat the panel's for every button outside a .ds-content (the top bar, a page outside the
-    // frame) and in sheets and dialogs, at the weight of the old sheet and dialog rules (0,2,0).
-    const OUTSIDE = ':is(:not(.ds-content *), :is(.ds-sheet, .ds-dialog) *)';
+    // frame) and in sheets and dialogs, at the weight of the old sheet and dialog rules (0,2,0): one exclusion
+    // ("in a content panel and not in an overlay"), so the overlays are a condition, not a later component it styles.
+    const OUTSIDE = ':not(:where(.ds-content *):not(:is(.ds-sheet, .ds-dialog) *))';
     for (const [window, panel] of [
       [`.ds-btn--adaptive${OUTSIDE}`, '.ds-btn--adaptive'],
       [`.ds-btn--adaptive.ds-btn--sm${OUTSIDE}`, '.ds-btn--adaptive.ds-btn--sm'],
@@ -281,7 +289,10 @@ describe('chips, badges and tags (2.0)', () => {
     assert.equal(own(badge, '.ds-badge:empty').display, 'none');
     for (const tone of ['neutral', 'ok', 'warning', 'error']) assert.ok(own(badge, `.ds-badge--${tone}`)['--ds-badge-bg'], tone);
     const tinted = selectorsOf(badge).find((part) => part.endsWith('.ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error)'));
-    for (const host of ['.ds-btn[aria-pressed="true"]', '.ds-btn--tonal', '.ds-chip--input', '.ds-chip__input:checked + .ds-chip__body', '.ds-table__row--selected']) assert.ok(tinted.includes(host), host);
+    for (const host of ['.ds-btn[aria-pressed="true"]', '.ds-btn--tonal', '.ds-chip--input', '.ds-chip__input:checked + .ds-chip__body']) assert.ok(tinted.includes(host), host);
+    // A selected table row is a later component's host: table.css repeats the rule (its sublayer comes later).
+    const row = selectorsOf(read('src/components/table/table.css')).find((part) => part.endsWith(' .ds-badge:not(.ds-badge--neutral, .ds-badge--ok, .ds-badge--warning, .ds-badge--error, .ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error)'));
+    assert.ok(row?.includes('.ds-table__row--selected'), 'a badge in a selected row');
     assert.equal(own(forcedColorBlocks(badge).join('\n'), '.ds-badge').outline, '1px solid CanvasText');
     assert.match(read('src/index.css'), /@import '\.\/components\/chip\/chip\.css';\n@import '\.\/components\/badge\/badge\.css';/);
     const status = read('src/components/status/status.css');
@@ -514,14 +525,23 @@ describe('blocked hosts and selected cards (2.0 review)', () => {
     const css = read('src/components/badge/badge.css');
     const blocked = rules(withoutAtRuleBlocks(css, /@media/)).find((rule) => rule.selector.includes('.ds-btn:disabled') && rule.selector.endsWith(' .ds-badge'));
     assert.ok(blocked, 'a rule for a badge in a blocked host');
-    for (const host of ['.ds-btn[aria-disabled="true"]:not([aria-busy="true"])', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body', '.ds-tabs__tab:is(:disabled, [aria-disabled="true"])']) {
+    for (const host of ['.ds-btn[aria-disabled="true"]:not([aria-busy="true"])', '.ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body']) {
       assert.ok(blocked.selector.includes(host), host);
     }
-    const body = Object.fromEntries(declarations(`${blocked.body};`).map((entry) => [entry.property, entry.value]));
-    assert.equal(body.background, 'var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)))');
-    assert.equal(body.color, 'var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)))');
-    const forced = rules(forcedColorBlocks(css).join('\n')).find((rule) => rule.selector === blocked.selector);
-    assert.match(forced?.body ?? '', /color: GrayText/);
+    // A blocked tab and drawer item are later components' hosts: tabs.css and shell.css repeat the rule.
+    const later = [['src/components/tabs/tabs.css', '.ds-tabs__tab'], ['src/components/shell/shell.css', '.ds-drawer__item']].map(([file, host]) => {
+      const text = read(file);
+      const rule = rules(withoutAtRuleBlocks(text, /@media/)).find((item) => item.selector === `${host}:is(:disabled, [aria-disabled="true"]) .ds-badge`);
+      assert.ok(rule, `${file}: a badge in a blocked ${host}`);
+      return [text, rule];
+    });
+    for (const [text, rule] of [[css, blocked], ...later]) {
+      const body = Object.fromEntries(declarations(`${rule.body};`).map((entry) => [entry.property, entry.value]));
+      assert.equal(body.background, 'var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)))');
+      assert.equal(body.color, 'var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)))');
+      const forced = rules(forcedColorBlocks(text).join('\n')).find((item) => item.selector === rule.selector);
+      assert.match(forced?.body ?? '', /color: GrayText/, rule.selector);
+    }
   });
 
   it('keeps the outer pixel of a selected card\'s ring while a ripple clips it', () => {

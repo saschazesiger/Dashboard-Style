@@ -49,7 +49,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.slider {
   .ds-slider {
     /* The options, computed here (docs/options.md); the engine's parts inherit
        them. The input is as high as the halo, never below the touch minimum. */

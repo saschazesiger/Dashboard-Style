@@ -1,7 +1,7 @@
 {
   "name": "spinner",
   "group": "feedback",
-  "order": 40,
+  "order": 30,
   "docsOrder": 302,
   "need": "Show a short wait in place, or a known share as a ring",
   "tier": 1,
@@ -15,9 +15,7 @@
   ],
   "attributes": [],
   "requires": [],
-  "context": [
-    "progress"
-  ],
+  "context": [],
   "hooks": {
     "--ds-spinner-size": {
       "default": "16px",

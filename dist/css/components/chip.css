@@ -90,9 +90,9 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
-@layer ds.components {
+@layer ds.components.chip {
   .ds-chips {
     display: flex;
     flex-wrap: wrap;
@@ -478,6 +478,20 @@
       border-color: GrayText;
       background: Canvas;
       color: GrayText;
+    }
+  }
+
+  /* In a card's head row (card.css, an earlier sublayer) a chip hangs out of
+     the title's line by its own height. */
+  .ds-card__row > .ds-chip {
+    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
+  }
+
+  /* A chip in a current list row (list.css) takes the system colours again
+     in forced colours, as the row's other controls do. */
+  @media (forced-colors: active) {
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) .ds-chip {
+      forced-color-adjust: auto;
     }
   }
 }

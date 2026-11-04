@@ -79,7 +79,7 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-@layer ds.components {
+@layer ds.components.savebar {
   .ds-savebar {
     position: sticky;
     bottom: 0;
@@ -173,9 +173,11 @@
      counts as in view, so the scroller keeps the room itself: the least height
      at the largest size and a row for the words the bar wraps over its actions.
      It reads no size or density: those may sit on the bar, out of the scroller's
-     reach, and too much room only moves a scroll a little further. No
-     specificity, so a floating bar's measured room above wins. */
-  :where(.ds-view, .ds-savebar-scroller):where(:has(.ds-savebar--inline > .ds-savebar__bar:not([hidden]))) {
+     reach, and too much room only moves a scroll a little further. A measured
+     room wins: no specificity, so the floating bar's above does, and not on a
+     view that keeps the room of snackbars that stay (toast.css, whose rule
+     sits in an earlier sublayer). */
+  :where(.ds-view:not([data-toast-reserve]), .ds-savebar-scroller):where(:has(.ds-savebar--inline > .ds-savebar__bar:not([hidden]))) {
     scroll-padding-block-end: var(--ds-savebar-room, calc(var(--ds-savebar-min-height, 56px) + 2 * 8px + var(--ds-space-8) + var(--ds-space-2) + env(safe-area-inset-bottom)));
   }
 

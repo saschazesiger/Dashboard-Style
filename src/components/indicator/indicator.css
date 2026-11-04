@@ -92,7 +92,7 @@
   initial-value: 0px;
 }
 
-@layer ds.components {
+@layer ds.components.indicator {
   .ds-has-indicator {
     position: relative;
     isolation: isolate;

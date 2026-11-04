@@ -80,7 +80,10 @@ function differences(a, b) {
 }
 
 test('the bundle holds what the page uses, at a fraction of ds.css and ds.js', () => {
-  expect(sizes.components.map((item) => item.name)).toEqual(['utilities', 'button', 'spinner', 'card', 'status', 'alert', 'chip', 'dialog', 'ripple']);
+  // In cascade order (manifest.json "order").
+  const order = JSON.parse(readFileSync(join(ROOT, 'dist/manifest.json'), 'utf8')).order;
+  const expected = ['utilities', 'button', 'spinner', 'card', 'status', 'alert', 'chip', 'dialog', 'ripple'].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  expect(sizes.components.map((item) => item.name)).toEqual(expected);
   expect(sizes.modules.map((item) => item.name)).toEqual(['core', 'motion', 'dom', 'ripple', 'icons', 'position', 'overlay', 'dialog']);
   expect(sizes.icons.map((item) => item.name).sort()).toEqual(['alertCircle', 'check', 'wifiOff']);
   expect(sizes.files.css.gzip).toBeLessThan(40 * 1024);
@@ -133,3 +136,123 @@ for (const mode of ['bundle', 'full']) {
     expect(errors).toEqual([]);
   });
 }
+
+/*
+ * Sublayers (3.0): every component's rules sit in ds.components.<name>, and
+ * every single file of dist/css/ declares the sublayers in manifest order, so
+ * the first stylesheet a page loads fixes the cascade. A page that links only
+ * the files it uses, the components in reverse manifest order and the core
+ * after them, computes the same styles as ds.css: the component fixtures of
+ * the containers (whose rules meet other components'), and the reference app.
+ */
+test.describe('single files in reverse order cascade as ds.css', () => {
+  // Every computed property of every element, twice: a long table takes a while.
+  test.setTimeout(120_000);
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'dist/manifest.json'), 'utf8'));
+
+  /**
+   * Every element's computed style (and its ::before and ::after), with transitions and animations at their end or
+   * start, keyed by its path (tag, id and classes per step, its place among such siblings) and the state its
+   * scripts wrote (data-*): an indicator placed again without a glide, or a row whose live status changed while the
+   * stylesheets load, is another state, not another cascade.
+   */
+  const everything = (page) => page.evaluate(() => {
+    for (const animation of document.getAnimations()) {
+      if (animation.effect?.getTiming().iterations === Infinity) {
+        animation.pause();
+        animation.currentTime = 0;
+      } else animation.finish();
+    }
+    const out = [];
+    // Values the layout resolves (sizes, grid tracks, origins, offsets) follow the moment of the reading as much as
+    // the cascade: a stylesheet swap lays the page out again. Every declared value is compared.
+    const resolved = /^(-webkit-)?((min-|max-)?(width|height|inline-size|block-size)|grid-template-(columns|rows)|(perspective|transform)-origin|top|right|bottom|left|inset(-.*)?)$/;
+    const read = (style) => [...style].filter((property) => !property.startsWith('--') && !resolved.test(property)).map((property) => `${property}: ${style.getPropertyValue(property)}`).join('; ');
+    const step = (node) => `${node.localName}${node.id ? `#${node.id}` : ''}.${[...node.classList].join('.')}`;
+    const keys = new Map();
+    const key = (node) => {
+      if (!keys.has(node)) {
+        let index = 1;
+        for (let sibling = node.previousElementSibling; sibling; sibling = sibling.previousElementSibling) if (step(sibling) === step(node)) index += 1;
+        keys.set(node, `${node.parentElement ? `${key(node.parentElement)} > ` : ''}${step(node)}:${index}`);
+      }
+      return keys.get(node);
+    };
+    for (const element of document.querySelectorAll('body, body *')) {
+      if (element.closest('script, style, template')) continue;
+      // The state a script wrote (classes, data-*) goes with the key: an element whose state changed is not compared.
+      const state = [...element.attributes].filter(({ name }) => name === 'class' || name.startsWith('data-')).map(({ name, value }) => `${name}=${value}`).join(' ');
+      out.push([`${key(element)} [${state}]`, read(getComputedStyle(element))]);
+      for (const pseudo of ['::before', '::after']) {
+        const style = getComputedStyle(element, pseudo);
+        if (style.content !== 'none' && style.content !== 'normal') out.push([`${key(element)} [${state}]${pseudo}`, read(style)]);
+      }
+    }
+    return out;
+  });
+
+  /** The components the page uses (a class or an attribute of theirs) and what they require, transitively, in reverse manifest order. */
+  const used = (page) => page.evaluate((components) => {
+    const found = new Set(Object.entries(components).filter(([, entry]) => entry.classes.some((name) => document.querySelector(`.${CSS.escape(name)}`))
+      || entry.attributes.some((name) => document.querySelector(`[${name}]`))).map(([name]) => name));
+    for (let size = 0; size !== found.size;) {
+      size = found.size;
+      for (const name of [...found]) for (const other of components[name].requires) found.add(other);
+    }
+    return Object.keys(components).filter((name) => found.has(name)).reverse();
+  }, manifest.components);
+
+  /** Swaps the page's ds.css for the single files: the components in reverse order, then the core files in reverse order. */
+  async function relink(page, names) {
+    // css/properties.css too: a component may read a property another one registers (the combobox list's fades use
+    // the scroller's), and a single file holds only its own registrations.
+    const files = [...names.map((name) => manifest.components[name].css), ...[...manifest.core.css].reverse(), manifest.core.properties].map((path) => `/dist/${path}`);
+    await page.evaluate(async (hrefs) => {
+      const full = document.querySelector('link[rel="stylesheet"][href$="dist/ds.css"]');
+      const links = hrefs.map((href) => Object.assign(document.createElement('link'), { rel: 'stylesheet', href }));
+      full.after(...links);
+      await Promise.all(links.map((link) => new Promise((resolve, reject) => { link.onload = resolve; link.onerror = () => reject(new Error(link.href)); })));
+      full.remove();
+    }, files);
+  }
+
+  /** The properties that differ, per element both sides hold (a popup a script adds or drops on resize aside). */
+  const differ = (a, b) => {
+    const after = new Map(b);
+    expect(a.filter(([name]) => after.has(name)).length).toBeGreaterThan(a.length * 0.98);
+    return a.flatMap(([name, style]) => {
+      if (!after.has(name) || after.get(name) === style) return [];
+      const left = new Map(style.split('; ').map((pair) => pair.split(': ')));
+      const right = new Map((after.get(name) ?? '').split('; ').map((pair) => pair.split(': ')));
+      return [`${name}: ${[...left].filter(([property, value]) => right.get(property) !== value).map(([property, value]) => `${property} ${value} | ${right.get(property)}`).join(', ')}`];
+    });
+  };
+
+  const PAGES = [
+    ...['card', 'table', 'form', 'list', 'page', 'shell', 'dialog', 'sheet', 'tabs', 'badge', 'combobox', 'savebar', 'toast', 'utilities'].map((name) => `/test/browser/fixtures/component.html?c=${name}`),
+    // The reference app's views (its overview's activity feed moves on by itself, so it is left out).
+    '/example/index.html#/devices',
+    '/example/index.html#/tickets',
+    '/example/index.html#/settings',
+  ];
+
+  for (const path of PAGES) {
+    test(path, async ({ page }) => {
+      // A fixed clock: the reference app's live data must not change between the two readings.
+      await page.clock.install({ time: new Date('2026-03-02T10:00:00Z') });
+      await page.goto(path);
+      await page.clock.runFor(3000);
+      if (path.includes('component.html')) await expect(page.locator('html')).toHaveAttribute('data-fixture-ready', /.*/);
+      else await expect(page.locator('#page')).not.toBeEmpty();
+      await page.mouse.move(1, 1);
+      await page.clock.runFor(2000);
+      const before = await everything(page);
+      const names = await used(page);
+      expect(names.length).toBeGreaterThan(1);
+      // No time passes: the stylesheets load over the network, the page's timers stay where they were.
+      await relink(page, names);
+      expect(await page.evaluate(() => [...document.styleSheets].some((sheet) => sheet.href?.endsWith('/ds.css')))).toBe(false);
+      expect(differ(before, await everything(page))).toEqual([]);
+    });
+  }
+});

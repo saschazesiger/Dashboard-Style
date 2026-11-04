@@ -1,7 +1,7 @@
 {
   "name": "savebar",
   "group": "forms",
-  "order": 400,
+  "order": 380,
   "docsOrder": 290,
   "need": "Save or discard unsaved changes from a bar that appears when something changed, or keep a form's actions in reach",
   "tier": 1,

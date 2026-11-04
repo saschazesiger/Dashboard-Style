@@ -6,7 +6,7 @@
  * after it.
  *
  * Order: tokens, motion, the opt-in page base, then components from the
- * smallest building blocks to the app frame.
+ * smallest building blocks to the containers and the app frame.
  *
  * Cascade layers: every stylesheet starts with the same layer statement
  * (so a single file keeps the order too) and puts its rules into one of
@@ -16,26 +16,25 @@
  * declared before this file (@layer reset;). @property and @font-face
  * stay outside the layers.
  *
- * Sublayers (reserved): the second statement declares one sublayer per
- * component, ds.components.<name>, in this order, and every file of
- * dist/css/ and every bundle carries it, so the order is fixed by the
- * first stylesheet a page loads. The components do not use them yet: their
- * rules still sit directly in ds.components, which beats every (empty)
- * sublayer, so the statement changes nothing today. Moving a component into
- * its sublayer makes a later component win over an earlier one whatever
- * the specificity, and 2.x relies on the opposite in places: zero-weight
- * :where() defaults of one file that a later file's heavier rule overrides
- * the other way round (the ripple host's position, the spacing of card
- * children against the lists, a button's hover colour inside an alert, a
- * fieldset after a card subtitle). Those pairs form cycles, so no order
- * of sublayers keeps today's cascade; each component moves into its
- * sublayer when it is ported and its pairs are resolved. Until then a
- * page that links single files links them in this order (css/index.css),
- * and a bundle writes them in it.
+ * Sublayers: the second statement declares ds.components.global (the
+ * rules for every element of .ds-theme, global.css) and one sublayer per
+ * component, ds.components.<name>, in this order. Every component puts
+ * all its rules into its own sublayer, and every file of dist/css/ and
+ * every bundle carries the statement, so the first stylesheet a page loads
+ * fixes the order: single files linked in any order, a partial bundle and
+ * several bundles on one page cascade exactly as ds.css does. A later
+ * component wins over an earlier one whatever the specificity, so a rule
+ * that names another component's class sits in the later of the two: the
+ * component that gives the context (a card for what sits in it) comes
+ * after what it places, and the build fails a stylesheet that names a
+ * class of a later component (outside :not() and :has(); the ripple's
+ * state classes aside) or a rule outside its own sublayer. ripple comes
+ * last: the ripple's own box and its press rules for the 2.x hosts win
+ * over every host (plans/3.0-conventions.md, section 1).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
+@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;
 
 @import './core/tokens.css';
 @import './core/options.css';
@@ -45,40 +44,40 @@
 
 @import './components/utilities/utilities.css';
 @import './components/scroller/scroller.css';
-@import './components/button/button.css';
 @import './components/spinner/spinner.css';
 @import './components/loader/loader.css';
 @import './components/indicator/indicator.css';
+@import './components/button/button.css';
 @import './components/loading/loading.css';
-@import './components/card/card.css';
 @import './components/disclosure/disclosure.css';
-@import './components/tile/tile.css';
-@import './components/list/list.css';
 @import './components/timeline/timeline.css';
 @import './components/tasks/tasks.css';
-@import './components/prose/prose.css';
-@import './components/empty/empty.css';
 @import './components/status/status.css';
 @import './components/alert/alert.css';
+@import './components/switch/switch.css';
+@import './components/slider/slider.css';
+@import './components/progress/progress.css';
+@import './components/chart/chart.css';
+@import './components/tile/tile.css';
+@import './components/list/list.css';
+@import './components/card/card.css';
+@import './components/prose/prose.css';
+@import './components/empty/empty.css';
+@import './components/menu/menu.css';
+@import './components/chip/chip.css';
+@import './components/badge/badge.css';
+@import './components/sheet/sheet.css';
+@import './components/dialog/dialog.css';
 @import './components/table/table.css';
 @import './components/pagination/pagination.css';
 @import './components/form/form.css';
 @import './components/drag/drag.css';
-@import './components/chip/chip.css';
-@import './components/badge/badge.css';
-@import './components/switch/switch.css';
-@import './components/slider/slider.css';
 @import './components/combobox/combobox.css';
-@import './components/menu/menu.css';
-@import './components/progress/progress.css';
-@import './components/chart/chart.css';
-@import './components/sheet/sheet.css';
-@import './components/dialog/dialog.css';
-@import './components/toast/toast.css';
 @import './components/tooltip/tooltip.css';
+@import './components/page/page.css';
 @import './components/shell/shell.css';
 @import './components/tabs/tabs.css';
 @import './components/steps/steps.css';
-@import './components/ripple/ripple.css';
-@import './components/page/page.css';
+@import './components/toast/toast.css';
 @import './components/savebar/savebar.css';
+@import './components/ripple/ripple.css';
