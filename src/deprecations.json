@@ -278,6 +278,33 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Read by the deprecated .ds-btn--sm.ds-btn--icon (and the room a drawer row keeps for it). .ds-sm takes --ds-btn-icon-size less one 8px size step."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-check--sm",
+      "pattern": "(?<![\\w-])ds-check--sm(?![\\w-])",
+      "replacement": ".ds-sm",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Sizes are option classes on the row or any ancestor (.ds-xs ... .ds-xl, docs/options.md). The alias keeps the fixed 2.x height (32px) and the quieter ink until 3.0 ships; .ds-sm is 32px at the default density and follows the density; the ink is the page's to choose."
+    },
+    {
+      "kind": "hook",
+      "name": "--ds-check-sm-height",
+      "pattern": "(?<![\\w-])--ds-check-sm-height(?![\\w-])",
+      "replacement": "--ds-check-height",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Read only by the deprecated .ds-check--sm. .ds-sm takes --ds-check-height (the md base) less one 8px size step."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-input-group__affix",
+      "pattern": "(?<![\\w-])ds-input-group__affix(?![\\w-])",
+      "replacement": ".ds-input-group__suffix",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "One slot per place: .ds-input-group__prefix before the input, .ds-input-group__suffix after it (a migration maps to the suffix; change a leading one to the prefix). Same look; an alias until 3.0 ships."
     }
   ]
 }
