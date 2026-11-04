@@ -2,7 +2,7 @@
   "name": "slider",
   "group": "forms",
   "order": 250,
-  "docsOrder": null,
+  "docsOrder": 225,
   "need": "Pick a value on a range by dragging or with the arrow keys",
   "tier": 1,
   "status": "stable",
@@ -16,7 +16,15 @@
   "hooks": {
     "--ds-slider-halo": {
       "default": "40px",
-      "description": "the halo around the slider handle (hover, press, focus), and the slider's height"
+      "description": "the halo around the slider handle (hover, press, focus), and the slider's height: the base that size and density steps apply to"
+    },
+    "--ds-slider-thumb-size": {
+      "default": "20px",
+      "description": "the slider handle: the base, 4px per size step"
+    },
+    "--ds-slider-track-height": {
+      "default": "4px",
+      "description": "the slider track: the base, 1px per size step"
     }
   },
   "keyframes": [],
