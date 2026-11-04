@@ -1,0 +1,333 @@
+/*
+ * Layout of the 3.0 styleguide (index.html) only, sg- prefix, tokens only;
+ * the components come from dist/ds.css unchanged. styleguide.css (loaded
+ * before) keeps the foundation parts it shares with legacy.html: swatches,
+ * type rows, spaces, shapes, icons, findings, the mark and the speed select.
+ */
+
+/* ── Top bar ────────────────────────────────────── */
+
+.sg-search-button {
+  display: none;
+}
+
+/* The bar's search hides below 720px (.ds-topbar__search): the button opens the search page there. */
+@media (max-width: 720px) {
+  .sg-search-button {
+    display: inline-flex;
+  }
+}
+
+/* ── Page parts ─────────────────────────────────── */
+
+.sg-row--meta {
+  align-items: center;
+  margin-top: var(--ds-space-2);
+}
+
+.sg-row--meta .ds-btn {
+  margin-inline-start: calc(var(--ds-space-1) * -1);
+}
+
+.sg-lead {
+  margin: 0;
+  max-width: var(--ds-measure);
+  font: var(--ds-font-reading);
+  color: var(--ds-text-2);
+}
+
+.sg-note {
+  margin-top: var(--ds-space-2);
+}
+
+.sg-card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.sg-card-title > svg {
+  color: var(--ds-primary);
+}
+
+.sg-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--ds-space-4);
+  align-items: start;
+}
+
+.sg-links {
+  display: grid;
+  gap: var(--ds-space-2);
+  margin: var(--ds-space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font: var(--ds-font-body);
+}
+
+.sg-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+
+.sg-filter > .ds-search {
+  flex: 1 1 240px;
+  max-width: 420px;
+}
+
+.sg-codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-1) var(--ds-space-2);
+  margin: 0 0 var(--ds-space-3);
+  font: var(--ds-font-meta);
+}
+
+.sg-codes code {
+  overflow-wrap: anywhere;
+}
+
+.sg-reference {
+  margin-top: var(--ds-space-2);
+}
+
+.sg-icons--filled .ds-icon--fillable {
+  fill: currentColor;
+}
+
+/* Its own minimum: on a phone the table scrolls sideways rather than squeezing the values. */
+.sg-token-value {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  min-inline-size: 200px;
+  overflow-wrap: anywhere;
+}
+
+.sg-token-chip {
+  flex: none;
+  width: var(--ds-space-4);
+  height: var(--ds-space-4);
+  border-radius: var(--ds-radius-xs);
+  box-shadow: inset 0 0 0 1px var(--ds-line-2);
+}
+
+.sg-search-page {
+  max-width: 640px;
+}
+
+/* ── The options panel ──────────────────────────── */
+
+.sg-options__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+}
+
+.sg-options__head .ds-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  margin: 0;
+}
+
+.sg-options__head .ds-card__title > svg {
+  color: var(--ds-primary);
+}
+
+.sg-options__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--ds-space-4) var(--ds-space-5);
+  align-items: start;
+  margin-top: var(--ds-space-4);
+}
+
+.sg-options--theme .sg-options__grid {
+  margin-top: 0;
+}
+
+.sg-options__grid > .ds-field {
+  margin: 0;
+}
+
+/* The size and scheme switches fill their column. */
+.sg-options .sg-segmented {
+  display: flex;
+  width: 100%;
+  margin: 0;
+}
+
+.sg-options .sg-segmented .ds-segmented__option {
+  flex: 1 1 0;
+  min-width: 0;
+  --ds-segmented-padding-x: var(--ds-space-2);
+}
+
+.sg-switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3) var(--ds-space-5);
+  align-items: center;
+  min-height: 40px;
+}
+
+.sg-width {
+  grid-column: span 2;
+}
+
+@media (max-width: 600px) {
+  .sg-width {
+    grid-column: auto;
+  }
+}
+
+.sg-width .ds-slider__value {
+  min-width: 5ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.sg-options__note {
+  margin: var(--ds-space-4) 0 0;
+}
+
+/* ── The stage ──────────────────────────────────── */
+
+/* The stage is a .ds-theme of its own: it paints its own backdrop, so the
+   colour scheme pinned on it shows, and its width is the width option's. */
+.sg-stage-wrap {
+  container: sg-stage / inline-size;
+  min-width: 0;
+}
+
+.sg-demo-stage {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  margin-inline: auto;
+  padding: var(--ds-space-6);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-panel);
+  background: var(--ds-backdrop);
+  color: var(--ds-text);
+  font: var(--ds-font-body);
+}
+
+.sg-demo-stage[style*="inline-size"] {
+  outline: 1px dashed var(--ds-outline);
+  outline-offset: var(--ds-space-1);
+}
+
+@media (max-width: 600px) {
+  .sg-demo-stage {
+    padding: var(--ds-space-4);
+  }
+}
+
+.sg-demo-root {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ds-space-5);
+}
+
+.sg-demo-section {
+  display: grid;
+  gap: var(--ds-space-3);
+}
+
+.sg-demo-section__title {
+  margin: 0;
+  font: var(--ds-font-subtitle);
+}
+
+.sg-demo-section__lead {
+  margin: 0;
+  max-width: var(--ds-measure);
+  color: var(--ds-text-2);
+}
+
+/* ── The theme generator ────────────────────────── */
+
+.sg-theme-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ds-space-4);
+}
+
+.sg-theme-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--ds-space-4) var(--ds-space-5);
+  align-items: start;
+}
+
+.sg-theme-form > .sg-row {
+  grid-column: 1 / -1;
+}
+
+.sg-theme-form .ds-field {
+  margin: 0;
+}
+
+.sg-seed-row {
+  align-items: center;
+  gap: var(--ds-space-2);
+}
+
+.sg-seed-swatch {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--ds-line-2);
+  border-radius: var(--ds-radius-field);
+  background: var(--ds-surface);
+  cursor: pointer;
+}
+
+.sg-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: var(--ds-space-4);
+}
+
+.sg-preview {
+  display: grid;
+  gap: var(--ds-space-3);
+  align-content: start;
+  padding: var(--ds-space-5);
+  border: 1px solid var(--ds-line);
+  border-radius: var(--ds-radius-panel);
+  background: var(--ds-backdrop);
+  color: var(--ds-text);
+  font: var(--ds-font-body);
+}
+
+.sg-preview__label {
+  margin: 0;
+  font: var(--ds-font-caption);
+  color: var(--ds-text-2);
+}
+
+.sg-preview__body {
+  display: grid;
+  gap: var(--ds-space-4);
+}
+
+.sg-preview__body .ds-card {
+  display: grid;
+  gap: var(--ds-space-3);
+}
+
+.sg-preview__body .ds-field {
+  margin: 0;
+}
+
+.sg-theme-css {
+  max-height: 480px;
+  overflow: auto;
+}
