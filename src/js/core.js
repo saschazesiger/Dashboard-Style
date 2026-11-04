@@ -180,6 +180,17 @@ const DEFAULT_STRINGS = Object.freeze({
   kvRemoved: 'Removed {key}.',
   kvRemovedRow: 'Removed a row.',
   kvPasted: 'Pasted {count} rows.',
+  wizardDone: 'done',
+  wizardFix: 'Needs attention',
+  wizardStepOf: 'Step {index} of {count}',
+  wizardStep: 'Step {index} of {count}: {label}',
+  wizardError: 'One field needs attention.',
+  wizardErrors: '{count} fields need attention.',
+  wizardEmpty: 'Not given',
+  wizardEdit: 'Edit {label}',
+  wizardEditShort: 'Edit',
+  wizardYes: 'Yes',
+  wizardNo: 'No',
 });
 
 /**
