@@ -54,6 +54,35 @@ test('density: 1px off the gap and 2px off the padding of blocks per step; the t
   }
 });
 
+test('compact: 1px per density step off the gap and the padding; a cell keeps its side padding', async ({ page }) => {
+  await open(page);
+  for (const [density, step] of DENSITIES) {
+    await add(page, `<div class="ds-prose ds-prose--compact ${density}">${SAMPLE}</div>`);
+    const measured = await metrics(page);
+    expect(measured.gap, density).toBeCloseTo(4 + step, 0);
+    expect(measured.quote, density).toBe(12 + step);
+    expect(measured.pre, density).toBe(12 + step);
+    expect(measured.callout, density).toBe(12 + step);
+    expect(measured.cell, `${density}: the cell's side`).toBe(8);
+    expect(await page.$eval('#cell', (el) => parseFloat(getComputedStyle(el).paddingTop)), density).toBe(4 + step);
+    expect(await page.$eval('#quote', (el) => parseFloat(getComputedStyle(el).paddingTop)), density).toBe(8 + step);
+    expect(measured.font, density).toBe(14);
+  }
+});
+
+test('the gap is the prose\'s: a density class on a block changes the block and not the gap above it', async ({ page }) => {
+  await open(page);
+  for (const [mode, gap] of [['', 8], ['ds-prose--compact', 4]]) {
+    await add(page, `<div class="ds-prose ${mode}"><p id="one">One</p><p class="ds-density-tight" id="two">Two</p><pre class="ds-density-tight" id="three"><code>x</code></pre></div>`);
+    const gaps = await page.evaluate(() => {
+      const box = (id) => document.getElementById(id).getBoundingClientRect();
+      return [box('two').top - box('one').bottom, box('three').top - box('two').bottom];
+    });
+    expect(gaps[0], mode).toBeCloseTo(gap, 0);
+    expect(gaps[1], mode).toBeCloseTo(gap, 0);
+  }
+});
+
 test('shape: multiplies the radius of quotes, callouts, code blocks and inline code', async ({ page }) => {
   await open(page);
   const radius = (id) => page.$eval(`#${id}`, (el) => parseFloat(getComputedStyle(el).borderTopLeftRadius));
@@ -137,6 +166,23 @@ test('task list: each of the three forms loses its bullet, its box where the bul
   await expect(list.getByRole('checkbox', { name: 'Label printed' })).not.toBeChecked();
 });
 
+test('task list: the box is centred on the first line of its text, in each form and each mode', async ({ page }) => {
+  await open(page);
+  const FORMS = '<ul><li><label><input type="checkbox" disabled checked> Charger</label></li><li><input type="checkbox" disabled aria-label="Label"> Label</li><li><p><input type="checkbox" disabled aria-label="Backup"> Backup</p></li><li><p><input type="checkbox" disabled aria-label="Loose"> Loose, the second of a loose list</p></li></ul>';
+  for (const mode of ['', 'ds-prose--dense', 'ds-prose--compact']) {
+    await add(page, `<div class="ds-prose ${mode}">${FORMS}</div>`);
+    const offsets = await page.$$eval('#probe input', (boxes) => boxes.map((box) => {
+      const rect = box.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(box.nextSibling);
+      const line = range.getClientRects()[0];
+      return Math.abs((rect.top + rect.bottom) / 2 - (line.top + line.bottom) / 2);
+    }));
+    expect(offsets).toHaveLength(4);
+    for (const offset of offsets) expect(offset, mode || 'reading').toBeLessThan(1);
+  }
+});
+
 test('a box the page made editable takes the ring and toggles with Space', async ({ page }) => {
   await open(page);
   await add(page, '<div class="ds-prose"><ul><li><label><input type="checkbox" id="editable"> Editable</label></li></ul></div>');
@@ -174,28 +220,92 @@ test('callouts: each tone colours the block, with its word and icon; no tone is 
   await expect(callouts.first()).toHaveRole('note');
 });
 
+test('a callout reads the tone from its own class: an inherited one leaves a plain note on the quote\'s surface', async ({ page }) => {
+  await open(page);
+  await add(page, `<div class="ds-prose"><blockquote id="quote">Quote</blockquote></div>
+    <div class="ds-tone-error"><div class="ds-prose">
+      <div class="ds-prose__callout" id="plain"><p>Note</p></div>
+      <div class="ds-prose__callout ds-tone-info" id="own"><p>Own tone</p></div>
+    </div></div>
+    <div class="ds-prose"><div class="ds-prose__callout ds-tone-info" id="reference"><p>Info</p></div></div>
+    <div class="ds-prose"><div class="ds-prose__callout ds-tone-neutral" id="neutral"><p>Neutral</p></div></div>`);
+  const look = (id) => page.$eval(`#${id}`, (el) => [getComputedStyle(el).backgroundColor, getComputedStyle(el).color]);
+  const quote = await look('quote');
+  expect((await look('plain'))[0]).toBe(quote[0]);
+  expect((await look('plain'))[1]).toBe(quote[1]);
+  expect(await look('own')).toEqual(await look('reference'));
+  expect((await look('reference'))[0]).not.toBe(quote[0]);
+  expect((await look('neutral'))[0], 'the neutral tone is that surface too').toBe(quote[0]);
+});
+
 test('footnotes: the meta role under a hairline', async ({ page }) => {
   await open(page);
   const notes = page.locator('[data-demo="footnotes"] .ds-prose__footnotes');
   expect(await notes.evaluate((el) => [getComputedStyle(el).fontSize, getComputedStyle(el).borderTopStyle])).toEqual(['12px', 'solid']);
 });
 
-test('a component inside prose keeps its look; a page\'s class wins too', async ({ page }) => {
+test('a component inside prose keeps its look, in a callout too; a bare link takes the callout\'s ink', async ({ page }) => {
   await open(page);
   await add(page, `<div class="ds-prose">
     <a class="ds-btn ds-btn--filled" href="#x" id="button">Open</a>
     <a href="#x" id="bare">Link</a>
     <hr class="ds-divider ds-divider--inset" id="divider">
-    <h2 class="ds-card__title" id="title">Title</h2>
-    <p class="x-own" id="own">Text</p>
-  </div><a class="ds-btn ds-btn--filled" href="#x" id="reference">Open</a>`);
+    <h3 class="ds-card__title" id="title">Title</h3>
+    <div class="ds-prose__callout ds-tone-info" id="callout">
+      <p><a class="ds-btn ds-btn--filled" href="#x" id="in-callout">Open</a></p>
+      <p><a class="ds-chip" href="#x" id="chip-in-callout">Chip</a></p>
+      <p><a class="x-page ds-btn ds-btn--filled" href="#x" id="second-class">Open</a></p>
+      <p><a href="#x" id="bare-in-callout">Link</a></p>
+    </div>
+  </div><a class="ds-btn ds-btn--filled" href="#x" id="reference">Open</a><a class="ds-chip" href="#x" id="chip-reference">Chip</a><h3 class="ds-card__title" id="title-reference">Title</h3>`);
   const read = (id) => page.$eval(`#${id}`, (el) => {
     const style = getComputedStyle(el);
     return { color: style.color, decoration: style.textDecorationLine, background: style.backgroundColor };
   });
-  expect(await read('button')).toEqual(await read('reference'));
+  await settle(page);
+  const reference = await read('reference');
+  expect(await read('button')).toEqual(reference);
+  expect(await read('in-callout'), 'a filled button on a callout keeps its ink').toEqual(reference);
+  expect(await read('second-class'), 'a ds- class after a class of the page counts too').toEqual(reference);
+  // A chip's own rule inherits the ink around it, so on a tint it reads like any text there; no underline is added.
+  const chip = await read('chip-in-callout');
+  expect(chip.color).toBe((await read('callout')).color);
+  expect(chip.decoration).toBe((await read('chip-reference')).decoration);
   expect((await read('bare')).decoration).toBe('underline');
+  const bare = await read('bare-in-callout');
+  expect(bare.color).toBe((await read('callout')).color);
+  expect(bare.decoration).toBe('underline');
   expect(await page.$eval('#divider', (el) => getComputedStyle(el).marginInlineStart)).toBe('16px');
+  // An h3 in prose would take the reading text's font; a card title keeps its role.
+  const font = (id) => page.$eval(`#${id}`, (el) => [getComputedStyle(el).fontSize, getComputedStyle(el).fontWeight, getComputedStyle(el).lineHeight]);
+  expect(await font('title')).toEqual(await font('title-reference'));
+});
+
+test('a page\'s class is not a system class: it wins over what it sets and keeps the rest, even when its name contains ds-', async ({ page }) => {
+  await open(page);
+  await add(page, `<style>.x-own { background-color: rgb(1, 2, 3); }</style><div class="ds-prose">
+    <blockquote id="bare">Bare</blockquote>
+    <blockquote class="needs-review" id="needs">Contains ds-</blockquote>
+    <blockquote class="x-own" id="own">Sets its background</blockquote>
+    <ul id="plain-list"><li>Item</li></ul>
+    <ul class="cards-list" id="cards"><li>Item</li></ul>
+    <a href="#x" class="downloads-link" id="downloads">Link</a>
+    <p class="fields-note x-page" id="note"><code class="fields-code" id="code">code</code></p>
+  </div>`);
+  const look = (id) => page.$eval(`#${id}`, (el) => {
+    const style = getComputedStyle(el);
+    return { background: style.backgroundColor, padding: style.paddingLeft, list: style.paddingInlineStart, decoration: style.textDecorationLine, border: style.borderTopStyle };
+  });
+  const bare = await look('bare');
+  expect(bare.background).not.toBe('rgba(0, 0, 0, 0)');
+  expect(bare.padding).toBe('16px');
+  expect(await look('needs')).toEqual(bare);
+  const own = await look('own');
+  expect(own.background, 'the page\'s class wins over what it sets').toBe('rgb(1, 2, 3)');
+  expect(own.padding, 'and keeps the rest').toBe('16px');
+  expect(await look('cards')).toEqual(await look('plain-list'));
+  expect((await look('downloads')).decoration).toBe('underline');
+  expect((await look('code')).border).toBe('solid');
 });
 
 test('code block: Tab reaches a named block that scrolls, an inset ring; arrow keys scroll; --wrap wraps', async ({ page }) => {

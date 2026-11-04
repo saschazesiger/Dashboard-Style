@@ -10,11 +10,12 @@
  *   <pre class="ds-code-block ds-code-block--wrap">...</pre> (long lines wrap)
  *
  * .ds-prose styles only bare elements inside it (every rule is under
- * :where(.ds-prose) and skips an element with a ds- class, so a class of
- * the page always wins and a component inside prose keeps its look, wherever
- * its stylesheet stands in the cascade): a rhythm of --ds-prose-gap between
- * blocks (their margins reset first), headings on the type roles (h1
- * headline, h2 subtitle, h3 and h4 the label weight at the reading size),
+ * :where(.ds-prose) and skips an element with a class that starts with ds-,
+ * so a class of the page always wins and a component inside prose keeps its
+ * look, wherever its stylesheet stands in the cascade): a rhythm of
+ * --ds-prose-gap between blocks (their margins reset first), headings on the
+ * type roles (h1 headline, h2 subtitle, h3 and h4 the label weight at the
+ * reading size),
  * lists indented --ds-space-5, strong in --ds-prose-strong-weight, links
  * underlined like every link, a pre as a code block, a table with hairline
  * rows, a --ds-text-2 head and tabular figures that scrolls sideways when it
@@ -35,8 +36,10 @@
  *     <p class="ds-prose__callout-title">(alert 16)Warning</p>
  *     <p>...</p>
  *   </div>
- * The tone (.ds-tone-*, without one the neutral surface) colours the block;
- * the word says what it is, so meaning never rests on the colour.
+ * A tone class on the callout itself (.ds-tone-*) colours the block; without
+ * one it has the quote's surface, also inside an element with a tone (a
+ * note would read as that tone). The word says what it is, so meaning never
+ * rests on the colour.
  *
  * Footnotes: <section class="ds-prose__footnotes"> <ol>...</ol> </section>,
  * the meta role under a hairline.
@@ -55,6 +58,9 @@
  * ancestor; each is computed here:
  *   density   .ds-density-*: 1px off the gap between blocks per step, 2px
  *             off the padding of quotes, callouts, code and table cells;
+ *             --compact, whose padding is tight already, 1px, and its table
+ *             cells keep their side padding; the gap is read on the prose,
+ *             so a density class on a child leaves the gap above it alone;
  *             the text stays
  *   shape     .ds-shape-*: multiplies the radius of quotes, callouts, code
  *             blocks and inline code
@@ -92,6 +98,9 @@
     color: var(--ds-text);
     font: var(--ds-prose-font, var(--ds-font-reading));
     overflow-wrap: anywhere;
+    /* Computed here and read by the blocks: a density class on one of them
+       changes that block and not the gap above it. */
+    --_prose-gap: calc(var(--ds-prose-gap, var(--ds-space-2)) + var(--ds-density, 0) * 1px);
   }
 
   .ds-prose--dense {
@@ -114,10 +123,10 @@
   }
 
   :where(.ds-prose) > * + * {
-    margin-block-start: calc(var(--ds-prose-gap, var(--ds-space-2)) + var(--ds-density, 0) * 1px);
+    margin-block-start: var(--_prose-gap);
   }
 
-  :where(.ds-prose) :is(h1, h2, h3, h4, h5, h6):where(:not([class*="ds-"])) {
+  :where(.ds-prose) :is(h1, h2, h3, h4, h5, h6):where(:not([class^="ds-"], [class*=" ds-"])) {
     margin-block: 0;
     color: var(--ds-text);
     letter-spacing: 0;
@@ -125,44 +134,44 @@
   }
 
   /* A heading opens a section: more room above it than between paragraphs. */
-  :where(.ds-prose) > * + :is(h1, h2, h3, h4, h5, h6):where(:not([class*="ds-"])) {
+  :where(.ds-prose) > * + :is(h1, h2, h3, h4, h5, h6):where(:not([class^="ds-"], [class*=" ds-"])) {
     margin-block-start: var(--ds-space-5);
   }
 
-  :where(.ds-prose) h1:where(:not([class*="ds-"])) {
+  :where(.ds-prose) h1:where(:not([class^="ds-"], [class*=" ds-"])) {
     font: var(--ds-font-headline);
   }
 
-  :where(.ds-prose) h2:where(:not([class*="ds-"])) {
+  :where(.ds-prose) h2:where(:not([class^="ds-"], [class*=" ds-"])) {
     font: var(--ds-font-subtitle);
   }
 
-  :where(.ds-prose) :is(h3, h4, h5, h6):where(:not([class*="ds-"])) {
+  :where(.ds-prose) :is(h3, h4, h5, h6):where(:not([class^="ds-"], [class*=" ds-"])) {
     font: inherit;
     font-weight: var(--ds-weight-label);
   }
 
-  :where(.ds-prose) p:where(:not([class*="ds-"])) {
+  :where(.ds-prose) p:where(:not([class^="ds-"], [class*=" ds-"])) {
     text-wrap: pretty;
   }
 
-  :where(.ds-prose) :is(ul, ol):where(:not([class*="ds-"])) {
+  :where(.ds-prose) :is(ul, ol):where(:not([class^="ds-"], [class*=" ds-"])) {
     padding-inline-start: var(--ds-space-5);
   }
 
-  :where(.ds-prose) li > :is(ul, ol):where(:not([class*="ds-"])) {
+  :where(.ds-prose) li > :is(ul, ol):where(:not([class^="ds-"], [class*=" ds-"])) {
     margin-block-start: var(--ds-space-1);
   }
 
-  :where(.ds-prose) li:where(:not([class*="ds-"])) + li:where(:not([class*="ds-"])) {
+  :where(.ds-prose) li:where(:not([class^="ds-"], [class*=" ds-"])) + li:where(:not([class^="ds-"], [class*=" ds-"])) {
     margin-block-start: var(--ds-space-1);
   }
 
-  :where(.ds-prose) :is(strong, b):where(:not([class*="ds-"])) {
+  :where(.ds-prose) :is(strong, b):where(:not([class^="ds-"], [class*=" ds-"])) {
     font-weight: var(--ds-prose-strong-weight, var(--ds-weight-label));
   }
 
-  :where(.ds-prose) a:where(:not([class*="ds-"])) {
+  :where(.ds-prose) a:where(:not([class^="ds-"], [class*=" ds-"])) {
     color: var(--ds-link);
     text-decoration-line: underline;
     text-decoration-thickness: var(--ds-link-underline-thickness);
@@ -170,12 +179,12 @@
     text-decoration-color: var(--ds-link-underline);
   }
 
-  :where(.ds-prose) img:where(:not([class*="ds-"])) {
+  :where(.ds-prose) img:where(:not([class^="ds-"], [class*=" ds-"])) {
     max-width: 100%;
     height: auto;
   }
 
-  :where(.ds-prose) blockquote:where(:not([class*="ds-"])) {
+  :where(.ds-prose) blockquote:where(:not([class^="ds-"], [class*=" ds-"])) {
     margin-inline: 0;
     padding: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px) calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
     border-radius: calc(var(--ds-prose-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
@@ -183,11 +192,18 @@
     color: var(--ds-text);
   }
 
-  /* A callout: its tone's tint, its word and icon on a line of their own.
-     Without a tone the quote's surface. */
+  /* A callout: its word and icon on a line of their own, on the quote's
+     surface. */
   .ds-prose__callout {
     padding: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px) calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
     border-radius: calc(var(--ds-prose-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
+    background: var(--ds-surface-high);
+    color: var(--ds-text);
+  }
+
+  /* The tone is read only from the callout's own class: an inherited one would
+     turn a plain note into an error. */
+  .ds-prose__callout:is(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     background: var(--ds-tone-container, var(--ds-surface-high));
     color: var(--ds-on-tone-container, var(--ds-text));
   }
@@ -213,7 +229,7 @@
 
   /* Links and inline code take the block's ink: the tint is a surface of its
      own, on which the link colour's contrast is not promised. */
-  .ds-prose__callout :where(a) {
+  .ds-prose__callout :where(a:not([class^="ds-"], [class*=" ds-"])) {
     color: inherit;
   }
 
@@ -243,12 +259,14 @@
 
   :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child) {
     position: absolute;
+    /* 1lh is the text's line only with the text's font (an input has its own). */
+    font: inherit;
     inset-block-start: calc((1lh - var(--ds-space-4)) / 2);
     inset-inline-start: 0;
     margin: 0;
   }
 
-  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class*="ds-"])) {
+  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class^="ds-"], [class*=" ds-"])) {
     appearance: none;
     box-sizing: border-box;
     width: var(--ds-space-4);
@@ -261,19 +279,19 @@
     transition: outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
 
-  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class*="ds-"])):focus-visible {
+  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class^="ds-"], [class*=" ds-"])):focus-visible {
     outline: var(--ds-focus-outline);
     outline-offset: var(--ds-focus-offset);
   }
 
-  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class*="ds-"])):checked {
+  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class^="ds-"], [class*=" ds-"])):checked {
     border-color: var(--ds-primary);
     background: var(--ds-primary);
   }
 
   /* The check: two borders, turned, so a strict Content-Security-Policy that
      blocks a data: mask (docs/install.md) never hides it. */
-  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class*="ds-"])):checked::before {
+  :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class^="ds-"], [class*=" ds-"])):checked::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -288,14 +306,14 @@
     rotate: 45deg;
   }
 
-  :where(.ds-prose) hr:where(:not([class*="ds-"])) {
+  :where(.ds-prose) hr:where(:not([class^="ds-"], [class*=" ds-"])) {
     border: 0;
     border-top: 1px solid var(--ds-line);
   }
 
   /* A table of rendered text: hairline rows, a quiet head, tabular figures;
      wider than the text, it scrolls on its own. */
-  :where(.ds-prose) table:where(:not([class*="ds-"])) {
+  :where(.ds-prose) table:where(:not([class^="ds-"], [class*=" ds-"])) {
     position: relative;
     display: block;
     max-width: 100%;
@@ -307,20 +325,20 @@
     scrollbar-color: var(--ds-line-2) transparent;
   }
 
-  :where(.ds-prose) :is(th, td):where(:not([class*="ds-"])) {
+  :where(.ds-prose) :is(th, td):where(:not([class^="ds-"], [class*=" ds-"])) {
     padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px) calc(var(--ds-space-3) + var(--ds-density, 0) * 2px);
     border-bottom: 1px solid var(--ds-line);
     text-align: start;
     vertical-align: top;
   }
 
-  :where(.ds-prose) th:where(:not([class*="ds-"])) {
+  :where(.ds-prose) th:where(:not([class^="ds-"], [class*=" ds-"])) {
     color: var(--ds-text-2);
     font: var(--ds-font-label);
   }
 
   /* A pre in prose is a code block. */
-  :where(.ds-prose) pre:where(:not([class*="ds-"])),
+  :where(.ds-prose) pre:where(:not([class^="ds-"], [class*=" ds-"])),
   .ds-code-block {
     position: relative;
     margin: 0;
@@ -343,7 +361,7 @@
   }
 
   :where(.ds-prose) > * + pre {
-    margin-block-start: calc(var(--ds-prose-gap, var(--ds-space-2)) + var(--ds-density, 0) * 1px);
+    margin-block-start: var(--_prose-gap);
   }
 
   .ds-code-block:focus-visible {
@@ -367,7 +385,7 @@
   }
 
   /* Inline code in prose takes the size of the text around it. */
-  :where(.ds-prose) :not(pre) > code:where(:not([class*="ds-"])) {
+  :where(.ds-prose) :not(pre) > code:where(:not([class^="ds-"], [class*=" ds-"])) {
     padding: 0 var(--ds-space-1);
     border: 1px solid var(--ds-line);
     border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
@@ -380,67 +398,62 @@
    * Compact, for a chat bubble or a narrow panel: the body role, one heading
    * size and tight blocks. After the rules it tightens; the same (zero)
    * specificity, so the order in this file decides and a page's class wins.
+   * Its padding is tight already: 1px per density step instead of 2px, and a
+   * cell keeps its side padding (2px per step would close a cell's 4px).
    */
   .ds-prose--compact {
     --ds-prose-font: var(--ds-font-body);
+    --_prose-gap: calc(var(--ds-prose-gap, var(--ds-space-1)) + var(--ds-density, 0) * 1px);
   }
 
-  :where(.ds-prose--compact) > * + * {
-    margin-block-start: calc(var(--ds-prose-gap, var(--ds-space-1)) + var(--ds-density, 0) * 1px);
-  }
-
-  :where(.ds-prose--compact) > * + pre {
-    margin-block-start: calc(var(--ds-prose-gap, var(--ds-space-1)) + var(--ds-density, 0) * 1px);
-  }
-
-  :where(.ds-prose--compact) :is(h1, h2, h3, h4, h5, h6):where(:not([class*="ds-"])) {
+  :where(.ds-prose--compact) :is(h1, h2, h3, h4, h5, h6):where(:not([class^="ds-"], [class*=" ds-"])) {
     font: inherit;
     font-weight: var(--ds-weight-label);
   }
 
-  :where(.ds-prose--compact) > * + :is(h1, h2, h3, h4, h5, h6):where(:not([class*="ds-"])) {
+  :where(.ds-prose--compact) > * + :is(h1, h2, h3, h4, h5, h6):where(:not([class^="ds-"], [class*=" ds-"])) {
     margin-block-start: var(--ds-space-3);
   }
 
-  :where(.ds-prose--compact) :is(blockquote, pre):where(:not([class*="ds-"])),
+  :where(.ds-prose--compact) :is(blockquote, pre):where(:not([class^="ds-"], [class*=" ds-"])),
   .ds-prose--compact .ds-prose__callout,
   .ds-prose--compact .ds-code-block {
     padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 1px) calc(var(--ds-space-3) + var(--ds-density, 0) * 1px);
   }
 
-  :where(.ds-prose--compact) :is(th, td):where(:not([class*="ds-"])) {
+  :where(.ds-prose--compact) :is(th, td):where(:not([class^="ds-"], [class*=" ds-"])) {
     padding: calc(var(--ds-space-1) + var(--ds-density, 0) * 1px) var(--ds-space-2);
   }
 
   @media (forced-colors: active) {
     /* A task box: the system's choice colours, its check in their opposite. */
-    :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class*="ds-"])) {
+    :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class^="ds-"], [class*=" ds-"])) {
       forced-color-adjust: none;
       border-color: CanvasText;
       background: Canvas;
     }
 
-    :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class*="ds-"])):checked {
+    :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class^="ds-"], [class*=" ds-"])):checked {
       border-color: Highlight;
       background: Highlight;
     }
 
-    :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class*="ds-"])):checked::before {
+    :where(.ds-prose) input:where(li > [type="checkbox"]:first-child, li > :is(p, label):first-child > [type="checkbox"]:first-child):where(:not([class^="ds-"], [class*=" ds-"])):checked::before {
       border-color: HighlightText;
     }
 
-    :where(.ds-prose) blockquote:where(:not([class*="ds-"])),
+    :where(.ds-prose) blockquote:where(:not([class^="ds-"], [class*=" ds-"])),
     .ds-prose__callout,
-    :where(.ds-prose) pre:where(:not([class*="ds-"])),
+    :where(.ds-prose) pre:where(:not([class^="ds-"], [class*=" ds-"])),
     .ds-code-block {
       outline: 1px solid transparent;
     }
   }
 
   @media print {
-    :where(.ds-prose) pre:where(:not([class*="ds-"])),
+    :where(.ds-prose) pre:where(:not([class^="ds-"], [class*=" ds-"])),
     .ds-code-block,
-    :where(.ds-prose) table:where(:not([class*="ds-"])) {
+    :where(.ds-prose) table:where(:not([class^="ds-"], [class*=" ds-"])) {
       overflow: visible;
       white-space: pre-wrap;
     }
