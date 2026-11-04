@@ -3,7 +3,8 @@
  * touch x shape fills its box and is clipped by its radius, and the press
  * morph never rounds a corner past its rest value (shape 0 stays square);
  * every other host presses at the default shape and at shape 0; the tab's
- * ripple box follows the shape; tone and the hook; keyboard; names; forced
+ * ripple box is the tab's layer at every option; the demo's row link stays on
+ * the page; tone and the hook; keyboard; names; forced
  * colours; and the cascade: ripple.css played in a later layer than every
  * component, as sublayers will do, changes nothing (blocked hosts stay
  * unpressed, hosts keep their own position, a cell its own overflow). The
@@ -32,6 +33,7 @@ const noTransitions = (page) => page.addStyleTag({ content: '*, *::before, *::af
 const settled = (locator) => locator.evaluate((el) => Promise.all(el.getAnimations({ subtree: true }).filter((animation) => animation.transitionProperty).map((animation) => animation.finished.catch(() => null))).then(() => undefined));
 
 test('a button at every size x density x touch x shape: the ripple fills its box, the clip is its radius', async ({ page }) => {
+  test.slow();
   await open(page);
   await noTransitions(page);
   const measured = await page.evaluate(({ sizes, densities, shapes }) => {
@@ -98,6 +100,7 @@ test('a button at every size x density x touch x shape: the ripple fills its box
 
 for (const [shape, factor] of [['', 1], ['ds-shape-square', 0]]) {
   test(`every host presses at ${shape || 'the default shape'}: the ripple goes in, the morph never rounds a corner`, async ({ page, browserName }) => {
+    test.slow();
     await open(page);
     if (shape) await page.evaluate((name) => document.querySelector('#hosts').classList.add(name), shape);
     const ids = await page.$$eval('#hosts [data-host]', (hosts) => hosts.map((host) => host.id));
@@ -131,31 +134,83 @@ for (const [shape, factor] of [['', 1], ['ds-shape-square', 0]]) {
   });
 }
 
-test('the tab\'s ripple box takes the radius of the tab\'s layer, by the shape and the height', async ({ page }) => {
+test('the tab\'s ripple box is the tab\'s layer: its inset and radius at every shape, size, density and touch', async ({ page }) => {
   await open(page);
-  const tab = page.locator('#h-tab');
-  const boxRadius = async (classes) => {
-    await page.evaluate((names) => { document.querySelector('#hosts').className = `fx-section ${names}`; }, classes);
-    await tab.scrollIntoViewIfNeeded();
-    const box = await tab.boundingBox();
-    await page.mouse.move(box.x + 8, box.y + box.height / 2);
-    await page.mouse.down();
-    const radius = await tab.locator('.ds-press-ripple').first().evaluate((el) => ({ value: parseFloat(getComputedStyle(el).borderTopLeftRadius), clip: getComputedStyle(el).overflowX }));
-    await page.mouse.up();
-    await expect.poll(() => tab.locator('.ds-press-ripple').count(), { timeout: 3000 }).toBe(0);
-    expect(radius.clip).toBe('clip');
-    return radius.value;
-  };
-  // Half of the 40px layer of a 48px tab (the 4px inset on each side).
-  expect(await boxRadius('')).toBe(20);
-  expect(await tab.evaluate((el) => parseFloat(getComputedStyle(el, '::before').borderTopLeftRadius))).toBe(20);
-  expect(await boxRadius('ds-shape-square')).toBe(0);
-  expect(await boxRadius('ds-shape-soft')).toBe(10);
-  expect(await boxRadius('ds-shape-round')).toBe(20);
-  // The formula of a tab's height: 8px per size step, 4px per density step, at least the touch minimum.
-  expect(await boxRadius('ds-lg')).toBe(24);
-  expect(await boxRadius('ds-density-compact')).toBe(18);
-  expect(await boxRadius('ds-xs ds-touch')).toBe(20);
+  await noTransitions(page);
+  const measured = await page.evaluate(({ sizes, densities, shapes }) => {
+    const grid = document.querySelector('#grid');
+    const read = (classes, variant, facts) => {
+      const region = document.createElement('div');
+      region.className = classes;
+      region.innerHTML = `<div class="ds-tabs ${variant}" role="tablist" aria-label="Device"><button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" data-label="History">History</button></div>`;
+      grid.replaceChildren(region);
+      const tab = region.querySelector('.ds-tabs__tab');
+      const rect = tab.getBoundingClientRect();
+      // At rest: pressed, the layer turns squarer and the box does not follow it.
+      const layer = getComputedStyle(tab, '::before');
+      const rest = { radius: parseFloat(layer.borderTopLeftRadius), top: parseFloat(layer.top), bottom: parseFloat(layer.bottom) };
+      tab.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, isPrimary: true, pointerId: 1, pointerType: 'mouse', button: 0, buttons: 1, clientX: rect.left + 8, clientY: rect.top + rect.height / 2 }));
+      const span = tab.querySelector('.ds-press-ripple');
+      const box = span.getBoundingClientRect();
+      const style = getComputedStyle(span);
+      const circle = getComputedStyle(span, '::before');
+      const entry = {
+        ...facts,
+        name: `${variant} ${classes}`.trim() || 'default',
+        // The tabs port computes its layer in --_inset and --_layer; a 2.x tab's layer follows no option.
+        computes: getComputedStyle(tab).getPropertyValue('--_layer').trim() !== '',
+        rest,
+        radius: parseFloat(style.borderTopLeftRadius),
+        clip: style.overflowX,
+        top: box.top - rect.top,
+        bottom: rect.bottom - box.bottom,
+        // The circle's centre, from the tab's edge: the press, wherever the box starts.
+        centre: box.top - rect.top + parseFloat(circle.top) + parseFloat(circle.height) / 2,
+        y: parseFloat(span.style.getPropertyValue('--ds-ripple-y')),
+      };
+      window.fxRipples.release(tab);
+      return entry;
+    };
+    const out = [];
+    for (const touch of [false, true]) {
+      for (const [shape, factor] of shapes) {
+        for (const [density, level] of densities) {
+          for (const [size, step] of sizes) {
+            out.push(read(`${size} ${density} ${shape} ${touch ? 'ds-touch' : ''}`, '', { half: Math.max(touch ? 48 : 0, 48 + step * 8 + level * 4) / 2 - 4, factor }));
+          }
+        }
+      }
+    }
+    out.push({ ...read('', '', { half: 20, factor: 1 }), defaults: true });
+    for (const [shape] of shapes) out.push(read(shape, 'ds-tabs--contained', { contained: true }));
+    return out;
+  }, { sizes: SIZES, densities: DENSITIES, shapes: SHAPES });
+  expect(measured).toHaveLength(SIZES.length * DENSITIES.length * SHAPES.length * 2 + 1 + SHAPES.length);
+  for (const entry of measured) {
+    expect(entry.clip, entry.name).toBe('clip');
+    expect(entry.centre, `${entry.name}: the circle stays on the press`).toBeCloseTo(entry.y, 1);
+    // Against the layer itself, wherever it computes the options, and on any tab at the defaults.
+    if (entry.computes || entry.defaults) {
+      expect(entry.radius, `${entry.name}: the layer's radius`).toBeCloseTo(entry.rest.radius, 1);
+      expect(entry.top, `${entry.name}: the layer's top`).toBeCloseTo(entry.rest.top, 1);
+      expect(entry.bottom, `${entry.name}: the layer's bottom`).toBeCloseTo(entry.rest.bottom, 1);
+    }
+    if (entry.contained) continue;
+    // Half of the layer's height at most, times the shape; the layer sits --ds-space-1 inside the tab.
+    expect(entry.radius, entry.name).toBeCloseTo(Math.min(entry.half * entry.factor, entry.half), 1);
+    expect(entry.top, entry.name).toBeCloseTo(4, 1);
+    expect(entry.bottom, entry.name).toBeCloseTo(4, 1);
+  }
+});
+
+test('in the demo, a press on the row\'s link stays on the page', async ({ page }) => {
+  await page.goto('/styleguide/index.html#/components/ripple');
+  await ready(page);
+  await expect(page.locator('html')).toHaveAttribute('data-sg-route', 'components/ripple');
+  await page.locator('.ds-list__action').first().click();
+  await expect(page.locator('html')).toHaveAttribute('data-sg-route', 'components/ripple');
+  expect(new URL(page.url()).hash).toBe('#/components/ripple');
+  await expect(page.locator('h1').first()).toHaveText('Ripple');
 });
 
 test('the ink is the host\'s content colour, so a tone comes along; the hook takes over', async ({ page }) => {

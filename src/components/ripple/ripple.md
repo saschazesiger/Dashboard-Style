@@ -4,7 +4,7 @@ A press on an action grows a circle of the content colour from the pointer (Ente
 fades it when the press ends. One call wires every action on the page, also the ones rendered later:
 
 ```js
-const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripples.destroy() takes it back
+const ripples = DS.ripple.attach(document);   // <html> gets .ds-ripples; ripples.destroy() takes it back (DS.init(document) attaches too)
 ripples.release(host);                        // end a running press by hand (no argument: every press)
 ```
 
@@ -15,12 +15,14 @@ ripples.release(host);                        // end a running press by hand (no
 ```
 
 - Hosts (`DS.ripple.RIPPLE_HOSTS`): `.ds-btn`, `.ds-chip` (the ripple goes into `.ds-chip__body`),
-  `.ds-segmented__option`, `.ds-drawer__item`, `:is(button, a).ds-tile`, `.ds-card--interactive` (also the `<div>`
+  `.ds-segmented__option`, `.ds-drawer__item`, `.ds-drawer__toggle`, `.ds-tabs__tab` (the ripple is a box over the tab's
+  layer that clips the circle), `:is(button, a).ds-tile`, `.ds-card--interactive` (also the `<div>`
   form), `.ds-table__sort`, the body rows of `.ds-table--interactive` (the ripple goes into the row's first cell, a
   `<td>` or a `<th scope="row">` row header, as a box over the whole row that clips the circle; the row is isolated meanwhile, so the ripple paints under the
   cells' content), `.ds-radio` (a radio card, also when its own input is pressed), `.ds-combo__toggle`,
-  `.ds-menu__item`, `.ds-errors summary`, `.ds-pressable` ([Utilities](#a-pressable-element-of-your-own)) and
-  `[data-ds-ripple]`; Enter on a `.ds-table__row-link` or
+  `.ds-menu__item`, `.ds-errors summary`, `.ds-disclosure > summary`, `.ds-list--interactive > .ds-list__item`,
+  `:is(a, button).ds-kv-list__row`, `.ds-dropzone`, `:is(button, a).ds-columns__col`, `.ds-pressable`
+  ([Utilities](#a-pressable-element-of-your-own)) and `[data-ds-ripple]`; Enter on a `.ds-table__row-link` or
   `.ds-card__action` ripples its row or card from the centre, while a press on another link or control inside the
   row or `<div>` card (a plain link, a field, a label) is that control's own and ripples neither;
   `data-ds-ripple="off"` on a host or an ancestor opts out. Not hosts, by design: inline links (`.ds-link-btn`,
@@ -39,7 +41,8 @@ ripples.release(host);                        // end a running press by hand (no
 - The flat state layer and the ripple never stack: under `.ds-ripples` a pressed host keeps its hover layer (0 on
   touch screens), or its focus layer when a key pressed it, and the ripple adds the press. A button's layer also keeps what `--ds-btn-state-pressed-opacity`
   asks for beyond the ripple's `--ds-state-pressed`, so `.ds-btn--disc` shows its disc on press on touch screens
-  too. Without `attach()` the flat layer stays the press feedback.
+  too. `DS.ripple.attach(document)` or `DS.init(document)` wires it; a page that calls neither keeps the flat layer as
+  the press feedback.
 - A press ends early when another element captures the pointer (an ancestor that drags to scroll): the ripple
   fades as on release. `release(host?)` ends one by hand; `detach()` is the **deprecated** alias of `destroy()`
   until 3.0 ships. `:active` (the flat layer and the morph) lasts until the pointer button goes up.
@@ -80,7 +83,8 @@ Forced colours show no ripple (`display: none`); the host's own forced-colours r
 
 <!-- changelog -->
 - Ripple on the options model: a host at any size, density, shape and touch target; the tab's ripple box follows the
-  shape. The rules hold in any cascade order: each pressed rule leaves out the host's blocked states by itself, and
-  every system host positions itself (only `[data-ds-ripple]` is positioned by `ripple.css`).
+  shape, and it takes the inset and the radius the tab's layer computes. The rules hold in any cascade order: each
+  pressed rule leaves out the host's blocked states by itself, and every system host positions itself (only
+  `[data-ds-ripple]` is positioned by `ripple.css`).
 - `detach()` of the `DS.ripple.attach()` handle goes with 3.0.0 (`removed` set in `deprecations.json`): use `destroy()`.
 

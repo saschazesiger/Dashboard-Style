@@ -855,7 +855,7 @@ remembering the document's last input (a press or a key, under `Symbol.for('ds.i
 `DS.overlay` moves outside any input event follows (no keyboard ring after a tap). `destroy()` removes
 the listeners, the class and its hold on the guard (a guard that `busy()` installed stays; the shared input record
 stays too); ripples already shown
-finish (`detach()` is its **deprecated** alias, removed in 3.0 at the earliest).
+finish (`detach()` is its **deprecated** alias until 3.0 ships).
 
 A press ends when another element takes the pointer (2.0): an ancestor that captures it (a chip row that drags to
 scroll, a sortable list's row) fires `gotpointercapture`, and the ripple fades as on release while `.ds-pressed`

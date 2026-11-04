@@ -1,8 +1,8 @@
 /**
  * Pointer ripple (components/ripple.css): a press on an action grows a
  * circle of its content colour from the point that was pressed, and fades
- * it once the press ends. Without attach() the flat state layer stays the
- * press feedback.
+ * it once the press ends. attach() or DS.init() wires it; a page that calls
+ * neither keeps the flat state layer as its press feedback.
  *
  *   const ripples = DS.ripple.attach(document);   // once, for every action on the page
  *   ripples.release(host);                        // end a running press (no argument: every press)
@@ -13,6 +13,7 @@
  * the root: pointerdown for the pointer, Enter and Space for a centred
  * ripple on a focused host. Hosts: .ds-btn, .ds-chip (the ripple goes into
  * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
+ * .ds-drawer__toggle, .ds-tabs__tab,
  * :is(button, a).ds-tile, .ds-card--interactive (also the <div> form,
  * whose .ds-card__action stretches over it), .ds-table__sort, the body rows
  * of .ds-table--interactive that hold a .ds-table__row-link (the ripple
@@ -21,7 +22,10 @@
  * the row or card; a press on another link or control inside a row or
  * a <div> card is that control's own, so the host gets none), .ds-radio (a radio card, also
  * when its own input is pressed), .ds-combo__toggle, .ds-menu__item,
- * .ds-errors summary, .ds-pressable and [data-ds-ripple]; data-ds-ripple="off" on a host
+ * .ds-errors summary, .ds-disclosure > summary,
+ * .ds-list--interactive > .ds-list__item, :is(a, button).ds-kv-list__row,
+ * .ds-dropzone, :is(button, a).ds-columns__col, .ds-pressable and
+ * [data-ds-ripple]; data-ds-ripple="off" on a host
  * or an ancestor opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
  * card whose input is disabled, .ds-radio--disabled), switch, checkbox and
  * radio inputs (their halo is the press), and presses other than the

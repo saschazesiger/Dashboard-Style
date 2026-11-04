@@ -49,8 +49,15 @@ SG.demo('ripple', {
         '<button class="ds-btn ds-btn--filled" type="button" aria-busy="true">Busy</button>' +
         '<span data-ds-ripple="off"><button class="ds-btn" type="button">data-ds-ripple="off"</button></span>' +
         '<button class="ds-link-btn" type="button">An inline link</button>' +
-        '</div><p class="ds-muted">Blocked hosts and inline links never ripple; data-ds-ripple="off" opts a host or a whole region out. Without DS.ripple.attach() the flat state layer stays the press feedback.</p>') +
+        '</div><p class="ds-muted">Blocked hosts and inline links never ripple; data-ds-ripple="off" opts a host or a whole region out. A page that calls neither DS.ripple.attach() nor DS.init() keeps the flat state layer as the press feedback.</p>') +
 
       h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> on a focused host ripples from its centre. The span is aria-hidden, so it never changes the host\'s name. In forced colours there is no ripple.</p>');
+  },
+
+  /* The row's link goes nowhere here: a press only shows the ripple, and the styleguide routes on the hash. */
+  wire: function (root) {
+    root.addEventListener('click', function (event) {
+      if (event.target.closest('.ds-list__action')) event.preventDefault();
+    });
   },
 });

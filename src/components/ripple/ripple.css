@@ -3,8 +3,8 @@
  * colour from the point that was pressed (Enter or Space: from the centre)
  * and fades it when the press ends. It is an effect, so it never
  * overshoots. Everything here applies only under .ds-ripples, which
- * DS.ripple.attach(root) puts on the root; pages without it keep the flat
- * state layer as their press feedback.
+ * DS.ripple.attach(root) or DS.init(root) puts on the root; pages that call
+ * neither keep the flat state layer as their press feedback.
  *
  *   DS.ripple.attach(document);     <html class="... ds-ripples">
  *   <button class="ds-btn">         a host
@@ -13,12 +13,14 @@
  *   </button>
  *
  * Hosts: .ds-btn, .ds-chip (the ripple goes into .ds-chip__body),
- * .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile,
- * .ds-card--interactive, .ds-table__sort, the body rows of
+ * .ds-segmented__option, .ds-drawer__item, .ds-drawer__toggle, .ds-tabs__tab,
+ * :is(button, a).ds-tile, .ds-card--interactive, .ds-table__sort, the body rows of
  * .ds-table--interactive (a press on another link or control inside a
  * row or a <div> card is that control's own: no ripple, no .ds-pressed),
  * .ds-radio (radio cards), .ds-combo__toggle,
- * .ds-menu__item, .ds-errors summary, .ds-pressable (a project element
+ * .ds-menu__item, .ds-errors summary, .ds-disclosure > summary,
+ * .ds-list--interactive > .ds-list__item, :is(a, button).ds-kv-list__row,
+ * .ds-dropzone, :is(button, a).ds-columns__col, .ds-pressable (a project element
  * with the system's state layer, utilities.css) and [data-ds-ripple] (any element,
  * made positioned here); inline links, the switch, checkbox and radio
  * inputs (their halo is the press), combobox options and native field
@@ -43,8 +45,8 @@
  *   shape                 the clip is the host's radius: at shape 0 a square
  *                         host clips a square, and the press morph (each
  *                         host's own rule) never makes it rounder than at
- *                         rest. The tab's ripple box computes the same radius
- *                         as the tab's layer (below)
+ *                         rest. The tab's ripple box takes the inset and the
+ *                         radius of the tab's layer (below)
  *   tone                  the default ink is the host's content colour, so a
  *                         filled error button ripples in its on-tone colour
  *
@@ -301,19 +303,24 @@
    * The drawer's group toggles (a large row, like its items) and the tabs
    * (2.0): the same one-feedback rule. A tab's layer is a pill inside the
    * tab (tabs.css), so its ripple is a box over that pill that clips the
-   * circle, its ::before (like a table row's). The box takes the pill's
-   * rest radius by the options formula of a tab: half of the layer's height
-   * at most, times the shape, so a square tab ripples in a square box.
+   * circle, its ::before (like a table row's). The box takes what the tab
+   * computes for its layer (--_inset, --_layer, inherited from the tab: a
+   * contained tab's layer has no inset), so the two cannot part; without them
+   * (a tab that has not computed them) the options formula of a tab: half of
+   * the layer's height at most, times the shape. Here and not in tabs.css: a
+   * rule there would lose to .ds-press-ripple above once this file sits in a
+   * later sublayer.
    */
   .ds-ripples .ds-tabs__tab > .ds-press-ripple {
     --_half: calc(max(var(--ds-target-min, 0px), calc(var(--ds-tabs-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)) / 2 - var(--ds-space-1));
-    top: var(--ds-space-1);
+    --_formula: min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half));
+    top: var(--_inset, var(--ds-space-1));
     inset-inline: 0;
-    bottom: var(--ds-space-1);
+    bottom: var(--_inset, var(--ds-space-1));
     width: auto;
     height: auto;
     overflow: clip;
-    border-radius: min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half));
+    border-radius: var(--_layer, var(--_formula));
     background: none;
     animation: none;
   }
@@ -321,7 +328,7 @@
   .ds-ripples .ds-tabs__tab > .ds-press-ripple::before {
     content: '';
     position: absolute;
-    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r) - var(--ds-space-1));
+    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r) - var(--_inset, var(--ds-space-1)));
     left: calc(var(--ds-ripple-x) - var(--ds-ripple-r));
     width: calc(var(--ds-ripple-r) * 2);
     height: calc(var(--ds-ripple-r) * 2);
