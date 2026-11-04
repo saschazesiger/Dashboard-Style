@@ -19,11 +19,18 @@
     "ds-kv-list__row",
     "ds-list",
     "ds-list--interactive",
+    "ds-list--stacked",
     "ds-list__action",
     "ds-list__actions",
+    "ds-list__aside",
     "ds-list__chevron",
+    "ds-list__description",
+    "ds-list__group",
+    "ds-list__heading",
     "ds-list__icon",
     "ds-list__item",
+    "ds-list__media",
+    "ds-list__media--round",
     "ds-list__meta",
     "ds-list__text",
     "ds-list__title",
@@ -49,7 +56,31 @@
   "hooks": {
     "--ds-list-item-height": {
       "default": "56px",
-      "description": "the least height of a `.ds-list` row"
+      "description": "a `.ds-list` row: the base height (size md, comfortable density) that size and density steps apply to"
+    },
+    "--ds-list-padding": {
+      "default": "`--ds-space-4`",
+      "description": "the side padding of a `.ds-list` row, 2px per density step"
+    },
+    "--ds-list-padding-y": {
+      "default": "`--ds-space-3`",
+      "description": "the block padding of a `.ds-list` row, 4px per size step, 2px per density step"
+    },
+    "--ds-list-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "the corners of a `.ds-list` (times `--ds-shape`)"
+    },
+    "--ds-list-title-font": {
+      "default": "`--ds-size-font` of the size class, else `--ds-font-label`",
+      "description": "`.ds-list__title`"
+    },
+    "--ds-list-media-size": {
+      "default": "40px",
+      "description": "`.ds-list__media`, 4px per size step"
+    },
+    "--ds-list-media-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "`.ds-list__media` (times `--ds-shape`, at most half its size; `--round`: `--ds-radius-action`)"
     },
     "--ds-list-text-min": {
       "default": "12rem",
@@ -58,6 +89,18 @@
     "--ds-list-current-bg": {
       "default": "`--ds-accent`",
       "description": "the current row of a `.ds-list` (`aria-current`)"
+    },
+    "--ds-list-group-bg": {
+      "default": "`--ds-surface`",
+      "description": "the opaque fill of a sticky `.ds-list__group` row"
+    },
+    "--ds-list-group-top": {
+      "default": "0px",
+      "description": "where a `.ds-list__group` row sticks (the height of a sticky page head above it)"
+    },
+    "--ds-kv-list-padding": {
+      "default": "`--ds-space-3`",
+      "description": "the block padding of a `.ds-kv-list` row and of `.ds-facts--rows`, 4px per size step, 2px per density step"
     },
     "--ds-facts-label-width": {
       "default": "36%",
