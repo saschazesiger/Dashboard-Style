@@ -8,6 +8,7 @@
   "status": "stable",
   "classes": [
     "ds-dropzone",
+    "ds-dropzone--inline",
     "ds-dropzone__browse",
     "ds-dropzone__disc",
     "ds-dropzone__hint",
@@ -31,6 +32,24 @@
     "--ds-dropzone-border": {
       "default": "`1px dashed var(--ds-outline)`",
       "description": "the border of a `.ds-dropzone` ([file upload](components.md#file-upload))"
+    },
+    "--ds-dropzone-padding": {
+      "default": "`--ds-space-6`",
+      "description": "`.ds-dropzone`: the block padding at comfortable density, 2px less per density step (the inline padding stays `--ds-space-5`)"
+    },
+    "--ds-dropzone-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-dropzone`, times `--ds-shape`"
+    },
+    "--ds-file-button-height": {
+      "default": "32px",
+      "description": "the browser's button in `.ds-input[type=\"file\"]`: the base height that size and density steps apply to"
+    },
+    "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-field-error-color": {
+      "owner": "form"
     }
   },
   "keyframes": [],

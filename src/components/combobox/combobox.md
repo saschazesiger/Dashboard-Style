@@ -1,5 +1,7 @@
 ## Combobox
 
+A searchable list under a field: the page filters and chooses, `DS.overlay` opens and closes it.
+
 ```html
 <div class="ds-combo">
   <input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-controls="model-list"
@@ -8,9 +10,9 @@
   <div class="ds-combo__popup" hidden>
     <ul class="ds-combo__list" id="model-list" role="listbox">
       <li class="ds-combo__option" id="model-1" role="option" aria-selected="false">
-        <span class="ds-combo__name">Latitude 5430</span><span class="ds-combo__meta">14", 2022</span></li>
+        <span class="ds-combo__name">Laptop 13</span><span class="ds-combo__meta">13", 2022</span></li>
       <li class="ds-combo__option" id="model-2" role="option" aria-selected="true" data-active>
-        <span class="ds-combo__name">Latitude 7440</span><span class="ds-combo__meta">14", 2023</span></li>
+        <span class="ds-combo__name">Laptop 14</span><span class="ds-combo__meta">14", 2023</span></li>
     </ul>
     <p class="ds-combo__status" role="status">2 of 38</p>
   </div>
@@ -77,13 +79,120 @@ list on the chosen option; the arrows move `data-active` (and `aria-activedescen
 to the ends, Enter or Space chooses and closes, Escape closes, a printable key moves to the next option that starts
 with the typed letters. Focus stays on the button.
 
-`aria-disabled="true"` on an option draws it in the disabled ink with no active layer (skip it in your keys).
-Without a `.ds-combo__toggle` the field keeps only its own end padding. The field reads `--ds-input-height` (40px),
-the toggle is that size; options are at least `--ds-combo-option-height` (48px) tall.
+**Groups and descriptions**: the WAI grouped listbox. The list is then a `<div>`, each group a `<ul>` whose first item
+is a `.ds-combo__heading` (caption type, `role="presentation"`, named by the group's `aria-labelledby`). A
+`.ds-combo__description` is a longer line under the name that wraps, where `.ds-combo__meta` stays on one line and ends
+in an ellipsis. A heading never takes `data-active`, so the page's keys walk `.ds-combo__option` as ever. Filter by
+setting `hidden` on the options: a group with no option left goes by itself, with its heading and its line, and the
+line never stands above the first group that still shows.
 
-The toggle is a round 40px target with a state layer (hover, press in `--ds-dur-micro`), the ripple and the press
-morph of every pill; it stays `tabindex="-1"` (the field opens the list from the keyboard), so it has no ring.
+```html
+<div class="ds-combo__list" id="type-list" role="listbox">
+  <ul class="ds-combo__group" role="group" aria-labelledby="type-laptops">
+    <li class="ds-combo__heading" id="type-laptops" role="presentation">Laptops</li>
+    <li class="ds-combo__option" id="type-1" role="option" aria-selected="false">
+      <span class="ds-combo__name">Laptop 14</span>
+      <span class="ds-combo__description">For most desks: light, with a full day of battery.</span></li>
+  </ul>
+  <ul class="ds-combo__group" role="group" aria-labelledby="type-desktops"> ... </ul>
+</div>
+```
+
+**Clearable**: a `.ds-combo__clear` before the toggle. The page empties the field and sets `hidden` on the button while
+there is nothing to clear; the field keeps room for it only while it shows. Unlike the toggle it stays in the tab
+order, so it has the ring (and the press, the ripple and the morph of the toggle). Cancel its `mousedown` too, and give
+focus back to the field after a click.
+
+```html
+<button class="ds-combo__clear" type="button" aria-label="Clear model" hidden>[icon close 20]</button>
+```
+
+**Creatable**: a last option `.ds-combo__option--create`, an icon and the words in the action ink. The page shows it
+when no option matches the text exactly, and creates the value.
+
+```html
+<li class="ds-combo__option ds-combo__option--create" id="model-new" role="option" aria-selected="false">[icon plus 20]
+  <span class="ds-combo__name">Create "Laptop 15"</span></li>
+```
+
+**Several values** (`.ds-combo--multi`, with `aria-multiselectable="true"` on the list): the `.ds-combo` draws the field
+box and holds the chosen values as input chips ([Chips](#chips)) before the typing field, which wraps under them. Empty,
+the box is the field's height at every step; the chips make it grow, and the toggle stays on its first line. The box
+shows hover, focus, error, disabled and read-only for the field inside it.
+Choosing leaves the list open; adding, removing and Backspace in the empty field are the page's script, and so is a press
+on an empty part of the box, which only the page can send to the field:
+
+```html
+<div class="ds-combo ds-combo--multi">
+  <button class="ds-chip ds-chip--input" type="button"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove </span>Laptop 14</span>[icon close 18 ds-chip__trailing]</span></button>
+  <input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-controls="order-list" aria-autocomplete="list">
+  <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">[icon chevronDown 20]</button>
+  <div class="ds-combo__popup" hidden><ul class="ds-combo__list" id="order-list" role="listbox" aria-multiselectable="true"> ... </ul></div>
+</div>
+```
+
+```js
+combo.addEventListener('mousedown', (event) => {
+  if (event.target === combo) { event.preventDefault(); input.focus(); }
+});
+```
+
+**States.** Nothing found: `hidden` on `.ds-combo__list` and the words in the status line; the list stays open. Loading:
+a `.ds-spinner` before the words in the status line and `aria-busy="true"` on the list. Error: `aria-invalid="true"` on
+the field, with a `.ds-field__hint--error`. `aria-disabled="true"` on an option draws it in the disabled ink with no
+active layer (skip it in your keys). `disabled` on the field takes its toggle with it (the disabled ink, no pointer)
+and removes its clear button, from the tab order too. In `.ds-combo--multi` the chips lose the pointer, but CSS cannot
+block their keys: the page sets `disabled` on each chip as well. A disabled select-only button takes its value and meta
+into the disabled ink. An option both chosen and blocked keeps its tint and weight in the disabled ink. Without a `.ds-combo__toggle` the field keeps only its
+own end padding.
+
+**Options** ([options.md](options.md)): classes on the `.ds-combo` or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect on the combobox |
+|---|---|---|---|
+| Variant | `--select` (select-only), `--multi` (several values); `.ds-combo__option--create` | the `.ds-combo`; the option | what the field holds |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the `.ds-combo` or a group | the field and its toggle 24 to 56px (8px per step), an option 32 to 64px, the name's type role (`xs` caption, `sm` chip, `md` body, `lg` and `xl` subtitle; regular weight, the chosen one the label's) |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | the field, its toggle and an option 4px less per step, the block padding of options and the status line 2px less per step; side padding and type stay. The toggle lives in the field, so unlike an icon button it follows the density |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the list's radius and the rest and pressed radius of the toggle and clear button, times 0, .5, 1, 1.5 |
+| Touch | `.ds-touch` | the theme or a container | field, toggle, clear button and options at least `--ds-touch-target` (48px), whatever the size and the density |
+| Tone | none | | a combobox shows no status of its own; the invalid look is the field's |
+
+Put a size on the `.ds-combo`, not on the input: the field, the toggle and the room between them come from one height.
+An option's height is a least height: a name with a description takes what its text needs.
+
+The toggle is a round target as tall as the field with a state layer (hover, press in `--ds-dur-micro`), the ripple and
+the press morph of every pill; it stays `tabindex="-1"` (the field opens the list from the keyboard), so it has no ring.
 Options get no ripple: pressing one selects it and closes the list, and the state layer is the feedback.
 
+**Keyboard and names.** The keys are the page's script, as the WAI combobox pattern says: ArrowDown and ArrowUp open the
+list and move `data-active` and `aria-activedescendant` through the options (past headings and blocked options), Enter
+chooses, Escape closes (`DS.overlay` handles it, after the page's own handlers). When the list closes, on Escape, on blur
+or by a choice, the page clears `data-active` and `aria-activedescendant`, so the field never names an option in a hidden
+list. Focus stays in the field. The field
+needs a label; a group its `aria-labelledby`; the toggle and the clear button an `aria-label`. The status line is
+`role="status"`, so a count or "No match" is announced.
+
+**Forced colours.** The list keeps an edge (its transparent outline). The chosen option is `SelectedItem` /
+`SelectedItemText`, the active one has a `Highlight` outline (`CanvasText` on the chosen one), a blocked one `GrayText` (chosen too: on
+`Canvas` with a `GrayText` outline).
+The box of several values keeps its border, with a 2px `Highlight` outline while focused (as a single field has) and
+`GrayText` when disabled, with the toggle of a disabled field.
+
+**Hooks:** `--ds-input-height` (the base of the field and its toggle, 40px; the field's other hooks apply to the box of
+several values too: `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius`, `--ds-input-focus-color`),
+`--ds-combo-option-height` (the base of an option, 48px), `--ds-combo-radius` (the list, `--ds-radius-xs`),
+`--ds-scroll-fade` ([theming.md](theming.md#component-hooks)). The attributes `data-active` (the page's),
+`data-state`, `data-placement`, `data-anchored`, `data-ds-overflow-start` and `data-ds-overflow-end` (`DS.overlay`'s)
+and `data-ds-ripple` (off for a part: [Ripple](#ripple)) are described above.
+
 **Motion:** the "Combobox list" row of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog -->
+- Combobox on the options model (size, density, shape, touch, computed in `combobox.css`); the field, the toggle and
+  the options follow them. `DS.overlay` stays its opener and the 2.x markup keeps working.
+- New: group headings (`.ds-combo__group`, `.ds-combo__heading`) and option descriptions (`.ds-combo__description`),
+  the clear button (`.ds-combo__clear`), the create option (`.ds-combo__option--create`), several values
+  (`.ds-combo--multi`), a spinner row in the status line, the disabled state of toggle and clear button, hook
+  `--ds-combo-radius`.
+- Removed the `-webkit-mask-*` duplicates of the list's cut edges (the floor has `mask`).
 

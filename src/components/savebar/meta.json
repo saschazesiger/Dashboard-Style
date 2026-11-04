@@ -1,13 +1,15 @@
 {
   "name": "savebar",
   "group": "forms",
-  "order": 340,
+  "order": 400,
   "docsOrder": 290,
-  "need": "Save or discard unsaved changes from a bar that appears when something changed",
+  "need": "Save or discard unsaved changes from a bar that appears when something changed, or keep a form's actions in reach",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-savebar",
+    "ds-savebar--inline",
+    "ds-savebar-scroller",
     "ds-savebar__actions",
     "ds-savebar__bar",
     "ds-savebar__text"
@@ -20,7 +22,8 @@
   "requires": [],
   "context": [
     "page",
-    "shell"
+    "shell",
+    "toast"
   ],
   "hooks": {
     "--ds-savebar-offset": {
@@ -33,11 +36,11 @@
     },
     "--ds-savebar-min-height": {
       "default": "56px",
-      "description": "save bar"
+      "description": "save bar: the base of its least height (size md, comfortable density)"
     },
     "--ds-savebar-radius": {
       "default": "`--ds-radius-card`",
-      "description": "save bar"
+      "description": "save bar, times `--ds-shape`"
     },
     "--ds-savebar-bg": {
       "default": "`--ds-surface-popover`, `--ds-elev-overlay`",
@@ -46,15 +49,20 @@
     "--ds-savebar-shadow": {
       "default": "`--ds-surface-popover`, `--ds-elev-overlay`",
       "description": "save bar surface and elevation"
+    },
+    "--ds-savebar-bleed": {
+      "default": "`--ds-content-pad-x`",
+      "description": "`.ds-savebar--inline`: how far the bar runs beyond its form on both sides; set it to the inline padding of a container of the page's own"
+    },
+    "--ds-savebar-room": {
+      "default": "its least height at the largest size, `--ds-space-8`, `--ds-space-2` and the safe area",
+      "description": "`.ds-savebar--inline`: the room its scroller and the snackbars keep clear of it; set it for a bar taller than two rows"
     }
   },
   "keyframes": [],
   "js": [
     "overlay"
   ],
-  "progressive": [
-    "@starting-style",
-    "allow-discrete"
-  ],
+  "progressive": [],
   "ripple": false
 }

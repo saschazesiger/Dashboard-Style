@@ -3,17 +3,23 @@
   "group": "forms",
   "order": 260,
   "docsOrder": 230,
-  "need": "Choose one value from a long list by typing to filter it",
+  "need": "Choose a value from a long list by typing to filter it: groups, descriptions, several values",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-combo",
+    "ds-combo--multi",
     "ds-combo--select",
+    "ds-combo__clear",
+    "ds-combo__description",
+    "ds-combo__group",
+    "ds-combo__heading",
     "ds-combo__input",
     "ds-combo__list",
     "ds-combo__meta",
     "ds-combo__name",
     "ds-combo__option",
+    "ds-combo__option--create",
     "ds-combo__popup",
     "ds-combo__status",
     "ds-combo__toggle",
@@ -24,20 +30,40 @@
     "data-anchored",
     "data-ds-overflow-end",
     "data-ds-overflow-start",
+    "data-ds-ripple",
     "data-placement",
     "data-state"
   ],
-  "requires": [],
+  "requires": [
+    "form"
+  ],
   "context": [
+    "chip",
     "progress",
     "ripple"
   ],
   "hooks": {
     "--ds-combo-option-height": {
       "default": "48px",
-      "description": "the least height of a combobox option"
+      "description": "combobox option: the base height (size md, comfortable density) that size and density steps apply to; a least height, its text may need more"
+    },
+    "--ds-combo-radius": {
+      "default": "`--ds-radius-xs`",
+      "description": "the corners of the combobox list, times `--ds-shape`"
+    },
+    "--ds-input-bg": {
+      "owner": "form"
+    },
+    "--ds-input-border": {
+      "owner": "form"
+    },
+    "--ds-input-focus-color": {
+      "owner": "form"
     },
     "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-input-radius": {
       "owner": "form"
     },
     "--ds-scroll-fade": {
@@ -54,18 +80,21 @@
     "overlay"
   ],
   "progressive": [
-    "popover",
     "anchor positioning",
     "scroll-driven",
     "scrollbar-color"
   ],
   "ripple": true,
   "rippleHosts": [
-    ".ds-combo__toggle"
+    ".ds-combo__toggle",
+    ".ds-combo__clear"
   ],
   "exceptions": {
     "ripple": {
       ".ds-combo__option": "pointer-down selects and closes the list; the state layer is the feedback"
+    },
+    "focus": {
+      ".ds-combo--multi": "forced colours: the box draws the field, so it takes the ring a field shows on any focus"
     }
   },
   "motionExceptions": {
