@@ -3,20 +3,35 @@
  * The neutral alert has no colour of its own: the quiet surface and the
  * icon in the primary colour.
  *
- *   <div class="ds-alert ds-alert--warning" role="status">
+ *   <div class="ds-alert ds-tone-warning" role="status">
  *     <svg ...>(alert, 20)</svg>
  *     <span class="ds-alert__text">The certificate expires in 5 days.</span>
  *     <button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button>
  *   </div>
  *
- *   (none: neutral info)  --success  --warning  --error
+ *   (none: neutral info)  .ds-tone-success  -warning  -error  -info  -primary  -neutral
  *   .ds-alert--plain      a finding in a card: no fill, no edge, no inline
  *                         padding, no radius; hairlines between consecutive
  *                         plain alerts (a preset of the hooks below)
+ *   .ds-alert--inline     an inline message, under a field or in a row: icon
+ *                         and meta text on the surface, no box
+ *   .ds-alert--section    a section message: a block with a title, room around
+ *                         it and its actions always under the text
+ *   --success --warning --error   deprecated: .ds-tone-success, -warning, -error
+ *
+ * Options (docs/options.md), read here:
+ *   size      .ds-xs ... .ds-xl on the alert or any ancestor: 2px of padding
+ *             per step (its buttons take the same step). Type and icon stay.
+ *   density   any container: 2px of padding per step; type and icon stay
+ *   shape     the radius times --ds-shape (--plain and --inline have none)
+ *   tone      from the class on the alert itself (an inherited tone never
+ *             recolours it); the icon and the word stay, never colour alone
+ *   target-min: its buttons and the .ds-errors summary read it, the alert
+ *             itself is no target.
  *
  * A title, more paragraphs and actions:
  *
- *   <div class="ds-alert ds-alert--warning">
+ *   <div class="ds-alert ds-tone-warning">
  *     <svg ...>(alert, 20)</svg>
  *     <div class="ds-alert__text"><p class="ds-alert__title">Certificate expires soon</p><p>Renew it before 1 May.</p></div>
  *     <div class="ds-alert__actions"><button class="ds-btn ds-btn--text ds-sm" type="button">Renew</button></div>
@@ -28,11 +43,13 @@
  *
  * Hooks: --ds-alert-bg (--ds-surface-low), --ds-alert-color (--ds-text),
  * --ds-alert-icon (--ds-primary; also the edge colour), --ds-alert-edge
- * (the width of a leading edge, 0), and per kind (success, warning, error)
+ * (the width of a leading edge, 0), --ds-alert-radius (--ds-radius-card),
+ * --ds-alert-padding-block (12px) and --ds-alert-padding-inline (16px),
+ * the md bases, and per tone (success, warning, error)
  * --ds-alert-<kind>-bg, --ds-alert-<kind>-color, --ds-alert-<kind>-icon
- * with today's values as fallbacks; .ds-alert--error buttons take
+ * with today's values as fallbacks; error buttons take
  * --ds-alert-error-color; --ds-alert-text-basis. Forced colours: a
- * transparent outline becomes the edge.
+ * transparent outline becomes the edge of a box.
  *
  * The summary of .ds-errors is a pressable part: a state layer in its
  * colour (hover, press in --ds-dur-micro, focus with --ds-state-focus) in
@@ -65,9 +82,9 @@
     display: flex;
     align-items: flex-start;
     gap: var(--ds-space-3);
-    padding: var(--ds-space-3) var(--ds-space-4);
+    padding: calc(var(--ds-alert-padding-block, var(--ds-space-3)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px) calc(var(--ds-alert-padding-inline, var(--ds-space-4)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px);
     border-inline-start: var(--ds-alert-edge, 0px) solid var(--ds-alert-icon, var(--ds-primary));
-    border-radius: var(--ds-radius-card);
+    border-radius: calc(var(--ds-alert-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
     background: var(--ds-alert-bg, var(--ds-surface-low));
     color: var(--ds-alert-color, var(--ds-text));
     font: var(--ds-font-body);
@@ -110,14 +127,21 @@
   }
 
   /* Actions in a row after the text: the row hangs out of the text line as
-     a single button would, its buttons sit side by side. */
+     a single button would, its buttons sit side by side. The row has no
+     height of its own to read: it computes the button's, one size step
+     down when the buttons carry .ds-sm themselves. */
   .ds-alert__actions {
+    --_btn: max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
     display: flex;
     flex-wrap: wrap;
     flex-shrink: 0;
     gap: var(--ds-space-1);
-    margin-block: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
+    margin-block: calc((var(--ds-space-5) - var(--_btn)) / 2);
     margin-inline: auto calc(-1 * var(--ds-space-2));
+  }
+
+  .ds-alert__actions:has(> .ds-btn.ds-sm) {
+    --_btn: max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) - 8px + var(--ds-density, 0) * 4px));
   }
 
   .ds-alert__actions > .ds-btn {
@@ -136,27 +160,41 @@
     color: inherit;
   }
 
-  /* The kinds set the alert's hooks from their own, with today's colours as fallbacks. */
-  .ds-alert--success {
+  /* The tones set the alert's hooks from their own, with today's colours as
+     fallbacks, from the class on the alert itself. Zero weight on the tone,
+     so --plain, --inline and --section below still decide by order. The
+     deprecated kinds share the rules until 3.0 ships. */
+  .ds-alert--success,
+  .ds-alert:where(.ds-tone-success) {
     --ds-alert-bg: var(--ds-alert-success-bg, var(--ds-success-container));
     --ds-alert-color: var(--ds-alert-success-color, var(--ds-on-success-container));
     --ds-alert-icon: var(--ds-alert-success-icon, var(--ds-success));
   }
 
-  .ds-alert--warning {
+  .ds-alert--warning,
+  .ds-alert:where(.ds-tone-warning) {
     --ds-alert-bg: var(--ds-alert-warning-bg, var(--ds-warning-surface));
     --ds-alert-color: var(--ds-alert-warning-color, var(--ds-text));
     --ds-alert-icon: var(--ds-alert-warning-icon, var(--ds-warning));
   }
 
-  .ds-alert--error {
+  .ds-alert--error,
+  .ds-alert:where(.ds-tone-error) {
     --ds-alert-bg: var(--ds-alert-error-bg, var(--ds-error-container));
     --ds-alert-color: var(--ds-alert-error-color, var(--ds-on-error-container));
     --ds-alert-icon: var(--ds-alert-error-icon, var(--ds-error));
   }
 
-  .ds-alert--error:not(.ds-alert--plain) .ds-btn {
+  /* A filled or tonal button keeps the ink of its own fill. */
+  .ds-alert--error:not(.ds-alert--plain) .ds-btn:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal),
+  .ds-alert:where(.ds-tone-error):not(.ds-alert--plain, .ds-alert--inline) .ds-btn:not(.ds-btn--filled, .ds-btn--primary, .ds-btn--tonal) {
     --ds-btn-color: var(--ds-alert-error-color, var(--ds-on-error-container));
+  }
+
+  .ds-alert:where(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info) {
+    --ds-alert-bg: var(--ds-tone-container);
+    --ds-alert-color: var(--ds-on-tone-container);
+    --ds-alert-icon: var(--ds-tone);
   }
 
   /* Plain: a finding in a card, on the card's own surface. A preset of the
@@ -174,9 +212,43 @@
     border-top: 1px solid var(--ds-line);
   }
 
+  /* An inline message, under a field or in a row: the icon in the tone and
+     the word on the surface, in the meta type; no box to pad or round, so
+     size, density and shape have nothing to change. */
+  .ds-alert--inline {
+    --ds-alert-bg: transparent;
+    --ds-alert-color: var(--ds-text);
+    --ds-alert-edge: 0;
+    display: inline-flex;
+    gap: var(--ds-space-1);
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    font: var(--ds-font-meta);
+  }
+
+  /* A section message: a block with a title, its actions always under the
+     text in the text's column. */
+  .ds-alert--section {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: calc(var(--ds-alert-padding-block, var(--ds-space-4)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px) calc(var(--ds-alert-padding-inline, var(--ds-space-5)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px);
+  }
+
+  .ds-alert--section .ds-alert__title {
+    margin-bottom: var(--ds-space-1);
+    font: var(--ds-font-subtitle);
+  }
+
+  .ds-alert--section > :is(.ds-alert__actions, .ds-btn) {
+    grid-column: 2;
+    justify-self: start;
+    margin: var(--ds-space-2) 0 0;
+  }
+
   /* Forced colours drop the fill: a transparent outline becomes the edge. */
   @media (forced-colors: active) {
-    .ds-alert:not(.ds-alert--plain) {
+    .ds-alert:not(.ds-alert--plain, .ds-alert--inline) {
       outline: 1px solid transparent;
       outline-offset: -1px;
     }
@@ -205,9 +277,10 @@
     display: inline-flex;
     align-items: center;
     gap: var(--ds-space-2);
+    min-height: var(--ds-target-min, 0px);
     margin: calc(-1 * var(--ds-space-1));
     padding: var(--ds-space-1);
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
     color: var(--ds-on-error-container);
     font: var(--ds-font-label);
     cursor: pointer;

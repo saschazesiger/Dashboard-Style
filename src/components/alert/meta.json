@@ -9,7 +9,9 @@
   "classes": [
     "ds-alert",
     "ds-alert--error",
+    "ds-alert--inline",
     "ds-alert--plain",
+    "ds-alert--section",
     "ds-alert--success",
     "ds-alert--warning",
     "ds-alert__actions",
@@ -42,41 +44,53 @@
       "default": "0",
       "description": "the width of an alert's leading edge (`4px`: an edge in the icon colour)"
     },
+    "--ds-alert-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "an alert's corners, times `--ds-shape`"
+    },
+    "--ds-alert-padding-block": {
+      "default": "12px, 16px (`--section`: 16px, 20px)",
+      "description": "an alert's padding at md, before size and density"
+    },
+    "--ds-alert-padding-inline": {
+      "default": "12px, 16px (`--section`: 16px, 20px)",
+      "description": "an alert's padding at md, before size and density"
+    },
     "--ds-alert-success-bg": {
       "default": "`--ds-success-container`, `--ds-on-success-container`, `--ds-success`",
-      "description": "`.ds-alert--success`"
+      "description": "an alert in `.ds-tone-success`"
     },
     "--ds-alert-success-color": {
       "default": "`--ds-success-container`, `--ds-on-success-container`, `--ds-success`",
-      "description": "`.ds-alert--success`"
+      "description": "an alert in `.ds-tone-success`"
     },
     "--ds-alert-success-icon": {
       "default": "`--ds-success-container`, `--ds-on-success-container`, `--ds-success`",
-      "description": "`.ds-alert--success`"
+      "description": "an alert in `.ds-tone-success`"
     },
     "--ds-alert-warning-bg": {
       "default": "`--ds-warning-surface`, `--ds-text`, `--ds-warning`",
-      "description": "`.ds-alert--warning`"
+      "description": "an alert in `.ds-tone-warning`"
     },
     "--ds-alert-warning-color": {
       "default": "`--ds-warning-surface`, `--ds-text`, `--ds-warning`",
-      "description": "`.ds-alert--warning`"
+      "description": "an alert in `.ds-tone-warning`"
     },
     "--ds-alert-warning-icon": {
       "default": "`--ds-warning-surface`, `--ds-text`, `--ds-warning`",
-      "description": "`.ds-alert--warning`"
+      "description": "an alert in `.ds-tone-warning`"
     },
     "--ds-alert-error-bg": {
       "default": "`--ds-error-container`, `--ds-on-error-container`, `--ds-error`",
-      "description": "`.ds-alert--error` (its buttons take `--ds-alert-error-color`)"
+      "description": "an alert in `.ds-tone-error` (its buttons take `--ds-alert-error-color`)"
     },
     "--ds-alert-error-color": {
       "default": "`--ds-error-container`, `--ds-on-error-container`, `--ds-error`",
-      "description": "`.ds-alert--error` (its buttons take `--ds-alert-error-color`)"
+      "description": "an alert in `.ds-tone-error` (its buttons take `--ds-alert-error-color`)"
     },
     "--ds-alert-error-icon": {
       "default": "`--ds-error-container`, `--ds-on-error-container`, `--ds-error`",
-      "description": "`.ds-alert--error` (its buttons take `--ds-alert-error-color`)"
+      "description": "an alert in `.ds-tone-error` (its buttons take `--ds-alert-error-color`)"
     },
     "--ds-alert-text-basis": {
       "default": "256px",
