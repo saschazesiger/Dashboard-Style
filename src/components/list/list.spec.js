@@ -108,9 +108,9 @@ test('the shape multiplies the list, its outer rows, the media and a key-value r
     region.remove();
     return out;
   }, shape);
-  // --ds-radius-card 12px, --ds-radius-sm 8px; a round media stays a circle wherever half its size is the smaller.
+  // --ds-radius-card 12px, --ds-radius-sm 8px; a round media is half its size times the shape, at most half its size.
   expect(await read('ds-shape-square')).toEqual({ list: 0, row: 0, media: 0, round: 0, kv: 0 });
-  expect(await read('ds-shape-soft')).toEqual({ list: 6, row: 5, media: 4, round: 20, kv: 4 });
+  expect(await read('ds-shape-soft')).toEqual({ list: 6, row: 5, media: 4, round: 10, kv: 4 });
   expect(await read('')).toEqual({ list: 12, row: 11, media: 8, round: 20, kv: 8 });
   expect(await read('ds-shape-round')).toEqual({ list: 18, row: 17, media: 12, round: 20, kv: 12 });
 });
@@ -230,6 +230,48 @@ test('a group heading sticks to the top of its scroller, on an opaque fill above
   expect(read.heading).toBe('H4');
 });
 
+test('a sticky heading never covers the keyboard focus: going up with Shift+Tab, each action stops below it', async ({ page }) => {
+  await open(page);
+  const rows = Array.from({ length: 12 }, (_, index) => `<li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#r${index}" id="r${index}">Row ${index}</a></span></span></li>`).join('');
+  const run = async (style, head) => {
+    await add(page, `<div id="box" style="max-block-size:200px;overflow:auto;${style}">${head}<ul class="ds-list ds-list--interactive" role="list"><li class="ds-list__group" role="presentation"><h4 class="ds-list__heading">A</h4></li>${rows}</ul></div>`);
+    await page.locator('#r11').focus();
+    for (let index = 10; index >= 0; index -= 1) {
+      await page.keyboard.press('Shift+Tab');
+      const read = await page.evaluate(() => {
+        const action = document.activeElement;
+        const group = document.querySelector('#box .ds-list__group');
+        const box = action.getBoundingClientRect();
+        const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+        return { id: action.id, gap: box.top - group.getBoundingClientRect().bottom, covered: group.contains(hit) };
+      });
+      expect(read.id).toBe(`r${index}`);
+      expect(read.covered, `r${index}: under the heading`).toBe(false);
+      expect(read.gap, `r${index}: clear of the heading`).toBeGreaterThanOrEqual(0);
+    }
+    await page.locator('#box').evaluate((el) => el.parentElement.remove());
+  };
+  await run('', '');
+  // Under a sticky page head the heading stands lower, and the focus stops lower with it.
+  await run('--ds-list-group-top:32px', '<div style="position:sticky;inset-block-start:0;block-size:32px"></div>');
+});
+
+test('facts above tiles: the second fact starts where the third tile does, at every density', async ({ page }) => {
+  await open(page);
+  const read = await page.evaluate((densities) => densities.map(([density]) => {
+    const region = document.createElement('div');
+    region.className = density;
+    region.style.inlineSize = '1000px';
+    region.innerHTML = '<section class="ds-card"><dl class="ds-facts"><div><dt>Owner</dt><dd>Ada</dd></div><div id="second"><dt>Place</dt><dd>Lab</dd></div></dl>'
+      + '<div class="ds-tiles">' + '<div class="ds-tile"><p class="ds-tile__value">1</p></div>'.repeat(4) + '</div></section>';
+    document.querySelector('#fx-component').prepend(region);
+    const out = { density, second: region.querySelector('#second').getBoundingClientRect().left, third: region.querySelectorAll('.ds-tile')[2].getBoundingClientRect().left };
+    region.remove();
+    return out;
+  }), DENSITIES);
+  for (const entry of read) expect(Math.abs(entry.second - entry.third), entry.density).toBeLessThanOrEqual(0.5);
+});
+
 test('keyboard and names: Tab reaches each action and rings its row; Enter opens; the row controls are named', async ({ page }) => {
   await open(page);
   const rows = page.locator('[data-demo="rows"]');
@@ -263,7 +305,7 @@ test('keyboard and names: Tab reaches each action and rings its row; Enter opens
   await expect(page.locator('[data-demo="kv"] .ds-sr').first()).toHaveText('Passed:');
 });
 
-test('forced colours: the current row is SelectedItem, its parts in the same ink; the media keeps an edge; a blocked key-value row GrayText', async ({ page, browserName }) => {
+test('forced colours: the current row is SelectedItem, its parts in the same ink; the media on Canvas with an edge, in that row too; a blocked key-value row GrayText', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
   await page.emulateMedia({ forcedColors: 'active' });
   await open(page);
@@ -282,7 +324,7 @@ test('forced colours: the current row is SelectedItem, its parts in the same ink
       el.remove();
       return colour;
     };
-    return { selected: probe('backgroundColor', 'SelectedItem'), selectedText: probe('color', 'SelectedItemText'), gray: probe('color', 'GrayText') };
+    return { selected: probe('backgroundColor', 'SelectedItem'), selectedText: probe('color', 'SelectedItemText'), gray: probe('color', 'GrayText'), canvas: probe('backgroundColor', 'Canvas'), canvasText: probe('color', 'CanvasText') };
   });
   const row = await page.$eval('#fc .ds-list__item', (el) => ({
     background: getComputedStyle(el).backgroundColor,
@@ -290,12 +332,17 @@ test('forced colours: the current row is SelectedItem, its parts in the same ink
   }));
   expect(row.background).toBe(system.selected);
   for (const ink of row.inks) expect(ink).toBe(system.selectedText);
-  const edge = await page.$eval('#plain .ds-list__media', (el) => {
-    const style = getComputedStyle(el);
-    return { width: parseFloat(style.borderTopWidth), colour: style.borderTopColor };
-  });
-  expect(edge.width).toBe(1);
-  expect(edge.colour).not.toBe('rgba(0, 0, 0, 0)');
+  // The row's forced-color-adjust: none must not reach the media: palette fill, selection ink and no edge read 1.2:1.
+  for (const selector of ['#plain .ds-list__media', '#fc [aria-current] .ds-list__media']) {
+    const media = await page.$eval(selector, (el) => {
+      const style = getComputedStyle(el);
+      return { width: parseFloat(style.borderTopWidth), edge: style.borderTopColor, background: style.backgroundColor, ink: style.color };
+    });
+    expect(media.width, selector).toBe(1);
+    expect(media.edge, selector).toBe(system.canvasText);
+    expect(media.background, selector).toBe(system.canvas);
+    expect(media.ink, selector).toBe(system.canvasText);
+  }
   const blocked = await page.locator('[data-demo="kv"] .ds-kv-list__row[aria-disabled="true"]').evaluate((el) => getComputedStyle(el).color);
   expect(blocked).toBe(system.gray);
 });

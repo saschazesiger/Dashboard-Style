@@ -4,7 +4,7 @@ Records in rows that open, label and value rows, bars, facts and lines of parts.
 
 ```html
 <ul class="ds-kv-list">
-  <li><span>Model</span><strong>Latitude 7440</strong></li>
+  <li><span>Model</span><strong>Notebook 14</strong></li>
   <li><span>Warranty</span><strong>2027-03-31</strong></li>
 </ul>
 
@@ -61,7 +61,7 @@ needs columns, sorting or bulk selection is a [Table](#table).
   hover or press layer (it keeps its focus layer) and takes the `not-allowed` cursor.
 - The current row: `aria-current` on the row or on its action (`aria-current="page"`, anything but `"false"`) tints
   it with `--ds-list-current-bg` (`--ds-accent`) over `--ds-dur-fast`; say it in the row too (a word, the label
-  weight). In forced colours the current row is `SelectedItem`; its other controls and chips take the system
+  weight). In forced colours the current row is `SelectedItem`; its other controls, chips and media take the system
   colours again, on `Canvas`, so they stay legible on the fill.
 - Re-render with `DS.dom.morphHtml` and keyed rows (`data-ds-key`) inside `DS.motion.flip(list, ...)`: rows glide to
   their places on an opaque backing, new rows fade in over `--ds-dur-fast`, a removed row fades out while the rows
@@ -106,7 +106,8 @@ needs columns, sorting or bulk selection is a [Table](#table).
   the media or the icon holds its column beside them. For a narrow column or a side sheet.
 - `.ds-list__group` with `.ds-list__heading`: a letter or a day that stays at the top of the nearest scroller on an
   opaque fill (`--ds-list-group-bg`), while its rows pass under it; `--ds-list-group-top` when a sticky page head
-  stands above it. `role="list"` keeps the list semantics in Safari; the heading's item is `role="presentation"`.
+  stands above it. When focus moves up, the controls of its rows stop below the heading, never under it. `role="list"`
+  keeps the list semantics in Safari; the heading's item is `role="presentation"`.
   Below 12 rows a letter heading rarely helps; for thousands of rows wait for the virtual list.
 
 ### Key-value rows that open, bars, facts in rows and the lock
@@ -116,12 +117,12 @@ needs columns, sorting or bulk selection is a [Table](#table).
   <li><a class="ds-kv-list__row" href="/owners/7"><span>Owner</span><strong>Ada Lovelace</strong></a></li>
   <li><button class="ds-kv-list__row" type="button"><span>Tickets</span><strong>3 open</strong></button></li>
   <li><div class="ds-kv-list__row"><span>Serial</span><strong>5CD1234XYZ</strong></div></li>
-  <li><div class="ds-kv-list__row"><span>Backup</span><strong>[icon checkCircle 16 .ds-kv-list__icon .ds-kv-list__icon--ok]<span class="ds-sr">Passed:</span> Today, 02:00</strong></div></li>
+  <li><div class="ds-kv-list__row"><span>Backup</span><strong>[icon checkCircle 16 .ds-kv-list__icon .ds-tone-success]<span class="ds-sr">Passed:</span> Today, 02:00</strong></div></li>
   <li><div class="ds-kv-list__row"><span>Asset tag</span><strong class="ds-muted">Not set</strong></div></li>
 </ul>
 
 <ul class="ds-kv-list ds-kv-list--bars">
-  <li><span>Disk</span><strong>78%</strong><span class="ds-meter ds-meter--warning" aria-hidden="true"></span></li>
+  <li><span>Disk</span><strong>78%</strong><span class="ds-meter ds-tone-warning" aria-hidden="true"></span></li>
 </ul>
 
 <dl class="ds-facts ds-facts--rows">
@@ -159,8 +160,8 @@ On the list or any ancestor; each is computed in the component's own rule ([opti
 | | | `.ds-kv-list` rows, `.ds-facts--rows` | 8px of height per step, in the body font |
 | Density | `.ds-density-*` | `.ds-list__item` | 4px of height per step (56, 52, 48, 44px), the padding 2px per side and per step; not the type, not the media |
 | | | `.ds-kv-list` rows, `.ds-facts--rows` | 4px of height per step |
-| | | `.ds-facts`, `.ds-plain-list` | the row gap 2px per step |
-| Shape | `.ds-shape-*` | `.ds-list`, `.ds-list__media`, `.ds-kv-list__row` | multiplies the radius (a square list has square rows) |
+| | | `.ds-facts`, `.ds-plain-list` | the row gap 2px per step; facts above tiles also their column gap, as the tiles' |
+| Shape | `.ds-shape-*` | `.ds-list`, `.ds-list__media`, `.ds-kv-list__row` | multiplies the radius (a square list has square rows; a round media has rounded corners at `.ds-shape-soft`, square ones at `.ds-shape-square`) |
 | Touch | `.ds-touch` | `.ds-list__item`, `:is(a, button).ds-kv-list__row` | at least `--ds-touch-target` high; touch wins over size and density |
 | Tone | `.ds-tone-*` | `.ds-kv-list__icon` | the icon's colour, from the class on the icon itself; always with a `.ds-sr` word |
 
@@ -180,9 +181,9 @@ its own `.ds-sm`.
 
 ### Forced colours
 
-The current row is `SelectedItem` / `SelectedItemText`, with a `CanvasText` ring when focused, and its other controls
-and chips take the system colours again on `Canvas`. A blocked key-value row is `GrayText`. The media's transparent
-border becomes its edge. The sticky heading's fill stays opaque.
+The current row is `SelectedItem` / `SelectedItemText`, with a `CanvasText` ring when focused, and its other controls,
+chips and media take the system colours again on `Canvas`. A blocked key-value row is `GrayText`. The media's
+transparent border becomes its edge, in the current row too. The sticky heading's fill stays opaque.
 
 ### Hooks
 

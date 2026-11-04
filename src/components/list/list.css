@@ -33,7 +33,7 @@
  * not-allowed cursor; it keeps its focus layer. The current row
  * (aria-current on the row or on its action, not "false") takes
  * --ds-list-current-bg over --ds-dur-fast; in forced colours
- * SelectedItem, its other controls and chips on Canvas. Rows that enter through DS.motion.flip fade in over
+ * SelectedItem, its other controls, chips and media on Canvas. Rows that enter through DS.motion.flip fade in over
  * --ds-dur-fast; while rows glide they stand on an opaque backing
  * (data-ds-glide and --ds-flip-backdrop on the list).
  *
@@ -41,7 +41,7 @@
  * (.ds-kv-list__row) with the state layer, an outer focus ring that snaps
  * in, the ripple and the disabled model (GrayText in forced colours); a
  * div.ds-kv-list__row is a static row among them. .ds-kv-list__icon
- * (--ok, --warning, --error) marks a value, always with a .ds-sr word.
+ * (with a tone) marks a value, always with a .ds-sr word.
  * strong.ds-muted is a quiet value (regular weight). .ds-kv-list--bars
  * puts a .ds-meter under each row (aria-hidden: the figure is in the
  * text); the label stays on one line and ends in an ellipsis.
@@ -67,7 +67,8 @@
  * text, whatever the width. A .ds-list__group row holds a
  * .ds-list__heading (a letter, a day) that stays at the top of the nearest
  * scroller while its rows pass under it (--ds-list-group-top under a sticky
- * page head). Selectable and reorderable rows come with their module.
+ * page head); the controls of those rows scroll to a stop below it when
+ * focus moves up. Selectable and reorderable rows come with their module.
  *
  * Options (src/core/options.css, docs/options.md), on the list or any
  * ancestor; each is computed here, in the rule that uses it:
@@ -213,7 +214,7 @@
      styleguide, every frame of a countUp). */
   .ds-card:has(.ds-tiles) > .ds-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--ds-space-3);
+    column-gap: calc(var(--ds-space-3) + var(--ds-density, 0) * 2px);
   }
 
   @media (max-width: 600px) {
@@ -365,6 +366,14 @@
     background: var(--ds-list-group-bg, var(--ds-surface));
   }
 
+  /* Focus moving up stops below the heading, never under it (WCAG 2.4.11):
+     the heading's height and the row's padding, so the row's ring shows too.
+     A sibling selector, as only rows after a heading pass under one; no
+     :has() here, its cost is in the note on facts above. */
+  .ds-list__group ~ .ds-list__item :is(a[href], button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-block-start: calc(var(--ds-list-group-top, 0px) + var(--ds-space-6) + var(--ds-space-1) + var(--_pad-y));
+  }
+
   .ds-list__heading {
     margin: 0;
     color: var(--ds-text-2);
@@ -418,7 +427,7 @@
     height: var(--_size);
     overflow: hidden;
     border: 1px solid transparent;
-    border-radius: min(calc(var(--_radius) * var(--ds-shape, 1)), calc(var(--_size) / 2));
+    border-radius: min(calc(min(var(--_radius), calc(var(--_size) / 2)) * var(--ds-shape, 1)), calc(var(--_size) / 2));
     background: var(--ds-surface-high);
     color: var(--ds-text-2);
     font: var(--ds-font-label);
@@ -834,18 +843,19 @@
       color: SelectedItemText;
     }
 
-    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(.ds-list__title, .ds-list__description, .ds-list__meta, .ds-list__aside, .ds-list__media, .ds-list__icon, .ds-list__chevron) {
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(.ds-list__title, .ds-list__description, .ds-list__meta, .ds-list__aside, .ds-list__icon, .ds-list__chevron) {
       color: inherit;
     }
 
-    /* forced-color-adjust inherits: the row's other controls and chips
+    /* forced-color-adjust inherits: the row's other controls, chips and media
        take the system colours again, on Canvas, so they stay legible on
-       the selection fill (a status chip or a menu button at the row's end). */
-    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, input, select, textarea, label, .ds-status, .ds-tag, .ds-chip):not(.ds-list__action) {
+       the selection fill (a status chip or a menu button at the row's end, an
+       avatar's initials, whose border is their edge again). */
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, input, select, textarea, label, .ds-status, .ds-tag, .ds-chip, .ds-list__media):not(.ds-list__action) {
       forced-color-adjust: auto;
     }
 
-    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, select, textarea, input:not([type="checkbox"], [type="radio"])):not(.ds-list__action) {
+    .ds-list__item:is([aria-current]:not([aria-current="false"]), :has(.ds-list__action[aria-current]:not([aria-current="false"]))) :is(a[href], button, select, textarea, input:not([type="checkbox"], [type="radio"]), .ds-list__media):not(.ds-list__action) {
       background-color: Canvas;
     }
 

@@ -49,7 +49,7 @@ SG.demo('list', {
   title: 'Lists',
   group: 'data',
   need: 'Show label and value pairs, short record lists or runs of small counts',
-  lead: 'Records in rows that open, with media, a description and a fact at the end; label and value rows, bars and facts. A row is 56px at the default size and density, and every option steps from there. Selectable and reorderable rows come with the module of phase 2.',
+  lead: 'Records in rows that open, with media, a description and a fact at the end; label and value rows, bars and facts. A row is 56px at the default size and density, and every option steps from there. Selectable and reorderable rows come with a later module.',
   options: { sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {
@@ -81,7 +81,7 @@ SG.demo('list', {
         '<li><div class="ds-kv-list__row"><span>Battery</span><strong>' + h.icon('alert', 16, 'ds-kv-list__icon ds-tone-warning') + '<span class="ds-sr">Low:</span> 48%</strong></div></li>' +
         '<li><div class="ds-kv-list__row"><span>Sync</span><strong>' + h.icon('alertCircle', 16, 'ds-kv-list__icon ds-tone-error') + '<span class="ds-sr">Failed:</span> Yesterday</strong></div></li>' +
         '<li><div class="ds-kv-list__row"><span>Asset tag</span><strong class="ds-muted">Not set</strong></div></li></ul>') +
-        h.card('Plain, and with bars', '<ul class="ds-kv-list"><li><span>Model</span><strong>Latitude 7440</strong></li><li><span>Warranty until</span><strong>2027-03-31</strong></li><li><span>Storage</span><strong>512 GB</strong></li></ul>' +
+        h.card('Plain, and with bars', '<ul class="ds-kv-list"><li><span>Model</span><strong>Notebook 14</strong></li><li><span>Warranty until</span><strong>2027-03-31</strong></li><li><span>Storage</span><strong>512 GB</strong></li></ul>' +
         '<ul class="ds-kv-list ds-kv-list--bars" data-demo="bars">' +
         '<li><span>System disk</span><strong>78%</strong><span class="ds-meter ds-tone-warning" aria-hidden="true" style="--ds-share:.78"></span></li>' +
         '<li><span data-tip="Shared documents and project archives">Shared documents and project archives</span><strong>31%</strong><span class="ds-meter" aria-hidden="true" style="--ds-share:.31"></span></li></ul>') + '</div>',
