@@ -53,7 +53,7 @@
  *
  * Dismiss guard: a backdrop or scrim click from a pointer closes only when
  * the press began on it, it is the first click (event.detail 1) and
- * --ds-delay-dismiss has passed since the open; a [data-close] click with
+ * --ds-delay-dismiss has passed since the open; a [data-ds-close] click with
  * detail > 1 never closes. click(), Enter and Space (detail 0) close at
  * once.
  *
@@ -81,7 +81,7 @@
  * whichever copy opened it. A native dialog's cancel
  * event is turned into close(), so its exit plays. Closing a dialog, sheet
  * or the drawer first closes the menus and lists open inside it and hides
- * the tooltip. [data-close] inside an overlay closes it (ignored while
+ * the tooltip. [data-ds-close] inside an overlay closes it (ignored while
  * closing); the scrim closes the modal drawer; a menu also closes on Tab
  * (focus goes back to its trigger and Tab moves on from there) and on a
  * pointerdown outside the menu and its trigger.
@@ -433,7 +433,7 @@ function partFor(name, fn) {
 /** Documents with the Escape and pointer listeners. */
 const listening = new WeakSet();
 
-/** Elements with their [data-close] (and scrim, cancel) listeners. */
+/** Elements with their [data-ds-close] (and scrim, cancel) listeners. */
 const wired = new WeakSet();
 
 /** Drawers with their media-change listener. */
@@ -959,7 +959,7 @@ function dismissable(element, state, part, event) {
   return clock() - state.shownAt >= motionDuration(element, '--ds-delay-dismiss');
 }
 
-/** [data-close] clicks, the drawer's scrim and a native dialog's cancel. */
+/** [data-ds-close] clicks, the drawer's scrim and a native dialog's cancel. */
 function wire(element, state) {
   if (wired.has(element)) return;
   wired.add(element);
@@ -1791,7 +1791,7 @@ function announceClose(element, reason) {
 
 /**
  * close() by its cause, which steers focus and the busy guard: 'api' (a
- * call), 'close' ([data-close]), 'backdrop' (the backdrop or the drawer's
+ * call), 'close' ([data-ds-close]), 'backdrop' (the backdrop or the drawer's
  * scrim), 'escape', 'native' (the native dialog closed itself), 'parent'
  * (the overlay around it closes), 'item' (a menu item ran), 'tab' (a menu;
  * focus is on the trigger already) or 'outside' (a pointerdown outside a

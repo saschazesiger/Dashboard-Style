@@ -1114,7 +1114,8 @@ error: `aria-invalid`, a `.ds-field__hint--error` with the alertCircle icon and 
 value.") linked by `aria-describedby`, said at once through `announce(text, { assertive: true })`; the next input
 takes it away. They open it with `open()`, remove it once its
 exit settled and resolve when the close starts: `confirm()` `true` only for the confirm button, `prompt()` the value
-or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is Cancel (else the
+or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is Cancel, with its confirm button filled in the error
+tone (D10) (else the
 confirm button, or the prompt's field). `onConfirm` (a function returning a promise) runs with
 `busy(confirmButton, …, { done: false })` and `data-ds-busy` on the dialog (Cancel `aria-disabled`, the field
 `readOnly`); a rejection keeps the dialog open, shows `errorText` (default "That did not work. Try again."; never the

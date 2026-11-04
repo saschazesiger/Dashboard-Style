@@ -360,7 +360,8 @@ function wireForm(dialog) {
       const submit = /** @type {any} */ (event).submitter ?? box.querySelector('[type="submit"]');
       dialog.setAttribute('data-ds-busy', '');
       try {
-        await busy(submit, () => setup.onSubmit(data, box), { done: false });
+        // A form submitted without a button of its own (requestSubmit() on one field) has nothing to mark busy.
+        await (submit ? busy(submit, () => setup.onSubmit(data, box), { done: false }) : setup.onSubmit(data, box));
       } catch {
         dialog.removeAttribute('data-ds-busy');
         if (!dialog.isConnected) return;
