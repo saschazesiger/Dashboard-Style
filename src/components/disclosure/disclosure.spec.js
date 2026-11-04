@@ -111,6 +111,20 @@ test('the row that closes plays the same motion as the one that opens: the chevr
   await open(page);
   const rows = page.locator('[data-demo="accordion"] details');
   await settle(page);
+  // What each row plays right after the click, sampled in one go: the same properties on both, whatever the engine animates.
+  const played = await rows.first().evaluate((closing) => {
+    const opening = closing.nextElementSibling;
+    opening.querySelector('summary').click();
+    const list = (row) => [...new Set(row.getAnimations({ subtree: true }).map((animation) => animation.transitionProperty ?? animation.animationName))].sort();
+    return { closed: !closing.open, opened: opening.open, closing: list(closing), opening: list(opening) };
+  });
+  expect([played.closed, played.opened], 'one click, both rows').toEqual([true, true]);
+  expect(played.closing, 'the chevron turns back').toContain('rotate');
+  expect(played.closing).toEqual(played.opening);
+  await settle(page);
+  // Back to the start, for the end states below.
+  await rows.first().locator('summary').click();
+  await settle(page);
   const turned = (index) => rows.nth(index).locator('.ds-chevron').evaluate((el) => getComputedStyle(el).rotate);
   expect(await turned(0)).toBe('180deg');
   await rows.nth(1).locator('summary').click();

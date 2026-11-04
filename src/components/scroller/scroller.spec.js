@@ -76,6 +76,8 @@ test('a column scrolls down from --ds-scroll-max-height and fades at each end th
   const box = await column.evaluate((el) => ({ height: el.getBoundingClientRect().height, scrolls: el.scrollHeight > el.clientHeight, gutter: getComputedStyle(el).scrollbarGutter }));
   expect(box.height).toBe(160);
   expect(box.scrolls).toBe(true);
+  // Progressive: an engine without it reports nothing and the scrollbar takes its room when it shows.
+  if (await page.evaluate(() => CSS.supports('scrollbar-gutter', 'stable'))) expect(box.gutter).toBe('stable');
   expect(await edges(column)).toEqual([0, 1]);
   await column.evaluate((el) => { el.scrollTop = el.scrollHeight / 2 - el.clientHeight / 2; });
   await settle(page);

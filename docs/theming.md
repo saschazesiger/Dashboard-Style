@@ -218,10 +218,11 @@ once.
 
 A touch screen or a kiosk needs bigger targets. `.ds-touch` on `.ds-theme` (or on any container) sets
 `--ds-target-min` to `--ds-touch-target` (48px), the smallest block size of every control on the options model
-(buttons, an icon button as wide; [options.md](options.md#touch)), whatever its size and density, and every target
+(buttons, an icon button as wide, a disclosure's summary, an interactive card, `.ds-pressable`;
+[options.md](options.md#touch)), whatever its size and density, and every target
 hook of the components not on that model yet to the same value: `--ds-input-height`, `--ds-check-height`, `--ds-check-sm-height`, `--ds-check-target`, `--ds-switch-height`,
 `--ds-switch-halo`, `--ds-chip-height`, `--ds-combo-option-height`, `--ds-menu-item-height`,
-`--ds-drawer-item-height`, `--ds-toast-close-size`, `--ds-tabs-height` and `--ds-disclosure-height`; fields take the
+`--ds-drawer-item-height`, `--ds-toast-close-size` and `--ds-tabs-height`; fields take the
 input role (`--ds-input-font: var(--ds-font-input)`, 16px, so iOS does not zoom), the top bar's `.ds-brand` link is at
 least `--ds-touch-target` wide and tall, and `.ds-hover-actions` always show. It is never automatic: a laptop with a touch screen keeps the dense layout unless the page opts in, for example
 when any pointer is coarse:

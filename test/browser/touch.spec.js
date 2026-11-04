@@ -108,7 +108,7 @@ test('the snackbar close button is 48px (--ds-toast-close-size)', async ({ page 
   }
 });
 
-test('disclosure summaries are 48px tall (--ds-disclosure-height)', async ({ page }) => {
+test('disclosure summaries are 48px tall (--ds-target-min)', async ({ page }) => {
   await open(page);
   for (const box of await present(page, '.ds-disclosure > summary')) expect(box.height, box.name).toBeGreaterThanOrEqual(TARGET - 0.5);
 });
