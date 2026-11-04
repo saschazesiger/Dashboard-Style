@@ -167,6 +167,19 @@ const DEFAULT_STRINGS = Object.freeze({
   uploadRemoved: 'Removed {name}.',
   uploadDoneAnnounce: '{name} uploaded.',
   uploadFailedAnnounce: 'Upload of {name} failed.',
+  kvAdd: 'Add row',
+  kvKeyLabel: 'Key, row {row}',
+  kvValueLabel: 'Value, row {row}',
+  kvValueOf: 'Value of {key}',
+  kvRemove: 'Remove {key}',
+  kvRemoveRow: 'Remove row {row}',
+  kvShow: 'Show the value of {key}',
+  kvShowRow: 'Show the value of row {row}',
+  kvDuplicate: '{key} is also on row {rows}: the last one counts.',
+  kvNoKey: 'Add a key, or this row is left out.',
+  kvRemoved: 'Removed {key}.',
+  kvRemovedRow: 'Removed a row.',
+  kvPasted: 'Pasted {count} rows.',
 });
 
 /**

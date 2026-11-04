@@ -413,6 +413,19 @@ strings a script adds have an option, so a page in another language passes its o
 | `Removed {name}.` | what `DS.upload` announces for a removal (the system's string `uploadRemoved`) | `DS.core.config({ strings: { uploadRemoved } })` |
 | `{name} uploaded.` | what `DS.upload` announces when a file is done (the system's string `uploadDoneAnnounce`) | `DS.core.config({ strings: { uploadDoneAnnounce } })` |
 | `Upload of {name} failed.` | what `DS.upload` announces when a file failed (the system's string `uploadFailedAnnounce`) | `DS.core.config({ strings: { uploadFailedAnnounce } })` |
+| `Add row` | the add button `DS.kveditor` makes when the markup has none (the system's string `kvAdd`) | `DS.core.config({ strings: { kvAdd } })` |
+| `Key, row {row}` | the name of a key field of `DS.kveditor` (the system's string `kvKeyLabel`) | `DS.core.config({ strings: { kvKeyLabel } })` |
+| `Value, row {row}` | the name of a value field of `DS.kveditor` without a key (the system's string `kvValueLabel`) | `DS.core.config({ strings: { kvValueLabel } })` |
+| `Value of {key}` | the name of a value field of `DS.kveditor` (the system's string `kvValueOf`) | `DS.core.config({ strings: { kvValueOf } })` |
+| `Remove {key}` | the name of a row's remove button in `DS.kveditor` (the system's string `kvRemove`) | `DS.core.config({ strings: { kvRemove } })` |
+| `Remove row {row}` | the same, for a row without a key (the system's string `kvRemoveRow`) | `DS.core.config({ strings: { kvRemoveRow } })` |
+| `Show the value of {key}` | the name of a secret value's reveal button in `DS.kveditor` (the system's string `kvShow`) | `DS.core.config({ strings: { kvShow } })` |
+| `Show the value of row {row}` | the same, for a row without a key (the system's string `kvShowRow`) | `DS.core.config({ strings: { kvShowRow } })` |
+| `{key} is also on row {rows}: the last one counts.` | the warning of a key that comes twice in `DS.kveditor` (the system's string `kvDuplicate`) | `DS.core.config({ strings: { kvDuplicate } })` |
+| `Add a key, or this row is left out.` | the warning of a value without a key in `DS.kveditor` (the system's string `kvNoKey`) | `DS.core.config({ strings: { kvNoKey } })` |
+| `Removed {key}.` | what `DS.kveditor` announces for a removed row (the system's string `kvRemoved`) | `DS.core.config({ strings: { kvRemoved } })` |
+| `Removed a row.` | the same, for a row without a key (the system's string `kvRemovedRow`) | `DS.core.config({ strings: { kvRemovedRow } })` |
+| `Pasted {count} rows.` | what `DS.kveditor` announces after a paste of KEY=value lines (the system's string `kvPasted`) | `DS.core.config({ strings: { kvPasted } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
