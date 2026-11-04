@@ -1,5 +1,7 @@
 ## Utilities
 
+The shared helper classes: text, the press model for an element of your own, actions on demand, keys and dividers.
+
 | Class | Effect |
 |---|---|
 | `.ds-sr` | visually hidden, read by screen readers |
@@ -16,6 +18,12 @@
 | `.ds-divider` | a hairline: `<hr class="ds-divider">`, `--inset`, `--vertical`, `--label` (below) |
 | `.ds-icon--fillable`, `.ds-icon--filled` | an icon that fills when its control is on, or always ([icons.md](icons.md#glyphs)) |
 | `.ds-touch` | every target at least `--ds-touch-target` (48px), on `.ds-theme` or a container ([theming.md](theming.md#touch-screens)) |
+
+| Option | Applies to | Effect |
+|---|---|---|
+| `.ds-touch` | `.ds-pressable`, `.ds-hover-actions` | a pressable element is at least `--ds-touch-target` high; actions on demand always show |
+| `.ds-shape-*` | `.ds-pressable`, `.ds-kbd` | multiplies the radius (`--ds-shape`) |
+| Size, density, tone | not read | these classes have no height or meaning of their own; a pressable element's padding is the project's |
 
 Root classes: `.ds-theme` (tokens; required), `.ds-base` (page base, optional).
 
@@ -41,7 +49,8 @@ hand-built one:
 - A ripple host: with `DS.ripple.attach()` the ripple brings the press. No morph: pills are `.ds-btn`.
 - Disabled, `aria-disabled="true"` and `aria-busy="true"` show no hover or press layer and no ripple and take the
   `not-allowed` cursor; `aria-disabled` keeps its focus layer. Forced colours: no layer, the ring stays.
-- The radius: `--ds-pressable-radius` (`--ds-radius-sm`). Add the role, `tabindex` and the key handling yourself.
+- The radius: `--ds-pressable-radius` (`--ds-radius-sm`), times `--ds-shape`. Under `.ds-touch` it is at least
+  `--ds-touch-target` high. Add the role, `tabindex` and the key handling yourself (Enter and Space press it).
 
 ### Actions on demand
 
@@ -80,5 +89,12 @@ they stay in forced colours.
 `--ds-space-5` wide. For a shortcut write each key in its own `kbd` (`<kbd class="ds-kbd">Ctrl</kbd> <kbd
 class="ds-kbd">K</kbd>`).
 
+Hooks: `--ds-pressable-radius`, `--ds-pressable-layer`, `--ds-kbd-border`, `--ds-kbd-bg`
+([theming.md](theming.md#component-hooks)). Forced colours: `.ds-pressable` shows no layer and keeps its ring; dividers
+and keys are borders, so they stay.
+
 **Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
+
+<!-- changelog -->
+- `.ds-pressable` and `.ds-kbd` read `--ds-shape`; `.ds-pressable` takes `--ds-target-min` under `.ds-touch`.
 
