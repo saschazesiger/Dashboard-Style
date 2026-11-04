@@ -18,8 +18,8 @@
  *
  * roving() and announce() are the functions of DS.dom and DS.overlay under
  * this name, so what a behaviour needs for its keys is one import. The
- * focusable list and the canFocus() test are DS.overlay's, the test for a
- * field that takes text is DS.dom's.
+ * focusable list, the canFocus() test and the type-ahead matcher are
+ * DS.overlay's, the test for a field that takes text is DS.dom's.
  *
  * Every timing comes from the computed tokens (motionDuration): type-ahead
  * joins the letters typed within --ds-delay-tooltip of each other.
@@ -28,7 +28,7 @@
 import { runtime } from './core.js';
 import { motionDuration } from './motion.js';
 import { roving as rovingOf, typesText } from './dom.js';
-import { announce as announceOf, canFocus, FOCUSABLE, topmost } from './overlay.js';
+import { announce as announceOf, canFocus, FOCUSABLE, topmost, typeAhead } from './overlay.js';
 
 /**
  * This module's shared state (runtime.state('a11y')): per document the
@@ -41,9 +41,21 @@ const shared = runtime.state('a11y', () => ({ stacks: new WeakMap(), traps: new 
 const isRadio = (node) => node.tagName === 'INPUT' && node.type === 'radio' && Boolean(node.name);
 
 /**
+ * Whether focus can land on the node as the page stands: canFocus(), and not
+ * in a disabled fieldset, nor unseen through `visibility` or
+ * `content-visibility` of itself or an ancestor (a closed details, a closed
+ * panel). canFocus() alone answers yes to those, and focus() then does nothing.
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function canTakeFocus(node) {
+  if (!canFocus(node) || node.matches?.(':disabled')) return false;
+  return typeof node.checkVisibility !== 'function' || node.checkVisibility({ checkVisibilityCSS: true });
+}
+
+/**
  * The elements inside `root` that the Tab key stops at, in DOM order:
- * enabled, rendered, visible, not inert or hidden, without a negative
- * tabindex; a named radio group counts once (its checked radio, else the
+ * canTakeFocus(), without a negative tabindex; a named radio group counts once (its checked radio, else the
  * first), as the engines do. A positive tabindex keeps its DOM place here:
  * the system never writes one.
  * @param {Element|null|undefined} root
@@ -51,11 +63,7 @@ const isRadio = (node) => node.tagName === 'INPUT' && node.type === 'radio' && B
  */
 export function tabbables(root) {
   if (!root?.querySelectorAll) return [];
-  const candidates = [...root.querySelectorAll(FOCUSABLE)].filter((node) => {
-    if (Number(node.getAttribute('tabindex')) < 0 || !canFocus(node)) return false;
-    const view = node.ownerDocument?.defaultView;
-    return typeof view?.getComputedStyle !== 'function' || view.getComputedStyle(node).visibility !== 'hidden';
-  });
+  const candidates = [...root.querySelectorAll(FOCUSABLE)].filter((node) => Number(node.getAttribute('tabindex')) >= 0 && canTakeFocus(node));
   const groups = new Map();
   for (const node of candidates) {
     if (!isRadio(node)) continue;
@@ -70,13 +78,31 @@ const KEY_WIDGETS = '[role="textbox"], [role="searchbox"], [role="combobox"], [r
 /**
  * Whether plain keys typed on `node` already mean something: a field that
  * takes text, a select, or a widget with type-ahead. A read-only field and
- * a checkbox do not: there a plain key has nothing to do.
+ * a checkbox type nothing, so a letter has nothing to do there. This is about
+ * typing: Space on a checkbox still means something (DS.hotkeys keeps a
+ * shortcut off the keys a native control uses itself).
  * @param {Element|null|undefined} node
  * @returns {boolean}
  */
 export function readsKeys(node) {
   if (!node?.closest) return false;
   return typesText(node) || node.tagName === 'SELECT' || Boolean(node.closest(KEY_WIDGETS));
+}
+
+/** The element that has focus, through open shadow roots: the document only knows their host. */
+function deepActive(doc) {
+  let active = doc.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  return active;
+}
+
+/**
+ * The tabbable after `node` (`backwards`: before it) in document order,
+ * wrapping: where Tab goes from a node that is no stop itself.
+ */
+function aroundNode(list, node, backwards) {
+  if (backwards) return [...list].reverse().find((each) => node.compareDocumentPosition(each) & node.DOCUMENT_POSITION_PRECEDING) ?? list[list.length - 1];
+  return list.find((each) => node.compareDocumentPosition(each) & node.DOCUMENT_POSITION_FOLLOWING) ?? list[0];
 }
 
 /**
@@ -100,7 +126,7 @@ export function trap(container, options = {}) {
   // In a shadow root the document only knows the host: ask the root the container lives in.
   const scope = container.getRootNode?.() ?? doc;
   const activeNow = () => scope.activeElement ?? null;
-  const before = doc.activeElement;
+  const before = deepActive(doc);
   const addedTabindex = !container.hasAttribute('tabindex');
   const stack = shared.stacks.get(doc) ?? [];
   shared.stacks.set(doc, stack);
@@ -109,7 +135,7 @@ export function trap(container, options = {}) {
 
   const focusBox = () => {
     if (!container.hasAttribute('tabindex')) container.setAttribute('tabindex', '-1');
-    /** @type {HTMLElement} */ (container).focus({ preventScroll: true });
+    /** @type {HTMLElement} */ (container).focus();
   };
   /** Not the top trap, or an overlay it does not sit in is open: everything stays as it is. */
   const resting = () => {
@@ -132,7 +158,9 @@ export function trap(container, options = {}) {
     let next = null;
     if (!first) next = container;
     else if (!active || !container.contains(active)) next = event.shiftKey ? last : first;
-    else if (event.shiftKey && (active === first || active === container)) next = last;
+    // Inside, but no stop (the region itself, a tabindex -1 box): the engine could leave from there.
+    else if (!list.includes(active)) next = aroundNode(list, active, event.shiftKey);
+    else if (event.shiftKey && active === first) next = last;
     else if (!event.shiftKey && active === last) next = first;
     if (!next) return;
     event.preventDefault();
@@ -146,8 +174,8 @@ export function trap(container, options = {}) {
       return;
     }
     if (resting() || path.some((node) => node.matches?.('.ds-toasts'))) return;
-    const back = canFocus(entry.last) && container.contains(entry.last) ? entry.last : tabbables(container)[0];
-    if (back) back.focus({ preventScroll: true });
+    const back = canTakeFocus(entry.last) && container.contains(entry.last) ? entry.last : tabbables(container)[0];
+    if (back) back.focus();
     else focusBox();
   };
   // Capture: a page handler that stops the event must not open the trap.
@@ -158,8 +186,9 @@ export function trap(container, options = {}) {
   if (options.initial !== false && (options.initial !== undefined || !active || !container.contains(active))) {
     const wanted = typeof options.initial === 'string' ? container.querySelector(options.initial)
       : options.initial ?? container.querySelector('[autofocus]');
-    const target = canFocus(wanted) ? wanted : tabbables(container)[0];
-    if (target) /** @type {HTMLElement} */ (target).focus({ preventScroll: true });
+    const target = canTakeFocus(wanted) ? wanted : tabbables(container)[0];
+    // No preventScroll, here or below: unlike an overlay the region may sit in the page's flow, and focus must be seen.
+    if (target) /** @type {HTMLElement} */ (target).focus();
     else focusBox();
   } else if (active && container.contains(active)) entry.last = active;
 
@@ -174,7 +203,7 @@ export function trap(container, options = {}) {
       const lost = !now || now === doc.body || container.contains(activeNow());
       if (addedTabindex) container.removeAttribute('tabindex');
       const home = options.returnFocus === undefined ? before : options.returnFocus;
-      if (home && lost && canFocus(home)) /** @type {HTMLElement} */ (home).focus({ preventScroll: true });
+      if (home && lost && canTakeFocus(home)) /** @type {HTMLElement} */ (home).focus();
     },
   };
   shared.traps.set(container, handle);
@@ -204,7 +233,8 @@ const labelOf = (item) => (item.getAttribute?.('aria-label') || item.textContent
  * (wrapping) whose label starts with them; one letter typed again and again
  * cycles through the items with that letter. A longer search may stay on
  * the current item. `label(item)` gives the lower-case label (default: its
- * aria-label, else its text). `typed` is lower case.
+ * aria-label, else its text). `typed` is lower case. The matcher of the menus
+ * (DS.overlay) with this module's label.
  * @param {Element[]} items
  * @param {Element|null|undefined} current
  * @param {string} typed
@@ -212,16 +242,7 @@ const labelOf = (item) => (item.getAttribute?.('aria-label') || item.textContent
  * @returns {Element|null}
  */
 export function typeaheadMatch(items, current, typed, label = labelOf) {
-  const repeated = typed.length > 1 && [...typed].every((char) => char === typed[0]);
-  const start = items.indexOf(current);
-  const from = typed.length === 1 || repeated ? start + 1 : Math.max(0, start);
-  for (const text of repeated ? [typed, typed[0]] : [typed]) {
-    for (let step = 0; step < items.length; step += 1) {
-      const item = items[(from + step) % items.length];
-      if (label(item).startsWith(text)) return item;
-    }
-  }
-  return null;
+  return typeAhead(items, current, typed, label);
 }
 
 /** Live typeahead() handles. @type {WeakMap<Element, { destroy: () => void }>} */
@@ -235,11 +256,14 @@ const typeaheads = new WeakMap();
  * selector or a function (default: every option, menu item, tree item, tab
  * and radio); disabled and hidden items are skipped, aria-disabled ones are
  * reached (their name is read). `label(item)`: see typeaheadMatch().
- * `onMatch(item)` replaces item.focus(). Delegated on the container, so it
- * survives a re-render; once per container (a second call returns the same
- * handle). Works next to roving(): focus moved here moves the tab stop.
+ * `onMatch(item)` replaces item.focus(). The search goes on from the item
+ * that holds focus, else the one the container's aria-activedescendant names
+ * (the pattern `onMatch` is for), else `current()`. Delegated on the
+ * container, so it survives a re-render; once per container (a second call
+ * returns the same handle). Works next to roving(): focus moved here moves
+ * the tab stop.
  * @param {Element|null|undefined} container
- * @param {{ items?: string|(() => Element[]), label?: (item: Element) => string, onMatch?: (item: Element) => void }} [options]
+ * @param {{ items?: string|(() => Element[]), label?: (item: Element) => string, onMatch?: (item: Element) => void, current?: () => Element|null|undefined }} [options]
  * @returns {{ destroy: () => void }}
  */
 export function typeahead(container, options = {}) {
@@ -247,7 +271,13 @@ export function typeahead(container, options = {}) {
   const existing = typeaheads.get(container);
   if (existing) return existing;
   const selector = options.items ?? TYPEAHEAD_ITEMS;
-  const items = () => (typeof selector === 'function' ? [...selector()] : [...container.querySelectorAll(selector)]).filter(canFocus);
+  const items = () => (typeof selector === 'function' ? [...selector()] : [...container.querySelectorAll(selector)]).filter(canTakeFocus);
+  const currentOf = (list, target) => {
+    const holding = list.find((item) => item === target || item.contains(target));
+    if (holding) return holding;
+    const named = container.getAttribute?.('aria-activedescendant');
+    return (named ? container.getRootNode().getElementById?.(named) : null) ?? options.current?.();
+  };
   let typed = '';
   let typedAt = 0;
   const onKey = (/** @type {KeyboardEvent} */ event) => {
@@ -264,8 +294,7 @@ export function typeahead(container, options = {}) {
     typedAt = event.timeStamp;
     typed += key.toLowerCase();
     const list = items();
-    const current = list.find((item) => item === target || item.contains(target));
-    const match = typeaheadMatch(list, current, typed, options.label);
+    const match = typeaheadMatch(list, currentOf(list, target), typed, options.label);
     if (!match) return;
     event.preventDefault();
     if (typeof options.onMatch === 'function') options.onMatch(match);

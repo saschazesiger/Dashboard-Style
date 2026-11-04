@@ -732,14 +732,27 @@ export function morphHtml(target, html, options = {}) {
 
 /* ── State reporters and DOM helpers (2.0) ──────────── */
 
-/** Takes a name of `kind` as owned runtime state (motion.js keeps the same helpers; the record is shared). */
-function own(element, kind, name) {
+/**
+ * Takes a name as owned runtime state, counted, so morphHtml keeps it: `kind`
+ * is 'attrs', 'classes' or 'props' (motion.js keeps the same helpers; the
+ * record is shared).
+ * @param {any} element
+ * @param {'attrs'|'classes'|'props'} kind
+ * @param {string} name
+ */
+export function own(element, kind, name) {
   if (!element || typeof element !== 'object') return;
   const record = element[OWNED] ?? (element[OWNED] = { attrs: new Map(), classes: new Map(), props: new Map() });
   record[kind].set(name, (record[kind].get(name) ?? 0) + 1);
 }
 
-function disown(element, kind, name) {
+/**
+ * Gives up one claim of own(); morphHtml patches the name again after the last.
+ * @param {any} element
+ * @param {'attrs'|'classes'|'props'} kind
+ * @param {string} name
+ */
+export function disown(element, kind, name) {
   const map = element?.[OWNED]?.[kind];
   const count = map?.get(name) ?? 0;
   if (count > 1) map.set(name, count - 1);

@@ -25,6 +25,8 @@ export declare const DRAWER_QUERY: string;
 export declare const FOCUSABLE: string;
 /** Whether focus() would land on the node (enabled, rendered, not inert or hidden). */
 export declare function canFocus(node: any): boolean;
+/** The item the typed letters lead to, or null: the matcher of the menus and of DS.a11y.typeahead(). `typed` is lower case. */
+export declare function typeAhead(items: Element[], current: Element | null | undefined, typed: string, label?: (item: Element) => string): Element | null;
 
 /** Reference-counted scroll lock of the page. */
 export declare function lockScroll(doc?: Document): void;

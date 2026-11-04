@@ -18,9 +18,9 @@ export interface HotkeyCombo {
 export interface HotkeyLabel {
   /** One label per key, for a <kbd class="ds-kbd"> each. */
   keys: string[];
-  /** The one line: '⌘⇧K', 'Ctrl+Shift+K'. */
+  /** The one line: '⇧⌘K', 'Ctrl+Shift+K'. */
   text: string;
-  /** The value of aria-keyshortcuts: 'Meta+Shift+K', 'Control+Shift+K'. */
+  /** The value of aria-keyshortcuts: 'Shift+Meta+K', 'Control+Shift+K'. */
   aria: string;
 }
 /** Where a registry lives; default: the document. */
@@ -39,24 +39,26 @@ export interface HotkeyOptions {
   owner?: Element | null;
   /** Counts over any open overlay. */
   overlays?: boolean;
-  /** True counts in fields too, false never. Default: only a combo with Control or Command. */
+  /** True counts in fields and on the keys a native control uses itself, false never. Default: only a combo with Control or Command. */
   fields?: boolean;
   /** Takes a held key. */
   repeat?: boolean;
   /** False skips it for this press. */
   when?: (event: KeyboardEvent) => boolean;
+  /** False: it does nothing as the page stands, takes no key, and list() says it is not active. */
+  available?: () => boolean;
   root?: HotkeyRoot;
 }
 /** One shortcut of the sheet. */
 export interface HotkeyItem {
   description: string;
   scope: string;
-  /** Its scope counts now. */
+  /** Its scope counts now and available() says yes. */
   active: boolean;
   combos: (HotkeyLabel & { combo: string })[];
 }
 
-/** A combo as data; a combo without a key or with an unknown modifier throws. */
+/** A combo as data; a combo without a key, with an unknown modifier or an unknown key name throws. */
 export declare function parse(combo: string): HotkeyCombo;
 /** Whether this is an Apple system, where `mod` means Command. */
 export declare function isApple(view?: any): boolean;

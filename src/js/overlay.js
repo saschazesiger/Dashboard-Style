@@ -1155,13 +1155,22 @@ function wireMenu(menu) {
   });
 }
 
+/** What a menu item is called for type-ahead: its label part, else its text; collapsed, lower case. */
+const menuItemLabel = (item) => (item.querySelector('.ds-menu__label') ?? item).textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+
 /**
  * The item the typed letters lead to: the next one after `current`
  * (wrapping) whose label starts with them; one letter typed again and
- * again cycles through the items with that letter.
+ * again cycles through the items with that letter. `label(item)` gives the
+ * lower-case label (default: a menu item's). The one matcher: wireMenu here
+ * and DS.a11y.typeahead() both use it, so keep it shared when this file splits.
+ * @param {Element[]} items
+ * @param {Element|null|undefined} current
+ * @param {string} typed
+ * @param {(item: Element) => string} [label]
+ * @returns {Element|null}
  */
-function typeAhead(items, current, typed) {
-  const label = (item) => (item.querySelector('.ds-menu__label') ?? item).textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+export function typeAhead(items, current, typed, label = menuItemLabel) {
   const repeated = typed.length > 1 && [...typed].every((char) => char === typed[0]);
   const start = items.indexOf(current);
   // A new search starts after the current item; a longer one may stay on it.

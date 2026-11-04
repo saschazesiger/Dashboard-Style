@@ -42,6 +42,10 @@ export interface RovingOptions {
 export declare function roving(container: Element | null | undefined, options?: RovingOptions): Destroyable;
 /** Whether `node` takes typed text: an editable input of a type that types, a textarea or contenteditable. */
 export declare function typesText(node: any): boolean;
+/** Takes a name as owned runtime state, counted, so morphHtml keeps it. */
+export declare function own(element: any, kind: 'attrs' | 'classes' | 'props', name: string): void;
+/** Gives up one claim of own(). */
+export declare function disown(element: any, kind: 'attrs' | 'classes' | 'props', name: string): void;
 /** The app frame follows the on-screen keyboard, also for a field in a same-origin iframe (never in an embedded widget). */
 export declare function followViewport(doc?: Document): Destroyable;
 /** A log that sticks to its end while the reader is there. */

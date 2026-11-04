@@ -30,7 +30,8 @@ describe('parse()', () => {
   });
 
   it('throws on a combo without a key or with an unknown modifier', () => {
-    for (const bad of ['', 'mod+', 'hyper+k', 'toString+k']) assert.throws(() => hotkeys.parse(bad), /DS\.hotkeys/, bad);
+    for (const bad of ['', 'mod+', 'hyper+k', 'toString+k', 'shift', 'mod', 'mod+shift', 'ctrl+alt', 'mod+escpe', 'mod+toString', 'mod+constructor', 'f1x']) assert.throws(() => hotkeys.parse(bad), /DS\.hotkeys/, bad);
+    for (const good of ['insert', 'mod+contextmenu', 'f13', 'shift+f1', 'é', '@']) assert.doesNotThrow(() => hotkeys.parse(good), good);
   });
 });
 
@@ -116,7 +117,8 @@ describe('format()', () => {
     const aria = (combo) => hotkeys.format(combo, { apple: false }).aria;
     const text = (combo) => hotkeys.format(combo, { apple: false }).text;
     assert.deepEqual(['esc', 'enter', 'space', 'tab', 'backspace', 'del', 'home', 'end', 'pageup', 'pagedown'].map(text), ['Esc', 'Enter', 'Space', 'Tab', 'Backspace', 'Delete', 'Home', 'End', 'Page Up', 'Page Down']);
-    assert.deepEqual(['esc', 'enter', 'space', 'pageup', 'pagedown', 'up', 'f1', '?', '+'].map(aria), ['Escape', 'Enter', 'Space', 'PageUp', 'PageDown', 'ArrowUp', 'F1', '?', '+']);
+    assert.deepEqual(['esc', 'enter', 'space', 'pageup', 'pagedown', 'up', 'f1', '?', '+'].map(aria), ['Escape', 'Enter', 'Space', 'PageUp', 'PageDown', 'ArrowUp', 'F1', '?', 'Plus']);
+    assert.equal(aria('mod++'), 'Control+Plus');
     assert.deepEqual(['up', 'down', 'left', 'right', 'f12', '?', '+', 'insert'].map(text), ['↑', '↓', '←', '→', 'F12', '?', '+', 'Insert']);
   });
 
@@ -201,6 +203,71 @@ describe('the registry', () => {
     prevented.preventDefault();
     root.dispatchEvent(prevented);
     assert.deepEqual(log, ['held']);
+  });
+
+  it('keeps the default of a held key it runs nothing for, unless the first press passed the key on', () => {
+    const { log, press, bind } = setup();
+    bind('mod+s', 'save');
+    assert.equal(press({ key: 's', ctrlKey: true }).defaultPrevented, true);
+    assert.equal(press({ key: 's', ctrlKey: true, repeat: true }).defaultPrevented, true);
+    assert.deepEqual(log, ['save']);
+    bind('j', 'pass', { pass: true });
+    assert.equal(press({ key: 'j' }).defaultPrevented, false);
+    assert.equal(press({ key: 'j', repeat: true }).defaultPrevented, false);
+    assert.equal(press({ key: 'x', repeat: true }).defaultPrevented, false, 'no registration at all');
+    let on = false;
+    bind('k', 'gated', { when: () => on });
+    assert.equal(press({ key: 'k', repeat: true }).defaultPrevented, false, 'an entry its other filters skip');
+    on = true;
+    assert.equal(press({ key: 'k', repeat: true }).defaultPrevented, true);
+    assert.deepEqual(log, ['save', 'pass']);
+  });
+
+  it('keeps plain keys off what a native control does with them; fields: true overrides; mod combos pass', () => {
+    const { log, press, bind } = setup();
+    bind('space', 'space');
+    bind('left', 'left');
+    bind('j', 'j');
+    bind('mod+enter', 'mod-enter');
+    const on = (selector) => ({ composedPath: () => [{ tagName: 'DIV', closest: (asked) => (asked.split(', ').includes(selector) ? {} : null) }] });
+    press({ key: ' ', ...on('button') });
+    press({ key: ' ', ...on('input[type="checkbox"]') });
+    press({ key: 'ArrowLeft', ...on('input[type="range"]') });
+    press({ key: 'ArrowLeft', ...on('[role="grid"]') });
+    assert.deepEqual(log, [], 'taken by the control');
+    press({ key: 'ArrowLeft', ...on('button') });
+    press({ key: ' ', ...on('input[type="range"]') });
+    press({ key: 'j', ...on('button') });
+    press({ key: 'Enter', ctrlKey: true, ...on('button') });
+    assert.deepEqual(log, ['left', 'space', 'j', 'mod-enter']);
+    bind('enter', 'forced', { fields: true });
+    press({ key: 'Enter', ...on('button') });
+    assert.equal(log.at(-1), 'forced');
+  });
+
+  it('asks available(): false takes no key, and list() says so', () => {
+    const { root, log, press, bind } = setup();
+    let on = false;
+    bind('j', 'gated', { description: 'Gated', available: () => on });
+    assert.equal(press({ key: 'j' }).defaultPrevented, false);
+    assert.equal(hotkeys.list({ root, apple: false })[0].items[0].active, false);
+    assert.deepEqual(hotkeys.list({ root, apple: false, activeOnly: true }), []);
+    on = true;
+    press({ key: 'j' });
+    assert.deepEqual(log, ['gated']);
+    assert.equal(hotkeys.list({ root, apple: false })[0].items[0].active, true);
+  });
+
+  it('leaves out of list() what its element does not show; a later one that does not show replaces nothing', () => {
+    const { root, bind } = setup();
+    const owner = (visible) => ({ closest: () => null, checkVisibility: () => visible });
+    bind('a', 'x', { description: 'Shown', owner: owner(true) });
+    bind('b', 'x', { description: 'Unseen', owner: owner(false) });
+    bind('c', 'x', { description: 'In hidden', owner: { closest: () => ({}), checkVisibility: () => true } });
+    bind('d', 'x', { description: 'Gone', owner: { isConnected: false } });
+    bind('e', 'x', { description: 'Wide', owner: owner(true) });
+    bind('e', 'x', { description: 'Narrow', owner: owner(false) });
+    assert.deepEqual(hotkeys.list({ root, apple: false })[0].items.map((item) => item.description), ['Shown', 'Wide']);
   });
 
   it('keeps plain combos out of fields; mod combos and fields: true come in; fields: false never', () => {

@@ -141,11 +141,12 @@ DS.a11y.announce('Saved');                     // spoken, not shown
 | Export | What |
 |---|---|
 | `trap(container, { initial, returnFocus })` | keeps the Tab key inside `container` until `destroy()` and pulls focus that lands outside back to where it was inside. It moves focus in at once: `initial` (an element or a selector), else `[autofocus]`, else the first tabbable, else the container itself; `initial: false`, or focus already inside without an `initial`, leaves it. `destroy()` gives focus back to `returnFocus` (default: what had it before; `false`: nowhere) when focus is still inside or nowhere. Once per container (a second call returns the same handle). Returns `{ destroy() }` |
-| `tabbables(root)` | the elements inside `root` that the Tab key stops at, in DOM order: `FOCUSABLE` and `canFocus()` of `DS.overlay`, without a negative `tabindex` or `visibility: hidden`; a named radio group counts once (its checked radio, else the first) |
-| `readsKeys(node)` | whether plain keys on `node` already mean something: a field that takes text (`DS.dom.typesText()`), a select, or a widget with type-ahead (`role` textbox, searchbox, combobox, spinbutton, listbox, menu, menubar, tree, treegrid, or inside one). A read-only field and a checkbox do not |
+| `tabbables(root)` | the elements inside `root` that the Tab key stops at, in DOM order: `FOCUSABLE` of `DS.overlay` and `canTakeFocus()`, without a negative `tabindex`; a named radio group counts once (its checked radio, else the first) |
+| `canTakeFocus(node)` | whether focus can land on the node as the page stands: `canFocus()` of `DS.overlay`, and not in a disabled fieldset, nor unseen through `visibility` or `content-visibility` of itself or an ancestor (a closed details, a closed panel) |
+| `readsKeys(node)` | whether plain keys on `node` already mean something: a field that takes text (`DS.dom.typesText()`), a select, or a widget with type-ahead (`role` textbox, searchbox, combobox, spinbutton, listbox, menu, menubar, tree, treegrid, or inside one). A read-only field and a checkbox type nothing, so a letter has nothing to do there; their own keys (Space on a checkbox) are another matter, which `DS.hotkeys` leaves to them |
 | `roving(container, { items, orientation, wrap, activate, onActivate })` | `DS.dom.roving()` under this name, the same function and the same handle ([motion.md](motion.md)) |
-| `typeahead(container, { items, label, onMatch })` | typing a label moves focus to its item: the letters typed within `--ds-delay-tooltip` of each other are one search, a navigation key starts a new one, a space counts only within a word (alone it activates the item), a field inside the container keeps its letters. `items`: a selector or a function (default: every option, menu item, tree item, tab and radio); disabled and hidden items are skipped, `aria-disabled` ones reached (their name is read). `label(item)` gives the lower-case label (default: its `aria-label`, else its text). `onMatch(item)` replaces `item.focus()`. Delegated on the container, once per container. Returns `{ destroy() }` |
-| `typeaheadMatch(items, current, typed, label)` | the matching alone: the next item after `current` (wrapping) whose label starts with `typed` (lower case); one letter typed again and again cycles through the items with that letter; else `null` |
+| `typeahead(container, { items, label, onMatch, current })` | typing a label moves focus to its item: the letters typed within `--ds-delay-tooltip` of each other are one search, a navigation key starts a new one, a space counts only within a word (alone it activates the item), a field inside the container keeps its letters. `items`: a selector or a function (default: every option, menu item, tree item, tab and radio); disabled and hidden items are skipped, `aria-disabled` ones reached (their name is read). `label(item)` gives the lower-case label (default: its `aria-label`, else its text). `onMatch(item)` replaces `item.focus()`. The search goes on from the item that holds focus, else the one the container's `aria-activedescendant` names (the pattern `onMatch` is for), else `current()`. Delegated on the container, once per container. Returns `{ destroy() }` |
+| `typeaheadMatch(items, current, typed, label)` | the matching alone (`DS.overlay.typeAhead()`, the matcher of the menus, with this label): the next item after `current` (wrapping) whose label starts with `typed` (lower case); one letter typed again and again cycles through the items with that letter; else `null` |
 | `announce(text, { assertive, region })` | `DS.overlay.announce()` under this name: says `text` through the announcers of a snackbar region without showing anything ([motion.md](motion.md)) |
 
 **Which trap.** A dialog, a side sheet and the modal drawer go through `DS.overlay.open()`: that is their trap, with the
@@ -155,7 +156,7 @@ cursor, so a modal region must not rely on it alone.
 
 - Traps stack per document: the last one holds, and destroying it wakes the one below.
 - A trap rests while an overlay it does not sit in is open, so a dialog opened from a trapped region keeps its focus;
-  an overlay inside the region leaves it holding. It comes back when the overlay closes.
+  a region inside the open overlay keeps holding. It comes back when the overlay closes.
 - Snackbars stay usable above a trap, as above every modal: focus on one stays there, and the next Tab out returns.
 - Escape is the page's: `trap()` closes nothing.
 
@@ -186,13 +187,13 @@ DS.hotkeys.list();                         // the groups a shortcut sheet shows
 
 | Export | What |
 |---|---|
-| `register(combo, handler, { description, group, scope, within, owner, overlays, fields, repeat, when, root })` | `combo` (a string, or a list of alternatives) calls `handler(event)`; a handler that returns `false` passes the key on. `description` and `group` are for `list()`, which leaves out a registration without a description. `scope` (default `'global'`). `within`: an element the key press must come from. `owner`: the element this belongs to, when it is no `within`: in an open overlay it still counts. `overlays: true` counts over any overlay. `fields`: `true` counts in fields too, `false` never (default: only a combo with Control or Command). `repeat: true` takes a held key. `when(event)`: `false` skips it for this press. `root`: default the document. A bad combo throws here. Returns `{ destroy() }` |
+| `register(combo, handler, { description, group, scope, within, owner, overlays, fields, repeat, when, available, root })` | `combo` (a string, or a list of alternatives) calls `handler(event)`; a handler that returns `false` passes the key on. `description` and `group` are for `list()`, which leaves out a registration without a description. `scope` (default `'global'`). `within`: an element the key press must come from. `owner`: the element this belongs to, when it is no `within`: in an open overlay it still counts. `overlays: true` counts over any overlay. `fields`: `true` counts in fields and on the keys a native control uses itself, `false` never (default: only a combo with Control or Command). `repeat: true` takes a held key. `when(event)`: `false` skips it for this press. `available()`: `false` means it does nothing as the page stands, so it takes no key and `list()` says it is not active. `root`: default the document. A bad combo throws here. Returns `{ destroy() }` |
 | `scope(name, { exclusive, root })` | turns the scope on until `destroy()`: its shortcuts count, before those of the scopes turned on earlier. `exclusive: true` masks every scope below it, `'global'` too |
 | `scopes({ root })` | the scopes that count now, the one that counts first at the head |
-| `list({ root, activeOnly, apple })` | the data of a shortcut sheet: the groups in the order they were first registered, each `{ name, items }`, an item `{ description, scope, active, combos: [{ combo, keys, text, aria }] }`. A registration that a later one with the same combos, scope and `within` replaces is left out. `active`: its scope counts now; `activeOnly: true` leaves the others out |
+| `list({ root, activeOnly, apple })` | the data of a shortcut sheet: the groups in the order they were first registered, each `{ name, items }`, an item `{ description, scope, active, combos: [{ combo, keys, text, aria }] }`. A registration that a later one with the same combos, scope and `within` replaces is left out, and so is one whose `owner` or `within` is not shown (hidden, unseen, in a closed layer). `active`: its scope counts now and `available()` says yes, so a disabled control shows as off; `activeOnly: true` leaves the others out |
 | `onChange(fn, { root })` | calls `fn` after every change of what `list()` or `scopes()` give, so an open sheet stays true. Returns the unsubscribe |
-| `format(combo, { apple })` | a combo for people and for assistive tech on this platform: `keys` one label per key, for a `<kbd class="ds-kbd">` each; `text` the one line (`⌘⇧K`, `Ctrl+Shift+K`); `aria` the value of `aria-keyshortcuts` (`Meta+Shift+K`, `Control+Shift+K`) |
-| `parse(combo)` | a combo as data, `{ key, mod, ctrl, meta, alt, shift }`; without a key or with an unknown modifier it throws |
+| `format(combo, { apple })` | a combo for people and for assistive tech on this platform: `keys` one label per key, for a `<kbd class="ds-kbd">` each; `text` the one line (`⇧⌘K`, `Ctrl+Shift+K`); `aria` the value of `aria-keyshortcuts` (`Shift+Meta+K`, `Control+Shift+K`; the plus key is `Plus`) |
+| `parse(combo)` | a combo as data, `{ key, mod, ctrl, meta, alt, shift }`; without a key (only modifiers), with an unknown modifier or an unknown key name it throws |
 | `matches(event, combo)` | whether a keyboard event is this combo (a string or what `parse()` gives) |
 | `isApple(view?)` | whether this is an Apple system, where `mod` means Command. Progressive: `navigator.userAgentData`, else `navigator.platform` |
 
@@ -201,7 +202,7 @@ DS.hotkeys.list();                         // the groups a shortcut sheet shows
 - `mod` is Command on Apple systems and Control elsewhere: write it for an application shortcut. `ctrl` (`control`),
   `meta` (`cmd`, `command`, `win`, `super`), `alt` (`option`, `opt`) and `shift` are themselves.
 - A key: a letter, a digit, `f1`, a word (`enter` or `return`, `escape` or `esc`, `space`, `tab`, `backspace`, `delete` or
-  `del`, `home`, `end`, `pageup`, `pagedown`, `up`, `down`, `left`, `right`) or a character. `+` alone or `plus` is the
+  `del`, `home`, `end`, `pageup`, `pagedown`, `up`, `down`, `left`, `right`, or another key name of UI Events, such as `insert`) or a character. `+` alone or `plus` is the
   plus key (`mod++`).
 - A character other than a letter or a digit is written as typed (`?`, never `shift+/`): which Shift it takes depends on
   the layout.
@@ -212,9 +213,13 @@ DS.hotkeys.list();                         // the groups a shortcut sheet shows
 **Which registration takes a key press.**
 
 1. The page's own handlers come first (the registry listens in the bubble phase on the document): `preventDefault()`
-   keeps the key. A composing IME gets nothing, and a held key only with `repeat: true`.
+   keeps the key. A composing IME gets nothing, and a held key runs a handler only with `repeat: true`; without it the
+   key still keeps its default, so a held `mod+s` never opens the browser's own dialog.
 2. A combo without Control or Command stays out of fields and of widgets that read keys (`DS.a11y.readsKeys()`), where
-   it would type; `mod+k` still works from a search field. `fields` changes that.
+   it would type; `mod+k` still works from a search field. It also stays off the keys a native control uses itself: `space`
+   and `enter` on a button, link, summary, checkbox, radio and their roles; the arrows, `home`, `end`, `pageup` and
+   `pagedown` on a range, radio, media controls, a read-only field and `role` slider, radiogroup, tablist, grid and
+   toolbar. `fields` changes that.
 3. An open overlay masks the registrations behind it, so letters reach a menu's type-ahead and no shortcut acts on the
    inert page. A `within` or `owner` in that layer, or `overlays: true`, still counts. Escape stays the overlay's.
 4. Of what is left, the innermost `within` wins, then the scope turned on last, then the registration made last. So a
@@ -225,10 +230,13 @@ DS.hotkeys.list();                         // the groups a shortcut sheet shows
 (a full-screen editor) masks the rest. A scope turned on twice counts until both handles are gone.
 
 **`data-ds-hotkey`.** With `DS.init()`, the attribute holds one combo or several separated by spaces, and a press of it
-presses the button or link (the action guard applies), or focuses and selects a field. It counts only while the element
-could take focus (not disabled, hidden or inert) and is not `aria-disabled`, and over an overlay only when it sits in
-that overlay. `data-ds-hotkey-description` (default: its `aria-label`, else its text), `data-ds-hotkey-group` and
-`data-ds-hotkey-scope` are the options of `register()`. It writes `aria-keyshortcuts` unless the markup has one.
+presses the button or link (the action guard applies), or focuses and selects a field, read-only ones too. The element
+decides, not its ancestors: a button in a menu is pressed. It counts only while the element could take focus
+(`DS.a11y.canTakeFocus()`: not disabled, hidden, unseen or inert) and is not `aria-disabled`, and over an overlay only
+when it sits in that overlay; `list()` shows the same (off while it is disabled, not listed while it is not shown).
+`data-ds-hotkey-description` (default: its `aria-label`, else its label, else its text), `data-ds-hotkey-group` and
+`data-ds-hotkey-scope` are the options of `register()`. It writes `aria-keyshortcuts` unless the markup has one, and a
+re-render with `morphHtml` keeps it.
 
 **Accessibility.** Plain-letter shortcuts are a burden for people on speech input (WCAG 2.1.4): a page offers them only
 as an addition to a visible control, with a way to turn them off or remap them, or with `within` so they count only
@@ -236,12 +244,13 @@ while the element has focus. `list()` is what a sheet needs to make them discove
 `aria-keyshortcuts`. The key names are strings (`keyCtrl`, `keyEnter` ...: [install.md](install.md#language-and-locale)).
 
 <!-- changelog
-- New `js/a11y.js` (`DS.a11y`): `trap()`, `tabbables()`, `readsKeys()`, `typeahead()`, `typeaheadMatch()`, and `roving()`
+- New `js/a11y.js` (`DS.a11y`): `trap()`, `tabbables()`, `canTakeFocus()`, `readsKeys()`, `typeahead()`, `typeaheadMatch()`, and `roving()`
   and `announce()` under this name (the functions of `DS.dom` and `DS.overlay`, which stay).
 - New `js/hotkeys.js` (`DS.hotkeys`): a registry of shortcuts per document with platform-aware combos, scopes, fields
   left alone, overlays masking what is behind them, the data of a shortcut sheet (`list()`, `onChange()`), `format()`
   and `data-ds-hotkey`.
-- `DS.overlay.canFocus()`, `DS.overlay.FOCUSABLE` and `DS.dom.typesText()` are exported (the helpers build on them).
+- `DS.overlay.canFocus()`, `DS.overlay.FOCUSABLE`, `DS.overlay.typeAhead()`, `DS.dom.typesText()`, `DS.dom.own()` and
+  `DS.dom.disown()` are exported (the helpers build on them).
 - New strings: `keyCtrl`, `keyAlt`, `keyShift`, `keyMeta`, `keyEnter`, `keyEscape`, `keySpace`, `keyTab`, `keyBackspace`,
   `keyDelete`, `keyHome`, `keyEnd`, `keyPageUp`, `keyPageDown`, `hotkeysGeneral`.
 -->

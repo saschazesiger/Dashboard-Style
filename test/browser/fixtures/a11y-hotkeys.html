@@ -35,6 +35,39 @@
 
   <section class="fx-section" id="empty-region" aria-label="Nothing to focus"><p>Text only.</p></section>
 
+  <!-- What looks focusable but is not: first and last in a region. -->
+  <section class="fx-section" id="fieldset-first" aria-label="Disabled fieldset first">
+    <fieldset disabled><legend>Off</legend><button class="ds-btn" type="button" id="fs-off">Off</button></fieldset>
+    <button class="ds-btn" type="button" id="fs-a">A</button>
+    <button class="ds-btn" type="button" id="fs-b">B</button>
+  </section>
+  <section class="fx-section" id="closed-last" aria-label="Closed details last">
+    <button class="ds-btn" type="button" id="cl-a">A</button>
+    <details id="cl-details"><summary id="cl-summary">More</summary><button class="ds-btn" type="button" id="cl-inside">Inside</button></details>
+    <fieldset disabled><button class="ds-btn" type="button" id="cl-off">Off</button></fieldset>
+    <div style="visibility: hidden"><button class="ds-btn" type="button" id="cl-unseen">Unseen</button></div>
+    <div style="content-visibility: hidden"><button class="ds-btn" type="button" id="cl-skipped">Skipped</button></div>
+  </section>
+  <section class="fx-section" id="box-last" aria-label="A box last">
+    <button class="ds-btn" type="button" id="bl-a">A</button>
+    <div id="bl-middle" tabindex="-1">Middle box</div>
+    <button class="ds-btn" type="button" id="bl-b">B</button>
+    <div id="bl-end" tabindex="-1">End box</div>
+  </section>
+
+  <!-- A trap and an overlay inside it. -->
+  <section class="fx-section" id="outer-region" aria-label="Region around a dialog">
+    <button class="ds-btn" type="button" id="or-first">First</button>
+    <button class="ds-btn" type="button" id="or-open">Open</button>
+    <dialog class="ds-dialog" id="or-dialog" aria-labelledby="or-title">
+      <div class="ds-dialog__box">
+        <h2 class="ds-dialog__title" id="or-title">Inside the region</h2>
+        <button class="ds-btn" type="button" id="or-a">A</button>
+        <button class="ds-btn" type="button" id="or-b">B</button>
+      </div>
+    </dialog>
+  </section>
+
   <button class="ds-btn" type="button" id="after">After</button>
 
   <ul id="people" role="listbox" aria-label="People">
@@ -56,6 +89,12 @@
     <button class="ds-btn" type="button" id="hk-aria" data-ds-hotkey="u" aria-disabled="true">Blocked</button>
     <button class="ds-btn" type="button" id="hk-hidden" data-ds-hotkey="i" hidden>Hidden</button>
     <button class="ds-btn" type="button" id="hk-named" data-ds-hotkey="o" aria-keyshortcuts="O">Own name</button>
+    <button class="ds-btn" type="button" id="hk-invisible" data-ds-hotkey="v" style="visibility: hidden">Invisible</button>
+    <fieldset disabled><button class="ds-btn" type="button" id="hk-fieldset" data-ds-hotkey="f">In fieldset</button></fieldset>
+    <div role="menu" aria-label="Actions"><button class="ds-btn" type="button" role="menuitem" id="hk-menuitem" data-ds-hotkey="mod+d">Duplicate</button></div>
+    <input class="ds-input" id="hk-readonly" aria-label="Read-only copy" readonly data-ds-hotkey="r" value="copy">
+    <label for="hk-labelled">Filter devices</label><input class="ds-input" id="hk-labelled" data-ds-hotkey="l">
+    <input type="range" id="range" min="0" max="10" value="5" aria-label="Range">
     <input class="ds-input" id="hk-field" type="search" aria-label="Search field" data-ds-hotkey="/" value="query">
     <input class="ds-input" id="plain-field" aria-label="Plain field">
     <input class="ds-input" id="readonly-field" aria-label="Read-only field" readonly value="fixed">
@@ -69,6 +108,10 @@
       <h2 class="ds-dialog__title" id="dialog-title">Dialog</h2>
       <button class="ds-btn" type="button" id="dialog-a" data-ds-hotkey="d">In dialog</button>
       <button class="ds-btn" type="button" id="dialog-b">Close</button>
+      <section id="dialog-region" aria-label="Region inside the dialog">
+        <button class="ds-btn" type="button" id="dr-a">Region A</button>
+        <button class="ds-btn" type="button" id="dr-b">Region B</button>
+      </section>
     </div>
   </dialog>
 
@@ -89,6 +132,7 @@
   document.getElementById('hk-aria').addEventListener('click', () => window.fx.log.push('hk-aria'));
   document.getElementById('hk-hidden').addEventListener('click', () => window.fx.log.push('hk-hidden'));
   document.getElementById('hk-named').addEventListener('click', () => window.fx.log.push('hk-named'));
+  for (const id of ['hk-invisible', 'hk-fieldset', 'hk-menuitem']) document.getElementById(id).addEventListener('click', () => window.fx.log.push(id));
   document.getElementById('dialog-a').addEventListener('click', () => window.fx.log.push('dialog-a'));
   document.getElementById('open-dialog').addEventListener('click', (event) => overlay.open(document.getElementById('dialog'), { opener: event.currentTarget }));
   document.getElementById('dialog-b').addEventListener('click', () => overlay.close(document.getElementById('dialog')));

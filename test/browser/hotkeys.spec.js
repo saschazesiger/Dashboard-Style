@@ -92,6 +92,67 @@ test('plain combos stay out of fields and key widgets; mod combos work there; fi
   expect(await log(page), 'a read-only field, a checkbox and a button type nothing').toEqual(['mod', 'always', 'plain', 'plain', 'plain']);
 });
 
+test('plain keys stay off what a native control does with them; fields: true takes them', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.fx.clicks = 0;
+    document.getElementById('first').addEventListener('click', () => { window.fx.clicks += 1; });
+  });
+  for (const key of ['space', 'enter', 'left', 'right', 'up', 'down', 'home', 'end', 'pageup', 'pagedown']) await bind(page, key, key);
+  const clicks = () => page.evaluate(() => window.fx.clicks);
+
+  await page.locator('#first').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('Enter');
+  expect(await clicks(), 'a button is pressed by both').toBe(2);
+  await page.keyboard.press('ArrowRight');
+  expect(await log(page), 'an arrow means nothing on a button').toEqual(['right']);
+
+  await page.locator('#check').focus();
+  await page.keyboard.press('Space');
+  await expect(page.locator('#check'), 'a checkbox checks').toBeChecked();
+
+  await page.locator('#range').focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator('#range'), 'a range moves').toHaveValue('4');
+  await page.keyboard.press('Home');
+  await expect(page.locator('#range'), 'to its start').toHaveValue('0');
+
+  await page.locator('#kind-b').focus();
+  await page.keyboard.press('ArrowUp');
+  await expect(page.locator('#kind-a'), 'a radio group moves').toBeChecked();
+  expect(await log(page), 'none of those reached a shortcut').toEqual(['right']);
+
+  const roles = await page.evaluate(() => {
+    const area = document.getElementById('hotkey-area');
+    const taken = {};
+    for (const [role, key, code] of [['button', ' ', 'space'], ['link', 'Enter', 'enter'], ['checkbox', ' ', 'space'], ['switch', ' ', 'space'], ['slider', 'ArrowLeft', 'left'], ['radiogroup', 'ArrowDown', 'down'], ['tablist', 'ArrowRight', 'right'], ['grid', 'PageDown', 'pagedown'], ['toolbar', 'End', 'end']]) {
+      const el = document.createElement('div');
+      el.setAttribute('role', role);
+      el.tabIndex = 0;
+      area.append(el);
+      const before = window.fx.log.length;
+      el.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+      taken[`${role}:${code}`] = window.fx.log.length > before;
+      el.remove();
+    }
+    return taken;
+  });
+  expect(Object.values(roles).some(Boolean), JSON.stringify(roles)).toBe(false);
+
+  await page.locator('#within-outer').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowLeft');
+  expect((await log(page)).slice(-2), 'on an element that uses neither they count').toEqual(['space', 'left']);
+
+  await page.evaluate(() => { window.fx.hotkeys.register('space', () => { window.fx.log.push('forced'); }, { fields: true }); });
+  await page.locator('#first').focus();
+  const before = await clicks();
+  await page.keyboard.press('Space');
+  expect((await log(page)).at(-1), 'fields: true').toBe('forced');
+  expect(await clicks(), 'and the button stays unpressed').toBe(before);
+});
+
 test('scopes: the one turned on last first; exclusive masks; destroy brings back', async ({ page }) => {
   await open(page);
   await bind(page, 'j', 'global');
@@ -180,13 +241,29 @@ test('the page comes first; a composing IME and a held key get nothing, repeat: 
   expect(await log(page)).toEqual(['held']);
 });
 
+test('a held key runs nothing but keeps its default; a key the first press passed on keeps it not', async ({ page }) => {
+  await open(page);
+  await bind(page, 'mod+j', 'save');
+  await bind(page, 'k', 'pass', { pass: true });
+  const prevented = await page.evaluate(() => {
+    const press = (init) => {
+      const event = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init });
+      document.getElementById('first').dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    return [press({ key: 'j', ctrlKey: true }), press({ key: 'j', ctrlKey: true, repeat: true }), press({ key: 'k' }), press({ key: 'k', repeat: true })];
+  });
+  expect(prevented).toEqual([true, true, false, false]);
+  expect(await log(page)).toEqual(['save', 'pass']);
+});
+
 test('data-ds-hotkey: presses the button or focuses the field; never when it could not take focus; aria-keyshortcuts', async ({ page }) => {
   await open(page);
   await page.keyboard.press('Control+k');
   await page.keyboard.press('x');
   expect(await log(page), 'each alternative').toEqual(['hk-button', 'hk-button']);
-  for (const key of ['y', 'u', 'i']) await page.keyboard.press(key);
-  expect(await log(page), 'disabled, aria-disabled and hidden stay out').toEqual(['hk-button', 'hk-button']);
+  for (const key of ['y', 'u', 'i', 'v', 'f']) await page.keyboard.press(key);
+  expect(await log(page), 'disabled, aria-disabled, hidden, visibility: hidden and a disabled fieldset stay out').toEqual(['hk-button', 'hk-button']);
   await page.keyboard.press('o');
   expect((await log(page)).at(-1)).toBe('hk-named');
 
@@ -197,6 +274,41 @@ test('data-ds-hotkey: presses the button or focuses the field; never when it cou
 
   await expect(page.locator('#hk-button')).toHaveAttribute('aria-keyshortcuts', 'Control+K X');
   await expect(page.locator('#hk-named'), 'the page\'s own stays').toHaveAttribute('aria-keyshortcuts', 'O');
+});
+
+test('data-ds-hotkey: the element decides: a menu item is pressed, a read-only field takes focus', async ({ page }) => {
+  await open(page);
+  await page.keyboard.press('Control+d');
+  expect(await log(page), 'a button in a role=menu').toEqual(['hk-menuitem']);
+  await expect(page.locator('#first'), 'focus stays where it was').toBeFocused();
+  await page.keyboard.press('r');
+  await expect(page.locator('#hk-readonly'), 'a read-only field').toBeFocused();
+  expect(await page.evaluate(() => { const field = document.getElementById('hk-readonly'); return [field.selectionStart, field.selectionEnd]; }), 'selected').toEqual([0, 4]);
+});
+
+test('data-ds-hotkey: aria-keyshortcuts survives a re-render with morphHtml, and goes with the attribute', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const area = document.createElement('div');
+    area.id = 'morph-area';
+    area.innerHTML = '<button type="button" id="hk-morph" data-ds-hotkey="z">Z</button>';
+    document.querySelector('.ds-theme').append(area);
+  });
+  const button = page.locator('#hk-morph');
+  await expect(button).toHaveAttribute('aria-keyshortcuts', 'Z');
+  await page.evaluate(() => window.fx.dom.morphHtml(document.getElementById('morph-area'), '<button type="button" id="hk-morph" data-ds-hotkey="z">Z</button>'));
+  expect(await button.getAttribute('aria-keyshortcuts'), 'the same template').toBe('Z');
+  await page.evaluate(() => window.fx.dom.morphHtml(document.getElementById('morph-area'), '<button type="button" id="hk-morph" data-ds-hotkey="z">Zed</button>'));
+  await expect(button).toHaveText('Zed');
+  expect(await button.getAttribute('aria-keyshortcuts'), 'another text').toBe('Z');
+  await page.evaluate(() => document.getElementById('hk-morph').removeAttribute('data-ds-hotkey'));
+  await expect(button, 'the claim goes with it').not.toHaveAttribute('aria-keyshortcuts');
+  await page.evaluate(() => {
+    const el = document.getElementById('hk-morph');
+    el.setAttribute('aria-keyshortcuts', 'Q');
+    window.fx.dom.morphHtml(document.getElementById('morph-area'), '<button type="button" id="hk-morph">Zed</button>');
+  });
+  expect(await button.getAttribute('aria-keyshortcuts'), 'no longer owned: the markup decides').toBeNull();
 });
 
 test('data-ds-hotkey: attributes added and removed later follow, through DS.init()', async ({ page }) => {
@@ -246,6 +358,47 @@ test('list() and onChange(): the data of a shortcut sheet', async ({ page }) => 
   expect(data.after, 'unsubscribed').toBe(data.before);
   // The markup of the page is on the sheet too.
   expect(data.first.find((group) => group.name === 'Devices').items[0].description).toBe('Search devices');
+});
+
+test('list(): only keys that work are active; what is not shown is not listed', async ({ page }) => {
+  await open(page);
+  const rows = () => page.evaluate(() => Object.fromEntries(window.fx.hotkeys.list({ apple: false }).flatMap((group) => group.items).map((item) => [item.description, item.active])));
+  const first = await rows();
+  expect(first['Disabled'], 'disabled: on the sheet, off').toBe(false);
+  expect(first['Blocked'], 'aria-disabled').toBe(false);
+  expect(first['In fieldset'], 'a disabled fieldset').toBe(false);
+  expect(first['Own name'], 'one that works').toBe(true);
+  for (const name of ['Hidden', 'Invisible', 'In dialog']) expect(first[name], `${name}: not listed`).toBeUndefined();
+  expect(first['Filter devices'], 'its label names a field').toBe(true);
+
+  const active = await page.evaluate(() => window.fx.hotkeys.list({ apple: false, activeOnly: true }).flatMap((group) => group.items).map((item) => item.description));
+  expect(active).not.toContain('Disabled');
+  expect(active).toContain('Own name');
+
+  await page.locator('#open-dialog').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#dialog-a')).toBeFocused();
+  expect((await rows())['In dialog'], 'its layer open: listed').toBe(true);
+
+  await page.evaluate(() => {
+    const later = document.createElement('button');
+    later.setAttribute('data-ds-hotkey', 'o');
+    later.setAttribute('aria-keyshortcuts', 'O');
+    later.hidden = true;
+    later.textContent = 'Own name for phones';
+    document.getElementById('hotkey-area').append(later);
+  });
+  await expect.poll(async () => page.evaluate(() => window.fx.hotkeys.list({ apple: false }).flatMap((group) => group.items).map((item) => item.description)), 'a later one that is hidden replaces nothing').toContain('Own name');
+
+  const custom = await page.evaluate(() => {
+    let on = false;
+    window.fx.hotkeys.register('mod+y', () => { window.fx.log.push('custom'); }, { description: 'Custom', available: () => on });
+    const read = () => window.fx.hotkeys.list({ apple: false }).flatMap((group) => group.items).find((item) => item.description === 'Custom').active;
+    const off = read();
+    on = true;
+    return [off, read()];
+  });
+  expect(custom, 'available() is asked at list() time').toEqual([false, true]);
 });
 
 test('strings: the key names go through DS.core.config()', async ({ page }) => {

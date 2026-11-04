@@ -124,6 +124,25 @@ describe('typeahead()', () => {
     assert.deepEqual(matched, ['Bert']);
   });
 
+  it('goes on from the item the container\'s aria-activedescendant names, else current()', () => {
+    const seen = [];
+    const listed = setup(['Ada', 'Alan', 'Barbara'], { onMatch: (each) => seen.push(each.text), current: () => listed.items[1] });
+    listed.press('a', { at: 100, on: null });
+    assert.deepEqual(seen, ['Ada'], 'current(): after Alan, wrapping');
+
+    const found = [];
+    const container = new EventTarget();
+    const items = ['Ada', 'Alan'].map((text) => item(text));
+    container.querySelectorAll = () => items;
+    container.getAttribute = () => 'alan';
+    container.getRootNode = () => ({ getElementById: () => items[1] });
+    a11y.typeahead(container, { onMatch: (each) => found.push(each.text) });
+    const event = Object.assign(new Event('keydown', { cancelable: true }), { key: 'a', altKey: false, ctrlKey: false, metaKey: false, isComposing: false });
+    Object.defineProperty(event, 'target', { value: container });
+    container.dispatchEvent(event);
+    assert.deepEqual(found, ['Ada'], 'after the named item');
+  });
+
   it('is once per container; destroy() ends it, twice is safe, then it can start again', () => {
     const { container, items, handle, press } = setup(['Ada']);
     assert.equal(a11y.typeahead(container), handle);
@@ -157,10 +176,11 @@ describe('tabbables()', () => {
     assert.deepEqual(a11y.tabbables(root(plain, node({ tabindex: '-1' }), node({}, { disabled: true }), node({}, { closest: () => ({}) }), node({}, { getClientRects: () => [] }), node({}, { isConnected: false }), set)), [plain, set]);
   });
 
-  it('leaves what is not visible out', () => {
-    const shown = node({}, { ownerDocument: { defaultView: { getComputedStyle: () => ({ visibility: 'visible' }) } } });
-    const hidden = node({}, { ownerDocument: { defaultView: { getComputedStyle: () => ({ visibility: 'hidden' }) } } });
-    assert.deepEqual(a11y.tabbables(root(shown, hidden)), [shown]);
+  it('leaves what is not visible out, and what a fieldset disables', () => {
+    const shown = node({}, { checkVisibility: (options) => options.checkVisibilityCSS === true });
+    const hidden = node({}, { checkVisibility: () => false });
+    const inFieldset = node({}, { matches: (selector) => selector === ':disabled' });
+    assert.deepEqual(a11y.tabbables(root(shown, hidden, inFieldset)), [shown]);
   });
 
   it('counts a named radio group once: the checked one, else the first', () => {
@@ -176,6 +196,19 @@ describe('tabbables()', () => {
   it('is empty without a root', () => {
     assert.deepEqual(a11y.tabbables(null), []);
     assert.deepEqual(a11y.tabbables(undefined), []);
+  });
+});
+
+describe('canTakeFocus()', () => {
+  const node = (extra = {}) => ({ isConnected: true, disabled: false, closest: () => null, focus() {}, ...extra });
+
+  it('adds :disabled and the visibility check to canFocus(), and copes with a stub without them', () => {
+    assert.equal(a11y.canTakeFocus(node()), true);
+    assert.equal(a11y.canTakeFocus(node({ disabled: true })), false);
+    assert.equal(a11y.canTakeFocus(node({ matches: () => true })), false);
+    assert.equal(a11y.canTakeFocus(node({ matches: () => false, checkVisibility: () => true })), true);
+    assert.equal(a11y.canTakeFocus(node({ checkVisibility: () => false })), false);
+    assert.equal(a11y.canTakeFocus(null), false);
   });
 });
 
@@ -201,9 +234,10 @@ describe('what the module takes from the others', () => {
 
   it('builds on the functions of DS.dom and DS.overlay, and writes no focusable list of its own', () => {
     assert.match(source, /^import \{ roving as rovingOf, typesText \} from '\.\/dom\.js';$/m);
-    assert.match(source, /^import \{ announce as announceOf, canFocus, FOCUSABLE, topmost \} from '\.\/overlay\.js';$/m);
+    assert.match(source, /^import \{ announce as announceOf, canFocus, FOCUSABLE, topmost, typeAhead \} from '\.\/overlay\.js';$/m);
     assert.doesNotMatch(source, /const FOCUSABLE/);
     assert.doesNotMatch(source, /a\[href\]/);
+    assert.doesNotMatch(source, /startsWith/, 'the matcher is the menus\' (DS.overlay.typeAhead)');
   });
 
   it('is safe without a DOM', () => {

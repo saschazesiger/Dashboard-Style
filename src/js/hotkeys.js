@@ -18,11 +18,14 @@
  *
  * Which registration a key press reaches: the page's own handlers come first
  * (bubble phase; preventDefault() keeps it), a composing IME and a held key
- * get nothing (`repeat: true` takes a held key). A combo without Control or
- * Command stays out of fields and of widgets that read keys (readsKeys()),
- * where it would type (`fields` changes that). An open overlay masks the
- * registrations behind it, so letters reach a menu's type-ahead and no
- * shortcut acts on the inert page (`within` or `owner` in that layer, or
+ * get nothing (`repeat: true` takes a held key; a key held on a registration
+ * still keeps its default, so the browser's own Ctrl+S never opens). A combo
+ * without Control or Command stays out of fields and of widgets that read
+ * keys (readsKeys()), where it would type, and off the keys a native control
+ * uses itself: Space and Enter on what they press, the arrows, Home, End,
+ * PageUp and PageDown on what they move (`fields` changes that). An open
+ * overlay masks the registrations behind it, so letters reach a menu's
+ * type-ahead and no shortcut acts on the inert page (`within` or `owner` in that layer, or
  * `overlays: true`, still count). Of what is left the innermost `within`
  * wins, then the scope activated last, then the registration made last; a
  * handler that returns false passes the key on. The one that takes it
@@ -38,8 +41,9 @@
  */
 
 import { define, runtime, t } from './core.js';
-import { canFocus, topmost } from './overlay.js';
-import { readsKeys } from './a11y.js';
+import { disown, own } from './dom.js';
+import { topmost } from './overlay.js';
+import { canTakeFocus, readsKeys } from './a11y.js';
 
 /** The scope of a registration that names none; always on, below the others. */
 const GLOBAL = 'global';
@@ -56,12 +60,17 @@ const MODIFIERS = { mod: 'mod', ctrl: 'ctrl', control: 'ctrl', meta: 'meta', cmd
 
 const KEY_ALIASES = { esc: 'escape', return: 'enter', del: 'delete', up: 'arrowup', down: 'arrowdown', left: 'arrowleft', right: 'arrowright', spacebar: 'space', plus: '+' };
 
+const capital = (word) => word.charAt(0).toUpperCase() + word.slice(1);
+
+/** The keys with a name, by the lower-case key, as aria-keyshortcuts writes them; a name that is none of these, f1 ... or one character is a typo. */
+const KEY_NAMES = new Map(['enter', 'escape', 'space', 'tab', 'backspace', 'delete', 'insert', 'home', 'end', 'PageUp', 'PageDown', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ContextMenu', 'CapsLock', 'NumLock', 'ScrollLock', 'pause', 'PrintScreen', 'help', 'clear', 'BrowserBack', 'BrowserForward', 'BrowserHome', 'BrowserRefresh', 'BrowserSearch', 'MediaPlayPause', 'MediaStop', 'MediaTrackNext', 'MediaTrackPrevious', 'AudioVolumeUp', 'AudioVolumeDown', 'AudioVolumeMute'].map((name) => [name.toLowerCase(), capital(name)]));
+
 /**
  * A combo as data: { key, mod, ctrl, meta, alt, shift }. The key is lower
  * case (`escape`, `arrowup`, `f1`, `k`, `?`), with the aliases `esc`,
  * `return`, `del`, `up`, `down`, `left`, `right`, `spacebar` and `plus`; `+`
- * alone is the plus key. A combo without a key or with an unknown modifier
- * throws.
+ * alone is the plus key. A combo without a key (only modifiers), with an
+ * unknown modifier or an unknown key name throws.
  * @param {string} combo
  * @returns {{ key: string, mod: boolean, ctrl: boolean, meta: boolean, alt: boolean, shift: boolean }}
  */
@@ -73,8 +82,10 @@ export function parse(combo) {
     parts.length -= 2;
     key = '+';
   } else key = parts.pop();
-  if (!key) throw new Error(`DS.hotkeys: no key in the combo "${combo}"`);
-  const spec = { key: KEY_ALIASES[key] ?? key, mod: false, ctrl: false, meta: false, alt: false, shift: false };
+  if (!key || Object.hasOwn(MODIFIERS, key)) throw new Error(`DS.hotkeys: no key in the combo "${combo}"`);
+  const named = Object.hasOwn(KEY_ALIASES, key) ? KEY_ALIASES[key] : key;
+  if ([...named].length > 1 && !KEY_NAMES.has(named) && !/^f\d+$/.test(named)) throw new Error(`DS.hotkeys: unknown key "${key}" in the combo "${combo}"`);
+  const spec = { key: named, mod: false, ctrl: false, meta: false, alt: false, shift: false };
   for (const part of parts) {
     if (!Object.hasOwn(MODIFIERS, part)) throw new Error(`DS.hotkeys: unknown modifier "${part}" in the combo "${combo}"`);
     spec[MODIFIERS[part]] = true;
@@ -128,27 +139,24 @@ const KEY_STRINGS = { enter: 'keyEnter', escape: 'keyEscape', space: 'keySpace',
 
 const ARROWS = { arrowup: '↑', arrowdown: '↓', arrowleft: '←', arrowright: '→' };
 
-const capital = (word) => word.charAt(0).toUpperCase() + word.slice(1);
-
-/** The key as aria-keyshortcuts names it: `K`, `Enter`, `ArrowUp`, `PageDown`, `F1`, `?`. */
+/** The key as aria-keyshortcuts names it: `K`, `Enter`, `ArrowUp`, `PageDown`, `F1`, `?`; `Plus`, because + is its separator. */
 function ariaKey(key) {
-  if (key.startsWith('arrow') && key.length > 5) return `Arrow${capital(key.slice(5))}`;
-  if (key.startsWith('page') && key.length > 4) return `Page${capital(key.slice(4))}`;
-  return key.length === 1 ? key.toUpperCase() : capital(key);
+  if (key === '+') return capital('plus');
+  return KEY_NAMES.get(key) ?? (key.length === 1 ? key.toUpperCase() : capital(key));
 }
 
 function keyLabel(key) {
   if (Object.hasOwn(KEY_STRINGS, key)) return t(KEY_STRINGS[key]);
   if (Object.hasOwn(ARROWS, key)) return ARROWS[key];
-  return key.length === 1 || /^f\d+$/.test(key) ? key.toUpperCase() : capital(key);
+  return key.length === 1 || /^f\d+$/.test(key) ? key.toUpperCase() : KEY_NAMES.get(key) ?? capital(key);
 }
 
 /**
  * A combo for people and for assistive tech on this platform (`apple`
  * overrides it): `keys` one label per key, for a <kbd class="ds-kbd"> each
  * (⌃ ⌥ ⇧ ⌘ on Apple systems, else the strings keyCtrl, keyAlt, keyShift and
- * keyMeta); `text` the one line ('⌘⇧K', 'Ctrl+Shift+K'); `aria` the value
- * of aria-keyshortcuts ('Meta+Shift+K', 'Control+Shift+K').
+ * keyMeta); `text` the one line ('⇧⌘K', 'Ctrl+Shift+K'); `aria` the value
+ * of aria-keyshortcuts ('Shift+Meta+K', 'Control+Shift+K').
  * @param {string} combo
  * @param {{ apple?: boolean }} [options]
  * @returns {{ keys: string[], text: string, aria: string }}
@@ -190,10 +198,25 @@ function activeScopes(state) {
   return active;
 }
 
+/** What Space and Enter press by themselves. */
+const PRESSED_BY_KEY = 'a[href], area[href], button, summary, input[type="button"], input[type="checkbox"], input[type="color"], input[type="file"], input[type="image"], input[type="radio"], input[type="reset"], input[type="submit"], [role="button"], [role="link"], [role="checkbox"], [role="switch"], [role="radio"], [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"], [role="tab"], [role="treeitem"]';
+
+/** What the arrows, Home, End, PageUp and PageDown move by themselves (a select and the widgets of readsKeys() are there already). */
+const MOVED_BY_KEY = 'input[type="range"], input[type="radio"], input[readonly], textarea[readonly], audio[controls], video[controls], [role="slider"], [role="radiogroup"], [role="tablist"], [role="grid"], [role="toolbar"]';
+
+const MOVING_KEYS = /^(arrow(up|down|left|right)|home|end|pageup|pagedown)$/;
+
+/** Whether `key` (a parsed key name) already means something on `target`: it types there, or the control uses it. */
+function reads(target, key) {
+  if (readsKeys(target)) return true;
+  const uses = key === 'space' || key === 'enter' ? PRESSED_BY_KEY : MOVING_KEYS.test(key) ? MOVED_BY_KEY : null;
+  return Boolean(uses && target?.closest?.(uses));
+}
+
 /** Whether the entry may take this key press on `target`, for the combo that matched. */
 function allowedOn(entry, spec, target) {
-  if (entry.fields !== undefined) return entry.fields === true || !readsKeys(target);
-  return spec.mod || spec.ctrl || spec.meta || !readsKeys(target);
+  if (entry.fields !== undefined) return entry.fields === true || !reads(target, spec.key);
+  return spec.mod || spec.ctrl || spec.meta || !reads(target, spec.key);
 }
 
 /** Runs the registration a key press belongs to (the file comment has the order). */
@@ -204,6 +227,7 @@ function dispatch(root, state, event) {
   const layer = topmost(root.ownerDocument ?? root);
   const active = activeScopes(state);
   const found = [];
+  let held = false;
   for (const entry of state.entries) {
     const rank = active.indexOf(entry.scope);
     if (rank < 0) continue;
@@ -213,18 +237,25 @@ function dispatch(root, state, event) {
     if (depth < 0) continue;
     const home = entry.owner ?? entry.within;
     if (layer && !entry.overlays && !(home && layer.contains(home))) continue;
-    if (event.repeat && !entry.repeat) continue;
     if (!allowedOn(entry, spec, target)) continue;
+    if (entry.available && !entry.available()) continue;
     if (entry.when && !entry.when(event)) continue;
+    // A held key runs nothing, but what the first press took keeps its default (a browser's own Ctrl+S).
+    if (event.repeat && !entry.repeat) {
+      held ||= !entry.passed;
+      continue;
+    }
     found.push({ entry, depth, rank });
   }
   // Two entries without `within` give Infinity - Infinity, NaN: falsy, a tie, as it should.
   found.sort((a, b) => a.depth - b.depth || a.rank - b.rank || b.entry.order - a.entry.order);
   for (const { entry } of found) {
-    if (entry.handler(event) === false) continue;
+    entry.passed = entry.handler(event) === false;
+    if (entry.passed) continue;
     event.preventDefault();
     return;
   }
+  if (held) event.preventDefault();
 }
 
 /** The keydown listener while there is a registration, and the news for an open sheet. */
@@ -248,13 +279,16 @@ function changed(root, state) {
  * `owner`: the element this belongs to, when it is no `within`: in an open
  * overlay it still counts. `overlays: true` counts over any overlay.
  * `fields`: true counts in fields too, false never (default: only a combo
- * with Control or Command). `repeat: true` takes a held key. `when(event)`:
- * false skips it for this press. `root` (default: the document).
+ * with Control or Command; plain combos also stay off the keys a native
+ * control uses itself). `repeat: true` takes a held key. `when(event)`: false
+ * skips it for this press. `available()`: false means it does nothing as the
+ * page stands, so it takes no key and list() says it is not active. `root`
+ * (default: the document).
  * The last registration of a combo wins while it lives; destroy() brings
  * the one before it back. A bad combo throws here.
  * @param {string|string[]} combo
  * @param {(event: KeyboardEvent) => unknown} handler
- * @param {{ description?: string|null, group?: string|null, scope?: string, within?: Element|null, owner?: Element|null, overlays?: boolean, fields?: boolean, repeat?: boolean, when?: (event: KeyboardEvent) => boolean, root?: Document|ShadowRoot|Element|null }} [options]
+ * @param {{ description?: string|null, group?: string|null, scope?: string, within?: Element|null, owner?: Element|null, overlays?: boolean, fields?: boolean, repeat?: boolean, when?: (event: KeyboardEvent) => boolean, available?: () => boolean, root?: Document|ShadowRoot|Element|null }} [options]
  * @returns {{ destroy: () => void }}
  */
 export function register(combo, handler, options = {}) {
@@ -281,6 +315,8 @@ export function register(combo, handler, options = {}) {
     fields: options.fields,
     repeat: options.repeat === true,
     when: options.when ?? null,
+    available: options.available ?? null,
+    passed: false,
   };
   state.entries.push(entry);
   changed(root, state);
@@ -329,13 +365,27 @@ export function scopes(options = {}) {
   return root?.addEventListener ? activeScopes(stateOf(root)) : [GLOBAL];
 }
 
+/** Whether a registration's element is on the page at all: a sheet does not list a control that cannot be seen now. */
+function shown(element) {
+  if (!element) return true;
+  if (element.isConnected === false || element.closest?.('[hidden]')) return false;
+  return typeof element.checkVisibility !== 'function' || element.checkVisibility({ checkVisibilityCSS: true });
+}
+
+const elementOf = (entry) => entry.owner ?? entry.within;
+
+/** Whether the registration can take its key as the page stands, whatever the scopes say. */
+const usable = (entry) => shown(elementOf(entry)) && (!entry.available || entry.available());
+
 /**
  * The data of a shortcut sheet: the groups in the order they were first
  * registered, each `{ name, items }`, an item `{ description, scope, active,
  * combos: [{ combo, keys, text, aria }] }` (format()). Only registrations
  * with a description, without those a later one with the same combos, scope
- * and `within` replaces. `active`: its scope counts now. `activeOnly: true`
- * leaves the others out. `apple` overrides the platform.
+ * and `within` replaces, and without those whose `owner` or `within` is not
+ * shown (hidden, unseen, in a closed layer). `active`: its scope counts now
+ * and `available()` says yes, so a disabled control shows as off.
+ * `activeOnly: true` leaves the others out. `apple` overrides the platform.
  * @param {{ root?: Document|ShadowRoot|Element|null, activeOnly?: boolean, apple?: boolean }} [options]
  * @returns {{ name: string, items: { description: string, scope: string, active: boolean, combos: { combo: string, keys: string[], text: string, aria: string }[] }[] }[]}
  */
@@ -347,8 +397,10 @@ export function list(options = {}) {
   const groups = new Map();
   for (const [at, entry] of state.entries.entries()) {
     if (!entry.description) continue;
-    if (state.entries.slice(at + 1).some((later) => later.scope === entry.scope && later.within === entry.within && later.identity === entry.identity)) continue;
-    const isActive = active.includes(entry.scope);
+    if (!shown(elementOf(entry))) continue;
+    // Only a later one that can take the key replaces this one (two buttons, one for each breakpoint).
+    if (state.entries.slice(at + 1).some((later) => later.scope === entry.scope && later.within === entry.within && later.identity === entry.identity && usable(later))) continue;
+    const isActive = active.includes(entry.scope) && (!entry.available || entry.available());
     if (options.activeOnly && !isActive) continue;
     const name = entry.group ?? t('hotkeysGeneral');
     if (!groups.has(name)) groups.set(name, []);
@@ -379,11 +431,16 @@ export function onChange(fn, options = {}) {
   };
 }
 
+/** What takes focus for a press of its data-ds-hotkey, read-only or not; anything else is pressed. */
+const FOCUSED_BY_HOTKEY = 'input:not([type="button"], [type="submit"], [type="reset"], [type="checkbox"], [type="radio"], [type="image"], [type="file"], [type="color"]), textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="searchbox"], [role="combobox"]';
+
 /*
  * Declarative: a press of the combo presses the button or link, or focuses
  * the field. It counts only while the element could take focus (not
- * disabled, hidden or inert) and is not aria-disabled, and over an overlay
- * only when it sits in that overlay.
+ * disabled, hidden, unseen or inert: canTakeFocus()) and is not
+ * aria-disabled, and over an overlay only when it sits in that overlay.
+ * aria-keyshortcuts is owned while the system writes it, so a re-render
+ * with morphHtml keeps it.
  */
 define('hotkey', {
   attribute: 'data-ds-hotkey',
@@ -391,9 +448,9 @@ define('hotkey', {
   init(el) {
     const combos = (el.getAttribute('data-ds-hotkey') ?? '').split(/\s+/).filter(Boolean);
     if (!combos.length) return undefined;
-    const text = (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim();
+    const text = (el.getAttribute('aria-label') || el.labels?.[0]?.textContent || el.textContent || '').replace(/\s+/g, ' ').trim();
     const registration = register(combos, () => {
-      if (readsKeys(el)) {
+      if (el.matches(FOCUSED_BY_HOTKEY)) {
         /** @type {HTMLElement} */ (el).focus();
         /** @type {HTMLInputElement} */ (el).select?.();
       } else /** @type {HTMLElement} */ (el).click();
@@ -402,14 +459,20 @@ define('hotkey', {
       group: el.getAttribute('data-ds-hotkey-group'),
       scope: el.getAttribute('data-ds-hotkey-scope') ?? undefined,
       owner: el,
-      when: () => canFocus(el) && el.getAttribute('aria-disabled') !== 'true',
+      available: () => canTakeFocus(el) && el.getAttribute('aria-disabled') !== 'true',
       root: el.ownerDocument,
     });
     const named = el.hasAttribute('aria-keyshortcuts');
-    if (!named) el.setAttribute('aria-keyshortcuts', combos.map((combo) => format(combo).aria).join(' '));
+    if (!named) {
+      own(el, 'attrs', 'aria-keyshortcuts');
+      el.setAttribute('aria-keyshortcuts', combos.map((combo) => format(combo).aria).join(' '));
+    }
     return () => {
       registration.destroy();
-      if (!named) el.removeAttribute('aria-keyshortcuts');
+      if (!named) {
+        disown(el, 'attrs', 'aria-keyshortcuts');
+        el.removeAttribute('aria-keyshortcuts');
+      }
     };
   },
 });

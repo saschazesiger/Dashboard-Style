@@ -5,6 +5,8 @@
 import type { Destroyable } from './motion.js';
 import type { RovingOptions } from './dom.js';
 
+/** Whether focus can land on the node as the page stands: canFocus(), not in a disabled fieldset, not unseen through visibility or content-visibility (a closed details). */
+export declare function canTakeFocus(node: any): boolean;
 /** The elements inside `root` that the Tab key stops at, in DOM order. */
 export declare function tabbables(root: Element | null | undefined): HTMLElement[];
 /** Whether plain keys typed on `node` already mean something: a field that takes text, a select, a widget with type-ahead. */
@@ -30,6 +32,8 @@ export interface TypeaheadOptions {
   label?: (item: Element) => string;
   /** Replaces item.focus(). */
   onMatch?: (item: Element) => void;
+  /** The item a search goes on from when focus is on none and the container has no aria-activedescendant. */
+  current?: () => Element | null | undefined;
 }
 /** Typing a label moves focus to its item. Once per container. */
 export declare function typeahead(container: Element | null | undefined, options?: TypeaheadOptions): Destroyable;
