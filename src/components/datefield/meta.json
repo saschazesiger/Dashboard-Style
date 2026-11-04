@@ -1,0 +1,64 @@
+{
+  "name": "datefield",
+  "group": "forms",
+  "order": 410,
+  "docsOrder": 233,
+  "need": "Type a date, a time, a date and time or a range of dates part by part, in the locale's order",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-datefield",
+    "ds-datefield--block",
+    "ds-datefield--filled",
+    "ds-datefield--outlined",
+    "ds-datefield__between",
+    "ds-datefield__group",
+    "ds-datefield__input",
+    "ds-datefield__leading",
+    "ds-datefield__literal",
+    "ds-datefield__segment",
+    "ds-datefield__toggle",
+    "ds-datefield__zone"
+  ],
+  "attributes": [
+    "data-placeholder"
+  ],
+  "requires": [],
+  "context": [
+    "form"
+  ],
+  "hooks": {
+    "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-input-radius": {
+      "owner": "form"
+    },
+    "--ds-input-padding-x": {
+      "owner": "form"
+    },
+    "--ds-input-border": {
+      "owner": "form"
+    },
+    "--ds-input-bg": {
+      "owner": "form"
+    },
+    "--ds-input-font": {
+      "owner": "form"
+    },
+    "--ds-input-weight": {
+      "owner": "form"
+    },
+    "--ds-input-focus-color": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "calendar",
+    "datefield"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false
+}
