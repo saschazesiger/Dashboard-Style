@@ -1,0 +1,92 @@
+/*
+ * Date range picker: a field of two dates and a picker popover with
+ * presets ("Last 7 days", "This month") and two months side by side that
+ * preview the range. DS.daterange (daterange.js) builds the popover inside
+ * the root; the field is a .ds-datefield of type range, the months a
+ * .ds-calendar in range mode, the presets .ds-picker__preset buttons.
+ *
+ *   <span class="ds-field__label" id="period-label">Period</span>
+ *   <div class="ds-picker" data-ds-daterange data-ds-value="last-7-days">
+ *     <div class="ds-datefield" role="group" aria-labelledby="period-label">
+ *       (rendered: the two dates, then)
+ *       <span class="ds-daterange__preset" id="...">Last 7 days</span>   (the preset in force; the field's description)
+ *       <button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose dates">(calendarRange)</button>
+ *     </div>
+ *     (rendered:)
+ *     <div class="ds-picker__popover" role="dialog" aria-modal="true" aria-label="Choose dates" hidden>
+ *       <div class="ds-picker__panes">
+ *         <div class="ds-picker__presets" role="group" aria-label="Presets">(.ds-picker__preset ...)</div>
+ *         <div class="ds-picker__pane"><div class="ds-calendar" (range, two months)>...</div></div>
+ *       </div>
+ *       <div class="ds-picker__foot">
+ *         <span class="ds-daterange__summary" aria-live="polite">Nov 1 – 7, 2026</span>
+ *         <span class="ds-picker__spacer"></span> (Clear)
+ *       </div>
+ *     </div>
+ *   </div>
+ *
+ * The preset in force shows as a quiet tag inside the field (it is also
+ * the field's description, so a screen reader hears "Last 7 days" with
+ * the dates) and as the current preset in the list. At 480px or less
+ * (the window, or the ds-content container) the tag steps aside, so the
+ * two dates fit a phone. The foot says the
+ * range being chosen, in words (Intl formatRange).
+ *
+ * Options: those of the field, the calendar and the popover, each in its
+ * own component; the tag follows the field's size through its type.
+ *
+ * Motion: the popover's and the calendar's; the band and its preview
+ * change colour over --ds-dur-fast.
+ *
+ * Forced colours: the tag keeps a border (CanvasText); the rest is the
+ * parts' own.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.daterange {
+  /* The preset in force, a quiet tag at the field's end. */
+  .ds-daterange__preset {
+    flex: none;
+    max-inline-size: 40%;
+    overflow: hidden;
+    padding: 2px var(--ds-space-2);
+    border: 1px solid transparent;
+    border-radius: calc(var(--ds-radius-chip) * var(--ds-shape, 1));
+    background: var(--ds-surface-high);
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ds-daterange__preset[hidden] {
+    display: none;
+  }
+
+  /* On a phone the two dates need the room; the preset stays the field's
+     description and the current row of the list. */
+  @media (max-width: 480px) {
+    .ds-daterange__preset {
+      display: none;
+    }
+  }
+
+  @container ds-content (max-width: 480px) {
+    .ds-daterange__preset {
+      display: none;
+    }
+  }
+
+  .ds-daterange__summary {
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (forced-colors: active) {
+    .ds-daterange__preset {
+      border-color: CanvasText;
+    }
+  }
+}
