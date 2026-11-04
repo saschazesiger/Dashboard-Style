@@ -1220,7 +1220,7 @@ the entrance is the component's.
   `align` (`'start'`, `'center'`, `'end'`), `offset` (the gap to the anchor), `padding` (the collision padding),
   `flip` (`'room'`: the other side when it does not fit and has more room; `'fits'`: only when it fits there;
   `false`), `crossFlip` (the other edge when the wanted one leaves the bounds), `shift` (stay inside along the anchor,
-  default true), `size` (cap it with an inline `max-height` to the room on its side, default true), `arrowPadding`,
+  default true), `size` (cap it to the room on its side, default true: an inline `max-height` on the block sides, `max-width` on the inline ones), `arrowPadding`,
   `bounds` (default: the viewport), and `x`, `y`: the custom properties that take its coordinates, in the terms of the
   box it is fixed to. `data-placement` says the side when it is not the bottom one. It returns what
   `computePlacement()` returned.

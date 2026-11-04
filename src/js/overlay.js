@@ -6,7 +6,7 @@
  *
  *   DS.overlay.open(dialog, { opener: button });   // a Promise: the entrance settled
  *   DS.overlay.close(dialog);                      // a Promise: hidden again
- *   DS.overlay.close(dialog, { reason: 'confirm' }); // why: the ds-close event says it
+ *   DS.overlay.close(dialog, { reason: 'confirm' }); // why: the ds:close event says it
  *   DS.overlay.topmost();                          // the top open layer, or null
  *   await DS.overlay.confirm({ title, text });     // a built dialog: true or false (components/dialog/dialog.js)
  *
@@ -38,7 +38,7 @@
  * landmark, never <body>), make only the box or panel inert (the backdrop
  * keeps swallowing clicks, and a mousedown on it or the drawer's scrim is
  * prevented, so focus stays on the opener), set data-state="closed", send
- * ds-close ({ detail: { reason } }, bubbling, once), wait for settled(),
+ * ds:close ({ detail: { reason } }, bubbling, once), wait for settled(),
  * then hide (div: hidden; native: drop --closing), clear the box's inert
  * and .ds-dialog--nested, unlock the scroll and leave the Escape stack, in
  * one task. Popups return focus to their opener only when it was inside
@@ -48,7 +48,7 @@
  * user's close attempts do nothing (Escape, the native cancel, a
  * [data-ds-close] click, the backdrop and the drawer's scrim): one guard at
  * the top of closeFrom(), before the popups inside close, so a refused
- * attempt changes nothing and sends no ds-close. close(el) and the forced
+ * attempt changes nothing and sends no ds:close. close(el) and the forced
  * closes (removed, breakpoint) still close; menus and lists ignore it.
  *
  * Dismiss guard: a backdrop or scrim click from a pointer closes only when
@@ -1738,7 +1738,7 @@ function show(element, options, transform) {
  * data-state="closed" plays the exit, and once it settled the overlay is
  * hidden and leaves the lock and the Escape stack. A second call during
  * the exit returns the same promise; an open() meanwhile takes it back.
- * `reason` (default 'api') is what the ds-close event says; it also closes
+ * `reason` (default 'api') is what the ds:close event says; it also closes
  * a busy overlay (data-ds-busy refuses only the user's attempts).
  * @param {Element} element
  * @param {{ reason?: string }} [options]
@@ -1812,7 +1812,7 @@ function announceClose(element, reason) {
  * scrim), 'escape', 'native' (the native dialog closed itself), 'parent'
  * (the overlay around it closes), 'item' (a menu item ran), 'tab' (a menu;
  * focus is on the trigger already) or 'outside' (a pointerdown outside a
- * menu: focus stays where the pointer puts it). `reason` is what ds-close
+ * menu: focus stays where the pointer puts it). `reason` is what ds:close
  * tells (by default the cause).
  */
 function closeFrom(element, cause, reason = cause) {

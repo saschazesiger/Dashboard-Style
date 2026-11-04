@@ -37,7 +37,7 @@ export interface OpenOptions {
 /** Opens a dialog, side sheet, the modal drawer, a menu or the combobox list. */
 export declare function open(element: Element, options?: OpenOptions): Promise<void>;
 
-/** What the ds-close event says; any other string is the page's own. */
+/** What the ds:close event says; any other string is the page's own. */
 export type CloseReason = 'escape' | 'backdrop' | 'close' | 'item' | 'tab' | 'outside' | 'parent' | 'api' | 'removed' | 'breakpoint' | (string & {});
 /** Closes an overlay that open() showed; `reason` (default 'api') also closes a busy one. */
 export declare function close(element: Element, options?: { reason?: CloseReason }): Promise<void>;

@@ -333,5 +333,7 @@ dialog that `DS.get(el, 'dialog')` serves.
   names. Sizes `.ds-dialog--sm`, `--lg` and `--xl`; `--wide` is deprecated. Form dialog: `form.ds-dialog__box`,
   `ds:submit`, `DS.dialog.form()`. Density and shape on the box. `confirm({ destructive: true })` fills its button in
   the error tone (D10). `data-ds-open`, `data-ds-close`; `data-close` and the event `ds-close` are deprecated
-  (`ds:close`, `ds:open`).
+  (`ds:close`, `ds:open`). New strings `confirm`, `actionFailed` and `valueRequired`; a built dialog reads them, with
+  `ok` and `cancel`, from `DS.config({ strings })`. Migration: a page that imports single files imports `js/dialog.js`
+  next to `js/overlay.js`; without it `confirm()`, `alert()` and `prompt()` throw and `open()` of a dialog warns once.
 

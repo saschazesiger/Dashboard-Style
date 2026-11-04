@@ -14,7 +14,7 @@ const tips = DS.overlay.tooltips(document);   // one call per page (or per root 
 
 | Option | Where it applies | Effect |
 |---|---|---|
-| `data-tip-shortcut` | the trigger | the shortcut slot: `.ds-tooltip__shortcut` after the text, in the code face |
+| `data-tip-shortcut` | the trigger | the shortcut slot: `.ds-tooltip__shortcut` after the text, in the code face; the tip then shows also when its text repeats the trigger's |
 | `.ds-shape-*` | the theme | multiplies the radius (`--ds-tooltip-radius`) |
 | Size, density, tone | none | one tooltip serves the whole theme, whatever its trigger's size, and it shows no status |
 
@@ -70,4 +70,5 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 <!-- changelog -->
 - Tooltip (3.0): behaviour in `js/tooltip.js` (`DS.tooltip`), `DS.overlay.tooltips()` keeps its name. `data-tip-shortcut`
   and `.ds-tooltip__shortcut`; shape on the radius, hook `--ds-tooltip-radius`. Placement in `js/position.js`.
+  Migration: a page that imports single files imports `js/tooltip.js` next to `js/overlay.js`.
 

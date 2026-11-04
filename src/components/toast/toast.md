@@ -24,8 +24,8 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
   <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">[icon close 20]</button></div>
 ```
 
-The action button comes only with `action`, the close button with every message that stays (`closeLabel`, default
-"Close", is its label and its tooltip).
+The action button comes only with `action`, the close button with every message that stays (`closeLabel`, default the
+system's string `close`, is its label and its tooltip).
 
 ### Options
 
@@ -33,7 +33,7 @@ The action button comes only with `action`, the close button with every message 
 |---|---|---|---|
 | Kind | `kind: 'success'`, `'error'`, `'info'`; `.ds-toast--error`, `.ds-toast--info`, or `.ds-tone-error`, `.ds-tone-info` on a message built by hand | one message | its icon and word; an error stays until closed and is announced at once. On the inverse surface a tone is never a colour of its own |
 | Shape | `.ds-shape-*` | the region or any ancestor | multiplies the radius (`--ds-toast-radius`) |
-| Size, density | none | | a snackbar floats above the region it reports on and keeps one size; its action stays 32px |
+| Size, density | none | | a snackbar floats above the region it reports on and keeps one size; its action stays 32px and its close button 36px (only `.ds-touch` makes that bigger) |
 
 ### Behaviour
 
@@ -132,4 +132,6 @@ The action button comes only with `action`, the close button with every message 
 <!-- changelog -->
 - Snackbar (3.0): behaviour in `js/toast.js` (`DS.toast`), `DS.overlay.toast()` and the others keep their names. Shape on
   the radius, hook `--ds-toast-radius`. `.ds-tone-error`, `.ds-tone-info` on a message built by hand.
+  The close button's default name is the string `close` of `DS.config({ strings })`. Migration: a page that imports
+  single files imports `js/toast.js` next to `js/overlay.js`.
 

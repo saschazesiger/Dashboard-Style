@@ -60,7 +60,7 @@ trigger.addEventListener('keydown', (event) => {
 item's name, or point `aria-describedby` at it). `.ds-menu__shortcut` is the shortcut slot at the item's end (meta type,
 tabular; say it to a screen reader with `aria-keyshortcuts`). `data-ds-menu-checks` on the menu: the system flips its
 check items, a `menuitemcheckbox` toggles and a `menuitemradio` takes the one check of its group, once the item's own
-handlers ran, and sends `ds:change` (`detail: { item, checked }`). Without it your click handler flips `aria-checked`,
+handlers ran, and sends `ds:change` (`detail: { item, checked }`; not for the radio that already has the check). Without it your click handler flips `aria-checked`,
 as in 2.x.
 
 ### Behaviour
@@ -136,4 +136,6 @@ as in 2.x.
 - Menu (3.0): behaviour in `js/menu.js` (`DS.menu`). `.ds-menu__content`, `.ds-menu__description`, `.ds-menu__shortcut`,
   `.ds-menu__item--danger`, `data-ds-menu-checks`. Size, density, touch and shape on the rows and the menu; the default
   row stays 48px. Placement in `js/position.js`. `data-ds-open` toggles a menu and opens it from its arrow keys.
+  Migration: a page that imports single files imports `js/menu.js` next to `js/overlay.js`; without it a menu opens with
+  no first focus, keys or close on an item, and `open()` warns once.
 
