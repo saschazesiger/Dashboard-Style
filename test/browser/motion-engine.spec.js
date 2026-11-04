@@ -311,13 +311,13 @@ test.describe('waiting and timing', () => {
       return {
         value: DS.motion.motionEasing(inside, '--ds-ease-value'),
         spatial: DS.motion.motionEasing(inside, '--ds-ease-spatial'),
-        linearSupported: CSS.supports('transition-timing-function', 'linear(0, 1)'),
         outside: DS.motion.motionEasing(outside, '--ds-ease-spatial'),
         outsideMs: DS.motion.motionDuration(outside, '--ds-dur-slow'),
       };
     });
     expect(result.value).toBe('cubic-bezier(.2, 0, 0, 1)');
-    expect(result.spatial).toMatch(result.linearSupported ? /^linear\(/ : /^cubic-bezier\(/);
+    // linear() is at the floor: every project computes the sampled spring.
+    expect(result.spatial).toMatch(/^linear\(/);
     expect(result.outside).toBe('cubic-bezier(.05, .7, .1, 1)');
     expect(result.outsideMs).toBe(350);
   });

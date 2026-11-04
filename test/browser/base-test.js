@@ -1,18 +1,31 @@
 /**
  * The shared `test` of the engine specs: @playwright/test with one option,
  * `dsFallback`, which the `fallback` project turns on (Chromium playing an
- * engine on the browser floor, so every fallback path runs):
+ * engine on the browser floor, Safari 17.5, Chrome/Edge 123, Firefox 130,
+ * so the fallback path of every progressive feature runs):
  *
  * - `dist/ds.css` is served without its progressive refinements: every
- *   `@supports (...)` block and every `@starting-style` block is dropped
- *   (an `@supports not (...)` block keeps its rules), so `linear()` tokens
- *   compute to their cubic fallbacks and anchor positioning,
- *   `interpolate-size`, `sibling-index()` and the like are gone;
- * - an init script removes `document.startViewTransition`, the popover
- *   methods and `moveBefore`, makes `CSS.supports()` answer false for those
- *   features, and makes `Element.prototype.animate` throw a TypeError for a
- *   `linear()` easing (as Chrome/Edge 111-112 and Safari 16.4-17.1 do), so
- *   the cubic retry of motion.js is what plays.
+ *   `@supports (...)` block whose condition names a progressive feature
+ *   (`PROGRESSIVE` below: anchor positioning, View Transitions,
+ *   scroll-driven animations, `interpolate-size`, `sibling-index()`,
+ *   `::details-content`, `field-sizing`, `text-wrap: pretty`, relative
+ *   colour syntax, `appearance: base-select`, `overflow-clip-margin` ...)
+ *   is dropped, and so is every `@scope` and style query
+ *   (`@container style(...)`) block; an `@supports not (...)` block of a
+ *   progressive feature keeps its rules (they are the fallback). What the
+ *   floor has stays: the `@supports (transition-timing-function:
+ *   linear(0, 1))` refinements (the spring computes), `@starting-style` and
+ *   `transition-behavior: allow-discrete`;
+ * - an init script removes `document.startViewTransition` and `moveBefore`
+ *   and makes `CSS.supports()` answer false for the progressive features.
+ *   The popover methods and `linear()` in `el.animate()` stay: both are at
+ *   the floor (motion-engine.spec.js fakes an engine without `linear()` in
+ *   `el.animate()` by itself, for the cubic retry of motion.js).
+ *
+ * `scrollbar-gutter` and `scrollbar-color` stay progressive in `src/`, but
+ * Chromium keeps them here, as it did at the 2.x floor. Bare progressive
+ * declarations outside an `@supports` block (`text-wrap: pretty`) are left
+ * in: Chromium applies them, an engine without them ignores them.
  *
  * A spec opts in by importing `test` (and `expect`) from here instead of
  * from @playwright/test; playwright.config.js runs exactly those specs in
@@ -23,6 +36,14 @@
 import { test as base, expect } from '@playwright/test';
 
 export { expect };
+
+/**
+ * The progressive features (plans/3.0.md, "Browser floor", the right-hand
+ * column, plus the 2.x refinements that stay progressive): an `@supports`
+ * condition that names one is dropped, and `CSS.supports()` answers false
+ * for it.
+ */
+export const PROGRESSIVE = /anchor|position-area|position-try|view-transition|animation-timeline|scroll-timeline|view-timeline|animation-range|timeline-scope|interpolate-size|calc-size|sibling-index|sibling-count|details-content|field-sizing|text-wrap(-style)?[\s:]+pretty|base-select|\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(\s*from\s|@scope|overflow-clip-margin|hyphenate-limit-chars/i;
 
 /** Skips a comment or a string starting at `index`; returns the index after it, or -1 when there is none. */
 function skipOpaque(css, index) {
@@ -58,9 +79,13 @@ function blockEnd(css, open) {
 }
 
 /**
- * The stylesheet without its progressive blocks: `@supports (...)` and
- * `@starting-style` blocks go, at any depth; `@supports not (...)` blocks
- * are unwrapped (their rules are the fallback). Comments and strings are
+ * The stylesheet without its progressive blocks, at any depth:
+ * `@supports (...)` blocks whose condition names a `PROGRESSIVE` feature
+ * go, the other `@supports` blocks stay (with their own progressive blocks
+ * stripped); `@supports not (...)` blocks of a progressive feature are
+ * unwrapped (their rules are the fallback), those of a feature at the
+ * floor go. `@scope` and style query (`@container style(...)`) blocks go.
+ * `@starting-style` stays: it is at the floor. Comments and strings are
  * left alone.
  * @param {string} css
  * @returns {string}
@@ -75,12 +100,20 @@ export function stripProgressive(css) {
       at = skipped;
       continue;
     }
-    const rule = /^@(supports|starting-style)\b/.exec(css.slice(at, at + 20));
+    const rule = /^@(supports|scope|container)\b/.exec(css.slice(at, at + 20));
     if (rule) {
       const open = css.indexOf('{', at);
       const end = blockEnd(css, open);
       const prelude = css.slice(at, open);
-      if (/^@supports\s+not\b/.test(prelude)) out += stripProgressive(css.slice(open + 1, end - 1));
+      const inner = css.slice(open + 1, end - 1);
+      const kept = rule[1] === 'supports'
+        ? (/^@supports\s+not\b/.test(prelude) ? null : !PROGRESSIVE.test(prelude))
+        : !(rule[1] === 'scope' || /\bstyle\s*\(/.test(prelude));
+      if (kept === null) {
+        if (PROGRESSIVE.test(prelude)) out += stripProgressive(inner);
+      } else if (kept) {
+        out += `${prelude}{${stripProgressive(inner)}}`;
+      }
       at = end;
       continue;
     }
@@ -90,8 +123,12 @@ export function stripProgressive(css) {
   return out;
 }
 
-/** Runs in the page before any script: an engine on the browser floor. */
-function floorEngine() {
+/**
+ * Runs in the page before any script: an engine on the browser floor.
+ * @param {string} progressive the source of `PROGRESSIVE` (an init script
+ *   is serialised, so it cannot close over this module)
+ */
+function floorEngine(progressive) {
   const drop = (proto, names) => {
     for (const name of names) {
       if (proto && name in proto) delete proto[name];
@@ -100,17 +137,9 @@ function floorEngine() {
   drop(Document.prototype, ['startViewTransition', 'moveBefore']);
   drop(Element.prototype, ['moveBefore']);
   drop(DocumentFragment.prototype, ['moveBefore']);
-  drop(HTMLElement.prototype, ['showPopover', 'hidePopover', 'togglePopover']);
-  const unsupported = /linear\(|anchor|position-area|position-try|view-transition|sibling-index|sibling-count|interpolate-size|calc-size|overflow-clip-margin|animation-timeline|scroll-timeline|view-timeline|animation-range|timeline-scope|allow-discrete|transition-behavior|popover|details-content/i;
+  const unsupported = new RegExp(progressive, 'i');
   const supports = CSS.supports.bind(CSS);
   CSS.supports = (...args) => (unsupported.test(args.join(' ')) ? false : supports(...args));
-  const animate = Element.prototype.animate;
-  const linear = (value) => typeof value === 'string' && value.includes('linear(');
-  Element.prototype.animate = function (keyframes, options) {
-    const frames = Array.isArray(keyframes) ? keyframes : [keyframes];
-    if (linear(options?.easing) || frames.some((frame) => linear(frame?.easing))) throw new TypeError(`Failed to execute 'animate' on 'Element': Invalid easing`);
-    return animate.call(this, keyframes, options);
-  };
 }
 
 export const test = base.extend({
@@ -123,10 +152,12 @@ export const test = base.extend({
         const response = await route.fetch();
         const css = stripProgressive(await response.text());
         const left = css.replace(/\/\*[\s\S]*?\*\//g, '');
-        if (/linear\(|@starting-style|@supports\s*\(/.test(left)) throw new Error('fallback: a progressive block survived the strip');
+        const survived = [...left.matchAll(/@supports\s*\(([^{]*)\{/g)].some((match) => PROGRESSIVE.test(match[1]))
+          || /@scope\b|@container[^{]*\bstyle\s*\(/.test(left);
+        if (survived) throw new Error('fallback: a progressive block survived the strip');
         await route.fulfill({ response, body: css });
       });
-      await page.addInitScript(floorEngine);
+      await page.addInitScript(floorEngine, PROGRESSIVE.source);
     }
     await use(page);
   },

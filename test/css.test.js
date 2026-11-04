@@ -92,15 +92,14 @@ function topLevel(css) {
 }
 
 /**
- * Features newer than the baseline (Safari 16.4, Chrome 111, Firefox 128),
- * each with the name its file's "Progressive:" note must use. Baseline
- * features (:has(), color-mix(), container queries, svh/dvh) are not listed.
+ * Features newer than the browser floor (Safari 17.5, Chrome/Edge 123,
+ * Firefox 130), each with the name its file's "Progressive:" note must use.
+ * Features at the floor (linear(), @starting-style, allow-discrete, popover,
+ * details[name], text-wrap: balance, :has(), color-mix(), oklch(),
+ * light-dark(), container size queries, subgrid, svh/dvh) are not listed;
+ * a note that still names one is no error.
  */
 const PROGRESSIVE = [
-  [/linear\(/, 'linear()'],
-  [/@starting-style/, '@starting-style'],
-  [/allow-discrete/, 'allow-discrete'],
-  [/(?<![\w-])popover(?![\w-])|:popover-open/, 'popover'],
   [/anchor-name|position-anchor|position-area|position-try|anchor\(/, 'anchor positioning'],
   [/view-transition/, 'View Transitions'],
   [/animation-timeline|scroll-timeline|view-timeline|animation-range|timeline-scope/, 'scroll-driven'],
@@ -108,14 +107,16 @@ const PROGRESSIVE = [
   [/::details-content/, '::details-content'],
   [/overflow-clip-margin/, 'overflow-clip-margin'],
   [/sibling-index\(|sibling-count\(/, 'sibling-index()'],
-  [/text-wrap/, 'text-wrap'],
+  [/text-wrap(-style)?:\s*pretty/, 'text-wrap'],
   [/scrollbar-color|scrollbar-width/, 'scrollbar-color'],
   [/scrollbar-gutter/, 'scrollbar-gutter'],
   [/field-sizing/, 'field-sizing'],
-  // An HTML attribute, not CSS: the note of disclosure.css names it (rows that share a name open one at a time).
-  [/details\[name\]/, 'details[name]'],
   [/hyphenate-limit-chars/, 'hyphenate-limit-chars'],
   [/content:\s*[^;]*\/\s*["']/, 'alt text for generated content'],
+  [/\b(rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(\s*from\b/, 'relative colour'],
+  [/@scope\b/, '@scope'],
+  [/@container[^{]*\bstyle\s*\(/, 'style queries'],
+  [/appearance:\s*base-select/, 'base-select'],
 ];
 
 /** Plain :focus selectors that may draw an outline, each with its reason. */
@@ -1122,7 +1123,7 @@ describe('CSS for the baseline', () => {
     assert.deepEqual([...allowed].filter((entry) => !found.includes(entry)), [], 'an allowlisted !important is gone: shorten the list');
   });
 
-  it('names every feature newer than the baseline under "Progressive:" in the header', () => {
+  it('names every feature newer than the browser floor under "Progressive:" in the header', () => {
     for (const file of SRC_CSS) {
       const source = read(file);
       const css = stripComments(source);
@@ -1844,15 +1845,11 @@ describe('overlays (1.3.0)', () => {
     assert.ok(keyframed >= STATEFUL.length, 'each overlay keeps its keyframe path for markup driven by hand');
   });
 
-  it('places @starting-style outside style rules, only in files that name it under "Progressive:"', () => {
+  it('places @starting-style outside style rules', () => {
+    // @starting-style is at the browser floor: no "Progressive:" note needed.
     let count = 0;
     for (const file of SRC_CSS) {
-      const source = read(file);
-      const blocks = startingStyles(stripComments(source));
-      if (!blocks.length) continue;
-      const header = source.match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
-      const note = header.includes('Progressive:') ? header.slice(header.indexOf('Progressive:')) : '';
-      assert.ok(note.includes('@starting-style'), `${file}: name @starting-style under "Progressive:"`);
+      const blocks = startingStyles(stripComments(read(file)));
       for (const around of blocks) {
         count += 1;
         assert.ok(around.every((prelude) => /^@(layer|media|supports)\b/.test(prelude)), `${file}: @starting-style inside ${around.join(' > ')}`);

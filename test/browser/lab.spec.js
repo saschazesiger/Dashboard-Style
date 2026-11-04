@@ -7,8 +7,8 @@
  *   over the stored choice without being stored;
  * - curves: every easing token has a plot, sampled from the browser; the
  *   effects curves stay within [0, 1] and are monotonic, the spatial spring
- *   peaks above 1 and at most 1.05 and settles (the cubic fallback in the
- *   `fallback` project peaks at 1); the ladder has a row per duration token,
+ *   peaks above 1 and at most 1.05 and settles (in the `fallback` project
+ *   too: linear() is at the floor); the ladder has a row per duration token,
  *   and its chips take token × time scale;
  * - coverage: every @keyframes name of the page's stylesheets (layer blocks
  *   included), every .ds-enter*, .ds-leave*, .ds-stagger, .ds-reveal*,
@@ -129,7 +129,7 @@ test.describe('speed', () => {
 });
 
 test.describe('curves and durations', () => {
-  test('every easing token has a plot sampled from the browser', async ({ page, dsFallback }) => {
+  test('every easing token has a plot sampled from the browser', async ({ page }) => {
     await open(page);
     const plots = await page.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-lab-curve]')].map((plot) => {
       const svg = plot.querySelector('[data-lab-peak]');
@@ -141,16 +141,16 @@ test.describe('curves and durations', () => {
       expect(values, token).toHaveLength(101);
       expect(values[0], token).toBeCloseTo(0, 3);
       expectSettles(values, 1, 0.001);
-      if (token === '--ds-ease-spatial' && !dsFallback) {
+      if (token === '--ds-ease-spatial') {
         expect(peak, 'the spring overshoots').toBeGreaterThan(1.01);
         expectPeakAtMost(values, 1.05);
       } else {
-        // Effects (and the spring's cubic fallback) stay in [0, 1] and never turn back.
+        // Effects stay in [0, 1] and never turn back.
         expectWithin(values, 0, 1, { tolerance: 1e-3 });
         expectMonotonic(values, { direction: 'up', tolerance: 1e-3 });
       }
     }
-    if (!dsFallback) await expect(page.locator('#sg-lab-peak')).toHaveText(String(plots['--ds-ease-spatial'].peak.toFixed(3)));
+    await expect(page.locator('#sg-lab-peak')).toHaveText(String(plots['--ds-ease-spatial'].peak.toFixed(3)));
   });
 
   test('the ladder has a row per duration token; its chips take token × time scale', async ({ page }) => {
@@ -285,7 +285,7 @@ const CONTINUITY = {
   combobox: { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   'list-edges': { in: 'stage', sel: '.ds-combo__popup', props: ['opacity'] },
   snackbars: { in: 'doc', sel: '#sg-toasts .ds-toast', props: ['opacity'] },
-  savebar: { in: 'frame', sel: '#savebar-bar', props: ['opacity'], progressive: '.ds-presence needs @starting-style and allow-discrete; without them the bar shows and hides at once (savebar.css)' },
+  savebar: { in: 'frame', sel: '#savebar-bar', props: ['opacity'] },
   progress: { in: 'stage', sel: '#sg-lab-progress', props: ['--ds-progress'] },
   presence: { in: 'stage', sel: '.ds-presence--keep', props: ['opacity'] },
   dropzone: { in: 'stage', sel: '.ds-dropzone__over', props: ['opacity'] },
@@ -411,13 +411,9 @@ function replayTimeline(page, id) {
       name(probe.getAnimations()[0]?.effect.getTiming().easing, token);
       probe.style.cssText = `position: absolute; visibility: hidden; animation: ds-fade-in 1000ms var(${token});`;
       name(probe.getAnimations()[0]?.effect.getKeyframes()[0]?.easing, token);
-      try {
-        const scripted = probe.animate({ opacity: [0, 1] }, { duration: 1000, easing: getComputedStyle(probe).getPropertyValue(token).trim() });
-        name(scripted.effect.getTiming().easing, token);
-        scripted.cancel();
-      } catch {
-        // An engine without linear() in el.animate() (the fallback project).
-      }
+      const scripted = probe.animate({ opacity: [0, 1] }, { duration: 1000, easing: getComputedStyle(probe).getPropertyValue(token).trim() });
+      name(scripted.effect.getTiming().easing, token);
+      scripted.cancel();
       probe.remove();
     }
     card.querySelector('[data-lab="replay"]').click();

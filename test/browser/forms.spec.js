@@ -260,7 +260,8 @@ test.describe('fields', () => {
   test('the composer keeps its button at the bottom while the text grows, up to its cap', async ({ page }) => {
     await open(page);
     // field-sizing grows the field where the refinement applies; elsewhere
-    // (Firefox, the fallback project, which drops every @supports block)
+    // (Firefox, the fallback project, which drops the @supports blocks of
+    // progressive features such as field-sizing)
     // DS.dom.autosize() sets its height from the text.
     const native = await page.locator('#message').evaluate((el) => getComputedStyle(el).getPropertyValue('field-sizing') === 'content');
     const before = await box(page.locator('#message'));

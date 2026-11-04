@@ -80,9 +80,6 @@ const GLIDE = Array.from({ length: 40 }, (_, index) => ({ progress: index / 40 }
 /** Every `every` ms from 0 to `end` (inclusive). */
 const steps = (end, every = 10) => Array.from({ length: Math.floor(end / every) + 1 }, (_, index) => index * every);
 
-/** Whether the spring of this project overshoots (the fallback project plays its cubic). */
-const springs = (testInfo) => testInfo.project.name !== 'fallback';
-
 /** Rows of #irows in `order` (keys of ROWS), rendered as the fixture's markup; the page's renderer. */
 function renderRows(order, rows) {
   const byKey = Object.fromEntries(rows.map((row) => [row[0], row]));
@@ -190,7 +187,7 @@ test.describe('table', () => {
     expect(down.at(-1)).toBeLessThan(1);
   });
 
-  test('the chevron and the sort arrow turn to 180deg on the spring and land there', async ({ page }, testInfo) => {
+  test('the chevron and the sort arrow turn to 180deg on the spring and land there', async ({ page }) => {
     await open(page);
     const chevron = page.locator('#irows > tr[data-ds-key="a1"] .ds-chevron');
     const arrow = page.locator('#sort > svg');
@@ -218,7 +215,6 @@ test.describe('table', () => {
       expect(values[0], name).toBeCloseTo(0, 3);
       expect(values.at(-1), name).toBeCloseTo(180, 3);
       expectPeakAtMost(values, 1.05, { from: 0, to: 180 });
-      if (!springs(testInfo)) expectMonotonic(values, { direction: 'up' });
     }
   });
 
@@ -301,7 +297,7 @@ test.describe('table', () => {
 });
 
 test.describe('status chips in a sorted table', () => {
-  test('a keyed reorder through insertBefore never replays the status icons\' entrance', async ({ page, dsFallback }) => {
+  test('a keyed reorder through insertBefore never replays the status icons\' entrance', async ({ page }) => {
     await open(page);
     // Rows with status chips; the old moveBefore-less path (WebKit, Firefox 128, Chrome before 133) in every engine.
     const render = (keys) => keys.map((key) => `<tr data-ds-key="${key}"><td>${key}</td><td><span class="ds-status ds-status--ok">${DS.icons.icon(DS.icons.check, 16)}<span>Synced</span></span></td></tr>`).join('');
@@ -341,7 +337,7 @@ test.describe('status chips in a sorted table', () => {
     }
     // The check is live: a chip that is new does play the entrance where @starting-style exists.
     const fresh = result.icons.find((icon) => icon.key === 's5');
-    if (result.starting && !dsFallback) expect(fresh.transitions).toEqual(expect.arrayContaining(['opacity', 'scale']));
+    if (result.starting) expect(fresh.transitions).toEqual(expect.arrayContaining(['opacity', 'scale']));
     await finishAll(page);
     await page.evaluate(() => window.fxSort);
   });
@@ -354,7 +350,7 @@ test.describe('cards and tiles', () => {
   ];
 
   for (const host of HOSTS) {
-    test(`a held press on the ${host.name} reaches ${host.pressed}px within 100ms; the release springs back`, async ({ page }, testInfo) => {
+    test(`a held press on the ${host.name} reaches ${host.pressed}px within 100ms; the release springs back`, async ({ page }) => {
       await open(page);
       const el = page.locator(host.selector);
       const radius = () => el.evaluate((node) => parseFloat(getComputedStyle(node).borderTopLeftRadius));
@@ -376,8 +372,7 @@ test.describe('cards and tiles', () => {
       const values = series(await sample(el, ['borderRadius'], steps(300)), 'borderRadius');
       expect(values[0]).toBeCloseTo(host.pressed, 1);
       expectSettles(values, host.rest, 0.05);
-      if (springs(testInfo)) expectPeakAtMost(values, 1.05, { from: host.pressed, to: host.rest });
-      else expectMonotonic(values, { direction: 'up' });
+      expectPeakAtMost(values, 1.05, { from: host.pressed, to: host.rest });
     });
   }
 

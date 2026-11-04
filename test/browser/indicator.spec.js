@@ -2,9 +2,8 @@
  * DS.indicator (1.2.0) in real engines: the pill is a box with a clip-path
  * whose edges glide. A glide stretches toward its target (the leading edge
  * moves while the trailing edge still waits), passes the target by at most
- * 5 % of the travel (never on the cubic fallback) while the trailing edge
- * never passes its target, and collapses into the rest state, in real time
- * within its time + lag + 50ms; its time comes from travelDuration() and stretches with
+ * 5 % of the travel while the trailing edge never passes its target, and
+ * collapses into the rest state, in real time within its time + lag + 50ms; its time comes from travelDuration() and stretches with
  * ?speed. A second target mid-glide continues from the painted pill. The
  * first placement and a resize jump. The indicator follows aria-current by
  * itself (not with observe: false), keeps working after
@@ -111,7 +110,7 @@ function restState(page, track, active) {
 
 const REST = { glide: false, dir: false, instant: true, insets: ['0px', '0px', '0px', '0px'], offset: [0, 0, 0, 0], box: 0 };
 
-test('a glide stretches lead-first, passes its target by at most 5 % and lands in the rest state', async ({ page, dsFallback }) => {
+test('a glide stretches lead-first, passes its target by at most 5 % and lands in the rest state', async ({ page }) => {
   await open(page, 'shell.html');
   await install(page);
   const run = await page.evaluate(() => {
@@ -157,11 +156,10 @@ test('a glide stretches lead-first, passes its target by at most 5 % and lands i
   expect(early.length).toBeGreaterThan(0);
   for (const entry of early) expect(entry.top).toBeCloseTo(run.from.top, 1);
   expect(early.at(-1).bottom - run.from.bottom).toBeGreaterThan(1);
-  // The overshoot: visible on the spring, never on the cubic fallback.
+  // The overshoot: visible on the spring (in every project: linear() is at the floor).
   const travel = run.to.bottom - run.from.bottom;
   const pass = Math.max(...run.samples.map((entry) => entry.bottom)) - run.to.bottom;
-  if (dsFallback) expect(pass).toBeLessThanOrEqual(0.5);
-  else expect(pass).toBeGreaterThan(0);
+  expect(pass).toBeGreaterThan(0);
   expect(pass).toBeLessThanOrEqual(0.05 * travel + 1);
   // The trailing edge never springs past its target: the pill is never
   // shorter than the item and never slides off it (only the lead overshoots).

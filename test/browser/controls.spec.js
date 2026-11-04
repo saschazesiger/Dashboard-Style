@@ -9,8 +9,8 @@
  * starts a transition runs in the same task as the pause (act()), so
  * nothing finishes before it is sampled, however busy the machine is. Real
  * pointer and keyboard input is used where the behaviour depends on it
- * (:active, :focus-visible, the ripple). In the `fallback` project the
- * spring is its cubic fallback: no overshoot, and no interpolate-size.
+ * (:active, :focus-visible, the ripple). The `fallback` project plays the
+ * spring too (linear() is at the floor), without interpolate-size.
  */
 import { test, expect } from './base-test.js';
 import {
@@ -181,20 +181,16 @@ async function sampleWrap(page, times) {
  * the gap never passes the next chip's left (1px), and both it and its
  * label start where they were and glide.
  */
-function expectEdgeKeepsPace(samples, start, testInfo) {
+function expectEdgeKeepsPace(samples, start) {
   for (const entry of samples) expect(entry.edge + entry.gap, `overlap at ${entry.time}ms`).toBeLessThanOrEqual(entry.next + 1);
   const labels = samples.map((entry) => entry.label);
   expect(Math.abs(labels[0] - start.label), 'the label starts where it was').toBeLessThanOrEqual(1);
   expect(Math.abs(labels.at(-1) - start.label), 'the label moved').toBeGreaterThan(10);
   expect(Math.abs(labels[10] - labels[0]), 'the label is on its way at 100ms').toBeGreaterThan(2);
-  if (springs(testInfo)) expectPeakAtMost(labels, 1.05);
-  else expectMonotonic(labels);
+  expectPeakAtMost(labels, 1.05);
 }
 
 const steps = (end, every = 10) => Array.from({ length: Math.floor(end / every) + 1 }, (_, index) => index * every);
-
-/** Whether the spring of this project overshoots (the fallback project plays its cubic). */
-const springs = (testInfo) => testInfo.project.name !== 'fallback';
 
 /** Two animation frames, so a change has been laid out and painted. */
 const frames = (page) => page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
@@ -249,7 +245,7 @@ test.describe('press', () => {
     expect(held.layer).toBeCloseTo(pressedOpacity, 2);
   });
 
-  test('the release springs the radius back to half the height and settles within --ds-dur-medium + 50ms', async ({ page }, testInfo) => {
+  test('the release springs the radius back to half the height and settles within --ds-dur-medium + 50ms', async ({ page }) => {
     await open(page);
     const button = page.locator('#btn-primary');
     // The press-in: --ds-dur-micro.
@@ -267,8 +263,7 @@ test.describe('press', () => {
     expectSettles(values, 18, 0.05);
     // Settled by --ds-dur-medium + 50ms: every sample from 250ms on is at rest.
     expectWithin(values.slice(25), 17.95, 18.05);
-    if (springs(testInfo)) expectPeakAtMost(values, 1.05, { from: 12, to: 18 });
-    else expectMonotonic(values, { direction: 'up' });
+    expectPeakAtMost(values, 1.05, { from: 12, to: 18 });
   });
 
   test('.ds-pressed keeps the morph for at least --ds-dur-instant after a 30ms click', async ({ page }) => {
@@ -601,6 +596,7 @@ test.describe('chips', () => {
     });
     expect(backing.glide).toBe(true);
     expect(backing.chip).toBe(backing.behind);
+    // One baseline per engine; the fallback project keeps none of its own.
     if (testInfo.project.name !== 'fallback') {
       await expect(page.locator('#x-row')).toHaveScreenshot('wrap-glide.png', { animations: 'allow', caret: 'hide' });
     }
@@ -610,7 +606,7 @@ test.describe('chips', () => {
     // The selected chip's slot landed at once: its body opens with its
     // neighbour's glide (no overlap, no gap), from its old edge.
     expect(Math.abs(samples[0].edge - before.edge), 'the selected chip starts at its old edge').toBeLessThanOrEqual(1);
-    expectEdgeKeepsPace(samples, before, testInfo);
+    expectEdgeKeepsPace(samples, before);
     // No jump: it starts where it was, is on its way at 100ms and lands on the next line.
     expect(Math.abs(xs[0] - before.x)).toBeLessThanOrEqual(2);
     expect(Math.abs(ys[0] - before.y)).toBeLessThanOrEqual(2);
@@ -618,8 +614,7 @@ test.describe('chips', () => {
     for (const values of [xs, ys]) {
       expect(Math.abs(values[10] - values[0])).toBeGreaterThan(2);
       expect(Math.abs(values[10] - values.at(-1))).toBeGreaterThan(2);
-      if (springs(testInfo)) expectPeakAtMost(values, 1.05);
-      else expectMonotonic(values);
+      expectPeakAtMost(values, 1.05);
       expect(values.at(-2)).toBeCloseTo(values.at(-1), 1);
     }
     // Back to one line: the body cannot paint its old width, but its label
@@ -628,7 +623,7 @@ test.describe('chips', () => {
     const selected = samples.at(-1);
     await act(page.locator('#x-row'), (el) => el.querySelector('input').click());
     const back = await sampleWrap(page, steps(500));
-    expectEdgeKeepsPace(back, selected, testInfo);
+    expectEdgeKeepsPace(back, selected);
     expect(Math.abs(back[0].x - selected.x)).toBeLessThanOrEqual(2);
     expect(Math.abs(back.at(-1).y - before.y), 'the last chip is back on the first line').toBeLessThanOrEqual(1);
     await resume(page);
@@ -645,7 +640,7 @@ test.describe('chips', () => {
 });
 
 test.describe('switch', () => {
-  test('the handle travels 20px on the spring, never scaled above 1, and the halo follows it', async ({ page }, testInfo) => {
+  test('the handle travels 20px on the spring, never scaled above 1, and the halo follows it', async ({ page }) => {
     await open(page);
     await act(page.locator('#switch-off'), (el) => el.click());
     const times = steps(320);
@@ -657,8 +652,7 @@ test.describe('switch', () => {
     const scale = track(values, 'handle', 'scale', nth(0, 1));
     expect(travel[0]).toBeCloseTo(0, 1);
     expectSettles(travel, 20, 0.05);
-    if (springs(testInfo)) expectPeakAtMost(travel, 1.05, { from: 0, to: 20 });
-    else expectWithin(travel, 0, 20);
+    expectPeakAtMost(travel, 1.05, { from: 0, to: 20 });
     expectWithin(scale, 4 / 7 - 0.001, 1);
     expectSettles(scale, 6 / 7, 0.002);
     track(values, 'halo', 'translate', nth(0)).forEach((value, index) => expect(Math.abs(value - travel[index]), `${times[index]}ms`).toBeLessThanOrEqual(0.5));
@@ -789,7 +783,7 @@ test.describe('checkbox and radio', () => {
     expectSettles(dash, 0, 0.01);
   });
 
-  test('the radio dot grows on the spring (peak at most 1.05)', async ({ page }, testInfo) => {
+  test('the radio dot grows on the spring (peak at most 1.05)', async ({ page }) => {
     await open(page);
     await inject(page, BOXES);
     const radio = page.locator('#x-radio');
@@ -797,8 +791,7 @@ test.describe('checkbox and radio', () => {
     const dot = series(await sample(radio, ['scale.x'], steps(300), { pseudo: '::after' }), 'scale.x');
     expect(dot[0]).toBeCloseTo(0, 2);
     expectSettles(dot, 1, 0.005);
-    if (springs(testInfo)) expectPeakAtMost(dot, 1.05, { from: 0, to: 1 });
-    else expectWithin(dot, 0, 1);
+    expectPeakAtMost(dot, 1.05, { from: 0, to: 1 });
   });
 
   test('hovering the .ds-check row lights the input\'s halo', async ({ page }) => {
@@ -1062,7 +1055,7 @@ test.describe('busy faces and icon swaps', () => {
     expect(held).toBeGreaterThanOrEqual(595);
   });
 
-  test('the incoming icon springs up from .6 (peak at most 1.05), the outgoing one is gone within --ds-dur-instant', async ({ page }, testInfo) => {
+  test('the incoming icon springs up from .6 (peak at most 1.05), the outgoing one is gone within --ds-dur-instant', async ({ page }) => {
     await open(page);
     await inject(page, '<p><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="x-copy" aria-label="Copy link"><span class="ds-icon-swap" id="x-swap"></span></button></p>');
     const swap = page.locator('#x-swap');
@@ -1076,8 +1069,7 @@ test.describe('busy faces and icon swaps', () => {
     const outgoing = track(values, 'outgoing', 'opacity');
     expect(scale[0]).toBeCloseTo(0.6, 2);
     expectSettles(scale, 1, 0.005);
-    if (springs(testInfo)) expectPeakAtMost(scale, 1.05, { from: 0.6, to: 1 });
-    else expectWithin(scale, 0.6, 1);
+    expectPeakAtMost(scale, 1.05, { from: 0.6, to: 1 });
     expect(outgoing[10]).toBeCloseTo(0, 3);
     expect(await swap.getAttribute('data-swap')).toBe('b');
   });

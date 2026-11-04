@@ -685,7 +685,8 @@ test.describe('native dialog and sheet motion', () => {
 /**
  * The engine's own serialisation of every duration and curve token, read
  * from transitions of a probe inside the theme, so an expected timeline
- * compares like for like (a linear() curve, or its cubic fallback).
+ * compares like for like (engines print linear() stops with different
+ * precision).
  */
 function tokens(page) {
   return page.evaluate(() => {

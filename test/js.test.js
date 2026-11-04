@@ -2761,7 +2761,7 @@ describe('classic-script build (dist/ds.js)', () => {
       assert.doesNotMatch(withStrings, /new RegExp\([^)]*,\s*['"`][a-z]*v[a-z]*['"`]\s*\)/, `${file}: the RegExp v flag`);
       assert.doesNotMatch(withStrings, /^\s*export\s+(?!const\s|function\s)/m, `${file}: exports only as export const / export function`);
       const code = withoutStrings(withStrings);
-      for (const [pattern, name] of ES_NEWER) assert.doesNotMatch(code, pattern, `${file}: ${name} is newer than ES2022 / Safari 16.4`);
+      for (const [pattern, name] of ES_NEWER) assert.doesNotMatch(code, pattern, `${file}: ${name} is newer than ES2022 or the browser floor`);
     }
   });
 
@@ -2826,13 +2826,16 @@ const withoutComments = (source) => source.replace(/\/\*[\s\S]*?\*\//g, '').repl
 /** JS without the contents of single-, double- and back-quoted strings. */
 const withoutStrings = (code) => code.replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, "''");
 
-/** APIs and syntax newer than the baseline (ES2022, Safari 16.4), each with its name. */
+/**
+ * APIs and syntax newer than ES2022 that the code does not use, each with
+ * its name. Promise.withResolvers and the Set methods are at the browser
+ * floor (Safari 17.5, Chrome/Edge 123, Firefox 130) and are not listed;
+ * iterator helpers (Iterator.from) are progressive.
+ */
 const ES_NEWER = [
-  [/\bPromise\.withResolvers\b/, 'Promise.withResolvers'],
   [/\bObject\.groupBy\b/, 'Object.groupBy'],
   [/\bMap\.groupBy\b/, 'Map.groupBy'],
   [/\bArray\.fromAsync\b/, 'Array.fromAsync'],
-  [/\.(union|intersection|difference|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\(/, 'the Set methods'],
   [/\bIterator\.from\b/, 'Iterator.from'],
   [/(^|[;{}\s])(await\s+)?using\s+[\w$]+\s*=/m, 'using declarations'],
   [/(^|[\s(;{}])@[\w$]/m, 'decorators'],
@@ -2840,5 +2843,8 @@ const ES_NEWER = [
   [/(^|[=(,:[!&|?{};>]|\breturn)\s*\/(?![*/])(?:[^/\\\n[]|\\.|\[(?:[^\]\\\n]|\\.)*\])+\/[dgimsuy]*v/m, 'the RegExp v flag'],
 ];
 
-/** Browser APIs newer than the baseline: only behind feature detection, named under "Progressive:". */
-const PROGRESSIVE_APIS = ['startViewTransition', 'moveBefore', 'showPopover', 'anchorName', 'scrollend'];
+/**
+ * Browser APIs newer than the browser floor: only behind feature detection,
+ * named under "Progressive:". Popover (showPopover) is at the floor.
+ */
+const PROGRESSIVE_APIS = ['startViewTransition', 'moveBefore', 'anchorName', 'scrollend'];
