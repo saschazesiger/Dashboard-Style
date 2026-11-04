@@ -42,7 +42,7 @@ describe('.ds-pressable (2.0)', () => {
     const base = own(css, '.ds-pressable');
     assert.equal(base.position, 'relative');
     assert.equal(base.isolation, 'isolate');
-    assert.equal(base['border-radius'], 'var(--ds-pressable-radius, var(--ds-radius-sm))');
+    assert.equal(base['border-radius'], 'calc(var(--ds-pressable-radius, var(--ds-radius-sm)) * var(--ds-shape, 1))');
     assert.equal(base['outline-offset'], 'calc(var(--ds-focus-offset) + var(--ds-focus-width))');
     assert.equal(base.transition, 'outline-offset var(--ds-dur-fast) var(--ds-ease-out)');
     assert.equal(own(css, '.ds-pressable::before').background, 'var(--ds-pressable-layer, currentColor)');
@@ -126,7 +126,7 @@ describe('utilities (2.0)', () => {
     assert.deepEqual(own(stripComments(read('src/core/options.css')), '.ds-touch'), { '--ds-target-min': 'var(--ds-touch-target)' });
     const hooks = ['--ds-input-height', '--ds-check-height',
       '--ds-check-sm-height', '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height',
-      '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height', '--ds-disclosure-height'];
+      '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height'];
     for (const hook of hooks) assert.equal(touch[hook], 'var(--ds-touch-target)', hook);
     assert.equal(touch['--ds-input-font'], 'var(--ds-font-input)');
     assert.deepEqual(Object.keys(touch).sort(), [...hooks, '--ds-input-font'].sort());

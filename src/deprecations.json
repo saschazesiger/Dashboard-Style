@@ -278,6 +278,24 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Read by the deprecated .ds-btn--sm.ds-btn--icon (and the room a drawer row keeps for it). .ds-sm takes --ds-btn-icon-size less one 8px size step."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-subsection",
+      "pattern": "(?<![\\w-])ds-subsection(?![\\w-])",
+      "replacement": ".ds-card__section",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "A part of a card is .ds-card__<part>, like every part in 3.0. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-more",
+      "pattern": "(?<![\\w-])ds-more(?![\\w-])",
+      "replacement": ".ds-card__more",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "A part of a card is .ds-card__<part>, like every part in 3.0. Same look; an alias until 3.0 ships."
     }
   ]
 }

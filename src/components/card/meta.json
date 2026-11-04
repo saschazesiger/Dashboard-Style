@@ -10,11 +10,19 @@
     "ds-card",
     "ds-card--elevated",
     "ds-card--filled",
+    "ds-card--horizontal",
     "ds-card--interactive",
+    "ds-card--outlined",
+    "ds-card--selectable",
     "ds-card__action",
+    "ds-card__body",
+    "ds-card__check",
     "ds-card__link",
     "ds-card__links",
+    "ds-card__media",
+    "ds-card__more",
     "ds-card__row",
+    "ds-card__section",
     "ds-card__subtitle",
     "ds-card__title",
     "ds-more",
@@ -28,6 +36,7 @@
   "context": [
     "badge",
     "chip",
+    "disclosure",
     "page",
     "ripple",
     "status",
@@ -37,7 +46,7 @@
   "hooks": {
     "--ds-card-padding": {
       "default": "`--ds-space-6`",
-      "description": "card padding"
+      "description": "card padding: the base, 2px less per density step"
     },
     "--ds-card-padding-sm": {
       "default": "`--ds-space-4`",
@@ -46,6 +55,26 @@
     "--ds-card-padding-filled": {
       "default": "`--ds-space-5`",
       "description": "`.ds-card--filled` padding"
+    },
+    "--ds-card-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "card radius, times `--ds-shape`"
+    },
+    "--ds-card-radius-pressed": {
+      "default": "`--ds-radius-card-pressed`",
+      "description": "an interactive card while pressed (times `--ds-shape`; never rounder than at rest)"
+    },
+    "--ds-card-bg": {
+      "default": "`--ds-surface`",
+      "description": "the fill of `.ds-card` and `.ds-card--outlined`"
+    },
+    "--ds-card-border": {
+      "default": "`--ds-line`",
+      "description": "the hairline of a card and of `.ds-card__section`"
+    },
+    "--ds-card-filled-bg": {
+      "default": "`--ds-surface-low`",
+      "description": "the fill of `.ds-card--filled`"
     },
     "--ds-card-title-line": {
       "default": "24px",
@@ -66,6 +95,18 @@
     "--ds-card-shadow": {
       "default": "`--ds-elev-1`",
       "description": "`.ds-card--elevated`"
+    },
+    "--ds-card-check-size": {
+      "default": "`--ds-space-5`",
+      "description": "the round mark of `.ds-card--selectable`"
+    },
+    "--ds-card-media-size": {
+      "default": "160px",
+      "description": "`.ds-card__media` in the row of `.ds-card--horizontal`"
+    },
+    "--ds-card-body-min": {
+      "default": "240px",
+      "description": "the room `.ds-card__body` asks for before a horizontal card wraps"
     },
     "--ds-btn-height": {
       "owner": "button"
