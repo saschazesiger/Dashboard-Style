@@ -22,16 +22,16 @@ function historyHtml(h) {
 }
 
 var FEED = [
-  { id: 'a3', initials: 'GH', who: 'Grace Hopper', what: 'took LAPTOP-0051', when: '08:47' },
-  { id: 'a2', glyph: 'sync', who: 'The nightly sync', what: 'changed nothing', when: '02:00', muted: true },
-  { id: 'a1', initials: 'AL', who: 'Ada Lovelace', what: 'renamed PRINTER-0003', when: 'Yesterday' },
+  { id: 'a3', initials: 'GH', who: 'Grace Hopper', what: 'took LAPTOP-0051', when: '08:47', at: '2026-10-12T08:47' },
+  { id: 'a2', glyph: 'sync', who: 'The nightly sync', what: 'changed nothing', when: '02:00', at: '2026-10-12T02:00', muted: true },
+  { id: 'a1', initials: 'AL', who: 'Ada Lovelace', what: 'renamed PRINTER-0003', when: 'Yesterday', at: '2026-10-11T16:20' },
 ];
-var FRESH = [['AT', 'Alan Turing', 'took TABLET-0121'], ['AL', 'Ada Lovelace', 'closed ticket #42'], ['GH', 'Grace Hopper', 'returned LAPTOP-0051']];
+var FRESH = [['AT', 'Alan Turing', 'took TABLET-0121', '2026-10-12T09:15'], ['AL', 'Ada Lovelace', 'closed ticket #42', '2026-10-12T09:16'], ['GH', 'Grace Hopper', 'returned LAPTOP-0051', '2026-10-12T09:17']];
 
 function feedHtml(h, items) {
   return items.map(function (item) {
     return '<li class="ds-timeline__item ds-timeline__item--icon' + (item.muted ? ' ds-timeline__item--muted' : '') + '" data-ds-key="' + item.id + '"><span class="ds-timeline__marker" aria-hidden="true">' + (item.glyph ? h.icon(item.glyph, 16) : item.initials) + '</span>' +
-      '<div class="ds-timeline__head"><p class="ds-timeline__title"><strong>' + item.who + '</strong> ' + item.what + '</p><time class="ds-timeline__time">' + item.when + '</time></div></li>';
+      '<div class="ds-timeline__head"><p class="ds-timeline__title"><strong>' + item.who + '</strong> ' + item.what + '</p><time class="ds-timeline__time" datetime="' + item.at + '">' + item.when + '</time></div></li>';
   }).join('');
 }
 
@@ -81,7 +81,7 @@ SG.demo('timeline', {
       if (action === 'add') {
         var fresh = FRESH[next % FRESH.length];
         next += 1;
-        items.unshift({ id: 'n' + next, initials: fresh[0], who: fresh[1], what: fresh[2], when: 'Just now' });
+        items.unshift({ id: 'n' + next, initials: fresh[0], who: fresh[1], what: fresh[2], when: 'Just now', at: fresh[3] });
         if (items.length > 4) items.pop();
         var list = h.$('[data-demo="activity"]', root);
         window.DS.motion.flip(list, function (options) { window.DS.dom.morphHtml(list, feedHtml(h, items), options); }, { live: true });

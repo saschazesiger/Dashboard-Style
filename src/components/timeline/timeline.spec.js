@@ -273,6 +273,13 @@ test('keyboard and names: no stop of its own; Tab reaches the buttons, each name
   const hidden = await page.locator('.ds-timeline__marker').evaluateAll((els) => els.every((el) => el.getAttribute('aria-hidden') === 'true'));
   expect(hidden).toBe(true);
   await expect(page.locator('[data-demo="history"] time').first()).toHaveAttribute('datetime', '2026-10-12T14:05');
+  // The feed's times are machine-readable too, "Yesterday" and a new "Just now" among them.
+  const feed = page.locator('[data-demo="activity"]');
+  await page.locator('[data-demo="add"]').click();
+  await expect(feed.locator('time').first()).toHaveText('Just now');
+  const times = await feed.locator('time').evaluateAll((els) => els.map((el) => [el.textContent, el.getAttribute('datetime')]));
+  expect(times.map(([text]) => text)).toContain('Yesterday');
+  for (const [text, datetime] of times) expect(datetime, text).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
 });
 
 test('forced colours: the dot, the ring and the rail stay; the marker and the comment box keep an edge', async ({ page, browserName }) => {
