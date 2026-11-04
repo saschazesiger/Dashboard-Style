@@ -207,6 +207,44 @@ test('stacked: the trailing parts go under the text in a wide list; the media ho
   expect(read.noMediaAside).toBeCloseTo(read.noMediaText, 0);
 });
 
+test('stacked: the ripple of a pressed row lands on the pointer, with and without media', async ({ page }) => {
+  await open(page);
+  await add(page, `<ul class="ds-list ds-list--interactive ds-list--stacked" style="inline-size:640px">
+    <li class="ds-list__item" id="press-media"><span class="ds-list__media" aria-hidden="true">AL</span>
+      <span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#ada">Ada Lovelace</a></span></span>
+      <span class="ds-list__aside">09:12</span>
+    </li>
+    <li class="ds-list__item" id="press-plain">
+      <span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#grace">Grace Hopper</a></span></span>
+      <span class="ds-list__aside">10:00</span>
+    </li>
+  </ul>`);
+  await page.evaluate(() => { window.DS.ripple.attach(document); });
+  for (const id of ['press-media', 'press-plain']) {
+    const row = page.locator(`#${id}`);
+    const box = await row.boundingBox();
+    const [x, y] = [Math.round(box.x + box.width * 0.6), Math.round(box.y + box.height * 0.7)];
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    const centre = await row.locator('.ds-press-ripple').evaluate((span) => {
+      const rect = span.getBoundingClientRect();
+      return [rect.left + rect.width / 2, rect.top + rect.height / 2];
+    });
+    await page.mouse.up();
+    await page.mouse.move(1, 1);
+    // Within a pixel: the engines round the pointer's coordinates.
+    expect(Math.abs(centre[0] - x), `${id}: x`).toBeLessThanOrEqual(1);
+    expect(Math.abs(centre[1] - y), `${id}: y`).toBeLessThanOrEqual(1);
+  }
+});
+
+test('a toned meter in a bars row: the word stands in the row, as the meter is hidden and a figure is no status', async ({ page }) => {
+  await open(page);
+  const rows = page.locator('[data-demo="bars"] li:has(.ds-meter[class*="ds-tone-"])');
+  await expect(rows).not.toHaveCount(0);
+  for (const text of await rows.locator('strong').allTextContents()) expect(text).toMatch(/^\d+%, [a-z]+$/);
+});
+
 test('a group heading sticks to the top of its scroller, on an opaque fill above the rows', async ({ page }) => {
   await open(page);
   const scroller = page.locator('[data-demo="letters"]');

@@ -478,7 +478,9 @@
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .ds-list--stacked > .ds-list__item > :not(.ds-list__media, .ds-list__icon) {
+  /* Not the ripple: a grid column would become its containing block and
+     move it off the pointer. */
+  .ds-list--stacked > .ds-list__item > :not(.ds-list__media, .ds-list__icon, .ds-press-ripple) {
     grid-column: -2 / -1;
   }
 
@@ -488,7 +490,7 @@
     align-self: start;
   }
 
-  .ds-list--stacked > .ds-list__item > :not(.ds-list__media, .ds-list__icon, .ds-list__text) {
+  .ds-list--stacked > .ds-list__item > :not(.ds-list__media, .ds-list__icon, .ds-list__text, .ds-press-ripple) {
     margin-top: var(--ds-space-2);
   }
 

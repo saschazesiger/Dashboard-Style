@@ -83,7 +83,7 @@ SG.demo('list', {
         '<li><div class="ds-kv-list__row"><span>Asset tag</span><strong class="ds-muted">Not set</strong></div></li></ul>') +
         h.card('Plain, and with bars', '<ul class="ds-kv-list"><li><span>Model</span><strong>Notebook 14</strong></li><li><span>Warranty until</span><strong>2027-03-31</strong></li><li><span>Storage</span><strong>512 GB</strong></li></ul>' +
         '<ul class="ds-kv-list ds-kv-list--bars" data-demo="bars">' +
-        '<li><span>System disk</span><strong>78%</strong><span class="ds-meter ds-tone-warning" aria-hidden="true" style="--ds-share:.78"></span></li>' +
+        '<li><span>System disk</span><strong>78%, high</strong><span class="ds-meter ds-tone-warning" aria-hidden="true" style="--ds-share:.78"></span></li>' +
         '<li><span data-tip="Shared documents and project archives">Shared documents and project archives</span><strong>31%</strong><span class="ds-meter" aria-hidden="true" style="--ds-share:.31"></span></li></ul>') + '</div>',
         'Rows that open hang into the space at their sides, so their text stays in line with the static rows. A tone on a .ds-kv-list__icon always comes with a .ds-sr word.') +
 

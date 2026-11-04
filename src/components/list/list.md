@@ -122,7 +122,7 @@ needs columns, sorting or bulk selection is a [Table](#table).
 </ul>
 
 <ul class="ds-kv-list ds-kv-list--bars">
-  <li><span>Disk</span><strong>78%</strong><span class="ds-meter ds-tone-warning" aria-hidden="true"></span></li>
+  <li><span>Disk</span><strong>78%, high</strong><span class="ds-meter ds-tone-warning" aria-hidden="true"></span></li>
 </ul>
 
 <dl class="ds-facts ds-facts--rows">
@@ -142,7 +142,8 @@ needs columns, sorting or bulk selection is a [Table](#table).
   `.ds-kv-list__icon--error` are **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-success`, `.ds-tone-warning`,
   `.ds-tone-error`, the same colours. `strong.ds-muted` is a quiet value ("Not set") in the regular weight.
 - `.ds-kv-list--bars` puts a [meter](#charts) under each row, `aria-hidden` (the figure is in the text); the label
-  stays on one line and ends in an ellipsis (give it a `data-tip` with the full text).
+  stays on one line and ends in an ellipsis (give it a `data-tip` with the full text). A tone on the meter also goes
+  into the row as a word ("78%, high"): the meter is hidden and a figure is no status.
 - `.ds-facts--rows`: each fact on a row of its own, the label in a column of `--ds-facts-label-width` (36%) in the
   body font, hairlines between; under 520px of content (or in a window of 600px and less) the label goes above its
   value.
