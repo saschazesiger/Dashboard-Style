@@ -397,6 +397,28 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Decrease` | the name of a number input's minus stepper without one of its own (`DS.number`; the system's string `decrease`) | `DS.core.config({ strings: { decrease } })` |
+| `Increase` | the name of a number input's plus stepper without one of its own (the system's string `increase`) | `DS.core.config({ strings: { increase } })` |
+| `Show password` | the name of a password's reveal button without one of its own (`DS.password`; the system's string `showPassword`) | `DS.core.config({ strings: { showPassword } })` |
+| `Caps Lock is on.` | a password's caps-lock hint while it has no text of its own (the system's string `capsLock`) | `DS.core.config({ strings: { capsLock } })` |
+| `Weak` | the first level of a password's strength meter (the system's string `strengthWeak`) | `DS.core.config({ strings: { strengthWeak } })` |
+| `Fair` | the second level (the system's string `strengthFair`) | `DS.core.config({ strings: { strengthFair } })` |
+| `Good` | the third level (the system's string `strengthGood`) | `DS.core.config({ strings: { strengthGood } })` |
+| `Strong` | the fourth level (the system's string `strengthStrong`) | `DS.core.config({ strings: { strengthStrong } })` |
+| `Password strength: {level}` | what a password announces when its level changes (the system's string `passwordStrength`) | `DS.core.config({ strings: { passwordStrength } })` |
+| `Set` | a secret field's status while a value is stored (`DS.secret`; the system's string `secretSet`) | `DS.core.config({ strings: { secretSet } })` |
+| `Not set` | its status while none is (the system's string `secretNotSet`) | `DS.core.config({ strings: { secretNotSet } })` |
+| `Removed when you save` | its status once Clear was pressed (the system's string `secretCleared`) | `DS.core.config({ strings: { secretCleared } })` |
+| `Recent searches` | the name of a search field's list of recent searches (`DS.search`; the system's string `recentSearches`) | `DS.core.config({ strings: { recentSearches } })` |
+| `Clear recent searches` | the button under that list (the system's string `clearRecent`) | `DS.core.config({ strings: { clearRecent } })` |
+| `{count} result` | a search field's count of one result (the system's string `searchResultsOne`, the plural form `one`) | `DS.core.config({ strings: { searchResultsOne } })` |
+| `{count} results` | its count of any other number (the system's string `searchResultsMany`, the form `other`) | `DS.core.config({ strings: { searchResultsMany } })` |
+| `Edit` | the name of an inline edit's view button without one of its own (`DS.inlineedit`; the system's string `edit`) | `DS.core.config({ strings: { edit } })` |
+| `Save` | its save button without a name (the system's string `save`) | `DS.core.config({ strings: { save } })` |
+| `Saved` | what an inline edit announces after a save (the system's string `saved`) | `DS.core.config({ strings: { saved } })` |
+| `Type {name} to confirm` | the label of a type-to-confirm field (`DS.typeconfirm`; the system's string `typeToConfirm`) | `DS.core.config({ strings: { typeToConfirm } })` |
+| `There is 1 problem` | the title of an error summary with one problem (`DS.errorsummary`; the system's string `errorSummaryOne`) | `DS.core.config({ strings: { errorSummaryOne } })` |
+| `There are {count} problems` | its title with more (the system's string `errorSummaryMany`) | `DS.core.config({ strings: { errorSummaryMany } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
