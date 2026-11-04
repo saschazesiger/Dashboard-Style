@@ -161,6 +161,42 @@ test('narrow content: a row keeps only the current label in sight, a column keep
   expect((await seen(column)).out).toEqual(['Device, done', 'Contact', 'Add a phone number', 'Problem', 'Photos', 'Optional', 'Review']);
 });
 
+test('a row with hints: at 620 and 800px of content every label keeps its width, and a hint truncates before the next mark', async ({ page }) => {
+  await open(page);
+  const html = await page.$eval(ROW, (el) => el.outerHTML);
+  for (const width of [620, 800, 1200]) {
+    const measured = await page.evaluate(([markup, inline]) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'ds-content';
+      wrap.style.padding = '0';
+      wrap.style.inlineSize = `${inline}px`;
+      wrap.innerHTML = markup;
+      document.querySelector('#fx-component').append(wrap);
+      const steps = [...wrap.querySelectorAll('.ds-steps__step')];
+      const out = steps.map((step, index) => {
+        const label = step.querySelector('.ds-steps__label');
+        const hint = step.querySelector('.ds-steps__hint');
+        const next = steps[index + 1]?.querySelector('.ds-steps__mark').getBoundingClientRect();
+        const end = (hint ?? label).getBoundingClientRect().right;
+        return { name: label.textContent, label: label.getBoundingClientRect().width, full: label.scrollWidth, room: next ? next.left - end : 1, inStep: step.getBoundingClientRect().right - end };
+      });
+      const row = wrap.firstElementChild;
+      const overflow = row.scrollWidth - row.clientWidth;
+      wrap.remove();
+      return { out, overflow };
+    }, [html, width]);
+    expect(measured.overflow, `${width}: the row fits`).toBeLessThanOrEqual(0);
+    for (const step of measured.out) {
+      expect(step.label, `${width} ${step.name}: its label keeps its width`).toBeGreaterThanOrEqual(step.full - 1);
+      expect(step.room, `${width} ${step.name}: ends before the next mark`).toBeGreaterThan(0);
+      expect(step.inStep, `${width} ${step.name}: ends inside its step`).toBeGreaterThanOrEqual(-0.5);
+    }
+  }
+  // The bar holds the same items and keeps its equal segments.
+  const segments = await page.$$eval('.ds-steps--bar[aria-label^="Step 3"] .ds-steps__step', (els) => els.map((el) => Math.round(el.getBoundingClientRect().width)));
+  expect(new Set(segments).size).toBe(1);
+});
+
 test('the bar: done and current segments fill, an error segment in the error colour; marks and words unseen', async ({ page }) => {
   await open(page);
   const segments = await page.$$eval('[aria-label^="Step 3 of 5"] .ds-steps__step', (els) => els.map((el) => {

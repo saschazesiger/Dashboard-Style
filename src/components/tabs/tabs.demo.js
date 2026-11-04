@@ -18,10 +18,11 @@ function parts(h, entry, selected, glyph) {
   var tab = h.uid('tab');
   var panel = h.uid('panel');
   var count = entry.count ? '<span class="ds-tabs__count"><span class="ds-sr">, </span>' + entry.count + '</span>' : '';
+  var action = entry.closes ? '<button class="ds-btn ds-btn--text" type="button" data-demo="close-panel">Close ' + h.esc(entry.label) + '</button>' : '';
   return {
-    tab: '<button class="ds-tabs__tab" role="tab" type="button" id="' + tab + '" aria-selected="' + selected + '" aria-controls="' + panel + '"' + (selected ? '' : ' tabindex="-1"') +
+    tab: '<button class="ds-tabs__tab" role="tab" type="button" id="' + tab + '" aria-selected="' + selected + '" aria-controls="' + panel + '"' + (selected ? '' : ' tabindex="-1"') + (entry.closes ? ' aria-keyshortcuts="Delete"' : '') +
       (entry.blocked ? ' aria-disabled="true" data-tip="No reports for this device yet"' : '') + ' data-label="' + h.esc(entry.label) + '">' + (glyph ? h.icon(glyph, 18) : '') + entry.label + count + '</button>',
-    panel: '<div class="ds-tabs__panel" role="tabpanel" id="' + panel + '" aria-labelledby="' + tab + '" tabindex="0"' + (selected ? '' : ' hidden') + ' style="padding-block-start: var(--ds-space-4);"><p class="ds-muted">' + entry.text + '</p></div>',
+    panel: '<div class="ds-tabs__panel" role="tabpanel" id="' + panel + '" aria-labelledby="' + tab + '" tabindex="0"' + (selected ? '' : ' hidden') + ' style="padding-block-start: var(--ds-space-4);"><p class="ds-muted">' + entry.text + '</p>' + action + '</div>',
   };
 }
 
@@ -33,10 +34,10 @@ function row(h, classes, label, entries, glyphs) {
 }
 
 function closable(h, entries) {
-  var all = entries.map(function (entry, index) { return parts(h, entry, index === 0); });
-  return '<div class="ds-tabs" role="tablist" aria-label="Open reports" data-demo="tabs" data-closable>' + all.map(function (part, index) {
+  var all = entries.map(function (entry, index) { entry.closes = true; return parts(h, entry, index === 0); });
+  return '<div class="ds-tabs" role="tablist" aria-label="Open reports" data-demo="tabs" data-closable>' + all.map(function (part) {
     return '<span class="ds-tabs__item" role="none">' + part.tab +
-      '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs ds-tabs__close" type="button" tabindex="-1" aria-label="Close ' + h.esc(entries[index].label) + '" data-tip="Close">' + h.icon('close', 16) + '</button></span>';
+      '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs ds-tabs__close" type="button" tabindex="-1" aria-hidden="true" data-tip="Close">' + h.icon('close', 16) + '</button></span>';
   }).join('') + '</div>' + all.map(function (part) { return part.panel; }).join('');
 }
 
@@ -75,7 +76,7 @@ SG.demo('tabs', {
         { id: 'r1', label: 'March', text: 'The report for March.' },
         { id: 'r2', label: 'April', text: 'The report for April.' },
         { id: 'r3', label: 'May', text: 'The report for May.' },
-      ]), 'The close button lies over the tab, which keeps room for it. Delete on a tab closes it too; the page picks the next tab and moves the focus.') +
+      ]), 'The close button lies over the tab, which keeps room for it. Delete on a tab closes it, and so does the action in its panel, the way a screen reader reaches it. The focus goes to the next tab when the selected one closes, and to the selected one otherwise.') +
 
       h.section('Link tabs', '<nav class="ds-tabs ds-tabs--flush" aria-label="Device pages" data-demo="links"><a class="ds-tabs__tab" href="#" aria-current="page" data-label="Overview">Overview</a><a class="ds-tabs__tab" href="#" data-label="Activity">Activity</a><a class="ds-tabs__tab" href="#" data-label="Settings">Settings</a></nav>',
         'Navigation between the pages of a record: aria-current, a tab stop per link. --flush drops the hairline.') +
@@ -110,7 +111,9 @@ SG.demo('tabs', {
       var at = tabs.indexOf(tab);
       var next = tabs[at + 1] || tabs[at - 1];
       var wasSelected = tab.getAttribute('aria-selected') === 'true';
+      // The closing control goes with the tab: the focus never falls to the page.
       if (wasSelected) select(tablist, next, true);
+      else h.$('[role="tab"][aria-selected="true"]', tablist).focus();
       h.$('#' + tab.getAttribute('aria-controls'), root).remove();
       tab.closest('.ds-tabs__item').remove();
     };
@@ -132,6 +135,13 @@ SG.demo('tabs', {
           if (event.key === 'Delete' && tab) { event.preventDefault(); close(tablist, tab); }
         });
       }
+    });
+
+    root.addEventListener('click', function (event) {
+      var action = event.target.closest('[data-demo="close-panel"]');
+      if (!action) return;
+      var tab = h.$('#' + action.closest('[role="tabpanel"]').getAttribute('aria-labelledby'), root);
+      close(tab.closest('[role="tablist"]'), tab);
     });
 
     var links = h.$('[data-demo="links"]', root);

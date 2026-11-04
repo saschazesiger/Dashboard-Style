@@ -9,7 +9,10 @@
  * their compact height from the density. The others keep their compact
  * heights as hooks below until they are ported, so the page looks as it
  * did in 2.x; each hook goes when its component computes its height from
- * the density.
+ * the density. The segmented switch is the one hook that stays for another
+ * reason: its comfortable track (32px) is already what 2.x's compact theme
+ * showed, so 40px less the two density steps keeps it level with a compact
+ * button instead of 24px.
  *
  * Under a coarse pointer (a phone, a tablet) the default density and
  * heights come back, so a compact theme never shrinks a target below the
@@ -38,9 +41,8 @@
   --ds-table-head-height: 40px;
   --ds-table-row-height: 40px;
   --ds-menu-item-height: 40px;
-  --ds-drawer-item-height: 40px;
   --ds-chip-height: 28px;
-  --ds-tabs-height: 40px;
+  --ds-segmented-height: 40px;
 }
 
 /* A finger gets the default density and heights back (not the larger touch targets of .ds-touch). */
@@ -51,8 +53,7 @@
     --ds-table-head-height: 48px;
     --ds-table-row-height: 52px;
     --ds-menu-item-height: 48px;
-    --ds-drawer-item-height: 48px;
     --ds-chip-height: 32px;
-    --ds-tabs-height: 48px;
+    --ds-segmented-height: 32px;
   }
 }

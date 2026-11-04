@@ -51,9 +51,6 @@
     },
     "--ds-table-row-hover": {
       "owner": "table"
-    },
-    "--ds-tabs-height": {
-      "owner": "tabs"
     }
   },
   "keyframes": [

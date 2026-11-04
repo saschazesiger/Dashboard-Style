@@ -45,6 +45,8 @@ Where the user is in a form of a few steps. Steps are not buttons: going back is
   `.ds-steps__hint`, or a `.ds-sr` one), `optional` an upcoming step the user may skip (a dashed ring and the word).
   `aria-current="step"` on the current one; the rest are upcoming. An error outranks the current look.
 - `.ds-steps__hint`: a line of the meta role beside the label (under it in a column), in `--ds-error` on an error step.
+  Short of room in a row it truncates with an ellipsis, before any label does; the whole hint is still read. For long
+  hints, use the column.
 - Marks are 24px discs: done `--ds-primary` with a check that draws itself when the step turns done in place
   (re-render with `DS.dom.morphHtml`, so the mark stays; steps rendered with done ones stay still on load), current
   `--ds-primary` with `--ds-on-primary` figures and its label in the label weight, upcoming an `--ds-outline` ring
@@ -69,6 +71,7 @@ Where the user is in a form of a few steps. Steps are not buttons: going back is
 
 <!-- changelog -->
 - Fixed: the connectors of a row keep their line under forced colours.
+- Fixed: in a row with hints every label keeps its width; a hint truncates with an ellipsis before the next mark.
 - Steps (3.0): on the options model (size on the mark and the type, density on a column's room, shape on the radius).
   Added `.ds-steps--vertical`, `data-status="error"` and `"optional"`, `.ds-steps__hint`, and the hooks
   `--ds-steps-mark-size`, `--ds-steps-font`, `--ds-steps-gap`.

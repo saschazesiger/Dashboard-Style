@@ -342,8 +342,9 @@
   /*
    * Touch screens (opt-in, docs/theming.md): every target at least
    * --ds-touch-target, fields at the input role (no zoom on focus in iOS).
-   * Buttons take it from --ds-target-min (core/options.css), as every
-   * component will once it is on the options model; the hooks below are
+   * Buttons, tabs and drawer rows take it from --ds-target-min
+   * (core/options.css), as every component will once it is on the options
+   * model; the hooks below are
    * those of the components not ported yet.
    */
   .ds-touch {
@@ -356,9 +357,7 @@
     --ds-chip-height: var(--ds-touch-target);
     --ds-combo-option-height: var(--ds-touch-target);
     --ds-menu-item-height: var(--ds-touch-target);
-    --ds-drawer-item-height: var(--ds-touch-target);
     --ds-toast-close-size: var(--ds-touch-target);
-    --ds-tabs-height: var(--ds-touch-target);
     --ds-disclosure-height: var(--ds-touch-target);
     --ds-input-font: var(--ds-font-input);
   }

@@ -16,11 +16,15 @@
  *     <a class="ds-tabs__tab" href="/devices/42" aria-current="page" data-label="Overview">Overview</a> ...
  *   </nav>
  *
- *   A tab that closes (a wrapper, so the close button is no child of the tab):
+ *   A tab that closes (a wrapper, so the close button is no child of the tab;
+ *   the button is for the pointer alone: a tablist owns only tabs, so it is
+ *   hidden from the accessibility tree, and the tab's panel holds a named
+ *   close action for the others, a screen reader on a touch screen above all):
  *   <span class="ds-tabs__item" role="none">
- *     <button class="ds-tabs__tab" role="tab" ... data-label="Report">Report</button>
- *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs ds-tabs__close" type="button" tabindex="-1" aria-label="Close Report" data-tip="Close">(close 16)</button>
+ *     <button class="ds-tabs__tab" role="tab" aria-keyshortcuts="Delete" ... data-label="Report">Report</button>
+ *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs ds-tabs__close" type="button" tabindex="-1" aria-hidden="true" data-tip="Close">(close 16)</button>
  *   </span>
+ *   <div class="ds-tabs__panel" ...> ... <button class="ds-btn ds-btn--text" type="button">Close Report</button></div>
  *
  *   Vertical, beside its panels:
  *   <div class="ds-tabs__columns">
@@ -95,10 +99,14 @@
  * --ds-tabs-indicator-color (--ds-primary), --ds-tabs-contained-bg
  * (--ds-surface-high). The computed values (--_h, --_box, --_half,
  * --_radius, --_pad, --_inset, --_layer ...) are private: never set them.
+ * One reader outside this file: the ripple box in ripple.css takes --_inset
+ * and --_layer, inherited from the tab, so it lies exactly over the layer.
  *
  * Forced colours: the selected tab is a choice in a set (SelectedItem /
  * SelectedItemText, the indicator hidden), a focused one a CanvasText ring
- * inside; blocked tabs GrayText; the contained tray keeps an edge.
+ * inside; blocked tabs GrayText; the contained tray keeps an edge. The close
+ * button of a selected tab lies over that fill: SelectedItemText, its ring
+ * CanvasText.
  *
  * Print: the row wraps instead of scrolling.
  *
@@ -434,6 +442,14 @@
 
     .ds-tabs__tab:is(:disabled, [aria-disabled="true"]) {
       color: GrayText;
+    }
+
+    /* A sibling lying over the selected tab's fill: the forced button ink
+       could match that fill, so it takes the fill's own ink. */
+    .ds-tabs__item:has(> .ds-tabs__tab:is([aria-selected="true"], [aria-current="page"])) > .ds-tabs__close {
+      forced-color-adjust: none;
+      color: SelectedItemText;
+      outline-color: CanvasText;
     }
 
     /* The tray's tint is gone: its edge stays. */

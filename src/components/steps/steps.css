@@ -42,7 +42,8 @@
  * the icon, the word, the weight and aria-current. On narrow pages (600px
  * of the content and below) only the current label shows, in a row; the
  * others stay readable. .ds-steps__hint: a line of the meta role beside the
- * label (under it in a column), in the error colour on an error step.
+ * label (under it in a column), in the error colour on an error step; short
+ * of room in a row it truncates with an ellipsis, before any label does.
  *
  * --vertical: a column for long or wordy sequences; the connector runs from
  * mark to mark, labels and hints wrap and all of them stay at every width.
@@ -112,9 +113,24 @@
     flex: 1 1 0;
   }
 
+  /* A row with hints has less room than equal shares can give: every step
+     starts from its content, and only the steps with a hint give way, their
+     hint first (its shrink factor, below). So no label goes, and no hint
+     runs over the next mark. */
+  .ds-steps:where(:not(.ds-steps--vertical, .ds-steps--bar)):has(> .ds-steps__step > .ds-steps__hint) > .ds-steps__step {
+    flex-basis: auto;
+    flex-shrink: 0;
+  }
+
+  .ds-steps:where(:not(.ds-steps--vertical, .ds-steps--bar)):has(> .ds-steps__step > .ds-steps__hint) > .ds-steps__step:has(> .ds-steps__hint) {
+    flex-shrink: 1;
+  }
+
+  /* It gives way before the label (a shrink factor far above the label's,
+     as on .ds-steps__hint), down to its minimum. */
   .ds-steps__step + .ds-steps__step::before {
     content: '';
-    flex: 1 1 var(--ds-space-6);
+    flex: 1 999 var(--ds-space-6);
     min-width: var(--ds-space-4);
     height: 1px;
     background: var(--ds-line);
@@ -155,10 +171,15 @@
     white-space: nowrap;
   }
 
+  /* Truncates before the label or the connector give anything up: a factor
+     far above theirs, not a literal of the design. */
   .ds-steps__hint {
-    flex: none;
+    flex: 0 999 auto;
+    min-width: 0;
+    overflow: hidden;
     color: var(--ds-text-2);
     font: var(--ds-font-meta);
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
@@ -215,6 +236,11 @@
       clip-path: inset(50%);
       white-space: nowrap;
     }
+
+    /* The words that took the room are gone: every step gives way again. */
+    .ds-steps:where(:not(.ds-steps--vertical, .ds-steps--bar)):has(> .ds-steps__step > .ds-steps__hint) > .ds-steps__step {
+      flex-shrink: 1;
+    }
   }
 
   /* The column: the mark in its own column, the connector from mark to mark
@@ -268,6 +294,7 @@
 
   .ds-steps--vertical .ds-steps__hint {
     grid-column: 2;
+    overflow: visible;
     white-space: normal;
   }
 

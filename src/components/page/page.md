@@ -66,7 +66,8 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
   button.
 - `.ds-page-head__details` is a row of key facts under the title row: `.ds-page-head__detail` holds a `dt` in the meta
   role over its `dd` in the body role (tabular figures; a long value breaks). It wraps, and it prints.
-- `.ds-page-head__tabs` holds the record's [Tabs](#tabs) as the head's last row, `--ds-space-3` under the rest.
+- `.ds-page-head__tabs` holds the record's [Tabs](#tabs) as the head's last row: the head's gap plus `--ds-space-3`
+  under the rest, 16px in all.
 - Empty parts take no room (`:empty`: the head, the lead, the status, the actions, the details and the tabs). The lead's
   figures are tabular. Print leaves out the back link and the actions.
 

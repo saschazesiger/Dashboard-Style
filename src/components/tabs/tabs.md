@@ -25,11 +25,16 @@ Sections of one page or record. ARIA tabs show one panel at a time; link tabs mo
   <div> panels </div>
 </div>
 
-<!-- a tab that closes: a wrapper, so the close button is no child of the tab -->
+<!-- a tab that closes: a wrapper, so the close button is no child of the tab; the button is for the pointer -->
 <span class="ds-tabs__item" role="none">
-  <button class="ds-tabs__tab" role="tab" type="button" id="t-report" aria-selected="false" aria-controls="p-report" tabindex="-1" data-label="Report">Report</button>
-  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs ds-tabs__close" type="button" tabindex="-1" aria-label="Close Report" data-tip="Close">[icon close 16]</button>
+  <button class="ds-tabs__tab" role="tab" type="button" id="t-report" aria-selected="false" aria-controls="p-report" tabindex="-1" aria-keyshortcuts="Delete" data-label="Report">Report</button>
+  <button class="ds-btn ds-btn--quiet ds-btn--icon ds-xs ds-tabs__close" type="button" tabindex="-1" aria-hidden="true" data-tip="Close">[icon close 16]</button>
 </span>
+<!-- ... and in its panel, the named action everyone else reaches -->
+<div class="ds-tabs__panel" role="tabpanel" id="p-report" aria-labelledby="t-report" tabindex="0" hidden>
+  ...
+  <button class="ds-btn ds-btn--text" type="button">Close Report</button>
+</div>
 ```
 
 **Options** ([options.md](options.md)): classes on the row or any ancestor; the nearest wins.
@@ -76,8 +81,11 @@ tabs.addEventListener('click', (event) => {
   reads it with the label ("History, 3"). A `.ds-badge` is for news that needs the eye.
 - A tab that closes: `.ds-tabs__item` (`role="none"`) holds the tab and a `.ds-tabs__close`, a quiet extra-small icon
   button lying over the tab's end; the tab keeps room for it, also under `.ds-touch`. The page removes the tab and its
-  panel, selects a neighbour and moves focus to it. In a tablist the button is `tabindex="-1"`: the tab keeps one stop
-  for the row, Delete on the tab closes it, and a screen reader's browse mode still finds the button by its name.
+  panel and moves the focus before the closing control goes: when the selected tab closes it selects a neighbour and
+  focuses it; when another tab closes, the focus goes to the selected tab and the selection stays. The button is for the
+  pointer alone: a tablist owns only tabs, so it is `tabindex="-1"` and `aria-hidden="true"`, with no name of its own.
+  Delete on the tab closes it (`aria-keyshortcuts="Delete"` says so), and the tab's panel holds a named close action,
+  the one way for a screen reader on a touch screen.
 - Press: the state layer is a pill inside the tab that turns squarer while pressed and springs back, with the ripple
   (`DS.ripple.attach()`); the keyboard ring is inset and snaps inward. `:disabled` and `aria-disabled="true"` take the
   disabled model (no hover, press or morph; `aria-disabled` keeps its focus layer).
@@ -88,12 +96,13 @@ tabs.addEventListener('click', (event) => {
 - `.ds-tabs--fill`: equal widths across the row. `.ds-tabs--flush`: no hairline (the tabs sit on a card's edge).
 - A panel that holds nothing focusable keeps `tabindex="0"`, so a keyboard reaches its content.
 - Keyboard: ARIA tabs are one tab stop (`DS.dom.roving()`): Left and Right (Up and Down in a vertical row), Home and End
-  move and select, a disabled tab is skipped, an `aria-disabled` one takes the focus and keeps its panel; Tab goes on to
-  the panel. Link tabs keep a stop per link. Names: the row's `aria-label`, `aria-controls` and `aria-labelledby` between
+  move and select, a disabled tab is skipped, an `aria-disabled` one takes the focus and keeps its panel; Delete closes
+  a tab that closes; Tab goes on to the panel. Link tabs keep a stop per link. Names: the row's `aria-label`, `aria-controls` and `aria-labelledby` between
   tab and panel, `aria-current="page"` on the current link.
 - Forced colours: the selected tab is `SelectedItem` / `SelectedItemText` (a choice in a set) and the indicator is
   hidden; a focused selected tab keeps a `CanvasText` ring inside; blocked tabs are `GrayText`; the contained tray keeps
-  a `CanvasText` edge. Print wraps the row.
+  a `CanvasText` edge; the close button of a selected tab takes `SelectedItemText`, since it lies over that fill. Print
+  wraps the row.
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the "Tabs" row of [Navigation](motion.md#navigation) in motion.md. The contained pill and the vertical bar
@@ -104,4 +113,6 @@ glide like the bar.
   `.ds-tabs--contained`, `.ds-tabs--vertical`, `.ds-tabs__columns`, `.ds-tabs__count`, `.ds-tabs__item` with
   `.ds-tabs__close`, and the hooks `--ds-tabs-padding-x`, `--ds-tabs-font`, `--ds-tabs-contained-bg`. Icons before the
   label keep `data-label`'s reserved width under the text.
+- `themes/compact.css`: tabs take their 40px from the density; `--ds-tabs-height` is no longer set there. `.ds-touch` no
+  longer sets `--ds-tabs-height`. The ripple box follows the tab's computed inset and radius.
 

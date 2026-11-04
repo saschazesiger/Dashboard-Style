@@ -45,7 +45,8 @@
  * .ds-page-head__details: a row of key facts under the title row, a label
  * in the meta role over its value in the body role with tabular figures; it
  * wraps, and stays on paper. .ds-page-head__tabs: the record's tabs as the
- * head's last row, the head's gap above them. Breadcrumbs
+ * head's last row, the head's gap plus --ds-space-3 above them, 16px in all.
+ * Breadcrumbs
  * are inline links (underlined, no ripple, the link ring) with a chevron
  * between them; at 600px of the content only the parent shows. A docked
  * drawer with a back item (.ds-drawer__back) hides the page head's back

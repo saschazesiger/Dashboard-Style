@@ -218,10 +218,11 @@ once.
 
 A touch screen or a kiosk needs bigger targets. `.ds-touch` on `.ds-theme` (or on any container) sets
 `--ds-target-min` to `--ds-touch-target` (48px), the smallest block size of every control on the options model
-(buttons, an icon button as wide; [options.md](options.md#touch)), whatever its size and density, and every target
-hook of the components not on that model yet to the same value: `--ds-input-height`, `--ds-check-height`, `--ds-check-sm-height`, `--ds-check-target`, `--ds-switch-height`,
+(buttons, an icon button as wide, tabs, drawer rows and the segmented switch; [options.md](options.md#touch)), whatever
+its size and density, and every target hook of the components not on that model yet to the same value:
+`--ds-input-height`, `--ds-check-height`, `--ds-check-sm-height`, `--ds-check-target`, `--ds-switch-height`,
 `--ds-switch-halo`, `--ds-chip-height`, `--ds-combo-option-height`, `--ds-menu-item-height`,
-`--ds-drawer-item-height`, `--ds-toast-close-size`, `--ds-tabs-height` and `--ds-disclosure-height`; fields take the
+`--ds-toast-close-size` and `--ds-disclosure-height`; fields take the
 input role (`--ds-input-font: var(--ds-font-input)`, 16px, so iOS does not zoom), the top bar's `.ds-brand` link is at
 least `--ds-touch-target` wide and tall, and `.ds-hover-actions` always show. It is never automatic: a laptop with a touch screen keeps the dense layout unless the page opts in, for example
 when any pointer is coarse:
@@ -423,7 +424,7 @@ serves; they set roles and hooks on `.ds-theme` like any theme, never motion tok
 | File | What it sets | Load it |
 |---|---|---|
 | `themes/dark.css` | every colour role that does not follow another role, in the Material 3 dark tones (backdrop `#131314`, surface `#1e1f20`, primary `#a8c7fa`), the floating surfaces a tone above the page (`--ds-surface-overlay`, `--ds-surface-popover`), lighter chart series (`--ds-chart-2` to `--ds-chart-4`), `--ds-color-scheme: dark` and shadows on black | `media="(prefers-color-scheme: dark)"`, or by the user's choice |
-| `themes/compact.css` | 13/18 UI text and the dense density (`--ds-density: -2`: buttons 32px) plus the heights of the components not on the options model yet (`--ds-input-height` 36px, table rows, menu, drawer items and tabs 40px, chips 28px); under `@media (pointer: coarse)` the default density and heights come back, and field text keeps 16px on phones | for desktop consoles; touch density is `.ds-touch` (opt-in, never automatic) |
+| `themes/compact.css` | 13/18 UI text and the dense density (`--ds-density: -2`: buttons 32px, drawer rows and tabs 40px; `--ds-segmented-height` 40px, so the switch stays 32px) plus the heights of the components not on the options model yet (`--ds-input-height` 36px, table rows and menu 40px, chips 28px); under `@media (pointer: coarse)` the default density and heights come back, and field text keeps 16px on phones | for desktop consoles; touch density is `.ds-touch` (opt-in, never automatic) |
 | `themes/contrast.css` | `--ds-text-2` as the text colour, a stronger `--ds-text-3`, hairlines at the outline colour, darker outlines and field borders, 3px focus rings, solid link underlines, a stronger tint; mixed from your text and surface roles, so it works on any palette, dark included | `media="(prefers-contrast: more)"` |
 
 ```html

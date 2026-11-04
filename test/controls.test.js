@@ -126,8 +126,10 @@ describe('utilities (2.0)', () => {
     assert.deepEqual(own(stripComments(read('src/core/options.css')), '.ds-touch'), { '--ds-target-min': 'var(--ds-touch-target)' });
     const hooks = ['--ds-input-height', '--ds-check-height',
       '--ds-check-sm-height', '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height',
-      '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height', '--ds-disclosure-height'];
+      '--ds-toast-close-size', '--ds-disclosure-height'];
     for (const hook of hooks) assert.equal(touch[hook], 'var(--ds-touch-target)', hook);
+    // On the options model: the minimum alone, so a theme's own height and a smaller target keep their meaning.
+    for (const hook of ['--ds-tabs-height', '--ds-drawer-item-height', '--ds-btn-height']) assert.ok(!(hook in touch), `${hook}: --ds-target-min, not the hook`);
     assert.equal(touch['--ds-input-font'], 'var(--ds-font-input)');
     assert.deepEqual(Object.keys(touch).sort(), [...hooks, '--ds-input-font'].sort());
     // The role sits after the palette marker, 48px; never automatic on a coarse pointer.

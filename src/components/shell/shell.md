@@ -204,7 +204,8 @@ its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`):
   expands the rail. A segmented switch of buttons is one tab stop (`DS.dom.roving()`); one of links keeps a stop per
   link.
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px. As a
-  `role="img"` it shows that tooltip on a tap too ([Tooltip](#tooltip), "On touch screens").
+  `role="img"` it shows that tooltip on a tap too ([Tooltip](#tooltip), "On touch screens"). With `tabindex` its disc
+  keeps its size and its hit area is at least `--ds-target-min` under `.ds-touch`.
 - With the keyboard up (2.0): on a phone the on-screen keyboard shortens the visual viewport, not the layout one.
   Call `DS.dom.followViewport()` once ([motion](motion.md#dsdom-jsdomjs)): it writes `--ds-viewport-height` (px) and,
   while the keyboard is up and a field has the focus, `data-ds-keyboard` on `<html>`, and `--ds-keyboard-inset` (px)
@@ -288,14 +289,14 @@ group.addEventListener('click', (event) => {
   <div class="ds-drawer__actions"><a class="ds-btn ds-btn--tonal" href="/devices/new">[icon plus 18]New device</a></div>
   <div class="ds-drawer__list">
     <details class="ds-drawer__group ds-collapsible" open>
-      <summary class="ds-drawer__heading ds-drawer__toggle">[icon chevronDown 20 .ds-chevron]<span>Tickets</span><span class="ds-drawer__count" aria-hidden="true">5</span></summary>
+      <summary class="ds-drawer__heading ds-drawer__toggle" data-tip="Tickets">[icon chevronDown 20 .ds-chevron]<span>Tickets</span><span class="ds-drawer__count" aria-hidden="true">5</span></summary>
       <a class="ds-drawer__item" href="/tickets" aria-current="page" data-tip="Open tickets">[icon ticket 20]<span class="ds-drawer__label">Open</span><span class="ds-drawer__count"><span class="ds-sr">, </span>3</span></a>
       <div class="ds-drawer__row">
         <a class="ds-drawer__item" href="/tickets/waiting" data-tip="Waiting">[icon clock 20]<span class="ds-drawer__label">Waiting</span><span class="ds-drawer__count"><span class="ds-sr">, </span>2</span></a>
         <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-drawer__action ds-hover-actions" type="button" aria-label="Options for Waiting" data-tip="Options">[icon moreVertical 18]</button>
       </div>
       <details class="ds-drawer__group ds-collapsible">             <!-- nested, 2-3 levels -->
-        <summary class="ds-drawer__heading ds-drawer__toggle">[icon chevronDown 20 .ds-chevron]<span>Archive</span></summary>
+        <summary class="ds-drawer__heading ds-drawer__toggle" data-tip="Archive">[icon chevronDown 20 .ds-chevron]<span>Archive</span></summary>
         <a class="ds-drawer__item" href="/tickets/2025" data-tip="2025">[icon history 20]<span class="ds-drawer__label">2025</span></a>
       </details>
     </details>
@@ -324,7 +325,8 @@ group.addEventListener('click', (event) => {
   colour). A `.ds-sr` separator reads it with the label ("Open, 3"). On a group heading it shows only while the group is
   closed (mark that one `aria-hidden`: its items say it).
 - Collapsible groups: `<details class="ds-drawer__group ds-collapsible">` with a `<summary class="ds-drawer__heading
-  ds-drawer__toggle">`. The heading is a pressable row of the item's height (`--ds-drawer-item-height`): state layer,
+  ds-drawer__toggle" data-tip="...">`. The heading is a pressable row of the item's height (`--ds-drawer-item-height`)
+  and of the size's type (`--ds-drawer-font`) in the label weight: state layer,
   ring snap, press morph and ripple; the chevron turns with the group, and the group opens and closes with the
   `.ds-collapsible` timing. The pill follows the current item across groups; an item inside a closed group has no pill
   (it contracts, and comes back when the group opens). Keep the open groups across loads in the page (`open`).
@@ -335,14 +337,15 @@ group.addEventListener('click', (event) => {
 - Type: `--ds-drawer-font` (default the size's role, else `--ds-font-body`), always at the regular weight; the current
   item alone takes the label weight.
 - Forced colours: the current item is `SelectedItem` / `SelectedItemText` (with its icon), a focused current item
-  keeps a `CanvasText` ring inside its fill, and an `aria-disabled` item is `GrayText`; the outline is for focus only.
+  keeps a `CanvasText` ring inside its fill, and an `aria-disabled` item is `GrayText`; the outline is for focus only. A
+  `.ds-drawer__action` over a current item lies on that fill and takes `SelectedItemText`.
 
 ### The rail
 
 `data-drawer-collapsed` on `.ds-app` turns the docked drawer (above 900px) into a rail of `--ds-drawer-rail-width`
 (72px): items become 48px squares (circles by the pill rule), labels, headings and counts are visually hidden but
-read, row actions go, and the pill follows by itself. Each item's `data-tip` names it there: its visible text is gone,
-so the tooltip shows. The column switches at once; the labels fade back in on `--ds-dur-fast` when it widens again
+read, row actions go, and the pill follows by itself. The `data-tip` of each item and each group toggle names it there:
+its visible text is gone, so the tooltip shows. The column switches at once; the labels fade back in on `--ds-dur-fast` when it widens again
 (no layout animation; View Transitions stay for navigation). The modal drawer at 900px and below is unaffected. Hover
 never expands the rail: only its toggle does. Items are squares of the height the options compute, on the rail's axis,
 as wide as the column allows.
@@ -461,5 +464,11 @@ print.
   `--ds-segmented-height`, `--ds-segmented-font`.
 - Deprecated: `.ds-avatar--sm` and `.ds-avatar--lg` (`.ds-sm`, `.ds-lg`).
 - Changed: a segmented switch under `.ds-touch` is 48px high (it stayed 32px); the rail centres its items on its axis
-  (a compact row sat 4px off it).
+  (a compact row sat 4px off it); the track never goes under its option's line, so it stays a pill at every size and
+  density; a group toggle takes the size's type in the label weight, and a `data-tip` that names it on the rail; a row
+  action over a current row takes `SelectedItemText` under forced colours; `.ds-account__avatar[tabindex]` has a hit area
+  of at least `--ds-target-min`.
+- `themes/compact.css`: drawer rows take their 40px from the density; `--ds-drawer-item-height` is no longer set there,
+  and `--ds-segmented-height` is 40px, so the switch keeps its 32px. `.ds-touch` no longer sets
+  `--ds-drawer-item-height`.
 

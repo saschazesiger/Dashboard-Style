@@ -118,7 +118,7 @@
     },
     "--ds-drawer-font": {
       "default": "the size's role, `--ds-font-body`",
-      "description": "the type of a drawer item (always at the regular weight; the current item takes the label weight)"
+      "description": "the type of a drawer item (always at the regular weight; the current item takes the label weight) and of a group toggle (in the label weight)"
     },
     "--ds-drawer-indent": {
       "default": "`--ds-space-8`",

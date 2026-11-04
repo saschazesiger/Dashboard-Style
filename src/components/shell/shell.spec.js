@@ -62,6 +62,10 @@ test('a drawer row and the segmented switch at every size x density, .ds-touch a
             pad: parseFloat(getComputedStyle(option).paddingInlineStart),
             font: parseFloat(getComputedStyle(item).fontSize),
             weight: getComputedStyle(item).fontWeight,
+            toggleFont: parseFloat(getComputedStyle(toggle).fontSize),
+            toggleWeight: getComputedStyle(toggle).fontWeight,
+            radius: parseFloat(getComputedStyle(track).borderTopLeftRadius),
+            optionLine: parseFloat(getComputedStyle(option).lineHeight),
           });
         }
       }
@@ -79,7 +83,12 @@ test('a drawer row and the segmented switch at every size x density, .ds-touch a
     expect(entry.item, `${name} item`).toBeCloseTo(row, 0);
     expect(entry.toggle, `${name} toggle`).toBeCloseTo(row, 0);
     // The switch: 32px at md and comfortable, the same steps, its 1px edges included.
-    expect(entry.track, `${name} track`).toBeCloseTo(Math.max(min, 32 + step * 8 + density * 4, entry.line + 2), 0);
+    expect(entry.track, `${name} track`).toBeCloseTo(Math.max(min, 32 + step * 8 + density * 4, entry.optionLine + 2), 0);
+    // A pill at every size and density: half of what it measures, whatever floors it.
+    expect(entry.radius, `${name} radius`).toBeCloseTo(entry.track / 2, 0);
+    // A group toggle is a row of the item's type, in the label weight.
+    expect(entry.toggleFont, `${name} toggle font`).toBe(entry.font);
+    expect(entry.toggleWeight, `${name} toggle weight`).toBe('500');
     expect(entry.pad, `${name} padding`).toBe(16 + step * 4);
     // Every size at the regular weight: only the current row is heavier.
     expect(entry.weight, `${name} weight`).toBe('400');
@@ -185,6 +194,31 @@ test('.ds-touch: the brand link and the skip link are a finger\'s target; the ra
   expect(axis[1]).toBeCloseTo(36, 0);
 });
 
+test('.ds-touch: the account avatar keeps its disc, and its hit area is a finger\'s target', async ({ page }) => {
+  await open(page, 600);
+  const measure = () => page.$eval('[data-demo="app"] .ds-account__avatar', (el) => {
+    el.scrollIntoView({ block: 'center' });
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const reach = (distance) => el === document.elementFromPoint(cx, cy - distance);
+    return { size: [rect.width, rect.height], near: reach(18), far: reach(23), outside: reach(25) };
+  });
+  expect((await measure()).size).toEqual([32, 32]);
+  expect((await measure()).far, 'no larger than its disc without touch').toBe(false);
+  await page.$eval('[data-demo="app"]', (el) => el.classList.add('ds-touch'));
+  expect(await measure()).toEqual({ size: [32, 32], near: true, far: true, outside: false });
+});
+
+test('compact theme: a drawer row 40px, a switch 32px, as in 2.x', async ({ page }) => {
+  await open(page);
+  await page.addStyleTag({ url: '/dist/themes/compact.css' });
+  const height = (selector) => page.$eval(selector, (el) => el.getBoundingClientRect().height);
+  expect(await height('[data-demo="list"] .ds-drawer__item')).toBe(40);
+  expect(await height('[data-demo="list"] .ds-drawer__toggle')).toBe(40);
+  expect(await height('[data-demo="segmented"]')).toBe(32);
+});
+
 test('an avatar steps 8px per size; the 2.x aliases keep their fixed discs whatever surrounds them', async ({ page }) => {
   await open(page);
   const sizes = await page.$$eval('.sg-demo-section .ds-avatar', (els) => els.map((el) => el.getBoundingClientRect().width));
@@ -279,6 +313,12 @@ test('the rail: the toggle expands it, hover never does; it drops the indent and
   // Labels are hidden but read; each item names itself in its tooltip.
   await expect(page.getByRole('link', { name: /^Devices ?, 128$/ })).toBeVisible();
   await expect(page.locator('[data-demo="list"] .ds-drawer__item', { hasText: 'Devices' })).toHaveAttribute('data-tip', 'Devices');
+  // A group toggle is a chevron there: its tip names it.
+  const toggles = page.locator('[data-demo="list"] .ds-drawer__toggle');
+  expect(await toggles.evaluateAll((els) => els.map((el) => el.getAttribute('data-tip')))).toEqual(['Tickets', 'Archive', 'Earlier']);
+  await toggles.first().hover();
+  await expect(page.locator('.ds-tooltip')).toHaveText('Tickets');
+  await page.mouse.move(1, 1);
   await menu.click();
   await settle(page);
   expect(await column()).toBe(256);
@@ -330,6 +370,16 @@ test('keyboard: the modal drawer takes the focus, Escape closes it and gives it 
   await page.keyboard.press('Escape');
   await expect(page.locator('[data-demo="app"]')).not.toHaveAttribute('data-drawer-open', '');
   await expect(menu).toBeFocused();
+
+  // Choosing an item closes it, and the choice lands.
+  await page.keyboard.press('Enter');
+  await expect(page.locator('[data-demo="app"]')).toHaveAttribute('data-drawer-open', '');
+  await settle(page);
+  const devices = page.locator('[data-demo="list"] .ds-drawer__item', { hasText: 'Devices' });
+  await devices.click();
+  await expect(devices).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('[data-demo="app"]')).not.toHaveAttribute('data-drawer-open', '');
+  await expect(menu).toBeFocused();
 });
 
 test('keyboard: a switch of buttons is one tab stop and skips nothing it may reach; its links are a stop each', async ({ page }) => {
@@ -379,6 +429,13 @@ test('forced colours: a current row and a selected option SelectedItem, blocked 
   expect(await look('nav[data-demo="segmented"] [aria-current="true"]')).toEqual({ background: system.item, color: system.text });
   expect((await look('[data-demo="list"] .ds-drawer__item[aria-disabled="true"]')).color).toBe(system.gray);
   expect(await page.$eval('[data-demo="list"] .ds-drawer__indicator', (el) => getComputedStyle(el).display)).toBe('none');
+  // A row action over a current row takes the fill's ink; over any other row it keeps the forced one.
+  const waiting = page.locator('[data-demo="list"] .ds-drawer__row');
+  const action = waiting.locator('.ds-drawer__action');
+  expect(await action.evaluate((el) => getComputedStyle(el).forcedColorAdjust)).toBe('auto');
+  await waiting.locator('.ds-drawer__item').evaluate((el) => el.setAttribute('aria-current', 'page'));
+  expect(await action.evaluate((el) => [getComputedStyle(el).forcedColorAdjust, getComputedStyle(el).color])).toEqual(['none', system.text]);
+  await waiting.locator('.ds-drawer__item').evaluate((el) => el.removeAttribute('aria-current'));
   // The modal drawer keeps its edge.
   await page.setViewportSize({ width: 800, height: 800 });
   expect(await page.$eval('[data-demo="drawer"]', (el) => getComputedStyle(el).outlineStyle)).toBe('solid');

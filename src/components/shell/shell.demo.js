@@ -12,7 +12,7 @@ function item(h, glyph, label, extra, count) {
 }
 
 function toggle(h, label, count) {
-  return '<summary class="ds-drawer__heading ds-drawer__toggle">' + h.icon('chevronDown', 20, 'ds-chevron') + '<span>' + label + '</span>' +
+  return '<summary class="ds-drawer__heading ds-drawer__toggle" data-tip="' + h.esc(label) + '">' + h.icon('chevronDown', 20, 'ds-chevron') + '<span>' + label + '</span>' +
     (count ? '<span class="ds-drawer__count" aria-hidden="true">' + count + '</span>' : '') + '</summary>';
 }
 
@@ -160,6 +160,7 @@ SG.demo('shell', {
           if (other === row) other.setAttribute('aria-current', 'page');
           else other.removeAttribute('aria-current');
         });
+        if (app.hasAttribute('data-drawer-open')) DS.overlay.close(h.$('[data-demo="drawer"]', root));
       }
     });
 

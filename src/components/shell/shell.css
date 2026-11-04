@@ -28,7 +28,7 @@
  *           <a class="ds-drawer__item" href="/a" aria-current="page">(icon 20) <span class="ds-drawer__label">Overview</span> [<span class="ds-drawer__count"><span class="ds-sr">, </span>3</span>]</a>
  *           (or <button class="ds-drawer__item"> that shows a section in place; also aria-current="page" when active)
  *         <details class="ds-drawer__group ds-collapsible" open>   (a group that closes)
- *           <summary class="ds-drawer__heading ds-drawer__toggle">(chevronDown .ds-chevron) <span>Group</span> <span class="ds-drawer__count">3</span></summary> items ...
+ *           <summary class="ds-drawer__heading ds-drawer__toggle" data-tip="Group">(chevronDown .ds-chevron) <span>Group</span> <span class="ds-drawer__count">3</span></summary> items ...
  *           [<details class="ds-drawer__group ds-collapsible"> ... </details>]   (nested, 2-3 levels)
  *         <div class="ds-drawer__row"> <a class="ds-drawer__item" ...> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-drawer__action ds-hover-actions" type="button" aria-label="..." data-tip="...">(moreVertical)</button> </div>
  *       </div>
@@ -187,7 +187,8 @@
  *
  * Forced colours: a current drawer item and a selected segmented option
  * are a choice in a set (SelectedItem / SelectedItemText, a CanvasText
- * ring inside the fill while focused), blocked items GrayText.
+ * ring inside the fill while focused), blocked items GrayText. A row action
+ * over a current item lies on that fill: SelectedItemText, its ring CanvasText.
  *
  * Print: only the page content, without the frame and its scroller (the
  * page's own padding and width come off at the end of page.css); the
@@ -426,9 +427,11 @@
   .ds-segmented {
     /* The options, computed here and read by the options inside. The hook
        is the whole track (size md, comfortable): 8px per size step, 4px per
-       density step, at least the touch minimum. */
+       density step, at least the touch minimum, and never less than the
+       option's text line and the 1px edges (the track's font is the option's,
+       so 1lh is the same line in both), or the pill would stop being one. */
     --_h: calc(var(--ds-segmented-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
-    --_box: max(var(--ds-target-min, 0px), var(--_h));
+    --_box: max(var(--ds-target-min, 0px), var(--_h), calc(1lh + 2px));
     --_half: calc(var(--_box) / 2);
     --_radius: min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half));
     --_radius-pressed: min(calc(var(--ds-radius-action-pressed) * var(--ds-shape, 1)), var(--_radius));
@@ -441,6 +444,7 @@
     overflow: hidden;
     border: 1px solid var(--ds-outline);
     border-radius: var(--_radius);
+    font: var(--ds-segmented-font, var(--ds-size-font, var(--ds-font-body)));
   }
 
   /* In the top bar the switch keeps its distance from the brand; in a page
@@ -754,6 +758,24 @@
     display: none;
   }
 
+  /* A tab stop and a tap target whose disc keeps its size: its hit area, not
+     its look, meets the touch minimum. The pseudo-element needs the overflow
+     open; a picture inside keeps the disc through its own radius. */
+  .ds-account__avatar[tabindex] {
+    position: relative;
+    overflow: visible;
+  }
+
+  .ds-account__avatar[tabindex] > img {
+    border-radius: inherit;
+  }
+
+  .ds-account__avatar[tabindex]::after {
+    content: '';
+    position: absolute;
+    inset: min(0px, calc((var(--_size) - var(--ds-target-min, 0px)) / 2));
+  }
+
   /* The 2.x sizes, deprecated aliases of .ds-sm and .ds-lg until 3.0 ships:
      the fixed 24px and 40px disc, whatever size surrounds them. */
   .ds-avatar--sm {
@@ -1051,8 +1073,9 @@
   }
 
   /* A group that closes: its heading is a pressable row of the item's
-     height and shape (state layer, ring snap, press morph, ripple), the
-     chevron on the icons' axis. The count shows only while it is closed. */
+     height, size and shape (state layer, ring snap, press morph, ripple), the
+     chevron on the icons' axis. It keeps the heading's weight in the type of
+     the size. The count shows only while it is closed. */
   .ds-drawer__toggle {
     position: relative;
     display: flex;
@@ -1062,6 +1085,8 @@
     padding-block: 0;
     padding-inline: calc(var(--ds-space-4) + var(--_indent, 0px)) var(--ds-space-6);
     border-radius: var(--_radius);
+    font: var(--ds-drawer-font, var(--ds-size-font, var(--ds-font-label)));
+    font-weight: var(--ds-weight-label);
     list-style: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -1974,6 +1999,14 @@
     .ds-drawer__item[aria-disabled="true"],
     .ds-segmented__option:is(:disabled, [aria-disabled="true"]) {
       color: GrayText;
+    }
+
+    /* A sibling lying over the current row's fill: the forced button ink
+       could match that fill, so it takes the fill's own ink. */
+    .ds-drawer__row:has(> .ds-drawer__item[aria-current="page"]) > .ds-drawer__action {
+      forced-color-adjust: none;
+      color: SelectedItemText;
+      outline-color: CanvasText;
     }
 
     /* The disc keeps its edge where its fill is gone. */

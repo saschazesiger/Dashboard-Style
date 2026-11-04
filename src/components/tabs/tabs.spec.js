@@ -229,12 +229,17 @@ test('tabs that close: room for the button, a click and Delete close, the focus 
   expect(geometry).toEqual({ inside: true, room: 24 + 8, size: 24, wrapper: 'grid' });
   const closeButtons = row.locator('.ds-tabs__close');
   expect(await closeButtons.first().evaluate((el) => el.tabIndex)).toBe(-1);
-  await expect(row.getByRole('button', { name: 'Close April' })).toHaveCount(1);
+  // A tablist owns only tabs: the button is no part of the tree; Delete is told, a panel holds the named action.
+  await expect(closeButtons).toHaveCount(3);
+  await expect(row.getByRole('button')).toHaveCount(0);
+  await expect(row.getByRole('tab', { name: 'April' })).toHaveAttribute('aria-keyshortcuts', 'Delete');
+  await expect(page.getByRole('tabpanel', { name: 'March' }).getByRole('button', { name: 'Close March' })).toBeVisible();
 
-  // A click on the close button of a tab that is not selected keeps the selection.
-  await row.getByRole('button', { name: 'Close April' }).click();
+  // A click on the close button of a tab that is not selected keeps the selection, and the focus lands on it.
+  await closeButtons.nth(1).click();
   await expect(row.locator('[role="tab"]')).toHaveCount(2);
   await expect(row.getByRole('tab', { name: 'March' })).toHaveAttribute('aria-selected', 'true');
+  await expect(row.getByRole('tab', { name: 'March' })).toBeFocused();
 
   // Delete on the selected tab: the next one takes the selection and the focus.
   const march = row.getByRole('tab', { name: 'March' });
@@ -246,10 +251,24 @@ test('tabs that close: room for the button, a click and Delete close, the focus 
   await expect(may).toBeFocused();
   await expect(page.locator(`#${await may.getAttribute('aria-controls')}`)).toBeVisible();
 
+  // The last tab stays, also from its panel's action.
+  await page.getByRole('tabpanel', { name: 'May' }).getByRole('button', { name: 'Close May' }).click();
+  await expect(row.locator('[role="tab"]')).toHaveCount(1);
+
   // Under .ds-touch the button is a finger's target and the tab keeps room for it.
   await row.evaluate((el) => el.classList.add('ds-touch'));
   const touch = await row.locator('.ds-tabs__item').first().evaluate((el) => [el.querySelector('.ds-tabs__close').getBoundingClientRect().height, parseFloat(getComputedStyle(el.querySelector('[role="tab"]')).paddingInlineEnd)]);
   expect(touch).toEqual([48, 48 + 8]);
+});
+
+test('the panel\'s close action closes its tab, and the focus and the selection move on', async ({ page }) => {
+  await open(page);
+  const row = page.locator('[aria-label="Open reports"]');
+  await page.getByRole('tabpanel', { name: 'March' }).getByRole('button', { name: 'Close March' }).click();
+  await expect(row.locator('[role="tab"]')).toHaveCount(2);
+  const april = row.getByRole('tab', { name: 'April' });
+  await expect(april).toHaveAttribute('aria-selected', 'true');
+  await expect(april).toBeFocused();
 });
 
 test('--fill shares the row, wrappers included', async ({ page }) => {
@@ -314,4 +333,46 @@ test('forced colours: the selected tab SelectedItem, also contained, blocked Gra
   }
   expect((await look('[aria-label="Device"] [aria-disabled="true"]')).color).toBe(system.gray);
   expect(await page.locator('.ds-tabs--contained').first().evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+  // A close button lying over the selected fill takes that fill's ink; on an unselected tab it keeps the forced one.
+  const closes = page.locator('[aria-label="Open reports"] .ds-tabs__close');
+  expect((await closes.first().evaluate((el) => getComputedStyle(el).color))).toBe(system.text);
+  expect((await closes.first().locator('svg').evaluate((el) => getComputedStyle(el).color))).toBe(system.text);
+  expect(await closes.first().evaluate((el) => getComputedStyle(el).forcedColorAdjust)).toBe('none');
+  expect(await closes.nth(1).evaluate((el) => getComputedStyle(el).forcedColorAdjust)).toBe('auto');
+});
+
+test('compact theme: a tab 40px as in 2.x, a contained tray as high', async ({ page }) => {
+  await open(page);
+  await page.addStyleTag({ url: '/dist/themes/compact.css' });
+  expect(await page.locator('[aria-label="Device"] [role="tab"]').first().evaluate((el) => el.getBoundingClientRect().height)).toBe(40);
+  expect(await page.locator('.ds-tabs--contained').first().evaluate((el) => el.getBoundingClientRect().height)).toBe(40);
+});
+
+test('the ripple box lies over the layer: a line tab inset, a contained tab flush, the radius follows the shape', async ({ page }) => {
+  await open(page);
+  const tenth = (value) => Math.round(value * 10) / 10;
+  const measure = async (locator) => {
+    const box = await locator.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    const ripple = locator.locator('.ds-press-ripple').first();
+    await expect(ripple).toHaveCount(1);
+    const geometry = await ripple.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      const host = el.parentElement.getBoundingClientRect();
+      return { top: rect.top - host.top, bottom: host.bottom - rect.bottom, height: rect.height, hostHeight: host.height, radius: parseFloat(getComputedStyle(el).borderTopLeftRadius) };
+    });
+    await page.mouse.up();
+    await page.mouse.move(1, 1);
+    await settle(page);
+    return Object.fromEntries(Object.entries(geometry).map(([key, value]) => [key, tenth(value)]));
+  };
+  const line = page.locator('[aria-label="Device"] [role="tab"]').nth(1);
+  expect(await measure(line)).toEqual({ top: 4, bottom: 4, height: 40, hostHeight: 48, radius: 20 });
+  const tray = page.locator('.ds-tabs--contained').first();
+  const contained = tray.locator('[role="tab"]').nth(1);
+  expect(await measure(contained)).toEqual({ top: 0, bottom: 0, height: 40, hostHeight: 40, radius: 20 });
+  await tray.evaluate((el) => el.classList.add('ds-shape-square'));
+  await settle(page);
+  expect(await measure(contained)).toEqual({ top: 0, bottom: 0, height: 40, hostHeight: 40, radius: 0 });
 });
