@@ -167,5 +167,32 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-radio"
-  ]
+  ],
+  "exceptions": {
+    "ripple": {
+      ".ds-check": "a checkbox row: the input's halo is the press",
+      ".ds-checkbox": "a checkbox input: the halo is the press",
+      ".ds-radio-input": "a radio input: the halo is the press",
+      ".ds-input": "native field parts (select, the calendar and clear buttons)"
+    },
+    "scroller": {
+      ".ds-input": "textarea.ds-input--grow scrolls its own text: a textarea has no child elements"
+    },
+    "physical": {
+      "select.ds-input, input.ds-input[list]: padding-right": "the room of the arrow, which sits at the right",
+      "select.ds-input, input.ds-input[list]: background-position": "the select arrow: two gradients placed from the right edge",
+      "input.ds-input[list]::-webkit-calendar-picker-indicator: margin": "the invisible picker laid over the arrow at the right"
+    },
+    "focus": {
+      ".ds-input": "fields show an inset ring on any focus: typing needs to see where the caret is"
+    }
+  },
+  "motionExceptions": {
+    "transition": {
+      "height": {
+        ".ds-field__hint--error": "the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists",
+        ".ds-field__hint--success": "the room of a confirmation under a field opens like a validation message's (D29), only where interpolate-size exists"
+      }
+    }
+  }
 }

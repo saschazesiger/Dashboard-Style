@@ -89,5 +89,12 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-errors summary"
-  ]
+  ],
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-errors .ds-errors__chevron": "disclosure chevrons: the errors list chevron turns 180deg with the list (D25)"
+      }
+    }
+  }
 }

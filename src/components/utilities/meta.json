@@ -60,5 +60,22 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-pressable"
-  ]
+  ],
+  "exceptions": {
+    "important": {
+      ".ds-sr: position": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: top": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: inset-inline-start": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: width": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: height": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: padding": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: margin": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: overflow": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: clip": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: white-space": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: border": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-num: text-align": "an alignment utility wins over the cell or block it is put on",
+      ".ds-center: text-align": "an alignment utility wins over the cell or block it is put on"
+    }
+  }
 }

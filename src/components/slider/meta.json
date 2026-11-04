@@ -19,5 +19,13 @@
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "ripple": {
+      ".ds-slider": "a range input: the halo around its handle is the press (an input cannot hold a ripple), like the switch"
+    },
+    "physical": {
+      ".ds-slider::-webkit-slider-runnable-track: background": "gradient direction: the active part fills from the left, as the native thumb moves"
+    }
+  }
 }

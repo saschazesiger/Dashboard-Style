@@ -37,5 +37,10 @@
   ],
   "js": [],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-progress__track: background": "gradient direction: the bar fills left to right with its clip"
+    }
+  }
 }

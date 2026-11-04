@@ -141,5 +141,23 @@
     ".ds-segmented__option",
     ".ds-drawer__item",
     ".ds-drawer__toggle"
-  ]
+  ],
+  "exceptions": {
+    "hover": {
+      ".ds-drawer__list:hover": "shows the scrollbar of a scrolling drawer list, no choreography"
+    },
+    "ripple": {
+      ".ds-brand": "the home link in the top bar: identity, not a control; no state layer, ripple or morph (like a link in text)",
+      ".ds-skip": "a keyboard-only skip link, shown only while focused: its focus ring is the feedback"
+    },
+    "physical": {
+      ".ds-app--drawer .ds-panel: margin-left": "clears the safe-area margin-left of the panel, which stays physical",
+      ".ds-drawer: left": "the modal drawer slides in from the left edge",
+      ".ds-drawer: border-radius": "the modal drawer slides in from the left edge: its open side is the right",
+      ".ds-drawer::before: right": "the bleed left of the modal drawer covers the slide's overshoot"
+    },
+    "focus": {
+      ".ds-skip": "the skip link is shown only while focused"
+    }
+  }
 }

@@ -50,5 +50,10 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-menu__item"
-  ]
+  ],
+  "exceptions": {
+    "physical": {
+      ".ds-menu: inset": "script coordinates: --ds-menu-x from the left"
+    }
+  }
 }

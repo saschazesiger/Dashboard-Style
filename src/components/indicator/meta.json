@@ -21,5 +21,10 @@
     "indicator"
   ],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-indicator: left": "DS.indicator writes viewport-measured x from the left"
+    }
+  }
 }

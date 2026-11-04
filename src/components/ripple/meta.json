@@ -65,5 +65,12 @@
   "ripple": true,
   "rippleHosts": [
     "[data-ds-ripple]"
-  ]
+  ],
+  "exceptions": {
+    "physical": {
+      ".ds-press-ripple: left": "pointer coordinates: --ds-ripple-x from the host's left",
+      ".ds-ripples tr > :is(td, th) > .ds-press-ripple::before: left": "pointer coordinates: --ds-ripple-x from the cell's left",
+      ".ds-ripples .ds-tabs__tab > .ds-press-ripple::before: left": "pointer coordinates: --ds-ripple-x from the tab's left"
+    }
+  }
 }

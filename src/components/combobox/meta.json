@@ -59,5 +59,17 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-combo__toggle"
-  ]
+  ],
+  "exceptions": {
+    "ripple": {
+      ".ds-combo__option": "pointer-down selects and closes the list; the state layer is the feedback"
+    }
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-combo__toggle svg": "disclosure chevrons: the combobox chevron turns 180deg with its list (D25)"
+      }
+    }
+  }
 }

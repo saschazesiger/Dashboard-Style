@@ -874,6 +874,15 @@ export function verifyComponents(list = components()) {
       const cls = /\.(ds-[\w-]+)/.exec(selector)?.[1];
       if (cls ? !meta.classes.includes(cls) : !meta.attributes.some((attribute) => selector.includes(`[${attribute}`))) problems.push(`${where}: "rippleHosts" ${selector}: name one of its own classes (or, without a class, its own attribute)`);
     }
+    // An exception stays with its component: its key names one of the component's own classes (a keyframe: its own).
+    const ownClass = (key) => meta.classes.some((cls) => new RegExp(`\\.${cls}(?![\\w-])`).test(key));
+    const exceptionKeys = [
+      ...Object.entries(meta.exceptions ?? {}).flatMap(([kind, entries]) => Object.keys(entries).map((key) => [`exceptions.${kind}`, key])),
+      ...Object.entries(meta.motionExceptions ?? {}).filter(([kind]) => kind !== 'keyframeShape')
+        .flatMap(([kind, entries]) => (kind === 'transition' ? Object.entries(entries).flatMap(([property, map]) => Object.keys(map).map((key) => [`motionExceptions.transition.${property}`, key])) : Object.keys(entries).map((key) => [`motionExceptions.${kind}`, key]))),
+    ];
+    for (const [field, key] of exceptionKeys) if (!ownClass(key)) problems.push(`${where}: ${field} "${key}" names none of its own classes`);
+    for (const keyframe of Object.keys(meta.motionExceptions?.keyframeShape ?? {})) if (!defines.includes(keyframe)) problems.push(`${where}: motionExceptions.keyframeShape names ${keyframe}, which ${name}.keyframes.css does not define`);
     const note = progressiveEntries(repoText(css)).join('\n');
     const progressive = PROGRESSIVE_NAMES.filter((feature) => note.includes(feature));
     if (meta.progressive.join() !== progressive.join()) problems.push(`${where}: "progressive" is [${meta.progressive.join(', ')}], the "Progressive:" note of ${css} names [${progressive.join(', ')}]`);

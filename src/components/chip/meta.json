@@ -64,5 +64,12 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-chip"
-  ]
+  ],
+  "motionExceptions": {
+    "transition": {
+      "width": {
+        ".ds-chip__body::after": "the check slot of a chip: a layout size on --ds-ease-out (D29)"
+      }
+    }
+  }
 }

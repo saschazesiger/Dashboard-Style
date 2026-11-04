@@ -60,5 +60,16 @@
     "scroll-driven",
     "scrollbar-color"
   ],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-sheet__panel: border-radius": "the side sheet slides in from the right edge: its open side is the left",
+      ".ds-sheet__panel::after: left": "the bleed beyond the right edge covers the slide's overshoot"
+    }
+  },
+  "motionExceptions": {
+    "exitUnpaired": {
+      ".ds-sheet--closing:not([data-state]) .ds-sheet__panel": "the opaque side sheet panel slides its full width off screen (D16); phones: down"
+    }
+  }
 }

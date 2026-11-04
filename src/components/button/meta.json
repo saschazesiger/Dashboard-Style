@@ -138,5 +138,10 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-btn"
-  ]
+  ],
+  "exceptions": {
+    "ripple": {
+      ".ds-link-btn": "an inline text link: no ripple and no morph (they would reach outside the text line)"
+    }
+  }
 }

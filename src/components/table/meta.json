@@ -112,5 +112,30 @@
   "rippleHosts": [
     ".ds-table__sort",
     ".ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link)"
-  ]
+  ],
+  "exceptions": {
+    "physical": {
+      ".ds-table-wrap--fill: -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-table-wrap--fill: mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:has(> .ds-table--wide): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:has(> .ds-table--wide): mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap: -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap: mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]): mask-image": "gradient direction: the edge fades follow the sideways scroll"
+    }
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-table__sort-arrow": "icon swaps: the one arrow of the marked column turns 180deg between ascending and descending"
+      },
+      "height": {
+        ".ds-table__expand": "an expandable table row closes (0fr, grid-template-rows) on --ds-ease-in: a layout size (D29)",
+        "tr:has(.ds-table__toggle[aria-expanded=\"true\"]) + .ds-table__detail .ds-table__expand": "an expandable table row opens (1fr, grid-template-rows) on --ds-ease-out (D29)"
+      }
+    }
+  }
 }

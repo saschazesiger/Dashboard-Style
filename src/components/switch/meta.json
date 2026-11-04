@@ -46,5 +46,20 @@
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "ripple": {
+      ".ds-switch": "its halo is the press (D23)"
+    },
+    "physical": {
+      ".ds-switch__track::after: left": "the handle starts at the left and travels on translate",
+      ".ds-switch__track::before: left": "the halo starts at the left and travels on translate with the handle"
+    }
+  },
+  "motionExceptions": {
+    "press": {
+      ".ds-switch:active input:not(:disabled, [aria-disabled=\"true\"]) + .ds-switch__track::after": "the handle grows to its pressed size",
+      ".ds-switch.ds-pressed input:not(:disabled, [aria-disabled=\"true\"]) + .ds-switch__track::after": "the handle grows to its pressed size"
+    }
+  }
 }

@@ -74,6 +74,8 @@ describe('src/components/<name>/', () => {
       [tamper('badge', (meta) => withKey(meta, 'module', true)), /"module" without badge\.js/],
       [tamper('badge', (meta) => withKey(meta, 'rippleHosts', ['.ds-btn'])), /"rippleHosts" \.ds-btn: name one of its own classes/],
       [tamper('badge', (meta) => withKey(meta, 'exceptions', { physical: { '.ds-badge: left': '' } })), /exceptions\.physical\.\.ds-badge: left: shorter than 1/],
+      [tamper('badge', (meta) => withKey(meta, 'exceptions', { hover: { '.ds-btn:hover': 'not its own' } })), /badge\/meta\.json: exceptions\.hover "\.ds-btn:hover" names none of its own classes/],
+      [tamper('badge', (meta) => withKey(meta, 'motionExceptions', { keyframeShape: { 'ds-spin': 'not its own' } })), /keyframeShape names ds-spin, which badge\.keyframes\.css does not define/],
       [tamper('badge', (meta) => { const { name, group, ...rest } = meta; return { group, name, ...rest }; }), /badge\/meta\.json: keys in the order name, group/],
       [tamper('dialog', (meta) => ({ ...meta, keyframes: [...meta.keyframes, 'ds-spin'].sort() })), /"keyframes" lists ds-spin/],
       [tamper('chip', (meta) => ({ ...meta, ripple: false })), /chip\/meta\.json: "ripple" is false/],
