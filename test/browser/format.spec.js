@@ -85,6 +85,52 @@ test('one timer for every time, with the text changing on the clock', async ({ p
   await expect(page.locator('#future'), 'it counts down too').toHaveText('in 1 hour');
 });
 
+test('another locale rewrites a data-ds-time text at once, and ds:config says so', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const element = document.querySelector('#future');
+    const before = element.textContent;
+    const events = [];
+    document.addEventListener('ds:config', (event) => events.push([...event.detail.changed]));
+    DS.config({ locale: 'de-DE' });
+    // Synchronously: no tick of the clock came between.
+    const german = element.textContent;
+    DS.config({ locale: 'de-DE' });
+    DS.config({ strings: { close: 'Schliessen' } });
+    const same = element.textContent;
+    DS.config({ locale: null, strings: { close: null } });
+    return { before, german, same, back: element.textContent, events };
+  });
+  expect(result.before).toMatch(/^in 2 hours?$/);
+  expect(result.german).toMatch(/^in 2 Stunden$/);
+  expect(result.same).toBe(result.german);
+  expect(result.back).toBe(result.before);
+  expect(result.events).toEqual([['locale'], ['strings'], ['locale', 'strings']]);
+});
+
+test('what is no figure gives `empty`; whole bytes read B; an element not in the document has its text at once', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const detached = document.createElement('time');
+    detached.setAttribute('datetime', new Date(Date.now() - 180000).toISOString());
+    const controller = DS.format.time(detached);
+    const out = {
+      empties: [true, false, [5], [], {}, ' ', '', null, undefined, new Date(0)].map((value) => DS.format.number(value, { empty: '-' })),
+      figures: [DS.format.number('12', { locale: 'en-US' }), DS.format.number(0, { locale: 'en-US' })],
+      bytes: [DS.format.bytes(12, { locale: 'en-US' }), DS.format.bytes(12, { locale: 'en-US', base: 1024 })].map((text) => text.replace(/\s/g, ' ')),
+      detached: detached.textContent,
+    };
+    controller.destroy();
+    return out;
+  });
+  expect(result).toEqual({
+    empties: ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
+    figures: ['12', '0'],
+    bytes: ['12 B', '12 B'],
+    detached: '3 minutes ago',
+  });
+});
+
 test('a morph keeps the tip, a new datetime applies at once and text written back is put right', async ({ page }) => {
   await open(page);
   const result = await page.evaluate(async () => {

@@ -28,7 +28,7 @@ describe('numbers', () => {
   });
 
   it('gives `empty` for what is no number, and never throws on it', () => {
-    for (const value of [null, undefined, '', 'many', NaN]) {
+    for (const value of [null, undefined, '', ' ', 'many', NaN, true, [], [5], {}, new Date(0)]) {
       assert.equal(format.number(value, en), '');
       assert.equal(format.number(value, { ...en, empty: '-' }), '-');
       assert.equal(format.percent(value, { ...en, empty: '-' }), '-');
@@ -62,8 +62,8 @@ describe('numbers', () => {
 
 describe('bytes', () => {
   it('takes the largest unit that keeps a figure of at least 1', () => {
-    assert.equal(plain(format.bytes(0, en)), '0 byte');
-    assert.equal(plain(format.bytes(999, en)), '999 byte');
+    assert.equal(plain(format.bytes(0, en)), '0 B');
+    assert.equal(plain(format.bytes(999, en)), '999 B');
     assert.equal(plain(format.bytes(1536, en)), '1.5 kB');
     assert.equal(plain(format.bytes(1500000, en)), '1.5 MB');
     assert.equal(plain(format.bytes(-1536, en)), '-1.5 kB');
@@ -84,7 +84,7 @@ describe('bytes', () => {
   it('takes the fraction digits and a minimum above the default', () => {
     assert.equal(plain(format.bytes(1536, { ...en, maximumFractionDigits: 0 })), '2 kB');
     assert.equal(plain(format.bytes(1536, { ...en, minimumFractionDigits: 2 })), '1.54 kB');
-    assert.equal(plain(format.bytes(12, { ...en, minimumFractionDigits: 2 })), '12.00 byte');
+    assert.equal(plain(format.bytes(12, { ...en, minimumFractionDigits: 2 })), '12.00 B');
   });
 });
 
@@ -324,6 +324,28 @@ describe('time(el)', () => {
   afterEach(() => {
     mock.timers.reset();
     config({ locale: saved.locale });
+  });
+
+  it('an element not in the document yet has its text at once', () => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.UTC(2026, 10, 4, 12) });
+    config({ locale: 'en-US' });
+    const el = fakeElement({ datetime: new Date(Date.now() - 3 * MINUTE).toISOString() });
+    el.isConnected = false;
+    const controller = format.time(el);
+    assert.equal(el.textContent, '3 minutes ago');
+    controller.destroy();
+  });
+
+  it('a client that never needs to run again does not spin the clock', () => {
+    mock.timers.enable({ apis: ['setTimeout', 'Date'], now: Date.UTC(2026, 10, 4, 12) });
+    let runs = 0;
+    const off = format.clock(() => {
+      runs += 1;
+      return Infinity;
+    });
+    mock.timers.tick(HOUR);
+    assert.equal(runs, 1);
+    off();
   });
 
   it('writes the relative text and the absolute tip, and wakes when the text changes', () => {

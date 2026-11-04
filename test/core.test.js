@@ -509,6 +509,33 @@ describe('DS.core.config and t', () => {
     }
   });
 
+  it('dispatches ds:config on the document after a change, and says what changed', () => {
+    const before = globalThis.document;
+    const events = [];
+    try {
+      globalThis.document = { documentElement: { lang: 'fr' }, dispatchEvent: (event) => events.push(event) };
+      core.config();
+      core.config({});
+      core.config({ locale: 'fr' });
+      assert.equal(events.length, 0, 'nothing changed: the locale in force was fr already');
+      const settings = core.config({ locale: 'de' });
+      assert.equal(events.length, 1);
+      assert.equal(events[0].type, 'ds:config');
+      assert.equal(events[0].bubbles, true);
+      assert.equal(events[0].cancelable, false);
+      assert.deepEqual(events[0].detail.changed, ['locale']);
+      assert.equal(events[0].detail.locale, 'de');
+      assert.equal(events[0].detail.strings, settings.strings);
+      core.config({ strings: { close: 'Schliessen' } });
+      assert.deepEqual(events[1].detail.changed, ['strings']);
+      assert.equal(events[1].detail.strings.close, 'Schliessen');
+      core.config({ locale: 'it', strings: { close: null } });
+      assert.deepEqual(events[2].detail.changed, ['locale', 'strings']);
+    } finally {
+      globalThis.document = before;
+    }
+  });
+
   it('lists every default string in docs/install.md, "Language and locale"', () => {
     const keys = [...read('src/js/core.js').match(/const DEFAULT_STRINGS = Object\.freeze\(\{\n([\s\S]*?)\n\}\);/)[1].matchAll(/^ {2}(\w+):/gm)].map((match) => match[1]);
     for (const key of ['close', 'copy', 'copied', 'showMore', 'showLess', 'clear', 'loading', 'more', 'dismiss', 'required', 'optional']) assert.ok(keys.includes(key), key);

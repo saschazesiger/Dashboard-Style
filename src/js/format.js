@@ -16,8 +16,8 @@
  * a page. Formatters are expensive to make, so each is kept per locale and
  * options (FORMATTERS at most, then the cache starts again).
  *
- * Empty values: null, undefined, '' and what is no number or date give
- * `options.empty`, default '' (a page shows its own dash).
+ * Empty values: null, undefined, a blank text and what is no number or date
+ * give `options.empty`, default '' (a page shows its own dash).
  *
  * The clock: clock(fn) adds a client to one timer of the page, shared by
  * every copy of the system through runtime.state('format'). fn(now) returns
@@ -57,7 +57,7 @@ const RELATIVE_UNITS = Object.freeze([['year', YEAR], ['month', MONTH], ['week',
 /** The units of duration(), largest first. */
 const DURATION_UNITS = Object.freeze([['day', DAY], ['hour', HOUR], ['minute', MINUTE], ['second', SECOND], ['millisecond', 1]]);
 
-/** The units of bytes() that Intl knows at base 1000; base 1024 has no Intl unit, so its symbols are the standard's. */
+/** The units of bytes() that Intl knows at base 1000; base 1024 has no Intl unit, so its symbols are the standard's (and 'B' is whole bytes' at both). */
 const BYTE_UNITS = Object.freeze(['byte', 'kilobyte', 'megabyte', 'gigabyte', 'terabyte', 'petabyte']);
 const BINARY_SYMBOLS = Object.freeze(['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']);
 
@@ -66,6 +66,9 @@ const FORMATTERS = 256;
 
 /** The clock's wait is never shorter than this, so a client that returns 0 cannot spin. */
 const SHORTEST_WAIT = 200;
+
+/** Nor longer than setTimeout can count: past this it fires at once, so a client that returns Infinity would spin. */
+const LONGEST_WAIT = 2 ** 31 - 1;
 
 /** The attributes of data-ds-time that name an option. */
 const TIME_OPTIONS = Object.freeze(['style', 'numeric', 'smallest', 'largest']);
@@ -126,7 +129,7 @@ const numberFormat = (locale, settings) => formatter(Intl.NumberFormat, 'number'
 /** `value` as a number or bigint to format, or null when it is none. */
 function numeric(value) {
   if (typeof value === 'bigint') return value;
-  if (value === null || value === undefined || value === '') return null;
+  if (typeof value !== 'number' && (typeof value !== 'string' || !value.trim())) return null;
   const parsed = Number(value);
   return Number.isNaN(parsed) ? null : parsed;
 }
@@ -177,8 +180,10 @@ export function currency(value, code, options = {}) {
 /**
  * A size in bytes in the largest unit that keeps a figure of at least 1:
  * `base` 1000 (default: kB, MB through Intl units) or 1024 (KiB, MiB, whose
- * symbols do not translate). One fraction digit unless `options` say others;
- * whole bytes have none.
+ * symbols do not translate). Whole bytes read 'B' at either base, because
+ * Intl's short form ('byte') sits oddly beside kB; `unitDisplay` still asks
+ * Intl at base 1000. One fraction digit unless `options` say others; whole
+ * bytes have none.
  * @param {number|string|null|undefined} value
  * @param {{ locale?: string, empty?: string, base?: 1000|1024 } & Intl.NumberFormatOptions} [options]
  * @returns {string}
@@ -198,7 +203,7 @@ export function bytes(value, options = {}) {
   if (settings.maximumFractionDigits === undefined) settings.maximumFractionDigits = Math.max(power === 0 ? 0 : 1, settings.minimumFractionDigits ?? 0);
   const figure = size / base ** power;
   const locale = localeFor(options);
-  if (base === 1024) return `${numberFormat(locale, settings).format(figure)} ${BINARY_SYMBOLS[power]}`;
+  if (base === 1024 || (power === 0 && !settings.unitDisplay)) return `${numberFormat(locale, settings).format(figure)} ${BINARY_SYMBOLS[power]}`;
   return numberFormat(locale, { ...settings, style: 'unit', unit: BYTE_UNITS[power] }).format(figure);
 }
 
@@ -388,13 +393,21 @@ function armClock() {
         shared.timer = null;
       } else runClock(true);
     };
+    // Another locale changes every text now, not at its next tick. Hidden, the return brings it anyway.
+    const reformat = (/** @type {CustomEvent} */ event) => {
+      if (event.detail?.changed?.includes('locale') && !pageHidden()) runClock(true);
+    };
     doc.addEventListener('visibilitychange', wake);
-    shared.listening = () => doc.removeEventListener('visibilitychange', wake);
+    doc.addEventListener('ds:config', reformat);
+    shared.listening = () => {
+      doc.removeEventListener('visibilitychange', wake);
+      doc.removeEventListener('ds:config', reformat);
+    };
   }
   if (pageHidden()) return;
   let soonest = Infinity;
   for (const client of shared.clients) soonest = Math.min(soonest, client.due);
-  shared.timer = setTimeout(() => runClock(), Math.max(SHORTEST_WAIT, soonest - Date.now()));
+  shared.timer = setTimeout(() => runClock(), Math.min(LONGEST_WAIT, Math.max(SHORTEST_WAIT, soonest - Date.now())));
   shared.timer?.unref?.();
 }
 
@@ -447,7 +460,8 @@ function nextChange(difference, size) {
  * the data-ds-time-* attributes. `value`: the date to start from (written to
  * the element). set(value) writes a new date; get() returns `{ value, text }`;
  * on('change', fn) runs when the text changed. A controller whose element
- * left the document stops at the next tick.
+ * left the document stops at the next tick; one whose element never entered
+ * it has its text at once and waits for it, so destroy() it if it never will.
  * @param {Element|null|undefined} el
  * @param {{ value?: Date|number|string, style?: 'long'|'short'|'narrow', numeric?: 'auto'|'always', smallest?: 'second'|'minute'|'hour'|'day'|'week'|'month'|'year', largest?: 'second'|'minute'|'hour'|'day'|'week'|'month'|'year', tip?: boolean, locale?: string }} [options]
  * @returns {{ get: () => { value: Date|null, text: string }, set: (value: Date|number|string|null) => void, on: (type: 'change', fn: (detail: { value: Date|null, text: string }) => void) => () => void, update: () => void, destroy: () => void }}
@@ -561,6 +575,8 @@ export function time(el, options = {}) {
     });
     watcher.observe(el, { childList: true, characterData: true, subtree: true });
   }
+  // Not in the document yet: the clock below only waits for it, so the text comes now.
+  if (!seen) render();
   stop = clock((now) => {
     if (!el.isConnected) {
       if (seen) {
