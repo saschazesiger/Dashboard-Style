@@ -100,6 +100,8 @@ test.describe('navigation', () => {
 });
 
 test('every registered demo renders into its stage and wires without a console error', async ({ page }) => {
+  // Every component has a demo now: 22s alone in WebKit, past the default 30s with other workers.
+  test.setTimeout(120000);
   const errors = collectErrors(page);
   await open(page);
   const names = await page.evaluate(() => window.SG.list().map((spec) => spec.name));

@@ -577,12 +577,13 @@
         "--ds-card-title-line",
         "--ds-chip-height",
         "--ds-selected-ring",
-        "--ds-switch-height"
+        "--ds-switch-height",
+        "--ds-switch-track-height"
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 16955,
-      "gzip": 2826
+      "bytes": 17027,
+      "gzip": 2839
     },
     "disclosure": {
       "css": "css/components/disclosure.css",
@@ -1072,8 +1073,8 @@
         "scroll-driven",
         "scrollbar-color"
       ],
-      "bytes": 33071,
-      "gzip": 4826
+      "bytes": 33137,
+      "gzip": 4830
     },
     "pagination": {
       "css": "css/components/pagination.css",

@@ -1313,8 +1313,8 @@
       card('Search key, field rows and input groups', label('A search with its key (press / to focus it)') +
         '<div class="ds-search">' + icon('search', 20) + '<input class="ds-input" id="sg-search-key" type="search" aria-label="Search devices" aria-keyshortcuts="/" placeholder="Search devices"><kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>' +
         '<div class="ds-field"><label class="ds-field__label" for="sg-api-key">API key</label><div class="ds-field__row"><input class="ds-input" id="sg-api-key" value="ex_7f3a9c21d4e8" readonly><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy the key" data-tip="Copy the key" data-sg="copy"><span class="ds-icon-swap">' + icon('copy', 20) + '</span></button></div></div>' +
-        '<div class="ds-form-grid--2 ds-form-grid"><div class="ds-field"><label class="ds-field__label" for="sg-quota">Quota (GB)</label><div class="ds-input-group"><input class="ds-input" id="sg-quota" inputmode="numeric" value="50"><span class="ds-input-group__affix" aria-hidden="true">GB</span></div></div>' +
-        '<div class="ds-field"><label class="ds-field__label" for="sg-site">Website</label><div class="ds-input-group"><span class="ds-input-group__affix" aria-hidden="true">https://</span><input class="ds-input" id="sg-site" value="example.org" aria-invalid="true" aria-describedby="sg-site-error"></div><small class="ds-field__hint ds-field__hint--error" id="sg-site-error">' + icon('alertCircle', 16) + 'Not reachable.</small></div></div>' +
+        '<div class="ds-form-grid--2 ds-form-grid"><div class="ds-field"><label class="ds-field__label" for="sg-quota">Quota (GB)</label><div class="ds-input-group"><input class="ds-input" id="sg-quota" inputmode="numeric" value="50"><span class="ds-input-group__suffix" aria-hidden="true">GB</span></div></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="sg-site">Website</label><div class="ds-input-group"><span class="ds-input-group__prefix" aria-hidden="true">https://</span><input class="ds-input" id="sg-site" value="example.org" aria-invalid="true" aria-describedby="sg-site-error"></div><small class="ds-field__hint ds-field__hint--error" id="sg-site-error">' + icon('alertCircle', 16) + 'Not reachable.</small></div></div>' +
         '<div class="ds-field"><label class="ds-field__label" for="sg-password">Password</label><div class="ds-input-group"><input class="ds-input" id="sg-password" type="password" value="correct horse" autocomplete="off"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false" aria-controls="sg-password" data-sg="reveal"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + icon('eye', 18) + '</span><span class="ds-icon-swap__b">' + icon('eyeOff', 18) + '</span></span></button></div></div>' +
         '<div class="ds-form-grid--2 ds-form-grid"><div class="ds-field"><label class="ds-field__label" for="sg-start">Starts</label><input class="ds-input" id="sg-start" type="datetime-local" value="2025-03-12T09:30"></div><div class="ds-field"><label class="ds-field__label" for="sg-time">Daily at</label><input class="ds-input" id="sg-time" type="time" value="02:30"></div></div>') +
       card('Filled field', '<p class="ds-muted">The label sits in the tonal box; the focus is a 2px line at its bottom.</p>' +
@@ -2975,7 +2975,7 @@
         ok.focus();
       });
     });
-    dialog.addEventListener('ds-close', function (event) { if (event.target === dialog) toast('Closed: ' + event.detail.reason + '.', 'info'); });
+    dialog.addEventListener('ds:close', function (event) { if (event.target === dialog) toast('Closed: ' + event.detail.reason + '.', 'info'); });
   }
 
   /* "Type the name to delete": the action waits for the exact name; Enter runs it. */

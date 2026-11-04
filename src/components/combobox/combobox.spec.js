@@ -408,7 +408,10 @@ test('several values: chips in the box, the list stays open, Backspace and the c
   await combo.getByRole('button', { name: 'Remove Laptop 13' }).click();
   await expect(combo.locator('.ds-chip')).toHaveCount(3);
   await expect(input).toBeFocused();
-  // Escape leaves no active option behind.
+  // Escape leaves no active option behind. The press on the chip took the focus, so the list closed: the first arrow
+  // opens it, the next one moves.
+  await page.keyboard.press('ArrowDown');
+  await expect(input).toHaveAttribute('aria-expanded', 'true');
   await page.keyboard.press('ArrowDown');
   await expect(input).toHaveAttribute('aria-activedescendant', /.+/);
   await page.keyboard.press('Escape');

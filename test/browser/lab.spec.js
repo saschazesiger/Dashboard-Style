@@ -287,6 +287,7 @@ const CONTINUITY = {
   disclosure: { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
   'disclosure-accordion': { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
   pop: { in: 'stage', sel: '.ds-badge', props: ['opacity', 'scale.x'] },
+  'badge-count': { in: 'stage', sel: '.ds-badge', props: ['opacity', 'scale.x'] },
   clip: { in: 'stage', sel: '.sg-clip__panel', props: ['opacity'] },
   'icon-swap': { in: 'stage', sel: '[data-pair="offline"] .ds-icon-swap__b', props: ['opacity'] },
   chips: { in: 'stage', sel: '.ds-chip__body', text: 'Archived', pseudo: '::after', props: ['width'] },

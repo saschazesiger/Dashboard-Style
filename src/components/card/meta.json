@@ -116,6 +116,9 @@
     },
     "--ds-switch-height": {
       "owner": "switch"
+    },
+    "--ds-switch-track-height": {
+      "owner": "switch"
     }
   },
   "keyframes": [],

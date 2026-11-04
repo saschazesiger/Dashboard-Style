@@ -80,7 +80,8 @@ test.describe('quiet load', () => {
               parent: describe(event.target.parentElement),
               // A child of a container DS.motion.staggerOnce() ran on (the event may come after its classes left).
               staggered: Boolean(event.target.parentElement?.hasAttribute('data-ds-staggered')),
-              control: Boolean(event.target.closest?.('.ds-chip, .ds-switch, .ds-check, .ds-radio, .ds-indicator') || event.target.matches?.('input[type="checkbox"], input[type="radio"]')),
+              // A spinner is a loop wherever it sits: a switch keeps its hidden one in the track at all times (switch.md, "Busy").
+              control: !event.target.closest?.('.ds-spinner') && Boolean(event.target.closest?.('.ds-chip, .ds-switch, .ds-check, .ds-radio, .ds-indicator') || event.target.matches?.('input[type="checkbox"], input[type="radio"]')),
               loop: animation ? !Number.isFinite(animation.effect.getComputedTiming().iterations) : false,
               scroll: Boolean(timeline && typeof ScrollTimeline === 'function' && timeline instanceof ScrollTimeline),
             });

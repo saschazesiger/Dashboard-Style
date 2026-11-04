@@ -2472,8 +2472,9 @@ opaque with the row's layers over it, a hairline at its start shows while column
 internal). Its cell stands above the row link, so its own room opens nothing, with no pointer, no press and no ripple:
 put the row's controls there. A press on the rest of the row ripples through the cell as well, and a focused row link
 that is not in a pinned first cell finishes its ring on it. `DS.dom.scrollEdges()` measures the column and keeps its width
-in `--ds-table-pin-last-width` on the wrapper (written by the system, never set it), its end `scroll-padding`: focus moved
-by the keyboard never lands under it.
+in `--ds-table-pin-last-width` on the wrapper (written by the system, never set it), its end `scroll-padding`: a control that Tab
+reaches under it scrolls clear of it. One that still shows in part stays where it is, as browsers scroll focus only out of
+hiding.
 
 ### Accessibility
 
@@ -2481,7 +2482,8 @@ by the keyboard never lands under it.
   cells, and an empty header cell gets a `.ds-sr` name. Stacked rows keep their table roles in every engine.
 - **Keyboard.** Tab reaches every control in order: sort buttons, checkboxes, toggles, row links, row actions; Enter or
   Space activates them. A wrapper whose cells hold nothing focusable takes `tabindex="0" role="region" aria-label`, and
-  the arrow keys scroll it. Focus never lands under a sticky row or a pinned column (`DS.dom.scrollEdges()` measures them). A wrapper with sticky rows or a pinned column draws its ring outside
+  the arrow keys scroll it. A control hidden under a sticky row or a pinned column scrolls clear of it on focus (`DS.dom.scrollEdges()`
+  measures the columns). A wrapper with sticky rows or a pinned column draws its ring outside
   its box, since those cells would paint over a ring inside it.
 - **Status** is never colour alone: selected rows keep their checkbox, sorted columns their arrow and `aria-sort`.
 

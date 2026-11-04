@@ -136,9 +136,9 @@ test.describe('shipped themes', () => {
     expect(await page.evaluate(() => {
       const main = document.querySelector('.ds-theme');
       const probe = document.createElement('div');
-      probe.innerHTML = '<input class="ds-input" aria-label="x"><button class="ds-chip" type="button">x</button>';
+      probe.innerHTML = '<input class="ds-input" aria-label="x"><button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">x</span></span></button>';
       main.append(probe);
-      const out = [...probe.children].map((el) => el.getBoundingClientRect().height);
+      const out = [probe.querySelector('.ds-input'), probe.querySelector('.ds-chip__body')].map((el) => el.getBoundingClientRect().height);
       probe.remove();
       return out;
     })).toEqual([32, 24]);

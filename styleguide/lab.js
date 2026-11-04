@@ -2572,7 +2572,7 @@
         DS.overlay.confirm({ title: 'Archive 3 devices?', text: 'They stay in the archive for a year.', confirmLabel: 'Archive devices', opener: event.currentTarget })
           .then(function (yes) { setHtml($('#sg-work-close', stage.parentNode), 'confirm() answered <code>' + yes + '</code>'); });
       });
-      document.addEventListener('ds-close', function (event) {
+      document.addEventListener('ds:close', function (event) {
         if (event.target === work.el) setHtml($('#sg-work-close', stage.parentNode), 'Last close: <code>' + event.detail.reason + '</code>');
         requestAnimationFrame(function () { workTopmost(top); });
       });

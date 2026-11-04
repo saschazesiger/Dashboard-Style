@@ -2884,7 +2884,7 @@ describe('tables, cards and buttons (2.1)', () => {
     // The chip's height as a control on the options model computes it (plans/3.0-conventions.md, section 3).
     assert.equal(at(CARD, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
     // The switch's box as the switch computes it, on the same steps.
-    assert.equal(at(CARD, '.ds-card__row > .ds-switch')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
+    assert.equal(at(CARD, '.ds-card__row > .ds-switch')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px), calc(var(--ds-switch-track-height, 32px) + var(--ds-size-step, 0) * 4px))) / 2)');
     // The same weight (0,2,0) as the overhang, so the later rule wins.
     for (const selector of [SMALL, '.ds-card__row > .ds-chip']) assert.ok(CARD.indexOf(`${selector} {`) > CARD.indexOf(`${GENERAL} {`), selector);
   });

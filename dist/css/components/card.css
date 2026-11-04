@@ -655,7 +655,7 @@
 
   .ds-card__row > .ds-switch,
   .ds-card__row > :has(> .ds-switch) {
-    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
+    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px), calc(var(--ds-switch-track-height, 32px) + var(--ds-size-step, 0) * 4px))) / 2);
   }
 
   .ds-card__row > :is(.ds-status, .ds-badge, .ds-tag) {

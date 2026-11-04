@@ -407,7 +407,7 @@ test('a pinned last column stays on an opaque base, with its hairline and withou
   expect((await style(page, '#pin-last-a', 'background-image')).match(/gradient/g)).toHaveLength(3);
   // The wrapper has no end fade (and keeps its scroll padding for keyboard focus).
   expect(await wrap.evaluate((el) => getComputedStyle(el).getPropertyValue('--ds-table-end-fade').trim())).toBe('0');
-  expect(await wrap.evaluate((el) => parseFloat(getComputedStyle(el).scrollPaddingInlineEnd))).toBe(64);
+  expect(await wrap.evaluate((el) => parseFloat(getComputedStyle(el).scrollPaddingInlineEnd))).toBeCloseTo(await page.$eval('#pin-last-a', (el) => el.getBoundingClientRect().width), 1);
   // The hairline shows while columns follow under it, and goes at the end of the scroll.
   const hairline = () => page.$eval('#pin-last-a', (el) => Number(getComputedStyle(el, '::after').opacity));
   await expect.poll(hairline, { message: 'columns follow' }).toBeGreaterThan(0.9);
@@ -726,15 +726,21 @@ test('focus never lands under a pinned last column: scrollEdges() measures it, a
     const width = await page.$eval('#td-7', (el) => el.closest('td').getBoundingClientRect().width);
     expect(await page.$eval('#end-wrap', (el) => parseFloat(el.style.getPropertyValue('--ds-table-pin-last-width')))).toBeCloseTo(width, 1);
     await page.focus('#td-0');
+    let hidden = 0;
     for (let i = 1; i < 7; i += 1) {
+      // Only a control wholly under the column makes the browser scroll: one that still shows in part stays where it is.
+      const under = await page.evaluate((id) => document.getElementById(id).getBoundingClientRect().left >= document.getElementById('td-7').closest('td').getBoundingClientRect().left, `td-${i}`);
       await page.keyboard.press('Tab');
       await expect(page.locator(`#td-${i}`), `${name}: Tab reaches it`).toBeFocused();
+      if (!under) continue;
+      hidden += 1;
       await expect.poll(() => page.evaluate((id) => {
         const control = document.getElementById(id).getBoundingClientRect();
         const pinned = document.getElementById('td-7').closest('td').getBoundingClientRect();
         return control.right <= pinned.left + 1;
       }, `td-${i}`), `${name}: column ${i} beside the pinned one`).toBe(true);
     }
+    expect(hidden, `${name}: Tab scrolled to controls under the column`).toBeGreaterThan(0);
   }
 });
 

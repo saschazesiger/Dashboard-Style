@@ -114,8 +114,8 @@
  *                       no press and no ripple; a row's ripple reaches it
  *                       in a part of its own (DS.ripple.attach()), and it
  *                       finishes the ring of a row link in another cell.
- *                       DS.dom.scrollEdges() measures it, so focus moved by
- *                       the keyboard never lands under it
+ *                       DS.dom.scrollEdges() measures it, so a control that
+ *                       Tab reaches under it scrolls clear of it
  *
  * Wrappers that scroll sideways fade at the end that still has columns
  * (in a card: .ds-table--wide when the content area is narrow, every table
@@ -1139,7 +1139,8 @@
   /* The slot keeps the bar's height, so the table stays where it is while
      a shorter toolbar stands in it. */
   .ds-toolbar > .ds-swap {
-    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-selection-bar-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    /* The bar's own least height, or its icon buttons, which step with size only: so the crossing never moves the table. */
+    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-selection-bar-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px));
   }
 
   .ds-selection-bar {
