@@ -69,8 +69,9 @@
  *
  * Forced colours: the dragged row and a drop target are outlined in
  * Highlight; the zone's dashed edge is ButtonText (Highlight while dragged
- * over); the file button is ButtonFace / ButtonText with a ButtonText
- * border; a disabled zone or file field is GrayText.
+ * over; a solid edge for a file over a limit); the file button is
+ * ButtonFace / ButtonText with a ButtonText border; a disabled zone or file
+ * field is GrayText.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -366,6 +367,12 @@
     color: var(--ds-disabled-ink);
   }
 
+  /* The whole zone is blocked: no link ink, no quieter hint. */
+  .ds-dropzone:has(input:disabled) :is(.ds-dropzone__browse, .ds-dropzone__hint) {
+    color: inherit;
+    text-decoration-color: currentColor;
+  }
+
   /* A page's own drop target (a pane, a chat) while files are over it. */
   :where(.ds-theme) [data-ds-dragover]:not(.ds-dropzone) {
     outline: var(--ds-focus-width) dashed var(--ds-primary);
@@ -401,6 +408,11 @@
     .ds-dropzone:has(input:disabled) .ds-dropzone__disc {
       border-color: GrayText;
       color: GrayText;
+    }
+
+    /* A file over a limit keeps its solid edge, so the state shows without the colour. */
+    .ds-dropzone:has(.ds-dropzone__input[aria-invalid="true"]) {
+      border-style: solid;
     }
 
     .ds-input[type="file"]:disabled,

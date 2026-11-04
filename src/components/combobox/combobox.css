@@ -225,6 +225,7 @@
      error and disabled. */
   .ds-combo--multi > .ds-combo__input,
   .ds-combo--multi > .ds-combo__input:focus,
+  .ds-combo--multi > .ds-combo__input:disabled,
   .ds-combo--multi > .ds-combo__input[aria-invalid="true"] {
     flex: 1 1 8ch;
     width: auto;
@@ -235,6 +236,12 @@
     outline: none;
     background: transparent;
     box-shadow: none;
+  }
+
+  @media (hover: hover) {
+    .ds-combo--multi:hover:not(:has(> .ds-combo__input:is(:focus, :disabled, [aria-invalid="true"]))) {
+      border-color: var(--ds-text);
+    }
   }
 
   .ds-combo--multi:has(> .ds-combo__input:focus) {
@@ -253,8 +260,8 @@
   }
 
   .ds-combo--multi:has(> .ds-combo__input:disabled) {
-    border-color: var(--ds-disabled-fill);
-    background: transparent;
+    border-color: var(--ds-line);
+    background: var(--ds-surface-low);
   }
 
   /* Select-only: a button that reads like the field, value and meta in one

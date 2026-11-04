@@ -396,6 +396,22 @@ test('states: a disabled field takes its toggle with it; an error on the box of 
     });
   });
   expect(colours.border).toBe(colours.error);
+  // Disabled: the quiet surface on the box, nothing of its own on the field inside.
+  const quiet = await page.evaluate(() => {
+    const combo = document.querySelector('.ds-combo--multi');
+    const input = combo.querySelector('input');
+    input.removeAttribute('aria-invalid');
+    input.disabled = true;
+    const probe = document.createElement('span');
+    probe.style.backgroundColor = 'var(--ds-surface-low)';
+    document.querySelector('.ds-theme').append(probe);
+    const surface = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return Promise.all(combo.getAnimations().concat(input.getAnimations()).map((animation) => animation.finished.catch(() => null))).then(() => ({ surface, box: getComputedStyle(combo).backgroundColor, field: getComputedStyle(input).backgroundColor, toggle: getComputedStyle(combo.querySelector('.ds-combo__toggle')).pointerEvents }));
+  });
+  expect(quiet.box).toBe(quiet.surface);
+  expect(quiet.field).toBe('rgba(0, 0, 0, 0)');
+  expect(quiet.toggle).toBe('none');
 });
 
 test('forced colours: the chosen option, the active one, a blocked one, the list\'s edge and the box of several values', async ({ page, browserName }) => {

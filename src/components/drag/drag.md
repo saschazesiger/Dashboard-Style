@@ -71,7 +71,7 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*', input: null }); 
 
 - **Keyboard and names**: the input takes the focus, so Tab reaches the zone and Enter or Space opens the file dialog;
   its name comes from the label's text. A page's drop target adds no tab stop of its own: paste works with focus inside.
-- **Forced colours**: a dashed `ButtonText` edge (`Highlight` while dragged over), the file button in `ButtonFace` /
+- **Forced colours**: a dashed `ButtonText` edge (`Highlight` while dragged over, solid for a file over a limit), the file button in `ButtonFace` /
   `ButtonText` with a `ButtonText` border, a page's drop target outlined in `Highlight`; a disabled zone or file
   field is `GrayText`.
 - **Hooks**: `--ds-dropzone-border`, `--ds-dropzone-padding` (block padding, `--ds-space-6`), `--ds-dropzone-radius`

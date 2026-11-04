@@ -185,6 +185,10 @@ test('the zone\'s states: dragged over and disabled keep their looks; a file ove
   // Disabled: through its input.
   const off = page.locator('.ds-dropzone').filter({ has: page.locator('input:disabled') });
   expect(await off.evaluate((el) => getComputedStyle(el).cursor)).toBe('not-allowed');
+  // The whole zone is blocked: its link and its hint take the disabled ink.
+  const inks = await off.evaluate((el) => [getComputedStyle(el).color, getComputedStyle(el.querySelector('.ds-dropzone__browse')).color, getComputedStyle(el.querySelector('.ds-dropzone__hint')).color]);
+  expect(inks[1]).toBe(inks[0]);
+  expect(inks[2]).toBe(inks[0]);
 });
 
 test('keyboard: Tab reaches the zone\'s input, the ring shows on the zone; the name comes from its label', async ({ page }) => {
@@ -268,6 +272,7 @@ test('forced colours: the zone\'s edge, the file button, the dragged row, and bl
       zone: [style(document.querySelector('[data-demo="zone"]')).borderTopStyle, style(document.querySelector('[data-demo="zone"]')).borderTopColor],
       over: style(document.querySelector('.ds-dropzone[data-ds-dragover]')).borderTopColor,
       blocked: style([...document.querySelectorAll('.ds-dropzone')].find((el) => el.querySelector('input:disabled'))).color,
+      invalid: style([...document.querySelectorAll('.ds-dropzone')].find((el) => el.querySelector('input[aria-invalid="true"]'))).borderTopStyle,
       fileButton: style(file, '::file-selector-button').borderTopStyle,
       lockedButton: style(locked, '::file-selector-button').color,
       dragged: [style(row).outlineStyle, style(row).outlineColor],
@@ -276,6 +281,7 @@ test('forced colours: the zone\'s edge, the file button, the dragged row, and bl
   expect(read.zone).toEqual(['dashed', read.system.buttonText]);
   expect(read.over).toBe(read.system.highlight);
   expect(read.blocked).toBe(read.system.grayText);
+  expect(read.invalid).toBe('solid');
   expect(read.fileButton).toBe('solid');
   expect(read.lockedButton).toBe(read.system.grayText);
   expect(read.dragged[0]).toBe('solid');

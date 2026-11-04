@@ -185,7 +185,7 @@
   }
 
   @media (max-width: 600px) {
-    .ds-savebar:not(.ds-savebar--inline) > .ds-savebar__bar {
+    .ds-savebar__bar {
       padding-inline-start: var(--ds-space-4);
     }
   }
