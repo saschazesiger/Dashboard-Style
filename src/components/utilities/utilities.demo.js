@@ -39,7 +39,16 @@ SG.demo('utilities', {
 
       h.section('Keys', '<p data-demo="keys"><kbd class="ds-kbd">Ctrl</kbd> <kbd class="ds-kbd">K</kbd> opens the search.</p>') +
 
-      h.section('Dividers', '<div class="ds-stack" data-demo="dividers"><hr class="ds-divider"><hr class="ds-divider ds-divider--inset"><div class="sg-row">Left<span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>Right</div><div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div></div>') +
+      h.section('Dividers', '<div class="ds-stack" data-demo="dividers"><hr class="ds-divider"><hr class="ds-divider ds-divider--inset">' +
+        '<div class="sg-row">Left<span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>Right<span class="ds-divider ds-divider--vertical ds-divider--inset" role="separator" aria-orientation="vertical" data-demo="divider-upright-inset"></span>Inset</div>' +
+        '<div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>' +
+        '<div class="ds-divider ds-divider--label ds-divider--start" role="separator" data-demo="divider-start"><span>Earlier this week</span></div>' +
+        '<div class="ds-divider ds-divider--label ds-divider--end" role="separator" data-demo="divider-end"><span>Last month</span></div>' +
+        '<div class="ds-cluster ds-cluster--top" data-demo="divider-or" style="align-items: stretch">' +
+        '<div class="ds-stack" style="flex: 1 1 10rem"><p class="ds-card__title">Passkey</p><button class="ds-btn ds-btn--filled ds-sm" type="button">' + h.icon('fingerprint', 16) + 'Use a passkey</button></div>' +
+        '<div class="ds-divider ds-divider--vertical ds-divider--label" role="separator" aria-orientation="vertical" data-demo="divider-vertical-label"><span>or</span></div>' +
+        '<div class="ds-stack" style="flex: 1 1 10rem"><p class="ds-card__title">Password</p><button class="ds-btn ds-sm" type="button">' + h.icon('key', 16) + 'Use a password</button></div>' +
+        '</div></div>', 'Across, inset, upright, around a caption (centred, near the start or the end) and upright around "or".') +
 
       h.section('Icons that fill', '<div class="sg-row" data-demo="icons"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Helpful" aria-pressed="false" data-demo="fill">' + h.icon('thumbUp', 20, 'ds-icon--fillable') + '</button><span aria-hidden="true">' + h.icon('thumbUp', 20, 'ds-icon--filled') + '</span></div>', 'Fills while its control is on (aria-pressed).') +
 

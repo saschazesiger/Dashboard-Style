@@ -58,7 +58,12 @@
  *                                     .ds-shape-* multiplies its radius)
  *   <hr class="ds-divider">           a hairline (--inset: from --ds-space-4)
  *   <span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>
+ *                                     upright (--inset: short of the row's edges)
  *   <div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>
+ *                                     around a caption (--start, --end: near that end)
+ *   <div class="ds-divider ds-divider--vertical ds-divider--label" role="separator" aria-orientation="vertical"><span>or</span></div>
+ *                                     upright around a caption
+ *   The colour: --ds-divider-color (--ds-line).
  *
  * Icons that fill when on (js/icons.js, the fillable glyphs):
  * .ds-icon--fillable on the <svg> fills its last element in currentColor
@@ -71,7 +76,8 @@
  * (docs/theming.md, "Touch screens"); never automatic.
  *
  * Hooks: --ds-pressable-radius (--ds-radius-sm), --ds-pressable-layer
- * (currentColor), --ds-kbd-border (--ds-line-2), --ds-kbd-bg (--ds-surface).
+ * (currentColor), --ds-kbd-border (--ds-line-2), --ds-kbd-bg (--ds-surface),
+ * --ds-divider-color (--ds-line).
  *
  * Progressive:
  * - text-wrap (a paragraph of .ds-muted avoids a lone last word): without
@@ -300,7 +306,7 @@
     height: 0;
     margin: 0;
     border: 0;
-    border-top: 1px solid var(--ds-line);
+    border-top: 1px solid var(--ds-divider-color, var(--ds-line));
   }
 
   .ds-divider--inset {
@@ -314,7 +320,13 @@
     height: auto;
     min-height: 1em;
     border-top: 0;
-    border-inline-start: 1px solid var(--ds-line);
+    border-inline-start: 1px solid var(--ds-divider-color, var(--ds-line));
+  }
+
+  /* Upright and inset: it stops short of the row's top and bottom edges. */
+  .ds-divider--vertical.ds-divider--inset {
+    margin-inline-start: 0;
+    margin-block: var(--ds-space-2);
   }
 
   .ds-divider--label {
@@ -331,7 +343,28 @@
   .ds-divider--label::after {
     content: '';
     flex: 1 1 0;
-    border-top: 1px solid var(--ds-line);
+    border-top: 1px solid var(--ds-divider-color, var(--ds-line));
+  }
+
+  /* The caption near one end: a short lead hairline on its side. */
+  .ds-divider--label.ds-divider--start::before,
+  .ds-divider--label.ds-divider--end::after {
+    flex: 0 0 var(--ds-space-4);
+  }
+
+  /* Upright around a caption ("or" between two columns): the hairlines
+     above and below it. */
+  .ds-divider--vertical.ds-divider--label {
+    flex-direction: column;
+    width: auto;
+    border-inline-start: 0;
+  }
+
+  .ds-divider--vertical.ds-divider--label::before,
+  .ds-divider--vertical.ds-divider--label::after {
+    min-height: var(--ds-space-2);
+    border-top: 0;
+    border-inline-start: 1px solid var(--ds-divider-color, var(--ds-line));
   }
 
   /* Icons that fill when on: the last element of a fillable glyph is a closed outline. */
