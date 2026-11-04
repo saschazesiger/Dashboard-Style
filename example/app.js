@@ -397,7 +397,7 @@
       // The last child of the page: in a .ds-view--fill it takes what is left of the view.
       '<div class="ex-list" id="devices-list">' +
         '<div class="ds-table-wrap ds-table-wrap--fill" id="devices-wrap">' +
-          `<table class="ds-table ds-table--interactive ds-table--pin-first${state.dense ? ' ds-table--dense' : ''}" id="devices-table"><caption class="ds-sr">Devices</caption>` +
+          `<table class="ds-table ds-table--interactive ds-table--pin-first${state.dense ? ' ds-density-tight' : ''}" id="devices-table"><caption class="ds-sr">Devices</caption>` +
           `<thead id="devices-head">${theadHtml()}</thead><tbody id="devices-body">${pageDevices().map(rowHtml).join('')}</tbody></table>` +
           `<div class="ds-empty" id="devices-empty"${rows.length ? ' hidden' : ''}><span class="ds-empty__disc" aria-hidden="true">${icon('search', 24)}</span>` +
             '<p class="ds-empty__title">No device matches</p><p class="ds-empty__text">Try another search or clear the filters.</p>' +
@@ -508,7 +508,7 @@
       '<section class="ds-card">' +
         `<div class="ds-toolbar"><fieldset class="ds-chips" id="ticket-chips"><legend class="ds-sr">Show</legend>${
           [['open', 'Open'], ['closed', 'Closed'], ['all', 'All']].map(([value, label]) => chip('ticket-filter', value, label, state.ticketFilter === value, 'radio')).join('')}</fieldset></div>` +
-        `<div class="ds-table-wrap"><table class="ds-table${state.dense ? ' ds-table--dense' : ''}"><caption class="ds-sr">Tickets</caption><thead><tr>` +
+        `<div class="ds-table-wrap"><table class="ds-table${state.dense ? ' ds-density-tight' : ''}"><caption class="ds-sr">Tickets</caption><thead><tr>` +
           '<th scope="col"><span class="ds-sr">Details</span></th><th scope="col">Ticket</th><th scope="col">Subject</th><th scope="col" class="ds-col--secondary">Device</th>' +
           '<th scope="col">Priority</th><th scope="col">Status</th><th scope="col" class="ds-num">Opened</th>' +
         `</tr></thead><tbody id="tickets-body">${ticketRowsHtml()}</tbody></table></div>` +

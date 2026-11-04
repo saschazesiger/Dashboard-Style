@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Table options · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="/test/browser/fixtures/fixture.css">
+<style>
+  .fx-narrow-card { width: 480px; }
+  .fx-fill-frame { display: flex; flex-direction: column; width: 480px; height: 280px; }
+  .fx-content-560 { width: 560px; }
+</style>
+</head>
+<body>
+<!-- The table on the options model (3.0): table.spec.js fills #grid with every
+     size x density, with and without .ds-touch, and reads the rest: nesting,
+     the deprecated alias, shapes, zebra, borders, sticky rows, a pinned last
+     column, and the keyboard's way through a working table. Wide rows are
+     built by the script below. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="grid-title">
+    <h2 id="grid-title">Sizes and densities</h2>
+    <div id="grid"></div>
+  </section>
+
+  <section class="fx-section ds-density-comfortable" aria-labelledby="nest-title" id="comfortable">
+    <h2 id="nest-title">Nesting, the alias and the hooks</h2>
+    <table class="ds-table" id="nest-outer"><tbody><tr><td>Comfortable</td></tr></tbody></table>
+    <div class="ds-density-tight" id="tight-region">
+      <table class="ds-table" id="nest-tight"><thead><tr><th scope="col">Device</th></tr></thead><tbody><tr><td>Tight</td></tr></tbody></table>
+      <div class="ds-density-comfortable"><table class="ds-table" id="nest-back"><tbody><tr><td>Comfortable again</td></tr></tbody></table></div>
+      <table class="ds-table ds-lg" id="nest-tight-lg"><tbody><tr><td>Tight, large</td></tr></tbody></table>
+      <table class="ds-table ds-table--dense" id="alias-in-tight"><thead><tr><th scope="col">Device</th></tr></thead><tbody><tr><td>Alias</td></tr></tbody></table>
+    </div>
+    <table class="ds-table ds-table--dense" id="alias"><thead><tr><th scope="col">Device</th></tr></thead><tbody><tr><td>Alias</td></tr></tbody></table>
+    <table class="ds-table ds-table--dense ds-lg" id="alias-lg"><thead><tr><th scope="col">Device</th></tr></thead><tbody><tr><td>Alias, large</td></tr></tbody></table>
+    <table class="ds-table" id="hook-base" style="--ds-table-row-height: 60px; --ds-table-head-height: 56px; --ds-table-padding: 24px"><thead><tr><th scope="col">Device</th></tr></thead><tbody class="ds-density-compact"><tr><td>Base 60px, compact</td></tr></tbody></table>
+    <table class="ds-table ds-density-tight" id="on-table"><tbody><tr><td>The class on the table itself</td></tr></tbody></table>
+    <div class="ds-table-wrap ds-touch" id="touch-sort-wrap"><table class="ds-table"><thead><tr><th scope="col" id="touch-head"><button class="ds-table__sort" type="button" id="touch-sort">Device</button></th></tr></thead><tbody><tr><td>Target</td></tr></tbody></table></div>
+    <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col" id="rest-head"><button class="ds-table__sort" type="button" id="rest-sort">Device</button></th></tr></thead><tbody><tr><td>Target</td></tr></tbody></table></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="shape-title">
+    <h2 id="shape-title">Shapes</h2>
+    <div id="shapes"></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="zebra-title">
+    <h2 id="zebra-title">Zebra</h2>
+    <table class="ds-table ds-table--zebra ds-table--plain" id="zebra" style="--ds-flip-backdrop: rgb(1, 2, 3)">
+      <caption class="ds-sr">Zebra</caption>
+      <thead><tr><th scope="col">Device</th></tr></thead>
+      <tbody id="zebra-body">
+        <tr id="z1"><td>LAPTOP-0042</td></tr>
+        <tr id="z1-detail" class="ds-table__detail" inert><td><div class="ds-table__expand"><div>Details</div></div></td></tr>
+        <tr id="z2"><td>LAPTOP-0043</td></tr>
+        <tr id="z2-detail" class="ds-table__detail" inert><td><div class="ds-table__expand"><div>Details</div></div></td></tr>
+        <tr id="z3"><td>LAPTOP-0044</td></tr>
+        <tr id="z4" class="ds-table__row--selected"><td>LAPTOP-0045</td></tr>
+        <tr id="z5"><td>LAPTOP-0046</td></tr>
+        <tr id="z6"><td><input type="checkbox" aria-label="Select LAPTOP-0047" checked></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="fx-section" aria-labelledby="border-title">
+    <h2 id="border-title">Borders</h2>
+    <table class="ds-table ds-table--bordered" id="bordered">
+      <caption class="ds-sr">Bordered</caption>
+      <thead><tr><th scope="col" id="b-head-1">Device</th><th scope="col" id="b-head-2">Model</th></tr></thead>
+      <tbody><tr><td id="b-1">LAPTOP-0042</td><td id="b-2">ThinkPad T14</td></tr></tbody>
+    </table>
+    <section class="ds-card fx-narrow-card"><div class="ds-table-wrap"><table class="ds-table ds-table--bordered" id="bordered-card">
+      <caption class="ds-sr">Bordered in a card</caption>
+      <tbody><tr><td>LAPTOP-0042</td><td id="bc-2">ThinkPad T14</td></tr></tbody>
+    </table></div></section>
+    <div class="ds-content fx-content-560"><table class="ds-table ds-table--bordered ds-table--stack" id="bordered-stack">
+      <thead><tr><th scope="col">Name</th><th scope="col">URL</th></tr></thead>
+      <tbody><tr><td data-label="Name">Status page</td><td data-label="URL" id="bs-2">https://status.example.org</td></tr></tbody>
+    </table></div>
+    <table class="ds-table" id="lined"><tbody><tr><td id="lined-1">LAPTOP-0042</td></tr><tr><td>LAPTOP-0043</td></tr></tbody></table>
+    <table class="ds-table ds-table--plain" id="plain"><tbody><tr><td id="plain-1">LAPTOP-0042</td></tr><tr><td>LAPTOP-0043</td></tr></tbody></table>
+  </section>
+
+  <section class="fx-section" aria-labelledby="sticky-title">
+    <h2 id="sticky-title">Sticky rows</h2>
+    <div class="ds-table-wrap" id="sticky-wrap" style="--ds-table-max-height: 240px; width: 480px"><table class="ds-table ds-table--sticky-head ds-table--sticky-foot ds-table--pin-first" id="sticky">
+      <caption class="ds-sr">Sticky rows</caption>
+      <thead id="sticky-head"></thead>
+      <tbody id="sticky-body"></tbody>
+      <tfoot><tr><th scope="row" id="sticky-foot-first">Total</th><td id="sticky-foot-2">128</td><td></td><td></td><td></td><td></td></tr></tfoot>
+    </table></div>
+    <div class="ds-table-wrap" id="unbound" style="width: 480px"><table class="ds-table ds-table--sticky-head"><thead><tr><th scope="col">Device</th></tr></thead><tbody><tr><td>LAPTOP-0042</td></tr><tr><td>LAPTOP-0043</td></tr></tbody></table></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="pin-title">
+    <h2 id="pin-title">Pinned last column</h2>
+    <section class="ds-card fx-narrow-card"><div class="ds-table-wrap" id="pin-wrap" style="--ds-table-pin-last-width: 64px"><table class="ds-table ds-table--interactive ds-table--pin-last" id="pin">
+      <caption class="ds-sr">Devices with a pinned last column</caption>
+      <thead id="pin-head"></thead>
+      <tbody id="pin-body"></tbody>
+      <tfoot><tr><th scope="row">2 devices</th><td></td><td></td><td></td><td></td><td id="pin-foot-last"></td></tr></tfoot>
+    </table></div></section>
+    <div class="fx-fill-frame"><div class="ds-table-wrap ds-table-wrap--fill" id="pin-fill"><table class="ds-table ds-table--pin-last" id="pin-fill-table">
+      <caption class="ds-sr">Full page, pinned last</caption>
+      <thead id="fill-head"></thead>
+      <tbody id="fill-body"></tbody>
+    </table></div></div>
+    <div class="ds-content fx-content-560"><table class="ds-table ds-table--stack ds-table--pin-last" id="pin-stack">
+      <thead><tr><th scope="col">Name</th><th scope="col">URL</th></tr></thead>
+      <tbody><tr><td data-label="Name">Status page</td><td data-label="URL" id="pin-stack-last">https://status.example.org</td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="keys-title">
+    <h2 id="keys-title">Keyboard and names</h2>
+    <button class="ds-btn" type="button" id="before">Before</button>
+    <div class="ds-table-wrap"><table class="ds-table ds-table--interactive" id="keys">
+      <caption class="ds-sr">Devices</caption>
+      <thead><tr>
+        <th scope="col"><input type="checkbox" aria-label="Select all devices" id="k-all"></th>
+        <th scope="col"><span class="ds-sr">Details</span></th>
+        <th scope="col" aria-sort="ascending"><button class="ds-table__sort" type="button" id="k-sort">Device<span data-icon="arrowUp" data-size="16" data-class="ds-table__sort-arrow"></span></button></th>
+        <th scope="col"><span class="ds-sr">Actions</span></th>
+      </tr></thead>
+      <tbody>
+        <tr data-ds-key="k1" id="k1-row">
+          <td><input type="checkbox" aria-label="Select LAPTOP-0042" id="k-select"></td>
+          <td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="false" aria-controls="k1-detail" aria-label="Details of LAPTOP-0042" id="k-toggle"><span data-icon="chevronDown" data-size="20"></span></button></td>
+          <th scope="row"><a class="ds-link-btn ds-table__row-link" href="#open-k1" id="k-link">LAPTOP-0042</a></th>
+          <td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit LAPTOP-0042" id="k-edit"><span data-icon="pencil" data-size="20"></span></button></td>
+        </tr>
+        <tr class="ds-table__detail" id="k1-detail" data-ds-key="k1-detail" inert><td colspan="4"><div class="ds-table__expand"><div><button class="ds-btn" type="button" id="k-inside">Inside the details</button></div></div></td></tr>
+      </tbody>
+    </table></div>
+    <div class="ds-table-wrap" id="k-region" tabindex="0" role="region" aria-label="Device history" style="width: 200px"><table class="ds-table"><caption class="ds-sr">Device history</caption><tbody><tr><td class="ds-nowrap">A long line that scrolls sideways in its wrapper, cell after cell</td></tr></tbody></table></div>
+    <button class="ds-btn" type="button" id="after">After</button>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="/test/browser/fixtures/fixture.js"></script>
+<script>
+  /* Wide rows: six columns, so a 480px wrapper scrolls sideways. */
+  const head = (last) => `<tr><th scope="col" style="min-width: 160px">Device</th>${['Model', 'Owner', 'Location', 'Serial'].map((name) => `<th scope="col" style="min-width: 160px">${name}</th>`).join('')}<th scope="col" id="${last}">${last === 'pin-head-last' || last === 'fill-head-last' ? '<span class="ds-sr">Actions</span>' : 'Load'}</th></tr>`;
+  const cells = () => ['ThinkPad T14', 'Ada Lovelace', 'Building A', 'SN-1'].map((text) => `<td class="ds-nowrap">${text}</td>`).join('');
+  document.getElementById('sticky-head').innerHTML = head('sticky-head-last');
+  document.getElementById('sticky-body').innerHTML = Array.from({ length: 12 }, (_, i) => `<tr><td class="ds-nowrap"><a href="#s${i}" id="sticky-link-${i}">LAPTOP-${i}</a></td>${cells()}<td class="ds-num">${i}%</td></tr>`).join('');
+  document.getElementById('pin-head').innerHTML = head('pin-head-last');
+  document.getElementById('pin-body').innerHTML = ['a', 'b'].map((key) => `<tr id="pin-${key}"><td class="ds-nowrap"><a class="ds-link-btn ds-table__row-link" href="#open-${key}">LAPTOP-${key}</a></td>${cells()}<td class="ds-table__actions" id="pin-last-${key}"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ${key}" id="pin-edit-${key}">E</button></td></tr>`).join('');
+  document.getElementById('fill-head').innerHTML = head('fill-head-last');
+  document.getElementById('fill-body').innerHTML = Array.from({ length: 12 }, (_, i) => `<tr><td class="ds-nowrap">LAPTOP-${i}</td>${cells()}<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ${i}">E</button></td></tr>`).join('');
+</script>
+</body>
+</html>

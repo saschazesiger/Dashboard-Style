@@ -841,7 +841,7 @@
     return head('Tokens', REG.tokens.length + ' custom properties on <code>.ds-theme</code>: scales (the same in every theme), roles (what a theme sets) and seeds; then each component\'s hooks. Values are those of the active theme.') +
       '<section class="ds-card" aria-label="Tokens"><div class="ds-toolbar sg-filter"><div class="ds-search">' + icon('search', 20) +
       '<input class="ds-input" id="sg-token-filter" type="search" aria-label="Filter tokens" placeholder="Filter tokens" value="' + esc(query || '') + '"></div><span class="ds-meta" id="sg-token-count" aria-live="polite"></span></div>' +
-      '<div class="ds-table-wrap" tabindex="0" role="region" aria-label="Tokens"><table class="ds-table ds-table--dense"><thead><tr><th scope="col">Token</th><th scope="col">Value</th><th scope="col" class="ds-col--secondary">Kind</th></tr></thead><tbody>' +
+      '<div class="ds-table-wrap" tabindex="0" role="region" aria-label="Tokens"><table class="ds-table ds-density-tight"><thead><tr><th scope="col">Token</th><th scope="col">Value</th><th scope="col" class="ds-col--secondary">Kind</th></tr></thead><tbody>' +
       REG.tokens.map(function (pair) {
         var name = pair[0];
         return '<tr data-name="' + name + '"><td class="ds-nowrap"><code>' + name + '</code></td><td class="ds-col--text"><span class="sg-token-value"><span class="sg-token-chip" aria-hidden="true"></span><span data-sg-role="' + name + '"></span></span></td><td class="ds-col--secondary">' + tokenKind(pair) + '</td></tr>';

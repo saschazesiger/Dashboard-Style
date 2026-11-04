@@ -278,6 +278,24 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Read by the deprecated .ds-btn--sm.ds-btn--icon (and the room a drawer row keeps for it). .ds-sm takes --ds-btn-icon-size less one 8px size step."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-table--dense",
+      "pattern": "(?<![\\w-])ds-table--dense(?![\\w-])",
+      "replacement": ".ds-density-tight",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Density is an option in 3.0: .ds-density-tight on the table or any ancestor gives the 40px rows (with a 36px head, which .ds-density-compact and -dense leave higher). An alias with its fixed 40px head and rows until 3.0 ships."
+    },
+    {
+      "kind": "hook",
+      "name": "--ds-table-dense-row-height",
+      "pattern": "(?<![\\w-])--ds-table-dense-row-height(?![\\w-])",
+      "replacement": "--ds-table-row-height",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Goes with .ds-table--dense: --ds-table-row-height is the base that size and density apply to."
     }
   ]
 }
