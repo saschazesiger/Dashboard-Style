@@ -1,0 +1,74 @@
+{
+  "name": "splitpane",
+  "group": "layout",
+  "order": 400,
+  "docsOrder": 62,
+  "need": "Show two or three panes side by side or stacked, resized by dragging or the keyboard, remembered, collapsible",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-splitpane",
+    "ds-splitpane--outlined",
+    "ds-splitpane--stacked",
+    "ds-splitpane__body",
+    "ds-splitpane__divider",
+    "ds-splitpane__pane",
+    "ds-splitpane__pane--fill"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [],
+  "context": [
+    "list"
+  ],
+  "hooks": {
+    "--ds-splitpane-size": {
+      "default": "50%",
+      "description": "split pane: the start size of a pane, any length or a percentage of the split pane (on the pane; registered, does not inherit; DS.splitpane writes it as the pane moves)"
+    },
+    "--ds-splitpane-min": {
+      "default": "0px",
+      "description": "split pane: the smallest size of a pane (on the pane; registered, does not inherit)"
+    },
+    "--ds-splitpane-max": {
+      "default": "100%",
+      "description": "split pane: the largest size of a pane (on the pane; registered, does not inherit)"
+    },
+    "--ds-splitpane-height": {
+      "default": "100%",
+      "description": "split pane: its height (a length where the parent grows with its content)"
+    },
+    "--ds-splitpane-line": {
+      "default": "`--ds-line`",
+      "description": "split pane: the divider's hairline"
+    },
+    "--ds-splitpane-grip": {
+      "default": "`--ds-outline`",
+      "description": "split pane: the grip on the divider"
+    },
+    "--ds-splitpane-hit": {
+      "default": "12px",
+      "description": "split pane: the width of the divider's hit area, over both panes' edges (`.ds-touch`: at least half the touch target)"
+    },
+    "--ds-splitpane-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-splitpane--outlined`: the frame's radius, times `--ds-shape`"
+    },
+    "--ds-splitpane-padding": {
+      "default": "`--ds-space-4`",
+      "description": "`.ds-splitpane__body`: the padding, 2px less per density step"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "splitpane"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.splitpane.toPixels": "a pure function: no motion",
+    "DS.splitpane.nextSize": "a pure function: no motion"
+  }
+}
