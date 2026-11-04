@@ -14,7 +14,7 @@
   ],
   "requires": [],
   "context": [],
-  "hooks": [],
+  "hooks": {},
   "keyframes": [
     "ds-fade-in",
     "ds-grow-in"
@@ -26,5 +26,12 @@
     "popover",
     "anchor positioning"
   ],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-tooltip: left": "script coordinates: --ds-tooltip-x from the left",
+      ".ds-tooltip[popover]: inset": "script coordinates: --ds-tooltip-x from the left",
+      ".ds-tooltip[data-anchored]: left": "clears the script coordinate for anchor positioning"
+    }
+  }
 }

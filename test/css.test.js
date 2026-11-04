@@ -11,15 +11,30 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import * as icons from '../src/js/icons.js';
 import { RIPPLE_HOSTS } from '../src/js/ripple.js';
+import { components, motionCss } from '../scripts/build.mjs';
 import {
-  ROOT, atRuleBlocks, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
+  ROOT, atRuleBlocks, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, jsModules, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
 } from './helpers.js';
 
 const ALL_CSS = [...filesIn('src', (path) => path.endsWith('.css')), 'fonts/fonts.css', ...filesIn('themes', (path) => path.endsWith('.css'))];
 const SRC_CSS = filesIn('src', (path) => path.endsWith('.css'));
 /** Files whose values must all come from tokens: everything but tokens.css. */
 const COMPONENT_CSS = SRC_CSS.filter((path) => path !== 'src/core/tokens.css' && path !== 'src/index.css');
-const KEYFRAME_NAMES = new Set([...read('src/core/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]));
+/** Every component folder (meta.json and the paths of its files), in cascade order. */
+const COMPONENTS = components();
+/** The component keyframes (src/components/<name>/<name>.keyframes.css), which the build appends to motion.css. */
+const KEYFRAME_FILES = COMPONENTS.map((component) => component.keyframesCss).filter(Boolean);
+/** motion.css as dist/ ships it: its own keyframes and every component's (scripts/build.mjs, motionCss). */
+const MOTION_CSS = motionCss(COMPONENTS);
+const KEYFRAME_NAMES = new Set([...stripComments(MOTION_CSS).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]));
+/** The exceptions of every meta.json of one kind (`exceptions.<kind>` or `motionExceptions.<kind>`), as [key, reason, component] entries. */
+const metaEntries = (field, kind) => COMPONENTS.flatMap((component) => Object.entries(component.meta[field]?.[kind] ?? {}).map(([key, reason]) => [key, reason, component]));
+/** The same as a Map key → reason. */
+const metaExceptions = (field, kind) => new Map(metaEntries(field, kind).map(([key, reason]) => [key, reason]));
+/** The same keyed `<file>: <key>` (the stylesheet of the component that names it). */
+const metaFileExceptions = (field, kind) => new Map(metaEntries(field, kind).map(([key, reason, component]) => [`${component.css}: ${key}`, reason]));
+/** The selectors every meta.json lets transition one property of the animate-list exceptions (motionExceptions.transition.<property>). */
+const metaTransitions = (property) => new Map(COMPONENTS.flatMap((component) => Object.entries(component.meta.motionExceptions?.transition?.[property] ?? {})));
 /** A selector list split at its top-level commas (not inside :is() or :where()). */
 function splitSelectors(selector) {
   const parts = [];
@@ -36,11 +51,10 @@ function splitSelectors(selector) {
 
 /**
  * :hover selectors allowed outside `@media (hover: hover)`, each with its
- * reason. Forced-colours blocks are exempt as a whole (structurally, below).
+ * reason (meta.json exceptions.hover). Forced-colours blocks are exempt as
+ * a whole (structurally, below).
  */
-const HOVER_EXEMPT = new Map([
-  ['.ds-drawer__list:hover', 'shows the scrollbar of a scrolling drawer list, no choreography'],
-]);
+const HOVER_EXEMPT = metaExceptions('exceptions', 'hover');
 
 /** The :hover selectors outside hover and forced-colours blocks, minus HOVER_EXEMPT. */
 function hoverOutsideHoverBlocks(css) {
@@ -58,6 +72,7 @@ const LAYERS_OF = {
   'src/core/motion.css': ['ds.motion', 'ds.utilities'],
   'src/core/global.css': ['ds.components'],
   'src/optional/view-transitions.css': ['ds.utilities'],
+  ...Object.fromEntries(KEYFRAME_FILES.map((file) => [file, ['ds.motion']])),
 };
 
 /**
@@ -117,11 +132,8 @@ const PROGRESSIVE = [
   [/content:\s*[^;]*\/\s*["']/, 'alt text for generated content'],
 ];
 
-/** Plain :focus selectors that may draw an outline, each with its reason. */
-const FOCUS_EXEMPT = [
-  [/\.ds-input/, 'fields show an inset ring on any focus: typing needs to see where the caret is'],
-  [/\.ds-skip/, 'the skip link is shown only while focused'],
-];
+/** Plain :focus selectors that may draw an outline, each with its reason: those that name a class of meta.json exceptions.focus. */
+const FOCUS_EXEMPT = metaEntries('exceptions', 'focus').map(([key, reason]) => [new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), reason]);
 
 /** Custom properties set at runtime by js/ or by the page (documented in docs/). */
 const RUNTIME = new Set([
@@ -160,10 +172,12 @@ const RUNTIME = new Set([
   '--ds-scrollbar-height',
   '--ds-scrollbar-width',
   '--ds-table-pin-width',
+  // What a component's behaviour module writes ('--ds-<name>-x' in src/components/<name>/<name>.js).
+  ...jsModules().filter((file) => file.startsWith('src/components/')).flatMap((file) => [...read(file).matchAll(/['"`](--ds-[\w-]+)['"`]/g)].map((match) => match[1])),
 ]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
-const KEYFRAMES = Object.fromEntries([...stripComments(read('src/core/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
+const KEYFRAMES = Object.fromEntries([...stripComments(MOTION_CSS).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
 /** The selector of a keyframe stop: from, to, percentages (with decimals), or a list of them ("0%, 100%"). */
 const KEYFRAME_STOP = /^(from|to|\d+(\.\d+)?%)(\s*,\s*(from|to|\d+(\.\d+)?%))*$/;
 /**
@@ -192,15 +206,16 @@ const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-scroll-edge-start', 'scroll-linked: the start fade of a sideways scroller over the first --ds-space-8 of its scroll, a position, not an entrance'],
   ['ds-scroll-edge-end', 'scroll-linked: the end fade of a sideways scroller over the last --ds-space-8 of its scroll, a position, not an entrance'],
   ...LOADER_LOOPS,
+  // A component's own keyframes: meta.json motionExceptions.keyframeShape.
+  ...metaExceptions('motionExceptions', 'keyframeShape'),
 ]);
 /**
- * Movement exits that may run without ds-fade-out (selector → reason). Each
+ * Movement exits that may run without ds-fade-out (selector → reason;
+ * meta.json motionExceptions.exitUnpaired). Each
  * rule must set --ds-motion-distance: var(--ds-distance-sheet) itself: only
  * a full-distance slide leaves the screen without a fade.
  */
-const EXIT_UNPAIRED = new Map([
-  ['.ds-sheet--closing:not([data-state]) .ds-sheet__panel', 'the opaque side sheet panel slides its full width off screen (D16); phones: down'],
-]);
+const EXIT_UNPAIRED = metaExceptions('motionExceptions', 'exitUnpaired');
 
 /** Properties every transition and keyframe may animate (plus the registered --ds-* properties). */
 const ANIMATABLE = new Set(['transform', 'translate', 'scale', 'opacity', 'color', 'background-color', 'border-color', 'outline-color',
@@ -219,17 +234,17 @@ const PRESS_MORPH = ['var(--ds-dur-micro) var(--ds-ease-out)', 'var(--ds-dur-med
  * CSS properties it covers (default: the key), `keyframes` the @keyframes
  * that may animate it, `transitions` where a transition may (selector →
  * reason, or a check of (selector, entry) where a list would be endless),
- * `script` the module that animates it through el.animate().
+ * `script` the module that animates it through el.animate(). The
+ * selectors of one component come from its meta.json
+ * (motionExceptions.transition.<property>), the core ones stay here.
  */
 const EXCEPTIONS = new Map([
   ['rotate', {
     use: 'spinners, loaders, disclosure chevrons and icon swaps',
     keyframes: ['ds-spin', 'ds-loader-turn'],
     transitions: new Map([
-      ['.ds-combo__toggle svg', 'disclosure chevrons: the combobox chevron turns 180deg with its list (D25)'],
       ['.ds-chevron', 'disclosure chevrons: the shared chevron turns 180deg with the expansion (D25)'],
-      ['.ds-errors .ds-errors__chevron', 'disclosure chevrons: the errors list chevron turns 180deg with the list (D25)'],
-      ['.ds-table__sort-arrow', 'icon swaps: the one arrow of the marked column turns 180deg between ascending and descending'],
+      ...metaTransitions('rotate'),
     ]),
   }],
   ['border-radius', {
@@ -248,7 +263,7 @@ const EXCEPTIONS = new Map([
   ['width', {
     use: 'the chip check slot',
     keyframes: [],
-    transitions: new Map([['.ds-chip__body::after', 'the check slot of a chip: a layout size on --ds-ease-out (D29)']]),
+    transitions: metaTransitions('width'),
   }],
   ['height', {
     use: '.ds-collapsible, the validation message room and expandable rows',
@@ -257,10 +272,7 @@ const EXCEPTIONS = new Map([
     transitions: new Map([
       ['.ds-collapsible::details-content', 'the disclosure closes (0) on --ds-ease-in, only where interpolate-size exists'],
       ['.ds-collapsible[open]::details-content', 'the disclosure opens to auto on --ds-ease-out (D29), only where interpolate-size exists'],
-      ['.ds-field__hint--error', 'the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists'],
-      ['.ds-field__hint--success', 'the room of a confirmation under a field opens like a validation message\'s (D29), only where interpolate-size exists'],
-      ['.ds-table__expand', 'an expandable table row closes (0fr, grid-template-rows) on --ds-ease-in: a layout size (D29)'],
-      ['tr:has(.ds-table__toggle[aria-expanded="true"]) + .ds-table__detail .ds-table__expand', 'an expandable table row opens (1fr, grid-template-rows) on --ds-ease-out (D29)'],
+      ...metaTransitions('height'),
     ]),
   }],
   ['min-height', { use: 'a flip() container shrinking after its removed items left', keyframes: [], transitions: new Map(), script: 'src/js/motion.js' }],
@@ -406,9 +418,10 @@ const resolveDuration = (candidates) => candidates.map(([file, selector, propert
 const POPUPS = ['src/components/tooltip/tooltip.css', 'src/components/combobox/combobox.css', 'src/components/menu/menu.css'];
 
 describe('motion in CSS', () => {
-  it('defines @keyframes only in motion.css, each name once', () => {
-    assert.deepEqual(ALL_CSS.filter((file) => file !== 'src/core/motion.css' && /@keyframes/.test(read(file))), []);
-    const names = [...read('src/core/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
+  it('defines @keyframes only in motion.css and the components\' <name>.keyframes.css, each name once', () => {
+    assert.deepEqual(ALL_CSS.filter((file) => file !== 'src/core/motion.css' && !KEYFRAME_FILES.includes(file) && /@keyframes/.test(read(file))), []);
+    for (const file of KEYFRAME_FILES) assert.match(file, /^src\/components\/([\w-]+)\/\1\.keyframes\.css$/);
+    const names = [...stripComments(MOTION_CSS).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
     assert.deepEqual(names, [...new Set(names)]);
     assert.ok(names.every((name) => name.startsWith('ds-')), names.join());
   });
@@ -519,10 +532,7 @@ describe('motion in CSS', () => {
     // transform: none and var() values count too: a hover that resets a
     // transform moves the element back (the old disc loophole).
     // The switch handle may grow while pressed (D6), never above 1 (its 28px box).
-    const ACTIVE_EXEMPT = new Map([
-      ['.ds-switch:active input:not(:disabled, [aria-disabled="true"]) + .ds-switch__track::after', 'the handle grows to its pressed size'],
-      ['.ds-switch.ds-pressed input:not(:disabled, [aria-disabled="true"]) + .ds-switch__track::after', 'the handle grows to its pressed size'],
-    ]);
+    const ACTIVE_EXEMPT = metaExceptions('motionExceptions', 'press');
     const offenders = [];
     for (const file of ALL_CSS) {
       for (const { selector, body } of rules(read(file))) {
@@ -543,7 +553,8 @@ describe('motion in CSS', () => {
     // The exemption is the switch handle only, and it never grows above its box.
     for (const selector of ACTIVE_EXEMPT.keys()) {
       assert.match(selector, /\.ds-switch__track::after$/, selector);
-      for (const { property, value } of declarationsAt(read('src/components/switch/switch.css'), selector)) {
+      const file = metaEntries('motionExceptions', 'press').find(([key]) => key === selector)[2].css;
+      for (const { property, value } of declarationsAt(read(file), selector)) {
         if (property === 'scale') assert.ok(Number(value) <= 1, `${selector}: scale ${value}`);
         assert.ok(!/^(transform|translate)$/.test(property), `${selector}: ${property}`);
       }
@@ -984,7 +995,8 @@ describe('values come from tokens', () => {
 
   it('bundles every stylesheet of src/ except src/optional/', () => {
     const bundle = new Set(cssBundle());
-    assert.deepEqual(SRC_CSS.filter((file) => file !== 'src/index.css' && !file.startsWith('src/optional/') && !bundle.has(file)), []);
+    // A component's <name>.keyframes.css reaches ds.css inside motion.css (motionCss), not through an import.
+    assert.deepEqual(SRC_CSS.filter((file) => file !== 'src/index.css' && !file.startsWith('src/optional/') && !KEYFRAME_FILES.includes(file) && !bundle.has(file)), []);
     // Opt-in stylesheets: never in ds.css, shipped on their own under css/optional/.
     const optional = SRC_CSS.filter((file) => file.startsWith('src/optional/'));
     assert.ok(optional.length, 'src/optional/ holds the opt-in stylesheets');
@@ -1058,7 +1070,7 @@ describe('CSS for the baseline', () => {
   });
 
   it('keeps keyframes in ds.motion and the motion utilities in ds.utilities', () => {
-    const items = topLevel(stripComments(read('src/core/motion.css')));
+    const items = topLevel(stripComments(MOTION_CSS));
     const motion = items.find((item) => item.prelude === '@layer ds.motion').body;
     const utilities = items.find((item) => item.prelude === '@layer ds.utilities').body;
     assert.equal([...motion.matchAll(/@keyframes\s+([\w-]+)/g)].length, KEYFRAME_NAMES.size);
@@ -1105,13 +1117,11 @@ describe('CSS for the baseline', () => {
         for (const { property, value } of declarations(`${body};`)) if (/!important/.test(value)) found.push(`${file}: ${selector}: ${property}`);
       }
     }
+    // The core ones here; a component's in its meta.json (exceptions.important, `selector: property`).
     const allowed = new Set([
       'src/core/base.css: :where(.ds-base) [hidden]: display',
-      ...['position', 'top', 'inset-inline-start', 'width', 'height', 'padding', 'margin', 'overflow', 'clip', 'white-space', 'border']
-        .map((property) => `src/components/utilities/utilities.css: .ds-sr: ${property}`),
-      'src/components/utilities/utilities.css: .ds-num: text-align',
-      'src/components/utilities/utilities.css: .ds-center: text-align',
       'src/core/global.css: .ds-theme svg: color',
+      ...metaFileExceptions('exceptions', 'important').keys(),
     ]);
     assert.deepEqual(found.filter((entry) => !allowed.has(entry)), []);
     assert.deepEqual([...allowed].filter((entry) => !found.includes(entry)), [], 'an allowlisted !important is gone: shorten the list');
@@ -1132,7 +1142,7 @@ describe('CSS for the baseline', () => {
   it('names a fallback for every "Progressive:" entry of a src/ header (<feature>: <what happens without it>)', () => {
     // The note is a list at the end of its paragraph: "Progressive:" on a line
     // of its own, then "- <feature> (<what it adds>): <the fallback>" entries.
-    const files = [...SRC_CSS, ...filesIn('src/js', (path) => path.endsWith('.js'))];
+    const files = [...SRC_CSS, ...jsModules()];
     const offenders = [];
     let notes = 0;
     for (const file of files) {
@@ -1453,20 +1463,12 @@ function subjectOf(part) {
 
 /**
  * Action-like parts (cursor: pointer) that are no ripple host, each with
- * its reason; keyed by the class of the styled compound, or `input`.
+ * its reason; keyed by the class of the styled compound (meta.json
+ * exceptions.ripple of the component that owns it), or `input`.
  */
 const RIPPLE_EXEMPT = new Map([
-  ['.ds-link-btn', 'an inline text link: no ripple and no morph (they would reach outside the text line)'],
-  ['.ds-switch', 'its halo is the press (D23)'],
-  ['.ds-check', 'a checkbox row: the input\'s halo is the press'],
   ['input', 'checkbox and radio inputs: an input cannot hold a ripple, the halo is the press'],
-  ['.ds-checkbox', 'a checkbox input: the halo is the press'],
-  ['.ds-radio-input', 'a radio input: the halo is the press'],
-  ['.ds-slider', 'a range input: the halo around its handle is the press (an input cannot hold a ripple), like the switch'],
-  ['.ds-combo__option', 'pointer-down selects and closes the list; the state layer is the feedback'],
-  ['.ds-input', 'native field parts (select, the calendar and clear buttons)'],
-  ['.ds-brand', 'the home link in the top bar: identity, not a control; no state layer, ripple or morph (like a link in text)'],
-  ['.ds-skip', 'a keyboard-only skip link, shown only while focused: its focus ring is the feedback'],
+  ...metaExceptions('exceptions', 'ripple'),
 ]);
 
 describe('controls (1.1.0)', () => {
@@ -1599,12 +1601,17 @@ describe('controls (1.1.0)', () => {
     // The layer is the host's ::before; a table row's is the --ds-table-row-layer its cells paint
     // (> :is(td, th), so a <th scope="row"> row header has it too).
     const layer = (part, body) => part.endsWith('::before') || part.endsWith(' > :is(td, th)') || /(^|[;{\s])--ds-table-row-layer\s*:/.test(body);
-    const ripple = rules(read('src/components/ripple/ripple.css')).flatMap((rule) => splitSelectors(rule.selector).map((part) => ({ part, body: rule.body })));
+    // The rule sits in ripple.css or, for a host a component adds (meta.json rippleHosts), in that component's own stylesheet.
+    const partsOf = (file) => rules(read(file)).flatMap((rule) => splitSelectors(rule.selector).map((part) => ({ part, body: rule.body })));
+    const ripple = partsOf('src/components/ripple/ripple.css');
     for (const host of hosts.filter((item) => item !== '[data-ds-ripple]')) {
       const layered = COMPONENT_CSS.filter((path) => path !== 'src/components/ripple/ripple.css').some((file) => rules(read(file))
         .some((rule) => splitSelectors(rule.selector).some((part) => new RegExp(`${literally(host)}(?![\\w-])[^,]*:active`).test(part) && layer(part, rule.body))));
       assert.ok(layered, `${host}: a pressed state layer`);
-      assert.ok(ripple.some(({ part, body }) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && layer(part, body)), `${host}: its .ds-ripples rule`);
+      const own = COMPONENTS.find((component) => component.meta.rippleHosts?.includes(host));
+      assert.ok(own, `${host}: listed in the rippleHosts of one meta.json`);
+      const candidates = [...ripple, ...partsOf(own.css)];
+      assert.ok(candidates.some(({ part, body }) => part.startsWith(`:where(.ds-ripples) ${host}:where(`) && part.includes(':is(:active, .ds-pressed)') && layer(part, body)), `${host}: its .ds-ripples rule`);
     }
   });
 
@@ -2038,7 +2045,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
     const pseudoNames = all.flatMap((rule) => rule.parts.flatMap((part) => [...part.matchAll(/::view-transition-[\w-]+\(([^)]*)\)/g)].map((match) => match[1])));
     for (const name of pseudoNames) assert.match(name, /^(\*|root|ds-[\w-]+)$/, name);
     // Inline names written by the scripts: ds-<name>, or none while a name is lifted.
-    const written = filesIn('src/js', (path) => path.endsWith('.js')).flatMap((file) => [
+    const written = jsModules().flatMap((file) => [
       ...[...read(file).matchAll(/setProperty\('view-transition-name',\s*['`]([^'`]*)['`]/g)].map((match) => match[1]),
       ...[...read(file).matchAll(/viewTransitionName\s*=\s*['`]([^'`]*)['`]/g)].map((match) => match[1]),
     ]);
@@ -2317,9 +2324,7 @@ describe('app frame, page and base (2.0)', () => {
     .filter((rule) => declarations(`${rule.body};`).some((entry) => property.test(entry.property) && value.test(entry.value)))
     .flatMap((rule) => splitSelectors(rule.selector).map(blockOf).filter(Boolean))));
   /** Scrollers that hold no element to position, each with its reason. */
-  const SCROLLERS_EXEMPT = new Map([
-    ['.ds-input', 'textarea.ds-input--grow scrolls its own text: a textarea has no child elements'],
-  ]);
+  const SCROLLERS_EXEMPT = metaExceptions('exceptions', 'scroller');
 
   it('positions every block that scrolls, so its absolute content and scroll-into-view stay inside it', () => {
     const scrollers = blocksWith(/^overflow(-x|-y)?$/, /\b(auto|scroll)\b/);
@@ -2687,43 +2692,8 @@ function physicalReason(property, value) {
     && /(^|[\s,/])(left|right)(?=[\s,/]|$)/.test(plain.replace(/\([^()]*(\([^()]*\)[^()]*)*\)/g, ''))) return 'position keyword';
   return undefined;
 }
-/** `file: selector: property` of every physical declaration that stays, with its reason. */
-const PHYSICAL_ALLOWED = new Map([
-  ['src/components/form/form.css: select.ds-input, input.ds-input[list]: padding-right', 'the room of the arrow, which sits at the right'],
-  ['src/components/form/form.css: select.ds-input, input.ds-input[list]: background-position', 'the select arrow: two gradients placed from the right edge'],
-  ['src/components/form/form.css: input.ds-input[list]::-webkit-calendar-picker-indicator: margin', 'the invisible picker laid over the arrow at the right'],
-  ['src/components/indicator/indicator.css: .ds-indicator: left', 'DS.indicator writes viewport-measured x from the left'],
-  ['src/components/menu/menu.css: .ds-menu: inset', 'script coordinates: --ds-menu-x from the left'],
-  ['src/components/progress/progress.css: .ds-progress__track: background', 'gradient direction: the bar fills left to right with its clip'],
-  ['src/components/ripple/ripple.css: .ds-press-ripple: left', 'pointer coordinates: --ds-ripple-x from the host\'s left'],
-  ['src/components/ripple/ripple.css: .ds-ripples tr > :is(td, th) > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the cell\'s left'],
-  ['src/components/ripple/ripple.css: .ds-ripples .ds-tabs__tab > .ds-press-ripple::before: left', 'pointer coordinates: --ds-ripple-x from the tab\'s left'],
-  ['src/components/scroller/scroller.css: .ds-scroll-x: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/scroller/scroller.css: .ds-scroll-x: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/sheet/sheet.css: .ds-sheet__panel: border-radius', 'the side sheet slides in from the right edge: its open side is the left'],
-  ['src/components/sheet/sheet.css: .ds-sheet__panel::after: left', 'the bleed beyond the right edge covers the slide\'s overshoot'],
-  ['src/components/shell/shell.css: .ds-app--drawer .ds-panel: margin-left', 'clears the safe-area margin-left of the panel, which stays physical'],
-  ['src/components/shell/shell.css: .ds-drawer: left', 'the modal drawer slides in from the left edge'],
-  ['src/components/shell/shell.css: .ds-drawer: border-radius', 'the modal drawer slides in from the left edge: its open side is the right'],
-  ['src/components/shell/shell.css: .ds-drawer::before: right', 'the bleed left of the modal drawer covers the slide\'s overshoot'],
-  ['src/components/slider/slider.css: .ds-slider::-webkit-slider-runnable-track: background', 'gradient direction: the active part fills from the left, as the native thumb moves'],
-  ['src/components/switch/switch.css: .ds-switch__track::after: left', 'the handle starts at the left and travels on translate'],
-  ['src/components/switch/switch.css: .ds-switch__track::before: left', 'the halo starts at the left and travels on translate with the handle'],
-  ['src/components/table/table.css: .ds-table-wrap--fill: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-table-wrap--fill: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap:has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap: -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap: mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): -webkit-mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/table/table.css: .ds-card .ds-table-wrap:where([data-ds-edges]): mask-image', 'gradient direction: the edge fades follow the sideways scroll'],
-  ['src/components/toast/toast.css: .ds-toasts: left', 'script coordinate: --ds-toast-left, and DS.overlay reads the computed left back'],
-  ['src/components/tooltip/tooltip.css: .ds-tooltip: left', 'script coordinates: --ds-tooltip-x from the left'],
-  ['src/components/tooltip/tooltip.css: .ds-tooltip[popover]: inset', 'script coordinates: --ds-tooltip-x from the left'],
-  ['src/components/tooltip/tooltip.css: .ds-tooltip[data-anchored]: left', 'clears the script coordinate for anchor positioning'],
-]);
+/** `file: selector: property` of every physical declaration that stays, with its reason (meta.json exceptions.physical, as `selector: property`). */
+const PHYSICAL_ALLOWED = metaFileExceptions('exceptions', 'physical');
 
 describe('direction (2.0, D9)', () => {
   it('uses logical properties in components and the page base, physical ones only on the allowlist', () => {

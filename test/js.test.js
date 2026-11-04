@@ -13,8 +13,12 @@ import * as indicator from '../src/js/indicator.js';
 import * as dom from '../src/js/dom.js';
 import * as ripple from '../src/js/ripple.js';
 import * as overlay from '../src/js/overlay.js';
-import { filesIn, read } from './helpers.js';
+import { filesIn, jsModules, read } from './helpers.js';
+import { MODULES, moduleFiles } from '../scripts/build.mjs';
 import { sample as curveSample, SPATIAL, springFunction } from '../scripts/motion-curves.mjs';
+
+/** Every module the build bundles (MODULES: the core, then each component's), imported from src/. */
+const MODULE_EXPORTS = Object.fromEntries(await Promise.all(MODULES.map(async (name) => [name, await import(`../${moduleFiles(name).source}`)])));
 
 const GLYPHS = Object.entries(icons).filter(([, value]) => typeof value === 'string' && value.startsWith('<'));
 
@@ -2659,7 +2663,9 @@ describe('classic-script build (dist/ds.js)', () => {
     runInNewContext(read('dist/ds.js'), sandbox);
     const DS = sandbox.DS;
     assert.equal(DS.version, JSON.parse(read('package.json')).version);
-    for (const [name, module] of Object.entries({ core, motion, indicator, dom, ripple, icons, overlay })) {
+    // Every module the build discovers (the core and each component's), against its source.
+    assert.deepEqual(Object.keys(DS).filter((key) => typeof DS[key] === 'object').sort(), [...MODULES].sort(), 'one namespace per module');
+    for (const [name, module] of Object.entries(MODULE_EXPORTS)) {
       assert.deepEqual(Object.keys(DS[name]).sort(), Object.keys(module).sort(), name);
     }
     // The entry points of the core at the top level (3.0).
@@ -2736,7 +2742,8 @@ describe('classic-script build (dist/ds.js)', () => {
       assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.runtime, runtime);
       assert.notEqual(sandbox.DashboardStyle.versions['9.9.9'].core, sandbox.DS.core);
       // The behaviours of the first copy stay registered; the second copy's definitions are ignored.
-      assert.deepEqual([...runtime.state('core').specs.keys()], ['guard', 'ripple', 'tooltips']);
+      // The core's own behaviours first; a component module's definition follows them.
+      assert.deepEqual([...runtime.state('core').specs.keys()].slice(0, 3), ['guard', 'ripple', 'tooltips']);
       assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.define('guard', { global() {} }), false);
     });
 
@@ -2751,12 +2758,14 @@ describe('classic-script build (dist/ds.js)', () => {
     });
   });
 
-  it('keeps src/js within the ES2022 baseline', () => {
-    for (const file of filesIn('src/js')) {
+  it('keeps src/js and the component modules within the ES2022 baseline', () => {
+    for (const file of jsModules()) {
       const withStrings = withoutComments(read(file));
       // Before the strings go: the module specifiers and a RegExp built with the v flag.
       for (const line of withStrings.split('\n').filter((text) => /^\s*import\b|\bimport\s*\(/.test(text))) {
-        assert.match(line, /^import \{ [\w$]+( as [\w$]+)?(, [\w$]+( as [\w$]+)?)* \} from (['"])\.\/[\w-]+\.js\4;$/, `${file}: imports only named exports of a sibling module, on one line: ${line.trim()}`);
+        // A core module imports './<core>.js'; a component module '../../js/<core>.js' or '../<other>/<other>.js'.
+        const from = file.startsWith('src/js/') ? String.raw`\.\/[\w-]+` : String.raw`\.\.\/\.\.\/js\/[\w-]+|\.\.\/([\w-]+)\/\5`;
+        assert.match(line, new RegExp(String.raw`^import \{ [\w$]+( as [\w$]+)?(, [\w$]+( as [\w$]+)?)* \} from (['"])(?:${from})\.js\4;$`), `${file}: imports only named exports of a module, on one line: ${line.trim()}`);
       }
       assert.doesNotMatch(withStrings, /new RegExp\([^)]*,\s*['"`][a-z]*v[a-z]*['"`]\s*\)/, `${file}: the RegExp v flag`);
       assert.doesNotMatch(withStrings, /^\s*export\s+(?!const\s|function\s)/m, `${file}: exports only as export const / export function`);
@@ -2766,7 +2775,7 @@ describe('classic-script build (dist/ds.js)', () => {
   });
 
   it('uses progressive APIs only behind feature detection, named under "Progressive:"', () => {
-    for (const file of filesIn('src/js')) {
+    for (const file of jsModules()) {
       const source = read(file);
       const code = withoutComments(source);
       const header = source.match(/^\/\*[\s\S]*?\*\//)?.[0] || '';
@@ -2799,7 +2808,7 @@ describe('timing in src/js', () => {
       ['src/js/overlay.js: DISMISS_DELAY_MS = 300', 'mirrors --ds-delay-dismiss (fallback outside a theme)'],
     ]);
     const found = [];
-    for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {
+    for (const file of jsModules()) {
       const source = withoutStrings(withoutComments(read(file)));
       const fallbacks = source.indexOf('MOTION_FALLBACKS = Object.freeze(');
       const code = fallbacks < 0 ? source : source.slice(0, fallbacks) + source.slice(source.indexOf('});', fallbacks) + 3);

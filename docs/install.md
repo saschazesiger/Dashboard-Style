@@ -12,7 +12,7 @@ Everything a project needs is in `dist/`:
 | `manifest.json` | the components as data (3.0): per component its files, group, classes, attributes, keyframes, hooks, the modules it needs, what it requires and its size; the core stylesheets and their classes; the JS modules with their imports, exports and the components they need (`requires`, and `exportRequires` per export). Tools such as a bundler read it |
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
-| `js/` | the ES modules (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`), each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
+| `js/` | the ES modules, one folder (the table below): the core (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) and one behaviour module per component that has one, each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
 | `ds.d.ts` | types of `ds.js`: the global `DS` (every module's exports, their options and handles) and `DashboardStyle.versions` (see "Types") |
 | `fonts/` | Google Sans woff2 (latin, latin-ext), `fonts.css`, `OFL.txt` |
 | `deprecations.json` | every deprecated and removed name as data, for a project's own checks (see "Deprecated and removed names") |
@@ -21,6 +21,21 @@ Everything a project needs is in `dist/`:
 | `themes/` | the shipped themes `dark.css`, `compact.css` and `contrast.css`, loaded after your theme ([theming.md](theming.md#dark-compact-and-contrast)) |
 | `tools/` | dependency-free checks for a project: `verify.mjs` and `verify.sh` (the copy against `SHA256SUMS`, see "Verify a copy"), `check-theme.mjs` (a theme file, see theming.md, "Checking a theme"), `check-project.mjs` (the project rules, see "Check a project"), `bundle.mjs` and `vite-plugin.mjs` (a project bundle of only what it uses, [bundle.md](bundle.md)), and the modules they share: `theme-rules.mjs` (the contrast pairs and motion prefixes), `css-scan.mjs` (a small CSS reader) and `js-wrap.mjs` (the classic-script wrapper of `ds.js`) |
 | `tokens.json` | every `--ds-*` name as data: `{ version, tokens: [{ name, layer, default, type, themeable, component?, deprecated? }] }` (see "Tokens as data") |
+
+The modules of `js/`, in the order `ds.js` holds them (each after the modules it imports; generated from `src/js/`
+and every `src/components/<name>/<name>.js`, as `manifest.json` `js` lists them):
+
+<!-- generated: modules (scripts/build.mjs; do not edit) -->
+| File | Namespace | Kind | Imports | Docs |
+|---|---|---|---|---|
+| `js/core.js` | `DS.core` | core (`src/js/`) | - | [core.md](core.md) |
+| `js/motion.js` | `DS.motion` | core (`src/js/`) | `core` | [motion.md](motion.md) |
+| `js/indicator.js` | `DS.indicator` | core (`src/js/`) | `motion` | [motion.md](motion.md) |
+| `js/dom.js` | `DS.dom` | core (`src/js/`) | `motion` | [motion.md](motion.md) |
+| `js/ripple.js` | `DS.ripple` | core (`src/js/`) | `core`, `motion` | [motion.md](motion.md) |
+| `js/icons.js` | `DS.icons` | core (`src/js/`) | - | [icons.md](icons.md) |
+| `js/overlay.js` | `DS.overlay` | core (`src/js/`) | `core`, `dom`, `icons`, `motion` | [motion.md](motion.md) |
+<!-- /generated: modules -->
 
 Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
 files name under "Progressive:"; older engines on that floor get the same page without them.

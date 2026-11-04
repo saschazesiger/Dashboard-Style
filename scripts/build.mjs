@@ -7,29 +7,43 @@
  *
  *   node scripts/build.mjs           write dist/ and the generated files
  *   node scripts/build.mjs --check   exit 1 if any of them is not what src/ builds
+ *   node scripts/build.mjs --generated   print the generated files of the repository, one per line
  *
- * Sources: src/core/{tokens,base,motion,global}.css, one folder per component
- * (src/components/<name>/ holds <name>.css, meta.json, an optional
- * <name>.md and an optional <name>.demo.js), the partials of
- * docs/components.md (src/components/_partials/), src/optional/, src/js/,
- * src/types/, src/deprecations.json, fonts/, themes/ and scripts/tools/.
+ * Sources: src/core/{tokens,base,motion,global}.css and src/core/hooks.json,
+ * one folder per component (src/components/<name>/: <name>.css, meta.json and
+ * the optional files of COMPONENT_FILES: <name>.md, .demo.js, .js, .d.ts,
+ * .requires.json, .test.js, .spec.js, .fixture.html, .lab.js, .keyframes.css),
+ * the partials of docs/components.md (src/components/_partials/),
+ * src/optional/, src/js/, src/types/, src/deprecations.json, fonts/, themes/
+ * and scripts/tools/.
  *
  * Generated in the repository (committed; --check compares them too):
  *   src/index.css        the layer statement, the sublayer statement and
  *                        the @import list in meta.json "order"
  *   docs/components.md   the partials and every <name>.md in meta.json "docsOrder"
  *   styleguide/demos.js  the classic script of every <name>.demo.js (window.SG_DEMOS)
+ *   styleguide/lab-components.js  every <name>.lab.js after SG_LAB.add()
+ *   README.md            the count of its Components badge
+ *   Blocks between "generated:" markers inside hand-written files
+ *   (replaceBlock): the hooks table of docs/theming.md and the hooks of
+ *   themes/example.css (meta.json "hooks", src/core/hooks.json), the component
+ *   keyframes table of docs/motion.md (<name>.keyframes.css, "keyframeDocs"),
+ *   the module table of docs/install.md, the module imports and namespaces
+ *   of src/types/ds.d.ts (MODULES) and the list RIPPLE_HOSTS of
+ *   src/js/ripple.js (meta.json "rippleHosts").
  *
- * Every meta.json is verified against its stylesheet first (verifyComponents):
- * classes, attributes, hooks and keyframes exactly, requires, js, ripple and
- * progressive; a mismatch stops the build with the reason.
+ * Every meta.json is validated against scripts/meta-schema.json and verified
+ * against its folder and stylesheet first (verifyComponents): classes,
+ * attributes, hooks and keyframes exactly, requires, js, module, ripple,
+ * exceptions and progressive; a mismatch stops the build with the reason.
  *
  * dist/ holds everything a project needs, so it can be vendored alone:
  *   ds.css, ds.min.css   every stylesheet in cascade order (src/index.css
  *                   inlined), the layer and sublayer order declared once at
  *                   the top; the minified copy with ds.min.css.map
  *   ds.js, ds.min.js     classic script (tools/js-wrap.mjs, merge mode): window.DS =
- *                   { version, core, motion, indicator, dom, ripple, icons, overlay }
+ *                   { version, core, motion, indicator, dom, ripple, icons, overlay,
+ *                   and one namespace per component module (MODULES) }
  *                   plus DS.init, DS.get, DS.define and DS.config (DS.core's),
  *                   each copy also under DashboardStyle.versions[version];
  *                   ds.min.js without comments and indentation (stripJs)
@@ -39,9 +53,12 @@
  *                   as ds.css does; a .min.css with its .min.css.map next
  *                   to every stylesheet of css/
  *   css/index.css   the @import list of ds.css over the single stylesheets
- *   js/             the ES modules
- *   ds.d.ts, js/*.d.ts  hand-written types (src/types/): the global DS,
- *                   and each module's exports next to the module
+ *   js/             the ES modules, flat: src/js/<core>.js and every
+ *                   src/components/<name>/<name>.js, its imports rewritten
+ *                   to ./<module>.js (rewriteComponentImports)
+ *   ds.d.ts, js/*.d.ts  hand-written types (src/types/, each folder's
+ *                   <name>.d.ts): the global DS, and each module's exports
+ *                   next to the module
  *   css/optional/   opt-in stylesheets that ds.css never includes (src/optional/,
  *                   not imported by src/index.css), such as view-transitions.css
  *   css/properties.css  every top-level @property of ds.css, alone: a widget
@@ -237,7 +254,7 @@ export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
 
   const cssFiles = cssSources(read);
   const sources = new Map(cssFiles.map((path) => [path, stripCssComments(read(path))]));
-  const scripts = MODULES.map((name) => read(`src/js/${name}.js`)).join('\n');
+  const scripts = MODULES.map((name) => read(moduleFiles(name).source)).join('\n');
   const writtenByScript = (name) => scripts.includes(`'${name}'`) || scripts.includes(`"${name}"`) || scripts.includes(`${name}:`);
 
   // Hooks: the first column of the docs/theming.md table.
@@ -294,11 +311,110 @@ export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
   return `${JSON.stringify({ version: info.version, tokens }, null, 2)}\n`;
 }
 
-/** The JS modules bundled into ds.js, in this order, as DS.<name>. */
-export const MODULES = ['core', 'motion', 'indicator', 'dom', 'ripple', 'icons', 'overlay'];
-
 const posix = (path) => path.split(sep).join('/');
 const readText = (path) => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
+
+// ── JS modules: the core (src/js/) and one per component folder ─────────
+
+/** The core modules of src/js/, in this order (core first): DS.<name>. */
+export const CORE_MODULES = ['core', 'motion', 'indicator', 'dom', 'ripple', 'icons', 'overlay'];
+
+/** An import line of a module or its .d.ts (one line: named bindings, or in a .d.ts `import type` and `* as`): the head, the quote and the path. */
+const IMPORT_FROM = /^(import\s+(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+[\w$]+)\s*from\s*|import\s*\{[^}]*\}\s*from\s*)(['"])([^'"]+)\2(\s*;?[ \t]*)$/;
+
+/**
+ * A component's behaviour module as dist/js/ holds it: every import of a
+ * core module (`'../../js/<core>.js'`, in a .d.ts also
+ * `'../../types/js/<core>.js'`) and of another component's module
+ * (`'../<other>/<other>.js'`) becomes the flat sibling import
+ * `'./<name>.js'`, so dist/js/ is one folder of modules and
+ * tools/js-wrap.mjs reads it as it reads the core. Any other relative
+ * import throws: a folder holds one module.
+ */
+export function rewriteComponentImports(source, name) {
+  return source.split('\n').map((line) => {
+    const match = IMPORT_FROM.exec(line.trim());
+    if (!match || !line.startsWith('import')) return line;
+    const [, head, quote, path, tail] = match;
+    let target = /^\.\.\/\.\.\/(?:types\/)?js\/([\w-]+)\.js$/.exec(path)?.[1];
+    if (target && !CORE_MODULES.includes(target)) throw new Error(`src/components/${name}/: ${path} is no core module (${CORE_MODULES.join(', ')})`);
+    if (!target) {
+      const other = /^\.\.\/([\w-]+)\/([\w-]+)\.js$/.exec(path);
+      if (other && other[1] === other[2]) target = other[1];
+    }
+    if (!target) throw new Error(`src/components/${name}/: import from '../../js/<core>.js' or '../<component>/<component>.js' only, not ${path}`);
+    return `${head}${quote}./${target}.js${quote}${tail}`;
+  }).join('\n');
+}
+
+/** The sibling modules a module (in its dist form) imports, sorted. */
+export function moduleImports(source) {
+  return [...new Set([...source.matchAll(/^import\s*\{[^}]*\}\s*from\s*['"]\.\/([\w-]+)\.js['"]/gm)].map((match) => match[1]))].sort();
+}
+
+/**
+ * The component modules in build order: every core module first, then
+ * each component module after the modules it imports (Kahn's algorithm;
+ * of the modules that are ready, the first by name). `sources` maps a
+ * component module's name to its dist source. Unknown imports and cycles
+ * throw.
+ */
+export function orderModules(sources) {
+  const pending = new Map([...sources].map(([name, source]) => [name, moduleImports(source).filter((other) => !CORE_MODULES.includes(other))]));
+  for (const [name, imports] of pending) {
+    if (CORE_MODULES.includes(name)) throw new Error(`src/components/${name}/${name}.js: a component module may not take the name of the core module ${name}`);
+    // It becomes DS.<name>, and js-wrap reads a sibling as DS.<name>.<export>.
+    if (!/^[a-z][a-z0-9]*$/.test(name)) throw new Error(`src/components/${name}/${name}.js: a module's name is a JS identifier (lower case and digits, no hyphen): it becomes DS.${name}`);
+    for (const other of imports) if (!pending.has(other)) throw new Error(`src/components/${name}/${name}.js imports ${other}, which is no module (src/js/ or src/components/${other}/${other}.js)`);
+  }
+  const order = [];
+  while (pending.size) {
+    const ready = [...pending].filter(([, imports]) => imports.every((other) => order.includes(other))).map(([name]) => name).sort();
+    if (!ready.length) throw new Error(`component modules import each other in a cycle: ${[...pending.keys()].sort().join(', ')}`);
+    order.push(ready[0]);
+    pending.delete(ready[0]);
+  }
+  return order;
+}
+
+/** The component folders that hold a behaviour module (src/components/<name>/<name>.js). */
+function componentModuleSources() {
+  const dir = join(ROOT, 'src/components');
+  return new Map(readdirSync(dir).sort().filter((name) => !name.startsWith('_') && existsSync(join(dir, name, `${name}.js`)))
+    .map((name) => [name, rewriteComponentImports(readText(join(dir, name, `${name}.js`)), name)]));
+}
+
+/**
+ * Every JS module bundled into ds.js, in this order, as DS.<name>: the
+ * core modules, then the component modules (orderModules). A module may
+ * import only from a module before it.
+ */
+export const MODULES = [...CORE_MODULES, ...orderModules(componentModuleSources())];
+
+/**
+ * Where a module lives in src/: its source, its types, its optional
+ * requires sidecar and the docs that document its exports
+ * (test/repo.test.js). A component module sits in its folder.
+ */
+export function moduleFiles(name) {
+  if (CORE_MODULES.includes(name)) {
+    return {
+      component: null,
+      source: `src/js/${name}.js`,
+      types: `src/types/js/${name}.d.ts`,
+      requires: `src/js/${name}.requires.json`,
+      docs: name === 'core' ? 'docs/core.md' : name === 'icons' ? 'docs/icons.md' : 'docs/motion.md',
+    };
+  }
+  const dir = `src/components/${name}`;
+  return { component: name, source: `${dir}/${name}.js`, types: `${dir}/${name}.d.ts`, requires: `${dir}/${name}.requires.json`, docs: `${dir}/${name}.md` };
+}
+
+/** A module's source as dist/js/<name>.js holds it (component imports rewritten). */
+export function moduleSource(name, read = (path) => readText(join(ROOT, path))) {
+  const { component, source } = moduleFiles(name);
+  return component ? rewriteComponentImports(read(source), name) : read(source);
+}
 
 function filesIn(dir) {
   return readdirSync(dir).sort().flatMap((name) => {
@@ -357,8 +473,69 @@ export const PROGRESSIVE_NAMES = ['linear()', '@starting-style', 'allow-discrete
   'interpolate-size', '::details-content', 'overflow-clip-margin', 'sibling-index()', 'text-wrap', 'scrollbar-color', 'scrollbar-gutter', 'field-sizing',
   'details[name]', 'hyphenate-limit-chars', 'alt text for generated content'];
 
-/** The keys of a meta.json, in the order the files write them. */
-export const META_KEYS = ['name', 'group', 'order', 'docsOrder', 'classes', 'attributes', 'requires', 'context', 'hooks', 'keyframes', 'js', 'progressive', 'ripple'];
+/** scripts/meta-schema.json: the schema every meta.json is validated against (validateSchema). */
+export const META_SCHEMA = JSON.parse(readText(join(ROOT, 'scripts/meta-schema.json')));
+
+/** The keys of a meta.json, in the order the files write them (the optional ones may be left out). */
+export const META_KEYS = Object.keys(META_SCHEMA.properties);
+
+/** The keys every meta.json has. */
+export const META_REQUIRED = META_SCHEMA.required;
+
+const typeOfJson = (value) => (value === null ? 'null' : Array.isArray(value) ? 'array' : Number.isInteger(value) ? 'integer' : typeof value);
+
+/**
+ * Validates `value` against a JSON Schema (the subset scripts/meta-schema.json
+ * uses: type, const, enum, pattern, minLength, minimum, maximum, items,
+ * minItems, maxItems, uniqueItems, properties, required,
+ * additionalProperties, propertyNames, anyOf and local $ref); returns the
+ * problems, each with its JSON path.
+ */
+export function validateSchema(value, schema, where = '', root = schema) {
+  const problems = [];
+  const at = where || '(root)';
+  if (schema.$ref) {
+    const target = schema.$ref.replace(/^#\//, '').split('/').reduce((node, key) => node?.[key], root);
+    if (!target) throw new Error(`schema: unknown $ref ${schema.$ref}`);
+    problems.push(...validateSchema(value, target, where, root));
+  }
+  const type = typeOfJson(value);
+  if (schema.type) {
+    const types = [].concat(schema.type);
+    if (!types.includes(type) && !(type === 'integer' && types.includes('number'))) return [...problems, `${at}: is ${type}, expected ${types.join(' or ')}`];
+  }
+  if ('const' in schema && value !== schema.const) problems.push(`${at}: must be ${JSON.stringify(schema.const)}`);
+  if (schema.enum && !schema.enum.includes(value)) problems.push(`${at}: ${JSON.stringify(value)} is not one of ${schema.enum.map((item) => JSON.stringify(item)).join(', ')}`);
+  if (schema.anyOf) {
+    const results = schema.anyOf.map((option) => validateSchema(value, option, where, root));
+    if (results.every((result) => result.length)) problems.push(`${at}: matches none of its forms (${results.map((result) => result[0]).join('; ')})`);
+  }
+  if (type === 'string') {
+    if (schema.pattern && !new RegExp(schema.pattern).test(value)) problems.push(`${at}: "${value}" does not match ${schema.pattern}`);
+    if (schema.minLength !== undefined && value.length < schema.minLength) problems.push(`${at}: shorter than ${schema.minLength}`);
+  }
+  if (type === 'integer' || type === 'number') {
+    if (schema.minimum !== undefined && value < schema.minimum) problems.push(`${at}: below ${schema.minimum}`);
+    if (schema.maximum !== undefined && value > schema.maximum) problems.push(`${at}: above ${schema.maximum}`);
+  }
+  if (type === 'array') {
+    if (schema.minItems !== undefined && value.length < schema.minItems) problems.push(`${at}: fewer than ${schema.minItems} items`);
+    if (schema.maxItems !== undefined && value.length > schema.maxItems) problems.push(`${at}: more than ${schema.maxItems} items`);
+    if (schema.uniqueItems && new Set(value.map((item) => JSON.stringify(item))).size !== value.length) problems.push(`${at}: lists an item twice`);
+    if (schema.items) value.forEach((item, index) => problems.push(...validateSchema(item, schema.items, `${where}[${index}]`, root)));
+  }
+  if (type === 'object') {
+    for (const key of schema.required ?? []) if (!(key in value)) problems.push(`${at}: missing key "${key}"`);
+    for (const [key, item] of Object.entries(value)) {
+      const path = where ? `${where}.${key}` : key;
+      if (schema.propertyNames) problems.push(...validateSchema(key, { type: 'string', ...schema.propertyNames }, `${path} (name)`, root));
+      if (schema.properties && key in schema.properties) problems.push(...validateSchema(item, schema.properties[key], path, root));
+      else if (schema.additionalProperties === false) problems.push(`${at}: unknown key "${key}"`);
+      else if (typeof schema.additionalProperties === 'object') problems.push(...validateSchema(item, schema.additionalProperties, path, root));
+    }
+  }
+  return problems;
+}
 
 /**
  * The partials of docs/components.md (src/components/_partials/<name>.md):
@@ -375,28 +552,51 @@ export function componentNames() {
 }
 
 /**
- * Every component as { name, meta, css, md, demo } (repository paths, md
- * and demo null when the folder has none), in meta.json "order".
+ * The files a component folder may hold besides <name>.css and meta.json,
+ * as the keys of components() name them (plans/3.0-conventions.md,
+ * section 1); any other file stops the build.
+ */
+export const COMPONENT_FILES = {
+  md: (name) => `${name}.md`,
+  demo: (name) => `${name}.demo.js`,
+  js: (name) => `${name}.js`,
+  types: (name) => `${name}.d.ts`,
+  requires: (name) => `${name}.requires.json`,
+  test: (name) => `${name}.test.js`,
+  spec: (name) => `${name}.spec.js`,
+  fixture: (name) => `${name}.fixture.html`,
+  lab: (name) => `${name}.lab.js`,
+  keyframesCss: (name) => `${name}.keyframes.css`,
+};
+
+/**
+ * Every component as { name, meta, css, md, demo, js, types, requires,
+ * test, spec, fixture, lab, keyframesCss } (repository paths; each
+ * optional file null when the folder has none), in meta.json "order".
  */
 export function components() {
   return componentNames().map((name) => {
     const dir = `src/components/${name}`;
     if (!repoHas(`${dir}/${name}.css`)) throw new Error(`${dir}/: no ${name}.css`);
-    if (!repoHas(`${dir}/meta.json`)) throw new Error(`${dir}/: no meta.json (scripts/gen-meta.mjs shows how one is made)`);
+    if (!repoHas(`${dir}/meta.json`)) throw new Error(`${dir}/: no meta.json (scripts/meta-schema.json describes it)`);
     let meta;
     try {
       meta = JSON.parse(repoText(`${dir}/meta.json`));
     } catch (error) {
       throw new Error(`${dir}/meta.json: ${error.message}`);
     }
-    const optional = (file) => (repoHas(`${dir}/${file}`) ? `${dir}/${file}` : null);
-    return { name, meta, css: `${dir}/${name}.css`, md: optional(`${name}.md`), demo: optional(`${name}.demo.js`) };
+    const allowed = [`${name}.css`, 'meta.json', ...Object.values(COMPONENT_FILES).map((file) => file(name))];
+    for (const file of readdirSync(join(ROOT, dir)).sort()) {
+      if (!allowed.includes(file)) throw new Error(`Unexpected file in ${dir}/: ${file} (a folder holds ${allowed.join(', ')})`);
+    }
+    const optional = Object.fromEntries(Object.entries(COMPONENT_FILES).map(([key, file]) => [key, repoHas(`${dir}/${file(name)}`) ? `${dir}/${file(name)}` : null]));
+    return { name, meta, css: `${dir}/${name}.css`, ...optional };
   }).sort((a, b) => a.meta.order - b.meta.order);
 }
 
-/** Every stylesheet of ds.css in cascade order (repository paths). */
+/** Every stylesheet of ds.css in cascade order (repository paths), each component's <name>.keyframes.css after its stylesheet. */
 export function cssSources() {
-  return [...CORE.map((name) => `src/core/${name}.css`), ...components().map((component) => component.css)];
+  return [...CORE.map((name) => `src/core/${name}.css`), ...components().flatMap((component) => [component.css, ...(component.keyframesCss ? [component.keyframesCss] : [])])];
 }
 
 /** The component (or core) name of a stylesheet path of src/. */
@@ -462,11 +662,92 @@ export function progressiveEntries(source) {
   return entries;
 }
 
-/** The ripple host selectors of src/js/ripple.js (RIPPLE_HOSTS). */
+/** The ripple host selectors of src/js/ripple.js (RIPPLE_HOSTS, its generated block). */
 function rippleHosts() {
   const block = /export const RIPPLE_HOSTS = \[([\s\S]*?)\]\.join/.exec(repoText('src/js/ripple.js'));
   if (!block) throw new Error('src/js/ripple.js: no RIPPLE_HOSTS list');
   return [...block[1].matchAll(/'([^']+)'/g)].map((match) => match[1]);
+}
+
+/** The hooks of the core stylesheets (src/core/hooks.json): { "--ds-x": { default, description } }. */
+export function coreHooks(read = repoText) {
+  return JSON.parse(read('src/core/hooks.json'));
+}
+
+/** A meta.json's hooks as [name, entry] pairs (none when "hooks" is not an object). */
+const hookEntries = (meta) => (meta.hooks && typeof meta.hooks === 'object' && !Array.isArray(meta.hooks) ? Object.entries(meta.hooks) : []);
+
+/** The hooks a meta.json describes (owns), in its order. */
+export const ownedHooks = (meta) => hookEntries(meta).filter(([, entry]) => entry && typeof entry === 'object' && 'description' in entry).map(([name]) => name);
+
+/** Every documented hook: the core hooks (src/core/hooks.json), then every hook a meta.json owns. */
+export function hookNames(list) {
+  return [...Object.keys(coreHooks()), ...list.flatMap((component) => ownedHooks(component.meta))];
+}
+
+/**
+ * A component's <name>.keyframes.css as { names, body }: the @keyframes it
+ * defines and the inside of its one `@layer ds.motion { ... }` block, which
+ * the build appends to motion.css. Anything but @keyframes in the block,
+ * or anything but the layer statement and the block in the file, throws.
+ */
+export function componentKeyframes(component, read = repoText) {
+  if (!component.keyframesCss) return { names: [], body: '' };
+  const where = component.keyframesCss;
+  const source = read(where);
+  if (!source.includes(`\n${LAYERS}\n`) && !source.startsWith(`${LAYERS}\n`)) throw new Error(`${where}: no "${LAYERS}" line`);
+  const code = stripCssComments(source).replace(LAYERS, '').trim();
+  const block = (text) => {
+    const open = text.indexOf('{');
+    let depth = 0;
+    let end = open;
+    do {
+      if (text[end] === '{') depth += 1;
+      else if (text[end] === '}') depth -= 1;
+      end += 1;
+    } while (depth > 0 && end < text.length);
+    return { open, end };
+  };
+  if (!/^@layer ds\.motion\s*\{/.test(code) || block(code).end !== code.length) throw new Error(`${where}: one "@layer ds.motion { ... }" block after the layer statement, and nothing else`);
+  const start = source.indexOf('@layer ds.motion');
+  const { open, end } = block(source.slice(start));
+  const body = source.slice(start + open + 1, start + end - 1);
+  // Only @keyframes blocks inside: take them out (braces balanced) and nothing may remain.
+  let rest = stripCssComments(body);
+  const names = [];
+  for (;;) {
+    const match = /@keyframes\s+([\w-]+)\s*\{/.exec(rest);
+    if (!match) break;
+    let depth = 0;
+    let end = match.index + match[0].length - 1;
+    do {
+      if (rest[end] === '{') depth += 1;
+      else if (rest[end] === '}') depth -= 1;
+      end += 1;
+    } while (depth > 0 && end < rest.length);
+    names.push(match[1]);
+    rest = rest.slice(0, match.index) + rest.slice(end);
+  }
+  if (rest.trim()) throw new Error(`${where}: only @keyframes inside @layer ds.motion (found "${rest.trim().slice(0, 40)}")`);
+  return { names, body: body.replace(/^\n+/, '').replace(/\s+$/, '') };
+}
+
+/** The marker comment of a component's keyframes inside motion.css (dist). */
+const keyframesMarker = (component) => `  /* ── components/${component.name}/${component.name}.keyframes.css ── */`;
+
+/**
+ * motion.css as dist/ ships it: src/core/motion.css with the keyframes of
+ * every <name>.keyframes.css appended to its `@layer ds.motion` block, in
+ * component order (meta.json "order").
+ */
+export function motionCss(list, read = repoText) {
+  const source = read('src/core/motion.css');
+  const parts = list.filter((component) => component.keyframesCss).map((component) => `${keyframesMarker(component)}\n${componentKeyframes(component, read).body}`);
+  if (!parts.length) return source;
+  const start = source.indexOf('@layer ds.motion {');
+  const end = source.indexOf('\n}\n', start);
+  if (start < 0 || end < 0) throw new Error('src/core/motion.css: no "@layer ds.motion {" block');
+  return `${source.slice(0, end)}\n\n${parts.join('\n\n')}${source.slice(end)}`;
 }
 
 /**
@@ -474,94 +755,126 @@ function rippleHosts() {
  * core stylesheet, what its CSS styles (cssFacts); which component owns
  * each class (meta.json "classes"); the classes of the core stylesheets
  * that no component owns (pseudo-components tokens, motion, base, global).
+ * The keyframes are those of motion.css and of every <name>.keyframes.css;
+ * the hooks those of hookNames().
  */
 function componentFacts(list) {
-  const hooks = documentedHooks(repoText('docs/theming.md'));
-  const keyframes = cssFacts(repoText('src/core/motion.css')).defines;
+  const hooks = hookNames(list);
+  const own = new Map(list.map((component) => [component.name, componentKeyframes(component).names]));
+  const keyframes = sorted([...cssFacts(repoText('src/core/motion.css')).defines, ...[...own.values()].flat()]);
   const facts = new Map(list.map((component) => [component.name, cssFacts(repoText(component.css), { hooks, keyframes })]));
   const owner = new Map();
   for (const component of list) for (const name of component.meta.classes ?? []) if (!owner.has(name)) owner.set(name, component.name);
   // A class of several core stylesheets belongs to the first of tokens, base, motion, global (.ds-theme to tokens).
   const taken = new Set(owner.keys());
   const core = new Map(CORE_FILES.map((name) => {
-    const found = cssFacts(repoText(`src/core/${name}.css`), { hooks, keyframes });
+    const found = cssFacts(name === 'motion' ? motionCss(list) : repoText(`src/core/${name}.css`), { hooks, keyframes });
     const classes = found.classes.filter((cls) => !taken.has(cls));
     for (const cls of classes) taken.add(cls);
     return [name, { ...found, classes }];
   }));
-  return { hooks, keyframes, facts, owner, core };
+  return { hooks, keyframes, own, facts, owner, core };
 }
 
 /**
- * Checks every meta.json against its folder and its stylesheet; returns the
- * problems (an empty list when everything matches). Exact: classes (every
- * listed class is styled by the file, no class is listed twice, and every
- * class the file styles is its own, a core class or one of a component in
- * "requires" or "context"), attributes, hooks and keyframes (the sets of cssFacts),
- * ripple (whether a RIPPLE_HOSTS selector starts with one of its classes)
- * and progressive (the PROGRESSIVE_NAMES its header note names). Known
- * values: group, js (MODULES), requires and context (other components,
- * apart), unique orders. "requires" is what a bundle resolves (the
- * component needs the other one: its documented markup uses it, or a
- * script of the system writes it); "context" names the components whose
- * classes the stylesheet only styles where both meet (`.ds-card .ds-chip`),
- * which a bundle never pulls in by itself.
+ * Checks every meta.json against scripts/meta-schema.json, its folder and
+ * its stylesheet; returns the problems (an empty list when everything
+ * matches). The schema first (keys in its order, types, known values),
+ * then exactly: classes (every listed class is styled by the file, no
+ * class is listed twice, and every class the file styles is its own, a
+ * core class or one of a component in "requires" or "context"),
+ * attributes, hooks (the documented hooks the file reads; each described
+ * by one component, or by src/core/hooks.json, the others name its owner)
+ * and keyframes (those the file names plus those its <name>.keyframes.css
+ * defines, each defined once, documented in "keyframeDocs"), module
+ * (whether <name>.js is there), js (MODULES), ripple (whether
+ * "rippleHosts" lists a selector or RIPPLE_HOSTS starts one with one of
+ * its classes) and progressive (the PROGRESSIVE_NAMES its header note
+ * names). Known values: requires and context (other components, apart),
+ * unique orders. "requires" is what a bundle resolves (the component needs
+ * the other one: its documented markup uses it, or a script of the system
+ * writes it); "context" names the components whose classes the stylesheet
+ * only styles where both meet (`.ds-card .ds-chip`), which a bundle never
+ * pulls in by itself.
  */
 export function verifyComponents(list = components()) {
   const problems = [];
-  const { facts, owner, core } = componentFacts(list);
   const names = new Set(list.map((component) => component.name));
+  for (const { name, meta } of list) {
+    const where = `src/components/${name}/meta.json`;
+    problems.push(...validateSchema(meta, META_SCHEMA).map((problem) => `${where}: ${problem}`));
+    const keys = Object.keys(meta).filter((key) => META_KEYS.includes(key));
+    const order = META_KEYS.filter((key) => keys.includes(key));
+    if (keys.join() !== order.join()) problems.push(`${where}: keys in the order ${order.join(', ')} (scripts/meta-schema.json)`);
+  }
+  if (problems.length) return problems;
+  let found;
+  try {
+    found = componentFacts(list);
+  } catch (error) {
+    return [error.message];
+  }
+  const { facts, owner, core, own } = found;
   const coreClasses = new Set([...core.values()].flatMap((entry) => entry.classes));
+  const coreHookNames = Object.keys(coreHooks());
   const claimed = new Map();
   const orders = new Map();
   const docOrders = new Map();
-  const hosts = new Set(rippleHosts().map((selector) => owner.get(/\.(ds-[\w-]+)/.exec(selector)?.[1])).filter(Boolean));
-  const same = (field, listed, found, where) => {
+  const describedBy = new Map();
+  const defined = new Map(cssFacts(repoText('src/core/motion.css')).defines.map((keyframe) => [keyframe, 'src/core/motion.css']));
+  for (const { name, meta } of list) for (const hook of ownedHooks(meta)) describedBy.set(hook, [...(describedBy.get(hook) ?? []), name]);
+  const listedHosts = new Set(list.filter((component) => component.meta.rippleHosts?.length).map((component) => component.name));
+  const hosts = new Set([...listedHosts, ...rippleHosts().map((selector) => owner.get(/\.(ds-[\w-]+)/.exec(selector)?.[1])).filter(Boolean)]);
+  const same = (field, listed, found, where, order = true) => {
     const missing = found.filter((value) => !listed.includes(value));
     const extra = listed.filter((value) => !found.includes(value));
     if (missing.length) problems.push(`${where}: "${field}" misses ${missing.join(', ')}`);
-    if (extra.length) problems.push(`${where}: "${field}" lists ${extra.join(', ')}, which ${where.replace('/meta.json', '.css')} does not use`);
-    if (!missing.length && !extra.length && listed.join() !== found.join()) problems.push(`${where}: "${field}" is not sorted`);
+    if (extra.length) problems.push(`${where}: "${field}" lists ${extra.join(', ')}, which ${where.replace(/\/(\w[\w-]*)\/meta\.json$/, '/$1/$1.css')} does not use`);
+    if (order && !missing.length && !extra.length && listed.join() !== found.join()) problems.push(`${where}: "${field}" is not sorted`);
   };
-  for (const { name, meta, css, md } of list) {
+  for (const component of list) {
+    const { name, meta, css, md } = component;
     const where = `src/components/${name}/meta.json`;
-    const keys = Object.keys(meta);
-    const unknown = keys.filter((key) => !META_KEYS.includes(key));
-    const absent = META_KEYS.filter((key) => !keys.includes(key));
-    if (unknown.length) problems.push(`${where}: unknown keys ${unknown.join(', ')}`);
-    if (absent.length) { problems.push(`${where}: missing keys ${absent.join(', ')}`); continue; }
-    if (keys.join() !== META_KEYS.join()) problems.push(`${where}: keys in the order ${META_KEYS.join(', ')}`);
     if (meta.name !== name) problems.push(`${where}: "name" is "${meta.name}", the folder "${name}"`);
-    if (!GROUPS.includes(meta.group)) problems.push(`${where}: "group" is one of ${GROUPS.join(', ')}`);
-    if (!Number.isInteger(meta.order)) problems.push(`${where}: "order" is an integer`);
-    else if (orders.has(meta.order)) problems.push(`${where}: "order" ${meta.order} is also ${orders.get(meta.order)}'s`);
+    if (orders.has(meta.order)) problems.push(`${where}: "order" ${meta.order} is also ${orders.get(meta.order)}'s`);
     else orders.set(meta.order, name);
     if (md === null && meta.docsOrder !== null) problems.push(`${where}: "docsOrder" is null without ${name}.md`);
-    if (md !== null && !Number.isInteger(meta.docsOrder)) problems.push(`${where}: "docsOrder" is an integer (${name}.md has a place in docs/components.md)`);
+    if (md !== null && meta.docsOrder === null) problems.push(`${where}: "docsOrder" is an integer (${name}.md has a place in docs/components.md)`);
     else if (md !== null && docOrders.has(meta.docsOrder)) problems.push(`${where}: "docsOrder" ${meta.docsOrder} is also ${docOrders.get(meta.docsOrder)}'s`);
     else if (md !== null) docOrders.set(meta.docsOrder, name);
-    for (const field of ['classes', 'attributes', 'requires', 'context', 'hooks', 'keyframes', 'js', 'progressive']) {
-      if (!Array.isArray(meta[field]) || meta[field].some((value) => typeof value !== 'string')) problems.push(`${where}: "${field}" is a list of strings`);
-    }
-    if (typeof meta.ripple !== 'boolean') problems.push(`${where}: "ripple" is true or false`);
-    if (problems.length) continue;
-    const found = facts.get(name);
+    const styled = facts.get(name);
     for (const cls of meta.classes) {
       if (claimed.has(cls)) problems.push(`${where}: .${cls} is listed by ${claimed.get(cls)} too; one component owns a class`);
       else claimed.set(cls, name);
-      if (!found.classes.includes(cls)) problems.push(`${where}: lists .${cls}, which ${css} does not style`);
+      if (!styled.classes.includes(cls)) problems.push(`${where}: lists .${cls}, which ${css} does not style`);
       if (coreClasses.has(cls)) problems.push(`${where}: .${cls} belongs to a core stylesheet`);
     }
     if ([...meta.classes].sort().join() !== meta.classes.join()) problems.push(`${where}: "classes" is not sorted`);
-    for (const cls of found.classes) {
+    for (const cls of styled.classes) {
       if (meta.classes.includes(cls) || coreClasses.has(cls)) continue;
       const other = owner.get(cls);
       if (!other) problems.push(`${css} styles .${cls}, which no meta.json lists: add it to "classes" of the component that owns it`);
       else if (!meta.requires.includes(other) && !meta.context.includes(other)) problems.push(`${where}: ${css} styles .${cls} of ${other}: add "${other}" to "context" (or to "requires" when ${name} needs it)`);
     }
-    same('attributes', meta.attributes, found.attributes, where);
-    same('hooks', meta.hooks, found.hooks, where);
-    same('keyframes', meta.keyframes, found.keyframes, where);
+    same('attributes', meta.attributes, styled.attributes, where);
+    // Hooks: in the docs/theming.md order, so not sorted; each described once.
+    same('hooks', Object.keys(meta.hooks), styled.hooks, where, false);
+    for (const [hook, entry] of Object.entries(meta.hooks)) {
+      if ('owner' in entry) {
+        if (entry.owner === name || !names.has(entry.owner)) problems.push(`${where}: "hooks" ${hook}: "owner" names ${entry.owner}, no other component`);
+        else if (!(describedBy.get(hook) ?? []).includes(entry.owner)) problems.push(`${where}: "hooks" ${hook}: ${entry.owner} does not describe it ({ default, description } in its meta.json)`);
+      } else if (coreHookNames.includes(hook)) problems.push(`${where}: "hooks" ${hook} is a core hook (src/core/hooks.json): name no owner, or move it`);
+      else if (describedBy.get(hook).length > 1) problems.push(`${where}: "hooks" ${hook} is described by ${describedBy.get(hook).join(' and ')}; one describes it, the others name it as "owner"`);
+    }
+    // Keyframes: those the stylesheet names plus those the folder defines, each defined once.
+    const defines = own.get(name);
+    for (const keyframe of defines) {
+      if (!/^ds-[a-z0-9-]+$/.test(keyframe)) problems.push(`${component.keyframesCss}: @keyframes ${keyframe}: the ds- prefix`);
+      if (defined.has(keyframe)) problems.push(`${component.keyframesCss}: @keyframes ${keyframe} is defined in ${defined.get(keyframe)} too`);
+      else defined.set(keyframe, component.keyframesCss);
+    }
+    same('keyframes', meta.keyframes, sorted([...styled.keyframes, ...defines]), where);
+    same('keyframeDocs', Object.keys(meta.keyframeDocs ?? {}), defines, where, false);
     for (const field of ['requires', 'context']) {
       for (const other of meta[field]) if (!names.has(other) || other === name) problems.push(`${where}: "${field}" names ${other}, no other component`);
       if ([...meta[field]].sort().join() !== meta[field].join()) problems.push(`${where}: "${field}" is not sorted`);
@@ -569,7 +882,26 @@ export function verifyComponents(list = components()) {
     const both = meta.requires.filter((other) => meta.context.includes(other));
     if (both.length) problems.push(`${where}: ${both.join(', ')} in both "requires" and "context"`);
     for (const module of meta.js) if (!MODULES.includes(module)) problems.push(`${where}: "js" names ${module}, not a module of MODULES`);
-    if (meta.ripple !== hosts.has(name)) problems.push(`${where}: "ripple" is ${meta.ripple}, but RIPPLE_HOSTS of src/js/ripple.js ${hosts.has(name) ? 'lists' : 'does not list'} one of its classes`);
+    if ([...meta.js].sort().join() !== meta.js.join()) problems.push(`${where}: "js" is not sorted`);
+    if (Boolean(meta.module) !== Boolean(component.js)) problems.push(component.js ? `${where}: "module": true (the folder holds ${name}.js)` : `${where}: "module" without ${name}.js: leave the key out`);
+    if (component.js && !meta.js.includes(name)) problems.push(`${where}: "js" lists ${name} (its own module)`);
+    if (component.types && !component.js) problems.push(`src/components/${name}/${name}.d.ts: types without ${name}.js`);
+    if (component.js && !component.types) problems.push(`src/components/${name}/: ${name}.js needs its types, ${name}.d.ts`);
+    if (component.requires && !component.js) problems.push(`src/components/${name}/${name}.requires.json: no ${name}.js`);
+    if (meta.ripple !== hosts.has(name)) problems.push(`${where}: "ripple" is ${meta.ripple}, but ${hosts.has(name) ? 'it has a ripple host' : 'no ripple host names one of its classes'} ("rippleHosts", RIPPLE_HOSTS of src/js/ripple.js)`);
+    for (const selector of meta.rippleHosts ?? []) {
+      const cls = /\.(ds-[\w-]+)/.exec(selector)?.[1];
+      if (cls ? !meta.classes.includes(cls) : !meta.attributes.some((attribute) => selector.includes(`[${attribute}`))) problems.push(`${where}: "rippleHosts" ${selector}: name one of its own classes (or, without a class, its own attribute)`);
+    }
+    // An exception stays with its component: its key names one of the component's own classes (a keyframe: its own).
+    const ownClass = (key) => meta.classes.some((cls) => new RegExp(`\\.${cls}(?![\\w-])`).test(key));
+    const exceptionKeys = [
+      ...Object.entries(meta.exceptions ?? {}).flatMap(([kind, entries]) => Object.keys(entries).map((key) => [`exceptions.${kind}`, key])),
+      ...Object.entries(meta.motionExceptions ?? {}).filter(([kind]) => kind !== 'keyframeShape')
+        .flatMap(([kind, entries]) => (kind === 'transition' ? Object.entries(entries).flatMap(([property, map]) => Object.keys(map).map((key) => [`motionExceptions.transition.${property}`, key])) : Object.keys(entries).map((key) => [`motionExceptions.${kind}`, key]))),
+    ];
+    for (const [field, key] of exceptionKeys) if (!ownClass(key)) problems.push(`${where}: ${field} "${key}" names none of its own classes`);
+    for (const keyframe of Object.keys(meta.motionExceptions?.keyframeShape ?? {})) if (!defines.includes(keyframe)) problems.push(`${where}: motionExceptions.keyframeShape names ${keyframe}, which ${name}.keyframes.css does not define`);
     const note = progressiveEntries(repoText(css)).join('\n');
     const progressive = PROGRESSIVE_NAMES.filter((feature) => note.includes(feature));
     if (meta.progressive.join() !== progressive.join()) problems.push(`${where}: "progressive" is [${meta.progressive.join(', ')}], the "Progressive:" note of ${css} names [${progressive.join(', ')}]`);
@@ -658,13 +990,188 @@ ${parts.join('\n')}})(typeof globalThis !== 'undefined' ? globalThis : this);
 `;
 }
 
+/**
+ * The marker lines of a generated block inside a hand-written file, by the
+ * file's comment syntax: the block is everything between them.
+ */
+function blockMarkers(path, name) {
+  const note = `generated: ${name} (scripts/build.mjs; do not edit)`;
+  if (/\.md$/.test(path)) return [`<!-- ${note} -->`, `<!-- /generated: ${name} -->`];
+  // In a stylesheet the block sits inside a comment (themes/example.css): plain marker lines.
+  if (/\.css$/.test(path)) return [`── ${note} ──`, `── /generated: ${name} ──`];
+  return [`// ${note}`, `// /generated: ${name}`];
+}
+
+/**
+ * `text` with its generated block `name` replaced by `content` (lines, no
+ * final newline needed). The markers keep their indentation; a file
+ * without both markers throws, so a lost marker never goes unnoticed.
+ */
+export function replaceBlock(text, path, name, content) {
+  const [open, close] = blockMarkers(path, name);
+  const start = text.indexOf(open);
+  const end = text.indexOf(close, start);
+  if (start < 0 || end < 0) throw new Error(`${path}: the markers "${open}" and "${close}" of the generated block ${name} are missing`);
+  const indent = text.slice(text.lastIndexOf('\n', start) + 1, start);
+  const body = content.replace(/\n+$/, '');
+  return `${text.slice(0, start + open.length)}\n${body ? `${body}\n` : ''}${indent}${text.slice(end)}`;
+}
+
+/**
+ * The rows of the "Component hooks" table of docs/theming.md: the core
+ * hooks (src/core/hooks.json), then every component's described hooks in
+ * meta.json "order", each in its meta.json's order; adjacent hooks of one
+ * component with the same default and description share a row.
+ */
+export function hooksTable(list) {
+  const rows = [];
+  const add = (entries) => {
+    let last = null;
+    for (const [name, entry] of entries) {
+      if (last && last.default === entry.default && last.description === entry.description) last.names.push(name);
+      else rows.push(last = { names: [name], default: entry.default, description: entry.description });
+    }
+  };
+  add(Object.entries(coreHooks()));
+  for (const component of list) add(ownedHooks(component.meta).map((name) => [name, component.meta.hooks[name]]));
+  return ['| Hook | Default | Component |', '|---|---|---|', ...rows.map((row) => `| ${row.names.map((name) => `\`${name}\``).join(', ')} | ${row.default} | ${row.description} |`)].join('\n');
+}
+
+/**
+ * The hooks of themes/example.css (commented out, in a generated block):
+ * every hook of the docs/theming.md table in its order, each with the
+ * fallback its stylesheet reads it with.
+ */
+export function exampleHooks(list) {
+  const sources = [{ name: 'motion', css: 'src/core/motion.css', hooks: Object.keys(coreHooks()) }, ...list.map((component) => ({ ...component, hooks: ownedHooks(component.meta) }))];
+  return sources.flatMap(({ css, hooks }) => {
+    const code = stripCssComments(repoText(css));
+    return hooks.map((name) => {
+      const value = fallbackOf(code, name) ?? '(set by the component)';
+      if (value.includes('*/')) throw new Error(`${css}: the fallback of ${name} would end the comment of themes/example.css`);
+      return `  ${name}: ${value};`;
+    });
+  }).join('\n');
+}
+
+/** The table of the keyframes the components define (<name>.keyframes.css, meta.json "keyframeDocs") for docs/motion.md. */
+export function componentKeyframesTable(list) {
+  const rows = list.flatMap((component) => componentKeyframes(component).names.map((name) => {
+    const docs = component.meta.keyframeDocs?.[name] ?? { movement: '', use: '' };
+    return `| \`${name}\` | ${docs.movement} | ${docs.use} ([${component.name}](components.md)) |`;
+  }));
+  if (!rows.length) return 'No component defines keyframes of its own yet: a `<name>.keyframes.css` adds its rows here.';
+  return ['Keyframes a component defines (`src/components/<name>/<name>.keyframes.css`, appended to `motion.css`):', '', '| Name | Movement | Use |', '|---|---|---|', ...rows].join('\n');
+}
+
+/** The GitHub anchor of a Markdown heading. */
+const anchorOf = (heading) => heading.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s/g, '-');
+
+/** The table of the JS modules of dist/js/ for docs/install.md: file, namespace, imports, docs. */
+export function modulesTable(list) {
+  const rows = MODULES.map((name) => {
+    const files = moduleFiles(name);
+    const imports = moduleImports(moduleSource(name));
+    let docs = files.docs.replace(/^docs\//, '');
+    if (files.component) {
+      const component = list.find((entry) => entry.name === name);
+      const heading = component?.md ? /^## (.+)$/m.exec(repoText(component.md))?.[1] : null;
+      docs = `components.md${heading ? `#${anchorOf(heading)}` : ''}`;
+    }
+    return `| \`js/${name}.js\` | \`DS.${name}\` | ${files.component ? `component (\`src/components/${name}/\`)` : 'core (`src/js/`)'} | ${imports.length ? imports.map((other) => `\`${other}\``).join(', ') : '-'} | [${docs.replace(/#.*$/, '')}](${docs}) |`;
+  });
+  return ['| File | Namespace | Kind | Imports | Docs |', '|---|---|---|---|---|', ...rows].join('\n');
+}
+
+/** The module imports and the DS namespaces of src/types/ds.d.ts (its two generated blocks). */
+export function dsTypes(source) {
+  const imports = MODULES.map((name) => `import type * as ${name} from './js/${name}.js';`).join('\n');
+  const namespaces = MODULES.map((name) => `  readonly ${name}: typeof ${name};`).join('\n');
+  return replaceBlock(replaceBlock(source, 'src/types/ds.d.ts', 'modules', imports), 'src/types/ds.d.ts', 'namespaces', namespaces);
+}
+
+/** The ripple hosts of every meta.json "rippleHosts", in component order: the generated block of RIPPLE_HOSTS in src/js/ripple.js. */
+export function rippleHostLines(list) {
+  return list.flatMap((component) => (component.meta.rippleHosts ?? []).map((selector) => {
+    if (selector.includes("'")) throw new Error(`src/components/${component.name}/meta.json: a ripple host without ' (${selector})`);
+    return `  '${selector}',`;
+  })).join('\n');
+}
+
+/**
+ * styleguide/lab-components.js: every src/components/<name>/<name>.lab.js
+ * in component order, each in a function of its own, after the definition
+ * of SG_LAB.add(entry). A classic script that motion.html loads after
+ * lab.js (which sets window.SG_LAB, the entries of the lab) and before
+ * styleguide.js (which renders them).
+ */
+export function labComponentsJs(list, read = repoText) {
+  const parts = list.filter((component) => component.lab).map((component) => {
+    const source = read(component.lab);
+    if (/^\s*(import|export)\b/m.test(source)) throw new Error(`${component.lab}: a classic script: no import or export; call SG_LAB.add({ ... })`);
+    if (!/\bSG_LAB\.add\(/.test(source)) throw new Error(`${component.lab}: adds its entries with SG_LAB.add({ ... })`);
+    const body = source.trimEnd().split('\n').map((line) => (line ? `    ${line}` : line)).join('\n');
+    return `  // ── components/${component.name}/${component.name}.lab.js\n  (function () {\n${body}\n  }());\n`;
+  });
+  return `/*
+ * The Motion Lab entries of the components, one function per
+ * src/components/<name>/<name>.lab.js, in component order. Generated by
+ * scripts/build.mjs; do not edit. A classic script (the lab works from
+ * disk): motion.html loads it after lab.js and before styleguide.js.
+ *
+ * SG_LAB.add(entry) appends one entry to window.SG_LAB, in the shape the
+ * head of lab.js documents: id, group (an id of SG_LAB_GROUPS), title,
+ * shows, html and play(stage, sg) are required; note, height, after,
+ * controls, wide, playLabel, setup, toggle, state, reset and subject are
+ * optional. An id may be used once; a bad entry throws, so the lab's
+ * console error fails test/browser/lab.spec.js.
+ */
+(function (root) {
+  'use strict';
+  var lab = root.SG_LAB || (root.SG_LAB = []);
+  if (!lab.add) {
+    Object.defineProperty(lab, 'add', {
+      value: function (entry) {
+        var fail = function (why) { throw new Error('SG_LAB.add(' + (entry && entry.id) + '): ' + why); };
+        if (!entry || typeof entry !== 'object') fail('an entry object');
+        ['id', 'group', 'title', 'html'].forEach(function (key) { if (typeof entry[key] !== 'string' || !entry[key]) fail(key + ' is a string'); });
+        if (!Array.isArray(entry.shows) || !entry.shows.length) fail('shows lists what it plays');
+        if (typeof entry.play !== 'function') fail('play(stage, sg) is a function');
+        ['setup', 'toggle', 'state', 'reset', 'subject'].forEach(function (key) { if (key in entry && typeof entry[key] !== 'function') fail(key + ' is a function'); });
+        if (lab.some(function (other) { return other.id === entry.id; })) fail('the id is taken');
+        lab.push(entry);
+        return entry;
+      },
+    });
+  }
+  var SG_LAB = lab;
+
+${parts.join('\n')}})(typeof globalThis !== 'undefined' ? globalThis : this);
+`;
+}
+
 /** The generated files of the repository: Map of repository path -> text. */
 export function generatedFiles(list = components()) {
   return new Map([
     ['src/index.css', indexCss(list)],
     ['docs/components.md', componentsMd(list)],
     ['styleguide/demos.js', demosJs(list)],
+    ['styleguide/lab-components.js', labComponentsJs(list)],
+    ['docs/theming.md', replaceBlock(repoText('docs/theming.md'), 'docs/theming.md', 'hooks', hooksTable(list))],
+    ['docs/motion.md', replaceBlock(repoText('docs/motion.md'), 'docs/motion.md', 'component keyframes', componentKeyframesTable(list))],
+    ['docs/install.md', replaceBlock(repoText('docs/install.md'), 'docs/install.md', 'modules', modulesTable(list))],
+    ['src/types/ds.d.ts', dsTypes(repoText('src/types/ds.d.ts'))],
+    ['src/js/ripple.js', replaceBlock(repoText('src/js/ripple.js'), 'src/js/ripple.js', 'ripple hosts', rippleHostLines(list))],
+    ['README.md', readmeCount(repoText('README.md'), list.length)],
+    ['themes/example.css', replaceBlock(repoText('themes/example.css'), 'themes/example.css', 'hooks', exampleHooks(list))],
   ]);
+}
+
+/** README.md with the component count of its Components badge (a badge line takes no marker comments). */
+export function readmeCount(text, count) {
+  const badge = /!\[Components: \d+\]\(https:\/\/img\.shields\.io\/badge\/components-\d+-/;
+  if (!badge.test(text)) throw new Error('README.md: no "![Components: <n>](https://img.shields.io/badge/components-<n>-..." badge');
+  return text.replace(badge, `![Components: ${count}](https://img.shields.io/badge/components-${count}-`);
 }
 
 /** Generated files that differ from what is on disk. */
@@ -866,7 +1373,7 @@ export const MODULE_REQUIRES_KEYS = ['requires', 'exportRequires'];
 export function moduleRequires(list = components()) {
   const usedBy = new Map(MODULES.map((name) => [name, list.filter((component) => component.meta.js.includes(name)).map((component) => component.name)]));
   return Object.fromEntries(MODULES.map((name) => {
-    const path = `src/js/${name}.requires.json`;
+    const path = moduleFiles(name).requires;
     const data = repoHas(path) ? JSON.parse(repoText(path)) : { requires: [], exportRequires: {} };
     const own = usedBy.get(name).filter((component) => component === name);
     return [name, { requires: sorted([...own, ...data.requires]), exportRequires: data.exportRequires }];
@@ -878,7 +1385,7 @@ export function verifyModuleRequires(list = components()) {
   const problems = [];
   const names = new Set(list.map((component) => component.name));
   for (const name of MODULES) {
-    const path = `src/js/${name}.requires.json`;
+    const path = moduleFiles(name).requires;
     if (!repoHas(path)) continue;
     let data;
     try {
@@ -891,7 +1398,7 @@ export function verifyModuleRequires(list = components()) {
       problems.push(`${path}: the keys ${MODULE_REQUIRES_KEYS.join(', ')}, in this order`);
       continue;
     }
-    const exports = [...repoText(`src/js/${name}.js`).matchAll(/^export (?:const|function) ([\w$]+)/gm)].map((match) => match[1]);
+    const exports = [...repoText(moduleFiles(name).source).matchAll(/^export (?:const|function) ([\w$]+)/gm)].map((match) => match[1]);
     const lists = [['requires', data.requires], ...Object.entries(data.exportRequires ?? {}).map(([key, value]) => [`exportRequires.${key}`, value])];
     for (const [where, value] of lists) {
       // "requires" may be empty; an export listed in "exportRequires" needs something.
@@ -903,18 +1410,24 @@ export function verifyModuleRequires(list = components()) {
       if ([...value].sort().join() !== value.join()) problems.push(`${path}: "${where}" is not sorted`);
     }
     const keys = Object.keys(data.exportRequires ?? {});
-    for (const key of keys) if (!exports.includes(key)) problems.push(`${path}: "exportRequires" names ${key}, no export of src/js/${name}.js`);
+    for (const key of keys) if (!exports.includes(key)) problems.push(`${path}: "exportRequires" names ${key}, no export of ${moduleFiles(name).source}`);
     if ([...keys].sort().join() !== keys.join()) problems.push(`${path}: the exports of "exportRequires" are not sorted`);
   }
   return problems;
+}
+
+/** The data-ds-* attributes a component's module names as string literals (`attribute: 'data-ds-<name>'`). */
+function moduleAttributes(name) {
+  if (!MODULES.includes(name) || !moduleFiles(name).component) return [];
+  return [...repoText(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]);
 }
 
 /** The exports and sibling imports of each module of MODULES, and the CSS it needs (moduleRequires). */
 function moduleFacts(list) {
   const needs = moduleRequires(list);
   return Object.fromEntries(MODULES.map((name) => {
-    const source = repoText(`src/js/${name}.js`);
-    const imports = sorted([...source.matchAll(/^import\s*\{[^}]*\}\s*from\s*['"]\.\/([\w-]+)\.js['"]/gm)].map((match) => match[1]));
+    const source = moduleSource(name);
+    const imports = moduleImports(source);
     const exports = [...source.matchAll(/^export (?:const|function) ([\w$]+)/gm)].map((match) => match[1]);
     return [name, { file: `js/${name}.js`, types: `js/${name}.d.ts`, imports, exports, ...needs[name] }];
   }));
@@ -971,10 +1484,11 @@ export function manifestJson(list, sizes, info) {
         requires: meta.requires,
         context: meta.context,
         classes: meta.classes,
-        attributes: facts.get(name).attributes,
+        // What the stylesheet selects, plus the behaviour attributes its module reads, so a bundle finds a behaviour by its attribute.
+        attributes: sorted([...facts.get(name).attributes, ...moduleAttributes(name)]),
         keyframes: meta.keyframes,
         js: meta.js,
-        hooks: meta.hooks,
+        hooks: sorted(Object.keys(meta.hooks)),
         ripple: meta.ripple,
         progressive: meta.progressive,
         bytes: sizes.get(min).bytes,
@@ -998,14 +1512,14 @@ const IMPORT_LINE = /^@import\s+(?:'([^']+)'|"([^"]+)");[ \t]*(?:\n|$)/gm;
  * inlining is a form this build does not read, so it throws instead of
  * shipping a request for a file that is not there.
  */
-export function inlineCss(path, ancestors = [], inlined = new Set(), contents = undefined) {
+export function inlineCss(path, ancestors = [], inlined = new Set(), contents = undefined, overrides = new Map()) {
   if (ancestors.includes(path)) throw new Error(`CSS import cycle: ${[...ancestors, path].join(' -> ')}`);
   if (inlined.has(path)) throw new Error(`CSS duplicate import: ${path} (imported by ${ancestors.at(-1)})`);
   inlined.add(path);
   const chain = [...ancestors, path];
-  const css = (contents ?? readText(path)).replace(IMPORT_LINE, (line, single, double) => {
+  const css = (contents ?? overrides.get(path) ?? readText(path)).replace(IMPORT_LINE, (line, single, double) => {
     const child = resolve(dirname(path), single ?? double);
-    const body = inlineCss(child, chain, inlined).trimEnd();
+    const body = inlineCss(child, chain, inlined, undefined, overrides).trimEnd();
     return `/* ── ${posix(relative(join(ROOT, 'src'), child))} ── */\n${body}\n\n`;
   });
   if (/^\s*@import/m.test(css)) throw new Error(`CSS @import left after inlining in ${path}: only "@import 'file';" lines are read`);
@@ -1033,6 +1547,7 @@ export function layerStatementOnce(css) {
  * styleguide's demos use it with the namespace SG.
  */
 export function moduleBody(source, name, namespace = 'DS') {
+  if (MODULES.includes(name) && moduleFiles(name).component) source = rewriteComponentImports(source, name);
   return wrapModule(source, name, MODULES.includes(name) ? MODULES : [name], { namespace });
 }
 
@@ -1043,7 +1558,7 @@ export function moduleBody(source, name, namespace = 'DS') {
  * DS.config as the top-level aliases of DS.core.
  */
 export function buildJs(info) {
-  const modules = MODULES.map((name) => ({ name, source: readText(join(ROOT, 'src/js', `${name}.js`)) }));
+  const modules = MODULES.map((name) => ({ name, source: moduleSource(name) }));
   return classicScript({ version: info.version, banner: banner(info), modules, merge: true });
 }
 
@@ -1086,7 +1601,9 @@ function buildDist() {
     stylesheet(path, withBanner(path, source.replace(`\n${LAYERS}\n`, `\n${LAYERS}\n${sublayers}\n`), info));
   };
 
-  const css = `${banner(info)}${layerStatementOnce(inlineCss(join(ROOT, 'src/index.css'), [], new Set(), indexCss(list))).trimEnd()}\n`;
+  // motion.css with the keyframes of every <name>.keyframes.css (motionCss).
+  const motion = motionCss(list);
+  const css = `${banner(info)}${layerStatementOnce(inlineCss(join(ROOT, 'src/index.css'), [], new Set(), indexCss(list), new Map([[join(ROOT, 'src/core/motion.css'), motion]]))).trimEnd()}\n`;
   stylesheet('ds.css', css);
   stylesheet('css/properties.css', propertiesCss(css, info));
   const js = buildJs(info);
@@ -1101,21 +1618,28 @@ function buildDist() {
     if (path === 'index.css') continue; // generated (indexCss); ds.css and css/index.css come from the list
     if ((match = /^core\/([\w-]+)\.css$/.exec(path))) {
       if (!CORE.includes(match[1])) throw new Error(`src/${path}: not a core stylesheet (CORE in scripts/build.mjs)`);
-      single(`css/${path}`, readText(file));
+      single(`css/${path}`, match[1] === 'motion' ? motion : readText(file));
+    } else if (path === 'core/hooks.json') {
+      continue; // the core rows of the hooks table of docs/theming.md (hooksTable)
     } else if ((match = /^components\/([\w-]+)\/([\w.-]+)$/.exec(path)) && !match[1].startsWith('_')) {
       const [, name, base] = match;
+      // components() has checked the folder's files; the module and its types ship flat in js/.
       if (base === `${name}.css`) single(`css/components/${name}.css`, readText(file));
-      else if (![`meta.json`, `${name}.md`, `${name}.demo.js`].includes(base)) throw new Error(`Unexpected file in src/components/${name}/: ${base} (a folder holds ${name}.css, meta.json, ${name}.md and ${name}.demo.js)`);
+      else if (base === `${name}.js`) text(`js/${name}.js`, withBanner(base, moduleSource(name), info));
+      else if (base === `${name}.d.ts`) text(`js/${name}.d.ts`, withBanner(base, rewriteComponentImports(readText(file), name), info));
     } else if (/^components\/_partials\/[\w-]+\.md$/.test(path)) continue; // the partials of docs/components.md
     else if (/^optional\/[\w-]+\.css$/.test(path)) stylesheet(`css/${path}`, withBanner(path, readText(file), info));
-    else if (path.startsWith('js/') && path.endsWith('.js')) text(path, withBanner(path, readText(file), info));
+    else if ((match = /^js\/([\w-]+)\.js$/.exec(path))) {
+      if (!CORE_MODULES.includes(match[1])) throw new Error(`src/${path}: not a core module (CORE_MODULES in scripts/build.mjs); a component's module sits in its folder`);
+      text(path, withBanner(path, readText(file), info));
+    }
     else if ((match = /^js\/([\w-]+)\.requires\.json$/.exec(path)) && MODULES.includes(match[1])) continue; // manifest.json "js.<module>" (moduleRequires)
     else if (path === 'deprecations.json') text(path, deprecationsJson(readText(file), info));
-    else if (path === 'types/ds.d.ts') text('ds.d.ts', withBanner(path, readText(file), info));
-    else if (/^types\/js\/[\w-]+\.d\.ts$/.test(path) && MODULES.includes(path.slice(9, -5))) text(path.slice(6), withBanner(path, readText(file), info));
+    else if (path === 'types/ds.d.ts') text('ds.d.ts', withBanner(path, dsTypes(readText(file)), info));
+    else if (/^types\/js\/[\w-]+\.d\.ts$/.test(path) && CORE_MODULES.includes(path.slice(9, -5))) text(path.slice(6), withBanner(path, readText(file), info));
     else throw new Error(`Unexpected file in src/: ${path}`);
   }
-  for (const name of MODULES) if (!out.has(`js/${name}.d.ts`)) throw new Error(`src/types/js/${name}.d.ts is missing: every module has its types`);
+  for (const name of MODULES) if (!out.has(`js/${name}.d.ts`)) throw new Error(`${moduleFiles(name).types} is missing: every module has its types`);
   if (!out.has('ds.d.ts')) throw new Error('src/types/ds.d.ts is missing');
   for (const file of filesIn(join(ROOT, 'fonts'))) {
     const path = posix(relative(join(ROOT, 'fonts'), file));
@@ -1163,6 +1687,11 @@ function statSafe(path) {
 
 function main() {
   const files = generatedFiles();
+  // The generated paths alone: `git checkout -- dist $(node scripts/build.mjs --generated)` on a group branch.
+  if (process.argv.includes('--generated')) {
+    console.log([...files.keys()].join('\n'));
+    return;
+  }
   if (process.argv.includes('--check')) {
     const out = build();
     const problems = [...diffGenerated(files), ...diffDist(out)];

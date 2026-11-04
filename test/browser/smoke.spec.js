@@ -1,7 +1,8 @@
 /**
  * Smoke tests of the harness itself: the static server, the styleguide's
  * test hooks (`data-sg-ready`, `data-sg-theme`, `?speed=`), the version of
- * the loaded `dist/ds.js` and the seven ES modules of `dist/js/`. When one of
+ * the loaded `dist/ds.js`, every ES module of `dist/js/` and the generated
+ * per-component fixture page (serve.js, fixtures/sg-stub.js). When one of
  * these fails, every other spec fails for the same reason; start here.
  */
 import { test, expect } from '@playwright/test';
@@ -11,6 +12,7 @@ import { ready, settle } from './helpers/motion.js';
 const STYLEGUIDE = '/styleguide/index.html';
 const FIXTURES = '/test/browser/fixtures/';
 const VERSION = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
+const MANIFEST = JSON.parse(readFileSync(new URL('../../dist/manifest.json', import.meta.url), 'utf8'));
 
 /** Collects console errors and uncaught exceptions of the page. */
 function collectErrors(page) {
@@ -65,13 +67,37 @@ test('every fixture loads without a console error', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('module.html imports the seven ES modules and they export what window.DS exposes', async ({ page }) => {
+test('module.html imports every ES module of manifest.json and they export what window.DS exposes', async ({ page }) => {
   await page.goto(`${FIXTURES}module.html`);
   const result = await page.waitForFunction(() => window.moduleResult).then((handle) => handle.jsonValue());
   expect(result.error).toBeUndefined();
   expect(result.missing).toEqual({});
-  expect(Object.keys(result.modules).sort()).toEqual(['core', 'dom', 'icons', 'indicator', 'motion', 'overlay', 'ripple']);
+  expect(Object.keys(result.modules).sort()).toEqual(Object.keys(MANIFEST.js).sort());
+  for (const name of ['core', 'dom', 'icons', 'indicator', 'motion', 'overlay', 'ripple']) expect(Object.keys(result.modules)).toContain(name);
   expect(result.ok).toBe(true);
+});
+
+test('component.html?c=<name> renders a component\'s demo alone through the SG stub, then DS.init()', async ({ page }) => {
+  // A demo file of a component that does not exist, served by the test: the route and the stub alone.
+  await page.route('**/src/components/smoke-sample/smoke-sample.demo.js', (route) => route.fulfill({
+    contentType: 'text/javascript',
+    body: `SG.demo('smoke-sample', {
+      title: 'Smoke sample',
+      render: function (h) { return '<p id="' + h.uid('p') + '">' + h.esc('<one>') + '</p>' + h.icon('check', 16) + '<button class="ds-btn" data-wired>Go</button>'; },
+      wire: function (root) { root.querySelector('[data-wired]').setAttribute('data-wired', 'yes'); },
+    });
+    SG.demo('smoke-other', { render: function () { return '<p>other</p>'; } });`,
+  }));
+  const errors = collectErrors(page);
+  await page.goto(`${FIXTURES}component.html?c=smoke-sample&demo=smoke-sample`);
+  await ready(page);
+  expect(await page.evaluate(() => window.componentFixture)).toEqual({ name: 'smoke-sample', mounted: 1 });
+  await expect(page.locator('[data-sg-demo="smoke-sample"] p')).toHaveText('<one>');
+  await expect(page.locator('[data-sg-demo="smoke-sample"] svg')).toHaveCount(1);
+  await expect(page.locator('[data-wired]')).toHaveAttribute('data-wired', 'yes');
+  await expect(page.locator('[data-sg-demo="smoke-other"]')).toHaveCount(0);
+  expect(errors).toEqual([]);
+  expect((await page.request.get(`${FIXTURES}component.html?c=..%2Fx`)).status()).toBe(404);
 });
 
 test('a theme switch marks data-sg-theme and re-places the indicators', async ({ page }) => {

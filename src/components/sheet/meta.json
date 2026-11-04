@@ -27,11 +27,20 @@
     "utilities"
   ],
   "context": [],
-  "hooks": [
-    "--ds-sheet-foot-border",
-    "--ds-sheet-width",
-    "--ds-sheet-width-wide"
-  ],
+  "hooks": {
+    "--ds-sheet-width": {
+      "default": "560px, 720px",
+      "description": "side sheet"
+    },
+    "--ds-sheet-width-wide": {
+      "default": "560px, 720px",
+      "description": "side sheet"
+    },
+    "--ds-sheet-foot-border": {
+      "default": "`1px solid var(--ds-line)`",
+      "description": "the hairline above `.ds-sheet__foot`"
+    }
+  },
   "keyframes": [
     "ds-drop-out",
     "ds-fade-in",
@@ -51,5 +60,16 @@
     "scroll-driven",
     "scrollbar-color"
   ],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-sheet__panel: border-radius": "the side sheet slides in from the right edge: its open side is the left",
+      ".ds-sheet__panel::after: left": "the bleed beyond the right edge covers the slide's overshoot"
+    }
+  },
+  "motionExceptions": {
+    "exitUnpaired": {
+      ".ds-sheet--closing:not([data-state]) .ds-sheet__panel": "the opaque side sheet panel slides its full width off screen (D16); phones: down"
+    }
+  }
 }

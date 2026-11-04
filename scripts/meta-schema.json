@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/saschazesiger/Dashboard-Style/scripts/meta-schema.json",
+  "title": "src/components/<name>/meta.json",
+  "description": "The facts of one component folder. scripts/build.mjs validates every meta.json against this schema (validateSchema(): type, enum, pattern, minimum, maximum, minLength, items, uniqueItems, properties, required, additionalProperties, propertyNames, anyOf and local $ref), then against the folder and its stylesheet (verifyComponents()). The keys are written in the order of \"properties\"; the optional ones may be left out.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "group", "order", "docsOrder", "classes", "attributes", "requires", "context", "hooks", "keyframes", "js", "progressive", "ripple"],
+  "properties": {
+    "name": { "description": "The folder's name: lower-case words joined by -.", "type": "string", "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+    "group": { "description": "The styleguide and docs group.", "enum": ["actions", "forms", "data", "overlays", "navigation", "feedback", "layout", "content", "motion"] },
+    "order": { "description": "The cascade order of the stylesheet (src/index.css, ds.css, manifest.json \"order\"); unique.", "type": "integer", "minimum": 0 },
+    "docsOrder": { "description": "The place of <name>.md in docs/components.md (unique), or null without <name>.md.", "type": ["integer", "null"], "minimum": 0 },
+    "need": { "description": "One line: the need this component answers (the \"Which component for which need\" table).", "type": "string", "minLength": 1 },
+    "tier": { "description": "plans/3.0.md: 1 ships with 3.0.0, 2 if time allows, 3 when its phase has room.", "enum": [1, 2, 3] },
+    "status": { "description": "How settled the component's API is.", "enum": ["stable", "beta", "experimental", "deprecated"] },
+    "classes": { "description": "Every ds- class the stylesheet owns, sorted; no other component lists one of them.", "$ref": "#/$defs/names", "items": { "type": "string", "pattern": "^ds-[\\w-]+$" } },
+    "attributes": { "description": "Every data- attribute its selectors name, sorted.", "$ref": "#/$defs/names", "items": { "type": "string", "pattern": "^data-[\\w-]+$" } },
+    "requires": { "description": "The components a bundle pulls in with this one (sorted).", "$ref": "#/$defs/components" },
+    "context": { "description": "The components whose classes the stylesheet styles only where both meet (sorted); never pulled in.", "$ref": "#/$defs/components" },
+    "hooks": {
+      "description": "Every documented hook (--ds-*) the stylesheet reads with a fallback, in the order of the docs/theming.md table. The component that owns a hook describes it ({ default, description }: one table row; adjacent hooks with the same default and description share a row); a component that only reads another's hook names that owner ({ owner }).",
+      "type": "object",
+      "propertyNames": { "pattern": "^--ds-[a-z0-9-]+$" },
+      "additionalProperties": {
+        "anyOf": [
+          { "type": "object", "additionalProperties": false, "required": ["default", "description"], "properties": { "default": { "type": "string", "minLength": 1 }, "description": { "type": "string", "minLength": 1 } } },
+          { "type": "object", "additionalProperties": false, "required": ["owner"], "properties": { "owner": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } } }
+        ]
+      }
+    },
+    "keyframes": { "description": "The keyframes the stylesheet names, plus those <name>.keyframes.css defines (sorted).", "$ref": "#/$defs/names", "items": { "type": "string", "pattern": "^ds-[\\w-]+$" } },
+    "keyframeDocs": {
+      "description": "One docs/motion.md keyframe table row per @keyframes of <name>.keyframes.css: what moves, and where it is used.",
+      "type": "object",
+      "propertyNames": { "pattern": "^ds-[\\w-]+$" },
+      "additionalProperties": { "type": "object", "additionalProperties": false, "required": ["movement", "use"], "properties": { "movement": { "type": "string", "minLength": 1 }, "use": { "type": "string", "minLength": 1 } } }
+    },
+    "js": { "description": "The JS modules (core or component) that drive this component's markup (sorted).", "$ref": "#/$defs/names", "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" } },
+    "module": { "description": "true when the folder holds <name>.js (its behaviour module, DS.<name>); leave it out otherwise.", "const": true },
+    "progressive": { "description": "The features newer than the floor that the stylesheet's \"Progressive:\" note names, in PROGRESSIVE_NAMES order.", "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "ripple": { "description": "Whether the component has a ripple host (rippleHosts, or a selector of RIPPLE_HOSTS that starts with one of its classes).", "type": "boolean" },
+    "rippleHosts": { "description": "The ripple host selectors this component adds to RIPPLE_HOSTS (src/js/ripple.js, generated block), in order. Each host also needs its pressed .ds-ripples rule, in its own stylesheet or in ripple.css.", "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "roles": {
+      "description": "Colour roles the component asks for (conventions section 6); the integrator moves them into tokens.css and the themes.",
+      "type": "object",
+      "propertyNames": { "pattern": "^--ds-[a-z0-9-]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["light", "dark", "contrast"],
+        "properties": {
+          "light": { "type": "string", "minLength": 1 },
+          "dark": { "type": "string", "minLength": 1 },
+          "contrast": { "type": "string", "minLength": 1 },
+          "pair": { "type": "array", "items": { "type": "string" }, "minItems": 3, "maxItems": 3 }
+        }
+      }
+    },
+    "labExempt": {
+      "description": "Motion Lab coverage exemptions (test/browser/lab.spec.js LAB_EXEMPT): a keyframe, motion class or DS.<module>.<function> that needs no demo, with the reason.",
+      "$ref": "#/$defs/reasons"
+    },
+    "exceptions": {
+      "description": "Named exemptions of the guardrails of test/css.test.js that concern this component only, each key with its reason.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "important": { "description": "\"<selector>: <property>\" that may carry !important.", "$ref": "#/$defs/reasons" },
+        "physical": { "description": "\"<selector>: <property>\" that stays physical (left, right ...).", "$ref": "#/$defs/reasons" },
+        "hover": { "description": "A :hover selector allowed outside @media (hover: hover).", "$ref": "#/$defs/reasons" },
+        "focus": { "description": "A class (\".ds-input\") whose plain :focus selectors may draw the ring.", "$ref": "#/$defs/reasons" },
+        "ripple": { "description": "An action-like part (keyed by its class, or \"input\") that is no ripple host.", "$ref": "#/$defs/reasons" },
+        "scroller": { "description": "A block that scrolls without being positioned.", "$ref": "#/$defs/reasons" }
+      }
+    },
+    "motionExceptions": {
+      "description": "Named exceptions of the motion rules (conventions section 8) for this component, each with its reason.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "transition": {
+          "description": "Per property of the animate-list exceptions (rotate, width, height ...): the selectors that may transition it.",
+          "type": "object",
+          "propertyNames": { "enum": ["rotate", "border-radius", "outline-offset", "stroke-dashoffset", "mask-position", "width", "height", "min-height"] },
+          "additionalProperties": { "$ref": "#/$defs/reasons" }
+        },
+        "exitUnpaired": { "description": "A movement exit (selector) that runs without ds-fade-out.", "$ref": "#/$defs/reasons" },
+        "keyframeShape": { "description": "A keyframe of <name>.keyframes.css that names both ends (or many stops).", "$ref": "#/$defs/reasons" },
+        "press": { "description": "A pressed selector (:active, .ds-pressed) that may scale.", "$ref": "#/$defs/reasons" }
+      }
+    }
+  },
+  "$defs": {
+    "names": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "components": { "type": "array", "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }, "uniqueItems": true },
+    "reasons": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 } }
+  }
+}

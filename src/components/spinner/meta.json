@@ -14,12 +14,24 @@
   "context": [
     "progress"
   ],
-  "hooks": [
-    "--ds-spinner-color",
-    "--ds-spinner-determinate-width",
-    "--ds-spinner-track",
-    "--ds-spinner-width"
-  ],
+  "hooks": {
+    "--ds-spinner-track": {
+      "default": "none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`)",
+      "description": "spinner: the track behind the arc, the arc"
+    },
+    "--ds-spinner-color": {
+      "default": "none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`)",
+      "description": "spinner: the track behind the arc, the arc"
+    },
+    "--ds-spinner-width": {
+      "default": "2px (`--determinate`: `--ds-spinner-determinate-width`)",
+      "description": "the spinner's ring width (instead of `border-width`)"
+    },
+    "--ds-spinner-determinate-width": {
+      "default": "4px",
+      "description": "the ring width of `.ds-spinner--determinate`"
+    }
+  },
   "keyframes": [
     "ds-spin",
     "ds-spinner-arc"

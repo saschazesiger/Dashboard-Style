@@ -11,8 +11,9 @@ import { gzipSync } from 'node:zlib';
 import vm from 'node:vm';
 import { transform } from 'lightningcss';
 import {
-  CORE, CSS_TARGETS, LAYERS, META_KEYS, MODULES, build, componentNames, components, componentsMd, cssFacts, diffGenerated, generatedFiles,
-  indexCss, moduleRequires, packageInfo, stripJs, sublayerStatement, verifyComponents, verifyModuleRequires, withBanner,
+  COMPONENT_FILES, CORE, CSS_TARGETS, LAYERS, META_KEYS, META_REQUIRED, META_SCHEMA, MODULES, build, componentNames, components, componentsMd, cssFacts,
+  componentKeyframes, diffGenerated, generatedFiles, hooksTable, indexCss, labComponentsJs, motionCss, moduleRequires, packageInfo, replaceBlock, stripJs, sublayerStatement, validateSchema,
+  moduleFiles, verifyComponents, verifyModuleRequires, withBanner,
 } from '../scripts/build.mjs';
 import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
 import { filesIn, read, rules, stripComments } from './helpers.js';
@@ -29,7 +30,8 @@ describe('src/components/<name>/', () => {
     for (const name of names) {
       const files = filesIn(`src/components/${name}`).map((path) => path.slice(path.lastIndexOf('/') + 1));
       assert.ok(files.includes(`${name}.css`) && files.includes('meta.json'), name);
-      assert.deepEqual(files.filter((file) => ![`${name}.css`, 'meta.json', `${name}.md`, `${name}.demo.js`].includes(file)), [], `${name}: nothing else`);
+      const allowed = [`${name}.css`, 'meta.json', ...Object.values(COMPONENT_FILES).map((file) => file(name))];
+      assert.deepEqual(files.filter((file) => !allowed.includes(file)), [], `${name}: nothing else`);
     }
     for (const name of CORE) assert.ok(read(`src/core/${name}.css`).includes(LAYERS), name);
   });
@@ -37,7 +39,8 @@ describe('src/components/<name>/', () => {
   it('keeps every meta.json in step with its stylesheet (verifyComponents)', () => {
     assert.deepEqual(verifyComponents(list), []);
     for (const { name, meta } of list) {
-      assert.deepEqual(Object.keys(meta), META_KEYS, `${name}: the keys in order`);
+      assert.deepEqual(Object.keys(meta), META_KEYS.filter((key) => key in meta), `${name}: the keys in order`);
+      for (const key of META_REQUIRED) assert.ok(key in meta, `${name}: ${key}`);
       assert.equal(meta.order % 10, 0, `${name}: order in steps of 10`);
     }
   });
@@ -56,18 +59,31 @@ describe('src/components/<name>/', () => {
   });
 
   it('fails a meta.json that drifts from its stylesheet, with the reason', () => {
+    // A key added in the schema's order, so only the change itself is wrong.
+    const withKey = (meta, key, value) => Object.fromEntries(META_KEYS.filter((each) => each in meta || each === key).map((each) => [each, each === key ? value : meta[each]]));
     const tamper = (name, change) => list.map((component) => (component.name === name ? { ...component, meta: change(structuredClone(component.meta)) } : component));
     const cases = [
       [tamper('badge', (meta) => ({ ...meta, classes: meta.classes.filter((cls) => cls !== 'ds-badge--ok') })), /badge\.css styles \.ds-badge--ok, which no meta\.json lists/],
       [tamper('badge', (meta) => ({ ...meta, classes: [...meta.classes, 'ds-badge--new'].sort() })), /lists \.ds-badge--new, which src\/components\/badge\/badge\.css does not style/],
-      [tamper('button', (meta) => ({ ...meta, hooks: meta.hooks.slice(1) })), /button\/meta\.json: "hooks" misses --ds-btn/],
+      [tamper('card', (meta) => ({ ...meta, hooks: Object.fromEntries(Object.entries(meta.hooks).filter(([hook]) => hook !== '--ds-btn-height')) })), /card\/meta\.json: "hooks" misses --ds-btn-height/],
+      [tamper('card', (meta) => ({ ...meta, hooks: { ...meta.hooks, '--ds-btn-bg': { owner: 'button' } } })), /"hooks" lists --ds-btn-bg, which src\/components\/card\/card\.css does not use/],
+      [tamper('card', (meta) => ({ ...meta, hooks: { ...meta.hooks, '--ds-btn-height': { owner: 'alert' } } })), /card\/meta\.json: "hooks" --ds-btn-height: alert does not describe it/],
+      [tamper('card', (meta) => ({ ...meta, hooks: { ...meta.hooks, '--ds-btn-height': { default: '1px', description: 'twice' } } })), /--ds-btn-height is described by button and card/],
+      [tamper('button', (meta) => ({ ...meta, hooks: { ...meta.hooks, '--ds-btn-height': 'button' } })), /hooks\.--ds-btn-height: matches none of its forms/],
+      [tamper('badge', (meta) => withKey(meta, 'tier', 4)), /badge\/meta\.json: tier: 4 is not one of 1, 2, 3/],
+      [tamper('badge', (meta) => withKey(meta, 'module', true)), /"module" without badge\.js/],
+      [tamper('badge', (meta) => withKey(meta, 'rippleHosts', ['.ds-btn'])), /"rippleHosts" \.ds-btn: name one of its own classes/],
+      [tamper('badge', (meta) => withKey(meta, 'exceptions', { physical: { '.ds-badge: left': '' } })), /exceptions\.physical\.\.ds-badge: left: shorter than 1/],
+      [tamper('badge', (meta) => withKey(meta, 'exceptions', { hover: { '.ds-btn:hover': 'not its own' } })), /badge\/meta\.json: exceptions\.hover "\.ds-btn:hover" names none of its own classes/],
+      [tamper('badge', (meta) => withKey(meta, 'motionExceptions', { keyframeShape: { 'ds-spin': 'not its own' } })), /keyframeShape names ds-spin, which badge\.keyframes\.css does not define/],
+      [tamper('badge', (meta) => { const { name, group, ...rest } = meta; return { group, name, ...rest }; }), /badge\/meta\.json: keys in the order name, group/],
       [tamper('dialog', (meta) => ({ ...meta, keyframes: [...meta.keyframes, 'ds-spin'].sort() })), /"keyframes" lists ds-spin/],
       [tamper('chip', (meta) => ({ ...meta, ripple: false })), /chip\/meta\.json: "ripple" is false/],
       [tamper('badge', (meta) => ({ ...meta, context: [] })), /badge\.css styles \.ds-chip of chip: add "chip" to "context"/],
       [tamper('badge', (meta) => ({ ...meta, js: ['nothing'] })), /"js" names nothing/],
-      [tamper('badge', (meta) => ({ ...meta, group: 'misc' })), /"group" is one of/],
+      [tamper('badge', (meta) => ({ ...meta, group: 'misc' })), /group: "misc" is not one of/],
       [tamper('badge', (meta) => ({ ...meta, order: 10 })), /"order" 10 is also/],
-      [tamper('badge', (meta) => ({ ...meta, extra: true })), /unknown keys extra/],
+      [tamper('badge', (meta) => ({ ...meta, extra: true })), /unknown key "extra"/],
       [tamper('dialog', (meta) => ({ ...meta, progressive: [] })), /"progressive" is \[\], the "Progressive:" note/],
       [tamper('table', (meta) => ({ ...meta, attributes: [] })), /table\/meta\.json: "attributes" misses data-/],
     ];
@@ -84,10 +100,84 @@ describe('src/components/<name>/', () => {
   });
 });
 
+describe('scripts/meta-schema.json', () => {
+  it('describes every key of a meta.json, the required ones first and in the order the files write them', () => {
+    assert.deepEqual(META_KEYS.filter((key) => META_REQUIRED.includes(key)), META_REQUIRED);
+    for (const key of META_KEYS) assert.ok(META_SCHEMA.properties[key].description, `${key}: a description`);
+    for (const key of ['need', 'tier', 'status', 'roles', 'module', 'labExempt', 'exceptions', 'motionExceptions', 'rippleHosts', 'keyframeDocs']) assert.ok(META_KEYS.includes(key), key);
+    for (const { name, meta } of list) assert.deepEqual(validateSchema(meta, META_SCHEMA), [], name);
+  });
+
+  it('validates the subset of JSON Schema it uses', () => {
+    const schema = {
+      type: 'object', additionalProperties: false, required: ['a'],
+      properties: { a: { type: 'integer', minimum: 1 }, b: { $ref: '#/$defs/list' }, c: { anyOf: [{ type: 'string', pattern: '^x' }, { const: true }] }, d: { enum: [1, 2] } },
+      $defs: { list: { type: 'array', items: { type: 'string', minLength: 1 }, uniqueItems: true } },
+    };
+    assert.deepEqual(validateSchema({ a: 2, b: ['x'], c: 'xy', d: 2 }, schema), []);
+    assert.deepEqual(validateSchema({ a: 2, c: true }, schema), []);
+    const problems = validateSchema({ a: 0, b: ['', 'y', 'y'], c: 'y', d: 3, e: 1 }, schema).join(' | ');
+    for (const reason of [/a: below 1/, /b\[0\]: shorter than 1/, /b: lists an item twice/, /c: matches none of its forms/, /d: 3 is not one of 1, 2/, /unknown key "e"/]) assert.match(problems, reason);
+    assert.match(validateSchema({}, schema).join(), /missing key "a"/);
+    assert.match(validateSchema({ a: 1.5 }, schema).join(), /a: is number, expected integer/);
+  });
+});
+
+describe('<name>.keyframes.css', () => {
+  const motion = `${LAYERS}\n\n@layer ds.motion {\n  @keyframes ds-a {\n    from { opacity: 0; }\n  }\n}\n\n@layer ds.utilities {\n  .ds-enter { animation-name: ds-a; }\n}\n`;
+  const own = `/* Keyframes of x. */\n${LAYERS}\n\n@layer ds.motion {\n  @keyframes ds-x-in {\n    from { translate: 0 8px; }\n  }\n}\n`;
+  const reader = (files) => (path) => files[path];
+  const x = { name: 'x', keyframesCss: 'src/components/x/x.keyframes.css' };
+
+  it('appends each component\'s keyframes to the ds.motion block of motion.css, in component order', () => {
+    const read = reader({ 'src/core/motion.css': motion, 'src/components/x/x.keyframes.css': own });
+    assert.deepEqual(componentKeyframes(x, read).names, ['ds-x-in']);
+    const css = motionCss([{ name: 'w' }, x], read);
+    const block = css.slice(css.indexOf('@layer ds.motion {'), css.indexOf('@layer ds.utilities'));
+    assert.match(block, /@keyframes ds-a[\s\S]*\/\* ── components\/x\/x\.keyframes\.css ── \*\/\n {2}@keyframes ds-x-in/);
+    assert.equal(motionCss([{ name: 'w' }], read), motion, 'no keyframes files: motion.css as it is');
+  });
+
+  it('takes only @keyframes inside one @layer ds.motion block', () => {
+    const fails = (text, reason) => assert.throws(() => componentKeyframes(x, () => text), reason);
+    fails(own.replace(LAYERS, ''), /no "@layer ds\.tokens/);
+    fails(own.replace('@layer ds.motion', '@layer ds.components'), /one "@layer ds\.motion \{ \.\.\. \}" block/);
+    fails(own.replace('  @keyframes', '  .ds-x { color: red; }\n  @keyframes'), /only @keyframes inside @layer ds\.motion/);
+    fails(`${own}\n.ds-x { color: red; }\n`, /and nothing else/);
+  });
+
+  it('checks the names against meta.json "keyframes" and "keyframeDocs" (verifyComponents)', () => {
+    const problems = verifyComponents(list.map((component) => (component.name === 'badge' ? { ...component, keyframesCss: 'src/components/button/button.css' } : component)));
+    assert.ok(problems.some((problem) => /button\.css: no "@layer|one "@layer ds\.motion/.test(problem)), problems.join(' | '));
+  });
+});
+
+describe('generated blocks of hand-written files', () => {
+  it('replaces only what lies between the markers, and fails without them', () => {
+    const md = 'a\n<!-- generated: x (scripts/build.mjs; do not edit) -->\nold\n<!-- /generated: x -->\nb\n';
+    assert.equal(replaceBlock(md, 'f.md', 'x', 'new\n'), 'a\n<!-- generated: x (scripts/build.mjs; do not edit) -->\nnew\n<!-- /generated: x -->\nb\n');
+    const js = 'const A = [\n  // generated: y (scripts/build.mjs; do not edit)\n  // /generated: y\n];\n';
+    assert.equal(replaceBlock(js, 'f.js', 'y', "  'a',"), "const A = [\n  // generated: y (scripts/build.mjs; do not edit)\n  'a',\n  // /generated: y\n];\n");
+    assert.equal(replaceBlock(replaceBlock(js, 'f.js', 'y', "  'a',"), 'f.js', 'y', ''), js);
+    assert.throws(() => replaceBlock('nothing', 'f.md', 'x', ''), /markers .* are missing/);
+  });
+
+  it('writes the hooks table of docs/theming.md from meta.json "hooks": every described hook once, adjacent equal rows shared', () => {
+    const table = hooksTable(list);
+    const rows = table.split('\n').slice(2);
+    const named = rows.flatMap((row) => [...row.split(' | ')[0].matchAll(/`(--ds-[\w-]+)`/g)].map((match) => match[1]));
+    assert.equal(new Set(named).size, named.length, 'each hook in one row');
+    assert.ok(rows.some((row) => row.startsWith('| `--ds-btn-bg`, `--ds-btn-color`, `--ds-btn-border` | per variant |')), 'a shared row');
+    for (const { meta } of list) for (const [hook, entry] of Object.entries(meta.hooks)) assert.ok(named.includes(hook) || 'owner' in entry, hook);
+    assert.ok(read('docs/theming.md').includes(table));
+  });
+});
+
 describe('generated files of the repository', () => {
   it('are up to date (npm run build writes them, --check compares them)', () => {
     assert.deepEqual(diffGenerated(), []);
-    assert.deepEqual([...generatedFiles().keys()], ['src/index.css', 'docs/components.md', 'styleguide/demos.js']);
+    assert.deepEqual([...generatedFiles().keys()], ['src/index.css', 'docs/components.md', 'styleguide/demos.js', 'styleguide/lab-components.js', 'docs/theming.md',
+      'docs/motion.md', 'docs/install.md', 'src/types/ds.d.ts', 'src/js/ripple.js', 'README.md', 'themes/example.css']);
   });
 
   it('src/index.css: the layer statement, the sublayers and the imports in meta.json "order"', () => {
@@ -114,6 +204,28 @@ describe('generated files of the repository', () => {
       assert.ok(found >= at, `${component.md} in its place`);
       at = found + part.length;
     }
+  });
+
+  it('styleguide/lab-components.js: every <name>.lab.js after SG_LAB.add(), loaded by the Motion Lab between lab.js and styleguide.js', () => {
+    assert.match(read('styleguide/motion.html'), /<script src="lab\.js"><\/script>\n<script src="lab-components\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
+    const lab = [{ id: 'core-demo' }];
+    const entry = "SG_LAB.add({ id: 'sample-open', group: 'overlays', title: 'Sample', shows: ['ds-fade-in'], html: '<p></p>', play: function () { return Promise.resolve(); } });";
+    const fake = [{ name: 'sample', lab: 'src/components/sample/sample.lab.js' }];
+    const script = labComponentsJs(fake, () => entry);
+    const context = { SG_LAB: lab };
+    context.globalThis = context;
+    vm.runInNewContext(script, context);
+    assert.deepEqual(lab.map((item) => item.id), ['core-demo', 'sample-open']);
+    assert.ok(!Object.keys(lab).includes('add'), 'add() is not enumerable');
+    assert.throws(() => lab.add({ ...lab[1] }), /the id is taken/);
+    assert.throws(() => lab.add({ id: 'x', group: 'g', title: 't', html: '', shows: ['a'], play() {} }), /html is a string/);
+    assert.throws(() => labComponentsJs(fake, () => 'export const a = 1;'), /a classic script/);
+    assert.throws(() => labComponentsJs(fake, () => 'window.SG_LAB.push({});'), /SG_LAB\.add/);
+    // The repository's own file runs on an empty lab.
+    const empty = { SG_LAB: [] };
+    empty.globalThis = empty;
+    vm.runInNewContext(read('styleguide/lab-components.js'), empty);
+    assert.equal(typeof empty.SG_LAB.add, 'function');
   });
 
   it('styleguide/demos.js: one SG_DEMOS entry per <name>.demo.js, loaded by the styleguide before styleguide.js', () => {
@@ -181,7 +293,11 @@ describe('dist/manifest.json', () => {
       assert.deepEqual(Object.keys(entry), KEYS, name);
       assert.equal(entry.css, `css/components/${name}.css`);
       assert.equal(entry.min, `css/components/${name}.min.css`);
-      for (const field of ['group', 'requires', 'context', 'classes', 'attributes', 'keyframes', 'js', 'hooks', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
+      for (const field of ['group', 'requires', 'context', 'classes', 'keyframes', 'js', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
+      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them).
+      const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]) : [];
+      assert.deepEqual(entry.attributes, [...new Set([...meta.attributes, ...behaviour])].sort(), `${name}.attributes`);
+      assert.deepEqual(entry.hooks, Object.keys(meta.hooks).sort(), `${name}.hooks: the names, sorted`);
       assert.equal(entry.bytes, out.get(entry.min).length, `${name}: bytes of the .min.css`);
       assert.equal(entry.gzip, gzipSync(out.get(entry.min), { level: 9 }).length, `${name}: gzip -9 of the .min.css`);
       for (const path of [entry.css, entry.min]) assert.ok(out.has(path), path);
@@ -192,7 +308,7 @@ describe('dist/manifest.json', () => {
   it('lists every module of MODULES with its imports and exports', () => {
     assert.deepEqual(Object.keys(manifest.js), MODULES);
     for (const name of MODULES) {
-      const source = read(`src/js/${name}.js`);
+      const source = read(moduleFiles(name).source);
       const entry = manifest.js[name];
       assert.deepEqual(Object.keys(entry), ['file', 'types', 'imports', 'exports', 'requires', 'exportRequires']);
       assert.ok(out.has(entry.file) && out.has(entry.types), name);

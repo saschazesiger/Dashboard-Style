@@ -12,11 +12,20 @@
   "attributes": [],
   "requires": [],
   "context": [],
-  "hooks": [
-    "--ds-prose-font",
-    "--ds-prose-gap",
-    "--ds-prose-strong-weight"
-  ],
+  "hooks": {
+    "--ds-prose-gap": {
+      "default": "`--ds-space-2`",
+      "description": "the gap between blocks of `.ds-prose`"
+    },
+    "--ds-prose-font": {
+      "default": "`--ds-font-reading` (`--dense`: `--ds-font-body`)",
+      "description": "the text of `.ds-prose`"
+    },
+    "--ds-prose-strong-weight": {
+      "default": "`--ds-weight-label`",
+      "description": "`strong` and `b` in `.ds-prose`"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [

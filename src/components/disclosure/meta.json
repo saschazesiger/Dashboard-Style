@@ -17,14 +17,23 @@
     "card",
     "ripple"
   ],
-  "hooks": [
-    "--ds-disclosure-height",
-    "--ds-disclosure-row-height"
-  ],
+  "hooks": {
+    "--ds-disclosure-height": {
+      "default": "40px",
+      "description": "the least height of a `.ds-disclosure` summary (its rest radius is half of it)"
+    },
+    "--ds-disclosure-row-height": {
+      "default": "48px",
+      "description": "the least height of a `.ds-disclosure--row` summary"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [
     "details[name]"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-disclosure > summary"
+  ]
 }

@@ -15,9 +15,12 @@
     "button"
   ],
   "context": [],
-  "hooks": [
-    "--ds-empty-disc-size"
-  ],
+  "hooks": {
+    "--ds-empty-disc-size": {
+      "default": "48px",
+      "description": "the disc of `.ds-empty__disc` ([empty state](components.md#empty-state)); the ring of `.ds-empty--done` follows, the glyph keeps its markup's size"
+    }
+  },
   "keyframes": [
     "ds-draw",
     "ds-fade-in",

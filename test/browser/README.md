@@ -42,9 +42,24 @@ npm run test:browser -- --project=perf   # the paint budget and style recalc tim
 | `serve.js` | static server: MIME types (`.js` as `text/javascript`, so module fixtures load), nothing outside the root, no listings, no caching headers |
 | `helpers/motion.js` | the one helper module (below); imports only `node:*`, so its pure checks run under `node --test` |
 | `fixtures/*.html` | minimal pages on `/dist/fonts/fonts.css`, `/dist/ds.css` and `/dist/ds.js` |
+| `fixtures/sg-stub.js` | the small standalone `SG` of the generated fixture page: `SG.demo(name, { render(h), wire(root, h) })`, `h = { icon, esc, uid, card, section }`, `SG.mount()` |
 | `*.spec.js` | the specs (below) |
+| `src/components/<name>/<name>.spec.js` | a component's own spec (below, "Component specs") |
 | `__screenshots__/` | committed screenshots and JSON timelines, `<project>/<spec>/<name>`, from the CI container |
 | `__screenshots-local__/` | gitignored screenshots of this machine (`DS_SHOTS=local`, see "Screenshots") |
+
+### Component specs
+
+Every `src/components/<name>/<name>.spec.js` runs in the same projects as the specs here: the config adds a second
+project of each name, whose `testDir` is `src/components/` (Playwright runs every project of a name, so
+`--project=chromium` covers both). A spec imports `test` and `expect` from `'../../../test/browser/base-test.js'` to
+also run in `fallback`, and helpers from `'../../../test/browser/helpers/motion.js'`. Its screenshots and timelines go
+to `__screenshots__/<project>/components/<name>/<name>.spec.js/` (`__screenshots-local__/` with `DS_SHOTS=local`).
+
+`serve.js` writes the page a spec usually needs: `/test/browser/fixtures/component.html?c=<name>` renders that
+component's demo alone. It loads `dist/` as a project does, `fixtures/sg-stub.js`, the demo file as it stands, mounts
+every demo the file registers (`&demo=<demo name>`: only that one; `window.componentFixture` says how many), runs
+`DS.init(document)` and then `fixtures/fixture.js`, so `ready(page)` works. `&min=1` loads `ds.min.css` and `ds.min.js`.
 
 ### Specs
 

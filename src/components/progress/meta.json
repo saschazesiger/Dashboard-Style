@@ -16,11 +16,20 @@
   "attributes": [],
   "requires": [],
   "context": [],
-  "hooks": [
-    "--ds-progress-gap",
-    "--ds-progress-stop",
-    "--ds-progress-track"
-  ],
+  "hooks": {
+    "--ds-progress-gap": {
+      "default": "4px",
+      "description": "linear progress: the gap between the bar and the remaining track"
+    },
+    "--ds-progress-track": {
+      "default": "`--ds-accent`, `--ds-primary`",
+      "description": "linear progress: the remaining track, the stop dot at its end"
+    },
+    "--ds-progress-stop": {
+      "default": "`--ds-accent`, `--ds-primary`",
+      "description": "linear progress: the remaining track, the stop dot at its end"
+    }
+  },
   "keyframes": [
     "ds-progress-head",
     "ds-progress-tail",
@@ -28,5 +37,10 @@
   ],
   "js": [],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-progress__track: background": "gradient direction: the bar fills left to right with its clip"
+    }
+  }
 }

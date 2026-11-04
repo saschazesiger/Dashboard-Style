@@ -1,0 +1,6 @@
+{
+  "--ds-swap-fade": {
+    "default": "`--ds-space-2`",
+    "description": "the soft edge of a `.ds-swap--fade` slot ([motion](motion.md#utilities-css))"
+  }
+}

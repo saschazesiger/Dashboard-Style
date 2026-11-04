@@ -29,11 +29,18 @@
     "progress",
     "ripple"
   ],
-  "hooks": [
-    "--ds-combo-option-height",
-    "--ds-input-height",
-    "--ds-scroll-fade"
-  ],
+  "hooks": {
+    "--ds-combo-option-height": {
+      "default": "48px",
+      "description": "the least height of a combobox option"
+    },
+    "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-scroll-fade": {
+      "owner": "scroller"
+    }
+  },
   "keyframes": [
     "ds-clip-in",
     "ds-fade-in",
@@ -49,5 +56,20 @@
     "scroll-driven",
     "scrollbar-color"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-combo__toggle"
+  ],
+  "exceptions": {
+    "ripple": {
+      ".ds-combo__option": "pointer-down selects and closes the list; the state layer is the feedback"
+    }
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-combo__toggle svg": "disclosure chevrons: the combobox chevron turns 180deg with its list (D25)"
+      }
+    }
+  }
 }

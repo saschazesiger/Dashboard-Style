@@ -242,8 +242,14 @@ Hooks are read by one component with a fallback. Set them on `.ds-theme` to chan
 rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-btn-quiet-color` (set by
 `.ds-topbar__menu`).
 
+<!-- generated: hooks (scripts/build.mjs; do not edit) -->
 | Hook | Default | Component |
 |---|---|---|
+| `--ds-swap-fade` | `--ds-space-2` | the soft edge of a `.ds-swap--fade` slot ([motion](motion.md#utilities-css)) |
+| `--ds-pressable-radius` | `--ds-radius-sm` | `.ds-pressable`, the press model on a project element |
+| `--ds-pressable-layer` | `currentColor` | the colour of the state layer of `.ds-pressable` |
+| `--ds-kbd-border`, `--ds-kbd-bg` | `--ds-line-2`, `--ds-surface` | `.ds-kbd`: the box of a key |
+| `--ds-scroll-fade` | `--ds-space-8` (card table wrappers: `--ds-card-pad`) | the length of the edge fades of `.ds-scroll-x`, the table wrappers and the cut edges of menus, combobox lists and drawer lists (2.1); `0px` turns every fade off |
 | `--ds-btn-height` | 36px (`--sm`: `--ds-btn-sm-height`) | button |
 | `--ds-btn-padding-x` | `--ds-space-4` (`--text`, `--sm`: `--ds-space-3`) | button |
 | `--ds-btn-padding-start` | `= padding-x`; `--ds-space-3` before a leading icon | button |
@@ -261,6 +267,62 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-btn-sm-icon-size` | 32px | `.ds-btn--sm.ds-btn--icon` (it sets `--ds-btn-icon-size` from it); a `.ds-drawer__row` item keeps that much room for its action |
 | `--ds-btn-quiet-color` | `--ds-text-2` | `--quiet` label |
 | `--ds-btn-disabled-bg`, `--ds-btn-disabled-border` | from `--ds-disabled-fill` | disabled container |
+| `--ds-spinner-track`, `--ds-spinner-color` | none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`) | spinner: the track behind the arc, the arc |
+| `--ds-spinner-width` | 2px (`--determinate`: `--ds-spinner-determinate-width`) | the spinner's ring width (instead of `border-width`) |
+| `--ds-spinner-determinate-width` | 4px | the ring width of `.ds-spinner--determinate` |
+| `--ds-loader-size`, `--ds-loader-color` | 48px (`--sm`: `--ds-loader-sm-size`), `--ds-primary` | the shape loader's container and its shape ([loading](components.md#loading)) |
+| `--ds-loader-sm-size` | 24px | `.ds-loader--sm` |
+| `--ds-skeleton-radius` | `--ds-radius-action` (the heading line: `--ds-radius-sm`) | skeleton lines ([loading](components.md#loading)) |
+| `--ds-card-padding` | `--ds-space-6` | card padding |
+| `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
+| `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
+| `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button, switch or chip in the header row overhangs it, a status chip, badge or tag sits on it (set it with a type role that changes the subtitle line) |
+| `--ds-card-hover-shadow` | none | `.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift |
+| `--ds-card-selected-bg` | `--ds-accent` | a selected interactive card |
+| `--ds-selected-ring` | `--ds-primary` | the inset ring of a selected tile or card |
+| `--ds-card-shadow` | `--ds-elev-1` | `.ds-card--elevated` |
+| `--ds-disclosure-height` | 40px | the least height of a `.ds-disclosure` summary (its rest radius is half of it) |
+| `--ds-disclosure-row-height` | 48px | the least height of a `.ds-disclosure--row` summary |
+| `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile |
+| `--ds-tile-radius-pressed` | `--ds-radius-md` | a clickable tile while pressed (never rounder than `--ds-tile-radius`) |
+| `--ds-tile-min-width` | 176px | the narrowest tile of a `.ds-tiles` row (fewer per row below it; one per row on a phone, 128px keeps two down to a 360px phone) |
+| `--ds-tiles-columns` | 4 | the most tiles per row (`.ds-tiles--3`: three) |
+| `--ds-tile-selected-bg` | `--ds-accent` | a selected tile (`aria-pressed`, `aria-checked`, `aria-selected`) |
+| `--ds-list-item-height` | 56px | the least height of a `.ds-list` row |
+| `--ds-list-text-min` | 12rem | the width below which a row's trailing parts (status, actions, chevron) drop to a second line |
+| `--ds-list-current-bg` | `--ds-accent` | the current row of a `.ds-list` (`aria-current`) |
+| `--ds-facts-label-width` | 36% | the label column of `.ds-facts--rows` |
+| `--ds-timeline-indent` | `--ds-space-8` | how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it) |
+| `--ds-timeline-dot-size`, `--ds-timeline-dot-color` | 10px, `--ds-primary` | the dot of a timeline entry |
+| `--ds-timeline-muted-color` | `--ds-outline` | the ring of a `.ds-timeline__item--muted` entry |
+| `--ds-timeline-line-width`, `--ds-timeline-line-color` | 2px, `--ds-line` | the rail (and the width of a muted ring) |
+| `--ds-timeline-divider-color` | `--ds-line` | the hairline between entries |
+| `--ds-timeline-marker-size` | 24px | the disc of `.ds-timeline__marker`; the rail runs through its centre |
+| `--ds-timeline-head-line` | 24px | the head line of an entry, on which its dot is centred (the height of a status chip) |
+| `--ds-prose-gap` | `--ds-space-2` | the gap between blocks of `.ds-prose` |
+| `--ds-prose-font` | `--ds-font-reading` (`--dense`: `--ds-font-body`) | the text of `.ds-prose` |
+| `--ds-prose-strong-weight` | `--ds-weight-label` | `strong` and `b` in `.ds-prose` |
+| `--ds-empty-disc-size` | 48px | the disc of `.ds-empty__disc` ([empty state](components.md#empty-state)); the ring of `.ds-empty--done` follows, the glyph keeps its markup's size |
+| `--ds-status-radius` | `--ds-radius-md` | status chip |
+| `--ds-tag-bg`, `--ds-tag-color` | `--ds-accent`, `--ds-on-accent` (`--neutral`: `--ds-surface-high`, `--ds-text`) | a tag (`.ds-tag`) |
+| `--ds-tag-height` | 24px | a tag's height (its radius is half of it) |
+| `--ds-status-spinner-width` | 2px | the ring width of the spinner in a running status chip |
+| `--ds-alert-bg`, `--ds-alert-color` | `--ds-surface-low`, `--ds-text` | the neutral alert (kinds set them from their own hooks) |
+| `--ds-alert-icon` | `--ds-primary` | the neutral alert's icon and edge colour |
+| `--ds-alert-edge` | 0 | the width of an alert's leading edge (`4px`: an edge in the icon colour) |
+| `--ds-alert-success-bg`, `--ds-alert-success-color`, `--ds-alert-success-icon` | `--ds-success-container`, `--ds-on-success-container`, `--ds-success` | `.ds-alert--success` |
+| `--ds-alert-warning-bg`, `--ds-alert-warning-color`, `--ds-alert-warning-icon` | `--ds-warning-surface`, `--ds-text`, `--ds-warning` | `.ds-alert--warning` |
+| `--ds-alert-error-bg`, `--ds-alert-error-color`, `--ds-alert-error-icon` | `--ds-error-container`, `--ds-on-error-container`, `--ds-error` | `.ds-alert--error` (its buttons take `--ds-alert-error-color`) |
+| `--ds-alert-text-basis` | 256px | the narrowest text of an alert with `.ds-alert__actions` before the actions wrap |
+| `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
+| `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
+| `--ds-table-head-height` | 48px | table header cells (the block padding follows) |
+| `--ds-table-row-height` | 52px | table body cells (the block padding follows) |
+| `--ds-table-dense-row-height` | 40px | the cells of `.ds-table--dense` |
+| `--ds-table-sticky-bg` | `--ds-surface` | the opaque base of the sticky header and the pinned column, and the background of `.ds-table-wrap--fill` |
+| `--ds-table-cell-max-width` | 280px | where a cell of `.ds-table-wrap--fill` is cut with an ellipsis |
+| `--ds-table-fill-min-height` | 240px | the least height of `.ds-table-wrap--fill` (a short window scrolls the view instead) |
+| `--ds-table-fill-max-height` | none | the most height of `.ds-table-wrap--fill` |
 | `--ds-input-font` | body; input role at 600px and below | fields |
 | `--ds-check-size` | 18px | the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes) |
 | `--ds-check-target` | 40px | their halo (hover, press, focus) across |
@@ -277,16 +339,47 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-form-actions-bleed` | `--ds-content-pad-x` (in a `.ds-card`: `--ds-card-pad`) | how far a `.ds-form-actions--sticky` bar bleeds on a phone: set it on a padded container of the page's own to its inline padding (it inherits) |
 | `--ds-composer-radius` | `--ds-radius-2xl` | the shell of `.ds-composer` |
 | `--ds-composer-max-height` | 220px | the tallest the composer's textarea grows before it scrolls |
-| `--ds-slider-halo` | 40px | the halo around the slider handle (hover, press, focus), and the slider's height |
+| `--ds-dropzone-border` | `1px dashed var(--ds-outline)` | the border of a `.ds-dropzone` ([file upload](components.md#file-upload)) |
 | `--ds-chip-height` | 32px | filter chip |
 | `--ds-chip-check-size` | 18px | the check of a selected chip (and the room it opens) |
 | `--ds-chip-disabled-border`, `--ds-chip-disabled-bg` | `--ds-disabled-fill` | disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`) |
 | `--ds-chip-input-bg`, `--ds-chip-input-color`, `--ds-chip-input-border` | `--ds-accent`, `--ds-on-accent`, `--ds-accent` | an input chip (`.ds-chip--input`): fill, ink, edge |
 | `--ds-chip-max-width` | 240px | the widest body of an action or input chip; its label ends in an ellipsis |
+| `--ds-badge-size` | 20px | a count badge (`.ds-badge`): height and smallest width |
+| `--ds-badge-radius` | `--ds-radius-action` (never above half the size) | a count badge's corners |
+| `--ds-badge-bg`, `--ds-badge-color` | `--ds-accent`, `--ds-on-accent` (tones: their container pair; on a tinted host `--ds-primary`, `--ds-on-primary`) | a count badge's fill and figure |
 | `--ds-switch-halo` | 40px | the halo around the switch handle |
 | `--ds-switch-height` | 40px | the smallest height of a switch row |
 | `--ds-switch-list-row-height` | 56px | the smallest row of a `.ds-switch-list` |
 | `--ds-switch-disabled-track`, `--ds-switch-disabled-handle` | `--ds-disabled-fill`, `--ds-disabled-ink` | disabled switch track (and border) and off handle |
+| `--ds-slider-halo` | 40px | the halo around the slider handle (hover, press, focus), and the slider's height |
+| `--ds-combo-option-height` | 48px | the least height of a combobox option |
+| `--ds-menu-item-height` | 48px | menu item (and action sheet row) |
+| `--ds-progress-gap` | 4px | linear progress: the gap between the bar and the remaining track |
+| `--ds-progress-track`, `--ds-progress-stop` | `--ds-accent`, `--ds-primary` | linear progress: the remaining track, the stop dot at its end |
+| `--ds-meter-height` | 4px | `.ds-meter` (its rest radius is half of it) |
+| `--ds-meter-track`, `--ds-meter-color` | `--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`) | `.ds-meter`: the track, the fill |
+| `--ds-columns-height` | 120px | the plot of `.ds-columns` (`--mini`: 32px) |
+| `--ds-columns-radius` | `--ds-radius-xs` | the rounded data end of a column |
+| `--ds-columns-group-min` | 56px | the least width of a group of `.ds-columns--grouped` |
+| `--ds-chart-color` | `--ds-chart-1` (series and tone modifiers set it) | the colour of a column or a legend key |
+| `--ds-legend-key-size` | 12px | the key of a `.ds-legend` entry |
+| `--ds-sheet-width`, `--ds-sheet-width-wide` | 560px, 720px | side sheet |
+| `--ds-sheet-foot-border` | `1px solid var(--ds-line)` | the hairline above `.ds-sheet__foot` |
+| `--ds-dialog-width` | 400px | dialog |
+| `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
+| `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
+| `--ds-dialog-scrim` | `--ds-scrim` | the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested` |
+| `--ds-dialog-width-wide` | 560px | `.ds-dialog--wide` |
+| `--ds-dialog-height` | auto (capped by the window) | the dialog box; a fixed height keeps a box with a filtered list from jumping |
+| `--ds-dialog-full-radius` | 0 | the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`) |
+| `--ds-toast-action-color` | `--ds-inverse-primary` | a text button in a snackbar (`.ds-toast__action`, Undo) |
+| `--ds-toast-close-size` | 36px | the close button of a snackbar |
+| `--ds-savebar-offset` | `--ds-space-4` | save bar: distance from the view's bottom edge |
+| `--ds-savebar-inset` | the page pad (`--ds-content-pad-x`) | save bar: distance from the view's sides (the bar is at most `--ds-content-max` wide) |
+| `--ds-savebar-min-height` | 56px | save bar |
+| `--ds-savebar-radius` | `--ds-radius-card` | save bar |
+| `--ds-savebar-bg`, `--ds-savebar-shadow` | `--ds-surface-popover`, `--ds-elev-overlay` | save bar surface and elevation |
 | `--ds-drawer-item-height` | 48px | drawer item (its rest radius is half of it, so the press morph runs its whole way) |
 | `--ds-topbar-scrolled-bg` | `--ds-surface-high` | top bar while the view is scrolled (`data-scrolled`); `transparent` keeps a flat bar |
 | `--ds-view-scrollbar-gutter` | `stable` | the view's scrollbar gutter: `stable both-edges` (symmetric) or `auto` (no reserved room) |
@@ -297,104 +390,13 @@ rule changes it: `--ds-btn-padding-start` (set before a leading icon) and `--ds-
 | `--ds-tabs-height` | 48px | a tab (the state layer is a pill `--ds-space-1` inside it) |
 | `--ds-tabs-indicator-height`, `--ds-tabs-indicator-color` | 3px, `--ds-primary` | the bar under the selected tab |
 | `--ds-steps-bar-height` | 4px | the segments of `.ds-steps--bar` |
+| `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
 | `--ds-stack-gap`, `--ds-stack-gap-page` | `--ds-space-4`, `--ds-space-5` | `.ds-stack`; a stack directly in the page and `.ds-stack--page` |
 | `--ds-page-head-text-basis` | 320px | the room the page head's title and lead take before the actions wrap under them |
 | `--ds-page-head-title-line` | 32px | the title line the page head's actions centre on (set it with a theme that changes `--ds-font-headline`) |
 | `--ds-breadcrumbs-item-max` | 240px | a breadcrumb item before its ellipsis |
 | `--ds-auth-width` | 400px | the card of `.ds-auth` |
-| `--ds-prose-gap` | `--ds-space-2` | the gap between blocks of `.ds-prose` |
-| `--ds-prose-font` | `--ds-font-reading` (`--dense`: `--ds-font-body`) | the text of `.ds-prose` |
-| `--ds-prose-strong-weight` | `--ds-weight-label` | `strong` and `b` in `.ds-prose` |
-| `--ds-card-padding` | `--ds-space-6` | card padding |
-| `--ds-card-padding-sm` | `--ds-space-4` | card padding at 600px and below |
-| `--ds-card-padding-filled` | `--ds-space-5` | `.ds-card--filled` padding |
-| `--ds-card-title-line` | 24px | line height of `.ds-card__title`; a button, switch or chip in the header row overhangs it, a status chip, badge or tag sits on it (set it with a type role that changes the subtitle line) |
-| `--ds-card-hover-shadow` | none | `.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift |
-| `--ds-tile-radius` | `--ds-radius-lg` | key-figure tile |
-| `--ds-tile-radius-pressed` | `--ds-radius-md` | a clickable tile while pressed (never rounder than `--ds-tile-radius`) |
-| `--ds-tile-min-width` | 176px | the narrowest tile of a `.ds-tiles` row (fewer per row below it; one per row on a phone, 128px keeps two down to a 360px phone) |
-| `--ds-tiles-columns` | 4 | the most tiles per row (`.ds-tiles--3`: three) |
-| `--ds-tile-selected-bg` | `--ds-accent` | a selected tile (`aria-pressed`, `aria-checked`, `aria-selected`) |
-| `--ds-card-selected-bg` | `--ds-accent` | a selected interactive card |
-| `--ds-selected-ring` | `--ds-primary` | the inset ring of a selected tile or card |
-| `--ds-card-shadow` | `--ds-elev-1` | `.ds-card--elevated` |
-| `--ds-list-item-height` | 56px | the least height of a `.ds-list` row |
-| `--ds-list-text-min` | 12rem | the width below which a row's trailing parts (status, actions, chevron) drop to a second line |
-| `--ds-list-current-bg` | `--ds-accent` | the current row of a `.ds-list` (`aria-current`) |
-| `--ds-facts-label-width` | 36% | the label column of `.ds-facts--rows` |
-| `--ds-disclosure-height` | 40px | the least height of a `.ds-disclosure` summary (its rest radius is half of it) |
-| `--ds-disclosure-row-height` | 48px | the least height of a `.ds-disclosure--row` summary |
-| `--ds-timeline-indent` | `--ds-space-8` | how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it) |
-| `--ds-timeline-dot-size`, `--ds-timeline-dot-color` | 10px, `--ds-primary` | the dot of a timeline entry |
-| `--ds-timeline-muted-color` | `--ds-outline` | the ring of a `.ds-timeline__item--muted` entry |
-| `--ds-timeline-line-width`, `--ds-timeline-line-color` | 2px, `--ds-line` | the rail (and the width of a muted ring) |
-| `--ds-timeline-divider-color` | `--ds-line` | the hairline between entries |
-| `--ds-timeline-marker-size` | 24px | the disc of `.ds-timeline__marker`; the rail runs through its centre |
-| `--ds-timeline-head-line` | 24px | the head line of an entry, on which its dot is centred (the height of a status chip) |
-| `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` (`color-mix()`) | the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves |
-| `--ds-table-row-selected` | `--ds-accent` | a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell) |
-| `--ds-table-head-height` | 48px | table header cells (the block padding follows) |
-| `--ds-table-row-height` | 52px | table body cells (the block padding follows) |
-| `--ds-table-dense-row-height` | 40px | the cells of `.ds-table--dense` |
-| `--ds-table-sticky-bg` | `--ds-surface` | the opaque base of the sticky header and the pinned column, and the background of `.ds-table-wrap--fill` |
-| `--ds-table-cell-max-width` | 280px | where a cell of `.ds-table-wrap--fill` is cut with an ellipsis |
-| `--ds-table-fill-min-height` | 240px | the least height of `.ds-table-wrap--fill` (a short window scrolls the view instead) |
-| `--ds-table-fill-max-height` | none | the most height of `.ds-table-wrap--fill` |
-| `--ds-scroll-fade` | `--ds-space-8` (card table wrappers: `--ds-card-pad`) | the length of the edge fades of `.ds-scroll-x`, the table wrappers and the cut edges of menus, combobox lists and drawer lists (2.1); `0px` turns every fade off |
-| `--ds-ripple-color` | `currentColor` | the pointer ripple of every action ([ripple](components.md#ripple)) |
-| `--ds-pressable-radius` | `--ds-radius-sm` | `.ds-pressable`, the press model on a project element |
-| `--ds-pressable-layer` | `currentColor` | the colour of the state layer of `.ds-pressable` |
-| `--ds-kbd-border`, `--ds-kbd-bg` | `--ds-line-2`, `--ds-surface` | `.ds-kbd`: the box of a key |
-| `--ds-status-radius` | `--ds-radius-md` | status chip |
-| `--ds-alert-bg`, `--ds-alert-color` | `--ds-surface-low`, `--ds-text` | the neutral alert (kinds set them from their own hooks) |
-| `--ds-alert-icon` | `--ds-primary` | the neutral alert's icon and edge colour |
-| `--ds-alert-edge` | 0 | the width of an alert's leading edge (`4px`: an edge in the icon colour) |
-| `--ds-alert-success-bg`, `--ds-alert-success-color`, `--ds-alert-success-icon` | `--ds-success-container`, `--ds-on-success-container`, `--ds-success` | `.ds-alert--success` |
-| `--ds-alert-warning-bg`, `--ds-alert-warning-color`, `--ds-alert-warning-icon` | `--ds-warning-surface`, `--ds-text`, `--ds-warning` | `.ds-alert--warning` |
-| `--ds-alert-error-bg`, `--ds-alert-error-color`, `--ds-alert-error-icon` | `--ds-error-container`, `--ds-on-error-container`, `--ds-error` | `.ds-alert--error` (its buttons take `--ds-alert-error-color`) |
-| `--ds-alert-text-basis` | 256px | the narrowest text of an alert with `.ds-alert__actions` before the actions wrap |
-| `--ds-tag-bg`, `--ds-tag-color` | `--ds-accent`, `--ds-on-accent` (`--neutral`: `--ds-surface-high`, `--ds-text`) | a tag (`.ds-tag`) |
-| `--ds-tag-height` | 24px | a tag's height (its radius is half of it) |
-| `--ds-badge-size` | 20px | a count badge (`.ds-badge`): height and smallest width |
-| `--ds-badge-radius` | `--ds-radius-action` (never above half the size) | a count badge's corners |
-| `--ds-badge-bg`, `--ds-badge-color` | `--ds-accent`, `--ds-on-accent` (tones: their container pair; on a tinted host `--ds-primary`, `--ds-on-primary`) | a count badge's fill and figure |
-| `--ds-spinner-track`, `--ds-spinner-color` | none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`) | spinner: the track behind the arc, the arc |
-| `--ds-spinner-width` | 2px (`--determinate`: `--ds-spinner-determinate-width`) | the spinner's ring width (instead of `border-width`) |
-| `--ds-spinner-determinate-width` | 4px | the ring width of `.ds-spinner--determinate` |
-| `--ds-status-spinner-width` | 2px | the ring width of the spinner in a running status chip |
-| `--ds-loader-size`, `--ds-loader-color` | 48px (`--sm`: `--ds-loader-sm-size`), `--ds-primary` | the shape loader's container and its shape ([loading](components.md#loading)) |
-| `--ds-loader-sm-size` | 24px | `.ds-loader--sm` |
-| `--ds-progress-gap` | 4px | linear progress: the gap between the bar and the remaining track |
-| `--ds-progress-track`, `--ds-progress-stop` | `--ds-accent`, `--ds-primary` | linear progress: the remaining track, the stop dot at its end |
-| `--ds-skeleton-radius` | `--ds-radius-action` (the heading line: `--ds-radius-sm`) | skeleton lines ([loading](components.md#loading)) |
-| `--ds-swap-fade` | `--ds-space-2` | the soft edge of a `.ds-swap--fade` slot ([motion](motion.md#utilities-css)) |
-| `--ds-dropzone-border` | `1px dashed var(--ds-outline)` | the border of a `.ds-dropzone` ([file upload](components.md#file-upload)) |
-| `--ds-empty-disc-size` | 48px | the disc of `.ds-empty__disc` ([empty state](components.md#empty-state)); the ring of `.ds-empty--done` follows, the glyph keeps its markup's size |
-| `--ds-meter-height` | 4px | `.ds-meter` (its rest radius is half of it) |
-| `--ds-meter-track`, `--ds-meter-color` | `--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`) | `.ds-meter`: the track, the fill |
-| `--ds-columns-height` | 120px | the plot of `.ds-columns` (`--mini`: 32px) |
-| `--ds-columns-radius` | `--ds-radius-xs` | the rounded data end of a column |
-| `--ds-columns-group-min` | 56px | the least width of a group of `.ds-columns--grouped` |
-| `--ds-chart-color` | `--ds-chart-1` (series and tone modifiers set it) | the colour of a column or a legend key |
-| `--ds-legend-key-size` | 12px | the key of a `.ds-legend` entry |
-| `--ds-dialog-width` | 400px | dialog |
-| `--ds-dialog-border` | `1px solid transparent` (visible in forced colors) | dialog edge |
-| `--ds-dialog-shadow` | `--ds-elev-overlay` | dialog |
-| `--ds-dialog-scrim` | `--ds-scrim` | the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested` |
-| `--ds-sheet-width`, `--ds-sheet-width-wide` | 560px, 720px | side sheet |
-| `--ds-dialog-width-wide` | 560px | `.ds-dialog--wide` |
-| `--ds-dialog-height` | auto (capped by the window) | the dialog box; a fixed height keeps a box with a filtered list from jumping |
-| `--ds-dialog-full-radius` | 0 | the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`) |
-| `--ds-sheet-foot-border` | `1px solid var(--ds-line)` | the hairline above `.ds-sheet__foot` |
-| `--ds-menu-item-height` | 48px | menu item (and action sheet row) |
-| `--ds-combo-option-height` | 48px | the least height of a combobox option |
-| `--ds-toast-action-color` | `--ds-inverse-primary` | a text button in a snackbar (`.ds-toast__action`, Undo) |
-| `--ds-toast-close-size` | 36px | the close button of a snackbar |
-| `--ds-savebar-offset` | `--ds-space-4` | save bar: distance from the view's bottom edge |
-| `--ds-savebar-inset` | the page pad (`--ds-content-pad-x`) | save bar: distance from the view's sides (the bar is at most `--ds-content-max` wide) |
-| `--ds-savebar-min-height` | 56px | save bar |
-| `--ds-savebar-radius` | `--ds-radius-card` | save bar |
-| `--ds-savebar-bg`, `--ds-savebar-shadow` | `--ds-surface-popover`, `--ds-elev-overlay` | save bar surface and elevation |
+<!-- /generated: hooks -->
 
 `--ds-card-pad` is the resulting padding of each card (tables read it to bleed to the card edges); read it, do not
 set it. Runtime properties (set by scripts, not themes) are documented with their components: `--ds-progress`

@@ -48,20 +48,53 @@
     "sheet",
     "status"
   ],
-  "hooks": [
-    "--ds-btn-height",
-    "--ds-btn-icon-size",
-    "--ds-scroll-fade",
-    "--ds-table-cell-max-width",
-    "--ds-table-dense-row-height",
-    "--ds-table-fill-max-height",
-    "--ds-table-fill-min-height",
-    "--ds-table-head-height",
-    "--ds-table-row-height",
-    "--ds-table-row-hover",
-    "--ds-table-row-selected",
-    "--ds-table-sticky-bg"
-  ],
+  "hooks": {
+    "--ds-table-row-hover": {
+      "default": "`currentColor` at `--ds-state-hover-lg` (`color-mix()`)",
+      "description": "the row hover layer on the cells; a fixed colour where `color-mix(currentColor)` misbehaves"
+    },
+    "--ds-table-row-selected": {
+      "default": "`--ds-accent`",
+      "description": "a selected table row (`.ds-table__row--selected`, a checked checkbox in a cell)"
+    },
+    "--ds-table-head-height": {
+      "default": "48px",
+      "description": "table header cells (the block padding follows)"
+    },
+    "--ds-table-row-height": {
+      "default": "52px",
+      "description": "table body cells (the block padding follows)"
+    },
+    "--ds-table-dense-row-height": {
+      "default": "40px",
+      "description": "the cells of `.ds-table--dense`"
+    },
+    "--ds-table-sticky-bg": {
+      "default": "`--ds-surface`",
+      "description": "the opaque base of the sticky header and the pinned column, and the background of `.ds-table-wrap--fill`"
+    },
+    "--ds-table-cell-max-width": {
+      "default": "280px",
+      "description": "where a cell of `.ds-table-wrap--fill` is cut with an ellipsis"
+    },
+    "--ds-table-fill-min-height": {
+      "default": "240px",
+      "description": "the least height of `.ds-table-wrap--fill` (a short window scrolls the view instead)"
+    },
+    "--ds-table-fill-max-height": {
+      "default": "none",
+      "description": "the most height of `.ds-table-wrap--fill`"
+    },
+    "--ds-btn-height": {
+      "owner": "button"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
+    },
+    "--ds-scroll-fade": {
+      "owner": "scroller"
+    }
+  },
   "keyframes": [
     "ds-scroll-edge-end",
     "ds-scroll-edge-start",
@@ -75,5 +108,34 @@
     "scrollbar-color",
     "alt text for generated content"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-table__sort",
+    ".ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link)"
+  ],
+  "exceptions": {
+    "physical": {
+      ".ds-table-wrap--fill: -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-table-wrap--fill: mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:has(> .ds-table--wide): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:has(> .ds-table--wide): mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]):has(> .ds-table--wide): mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap: -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap: mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]): -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
+      ".ds-card .ds-table-wrap:where([data-ds-edges]): mask-image": "gradient direction: the edge fades follow the sideways scroll"
+    }
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-table__sort-arrow": "icon swaps: the one arrow of the marked column turns 180deg between ascending and descending"
+      },
+      "height": {
+        ".ds-table__expand": "an expandable table row closes (0fr, grid-template-rows) on --ds-ease-in: a layout size (D29)",
+        "tr:has(.ds-table__toggle[aria-expanded=\"true\"]) + .ds-table__detail .ds-table__expand": "an expandable table row opens (1fr, grid-template-rows) on --ds-ease-out (D29)"
+      }
+    }
+  }
 }

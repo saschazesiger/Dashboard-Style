@@ -36,35 +36,112 @@
     "ripple",
     "sheet"
   ],
-  "hooks": [
-    "--ds-btn-bg",
-    "--ds-btn-border",
-    "--ds-btn-color",
-    "--ds-btn-disabled-bg",
-    "--ds-btn-disabled-border",
-    "--ds-btn-font",
-    "--ds-btn-height",
-    "--ds-btn-hover-border",
-    "--ds-btn-hover-color",
-    "--ds-btn-hover-decoration",
-    "--ds-btn-hover-shadow",
-    "--ds-btn-icon-size",
-    "--ds-btn-padding-start",
-    "--ds-btn-padding-x",
-    "--ds-btn-quiet-color",
-    "--ds-btn-radius",
-    "--ds-btn-radius-pressed",
-    "--ds-btn-sm-height",
-    "--ds-btn-sm-icon-size",
-    "--ds-btn-state",
-    "--ds-btn-state-focus-opacity",
-    "--ds-btn-state-opacity",
-    "--ds-btn-state-pressed-opacity"
-  ],
+  "hooks": {
+    "--ds-btn-height": {
+      "default": "36px (`--sm`: `--ds-btn-sm-height`)",
+      "description": "button"
+    },
+    "--ds-btn-padding-x": {
+      "default": "`--ds-space-4` (`--text`, `--sm`: `--ds-space-3`)",
+      "description": "button"
+    },
+    "--ds-btn-padding-start": {
+      "default": "`= padding-x`; `--ds-space-3` before a leading icon",
+      "description": "button"
+    },
+    "--ds-btn-radius": {
+      "default": "`--ds-radius-action`",
+      "description": "button"
+    },
+    "--ds-btn-radius-pressed": {
+      "default": "`--ds-radius-action-pressed`",
+      "description": "button while pressed (never rounder than `--ds-btn-radius`)"
+    },
+    "--ds-btn-font": {
+      "default": "`--ds-font-label`",
+      "description": "button"
+    },
+    "--ds-btn-bg": {
+      "default": "per variant",
+      "description": "button fill, label, border colour"
+    },
+    "--ds-btn-color": {
+      "default": "per variant",
+      "description": "button fill, label, border colour"
+    },
+    "--ds-btn-border": {
+      "default": "per variant",
+      "description": "button fill, label, border colour"
+    },
+    "--ds-btn-state": {
+      "default": "`currentColor`",
+      "description": "colour of the hover/press layer"
+    },
+    "--ds-btn-state-opacity": {
+      "default": "`--ds-state-hover`, `--ds-state-focus`, `--ds-state-pressed` (`--disc`: 1)",
+      "description": "layer strength on hover, keyboard focus, press"
+    },
+    "--ds-btn-state-focus-opacity": {
+      "default": "`--ds-state-hover`, `--ds-state-focus`, `--ds-state-pressed` (`--disc`: 1)",
+      "description": "layer strength on hover, keyboard focus, press"
+    },
+    "--ds-btn-state-pressed-opacity": {
+      "default": "`--ds-state-hover`, `--ds-state-focus`, `--ds-state-pressed` (`--disc`: 1)",
+      "description": "layer strength on hover, keyboard focus, press"
+    },
+    "--ds-btn-hover-color": {
+      "default": "the resting values",
+      "description": "hover label and border"
+    },
+    "--ds-btn-hover-border": {
+      "default": "the resting values",
+      "description": "hover label and border"
+    },
+    "--ds-btn-hover-shadow": {
+      "default": "none (`--primary`: `--ds-elev-hover`)",
+      "description": "hover elevation"
+    },
+    "--ds-btn-hover-decoration": {
+      "default": "none",
+      "description": "e.g. `underline` for text buttons"
+    },
+    "--ds-btn-icon-size": {
+      "default": "40px",
+      "description": "`--icon` buttons"
+    },
+    "--ds-btn-sm-height": {
+      "default": "32px",
+      "description": "`.ds-btn--sm` (it sets `--ds-btn-height` from it)"
+    },
+    "--ds-btn-sm-icon-size": {
+      "default": "32px",
+      "description": "`.ds-btn--sm.ds-btn--icon` (it sets `--ds-btn-icon-size` from it); a `.ds-drawer__row` item keeps that much room for its action"
+    },
+    "--ds-btn-quiet-color": {
+      "default": "`--ds-text-2`",
+      "description": "`--quiet` label"
+    },
+    "--ds-btn-disabled-bg": {
+      "default": "from `--ds-disabled-fill`",
+      "description": "disabled container"
+    },
+    "--ds-btn-disabled-border": {
+      "default": "from `--ds-disabled-fill`",
+      "description": "disabled container"
+    }
+  },
   "keyframes": [
     "ds-draw"
   ],
   "js": [],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-btn"
+  ],
+  "exceptions": {
+    "ripple": {
+      ".ds-link-btn": "an inline text link: no ripple and no morph (they would reach outside the text line)"
+    }
+  }
 }

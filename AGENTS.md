@@ -18,8 +18,8 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | Command | Purpose |
 |---|---|
 | `npm run check` | tests + verify that `dist/` matches `src/` and that the generated curves, keyframes and masks in `tokens.css` and `motion.css` match their generator (`node scripts/motion-curves.mjs --check`); CI runs this; run it before every commit |
-| `npm test` | tests only (`node --test`, Node 22+; needs `npm ci` once, for lightningcss) |
-| `npm run build` | rebuild `dist/` and the generated files (`src/index.css`, `docs/components.md`, `styleguide/demos.js`) after any change to `src/`, `fonts/`, `LICENSE` or the version; stops when a `meta.json` does not match its stylesheet; minifies with lightningcss (a pinned devDependency, D12: `npm ci` first) |
+| `npm test` | tests only (`node --test` over `test/*.test.js` and `src/components/*/*.test.js`, Node 22+; needs `npm ci` once, for lightningcss) |
+| `npm run build` | rebuild `dist/` and the generated files (`node scripts/build.mjs --generated` lists them: `src/index.css`, `docs/components.md`, `styleguide/demos.js`, `styleguide/lab-components.js`, and the `generated:` blocks of `docs/theming.md`, `docs/motion.md`, `docs/install.md`, `src/types/ds.d.ts`, `src/js/ripple.js` and `themes/example.css`, and the README badge) after any change to `src/`, `fonts/`, `LICENSE` or the version; stops when a `meta.json` does not match `scripts/meta-schema.json`, its folder or its stylesheet; minifies with lightningcss (a pinned devDependency, D12: `npm ci` first) |
 | `node scripts/motion-curves.mjs` | regenerate the sampled `linear()` curves (`--ds-ease-spatial`, `--ds-ease-emphasized`) and the progress masks in `src/core/tokens.css`, and the generated loop keyframe stops (loader shapes, spinner arc, indeterminate progress, skeleton wave) in `src/core/motion.css`; never edit them by hand |
 | `sh scripts/site.sh <dest>` | assemble the GitHub Pages site (`demo/`, `example/`, `styleguide/`, `dist/`, `docs/`, `themes/`, a root page that forwards to the live tour) into an empty `<dest>` (default `_site`, gitignored); `pages.yml` runs it |
 | `sh scripts/vendor.sh --from . <dest>` | copy this checkout's `dist/` into a project to try a change there (`--check <dest>` verifies a copy; Windows: `scripts/vendor.ps1 -From`) |
@@ -39,30 +39,31 @@ Notes for AI agents (Claude Code, Codex, opencode ...) and people working on Das
 | Path | What |
 |---|---|
 | `src/core/tokens.css` | all tokens on `.ds-theme` in `@layer ds.tokens`: layer 1 scales before the `── 2. Palette` marker, layer 2 roles after it, the `linear()` refinements at the end; `@property --ds-time-scale` at top level; the one non-custom property, `color-scheme` from `--ds-color-scheme` on `:where(.ds-theme)` (zero specificity) |
-| `src/core/motion.css` | every `@keyframes` (in `ds.motion`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, `.ds-swap`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
+| `src/core/motion.css` | every core `@keyframes` (in `ds.motion`; `dist/` appends each component's `<name>.keyframes.css`) and the motion utilities (`.ds-enter`, `.ds-leave`, `.ds-stagger`, `.ds-reveal`, `.ds-collapsible`, `.ds-swap`, in `ds.utilities`), plus the non-inheriting hook registrations (`@property`, top level) |
 | `src/core/base.css` | opt-in page base, scoped with `:where(.ds-base)` |
 | `src/core/global.css` | the rules for every element inside `.ds-theme`, whatever components a page uses (border-box sizing, the forced-colours icon colour), in `ds.components` and inlined right before the first component, so every bundle and every set of single files carries them; a rule that no class or `data-ds-*` attribute keys belongs here (tested, with the proof that `ds.css` cascades as before) |
-| `src/components/<name>/` | one folder per component: `<name>.css`, `meta.json` (name, group, order = cascade order, docsOrder, classes, attributes, requires, context, hooks, keyframes, js, progressive, ripple; maintained by hand, checked against the stylesheet by the build; `scripts/gen-meta.mjs` shows how the first ones were derived), its section of `docs/components.md` (`<name>.md`) and, where split, its styleguide demo (`<name>.demo.js`, exports only, built into `styleguide/demos.js`); `_partials/` holds the parts of `docs/components.md` that belong to no component. The components (39: `alert`, `badge`, `button`, `card`, `chart`, `chip`, `combobox`, `dialog`, `disclosure`, `drag`, `empty`, `form`, `indicator`, `list`, `loader`, `loading`, `menu`, `page`, `pagination`, `progress`, `prose`, `ripple`, `savebar`, `scroller`, `sheet`, `shell`, `slider`, `spinner`, `status`, `steps`, `switch`, `table`, `tabs`, `tasks`, `tile`, `timeline`, `toast`, `tooltip`, `utilities`; the styleguide's `Components` tile counts them, tested); the header comment sketches markup, modifiers, hooks and "Progressive:" features |
+| `src/core/hooks.json` | the hooks of the core stylesheets, the rows of the hooks table no `meta.json` owns (`{ "--ds-x": { "default", "description" } }`) |
+| `src/components/<name>/` | one folder per component, everything it owns (`plans/3.0-conventions.md`, section 1): `<name>.css`; `meta.json` (validated against `scripts/meta-schema.json`, which describes every field, and checked against the stylesheet by the build); its section of `docs/components.md` (`<name>.md`); its styleguide demo (`<name>.demo.js`, built into `styleguide/demos.js`); and where it applies its behaviour module `<name>.js` with its types `<name>.d.ts` (and `<name>.requires.json`), its unit tests `<name>.test.js` (run by `npm test`), its Playwright spec `<name>.spec.js` (and `<name>.fixture.html`), its Motion Lab entries `<name>.lab.js` (built into `styleguide/lab-components.js`) and its keyframes `<name>.keyframes.css` (appended to `motion.css` in `dist/`). Any other file stops the build. `_partials/` holds the parts of `docs/components.md` that belong to no component. No file lists the components by hand: the build counts the folders (the README badge) and the styleguide's `Components` tile counts them (tested); the header comment of each stylesheet sketches markup, modifiers, hooks and "Progressive:" features |
 | `src/index.css` | **generated** from `meta.json` `order`: the layer order statement, the statement of the reserved component sublayers (`ds.components.<name>`, empty until a component moves in; the header comment says why), then the `@import` list = cascade order of `ds.css` |
 | `src/optional/` | opt-in stylesheets (`view-transitions.css`: View Transitions across page loads), built to `dist/css/optional/`, never in `index.css` or `ds.css` |
-| `src/js/*.js` | ES modules `core` (the one runtime per page, `define`, `init` with its observer, `get`, `destroy`, `emit`, `config`, `t`; `docs/core.md`), `motion`, `indicator`, `dom`, `ripple`, `icons`, `overlay`, in `MODULES` order (core first); `scripts/build.mjs` wraps them into `dist/ds.js` as `window.DS.*` through `scripts/tools/js-wrap.mjs` in merge mode (a sibling `import` becomes a read of `DS.<module>`; a later copy or bundle of the same version adds what the page lacks instead of returning early; `DS.init`, `DS.get`, `DS.define`, `DS.config` are `DS.core`'s) |
+| `src/js/*.js` | the core ES modules `core` (the one runtime per page, `define`, `init` with its observer, `get`, `destroy`, `emit`, `config`, `t`; `docs/core.md`), `motion`, `indicator`, `dom`, `ripple`, `icons`, `overlay`, in `CORE_MODULES` order (core first). `MODULES` in `scripts/build.mjs` is these, then every component module (`src/components/<name>/<name>.js`, discovered and ordered by its imports); the build writes them flat to `dist/js/<name>.js` (a component's imports rewritten to `./<module>.js`) and wraps them into `dist/ds.js` as `window.DS.*` through `scripts/tools/js-wrap.mjs` in merge mode (a sibling `import` becomes a read of `DS.<module>`; a later copy or bundle of the same version adds what the page lacks instead of returning early; `DS.init`, `DS.get`, `DS.define`, `DS.config` are `DS.core`'s). `RIPPLE_HOSTS` in `ripple.js` is a generated block (`meta.json` `rippleHosts`) |
 | `src/js/<module>.requires.json` | optional, next to its module: the components the module always needs (`requires`) and, per export, those whose markup that export writes itself (`exportRequires`: `confirm` → button, dialog, spinner); the build checks it and writes it, with the module's own component (the `meta.json` `js` arrays inverted), into `manifest.json` `js.<module>`, which `tools/bundle.mjs` resolves |
 | `fonts/` | Google Sans woff2, `fonts.css`, `OFL.txt` (copied to `dist/fonts/`) |
-| `themes/example.css` | theme template: lists every role (a test enforces it) and the hooks, commented out |
+| `themes/example.css` | theme template: lists every role (a test enforces it) and, commented out in a generated block, the hooks with their fallbacks |
 | `themes/presets/` | generated by `scripts/tools/theme.mjs --presets` (never by hand): `default`, `slate`, `ocean`, `forest`, `violet`, `amber`, `rose`, `graphite`, each `<name>.css` and `<name>-contrast.css`, one file for both schemes (`light-dark()`, `data-ds-scheme` pins a region); copied to `dist/themes/presets/`; a test keeps them equal to the generator |
 | `themes/dark.css`, `themes/compact.css`, `themes/contrast.css` | the shipped themes, copied to `dist/themes/`: every non-derived colour role in the dark tones; compact type and heights (default heights back under a coarse pointer); palette-neutral contrast mixes. Contrast pairs and completeness tested in `test/tokens.test.js`; a package that adds a colour role adds its dark and contrast values |
-| `src/types/` | hand-written TypeScript declarations: `ds.d.ts` (the global `DS` with its module namespaces and the `DS.init`/`get`/`define`/`config` aliases, and `DashboardStyle.runtime`; copied to `dist/ds.d.ts`) and `js/<module>.d.ts` (each module's exports with their options and handles, copied next to the module in `dist/js/`); `test/build.test.js` keeps the declared exports and their parameter names equal to the modules |
+| `src/types/` | hand-written TypeScript declarations of the core: `ds.d.ts` (the global `DS` with its module namespaces, a generated block from `MODULES`, the `DS.init`/`get`/`define`/`config` aliases, and `DashboardStyle.runtime`; copied to `dist/ds.d.ts`) and `js/<module>.d.ts` (each core module's exports with their options and handles, copied next to the module in `dist/js/`); a component's types sit in its folder (`<name>.d.ts`); `test/build.test.js` keeps the declared exports and their parameter names equal to the modules |
 | `src/deprecations.json` | every deprecated and removed name as data (`dist/deprecations.json`); a removed name gets `removed` set |
-| `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`) |
-| `docs/` | `install`, `bundle` (loading only what a page uses), `core` (`js/core.js`: runtime, behaviours, `init()`, events, strings), `tokens`, `theming`, `theme-generator` (`tools/theme.mjs` and the presets), `components` (**generated** from `src/components/_partials/` and every `<name>.md`; edit those), `patterns`, `motion`, `icons`, `rules` (with the accessibility statement) |
+| `styleguide/` | living styleguide on top of `dist/`: `index.html` (components, tokens, icons) and `motion.html` (the Motion Lab); `styleguide.js` is the one shared script (frame, navigation, themes, speed select, the index demos and the component count tile), `lab.js` the Motion Lab's demo registry (`window.SG_LAB`), `lab-components.js` **generated** from every `<name>.lab.js` (`SG_LAB.add(entry)`, the entry shape of `lab.js`) |
+| `docs/` | `install`, `bundle` (loading only what a page uses), `core` (`js/core.js`: runtime, behaviours, `init()`, events, strings), `tokens`, `theming`, `theme-generator` (`tools/theme.mjs` and the presets), `components` (**generated** from `src/components/_partials/` and every `<name>.md`; edit those; the hooks table of `theming`, the component keyframes table of `motion` and the module table of `install` are generated blocks), `patterns`, `motion`, `icons`, `rules` (with the accessibility statement) |
 | `docs/images/` | the screenshots and GIFs of `README.md`, taken from the live tour, the reference app and the styleguide; retake them when the look changes |
 | `demo/` | the live tour, the start page on GitHub Pages: one page with a working demo of every behaviour (press, controls, live data, overlays, feedback, forms, theming, icons), wired as a project wires it (`theme.js` builds the theme from the choices under "Theme it" and shows its file, `demo.css` project components with the prefix `demo-`, `demo.js` the page; classic scripts on `../dist/`, so it works from disk); `test/browser/demo.spec.js` runs it |
 | `example/` | the reference app, published on GitHub Pages: a device console that uses the system as a project does (`theme.css` the project theme, `app.css` project components with the prefix `ex-`, `data.js` a fake backend, `app.js` the app; classic scripts on `../dist/`, so it works from disk); its `README.md` maps every pattern to its code. It follows the documented markup and the project rules of "Using Dashboard-Style in a project" below; `test/browser/example.spec.js` runs its flows |
-| `scripts/` | `build.mjs` (deterministic, `--check` covers `dist/` and the generated files; checks every `meta.json`; writes the single stylesheets to `dist/css/core/` and `dist/css/components/<name>.css`, a `.min.css` with source map next to each and `ds.min.css` (lightningcss, at the floor, lowering nothing), `ds.min.js` (`stripJs`), `dist/manifest.json`, the version banner on every CSS, JS, MJS, `.d.ts` and shell file, and `dist/tokens.json` from `tokens.css`, the hooks table of `docs/theming.md` and the stylesheets; every file of `scripts/tools/` ships to `dist/tools/` by itself), `gen-meta.mjs` (how the first `meta.json` files were derived, kept for reference), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects), `site.sh` (the GitHub Pages site) |
+| `scripts/` | `build.mjs` (deterministic, `--check` covers `dist/` and the generated files, `--generated` lists those; checks every `meta.json`; writes the single stylesheets to `dist/css/core/` and `dist/css/components/<name>.css`, a `.min.css` with source map next to each and `ds.min.css` (lightningcss, at the floor, lowering nothing), `ds.min.js` (`stripJs`), `dist/manifest.json`, the version banner on every CSS, JS, MJS, `.d.ts` and shell file, and `dist/tokens.json` from `tokens.css`, the hooks table of `docs/theming.md` and the stylesheets; every file of `scripts/tools/` ships to `dist/tools/` by itself), `meta-schema.json` (every `meta.json` field; the build validates against it), `gen-meta.mjs` (how the first `meta.json` files were derived, in the 2.x shape, kept for reference), `motion-curves.mjs` (the one source of sampled curves, `--check`), `vendor.sh` / `vendor.ps1` (checksummed copies for projects), `site.sh` (the GitHub Pages site) |
 | `scripts/tools/` | the tools shipped in `dist/tools/`, dependency-free: `verify.mjs` and `verify.sh` (a copy against `SHA256SUMS`; `verify.sh` holds `check_dir` of `vendor.sh` word for word), `check-theme.mjs` (reads `light-dark()`: every pair in each scheme a theme shows), `check-project.mjs`, `bundle.mjs` and `vite-plugin.mjs` (a project bundle from `manifest.json`; `docs/bundle.md`), `theme.mjs` (the theme generator) and the modules they share: `theme-rules.mjs` (the contrast pairs, the motion prefixes, the colour resolver and `pickLightDark()`, also read by `test/tokens.test.js`), `css-scan.mjs`, `color.mjs` (a port of Material Color Utilities' HCT, Apache-2.0, notice in `LICENSE`) and `js-wrap.mjs` (the classic-script wrapper of `ds.js` and of every bundle) |
 | `templates/update-dashboard-style.yml` | nightly GitHub Actions workflow that projects copy to vendor `main` |
-| `test/` | `css`, `tokens`, `motion`, `js`, `build`, `registry` (meta.json, the generated files, the manifest, the minified output), `repo`, `controls`, `tools`, `check-project`, `bundle`, `core` (`js/core.js` on a fake DOM), `theme-generator`, `helpers` and `browser-helpers` unit tests; `helpers.js`; `fixtures/bundle/` (a small fake copy and fixture projects for the bundle tool; the bundle tests also bundle from this checkout's `dist/`) |
-| `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js`, `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, `lab` for the Motion Lab: coverage, every demo, interruption, the overlay table; `review` for the whole-page sweeps; `perf` for the paint budget and style recalc times, alone) and the committed `__screenshots__/`; `README.md` explains them |
+| `test/` | the shared unit tests (a component's own sit in its folder, `<name>.test.js`; `npm test` runs both): `css`, `tokens`, `motion`, `js`, `build`, `registry` (meta.json, the generated files, the manifest, the minified output), `repo`, `controls`, `tools`, `check-project`, `bundle`, `core` (`js/core.js` on a fake DOM), `theme-generator`, `helpers` and `browser-helpers` unit tests; `helpers.js`; `fixtures/bundle/` (a small fake copy and fixture projects for the bundle tool; the bundle tests also bundle from this checkout's `dist/`) |
+| `test/browser/` | Playwright harness (`playwright.config.js`, `serve.js` (with the generated page `fixtures/component.html?c=<name>`: a component's demo alone, through the SG stub `fixtures/sg-stub.js`), `base-test.js`: the shared `test` of the specs that also run in `fallback`), `fixtures/`, the one helper module `helpers/motion.js`, the specs (baselines, timelines, capability spike, `lab` for the Motion Lab: coverage, every demo, interruption, the overlay table; `review` for the whole-page sweeps; `perf` for the paint budget and style recalc times, alone) and the committed `__screenshots__/`; the projects also run every `src/components/<name>/<name>.spec.js`, its shots under `__screenshots__/<project>/components/`; `README.md` explains them |
 | `plans/` | working plans (`motion-2.md` and its phases, complete; `after-2.0.md`, what 2.0.0 deferred or left open, the names 3.0 may remove and the wishes that were dropped); kept outside `docs/` so the docs tests do not count them |
 | `.github/workflows/pages.yml` | GitHub Pages (the live tour at the root): after `check` passed on a push to `main` (or by hand), `npm run check`, `scripts/site.sh`, deploy; the repository's Pages source is "GitHub Actions" |
 | `.github/workflows/check.yml` | CI on every push, pull request and by hand: `check` (Node 22 and 24: `npm run check` and the vendor round trip), then `browser` (Playwright in `mcr.microsoft.com/playwright:v<pinned>-noble`, one job per engine); Run workflow with "update screenshots" uploads a new screenshot set |
@@ -101,18 +102,21 @@ The tests in `test/` enforce most of these; do not weaken a test to make a chang
   animations, `interpolate-size`, `::details-content`, `overflow-clip-margin`, `sibling-index()`,
   `moveBefore()`, `scrollbar-gutter`, `focus({ focusVisible: false })`, plus `text-wrap` and `scrollbar-color`.
   JS is ES2022; a module may import named exports from an earlier module in `MODULES`
-  (`import { a } from './motion.js';`, one line), exports only as `export const` / `export function`, newer APIs
-  only behind feature detection, named under "Progressive:".
+  (`import { a } from './motion.js';` in `src/js/`, `'../../js/motion.js'` or `'../<other>/<other>.js'` in a
+  component folder; one line), exports only as `export const` / `export function`, newer APIs only behind feature
+  detection, named under "Progressive:".
 - **Cascade layers.** `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;` is the first statement
   of every stylesheet in `src/` (`dist/ds.css` declares it once); each file wraps its rules in one block
   (`tokens.css` → `ds.tokens`, `base.css` → `ds.base`, components → `ds.components`; `motion.css` puts its
   keyframes in `ds.motion` and its utilities in `ds.utilities`). `@property` and `@font-face` (and
   `@view-transition` in `src/optional/`) stay at top level; themes, `fonts.css` and project CSS stay unlayered, so
   they win. No doubled-class or other specificity tricks:
-  the layer order decides. `!important` only on the allowlist (tested): `[hidden]` in `base.css`, the `.ds-sr`
-  rules, the alignment utilities `.ds-num` and `.ds-center`, the forced-colours `svg` colour in `global.css`.
-- **Motion.** `@keyframes` only in `src/core/motion.css`, each name once; entrances define only `from`, exits only
-  `to`, with named exemptions (tested). Movement keyframes use `translate`/`scale`; exits are movement-only and
+  the layer order decides. `!important` only on the allowlist (tested; a component's in its `meta.json`
+  `exceptions.important`): `[hidden]` in `base.css`, the `.ds-sr` rules, the alignment utilities `.ds-num` and
+  `.ds-center`, the forced-colours `svg` colour in `global.css`.
+- **Motion.** `@keyframes` only in `src/core/motion.css` and a component's `<name>.keyframes.css`, each name once;
+  entrances define only `from`, exits only `to`, with named exemptions (tested; a component's in its `meta.json`
+  `motionExceptions`). Movement keyframes use `translate`/`scale`; exits are movement-only and
   pair with `ds-fade-out`. Durations and curves only from tokens. Effects (opacity, colour) and values run on
   curves within [0, 1] that never decrease; movement that floats runs on the spring `--ds-ease-spatial` (peak at
   most 1.05, then it settles; the percentage is the contract); sizes that push layout never overshoot
@@ -180,21 +184,24 @@ Work in `src/`, never in `dist/`. Every change follows the same path:
 A change to documented markup, a hook or a JS export that `example/` or `demo/` uses updates the reference app and
 the live tour in the same commit, so the published pages never show a deprecated pattern.
 
-- **Component**: a new folder `src/components/<name>/` with `<name>.css` (the usual header comment) and its
-  `meta.json` (its `order` places it in the cascade; `npm run build` regenerates `src/index.css` and says what the
-  file is missing); a section `<name>.md` (markup, modifiers, behaviour the page must add) with its `docsOrder`
-  plus a row in its "Which component for which need" table; new hooks in the table of `docs/theming.md` and
-  commented in `themes/example.css`; a demo in `styleguide/styleguide.js` (raise the `Components` tile, a test
-  counts the files); its motion as a row of the choreography in `docs/motion.md` and a Motion Lab demo (below);
-  forced-colors behaviour and browser motion tests checked. Every `.ds-*` class must appear in
-  `docs/components.md` (tested).
-- **Motion** (a keyframe, a utility, a JS export, a component's choreography): a Motion Lab demo, an entry in
-  `styleguide/lab.js` whose `shows` lists every keyframe, class, export and token it plays, with Replay and, when
-  the motion is reversible, a `toggle` (Rapid toggle, Reverse at 50%). The coverage test of
-  `test/browser/lab.spec.js` fails for a keyframe, motion class or function of `DS.motion`, `DS.dom`,
-  `DS.indicator`, `DS.ripple` or `DS.overlay` that no demo shows (or that is not on its `LAB_EXEMPT` list with a
-  reason). An overlay's timing also goes into the Overlays table of `docs/motion.md`, which the same spec compares
-  with what every engine plays.
+- **Component**: a new folder `src/components/<name>/`, and nothing outside it (`plans/3.0-conventions.md`, section 1,
+  the contract of every file): `<name>.css` (the usual header comment), `meta.json` (`scripts/meta-schema.json`
+  describes every field; its `order` places it in the cascade), a section `<name>.md` (markup, modifiers, behaviour the
+  page must add) with its `docsOrder`, `<name>.demo.js`, a spec `<name>.spec.js` on the generated page
+  `/test/browser/fixtures/component.html?c=<name>`, and where they apply `<name>.js` with `<name>.d.ts`,
+  `<name>.test.js`, `<name>.lab.js` and `<name>.keyframes.css`. `npm run build` regenerates the shared files and says
+  what the folder is missing. New hooks are described in `meta.json` `hooks` (the theming table and
+  `themes/example.css` follow); an exception of a guardrail goes in `meta.json` `exceptions` or `motionExceptions`
+  with its reason; a ripple host in `rippleHosts`. Its motion gets a row of the choreography in `docs/motion.md` (the
+  integrator's, from the report) and a Motion Lab demo (below); forced-colors behaviour and browser motion tests
+  checked. Every `.ds-*` class must appear in `docs/components.md` (tested).
+- **Motion** (a keyframe, a utility, a JS export, a component's choreography): a Motion Lab demo: an entry in
+  `styleguide/lab.js`, or for a component `SG_LAB.add(entry)` in its `<name>.lab.js`, whose `shows` lists every
+  keyframe, class, export and token it plays, with Replay and, when the motion is reversible, a `toggle` (Rapid toggle,
+  Reverse at 50%). The coverage test of `test/browser/lab.spec.js` fails for a keyframe, motion class or function of
+  `DS.motion`, `DS.dom`, `DS.indicator`, `DS.ripple`, `DS.overlay` or a component module that no demo shows (or that is
+  not on its `LAB_EXEMPT` list or in the component's `meta.json` `labExempt`, with a reason). An overlay's timing also
+  goes into the Overlays table of `docs/motion.md`, which the same spec compares with what every engine plays.
 - **Token**: a role goes after the `── 2. Palette` marker in `src/core/tokens.css`, into `docs/tokens.md` and
   `themes/example.css` (tested); a new colour role gets its dark tone in `themes/dark.css` (unless it is derived or
   a `var()` of another role; tested) and, where it carries text or a line, its value in `themes/contrast.css`; its
@@ -204,26 +211,28 @@ the live tour in the same commit, so the published pages never show a deprecated
   `--ds-*` name must appear in `docs/` (tested).
 - **Icon**: a named export in `src/js/icons.js` (24px grid, flat shapes, no `stroke`, `fill`, `class` or colour of
   their own; tested) and its name in the glyph table of `docs/icons.md`. The styleguide lists glyphs by itself.
-- **Keyframe**: only in `src/core/motion.css` with the `ds-` prefix, a row in the keyframe table of `docs/motion.md`
-  (tested); use it through tokens so `--ds-time-scale` applies; a Motion Lab demo shows it (tested).
-- **JS export**: in `src/js/*.js`, documented in `docs/core.md` (core), `docs/icons.md` (icons) or `docs/motion.md`
-  (the rest; tested), declared with its options and handle in `src/types/js/<module>.d.ts` (same parameter names;
-  tested); a function of a motion module gets a Motion Lab demo (tested). An export that writes markup of a
-  component itself (a dialog, a live region on `.ds-sr`) names those components in `exportRequires` of
-  `src/js/<module>.requires.json`, so a bundle that uses it gets their CSS.
-- **JS module** (until the build reads `src/components/<name>/<name>.js`, a component's behaviour is a module of
-  `src/js/` too): `src/js/<name>.js`, plain ES2022, `export const` / `export function` only, imports only as
-  `import { a, b } from './core.js';` on one line from modules earlier in `MODULES`; register behaviours with
-  `define('<name>', { attribute: 'data-ds-<name>', init(el, ctx) { ... } })` from `./core.js` (state that must be
-  one per page in `runtime.state('<name>', ...)`, strings through `t()`), never a global listener of its own. Then
-  add it to `MODULES` in `scripts/build.mjs` (after every module it imports from), write
-  `src/types/js/<name>.d.ts` and its namespace in `src/types/ds.d.ts`, list the module in the `js` of the
-  component's `meta.json` (a module named like its component gets that stylesheet as `requires` by itself),
-  add `src/js/<name>.requires.json` when an export writes other components' markup, document every export in
-  `docs/motion.md` (the docs test reads `docs/core.md` for core, `docs/icons.md` for icons, `docs/motion.md` for every
-  other module), and add the module to the imports of `test/js.test.js`, the module list of
-  `test/browser/fixtures/module.html` (with its smoke test), the `dist/` table in `docs/install.md` and a Motion
-  Lab demo or `LAB_EXEMPT` entry for what it moves.
+- **Keyframe**: in `src/core/motion.css` with the `ds-` prefix and a row in the keyframe table of `docs/motion.md`, or
+  a component's in its `<name>.keyframes.css` (one `@layer ds.motion` block of `@keyframes`) with `meta.json`
+  `keyframes` and `keyframeDocs` (the generated table of `docs/motion.md`; tested); use it through tokens so
+  `--ds-time-scale` applies; a Motion Lab demo shows it (tested).
+- **JS export**: in `src/js/*.js` or a component's `<name>.js`, documented in `docs/core.md` (core), `docs/icons.md`
+  (icons), `docs/motion.md` (the rest of `src/js/`) or the component's `<name>.md` (tested), declared with its options
+  and handle in `src/types/js/<module>.d.ts` or the folder's `<name>.d.ts` (same parameter names; tested); a function
+  of a motion or component module gets a Motion Lab demo or a `labExempt` (tested). An export that writes markup of a
+  component itself (a dialog, a live region on `.ds-sr`) names those components in `exportRequires` of the module's
+  `<module>.requires.json`, so a bundle that uses it gets their CSS.
+- **Component module**: `src/components/<name>/<name>.js`; no list to edit. The build discovers it, orders it after
+  what it imports (a cycle stops the build), writes `dist/js/<name>.js` and `.d.ts`, and adds it to `ds.js`,
+  `manifest.json`, `src/types/ds.d.ts` and the table of `docs/install.md`; the tests and `module.html` read the same
+  list. `meta.json` has `"module": true` and lists `<name>` in `js`; `<name>` is a JS identifier (no hyphen; it becomes
+  `DS.<name>`) and no core module's name. Plain ES2022, `export const` / `export function` only, imports only as
+  `import { a, b } from '../../js/core.js';` (another component: `'../<other>/<other>.js'`), one line each; register
+  behaviours with `define('<name>', { attribute: 'data-ds-<name>', init(el, ctx) { ... } })` (state that must be one
+  per page in `runtime.state('<name>', ...)`, strings through `t()`), never a global listener of its own.
+- **Core module** (`src/js/<name>.js`, rare): the same rules with `import { a, b } from './core.js';`; add it to
+  `CORE_MODULES` in `scripts/build.mjs` (after every module it imports from), write `src/types/js/<name>.d.ts`, list it
+  in the `js` of the component's `meta.json` (a module named like its component gets that stylesheet as `requires` by
+  itself), and document every export in `docs/motion.md`.
 
 ## Releases
 

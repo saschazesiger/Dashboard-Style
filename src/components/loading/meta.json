@@ -25,9 +25,12 @@
   "context": [
     "page"
   ],
-  "hooks": [
-    "--ds-skeleton-radius"
-  ],
+  "hooks": {
+    "--ds-skeleton-radius": {
+      "default": "`--ds-radius-action` (the heading line: `--ds-radius-sm`)",
+      "description": "skeleton lines ([loading](components.md#loading))"
+    }
+  },
   "keyframes": [
     "ds-fade-in",
     "ds-progress-head",

@@ -19,11 +19,20 @@
     "indicator",
     "ripple"
   ],
-  "hooks": [
-    "--ds-tabs-height",
-    "--ds-tabs-indicator-color",
-    "--ds-tabs-indicator-height"
-  ],
+  "hooks": {
+    "--ds-tabs-height": {
+      "default": "48px",
+      "description": "a tab (the state layer is a pill `--ds-space-1` inside it)"
+    },
+    "--ds-tabs-indicator-height": {
+      "default": "3px, `--ds-primary`",
+      "description": "the bar under the selected tab"
+    },
+    "--ds-tabs-indicator-color": {
+      "default": "3px, `--ds-primary`",
+      "description": "the bar under the selected tab"
+    }
+  },
   "keyframes": [],
   "js": [
     "indicator"
@@ -31,5 +40,8 @@
   "progressive": [
     "scrollbar-color"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-tabs__tab"
+  ]
 }

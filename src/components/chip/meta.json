@@ -24,18 +24,52 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-chip-check-size",
-    "--ds-chip-disabled-bg",
-    "--ds-chip-disabled-border",
-    "--ds-chip-height",
-    "--ds-chip-input-bg",
-    "--ds-chip-input-border",
-    "--ds-chip-input-color",
-    "--ds-chip-max-width"
-  ],
+  "hooks": {
+    "--ds-chip-height": {
+      "default": "32px",
+      "description": "filter chip"
+    },
+    "--ds-chip-check-size": {
+      "default": "18px",
+      "description": "the check of a selected chip (and the room it opens)"
+    },
+    "--ds-chip-disabled-border": {
+      "default": "`--ds-disabled-fill`",
+      "description": "disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`)"
+    },
+    "--ds-chip-disabled-bg": {
+      "default": "`--ds-disabled-fill`",
+      "description": "disabled chip outline, and the container of a disabled selected chip (label and check take `--ds-disabled-ink`)"
+    },
+    "--ds-chip-input-bg": {
+      "default": "`--ds-accent`, `--ds-on-accent`, `--ds-accent`",
+      "description": "an input chip (`.ds-chip--input`): fill, ink, edge"
+    },
+    "--ds-chip-input-color": {
+      "default": "`--ds-accent`, `--ds-on-accent`, `--ds-accent`",
+      "description": "an input chip (`.ds-chip--input`): fill, ink, edge"
+    },
+    "--ds-chip-input-border": {
+      "default": "`--ds-accent`, `--ds-on-accent`, `--ds-accent`",
+      "description": "an input chip (`.ds-chip--input`): fill, ink, edge"
+    },
+    "--ds-chip-max-width": {
+      "default": "240px",
+      "description": "the widest body of an action or input chip; its label ends in an ellipsis"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-chip"
+  ],
+  "motionExceptions": {
+    "transition": {
+      "width": {
+        ".ds-chip__body::after": "the check slot of a chip: a layout size on --ds-ease-out (D29)"
+      }
+    }
+  }
 }

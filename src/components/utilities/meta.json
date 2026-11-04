@@ -34,16 +34,48 @@
     "shell",
     "table"
   ],
-  "hooks": [
-    "--ds-kbd-bg",
-    "--ds-kbd-border",
-    "--ds-pressable-layer",
-    "--ds-pressable-radius"
-  ],
+  "hooks": {
+    "--ds-pressable-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "`.ds-pressable`, the press model on a project element"
+    },
+    "--ds-pressable-layer": {
+      "default": "`currentColor`",
+      "description": "the colour of the state layer of `.ds-pressable`"
+    },
+    "--ds-kbd-border": {
+      "default": "`--ds-line-2`, `--ds-surface`",
+      "description": "`.ds-kbd`: the box of a key"
+    },
+    "--ds-kbd-bg": {
+      "default": "`--ds-line-2`, `--ds-surface`",
+      "description": "`.ds-kbd`: the box of a key"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [
     "text-wrap"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-pressable"
+  ],
+  "exceptions": {
+    "important": {
+      ".ds-sr: position": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: top": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: inset-inline-start": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: width": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: height": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: padding": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: margin": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: overflow": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: clip": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: white-space": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-sr: border": "the visually hidden text stays hidden whatever a page or a component sets on it",
+      ".ds-num: text-align": "an alignment utility wins over the cell or block it is put on",
+      ".ds-center: text-align": "an alignment utility wins over the cell or block it is put on"
+    }
+  }
 }

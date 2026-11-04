@@ -12,8 +12,8 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, posix } from 'node:path';
-import { MODULES, diffDist } from '../scripts/build.mjs';
-import { ROOT, filesIn, read, rules, stripComments } from './helpers.js';
+import { CORE_MODULES, MODULES, componentNames, components, diffDist, moduleFiles, motionCss } from '../scripts/build.mjs';
+import { ROOT, filesIn, jsModules, read, rules, stripComments } from './helpers.js';
 
 const TEXT = /\.(css|js|mjs|md|html|json|txt|sh|ps1)$|(^|\/)(LICENSE|SHA256SUMS|\.gitignore|\.gitattributes)$/;
 const SKIP_DIRS = /^(\.git|node_modules|test-results|playwright-report|blob-report|__screenshots-local__)$/;
@@ -86,15 +86,15 @@ describe('repository', () => {
     assert.equal(JSON.parse(read('dist/manifest.json')).version, version, 'manifest.json');
   });
 
-  it('counts the components right in the styleguide overview and the README badge, and lists them in AGENTS.md', () => {
-    const files = filesIn('src/components', (path) => path.endsWith('.css')).map((path) => path.slice(path.lastIndexOf('/') + 1, -'.css'.length));
+  it('counts the components right in the styleguide overview and the README badge (generated), and lists them nowhere by hand', () => {
+    const files = componentNames();
+    assert.ok(files.length >= 39, `${files.length} component folders`);
     assert.match(read('styleguide/styleguide.js'), new RegExp(`tile\\('Components', '${files.length}'`));
-    assert.match(read('README.md'), new RegExp(`badge/components-${files.length}-`), 'the Components badge of README.md');
+    assert.match(read('README.md'), new RegExp(`!\\[Components: ${files.length}\\]\\(https://img\\.shields\\.io/badge/components-${files.length}-`), 'the Components badge of README.md');
+    // A shared hand-edited list of the components would collide between parallel branches.
     const row = read('AGENTS.md').split('\n').find((line) => line.startsWith('| `src/components/<name>/` |')) ?? '';
-    const listed = /The components \((\d+): ([^;]+);/.exec(row);
-    assert.ok(listed, 'the Files row of AGENTS.md counts and names the component files');
-    assert.equal(Number(listed[1]), files.length);
-    assert.deepEqual([...listed[2].matchAll(/`([\w-]+)`/g)].map((match) => match[1]).sort(), files.sort());
+    assert.ok(row, 'the Files row of AGENTS.md');
+    assert.doesNotMatch(row, /The components \(\d+:/, 'AGENTS.md lists no components by hand');
   });
 
   it('documents every component class in docs/components.md', () => {
@@ -141,15 +141,16 @@ describe('repository', () => {
     assert.deepEqual(missing, []);
   });
 
-  it('documents every JS export of every built module (MODULES): core in docs/core.md, icons in docs/icons.md, the rest in docs/motion.md', () => {
-    // A module in src/js/ that the build leaves out fails here too.
-    assert.deepEqual(filesIn('src/js', (path) => path.endsWith('.js')).map((path) => path.slice('src/js/'.length, -3)).sort(), [...MODULES].sort(), 'src/js/ is MODULES');
+  it('documents every JS export of every built module (MODULES): core in docs/core.md, icons in docs/icons.md, the rest of src/js in docs/motion.md, a component\'s in its <name>.md', () => {
+    // A module in src/js/ that the build leaves out fails here too; a component's module is found by the build.
+    assert.deepEqual(filesIn('src/js', (path) => path.endsWith('.js')).map((path) => path.slice('src/js/'.length, -3)).sort(), [...CORE_MODULES].sort(), 'src/js/ is CORE_MODULES');
+    assert.deepEqual(jsModules().map((path) => path.replace(/^.*\//, '').slice(0, -3)).sort(), [...MODULES].sort(), 'every module of src/ is in MODULES');
     const missing = [];
     for (const name of MODULES) {
-      const docs = read(name === 'core' ? 'docs/core.md' : name === 'icons' ? 'docs/icons.md' : 'docs/motion.md');
+      const docs = read(moduleFiles(name).docs);
       // In a code span of its own or as a call or member in one (`flip(container, ...)`, `DS.motion.flip`).
       const spans = [...docs.matchAll(/`([^`\n]+)`/g)].map((match) => match[1]);
-      for (const match of read(`src/js/${name}.js`).matchAll(/^export (?:const|function) ([\w$]+)/gm)) {
+      for (const match of read(moduleFiles(name).source).matchAll(/^export (?:const|function) ([\w$]+)/gm)) {
         const word = new RegExp(`(^|[^\\w$])${match[1].replace(/\$/g, '\\$')}(?![\\w$])`);
         if (!spans.some((span) => word.test(span))) missing.push(`${name}.js: ${match[1]}`);
       }
@@ -164,7 +165,7 @@ describe('repository', () => {
     const declared = new Set([...stripComments(read('src/core/tokens.css')).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]));
     const css = filesIn('src', (path) => path.endsWith('.css'));
     const registered = new Set(css.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
-    const scripts = filesIn('src/js', (path) => path.endsWith('.js')).map(read).join('\n');
+    const scripts = jsModules().map(read).join('\n');
     const NOT_HOOKS = new Map([
       ['--ds-content-pad-top', 'the panel padding of page.css at the current width: read it, never set it'],
       ['--ds-content-pad-x', 'the panel padding of page.css at the current width: read it, never set it'],
@@ -290,21 +291,22 @@ describe('repository', () => {
     assert.deepEqual(empty, []);
   });
 
-  it('lists every @keyframes once in the docs/motion.md keyframe table, unused kept names marked deprecated', () => {
-    const motion = read('src/core/motion.css');
+  it('lists every @keyframes once in the docs/motion.md keyframe tables (motion.css, and the generated one of the components), unused kept names marked deprecated', () => {
+    // motion.css as dist/ ships it: with every src/components/<name>/<name>.keyframes.css.
+    const motion = motionCss(components());
     const names = [...stripComments(motion).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
     const docs = read('docs/motion.md');
     const section = docs.slice(docs.indexOf('\n## Keyframes'), docs.indexOf('\n## ', docs.indexOf('\n## Keyframes') + 1));
     const rows = section.split('\n').filter((line) => /^\| `ds-/.test(line)).map((line) => ({ names: [...line.split(' | ')[0].matchAll(/`(ds-[\w-]+)`/g)].map((match) => match[1]), line }));
     const listed = rows.flatMap((row) => row.names);
-    assert.deepEqual([...listed].sort(), [...names].sort(), 'each @keyframes of src/core/motion.css in one row, once');
+    assert.deepEqual([...listed].sort(), [...names].sort(), 'each @keyframes of motion.css and the components in one row, once');
     // A name no stylesheet or module of src/ uses (outside its own @keyframes) is either deprecated or kept for pages.
     const KEPT_FOR_PAGES = new Map([
       ['ds-scan', 'a band across media being processed: no component of its own, used by pages (the Motion Lab shows it)'],
       ['ds-ripple', 'the confirmation ring behind a saved state: placed by pages (the Motion Lab shows it)'],
       ['ds-clip-out', 'the exit of a popup a page shows by hand with ds-clip-in (DS.overlay uses transitions)'],
     ]);
-    const sources = [...filesIn('src', (path) => path.endsWith('.css')).map((file) => stripComments(read(file))), ...filesIn('src/js', (path) => path.endsWith('.js')).map((file) => code(read(file)))].join('\n');
+    const sources = [...filesIn('src', (path) => path.endsWith('.css')).map((file) => stripComments(read(file))), ...jsModules().map((file) => code(read(file)))].join('\n');
     const DEPRECATED = /\*\*deprecated\*\*/;
     const offenders = [];
     for (const row of rows) {
@@ -425,10 +427,11 @@ describe('repository', () => {
     assert.deepEqual(offenders, []);
     // Playwright itself only in the specs, the config and the shared fixture
     // of the specs (base-test.js), which node --test never loads.
-    const playwright = ALL_FILES.filter((path) => /\.(js|mjs)$/.test(path) && path.startsWith('test/'))
+    // A component folder's spec (src/components/<name>/<name>.spec.js) is a spec too.
+    const playwright = ALL_FILES.filter((path) => /\.(js|mjs)$/.test(path) && /^(test|src)\//.test(path))
       .filter((path) => importsOf(read(path)).some((specifier) => specifier.startsWith('@playwright/')));
     assert.ok(playwright.includes('test/browser/base-test.js'), 'the walk finds the shared fixture');
-    assert.deepEqual(playwright.filter((path) => !/^test\/browser\/([^/]+\.spec\.js|playwright\.config\.js|base-test\.js)$/.test(path)), []);
+    assert.deepEqual(playwright.filter((path) => !/^test\/browser\/([^/]+\.spec\.js|playwright\.config\.js|base-test\.js)$|^src\/components\/([\w-]+)\/\2\.spec\.js$/.test(path)), []);
   });
 
   it('pins Playwright and lightningcss (the minifier of the build, D12) as the only devDependencies', () => {
@@ -580,7 +583,7 @@ describe('language and locale', () => {
     const rows = section.split('\n').filter((line) => line.startsWith('| `'));
     const offenders = [];
     let found = 0;
-    for (const file of filesIn('src/js', (path) => path.endsWith('.js'))) {
+    for (const file of jsModules()) {
       // Comments blanked with their line breaks kept, so the line numbers hold.
       const source = read(file).replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' ')).replace(/^[ \t]*\/\/.*$/gm, '');
       const lines = source.split('\n');

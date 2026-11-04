@@ -21,15 +21,45 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-switch-disabled-handle",
-    "--ds-switch-disabled-track",
-    "--ds-switch-halo",
-    "--ds-switch-height",
-    "--ds-switch-list-row-height"
-  ],
+  "hooks": {
+    "--ds-switch-halo": {
+      "default": "40px",
+      "description": "the halo around the switch handle"
+    },
+    "--ds-switch-height": {
+      "default": "40px",
+      "description": "the smallest height of a switch row"
+    },
+    "--ds-switch-list-row-height": {
+      "default": "56px",
+      "description": "the smallest row of a `.ds-switch-list`"
+    },
+    "--ds-switch-disabled-track": {
+      "default": "`--ds-disabled-fill`, `--ds-disabled-ink`",
+      "description": "disabled switch track (and border) and off handle"
+    },
+    "--ds-switch-disabled-handle": {
+      "default": "`--ds-disabled-fill`, `--ds-disabled-ink`",
+      "description": "disabled switch track (and border) and off handle"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "ripple": {
+      ".ds-switch": "its halo is the press (D23)"
+    },
+    "physical": {
+      ".ds-switch__track::after: left": "the handle starts at the left and travels on translate",
+      ".ds-switch__track::before: left": "the halo starts at the left and travels on translate with the handle"
+    }
+  },
+  "motionExceptions": {
+    "press": {
+      ".ds-switch:active input:not(:disabled, [aria-disabled=\"true\"]) + .ds-switch__track::after": "the handle grows to its pressed size",
+      ".ds-switch.ds-pressed input:not(:disabled, [aria-disabled=\"true\"]) + .ds-switch__track::after": "the handle grows to its pressed size"
+    }
+  }
 }

@@ -10,6 +10,7 @@
  * test/build.test.js keeps every declared export and its parameters equal
  * to the built modules.
  */
+// generated: modules (scripts/build.mjs; do not edit)
 import type * as core from './js/core.js';
 import type * as motion from './js/motion.js';
 import type * as indicator from './js/indicator.js';
@@ -17,6 +18,7 @@ import type * as dom from './js/dom.js';
 import type * as ripple from './js/ripple.js';
 import type * as icons from './js/icons.js';
 import type * as overlay from './js/overlay.js';
+// /generated: modules
 
 /** What window.DS holds: the version, one namespace per module and the entry points of DS.core at the top level. */
 export interface DashboardStyleApi {
@@ -30,6 +32,7 @@ export interface DashboardStyleApi {
   readonly define: typeof core.define;
   /** DS.core.config: locale and strings. */
   readonly config: typeof core.config;
+  // generated: namespaces (scripts/build.mjs; do not edit)
   readonly core: typeof core;
   readonly motion: typeof motion;
   readonly indicator: typeof indicator;
@@ -37,6 +40,7 @@ export interface DashboardStyleApi {
   readonly ripple: typeof ripple;
   readonly icons: typeof icons;
   readonly overlay: typeof overlay;
+  // /generated: namespaces
 }
 
 /** Every copy of ds.js on the page, by version: a widget reads DashboardStyle.versions['<its version>'] || DS. */

@@ -1907,7 +1907,7 @@
         "--ds-table-row-hover",
         "--ds-tabs-height"
       ],
-      "ripple": false,
+      "ripple": true,
       "progressive": [
         "overflow-clip-margin"
       ],

@@ -24,14 +24,20 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-dropzone-border"
-  ],
+  "hooks": {
+    "--ds-dropzone-border": {
+      "default": "`1px dashed var(--ds-outline)`",
+      "description": "the border of a `.ds-dropzone` ([file upload](components.md#file-upload))"
+    }
+  },
   "keyframes": [],
   "js": [
     "dom",
     "motion"
   ],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-dropzone"
+  ]
 }

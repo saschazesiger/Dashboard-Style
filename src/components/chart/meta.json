@@ -39,18 +39,45 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-chart-color",
-    "--ds-columns-group-min",
-    "--ds-columns-height",
-    "--ds-columns-radius",
-    "--ds-legend-key-size",
-    "--ds-meter-color",
-    "--ds-meter-height",
-    "--ds-meter-track"
-  ],
+  "hooks": {
+    "--ds-meter-height": {
+      "default": "4px",
+      "description": "`.ds-meter` (its rest radius is half of it)"
+    },
+    "--ds-meter-track": {
+      "default": "`--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`)",
+      "description": "`.ds-meter`: the track, the fill"
+    },
+    "--ds-meter-color": {
+      "default": "`--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`)",
+      "description": "`.ds-meter`: the track, the fill"
+    },
+    "--ds-columns-height": {
+      "default": "120px",
+      "description": "the plot of `.ds-columns` (`--mini`: 32px)"
+    },
+    "--ds-columns-radius": {
+      "default": "`--ds-radius-xs`",
+      "description": "the rounded data end of a column"
+    },
+    "--ds-columns-group-min": {
+      "default": "56px",
+      "description": "the least width of a group of `.ds-columns--grouped`"
+    },
+    "--ds-chart-color": {
+      "default": "`--ds-chart-1` (series and tone modifiers set it)",
+      "description": "the colour of a column or a legend key"
+    },
+    "--ds-legend-key-size": {
+      "default": "12px",
+      "description": "the key of a `.ds-legend` entry"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ":is(button, a).ds-columns__col"
+  ]
 }
