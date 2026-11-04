@@ -24,7 +24,8 @@ Div markup (fallback, and the only markup for `.ds-dialog--contained`): the same
 aria-modal="true" aria-labelledby="del-title" aria-describedby="del-text">`.
 
 Declaratively, without a script of your own (3.0): `data-ds-open` on the button opens it, with the button as its opener,
-and `data-ds-close` inside it closes it. `data-ds-close="#id"` closes one from outside, and `[data-ds-open]` works on a
+and `data-ds-close` inside it closes it. `data-ds-close="#id"` closes that one, from outside or from another overlay it
+leaves open, and `[data-ds-open]` works on a
 sheet and a menu too. `data-close` is the **deprecated** 2.x name of `data-ds-close` and works until 3.0 ships, and so does the event
 `'ds-close'`, next to `ds:close`.
 
@@ -55,7 +56,9 @@ sends a cancelable `ds:submit` (`detail: { form, data }`, a `FormData`) on the d
 unless a listener calls `preventDefault()`, on the submit or on `ds:submit`. Without the attribute a form in the box
 stays yours, as in 2.x (it posts, or your handler decides). For work that takes time, `DS.dialog.form(dialog, { onSubmit, errorText })` runs
 `onSubmit(data, form)` as `confirm()` runs `onConfirm`: `DS.motion.busy()` on the submit button and `data-ds-busy` on
-the dialog; a rejection keeps it open with an error snackbar and focus on that button.
+the dialog, Cancel `aria-disabled`, the typed fields read-only and other controls inert, so what shows is what was sent;
+a rejection keeps it open with an error snackbar, focus on that button and all of that given back. The submit button
+needs the faces of `busy()` in its markup, as below, for its spinner.
 
 ```html
 <dialog class="ds-dialog" id="rename" aria-labelledby="rename-title">
@@ -68,7 +71,10 @@ the dialog; a rejection keeps it open with an error snackbar and focus on that b
     </div>
     <div class="ds-dialog__actions">
       <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
-      <button class="ds-btn ds-btn--filled" type="submit">Save</button>
+      <button class="ds-btn ds-btn--filled" type="submit">
+        <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span>
+      </button>
     </div>
   </form>
 </dialog>
@@ -105,8 +111,8 @@ the dialog; a rejection keeps it open with an error snackbar and focus on that b
   opener first, then add `.ds-dialog--closing`; after `DS.motion.settled(box)` add `hidden` (or `--hidden`) and
   remove `--closing` in the same task. During the exit only the box lets clicks through: the backdrop swallows them
   until the dialog is hidden, so a click meant for the backdrop never reaches the page under it. A native dialog
-  driven by hand (`showModal()`, `close()`) plays the same transitions where `@starting-style` and
-  `transition-behavior: allow-discrete` exist; elsewhere it enters with the keyframes and closes at once.
+  driven by hand (`showModal()`, `close()`) plays the same transitions (`@starting-style` and
+  `transition-behavior: allow-discrete`, both at the 3.0 browser floor).
 - `.ds-dialog--contained` covers the nearest positioned ancestor instead of the window (a dialog inside an embedded
   panel; div markup only). `DS.overlay` traps focus and input within that container only and takes no scroll lock
   (1.6.1), and Escape closes it only when pressed inside the container: the host page around the widget keeps its
@@ -236,7 +242,9 @@ button's label names the consequence, so the colour is never alone. `onConfirm` 
 confirm button. `confirm()` resolves `true` or `false`, `prompt()` the value or `null`; Enter in the prompt's field
 confirms. A prompt whose `input.required` field is left empty stays open with the field error of the form section:
 `aria-invalid`, a `.ds-field__hint--error` with its icon and `requiredText` (default "Enter a value."), linked by
-`aria-describedby` and announced at once; typing takes it away. The defaults are English: "Confirm", "Cancel", "OK".
+`aria-describedby` and announced at once; typing takes it away. The defaults are the system's strings `confirm`,
+`cancel`, `ok`, `actionFailed` and `valueRequired`, English until `DS.config({ strings })` sets them
+([install.md](install.md#language-and-locale)).
 
 ### Confirm by typing the name
 
@@ -287,7 +295,7 @@ Limits: a morph that drops the attribute frees the dialog (render it, or set it 
 Android Back can still force a native close (it follows with reason `escape`); never set `closedby` on a dialog that
 `DS.overlay` drives; a `<form method="dialog">` submit closes natively (give its buttons `type="button"`).
 
-- **Why it closed.** Every close sends `ds:close` (and `ds-close`, its **deprecated** 2.x name) with `detail.reason` (`escape`, `backdrop`, `close`, `api`, your own
+- **Why it closed.** Every close sends `ds:close` (and `ds-close`, its **deprecated** 2.x name) with `detail.reason` (`escape`, `backdrop`, `close`, `api`, `submit`, your own
   string from `close(dialog, { reason })` ...; [motion.md](motion.md#dsoverlay-jsoverlayjs)), once, as soon as it starts.
   It bubbles: a listener on the dialog also hears the menus, lists and dialogs inside it, so check
   `event.target === dialog`.

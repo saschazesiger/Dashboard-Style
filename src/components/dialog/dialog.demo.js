@@ -127,10 +127,13 @@ SG.demo('dialog', {
     });
     var busy = h.$('[data-demo="busy"]', root);
     var action = h.$('[data-demo="busy-action"]', root);
+    var cancel = h.$('.ds-dialog__actions [data-ds-close]', busy);
     action.addEventListener('click', function () {
       busy.setAttribute('data-ds-busy', '');
+      cancel.setAttribute('aria-disabled', 'true');
       DS.motion.busy(action, work(false), { done: false }).then(function () {
         busy.removeAttribute('data-ds-busy');
+        cancel.removeAttribute('aria-disabled');
         DS.overlay.close(busy, { reason: 'confirm' });
         h.toast('Deleted 3 devices.');
       });

@@ -329,7 +329,7 @@ describe('indicator, dom, ripple and overlay', () => {
     );
   });
 
-  it('exports the overlay additions of 2.0 and documents the ds-close event and its reasons', () => {
+  it('exports the overlay additions of 2.0 and documents the ds:close event, its 2.x name and its reasons', () => {
     for (const name of ['topmost', 'confirm', 'alert', 'prompt']) assert.equal(typeof overlay[name], 'function', name);
     assert.equal(overlay.DISMISS_DELAY_MS, 300);
     // Without a DOM: no layer, no throw.
@@ -338,11 +338,13 @@ describe('indicator, dom, ripple and overlay', () => {
     assert.match(docs, /\| `close\(el, \{ reason \}\)` \|/);
     assert.match(docs, /\| `open\(el, \{ opener, container, returnTo \}\)` \|/);
     assert.match(read('src/js/overlay.js'), /new view\.CustomEvent\('ds-close', \{ bubbles: true, detail: \{ reason \} \}\)/);
-    const event = docs.slice(docs.indexOf('**Why it closed: `ds-close`**'));
-    assert.ok(event.length > 0, 'docs/motion.md documents the ds-close event');
-    for (const reason of ['escape', 'backdrop', 'close', 'item', 'tab', 'outside', 'parent', 'api', 'removed', 'breakpoint']) {
-      assert.ok(event.slice(0, 1600).includes(`\`'${reason}'\``), `the reason ${reason} is documented`);
-      if (!['item', 'tab', 'outside', 'api'].includes(reason)) assert.ok(read('src/js/overlay.js').includes(`'${reason}'`), `overlay.js sends ${reason}`);
+    const start = docs.indexOf('**Why it closed: `ds:close`**');
+    assert.ok(start >= 0, 'docs/motion.md documents the ds:close event');
+    const event = docs.slice(start);
+    assert.match(event.slice(0, 200), /`ds-close`, its \*\*deprecated\*\* 2\.x name/);
+    for (const reason of ['escape', 'backdrop', 'close', 'item', 'tab', 'outside', 'parent', 'api', 'removed', 'breakpoint', 'submit']) {
+      assert.ok(event.slice(0, 1700).includes(`\`'${reason}'\``), `the reason ${reason} is documented`);
+      if (!['item', 'tab', 'outside', 'api', 'submit'].includes(reason)) assert.ok(read('src/js/overlay.js').includes(`'${reason}'`), `overlay.js sends ${reason}`);
     }
   });
 

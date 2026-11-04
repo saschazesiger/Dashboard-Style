@@ -176,15 +176,17 @@
  * registered, and throw a message naming the file when it is not loaded
  * (ds.js always has them; a bundle has them when the page uses them, by
  * "exportRequires" of overlay.requires.json; ES modules import the file).
+ * A menu or dialog opened without its module still opens, but has lost its
+ * keys and more: open() warns once, with the same message.
  * Placement is js/position.js. `internals` is what those modules read; it is
  * no API and may change in any release.
  *
  * Triggers: [data-ds-open="<selector or id>"] opens that overlay on a click
  * (with the trigger as its opener; again, or a menu's ArrowDown and ArrowUp,
  * as a menu button does), [data-ds-close="<selector or id>"] closes it from
- * outside, [data-ds-close] without a value (or its 2.x name [data-close])
- * inside an overlay closes that one: one delegated listener per root of
- * DS.init().
+ * outside and leaves the overlay around it open, [data-ds-close] without a
+ * value (or its 2.x name [data-close]) inside an overlay closes that one: one
+ * delegated listener per root of DS.init().
  *
  * Events: ds:open ({ opener }) once the entrance started and ds:close
  * ({ reason }) with ds-close, its 2.x name, as soon as a close started. Both
@@ -428,6 +430,20 @@ function partFor(name, fn) {
   const found = parts[name] ?? pageParts[name];
   if (found) return found;
   throw new Error(`Dashboard-Style: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
+}
+
+/** The kinds open() warned about, once each. */
+const partsWarned = new Set();
+
+/**
+ * An open() that would silently lose behaviour: a menu's keys, focus and
+ * close on an item, a dialog's action sheet keys and form. A throw would
+ * break a page that only needs the overlay to show.
+ */
+function warnMissingPart(element, kind) {
+  if (parts[kind] || partsWarned.has(kind)) return;
+  partsWarned.add(kind);
+  viewOf(element).console?.warn(`Dashboard-Style: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
 }
 
 /** Documents with the Escape and pointer listeners. */
@@ -942,8 +958,8 @@ function clearSearch(layer, event) {
   return true;
 }
 
-/** What closes the overlay around it: the attribute, and its 2.x name. */
-const CLOSERS = '[data-ds-close], [data-close]';
+/** What closes the overlay around it: the attribute without a value, and its 2.x name (one with a value closes only the overlay it names). */
+const CLOSERS = '[data-ds-close=""], [data-close]';
 
 /** Close causes that the user started: refused while the overlay is busy (data-ds-busy). */
 const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
@@ -1579,6 +1595,7 @@ function show(element, options, transform) {
     warned = true;
     viewOf(element).console?.warn('Dashboard-Style: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
   }
+  if (kind === 'menu' || kind === 'dialog') warnMissingPart(element, kind);
   for (const tip of tooltipControllers) tip.hide();
   if (state.phase === 'open') return state.opening ?? Promise.resolve();
   pruneDetached();

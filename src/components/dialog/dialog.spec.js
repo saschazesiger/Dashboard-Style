@@ -25,6 +25,8 @@ const measure = (page, classes, around = '') => page.evaluate(async ({ classes, 
   const dialog = region.querySelector('dialog');
   await DS.overlay.open(dialog);
   const box = dialog.querySelector('.ds-dialog__box');
+  // A loaded machine can resolve open() on settled()'s timeout: the box is still scaling then.
+  await Promise.all(box.getAnimations().map((animation) => animation.finished.catch(() => null)));
   const style = getComputedStyle(box);
   const out = { width: box.getBoundingClientRect().width, height: box.getBoundingClientRect().height, padding: parseFloat(style.paddingInlineStart), gap: parseFloat(style.rowGap), radius: parseFloat(style.borderTopLeftRadius), button: dialog.querySelector('.ds-btn').getBoundingClientRect().height };
   await DS.overlay.close(dialog);
@@ -144,6 +146,114 @@ test('a form dialog: ds:submit can be cancelled; form() stays open and busy whil
   await expect(dialog).toBeHidden();
 });
 
+test('a form dialog while onSubmit runs, on the documented markup: the spinner, Cancel blocked, the fields held; a failure gives it all back', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    document.querySelector('#fx-component').insertAdjacentHTML('beforeend', `
+      <button class="ds-btn" type="button" id="rename-open" data-ds-open="#rename">Rename</button>
+      <dialog class="ds-dialog" id="rename" aria-labelledby="rename-title">
+        <div class="ds-dialog__backdrop" data-ds-close></div>
+        <form class="ds-dialog__box" data-ds-dialog-form>
+          <h2 class="ds-dialog__title" id="rename-title">Rename the device</h2>
+          <div class="ds-dialog__body">
+            <div class="ds-field"><label class="ds-field__label" for="rename-name">Name</label>
+              <input class="ds-input" id="rename-name" name="name" required autofocus></div>
+            <label><input type="checkbox" id="rename-keep" name="keep"> Keep the old name</label>
+            <input class="ds-input" id="rename-note" name="note" readonly value="locked by the page" aria-label="Note">
+          </div>
+          <div class="ds-dialog__actions">
+            <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+            <button class="ds-btn ds-btn--filled" type="submit">
+              <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
+                <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span>
+            </button>
+          </div>
+        </form>
+      </dialog>`);
+    window.release = null;
+    DS.dialog.form(document.getElementById('rename'), { onSubmit: () => new Promise((resolve, reject) => { window.release = { resolve, reject }; }) });
+  });
+  const dialog = page.locator('#rename');
+  const cancel = dialog.locator('.ds-dialog__actions [data-ds-close]');
+  const submit = dialog.locator('[type="submit"]');
+  const name = page.locator('#rename-name');
+  const keep = page.locator('#rename-keep');
+  const held = () => page.evaluate(() => ({ name: document.getElementById('rename-name').readOnly, keep: document.getElementById('rename-keep').inert, note: document.getElementById('rename-note').readOnly }));
+  await page.locator('#rename-open').click();
+  await settle(page);
+  await name.fill('DESKTOP-0107');
+  await page.keyboard.press('Enter');
+
+  await expect(dialog).toHaveAttribute('data-ds-busy', '');
+  await expect(submit).toHaveAttribute('aria-busy', 'true');
+  await expect(cancel).toHaveAttribute('aria-disabled', 'true');
+  expect(await held()).toEqual({ name: true, keep: true, note: true });
+  await expect.poll(() => submit.locator('.ds-btn__face--busy').evaluate((face) => Number(getComputedStyle(face).opacity)), 'the spinner face shows').toBeGreaterThan(0.9);
+  await page.evaluate(() => document.querySelector('#rename .ds-dialog__actions [data-ds-close]').click());
+  await expect(dialog, 'Cancel is refused').toHaveAttribute('data-state', 'open');
+
+  await page.evaluate(() => window.release.reject(new Error('no')));
+  await expect(dialog).not.toHaveAttribute('data-ds-busy', '');
+  await expect(cancel).not.toHaveAttribute('aria-disabled', 'true');
+  expect(await held(), 'given back; what the page set stays').toEqual({ name: false, keep: false, note: true });
+  await expect(dialog).toHaveAttribute('data-state', 'open');
+  await expect(submit, 'focus on the button').toBeFocused();
+
+  await page.locator('#rename-keep').focus();
+  await page.evaluate(() => document.querySelector('#rename form').requestSubmit());
+  await expect(dialog).toHaveAttribute('data-ds-busy', '');
+  await expect(submit, 'a control that goes inert hands its focus on').toBeFocused();
+  await page.evaluate(() => window.release.resolve());
+  await settle(page);
+  await expect(dialog).toBeHidden();
+  expect(await held(), 'and after a success, for the next open').toEqual({ name: false, keep: false, note: true });
+  await expect(keep).not.toBeChecked();
+});
+
+test('the demo\'s busy dialog: Cancel says it is blocked while the action runs', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Delete 3 devices' }).click();
+  await settle(page);
+  const dialog = page.locator('[data-demo="busy"]');
+  await page.locator('[data-demo="busy-action"]').click();
+  await expect(dialog).toHaveAttribute('data-ds-busy', '');
+  await expect(dialog.locator('.ds-dialog__actions [data-ds-close]')).toHaveAttribute('aria-disabled', 'true');
+});
+
+test('the strings: DS.config({ strings }) names the buttons and messages of a built dialog; an option still wins', async ({ page }) => {
+  await open(page);
+  const texts = await page.evaluate(async () => {
+    DS.config({ strings: { ok: 'Gut', cancel: 'Abbrechen', confirm: 'Bestaetigen', actionFailed: 'Das ging nicht.', valueRequired: 'Bitte ausfuellen.' } });
+    const built = () => document.querySelector('dialog.ds-dialog[open][aria-labelledby^="ds-ask"]');
+    const shown = () => new Promise((resolve) => requestAnimationFrame(resolve));
+    const out = {};
+    const told = DS.dialog.alert({ title: 'A' });
+    await shown();
+    out.ok = built().querySelector('.ds-btn--filled').textContent;
+    built().querySelector('.ds-btn--filled').click();
+    await told;
+    const asked = DS.dialog.prompt({ title: 'B', label: 'Name', input: { required: true } });
+    await shown();
+    out.cancel = built().querySelector('.ds-btn--text').textContent;
+    out.confirm = built().querySelector('.ds-btn--filled .ds-btn__face').textContent;
+    built().querySelector('.ds-btn--filled').click();
+    out.required = built().querySelector('.ds-field__hint--error').textContent;
+    built().querySelector('.ds-btn--text').click();
+    await asked;
+    const failing = DS.dialog.confirm({ title: 'C', confirmLabel: 'Loeschen', onConfirm: () => Promise.reject(new Error('no')) });
+    await shown();
+    out.option = built().querySelector('.ds-btn--filled .ds-btn__face').textContent;
+    built().querySelector('.ds-btn--filled').click();
+    await new Promise((resolve) => { const wait = () => (document.querySelector('.ds-toast__text') ? resolve() : setTimeout(wait, 20)); wait(); });
+    out.failed = document.querySelector('.ds-toast__text').textContent;
+    built().querySelector('.ds-btn--text').click();
+    await failing;
+    DS.config({ strings: { ok: 'OK', cancel: 'Cancel', confirm: 'Confirm', actionFailed: 'That did not work. Try again.', valueRequired: 'Enter a value.' } });
+    return out;
+  });
+  expect(texts).toEqual({ ok: 'Gut', cancel: 'Abbrechen', confirm: 'Bestaetigen', required: 'Bitte ausfuellen.', option: 'Loeschen', failed: 'Das ging nicht.' });
+});
+
 test('a box form without data-ds-dialog-form stays the page\'s, as in 2.x: no ds:submit, no close', async ({ page }) => {
   await open(page);
   const seen = await page.evaluate(async () => {
@@ -229,6 +339,47 @@ test('triggers: data-ds-open opens with its button as the opener, data-ds-close 
   await expect(sized).toBeFocused();
 });
 
+test('a closer with a value closes only the overlay it names, also from inside another one', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await open(page);
+  const state = await page.evaluate(async () => {
+    document.querySelector('#fx-component').insertAdjacentHTML('beforeend', `
+      <dialog class="ds-sheet" id="host-sheet" aria-label="Sheet">
+        <div class="ds-sheet__backdrop" data-ds-close></div>
+        <section class="ds-sheet__panel">
+          <button class="ds-btn" type="button" id="names-other" data-ds-close="#other-dialog">Close the other</button>
+          <button class="ds-btn" type="button" id="names-self" data-ds-close="#host-sheet">Close this</button>
+          <button class="ds-btn" type="button" id="plain-closer" data-ds-close>Close</button>
+        </section>
+      </dialog>
+      <div class="ds-dialog" id="other-dialog" hidden><div class="ds-dialog__backdrop"></div><div class="ds-dialog__box" role="dialog" aria-modal="true" aria-label="Other"><p>Other</p></div></div>`);
+    const sheet = document.getElementById('host-sheet');
+    const other = document.getElementById('other-dialog');
+    const shown = (element) => element.getAttribute('data-state') === 'open';
+    const out = {};
+    await DS.overlay.open(sheet);
+    await DS.overlay.open(other);
+    document.getElementById('names-other').click();
+    out.named = { sheet: shown(sheet), other: shown(other) };
+    await DS.motion.settled(other.querySelector('.ds-dialog__box'));
+    document.getElementById('names-other').click();
+    out.notOpen = { sheet: shown(sheet) };
+    document.getElementById('names-self').click();
+    out.self = { sheet: shown(sheet) };
+    await DS.motion.settled(sheet.querySelector('.ds-sheet__panel'));
+    await DS.overlay.open(sheet);
+    document.getElementById('plain-closer').click();
+    out.plain = { sheet: shown(sheet) };
+    return out;
+  });
+  expect(state).toEqual({
+    named: { sheet: true, other: false },
+    notOpen: { sheet: true },
+    self: { sheet: false },
+    plain: { sheet: false },
+  });
+});
+
 test('the keyboard: focus moves in, Tab stays inside, Escape closes and focus is back on the opener; the arrows move through an action sheet', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await open(page);
@@ -283,7 +434,7 @@ test('names and roles: the native dialog takes its name from the title; a questi
   expect(api).toEqual({ role: 'alertdialog', control: true });
 });
 
-test('forced colours: the box keeps its edge; the error tone becomes the system colours, its label carries the meaning', async ({ page, browserName }) => {
+test('forced colours: the box keeps its edge; the error tone becomes a system pair, its label carries the meaning', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
   await page.emulateMedia({ forcedColors: 'active' });
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -294,14 +445,20 @@ test('forced colours: the box keeps its edge; the error tone becomes the system 
     const dialog = document.querySelector('[data-demo="busy"]');
     const box = dialog.querySelector('.ds-dialog__box');
     const button = dialog.querySelector('.ds-tone-error');
-    const probe = document.createElement('i');
-    probe.style.color = 'var(--ds-error)';
-    dialog.append(probe);
-    const error = getComputedStyle(probe).color;
-    probe.remove();
-    return { edge: getComputedStyle(box).borderTopColor, color: getComputedStyle(button).color, background: getComputedStyle(button).backgroundColor, label: button.textContent.trim(), error };
+    const system = (name) => {
+      const probe = document.createElement('i');
+      probe.style.forcedColorAdjust = 'none';
+      probe.style.color = name;
+      dialog.append(probe);
+      const value = getComputedStyle(probe).color;
+      probe.remove();
+      return value;
+    };
+    return { edge: getComputedStyle(box).borderTopColor, color: getComputedStyle(button).color, background: getComputedStyle(button).backgroundColor, label: button.textContent.trim(), buttonText: system('ButtonText'), buttonFace: system('ButtonFace'), canvas: system('Canvas') };
   });
   expect(styles.edge).not.toMatch(/^(transparent|rgba\(0, 0, 0, 0\))$/);
   expect(styles.label).toContain('Delete 3 devices');
+  expect(styles.color, 'the error ink is gone').toBe(styles.buttonText);
+  expect([styles.buttonFace, styles.canvas, 'rgba(0, 0, 0, 0)'], 'the error fill is gone').toContain(styles.background);
   await page.keyboard.press('Escape');
 });

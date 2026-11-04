@@ -77,6 +77,42 @@ test('module.html imports every ES module of manifest.json and they export what 
   expect(result.ok).toBe(true);
 });
 
+test('js/overlay.js alone: a menu or dialog still opens and warns once, naming the file; with js/menu.js next to it the menu works', async ({ page }) => {
+  const warnings = [];
+  page.on('console', (message) => {
+    if (message.type() === 'warning' && message.text().startsWith('Dashboard-Style:')) warnings.push(message.text());
+  });
+  await page.goto(`${FIXTURES}overlay-alone.html`);
+  await page.evaluate(async () => {
+    const { open, close } = await import('/dist/js/overlay.js');
+    const menu = document.getElementById('menu');
+    const dialog = document.getElementById('dialog');
+    const trigger = document.getElementById('trigger');
+    for (let again = 0; again < 2; again += 1) {
+      await open(menu, { opener: trigger });
+      await close(menu);
+      await open(dialog, { opener: trigger });
+      await close(dialog);
+    }
+  });
+  expect(warnings).toEqual([
+    'Dashboard-Style: DS.overlay.open() on a menu needs the menu module: import js/menu.js next to js/overlay.js, or keep menu in the bundle.',
+    'Dashboard-Style: DS.overlay.open() on a dialog needs the dialog module: import js/dialog.js next to js/overlay.js, or keep dialog in the bundle.',
+  ]);
+
+  warnings.length = 0;
+  await page.goto(`${FIXTURES}overlay-alone.html`);
+  await page.evaluate(async () => {
+    const { open } = await import('/dist/js/overlay.js');
+    await import('/dist/js/menu.js');
+    await open(document.getElementById('menu'), { opener: document.getElementById('trigger') });
+  });
+  await expect(page.locator('#first'), 'the module focuses the first item').toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(page.locator('#second')).toBeFocused();
+  expect(warnings).toEqual([]);
+});
+
 test('component.html?c=<name> renders a component\'s demo alone through sg-core.js, then DS.init()', async ({ page }) => {
   // A demo file of a component that does not exist, served by the test: the route and sg-core.js alone.
   await page.route('**/src/components/smoke-sample/smoke-sample.demo.js', (route) => route.fulfill({

@@ -11,6 +11,10 @@
  *   await DS.dialog.confirm({ title, text, destructive: true });   // also DS.overlay.confirm
  *   DS.dialog.form(dialog, { onSubmit });   // a form dialog: busy while it runs
  *
+ * Strings: the labels and messages below are options, whose defaults are
+ * the system's strings ok, cancel, confirm, actionFailed and valueRequired
+ * (DS.core.config({ strings })).
+ *
  * Promise dialogs: confirm(), alert() and prompt() build a dialog.ds-dialog
  * with DOM APIs inside the opener's .ds-theme, open it through open() and
  * remove it after its exit; the promise resolves with the answer when the
@@ -28,12 +32,13 @@
  * ({ form, data }) and closes it with reason "submit", unless the page called
  * preventDefault(), on the submit or on ds:submit. form(dialog, { onSubmit,
  * errorText }) runs onSubmit(data, form) like onConfirm(): busy() on the
- * submit button, data-ds-busy on the dialog, a rejection keeps it open with
- * an error snackbar.
+ * submit button, data-ds-busy on the dialog, its closers aria-disabled, its
+ * fields read-only (other controls inert), a rejection keeps it open with an
+ * error snackbar and gives all of that back.
  *
  * ES2022; no progressive feature of its own.
  */
-import { define, emit } from '../../js/core.js';
+import { define, emit, t } from '../../js/core.js';
 import { busy } from '../../js/motion.js';
 import { alertCircle, iconElement } from '../../js/icons.js';
 import { internals, open as openOverlay, close as closeOverlay } from '../../js/overlay.js';
@@ -60,12 +65,6 @@ export function close(element, options = {}) {
   return closeOverlay(element, options);
 }
 
-/** What a failed onConfirm says by default (never the raw error message). */
-const CONFIRM_ERROR = 'That did not work. Try again.';
-
-/** What a required prompt field left empty says by default. */
-const REQUIRED_TEXT = 'Enter a value.';
-
 /**
  * Asks with a built dialog: Cancel and a confirm button. `destructive`
  * makes it an alertdialog whose first focus is Cancel, and its confirm
@@ -86,7 +85,7 @@ export function confirm(options = {}) {
 
 /**
  * Tells something with a built alertdialog and one button (`closeLabel`,
- * default "OK"); resolves once it closes.
+ * default the string `ok`); resolves once it closes.
  * @param {{ title?: string, text?: string, closeLabel?: string, opener?: Element|null }} [options]
  * @returns {Promise<void>}
  */
@@ -99,8 +98,8 @@ export function alert(options = {}) {
  * `input` sets its type, autocomplete, inputmode, required, spellcheck,
  * autocapitalize, autocorrect and enterkeyhint), Cancel and a confirm
  * button; Enter in the field confirms. A required field left
- * empty stays open with the field error `requiredText` (default "Enter a
- * value."; aria-invalid, a .ds-field__hint--error linked by
+ * empty stays open with the field error `requiredText` (default the string
+ * `valueRequired`; aria-invalid, a .ds-field__hint--error linked by
  * aria-describedby, announced assertively) until the next input.
  * `onConfirm(value)` runs as in confirm(). Resolves the value when it
  * closed through the confirm button, else null.
@@ -195,15 +194,15 @@ function ask(kind, options) {
   let cancel = null;
   let confirmButton;
   if (kind === 'alert') {
-    confirmButton = button('ds-btn ds-btn--filled', options.closeLabel ?? 'OK');
+    confirmButton = button('ds-btn ds-btn--filled', options.closeLabel ?? t('ok'));
     confirmButton.setAttribute('data-ds-close', '');
     confirmButton.setAttribute('autofocus', '');
     actions.append(confirmButton);
   } else {
-    cancel = button('ds-btn ds-btn--text', options.cancelLabel ?? 'Cancel');
+    cancel = button('ds-btn ds-btn--text', options.cancelLabel ?? t('cancel'));
     cancel.setAttribute('data-ds-close', '');
     // The faces of busy(): the label, and the spinner with it while onConfirm runs.
-    const label = options.confirmLabel ?? 'Confirm';
+    const label = options.confirmLabel ?? t('confirm');
     confirmButton = button(options.destructive ? 'ds-btn ds-btn--filled ds-tone-error' : 'ds-btn ds-btn--filled');
     const faces = make('span', 'ds-btn__faces');
     const rest = make('span', 'ds-btn__face', label);
@@ -221,7 +220,7 @@ function ask(kind, options) {
   dialog.append(backdrop, box);
 
   return new Promise((resolve) => {
-    dialog.addEventListener('ds-close', (event) => {
+    dialog.addEventListener('ds:close', (event) => {
       if (event.target !== dialog) return;
       const reason = /** @type {CustomEvent} */ (event).detail?.reason;
       resolve(reason === 'confirm' ? (kind === 'confirm' ? true : kind === 'prompt' ? field?.value ?? '' : undefined) : declined(kind));
@@ -242,7 +241,7 @@ function ask(kind, options) {
     /** @type {HTMLElement|null} */
     let hint = null;
     const invalid = (/** @type {HTMLInputElement} */ input) => {
-      const text = String(options.requiredText ?? REQUIRED_TEXT);
+      const text = String(options.requiredText ?? t('valueRequired'));
       if (!hint) {
         hint = make('small', 'ds-field__hint ds-field__hint--error');
         hint.id = `${id}-error`;
@@ -292,7 +291,7 @@ function ask(kind, options) {
         // none) moves into it on first use.
         const speaker = part('toast');
         const region = speaker?.regionOfTheme(doc, theme, home);
-        if (region) speaker.toast(region, options.errorText ?? CONFIRM_ERROR, { kind: 'error' });
+        if (region) speaker.toast(region, options.errorText ?? t('actionFailed'), { kind: 'error' });
         confirmButton.focus({ preventScroll: true });
         return;
       }
@@ -345,6 +344,41 @@ export function form(element, options = {}) {
   return controllerOf(element);
 }
 
+/** Controls a user types in: the ones `readOnly` holds. The others have no read-only state, so they go inert while it runs. */
+const TYPED = 'textarea, input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="button"], [type="reset"], [type="submit"], [type="image"], [type="hidden"])';
+
+/**
+ * While onSubmit runs, as confirm() while onConfirm runs: the dialog refuses
+ * the user's closes (data-ds-busy) and its closers say so (aria-disabled),
+ * and what was sent stays on screen (typed fields read-only, other controls
+ * inert). Focus on a control that goes inert moves to the submit button.
+ * Returns what undoes exactly this, so what the page had set stays.
+ */
+function holdForm(dialog, box, submit) {
+  const undo = [() => dialog.removeAttribute('data-ds-busy')];
+  dialog.setAttribute('data-ds-busy', '');
+  for (const closer of box.querySelectorAll('[data-ds-close], [data-close]')) {
+    if (closer.getAttribute('aria-disabled') === 'true') continue;
+    closer.setAttribute('aria-disabled', 'true');
+    undo.push(() => closer.removeAttribute('aria-disabled'));
+  }
+  for (const control of box.elements) {
+    if (control === submit || control.disabled || control.type === 'submit' || control.matches('fieldset, output, input[type="hidden"], [data-ds-close], [data-close]')) continue;
+    if (control.matches(TYPED)) {
+      if (control.readOnly) continue;
+      control.readOnly = true;
+      undo.push(() => { control.readOnly = false; });
+    } else if (!control.inert) {
+      if (activeIn(control) === control && canFocus(submit)) submit.focus({ preventScroll: true });
+      control.inert = true;
+      undo.push(() => { control.inert = false; });
+    }
+  }
+  return () => {
+    for (const step of undo) step();
+  };
+}
+
 /** A submit of the dialog's box form: ds:submit, then onSubmit (busy, a failure keeps it open), then the close. */
 function wireForm(dialog) {
   dialog.addEventListener('submit', async (/** @type {SubmitEvent} */ event) => {
@@ -358,20 +392,20 @@ function wireForm(dialog) {
     if (!emit(dialog, 'submit', { form: box, data }, { cancelable: true })) return;
     if (typeof setup?.onSubmit === 'function') {
       const submit = /** @type {any} */ (event).submitter ?? box.querySelector('[type="submit"]');
-      dialog.setAttribute('data-ds-busy', '');
+      const release = holdForm(dialog, box, submit);
       try {
         // A form submitted without a button of its own (requestSubmit() on one field) has nothing to mark busy.
         await (submit ? busy(submit, () => setup.onSubmit(data, box), { done: false }) : setup.onSubmit(data, box));
       } catch {
-        dialog.removeAttribute('data-ds-busy');
+        release();
         if (!dialog.isConnected) return;
         const speaker = part('toast');
         const region = speaker?.regionOfTheme(dialog.ownerDocument, dialog.closest('.ds-theme'), dialog.parentNode);
-        if (region) speaker.toast(region, setup.errorText ?? CONFIRM_ERROR, { kind: 'error' });
+        if (region) speaker.toast(region, setup.errorText ?? t('actionFailed'), { kind: 'error' });
         if (canFocus(submit)) submit.focus({ preventScroll: true });
         return;
       }
-      dialog.removeAttribute('data-ds-busy');
+      release();
     }
     close(dialog, { reason: 'submit' });
   });
