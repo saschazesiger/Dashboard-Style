@@ -47,8 +47,8 @@ const wizard = DS.get(form, 'wizard');        // or DS.wizard.create(form)
   again; the first invalid one opens with its errors and the page's submit handlers never see the event. The wizard sets
   `novalidate` on the form, since it checks itself.
 - **Summary.** A panel with `data-ds-wizard-summary` lists every step before it when it opens: a `.ds-wizard__group`
-  per step with its `.ds-wizard__group-title` and an Edit button (`.ds-wizard__edit`, "Edit Device", going back to that
-  step), then a [facts list](#lists) (`.ds-facts--rows`) of each named field's label and value: a select's option text,
+  per step with its head (`.ds-wizard__group-head`: the `.ds-wizard__group-title` and an Edit button,
+  `.ds-wizard__edit`, "Edit Device", going back to that step), then a [facts list](#lists) (`.ds-facts--rows`) of each named field's label and value: a select's option text,
   the label of a chosen radio or of the ticked checkboxes, Yes or No for a lone checkbox, file names, a password as dots,
   "Not given" when empty. `data-ds-wizard-summary="off"` on a field leaves it out; `data-ds-wizard-label` names it.
 

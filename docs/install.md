@@ -426,6 +426,17 @@ strings a script adds have an option, so a page in another language passes its o
 | `Removed {key}.` | what `DS.kveditor` announces for a removed row (the system's string `kvRemoved`) | `DS.core.config({ strings: { kvRemoved } })` |
 | `Removed a row.` | the same, for a row without a key (the system's string `kvRemovedRow`) | `DS.core.config({ strings: { kvRemovedRow } })` |
 | `Pasted {count} rows.` | what `DS.kveditor` announces after a paste of KEY=value lines (the system's string `kvPasted`) | `DS.core.config({ strings: { kvPasted } })` |
+| `done` | the hidden word after a done step's label in `DS.wizard` ("Device, done") (the system's string `wizardDone`) | `DS.core.config({ strings: { wizardDone } })` |
+| `Needs attention` | the hint of a step in error in `DS.wizard` (the system's string `wizardFix`) | `DS.core.config({ strings: { wizardFix } })` |
+| `Step {index} of {count}` | the name of a `.ds-steps--bar` that `DS.wizard` writes (the system's string `wizardStepOf`) | `DS.core.config({ strings: { wizardStepOf } })` |
+| `Step {index} of {count}: {label}` | what `DS.wizard` announces when a step opens (the system's string `wizardStep`) | `DS.core.config({ strings: { wizardStep } })` |
+| `One field needs attention.` | what `DS.wizard` announces for a step with one invalid field (the system's string `wizardError`) | `DS.core.config({ strings: { wizardError } })` |
+| `{count} fields need attention.` | the same, for several (the system's string `wizardErrors`) | `DS.core.config({ strings: { wizardErrors } })` |
+| `Not given` | an empty field in the summary of `DS.wizard` (the system's string `wizardEmpty`) | `DS.core.config({ strings: { wizardEmpty } })` |
+| `Edit {label}` | the name of a step's Edit button in the summary of `DS.wizard` (the system's string `wizardEdit`) | `DS.core.config({ strings: { wizardEdit } })` |
+| `Edit` | the text of that button (the system's string `wizardEditShort`) | `DS.core.config({ strings: { wizardEditShort } })` |
+| `Yes` | a ticked lone checkbox in the summary of `DS.wizard` (the system's string `wizardYes`) | `DS.core.config({ strings: { wizardYes } })` |
+| `No` | a lone checkbox left empty in the summary of `DS.wizard` (the system's string `wizardNo`) | `DS.core.config({ strings: { wizardNo } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
