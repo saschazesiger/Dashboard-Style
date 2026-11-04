@@ -47,8 +47,8 @@ section lives on a component page or a foundation page of `styleguide/index.html
 selects, the demo cards) lives in `styleguide/motion-lab.js`. "Theme file" puts a shipped theme (dark, compact,
 contrast, example, System) or a snippet over the preset. The demos show what only the 2.x sections showed (a
 full-width field, adding and editing rows, the radio tiles' indicator, a contained dialog, type-to-confirm, the held
-press of every button look, a wide pinned table, a stale refresh). The drawer and the Motion Lab list components in
-the new cascade order.
+press of every button look, a wide pinned table, a stale refresh). The drawer, the overview and the Motion Lab list
+components in docs order (`meta.json` `docsOrder`), no longer in cascade order.
 
 ### Phase 1: every component on the options model, the helpers (3.0.0-alpha.3)
 

@@ -243,13 +243,13 @@
     motion: 'motion', icons: 'icons',
   };
 
-  /** Every component: the registry's (meta.json) joined with its demo, in group and meta.json order. */
+  /** Every component: the registry's (meta.json) joined with its demo, in group and docs order (meta.json "docsOrder"; the cascade order is technical). */
   var COMPONENTS = (function () {
     var byName = {};
     var list = REG.components.map(function (entry) {
       var spec = SG.get(entry.name);
       var item = {
-        name: entry.name, group: entry.group || (spec && spec.group), order: entry.order, title: spec ? spec.title : titleOf(entry.name),
+        name: entry.name, group: entry.group || (spec && spec.group), order: entry.docsOrder == null ? entry.order : entry.docsOrder, title: spec ? spec.title : titleOf(entry.name),
         need: entry.need || (spec && spec.need) || '', tier: entry.tier || null, status: entry.status || null,
         classes: entry.classes || [], hooks: entry.hooks || [], attributes: entry.attributes || [], docs: entry.docs || null, spec: spec,
       };
