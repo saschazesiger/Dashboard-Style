@@ -81,8 +81,8 @@
       "description": "line height of `.ds-card__title`; a button, switch or chip in the header row overhangs it, a status chip, badge or tag sits on it (set it with a type role that changes the subtitle line)"
     },
     "--ds-card-hover-shadow": {
-      "default": "none",
-      "description": "`.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift"
+      "default": "none (`--elevated`: its own shadow)",
+      "description": "`.ds-card--interactive` on hover, not when blocked (a theme may set `var(--ds-elev-hover)`); never a lift"
     },
     "--ds-card-selected-bg": {
       "default": "`--ds-accent`",

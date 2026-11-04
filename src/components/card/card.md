@@ -36,7 +36,7 @@ A block of related content on a surface, or a whole block that opens or picks so
 | Layout | `.ds-card--horizontal` | the card | media beside the body; each takes a whole line once the card is too narrow for both |
 | Clickable | `.ds-card--interactive` | `<a>`, `<button>` or `<div>` with `.ds-card__action` | state layer, press morph, ripple |
 | Selectable | `aria-pressed`, `aria-checked` or `aria-selected`; `.ds-card--selectable` with `.ds-card__check` | an interactive card | the selected look; the mark in the corner |
-| Density | `.ds-density-*` | the card or an ancestor | 2px per step off the padding, the rhythm between children and the section's room; `--ds-card-pad` follows, so what bleeds to the edges follows too. Type stays |
+| Density | `.ds-density-*` | the card or an ancestor | 2px per step off the padding, the rhythm between children and the section's room; `--ds-card-pad` follows, so what bleeds to the edges follows too. Read on the card: a density class on a child (a dense table) leaves the gap above it alone. Type stays |
 | Shape | `.ds-shape-*` | the card or an ancestor | multiplies the rest and pressed radius, the media and the mark (`--ds-shape`) |
 | Touch | `.ds-touch` | the card or an ancestor | an interactive card is at least `--ds-touch-target` high |
 | Size | not read | | a card has no height of its own; a size class on it reaches the controls inside |
@@ -81,12 +81,14 @@ A whole card that opens something (1.4):
   first frame and snaps to its offset (on the `<div>` form the card draws it through
   `:has(.ds-card__action:focus-visible)`, so the clip of a ripple never cuts it).
 - The press morph: the radius goes to `--ds-radius-card-pressed` (12 to 8px) and springs back on release.
-- A disabled or `aria-disabled="true"` card shows no hover or press layer and does not morph; an `aria-disabled` card
-  keeps its focus layer.
+- A disabled or `aria-disabled="true"` card looks it: the one disabled model (`--ds-disabled-ink` on its text and
+  its mark, `--ds-disabled-opacity` where a theme dims, faded on `--ds-dur-fast`, the cursor `not-allowed`). It shows no
+  hover or press layer and no hover shadow, and does not morph; an `aria-disabled` card keeps its focus layer.
 - Nothing moves on hover, no lift and no scale. A theme may add a shadow on hover with `--ds-card-hover-shadow`
-  (default none; for example `var(--ds-elev-hover)`), in over `--ds-dur-medium`, out over `--ds-dur-base`.
-- In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring; an
-  `aria-disabled` card turns `GrayText`.
+  (default none, an elevated card keeps its own; for example `var(--ds-elev-hover)`), in over `--ds-dur-medium`, out
+  over `--ds-dur-base`.
+- In forced colours every interactive card keeps a visible edge (`.ds-card--filled` included) and the focus ring; a
+  blocked card turns `GrayText`, selected or not.
 
 ### Selectable card
 
@@ -132,17 +134,18 @@ form, which may be a `<button>` too (it loses its own look):
 - `.ds-card--horizontal`: `.ds-card__media` (an `<img>`, or an element on `--ds-surface-high` that centres an icon; a
   radius of `--ds-radius-sm` times the shape) takes `--ds-card-media-size` (160px), `.ds-card__body` the rest, and both
   take a whole line once the card has less room than `--ds-card-media-size` + `--ds-card-body-min` (240px) + the gap: no
-  query, the card itself decides, wherever it stands. `.ds-card__body` keeps the card's rhythm; a `<button>` card uses
-  `<span>`s. Clickable and selectable combine with it.
+  query, the card itself decides, wherever it stands. `.ds-card__body` keeps the card's rhythm, by the same rules as the
+  card's own children; a `<button>` card uses `<span>`s, which stack. Clickable and selectable combine with it.
 - Print: a short card is never split across pages.
 - Rows of a [disclosure list](#disclosure) run to the card's edges: this stylesheet pulls the list out by
   `--ds-card-pad` and sets `--ds-disclosure-row-padding-exact` on it, so the rows' text lines up with the card's.
 
 Accessibility: a card is a `<section>` with its own heading, or an `<a>` or `<button>` with one name
 (the `<div>` form's name is its `.ds-card__action`). Forced colours: `.ds-card--filled` (when interactive) and
-`.ds-card--elevated` keep a `CanvasText` edge; a selected card `Highlight` / `HighlightText` with a `CanvasText` ring
-when focused and a check in `Highlight` on `HighlightText`; an `aria-disabled` card `GrayText`; the empty mark a
-`CanvasText` ring.
+`.ds-card--elevated` keep a `CanvasText` edge; a selected card `Highlight` / `HighlightText`, its media too, with a
+`CanvasText` ring when focused and a check in `Highlight` on `HighlightText`; a disabled or `aria-disabled` card
+`GrayText` on `Canvas`, its media too, and when selected a check in `Canvas` on `GrayText`; the empty mark a `CanvasText`
+ring.
 
 Hooks: `--ds-card-padding`, `--ds-card-padding-sm`, `--ds-card-padding-filled`, `--ds-card-radius`,
 `--ds-card-radius-pressed`, `--ds-card-bg`, `--ds-card-border`, `--ds-card-filled-bg`, `--ds-card-title-line`,
@@ -157,4 +160,5 @@ resulting padding: read it, never set it.
 - New: `.ds-card--outlined`, `.ds-card--horizontal` with `.ds-card__media` and `.ds-card__body`, `.ds-card--selectable` with `.ds-card__check`; hooks `--ds-card-radius`, `--ds-card-radius-pressed`, `--ds-card-bg`, `--ds-card-border`, `--ds-card-filled-bg`, `--ds-card-check-size`, `--ds-card-media-size`, `--ds-card-body-min`.
 - Renamed: `.ds-subsection` to `.ds-card__section`, `.ds-more` to `.ds-card__more` (aliases until 3.0 ships).
 - The rule that runs disclosure rows to a card's edges moved here from the disclosure's stylesheet.
+- Fixed from 2.x: a disabled or `aria-disabled` clickable card now looks blocked (`--ds-disabled-*`, cursor `not-allowed`) and takes no hover shadow; an elevated clickable card keeps its shadow on hover and while pressed.
 

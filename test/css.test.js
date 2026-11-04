@@ -2812,8 +2812,9 @@ describe('tables, cards and buttons (2.1)', () => {
     const CARD = stripComments(read('src/components/card/card.css'));
     assert.equal(at(CARD, '.ds-grid-2 > .ds-card > .ds-card__links')['margin-top'], 'auto');
     // 3.0: the rhythm follows the density, and the floor with it.
-    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'calc(var(--ds-space-4) + var(--ds-density, 0) * 2px)');
-    assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'calc(var(--ds-space-4) + var(--ds-density, 0) * 2px)', 'the floor is the rhythm');
+    assert.equal(at(CARD, '.ds-card')['--_card-gap'], 'calc(var(--ds-space-4) + var(--ds-density, 0) * 2px)');
+    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--_card-gap)');
+    assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'var(--_card-gap)', 'the floor is the rhythm');
   });
 
   it('lets a status chip, badge or tag sit on the card title line and a chip hang by its own height, after the button overhang', () => {
@@ -2825,6 +2826,8 @@ describe('tables, cards and buttons (2.1)', () => {
     assert.equal(at(CARD, SMALL)['margin-block'], '0');
     // The chip's height as a control on the options model computes it (plans/3.0-conventions.md, section 3).
     assert.equal(at(CARD, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
+    // The switch's box as the switch computes it, on the same steps.
+    assert.equal(at(CARD, '.ds-card__row > .ds-switch')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
     // The same weight (0,2,0) as the overhang, so the later rule wins.
     for (const selector of [SMALL, '.ds-card__row > .ds-chip']) assert.ok(CARD.indexOf(`${selector} {`) > CARD.indexOf(`${GENERAL} {`), selector);
   });

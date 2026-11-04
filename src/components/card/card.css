@@ -21,13 +21,16 @@
  *     <section class="ds-card ds-card--horizontal"> <img class="ds-card__media" src="..." alt="..."> <div class="ds-card__body"> ... </div> </section>
  *     .ds-card__media takes --ds-card-media-size (160px) in the row and
  *     the whole line once wrapped; .ds-card__body keeps the card's rhythm
- *     and asks for at least --ds-card-body-min (240px).
+ *     (the same rules as the card's own children; a <span> body, in a
+ *     <button> card, stacks its spans) and asks for at least
+ *     --ds-card-body-min (240px).
  *
  * Options (src/core/options.css, docs/options.md), on the card or any
  * ancestor; each is computed here, in the card's own rule:
  *   density   .ds-density-*: 2px off the padding and the rhythm per step
  *             (--ds-card-pad follows, so what bleeds to the card's edges
- *             follows too); type stays
+ *             follows too); read on the card, so a density class on a child
+ *             (a dense table) leaves the gap above it alone; type stays
  *   shape     .ds-shape-*: multiplies the rest and the pressed radius, the
  *             media and the mark
  *   touch     .ds-touch: an interactive card is at least --ds-touch-target
@@ -56,13 +59,15 @@
  * ripple's clip never cuts it), the press morph (the radius goes to
  * --ds-card-radius-pressed, --ds-radius-card-pressed, times the shape, in
  * --ds-dur-micro and springs back over --ds-dur-medium) and the ripple
- * (js/ripple.js); a disabled or aria-disabled card shows no hover or press
- * layer and does not morph (an aria-disabled one keeps its focus layer).
+ * (js/ripple.js). A disabled or aria-disabled card shows it: the one
+ * disabled model (--ds-disabled-ink on its text, --ds-disabled-opacity,
+ * cursor not-allowed), no hover or press layer, no hover shadow and no morph
+ * (an aria-disabled one keeps its focus layer).
  * Nothing moves on hover: no lift, no scale; a theme may give it a shadow
- * through --ds-card-hover-shadow (default none; for example
- * var(--ds-elev-hover)), in over --ds-dur-medium, out over --ds-dur-base.
- * In forced colours every interactive card keeps a visible edge, an
- * aria-disabled one GrayText.
+ * through --ds-card-hover-shadow (default none; an --elevated card keeps its
+ * own; for example var(--ds-elev-hover)), in over --ds-dur-medium, out over
+ * --ds-dur-base. In forced colours every interactive card keeps a visible
+ * edge, a blocked one GrayText, selected or not.
  *
  * Selectable: a choice among a few cards is a toggle: aria-pressed,
  * aria-checked or aria-selected on the card (a <button>), or on the
@@ -93,7 +98,7 @@
  * --ds-card-selected-bg, --ds-selected-ring, --ds-card-check-size,
  * --ds-card-media-size, --ds-card-body-min. --ds-card-pad is the resulting
  * padding of each card, which tables read to bleed to its edges: read it,
- * never set it. --_radius is private.
+ * never set it. --_radius and --_card-gap are private.
  *
  * Deprecated aliases until 3.0 ships: .ds-subsection (.ds-card__section),
  * .ds-more (.ds-card__more).
@@ -105,6 +110,12 @@
   .ds-card {
     --ds-card-pad: calc(var(--ds-card-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
     --_radius: calc(var(--ds-card-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
+    /* The rhythm, computed here and read by the children, so a density class
+       on a child (a dense table in a comfortable card) changes the child and
+       not the gap above it. The name is the card's own: a child may have a
+       --_gap. A card inside a card computes its own and reads that above
+       itself too: it is the same value unless it has a density class. */
+    --_card-gap: calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
     min-width: 0;
     padding: var(--ds-card-pad);
     border: 1px solid var(--ds-card-border, var(--ds-line));
@@ -122,12 +133,14 @@
     margin-block: 0;
   }
 
-  .ds-card > * + * {
-    margin-top: calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
+  .ds-card > * + *,
+  .ds-card__body > * + * {
+    margin-top: var(--_card-gap);
   }
 
   /* An empty live region (filled later) takes no room. */
-  .ds-card > p:empty {
+  .ds-card > p:empty,
+  .ds-card__body > p:empty {
     display: none;
   }
 
@@ -171,6 +184,7 @@
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       border-color var(--ds-dur-fast) var(--ds-ease-in-out),
       color var(--ds-dur-fast) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
       border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
       box-shadow var(--ds-dur-base) var(--ds-ease-in-out),
       outline-offset var(--ds-dur-fast) var(--ds-ease-out);
@@ -204,15 +218,21 @@
   }
 
   @media (hover: hover) {
-    .ds-card--interactive:hover {
+    .ds-card--interactive:not(:disabled, [aria-disabled="true"]):hover {
       box-shadow: var(--ds-card-hover-shadow, none);
       transition:
         background-color var(--ds-dur-fast) var(--ds-ease-in-out),
         border-color var(--ds-dur-fast) var(--ds-ease-in-out),
         color var(--ds-dur-fast) var(--ds-ease-in-out),
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
         box-shadow var(--ds-dur-medium) var(--ds-ease-in-out),
         outline-offset var(--ds-dur-fast) var(--ds-ease-out);
+    }
+
+    /* Without a hook an elevated card keeps its own shadow under the pointer. */
+    .ds-card--elevated.ds-card--interactive:not(:disabled, [aria-disabled="true"]):hover {
+      box-shadow: var(--ds-card-hover-shadow, var(--ds-card-shadow, var(--ds-elev-1)));
     }
 
     .ds-card--interactive:hover::before {
@@ -260,6 +280,7 @@
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       border-color var(--ds-dur-fast) var(--ds-ease-in-out),
       color var(--ds-dur-fast) var(--ds-ease-in-out),
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
       border-radius var(--ds-dur-micro) var(--ds-ease-out),
       box-shadow var(--ds-dur-base) var(--ds-ease-in-out),
       outline-offset var(--ds-dur-fast) var(--ds-ease-out);
@@ -384,6 +405,43 @@
   }
 
   /*
+   * Blocked (disabled, aria-disabled): the one disabled model, on top of
+   * the look it has, selected or not. --ds-disabled-opacity dims the whole
+   * card where a theme asks for that (1 by default). Its text reads the ink
+   * directly: --ds-text cannot be set from a fallback that reads itself.
+   */
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]) {
+    cursor: not-allowed;
+    opacity: var(--ds-disabled-opacity, var(--ds-state-disabled));
+    color: var(--ds-disabled-ink, var(--ds-text));
+  }
+
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]) :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta, .ds-card__action, .ds-card__media) {
+    color: var(--ds-disabled-ink, var(--ds-text));
+  }
+
+  /* A link's own cursor would show over the card through its ::after. */
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]) .ds-card__action {
+    cursor: inherit;
+  }
+
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]) > .ds-card__check {
+    border-color: var(--ds-disabled-ink, var(--ds-outline));
+  }
+
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))) {
+    color: var(--ds-disabled-ink, var(--ds-text));
+  }
+
+  /* The selected mark goes with it, a filled mark on the disabled fill: the
+     state still reads. */
+  .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))) > .ds-card__check {
+    border-color: var(--ds-disabled-fill, var(--ds-outline));
+    background: var(--ds-disabled-fill, var(--ds-outline));
+    color: var(--ds-disabled-ink, var(--ds-on-primary));
+  }
+
+  /*
    * Horizontal: media beside the body. Both flex, so the body takes the
    * free room in a row and each takes a whole line once wrapped, with no
    * query: the card itself decides, wherever it stands. After the column of
@@ -394,7 +452,7 @@
     display: flex;
     flex-flow: row wrap;
     align-items: stretch;
-    gap: calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
+    gap: var(--_card-gap);
   }
 
   .ds-card--horizontal > * + * {
@@ -417,11 +475,17 @@
     flex: 1 1 var(--ds-card-media-size, 160px);
   }
 
+  /* A plain block under the card's own rhythm rules (the rhythm above, the
+     subtitle's below): a gap would add to the subtitle's margins. */
   .ds-card__body {
+    min-width: 0;
+  }
+
+  /* A <button> card holds phrasing content only: its spans stack in a column,
+     as they do directly in the <a> and <button> forms. */
+  span.ds-card__body {
     display: flex;
     flex-direction: column;
-    gap: calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
-    min-width: 0;
   }
 
   .ds-card--horizontal > .ds-card__body {
@@ -447,8 +511,17 @@
       color: HighlightText;
     }
 
+    /* The media inherits forced-color-adjust: none from the card, so it takes
+       the card's colours here and never keeps its author colours. */
+    .ds-card--interactive:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]) .ds-card__media,
+    .ds-card--interactive:has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])) .ds-card__media {
+      background: Highlight;
+      color: HighlightText;
+    }
+
     /* Other controls inside a <div> card keep the forced system colours. */
-    .ds-card--interactive:has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])) :is(a[href], button, input, select, textarea, label):not(.ds-card__action) {
+    .ds-card--interactive:has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])) :is(a[href], button, input, select, textarea, label):not(.ds-card__action),
+    .ds-card--interactive[aria-disabled="true"] :is(a[href], button, input, select, textarea, label):not(.ds-card__action) {
       forced-color-adjust: auto;
     }
 
@@ -462,15 +535,30 @@
       outline-color: CanvasText;
     }
 
-    .ds-card--interactive[aria-disabled="true"] {
+    /* Blocked is GrayText, selected or not: after the selected rules, and
+       with the selected form's weight, so the :has() form loses too. */
+    .ds-card--interactive:disabled,
+    .ds-card--interactive[aria-disabled="true"],
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))) {
       forced-color-adjust: none;
       border-color: GrayText;
       background: Canvas;
       color: GrayText;
     }
 
-    .ds-card--interactive[aria-disabled="true"] :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta, .ds-card__action) {
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]) :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta, .ds-card__action),
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))) :is(.ds-card__title, .ds-card__subtitle, .ds-muted, .ds-meta, .ds-card__action) {
       color: GrayText;
+    }
+
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]) .ds-card__media,
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))) .ds-card__media {
+      background: Canvas;
+      color: GrayText;
+    }
+
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"])))::after {
+      border-color: GrayText;
     }
 
     /* It stays focusable; unforced, its ring would keep the brand colour. */
@@ -494,8 +582,15 @@
       color: Highlight;
     }
 
-    .ds-card--interactive[aria-disabled="true"] > .ds-card__check {
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]) > .ds-card__check {
       border-color: GrayText;
+    }
+
+    /* Blocked and selected: the check says so in the blocked colours. */
+    .ds-card--interactive:is(:disabled, [aria-disabled="true"]):is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"], :has(.ds-card__action:is([aria-pressed="true"], [aria-checked="true"], [aria-selected="true"]))) > .ds-card__check {
+      border-color: GrayText;
+      background: GrayText;
+      color: Canvas;
     }
   }
 
@@ -513,7 +608,7 @@
   }
 
   .ds-grid-2 > .ds-card > :has(+ .ds-card__links) {
-    margin-bottom: calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
+    margin-bottom: var(--_card-gap);
   }
 
   .ds-card__title {
@@ -558,7 +653,7 @@
 
   .ds-card__row > .ds-switch,
   .ds-card__row > :has(> .ds-switch) {
-    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), var(--ds-switch-height, 40px))) / 2);
+    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
   }
 
   .ds-card__row > :is(.ds-status, .ds-badge, .ds-tag) {
@@ -575,7 +670,8 @@
     font: var(--ds-font-label);
   }
 
-  .ds-card > .ds-card__subtitle + * {
+  .ds-card > .ds-card__subtitle + *,
+  .ds-card__body > .ds-card__subtitle + * {
     margin-top: var(--ds-space-2);
   }
 
