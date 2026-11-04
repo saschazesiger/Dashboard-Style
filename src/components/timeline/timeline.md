@@ -64,7 +64,8 @@ The history of a record, an activity feed or a thread of comments: entries on a 
 - `.ds-timeline__item--muted`: a ring (`--ds-timeline-muted-color`, `--ds-outline`) for an entry that did not take
   effect; say why in words. With `--icon` the marker is a ring as well; in a feed the sentence also takes the quieter
   ink. `.ds-timeline__item--icon` with `.ds-timeline__marker`: a disc of `--ds-timeline-marker-size` (24px) on
-  `--ds-surface-high` with a 16px icon instead of the dot, an avatar's initials or an image that fills it.
+  `--ds-surface-high` with a 16px icon instead of the dot, an avatar's initials (in proportion to the disc) or an image
+  that fills it.
 - `.ds-timeline--activity`: a feed. An entry is one sentence, who did what: `.ds-timeline__title` in the body font,
   `<strong>` for who, on the marker's disc; no hairlines and the entries closer together (`--ds-timeline-padding`,
   `--ds-space-2`). `.ds-timeline__time` holds the time at the end of the head line, in any timeline.
@@ -88,9 +89,9 @@ On the list or any ancestor; each is computed in the component's own rule ([opti
 | Option | Classes | Applies to | Effect |
 |---|---|---|---|
 | Variant | `.ds-timeline--activity`, `.ds-timeline__item--comment`, `--muted`, `--icon` | the list, an entry | as above |
-| Size | `.ds-xs` ... `.ds-xl` | the rail's marks | the head line, the marker and the indent 4px per step, the dot 2px per step; the title takes the size's type role; not the text or the meta |
+| Size | `.ds-xs` ... `.ds-xl` | the rail's marks | the marker and the indent 4px per step, the dot 2px per step; the head line 4px per step above md, no less below it (it still holds a status chip or a line of body text); the title takes the size's type role; not the text or the meta |
 | Density | `.ds-density-*` | an entry | the block padding 2px per step (the rail follows); not the type, the marker or the dot |
-| Shape | `.ds-shape-*` | the dot, the marker, the comment box | multiplies the radius (at `.ds-shape-square` a square dot) |
+| Shape | `.ds-shape-*` | the dot, the marker, the comment box | multiplies the radius (a round mark has rounded corners at `.ds-shape-soft`, square ones at `.ds-shape-square`) |
 | Touch | `.ds-touch` | its buttons | an entry is no target; its buttons take the minimum themselves |
 
 A status chip on the head line (`.ds-status`) carries the tone of an entry: the rail shows no meaning of its own.
@@ -111,7 +112,7 @@ its edge, and the comment box keeps its border.
 `--ds-timeline-indent`, `--ds-timeline-padding`, `--ds-timeline-dot-size`, `--ds-timeline-dot-color`,
 `--ds-timeline-muted-color`, `--ds-timeline-line-width`, `--ds-timeline-line-color`, `--ds-timeline-divider-color`,
 `--ds-timeline-marker-size`, `--ds-timeline-head-line`, `--ds-timeline-comment-bg`, `--ds-timeline-comment-radius`: see
-[theming.md](theming.md). `.ds-timeline__actions` reads the button's `--ds-btn-padding-x` to hang by it.
+[theming.md](theming.md).
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) in motion.md.
 
@@ -120,5 +121,5 @@ its edge, and the comment box keeps its border.
   `--ds-timeline-padding`), the shape the dot, the marker and the comment box.
 - New: `.ds-timeline--activity` (a feed of sentences, with avatars in the marker), `.ds-timeline__item--comment`
   (`--ds-timeline-comment-bg`, `--ds-timeline-comment-radius`), `.ds-timeline__time`, and a muted entry with a marker.
-- `.ds-timeline__actions` hangs by the button's padding at its size: put `.ds-sm` on it instead of on each button.
+- `.ds-timeline__actions` hangs by the text button's padding at its size: put `.ds-sm` on it instead of on each button.
 

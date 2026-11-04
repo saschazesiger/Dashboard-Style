@@ -70,7 +70,7 @@
     },
     "--ds-timeline-head-line": {
       "default": "24px",
-      "description": "the head line of an entry, on which its dot is centred (the height of a status chip), 4px per size step"
+      "description": "the head line of an entry, on which its dot is centred (the height of a status chip), 4px per size step above md"
     },
     "--ds-timeline-comment-bg": {
       "default": "`--ds-surface-low`",
@@ -79,9 +79,6 @@
     "--ds-timeline-comment-radius": {
       "default": "`--ds-radius-card`",
       "description": "the box of a `.ds-timeline__item--comment` entry's text (times `--ds-shape`)"
-    },
-    "--ds-btn-padding-x": {
-      "owner": "button"
     }
   },
   "keyframes": [],
