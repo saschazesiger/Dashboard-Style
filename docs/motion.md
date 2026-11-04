@@ -373,6 +373,7 @@ chips, tiles and tables; their file headers point here.
 | **Glides** | order, through `DS.motion.flip` (sort, filter, live reorder, alerts that come and go); values: progress (`--ds-progress` on `--ds-ease-value`) and figures (`countUp` from the shown value, over `--ds-dur-glide`); status colour and icon (`.ds-status`, `--ds-dur-medium`) |
 | **Changes at once** | text values (a label, a note, a figure in a table cell), and the removal of `.ds-stale`, so fresh values show without a fade |
 | **Never per keystroke or per poll** | `.ds-reveal` and `.ds-enter--swap`: they are only for content that replaces a placeholder (a skeleton, a loader, another view) |
+| **Drag (`DS.dnd`)** | lift: `data-ds-dragging` raises the item (`--ds-elev-2`, the dragged state layer, on `--ds-dur-fast`) and nothing scales; a pointer drag follows the pointer with its inline `translate`; the others make room through `DS.motion.flip`, and a move during a glide continues from where each item is; a keyboard move glides the item on `--ds-ease-spatial`, over `travelDuration()`; a drop, a cancel or a refused drop glides into place the same way, and the raised look leaves in `--ds-dur-instant` ([core.md](core.md#dsdnd-pointer-and-keyboard-drag)) |
 
 Render with `DS.dom.morphHtml` and key list items with `data-ds-key`: kept nodes are patched in place, so class
 changes transition, running loops continue, focus stays, and `flip()` sees which item moved.

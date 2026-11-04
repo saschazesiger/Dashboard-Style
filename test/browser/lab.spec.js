@@ -317,6 +317,7 @@ const CONTINUITY = {
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
 const CONTINUITY_EXEMPT = {
+  dnd: 'each toggle moves the row in the DOM and glides it from where it is painted, so its translate restarts from a new layout place (the continuity of a keyboard move during a glide is checked by dnd.spec.js)',
   validation: 'a message that goes is removed at once by design (rule: the room opens on --ds-ease-out, removal is instant)',
   drawer: 'hides and shows through DS.motion.transition(): with View Transitions the motion plays on snapshots, not on the live drawer',
   topbar: 'scroll-driven: the tint follows the scroll position the demo sets, not time',

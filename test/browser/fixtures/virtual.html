@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Virtual · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  .fx-scroller { block-size: 300px; overflow: auto; border: 1px solid var(--ds-outline); }
+  .fx-scroller ul { margin: 0; padding: 0; list-style: none; }
+  .fx-row { box-sizing: border-box; display: block; padding: var(--ds-space-2); }
+  #table { inline-size: 100%; table-layout: fixed; }
+  thead th { position: sticky; inset-block-start: 0; background: var(--ds-surface); z-index: 1; }
+</style>
+</head>
+<body>
+<!-- DS.virtual in real engines: virtual.spec.js starts each case through
+     window.fxList / window.fxTable (10,000 rows by default). Row heights vary
+     by index: fxHeight(i). -->
+<div class="ds-theme fx-root">
+  <main>
+    <h1>Virtual</h1>
+    <section class="fx-section" aria-labelledby="list-title">
+      <h2 id="list-title">List</h2>
+      <button id="before" class="ds-btn" type="button">Before</button>
+      <div id="list-scroller" class="fx-scroller"><ul id="list" aria-labelledby="list-title"></ul></div>
+      <button id="after" class="ds-btn" type="button">After</button>
+    </section>
+    <section class="fx-section" aria-labelledby="table-title">
+      <h2 id="table-title">Table</h2>
+      <div id="table-scroller" class="fx-scroller">
+        <table id="table" class="ds-table" aria-labelledby="table-title">
+          <thead><tr><th scope="col">Device</th><th scope="col">Status</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <button id="table-after" class="ds-btn" type="button">After the table</button>
+    </section>
+  </main>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  window.fxHeight = (index) => 32 + (index % 5) * 8;
+  window.fxData = { renders: 0, version: 'a' };
+  window.fxList = (options = {}) => {
+    window.fxData.items = options.items ?? null;
+    return DS.virtual.create(document.querySelector('#list-scroller'), {
+      count: 10000,
+      render(index) {
+        window.fxData.renders += 1;
+        const key = window.fxData.items ? window.fxData.items[index] : `row-${index}`;
+        return `<li class="fx-row" data-ds-key="${key}" style="height:${window.fxHeight(index)}px"><span class="fx-text">Row ${key} ${window.fxData.version}</span></li>`;
+      },
+      ...options,
+    });
+  };
+  window.fxRowWithControls = (index) => `<li class="fx-row" data-ds-key="row-${index}"><button type="button" id="b${index}">Edit</button> <a href="#x" id="a${index}">Open</a> <button type="button" id="own${index}" tabindex="-1">Own</button></li>`;
+  window.fxTable = (options = {}) => DS.virtual.create(document.querySelector('#table-scroller'), {
+    count: 10000,
+    estimate: 44,
+    // Text of very different lengths: an automatic table layout would change its columns with every window.
+    render: (index) => `<tr data-ds-key="row-${index}"><td>Device ${index}</td><td>${index % 3 ? 'Online' : 'Offline since the rack in the far corner of the second floor lost power'}</td></tr>`,
+    ...options,
+  });
+</script>
+</body>
+</html>

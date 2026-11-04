@@ -71,6 +71,7 @@ export const SYSTEM_ATTRIBUTES = [
   'data-ds-overflow-end',
   'data-ds-dragover',
   'data-ds-dragging',
+  'data-ds-virtual-gap',
   'data-ds-keyboard',
   'data-ds-savebar',
   'data-ds-savebar-rest',

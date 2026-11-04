@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drag and drop · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+<style>
+  .fx-board { display: flex; gap: var(--ds-space-4); align-items: flex-start; }
+  .fx-column { flex: 1; min-block-size: 120px; padding: var(--ds-space-2); border: 1px solid var(--ds-outline); }
+  .fx-column ul, #steps { margin: 0; padding: 0; list-style: none; }
+  .fx-card { display: flex; align-items: center; gap: var(--ds-space-2); block-size: 48px; background: var(--ds-surface); }
+  #tall { max-block-size: 160px; overflow: auto; }
+  #wrap, .fx-wrap { display: flex; flex-wrap: wrap; inline-size: 340px; gap: var(--ds-space-2); margin: 0; padding: 0; list-style: none; }
+  #wrap .fx-card, .fx-wrap .fx-card { inline-size: 100px; }
+  #tree ul { min-block-size: 16px; margin: 0; padding: 0 0 0 var(--ds-space-6); list-style: none; }
+  #tree > ul { padding: 0; }
+  .fx-node { background: var(--ds-surface); }
+</style>
+</head>
+<body>
+<!-- DS.dnd in real engines (dnd.spec.js): one list, a board of three zones (the
+     last refuses "locked" cards), a wrapping set, two wrapping zones, a tree of
+     nested zones, a long list that scrolls, and a list inside a dialog. Each gets
+     its controller from the spec, through fxDnd(selector, options), and logs its
+     events in window.fxLog. -->
+<div class="ds-theme fx-root">
+  <main>
+    <h1>Drag and drop</h1>
+    <section class="fx-section" aria-labelledby="list-title">
+      <h2 id="list-title">List</h2>
+      <ul id="steps"></ul>
+    </section>
+    <section class="fx-section" aria-labelledby="board-title">
+      <h2 id="board-title">Board</h2>
+      <div id="board" class="fx-board">
+        <div class="fx-column" aria-label="To do"><ul data-cards="fan disk locked"></ul></div>
+        <div class="fx-column" aria-label="Doing"><ul data-cards="cable"></ul></div>
+        <div class="fx-column" aria-label="Done" data-only-open><ul data-cards=""></ul></div>
+      </div>
+    </section>
+    <section class="fx-section" aria-labelledby="wrap-title">
+      <h2 id="wrap-title">Wrapping</h2>
+      <ul id="wrap"></ul>
+      <div id="wrap-board" class="fx-board">
+        <ul class="fx-wrap" aria-label="First" data-cards="w1 w2 w3 w4"></ul>
+        <ul class="fx-wrap" aria-label="Second" data-cards="w5"></ul>
+      </div>
+    </section>
+    <section class="fx-section" aria-labelledby="tree-title">
+      <h2 id="tree-title">Nested</h2>
+      <div id="tree"><ul aria-label="Root"></ul></div>
+    </section>
+    <section class="fx-section" aria-labelledby="tall-title">
+      <h2 id="tall-title">Long list</h2>
+      <ul id="tall"></ul>
+    </section>
+    <button id="open-dialog" class="ds-btn" type="button">Open</button>
+    <button id="after" class="ds-btn" type="button">After</button>
+    <dialog id="dialog" class="ds-dialog" aria-labelledby="dialog-title">
+      <div class="ds-dialog__box">
+        <h2 id="dialog-title" class="ds-dialog__title">Order</h2>
+        <ul id="dialog-list" class="fx-plain"></ul>
+      </div>
+    </dialog>
+  </main>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  const card = (key) => `<li class="fx-card" data-ds-key="${key}" aria-label="${key}"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ${key}">${DS.icons.icon(DS.icons.grip, 20)}</button><span>${key}</span></li>`;
+  const fill = (element, keys) => DS.dom.morphHtml(element, keys.map(card).join(''));
+  fill(document.querySelector('#steps'), ['backup', 'update', 'restart', 'report']);
+  for (const list of document.querySelectorAll('[data-cards]')) fill(list, list.dataset.cards.split(' ').filter(Boolean));
+  fill(document.querySelector('#wrap'), ['a', 'b', 'c', 'd', 'e', 'f']);
+  fill(document.querySelector('#tall'), Array.from({ length: 30 }, (unused, index) => `t${index}`));
+  fill(document.querySelector('#dialog-list'), ['one', 'two', 'three']);
+  const node = (key, children = []) => `<li class="fx-node" data-ds-key="${key}" aria-label="${key}"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ${key}">${DS.icons.icon(DS.icons.grip, 20)}</button><span>${key}</span><ul aria-label="Inside ${key}">${children.join('')}</ul></li>`;
+  DS.dom.morphHtml(document.querySelector('#tree > ul'), node('p1', [node('c1')]) + node('p2'));
+  document.querySelector('#open-dialog').addEventListener('click', (event) => DS.overlay.open(document.querySelector('#dialog'), { opener: event.currentTarget }));
+
+  window.fxLog = [];
+  window.fxDnd = (selector, options = {}) => {
+    const container = document.querySelector(selector);
+    for (const type of ['drag-start', 'drag-move', 'drop', 'drag-cancel']) {
+      container.addEventListener(`ds:${type}`, (event) => {
+        const { item, from, to, mode } = event.detail;
+        window.fxLog.push({ type, item: item.getAttribute('data-ds-key'), from: from.index, to: to?.index ?? null, zone: to?.zone?.getAttribute('aria-label') ?? null, mode });
+      });
+    }
+    return DS.dnd.create(container, options);
+  };
+  window.fxOrder = (selector) => Array.from(document.querySelectorAll(`${selector} [data-ds-key]`)).map((el) => el.getAttribute('data-ds-key'));
+  // What was spoken last, in the live region of the theme or the dialog.
+  window.fxSpoken = () => Array.from(document.querySelectorAll('[aria-live="polite"].ds-sr')).map((el) => el.textContent).filter(Boolean).pop() ?? '';
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Format · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- DS.format and DS.store in real engines: format.spec.js and store.spec.js
+     (two pages of one context for the store's cross-tab events). The times
+     get their dates from the page script, relative to now. -->
+<div class="ds-theme fx-root">
+  <main>
+    <h1>Format and store</h1>
+    <section class="fx-section" aria-labelledby="times-title">
+      <h2 id="times-title">Times</h2>
+      <ul id="times">
+        <li><time id="past" data-ds-time data-age="-185000">markup</time></li>
+        <li><time id="future" data-ds-time data-age="7300000">markup</time></li>
+        <li><span id="own-tip" data-ds-time data-age="-60000" data-tip="Mine">markup</span></li>
+        <li><span id="no-tip" data-ds-time data-age="-60000" data-ds-time-tip="off">markup</span></li>
+        <li><span id="narrow" data-ds-time data-age="-7300000" data-ds-time-style="narrow">markup</span></li>
+        <li><time id="broken" data-ds-time datetime="not a date">kept text</time></li>
+      </ul>
+      <div id="morph-target"></div>
+    </section>
+  </main>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+<script>
+  for (const el of document.querySelectorAll('[data-age]')) {
+    const date = new Date(Date.now() + Number(el.dataset.age)).toISOString();
+    if (el.localName === 'time') el.setAttribute('datetime', date);
+    else el.setAttribute('data-ds-time', date);
+  }
+  window.fxPage = DS.init(document);
+</script>
+</body>
+</html>

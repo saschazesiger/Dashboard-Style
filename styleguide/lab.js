@@ -1395,6 +1395,48 @@
     toggle: sortTo,
   });
 
+  /* ── Data: drag and drop, the engine under boards and trees ─────── */
+
+  function dndOn(stage) {
+    var rows = $$('#sg-lab-dnd > li', stage);
+    return rows[rows.length - 1].getAttribute('data-ds-key') === 'dnd-0';
+  }
+
+  /* A keyboard drag as a keyboard user plays it: lift, End or Home, drop. The
+     handle needs the real focus: a focus that left cancels the drag. */
+  function dndTo(stage, on, sg) {
+    var grip = $('[data-ds-key="dnd-0"] .ds-grip', stage);
+    var key = function (name) { grip.dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true })); };
+    grip.focus({ preventScroll: true });
+    key(' ');
+    key(on ? 'End' : 'Home');
+    key(' ');
+    return sg.frames(2).then(function () { return quiet(stage, sg); });
+  }
+
+  LAB_DEMOS.push({
+    id: 'dnd',
+    group: 'data',
+    title: 'Drag and drop with zones, keys and a refusal',
+    note: '<code>DS.dnd.create()</code>: drag a row by its grip, or focus the grip, press Space, move with the arrow keys, Home or End, and press Space again (Escape cancels). The row is raised (<code>data-ds-dragging</code>: the dragged state layer and a shadow, nothing scales) and the others make room through <code>DS.motion.flip()</code>. On a drop it glides into place on the spring and the raised look leaves in <code>--ds-dur-instant</code>; a cancel or a refused drop glides back the same way. A move during a glide continues from where the row is. Every step is spoken; the read-out shows what <code>ds:drop</code> got.',
+    shows: ['DS.dnd.create', 'DS.motion.flip', '--ds-state-dragged', '--ds-elev-2', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-dur-slow', '--ds-ease-spatial'],
+    html: '<ul class="ds-plain-list sg-sortable" id="sg-lab-dnd">' + SORT_ROWS.map(function (text, index) {
+      return '<li class="sg-sortable__row" data-ds-key="dnd-' + index + '"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ' + text + '">' + icon('grip', 20) + '</button><span>' + text + '</span></li>';
+    }).join('') + '</ul>',
+    after: readoutHtml('sg-lab-dnd-out', 'Dropped: nothing yet'),
+    height: 220,
+    setup: function (stage) {
+      var list = $('#sg-lab-dnd', stage);
+      DS.dnd.create(list, { label: function (row) { return row.textContent; } });
+      list.addEventListener('ds:drop', function (event) {
+        $('#sg-lab-dnd-out', stage.parentNode).textContent = 'Dropped: ' + event.detail.item.textContent + ' at position ' + (event.detail.to.index + 1);
+      });
+    },
+    play: function (stage, sg) { return dndTo(stage, !dndOn(stage), sg); },
+    state: dndOn,
+    toggle: dndTo,
+  });
+
   /* ── Data: a log that sticks to its end ──────────────────────────── */
 
   var logLine = 0;

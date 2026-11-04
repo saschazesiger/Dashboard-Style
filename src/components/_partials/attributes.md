@@ -11,8 +11,10 @@ the ones the page sets for it. The project check reads this table.
 | `data-ds-edges` | the system (`DS.dom.scrollEdges`) | the scroller | its edges are reported |
 | `data-ds-overflow-start` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the start of its axis |
 | `data-ds-overflow-end` | the system (`DS.dom.scrollEdges`) | the scroller | more to scroll at the end of its axis |
-| `data-ds-dragover` | the system (`DS.dom.dropzone`) | a `.ds-dropzone` or a page drop target | files are dragged over it |
-| `data-ds-dragging` | the system (`DS.motion.sortable`) | the item being moved | the dragged row |
+| `data-ds-dragover` | the system (`DS.dom.dropzone`, `DS.dnd`) | a `.ds-dropzone`, a page drop target or a zone of `DS.dnd` | files are dragged over it, or the dragged item is |
+| `data-ds-dragging` | the system (`DS.motion.sortable`, `DS.dnd`) | the item being moved | the dragged row |
+| `data-ds-virtual-gap` | the system (`DS.virtual`) | a hidden spacer among the rows | stands in for rows that are not rendered |
+| `data-ds-time` | the page | any element, usually a `<time>` | `DS.format` keeps its relative time current ([core.md](core.md#relative-time-data-ds-time)) |
 | `data-ds-keyboard` | the system (`DS.dom.followViewport`) | `<html>` | the on-screen keyboard is up |
 | `data-toast-reserve` (with `--ds-toast-reserve`) | both: `DS.overlay.toast()` by default, the page only with `reserve: false` | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | the layer keeps room at its end for snackbars that stay ([Snackbar](#snackbar)) |
 | `data-ds-savebar` (with `--ds-savebar-height`) | the system (`DS.overlay.savebar()`) | `.ds-view` | the save bar shows: scroll padding and the content's end keep its room ([Save bar](#save-bar)) |
