@@ -1,5 +1,7 @@
 ## Switch
 
+Turns one setting on or off and shows its state in more than the handle: the state word beside it, and the name.
+
 ```html
 <label class="ds-switch">
   <input type="checkbox" role="switch" name="sync" checked>
@@ -9,12 +11,24 @@
 </label>
 ```
 
+**Options** ([options.md](options.md)): classes on the switch or any ancestor; the nearest wins.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Variant | `.ds-switch--icons`, `.ds-switch--locked` | the switch | a glyph on the handle for each state; a value set elsewhere |
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the switch or a group | the track 24, 28, 32, 36, 40px high (4px per step, width 13 : 8; handle, travel and icon follow), the row and the halo 8px per step, the name's type role |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container | 4px less row per step (a list row too, and 2px less padding); the track, the halo and the type stay |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | the radius of the track and the handle times 0, .5, 1, 1.5, at most half their height: the pill at the default; the halo stays round |
+| Touch | `.ds-touch` | the theme or a container | a row and a halo of at least `--ds-touch-target` (48px) |
+| State | `checked`, `disabled`, `aria-disabled="true"`, `aria-busy="true"` | the input | on and off, blocked, waiting |
+
 With both words (`.ds-switch__on`, `.ds-switch__off`) the CSS shows the right one and crossfades them; a single word
 (`<span class="ds-switch__state" aria-hidden="true">On</span>`) still works, and then the page updates it when the
 switch flips (screen readers announce the switch state themselves). Toggle in place; never re-render the switch to
 change it.
 
-The handle glides and grows on the spatial spring (also when a script sets `checked`), grows to 28px while pressed,
+The handle glides and grows on the spatial spring (also when a script sets `checked`), grows to 28px (at md) while
+pressed,
 and a halo around it (`--ds-switch-halo`, 40px) shows hover, press and keyboard focus; the switch has no ripple.
 Disabled: the neutral track (`--ds-switch-disabled-track`) and handle (`--ds-switch-disabled-handle`), no hover, halo
 or grow, the `not-allowed` cursor and the quieter label. An `aria-disabled="true"` switch input is blocked by
@@ -23,7 +37,7 @@ title next to the switch already names the setting. A tooltip on a switch (why i
 `<input type="checkbox" role="switch" aria-disabled="true" data-tip="Managed by your organisation">`.
 
 The input covers the track, so it is the hit target: put a `data-tip` on the input, not on the label or the track.
-The switch row is at least `--ds-switch-height` (40px) tall. In forced colours a focused checked switch rings in
+The switch row is at least `--ds-switch-height` (40px, with the size and density steps) tall. In forced colours a focused checked switch rings in
 `CanvasText`.
 
 ### Blocked with a reason
@@ -60,6 +74,39 @@ handle, and fades in on `--ds-dur-fast` and out on `--ds-dur-instant` when the l
 is required (a hint, or the tooltip). Forced colours: the normal on and off colours, the lock in `Canvas` or
 `Highlight`. "Locked" always means a value set elsewhere; a value that is waiting is busy, not locked.
 
+### With icons
+
+```html
+<label class="ds-switch ds-switch--icons">
+  <input type="checkbox" role="switch" name="sync" checked>
+  <span class="ds-switch__track" aria-hidden="true">[icon close 16 ds-switch__icon ds-switch__icon--off][icon check 16 ds-switch__icon ds-switch__icon--on]</span>
+  <span class="ds-switch__label">Nightly sync</span>
+</label>
+```
+
+One glyph per state on the handle: both handles are 24px at md (as under a lock), the glyphs ride the handle on the
+spring and crossfade (in on `--ds-dur-fast`, out on `--ds-dur-instant`). The icons repeat the state; they replace
+neither the name nor the role.
+
+### Busy
+
+While the page waits for the answer to a change, it sets `aria-busy="true"` together with `aria-disabled="true"` on the
+input, and clears both when the answer arrives (and sets `checked` back if the change failed, with a message):
+
+```html
+<label class="ds-switch">
+  <input type="checkbox" role="switch" name="sync" checked aria-busy="true" aria-disabled="true">
+  <span class="ds-switch__track" aria-hidden="true"><span class="ds-spinner ds-switch__spinner"></span></span>
+  <span class="ds-switch__label">Nightly sync</span>
+</label>
+```
+
+`DS.motion.guard()` blocks it through `aria-disabled` (click, Space, a label click), and it stays focusable, so the
+focus does not get lost. On and off keep full strength, there is no hover, halo or grow, the cursor says `progress`,
+and the handle (24px) holds the spinner, which shows only after `--ds-delay-loader`, so a fast answer shows nothing.
+Keep the spinner in the track at all times, for every switch that can wait: hidden, it does not paint. With
+`.ds-switch--icons` it replaces the glyph while busy. "Busy" means waiting; a value set elsewhere is locked.
+
 ### Hint and extras
 
 `small.ds-switch__hint` is a line under the name (the meta type, `--ds-text-2`); `span.ds-switch__meta` holds
@@ -91,5 +138,23 @@ with hairlines between them. The name and its hint stand together on the switch'
 and a row without a hint (or with a name that wraps) still centres its text on the track. At 560px of list width and
 below the meta wraps under the name (under the hint when there is one).
 
-**Motion:** the switch rows of [Controls](motion.md#controls) in motion.md.
+### Keyboard, names, forced colours
+
+- Keyboard: Tab reaches the input, Space toggles it; a blocked, busy or locked switch stays in the tab order with its
+  ring and ignores Space.
+- Names: a checkbox with `role="switch"`, named by its label. The track and the state word are `aria-hidden`; screen
+  readers announce on and off themselves. A locked switch needs its reason (`aria-describedby`, a hint or a tooltip).
+- Forced colours: `Highlight` on, `CanvasText` off, `GrayText` blocked; a locked or busy switch keeps on and off; the
+  icons take the track's colour on the handle; a focused checked switch rings in `CanvasText`.
+- Hooks: `--ds-switch-height`, `--ds-switch-track-height`, `--ds-switch-halo`, `--ds-switch-font`,
+  `--ds-switch-disabled-track`, `--ds-switch-disabled-handle`, `--ds-switch-list-row-height`
+  ([theming.md](theming.md#component-hooks)).
+
+**Motion:** the switch rows of [Controls](motion.md#controls) in motion.md; the icons and the busy handle in the Motion
+Lab.
+
+<!-- changelog -->
+- Switch: on the options model: the track, row, halo and list row compute size, density, shape and touch in their own
+  rule. New: `.ds-switch--icons`, `.ds-switch__icon--on`, `.ds-switch__icon--off`; busy with `aria-busy="true"` and
+  `.ds-switch__spinner`; hooks `--ds-switch-track-height`, `--ds-switch-font`.
 

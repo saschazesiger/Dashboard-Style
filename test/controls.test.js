@@ -235,8 +235,11 @@ describe('chips, badges and tags (2.0)', () => {
     for (const [property, value] of [['margin', '0'], ['padding', '0'], ['border', '0'], ['background', 'none'], ['font', 'inherit']]) assert.equal(reset[property], value, property);
     assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body::after').content, 'none');
     assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body')['max-width'], 'var(--ds-chip-max-width, 240px)');
-    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body:has(> .ds-chip__icon:first-child)')['padding-inline-start'], 'var(--ds-space-2)');
-    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body:has(> .ds-chip__trailing:last-child)')['padding-inline-end'], 'var(--ds-space-2)');
+    // 3.0: 8px less beside an icon or glyph (--_near; at md the 2.x 8px), computed in the chip's own rule.
+    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body:has(> .ds-chip__icon:first-child)')['padding-inline-start'], 'var(--_near)');
+    assert.equal(own(flat, ':is(button, a).ds-chip > .ds-chip__body:has(> .ds-chip__trailing:last-child)')['padding-inline-end'], 'var(--_near)');
+    assert.equal(own(flat, '.ds-chip')['--_near'], 'max(var(--ds-space-1), calc(var(--_pad) - var(--ds-space-2)))');
+    assert.equal(own(flat, '.ds-chip')['--_pad'], 'calc(var(--ds-chip-padding-x, var(--ds-space-4)) + var(--ds-size-step, 0) * 4px)');
     assert.equal(own(flat, '.ds-chip__label')['text-overflow'], 'ellipsis');
     assert.deepEqual(own(flat, ':is(button, a).ds-chip:not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before'),
       { opacity: 'var(--ds-state-pressed)', 'transition-duration': 'var(--ds-dur-micro)' });
@@ -250,11 +253,14 @@ describe('chips, badges and tags (2.0)', () => {
 
   it('tints input chips through hooks, wraps long chips at one-line height, hides an empty row', () => {
     assert.deepEqual(own(flat, '.ds-chip--input > .ds-chip__body'), {
-      'border-color': 'var(--ds-chip-input-border, var(--ds-accent))', background: 'var(--ds-chip-input-bg, var(--ds-accent))', color: 'var(--ds-chip-input-color, var(--ds-on-accent))',
+      // 3.0: a tone on the chip itself (--_tint, --_on-tint) goes before the hooks.
+      'border-color': 'var(--_tint, var(--ds-chip-input-border, var(--ds-accent)))', background: 'var(--_tint, var(--ds-chip-input-bg, var(--ds-accent)))', color: 'var(--_on-tint, var(--ds-chip-input-color, var(--ds-on-accent)))',
     });
     const wrap = own(flat, '.ds-chips--wrap .ds-chip__body');
-    assert.equal(wrap['padding-block'], 'calc((var(--ds-chip-height, 32px) - 1lh) / 2 - 1px)');
-    assert.equal(wrap['border-radius'], 'min(var(--ds-radius-chip), calc(var(--ds-chip-height, 32px) / 2))');
+    assert.equal(wrap['padding-block'], 'max(0px, calc((var(--_box) - 1lh) / 2 - 1px))');
+    // The corners stay soft: the chip's own radius is at most half its one-line height.
+    assert.equal(own(flat, '.ds-chip__body')['border-radius'], 'var(--_radius)');
+    assert.equal(own(flat, '.ds-chip')['--_radius'], 'min(calc(var(--ds-chip-radius, var(--ds-radius-chip)) * var(--ds-shape, 1)), calc(var(--_box) / 2))');
     assert.equal(wrap['white-space'], 'normal');
     assert.equal(own(flat, '.ds-chips:empty').display, 'none');
     assert.equal(own(flat, '.ds-chips[data-ds-glide] .ds-chip')['background-color'], 'var(--ds-chips-backdrop, var(--ds-flip-backdrop, var(--ds-surface)))');
@@ -419,11 +425,14 @@ describe('the switch (2.0)', () => {
 
   it('lets the input cover the track and blocks aria-disabled like disabled', () => {
     const input = own(flat, '.ds-switch input');
-    for (const [property, value] of [['position', 'absolute'], ['inset-block', '0'], ['inset-inline-start', '0'], ['width', '52px'], ['height', '32px'], ['margin', 'auto 0'], ['appearance', 'none'], ['opacity', '0'], ['cursor', 'inherit']]) {
+    for (const [property, value] of [['position', 'absolute'], ['inset-block', '0'], ['inset-inline-start', '0'], ['width', 'var(--_w)'], ['height', 'var(--_t)'], ['margin', 'auto 0'], ['appearance', 'none'], ['opacity', '0'], ['cursor', 'inherit']]) {
       assert.equal(input[property], value, property);
     }
     assert.equal(own(flat, '.ds-switch__track')['pointer-events'], 'none');
-    assert.equal(own(flat, '.ds-switch')['min-height'], 'var(--ds-switch-height, 40px)');
+    // 3.0: the row on the options model; the track is 52 x 32 at md.
+    assert.equal(own(flat, '.ds-switch')['min-height'], 'var(--_box)');
+    assert.equal(own(flat, '.ds-switch')['--_box'], 'max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))');
+    assert.equal(own(flat, '.ds-switch')['--_t'], 'calc(var(--ds-switch-track-height, 32px) + var(--ds-size-step, 0) * 4px)');
     const source = stripComments(css);
     assert.doesNotMatch(source, /input:disabled|:not\(:disabled\)|:checked:disabled/, 'every blocked look also for aria-disabled');
     assert.ok(own(flat, `.ds-switch ${BLOCKED} + .ds-switch__track`).opacity);
@@ -439,8 +448,9 @@ describe('the switch (2.0)', () => {
     // After the disabled rules (same weight), so it wins.
     assert.ok(stripComments(css).indexOf(`.ds-switch--locked ${BLOCKED} + .ds-switch__track {`) > stripComments(css).indexOf(`.ds-switch ${BLOCKED} + .ds-switch__track {`));
     const icon = own(flat, '.ds-switch__icon');
-    assert.deepEqual([icon['inset-block-start'], icon['inset-inline-start'], icon.color, icon.opacity], ['6px', '6px', 'var(--ds-surface-highest)', '0']);
-    assert.deepEqual(own(flat, '.ds-switch input:checked + .ds-switch__track .ds-switch__icon'), { color: 'var(--ds-primary)', translate: '20px 0' });
+    // 3.0: 6px and 20px at md, from the track's computed sizes.
+    assert.deepEqual([icon['inset-block-start'], icon['inset-inline-start'], icon.color, icon.opacity], ['calc((var(--_handle) - var(--_icon)) / 2)', 'calc((var(--_handle) - var(--_icon)) / 2)', 'var(--ds-surface-highest)', '0']);
+    assert.deepEqual(own(flat, '.ds-switch input:checked + .ds-switch__track .ds-switch__icon'), { color: 'var(--ds-primary)', translate: 'var(--_travel) 0' });
     assert.match(icon.transition, /translate var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/);
     assert.match(icon.transition, /^opacity var\(--ds-dur-instant\)/);
     assert.match(own(flat, '.ds-switch--locked .ds-switch__icon').transition, /^opacity var\(--ds-dur-fast\)/);
@@ -454,7 +464,7 @@ describe('the switch (2.0)', () => {
     assert.equal(own(flat, '.ds-switch-list').container, 'ds-switch-list / inline-size');
     const row = own(flat, '.ds-switch-list > .ds-switch');
     assert.equal(row['grid-template-columns'], 'auto minmax(0, 1fr) auto auto');
-    assert.equal(row['min-height'], 'var(--ds-switch-list-row-height, 56px)');
+    assert.equal(row['min-height'], 'max(var(--ds-target-min, 0px), calc(var(--ds-switch-list-row-height, 56px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))');
     const narrow = atRuleBlocks(css, /@container ds-switch-list \(max-width: 560px\)/).join('\n');
     assert.match(own(narrow, '.ds-switch-list > .ds-switch')['grid-template-areas'], /"track meta state"/);
   });
