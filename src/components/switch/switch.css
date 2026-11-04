@@ -145,7 +145,6 @@
     width: var(--_w);
     height: var(--_t);
     margin: auto 0;
-    -webkit-appearance: none;
     appearance: none;
     opacity: 0;
     cursor: inherit;

@@ -84,7 +84,7 @@ component live.
 | Pick many values from a long set | `.ds-check-list` in a fieldset, with `.ds-check__count` ([Form](#form)) |
 | A parent checkbox with its children | `.ds-check-group` ([Form](#form)) |
 | A field and its button | `.ds-field__row` ([Form](#form)) |
-| A unit or a reveal inside a field | `.ds-input-group` with `.ds-input-group__affix` or a quiet icon button ([Form](#form)) |
+| A unit or a reveal inside a field | `.ds-input-group` with `.ds-input-group__prefix`, `__suffix`, `__leading`, `__trailing` or a quiet icon button ([Form](#form)) |
 | Pick a value on a scale | `.ds-slider` with a `.ds-slider__value` ([Form](#form)) |
 | Edit a record's fields one under the other, and show what changed | `.ds-form--rows`, `.ds-field--changed`; a value that is read only: `.ds-field__value` ([Form](#form)) |
 | A message with its send button (chat, comments) | `.ds-composer` ([Form](#form)) |

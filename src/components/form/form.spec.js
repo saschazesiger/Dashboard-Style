@@ -120,6 +120,9 @@ test('field text stays 16px on a phone at every size, in a group and on touch', 
   for (const [size] of SIZES) {
     for (const part of ['p', 's', 't', 'g', 'u']) expect((await style(page, `#${part}-${size}`)).font, `${part} ${size}`).toBe(16);
   }
+  // A phone's md field keeps the 2.x height around its taller line: 42px, also as a group.
+  expect((await style(page, '#p-ds-md')).height).toBe(42);
+  expect(await page.$eval('#g-ds-md', (el) => el.parentElement.getBoundingClientRect().height)).toBe(42);
 });
 
 test('.ds-touch alone gives field text its 16px on a desktop too', async ({ page }) => {

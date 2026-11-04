@@ -1656,7 +1656,7 @@ describe('controls (1.1.0)', () => {
   it('draws checkboxes and radios on the native input (no accent-color), in system colours when forced', () => {
     for (const file of ALL_CSS) assert.doesNotMatch(stripComments(read(file)), /accent-color/, file);
     const form = read('src/components/form/form.css');
-    const drawn = rules(form).filter((rule) => /(^|;\s*)appearance:\s*none/.test(rule.body) && /-webkit-appearance:\s*none/.test(rule.body))
+    const drawn = rules(form).filter((rule) => /(^|;\s*)appearance:\s*none/.test(rule.body))
       .flatMap((rule) => splitSelectors(rule.selector));
     for (const selector of ['.ds-check input[type="checkbox"]', '.ds-table input[type="checkbox"]:where(:not(.ds-switch *, .ds-chip *))', '.ds-checkbox', '.ds-check input[type="radio"]', '.ds-radio input', '.ds-radio-input']) {
       assert.ok(drawn.includes(selector) || drawn.includes(selector.replace(/\[type="\w+"\]$/, '')), `${selector}: appearance: none`);

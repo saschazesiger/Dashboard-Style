@@ -67,8 +67,9 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 
 - 40px fields, label above (never only a placeholder), focus as an instant 2px ring inside the field. On blur the
   border, the inner ring and the text colour fade back together, so the ring never fades as half a ring.
-- Field text stays `--ds-font-input` (16px) at 600px and below at every size: iOS zooms into smaller text. A
-  `--ds-input-font` of a theme wins, so keep it at 16px on phones.
+- Field text stays `--ds-font-input` (16px) at 600px and below at every size: iOS zooms into smaller text; the padding
+  stays around that taller line, so an md field is 42px there. A `--ds-input-font` of a theme wins, so keep it at 16px
+  on phones.
 - The label of a field (`.ds-field__label` before the field, or the `<legend>` of a fieldset) takes the primary
   colour with the ring, at once, and fades back on blur; the label of an invalid field keeps the error ink, also
   while focused (the control directly in `.ds-field` or in its `.ds-input-group`, `.ds-field__row` or `.ds-combo`).

@@ -56,7 +56,6 @@
     --_track-radius: min(calc(var(--ds-radius-xs) * var(--ds-shape, 1)), calc(var(--_track) / 2));
     --_thumb-radius: min(calc(var(--_thumb) / 2 * var(--ds-shape, 1)), calc(var(--_thumb) / 2));
     appearance: none;
-    -webkit-appearance: none;
     display: block;
     width: 100%;
     min-width: 0;
@@ -96,7 +95,6 @@
   /* The handle and its halo (the halo rests transparent at its full size,
      so only its colour fades). The ring rests one width further out. */
   .ds-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
     appearance: none;
     box-sizing: border-box;
     width: var(--_thumb);
