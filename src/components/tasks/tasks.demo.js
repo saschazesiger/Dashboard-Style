@@ -1,7 +1,8 @@
 /*
  * The Tasks demo: the steps of a job, advanced by hand. Registered through
  * SG.demo() (styleguide/sg-core.js). Size and density come from the options
- * panel around it and only space the steps. A project's job would report
+ * panel around it and only space the steps; the shape reaches the pending
+ * ring. A project's job would report
  * the status; here the buttons stand for it.
  */
 var STEPS = ['Copy the image', 'Install updates', 'Join the domain', 'Restart'];
@@ -21,7 +22,7 @@ SG.demo('tasks', {
   group: 'data',
   need: 'Follow the steps of a job: pending, running, done or failed',
   lead: 'The steps of a job, each pending, running, done or failed. The status shows in the shape of the mark and the weight of the text, never in colour alone, and a step that turns done in place draws its tick.',
-  options: { sizes: true, density: true, shape: false, tones: false },
+  options: { sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {
     var state = { done: 1, failed: false };

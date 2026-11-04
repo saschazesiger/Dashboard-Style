@@ -26,9 +26,10 @@ The steps of a job: an import, a setup, a migration, each step pending, running,
 |---|---|---|---|
 | Size | `.ds-xs` ... `.ds-xl` | `.ds-tasks` | the space between the steps 2px per step; not the body font or the 20px mark, a glyph on the text's first line |
 | Density | `.ds-density-*` | `.ds-tasks` | the space between the steps 2px per step |
+| Shape | `.ds-shape-*` | the pending ring | multiplies its radius (rounded corners at `.ds-shape-soft`, square ones at `.ds-shape-square`) |
 
-Shape leaves the marks alone: a ring, a spinner and a check in a circle are round glyphs, no radius. A step is no target
-and shows its status by its own colours, so touch and tone do not apply.
+The spinner and the check in a circle are round glyphs, no radius. A step is no target and shows its status by its own
+colours, so touch and tone do not apply.
 
 ### Keyboard and names
 
@@ -46,5 +47,6 @@ The marks take `CanvasText`: the shape of the mark and the weight of the text ca
 **Motion:** the "Tasks" row of [Feedback](motion.md#feedback) in motion.md.
 
 <!-- changelog -->
-- Tasks on the options model: size and density space the steps (hook `--ds-tasks-gap`).
+- Tasks on the options model: size and density space the steps (hook `--ds-tasks-gap`), the shape multiplies the
+  pending ring.
 

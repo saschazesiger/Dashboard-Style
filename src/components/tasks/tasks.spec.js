@@ -1,10 +1,10 @@
 /**
  * The tasks on the options model (3.0): size and density space the steps
- * and leave the type and the mark alone; the status shows in the mark and
- * the weight and says itself in words; a step adds no tab stop; a step that
- * advances in place keeps its mark and draws its tick; forced colours. The
- * 2.x behaviour stays in test/browser/lists.spec.js. Runs in the `fallback`
- * project too.
+ * and leave the type and the mark alone; the shape on the pending ring; the
+ * status shows in the mark and the weight and says itself in words; a step
+ * adds no tab stop; a step that advances in place keeps its mark and draws
+ * its tick; forced colours. The 2.x behaviour stays in
+ * test/browser/lists.spec.js. Runs in the `fallback` project too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
 import { ready, settle } from '../../../test/browser/helpers/motion.js';
@@ -52,6 +52,24 @@ test('size and density space the steps, never below none; the type and the mark 
     expect(entry.mark, `${name}: mark`).toEqual([20, 20]);
     expect(entry.font, `${name}: type`).toBe(14);
   }
+});
+
+test('the shape multiplies the pending ring; the spinner and the glyphs stay round', async ({ page }) => {
+  await open(page);
+  const read = (shape) => page.evaluate((cls) => {
+    const region = document.createElement('div');
+    region.className = cls;
+    region.innerHTML = '<ol class="ds-tasks"><li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">One</span></li></ol>';
+    document.querySelector('#fx-component').prepend(region);
+    const radius = parseFloat(getComputedStyle(region.querySelector('.ds-tasks__mark'), '::before').borderTopLeftRadius);
+    region.remove();
+    return radius;
+  }, shape);
+  // Half of the 16px ring, times the shape, at most half.
+  expect(await read('ds-shape-square')).toBe(0);
+  expect(await read('ds-shape-soft')).toBe(4);
+  expect(await read('')).toBe(8);
+  expect(await read('ds-shape-round')).toBe(8);
 });
 
 test('each status has a shape of its own, a word, and the running step the label weight', async ({ page }) => {

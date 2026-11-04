@@ -29,8 +29,9 @@
  * ancestor: size and density space the steps (--ds-tasks-gap, --ds-space-2,
  * 2px per size step and per density step, at least none). They leave the
  * body font and the 20px mark alone: the mark is a glyph on the text's first
- * line. Shape leaves the marks alone too: a ring, a spinner and a check in a
- * circle are round glyphs, no radius. A step is no target and shows its
+ * line. Shape multiplies the radius of the pending ring (half its size: round
+ * at the default, rounded corners at soft, square at square); the spinner and
+ * the check in a circle are round glyphs, no radius. A step is no target and shows its
  * status by its own colours, so touch and tone do not apply.
  */
 
@@ -96,7 +97,7 @@
     width: var(--ds-space-4);
     height: var(--ds-space-4);
     border: 2px solid var(--ds-outline);
-    border-radius: 50%;
+    border-radius: min(calc(min(var(--ds-radius-action), calc(var(--ds-space-4) / 2)) * var(--ds-shape, 1)), calc(var(--ds-space-4) / 2));
   }
 
   .ds-tasks__item[data-status="running"] .ds-tasks__mark {
