@@ -3,21 +3,30 @@
   "group": "navigation",
   "order": 360,
   "docsOrder": 30,
-  "need": "Switch between the sections of one page or record",
+  "need": "Switch between the sections of one page or record: line or contained, across or down, with counts, icons and tabs that close",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-tabs",
+    "ds-tabs--contained",
     "ds-tabs--fill",
     "ds-tabs--flush",
+    "ds-tabs--line",
+    "ds-tabs--vertical",
+    "ds-tabs__close",
+    "ds-tabs__columns",
+    "ds-tabs__count",
     "ds-tabs__indicator",
+    "ds-tabs__item",
     "ds-tabs__panel",
     "ds-tabs__tab"
   ],
   "attributes": [
     "data-label"
   ],
-  "requires": [],
+  "requires": [
+    "button"
+  ],
   "context": [
     "indicator",
     "ripple"
@@ -25,15 +34,30 @@
   "hooks": {
     "--ds-tabs-height": {
       "default": "48px",
-      "description": "a tab (the state layer is a pill `--ds-space-1` inside it)"
+      "description": "a tab at size md and comfortable (8px per size step, 4px per density step; the state layer is a pill `--ds-space-1` inside it; a contained tab gives up the tray's padding)"
+    },
+    "--ds-tabs-padding-x": {
+      "default": "`--ds-space-4`",
+      "description": "a tab's side padding at size md (4px per size step)"
+    },
+    "--ds-tabs-font": {
+      "default": "the size's role, `--ds-font-label`",
+      "description": "the type of a tab (always at the regular weight; the selected tab takes the label weight)"
     },
     "--ds-tabs-indicator-height": {
       "default": "3px, `--ds-primary`",
-      "description": "the bar under the selected tab"
+      "description": "the bar of the selected tab, under it (at its end in a vertical row)"
     },
     "--ds-tabs-indicator-color": {
       "default": "3px, `--ds-primary`",
-      "description": "the bar under the selected tab"
+      "description": "the bar of the selected tab, under it (at its end in a vertical row)"
+    },
+    "--ds-tabs-contained-bg": {
+      "default": "`--ds-surface-high`",
+      "description": "the tray of `.ds-tabs--contained`"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
     }
   },
   "keyframes": [],
@@ -46,5 +70,10 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-tabs__tab"
-  ]
+  ],
+  "exceptions": {
+    "physical": {
+      ".ds-tabs--vertical:not(.ds-tabs--contained) > .ds-tabs__indicator: background": "the bar at the end of a vertical row: a background position has no logical form, and the system does not mirror (D4)"
+    }
+  }
 }

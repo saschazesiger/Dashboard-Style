@@ -1,0 +1,317 @@
+/**
+ * Tabs on the options model (3.0), on their demo: the height at every size x
+ * density, with and without .ds-touch; the shape on the ring, the layer, the
+ * press and the contained tray; the contained look (the row's height, the
+ * pill gliding); vertical (the bar at its end, Up and Down, the columns
+ * folding at 600px of the content); counts and icons with data-label; tabs
+ * that close (room, click, Delete, focus); names; forced colours. The 2.x
+ * behaviour stays in test/browser/tabs.spec.js. Runs in the `fallback`
+ * project too.
+ */
+import { test, expect } from '../../../test/browser/base-test.js';
+import { ready, settle, focusByKeyboard } from '../../../test/browser/helpers/motion.js';
+
+const URL = '/test/browser/fixtures/component.html?c=tabs';
+const SIZES = [['ds-xs', -2], ['ds-sm', -1], ['ds-md', 0], ['ds-lg', 1], ['ds-xl', 2]];
+const DENSITIES = [['ds-density-comfortable', 0], ['ds-density-compact', -1], ['ds-density-dense', -2], ['ds-density-tight', -3]];
+const TOUCH = 48;
+
+async function open(page, width = 1280) {
+  await page.setViewportSize({ width, height: 800 });
+  await page.goto(URL);
+  await ready(page);
+  await page.mouse.move(1, 1);
+  await settle(page);
+}
+
+const finish = (page, selector) => page.$eval(selector, (el) => Promise.all(el.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => null))).then(() => undefined));
+
+test('the height at every size x density, .ds-touch as a minimum; side padding by size; type by size at the regular weight', async ({ page }) => {
+  await open(page);
+  const measured = await page.evaluate(({ sizes, densities }) => {
+    const out = [];
+    const host = document.createElement('div');
+    document.querySelector('#fx-component').append(host);
+    for (const touch of [false, true]) {
+      for (const [density] of densities) {
+        for (const [size] of sizes) {
+          const row = document.createElement('div');
+          row.className = `ds-tabs ${size} ${density}${touch ? ' ds-touch' : ''}`;
+          row.innerHTML = '<button class="ds-tabs__tab" type="button" role="tab" aria-selected="false">Details</button>';
+          host.append(row);
+          const tab = row.firstElementChild;
+          const style = getComputedStyle(tab);
+          out.push({ touch, density, size, height: tab.getBoundingClientRect().height, pad: parseFloat(style.paddingInlineStart), line: parseFloat(style.lineHeight), font: parseFloat(style.fontSize), weight: style.fontWeight });
+        }
+      }
+    }
+    return out;
+  }, { sizes: SIZES, densities: DENSITIES });
+  expect(measured).toHaveLength(SIZES.length * DENSITIES.length * 2);
+  for (const entry of measured) {
+    const step = SIZES.find(([size]) => size === entry.size)[1];
+    const density = DENSITIES.find(([name]) => name === entry.density)[1];
+    const name = `${entry.size} ${entry.density}${entry.touch ? ' touch' : ''}`;
+    expect(entry.height, name).toBeCloseTo(Math.max(entry.touch ? TOUCH : 0, 48 + step * 8 + density * 4, entry.line), 0);
+    expect(entry.pad, `${name} padding`).toBe(16 + step * 4);
+    expect(entry.weight, `${name} weight`).toBe('400');
+  }
+  const fonts = Object.fromEntries(measured.filter((entry) => !entry.touch && entry.density === 'ds-density-comfortable').map((entry) => [entry.size, entry.font]));
+  expect(fonts).toEqual({ 'ds-xs': 12, 'ds-sm': 14, 'ds-md': 14, 'ds-lg': 16, 'ds-xl': 16 });
+});
+
+test('shape: the ring\'s radius and the layer, at rest and pressed; a square shape has square corners', async ({ page }) => {
+  await open(page);
+  const tab = '[aria-label="Device"] .ds-tabs__tab:nth-of-type(2)';
+  for (const [shape, factor] of [['ds-shape-square', 0], ['ds-shape-soft', 0.5], ['ds-shape-default', 1], ['ds-shape-round', 1.5]]) {
+    await page.$eval('[aria-label="Device"]', (el, name) => { el.className = el.className.replace(/\bds-shape-\w+/g, ''); el.classList.add(name); }, shape);
+    await finish(page, tab);
+    const read = () => page.$eval(tab, (el) => [parseFloat(getComputedStyle(el).borderTopLeftRadius), parseFloat(getComputedStyle(el, '::before').borderTopLeftRadius)]);
+    const [ring, layer] = await read();
+    expect(ring, `${shape} ring`).toBe(Math.min(24 * factor, 24));
+    expect(layer, `${shape} layer`).toBe(Math.min(20 * factor, 20));
+    await page.$eval(tab, (el) => el.classList.add('ds-pressed'));
+    await finish(page, tab);
+    const pressed = (await read())[1];
+    expect(pressed, `${shape} pressed`).toBe(Math.min(12 * factor, 20));
+    await page.$eval(tab, (el) => el.classList.remove('ds-pressed'));
+    await finish(page, tab);
+  }
+});
+
+test('contained: a tray as high as a line row, the selected tab a surface pill that glides inside it', async ({ page }) => {
+  await open(page);
+  const tray = page.locator('.ds-tabs--contained').first();
+  const line = page.locator('[aria-label="Device"]');
+  const geometry = await tray.evaluate((el) => {
+    const tab = el.querySelector('[role="tab"]');
+    const rect = el.getBoundingClientRect();
+    return { row: rect.height, tab: tab.getBoundingClientRect().height, width: rect.width, parent: el.parentElement.getBoundingClientRect().width, before: parseFloat(getComputedStyle(tab, '::before').top), radius: parseFloat(getComputedStyle(el).borderTopLeftRadius), hairline: parseFloat(getComputedStyle(el).borderBottomWidth) };
+  });
+  const lineHeight = await line.evaluate((el) => el.getBoundingClientRect().height);
+  expect(geometry.row).toBe(lineHeight - 1);
+  expect(geometry.tab).toBe(40);
+  expect(geometry.width).toBeLessThan(geometry.parent);
+  expect(geometry.before).toBe(0);
+  expect(geometry.radius).toBe(24);
+  expect(geometry.hairline).toBe(0);
+  const colour = (selector) => tray.locator(selector).first().evaluate((el) => getComputedStyle(el).backgroundColor);
+  const surface = await page.evaluate(() => {
+    const probe = document.createElement('span');
+    probe.style.backgroundColor = 'var(--ds-surface)';
+    document.querySelector('.ds-theme').append(probe);
+    const value = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return value;
+  });
+  expect(await colour('.ds-tabs__indicator')).toBe(surface);
+  expect(await colour('[aria-selected="true"]')).toBe('rgba(0, 0, 0, 0)');
+  // The pill lands on the next tab, at its size and with its radius.
+  await tray.locator('[role="tab"]').nth(1).click();
+  await settle(page);
+  const landed = await tray.evaluate((el) => {
+    const pill = el.querySelector('.ds-tabs__indicator');
+    const tab = el.querySelector('[aria-selected="true"]').getBoundingClientRect();
+    const rect = pill.getBoundingClientRect();
+    return { left: Math.abs(rect.left - tab.left), width: Math.abs(rect.width - tab.width), radius: parseFloat(getComputedStyle(pill).getPropertyValue('--ds-indicator-radius')) };
+  });
+  expect(landed.left).toBeLessThan(1);
+  expect(landed.width).toBeLessThan(1);
+  expect(landed.radius).toBe(20);
+  // Without the indicator the tab paints the pill itself.
+  await page.evaluate(() => {
+    const row = document.createElement('div');
+    row.className = 'ds-tabs ds-tabs--contained';
+    row.id = 'plain-contained';
+    row.innerHTML = '<button class="ds-tabs__tab" type="button" role="tab" aria-selected="true">Day</button>';
+    document.querySelector('#fx-component').append(row);
+  });
+  expect(await page.$eval('#plain-contained [role="tab"]', (el) => getComputedStyle(el).backgroundColor)).toBe(surface);
+  // The shape reaches the tray and the pill.
+  await tray.evaluate((el) => el.classList.add('ds-shape-square'));
+  expect(await tray.evaluate((el) => parseFloat(getComputedStyle(el).borderTopLeftRadius))).toBe(0);
+  await settle(page);
+  expect(await tray.locator('.ds-tabs__indicator').evaluate((el) => parseFloat(getComputedStyle(el).getPropertyValue('--ds-indicator-radius')))).toBe(0);
+});
+
+test('vertical: a column with the bar at its end, Up and Down move, the columns fold at 600px of the content', async ({ page }) => {
+  await open(page);
+  const list = page.locator('.ds-tabs--vertical');
+  await expect(list).toHaveAttribute('aria-orientation', 'vertical');
+  const geometry = await list.evaluate((el) => {
+    const tabs = [...el.querySelectorAll('[role="tab"]')].map((tab) => tab.getBoundingClientRect());
+    const style = getComputedStyle(el);
+    return {
+      stacked: tabs[1].top >= tabs[0].bottom,
+      left: new Set(tabs.map((tab) => tab.left)).size,
+      end: parseFloat(style.borderRightWidth),
+      bottom: parseFloat(style.borderBottomWidth),
+      position: getComputedStyle(el.querySelector('.ds-tabs__indicator')).backgroundPositionX,
+      justify: getComputedStyle(el.querySelector('[role="tab"]')).justifyContent,
+    };
+  });
+  expect(geometry.stacked).toBe(true);
+  expect(geometry.left).toBe(1);
+  expect(geometry.end).toBe(1);
+  expect(geometry.bottom).toBe(0);
+  expect(geometry.position).toBe('100%');
+  expect(geometry.justify).toBe('start');
+
+  const tabs = list.locator('[role="tab"]');
+  await focusByKeyboard(page, tabs.first());
+  await page.keyboard.press('ArrowDown');
+  await expect(tabs.nth(1)).toBeFocused();
+  await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+  await settle(page);
+  const pill = await list.evaluate((el) => {
+    const box = el.querySelector('.ds-tabs__indicator').getBoundingClientRect();
+    const tab = el.querySelector('[aria-selected="true"]').getBoundingClientRect();
+    return Math.abs(box.top - tab.top);
+  });
+  expect(pill).toBeLessThan(1);
+  await page.keyboard.press('ArrowUp');
+  await expect(tabs.first()).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(tabs.nth(2)).toBeFocused();
+
+  // In a content container of 600px or less the columns fold.
+  const columns = (width) => page.evaluate((inline) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ds-content';
+    wrap.style.inlineSize = `${inline}px`;
+    wrap.innerHTML = '<div class="ds-tabs__columns" id="fold"><div></div><div></div></div>';
+    document.querySelector('#fx-component').append(wrap);
+    const value = getComputedStyle(wrap.querySelector('#fold')).gridTemplateColumns.split(' ').length;
+    wrap.remove();
+    return value;
+  }, width);
+  expect(await columns(1000)).toBe(2);
+  expect(await columns(500)).toBe(1);
+});
+
+test('counts and icons: a count reads with the label, data-label reserves the width under the text, so nothing moves', async ({ page }) => {
+  await open(page);
+  const row = page.locator('[aria-label="Inbox"]');
+  await expect(row.getByRole('tab', { name: /^Waiting ?, 3$/ })).toHaveCount(1);
+  const count = await row.locator('.ds-tabs__count').first().evaluate((el) => ({ font: parseFloat(getComputedStyle(el).fontSize), numeric: getComputedStyle(el).fontVariantNumeric }));
+  expect(count).toEqual({ font: 12, numeric: 'tabular-nums' });
+  const widths = () => row.locator('[role="tab"]').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+  const before = await widths();
+  await row.locator('[role="tab"]').nth(1).click();
+  await settle(page);
+  expect(await widths()).toEqual(before);
+  // The copy sits in the text's column, not the icon's: the icon's column stays the icon's width, and icon, text
+  // and count sit on one line.
+  const icon = await row.locator('[role="tab"]').first().evaluate((el) => {
+    const svg = el.querySelector('svg').getBoundingClientRect();
+    const count = el.querySelector('.ds-tabs__count').getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNode([...el.childNodes].find((node) => node.nodeType === 3));
+    const text = range.getBoundingClientRect();
+    const middle = (rect) => rect.top + rect.height / 2;
+    return { column: parseFloat(getComputedStyle(el).gridTemplateColumns.split(' ')[0]), svg: svg.width, line: Math.abs(middle(svg) - middle(text)), count: Math.abs(middle(count) - middle(text)), order: svg.right <= text.left && text.right <= count.left };
+  });
+  expect(icon.column).toBe(icon.svg);
+  expect(icon.line).toBeLessThan(2);
+  expect(icon.count).toBeLessThan(2);
+  expect(icon.order).toBe(true);
+});
+
+test('tabs that close: room for the button, a click and Delete close, the focus and the selection move on', async ({ page }) => {
+  await open(page);
+  const row = page.locator('[aria-label="Open reports"]');
+  const geometry = await row.locator('.ds-tabs__item').first().evaluate((el) => {
+    const tab = el.querySelector('[role="tab"]').getBoundingClientRect();
+    const close = el.querySelector('.ds-tabs__close').getBoundingClientRect();
+    const text = el.querySelector('[role="tab"]');
+    return { inside: close.right <= tab.right && close.left >= tab.left, room: parseFloat(getComputedStyle(text).paddingInlineEnd), size: close.width, wrapper: getComputedStyle(el).display };
+  });
+  expect(geometry).toEqual({ inside: true, room: 24 + 8, size: 24, wrapper: 'grid' });
+  const closeButtons = row.locator('.ds-tabs__close');
+  expect(await closeButtons.first().evaluate((el) => el.tabIndex)).toBe(-1);
+  await expect(row.getByRole('button', { name: 'Close April' })).toHaveCount(1);
+
+  // A click on the close button of a tab that is not selected keeps the selection.
+  await row.getByRole('button', { name: 'Close April' }).click();
+  await expect(row.locator('[role="tab"]')).toHaveCount(2);
+  await expect(row.getByRole('tab', { name: 'March' })).toHaveAttribute('aria-selected', 'true');
+
+  // Delete on the selected tab: the next one takes the selection and the focus.
+  const march = row.getByRole('tab', { name: 'March' });
+  await focusByKeyboard(page, march);
+  await page.keyboard.press('Delete');
+  await expect(row.locator('[role="tab"]')).toHaveCount(1);
+  const may = row.getByRole('tab', { name: 'May' });
+  await expect(may).toHaveAttribute('aria-selected', 'true');
+  await expect(may).toBeFocused();
+  await expect(page.locator(`#${await may.getAttribute('aria-controls')}`)).toBeVisible();
+
+  // Under .ds-touch the button is a finger's target and the tab keeps room for it.
+  await row.evaluate((el) => el.classList.add('ds-touch'));
+  const touch = await row.locator('.ds-tabs__item').first().evaluate((el) => [el.querySelector('.ds-tabs__close').getBoundingClientRect().height, parseFloat(getComputedStyle(el.querySelector('[role="tab"]')).paddingInlineEnd)]);
+  expect(touch).toEqual([48, 48 + 8]);
+});
+
+test('--fill shares the row, wrappers included', async ({ page }) => {
+  await open(page);
+  const widths = await page.locator('.ds-tabs--fill [role="tab"]').evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().width)));
+  expect(new Set(widths).size).toBe(1);
+  const wrapped = await page.evaluate(() => {
+    const row = document.createElement('div');
+    row.className = 'ds-tabs ds-tabs--fill';
+    row.innerHTML = '<span class="ds-tabs__item"><button class="ds-tabs__tab" type="button" role="tab" aria-selected="true">One</button></span><span class="ds-tabs__item"><button class="ds-tabs__tab" type="button" role="tab" aria-selected="false">Two more</button></span>';
+    document.querySelector('#fx-component').append(row);
+    return [...row.children].map((el) => Math.round(el.getBoundingClientRect().width));
+  });
+  expect(wrapped[0]).toBe(wrapped[1]);
+});
+
+test('keyboard and names: one stop for ARIA tabs, a stop per link; Tab goes on to the panel; a disabled tab keeps its panel', async ({ page }) => {
+  await open(page);
+  const row = page.getByRole('tablist', { name: 'Device', exact: true });
+  const tabs = row.getByRole('tab');
+  await focusByKeyboard(page, tabs.first());
+  expect(await tabs.evaluateAll((els) => els.filter((el) => el.tabIndex === 0).length)).toBe(1);
+  await page.keyboard.press('ArrowRight');
+  await expect(tabs.nth(1)).toBeFocused();
+  await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('ArrowRight');
+  await expect(tabs.nth(2)).toBeFocused();
+  await expect(tabs.nth(2), 'aria-disabled takes the focus, not the selection').toHaveAttribute('aria-selected', 'false');
+  await page.keyboard.press('Home');
+  await expect(tabs.first()).toBeFocused();
+  await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('tabpanel', { name: 'Details' }).first()).toBeFocused();
+
+  const panel = await tabs.first().getAttribute('aria-controls');
+  await expect(page.locator(`#${panel}`)).toHaveAttribute('aria-labelledby', await tabs.first().getAttribute('id'));
+  const links = page.getByRole('navigation', { name: 'Device pages' }).getByRole('link');
+  await expect(links.first()).toHaveAttribute('aria-current', 'page');
+  expect(await links.evaluateAll((els) => els.every((el) => el.tabIndex === 0))).toBe(true);
+});
+
+test('forced colours: the selected tab SelectedItem, also contained, blocked GrayText, the tray keeps an edge, the indicator gone', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  const system = await page.evaluate(() => {
+    const probe = (property, value) => {
+      const el = document.createElement('span');
+      el.style.forcedColorAdjust = 'none';
+      el.style[property] = value;
+      document.querySelector('.ds-theme').append(el);
+      const colour = getComputedStyle(el)[property];
+      el.remove();
+      return colour;
+    };
+    return { item: probe('backgroundColor', 'SelectedItem'), text: probe('color', 'SelectedItemText'), gray: probe('color', 'GrayText') };
+  });
+  const look = (selector) => page.locator(selector).first().evaluate((el) => ({ background: getComputedStyle(el).backgroundColor, color: getComputedStyle(el).color }));
+  for (const row of ['[aria-label="Device"]', '.ds-tabs--contained', '.ds-tabs--vertical']) {
+    expect(await look(`${row} [aria-selected="true"]`), row).toEqual({ background: system.item, color: system.text });
+    expect(await page.locator(`${row} .ds-tabs__indicator`).first().evaluate((el) => getComputedStyle(el).display), row).toBe('none');
+  }
+  expect((await look('[aria-label="Device"] [aria-disabled="true"]')).color).toBe(system.gray);
+  expect(await page.locator('.ds-tabs--contained').first().evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+});
