@@ -241,7 +241,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
 - `<tfoot>` rows sum up the table: the label type in `--ds-text`, tabular figures, a hairline (`--ds-line-2`) above,
   no hover, press or row link. `.ds-table--sticky-foot` keeps them in view.
 - `--ds-table-head-height` (48px) and `--ds-table-row-height` (52px) are the base heights, at size md and comfortable
-  density; size, density and touch ([Options](#options)) apply to them, and the cells' block padding follows.
+  density; size, density and touch apply to them (the options table above), and the cells' block padding follows.
 
 ### Bulk selection bar
 

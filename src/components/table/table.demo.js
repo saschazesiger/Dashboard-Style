@@ -144,7 +144,7 @@ SG.demo('table', {
     var sources = [['Status page', 'https://status.example.org'], ['Mail relay', 'https://mail.example.org/health'], ['Backups', 'https://backup.example.org/ping']];
     return h.section('Sort, filter, select, expand',
       '<section class="ds-card" data-demo="devices"><div class="ds-card__row"><h3 class="ds-card__title">Devices</h3><div class="sg-row"><button class="ds-btn ds-btn--quiet ds-sm" type="button" aria-pressed="false" data-demo="live">Live feed</button></div></div>' +
-      '<div class="ds-field sg-table-filter"><label class="ds-field__label" for="' + state.prefix + '-filter">Filter</label><input class="ds-input" id="' + state.prefix + '-filter" type="search" autocomplete="off" placeholder="Device, model or owner" data-demo="filter"></div>' +
+      '<div class="ds-field" style="max-width: 320px"><label class="ds-field__label" for="' + state.prefix + '-filter">Filter</label><input class="ds-input" id="' + state.prefix + '-filter" type="search" autocomplete="off" placeholder="Device, model or owner" data-demo="filter"></div>' +
       '<div class="ds-table-wrap"><table class="ds-table ds-table--interactive' + (look && look[1] ? ' ' + look[1] : '') + '"><caption class="ds-sr">Devices</caption><thead>' + headHtml(h, state) + '</thead><tbody>' + rowsHtml(h, state) + '</tbody></table></div>' +
       '<div class="ds-empty" data-demo="empty" hidden><span class="ds-empty__disc" aria-hidden="true">' + h.icon('search', 24) + '</span><p class="ds-empty__title">No device matches</p><p class="ds-empty__text">Nothing has that in its name, model or owner.</p></div></section>',
       'Every row opens its record: the device name stretches over the row, the checkbox and the chevron stay their own controls. Rows glide to their places on every keystroke; the live feed waits while the pointer is on the table.') +
@@ -169,7 +169,7 @@ SG.demo('table', {
         'Narrow the width: the columns scroll under both pinned ones. A hairline shows on the side that has columns under it; a click anywhere on the row opens it, outside the pinned last column.') +
 
       h.section('Full page',
-        '<div class="sg-fill-frame" data-demo="fill"><div class="ds-table-wrap ds-table-wrap--fill"><table class="ds-table ds-table--interactive ds-table--pin-first"><caption class="ds-sr">The whole fleet</caption>' +
+        '<div style="display: flex; flex-direction: column; height: 360px; min-width: 0" data-demo="fill"><div class="ds-table-wrap ds-table-wrap--fill"><table class="ds-table ds-table--interactive ds-table--pin-first"><caption class="ds-sr">The whole fleet</caption>' +
         '<thead>' + wideHead(false) + '</thead><tbody>' + fill.map(function (row) { return wideRow(h, row, false); }).join('') + '</tbody></table></div></div>',
         'Its own card: in a .ds-view--fill it takes what is left of the view; here a frame of 360px. The header sticks, the device column stays, long cells end in an ellipsis.') +
 

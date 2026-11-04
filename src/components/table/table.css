@@ -880,7 +880,7 @@
   }
 
   .ds-table-wrap--fill:has(> .ds-table--dense) {
-    scroll-padding-block-start: var(--ds-table-dense-row-height, 40px);
+    scroll-padding-block-start: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
   }
 
   .ds-table-wrap--fill > .ds-table {
