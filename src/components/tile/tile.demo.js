@@ -72,7 +72,10 @@ SG.demo('tile', {
         event.preventDefault();
         h.toast('Opened the list.', 'info');
       } else {
-        target.setAttribute('aria-pressed', String(target.getAttribute('aria-pressed') !== 'true'));
+        var pressed = target.getAttribute('aria-pressed') !== 'true';
+        var label = h.$('.ds-tile__label', target);
+        target.setAttribute('aria-pressed', String(pressed));
+        window.DS.dom.morphHtml(label, (pressed ? h.icon('check', 20) : '') + '<span>' + h.esc(label.textContent) + '</span>');
       }
     };
     root.addEventListener('click', onClick);

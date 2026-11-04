@@ -87,7 +87,7 @@ On the tile, the row or any ancestor; each is computed in the component's own ru
 
 | Option | Classes | Applies to | Effect |
 |---|---|---|---|
-| Size | `.ds-xs` ... `.ds-xl` | `.ds-tile__value` | an eighth of the display size per step (27 to 45px at the default scale); narrow tiles still shrink it; not the label, the note or the padding |
+| Size | `.ds-xs` ... `.ds-xl` | `.ds-tile__value` | an eighth of the display size per step (27 to 45px at the default scale), its line height with it (`--ds-tile-value-line`, 44px at the default scale); narrow tiles still shrink it; not the label, the note or the padding |
 | Density | `.ds-density-*` | `.ds-tile`, `.ds-tiles` | the padding 2px per step, the gap of the row 2px per step; not the type |
 | Shape | `.ds-shape-*` | `.ds-tile`, `.ds-tile__delta` | multiplies the rest and the pressed radius |
 | Touch | `.ds-touch` | a clickable tile | at least `--ds-touch-target` high |
@@ -102,13 +102,14 @@ says its summary in `aria-label`; the arrow in the delta is decoration, the word
 
 ### Forced colours
 
-A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with it, focused with a `CanvasText` ring; an
-`aria-disabled` one is `GrayText` on `Canvas`. A toned delta loses its tint and keeps its arrow and word.
+A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with it (the tile sets
+`--ds-chart-forced-ink` for the marks), focused with a `CanvasText` ring; an `aria-disabled` one is `GrayText` on
+`Canvas`. A toned delta loses its tint and keeps its arrow and word.
 
 ### Hooks
 
 `--ds-tile-radius`, `--ds-tile-radius-pressed`, `--ds-tile-padding`, `--ds-tile-min-width`, `--ds-tiles-columns`,
-`--ds-tile-trend-color`, `--ds-tile-selected-bg`, `--ds-selected-ring`: see [theming.md](theming.md).
+`--ds-tile-value-line`, `--ds-tile-trend-color`, `--ds-tile-selected-bg`, `--ds-selected-ring`: see [theming.md](theming.md).
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
 
@@ -117,4 +118,6 @@ A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with i
   multiplies the rest and pressed radius, `.ds-touch` gives a clickable tile its target.
 - New: `.ds-tile__delta` (an arrow and a word, with a tone on it) and the `.ds-tile__trend` slot
   (`--ds-tile-trend-color`). `.ds-columns` is a block also as a `<span>`, for a sparkline inside a clickable tile.
+- New hook `--ds-tile-value-line`: the value's line height at the md size, which the size steps scale. A line height
+  inside a theme's `--ds-font-display` no longer reaches the value: set the hook instead.
 

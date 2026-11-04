@@ -44,6 +44,10 @@
       "default": "4",
       "description": "the most tiles per row (`.ds-tiles--3`: three)"
     },
+    "--ds-tile-value-line": {
+      "default": "11/9 of `--ds-size-display` (44px)",
+      "description": "the line height of `.ds-tile__value` at the md size; a size step scales it with the value"
+    },
     "--ds-tile-trend-color": {
       "default": "`--ds-chart-1`",
       "description": "`.ds-tile__trend`: the `currentColor` of a project's sparkline"

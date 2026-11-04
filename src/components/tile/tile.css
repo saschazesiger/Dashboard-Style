@@ -63,8 +63,10 @@
  *
  * Hooks: --ds-tile-radius, --ds-tile-radius-pressed, --ds-tile-padding
  * (--ds-space-5, on a phone --ds-space-4; the head 4px less), --ds-tile-min-width
- * (176px), --ds-tiles-columns (4), --ds-tile-trend-color (--ds-chart-1),
- * --ds-tile-selected-bg, --ds-selected-ring.
+ * (176px), --ds-tiles-columns (4), --ds-tile-value-line (44px at the default
+ * type scale), --ds-tile-trend-color (--ds-chart-1),
+ * --ds-tile-selected-bg, --ds-selected-ring. It sets --ds-chart-forced-ink
+ * in forced colours, for the marks of a sparkline (chart's hook, read there).
  *
  * On narrow tiles the value shrinks with the tile (container units).
  */
@@ -123,13 +125,16 @@
 
   .ds-tile__value {
     --_size: calc(var(--ds-size-display) * (1 + var(--ds-size-step, 0) / 8));
+    --_line: calc(var(--ds-tile-value-line, calc(var(--ds-size-display) * 11 / 9)) * (1 + var(--ds-size-step, 0) / 8));
     margin: var(--ds-space-2) 0 0;
     color: var(--ds-text);
     font: var(--ds-font-display);
     /* Tiles of a row are equally wide, so their values keep one size. */
     font-size: min(var(--_size), 26cqi);
-    /* The display role's 44/36, also on the size steps. */
-    line-height: calc(var(--_size) * 11 / 9);
+    /* The display role's 44/36, or the theme's own through the hook, also on
+       the size steps: the line height inside --ds-font-display cannot be read
+       here to step it. */
+    line-height: var(--_line);
     letter-spacing: 0;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;

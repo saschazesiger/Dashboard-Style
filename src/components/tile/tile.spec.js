@@ -27,6 +27,16 @@ const add = (page, html) => page.evaluate((markup) => {
   document.querySelector('#fx-component').prepend(box);
 }, html);
 
+/** A colour role as a computed colour, through a probe in the theme. */
+const role = (page, name, property) => page.evaluate(([value, prop]) => {
+  const probe = document.createElement('span');
+  probe.style[prop] = `var(${value})`;
+  document.querySelector('#fx-component').append(probe);
+  const colour = getComputedStyle(probe)[prop];
+  probe.remove();
+  return colour;
+}, [name, property]);
+
 test('size steps the value only; density the padding and the gap only; touch the target of a tile that opens', async ({ page }) => {
   await open(page);
   const measured = await page.evaluate(({ sizes, densities }) => {
@@ -77,6 +87,14 @@ test('size steps the value only; density the padding and the gap only; touch the
   }
 });
 
+test('--ds-tile-value-line: a theme\'s line height holds on the value and steps with the size', async ({ page }) => {
+  await open(page);
+  await add(page, `<div style="--ds-tile-value-line:40px"><div class="ds-tile"><p class="ds-tile__value" id="md">1</p></div><div class="ds-lg"><div class="ds-tile"><p class="ds-tile__value" id="lg">1</p></div></div></div>`);
+  const line = (id) => page.$eval(`#${id}`, (el) => parseFloat(getComputedStyle(el).lineHeight));
+  expect(await line('md')).toBeCloseTo(40, 0);
+  expect(await line('lg')).toBeCloseTo(45, 0);
+});
+
 test('a narrow tile still shrinks its value at every size; the value never takes a tone', async ({ page }) => {
   await open(page);
   await add(page, `<div class="ds-lg ds-tone-error" style="inline-size:120px"><div class="ds-tile" id="narrow"><p class="ds-tile__value">128</p></div></div>`);
@@ -123,21 +141,13 @@ test('the delta: an arrow and a word; a tone on it lays the tint, an inherited t
     const style = getComputedStyle(el);
     return { background: style.backgroundColor, color: style.color, font: parseFloat(style.fontSize), pad: parseFloat(style.paddingInlineStart) };
   });
-  const role = (name, property) => page.evaluate(([value, prop]) => {
-    const probe = document.createElement('span');
-    probe.style[prop] = `var(${value})`;
-    document.querySelector('#fx-component').append(probe);
-    const colour = getComputedStyle(probe)[prop];
-    probe.remove();
-    return colour;
-  }, [name, property]);
   const quiet = await read('quiet');
   expect(quiet.background).toBe('rgba(0, 0, 0, 0)');
-  expect(quiet.color).toBe(await role('--ds-text-2', 'color'));
+  expect(quiet.color).toBe(await role(page, '--ds-text-2', 'color'));
   expect(quiet.pad).toBe(0);
   const good = await read('good');
-  expect(good.background).toBe(await role('--ds-success-container', 'backgroundColor'));
-  expect(good.color).toBe(await role('--ds-on-success-container', 'color'));
+  expect(good.background).toBe(await role(page, '--ds-success-container', 'backgroundColor'));
+  expect(good.color).toBe(await role(page, '--ds-on-success-container', 'color'));
   expect(good.font).toBe(12);
   // Every delta of the demo has an arrow and a word.
   const deltas = await page.locator('[data-demo="figures"] .ds-tile__delta').evaluateAll((els) => els.map((el) => ({ glyph: !!el.querySelector('svg'), word: el.textContent.trim().length > 0 })));
@@ -148,14 +158,18 @@ test('the delta: an arrow and a word; a tone on it lays the tint, an inherited t
 test('the trend sits at the foot of the tile, so the sparklines of a row line up', async ({ page }) => {
   await open(page);
   await add(page, `<div class="ds-tiles" style="inline-size:640px"><div class="ds-tile" id="tall"><p class="ds-tile__value">1</p><p class="ds-tile__note">One</p><p class="ds-tile__note">Two</p><p class="ds-tile__note">Three</p><div class="ds-tile__trend" id="t1"><svg height="24" viewBox="0 0 10 10"></svg></div></div>
-    <div class="ds-tile" id="short"><p class="ds-tile__value">2</p><div class="ds-tile__trend" id="t2"><svg height="24" viewBox="0 0 10 10"></svg></div></div></div>`);
+    <div class="ds-tile" id="short" style="--ds-tile-trend-color:rgb(1, 2, 3)"><p class="ds-tile__value">2</p><div class="ds-tile__trend" id="t2"><svg height="24" viewBox="0 0 10 10"></svg></div></div></div>`);
   const read = await page.evaluate(() => {
     const box = (id) => document.querySelector(id).getBoundingClientRect();
     const svg = document.querySelector('#t1 svg').getBoundingClientRect();
-    return { t1: box('#t1').bottom, t2: box('#t2').bottom, svg: svg.width, width: box('#t1').width, colour: getComputedStyle(document.querySelector('#t1')).color };
+    const colour = (id) => getComputedStyle(document.querySelector(id)).color;
+    return { t1: box('#t1').bottom, t2: box('#t2').bottom, svg: svg.width, width: box('#t1').width, colour: colour('#t1'), hooked: colour('#t2') };
   });
   expect(read.t1).toBeCloseTo(read.t2, 0);
   expect(read.svg).toBeCloseTo(read.width, 0);
+  // Its currentColor: the first chart colour, or the hook.
+  expect(read.colour).toBe(await role(page, '--ds-chart-1', 'color'));
+  expect(read.hooked).toBe('rgb(1, 2, 3)');
   // A sparkline of spans in a clickable tile is 32px high, a block.
   const spark = page.locator('[data-demo="open"] .ds-columns--mini');
   await expect(spark).toHaveAttribute('role', 'img');
@@ -182,12 +196,37 @@ test('keyboard and names: Tab reaches a tile that opens or filters; Enter and Sp
   await focusByKeyboard(page, link);
   await page.keyboard.press('Enter');
   await expect(page.locator('.ds-toast').last()).toContainText('Opened the list');
-  // A blocked tile stays focusable and does nothing.
-  const blocked = page.locator('[data-demo="open"] [aria-disabled="true"]');
-  await blocked.focus();
+  // A blocked tile stays focusable, and no key reaches a handler of the page.
+  await add(page, '<button class="ds-tile" type="button" aria-disabled="true" id="blocked"><span class="ds-tile__value">1</span></button>');
+  const blocked = page.locator('#blocked');
+  await blocked.evaluate((el) => {
+    window.blockedRuns = 0;
+    el.addEventListener('click', () => { window.blockedRuns += 1; });
+  });
+  await focusByKeyboard(page, blocked);
   await expect(blocked).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Space');
+  expect(await page.evaluate(() => window.blockedRuns)).toBe(0);
+  // The same keys run it once it is free, so the zero above is the guard's.
+  await blocked.evaluate((el) => el.removeAttribute('aria-disabled'));
+  await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => window.blockedRuns)).toBe(1);
   // The sparkline says its summary.
   await expect(page.getByRole('img', { name: /Devices per day, last 14 days/ })).toBeVisible();
+});
+
+test('a tile that filters: a pressed tile has the check, an unpressed one none, the label stays', async ({ page }) => {
+  await open(page);
+  const filter = page.getByRole('group', { name: 'Filter devices' });
+  const read = () => filter.locator('.ds-tile').evaluateAll((els) => els.map((el) => [el.getAttribute('aria-pressed'), el.querySelectorAll('.ds-tile__label svg').length, el.querySelector('.ds-tile__label').textContent]));
+  expect(await read()).toEqual([['true', 1, 'Overdue'], ['false', 0, 'In repair'], ['false', 0, 'Retired']]);
+  await filter.locator('.ds-tile').nth(0).click();
+  await filter.locator('.ds-tile').nth(1).click();
+  expect(await read()).toEqual([['false', 0, 'Overdue'], ['true', 1, 'In repair'], ['false', 0, 'Retired']]);
+  await filter.locator('.ds-tile').nth(1).click();
+  await filter.locator('.ds-tile').nth(0).click();
+  expect(await read()).toEqual([['true', 1, 'Overdue'], ['false', 0, 'In repair'], ['false', 0, 'Retired']]);
 });
 
 test('forced colours: a selected tile is Highlight with its delta and sparkline; a blocked one GrayText; a delta keeps arrow and word', async ({ page, browserName }) => {
