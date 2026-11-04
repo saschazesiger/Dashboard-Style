@@ -377,7 +377,7 @@ describe('dist/manifest.json', () => {
     }
     assert.deepEqual(manifest.js.ripple.requires, ['ripple']);
     assert.deepEqual(manifest.js.indicator.requires, ['indicator']);
-    assert.deepEqual(manifest.js.overlay.exportRequires.confirm, ['button', 'dialog', 'spinner']);
+    assert.deepEqual(manifest.js.overlay.exportRequires.confirm, ['button', 'dialog', 'spinner', 'toast']);
     // Every module that writes a .ds-sr live region names utilities for that export.
     assert.ok(manifest.js.overlay.exportRequires.announce.includes('utilities') && manifest.js.motion.exportRequires.sortable.includes('utilities'));
   });

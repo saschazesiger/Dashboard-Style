@@ -46,8 +46,10 @@
     "ds-lift-in"
   ],
   "js": [
-    "overlay"
+    "overlay",
+    "toast"
   ],
+  "module": true,
   "progressive": [
     "View Transitions"
   ],

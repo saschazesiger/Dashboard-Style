@@ -2629,7 +2629,7 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
   });
 
   it('data-ds-toast-room="off": reserveTarget() skips a marked layer; the page-set attribute is documented (2.1)', () => {
-    const source = withoutComments(read('src/js/overlay.js'));
+    const source = withoutComments(read('src/components/toast/toast.js'));
     const body = source.match(/function reserveTarget\(region\) \{[\s\S]*?\n\}/)?.[0] ?? '';
     assert.match(body, /getAttribute\('data-ds-toast-room'\) === 'off' \? null/, 'a marked layer keeps no room');
     // Only toast() reads it: the page owns it, DS never writes it.
@@ -2641,7 +2641,7 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
   });
 
   it('has no legacy branch: the region is never left mute (R11)', () => {
-    const source = withoutComments(read('src/js/overlay.js'));
+    const source = withoutComments(read('src/components/toast/toast.js'));
     assert.doesNotMatch(source, /\blegacy\b/);
     // The private speaker was renamed, so the export could take the name.
     assert.match(source, /function speak\(region, state, entry\)/);
@@ -2649,7 +2649,7 @@ describe('snackbars, tooltips and the save bar (2.0)', () => {
   });
 
   it('keeps the touch slop a private distance and documents it', () => {
-    const source = read('src/js/overlay.js');
+    const source = read('src/components/tooltip/tooltip.js');
     assert.match(source, /^const TAP_SLOP_PX = 10;$/m);
     assert.doesNotMatch(source, /export const TAP_SLOP_PX/);
     assert.match(read('docs/motion.md'), /within 10px, `TAP_SLOP_PX`/);
@@ -2743,7 +2743,8 @@ describe('classic-script build (dist/ds.js)', () => {
       assert.notEqual(sandbox.DashboardStyle.versions['9.9.9'].core, sandbox.DS.core);
       // The behaviours of the first copy stay registered; the second copy's definitions are ignored.
       // The core's own behaviours first; a component module's definition follows them.
-      assert.deepEqual([...runtime.state('core').specs.keys()].slice(0, 3), ['guard', 'ripple', 'tooltips']);
+      assert.deepEqual([...runtime.state('core').specs.keys()].slice(0, 3), ['guard', 'ripple', 'triggers']);
+      assert.ok(runtime.state('core').specs.has('tooltips'), 'the tooltip module defines the tooltips of every root');
       assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.define('guard', { global() {} }), false);
     });
 
@@ -2801,7 +2802,7 @@ describe('timing in src/js', () => {
       ['src/js/motion.js: hold ?? 2000', 'the canonical default of flip() (D7)'],
       ['src/js/overlay.js: TOAST_MS = 4000', 'the snackbar fallback outside a theme, stretched by --ds-time-scale'],
       ['src/js/overlay.js: TOAST_MAX_MS = 10000', 'the cap of the snackbar fallback'],
-      ['src/js/overlay.js: TOAST_CHAR_MS = 50', 'reading time per character of a long snackbar, stretched by --ds-time-scale'],
+      ['src/components/toast/toast.js: TOAST_CHAR_MS = 50', 'reading time per character of a long snackbar, stretched by --ds-time-scale'],
       ['src/js/overlay.js: TOOLTIP_DELAY_MS = 500', 'mirrors --ds-delay-tooltip (fallback outside a theme)'],
       ['src/js/overlay.js: TOOLTIP_SKIP_MS = 300', 'mirrors --ds-delay-tooltip-skip (fallback outside a theme)'],
       ['src/js/overlay.js: TOOLTIP_HIDE_MS = 100', 'mirrors --ds-delay-tooltip-hide (fallback outside a theme)'],

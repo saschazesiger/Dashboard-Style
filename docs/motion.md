@@ -895,6 +895,13 @@ native `<dialog class="ds-dialog | ds-sheet">` opened with `showModal()`, or the
 on `data-state` (never keyframes while `data-state` is set), so an `open()` during the exit, or a `close()` during
 the entrance, turns the motion back from its current value in every engine, with the curve of the new direction.
 
+Since 3.0 this module is the shared core: the stack, focus and its return, Escape order, dismiss, the scroll lock, the
+exit contract, the modal drawer and the save bar. `confirm()`, `alert()`, `prompt()` (`js/dialog.js`), `toast()`,
+`closeToasts()`, `announce()`, `toastRegion()` (`js/toast.js`) and `tooltips()` (`js/tooltip.js`) keep their names here
+and call those modules, as do a menu's keys (`js/menu.js`). `ds.js` always holds them, and a bundle holds them when the
+page uses them (`exportRequires` in `manifest.json`). With ES modules, import the file next to `js/overlay.js`
+(`import 'js/toast.js'`); without it these functions throw an error that names the file.
+
 | Export | |
 |---|---|
 | `open(el, { opener, container, returnTo })` | shows `el` and moves focus into it at once; `opener` (default: the focused element, else the control the current event came from) gets focus back on close; `returnTo()` (2.0) names where focus goes when the opener is gone (below); `container: true` (1.5) grows the opener into a dialog or sheet (below). A dialog's or sheet's body is watched by `DS.dom.watchScrolled()` on its first open (2.0): `data-scrolled` on the box or panel, no page recipe; a menu or combobox list by `DS.dom.scrollEdges()` on the block axis while it is open (2.0): its cut edges fade, no page call |
@@ -909,6 +916,7 @@ the entrance, turns the motion back from its current value in every engine, with
 | `announce(text, { assertive, region })` | says `text` through the announcers of a snackbar region (default `toastRegion()`) without a message; polite, or assertive; the same text twice is said twice, empty text nothing (2.0) |
 | `toastRegion(doc = document)` | the page's snackbar region: the `.ds-toasts` in the theme of the first `.ds-app`, else the first in the document, else a new one right after `.ds-app`, else at the end of the `.ds-theme` (of `<body>` when the theme is `<html>`, 2.1) (2.0) |
 | `savebar(element, { focusTarget })` | the controller of a `.ds-savebar`: `{ element, show(), hide(), update(fn), shown, destroy() }`, one per element (below; 2.0) |
+| `internals` | what the behaviour modules of the component folders read (`dialog`, `menu`, `toast`, `tooltip`, `sheet`): no API, it may change in any release |
 | `tooltips(root = document)` | tooltips for every `[data-tip]` in `root` (a document, an element or an open shadow root); returns `{ destroy() }` (below) |
 | `TOAST_MS`, `TOAST_MAX_MS`, `TOAST_LIMIT` | snackbar fallbacks: 4000ms, at most 10000ms, at most 3 at once |
 | `TOOLTIP_DELAY_MS`, `TOOLTIP_SKIP_MS`, `TOOLTIP_HIDE_MS` | tooltip fallbacks: 500, 300 and 100ms |
@@ -1198,6 +1206,31 @@ again two frames after a show or swap: Chromium lays a swap out with the scroll 
 scrolling box until the next rendering); elsewhere a capture-phase scroll listener and `resize`
 re-place it within one frame through `--ds-tooltip-x` / `--ds-tooltip-y`, flipped above (`data-placement="top"`) and
 clamped 8px from the viewport edges.
+
+### DS.position (js/position.js)
+
+The shared placer of 3.0: where a floating box goes next to its anchor. `DS.overlay` places the menu and the combobox
+list with it, `DS.tooltip` the tooltip; a page that floats something of its own may use it too. Nothing moves here:
+the entrance is the component's.
+
+- `place(element, anchor, options)` places a box by the script: `side` (`'bottom'`, `'top'`, `'start'`, `'end'`),
+  `align` (`'start'`, `'center'`, `'end'`), `offset` (the gap to the anchor), `padding` (the collision padding),
+  `flip` (`'room'`: the other side when it does not fit and has more room; `'fits'`: only when it fits there;
+  `false`), `crossFlip` (the other edge when the wanted one leaves the bounds), `shift` (stay inside along the anchor,
+  default true), `size` (cap it with an inline `max-height` to the room on its side, default true), `arrowPadding`,
+  `bounds` (default: the viewport), and `x`, `y`: the custom properties that take its coordinates, in the terms of the
+  box it is fixed to. `data-placement` says the side when it is not the bottom one. It returns what
+  `computePlacement()` returned.
+- `computePlacement(rect, size, bounds, options)` is the geometry alone, without a DOM: `{ x, y, side, flipped, room,
+  length, arrow }`. `arrow` is the anchor's centre along the anchor, from the box's edge.
+- `viewportBounds(element)` and `clippedBounds(element)`: the viewport, and the viewport narrowed on the block axis by
+  every box around the element that clips its overflow.
+- `fixedOrigin(element)`: where (0,0) of a fixed box's containing block sits in the viewport (a transformed host page),
+  through a probe beside the box; `dropProbe(element)` takes the probe out.
+- `supportsAnchoring(view)`: the top layer and CSS anchor positioning. `anchorPopup(element, anchor, options)` opens
+  the box as `popover="manual"` anchored to its anchor (`options.nextName()` names a new anchor, `options.offset` is
+  the gap); `claimAnchor(element, nextName)` and `releaseAnchor(element)` count the users of one `anchor-name`.
+- `round(value)` and `pxOf(element, token, fallback)`: a length as this module writes it, a length token in px.
 
 ## Recipes
 

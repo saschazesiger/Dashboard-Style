@@ -23,8 +23,10 @@
     "ds-grow-in"
   ],
   "js": [
-    "overlay"
+    "overlay",
+    "tooltip"
   ],
+  "module": true,
   "progressive": [
     "popover",
     "anchor positioning"

@@ -79,5 +79,7 @@ trigger.addEventListener('keydown', (event) => {
   back from where it is. Shown by hand (dropping `hidden` without `DS.overlay`) it reveals itself once.
 - The menu sits inside the `.ds-theme` element, like every overlay. Forced colours keep its edge.
 
+**JS API.** `js/menu.js` (`DS.menu`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `create(el)` returns the controller that `data-ds-menu` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
+
 **Motion:** the "Menu" row of [Overlays](motion.md#overlays) in motion.md.
 

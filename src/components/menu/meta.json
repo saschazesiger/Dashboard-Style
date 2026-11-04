@@ -42,8 +42,10 @@
     "ds-scroll-edge-start"
   ],
   "js": [
+    "menu",
     "overlay"
   ],
+  "module": true,
   "progressive": [
     "popover",
     "anchor positioning",

@@ -82,5 +82,7 @@ under the top bar) gets the usual entrance instead: its group would paint the hi
 While its action runs (a save in the sheet's foot), `data-ds-busy` on the sheet keeps it open, as for the
 [Dialog](#dialog); `ds-close` tells why it closed.
 
+**JS API.** `js/sheet.js` (`DS.sheet`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `create(el)` returns the controller that `data-ds-sheet` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
+
 **Motion:** the "Scrim", "Side sheet" and "Side sheet on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
 

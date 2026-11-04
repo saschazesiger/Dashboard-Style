@@ -107,5 +107,7 @@ The action button comes only with `action`, the close button with every message 
   `setTimeout(() => DS.motion.leave(toast), 4000)` (`toast()` times them); the hand recipe that moved messages into a
   side sheet with a page-set `--ds-toast-shift` (`DS.overlay.open(sheet)` moves and glides the region).
 
+**JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`.
+
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
 

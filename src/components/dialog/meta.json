@@ -74,8 +74,10 @@
     "ds-shrink-out"
   ],
   "js": [
+    "dialog",
     "overlay"
   ],
+  "module": true,
   "progressive": [
     "@starting-style",
     "allow-discrete",

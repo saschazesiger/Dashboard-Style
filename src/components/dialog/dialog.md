@@ -241,5 +241,7 @@ Android Back can still force a native close (it follows with reason `escape`); n
 - **An opener with `aria-expanded`** (a button that says it shows a dialog, `aria-haspopup="dialog"`) is kept in step:
   `"true"` while it is open, `"false"` as soon as the close starts. An opener without the attribute gets none.
 
+**JS API.** `js/dialog.js` (`DS.dialog`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `confirm(options)`, `alert(options)` and `prompt(options)` are also `DS.overlay.confirm()`, `alert()` and `prompt()`; `form(el, { onSubmit, errorText })` runs a form dialog's submit; `create(el)` returns the controller that `data-ds-dialog` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
+
 **Motion:** the "Scrim", "Dialog", "Nested dialog", "Dialog on a phone", "Full-screen dialog" and "Action sheet" rows of [Overlays](motion.md#overlays) in motion.md.
 

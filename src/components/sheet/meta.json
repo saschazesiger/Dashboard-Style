@@ -54,8 +54,10 @@
     "ds-shift-out"
   ],
   "js": [
-    "overlay"
+    "overlay",
+    "sheet"
   ],
+  "module": true,
   "progressive": [
     "@starting-style",
     "allow-discrete",

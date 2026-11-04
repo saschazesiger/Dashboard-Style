@@ -50,5 +50,7 @@ Placing a `.ds-tooltip` yourself: set `--ds-tooltip-x` and `--ds-tooltip-y` (or 
 composes with the entrance, but its scale shrinks the offset too, so the tooltip drifts in by (1 - scale) × offset;
 a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-origin: calc(50% + Xpx) calc(50% + Ypx)`.
 
+**JS API.** `js/tooltip.js` (`DS.tooltip`): `tooltips(root)`, the same function as `DS.overlay.tooltips()`; `DS.init()` serves every root it initialises.
+
 **Motion:** the "Tooltip" and "Tooltip warm-up" rows of [Overlays](motion.md#overlays) in motion.md.
 
