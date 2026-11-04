@@ -9,7 +9,7 @@ Everything a project needs is in `dist/`:
 | `ds.js` | classic script, sets `window.DS = { version, core, motion, indicator, dom, ripple, icons, overlay }` plus `DS.init`, `DS.get`, `DS.define` and `DS.config` (those of `DS.core`, [core.md](core.md)); see "Two copies on one page" |
 | `ds.min.js` | `ds.js` without comments and indentation (3.0): the same code, nothing renamed |
 | `css/` | the single stylesheets: `core/tokens.css`, `core/motion.css`, `core/base.css`, `core/global.css` (the rules for every element inside `.ds-theme`), `components/<name>.css` and `index.css` (their `@import` list in cascade order); each starts with the layer statement and the statement of the component sublayers, and a `.min.css` with its `.min.css.map` sits next to each (3.0) |
-| `manifest.json` | the components as data (3.0): per component its files, group, classes, attributes, keyframes, hooks, the modules it needs, what it requires and its size; the core stylesheets and their classes; the JS modules with their imports, exports and the components they need (`requires`, and `exportRequires` per export). Tools such as a bundler read it |
+| `manifest.json` | the components as data (3.0): per component its files, group, classes, attributes, keyframes, hooks, the modules it needs, what it requires and its size; the core stylesheets and their classes; the JS modules with their imports, exports, the components they need (`requires`, and `exportRequires` per export) and the attributes that need them (`attributes`). Tools such as a bundler read it |
 | `css/properties.css` | every `@property` registration of `ds.css` alone (generated; registers `--ds-*` custom properties and styles nothing). A widget that loads `ds.css` inside a shadow root links it in the host document too: `@property` applies only in document-level stylesheets (as does `@font-face` in Chromium and Firefox, so such a widget also links `fonts/fonts.css` in the host document; see theming.md, "Embedded in someone else's page") |
 | `css/optional/` | opt-in stylesheets that `ds.css` never includes: `view-transitions.css` (View Transitions across page loads, needs `<html class="ds-theme">`; see "Multi-page apps") |
 | `js/` | the ES modules, one folder (the table below): the core (`core.js`, `motion.js`, `indicator.js`, `dom.js`, `ripple.js`, `icons.js`, `overlay.js`) and one behaviour module per component that has one, each with its types next to it (`motion.d.ts` ...), which an `import` of the module finds by itself; `core.js` is the shared runtime, the behaviour registry and `init()` ([core.md](core.md)), and every other module imports from it |
@@ -188,6 +188,21 @@ import { createIndicator } from './vendor/dashboard-style/js/indicator.js';
 import { icon, check } from './vendor/dashboard-style/js/icons.js';
 ```
 
+`js/overlay.js` is the shared core of the overlays (3.0): what only one component does lives in that component's module,
+so a page that imports single files imports these next to it. `js/menu.js` has a menu's first focus, keys and close on an
+item; `js/dialog.js` `confirm()`, `alert()`, `prompt()`, an action sheet's keys and the form dialog; `js/toast.js`
+snackbars, `announce()` and their move into an open dialog; `js/tooltip.js` `tooltips()`. Without its module a menu or
+dialog still opens, and `open()` warns once in the console; `DS.overlay.confirm()`, `toast()`, `tooltips()` and the
+like throw an error that names the file. `ds.js` holds them all, and a bundle keeps what the page uses.
+
+```js
+import { open, close } from './vendor/dashboard-style/js/overlay.js';
+import './vendor/dashboard-style/js/menu.js';
+import './vendor/dashboard-style/js/dialog.js';
+import './vendor/dashboard-style/js/toast.js';
+import './vendor/dashboard-style/js/tooltip.js';
+```
+
 ```css
 @import './vendor/dashboard-style/css/index.css';   /* everything, or pick files: */
 @import './vendor/dashboard-style/css/core/tokens.css';
@@ -332,6 +347,9 @@ strings a script adds have an option, so a page in another language passes its o
 | `Optional` | the system's string `optional` | `DS.core.config({ strings: { optional } })` |
 | `OK` | the system's string `ok` | `DS.core.config({ strings: { ok } })` |
 | `Cancel` | the system's string `cancel` | `DS.core.config({ strings: { cancel } })` |
+| `Confirm` | the system's string `confirm` | `DS.core.config({ strings: { confirm } })` |
+| `That did not work. Try again.` | the system's string `actionFailed` | `DS.core.config({ strings: { actionFailed } })` |
+| `Enter a value.` | the system's string `valueRequired` | `DS.core.config({ strings: { valueRequired } })` |
 | `Expand` | the system's string `expand` | `DS.core.config({ strings: { expand } })` |
 | `Collapse` | the system's string `collapse` | `DS.core.config({ strings: { collapse } })` |
 | `Remove` | the system's string `remove` | `DS.core.config({ strings: { remove } })` |

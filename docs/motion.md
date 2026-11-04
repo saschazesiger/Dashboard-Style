@@ -900,12 +900,13 @@ exit contract, the modal drawer and the save bar. `confirm()`, `alert()`, `promp
 `closeToasts()`, `announce()`, `toastRegion()` (`js/toast.js`) and `tooltips()` (`js/tooltip.js`) keep their names here
 and call those modules, as do a menu's keys (`js/menu.js`). `ds.js` always holds them, and a bundle holds them when the
 page uses them (`exportRequires` in `manifest.json`). With ES modules, import the file next to `js/overlay.js`
-(`import 'js/toast.js'`); without it these functions throw an error that names the file.
+(`import 'js/toast.js'`); without it these functions throw an error that names the file, and `open()` of a menu or
+dialog warns once with the same message: it still opens, without the keys and the rest that module holds.
 
 | Export | |
 |---|---|
 | `open(el, { opener, container, returnTo })` | shows `el` and moves focus into it at once; `opener` (default: the focused element, else the control the current event came from) gets focus back on close; `returnTo()` (2.0) names where focus goes when the opener is gone (below); `container: true` (1.5) grows the opener into a dialog or sheet (below). A dialog's or sheet's body is watched by `DS.dom.watchScrolled()` on its first open (2.0): `data-scrolled` on the box or panel, no page recipe; a menu or combobox list by `DS.dom.scrollEdges()` on the block axis while it is open (2.0): its cut edges fade, no page call |
-| `close(el, { reason })` | plays the exit and hides `el`; a second call during the exit returns the same promise; `reason` (2.0, default `'api'`) is what the `ds-close` event says, and it closes a busy overlay too |
+| `close(el, { reason })` | plays the exit and hides `el`; a second call during the exit returns the same promise; `reason` (2.0, default `'api'`) is what the `ds:close` event says, and it closes a busy overlay too |
 | `topmost(doc = document)` | (2.0) the top open layer of the page (a dialog, side sheet, the modal drawer, a menu, a combobox list, a contained dialog; whichever copy of `ds.js` from 1.6.1 on opened it), else `null`; a layer that is closing no longer counts |
 | `confirm({ title, text, confirmLabel, cancelLabel, destructive, opener, onConfirm, errorText })` | (2.0) a built dialog with Cancel and a confirm button; resolves `true` or `false` (below) |
 | `alert({ title, text, closeLabel, opener })` | (2.0) a built dialog with one button; resolves once it closes |
@@ -984,27 +985,28 @@ button: give row buttons stable ids); else the nearest `tabindex="-1"` ancestor,
 DS.overlay.open(sheet, { opener: rowButton, returnTo: () => table.querySelector('[data-ds-key="d-42"] button') });
 ```
 
-**Why it closed: `ds-close`** (2.0). Once per close, as soon as it starts (the trap released, focus back on the
+**Why it closed: `ds:close`** (3.0; `ds-close`, its **deprecated** 2.x name from 2.0, is sent right before it with the
+same detail). Once per close, as soon as it starts (the trap released, focus back on the
 opener, the box inert, `data-state="closed"`), the overlay dispatches
-`new CustomEvent('ds-close', { bubbles: true, detail: { reason } })`, synchronously and not cancelable. `reason`:
+`new CustomEvent('ds:close', { bubbles: true, detail: { reason } })`, synchronously and not cancelable. `reason`:
 `'escape'` (Escape, the native `cancel`, Android Back), `'backdrop'` (`.ds-dialog__backdrop`, `.ds-sheet__backdrop`,
 the drawer's `.ds-scrim`), `'close'` (another `[data-ds-close]`), `'item'`, `'tab'` and `'outside'` (menus), `'parent'`
 (closed with the overlay around it; sent before the parent's own event), `'api'` (`close()` without a reason,
 `dialog.close()`, a `<form method="dialog">`), `'removed'` (it left the document; sent on the detached element),
-`'breakpoint'` (the drawer's window widened past 900px); any other string is the page's own
+`'breakpoint'` (the drawer's window widened past 900px), `'submit'` (a form dialog whose submit went through); any other string is the page's own
 (`close(el, { reason: 'confirm' })`). It is not sent for a `close()` during an exit, for a refused attempt (busy,
 below) or for an element that was never open. It bubbles: a listener on an overlay also hears the dialogs, menus and
 combobox lists inside it (a confirmation opened from a side sheet, a menu in a dialog), so check `event.target`.
 
 ```js
-dialog.addEventListener('ds-close', (event) => { if (event.target === dialog && event.detail.reason === 'confirm') saveDraft(); });
+dialog.addEventListener('ds:close', (event) => { if (event.target === dialog && event.detail.reason === 'confirm') saveDraft(); });
 ```
 
 **Busy: `data-ds-busy`** (2.0). While the page sets the attribute on a `.ds-dialog`, `.ds-sheet` or `.ds-drawer`, the
 user's close attempts do nothing: Escape (the listener still calls `preventDefault()`, so a native dialog fires no
 `cancel`; a visible tooltip still takes the key first), the native `cancel`, a `[data-ds-close]` click, the backdrop and
 the modal drawer's scrim. One guard at the top of the close, before the popups inside close, so a refused attempt
-changes nothing and sends no `ds-close`. `close(el)` and the forced closes (`removed`, `breakpoint`) still close;
+changes nothing and sends no `ds:close`. `close(el)` and the forced closes (`removed`, `breakpoint`) still close;
 menus and combobox lists ignore the attribute. `DS.overlay` never writes it, and it changes nothing visible: the busy
 button is the feedback ([components.md](components.md#dialog), "While its action runs"). A morph that drops the
 attribute frees the overlay; Android Back can still force a native close (it follows with reason `'escape'`); never
