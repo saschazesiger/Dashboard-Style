@@ -1,10 +1,28 @@
 ## Horizontal scroller
 
+Content wider or taller than its room scrolls on its own, with a fade at each end that still has content to show.
+
 ```html
 <div class="ds-scroll-x" tabindex="0" role="region" aria-label="Months">   <!-- the tab stop: only when nothing inside takes focus -->
   <div class="my-months">...</div>                                         <!-- content wider than the panel -->
 </div>
+
+<div class="ds-scroll-x ds-scroll-x--reel" role="region" aria-label="Devices">   <!-- a horizontal reel -->
+  <a class="ds-card ds-card--interactive" href="/devices/42">...</a>
+  <a class="ds-card ds-card--interactive" href="/devices/17">...</a>
+</div>
+
+<div class="ds-scroll-y" tabindex="0" role="region" aria-label="Log">      <!-- the block axis -->
+  ...                                                                      <!-- taller than --ds-scroll-max-height -->
+</div>
 ```
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Axis | `.ds-scroll-x`, `.ds-scroll-y` | the scroller | sideways or down, each with its fades |
+| Reel | `.ds-scroll-x--reel` | `.ds-scroll-x` | the children in a row, each `--ds-scroll-reel-item` wide, resting on the start of one |
+| Density | `.ds-density-*` | the reel or an ancestor | 2px per step off the reel's gap |
+| Size, shape, tone, touch | not read | | a scroll area has no height, radius or meaning of its own; they reach what it holds |
 
 - A strip wider than its panel (months, a row of cards, a wide chart) scrolls sideways on its own, with a thin
   scrollbar and room for the focus rings of its content. A fade at each end says that more follows: where scroll
@@ -17,10 +35,22 @@
 - One fade switch: `--ds-scroll-fade` is the fade length of `.ds-scroll-x` (default `--ds-space-8`), the card table
   wrappers (default `--ds-card-pad`) and the cut edges of menus, combobox lists and drawer lists;
   `--ds-scroll-fade: 0px` on the theme turns them all off.
-  Keyboard focus inside lands outside the fades (`scroll-padding-inline`).
-- When nothing inside can take focus, the strip is the tab stop (`tabindex="0" role="region" aria-label`), as WebKit
-  gives a scroller none by itself: arrow keys scroll it, its ring is inset and the fades drop while it is focused.
+  Keyboard focus inside lands outside the fades (`scroll-padding`).
+- `.ds-scroll-x--reel`: the direct children stand in a row, `--ds-scroll-reel-item` wide (default `min(80%, 280px)`, so
+  the next one peeks in), `--ds-scroll-reel-gap` apart (`--ds-space-4`), and the scroll rests on the start of one
+  (`scroll-snap-type: x proximity`, which never fights a scroll that stops between two). On paper the row wraps.
+- `.ds-scroll-y`: the same on the block axis, from `--ds-scroll-max-height` (default none: a page may set the height
+  itself). Its timeline is `scroll(self block)`; the fallback is `DS.dom.scrollEdges(area, { axis: 'block' })`, which
+  writes `--ds-scrollbar-width` for the mask. `scrollbar-gutter: stable` (progressive) keeps the scrollbar's room, so
+  content never reflows when it comes.
+- Keyboard and names: when nothing inside can take focus, the scroller is the tab stop (`tabindex="0" role="region"
+  aria-label`), as WebKit gives a scroller none by itself: arrow keys scroll it, its ring is inset and the fades drop
+  while it is focused. When its content holds links or buttons, leave those attributes out: Tab scrolls each into view,
+  clear of the fades.
+- Forced colours: the mask is alpha and stays; the ring takes the system colour.
 - Print: the strip shows all of its content, unmasked.
+- Hooks: `--ds-scroll-fade`, `--ds-scroll-reel-item`, `--ds-scroll-reel-gap`, `--ds-scroll-max-height`
+  ([theming.md](theming.md#component-hooks)).
 
 ```html
 <div class="my-log">                                                       <!-- a scroller -->
@@ -38,4 +68,8 @@
 
 **Motion:** the scroll-linked keyframes in [Keyframes](motion.md#keyframes) and
 [Scroll-driven effects](motion.md#scroll-driven-effects) in motion.md.
+
+<!-- changelog -->
+- New: `.ds-scroll-x--reel` (a horizontal reel) and `.ds-scroll-y` (the block axis, with `scrollbar-gutter`); hooks `--ds-scroll-reel-item`, `--ds-scroll-reel-gap`, `--ds-scroll-max-height`.
+- Floor: the `-webkit-mask-*` twins are gone (Chrome and Edge have the unprefixed properties since 120).
 

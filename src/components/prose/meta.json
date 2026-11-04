@@ -3,30 +3,42 @@
   "group": "content",
   "order": 140,
   "docsOrder": 120,
-  "need": "Show rendered rich text and blocks of code",
+  "need": "Show rendered rich text and blocks of code, with task lists, callouts and a compact mode for chat",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-code-block",
     "ds-code-block--wrap",
     "ds-prose",
-    "ds-prose--dense"
+    "ds-prose--compact",
+    "ds-prose--dense",
+    "ds-prose__callout",
+    "ds-prose__callout-title",
+    "ds-prose__footnotes"
   ],
   "attributes": [],
   "requires": [],
   "context": [],
   "hooks": {
     "--ds-prose-gap": {
-      "default": "`--ds-space-2`",
-      "description": "the gap between blocks of `.ds-prose`"
+      "default": "`--ds-space-2` (`--compact`: `--ds-space-1`)",
+      "description": "the gap between blocks of `.ds-prose`: the base, 1px less per density step"
     },
     "--ds-prose-font": {
-      "default": "`--ds-font-reading` (`--dense`: `--ds-font-body`)",
+      "default": "`--ds-font-reading` (`--dense`, `--compact`: `--ds-font-body`)",
       "description": "the text of `.ds-prose`"
     },
     "--ds-prose-strong-weight": {
       "default": "`--ds-weight-label`",
       "description": "`strong` and `b` in `.ds-prose`"
+    },
+    "--ds-prose-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "quotes and callouts (times `--ds-shape`)"
+    },
+    "--ds-code-block-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "`.ds-code-block` and a `pre` in prose (times `--ds-shape`)"
     }
   },
   "keyframes": [],

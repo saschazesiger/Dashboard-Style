@@ -1271,7 +1271,7 @@ describe('accessibility details', () => {
   it('pads cards only through the padding hooks, so a theme can set them', () => {
     const sets = declarations(read('src/components/card/card.css')).filter((entry) => entry.property === '--ds-card-pad');
     assert.equal(sets.length, 3);
-    for (const { value } of sets) assert.match(value, /^var\(--ds-card-padding(-sm|-filled)?, var\(--ds-space-\d\)\)$/);
+    for (const { value } of sets) assert.match(value, /^calc\(var\(--ds-card-padding(-sm|-filled)?, var\(--ds-space-\d\)\) \+ var\(--ds-density, 0\) \* 2px\)$/);
   });
 
   it('keeps an edge on floating layers in forced colors (transparent outlines)', () => {
@@ -1989,7 +1989,7 @@ describe('feedback and data (1.4.0)', () => {
       assert.match(morph[0].selector, /\.ds-pressed/);
     }
     assert.equal(rulesWith('src/components/card/card.css', /^\.ds-card--interactive:active/).find(({ own }) => own['border-radius']).own['border-radius'],
-      'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
+      'min(calc(var(--ds-card-radius-pressed, var(--ds-radius-card-pressed)) * var(--ds-shape, 1)), var(--_radius))');
     assert.equal(rulesWith('src/components/tile/tile.css', /^:is\(button, a\)\.ds-tile:active/).find(({ own }) => own['border-radius']).own['border-radius'],
       'min(calc(var(--ds-tile-radius-pressed, var(--ds-radius-md)) * var(--ds-shape, 1)), var(--_radius))');
     assert.equal(rulesWith('src/components/tile/tile.css', /^\.ds-tile$/).find(({ own }) => own['--_radius']).own['--_radius'],
@@ -2171,7 +2171,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
     assert.ok(edges.length >= 5, edges.map((rule) => rule.selector).join());
     for (const rule of edges) {
       assert.equal(rule.own.animation, 'ds-scroll-edge-start linear both, ds-scroll-edge-end linear both', rule.selector);
-      assert.equal(rule.own['animation-timeline'], rule.selector === '.ds-combo__list' ? 'scroll(self block)' : 'scroll(self inline)', rule.selector);
+      assert.equal(rule.own['animation-timeline'], ['.ds-combo__list', '.ds-scroll-y'].includes(rule.selector) ? 'scroll(self block)' : 'scroll(self inline)', rule.selector);
       assert.equal(rule.own['animation-range'], '0 var(--ds-space-8), calc(100% - var(--ds-space-8)) 100%', rule.selector);
     }
     // The menu and the drawer list (2.1) are surfaces of their own: one shade per edge, each on the block scroll
@@ -2320,13 +2320,16 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
 
   it('morphs the plain disclosure summary like a pill; a row summary takes an inset ring and no morph', () => {
     const file = 'src/components/disclosure/disclosure.css';
-    const half = 'calc(var(--ds-disclosure-height, 40px) / 2)';
     const rest = own(file, '.ds-disclosure > summary');
-    assert.equal(rest['border-radius'], `min(var(--ds-radius-action), ${half})`);
+    // On the options model: the pill times the shape, at most half the box (touch wins over size and density).
+    assert.equal(rest['--_h'], 'calc(var(--ds-disclosure-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)');
+    assert.equal(rest['--_box'], 'max(var(--ds-target-min, 0px), var(--_h))');
+    assert.equal(rest['--_radius'], 'min(calc(min(var(--ds-disclosure-radius, var(--ds-radius-action)), var(--_half)) * var(--ds-shape, 1)), var(--_half))');
+    assert.equal(rest['border-radius'], 'var(--_radius)');
     assert.match(rest.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/);
     for (const state of [':active', '.ds-pressed']) {
       const pressed = own(file, `.ds-disclosure:not(.ds-disclosure--row) > summary${state}`);
-      assert.equal(pressed['border-radius'], `min(var(--ds-radius-action-pressed), ${half})`, state);
+      assert.equal(pressed['border-radius'], 'min(calc(var(--ds-disclosure-radius-pressed, var(--ds-radius-action-pressed)) * var(--ds-shape, 1)), var(--_radius))', state);
       assert.match(pressed.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/, state);
     }
     const row = own(file, '.ds-disclosure--row > summary');
@@ -2844,8 +2847,10 @@ describe('tables, cards and buttons (2.1)', () => {
   it('keeps the rhythm\'s 16px as a floor above a .ds-grid-2 card\'s link row (its auto margin takes the free space)', () => {
     const CARD = stripComments(read('src/components/card/card.css'));
     assert.equal(at(CARD, '.ds-grid-2 > .ds-card > .ds-card__links')['margin-top'], 'auto');
-    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--ds-space-4)');
-    assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'var(--ds-space-4)', 'the floor is the rhythm');
+    // 3.0: the rhythm follows the density, and the floor with it.
+    assert.equal(at(CARD, '.ds-card')['--_card-gap'], 'calc(var(--ds-space-4) + var(--ds-density, 0) * 2px)');
+    assert.equal(at(CARD, '.ds-grid-2 > .ds-card > :has(+ .ds-card__links)')['margin-bottom'], 'var(--_card-gap)');
+    assert.equal(at(CARD, '.ds-card > * + *')['margin-top'], 'var(--_card-gap)', 'the floor is the rhythm');
   });
 
   it('lets a status chip, badge or tag sit on the card title line and a chip hang by its own height, after the button overhang', () => {
@@ -2855,7 +2860,10 @@ describe('tables, cards and buttons (2.1)', () => {
     // The button's height as the button computes it (3.0: the base, size and density steps, the touch minimum).
     assert.equal(at(CARD, GENERAL)['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
     assert.equal(at(CARD, SMALL)['margin-block'], '0');
-    assert.equal(at(CARD, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - var(--ds-chip-height, 32px)) / 2)');
+    // The chip's height as a control on the options model computes it (plans/3.0-conventions.md, section 3).
+    assert.equal(at(CARD, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-chip-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
+    // The switch's box as the switch computes it, on the same steps.
+    assert.equal(at(CARD, '.ds-card__row > .ds-switch')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-switch-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
     // The same weight (0,2,0) as the overhang, so the later rule wins.
     for (const selector of [SMALL, '.ds-card__row > .ds-chip']) assert.ok(CARD.indexOf(`${selector} {`) > CARD.indexOf(`${GENERAL} {`), selector);
   });

@@ -3,12 +3,14 @@
   "group": "layout",
   "order": 20,
   "docsOrder": 190,
-  "need": "Let a wide strip scroll sideways with edge fades, and float a jump pill in a log",
+  "need": "Let a wide strip or a tall column scroll on its own with edge fades, a reel of cards, and float a jump pill in a log",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-jump",
-    "ds-scroll-x"
+    "ds-scroll-x",
+    "ds-scroll-x--reel",
+    "ds-scroll-y"
   ],
   "attributes": [
     "data-ds-edges",
@@ -20,7 +22,19 @@
   "hooks": {
     "--ds-scroll-fade": {
       "default": "`--ds-space-8` (card table wrappers: `--ds-card-pad`)",
-      "description": "the length of the edge fades of `.ds-scroll-x`, the table wrappers and the cut edges of menus, combobox lists and drawer lists (2.1); `0px` turns every fade off"
+      "description": "the length of the edge fades of `.ds-scroll-x`, `.ds-scroll-y`, the table wrappers and the cut edges of menus, combobox lists and drawer lists (2.1); `0px` turns every fade off"
+    },
+    "--ds-scroll-reel-item": {
+      "default": "`min(80%, 280px)`",
+      "description": "the width of each child of `.ds-scroll-x--reel`"
+    },
+    "--ds-scroll-reel-gap": {
+      "default": "`--ds-space-4`",
+      "description": "the gap of `.ds-scroll-x--reel`: the base, 2px less per density step"
+    },
+    "--ds-scroll-max-height": {
+      "default": "none",
+      "description": "the height from which `.ds-scroll-y` scrolls"
     }
   },
   "keyframes": [
@@ -32,12 +46,12 @@
   ],
   "progressive": [
     "scroll-driven",
-    "scrollbar-color"
+    "scrollbar-color",
+    "scrollbar-gutter"
   ],
   "ripple": false,
   "exceptions": {
     "physical": {
-      ".ds-scroll-x: -webkit-mask-image": "gradient direction: the edge fades follow the sideways scroll",
       ".ds-scroll-x: mask-image": "gradient direction: the edge fades follow the sideways scroll"
     }
   }

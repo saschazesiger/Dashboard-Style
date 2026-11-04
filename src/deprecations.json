@@ -593,6 +593,24 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-subsection",
+      "pattern": "(?<![\\w-])ds-subsection(?![\\w-])",
+      "replacement": ".ds-card__section",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "A part of a card is .ds-card__<part>, like every part in 3.0. Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-more",
+      "pattern": "(?<![\\w-])ds-more(?![\\w-])",
+      "replacement": ".ds-card__more",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "A part of a card is .ds-card__<part>, like every part in 3.0. Same look; an alias until 3.0 ships."
     }
   ]
 }

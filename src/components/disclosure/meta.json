@@ -17,24 +17,41 @@
   "attributes": [],
   "requires": [],
   "context": [
-    "card",
     "ripple"
   ],
   "hooks": {
     "--ds-disclosure-height": {
       "default": "40px",
-      "description": "the least height of a `.ds-disclosure` summary (its rest radius is half of it)"
+      "description": "a `.ds-disclosure` summary: the base height (size md, comfortable density) the size and density steps apply to; its rest radius is at most half of it"
     },
     "--ds-disclosure-row-height": {
       "default": "48px",
-      "description": "the least height of a `.ds-disclosure--row` summary"
+      "description": "a `.ds-disclosure--row` summary: the base height"
+    },
+    "--ds-disclosure-radius": {
+      "default": "`--ds-radius-action`",
+      "description": "the plain summary (at most half the height, times `--ds-shape`)"
+    },
+    "--ds-disclosure-radius-pressed": {
+      "default": "`--ds-radius-action-pressed`",
+      "description": "the plain summary while pressed (times `--ds-shape`; never rounder than at rest)"
+    },
+    "--ds-disclosure-font": {
+      "default": "`--ds-size-font` of the size class, else `--ds-font-label`",
+      "description": "the summary"
+    },
+    "--ds-disclosure-row-padding": {
+      "default": "`--ds-space-4`",
+      "description": "the side padding of a row and its body: the base, 2px less per density step"
+    },
+    "--ds-disclosure-row-padding-exact": {
+      "default": "unset",
+      "description": "a fixed side padding that ignores density; a card sets it to `--ds-card-pad` so its rows run to its edges"
     }
   },
   "keyframes": [],
   "js": [],
-  "progressive": [
-    "details[name]"
-  ],
+  "progressive": [],
   "ripple": true,
   "rippleHosts": [
     ".ds-disclosure > summary"

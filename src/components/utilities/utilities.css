@@ -36,7 +36,9 @@
  * the ripple's. No morph: pills are .ds-btn. Disabled, aria-disabled and
  * aria-busy show no hover or press layer, no ripple and the not-allowed
  * cursor (aria-disabled keeps the focus layer). Forced colours: no layer,
- * the ring stays.
+ * the ring stays. Options: .ds-touch makes it at least --ds-touch-target
+ * high, .ds-shape-* multiplies its radius; size, density and tone are the
+ * project element's own.
  *
  * Actions that show on demand (a row's edit button):
  *
@@ -52,7 +54,8 @@
  * (hover: none) and under .ds-touch. Opacity only: the buttons stay in the
  * tab order and the accessibility tree, and hover moves nothing.
  *
- *   <kbd class="ds-kbd">Ctrl</kbd>    a key (the code font in a hairline box)
+ *   <kbd class="ds-kbd">Ctrl</kbd>    a key (the code font in a hairline box;
+ *                                     .ds-shape-* multiplies its radius)
  *   <hr class="ds-divider">           a hairline (--inset: from --ds-space-4)
  *   <span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>
  *   <div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>
@@ -159,7 +162,8 @@
     position: relative;
     /* The layer (z-index -1) stays above the fill, below the content. */
     isolation: isolate;
-    border-radius: var(--ds-pressable-radius, var(--ds-radius-sm));
+    min-height: var(--ds-target-min, 0px);
+    border-radius: calc(var(--ds-pressable-radius, var(--ds-radius-sm)) * var(--ds-shape, 1));
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     /* The ring rests (invisible) one width further out and snaps in. */
@@ -281,7 +285,7 @@
     min-width: var(--ds-space-5);
     padding: 0 var(--ds-space-1);
     border: 1px solid var(--ds-kbd-border, var(--ds-line-2));
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
     background: var(--ds-kbd-bg, var(--ds-surface));
     color: var(--ds-text-2);
     font: var(--ds-font-code);
@@ -353,7 +357,6 @@
     --ds-drawer-item-height: var(--ds-touch-target);
     --ds-toast-close-size: var(--ds-touch-target);
     --ds-tabs-height: var(--ds-touch-target);
-    --ds-disclosure-height: var(--ds-touch-target);
     --ds-input-font: var(--ds-font-input);
   }
 
