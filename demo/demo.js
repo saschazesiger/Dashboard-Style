@@ -244,10 +244,10 @@
   /* ── Live data ────────────────────────────────────────────────────── */
 
   const STATUS = {
-    ok: { label: 'OK', className: 'ds-status--ok', glyph: 'check' },
-    warning: { label: 'Busy', className: 'ds-status--warning', glyph: 'alert' },
+    ok: { label: 'OK', className: 'ds-tone-success', glyph: 'check' },
+    warning: { label: 'Busy', className: 'ds-tone-warning', glyph: 'alert' },
     running: { label: 'Updating', className: 'ds-status--running', glyph: null },
-    error: { label: 'Offline', className: 'ds-status--error', glyph: 'wifiOff' },
+    error: { label: 'Offline', className: 'ds-tone-error', glyph: 'wifiOff' },
   };
   const STATUS_ORDER = ['error', 'warning', 'running', 'ok'];
 
@@ -611,7 +611,7 @@
   const deployHtml = (state) => ({
     waiting: `<span class="ds-status">${icon('clock', 16)}<span>Waiting</span></span>`,
     running: '<span class="ds-status ds-status--running"><span class="ds-spinner ds-status__spinner" aria-hidden="true"></span><span>Deploying</span></span>',
-    ok: `<span class="ds-status ds-status--ok">${icon('check', 16)}<span>Live</span></span>`,
+    ok: `<span class="ds-status ds-tone-success">${icon('check', 16)}<span>Live</span></span>`,
   })[state];
   DS.dom.morphHtml(deployStatus, deployHtml('waiting'));
   $('#deploy').addEventListener('click', (event) => {
@@ -635,7 +635,7 @@
 
   function alertsHtml() {
     return alerts.list.map((alert) =>
-      `<div class="ds-alert${alert.kind ? ` ds-alert--${alert.kind}` : ''}" data-ds-key="${alert.id}"${alert.kind === 'error' ? ' role="alert"' : ''}>${icon(alert.glyph, 20)}` +
+      `<div class="ds-alert${alert.kind ? ` ds-tone-${alert.kind}` : ''}" data-ds-key="${alert.id}"${alert.kind === 'error' ? ' role="alert"' : ''}>${icon(alert.glyph, 20)}` +
       `<span class="ds-alert__text">${esc(alert.text)}</span><button class="ds-btn ds-btn--text ds-sm" type="button" data-dismiss="${alert.id}">Dismiss</button></div>`).join('');
   }
   const renderAlerts = () => M.flip(alertStack, (morph) => DS.dom.morphHtml(alertStack, alertsHtml(), morph));

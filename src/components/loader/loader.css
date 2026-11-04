@@ -9,19 +9,25 @@
  *
  *   <span class="ds-loader" aria-hidden="true"></span>
  *   <div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
- *   <div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
+ *   <div class="ds-loading" role="status"><span class="ds-loader ds-sm" aria-hidden="true"></span>Loading ...</div>
  *
- *   .ds-loader              48px container, the shape 38px (38/48 of it)
- *   .ds-loader--sm          24px, for the loading line
+ *   .ds-loader              48px container at md, the shape 38/48 of it
  *   .ds-loader--contained   the shape on a --ds-accent disc
+ *   .ds-loader--sm          deprecated: .ds-sm (the same 24px)
  *
- * Hooks: --ds-loader-size (48px), --ds-loader-sm-size (24px, read by --sm),
- * --ds-loader-color (--ds-primary).
+ * Options (docs/options.md), computed here into --_s:
+ *   size      .ds-xs ... .ds-xl on the loader or any ancestor: 24px per step
+ *             (16, 24, 48, 72, 96px), so .ds-sm is the loading line's 24px
+ *   density, shape, target-min, tone: not read. It morphs through its own
+ *             shapes, it is no target and it says nothing but "wait".
+ *
+ * Hooks: --ds-loader-size (48px, the md base), --ds-loader-sm-size (24px,
+ * deprecated with --sm), --ds-loader-color (--ds-primary).
  *
  * The loader is decoration: aria-hidden, and the surrounding role="status"
  * carries the text. Inside .ds-boot, .ds-loading and .ds-skeleton the
- * container waits its own delay, so the loader drops its fade there (the
- * delays never stack). The loops run on ::before, so .ds-enter on the
+ * container waits its own delay, so loading.css drops the loader's fade
+ * there (the delays never stack). The loops run on ::before, so .ds-enter on the
  * loader itself replaces only its fade.
  *
  * At most a few per view: the polygon morph repaints every frame. Inline
@@ -35,11 +41,12 @@
 
 @layer ds.components {
   .ds-loader {
+    --_s: max(16px, calc(var(--ds-loader-size, 48px) + var(--ds-size-step, 0) * 24px));
     display: inline-grid;
     place-items: center;
     flex-shrink: 0;
-    width: var(--ds-loader-size, 48px);
-    height: var(--ds-loader-size, 48px);
+    width: var(--_s);
+    height: var(--_s);
     border-radius: 50%;
     animation: ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) var(--ds-delay-loader) backwards;
   }
@@ -56,18 +63,11 @@
   }
 
   .ds-loader--sm {
-    --ds-loader-size: var(--ds-loader-sm-size, 24px);
+    --_s: var(--ds-loader-sm-size, 24px);
   }
 
   .ds-loader--contained {
     background: var(--ds-accent);
-  }
-
-  /* The container already waits: no second delay. */
-  .ds-boot .ds-loader,
-  .ds-loading .ds-loader,
-  .ds-skeleton .ds-loader {
-    animation: none;
   }
 
   /* Forced colors drop the fills: the shape in the system highlight, the

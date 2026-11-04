@@ -20,7 +20,7 @@ component live.
 | A full-page table, or a view that never scrolls (a chat, a terminal) | `.ds-view--fill`, `.ds-view--fixed` ([App frame](#app-frame)) |
 | Page title, lead and the column layout of cards | [Page](#page): `.ds-page-head`, `.ds-stack` (one column), `.ds-grid-2` (two) |
 | A record's page: the way back, status and actions next to the title | `.ds-page-head__back` or `.ds-breadcrumbs`, `.ds-page-head__row`, `__status`, `__actions` ([Page](#page)) |
-| A page that loads, fails or is gone | the page states ([Page](#page)): a skeleton, `.ds-alert--error` with Retry, `.ds-empty` |
+| A page that loads, fails or is gone | the page states ([Page](#page)): a skeleton, `.ds-alert.ds-tone-error` with Retry, `.ds-empty` |
 | Sections of one page or record (overview, history, settings) | [Tabs](#tabs) `.ds-tabs` (ARIA tabs, or links between pages of a record) |
 | Tabs or segmented switch? | tabs change what the page shows (sections, with a panel each); a segmented switch changes how the same content shows (a mode, a view) |
 | Where the user is in a form of several steps | [Steps](#steps) `.ds-steps` (marks with labels, or `--bar`) |
@@ -110,7 +110,7 @@ component live.
 | Confirm by typing the name of what goes | a `.ds-dialog--lg` `alertdialog` with a field ([Dialog](#dialog), "Confirm by typing the name") |
 | Filters or a form with its actions at the end of a side sheet | `.ds-sheet__foot`, and a live count in `.ds-sheet__subtitle` ([Side sheet](#side-sheet)) |
 | Name an icon button, or say why a control is disabled | [Tooltip](#tooltip) `.ds-tooltip` |
-| Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |
+| Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--ink` in a busy button |
 | A block of the page waits (a section, a sheet, the app start) against a small spot (a button, a chip, a cell) | the shape loader `.ds-loader` (in `.ds-boot`, `.ds-loading`) against the arc spinner `.ds-spinner` ([Loading](#loading)) |
 | A long job with a known or unknown share | [Progress](#progress) `.ds-progress` (`--indeterminate`); round: `.ds-spinner--determinate` |
 | Let people add files (by drop, the file dialog or paste) | [File upload](#file-upload): `.ds-dropzone` or the file field `.ds-input[type="file"]`, `DS.dom.dropzone()` |

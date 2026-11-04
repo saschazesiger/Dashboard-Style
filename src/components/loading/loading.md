@@ -1,16 +1,12 @@
 ## Loading
 
-```html
-<!-- Block loader: the shape loader (M3 Expressive), 48px; --sm 24px; --contained on an --ds-accent disc -->
-<div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
-<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Loading ...</div>
-<div class="ds-loading" role="status"><span class="ds-loader ds-loader--sm" aria-hidden="true"></span>Importing devices
-  <p class="ds-loading__detail">812 of 2,030 rows</p></div>                       <!-- a detail line under the text -->
-<span class="ds-loader ds-loader--contained" aria-hidden="true"></span>
+Holds the place of content that is loading: the app start, a loading line, skeleton presets and the page's load bar.
 
-<!-- Inline spinner: the M3 arc, for buttons, chips, status chips and table cells -->
-<span class="ds-spinner" aria-hidden="true"></span>                 <!-- 16px -->
-<span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>  <!-- 12px, text colour -->
+```html
+<div class="ds-boot" role="status"><span class="ds-loader" aria-hidden="true"></span>Starting ...</div>
+<div class="ds-loading" role="status"><span class="ds-loader ds-sm" aria-hidden="true"></span>Loading ...</div>
+<div class="ds-loading" role="status"><span class="ds-loader ds-sm" aria-hidden="true"></span>Importing devices
+  <p class="ds-loading__detail">812 of 2,030 rows</p></div>                       <!-- a detail line under the text -->
 
 <div class="ds-skeleton" role="status">
   <span class="ds-sr">Loading ...</span>
@@ -27,31 +23,68 @@
 </div>
 ```
 
-Every loader except the bare arc spinner fades in only after `--ds-delay-loader` (`.ds-boot` after
+Every loader except the bare arc [spinner](#spinner) fades in only after `--ds-delay-loader` (`.ds-boot` after
 `--ds-delay-boot`), so fast loads show nothing; keep a visible one up with
-`DS.motion.settleLoader(startedAt, { element })`. A `.ds-spinner` turns at once; delay it through `.ds-loading`, a
-busy button or `<span class="ds-enter ds-enter--delayed">`. Delays never stack: a loader
-inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a skeleton, have no fade of their own.
+`DS.motion.settleLoader(startedAt, { element })`. Delays never stack: a [shape loader](#shape-loader) inside `.ds-boot`,
+`.ds-loading` or `.ds-skeleton`, and a loading bar inside a skeleton, have no fade of their own.
 
-- **Shape loader** (`.ds-loader`): the block loader. A shape morphs through the seven M3 shapes, each step landing
-  on the spring, while it turns (`--ds-loop-loader`). It is `aria-hidden`; the surrounding `role="status"` carries
-  the text. Keep it to a few per view (the morph repaints every frame). Hooks `--ds-loader-size` (48px) and
-  `--ds-loader-color` (`--ds-primary`). The older markup with a `.ds-spinner` in `.ds-boot` or `.ds-loading` keeps
-  working.
-- **Spinner** (`.ds-spinner`): the inline loader, the M3 arc that grows and shrinks while it turns, without a track.
-  Hooks `--ds-spinner-color`, `--ds-spinner-track` (none; the small one keeps a faint ring of the text colour) and
-  `--ds-spinner-width` (2px; replaces a project's own `border-width`). Never put `.ds-enter` on it in static markup
-  (wrap it); `.ds-enter` on a `.ds-loader` is fine, its loops run on `::before`.
-- **Circular progress** (`.ds-spinner--determinate`, 40px): the share as an arc, a gap, then the track in
-  `--ds-accent`, on a wavy ring (`.ds-spinner--flat`: a plain ring). It never spins; set `--ds-progress` (0 to 1)
-  and the arc glides like linear progress. Markup as for [progress](#progress): `role="progressbar"`,
-  `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, a name.
-- **Skeleton**: one calm diagonal wave passes over the whole surface, after its entrance. Every bone shows its slice
-  of one band fixed to the viewport (the registered `--ds-skeleton-x`), so the bones of a surface share one phase.
-  Since 2.0 each bone clips the band to its own shape and the band moves on a compositor layer of its own (a fixed
-  `::after`, moved by `translate`), so the wave repaints nothing; before, a fixed background was repainted with the
-  whole view. Under a transformed ancestor (a sheet mid-slide, `.ds-enter`) the band is placed in that ancestor
-  instead of the viewport: the bones stay in time and share it.
+**Skeleton presets.** A preset is markup: bones inside a `.ds-skeleton` surface, which holds the role and the words. Mark
+the bones `aria-hidden` or leave the whole surface's words in its `.ds-sr`.
+
+| Preset | Markup |
+|---|---|
+| Text | `.ds-skeleton__line`, with `--mid`, `--short` for shorter lines |
+| Heading | `.ds-skeleton__line--heading`, `--lead` (its lead), `--title` (a card title) |
+| Avatar | `.ds-skeleton__avatar`: a round bone, 40px at md |
+| Media | `.ds-skeleton__media`: a block bone, its ratio `--ds-skeleton-media-ratio` |
+| List row | `.ds-skeleton__row` below |
+| Table | `.ds-skeleton__table` below |
+| Card | `.ds-skeleton__card` above |
+| Form | `.ds-skeleton__form` below |
+
+```html
+<div class="ds-skeleton" role="status"><span class="ds-sr">Loading devices ...</span>
+  <div class="ds-skeleton__row" aria-hidden="true">
+    <span class="ds-skeleton__avatar"></span>
+    <span class="ds-skeleton__lines"><span class="ds-skeleton__line ds-skeleton__line--mid"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span></span>
+    <span class="ds-skeleton__line"></span>
+  </div>
+</div>
+
+<div class="ds-skeleton" role="status"><span class="ds-sr">Loading the table ...</span>
+  <div class="ds-skeleton__table" aria-hidden="true">
+    <div class="ds-skeleton__cells ds-skeleton__cells--head"><span class="ds-skeleton__line ds-skeleton__line--mid"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span></div>
+    <div class="ds-skeleton__cells"><span class="ds-skeleton__line"></span><span class="ds-skeleton__line ds-skeleton__line--mid"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span></div>
+  </div>
+</div>
+
+<div class="ds-skeleton" role="status"><span class="ds-sr">Loading the form ...</span>
+  <div class="ds-skeleton__form" aria-hidden="true">
+    <span class="ds-skeleton__line ds-skeleton__line--label"></span><span class="ds-skeleton__field"></span>
+    <span class="ds-skeleton__line ds-skeleton__line--label"></span><span class="ds-skeleton__field"></span>
+  </div>
+</div>
+```
+
+**The wave or the pulse.** By default one calm diagonal wave passes over the whole surface, after its entrance; add
+`.ds-skeleton--pulse` to the surface and each bone breathes in place instead, on `--ds-loop-skeleton` and after the same
+delay (a small card among finished ones, a long table where a sweep would draw the eye).
+
+**Options** ([options.md](options.md)): classes on the element or any ancestor.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | a bone or a group | a line 2px per step (and a heading, a title); an avatar, a field and a row 8px per step; a loader follows its own steps |
+| Density | `.ds-density-*` | any container | the padding of `.ds-loading` and a card, and the gaps of a surface, 2px per step (under `themes/compact.css`: 12px and 20px); a field and a row 4px per step, on the hooks of what they stand for (`--ds-input-height`, `--ds-table-row-height`, `--ds-table-head-height`) |
+| Shape | `.ds-shape-*` | any container or the theme | a bone's radius and a card's corners times 0, .5, 1, 1.5, at most half a bone's height; an avatar stays round |
+| Touch | `.ds-touch` | the theme or a container | a field bone and a table row are as high as what they stand for; the rest is no target |
+| Tone | | | not read: nothing here says more than "wait" |
+
+- **Skeleton**: every bone shows its slice of one band fixed to the viewport (the registered `--ds-skeleton-x`), so the
+  bones of a surface share one phase. Since 2.0 each bone clips the band to its own shape and the band moves on a
+  compositor layer of its own (a fixed `::after`, moved by `translate`), so the wave repaints nothing; before, a fixed
+  background was repainted with the whole view. Under a transformed ancestor (a sheet mid-slide, `.ds-enter`) the band
+  is placed in that ancestor instead of the viewport: the bones stay in time and share it.
 - **Loading line** (`.ds-loading`): the loader, then the text, in one row (inline markup in the text or a trailing
   button stays on it). With `.ds-loading__detail` lines (2.0) it becomes a two-column grid: the lines sit under the
   text in its column (`--ds-font-meta`, `--ds-text-2`), aligned with it whatever the loader's size; keep the text one
@@ -59,7 +92,8 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
 - **Skeleton note** (`p.ds-skeleton__note`, 2.0): a progress line under the lead bone ("Loading 3 of 12 reports",
   `--ds-font-meta` in `--ds-text-2`, tabular figures); it sits inside the `role="status"` skeleton, so its text is
   announced: update it at most every 10% or once a second. Empty, it takes no room. The bones' corners follow
-  `--ds-skeleton-radius` (2.0; default `--ds-radius-action`, the heading line `--ds-radius-sm`).
+  `--ds-skeleton-radius` (2.0; default `--ds-radius-action`, the heading line and a field `--ds-radius-sm`, a media bone
+  `--ds-radius-card`).
 - **Loading bar** (`.ds-loadbar`): the two-segment indeterminate choreography, flat, at the top of the content
   panel (inside `.ds-content`, whose read-only `--ds-content-pad-top` and `--ds-content-pad-x` it reads to reach the
   panel edges; inside `.ds-page` it also spans the page's centring, measured as `100cqw` of `.ds-content`, so it
@@ -78,5 +112,16 @@ inside `.ds-boot`, `.ds-loading` or `.ds-skeleton`, and a loading bar inside a s
   Keep shape loaders to a few per view, and use `.ds-progress--flat` in dense table cells (the wave reaches outside
   the 4px track).
 
+**Accessibility.** The surface or line holds `role="status"` and the words (`.ds-sr` in a skeleton); the bones and the
+loader say nothing. Keyboard: no stop of its own. **Forced colours.** The fills go: bones and the bar's track take a
+`CanvasText` outline and the band is left out, both segments of the bar paint `Highlight`. Print: the band and the
+loading bar are left out.
+
 **Motion:** the loader and skeleton rows of [Feedback](motion.md#feedback) in motion.md.
 
+<!-- changelog -->
+- Loading: skeleton presets (`.ds-skeleton__avatar`, `__media`, `__row` with `__lines`, `__table` with `__cells` and
+  `__cells--head`, `__form` with `__field` and `__line--label`), `.ds-skeleton--pulse` beside the wave, hook
+  `--ds-skeleton-media-ratio`; size, density and shape. The spinner and the shape loader have their own sections now.
+  Changed under `themes/compact.css`: 12px of padding on `.ds-loading` and 20px on a card (2.x: 16px and 24px), since the
+  theme is density -2. A field bone and a table row read the hooks of the input and the table.

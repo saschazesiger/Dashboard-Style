@@ -3,13 +3,25 @@
   "group": "feedback",
   "order": 150,
   "docsOrder": 130,
-  "need": "Say that there is nothing to show yet, or confirm that a job finished",
+  "need": "Say that there is nothing to show and why, at the size of its place, or confirm that a job finished",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-empty",
     "ds-empty--done",
+    "ds-empty--error",
+    "ds-empty--first-use",
+    "ds-empty--inline",
+    "ds-empty--no-access",
+    "ds-empty--no-data",
+    "ds-empty--no-results",
+    "ds-empty--not-set-up",
+    "ds-empty--offline",
+    "ds-empty--page",
+    "ds-empty--section",
+    "ds-empty__actions",
     "ds-empty__disc",
+    "ds-empty__media",
     "ds-empty__text",
     "ds-empty__title"
   ],
@@ -20,8 +32,24 @@
   "context": [],
   "hooks": {
     "--ds-empty-disc-size": {
-      "default": "48px",
-      "description": "the disc of `.ds-empty__disc` ([empty state](components.md#empty-state)); the ring of `.ds-empty--done` follows, the glyph keeps its markup's size"
+      "default": "48px (`--page` 72px, `--inline` 32px)",
+      "description": "the disc of `.ds-empty__disc` at md ([empty state](components.md#empty-state)); the ring of `.ds-empty--done` follows, the glyph keeps its markup's size"
+    },
+    "--ds-empty-disc-bg": {
+      "default": "`--ds-accent`, `--ds-on-accent-icon` (a cause or tone: its pair)",
+      "description": "the disc's fill and glyph, over any cause or tone"
+    },
+    "--ds-empty-disc-color": {
+      "default": "`--ds-accent`, `--ds-on-accent-icon` (a cause or tone: its pair)",
+      "description": "the disc's fill and glyph, over any cause or tone"
+    },
+    "--ds-empty-padding": {
+      "default": "32px (`--page`: 96px, twice this hook or 48px)",
+      "description": "an empty state's block padding at md, before size and density (`--inline` has its own, 12px)"
+    },
+    "--ds-empty-media-size": {
+      "default": "120px (`--page`: 160px, `--inline`: 32px)",
+      "description": "the height of `.ds-empty__media`, the slot for a picture"
     }
   },
   "keyframes": [

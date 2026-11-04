@@ -208,7 +208,7 @@ function ask(kind, options) {
     const rest = make('span', 'ds-btn__face', label);
     const working = make('span', 'ds-btn__face ds-btn__face--busy');
     working.setAttribute('aria-hidden', 'true');
-    working.append(make('span', 'ds-spinner ds-spinner--sm'), doc.createTextNode(label));
+    working.append(make('span', 'ds-spinner ds-spinner--ink ds-sm'), doc.createTextNode(label));
     faces.append(rest, working);
     confirmButton.append(faces);
     // The safe choice first in a destructive question; else the answer, or the field.

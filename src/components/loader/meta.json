@@ -2,7 +2,7 @@
   "name": "loader",
   "group": "feedback",
   "order": 50,
-  "docsOrder": null,
+  "docsOrder": 304,
   "need": "Show that a whole region is loading, with a morphing shape",
   "tier": 1,
   "status": "stable",
@@ -13,21 +13,19 @@
   ],
   "attributes": [],
   "requires": [],
-  "context": [
-    "loading"
-  ],
+  "context": [],
   "hooks": {
     "--ds-loader-size": {
-      "default": "48px (`--sm`: `--ds-loader-sm-size`), `--ds-primary`",
-      "description": "the shape loader's container and its shape ([loading](components.md#loading))"
+      "default": "48px, `--ds-primary`",
+      "description": "the shape loader's container at md, before the size step, and its shape ([shape loader](components.md#shape-loader))"
     },
     "--ds-loader-color": {
-      "default": "48px (`--sm`: `--ds-loader-sm-size`), `--ds-primary`",
-      "description": "the shape loader's container and its shape ([loading](components.md#loading))"
+      "default": "48px, `--ds-primary`",
+      "description": "the shape loader's container at md, before the size step, and its shape ([shape loader](components.md#shape-loader))"
     },
     "--ds-loader-sm-size": {
       "default": "24px",
-      "description": "`.ds-loader--sm`"
+      "description": "`.ds-loader--sm`, both **deprecated**: `.ds-sm`"
     }
   },
   "keyframes": [

@@ -973,8 +973,8 @@ describe('values come from tokens', () => {
     const reads = [
       ['src/components/button/button.css', '.ds-btn--sm', '--_h', 'var(--ds-btn-height-exact, var(--ds-btn-sm-height, 32px))'],
       ['src/components/button/button.css', '.ds-btn--icon.ds-btn--sm', '--_box', 'max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px))'],
-      ['src/components/loader/loader.css', '.ds-loader--sm', '--ds-loader-size', 'var(--ds-loader-sm-size, 24px)'],
-      ['src/components/spinner/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, 4px)'],
+      ['src/components/loader/loader.css', '.ds-loader--sm', '--_s', 'var(--ds-loader-sm-size, 24px)'],
+      ['src/components/spinner/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, calc(var(--_s) / 10))'],
       ['src/components/status/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
       // and the small check row, so .ds-touch reaches it.
       ['src/components/form/form.css', '.ds-check--sm', '--_h', 'var(--ds-check-sm-height, 32px)'],
@@ -2004,8 +2004,11 @@ describe('feedback and data (1.4.0)', () => {
   it('gives the loading parts of 2.0 their hooks and layout: bone radius, the skeleton note, detail lines', () => {
     const css = read('src/components/loading/loading.css');
     const own = (selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
-    assert.equal(own('.ds-skeleton__line')['border-radius'], 'var(--ds-skeleton-radius, var(--ds-radius-action))');
-    assert.match(stripComments(css), /\.ds-skeleton__line--heading \{[^}]*border-radius: var\(--ds-skeleton-radius, var\(--ds-radius-sm\)\)/);
+    assert.equal(own('.ds-skeleton__line')['--_r'], 'var(--ds-skeleton-radius, var(--ds-radius-action))');
+    assert.equal(own('.ds-skeleton__line')['--_bone'], 'min(calc(min(var(--_r), calc(var(--_h) / 2)) * var(--ds-shape, 1)), calc(var(--_h) / 2))');
+    assert.equal(own('.ds-skeleton__line')['border-radius'], 'var(--_bone)');
+    assert.match(stripComments(css), /clip-path: inset\(0 round var\(--_bone\)\)/);
+    assert.match(stripComments(css), /\.ds-skeleton__line--heading \{[^}]*--_r: var\(--ds-skeleton-radius, var\(--ds-radius-sm\)\)/);
     assert.deepEqual([own('.ds-skeleton__note').color, own('.ds-skeleton__note').font, own('.ds-skeleton__note')['font-variant-numeric']], ['var(--ds-text-2)', 'var(--ds-font-meta)', 'tabular-nums']);
     assert.equal(own('.ds-skeleton__note:empty').display, 'none');
     // A flex row as in 1.x (inline markup and a trailing button stay on it); the grid only with detail lines.
@@ -2026,7 +2029,8 @@ describe('feedback and data (1.4.0)', () => {
   });
 
   it('waits the loader delay once: loaders in a waiting container and a loading bar in a skeleton have no fade of their own', () => {
-    const loader = rulesWith('src/components/loader/loader.css', /^\.ds-(boot|loading|skeleton) \.ds-loader$/);
+    // The container provides the context, so the rule lives in its file.
+    const loader = rulesWith('src/components/loading/loading.css', /^\.ds-(boot|loading|skeleton) \.ds-loader$/);
     assert.equal(loader.length, 1);
     assert.equal(loader[0].own.animation, 'none');
     assert.equal(splitSelectors(loader[0].selector).length, 3);
@@ -2885,8 +2889,10 @@ describe('additions (2.1)', () => {
   it('sizes the empty-state disc by --ds-empty-disc-size (48px); the done ring fills it', () => {
     const css = stripComments(read('src/components/empty/empty.css'));
     const disc = at(css, '.ds-empty__disc');
-    assert.equal(disc.width, 'var(--ds-empty-disc-size, 48px)');
-    assert.equal(disc.height, 'var(--ds-empty-disc-size, 48px)');
+    assert.equal(disc['--_d'], 'calc(var(--ds-empty-disc-size, var(--_disc)) + var(--ds-size-step, 0) * 8px)');
+    assert.equal(at(css, '.ds-empty')['--_disc'], '48px');
+    assert.equal(disc.width, 'var(--_d)');
+    assert.equal(disc.height, 'var(--_d)');
     assert.equal(at(css, '.ds-empty--done .ds-empty__disc::after').inset, '0');
   });
 

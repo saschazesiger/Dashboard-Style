@@ -126,19 +126,19 @@
   function status(kind) {
     const s = STATUS[kind];
     const mark = s.glyph ? icon(s.glyph, 16) : '<span class="ds-spinner ds-status__spinner" aria-hidden="true"></span>';
-    return `<span class="ds-status ds-status--${kind}">${mark}<span>${s.label}</span></span>`;
+    return `<span class="ds-status ${kind === 'running' ? 'ds-status--running' : `ds-tone-${kind === 'ok' ? 'success' : kind}`}">${mark}<span>${s.label}</span></span>`;
   }
 
   function ticketStatus(kind) {
     const [glyph, label, tone] = TICKET_STATUS[kind];
-    return `<span class="ds-status${tone ? ` ds-status--${tone}` : ''}">${icon(glyph, 16)}<span>${label}</span></span>`;
+    return `<span class="ds-status${tone ? ` ds-tone-${tone === 'ok' ? 'success' : tone}` : ''}">${icon(glyph, 16)}<span>${label}</span></span>`;
   }
 
   /* A button with the busy and done faces of DS.motion.busy(). */
   function facesButton(className, label, busyLabel, doneLabel, attributes = '') {
     return `<button class="${className}" type="button" ${attributes}><span class="ds-btn__faces">` +
       `<span class="ds-btn__face">${label}</span>` +
-      `<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>${busyLabel}</span>` +
+      `<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>${busyLabel}</span>` +
       `<span class="ds-btn__face ds-btn__face--done" aria-hidden="true">${icon('check', 16)}${doneLabel}</span></span></button>`;
   }
 
@@ -182,7 +182,7 @@
     const c = counts();
     const list = [];
     if (c.error) {
-      list.push(`<div class="ds-alert ds-alert--error" data-ds-key="alert-offline">${icon('alertCircle', 20)}<span class="ds-alert__text">${plural(c.error, 'device is', 'devices are')} offline.</span>` +
+      list.push(`<div class="ds-alert ds-tone-error" data-ds-key="alert-offline">${icon('alertCircle', 20)}<span class="ds-alert__text">${plural(c.error, 'device is', 'devices are')} offline.</span>` +
         '<a class="ds-btn ds-btn--text ds-sm" href="#/devices?status=error">Show</a></div>');
     }
     if (!state.dismissed.has('sync')) {
@@ -228,7 +228,7 @@
       `<li class="ds-list__item" data-ds-key="t${ticket.id}">${icon('ticket', 20, 'ds-list__icon')}` +
       `<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#/tickets?open=${ticket.id}">${esc(ticket.subject)}</a></span>` +
       `<span class="ds-list__meta">#${ticket.id} · ${esc(byId(ticket.device)?.name ?? '')} · opened ${ago(ticket.opened)}</span></span>` +
-      (ticket.priority === 'high' ? `<span class="ds-status ds-status--warning">${icon('flag', 16)}<span>High</span></span>` : '') +
+      (ticket.priority === 'high' ? `<span class="ds-status ds-tone-warning">${icon('flag', 16)}<span>High</span></span>` : '') +
       `${icon('chevronRight', 20, 'ds-list__chevron')}</li>`).join('') + '</ul>';
   }
 
@@ -490,7 +490,7 @@
         `<td class="ds-nowrap">#${ticket.id}</td>` +
         `<td class="ds-col--text">${esc(ticket.subject)}</td>` +
         `<td class="ds-col--secondary ds-nowrap">${device ? esc(device.name) : 'Removed device'}</td>` +
-        `<td>${ticket.priority === 'high' ? `<span class="ds-status ds-status--warning">${icon('flag', 16)}<span>High</span></span>` : PRIORITY[ticket.priority]}</td>` +
+        `<td>${ticket.priority === 'high' ? `<span class="ds-status ds-tone-warning">${icon('flag', 16)}<span>High</span></span>` : PRIORITY[ticket.priority]}</td>` +
         `<td>${ticketStatus(ticket.status)}</td>` +
         `<td class="ds-num">${ago(ticket.opened)}</td></tr>` +
         `<tr class="ds-table__detail" id="${key}-detail" data-ds-key="${key}-detail"${open ? '' : ' inert'}><td colspan="7"><div class="ds-table__expand"><div class="ex-detail">` +
@@ -770,7 +770,7 @@
       banner = document.createElement('div');
       banner.className = 'ds-banner';
       banner.id = 'offline-banner';
-      DS.dom.morphHtml(banner, `<div class="ds-alert ds-alert--warning" role="status">${icon('wifiOff', 20)}` +
+      DS.dom.morphHtml(banner, `<div class="ds-alert ds-tone-warning" role="status">${icon('wifiOff', 20)}` +
         '<span class="ds-alert__text">The console is offline. Figures stay as they were until it answers again.</span>' +
         '<button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>');
       banner.addEventListener('click', (event) => { if (event.target.closest('button')) poll(); });

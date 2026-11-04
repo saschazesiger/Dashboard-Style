@@ -103,7 +103,7 @@ el.className = 'ds-chip' + suffix;          // a.js:4
 `'ds-card ' + other` (a whole name and a space) is fine. Write the names out where you can, for example with a map:
 
 ```js
-const TONES = { ok: 'ds-status--ok', warning: 'ds-status--warning', error: 'ds-status--error' };
+const TONES = { ok: 'ds-tone-success', warning: 'ds-tone-warning', error: 'ds-tone-error' };
 el.className = `ds-status ${TONES[tone]}`;
 ```
 

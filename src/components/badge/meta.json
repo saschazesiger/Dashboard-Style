@@ -3,21 +3,21 @@
   "group": "feedback",
   "order": 230,
   "docsOrder": 150,
-  "need": "Show a count on a button, chip, tab or drawer item",
+  "need": "Show a count or a dot on a button, chip, tab or drawer item",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-badge",
+    "ds-badge--dot",
     "ds-badge--error",
     "ds-badge--neutral",
     "ds-badge--ok",
     "ds-badge--warning"
   ],
   "attributes": [],
-  "requires": [
-    "button"
-  ],
+  "requires": [],
   "context": [
+    "button",
     "chip",
     "shell",
     "table",
@@ -26,23 +26,33 @@
   "hooks": {
     "--ds-badge-size": {
       "default": "20px",
-      "description": "a count badge (`.ds-badge`): height and smallest width"
+      "description": "a count badge (`.ds-badge`): height and smallest width at md"
+    },
+    "--ds-badge-dot-size": {
+      "default": "8px",
+      "description": "`.ds-badge--dot` at md"
     },
     "--ds-badge-radius": {
       "default": "`--ds-radius-action` (never above half the size)",
       "description": "a count badge's corners"
     },
     "--ds-badge-bg": {
-      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; on a tinted host `--ds-primary`, `--ds-on-primary`)",
-      "description": "a count badge's fill and figure"
+      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; a dot: `--ds-primary`, a tone's full colour; on a tinted host `--ds-primary`, `--ds-on-primary`)",
+      "description": "a badge's fill and figure"
     },
     "--ds-badge-color": {
-      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; on a tinted host `--ds-primary`, `--ds-on-primary`)",
-      "description": "a count badge's fill and figure"
+      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; a dot: `--ds-primary`, a tone's full colour; on a tinted host `--ds-primary`, `--ds-on-primary`)",
+      "description": "a badge's fill and figure"
     }
   },
   "keyframes": [],
-  "js": [],
+  "js": [
+    "badge"
+  ],
+  "module": true,
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "labExempt": {
+    "DS.badge.format": "a pure function: no motion"
+  }
 }
