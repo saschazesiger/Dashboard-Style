@@ -5,8 +5,9 @@
  * edges, so the row hover spans the whole width and the first column lines
  * up with the card text. The wrapper scrolls sideways on narrow screens; a
  * sticky header needs a wrapper that also scrolls down: a bounded wrapper
- * (.ds-table--sticky-head with --ds-table-max-height) or the full-page
- * table (.ds-table-wrap--fill).
+ * (.ds-table--sticky-head with --ds-table-max-height, a stacking context of
+ * its own, whose end hands the wheel on to the page) or the full-page table
+ * (.ds-table-wrap--fill, which keeps the wheel).
  *
  *   <div class="ds-table-wrap">
  *     <table class="ds-table [ds-table--wide]">
@@ -109,7 +110,8 @@
  *                       the same way at the end edge: its hairline shows
  *                       while columns follow under it, and the wrapper
  *                       drops its end fade. Its cell stands above the row
- *                       link: its own room opens nothing. The page sets
+ *                       link: its own room opens nothing, with no pointer
+ *                       and no press. The page sets
  *                       --ds-table-pin-last-width to its width, so focus
  *                       moved by the keyboard never lands under it
  *
@@ -128,7 +130,8 @@
  * Hooks: --ds-table-row-hover, --ds-table-row-selected, --ds-table-head-height
  * (48px), --ds-table-row-height (52px), --ds-table-dense-row-height
  * (40px; the cell padding follows the heights), --ds-table-padding
- * (--ds-space-4, the cells' side padding), --ds-table-zebra
+ * (--ds-space-4, the cells' side padding; on phones 3/4 of it, below 360px
+ * half), --ds-table-zebra
  * (--ds-surface-low), --ds-table-sticky-bg (the opaque base of sticky and
  * pinned cells and of the fill wrapper, default --ds-surface),
  * --ds-table-max-height (none), --ds-table-pin-last-width (0px),
@@ -145,7 +148,9 @@
  * --ds-table-end-fade, 1 on every wrapper; 0 on one that holds a
  * .ds-table--pin-first or a .ds-table--pin-last (no fade over the pinned
  * column; the other end's fade stays). The private computed values of a
- * rule (--_h, --_box, --_room, --_pad, --_hang) are private: never set them.
+ * rule (--_h, --_box, --_room, --_pad, --_hang, and --_sticky-head,
+ * --_sticky-foot, --_kept-head, --_kept-foot for the sticky rows' focus
+ * offset) are private: never set them.
  *
  * Internal (each body row sets them, its cells read them; never set
  * them): --ds-table-row-layer, --ds-table-row-pace, --ds-table-row-tint,
@@ -226,8 +231,9 @@
  * through each other.
  *
  * Forced colours: sticky and pinned cells are Canvas (nothing shows through
- * them), the fill wrapper's border CanvasText, the selection bar keeps an
- * outline, zebra and selection tints go (the checkbox stays the cue). Print:
+ * them), the pinned columns' hairlines and the fill wrapper's border
+ * CanvasText, the selection bar keeps an outline, zebra and selection tints
+ * go (the checkbox stays the cue). Print:
  * wrappers show every column, unmasked and unclipped; the
  * full-page table is unbounded and unsticky, header text wraps, rows do not
  * break across pages, closed detail rows and the selection bar are hidden.
@@ -311,19 +317,51 @@
   }
 
   /* A sticky row sticks to its scroller, and the wrapper is one (overflow-x
-     makes it a scroller on both axes): it scrolls down once bounded. Focus
-     moved by the keyboard never lands under the sticky rows. */
+     makes it a scroller on both axes): it scrolls down once bounded. It sits
+     mid-page, so a wheel at its end goes on to the page, and its sticky cells'
+     z-indices stay inside it (a page's own sticky bar stays on top). */
   .ds-table-wrap:where(:has(> :is(.ds-table--sticky-head, .ds-table--sticky-foot))) {
     max-height: var(--ds-table-max-height, none);
-    overscroll-behavior: contain;
+    isolation: isolate;
   }
 
+  /* Focus moved by the keyboard never lands under the sticky rows. The
+     wrapper keeps what its own options make them, for whatever a script
+     scrolls into view; what takes focus adds what the table's options add to
+     that (below), since a class on the table never reaches the wrapper. */
   .ds-table-wrap:has(> .ds-table--sticky-head) {
-    scroll-padding-block-start: max(var(--ds-target-min, 0px), calc(var(--ds-table-head-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    --_kept-head: max(var(--ds-target-min, 0px), calc(var(--ds-table-head-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    scroll-padding-block-start: var(--_kept-head);
   }
 
   .ds-table-wrap:has(> .ds-table--sticky-foot) {
-    scroll-padding-block-end: max(var(--ds-target-min, 0px), calc(var(--ds-table-row-height, 52px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    --_kept-foot: max(var(--ds-target-min, 0px), calc(var(--ds-table-row-height, 52px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    scroll-padding-block-end: var(--_kept-foot);
+  }
+
+  .ds-table--sticky-head,
+  .ds-table-wrap--fill > .ds-table {
+    --_sticky-head: max(var(--ds-target-min, 0px), calc(var(--ds-table-head-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+  }
+
+  .ds-table--sticky-foot {
+    --_sticky-foot: max(var(--ds-target-min, 0px), calc(var(--ds-table-row-height, 52px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+  }
+
+  /* The alias' fixed height, which size and density do not change. */
+  .ds-table--dense:is(.ds-table--sticky-head, .ds-table--sticky-foot),
+  .ds-table-wrap--fill > .ds-table--dense {
+    --_sticky-head: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
+    --_sticky-foot: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
+  }
+
+  .ds-table--sticky-head > tbody :where(a[href], button, input, select, textarea, summary, [tabindex]),
+  .ds-table-wrap--fill > .ds-table > tbody :where(a[href], button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-block-start: max(0px, calc(var(--_sticky-head) - var(--_kept-head, 0px)));
+  }
+
+  .ds-table--sticky-foot > tbody :where(a[href], button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-block-end: max(0px, calc(var(--_sticky-foot) - var(--_kept-foot, 0px)));
   }
 
   /* The edge numbers of scroller.css, from DS.dom.scrollEdges() where no
@@ -473,23 +511,24 @@
   /* Zebra: the even rows, not counting detail rows (a detail row goes with
      its trigger). The :where() keeps it below the selected rows above, and
      the state layer on the cells adds to it; a pinned cell lays it over
-     its base as it does the selection. */
-  .ds-table--zebra tbody tr:where(:nth-child(even of :not(.ds-table__detail))),
-  .ds-table--zebra tbody tr:where(:nth-child(even of :not(.ds-table__detail)) + .ds-table__detail) {
+     its base as it does the selection. The look modifiers name their own
+     rows only: a nested table keeps its own look. */
+  .ds-table--zebra > tbody > tr:where(:nth-child(even of :not(.ds-table__detail))),
+  .ds-table--zebra > tbody > tr:where(:nth-child(even of :not(.ds-table__detail)) + .ds-table__detail) {
     --ds-table-row-tint: var(--ds-table-zebra, var(--ds-surface-low));
     background-color: var(--ds-table-zebra, var(--ds-surface-low));
   }
 
   /* No hairlines between the rows (a zebra needs none). */
-  .ds-table--plain tbody tr {
+  .ds-table--plain > tbody > tr {
     --ds-table-row-line: none;
   }
 
   /* A hairline between the columns, on the following cell, so a dropped
      .ds-col--secondary takes its line along; the :where() keeps it below
      a stacked cell's border: 0. Around the table only where nothing else
-     draws its edge. */
-  .ds-table--bordered :is(th, td):where(:not(:first-child)) {
+     draws its edge (a stacked table draws none: its rows are blocks). */
+  .ds-table--bordered > * > tr > :is(th, td):where(:not(:first-child)) {
     border-inline-start: 1px solid var(--ds-line);
   }
 
@@ -507,8 +546,8 @@
     background-image: linear-gradient(var(--ds-flip-backdrop, var(--ds-surface)), var(--ds-flip-backdrop, var(--ds-surface)));
   }
 
-  .ds-table--zebra tbody[data-ds-glide] > tr:where(:nth-child(even of :not(.ds-table__detail))),
-  .ds-table--zebra tbody[data-ds-glide] > tr:where(:nth-child(even of :not(.ds-table__detail)) + .ds-table__detail) {
+  .ds-table--zebra > tbody[data-ds-glide] > tr:where(:nth-child(even of :not(.ds-table__detail))),
+  .ds-table--zebra > tbody[data-ds-glide] > tr:where(:nth-child(even of :not(.ds-table__detail)) + .ds-table__detail) {
     background-image:
       linear-gradient(var(--ds-table-zebra, var(--ds-surface-low)), var(--ds-table-zebra, var(--ds-surface-low))),
       linear-gradient(var(--ds-flip-backdrop, var(--ds-surface)), var(--ds-flip-backdrop, var(--ds-surface)));
@@ -612,8 +651,9 @@
   }
 
   /* Press-in in --ds-dur-micro (.ds-pressed: js/ripple.js holds it); not
-     while a control inside the row is pressed (it has its own press). */
-  .ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))) {
+     while a control inside the row is pressed (it has its own press), nor on
+     the room of a pinned last cell, which opens nothing. */
+  .ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link):is(:active, .ds-pressed):not(:where(:has(:is(a[href], button, input, select, textarea, label, summary):not(.ds-table__row-link):active))):not(:where(.ds-table--pin-last tbody tr:has(> :is(td, th):last-child:active))) {
     --ds-table-row-layer: color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
     --ds-table-row-pace: var(--ds-dur-micro);
   }
@@ -859,8 +899,10 @@
     scrollbar-width: thin;
     scrollbar-color: var(--ds-line-2) transparent;
     /* Focus moved by the keyboard never lands under the header (nor, as
-       in every wrapper, under the pinned column). */
-    scroll-padding-block-start: max(var(--ds-target-min, 0px), calc(var(--ds-table-head-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+       in every wrapper, under the pinned column); what takes focus adds what
+       the table's own options add to this. */
+    --_kept-head: max(var(--ds-target-min, 0px), calc(var(--ds-table-head-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    scroll-padding-block-start: var(--_kept-head);
     mask-image:
       linear-gradient(to right, transparent, #000 calc(var(--ds-scroll-edge-start) * var(--ds-table-start-fade) * var(--ds-scroll-fade, var(--ds-space-8))), #000 calc(100% - var(--ds-scroll-edge-end) * var(--ds-table-end-fade) * var(--ds-scroll-fade, var(--ds-space-8))), transparent),
       linear-gradient(#000, #000),
@@ -880,7 +922,7 @@
   }
 
   .ds-table-wrap--fill:has(> .ds-table--dense) {
-    scroll-padding-block-start: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
+    --_kept-head: max(var(--ds-target-min, 0px), var(--ds-table-dense-row-height, 40px));
   }
 
   .ds-table-wrap--fill > .ds-table {
@@ -968,6 +1010,12 @@
       background-color var(--ds-table-row-pace) var(--ds-ease-in-out),
       --ds-table-sticky-layer var(--ds-table-row-pace) var(--ds-ease-in-out),
       --ds-table-sticky-tint var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  /* The room of a pinned last cell opens nothing, so it does not say it
+     would; its controls keep their own pointer. */
+  .ds-table--interactive.ds-table--pin-last tbody tr:not(.ds-table__detail) > :is(td, th):last-child {
+    cursor: default;
   }
 
   /* The corners, where a sticky row meets a pinned column. */
@@ -1152,17 +1200,18 @@
     }
 
     /* A 360px phone has no room for a 168px text column next to three
-       others: it takes what is left, and the cells keep closer together. */
+       others: it takes what is left, and the cells keep closer together
+       (three quarters of the hook, 12px by default). */
     .ds-table .ds-col--text {
       min-width: 0;
     }
 
     .ds-table :is(th, td) {
-      --_pad: max(var(--ds-space-1), calc(var(--ds-space-3) + var(--ds-density, 0) * 2px));
+      --_pad: max(var(--ds-space-1), calc(var(--ds-table-padding, var(--ds-space-4)) * 0.75 + var(--ds-density, 0) * 2px));
     }
 
     .ds-table .ds-table__expand > * {
-      padding-inline: max(var(--ds-space-1), calc(var(--ds-space-3) + var(--ds-density, 0) * 2px));
+      padding-inline: max(var(--ds-space-1), calc(var(--ds-table-padding, var(--ds-space-4)) * 0.75 + var(--ds-density, 0) * 2px));
     }
 
     .ds-card .ds-table-wrap {
@@ -1186,15 +1235,15 @@
     }
   }
 
-  /* 320px (400% zoom): closer still, so three columns fit without a sideways
-     scroll. */
+  /* 320px (400% zoom): closer still (half of the hook, 8px by default), so
+     three columns fit without a sideways scroll. */
   @media (max-width: 359px) {
     .ds-table :is(th, td) {
-      --_pad: max(var(--ds-space-1), calc(var(--ds-space-2) + var(--ds-density, 0) * 2px));
+      --_pad: max(var(--ds-space-1), calc(var(--ds-table-padding, var(--ds-space-4)) * 0.5 + var(--ds-density, 0) * 2px));
     }
 
     .ds-table .ds-table__expand > * {
-      padding-inline: max(var(--ds-space-1), calc(var(--ds-space-2) + var(--ds-density, 0) * 2px));
+      padding-inline: max(var(--ds-space-1), calc(var(--ds-table-padding, var(--ds-space-4)) * 0.5 + var(--ds-density, 0) * 2px));
     }
   }
 
@@ -1213,6 +1262,7 @@
    */
   :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) {
     display: block;
+    border: 0;
   }
 
   :is(.ds-sheet__body, .ds-dialog) :is(.ds-table--stack, .ds-table--stack-wide) > thead {
@@ -1289,6 +1339,7 @@
   @container ds-content (max-width: 600px) {
     .ds-table--stack {
       display: block;
+      border: 0;
     }
 
     .ds-table--stack > thead {
@@ -1366,6 +1417,7 @@
   @container ds-content (max-width: 840px) {
     .ds-table--stack-wide {
       display: block;
+      border: 0;
     }
 
     .ds-table--stack-wide > thead {
@@ -1457,8 +1509,9 @@
   }
 
   /* Forced colours: sticky and pinned cells are opaque in the system
-     colours, so nothing shows through them; the fill wrapper keeps its
-     edge and the selection bar an outline (its tint is gone). */
+     colours, so nothing shows through them; the pinned columns' hairlines
+     stay as CanvasText; the fill wrapper keeps its edge and the selection
+     bar an outline (its tint is gone). */
   @media (forced-colors: active) {
     .ds-table-wrap--fill {
       border-color: CanvasText;
@@ -1475,6 +1528,16 @@
     .ds-table--pin-last tfoot tr > :is(td, th):last-child {
       background-color: Canvas;
       background-image: none;
+    }
+
+    /* The line would be forced to Canvas, and vanish against its cell. */
+    .ds-table--pin-first tbody tr:not(.ds-table__detail) > :is(td, th):first-child::after,
+    .ds-table--pin-first thead th:first-child::after,
+    .ds-table--pin-first tfoot tr > :is(td, th):first-child::after,
+    .ds-table--pin-last tbody tr:not(.ds-table__detail) > :is(td, th):last-child::after,
+    .ds-table--pin-last thead th:last-child::after,
+    .ds-table--pin-last tfoot tr > :is(td, th):last-child::after {
+      background: CanvasText;
     }
 
     .ds-selection-bar {

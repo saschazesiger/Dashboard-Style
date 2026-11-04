@@ -46,7 +46,8 @@
  * End-aligned. At the end of a table card (after its .ds-table-wrap) it
  * runs to the card's edges like the table, with a hairline above. When the
  * content area is at most 600px wide the size and jump fields drop and the
- * range leads. A button that leads nowhere (first and previous on the first
+ * range leads; a numbered bar gives the range its own line and keeps only
+ * the current page between previous and next. A button that leads nowhere (first and previous on the first
  * page) is aria-disabled, not disabled: focus stays on it, the click is
  * blocked, and its tooltip still names it. The page holds the page number; a
  * page change dims the rows (.ds-stale with the loading bar), then renders
@@ -178,6 +179,16 @@
 
     .ds-pagination__range {
       margin-inline-end: auto;
+    }
+
+    /* Numbered: the range on a line of its own, and only the current page
+       between previous and next, so the three never break apart. */
+    .ds-pagination--numbered .ds-pagination__range {
+      flex-basis: 100%;
+    }
+
+    .ds-pagination--numbered .ds-pagination__pages li:not(:has([aria-current="page"])) {
+      display: none;
     }
   }
 

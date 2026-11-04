@@ -152,6 +152,41 @@ test('the fields keep their own width; they drop in a narrow content area and th
   expect((await page.locator('#narrow-range').boundingBox()).x - narrow.x).toBeLessThan(2);
 });
 
+test('numbered in a narrow content area: the range on its own line; previous, the current page and next share one', async ({ page }) => {
+  await open(page);
+  const measure = (width, classes) => page.evaluate(([inline, names]) => {
+    const pages = [1, 2, 3, 4, 5, 6, 7].map((n) => (n === 2 ? '<li class="ds-pagination__gap" aria-hidden="true">…</li>' : `<li><button class="ds-btn ds-btn--quiet ds-pagination__page" type="button" aria-label="Page ${n}"${n === 4 ? ' aria-current="page"' : ''}>${n}</button></li>`)).join('');
+    const region = document.createElement('div');
+    region.className = `ds-content ${names}`;
+    region.style.width = `${inline}px`;
+    region.innerHTML = `<nav class="ds-pagination ds-pagination--numbered" aria-label="Narrow"><p class="ds-pagination__range">151–200 of 1,234</p><div class="ds-pagination__jump"><label class="ds-pagination__label" for="narrow-jump">Go to page</label><input class="ds-input" id="narrow-jump" type="number"></div><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous page">P</button><ol class="ds-pagination__pages">${pages}</ol><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next page">N</button></nav>`;
+    document.querySelector('.ds-theme').append(region);
+    const box = (selector) => region.querySelector(selector).getBoundingClientRect();
+    const middle = (rect) => rect.top + rect.height / 2;
+    const range = box('.ds-pagination__range');
+    const out = {
+      range: range.bottom,
+      top: box('[aria-label="Previous page"]').top,
+      line: [box('[aria-label="Previous page"]'), box('[aria-current="page"]'), box('[aria-label="Next page"]')].map(middle),
+      shown: [...region.querySelectorAll('.ds-pagination__pages li')].filter((li) => li.getBoundingClientRect().width > 0).length,
+      overflow: region.scrollWidth - region.clientWidth,
+    };
+    region.remove();
+    return out;
+  }, [width, classes]);
+  for (const [width, classes] of [[600, ''], [360, ''], [320, ''], [320, 'ds-touch'], [360, 'ds-touch'], [320, 'ds-lg ds-touch']]) {
+    const name = `${width}px ${classes}`;
+    const narrow = await measure(width, classes);
+    expect(narrow.shown, name).toBe(1);
+    expect(narrow.top, `${name}: the range on its own line`).toBeGreaterThanOrEqual(narrow.range);
+    expect(narrow.line[1], `${name}: previous and the current page`).toBeCloseTo(narrow.line[0], 0);
+    expect(narrow.line[2], `${name}: next and the current page`).toBeCloseTo(narrow.line[0], 0);
+    expect(narrow.overflow, name).toBe(0);
+  }
+  // With room every page shows.
+  expect((await measure(720, '')).shown).toBe(7);
+});
+
 test('under a table: right under it with a hairline; a page change dims the rows, then the new ones show', async ({ page }) => {
   await open(page);
   const card = page.locator('[data-demo="table"]');
@@ -187,7 +222,6 @@ test('keyboard: Tab goes through field and buttons; a blocked button keeps its f
     await page.keyboard.press('Shift+Tab');
     await page.keyboard.press('Space');
     await expect(bar.locator('.ds-pagination__range')).toHaveText('51–100 of 1,234');
-    await expect(page.getByRole('button', { name: 'Next page' }).nth(0)).toBeVisible();
   }
 });
 

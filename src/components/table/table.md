@@ -46,7 +46,8 @@ is a class, and the behaviour (sorting, filtering, selecting) is the page's own 
   left its start, and a table that fits shows neither. `ds-scroll-edge-start` and `ds-scroll-edge-end` drive the
   registered numbers `--ds-scroll-edge-start` and `--ds-scroll-edge-end` (0 or 1, times the fade length) on the
   wrapper's own scroll timeline. Elsewhere `DS.dom.scrollEdges(wrapper)` sets them through `data-ds-overflow-start`
-  and `data-ds-overflow-end`; without it the static fade at the right edge stays. The fade is `--ds-scroll-fade`
+  and `data-ds-overflow-end`, and writes `data-ds-edges` after its first measurement, so the fades glide only from
+  then on; without it the static fade at the right edge stays. The fade is `--ds-scroll-fade`
   long (default `--ds-card-pad`); `--ds-scroll-fade: 0px` on the theme turns every fade off. The scrollbar strip stays
   unmasked (`--ds-scrollbar-height`, written by `scrollEdges()`). A wrapper with stacked rows never fades. A table
   scrolled sideways that then fits (columns hidden, a filter, a wider window) keeps its last fade in Chromium and
@@ -124,8 +125,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   row out static whatever its `position`; without the transform every row's link stretched over the whole table and
   the last row took every click, the hover, the status bar URL and WebDriver's element clicks. A row is therefore a
   stacking context and the box of `position: fixed` descendants, except while it holds a `.ds-menu` or
-  `.ds-combo__popup` that the script places (no popover or anchor positioning), which then stays fixed against the
-  viewport. WebKit gives the stretched area the table's height below the row's top: the rows below, painted above
+  `.ds-combo__popup` that the script places (no popover or anchor positioning, so no `data-anchored`), which then stays
+  fixed against the viewport. WebKit gives the stretched area the table's height below the row's top: the rows below, painted above
   it, still take their own clicks, the last row's area ends at the wrapper, and a focused row clips what it holds to
   itself (`clip-path: inset(0)`), so in WebKit its ring shows on the top and the sides only. `DS.ripple` sizes a
   row's ripple to the row itself. (Anchor positioning would size the area exactly, but WebKit then restyles the link
@@ -198,7 +199,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   (`--ds-z-sticky`). It is at least `--ds-table-fill-min-height` (240px) tall, at most `--ds-table-fill-max-height`
   (none). Use it outside a card. Cells stay on one line and end in an ellipsis at `--ds-table-cell-max-width`
   (280px); a tooltip (`data-tip` with the full text) shows a cut cell. Keyboard focus never lands under the header
-  (`scroll-padding`). The ends fade as in a card ([Horizontal scroller](#horizontal-scroller)), while the border and
+  (`scroll-padding` on the wrapper, and a `scroll-margin` on what takes focus for the options on the table). It fills
+  the view, so it keeps the wheel (`overscroll-behavior: contain`). The ends fade as in a card ([Horizontal scroller](#horizontal-scroller)), while the border and
   the scrollbars stay opaque.
 - **`.ds-table--pin-first`** (in a fill wrapper or a card): the first column stays while the others scroll under it,
   above their controls (`--ds-z-pinned`; the corner over a sticky header `--ds-z-sticky-pinned`). Its cells are
@@ -300,15 +302,21 @@ Zebra, borders, sticky rows and pinned columns combine. There is no tone: a tabl
 
 A sticky row sticks to its scroller, and the wrapper is one: set `--ds-table-max-height` on it (or in the theme), or the
 rows have nowhere to scroll and nothing sticks. `.ds-table-wrap--fill` needs neither the class nor the hook for its
-header. Sticky cells are opaque (`--ds-table-sticky-bg`); keyboard focus never lands under them (`scroll-padding`); where
-a sticky row meets a pinned column the corner stays on top (`--ds-z-sticky-pinned`).
+header. Sticky cells are opaque (`--ds-table-sticky-bg`); keyboard focus never lands under them, wherever the size,
+density or touch sits (`scroll-padding` on the wrapper, and a `scroll-margin` on what takes focus for the options on
+the table); where a sticky row meets a pinned column the corner stays on top (`--ds-z-sticky-pinned`).
+
+The wrapper sits mid-page, so a page around it stays usable: a wheel at its end, or over a wrapper with nothing to
+scroll, moves the page, and it is a stacking context (`isolation: isolate`), so its sticky cells never paint over a
+page's own sticky bar.
 
 ### Pinned last column
 
 `.ds-table--pin-last` works like `.ds-table--pin-first` at the end edge, for a row's actions or a total: the cell is
 opaque with the row's layers over it, a hairline at its start shows while columns follow under it (scroll-driven, else
 `data-ds-overflow-end` from `DS.dom.scrollEdges()`), and the wrapper drops its end fade (`--ds-table-end-fade`,
-internal). Its cell stands above the row link, so its own room opens nothing: put the row's controls there. Set
+internal). Its cell stands above the row link, so its own room opens nothing, with no pointer, no press and no ripple:
+put the row's controls there. Set
 `--ds-table-pin-last-width` on the wrapper to its width, so focus moved by the keyboard never lands under it
 (`scrollEdges()` measures only the first column).
 
@@ -323,8 +331,8 @@ internal). Its cell stands above the row link, so its own room opens nothing: pu
 
 ### Forced colours
 
-Sticky and pinned cells are `Canvas`, so nothing shows through them, and the full-page wrapper's border is `CanvasText`.
-Zebra and selection tints go (the rows keep their hairlines, a selected row its checkbox), and the selection bar keeps
+Sticky and pinned cells are `Canvas`, so nothing shows through them, and the pinned columns' hairlines and the full-page
+wrapper's border are `CanvasText`. Zebra and selection tints go (the rows keep their hairlines, a selected row its checkbox), and the selection bar keeps
 an outline. `.ds-table--plain` then has no lines between its rows.
 
 ### Hooks
@@ -334,7 +342,7 @@ an outline. `.ds-table--plain` then has no lines between its rows.
 | `--ds-table-head-height` | 48px | the head's base height, which size and density step from |
 | `--ds-table-row-height` | 52px | the rows' base height, which size and density step from |
 | `--ds-table-dense-row-height` | 40px | `.ds-table--dense` (deprecated) |
-| `--ds-table-padding` | `--ds-space-4` | the cells' side padding, which density steps from |
+| `--ds-table-padding` | `--ds-space-4` | the cells' side padding, which density steps from; on phones (600px) three quarters of it, below 360px half |
 | `--ds-table-row-hover` | `currentColor` at `--ds-state-hover-lg` | the row's hover layer |
 | `--ds-table-row-selected` | `--ds-accent` | a selected row |
 | `--ds-table-zebra` | `--ds-surface-low` | the even rows of `.ds-table--zebra` |
@@ -353,4 +361,6 @@ an outline. `.ds-table--plain` then has no lines between its rows.
   `.ds-table--sticky-head`, `.ds-table--sticky-foot`, `.ds-table--pin-last`, the hooks `--ds-table-padding`,
   `--ds-table-zebra`, `--ds-table-max-height`, `--ds-table-pin-last-width` and `--ds-selection-bar-height`.
 - Deprecated: `.ds-table--dense` and `--ds-table-dense-row-height` (use `.ds-density-tight`; removed when 3.0 ships).
+- A wrapper with sticky rows is a stacking context and hands the wheel on to the page; the pinned columns' hairlines
+  show in forced colours; `--ds-table-padding` also sets the phones' side padding.
 - Floor: no `-webkit-mask-*` twins on the table wrappers, and the alt text of a stacked cell's label is used directly.

@@ -85,7 +85,9 @@ There is no tone: a page shows no meaning of its own.
   `DS.motion.flip(tbody, (o) => DS.dom.morphHtml(tbody, rows, o), { items: 'tr' })`: every key is new, so the old rows go
   at once and the new ones fade in; the range text changes at once.
 - After the `.ds-table-wrap` of a card it sits right under the table with a hairline and runs to the card's edges. When
-  the content area is at most 600px wide the size and jump fields drop and the range leads. Hidden in print.
+  the content area is at most 600px wide the size and jump fields drop and the range leads. A numbered bar then gives
+  the range its own line and shows only the current page between previous and next, so the three stay together (the
+  other page buttons are out of the tab order until the area widens). Hidden in print.
 
 ### Accessibility
 
@@ -113,4 +115,5 @@ The current page is a choice in a set: `SelectedItem` and `SelectedItemText`, wi
 - Pagination: the variants `.ds-pagination--simple` (now with a rule of its own), `.ds-pagination--numbered` and
   `.ds-pagination--cursor`, the parts `.ds-pagination__pages`, `.ds-pagination__page`, `.ds-pagination__gap` and
   `.ds-pagination__jump`, the hooks `--ds-pagination-current-bg`, `--ds-pagination-current-color` and
-  `--ds-pagination-jump-width`. Its fields' width comes from a grid column, not from a rule against `.ds-input`.
+  `--ds-pagination-jump-width`. Its fields' width comes from a grid column, not from a rule against `.ds-input`. A
+  numbered bar in a narrow content area keeps previous, the current page and next on one line.

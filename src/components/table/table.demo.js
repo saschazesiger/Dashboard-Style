@@ -13,7 +13,7 @@ var LOOKS = [
   ['bordered', 'ds-table--bordered', 'A hairline between the columns too.'],
   ['plain', 'ds-table--plain ds-table--zebra', 'No hairlines between the rows, with the zebra to follow them by.'],
 ];
-var MODELS = ['Latitude 7440', 'ThinkPad T14', 'OptiPlex 7010', 'EliteBook 840', 'Surface Pro 9', 'iPad Air'];
+var MODELS = ['Laptop 14', 'Laptop 13', 'Desktop 7', 'Laptop 15', 'Tablet 13', 'Tablet 11'];
 var OWNERS = ['Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Katherine Johnson', 'Edsger Dijkstra', 'Barbara Liskov'];
 var PLACES = ['Building A, 1st floor', 'Building A, 2nd floor', 'Server room', 'Building B, ground floor, the open-plan office next to the stairs', 'Storage', 'Building B, 1st floor'];
 

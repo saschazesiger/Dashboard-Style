@@ -94,6 +94,27 @@ test('touch: the sort button reaches the target and hangs into its cell, so the 
   expect(await height(page, '#rest-head')).toBe(48);
 });
 
+test('--ds-table-padding also sets the side padding on phones: three quarters of it, half of it below 360px', async ({ page }) => {
+  await open(page);
+  const measure = () => page.evaluate(() => {
+    const host = document.querySelector('#grid');
+    const read = (hook, classes) => {
+      const region = document.createElement('div');
+      region.className = classes;
+      region.innerHTML = `<table class="ds-table"${hook ? ` style="--ds-table-padding: ${hook}"` : ''}><tbody><tr><td>LAPTOP-0042</td></tr><tr class="ds-table__detail"><td><div class="ds-table__expand"><div>Details</div></div></td></tr></tbody></table>`;
+      host.append(region);
+      const value = [region.querySelector('td'), region.querySelector('.ds-table__expand > div')].map((el) => parseFloat(getComputedStyle(el).paddingInlineStart));
+      region.remove();
+      return value;
+    };
+    return { plain: read('', ''), hook: read('40px', ''), compact: read('40px', 'ds-density-compact'), tight: read('', 'ds-density-tight') };
+  });
+  await page.setViewportSize({ width: 500, height: 720 });
+  expect(await measure()).toEqual({ plain: [12, 12], hook: [30, 30], compact: [28, 28], tight: [6, 6] });
+  await page.setViewportSize({ width: 320, height: 720 });
+  expect(await measure()).toEqual({ plain: [8, 8], hook: [20, 20], compact: [18, 18], tight: [4, 4] });
+});
+
 test('shape multiplies every radius: the sort button, the full-page wrapper, a stacked block and the selection bar', async ({ page }) => {
   await open(page);
   const radii = await page.evaluate((shapes) => {
@@ -195,10 +216,26 @@ test('borders: --bordered lines the columns and the edge outside a card, --plain
   expect(await border('#bordered', 'border-block-start')).toEqual(['solid', 1]);
   expect(await border('#bordered-card', 'border-block-start')).toEqual(['none', 0]);
   expect(await border('#bc-2')).toEqual(['solid', 1]);
-  // A stacked cell keeps its border: 0.
+  // A stacked cell keeps its border: 0, and the stacked table has no frame around its blocks.
   expect(await border('#bs-2')).toEqual(['none', 0]);
+  expect(await border('#bordered-stack', 'border-block-start')).toEqual(['none', 0]);
   expect(await border('#lined-1', 'border-block-end')).toEqual(['solid', 1]);
   expect(await border('#plain-1', 'border-block-end')).toEqual(['none', 0]);
+});
+
+test('a look stays on its own table: a nested table takes neither zebra, plain nor bordered', async ({ page }) => {
+  await open(page);
+  await settle(page, '#nested-outer');
+  // The outer table has them all.
+  expect(await style(page, '#outer-even', 'background-color')).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await style(page, '#outer-2', 'border-inline-start-style')).toBe('solid');
+  expect(await style(page, '#outer-2', 'border-block-end-style')).toBe('none');
+  // The nested one none of them.
+  expect(await style(page, '#n2', 'background-color')).toBe('rgba(0, 0, 0, 0)');
+  expect(await style(page, '#n1-2', 'border-block-end-style')).toBe('solid');
+  expect(await style(page, '#n2-2', 'border-inline-start-style')).toBe('none');
+  await page.$eval('#nested tbody', (el) => el.setAttribute('data-ds-glide', ''));
+  expect((await style(page, '#n2', 'background-image')).match(/gradient/g)).toHaveLength(1);
 });
 
 test('sticky rows: head and foot stay in a bounded wrapper on an opaque base, focus never lands under them', async ({ page }) => {
@@ -240,6 +277,83 @@ test('sticky rows: head and foot stay in a bounded wrapper on an opaque base, fo
   await expect(page.locator('#unbound')).toHaveJSProperty('scrollTop', 0);
   const unbound = await page.$eval('#unbound', (el) => el.scrollHeight - el.clientHeight);
   expect(unbound).toBe(0);
+});
+
+test('focus clears the sticky rows when size, density or touch sits on the table itself', async ({ page }) => {
+  await open(page);
+  // A link inside the band a wrapper-level offset would miss: below the 48px of the default head, above the 64px of .ds-xl.
+  const reach = (wrap, link, head, foot, side) => page.evaluate(({ wrapId, linkId, headId, footId, edge }) => {
+    const scroller = document.getElementById(wrapId);
+    const target = document.getElementById(linkId);
+    target.blur();
+    scroller.scrollTop = 0;
+    const box = scroller.getBoundingClientRect();
+    const start = target.getBoundingClientRect();
+    const inner = box.top + scroller.clientTop;
+    scroller.scrollTop = edge === 'head'
+      ? start.top - inner - 50
+      : start.bottom - (inner + scroller.clientHeight) + 56;
+    target.focus();
+    return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => {
+      const now = target.getBoundingClientRect();
+      const hit = document.elementFromPoint(now.left + now.width / 2, now.top + now.height / 2);
+      resolve({
+        focused: document.activeElement === target,
+        hit: hit === target,
+        underHead: now.top - document.getElementById(headId).getBoundingClientRect().bottom,
+        underFoot: footId ? document.getElementById(footId).getBoundingClientRect().top - now.bottom : 0,
+      });
+    })));
+  }, { wrapId: wrap, linkId: link, headId: head, footId: foot, edge: side });
+  for (const [wrap, link, head, foot, side] of [
+    ['xl-wrap', 'xl-link-5', 'xl-head', 'xl-foot', 'head'],
+    ['xl-wrap', 'xl-link-5', 'xl-head', 'xl-foot', 'foot'],
+    ['fill-xl-wrap', 'fill-xl-link-5', 'fill-xl-head', null, 'head'],
+  ]) {
+    const name = `${wrap} ${side}`;
+    await page.locator(`#${wrap}`).scrollIntoViewIfNeeded();
+    const place = await reach(wrap, link, head, foot, side);
+    expect(place.focused, name).toBe(true);
+    expect(place.hit, `${name}: the link is what shows there`).toBe(true);
+    expect(place.underHead, name).toBeGreaterThanOrEqual(-1);
+    expect(place.underFoot, name).toBeGreaterThanOrEqual(-1);
+  }
+  // The wrapper keeps its own offset, for what a script scrolls into view; the link adds what the table's options add to it.
+  expect(await style(page, '#xl-wrap', 'scroll-padding-block-start')).toBe('48px');
+  expect(await style(page, '#xl-link-5', 'scroll-margin-block-start')).toBe('16px');
+  expect(await style(page, '#sticky-link-10', 'scroll-margin-block-start')).toBe('0px');
+});
+
+test('a wheel over a sticky wrapper moves the page once the wrapper has nothing left to scroll', async ({ page }) => {
+  await open(page);
+  for (const id of ['unbound', 'sticky-wrap']) {
+    const start = await page.$eval(`#${id}`, (el) => {
+      el.scrollIntoView({ block: 'center', behavior: 'instant' });
+      el.scrollTop = el.scrollHeight;
+      return window.scrollY;
+    });
+    const box = await page.locator(`#${id}`).boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 200);
+    await expect.poll(() => page.evaluate(() => window.scrollY), { message: id }).toBeGreaterThan(start);
+  }
+  // A full-page wrapper fills the view, so it keeps the wheel to itself.
+  expect(await style(page, '#sticky-wrap', 'overscroll-behavior-y')).toBe('auto');
+  expect(await style(page, '#pin-fill', 'overscroll-behavior-y')).toBe('contain');
+});
+
+test('a bounded sticky table stays under a page bar: its wrapper is a stacking context', async ({ page }) => {
+  await open(page);
+  const hit = await page.evaluate(() => {
+    const wrap = document.getElementById('sticky-wrap');
+    wrap.insertAdjacentHTML('beforebegin', '<div id="page-bar" style="position: sticky; inset-block-start: 0; z-index: var(--ds-z-sticky); height: 48px; background: var(--ds-surface)"></div>');
+    // The bar sticks to the top of the view, and the table's head (its pinned corner too) runs under its lower half.
+    window.scrollTo({ top: window.scrollY + wrap.getBoundingClientRect().top - 24, behavior: 'instant' });
+    const box = wrap.getBoundingClientRect();
+    return ['first', 'other'].map((column) => document.elementFromPoint(box.left + (column === 'first' ? 8 : box.width - 8), 36)?.id);
+  });
+  expect(hit).toEqual(['page-bar', 'page-bar']);
+  expect(await style(page, '#sticky-wrap', 'isolation')).toBe('isolate');
 });
 
 test('a pinned last column stays on an opaque base, with its hairline and without the end fade', async ({ page }) => {
@@ -304,6 +418,65 @@ test('a pinned last column in an interactive table: the row link still opens fro
   expect(heights.cell).toBeCloseTo(heights.row, 0);
 });
 
+/* The empty room of a pinned last cell, beside its button. */
+const emptyRoom = (page, cell) => page.$eval(cell, (el) => {
+  el.closest('.ds-table-wrap').scrollIntoView({ block: 'center', behavior: 'instant' });
+  const box = el.getBoundingClientRect();
+  const point = { x: box.left + 4, y: box.top + box.height / 2 };
+  return { ...point, hit: document.elementFromPoint(point.x, point.y) === el };
+});
+const centre = (page, wrap, row) => page.evaluate(({ wrapId, rowId }) => {
+  const box = document.getElementById(wrapId).getBoundingClientRect();
+  const line = document.getElementById(rowId).getBoundingClientRect();
+  return { x: box.left + box.width / 2, y: line.top + line.height / 2 };
+}, { wrapId: wrap, rowId: row });
+
+for (const [title, wrap, row, cell, opened] of [
+  ['a pinned last column', 'pin-wrap', 'pin-a', 'pin-last-a', /#open-a$/],
+  ['both pins', 'pin-both-wrap', 'both-a', 'both-last-a', /#both-open-a$/],
+]) {
+  test(`${title}: the last cell's own room shows no press, the rest of the row does`, async ({ page }) => {
+    await open(page);
+    const layer = () => style(page, `#${row}`, '--ds-table-row-layer');
+    const room = await emptyRoom(page, `#${cell}`);
+    expect(room.hit, 'the point is the cell itself').toBe(true);
+    expect(await style(page, `#${cell}`, 'cursor')).toBe('default');
+    // Its button keeps its pointer.
+    expect(await page.$eval(`#${cell} button`, (el) => getComputedStyle(el).cursor)).toBe('pointer');
+    await page.mouse.move(room.x, room.y);
+    const hovered = await layer();
+    await page.mouse.down();
+    expect(await layer(), 'pressed in the last cell').toBe(hovered);
+    await page.mouse.up();
+    await expect(page).not.toHaveURL(opened);
+    // The rest of the row presses.
+    const middle = await centre(page, wrap, row);
+    await page.mouse.move(middle.x, middle.y);
+    const before = await layer();
+    await page.mouse.down();
+    expect(await layer(), 'pressed in the row').not.toBe(before);
+    await page.mouse.move(1, 1);
+    await page.mouse.up();
+  });
+
+  // Needs the src/js/ripple.js change the integrator takes (ripple.js is outside this folder): remove .fixme with it.
+  test.fixme(`${title}, with DS.ripple.attach(): a press on the last cell's own room opens nothing and does not ripple, the rest of the row opens`, async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => { DS.ripple.attach(document); });
+    const room = await emptyRoom(page, `#${cell}`);
+    await page.mouse.move(room.x, room.y);
+    await page.mouse.down();
+    expect(await page.$eval(`#${row}`, (el) => el.classList.contains('ds-pressed'))).toBe(false);
+    await expect(page.locator(`#${row} .ds-press-ripple`)).toHaveCount(0);
+    await page.mouse.up();
+    await page.evaluate(() => new Promise(requestAnimationFrame));
+    await expect(page).not.toHaveURL(opened);
+    const middle = await centre(page, wrap, row);
+    await page.mouse.click(middle.x, middle.y);
+    await expect(page).toHaveURL(opened);
+  });
+}
+
 test('stacked rows: a pinned last cell steps aside', async ({ page }) => {
   await open(page);
   expect(await style(page, '#pin-stack-last', 'position')).toBe('static');
@@ -327,9 +500,35 @@ test('forced colours: sticky rows and the pinned last column are Canvas', async 
     expect(await style(page, selector, 'background-color'), selector).toBe(canvas);
     expect(await style(page, selector, 'background-image'), selector).toBe('none');
   }
-  // A focused selection bar keeps its edge; the zebra goes and the row keeps its hairline.
+  // The zebra goes and the row keeps its hairline.
   expect(await style(page, '#z2', 'background-color')).toBe(canvas);
   expect(await style(page, '#lined-1', 'border-block-end-style')).toBe('solid');
+  const ink = await page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.style.background = 'CanvasText';
+    document.body.append(probe);
+    const value = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return value;
+  });
+  expect(ink).not.toBe(canvas);
+  // The selection bar keeps an edge, since its tint is gone.
+  expect(await style(page, '#selection-bar', 'outline-style')).toBe('solid');
+  expect(await style(page, '#selection-bar', 'outline-color')).toBe(ink);
+  // The pinned columns' hairlines stay visible over a Canvas cell, both of them with the wrapper's overflow attribute set.
+  await page.evaluate(() => {
+    for (const id of ['pin-wrap', 'sticky-wrap']) {
+      const wrap = document.getElementById(id);
+      DS.dom.scrollEdges(wrap);
+      wrap.scrollLeft = 100;
+    }
+  });
+  await expect(page.locator('#pin-wrap')).toHaveAttribute('data-ds-overflow-end', /.*/);
+  await expect(page.locator('#sticky-wrap')).toHaveAttribute('data-ds-overflow-start', /.*/);
+  for (const selector of ['#pin-last-a', '#pin-head-last', '#pin-foot-last', '#sticky-body td:first-child', '#sticky-head th:first-child', '#sticky-foot-first']) {
+    await expect.poll(() => page.$eval(selector, (el) => Number(getComputedStyle(el, '::after').opacity)), { message: selector }).toBeGreaterThan(0.9);
+    expect(await style(page, selector, 'background-color', '::after'), selector).toBe(ink);
+  }
 });
 
 test('keyboard: Tab goes through every control in order and skips a closed detail; Enter and Space use them', async ({ page, browserName }) => {
@@ -347,9 +546,16 @@ test('keyboard: Tab goes through every control in order and skips a closed detai
   for (let i = 0; i < 5; i += 1) await page.keyboard.press('Tab');
   await expect(page.locator('#k-link')).toBeFocused();
   expect(await style(page, '#k-link', 'outline-style', '::after')).toBe('solid');
-  // Enter follows the link, Space presses a button and the toggle opens its detail.
+  // Enter follows the link.
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#open-k1$/);
+  // Space presses a button: the toggle opens its detail, which Tab then reaches.
+  await page.focus('#k-toggle');
+  await page.keyboard.press('Space');
+  await expect(page.locator('#k-toggle')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#k1-detail')).toHaveJSProperty('inert', false);
+  for (let i = 0; i < 3; i += 1) await page.keyboard.press('Tab');
+  await expect(page.locator('#k-inside')).toBeFocused();
   // The wrapper that is a tab stop: an inset ring, and the arrow keys scroll it.
   await page.focus('#k-region');
   await page.keyboard.press('Tab');

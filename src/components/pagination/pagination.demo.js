@@ -81,7 +81,7 @@ SG.demo('pagination', {
   title: 'Pagination',
   group: 'navigation',
   need: 'Move through the pages of a long table or list',
-  lead: 'The footer of a table whose records come in pages. Its buttons are ordinary buttons, so size, density, shape and touch in the options panel reach them. When the content area is at most 600px wide the size and jump fields drop: narrow the width.',
+  lead: 'The footer of a table whose records come in pages. Its buttons are ordinary buttons, so size, density, shape and touch in the options panel reach them. When the content area is at most 600px wide the size and jump fields drop, and a numbered bar keeps only the current page between previous and next: narrow the width.',
   options: { variants: VARIANTS, sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {

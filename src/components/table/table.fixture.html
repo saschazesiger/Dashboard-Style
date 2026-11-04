@@ -70,16 +70,24 @@
     <table class="ds-table ds-table--bordered" id="bordered">
       <caption class="ds-sr">Bordered</caption>
       <thead><tr><th scope="col" id="b-head-1">Device</th><th scope="col" id="b-head-2">Model</th></tr></thead>
-      <tbody><tr><td id="b-1">LAPTOP-0042</td><td id="b-2">ThinkPad T14</td></tr></tbody>
+      <tbody><tr><td id="b-1">LAPTOP-0042</td><td id="b-2">Laptop 14</td></tr></tbody>
     </table>
     <section class="ds-card fx-narrow-card"><div class="ds-table-wrap"><table class="ds-table ds-table--bordered" id="bordered-card">
       <caption class="ds-sr">Bordered in a card</caption>
-      <tbody><tr><td>LAPTOP-0042</td><td id="bc-2">ThinkPad T14</td></tr></tbody>
+      <tbody><tr><td>LAPTOP-0042</td><td id="bc-2">Laptop 14</td></tr></tbody>
     </table></div></section>
     <div class="ds-content fx-content-560"><table class="ds-table ds-table--bordered ds-table--stack" id="bordered-stack">
       <thead><tr><th scope="col">Name</th><th scope="col">URL</th></tr></thead>
       <tbody><tr><td data-label="Name">Status page</td><td data-label="URL" id="bs-2">https://status.example.org</td></tr></tbody>
     </table></div>
+    <table class="ds-table ds-table--zebra ds-table--plain ds-table--bordered" id="nested-outer">
+      <caption class="ds-sr">A look around a nested table</caption>
+      <tbody>
+        <tr><td>LAPTOP-0042</td><td id="outer-2">Laptop 14</td></tr>
+        <tr id="outer-even"><td colspan="2"><table class="ds-table" id="nested"><caption class="ds-sr">Nested</caption><tbody><tr id="n1"><td>Disk</td><td id="n1-2">78%</td></tr><tr id="n2"><td>Memory</td><td id="n2-2">16 GB</td></tr></tbody></table></td></tr>
+        <tr><td>LAPTOP-0043</td><td>Laptop 14</td></tr>
+      </tbody>
+    </table>
     <table class="ds-table" id="lined"><tbody><tr><td id="lined-1">LAPTOP-0042</td></tr><tr><td>LAPTOP-0043</td></tr></tbody></table>
     <table class="ds-table ds-table--plain" id="plain"><tbody><tr><td id="plain-1">LAPTOP-0042</td></tr><tr><td>LAPTOP-0043</td></tr></tbody></table>
   </section>
@@ -93,6 +101,17 @@
       <tfoot><tr><th scope="row" id="sticky-foot-first">Total</th><td id="sticky-foot-2">128</td><td></td><td></td><td></td><td></td></tr></tfoot>
     </table></div>
     <div class="ds-table-wrap" id="unbound" style="width: 480px"><table class="ds-table ds-table--sticky-head"><thead><tr><th scope="col">Device</th></tr></thead><tbody><tr><td>LAPTOP-0042</td></tr><tr><td>LAPTOP-0043</td></tr></tbody></table></div>
+    <div class="ds-table-wrap" id="xl-wrap" style="--ds-table-max-height: 320px; width: 480px"><table class="ds-table ds-table--sticky-head ds-table--sticky-foot ds-xl" id="xl">
+      <caption class="ds-sr">Sticky rows with the size on the table</caption>
+      <thead><tr><th scope="col" id="xl-head">Device</th></tr></thead>
+      <tbody id="xl-body"></tbody>
+      <tfoot><tr><td id="xl-foot">12 devices</td></tr></tfoot>
+    </table></div>
+    <div class="fx-fill-frame"><div class="ds-table-wrap ds-table-wrap--fill" id="fill-xl-wrap"><table class="ds-table ds-xl" id="fill-xl">
+      <caption class="ds-sr">Full page with the size on the table</caption>
+      <thead><tr><th scope="col" id="fill-xl-head">Device</th></tr></thead>
+      <tbody id="fill-xl-body"></tbody>
+    </table></div></div>
   </section>
 
   <section class="fx-section" aria-labelledby="pin-title">
@@ -103,6 +122,11 @@
       <tbody id="pin-body"></tbody>
       <tfoot><tr><th scope="row">2 devices</th><td></td><td></td><td></td><td></td><td id="pin-foot-last"></td></tr></tfoot>
     </table></div></section>
+    <section class="ds-card fx-narrow-card"><div class="ds-table-wrap" id="pin-both-wrap" style="--ds-table-pin-last-width: 64px"><table class="ds-table ds-table--interactive ds-table--pin-first ds-table--pin-last" id="pin-both">
+      <caption class="ds-sr">Devices with both columns pinned</caption>
+      <thead id="pin-both-head"></thead>
+      <tbody id="pin-both-body"></tbody>
+    </table></div></section>
     <div class="fx-fill-frame"><div class="ds-table-wrap ds-table-wrap--fill" id="pin-fill"><table class="ds-table ds-table--pin-last" id="pin-fill-table">
       <caption class="ds-sr">Full page, pinned last</caption>
       <thead id="fill-head"></thead>
@@ -112,6 +136,11 @@
       <thead><tr><th scope="col">Name</th><th scope="col">URL</th></tr></thead>
       <tbody><tr><td data-label="Name">Status page</td><td data-label="URL" id="pin-stack-last">https://status.example.org</td></tr></tbody>
     </table></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="bar-title">
+    <h2 id="bar-title">Selection bar</h2>
+    <div class="ds-selection-bar" role="toolbar" aria-label="Selected devices" id="selection-bar"><p class="ds-selection-bar__count">1 selected</p></div>
   </section>
 
   <section class="fx-section" aria-labelledby="keys-title">
@@ -143,12 +172,24 @@
 <script src="/test/browser/fixtures/fixture.js"></script>
 <script>
   /* Wide rows: six columns, so a 480px wrapper scrolls sideways. */
-  const head = (last) => `<tr><th scope="col" style="min-width: 160px">Device</th>${['Model', 'Owner', 'Location', 'Serial'].map((name) => `<th scope="col" style="min-width: 160px">${name}</th>`).join('')}<th scope="col" id="${last}">${last === 'pin-head-last' || last === 'fill-head-last' ? '<span class="ds-sr">Actions</span>' : 'Load'}</th></tr>`;
-  const cells = () => ['ThinkPad T14', 'Ada Lovelace', 'Building A', 'SN-1'].map((text) => `<td class="ds-nowrap">${text}</td>`).join('');
+  const head = (last) => `<tr><th scope="col" style="min-width: 160px">Device</th>${['Model', 'Owner', 'Location', 'Serial'].map((name) => `<th scope="col" style="min-width: 160px">${name}</th>`).join('')}<th scope="col" id="${last}">${['pin-head-last', 'pin-both-head-last', 'fill-head-last'].includes(last) ? '<span class="ds-sr">Actions</span>' : 'Load'}</th></tr>`;
+  const cells = () => ['Laptop 14', 'Ada Lovelace', 'Building A', 'SN-1'].map((text) => `<td class="ds-nowrap">${text}</td>`).join('');
   document.getElementById('sticky-head').innerHTML = head('sticky-head-last');
   document.getElementById('sticky-body').innerHTML = Array.from({ length: 12 }, (_, i) => `<tr><td class="ds-nowrap"><a href="#s${i}" id="sticky-link-${i}">LAPTOP-${i}</a></td>${cells()}<td class="ds-num">${i}%</td></tr>`).join('');
   document.getElementById('pin-head').innerHTML = head('pin-head-last');
   document.getElementById('pin-body').innerHTML = ['a', 'b'].map((key) => `<tr id="pin-${key}"><td class="ds-nowrap"><a class="ds-link-btn ds-table__row-link" href="#open-${key}">LAPTOP-${key}</a></td>${cells()}<td class="ds-table__actions" id="pin-last-${key}"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ${key}" id="pin-edit-${key}">E</button></td></tr>`).join('');
+  const pinned = (prefix) => ['a', 'b'].map((key) => `<tr id="${prefix}-${key}"><td class="ds-nowrap"><a class="ds-link-btn ds-table__row-link" href="#${prefix}-open-${key}">LAPTOP-${key}</a></td>${cells()}<td class="ds-table__actions" id="${prefix}-last-${key}"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ${key}">E</button></td></tr>`).join('');
+  document.getElementById('pin-both-head').innerHTML = head('pin-both-head-last');
+  document.getElementById('pin-both-body').innerHTML = pinned('both');
+  const linkRows = (prefix) => Array.from({ length: 12 }, (_, i) => `<tr><td><a href="#${prefix}${i}" id="${prefix}-link-${i}">LAPTOP-${i}</a></td></tr>`).join('');
+  document.getElementById('xl-body').innerHTML = linkRows('xl');
+  document.getElementById('fill-xl-body').innerHTML = linkRows('fill-xl');
+  /* What the page's own script does for an expandable row. */
+  document.getElementById('k-toggle').addEventListener('click', (event) => {
+    const open = event.currentTarget.getAttribute('aria-expanded') !== 'true';
+    event.currentTarget.setAttribute('aria-expanded', String(open));
+    document.getElementById('k1-detail').inert = !open;
+  });
   document.getElementById('fill-head').innerHTML = head('fill-head-last');
   document.getElementById('fill-body').innerHTML = Array.from({ length: 12 }, (_, i) => `<tr><td class="ds-nowrap">LAPTOP-${i}</td>${cells()}<td class="ds-table__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Edit ${i}">E</button></td></tr>`).join('');
 </script>

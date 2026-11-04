@@ -80,7 +80,7 @@
     },
     "--ds-table-padding": {
       "default": "`--ds-space-4`",
-      "description": "the side padding of table cells and of an open detail: the base that density steps apply to (2px per step)"
+      "description": "the side padding of table cells and of an open detail: the base that density steps apply to (2px per step); on phones (600px) three quarters of it, below 360px half"
     },
     "--ds-table-zebra": {
       "default": "`--ds-surface-low`",
