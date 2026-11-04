@@ -45,10 +45,10 @@
     },
     "--ds-empty-padding": {
       "default": "32px (`--page`: 96px, twice this hook or 48px)",
-      "description": "an empty state's block padding at md, before size and density"
+      "description": "an empty state's block padding at md, before size and density (`--inline` has its own, 12px)"
     },
     "--ds-empty-media-size": {
-      "default": "120px (`--page`: 160px)",
+      "default": "120px (`--page`: 160px, `--inline`: 32px)",
       "description": "the height of `.ds-empty__media`, the slot for a picture"
     }
   },

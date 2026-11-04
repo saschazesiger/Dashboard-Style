@@ -37,7 +37,11 @@
  *             line, 8px on an avatar, a field and a row; the loader in a
  *             .ds-loading follows its own steps
  *   density   any container: the padding and the gaps of the blocks (2px per
- *             step), a field and a row 4px per step, like what they stand for
+ *             step: under the compact theme, density -2, the line's padding is
+ *             12px and a card's 20px, on purpose), a field and a table row 4px
+ *             per step: their owners' formula on their owners' hooks
+ *             (--ds-input-height, --ds-table-row-height, --ds-table-head-height),
+ *             so a bone never jumps when the real control replaces it
  *   shape     a bone's radius and a card's corners times --ds-shape; an
  *             avatar stays round
  *   tone, target-min: not read. Nothing here is a target or says more than
@@ -201,7 +205,7 @@
 
   /* A field: the height of the control it stands for. */
   .ds-skeleton__field {
-    --_h: max(var(--ds-target-min, 0px), calc(40px + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    --_h: max(var(--ds-target-min, 0px), calc(var(--ds-input-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
     --_r: var(--ds-skeleton-radius, var(--ds-radius-sm));
     display: block;
     width: 100%;
@@ -294,12 +298,12 @@
     grid-auto-columns: minmax(0, 1fr);
     align-items: center;
     gap: var(--ds-space-4);
-    min-height: calc(52px + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
+    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-table-row-height, 52px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
     border-bottom: 1px solid var(--ds-line);
   }
 
   .ds-skeleton__cells--head {
-    min-height: calc(48px + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
+    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-table-head-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
   }
 
   .ds-skeleton__form {

@@ -1,6 +1,6 @@
 /**
  * The status chip and the tag on the options model: the height at every
- * size x density (touch changes nothing, a chip is no target), the shape, the
+ * size (density and touch change nothing, a chip is no target), the shape, the
  * tone from the class on the element only, the deprecated kinds, an icon and a
  * word on every chip of the demo, forced colours. Runs in `fallback` too.
  */
@@ -8,7 +8,7 @@ import { test, expect } from '../../../test/browser/base-test.js';
 import { ready } from '../../../test/browser/helpers/motion.js';
 
 const SIZES = [['ds-xs', -2], ['ds-sm', -1], ['ds-md', 0], ['ds-lg', 1], ['ds-xl', 2]];
-const DENSITIES = [['ds-density-comfortable', 0], ['ds-density-compact', -1], ['ds-density-dense', -2], ['ds-density-tight', -3]];
+const DENSITIES = ['ds-density-comfortable', 'ds-density-compact', 'ds-density-dense', 'ds-density-tight'];
 
 async function open(page) {
   await page.goto('/test/browser/fixtures/component.html?c=status');
@@ -42,20 +42,23 @@ const colours = (page) => page.evaluate(() => {
 
 const chip = (cls) => `<span id="probe" class="ds-status ${cls}"><span>Word</span></span>`;
 
-test('the height at every size x density; never below its line; touch changes nothing', async ({ page }) => {
+test('the height at every size; density and touch change nothing; the compact theme keeps 24px', async ({ page }) => {
   await open(page);
   for (const touch of [false, true]) {
-    for (const [density, densityStep] of DENSITIES) {
+    for (const density of DENSITIES) {
       for (const [size, sizeStep] of SIZES) {
         for (const name of ['ds-status', 'ds-tag']) {
           const height = await probe(page, `<div class="${density}${touch ? ' ds-touch' : ''}"><span id="probe" class="${name} ${size}"><span>Word</span></span></div>`, 'el.getBoundingClientRect().height');
-          expect(height, `${name} ${size} ${density} touch ${touch}`).toBeCloseTo(Math.max(16, 24 + sizeStep * 4 + densityStep * 2), 0);
+          expect(height, `${name} ${size} ${density} touch ${touch}`).toBe(24 + sizeStep * 4);
         }
       }
     }
   }
   // The default chip is 2.x's: 24px.
   expect(await probe(page, chip(''), 'el.getBoundingClientRect().height')).toBe(24);
+  await page.addStyleTag({ url: '/dist/themes/compact.css' });
+  expect(await probe(page, chip(''), 'el.getBoundingClientRect().height'), 'compact chip').toBe(24);
+  expect(await probe(page, '<span id="probe" class="ds-tag">Word</span>', 'el.getBoundingClientRect().height'), 'compact tag').toBe(24);
 });
 
 test('type and side padding: the caption stays at every size; side padding steps with size, not density', async ({ page }) => {
@@ -74,6 +77,17 @@ test('shape: the radius times --ds-shape; a tag stays at most half its height', 
     expect(await probe(page, `<div class="${shape}">${chip('')}</div>`, radius), shape).toBe(status);
     expect(await probe(page, `<div class="${shape}"><span id="probe" class="ds-tag">Word</span></div>`, radius), `${shape} tag`).toBe(tag);
   }
+  // Round at one line at every size: the chip and the tag beside it agree.
+  for (const [size, step] of SIZES) {
+    const half = (24 + step * 4) / 2;
+    expect(await probe(page, chip(size), radius), `${size} chip`).toBe(Math.max(12, half));
+    expect(await probe(page, `<span id="probe" class="ds-tag ${size}">Word</span>`, radius), `${size} tag`).toBe(half);
+  }
+  // The real height, when the line is taller than the hook asks for: still a pill.
+  expect(await probe(page, '<span id="probe" class="ds-tag" style="--ds-tag-height: 10px">Word</span>', `[${radius}, el.getBoundingClientRect().height]`)).toEqual([8, 16]);
+  // A label that wraps keeps these corners, no stadium; the hook wins.
+  expect(await probe(page, `<div style="width:80px"><span id="probe" class="ds-status ds-xl"><span>${'A long label '.repeat(4)}</span></span></div>`, `[${radius} < el.getBoundingClientRect().height / 2, ${radius}]`)).toEqual([true, 16]);
+  expect(await probe(page, chip('ds-xl" style="--ds-status-radius: 3px'), radius)).toBe(3);
 });
 
 test('tones: the container pair, from the class on the element; an inherited tone changes nothing', async ({ page }) => {

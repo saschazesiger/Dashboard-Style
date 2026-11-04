@@ -22,12 +22,15 @@
  * Options (docs/options.md), read here:
  *   size      .ds-xs ... .ds-xl on the alert or any ancestor: 2px of padding
  *             per step (its buttons take the same step). Type and icon stay.
- *   density   any container: 2px of padding per step; type and icon stay
+ *   density   any container: 2px of padding per step; type and icon stay.
+ *             So the compact theme (density -2) pads it 8/12px, 2.x's 12/16
+ *             with less room, on purpose.
  *   shape     the radius times --ds-shape (--plain and --inline have none)
  *   tone      from the class on the alert itself (an inherited tone never
  *             recolours it); the icon and the word stay, never colour alone
  *   target-min: its buttons and the .ds-errors summary read it, the alert
- *             itself is no target.
+ *             itself is no target. A button taller than the line and its
+ *             padding makes the alert grow: the box always holds it.
  *
  * A title, more paragraphs and actions:
  *
@@ -78,11 +81,14 @@
      stack (the header above); one that replaces a placeholder takes
      .ds-reveal, never per update. */
 
+  /* The block padding is at least the hang of its button (--_btn, set below
+     when it has one), so the button stays inside and centred on the line. */
   .ds-alert {
+    --_pad-block: max(calc(var(--ds-alert-padding-block, var(--ds-space-3)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px), calc((var(--_btn, 0px) - var(--ds-space-5)) / 2));
     display: flex;
     align-items: flex-start;
     gap: var(--ds-space-3);
-    padding: calc(var(--ds-alert-padding-block, var(--ds-space-3)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px) calc(var(--ds-alert-padding-inline, var(--ds-space-4)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px);
+    padding: var(--_pad-block) calc(var(--ds-alert-padding-inline, var(--ds-space-4)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px);
     border-inline-start: var(--ds-alert-edge, 0px) solid var(--ds-alert-icon, var(--ds-primary));
     border-radius: calc(var(--ds-alert-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
     background: var(--ds-alert-bg, var(--ds-surface-low));
@@ -102,12 +108,23 @@
     overflow-wrap: anywhere;
   }
 
+  /* The height of its button, which the alert cannot read: it computes the
+     button's, one size step down when the button carries .ds-sm itself. */
+  .ds-alert:has(> .ds-btn, > .ds-alert__actions) {
+    --_btn: max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+  }
+
+  .ds-alert:has(> .ds-btn.ds-sm, > .ds-alert__actions > .ds-btn.ds-sm) {
+    --_btn: max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) - 8px + var(--ds-density, 0) * 4px));
+  }
+
   /* The button hangs out of the 20px text line by the same amount above and
      below, so its label sits on the text's centre line and the banner keeps
-     its even padding. */
+     its even padding. Never further than the padding: a button of another
+     size stays inside the box too. */
   .ds-alert .ds-btn {
     flex-shrink: 0;
-    margin-block: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
+    margin-block: max(calc(-1 * var(--_pad-block)), calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2));
     margin-inline: auto calc(-1 * var(--ds-space-2));
   }
 
@@ -127,21 +144,14 @@
   }
 
   /* Actions in a row after the text: the row hangs out of the text line as
-     a single button would, its buttons sit side by side. The row has no
-     height of its own to read: it computes the button's, one size step
-     down when the buttons carry .ds-sm themselves. */
+     a single button would, its buttons sit side by side. */
   .ds-alert__actions {
-    --_btn: max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
     display: flex;
     flex-wrap: wrap;
     flex-shrink: 0;
     gap: var(--ds-space-1);
-    margin-block: calc((var(--ds-space-5) - var(--_btn)) / 2);
+    margin-block: max(calc(-1 * var(--_pad-block)), calc((var(--ds-space-5) - var(--_btn)) / 2));
     margin-inline: auto calc(-1 * var(--ds-space-2));
-  }
-
-  .ds-alert__actions:has(> .ds-btn.ds-sm) {
-    --_btn: max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) - 8px + var(--ds-density, 0) * 4px));
   }
 
   .ds-alert__actions > .ds-btn {
@@ -216,6 +226,7 @@
      the word on the surface, in the meta type; no box to pad or round, so
      size, density and shape have nothing to change. */
   .ds-alert--inline {
+    --_pad-block: 0px;
     --ds-alert-bg: transparent;
     --ds-alert-color: var(--ds-text);
     --ds-alert-edge: 0;
@@ -227,12 +238,19 @@
     font: var(--ds-font-meta);
   }
 
+  /* With no padding to hang into, its button makes the row and the words
+     centre on it. */
+  .ds-alert--inline:has(> .ds-btn, > .ds-alert__actions) {
+    align-items: center;
+  }
+
   /* A section message: a block with a title, its actions always under the
-     text in the text's column. */
+     text in the text's column, so nothing hangs. */
   .ds-alert--section {
+    --_pad-block: calc(var(--ds-alert-padding-block, var(--ds-space-4)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    padding: calc(var(--ds-alert-padding-block, var(--ds-space-4)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px) calc(var(--ds-alert-padding-inline, var(--ds-space-5)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px);
+    padding: var(--_pad-block) calc(var(--ds-alert-padding-inline, var(--ds-space-5)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px);
   }
 
   .ds-alert--section .ds-alert__title {

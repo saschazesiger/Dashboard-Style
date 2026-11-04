@@ -11,8 +11,11 @@
  * Where it stands (the variant is a placement, not a look):
  *   --section (or none)  in a card or a panel: the 2.x look
  *   --page               fills a page: more room, a 72px disc, the title type
- *   --inline             in a row, a list or a popup: disc, words and action
- *                        side by side, left-aligned, a 32px disc
+ *   --inline             in a row, a list or a popup: disc or picture, words
+ *                        and action side by side, left-aligned, 32px; 12px of
+ *                        block padding that follows density only (neither the
+ *                        size step nor --ds-empty-padding); actions take at
+ *                        most half the row and stack in a narrow one
  *
  * Why it is empty (the disc's colours; the icon, words and action are the
  * page's, docs/components.md lists them per cause):
@@ -32,8 +35,11 @@
  *
  * Options (docs/options.md), read here:
  *   size      .ds-xs ... .ds-xl on it or any ancestor: 8px of disc and 8px of
- *             block padding per step; the type stays that of its variant
- *   density   any container: 2px of padding per step
+ *             block padding per step (--inline: the disc only); the type stays
+ *             that of its variant
+ *   density   any container: 2px of padding per step. So the compact theme
+ *             (density -2) gives 28px of block padding, 2.x's 32px with less
+ *             room, on purpose.
  *   shape     the disc's radius times --ds-shape, never above half its size
  *   tone      above. target-min: only its buttons read it.
  *
@@ -67,8 +73,8 @@
  * width and height (a confirmation page may want a larger one); the ring
  * follows, the glyph keeps the size of its markup. --ds-empty-disc-bg and
  * --ds-empty-disc-color (the tint), under any cause or tone;
- * --ds-empty-padding (32px, the md base of the block padding);
- * --ds-empty-media-size.
+ * --ds-empty-padding (32px, the md base of the block padding; not --inline);
+ * --ds-empty-media-size (--inline: 32px).
  *
  * Progressive:
  * - text-wrap (the text avoids a lone last word): without it the line
@@ -199,7 +205,11 @@
   /* Inline: in a row, a list or a popup. Disc, words, then the action. */
   .ds-empty--inline {
     --_disc: 32px;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    --_media: 32px;
+    /* The actions take at most half a narrow row and stack there, so the
+       words keep theirs (it stays this box's own width: a size container
+       would collapse in a table cell or a popup that fits its content). */
+    grid-template-columns: auto minmax(0, 1fr) fit-content(50%);
     justify-items: start;
     align-items: center;
     column-gap: var(--ds-space-3);
@@ -209,9 +219,14 @@
     text-align: start;
   }
 
-  .ds-empty--inline > .ds-empty__disc {
+  .ds-empty--inline > :is(.ds-empty__disc, .ds-empty__media) {
     grid-row: 1 / span 2;
     margin: 0;
+  }
+
+  /* Its width from the slot's height, not from the markup's. */
+  .ds-empty--inline > .ds-empty__media > :is(img, svg) {
+    width: auto;
   }
 
   .ds-empty--inline > :is(.ds-empty__title, .ds-empty__text) {
@@ -229,6 +244,8 @@
   .ds-empty--inline > :is(.ds-btn, .ds-empty__actions) {
     grid-column: 3;
     grid-row: 1 / span 2;
+    justify-self: end;
+    justify-content: flex-end;
     margin: 0;
   }
 

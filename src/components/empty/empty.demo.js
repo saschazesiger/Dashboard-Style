@@ -39,7 +39,8 @@ SG.demo('empty', {
       return h.card(row[0].replace(/-/g, ' '), state(h, 'ds-empty--' + row[0] + place, row[1], h.variant === 'page' ? 32 : h.variant === 'inline' ? 16 : 24, row[2], row[3], row[4], row[5]));
     }).join('') + h.card('A tone', state(h, tone.trim() + place, 'box', h.variant === 'page' ? 32 : h.variant === 'inline' ? 16 : 24, 'A tone on the state', 'The options panel sets it here.', '', '')) + '</div>') +
 
-      h.section('In a list', '<div class="ds-card">' + state(h, 'ds-empty--inline ds-empty--no-results', 'search', 16, 'No matches', 'Nothing matches "floor 9".', 'Clear', 'status') + '</div>') +
+      h.section('In a list', '<div class="ds-card">' + state(h, 'ds-empty--inline ds-empty--no-results', 'search', 16, 'No matches', 'Nothing matches "floor 9".', 'Clear', 'status') + '</div>' +
+        '<div class="ds-card"><div class="ds-empty ds-empty--inline ds-empty--first-use" data-demo="inline-media"><span class="ds-empty__media" aria-hidden="true">' + h.icon('box', 32) + '</span><p class="ds-empty__title">No devices yet</p><p class="ds-empty__text">A picture takes the disc\'s place at the disc\'s size.</p><div class="ds-empty__actions"><button class="ds-btn ds-btn--text" type="button">Import</button><button class="ds-btn ds-btn--text" type="button">Add</button></div></div></div>') +
 
       h.section('A whole page, with a picture and two actions', '<div class="ds-empty ds-empty--page ds-empty--first-use"><span class="ds-empty__media" aria-hidden="true">' + h.icon('box', 96) + '</span><p class="ds-empty__title">Bring your fleet in</p><p class="ds-empty__text">Import a list, or add the first device by hand.</p><div class="ds-empty__actions"><button class="ds-btn ds-btn--filled" type="button">Import a list</button><button class="ds-btn" type="button">Add device</button></div></div>') +
 

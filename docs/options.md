@@ -97,10 +97,10 @@ well and is never rounder than the rest radius, so the press morph keeps its pro
 
 Every text pair passes AA (4.5:1) in the default palette, the dark theme and the contrast theme, and every tone ink
 3:1 on the surface (tested, and checked for every generated theme). Tones apply where a component shows meaning:
-badge, status, alert, banner, chip, progress, meter, and on a button only as a filled error button that confirms a
-destructive action (the confirm dialog and the type-to-confirm pattern; D10). A tone always comes with an icon or a
-word: status is never told by colour alone. A component reads the tone set on its own element where an inherited one
-would mislead (a filled button inside an error alert stays filled).
+badge, status, tag, alert, banner, empty state, chip, progress, spinner, meter, and on a button only as a filled error
+button that confirms a destructive action (the confirm dialog and the type-to-confirm pattern; D10). A tone always
+comes with an icon or a word: status is never told by colour alone. A component reads the tone set on its own element
+where an inherited one would mislead (a filled button inside an error alert stays filled).
 
 ## Touch
 

@@ -63,6 +63,50 @@ test('touch: its button and the errors summary reach the target; a button hangs 
   expect(summary).toBe(48);
 });
 
+test('the box holds its button at touch x every density and at every size, and the button stays centred on the line', async ({ page }) => {
+  await open(page);
+  const fit = `(() => {
+    const alert = el.closest('.ds-alert').getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    const text = el.closest('.ds-alert').querySelector('.ds-alert__text').getBoundingClientRect();
+    return { inside: box.top >= alert.top - 0.51 && box.bottom <= alert.bottom + 0.51, height: alert.height, off: Math.abs((box.top + box.bottom) / 2 - (text.top + text.bottom) / 2) };
+  })()`;
+  const direct = (cls, button) => `<div class="${cls}"><div class="ds-alert"><span class="ds-alert__text">Words</span><button id="probe" class="ds-btn ds-btn--text ${button}" type="button">Act</button></div></div>`;
+  const row = (cls, button) => `<div class="${cls}"><div class="ds-alert"><span class="ds-alert__text">Words</span><div class="ds-alert__actions"><button id="probe" class="ds-btn ds-btn--text ${button}" type="button">Act</button></div></div></div>`;
+  for (const [density] of DENSITIES) {
+    for (const markup of [direct, row]) {
+      for (const button of ['ds-sm', '']) {
+        const out = await probe(page, markup(`ds-touch ${density}`, button), fit);
+        const name = `touch ${density} ${markup === direct ? 'button' : 'row'} ${button}`;
+        expect(out.inside, name).toBe(true);
+        expect(out.height, name).toBe(48);
+        expect(out.off, name).toBeLessThan(0.51);
+      }
+    }
+  }
+  // Without touch too: a default button at xl is 56px in what was a 52px alert.
+  for (const [size, step] of SIZES) {
+    for (const [density, densityStep] of DENSITIES) {
+      const out = await probe(page, direct(`${size} ${density}`, ''), fit);
+      const name = `${size} ${density}`;
+      expect(out.inside, name).toBe(true);
+      // Under 24px a button's own label and border set its height, past what the formula says; it stays inside.
+      const button = 40 + step * 8 + densityStep * 4;
+      if (button < 24) continue;
+      expect(out.height, name).toBe(Math.max(20 + 2 * (12 + step * 2 + densityStep * 2), button));
+      expect(out.off, name).toBeLessThan(0.51);
+    }
+  }
+  // A button whose own size the alert does not compute still stays inside.
+  expect((await probe(page, direct('ds-density-tight', 'ds-xl'), fit)).inside).toBe(true);
+  // No box to pad: an inline alert's button makes the row, the words centre on it; a section's hangs nowhere.
+  const inline = await probe(page, `<p class="ds-alert ds-alert--inline ds-touch"><span class="ds-alert__text">Words</span><button id="probe" class="ds-btn ds-btn--text" type="button">Act</button></p>`, fit);
+  expect(inline).toEqual({ inside: true, height: 48, off: expect.any(Number) });
+  expect(inline.off).toBeLessThan(0.51);
+  const section = await probe(page, `<div class="ds-touch"><div id="probe" class="ds-alert ds-alert--section"><span class="ds-alert__text">Words</span><button class="ds-btn ds-btn--text" type="button">Act</button></div></div>`, 'parseFloat(style.paddingBlockStart)');
+  expect(section).toBe(16);
+});
+
 test('shape: the corners times --ds-shape; --plain and --inline have none', async ({ page }) => {
   await open(page);
   const radius = 'parseFloat(style.borderTopLeftRadius)';

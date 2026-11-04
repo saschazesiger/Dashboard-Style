@@ -24,7 +24,7 @@ same task. The bar is cut at the share (a clip, never a scale), so its round cap
 | Variant | `--flat`, `--indeterminate`, `--waiting` | the progress | below |
 | Label | `.ds-progress--label-above`, `.ds-progress--label-end`; none: under the track | the progress | where `.ds-progress__label` sits: over the track, or at its end in one row. `.ds-progress__detail` stays under the track |
 | Size | `.ds-xs` ... `.ds-xl` | the progress or a group | the track's thickness, 2px per step (1, 2, 4, 6, 8px); the wave's height follows, its wavelength stays; type stays |
-| Density | `.ds-density-*` | any container | the label's distance from the track, 2px per step |
+| Density | `.ds-density-*` | any container | the label's distance from the track, 2px per step (4px under `themes/compact.css`) |
 | Shape | `.ds-shape-*` | any container or the theme | the ends of the bar and the track times 0, .5, 1, 1.5, at most half the height; the stop dot stays a dot |
 | Tone | `.ds-tone-*` | the progress itself; an inherited tone is ignored | the bar and the stop dot in the tone, the remaining track in its container; the label says what it means ("Disk almost full"), never the colour alone |
 | Touch | | | not read: progress is no target |
@@ -70,3 +70,4 @@ meaning. Print: the bar keeps its colours, so the share shows on paper.
 <!-- changelog -->
 - Progress: size steps of the track (`--ds-progress-height`), the label's place (`--label-above`, `--label-end`),
   tones from the class on the element, the ends follow the shape, hook `--ds-progress-bar`.
+  Changed under `themes/compact.css`: the label sits 4px from the track (2.x: 8px), since the theme is density -2.

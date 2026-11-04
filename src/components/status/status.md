@@ -21,15 +21,14 @@ update the text node only, so the spinner does not restart (`DS.dom.morphHtml`).
 | Tone | `.ds-tone-neutral`, `-primary`, `-info`, `-success`, `-warning`, `-error`; none: neutral | the chip itself; an inherited tone is ignored | the tone's container pair behind the icon and the word |
 | Variant | `--running` | the chip | a neutral chip with the primary spinner |
 | Size | `.ds-xs` ... `.ds-xl` | the chip or a group | 4px per step, 16 to 32px, and 2px of side padding per step; the caption type and the icon's markup size stay |
-| Density | `.ds-density-*` | any container | 2px less height per step, never below its own line; side padding stays |
-| Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5 |
-| Touch | | | not read: a chip is no target |
+| Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5; at the default, round at one line at any size |
+| Density, touch | | | not read: a chip sits in a line, like a badge, and it is no target. So `themes/compact.css` keeps 2.x's 24px; a smaller chip is `.ds-sm` |
 
 - `.ds-status--ok`, `.ds-status--warning`, `.ds-status--error` are **deprecated** (3.0, removed when 3.0 ships):
   `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the chip, the same look under the option every component
   shares.
-- Hooks: `--ds-status-height` (24px, the md base), `--ds-status-radius` (`--ds-radius-md`), `--ds-status-spinner-width`
-  (2px) ([theming.md](theming.md#component-hooks)).
+- Hooks: `--ds-status-height` (24px, the md base), `--ds-status-radius` (`--ds-radius-md`, or half the height of a
+  taller chip), `--ds-status-spinner-width` (2px) ([theming.md](theming.md#component-hooks)).
 
 **Accessibility.** The word is the status and the icon is `aria-hidden`. A chip is no stop of its own and needs no role;
 a status that changes while the user waits goes through a live region (`DS.overlay.announce`, or a `role="status"`
@@ -55,13 +54,14 @@ A tag is a label of words ("Preview", "Beta", "External"), not a state and not a
 
 The caption type on the tint (hooks `--ds-tag-bg`, `--ds-tag-color`, from `--ds-accent` and `--ds-on-accent`; a tone:
 its container pair, neutral `--ds-surface-high` and `--ds-text`), an optional leading 16px icon (`--ds-on-accent-icon`),
-the pill radius at half its height (`--ds-tag-height`, 24px at md, with size and density as on the chip; times the
-shape). Forced colours draw a `CanvasText` outline. `.ds-tag--neutral` is **deprecated** (3.0, removed when 3.0 ships):
+the pill radius at half its height (`--ds-tag-height`, 24px at md, with the size as on the chip and no density; times
+the shape). Forced colours draw a `CanvasText` outline. `.ds-tag--neutral` is **deprecated** (3.0, removed when 3.0 ships):
 `.ds-tone-neutral`. Tag = words, badge = counts ([Badge](#badge)), status chip = a state with an icon.
 
 **Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.
 
 <!-- changelog -->
-- Status chip and tag: on the options model (size, density, shape, tones from the class on the element); hook
+- Status chip and tag: on the options model (size, shape, tones from the class on the element; no density, so 24px
+  stays under `themes/compact.css`); hook
   `--ds-status-height`. `.ds-status--ok`, `--warning`, `--error` deprecated: `.ds-tone-success`, `-warning`, `-error`.
   `.ds-tag--neutral` deprecated: `.ds-tone-neutral`.

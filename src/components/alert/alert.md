@@ -51,15 +51,18 @@ An inline message under a field or in a row; a section message, a block with its
 | Variant | `--plain`, `--inline`, `--section` | the alert | a finding on its card; a message without a box; a block with its actions under the text |
 | Tone | `.ds-tone-neutral`, `-primary`, `-info`, `-success`, `-warning`, `-error`; none: the quiet neutral | the alert itself; an inherited tone is ignored | the fill, the ink and the icon, from the tone's container pair and colour (warning: `--ds-warning-surface` and `--ds-text`, as ever); an error alert's buttons take its ink; `--plain` and `--inline` keep only the icon |
 | Size | `.ds-xs` ... `.ds-xl` | the alert or a group | 2px of padding per step, and its buttons step with it; type and icon stay |
-| Density | `.ds-density-*` | any container | 2px of padding per step (12 and 16px at comfortable, 8 and 12px at dense); type and icon stay |
+| Density | `.ds-density-*` | any container | 2px of padding per step (12 and 16px at comfortable, 8 and 12px at dense, and so under `themes/compact.css`); type and icon stay |
 | Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5; `--plain` and `--inline` have none |
-| Touch | `.ds-touch` | the theme or a container | its buttons and the `.ds-errors` summary, at least `--ds-touch-target` high; the alert itself is no target |
+| Touch | `.ds-touch` | the theme or a container | its buttons and the `.ds-errors` summary, at least `--ds-touch-target` high; the alert itself is no target, but it grows to hold its button (below) |
 
 - `.ds-alert--success`, `.ds-alert--warning`, `.ds-alert--error` are **deprecated** (3.0, removed when 3.0 ships): `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` on the alert, the same look under the option every component shares.
 - `.ds-alert__title` (the label font, the alert's ink) opens `.ds-alert__text` in every alert; paragraphs in the text
   lose their margins and stand `--ds-space-2` apart.
 - `.ds-alert__actions` after the text holds one or more buttons side by side; the alert then wraps, the text takes at
   least `--ds-alert-text-basis` (256px) and the actions drop under it on a narrow row.
+- A button hangs out of the first line, centred on it. Its hang is never more than the block padding, and the padding
+  grows when a button needs more: a `.ds-sm` button under `.ds-touch` makes a 48px alert at any density, and a default
+  button at `.ds-xl` a 56px one.
 - `.ds-alert--plain`: a finding in a card, on the card's surface: no fill, no edge, no inline padding, no radius, the
   tone's icon; hairlines between consecutive plain alerts. Static findings carry no live role.
 - `.ds-alert--inline`: the meta type, a 16px icon in the tone and the word in `--ds-text`, on whatever is behind it; no
@@ -109,4 +112,5 @@ the list opens and closes with the collapsible timing.
 - Alert: on the options model (size and density pad it, shape rounds it, tones from the class on the alert). New
   `.ds-alert--inline` and `.ds-alert--section`, hooks `--ds-alert-radius`, `--ds-alert-padding-block`,
   `--ds-alert-padding-inline`. `.ds-alert--success`, `--warning`, `--error` deprecated: `.ds-tone-success`, `-warning`,
-  `-error`.
+  `-error`. The box grows to hold its button. Changed under `themes/compact.css`: the padding is 8/12px (2.x: 12/16px),
+  since the theme is density -2.

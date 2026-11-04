@@ -18,7 +18,7 @@ SG.demo('status', {
   group: 'feedback',
   need: 'Show the state of one item with an icon and a word, or label it with a tag',
   lead: 'Status is never colour alone: always an icon and a word, on the tonal container of its tone. Show chips for deviations, not for the normal case.',
-  options: { sizes: true, density: true, shape: true, tones: true },
+  options: { sizes: true, density: false, shape: true, tones: true },
 
   render: function (h) {
     var tones = TONES.filter(function (row) { return !h.tone || row[0] === h.tone; });

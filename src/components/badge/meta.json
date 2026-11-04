@@ -37,12 +37,12 @@
       "description": "a count badge's corners"
     },
     "--ds-badge-bg": {
-      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; on a tinted host `--ds-primary`, `--ds-on-primary`)",
-      "description": "a count badge's fill and figure"
+      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; a dot: `--ds-primary`, a tone's full colour; on a tinted host `--ds-primary`, `--ds-on-primary`)",
+      "description": "a badge's fill and figure"
     },
     "--ds-badge-color": {
-      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; on a tinted host `--ds-primary`, `--ds-on-primary`)",
-      "description": "a count badge's fill and figure"
+      "default": "`--ds-accent`, `--ds-on-accent` (tones: their container pair; a dot: `--ds-primary`, a tone's full colour; on a tinted host `--ds-primary`, `--ds-on-primary`)",
+      "description": "a badge's fill and figure"
     }
   },
   "keyframes": [],

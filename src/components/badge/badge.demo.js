@@ -19,7 +19,9 @@ SG.demo('badge', {
     var dots = h.section('Dot', '<div class="sg-row" data-demo="dots">' + tones.map(function (row) {
       return '<span class="sg-row"><span class="ds-badge ds-badge--dot ds-tone-' + row[0] + '"></span><span>' + row[1] + '</span></span>';
     }).join('') +
+      '<span class="sg-row" data-demo="default-dot"><span class="ds-badge ds-badge--dot"></span><span>New</span></span>' +
       '<button class="ds-btn ds-btn--quiet" type="button">Tasks <span class="ds-badge ds-badge--dot ds-tone-primary"><span class="ds-sr">New tasks</span></span></button>' +
+      '<button class="ds-btn ds-btn--filled" type="button">Messages <span class="ds-badge ds-badge--dot"><span class="ds-sr">New messages</span></span></button>' +
       '</div><p class="ds-muted">A dot says nothing by itself: its word sits beside it or in .ds-sr.</p>');
     if (h.variant === 'dot') return dots;
     return h.section('On a control', '<div class="sg-row">' +

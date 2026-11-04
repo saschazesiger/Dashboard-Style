@@ -15,7 +15,7 @@ A count or a dot on a button, chip, tab or drawer item:
 | Option | Classes | Where it applies | Effect on the badge |
 |---|---|---|---|
 | Variant | `.ds-badge--dot` | the badge | a dot, `--ds-badge-dot-size` (8px at md), always round; needs its word, in `.ds-sr` inside it or beside it |
-| Tone | `.ds-tone-neutral`, `-primary`, `-info`, `-success`, `-warning`, `-error`; none: the tint | the badge itself; an inherited tone is ignored, so a badge in an error alert stays what it was | the tone's container pair (a dot: the full colour) |
+| Tone | `.ds-tone-neutral`, `-primary`, `-info`, `-success`, `-warning`, `-error`; none: the tint (a dot: `--ds-primary`, so it holds 3:1 on a surface) | the badge itself; an inherited tone is ignored, so a badge in an error alert stays what it was | the tone's container pair (a dot: the full colour) |
 | Size | `.ds-xs` ... `.ds-xl` | the badge or a group: a small button takes a small badge | 2px per step, 16 to 24px (a dot 4 to 12px); the caption type stays |
 | Shape | `.ds-shape-*` | any container or the theme | the corners times 0, .5, 1, 1.5, at most half the height; a dot stays round |
 | Density, touch | | | not read: it sits in a line or on a control, and it is no target |
@@ -32,8 +32,11 @@ A count or a dot on a button, chip, tab or drawer item:
   `--ds-surface` / `--ds-text-2`, so it never melts into the tint. In a disabled or `aria-disabled` button, chip, tab
   or drawer item it takes the disabled model over any tone (`--ds-disabled-fill`, `--ds-disabled-ink`; a theme that
   dims instead keeps its colours and fades it with the host).
+- A dot without a tone on a filled button takes the fill's ink (`--ds-on-primary`), where primary would vanish.
 - Hooks: `--ds-badge-size`, `--ds-badge-dot-size`, `--ds-badge-radius`, `--ds-badge-bg`, `--ds-badge-color`
   ([theming.md](theming.md#component-hooks)).
+- A badge on an icon button's corner is not available yet: every ripple host clips while a ripple is inside. Put the
+  count next to the label of a button instead.
 
 **A count with a maximum.** `data-ds-badge` holds the count and `data-ds-badge-max` the largest figure (default 99):
 past it the badge shows `99+`, at zero or below nothing, so it takes no room. `DS.init()` finds them, and a change of

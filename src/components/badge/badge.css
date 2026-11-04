@@ -11,7 +11,9 @@
  *   (none: the tint)
  *   .ds-tone-neutral  -primary  -info  -success  -warning  -error
  *   --dot                      a dot instead of a figure (--ds-badge-dot-size,
- *                              8px at md); needs a word, in .ds-sr or beside it
+ *                              8px at md), in --ds-primary or the tone's full
+ *                              colour, which hold 3:1 on a surface; needs a
+ *                              word, in .ds-sr or beside it
  *   --neutral --ok --warning --error   deprecated: .ds-tone-neutral, -success, -warning, -error
  *
  * Options (docs/options.md), computed here into --_h:
@@ -48,7 +50,12 @@
  *
  * Hooks: --ds-badge-size (20px, the md base), --ds-badge-dot-size (8px),
  * --ds-badge-radius (--ds-radius-action, never above half the size),
- * --ds-badge-bg, --ds-badge-color.
+ * --ds-badge-bg (a dot: --ds-primary), --ds-badge-color.
+ *
+ * Not here yet: the corner of an icon button (plans/3.0.md, catalogue and
+ * "reopened"). Every ripple host clips while a ripple is inside, so a badge
+ * on the corner would be cut (plans/after-2.0.md); each ripple has to clip
+ * itself first, a change across every host.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -56,6 +63,7 @@
 @layer ds.components {
   .ds-badge {
     --_h: calc(var(--ds-badge-size, 20px) + var(--ds-size-step, 0) * 2px);
+    --_fill: var(--ds-accent);
     display: inline-flex;
     flex-shrink: 0;
     align-items: center;
@@ -64,7 +72,7 @@
     height: var(--_h);
     padding-inline: var(--ds-space-1);
     border-radius: min(calc(min(var(--ds-badge-radius, var(--ds-radius-action)), calc(var(--_h) / 2)) * var(--ds-shape, 1)), calc(var(--_h) / 2));
-    background: var(--ds-badge-bg, var(--ds-accent));
+    background: var(--ds-badge-bg, var(--_fill));
     color: var(--ds-badge-color, var(--ds-on-accent));
     font: var(--ds-font-caption);
     font-variant-numeric: tabular-nums;
@@ -79,9 +87,12 @@
     display: none;
   }
 
-  /* A dot: no figure, always round; its word sits in .ds-sr or beside it. */
+  /* A dot: no figure, always round; its word sits in .ds-sr or beside it.
+     Nothing to read in it, so the fill itself has to hold 3:1 on a surface:
+     the primary colour, not the tint. */
   .ds-badge--dot {
     --_h: calc(var(--ds-badge-dot-size, 8px) + var(--ds-size-step, 0) * 2px);
+    --_fill: var(--ds-primary);
     padding-inline: 0;
     border-radius: 50%;
   }
@@ -97,7 +108,7 @@
   }
 
   /* A figure on a tone's container; a dot has no figure, so it takes the
-     full colour, which holds 3:1 on a surface. */
+     tone's full colour, which holds 3:1 on a surface. */
   .ds-badge--dot:is(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
     --ds-badge-bg: var(--ds-tone);
   }
@@ -129,9 +140,14 @@
     --ds-badge-color: var(--ds-on-primary);
   }
 
-  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input, .ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral) {
+  :is(.ds-btn[aria-pressed="true"], .ds-btn--tonal, .ds-btn--disclosure[aria-expanded="true"], .ds-btn[aria-haspopup="dialog"][aria-expanded="true"], .ds-chip__input:checked + .ds-chip__body, .ds-chip--input, .ds-table__row--selected, tr:has(> td input[type="checkbox"]:checked)) :is(.ds-badge--neutral, .ds-badge.ds-tone-neutral:not(.ds-badge--dot)) {
     --ds-badge-bg: var(--ds-surface);
     --ds-badge-color: var(--ds-text-2);
+  }
+
+  /* On the primary fill a primary dot would vanish: the fill's ink instead. */
+  :is(.ds-btn--filled, .ds-btn--primary) .ds-badge--dot:not(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+    --_fill: var(--ds-on-primary);
   }
 
   /* In a blocked host (disabled, aria-disabled) the disabled model, over
@@ -139,7 +155,7 @@
      (--ds-disabled-fill and -ink set to initial) keeps the badge's colours
      and the host's opacity fades it. */
   :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"]), .ds-tabs__tab:is(:disabled, [aria-disabled="true"]), .ds-drawer__item:is(:disabled, [aria-disabled="true"])) .ds-badge {
-    background: var(--ds-disabled-fill, var(--ds-badge-bg, var(--ds-accent)));
+    background: var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)));
     color: var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)));
   }
 

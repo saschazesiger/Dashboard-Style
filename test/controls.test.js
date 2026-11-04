@@ -286,8 +286,9 @@ describe('chips, badges and tags (2.0)', () => {
     const tag = own(withoutAtRuleBlocks(status, /@media/), '.ds-tag');
     assert.equal(tag.background, 'var(--ds-tag-bg, var(--ds-accent))');
     assert.equal(tag.color, 'var(--ds-tag-color, var(--ds-on-accent))');
-    assert.equal(tag['--_h'], 'calc(var(--ds-tag-height, 24px) + var(--ds-size-step, 0) * 4px + var(--ds-density, 0) * 2px)');
-    assert.equal(tag['border-radius'], 'min(calc(min(var(--ds-radius-action), calc(var(--_h) / 2)) * var(--ds-shape, 1)), calc(var(--_h) / 2))');
+    assert.equal(tag['--_h'], 'calc(var(--ds-tag-height, 24px) + var(--ds-size-step, 0) * 4px)');
+    assert.equal(tag['--_half'], 'calc(max(var(--_h), 1lh) / 2)');
+    assert.equal(tag['border-radius'], 'min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half))');
     assert.equal(own(status, '.ds-tag > svg').color, 'var(--ds-on-accent-icon)');
     assert.deepEqual(own(status, '.ds-tag--neutral'), { '--ds-tag-bg': 'var(--ds-surface-high)', '--ds-tag-color': 'var(--ds-text)' });
     assert.equal(own(forcedColorBlocks(status).join('\n'), '.ds-tag').outline, '1px solid CanvasText');
@@ -393,9 +394,11 @@ describe('alerts (2.0)', () => {
     assert.equal(own(flat, '.ds-alert__text > p + p')['margin-top'], 'var(--ds-space-2)');
     assert.equal(own(flat, '.ds-alert:has(> .ds-alert__actions) > .ds-alert__text').flex, '1 1 var(--ds-alert-text-basis, 256px)');
     const button = 'max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))';
-    assert.equal(own(flat, '.ds-alert .ds-btn')['margin-block'], `calc((var(--ds-space-5) - ${button}) / 2)`);
-    assert.equal(own(flat, '.ds-alert__actions')['--_btn'], button);
-    assert.equal(own(flat, '.ds-alert__actions')['margin-block'], 'calc((var(--ds-space-5) - var(--_btn)) / 2)');
+    // The hang stops at the padding, and the padding grows to the hang of the button the alert computes.
+    assert.equal(own(flat, '.ds-alert .ds-btn')['margin-block'], `max(calc(-1 * var(--_pad-block)), calc((var(--ds-space-5) - ${button}) / 2))`);
+    assert.equal(own(flat, '.ds-alert:has(> .ds-btn, > .ds-alert__actions)')['--_btn'], button);
+    assert.equal(own(flat, '.ds-alert__actions')['margin-block'], 'max(calc(-1 * var(--_pad-block)), calc((var(--ds-space-5) - var(--_btn)) / 2))');
+    assert.match(own(flat, '.ds-alert')['--_pad-block'], /^max\(.*, calc\(\(var\(--_btn, 0px\) - var\(--ds-space-5\)\) \/ 2\)\)$/);
     assert.equal(own(flat, '.ds-alert__actions > .ds-btn').margin, '0');
   });
 });
@@ -508,7 +511,7 @@ describe('blocked hosts and selected cards (2.0 review)', () => {
       assert.ok(blocked.selector.includes(host), host);
     }
     const body = Object.fromEntries(declarations(`${blocked.body};`).map((entry) => [entry.property, entry.value]));
-    assert.equal(body.background, 'var(--ds-disabled-fill, var(--ds-badge-bg, var(--ds-accent)))');
+    assert.equal(body.background, 'var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)))');
     assert.equal(body.color, 'var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)))');
     const forced = rules(forcedColorBlocks(css).join('\n')).find((rule) => rule.selector === blocked.selector);
     assert.match(forced?.body ?? '', /color: GrayText/);

@@ -33,11 +33,11 @@ At most one sentence and one action; two actions go into `.ds-empty__actions`. A
 
 | Option | Classes | Where it applies | Effect on the empty state |
 |---|---|---|---|
-| Place | `.ds-empty--section` (the default, named), `.ds-empty--page`, `.ds-empty--inline` | the empty state | `--section`: at most 400px, 32px of block padding, a 48px disc, in a card or a panel. `--page`: at most 480px, 96px, a 72px disc and the title type, a whole page or panel. `--inline`: full width and left-aligned, disc, words and action in a row, a 32px disc, the label and meta type, in a list, a popup or a table cell |
+| Place | `.ds-empty--section` (the default, named), `.ds-empty--page`, `.ds-empty--inline` | the empty state | `--section`: at most 400px, 32px of block padding, a 48px disc, in a card or a panel. `--page`: at most 480px, 96px, a 72px disc and the title type, a whole page or panel. `--inline`: full width and left-aligned, disc or picture, words and action in a row, 32px, the label and meta type, 12px of block padding, in a list, a popup or a table cell; its actions take at most half the row and stack when it is narrow |
 | Cause | below | the empty state | the disc's colours (below) |
 | Tone | `.ds-tone-*` | the empty state itself; an inherited tone is ignored | the disc in the tone's container pair, over a cause |
-| Size | `.ds-xs` ... `.ds-xl` | the empty state or a group | 8px of disc and 8px of block padding per step; the type stays that of its place |
-| Density | `.ds-density-*` | any container | 2px of padding per step |
+| Size | `.ds-xs` ... `.ds-xl` | the empty state or a group | 8px of disc and 8px of block padding per step (`--inline`: the disc only, its padding takes neither the step nor `--ds-empty-padding`); the type stays that of its place |
+| Density | `.ds-density-*` | any container | 2px of padding per step (so 28px of block padding and 12px at the sides under `themes/compact.css`) |
 | Shape | `.ds-shape-*` | any container or the theme | the disc's corners times 0, .5, 1, 1.5: square at 0, a disc at the default |
 | Touch | | | not read; its buttons read it |
 
@@ -82,7 +82,7 @@ the node.
 Hooks ([theming.md](theming.md#component-hooks)): `--ds-empty-disc-size` (48px; `--page` 72px, `--inline` 32px; on the
 element or in the theme, say for a confirmation page: the ring follows, the glyph keeps the size of its markup, `[icon
 check 32]` in a 72px disc), `--ds-empty-disc-bg` and `--ds-empty-disc-color` (over any cause or tone),
-`--ds-empty-padding`, `--ds-empty-media-size`.
+`--ds-empty-padding` (not `--inline`), `--ds-empty-media-size` (`--inline`: 32px).
 
 **Accessibility.** The disc and the picture are decoration (`aria-hidden`, `alt=""`); the title says it. One that comes
 because of a user's action takes the role of the table above. Keyboard: no stop of its own; `Tab` reaches its action.
@@ -95,4 +95,5 @@ because of a user's action takes the role of the table above. Keyboard: no stop 
 - Empty state: `--section`, `--page`, `--inline`; causes `--no-data`, `--first-use`, `--not-set-up`, `--no-results`,
   `--no-access`, `--offline`, `--error`; a picture in `.ds-empty__media` and two actions in `.ds-empty__actions`; size,
   density, shape and tone; hooks `--ds-empty-disc-bg`, `--ds-empty-disc-color`, `--ds-empty-padding`,
-  `--ds-empty-media-size`.
+  `--ds-empty-media-size`. Changed under `themes/compact.css`: 28px of block padding and 12px at the sides (2.x: 32px
+  and 16px), since the theme is density -2.

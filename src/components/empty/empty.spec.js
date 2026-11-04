@@ -64,6 +64,48 @@ test('its places: --section is the default, --page takes more room, --inline a r
   expect(row).toEqual({ disc: 32, row: true, align: 'start', wide: true });
 });
 
+test('inline: a picture stands where the disc does, at its size; the box stays a row', async ({ page }) => {
+  await open(page);
+  const out = await probe(page, `<div id="probe" class="ds-empty ds-empty--inline"><span class="ds-empty__media" aria-hidden="true"><svg width="500" height="500" viewBox="0 0 500 500"></svg></span><p class="ds-empty__title">Title</p><p class="ds-empty__text">Words</p><button class="ds-btn ds-btn--text" type="button">Clear</button></div>`, `(() => {
+    const [media, title, text, button] = [...el.children].map((child) => child.getBoundingClientRect());
+    return { media: [media.width, media.height], beside: media.right <= title.left && media.right <= text.left, words: title.bottom <= text.top + 0.51, end: text.right <= button.left, height: el.getBoundingClientRect().height, margin: parseFloat(getComputedStyle(el.children[0]).marginBottom) };
+  })()`);
+  expect(out).toEqual({ media: [32, 32], beside: true, words: true, end: true, height: 64, margin: 0 });
+  expect(await probe(page, `<div class="ds-empty ds-empty--inline" style="--ds-empty-media-size: 48px"><span id="probe" class="ds-empty__media" aria-hidden="true"></span></div>`, 'el.getBoundingClientRect().height')).toBe(48);
+});
+
+test('inline: its padding takes density, not the size step or the hook', async ({ page }) => {
+  await open(page);
+  const read = '[parseFloat(style.paddingBlockStart), parseFloat(style.paddingInlineStart)]';
+  for (const [density, step] of DENSITIES) {
+    for (const [size] of SIZES) {
+      expect(await probe(page, `<div class="${density}">${empty(`ds-empty--inline ${size}`)}</div>`, read), `${size} ${density}`).toEqual([12 + step * 2, 0]);
+    }
+  }
+  expect(await probe(page, empty('ds-empty--inline" style="--ds-empty-padding: 99px'), read)).toEqual([12, 0]);
+  // The disc still follows the size.
+  expect(await probe(page, disc('ds-empty--inline ds-lg'), 'el.getBoundingClientRect().width')).toBe(40);
+});
+
+test('inline at a popup\'s width: two actions stack, the words keep their column; a wide row keeps them side by side', async ({ page }) => {
+  await open(page);
+  const two = '<div class="ds-empty__actions"><button class="ds-btn ds-btn--text" type="button">Import</button><button class="ds-btn ds-btn--text" type="button">Add device</button></div>';
+  const read = `(() => {
+    const [one, other] = [...el.querySelector('.ds-empty__actions').children].map((child) => child.getBoundingClientRect());
+    const actions = el.querySelector('.ds-empty__actions').getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    return { words: parseFloat(style.gridTemplateColumns.split(' ')[1]), stacked: other.top >= one.bottom, inside: actions.right <= box.right + 0.51, half: actions.width <= box.width / 2 + 0.51 };
+  })()`;
+  const narrow = await probe(page, `<div style="width:280px">${empty('ds-empty--inline', two)}</div>`, read);
+  expect(narrow.words).toBeGreaterThanOrEqual(80);
+  expect(narrow).toMatchObject({ stacked: true, inside: true, half: true });
+  const wide = await probe(page, `<div style="width:700px">${empty('ds-empty--inline', two)}</div>`, read);
+  expect(wide.stacked).toBe(false);
+  // One action never wraps its label, in the narrowest place.
+  const one = await probe(page, `<div style="width:200px">${empty('ds-empty--inline', '<button class="ds-btn ds-btn--text" type="button">Clear filter</button>')}</div>`, 'el.querySelector(".ds-btn").getBoundingClientRect().height');
+  expect(one).toBe(40);
+});
+
 test('causes and tones: the disc\'s colours; a tone wins over a cause; an inherited tone changes nothing; the hook wins', async ({ page }) => {
   await open(page);
   const look = '[style.backgroundColor, style.color]';
@@ -114,8 +156,28 @@ test('the confirmation plays its entrance when inserted, and its ring follows th
   await open(page);
   const names = await page.$eval('[data-demo="done"] .ds-empty__disc', (el) => getComputedStyle(el).animationName);
   expect(names).toBe('ds-fade-in, ds-pop-in');
-  await page.locator('[data-demo="replay"]').click();
-  await expect(page.locator('[data-demo="done"] .ds-empty--done')).toHaveCount(1);
+  // Play again: a new node, its entrance from the start, on the disc, the ring and the check.
+  const replay = await page.evaluate(async () => {
+    const before = document.querySelector('[data-demo="done"] .ds-empty__disc');
+    await Promise.all(before.getAnimations({ subtree: true }).map((animation) => animation.finished));
+    const finished = before.getAnimations({ subtree: true }).length;
+    document.querySelector('[data-demo="replay"]').click();
+    const disc = document.querySelector('[data-demo="done"] .ds-empty__disc');
+    const running = disc.getAnimations({ subtree: true });
+    return {
+      finished,
+      fresh: disc !== before,
+      names: running.map((animation) => animation.animationName).sort(),
+      started: running.every((animation) => animation.playState === 'running' && Number(animation.currentTime || 0) === 0),
+    };
+  });
+  expect(replay).toEqual({ finished: 0, fresh: true, names: ['ds-draw', 'ds-fade-in', 'ds-pop-in', 'ds-ripple'], started: true });
+  // The ring is the disc's box, also when the hook sets another size.
+  const ring = await probe(page, `<div class="ds-empty ds-empty--done"><span id="probe" class="ds-empty__disc" style="--ds-empty-disc-size: 64px" aria-hidden="true"></span></div>`, `(() => {
+    const after = getComputedStyle(el, '::after');
+    return [parseFloat(style.width), parseFloat(style.height), parseFloat(after.width), parseFloat(after.height), after.position, after.animationName];
+  })()`);
+  expect(ring).toEqual([64, 64, 64, 64, 'absolute', 'ds-ripple']);
 });
 
 test('the demo: every cause has an icon and a title; Tab reaches an action, the rest is no stop', async ({ page }) => {

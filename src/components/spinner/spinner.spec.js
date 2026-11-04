@@ -67,7 +67,7 @@ test('--ink takes the text colour on a faint ring, at any size; the deprecated -
 
 test('tones: from the class on the spinner; an inherited one changes nothing; the arc turns only without a share', async ({ page }) => {
   await open(page);
-  expect(await probe(page, '<span id="probe" class="ds-spinner ds-tone-error"></span>', hook('--ds-spinner-color'))).toBe('var(--ds-tone)'.length ? await probe(page, '<span id="probe" class="ds-tone-error"></span>', hook('--ds-tone')) : '');
+  expect(await probe(page, '<span id="probe" class="ds-spinner ds-tone-error"></span>', hook('--ds-spinner-color'))).toBe(await probe(page, '<span id="probe" class="ds-tone-error"></span>', hook('--ds-tone')));
   const track = await probe(page, '<span id="probe" class="ds-spinner ds-spinner--determinate ds-tone-error"></span>', hook('--ds-spinner-track'));
   expect(track).toBe(await probe(page, '<span id="probe" class="ds-tone-error"></span>', hook('--ds-tone-container')));
   expect(await probe(page, '<div class="ds-tone-error"><span id="probe" class="ds-spinner"></span></div>', hook('--ds-spinner-color'))).toBe('');

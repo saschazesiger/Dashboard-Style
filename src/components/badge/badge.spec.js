@@ -80,6 +80,32 @@ test('tones: from the class on the badge; an inherited tone changes nothing; a d
   expect(await probe(page, `<div class="ds-tone-error">${badge('')}</div>`, look)).toEqual(await probe(page, badge(''), look));
 });
 
+test('a dot without a tone holds 3:1 on a surface: primary, the hook on top; on a filled button the fill\'s ink; a neutral dot keeps its colour on a tinted host', async ({ page }) => {
+  await open(page);
+  const fill = 'style.backgroundColor';
+  const roles = await page.evaluate(() => {
+    const read = (value) => {
+      const el = document.createElement('span');
+      el.style.color = value;
+      document.body.append(el);
+      const colour = getComputedStyle(el).color;
+      el.remove();
+      return colour;
+    };
+    return { primary: read('var(--ds-primary)'), onPrimary: read('var(--ds-on-primary)'), accent: read('var(--ds-accent)'), surface: read('var(--ds-surface)'), neutral: read('var(--ds-text-2)') };
+  });
+  expect(await probe(page, badge('ds-badge--dot', ''), fill)).toBe(roles.primary);
+  expect(await probe(page, badge(''), fill), 'a count keeps the tint').toBe(roles.accent);
+  expect(await probe(page, badge('ds-badge--dot" style="--ds-badge-bg: rgb(1, 2, 3)', ''), fill)).toBe('rgb(1, 2, 3)');
+  expect(await probe(page, `<button class="ds-btn ds-btn--filled" type="button">x ${badge('ds-badge--dot', '')}</button>`, fill)).toBe(roles.onPrimary);
+  expect(await probe(page, badge('ds-badge--dot ds-tone-neutral', ''), fill)).toBe(roles.neutral);
+  const tinted = await probe(page, `<button class="ds-btn ds-btn--tonal" type="button">x ${badge('ds-badge--dot ds-tone-neutral', '')}</button>`, fill);
+  expect(tinted, 'never the surface').toBe(roles.neutral);
+  expect(await probe(page, `<button class="ds-btn ds-btn--tonal" type="button">x ${badge('ds-badge--dot', '')}</button>`, fill)).toBe(roles.primary);
+  // A count on the same host still takes the surface, as it did.
+  expect(await probe(page, `<button class="ds-btn ds-btn--tonal" type="button">x ${badge('ds-tone-neutral')}</button>`, fill)).toBe(roles.surface);
+});
+
 test('the deprecated tones look like the new ones until 3.0 ships', async ({ page }) => {
   await open(page);
   for (const [kind, tone] of [['neutral', 'neutral'], ['ok', 'success'], ['warning', 'warning'], ['error', 'error']]) {

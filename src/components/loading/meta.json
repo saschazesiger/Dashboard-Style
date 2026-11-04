@@ -40,6 +40,15 @@
     "page"
   ],
   "hooks": {
+    "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-table-head-height": {
+      "owner": "table"
+    },
+    "--ds-table-row-height": {
+      "owner": "table"
+    },
     "--ds-skeleton-radius": {
       "default": "`--ds-radius-action` (the heading line and a field: `--ds-radius-sm`; a media bone: `--ds-radius-card`)",
       "description": "the bones of a skeleton, times `--ds-shape` ([loading](components.md#loading))"

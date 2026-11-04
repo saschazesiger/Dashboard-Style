@@ -35,6 +35,7 @@
  *             2px per step (1, 2, 4, 6, 8px); the wave's height follows, its
  *             wavelength stays. Type stays.
  *   density   any container: the label's distance from the track, 2px per step
+ *             (so 4px under the compact theme, density -2, on purpose)
  *   shape     the bar's and the track's ends times --ds-shape; the stop dot
  *             stays a dot
  *   tone      from the class on .ds-progress itself: the bar and the stop dot

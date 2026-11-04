@@ -24,10 +24,10 @@
   "hooks": {
     "--ds-status-height": {
       "default": "24px",
-      "description": "a status chip's height at md, before size and density"
+      "description": "a status chip's height at md, before size"
     },
     "--ds-status-radius": {
-      "default": "`--ds-radius-md`",
+      "default": "`--ds-radius-md`, or half the height of a taller chip",
       "description": "status chip"
     },
     "--ds-tag-bg": {
@@ -40,7 +40,7 @@
     },
     "--ds-tag-height": {
       "default": "24px",
-      "description": "a tag's height at md, before size and density (its radius is half of it)"
+      "description": "a tag's height at md, before size (its radius is half of it)"
     },
     "--ds-status-spinner-width": {
       "default": "2px",

@@ -33,8 +33,9 @@
  *
  * so touch wins over size and density, and a hook a theme sets is the base
  * the options apply to. Tones apply only where a component reads them
- * (badge, status, alert, chip, progress, the filled error button of a
- * confirmation); a tone always comes with an icon or a word.
+ * (badge, status, tag, alert, empty state, chip, progress, spinner, the
+ * filled error button of a confirmation); a tone always comes with an icon
+ * or a word.
  *
  * Layer: ds.utilities. An option class is the page's explicit choice, so
  * on one element it beats a component's own value of the same property (a

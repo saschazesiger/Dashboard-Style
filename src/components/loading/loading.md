@@ -75,9 +75,9 @@ delay (a small card among finished ones, a long table where a sweep would draw t
 | Option | Classes | Where it applies | Effect |
 |---|---|---|---|
 | Size | `.ds-xs` ... `.ds-xl` | a bone or a group | a line 2px per step (and a heading, a title); an avatar, a field and a row 8px per step; a loader follows its own steps |
-| Density | `.ds-density-*` | any container | the padding of `.ds-loading` and a card, and the gaps of a surface, 2px per step; a field and a row 4px per step, as what they stand for |
+| Density | `.ds-density-*` | any container | the padding of `.ds-loading` and a card, and the gaps of a surface, 2px per step (under `themes/compact.css`: 12px and 20px); a field and a row 4px per step, on the hooks of what they stand for (`--ds-input-height`, `--ds-table-row-height`, `--ds-table-head-height`) |
 | Shape | `.ds-shape-*` | any container or the theme | a bone's radius and a card's corners times 0, .5, 1, 1.5, at most half a bone's height; an avatar stays round |
-| Touch | `.ds-touch` | the theme or a container | a field bone is as high as the field it stands for; the rest is no target |
+| Touch | `.ds-touch` | the theme or a container | a field bone and a table row are as high as what they stand for; the rest is no target |
 | Tone | | | not read: nothing here says more than "wait" |
 
 - **Skeleton**: every bone shows its slice of one band fixed to the viewport (the registered `--ds-skeleton-x`), so the
@@ -123,3 +123,5 @@ loading bar are left out.
 - Loading: skeleton presets (`.ds-skeleton__avatar`, `__media`, `__row` with `__lines`, `__table` with `__cells` and
   `__cells--head`, `__form` with `__field` and `__line--label`), `.ds-skeleton--pulse` beside the wave, hook
   `--ds-skeleton-media-ratio`; size, density and shape. The spinner and the shape loader have their own sections now.
+  Changed under `themes/compact.css`: 12px of padding on `.ds-loading` and 20px on a card (2.x: 16px and 24px), since the
+  theme is density -2. A field bone and a table row read the hooks of the input and the table.

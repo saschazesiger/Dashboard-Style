@@ -38,13 +38,47 @@ test('a bone at every size x density x touch: a line 2px per step, a field like 
         const name = `${size} ${density}${touch ? ' touch' : ''}`;
         expect(await probe(page, `<div ${around}><span id="probe" class="ds-skeleton__line"></span></div>`, height), `${name} line`).toBe(12 + sizeStep * 2);
         expect(await probe(page, `<div ${around}><span id="probe" class="ds-skeleton__avatar"></span></div>`, height), `${name} avatar`).toBe(40 + sizeStep * 8);
-        expect(await probe(page, `<div ${around}><span id="probe" class="ds-skeleton__field"></span></div>`, height), `${name} field`).toBe(Math.max(touch ? 48 : 0, 40 + sizeStep * 8 + densityStep * 4));
+        // The input's hook is this bone's base as it is the field's, whatever .ds-touch does to it.
+        const base = await probe(page, `<div ${around}><span id="probe" class="ds-skeleton__field"></span></div>`, `parseFloat(style.getPropertyValue('--ds-input-height')) || 40`);
+        expect(await probe(page, `<div ${around}><span id="probe" class="ds-skeleton__field"></span></div>`, height), `${name} field`).toBe(Math.max(touch ? 48 : 0, base + sizeStep * 8 + densityStep * 4));
+        expect(await probe(page, `<div ${around}><div class="ds-skeleton__table"><div id="probe" class="ds-skeleton__cells"></div></div></div>`, height), `${name} row`).toBe(Math.max(touch ? 48 : 0, 52 + sizeStep * 8 + densityStep * 4));
+        expect(await probe(page, `<div ${around}><div class="ds-skeleton__table"><div id="probe" class="ds-skeleton__cells ds-skeleton__cells--head"></div></div></div>`, height), `${name} head`).toBe(Math.max(touch ? 48 : 0, 48 + sizeStep * 8 + densityStep * 4));
       }
     }
   }
   // 2.x's bones at md.
   expect(await probe(page, '<span id="probe" class="ds-skeleton__line ds-skeleton__line--heading"></span>', height)).toBe(28);
   expect(await probe(page, '<span id="probe" class="ds-skeleton__line ds-skeleton__line--title"></span>', height)).toBe(16);
+});
+
+test('a bone reads the hook of what it stands for, as a theme sets it', async ({ page }) => {
+  await open(page);
+  expect(await probe(page, '<div style="--ds-input-height: 44px"><span id="probe" class="ds-skeleton__field"></span></div>', height)).toBe(44);
+  expect(await probe(page, '<div style="--ds-table-row-height: 60px"><div id="probe" class="ds-skeleton__cells"></div></div>', height)).toBe(60);
+  expect(await probe(page, '<div style="--ds-table-head-height: 36px"><div id="probe" class="ds-skeleton__cells ds-skeleton__cells--head"></div></div>', height)).toBe(36);
+});
+
+test('a bone is as high as the real control, at the default, under a theme\'s hook, and under compact once the owner is on the options model', async ({ page }) => {
+  await open(page);
+  const input = '<input id="probe" class="ds-input" aria-label="x">';
+  const field = '<span id="probe" class="ds-skeleton__field"></span>';
+  const row = '<div id="probe" class="ds-skeleton__cells"></div>';
+  // A cell's row, in a table: the box the bone's row stands in for.
+  const real = '<table class="ds-table"><tbody><tr id="probe"><td>x</td></tr></tbody></table>';
+  const compare = async (around, label) => {
+    expect(await probe(page, `<div ${around}>${field}</div>`, height), `${label} field`).toBe(await probe(page, `<div ${around}>${input}</div>`, height));
+    expect(await probe(page, `<div ${around}>${row}</div>`, height), `${label} row`).toBe(await probe(page, `<div ${around}>${real}</div>`, height));
+  };
+  await compare('', 'default');
+  await compare('style="--ds-input-height: 44px; --ds-table-row-height: 60px"', 'hooks');
+  // Form and table reach this branch's parent on the options model in their own
+  // branches: until then density does not move them, and the comparison waits.
+  const ported = await probe(page, `<div class="ds-density-dense">${input}</div>`, height) !== await probe(page, input, height)
+    && await probe(page, `<div class="ds-density-dense">${real}</div>`, height) !== await probe(page, real, height);
+  if (ported) {
+    await page.addStyleTag({ url: '/dist/themes/compact.css' });
+    await compare('', 'compact');
+  }
 });
 
 test('shape: a bone\'s radius times --ds-shape, at most half its height; the avatar round; a card\'s corners', async ({ page }) => {
