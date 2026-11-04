@@ -10,6 +10,8 @@
     "ds-progress",
     "ds-progress--flat",
     "ds-progress--indeterminate",
+    "ds-progress--label-above",
+    "ds-progress--label-end",
     "ds-progress--waiting",
     "ds-progress__bar",
     "ds-progress__detail",
@@ -18,18 +20,28 @@
   ],
   "attributes": [],
   "requires": [],
-  "context": [],
+  "context": [
+    "spinner"
+  ],
   "hooks": {
+    "--ds-progress-height": {
+      "default": "4px",
+      "description": "linear progress: the track's thickness at md, before the size step"
+    },
+    "--ds-progress-bar": {
+      "default": "`--ds-primary` (a tone: `--ds-tone`)",
+      "description": "linear progress: the bar, over any tone"
+    },
     "--ds-progress-gap": {
       "default": "4px",
       "description": "linear progress: the gap between the bar and the remaining track"
     },
     "--ds-progress-track": {
-      "default": "`--ds-accent`, `--ds-primary`",
+      "default": "`--ds-accent`, `--ds-primary` (a tone: `--ds-tone-container`, `--ds-tone`)",
       "description": "linear progress: the remaining track, the stop dot at its end"
     },
     "--ds-progress-stop": {
-      "default": "`--ds-accent`, `--ds-primary`",
+      "default": "`--ds-accent`, `--ds-primary` (a tone: `--ds-tone-container`, `--ds-tone`)",
       "description": "linear progress: the remaining track, the stop dot at its end"
     }
   },
