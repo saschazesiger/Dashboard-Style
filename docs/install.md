@@ -397,6 +397,22 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Retry` | the system's string `retry`: the tooltip of a retry button ([File upload](components.md#file-upload)) | `DS.core.config({ strings: { retry } })` |
+| `Waiting` | a file of `DS.upload` not started yet (the system's string `uploadWaiting`) | `DS.core.config({ strings: { uploadWaiting } })` |
+| `Uploaded` | a file of `DS.upload` that is done (the system's string `uploadDone`) | `DS.core.config({ strings: { uploadDone } })` |
+| `Upload failed` | a failed file of `DS.upload` without a reason (the system's string `uploadFailed`) | `DS.core.config({ strings: { uploadFailed } })` |
+| `Retry {name}` | the name of a file's retry button in `DS.upload` (the system's string `uploadRetry`) | `DS.core.config({ strings: { uploadRetry } })` |
+| `Remove {name}` | the name of a file's remove button in `DS.upload` (the system's string `uploadRemove`) | `DS.core.config({ strings: { uploadRemove } })` |
+| `Upload of {name}` | the name of a file's progress bar in `DS.upload` (the system's string `uploadProgress`) | `DS.core.config({ strings: { uploadProgress } })` |
+| `{name} is not a type this field takes.` | a file `DS.upload` refused for its type (the system's string `uploadWrongType`) | `DS.core.config({ strings: { uploadWrongType } })` |
+| `{name} was not added: at most {max} files.` | a file `DS.upload` refused for the count (the system's string `uploadTooMany`) | `DS.core.config({ strings: { uploadTooMany } })` |
+| `{name} is larger than {max}.` | a file `DS.upload` refused for its size (the system's string `uploadTooLarge`) | `DS.core.config({ strings: { uploadTooLarge } })` |
+| `{name} is empty.` | an empty file `DS.upload` refused (the system's string `uploadEmpty`) | `DS.core.config({ strings: { uploadEmpty } })` |
+| `Added {name}.` | what `DS.upload` announces for one file added (the system's string `uploadAdded`) | `DS.core.config({ strings: { uploadAdded } })` |
+| `Added {count} files.` | what `DS.upload` announces for several (the system's string `uploadAddedCount`) | `DS.core.config({ strings: { uploadAddedCount } })` |
+| `Removed {name}.` | what `DS.upload` announces for a removal (the system's string `uploadRemoved`) | `DS.core.config({ strings: { uploadRemoved } })` |
+| `{name} uploaded.` | what `DS.upload` announces when a file is done (the system's string `uploadDoneAnnounce`) | `DS.core.config({ strings: { uploadDoneAnnounce } })` |
+| `Upload of {name} failed.` | what `DS.upload` announces when a file failed (the system's string `uploadFailedAnnounce`) | `DS.core.config({ strings: { uploadFailedAnnounce } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

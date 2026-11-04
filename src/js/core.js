@@ -151,6 +151,22 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  retry: 'Retry',
+  uploadWaiting: 'Waiting',
+  uploadDone: 'Uploaded',
+  uploadFailed: 'Upload failed',
+  uploadRetry: 'Retry {name}',
+  uploadRemove: 'Remove {name}',
+  uploadProgress: 'Upload of {name}',
+  uploadWrongType: '{name} is not a type this field takes.',
+  uploadTooMany: '{name} was not added: at most {max} files.',
+  uploadTooLarge: '{name} is larger than {max}.',
+  uploadEmpty: '{name} is empty.',
+  uploadAdded: 'Added {name}.',
+  uploadAddedCount: 'Added {count} files.',
+  uploadRemoved: 'Removed {name}.',
+  uploadDoneAnnounce: '{name} uploaded.',
+  uploadFailedAnnounce: 'Upload of {name} failed.',
 });
 
 /**

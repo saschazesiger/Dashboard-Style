@@ -1,6 +1,7 @@
-## File upload
+## Drop zone and file field
 
-A drop zone and a file field: files by drop, the file dialog or paste.
+A drop zone and a file field: files by drop, the file dialog or paste. For the whole upload (the chosen files with their
+progress, retry and remove, previews, limits and resized pictures) wrap the zone in a [File upload](#file-upload).
 
 ```html
 <label class="ds-dropzone">
@@ -36,7 +37,8 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*', input: null }); 
 - **The file field** `.ds-input[type="file"]`: the field box, the chosen file's name in `--ds-text-2`, and the browser's
   button as a small tonal pill (`--ds-accent`, 32px) with the hover and press mixed into its fill and the press
   morph. It has no ripple (a native field part).
-- **The chosen files** are the page's: a [Row list](#row-list) (`.ds-list`, without `--interactive`) with a
+- **The chosen files**: a [File upload](#file-upload) renders them, with their progress, retry, remove and limits. A
+  page that renders its own uses a [Row list](#row-list) (`.ds-list`, without `--interactive`) with a
   `.ds-progress` and a remove button in each row, rendered through `DS.motion.flip()` (a removed row fades out, focus
   moves to the next remove button). The bar has no width of its own in a row: give it its share in the page's CSS
   (`flex: 0 1 160px; min-width: 80px`).
@@ -112,3 +114,6 @@ DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dat
   leaves it alone, as every icon button. The row's look has no option of its own.
 
 **Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
+
+<!-- changelog -->
+- Drag and files: the section of the drop zone is now "Drop zone and file field"; `#file-upload` names the new [File upload](#file-upload), which renders the chosen files around the same zone.
