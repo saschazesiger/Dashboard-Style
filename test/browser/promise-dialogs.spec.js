@@ -61,7 +61,7 @@ const built = (page) => page.evaluate(() => {
     labelled: dialog.getAttribute('aria-labelledby') === title.id,
     described: text ? dialog.getAttribute('aria-describedby') === text.id : null,
     buttons: [...box.querySelectorAll('.ds-dialog__actions .ds-btn')].map(label),
-    backdrop: dialog.querySelector('.ds-dialog__backdrop').hasAttribute('data-close'),
+    backdrop: dialog.querySelector('.ds-dialog__backdrop').hasAttribute('data-ds-close'),
     focus: label(document.activeElement) || document.activeElement.tagName.toLowerCase(),
   };
 });

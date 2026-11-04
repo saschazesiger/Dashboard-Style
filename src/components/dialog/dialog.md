@@ -50,16 +50,17 @@ The private values (`--_pad`) are computed in the rule that uses them; set the h
 
 ### A form dialog
 
-The box is the `<form>`, so Enter submits and the browser's validation runs first. A submit sends a cancelable
-`ds:submit` (`detail: { form, data }`, a `FormData`) on the dialog and closes it with reason `submit`, unless a listener
-calls `preventDefault()`. For work that takes time, `DS.dialog.form(dialog, { onSubmit, errorText })` runs
+The box is the `<form>` with `data-ds-dialog-form`, so Enter submits and the browser's validation runs first. A submit
+sends a cancelable `ds:submit` (`detail: { form, data }`, a `FormData`) on the dialog and closes it with reason `submit`,
+unless a listener calls `preventDefault()`, on the submit or on `ds:submit`. Without the attribute a form in the box
+stays yours, as in 2.x (it posts, or your handler decides). For work that takes time, `DS.dialog.form(dialog, { onSubmit, errorText })` runs
 `onSubmit(data, form)` as `confirm()` runs `onConfirm`: `DS.motion.busy()` on the submit button and `data-ds-busy` on
 the dialog; a rejection keeps it open with an error snackbar and focus on that button.
 
 ```html
 <dialog class="ds-dialog" id="rename" aria-labelledby="rename-title">
   <div class="ds-dialog__backdrop" data-ds-close></div>
-  <form class="ds-dialog__box">
+  <form class="ds-dialog__box" data-ds-dialog-form>
     <h2 class="ds-dialog__title" id="rename-title">Rename the device</h2>
     <div class="ds-dialog__body">
       <div class="ds-field"><label class="ds-field__label" for="rename-name">Name</label>

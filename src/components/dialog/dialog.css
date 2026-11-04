@@ -57,7 +57,7 @@
  *
  *   <dialog class="ds-dialog" aria-labelledby="n-title">
  *     <div class="ds-dialog__backdrop" data-ds-close></div>
- *     <form class="ds-dialog__box">
+ *     <form class="ds-dialog__box" data-ds-dialog-form>
  *       <h2 class="ds-dialog__title" id="n-title">Rename</h2>
  *       <div class="ds-dialog__body"> ... fields ... </div>
  *       <div class="ds-dialog__actions">

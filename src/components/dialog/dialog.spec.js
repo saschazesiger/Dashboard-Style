@@ -144,6 +144,25 @@ test('a form dialog: ds:submit can be cancelled; form() stays open and busy whil
   await expect(dialog).toBeHidden();
 });
 
+test('a box form without data-ds-dialog-form stays the page\'s, as in 2.x: no ds:submit, no close', async ({ page }) => {
+  await open(page);
+  const seen = await page.evaluate(async () => {
+    const host = document.querySelector('#fx-component');
+    host.insertAdjacentHTML('beforeend', '<dialog class="ds-dialog" id="own-form" aria-label="Own"><form class="ds-dialog__box"><input name="a" value="1"><button type="submit">Go</button></form></dialog>');
+    const dialog = document.getElementById('own-form');
+    const events = [];
+    dialog.addEventListener('ds:submit', () => events.push('ds:submit'));
+    dialog.querySelector('form').addEventListener('submit', (event) => { event.preventDefault(); events.push('page'); });
+    await DS.overlay.open(dialog);
+    dialog.querySelector('button').click();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const open = dialog.getAttribute('data-state');
+    await DS.overlay.close(dialog);
+    return { events, open };
+  });
+  expect(seen).toEqual({ events: ['page'], open: 'open' });
+});
+
 test('D10: confirm({ destructive: true }) fills its button in the error tone; a plain confirm stays primary', async ({ page }) => {
   await open(page);
   const look = (destructive) => page.evaluate(async (destructive) => {

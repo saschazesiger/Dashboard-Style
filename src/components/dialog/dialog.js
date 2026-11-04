@@ -21,14 +21,15 @@
  * An action sheet's list (.ds-dialog__list): ArrowUp, ArrowDown, Home and End
  * move focus among its .ds-menu__item rows.
  *
- * Form dialog: when the box is a <form class="ds-dialog__box">, a submit
- * (the constraint validation has passed by then) sends a cancelable
- * ds:submit ({ form, data }) and closes it with reason "submit" unless the
- * page called preventDefault(). form(dialog, { onSubmit, errorText }) runs
- * onSubmit(data, form) like onConfirm(): busy() on the submit button,
- * data-ds-busy on the dialog, a rejection keeps it open with an error
- * snackbar. The submit button of a form that closes natively (a form that is
- * not the box, method="dialog") is the page's business, as in 2.x.
+ * Form dialog (opt-in, so a 2.x form that posts or has its own handler stays
+ * the page's): when the box is a <form class="ds-dialog__box"
+ * data-ds-dialog-form>, or after form(dialog), a submit (the constraint
+ * validation has passed by then) sends a cancelable ds:submit
+ * ({ form, data }) and closes it with reason "submit", unless the page called
+ * preventDefault(), on the submit or on ds:submit. form(dialog, { onSubmit,
+ * errorText }) runs onSubmit(data, form) like onConfirm(): busy() on the
+ * submit button, data-ds-busy on the dialog, a rejection keeps it open with
+ * an error snackbar.
  *
  * ES2022; no progressive feature of its own.
  */
@@ -329,7 +330,7 @@ function wireDialogList(dialog) {
   });
 }
 
-/** The form dialogs that form() took over: its options, per dialog. @type {WeakMap<Element, { onSubmit: (data: FormData, form: HTMLFormElement) => unknown, errorText?: string }>} */
+/** The form dialogs that form() took over: its options, per dialog. @type {WeakMap<Element, { onSubmit?: (data: FormData, form: HTMLFormElement) => unknown, errorText?: string }>} */
 const forms = new WeakMap();
 
 /**
@@ -340,8 +341,7 @@ const forms = new WeakMap();
  * @returns {ReturnType<typeof controllerOf>}
  */
 export function form(element, options = {}) {
-  if (typeof options.onSubmit === 'function') forms.set(element, { onSubmit: options.onSubmit, errorText: options.errorText });
-  else forms.delete(element);
+  forms.set(element, { onSubmit: options.onSubmit, errorText: options.errorText });
   return controllerOf(element);
 }
 
@@ -349,13 +349,14 @@ export function form(element, options = {}) {
 function wireForm(dialog) {
   dialog.addEventListener('submit', async (/** @type {SubmitEvent} */ event) => {
     const box = /** @type {HTMLFormElement} */ (event.target);
-    if (!box?.matches?.('form.ds-dialog__box') || box.closest('.ds-dialog') !== dialog) return;
+    if (!box?.matches?.('form.ds-dialog__box') || box.closest('.ds-dialog') !== dialog || event.defaultPrevented) return;
+    const setup = forms.get(dialog);
+    if (!setup && !box.hasAttribute('data-ds-dialog-form')) return;
     event.preventDefault();
     if (dialog.hasAttribute('data-ds-busy') || overlays.get(dialog)?.phase !== 'open') return;
     const data = new FormData(box, /** @type {any} */ (event).submitter);
     if (!emit(dialog, 'submit', { form: box, data }, { cancelable: true })) return;
-    const setup = forms.get(dialog);
-    if (setup) {
+    if (typeof setup?.onSubmit === 'function') {
       const submit = /** @type {any} */ (event).submitter ?? box.querySelector('[type="submit"]');
       dialog.setAttribute('data-ds-busy', '');
       try {

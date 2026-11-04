@@ -52,7 +52,7 @@ SG.demo('dialog', {
 
       h.section('Form', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + form + '">Rename the device</button></div>' +
         '<dialog class="ds-dialog" id="' + form + '" aria-labelledby="' + form + '-title" data-demo="form">' +
-        '<div class="ds-dialog__backdrop" data-ds-close></div><form class="ds-dialog__box">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><form class="ds-dialog__box" data-ds-dialog-form>' +
         '<h2 class="ds-dialog__title" id="' + form + '-title">Rename the device</h2>' +
         '<div class="ds-dialog__body"><div class="ds-field"><label class="ds-field__label" for="' + name + '">Name</label>' +
         '<input class="ds-input" id="' + name + '" name="name" required autofocus value="LAPTOP-0042"></div></div>' +
