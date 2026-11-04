@@ -28,8 +28,8 @@ ripples.release(host);                        // end a running press by hand (no
   options (pointer-down selects and closes the list; the state layer is the feedback), native field parts, the brand
   link (`.ds-brand`: the home link in the top bar is identity, not a control, so like a link in text it has no state
   layer, ripple or morph) and the skip link (`.ds-skip`: keyboard-only, shown while focused; its focus ring is the
-  feedback). Under `.ds-ripples` each host is positioned, and clipped and isolated while a ripple is inside
-  (zero specificity, so a host's own `position` wins; at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
+  feedback). Each host positions itself in its own stylesheet (`[data-ds-ripple]` is made `position: relative`
+  with zero specificity), and it is clipped and isolated while a ripple is inside (at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
   whose input is disabled, also by its `<fieldset>`, or `.ds-radio--disabled`) get no ripple, and neither does a press with a pointer button other than the primary one (a right or middle click) or from a non-primary pointer (a second finger).
 - The ripple is `<span class="ds-press-ripple" aria-hidden="true" data-ds-keep>` with the runtime properties
   `--ds-ripple-x`, `--ds-ripple-y` (its centre) and `--ds-ripple-r` (the distance to the farthest corner). It
@@ -42,12 +42,45 @@ ripples.release(host);                        // end a running press by hand (no
   too. Without `attach()` the flat layer stays the press feedback.
 - A press ends early when another element captures the pointer (an ancestor that drags to scroll): the ripple
   fades as on release. `release(host?)` ends one by hand; `detach()` is the **deprecated** alias of `destroy()`
-  (removed in 3.0 at the earliest). `:active` (the flat layer and the morph) lasts until the pointer button goes up.
+  until 3.0 ships. `:active` (the flat layer and the morph) lasts until the pointer button goes up.
 - Colour: `--ds-ripple-color` (default `currentColor`), on `.ds-theme` or a host. Forced colours show no ripple.
 - iOS Safari applies `:active` only on pages that listen to `touchstart`. `attach()` adds a passive listener; a
   page without `ds.js` adds one itself (`document.addEventListener('touchstart', () => {}, { passive: true })`, or
   `ontouchstart=""` on `<body>` where the Content-Security-Policy allows inline handlers), otherwise iOS shows no
   press feedback.
 
-**Motion:** the press rows of [Controls](motion.md#controls) in motion.md.
+### Options
+
+The ripple has none of its own: it fills its host, which clips it, so it takes every option from the host.
+
+| Option | Classes | Where it applies | Effect on the ripple |
+|---|---|---|---|
+| size | `.ds-xs` ... `.ds-xl` | on the host or an ancestor | none of its own: the circle reaches the farthest corner of whatever box the host has at the press |
+| density | `.ds-density-*` | on the host or an ancestor | the same |
+| touch | `.ds-touch` | on the host or an ancestor | the same: `--ds-target-min` makes the box larger, and the ripple fills all of it |
+| shape | `.ds-shape-*` | on the host or an ancestor | the clip is the host's radius: at `.ds-shape-square` a square host clips a square. The press morph is each host's own rule and never makes a corner rounder than at rest, so a square never turns into a pill. A tab's ripple box computes the radius of the tab's layer |
+| tone | `.ds-tone-*` | none of its own | the default ink is the host's content colour, so a filled error button ripples in its on-tone colour |
+
+### Keyboard and names
+
+Enter and Space on a focused host ripple from its centre, and on `.ds-table__row-link`, `.ds-card__action` or
+`.ds-list__action` they ripple the row or card (Enter only on a link; never Enter on a checkbox or radio, and typing
+in a field inside a host is no press). The span is `aria-hidden` and never takes focus, so it adds nothing to the
+host's name, and `data-ds-keep` keeps `DS.dom.morphHtml` from removing it.
+
+### Forced colours
+
+Forced colours show no ripple (`display: none`); the host's own forced-colours rules are the press feedback.
+
+### Hooks
+
+`--ds-ripple-color`: [theming.md](theming.md#component-hooks).
+
+**Motion:** the press rows of [Controls](motion.md#controls) in motion.md, and "Pointer ripple" in the Motion Lab.
+
+<!-- changelog -->
+- Ripple on the options model: a host at any size, density, shape and touch target; the tab's ripple box follows the
+  shape. The rules hold in any cascade order: each pressed rule leaves out the host's blocked states by itself, and
+  every system host positions itself (only `[data-ds-ripple]` is positioned by `ripple.css`).
+- `detach()` of the `DS.ripple.attach()` handle goes with 3.0.0 (`removed` set in `deprecations.json`): use `destroy()`.
 
