@@ -23,4 +23,6 @@ export interface IndicatorHandle {
   destroy(): void;
 }
 /** One gliding .ds-indicator behind the items of `track`; the live handle again for the same track and options. */
+export declare function create(track: HTMLElement, options: IndicatorOptions): IndicatorHandle;
+/** @deprecated The 2.x name of create(), an alias until 3.0 ships. */
 export declare function createIndicator(track: HTMLElement, options: IndicatorOptions): IndicatorHandle;

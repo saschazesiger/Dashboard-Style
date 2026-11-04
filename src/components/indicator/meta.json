@@ -2,7 +2,7 @@
   "name": "indicator",
   "group": "motion",
   "order": 60,
-  "docsOrder": null,
+  "docsOrder": 345,
   "need": "Slide one pill between the items of a tab bar or segmented switch",
   "tier": 1,
   "status": "stable",
@@ -25,6 +25,9 @@
   ],
   "progressive": [],
   "ripple": false,
+  "labExempt": {
+    "DS.indicator.createIndicator": "the deprecated alias of DS.indicator.create until 3.0 ships: the same function"
+  },
   "exceptions": {
     "physical": {
       ".ds-indicator: left": "DS.indicator writes viewport-measured x from the left"

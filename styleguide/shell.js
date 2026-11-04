@@ -188,7 +188,7 @@
     form: 'forms', slider: 'forms', drag: 'forms', savebar: 'forms', chip: 'selection', switch: 'selection', combobox: 'selection',
     dialog: 'overlays', sheet: 'overlays', menu: 'overlays', toast: 'overlays', tooltip: 'overlays', loading: 'loading',
     loader: 'loading', spinner: 'loading', progress: 'loading', chart: 'charts', shell: 'frame', tabs: 'frame', steps: 'frame',
-    page: 'frame', scroller: 'frame', utilities: 'frame', ripple: 'motion', indicator: 'motion',
+    page: 'frame', scroller: 'frame', utilities: 'frame',
   };
 
   /** Every component: the registry's (meta.json) joined with its demo, in group and meta.json order. */
@@ -1116,7 +1116,7 @@
   var indicators = [];
 
   function addIndicator(track, options) {
-    indicators.push({ track: track, handle: DS.indicator.createIndicator(track, options) });
+    indicators.push({ track: track, handle: DS.indicator.create(track, options) });
   }
 
   function pageHtml(r) {

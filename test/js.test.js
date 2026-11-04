@@ -1442,13 +1442,13 @@ describe('createIndicator on a fake track', () => {
     const own = indicatorTrack();
     own.doc.createElement = ((make) => (tag) => Object.assign(make(tag), { computed: { borderTopLeftRadius: '12px' } }))(own.doc.createElement);
     const a = create(own);
-    assert.equal(a.span.style.getPropertyValue('--ds-indicator-radius'), '12px');
+    assert.equal(a.span.style.getPropertyValue('--ds-indicator-radius'), 'calc(12px * var(--ds-shape, 1))');
     a.handle.destroy();
     // A pill radius (9999px) is capped at half the item's smaller side.
     const pill = indicatorTrack();
     pill.doc.createElement = ((make) => (tag) => Object.assign(make(tag), { computed: { borderTopLeftRadius: '9999px' } }))(pill.doc.createElement);
     const b = create(pill);
-    assert.equal(b.span.style.getPropertyValue('--ds-indicator-radius'), '20px');
+    assert.equal(b.span.style.getPropertyValue('--ds-indicator-radius'), 'calc(20px * var(--ds-shape, 1))');
     b.handle.destroy();
     // The component sets the variable: nothing is copied.
     const set = indicatorTrack();
@@ -2743,7 +2743,7 @@ describe('classic-script build (dist/ds.js)', () => {
       assert.notEqual(sandbox.DashboardStyle.versions['9.9.9'].core, sandbox.DS.core);
       // The behaviours of the first copy stay registered; the second copy's definitions are ignored.
       // The core's own behaviours first; a component module's definition follows them.
-      assert.deepEqual([...runtime.state('core').specs.keys()].slice(0, 3), ['guard', 'ripple', 'tooltips']);
+      assert.deepEqual([...runtime.state('core').specs.keys()].slice(0, 4), ['guard', 'indicator', 'ripple', 'tooltips']);
       assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.define('guard', { global() {} }), false);
     });
 

@@ -2136,7 +2136,7 @@
   var indicators = [];
 
   function addIndicator(track, options) {
-    var made = DS.indicator.createIndicator(track, options);
+    var made = DS.indicator.create(track, options);
     indicators.push(made);
     return made;
   }

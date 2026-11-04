@@ -753,7 +753,7 @@ re-render with `morphHtml` keeps it. The attributes are listed in [components.md
 
 ### DS.indicator (js/indicator.js)
 
-`createIndicator(track, { active, className, observe, name, reveal })` inserts one `.ds-indicator` behind the items of
+`create(track, { active, className, observe, name, reveal })` inserts one `.ds-indicator` behind the items of
 `track` (which gets `.ds-has-indicator`) and returns `{ update(), destroy() }`. One per track (2.0): a second call
 with the same options returns the live handle, other options destroy it and make a new one. It measures the item matching the `active`
 selector in the track's scroll coordinates (horizontal, vertical, scrolling or wrapping tracks). The component gives
@@ -821,10 +821,11 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
   from where it is painted, and the fade turns back from its current opacity. On page load the first placement jumps,
   and the track's items take their look under the new pill at once (`createIndicator()` gives them one style flush
   without transitions): a pressed toggle's own tint or an item's colour never fades on load.
-- **Radius.** A component sets `--ds-indicator-radius` (the drawer: half the item height, squarer under a pressed
-  active item). A project class that only sets `border-radius` keeps working: at rest, when `--ds-indicator-radius`
-  computes to 0px, the computed `border-top-left-radius` (capped at half the item's smaller side) is copied into it
-  inline. During a glide the box has no radius of its own.
+- **Radius.** A component sets `--ds-indicator-radius` with `--ds-shape` in its own rule (the drawer: half the item
+  height, squarer under a pressed active item). A project class that only sets `border-radius` keeps working: at rest,
+  when `--ds-indicator-radius` computes to 0px, the computed `border-top-left-radius` (capped at half the item's
+  smaller side) is copied into it inline, with `--ds-shape` as a live factor, and again at each rest. During a glide
+  the box has no radius of its own.
 - **Morphs.** The span carries `data-ds-keep`, so `DS.dom.morphHtml` never removes it and the observers keep working
   after a morph of the track (a change of the active item in the new markup glides by itself). A foreign re-render
   that dropped the span anyway gets it back at the next placement (it jumps there once).
@@ -834,7 +835,8 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
 
 | Export | |
 |---|---|
-| `createIndicator(track, { active, className, observe, name, reveal })` | see above; returns `{ update(), destroy() }` (the live one again for the same track and options) |
+| `create(track, { active, className, observe, name, reveal })` | see above; returns `{ update(), destroy() }` (the live one again for the same track and options); `data-ds-indicator` is its declarative path ([Indicator](components.md#indicator)) |
+| `createIndicator(track, options)` | **deprecated**, an alias of `create()` until 3.0 ships |
 | `OVERSHOOT` | 0.05: the largest pass of an edge beyond its target, as a share of its travel (the peak contract of `--ds-ease-spatial`); the overshoot margin of the glide box |
 
 ### DS.ripple (js/ripple.js)

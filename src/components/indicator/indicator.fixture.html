@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indicator options · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="/test/browser/fixtures/fixture.css">
+<style>
+  /* Two project looks: one with a plain border-radius (the script copies it), one that sets the radius itself. */
+  .fx-pill {
+    border-radius: var(--ds-radius-action);
+    background: var(--ds-accent);
+  }
+
+  .fx-own {
+    --ds-indicator-radius: 6px;
+    background: var(--ds-accent);
+  }
+
+  .fx-track {
+    display: inline-flex;
+    gap: var(--ds-space-1);
+  }
+</style>
+</head>
+<body>
+<!-- Tracks of the indicator on the options model: indicator.spec.js sets the
+     option classes on #options and moves the active items. data-ds-indicator
+     makes the first ones through DS.init(); the spec makes the project ones
+     through DS.indicator.create(). -->
+<div class="ds-theme fx-root">
+  <div id="options">
+    <section class="fx-section" aria-labelledby="own-title">
+      <h2 id="own-title">Project tracks</h2>
+      <div class="fx-row">
+        <div class="fx-track" id="pill-track" role="group" aria-label="Period">
+          <button class="ds-btn" type="button" aria-pressed="true" id="pill-a">Day</button>
+          <button class="ds-btn" type="button" aria-pressed="false" id="pill-b">Week</button>
+          <button class="ds-btn" type="button" aria-pressed="false" id="pill-c">A whole month</button>
+        </div>
+        <div class="fx-track" id="own-track" role="group" aria-label="Range">
+          <button class="ds-btn" type="button" aria-pressed="true">All</button>
+          <button class="ds-btn" type="button" aria-pressed="false">Some</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="fx-section" aria-labelledby="declared-title">
+      <h2 id="declared-title">Declarative</h2>
+      <nav class="ds-segmented" aria-label="Mode" id="links" data-ds-indicator='[aria-current="true"]' data-ds-indicator-class="ds-segmented__indicator">
+        <a class="ds-segmented__option" href="#live" aria-current="true" data-label="Live">Live</a>
+        <a class="ds-segmented__option" href="#admin" data-label="Admin">Admin</a>
+      </nav>
+      <div class="ds-segmented" role="radiogroup" aria-label="View" id="radios" data-ds-indicator data-ds-indicator-class="ds-segmented__indicator">
+        <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="List">List</button>
+        <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Cards">Cards</button>
+        <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Map">Map</button>
+      </div>
+      <div class="ds-tabs" role="tablist" aria-label="Device" id="tabs" data-ds-indicator='[aria-selected="true"]' data-ds-indicator-class="ds-tabs__indicator">
+        <button class="ds-tabs__tab" role="tab" type="button" aria-selected="true" data-label="Details">Details</button>
+        <button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" tabindex="-1" data-label="History">History</button>
+      </div>
+    </section>
+  </div>
+</div>
+<script src="/dist/ds.js"></script>
+<script>DS.init(document);</script>
+<script src="/test/browser/fixtures/fixture.js"></script>
+</body>
+</html>

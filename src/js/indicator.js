@@ -59,7 +59,7 @@
  * a .ds-drawer__list gets .ds-drawer__list--overflow while it is taller
  * than its view.
  *
- *   const indicator = createIndicator(nav, { active: '[aria-current="page"]' });
+ *   const indicator = create(nav, { active: '[aria-current="page"]' });
  *   ...change the active item: the pill follows by itself...
  *   indicator.update();   // only needed with observe: false
  *
@@ -83,8 +83,21 @@
  * pill is part of its parent's snapshot and switches with it on a page
  * load.
  *
- * ES2022 (Safari 16.4); a module may import from an earlier module; newer
- * APIs only behind feature detection, named under Progressive:.
+ * Options: size, density and .ds-touch change the items, and the pill
+ * follows what it measures (a resize places it at once). The shape reaches
+ * it through the radius: a component's class computes
+ * --ds-indicator-radius with --ds-shape in its own rule; a project class's
+ * plain border-radius is copied in with the shape as a live factor
+ * (adoptRadius()).
+ *
+ * Declarative: data-ds-indicator on the track (its value: the selector of
+ * the active item; empty: any item that says it is the current one),
+ * data-ds-indicator-class, -name and -reveal for the options; DS.init()
+ * makes it, DS.core.get(track, 'indicator') returns its controller.
+ *
+ * ES2022 (the floor: Safari 17.5, Chrome/Edge 123, Firefox 130); a module
+ * may import from an earlier module; newer APIs only behind feature
+ * detection, named below.
  *
  * Progressive:
  * - view-transition-name (the `name` option) and the pageswap and
@@ -92,6 +105,7 @@
  *   without View Transitions the property is ignored and the pill glides
  *   as always.
  */
+import { define } from './core.js';
 import { motionDuration, travelDuration } from './motion.js';
 
 /**
@@ -126,7 +140,7 @@ const MODAL_OPEN = [
 
 /**
  * The live indicator of each track, with the options it was made with: a
- * second createIndicator() for the same track and options returns it, other
+ * second create() for the same track and options returns it, other
  * options replace it (2.0).
  * @type {WeakMap<Element, { key: string, handle: { update: () => void, destroy: () => void } }>}
  */
@@ -141,9 +155,6 @@ const live = new WeakMap();
  */
 const fontWatchers = new WeakMap();
 const pageWatchers = new WeakMap();
-
-/** A weak reference where the engine has them (ES2021), else a strong one. */
-const weak = (value) => (typeof WeakRef === 'function' ? new WeakRef(value) : { deref: () => value });
 
 /** Calls `method` of every watcher in `set` that is still alive; drops the dead ones. */
 function notify(set, method, event) {
@@ -166,7 +177,7 @@ function watch(registry, owner, watcher, listen) {
     entry = { set, stop: listen(set) };
     registry.set(owner, entry);
   }
-  const ref = weak(watcher);
+  const ref = new WeakRef(watcher);
   entry.set.add(ref);
   return () => {
     entry.set.delete(ref);
@@ -208,7 +219,7 @@ function rendered(item) {
  * A second call for the same track with the same options returns the live
  * handle; other options destroy it and make a new one.
  */
-export function createIndicator(track, options) {
+export function create(track, options) {
   const { active, className = '', observe = true, name = '', reveal = false } = options;
   const key = JSON.stringify([active, className, Boolean(observe), name, Boolean(reveal)]);
   const existing = live.get(track);
@@ -249,6 +260,8 @@ export function createIndicator(track, options) {
   let generation = 0;
   let destroyed = false;
   let frame = 0;
+  /** The radius on the span is a copy of the class's border-radius (adoptRadius()). */
+  let adopted = false;
 
   const computed = () => (typeof view.getComputedStyle === 'function' ? view.getComputedStyle(indicator) : null);
 
@@ -350,19 +363,30 @@ export function createIndicator(track, options) {
   /**
    * A project class that only sets border-radius keeps its corners: at
    * rest, when no --ds-indicator-radius is set, its computed radius (capped
-   * at half the smaller side) is copied in, without a spring.
+   * at half the smaller side) is copied in, without a spring, and again at
+   * each rest, as the item's size may have changed. --ds-shape stays a live
+   * factor of the copy, so a square region squares the pill as it squares
+   * every other corner, whenever its class changes. A class that computes
+   * the shape itself sets --ds-indicator-radius, which is never touched.
    */
   function adoptRadius(rect) {
     const style = computed();
-    if (!style || style.getPropertyValue('--ds-indicator-radius').trim() !== '0px') return;
+    if (!style || (!adopted && style.getPropertyValue('--ds-indicator-radius').trim() !== '0px')) return;
     const own = String(style.borderTopLeftRadius || '').trim().split(/\s+/)[0];
     const side = Math.min(rect.right - rect.left, rect.bottom - rect.top);
     const value = parseFloat(own);
     // A percentage resolves against the smaller side (an ellipse is not a pill).
     const radius = Math.min(own.endsWith('%') ? value * side * 0.01 : value, side / 2);
-    if (!(radius > 0)) return;
+    if (!(radius > 0)) {
+      if (adopted) indicator.style.removeProperty('--ds-indicator-radius');
+      adopted = false;
+      return;
+    }
+    const copy = `calc(${px(radius)} * var(--ds-shape, 1))`;
+    adopted = true;
+    if (indicator.style.getPropertyValue('--ds-indicator-radius') === copy) return;
     indicator.style.setProperty('transition', 'none');
-    indicator.style.setProperty('--ds-indicator-radius', px(radius));
+    indicator.style.setProperty('--ds-indicator-radius', copy);
     flush();
     indicator.style.removeProperty('transition');
   }
@@ -714,3 +738,43 @@ export function createIndicator(track, options) {
   live.set(track, { key, handle, watcher });
   return handle;
 }
+
+/**
+ * The 2.x name of create(), a deprecated alias until 3.0 ships.
+ * @param {HTMLElement} track
+ * @param {{ active: string, className?: string, observe?: boolean, name?: string, reveal?: boolean }} options
+ */
+export function createIndicator(track, options) {
+  return create(track, options);
+}
+
+/** Any item that says it is the current one: the active item of data-ds-indicator without a selector. */
+const ANY_ACTIVE = '[aria-current]:not([aria-current="false"]), [aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]';
+
+/*
+ * The declarative path of create(). A change of an option attribute replaces
+ * the indicator (create() does, for other options); update() without names
+ * moves it, as the handle's does.
+ */
+define('indicator', {
+  attribute: 'data-ds-indicator',
+  attributes: ['data-ds-indicator-class', 'data-ds-indicator-name', 'data-ds-indicator-reveal'],
+  init(el) {
+    const make = () => create(el, {
+      active: el.getAttribute('data-ds-indicator') || ANY_ACTIVE,
+      className: el.getAttribute('data-ds-indicator-class') ?? '',
+      name: el.getAttribute('data-ds-indicator-name') ?? '',
+      reveal: el.hasAttribute('data-ds-indicator-reveal'),
+    });
+    let handle = make();
+    return {
+      update(names) {
+        if (names?.length) handle = make();
+        else handle.update();
+      },
+      destroy() {
+        handle.destroy();
+      },
+    };
+  },
+});
