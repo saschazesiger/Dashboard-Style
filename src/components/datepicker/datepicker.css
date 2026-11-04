@@ -1,0 +1,72 @@
+/*
+ * Date picker: a segmented date field and a calendar in a picker popover
+ * (the WAI-ARIA date picker dialog); with type datetime the field takes the
+ * time too, the popover a list of times beside the calendar, and the field
+ * may name the zone of its wall time. DS.datepicker (datepicker.js) builds
+ * the popover inside the root: the field is a .ds-datefield, the popover a
+ * .ds-picker__popover with a .ds-calendar (and a .ds-timepicker__list).
+ *
+ *   <span class="ds-field__label" id="due-label">Due date</span>
+ *   <div class="ds-picker" data-ds-datepicker data-ds-value="2026-11-04" [data-ds-datepicker-type="datetime"]>
+ *     <div class="ds-datefield" role="group" aria-labelledby="due-label">
+ *       <button class="ds-btn ds-btn--quiet ds-btn--icon ds-datefield__toggle" type="button" aria-label="Choose date">(calendar)</button>
+ *     </div>
+ *     (rendered:)
+ *     <div class="ds-picker__popover" role="dialog" aria-modal="true" aria-label="Choose date" hidden>
+ *       <div class="ds-picker__panes">
+ *         <div class="ds-picker__pane"><div class="ds-calendar">...</div></div>
+ *         [<div class="ds-picker__pane ds-datepicker__times"><div class="ds-timepicker__list">...</div></div>]
+ *       </div>
+ *       <div class="ds-picker__foot">(Today or Now) <span class="ds-picker__spacer"></span> (Clear)</div>
+ *     </div>
+ *   </div>
+ *
+ * The list of times is as tall as the calendar beside it and scrolls inside;
+ * on a phone (600px or less) it goes under the calendar, 200px high.
+ *
+ * Options: those of the field, the calendar and the popover, each in its
+ * own component (size, density, shape, touch); the date picker adds none.
+ *
+ * Motion: the popover's (it grows from the button); a turned month slides.
+ *
+ * Forced colours: the parts' own.
+ *
+ * Progressive:
+ * - scrollbar-color and scrollbar-width (a thin scrollbar on the list of
+ *   times): without them the platform scrollbar shows.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.datepicker {
+  /* The times beside the calendar: as tall as it, scrolling inside. */
+  .ds-datepicker__times {
+    position: relative;
+    align-self: stretch;
+    inline-size: 128px;
+    border-inline-start: 1px solid var(--ds-line);
+  }
+
+  .ds-datepicker__times > .ds-timepicker__list {
+    position: absolute;
+    inset: 0;
+    padding-inline-start: var(--ds-space-2);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-line-2) transparent;
+  }
+
+  @media (max-width: 600px) {
+    .ds-datepicker__times {
+      inline-size: auto;
+      border-inline-start: 0;
+    }
+
+    .ds-datepicker__times > .ds-timepicker__list {
+      position: static;
+      max-block-size: 200px;
+      padding-inline-start: 0;
+    }
+  }
+}
