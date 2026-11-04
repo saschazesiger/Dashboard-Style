@@ -18,7 +18,12 @@
   ],
   "requires": [],
   "context": [],
-  "hooks": {},
+  "hooks": {
+    "--ds-tasks-gap": {
+      "default": "`--ds-space-2`",
+      "description": "the space between the steps of a `.ds-tasks` list, 2px per size step and per density step"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],

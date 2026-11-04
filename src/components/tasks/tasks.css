@@ -24,6 +24,14 @@
  * runs from 1 to 0 over --ds-dur-medium after --ds-dur-micro. A list
  * rendered with done steps stays still on load (a transition, not a
  * keyframe).
+ *
+ * Options (src/core/options.css, docs/options.md), on the list or any
+ * ancestor: size and density space the steps (--ds-tasks-gap, --ds-space-2,
+ * 2px per size step and per density step, at least none). They leave the
+ * body font and the 20px mark alone: the mark is a glyph on the text's first
+ * line. Shape leaves the marks alone too: a ring, a spinner and a check in a
+ * circle are round glyphs, no radius. A step is no target and shows its
+ * status by its own colours, so touch and tone do not apply.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -45,7 +53,7 @@
 
   .ds-tasks {
     display: grid;
-    gap: var(--ds-space-2);
+    gap: max(0px, calc(var(--ds-tasks-gap, var(--ds-space-2)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px));
     margin-inline: 0;
     margin-bottom: 0;
     padding: 0;

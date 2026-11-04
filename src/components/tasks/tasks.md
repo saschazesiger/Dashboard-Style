@@ -1,6 +1,6 @@
 ## Tasks
 
-The steps of a job (2.0): an import, a setup, a migration, each step pending, running, done or failed.
+The steps of a job: an import, a setup, a migration, each step pending, running, done or failed.
 
 ```html
 <div class="ds-tasks__head"><h3 class="ds-card__title">Set up LAPTOP-0042</h3><p class="ds-meta">2 of 4</p></div>
@@ -20,5 +20,31 @@ The steps of a job (2.0): an import, a setup, a migration, each step pending, ru
 - Re-render the list with `DS.dom.morphHtml` (the mark's glyph changes with the status). In forced colours the marks
   take `CanvasText`.
 
+### Options
+
+| Option | Classes | Applies to | Effect |
+|---|---|---|---|
+| Size | `.ds-xs` ... `.ds-xl` | `.ds-tasks` | the space between the steps 2px per step; not the body font or the 20px mark, a glyph on the text's first line |
+| Density | `.ds-density-*` | `.ds-tasks` | the space between the steps 2px per step |
+
+Shape leaves the marks alone: a ring, a spinner and a check in a circle are round glyphs, no radius. A step is no target
+and shows its status by its own colours, so touch and tone do not apply.
+
+### Keyboard and names
+
+A step is no target, so the list adds no tab stop; a link in a step's text is reached as usual. Name the list
+(`aria-label`). Each step says its status in words (a `.ds-sr` word, or the sentence of a failed step).
+
+### Forced colours
+
+The marks take `CanvasText`: the shape of the mark and the weight of the text carry the status.
+
+### Hooks
+
+`--ds-tasks-gap`: see [theming.md](theming.md).
+
 **Motion:** the "Tasks" row of [Feedback](motion.md#feedback) in motion.md.
+
+<!-- changelog -->
+- Tasks on the options model: size and density space the steps (hook `--ds-tasks-gap`).
 
