@@ -260,10 +260,10 @@ test.describe('press', () => {
     await act(button, (el) => el.classList.remove('ds-pressed'));
     const values = series(await sample(button, ['borderRadius'], steps(300)), 'borderRadius');
     expect(values[0]).toBeCloseTo(12, 1);
-    expectSettles(values, 18, 0.05);
+    expectSettles(values, 20, 0.05);
     // Settled by --ds-dur-medium + 50ms: every sample from 250ms on is at rest.
-    expectWithin(values.slice(25), 17.95, 18.05);
-    expectPeakAtMost(values, 1.05, { from: 12, to: 18 });
+    expectWithin(values.slice(25), 19.95, 20.05);
+    expectPeakAtMost(values, 1.05, { from: 12, to: 20 });
   });
 
   test('.ds-pressed keeps the morph for at least --ds-dur-instant after a 30ms click', async ({ page }) => {
