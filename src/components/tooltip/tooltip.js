@@ -96,9 +96,9 @@ function clips(element) {
 }
 
 /**
- * Whether the tooltip of `trigger` is wanted now. A tip that differs from
- * the text the trigger shows always is (an icon button, a label hidden on
- * phones, a collapsed rail); a tip that repeats it only while that text is
+ * Whether the tooltip of `trigger` is wanted now. A tip with a shortcut or
+ * one that differs from the text the trigger shows always is (an icon button,
+ * a label hidden on phones, a collapsed rail); a tip that repeats it only while that text is
  * cut off: the trigger, one of its first descendants or one of the
  * ancestors that hold just its text (a td around a link) clips it.
  * @returns {'adds'|'cut'|null} why it shows (a cut-off text is never a description), or null: not now
@@ -106,6 +106,8 @@ function clips(element) {
 function tipWanted(trigger) {
   const tip = normalText(trigger.getAttribute('data-tip'));
   if (!tip) return null;
+  // A shortcut adds what the trigger does not show, whatever the text.
+  if (normalText(trigger.getAttribute('data-tip-shortcut'))) return 'adds';
   const text = visibleText(trigger);
   if (text !== tip) return 'adds';
   if (clips(trigger)) return 'cut';

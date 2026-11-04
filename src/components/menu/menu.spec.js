@@ -165,7 +165,13 @@ test('data-ds-menu-checks: a radio takes its group\'s one check, a checkbox togg
   await menu.locator('[role="menuitemcheckbox"]', { hasText: 'Compact rows' }).click();
   await settle(page);
   await expect(menu.locator('[role="menuitemcheckbox"]', { hasText: 'Compact rows' })).toHaveAttribute('aria-checked', 'false');
-  expect(await page.evaluate(() => window.changes)).toEqual([['Last seen', true], ['Compact rows', false]]);
+  await page.locator('[data-demo="picks"]').click();
+  await settle(page);
+  await menu.locator('[role="menuitemradio"]', { hasText: 'Last seen' }).click();
+  await settle(page);
+  await expect(menu, 'it still closes').toBeHidden();
+  expect(await checked(), 'the radio keeps its check').toContain('Last seen');
+  expect(await page.evaluate(() => window.changes), 'the radio that was the one: nothing changed, nothing told').toEqual([['Last seen', true], ['Compact rows', false]]);
 });
 
 test('without data-ds-menu-checks the page flips aria-checked, as in 2.x', async ({ page }) => {

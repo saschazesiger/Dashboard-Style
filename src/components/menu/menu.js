@@ -84,7 +84,10 @@ function flipCheck(menu, item) {
   if (!menu.hasAttribute('data-ds-menu-checks')) return;
   const role = item.getAttribute('role');
   if (role !== 'menuitemcheckbox' && role !== 'menuitemradio') return;
-  const checked = role === 'menuitemradio' || item.getAttribute('aria-checked') !== 'true';
+  const was = item.getAttribute('aria-checked') === 'true';
+  // The radio that is already the one: nothing changed, so nothing to tell.
+  if (role === 'menuitemradio' && was) return;
+  const checked = role === 'menuitemradio' || !was;
   if (role === 'menuitemradio') {
     const group = item.closest('[role="group"]') ?? menu;
     for (const other of group.querySelectorAll('[role="menuitemradio"]')) other.setAttribute('aria-checked', 'false');

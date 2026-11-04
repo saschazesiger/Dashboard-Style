@@ -212,6 +212,8 @@
   /* The shared quiet icon button (state layers for hover and press), in the
      inverse text colour; toast.css loads after button.css, so these win. */
   .ds-toast__close {
+    /* One size whatever the region's size class, as the action; only .ds-touch changes it. */
+    --ds-size-step: 0;
     --ds-btn-icon-size: var(--ds-toast-close-size, 36px);
     --ds-btn-quiet-color: var(--ds-on-inverse);
     --ds-btn-hover-color: var(--ds-on-inverse);

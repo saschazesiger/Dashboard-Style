@@ -18,10 +18,10 @@ async function open(page) {
 const look = (page, around) => page.evaluate((around) => {
   const region = document.createElement('div');
   region.className = around;
-  region.innerHTML = '<div class="ds-toast"><span class="ds-toast__text">Saved.</span><button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button></div>';
+  region.innerHTML = '<div class="ds-toast"><span class="ds-toast__text">Saved.</span><button class="ds-btn ds-btn--text ds-sm ds-toast__action" type="button">Undo</button><button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close"></button></div>';
   document.querySelector('#fx-component').append(region);
   const toast = region.querySelector('.ds-toast');
-  const out = { radius: parseFloat(getComputedStyle(toast).borderTopLeftRadius), height: toast.getBoundingClientRect().height, action: toast.querySelector('.ds-toast__action').getBoundingClientRect().height, padding: parseFloat(getComputedStyle(toast).paddingLeft) };
+  const out = { radius: parseFloat(getComputedStyle(toast).borderTopLeftRadius), height: toast.getBoundingClientRect().height, action: toast.querySelector('.ds-toast__action').getBoundingClientRect().height, close: toast.querySelector('.ds-toast__close').getBoundingClientRect().height, padding: parseFloat(getComputedStyle(toast).paddingLeft) };
   region.remove();
   return out;
 }, around);
@@ -32,13 +32,33 @@ test('the shape multiplies the radius; density and size change nothing', async (
   expect(plain.radius).toBeGreaterThan(0);
   expect((await look(page, 'ds-shape-square')).radius).toBe(0);
   expect((await look(page, 'ds-shape-round')).radius).toBeCloseTo(plain.radius * 1.5, 1);
-  for (const around of ['ds-density-tight', 'ds-lg', 'ds-xs']) {
+  expect(plain.close, 'its close button keeps 36px').toBeCloseTo(36, 0);
+  for (const around of ['ds-density-tight', 'ds-sm', 'ds-lg', 'ds-xs']) {
     const other = await look(page, around);
     expect(other.height, around).toBeCloseTo(plain.height, 0);
     expect(other.padding, around).toBeCloseTo(plain.padding, 0);
+    expect(other.close, `${around}: the close button`).toBeCloseTo(plain.close, 0);
   }
+  expect((await look(page, 'ds-touch')).close, 'only touch makes it bigger').toBeGreaterThanOrEqual(48);
   expect(plain.action, 'its action keeps 32px').toBeCloseTo(32, 0);
   expect((await look(page, 'ds-density-tight')).action, 'at any density').toBeCloseTo(32, 0);
+});
+
+test('the close button takes its name from DS.config({ strings }); closeLabel still wins', async ({ page }) => {
+  await open(page);
+  const names = await page.evaluate(() => {
+    DS.config({ strings: { close: 'Schliessen' } });
+    const region = DS.overlay.toastRegion(document);
+    const named = (options) => {
+      const message = DS.overlay.toast(region, 'Failed.', { kind: 'error', ...options });
+      const button = message.el.querySelector('.ds-toast__close');
+      return [button.getAttribute('aria-label'), button.getAttribute('data-tip')];
+    };
+    const out = { strings: named({ key: 'a' }), option: named({ key: 'b', closeLabel: 'Zu' }) };
+    DS.config({ strings: { close: 'Close' } });
+    return out;
+  });
+  expect(names).toEqual({ strings: ['Schliessen', 'Schliessen'], option: ['Zu', 'Zu'] });
 });
 
 test('the kinds: an icon and a word; a tone on a built message reads as its kind; an error stays and is announced at once', async ({ page }) => {

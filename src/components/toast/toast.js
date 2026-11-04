@@ -31,6 +31,7 @@
  *   keeps its running motion and focus): without it insertBefore, focus
  *   put back, the entrances already marked played (.ds-toast--shown).
  */
+import { t } from '../../js/core.js';
 import { flip, settled } from '../../js/motion.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from '../../js/icons.js';
 import { pxOf, round } from '../../js/position.js';
@@ -336,8 +337,9 @@ function closeButton(doc, label) {
   const button = doc.createElement('button');
   button.className = 'ds-btn ds-btn--quiet ds-btn--icon ds-toast__close';
   button.type = 'button';
-  button.setAttribute('aria-label', label || 'Close');
-  button.setAttribute('data-tip', label || 'Close');
+  const name = label || t('close');
+  button.setAttribute('aria-label', name);
+  button.setAttribute('data-tip', name);
   button.append(iconElement(closeGlyph, 20, undefined, doc));
   return button;
 }

@@ -40,6 +40,18 @@ test('the shape multiplies the radius; size and density around the trigger chang
   expect(radius.dense.font).toBe(radius.plain.font);
 });
 
+test('a tip that repeats the visible text still shows when it has a shortcut, and only then', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    document.querySelector('#fx-component').insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="with-keys" data-tip="Search" data-tip-shortcut="Ctrl K">Search</button><button class="ds-btn" type="button" id="without-keys" data-tip="Search">Search</button>');
+  });
+  await focusByKeyboard(page, page.locator('#with-keys'));
+  await expect(tip(page)).toBeVisible();
+  await expect(tip(page).locator('.ds-tooltip__shortcut')).toHaveText('Ctrl K');
+  await focusByKeyboard(page, page.locator('#without-keys'));
+  await expect(tip(page)).toBeHidden();
+});
+
 test('the shortcut slot shows after the text, describes the trigger, and goes with the next tip', async ({ page }) => {
   await open(page);
   const trigger = page.locator('[data-demo="shortcut"]');
