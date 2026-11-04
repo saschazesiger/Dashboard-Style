@@ -60,7 +60,7 @@ test('a meter is clipped at its share with a round end; it takes the track and s
     scale: getComputedStyle(el, '::before').scale,
   }));
   expect(Number(seen.share)).toBeCloseTo(0.62, 5);
-  const clip = await clipOf(page, 'inset(0 calc((1 - 0.62) * 100%) 0 0 round 9999px)');
+  const clip = await clipOf(page, 'inset(0 calc((1 - 0.62) * 100%) 0 0 round 2px)');
   expect(seen.clip).toBe(clip);
   expect(seen.fill).toBe(await colourOf(page, 'var(--ds-chart-1)'));
   expect(seen.track).toBe(await colourOf(page, 'var(--ds-chart-track)'));

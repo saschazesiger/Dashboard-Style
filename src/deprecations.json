@@ -494,6 +494,105 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Goes with .ds-table--dense: --ds-table-row-height is the base that size and density apply to."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-kv-list__icon--ok",
+      "pattern": "(?<![\\w-])ds-kv-list__icon--ok(?![\\w-])",
+      "replacement": ".ds-tone-success",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-kv-list__icon--warning",
+      "pattern": "(?<![\\w-])ds-kv-list__icon--warning(?![\\w-])",
+      "replacement": ".ds-tone-warning",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-kv-list__icon--error",
+      "pattern": "(?<![\\w-])ds-kv-list__icon--error(?![\\w-])",
+      "replacement": ".ds-tone-error",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-meter--neutral",
+      "pattern": "(?<![\\w-])ds-meter--neutral(?![\\w-])",
+      "replacement": ".ds-tone-neutral",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-meter--warning",
+      "pattern": "(?<![\\w-])ds-meter--warning(?![\\w-])",
+      "replacement": ".ds-tone-warning",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-meter--error",
+      "pattern": "(?<![\\w-])ds-meter--error(?![\\w-])",
+      "replacement": ".ds-tone-error",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-columns__col--warning",
+      "pattern": "(?<![\\w-])ds-columns__col--warning(?![\\w-])",
+      "replacement": ".ds-tone-warning",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-columns__col--error",
+      "pattern": "(?<![\\w-])ds-columns__col--error(?![\\w-])",
+      "replacement": ".ds-tone-error",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-legend__key--neutral",
+      "pattern": "(?<![\\w-])ds-legend__key--neutral(?![\\w-])",
+      "replacement": ".ds-tone-neutral",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-legend__key--warning",
+      "pattern": "(?<![\\w-])ds-legend__key--warning(?![\\w-])",
+      "replacement": ".ds-tone-warning",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-legend__key--error",
+      "pattern": "(?<![\\w-])ds-legend__key--error(?![\\w-])",
+      "replacement": ".ds-tone-error",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Tones are option classes of every component (.ds-tone-*, docs/options.md), read here from the class on the element itself. Same colour; an alias until 3.0 ships."
     }
   ]
 }

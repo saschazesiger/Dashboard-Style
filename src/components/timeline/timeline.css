@@ -9,7 +9,7 @@
  *       <div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p><span class="ds-status ds-status--ok">...</span></div>
  *       <p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p>
  *       <p class="ds-timeline__text">Issued to Ada Lovelace.</p>
- *       <div class="ds-timeline__actions"><button class="ds-btn ds-btn--text ds-sm" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
+ *       <div class="ds-timeline__actions ds-sm"><button class="ds-btn ds-btn--text" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>
  *     </li>
  *     <li class="ds-timeline__item ds-timeline__item--muted"> ... </li>
  *     <li class="ds-timeline__item ds-timeline__item--icon"><span class="ds-timeline__marker" aria-hidden="true">[icon user 16]</span> ... </li>
@@ -34,11 +34,40 @@
  * (data-ds-glide and --ds-flip-backdrop on the list). Editing in place
  * swaps the text and the form through DS.motion.crossfade.
  *
- * Hooks: --ds-timeline-indent (--ds-space-8), --ds-timeline-dot-size
+ * Variants (3.0):
+ *   .ds-timeline--activity   a feed: an entry is one sentence, who did what
+ *     (.ds-timeline__title in the body font, <strong> for who), in a
+ *     __marker with an avatar's initials or an image; no hairlines, the
+ *     entries closer together, .ds-timeline__time at the end of the line.
+ *     A --muted entry there (the system's own, a sync that changed nothing)
+ *     also takes the quieter ink
+ *   .ds-timeline__item--comment   the entry's .ds-timeline__text in a box of
+ *     its own (--ds-timeline-comment-bg): what someone wrote, apart from
+ *     what happened
+ *   .ds-timeline__item--muted with --icon: the marker is a ring as well
+ *
+ * Options (src/core/options.css, docs/options.md), on the list or any
+ * ancestor; each is computed here, in the rule that uses it:
+ *   size      .ds-xs ... .ds-xl: the marker 4px per step, the indent with
+ *             it, the dot 2px per step, the title the type role of the size
+ *             (--ds-size-font); the head line 4px per step above md and no
+ *             less below it, as it still holds a status chip or a line of
+ *             body text; the text and the meta stay
+ *   density   .ds-density-*: an entry's block padding 2px per step (the
+ *             rail follows); never the type, the marker or the dot
+ *   shape     .ds-shape-*: multiplies the radius of the dot, the marker
+ *             (half their size: round at the default, rounded corners at
+ *             soft, square at square) and the comment box
+ *   touch     nothing here: the entry is no target, its buttons are
+ *
+ * Hooks: --ds-timeline-indent (--ds-space-8), --ds-timeline-padding
+ * (--ds-space-3, --activity --ds-space-2), --ds-timeline-dot-size
  * (10px), --ds-timeline-dot-color (--ds-primary), --ds-timeline-muted-color
  * (--ds-outline), --ds-timeline-line-width (2px), --ds-timeline-line-color
  * (--ds-line), --ds-timeline-divider-color (--ds-line),
- * --ds-timeline-marker-size (24px), --ds-timeline-head-line (24px).
+ * --ds-timeline-marker-size (24px), --ds-timeline-head-line (24px),
+ * --ds-timeline-comment-bg (--ds-surface-low), --ds-timeline-comment-radius
+ * (--ds-radius-card).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -62,33 +91,49 @@
     display: none;
   }
 
+  /* The geometry of the rail, once for every part that uses it. */
   .ds-timeline__item,
   .ds-timeline__group {
+    --_pad: max(0px, calc(var(--ds-timeline-padding, var(--ds-space-3)) + var(--ds-density, 0) * 2px));
+    /* Upward only: the line holds a chip or a line of body text at any size,
+       and the marks stay centred on what it holds. */
+    --_head: calc(var(--ds-timeline-head-line, 24px) + max(0, var(--ds-size-step, 0)) * 4px);
+    --_dot: calc(var(--ds-timeline-dot-size, 10px) + var(--ds-size-step, 0) * 2px);
+    --_marker: calc(var(--ds-timeline-marker-size, 24px) + var(--ds-size-step, 0) * 4px);
+    --_indent: calc(var(--ds-timeline-indent, var(--ds-space-8)) + var(--ds-size-step, 0) * 4px);
     position: relative;
-    margin-inline-start: var(--ds-timeline-indent, var(--ds-space-8));
+    margin-inline-start: var(--_indent);
+  }
+
+  .ds-timeline--activity > :is(.ds-timeline__item, .ds-timeline__group) {
+    --_pad: max(0px, calc(var(--ds-timeline-padding, var(--ds-space-2)) + var(--ds-density, 0) * 2px));
   }
 
   .ds-timeline__item {
     display: grid;
     gap: var(--ds-space-1);
-    padding-block: var(--ds-space-3);
+    padding-block: var(--_pad);
   }
 
   .ds-timeline__item + .ds-timeline__item {
     border-top: 1px solid var(--ds-timeline-divider-color, var(--ds-line));
   }
 
+  .ds-timeline--activity > .ds-timeline__item + .ds-timeline__item {
+    border-top: 0;
+  }
+
   /* The dot, centred on the rail and on the head line. */
   .ds-timeline__item::after {
     content: '';
     position: absolute;
-    top: calc(var(--ds-space-3) + var(--ds-timeline-head-line, 24px) / 2 - var(--ds-timeline-dot-size, 10px) / 2);
-    inset-inline-start: calc(var(--ds-timeline-marker-size, 24px) / 2 - var(--ds-timeline-indent, var(--ds-space-8)) - var(--ds-timeline-dot-size, 10px) / 2);
+    top: calc(var(--_pad) + var(--_head) / 2 - var(--_dot) / 2);
+    inset-inline-start: calc(var(--_marker) / 2 - var(--_indent) - var(--_dot) / 2);
     box-sizing: border-box;
-    width: var(--ds-timeline-dot-size, 10px);
-    height: var(--ds-timeline-dot-size, 10px);
-    border: calc(var(--ds-timeline-dot-size, 10px) / 2) solid var(--ds-timeline-dot-color, var(--ds-primary));
-    border-radius: 50%;
+    width: var(--_dot);
+    height: var(--_dot);
+    border: calc(var(--_dot) / 2) solid var(--ds-timeline-dot-color, var(--ds-primary));
+    border-radius: min(calc(min(var(--ds-radius-action), calc(var(--_dot) / 2)) * var(--ds-shape, 1)), calc(var(--_dot) / 2));
   }
 
   /* An entry that did not take effect: a ring. */
@@ -110,15 +155,21 @@
   .ds-timeline__group::before {
     content: '';
     position: absolute;
-    top: calc(var(--ds-space-3) + var(--ds-timeline-head-line, 24px) / 2 + var(--ds-timeline-dot-size, 10px) / 2 + var(--ds-space-1));
-    bottom: calc(var(--ds-space-1) + var(--ds-timeline-dot-size, 10px) / 2 - var(--ds-space-3) - var(--ds-timeline-head-line, 24px) / 2);
-    inset-inline-start: calc(var(--ds-timeline-marker-size, 24px) / 2 - var(--ds-timeline-indent, var(--ds-space-8)) - var(--ds-timeline-line-width, 2px) / 2);
+    top: calc(var(--_pad) + var(--_head) / 2 + var(--_dot) / 2 + var(--ds-space-1));
+    bottom: calc(var(--ds-space-1) + var(--_dot) / 2 - var(--_pad) - var(--_head) / 2);
+    inset-inline-start: calc(var(--_marker) / 2 - var(--_indent) - var(--ds-timeline-line-width, 2px) / 2);
     border-inline-start: var(--ds-timeline-line-width, 2px) solid var(--ds-timeline-line-color, var(--ds-line));
     pointer-events: none;
   }
 
   .ds-timeline__item--icon::before {
-    top: calc(var(--ds-space-3) + var(--ds-timeline-head-line, 24px) / 2 + var(--ds-timeline-marker-size, 24px) / 2 + var(--ds-space-1));
+    top: calc(var(--_pad) + var(--_head) / 2 + var(--_marker) / 2 + var(--ds-space-1));
+  }
+
+  /* Above a marker it stops at the marker's edge, not at a dot's: a muted
+     ring would show the end of the rail inside it. */
+  :is(.ds-timeline__item, .ds-timeline__group):has(+ .ds-timeline__item--icon)::before {
+    bottom: calc(var(--ds-space-1) + var(--_marker) / 2 - var(--_pad) - var(--_head) / 2);
   }
 
   .ds-timeline__group::before {
@@ -132,22 +183,40 @@
 
   .ds-timeline__marker {
     position: absolute;
-    top: calc(var(--ds-space-3) + var(--ds-timeline-head-line, 24px) / 2 - var(--ds-timeline-marker-size, 24px) / 2);
-    inset-inline-start: calc(-1 * var(--ds-timeline-indent, var(--ds-space-8)));
+    top: calc(var(--_pad) + var(--_head) / 2 - var(--_marker) / 2);
+    inset-inline-start: calc(-1 * var(--_indent));
     display: grid;
     place-items: center;
     box-sizing: border-box;
-    width: var(--ds-timeline-marker-size, 24px);
-    height: var(--ds-timeline-marker-size, 24px);
+    width: var(--_marker);
+    height: var(--_marker);
+    overflow: hidden;
     border: 1px solid transparent;
-    border-radius: 50%;
+    border-radius: min(calc(min(var(--ds-radius-action), calc(var(--_marker) / 2)) * var(--ds-shape, 1)), calc(var(--_marker) / 2));
     background: var(--ds-surface-high);
     color: var(--ds-text-2);
+    font: var(--ds-font-caption);
+    /* Initials in proportion to the disc, so two letters are never cut. */
+    font-size: calc(var(--_marker) / 2);
   }
 
+  /* 16px on the 24px disc, in proportion at the other sizes. */
   .ds-timeline__marker > svg {
-    width: var(--ds-space-4);
-    height: var(--ds-space-4);
+    width: calc(var(--_marker) * 2 / 3);
+    height: calc(var(--_marker) * 2 / 3);
+  }
+
+  /* An avatar: the picture fills the disc. */
+  .ds-timeline__marker > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ds-timeline__item--muted > .ds-timeline__marker {
+    border-color: var(--ds-timeline-muted-color, var(--ds-outline));
+    background: none;
   }
 
   .ds-timeline__group {
@@ -169,14 +238,38 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ds-space-1) var(--ds-space-2);
-    min-height: var(--ds-timeline-head-line, 24px);
+    min-height: var(--_head);
   }
 
   .ds-timeline__title {
     margin: 0;
     color: var(--ds-text);
-    font: var(--ds-font-label);
+    font: var(--ds-size-font, var(--ds-font-label));
     overflow-wrap: anywhere;
+  }
+
+  /* A feed reads as a sentence: who in the label weight, the rest regular. */
+  .ds-timeline--activity .ds-timeline__title {
+    flex: 1 1 0;
+    min-width: min(12rem, 100%);
+    font: var(--ds-font-body);
+  }
+
+  .ds-timeline--activity .ds-timeline__title strong {
+    font-weight: var(--ds-weight-label);
+  }
+
+  .ds-timeline--activity .ds-timeline__item--muted .ds-timeline__title {
+    color: var(--ds-text-2);
+  }
+
+  /* When, at the end of the head line. */
+  .ds-timeline__time {
+    margin-inline-start: auto;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .ds-timeline__meta {
@@ -203,16 +296,29 @@
     overflow-wrap: anywhere;
   }
 
+  /* What someone wrote, in a box of its own; its border is its edge in
+     forced colours too. */
+  .ds-timeline__item--comment > .ds-timeline__text {
+    box-sizing: border-box;
+    width: fit-content;
+    padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 1px) var(--ds-space-3);
+    border: 1px solid var(--ds-line);
+    border-radius: calc(var(--ds-timeline-comment-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
+    background: var(--ds-timeline-comment-bg, var(--ds-surface-low));
+  }
+
   .ds-timeline__body {
     padding-top: var(--ds-space-2);
   }
 
-  /* Text buttons hang their padding, so their label lines up with the text. */
+  /* Text buttons hang their padding, so their label lines up with the text:
+     what .ds-btn--text sets on itself (no theme's hook reaches it), stepping
+     4px per size, so give the size to this element, not to each button. */
   .ds-timeline__actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--ds-space-1);
-    margin-inline-start: calc(-1 * var(--ds-space-3));
+    margin-inline-start: calc(-1 * (var(--ds-space-3) + var(--ds-size-step, 0) * 4px));
   }
 
   /* While entries glide (DS.motion.flip marks the list data-ds-glide with

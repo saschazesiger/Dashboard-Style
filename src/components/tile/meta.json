@@ -3,13 +3,15 @@
   "group": "data",
   "order": 100,
   "docsOrder": 70,
-  "need": "Show key figures at the top of a page, and filter by one",
+  "need": "Show key figures at the top of a page, how they moved, and filter by one",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-tile",
+    "ds-tile__delta",
     "ds-tile__label",
     "ds-tile__note",
+    "ds-tile__trend",
     "ds-tile__value",
     "ds-tile__value--empty",
     "ds-tiles",
@@ -18,16 +20,21 @@
   "attributes": [],
   "requires": [],
   "context": [
+    "chart",
     "ripple"
   ],
   "hooks": {
     "--ds-tile-radius": {
       "default": "`--ds-radius-lg`",
-      "description": "key-figure tile"
+      "description": "key-figure tile (times `--ds-shape`)"
     },
     "--ds-tile-radius-pressed": {
       "default": "`--ds-radius-md`",
-      "description": "a clickable tile while pressed (never rounder than `--ds-tile-radius`)"
+      "description": "a clickable tile while pressed (times `--ds-shape`; never rounder than the rest radius)"
+    },
+    "--ds-tile-padding": {
+      "default": "`--ds-space-5`, on a phone `--ds-space-4`",
+      "description": "a tile's padding (the head 4px less), 2px per density step"
     },
     "--ds-tile-min-width": {
       "default": "176px",
@@ -36,6 +43,14 @@
     "--ds-tiles-columns": {
       "default": "4",
       "description": "the most tiles per row (`.ds-tiles--3`: three)"
+    },
+    "--ds-tile-value-line": {
+      "default": "11/9 of `--ds-size-display` (44px)",
+      "description": "the line height of `.ds-tile__value` at the md size; a size step scales it with the value"
+    },
+    "--ds-tile-trend-color": {
+      "default": "`--ds-chart-1`",
+      "description": "`.ds-tile__trend`: the `currentColor` of a project's sparkline"
     },
     "--ds-tile-selected-bg": {
       "default": "`--ds-accent`",
