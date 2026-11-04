@@ -1,7 +1,9 @@
 /*
- * The living styleguide: every component with the markup of
+ * The 2.x styleguide: every component with the markup of
  * docs/components.md, the tokens of the active theme and the icon set
- * (index.html), and the Motion Lab (motion.html). A classic script on top
+ * (legacy.html, until 3.0 has ported every section into its component
+ * folder; index.html is the 3.0 styleguide, shell.js), and the Motion Lab
+ * (motion.html). A classic script on top
  * of dist/ds.js, so both pages run from disk. It is the one shared script
  * of both pages: the frame, navigation, themes, the speed select and the
  * readiness hook; <body data-sg-page="index|lab"> says which sections it
@@ -872,20 +874,32 @@
     if (action === 'ls-edit') toast('Editing opens a form in place (DS.motion.crossfade).', 'info');
     if (action === 'ls-activity') addActivity();
     if (/^ls-task-/.test(action)) renderTasks(action);
-    if (/^ls-chart-/.test(action)) chartsAction(action, el);
   }
 
-  /* ── Component demos (styleguide/demos.js) ─────────────────────────── */
+  /* ── Ported sections (styleguide/demos.js) ─────────────────────────── */
 
-  /* The demos split into their component folders (src/components/<name>/<name>.demo.js),
-     built into window.SG_DEMOS by scripts/build.mjs. Each gets these helpers as `sg`. */
-  var DEMOS = window.SG_DEMOS || {};
-  var DEMO_HELPERS = { $: $, $$: $$, esc: esc, icon: icon, section: section, card: card, label: label, slow: slow, toast: function (text, kind) { return toast(text, kind); } };
+  /* A section whose demo moved into its component folder
+     (src/components/<name>/<name>.demo.js, registered with SG.demo() of
+     sg-core.js): its markup comes from the spec, in the section's old place,
+     and wirePorted() wires it once the page is rendered. Moving a section
+     replaces its function body with ported() (plans/3.0-conventions.md,
+     section 7). */
+  var PORTED = [];
+  var PORTED_HELPERS = window.SG && window.SG.helpers ? window.SG.helpers({ toast: function (text, kind) { return toast(text, kind); }, slow: slow }) : null;
 
-  /* Charts: SG_DEMOS.chart (src/components/chart/chart.demo.js). */
-  function charts() { return DEMOS.chart.render(DEMO_HELPERS); }
-  function chartMarks(root) { return DEMOS.chart.marks(DEMO_HELPERS, root); }
-  function chartsAction(action, el) { DEMOS.chart.action(DEMO_HELPERS, action, el); }
+  function ported(id, title, name) {
+    var spec = window.SG && window.SG.get(name);
+    if (!spec) throw new Error('styleguide.js: no demo "' + name + '" (load sg-core.js and demos.js before this file)');
+    PORTED.push({ id: id, spec: spec });
+    return section(id, title, spec.lead || spec.need, spec.render(PORTED_HELPERS));
+  }
+
+  function wirePorted() {
+    PORTED.forEach(function (entry) { if (entry.spec.wire) entry.spec.wire($('#' + entry.id), PORTED_HELPERS); });
+  }
+
+  /* Charts: src/components/chart/chart.demo.js. */
+  function charts() { return ported('charts', 'Charts', 'chart'); }
 
   /* Table: keyed rows rendered through DS.motion.flip + DS.dom.morphHtml. */
   var TABLE = {
@@ -3463,7 +3477,7 @@
   // from 0.
   M.staggerOnce($('#sg-page'));
   if (PAGE === 'index') countTiles();
-  // The charts fill from zero once, on the first render (.ds-enter--fill).
-  if (PAGE === 'index') M.enterAll(chartMarks(), 'fill', { stagger: false });
+  // The ported sections' own wiring (the charts fill from zero once, on the first render).
+  if (PAGE === 'index') wirePorted();
   if (PAGE === 'index' && location.hash && $(location.hash)) $(location.hash).scrollIntoView();
 }());

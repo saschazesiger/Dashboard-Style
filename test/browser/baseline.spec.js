@@ -25,12 +25,16 @@ import { ready, settle, focusByKeyboard } from './helpers/motion.js';
 // Dozens of comparisons per test: WebKit needs more than the default 30s under load.
 test.describe.configure({ timeout: 120000 });
 
-const STYLEGUIDE = '/styleguide/index.html';
+const STYLEGUIDE = '/styleguide/legacy.html';
 const FIXTURES = '/test/browser/fixtures/';
 
-/** The styleguide's sections: overview, then every section('<id>' call of styleguide.js and of the component demos (demos.js, 3.0). */
-const SECTIONS = ['overview', ...['styleguide.js', 'demos.js'].flatMap((file) => [...readFileSync(new URL(`../../styleguide/${file}`, import.meta.url), 'utf8')
-  .matchAll(/\bsection\('([\w-]+)'/g)].map((match) => match[1]))];
+/**
+ * The 2.x styleguide's sections (legacy.html): overview, then every
+ * section('<id>' and ported('<id>' call of styleguide.js (a ported section
+ * renders its demo of src/components/<n>/<n>.demo.js in its old place).
+ */
+const SECTIONS = ['overview', ...[...readFileSync(new URL('../../styleguide/styleguide.js', import.meta.url), 'utf8')
+  .matchAll(/\b(?:section|ported)\('([\w-]+)'/g)].map((match) => match[1])];
 
 /* Taller than the longest section, since the view scrolls and a shot
    paints only what is inside the viewport (a taller section came out cut
@@ -169,7 +173,7 @@ test.describe('styleguide sections', () => {
   test.use({ viewport: SECTIONS_TALL });
 
   test('every section, settled', async ({ page }) => {
-    expect(SECTIONS, 'overview plus the section() calls of styleguide.js').toHaveLength(16);
+    expect(SECTIONS, 'overview plus the section() and ported() calls of styleguide.js').toHaveLength(16);
     await open(page, STYLEGUIDE);
     annotate('components/table.css:198-226');
     for (const id of SECTIONS) await shoot(page.locator(`#${id}`), `section-${id}.png`);

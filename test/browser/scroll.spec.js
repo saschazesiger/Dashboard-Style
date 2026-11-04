@@ -273,7 +273,7 @@ test('reveal on scroll: hidden below the fold, opaque 96px into view; opaque in 
 });
 
 test('sentinel: scrolling the styleguide view 2000px changes data-scrolled on .ds-app at most twice', async ({ page }) => {
-  await page.goto('/styleguide/index.html');
+  await page.goto('/styleguide/legacy.html');
   await ready(page);
   const mutations = await page.evaluate(async () => {
     const app = document.querySelector('.ds-app');

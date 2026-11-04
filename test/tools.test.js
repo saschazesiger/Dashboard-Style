@@ -235,17 +235,21 @@ describe('tools/check-theme.mjs', () => {
     }
   });
 
-  it('runs the same pairs and motion families in the styleguide theme check (its classic-script copy)', () => {
+  it('runs the same pairs and motion families in the styleguide theme check (its classic-script copies)', () => {
+    // styleguide.js (legacy.html and the Motion Lab) and shell.js (the 3.0 styleguide) each carry a copy.
+    for (const file of ['styleguide/styleguide.js', 'styleguide/shell.js']) {
+      const copy = read(file);
+      const block = copy.slice(copy.indexOf('var THEME_PAIRS = {'), copy.indexOf('var PAIR_MIN'));
+      const list = (kind) => {
+        const part = new RegExp(`${kind}: \\[([\\s\\S]*?)\\n    \\]`).exec(block)?.[1] ?? '';
+        return [...part.matchAll(/\['(--ds-[\w-]+)', '(--ds-[\w-]+)'\]/g)].map((match) => [match[1], match[2]]);
+      };
+      assert.deepEqual(list('text'), TEXT_PAIRS, file);
+      assert.deepEqual(list('control'), CONTROL_PAIRS, file);
+      assert.deepEqual(list('icon'), ICON_PAIRS, file);
+      assert.deepEqual(list('chart'), CHART_PAIRS, file);
+    }
     const source = read('styleguide/styleguide.js');
-    const block = source.slice(source.indexOf('var THEME_PAIRS = {'), source.indexOf('var PAIR_MIN'));
-    const list = (kind) => {
-      const part = new RegExp(`${kind}: \\[([\\s\\S]*?)\\n    \\]`).exec(block)?.[1] ?? '';
-      return [...part.matchAll(/\['(--ds-[\w-]+)', '(--ds-[\w-]+)'\]/g)].map((match) => [match[1], match[2]]);
-    };
-    assert.deepEqual(list('text'), TEXT_PAIRS);
-    assert.deepEqual(list('control'), CONTROL_PAIRS);
-    assert.deepEqual(list('icon'), ICON_PAIRS);
-    assert.deepEqual(list('chart'), CHART_PAIRS);
     const families = /var THEME_MOTION = \/--ds-\(([^)]*)\)/.exec(source)?.[1].split('|');
     assert.deepEqual(families, MOTION_FAMILIES);
   });

@@ -495,8 +495,8 @@ do, [theme-generator.md](theme-generator.md)). The check then takes every pair i
 its `--ds-color-scheme` names (`light dark`: both; a variant that pins `--ds-color-scheme: dark`, such as
 `.ds-theme[data-ds-scheme="dark"]`, dark only), and a finding names its scheme: `--ds-text on --ds-surface (dark)`.
 
-In the browser, open `styleguide/index.html`, choose "Load theme file ..." and pick your CSS: every component
-re-renders with it, and the "Theme check" card in the Colour section lists the same contrast pairs as the browser
+In the browser, open `styleguide/index.html#/colour`, choose "Load theme file ..." and pick your CSS: every component
+re-renders with it, and the "Theme check" card of the Colour page lists the same contrast pairs as the browser
 computes them (exactly, `color-mix()` included, and a `light-dark()` theme in each scheme it shows), the field text size, and the motion tokens, `:root`, `@layer` and
 `!important` of the loaded file; each row with an icon and a word. Look at the page with forced colors emulated too
 (DevTools, Rendering panel).

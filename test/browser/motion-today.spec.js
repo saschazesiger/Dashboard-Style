@@ -16,7 +16,7 @@
 import { test, expect } from '@playwright/test';
 import { ready, settle, timeline } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/index.html';
+const STYLEGUIDE = '/styleguide/legacy.html';
 const FIXTURES = '/test/browser/fixtures/';
 
 /** Times to the microsecond: a calc() duration may come back as 350.00000000000006. */

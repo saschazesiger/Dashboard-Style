@@ -7,7 +7,7 @@
  * All of them pass now and stay as regression tests; no `test.fail` is
  * left (test/repo.test.js allows only `spike: <capability>` markers).
  *
- * The demos live in styleguide/styleguide.js (index.html) and, since P8,
+ * The demos live in styleguide/styleguide.js (legacy.html) and, since P8,
  * in the Motion Lab (motion.html, its registry styleguide/lab.js): the
  * count-up and the leave/enter tests open motion.html, where those demos
  * moved. The locators name what a user sees (the opener buttons,
@@ -17,7 +17,7 @@
 import { test, expect } from '@playwright/test';
 import { ready, settle, focusByKeyboard, expectMonotonic } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/index.html';
+const STYLEGUIDE = '/styleguide/legacy.html';
 const LAB = '/styleguide/motion.html';
 
 /** Loads the styleguide (optionally slowed down) and waits until the first-render motion (stagger, count-up) has played. */

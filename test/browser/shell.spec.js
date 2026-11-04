@@ -690,7 +690,7 @@ test.describe('drawer list edges (2.1)', () => {
 
 test.describe('styleguide navigation', () => {
   test('a drawer link sets its item at once and the pill glides there once', async ({ page }) => {
-    await page.goto('/styleguide/index.html');
+    await page.goto('/styleguide/legacy.html');
     await ready(page);
     await page.mouse.move(1, 1);
     await settle(page, { timeout: 5000 });
