@@ -46,7 +46,7 @@
  *
  * Busy: while the page sets data-ds-busy on a dialog, sheet or drawer, the
  * user's close attempts do nothing (Escape, the native cancel, a
- * [data-close] click, the backdrop and the drawer's scrim): one guard at
+ * [data-ds-close] click, the backdrop and the drawer's scrim): one guard at
  * the top of closeFrom(), before the popups inside close, so a refused
  * attempt changes nothing and sends no ds-close. close(el) and the forced
  * closes (removed, breakpoint) still close; menus and lists ignore it.

@@ -1,13 +1,22 @@
 ## Tooltip
 
+A short text that names an icon button or explains a control, on hover and on focus.
+
 ```html
 <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">[icon link 20]</button>
 <td><a href="#device-42" data-tip="LAPTOP-0042-FINANCE-BACKUP">LAPTOP-0042-FINANCE-BACKUP</a></td>   <!-- shows only while cut off -->
+<button class="ds-btn" type="button" data-tip="Search the list" data-tip-shortcut="Ctrl K">Search</button>   <!-- the shortcut slot -->
 ```
 
 ```js
 const tips = DS.overlay.tooltips(document);   // one call per page (or per root element or shadow root); tips.destroy() undoes it
 ```
+
+| Option | Where it applies | Effect |
+|---|---|---|
+| `data-tip-shortcut` | the trigger | the shortcut slot: `.ds-tooltip__shortcut` after the text, in the code face |
+| `.ds-shape-*` | the theme | multiplies the radius (`--ds-tooltip-radius`) |
+| Size, density, tone | none | one tooltip serves the whole theme, whatever its trigger's size, and it shows no status |
 
 `tooltips(root)` serves every `[data-tip]` inside `root` with one `<div class="ds-tooltip" role="tooltip">` that it
 creates inside the `.ds-theme` (it warns once when `root` has none). A second call on the same root returns the first
@@ -50,7 +59,15 @@ Placing a `.ds-tooltip` yourself: set `--ds-tooltip-x` and `--ds-tooltip-y` (or 
 composes with the entrance, but its scale shrinks the offset too, so the tooltip drifts in by (1 - scale) × offset;
 a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-origin: calc(50% + Xpx) calc(50% + Ypx)`.
 
+- **Keyboard and names.** Keyboard focus shows it at once, Escape hides it; it never takes focus. The element is
+  `role="tooltip"`, and the trigger's `aria-describedby` points at it while it shows, as above.
+- **Forced colours.** Its transparent outline becomes its edge.
+
 **JS API.** `js/tooltip.js` (`DS.tooltip`): `tooltips(root)`, the same function as `DS.overlay.tooltips()`; `DS.init()` serves every root it initialises.
 
 **Motion:** the "Tooltip" and "Tooltip warm-up" rows of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog -->
+- Tooltip (3.0): behaviour in `js/tooltip.js` (`DS.tooltip`), `DS.overlay.tooltips()` keeps its name. `data-tip-shortcut`
+  and `.ds-tooltip__shortcut`; shape on the radius, hook `--ds-tooltip-radius`. Placement in `js/position.js`.
 

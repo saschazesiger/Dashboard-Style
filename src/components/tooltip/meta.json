@@ -7,7 +7,8 @@
   "tier": 1,
   "status": "stable",
   "classes": [
-    "ds-tooltip"
+    "ds-tooltip",
+    "ds-tooltip__shortcut"
   ],
   "attributes": [
     "data-anchored",
@@ -17,7 +18,12 @@
   ],
   "requires": [],
   "context": [],
-  "hooks": {},
+  "hooks": {
+    "--ds-tooltip-radius": {
+      "default": "`--ds-radius-xs`",
+      "description": "the tooltip's radius at the default shape"
+    }
+  },
   "keyframes": [
     "ds-fade-in",
     "ds-grow-in"
@@ -28,10 +34,12 @@
   ],
   "module": true,
   "progressive": [
-    "popover",
     "anchor positioning"
   ],
   "ripple": false,
+  "labExempt": {
+    "DS.tooltip.tooltips": "the same function as DS.overlay.tooltips, shown in the entry tooltips"
+  },
   "exceptions": {
     "physical": {
       ".ds-tooltip: left": "script coordinates: --ds-tooltip-x from the left",

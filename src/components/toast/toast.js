@@ -521,7 +521,7 @@ export function toast(region, content, options = {}) {
   const state = regionState(target);
   const given = typeof content === 'object' && /** @type {Element} */ (content).nodeType === 1;
   const element = /** @type {HTMLElement} */ (given ? content : null);
-  const kind = options.kind ?? (element?.classList.contains('ds-toast--error') ? 'error' : element?.classList.contains('ds-toast--info') ? 'info' : 'success');
+  const kind = options.kind ?? (element?.matches('.ds-toast--error, .ds-tone-error') ? 'error' : element?.matches('.ds-toast--info, .ds-tone-info') ? 'info' : 'success');
   const label = !given && options.action ? String(options.action.label ?? '').trim() : '';
   const persistent = options.persistent === true || kind === 'error' || Boolean(label);
   const el = element ?? buildToast(doc, String(content), kind, persistent, options.closeLabel, label);

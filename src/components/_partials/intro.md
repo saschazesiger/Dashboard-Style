@@ -104,10 +104,10 @@ component live.
 | Keep a dialog or side sheet open while its action runs | `data-ds-busy` on the `.ds-dialog`, `.ds-sheet` or `.ds-drawer` ([Dialog](#dialog), "While its action runs") |
 | Details or editing of one record next to its list | [Side sheet](#side-sheet) `.ds-sheet` |
 | A form or a list taller than the window in a dialog | `.ds-dialog__body`: only the body scrolls, title and actions stay ([Dialog](#dialog)) |
-| Pick one from a long list in a dialog | `.ds-dialog--wide` with a search, a `.ds-dialog__body` list and `--ds-dialog-height` ([Dialog](#dialog), "A search over a list") |
+| Pick one from a long list in a dialog | `.ds-dialog--lg` with a search, a `.ds-dialog__body` list and `--ds-dialog-height` ([Dialog](#dialog), "A search over a list") |
 | A task that needs the whole phone screen | `.ds-dialog--full-narrow` (or `--full`) with a `.ds-dialog__head` ([Dialog](#dialog)) |
 | Actions of a row on a phone | an action sheet: `.ds-dialog--bottom` with a `.ds-dialog__list` of menu items; a [Menu](#menu) at a desk ([Dialog](#dialog)) |
-| Confirm by typing the name of what goes | a `.ds-dialog--wide` `alertdialog` with a field ([Dialog](#dialog), "Confirm by typing the name") |
+| Confirm by typing the name of what goes | a `.ds-dialog--lg` `alertdialog` with a field ([Dialog](#dialog), "Confirm by typing the name") |
 | Filters or a form with its actions at the end of a side sheet | `.ds-sheet__foot`, and a live count in `.ds-sheet__subtitle` ([Side sheet](#side-sheet)) |
 | Name an icon button, or say why a control is disabled | [Tooltip](#tooltip) `.ds-tooltip` |
 | Waiting | [Loading](#loading): `.ds-loading` in a section, `.ds-skeleton` with `.ds-loadbar` for a page, `.ds-boot` at app start, `.ds-spinner--sm` in a busy button |

@@ -14,8 +14,11 @@
     "ds-dialog--full",
     "ds-dialog--full-narrow",
     "ds-dialog--hidden",
+    "ds-dialog--lg",
     "ds-dialog--nested",
+    "ds-dialog--sm",
     "ds-dialog--wide",
+    "ds-dialog--xl",
     "ds-dialog__actions",
     "ds-dialog__backdrop",
     "ds-dialog__body",
@@ -29,7 +32,8 @@
     "data-ds-sentinel",
     "data-ds-text",
     "data-scrolled",
-    "data-state"
+    "data-state",
+    "data-toast-reserve"
   ],
   "requires": [
     "button"
@@ -39,6 +43,34 @@
     "--ds-dialog-width": {
       "default": "400px",
       "description": "dialog"
+    },
+    "--ds-dialog-width-sm": {
+      "default": "320px",
+      "description": "`.ds-dialog--sm`"
+    },
+    "--ds-dialog-width-lg": {
+      "default": "560px",
+      "description": "`.ds-dialog--lg`"
+    },
+    "--ds-dialog-width-xl": {
+      "default": "720px",
+      "description": "`.ds-dialog--xl`"
+    },
+    "--ds-dialog-width-wide": {
+      "default": "560px",
+      "description": "**deprecated** name of `--ds-dialog-width-lg`, read after it"
+    },
+    "--ds-dialog-padding": {
+      "default": "`--ds-space-6`",
+      "description": "the box's padding at the comfortable density"
+    },
+    "--ds-dialog-radius": {
+      "default": "`--ds-radius-dialog`",
+      "description": "the box's radius at the default shape"
+    },
+    "--ds-dialog-head-height": {
+      "default": "56px",
+      "description": "`.ds-dialog__head` at the comfortable density"
     },
     "--ds-dialog-border": {
       "default": "`1px solid transparent` (visible in forced colors)",
@@ -52,16 +84,12 @@
       "default": "`--ds-scrim`",
       "description": "the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested`"
     },
-    "--ds-dialog-width-wide": {
-      "default": "560px",
-      "description": "`.ds-dialog--wide`"
-    },
     "--ds-dialog-height": {
       "default": "auto (capped by the window)",
       "description": "the dialog box; a fixed height keeps a box with a filtered list from jumping"
     },
     "--ds-dialog-full-radius": {
-      "default": "0",
+      "default": "0px",
       "description": "the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`)"
     }
   },
@@ -79,9 +107,14 @@
   ],
   "module": true,
   "progressive": [
-    "@starting-style",
-    "allow-discrete",
     "scrollbar-color"
   ],
-  "ripple": false
+  "ripple": false,
+  "labExempt": {
+    "DS.dialog.confirm": "the same function as DS.overlay.confirm, shown in the entry dialog-work",
+    "DS.dialog.alert": "the same function as DS.overlay.alert, shown in the entry dialog-work",
+    "DS.dialog.prompt": "the same function as DS.overlay.prompt, shown in the entry dialog-work",
+    "DS.dialog.form": "events only: a form dialog moves as a dialog does",
+    "DS.dialog.create": "events only, no motion"
+  }
 }

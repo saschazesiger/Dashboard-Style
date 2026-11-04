@@ -1894,12 +1894,15 @@ describe('overlays (1.3.0)', () => {
     const short = atRuleBlocks(read('src/components/dialog/dialog.css'), /@media\s*\(max-height:\s*320px\)/).join('\n');
     assert.equal(declarationsOf(short, '.ds-dialog__body').find((entry) => entry.property === 'overflow')?.value, 'visible', 'a window 320px high: the box scrolls');
     assert.equal(own('.ds-dialog__box').height, 'var(--ds-dialog-height, auto)');
-    assert.equal(own('.ds-dialog--wide .ds-dialog__box').width, 'min(var(--ds-dialog-width-wide, 560px), 100%)');
+    assert.equal(own('.ds-dialog--wide .ds-dialog__box').width, 'min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%)');
+    assert.equal(own('.ds-dialog--lg .ds-dialog__box').width, own('.ds-dialog--wide .ds-dialog__box').width);
+    assert.equal(own('.ds-dialog--sm .ds-dialog__box').width, 'min(var(--ds-dialog-width-sm, 320px), 100%)');
+    assert.equal(own('.ds-dialog--xl .ds-dialog__box').width, 'min(var(--ds-dialog-width-xl, 720px), 100%)');
     assert.equal(own('.ds-dialog__body:empty').display, 'none');
     assert.equal(own('.ds-dialog__actions:empty').display, 'none');
     // The fallback focus of the box shows no ring (it beats the ds.base ring by layer).
     assert.equal(own('.ds-dialog__box[tabindex="-1"]:focus').outline, 'none');
-    assert.equal(own('.ds-dialog--full .ds-dialog__box')['border-radius'], 'var(--ds-dialog-full-radius, 0)');
+    assert.equal(own('.ds-dialog--full .ds-dialog__box')['border-radius'], 'calc(var(--ds-dialog-full-radius, 0px) * var(--ds-shape, 1))');
   });
 
   it('gives the side sheet a wrapping title, a subtitle, a foot and a positioned body with a thin scrollbar (2.0)', () => {
@@ -1915,7 +1918,7 @@ describe('overlays (1.3.0)', () => {
     const body = own('.ds-sheet__body');
     assert.deepEqual([body.position, body['scrollbar-width'], body['scrollbar-color']], ['relative', 'thin', 'var(--ds-line-2) transparent']);
     assert.equal(own('.ds-sheet__body > .ds-btn')['align-self'], 'flex-start');
-    assert.match(read('src/components/sheet/sheet.css').match(/^\/\*[\s\S]*?\*\//)[0], /aria-label="Close" data-close>/, 'the header markup closes with data-close');
+    assert.match(read('src/components/sheet/sheet.css').match(/^\/\*[\s\S]*?\*\//)[0], /aria-label="Close" data-ds-close>/, 'the header markup closes with data-close');
   });
 
   it('sizes the combobox from the field hooks and draws blocked options and menu items in GrayText when forced (2.0)', () => {
@@ -1925,7 +1928,7 @@ describe('overlays (1.3.0)', () => {
     assert.deepEqual([own(combo, '.ds-combo__toggle').width, own(combo, '.ds-combo__toggle').height], ['var(--ds-input-height, 40px)', 'var(--ds-input-height, 40px)']);
     assert.equal(own(combo, '.ds-combo__option')['min-height'], 'var(--ds-combo-option-height, 48px)');
     assert.equal(own(combo, '.ds-combo:not(:has(.ds-combo__toggle)) > .ds-combo__input')['padding-inline-end'], 'var(--ds-space-3)');
-    assert.equal(own(read('src/components/menu/menu.css'), '.ds-menu__item')['min-height'], 'var(--ds-menu-item-height, 48px)');
+    assert.equal(own(read('src/components/menu/menu.css'), '.ds-menu__item')['min-height'], 'max(var(--ds-target-min, 0px), calc(var(--ds-menu-item-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))');
     for (const [file, selector] of [['src/components/menu/menu.css', '.ds-menu__item[aria-disabled="true"]'], ['src/components/combobox/combobox.css', '.ds-combo__option[aria-disabled="true"]']]) {
       const forced = forcedColorBlocks(read(file)).flatMap((block) => declarationsOf(block, selector));
       assert.equal(forced.find((entry) => entry.property === 'color')?.value, 'GrayText', `${file}: ${selector}`);

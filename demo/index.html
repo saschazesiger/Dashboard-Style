@@ -524,12 +524,12 @@
 <div class="ds-toasts" id="toasts"></div>
 
 <dialog class="ds-dialog" id="confirm" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-text">
-  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <div class="ds-dialog__box">
     <h2 class="ds-dialog__title" id="confirm-title">Delete 3 devices?</h2>
     <p class="ds-dialog__text" id="confirm-text">They disappear from every list. You can undo it for a moment.</p>
     <div class="ds-dialog__actions">
-      <button class="ds-btn ds-btn--text" type="button" id="confirm-cancel" data-close autofocus>Cancel</button>
+      <button class="ds-btn ds-btn--text" type="button" id="confirm-cancel" data-ds-close autofocus>Cancel</button>
       <button class="ds-btn ds-btn--filled ds-tone-error" type="button" id="confirm-delete">
         <span class="ds-btn__faces">
           <span class="ds-btn__face">Delete devices</span>
@@ -541,14 +541,14 @@
 </dialog>
 
 <dialog class="ds-sheet" id="sheet" aria-labelledby="sheet-title">
-  <div class="ds-sheet__backdrop" data-close></div>
+  <div class="ds-sheet__backdrop" data-ds-close></div>
   <section class="ds-sheet__panel">
     <div class="ds-sheet__head">
       <h2 class="ds-sheet__title" id="sheet-title">Device</h2>
       <div class="demo-sheet-actions">
         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous device" data-tip="Previous device" data-step="-1" data-icon="chevronLeft"></button>
         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next device" data-tip="Next device" data-step="1" data-icon="chevronRight"></button>
-        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close data-icon="close"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close"></button>
       </div>
     </div>
     <div class="ds-sheet__body" tabindex="0" id="sheet-body"></div>

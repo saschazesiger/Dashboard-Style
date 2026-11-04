@@ -113,14 +113,14 @@
 <!-- Overlays sit inside the .ds-theme element (here <html>) and open and close through DS.overlay. -->
 
 <dialog class="ds-sheet" id="sheet" aria-labelledby="sheet-title">
-  <div class="ds-sheet__backdrop" data-close></div>
+  <div class="ds-sheet__backdrop" data-ds-close></div>
   <section class="ds-sheet__panel">
     <div class="ds-sheet__head">
       <h2 class="ds-sheet__title" id="sheet-title">Device</h2>
       <div class="ex-row">
         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous device" data-tip="Previous device" id="sheet-prev" data-icon="chevronLeft" data-icon-place="start"></button>
         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next device" data-tip="Next device" id="sheet-next" data-icon="chevronRight" data-icon-place="start"></button>
-        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close data-icon="close" data-icon-place="start"></button>
+        <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close data-icon="close" data-icon-place="start"></button>
       </div>
     </div>
     <div class="ds-sheet__body" tabindex="0" id="sheet-body"></div>
@@ -128,7 +128,7 @@
 </dialog>
 
 <dialog class="ds-dialog" id="ticket-dialog" aria-labelledby="ticket-title">
-  <div class="ds-dialog__backdrop" data-close></div>
+  <div class="ds-dialog__backdrop" data-ds-close></div>
   <form class="ds-dialog__box ds-form" id="ticket-form" novalidate>
     <h2 class="ds-dialog__title" id="ticket-title">New ticket</h2>
     <div class="ds-form-grid ds-form-grid--2">
@@ -165,7 +165,7 @@
     </div>
     <label class="ds-check"><input type="checkbox" name="notify" checked><span>Tell the owner</span></label>
     <div class="ds-dialog__actions">
-      <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
+      <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
       <button class="ds-btn ds-btn--filled" type="submit">
         <span class="ds-btn__faces">
           <span class="ds-btn__face">Create ticket</span>

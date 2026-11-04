@@ -321,6 +321,13 @@ export function tooltips(root = globalThis.document) {
     trigger = next;
     focusing = next === activeIn(next) && focusVisible(next);
     tip.textContent = text;
+    const shortcut = next.getAttribute('data-tip-shortcut');
+    if (shortcut) {
+      const slot = doc.createElement('span');
+      slot.className = 'ds-tooltip__shortcut';
+      slot.textContent = shortcut;
+      tip.append(slot);
+    }
     if (visible) {
       // A swap (or a hide taken back): text and place change where it is,
       // and a fade still under way turns back from its current opacity.

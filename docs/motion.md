@@ -988,7 +988,7 @@ DS.overlay.open(sheet, { opener: rowButton, returnTo: () => table.querySelector(
 opener, the box inert, `data-state="closed"`), the overlay dispatches
 `new CustomEvent('ds-close', { bubbles: true, detail: { reason } })`, synchronously and not cancelable. `reason`:
 `'escape'` (Escape, the native `cancel`, Android Back), `'backdrop'` (`.ds-dialog__backdrop`, `.ds-sheet__backdrop`,
-the drawer's `.ds-scrim`), `'close'` (another `[data-close]`), `'item'`, `'tab'` and `'outside'` (menus), `'parent'`
+the drawer's `.ds-scrim`), `'close'` (another `[data-ds-close]`), `'item'`, `'tab'` and `'outside'` (menus), `'parent'`
 (closed with the overlay around it; sent before the parent's own event), `'api'` (`close()` without a reason,
 `dialog.close()`, a `<form method="dialog">`), `'removed'` (it left the document; sent on the detached element),
 `'breakpoint'` (the drawer's window widened past 900px); any other string is the page's own
@@ -1002,7 +1002,7 @@ dialog.addEventListener('ds-close', (event) => { if (event.target === dialog && 
 
 **Busy: `data-ds-busy`** (2.0). While the page sets the attribute on a `.ds-dialog`, `.ds-sheet` or `.ds-drawer`, the
 user's close attempts do nothing: Escape (the listener still calls `preventDefault()`, so a native dialog fires no
-`cancel`; a visible tooltip still takes the key first), the native `cancel`, a `[data-close]` click, the backdrop and
+`cancel`; a visible tooltip still takes the key first), the native `cancel`, a `[data-ds-close]` click, the backdrop and
 the modal drawer's scrim. One guard at the top of the close, before the popups inside close, so a refused attempt
 changes nothing and sends no `ds-close`. `close(el)` and the forced closes (`removed`, `breakpoint`) still close;
 menus and combobox lists ignore the attribute. `DS.overlay` never writes it, and it changes nothing visible: the busy
@@ -1014,7 +1014,7 @@ set `closedby` on a dialog that `DS.overlay` drives; a `<form method="dialog">` 
 **Dismiss guard** (2.0). A backdrop or scrim click from a pointer closes only as the first click (`event.detail` 1)
 of a press that began on that backdrop, and only `--ds-delay-dismiss` (300ms, time-scaled) after the open: the second
 click of a double click on the opener (it lands on the backdrop that just appeared), a touch double tap and a drag
-from the box that ends on the backdrop close nothing. Every `[data-close]` click with `detail > 1` is ignored.
+from the box that ends on the backdrop close nothing. Every `[data-ds-close]` click with `detail > 1` is ignored.
 `click()`, Enter and Space (`detail` 0) close at once. A trigger that toggles (a menu button) ignores
 `event.detail > 1` itself.
 
@@ -1075,7 +1075,7 @@ native dialog from its own `cancel`) but does not stop the event. A native dialo
 `close()`, so Escape plays its exit. When the topmost overlay is a `.ds-dialog--contained`, the key is its own only
 when pressed inside the container it covers (1.6.1): Escape in the host page around an embedded widget is left alone,
 so the host's own dialogs and search fields keep it. The stack is the page's, shared by every copy of `ds.js` on it
-(1.6.1 and later): the topmost overlay closes whichever copy opened it. A click on `[data-close]` inside an overlay closes it (ignored
+(1.6.1 and later): the topmost overlay closes whichever copy opened it. A click on `[data-ds-close]` inside an overlay closes it (ignored
 while it closes). A menu also closes on Tab (focus returns to its trigger and Tab moves on from there) and on a
 `pointerdown` outside the menu and its trigger.
 
@@ -1106,7 +1106,7 @@ once.
 
 Promise dialogs (2.0): `confirm()`, `alert()` and `prompt()` build a native `dialog.ds-dialog` with DOM APIs (no HTML
 strings, so a strict CSP is fine) inside the opener's `.ds-theme` (else the first one): the backdrop with
-`data-close`, the title (`aria-labelledby`), the text (`aria-describedby`), for `prompt()` a `.ds-field` whose input
+`data-ds-close`, the title (`aria-labelledby`), the text (`aria-describedby`), for `prompt()` a `.ds-field` whose input
 takes `input.type`, `autocomplete`, `inputmode` and `required`, plus `spellcheck` (a boolean, written as `"true"` or
 `"false"`), `autocapitalize`, `autocorrect` and `enterkeyhint` (2.1; each written only when given, so a path or a code
 field turns them off), and the actions. A required field left empty keeps the dialog open with the documented field
@@ -1321,7 +1321,7 @@ link.addEventListener('click', async (event) => {
 DS.ripple.attach(document);                                    // once per page
 DS.overlay.tooltips(document);                                 // once per page
 openButton.addEventListener('click', () => DS.overlay.open(dialog, { opener: openButton }));
-// [data-close] inside the dialog and Escape close it; focus goes back to openButton at once.
+// [data-ds-close] inside the dialog and Escape close it; focus goes back to openButton at once.
 saveButton.addEventListener('click', async () => {
   await DS.motion.busy(saveButton, save());                    // busy, then the success face
   await DS.overlay.close(dialog);                              // resolves once it is hidden

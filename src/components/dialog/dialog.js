@@ -150,7 +150,7 @@ function ask(kind, options) {
     box.setAttribute('aria-modal', 'true');
   }
   const backdrop = make('div', 'ds-dialog__backdrop');
-  backdrop.setAttribute('data-close', '');
+  backdrop.setAttribute('data-ds-close', '');
   const title = make('h2', 'ds-dialog__title', options.title ?? '');
   title.id = `${id}-title`;
   labelled.setAttribute('aria-labelledby', title.id);
@@ -195,12 +195,12 @@ function ask(kind, options) {
   let confirmButton;
   if (kind === 'alert') {
     confirmButton = button('ds-btn ds-btn--filled', options.closeLabel ?? 'OK');
-    confirmButton.setAttribute('data-close', '');
+    confirmButton.setAttribute('data-ds-close', '');
     confirmButton.setAttribute('autofocus', '');
     actions.append(confirmButton);
   } else {
     cancel = button('ds-btn ds-btn--text', options.cancelLabel ?? 'Cancel');
-    cancel.setAttribute('data-close', '');
+    cancel.setAttribute('data-ds-close', '');
     // The faces of busy(): the label, and the spinner with it while onConfirm runs.
     const label = options.confirmLabel ?? 'Confirm';
     confirmButton = button(options.destructive ? 'ds-btn ds-btn--filled ds-tone-error' : 'ds-btn ds-btn--filled');
