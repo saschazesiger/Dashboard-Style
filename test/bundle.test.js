@@ -459,6 +459,20 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
       assert.ok(!components.has('menu') && !components.has('sheet'), 'nothing the page does not use');
     });
   });
+
+  // A todo until moduleAttributes() in scripts/build.mjs reads the modules of src/js too (the integrator's change, conventions section 9): remove the todo with it.
+  it('finds the indicator on a project track by its attribute alone', { todo: 'moduleAttributes() skips the modules of src/js' }, () => {
+    withTemp((dir) => {
+      const config = tempProject(dir, {
+        'index.html': '<nav data-ds-indicator=\'[aria-pressed="true"]\' data-ds-indicator-class="x-pill"><button aria-pressed="true">A</button></nav>',
+      }, { dist: relative(dir, dist) });
+      const result = bundle({ config, write: false });
+      assert.deepEqual(result.errors, []);
+      const report = result.entries[0].report;
+      assert.ok(names(report.components).includes('indicator'), 'its stylesheet: no pill without it');
+      assert.ok(names(report.modules).includes('indicator'), 'its module: DS.init() makes the pill');
+    });
+  });
 });
 
 describe('tools/vite-plugin.mjs (stubbed Vite API)', () => {
