@@ -40,6 +40,20 @@ is the only scroller. At 900px and below the drawer becomes modal.
 </div>
 ```
 
+**Options** ([options.md](options.md)): classes on the part or any ancestor; the nearest wins. Put them on the group
+(the drawer, the switch), so the pill and the track read the same values as the rows inside.
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Size | `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl` | the drawer or the list; a `.ds-segmented`; an avatar | a drawer row 32 to 64px (8px per step, the pill with it); the switch 16 to 48px high (8px per step), its side padding 4px per step; an avatar 16 to 48px (8px per step); each with the size's type role, at the regular weight on rows and options (only the current one is heavier) |
+| Density | `.ds-density-comfortable`, `-compact`, `-dense`, `-tight` | any container (the compact theme sets dense) | 4px less height per step on drawer rows (48, 44, 40, 36px) and the switch; type, side padding and avatars stay |
+| Shape | `.ds-shape-square`, `-soft`, `-default`, `-round` | any container or the theme | multiplies the radius of drawer rows and the pill (rest and pressed), the switch and its press clip, the skip link, the account capsule, the panel's top corners, the modal drawer's open side and the avatar |
+| Touch | `.ds-touch` | the theme or a container | drawer rows, the switch, the skip link and the brand link are at least `--ds-touch-target` (48px) whatever the size and density; the menu button's box moves the bar's padding and the modal drawer's lock-up with it |
+| Tone | none | | the frame states no status; a banner's alert does |
+
+The frame itself (the top bar's height, the drawer's and the rail's width, the panel's margins) is layout, set through
+its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`): no option moves it.
+
 - `.ds-app--drawer` adds the drawer column; without it the panel takes the full width.
 - State attributes on `.ds-app`: `data-drawer-open` (modal drawer shown), `data-drawer-hidden` (this view has no
   drawer), `data-scrolled` (the view is scrolled; a hairline appears at the panel's top edge and the top bar tints to
@@ -130,8 +144,9 @@ is the only scroller. At 900px and below the drawer becomes modal.
   where it is.
 - Press: drawer items and segmented options take their state layer in `--ds-dur-micro` and, with
   `DS.ripple.attach(document)`, the ripple ([Ripple](#ripple)). A drawer item turns squarer while pressed
-  (`--ds-radius-action-pressed`) and springs back on release; under the active item the pill morphs with it, and
-  nothing moves. Its rest radius is half of `--ds-drawer-item-height` (48px). A segmented option lies inside the
+  (`--ds-radius-action-pressed` times the shape, never rounder than at rest) and springs back on release; under the
+  active item the pill morphs with it, and nothing moves. Its rest radius is half of the height it computes from
+  `--ds-drawer-item-height` (48px at size md and comfortable), times the shape. A segmented option lies inside the
   clipping pill, so it morphs the clip of its state layer instead. An `aria-disabled="true"` drawer item shows no
   hover, press or ripple, but keeps its focus layer.
 - Focus: drawer items and segmented options draw an inset ring (the list and the pill clip anything outside),
@@ -183,6 +198,11 @@ is the only scroller. At 900px and below the drawer becomes modal.
 - `.ds-view` keeps a stable scrollbar gutter (`--ds-view-scrollbar-gutter`, default `stable`; `stable both-edges` for
   symmetric room, `auto` for none), so a classic scrollbar that appears never shifts the content. Overlay
   scrollbars need no room; Safari before 18.2 ignores it.
+- Keyboard: the skip link is the first tab stop and shows only while focused. Drawer items are links or buttons, each a
+  tab stop; a group's `<summary>` opens and closes it with Enter or Space. In the modal drawer focus stays inside, and
+  Escape closes it and returns focus to the menu button. The rail's toggle is a button with `aria-pressed`; hover never
+  expands the rail. A segmented switch of buttons is one tab stop (`DS.dom.roving()`); one of links keeps a stop per
+  link.
 - Narrow windows: the account shows `.ds-account__avatar` (give it a tooltip with name and email) below 720px. As a
   `role="img"` it shows that tooltip on a tap too ([Tooltip](#tooltip), "On touch screens").
 - With the keyboard up (2.0): on a phone the on-screen keyboard shortens the visual viewport, not the layout one.
@@ -251,7 +271,9 @@ group.addEventListener('click', (event) => {
 - Blocked: `:disabled` or `aria-disabled="true"` takes the disabled model (`--ds-disabled-ink`,
   `--ds-disabled-opacity`, faded on `--ds-dur-fast`) and shows no hover, press or morph; `aria-disabled` keeps its
   focus layer (give it a `data-tip` that says why).
-- `--ds-segmented-padding-x` (default `--ds-space-4`) narrows the options of a tight switch.
+- `--ds-segmented-height` (32px, the whole track at size md and comfortable) takes 8px per size step and 4px per density
+  step; `.ds-touch` makes it at least 48px. `--ds-segmented-padding-x` (default `--ds-space-4`, 4px more per size step)
+  narrows the options of a tight switch; `--ds-segmented-font` sets its type.
 - Forced colours: the selected option is `SelectedItem` / `SelectedItemText` (a choice in a set), a focused one keeps
   a `CanvasText` ring inside its fill; the pill is hidden there, blocked options are `GrayText`.
 
@@ -272,9 +294,13 @@ group.addEventListener('click', (event) => {
         <a class="ds-drawer__item" href="/tickets/waiting" data-tip="Waiting">[icon clock 20]<span class="ds-drawer__label">Waiting</span><span class="ds-drawer__count"><span class="ds-sr">, </span>2</span></a>
         <button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm ds-drawer__action ds-hover-actions" type="button" aria-label="Options for Waiting" data-tip="Options">[icon moreVertical 18]</button>
       </div>
+      <details class="ds-drawer__group ds-collapsible">             <!-- nested, 2-3 levels -->
+        <summary class="ds-drawer__heading ds-drawer__toggle">[icon chevronDown 20 .ds-chevron]<span>Archive</span></summary>
+        <a class="ds-drawer__item" href="/tickets/2025" data-tip="2025">[icon history 20]<span class="ds-drawer__label">2025</span></a>
+      </details>
     </details>
   </div>
-  <div class="ds-drawer__foot">
+  <div class="ds-drawer__foot ds-drawer__foot--pinned">
     <a class="ds-drawer__item" href="/settings" data-tip="Settings">[icon settings 20]<span class="ds-drawer__label">Settings</span></a>
   </div>
 </nav>
@@ -285,8 +311,15 @@ group.addEventListener('click', (event) => {
   outside the pill's track. Above 900px a docked drawer with a back item hides the page head's back link
   (`.ds-page-head__back`), so the page shows one of them; the modal drawer leaves it to the page head.
 - `.ds-drawer__actions` (above the list, a primary action) and `.ds-drawer__foot` (below it, clear of the home
-  indicator of an installed app). `.ds-drawer__foot--rail` lays its items out icon-only in a row: their labels are
-  visually hidden but read, and each item names itself with `data-tip`.
+  indicator of an installed app). The foot is pinned: the list takes the rest of the height and scrolls itself, the foot
+  never scrolls away. `.ds-drawer__foot--pinned` adds a hairline above it, inset to the text edge, so a long list reads
+  as passing behind it. A current item in the foot paints its own tint (the pill's track is the list).
+  `.ds-drawer__foot--rail` lays its items out icon-only in a row: their labels are visually hidden but read, and each
+  item names itself with `data-tip`.
+- Nested groups: a `.ds-drawer__group` inside a group, 2-3 levels, each one plain or a `<details>` that closes. Its heading
+  and items indent by `--ds-drawer-indent` (`--ds-space-8`) per level, as padding: the state layer, the ring and the pill
+  keep the row's full width, and the pill follows the current item across levels. The rail drops the indent, so give
+  nested items an icon.
 - `.ds-drawer__count`: a count at the end of an item or a group heading (tabular figures, the meta role, the item's
   colour). A `.ds-sr` separator reads it with the label ("Open, 3"). On a group heading it shows only while the group is
   closed (mark that one `aria-hidden`: its items say it).
@@ -299,6 +332,8 @@ group.addEventListener('click', (event) => {
   keeps room for it at the action's size, `--ds-btn-sm-icon-size`, so also under `.ds-touch`). With `.ds-hover-actions` the action shows on hover, focus, the current item and an open menu, and
   always on touch; it stays in the tab order.
 - `<a>` drawer items no longer flash on tap in iOS (`-webkit-tap-highlight-color` on every item).
+- Type: `--ds-drawer-font` (default the size's role, else `--ds-font-body`), always at the regular weight; the current
+  item alone takes the label weight.
 - Forced colours: the current item is `SelectedItem` / `SelectedItemText` (with its icon), a focused current item
   keeps a `CanvasText` ring inside its fill, and an `aria-disabled` item is `GrayText`; the outline is for focus only.
 
@@ -308,7 +343,9 @@ group.addEventListener('click', (event) => {
 (72px): items become 48px squares (circles by the pill rule), labels, headings and counts are visually hidden but
 read, row actions go, and the pill follows by itself. Each item's `data-tip` names it there: its visible text is gone,
 so the tooltip shows. The column switches at once; the labels fade back in on `--ds-dur-fast` when it widens again
-(no layout animation; View Transitions stay for navigation). The modal drawer at 900px and below is unaffected.
+(no layout animation; View Transitions stay for navigation). The modal drawer at 900px and below is unaffected. Hover
+never expands the rail: only its toggle does. Items are squares of the height the options compute, on the rail's axis,
+as wide as the column allows.
 
 The toggle is the top bar's menu button: with `aria-pressed` it also shows above 900px, on the drawer icons' axis.
 The page sets the attribute, keeps it across loads and leaves the modal drawer to `DS.overlay` below 900px:
@@ -364,13 +401,17 @@ menu.addEventListener('click', () => {
 
 ```html
 <span class="ds-avatar" role="img" aria-label="Ada Lovelace">A</span>                      <!-- the initial -->
-<span class="ds-avatar ds-avatar--sm" aria-hidden="true">A</span> Ada Lovelace              <!-- next to the name -->
-<img class="ds-avatar ds-avatar--lg" src="/people/ada.jpg" alt="">                          <!-- a picture -->
+<span class="ds-avatar ds-sm" aria-hidden="true">A</span> Ada Lovelace                      <!-- next to the name -->
+<img class="ds-avatar" src="/people/ada.jpg" alt="">                                        <!-- a picture -->
 ```
 
-A disc on the tint (`--ds-accent` / `--ds-on-accent`) of `--ds-avatar-size` (32px; `--sm` 24px, `--lg` 40px), the
-initial in a role that scales with it, a picture covering it. `.ds-account__avatar` is the same disc. No status dot:
-a status goes next to the name as a word. Forced colours keep its edge.
+A disc on the tint (`--ds-accent` / `--ds-on-accent`) of `--ds-avatar-size` (32px at size md, 8px per size step: `.ds-xs`
+16, `.ds-sm` 24, `.ds-lg` 40, `.ds-xl` 48px), the initial in the size's role, a picture covering it. The shape multiplies
+its radius (square at `.ds-shape-square`). `.ds-account__avatar` is the same disc. No status dot: a status goes next to
+the name as a word. Forced colours keep its edge.
+
+`.ds-avatar--sm` and `.ds-avatar--lg` are **deprecated** (3.0, removed when 3.0 ships): `.ds-sm` and `.ds-lg`, also on any
+ancestor. Until then they keep the fixed 2.x discs (24 and 40px).
 
 ### A message for the whole app
 
@@ -411,4 +452,14 @@ print.
   widget never calls `followViewport()`: the host page owns the viewport.
 
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
+
+<!-- changelog -->
+- App frame (3.0): on the options model. Drawer rows and the segmented switch follow size, density, shape and touch;
+  the avatar follows size and shape; the panel, the modal drawer, the skip link and the capsule follow the shape; the
+  brand link takes `--ds-target-min`.
+- Added: nested drawer groups (`--ds-drawer-indent`), `.ds-drawer__foot--pinned`, the hooks `--ds-drawer-font`,
+  `--ds-segmented-height`, `--ds-segmented-font`.
+- Deprecated: `.ds-avatar--sm` and `.ds-avatar--lg` (`.ds-sm`, `.ds-lg`).
+- Changed: a segmented switch under `.ds-touch` is 48px high (it stayed 32px); the rail centres its items on its axis
+  (a compact row sat 4px off it).
 

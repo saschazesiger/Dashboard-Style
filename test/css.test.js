@@ -1480,7 +1480,6 @@ const RIPPLE_EXEMPT = new Map([
 describe('controls (1.1.0)', () => {
   /** The pills that morph: rest radius min(..., half the height), pressed radius from the role. */
   const PILLS = [
-    ['src/components/shell/shell.css', '.ds-drawer__item', 'calc(var(--ds-drawer-item-height, 48px) / 2)', 'var(--ds-radius-action-pressed)'],
     ['src/components/combobox/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-input-height, 40px) / 2)', 'var(--ds-radius-action-pressed)'],
   ];
   const BLOCKED = [':disabled', '[aria-disabled="true"]', '[aria-busy="true"]'];
@@ -1524,6 +1523,27 @@ describe('controls (1.1.0)', () => {
     // A round icon button morphs from half its own box (the radius follows --_box).
     const icon = Object.fromEntries(declarationsOf(read(BUTTON), '.ds-btn--icon').map((entry) => [entry.property, entry.value]));
     assert.equal(icon['--_box'], 'max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))');
+    // The drawer row on the options model (3.0): the same pill and press from its own box, and the pill under the
+    // current item reads the same values (the rule names both).
+    const SHELL_CSS = 'src/components/shell/shell.css';
+    const row = Object.fromEntries(declarationsOf(read(SHELL_CSS), '.ds-drawer__item').map((entry) => [entry.property, entry.value]));
+    assert.equal(row['--_h'], 'calc(var(--ds-drawer-item-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)');
+    assert.equal(row['--_box'], 'max(var(--ds-target-min, 0px), var(--_h))');
+    assert.equal(row['--_half'], 'calc(var(--_box) / 2)');
+    assert.equal(row['--_radius'], 'min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half))');
+    assert.equal(row['--_radius-pressed'], 'min(calc(var(--ds-radius-action-pressed) * var(--ds-shape, 1)), var(--_radius))');
+    assert.equal(row['border-radius'], 'var(--_radius)');
+    assert.match(row.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/, '.ds-drawer__item: the release springs back');
+    for (const host of ['.ds-drawer__item', '.ds-drawer__toggle']) {
+      const parts = pressed(SHELL_CSS, host);
+      assert.deepEqual(parts.map(({ part }) => /:active/.test(part) ? 'active' : 'pressed').sort(), ['active', 'pressed'], `${host}: :active and .ds-pressed`);
+      for (const { part, own } of parts) {
+        for (const state of BLOCKED) assert.ok(part.includes(state), `${part}: excludes ${state}`);
+        assert.equal(own['border-radius'], 'var(--_radius-pressed)', part);
+        assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/, `${part}: the press goes in on --ds-dur-micro`);
+      }
+    }
+    assert.equal(Object.fromEntries(declarationsOf(read(SHELL_CSS), '.ds-drawer__indicator').map((entry) => [entry.property, entry.value]))['--_radius'], row['--_radius']);
     // Radio cards go to the card's pressed role, never rounder than at rest.
     const card = pressed('src/components/form/form.css', '.ds-radio');
     assert.equal(card.length, 2);
@@ -2360,10 +2380,10 @@ describe('app frame, page and base (2.0)', () => {
     assert.ok(!rules(css).some((rule) => splitSelectors(rule.selector).includes('.ds-segmented__option[aria-current="true"]')), 'the old selection selector is folded into :is()');
   });
 
-  it('gives the brand link the touch target under .ds-touch', () => {
-    const touch = declarationsOf(stripComments(read(SHELL)), '.ds-touch .ds-brand');
+  it('gives the brand link the touch target under .ds-touch (3.0: --ds-target-min)', () => {
+    const brand = declarationsOf(stripComments(read(SHELL)), '.ds-brand');
     for (const property of ['min-width', 'min-height']) {
-      assert.ok(touch.some((entry) => entry.property === property && entry.value === 'var(--ds-touch-target)'), property);
+      assert.ok(brand.some((entry) => entry.property === property && entry.value === 'var(--ds-target-min, 0px)'), property);
     }
   });
 
@@ -2783,7 +2803,7 @@ describe('the app frame (2.1)', () => {
   });
 
   it('keeps a drawer row item\'s room for its action at the action\'s size (.ds-touch raises it to 48px)', () => {
-    assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, var(--ds-space-8))) + var(--ds-space-2))');
+    assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, calc(var(--ds-btn-icon-size, 40px) - 8px))) + var(--ds-space-2))');
     // The same hook and minimum size the small icon button, and .ds-touch sets the minimum (3.0: --ds-target-min).
     assert.match(read('src/components/button/button.css'), /\.ds-btn--icon\.ds-btn--sm \{\s*--_box: max\(var\(--ds-target-min, 0px\), var\(--ds-btn-sm-icon-size, 32px\)\);/);
     assert.equal(at(stripComments(read('src/core/options.css')), '.ds-touch')['--ds-target-min'], 'var(--ds-touch-target)');
