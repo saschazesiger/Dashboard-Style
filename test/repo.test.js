@@ -92,8 +92,7 @@ describe('repository', () => {
   it('counts the components right in the styleguide overview and the README badge (generated), and lists them nowhere by hand', () => {
     const files = componentNames();
     assert.ok(files.length >= 39, `${files.length} component folders`);
-    // The tile of legacy.html and the one of index.html both count registry.js, which the build writes from the folders.
-    assert.match(read('styleguide/styleguide.js'), /tile\('Components', String\(window\.SG_REGISTRY\.components\.length\)/);
+    // The tile of index.html counts registry.js (COMPONENTS), which the build writes from the folders.
     assert.match(read('styleguide/shell.js'), /tile\('Components', String\(COMPONENTS\.length\)/);
     assert.match(read('README.md'), new RegExp(`!\\[Components: ${files.length}\\]\\(https://img\\.shields\\.io/badge/components-${files.length}-`), 'the Components badge of README.md');
     // A shared hand-edited list of the components would collide between parallel branches.
@@ -122,7 +121,7 @@ describe('repository', () => {
     // Hook classes without a rule of their own, read by a module.
     const HOOKS = new Map([['ds-toast__action', 'the action button of a snackbar: DS.overlay finds it next to .ds-toast__close']]);
     const scope = ALL_FILES.filter((path) => /^(docs\/.*\.md|README\.md|(styleguide|example|demo)\/.*\.(html|js))$/.test(path));
-    assert.ok(scope.includes('docs/components.md') && scope.includes('styleguide/styleguide.js') && scope.includes('example/index.html'), 'the walk finds the files');
+    assert.ok(scope.includes('docs/components.md') && scope.includes('styleguide/shell.js') && scope.includes('styleguide/demos.js') && scope.includes('example/index.html'), 'the walk finds the files');
     const offenders = [];
     for (const path of scope) {
       const source = read(path);
@@ -285,7 +284,7 @@ describe('repository', () => {
     const docs = read('docs/components.md');
     const combo = docs.slice(docs.indexOf('\n## Combobox\n'), docs.indexOf('\n## Menu\n'));
     assert.match(combo, /cancelling\s+`mousedown` on the list/);
-    for (const file of ['demo/demo.js', 'example/app.js', 'styleguide/styleguide.js']) {
+    for (const file of ['demo/demo.js', 'example/app.js', 'styleguide/demos.js', 'styleguide/lab.js']) {
       const source = code(read(file));
       assert.doesNotMatch(source, /addEventListener\(\s*'pointerdown',\s*(?:function\s*)?\(?\s*event\s*\)?\s*(?:=>)?\s*\{?\s*event\.preventDefault\(\)/, `${file} cancels pointerdown`);
       if (/ds-combo__list|combo\.list/.test(source)) assert.match(source, /addEventListener\(\s*'mousedown'/, `${file} keeps the field focused through mousedown`);

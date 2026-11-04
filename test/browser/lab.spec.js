@@ -47,7 +47,7 @@ import { ready, settle, expectWithin, expectMonotonic, expectPeakAtMost, expectS
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const LAB = '/styleguide/motion.html';
 const VIDEO = !!process.env.DS_VIDEO;
-const STYLEGUIDE = '/styleguide/legacy.html';
+const STYLEGUIDE = '/styleguide/index.html';
 // The expected plots and ladder rows come from the tokens themselves, in
 // their order in src/core/tokens.css, so a new --ds-ease-* or --ds-dur-* token
 // without a plot or a row fails.
@@ -850,7 +850,7 @@ function splitCode(page) {
 
 /**
  * Punctuation that touches a code label ("(" before it, "," after it) but sits on another line: an inline-block
- * label adds a break opportunity on each side, so the styleguide glues them (glue() in styleguide.js).
+ * label adds a break opportunity on each side, so the lab glues them (glue() in motion-lab.js).
  */
 function orphanedPunctuation(page) {
   return page.evaluate(() => {

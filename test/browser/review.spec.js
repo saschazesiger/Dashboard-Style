@@ -1,6 +1,8 @@
 /**
- * The final review of both styleguide pages (legacy.html, the 2.x sections, and the Motion Lab,
- * motion.html), as sweeps over everything on them:
+ * The final review of the styleguide (the component demos of index.html
+ * that took over the 2.x sections of legacy.html, retired in
+ * 3.0.0-alpha.4) and the Motion Lab (motion.html), as sweeps over
+ * everything on them:
  *
  * - quiet load: from load until settled, every `transitionrun` and
  *   `animationstart` comes from a source on the QUIET list (loops, loaders
@@ -35,7 +37,11 @@
 import { test, expect } from '@playwright/test';
 import { ready, settle } from './helpers/motion.js';
 
-const PAGES = ['/styleguide/legacy.html', '/styleguide/motion.html'];
+/** The demos that cover the kinds of the 2.x sections (actions, cards and lists, table, forms, selection, overlays, loading, the frame). */
+const DEMOS = ['form', 'button', 'card', 'list', 'table', 'chip', 'combobox', 'menu', 'loading', 'shell'];
+const INDEX = '/styleguide/index.html';
+const LAB = '/styleguide/motion.html';
+const PAGES = [...DEMOS.map((name) => `${INDEX}#/components/${name}`), LAB];
 
 async function open(page, path) {
   await page.goto(path);
@@ -55,7 +61,9 @@ const QUIET = [
   [(e) => e.name === 'ds-fade-in' && /\.(ds-loader|ds-loading|ds-boot|ds-skeleton|ds-loadbar)(\.|$)/.test(e.target), 'a loader that fades in after its delay'],
   [(e) => /\.ds-enter(\.|$)/.test(e.target) || (e.staggered && /^ds-(fade|lift)-in$/.test(e.name)), 'the first-render stagger (DS.motion.staggerOnce, enterAll)'],
   [(e) => /\.ds-status(\.|$)/.test(e.parent) && ['opacity', 'scale'].includes(e.name), 'a status icon in the markup comes in (@starting-style, status.css)'],
-  [(e) => /\.ds-field__hint--error(\.|$)/.test(e.target) && e.name === 'ds-fade-in', 'a validation message in the markup fades in (form.css)'],
+  [(e) => /\.ds-field__hint--(error|warning|success)(\.|$)/.test(e.target) && e.name === 'ds-fade-in', 'a validation message (or its warning and success) in the markup fades in (form.css)'],
+  [(e) => e.pseudo === '::after' && e.name === 'opacity' && /^t[hd](\.|$)/.test(e.target), 'the hairline of a pinned column shows once its wrapper knows it scrolls (DS.dom.scrollEdges, table.css)'],
+  [(e) => /^div\.ds-combo__popup(\.|$)/.test(e.target) && /^ds-(fade|clip)-in$/.test(e.name), 'a combobox list the combobox demo shows open in place (its empty and loading states) plays its entrance'],
   [(e) => /^div\.ds-(dialog|sheet)(\.|$)/.test(e.parent) && /^ds-(fade|grow)-in$/.test(e.name), 'an overlay of the index shown in place by hand plays its entrance keyframes'],
 ];
 
@@ -139,7 +147,8 @@ test.describe('hover', () => {
       await open(page, path);
       test.skip(!(await page.evaluate(() => matchMedia('(hover: hover)').matches)), 'this engine has no hovering pointer');
       const ids = await interactiveKinds(page);
-      expect(ids.length).toBeGreaterThan(20);
+      // The frame's kinds (drawer, search, speed select) and the demo's: a page of one demo holds fewer than the 2.x page of every section did.
+      expect(ids.length).toBeGreaterThan(10);
       const moved = [];
       for (const id of ids) {
         await page.mouse.move(1, 1);
@@ -219,8 +228,7 @@ test.describe('forced colours', () => {
     await page.emulateMedia({ forcedColors: 'active' });
     for (const path of PAGES) {
       await open(page, path);
-      // legacy.html keeps the shot of the page it was (forced-index.png): the committed set comes from CI only.
-      await expect(page).toHaveScreenshot(`forced-${path.split('/').pop().replace('.html', '').replace('legacy', 'index')}.png`);
+      await expect(page).toHaveScreenshot(path === LAB ? 'forced-motion.png' : `forced-index-${path.split('/').pop()}.png`);
     }
     for (const section of ['controls', 'feedback']) {
       await page.evaluate(async (id) => {
@@ -303,13 +311,13 @@ function expectPillInDrawer(revealed, label) {
 }
 
 test.describe('page loads', () => {
-  test('legacy.html to motion.html and on to index.html (the 3.0 styleguide) are cross-document View Transitions: the frame keeps its groups, the drawer stays, the pill glides in its own group', async ({ page }) => {
+  test('index.html to motion.html and back are cross-document View Transitions: the frame keeps its groups, the drawer stays, the pill glides in its own group', async ({ page }) => {
     // Tall enough that both drawer lists show every link: the pill is in view on both pages.
-    await page.setViewportSize({ width: 1280, height: 1100 });
+    await page.setViewportSize({ width: 1280, height: 3400 });
     await recordReveal(page);
-    await open(page, PAGES[0]);
+    await open(page, INDEX);
     test.skip(!(await page.evaluate(() => 'onpagereveal' in window)), 'no cross-document View Transitions in this engine');
-    for (const [from, link, to] of [[PAGES[0], 'motion.html', /motion\.html/], [PAGES[1], 'index.html', /index\.html/]]) {
+    for (const [from, link, to] of [[INDEX, 'motion.html', /motion\.html/], [LAB, 'index.html', /index\.html/]]) {
       const label = `${from.split('/').pop()} to ${link}`;
       await page.locator(`#sg-nav a[href="${link}"]`).click();
       await page.waitForURL(to);
@@ -329,7 +337,7 @@ test.describe('page loads', () => {
 
   test('a pill scrolled out of the drawer list goes with its page instead of gliding in over the top bar', async ({ page }) => {
     await recordReveal(page);
-    await open(page, PAGES[0]);
+    await open(page, INDEX);
     test.skip(!(await page.evaluate(() => 'onpagereveal' in window)), 'no cross-document View Transitions in this engine');
     // At 1280x800 the index's drawer list scrolls: the link to the lab lies
     // below the fold, and scrolling to it takes the active item's pill out of view.
@@ -359,12 +367,12 @@ test.describe('page loads', () => {
  * these targets) where the CPU is not shared.
  */
 const STYLE_TARGETS = {
-  '/styleguide/legacy.html': '.ds-card p',
+  [`${INDEX}#/components/card`]: '#sg-stage .ds-card p',
   '/styleguide/motion.html': '[data-lab-demo="progress"] .ds-progress__label',
 };
 
 test.describe('style scope', () => {
-  for (const path of PAGES) {
+  for (const path of Object.keys(STYLE_TARGETS)) {
     test(`${path}: a text change inside a card restyles its neighbourhood, not the page (Chromium)`, async ({ page, browserName }) => {
       test.skip(browserName !== 'chromium', 'the element count of a style recalc comes from the tracing of Chromium');
       await open(page, path);

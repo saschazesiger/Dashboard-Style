@@ -1,7 +1,7 @@
 /*
- * Layout of the styleguide pages only (sg- prefix): index.html and the
- * Motion Lab (motion.html). It reads tokens like any project stylesheet;
- * components come from dist/ds.css unchanged.
+ * Layout of the styleguide pages only (sg- prefix): index.html, the
+ * Motion Lab (motion.html) and views.html. It reads tokens like any
+ * project stylesheet; components come from dist/ds.css unchanged.
  */
 
 /* ── Top bar extras ─────────────────────────────── */
@@ -235,75 +235,6 @@
   overflow: hidden;
 }
 
-/* Overlays shown in place (not over the page) so they can be inspected. */
-.sg-inline-overlay {
-  --ds-sheet-width: 78%;
-  position: relative;
-  min-height: 300px;
-  overflow: hidden;
-  border-radius: var(--ds-radius-card);
-  background: var(--ds-surface-low);
-}
-
-.sg-inline-overlay > .ds-sheet,
-.sg-inline-overlay > .ds-dialog {
-  position: absolute;
-}
-
-/* A frame 360px high: a contained dialog whose body scrolls inside it. */
-.sg-inline-overlay--short {
-  height: 360px;
-}
-
-.sg-inline-overlay .ds-sheet__panel {
-  animation: none;
-}
-
-.sg-tooltip-demo {
-  position: static;
-  width: max-content;
-  animation: none;
-}
-
-.sg-toast-demo {
-  animation: none;
-}
-
-/* The popover demo: a small floating card that .ds-presence fades in and
-   out (the UA centres a popover in the window). */
-/* margin: auto centres the popover again: the card's child spacing
-   (.ds-card > * + *) would replace the UA popover's own. */
-.sg-presence {
-  margin: auto;
-  width: min(360px, calc(100vw - 2 * var(--ds-space-4)));
-  padding: var(--ds-space-4) var(--ds-space-5);
-  border: 0;
-  border-radius: var(--ds-radius-card);
-  background: var(--ds-surface);
-  color: var(--ds-text);
-  box-shadow: var(--ds-elev-overlay);
-}
-
-.sg-presence > p {
-  margin: 0;
-}
-
-.sg-presence > p + p {
-  margin-top: var(--ds-space-2);
-}
-
-.sg-shell-preview {
-  position: relative;
-  height: 360px;
-  overflow: hidden;
-  border: 1px solid var(--ds-line);
-  border-radius: var(--ds-radius-card);
-}
-
-.sg-shell-preview > .ds-app {
-  height: 100%;
-}
-
 /* ── Icons ──────────────────────────────────────── */
 
 .sg-icons {
@@ -327,62 +258,6 @@
   text-overflow: ellipsis;
 }
 
-/* The 2.0 frame parts (App frame), shown outside a frame: the drawer's
-   parts on the backdrop at the drawer's width, a top bar on the backdrop,
-   a page head and the sign-in page in a box of their own. */
-.sg-drawer-sample {
-  display: flex;
-  flex-direction: column;
-  width: min(100%, var(--ds-drawer-width));
-  max-height: 420px;
-  padding-block: var(--ds-space-2);
-  border-radius: var(--ds-radius-card);
-  background: var(--ds-backdrop);
-}
-
-.sg-topbar-sample {
-  overflow: hidden;
-  border-radius: var(--ds-radius-card);
-  background: var(--ds-backdrop);
-}
-
-.sg-topbar-sample .ds-topbar {
-  min-height: var(--ds-topbar-height);
-  padding-inline: var(--ds-space-4) var(--ds-space-2);
-}
-
-.sg-page-sample {
-  place-items: stretch;
-  align-content: start;
-  gap: var(--ds-space-5);
-}
-
-.sg-tabpanel {
-  padding-top: var(--ds-space-4);
-}
-
-.sg-steps-sample {
-  display: grid;
-  gap: var(--ds-space-5);
-  max-width: 520px;
-}
-
-.sg-auth-sample {
-  overflow: hidden;
-  border-radius: var(--ds-radius-card);
-}
-
-/* In a box: as tall as its card, not the window. */
-.sg-auth-sample .ds-auth {
-  min-height: 0;
-}
-
-/* The view swap demo: a small stand-in for .ds-view, whose children fade
-   out with .ds-view--leaving before the next page enters. */
-.sg-swap-stage {
-  min-height: 136px;
-}
-
 .sg-swap-view {
   width: min(100%, 360px);
 }
@@ -394,52 +269,6 @@
 }
 
 /* ── Feedback and data demos ───────────────────── */
-
-/* The shape loaders side by side; the app start in a frame of its own
-   instead of the whole viewport (.ds-boot fills 100svh on a real page). */
-.sg-loaders {
-  align-items: center;
-}
-
-.sg-boot {
-  min-height: 160px;
-  border-radius: var(--ds-radius-card);
-  background: var(--ds-surface-low);
-}
-
-/* Fast and slow loads: the stage keeps the height of the loading line, so
-   the buttons never jump while the result replaces it. */
-.sg-load-stage {
-  display: grid;
-  align-content: center;
-  min-height: 56px;
-}
-
-/* A one-cell stack: every layer takes the same cell, so the stack keeps the
-   size of its largest layer whichever one shows (the page skeleton and the
-   page that replaces it, the two labels of its button). */
-.sg-stack {
-  display: grid;
-}
-
-.sg-stack--inline {
-  display: inline-grid;
-}
-
-.sg-stack > * {
-  grid-area: 1 / 1;
-}
-
-/* A layer that only holds its size: unseen and without motion (unlayered,
-   so it beats the ds animations). */
-.sg-off {
-  visibility: hidden;
-}
-
-.sg-off,
-.sg-off * {
-  animation: none;
-}
 
 /* The page that replaces the skeleton, in the skeleton's rhythm. */
 .sg-loaded {
@@ -509,34 +338,6 @@
   display: block;
 }
 
-/* Rows on the card's surface, so rows gliding past each other cover what is behind them. */
-.sg-items li {
-  background: var(--ds-surface);
-}
-
-.sg-table-filter {
-  max-width: 320px;
-}
-
-/* The full-page table demo: a bounded flex column, as .ds-view--fill makes the view. */
-.sg-fill-frame {
-  display: flex;
-  flex-direction: column;
-  height: 360px;
-}
-
-/* On paper the table is unbounded (table.css), so the frame grows with it. */
-@media print {
-  .sg-fill-frame {
-    height: auto;
-  }
-}
-
-/* The page buttons are rendered as one group (morphHtml); the nav lays them out. */
-.sg-page-buttons {
-  display: contents;
-}
-
 /* Sixteen months in a strip wider than its card. */
 .sg-months {
   display: flex;
@@ -567,18 +368,6 @@
 .sg-log__line {
   margin: 0;
   padding-block: var(--ds-space-1);
-}
-
-/* The live feed changes the status chips ("Overloaded" is the widest): the
-   Status column keeps that chip's width (a zero-height box in its header,
-   whatever the cell padding), so automatic table layout does not
-   re-divide the columns and shift them sideways on every tick (the
-   documented advice for live columns, components.md "Table"). */
-#sg-table th:last-child::after {
-  content: '';
-  display: block;
-  width: 104px;
-  height: 0;
 }
 
 /* The principles of the Motion section, one per line. */
@@ -627,7 +416,7 @@
 
 /* A code label and the punctuation touching it ("(" + label, label + ",")
    stay on one line: an inline-block adds a break opportunity on each side
-   (styleguide.js, glue()). The label itself can still wrap inside. */
+   (motion-lab.js, glue()). The label itself can still wrap inside. */
 .sg-glue {
   white-space: nowrap;
 }
@@ -1573,45 +1362,9 @@
 
 /* ── 2.0 controls ───────────────────────────────── */
 
-/* Project rows that take the press model of the system (.ds-pressable). */
-.sg-press-rows {
-  display: grid;
-  gap: var(--ds-space-1);
-}
-
-.sg-press-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 48px;
-  padding: 0 var(--ds-space-2) 0 var(--ds-space-3);
-}
-
 /* A glyph that fills when on: its name says so. */
 .sg-icon--fillable > span {
   color: var(--ds-text);
-}
-
-/* Tooltips that repeat the text: a narrow column cuts the long name off. */
-.sg-tip-column {
-  display: grid;
-  gap: var(--ds-space-1);
-  width: 160px;
-  margin-bottom: var(--ds-space-3);
-}
-
-.sg-tip-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* The save bar inspected in place: the bar at rest inside the card. */
-.sg-savebar-demo {
-  position: relative;
-  height: calc(var(--ds-space-4) * 2 + 56px);
-  --ds-savebar-inset: 0px;
-  --ds-savebar-offset: var(--ds-space-2);
 }
 
 /* The long list opens below its field: the field sits at the top of its stage. */

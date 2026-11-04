@@ -23,7 +23,11 @@
 import { test, expect } from '@playwright/test';
 import { ready, settle, seek } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/legacy.html';
+const STYLEGUIDE = '/styleguide/index.html';
+/** The page of a component's demo. */
+const demo = (name) => `${STYLEGUIDE}#/components/${name}`;
+/** The first opener of a demo (its first dialog or sheet). */
+const OPENER = '#sg-stage button[data-ds-open]';
 const FIXTURES = '/test/browser/fixtures/';
 const STEPS = [0, 0.5, 1];
 
@@ -126,34 +130,34 @@ for (const [width, suffix] of [[1280, ''], [390, '-phone']]) {
   test(`side sheet opens and closes at ${width}px`, async ({ page }) => {
     let end;
     await page.setViewportSize({ width, height: 800 });
-    await open(page, STYLEGUIDE);
+    await open(page, demo('sheet'));
     await holdTimers(page);
-    end = await act(page, click, '[data-sg="sheet"]');
+    end = await act(page, click, OPENER);
     await frames(page, `sheet-open${suffix}`, end);
     await resume(page);
     await settle(page);
-    end = await act(page, click, 'body > .ds-sheet .ds-sheet__head [data-ds-close]');
+    end = await act(page, click, '.ds-sheet[data-state="open"] .ds-sheet__head [data-ds-close]');
     await frames(page, `sheet-close${suffix}`, end);
   });
 }
 
 test('dialog opens and closes', async ({ page }) => {
   let end;
-  await open(page, STYLEGUIDE);
+  await open(page, demo('dialog'));
   await holdTimers(page);
-  end = await act(page, click, '[data-sg="dialog"]');
+  end = await act(page, click, OPENER);
   await frames(page, 'dialog-open', end);
   await resume(page);
   await settle(page);
-  end = await act(page, click, 'body > .ds-dialog .ds-dialog__actions [data-ds-close]');
+  end = await act(page, click, '.ds-dialog[data-state="open"] .ds-dialog__actions [data-ds-close]');
   await frames(page, 'dialog-close', end);
 });
 
 test('snackbar enters and leaves', async ({ page }) => {
   let end;
-  await open(page, STYLEGUIDE);
+  await open(page, demo('toast'));
   await holdTimers(page);
-  end = await act(page, click, '[data-sg="toast-error"]');
+  end = await act(page, click, '[data-toast-demo="error"]');
   const toast = page.locator('#sg-toasts > .ds-toast--error');
   await clipFrames(page, toast, 'snackbar-enter', end);
   await resume(page);
@@ -164,9 +168,9 @@ test('snackbar enters and leaves', async ({ page }) => {
 
 test('tooltip shows and hides', async ({ page }) => {
   let end;
-  await open(page, STYLEGUIDE);
+  await open(page, demo('tooltip'));
   await holdTimers(page);
-  const anchor = page.locator('#overlays [data-tip]').first();
+  const anchor = page.locator('#sg-stage [data-demo="toolbar"] [data-tip]').first();
   await anchor.scrollIntoViewIfNeeded();
   // The scroll changes the view's data-scrolled state (set by an
   // IntersectionObserver a frame later): its transitions end first, so
@@ -186,7 +190,7 @@ test('tooltip shows and hides', async ({ page }) => {
         .filter((timing) => Number.isFinite(timing.iterations)).map((timing) => Number(timing.endTime))));
     });
     observer.observe(tip, { attributes: true, attributeFilter: ['hidden'] });
-    document.querySelector('#overlays [data-tip]').dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
+    document.querySelector('#sg-stage [data-demo="toolbar"] [data-tip]').dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
   }));
   const tip = page.locator('.ds-tooltip[role="tooltip"]');
   await clipFrames(page, tip, 'tooltip-show', end, { pad: 8, also: [anchor] });
@@ -199,11 +203,11 @@ test('tooltip shows and hides', async ({ page }) => {
 
 test('combobox list grows out of its field', async ({ page }) => {
   let end;
-  await open(page, STYLEGUIDE);
-  const combo = page.locator('#selection .ds-combo');
+  await open(page, demo('combobox'));
+  const combo = page.locator('#sg-stage [data-demo="combo"]').first();
   const popup = combo.locator('.ds-combo__popup');
   await combo.scrollIntoViewIfNeeded();
-  end = await act(page, click, '#selection .ds-combo__toggle');
+  end = await act(page, click, '#sg-stage [data-demo="combo"] .ds-combo__toggle');
   await clipFrames(page, popup, 'combobox-open', end, { also: [combo] });
   await resume(page);
   await settle(page);

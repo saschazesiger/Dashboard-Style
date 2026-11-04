@@ -16,7 +16,11 @@
 import { test, expect } from '@playwright/test';
 import { ready, settle, timeline } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/legacy.html';
+const STYLEGUIDE = '/styleguide/index.html';
+/** The page of a component's demo. */
+const demo = (name) => `${STYLEGUIDE}#/components/${name}`;
+/** The first opener of a demo (its first dialog or sheet). */
+const OPENER = '#sg-stage button[data-ds-open]';
 const FIXTURES = '/test/browser/fixtures/';
 
 /** Times to the microsecond: a calc() duration may come back as 350.00000000000006. */
@@ -187,32 +191,34 @@ test('the spinner, the skeleton, the loading bar and indeterminate progress', as
 /* ── Overlays (styleguide demos) ───────────────────────────────────── */
 
 test.describe('overlays', () => {
-  const dialog = (page) => page.locator('body > .ds-dialog');
-  const sheet = (page) => page.locator('body > .ds-sheet');
+  /** The dialog or sheet the demo's first opener opens. */
+  const opened = async (page) => page.locator(await page.locator(OPENER).first().getAttribute('data-ds-open'));
 
   test('the dialog opens and closes', async ({ page }) => {
-    await open(page, STYLEGUIDE);
-    await act(page, click, '[data-sg="dialog"]');
-    await expectTimeline(dialog(page), 'dialog-open', { subtree: true });
+    await open(page, demo('dialog'));
+    const dialog = await opened(page);
+    await act(page, click, OPENER);
+    await expectTimeline(dialog, 'dialog-open', { subtree: true });
     await resume(page);
     await settle(page);
-    await act(page, click, 'body > .ds-dialog .ds-dialog__actions [data-ds-close]');
-    await expectTimeline(dialog(page), 'dialog-close', { subtree: true });
+    await act(page, click, '.ds-dialog[data-state="open"] .ds-dialog__actions [data-ds-close]');
+    await expectTimeline(dialog, 'dialog-close', { subtree: true });
   });
 
   test('the side sheet opens and closes', async ({ page }) => {
-    await open(page, STYLEGUIDE);
-    await act(page, click, '[data-sg="sheet"]');
-    await expectTimeline(sheet(page), 'sheet-open', { subtree: true });
+    await open(page, demo('sheet'));
+    const sheet = await opened(page);
+    await act(page, click, OPENER);
+    await expectTimeline(sheet, 'sheet-open', { subtree: true });
     await resume(page);
     await settle(page);
-    await act(page, click, 'body > .ds-sheet .ds-sheet__head [data-ds-close]');
-    await expectTimeline(sheet(page), 'sheet-close', { subtree: true });
+    await act(page, click, '.ds-sheet[data-state="open"] .ds-sheet__head [data-ds-close]');
+    await expectTimeline(sheet, 'sheet-close', { subtree: true });
   });
 
   test('a snackbar enters and leaves', async ({ page }) => {
-    await open(page, STYLEGUIDE);
-    await act(page, click, '[data-sg="toast-error"]');
+    await open(page, demo('toast'));
+    await act(page, click, '[data-toast-demo="error"]');
     const toast = page.locator('#sg-toasts > .ds-toast--error');
     await expectTimeline(toast, 'snackbar-enter');
     await resume(page);
@@ -222,7 +228,7 @@ test.describe('overlays', () => {
   });
 
   test('the tooltip shows and hides', async ({ page }) => {
-    await open(page, STYLEGUIDE);
+    await open(page, demo('tooltip'));
     // DS.overlay.tooltips() shows it --ds-delay-tooltip after a mouse rests
     // on the trigger: pause the page in the task that unhides it.
     await page.evaluate(() => new Promise((resolve) => {
@@ -234,7 +240,7 @@ test.describe('overlays', () => {
         resolve();
       });
       observer.observe(tip, { attributes: true, attributeFilter: ['hidden'] });
-      document.querySelector('#overlays [data-tip]').dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
+      document.querySelector('#sg-stage [data-demo="toolbar"] [data-tip]').dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse' }));
     }));
     const tip = page.locator('.ds-tooltip[role="tooltip"]');
     await expectTimeline(tip, 'tooltip-show');
@@ -246,9 +252,9 @@ test.describe('overlays', () => {
   });
 
   test('the combobox list opens and closes', async ({ page }) => {
-    await open(page, STYLEGUIDE);
-    const popup = page.locator('#selection .ds-combo__popup');
-    await act(page, click, '#selection .ds-combo__toggle');
+    await open(page, demo('combobox'));
+    const popup = page.locator('#sg-stage [data-demo="combo"] .ds-combo__popup').first();
+    await act(page, click, '#sg-stage [data-demo="combo"] .ds-combo__toggle');
     await expectTimeline(popup, 'combobox-open');
     await resume(page);
     await settle(page);

@@ -4,8 +4,7 @@
  * stacked rows, the selection bar and the states. Registered through SG.demo()
  * (styleguide/sg-core.js). Size, density, shape and touch come from the options
  * panel around it, so no table here carries a size or density class. The fake
- * fleet stands for what a project's data does. legacy.html keeps its 2.x
- * section until baseline.spec and demos.spec have moved.
+ * fleet stands for what a project's data does.
  */
 var LOOKS = [
   ['default', '', 'Hairlines between the rows, a quiet hover: the default.'],
@@ -51,7 +50,11 @@ function sortHead(h, state, key, text, cls) {
 }
 
 function headHtml(h, state) {
-  return '<tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-demo="select-all"></th><th scope="col"><span class="ds-sr">Details</span></th>' +
+  // Some rows selected: the header box is mixed (sg-core sets the property before the markup goes in).
+  var rows = shown(state);
+  var count = rows.filter(function (row) { return state.selected[row.id]; }).length;
+  var box = count && count === rows.length ? ' checked' : count ? ' data-sg-mixed' : '';
+  return '<tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-demo="select-all"' + box + '></th><th scope="col"><span class="ds-sr">Details</span></th>' +
     sortHead(h, state, 'name', 'Device') + '<th scope="col" class="ds-col--secondary">Model</th><th scope="col" class="ds-col--secondary">Owner</th>' +
     sortHead(h, state, 'load', 'Load', 'ds-num') + '<th scope="col">Status</th></tr>';
 }
@@ -163,10 +166,10 @@ SG.demo('table', {
         'The wrapper is bounded by --ds-table-max-height, so the rows scroll under the head and the summary.') +
 
       h.section('Pinned first and last column, row actions',
-        '<section class="ds-card" data-demo="pinned"><div class="ds-table-wrap"><table class="ds-table ds-table--interactive ds-table--pin-first ds-table--pin-last"><caption class="ds-sr">Devices with pinned columns</caption>' +
+        '<section class="ds-card" data-demo="pinned"><div class="ds-table-wrap"><table class="ds-table ds-table--wide ds-table--interactive ds-table--pin-first ds-table--pin-last"><caption class="ds-sr">Devices with pinned columns</caption>' +
         '<thead>' + wideHead(true) + '</thead><tbody>' + wide.map(function (row) { return wideRow(h, row, true); }).join('') + '</tbody>' +
         '<tfoot><tr><th scope="row">6 devices</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ds-num">' + average(wide) + '%</td><td></td></tr></tfoot></table></div></section>',
-        'Narrow the width: the columns scroll under both pinned ones. A hairline shows on the side that has columns under it; a click anywhere on the row opens it, outside the pinned last column.') +
+        'Narrow the width: the columns scroll under both pinned ones. A hairline shows on the side that has columns under it; a click anywhere on the row opens it, outside the pinned last column. As a wide table (.ds-table--wide) it drops its secondary columns where the page is narrow next to the drawer.') +
 
       h.section('Full page',
         '<div style="display: flex; flex-direction: column; height: 360px; min-width: 0" data-demo="fill"><div class="ds-table-wrap ds-table-wrap--fill"><table class="ds-table ds-table--interactive ds-table--pin-first"><caption class="ds-sr">The whole fleet</caption>' +

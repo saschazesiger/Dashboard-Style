@@ -252,8 +252,8 @@ describe('tools/check-theme.mjs', () => {
   });
 
   it('runs the same pairs and motion families in the styleguide theme check (its classic-script copies)', () => {
-    // styleguide.js (legacy.html and the Motion Lab) and shell.js (the 3.0 styleguide) each carry a copy.
-    for (const file of ['styleguide/styleguide.js', 'styleguide/shell.js']) {
+    // shell.js (the styleguide's colour page and options) carries a copy.
+    for (const file of ['styleguide/shell.js']) {
       const copy = read(file);
       const block = copy.slice(copy.indexOf('var THEME_PAIRS = {'), copy.indexOf('var PAIR_MIN'));
       const list = (kind) => {
@@ -265,7 +265,7 @@ describe('tools/check-theme.mjs', () => {
       assert.deepEqual(list('icon'), ICON_PAIRS, file);
       assert.deepEqual(list('chart'), CHART_PAIRS, file);
     }
-    const source = read('styleguide/styleguide.js');
+    const source = read('styleguide/shell.js');
     const families = /var THEME_MOTION = \/--ds-\(([^)]*)\)/.exec(source)?.[1].split('|');
     assert.deepEqual(families, MOTION_FAMILIES);
   });

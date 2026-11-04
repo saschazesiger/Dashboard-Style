@@ -236,13 +236,13 @@ test.describe('side sheet head and foot (2.0)', () => {
 test.describe('confirm by typing the name (2.0, the styleguide recipe)', () => {
   test('the action is blocked until the name is typed; Enter runs it busy (Escape waits, the field read-only); then it closes with a snackbar', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('/styleguide/legacy.html');
+    await page.goto('/styleguide/index.html#/components/dialog');
     await ready(page);
-    await page.locator('[data-sg="dialog-type"]').click();
-    const dialog = page.locator('#sg-dialog-type');
+    await page.locator('[data-demo="type-open"]').click();
+    const dialog = page.locator('[data-demo="type"]');
     await expect(dialog).toHaveAttribute('data-state', 'open');
-    const field = page.locator('#sg-type-field');
-    const ok = page.locator('#sg-type-ok');
+    const field = page.locator('[data-demo="type-field"]');
+    const ok = page.locator('[data-demo="type-ok"]');
     await expect(field).toBeFocused();
     await expect(ok).toHaveAttribute('aria-disabled', 'true');
     // A wrong name: still blocked, and Enter runs nothing.
@@ -256,12 +256,12 @@ test.describe('confirm by typing the name (2.0, the styleguide recipe)', () => {
     await page.keyboard.press('Enter');
     await expect(dialog).toHaveAttribute('data-ds-busy', '');
     expect(await field.evaluate((input) => input.readOnly)).toBe(true);
-    await expect(page.locator('#sg-type-cancel')).toHaveAttribute('aria-disabled', 'true');
+    await expect(page.locator('[data-demo="type-cancel"]')).toHaveAttribute('aria-disabled', 'true');
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveAttribute('data-state', 'open');
     // Done: it closes (the styleguide removes a closed overlay, so it may be
     // gone by the time the check looks), and the snackbar says what happened.
-    await expect(page.locator('#sg-dialog-type[data-state="open"]')).toHaveCount(0, { timeout: 5000 });
+    await expect(page.locator('[data-demo="type"][data-state="open"]')).toHaveCount(0, { timeout: 5000 });
     await expect(page.locator('.ds-toast', { hasText: 'LAPTOP-0042 deleted.' })).toBeVisible();
   });
 });

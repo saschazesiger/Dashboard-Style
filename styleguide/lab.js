@@ -1,6 +1,6 @@
 /*
  * The Motion Lab's demo registry (motion.html). A classic script on top of
- * dist/ds.js, loaded before styleguide.js, which renders the entries into
+ * dist/ds.js, loaded before motion-lab.js, which renders the entries into
  * the lab's sections, wires their buttons and marks html[data-sg-ready].
  *
  *   window.SG_LAB_GROUPS   the lab's sections in page order: id, title,
@@ -55,7 +55,7 @@
  * reads the current value, cancels and continues from there with the curve
  * of the new direction: the one mechanism of DS.motion (D21).
  *
- * Styleguide tooling only, in the ES5 style of styleguide.js.
+ * Styleguide tooling only, in the ES5 style of motion-lab.js.
  */
 (function () {
   'use strict';
@@ -67,7 +67,7 @@
   var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var icon = function (name, size, cls) { return DS.icons.icon(DS.icons[name], size, cls); };
 
-  /* Markup through an inert <template>, as in styleguide.js: parsing
+  /* Markup through an inert <template>, as in motion-lab.js: parsing
      straight into the page would end the render block of the pages'
      <link rel="expect"> early in Chromium. */
   function setHtml(element, html) {

@@ -4,8 +4,8 @@
  * meta.json files, every demo rendering without a console error, the
  * options panel putting its classes and attributes around the demo, the
  * search, the theme generator (over http and from disk) and
- * the page working from file://. The 2.x sections are tested on
- * legacy.html by the older specs.
+ * the page working from file://, the theme files and the addresses of the
+ * retired 2.x styleguide.
  */
 import { test, expect } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
@@ -50,9 +50,10 @@ test.describe('navigation', () => {
       const titles = { data: 'Data display', forms: 'Forms and inputs', actions: 'Actions', overlays: 'Overlays', navigation: 'Navigation', feedback: 'Feedback', layout: 'Layout', content: 'Content', motion: 'Motion' };
       expect(heading, name).toBe(titles[registry[name]] ?? heading);
     }
-    for (const href of ['#/', '#/needs', '#/colour', '#/type', '#/shape', '#/elevation', '#/motion', '#/icons', '#/tokens', '#/theme', 'motion.html', 'legacy.html']) {
+    for (const href of ['#/', '#/needs', '#/colour', '#/type', '#/shape', '#/elevation', '#/motion', '#/icons', '#/tokens', '#/theme', 'motion.html']) {
       await expect(page.locator(`#sg-nav a[href="${href}"]`), href).toHaveCount(1);
     }
+    await expect(page.locator('#sg-nav a[href="legacy.html"]'), 'the 2.x styleguide is retired').toHaveCount(0);
   });
 
   test('a drawer item opens its page, marks itself current and moves focus to the title', async ({ page }) => {
@@ -69,7 +70,7 @@ test.describe('navigation', () => {
     await expect(page.locator('html')).toHaveAttribute('data-sg-route', '');
   });
 
-  test('the need overview lists the need line of each component and the 2.x need rows; a row without a demo links to the 2.x page; the filter narrows it', async ({ page }) => {
+  test('the need overview lists the need line of each component and the 2.x need rows, each linking its demo; the filter narrows it', async ({ page }) => {
     await open(page, 'needs');
     // Every component has a need line in its meta.json, so every component has a row.
     const expected = await page.evaluate(() => window.SG_REGISTRY.components.map((c) => c.name).sort());
@@ -78,8 +79,9 @@ test.describe('navigation', () => {
     const first = await page.evaluate(() => window.SG.list()[0]);
     await expect(page.locator(`tr[data-sg-need="${first.name}"]`).first().locator('td').first()).toHaveText(first.need);
     await expect(page.locator(`tr[data-sg-need="${first.name}"] a`).first()).toHaveAttribute('href', `#/components/${first.name}`);
-    const missing = await page.evaluate(() => window.SG_REGISTRY.needs.map(([, name]) => name).find((name) => !window.SG.get(name)));
-    if (missing) await expect(page.locator(`tr[data-sg-need="${missing}"] a`).first()).toHaveAttribute('href', /^legacy\.html#/);
+    // Every component has its demo now: every row links a component page.
+    expect(await page.evaluate(() => window.SG_REGISTRY.components.filter((c) => !window.SG.get(c.name)).map((c) => c.name))).toEqual([]);
+    for (const href of await page.locator('tr[data-sg-need] a').evaluateAll((links) => [...new Set(links.map((a) => a.getAttribute('href')))])) expect(href).toMatch(/^#\/components\/[a-z]+$/);
     await page.locator('#sg-need-filter').fill(first.need);
     await expect(page.locator('tbody tr:not([hidden])')).toHaveCount(1);
     await expect(page.locator('#sg-need-count')).toHaveText('1 needs');
@@ -454,21 +456,43 @@ test.describe('from disk (file://)', () => {
     await expect(page.locator('html')).toHaveAttribute('data-sg-theme', /^generated /);
     expect(errors, browserName).toEqual([]);
 
-    await page.goto(new URL('legacy.html', FILE).href);
+    // The Motion Lab works from disk too, in every engine.
+    await page.goto(new URL('motion.html', FILE).href);
     await page.waitForFunction(() => document.documentElement.hasAttribute('data-sg-ready'));
-    await expect(page.locator('#charts')).toHaveCount(1);
+    await expect(page.locator('[data-lab-demo]').first()).toBeVisible();
     expect(errors).toEqual([]);
   });
 });
 
-test('the Components tile of both pages counts the registry the build writes', async ({ page }) => {
+test('the Components tile counts the registry the build writes', async ({ page }) => {
   await open(page);
   const count = await page.evaluate(() => window.SG_REGISTRY.components.length);
   const tile = (name) => page.locator('.ds-tile').filter({ hasText: name }).first();
   await expect(tile('Components')).toContainText(String(count));
-  await page.goto('/styleguide/legacy.html');
+});
+
+test('an address of a 2.x section opens the page that took it over', async ({ page }) => {
+  for (const [hash, route] of [['#buttons', 'components/button'], ['#forms', 'components/form'], ['#overlays', 'components/dialog'], ['#frame', 'components/shell'], ['#colour', 'colour'], ['#overview', '']]) {
+    await page.goto(`/styleguide/index.html${hash}`);
+    await page.waitForFunction(() => document.documentElement.hasAttribute('data-sg-ready'));
+    await expect(page.locator('html'), hash).toHaveAttribute('data-sg-route', route);
+    expect(new URL(page.url()).hash, hash).toBe(`#/${route}`);
+  }
+});
+
+test('a theme file over the preset: a shipped theme, the template or a snippet, stored for the next visit', async ({ page }) => {
+  await open(page, 'components/button');
+  await page.locator('#sg-opt-file').selectOption('compact');
+  await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default auto +compact');
+  expect(await page.locator('#sg-theme-file-1').evaluate((link) => !link.disabled && link.getAttribute('href'))).toBe('../dist/themes/compact.css');
+  await page.locator('#sg-opt-file').selectOption('square');
+  await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default auto +square');
+  expect(await page.locator('#sg-theme-file-1').evaluate((link) => link.disabled)).toBe(true);
+  expect(await page.locator('#sg-theme-snippet').evaluate((style) => style.textContent)).toContain('--ds-radius-md: 0');
+  await page.reload();
   await page.waitForFunction(() => document.documentElement.hasAttribute('data-sg-ready'));
-  await expect(tile('Components')).toContainText(String(count));
+  await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default auto +square');
+  await expect(page.locator('#sg-opt-file')).toHaveValue('square');
 });
 
 test('the paths of this spec exist', () => {

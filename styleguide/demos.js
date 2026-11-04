@@ -35,7 +35,7 @@
             '<p class="ds-center">.ds-center: centred text.</p><p class="ds-num">1,284 .ds-num</p>' +
             '<p>A value and its unit: <span class="ds-nowrap">512 GB</span>.</p></div>') +
 
-          h.section('Stale', '<div data-demo="stale"><ul class="ds-plain-list" aria-busy="false" data-demo="stale-list"><li>Laptop 14, synced today</li><li>Laptop 16, synced yesterday</li></ul><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="refresh">' + h.icon('sync', 16) + 'Refresh</button></div></div>',
+          h.section('Stale', '<div data-demo="stale"><ul class="ds-plain-list" aria-busy="false" data-demo="stale-list"><li>Laptop 14, synced today</li><li>Laptop 16, synced yesterday</li></ul><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="refresh">' + h.icon('sync', 16) + 'Refresh (slow answer)</button><button class="ds-btn ds-sm" type="button" data-demo="refresh-fast">' + h.icon('sync', 16) + 'Refresh (fast answer)</button></div></div>',
             '.ds-stale dims only after the loader delay, so a fast answer never dims; the fresh values come at once.') +
 
           h.section('A pressable element of your own', '<ul class="ds-plain-list" data-demo="pressable">' +
@@ -66,14 +66,15 @@
           var kind = target.getAttribute('data-demo');
           if (kind === 'row') h.toast('Opened ' + target.textContent + '.', 'info');
           if (kind === 'fill') target.setAttribute('aria-pressed', String(target.getAttribute('aria-pressed') !== 'true'));
-          if (kind === 'refresh') {
+          // A fake request: the slow answer comes after the loader delay (200ms: the list dims), the fast one well before it.
+          if (kind === 'refresh' || kind === 'refresh-fast') {
             var list = h.$('[data-demo="stale-list"]', root);
             list.classList.add('ds-stale');
             list.setAttribute('aria-busy', 'true');
             setTimeout(function () {
               list.classList.remove('ds-stale');
               list.setAttribute('aria-busy', 'false');
-            }, h.slow(900));
+            }, h.slow(kind === 'refresh' ? 1200 : 50));
           }
         });
         root.addEventListener('keydown', function (event) {
@@ -387,6 +388,10 @@
             '<button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-demo="toggle">' + h.icon('filter', 16) + 'Only open</button>' +
             '<button class="ds-btn" type="button" aria-pressed="true" aria-disabled="true">' + h.icon('check', 16) + 'Approved</button>' +
             '</div><p class="ds-meta" id="' + reason + '">Publish stays focusable, so it can say why: fill in the serial number first.</p>') +
+
+          h.section('Held press', '<div class="sg-row" data-demo="pressed">' + looks.map(function (look) {
+            return '<button class="ds-btn ds-btn--' + look[0] + ' ds-pressed" type="button" data-ds-ripple="off" tabindex="-1">' + look[1] + '</button>';
+          }).join('') + '</div>', 'The press as DS.ripple holds it (a static .ds-pressed): the squarer shape and the pressed layer. Press and hold a button above for the real one.') +
 
           h.section('Opens something', '<div class="sg-row">' +
             '<button class="ds-btn ds-btn--disclosure" type="button" aria-expanded="false" aria-controls="' + panel + '" data-demo="expand">' + h.icon('filter', 16) + 'Filters</button>' +
@@ -1115,8 +1120,7 @@
      * The Charts demo: meters with their tones, columns, columns that open,
      * grouped columns with a sparkline. Registered through SG.demo()
      * (styleguide/sg-core.js); the build wraps this file into
-     * styleguide/demos.js. legacy.html renders the same spec as its Charts
-     * section until it goes. Size, density and shape come from the options
+     * styleguide/demos.js. Size, density and shape come from the options
      * panel around it; a tone goes on the mark it means, with words next to it.
      */
     var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -1734,8 +1738,10 @@
             '<div role="group" aria-labelledby="' + sort + '"><p class="ds-menu__heading" id="' + sort + '">Sort by</p>' +
             check(h, 'menuitemradio', 'Name', true) + check(h, 'menuitemradio', 'Last seen', false) + check(h, 'menuitemradio', 'Owner', false) + '</div>' +
             '<div class="ds-menu__divider" role="separator"></div>' +
-            check(h, 'menuitemcheckbox', 'Compact rows', true) + check(h, 'menuitemcheckbox', 'Show retired', false) + '</div>',
-            'With data-ds-menu-checks the system moves the checks and sends ds:change.') +
+            check(h, 'menuitemcheckbox', 'Compact rows', true) + check(h, 'menuitemcheckbox', 'Show retired', false) +
+            '<div class="ds-menu__divider" role="separator"></div>' +
+            '<button class="ds-menu__item" role="menuitem" type="button">' + h.icon('download', 20) + '<span class="ds-menu__label">Export the list</span><span class="ds-menu__meta"><kbd class="ds-kbd">Ctrl</kbd> <kbd class="ds-kbd">E</kbd></span></button></div>',
+            'With data-ds-menu-checks the system moves the checks and sends ds:change. The meta slot at an item\'s end (.ds-menu__meta) holds keys or a state word.') +
 
           h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">ArrowDown</kbd> on the button opens on the first item, <kbd class="ds-kbd">ArrowUp</kbd> on the last. The arrows, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> move, a letter jumps, <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button, <kbd class="ds-kbd">Tab</kbd> closes and moves on. A blocked item keeps its focus, so its name is read.</p>');
       },
@@ -2001,6 +2007,7 @@
         var form = h.uid('form');
         var name = h.uid('name');
         var busy = h.uid('busy');
+        var typed = h.uid('type');
         var sizeIds = sizes.map(function (size) { return h.uid('size-' + size[0]); });
         return h.section('Sizes', '<div class="sg-row" data-demo="sizes">' + sizes.map(function (size, index) {
           return '<button class="ds-btn" type="button" data-ds-open="#' + sizeIds[index] + '">' + size[1] + '</button>';
@@ -2056,6 +2063,27 @@
             '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Delete 3 devices</span></span></button></div></div></dialog>',
             'Escape, the backdrop and Cancel do nothing while the action runs.') +
 
+          h.section('Type the name to confirm', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + typed + '" data-demo="type-open">Delete LAPTOP-0042</button></div>' +
+            '<dialog class="ds-dialog ds-dialog--lg" id="' + typed + '" role="alertdialog" aria-labelledby="' + typed + '-title" aria-describedby="' + typed + '-text" data-demo="type"><div class="ds-dialog__backdrop" data-ds-close></div>' +
+            '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="' + typed + '-title">Delete LAPTOP-0042 for good?</h2>' +
+            '<div class="ds-dialog__body"><p class="ds-dialog__text" id="' + typed + '-text">Its history, tickets and documents go with it. This cannot be undone.</p>' +
+            '<div class="ds-alert ds-tone-warning">' + h.icon('alert', 20) + '<span class="ds-alert__text">The device is still assigned to Ada Lovelace.</span></div>' +
+            '<div class="ds-field"><label class="ds-field__label" for="' + typed + '-field">Type LAPTOP-0042 to confirm</label><input class="ds-input" id="' + typed + '-field" autocomplete="off" spellcheck="false" autocapitalize="off" autofocus data-demo="type-field"></div></div>' +
+            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close data-demo="type-cancel">Cancel</button>' +
+            '<button class="ds-btn ds-btn--filled ds-tone-error" type="button" aria-disabled="true" data-tip="Type the name first" data-demo="type-ok"><span class="ds-btn__faces"><span class="ds-btn__face">Delete for good</span>' +
+            '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Deleting</span></span></button></div></div></dialog>',
+            'The action stays blocked (aria-disabled, with its reason) until the name is typed; Enter runs it. While it runs, Escape and Cancel wait and the field is read-only.') +
+
+          h.section('Contained, in a 360px frame', '<div style="position:relative;block-size:360px;overflow:hidden" data-demo="contained">' +
+            '<div class="ds-dialog ds-dialog--contained"><div class="ds-dialog__backdrop" data-ds-close></div>' +
+            '<div class="ds-dialog__box" role="group" aria-label="Notify people"><h2 class="ds-dialog__title">Notify people</h2>' +
+            '<div class="ds-dialog__body"><p class="ds-dialog__text">They get an email when LAPTOP-0042 is back.</p>' +
+            ['Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Katherine Johnson', 'Margaret Hamilton', 'Edsger Dijkstra', 'Barbara Liskov', 'Donald Knuth', 'Frances Allen', 'John Backus', 'Ada Lovelace (deputy)', 'Alan Turing (deputy)'].map(function (name, index) {
+              return '<label class="ds-check"><input type="checkbox"' + (index < 2 ? ' checked' : '') + '><span>' + name + '</span></label>';
+            }).join('') + '</div>' +
+            '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--filled" type="button">Notify 2 people</button></div></div></div></div>',
+            'Div markup covers its positioned container instead of the window (a dialog inside an embedded widget), shown here in place: only the body scrolls, title and actions stay.') +
+
           h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; <kbd class="ds-kbd">Enter</kbd> submits a form dialog; the arrow keys move through an action sheet.</p>');
       },
 
@@ -2090,6 +2118,33 @@
         form.addEventListener('ds:close', function (event) {
           if (event.target === form && event.detail.reason === 'submit') h.toast('Saved.');
         });
+        // Type the name to confirm: what a page writes around the dialog (dialog.md, the type-to-confirm pattern).
+        var typedDialog = h.$('[data-demo="type"]', root);
+        var typedField = h.$('[data-demo="type-field"]', root);
+        var typedOk = h.$('[data-demo="type-ok"]', root);
+        var typedCancel = h.$('[data-demo="type-cancel"]', root);
+        var typedReady = function () { return typedField.value.trim() === 'LAPTOP-0042'; };
+        typedField.addEventListener('input', function () {
+          typedOk.setAttribute('aria-disabled', String(!typedReady()));
+          if (typedReady()) typedOk.removeAttribute('data-tip'); else typedOk.setAttribute('data-tip', 'Type the name first');
+        });
+        var typedRun = function () {
+          if (!typedReady() || typedDialog.hasAttribute('data-ds-busy')) return;
+          typedDialog.setAttribute('data-ds-busy', '');
+          typedField.readOnly = true;
+          typedCancel.setAttribute('aria-disabled', 'true');
+          DS.motion.busy(typedOk, work(false), { done: false }).then(function () {
+            typedDialog.removeAttribute('data-ds-busy');
+            typedField.readOnly = false;
+            typedCancel.removeAttribute('aria-disabled');
+            DS.overlay.close(typedDialog, { reason: 'confirm' });
+            h.toast('LAPTOP-0042 deleted.');
+          });
+        };
+        typedField.addEventListener('keydown', function (event) {
+          if (event.key === 'Enter' && !event.isComposing) { event.preventDefault(); typedRun(); }
+        });
+        typedOk.addEventListener('click', function (event) { if (event.detail < 2) typedRun(); });
         var busy = h.$('[data-demo="busy"]', root);
         var action = h.$('[data-demo="busy-action"]', root);
         var cancel = h.$('.ds-dialog__actions [data-ds-close]', busy);
@@ -2118,8 +2173,7 @@
      * stacked rows, the selection bar and the states. Registered through SG.demo()
      * (styleguide/sg-core.js). Size, density, shape and touch come from the options
      * panel around it, so no table here carries a size or density class. The fake
-     * fleet stands for what a project's data does. legacy.html keeps its 2.x
-     * section until baseline.spec and demos.spec have moved.
+     * fleet stands for what a project's data does.
      */
     var LOOKS = [
       ['default', '', 'Hairlines between the rows, a quiet hover: the default.'],
@@ -2165,7 +2219,11 @@
     }
 
     function headHtml(h, state) {
-      return '<tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-demo="select-all"></th><th scope="col"><span class="ds-sr">Details</span></th>' +
+      // Some rows selected: the header box is mixed (sg-core sets the property before the markup goes in).
+      var rows = shown(state);
+      var count = rows.filter(function (row) { return state.selected[row.id]; }).length;
+      var box = count && count === rows.length ? ' checked' : count ? ' data-sg-mixed' : '';
+      return '<tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-demo="select-all"' + box + '></th><th scope="col"><span class="ds-sr">Details</span></th>' +
         sortHead(h, state, 'name', 'Device') + '<th scope="col" class="ds-col--secondary">Model</th><th scope="col" class="ds-col--secondary">Owner</th>' +
         sortHead(h, state, 'load', 'Load', 'ds-num') + '<th scope="col">Status</th></tr>';
     }
@@ -2277,10 +2335,10 @@
             'The wrapper is bounded by --ds-table-max-height, so the rows scroll under the head and the summary.') +
 
           h.section('Pinned first and last column, row actions',
-            '<section class="ds-card" data-demo="pinned"><div class="ds-table-wrap"><table class="ds-table ds-table--interactive ds-table--pin-first ds-table--pin-last"><caption class="ds-sr">Devices with pinned columns</caption>' +
+            '<section class="ds-card" data-demo="pinned"><div class="ds-table-wrap"><table class="ds-table ds-table--wide ds-table--interactive ds-table--pin-first ds-table--pin-last"><caption class="ds-sr">Devices with pinned columns</caption>' +
             '<thead>' + wideHead(true) + '</thead><tbody>' + wide.map(function (row) { return wideRow(h, row, true); }).join('') + '</tbody>' +
             '<tfoot><tr><th scope="row">6 devices</th><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="ds-num">' + average(wide) + '%</td><td></td></tr></tfoot></table></div></section>',
-            'Narrow the width: the columns scroll under both pinned ones. A hairline shows on the side that has columns under it; a click anywhere on the row opens it, outside the pinned last column.') +
+            'Narrow the width: the columns scroll under both pinned ones. A hairline shows on the side that has columns under it; a click anywhere on the row opens it, outside the pinned last column. As a wide table (.ds-table--wide) it drops its secondary columns where the page is narrow next to the drawer.') +
 
           h.section('Full page',
             '<div style="display: flex; flex-direction: column; height: 360px; min-width: 0" data-demo="fill"><div class="ds-table-wrap ds-table-wrap--fill"><table class="ds-table ds-table--interactive ds-table--pin-first"><caption class="ds-sr">The whole fleet</caption>' +
@@ -2716,6 +2774,28 @@
         '</form>';
     }
 
+    function deviceForm(h) {
+      var look = LOOKS[h.variant || 'outlined'].field;
+      return '<form class="ds-card ds-form" data-demo="device-form" onsubmit="return false"><div class="ds-form-grid">' +
+        field(h, look, 'Name', '<input class="ds-input" %ATTRS% value="LAPTOP-0042">') +
+        field(h, look, 'Type', '<select class="ds-input" %ATTRS%><option>Laptop</option><option>Desktop</option><option>Tablet</option></select>') +
+        field(h, look, 'Bought', '<input class="ds-input" %ATTRS% type="date" value="2024-03-12">') +
+        field(h, look + ' ds-field--full', 'Notes', '<textarea class="ds-input" %ATTRS% rows="3" placeholder="Anything the next person should know"></textarea>') +
+        '</div><button class="ds-btn ds-btn--text ds-add-row" type="button" data-demo="add-row">' + h.icon('plus', 16) + 'Add an accessory</button>' +
+        '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit" data-demo="save">Save</button><button class="ds-btn ds-btn--text" type="button">Discard</button><p class="ds-meta">Last saved today, 09:12</p></div></form>';
+    }
+
+    function rows(h) {
+      var name = h.uid('rows-name');
+      var room = h.uid('rows-room');
+      var serial = h.uid('rows-serial');
+      return '<form class="ds-form ds-form--rows" data-demo="rows" onsubmit="return false">' +
+        '<div class="ds-field"><label class="ds-field__label" for="' + name + '">Name <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="' + name + '" value="LAPTOP-0042" data-initial="LAPTOP-0042"></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="' + room + '">Room <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="' + room + '" value="B 2.14" data-initial="B 2.14"></div>' +
+        '<div class="ds-field" role="group" aria-labelledby="' + serial + '"><span class="ds-field__label" id="' + serial + '">Serial number</span><span class="ds-field__value">5CD1234XYZ</span></div>' +
+        '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit" data-demo="rows-save">Save</button><button class="ds-btn ds-btn--text" type="reset">Discard</button></div></form>';
+    }
+
     function toolbar(h) {
       var q = h.uid('q');
       var type = h.uid('type');
@@ -2739,6 +2819,8 @@
           h.section('States', states(h), 'A warning and a success colour the control and say what they mean in words; aria-invalid stays the only error.') +
           h.section('Markers, counter, changed, read value', markers(h)) +
           h.section('Checkboxes and radios', checks(h)) +
+          h.section('A form', deviceForm(h), 'A grid of fields (a full-width one for the notes), a quiet way to add a row, and the actions with what was saved last.') +
+          h.section('Editing in rows', rows(h), 'Change a field: a dot and the word "(changed)" mark it until it is saved. A value set by another system reads as text.') +
           h.section('Fieldset and form section', sections(h), 'In a narrow panel the head of a section falls above its fields.') +
           h.section('Toolbar, search and inline form', toolbar(h)) +
           h.section('Growing textarea and composer', '<textarea class="ds-input ds-input--grow" rows="1" aria-label="Note" placeholder="A note that grows with its text"></textarea>' +
@@ -2777,7 +2859,28 @@
             h.$('#' + reveal.getAttribute('aria-controls'), root).type = on ? 'text' : 'password';
           }
           if (event.target.closest('[data-demo="save"]')) h.toast('Saved.', 'success');
+          if (event.target.closest('[data-demo="add-row"]')) h.toast('Added an accessory row.', 'info');
         });
+        // Changed fields: the class follows the difference from the saved value.
+        h.$$('[data-demo="rows"]', root).forEach(function (form) {
+          var mark = function () {
+            h.$$('[data-initial]', form).forEach(function (input) { input.closest('.ds-field').classList.toggle('ds-field--changed', input.value !== input.getAttribute('data-initial')); });
+          };
+          form.addEventListener('input', mark);
+          form.addEventListener('reset', function () { setTimeout(mark); });
+          h.$('[data-demo="rows-save"]', form).addEventListener('click', function () {
+            h.$$('[data-initial]', form).forEach(function (input) { input.setAttribute('data-initial', input.value); });
+            mark();
+            h.toast('Saved.', 'success');
+          });
+        });
+        // The tint that glides from tile to tile: checking a radio changes no attribute, so the change moves it.
+        var pills = h.$$('[data-demo="tiles"]', root).map(function (group) {
+          var pill = DS.indicator.create(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+          group.addEventListener('change', function () { pill.update(); });
+          return pill;
+        });
+        return function () { pills.forEach(function (pill) { pill.destroy(); }); };
       },
     });
   })();
@@ -3513,8 +3616,9 @@
       options: { sizes: true, density: true, shape: true, tones: false },
 
       render: function (h) {
-        return h.section('The frame', frame(h),
-          'Nested groups (three levels), a group that closes, counts, an item with an action, a blocked item, a pinned foot. The menu button toggles the rail above 900px and opens the modal drawer below.') +
+        return h.section('The frame', frame(h) +
+          '<div class="sg-row"><button class="ds-btn ds-sm" type="button" aria-pressed="false" data-demo="foot-rail">The foot as a row of icons</button></div>',
+          'Nested groups (three levels), a group that closes, counts, an item with an action, a blocked item, a pinned foot (.ds-drawer__foot--rail lays it out as a row of icons, each naming itself in a tooltip). The menu button toggles the rail above 900px and opens the modal drawer below.') +
 
           h.section('Top bar parts',
             bar('<a class="ds-brand" href="#"><span class="ds-brand__name">Product</span></a><h3 class="ds-topbar__title">LAPTOP-0042</h3>' +
@@ -3563,6 +3667,12 @@
         root.addEventListener('click', function (event) {
           var link = event.target.closest('a[href="#"]');
           if (link) event.preventDefault();
+          var footRail = event.target.closest('[data-demo="foot-rail"]');
+          if (footRail) {
+            var asRow = footRail.getAttribute('aria-pressed') !== 'true';
+            footRail.setAttribute('aria-pressed', String(asRow));
+            h.$('[data-demo="drawer"] .ds-drawer__foot', root).classList.toggle('ds-drawer__foot--rail', asRow);
+          }
           var option = event.target.closest('.ds-segmented__option');
           if (option && option.getAttribute('aria-disabled') !== 'true') {
             var name = option.hasAttribute('role') ? 'aria-checked' : 'aria-current';
@@ -3899,7 +4009,11 @@
      * the flow for a form outside a card. Registered through SG.demo()
      * (styleguide/sg-core.js). Size, density, shape and touch come from the
      * options panel around it. Tracking what changed and the fake save are what a
-     * project writes itself.
+     * project writes itself. The small view sits inside the styleguide's own
+     * frame, so it keeps out of the page's View Transitions and leaves the named
+     * scroll timeline of the frame's view alone (a second --ds-view-scroll in
+     * the frame's scope left the top bar's tint without a timeline); a project
+     * has one view per frame and never needs this.
      */
     function faces(h) {
       return '<span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
@@ -3928,7 +4042,7 @@
       options: { sizes: true, density: true, shape: true, tones: false },
 
       render: function (h) {
-        return h.section('On a view', '<div class="ds-view" data-demo="view" style="block-size: 340px; border: 1px solid var(--ds-line); view-transition-name: none;">' +
+        return h.section('On a view', '<div class="ds-view" data-demo="view" style="block-size: 340px; border: 1px solid var(--ds-line); view-transition-name: none; scroll-timeline: none;">' +
             '<div class="ds-content"><form class="ds-form" data-demo="form">' + formFields(h, 6) + '</form></div>' +
             '<div class="ds-savebar"><div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" data-demo="bar" hidden>' +
             '<p class="ds-savebar__text" data-demo="text"></p>' + actions(h) + '</div></div></div>',

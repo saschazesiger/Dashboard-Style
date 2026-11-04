@@ -53,8 +53,10 @@ SG.demo('menu', {
         '<div role="group" aria-labelledby="' + sort + '"><p class="ds-menu__heading" id="' + sort + '">Sort by</p>' +
         check(h, 'menuitemradio', 'Name', true) + check(h, 'menuitemradio', 'Last seen', false) + check(h, 'menuitemradio', 'Owner', false) + '</div>' +
         '<div class="ds-menu__divider" role="separator"></div>' +
-        check(h, 'menuitemcheckbox', 'Compact rows', true) + check(h, 'menuitemcheckbox', 'Show retired', false) + '</div>',
-        'With data-ds-menu-checks the system moves the checks and sends ds:change.') +
+        check(h, 'menuitemcheckbox', 'Compact rows', true) + check(h, 'menuitemcheckbox', 'Show retired', false) +
+        '<div class="ds-menu__divider" role="separator"></div>' +
+        '<button class="ds-menu__item" role="menuitem" type="button">' + h.icon('download', 20) + '<span class="ds-menu__label">Export the list</span><span class="ds-menu__meta"><kbd class="ds-kbd">Ctrl</kbd> <kbd class="ds-kbd">E</kbd></span></button></div>',
+        'With data-ds-menu-checks the system moves the checks and sends ds:change. The meta slot at an item\'s end (.ds-menu__meta) holds keys or a state word.') +
 
       h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">ArrowDown</kbd> on the button opens on the first item, <kbd class="ds-kbd">ArrowUp</kbd> on the last. The arrows, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> move, a letter jumps, <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button, <kbd class="ds-kbd">Tab</kbd> closes and moves on. A blocked item keeps its focus, so its name is read.</p>');
   },

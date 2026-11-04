@@ -2,8 +2,7 @@
  * The Charts demo: meters with their tones, columns, columns that open,
  * grouped columns with a sparkline. Registered through SG.demo()
  * (styleguide/sg-core.js); the build wraps this file into
- * styleguide/demos.js. legacy.html renders the same spec as its Charts
- * section until it goes. Size, density and shape come from the options
+ * styleguide/demos.js. Size, density and shape come from the options
  * panel around it; a tone goes on the mark it means, with words next to it.
  */
 var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
