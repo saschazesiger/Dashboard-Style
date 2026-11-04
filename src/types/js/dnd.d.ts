@@ -20,6 +20,7 @@ export interface DragContext {
   mode: DragMode;
   from: DragTarget;
   current: DragTarget;
+  /** The zones the item can go to: never one inside itself. */
   zones: Element[];
   /** A zone's items in order. */
   itemsIn(zone: Element): Element[];

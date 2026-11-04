@@ -13,15 +13,19 @@
   .fx-column ul, #steps { margin: 0; padding: 0; list-style: none; }
   .fx-card { display: flex; align-items: center; gap: var(--ds-space-2); block-size: 48px; background: var(--ds-surface); }
   #tall { max-block-size: 160px; overflow: auto; }
-  #wrap { display: flex; flex-wrap: wrap; inline-size: 340px; gap: var(--ds-space-2); margin: 0; padding: 0; list-style: none; }
-  #wrap .fx-card { inline-size: 100px; }
+  #wrap, .fx-wrap { display: flex; flex-wrap: wrap; inline-size: 340px; gap: var(--ds-space-2); margin: 0; padding: 0; list-style: none; }
+  #wrap .fx-card, .fx-wrap .fx-card { inline-size: 100px; }
+  #tree ul { min-block-size: 16px; margin: 0; padding: 0 0 0 var(--ds-space-6); list-style: none; }
+  #tree > ul { padding: 0; }
+  .fx-node { background: var(--ds-surface); }
 </style>
 </head>
 <body>
 <!-- DS.dnd in real engines (dnd.spec.js): one list, a board of three zones (the
-     last refuses "locked" cards), a wrapping set, a long list that scrolls, and
-     a list inside a dialog. Each gets its controller from the spec, through
-     fxDnd(selector, options), and logs its events in window.fxLog. -->
+     last refuses "locked" cards), a wrapping set, two wrapping zones, a tree of
+     nested zones, a long list that scrolls, and a list inside a dialog. Each gets
+     its controller from the spec, through fxDnd(selector, options), and logs its
+     events in window.fxLog. -->
 <div class="ds-theme fx-root">
   <main>
     <h1>Drag and drop</h1>
@@ -40,6 +44,14 @@
     <section class="fx-section" aria-labelledby="wrap-title">
       <h2 id="wrap-title">Wrapping</h2>
       <ul id="wrap"></ul>
+      <div id="wrap-board" class="fx-board">
+        <ul class="fx-wrap" aria-label="First" data-cards="w1 w2 w3 w4"></ul>
+        <ul class="fx-wrap" aria-label="Second" data-cards="w5"></ul>
+      </div>
+    </section>
+    <section class="fx-section" aria-labelledby="tree-title">
+      <h2 id="tree-title">Nested</h2>
+      <div id="tree"><ul aria-label="Root"></ul></div>
     </section>
     <section class="fx-section" aria-labelledby="tall-title">
       <h2 id="tall-title">Long list</h2>
@@ -65,6 +77,8 @@
   fill(document.querySelector('#wrap'), ['a', 'b', 'c', 'd', 'e', 'f']);
   fill(document.querySelector('#tall'), Array.from({ length: 30 }, (unused, index) => `t${index}`));
   fill(document.querySelector('#dialog-list'), ['one', 'two', 'three']);
+  const node = (key, children = []) => `<li class="fx-node" data-ds-key="${key}" aria-label="${key}"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move ${key}">${DS.icons.icon(DS.icons.grip, 20)}</button><span>${key}</span><ul aria-label="Inside ${key}">${children.join('')}</ul></li>`;
+  DS.dom.morphHtml(document.querySelector('#tree > ul'), node('p1', [node('c1')]) + node('p2'));
   document.querySelector('#open-dialog').addEventListener('click', (event) => DS.overlay.open(document.querySelector('#dialog'), { opener: event.currentTarget }));
 
   window.fxLog = [];

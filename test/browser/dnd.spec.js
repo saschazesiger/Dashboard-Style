@@ -1,9 +1,10 @@
 /**
  * DS.dnd in real engines: a pointer drag and a keyboard drag in one list, across
- * zones (with a zone that refuses), in a wrapping set; a press without a move
- * stays a click; cancels from Escape, a lost focus and a refused drop; the
- * announcements; autoscroll; the seams a tree or panel grid uses (target,
- * keyTarget, place); owned state under a morph; forced colours. Runs in the
+ * zones (with a zone that refuses), in a wrapping set, in nested zones; a press
+ * without a move stays a click and a drag ends in none; cancels from Escape, a
+ * lost focus and a refused drop; a held key; the announcements; autoscroll; the
+ * seams a tree or panel grid uses (target, keyTarget, place); owned state under a
+ * morph; forced colours. Runs in the
  * `fallback` project too (no moveBefore: a move is a remove plus an add, and the
  * handle has to take its pointer capture back).
  */
@@ -23,7 +24,8 @@ const spoken = (page) => page.evaluate(() => new Promise((resolve) => setTimeout
 
 /** Presses the grip of `key`, moves by (dx, dy) in steps, and leaves the button down. */
 async function dragBy(page, key, dx, dy, steps = 12) {
-  const box = await page.locator(`[data-ds-key="${key}"] .ds-grip`).boundingBox();
+  // first(): the item's own grip, before those of what it holds.
+  const box = await page.locator(`[data-ds-key="${key}"] .ds-grip`).first().boundingBox();
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
   await page.mouse.move(x, y);
@@ -76,6 +78,49 @@ test('a press without a move stays a click: no lift, no events, the click arrive
   expect(await log(page)).toEqual([]);
   expect(await page.evaluate(() => fxClicks)).toBe(1);
   await expect(page.locator('[data-ds-key="backup"]')).not.toHaveAttribute('data-ds-dragging', /.*/);
+});
+
+test('a pointer drag ends in no click on its handle; the next real click arrives', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.drag = fxDnd('#steps');
+    window.fxClicks = 0;
+    document.addEventListener('click', (event) => {
+      if (event.target.closest('.ds-grip')) window.fxClicks += 1;
+    });
+  });
+  await dragBy(page, 'backup', 0, 48 * 1.5);
+  await page.mouse.up();
+  await settle(page);
+  expect(await page.evaluate(() => fxClicks)).toBe(0);
+  // Cancelled with the button still down: its release adds no click either.
+  await dragBy(page, 'update', 0, 48 * 1.5);
+  await page.keyboard.press('Escape');
+  await page.mouse.up();
+  await settle(page);
+  expect(await page.evaluate(() => fxClicks)).toBe(0);
+  await page.locator('[data-ds-key="report"] .ds-grip').click();
+  expect(await page.evaluate(() => fxClicks)).toBe(1);
+  // A click of a key or a script was never the drag's: right after a drag it still arrives.
+  await dragBy(page, 'restart', 0, 48 * 1.5);
+  await page.mouse.up();
+  await page.evaluate(() => document.querySelector('[data-ds-key="report"] .ds-grip').click());
+  expect(await page.evaluate(() => fxClicks)).toBe(2);
+});
+
+test('the item stays under the pointer where the static body has a margin, scrolled too', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    document.body.style.margin = '40px';
+    document.body.style.minBlockSize = '3000px';
+    window.scrollTo(0, 60);
+    window.drag = fxDnd('#steps');
+  });
+  const before = await page.locator('[data-ds-key="backup"]').boundingBox();
+  await dragBy(page, 'backup', 0, 12);
+  const during = await page.locator('[data-ds-key="backup"]').boundingBox();
+  expect(Math.abs(during.y - (before.y + 12))).toBeLessThan(2);
+  await page.mouse.up();
 });
 
 test('Escape cancels a pointer drag: the order comes back, and the rest of the drag does nothing', async ({ page }) => {
@@ -165,6 +210,101 @@ test('keyboard: Space lifts, arrows and ends move, Space drops; the handle keeps
   // The arrows do nothing until it is lifted (DS.motion.sortable() is the one that moves at once).
   await page.keyboard.press('ArrowDown');
   expect(await order(page)).toEqual(['update', 'backup', 'restart', 'report']);
+});
+
+test('a held Space lifts once: it neither cancels nor lifts again, and after a drop it does nothing', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.drag = fxDnd('#steps'); });
+  await page.locator('[data-ds-key="update"] .ds-grip').focus();
+  // A key.down() without a key.up() is an auto-repeat.
+  await page.keyboard.down('Space');
+  await page.keyboard.down('Space');
+  await page.keyboard.down('Space');
+  expect(await types(page)).toEqual(['drag-start']);
+  await page.keyboard.up('Space');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.down('Space');
+  await page.keyboard.down('Space');
+  await page.keyboard.down('Space');
+  await page.keyboard.up('Space');
+  expect(await types(page)).toEqual(['drag-start', 'drag-move', 'drop']);
+  expect(await page.evaluate(() => drag.get())).toBeNull();
+  // Held arrows repeat.
+  await page.keyboard.press('Home');
+  await page.keyboard.press('Space');
+  await page.keyboard.down('ArrowDown');
+  await page.keyboard.down('ArrowDown');
+  await page.keyboard.up('ArrowDown');
+  expect((await order(page)).indexOf('update')).toBeGreaterThan(0);
+  await page.keyboard.press('Escape');
+});
+
+test('a key lift and move during a glide continue from where the item is', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.drag = fxDnd('#steps'); });
+  await page.locator('[data-ds-key="backup"] .ds-grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('End');
+  await page.keyboard.press('Space');
+  // Held half way down its glide, so nothing but the system moves it from here.
+  const shown = () => page.evaluate(() => document.querySelector('[data-ds-key="backup"]').getBoundingClientRect().top);
+  const held = await page.evaluate(() => {
+    const glide = document.querySelector('[data-ds-key="backup"]').getAnimations().find((animation) => animation.id === 'ds-drag');
+    glide.pause();
+    glide.currentTime = glide.effect.getComputedTiming().duration / 2;
+    return glide.effect.getComputedTiming().duration > 0;
+  });
+  expect(held).toBe(true);
+  const before = await shown();
+  await page.keyboard.press('Space');
+  expect(Math.abs(await shown() - before), 'the lift leaves the glide alone').toBeLessThan(1);
+  await page.keyboard.press('ArrowUp');
+  const start = await page.evaluate(() => {
+    const item = document.querySelector('[data-ds-key="backup"]');
+    const glide = item.getAnimations().find((animation) => animation.id === 'ds-drag');
+    glide.pause();
+    glide.currentTime = 0;
+    return item.getBoundingClientRect().top;
+  });
+  expect(Math.abs(start - before), 'the move starts from where it showed').toBeLessThan(1);
+  await page.keyboard.press('Escape');
+});
+
+test('the live region is there before the first announcement, and stays the one', async ({ page }) => {
+  await open(page);
+  const made = await page.evaluate(() => {
+    window.drag = fxDnd('#steps');
+    const regions = document.querySelectorAll('.ds-theme > [aria-live="polite"].ds-sr');
+    window.fxRegion = regions[0];
+    fxDnd('#dialog-list');
+    return { count: regions.length, text: regions[0]?.textContent, inDialog: document.querySelectorAll('#dialog [aria-live="polite"].ds-sr').length };
+  });
+  expect(made).toEqual({ count: 1, text: '', inDialog: 1 });
+  await page.locator('[data-ds-key="update"] .ds-grip').focus();
+  await page.keyboard.press('Space');
+  expect(await spoken(page)).toBe('Picked up update, position 2 of 4.');
+  expect(await page.evaluate(() => [fxRegion.isConnected, fxRegion.textContent, document.querySelectorAll('.ds-theme > [aria-live="polite"].ds-sr').length])).toEqual([true, 'Picked up update, position 2 of 4.', 1]);
+  await page.keyboard.press('Escape');
+});
+
+test('keyboard moves keep the item in view of its scroller', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.drag = fxDnd('#tall'); });
+  const inView = () => page.evaluate(() => {
+    const item = document.querySelector('[data-ds-key="t0"]');
+    item.getAnimations().forEach((animation) => animation.finish());
+    const box = item.getBoundingClientRect();
+    const scroller = document.querySelector('#tall').getBoundingClientRect();
+    return box.top >= scroller.top - 1 && box.bottom <= scroller.bottom + 1;
+  });
+  await page.locator('[data-ds-key="t0"] .ds-grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('End');
+  expect((await order(page, '#tall')).at(-1)).toBe('t0');
+  expect(await inView()).toBe(true);
+  await page.keyboard.press('Home');
+  expect(await inView()).toBe(true);
+  await page.keyboard.press('Escape');
 });
 
 test('keyboard: Escape cancels and keeps a dialog around it open; Tab cancels and is never held', async ({ page }) => {
@@ -290,6 +430,28 @@ test.describe('across zones', () => {
     expect(await page.evaluate(() => drag.set({ item: document.querySelector('[data-ds-key="locked"]'), zone: document.querySelector('.fx-column[aria-label="Done"]'), index: 0 }))).toBe(false);
     expect(await page.evaluate(() => drag.set({ item: document.querySelector('[data-ds-key="fan"]'), index: 0 }))).toBe(false);
   });
+
+  test('set() has the DOM in its new order when ds:drop runs, and back when it is refused', async ({ page }) => {
+    await open(page);
+    await setup(page);
+    await page.evaluate(() => {
+      window.fxSeen = [];
+      document.querySelector('#board').addEventListener('ds:drop', (event) => {
+        window.fxSeen.push(event.detail.item.closest('.fx-column').getAttribute('aria-label'));
+        if (window.fxRefuse) event.preventDefault();
+      });
+    });
+    const move = () => page.evaluate(() => drag.set({ item: document.querySelector('[data-ds-key="fan"]'), zone: document.querySelector('.fx-column[aria-label="Doing"]'), index: 1 }));
+    const before = await lists(page);
+    await page.evaluate(() => { window.fxRefuse = true; });
+    expect(await move()).toBe(false);
+    expect(await page.evaluate(() => fxSeen)).toEqual(['Doing']);
+    expect(await lists(page)).toEqual(before);
+    await page.evaluate(() => { window.fxRefuse = false; });
+    expect(await move()).toBe(true);
+    expect(await page.evaluate(() => fxSeen)).toEqual(['Doing', 'Doing']);
+    expect((await lists(page))[1]).toEqual(['cable', 'fan']);
+  });
 });
 
 test('a wrapping set moves by what the item is over, and by keys in two dimensions', async ({ page }) => {
@@ -315,6 +477,131 @@ test('a wrapping set moves by what the item is over, and by keys in two dimensio
   expect(up.indexOf('f')).toBeLessThan(left.indexOf('f'));
   await page.keyboard.press('Escape');
   expect(await order(page, '#wrap')).toEqual(before);
+});
+
+test('a wrapping set in several zones: an arrow with nowhere left in the zone goes on to the next, as a pointer can', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.drag = fxDnd('#wrap-board', { zones: '.fx-wrap', axis: 'both' }); });
+  const zones = () => page.evaluate(() => Array.from(document.querySelectorAll('.fx-wrap')).map((zone) => Array.from(zone.children).map((el) => el.dataset.dsKey)));
+  expect(await zones()).toEqual([['w1', 'w2', 'w3', 'w4'], ['w5']]);
+  // Right at the end of the first zone.
+  await page.locator('[data-ds-key="w4"] .ds-grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowRight');
+  expect(await zones()).toEqual([['w1', 'w2', 'w3'], ['w5', 'w4']]);
+  expect(await spoken(page)).toMatch(/^Moved w4 to Second, position \d of 2\.$/);
+  // Left at the start of the second, and back.
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowLeft');
+  expect((await zones())[0]).toContain('w4');
+  await page.keyboard.press('Escape');
+  expect(await zones()).toEqual([['w1', 'w2', 'w3', 'w4'], ['w5']]);
+  // Down with no row below: the next zone. Up with no row above: the one before.
+  await page.locator('[data-ds-key="w4"] .ds-grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowDown');
+  expect((await zones())[1]).toContain('w4');
+  await page.keyboard.press('ArrowUp');
+  expect((await zones())[0]).toContain('w4');
+  // Past the last zone nothing moves, and nothing throws.
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowLeft');
+  expect((await zones())[0][0]).toBe('w4');
+  await page.keyboard.press('Escape');
+  // A zone that refuses is passed over.
+  await page.evaluate(() => {
+    drag.destroy();
+    window.drag = fxDnd('#wrap-board', { zones: '.fx-wrap', axis: 'both', accept: (item, zone) => zone.getAttribute('aria-label') !== 'Second' });
+  });
+  await page.locator('[data-ds-key="w4"] .ds-grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowRight');
+  expect(await zones()).toEqual([['w1', 'w2', 'w3', 'w4'], ['w5']]);
+  await page.keyboard.press('Escape');
+});
+
+test.describe('nested zones', () => {
+  const parentOf = (page, key) => page.evaluate((name) => document.querySelector(`[data-ds-key="${name}"]`).parentElement.getAttribute('aria-label'), key);
+  const roots = (page) => page.evaluate(() => Array.from(document.querySelector('#tree > ul').children).map((el) => el.dataset.dsKey));
+  /** Opens the page with the tree in view; the page errors collect in what it returns. */
+  const prepare = async (page) => {
+    const errors = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await open(page);
+    await page.evaluate(() => document.querySelector('#tree').scrollIntoView({ block: 'center', behavior: 'instant' }));
+    return errors;
+  };
+  const setup = async (page) => {
+    const errors = await prepare(page);
+    await page.evaluate(() => { window.drag = fxDnd('#tree', { zones: 'ul', items: 'li' }); });
+    return errors;
+  };
+
+  test('a pointer drag never drops an item into itself, and what it holds travels with it', async ({ page }) => {
+    const errors = await setup(page);
+    // Just into its own nested list: the innermost zone under the pointer, were it allowed, and not yet past p2.
+    const inner = await page.locator('ul[aria-label="Inside p1"]').boundingBox();
+    const grip = await page.locator('[data-ds-key="p1"] .ds-grip').first().boundingBox();
+    await dragBy(page, 'p1', 12, inner.y + 4 - (grip.y + grip.height / 2));
+    expect(await parentOf(page, 'p1')).toBe('Root');
+    // Below everything: past p2, in the root.
+    const p2 = await page.locator('[data-ds-key="p2"]').boundingBox();
+    await page.mouse.move(grip.x + 12, p2.y + p2.height + 40);
+    expect(await roots(page)).toEqual(['p2', 'p1']);
+    expect(await page.evaluate(() => document.querySelector('[data-ds-key="c1"]').getAnimations().length), 'no glide of its own inside the dragged item').toBe(0);
+    await page.mouse.up();
+    expect(await parentOf(page, 'c1')).toBe('Inside p1');
+    expect(errors).toEqual([]);
+  });
+
+  test('the keyboard skips the zones inside the item, and a child still moves into its neighbour', async ({ page }) => {
+    const errors = await setup(page);
+    await page.locator('[data-ds-key="p1"] .ds-grip').first().focus();
+    await page.keyboard.press('Space');
+    await page.keyboard.press('ArrowRight');
+    expect(await parentOf(page, 'p1')).toBe('Inside p2');
+    await page.keyboard.press('ArrowRight');
+    expect(await parentOf(page, 'p1')).toBe('Inside p2');
+    await page.keyboard.press('ArrowLeft');
+    expect(await parentOf(page, 'p1')).toBe('Root');
+    await page.keyboard.press('Escape');
+    expect(await roots(page)).toEqual(['p1', 'p2']);
+    await page.locator('[data-ds-key="c1"] .ds-grip').focus();
+    await page.keyboard.press('Space');
+    await page.keyboard.press('ArrowRight');
+    expect(await parentOf(page, 'c1')).toBe('Inside p2');
+    await page.keyboard.press('Space');
+    expect(errors).toEqual([]);
+  });
+
+  test('a page\'s own target or set() that names a zone inside the item is ignored, and the context leaves those out', async ({ page }) => {
+    const errors = await prepare(page);
+    await page.evaluate(() => {
+      window.drag = fxDnd('#tree', {
+        zones: 'ul',
+        items: 'li',
+        keyTarget(key, context) {
+          window.fxZones = context.zones.map((zone) => zone.getAttribute('aria-label'));
+          return { zone: document.querySelector('ul[aria-label="Inside p1"]'), index: 0 };
+        },
+      });
+    });
+    await page.locator('[data-ds-key="p1"] .ds-grip').first().focus();
+    await page.keyboard.press('Space');
+    await page.keyboard.press('ArrowDown');
+    expect(await parentOf(page, 'p1')).toBe('Root');
+    expect(await types(page)).toEqual(['drag-start']);
+    expect(await page.evaluate(() => fxZones)).toEqual(['Root', 'Inside p2']);
+    await page.keyboard.press('Escape');
+    const moved = await page.evaluate(() => [
+      drag.set({ item: document.querySelector('[data-ds-key="p1"]'), zone: document.querySelector('ul[aria-label="Inside p1"]'), index: 0 }),
+      drag.set({ item: document.querySelector('[data-ds-key="p1"]'), zone: document.querySelector('ul[aria-label="Inside c1"]'), index: 0 }),
+    ]);
+    expect(moved).toEqual([false, false]);
+    expect(await parentOf(page, 'p1')).toBe('Root');
+    expect(errors).toEqual([]);
+  });
 });
 
 test('near the edge of a scroller it scrolls, and the item keeps moving through the list', async ({ page }) => {
@@ -405,6 +692,19 @@ test('a re-render that takes the handle cancels the drag', async ({ page }) => {
   await page.mouse.move(100, 130);
   await expect.poll(() => page.evaluate(() => drag.get())).toBeNull();
   await page.mouse.up();
+});
+
+test('a re-render that takes the focused handle of a keyboard drag cancels it, and the next key is the page\'s', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.drag = fxDnd('#steps'); });
+  await page.locator('[data-ds-key="backup"] .ds-grip').focus();
+  await page.keyboard.press('Space');
+  await page.keyboard.press('ArrowDown');
+  await page.evaluate(() => document.querySelector('[data-ds-key="backup"]').remove());
+  await expect.poll(() => page.evaluate(() => drag.get())).toBeNull();
+  expect((await log(page)).at(-1).type).toBe('drag-cancel');
+  // The item a re-render took stays gone.
+  expect(await order(page)).toEqual(['update', 'restart', 'report']);
 });
 
 test('destroy() ends a running drag, is safe twice and takes the listeners away', async ({ page }) => {

@@ -14,7 +14,8 @@
  *   drag.destroy();
  *
  * Pointer: a press on a handle and a move of DRAG_THRESHOLD px lift the item
- * (a press without a move stays a click). It follows the pointer (its inline
+ * (a press without a move stays a click; a drag never ends in one, so a handle
+ * that also opens its card does not open it). It follows the pointer (its inline
  * translate) and carries data-ds-dragging (drag.css: raised, the dragged state
  * layer; nothing scales). Whenever the target changes, the item moves in the
  * DOM and the others make room through flip() (a move during a glide continues
@@ -24,11 +25,15 @@
  *
  * Keyboard: on a handle, Space or Enter lifts. Arrows and Home/End then move
  * the item (along the axis inside a zone, across it to the next zone that
- * accepts it); the handle keeps the focus. Space or Enter drops, Escape cancels
- * (and keeps an open dialog open), and a focus that leaves cancels: Tab is
- * never held. The position is spoken at each step through a polite .ds-sr
- * region in the list's modal, else its .ds-theme; a hint hangs off the focused
- * handle by aria-describedby.
+ * accepts it; with axis 'both' an arrow with nowhere left in the zone goes on to
+ * the next one or the one before) and keep it in view; the handle keeps the
+ * focus. Space or Enter drops, Escape cancels (and keeps an open dialog open),
+ * and a focus that leaves or a handle that goes cancels: Tab is never held. A
+ * held Space or Enter counts once; held arrows repeat. The position is spoken
+ * at each step through a polite .ds-sr region in the list's modal, else its
+ * .ds-theme, there from create() on (a reader can miss the first change to a
+ * region that has only just appeared); a hint hangs off the focused handle by
+ * aria-describedby.
  *
  * A cancel (Escape, pointercancel, a lost capture, destroy()) or a refused drop
  * puts the item back where it was, gliding. Nothing is final before ds:drop:
@@ -48,7 +53,9 @@
  * list logic, and `place(target, ctx)` replaces the move in the DOM: a tree
  * returns { zone, index, position: 'inside' } and marks the row, a panel grid
  * returns its cell and shows a placeholder. Two targets are the same when their
- * zone, index and position are.
+ * zone, index and position are. Zones may nest; an item never goes into a zone
+ * inside itself: the context's `zones` leave those out, and a target that names
+ * one is ignored.
  *
  * What it writes on elements (data-ds-dragging, data-ds-dragover,
  * aria-describedby, translate, z-index) is owned state, so a morph during a
@@ -110,10 +117,10 @@ function disown(element, kind, name) {
 /** The modal around `node`, else its theme: what stays reachable while a modal traps the page. */
 const speechHost = (node) => node.closest?.('dialog, .ds-dialog, .ds-sheet') ?? node.closest?.('.ds-theme') ?? node.ownerDocument?.body;
 
-/** Says `text` politely; the region empties first, so the same text twice is still news. */
-function speak(node, text) {
+/** The polite live region of `node`'s host, made once. */
+function regionOf(node) {
   const host = speechHost(node);
-  if (!host || !text) return;
+  if (!host) return null;
   let region = shared.regions.get(host);
   if (!region?.isConnected) {
     region = node.ownerDocument.createElement('div');
@@ -123,10 +130,16 @@ function speak(node, text) {
     host.append(region);
     shared.regions.set(host, region);
   }
+  return region;
+}
+
+/** Says `text` politely; the region empties first, so the same text twice is still news. */
+function speak(node, text) {
+  const region = text ? regionOf(node) : null;
+  if (!region) return;
   region.textContent = '';
-  const target = region;
   setTimeout(() => {
-    target.textContent = text;
+    region.textContent = text;
   });
 }
 
@@ -162,9 +175,20 @@ function layoutBox(element) {
     const rect = element.getBoundingClientRect();
     return { left: rect.left, top: rect.top, right: rect.left + width, bottom: rect.top + height, width, height };
   }
-  const rect = parent.getBoundingClientRect();
-  let left = rect.left + parent.clientLeft - parent.scrollLeft + element.offsetLeft;
-  let top = rect.top + parent.clientTop - parent.scrollTop + element.offsetTop;
+  const doc = element.ownerDocument;
+  const view = doc.defaultView;
+  let left;
+  let top;
+  if (parent === doc.body && view.getComputedStyle(parent).position === 'static') {
+    // A static body is no real origin: the offsets count from the document's, its margin included.
+    const own = parent === doc.scrollingElement ? 0 : 1;
+    left = element.offsetLeft - view.scrollX - own * parent.scrollLeft;
+    top = element.offsetTop - view.scrollY - own * parent.scrollTop;
+  } else {
+    const rect = parent.getBoundingClientRect();
+    left = rect.left + parent.clientLeft - parent.scrollLeft + element.offsetLeft;
+    top = rect.top + parent.clientTop - parent.scrollTop + element.offsetTop;
+  }
   for (let at = element.parentElement; at && at !== parent; at = at.parentElement) {
     left -= at.scrollLeft;
     top -= at.scrollTop;
@@ -214,7 +238,8 @@ const instances = new WeakMap();
  * of DS.core.config(). `target`, `keyTarget` and `place` replace the list logic.
  * `autoScroll` (default true). get() is the running drag or null; set({ item,
  * zone, index }) moves an item without a drag, with the events and the
- * announcement of a drop; cancel() ends a running drag; on(type, fn) for
+ * announcement of a drop (the DOM is in its new order when ds:drop runs, and
+ * back if it is refused); cancel() ends a running drag; on(type, fn) for
  * 'drag-start', 'drag-move', 'drop', 'drag-cancel'.
  * @param {Element|null|undefined} container
  * @param {{ items?: string, handle?: string, zones?: string, list?: string, axis?: 'block'|'inline'|'both', accept?: (item: Element, zone: Element) => boolean, label?: (item: Element) => string, zoneLabel?: (zone: Element) => string, announce?: (type: 'grab'|'move'|'drop'|'cancel', detail: object) => string, target?: (point: { x: number, y: number }, context: object) => object|null, keyTarget?: (key: string, context: object) => object|null, place?: (target: object, context: object) => void, autoScroll?: boolean }} [options]
@@ -238,6 +263,8 @@ export function create(container, options = {}) {
     return container.matches(options.zones) ? [container, ...found] : found;
   };
   const severalZones = () => Boolean(options.zones) && allZones().length > 1;
+  /** The zones `item` can go to: a zone inside it would move with it, and the DOM refuses that. */
+  const zonesFor = (item) => allZones().filter((zone) => !item.contains(zone));
   const accepts = (item, zone) => (options.accept ? options.accept(item, zone) !== false : true);
   const zoneOf = (node) => {
     const zones = options.zones;
@@ -303,6 +330,8 @@ export function create(container, options = {}) {
     const reference = anchor ?? others.at(-1)?.nextSibling ?? null;
     const focused = item.getRootNode().activeElement;
     const keep = focused && item.contains(focused) ? focused : null;
+    const scrolled = [];
+    for (let at = parent; at; at = at.parentElement) scrolled.push([at, at.scrollTop, at.scrollLeft]);
     if (typeof parent.moveBefore === 'function') {
       try {
         parent.moveBefore(item, reference);
@@ -311,6 +340,11 @@ export function create(container, options = {}) {
       }
     } else parent.insertBefore(item, reference);
     if (keep && item.getRootNode().activeElement !== keep) keep.focus({ preventScroll: true });
+    // Chromium's moveBefore() of a focused item scrolls it into view by itself: the drag decides what scrolls.
+    for (const [at, top, left] of scrolled) {
+      if (at.scrollTop !== top) at.scrollTop = top;
+      if (at.scrollLeft !== left) at.scrollLeft = left;
+    }
   };
 
   /** From the place it showed in into its layout place, on the spring. */
@@ -334,7 +368,8 @@ export function create(container, options = {}) {
    */
   const defaultPlace = (target, context) => {
     const { item, mode } = context;
-    const others = selector ? `:is(${selector}):not([data-ds-dragging])` : ':scope > :not([data-ds-dragging])';
+    // What sits inside the dragged item (a nested list) travels with it.
+    const others = selector ? `:is(${selector}):not([data-ds-dragging]):not([data-ds-dragging] *)` : ':scope > :not([data-ds-dragging])';
     const marked = !item.hasAttribute('data-ds-dragging');
     if (marked) item.setAttribute('data-ds-dragging', 'end');
     const showing = item.getBoundingClientRect();
@@ -346,6 +381,8 @@ export function create(container, options = {}) {
     };
     run(0);
     if (marked) item.removeAttribute('data-ds-dragging');
+    // In view before the glide measures, so it starts from where the item showed, whatever scrolled.
+    if (mode === 'keyboard') item.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
     if (mode !== 'pointer') glideHome(item, showing);
   };
 
@@ -357,8 +394,14 @@ export function create(container, options = {}) {
   const ending = new Map();
   /** Handles with the hint on them. */
   const hinted = new Map();
+  /** Takes eatClick()'s listeners off; replaced by each drag. */
+  let clickGuard = null;
+  const letClickGo = () => {
+    clickGuard?.();
+    clickGuard = null;
+  };
 
-  const contextOf = () => ({ item: drag.item, mode: drag.mode, from: drag.from, current: drag.current, zones: allZones(), itemsIn, accepts, layoutBox });
+  const contextOf = () => ({ item: drag.item, mode: drag.mode, from: drag.from, current: drag.current, zones: zonesFor(drag.item), itemsIn, accepts, layoutBox });
 
   const setDragover = (zone) => {
     if (drag.over === zone) return;
@@ -404,7 +447,7 @@ export function create(container, options = {}) {
   /** Moves the dragged item to `target`, if that is news. */
   const moveTo = (target) => {
     if (!target || sameTarget(target, drag.current)) return false;
-    if (target.zone && !accepts(drag.item, target.zone)) return false;
+    if (target.zone && (drag.item.contains(target.zone) || !accepts(drag.item, target.zone))) return false;
     const zoneBefore = drag.current.zone;
     drag.moving = true;
     try {
@@ -510,6 +553,11 @@ export function create(container, options = {}) {
   /** Keys while a keyboard drag runs, and Escape during a pointer drag. */
   const onDragKey = (/** @type {KeyboardEvent} */ event) => {
     if (!drag) return;
+    if (drag.mode === 'keyboard' && (!drag.handle.isConnected || drag.handle.getRootNode().activeElement !== drag.handle)) {
+      // The focus left without a focusout (Firefox and WebKit, when the handle was removed): this key is the page's.
+      end(false);
+      return;
+    }
     if (event.key === 'Escape') {
       // preventDefault(): an open dialog around the list stays open.
       event.preventDefault();
@@ -521,7 +569,8 @@ export function create(container, options = {}) {
     if (event.key === ' ' || event.key === 'Enter') {
       event.preventDefault();
       event.stopPropagation();
-      end(true);
+      // A held key is one press: it lifted, and it does not drop.
+      if (!event.repeat) end(true);
       return;
     }
     if (!MOVE_KEYS.has(event.key)) return;
@@ -529,7 +578,8 @@ export function create(container, options = {}) {
     event.stopPropagation();
     const context = contextOf();
     const target = (options.keyTarget ?? defaultKeyTarget)(event.key, context);
-    if (moveTo(target)) drag.item.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+    // The default place scrolls before its glide; what a page's place() does is its own.
+    if (moveTo(target) && options.place) drag.item.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   };
 
   /** The default key moves: one place along the axis, to an end, or to the next zone that accepts it. */
@@ -539,21 +589,27 @@ export function create(container, options = {}) {
     if (key === 'Home') return { zone: current.zone, index: 0 };
     if (key === 'End') return { zone: current.zone, index: others.length };
     if (axis === 'both') {
-      if (key === 'ArrowLeft' || key === 'ArrowRight') return { zone: current.zone, index: clampIndex(current.index + (key === 'ArrowLeft' ? -1 : 1), others.length) };
-      // Up and down: the place in the row above or below, nearest by its middle.
-      const box = layoutBox(item);
-      const centre = box.left + box.width / 2;
-      let best = null;
-      for (const [index, other] of others.entries()) {
-        const layout = layoutBox(other);
-        if (key === 'ArrowUp' ? layout.bottom > box.top : layout.top < box.bottom) continue;
-        const distance = Math.abs(layout.top - box.top) * 1000 + Math.abs(layout.left + layout.width / 2 - centre);
-        if (!best || distance < best.distance) best = { index, distance };
+      if (key === 'ArrowLeft' || key === 'ArrowRight') {
+        const index = current.index + (key === 'ArrowLeft' ? -1 : 1);
+        if (index >= 0 && index <= others.length) return { zone: current.zone, index };
+      } else {
+        // Up and down: the place in the row above or below, nearest by its middle.
+        const box = layoutBox(item);
+        const centre = box.left + box.width / 2;
+        let best = null;
+        for (const [index, other] of others.entries()) {
+          const layout = layoutBox(other);
+          if (key === 'ArrowUp' ? layout.bottom > box.top : layout.top < box.bottom) continue;
+          const distance = Math.abs(layout.top - box.top) * 1000 + Math.abs(layout.left + layout.width / 2 - centre);
+          if (!best || distance < best.distance) best = { index, distance };
+        }
+        if (best) return { zone: current.zone, index: key === 'ArrowDown' ? Math.min(best.index + 1, others.length) : best.index };
       }
-      return best ? { zone: current.zone, index: key === 'ArrowDown' ? Math.min(best.index + 1, others.length) : best.index } : null;
+      // Nowhere left in this zone: on to the next, as a pointer can.
+    } else {
+      const along = axis === 'inline' ? ['ArrowLeft', 'ArrowRight'] : ['ArrowUp', 'ArrowDown'];
+      if (along.includes(key)) return { zone: current.zone, index: clampIndex(current.index + (key === along[0] ? -1 : 1), others.length) };
     }
-    const along = axis === 'inline' ? ['ArrowLeft', 'ArrowRight'] : ['ArrowUp', 'ArrowDown'];
-    if (along.includes(key)) return { zone: current.zone, index: clampIndex(current.index + (key === along[0] ? -1 : 1), others.length) };
     const zones = context.zones;
     const step = key === 'ArrowLeft' || key === 'ArrowUp' ? -1 : 1;
     for (let at = zones.indexOf(current.zone) + step; at >= 0 && at < zones.length; at += step) {
@@ -569,7 +625,8 @@ export function create(container, options = {}) {
   const lift = (item, handle, mode, fields = {}) => {
     finish(item);
     const from = whereIs(item);
-    for (const animation of item.getAnimations?.() ?? []) if (animation.id === 'ds-drag') animation.cancel();
+    // Under a pointer the item follows its inline translate, which a glide would hide. Keys: the glide goes on until a move measures it.
+    if (mode === 'pointer') for (const animation of item.getAnimations?.() ?? []) if (animation.id === 'ds-drag') animation.cancel();
     if (!emit(container, 'drag-start', { item, from, mode }, { cancelable: true })) return false;
     drag = { item, handle, mode, from, current: from, x: 0, y: 0, grabX: 0, grabY: 0, width: 0, height: 0, pointer: null, over: null, frame: 0, moving: false, z: item.style.zIndex, scrollers: autoScroll && mode === 'pointer' ? scrollers(item) : [], ...fields };
     own(item, 'attrs', 'data-ds-dragging');
@@ -581,18 +638,62 @@ export function create(container, options = {}) {
     doc.addEventListener('keydown', onDragKey, true);
     // A handle that left the document loses its capture to the document, not to the container.
     doc.addEventListener('lostpointercapture', onLostCapture, true);
+    // A focused element that is removed fires no focusout in Firefox and WebKit.
+    if (mode === 'keyboard' && typeof view.MutationObserver === 'function') {
+      drag.watcher = new view.MutationObserver(() => {
+        if (drag?.handle === handle && !handle.isConnected) end(false);
+      });
+      drag.watcher.observe(container, { childList: true, subtree: true });
+    }
     say('grab', item, from);
     if (mode === 'pointer' && autoScroll) drag.frame = view.requestAnimationFrame(scrollFrame);
     return true;
   };
 
-  /** Ends the drag: a drop (`commit`) or a cancel. */
-  const end = (commit) => {
+  /**
+   * The click the browser adds to the release of a pointer drag is no click: a
+   * card that opens on one would open after every drag. The release can still
+   * be to come (Escape, a lost capture). A later press lets go at once, and a
+   * click of a key or a script (detail 0) never was this one.
+   */
+  const eatClick = (released) => {
+    letClickGo();
+    let timer = 0;
+    const eat = (/** @type {MouseEvent} */ event) => {
+      if (!event.detail) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      letClickGo();
+    };
+    const arm = () => {
+      timer = setTimeout(letClickGo, motionDuration(container, '--ds-dur-fast'));
+    };
+    doc.addEventListener('click', eat, true);
+    doc.addEventListener('pointerdown', letClickGo, true);
+    doc.addEventListener('pointercancel', letClickGo, true);
+    if (released) arm();
+    else doc.addEventListener('pointerup', arm, { capture: true, once: true });
+    clickGuard = () => {
+      clearTimeout(timer);
+      doc.removeEventListener('click', eat, true);
+      doc.removeEventListener('pointerdown', letClickGo, true);
+      doc.removeEventListener('pointercancel', letClickGo, true);
+      doc.removeEventListener('pointerup', arm, true);
+    };
+  };
+
+  /**
+   * Ends the drag: a drop (`commit`) or a cancel. `release`: 'up' when the
+   * pointer just came up, 'gone' when it was cancelled; else it may still be down.
+   */
+  const end = (commit, release) => {
     const ended = drag;
     if (!ended) return;
     drag = null;
     const { item, handle, from, mode, z } = ended;
     if (ended.frame) view.cancelAnimationFrame(ended.frame);
+    ended.watcher?.disconnect();
+    if (mode === 'pointer' && release !== 'gone') eatClick(release === 'up');
     doc.removeEventListener('keydown', onDragKey, true);
     doc.removeEventListener('lostpointercapture', onLostCapture, true);
     if (ended.pointer !== null) {
@@ -612,8 +713,9 @@ export function create(container, options = {}) {
       ended.over.removeAttribute('data-ds-dragover');
       disown(ended.over, 'attrs', 'data-ds-dragover');
     }
-    if (!dropped && changed) {
-      (options.place ?? defaultPlace)(from, { item, mode, from, current: ended.current, zones: allZones(), itemsIn, accepts, layoutBox });
+    // An item a re-render took stays gone.
+    if (!dropped && changed && item.isConnected) {
+      (options.place ?? defaultPlace)(from, { item, mode, from, current: ended.current, zones: zonesFor(item), itemsIn, accepts, layoutBox });
       to = from;
     }
     if (!commit || !dropped || !changed) emit(container, 'drag-cancel', { item, from, mode });
@@ -663,7 +765,10 @@ export function create(container, options = {}) {
       press = null;
       return;
     }
-    if (drag?.pointer === event.pointerId) end(event.type === 'pointerup');
+    if (drag?.pointer === event.pointerId) {
+      const up = event.type === 'pointerup';
+      end(up, up ? 'up' : 'gone');
+    }
   };
   const onPressLost = (/** @type {PointerEvent} */ event) => {
     if (press && event.pointerId === press.pointer) press = null;
@@ -678,6 +783,11 @@ export function create(container, options = {}) {
     if (!handle || !container.contains(handle) || event.target !== handle) return;
     const item = itemOf(handle);
     if (!item || blocked(handle, item)) return;
+    if (event.repeat) {
+      // The key held after a drop: it neither lifts again nor clicks.
+      event.preventDefault();
+      return;
+    }
     if (lift(item, handle, 'keyboard')) {
       event.preventDefault();
       event.stopPropagation();
@@ -686,6 +796,7 @@ export function create(container, options = {}) {
   const onFocusIn = (/** @type {FocusEvent} */ event) => {
     const handle = event.target?.closest?.(handleSelector);
     if (!handle || !container.contains(handle) || hinted.has(handle)) return;
+    regionOf(container);
     const id = hintId(handle);
     if (!id) return;
     const before = handle.getAttribute('aria-describedby');
@@ -731,12 +842,17 @@ export function create(container, options = {}) {
       if (!item || drag) return false;
       const from = whereIs(item);
       const zone = value.zone ?? from.zone;
-      if (!zone || !accepts(item, zone)) return false;
+      if (!zone || item.contains(zone) || !accepts(item, zone)) return false;
       const others = itemsIn(zone).filter((other) => other !== item);
       const target = { zone, index: clampIndex(value.index ?? from.index, others.length) };
       if (sameTarget(target, from)) return false;
-      if (!emit(container, 'drop', { item, from, to: target, mode: 'api' }, { cancelable: true })) return false;
-      (options.place ?? defaultPlace)(target, { item, mode: 'api', from, current: from, zones: allZones(), itemsIn, accepts, layoutBox });
+      const context = { item, mode: 'api', from, current: from, zones: zonesFor(item), itemsIn, accepts, layoutBox };
+      // As a drop: the DOM is in its new order when ds:drop runs, and back if it is refused.
+      (options.place ?? defaultPlace)(target, context);
+      if (!emit(container, 'drop', { item, from, to: target, mode: 'api' }, { cancelable: true })) {
+        (options.place ?? defaultPlace)(from, { ...context, current: target });
+        return false;
+      }
       say('drop', item, target);
       return true;
     },
@@ -770,5 +886,7 @@ export function create(container, options = {}) {
     },
   };
   instances.set(container, controller);
+  // Before the first words: pressing Space on a handle is too late for a reader to know the region.
+  if (container.isConnected) regionOf(container);
   return controller;
 }
