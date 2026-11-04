@@ -273,6 +273,7 @@ const CONTINUITY = {
   interrupt: { in: 'stage', sel: '#sg-bench-card', props: ['opacity'] },
   swap: { in: 'stage', sel: '[data-swap-toggle] .ds-icon-swap__b', props: ['opacity'] },
   disclosure: { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
+  'disclosure-accordion': { in: 'stage', sel: '.ds-chevron', props: ['rotate'] },
   pop: { in: 'stage', sel: '.ds-badge', props: ['opacity', 'scale.x'] },
   clip: { in: 'stage', sel: '.sg-clip__panel', props: ['opacity'] },
   'icon-swap': { in: 'stage', sel: '[data-pair="offline"] .ds-icon-swap__b', props: ['opacity'] },
@@ -319,9 +320,12 @@ const CONTINUITY_EXEMPT = {
   sortable: 'each toggle moves the row in the DOM and flip() glides it from where it is painted, so its translate restarts from a new layout place (continuity on screen is checked by flip.spec.js and the data-list demo)',
   'follow-end': 'scroll-driven: the log follows the scroll position the demo sets; the pill only toggles hidden (its fade is .ds-presence, timed in the presence demo)',
   wizard: 'View Transitions play on snapshots in a frame (pseudo-elements, not the live view)',
+  'card-selectable': 'selection is a colour transition (background-color, --ds-dur-fast) and a ring that shows at once: no number to sample',
   tiles: 'selection is a colour transition (background-color, --ds-dur-fast) and a ring that shows at once: no number to sample',
   'live-check': 'a hint that goes is removed at once by design, like a validation message (its room opens on --ds-ease-out, removal is instant)',
   tasks: 'a status change swaps the mark at once (its glyph is the state); only the tick of a step that turns done draws, and it starts anew by design',
+  'scroll-reel': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
+  'scroll-y': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-x': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
 };
 

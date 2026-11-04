@@ -168,8 +168,8 @@ test('the speed select and ?speed= slow the page as on the 2.x page; the Motion 
 test.describe('options panel', () => {
   test('size, density, shape and touch become classes on the stage; scheme, contrast and preset apply to the page', async ({ page }) => {
     await open(page);
-    const name = await page.evaluate(() => window.SG.list()[0].name);
-    await go(page, `components/${name}`);
+    // The reference port: it offers every option (a demo may leave out those its component does not read).
+    await go(page, 'components/button');
     const stage = page.locator('#sg-stage');
     const panel = page.locator('.sg-options');
     // The defaults add no class: the theme's own density and shape show.
