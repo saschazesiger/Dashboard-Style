@@ -978,6 +978,8 @@ ${parts.join('\n')}})(typeof globalThis !== 'undefined' ? globalThis : this);
 function blockMarkers(path, name) {
   const note = `generated: ${name} (scripts/build.mjs; do not edit)`;
   if (/\.md$/.test(path)) return [`<!-- ${note} -->`, `<!-- /generated: ${name} -->`];
+  // In a stylesheet the block sits inside a comment (themes/example.css): plain marker lines.
+  if (/\.css$/.test(path)) return [`── ${note} ──`, `── /generated: ${name} ──`];
   return [`// ${note}`, `// /generated: ${name}`];
 }
 
@@ -1014,6 +1016,23 @@ export function hooksTable(list) {
   add(Object.entries(coreHooks()));
   for (const component of list) add(ownedHooks(component.meta).map((name) => [name, component.meta.hooks[name]]));
   return ['| Hook | Default | Component |', '|---|---|---|', ...rows.map((row) => `| ${row.names.map((name) => `\`${name}\``).join(', ')} | ${row.default} | ${row.description} |`)].join('\n');
+}
+
+/**
+ * The hooks of themes/example.css (commented out, in a generated block):
+ * every hook of the docs/theming.md table in its order, each with the
+ * fallback its stylesheet reads it with.
+ */
+export function exampleHooks(list) {
+  const sources = [{ name: 'motion', css: 'src/core/motion.css', hooks: Object.keys(coreHooks()) }, ...list.map((component) => ({ ...component, hooks: ownedHooks(component.meta) }))];
+  return sources.flatMap(({ css, hooks }) => {
+    const code = stripCssComments(repoText(css));
+    return hooks.map((name) => {
+      const value = fallbackOf(code, name) ?? '(set by the component)';
+      if (value.includes('*/')) throw new Error(`${css}: the fallback of ${name} would end the comment of themes/example.css`);
+      return `  ${name}: ${value};`;
+    });
+  }).join('\n');
 }
 
 /** The table of the keyframes the components define (<name>.keyframes.css, meta.json "keyframeDocs") for docs/motion.md. */
@@ -1125,6 +1144,7 @@ export function generatedFiles(list = components()) {
     ['src/types/ds.d.ts', dsTypes(repoText('src/types/ds.d.ts'))],
     ['src/js/ripple.js', replaceBlock(repoText('src/js/ripple.js'), 'src/js/ripple.js', 'ripple hosts', rippleHostLines(list))],
     ['README.md', readmeCount(repoText('README.md'), list.length)],
+    ['themes/example.css', replaceBlock(repoText('themes/example.css'), 'themes/example.css', 'hooks', exampleHooks(list))],
   ]);
 }
 

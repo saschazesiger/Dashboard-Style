@@ -172,6 +172,8 @@ const RUNTIME = new Set([
   '--ds-scrollbar-height',
   '--ds-scrollbar-width',
   '--ds-table-pin-width',
+  // What a component's behaviour module writes ('--ds-<name>-x' in src/components/<name>/<name>.js).
+  ...jsModules().filter((file) => file.startsWith('src/components/')).flatMap((file) => [...read(file).matchAll(/['"`](--ds-[\w-]+)['"`]/g)].map((match) => match[1])),
 ]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
