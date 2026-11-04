@@ -8,7 +8,10 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DEPRECATION_KINDS, MODULES, build, deprecationsJson, inlineCss, moduleBody, packageInfo, SHIPPED_THEMES, tokensJson, withBanner } from '../scripts/build.mjs';
+import {
+  DEPRECATION_KINDS, MODULES, build, deprecationsJson, dsTypes, inlineCss, moduleBody, moduleFiles, orderModules, packageInfo, rewriteComponentImports, SHIPPED_THEMES,
+  tokensJson, withBanner,
+} from '../scripts/build.mjs';
 import { filesIn, read, stripComments } from './helpers.js';
 
 /** Writes `files` ({ name: css }) into a fresh temporary folder and runs `check` on it. */
@@ -270,15 +273,60 @@ function exportedParams(text, declared) {
   return result;
 }
 
+describe('component modules (src/components/<name>/<name>.js)', () => {
+  it('rewrites the imports of a component module to the flat dist/js/ layout', () => {
+    const source = "import { define, emit } from '../../js/core.js';\nimport { open as openMenu } from \"../menu/menu.js\";\nexport const a = 1;\n";
+    assert.equal(rewriteComponentImports(source, 'picker'), "import { define, emit } from './core.js';\nimport { open as openMenu } from \"./menu.js\";\nexport const a = 1;\n");
+    assert.equal(rewriteComponentImports("import type { Controller } from '../../types/js/core.js';".replace('import type', 'import'), 'picker'), "import { Controller } from './core.js';");
+    assert.throws(() => rewriteComponentImports("import { x } from './x.js';", 'picker'), /import from '\.\.\/\.\.\/js\/<core>\.js' or '\.\.\/<component>\/<component>\.js' only/);
+    assert.throws(() => rewriteComponentImports("import { x } from '../../js/nothing.js';", 'picker'), /no core module/);
+    assert.throws(() => rewriteComponentImports("import { x } from '../menu/other.js';", 'picker'), /only, not \.\.\/menu\/other\.js/);
+  });
+
+  it('orders component modules after what they import (by name where free), and stops on unknown imports, cycles and core names', () => {
+    const module = (...imports) => imports.map((name) => `import { x } from './${name}.js';`).join('\n');
+    assert.deepEqual(orderModules(new Map([['b', module('core')], ['a', module('c', 'motion')], ['c', module('b')], ['d', module()]])), ['b', 'c', 'a', 'd']);
+    assert.throws(() => orderModules(new Map([['a', module('b')], ['b', module('a')]])), /cycle: a, b/);
+    assert.throws(() => orderModules(new Map([['a', module('zzz')]])), /imports zzz, which is no module/);
+    assert.throws(() => orderModules(new Map([['ripple', module()]])), /may not take the name of the core module ripple/);
+  });
+
+  it('wraps a component module into the classic script like a core module (js-wrap), its imports read from DS', async () => {
+    const { classicScript } = await import('../scripts/tools/js-wrap.mjs');
+    const { runInNewContext } = await import('node:vm');
+    const picker = rewriteComponentImports("import { define } from '../../js/core.js';\nexport function create() { return typeof define; }\n", 'picker');
+    const modules = [{ name: 'core', source: 'export function define() {}' }, { name: 'picker', source: picker }];
+    const sandbox = {};
+    sandbox.globalThis = sandbox;
+    runInNewContext(classicScript({ version: '1.0.0', modules, merge: true }), sandbox);
+    assert.equal(sandbox.DS.picker.create(), 'function');
+  });
+
+  it('lists every module of MODULES in dist/ (js/<name>.js and its types), in ds.js and in manifest.json "js"', () => {
+    const out = build();
+    const manifest = JSON.parse(out.get('manifest.json').toString('utf8'));
+    assert.deepEqual(Object.keys(manifest.js), MODULES);
+    for (const name of MODULES) {
+      assert.ok(out.has(`js/${name}.js`) && out.has(`js/${name}.d.ts`), name);
+      assert.match(out.get('ds.js').toString('utf8'), new RegExp(`add\\('${name}', \\[`), `ds.js adds ${name}`);
+      assert.equal(manifest.js[name].file, `js/${name}.js`);
+      for (const other of manifest.js[name].imports) assert.ok(MODULES.indexOf(other) < MODULES.indexOf(name), `${name} after ${other}`);
+    }
+    assert.match(read('src/types/ds.d.ts'), /\/\/ generated: modules/);
+    assert.equal(dsTypes(read('src/types/ds.d.ts')), read('src/types/ds.d.ts'), 'the generated blocks of ds.d.ts are current');
+  });
+});
+
 describe('types (dist/ds.d.ts, dist/js/*.d.ts)', () => {
   const out = build();
   it('ships src/types/ds.d.ts and one .d.ts next to every module, listed in SHA256SUMS', () => {
     const sums = out.get('SHA256SUMS').toString('utf8');
     const info = packageInfo();
-    assert.equal(out.get('ds.d.ts')?.toString('utf8'), withBanner('ds.d.ts', read('src/types/ds.d.ts'), info));
+    assert.equal(out.get('ds.d.ts')?.toString('utf8'), withBanner('ds.d.ts', dsTypes(read('src/types/ds.d.ts')), info));
     assert.match(sums, /^[0-9a-f]{64} {2}ds\.d\.ts$/m);
     for (const name of MODULES) {
-      assert.equal(out.get(`js/${name}.d.ts`)?.toString('utf8'), withBanner(`${name}.d.ts`, read(`src/types/js/${name}.d.ts`), info), name);
+      const types = read(moduleFiles(name).types);
+      assert.equal(out.get(`js/${name}.d.ts`)?.toString('utf8'), withBanner(`${name}.d.ts`, moduleFiles(name).component ? rewriteComponentImports(types, name) : types, info), name);
       assert.match(sums, new RegExp(`^[0-9a-f]{64}  js/${name}\\.d\\.ts$`, 'm'));
     }
     const global = stripComments(read('src/types/ds.d.ts'));
@@ -292,8 +340,9 @@ describe('types (dist/ds.d.ts, dist/js/*.d.ts)', () => {
 
   for (const name of MODULES) {
     it(`declares exactly the exports of js/${name}.js, with their parameters`, async () => {
-      const mod = await import(`../src/js/${name}.js`);
-      const types = stripComments(read(`src/types/js/${name}.d.ts`));
+      const files = moduleFiles(name);
+      const mod = await import(`../${files.source}`);
+      const types = stripComments(read(files.types));
       const functions = [...types.matchAll(/export declare function (\w+)/g)].map((m) => m[1]);
       const constants = [...types.matchAll(/export declare const (\w+)/g)].map((m) => m[1]);
       assert.equal(new Set(functions).size, functions.length, 'each function declared once (no overloads)');
@@ -301,9 +350,9 @@ describe('types (dist/ds.d.ts, dist/js/*.d.ts)', () => {
       for (const fn of functions) assert.equal(typeof mod[fn], 'function', `${fn} is a function`);
       for (const constant of constants) assert.notEqual(typeof mod[constant], 'function', `${constant} is a value`);
       assert.doesNotMatch(types, /export (?:default|=)|export (?:function|const|let|var|class) /, 'only `export declare` values and type exports');
-      assert.deepEqual(exportedParams(types, true), exportedParams(read(`src/js/${name}.js`), false), 'parameter names in order');
+      assert.deepEqual(exportedParams(types, true), exportedParams(read(files.source), false), 'parameter names in order');
       // Every option the module reads is declared, so a documented option type-checks without a cast.
-      const optionNames = [...new Set([...read(`src/js/${name}.js`).matchAll(/\boptions\.([A-Za-z_$][\w$]*)/g)].map((m) => m[1]))];
+      const optionNames = [...new Set([...read(files.source).matchAll(/\boptions\.([A-Za-z_$][\w$]*)/g)].map((m) => m[1]))];
       assert.deepEqual(optionNames.filter((option) => !new RegExp(`\\b${option.replace(/\$/g, '\\$')}\\??:`).test(types)), [], 'options the module reads but its .d.ts does not declare');
     });
   }

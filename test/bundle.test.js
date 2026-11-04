@@ -13,7 +13,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import vm from 'node:vm';
-import { MODULES, buildJs, packageInfo } from '../scripts/build.mjs';
+import { MODULES, buildJs, moduleSource, packageInfo } from '../scripts/build.mjs';
 import { bundle, expandGlobs, globRegExp, loadCopy, main, pruneIcons, scanText } from '../scripts/tools/bundle.mjs';
 import { classicScript, stripComments } from '../scripts/tools/js-wrap.mjs';
 import dashboardStyle, { CSS_ID, JS_ID } from '../scripts/tools/vite-plugin.mjs';
@@ -59,7 +59,7 @@ describe('tools/js-wrap.mjs', () => {
   it('writes ds.js exactly as the build does (the build writes it with classicScript)', () => {
     const info = packageInfo();
     const banner = `/*! ${info.name} ${info.version} | ${info.license} License | ${info.homepage} */\n`;
-    const modules = MODULES.map((name) => ({ name, source: read(`src/js/${name}.js`) }));
+    const modules = MODULES.map((name) => ({ name, source: moduleSource(name) }));
     assert.equal(classicScript({ version: info.version, banner, modules }), buildJs(info));
     assert.equal(buildJs(info), read('dist/ds.js'));
   });
@@ -130,7 +130,7 @@ describe('tools/js-wrap.mjs', () => {
   });
 
   it('strips every module of src/js into a script that keeps the same exports and constants', () => {
-    const full = MODULES.map((name) => ({ name, source: read(`src/js/${name}.js`) }));
+    const full = MODULES.map((name) => ({ name, source: moduleSource(name) }));
     const stripped = full.map(({ name, source }) => ({ name, source: stripComments(source) }));
     // The icons module is nearly all glyph strings, which stay as they are.
     for (const [index, module] of stripped.entries()) if (module.name !== 'icons') assert.ok(module.source.length < full[index].source.length * 0.85, `${module.name} gets smaller`);

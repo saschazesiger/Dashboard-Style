@@ -6,7 +6,7 @@
  * and indenting or wrapping a file changes none of their results (the
  * self-tests in helpers.test.js prove it).
  */
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -28,6 +28,17 @@ export function filesIn(dir, filter = () => true, skip = undefined) {
     if (statSync(join(ROOT, path)).isDirectory()) return skip && skip.test(name) ? [] : filesIn(path, filter, skip);
     return filter(path) ? [path] : [];
   });
+}
+
+/**
+ * Every JS module of src/: the core (src/js/*.js) and each component's
+ * behaviour module (src/components/<name>/<name>.js; its demo, lab, test
+ * and spec files are not modules).
+ */
+export function jsModules() {
+  const components = readdirSync(join(ROOT, 'src/components')).sort().filter((name) => !name.startsWith('_'))
+    .map((name) => `src/components/${name}/${name}.js`).filter((path) => existsSync(join(ROOT, path)));
+  return [...filesIn('src/js', (path) => path.endsWith('.js')), ...components];
 }
 
 /** Every stylesheet of src/ in cascade order (the @imports of src/index.css). */

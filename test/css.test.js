@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import * as icons from '../src/js/icons.js';
 import { RIPPLE_HOSTS } from '../src/js/ripple.js';
 import {
-  ROOT, atRuleBlocks, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
+  ROOT, atRuleBlocks, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, jsModules, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
 } from './helpers.js';
 
 const ALL_CSS = [...filesIn('src', (path) => path.endsWith('.css')), 'fonts/fonts.css', ...filesIn('themes', (path) => path.endsWith('.css'))];
@@ -1132,7 +1132,7 @@ describe('CSS for the baseline', () => {
   it('names a fallback for every "Progressive:" entry of a src/ header (<feature>: <what happens without it>)', () => {
     // The note is a list at the end of its paragraph: "Progressive:" on a line
     // of its own, then "- <feature> (<what it adds>): <the fallback>" entries.
-    const files = [...SRC_CSS, ...filesIn('src/js', (path) => path.endsWith('.js'))];
+    const files = [...SRC_CSS, ...jsModules()];
     const offenders = [];
     let notes = 0;
     for (const file of files) {
@@ -2038,7 +2038,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
     const pseudoNames = all.flatMap((rule) => rule.parts.flatMap((part) => [...part.matchAll(/::view-transition-[\w-]+\(([^)]*)\)/g)].map((match) => match[1])));
     for (const name of pseudoNames) assert.match(name, /^(\*|root|ds-[\w-]+)$/, name);
     // Inline names written by the scripts: ds-<name>, or none while a name is lifted.
-    const written = filesIn('src/js', (path) => path.endsWith('.js')).flatMap((file) => [
+    const written = jsModules().flatMap((file) => [
       ...[...read(file).matchAll(/setProperty\('view-transition-name',\s*['`]([^'`]*)['`]/g)].map((match) => match[1]),
       ...[...read(file).matchAll(/viewTransitionName\s*=\s*['`]([^'`]*)['`]/g)].map((match) => match[1]),
     ]);

@@ -146,7 +146,7 @@ describe('generated files of the repository', () => {
   it('are up to date (npm run build writes them, --check compares them)', () => {
     assert.deepEqual(diffGenerated(), []);
     assert.deepEqual([...generatedFiles().keys()], ['src/index.css', 'docs/components.md', 'styleguide/demos.js', 'styleguide/lab-components.js', 'docs/theming.md',
-      'docs/motion.md', 'docs/install.md', 'src/types/ds.d.ts', 'src/js/ripple.js']);
+      'docs/motion.md', 'docs/install.md', 'src/types/ds.d.ts', 'src/js/ripple.js', 'README.md']);
   });
 
   it('src/index.css: the layer statement, the sublayers and the imports in meta.json "order"', () => {

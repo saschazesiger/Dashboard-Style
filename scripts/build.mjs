@@ -1103,7 +1103,15 @@ export function generatedFiles(list = components()) {
     ['docs/install.md', replaceBlock(repoText('docs/install.md'), 'docs/install.md', 'modules', modulesTable(list))],
     ['src/types/ds.d.ts', dsTypes(repoText('src/types/ds.d.ts'))],
     ['src/js/ripple.js', replaceBlock(repoText('src/js/ripple.js'), 'src/js/ripple.js', 'ripple hosts', rippleHostLines(list))],
+    ['README.md', readmeCount(repoText('README.md'), list.length)],
   ]);
+}
+
+/** README.md with the component count of its Components badge (a badge line takes no marker comments). */
+export function readmeCount(text, count) {
+  const badge = /!\[Components: \d+\]\(https:\/\/img\.shields\.io\/badge\/components-\d+-/;
+  if (!badge.test(text)) throw new Error('README.md: no "![Components: <n>](https://img.shields.io/badge/components-<n>-..." badge');
+  return text.replace(badge, `![Components: ${count}](https://img.shields.io/badge/components-${count}-`);
 }
 
 /** Generated files that differ from what is on disk. */

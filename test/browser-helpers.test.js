@@ -110,3 +110,21 @@ describe('browser test helpers', () => {
     expectSmooth([{ t: 0, v: 1 }, { t: 16, v: 1 }], 'still');
   });
 });
+
+describe('the component fixture route of serve.js', async () => {
+  const { COMPONENT_FIXTURE, componentFixture } = await import('./browser/serve.js');
+  it('writes the page of one component: dist, the SG stub, its demo file, then the mount and DS.init()', () => {
+    assert.equal(COMPONENT_FIXTURE, '/test/browser/fixtures/component.html');
+    const page = componentFixture(new URLSearchParams('c=date-picker&demo=range'));
+    const scripts = [...page.matchAll(/<script src="([^"]+)"><\/script>/g)].map((match) => match[1]);
+    assert.deepEqual(scripts, ['/dist/ds.js', '/test/browser/fixtures/sg-stub.js', '/src/components/date-picker/date-picker.demo.js', '/test/browser/fixtures/fixture.js']);
+    assert.match(page, /SG\.mount\(document\.getElementById\('fx-component'\), \{ only: "range" \}\)/);
+    assert.match(page, /DS\.init\(document\);/);
+    assert.match(componentFixture(new URLSearchParams('c=x&min=1')), /\/dist\/ds\.min\.css[\s\S]*\/dist\/ds\.min\.js/);
+  });
+
+  it('takes only a component name, and keeps a demo name out of the markup', () => {
+    for (const bad of ['', '../x', 'X', 'a/b', 'a b']) assert.equal(componentFixture(new URLSearchParams({ c: bad })), null, bad);
+    assert.doesNotMatch(componentFixture(new URLSearchParams({ c: 'x', demo: '</script><b>' })), /<\/script><b>/);
+  });
+});
