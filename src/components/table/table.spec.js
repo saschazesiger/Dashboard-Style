@@ -27,6 +27,36 @@ async function open(page) {
 const height = (page, selector) => page.$eval(selector, (el) => el.getBoundingClientRect().height);
 const style = (page, selector, property, pseudo) => page.$eval(selector, (el, [name, part]) => getComputedStyle(el, part).getPropertyValue(name), [property, pseudo]);
 
+/* The focus colour as [r, g, b], read through a canvas like the pixels below. */
+const focusColour = (page) => page.evaluate(() => {
+  const probe = document.createElement('div');
+  probe.style.background = 'var(--ds-focus)';
+  document.querySelector('.ds-theme').append(probe);
+  const context = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  context.fillStyle = getComputedStyle(probe).backgroundColor;
+  context.fillRect(0, 0, 1, 1);
+  probe.remove();
+  return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
+});
+
+/* The colours of page points as they show on screen (no image library in the tests: the page decodes the shot). */
+async function pixels(page, points) {
+  const png = await page.screenshot({ animations: 'disabled' });
+  return page.evaluate(async ([data, spots]) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${data}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(image, 0, 0);
+    return spots.map(({ x, y }) => Array.from(context.getImageData(Math.round(x), Math.round(y), 1, 1).data).slice(0, 3));
+  }, [png.toString('base64'), points]);
+}
+
+const near = (colour, want) => colour.every((value, index) => Math.abs(value - want[index]) <= 24);
+
 test('head and row height at every size x density, and .ds-touch as a minimum over both', async ({ page }) => {
   await open(page);
   const measured = await page.evaluate(({ sizes, densities }) => {
@@ -459,8 +489,7 @@ for (const [title, wrap, row, cell, opened] of [
     await page.mouse.up();
   });
 
-  // Needs the src/js/ripple.js change the integrator takes (ripple.js is outside this folder): remove .fixme with it.
-  test.fixme(`${title}, with DS.ripple.attach(): a press on the last cell's own room opens nothing and does not ripple, the rest of the row opens`, async ({ page }) => {
+  test(`${title}, with DS.ripple.attach(): a press on the last cell's own room opens nothing and does not ripple, the rest of the row opens`, async ({ page }) => {
     await open(page);
     await page.evaluate(() => { DS.ripple.attach(document); });
     const room = await emptyRoom(page, `#${cell}`);
@@ -475,7 +504,82 @@ for (const [title, wrap, row, cell, opened] of [
     await page.mouse.click(middle.x, middle.y);
     await expect(page).toHaveURL(opened);
   });
+
+  test(`${title}, with DS.ripple.attach(): a press on the row ripples through the last cell at the same centre, and its button stays`, async ({ page }) => {
+    await open(page);
+    await page.evaluate(() => { DS.ripple.attach(document); });
+    await emptyRoom(page, `#${cell}`);
+    const button = () => page.$eval(`#${cell} button`, (el) => el.getBoundingClientRect().left);
+    const before = await button();
+    const middle = await centre(page, wrap, row);
+    await page.mouse.move(middle.x, middle.y);
+    await page.mouse.down();
+    await expect(page.locator(`#${cell} > .ds-press-ripple`)).toHaveCount(1);
+    const centres = await page.$$eval(`#${row} .ds-press-ripple`, (spans) => spans.map((span) => {
+      const box = span.getBoundingClientRect();
+      const css = getComputedStyle(span);
+      return { x: box.left + parseFloat(css.getPropertyValue('--ds-ripple-x')), y: box.top + parseFloat(css.getPropertyValue('--ds-ripple-y')) };
+    }));
+    expect(centres).toHaveLength(title === 'both pins' ? 3 : 2);
+    for (const point of centres) {
+      expect(Math.abs(point.x - middle.x), `${point.x} of ${middle.x}`).toBeLessThanOrEqual(2);
+      expect(Math.abs(point.y - middle.y), `${point.y} of ${middle.y}`).toBeLessThanOrEqual(2);
+    }
+    expect(await button(), 'the span is first in the cell, so the button keeps :last-child').toBe(before);
+    // Off the row: the press ends without a click, and every part goes.
+    await page.mouse.move(1, 1);
+    await page.mouse.up();
+    await expect(page.locator(`#${row} .ds-press-ripple`)).toHaveCount(0);
+  });
 }
+
+test('both pins, with DS.ripple.attach(): a middle press on the last cell\'s own room forwards nothing and keeps the autoscroll', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    DS.ripple.attach(document);
+    window.opened = [];
+    window.open = (url) => { window.opened.push(url); return null; };
+    window.addEventListener('mousedown', (event) => { window.cancelled = event.defaultPrevented; });
+  });
+  const room = await emptyRoom(page, '#both-last-a');
+  await page.mouse.click(room.x, room.y, { button: 'middle' });
+  expect(await page.evaluate(() => window.cancelled), 'the room').toBe(false);
+  expect(await page.evaluate(() => window.opened)).toEqual([]);
+  const middle = await centre(page, 'pin-both-wrap', 'both-a');
+  await page.mouse.click(middle.x, middle.y, { button: 'middle' });
+  expect(await page.evaluate(() => window.cancelled), 'the row').toBe(true);
+  await expect.poll(() => page.evaluate(() => window.opened.length)).toBe(1);
+});
+
+test('a row link in another cell finishes its ring on the pinned last cell, and the row keeps its height', async ({ page }) => {
+  await open(page);
+  const focus = await focusColour(page);
+  await page.locator('#pin-wrap').scrollIntoViewIfNeeded();
+  expect(await style(page, '#pin-last-a', 'border-block-start-style', '::before'), 'at rest').toBe('none');
+  const rest = await height(page, '#pin-a');
+  await page.focus('#pin-a a');
+  expect(await style(page, '#pin-last-a', 'border-block-start-width', '::before')).toBe('2px');
+  expect(await style(page, '#pin-last-a', 'border-inline-end-width', '::before')).toBe('2px');
+  expect(await style(page, '#pin-last-a', 'border-block-end-width', '::before')).toBe('2px');
+  expect(await style(page, '#pin-last-a', 'border-inline-start-width', '::before')).toBe('0px');
+  expect(await height(page, '#pin-a')).toBe(rest);
+  await expect.poll(() => style(page, '#pin-a a', 'outline-offset', '::after')).toBe('-2px');
+  const places = await page.evaluate(() => {
+    const row = document.getElementById('pin-a').getBoundingClientRect();
+    const cell = document.getElementById('pin-last-a').getBoundingClientRect();
+    const x = cell.left + cell.width / 2;
+    const y = row.top + row.height / 2;
+    return { top: { x, y: row.top + 1 }, bottom: { x, y: row.bottom - 1 }, end: { x: cell.right - 1, y }, rowBottom: { x: cell.left - 24, y: row.bottom - 2 } };
+  });
+  const [top, bottom, end, rowBottom] = await pixels(page, [places.top, places.bottom, places.end, places.rowBottom]);
+  expect(near(top, focus), `top ${top} of ${focus}`).toBe(true);
+  expect(near(bottom, focus), `bottom ${bottom} of ${focus}`).toBe(true);
+  expect(near(end, focus), `end ${end} of ${focus}`).toBe(true);
+  expect(near(rowBottom, focus), `the row's own ring on the same line: ${rowBottom} of ${focus}`).toBe(true);
+  // Both pins: the link's ring stays in the pinned first cell, so the last cell paints none.
+  await page.focus('#both-a a');
+  expect(await style(page, '#both-last-a', 'content', '::before')).toBe('none');
+});
 
 test('stacked rows: a pinned last cell steps aside', async ({ page }) => {
   await open(page);
@@ -503,6 +607,8 @@ test('forced colours: sticky rows and the pinned last column are Canvas', async 
   // The zebra goes and the row keeps its hairline.
   expect(await style(page, '#z2', 'background-color')).toBe(canvas);
   expect(await style(page, '#lined-1', 'border-block-end-style')).toBe('solid');
+  // A plain table relied on the zebra: its rows get their lines back.
+  expect(await style(page, '#plain-1', 'border-block-end-style')).toBe('solid');
   const ink = await page.evaluate(() => {
     const probe = document.createElement('div');
     probe.style.background = 'CanvasText';
@@ -528,6 +634,79 @@ test('forced colours: sticky rows and the pinned last column are Canvas', async 
   for (const selector of ['#pin-last-a', '#pin-head-last', '#pin-foot-last', '#sticky-body td:first-child', '#sticky-head th:first-child', '#sticky-foot-first']) {
     await expect.poll(() => page.$eval(selector, (el) => Number(getComputedStyle(el, '::after').opacity)), { message: selector }).toBeGreaterThan(0.9);
     expect(await style(page, selector, 'background-color', '::after'), selector).toBe(ink);
+  }
+});
+
+test('a tab stop with sticky rows or a pinned column: its ring goes round the box, also past the head and the foot', async ({ page }) => {
+  await open(page);
+  const focus = await focusColour(page);
+  const edges = async (selector) => {
+    const wrap = page.locator(selector);
+    await wrap.evaluate((el) => el.setAttribute('tabindex', '0'));
+    await wrap.scrollIntoViewIfNeeded();
+    await expect.poll(() => style(page, selector, 'outline-offset'), { message: `${selector} at rest` }).toBe('2px');
+    await wrap.focus();
+    await expect.poll(() => style(page, selector, 'outline-offset'), { message: selector }).toBe('0px');
+    expect(await style(page, selector, 'outline-style'), selector).toBe('solid');
+    const box = await wrap.boundingBox();
+    const y = box.y + box.height / 2;
+    const x = box.x + box.width / 2;
+    const seen = await pixels(page, [{ x, y: box.y - 1 }, { x, y: box.y + box.height + 0.5 }, { x: box.x - 1, y }, { x: box.x + box.width + 0.5, y }]);
+    seen.forEach((colour, index) => {
+      expect(near(colour, focus), `${selector} ${['top', 'bottom', 'start', 'end'][index]}: ${colour} of ${focus}`).toBe(true);
+    });
+    await wrap.evaluate((el) => el.blur());
+  };
+  await edges('#sticky-wrap');
+  await edges('#pin-fill');
+  // A plain wrapper keeps the inset ring.
+  await page.focus('#k-region');
+  await expect.poll(() => style(page, '#k-region', 'outline-offset')).toBe('-2px');
+  // In a card, as the demo shows it.
+  await page.goto('/test/browser/fixtures/component.html?c=table');
+  await ready(page);
+  await edges('[data-demo="sticky"] .ds-table-wrap');
+});
+
+test('a focused tab stop shows unmasked, also a wide table in a card in a narrow content area', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<div class="ds-content" style="width: 480px"><section class="ds-card"><div class="ds-table-wrap" id="wide-stop" tabindex="0" role="region" aria-label="Wide"><table class="ds-table ds-table--wide ds-table--pin-first"><tbody><tr><td>A</td><td class="ds-nowrap" style="min-width: 800px">B</td></tr></tbody></table></div></section></div>');
+  });
+  expect(await style(page, '#wide-stop', 'mask-image')).not.toBe('none');
+  await page.focus('#wide-stop');
+  expect(await style(page, '#wide-stop', 'mask-image')).toBe('none');
+});
+
+test('the selection bar crosses with a shorter toolbar in its slot: the table stays, at every step of the crossfade', async ({ page }) => {
+  await page.goto('/test/browser/fixtures/component.html?c=table');
+  await ready(page);
+  const bulk = page.locator('[data-demo="bulk"]');
+  for (const classes of ['', 'ds-lg', 'ds-density-tight']) {
+    await bulk.evaluate((el, name) => { el.className = `ds-card ${name}`; }, classes);
+    const top = () => bulk.evaluate((el) => el.querySelector('table').getBoundingClientRect().top - el.getBoundingClientRect().top);
+    const rest = await top();
+    /* Every frame of the swap, from the change on. */
+    const seen = await bulk.evaluate(async (el) => {
+      const box = el.querySelector('tbody input');
+      const out = [];
+      const read = () => out.push(el.querySelector('table').getBoundingClientRect().top - el.getBoundingClientRect().top);
+      box.click();
+      read();
+      for (let i = 0; i < 30; i += 1) {
+        await new Promise(requestAnimationFrame);
+        read();
+      }
+      box.click();
+      read();
+      for (let i = 0; i < 30; i += 1) {
+        await new Promise(requestAnimationFrame);
+        read();
+      }
+      return out;
+    });
+    expect(new Set(seen), `"${classes}": ${[...new Set(seen)]} from ${rest}`).toEqual(new Set([rest]));
+    await expect(bulk.locator('.ds-selection-bar')).toHaveCount(0);
   }
 });
 

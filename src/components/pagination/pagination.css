@@ -177,7 +177,8 @@
       display: none;
     }
 
-    .ds-pagination__range {
+    .ds-pagination__range,
+    .ds-pagination--simple .ds-pagination__range {
       margin-inline-end: auto;
     }
 

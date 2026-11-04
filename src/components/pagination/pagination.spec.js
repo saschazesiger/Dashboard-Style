@@ -150,6 +150,14 @@ test('the fields keep their own width; they drop in a narrow content area and th
   await expect(page.locator('#narrow-jump')).toBeHidden();
   const narrow = await page.locator('#narrow').boundingBox();
   expect((await page.locator('#narrow-range').boundingBox()).x - narrow.x).toBeLessThan(2);
+  // So does the range of a simple bar, whose buttons stay at the end.
+  await page.evaluate(() => {
+    document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<div class="ds-content" style="width: 480px"><nav class="ds-pagination ds-pagination--simple" aria-label="Narrow, simple" id="narrow-simple"><p class="ds-pagination__range" id="narrow-simple-range">Page 1 of 25</p><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Previous page">P</button><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Next page" id="narrow-simple-next">N</button></nav></div>');
+  });
+  const simple = await page.locator('#narrow-simple').boundingBox();
+  const next = await page.locator('#narrow-simple-next').boundingBox();
+  expect((await page.locator('#narrow-simple-range').boundingBox()).x - simple.x).toBeLessThan(2);
+  expect(simple.x + simple.width - (next.x + next.width)).toBeLessThan(2);
 });
 
 test('numbered in a narrow content area: the range on its own line; previous, the current page and next share one', async ({ page }) => {

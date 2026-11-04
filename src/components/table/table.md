@@ -147,7 +147,8 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   accessibility error).
 - The row decides its layers and its cells paint them (2.0): each body row sets `--ds-table-row-layer` (the state
   layer), `--ds-table-row-pace` (how fast it changes), `--ds-table-row-tint` (the selection a pinned cell lays over
-  its base) and `--ds-table-row-line` (the style of its hairline). They are internal: a page never sets them; to
+  its base), `--ds-table-row-line` (the style of its hairline) and `--ds-table-row-ring` (the row link's ring on a pinned
+  last cell). They are internal: a page never sets them; to
   change the look, set `--ds-table-row-hover` and `--ds-table-row-selected`. A cell rule behind a row's `:has()`
   would make Chromium restyle every table cell of the page on each change anywhere in it.
 
@@ -265,7 +266,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
   and `DS.motion.crossfade(slot, bar)` swaps them when the count goes from 0 to 1 and back
   (`crossfade(slot, toolbar)`), so the table never moves. The count changes at once, never with a crossfade, and
   says the state (the `--ds-accent` tint with `--ds-on-accent` ink does not). The slot sits in a grid (a
-  `.ds-toolbar`), where it takes the full width.
+  `.ds-toolbar`), where it takes the full width and keeps the bar's height, also while a shorter toolbar stands in it.
 - "Clear selection" unchecks every row and moves focus to the header checkbox (the bar goes). In forced colours the
   bar keeps an outline; in print it is hidden.
 
@@ -291,7 +292,7 @@ Zebra, borders, sticky rows and pinned columns combine. There is no tone: a tabl
 ### Sticky rows
 
 ```html
-<div class="ds-table-wrap" style="--ds-table-max-height: 320px">
+<div class="ds-table-wrap" style="--ds-table-max-height: 320px" tabindex="0" role="region" aria-label="Devices">
   <table class="ds-table ds-table--sticky-head ds-table--sticky-foot">
     <thead>...</thead>
     <tbody>...</tbody>
@@ -300,7 +301,8 @@ Zebra, borders, sticky rows and pinned columns combine. There is no tone: a tabl
 </div>
 ```
 
-A sticky row sticks to its scroller, and the wrapper is one: set `--ds-table-max-height` on it (or in the theme), or the
+The wrapper is a tab stop, so the keyboard reaches the rows that scroll; drop `tabindex`, `role` and `aria-label` when the
+cells hold focusable controls. A sticky row sticks to its scroller, and the wrapper is one: set `--ds-table-max-height` on it (or in the theme), or the
 rows have nowhere to scroll and nothing sticks. `.ds-table-wrap--fill` needs neither the class nor the hook for its
 header. Sticky cells are opaque (`--ds-table-sticky-bg`); keyboard focus never lands under them, wherever the size,
 density or touch sits (`scroll-padding` on the wrapper, and a `scroll-margin` on what takes focus for the options on
@@ -316,9 +318,9 @@ page's own sticky bar.
 opaque with the row's layers over it, a hairline at its start shows while columns follow under it (scroll-driven, else
 `data-ds-overflow-end` from `DS.dom.scrollEdges()`), and the wrapper drops its end fade (`--ds-table-end-fade`,
 internal). Its cell stands above the row link, so its own room opens nothing, with no pointer, no press and no ripple:
-put the row's controls there. Set
-`--ds-table-pin-last-width` on the wrapper to its width, so focus moved by the keyboard never lands under it
-(`scrollEdges()` measures only the first column).
+put the row's controls there. A press on the rest of the row ripples through the cell as well, and a focused row link
+that is not in a pinned first cell finishes its ring on it. Set `--ds-table-pin-last-width` on the wrapper to its width:
+`scrollEdges()` measures only the first column, so without it focus moved by the keyboard can land under the last one.
 
 ### Accessibility
 
@@ -326,14 +328,16 @@ put the row's controls there. Set
   cells, and an empty header cell gets a `.ds-sr` name. Stacked rows keep their table roles in every engine.
 - **Keyboard.** Tab reaches every control in order: sort buttons, checkboxes, toggles, row links, row actions; Enter or
   Space activates them. A wrapper whose cells hold nothing focusable takes `tabindex="0" role="region" aria-label`, and
-  the arrow keys scroll it. Focus never lands under a sticky row or a pinned column.
+  the arrow keys scroll it. Focus never lands under a sticky row or a pinned first column; under a pinned last column only
+  while the page sets `--ds-table-pin-last-width`. A wrapper with sticky rows or a pinned column draws its ring outside
+  its box, since those cells would paint over a ring inside it.
 - **Status** is never colour alone: selected rows keep their checkbox, sorted columns their arrow and `aria-sort`.
 
 ### Forced colours
 
 Sticky and pinned cells are `Canvas`, so nothing shows through them, and the pinned columns' hairlines and the full-page
-wrapper's border are `CanvasText`. Zebra and selection tints go (the rows keep their hairlines, a selected row its checkbox), and the selection bar keeps
-an outline. `.ds-table--plain` then has no lines between its rows.
+wrapper's border are `CanvasText`. Zebra and selection tints go (the rows keep their hairlines, also in `.ds-table--plain`,
+and a selected row its checkbox), and the selection bar keeps an outline.
 
 ### Hooks
 
@@ -363,4 +367,9 @@ an outline. `.ds-table--plain` then has no lines between its rows.
 - Deprecated: `.ds-table--dense` and `--ds-table-dense-row-height` (use `.ds-density-tight`; removed when 3.0 ships).
 - A wrapper with sticky rows is a stacking context and hands the wheel on to the page; the pinned columns' hairlines
   show in forced colours; `--ds-table-padding` also sets the phones' side padding.
+- `DS.ripple.attach()` knows a pinned last column: a press on its own room shows no press and opens nothing, and a row's
+  ripple reaches the cell in a part of its own. A focused row link finishes its ring on the cell.
+- A wrapper that is a tab stop draws its ring outside the box when it holds sticky rows or a pinned column; the
+  `.ds-toolbar > .ds-swap` slot keeps the selection bar's height, so the table stays where it is; `.ds-table--plain`
+  keeps its row lines in forced colours.
 - Floor: no `-webkit-mask-*` twins on the table wrappers, and the alt text of a stacked cell's label is used directly.

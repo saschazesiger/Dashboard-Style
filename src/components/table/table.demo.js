@@ -197,7 +197,7 @@ SG.demo('table', {
         fleet(2).map(function (row) { return '<tr><td class="ds-nowrap">' + row.name + '</td><td class="ds-nowrap">' + row.serial + '</td><td class="ds-nowrap">' + row.bought + '</td></tr>'; }).join('') + '</tbody></table></div></section>',
         'The rows dim while new ones load; an empty result is the filter above. A wrapper with nothing focusable in its cells is a tab stop itself.') +
 
-      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each sort button, checkbox, toggle, row link and row action; <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> uses it. A focused row link rings the whole row. Focus never lands under a sticky row or a pinned column.</p>');
+      h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each sort button, checkbox, toggle, row link and row action; <kbd class="ds-kbd">Enter</kbd> or <kbd class="ds-kbd">Space</kbd> uses it. A focused row link rings the whole row. Focus never lands under a sticky row or a pinned first column; under a pinned last column only while the page sets --ds-table-pin-last-width.</p>');
   },
 
   wire: function (root, h) {
