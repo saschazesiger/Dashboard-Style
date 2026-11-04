@@ -44,7 +44,7 @@ import { ready, settle, expectWithin, expectMonotonic, expectPeakAtMost, expectS
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const LAB = '/styleguide/motion.html';
 const VIDEO = !!process.env.DS_VIDEO;
-const STYLEGUIDE = '/styleguide/index.html';
+const STYLEGUIDE = '/styleguide/legacy.html';
 // The expected plots and ladder rows come from the tokens themselves, in
 // their order in src/core/tokens.css, so a new --ds-ease-* or --ds-dur-* token
 // without a plot or a row fails.

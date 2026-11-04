@@ -23,7 +23,7 @@
 import { test, expect } from '@playwright/test';
 import { ready, settle, seek } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/index.html';
+const STYLEGUIDE = '/styleguide/legacy.html';
 const FIXTURES = '/test/browser/fixtures/';
 const STEPS = [0, 0.5, 1];
 

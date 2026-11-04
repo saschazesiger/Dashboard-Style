@@ -129,7 +129,7 @@ test.describe('where the themes are offered', () => {
     // one page), each re-reading the values and the theme check: about 17s
     // alone in Firefox, more while other workers share the CPU.
     test.slow();
-    await page.goto('/styleguide/index.html');
+    await page.goto('/styleguide/legacy.html');
     await ready(page);
     const scheme = () => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
     for (const [value, expected] of [['dark', 'dark'], ['compact', 'light'], ['contrast', 'light'], ['default', 'light']]) {
@@ -186,7 +186,7 @@ test.describe('where the themes are offered', () => {
   });
 
   test('the styleguide theme check lists what a loaded theme fails, each row with an icon and a word', async ({ page }) => {
-    await page.goto('/styleguide/index.html');
+    await page.goto('/styleguide/legacy.html');
     await ready(page);
     const check = page.locator('#sg-theme-check');
     await expect(check.locator('.sg-finding[data-ok="false"]')).toHaveCount(0);
@@ -209,7 +209,7 @@ test.describe('where the themes are offered', () => {
   });
 
   test('the styleguide theme check reads a light-dark() theme in each scheme it shows', async ({ page }) => {
-    await page.goto('/styleguide/index.html');
+    await page.goto('/styleguide/legacy.html');
     await ready(page);
     const check = page.locator('#sg-theme-check');
     // Passes in light, fails in dark: the dark text-2 tone on the dark surface.

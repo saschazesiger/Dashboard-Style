@@ -236,7 +236,7 @@ test.describe('side sheet head and foot (2.0)', () => {
 test.describe('confirm by typing the name (2.0, the styleguide recipe)', () => {
   test('the action is blocked until the name is typed; Enter runs it busy (Escape waits, the field read-only); then it closes with a snackbar', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('/styleguide/index.html');
+    await page.goto('/styleguide/legacy.html');
     await ready(page);
     await page.locator('[data-sg="dialog-type"]').click();
     const dialog = page.locator('#sg-dialog-type');

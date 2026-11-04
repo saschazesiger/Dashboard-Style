@@ -106,14 +106,14 @@ const STYLE_CEILING = 7.5;
 
 /** Where each page gets its text change: an element inside a card (the targets of review.spec.js, "style scope"). */
 const STYLE_TARGETS = {
-  '/styleguide/index.html': '.ds-card p',
+  '/styleguide/legacy.html': '.ds-card p',
   '/styleguide/motion.html': '[data-lab-demo="progress"] .ds-progress__label',
-  '/styleguide/index.html?savebar': '.ds-card p',
+  '/styleguide/legacy.html?savebar': '.ds-card p',
 };
 
 /** What a page shows before its text changes: the styleguide's save bar (sticky, and the view and content rules of data-ds-savebar). */
 const STYLE_SETUP = {
-  '/styleguide/index.html?savebar': async (page) => {
+  '/styleguide/legacy.html?savebar': async (page) => {
     await page.fill('#sg-sb-name', 'LAPTOP-0043');
     await expect(page.locator('#main')).toHaveAttribute('data-ds-savebar', '');
   },

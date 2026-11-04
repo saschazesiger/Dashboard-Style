@@ -8,7 +8,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { ready, settle } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/index.html';
+const STYLEGUIDE = '/styleguide/legacy.html';
 const FIXTURES = '/test/browser/fixtures/';
 const VERSION = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
 

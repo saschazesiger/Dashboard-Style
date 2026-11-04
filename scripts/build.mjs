@@ -667,7 +667,8 @@ ${parts.join('\n')}})(typeof globalThis !== 'undefined' ? globalThis : this);
  * styleguide/registry.js: what the styleguide knows from the folders, as
  * window.SG_REGISTRY (a classic script, for file://): the groups, every
  * component (name, group, order, need, tier, status, whether it has a
- * demo, its classes, attributes and hooks) in meta.json "order", every
+ * demo, its anchor in docs/components.md, its classes, attributes and
+ * hooks) in meta.json "order", every
  * token of src/core/tokens.css as [name, "scale" or "role"], and the rows
  * of the 2.x "Which component for which need" table (the intro partial of
  * docs/components.md) as [need, component]: the component whose docs
@@ -697,9 +698,10 @@ export function registryJs(list) {
     const owned = [...use.matchAll(/`\.(ds-[\w-]+)/g)].map((m) => owners.get(m[1])).find(Boolean);
     if (linked || owned) needs.push([plain(need), linked || owned]);
   }
-  const components = list.map(({ name, meta, demo }) => JSON.stringify({
+  const docsAnchor = (md) => (md ? slug(/^## (.+)$/m.exec(repoText(md))?.[1] ?? '') : null);
+  const components = list.map(({ name, meta, demo, md }) => JSON.stringify({
     name, group: meta.group, order: meta.order, need: meta.need ?? null, tier: meta.tier ?? null, status: meta.status ?? null,
-    demo: Boolean(demo), classes: meta.classes, attributes: meta.attributes, hooks: meta.hooks,
+    demo: Boolean(demo), docs: docsAnchor(md), classes: meta.classes, attributes: meta.attributes, hooks: meta.hooks,
   }));
   return `/*
  * The styleguide's registry: the groups, the components (from every

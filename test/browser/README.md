@@ -50,6 +50,7 @@ npm run test:browser -- --project=perf   # the paint budget and style recalc tim
 
 | Spec | Engines | Asserts |
 |---|---|---|
+| `styleguide-v3.spec.js` | all | the 3.0 styleguide (`index.html`, `shell.js`, `sg-core.js`): the drawer from the registered demos and the registry, every demo renders without a console error, the options panel's classes around the demo, search, the live theme generator, `file://` |
 | `smoke.spec.js` | all | the server (types, no listings, nothing outside the root); the styleguide reaches `data-sg-ready` with no console error and runs the `DS.version` of `package.json`; every fixture loads cleanly; `module.html` imports the six ES modules; a theme switch sets `data-sg-theme` and re-places the three indicators; a saved theme loads before `data-sg-ready`; `?speed=0.1` slows the styleguide and the fixtures |
 | `spike.spec.js` | all | the ten capabilities of the spike ("Capability spike") |
 | `baseline.spec.js` | all (phone, themes, forced colours: Chromium) | settled screenshots ("Baselines") |
@@ -521,7 +522,7 @@ New lab demos get their snapshots with `--update-snapshots=missing` in the conta
 
 ## Review sweeps: `review.spec.js`
 
-- **Quiet load:** from load until settled, every `transitionrun` and `animationstart` on `index.html` and
+- **Quiet load:** from load until settled, every `transitionrun` and `animationstart` on `legacy.html` (the 2.x sections) and
   `motion.html` must come from a source on the `QUIET` list, each with its reason: loops, loaders after their delay,
   the first-render stagger, scroll-driven effects, and the documented first-render entrances of content in the
   markup (a status icon, a validation message, the overlays the index shows in place). Nothing on a chip, switch,
@@ -537,7 +538,7 @@ New lab demos get their snapshots with `--update-snapshots=missing` in the conta
 - **Forced colours** (Chromium): screenshots of both pages and of the lab's Controls and Feedback sections with
   `forcedColors: 'active'`.
 - **Page loads** (where `onpagereveal` exists: Chromium, WebKit): at a height where both drawer lists fit, the
-  drawer's "Motion Lab" link from `index.html` and the link back each run a cross-document View Transition in which
+  drawer's "Motion Lab" link from `legacy.html` and its link on to `index.html` (the 3.0 styleguide) each run a cross-document View Transition in which
   `ds-drawer`, `ds-panel`, `ds-view` and `ds-indicator-nav` have groups of their own, no image of the drawer plays a
   slide (a one-sided drawer would), and the pill's group starts inside the drawer. At 1280x800 the index's list
   scrolls to its "Motion Lab" link, so the active item's pill is out of view: it gets no group and never starts

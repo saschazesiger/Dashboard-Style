@@ -87,7 +87,7 @@ describe('src/components/<name>/', () => {
 describe('generated files of the repository', () => {
   it('are up to date (npm run build writes them, --check compares them)', () => {
     assert.deepEqual(diffGenerated(), []);
-    assert.deepEqual([...generatedFiles().keys()], ['src/index.css', 'docs/components.md', 'styleguide/demos.js']);
+    assert.deepEqual([...generatedFiles().keys()], ['src/index.css', 'docs/components.md', 'styleguide/demos.js', 'styleguide/registry.js']);
   });
 
   it('src/index.css: the layer statement, the sublayers and the imports in meta.json "order"', () => {
@@ -116,14 +116,39 @@ describe('generated files of the repository', () => {
     }
   });
 
-  it('styleguide/demos.js: one SG_DEMOS entry per <name>.demo.js, loaded by the styleguide before styleguide.js', () => {
-    const demos = read('styleguide/demos.js');
+  it('styleguide/demos.js: every <name>.demo.js registers through SG.demo() of sg-core.js, which both styleguide pages load first', () => {
+    const run = (source, context) => vm.runInNewContext(source, context);
+    const context = { DS: { icons: {}, overlay: {} } };
+    context.globalThis = context;
+    assert.throws(() => run(read('styleguide/demos.js'), { ...context, globalThis: {} }), /load styleguide\/sg-core\.js first/);
+    run(read('styleguide/sg-core.js'), context);
+    run(read('styleguide/demos.js'), context);
+    assert.deepEqual([...context.SG.list().map((spec) => spec.name)].sort(), list.filter((entry) => entry.demo).map((entry) => entry.name).sort());
+    for (const spec of context.SG.list()) {
+      const meta = list.find((entry) => entry.name === spec.name).meta;
+      assert.equal(spec.group, meta.group, `${spec.name}: the demo's group is meta.json's`);
+      assert.ok(spec.title && spec.need && typeof spec.render === 'function', `${spec.name}: title, need and render`);
+    }
+    // A demo file is a classic script: its top-level names stay inside its own function.
+    assert.equal(context.DAYS, undefined);
+    assert.match(read('styleguide/index.html'), /<script src="sg-core\.js"><\/script>\n<script src="registry\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="shell\.js"><\/script>/);
+    assert.match(read('styleguide/legacy.html'), /<script src="sg-core\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
+  });
+
+  it('styleguide/registry.js: every component of meta.json, the tokens of tokens.css and the 2.x need rows', () => {
     const context = {};
     context.globalThis = context;
-    vm.runInNewContext(demos, context);
-    assert.deepEqual(Object.keys(context.SG_DEMOS).sort(), list.filter((entry) => entry.demo).map((entry) => entry.name).sort());
-    assert.ok(Object.isFrozen(context.SG_DEMOS.chart) && typeof context.SG_DEMOS.chart.render === 'function');
-    assert.match(read('styleguide/index.html'), /<script src="demos\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
+    vm.runInNewContext(read('styleguide/registry.js'), context);
+    const registry = JSON.parse(JSON.stringify(context.SG_REGISTRY)); // out of the vm's realm
+    assert.deepEqual(registry.components.map((c) => c.name), list.map((entry) => entry.name));
+    for (const c of registry.components) {
+      const { meta, demo } = list.find((entry) => entry.name === c.name);
+      assert.deepEqual([c.group, c.classes, c.hooks, c.demo], [meta.group, meta.classes, meta.hooks, Boolean(demo)], c.name);
+    }
+    const tokens = registry.tokens.map(([name]) => name);
+    assert.ok(tokens.includes('--ds-primary') && tokens.includes('--ds-space-4'));
+    assert.equal(new Set(tokens).size, tokens.length);
+    assert.ok(registry.needs.length > 50 && registry.needs.every(([need, name]) => need && list.some((entry) => entry.name === name)));
   });
 });
 

@@ -1,5 +1,5 @@
 /**
- * The final review of both styleguide pages (index.html and the Motion Lab,
+ * The final review of both styleguide pages (legacy.html, the 2.x sections, and the Motion Lab,
  * motion.html), as sweeps over everything on them:
  *
  * - quiet load: from load until settled, every `transitionrun` and
@@ -35,7 +35,7 @@
 import { test, expect } from '@playwright/test';
 import { ready, settle } from './helpers/motion.js';
 
-const PAGES = ['/styleguide/index.html', '/styleguide/motion.html'];
+const PAGES = ['/styleguide/legacy.html', '/styleguide/motion.html'];
 
 async function open(page, path) {
   await page.goto(path);
@@ -218,7 +218,8 @@ test.describe('forced colours', () => {
     await page.emulateMedia({ forcedColors: 'active' });
     for (const path of PAGES) {
       await open(page, path);
-      await expect(page).toHaveScreenshot(`forced-${path.split('/').pop().replace('.html', '')}.png`);
+      // legacy.html keeps the shot of the page it was (forced-index.png): the committed set comes from CI only.
+      await expect(page).toHaveScreenshot(`forced-${path.split('/').pop().replace('.html', '').replace('legacy', 'index')}.png`);
     }
     for (const section of ['controls', 'feedback']) {
       await page.evaluate(async (id) => {
@@ -301,7 +302,7 @@ function expectPillInDrawer(revealed, label) {
 }
 
 test.describe('page loads', () => {
-  test('index.html to motion.html and back are cross-document View Transitions: the frame keeps its groups, the drawer stays, the pill glides in its own group', async ({ page }) => {
+  test('legacy.html to motion.html and on to index.html (the 3.0 styleguide) are cross-document View Transitions: the frame keeps its groups, the drawer stays, the pill glides in its own group', async ({ page }) => {
     // Tall enough that both drawer lists show every link: the pill is in view on both pages.
     await page.setViewportSize({ width: 1280, height: 1100 });
     await recordReveal(page);
@@ -357,7 +358,7 @@ test.describe('page loads', () => {
  * these targets) where the CPU is not shared.
  */
 const STYLE_TARGETS = {
-  '/styleguide/index.html': '.ds-card p',
+  '/styleguide/legacy.html': '.ds-card p',
   '/styleguide/motion.html': '[data-lab-demo="progress"] .ds-progress__label',
 };
 

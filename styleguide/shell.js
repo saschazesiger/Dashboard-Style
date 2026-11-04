@@ -201,7 +201,7 @@
       var item = {
         name: entry.name, group: entry.group || (spec && spec.group), order: entry.order, title: spec ? spec.title : titleOf(entry.name),
         need: entry.need || (spec && spec.need) || '', tier: entry.tier || null, status: entry.status || (spec ? 'ported' : '2.x'),
-        classes: entry.classes || [], hooks: entry.hooks || [], attributes: entry.attributes || [], spec: spec,
+        classes: entry.classes || [], hooks: entry.hooks || [], attributes: entry.attributes || [], docs: entry.docs || null, spec: spec,
       };
       byName[item.name] = item;
       return item;
@@ -326,7 +326,7 @@
     var spec = c.spec;
     var links = '<div class="sg-row sg-row--meta">' + '<span class="ds-tag ds-tag--neutral">' + icon(groupIcon(c.group), 16) + esc(groupTitle(c.group)) + '</span>' +
       (c.tier ? '<span class="ds-tag ds-tag--neutral">Tier ' + esc(c.tier) + '</span>' : '') + statusTag(c) +
-      '<a class="ds-btn ds-btn--text ds-btn--sm" href="../src/components/' + c.name + '/' + c.name + '.md">' + icon('fileText', 16) + 'Docs</a>' +
+      '<a class="ds-btn ds-btn--text ds-btn--sm" href="../docs/components.md' + (c.docs ? '#' + c.docs : '') + '">' + icon('fileText', 16) + 'Docs</a>' +
       (LEGACY[c.name] ? '<a class="ds-btn ds-btn--text ds-btn--sm" href="legacy.html#' + LEGACY[c.name] + '">' + icon('history', 16) + '2.x section</a>' : '') + '</div>';
     return head(esc(spec.title), esc(spec.need || c.need), links) +
       (spec.lead ? '<p class="sg-lead">' + spec.lead + '</p>' : '') +
@@ -460,6 +460,7 @@
     $('[data-sg="reset-options"]', panel).addEventListener('click', function () {
       stageChoice = { size: null, density: null, shape: null, tone: null, variant: null, touch: false, width: null };
       show(route, { keepScroll: true });
+      $('[data-sg="reset-options"]').focus();
     });
   }
 
@@ -1158,7 +1159,10 @@
       if (c && c.spec) return componentPage(c);
       if (c) return head(esc(c.title), esc(c.need), '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('history', 24) + '</span><p class="ds-empty__title">Not ported yet</p><p class="ds-empty__text">' + esc(c.title) + ' still shows on the 2.x styleguide.</p><a class="ds-btn" href="' + componentHref(c) + '">Open its 2.x section</a></div>';
     }
-    return head('Not found', '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('search', 24) + '</span><p class="ds-empty__title">No page “' + esc(r.key) + '”</p><p class="ds-empty__text">Use the drawer or the search.</p><a class="ds-btn" href="#/">Overview</a></div>';
+    // An address of the 2.x page (index.html#buttons from before): that section stays on legacy.html.
+    var legacy = Object.keys(LEGACY).some(function (name) { return LEGACY[name] === r.key; });
+    return head('Not found', '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('search', 24) + '</span><p class="ds-empty__title">No page “' + esc(r.key) + '”</p><p class="ds-empty__text">' +
+      (legacy ? 'That section stays on the 2.x styleguide for now.' : 'Use the drawer or the search.') + '</p>' + (legacy ? '<a class="ds-btn" href="legacy.html#' + esc(r.key) + '">Open the 2.x section</a>' : '<a class="ds-btn" href="#/">Overview</a>') + '</div>';
   }
 
   function wirePage(page, r) {
@@ -1249,7 +1253,9 @@
     $('#sg-search-icon').replaceWith(glyph.content);
     setHtml($('#sg-search-button'), icon('search', 20));
     setHtml($('#sg-nav'), navHtml());
-    // Named, so the pill glides across the load to the Motion Lab and back (css/optional/view-transitions.css).
+    // The current item is part of the first render: the pill's first placement jumps there, and it is
+    // named, so it glides across the load to the Motion Lab and back (css/optional/view-transitions.css).
+    setActive();
     addIndicator($('#sg-nav'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav', reveal: true });
     DS.dom.scrollEdges($('#sg-nav'), { axis: 'block' });
     DS.dom.watchScrolled($('#main'), app);
@@ -1283,6 +1289,8 @@
   setupSpeed();
   setupSearch();
   show(route);
+  // First render: the page's parts stagger in once; later pages fade through (navigate()).
+  M.staggerOnce($('#sg-page'));
   // Behaviour of the system (data-ds-*), the action guard and the ripple for every action on the page.
   DS.init(document);
   DS.ripple.attach(document);

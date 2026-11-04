@@ -1,6 +1,6 @@
 /**
  * Walk-through of every styleguide demo: the `[data-sg]` buttons and the
- * segmented options of index.html, and on the Motion Lab (motion.html) the
+ * segmented options of legacy.html, and on the Motion Lab (motion.html) the
  * demos that moved there from the index's Motion section: enter and leave,
  * stagger, count, the track and the disclosure. Each demo is one test that
  * clicks it, checks what it did, and must end settled (helpers/motion.js
@@ -20,7 +20,7 @@ import { test, expect } from '@playwright/test';
 import { ready, settle, setSpeed } from './helpers/motion.js';
 
 const VIDEO = !!process.env.DS_VIDEO;
-const STYLEGUIDE = `/styleguide/index.html${VIDEO ? '?speed=0.1' : ''}`;
+const STYLEGUIDE = `/styleguide/legacy.html${VIDEO ? '?speed=0.1' : ''}`;
 const LAB = `/styleguide/motion.html${VIDEO ? '?speed=0.1' : ''}`;
 // Ten times slower motion needs ten times the settle time.
 const SETTLE = { timeout: VIDEO ? 30000 : 3000 };

@@ -199,13 +199,15 @@
 /* ── The stage ──────────────────────────────────── */
 
 /* The stage is a .ds-theme of its own: it paints its own backdrop, so the
-   colour scheme pinned on it shows, and its width is the width option's. */
+   colour scheme pinned on it shows, and its width is the width option's. It is the
+   "ds-content" container too: what queries that name (facts, tables, toolbars, steps, a
+   page head's actions) narrows with the slider. Media queries (.ds-grid-2, the drawer) do not. */
 .sg-stage-wrap {
-  container: sg-stage / inline-size;
   min-width: 0;
 }
 
 .sg-demo-stage {
+  container: ds-content / inline-size;
   box-sizing: border-box;
   max-inline-size: 100%;
   margin-inline: auto;
