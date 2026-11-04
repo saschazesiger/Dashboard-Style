@@ -125,6 +125,21 @@ const DEFAULT_STRINGS = Object.freeze({
   previous: 'Previous',
   next: 'Next',
   noResults: 'No results',
+  keyCtrl: 'Ctrl',
+  keyAlt: 'Alt',
+  keyShift: 'Shift',
+  keyMeta: 'Win',
+  keyEnter: 'Enter',
+  keyEscape: 'Esc',
+  keySpace: 'Space',
+  keyTab: 'Tab',
+  keyBackspace: 'Backspace',
+  keyDelete: 'Delete',
+  keyHome: 'Home',
+  keyEnd: 'End',
+  keyPageUp: 'Page Up',
+  keyPageDown: 'Page Down',
+  hotkeysGeneral: 'General',
 });
 
 /**

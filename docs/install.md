@@ -338,6 +338,21 @@ strings a script adds have an option, so a page in another language passes its o
 | `Previous` | the system's string `previous` | `DS.core.config({ strings: { previous } })` |
 | `Next` | the system's string `next` | `DS.core.config({ strings: { next } })` |
 | `No results` | the system's string `noResults` | `DS.core.config({ strings: { noResults } })` |
+| `Ctrl` | the system's string `keyCtrl`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyCtrl } })` |
+| `Alt` | the system's string `keyAlt`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyAlt } })` |
+| `Shift` | the system's string `keyShift`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyShift } })` |
+| `Win` | the system's string `keyMeta`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyMeta } })` |
+| `Enter` | the system's string `keyEnter`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyEnter } })` |
+| `Esc` | the system's string `keyEscape`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyEscape } })` |
+| `Space` | the system's string `keySpace`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keySpace } })` |
+| `Tab` | the system's string `keyTab`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyTab } })` |
+| `Backspace` | the system's string `keyBackspace`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyBackspace } })` |
+| `Delete` | the system's string `keyDelete`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyDelete } })` |
+| `Home` | the system's string `keyHome`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyHome } })` |
+| `End` | the system's string `keyEnd`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyEnd } })` |
+| `Page Up` | the system's string `keyPageUp`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyPageUp } })` |
+| `Page Down` | the system's string `keyPageDown`: a key in `DS.hotkeys.format()` outside Apple systems (on them the modifiers are ⌃ ⌥ ⇧ ⌘) | `DS.core.config({ strings: { keyPageDown } })` |
+| `General` | the system's string `hotkeysGeneral`: the group of a shortcut without one in `DS.hotkeys.list()` | `DS.core.config({ strings: { hotkeysGeneral } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates are the page's
