@@ -820,7 +820,7 @@
     DS.dom.morphHtml(sheetBody, sheetHtml(byId(id)));
     sheetBody.scrollTop = 0;
     // The bar under the selected tab (one handle: a second call returns it).
-    DS.indicator.createIndicator($('#sheet-tabs', sheetBody), { active: '[aria-selected="true"]', className: 'ds-tabs__indicator' });
+    DS.indicator.create($('#sheet-tabs', sheetBody), { active: '[aria-selected="true"]', className: 'ds-tabs__indicator' });
   }
 
   /* A tab shows its panel, which enters with swap; the bar glides by itself. */
@@ -1089,7 +1089,7 @@
 
   DS.ripple.attach(document);
   DS.overlay.tooltips(document);
-  DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
+  DS.indicator.create(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
   /* A low window cuts the list: its edges shade where scroll timelines are missing too (docs/components.md, Drawer parts). */
   DS.dom.scrollEdges(nav, { axis: 'block' });
   /* data-scrolled from a 1px sentinel (DS.dom.watchScrolled, docs/components.md, App frame). */

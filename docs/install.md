@@ -184,7 +184,7 @@ in `js/` (`./motion.js`), so keep the folder together.
 
 ```js
 import { enter, leave, stagger } from './vendor/dashboard-style/js/motion.js';
-import { createIndicator } from './vendor/dashboard-style/js/indicator.js';
+import { create } from './vendor/dashboard-style/js/indicator.js';
 import { icon, check } from './vendor/dashboard-style/js/icons.js';
 ```
 
@@ -246,7 +246,7 @@ Browsers without cross-document View Transitions load pages as before.
 <link rel="stylesheet" href="vendor/dashboard-style/css/optional/view-transitions.css">
 ```
 
-An indicator glides across the load only with a `name` (`createIndicator(list, { ..., name: 'nav' })`, unique on the
+An indicator glides across the load only with a `name` (`DS.indicator.create(list, { ..., name: 'nav' })`, unique on the
 page), created before the new page is captured, from a classic script (not a module or a deferred script). Browsers
 may reveal a page while it still parses (WebKit does), so either load `ds.js` in `<head>` and create the indicator in
 an inline script right after its markup, or keep the scripts at the end of `<body>` and let the first render wait for
@@ -260,7 +260,7 @@ them:
 <body>
   ...
   <script src="vendor/dashboard-style/ds.js"></script>
-  <script src="app.js"></script>               <!-- createIndicator(list, { ..., name: 'nav' }) -->
+  <script src="app.js"></script>               <!-- DS.indicator.create(list, { ..., name: 'nav' }) -->
   <div id="rendered" hidden></div>
 </body>
 ```

@@ -88,7 +88,7 @@
 
   /* ── Frame: drawer, scroll spy, modal drawer, data-scrolled ───────── */
 
-  DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
+  DS.indicator.create(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
   /* A low window cuts the list: its edges shade where scroll timelines are missing too (docs/components.md, Drawer parts). */
   DS.dom.scrollEdges(nav, { axis: 'block' });
 
@@ -170,7 +170,7 @@
   /* ── Speed: --ds-time-scale, like the styleguide's speed select ───── */
 
   const speedNav = $('#speed');
-  DS.indicator.createIndicator(speedNav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
+  DS.indicator.create(speedNav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
 
   function setSpeed(factor) {
     for (const option of $$('.ds-segmented__option', speedNav)) {

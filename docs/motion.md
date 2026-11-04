@@ -756,9 +756,11 @@ re-render with `morphHtml` keeps it. The attributes are listed in [components.md
 
 ### DS.indicator (js/indicator.js)
 
-`createIndicator(track, { active, className, observe, name, reveal })` inserts one `.ds-indicator` behind the items of
-`track` (which gets `.ds-has-indicator`) and returns `{ update(), destroy() }`. One per track (2.0): a second call
-with the same options returns the live handle, other options destroy it and make a new one. It measures the item matching the `active`
+`create(track, { active, className, observe, name, reveal })` inserts one `.ds-indicator` behind the items of
+`track` (which gets `.ds-has-indicator`) and returns its handle, `{ get(), set(value), on(type, fn), update(), destroy() }`. One per track (2.0): a second call
+with the same options returns the live handle, other options destroy it and make a new one (on a track with
+`data-ds-indicator` the handle is the element's controller, so other options replace the pill inside it and return the
+same handle). It measures the item matching the `active`
 selector in the track's scroll coordinates (horizontal, vertical, scrolling or wrapping tracks). The component gives
 it its look (`.ds-drawer__indicator`, `.ds-segmented__indicator`, or your own class). A track of `.ds-btn` toggles
 (`active: '[aria-pressed="true"]'`) works as it is: inside `.ds-has-indicator` a pressed button drops its own tint
@@ -818,16 +820,23 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
   as it is painted now to the new target, without a jump; a placement on the same running target keeps gliding. The
   first placement and a resize with nothing running jump (`.ds-indicator--instant`, the edges without transition;
   a press morph of the radius and a fade still run).
+- **Handle.** `get()` is the active item, or null. `set(value)` takes an element of the track or a selector and moves
+  the state attribute there, `set(null)` clears it (nothing where the `active` selector names no state attribute).
+  `on(type, fn)` listens for `ds:<type>` of this track and returns the unsubscribe: `ds:change` (bubbling,
+  `detail.item`) comes when the active item changes, once it is placed, not on the first placement.
 - **Appear and disappear.** When the active item goes away the pill contracts to its centre and fades in
   `--ds-dur-fast`, accelerating (`data-empty`). An active item after that grows from its centre over
   `--ds-dur-medium` on the spring while it fades in; one that comes while the pill still contracts glides it on
   from where it is painted, and the fade turns back from its current opacity. On page load the first placement jumps,
-  and the track's items take their look under the new pill at once (`createIndicator()` gives them one style flush
+  and the track's items take their look under the new pill at once (`create()` gives them one style flush
   without transitions): a pressed toggle's own tint or an item's colour never fades on load.
-- **Radius.** A component sets `--ds-indicator-radius` (the drawer: half the item height, squarer under a pressed
-  active item). A project class that only sets `border-radius` keeps working: at rest, when `--ds-indicator-radius`
-  computes to 0px, the computed `border-top-left-radius` (capped at half the item's smaller side) is copied into it
-  inline. During a glide the box has no radius of its own.
+- **Radius.** A component sets `--ds-indicator-radius` with `--ds-shape` in its own rule (the drawer: half the item
+  height, squarer under a pressed active item). A project class that only sets `border-radius` keeps working: at rest,
+  when `--ds-indicator-radius` computes to 0px, the computed `border-top-left-radius` (capped at half the item's
+  smaller side) is copied into it inline, with `--ds-shape` as a live factor, and again at each rest. The copy takes a
+  plain `border-radius`: a class that multiplies by `--ds-shape` sets `--ds-indicator-radius` instead, since its computed
+  `border-radius` already holds the shape and a copy would apply it twice. During a glide the box has no radius of its
+  own.
 - **Morphs.** The span carries `data-ds-keep`, so `DS.dom.morphHtml` never removes it and the observers keep working
   after a morph of the track (a change of the active item in the new markup glides by itself). A foreign re-render
   that dropped the span anyway gets it back at the next placement (it jumps there once).
@@ -837,7 +846,8 @@ change colour on `--ds-indicator-dur`. Forced colors keep the button's selection
 
 | Export | |
 |---|---|
-| `createIndicator(track, { active, className, observe, name, reveal })` | see above; returns `{ update(), destroy() }` (the live one again for the same track and options) |
+| `create(track, { active, className, observe, name, reveal })` | see above; returns the handle (the live one again for the same track and options); `data-ds-indicator` is its declarative path ([Indicator](components.md#indicator)) |
+| `createIndicator(track, options)` | **deprecated**, an alias of `create()` until 3.0 ships |
 | `OVERSHOOT` | 0.05: the largest pass of an edge beyond its target, as a share of its travel (the peak contract of `--ds-ease-spatial`); the overshoot margin of the glide box |
 
 ### DS.ripple (js/ripple.js)
@@ -856,7 +866,7 @@ remembering the document's last input (a press or a key, under `Symbol.for('ds.i
 `DS.overlay` moves outside any input event follows (no keyboard ring after a tap). `destroy()` removes
 the listeners, the class and its hold on the guard (a guard that `busy()` installed stays; the shared input record
 stays too); ripples already shown
-finish (`detach()` is its **deprecated** alias, removed in 3.0 at the earliest).
+finish (`detach()` is its **deprecated** alias until 3.0 ships).
 
 A press ends when another element takes the pointer (2.0): an ancestor that captures it (a chip row that drags to
 scroll, a sortable list's row) fires `gotpointercapture`, and the ripple fades as on release while `.ds-pressed`
@@ -1408,7 +1418,7 @@ with `css/optional/view-transitions.css` (below, "Page loads").
   the panel ([App frame](components.md#app-frame)): `transition()` sees the panel's width change and adds
   `data-ds-vt-morph` to `<html>`, and only then do the panel and the view move over `--ds-dur-long`; a plain swap
   ends within `--ds-dur-slow`.
-- **Indicators.** `createIndicator(track, { ..., name })` gives the pill the permanent name
+- **Indicators.** `create(track, { ..., name })` gives the pill the permanent name
   `ds-indicator-<name>` (unique per page), so it glides across page loads; a pill scrolled out of its track's view
   on the page being left or revealed keeps no name for that navigation and goes or comes with its page. Within a
   page `transition()` lifts the name while it runs and the pill glides live, under its labels and inside its track.

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ripple hosts · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="/test/browser/fixtures/fixture.css">
+<style>
+  /* A truncated first cell, as a component would set it: the press must not touch it. */
+  @layer ds.components {
+    #h-cell {
+      overflow: hidden;
+    }
+  }
+</style>
+</head>
+<body>
+<!-- One of every ripple host, then the blocked ones: ripple.spec.js presses
+     them at the shapes, sizes and densities of the options model. #grid is
+     filled by the spec. No ripple until a test attaches it. -->
+<div class="ds-theme fx-root" id="stage">
+  <section class="fx-section" aria-labelledby="grid-title">
+    <h2 id="grid-title">Sizes and densities</h2>
+    <div id="grid"></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="hosts-title" id="hosts">
+    <h2 id="hosts-title">Hosts</h2>
+    <div class="fx-row">
+      <button class="ds-btn" type="button" id="h-btn" data-host>Export</button>
+      <button class="ds-btn ds-btn--filled" type="button" id="h-filled" data-host>Save</button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="h-icon" aria-label="Edit" data-host><span data-icon="pencil" data-size="20"></span></button>
+      <button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--disc" type="button" id="h-disc" aria-label="Minimize" data-host><span data-icon="minimize" data-size="20"></span></button>
+      <button class="ds-chip" type="button" id="h-chip" data-host data-surface=".ds-chip__body"><span class="ds-chip__body"><span class="ds-chip__label">Laptops</span></span></button>
+      <label class="ds-chip" id="h-chip-input" data-host data-surface=".ds-chip__body"><input class="ds-chip__input" type="checkbox"><span class="ds-chip__body"><span class="ds-chip__label">Printers</span></span></label>
+      <div class="ds-pressable" role="button" tabindex="0" id="h-pressable" data-host>Pressable</div>
+      <div data-ds-ripple role="button" tabindex="0" id="h-own" data-host data-no-layer>Own element</div>
+    </div>
+    <div class="fx-row">
+      <nav class="ds-segmented" aria-label="Mode"><a class="ds-segmented__option" href="#live" id="h-seg" data-host data-label="Live">Live</a><a class="ds-segmented__option" href="#admin" data-label="Admin">Admin</a></nav>
+      <div class="ds-tabs" role="tablist" aria-label="Device">
+        <button class="ds-tabs__tab" role="tab" type="button" id="h-tab" aria-selected="false" data-host data-layer-radius data-label="History">History</button>
+      </div>
+      <div class="ds-combo" style="inline-size: 200px"><input class="ds-input ds-combo__input" type="text" role="combobox" aria-expanded="false" aria-label="Device"><button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all" id="h-combo" data-host><span data-icon="chevronDown" data-size="20"></span></button></div>
+    </div>
+    <div class="fx-row">
+      <button class="ds-card ds-card--interactive" type="button" id="h-card" data-host><span class="ds-card__title">PRINTER-0003</span></button>
+      <div class="ds-card ds-card--interactive" id="h-card-div" data-host data-press="a"><h3 class="ds-card__title"><a class="ds-card__action" href="#printer">Printer on floor 2</a></h3></div>
+      <button class="ds-tile" type="button" id="h-tile" data-host><span class="ds-tile__label">Open</span><span class="ds-tile__value">12</span></button>
+      <label class="ds-radio" id="h-radio" data-host><input type="radio" name="plan" value="basic"><span><strong>Basic</strong></span></label>
+      <label class="ds-dropzone" id="h-dropzone" data-host><input class="ds-dropzone__input" type="file"><span>Drop a file</span></label>
+    </div>
+    <div class="fx-row">
+      <div class="ds-drawer__list" style="inline-size: 240px">
+        <button class="ds-drawer__item" type="button" id="h-drawer" data-host><span class="ds-drawer__label">Devices</span></button>
+        <details class="ds-drawer__group ds-collapsible"><summary class="ds-drawer__heading ds-drawer__toggle" id="h-toggle" data-host>Tickets</summary></details>
+      </div>
+      <div class="ds-menu" role="menu" aria-label="Actions" style="position: static"><button class="ds-menu__item" role="menuitem" type="button" id="h-menu" data-host><span class="ds-menu__label">Duplicate</span></button></div>
+      <details class="ds-errors ds-collapsible"><summary id="h-errors" data-host>2 errors</summary><p>Serial number is missing.</p></details>
+      <details class="ds-collapsible ds-disclosure"><summary id="h-disclosure" data-host>More</summary><div class="ds-disclosure__body">Nothing else.</div></details>
+    </div>
+    <div class="fx-row">
+      <ul class="ds-list ds-list--interactive" aria-label="Devices" style="inline-size: 240px"><li class="ds-list__item" id="h-list" data-host data-press="a"><span class="ds-list__title"><a class="ds-list__action" href="#laptop">LAPTOP-0042</a></span></li></ul>
+      <ul class="ds-kv-list" style="inline-size: 240px"><li><button class="ds-kv-list__row" type="button" id="h-kv" data-host><span>Tickets</span><strong>3 open</strong></button></li></ul>
+      <ol class="ds-columns" aria-label="Tickets per day" style="inline-size: 120px"><li><button class="ds-columns__col" type="button" style="--ds-share: 0.6" aria-label="Monday: 3 tickets" id="h-col" data-host><span class="ds-columns__fill" aria-hidden="true"></span><span class="ds-columns__label">Mon</span></button></li></ol>
+    </div>
+    <div class="ds-table-wrap">
+      <table class="ds-table ds-table--interactive" style="inline-size: 480px">
+        <thead><tr><th scope="col"><button class="ds-table__sort" type="button" id="h-sort" data-host>Device</button></th><th scope="col">Owner</th></tr></thead>
+        <tbody><tr id="h-row" data-host data-row data-press="td:last-child"><td id="h-cell"><a class="ds-table__row-link" href="#laptop">LAPTOP-0042</a></td><td>Ada Lovelace</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="blocked-title" id="blocked">
+    <h2 id="blocked-title">Blocked: no ripple, no press</h2>
+    <div class="fx-row">
+      <button class="ds-btn" type="button" aria-disabled="true" id="b-btn-aria" data-host>aria-disabled</button>
+      <button class="ds-btn" type="button" aria-busy="true" id="b-btn-busy" data-host>Busy</button>
+      <button class="ds-btn ds-btn--done" type="button" id="b-btn-done" data-host>Done</button>
+      <button class="ds-card ds-card--interactive" type="button" aria-disabled="true" id="b-card" data-host><span class="ds-card__title">Card</span></button>
+      <button class="ds-tile" type="button" aria-disabled="true" id="b-tile" data-host><span class="ds-tile__label">Tile</span></button>
+      <div class="ds-pressable" role="button" tabindex="0" aria-disabled="true" id="b-pressable" data-host>Pressable</div>
+      <label class="ds-chip" id="b-chip" data-host data-surface=".ds-chip__body"><input class="ds-chip__input" type="checkbox" disabled><span class="ds-chip__body"><span class="ds-chip__label">Chip</span></span></label>
+      <label class="ds-radio ds-radio--disabled" id="b-radio" data-host><input type="radio" name="plan" value="pro" disabled><span><strong>Pro</strong></span></label>
+    </div>
+    <div class="fx-row">
+      <nav class="ds-segmented" aria-label="Blocked mode"><button class="ds-segmented__option" type="button" aria-disabled="true" id="b-seg" data-host data-label="Off">Off</button></nav>
+      <div class="ds-tabs" role="tablist" aria-label="Blocked"><button class="ds-tabs__tab" role="tab" type="button" aria-selected="false" aria-disabled="true" id="b-tab" data-host data-label="Off">Off</button></div>
+      <div class="ds-drawer__list" style="inline-size: 200px"><button class="ds-drawer__item" type="button" aria-disabled="true" id="b-drawer" data-host><span class="ds-drawer__label">Off</span></button></div>
+      <div class="ds-menu" role="menu" aria-label="Blocked" style="position: static"><button class="ds-menu__item" role="menuitem" type="button" aria-disabled="true" id="b-menu" data-host><span class="ds-menu__label">Off</span></button></div>
+      <ul class="ds-kv-list" style="inline-size: 200px"><li><button class="ds-kv-list__row" type="button" aria-disabled="true" id="b-kv" data-host><span>Off</span></button></li></ul>
+      <ul class="ds-list ds-list--interactive" aria-label="Blocked devices" style="inline-size: 200px"><li class="ds-list__item" id="b-list" data-host><span class="ds-list__title"><a class="ds-list__action" href="#off" aria-disabled="true">Off</a></span></li></ul>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="misc-title">
+    <h2 id="misc-title">Tone, hook, opt-out, shape</h2>
+    <div class="fx-row">
+      <button class="ds-btn ds-btn--filled ds-tone-error" type="button" id="tone-error">Delete 3 devices</button>
+      <button class="ds-btn" type="button" id="hook" style="--ds-ripple-color: rgb(1, 2, 3)">Hook</button>
+      <span data-ds-ripple="off"><button class="ds-btn" type="button" id="off">No ripple</button></span>
+      <a class="ds-btn" href="#link" id="link">A link</a>
+      <button class="ds-link-btn" type="button" id="inline">An inline link</button>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="/test/browser/fixtures/fixture.js"></script>
+</body>
+</html>

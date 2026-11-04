@@ -1,18 +1,19 @@
 /**
  * Pointer ripple (components/ripple.css): a press on an action grows a
  * circle of its content colour from the point that was pressed, and fades
- * it once the press ends. Without attach() the flat state layer stays the
- * press feedback.
+ * it once the press ends. attach() or DS.init() wires it; a page that calls
+ * neither keeps the flat state layer as its press feedback.
  *
  *   const ripples = DS.ripple.attach(document);   // once, for every action on the page
  *   ripples.release(host);                        // end a running press (no argument: every press)
- *   ripples.destroy();                            // detach() is its deprecated alias (removed in 3.0)
+ *   ripples.destroy();                            // detach() is its deprecated alias until 3.0 ships
  *
  * attach(root) adds .ds-ripples to the root element (<html> for document),
  * which positions and clips the hosts (ripple.css), and listens once on
  * the root: pointerdown for the pointer, Enter and Space for a centred
  * ripple on a focused host. Hosts: .ds-btn, .ds-chip (the ripple goes into
  * .ds-chip__body), .ds-segmented__option, .ds-drawer__item,
+ * .ds-drawer__toggle, .ds-tabs__tab,
  * :is(button, a).ds-tile, .ds-card--interactive (also the <div> form,
  * whose .ds-card__action stretches over it), .ds-table__sort, the body rows
  * of .ds-table--interactive that hold a .ds-table__row-link (the ripple
@@ -21,7 +22,10 @@
  * the row or card; a press on another link or control inside a row or
  * a <div> card is that control's own, so the host gets none), .ds-radio (a radio card, also
  * when its own input is pressed), .ds-combo__toggle, .ds-menu__item,
- * .ds-errors summary, .ds-pressable and [data-ds-ripple]; data-ds-ripple="off" on a host
+ * .ds-errors summary, .ds-disclosure > summary,
+ * .ds-list--interactive > .ds-list__item, :is(a, button).ds-kv-list__row,
+ * .ds-dropzone, :is(button, a).ds-columns__col, .ds-pressable and
+ * [data-ds-ripple]; data-ds-ripple="off" on a host
  * or an ancestor opts out. Disabled, busy, done and aria-disabled hosts (a chip or radio
  * card whose input is disabled, .ds-radio--disabled), switch, checkbox and
  * radio inputs (their halo is the press), and presses other than the
@@ -89,12 +93,17 @@
  * (`input.checked = next; input.dispatchEvent(new Event('change',
  * { bubbles: true }))`), which glides like a click.
  *
- * ES2022 (Safari 16.4); a module may import from an earlier module (the
- * build bundles it into dist/ds.js as DS.ripple); newer APIs only behind
- * feature detection, named under Progressive:.
+ * Options: the module reads none of them. It measures the host at each
+ * press, so size, density, .ds-touch and the shape need no code here (the
+ * clip is the host's radius, ripple.css).
+ *
+ * ES2022 (the floor: Safari 17.5, Chrome/Edge 123, Firefox 130); a module
+ * may import from an earlier module (the build bundles it into dist/ds.js
+ * as DS.ripple); newer APIs only behind feature detection, named under the
+ * header's Progressive: note.
  */
 import { define, runtime } from './core.js';
-import { MOTION_FALLBACKS, flip, guard, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
+import { flip, guard, motionDuration, motionEasing, settled, travelDuration } from './motion.js';
 
 /** The actions that get a ripple. */
 export const RIPPLE_HOSTS = [
@@ -168,7 +177,7 @@ const pressing = new Set();
  * @typedef {object} RippleHandle
  * @property {() => void} destroy  removes the listeners and .ds-ripples; ripples already shown finish
  * @property {(host?: Element) => void} release  ends the running press of `host`, or every press under the root
- * @property {() => void} detach  deprecated alias of destroy() (removed in 3.0 at the earliest)
+ * @property {() => void} detach  deprecated alias of destroy() until 3.0 ships
  */
 
 /** The handle of each attached root, shared by every copy on the page (DS.core.runtime). @type {WeakMap<Node, RippleHandle>} */
@@ -478,15 +487,6 @@ function stopEdge(body) {
   edgeGlides.delete(body);
 }
 
-/** el.animate() with the spring's cubic fallback where linear() is unknown. */
-function animateEdge(element, keyframes, timing) {
-  try {
-    return element.animate(keyframes, timing);
-  } catch {
-    return element.animate(keyframes, { ...timing, easing: /** @type {string} */ (MOTION_FALLBACKS['--ds-ease-spatial']) });
-  }
-}
-
 /**
  * Across a wrap the slot of a toggled chip lands at once while flip()
  * glides its neighbours: the body keeps pace on the timing of the next
@@ -509,9 +509,9 @@ function glideEdge(body, grow, shift, timing) {
   const options = { duration: timing.duration, easing: timing.easing };
   const running = [];
   try {
-    running.push(animateEdge(body, [{ clipPath: clip(Math.max(0, grow)) }, { clipPath: clip(0) }], options));
+    running.push(body.animate([{ clipPath: clip(Math.max(0, grow)) }, { clipPath: clip(0) }], options));
     if (Math.abs(shift) >= 0.5) {
-      for (const label of labelsOf(body)) running.push(animateEdge(label, [{ translate: `${Math.round(shift * 100) / 100}px 0px` }, { translate: '0px 0px' }], options));
+      for (const label of labelsOf(body)) running.push(label.animate([{ translate: `${Math.round(shift * 100) / 100}px 0px` }, { translate: '0px 0px' }], options));
     }
   } catch {
     // No such animations: the body lands at once.

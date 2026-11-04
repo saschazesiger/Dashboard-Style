@@ -26,7 +26,8 @@
  *   <nav class="ds-has-indicator">
  *     <span class="ds-indicator ..." aria-hidden="true" data-ds-keep></span> ...items...
  *   </nav>
- *   (createIndicator() inserts the span and the class.)
+ *   (DS.indicator.create(), or data-ds-indicator and DS.init(), inserts the
+ *   span and the class.)
  *
  * State on the span, written by js:
  *   data-glide               a glide runs: the box is the union, no own radius
@@ -36,13 +37,26 @@
  *                            centre (it grows from there when one appears)
  *   .ds-indicator--instant   placed without a glide (public)
  *
- * Hooks:
+ * Property of the indicator's class:
  *   --ds-indicator-radius    the pill's corners (a component class sets it;
  *                            js copies a plain border-radius of a project
- *                            class into it at rest)
+ *                            class into it at rest). It does not inherit, so
+ *                            it is set on that class, never on .ds-theme
+ *
+ * Motion hook (themes never set it):
  *   --ds-indicator-lag       how long the trailing edge waits (default
- *                            --ds-dur-micro); a motion hook, themes never
- *                            set it
+ *                            --ds-dur-micro)
+ *
+ * Options (src/core/options.css): the pill has no size of its own. Size,
+ * density and .ds-touch change the items, and js places the pill on what
+ * it measures (a resize at once, without a glide). The shape comes with its
+ * radius: a component's class computes --ds-indicator-radius with
+ * --ds-shape in its own rule, and js copies a project class's plain
+ * border-radius with --ds-shape as a live factor; this file never
+ * multiplies. No tone: a pill shows a choice, no status.
+ *
+ * Forced colours: no pill, for any class; the items show the selection by
+ * the system colours of their own component.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -96,7 +110,9 @@
     width: var(--ds-indicator-w, 0);
     height: var(--ds-indicator-h, 0);
     translate: var(--ds-indicator-x, 0) var(--ds-indicator-y, 0);
-    clip-path: inset(var(--ds-indicator-t) var(--ds-indicator-r) var(--ds-indicator-b) var(--ds-indicator-l) round var(--ds-indicator-radius));
+    /* max(): a radius going to 0 passes it on the spring, and a negative one
+       makes the whole clip-path invalid, so the union would paint. */
+    clip-path: inset(var(--ds-indicator-t) var(--ds-indicator-r) var(--ds-indicator-b) var(--ds-indicator-l) round max(0px, var(--ds-indicator-radius)));
     pointer-events: none;
     transition-property: --ds-indicator-t, --ds-indicator-r, --ds-indicator-b, --ds-indicator-l, --ds-indicator-radius, opacity;
     transition-duration:
@@ -166,5 +182,11 @@
   .ds-indicator[data-glide][data-empty]:not(.ds-indicator--instant) {
     transition-duration: var(--ds-dur-fast), var(--ds-dur-fast), var(--ds-dur-fast), var(--ds-dur-fast), var(--ds-dur-medium), var(--ds-dur-fast);
     transition-timing-function: var(--ds-ease-in), var(--ds-ease-in), var(--ds-ease-in), var(--ds-ease-in), var(--ds-ease-spatial), var(--ds-ease-in);
+  }
+
+  @media (forced-colors: active) {
+    .ds-indicator {
+      display: none;
+    }
   }
 }

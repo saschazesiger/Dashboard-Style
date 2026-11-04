@@ -240,7 +240,7 @@
       "pattern": "(?<![\\w$-])detach\\(\\s*\\)",
       "replacement": "destroy()",
       "deprecated": "2.0.0",
-      "removed": null,
+      "removed": "3.0.0",
       "note": "The detach method of the handle that DS.ripple.attach() returns; the pattern finds any detach() call."
     },
     {
@@ -278,6 +278,15 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "Read by the deprecated .ds-btn--sm.ds-btn--icon (and the room a drawer row keeps for it). .ds-sm takes --ds-btn-icon-size less one 8px size step."
+    },
+    {
+      "kind": "export",
+      "name": "createIndicator()",
+      "pattern": "(?<![\\w$-])createIndicator(?![\\w$-])",
+      "replacement": "DS.indicator.create()",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "The constructor of DS.indicator, named as every behaviour module names it. Same options and handle; an alias until 3.0 ships."
     }
   ]
 }
