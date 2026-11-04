@@ -131,8 +131,63 @@ test('a table says its rows: aria-rowcount with the header, aria-rowindex after 
   expect(result.rowIndex).toBe('5002');
   expect(result.span).toBe(2);
   expect(result.tag).toBe('tr');
-  expect(Math.abs(result.width - before)).toBeLessThan(80);
+  expect(Math.abs(result.width - before)).toBeLessThan(1);
 });
+
+test('fixed layout holds every column as the window moves over rows of very different text', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.table = fxTable(); });
+  const widths = () => page.evaluate(() => Array.from(document.querySelectorAll('#table th')).map((th) => th.getBoundingClientRect().width));
+  const before = await widths();
+  for (const index of [1, 800, 5000, 9999]) {
+    await page.evaluate((at) => table.scrollTo(at, { align: 'start' }), index);
+    const now = await widths();
+    now.forEach((width, column) => expect(Math.abs(width - before[column])).toBeLessThan(1));
+  }
+});
+
+test('scrolling and focus keep a row out from under a sticky header', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.table = fxTable(); });
+  const clear = (index) => page.evaluate((at) => {
+    const row = table.row(at).getBoundingClientRect();
+    const head = document.querySelector('#table th').getBoundingClientRect();
+    return row.top - head.bottom;
+  }, index);
+  await page.evaluate(() => table.scrollTo(4000, { align: 'start' }));
+  expect(await clear(4000)).toBeGreaterThan(-1);
+  await page.evaluate(() => table.focus(4000));
+  await page.keyboard.press('ArrowUp');
+  await page.keyboard.press('ArrowUp');
+  expect(await clear(3998)).toBeGreaterThan(-1);
+  await page.keyboard.press('PageUp');
+  const active = await page.evaluate(() => table.get().active);
+  expect(await clear(active)).toBeGreaterThan(-1);
+});
+
+for (const [title, wrapped] of [['is the scroller', false], ['sits in the scroller', true]]) {
+  test(`an ARIA grid that ${title} keeps its header row group: the rows go in the group after it`, async ({ page }) => {
+    await open(page);
+    const result = await page.evaluate((inside) => {
+      const grid = `<div id="grid" role="grid" aria-label="Devices"${inside ? '' : ' class="fx-scroller"'}><div role="rowgroup" id="grid-head"><div role="row"><div role="columnheader">Device</div></div></div><div role="rowgroup" id="grid-body"></div></div>`;
+      document.querySelector('main').insertAdjacentHTML('beforeend', inside ? `<div id="grid-scroller" class="fx-scroller">${grid}</div>` : grid);
+      const rows = DS.virtual.create(document.querySelector(inside ? '#grid-scroller' : '#grid'), {
+        count: 1000,
+        estimate: 40,
+        render: (index) => `<div role="row" data-ds-key="row-${index}" style="height:40px"><div role="gridcell">Device ${index}</div></div>`,
+      });
+      const element = document.querySelector('#grid');
+      return {
+        children: Array.from(element.children).map((child) => child.id || child.getAttribute('role')),
+        head: document.querySelector('#grid-head').textContent,
+        row: rows.row(0)?.parentElement.id,
+        index: rows.row(0)?.getAttribute('aria-rowindex'),
+        count: element.getAttribute('aria-rowcount'),
+      };
+    }, wrapped);
+    expect(result).toEqual({ children: ['grid-head', 'grid-body'], head: 'Device', row: 'grid-body', index: '2', count: '1001' });
+  });
+}
 
 test('keyboard: one tab stop; arrows, Home, End and page keys reach any row and render it first', async ({ page }) => {
   await open(page);
@@ -188,6 +243,106 @@ test('the focused row stays rendered and focused when the window scrolls away, a
     return { before: children[at - 1]?.hasAttribute('data-ds-virtual-gap'), after: children[at + 1]?.hasAttribute('data-ds-virtual-gap') };
   });
   expect(gaps).toEqual({ before: true, after: true });
+});
+
+test('rows with controls stay one stop: Tab goes through the active row and leaves the list, and back', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.list = fxList({ estimate: 48, render: fxRowWithControls }); });
+  const focused = () => page.evaluate(() => document.activeElement.id || document.activeElement.getAttribute('data-ds-key'));
+  await page.locator('#before').focus();
+  const forward = [];
+  for (let press = 0; press < 4; press += 1) {
+    await page.keyboard.press('Tab');
+    forward.push(await focused());
+  }
+  expect(forward).toEqual(['row-0', 'b0', 'a0', 'after']);
+  const back = [];
+  for (let press = 0; press < 4; press += 1) {
+    await page.keyboard.press('Shift+Tab');
+    back.push(await focused());
+  }
+  expect(back).toEqual(['a0', 'b0', 'row-0', 'before']);
+  expect(await page.evaluate(() => list.get().end)).toBeLessThan(40);
+});
+
+test('the controls follow the active row, keep their own tabindex through a morph, and destroy() gives them back', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.list = fxList({ estimate: 48, render: fxRowWithControls }); });
+  const tabindexes = (index) => page.evaluate((at) => [`#b${at}`, `#a${at}`, `#own${at}`].map((selector) => document.querySelector(selector)?.getAttribute('tabindex') ?? null), index);
+  expect(await tabindexes(0)).toEqual([null, null, '-1']);
+  expect(await tabindexes(1)).toEqual(['-1', '-1', '-1']);
+  await page.evaluate(() => list.focus(0));
+  await page.keyboard.press('ArrowDown');
+  expect(await tabindexes(0)).toEqual(['-1', '-1', '-1']);
+  expect(await tabindexes(1)).toEqual([null, null, '-1']);
+  // A click on a waiting control makes its row the active one.
+  await page.locator('#b3').click();
+  expect(await page.evaluate(() => list.get().active)).toBe(3);
+  expect(await tabindexes(3)).toEqual([null, null, '-1']);
+  expect(await tabindexes(1)).toEqual(['-1', '-1', '-1']);
+  // A morph patches the row in place and leaves what the system wrote; new rows wait as well.
+  await page.evaluate(() => { list.refresh(); list.scrollTo(500, { align: 'start' }); });
+  expect(await tabindexes(3)).toEqual([null, null, '-1']);
+  expect(await tabindexes(500)).toEqual(['-1', '-1', '-1']);
+  await page.evaluate(() => list.set({ active: 500 }));
+  expect(await tabindexes(500)).toEqual([null, null, '-1']);
+  expect(await tabindexes(501)).toEqual(['-1', '-1', '-1']);
+  await page.evaluate(() => list.destroy());
+  expect(await tabindexes(500)).toEqual([null, null, '-1']);
+  expect(await tabindexes(501)).toEqual([null, null, '-1']);
+});
+
+test('a table of 10,000 rows with an Edit button in each: Tab reaches what comes after the table, and comes back', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    window.table = fxTable({ render: (index) => `<tr data-ds-key="row-${index}"><td>Device ${index}</td><td><button type="button" id="edit-${index}">Edit</button></td></tr>` });
+  });
+  const focused = () => page.evaluate(() => document.activeElement.id || document.activeElement.getAttribute('data-ds-key'));
+  await page.locator('#after').focus();
+  const forward = [];
+  for (let press = 0; press < 3; press += 1) {
+    await page.keyboard.press('Tab');
+    forward.push(await focused());
+  }
+  expect(forward).toEqual(['row-0', 'edit-0', 'table-after']);
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Shift+Tab');
+  await page.keyboard.press('Shift+Tab');
+  expect(await focused()).toBe('after');
+});
+
+test('a list that empties under the focus keeps it on the scroller, not on the body; Tab finds the rows again', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => { window.list = fxList({ estimate: 48 }); });
+  await page.locator('#before').focus();
+  await page.keyboard.press('Tab');
+  const empty = await page.evaluate(() => {
+    const scroller = document.querySelector('#list-scroller');
+    const top = scroller.scrollTop;
+    list.set({ count: 0 });
+    return { focus: document.activeElement.id, top: scroller.scrollTop === top, tabindex: scroller.getAttribute('tabindex') };
+  });
+  expect(empty).toEqual({ focus: 'list-scroller', top: true, tabindex: '-1' });
+  await page.evaluate(() => list.set({ count: 20 }));
+  await page.keyboard.press('Tab');
+  expect(await page.evaluate(() => document.activeElement.getAttribute('data-ds-key'))).toBe('row-0');
+});
+
+test('the document as the scroller takes the focus for the moment when its list empties', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const scroller = document.querySelector('#list-scroller');
+    scroller.style.blockSize = 'auto';
+    scroller.style.overflow = 'visible';
+    const root = document.scrollingElement;
+    const rows = DS.virtual.create(root, { content: document.querySelector('#list'), count: 50, estimate: 48, render: (index) => `<li class="fx-row" data-ds-key="row-${index}">Row ${index}</li>` });
+    rows.focus(0);
+    rows.set({ count: 0 });
+    const during = { focused: document.activeElement === root, tabindex: root.getAttribute('tabindex') };
+    document.querySelector('#after').focus();
+    return { during, after: root.getAttribute('tabindex') };
+  });
+  expect(result).toEqual({ during: { focused: true, tabindex: '-1' }, after: null });
 });
 
 test('a click in a row makes it the active row', async ({ page }) => {
@@ -322,6 +477,20 @@ test('the document can be the scroller', async ({ page }) => {
   expect(result.onScreen).toBe(true);
 });
 
+test('the document as the scroller follows a window that grows', async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 300 });
+  await open(page);
+  const small = await page.evaluate(() => {
+    const scroller = document.querySelector('#list-scroller');
+    scroller.style.blockSize = 'auto';
+    scroller.style.overflow = 'visible';
+    window.rows = DS.virtual.create(document.scrollingElement, { content: document.querySelector('#list'), count: 5000, estimate: 48, render: (index) => `<li class="fx-row" data-ds-key="row-${index}" style="height:48px">Row ${index}</li>` });
+    return rows.get().end;
+  });
+  await page.setViewportSize({ width: 800, height: 1000 });
+  await expect.poll(() => page.evaluate(() => rows.get().end)).toBeGreaterThan(small + 10);
+});
+
 test('count shrinks and grows; ds:range tells the window, for load-more', async ({ page }) => {
   await open(page);
   const result = await page.evaluate(() => {
@@ -372,23 +541,62 @@ test('destroy() is safe twice, takes the listeners and spacers away and leaves t
     const { end } = list.get();
     scroller.scrollTop = 500;
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    return { same, moved: list.get().end !== end, gaps: document.querySelectorAll('#list > [data-ds-virtual-gap]').length, anchor: scroller.style.overflowAnchor, next: fxList({ estimate: 48 }) !== list };
+    const left = document.querySelector('#list > .fx-row');
+    const leftover = ['aria-setsize', 'aria-posinset', 'tabindex'].filter((name) => left.hasAttribute(name));
+    return { same, moved: list.get().end !== end, gaps: document.querySelectorAll('#list > [data-ds-virtual-gap]').length, anchor: scroller.style.overflowAnchor, leftover, scrollerStop: scroller.getAttribute('tabindex'), next: fxList({ estimate: 48 }) !== list };
   });
-  expect(result).toEqual({ same: true, moved: false, gaps: 0, anchor: '', next: true });
+  expect(result).toEqual({ same: true, moved: false, gaps: 0, anchor: '', leftover: [], scrollerStop: null, next: true });
+});
+
+test('destroy() takes back what it said about a table, and a value the page had comes back', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(() => {
+    const element = document.querySelector('#table');
+    const first = fxTable();
+    const during = element.getAttribute('aria-rowcount');
+    first.destroy();
+    const row = document.querySelector('#rows > tr');
+    const after = { count: element.getAttribute('aria-rowcount'), index: row.getAttribute('aria-rowindex'), tabindex: row.getAttribute('tabindex') };
+    element.setAttribute('aria-rowcount', '77');
+    const second = fxTable();
+    second.destroy();
+    return { during, after, own: element.getAttribute('aria-rowcount') };
+  });
+  expect(result).toEqual({ during: '10001', after: { count: null, index: null, tabindex: null }, own: '77' });
 });
 
 test.describe('forced colours', () => {
   test.use({ forcedColors: 'active' });
 
-  test('spacers paint nothing and a focused row shows its ring', async ({ page, browserName }) => {
+  test('spacers paint nothing and a .ds-pressable row keeps its ring in a system colour', async ({ page, browserName }) => {
     test.skip(browserName === 'webkit', 'WebKit has no forced-colours emulation');
     await open(page);
-    await page.evaluate(() => { window.list = fxList({ estimate: 48 }); list.scrollTo(500, { align: 'start' }); });
+    await page.evaluate(() => {
+      window.list = fxList({ estimate: 48, render: (index) => `<li class="fx-row ds-pressable" data-ds-key="row-${index}">Row ${index}</li>` });
+      list.scrollTo(500, { align: 'start' });
+    });
     await expect(page.locator('#list > [data-ds-virtual-gap]').first()).toHaveCSS('visibility', 'hidden');
+    await page.locator('#before').focus();
     await page.keyboard.press('Tab');
     await page.evaluate(() => list.focus(500));
     await page.keyboard.press('ArrowDown');
-    const outline = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
-    expect(outline).toBe('solid');
+    const ring = await page.evaluate(() => {
+      const row = document.activeElement;
+      const style = getComputedStyle(row);
+      const probe = document.createElement('div');
+      probe.style.cssText = 'color: CanvasText; background: Canvas; outline: 2px solid Highlight';
+      document.body.append(probe);
+      const system = getComputedStyle(probe);
+      const colours = { CanvasText: system.color, Canvas: system.backgroundColor, Highlight: system.outlineColor };
+      probe.remove();
+      return { key: row.getAttribute('data-ds-key'), visible: row.matches(':focus-visible'), style: style.outlineStyle, width: parseFloat(style.outlineWidth), colour: style.outlineColor, colours, layer: getComputedStyle(row, '::before').display };
+    });
+    expect(ring.key).toBe('row-501');
+    expect(ring.visible).toBe(true);
+    expect(ring.style).toBe('solid');
+    expect(ring.width).toBe(2);
+    // The engine picks which: never the theme's own colour.
+    expect(Object.values(ring.colours)).toContain(ring.colour);
+    expect(ring.layer).toBe('none');
   });
 });

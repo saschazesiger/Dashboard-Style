@@ -11,7 +11,7 @@
   .fx-scroller { block-size: 300px; overflow: auto; border: 1px solid var(--ds-outline); }
   .fx-scroller ul { margin: 0; padding: 0; list-style: none; }
   .fx-row { box-sizing: border-box; display: block; padding: var(--ds-space-2); }
-  .fx-row:focus-visible { outline: var(--ds-focus-outline); outline-offset: calc(-1 * var(--ds-focus-width)); }
+  #table { inline-size: 100%; table-layout: fixed; }
   thead th { position: sticky; inset-block-start: 0; background: var(--ds-surface); z-index: 1; }
 </style>
 </head>
@@ -36,6 +36,7 @@
           <tbody id="rows"></tbody>
         </table>
       </div>
+      <button id="table-after" class="ds-btn" type="button">After the table</button>
     </section>
   </main>
 </div>
@@ -56,10 +57,12 @@
       ...options,
     });
   };
+  window.fxRowWithControls = (index) => `<li class="fx-row" data-ds-key="row-${index}"><button type="button" id="b${index}">Edit</button> <a href="#x" id="a${index}">Open</a> <button type="button" id="own${index}" tabindex="-1">Own</button></li>`;
   window.fxTable = (options = {}) => DS.virtual.create(document.querySelector('#table-scroller'), {
     count: 10000,
     estimate: 44,
-    render: (index) => `<tr data-ds-key="row-${index}"><td>Device ${index}</td><td>Online</td></tr>`,
+    // Text of very different lengths: an automatic table layout would change its columns with every window.
+    render: (index) => `<tr data-ds-key="row-${index}"><td>Device ${index}</td><td>${index % 3 ? 'Online' : 'Offline since the rack in the far corner of the second floor lost power'}</td></tr>`,
     ...options,
   });
 </script>

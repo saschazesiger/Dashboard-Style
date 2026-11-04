@@ -15,11 +15,14 @@
  *   rows.destroy();
  *
  * Layout: `content` (option; default the first tbody, list, listbox, rowgroup
- * or grid in the scroller, else the scroller itself) holds the rows in normal
+ * or grid in the scroller, else the scroller itself; a table's first tbody, an
+ * ARIA table or grid with rowgroups its last one) holds the rows in normal
  * flow, between hidden spacers that stand in for what is not rendered, so a
- * table keeps its column sizes and a sticky header keeps working. A row's
- * spacing belongs inside the row: margins and gaps between rows are not
- * measured.
+ * sticky header keeps working: scrolling and focus keep a row out from under it.
+ * A table keeps its column sizes only with `table-layout: fixed` or explicit
+ * column widths: the automatic layout sizes columns by the cells of the rows
+ * that exist, which change as the window moves. A row's spacing belongs inside
+ * the row: margins and gaps between rows are not measured.
  *
  * Heights: `estimate` (a number or a function of the index, default the first
  * row measured) stands in until a row has been rendered; then its measured
@@ -44,14 +47,19 @@
  * of them are owned state, so a morph leaves them alone.
  *
  * Keyboard (`keyboard`, default true): one tab stop, the active row
- * (tabindex 0, the others -1, the scroller -1). ArrowUp, ArrowDown, Home, End, PageUp and
- * PageDown move it and the focus, rendering the target first; not from inside
- * a text field, and not with a modifier. The active row always stays rendered
- * wherever the scroll position is (its own place, between spacers), so
- * scrolling away never drops the focus or the tab stop. When the row
- * that held the focus goes (the data changed), the focus moves to the active
- * row. `keyboard: false` leaves focus to the page (a combobox, whose focus
- * stays in its input, or a grid's cell navigation).
+ * (tabindex 0, the others -1, the scroller -1). The controls inside the other
+ * rows wait with tabindex -1 (owned, their own value back when the row turns
+ * active), so Tab goes through the active row's controls and leaves the list;
+ * with stops in every row each Tab would render more rows and never get out.
+ * What a page adds to a row by itself counts from the next render. ArrowUp,
+ * ArrowDown, Home, End, PageUp and PageDown move the active row and the focus,
+ * rendering the target first; not from inside a text field, and not with a
+ * modifier. The active row always stays rendered wherever the scroll position
+ * is (its own place, between spacers), so scrolling away never drops the focus
+ * or the tab stop. When the row that held the focus goes (the data changed), the
+ * focus moves to the active row, and to the scroller when no row is left.
+ * `keyboard: false` leaves focus to the page (a combobox, whose focus stays in
+ * its input, or a grid's cell navigation).
  *
  * Limits: browser search finds rendered rows only; a browser caps an element's
  * height (about 17 million px in Firefox), so keep count x height under that.
@@ -79,6 +87,9 @@ const MAX_PASSES = 4;
 const EPSILON = 0.01;
 
 const TEXT_ENTRY = 'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+
+/** What is a tab stop inside a row, as far as its markup tells. */
+const ROW_STOP = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
 
 /** The owned-state record of dom.js (shared by every copy): a morph leaves these names alone. */
 const OWNED = Symbol.for('ds.owned');
@@ -214,11 +225,19 @@ export function sizes(count = 0, estimate = ESTIMATE) {
 /** The live list of each scroller. @type {WeakMap<Element, any>} */
 const lists = new WeakMap();
 
-/** The element that holds the rows (see the header). */
+const ARIA_TABLE = '[role="table"], [role="grid"], [role="treegrid"]';
+
+/** The rowgroups directly in an ARIA table, in order. */
+const rowgroupsOf = (host) => Array.from(host.children).filter((child) => child.getAttribute('role') === 'rowgroup');
+
+/**
+ * The element that holds the rows (see the header). A table found around them
+ * resolves to its body, so a header row group is never taken for rows.
+ */
 function contentOf(scroller, given) {
-  let content = given ?? scroller.querySelector('tbody, ul, ol, [role="list"], [role="listbox"], [role="rowgroup"], [role="grid"], [role="table"], [role="treegrid"]') ?? scroller;
-  if (content.localName === 'table') content = content.tBodies?.[0] ?? content;
-  return content;
+  const found = given ?? (scroller.matches(ARIA_TABLE) ? scroller : scroller.querySelector(`tbody, ul, ol, [role="list"], [role="listbox"], [role="rowgroup"], ${ARIA_TABLE}`)) ?? scroller;
+  if (found.localName === 'table') return found.tBodies?.[0] ?? found.createTBody?.() ?? found;
+  return found.matches(ARIA_TABLE) ? rowgroupsOf(found).at(-1) ?? found : found;
 }
 
 /** The element a spacer is, for the markup to parse where it goes. */
@@ -277,9 +296,17 @@ export function create(scroller, options = {}) {
   /** The markup of what shows, so a window that moves renders only the new rows. */
   const markup = new Map();
   const decorated = new WeakSet();
+  /** Controls taken out of the tab order: control → its tabindex before (null: none). */
+  const parked = new WeakMap();
 
   const rowCount = () => total ?? model.count;
-  const rowOffset = () => options.rowOffset ?? (host?.tHead ? host.tHead.rows.length : 0);
+  /** The header above the rows: a thead, or the row group before them in an ARIA table. */
+  const headOf = () => host?.tHead ?? (host ? rowgroupsOf(host).find((group) => group !== content && group.compareDocumentPosition(content) & 4) : null) ?? null;
+  const rowOffset = () => {
+    if (options.rowOffset !== undefined) return options.rowOffset;
+    const head = headOf();
+    return head ? head.rows?.length ?? head.querySelectorAll('[role="row"]').length : 0;
+  };
   const columns = () => {
     if (options.columns) return options.columns;
     const first = host?.tHead?.rows?.[0] ?? host?.rows?.[0];
@@ -295,9 +322,20 @@ export function create(scroller, options = {}) {
     while (first && (first.hasAttribute('data-ds-keep') || first.hasAttribute('data-ds-leaving'))) first = first.nextElementSibling;
     return (first ?? content).getBoundingClientRect().top - topOf() + scroller.scrollTop;
   };
+  /** How much of the head a stuck row would lie under, from the scroller's top; 0 when it does not stick. */
+  const stuckHead = () => {
+    const head = headOf();
+    if (!head) return 0;
+    const bottom = head.getBoundingClientRect().height;
+    for (const part of [head, ...head.querySelectorAll('tr, th, td, [role="row"], [role="columnheader"]')]) {
+      const style = view.getComputedStyle(part);
+      if (style.position === 'sticky') return bottom + (parseFloat(style.insetBlockStart) || 0);
+    }
+    return 0;
+  };
   const insets = () => {
     const style = view.getComputedStyle(scroller);
-    return [parseFloat(style.scrollPaddingBlockStart) || 0, parseFloat(style.scrollPaddingBlockEnd) || 0];
+    return [Math.max(parseFloat(style.scrollPaddingBlockStart) || 0, stuckHead()), parseFloat(style.scrollPaddingBlockEnd) || 0];
   };
 
   /** Which rows belong in the window now. */
@@ -340,6 +378,35 @@ export function create(scroller, options = {}) {
     return html;
   };
 
+  /** Gives the controls of a row back their tabindex. */
+  const releaseControls = (row) => {
+    for (const control of row.querySelectorAll(ROW_STOP)) {
+      if (!parked.has(control)) continue;
+      const before = parked.get(control);
+      parked.delete(control);
+      if (before === null) control.removeAttribute('tabindex');
+      else control.setAttribute('tabindex', before);
+      disown(control, 'attrs', 'tabindex');
+    }
+  };
+
+  /** The tab stop of one row: itself and its controls when it is the active one, else neither. */
+  const setStop = (row, isActive) => {
+    setAttribute(row, 'tabindex', isActive ? '0' : '-1');
+    if (isActive) {
+      releaseControls(row);
+      return;
+    }
+    for (const control of row.querySelectorAll(ROW_STOP)) {
+      const value = control.getAttribute('tabindex');
+      // A negative tabindex of the page's own is out of the tab order already.
+      if (parked.has(control) || Number(value) < 0) continue;
+      parked.set(control, value);
+      own(control, 'attrs', 'tabindex');
+      control.setAttribute('tabindex', '-1');
+    }
+  };
+
   /** ARIA and the tab stop of one row. */
   const decorate = (row, index) => {
     if (!decorated.has(row)) {
@@ -352,7 +419,7 @@ export function create(scroller, options = {}) {
       setAttribute(row, 'aria-setsize', String(rowCount()));
       setAttribute(row, 'aria-posinset', String(index + 1));
     }
-    if (keyboard) setAttribute(row, 'tabindex', index === active ? '0' : '-1');
+    if (keyboard) setStop(row, index === active);
   };
 
   /** Patches the DOM to `indices` and records which element is which row. */
@@ -417,7 +484,18 @@ export function create(scroller, options = {}) {
   const restoreFocus = () => {
     if (!holder || holder.isConnected) return;
     holder = null;
-    if (keyboard && rendered.has(active)) rendered.get(active).focus({ preventScroll: true });
+    if (!keyboard) return;
+    const row = rendered.get(active);
+    if (row) {
+      row.focus({ preventScroll: true });
+      return;
+    }
+    // No row left (a filter that matches nothing): the focus stays here rather than at the start of the page.
+    const lent = !scroller.hasAttribute('tabindex');
+    if (lent) scroller.setAttribute('tabindex', '-1');
+    scroller.focus({ preventScroll: true });
+    // Until the focus goes elsewhere. Not on blur: Firefox fires none on <html>, the document's scroller.
+    if (lent) doc.addEventListener('focusin', () => scroller.removeAttribute('tabindex'), { once: true });
   };
 
   /** Brings the DOM in line with the scroll position and the data, in as many passes as it takes to settle. */
@@ -460,9 +538,9 @@ export function create(scroller, options = {}) {
     if (next === active) return;
     const before = rendered.get(active);
     active = next;
-    if (before && keyboard) setAttribute(before, 'tabindex', '-1');
+    if (before && keyboard) setStop(before, false);
     const row = rendered.get(active);
-    if (row && keyboard) setAttribute(row, 'tabindex', '0');
+    if (row && keyboard) setStop(row, true);
     emit(scroller, 'active', { index: active, element: row ?? null });
   };
 
@@ -553,6 +631,7 @@ export function create(scroller, options = {}) {
     own(scroller, 'attrs', 'tabindex');
     scroller.setAttribute('tabindex', '-1');
   }
+  const rowcountBefore = host?.getAttribute('aria-rowcount') ?? null;
   if (host) {
     own(host, 'attrs', 'aria-rowcount');
     setAttribute(host, 'aria-rowcount', String(rowCount() < 0 ? -1 : rowCount() + rowOffset()));
@@ -560,6 +639,8 @@ export function create(scroller, options = {}) {
 
   const scrollTarget = onDocument ? view : scroller;
   scrollTarget.addEventListener('scroll', schedule, { passive: true });
+  // <html> is as tall as its content, so the observer below never sees the viewport change.
+  if (onDocument) view.addEventListener('resize', schedule);
   content.addEventListener('keydown', onKey);
   content.addEventListener('focusin', onFocusIn);
   content.addEventListener('focusout', onFocusOut);
@@ -608,6 +689,7 @@ export function create(scroller, options = {}) {
       if (frame) view.cancelAnimationFrame(frame);
       clearTimeout(holderTimer);
       scrollTarget.removeEventListener('scroll', schedule);
+      if (onDocument) view.removeEventListener('resize', schedule);
       content.removeEventListener('keydown', onKey);
       content.removeEventListener('focusin', onFocusIn);
       content.removeEventListener('focusout', onFocusOut);
@@ -619,10 +701,22 @@ export function create(scroller, options = {}) {
         scroller.removeAttribute('tabindex');
         disown(scroller, 'attrs', 'tabindex');
       }
-      if (host) disown(host, 'attrs', 'aria-rowcount');
+      // What the system said about the rows is untrue once they stop being windowed.
+      if (host) {
+        if (rowcountBefore === null) host.removeAttribute('aria-rowcount');
+        else host.setAttribute('aria-rowcount', rowcountBefore);
+        disown(host, 'attrs', 'aria-rowcount');
+      }
       for (const row of rendered.values()) {
-        for (const name of host ? ['aria-rowindex'] : ['aria-setsize', 'aria-posinset']) disown(row, 'attrs', name);
-        if (keyboard) disown(row, 'attrs', 'tabindex');
+        for (const name of host ? ['aria-rowindex'] : ['aria-setsize', 'aria-posinset']) {
+          row.removeAttribute(name);
+          disown(row, 'attrs', name);
+        }
+        if (keyboard) {
+          releaseControls(row);
+          row.removeAttribute('tabindex');
+          disown(row, 'attrs', 'tabindex');
+        }
       }
       for (const gap of Array.from(content.children)) if (gap.hasAttribute('data-ds-virtual-gap')) gap.remove();
     },
