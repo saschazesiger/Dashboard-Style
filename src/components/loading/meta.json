@@ -3,7 +3,7 @@
   "group": "feedback",
   "order": 70,
   "docsOrder": 300,
-  "need": "Hold the place of content that is loading: skeleton lines and a page load bar",
+  "need": "Hold the place of content that is loading: skeleton presets, a loading line and a page load bar",
   "tier": 1,
   "status": "stable",
   "classes": [
@@ -11,14 +11,25 @@
     "ds-loadbar__bar",
     "ds-loading",
     "ds-loading__detail",
+    "ds-skeleton--pulse",
+    "ds-skeleton__avatar",
     "ds-skeleton__card",
+    "ds-skeleton__cells",
+    "ds-skeleton__cells--head",
+    "ds-skeleton__field",
+    "ds-skeleton__form",
     "ds-skeleton__line",
     "ds-skeleton__line--heading",
+    "ds-skeleton__line--label",
     "ds-skeleton__line--lead",
     "ds-skeleton__line--mid",
     "ds-skeleton__line--short",
     "ds-skeleton__line--title",
-    "ds-skeleton__note"
+    "ds-skeleton__lines",
+    "ds-skeleton__media",
+    "ds-skeleton__note",
+    "ds-skeleton__row",
+    "ds-skeleton__table"
   ],
   "attributes": [],
   "requires": [
@@ -30,8 +41,12 @@
   ],
   "hooks": {
     "--ds-skeleton-radius": {
-      "default": "`--ds-radius-action` (the heading line: `--ds-radius-sm`)",
-      "description": "skeleton lines ([loading](components.md#loading))"
+      "default": "`--ds-radius-action` (the heading line and a field: `--ds-radius-sm`; a media bone: `--ds-radius-card`)",
+      "description": "the bones of a skeleton, times `--ds-shape` ([loading](components.md#loading))"
+    },
+    "--ds-skeleton-media-ratio": {
+      "default": "16 / 9",
+      "description": "the aspect ratio of `.ds-skeleton__media`"
     }
   },
   "keyframes": [
