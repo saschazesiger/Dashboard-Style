@@ -62,18 +62,28 @@
   --ds-on-accent: #002020;
   --ds-on-accent-icon: var(--ds-on-accent);
   --ds-action-ink: var(--ds-primary);
+  /* The tint of the primary tone (.ds-tone-primary). */
+  --ds-primary-container: #9cf1f0;
+  --ds-on-primary-container: #002020;
 
-  /* ── Status ── */
+  /* ── Status (each with the text on its full colour, for filled marks) ── */
   --ds-error: #ba1a1a;
+  --ds-on-error: #ffffff;
   --ds-error-container: #ffdad6;
   --ds-on-error-container: #93000a;
   --ds-success: #146c2e;
+  --ds-on-success: #ffffff;
   --ds-success-container: #c4eed0;
   --ds-on-success-container: #0f5223;
   --ds-warning: #8f4e06;
+  --ds-on-warning: #ffffff;
   --ds-warning-container: #feefc3;
   --ds-on-warning-container: #8f4e06;
   --ds-warning-surface: #fdf6e7;
+  --ds-info: #00639b;
+  --ds-on-info: #ffffff;
+  --ds-info-container: #cee5ff;
+  --ds-on-info-container: #004a76;
 
   /* ── Inverse, scrim, fills ── */
   --ds-inverse: #2d3131;
@@ -179,12 +189,22 @@
   --ds-toast-room: 64px;
   --ds-touch-target: 48px;
 
+  /* ── Options (docs/options.md): the defaults the option classes change ──
+     Numbers only; a region takes a class (.ds-density-dense, .ds-sm,
+     .ds-shape-square) instead. --ds-shape: 0 gives square corners
+     everywhere, actions included. */
+  --ds-size-step: 0;
+  --ds-density: 0;
+  --ds-shape: 1;
+  --ds-target-min: 0px;
+
   /* ── Component hooks (layer 3), with their defaults ──
-  --ds-btn-height: 36px;               --ds-btn-padding-x: var(--ds-space-4);
+  --ds-btn-height: 40px; (the md base; size and density apply on top)
+  --ds-btn-height-exact: (unset; a fixed height)  --ds-btn-padding-x: var(--ds-space-4);
   --ds-btn-padding-start: (padding-x)  --ds-btn-radius: var(--ds-radius-action);
-  --ds-btn-font: var(--ds-font-label);
+  --ds-btn-font: (the size's role, else var(--ds-font-label))
   --ds-btn-bg: (per variant);          --ds-btn-color: (per variant);
-  --ds-btn-border: (per variant);
+  --ds-btn-border: (per variant);      --ds-btn-shadow: none;
   --ds-btn-state: currentColor;        --ds-btn-state-opacity: var(--ds-state-hover);
   --ds-btn-state-pressed-opacity: var(--ds-state-pressed);
   --ds-btn-state-focus-opacity: var(--ds-state-focus);
@@ -192,7 +212,7 @@
   --ds-btn-hover-color: (resting color); --ds-btn-hover-border: (resting border);
   --ds-btn-hover-shadow: none;         --ds-btn-hover-decoration: none;
   --ds-btn-icon-size: 40px;            --ds-btn-quiet-color: var(--ds-text-2);
-  --ds-btn-sm-height: 32px;            --ds-btn-sm-icon-size: 32px;
+  --ds-btn-sm-height: 32px;            --ds-btn-sm-icon-size: 32px; (deprecated, with .ds-btn--sm)
   --ds-btn-disabled-bg: (from --ds-disabled-fill);
   --ds-btn-disabled-border: (from --ds-disabled-fill);
   --ds-input-font: (body; input role up to 600px)

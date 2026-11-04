@@ -169,7 +169,7 @@ describe('dist/manifest.json', () => {
     assert.equal(manifest.layers, LAYERS);
     assert.equal(manifest.sublayers, sublayerStatement(list));
     assert.ok(text('ds.css').includes(`\n${manifest.sublayers}\n`), 'ds.css declares the same sublayers');
-    assert.deepEqual(manifest.core.css, ['css/core/tokens.css', 'css/core/base.css', 'css/core/motion.css', 'css/core/global.css']);
+    assert.deepEqual(manifest.core.css, ['css/core/tokens.css', 'css/core/options.css', 'css/core/base.css', 'css/core/motion.css', 'css/core/global.css']);
     assert.equal(manifest.core.properties, 'css/properties.css');
     assert.deepEqual(manifest.order, list.map(({ name }) => name));
     assert.deepEqual(Object.keys(manifest.pseudo), CORE);

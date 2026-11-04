@@ -29,6 +29,7 @@ component live.
 | A block of related content | [Card](#card) `.ds-card`; a quieter block inside one: `.ds-card--filled` |
 | A whole card opens something (a device, a report) | `.ds-card--interactive` on `<a>` or `<button>`, or on a `<div>` with a `.ds-card__action` link ([Card](#card)) |
 | Any action | [Button](#button) `.ds-btn` with one variant; an action inside text or a table cell: `.ds-link-btn` |
+| A smaller or larger control, a denser region, other corners, a meaning in colour, bigger targets for a finger | the option classes on the control or any container ([options.md](options.md)): sizes `.ds-xs`, `.ds-sm`, `.ds-md`, `.ds-lg`, `.ds-xl`; density `.ds-density-comfortable`, `.ds-density-compact`, `.ds-density-dense`, `.ds-density-tight`; shape `.ds-shape-square`, `.ds-shape-soft`, `.ds-shape-default`, `.ds-shape-round`; tone `.ds-tone-neutral`, `.ds-tone-primary`, `.ds-tone-info`, `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error` (with an icon or a word); touch `.ds-touch` |
 | A view option that stays on or off (filter, compact view) | `.ds-btn--quiet` with `aria-pressed` ([Button](#button)) |
 | A choice made once, then locked (a vote, a sent answer) | the pressed toggle with `aria-disabled="true"`: it keeps its on look ([Button](#button)) |
 | A button whose label folds away on phones | `.ds-btn--adaptive` with `.ds-btn__label` and a `data-tip` ([Button](#button)) |
