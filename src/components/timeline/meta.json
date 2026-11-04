@@ -3,45 +3,54 @@
   "group": "data",
   "order": 120,
   "docsOrder": 100,
-  "need": "Show the history of a record, on a rail grouped by day",
+  "need": "Show the history of a record, an activity feed or comments, on a rail grouped by day",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-timeline",
+    "ds-timeline--activity",
     "ds-timeline__actions",
     "ds-timeline__body",
     "ds-timeline__day",
     "ds-timeline__group",
     "ds-timeline__head",
     "ds-timeline__item",
+    "ds-timeline__item--comment",
     "ds-timeline__item--icon",
     "ds-timeline__item--muted",
     "ds-timeline__marker",
     "ds-timeline__meta",
     "ds-timeline__text",
+    "ds-timeline__time",
     "ds-timeline__title"
   ],
   "attributes": [
     "data-ds-glide"
   ],
   "requires": [],
-  "context": [],
+  "context": [
+    "button"
+  ],
   "hooks": {
     "--ds-timeline-indent": {
       "default": "`--ds-space-8`",
-      "description": "how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it)"
+      "description": "how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it), 4px per size step"
+    },
+    "--ds-timeline-padding": {
+      "default": "`--ds-space-3` (`--activity`: `--ds-space-2`)",
+      "description": "an entry's block padding, 2px per density step"
     },
     "--ds-timeline-dot-size": {
       "default": "10px, `--ds-primary`",
-      "description": "the dot of a timeline entry"
+      "description": "the dot of a timeline entry (2px per size step)"
     },
     "--ds-timeline-dot-color": {
       "default": "10px, `--ds-primary`",
-      "description": "the dot of a timeline entry"
+      "description": "the dot of a timeline entry (2px per size step)"
     },
     "--ds-timeline-muted-color": {
       "default": "`--ds-outline`",
-      "description": "the ring of a `.ds-timeline__item--muted` entry"
+      "description": "the ring of a `.ds-timeline__item--muted` entry, around its dot or its marker"
     },
     "--ds-timeline-line-width": {
       "default": "2px, `--ds-line`",
@@ -57,11 +66,22 @@
     },
     "--ds-timeline-marker-size": {
       "default": "24px",
-      "description": "the disc of `.ds-timeline__marker`; the rail runs through its centre"
+      "description": "the disc of `.ds-timeline__marker`, 4px per size step; the rail runs through its centre"
     },
     "--ds-timeline-head-line": {
       "default": "24px",
-      "description": "the head line of an entry, on which its dot is centred (the height of a status chip)"
+      "description": "the head line of an entry, on which its dot is centred (the height of a status chip), 4px per size step"
+    },
+    "--ds-timeline-comment-bg": {
+      "default": "`--ds-surface-low`",
+      "description": "the box of a `.ds-timeline__item--comment` entry's text"
+    },
+    "--ds-timeline-comment-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "the box of a `.ds-timeline__item--comment` entry's text (times `--ds-shape`)"
+    },
+    "--ds-btn-padding-x": {
+      "owner": "button"
     }
   },
   "keyframes": [],
