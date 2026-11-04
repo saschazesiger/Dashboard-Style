@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Accessibility helpers (3.0): the focus and speech tools a behaviour
  * needs, in one module, so no component writes its own.

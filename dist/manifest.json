@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "3.0.0-alpha.3",
+  "version": "3.0.0-alpha.4",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
   "sublayers": "@layer ds.components.global, ds.components.utilities, ds.components.scroller, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.button, ds.components.loading, ds.components.disclosure, ds.components.timeline, ds.components.tasks, ds.components.status, ds.components.alert, ds.components.switch, ds.components.slider, ds.components.progress, ds.components.chart, ds.components.tile, ds.components.list, ds.components.card, ds.components.prose, ds.components.empty, ds.components.menu, ds.components.chip, ds.components.badge, ds.components.sheet, ds.components.dialog, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.combobox, ds.components.tooltip, ds.components.page, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.toast, ds.components.savebar, ds.components.ripple;",
   "core": {
@@ -373,7 +373,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 3922,
-      "gzip": 904
+      "gzip": 905
     },
     "button": {
       "css": "css/components/button.css",
@@ -588,7 +588,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 6565,
-      "gzip": 1655
+      "gzip": 1656
     },
     "tasks": {
       "css": "css/components/tasks.css",
@@ -973,7 +973,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 15556,
-      "gzip": 3214
+      "gzip": 3213
     },
     "card": {
       "css": "css/components/card.css",
@@ -1044,7 +1044,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 17660,
-      "gzip": 2950
+      "gzip": 2951
     },
     "prose": {
       "css": "css/components/prose.css",
@@ -1234,7 +1234,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 9760,
-      "gzip": 2160
+      "gzip": 2161
     },
     "badge": {
       "css": "css/components/badge.css",
@@ -1273,7 +1273,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4588,
-      "gzip": 1193
+      "gzip": 1194
     },
     "sheet": {
       "css": "css/components/sheet.css",
@@ -1829,7 +1829,7 @@
         "anchor positioning"
       ],
       "bytes": 2932,
-      "gzip": 1022
+      "gzip": 1023
     },
     "page": {
       "css": "css/components/page.css",

@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Windowing (3.0): a list or the rows of a table with thousands of entries,
  * of which only those near the viewport exist in the DOM.

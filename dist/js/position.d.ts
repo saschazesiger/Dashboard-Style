@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Types of DS.position (js/position.js), the shared placer. Hand-written;
  * test/build.test.js keeps the declared exports and their parameters equal

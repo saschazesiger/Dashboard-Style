@@ -9,6 +9,47 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
 `3.0.0-alpha.<n>`.
 
+### Phase 1 completed: one sublayer per component, the 2.x styleguide retired (3.0.0-alpha.4)
+
+**Sublayers.** Every component's rules sit in its own sublayer, `ds.components.<name>`, and `global.css` in
+`ds.components.global`, the first. `src/index.css`, `ds.css`, every file of `css/` and every bundle declare them in
+`manifest.json` order, so the first stylesheet a page loads fixes the cascade: single files linked in any order, a
+partial bundle and several bundles on one page cascade exactly as `ds.css` does (`bundle.spec.js` links single files
+in reverse order and compares every element). A later component now wins over an earlier one whatever the specificity.
+
+**Migration.**
+- **Your own `@layer ds.components.<name> { … }`** joins that component's sublayer; a project rule that relied on
+  `@layer ds.components { … }` directly now beats every component (it did not before). Keep project CSS unlayered.
+- **Cascade order** (`manifest.json` `order`): building blocks first, the containers after what they place, the frame
+  after them, `ripple` last. A page that links single files may link them in any order.
+
+**Build.** It fails a component stylesheet with a rule outside its own sublayer, a selector that names a class of a
+component that comes later (outside `:not()` and `:has()`), or a `context` entry it does not name. New optional
+`meta.json` key `stateClasses`: the classes a module writes on other components' elements (ripple: `.ds-pressed`,
+`.ds-ripples`), which any stylesheet names without listing the component in `context`. `manifest.json` gives each
+component's `layer` as its sublayer.
+
+**Moved between stylesheets** (same selectors and weight, now in the later component of each pair): the link row of
+cards in `.ds-grid-2` and the page's loading bar (page), key facts in a card (card), the toolbar's swap slot (form),
+the row form's cap of a combobox (combobox), a chip and a badge in a card's head row (chip, badge), a chip in a
+current list row in forced colours (chip), a badge in a selected table row, a blocked tab and a blocked drawer item
+(table, tabs, shell), the hover actions of a card, a drawer row and a selected table row (card, shell, table). The
+card's zero-weight paragraph reset moves to `global.css`. `.ds-stale` belongs to utilities.
+
+**Changed, on purpose.** A prose block in a card keeps its rhythm between blocks (2.x: the card's paragraph reset
+outweighed it by its type selector). A computed-style probe of the styleguide, every component fixture, the Motion Lab,
+the live tour, the reference app and the 2.x fixtures (light and dark, 1280 and 390px, and with every element
+hovered, pressed and focused) found no other difference.
+
+**Styleguide.** The 2.x styleguide is retired: `styleguide/legacy.html` and `styleguide.js` are gone, and every 2.x
+section lives on a component page or a foundation page of `styleguide/index.html`. Old addresses
+(`index.html#forms`) open the page that took the section over. The Motion Lab's frame (navigation, theme and speed
+selects, the demo cards) lives in `styleguide/motion-lab.js`. "Theme file" puts a shipped theme (dark, compact,
+contrast, example, System) or a snippet over the preset. The demos show what only the 2.x sections showed (a
+full-width field, adding and editing rows, the radio tiles' indicator, a contained dialog, type-to-confirm, the held
+press of every button look, a wide pinned table, a stale refresh). The drawer and the Motion Lab list components in
+the new cascade order.
+
 ### Phase 1: every component on the options model, the helpers (3.0.0-alpha.3)
 
 Every component computes size, density, shape, touch and, where it shows meaning, tone in its own rule, so **a 2.x page

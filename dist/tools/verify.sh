@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style
+# Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style
 # Verifies a copy of Dashboard-Style against its SHA256SUMS, without network
 # and without Node (POSIX sh; needs sha256sum or shasum, find, sort, diff).
 #

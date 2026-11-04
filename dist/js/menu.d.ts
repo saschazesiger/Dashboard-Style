@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.4 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /** Types of DS.menu (js/menu.js). */
 import type { CloseReason, OpenOptions, OverlayController } from './overlay.js';
 
