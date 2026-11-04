@@ -193,6 +193,8 @@ const LAB_EXEMPT = {
   ...Object.assign({}, ...METAS.map((meta) => meta.labExempt ?? {})),
   'DS.dom.followViewport': 'layout follows the on-screen keyboard (--ds-viewport-height, data-ds-keyboard), no motion',
   'DS.dom.autosize': 'the height follows the text, never animated: no motion',
+  'DS.dom.typesText': 'a test on a node, no motion',
+  'DS.overlay.canFocus': 'a test on a node, no motion',
   'DS.dom.dropzone': 'events, no motion: the dropzone demo plays the data-ds-dragover look it writes',
   'DS.overlay.announce': 'live region, no motion',
   'DS.overlay.toastRegion': 'live region, no motion',

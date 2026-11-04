@@ -40,6 +40,8 @@ export interface RovingOptions {
 }
 /** One tab stop for a group; the arrow keys move between its items. */
 export declare function roving(container: Element | null | undefined, options?: RovingOptions): Destroyable;
+/** Whether `node` takes typed text: an editable input of a type that types, a textarea or contenteditable. */
+export declare function typesText(node: any): boolean;
 /** The app frame follows the on-screen keyboard, also for a field in a same-origin iframe (never in an embedded widget). */
 export declare function followViewport(doc?: Document): Destroyable;
 /** A log that sticks to its end while the reader is there. */

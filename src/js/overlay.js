@@ -280,7 +280,7 @@ export const DISMISS_DELAY_MS = 300;
 export const DRAWER_QUERY = '(max-width: 900px)';
 
 /** Tabbable candidates; canFocus() filters them. */
-const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
+export const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
 
 /** The landmarks focus falls back to when an opener is gone (leave()'s rule). */
 const LANDMARK = '.ds-view[tabindex="-1"], main[tabindex="-1"], [role="main"][tabindex="-1"]';
@@ -515,8 +515,12 @@ function flushStyle(element) {
 
 /* ── Focus ──────────────────────────────────────────── */
 
-/** Whether focus() would land on the node (enabled, rendered, not inert or hidden). */
-function canFocus(node) {
+/**
+ * Whether focus() would land on the node (enabled, rendered, not inert or hidden).
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function canFocus(node) {
   if (!node || node.isConnected === false || typeof node.focus !== 'function') return false;
   if (node.disabled || node.closest?.('[inert], [hidden]')) return false;
   return typeof node.getClientRects !== 'function' || node.getClientRects().length > 0;

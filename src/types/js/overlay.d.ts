@@ -21,6 +21,10 @@ export declare const TOOLTIP_HIDE_MS: number;
 export declare const DISMISS_DELAY_MS: number;
 /** The media query under which the modal drawer exists. */
 export declare const DRAWER_QUERY: string;
+/** The selector of the tabbable candidates; canFocus() filters them. */
+export declare const FOCUSABLE: string;
+/** Whether focus() would land on the node (enabled, rendered, not inert or hidden). */
+export declare function canFocus(node: any): boolean;
 
 /** Reference-counted scroll lock of the page. */
 export declare function lockScroll(doc?: Document): void;

@@ -1300,6 +1300,20 @@ function frameDocument(frame) {
 }
 
 /**
+ * Whether `node` takes typed text: an editable input of a type that types,
+ * a textarea or contenteditable. A read-only one does not.
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function typesText(node) {
+  if (!node) return false;
+  if (node.isContentEditable) return true;
+  if (node.tagName === 'TEXTAREA') return !node.readOnly;
+  if (node.tagName !== 'INPUT') return false;
+  return !node.readOnly && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(node.type);
+}
+
+/**
  * Whether focus sits in a field that brings up a keyboard, through open
  * shadow roots and same-origin frames (an embedded editor).
  */
@@ -1314,10 +1328,7 @@ function editing(doc) {
     doc = inner;
   }
   if (!active || active === doc.body) return false;
-  if (active.isContentEditable) return true;
-  if (active.tagName === 'TEXTAREA') return !active.readOnly;
-  if (active.tagName !== 'INPUT') return false;
-  return !active.readOnly && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(active.type);
+  return typesText(active);
 }
 
 /**
