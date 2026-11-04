@@ -1968,7 +1968,9 @@ describe('feedback and data (1.4.0)', () => {
     assert.equal(rulesWith('src/components/card/card.css', /^\.ds-card--interactive:active/).find(({ own }) => own['border-radius']).own['border-radius'],
       'min(var(--ds-radius-card-pressed), var(--ds-radius-card))');
     assert.equal(rulesWith('src/components/tile/tile.css', /^:is\(button, a\)\.ds-tile:active/).find(({ own }) => own['border-radius']).own['border-radius'],
-      'min(var(--ds-tile-radius-pressed, var(--ds-radius-md)), var(--ds-tile-radius, var(--ds-radius-lg)))');
+      'min(calc(var(--ds-tile-radius-pressed, var(--ds-radius-md)) * var(--ds-shape, 1)), var(--_radius))');
+    assert.equal(rulesWith('src/components/tile/tile.css', /^\.ds-tile$/).find(({ own }) => own['--_radius']).own['--_radius'],
+      'calc(var(--ds-tile-radius, var(--ds-radius-lg)) * var(--ds-shape, 1))');
   });
 
   it('names the P6 uses of the animate exceptions', () => {
@@ -2235,7 +2237,8 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
 
   it('clips chart fills at the share and never scales them; the share glides on the value curve', () => {
     assert.ok(!declarations(read(CHART)).some(({ property }) => property === 'transform' || property === 'scale'), 'no transform or scale in chart.css');
-    assert.match(own(CHART, '.ds-meter::before')['clip-path'], /^inset\(0 calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 round var\(--ds-radius-action\)\)$/);
+    assert.match(own(CHART, '.ds-meter::before')['clip-path'], /^inset\(0 calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 round calc\(var\(--ds-radius-action\) \* var\(--ds-shape, 1\)\)\)$/);
+    assert.equal(own(CHART, '.ds-meter')['--_radius'], 'min(calc(var(--ds-radius-action) * var(--ds-shape, 1)), calc(var(--_h) / 2))');
     assert.match(own(CHART, '.ds-columns__fill')['clip-path'], /^inset\(calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 0 round /);
     for (const selector of ['.ds-meter', '.ds-columns__col']) {
       assert.equal(own(CHART, selector).transition, '--ds-share var(--ds-dur-glide) var(--ds-ease-value)', selector);
@@ -2308,7 +2311,7 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
   it('draws timeline dots and rails with borders (they stay in forced colours) and has no motion of its own', () => {
     const file = 'src/components/timeline/timeline.css';
     const dot = own(file, '.ds-timeline__item::after');
-    assert.match(dot.border, /^calc\(var\(--ds-timeline-dot-size, 10px\) \/ 2\) solid var\(--ds-timeline-dot-color, var\(--ds-primary\)\)$/);
+    assert.match(dot.border, /^calc\(var\(--_dot\) \/ 2\) solid var\(--ds-timeline-dot-color, var\(--ds-primary\)\)$/);
     assert.ok(!('background' in dot) && !('background-color' in dot), 'a dot of borders, no background');
     assert.match(own(file, '.ds-timeline__item::before')['border-inline-start'], /var\(--ds-timeline-line-width, 2px\) solid/);
     assert.deepEqual(declarations(read(file)).filter(({ property }) => /^(transition|animation)/.test(property)), []);

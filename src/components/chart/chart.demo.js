@@ -1,8 +1,10 @@
 /*
- * The Charts demo: meters, columns, columns that open, grouped columns
- * with a sparkline. Registered through SG.demo() (styleguide/sg-core.js);
- * the build wraps this file into styleguide/demos.js. legacy.html renders
- * the same spec as its Charts section until it goes.
+ * The Charts demo: meters with their tones, columns, columns that open,
+ * grouped columns with a sparkline. Registered through SG.demo()
+ * (styleguide/sg-core.js); the build wraps this file into
+ * styleguide/demos.js. legacy.html renders the same spec as its Charts
+ * section until it goes. Size, density and shape come from the options
+ * panel around it; a tone goes on the mark it means, with words next to it.
  */
 var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 var CHART_SETS = [[42, 38, 51, 47, 30, 8, 5], [36, 44, 40, 52, 41, 12, 9], [28, 31, 45, 39, 50, 6, 11]];
@@ -37,22 +39,24 @@ SG.demo('chart', {
   title: 'Charts',
   group: 'data',
   need: 'Show a share, a figure per day or week, or a trend at a glance',
-  lead: 'Meters, columns and legends from the chart roles: four series in a fixed order, each at 3:1. A fill is clipped at its share (--ds-share), never scaled, so its round end keeps its shape; the first render fills from zero, later values glide.',
-  options: {},
+  lead: 'Meters, columns and legends from the chart roles: four series in a fixed order, each at 3:1. A fill is clipped at its share (--ds-share), never scaled, so its round end keeps its shape; the first render fills from zero, later values glide. The chart module (axes, lines, a cursor) comes later.',
+  options: { sizes: true, density: true, shape: true, tones: ['neutral', 'primary', 'info', 'success', 'warning', 'error'] },
 
   render: function (h) {
     var spark = SPARK.map(function (value, index) {
       return '<li class="ds-columns__col' + (index === SPARK.length - 1 ? ' ds-columns__col--highlight' : '') + '" style="--ds-share:' + (value / 12).toFixed(3) + '"><span class="ds-columns__fill"></span></li>';
     }).join('');
+    // The panel's tone goes on the first meter's fill and its legend key: tones read their own class.
+    var tone = h.tone ? ' ds-tone-' + h.tone : '';
     return '<div class="ds-grid-2">' +
       h.card('Meters', '<div class="sg-meters" data-chart="meters">' +
-        '<p class="sg-meter-label"><span>Disk</span><strong class="ds-num" data-chart="disk">62%</strong></p><span class="ds-meter" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-valuetext="62% used" style="--ds-share:.62"></span>' +
-        '<p class="sg-meter-label"><span>Memory: high</span><strong class="ds-num">91%</strong></p><span class="ds-meter ds-meter--warning" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-valuetext="91% used, high" style="--ds-share:.91"></span>' +
-        '<p class="sg-meter-label"><span>Battery health</span><strong class="ds-num">48%</strong></p><span class="ds-meter ds-meter--neutral" role="meter" aria-label="Battery health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-valuetext="48%" style="--ds-share:.48"></span></div>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-chart-action="meter">' + h.icon('sync', 16) + 'New disk value</button></div>' +
+        '<p class="sg-meter-label"><span>Disk</span><strong class="ds-num" data-chart="disk">62%</strong></p><span class="ds-meter' + tone + '" role="meter" aria-label="Disk" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62" aria-valuetext="62% used" style="--ds-share:.62"></span>' +
+        '<p class="sg-meter-label"><span>Memory: high</span><strong class="ds-num">91%</strong></p><span class="ds-meter ds-tone-warning" role="meter" aria-label="Memory" aria-valuemin="0" aria-valuemax="100" aria-valuenow="91" aria-valuetext="91% used, high" style="--ds-share:.91"></span>' +
+        '<p class="sg-meter-label"><span>Battery health</span><strong class="ds-num">48%</strong></p><span class="ds-meter ds-tone-neutral" role="meter" aria-label="Battery health" aria-valuemin="0" aria-valuemax="100" aria-valuenow="48" aria-valuetext="48%" style="--ds-share:.48"></span></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-chart-action="meter">' + h.icon('sync', 16) + 'New disk value</button></div>' +
         '<p class="ds-muted">DS.dom.progress sets the share and its ARIA; the meter glides on --ds-ease-value while its figure counts (DS.motion.countUp) in the same task: both land on the same frame.</p>') +
       h.card('Columns', '<figure class="ds-columns" data-chart="columns"><figcaption class="ds-sr">Devices that checked in, per day</figcaption><ol class="ds-columns__plot">' + columnsHtml(CHART_SETS[0]) + '</ol></figure>' +
-        '<div class="sg-row"><button class="ds-btn ds-btn--sm" type="button" data-chart-action="values">' + h.icon('sync', 16) + 'New values</button><button class="ds-btn ds-btn--sm" type="button" data-chart-action="fill">Fill again</button></div>' +
+        '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-chart-action="values">' + h.icon('sync', 16) + 'New values</button><button class="ds-btn ds-sm" type="button" data-chart-action="fill">Fill again</button></div>' +
         '<p class="ds-muted">New values glide; Fill again plays the first render (DS.motion.enterAll(marks, \'fill\'), .ds-enter--fill).</p>') +
       '</div>' +
       '<div class="ds-grid-2">' +

@@ -29,14 +29,19 @@
  * first render fills from zero with .ds-enter--fill
  * (DS.motion.enterAll(marks, 'fill', { stagger: false })).
  *
- *   .ds-meter--neutral, --warning, --error     the tone of a meter (always
- *                                              with words next to it)
+ *   .ds-tone-*  on a .ds-meter, a .ds-columns__col or a .ds-legend__key, on
+ *               the mark itself (an inherited tone would recolour a whole
+ *               chart in a tinted region), always with words next to it:
+ *               neutral, warning and error take their chart roles, the
+ *               others the tone. --neutral, --warning and --error on the
+ *               three marks are the 2.x names, deprecated aliases until
+ *               3.0 ships
  *   .ds-columns__col--s2, --s3, --s4           a column of series 2 to 4
- *   .ds-columns__col--warning, --error         a column's tone
  *   .ds-columns--mini                          a 32px sparkline of columns:
  *     no labels, the columns aria-hidden, the figure role="img" with a
  *     summary in its aria-label; .ds-columns__col--highlight takes
- *     --ds-chart-1, the rest --ds-chart-neutral
+ *     --ds-chart-1, the rest --ds-chart-neutral; spans instead of the
+ *     figure and the list inside a button or a link
  *   .ds-columns--grouped                       groups of columns side by
  *     side: .ds-columns__groups > .ds-columns__group (a .ds-columns__plot
  *     and a .ds-columns__label), columns 2px apart, the current group
@@ -45,7 +50,20 @@
  *     .ds-scroll-x when it may be wider than its card
  *   :is(button, a).ds-columns__col             a column that opens its
  *     category: the state layer, an inset ring, the ripple, no morph
- *   .ds-legend__key--s2, --s3, --s4, --neutral, --warning, --error
+ *   .ds-legend__key--s2, --s3, --s4            a key of series 2 to 4
+ *
+ * Options (src/core/options.css, docs/options.md), on the mark or any
+ * ancestor; each is computed here, in the rule that uses it:
+ *   size      .ds-xs ... .ds-xl: a meter's height 1px per step, the plot of
+ *             the columns 24px per step, a legend key 2px per step; the
+ *             type stays the meta font; not a sparkline (32px, it lines up
+ *             with a figure)
+ *   density   .ds-density-*: the plot of the columns 12px per step; not a
+ *             meter, which is thin already, and not the type
+ *   shape     .ds-shape-*: multiplies the radius of a meter, of a column's
+ *             data end and of a legend key
+ *   touch     .ds-touch: a column that opens is at least --ds-touch-target
+ *             high (its width comes from the chart's)
  *
  * Every chart has a text equivalent: its caption plus a table or a
  * key-value list, or the values as text. In forced colours the fills
@@ -53,11 +71,14 @@
  * degrees), as do the legend keys; a meter's track becomes Canvas with a
  * CanvasText outline. Printed, the fills keep their colours.
  *
+ * The chart module, axes and lines, comes in a later release (DS.chart).
+ * -webkit-print-color-adjust stays: Chromium took the plain name late.
+ *
  * Hooks: --ds-meter-height (4px), --ds-meter-track (--ds-chart-track),
  * --ds-meter-color (--ds-chart-1), --ds-columns-height (120px),
  * --ds-columns-radius (--ds-radius-xs), --ds-columns-group-min (56px),
  * --ds-chart-color (the series of a column or a legend key, set by the
- * modifiers), --ds-legend-key-size (12px).
+ * modifiers), --ds-legend-key-size (12px), --ds-chart-forced-ink (CanvasText).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -66,10 +87,13 @@
   /* ── Meter ── */
 
   .ds-meter {
+    --_h: calc(var(--ds-meter-height, 4px) + var(--ds-size-step, 0) * 1px);
+    --_radius: min(calc(var(--ds-radius-action) * var(--ds-shape, 1)), calc(var(--_h) / 2));
+    --_fill: var(--ds-meter-color, var(--ds-chart-1));
     display: block;
     position: relative;
-    height: var(--ds-meter-height, 4px);
-    border-radius: min(var(--ds-radius-action), calc(var(--ds-meter-height, 4px) / 2));
+    height: var(--_h);
+    border-radius: var(--_radius);
     background: var(--ds-meter-track, var(--ds-chart-track));
     transition: --ds-share var(--ds-dur-glide) var(--ds-ease-value);
   }
@@ -79,20 +103,26 @@
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: var(--ds-meter-color, var(--ds-chart-1));
-    clip-path: inset(0 calc((1 - var(--ds-share)) * 100%) 0 0 round var(--ds-radius-action));
+    background: var(--_fill);
+    clip-path: inset(0 calc((1 - var(--ds-share)) * 100%) 0 0 round calc(var(--ds-radius-action) * var(--ds-shape, 1)));
   }
 
-  .ds-meter--neutral {
-    --ds-meter-color: var(--ds-chart-neutral);
+  /* The tone of the meter itself; it beats a --ds-meter-color of the theme,
+     as the meaning goes first. */
+  .ds-meter:is(.ds-tone-primary, .ds-tone-info, .ds-tone-success) {
+    --_fill: var(--ds-tone);
   }
 
-  .ds-meter--warning {
-    --ds-meter-color: var(--ds-chart-warning);
+  .ds-meter:is(.ds-tone-neutral, .ds-meter--neutral) {
+    --_fill: var(--ds-chart-neutral);
   }
 
-  .ds-meter--error {
-    --ds-meter-color: var(--ds-chart-error);
+  .ds-meter:is(.ds-tone-warning, .ds-meter--warning) {
+    --_fill: var(--ds-chart-warning);
+  }
+
+  .ds-meter:is(.ds-tone-error, .ds-meter--error) {
+    --_fill: var(--ds-chart-error);
   }
 
   /* ── Columns ── */
@@ -103,7 +133,9 @@
     margin-top: 0;
   }
 
+  /* Block also as a <span>: a sparkline inside a tile that is a button. */
   .ds-columns {
+    display: block;
     min-width: 0;
     margin-inline: 0;
     margin-bottom: 0;
@@ -128,9 +160,10 @@
   }
 
   .ds-columns__col {
+    --_plot: calc(var(--ds-columns-height, 120px) + var(--ds-size-step, 0) * 24px + var(--ds-density, 0) * 12px);
     position: relative;
     display: grid;
-    grid-template-rows: var(--ds-columns-height, 120px) auto;
+    grid-template-rows: var(--_plot) auto;
     justify-items: center;
     row-gap: var(--ds-space-2);
     min-width: 0;
@@ -148,14 +181,15 @@
     max-width: var(--ds-space-10);
     height: 100%;
     background: var(--ds-chart-color, var(--ds-chart-1));
-    clip-path: inset(calc((1 - var(--ds-share)) * 100%) 0 0 0 round var(--ds-columns-radius, var(--ds-radius-xs)) var(--ds-columns-radius, var(--ds-radius-xs)) 0 0);
+    --_radius: calc(var(--ds-columns-radius, var(--ds-radius-xs)) * var(--ds-shape, 1));
+    clip-path: inset(calc((1 - var(--ds-share)) * 100%) 0 0 0 round var(--_radius) var(--_radius) 0 0);
   }
 
   /* The value rides on the top of the fill: only the registered share
      transitions, the position follows it. */
   .ds-columns__value {
     align-self: end;
-    translate: 0 calc(-1 * var(--ds-share) * var(--ds-columns-height, 120px) - var(--ds-space-1));
+    translate: 0 calc(-1 * var(--ds-share) * var(--_plot) - var(--ds-space-1));
     color: var(--ds-text);
     font: var(--ds-font-meta);
     font-variant-numeric: tabular-nums;
@@ -183,14 +217,6 @@
     --ds-chart-color: var(--ds-chart-4);
   }
 
-  .ds-columns__col--warning {
-    --ds-chart-color: var(--ds-chart-warning);
-  }
-
-  .ds-columns__col--error {
-    --ds-chart-color: var(--ds-chart-error);
-  }
-
   /* A sparkline of columns: no labels or values, one highlighted column. */
   .ds-columns--mini .ds-columns__plot {
     gap: 2px;
@@ -199,7 +225,8 @@
 
   .ds-columns--mini .ds-columns__col {
     --ds-chart-color: var(--ds-chart-neutral);
-    grid-template-rows: var(--ds-space-8);
+    --_plot: var(--ds-space-8);
+    grid-template-rows: var(--_plot);
     row-gap: 0;
   }
 
@@ -213,6 +240,23 @@
 
   .ds-columns--mini .ds-columns__fill {
     max-width: none;
+  }
+
+  /* After the sparkline's neutral: a tone holds in a sparkline too. */
+  .ds-columns__col:is(.ds-tone-primary, .ds-tone-info, .ds-tone-success) {
+    --ds-chart-color: var(--ds-tone);
+  }
+
+  .ds-columns__col.ds-tone-neutral {
+    --ds-chart-color: var(--ds-chart-neutral);
+  }
+
+  .ds-columns__col:is(.ds-tone-warning, .ds-columns__col--warning) {
+    --ds-chart-color: var(--ds-chart-warning);
+  }
+
+  .ds-columns__col:is(.ds-tone-error, .ds-columns__col--error) {
+    --ds-chart-color: var(--ds-chart-error);
   }
 
   /* Groups of columns side by side, the label under each group. */
@@ -238,7 +282,7 @@
   }
 
   .ds-columns__group .ds-columns__col {
-    grid-template-rows: var(--ds-columns-height, 120px);
+    grid-template-rows: var(--_plot);
     row-gap: 0;
   }
 
@@ -247,7 +291,7 @@
   }
 
   .ds-columns__group--current {
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
     background: var(--ds-surface-low);
   }
 
@@ -261,9 +305,10 @@
   :is(button, a).ds-columns__col {
     isolation: isolate;
     width: 100%;
+    min-height: var(--ds-target-min, 0px);
     padding: 0 0 var(--ds-space-1);
     border: 0;
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
     background: none;
     color: inherit;
     font: inherit;
@@ -332,10 +377,11 @@
   }
 
   .ds-legend__key {
+    --_size: calc(var(--ds-legend-key-size, 12px) + var(--ds-size-step, 0) * 2px);
     flex: none;
-    width: var(--ds-legend-key-size, 12px);
-    height: var(--ds-legend-key-size, 12px);
-    border-radius: var(--ds-radius-xs);
+    width: var(--_size);
+    height: var(--_size);
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
     background: var(--ds-chart-color, var(--ds-chart-1));
   }
 
@@ -351,15 +397,20 @@
     --ds-chart-color: var(--ds-chart-4);
   }
 
-  .ds-legend__key--neutral {
+  /* The tone of the key itself. */
+  .ds-legend__key:is(.ds-tone-primary, .ds-tone-info, .ds-tone-success) {
+    --ds-chart-color: var(--ds-tone);
+  }
+
+  .ds-legend__key:is(.ds-tone-neutral, .ds-legend__key--neutral) {
     --ds-chart-color: var(--ds-chart-neutral);
   }
 
-  .ds-legend__key--warning {
+  .ds-legend__key:is(.ds-tone-warning, .ds-legend__key--warning) {
     --ds-chart-color: var(--ds-chart-warning);
   }
 
-  .ds-legend__key--error {
+  .ds-legend__key:is(.ds-tone-error, .ds-legend__key--error) {
     --ds-chart-color: var(--ds-chart-error);
   }
 
@@ -376,10 +427,12 @@
       background: CanvasText;
     }
 
+    /* --ds-chart-forced-ink: a component that lays the marks on a system
+       fill of its own says which ink they take there. */
     .ds-columns__fill,
     .ds-legend__key {
       forced-color-adjust: none;
-      background: CanvasText;
+      background: var(--ds-chart-forced-ink, CanvasText);
     }
 
     .ds-legend__key--s2,

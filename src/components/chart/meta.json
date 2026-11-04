@@ -45,23 +45,23 @@
   "hooks": {
     "--ds-meter-height": {
       "default": "4px",
-      "description": "`.ds-meter` (its rest radius is half of it)"
+      "description": "`.ds-meter`: the base height, 1px per size step (its rest radius is half of it)"
     },
     "--ds-meter-track": {
-      "default": "`--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`)",
+      "default": "`--ds-chart-track`, `--ds-chart-1` (tones: `--ds-tone`, or `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`)",
       "description": "`.ds-meter`: the track, the fill"
     },
     "--ds-meter-color": {
-      "default": "`--ds-chart-track`, `--ds-chart-1` (tones: `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`)",
+      "default": "`--ds-chart-track`, `--ds-chart-1` (tones: `--ds-tone`, or `--ds-chart-neutral`, `--ds-chart-warning`, `--ds-chart-error`)",
       "description": "`.ds-meter`: the track, the fill"
     },
     "--ds-columns-height": {
       "default": "120px",
-      "description": "the plot of `.ds-columns` (`--mini`: 32px)"
+      "description": "the plot of `.ds-columns` at size md, comfortable density: 24px per size step, 12px per density step (`--mini`: 32px)"
     },
     "--ds-columns-radius": {
       "default": "`--ds-radius-xs`",
-      "description": "the rounded data end of a column"
+      "description": "the rounded data end of a column (times `--ds-shape`)"
     },
     "--ds-columns-group-min": {
       "default": "56px",
@@ -73,7 +73,11 @@
     },
     "--ds-legend-key-size": {
       "default": "12px",
-      "description": "the key of a `.ds-legend` entry"
+      "description": "the key of a `.ds-legend` entry, 2px per size step"
+    },
+    "--ds-chart-forced-ink": {
+      "default": "`CanvasText`",
+      "description": "the fills of columns and legend keys in forced colours; a component that lays them on a system fill of its own sets it"
     }
   },
   "keyframes": [],
