@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Button options · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- The button on the options model (3.0): button-options.spec.js fills
+     #grid with every size x density, with and without .ds-touch, and reads
+     the static rows below: shapes, a dense region nested in a comfortable
+     one, the destructive confirmation (D10) and the variants of 3.0. -->
+<div class="ds-theme fx-root">
+  <section class="fx-section" aria-labelledby="grid-title">
+    <h2 id="grid-title">Sizes and densities</h2>
+    <div id="grid"></div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="shape-title">
+    <h2 id="shape-title">Shapes</h2>
+    <div class="fx-row">
+      <span class="ds-shape-square"><button class="ds-btn ds-btn--filled" type="button" id="shape-square">Square</button></span>
+      <span class="ds-shape-soft"><button class="ds-btn ds-btn--filled" type="button" id="shape-soft">Soft</button></span>
+      <button class="ds-btn ds-btn--filled" type="button" id="shape-default">Default</button>
+      <span class="ds-shape-round"><button class="ds-btn ds-btn--filled" type="button" id="shape-round">Round</button></span>
+      <span class="ds-shape-square"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" id="shape-square-icon" aria-label="Settings"><span data-icon="settings" data-size="20"></span></button></span>
+    </div>
+  </section>
+
+  <section class="fx-section ds-density-comfortable" aria-labelledby="nest-title" id="comfortable">
+    <h2 id="nest-title">Nesting</h2>
+    <div class="fx-row">
+      <button class="ds-btn" type="button" id="nest-outer">Comfortable</button>
+      <div class="ds-density-dense" id="dense-region">
+        <button class="ds-btn" type="button" id="nest-dense">Dense</button>
+        <span class="ds-density-comfortable"><button class="ds-btn" type="button" id="nest-back">Comfortable again</button></span>
+        <button class="ds-btn ds-lg" type="button" id="nest-dense-lg">Dense, large</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="tone-title">
+    <h2 id="tone-title">Tone</h2>
+    <div class="ds-dialog__actions fx-row" id="confirm-actions">
+      <button class="ds-btn ds-btn--text" type="button" id="confirm-cancel">Cancel</button>
+      <button class="ds-btn ds-btn--filled ds-tone-error" type="button" id="confirm-delete">Delete 3 devices</button>
+    </div>
+    <div class="fx-row ds-tone-error" id="tone-region">
+      <button class="ds-btn ds-btn--filled" type="button" id="tone-inherited">Save</button>
+      <button class="ds-btn ds-btn--tonal ds-tone-error" type="button" id="tone-tonal">Retry</button>
+      <button class="ds-btn ds-btn--primary ds-tone-error" type="button" id="tone-alias">Delete</button>
+    </div>
+  </section>
+
+  <section class="fx-section" aria-labelledby="variant-title">
+    <h2 id="variant-title">Variants of 3.0</h2>
+    <div class="fx-row">
+      <button class="ds-btn ds-btn--filled" type="button" id="v-filled">Filled</button>
+      <button class="ds-btn ds-btn--primary" type="button" id="v-primary">Primary (alias)</button>
+      <button class="ds-btn ds-btn--elevated" type="button" id="v-elevated">Elevated</button>
+      <span id="ghost-host"><button class="ds-btn ds-btn--ghost" type="button" id="v-ghost">Ghost</button></span>
+      <button class="ds-btn ds-btn--sm" type="button" id="v-sm-alias">Small (alias)</button>
+      <button class="ds-btn ds-btn--text ds-btn--sm" type="button" id="v-sm-text-alias">Small text (alias)</button>
+      <button class="ds-btn ds-btn--text ds-sm" type="button" id="v-sm-text">Small text</button>
+      <button class="ds-btn ds-btn--quiet" type="button" id="v-toggle" aria-pressed="true">On</button>
+      <button class="ds-btn ds-btn--filled" type="button" id="v-locked" aria-disabled="true">Locked</button>
+    </div>
+    <div class="fx-narrow"><button class="ds-btn ds-btn--filled ds-btn--block" type="button" id="v-block">Sign in</button></div>
+    <div class="fx-row">
+      <button class="ds-btn ds-btn--filled" type="button" id="v-failed">
+        <span class="ds-btn__faces">
+          <span class="ds-btn__face">Save</span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+          <span class="ds-btn__face ds-btn__face--done" aria-hidden="true"><span data-icon="check" data-size="16"></span>Saved</span>
+          <span class="ds-btn__face ds-btn__face--failed" aria-hidden="true"><span data-icon="alertCircle" data-size="16"></span>Not saved</span>
+        </span>
+      </button>
+    </div>
+  </section>
+</div>
+<script src="/dist/ds.js"></script>
+<script src="fixture.js"></script>
+</body>
+</html>

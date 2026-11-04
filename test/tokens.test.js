@@ -471,15 +471,19 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     }
   });
 
-  it('gives the compact theme the default heights back under a coarse pointer, and leaves field text alone', () => {
+  it('gives the compact theme the default density and heights back under a coarse pointer, and leaves field text alone', () => {
     const css = read('themes/compact.css');
     const compact = declared('themes/compact.css');
     const coarse = atRuleBlocks(css, /^@media \(pointer: coarse\)$/);
     assert.equal(coarse.length, 1, 'one @media (pointer: coarse) block');
     const back = Object.fromEntries([...coarse[0].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((match) => [match[1], match[2].trim()]));
+    // 3.0: the dense density (the button computes its 32px from it), and the heights of the components not ported yet.
+    assert.equal(compact['--ds-density'], '-2');
+    assert.equal(back['--ds-density'], '0', 'the default density comes back');
+    assert.ok(!('--ds-btn-height' in compact), 'the button takes its compact height from the density');
     const heights = Object.keys(compact).filter((name) => /-height$/.test(name));
-    assert.ok(heights.length >= 8, `${heights.length} heights`);
-    assert.deepEqual(Object.keys(back).sort(), heights.sort(), 'every compact height comes back');
+    assert.ok(heights.length >= 7, `${heights.length} heights`);
+    assert.deepEqual(Object.keys(back).filter((name) => name !== '--ds-density').sort(), heights.sort(), 'every compact height comes back');
     for (const name of heights) {
       assert.ok(parseFloat(compact[name]) < parseFloat(back[name]), `${name}: compact is shorter`);
       assert.equal(known.get(name)?.layer, 'hook', `${name}: a documented hook`);
@@ -489,7 +493,7 @@ describe('shipped themes (themes/dark.css, compact.css, contrast.css)', () => {
     assert.ok(!('--ds-font-input' in compact) && !('--ds-font-reading' in compact), 'phones keep the 16px field text');
     // A theme root with .ds-touch keeps its touch targets: an unlayered theme on that element would beat it.
     for (const match of stripComments(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      if (/--[\w-]+-height\s*:/.test(match[2])) assert.equal(match[1].trim(), '.ds-theme:not(.ds-touch)', 'the heights skip a .ds-touch theme root');
+      if (/--[\w-]+-height\s*:|--ds-density\s*:/.test(match[2])) assert.equal(match[1].trim(), '.ds-theme:not(.ds-touch)', 'the density and the heights skip a .ds-touch theme root');
     }
   });
 });

@@ -90,7 +90,7 @@
      its even padding. */
   .ds-alert .ds-btn {
     flex-shrink: 0;
-    margin-block: calc((var(--ds-space-5) - var(--ds-btn-height, 36px)) / 2);
+    margin-block: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
     margin-inline: auto calc(-1 * var(--ds-space-2));
   }
 
@@ -116,7 +116,7 @@
     flex-wrap: wrap;
     flex-shrink: 0;
     gap: var(--ds-space-1);
-    margin-block: calc((var(--ds-space-5) - var(--ds-btn-height, 36px)) / 2);
+    margin-block: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
     margin-inline: auto calc(-1 * var(--ds-space-2));
   }
 

@@ -37,7 +37,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { scan, selectorList } from './css-scan.mjs';
-import { hasLightDark, isMotion, pairResults, pickLightDark, schemesOf } from './theme-rules.mjs';
+import { hasLightDark, isMotion, isRemoved, pairResults, pickLightDark, schemesOf } from './theme-rules.mjs';
 
 const BASE = /^\.ds-theme(\.[\w-]+)*$/;
 const THEME_SCOPE = /\.ds-theme\b/;
@@ -108,7 +108,7 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
         }
         const entry = known.get(property);
         const deprecation = names.find((d) => d.name === property);
-        if (deprecation?.removed) add('error', path, line, 'removed', `${property} was removed in ${deprecation.removed}${deprecation.replacement ? `: use ${deprecation.replacement}` : ''}`);
+        if (isRemoved(deprecation, deprecations?.version)) add('error', path, line, 'removed', `${property} was removed in ${deprecation.removed}${deprecation.replacement ? `: use ${deprecation.replacement}` : ''}`);
         else if (deprecation) add('warning', path, line, 'deprecated', `${property} is deprecated since ${deprecation.deprecated}${deprecation.replacement ? `: use ${deprecation.replacement}` : ''}`);
         else if (!entry) add('error', path, line, 'unknown', `${property} is not a token of this version (tokens.json)`);
         else if (!entry.themeable) add('warning', path, line, 'not-themeable', `${property} is ${/^[aeiou]/.test(entry.layer) ? 'an' : 'a'} ${entry.layer} property: themes set roles and hooks only`);
@@ -119,7 +119,7 @@ export function checkTheme({ files, withFiles = [], tokens, deprecations = null 
       }
     }
     // Removed names read anywhere (var(--ds-old), a keyframe, a class), by the patterns of deprecations.json.
-    for (const entry of names.filter((d) => d.removed && d.pattern)) {
+    for (const entry of names.filter((d) => isRemoved(d, deprecations?.version) && d.pattern)) {
       const pattern = new RegExp(entry.pattern, 'g');
       const text = css.replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '));
       for (const match of text.matchAll(pattern)) {

@@ -12,7 +12,8 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, posix } from 'node:path';
-import { MODULES, diffDist } from '../scripts/build.mjs';
+import { MODULES, diffDist, packageInfo } from '../scripts/build.mjs';
+import { isRemoved } from '../scripts/tools/theme-rules.mjs';
 import { ROOT, filesIn, read, rules, stripComments } from './helpers.js';
 
 const TEXT = /\.(css|js|mjs|md|html|json|txt|sh|ps1)$|(^|\/)(LICENSE|SHA256SUMS|\.gitignore|\.gitattributes)$/;
@@ -161,7 +162,8 @@ describe('repository', () => {
     // A hook (layer 3) is a --ds-* read with a fallback in src/components/ that tokens.css does not declare.
     // Not hooks: the registered per-element motion settings (motion.css), the runtime properties that
     // src/js/ writes, and the read-only or page-set values named below (each documented in docs/).
-    const declared = new Set([...stripComments(read('src/core/tokens.css')).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1]));
+    // The option classes of core/options.css set the rest (--ds-size-font, the tone colours, 3.0): read, never hooks.
+    const declared = new Set(['src/core/tokens.css', 'src/core/options.css'].flatMap((file) => [...stripComments(read(file)).matchAll(/(--ds-[\w-]+)\s*:/g)].map((match) => match[1])));
     const css = filesIn('src', (path) => path.endsWith('.css'));
     const registered = new Set(css.flatMap((file) => [...stripComments(read(file)).matchAll(/@property\s+(--ds-[\w-]+)/g)].map((match) => match[1])));
     const scripts = filesIn('src/js', (path) => path.endsWith('.js')).map(read).join('\n');
@@ -319,7 +321,9 @@ describe('repository', () => {
 
   it('keeps every removed name of src/deprecations.json out of the repository (RM-14)', () => {
     const { names } = JSON.parse(read('src/deprecations.json'));
-    const removed = names.filter((entry) => entry.removed !== null && entry.pattern !== null);
+    // Removed in this version or earlier; a removal planned for a later release (3.0.0 seen from 3.0.0-alpha) is
+    // still a deprecation: the name works until that release.
+    const removed = names.filter((entry) => isRemoved(entry, packageInfo().version) && entry.pattern !== null);
     assert.ok(removed.some((entry) => entry.name === '--ds-ease'), 'the removed names of 2.0 are listed');
     // History (CHANGELOG.md, plans/) and the tests may name them; so may the data itself and the tools that read it.
     const EXEMPT = /^(src\/deprecations\.json|dist\/deprecations\.json|dist\/tools\/.*)$/;
@@ -349,7 +353,7 @@ describe('repository', () => {
 
   it('marks every deprecated name of src/deprecations.json **deprecated** in docs/, and only those (RM-14)', () => {
     const { names } = JSON.parse(read('src/deprecations.json'));
-    const deprecated = names.filter((entry) => entry.removed === null);
+    const deprecated = names.filter((entry) => !isRemoved(entry, packageInfo().version));
     // A block is a table row, a list item or a paragraph; it covers an entry when it names it or its pattern matches.
     const blocks = filesIn('docs', (path) => path.endsWith('.md')).flatMap((file) => read(file).split(/\n\s*\n/)
       .flatMap((paragraph) => paragraph.split(/\n(?=\||\s*(?:[-*]|\d+\.)\s)/))
@@ -507,8 +511,8 @@ describe('repository', () => {
 
   it('lists the same progressive features in README.md and AGENTS.md', () => {
     const ticked = (text) => [...text.replace(/\s+/g, ' ').matchAll(/`([^`]+)`/g)].map((match) => match[1]).sort();
-    const agents = read('AGENTS.md').match(/\(tested\): (`linear\(\)`[\s\S]*?)JS is ES2022/)?.[1] ?? '';
-    const readme = read('README.md').match(/with its fallback: (`linear\(\)`[\s\S]*?)Older browsers/)?.[1] ?? '';
+    const agents = read('AGENTS.md').match(/\(tested\): (relative colour syntax[\s\S]*?)A port drops/)?.[1] ?? '';
+    const readme = read('README.md').match(/with its fallback: (relative colour syntax[\s\S]*?)Older browsers/)?.[1] ?? '';
     assert.ok(agents && readme, 'both lists found');
     assert.deepEqual(ticked(readme), ticked(agents));
   });

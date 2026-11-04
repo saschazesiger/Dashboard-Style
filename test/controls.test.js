@@ -120,9 +120,11 @@ describe('utilities (2.0)', () => {
     assert.equal(own(css, ':is([aria-pressed="true"], [aria-checked="true"]) .ds-icon--fillable > :last-child').fill, 'currentColor');
   });
 
-  it('sets every target hook to --ds-touch-target under .ds-touch (opt-in, a role)', () => {
+  it('sets every target hook to --ds-touch-target under .ds-touch (opt-in, a role), and --ds-target-min for the options model', () => {
     const touch = own(css, '.ds-touch');
-    const hooks = ['--ds-btn-height', '--ds-btn-sm-height', '--ds-btn-icon-size', '--ds-btn-sm-icon-size', '--ds-input-height', '--ds-check-height',
+    // 3.0: buttons take the touch target from --ds-target-min (core/options.css), as a minimum over size and density.
+    assert.deepEqual(own(stripComments(read('src/core/options.css')), '.ds-touch'), { '--ds-target-min': 'var(--ds-touch-target)' });
+    const hooks = ['--ds-input-height', '--ds-check-height',
       '--ds-check-sm-height', '--ds-check-target', '--ds-switch-height', '--ds-switch-halo', '--ds-chip-height', '--ds-combo-option-height', '--ds-menu-item-height',
       '--ds-drawer-item-height', '--ds-toast-close-size', '--ds-tabs-height', '--ds-disclosure-height'];
     for (const hook of hooks) assert.equal(touch[hook], 'var(--ds-touch-target)', hook);
@@ -168,7 +170,8 @@ describe('buttons (2.0)', () => {
   });
 
   it('pulls the start padding in before a leading icon of a face, and underlines with the link geometry', () => {
-    assert.equal(own(css, '.ds-btn:is(:has(> svg:first-child), :has(> .ds-btn__faces:first-child > .ds-btn__face:first-child > svg:first-child))')['--ds-btn-padding-start'], 'var(--ds-space-3)');
+    // 12px at md, 4px more per larger size, never more than the end padding (3.0).
+    assert.equal(own(css, '.ds-btn:is(:has(> svg:first-child), :has(> .ds-btn__faces:first-child > .ds-btn__face:first-child > svg:first-child))')['--ds-btn-padding-start'], 'min(var(--_pad), calc(var(--ds-space-3) + max(var(--ds-size-step, 0), 0) * 4px))');
     const hover = atRuleBlocks(css, /@media\s*\(hover:\s*hover\)/).map((block) => declarations(rules(block).find((rule) => rule.selector === '.ds-btn:hover')?.body ?? '')).find((list) => list.length);
     const names = hover.map((entry) => entry.property);
     assert.ok(names.indexOf('text-decoration-thickness') > names.indexOf('text-decoration'), 'after the shorthand');
@@ -179,9 +182,10 @@ describe('buttons (2.0)', () => {
     // The 1px floor: a container that Firefox styles before its first layout reads 0px wide (no fold on load).
     const container = atRuleBlocks(css, /@container ds-content \(min-width: 1px\) and \(max-width: 600px\)/).join('\n');
     const media = atRuleBlocks(css, /@media \(max-width: 600px\)/).join('\n');
-    assert.equal(own(container, '.ds-btn--adaptive').width, 'var(--ds-btn-icon-size, 40px)');
+    assert.equal(own(container, '.ds-btn--adaptive').width, 'var(--_box)');
+    assert.equal(own(container, '.ds-btn--adaptive')['--_box'], 'max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))');
     assert.equal(own(container, '.ds-btn--adaptive')['--ds-btn-bg'], 'transparent');
-    assert.equal(own(container, '.ds-btn--adaptive.ds-btn--sm')['--ds-btn-icon-size'], 'var(--ds-btn-sm-icon-size, 32px)');
+    assert.equal(own(container, '.ds-btn--adaptive.ds-btn--sm')['--_box'], 'max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px))');
     assert.equal(own(container, '.ds-btn--adaptive .ds-btn__label').clip, 'rect(0, 0, 0, 0)');
     // The window rules repeat the panel's for every button outside a .ds-content (the top bar, a page outside the
     // frame) and in sheets and dialogs, at the weight of the old sheet and dialog rules (0,2,0).
@@ -387,7 +391,7 @@ describe('alerts (2.0)', () => {
     assert.equal(own(flat, '.ds-alert__text > p + p')['margin-top'], 'var(--ds-space-2)');
     assert.equal(own(flat, '.ds-alert:has(> .ds-alert__actions) > .ds-alert__text').flex, '1 1 var(--ds-alert-text-basis, 256px)');
     for (const selector of ['.ds-alert .ds-btn', '.ds-alert__actions']) {
-      assert.equal(own(flat, selector)['margin-block'], 'calc((var(--ds-space-5) - var(--ds-btn-height, 36px)) / 2)', selector);
+      assert.equal(own(flat, selector)['margin-block'], 'calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)', selector);
     }
     assert.equal(own(flat, '.ds-alert__actions > .ds-btn').margin, '0');
   });

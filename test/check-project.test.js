@@ -60,7 +60,7 @@ const CLEAN = {
   'index.html': [
     '<!doctype html><html class="ds-theme ds-base" lang="en"><head>',
     `<link rel="stylesheet" href="${VENDOR}/ds.css"><link rel="stylesheet" href="css/theme.css"><link rel="stylesheet" href="css/app.css">`,
-    '</head><body><div class="ds-app"><main class="ds-view"><div class="ds-card app-panel"><button class="ds-btn ds-btn--primary" type="button">Save</button></div></main></div></body></html>',
+    '</head><body><div class="ds-app"><main class="ds-view"><div class="ds-card app-panel"><button class="ds-btn ds-btn--filled" type="button">Save</button></div></main></div></body></html>',
   ].join('\n'),
   'css/theme.css': '.ds-theme {\n  --ds-primary: #1d4e89;\n  --app-logo-size: 32px;\n}\n',
   'css/app.css': [

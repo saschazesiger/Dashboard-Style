@@ -233,7 +233,7 @@
   /* The button is lower than the 40px field: centred on it, while flex-end
      keeps both under the label. */
   .ds-inline-form > .ds-btn {
-    margin-bottom: calc((var(--ds-space-10) - var(--ds-btn-height, 36px)) / 2);
+    margin-bottom: calc((var(--ds-space-10) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
   }
 
   .ds-filters .ds-field:not(.ds-field--grow) {

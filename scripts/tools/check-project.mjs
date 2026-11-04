@@ -49,6 +49,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkTheme } from './check-theme.mjs';
+import { isRemoved } from './theme-rules.mjs';
 import { lineAt, scan, selectorList, splitOutside } from './css-scan.mjs';
 import { verify } from './verify.mjs';
 
@@ -289,12 +290,14 @@ export function checkProject(config, root) {
 
   // deprecated (every project file, themes included)
   const names = copy.deprecations?.names ?? [];
+  const gone = (entry) => isRemoved(entry, copy.deprecations?.version);
   for (const file of [...cssFiles, ...themes, ...jsFiles, ...htmlFiles]) {
     const source = read(file);
     for (const entry of names.filter((d) => d.pattern)) {
       for (const match of source.matchAll(new RegExp(entry.pattern, 'g'))) {
-        add(entry.removed ? 'error' : 'warning', file, lineAt(source, match.index), 'deprecated',
-          `${entry.name} ${entry.removed ? `was removed in ${entry.removed}` : `is deprecated since ${entry.deprecated}`}${entry.replacement ? `: use ${entry.replacement}` : ''}`);
+        const planned = entry.removed && !gone(entry) ? `, removed in ${entry.removed}` : '';
+        add(gone(entry) ? 'error' : 'warning', file, lineAt(source, match.index), 'deprecated',
+          `${entry.name} ${gone(entry) ? `was removed in ${entry.removed}` : `is deprecated since ${entry.deprecated}${planned}`}${entry.replacement ? `: use ${entry.replacement}` : ''}`);
       }
     }
   }

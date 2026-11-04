@@ -54,6 +54,7 @@ const LAYER_STATEMENT = '@layer ds.tokens, ds.base, ds.components, ds.motion, ds
 /** The layer block(s) of each file; every other file of src/components/ is ds.components. */
 const LAYERS_OF = {
   'src/core/tokens.css': ['ds.tokens'],
+  'src/core/options.css': ['ds.utilities'],
   'src/core/base.css': ['ds.base'],
   'src/core/motion.css': ['ds.motion', 'ds.utilities'],
   'src/core/global.css': ['ds.components'],
@@ -871,8 +872,9 @@ describe('values come from tokens', () => {
     for (const file of COMPONENT_CSS) {
       for (const { property, value } of declarations(read(file))) {
         const literal = literalPart(value).trim();
-        // min() of tokens (a pill's rest and pressed radius) carries no literal of its own.
-        if (/radius/.test(property) && literal.replace(/\b0\b|\b50%|\binherit\b|\bmin\(|[\s,()]/g, '').trim()) offenders.push(`${file}: ${property}: ${value}`);
+        // min() of tokens (a pill's rest and pressed radius) carries no literal of its own, nor does a radius
+        // multiplied by the shape option (calc(... * var(--ds-shape, 1)), 3.0).
+        if (/radius/.test(property) && literal.replace(/\b0\b|\b50%|\binherit\b|\bmin\(|\bcalc\(|\*|[\s,()]/g, '').trim()) offenders.push(`${file}: ${property}: ${value}`);
         // Shadows used as rings (inset 0 0 0 1px var(--x)) are geometry; a blur is elevation.
         if (property === 'box-shadow' && /\d+px\s+\d+px\s+\d+px\s+\d*px?\s*$/.test(literal)) offenders.push(`${file}: ${property}: ${value}`);
       }
@@ -955,10 +957,10 @@ describe('values come from tokens', () => {
       }
     }
     assert.deepEqual(offenders, []);
-    // The five size modifiers of 1.6 read their own hooks.
+    // The five size modifiers of 1.6 read their own hooks (the button's deprecated --sm into its private box, 3.0).
     const reads = [
-      ['src/components/button/button.css', '.ds-btn--sm', '--ds-btn-height', 'var(--ds-btn-sm-height, 32px)'],
-      ['src/components/button/button.css', '.ds-btn--icon.ds-btn--sm', '--ds-btn-icon-size', 'var(--ds-btn-sm-icon-size, 32px)'],
+      ['src/components/button/button.css', '.ds-btn--sm', '--_h', 'var(--ds-btn-height-exact, var(--ds-btn-sm-height, 32px))'],
+      ['src/components/button/button.css', '.ds-btn--icon.ds-btn--sm', '--_box', 'max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, 32px))'],
       ['src/components/loader/loader.css', '.ds-loader--sm', '--ds-loader-size', 'var(--ds-loader-sm-size, 24px)'],
       ['src/components/spinner/spinner.css', '.ds-spinner--determinate', '--ds-spinner-width', 'var(--ds-spinner-determinate-width, 4px)'],
       ['src/components/status/status.css', '.ds-status__spinner', '--ds-spinner-width', 'var(--ds-status-spinner-width, 2px)'],
@@ -970,11 +972,14 @@ describe('values come from tokens', () => {
     }
   });
 
-  it('uses only the ds- prefix for classes and custom properties', () => {
+  it('uses only the ds- prefix for classes and custom properties (and --_<x> for a component\'s private computed values)', () => {
     const offenders = [];
     for (const file of SRC_CSS) {
       const css = stripComments(read(file));
-      for (const match of css.matchAll(/(?:var\(\s*|[;{\s])--([\w-]+)\s*[:,)]/g)) if (!match[1].startsWith('ds-')) offenders.push(`${file}: --${match[1]}`);
+      // A private computed property (--_h, --_box; plans/3.0-conventions.md, section 3) lives only in its component's
+      // own rules: never in tokens.css, a core file or a theme.
+      const isPrivate = (name) => /^_[a-z][a-z0-9-]*$/.test(name) && file.startsWith('src/components/');
+      for (const match of css.matchAll(/(?:var\(\s*|[;{\s])--([\w-]+)\s*[:,)]/g)) if (!match[1].startsWith('ds-') && !isPrivate(match[1])) offenders.push(`${file}: --${match[1]}`);
       for (const { selector } of rules(css)) {
         for (const match of selector.matchAll(/\.([a-z][\w-]*)/gi)) if (!match[1].startsWith('ds-')) offenders.push(`${file}: .${match[1]}`);
       }
@@ -1472,7 +1477,6 @@ const RIPPLE_EXEMPT = new Map([
 describe('controls (1.1.0)', () => {
   /** The pills that morph: rest radius min(..., half the height), pressed radius from the role. */
   const PILLS = [
-    ['src/components/button/button.css', '.ds-btn', 'var(--ds-btn-half)', 'var(--ds-btn-radius-pressed, var(--ds-radius-action-pressed))'],
     ['src/components/shell/shell.css', '.ds-drawer__item', 'calc(var(--ds-drawer-item-height, 48px) / 2)', 'var(--ds-radius-action-pressed)'],
     ['src/components/combobox/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-input-height, 40px) / 2)', 'var(--ds-radius-action-pressed)'],
   ];
@@ -1499,10 +1503,24 @@ describe('controls (1.1.0)', () => {
         assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/, `${part}: the press goes in on --ds-dur-micro`);
       }
     }
-    // A round icon button morphs from half its own size; done buttons are blocked too.
-    const icon = Object.fromEntries(declarationsOf(read('src/components/button/button.css'), '.ds-btn--icon').map((entry) => [entry.property, entry.value]));
-    assert.equal(icon['--ds-btn-half'], 'calc(var(--ds-btn-icon-size, 40px) / 2)');
-    for (const { part } of pressed('src/components/button/button.css', '.ds-btn')) assert.ok(part.includes('.ds-btn--done'), part);
+    // The button on the options model (3.0): the rest radius is the pill (at most half its box) times the shape,
+    // the pressed radius the role times the shape, never rounder than the rest radius.
+    const BUTTON = 'src/components/button/button.css';
+    const button = Object.fromEntries(declarationsAt(read(BUTTON), '.ds-btn').map((entry) => [entry.property, entry.value]));
+    assert.equal(button['border-radius'], 'var(--_radius)');
+    assert.equal(button['--_half'], 'calc(var(--_box) / 2)');
+    assert.equal(button['--_radius'], 'min(calc(min(var(--ds-btn-radius, var(--ds-radius-action)), var(--_half)) * var(--ds-shape, 1)), var(--_half))');
+    assert.match(button.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/, '.ds-btn: the release springs back');
+    const buttonParts = pressed(BUTTON, '.ds-btn');
+    assert.deepEqual(buttonParts.map(({ part }) => /:active/.test(part) ? 'active' : 'pressed').sort(), ['active', 'pressed']);
+    for (const { part, own } of buttonParts) {
+      for (const state of [...BLOCKED, '.ds-btn--done']) assert.ok(part.includes(state), `${part}: excludes ${state}`);
+      assert.equal(own['border-radius'], 'min(calc(var(--ds-btn-radius-pressed, var(--ds-radius-action-pressed)) * var(--ds-shape, 1)), var(--_radius))', part);
+      assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/, `${part}: the press goes in on --ds-dur-micro`);
+    }
+    // A round icon button morphs from half its own box (the radius follows --_box).
+    const icon = Object.fromEntries(declarationsOf(read(BUTTON), '.ds-btn--icon').map((entry) => [entry.property, entry.value]));
+    assert.equal(icon['--_box'], 'max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))');
     // Radio cards go to the card's pressed role, never rounder than at rest.
     const card = pressed('src/components/form/form.css', '.ds-radio');
     assert.equal(card.length, 2);
@@ -2797,11 +2815,11 @@ describe('the app frame (2.1)', () => {
     assert.ok(SHELL.indexOf(NO_BUTTON) > SHELL.indexOf('.ds-account--capsule {'), 'after the capsule rule');
   });
 
-  it('keeps a drawer row item\'s room for its action at the action\'s size (the hook .ds-touch raises to 48px)', () => {
-    assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(var(--ds-btn-sm-icon-size, var(--ds-space-8)) + var(--ds-space-2))');
-    // The same hook sizes the small icon button and .ds-touch sets it.
-    assert.match(read('src/components/button/button.css'), /\.ds-btn--icon\.ds-btn--sm \{\s*--ds-btn-icon-size: var\(--ds-btn-sm-icon-size, 32px\);/);
-    assert.equal(at(stripComments(read('src/components/utilities/utilities.css')), '.ds-touch')['--ds-btn-sm-icon-size'], 'var(--ds-touch-target)');
+  it('keeps a drawer row item\'s room for its action at the action\'s size (.ds-touch raises it to 48px)', () => {
+    assert.equal(at(SHELL, '.ds-drawer__row > .ds-drawer__item')['padding-inline-end'], 'calc(max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, var(--ds-space-8))) + var(--ds-space-2))');
+    // The same hook and minimum size the small icon button, and .ds-touch sets the minimum (3.0: --ds-target-min).
+    assert.match(read('src/components/button/button.css'), /\.ds-btn--icon\.ds-btn--sm \{\s*--_box: max\(var\(--ds-target-min, 0px\), var\(--ds-btn-sm-icon-size, 32px\)\);/);
+    assert.equal(at(stripComments(read('src/core/options.css')), '.ds-touch')['--ds-target-min'], 'var(--ds-touch-target)');
     // The room's second part (--ds-space-2) covers the action's margin and as much air.
     assert.equal(at(SHELL, '.ds-drawer__action')['margin-inline-end'], 'var(--ds-space-1)');
   });
@@ -2834,7 +2852,8 @@ describe('tables, cards and buttons (2.1)', () => {
     const CARD = stripComments(read('src/components/card/card.css'));
     const GENERAL = '.ds-card__row > :not(.ds-card__title, :has(> .ds-card__title))';
     const SMALL = '.ds-card__row > :is(.ds-status, .ds-badge, .ds-tag)';
-    assert.equal(at(CARD, GENERAL)['margin-block'], 'calc((var(--ds-card-title-line, 24px) - var(--ds-btn-height, 36px)) / 2)');
+    // The button's height as the button computes it (3.0: the base, size and density steps, the touch minimum).
+    assert.equal(at(CARD, GENERAL)['margin-block'], 'calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2)');
     assert.equal(at(CARD, SMALL)['margin-block'], '0');
     assert.equal(at(CARD, '.ds-card__row > .ds-chip')['margin-block'], 'calc((var(--ds-card-title-line, 24px) - var(--ds-chip-height, 32px)) / 2)');
     // The same weight (0,2,0) as the overhang, so the later rule wins.

@@ -575,8 +575,8 @@
      its centre is the line's centre. */
   .ds-table .ds-table__toggle {
     vertical-align: top;
-    margin-block: calc((var(--ds-space-5) - var(--ds-btn-icon-size, 40px)) / 2);
-    margin-inline: calc((var(--ds-space-5) - var(--ds-btn-icon-size, 40px)) / 2) 0;
+    margin-block: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))) / 2);
+    margin-inline: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))) / 2) 0;
   }
 
   .ds-table tbody tr:last-child td {
@@ -603,16 +603,16 @@
   }
 
   .ds-table__actions .ds-btn {
-    margin-block: calc((var(--ds-space-5) - var(--ds-btn-height, 36px)) / 2);
+    margin-block: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
     vertical-align: top;
   }
 
   .ds-table__actions .ds-btn--icon {
-    margin-block: calc((var(--ds-space-5) - var(--ds-btn-icon-size, 40px)) / 2);
+    margin-block: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))) / 2);
   }
 
   .ds-table__actions .ds-btn--icon:last-child {
-    margin-inline-end: calc((var(--ds-space-5) - var(--ds-btn-icon-size, 40px)) / 2);
+    margin-inline-end: calc((var(--ds-space-5) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))) / 2);
   }
 
   /* A summary row: label type, one hairline above it, none below; no row
