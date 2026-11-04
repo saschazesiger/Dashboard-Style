@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Types of DS.ripple (js/ripple.js). Hand-written; test/build.test.js keeps
  * the declared exports and their parameters equal to the module's.

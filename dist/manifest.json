@@ -1,6 +1,6 @@
 {
   "name": "dashboard-style",
-  "version": "3.0.0-alpha.1",
+  "version": "3.0.0-alpha.2",
   "layers": "@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;",
   "sublayers": "@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;",
   "core": {
@@ -244,7 +244,7 @@
         "text-wrap"
       ],
       "bytes": 6394,
-      "gzip": 1704
+      "gzip": 1705
     },
     "scroller": {
       "css": "css/components/scroller.css",
@@ -358,7 +358,7 @@
       "ripple": true,
       "progressive": [],
       "bytes": 15715,
-      "gzip": 2743
+      "gzip": 2744
     },
     "spinner": {
       "css": "css/components/spinner.css",
@@ -765,7 +765,7 @@
         "hyphenate-limit-chars"
       ],
       "bytes": 4445,
-      "gzip": 1310
+      "gzip": 1311
     },
     "empty": {
       "css": "css/components/empty.css",
@@ -1714,7 +1714,7 @@
         "allow-discrete"
       ],
       "bytes": 2949,
-      "gzip": 976
+      "gzip": 977
     },
     "shell": {
       "css": "css/components/shell.css",
@@ -1868,7 +1868,7 @@
         "scrollbar-color"
       ],
       "bytes": 4858,
-      "gzip": 1371
+      "gzip": 1372
     },
     "steps": {
       "css": "css/components/steps.css",
@@ -1895,7 +1895,7 @@
       "ripple": false,
       "progressive": [],
       "bytes": 4161,
-      "gzip": 1165
+      "gzip": 1166
     },
     "ripple": {
       "css": "css/components/ripple.css",
@@ -2002,7 +2002,7 @@
         "text-wrap"
       ],
       "bytes": 6646,
-      "gzip": 1951
+      "gzip": 1950
     }
   },
   "js": {

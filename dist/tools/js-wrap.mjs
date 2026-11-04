@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.1 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * The classic-script wrapper of Dashboard-Style (no dependency): turns the
  * ES modules of js/ into one script that sets window.DS, as ds.js does.

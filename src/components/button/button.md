@@ -152,12 +152,3 @@ DS.motion.crossfade(copySlot, DS.icons.icon(DS.icons.check, 20), { kind: 'icon' 
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press, focus, busy and success rows of [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Button (3.0): the options model. Sizes `.ds-xs` to `.ds-xl` (24 to 56px), density (4px a step), shape (the rest and
-  pressed radius times `--ds-shape`: a square theme has square buttons, D11), `.ds-touch` as a minimum
-  (`--ds-target-min`). The default height is 40px (2.x: 36px), so `.ds-sm` (32px) and the compact density (32px) keep
-  their 2.x heights. New variants `--filled` (2.x `--primary`, **deprecated**), `--elevated`, `--ghost`, `--block`; the
-  failed face (`.ds-btn--failed`, `.ds-btn__face--failed`, `busy({ failed })`); `.ds-tone-error` on a filled button
-  for destructive confirmations only (D10). New hooks `--ds-btn-height-exact`, `--ds-btn-shadow`. `.ds-btn--sm`,
-  `--ds-btn-sm-height` and `--ds-btn-sm-icon-size` **deprecated** (removed when 3.0 ships).

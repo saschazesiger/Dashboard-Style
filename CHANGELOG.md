@@ -9,6 +9,47 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
 `3.0.0-alpha.<n>`.
 
+### Phase 1 preparation: the folder pipeline, options, styleguide (3.0.0-alpha.2)
+
+**The default button is 40px** (2.x: 36px): `.ds-sm` and the compact density keep their 32px. Everything else below
+adds to 2.x names, which keep working until 3.0.0 ships.
+
+- **One folder per component.** The build discovers a component's module, types, tests, spec, fixture, Motion Lab
+  entries and keyframes in `src/components/<name>/`; a new component edits no other file. `scripts/meta-schema.json`
+  describes every `meta.json` field; `need`, `tier` and `status` are required and written for all 39 components.
+  The hooks table of `docs/theming.md`, the hooks of `themes/example.css`, the keyframe and module tables and
+  `RIPPLE_HOSTS` are generated. `node scripts/build.mjs --generated` lists the generated files.
+- **Options** ([docs/options.md](docs/options.md), `css/core/options.css`): size `.ds-xs` to `.ds-xl`, density
+  `.ds-density-*`, shape `.ds-shape-*`, tone `.ds-tone-*`, touch `.ds-touch`, set around a component and computed in
+  its own rule. New roles: `--ds-info` and its family, `--ds-on-error`, `--ds-on-success`, `--ds-on-warning`,
+  `--ds-primary-container`, `--ds-on-primary-container`; in the themes, the pairs and the generator.
+- **`--ds-type-scale`** multiplies every type role and `--ds-size-display`, theme-level, it does not nest. Migration:
+  **`--ds-font-input` no longer follows `--ds-font-reading`**; it keeps a floor of 16/24, so no scale makes iOS zoom.
+  A theme that changes the reading role and wants fields to follow sets `--ds-font-input` too.
+  `themes/compact.css` writes its 13/18 times the scale.
+- **Button, the reference port.** Sizes 24 to 56px, density 4px a step (side padding, type and icon buttons stay),
+  every radius times `--ds-shape` (a square theme has square buttons, D11), `.ds-touch` as a minimum through
+  `--ds-target-min`, `--ds-btn-height-exact`. Variants `--filled`, `--elevated`, `--ghost`, `--block`; the failed face
+  (`.ds-btn--failed`, `.ds-btn__face--failed`, `busy({ failed })`); `.ds-tone-error` on a filled button for a
+  destructive confirmation only (D10); hook `--ds-btn-shadow`. The components that line up with a button compute the
+  same height.
+- **Deprecated, removed when 3.0.0 ships:** `.ds-btn--primary` (`.ds-btn--filled`), `.ds-btn--sm` (`.ds-sm`, which
+  follows the density and pads a small text button 8px), `--ds-btn-sm-height` and `--ds-btn-sm-icon-size`. The
+  system's own output (`DS.overlay` dialogs and snackbars), the docs, the live tour, the reference app, the shell, the
+  Motion Lab and the view demos use the new names. `.ds-toast__action.ds-sm` stays 32px at any density.
+- **Tools.** A name with `removed: "3.0.0"` is deprecated (a warning, still in `tokens.json`) in a pre-release copy and
+  removed (an error) from the release on, in `check-theme` and `check-project`. `check-theme` reads the type scale.
+  `tokens.json` gives an unset hook no default.
+- **Browser floor: Safari 17.5, Chrome/Edge 123, Firefox 130** (D9): `linear()`, `@starting-style`,
+  `allow-discrete`, `popover` and `details[name]` are used directly; the `fallback` project strips only what stays
+  progressive.
+- **Styleguide 3.0:** `index.html` is a shell with a page per demo (`SG.demo`, `sg-core.js`), an options panel that
+  really applies size, density, shape, tone and touch around the demo, foundation pages, search, a need overview and
+  the live theme generator. The theme panel runs from `file://` in every engine (`styleguide/theme-generator.js`, a
+  generated classic script). The 2.x sections move to `legacy.html` until the last port. The `Components` tile counts
+  the generated registry.
+- **Harness:** the fixture route `component.html?c=<name>` mounts a demo through `sg-core.js`.
+
 ### Wave 0: icons, core, theme generator, bundle; the integration (3.0.0-alpha.1)
 
 The four other branches of wave 0, merged into `next` after the restructure, and the work that joins them. What the

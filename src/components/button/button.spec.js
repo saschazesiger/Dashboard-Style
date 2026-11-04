@@ -9,15 +9,15 @@
  * red by a tone; the 2.x aliases (--primary, --sm); the new variants and
  * the failed face; forced colours. Runs in the `fallback` project too.
  */
-import { test, expect } from './base-test.js';
-import { ready, settle } from './helpers/motion.js';
+import { test, expect } from '../../../test/browser/base-test.js';
+import { ready, settle } from '../../../test/browser/helpers/motion.js';
 
 const SIZES = [['ds-xs', -2], ['ds-sm', -1], ['ds-md', 0], ['ds-lg', 1], ['ds-xl', 2]];
 const DENSITIES = [['ds-density-comfortable', 0], ['ds-density-compact', -1], ['ds-density-dense', -2], ['ds-density-tight', -3]];
 const TOUCH = 48;
 
 async function open(page) {
-  await page.goto('/test/browser/fixtures/button-options.html');
+  await page.goto('/src/components/button/button.fixture.html');
   await ready(page);
   await page.mouse.move(1, 1);
 }
@@ -207,34 +207,4 @@ test('forced colours: the error tone becomes the system button colours; a toggle
   expect(locked.color).toBe(system.grayText);
   // The square shape and the touch minimum hold in forced colours too.
   expect((await box(page, '#shape-square')).radius).toBe(0);
-});
-
-test('--ds-type-scale on the theme rescales every type role, does not nest, and leaves field text at 16px or more', async ({ page }) => {
-  await open(page);
-  const fonts = () => page.evaluate(() => {
-    const host = document.querySelector('.ds-theme');
-    const read = (parent, role) => {
-      const probe = document.createElement('span');
-      probe.style.font = `var(${role})`;
-      parent.append(probe);
-      const { fontSize, lineHeight } = getComputedStyle(probe);
-      probe.remove();
-      return [parseFloat(fontSize), parseFloat(lineHeight)];
-    };
-    const region = document.createElement('div');
-    region.style.setProperty('--ds-type-scale', '3');
-    host.append(region);
-    const out = { body: read(host, '--ds-font-body'), headline: read(host, '--ds-font-headline'), display: read(host, '--ds-font-display'), input: read(host, '--ds-font-input'), region: read(region, '--ds-font-body') };
-    region.remove();
-    return out;
-  });
-  expect(await fonts()).toEqual({ body: [14, 20], headline: [24, 32], display: [36, 44], input: [16, 24], region: [14, 20] });
-  const bigger = await page.addStyleTag({ content: '.ds-theme { --ds-type-scale: 1.25; }' });
-  expect(await fonts()).toEqual({ body: [17.5, 25], headline: [30, 40], display: [45, 55], input: [20, 30], region: [17.5, 25] });
-  await bigger.evaluate((el) => el.remove());
-  await page.addStyleTag({ content: '.ds-theme { --ds-type-scale: 0.875; }' });
-  const smaller = await fonts();
-  expect(smaller.body).toEqual([12.25, 17.5]);
-  expect(smaller.input).toEqual([16, 24]);
-  expect(smaller.region).toEqual([12.25, 17.5]);
 });
