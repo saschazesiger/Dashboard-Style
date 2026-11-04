@@ -173,6 +173,8 @@ const DEFAULT_STRINGS = Object.freeze({
   typeToConfirm: 'Type {name} to confirm',
   errorSummaryOne: 'There is 1 problem',
   errorSummaryMany: 'There are {count} problems',
+  otpDigit: 'Digit {index} of {count}',
+  otpCharacter: 'Character {index} of {count}',
 });
 
 /**
