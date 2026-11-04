@@ -1,5 +1,7 @@
 ## Snackbar
 
+A short message about something that just happened, at the bottom of the content panel, with an optional action.
+
 ```html
 <div class="ds-toasts"></div>                                   <!-- right after .ds-app, inside .ds-theme -->
 ```
@@ -22,8 +24,18 @@ What `toast()` builds from a string (or takes as it is, when you pass a `.ds-toa
   <button class="ds-btn ds-btn--quiet ds-btn--icon ds-toast__close" type="button" aria-label="Close" data-tip="Close">[icon close 20]</button></div>
 ```
 
-The action button comes only with `action`, the close button with every message that stays (`closeLabel`, default
-"Close", is its label and its tooltip).
+The action button comes only with `action`, the close button with every message that stays (`closeLabel`, default the
+system's string `close`, is its label and its tooltip).
+
+### Options
+
+| Option | Classes | Where it applies | Effect |
+|---|---|---|---|
+| Kind | `kind: 'success'`, `'error'`, `'info'`; `.ds-toast--error`, `.ds-toast--info`, or `.ds-tone-error`, `.ds-tone-info` on a message built by hand | one message | its icon and word; an error stays until closed and is announced at once. On the inverse surface a tone is never a colour of its own |
+| Shape | `.ds-shape-*` | the region or any ancestor | multiplies the radius (`--ds-toast-radius`) |
+| Size, density | none | | a snackbar floats above the region it reports on and keeps one size; its action stays 32px and its close button 36px (only `.ds-touch` makes that bigger) |
+
+### Behaviour
 
 - Place the region right after `.ds-app`. It sits at the bottom left of the content panel: next to a persistent
   drawer by itself, next to the open modal drawer above 600px, full width on phones. If your panel starts elsewhere,
@@ -100,12 +112,26 @@ The action button comes only with `action`, the close button with every message 
   page: `transition()` lifts the name of a further one, which then crossfades with the page.
 - `.ds-toast--info` uses the plain text colour for its icon, like `--error`. `.ds-toast--shown` is runtime state:
   `toast()` marks a message whose entrance has played, so a region that moves never replays it.
-- Hooks: `--ds-toast-action-color`, `--ds-toast-close-size` (the close button, 36px)
+- Hooks: `--ds-toast-action-color`, `--ds-toast-close-size` (the close button, 36px), `--ds-toast-radius`
   ([theming.md](theming.md#component-hooks)).
 - **Removed in 2.0:** the region with `role="status" aria-live="polite"` and `role="alert"` on messages (`toast()` now
   takes the attributes off and announces once: use `<div class="ds-toasts"></div>`); showing messages by hand with
   `setTimeout(() => DS.motion.leave(toast), 4000)` (`toast()` times them); the hand recipe that moved messages into a
   side sheet with a page-set `--ds-toast-shift` (`DS.overlay.open(sheet)` moves and glides the region).
 
+### Keyboard and forced colours
+
+- Keyboard: a message's buttons are in the tab order, where the region sits; focus inside pauses its timer. It never
+  takes focus by itself, and an error is announced, not focused.
+- Forced colours: a message's transparent outline becomes its edge.
+
+**JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`.
+
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog -->
+- Snackbar (3.0): behaviour in `js/toast.js` (`DS.toast`), `DS.overlay.toast()` and the others keep their names. Shape on
+  the radius, hook `--ds-toast-radius`. `.ds-tone-error`, `.ds-tone-info` on a message built by hand.
+  The close button's default name is the string `close` of `DS.config({ strings })`. Migration: a page that imports
+  single files imports `js/toast.js` next to `js/overlay.js`.
 

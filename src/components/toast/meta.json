@@ -28,7 +28,6 @@
     "button"
   ],
   "context": [
-    "dialog",
     "shell"
   ],
   "hooks": {
@@ -39,6 +38,10 @@
     "--ds-toast-close-size": {
       "default": "36px",
       "description": "the close button of a snackbar"
+    },
+    "--ds-toast-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "a snackbar's radius at the default shape"
     }
   },
   "keyframes": [
@@ -46,12 +49,20 @@
     "ds-lift-in"
   ],
   "js": [
-    "overlay"
+    "overlay",
+    "toast"
   ],
+  "module": true,
   "progressive": [
     "View Transitions"
   ],
   "ripple": false,
+  "labExempt": {
+    "DS.toast.toast": "the same function as DS.overlay.toast, shown in the snackbar entries",
+    "DS.toast.closeToasts": "the same function as DS.overlay.closeToasts, shown in the snackbar entries",
+    "DS.toast.announce": "said, not shown: no motion",
+    "DS.toast.toastRegion": "finds a region: no motion"
+  },
   "exceptions": {
     "physical": {
       ".ds-toasts: left": "script coordinate: --ds-toast-left, and DS.overlay reads the computed left back"

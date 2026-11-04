@@ -339,8 +339,9 @@ describe('dist/manifest.json', () => {
       assert.equal(entry.css, `css/components/${name}.css`);
       assert.equal(entry.min, `css/components/${name}.min.css`);
       for (const field of ['group', 'requires', 'context', 'classes', 'keyframes', 'js', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
-      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them).
-      const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]) : [];
+      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them), but for those a core module claims.
+      const claimed = Object.values(manifest.js).flatMap((module) => module.attributes);
+      const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.includes(attribute)) : [];
       assert.deepEqual(entry.attributes, [...new Set([...meta.attributes, ...behaviour])].sort(), `${name}.attributes`);
       assert.deepEqual(entry.hooks, Object.keys(meta.hooks).sort(), `${name}.hooks: the names, sorted`);
       assert.equal(entry.bytes, out.get(entry.min).length, `${name}: bytes of the .min.css`);
@@ -355,7 +356,7 @@ describe('dist/manifest.json', () => {
     for (const name of MODULES) {
       const source = read(moduleFiles(name).source);
       const entry = manifest.js[name];
-      assert.deepEqual(Object.keys(entry), ['file', 'types', 'imports', 'exports', 'requires', 'exportRequires']);
+      assert.deepEqual(Object.keys(entry), ['file', 'types', 'imports', 'exports', 'requires', 'exportRequires', 'attributes']);
       assert.ok(out.has(entry.file) && out.has(entry.types), name);
       assert.deepEqual(entry.exports, [...source.matchAll(/^export (?:const|function) ([\w$]+)/gm)].map((match) => match[1]));
       for (const other of entry.imports) assert.ok(MODULES.indexOf(other) < MODULES.indexOf(name), `${name} imports ${other}, an earlier module`);
@@ -365,7 +366,7 @@ describe('dist/manifest.json', () => {
 
   it('writes the CSS each module needs from data: its own component (meta.json "js" inverted) and src/js/<module>.requires.json', () => {
     assert.deepEqual(verifyModuleRequires(list), []);
-    assert.deepEqual(moduleRequires(list), Object.fromEntries(MODULES.map((name) => [name, { requires: manifest.js[name].requires, exportRequires: manifest.js[name].exportRequires }])));
+    assert.deepEqual(moduleRequires(list), Object.fromEntries(MODULES.map((name) => [name, { requires: manifest.js[name].requires, exportRequires: manifest.js[name].exportRequires, attributes: manifest.js[name].attributes }])));
     for (const name of MODULES) {
       const entry = manifest.js[name];
       const own = list.find((component) => component.name === name);
@@ -377,9 +378,21 @@ describe('dist/manifest.json', () => {
     }
     assert.deepEqual(manifest.js.ripple.requires, ['ripple']);
     assert.deepEqual(manifest.js.indicator.requires, ['indicator']);
-    assert.deepEqual(manifest.js.overlay.exportRequires.confirm, ['button', 'dialog', 'spinner']);
+    assert.deepEqual(manifest.js.overlay.exportRequires.confirm, ['button', 'dialog', 'spinner', 'toast', 'utilities']);
+    // The same export of the same behaviour needs the same stylesheets under either name.
+    for (const [module, names] of [['dialog', ['alert', 'confirm', 'prompt']], ['toast', ['announce', 'closeToasts', 'toast', 'toastRegion']]]) {
+      for (const name of names) assert.deepEqual(manifest.js[module].exportRequires[name], manifest.js.overlay.exportRequires[name], `DS.${module}.${name}`);
+    }
     // Every module that writes a .ds-sr live region names utilities for that export.
     assert.ok(manifest.js.overlay.exportRequires.announce.includes('utilities') && manifest.js.motion.exportRequires.sortable.includes('utilities'));
+  });
+
+  it('keeps the attributes a core module claims off every component, also one whose module quotes them', () => {
+    assert.deepEqual(manifest.js.overlay.attributes, ['data-ds-busy', 'data-ds-close', 'data-ds-open']);
+    for (const [name, component] of Object.entries(manifest.components)) {
+      for (const attribute of manifest.js.overlay.attributes) assert.ok(!component.attributes.includes(attribute), `${name} does not own ${attribute}`);
+    }
+    assert.ok(manifest.components.dialog.attributes.includes('data-ds-dialog-form'), 'what only the dialog reads stays the dialog\'s');
   });
 });
 

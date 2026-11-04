@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>js/overlay.js alone · fixture</title>
+<link rel="stylesheet" href="/dist/ds.css">
+</head>
+<body>
+<!-- No ds.js and no module yet: smoke.spec.js imports js/overlay.js, with or
+     without js/menu.js, as a page that imports single files does. -->
+<div class="ds-theme">
+  <button class="ds-btn" type="button" id="trigger">Open</button>
+  <div class="ds-menu" id="menu" role="menu" aria-label="Actions" hidden>
+    <button class="ds-menu__item" type="button" role="menuitem" id="first"><span class="ds-menu__label">First</span></button>
+    <button class="ds-menu__item" type="button" role="menuitem" id="second"><span class="ds-menu__label">Second</span></button>
+  </div>
+  <dialog class="ds-dialog" id="dialog" aria-label="Dialog"><div class="ds-dialog__box"><button class="ds-btn" type="button">OK</button></div></dialog>
+</div>
+</body>
+</html>

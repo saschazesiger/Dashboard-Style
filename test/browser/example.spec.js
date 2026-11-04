@@ -170,7 +170,7 @@ test('a row opens the side sheet, whose arrows step through the devices', async 
   await page.locator('#sheet-next').click();
   await settle(page);
   await expect(page.locator('#sheet-title')).toHaveText(second);
-  await page.locator('#sheet [data-close].ds-btn').click();
+  await page.locator('#sheet [data-ds-close].ds-btn').click();
   await settle(page);
   await expect(page.locator('#sheet')).not.toHaveAttribute('open', '');
   await expect(first).toBeFocused();

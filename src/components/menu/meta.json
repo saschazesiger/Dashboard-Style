@@ -9,11 +9,15 @@
   "classes": [
     "ds-menu",
     "ds-menu__check",
+    "ds-menu__content",
+    "ds-menu__description",
     "ds-menu__divider",
     "ds-menu__heading",
     "ds-menu__item",
+    "ds-menu__item--danger",
     "ds-menu__label",
-    "ds-menu__meta"
+    "ds-menu__meta",
+    "ds-menu__shortcut"
   ],
   "attributes": [
     "data-anchored",
@@ -29,7 +33,23 @@
   "hooks": {
     "--ds-menu-item-height": {
       "default": "48px",
-      "description": "menu item (and action sheet row)"
+      "description": "menu item (and action sheet row) at size md and the comfortable density"
+    },
+    "--ds-menu-font": {
+      "default": "`--ds-size-font`, else `--ds-font-body`",
+      "description": "the items' type"
+    },
+    "--ds-menu-padding": {
+      "default": "`--ds-space-2`",
+      "description": "the menu's block padding at the comfortable density"
+    },
+    "--ds-menu-radius": {
+      "default": "`--ds-radius-xs`",
+      "description": "the menu's radius at the default shape"
+    },
+    "--ds-menu-danger-color": {
+      "default": "`--ds-error`",
+      "description": "the ink of `.ds-menu__item--danger`"
     },
     "--ds-scroll-fade": {
       "owner": "scroller"
@@ -42,10 +62,11 @@
     "ds-scroll-edge-start"
   ],
   "js": [
+    "menu",
     "overlay"
   ],
+  "module": true,
   "progressive": [
-    "popover",
     "anchor positioning",
     "scroll-driven",
     "scrollbar-color"
@@ -54,6 +75,9 @@
   "rippleHosts": [
     ".ds-menu__item"
   ],
+  "labExempt": {
+    "DS.menu.create": "events only, no motion"
+  },
   "exceptions": {
     "physical": {
       ".ds-menu: inset": "script coordinates: --ds-menu-x from the left"

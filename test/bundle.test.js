@@ -444,6 +444,88 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
     });
   });
 
+  it('leaves out the overlay behaviours a page does not use, and keeps the ones it does (3.0)', () => {
+    withTemp((dir) => {
+      const modulesOf = (text) => {
+        const config = tempProject(dir, { 'app.html': text }, { dist: relative(dir, dist) });
+        const result = bundle({ config, write: false });
+        assert.deepEqual(result.errors, []);
+        return result.entries[0].report.modules.map((item) => item.name);
+      };
+      const dialog = modulesOf('<dialog class="ds-dialog"></dialog>');
+      assert.ok(dialog.includes('overlay') && dialog.includes('dialog') && dialog.includes('position'));
+      for (const name of ['menu', 'sheet', 'toast', 'tooltip']) assert.ok(!dialog.includes(name), `${name} left out`);
+      const menu = modulesOf('<div class="ds-menu"></div>');
+      assert.ok(menu.includes('menu'));
+      for (const name of ['dialog', 'sheet', 'toast', 'tooltip']) assert.ok(!menu.includes(name), `${name} left out`);
+      assert.ok(modulesOf('<button data-tip="Copy">x</button>').includes('tooltip'), 'data-tip brings the tooltip');
+      assert.ok(modulesOf('<script>DS.overlay.toast(null, "Saved.");</script>').includes('toast'), 'DS.overlay.toast() brings the toast module');
+      assert.ok(modulesOf('<script>DS.overlay.tooltips(document);</script>').includes('tooltip'), 'DS.overlay.tooltips() brings the tooltip module');
+      const asked = modulesOf('<script>DS.overlay.confirm({});</script>');
+      assert.ok(asked.includes('dialog') && asked.includes('toast'), 'confirm() brings the dialog, and the toast of a failed onConfirm');
+    });
+  });
+
+  it('takes data-ds-open, data-ds-close and data-ds-busy for the overlay core, on whatever they sit (3.0)', () => {
+    withTemp((dir) => {
+      const reportOf = (text) => {
+        const config = tempProject(dir, { 'app.html': text }, { dist: relative(dir, dist) });
+        const result = bundle({ config, write: false });
+        assert.deepEqual(result.errors, []);
+        const { modules, components } = result.entries[0].report;
+        return { modules: names(modules), components: names(components) };
+      };
+      for (const html of ['<dialog class="ds-sheet"><button data-ds-close>x</button></dialog>', '<dialog class="ds-sheet" data-ds-busy></dialog>', '<div class="ds-menu"><button data-ds-close="#a">x</button></div>']) {
+        const { modules, components } = reportOf(html);
+        assert.ok(modules.includes('overlay'), html);
+        assert.ok(!modules.includes('dialog') && !components.includes('dialog'), `${html}: no dialog`);
+      }
+      for (const html of ['<button data-ds-open="#a">x</button>', '<button data-ds-close="#a">x</button>', '<script>el.dataset.dsOpen = "#a";</script>']) {
+        const { modules, components } = reportOf(html);
+        assert.ok(modules.includes('overlay'), `${html} brings the overlay`);
+        assert.ok(!components.includes('dialog'), `${html}: no dialog`);
+      }
+      assert.ok(reportOf('<dialog class="ds-dialog"><form class="ds-dialog__box" data-ds-dialog-form></form></dialog>').modules.includes('dialog'));
+    });
+  });
+
+  it('finds a tooltip by data-tip and by el.dataset.tip', () => {
+    withTemp((dir) => {
+      const modulesOf = (text) => {
+        const config = tempProject(dir, { 'app.js': text }, { dist: relative(dir, dist) });
+        const result = bundle({ config, write: false });
+        assert.deepEqual(result.errors, []);
+        return names(result.entries[0].report.modules);
+      };
+      assert.ok(modulesOf('el.setAttribute("data-tip", "Copy");').includes('tooltip'));
+      assert.ok(modulesOf('el.dataset.tip = "Copy";').includes('tooltip'));
+      assert.ok(!modulesOf('el.dataset.tipsy = "Copy";').includes('tooltip'), 'only that property');
+    });
+  });
+
+  it('gives DS.dialog and DS.toast the same stylesheets as DS.overlay: what the exports write, the toast of a failure', () => {
+    withTemp((dir) => {
+      const of = (text) => {
+        const config = tempProject(dir, { 'app.js': text }, { dist: relative(dir, dist) });
+        const result = bundle({ config, write: false });
+        assert.deepEqual(result.errors, []);
+        const { modules, components } = result.entries[0].report;
+        return { modules: names(modules), components: names(components) };
+      };
+      for (const call of ['DS.dialog.confirm({});', 'DS.overlay.confirm({});', 'DS.dialog.prompt({});', 'DS.overlay.prompt({});', 'DS.dialog.form(el, {});']) {
+        const { modules, components } = of(call);
+        for (const name of ['button', 'dialog', 'spinner', 'toast', 'utilities']) assert.ok(components.includes(name), `${call} needs ${name}`);
+        assert.ok(modules.includes('toast'), `${call}: the snackbar of a failure`);
+      }
+      for (const call of ['DS.dialog.prompt({});', 'DS.overlay.prompt({});']) assert.ok(of(call).components.includes('form'), `${call}: its field`);
+      for (const call of ['DS.toast.toast(region, "Saved.");', 'DS.toast.announce("Saved.");', 'DS.toast.toastRegion(document);']) {
+        const { components } = of(call);
+        for (const name of ['toast', 'utilities']) assert.ok(components.includes(name), `${call} needs ${name}`);
+      }
+      assert.ok(of('DS.toast.toast(region, "Saved.");').components.includes('button'), 'its action and close button');
+    });
+  });
+
   it('adds the stylesheets an export writes markup for (manifest.json js.<module>.exportRequires)', () => {
     withTemp((dir) => {
       const config = tempProject(dir, {
@@ -453,7 +535,7 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
       assert.deepEqual(result.errors, []);
       const components = new Map(result.entries[0].report.components.map((item) => [item.name, item.reason]));
       for (const name of ['button', 'dialog', 'spinner']) assert.match(components.get(name) ?? '', /DS\.overlay\.confirm|required by/, name);
-      assert.match(components.get('toast'), /DS\.overlay\.toast/);
+      assert.match(components.get('toast'), /DS\.overlay\.(confirm|toast)/);
       assert.match(components.get('drag'), /DS\.motion\.sortable/);
       assert.ok(components.has('utilities'), 'the live regions on .ds-sr');
       assert.ok(!components.has('menu') && !components.has('sheet'), 'nothing the page does not use');

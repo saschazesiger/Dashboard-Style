@@ -1,0 +1,9 @@
+{
+  "requires": [],
+  "exportRequires": {
+    "announce": ["toast", "utilities"],
+    "closeToasts": ["toast"],
+    "toast": ["button", "toast", "utilities"],
+    "toastRegion": ["toast", "utilities"]
+  }
+}

@@ -287,6 +287,42 @@
       "deprecated": "3.0.0",
       "removed": "3.0.0",
       "note": "The constructor of DS.indicator, named as every behaviour module names it. Same options and handle; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-dialog--wide",
+      "pattern": "(?<![\\w-])ds-dialog--wide(?![\\w-])",
+      "replacement": ".ds-dialog--lg",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "The dialog's sizes are --sm, the default, --lg and --xl. The same width (560px)."
+    },
+    {
+      "kind": "hook",
+      "name": "--ds-dialog-width-wide",
+      "pattern": "(?<![\\w-])--ds-dialog-width-wide(?![\\w-])",
+      "replacement": "--ds-dialog-width-lg",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Read after --ds-dialog-width-lg until 3.0 ships."
+    },
+    {
+      "kind": "attribute",
+      "name": "data-close",
+      "pattern": "(?<![\\w-])data-close(?![\\w-])",
+      "replacement": "data-ds-close",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Every behaviour attribute carries the data-ds- prefix. The same behaviour inside an overlay; with a value, data-ds-close also closes that overlay from outside."
+    },
+    {
+      "kind": "markup",
+      "name": "the event ds-close",
+      "pattern": "['\"`]ds-close['\"`]",
+      "replacement": "ds:close",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Every event of the system is ds:<event>. Both fire until 3.0 ships, with the same detail.reason."
     }
   ]
 }

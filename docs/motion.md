@@ -908,10 +908,18 @@ native `<dialog class="ds-dialog | ds-sheet">` opened with `showModal()`, or the
 on `data-state` (never keyframes while `data-state` is set), so an `open()` during the exit, or a `close()` during
 the entrance, turns the motion back from its current value in every engine, with the curve of the new direction.
 
+Since 3.0 this module is the shared core: the stack, focus and its return, Escape order, dismiss, the scroll lock, the
+exit contract, the modal drawer and the save bar. `confirm()`, `alert()`, `prompt()` (`js/dialog.js`), `toast()`,
+`closeToasts()`, `announce()`, `toastRegion()` (`js/toast.js`) and `tooltips()` (`js/tooltip.js`) keep their names here
+and call those modules, as do a menu's keys (`js/menu.js`). `ds.js` always holds them, and a bundle holds them when the
+page uses them (`exportRequires` in `manifest.json`). With ES modules, import the file next to `js/overlay.js`
+(`import 'js/toast.js'`); without it these functions throw an error that names the file, and `open()` of a menu or
+dialog warns once with the same message: it still opens, without the keys and the rest that module holds.
+
 | Export | |
 |---|---|
 | `open(el, { opener, container, returnTo })` | shows `el` and moves focus into it at once; `opener` (default: the focused element, else the control the current event came from) gets focus back on close; `returnTo()` (2.0) names where focus goes when the opener is gone (below); `container: true` (1.5) grows the opener into a dialog or sheet (below). A dialog's or sheet's body is watched by `DS.dom.watchScrolled()` on its first open (2.0): `data-scrolled` on the box or panel, no page recipe; a menu or combobox list by `DS.dom.scrollEdges()` on the block axis while it is open (2.0): its cut edges fade, no page call |
-| `close(el, { reason })` | plays the exit and hides `el`; a second call during the exit returns the same promise; `reason` (2.0, default `'api'`) is what the `ds-close` event says, and it closes a busy overlay too |
+| `close(el, { reason })` | plays the exit and hides `el`; a second call during the exit returns the same promise; `reason` (2.0, default `'api'`) is what the `ds:close` event says, and it closes a busy overlay too |
 | `topmost(doc = document)` | (2.0) the top open layer of the page (a dialog, side sheet, the modal drawer, a menu, a combobox list, a contained dialog; whichever copy of `ds.js` from 1.6.1 on opened it), else `null`; a layer that is closing no longer counts |
 | `confirm({ title, text, confirmLabel, cancelLabel, destructive, opener, onConfirm, errorText })` | (2.0) a built dialog with Cancel and a confirm button; resolves `true` or `false` (below) |
 | `alert({ title, text, closeLabel, opener })` | (2.0) a built dialog with one button; resolves once it closes |
@@ -926,6 +934,7 @@ the entrance, turns the motion back from its current value in every engine, with
 | `typeAhead(items, current, typed, label)` | the item the typed letters lead to, or `null`: the next one after `current` (wrapping) whose label starts with them; one letter typed again and again cycles (3.0). `label(item)` gives the lower-case label (default: a menu item's). The matcher of the menus and of `DS.a11y.typeaheadMatch()` |
 | `toastRegion(doc = document)` | the page's snackbar region: the `.ds-toasts` in the theme of the first `.ds-app`, else the first in the document, else a new one right after `.ds-app`, else at the end of the `.ds-theme` (of `<body>` when the theme is `<html>`, 2.1) (2.0) |
 | `savebar(element, { focusTarget })` | the controller of a `.ds-savebar`: `{ element, show(), hide(), update(fn), shown, destroy() }`, one per element (below; 2.0) |
+| `internals` | what the behaviour modules of the component folders read (`dialog`, `menu`, `toast`, `tooltip`, `sheet`): no API, it may change in any release |
 | `tooltips(root = document)` | tooltips for every `[data-tip]` in `root` (a document, an element or an open shadow root); returns `{ destroy() }` (below) |
 | `TOAST_MS`, `TOAST_MAX_MS`, `TOAST_LIMIT` | snackbar fallbacks: 4000ms, at most 10000ms, at most 3 at once |
 | `TOOLTIP_DELAY_MS`, `TOOLTIP_SKIP_MS`, `TOOLTIP_HIDE_MS` | tooltip fallbacks: 500, 300 and 100ms |
@@ -993,27 +1002,28 @@ button: give row buttons stable ids); else the nearest `tabindex="-1"` ancestor,
 DS.overlay.open(sheet, { opener: rowButton, returnTo: () => table.querySelector('[data-ds-key="d-42"] button') });
 ```
 
-**Why it closed: `ds-close`** (2.0). Once per close, as soon as it starts (the trap released, focus back on the
+**Why it closed: `ds:close`** (3.0; `ds-close`, its **deprecated** 2.x name from 2.0, is sent right before it with the
+same detail). Once per close, as soon as it starts (the trap released, focus back on the
 opener, the box inert, `data-state="closed"`), the overlay dispatches
-`new CustomEvent('ds-close', { bubbles: true, detail: { reason } })`, synchronously and not cancelable. `reason`:
+`new CustomEvent('ds:close', { bubbles: true, detail: { reason } })`, synchronously and not cancelable. `reason`:
 `'escape'` (Escape, the native `cancel`, Android Back), `'backdrop'` (`.ds-dialog__backdrop`, `.ds-sheet__backdrop`,
-the drawer's `.ds-scrim`), `'close'` (another `[data-close]`), `'item'`, `'tab'` and `'outside'` (menus), `'parent'`
+the drawer's `.ds-scrim`), `'close'` (another `[data-ds-close]`), `'item'`, `'tab'` and `'outside'` (menus), `'parent'`
 (closed with the overlay around it; sent before the parent's own event), `'api'` (`close()` without a reason,
 `dialog.close()`, a `<form method="dialog">`), `'removed'` (it left the document; sent on the detached element),
-`'breakpoint'` (the drawer's window widened past 900px); any other string is the page's own
+`'breakpoint'` (the drawer's window widened past 900px), `'submit'` (a form dialog whose submit went through); any other string is the page's own
 (`close(el, { reason: 'confirm' })`). It is not sent for a `close()` during an exit, for a refused attempt (busy,
 below) or for an element that was never open. It bubbles: a listener on an overlay also hears the dialogs, menus and
 combobox lists inside it (a confirmation opened from a side sheet, a menu in a dialog), so check `event.target`.
 
 ```js
-dialog.addEventListener('ds-close', (event) => { if (event.target === dialog && event.detail.reason === 'confirm') saveDraft(); });
+dialog.addEventListener('ds:close', (event) => { if (event.target === dialog && event.detail.reason === 'confirm') saveDraft(); });
 ```
 
 **Busy: `data-ds-busy`** (2.0). While the page sets the attribute on a `.ds-dialog`, `.ds-sheet` or `.ds-drawer`, the
 user's close attempts do nothing: Escape (the listener still calls `preventDefault()`, so a native dialog fires no
-`cancel`; a visible tooltip still takes the key first), the native `cancel`, a `[data-close]` click, the backdrop and
+`cancel`; a visible tooltip still takes the key first), the native `cancel`, a `[data-ds-close]` click, the backdrop and
 the modal drawer's scrim. One guard at the top of the close, before the popups inside close, so a refused attempt
-changes nothing and sends no `ds-close`. `close(el)` and the forced closes (`removed`, `breakpoint`) still close;
+changes nothing and sends no `ds:close`. `close(el)` and the forced closes (`removed`, `breakpoint`) still close;
 menus and combobox lists ignore the attribute. `DS.overlay` never writes it, and it changes nothing visible: the busy
 button is the feedback ([components.md](components.md#dialog), "While its action runs"). A morph that drops the
 attribute frees the overlay; Android Back can still force a native close (it follows with reason `'escape'`); never
@@ -1023,7 +1033,7 @@ set `closedby` on a dialog that `DS.overlay` drives; a `<form method="dialog">` 
 **Dismiss guard** (2.0). A backdrop or scrim click from a pointer closes only as the first click (`event.detail` 1)
 of a press that began on that backdrop, and only `--ds-delay-dismiss` (300ms, time-scaled) after the open: the second
 click of a double click on the opener (it lands on the backdrop that just appeared), a touch double tap and a drag
-from the box that ends on the backdrop close nothing. Every `[data-close]` click with `detail > 1` is ignored.
+from the box that ends on the backdrop close nothing. Every `[data-ds-close]` click with `detail > 1` is ignored.
 `click()`, Enter and Space (`detail` 0) close at once. A trigger that toggles (a menu button) ignores
 `event.detail > 1` itself.
 
@@ -1084,7 +1094,7 @@ native dialog from its own `cancel`) but does not stop the event. A native dialo
 `close()`, so Escape plays its exit. When the topmost overlay is a `.ds-dialog--contained`, the key is its own only
 when pressed inside the container it covers (1.6.1): Escape in the host page around an embedded widget is left alone,
 so the host's own dialogs and search fields keep it. The stack is the page's, shared by every copy of `ds.js` on it
-(1.6.1 and later): the topmost overlay closes whichever copy opened it. A click on `[data-close]` inside an overlay closes it (ignored
+(1.6.1 and later): the topmost overlay closes whichever copy opened it. A click on `[data-ds-close]` inside an overlay closes it (ignored
 while it closes). A menu also closes on Tab (focus returns to its trigger and Tab moves on from there) and on a
 `pointerdown` outside the menu and its trigger.
 
@@ -1115,7 +1125,7 @@ once.
 
 Promise dialogs (2.0): `confirm()`, `alert()` and `prompt()` build a native `dialog.ds-dialog` with DOM APIs (no HTML
 strings, so a strict CSP is fine) inside the opener's `.ds-theme` (else the first one): the backdrop with
-`data-close`, the title (`aria-labelledby`), the text (`aria-describedby`), for `prompt()` a `.ds-field` whose input
+`data-ds-close`, the title (`aria-labelledby`), the text (`aria-describedby`), for `prompt()` a `.ds-field` whose input
 takes `input.type`, `autocomplete`, `inputmode` and `required`, plus `spellcheck` (a boolean, written as `"true"` or
 `"false"`), `autocapitalize`, `autocorrect` and `enterkeyhint` (2.1; each written only when given, so a path or a code
 field turns them off), and the actions. A required field left empty keeps the dialog open with the documented field
@@ -1123,7 +1133,8 @@ error: `aria-invalid`, a `.ds-field__hint--error` with the alertCircle icon and 
 value.") linked by `aria-describedby`, said at once through `announce(text, { assertive: true })`; the next input
 takes it away. They open it with `open()`, remove it once its
 exit settled and resolve when the close starts: `confirm()` `true` only for the confirm button, `prompt()` the value
-or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is Cancel (else the
+or `null`, `alert()` nothing. `destructive: true` makes it an `alertdialog` whose first focus is Cancel, with its confirm button filled in the error
+tone (D10) (else the
 confirm button, or the prompt's field). `onConfirm` (a function returning a promise) runs with
 `busy(confirmButton, …, { done: false })` and `data-ds-busy` on the dialog (Cancel `aria-disabled`, the field
 `readOnly`); a rejection keeps the dialog open, shows `errorText` (default "That did not work. Try again."; never the
@@ -1216,6 +1227,31 @@ scrolling box until the next rendering); elsewhere a capture-phase scroll listen
 re-place it within one frame through `--ds-tooltip-x` / `--ds-tooltip-y`, flipped above (`data-placement="top"`) and
 clamped 8px from the viewport edges.
 
+### DS.position (js/position.js)
+
+The shared placer of 3.0: where a floating box goes next to its anchor. `DS.overlay` places the menu and the combobox
+list with it, `DS.tooltip` the tooltip; a page that floats something of its own may use it too. Nothing moves here:
+the entrance is the component's.
+
+- `place(element, anchor, options)` places a box by the script: `side` (`'bottom'`, `'top'`, `'start'`, `'end'`),
+  `align` (`'start'`, `'center'`, `'end'`), `offset` (the gap to the anchor), `padding` (the collision padding),
+  `flip` (`'room'`: the other side when it does not fit and has more room; `'fits'`: only when it fits there;
+  `false`), `crossFlip` (the other edge when the wanted one leaves the bounds), `shift` (stay inside along the anchor,
+  default true), `size` (cap it to the room on its side, default true: an inline `max-height` on the block sides, `max-width` on the inline ones), `arrowPadding`,
+  `bounds` (default: the viewport), and `x`, `y`: the custom properties that take its coordinates, in the terms of the
+  box it is fixed to. `data-placement` says the side when it is not the bottom one. It returns what
+  `computePlacement()` returned.
+- `computePlacement(rect, size, bounds, options)` is the geometry alone, without a DOM: `{ x, y, side, flipped, room,
+  length, arrow }`. `arrow` is the anchor's centre along the anchor, from the box's edge.
+- `viewportBounds(element)` and `clippedBounds(element)`: the viewport, and the viewport narrowed on the block axis by
+  every box around the element that clips its overflow.
+- `fixedOrigin(element)`: where (0,0) of a fixed box's containing block sits in the viewport (a transformed host page),
+  through a probe beside the box; `dropProbe(element)` takes the probe out.
+- `supportsAnchoring(view)`: the top layer and CSS anchor positioning. `anchorPopup(element, anchor, options)` opens
+  the box as `popover="manual"` anchored to its anchor (`options.nextName()` names a new anchor, `options.offset` is
+  the gap); `claimAnchor(element, nextName)` and `releaseAnchor(element)` count the users of one `anchor-name`.
+- `round(value)` and `pxOf(element, token, fallback)`: a length as this module writes it, a length token in px.
+
 ## Recipes
 
 ### A live list with `flip`
@@ -1305,7 +1341,7 @@ link.addEventListener('click', async (event) => {
 DS.ripple.attach(document);                                    // once per page
 DS.overlay.tooltips(document);                                 // once per page
 openButton.addEventListener('click', () => DS.overlay.open(dialog, { opener: openButton }));
-// [data-close] inside the dialog and Escape close it; focus goes back to openButton at once.
+// [data-ds-close] inside the dialog and Escape close it; focus goes back to openButton at once.
 saveButton.addEventListener('click', async () => {
   await DS.motion.busy(saveButton, save());                    // busy, then the success face
   await DS.overlay.close(dialog);                              // resolves once it is hidden

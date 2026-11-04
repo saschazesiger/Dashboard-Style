@@ -10,20 +10,20 @@
  * the dialog its modal semantics, so the box carries no role.
  *
  *   <dialog class="ds-dialog" role="alertdialog" aria-labelledby="d-title" aria-describedby="d-text">
- *     <div class="ds-dialog__backdrop" data-close></div>
+ *     <div class="ds-dialog__backdrop" data-ds-close></div>
  *     <div class="ds-dialog__box">
  *       <h2 class="ds-dialog__title" id="d-title">Delete 3 devices?</h2>
  *       <p class="ds-dialog__text" id="d-text">They are removed for everyone.</p>
  *       <div class="ds-dialog__actions">
- *         <button class="ds-btn ds-btn--text" type="button" data-close autofocus>Cancel</button>
+ *         <button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Cancel</button>
  *         <button class="ds-btn ds-btn--filled" type="button">Delete devices</button>
  *
  * Content taller than the window (a form, a long list): the body scrolls,
  * title and actions stay. A body with nothing focusable that scrolls is a
  * tab stop with a name.
  *
- *   <dialog class="ds-dialog ds-dialog--wide" aria-labelledby="p-title">
- *     <div class="ds-dialog__backdrop" data-close></div>
+ *   <dialog class="ds-dialog ds-dialog--lg" aria-labelledby="p-title">
+ *     <div class="ds-dialog__backdrop" data-ds-close></div>
  *     <div class="ds-dialog__box">
  *       <h2 class="ds-dialog__title" id="p-title">Choose an owner</h2>
  *       <div class="ds-dialog__body" [tabindex="0" role="region" aria-label="Owners"]> ... </div>
@@ -33,10 +33,10 @@
  * close icon button, the title and an optional text button at the end.
  *
  *   <dialog class="ds-dialog ds-dialog--full-narrow" aria-labelledby="f-title">
- *     <div class="ds-dialog__backdrop" data-close></div>
+ *     <div class="ds-dialog__backdrop" data-ds-close></div>
  *     <div class="ds-dialog__box">
  *       <div class="ds-dialog__head">
- *         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>(close)</button>
+ *         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>(close)</button>
  *         <h2 class="ds-dialog__title" id="f-title">New ticket</h2>
  *         <button class="ds-btn ds-btn--text" type="button">Save</button>
  *       </div>
@@ -46,21 +46,37 @@
  * bleed, in a box at the bottom edge.
  *
  *   <dialog class="ds-dialog ds-dialog--bottom" aria-labelledby="a-title">
- *     <div class="ds-dialog__backdrop" data-close></div>
+ *     <div class="ds-dialog__backdrop" data-ds-close></div>
  *     <div class="ds-dialog__box">
  *       <h2 class="ds-dialog__title" id="a-title">LAPTOP-0042</h2>
  *       <div class="ds-dialog__list">
  *         <button class="ds-menu__item" type="button">(pencil) <span class="ds-menu__label">Edit</span></button>
  *
+ * Form dialog: the box is the <form>, so Enter submits and the browser's
+ * validation runs; DS.dialog (js/dialog.js) sends ds:submit and closes it.
+ *
+ *   <dialog class="ds-dialog" aria-labelledby="n-title">
+ *     <div class="ds-dialog__backdrop" data-ds-close></div>
+ *     <form class="ds-dialog__box" data-ds-dialog-form>
+ *       <h2 class="ds-dialog__title" id="n-title">Rename</h2>
+ *       <div class="ds-dialog__body"> ... fields ... </div>
+ *       <div class="ds-dialog__actions">
+ *         <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
+ *         <button class="ds-btn ds-btn--filled" type="submit">
+ *           <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
+ *             <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span>
+ *         </button>
+ *
  * Div markup (fallback): the same tree in a div; the box takes the role.
  *
  *   <div class="ds-dialog" hidden>
- *     <div class="ds-dialog__backdrop" data-close></div>
+ *     <div class="ds-dialog__backdrop" data-ds-close></div>
  *     <div class="ds-dialog__box" role="alertdialog" aria-modal="true" aria-labelledby="d-title" aria-describedby="d-text">
  *
  * Open and close both with DS.overlay.open(dialog, { opener }) and
- * DS.overlay.close(dialog) (js/overlay.js): focus, trap, Escape, the
- * scroll lock and data-state. The motion runs on transitions keyed on
+ * DS.overlay.close(dialog) (js/overlay.js), or declaratively with
+ * [data-ds-open="#id"] on a button: focus, trap, Escape, the scroll lock and
+ * data-state. [data-ds-close] (its 2.x name still works) closes it. The motion runs on transitions keyed on
  * data-state ("closed", then "open"; "closed" again to leave), so a
  * reversal continues from the current value in every engine. The scrim is
  * the __backdrop child; a native dialog's ::backdrop stays transparent.
@@ -85,8 +101,12 @@
  *                          embedded panel); in a container taller than
  *                          the window the box stays in the visible part
  *                          (position: sticky)
- *   .ds-dialog--wide       a wider box (--ds-dialog-width-wide, 560px): a
- *                          list, a form, a confirmation with a field
+ *   .ds-dialog--sm         a narrower box (--ds-dialog-width-sm, 320px): a
+ *                          short question
+ *   .ds-dialog--lg         a wider box (--ds-dialog-width-lg, 560px): a list,
+ *                          a form, a confirmation with a field. Its 2.x
+ *                          name, ending in --wide, still works
+ *   .ds-dialog--xl         the widest box (--ds-dialog-width-xl, 720px)
  *   .ds-dialog--full       the box fills the window (no padding around it,
  *                          radius --ds-dialog-full-radius, safe areas on
  *                          head and actions); it rises by
@@ -106,7 +126,7 @@
  * keeps through DS.dom.watchScrolled(); at a window 320px high or less the
  * box scrolls instead, WCAG 1.4.10; empty, its sentinel aside, it takes no
  * room, nor do empty actions), .ds-dialog__head (the full-screen top bar:
- * a close icon button with data-close, the title, an optional text button)
+ * a close icon button with data-ds-close, the title, an optional text button)
  * and .ds-dialog__list (.ds-menu__item rows full bleed in the box;
  * DS.overlay moves focus through them with the arrow keys). A lone .ds-btn
  * directly in the body keeps its own width.
@@ -124,10 +144,25 @@
  * At 600px and below the box moves on --ds-ease-out: a box nearly as wide
  * as the window never overshoots past it.
  *
- * There are no red buttons: the main action names the consequence.
+ * The main action names the consequence. The one red button: a destructive
+ * confirmation's filled button in the error tone (.ds-tone-error, D10);
+ * DS.overlay.confirm({ destructive: true }) sets it.
  *
- * Hooks: --ds-dialog-width (400px), --ds-dialog-width-wide (560px),
- * --ds-dialog-height (auto; set it so a filtered list does not make the
+ * Options (the md has the table): density changes the box's padding, the
+ * gap of its parts and the height of the full-screen head; shape multiplies
+ * the radius; the widths above are the dialog's sizes, because a size class
+ * on it would also change every control inside. Controls inside follow the
+ * options around them as anywhere, and .ds-touch reaches them.
+ *
+ * Forced colours: the transparent border of the box becomes its edge (the
+ * full-screen box is the window and needs none); the scrim goes with the
+ * backdrop colour.
+ *
+ * Hooks: --ds-dialog-width (400px), --ds-dialog-width-sm (320px),
+ * --ds-dialog-width-lg (560px), --ds-dialog-width-xl (720px), and
+ * --ds-dialog-width-wide, the deprecated name of -lg, --ds-dialog-padding
+ * (--ds-space-6), --ds-dialog-radius (--ds-radius-dialog),
+ * --ds-dialog-head-height (56px), --ds-dialog-height (auto; set it so a filtered list does not make the
  * box jump; capped by the window), --ds-dialog-full-radius (0),
  * --ds-dialog-border (an invisible hairline that forced colors paint, so
  * the dialog keeps its edge once shadow and scrim are gone; the full
@@ -136,13 +171,13 @@
  *
  * Print: an open dialog is not printed (it is not the page).
  *
+ * At the floor, used directly: @starting-style and allow-discrete
+ * transitions (a native dialog driven by hand, showModal() and close() of
+ * the page without DS.overlay, plays the same transitions, also on close();
+ * the overlay property, where the engine has it, keeps it in the top layer
+ * through every exit).
+ *
  * Progressive:
- * - @starting-style, allow-discrete transitions and the overlay property
- *   (a native dialog driven by hand, showModal() and close() of the page
- *   without DS.overlay, plays the same transitions, also on close();
- *   Chromium keeps a dialog in the top layer through every exit, DS.overlay's
- *   included): without them it enters with the keyframes and closes at
- *   once.
  * - scrollbar-color and scrollbar-width (a thin, quiet scrollbar on the
  *   body): without them the platform scrollbar shows.
  */
@@ -232,11 +267,11 @@
     width: min(var(--ds-dialog-width, 400px), 100%);
     max-height: 100%;
     overflow-y: auto;
-    padding: var(--ds-space-6);
+    padding: calc(var(--ds-dialog-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
     display: grid;
-    gap: var(--ds-space-4);
+    gap: calc(var(--ds-space-4) + var(--ds-density, 0) * 2px);
     border: var(--ds-dialog-border, 1px solid transparent);
-    border-radius: var(--ds-radius-dialog);
+    border-radius: calc(var(--ds-dialog-radius, var(--ds-radius-dialog)) * var(--ds-shape, 1));
     background: var(--ds-surface-overlay);
     box-shadow: var(--ds-dialog-shadow, var(--ds-elev-overlay));
     /* Its own ink on its own surface (a widget without .ds-base). */
@@ -315,48 +350,46 @@
      and Chromium keeps the dialog in the top layer meanwhile. Under
      DS.overlay only overlay steps: --closing keeps display, and the dialog
      must not linger, invisible, once it is done. */
-  @supports (transition-behavior: allow-discrete) {
-    dialog.ds-dialog:not([data-state]) {
-      transition:
-        display var(--ds-dur-base) allow-discrete,
-        overlay var(--ds-dur-base) allow-discrete;
-    }
+  dialog.ds-dialog:not([data-state]) {
+    transition:
+      display var(--ds-dur-base) allow-discrete,
+      overlay var(--ds-dur-base) allow-discrete;
+  }
 
-    dialog.ds-dialog[data-state] {
-      transition: overlay var(--ds-dur-base) allow-discrete;
-    }
+  dialog.ds-dialog[data-state] {
+    transition: overlay var(--ds-dur-base) allow-discrete;
+  }
 
-    dialog.ds-dialog:not([data-state]) .ds-dialog__backdrop {
-      animation: none;
-      transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
-    }
+  dialog.ds-dialog:not([data-state]) .ds-dialog__backdrop {
+    animation: none;
+    transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
 
-    dialog.ds-dialog:not([data-state]) .ds-dialog__box {
-      animation: none;
-      transition:
-        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
-        scale var(--ds-dur-slow) var(--ds-ease-spatial),
-        translate var(--ds-dur-slow) var(--ds-ease-spatial);
-    }
+  dialog.ds-dialog:not([data-state]) .ds-dialog__box {
+    animation: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-slow) var(--ds-ease-spatial),
+      translate var(--ds-dur-slow) var(--ds-ease-spatial);
+  }
 
-    dialog.ds-dialog:not([data-state]):not([open]) .ds-dialog__backdrop {
-      opacity: 0;
-      transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
-    }
+  dialog.ds-dialog:not([data-state]):not([open]) .ds-dialog__backdrop {
+    opacity: 0;
+    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+  }
 
-    dialog.ds-dialog:not([data-state]):not([open]) .ds-dialog__box {
-      opacity: 0;
-      scale: var(--ds-scale-enter);
-      translate: 0 var(--ds-distance-sm);
-      transition:
-        opacity var(--ds-dur-base) var(--ds-ease-in-out),
-        scale var(--ds-dur-base) var(--ds-ease-exit),
-        translate var(--ds-dur-base) var(--ds-ease-exit);
-    }
+  dialog.ds-dialog:not([data-state]):not([open]) .ds-dialog__box {
+    opacity: 0;
+    scale: var(--ds-scale-enter);
+    translate: 0 var(--ds-distance-sm);
+    transition:
+      opacity var(--ds-dur-base) var(--ds-ease-in-out),
+      scale var(--ds-dur-base) var(--ds-ease-exit),
+      translate var(--ds-dur-base) var(--ds-ease-exit);
   }
 
   /* Where the dialog enters from when showModal() shows it (a rule of its
-     own, not nested; engines without it play the keyframes). */
+     own, not nested). */
   @starting-style {
     dialog.ds-dialog[open]:not([data-state]) .ds-dialog__backdrop {
       opacity: 0;
@@ -409,8 +442,23 @@
     height: var(--ds-dialog-height, auto);
   }
 
+  /* The sizes: the width of the box (a size class on the dialog would also
+     change every control inside). */
+  .ds-dialog--sm .ds-dialog__box {
+    width: min(var(--ds-dialog-width-sm, 320px), 100%);
+  }
+
+  .ds-dialog--lg .ds-dialog__box {
+    width: min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%);
+  }
+
+  /* The 2.x name of --lg, until 3.0 ships. */
   .ds-dialog--wide .ds-dialog__box {
-    width: min(var(--ds-dialog-width-wide, 560px), 100%);
+    width: min(var(--ds-dialog-width-lg, var(--ds-dialog-width-wide, 560px)), 100%);
+  }
+
+  .ds-dialog--xl .ds-dialog__box {
+    width: min(var(--ds-dialog-width-xl, 720px), 100%);
   }
 
   /* With a body, the box is a column whose only scrolling part is the
@@ -500,7 +548,7 @@
     display: flex;
     align-items: center;
     gap: var(--ds-space-2);
-    min-height: 56px;
+    min-height: calc(var(--ds-dialog-head-height, 56px) + var(--ds-density, 0) * 4px);
     margin: calc(-1 * var(--ds-space-3)) calc(-1 * var(--ds-space-3)) 0;
   }
 
@@ -517,7 +565,7 @@
   .ds-dialog__list {
     display: flex;
     flex-direction: column;
-    margin: 0 calc(-1 * var(--ds-space-6));
+    margin: 0 calc(-1 * (var(--ds-dialog-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px));
     padding: 0;
   }
 
@@ -532,19 +580,20 @@
   }
 
   .ds-dialog--full .ds-dialog__box {
+    --_pad: calc(var(--ds-dialog-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
     width: 100%;
     height: 100%;
     max-height: none;
-    border-radius: var(--ds-dialog-full-radius, 0);
+    border-radius: calc(var(--ds-dialog-full-radius, 0px) * var(--ds-shape, 1));
     padding:
       0
-      max(var(--ds-space-6), env(safe-area-inset-right))
-      max(var(--ds-space-6), env(safe-area-inset-bottom))
-      max(var(--ds-space-6), env(safe-area-inset-left));
+      max(var(--_pad), env(safe-area-inset-right))
+      max(var(--_pad), env(safe-area-inset-bottom))
+      max(var(--_pad), env(safe-area-inset-left));
   }
 
   .ds-dialog--full .ds-dialog__head {
-    margin: 0 calc(var(--ds-space-2) - var(--ds-space-6));
+    margin: 0 calc(var(--ds-space-2) - var(--ds-dialog-padding, var(--ds-space-6)) - var(--ds-density, 0) * 2px);
     padding-top: env(safe-area-inset-top);
   }
 
@@ -553,6 +602,14 @@
   .ds-dialog--bottom {
     place-items: end center;
     padding-bottom: max(env(safe-area-inset-bottom), calc(var(--ds-space-4) + var(--ds-keyboard-inset, 0px)));
+  }
+
+  /* While it hosts a snackbar region: while the box would overlap the stack,
+     the dialog keeps the stack's room at its bottom (toast() sets the
+     attribute and the property), so the box re-centres above it (no motion:
+     the room comes with the message). */
+  .ds-dialog[data-toast-reserve] {
+    padding-bottom: var(--ds-toast-reserve, var(--ds-space-4));
   }
 
   /* A window 320px high or less (a phone on its side with the keyboard):
@@ -598,31 +655,30 @@
     }
 
     .ds-dialog--full-narrow .ds-dialog__box {
+      --_pad: calc(var(--ds-dialog-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
       width: 100%;
       height: 100%;
       max-height: none;
-      border-radius: var(--ds-dialog-full-radius, 0);
+      border-radius: calc(var(--ds-dialog-full-radius, 0px) * var(--ds-shape, 1));
       padding:
         0
-        max(var(--ds-space-6), env(safe-area-inset-right))
-        max(var(--ds-space-6), env(safe-area-inset-bottom))
-        max(var(--ds-space-6), env(safe-area-inset-left));
+        max(var(--_pad), env(safe-area-inset-right))
+        max(var(--_pad), env(safe-area-inset-bottom))
+        max(var(--_pad), env(safe-area-inset-left));
     }
 
     .ds-dialog--full-narrow .ds-dialog__head {
-      margin: 0 calc(var(--ds-space-2) - var(--ds-space-6));
+      margin: 0 calc(var(--ds-space-2) - var(--ds-dialog-padding, var(--ds-space-6)) - var(--ds-density, 0) * 2px);
       padding-top: env(safe-area-inset-top);
     }
   }
 
-  @supports (transition-behavior: allow-discrete) {
-    @media (max-width: 600px) {
-      dialog.ds-dialog[open]:not([data-state]) .ds-dialog__box {
-        transition:
-          opacity var(--ds-dur-fast) var(--ds-ease-in-out),
-          scale var(--ds-dur-slow) var(--ds-ease-out),
-          translate var(--ds-dur-slow) var(--ds-ease-out);
-      }
+  @media (max-width: 600px) {
+    dialog.ds-dialog[open]:not([data-state]) .ds-dialog__box {
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-slow) var(--ds-ease-out),
+        translate var(--ds-dur-slow) var(--ds-ease-out);
     }
   }
 
@@ -708,51 +764,49 @@
      rise on transitions, keyed on [open]. The open state names [open], so
      it outweighs the phone dialog's ease-out (dialog.ds-dialog[open]
      above). */
-  @supports (transition-behavior: allow-discrete) {
-    dialog.ds-dialog--full:not([data-state]) .ds-dialog__box,
-    dialog.ds-dialog--full[open]:not([data-state]) .ds-dialog__box,
-    dialog.ds-dialog--bottom:not([data-state]) .ds-dialog__box,
-    dialog.ds-dialog--bottom[open]:not([data-state]) .ds-dialog__box {
+  dialog.ds-dialog--full:not([data-state]) .ds-dialog__box,
+  dialog.ds-dialog--full[open]:not([data-state]) .ds-dialog__box,
+  dialog.ds-dialog--bottom:not([data-state]) .ds-dialog__box,
+  dialog.ds-dialog--bottom[open]:not([data-state]) .ds-dialog__box {
+    animation: none;
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      translate var(--ds-dur-long) var(--ds-ease-spatial);
+  }
+
+  dialog.ds-dialog--full:not([data-state]):not([open]) .ds-dialog__box,
+  dialog.ds-dialog--bottom:not([data-state]):not([open]) .ds-dialog__box {
+    scale: none;
+    transition:
+      opacity var(--ds-dur-base) var(--ds-ease-in-out),
+      translate var(--ds-dur-base) var(--ds-ease-exit);
+  }
+
+  dialog.ds-dialog--full:not([data-state]):not([open]) .ds-dialog__box {
+    translate: 0 var(--ds-distance-lg);
+  }
+
+  dialog.ds-dialog--bottom:not([data-state]):not([open]) .ds-dialog__box {
+    translate: 0 var(--ds-distance-sheet);
+  }
+
+  /* --full-narrow is a full-screen dialog at 600px and below: the same
+     rise. */
+  @media (max-width: 600px) {
+    dialog.ds-dialog--full-narrow:not([data-state]) .ds-dialog__box,
+    dialog.ds-dialog--full-narrow[open]:not([data-state]) .ds-dialog__box {
       animation: none;
       transition:
         opacity var(--ds-dur-fast) var(--ds-ease-in-out),
         translate var(--ds-dur-long) var(--ds-ease-spatial);
     }
 
-    dialog.ds-dialog--full:not([data-state]):not([open]) .ds-dialog__box,
-    dialog.ds-dialog--bottom:not([data-state]):not([open]) .ds-dialog__box {
+    dialog.ds-dialog--full-narrow:not([data-state]):not([open]) .ds-dialog__box {
       scale: none;
+      translate: 0 var(--ds-distance-lg);
       transition:
         opacity var(--ds-dur-base) var(--ds-ease-in-out),
         translate var(--ds-dur-base) var(--ds-ease-exit);
-    }
-
-    dialog.ds-dialog--full:not([data-state]):not([open]) .ds-dialog__box {
-      translate: 0 var(--ds-distance-lg);
-    }
-
-    dialog.ds-dialog--bottom:not([data-state]):not([open]) .ds-dialog__box {
-      translate: 0 var(--ds-distance-sheet);
-    }
-
-    /* --full-narrow is a full-screen dialog at 600px and below: the same
-       rise. */
-    @media (max-width: 600px) {
-      dialog.ds-dialog--full-narrow:not([data-state]) .ds-dialog__box,
-      dialog.ds-dialog--full-narrow[open]:not([data-state]) .ds-dialog__box {
-        animation: none;
-        transition:
-          opacity var(--ds-dur-fast) var(--ds-ease-in-out),
-          translate var(--ds-dur-long) var(--ds-ease-spatial);
-      }
-
-      dialog.ds-dialog--full-narrow:not([data-state]):not([open]) .ds-dialog__box {
-        scale: none;
-        translate: 0 var(--ds-distance-lg);
-        transition:
-          opacity var(--ds-dur-base) var(--ds-ease-in-out),
-          translate var(--ds-dur-base) var(--ds-ease-exit);
-      }
     }
   }
 

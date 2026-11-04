@@ -42,6 +42,18 @@
     "--ds-sheet-foot-border": {
       "default": "`1px solid var(--ds-line)`",
       "description": "the hairline above `.ds-sheet__foot`"
+    },
+    "--ds-sheet-padding": {
+      "default": "`--ds-space-6`",
+      "description": "the side padding of head, body and foot at the comfortable density"
+    },
+    "--ds-sheet-head-height": {
+      "default": "64px",
+      "description": "`.ds-sheet__head` at the comfortable density"
+    },
+    "--ds-sheet-radius": {
+      "default": "`--ds-radius-dialog`",
+      "description": "the panel's leading corners at the default shape"
     }
   },
   "keyframes": [
@@ -54,16 +66,19 @@
     "ds-shift-out"
   ],
   "js": [
-    "overlay"
+    "overlay",
+    "sheet"
   ],
+  "module": true,
   "progressive": [
-    "@starting-style",
-    "allow-discrete",
     "View Transitions",
     "scroll-driven",
     "scrollbar-color"
   ],
   "ripple": false,
+  "labExempt": {
+    "DS.sheet.create": "events only, no motion"
+  },
   "exceptions": {
     "physical": {
       ".ds-sheet__panel: border-radius": "the side sheet slides in from the right edge: its open side is the left",

@@ -47,12 +47,23 @@ export interface OpenOptions {
 /** Opens a dialog, side sheet, the modal drawer, a menu or the combobox list. */
 export declare function open(element: Element, options?: OpenOptions): Promise<void>;
 
-/** What the ds-close event says; any other string is the page's own. */
+/** What the ds:close event says; any other string is the page's own. */
 export type CloseReason = 'escape' | 'backdrop' | 'close' | 'item' | 'tab' | 'outside' | 'parent' | 'api' | 'removed' | 'breakpoint' | (string & {});
 /** Closes an overlay that open() showed; `reason` (default 'api') also closes a busy one. */
 export declare function close(element: Element, options?: { reason?: CloseReason }): Promise<void>;
 /** The topmost open layer of the page, or null. */
 export declare function topmost(doc?: Document): Element | null;
+
+/** What DS.dialog.create(), DS.sheet.create(), DS.menu.create() and their data-ds-* attributes make. */
+export interface OverlayController extends Destroyable {
+  element: Element;
+  /** Whether it is open. */
+  get(): boolean;
+  /** Opens or closes it. */
+  set(value: boolean, options?: OpenOptions & { reason?: CloseReason }): Promise<void>;
+  /** Hears its ds:open and ds:close; returns the unsubscribe. */
+  on(type: string, fn: (event: Event) => void): () => void;
+}
 
 export interface ConfirmOptions {
   title?: string;
@@ -125,6 +136,9 @@ export declare function toast(region: Element | null, content: Element | string,
 export declare function closeToasts(region?: Element | null, filter?: { kind?: ToastKind; key?: string }): Promise<void>;
 /** Tooltips for every [data-tip] trigger under `root`. */
 export declare function tooltips(root?: Document | Element | ShadowRoot): Destroyable;
+
+/** What the modules of the component folders read: no API, may change in any release. */
+export declare const internals: Readonly<Record<string, any>>;
 
 export interface SavebarHandle extends Destroyable {
   element: Element;
