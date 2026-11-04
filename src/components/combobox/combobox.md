@@ -10,9 +10,9 @@ A searchable list under a field: the page filters and chooses, `DS.overlay` open
   <div class="ds-combo__popup" hidden>
     <ul class="ds-combo__list" id="model-list" role="listbox">
       <li class="ds-combo__option" id="model-1" role="option" aria-selected="false">
-        <span class="ds-combo__name">Latitude 5430</span><span class="ds-combo__meta">14", 2022</span></li>
+        <span class="ds-combo__name">Laptop 13</span><span class="ds-combo__meta">13", 2022</span></li>
       <li class="ds-combo__option" id="model-2" role="option" aria-selected="true" data-active>
-        <span class="ds-combo__name">Latitude 7440</span><span class="ds-combo__meta">14", 2023</span></li>
+        <span class="ds-combo__name">Laptop 14</span><span class="ds-combo__meta">14", 2023</span></li>
     </ul>
     <p class="ds-combo__status" role="status">2 of 38</p>
   </div>
@@ -91,7 +91,7 @@ line never stands above the first group that still shows.
   <ul class="ds-combo__group" role="group" aria-labelledby="type-laptops">
     <li class="ds-combo__heading" id="type-laptops" role="presentation">Laptops</li>
     <li class="ds-combo__option" id="type-1" role="option" aria-selected="false">
-      <span class="ds-combo__name">Latitude 7440</span>
+      <span class="ds-combo__name">Laptop 14</span>
       <span class="ds-combo__description">For most desks: light, with a full day of battery.</span></li>
   </ul>
   <ul class="ds-combo__group" role="group" aria-labelledby="type-desktops"> ... </ul>
@@ -112,28 +112,39 @@ when no option matches the text exactly, and creates the value.
 
 ```html
 <li class="ds-combo__option ds-combo__option--create" id="model-new" role="option" aria-selected="false">[icon plus 20]
-  <span class="ds-combo__name">Create "Latitude 7450"</span></li>
+  <span class="ds-combo__name">Create "Laptop 15"</span></li>
 ```
 
 **Several values** (`.ds-combo--multi`, with `aria-multiselectable="true"` on the list): the `.ds-combo` draws the field
-box and holds the chosen values as input chips ([Chips](#chips)) before the typing field, which wraps under them. The box
-grows, and the toggle stays on its first line. The box shows hover, focus, error and disabled for the field inside it.
-Choosing leaves the list open; adding, removing and Backspace in the empty field are the page's script.
+box and holds the chosen values as input chips ([Chips](#chips)) before the typing field, which wraps under them. Empty,
+the box is the field's height at every step; the chips make it grow, and the toggle stays on its first line. The box
+shows hover, focus, error, disabled and read-only for the field inside it.
+Choosing leaves the list open; adding, removing and Backspace in the empty field are the page's script, and so is a press
+on an empty part of the box, which only the page can send to the field:
 
 ```html
 <div class="ds-combo ds-combo--multi">
-  <button class="ds-chip ds-chip--input" type="button"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove </span>Latitude 7440</span>[icon close 18 ds-chip__trailing]</span></button>
+  <button class="ds-chip ds-chip--input" type="button"><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove </span>Laptop 14</span>[icon close 18 ds-chip__trailing]</span></button>
   <input class="ds-input ds-combo__input" role="combobox" aria-expanded="false" aria-controls="order-list" aria-autocomplete="list">
   <button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">[icon chevronDown 20]</button>
   <div class="ds-combo__popup" hidden><ul class="ds-combo__list" id="order-list" role="listbox" aria-multiselectable="true"> ... </ul></div>
 </div>
 ```
 
+```js
+combo.addEventListener('mousedown', (event) => {
+  if (event.target === combo) { event.preventDefault(); input.focus(); }
+});
+```
+
 **States.** Nothing found: `hidden` on `.ds-combo__list` and the words in the status line; the list stays open. Loading:
 a `.ds-spinner` before the words in the status line and `aria-busy="true"` on the list. Error: `aria-invalid="true"` on
 the field, with a `.ds-field__hint--error`. `aria-disabled="true"` on an option draws it in the disabled ink with no
-active layer (skip it in your keys). `disabled` on the field takes its toggle and clear button with it: the disabled
-ink, and no pointer. Without a `.ds-combo__toggle` the field keeps only its own end padding.
+active layer (skip it in your keys). `disabled` on the field takes its toggle with it (the disabled ink, no pointer)
+and removes its clear button, from the tab order too. In `.ds-combo--multi` the chips lose the pointer, but CSS cannot
+block their keys: the page sets `disabled` on each chip as well. A disabled select-only button takes its value and meta
+into the disabled ink. An option both chosen and blocked keeps its tint and weight in the disabled ink. Without a `.ds-combo__toggle` the field keeps only its
+own end padding.
 
 **Options** ([options.md](options.md)): classes on the `.ds-combo` or any ancestor; the nearest wins.
 
@@ -155,14 +166,17 @@ Options get no ripple: pressing one selects it and closes the list, and the stat
 
 **Keyboard and names.** The keys are the page's script, as the WAI combobox pattern says: ArrowDown and ArrowUp open the
 list and move `data-active` and `aria-activedescendant` through the options (past headings and blocked options), Enter
-chooses, Escape closes (`DS.overlay` handles it, after the page's own handlers). Focus stays in the field. The field
+chooses, Escape closes (`DS.overlay` handles it, after the page's own handlers). When the list closes, on Escape, on blur
+or by a choice, the page clears `data-active` and `aria-activedescendant`, so the field never names an option in a hidden
+list. Focus stays in the field. The field
 needs a label; a group its `aria-labelledby`; the toggle and the clear button an `aria-label`. The status line is
 `role="status"`, so a count or "No match" is announced.
 
 **Forced colours.** The list keeps an edge (its transparent outline). The chosen option is `SelectedItem` /
-`SelectedItemText`, the active one has a `Highlight` outline (`CanvasText` on the chosen one), a blocked one `GrayText`.
-The box of several values keeps its border: `Highlight` while focused, `GrayText` when disabled, with the toggle and
-clear button of a disabled field.
+`SelectedItemText`, the active one has a `Highlight` outline (`CanvasText` on the chosen one), a blocked one `GrayText` (chosen too: on
+`Canvas` with a `GrayText` outline).
+The box of several values keeps its border, with a 2px `Highlight` outline while focused (as a single field has) and
+`GrayText` when disabled, with the toggle of a disabled field.
 
 **Hooks:** `--ds-input-height` (the base of the field and its toggle, 40px; the field's other hooks apply to the box of
 several values too: `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius`, `--ds-input-focus-color`),

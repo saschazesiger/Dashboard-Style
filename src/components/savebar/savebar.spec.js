@@ -127,7 +127,21 @@ test('in the flow: Tab reaches its buttons, a focused field scrolls clear of it,
   const flow = page.locator('[data-demo="flow"]');
   const group = flow.getByRole('group', { name: 'Form actions' });
   await expect(group.getByRole('button', { name: 'Save' })).toBeVisible();
-  await flow.locator('input').last().focus();
+  // Every field Tab lands on is clear of the bar, at a wide and a phone width (WCAG 2.4.11).
+  const inputs = flow.locator('input');
+  const count = await inputs.count();
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await flow.evaluate((scroller) => { scroller.scrollTop = 0; });
+    await inputs.first().focus();
+    for (let i = 0; i < count; i += 1) {
+      await expect(inputs.nth(i)).toBeFocused();
+      await settle(page);
+      const [field, barBox] = [await inputs.nth(i).boundingBox(), await group.boundingBox()];
+      expect(field.y + field.height, `${width}: field ${i} under the bar`).toBeLessThanOrEqual(barBox.y + 2);
+      if (i < count - 1) await page.keyboard.press('Tab');
+    }
+  }
   await page.keyboard.press('Tab');
   await expect(group.getByRole('button', { name: 'Cancel' })).toBeFocused();
   await page.keyboard.press('Tab');
@@ -139,6 +153,67 @@ test('in the flow: Tab reaches its buttons, a focused field scrolls clear of it,
     return wrapper.getBoundingClientRect().height;
   });
   expect(room).toBe(0);
+});
+
+test('in the flow: a .ds-view keeps the room by itself, a bar hidden by the page keeps none, the hook sets more', async ({ page }) => {
+  await open(page);
+  const read = await page.evaluate(() => {
+    const host = document.querySelector('#fx-component');
+    host.insertAdjacentHTML('beforeend', '<div class="ds-view" id="flow-view" style="block-size: 200px"><div class="ds-content"><form class="ds-form"><div class="ds-savebar ds-savebar--inline"><div class="ds-savebar__bar" role="group" aria-label="Actions"><p class="ds-savebar__text">x</p></div></div></form></div></div>');
+    const view = host.lastElementChild;
+    const room = () => getComputedStyle(view).scrollPaddingBlockEnd;
+    const shown = room();
+    view.style.setProperty('--ds-savebar-room', '120px');
+    const hooked = room();
+    view.querySelector('.ds-savebar__bar').hidden = true;
+    return { shown, hooked, hidden: room() };
+  });
+  // The least height at the largest size and a row for the words, with the margin: 56 + 16 + 32 + 8.
+  expect(read.shown).toBe('112px');
+  expect(read.hooked).toBe('120px');
+  expect(read.hidden).toBe('auto');
+});
+
+test('in the flow on a phone: a snackbar rises above the actions', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await open(page);
+  const flow = page.locator('[data-demo="flow"]');
+  // The bottom of the form's scroller at the bottom of the window, as on a phone when the form fills it.
+  await flow.evaluate((scroller) => scroller.scrollIntoView({ block: 'end' }));
+  await flow.getByRole('button', { name: 'Save' }).click();
+  const toast = page.locator('.ds-toast').filter({ hasText: 'Changes saved.' });
+  await expect(toast).toBeVisible();
+  await settle(page);
+  const [box, actions] = [await toast.boundingBox(), await flow.locator('.ds-savebar__bar').boundingBox()];
+  expect(actions.y + actions.height, 'the bar is at the bottom of the window').toBeGreaterThan(700);
+  expect(box.y + box.height, 'the snackbar clears the bar').toBeLessThanOrEqual(actions.y);
+});
+
+test('in the flow on a phone: a size on the bar alone never covers a field or a snackbar', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await open(page);
+  const flow = page.locator('[data-demo="flow"]');
+  const group = flow.getByRole('group', { name: 'Form actions' });
+  // The size sits on the bar, out of reach of the scroller and the snackbars that keep the room.
+  await group.evaluate((bar) => bar.classList.add('ds-xl'));
+  const inputs = flow.locator('input');
+  const count = await inputs.count();
+  await inputs.first().focus();
+  for (let i = 0; i < count; i += 1) {
+    await expect(inputs.nth(i)).toBeFocused();
+    await settle(page);
+    const [field, barBox] = [await inputs.nth(i).boundingBox(), await group.boundingBox()];
+    expect(barBox.height, 'the bar wraps, at its largest').toBeGreaterThan(96);
+    expect(field.y + field.height, `field ${i} under the bar`).toBeLessThanOrEqual(barBox.y + 2);
+    if (i < count - 1) await page.keyboard.press('Tab');
+  }
+  await flow.evaluate((scroller) => scroller.scrollIntoView({ block: 'end' }));
+  await flow.getByRole('button', { name: 'Save' }).click();
+  const toast = page.locator('.ds-toast').filter({ hasText: 'Changes saved.' });
+  await expect(toast).toBeVisible();
+  await settle(page);
+  const [box, actions] = [await toast.boundingBox(), await group.boundingBox()];
+  expect(box.y + box.height, 'the snackbar clears the bar').toBeLessThanOrEqual(actions.y);
 });
 
 test('on a view: a change shows the named region; Tab reaches it; Discard and Save hide it, focus goes back into the form', async ({ page }) => {

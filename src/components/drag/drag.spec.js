@@ -34,6 +34,8 @@ test('the file field and its button at every size x density; .ds-touch as a mini
       for (const [density] of densities) {
         const region = document.createElement('div');
         region.className = `${density}${touch ? ' ds-touch' : ''}`;
+        // .ds-touch still sets this hook for the form.css that is not ported on this branch: see the test below.
+        if (touch) region.style.setProperty('--ds-input-height', '40px');
         main.append(region);
         for (const [size] of sizes) {
           region.insertAdjacentHTML('beforeend', `<input class="ds-input ${size}" type="file" aria-label="Measured">`);
@@ -53,11 +55,24 @@ test('the file field and its button at every size x density; .ds-touch as a mini
     const button = Math.max(32 + step * 8 + density * 4, entry.line);
     // The button: 32px at md and comfortable, the field's steps, never less than its own line; the field never less than 24px.
     expect(entry.button, `${name} button`).toBeCloseTo(button, 0);
-    if (entry.touch) expect(entry.field, `${name} field`).toBeGreaterThanOrEqual(TOUCH - 0.5);
-    else expect(entry.field, `${name} field`).toBeCloseTo(Math.max(40 + step * 8 + density * 4, 24), 0);
+    // Touch is a minimum: it adds nothing to a step already above it.
+    expect(entry.field, `${name} field`).toBeCloseTo(Math.max(entry.touch ? TOUCH : 0, 40 + step * 8 + density * 4, 24), 0);
   }
   const fonts = Object.fromEntries(measured.filter((entry) => !entry.touch && entry.density === 'ds-density-comfortable').map((entry) => [entry.size, entry.font]));
   expect(fonts).toEqual({ 'ds-xs': 12, 'ds-sm': 14, 'ds-md': 14, 'ds-lg': 16, 'ds-xl': 16 });
+});
+
+test('the real .ds-touch rule adds nothing to a step above the target', async ({ page }) => {
+  // Fails while utilities.css sets --ds-input-height under .ds-touch: touch then adds to the height (56px here). The
+  // form.css of this branch still needs that hook, so the integrator drops it once forms-a is in, and removes this line.
+  test.fail();
+  await open(page);
+  const height = await page.evaluate(() => {
+    const host = document.querySelector('#fx-component');
+    host.insertAdjacentHTML('beforeend', '<div class="ds-touch"><input class="ds-input ds-lg" type="file" aria-label="Measured"></div>');
+    return host.lastElementChild.firstElementChild.getBoundingClientRect().height;
+  });
+  expect(height).toBe(TOUCH);
 });
 
 test('the zone: padding and gap by density, the disc and the title by size, one row, at least the touch target', async ({ page }) => {
@@ -115,6 +130,20 @@ test('the zone: padding and gap by density, the disc and the title by size, one 
   expect(inline.disc).toBe(32);
   expect(inline.inRow).toBe(true);
   expect(inline.hintAtEnd).toBeLessThanOrEqual(14);
+
+  // Narrow: the words stay beside the disc, and the hint goes under them, in their column.
+  for (const width of [360, 280, 200]) {
+    const narrow = await page.evaluate(({ zone, width }) => {
+      const main = document.querySelector('#fx-component');
+      main.insertAdjacentHTML('beforeend', `<div style="width: ${width}px">${zone.replace('${cls}', '')}</div>`);
+      const el = main.lastElementChild.firstElementChild;
+      const rect = (selector) => el.querySelector(selector).getBoundingClientRect();
+      return { disc: rect('.ds-dropzone__disc'), title: rect('.ds-dropzone__title'), hint: rect('.ds-dropzone__hint') };
+    }, { zone: ZONE('${cls}', true), width });
+    expect(narrow.title.left, `${width}: words beside the disc`).toBeGreaterThanOrEqual(narrow.disc.right);
+    expect(narrow.hint.left, `${width}: hint in the words' column`).toBeCloseTo(narrow.title.left, 0);
+    expect(narrow.hint.top, `${width}: hint under the words`).toBeGreaterThanOrEqual(narrow.title.bottom);
+  }
 });
 
 test('shape: the zone at rest and pressed, its disc, the file button', async ({ page }) => {
@@ -137,6 +166,13 @@ test('shape: the zone at rest and pressed, its disc, the file button', async ({ 
     return { rest: read('var(--ds-radius-card)'), pressed: read('var(--ds-radius-card-pressed)') };
   });
   for (const [shape, factor] of [['square', 0], ['soft', 0.5], ['default', 1], ['round', 1.5]]) {
+    // The button's pill stays on the button: the field has the corners of a text field beside it.
+    const corners = await page.$eval(`#shape-${shape}`, (host) => {
+      host.insertAdjacentHTML('beforeend', '<input class="ds-input" aria-label="Text">');
+      const radius = (el) => getComputedStyle(el).borderTopLeftRadius;
+      return [radius(host.querySelector('.ds-input[type="file"]')), radius(host.lastElementChild)];
+    });
+    expect(corners[0], `${shape} file field`).toBe(corners[1]);
     const zone = `#shape-${shape} .ds-dropzone`;
     const read = () => page.$eval(zone, (el) => ({
       zone: parseFloat(getComputedStyle(el).borderTopLeftRadius),

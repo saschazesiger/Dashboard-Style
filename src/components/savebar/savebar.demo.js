@@ -43,11 +43,11 @@ SG.demo('savebar', {
         '<div class="ds-savebar__bar" role="group" aria-label="Unsaved changes, at rest"><p class="ds-savebar__text">2 unsaved changes</p>' +
         '<div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button">Discard</button><button class="ds-btn ds-btn--filled" type="button">Save</button></div></div></div>') +
 
-      h.section('In the flow', '<div data-demo="flow" style="max-block-size: 300px; overflow-y: auto; border: 1px solid var(--ds-line); --ds-savebar-bleed: var(--ds-space-4);">' +
+      h.section('In the flow', '<div class="ds-savebar-scroller" data-demo="flow" style="max-block-size: 300px; overflow-y: auto; border: 1px solid var(--ds-line); --ds-savebar-bleed: var(--ds-space-4);">' +
         '<form class="ds-form" style="padding-inline: var(--ds-space-4); padding-block-start: var(--ds-space-4);">' + formFields(h, 6) +
         '<div class="ds-savebar ds-savebar--inline"><div class="ds-savebar__bar" role="group" aria-label="Form actions"><p class="ds-savebar__text">Changes apply after a restart</p>' +
         '<div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--filled" type="submit">Save</button></div></div></div></form></div>',
-      'The actions of a long form outside a card stay in reach at every width: the bar takes its own room and sticks to the bottom of the scroller while the form is on screen. No script.') +
+      'The actions of a long form outside a card stay in reach at every width: the bar takes its own room and sticks to the bottom of the scroller while the form is on screen, and a focused field scrolls clear of it. No script.') +
 
       h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches the bar\'s buttons after the form; a focused field the bar would cover scrolls clear of it. Hiding the bar moves focus from inside it back into the form, so it is never lost.</p>');
   },

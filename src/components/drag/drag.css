@@ -45,8 +45,10 @@
  * (:has(input:disabled)). The list of chosen files is the page's (.ds-list
  * rows with a .ds-progress and a remove button, rendered through flip()).
  *
- * .ds-dropzone--inline: one row (the disc, the words, the hint at the end)
- * for a form where the full zone would take too much room. A file over a
+ * .ds-dropzone--inline: one row (the disc, the words, the hint at the end;
+ * in less than 520px the hint goes under the words) for a form where the full
+ * zone would take too much room. It is a size container, so its width comes
+ * from its parent. A file over a
  * limit: aria-invalid="true" on its input gives the zone the field's error
  * edge, and its hint (say it there, in words) the error ink.
  *
@@ -65,7 +67,7 @@
  * Hooks: --ds-dropzone-border (1px dashed --ds-outline),
  * --ds-dropzone-padding (block padding, --ds-space-6), --ds-dropzone-radius
  * (--ds-radius-card), --ds-file-button-height (32px). The private --_h, --_box,
- * --_half and --_radius are computed here: never set them.
+ * --_half, --_radius and --_disc are computed here: never set them.
  *
  * Forced colours: the dragged row and a drop target are outlined in
  * Highlight; the zone's dashed edge is ButtonText (Highlight while dragged
@@ -119,13 +121,10 @@
 
   /* ── The file field ───────────────────────────── */
 
-  /* The field's height (the formula of every field, form.css) and, inside
-     it, the button's: 4px off the field on each side at any step. */
+  /* The field's height: the formula of every field (form.css), and never
+     less than the button's line. */
   .ds-input[type="file"] {
     --_box: max(var(--ds-target-min, 0px), var(--ds-space-6), calc(var(--ds-input-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
-    --_h: calc(var(--ds-file-button-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
-    --_half: calc(var(--_h) / 2);
-    --_radius: min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half));
     display: flex;
     align-items: center;
     min-height: var(--_box);
@@ -136,8 +135,12 @@
   }
 
   /* A pseudo-element has no ::before of its own: its hover and press mix
-     the state layer into its fill. */
+     the state layer into its fill. Its height, half and radius are computed
+     here, off the field's own: 4px off the field on each side at any step. */
   .ds-input[type="file"]::file-selector-button {
+    --_h: calc(var(--ds-file-button-height, 32px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px);
+    --_half: calc(var(--_h) / 2);
+    --_radius: min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half));
     /* Never less than its own line, on the steps that would cut it. */
     block-size: max(var(--_h), 1lh);
     margin-inline-end: var(--ds-space-3);
@@ -321,9 +324,11 @@
     transition-duration: var(--ds-dur-fast);
   }
 
-  /* One row: the disc, the words, and the hint at the end (under the words
-     where the row is too narrow). */
+  /* One row: the disc, the words, and the hint at the end. The disc's size
+     lives here, because a narrow hint lines up with the words beside it. */
   .ds-dropzone--inline {
+    --_disc: max(var(--ds-space-6), calc(32px + var(--ds-size-step, 0) * 8px));
+    container: ds-dropzone / inline-size;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -335,11 +340,29 @@
 
   /* Never less than the icon it holds. */
   .ds-dropzone--inline > .ds-dropzone__disc {
-    --_h: max(var(--ds-space-6), calc(32px + var(--ds-size-step, 0) * 8px));
+    --_h: var(--_disc);
+    flex: none;
   }
 
+  /* The words stay beside the disc and wrap there, at any width. */
+  .ds-dropzone--inline > .ds-dropzone__title {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* At most half the row, so a long hint wraps inside its own place. */
   .ds-dropzone--inline > .ds-dropzone__hint {
+    max-inline-size: 50cqi;
     margin-inline-start: auto;
+  }
+
+  /* Too narrow for the hint at the end: under the words, in their column. */
+  @container ds-dropzone (max-width: 520px) {
+    .ds-dropzone--inline > .ds-dropzone__hint {
+      flex: 1 1 calc(100% - var(--_disc) - var(--ds-space-3));
+      max-inline-size: none;
+      margin-inline-start: calc(var(--_disc) + var(--ds-space-3));
+    }
   }
 
   /* A file over a limit: the field's error edge, and the words in the hint

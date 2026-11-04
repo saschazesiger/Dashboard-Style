@@ -9,6 +9,7 @@
   "classes": [
     "ds-savebar",
     "ds-savebar--inline",
+    "ds-savebar-scroller",
     "ds-savebar__actions",
     "ds-savebar__bar",
     "ds-savebar__text"
@@ -21,7 +22,8 @@
   "requires": [],
   "context": [
     "page",
-    "shell"
+    "shell",
+    "toast"
   ],
   "hooks": {
     "--ds-savebar-offset": {
@@ -51,6 +53,10 @@
     "--ds-savebar-bleed": {
       "default": "`--ds-content-pad-x`",
       "description": "`.ds-savebar--inline`: how far the bar runs beyond its form on both sides; set it to the inline padding of a container of the page's own"
+    },
+    "--ds-savebar-room": {
+      "default": "its least height at the largest size, `--ds-space-8`, `--ds-space-2` and the safe area",
+      "description": "`.ds-savebar--inline`: the room its scroller and the snackbars keep clear of it; set it for a bar taller than two rows"
     }
   },
   "keyframes": [],

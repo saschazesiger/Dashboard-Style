@@ -53,8 +53,9 @@ DS.dom.dropzone(chatPane, { onFiles: attach, accept: 'image/*', input: null }); 
 </ul>
 ```
 
-- **In one row** (`.ds-dropzone--inline`): the disc, the words and the hint at the end (under the words where the row
-  is too narrow), for a form where the full zone would take too much room.
+- **In one row** (`.ds-dropzone--inline`): the disc, the words and the hint at the end (under the words in less than
+  520px), for a form where the full zone would take too much room. It is a size container, so it takes its width from
+  its parent: in a flex row of the page's own, give it one.
 - **A file over a limit**: `aria-invalid="true"` on the input gives the zone a solid `--ds-error` edge and its hint the
   error ink (`--ds-field-error-color`); say what is wrong in the hint, never with the colour alone.
 

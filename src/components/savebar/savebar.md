@@ -56,11 +56,18 @@ The last child of the form, it takes the room of its bar and sticks to the botto
 screen: a flat surface with a static hairline that runs to the edges of the page (`--ds-savebar-bleed`, default
 `--ds-content-pad-x`; in a padded container of the page's own set it to that padding) and keeps clear of the home
 indicator. No script and no `DS.overlay.savebar()`: it always shows, or the page sets `hidden` on the bar.
+
+With no script to measure it, its room comes from CSS: its least height at the largest size and a row for the words it
+wraps over the actions, wherever the size is set. A `.ds-view` keeps that room in its `scroll-padding-block-end`, so a focused field scrolls clear of the bar; a
+scroller of the page's own takes `.ds-savebar-scroller` for the same (WCAG 2.4.11). Snackbars of the theme rise by the
+same room. A bar taller than that (a long text on a phone) sets `--ds-savebar-room` on the scroller or a container of
+both.
+
 `.ds-form-actions--sticky` ([Form](#form)) is the same on phones only and an ordinary row above; take this one where
 the wide layout needs it too, or where a line of text goes with the actions.
 
 ```html
-<form class="ds-form"> ...
+<form class="ds-form"> ...                       <!-- in a .ds-view, or in a .ds-savebar-scroller of the page's own -->
   <div class="ds-savebar ds-savebar--inline">
     <div class="ds-savebar__bar" role="group" aria-label="Form actions">
       <p class="ds-savebar__text">Changes apply after a restart</p>
@@ -86,7 +93,8 @@ the wide layout needs it too, or where a line of text goes with the actions.
 
 **Keyboard and names.** A floating bar is a `role="region"` with an `aria-label` ("Unsaved changes"), the bar in the flow
 a `role="group"`. Tab reaches its buttons after the view's content; a focused element the bar would cover scrolls clear
-of it, and `hide()` moves focus from inside it to `focusTarget()` (else the view), so focus is never lost.
+of it (in the flow: inside a `.ds-view` or a `.ds-savebar-scroller`), and `hide()` moves focus from inside it to
+`focusTarget()` (else the view), so focus is never lost.
 
 **Forced colours.** The floating bar keeps an edge (its transparent outline); the bar in the flow keeps its hairline; its
 buttons are the system's.
@@ -94,15 +102,16 @@ buttons are the system's.
 **Hooks:** `--ds-savebar-offset`, `--ds-savebar-inset` (from the view's sides instead of the page column),
 `--ds-savebar-min-height` (the base of its least height, 56px), `--ds-savebar-radius` (`--ds-radius-card`, times the
 shape), `--ds-savebar-bg` (`--ds-surface-popover`; in the flow `--ds-surface`), `--ds-savebar-shadow`
-(`--ds-elev-overlay`), `--ds-savebar-bleed` (in the flow) ([theming.md](theming.md#component-hooks)). The attributes
+(`--ds-elev-overlay`), `--ds-savebar-bleed` and `--ds-savebar-room` (in the flow)
+([theming.md](theming.md#component-hooks)). The attributes
 `data-ds-savebar`, `data-ds-savebar-rest` and `data-toast-reserve` are the system's. Print: hidden.
 
 **Motion:** the "Save bar" row of [Feedback](motion.md#feedback) in motion.md.
 
 <!-- changelog -->
 - Save bar on the options model (size, density, shape, touch, computed in `savebar.css`).
-- New: `.ds-savebar--inline`, the actions of a long form outside a card in reach at every width, with hook
-  `--ds-savebar-bleed`.
+- New: `.ds-savebar--inline`, the actions of a long form outside a card in reach at every width, with
+  `.ds-savebar-scroller` and hooks `--ds-savebar-bleed` and `--ds-savebar-room`.
 - Its cascade order moved after page (`meta.json` `order`), so the room it keeps on `.ds-content` holds in the
   component sublayers too.
 

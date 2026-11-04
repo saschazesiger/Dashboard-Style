@@ -38,6 +38,7 @@
     "form"
   ],
   "context": [
+    "chip",
     "progress",
     "ripple"
   ],
@@ -91,6 +92,9 @@
   "exceptions": {
     "ripple": {
       ".ds-combo__option": "pointer-down selects and closes the list; the state layer is the feedback"
+    },
+    "focus": {
+      ".ds-combo--multi": "forced colours: the box draws the field, so it takes the ring a field shows on any focus"
     }
   },
   "motionExceptions": {

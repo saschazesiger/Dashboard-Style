@@ -6,12 +6,12 @@
  * project writes itself: the page filters and chooses, DS.overlay opens and
  * closes the list.
  */
-var MODELS = [['Latitude 5430', '14 inch · 2022'], ['Latitude 7440', '14 inch · 2023'], ['Latitude 9450', '14 inch · 2024'], ['Precision 3581', '15 inch · 2023'], ['OptiPlex 7010', 'Desktop · 2023'], ['Surface Laptop 5', '13 inch · 2022']];
+var MODELS = [['Laptop 13', '13 inch · 2022'], ['Laptop 14', '14 inch · 2023'], ['Laptop 16', '16 inch · 2024'], ['Workstation 15', '15 inch · 2023'], ['Mini desktop', 'Desktop · 2023'], ['Convertible 13', '13 inch · 2022']];
 
 var GROUPS = [
-  ['Laptops', [['Latitude 7440', 'For most desks: light, with a full day of battery.'], ['Precision 3581', 'For drawing and video: the strong graphics card, and the weight that comes with it.']]],
-  ['Desktops', [['OptiPlex 7010', 'For shared counters: small, on a lock, and quick to replace.']]],
-  ['Tablets', [['Surface Go 4', 'For the shop floor: scanner and pen, and a case that survives a fall.']]],
+  ['Laptops', [['Laptop 14', 'For most desks: light, with a full day of battery.'], ['Workstation 15', 'For drawing and video: the strong graphics card, and the weight that comes with it.']]],
+  ['Desktops', [['Mini desktop', 'For shared counters: small, on a lock, and quick to replace.']]],
+  ['Tablets', [['Field tablet', 'For the shop floor: scanner and pen, and a case that survives a fall.']]],
 ];
 
 /* A name, a meta line and a share of the quota; one plan is blocked. */
@@ -67,6 +67,24 @@ function multiField(h, id) {
     '<p class="ds-combo__status" role="status">' + MODELS.length + ' models</p></div></div></div>';
 }
 
+/* Disabled, with its values: the page sets `disabled` on the chips too, since CSS cannot block their keys. */
+function multiDisabled(h) {
+  var id = h.uid('combo');
+  return '<div class="ds-field"><label class="ds-field__label" for="' + id + '">Disabled, several values</label><div class="ds-combo ds-combo--multi">' +
+    '<button class="ds-chip ds-chip--input" type="button" disabled><span class="ds-chip__body"><span class="ds-chip__label"><span class="ds-sr">Remove </span>Laptop 14</span>' + h.icon('close', 18, 'ds-chip__trailing') + '</span></button>' +
+    '<input class="ds-input ds-combo__input" id="' + id + '" role="combobox" aria-expanded="false" aria-autocomplete="list" disabled>' +
+    '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all" disabled>' + h.icon('chevronDown', 20) + '</button></div></div>';
+}
+
+/* Disabled select-only: the value and its meta take the button's disabled ink. */
+function selectDisabled(h) {
+  var id = h.uid('combo');
+  return '<div class="ds-field"><span class="ds-field__label" id="' + id + '-label">Plan, disabled</span><div class="ds-combo ds-combo--select" data-demo="select-disabled">' +
+    '<button class="ds-input ds-combo__input" id="' + id + '" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="' + id + '-label ' + id + '-value" disabled>' +
+    '<span class="ds-combo__value" id="' + id + '-value">Standard</span><span class="ds-combo__meta">5 devices</span></button>' +
+    '<button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show plans" disabled>' + h.icon('chevronDown', 20) + '</button></div></div>';
+}
+
 /* A list inspected in place: the same parts, in the flow of the page, each option in a fixed state. */
 function statesList(h) {
   return '<div class="ds-combo__popup" style="position: static;"><ul class="ds-combo__list" role="listbox" aria-label="Option states">' +
@@ -75,7 +93,8 @@ function statesList(h) {
     '<li class="ds-combo__option" role="option" aria-selected="true"><span class="ds-combo__name">Chosen</span><span class="ds-combo__description">The tint and the label weight, never the colour alone.</span></li>' +
     '<li class="ds-combo__option" role="option" aria-selected="true" data-active><span class="ds-combo__name">Chosen and active</span></li>' +
     '<li class="ds-combo__option" role="option" aria-selected="false" aria-disabled="true"><span class="ds-combo__name">Blocked</span><span class="ds-combo__meta">Needs a contract</span></li>' +
-    '<li class="ds-combo__option ds-combo__option--create" role="option" aria-selected="false">' + h.icon('plus', 20) + '<span class="ds-combo__name">Create "Latitude 7450"</span></li>' +
+    '<li class="ds-combo__option" role="option" aria-selected="true" aria-disabled="true"><span class="ds-combo__name">Chosen and blocked</span><span class="ds-combo__meta">No longer offered</span></li>' +
+    '<li class="ds-combo__option ds-combo__option--create" role="option" aria-selected="false">' + h.icon('plus', 20) + '<span class="ds-combo__name">Create "Laptop 15"</span></li>' +
     '</ul></div>';
 }
 
@@ -114,12 +133,14 @@ SG.demo('combobox', {
       'A button shows the choice with its meta: pick one of a few rich options without typing. Premium cannot be chosen.') +
 
       h.section('States', '<div class="ds-form">' +
-        '<div class="ds-field"><label class="ds-field__label" for="' + disabled + '">Disabled</label><div class="ds-combo"><input class="ds-input ds-combo__input" id="' + disabled + '" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Latitude 7440" disabled><button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all" disabled>' + h.icon('chevronDown', 20) + '</button></div></div>' +
-        '<div class="ds-field"><label class="ds-field__label" for="' + invalid + '">With an error</label><div class="ds-combo"><input class="ds-input ds-combo__input" id="' + invalid + '" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-invalid="true" aria-describedby="' + error + '" value="Latitude"><button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">' + h.icon('chevronDown', 20) + '</button></div><p class="ds-field__hint ds-field__hint--error" id="' + error + '">' + h.icon('alertCircle', 16) + 'Choose one of the models.</p></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="' + disabled + '">Disabled</label><div class="ds-combo"><input class="ds-input ds-combo__input" id="' + disabled + '" role="combobox" aria-expanded="false" aria-autocomplete="list" value="Laptop 14" disabled><button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all" disabled>' + h.icon('chevronDown', 20) + '</button></div></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="' + invalid + '">With an error</label><div class="ds-combo"><input class="ds-input ds-combo__input" id="' + invalid + '" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-invalid="true" aria-describedby="' + error + '" value="Laptop"><button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all">' + h.icon('chevronDown', 20) + '</button></div><p class="ds-field__hint ds-field__hint--error" id="' + error + '">' + h.icon('alertCircle', 16) + 'Choose one of the models.</p></div>' +
+        multiDisabled(h) +
+        selectDisabled(h) +
         '</div>' +
         '<h3 class="ds-field__label">The options</h3>' + statesList(h) +
         '<h3 class="ds-field__label">Nothing found</h3>' +
-        '<div class="ds-combo__popup" style="position: static;"><ul class="ds-combo__list" role="listbox" aria-label="Models" hidden></ul><p class="ds-combo__status" role="status">No model matches "Inspiron"</p></div>' +
+        '<div class="ds-combo__popup" style="position: static;"><ul class="ds-combo__list" role="listbox" aria-label="Models" hidden></ul><p class="ds-combo__status" role="status">No model matches "Tower 5"</p></div>' +
         '<h3 class="ds-field__label">Loading</h3>' +
         '<div class="ds-combo__popup" style="position: static;"><ul class="ds-combo__list" role="listbox" aria-label="Models" aria-busy="true" hidden></ul><p class="ds-combo__status" role="status"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>Searching the models</p></div>') +
 
@@ -137,7 +158,8 @@ SG.demo('combobox', {
         input: input, popup: popup, options: options,
         isOpen: function () { return input.getAttribute('aria-expanded') === 'true'; },
         open: function () { if (!self.isOpen()) DS.overlay.open(popup, { opener: input }); },
-        close: function () { if (self.isOpen()) DS.overlay.close(popup); },
+        // A closed list has no active option: aria-activedescendant never names a hidden one.
+        close: function () { self.setActive(null); if (self.isOpen()) DS.overlay.close(popup); },
         active: function () { return options.filter(function (option) { return option.hasAttribute('data-active'); })[0] || null; },
         setActive: function (option) {
           options.forEach(function (each) { if (each !== option) each.removeAttribute('data-active'); });
@@ -147,6 +169,8 @@ SG.demo('combobox', {
           if (self.isOpen()) option.scrollIntoView({ block: 'nearest' });
         },
       };
+      // Escape closes through DS.overlay, after this handler; the active option goes first.
+      input.addEventListener('keydown', function (event) { if (event.key === 'Escape') self.setActive(null); });
       // Presses in the list and on the chevron keep focus in the field.
       [popup, toggle].forEach(function (part) {
         part.addEventListener('mousedown', function (event) { event.preventDefault(); });
@@ -190,7 +214,6 @@ SG.demo('combobox', {
         models.forEach(function (each) { each.setAttribute('aria-selected', String(each === option)); });
         if (option === create) h.toast('Created ' + input.value.trim() + '.', 'success');
         else input.value = nameOf(option);
-        parts.setActive(null);
         parts.close();
         filter();
       }
@@ -288,7 +311,13 @@ SG.demo('combobox', {
           remove(chips[chips.length - 1].option);
         }
       });
-      input.addEventListener('blur', function () { parts.setActive(null); parts.close(); });
+      input.addEventListener('blur', parts.close);
+      // The box looks like one field, so a press on an empty part of it goes to the field.
+      combo.addEventListener('mousedown', function (event) {
+        if (event.target !== combo) return;
+        event.preventDefault();
+        input.focus();
+      });
       h.$('.ds-combo__toggle', combo).addEventListener('click', function () {
         if (parts.isOpen()) { parts.close(); return; }
         input.focus();
@@ -314,10 +343,7 @@ SG.demo('combobox', {
         parts.open();
         parts.setActive(chosen());
       }
-      function close() {
-        parts.setActive(null);
-        parts.close();
-      }
+      var close = parts.close;
       function choose(option) {
         if (!option || option.getAttribute('aria-disabled') === 'true') return;
         parts.options.forEach(function (each) { each.setAttribute('aria-selected', String(each === option)); });

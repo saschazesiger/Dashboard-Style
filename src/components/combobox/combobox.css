@@ -62,7 +62,8 @@
  * Several values (.ds-combo--multi; the list takes aria-multiselectable):
  * the .ds-combo draws the field box and holds the chosen values as input
  * chips before the typing field, which wraps under them; the box grows, the
- * toggle stays on its first line. Backspace and choosing are the page's.
+ * toggle stays on its first line. Backspace, choosing and a press on an empty
+ * part of the box (which only a script can send to the field) are the page's.
  *
  *   <div class="ds-combo ds-combo--multi">
  *     <button class="ds-chip ds-chip--input" type="button">...</button>
@@ -73,7 +74,9 @@
  * Nothing found: .ds-combo__list `hidden` and the status says so; the list
  * stays open. Loading (a search on the way): a .ds-spinner in the status
  * line and aria-busy="true" on the list. A disabled field takes its toggle
- * and clear button with it.
+ * (the disabled ink, no pointer) and its clear button (gone, so out of the
+ * tab order too) with it; the chips of several values lose the pointer, and
+ * the page sets `disabled` on them, since CSS cannot block their keys.
  *
  * Options (src/core/options.css, docs/options.md), on the .ds-combo or any
  * ancestor; each is computed here, in the rule that uses it:
@@ -146,9 +149,10 @@
  *
  * Forced colours: the list keeps an edge (its transparent outline), the
  * chosen option is SelectedItem / SelectedItemText, the active one has a
- * Highlight outline (CanvasText on the chosen one), a blocked one GrayText;
- * the box of several values keeps its border (Highlight while focused,
- * GrayText disabled).
+ * Highlight outline (CanvasText on the chosen one), a blocked one GrayText
+ * (chosen too: on Canvas with a GrayText outline);
+ * the box of several values keeps its border (GrayText disabled) and takes a
+ * 2px Highlight outline while focused, as a single field does.
  *
  * Print: an open list is not printed.
  *
@@ -171,8 +175,9 @@
 
 @layer ds.components {
   /* The field's height, which the field, its toggle and its clear button
-     share: the same formula as every field (form.css), so a combobox lines
-     up with the fields around it. --_end is the room at the field's end. */
+     share: the formula of every field (form.css), so a combobox lines up
+     with the fields around it, and never less than the toggle's icon. --_end
+     is the room at the field's end. */
   .ds-combo {
     --_h: max(var(--ds-space-6), calc(var(--ds-input-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
     --_box: max(var(--ds-target-min, 0px), var(--_h));
@@ -186,17 +191,20 @@
   }
 
   /* The clear button's room exists only while it shows. */
-  .ds-combo:has(> .ds-combo__clear:not([hidden])) {
+  .ds-combo:has(> .ds-combo__clear:not([hidden])):not(:has(> .ds-combo__input:disabled)) {
     --_end: calc(var(--ds-space-1) + 2 * var(--_box));
   }
 
-  .ds-combo:has(> .ds-combo__clear:not([hidden])):not(:has(.ds-combo__toggle)) {
+  .ds-combo:has(> .ds-combo__clear:not([hidden])):not(:has(.ds-combo__toggle, > .ds-combo__input:disabled)) {
     --_end: calc(var(--ds-space-1) + var(--_box));
   }
 
   /* No block padding: the height is the formula's, also where it is less
-     than a line and the field's padding; the text centres by itself. */
+     than a line and the field's padding; the text centres by itself. The box
+     is the .ds-combo's, not the one .ds-input computes for itself: field and
+     toggle stay one height. */
   .ds-combo__input {
+    --_box: inherit;
     min-height: var(--_box);
     padding-block: 0;
     padding-inline-end: var(--_end);
@@ -211,35 +219,49 @@
     align-items: center;
     gap: var(--ds-space-1);
     min-height: var(--_box);
-    padding-block: calc(var(--ds-space-1) - 1px);
     padding-inline: var(--ds-space-1) var(--_end);
     border: 1px solid var(--ds-input-border, var(--ds-outline));
     border-radius: calc(var(--ds-input-radius, var(--ds-radius-field)) * var(--ds-shape, 1));
     background: var(--ds-input-bg, var(--ds-surface));
+    cursor: text;
     transition:
       border-color var(--ds-dur-fast) var(--ds-ease-in-out),
+      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       box-shadow var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
+  /* The list is no part of the field: the text cursor stops at it. */
+  .ds-combo--multi > .ds-combo__popup {
+    cursor: default;
+  }
+
+  /* Room around the chips only: empty, the box is the field's height at every
+     step, and the typing field centres in it. */
+  .ds-combo--multi:has(> .ds-chip) {
+    padding-block: calc(var(--ds-space-1) - 1px);
+  }
+
   /* The typing field is only text in the box: the box shows hover, focus,
-     error and disabled. */
+     error, disabled and read-only. No border at all, since forced colours
+     paint a transparent one, and that would be a second box inside the box. */
   .ds-combo--multi > .ds-combo__input,
   .ds-combo--multi > .ds-combo__input:focus,
   .ds-combo--multi > .ds-combo__input:disabled,
+  .ds-combo--multi > .ds-combo__input[readonly],
   .ds-combo--multi > .ds-combo__input[aria-invalid="true"] {
     flex: 1 1 8ch;
     width: auto;
     min-width: 8ch;
     min-height: calc(var(--_box) - 2 * var(--ds-space-1));
     padding-inline: var(--ds-space-2);
-    border-color: transparent;
+    border: 0;
     outline: none;
     background: transparent;
     box-shadow: none;
   }
 
   @media (hover: hover) {
-    .ds-combo--multi:hover:not(:has(> .ds-combo__input:is(:focus, :disabled, [aria-invalid="true"]))) {
+    .ds-combo--multi:hover:not(:has(> .ds-combo__input:is(:focus, :disabled, [readonly], [aria-invalid="true"]))) {
       border-color: var(--ds-text);
     }
   }
@@ -254,14 +276,25 @@
     border-color: var(--ds-error);
   }
 
+  /* Hovered: darker on the box, as on a single field. */
+  @media (hover: hover) {
+    .ds-combo--multi:hover:has(> .ds-combo__input[aria-invalid="true"]:not(:focus, :disabled, [readonly])) {
+      border-color: var(--ds-on-error-container);
+    }
+  }
+
   .ds-combo--multi:has(> .ds-combo__input[aria-invalid="true"]:focus) {
     border-color: var(--ds-error);
     box-shadow: inset 0 0 0 1px var(--ds-error);
   }
 
-  .ds-combo--multi:has(> .ds-combo__input:disabled) {
+  .ds-combo--multi:has(> .ds-combo__input:is(:disabled, [readonly])) {
     border-color: var(--ds-line);
     background: var(--ds-surface-low);
+  }
+
+  .ds-combo--multi:has(> .ds-combo__input:disabled) {
+    cursor: not-allowed;
   }
 
   /* Select-only: a button that reads like the field, value and meta in one
@@ -296,6 +329,11 @@
     min-width: 0;
   }
 
+  /* Disabled is one model: the button's ink, not their own. */
+  .ds-combo__input:disabled > :is(.ds-combo__value, .ds-combo__meta) {
+    color: inherit;
+  }
+
   /* A round target at the field's end, as tall as the field. Pressed it
      turns squarer and springs back like every pill; the toggle stays out of
      the tab order (the field opens the list from the keyboard), so it has no
@@ -320,7 +358,9 @@
     color: var(--ds-text-2);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: border-radius var(--ds-dur-medium) var(--ds-ease-spatial);
+    transition:
+      color var(--ds-dur-fast) var(--ds-ease-in-out),
+      border-radius var(--ds-dur-medium) var(--ds-ease-spatial);
   }
 
   .ds-combo__clear {
@@ -328,6 +368,7 @@
     /* The ring rests one width further out and snaps in. */
     outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
     transition:
+      color var(--ds-dur-fast) var(--ds-ease-in-out),
       border-radius var(--ds-dur-medium) var(--ds-ease-spatial),
       outline-offset var(--ds-dur-fast) var(--ds-ease-out);
   }
@@ -406,10 +447,22 @@
     transition-duration: 0s;
   }
 
-  /* A disabled field takes them with it: no layer, no pointer. */
+  /* A disabled field takes them with it: no layer, no pointer. The clear
+     button is in the tab order and has nothing to do, so it goes; hidden, its
+     keys go too. */
   .ds-combo__input:disabled ~ :is(.ds-combo__toggle, .ds-combo__clear) {
     color: var(--ds-disabled-ink);
     cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .ds-combo__input:disabled ~ .ds-combo__clear {
+    visibility: hidden;
+  }
+
+  /* The chips stand before the field, out of a sibling rule's reach. This is
+     the pointer only: their keys need `disabled`, which the page sets. */
+  .ds-combo--multi:has(> .ds-combo__input:disabled) > .ds-chip {
     pointer-events: none;
   }
 
@@ -570,7 +623,7 @@
   }
 
   /* A line between groups, but not above the first one that still shows. */
-  .ds-combo__group:has(> .ds-combo__option:not([hidden])) ~ .ds-combo__group {
+  .ds-combo__group:not([hidden]):has(> .ds-combo__option:not([hidden])) ~ .ds-combo__group {
     margin-block-start: var(--ds-space-2);
     padding-block-start: var(--ds-space-2);
     border-block-start: 1px solid var(--ds-line);
@@ -616,10 +669,6 @@
   .ds-combo__option[aria-disabled="true"] {
     color: var(--ds-disabled-ink, var(--ds-text));
     cursor: default;
-  }
-
-  .ds-combo__option[aria-disabled="true"] :is(.ds-combo__name, .ds-combo__meta, .ds-combo__description) {
-    color: inherit;
   }
 
   .ds-combo__option[aria-disabled="true"][data-active]::before {
@@ -697,6 +746,12 @@
     color: var(--ds-on-accent);
   }
 
+  /* After the chosen ink: an option both chosen and blocked reads as blocked,
+     and the tint and the weight still say that it is the choice. */
+  .ds-combo__option[aria-disabled="true"] :is(.ds-combo__name, .ds-combo__meta, .ds-combo__description) {
+    color: inherit;
+  }
+
   /* A row: the count or the words, and a spinner while a search runs. */
   .ds-combo__status {
     flex: none;
@@ -745,10 +800,21 @@
       color: GrayText;
     }
 
-    /* The box of several values keeps its edge; the ring of a focused one
-       is the system's. */
+    /* Chosen and blocked: GrayText has no contrast on SelectedItem, so no
+       fill, and an edge says that it is the choice. */
+    .ds-combo__option[aria-selected="true"][aria-disabled="true"] {
+      background: Canvas;
+      outline: 1px solid GrayText;
+      outline-offset: -1px;
+    }
+
+    /* The box of several values keeps its edge. Its inset ring is a shadow,
+       which forced colours drop, and the field inside has no outline: the box
+       takes the outline of a focused field. */
     .ds-combo--multi:has(> .ds-combo__input:focus) {
       border-color: Highlight;
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
     }
 
     .ds-combo--multi:has(> .ds-combo__input:disabled),
