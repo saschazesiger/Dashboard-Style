@@ -2237,8 +2237,8 @@ describe('lists, timeline, tasks and charts (2.0)', () => {
 
   it('clips chart fills at the share and never scales them; the share glides on the value curve', () => {
     assert.ok(!declarations(read(CHART)).some(({ property }) => property === 'transform' || property === 'scale'), 'no transform or scale in chart.css');
-    assert.match(own(CHART, '.ds-meter::before')['clip-path'], /^inset\(0 calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 round calc\(var\(--ds-radius-action\) \* var\(--ds-shape, 1\)\)\)$/);
-    assert.equal(own(CHART, '.ds-meter')['--_radius'], 'min(calc(var(--ds-radius-action) * var(--ds-shape, 1)), calc(var(--_h) / 2))');
+    assert.match(own(CHART, '.ds-meter::before')['clip-path'], /^inset\(0 calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 round var\(--_radius\)\)$/);
+    assert.equal(own(CHART, '.ds-meter')['--_radius'], 'min(calc(min(var(--ds-radius-action), calc(var(--_h) / 2)) * var(--ds-shape, 1)), calc(var(--_h) / 2))');
     assert.match(own(CHART, '.ds-columns__fill')['clip-path'], /^inset\(calc\(\(1 - var\(--ds-share\)\) \* 100%\) 0 0 0 round /);
     for (const selector of ['.ds-meter', '.ds-columns__col']) {
       assert.equal(own(CHART, selector).transition, '--ds-share var(--ds-dur-glide) var(--ds-ease-value)', selector);

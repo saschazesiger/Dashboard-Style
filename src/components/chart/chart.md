@@ -93,7 +93,7 @@ On the mark or any ancestor; each is computed in the component's own rule ([opti
 | | | `.ds-columns` | the plot 24px per step (72 to 168px); not `--mini`, 32px, which lines up with a figure |
 | | | `.ds-legend__key` | 2px per step |
 | Density | `.ds-density-*` | `.ds-columns` | the plot 12px per step; not a meter, which is thin already |
-| Shape | `.ds-shape-*` | `.ds-meter`, a column's data end, `.ds-legend__key` | multiplies the radius (at most half a meter's height) |
+| Shape | `.ds-shape-*` | `.ds-meter`, a column's data end, `.ds-legend__key` | multiplies the radius (of a meter: half its height, times the shape, at most half its height) |
 | Touch | `.ds-touch` | a column that opens | at least `--ds-touch-target` high; its width comes from the chart's |
 | Tone | `.ds-tone-*` | `.ds-meter`, `.ds-columns__col`, `.ds-legend__key` | the fill, from the class on the mark itself; always with words next to it. It beats a `--ds-meter-color` of the theme, as the meaning goes first |
 

@@ -99,9 +99,12 @@ test('the shape multiplies every radius, in the clip of the fills too', async ({
   expect(square.meterClip).not.toMatch(/round [1-9]/);
   expect(square.fillClip).not.toMatch(/round [1-9]/);
   const soft = await read('ds-shape-soft');
-  expect([soft.meter, soft.column, soft.key]).toEqual([2, 2, 2]);
+  // A meter is half its height times the shape, at most half its height.
+  expect([soft.meter, soft.column, soft.key]).toEqual([1, 2, 2]);
+  expect(soft.meterClip).toMatch(/round 1px/);
   const plain = await read('');
   expect([plain.meter, plain.column, plain.key]).toEqual([2, 4, 4]);
+  expect(plain.meterClip).toMatch(/round 2px/);
   expect(plain.fillClip).toMatch(/round 4px 4px 0(px)? 0(px)?/);
   const round = await read('ds-shape-round');
   expect([round.meter, round.column, round.key]).toEqual([2, 6, 6]);

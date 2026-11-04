@@ -88,7 +88,7 @@
 
   .ds-meter {
     --_h: calc(var(--ds-meter-height, 4px) + var(--ds-size-step, 0) * 1px);
-    --_radius: min(calc(var(--ds-radius-action) * var(--ds-shape, 1)), calc(var(--_h) / 2));
+    --_radius: min(calc(min(var(--ds-radius-action), calc(var(--_h) / 2)) * var(--ds-shape, 1)), calc(var(--_h) / 2));
     --_fill: var(--ds-meter-color, var(--ds-chart-1));
     display: block;
     position: relative;
@@ -104,7 +104,7 @@
     inset: 0;
     border-radius: inherit;
     background: var(--_fill);
-    clip-path: inset(0 calc((1 - var(--ds-share)) * 100%) 0 0 round calc(var(--ds-radius-action) * var(--ds-shape, 1)));
+    clip-path: inset(0 calc((1 - var(--ds-share)) * 100%) 0 0 round var(--_radius));
   }
 
   /* The tone of the meter itself; it beats a --ds-meter-color of the theme,
