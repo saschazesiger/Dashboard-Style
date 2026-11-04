@@ -198,6 +198,9 @@ export function loadCopy({ dist = resolve(HERE, '..'), manifest } = {}) {
     for (const match of plain.matchAll(/@keyframes\s+(ds-[\w-]+)/g)) keyframes.add(match[1]);
   }
   const modules = new Map(Object.entries(data.js ?? {}));
+  // Attributes that need a module whatever they sit on ([data-ds-close] and the overlay core).
+  const moduleAttributes = new Map();
+  for (const [name, module] of modules) for (const attribute of module.attributes ?? []) note(moduleAttributes, attribute, name);
   const iconsModule = modules.get('icons');
   const iconSource = iconsModule ? read(iconsModule.file) : '';
   const glyphs = new Set(glyphNames(iconSource));
@@ -215,7 +218,7 @@ export function loadCopy({ dist = resolve(HERE, '..'), manifest } = {}) {
     }
     moduleGlyphs.set(name, used);
   }
-  return { root, manifest: data, read, classes, attributes, keyframes, coreClasses, modules, glyphs, iconSource, moduleGlyphs };
+  return { root, manifest: data, read, classes, attributes, moduleAttributes, keyframes, coreClasses, modules, glyphs, iconSource, moduleGlyphs };
 }
 
 /** The glyph exports of an icons module: `export const name = '<...>';`. */
@@ -294,15 +297,16 @@ export function scanText(text, file, copy) {
   }
 
   // Attributes, written or read through dataset.
+  const knownAttribute = (name) => copy.attributes.has(name) || copy.moduleAttributes?.has(name);
   for (const match of text.matchAll(/(?<![\w-])data-ds-[\w-]*[\w]/g)) {
-    if (copy.attributes.has(match[0])) use('attribute', match[0], match.index);
+    if (knownAttribute(match[0])) use('attribute', match[0], match.index);
   }
-  for (const match of text.matchAll(/(?<![\w-])data-tip(?![\w-])/g)) {
-    if (copy.attributes.has(match[0])) use('attribute', match[0], match.index);
+  for (const match of text.matchAll(/(?<![\w-])data-tip(?![\w-])|\bdataset\.tip\b/g)) {
+    if (knownAttribute('data-tip')) use('attribute', 'data-tip', match.index);
   }
   for (const match of text.matchAll(/\bdataset\.ds([A-Z][\w$]*)/g)) {
     const name = `data-ds${camelToKebab(match[1])}`;
-    if (copy.attributes.has(name)) use('attribute', name, match.index);
+    if (knownAttribute(name)) use('attribute', name, match.index);
   }
 
   // DS.<module>.<export>, DS.<module>['<export>'], DS.<module>[<dynamic>], const { a } = DS.<module>.
@@ -463,6 +467,7 @@ export function resolveBundle(scans, copy, { safelist = [], icons = 'auto' } = {
         for (const name of copy.classes.get(entry.name) ?? []) addComponent(name, `${where} ${entry.name}`);
       } else if (entry.kind === 'attribute') {
         for (const name of copy.attributes.get(entry.name) ?? []) addComponent(name, `${where} ${entry.name}`);
+        for (const name of copy.moduleAttributes?.get(entry.name) ?? []) addModule(name, `${where} ${entry.name}`);
       } else if (entry.kind === 'module') addModule(entry.name, `${where} ${entry.via ?? `DS.${entry.name}`}`);
       else if (entry.kind === 'export') {
         const via = entry.via ?? `DS.${entry.module}.${entry.name}`;

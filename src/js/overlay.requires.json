@@ -4,11 +4,12 @@
     "alert": ["button", "dialog", "spinner"],
     "announce": ["toast", "utilities"],
     "closeToasts": ["toast"],
-    "confirm": ["button", "dialog", "spinner", "toast"],
-    "prompt": ["button", "dialog", "form", "spinner", "toast"],
+    "confirm": ["button", "dialog", "spinner", "toast", "utilities"],
+    "prompt": ["button", "dialog", "form", "spinner", "toast", "utilities"],
     "savebar": ["button", "savebar"],
     "toast": ["button", "toast", "utilities"],
     "toastRegion": ["toast", "utilities"],
     "tooltips": ["tooltip"]
-  }
+  },
+  "attributes": ["data-ds-busy", "data-ds-close", "data-ds-open"]
 }

@@ -1,0 +1,9 @@
+{
+  "requires": [],
+  "exportRequires": {
+    "alert": ["button", "dialog", "spinner"],
+    "confirm": ["button", "dialog", "spinner", "toast", "utilities"],
+    "form": ["button", "dialog", "spinner", "toast", "utilities"],
+    "prompt": ["button", "dialog", "form", "spinner", "toast", "utilities"]
+  }
+}

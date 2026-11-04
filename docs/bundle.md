@@ -17,7 +17,8 @@ With single files, `tools/check-project.mjs` fails a page that uses a class whos
 The bundle tool and the Vite plugin read `manifest.json` of the copy: every component with its stylesheets, classes,
 attributes, the modules it needs and what it requires, and every module with its imports, its exports, the components
 it always needs (`requires`) and the components one of its exports needs because it writes their markup itself
-(`exportRequires`: `DS.overlay.confirm` needs the dialog, the button and the spinner).
+(`exportRequires`: `DS.overlay.confirm` needs the dialog, the button and the spinner), and the attributes that need it
+whatever they sit on (`attributes`: `data-ds-open`, `data-ds-close` and `data-ds-busy` need the overlay module).
 
 ## The project bundle
 

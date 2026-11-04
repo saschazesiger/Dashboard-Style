@@ -1485,7 +1485,7 @@ export function stripJs(source) {
 // ── dist/manifest.json ─────────────────────────────────────────────────
 
 /** The keys of src/js/<module>.requires.json, in order. */
-export const MODULE_REQUIRES_KEYS = ['requires', 'exportRequires'];
+export const MODULE_REQUIRES_KEYS = ['requires', 'exportRequires', 'attributes'];
 
 /**
  * The CSS each module of MODULES needs, from data, as manifest.json
@@ -1499,6 +1499,10 @@ export const MODULE_REQUIRES_KEYS = ['requires', 'exportRequires'];
  *                   writes itself (a confirm dialog, a toast, a live
  *                   region on .ds-sr): "exportRequires" of
  *                   src/js/<module>.requires.json, kept next to the module
+ *   attributes      the data-ds-* attributes that need this module, whichever
+ *                   component's markup they sit on (optional in the sidecar,
+ *                   for a core module: [data-ds-close] is the overlay's, also
+ *                   where dialog.js writes it into a built dialog)
  * The sidecar is optional (none: no extra requirement).
  */
 export function moduleRequires(list = components()) {
@@ -1507,7 +1511,7 @@ export function moduleRequires(list = components()) {
     const path = moduleFiles(name).requires;
     const data = repoHas(path) ? JSON.parse(repoText(path)) : { requires: [], exportRequires: {} };
     const own = usedBy.get(name).filter((component) => component === name);
-    return [name, { requires: sorted([...own, ...data.requires]), exportRequires: data.exportRequires }];
+    return [name, { requires: sorted([...own, ...data.requires]), exportRequires: data.exportRequires, attributes: data.attributes ?? [] }];
   }));
 }
 
@@ -1525,7 +1529,9 @@ export function verifyModuleRequires(list = components()) {
       problems.push(`${path}: ${error.message}`);
       continue;
     }
-    if (Object.keys(data).join() !== MODULE_REQUIRES_KEYS.join()) {
+    // The last key, "attributes", is optional.
+    const written = Object.keys(data);
+    if (written.length < 2 || written.join() !== MODULE_REQUIRES_KEYS.slice(0, written.length).join()) {
       problems.push(`${path}: the keys ${MODULE_REQUIRES_KEYS.join(', ')}, in this order`);
       continue;
     }
@@ -1543,14 +1549,22 @@ export function verifyModuleRequires(list = components()) {
     const keys = Object.keys(data.exportRequires ?? {});
     for (const key of keys) if (!exports.includes(key)) problems.push(`${path}: "exportRequires" names ${key}, no export of ${moduleFiles(name).source}`);
     if ([...keys].sort().join() !== keys.join()) problems.push(`${path}: the exports of "exportRequires" are not sorted`);
+    const attributes = data.attributes ?? [];
+    if (!Array.isArray(attributes) || [...attributes].sort().join() !== attributes.join()) problems.push(`${path}: "attributes" is a sorted list`);
+    else for (const attribute of attributes) if (!repoText(moduleFiles(name).source).includes(`'${attribute}'`)) problems.push(`${path}: "attributes" names ${attribute}, which ${moduleFiles(name).source} does not read`);
   }
   return problems;
 }
 
-/** The data-ds-* attributes a component's module names as string literals (`attribute: 'data-ds-<name>'`). */
-function moduleAttributes(name) {
+/**
+ * The data-ds-* attributes a component's module names as string literals
+ * (`attribute: 'data-ds-<name>'`). One a module claims in its "attributes"
+ * stays that module's: dialog.js writes data-ds-close into a built dialog,
+ * but a sheet with data-ds-close needs the overlay, not the dialog.
+ */
+function moduleAttributes(name, claimed) {
   if (!MODULES.includes(name) || !moduleFiles(name).component) return [];
-  return [...repoText(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]);
+  return [...repoText(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.has(attribute));
 }
 
 /** The exports and sibling imports of each module of MODULES, and the CSS it needs (moduleRequires). */
@@ -1583,12 +1597,13 @@ function moduleFacts(list) {
  *                     attributes, keyframes, js, hooks, ripple, progressive,
  *                     and bytes and gzip, the sizes of its .min.css (gzip -9)
  *   js                per module of MODULES: its file, types, the modules it
- *                     imports, its exports, and the CSS it needs: requires
- *                     (always) and exportRequires (per export), see
- *                     moduleRequires()
+ *                     imports, its exports, the CSS it needs: requires
+ *                     (always) and exportRequires (per export), and the
+ *                     attributes that need it, see moduleRequires()
  */
 export function manifestJson(list, sizes, info) {
   const { facts, core } = componentFacts(list);
+  const claimed = new Set(Object.values(moduleRequires(list)).flatMap((entry) => entry.attributes));
   const pseudo = Object.fromEntries(CORE.map((name) => {
     const entry = core.get(name);
     return [name, { css: `css/core/${name}.css`, min: `css/core/${name}.min.css`, classes: entry.classes, attributes: entry.attributes, keyframes: name === 'motion' ? entry.defines : entry.keyframes }];
@@ -1616,7 +1631,7 @@ export function manifestJson(list, sizes, info) {
         context: meta.context,
         classes: meta.classes,
         // What the stylesheet selects, plus the behaviour attributes its module reads, so a bundle finds a behaviour by its attribute.
-        attributes: sorted([...facts.get(name).attributes, ...moduleAttributes(name)]),
+        attributes: sorted([...facts.get(name).attributes, ...moduleAttributes(name, claimed)]),
         keyframes: meta.keyframes,
         js: meta.js,
         hooks: sorted(Object.keys(meta.hooks)),
