@@ -2093,7 +2093,7 @@
     group: 'navigation',
     title: 'Segmented switch',
     note: 'The tint glides between the options on the spring (<code>DS.indicator</code>) and the labels change colour while it arrives; the current option is also set in the label weight, and data-label keeps the width of the heavier weight, so the switch never changes width. The second switch is a mode of the same page: buttons (role="radio", aria-checked) under the same pill, one tab stop whose arrow keys, Home and End move and choose (<code>DS.dom.roving()</code>).',
-    shows: ['DS.indicator.createIndicator', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in-out'],
+    shows: ['DS.indicator.create', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-in-out'],
     html: '<div class="sg-lab-segmented-pair"><nav class="ds-segmented sg-lab-segmented" aria-label="Mode">' + MODES.map(function (mode, index) {
       return '<a class="ds-segmented__option" href="#navigation" data-label="' + mode + '"' + (index ? '' : ' aria-current="true"') + '>' + mode + '</a>';
     }).join('') + '</nav>' +
@@ -2148,7 +2148,7 @@
     group: 'navigation',
     title: 'Tabs',
     note: 'The bar under the selected tab is the indicator: it stretches toward its target and lands on the spring, and the labels change colour as it arrives (the weight switches at once, data-label keeps the width). The new panel enters with <code>.ds-enter--swap</code>; a press morphs the pill inside the tab. The tab list is one tab stop (<code>DS.dom.roving()</code>): the arrow keys, Home and End select as they move.',
-    shows: ['DS.indicator.createIndicator', '.ds-tabs__indicator', '.ds-enter--swap', 'DS.motion.enter', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
+    shows: ['DS.indicator.create', '.ds-tabs__indicator', '.ds-enter--swap', 'DS.motion.enter', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
     html: '<div class="sg-lab-tabs"><div class="ds-tabs" role="tablist" aria-label="Device">' + TAB_NAMES.map(function (name, index) {
       return '<button class="ds-tabs__tab" role="tab" type="button" id="sg-lab-tab-' + index + '" aria-selected="' + (index === 0) + '" aria-controls="sg-lab-tabpanel-' + index + '"' + (index ? ' tabindex="-1"' : '') + ' data-label="' + name + '">' + name + '</button>';
     }).join('') + '</div>' + TAB_NAMES.map(function (name, index) {
@@ -2192,7 +2192,7 @@
     group: 'navigation',
     title: 'Drawer group',
     note: 'A group of the drawer closes with the <code>.ds-collapsible</code> timing and its chevron turns on the spring; its count shows while it is closed. The current item is inside: the pill contracts with it and grows back from its centre when the group opens, and it follows the current item across groups.',
-    shows: ['.ds-collapsible', 'DS.indicator.createIndicator', '--ds-dur-medium', '--ds-dur-base', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in', '--ds-ease-spatial'],
+    shows: ['.ds-collapsible', 'DS.indicator.create', '--ds-dur-medium', '--ds-dur-base', '--ds-dur-fast', '--ds-ease-out', '--ds-ease-in', '--ds-ease-spatial'],
     html: '<div class="sg-lab-drawer"><div class="ds-drawer__list">' +
       '<details class="ds-drawer__group ds-collapsible" open><summary class="ds-drawer__heading ds-drawer__toggle">' + icon('chevronDown', 20, 'ds-chevron') + '<span>Tickets</span><span class="ds-drawer__count" aria-hidden="true">5</span></summary>' +
         groupItem('ticket', 'Open', true, 3) + groupItem('clock', 'Waiting', false, 2) + '</details>' +
@@ -2244,7 +2244,7 @@
     group: 'navigation',
     title: 'Rail',
     note: 'This page\'s drawer narrows to its icons (data-drawer-collapsed, above 900px): the column switches at once, nothing animates a layout size; the labels fade back in when it widens (<code>--ds-dur-fast</code> in, <code>--ds-dur-instant</code> out), and the pill follows its item\'s new size. Each item names itself in its tooltip while it is a rail.',
-    shows: ['--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out', 'DS.indicator.createIndicator'],
+    shows: ['--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out', 'DS.indicator.create'],
     html: '<p class="ds-muted" id="sg-rail-state">The drawer shows its labels.</p>',
     height: 120,
     controls: '<div class="sg-row"><button class="ds-btn ds-sm" type="button" data-rail-toggle>Rail or full drawer</button></div>',
@@ -2564,7 +2564,7 @@
     group: 'overlays',
     title: 'Modal drawer',
     note: 'Below 900px the drawer is modal: it slides its full width in on the spring over <code>--ds-dur-long</code> while the scrim fades, and leaves in <code>--ds-dur-base</code>, accelerating. Check the edge at phone width: the drawer\'s background runs past the screen edge, so the spring never shows a gap. Escape, the scrim and focus go through <code>DS.overlay</code>; the read-out is the frame\'s.',
-    shows: ['DS.overlay.open', 'DS.overlay.close', 'DS.indicator.createIndicator', '--ds-dur-long', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit', '--ds-distance-sheet'],
+    shows: ['DS.overlay.open', 'DS.overlay.close', 'DS.indicator.create', '--ds-dur-long', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit', '--ds-distance-sheet'],
     html: frameHtml('sg-frame--phone', 'A small app: the modal drawer'),
     after: layersHtml(),
     height: 360,
@@ -2572,7 +2572,7 @@
       modalDrawer.ready = openFrame(stage, appFrameHtml(true, pageHead('Overview', 'Open the menu.') + frameCards(2))).then(function (win) {
         var doc = win.document;
         win.DS.ripple.attach(doc);
-        win.DS.indicator.createIndicator(doc.getElementById('drawer-list'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
+        win.DS.indicator.create(doc.getElementById('drawer-list'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
         doc.getElementById('menu').addEventListener('click', function () {
           if (doc.getElementById('app').hasAttribute('data-drawer-open')) win.DS.overlay.close(doc.getElementById('drawer'));
           else win.DS.overlay.open(doc.getElementById('drawer'), { opener: doc.getElementById('menu') });

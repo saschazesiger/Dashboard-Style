@@ -312,7 +312,7 @@
   renderView();
   // Before the first render, from this classic script: the pill glides
   // across page loads too (the name is unique on the page).
-  DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' });
+  DS.indicator.create(nav, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' });
   DS.ripple.attach(document);
   // data-scrolled: the fallback of the scroll-driven hairlines and the top bar's tint
   // (DS.overlay.open() watches the sheet's body by itself).

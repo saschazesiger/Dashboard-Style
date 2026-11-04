@@ -1733,7 +1733,7 @@ describe('navigation (1.2.0)', () => {
     const own = Object.fromEntries(declarationsAt(read(INDICATOR), '.ds-indicator').map((entry) => [entry.property, entry.value]));
     assert.equal(own.translate, 'var(--ds-indicator-x, 0) var(--ds-indicator-y, 0)');
     assert.equal(own.transform, undefined);
-    assert.match(own['clip-path'], /^inset\(var\(--ds-indicator-t\) var\(--ds-indicator-r\) var\(--ds-indicator-b\) var\(--ds-indicator-l\) round var\(--ds-indicator-radius\)\)$/);
+    assert.match(own['clip-path'], /^inset\(var\(--ds-indicator-t\) var\(--ds-indicator-r\) var\(--ds-indicator-b\) var\(--ds-indicator-l\) round max\(0px, var\(--ds-indicator-radius\)\)\)$/);
     for (const file of [INDICATOR, SHELL]) {
       for (const { selector, body } of rules(read(file))) {
         // Rules on the pill itself (its last compound), not on items inside a track with one.

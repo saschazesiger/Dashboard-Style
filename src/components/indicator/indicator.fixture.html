@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="/dist/ds.css">
 <link rel="stylesheet" href="/test/browser/fixtures/fixture.css">
 <style>
-  /* Two project looks: one with a plain border-radius (the script copies it), one that sets the radius itself. */
+  /* Project looks: one with a plain border-radius (the script copies it), the others set the radius themselves. */
   .fx-pill {
     border-radius: var(--ds-radius-action);
     background: var(--ds-accent);
@@ -16,6 +16,12 @@
 
   .fx-own {
     --ds-indicator-radius: 6px;
+    background: var(--ds-accent);
+  }
+
+  /* A project class that follows the shape rule: it multiplies, so it sets the radius itself. */
+  .fx-shaped {
+    --ds-indicator-radius: calc(16px * var(--ds-shape, 1));
     background: var(--ds-accent);
   }
 
@@ -43,6 +49,10 @@
         <div class="fx-track" id="own-track" role="group" aria-label="Range">
           <button class="ds-btn" type="button" aria-pressed="true">All</button>
           <button class="ds-btn" type="button" aria-pressed="false">Some</button>
+        </div>
+        <div class="fx-track" id="shaped-track" role="group" aria-label="Scope">
+          <button class="ds-btn" type="button" aria-pressed="true" id="shaped-a">Mine</button>
+          <button class="ds-btn" type="button" aria-pressed="false" id="shaped-b">Everyone's</button>
         </div>
       </div>
     </section>

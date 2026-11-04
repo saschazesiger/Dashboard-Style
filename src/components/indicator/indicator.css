@@ -37,13 +37,15 @@
  *                            centre (it grows from there when one appears)
  *   .ds-indicator--instant   placed without a glide (public)
  *
- * Hooks:
+ * Property of the indicator's class:
  *   --ds-indicator-radius    the pill's corners (a component class sets it;
  *                            js copies a plain border-radius of a project
- *                            class into it at rest)
+ *                            class into it at rest). It does not inherit, so
+ *                            it is set on that class, never on .ds-theme
+ *
+ * Motion hook (themes never set it):
  *   --ds-indicator-lag       how long the trailing edge waits (default
- *                            --ds-dur-micro); a motion hook, themes never
- *                            set it
+ *                            --ds-dur-micro)
  *
  * Options (src/core/options.css): the pill has no size of its own. Size,
  * density and .ds-touch change the items, and js places the pill on what
@@ -108,7 +110,9 @@
     width: var(--ds-indicator-w, 0);
     height: var(--ds-indicator-h, 0);
     translate: var(--ds-indicator-x, 0) var(--ds-indicator-y, 0);
-    clip-path: inset(var(--ds-indicator-t) var(--ds-indicator-r) var(--ds-indicator-b) var(--ds-indicator-l) round var(--ds-indicator-radius));
+    /* max(): a radius going to 0 passes it on the spring, and a negative one
+       makes the whole clip-path invalid, so the union would paint. */
+    clip-path: inset(var(--ds-indicator-t) var(--ds-indicator-r) var(--ds-indicator-b) var(--ds-indicator-l) round max(0px, var(--ds-indicator-radius)));
     pointer-events: none;
     transition-property: --ds-indicator-t, --ds-indicator-r, --ds-indicator-b, --ds-indicator-l, --ds-indicator-radius, opacity;
     transition-duration:

@@ -1051,7 +1051,7 @@ function indicatorTrack({ count = 4, current = 0, overflow = 'visible' } = {}) {
   });
   const track = h('nav', { class: 'ds-drawer__list' }, ...items);
   track.rect = rect(10, 20, 216, 400);
-  Object.assign(track, { clientLeft: 0, clientTop: 0, scrollLeft: 0, scrollTop: 0, scrollWidth: 216, scrollHeight: 400, overflow });
+  Object.assign(track, { clientLeft: 0, clientTop: 0, scrollLeft: 0, scrollTop: 0, scrollWidth: 216, scrollHeight: 400, overflow, dispatched: [], dispatchEvent(event) { this.dispatched.push(event); return true; } });
 
   // What miniDom leaves out and indicator.js reads.
   const proto = Object.getPrototypeOf(track);

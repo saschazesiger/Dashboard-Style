@@ -42,7 +42,7 @@
  *   <script src="ds.js"></script> <script src="app.js"></script>
  *   <div id="rendered" hidden></div> </body>
  *
- *   DS.indicator.createIndicator(list, { active: '[aria-current="page"]',
+ *   DS.indicator.create(list, { active: '[aria-current="page"]',
  *     className: 'ds-drawer__indicator', name: 'nav' });
  *
  * Chromium ends that wait early (console: "Did not find element expected
