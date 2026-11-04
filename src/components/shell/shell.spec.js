@@ -143,13 +143,15 @@ test('shape: rows, the pill, the press, the switch, the capsule, the panel and t
   // The avatar is square at 0, a disc from the default up.
   const avatar = await page.evaluate(() => {
     const el = document.querySelector('.ds-avatar.ds-md');
-    const measure = () => getComputedStyle(el).borderTopLeftRadius;
-    const rest = measure();
-    el.classList.add('ds-shape-square');
-    const square = measure();
-    return [rest, square];
+    const measure = (shape) => {
+      el.classList.remove('ds-shape-default', 'ds-shape-round', 'ds-shape-square');
+      el.classList.add(shape);
+      return getComputedStyle(el).borderTopLeftRadius;
+    };
+    return [measure('ds-shape-default'), measure('ds-shape-round'), measure('ds-shape-square')];
   });
-  expect(avatar).toEqual(['50%', '0%']);
+  // Past 50% the corners overlap and scale back: still a disc.
+  expect(avatar).toEqual(['50%', '75%', '0%']);
 });
 
 test('the modal drawer takes the shape on its open side, and the lock-up follows the menu button under touch', async ({ page }) => {
