@@ -2,7 +2,7 @@
   "name": "spinner",
   "group": "feedback",
   "order": 40,
-  "docsOrder": null,
+  "docsOrder": 302,
   "need": "Show a short wait in place, or a known share as a ring",
   "tier": 1,
   "status": "stable",
@@ -10,6 +10,7 @@
     "ds-spinner",
     "ds-spinner--determinate",
     "ds-spinner--flat",
+    "ds-spinner--ink",
     "ds-spinner--sm"
   ],
   "attributes": [],
@@ -18,12 +19,20 @@
     "progress"
   ],
   "hooks": {
+    "--ds-spinner-size": {
+      "default": "16px",
+      "description": "a spinner at md, before the size step"
+    },
+    "--ds-spinner-determinate-size": {
+      "default": "40px",
+      "description": "`.ds-spinner--determinate` at md, before the size step"
+    },
     "--ds-spinner-track": {
-      "default": "none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`)",
+      "default": "none (`--ink`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--ink`: `currentColor`)",
       "description": "spinner: the track behind the arc, the arc"
     },
     "--ds-spinner-color": {
-      "default": "none (`--sm`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--sm`: `currentColor`)",
+      "default": "none (`--ink`: a faint ring of the text colour; `--determinate`: `--ds-accent`), `--ds-primary` (`--ink`: `currentColor`)",
       "description": "spinner: the track behind the arc, the arc"
     },
     "--ds-spinner-width": {
@@ -31,7 +40,7 @@
       "description": "the spinner's ring width (instead of `border-width`)"
     },
     "--ds-spinner-determinate-width": {
-      "default": "4px",
+      "default": "a tenth of its size (4px at md)",
       "description": "the ring width of `.ds-spinner--determinate`"
     }
   },
