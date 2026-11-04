@@ -17,9 +17,9 @@
  * - shift: the box stays `padding` (the collision padding) inside the
  *   bounds on the cross axis, whatever the alignment.
  * - size: `size` (default true) caps the box to the room on its side
- *   (max-height on the block axis, written inline, gone again when it
- *   fits), so a box taller than its room scrolls inside instead of covering
- *   its anchor.
+ *   (max-height on the block sides, max-width on the inline ones, written
+ *   inline, gone again when it fits), so a box larger than its room scrolls
+ *   inside instead of covering its anchor.
  * - arrow: `result.arrow` is the anchor's centre along the cross axis, from
  *   the box's edge, kept `arrowPadding` from its corners.
  * - bounds: the viewport by default; clippedBounds(element) narrows it by
@@ -227,12 +227,16 @@ export function dropProbe(element) {
   probes.delete(element);
 }
 
+/** The boxes whose max-width place() wrote. @type {WeakSet<Element>} */
+const widthCapped = new WeakSet();
+
 /**
  * Places `element` at `anchor` by the script (the options of
  * computePlacement(), plus `bounds`, default the viewport; `x` and `y`, the
  * custom properties that take its coordinates, in the terms of the box it is
  * fixed to; none: only the side and the cap). data-placement says the side
- * when it is not the bottom one; the cap is an inline max-height.
+ * when it is not the bottom one; the cap is an inline max-height (bottom,
+ * top) or max-width (start, end), on the axis the room was measured along.
  * @param {HTMLElement} element
  * @param {Element} anchor
  * @param {{ side?: 'bottom'|'top'|'start'|'end', align?: 'start'|'center'|'end', offset?: number, padding?: number,
@@ -246,11 +250,21 @@ export function place(element, anchor, options = {}) {
   const style = element.style;
   const rect = anchor.getBoundingClientRect();
   const capped = options.size !== false;
-  if (capped) style.removeProperty('max-height');
+  if (capped) {
+    style.removeProperty('max-height');
+    // Only one this module wrote: an inline max-width may be the page's.
+    if (widthCapped.delete(element)) style.removeProperty('max-width');
+  }
   const size = { width: element.offsetWidth, height: element.offsetHeight };
   const bounds = options.bounds ?? viewportBounds(element);
   const result = computePlacement(rect, size, bounds, { ...options, rtl: view.getComputedStyle?.(anchor).direction === 'rtl' });
-  if (capped && size.height > result.room) style.setProperty('max-height', `${round(result.room)}px`);
+  if (capped) {
+    const inline = result.side === 'start' || result.side === 'end';
+    if ((inline ? size.width : size.height) > result.room) {
+      style.setProperty(inline ? 'max-width' : 'max-height', `${round(result.room)}px`);
+      if (inline) widthCapped.add(element);
+    }
+  }
   if (options.x || options.y) {
     const origin = fixedOrigin(element);
     if (options.x) style.setProperty(options.x, `${round(result.x - origin.left)}px`);

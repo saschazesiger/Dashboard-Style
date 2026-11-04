@@ -5,7 +5,7 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { computePlacement, round } from '../src/js/position.js';
+import { computePlacement, place, round } from '../src/js/position.js';
 
 const VIEW = { left: 0, top: 0, right: 1000, bottom: 800 };
 const rectAt = (left, top, width = 100, height = 40) => ({ left, top, right: left + width, bottom: top + height });
@@ -103,6 +103,58 @@ describe('computePlacement: the options of 3.0', () => {
   it('says where the arrow goes: the anchor\'s centre along the box, kept from its corners', () => {
     assert.equal(computePlacement(rectAt(100, 100), { width: 200, height: 50 }, VIEW, {}).arrow, 50);
     assert.equal(computePlacement(rectAt(0, 100, 20), { width: 200, height: 50 }, VIEW, { arrowPadding: 16, align: 'start', padding: 8 }).arrow, 16);
+  });
+});
+
+describe('place: the cap on the axis of the side', () => {
+  /** A box of `width` x `height` that obeys its inline caps, in a window of 1200 x 800. */
+  function box(width, height) {
+    const props = new Map();
+    const px = (name, full) => (props.has(name) ? Math.min(full, parseFloat(props.get(name))) : full);
+    return {
+      props,
+      style: { setProperty: (name, value) => props.set(name, value), removeProperty: (name) => props.delete(name) },
+      setAttribute() {},
+      removeAttribute() {},
+      get offsetWidth() { return px('max-width', width); },
+      get offsetHeight() { return px('max-height', height); },
+      ownerDocument: {
+        documentElement: { clientWidth: 1200, clientHeight: 800 },
+        defaultView: { getComputedStyle: () => ({ direction: 'ltr' }) },
+      },
+    };
+  }
+  const anchorAt = (left, top = 100) => ({ getBoundingClientRect: () => rectAt(left, top) });
+
+  it('leaves the height alone beside the anchor: a tall narrow box that fits its width has no cap', () => {
+    const tall = box(150, 500);
+    const at = place(tall, anchorAt(800), { side: 'end' });
+    assert.equal(at.side, 'end');
+    assert.equal(at.room, 300);
+    assert.deepEqual([...tall.props], []);
+  });
+
+  it('caps the width beside the anchor when the room there is too small, and lifts it when it fits again', () => {
+    const wide = box(400, 100);
+    place(wide, anchorAt(800), { side: 'end', flip: false });
+    assert.equal(wide.props.get('max-width'), '300px');
+    assert.equal(wide.props.has('max-height'), false);
+    place(wide, anchorAt(300), { side: 'end', flip: false });
+    assert.equal(wide.props.has('max-width'), false);
+  });
+
+  it('never lifts a max-width it did not write', () => {
+    const own = box(100, 100);
+    own.props.set('max-width', '120px');
+    place(own, anchorAt(800), { side: 'end' });
+    assert.equal(own.props.get('max-width'), '120px');
+  });
+
+  it('caps the height on the block sides, as before', () => {
+    const tall = box(150, 900);
+    place(tall, anchorAt(100, 200), { flip: false });
+    assert.equal(tall.props.get('max-height'), `${800 - 240}px`);
+    assert.equal(tall.props.has('max-width'), false);
   });
 });
 
