@@ -1,0 +1,7 @@
+[
+  "script ds-drag - 283 0 1 --ds-ease-spatial",
+  "script ds-flip - 261 0 1 --ds-ease-spatial",
+  "transition box-shadow - 100 0 1 --ds-ease-in-out",
+  "transition opacity ::after 100 0 1 --ds-ease-in-out",
+  "transition outline-offset - 150 0 1 --ds-ease-out"
+]

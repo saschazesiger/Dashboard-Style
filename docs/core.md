@@ -21,7 +21,7 @@ them from `js/core.js`.
 | `get(el, name?)` | the controller of `el` for the behaviour `name` (without a name: its first), or `null`. A behaviour whose `init` returned a function or nothing has a handle with `destroy()` only |
 | `destroy(root?)` | destroys every controller in `root` (itself included) at once, and takes down the roots of `init()` at or inside it |
 | `emit(el, type, detail?, { cancelable })` | dispatches the bubbling `CustomEvent` `ds:<type>` with `detail` on `el`; returns `false` when a listener called `preventDefault()`. Cancelable only when asked, and only where cancelling cannot trap someone |
-| `config({ locale, strings })` | sets the page's locale (`null`: back to the default, the `lang` of `<html>`, else the browser's) and overrides strings by key (`null` restores one); returns the settings in force, `{ locale, strings }` |
+| `config({ locale, strings })` | sets the page's locale (`null`: back to the default, the `lang` of `<html>`, else the browser's) and overrides strings by key (`null` restores one); returns the settings in force, `{ locale, strings }`. A change dispatches `ds:config` on the document |
 | `t(key, vars?)` | the system's string `key`: the page's override, else the English default, else the key itself; `{name}` placeholders are filled from `vars`, and a string may be a function of `vars` (plurals) |
 
 ## One runtime per page
@@ -115,6 +115,10 @@ refuse a close; Escape is never cancelable). `emit()` returns whether the action
 if (!DS.core.emit(dialog, 'before-close', { reason }, { cancelable: true })) return;
 ```
 
+`ds:config` is the system's own: `DS.core.config()` dispatches it on the document after a change, with the settings now in
+force and what changed: `{ locale, strings, changed }`, where `changed` lists `'locale'` (another locale is in force) and
+`'strings'` (strings were given). It cannot be cancelled.
+
 ## Strings and locale
 
 The system's own few texts are English by default; a page in another language overrides them once, and the built-in
@@ -127,6 +131,10 @@ DS.core.t('moreCount', { count: 3 });  // '3 weitere'
 DS.core.config().locale;               // 'de'
 ```
 
+A change reaches what is already on screen through `ds:config` (see [Events](#events)): a page re-renders its own text
+there, and the relative times of `data-ds-time` are rewritten at once when the locale changes. A change of `lang` on
+`<html>` alone says nothing; call `config()` as well.
+
 ## Helpers on the runtime
 
 Four core modules, each optional in a bundle: `DS.format`, `DS.store`, `DS.virtual` and `DS.dnd`. They read the locale
@@ -135,8 +143,9 @@ and strings of `DS.core.config()` and write owned state, so `DS.dom.morphHtml` l
 ## `DS.format`: numbers, dates and the shared clock
 
 `js/format.js`. Everything goes through `Intl` in the locale of `DS.core.config()`; pass `locale` to override it for
-one call. A locale the engine refuses counts as none, so a typo in `lang` never stops a page. `null`, `undefined`, `''`
-and what is no number or date give `options.empty` (default `''`), so a page shows its own dash.
+one call. A locale the engine refuses counts as none, so a typo in `lang` never stops a page. `null`, `undefined`, a blank
+text and what is no number or date (`true`, an array, an object) give `options.empty` (default `''`), so a page shows its
+own dash.
 
 ```js
 DS.format.number(1234.5);                           // '1,234.5'
@@ -157,7 +166,7 @@ DS.format.absolute(Date.now());                     // 'Nov 4, 2026, 9:00 AM'
 | `number(value, options)` | `Intl.NumberFormat`; `options` are its options, plus `locale` and `empty` |
 | `percent(value, options)` | a share as a percentage, `Intl`'s way: `0.42` gives `42%` |
 | `currency(value, code, options)` | an amount in the ISO 4217 currency `code` |
-| `bytes(value, options)` | the largest unit that keeps a figure of at least 1: `base` 1000 (default: `kB`, `MB` through `Intl` units) or 1024 (`KiB`, `MiB`, whose symbols do not translate). One fraction digit unless the options say others, none for whole bytes; a figure that rounds up to the next unit takes it |
+| `bytes(value, options)` | the largest unit that keeps a figure of at least 1: `base` 1000 (default: `kB`, `MB` through `Intl` units) or 1024 (`KiB`, `MiB`, whose symbols do not translate). Whole bytes read `B` at either base, unless `unitDisplay` asks `Intl` at base 1000. One fraction digit unless the options say others, none for whole bytes; a figure that rounds up to the next unit takes it |
 | `duration(value, options)` | a length of time given in ms. `style`: `short` (default), `long`, `narrow` or `clock` (`1:02:03`, `2:05`). `parts` (default 2): how many units at most, the last one rounded. `smallest`: the smallest unit (default `second`; under a second `millisecond` unless named) |
 | `list(items, options)` | `Intl.ListFormat`: `type` `conjunction` (default), `disjunction` or `unit`, `style` `long` (default), `short` or `narrow`. Empty items are left out |
 | `plural(count, forms, options)` | the form for `count`: an exact `'=0'`, then the category of `Intl.PluralRules` (`one`, `few`, `many`, `other` ...), then `other`. A form is a text with `{count}` (formatted) or a function of `{ count, formatted }`. `type: 'ordinal'` picks ordinal categories |
@@ -188,12 +197,14 @@ script runs. An element without a valid date keeps its text.
 | `data-ds-time-tip` | `tip: false` | `off`: no absolute date in `data-tip` |
 
 The controller: `get()` (`{ value, text }`), `set(value)` (a new date), `on('change', fn)` (the text changed), `update()`
-and `destroy()`. Without `DS.init()`, a controller whose element left the document stops at the next tick.
+and `destroy()`. Without `DS.init()`, a controller whose element left the document stops at the next tick; one whose
+element never entered it has its text at once and waits for it, so `destroy()` it if it never will.
 
 - **One clock.** A thousand times share one timer, kept in the page's runtime (`runtime.state('format')`) and so by
   every copy of the system. It waits until the soonest text changes (a time three hours old wakes it when the hour
-  turns, not every second) and sleeps while the page is hidden; on return everything is brought up to date at once. A tick
-  dispatches no event, and only a text that changed is written.
+  turns, not every second) and sleeps while the page is hidden; on return everything is brought up to date at once. Another
+  locale (`DS.core.config({ locale })`) does the same at once. A tick dispatches no event, and only a text that changed
+  is written.
 - **Tooltip.** The absolute date goes into `data-tip` for the tooltips of `DS.overlay` (`DS.init()` serves them), unless
   the element has its own `data-tip`. A `<time>` takes no focus, so give it `tabindex="0"` where the exact date matters
   to someone on a keyboard.
@@ -231,7 +242,8 @@ The handle: `get(key, fallback)`, `set(key, value)` (`undefined` removes), `remo
 - **Change events.** A write that changes a value tells every listener of the namespace, in this tab and through the
   `storage` event in other tabs (`external: true`), and dispatches a bubbling `ds:store` on the document with the same
   detail: `{ namespace, key, value, previous, external }`. A write of the same value is no change. A
-  `localStorage.clear()` in another tab arrives as `key: null`: read again. The memory fallback cannot reach other tabs.
+  `localStorage.clear()` in another tab arrives as `key: null`: read again. Other tabs are heard from the first `open()`
+  until the last handle's `destroy()`, so `ds:store` needs no `on()` of its own. The memory fallback cannot reach other tabs.
 - **Sensitive data never.** Anything in `localStorage` can be read by every script of the origin.
 
 ## `DS.virtual`: windowed lists and rows
@@ -241,7 +253,7 @@ Use it when rows are many and uniform; a filter or pagination is often the bette
 
 ```html
 <div id="wrap" class="ds-table-wrap">  <!-- the scroller: give it a block size and overflow in project CSS -->
-  <table class="ds-table">
+  <table class="ds-table" style="table-layout: fixed">  <!-- or explicit column widths: see Layout below -->
     <thead><tr><th scope="col">Device</th><th scope="col">Status</th></tr></thead>
     <tbody></tbody>
   </table>
@@ -271,11 +283,11 @@ rows.on('range', ({ end, count }) => { if (end > count - 20) loadMore(); });
 | `count` | how many rows |
 | `estimate` | a row's height until it was measured, a number or a function of the index (default: the first row measured). Close is enough: rows correct it as they show |
 | `overscan` | rows rendered beyond each end of the viewport (default 4) |
-| `content` | the element that holds the rows (default the first `tbody`, list, listbox, rowgroup or grid in the scroller, else the scroller) |
+| `content` | the element that holds the rows (default the first `tbody`, list, listbox, rowgroup or grid in the scroller, else the scroller; in a `table` its first `tbody`, in an ARIA table or grid with rowgroups the last one, so a header row group stays) |
 | `keyboard` | `false` leaves focus to the page (a combobox, a grid's cell navigation) |
 | `active` | the row that holds the tab stop at the start (default 0) |
 | `total` | what ARIA reports when `count` is not the whole set; `-1`: unknown |
-| `rowOffset` | rows above these in a table or grid (default the rows of its `thead`) |
+| `rowOffset` | rows above these in a table or grid (default the rows of its `thead`, or of the row group before them) |
 | `columns` | the columns a spacer row spans (default those of the header row) |
 
 The controller: `get()` (`{ start, end, count, active }`), `set({ count, total, active, forget })` (`forget`: the data is
@@ -284,9 +296,11 @@ new, forget measured heights), `on('range' | 'active', fn)`, `refresh(index)` (o
 `destroy()`. Events on the scroller: `ds:range` `{ start, end, count }` when the rendered rows change, `ds:active`
 `{ index, element }` when the active row changes.
 
-- **Layout.** Rows stay in normal flow between hidden spacers (`data-ds-virtual-gap`), so a table keeps its column sizes
-  and a sticky header keeps working. A row's spacing belongs inside the row: margins and gaps between rows are not
-  measured. Structural selectors see the spacers, so stripes by `:nth-child` do not hold.
+- **Layout.** Rows stay in normal flow between hidden spacers (`data-ds-virtual-gap`), so a sticky header keeps working:
+  scrolling and focus keep a row out from under it. A table needs `table-layout: fixed` or explicit column widths to keep
+  its column sizes: the automatic layout sizes columns by the cells of the rows that exist, and those change as the window
+  moves. A row's spacing belongs inside the row: margins and gaps between rows are not measured. Structural selectors see
+  the spacers, so stripes by `:nth-child` do not hold.
 - **Dynamic heights.** A row's measured height replaces the estimate; a `ResizeObserver` catches later changes. Rows
   above the viewport that turn out taller or shorter shift the scroll position by the same amount, so what is on screen
   stays where it is (`overflow-anchor` is off on the scroller).
@@ -294,12 +308,14 @@ new, forget measured heights), `on('range' | 'active', fn)`, `refresh(index)` (o
   and running transitions. Each row is rendered once while it shows; `refresh()` renders again. A morph of a parent that
   empties the rows is put right before paint.
 - **Screen readers.** In a table or grid: `aria-rowcount` on it and `aria-rowindex` on each row. Elsewhere: `aria-setsize`
-  and `aria-posinset` on each row. All owned state. The page gives the list its role, as without windowing.
-- **Keyboard.** One tab stop, the active row (`tabindex="0"`, the others `-1`, and the scroller `-1` unless it has its own: Firefox makes a scroller a stop). ArrowUp, ArrowDown, Home, End, PageUp and
-  PageDown move it and the focus, rendering the target first; not from inside a text field and not with a modifier. The
+  and `aria-posinset` on each row. All owned state, and `destroy()` takes them away. The page gives the list its role, as
+  without windowing.
+- **Keyboard.** One tab stop, the active row (`tabindex="0"`, the others `-1`, and the scroller `-1` unless it has its own: Firefox makes a scroller a stop). Buttons and links inside the other rows wait with `tabindex="-1"` (owned; their own value comes back when the row turns active), so Tab goes through the active row's controls and leaves the list. A control a page adds to a row by itself counts from the next render. ArrowUp, ArrowDown, Home, End, PageUp and
+  PageDown move the active row and the focus, rendering the target first; not from inside a text field and not with a modifier. The
   active row stays rendered wherever the scroll position is, so scrolling away drops neither the focus nor the tab stop.
-  When the row that held the focus goes, the focus moves to the active row. So a row must show a focus ring of its own:
-  `.ds-pressable` has one.
+  When the row that held the focus goes, the focus moves to the active row, and to the scroller when no row is left. So a
+  row must show a focus ring of its own: `.ds-pressable` has one. A table of editors that tabs from field to field takes
+  `keyboard: false` and its own navigation.
 - **Forced colours.** Nothing of its own: rows keep what their component does, and spacers are `visibility: hidden`.
 - **Limits.** Browser search finds rendered rows only, so offer a filter. A browser caps an element's height (about 17
   million px in Firefox): keep count times height under that.
@@ -344,8 +360,8 @@ board.addEventListener('ds:drop', ({ detail }) => save(detail.item, detail.to));
 | `autoScroll` | scroll an ancestor while the pointer is near its edge (default `true`) |
 
 The controller: `get()` (the running drag `{ item, mode, from, to }`, or `null`), `set({ item, zone, index })` (moves an
-item without a drag, with the events and the announcement of a drop: for a "Move to ..." menu), `cancel()`, `on(type, fn)`
-and `destroy()`.
+item without a drag, with the events and the announcement of a drop, the DOM in its new order when `ds:drop` runs and back
+if it is refused: for a "Move to ..." menu), `cancel()`, `on(type, fn)` and `destroy()`.
 
 | Event, on the container | Detail | What |
 |---|---|---|
@@ -357,22 +373,26 @@ and `destroy()`.
 `from` and `to` are targets, `{ zone, index }`: the index among the zone's items without the dragged one, ready for
 `splice()`. `mode` is `pointer`, `keyboard` or `api`.
 
-- **Pointer.** A press on a handle and a move of 4px lift the item (a press alone stays a click). It follows the pointer
+- **Pointer.** A press on a handle and a move of 4px lift the item (a press alone stays a click; a drag never ends in one,
+  so a handle that also opens its card does not open it). It follows the pointer
   (its inline `translate`) with `data-ds-dragging` on it: raised, with the dragged state layer; nothing scales. Whenever the
   target changes it moves in the DOM and the others make room through `DS.motion.flip()`. Near the edge of a scrollable
   ancestor, that ancestor scrolls. On release it glides into place on `--ds-ease-spatial`, and the raised look leaves in
   `--ds-dur-instant`. Over several zones, the one under it carries `data-ds-dragover`.
 - **Keyboard.** On a handle, Space or Enter lifts. The arrows, Home and End then move it (along the axis in a zone; across
-  it to the next zone that accepts it); the handle keeps the focus. Space or Enter drops. Escape cancels, and keeps an
-  open dialog around it open. A focus that leaves cancels, so Tab is never held.
-- **Announcements.** Every step is spoken through a polite `.ds-sr` region in the list's modal, else its `.ds-theme`, and a
-  focused handle describes the keys through `aria-describedby`. The texts are the strings `dragHint`, `dragGrabbed`,
+  it to the next zone that accepts it; with `axis: 'both'` an arrow with nowhere left in the zone goes on to the next one
+  or the one before) and keep it in view; the handle keeps the focus. Space or Enter drops; a held key counts once, and
+  held arrows repeat. Escape cancels, and keeps an open dialog around it open. A focus that leaves or a handle that goes
+  cancels, so Tab is never held.
+- **Announcements.** Every step is spoken through a polite `.ds-sr` region in the list's modal, else its `.ds-theme`, there
+  from `create()` on so that a reader knows it before the first words, and a focused handle describes the keys through `aria-describedby`. The texts are the strings `dragHint`, `dragGrabbed`,
   `dragMoved`, `dragMovedZone`, `dragDropped`, `dragDroppedZone` and `dragCancelled` of `DS.core.config()`, each with
   `{label}`, `{zone}`, `{position}` and `{total}`. Name the handle by its action ("Move Replace the fan").
 - **Blocked.** A handle or item that is `disabled`, `aria-disabled="true"` or `aria-busy="true"` does not lift.
 - **Other shapes.** `target`, `keyTarget` and `place` replace the list logic: a tree returns `{ zone, index, position:
   'inside' }` and marks the row, a panel grid returns its cell and shows a placeholder. Two targets are the same when
-  their `zone`, `index` and `position` are. The context holds `item`, `mode`, `from`, `current`, `zones`, `itemsIn(zone)`,
+  their `zone`, `index` and `position` are. Zones may nest; an item never goes into a zone inside itself (`zones` in the
+  context leaves those out, and a target or `set()` that names one is ignored). The context holds `item`, `mode`, `from`, `current`, `zones`, `itemsIn(zone)`,
   `accepts(item, zone)` and `layoutBox(element)` (where an element sits without its translate or a glide).
 - **Re-render.** What it writes (`data-ds-dragging`, `data-ds-dragover`, `aria-describedby`, `translate`, `z-index`) is owned
   state. Still hold live re-renders of the list until `ds:drop` or `ds:drag-cancel`: one that reorders moves the item
@@ -388,3 +408,4 @@ and `destroy()`.
 - New strings: `dragHint`, `dragGrabbed`, `dragMoved`, `dragMovedZone`, `dragDropped`, `dragDroppedZone`, `dragCancelled`.
 - New attribute written by the system: `data-ds-virtual-gap`. `data-ds-dragging` and `data-ds-dragover` are also written
   by `DS.dnd`.
+- New event: `ds:config` on the document, when `DS.core.config()` changed the locale or the strings.
