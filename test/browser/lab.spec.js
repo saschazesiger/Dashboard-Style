@@ -13,8 +13,11 @@
  * - coverage: every @keyframes name of the page's stylesheets (layer blocks
  *   included), every .ds-enter*, .ds-leave*, .ds-stagger, .ds-reveal*,
  *   .ds-collapsible, .ds-swap and .ds-icon-swap class and every function of
- *   DS.motion, DS.dom, DS.indicator, DS.ripple and DS.overlay appears in
- *   some data-lab-shows, apart from the named LAB_EXEMPT entries;
+ *   DS.motion, DS.dom, DS.indicator, DS.ripple, DS.overlay and every
+ *   component module (meta.json "module") appears in some data-lab-shows,
+ *   apart from the named LAB_EXEMPT entries (here, and each component's
+ *   meta.json "labExempt"); the components' entries come from
+ *   styleguide/lab-components.js (their <name>.lab.js, SG_LAB.add());
  * - demos, one test per section: every registry entry's Replay reaches
  *   data-lab-state="settled" within its ceiling (the timeline's, or its
  *   LONG_RUNS entry) with no console error and matches its timeline and
@@ -36,7 +39,7 @@
  *   DS_VIDEO=1 npm run test:browser -- lab.spec.js --project=chromium
  */
 import { test, expect } from './base-test.js';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ready, settle, expectWithin, expectMonotonic, expectPeakAtMost, expectSettles, expectSmooth } from './helpers/motion.js';
@@ -179,7 +182,15 @@ const GROUPS = ['foundations', 'utilities', 'keyframes', 'data', 'controls', 'na
  * coverage test fails for an entry that is no longer a primitive, so the
  * list cannot go stale.
  */
+/** The component folders' meta.json files (src/components/<name>/meta.json). */
+const METAS = readdirSync(resolve(ROOT, 'src/components')).filter((name) => !name.startsWith('_') && existsSync(resolve(ROOT, 'src/components', name, 'meta.json')))
+  .map((name) => JSON.parse(readFileSync(resolve(ROOT, 'src/components', name, 'meta.json'), 'utf8')));
+/** The namespaces whose functions need a demo: the motion modules of src/js, then every component module. */
+const LAB_NAMESPACES = ['motion', 'dom', 'indicator', 'ripple', 'overlay', ...METAS.filter((meta) => meta.module).map((meta) => meta.name)];
+
 const LAB_EXEMPT = {
+  // Each component's own exemptions (meta.json "labExempt"), next to its module.
+  ...Object.assign({}, ...METAS.map((meta) => meta.labExempt ?? {})),
   'DS.dom.followViewport': 'layout follows the on-screen keyboard (--ds-viewport-height, data-ds-keyboard), no motion',
   'DS.dom.autosize': 'the height follows the text, never animated: no motion',
   'DS.dom.dropzone': 'events, no motion: the dropzone demo plays the data-ds-dragover look it writes',
@@ -201,7 +212,7 @@ async function closeOverlays(page) {
 test.describe('coverage', () => {
   test('every keyframe, motion utility class and JS function appears in some demo', async ({ page }) => {
     await open(page);
-    const found = await page.evaluate(() => {
+    const found = await page.evaluate((namespaces) => {
       const keyframes = new Set();
       const classes = new Set();
       const UTILITY = /\.(ds-(?:enter|leave|stagger|reveal|collapsible|swap|icon-swap)(?:--[a-z0-9-]+)?)(?![\w-])/g;
@@ -217,12 +228,13 @@ test.describe('coverage', () => {
         try { walk(sheet.cssRules); } catch { /* a sheet from another origin: none here */ }
       }
       const functions = [];
-      for (const name of ['motion', 'dom', 'indicator', 'ripple', 'overlay']) {
-        for (const key of Object.keys(DS[name])) if (typeof DS[name][key] === 'function') functions.push(`DS.${name}.${key}`);
+      for (const name of namespaces) {
+        for (const key of Object.keys(DS[name] ?? {})) if (typeof DS[name][key] === 'function') functions.push(`DS.${name}.${key}`);
       }
       const shows = new Set([...document.querySelectorAll('[data-lab-shows]')].flatMap((card) => card.getAttribute('data-lab-shows').split(' ')));
-      return { keyframes: [...keyframes].filter((name) => name.startsWith('ds-')), classes: [...classes], functions, shows: [...shows] };
-    });
+      return { keyframes: [...keyframes].filter((name) => name.startsWith('ds-')), classes: [...classes], functions, shows: [...shows], missingNamespaces: namespaces.filter((name) => !DS[name]) };
+    }, LAB_NAMESPACES);
+    expect(found.missingNamespaces, 'every component module is in ds.js').toEqual([]);
     // The walk saw the catalogue (sanity: it reads layer blocks).
     expect(found.keyframes).toContain('ds-fade-in');
     expect(found.classes).toContain('.ds-enter--pop');

@@ -678,9 +678,21 @@ export function componentKeyframes(component, read = repoText) {
   const source = read(where);
   if (!source.includes(`\n${LAYERS}\n`) && !source.startsWith(`${LAYERS}\n`)) throw new Error(`${where}: no "${LAYERS}" line`);
   const code = stripCssComments(source).replace(LAYERS, '').trim();
-  if (!/^@layer ds\.motion\s*\{[\s\S]*\}$/.test(code)) throw new Error(`${where}: one "@layer ds.motion { ... }" block after the layer statement, and nothing else`);
-  const open = source.indexOf('{', source.indexOf('@layer ds.motion'));
-  const body = source.slice(open + 1, source.lastIndexOf('}'));
+  const block = (text) => {
+    const open = text.indexOf('{');
+    let depth = 0;
+    let end = open;
+    do {
+      if (text[end] === '{') depth += 1;
+      else if (text[end] === '}') depth -= 1;
+      end += 1;
+    } while (depth > 0 && end < text.length);
+    return { open, end };
+  };
+  if (!/^@layer ds\.motion\s*\{/.test(code) || block(code).end !== code.length) throw new Error(`${where}: one "@layer ds.motion { ... }" block after the layer statement, and nothing else`);
+  const start = source.indexOf('@layer ds.motion');
+  const { open, end } = block(source.slice(start));
+  const body = source.slice(start + open + 1, start + end - 1);
   // Only @keyframes blocks inside: take them out (braces balanced) and nothing may remain.
   let rest = stripCssComments(body);
   const names = [];
@@ -1046,9 +1058,9 @@ export function rippleHostLines(list) {
  * lab.js (which sets window.SG_LAB, the entries of the lab) and before
  * styleguide.js (which renders them).
  */
-export function labComponentsJs(list) {
+export function labComponentsJs(list, read = repoText) {
   const parts = list.filter((component) => component.lab).map((component) => {
-    const source = repoText(component.lab);
+    const source = read(component.lab);
     if (/^\s*(import|export)\b/m.test(source)) throw new Error(`${component.lab}: a classic script: no import or export; call SG_LAB.add({ ... })`);
     if (!/\bSG_LAB\.add\(/.test(source)) throw new Error(`${component.lab}: adds its entries with SG_LAB.add({ ... })`);
     const body = source.trimEnd().split('\n').map((line) => (line ? `    ${line}` : line)).join('\n');

@@ -12,7 +12,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, posix } from 'node:path';
-import { CORE_MODULES, MODULES, componentNames, diffDist, moduleFiles } from '../scripts/build.mjs';
+import { CORE_MODULES, MODULES, componentNames, components, diffDist, moduleFiles, motionCss } from '../scripts/build.mjs';
 import { ROOT, filesIn, jsModules, read, rules, stripComments } from './helpers.js';
 
 const TEXT = /\.(css|js|mjs|md|html|json|txt|sh|ps1)$|(^|\/)(LICENSE|SHA256SUMS|\.gitignore|\.gitattributes)$/;
@@ -291,14 +291,15 @@ describe('repository', () => {
     assert.deepEqual(empty, []);
   });
 
-  it('lists every @keyframes once in the docs/motion.md keyframe table, unused kept names marked deprecated', () => {
-    const motion = read('src/core/motion.css');
+  it('lists every @keyframes once in the docs/motion.md keyframe tables (motion.css, and the generated one of the components), unused kept names marked deprecated', () => {
+    // motion.css as dist/ ships it: with every src/components/<name>/<name>.keyframes.css.
+    const motion = motionCss(components());
     const names = [...stripComments(motion).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
     const docs = read('docs/motion.md');
     const section = docs.slice(docs.indexOf('\n## Keyframes'), docs.indexOf('\n## ', docs.indexOf('\n## Keyframes') + 1));
     const rows = section.split('\n').filter((line) => /^\| `ds-/.test(line)).map((line) => ({ names: [...line.split(' | ')[0].matchAll(/`(ds-[\w-]+)`/g)].map((match) => match[1]), line }));
     const listed = rows.flatMap((row) => row.names);
-    assert.deepEqual([...listed].sort(), [...names].sort(), 'each @keyframes of src/core/motion.css in one row, once');
+    assert.deepEqual([...listed].sort(), [...names].sort(), 'each @keyframes of motion.css and the components in one row, once');
     // A name no stylesheet or module of src/ uses (outside its own @keyframes) is either deprecated or kept for pages.
     const KEPT_FOR_PAGES = new Map([
       ['ds-scan', 'a band across media being processed: no component of its own, used by pages (the Motion Lab shows it)'],

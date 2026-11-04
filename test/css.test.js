@@ -11,6 +11,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import * as icons from '../src/js/icons.js';
 import { RIPPLE_HOSTS } from '../src/js/ripple.js';
+import { components, motionCss } from '../scripts/build.mjs';
 import {
   ROOT, atRuleBlocks, cssBundle, declarations, declarationsOf, filesIn, forcedColorBlocks, jsModules, literalPart, ms, read, rules, stripComments, withoutAtRuleBlocks,
 } from './helpers.js';
@@ -19,7 +20,17 @@ const ALL_CSS = [...filesIn('src', (path) => path.endsWith('.css')), 'fonts/font
 const SRC_CSS = filesIn('src', (path) => path.endsWith('.css'));
 /** Files whose values must all come from tokens: everything but tokens.css. */
 const COMPONENT_CSS = SRC_CSS.filter((path) => path !== 'src/core/tokens.css' && path !== 'src/index.css');
-const KEYFRAME_NAMES = new Set([...read('src/core/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]));
+/** Every component folder (meta.json and the paths of its files), in cascade order. */
+const COMPONENTS = components();
+/** The component keyframes (src/components/<name>/<name>.keyframes.css), which the build appends to motion.css. */
+const KEYFRAME_FILES = COMPONENTS.map((component) => component.keyframesCss).filter(Boolean);
+/** motion.css as dist/ ships it: its own keyframes and every component's (scripts/build.mjs, motionCss). */
+const MOTION_CSS = motionCss(COMPONENTS);
+const KEYFRAME_NAMES = new Set([...stripComments(MOTION_CSS).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]));
+/** The exceptions of every meta.json of one kind (`exceptions.<kind>` or `motionExceptions.<kind>`), as [key, reason, component] entries. */
+const metaEntries = (field, kind) => COMPONENTS.flatMap((component) => Object.entries(component.meta[field]?.[kind] ?? {}).map(([key, reason]) => [key, reason, component]));
+/** The same as a Map key → reason. */
+const metaExceptions = (field, kind) => new Map(metaEntries(field, kind).map(([key, reason]) => [key, reason]));
 /** A selector list split at its top-level commas (not inside :is() or :where()). */
 function splitSelectors(selector) {
   const parts = [];
@@ -58,6 +69,7 @@ const LAYERS_OF = {
   'src/core/motion.css': ['ds.motion', 'ds.utilities'],
   'src/core/global.css': ['ds.components'],
   'src/optional/view-transitions.css': ['ds.utilities'],
+  ...Object.fromEntries(KEYFRAME_FILES.map((file) => [file, ['ds.motion']])),
 };
 
 /**
@@ -163,7 +175,7 @@ const RUNTIME = new Set([
 ]);
 
 /** Every @keyframes of motion.css as { name: body } (the body holds its from/to/% blocks). */
-const KEYFRAMES = Object.fromEntries([...stripComments(read('src/core/motion.css')).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
+const KEYFRAMES = Object.fromEntries([...stripComments(MOTION_CSS).matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?\})\s*\}/g)].map((match) => [match[1], match[2]]));
 /** The selector of a keyframe stop: from, to, percentages (with decimals), or a list of them ("0%, 100%"). */
 const KEYFRAME_STOP = /^(from|to|\d+(\.\d+)?%)(\s*,\s*(from|to|\d+(\.\d+)?%))*$/;
 /**
@@ -192,6 +204,8 @@ const KEYFRAME_SHAPE_EXEMPT = new Map([
   ['ds-scroll-edge-start', 'scroll-linked: the start fade of a sideways scroller over the first --ds-space-8 of its scroll, a position, not an entrance'],
   ['ds-scroll-edge-end', 'scroll-linked: the end fade of a sideways scroller over the last --ds-space-8 of its scroll, a position, not an entrance'],
   ...LOADER_LOOPS,
+  // A component's own keyframes: meta.json motionExceptions.keyframeShape.
+  ...metaExceptions('motionExceptions', 'keyframeShape'),
 ]);
 /**
  * Movement exits that may run without ds-fade-out (selector → reason). Each
@@ -406,9 +420,10 @@ const resolveDuration = (candidates) => candidates.map(([file, selector, propert
 const POPUPS = ['src/components/tooltip/tooltip.css', 'src/components/combobox/combobox.css', 'src/components/menu/menu.css'];
 
 describe('motion in CSS', () => {
-  it('defines @keyframes only in motion.css, each name once', () => {
-    assert.deepEqual(ALL_CSS.filter((file) => file !== 'src/core/motion.css' && /@keyframes/.test(read(file))), []);
-    const names = [...read('src/core/motion.css').matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
+  it('defines @keyframes only in motion.css and the components\' <name>.keyframes.css, each name once', () => {
+    assert.deepEqual(ALL_CSS.filter((file) => file !== 'src/core/motion.css' && !KEYFRAME_FILES.includes(file) && /@keyframes/.test(read(file))), []);
+    for (const file of KEYFRAME_FILES) assert.match(file, /^src\/components\/([\w-]+)\/\1\.keyframes\.css$/);
+    const names = [...stripComments(MOTION_CSS).matchAll(/@keyframes\s+([\w-]+)/g)].map((match) => match[1]);
     assert.deepEqual(names, [...new Set(names)]);
     assert.ok(names.every((name) => name.startsWith('ds-')), names.join());
   });
@@ -1058,7 +1073,7 @@ describe('CSS for the baseline', () => {
   });
 
   it('keeps keyframes in ds.motion and the motion utilities in ds.utilities', () => {
-    const items = topLevel(stripComments(read('src/core/motion.css')));
+    const items = topLevel(stripComments(MOTION_CSS));
     const motion = items.find((item) => item.prelude === '@layer ds.motion').body;
     const utilities = items.find((item) => item.prelude === '@layer ds.utilities').body;
     assert.equal([...motion.matchAll(/@keyframes\s+([\w-]+)/g)].length, KEYFRAME_NAMES.size);

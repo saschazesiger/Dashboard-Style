@@ -12,7 +12,7 @@ import vm from 'node:vm';
 import { transform } from 'lightningcss';
 import {
   COMPONENT_FILES, CORE, CSS_TARGETS, LAYERS, META_KEYS, META_REQUIRED, META_SCHEMA, MODULES, build, componentNames, components, componentsMd, cssFacts,
-  diffGenerated, generatedFiles, hooksTable, indexCss, moduleRequires, packageInfo, replaceBlock, stripJs, sublayerStatement, validateSchema,
+  componentKeyframes, diffGenerated, generatedFiles, hooksTable, indexCss, labComponentsJs, motionCss, moduleRequires, packageInfo, replaceBlock, stripJs, sublayerStatement, validateSchema,
   verifyComponents, verifyModuleRequires, withBanner,
 } from '../scripts/build.mjs';
 import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
@@ -121,6 +121,35 @@ describe('scripts/meta-schema.json', () => {
   });
 });
 
+describe('<name>.keyframes.css', () => {
+  const motion = `${LAYERS}\n\n@layer ds.motion {\n  @keyframes ds-a {\n    from { opacity: 0; }\n  }\n}\n\n@layer ds.utilities {\n  .ds-enter { animation-name: ds-a; }\n}\n`;
+  const own = `/* Keyframes of x. */\n${LAYERS}\n\n@layer ds.motion {\n  @keyframes ds-x-in {\n    from { translate: 0 8px; }\n  }\n}\n`;
+  const reader = (files) => (path) => files[path];
+  const x = { name: 'x', keyframesCss: 'src/components/x/x.keyframes.css' };
+
+  it('appends each component\'s keyframes to the ds.motion block of motion.css, in component order', () => {
+    const read = reader({ 'src/core/motion.css': motion, 'src/components/x/x.keyframes.css': own });
+    assert.deepEqual(componentKeyframes(x, read).names, ['ds-x-in']);
+    const css = motionCss([{ name: 'w' }, x], read);
+    const block = css.slice(css.indexOf('@layer ds.motion {'), css.indexOf('@layer ds.utilities'));
+    assert.match(block, /@keyframes ds-a[\s\S]*\/\* ── components\/x\/x\.keyframes\.css ── \*\/\n {2}@keyframes ds-x-in/);
+    assert.equal(motionCss([{ name: 'w' }], read), motion, 'no keyframes files: motion.css as it is');
+  });
+
+  it('takes only @keyframes inside one @layer ds.motion block', () => {
+    const fails = (text, reason) => assert.throws(() => componentKeyframes(x, () => text), reason);
+    fails(own.replace(LAYERS, ''), /no "@layer ds\.tokens/);
+    fails(own.replace('@layer ds.motion', '@layer ds.components'), /one "@layer ds\.motion \{ \.\.\. \}" block/);
+    fails(own.replace('  @keyframes', '  .ds-x { color: red; }\n  @keyframes'), /only @keyframes inside @layer ds\.motion/);
+    fails(`${own}\n.ds-x { color: red; }\n`, /and nothing else/);
+  });
+
+  it('checks the names against meta.json "keyframes" and "keyframeDocs" (verifyComponents)', () => {
+    const problems = verifyComponents(list.map((component) => (component.name === 'badge' ? { ...component, keyframesCss: 'src/components/button/button.css' } : component)));
+    assert.ok(problems.some((problem) => /button\.css: no "@layer|one "@layer ds\.motion/.test(problem)), problems.join(' | '));
+  });
+});
+
 describe('generated blocks of hand-written files', () => {
   it('replaces only what lies between the markers, and fails without them', () => {
     const md = 'a\n<!-- generated: x (scripts/build.mjs; do not edit) -->\nold\n<!-- /generated: x -->\nb\n';
@@ -173,6 +202,28 @@ describe('generated files of the repository', () => {
       assert.ok(found >= at, `${component.md} in its place`);
       at = found + part.length;
     }
+  });
+
+  it('styleguide/lab-components.js: every <name>.lab.js after SG_LAB.add(), loaded by the Motion Lab between lab.js and styleguide.js', () => {
+    assert.match(read('styleguide/motion.html'), /<script src="lab\.js"><\/script>\n<script src="lab-components\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
+    const lab = [{ id: 'core-demo' }];
+    const entry = "SG_LAB.add({ id: 'sample-open', group: 'overlays', title: 'Sample', shows: ['ds-fade-in'], html: '<p></p>', play: function () { return Promise.resolve(); } });";
+    const fake = [{ name: 'sample', lab: 'src/components/sample/sample.lab.js' }];
+    const script = labComponentsJs(fake, () => entry);
+    const context = { SG_LAB: lab };
+    context.globalThis = context;
+    vm.runInNewContext(script, context);
+    assert.deepEqual(lab.map((item) => item.id), ['core-demo', 'sample-open']);
+    assert.ok(!Object.keys(lab).includes('add'), 'add() is not enumerable');
+    assert.throws(() => lab.add({ ...lab[1] }), /the id is taken/);
+    assert.throws(() => lab.add({ id: 'x', group: 'g', title: 't', html: '', shows: ['a'], play() {} }), /html is a string/);
+    assert.throws(() => labComponentsJs(fake, () => 'export const a = 1;'), /a classic script/);
+    assert.throws(() => labComponentsJs(fake, () => 'window.SG_LAB.push({});'), /SG_LAB\.add/);
+    // The repository's own file runs on an empty lab.
+    const empty = { SG_LAB: [] };
+    empty.globalThis = empty;
+    vm.runInNewContext(read('styleguide/lab-components.js'), empty);
+    assert.equal(typeof empty.SG_LAB.add, 'function');
   });
 
   it('styleguide/demos.js: one SG_DEMOS entry per <name>.demo.js, loaded by the styleguide before styleguide.js', () => {
