@@ -280,7 +280,7 @@ export const DISMISS_DELAY_MS = 300;
 export const DRAWER_QUERY = '(max-width: 900px)';
 
 /** Tabbable candidates; canFocus() filters them. */
-const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
+export const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
 
 /** The landmarks focus falls back to when an opener is gone (leave()'s rule). */
 const LANDMARK = '.ds-view[tabindex="-1"], main[tabindex="-1"], [role="main"][tabindex="-1"]';
@@ -377,6 +377,7 @@ function sharedOf(doc) {
   record.lock ??= { count: 0, saved: null };
   record.seq ??= 0;
   record.tipRoots ??= new WeakMap();
+  record.inertHolds ??= new WeakMap();
   return record;
 }
 
@@ -515,8 +516,12 @@ function flushStyle(element) {
 
 /* ── Focus ──────────────────────────────────────────── */
 
-/** Whether focus() would land on the node (enabled, rendered, not inert or hidden). */
-function canFocus(node) {
+/**
+ * Whether focus() would land on the node (enabled, rendered, not inert or hidden).
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function canFocus(node) {
   if (!node || node.isConnected === false || typeof node.focus !== 'function') return false;
   if (node.disabled || node.closest?.('[inert], [hidden]')) return false;
   return typeof node.getClientRects !== 'function' || node.getClientRects().length > 0;
@@ -729,12 +734,13 @@ function focusInto(element, state, box) {
 function inertOutside(element, stop = element.ownerDocument.body) {
   const taken = [];
   const body = element.ownerDocument.body;
+  const holds = sharedOf(element.ownerDocument).inertHolds;
   for (let node = element; node && node !== stop && node !== body;) {
     const parent = node.parentNode;
     if (!parent || parent.nodeType === 9) break;
     for (const sibling of /** @type {ParentNode} */ (parent).children) {
       if (sibling === node || sibling.matches('.ds-scrim, .ds-toasts') || announcerNodes.has(sibling) || tooltipNodes.has(sibling)) continue;
-      if (sibling.inert && !managedInert.has(sibling)) continue;
+      if (sibling.inert && !managedInert.has(sibling) && !holds.has(sibling)) continue;
       taken.push(sibling);
     }
     node = parent.nodeType === 11 ? /** @type {ShadowRoot} */ (parent).host : /** @type {Element} */ (parent);
@@ -797,7 +803,7 @@ function syncInert() {
     if (wanted.has(node)) continue;
     managedInert.delete(node);
     disown(node, 'attrs', 'inert');
-    if (!closingBoxes.has(node)) node.inert = false;
+    if (!closingBoxes.has(node) && !sharedOf(node.ownerDocument).inertHolds.has(node)) node.inert = false;
   }
   for (const node of wanted) {
     // A re-render of a region the trap took (DS.dom.morphHtml) keeps it inert.
@@ -827,6 +833,46 @@ function containerOf(element) {
 function restoreInert(state) {
   state.inerted = [];
   syncInert();
+}
+
+/**
+ * Makes the elements inert until destroy(), for a modal region that is no
+ * overlay (DS.a11y.inert()). Counted per element and known to syncInert(), so
+ * holds and overlay traps compose in any order: the element stays inert until
+ * the last of them lets go, and what the page made inert itself stays inert.
+ * A re-render with morphHtml keeps it.
+ * @param {Iterable<Element>} elements
+ * @returns {{ destroy: () => void }}
+ */
+export function holdInert(elements) {
+  const nodes = [...new Set(elements)].filter((node) => node?.ownerDocument);
+  for (const node of nodes) {
+    const holds = sharedOf(node.ownerDocument).inertHolds;
+    const held = holds.get(node);
+    if (held) {
+      held.count += 1;
+      continue;
+    }
+    holds.set(node, { count: 1, pageOwn: node.inert === true && !managedInert.has(node) });
+    own(node, 'attrs', 'inert');
+    node.inert = true;
+  }
+  let done = false;
+  return {
+    destroy() {
+      if (done) return;
+      done = true;
+      for (const node of nodes) {
+        const holds = sharedOf(node.ownerDocument).inertHolds;
+        const held = holds.get(node);
+        held.count -= 1;
+        if (held.count) continue;
+        holds.delete(node);
+        disown(node, 'attrs', 'inert');
+        if (!held.pageOwn && !managedInert.has(node)) node.inert = false;
+      }
+    },
+  };
 }
 
 /* ── Scroll lock ────────────────────────────────────── */
@@ -1151,13 +1197,22 @@ function wireMenu(menu) {
   });
 }
 
+/** What a menu item is called for type-ahead: its label part, else its text; collapsed, lower case. */
+const menuItemLabel = (item) => (item.querySelector('.ds-menu__label') ?? item).textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+
 /**
  * The item the typed letters lead to: the next one after `current`
  * (wrapping) whose label starts with them; one letter typed again and
- * again cycles through the items with that letter.
+ * again cycles through the items with that letter. `label(item)` gives the
+ * lower-case label (default: a menu item's). The one matcher: wireMenu here
+ * and DS.a11y.typeahead() both use it, so keep it shared when this file splits.
+ * @param {Element[]} items
+ * @param {Element|null|undefined} current
+ * @param {string} typed
+ * @param {(item: Element) => string} [label]
+ * @returns {Element|null}
  */
-function typeAhead(items, current, typed) {
-  const label = (item) => (item.querySelector('.ds-menu__label') ?? item).textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+export function typeAhead(items, current, typed, label = menuItemLabel) {
   const repeated = typed.length > 1 && [...typed].every((char) => char === typed[0]);
   const start = items.indexOf(current);
   // A new search starts after the current item; a longer one may stay on it.
@@ -2033,6 +2088,28 @@ function layerOver(node) {
   if (!top || composedContains(top, node)) return null;
   if (containedDialog(top) && !composedContains(containerOf(top), node)) return null;
   return top;
+}
+
+/**
+ * The open layer that rules where `node` is: the topmost open overlay, past
+ * any contained dialog `node` lies outside the container of (the page around
+ * it stays live, so a modal below one still counts). `node` may sit inside
+ * the layer it gets. Null when none rules there, or without a DOM.
+ * @param {Node|null|undefined} node
+ * @param {Document} [doc]
+ * @returns {Element|null}
+ */
+export function layerAt(node, doc = node?.ownerDocument ?? globalThis.document) {
+  if (!doc) return null;
+  pruneDetached();
+  const order = doc[SHARED]?.order ?? [];
+  for (let i = order.length - 1; i >= 0; i -= 1) {
+    const { element } = order[i];
+    if (!order[i].open()) continue;
+    if (containedDialog(element) && !composedContains(containerOf(element), node)) continue;
+    return element;
+  }
+  return null;
 }
 
 /**

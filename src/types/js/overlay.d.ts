@@ -21,6 +21,16 @@ export declare const TOOLTIP_HIDE_MS: number;
 export declare const DISMISS_DELAY_MS: number;
 /** The media query under which the modal drawer exists. */
 export declare const DRAWER_QUERY: string;
+/** The selector of the tabbable candidates; canFocus() filters them. */
+export declare const FOCUSABLE: string;
+/** Whether focus() would land on the node (enabled, rendered, not inert or hidden). */
+export declare function canFocus(node: any): boolean;
+/** The item the typed letters lead to, or null: the matcher of the menus and of DS.a11y.typeahead(). `typed` is lower case. */
+export declare function typeAhead(items: Element[], current: Element | null | undefined, typed: string, label?: (item: Element) => string): Element | null;
+/** Makes the elements inert until destroy(); counted, and it composes with the overlays' own inert in any order. */
+export declare function holdInert(elements: Iterable<Element>): { destroy(): void };
+/** The open layer that rules where `node` is: the topmost, past a contained dialog `node` lies outside the container of. */
+export declare function layerAt(node: Node | null | undefined, doc?: Document): Element | null;
 
 /** Reference-counted scroll lock of the page. */
 export declare function lockScroll(doc?: Document): void;

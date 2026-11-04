@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS.a11y and DS.hotkeys · fixture</title>
+<link rel="stylesheet" href="/dist/fonts/fonts.css">
+<link rel="stylesheet" href="/dist/ds.css">
+<link rel="stylesheet" href="fixture.css">
+</head>
+<body>
+<!-- The helpers of js/a11y.js and js/hotkeys.js in real engines, loaded as
+     ES modules from src/js/: window.fx holds the modules. a11y.spec.js and
+     hotkeys.spec.js. -->
+<div class="ds-theme fx-root">
+  <button class="ds-btn" type="button" id="before">Before</button>
+
+  <section class="fx-section" id="region" aria-label="Trapped region">
+    <button class="ds-btn" type="button" id="first">First</button>
+    <button class="ds-btn" type="button" id="disabled" disabled>Disabled</button>
+    <button class="ds-btn" type="button" id="unstopped" tabindex="-1">No stop</button>
+    <button class="ds-btn" type="button" id="hidden" hidden>Hidden</button>
+    <button class="ds-btn" type="button" id="unseen" style="visibility: hidden">Unseen</button>
+    <label><input type="radio" name="kind" id="kind-a"> A</label>
+    <label><input type="radio" name="kind" id="kind-b" checked> B</label>
+    <input class="ds-input" id="field" aria-label="Field">
+    <button class="ds-btn" type="button" id="open-dialog">Open dialog</button>
+    <button class="ds-btn" type="button" id="last">Last</button>
+  </section>
+
+  <section class="fx-section" id="inner-region" aria-label="Second region">
+    <button class="ds-btn" type="button" id="inner-first">Inner first</button>
+    <button class="ds-btn" type="button" id="inner-last">Inner last</button>
+  </section>
+
+  <section class="fx-section" id="empty-region" aria-label="Nothing to focus"><p>Text only.</p></section>
+
+  <!-- What looks focusable but is not: first and last in a region. -->
+  <section class="fx-section" id="fieldset-first" aria-label="Disabled fieldset first">
+    <fieldset disabled><legend>Off</legend><button class="ds-btn" type="button" id="fs-off">Off</button></fieldset>
+    <button class="ds-btn" type="button" id="fs-a">A</button>
+    <button class="ds-btn" type="button" id="fs-b">B</button>
+  </section>
+  <section class="fx-section" id="closed-last" aria-label="Closed details last">
+    <button class="ds-btn" type="button" id="cl-a">A</button>
+    <details id="cl-details"><summary id="cl-summary">More</summary><button class="ds-btn" type="button" id="cl-inside">Inside</button></details>
+    <fieldset disabled><button class="ds-btn" type="button" id="cl-off">Off</button></fieldset>
+    <div style="visibility: hidden"><button class="ds-btn" type="button" id="cl-unseen">Unseen</button></div>
+    <div style="content-visibility: hidden"><button class="ds-btn" type="button" id="cl-skipped">Skipped</button></div>
+  </section>
+  <section class="fx-section" id="box-last" aria-label="A box last">
+    <button class="ds-btn" type="button" id="bl-a">A</button>
+    <div id="bl-middle" tabindex="-1">Middle box</div>
+    <button class="ds-btn" type="button" id="bl-b">B</button>
+    <div id="bl-end" tabindex="-1">End box</div>
+  </section>
+
+  <!-- A trap and an overlay inside it. -->
+  <section class="fx-section" id="outer-region" aria-label="Region around a dialog">
+    <button class="ds-btn" type="button" id="or-first">First</button>
+    <button class="ds-btn" type="button" id="or-open">Open</button>
+    <dialog class="ds-dialog" id="or-dialog" aria-labelledby="or-title">
+      <div class="ds-dialog__box">
+        <h2 class="ds-dialog__title" id="or-title">Inside the region</h2>
+        <button class="ds-btn" type="button" id="or-a">A</button>
+        <button class="ds-btn" type="button" id="or-b">B</button>
+      </div>
+    </dialog>
+  </section>
+
+  <button class="ds-btn" type="button" id="after">After</button>
+
+  <ul id="people" role="listbox" aria-label="People">
+    <li role="option" id="ada" tabindex="0">Ada Lovelace</li>
+    <li role="option" id="alan" tabindex="-1" aria-disabled="true">Alan Turing</li>
+    <li role="option" id="barbara" tabindex="-1">Barbara Liskov</li>
+    <li role="option" id="grace" tabindex="-1">Grace Hopper</li>
+    <li role="option" id="gone" tabindex="-1" hidden>Hedy Lamarr</li>
+    <li role="option" id="named" tabindex="-1" aria-label="Katherine Johnson"><span aria-hidden="true">KJ</span></li>
+  </ul>
+  <div id="with-field" role="group" aria-label="With a field">
+    <input class="ds-input" id="filter" aria-label="Filter">
+    <button class="ds-btn" type="button" role="option" id="option-filter">Filter option</button>
+  </div>
+
+  <div id="hotkey-area">
+    <button class="ds-btn" type="button" id="hk-button" data-ds-hotkey="mod+k x" data-ds-hotkey-description="Search devices" data-ds-hotkey-group="Devices">Search</button>
+    <button class="ds-btn" type="button" id="hk-disabled" data-ds-hotkey="y" disabled>Disabled</button>
+    <button class="ds-btn" type="button" id="hk-aria" data-ds-hotkey="u" aria-disabled="true">Blocked</button>
+    <button class="ds-btn" type="button" id="hk-hidden" data-ds-hotkey="i" hidden>Hidden</button>
+    <button class="ds-btn" type="button" id="hk-named" data-ds-hotkey="o" aria-keyshortcuts="O">Own name</button>
+    <button class="ds-btn" type="button" id="hk-invisible" data-ds-hotkey="v" style="visibility: hidden">Invisible</button>
+    <fieldset disabled><button class="ds-btn" type="button" id="hk-fieldset" data-ds-hotkey="f">In fieldset</button></fieldset>
+    <div role="menu" aria-label="Actions"><button class="ds-btn" type="button" role="menuitem" id="hk-menuitem" data-ds-hotkey="mod+d">Duplicate</button></div>
+    <input class="ds-input" id="hk-readonly" aria-label="Read-only copy" readonly data-ds-hotkey="r" value="copy">
+    <label for="hk-labelled">Filter devices</label><input class="ds-input" id="hk-labelled" data-ds-hotkey="l">
+    <input type="range" id="range" min="0" max="10" value="5" aria-label="Range">
+    <input class="ds-input" id="hk-field" type="search" aria-label="Search field" data-ds-hotkey="/" value="query">
+    <input class="ds-input" id="plain-field" aria-label="Plain field">
+    <input class="ds-input" id="readonly-field" aria-label="Read-only field" readonly value="fixed">
+    <label><input type="checkbox" id="check"> Check</label>
+    <select class="ds-select" id="choice" aria-label="Choice"><option>One</option></select>
+    <div id="within-outer" tabindex="-1"><button class="ds-btn" type="button" id="within-inner">Inner</button></div>
+  </div>
+
+  <dialog class="ds-dialog" id="dialog" aria-labelledby="dialog-title">
+    <div class="ds-dialog__box">
+      <h2 class="ds-dialog__title" id="dialog-title">Dialog</h2>
+      <button class="ds-btn" type="button" id="dialog-a" data-ds-hotkey="d">In dialog</button>
+      <button class="ds-btn" type="button" id="dialog-b">Close</button>
+      <section id="dialog-region" aria-label="Region inside the dialog">
+        <button class="ds-btn" type="button" id="dr-a">Region A</button>
+        <button class="ds-btn" type="button" id="dr-b">Region B</button>
+      </section>
+    </div>
+  </dialog>
+
+  <!-- A contained dialog: it lies only over its positioned container, and the page around it stays live. -->
+  <section class="fx-section" id="contained-host" aria-label="Contained host" style="position: relative">
+    <button class="ds-btn" type="button" id="ch-open">Open contained</button>
+    <section id="ch-region" aria-label="Region under the contained dialog"><button class="ds-btn" type="button" id="ch-inner">Inner</button></section>
+    <div class="ds-dialog ds-dialog--contained" id="contained" role="dialog" aria-labelledby="contained-title" hidden>
+      <div class="ds-dialog__box">
+        <h2 class="ds-dialog__title" id="contained-title">Contained</h2>
+        <button class="ds-btn" type="button" id="contained-a">A</button>
+        <button class="ds-btn" type="button" id="contained-b">B</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="ds-toasts" id="toasts"></div>
+</div>
+<script type="module">
+  import * as a11y from '/src/js/a11y.js';
+  import * as hotkeys from '/src/js/hotkeys.js';
+  import * as dom from '/src/js/dom.js';
+  import * as overlay from '/src/js/overlay.js';
+  import * as core from '/src/js/core.js';
+  // The parts of DS.overlay that live in a component's folder, where they do (ds.js holds them all).
+  for (const name of ['toast', 'dialog']) await import(`/src/components/${name}/${name}.js`).catch(() => null);
+  window.fx = { a11y, hotkeys, dom, overlay, core, log: [] };
+  core.init(document);
+  document.getElementById('hk-button').addEventListener('click', () => window.fx.log.push('hk-button'));
+  document.getElementById('hk-disabled').addEventListener('click', () => window.fx.log.push('hk-disabled'));
+  document.getElementById('hk-aria').addEventListener('click', () => window.fx.log.push('hk-aria'));
+  document.getElementById('hk-hidden').addEventListener('click', () => window.fx.log.push('hk-hidden'));
+  document.getElementById('hk-named').addEventListener('click', () => window.fx.log.push('hk-named'));
+  for (const id of ['hk-invisible', 'hk-fieldset', 'hk-menuitem']) document.getElementById(id).addEventListener('click', () => window.fx.log.push(id));
+  document.getElementById('dialog-a').addEventListener('click', () => window.fx.log.push('dialog-a'));
+  document.getElementById('open-dialog').addEventListener('click', (event) => overlay.open(document.getElementById('dialog'), { opener: event.currentTarget }));
+  document.getElementById('dialog-b').addEventListener('click', () => overlay.close(document.getElementById('dialog')));
+  document.documentElement.setAttribute('data-fixture-ready', '');
+</script>
+</body>
+</html>

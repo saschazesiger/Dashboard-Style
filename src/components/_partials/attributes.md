@@ -19,6 +19,8 @@ the ones the page sets for it. The project check reads this table.
 | `data-ds-savebar-rest` | the system (`DS.overlay.savebar()`) | `.ds-view` | the bar hid at the end of the page: its room stays until the page scrolls away from the end ([Save bar](#save-bar)) |
 | `data-ds-busy` | the page | `.ds-dialog`, `.ds-sheet`, `.ds-drawer` | keeps the overlay open while its action runs: the user's close attempts do nothing, `DS.overlay.close()` still closes ([Dialog](#dialog), "While its action runs") |
 | `data-ds-toast-room` | the page | `.ds-view`, `.ds-sheet__body`, `.ds-dialog` | `off`: this layer keeps no room for snackbars that stay; the page keeps the messages clear itself ([Snackbar](#snackbar), "Room at the end") |
+| `aria-keyshortcuts` | both: the system (`DS.hotkeys`, from `data-ds-hotkey`) unless the markup has one, then the page's stays | the element with `data-ds-hotkey` | the combos of the element, for assistive tech; while the system writes it a re-render keeps it |
+| `data-ds-hotkey` (with `data-ds-hotkey-description`, `-group`, `-scope`) | the page | a button, link or field | a press of the combo presses it, or focuses a field ([core.md](core.md#hotkeys)) |
 | `data-ds-guard="off"` | the page | any element around actions | its `aria-disabled` and busy actions explain themselves on click: `DS.motion.guard()` lets their activations through |
 | `data-icon` | the page | any element | the glyph name that `DS.icons.fill()` draws into it ([icons.md](icons.md)) |
 | `data-icon-size` | the page | an element with `data-icon` | the glyph size in px for `DS.icons.fill()` (default 20) |

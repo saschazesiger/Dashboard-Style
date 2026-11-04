@@ -732,14 +732,27 @@ export function morphHtml(target, html, options = {}) {
 
 /* ── State reporters and DOM helpers (2.0) ──────────── */
 
-/** Takes a name of `kind` as owned runtime state (motion.js keeps the same helpers; the record is shared). */
-function own(element, kind, name) {
+/**
+ * Takes a name as owned runtime state, counted, so morphHtml keeps it: `kind`
+ * is 'attrs', 'classes' or 'props' (motion.js keeps the same helpers; the
+ * record is shared).
+ * @param {any} element
+ * @param {'attrs'|'classes'|'props'} kind
+ * @param {string} name
+ */
+export function own(element, kind, name) {
   if (!element || typeof element !== 'object') return;
   const record = element[OWNED] ?? (element[OWNED] = { attrs: new Map(), classes: new Map(), props: new Map() });
   record[kind].set(name, (record[kind].get(name) ?? 0) + 1);
 }
 
-function disown(element, kind, name) {
+/**
+ * Gives up one claim of own(); morphHtml patches the name again after the last.
+ * @param {any} element
+ * @param {'attrs'|'classes'|'props'} kind
+ * @param {string} name
+ */
+export function disown(element, kind, name) {
   const map = element?.[OWNED]?.[kind];
   const count = map?.get(name) ?? 0;
   if (count > 1) map.set(name, count - 1);
@@ -1300,6 +1313,20 @@ function frameDocument(frame) {
 }
 
 /**
+ * Whether `node` takes typed text: an editable input of a type that types,
+ * a textarea or contenteditable. A read-only one does not.
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function typesText(node) {
+  if (!node) return false;
+  if (node.isContentEditable) return true;
+  if (node.tagName === 'TEXTAREA') return !node.readOnly;
+  if (node.tagName !== 'INPUT') return false;
+  return !node.readOnly && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(node.type);
+}
+
+/**
  * Whether focus sits in a field that brings up a keyboard, through open
  * shadow roots and same-origin frames (an embedded editor).
  */
@@ -1314,10 +1341,7 @@ function editing(doc) {
     doc = inner;
   }
   if (!active || active === doc.body) return false;
-  if (active.isContentEditable) return true;
-  if (active.tagName === 'TEXTAREA') return !active.readOnly;
-  if (active.tagName !== 'INPUT') return false;
-  return !active.readOnly && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(active.type);
+  return typesText(active);
 }
 
 /**
