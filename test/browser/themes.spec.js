@@ -171,26 +171,25 @@ test.describe('shipped themes', () => {
 
 test.describe('where the themes are offered', () => {
   test('the styleguide: dark, compact, contrast and System (dark and contrast as the device asks)', async ({ page }) => {
-    // Five fade-through swaps of the whole styleguide (every 2.0 demo on
-    // one page), each re-reading the values and the theme check: about 17s
-    // alone in Firefox, more while other workers share the CPU.
+    // The theme files of the options (styleguide/shell.js, THEME_FILES) over the default preset, whose
+    // light-dark() roles follow the device: dark.css pins the dark scheme, the others leave it.
     test.slow();
-    await page.goto('/styleguide/legacy.html');
+    await page.goto('/styleguide/index.html#/colour');
     await ready(page);
     const scheme = () => page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
-    for (const [value, expected] of [['dark', 'dark'], ['compact', 'light'], ['contrast', 'light'], ['default', 'light']]) {
-      await page.locator('#sg-theme-select').selectOption(value);
-      await expect(page.locator('html')).toHaveAttribute('data-sg-theme', value, { timeout: 15000 });
-      await page.waitForFunction(() => !document.documentElement.hasAttribute('data-ds-vt'), null, { timeout: 15000 });
+    const preset = await scheme();
+    for (const [value, expected] of [['dark', 'dark'], ['compact', preset], ['contrast', preset], ['', preset]]) {
+      await page.locator('#sg-opt-file').selectOption(value);
+      await expect(page.locator('html')).toHaveAttribute('data-sg-theme', `default auto${value ? ` +${value}` : ''}`, { timeout: 15000 });
       expect(await scheme(), value).toBe(expected);
     }
     await page.emulateMedia({ colorScheme: 'dark' });
-    await page.locator('#sg-theme-select').selectOption('system');
-    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'system', { timeout: 15000 });
-    await page.waitForFunction(() => !document.documentElement.hasAttribute('data-ds-vt'), null, { timeout: 15000 });
+    await page.locator('#sg-opt-file').selectOption('system');
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default auto +system', { timeout: 15000 });
     expect(await scheme()).toBe('dark');
+    await expect(page.locator('#sg-theme-file-1')).toHaveAttribute('media', '(prefers-color-scheme: dark)');
     await page.emulateMedia({ colorScheme: 'light' });
-    await expect.poll(scheme).toBe('light');
+    await expect.poll(scheme).toBe(preset);
   });
 
   test('the tour: the scheme choice links the dark theme and writes it into the theme file', async ({ page }) => {
@@ -232,14 +231,17 @@ test.describe('where the themes are offered', () => {
   });
 
   test('the styleguide theme check lists what a loaded theme fails, each row with an icon and a word', async ({ page }) => {
-    await page.goto('/styleguide/legacy.html');
+    await page.goto('/styleguide/index.html#/colour');
     await ready(page);
+    // One scheme, so each pair is one row (auto would check the light and the dark one).
+    await page.locator('.sg-options--theme .ds-segmented__option[data-sg-value="light"]').click();
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default light');
     const check = page.locator('#sg-theme-check');
     await expect(check.locator('.sg-finding[data-ok="false"]')).toHaveCount(0);
     await expect(check.locator('.sg-finding[data-ok="true"]')).toContainText('contrast pairs pass');
     const css = '.ds-theme {\n  --ds-text-2: color-mix(in srgb, #9aa0a6 80%, white);\n  --ds-font-input: var(--ds-font-body);\n  --ds-dur-fast: 1ms;\n}\n';
     await page.locator('#sg-theme-file').setInputFiles({ name: 'weak.css', mimeType: 'text/css', buffer: Buffer.from(css) });
-    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'file', { timeout: 15000 });
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'file light', { timeout: 15000 });
     const failing = check.locator('.sg-finding[data-ok="false"]');
     await expect(failing.filter({ hasText: /--ds-text-2 on --ds-surface: .*needs 4\.5:1 \(text\)/ })).toHaveCount(1);
     await expect(failing.filter({ hasText: '--ds-font-input is 14px' })).toHaveCount(1);
@@ -249,19 +251,21 @@ test.describe('where the themes are offered', () => {
       await expect(row.locator('.ds-status svg')).toHaveCount(1);
       await expect(row.locator('.ds-status')).toContainText('Fails');
     }
-    await page.locator('#sg-theme-select').selectOption('default');
-    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default', { timeout: 15000 });
+    // A preset (another one, then the default again) drops the loaded file.
+    await page.locator('#sg-opt-preset').selectOption('slate');
+    await page.locator('#sg-opt-preset').selectOption('default');
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default light', { timeout: 15000 });
     await expect(check.locator('.sg-finding[data-ok="false"]')).toHaveCount(0);
   });
 
   test('the styleguide theme check reads a light-dark() theme in each scheme it shows', async ({ page }) => {
-    await page.goto('/styleguide/legacy.html');
+    await page.goto('/styleguide/index.html#/colour');
     await ready(page);
     const check = page.locator('#sg-theme-check');
     // Passes in light, fails in dark: the dark text-2 tone on the dark surface.
     const css = '.ds-theme {\n  --ds-color-scheme: light dark;\n  --ds-surface: light-dark(#ffffff, #1b1b1f);\n  --ds-text-2: light-dark(#444746, #303034);\n}\n';
     await page.locator('#sg-theme-file').setInputFiles({ name: 'both.css', mimeType: 'text/css', buffer: Buffer.from(css) });
-    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'file', { timeout: 15000 });
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'file auto', { timeout: 15000 });
     const failing = check.locator('.sg-finding[data-ok="false"]');
     await expect(failing.filter({ hasText: /^.*--ds-text-2 on --ds-surface \(dark\): .*needs 4\.5:1 \(text\)/ })).toHaveCount(1);
     await expect(failing.filter({ hasText: '--ds-text-2 on --ds-surface (light)' })).toHaveCount(0);

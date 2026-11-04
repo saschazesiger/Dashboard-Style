@@ -7,22 +7,24 @@
  * All of them pass now and stay as regression tests; no `test.fail` is
  * left (test/repo.test.js allows only `spike: <capability>` markers).
  *
- * The demos live in styleguide/styleguide.js (legacy.html) and, since P8,
- * in the Motion Lab (motion.html, its registry styleguide/lab.js): the
- * count-up and the leave/enter tests open motion.html, where those demos
- * moved. The locators name what a user sees (the opener buttons,
- * `.ds-dialog`, `.ds-tooltip`, `.ds-toast`), not the demo's internals.
+ * The demos lived in styleguide/styleguide.js (legacy.html, retired in
+ * 3.0.0-alpha.4); they open the component demos that took them over now
+ * (index.html#/components/<n>), and since P8 the Motion Lab (motion.html,
+ * its registry styleguide/lab.js): the count-up and the leave/enter tests
+ * open motion.html, where those demos moved. The locators name what a user
+ * sees (the opener buttons, `.ds-dialog`, `.ds-tooltip`, `.ds-toast`),
+ * not the demo's internals.
  * Bugs on the fixtures live in regressions.spec.js.
  */
 import { test, expect } from '@playwright/test';
 import { ready, settle, focusByKeyboard, expectMonotonic } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/legacy.html';
+const STYLEGUIDE = '/styleguide/index.html';
 const LAB = '/styleguide/motion.html';
 
 /** Loads the styleguide (optionally slowed down) and waits until the first-render motion (stagger, count-up) has played. */
-async function open(page, { speed, path = STYLEGUIDE } = {}) {
-  await page.goto(`${path}${speed ? `?speed=${speed}` : ''}`);
+async function open(page, { speed, path = STYLEGUIDE, demo } = {}) {
+  await page.goto(`${path}${speed ? `?speed=${speed}` : ''}${demo ? `#/components/${demo}` : ''}`);
   await ready(page);
   await page.mouse.move(1, 1);
   await page.waitForFunction(() => [...document.querySelectorAll('.ds-tile__value[data-count]')].every((el) => {
@@ -32,11 +34,13 @@ async function open(page, { speed, path = STYLEGUIDE } = {}) {
   await settle(page);
 }
 
-/** The page-level dialog (not the inline one shown for inspection). */
-const pageDialog = (page) => page.locator('.ds-dialog:not(.ds-dialog--contained)');
+/** The first dialog the dialog demo opens (Archive LAPTOP-0042?), and its opener. */
+const opener = (page) => page.locator('#sg-stage button[data-ds-open]').first();
+const DIALOG = '#sg-stage dialog.ds-dialog[open]';
+const pageDialog = (page) => page.locator(DIALOG);
 
-/** The page's tooltip showing `text` (not the inline one shown for inspection). */
-const tooltip = (page, text) => page.locator('.ds-tooltip:not(.sg-tooltip-demo)').filter({ hasText: text });
+/** The page's tooltip showing `text`. */
+const tooltip = (page, text) => page.locator('.ds-tooltip').filter({ hasText: text });
 
 /**
  * Records, in the page, every animation frame for `ms`: whether a visible
@@ -48,7 +52,7 @@ function watchTooltip(page, text, ms) {
     const shown = [];
     const start = performance.now();
     const frame = (now) => {
-      shown.push([...document.querySelectorAll('.ds-tooltip:not(.sg-tooltip-demo)')].some((el) => {
+      shown.push([...document.querySelectorAll('.ds-tooltip')].some((el) => {
         const style = getComputedStyle(el);
         return el.textContent.includes(args.text) && !el.hidden && style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0.99;
       }));
@@ -131,10 +135,9 @@ test.describe('fixed in P2', () => {
 
 test.describe('fixed in P5', () => {
   test('after Escape or Cancel, focus is back on the opener within one frame', async ({ page }) => {
-    await open(page);
-    const opener = page.locator('[data-sg="dialog"]');
+    await open(page, { demo: 'dialog' });
     for (const how of ['Escape', 'Cancel']) {
-      await focusByKeyboard(page, opener);
+      await focusByKeyboard(page, opener(page));
       await page.keyboard.press('Enter');
       await expect(pageDialog(page)).toBeVisible();
       await settle(page);
@@ -152,7 +155,7 @@ test.describe('fixed in P5', () => {
           requestAnimationFrame(() => requestAnimationFrame(() => {
             window.afterClose = {
               held: exit.filter((a) => a.playState === 'paused').length,
-              onOpener: document.activeElement === document.querySelector('[data-sg="dialog"]'),
+              onOpener: document.activeElement === document.querySelector('#sg-stage button[data-ds-open]'),
             };
             exit.forEach((a) => { if (a.playState === 'paused') a.play(); });
           }));
@@ -169,57 +172,57 @@ test.describe('fixed in P5', () => {
   });
 
   test('tabbing from one [data-tip] button to the next keeps the tooltip shown', async ({ page }) => {
-    await open(page);
+    await open(page, { demo: 'tooltip' });
     // One Tab from the control before it, so no other tooltip is still leaving.
-    const settings = page.locator('[data-tip="Settings"]').first();
-    await settings.evaluate((el) => el.previousElementSibling.focus());
+    const duplicate = page.locator('#sg-stage [data-demo="toolbar"] [data-tip="Duplicate"]');
+    await duplicate.evaluate((el) => el.previousElementSibling.focus());
     await page.keyboard.press('Tab');
-    expect(await page.evaluate(() => document.activeElement.getAttribute('data-tip'))).toBe('Settings');
-    await expect(tooltip(page, 'Settings')).toBeVisible();
+    expect(await page.evaluate(() => document.activeElement.getAttribute('data-tip'))).toBe('Duplicate');
+    await expect(tooltip(page, 'Duplicate')).toBeVisible();
     await settle(page);
-    const watching = watchTooltip(page, 'More actions', 800);
+    const watching = watchTooltip(page, 'Archive', 800);
     await page.keyboard.press('Tab');
-    expect(await page.evaluate(() => document.activeElement.getAttribute('data-tip'))).toBe('More actions');
+    expect(await page.evaluate(() => document.activeElement.getAttribute('data-tip'))).toBe('Archive');
     const shown = await watching;
     // Once it shows the next label, it stays.
     const first = shown.indexOf(true);
-    expect(first, 'the tooltip shows "More actions"').toBeGreaterThanOrEqual(0);
+    expect(first, 'the tooltip shows "Archive"').toBeGreaterThanOrEqual(0);
     expect(shown.slice(first).every(Boolean), 'the tooltip stays shown').toBe(true);
   });
 
   test('moving the pointer onto the icon inside a tooltip button keeps the tooltip', async ({ page }) => {
-    await open(page);
-    const button = page.locator('[data-tip="Settings"]').first();
+    await open(page, { demo: 'tooltip' });
+    const button = page.locator('#sg-stage [data-demo="toolbar"] [data-tip="Edit"]');
     await button.scrollIntoViewIfNeeded();
     const box = await button.boundingBox();
     // In at the middle of its left edge (the button is round), away from its icon.
     await page.mouse.move(box.x + 3, box.y + box.height / 2);
-    await expect(tooltip(page, 'Settings')).toBeVisible();
+    await expect(tooltip(page, 'Edit')).toBeVisible();
     await settle(page);
     expect(await page.evaluate((point) => document.elementFromPoint(point.x, point.y).closest('svg') !== null,
       { x: box.x + box.width / 2, y: box.y + box.height / 2 }), 'the centre is on the icon').toBe(true);
-    const watching = watchTooltip(page, 'Settings', 600);
+    const watching = watchTooltip(page, 'Edit', 600);
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     expect((await watching).every(Boolean), 'the tooltip stays shown').toBe(true);
   });
 
   test('closing an error snackbar does not drop focus to the page body', async ({ page }) => {
-    await open(page);
-    await page.locator('[data-sg="toast-error"]').click();
-    const close = page.locator('.ds-toast--error:not(.sg-toast-demo)').getByRole('button', { name: 'Close' });
+    await open(page, { demo: 'toast' });
+    await page.locator('[data-toast-demo="error"]').click();
+    const close = page.locator('#sg-toasts .ds-toast--error').getByRole('button', { name: 'Close' });
     await expect(close).toBeVisible();
     await settle(page);
     await focusByKeyboard(page, close);
     await page.keyboard.press('Enter');
-    await expect(page.locator('.ds-toast--error:not(.sg-toast-demo)')).toHaveCount(0);
+    await expect(page.locator('#sg-toasts .ds-toast--error')).toHaveCount(0);
     await settle(page);
     const focus = await page.evaluate(() => (document.activeElement && document.activeElement !== document.body ? document.activeElement.outerHTML.slice(0, 80) : 'body'));
     expect(focus).not.toBe('body');
   });
 
   test('reopening a closing dialog continues from its current opacity', async ({ page }) => {
-    await open(page);
-    await page.locator('[data-sg="dialog"]').click();
+    await open(page, { demo: 'dialog' });
+    await opener(page).click();
     await expect(pageDialog(page)).toBeVisible();
     await settle(page);
     // Cancel, hold the exit 25 % of the way through (the fade runs on the
@@ -227,7 +230,8 @@ test.describe('fixed in P5', () => {
     // and read the shown box's opacity before and after, all in one task:
     // no frame timing decides what is measured.
     const reopen = await page.evaluate(() => {
-      const shownBox = () => [...document.querySelectorAll('.ds-dialog:not(.ds-dialog--contained) .ds-dialog__box')].at(-1);
+      const opener = document.querySelector('#sg-stage button[data-ds-open]');
+      const shownBox = () => document.querySelector(`${opener.getAttribute('data-ds-open')} .ds-dialog__box`);
       const box = shownBox();
       [...box.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Cancel').click();
       // getAnimations() flushes styles, so the exit exists in this task.
@@ -238,7 +242,7 @@ test.describe('fixed in P5', () => {
         animation.currentTime = delay + 0.25 * Number(animation.effect.getComputedTiming().duration);
       }
       const before = Number(getComputedStyle(box).opacity);
-      document.querySelector('[data-sg="dialog"]').click();
+      opener.click();
       document.getAnimations().filter((a) => !window.ScrollTimeline || !(a.timeline instanceof ScrollTimeline));
       const after = Number(getComputedStyle(shownBox()).opacity);
       exit.forEach((a) => { if (a.playState === 'paused') a.play(); });
@@ -250,6 +254,7 @@ test.describe('fixed in P5', () => {
     expect(Math.abs(reopen.after - reopen.before), `opacity ${reopen.before} before the reopen, ${reopen.after} after`).toBeLessThan(0.05);
     await settle(page);
     await expect(pageDialog(page)).toHaveCount(1);
+    await expect(pageDialog(page)).toBeVisible();
     expect(await pageDialog(page).locator('.ds-dialog__box').evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(1);
   });
 });

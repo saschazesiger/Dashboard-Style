@@ -210,8 +210,8 @@ describe('generated files of the repository', () => {
     assert.match(read('themes/example.css'), /--ds-btn-height-exact: \(unset\);/);
   });
 
-  it('styleguide/lab-components.js: every <name>.lab.js after SG_LAB.add(), loaded by the Motion Lab between lab.js and styleguide.js', () => {
-    assert.match(read('styleguide/motion.html'), /<script src="lab\.js"><\/script>\n<script src="lab-components\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
+  it('styleguide/lab-components.js: every <name>.lab.js after SG_LAB.add(), loaded by the Motion Lab between lab.js and motion-lab.js', () => {
+    assert.match(read('styleguide/motion.html'), /<script src="lab\.js"><\/script>\n<script src="lab-components\.js"><\/script>\n<script src="motion-lab\.js"><\/script>/);
     const lab = [{ id: 'core-demo' }];
     const entry = "SG_LAB.add({ id: 'sample-open', group: 'overlays', title: 'Sample', shows: ['ds-fade-in'], html: '<p></p>', play: function () { return Promise.resolve(); } });";
     const fake = [{ name: 'sample', lab: 'src/components/sample/sample.lab.js' }];
@@ -232,7 +232,7 @@ describe('generated files of the repository', () => {
     assert.equal(typeof empty.SG_LAB.add, 'function');
   });
 
-  it('styleguide/demos.js: every <name>.demo.js registers through SG.demo() of sg-core.js, which both styleguide pages load first', () => {
+  it('styleguide/demos.js: every <name>.demo.js registers through SG.demo() of sg-core.js, which the styleguide loads first', () => {
     const run = (source, context) => vm.runInNewContext(source, context);
     const context = { DS: { icons: {}, overlay: {} } };
     context.globalThis = context;
@@ -249,7 +249,6 @@ describe('generated files of the repository', () => {
     // A demo file is a classic script: its top-level names stay inside its own function.
     assert.equal(context.DAYS, undefined);
     assert.match(read('styleguide/index.html'), /<script src="sg-core\.js"><\/script>\n<script src="registry\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="theme-generator\.js"><\/script>\n<script src="shell\.js"><\/script>/);
-    assert.match(read('styleguide/legacy.html'), /<script src="sg-core\.js"><\/script>\n<script src="registry\.js"><\/script>\n<script src="demos\.js"><\/script>\n<script src="styleguide\.js"><\/script>/);
   });
 
   it('styleguide/theme-generator.js: tools/theme.mjs as a classic script, the same themes from the same options', async () => {

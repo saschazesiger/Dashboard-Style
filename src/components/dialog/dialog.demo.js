@@ -36,6 +36,7 @@ SG.demo('dialog', {
     var form = h.uid('form');
     var name = h.uid('name');
     var busy = h.uid('busy');
+    var typed = h.uid('type');
     var sizeIds = sizes.map(function (size) { return h.uid('size-' + size[0]); });
     return h.section('Sizes', '<div class="sg-row" data-demo="sizes">' + sizes.map(function (size, index) {
       return '<button class="ds-btn" type="button" data-ds-open="#' + sizeIds[index] + '">' + size[1] + '</button>';
@@ -91,6 +92,27 @@ SG.demo('dialog', {
         '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Delete 3 devices</span></span></button></div></div></dialog>',
         'Escape, the backdrop and Cancel do nothing while the action runs.') +
 
+      h.section('Type the name to confirm', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + typed + '" data-demo="type-open">Delete LAPTOP-0042</button></div>' +
+        '<dialog class="ds-dialog ds-dialog--lg" id="' + typed + '" role="alertdialog" aria-labelledby="' + typed + '-title" aria-describedby="' + typed + '-text" data-demo="type"><div class="ds-dialog__backdrop" data-ds-close></div>' +
+        '<div class="ds-dialog__box"><h2 class="ds-dialog__title" id="' + typed + '-title">Delete LAPTOP-0042 for good?</h2>' +
+        '<div class="ds-dialog__body"><p class="ds-dialog__text" id="' + typed + '-text">Its history, tickets and documents go with it. This cannot be undone.</p>' +
+        '<div class="ds-alert ds-tone-warning">' + h.icon('alert', 20) + '<span class="ds-alert__text">The device is still assigned to Ada Lovelace.</span></div>' +
+        '<div class="ds-field"><label class="ds-field__label" for="' + typed + '-field">Type LAPTOP-0042 to confirm</label><input class="ds-input" id="' + typed + '-field" autocomplete="off" spellcheck="false" autocapitalize="off" autofocus data-demo="type-field"></div></div>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close data-demo="type-cancel">Cancel</button>' +
+        '<button class="ds-btn ds-btn--filled ds-tone-error" type="button" aria-disabled="true" data-tip="Type the name first" data-demo="type-ok"><span class="ds-btn__faces"><span class="ds-btn__face">Delete for good</span>' +
+        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Deleting</span></span></button></div></div></dialog>',
+        'The action stays blocked (aria-disabled, with its reason) until the name is typed; Enter runs it. While it runs, Escape and Cancel wait and the field is read-only.') +
+
+      h.section('Contained, in a 360px frame', '<div style="position:relative;block-size:360px;overflow:hidden" data-demo="contained">' +
+        '<div class="ds-dialog ds-dialog--contained"><div class="ds-dialog__backdrop" data-ds-close></div>' +
+        '<div class="ds-dialog__box" role="group" aria-label="Notify people"><h2 class="ds-dialog__title">Notify people</h2>' +
+        '<div class="ds-dialog__body"><p class="ds-dialog__text">They get an email when LAPTOP-0042 is back.</p>' +
+        ['Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Katherine Johnson', 'Margaret Hamilton', 'Edsger Dijkstra', 'Barbara Liskov', 'Donald Knuth', 'Frances Allen', 'John Backus', 'Ada Lovelace (deputy)', 'Alan Turing (deputy)'].map(function (name, index) {
+          return '<label class="ds-check"><input type="checkbox"' + (index < 2 ? ' checked' : '') + '><span>' + name + '</span></label>';
+        }).join('') + '</div>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--filled" type="button">Notify 2 people</button></div></div></div></div>',
+        'Div markup covers its positioned container instead of the window (a dialog inside an embedded widget), shown here in place: only the body scrolls, title and actions stay.') +
+
       h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; <kbd class="ds-kbd">Enter</kbd> submits a form dialog; the arrow keys move through an action sheet.</p>');
   },
 
@@ -125,6 +147,33 @@ SG.demo('dialog', {
     form.addEventListener('ds:close', function (event) {
       if (event.target === form && event.detail.reason === 'submit') h.toast('Saved.');
     });
+    // Type the name to confirm: what a page writes around the dialog (dialog.md, the type-to-confirm pattern).
+    var typedDialog = h.$('[data-demo="type"]', root);
+    var typedField = h.$('[data-demo="type-field"]', root);
+    var typedOk = h.$('[data-demo="type-ok"]', root);
+    var typedCancel = h.$('[data-demo="type-cancel"]', root);
+    var typedReady = function () { return typedField.value.trim() === 'LAPTOP-0042'; };
+    typedField.addEventListener('input', function () {
+      typedOk.setAttribute('aria-disabled', String(!typedReady()));
+      if (typedReady()) typedOk.removeAttribute('data-tip'); else typedOk.setAttribute('data-tip', 'Type the name first');
+    });
+    var typedRun = function () {
+      if (!typedReady() || typedDialog.hasAttribute('data-ds-busy')) return;
+      typedDialog.setAttribute('data-ds-busy', '');
+      typedField.readOnly = true;
+      typedCancel.setAttribute('aria-disabled', 'true');
+      DS.motion.busy(typedOk, work(false), { done: false }).then(function () {
+        typedDialog.removeAttribute('data-ds-busy');
+        typedField.readOnly = false;
+        typedCancel.removeAttribute('aria-disabled');
+        DS.overlay.close(typedDialog, { reason: 'confirm' });
+        h.toast('LAPTOP-0042 deleted.');
+      });
+    };
+    typedField.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !event.isComposing) { event.preventDefault(); typedRun(); }
+    });
+    typedOk.addEventListener('click', function (event) { if (event.detail < 2) typedRun(); });
     var busy = h.$('[data-demo="busy"]', root);
     var action = h.$('[data-demo="busy-action"]', root);
     var cancel = h.$('.ds-dialog__actions [data-ds-close]', busy);

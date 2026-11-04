@@ -9,8 +9,9 @@
  *
  * Routes (the hash): #/ overview · #/needs · #/components/<n> · #/colour ·
  * #/type · #/shape · #/elevation · #/motion · #/icons · #/tokens[?q=] ·
- * #/theme · #/search?q=<text>. The 2.x sections stay on legacy.html until
- * every component is ported (plans/3.0-conventions.md, section 7).
+ * #/theme · #/search?q=<text>. An address of the retired 2.x styleguide
+ * (index.html#buttons) opens the page that took its section over
+ * (OLD_SECTIONS).
  *
  * Hooks for the browser tests (test/browser/styleguide-v3.spec.js),
  * harmless when opened by hand:
@@ -18,7 +19,7 @@
  *                         theme are in place
  *   html[data-sg-route]   the route last rendered (its motion may still run)
  *   html[data-sg-theme]   "<preset>[-contrast] <scheme>", once that theme applies
- *   ?speed=0.1            slow motion, as on legacy.html and the Motion Lab
+ *   ?speed=0.1            slow motion, as on the Motion Lab
  *   #sg-stage             the stage around a demo: a .ds-theme with the
  *                         options' classes and data-ds-scheme
  */
@@ -36,7 +37,7 @@
   var esc = function (text) { return String(text).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var html = document.documentElement;
 
-  /* ── Slow motion: the speed select and ?speed=<factor> (as legacy.html) ── */
+  /* ── Slow motion: the speed select and ?speed=<factor> (as motion.html) ── */
 
   var SPEEDS = [1, 0.5, 0.25, 0.1];
   var SPEED_KEY = 'ds-styleguide-speed';
@@ -91,6 +92,25 @@
    * choice before the first paint; this keeps it in step.
    */
   var PRESETS = ['default', 'slate', 'ocean', 'forest', 'violet', 'amber', 'rose', 'graphite'];
+
+  /*
+   * A theme file on top of the preset, loaded after it as a project loads
+   * its theme after ds.css: the shipped themes of dist/themes/, the
+   * template themes/example.css, "system" (dark and contrast for the media
+   * that ask for them) and two snippets that try a theme's reach (a square
+   * flat look, disabled controls dimmed by opacity). [label, files as
+   * [href, media], snippet]. A stored one applies before data-sg-ready.
+   */
+  var THEME_FILES = {
+    '': ['None'],
+    dark: ['themes/dark.css', [['../dist/themes/dark.css', '']]],
+    compact: ['themes/compact.css', [['../dist/themes/compact.css', '']]],
+    contrast: ['themes/contrast.css', [['../dist/themes/contrast.css', '']]],
+    example: ['themes/example.css', [['../themes/example.css', '']]],
+    system: ['System: dark and contrast as the device asks', [['../dist/themes/dark.css', '(prefers-color-scheme: dark)'], ['../dist/themes/contrast.css', '(prefers-contrast: more)']]],
+    square: ['Snippet: square, flat', [], '.ds-theme {\n  --ds-radius-xs: 0; --ds-radius-sm: 0; --ds-radius-md: 0; --ds-radius-lg: 0; --ds-radius-xl: 0; --ds-radius-2xl: 0;\n  --ds-radius-chip: 9999px;\n  --ds-elev-hover: none; --ds-elev-overlay: none;\n  --ds-dialog-border: 1px solid var(--ds-line);\n  --ds-backdrop: #ffffff; --ds-surface-low: #f6f6f6; --ds-surface-high: #f0f0f0;\n  --ds-text: #000000; --ds-primary: #202124; --ds-accent: #e8eaed; --ds-on-accent: #000000;\n  --ds-link-underline: rgba(0, 0, 0, .35);\n  --ds-alert-edge: 4px;\n}'],
+    dim: ['Snippet: dimmed disabled', [], '.ds-theme {\n  --ds-disabled-opacity: var(--ds-state-disabled); --ds-disabled-fill: initial; --ds-disabled-ink: initial;\n}'],
+  };
   var THEME_KEY = 'ds-sg3-theme';
   var theme = (function () {
     var stored = {};
@@ -99,6 +119,7 @@
       preset: PRESETS.indexOf(stored.preset) >= 0 ? stored.preset : 'default',
       contrast: stored.contrast === true,
       scheme: ['light', 'dark', 'auto'].indexOf(stored.scheme) >= 0 ? stored.scheme : 'auto',
+      file: Object.prototype.hasOwnProperty.call(THEME_FILES, stored.file) ? stored.file : '',
     };
   }());
   /** The stylesheet of the theme generator while "Use in the styleguide" is on, or a loaded theme file (not stored). */
@@ -107,16 +128,31 @@
   var loadedSource = null;
 
   function presetHref(t) { return '../dist/themes/presets/' + t.preset + (t.contrast ? '-contrast' : '') + '.css'; }
-  function themeName() { return (loadedSource ? 'file' : generated ? 'generated' : theme.preset + (theme.contrast ? '-contrast' : '')) + ' ' + theme.scheme; }
+  function themeName() { return (loadedSource ? 'file' : generated ? 'generated' : theme.preset + (theme.contrast ? '-contrast' : '')) + ' ' + theme.scheme + (theme.file ? ' +' + theme.file : ''); }
 
   function applyScheme(target) {
     if (theme.scheme === 'auto') target.removeAttribute('data-ds-scheme');
     else target.setAttribute('data-ds-scheme', theme.scheme);
   }
 
-  /* Loads the new preset on the spare link (media "not all" until it has
-     loaded), then swaps the links in one step, so the page never shows
-     the system's defaults in between. */
+  /* Calls back once `link` has the sheet of `href`: at once when it has it
+     already (no load event follows), else on its load or error event. */
+  function whenLoaded(link, href, callback) {
+    if (link.getAttribute('href') === href && link.sheet) { callback(); return; }
+    var loaded = function () {
+      link.removeEventListener('load', loaded);
+      link.removeEventListener('error', loaded);
+      callback();
+    };
+    link.addEventListener('load', loaded);
+    link.addEventListener('error', loaded);
+    link.setAttribute('href', href);
+  }
+
+  /* Loads the new preset on the spare link and the theme file's links
+     (media "not all" until they have loaded: a disabled link would not
+     load at all), then switches in one step, so the page never shows the
+     system's defaults or half a theme in between. */
   var themeRun = 0;
   function applyTheme(done) {
     var run = themeRun += 1;
@@ -125,8 +161,21 @@
     var live = links[0].disabled ? links[1] : links[0];
     var spare = live === links[0] ? links[1] : links[0];
     var href = presetHref(theme);
+    var swapPreset = !(live.getAttribute('href') === href && !live.disabled);
+    var fileLinks = [$('#sg-theme-file-1'), $('#sg-theme-file-2')];
+    var entry = THEME_FILES[theme.file];
+    var files = entry[1] || [];
     var finish = function () {
       if (run !== themeRun) return;
+      if (swapPreset) {
+        spare.media = '';
+        live.disabled = true;
+      }
+      fileLinks.forEach(function (link, i) {
+        link.media = files[i] ? files[i][1] : '';
+        link.disabled = !files[i];
+      });
+      $('#sg-theme-snippet').textContent = entry[2] || '';
       applyScheme(html);
       var stage = $('#sg-stage');
       if (stage && stageHandle) stageHandle.update({ scheme: theme.scheme });
@@ -135,20 +184,24 @@
       afterTheme();
       if (done) done();
     };
-    if (live.getAttribute('href') === href && !live.disabled) { finish(); return; }
-    spare.media = 'not all';
-    spare.disabled = false;
+    var waiting = 1 + files.length;
     var loaded = function () {
-      spare.removeEventListener('load', loaded);
-      spare.removeEventListener('error', loaded);
-      if (run !== themeRun) return;
-      spare.media = '';
-      live.disabled = true;
-      finish();
+      waiting -= 1;
+      if (!waiting) finish();
     };
-    spare.addEventListener('load', loaded);
-    spare.addEventListener('error', loaded);
-    spare.setAttribute('href', href);
+    if (swapPreset) {
+      spare.media = 'not all';
+      spare.disabled = false;
+      whenLoaded(spare, href, loaded);
+    } else {
+      loaded();
+    }
+    files.forEach(function (file, i) {
+      var link = fileLinks[i];
+      if (link.disabled) link.media = 'not all';
+      link.disabled = false;
+      whenLoaded(link, file[0], loaded);
+    });
   }
 
   /* What depends on the theme's values: the colour page's values and its check, the indicators. */
@@ -179,16 +232,15 @@
   function titleOf(name) { return name.replace(/-/g, ' ').replace(/^\w/, function (c) { return c.toUpperCase(); }); }
 
   /*
-   * Where each 2.x component shows on legacy.html until its demo is
-   * ported (a section of styleguide.js). Goes with legacy.html.
+   * The sections of the retired 2.x styleguide (index.html#<id> before
+   * 3.0, legacy.html until 3.0.0-alpha.4) and the page that took each
+   * over: an old address of index.html opens it.
    */
-  var LEGACY = {
-    button: 'buttons', status: 'status', alert: 'status', badge: 'status', empty: 'cards', card: 'cards', list: 'cards',
-    tile: 'cards', timeline: 'cards', tasks: 'cards', disclosure: 'cards', prose: 'cards', table: 'table', pagination: 'table',
-    form: 'forms', slider: 'forms', drag: 'forms', savebar: 'forms', chip: 'selection', switch: 'selection', combobox: 'selection',
-    dialog: 'overlays', sheet: 'overlays', menu: 'overlays', toast: 'overlays', tooltip: 'overlays', loading: 'loading',
-    loader: 'loading', spinner: 'loading', progress: 'loading', chart: 'charts', shell: 'frame', tabs: 'frame', steps: 'frame',
-    page: 'frame', scroller: 'frame', utilities: 'frame',
+  var OLD_SECTIONS = {
+    overview: '', colour: 'colour', type: 'type', shape: 'shape', buttons: 'components/button', status: 'components/status',
+    cards: 'components/card', table: 'components/table', forms: 'components/form', selection: 'components/chip',
+    overlays: 'components/dialog', loading: 'components/loading', charts: 'components/chart', frame: 'components/shell',
+    motion: 'motion', icons: 'icons',
   };
 
   /** Every component: the registry's (meta.json) joined with its demo, in group and meta.json order. */
@@ -242,11 +294,7 @@
     return Object.keys(I).filter(function (name) { return typeof I[name] === 'string' && I[name].charAt(0) === '<'; });
   }
 
-  function componentHref(c) { return c.spec ? '#/components/' + c.name : 'legacy.html' + (LEGACY[c.name] ? '#' + LEGACY[c.name] : ''); }
-
-  function statusTag(c) {
-    return c.spec ? '<span class="ds-tag">3.0 demo</span>' : '<span class="ds-tag ds-tone-neutral">2.x section</span>';
-  }
+  function componentHref(c) { return '#/components/' + c.name; }
 
   /* Overview */
   function overviewPage() {
@@ -254,15 +302,14 @@
     return '<section class="sg-hero" aria-labelledby="sg-hero-title"><h1 id="sg-hero-title" tabindex="-1">Dashboard-Style ' + esc(DS.version) + '</h1>' +
       '<p>A calm, themeable design system for admin dashboards. Every component on its own page with every option: size, density, shape, tone, variant, colour scheme, contrast, theme preset and touch, at any width.</p>' +
       '<div class="sg-row"><a class="ds-btn ds-btn--filled" href="#/needs">Which component for which need</a><a class="ds-btn" href="#/theme">' + icon('wand', 18) + 'Theme generator</a><a class="ds-btn ds-btn--text" href="motion.html">Motion Lab ' + icon('arrowRight', 16) + '</a></div></section>' +
-      '<div class="ds-tiles">' + tile('Components', String(COMPONENTS.length), 'apps', DEMOED.length + ' with a 3.0 demo') + tile('Tokens', String(REG.tokens.length), 'braces', 'roles, scales and seeds') +
+      '<div class="ds-tiles">' + tile('Components', String(COMPONENTS.length), 'apps', 'one folder each, with a demo') + tile('Tokens', String(REG.tokens.length), 'braces', 'roles, scales and seeds') +
       tile('Icons', String(glyphs().length), 'image', 'outline, 24px grid') + tile('Dependencies', '0', 'box', 'plain CSS and JS') + '</div>' +
       '<div class="sg-group-grid">' + groups.map(function (group) {
         return '<section class="ds-card" aria-labelledby="sg-g-' + group.id + '"><h2 class="ds-card__title sg-card-title" id="sg-g-' + group.id + '">' + icon(groupIcon(group.id), 20) + '<span>' + esc(groupTitle(group.id)) + '</span></h2>' +
           '<ul class="sg-links">' + group.items.map(function (c) {
-            return '<li><a href="' + componentHref(c) + '">' + esc(c.title) + '</a>' + (c.spec ? '' : ' <span class="ds-meta">2.x</span>') + '</li>';
+            return '<li><a href="' + componentHref(c) + '">' + esc(c.title) + '</a></li>';
           }).join('') + '</ul></section>';
-      }).join('') + '</div>' +
-      '<div class="ds-alert sg-note" role="note">' + icon('info', 20) + '<span class="ds-alert__text"><strong>Porting in progress.</strong> Components without a 3.0 demo link to their section on the <a href="legacy.html">2.x styleguide</a>, which phase 1 retires once every component has moved into its folder.</span></div>';
+      }).join('') + '</div>';
   }
 
   function groupsOf(list) {
@@ -293,15 +340,15 @@
 
   function needsPage() {
     var rows = needRows();
-    return head('Which component for which need', 'Find the need, then open its component. Rows of a component without a 3.0 demo yet open its section of the 2.x styleguide.') +
+    return head('Which component for which need', 'Find the need, then open its component.') +
       '<section class="ds-card" aria-labelledby="sg-needs-title"><h2 class="ds-sr" id="sg-needs-title">Needs</h2><div class="ds-toolbar sg-filter"><div class="ds-search">' + icon('search', 20) +
       '<input class="ds-input" id="sg-need-filter" type="search" aria-label="Filter needs" placeholder="Filter: a need, a component, a group"></div><span class="ds-meta" id="sg-need-count" aria-live="polite">' + rows.length + ' needs</span></div>' +
       '<div class="ds-table-wrap" tabindex="0" role="region" aria-label="Components by need"><table class="ds-table">' +
-      '<thead><tr><th scope="col">Need</th><th scope="col">Component</th><th scope="col" class="ds-col--secondary">Group</th><th scope="col" class="ds-col--secondary">Demo</th></tr></thead><tbody>' +
+      '<thead><tr><th scope="col">Need</th><th scope="col">Component</th><th scope="col" class="ds-col--secondary">Group</th></tr></thead><tbody>' +
       rows.map(function (row) {
         var c = row.c;
         return '<tr data-sg-need="' + c.name + '" data-sg-text="' + esc((row.need + ' ' + c.title + ' ' + c.name + ' ' + groupTitle(c.group)).toLowerCase()) + '"><td class="ds-col--text">' + esc(row.need) + '</td>' +
-          '<td><a href="' + componentHref(c) + '">' + esc(c.title) + '</a></td><td class="ds-col--secondary">' + esc(groupTitle(c.group)) + '</td><td class="ds-col--secondary">' + statusTag(c) + '</td></tr>';
+          '<td><a href="' + componentHref(c) + '">' + esc(c.title) + '</a></td><td class="ds-col--secondary">' + esc(groupTitle(c.group)) + '</td></tr>';
       }).join('') + '</tbody></table></div></section>';
   }
 
@@ -323,9 +370,8 @@
   function componentPage(c) {
     var spec = c.spec;
     var links = '<div class="sg-row sg-row--meta">' + '<span class="ds-tag ds-tone-neutral">' + icon(groupIcon(c.group), 16) + esc(groupTitle(c.group)) + '</span>' +
-      (c.tier ? '<span class="ds-tag ds-tone-neutral">Tier ' + esc(c.tier) + '</span>' : '') + (c.status ? '<span class="ds-tag ds-tone-neutral">' + esc(cap(c.status)) + '</span>' : '') + statusTag(c) +
-      '<a class="ds-btn ds-btn--text ds-sm" href="../docs/components.md' + (c.docs ? '#' + c.docs : '') + '">' + icon('fileText', 16) + 'Docs</a>' +
-      (LEGACY[c.name] ? '<a class="ds-btn ds-btn--text ds-sm" href="legacy.html#' + LEGACY[c.name] + '">' + icon('history', 16) + '2.x section</a>' : '') + '</div>';
+      (c.tier ? '<span class="ds-tag ds-tone-neutral">Tier ' + esc(c.tier) + '</span>' : '') + (c.status ? '<span class="ds-tag ds-tone-neutral">' + esc(cap(c.status)) + '</span>' : '') +
+      '<a class="ds-btn ds-btn--text ds-sm" href="../docs/components.md' + (c.docs ? '#' + c.docs : '') + '">' + icon('fileText', 16) + 'Docs</a></div>';
     return head(esc(spec.title), esc(spec.need || c.need), links) +
       (spec.lead ? '<p class="sg-lead">' + spec.lead + '</p>' : '') +
       optionsPanel(spec) +
@@ -397,6 +443,7 @@
     if (c.variants.length) parts.push(select('variant', 'Variant', [['', 'Every variant']].concat(pairs(c.variants)), ''));
     parts.push(field('Colour scheme', segmented('scheme', 'Colour scheme', [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']], theme.scheme)));
     parts.push(select('preset', 'Theme preset', PRESETS.map(function (p) { return [p, cap(p)]; }), theme.preset));
+    parts.push(themeFileSelect());
     var width = stageChoice.width || WIDTH_MAX;
     parts.push('<div class="ds-field sg-width"><label class="ds-field__label" for="sg-opt-width">Width</label><div class="ds-field__row">' +
       '<input class="ds-slider" id="sg-opt-width" type="range" min="' + WIDTH_MIN + '" max="' + WIDTH_MAX + '" step="10" value="' + width + '" aria-describedby="sg-opt-width-out" data-sg-option="width" style="--ds-share:' + share(width) + '">' +
@@ -407,7 +454,12 @@
       '<div class="sg-row"><button class="ds-btn ds-btn--text ds-sm" type="button" data-sg="reset-options">' + icon('reset', 16) + 'Reset</button>' +
       '<button class="ds-btn ds-sm ds-btn--disclosure" type="button" data-sg="toggle-options" aria-expanded="' + open + '" aria-controls="sg-options-body">' + (open ? 'Hide' : 'Show') + '</button></div></div>' +
       '<div id="sg-options-body"' + (open ? '' : ' hidden') + '><div class="sg-options__grid">' + parts.join('') + '</div>' +
-      '<p class="ds-meta sg-options__note">Size, density, shape, tone and touch are classes on the stage, which is a <code>.ds-theme</code> of its own; the scheme, contrast and preset apply to the whole page.</p></div></section>';
+      '<p class="ds-meta sg-options__note">Size, density, shape, tone and touch are classes on the stage, which is a <code>.ds-theme</code> of its own; the scheme, contrast, preset and theme file apply to the whole page.</p></div></section>';
+  }
+
+  /** The theme file on top of the preset (THEME_FILES). */
+  function themeFileSelect() {
+    return select('file', 'Theme file', Object.keys(THEME_FILES).map(function (key) { return [key, THEME_FILES[key][0]]; }), theme.file);
   }
 
   /* Open on wide screens; on a phone the panel starts closed, so the demo is in view. The choice holds for the visit. */
@@ -464,10 +516,10 @@
 
   /** One choice of the panel: the stage's (classes around the demo) or the page's (the theme). */
   function choose(name, value) {
-    if (name === 'scheme' || name === 'preset' || name === 'contrast') {
+    if (name === 'scheme' || name === 'preset' || name === 'contrast' || name === 'file') {
       if (name === 'contrast') theme.contrast = Boolean(value);
       else theme[name] = value;
-      if (name !== 'scheme') { generated = null; loadedSource = null; }
+      if (name === 'preset' || name === 'contrast') { generated = null; loadedSource = null; }
       applyTheme();
       return;
     }
@@ -478,7 +530,7 @@
     if (stageHandle) stageHandle.update(stageChoice);
   }
 
-  /* ── Foundations (from the 2.x sections) ───────────────────────────── */
+  /* ── Foundations ───────────────────────────────────────────────────── */
 
   var COLOURS = [
     ['Surfaces', ['--ds-backdrop', '--ds-surface', '--ds-surface-low', '--ds-surface-high', '--ds-surface-highest', '--ds-surface-overlay', '--ds-surface-popover']],
@@ -505,6 +557,7 @@
     return '<section class="ds-card sg-options sg-options--theme" aria-label="Theme"><div class="sg-options__grid">' +
       field('Colour scheme', segmented('scheme', 'Colour scheme', [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']], theme.scheme)) +
       select('preset', 'Theme preset', PRESETS.map(function (p) { return [p, cap(p)]; }), theme.preset) +
+      themeFileSelect() +
       '<div class="sg-switches">' + toggle('contrast', 'High contrast', theme.contrast) + '</div>' +
       '<div class="sg-row sg-load"><button class="ds-btn ds-sm" type="button" data-sg="load-theme">' + icon('upload', 16) + 'Load theme file\u2026</button>' +
       '<input type="file" id="sg-theme-file" accept=".css,text/css" hidden></div></div></section>';
@@ -630,6 +683,9 @@
   };
   var PAIR_MIN = { text: 4.5, control: 3, icon: 3, chart: 3 };
 
+  /* The motion families a theme never sets (MOTION_FAMILIES of theme-rules.mjs; test/tools.test.js keeps the copy equal). */
+  var THEME_MOTION = /--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/g;
+
   /* The computed colours of roles, as { name: [r, g, b, a] or null }, in `scheme`. */
   function roleColours(names, scheme) {
     var box = document.createElement('div');
@@ -722,7 +778,7 @@
     if (loadedSource) {
       // What only the file shows (tools/check-theme.mjs checks the same).
       var text = loadedSource.replace(/\/\*[\s\S]*?\*\//g, '');
-      var motion = text.match(/--ds-(dur|ease|distance|loop|stagger|delay|hold|scale|time-scale|motion|enter|leave|clip-from|draw-length|scan|indicator-lag|indicator-dur)[\w-]*\s*:/g);
+      var motion = text.match(THEME_MOTION);
       if (motion) rows.push({ ok: false, text: 'Sets motion tokens or hooks (' + motion.map(function (m) { return '<code>' + m.replace(/\s*:$/, '') + '</code>'; }).join(', ') + '): motion is one scheme for every product' });
       if (/:root\b/.test(text)) rows.push({ ok: false, text: 'Rules on <code>:root</code>: tokens live on <code>.ds-theme</code>' });
       if (/@layer\b/.test(text)) rows.push({ ok: false, text: 'Uses <code>@layer</code>: a theme stays unlayered' });
@@ -1104,6 +1160,10 @@
     var query = new URLSearchParams(at >= 0 ? path.slice(at + 1) : '');
     path = at >= 0 ? path.slice(0, at) : path;
     var parts = path.split('/').filter(Boolean);
+    // A 2.x section's address (#buttons): the page that took it over, its address rewritten (show()).
+    if (parts.length === 1 && String(hash).indexOf('#/') !== 0 &&Object.prototype.hasOwnProperty.call(OLD_SECTIONS, parts[0])) {
+      return Object.assign(parse('#/' + OLD_SECTIONS[parts[0]]), { moved: true });
+    }
     if (!parts.length) return { name: 'overview', key: '' };
     if (parts[0] === 'components' && parts[1]) return { name: 'component', key: 'components/' + parts[1], component: parts[1] };
     if (parts[0] === 'search') return { name: 'search', key: 'search', q: query.get('q') || '' };
@@ -1134,12 +1194,9 @@
     if (r.name === 'component') {
       var c = component(r.component);
       if (c && c.spec) return componentPage(c);
-      if (c) return head(esc(c.title), esc(c.need), '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('history', 24) + '</span><p class="ds-empty__title">Not ported yet</p><p class="ds-empty__text">' + esc(c.title) + ' still shows on the 2.x styleguide.</p><a class="ds-btn" href="' + componentHref(c) + '">Open its 2.x section</a></div>';
+      if (c) return head(esc(c.title), esc(c.need), '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('fileText', 24) + '</span><p class="ds-empty__title">No demo yet</p><p class="ds-empty__text">' + esc(c.title) + ' has no <code>' + esc(c.name) + '.demo.js</code>; its markup is in the docs.</p><a class="ds-btn" href="../docs/components.md' + (c.docs ? '#' + c.docs : '') + '">Open the docs</a></div>';
     }
-    // An address of the 2.x page (index.html#buttons from before): that section stays on legacy.html.
-    var legacy = Object.keys(LEGACY).some(function (name) { return LEGACY[name] === r.key; });
-    return head('Not found', '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('search', 24) + '</span><p class="ds-empty__title">No page “' + esc(r.key) + '”</p><p class="ds-empty__text">' +
-      (legacy ? 'That section stays on the 2.x styleguide for now.' : 'Use the drawer or the search.') + '</p>' + (legacy ? '<a class="ds-btn" href="legacy.html#' + esc(r.key) + '">Open the 2.x section</a>' : '<a class="ds-btn" href="#/">Overview</a>') + '</div>';
+    return head('Not found', '') + '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('search', 24) + '</span><p class="ds-empty__title">No page “' + esc(r.key) + '”</p><p class="ds-empty__text">Use the drawer or the search.</p><a class="ds-btn" href="#/">Overview</a></div>';
   }
 
   function wirePage(page, r) {
@@ -1157,7 +1214,7 @@
     renderThemeCheck();
   }
 
-  /* Markup into the page through an inert <template> (as legacy.html): no
+  /* Markup into the page through an inert <template> (as motion-lab.js): no
      <svg> parsed into the document ends the render block of <link rel="expect"> early. */
   function setHtml(element, markup) {
     var template = document.createElement('template');
@@ -1182,6 +1239,7 @@
     setActive();
     if (!(options && options.keepScroll)) $('#main').scrollTop = 0;
     if ($('#sg-search') !== document.activeElement) $('#sg-search').value = r.name === 'search' ? r.q : '';
+    if (r.moved) history.replaceState(null, '', '#/' + r.key);
     html.setAttribute('data-sg-route', r.key);
   }
 
@@ -1197,7 +1255,7 @@
     return group('Start', [item('#/', 'Overview', 'overview'), item('#/needs', 'Which component', 'helpCircle')]) +
       group('Foundations', FOUNDATIONS.map(function (f) { return item('#/' + f[0], f[1], f[2]); })) +
       groupsOf(DEMOED).map(function (g) { return group(esc(groupTitle(g.id)), g.items.map(function (c) { return item('#/components/' + c.name, esc(c.title), groupIcon(c.group)); })); }).join('') +
-      group('More', [item('motion.html', 'Motion Lab', 'activity'), item('legacy.html', '2.x styleguide', 'history')]);
+      group('More', [item('motion.html', 'Motion Lab', 'activity')]);
   }
 
   /* The current drawer item: the route's own, the tokens page for its filter, nothing for search. */

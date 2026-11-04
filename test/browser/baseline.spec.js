@@ -1,9 +1,10 @@
 /**
- * Settled screenshots of today's state (P0 baseline): every styleguide
- * section, the fixture controls at rest and in their hover, pressed,
- * keyboard-focus and disabled states, the feedback and shell parts, the
- * styleguide overlays, the two reset fixtures; in Chromium also the phone
- * width, the theme presets and forced colours (skipped, with the reason,
+ * Settled screenshots of today's state (P0 baseline): the styleguide's
+ * pages and every component demo, the fixture controls at rest and in
+ * their hover, pressed, keyboard-focus and disabled states, the feedback
+ * and shell parts, the overlays of the demos, the two reset fixtures; in
+ * Chromium also the phone
+ * width, the theme files and forced colours (skipped, with the reason,
  * where an engine cannot emulate them).
  *
  * One set, element shots (or a clip around the part), no full pages. Later
@@ -19,34 +20,36 @@
  * covers.
  */
 import { test, expect } from '@playwright/test';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { ready, settle, focusByKeyboard } from './helpers/motion.js';
 
 // Dozens of comparisons per test: WebKit needs more than the default 30s under load.
 test.describe.configure({ timeout: 120000 });
 
-const STYLEGUIDE = '/styleguide/legacy.html';
+const STYLEGUIDE = '/styleguide/index.html';
 const FIXTURES = '/test/browser/fixtures/';
 
 /**
- * The 2.x styleguide's sections (legacy.html): overview, then every
- * section('<id>' and ported('<id>' call of styleguide.js (a ported section
- * renders its demo of src/components/<n>/<n>.demo.js in its old place).
+ * The styleguide's pages: the overview and the foundations (the tokens
+ * page, a table of every name, and the search are lists, not looks), then
+ * every component's demo, each read from its folder
+ * (src/components/<n>/<n>.demo.js). The 2.x sections they took over were
+ * shot here until legacy.html was retired.
  */
-const SECTIONS = ['overview', ...[...readFileSync(new URL('../../styleguide/styleguide.js', import.meta.url), 'utf8')
-  .matchAll(/\b(?:section|ported)\('([\w-]+)'/g)].map((match) => match[1])];
+const FOUNDATIONS = ['', 'colour', 'type', 'shape', 'elevation', 'motion', 'icons', 'theme'];
+const DEMOS = readdirSync(new URL('../../src/components/', import.meta.url))
+  .filter((name) => existsSync(new URL(`../../src/components/${name}/${name}.demo.js`, import.meta.url))).sort();
 
-/* Taller than the longest section, since the view scrolls and a shot
-   paints only what is inside the viewport (a taller section came out cut
-   off, or with a blank top, and depended on the timing of scripts that run
-   during the capture). At 1280px the view is the viewport less the 64px
-   top bar; the longest sections with their 2.0 demos are the frame
-   (4,656px), forms (4,613px) and cards (4,370px). At 390px the frame
-   section is 5,562px. The theme presets and the forced colours shoot the
-   forms and cards sections too, so they share the height. */
-const TALL = { width: 1280, height: 4800 };
-const SECTIONS_TALL = TALL;
-const PHONE_SECTIONS_TALL = { width: 390, height: 6200 };
+/* Taller than the longest page, since the view scrolls and a shot paints
+   only what is inside the viewport (a taller part came out cut off, or
+   with a blank top, and depended on the timing of scripts that run during
+   the capture). At 1280px the view is the viewport less the 64px top bar;
+   the longest demos are the table, the form and the list. At 390px they
+   grow taller still. The theme files and the forced colours shoot the
+   button, form and card demos too, so they share the height. */
+const TALL = { width: 1280, height: 6400 };
+const PAGES_TALL = TALL;
+const PHONE_PAGES_TALL = { width: 390, height: 9600 };
 
 function annotate(...anchors) {
   for (const anchor of anchors) test.info().annotations.push({ type: 'src', description: anchor });
@@ -72,20 +75,38 @@ function park(page) {
   return page.mouse.move(1, 1);
 }
 
-/** Waits for the styleguide's count-up tiles to show their final value. */
-function countsDone(page) {
-  return page.waitForFunction(() => [...document.querySelectorAll('.ds-tile__value[data-count]')].every((el) => {
-    const final = Number(el.getAttribute('data-count')).toLocaleString('en-US') + (el.getAttribute('data-suffix') || '');
-    return el.textContent === final;
-  }));
-}
-
 async function open(page, path) {
   await page.goto(path);
   await ready(page);
   await park(page);
-  if (path.startsWith(STYLEGUIDE)) await countsDone(page);
   await settle(page);
+}
+
+/**
+ * Shows a route of the styleguide (`colour`, `components/button`): the
+ * first one loads the page, the next ones change the hash as the drawer
+ * does, and wait for the route's fade-through to end.
+ */
+async function route(page, key) {
+  if (!page.url().includes(STYLEGUIDE)) {
+    await open(page, `${STYLEGUIDE}#/${key}`);
+    return;
+  }
+  await page.evaluate((hash) => { location.hash = hash; }, `#/${key}`);
+  await expect(page.locator('html')).toHaveAttribute('data-sg-route', key);
+  await page.waitForFunction(() => !document.documentElement.hasAttribute('data-ds-vt'), null, { timeout: 15000 });
+  await park(page);
+  await settle(page);
+}
+
+/** What a route's shot shows: a component's demo (the stage), or the whole page of a foundation. */
+function subject(page, key) {
+  return page.locator(key.startsWith('components/') ? '#sg-stage' : '#sg-page');
+}
+
+/** The shot's name of a route: page-<route>.png, demo-<component>.png. */
+function shotName(prefix, key) {
+  return `${prefix}${key.startsWith('components/') ? `demo-${key.slice('components/'.length)}` : `page-${key || 'overview'}`}.png`;
 }
 
 /**
@@ -148,7 +169,8 @@ async function shoot(locator, name, { loop = 0 } = {}) {
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await settle(page, { timeout: 10000 });
   await pauseLoops(page, loop);
-  await expect.soft(locator, name).toHaveScreenshot(name, { animations: 'allow' });
+  // A page-tall shot in a 6400px viewport takes WebKit seconds per capture under a parallel run.
+  await expect.soft(locator, name).toHaveScreenshot(name, { animations: 'allow', timeout: 20000 });
 }
 
 /** The same for a clip around the element (states whose ring or halo leaves the box). */
@@ -167,17 +189,30 @@ async function shootViewport(page, name) {
   await expect.soft(page, name).toHaveScreenshot(name, { animations: 'allow' });
 }
 
-/* ── Styleguide sections ───────────────────────────────────────────── */
+/* ── Styleguide pages ──────────────────────────────────────────────── */
 
-test.describe('styleguide sections', () => {
-  test.use({ viewport: SECTIONS_TALL });
+test.describe('styleguide pages', () => {
+  test.use({ viewport: PAGES_TALL });
 
-  test('every section, settled', async ({ page }) => {
-    expect(SECTIONS, 'overview plus the section() and ported() calls of styleguide.js').toHaveLength(16);
-    await open(page, STYLEGUIDE);
-    annotate('components/table.css:198-226');
-    for (const id of SECTIONS) await shoot(page.locator(`#${id}`), `section-${id}.png`);
+  test('the overview and every foundation, settled', async ({ page }) => {
+    for (const key of FOUNDATIONS) {
+      await route(page, key);
+      await shoot(subject(page, key), shotName('', key));
+    }
   });
+
+  test('every component has a demo', () => {
+    const folders = readdirSync(new URL('../../src/components/', import.meta.url)).filter((name) => !name.startsWith('_')).sort();
+    expect(DEMOS, 'a demo per component folder').toEqual(folders);
+  });
+
+  for (const name of DEMOS) {
+    test(`the ${name} demo, settled`, async ({ page }) => {
+      if (name === 'table') annotate('components/table.css:198-226');
+      await route(page, `components/${name}`);
+      await shoot(subject(page, `components/${name}`), shotName('', `components/${name}`));
+    });
+  }
 });
 
 /* ── Fixture controls: rest, hover, pressed, keyboard focus, disabled ── */
@@ -360,41 +395,43 @@ test.describe('app frame', () => {
 
 test.describe('overlays', () => {
   test('dialog and side sheet at 1280px', async ({ page }) => {
-    await open(page, STYLEGUIDE);
-    await page.locator('[data-sg="dialog"]').click();
+    await route(page, 'components/dialog');
+    await page.locator('#sg-stage button[data-ds-open]').first().click();
     await park(page);
     await shootViewport(page, 'overlay-dialog.png');
     await page.keyboard.press('Escape');
-    await expect(page.locator('body > .ds-dialog')).toHaveCount(0);
-    await page.locator('[data-sg="sheet"]').click();
+    await expect(page.locator('#sg-stage dialog.ds-dialog[open]')).toHaveCount(0);
+    await route(page, 'components/sheet');
+    await page.locator('#sg-stage button[data-ds-open]').first().click();
     await park(page);
     await shootViewport(page, 'overlay-sheet.png');
   });
 
   test('side sheet at 390px', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 800 });
-    await open(page, STYLEGUIDE);
-    await page.locator('[data-sg="sheet"]').click();
+    await route(page, 'components/sheet');
+    await page.locator('#sg-stage button[data-ds-open]').first().click();
     await park(page);
     await shootViewport(page, 'overlay-sheet-phone.png');
   });
 
   test('two snackbars, the tooltip and the open combobox', async ({ page }) => {
-    await open(page, STYLEGUIDE);
+    await route(page, 'components/toast');
     // DS.overlay.toast() closes a plain snackbar after 4s and more: keep it for the shot.
     await page.evaluate(() => {
       const later = window.setTimeout;
       window.setTimeout = (fn, ms, ...args) => (ms >= 4000 ? 0 : later(fn, ms, ...args));
     });
-    await page.locator('[data-sg="toast"]').click();
-    await page.locator('[data-sg="toast-error"]').click();
+    await page.locator('[data-toast-demo="saved"]').click();
+    await page.locator('[data-toast-demo="error"]').click();
     await park(page);
     await expect(page.locator('#sg-toasts > .ds-toast')).toHaveCount(2);
     await shootAround(page.locator('#sg-toasts'), 'overlay-snackbars.png', { pad: 16 });
     await page.locator('#sg-toasts .ds-toast__close').click();
     await expect(page.locator('#sg-toasts > .ds-toast--error')).toHaveCount(0);
 
-    const anchor = page.locator('#overlays [data-tip]').first();
+    await route(page, 'components/tooltip');
+    const anchor = page.locator('#sg-stage [data-demo="toolbar"] [data-tip]').first();
     await pointAt(anchor);
     await expect(page.locator('.ds-tooltip[role="tooltip"]')).toBeVisible();
     await settle(page);
@@ -413,14 +450,16 @@ test.describe('overlays', () => {
     await park(page);
 
     // The combobox list, opened from its chevron: the field and the list.
-    await page.locator('#selection .ds-combo').evaluate((el) => el.scrollIntoView({ block: 'center' }));
-    await page.locator('#selection .ds-combo__toggle').click();
+    await route(page, 'components/combobox');
+    const combo = page.locator('#sg-stage [data-demo="combo"]').first();
+    await combo.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await combo.locator('.ds-combo__toggle').click();
     await park(page);
-    await expect(page.locator('#selection .ds-combo__input')).toHaveAttribute('aria-expanded', 'true');
+    await expect(combo.locator('.ds-combo__input')).toHaveAttribute('aria-expanded', 'true');
     await settle(page);
     await pauseLoops(page, 0);
-    const field = await page.locator('#selection .ds-field:has(.ds-combo)').boundingBox();
-    const list = await page.locator('#selection .ds-combo__popup').boundingBox();
+    const field = await page.locator('#sg-stage .ds-field:has([data-demo="combo"])').first().boundingBox();
+    const list = await combo.locator('.ds-combo__popup').boundingBox();
     const left = Math.floor(Math.min(field.x, list.x) - 16);
     const top = Math.floor(Math.min(field.y, list.y) - 16);
     const listClip = {
@@ -453,31 +492,35 @@ for (const fixture of ['reset', 'reset-layered']) {
   });
 }
 
-/* ── Chromium only: phone width, theme presets ─────────────────────── */
+/* ── Chromium only: phone width, theme files ──────────────────────── */
 
 test.describe('phone width (Chromium)', () => {
-  test.use({ viewport: PHONE_SECTIONS_TALL });
+  test.use({ viewport: PHONE_PAGES_TALL });
 
-  test('frame, table and overlays sections at 390px', async ({ page, browserName }) => {
+  test('the frame, table and dialog demos at 390px', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'phone variants are Chromium only, to keep the set lean');
     annotate('components/table.css:198-226');
-    await open(page, STYLEGUIDE);
-    for (const id of ['frame', 'table', 'overlays']) await shoot(page.locator(`#${id}`), `phone-section-${id}.png`);
+    for (const name of ['shell', 'table', 'dialog']) {
+      await route(page, `components/${name}`);
+      await shoot(subject(page, `components/${name}`), shotName('phone-', `components/${name}`));
+    }
   });
 });
 
-test.describe('theme presets (Chromium)', () => {
+test.describe('theme files (Chromium)', () => {
   test.use({ viewport: TALL });
 
-  for (const preset of ['example', 'square', 'dim']) {
-    test(`buttons, forms and cards with the ${preset} preset`, async ({ page, browserName }) => {
+  for (const file of ['example', 'square', 'dim']) {
+    test(`the button, form and card demos with the ${file} theme file`, async ({ page, browserName }) => {
       test.skip(browserName !== 'chromium', 'theme variants are Chromium only, to keep the set lean');
       await page.addInitScript((value) => {
-        try { localStorage.setItem('ds-styleguide-theme', value); } catch (e) { /* the shot fails visibly */ }
-      }, preset);
-      await open(page, STYLEGUIDE);
-      await expect(page.locator('html')).toHaveAttribute('data-sg-theme', preset);
-      for (const id of ['buttons', 'forms', 'cards']) await shoot(page.locator(`#${id}`), `theme-${preset}-${id}.png`);
+        try { localStorage.setItem('ds-sg3-theme', JSON.stringify({ preset: 'default', contrast: false, scheme: 'auto', file: value })); } catch (e) { /* the shot fails visibly */ }
+      }, file);
+      for (const name of ['button', 'form', 'card']) {
+        await route(page, `components/${name}`);
+        await expect(page.locator('html')).toHaveAttribute('data-sg-theme', `default auto +${file}`);
+        await shoot(subject(page, `components/${name}`), shotName(`theme-${file}-`, `components/${name}`));
+      }
     });
   }
 });
@@ -487,15 +530,15 @@ test.describe('theme presets (Chromium)', () => {
 test.describe('forced colours', () => {
   test.use({ viewport: TALL });
 
-  test('buttons, forms, selection, overlays and loading sections', async ({ page, browserName }) => {
+  test('the button, form, chip, dialog and loading demos', async ({ page, browserName }) => {
     test.skip(browserName !== 'chromium', 'forced colours are shot in Chromium only, to keep the set lean');
     await page.emulateMedia({ forcedColors: 'active' });
     await page.goto(STYLEGUIDE);
     const emulated = await page.evaluate(() => matchMedia('(forced-colors: active)').matches);
     test.skip(!emulated, `${browserName} does not emulate forced-colors: active (page.emulateMedia)`);
-    await open(page, STYLEGUIDE);
-    for (const id of ['buttons', 'forms', 'selection', 'overlays', 'loading']) {
-      await shoot(page.locator(`#${id}`), `forced-${id}.png`);
+    for (const name of ['button', 'form', 'chip', 'dialog', 'loading']) {
+      await route(page, `components/${name}`);
+      await shoot(subject(page, `components/${name}`), shotName('forced-', `components/${name}`));
     }
   });
 });

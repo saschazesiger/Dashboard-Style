@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { ready, settle } from './helpers/motion.js';
 
-const STYLEGUIDE = '/styleguide/legacy.html';
+const STYLEGUIDE = '/styleguide/index.html';
 const FIXTURES = '/test/browser/fixtures/';
 const VERSION = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
 const MANIFEST = JSON.parse(readFileSync(new URL('../../dist/manifest.json', import.meta.url), 'utf8'));
@@ -136,17 +136,16 @@ test('component.html?c=<name> renders a component\'s demo alone through sg-core.
   expect((await page.request.get(`${FIXTURES}component.html?c=..%2Fx`)).status()).toBe(404);
 });
 
-test('a theme switch marks data-sg-theme and re-places the indicators', async ({ page }) => {
-  // Six switches, each a View Transition over the whole styleguide: snapshotting the long page takes
-  // seconds in software-rendered engines under a parallel run, so the test gets the budget of six.
+test('a theme file marks data-sg-theme and re-places the indicators', async ({ page }) => {
+  // Six switches, each loading a file or a snippet over the preset: the test gets the budget of six.
   test.setTimeout(120000);
-  await page.goto(STYLEGUIDE);
+  await page.goto(`${STYLEGUIDE}#/colour`);
   await ready(page);
   await settle(page);
   /** Whether each indicator's placement matches its active item (box size). */
   const placed = () => page.evaluate(() => [
     ['#sg-nav', '[aria-current="page"]'],
-    ['#sg-segmented', '[aria-current="true"]'],
+    ['.sg-options--theme .sg-segmented', '[aria-checked="true"]'],
   ].map(([track, active]) => {
     const indicator = document.querySelector(`${track} > .ds-indicator`);
     const item = document.querySelector(`${track} ${active}`);
@@ -155,25 +154,52 @@ test('a theme switch marks data-sg-theme and re-places the indicators', async ({
     const height = parseFloat(indicator.style.getPropertyValue('--ds-indicator-h'));
     return `${track} ${Math.abs(width - rect.width) < 0.5 && Math.abs(height - rect.height) < 0.5 ? 'placed' : `off (${width}x${height} vs ${rect.width}x${rect.height})`}`;
   }));
-  const expected = ['#sg-nav placed', '#sg-segmented placed'];
+  const expected = ['#sg-nav placed', '.sg-options--theme .sg-segmented placed'];
   expect(await placed()).toEqual(expected);
-  // The dim preset changes type and button sizes; example loads a file.
-  for (const value of ['dim', 'example', 'square', 'default', 'dim', 'default']) {
-    await page.locator('#sg-theme-select').selectOption(value);
-    // The switch plays a View Transition over the whole styleguide first (DS.motion.transition, fade-through);
-    // snapshotting the long page is slow in software-rendered engines under a parallel run.
-    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', value, { timeout: 15000 });
-    // The next switch starts on a settled page: the transition has ended (no data-ds-vt left).
-    await page.waitForFunction(() => !document.documentElement.hasAttribute('data-ds-vt'), null, { timeout: 15000 });
+  // The dim snippet changes the disabled look, compact type and sizes; example loads the template file.
+  for (const value of ['dim', 'example', 'square', 'compact', 'dim', '']) {
+    await page.locator('#sg-opt-file').selectOption(value);
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', `default auto${value ? ` +${value}` : ''}`, { timeout: 15000 });
+    await settle(page);
     expect(await placed(), value).toEqual(expected);
+  }
+});
+
+test('the Motion Lab\'s theme select marks data-sg-theme and re-places its drawer pill', async ({ page }) => {
+  test.setTimeout(180000);
+  await page.goto('/styleguide/motion.html');
+  await ready(page);
+  await settle(page);
+  const placed = () => page.evaluate(() => {
+    const indicator = document.querySelector('#sg-nav > .ds-indicator');
+    const rect = document.querySelector('#sg-nav [aria-current="page"]').getBoundingClientRect();
+    return Math.abs(parseFloat(indicator.style.getPropertyValue('--ds-indicator-w')) - rect.width) < 0.5
+      && Math.abs(parseFloat(indicator.style.getPropertyValue('--ds-indicator-h')) - rect.height) < 0.5;
+  });
+  expect(await placed()).toBe(true);
+  // The lab is long (every demo): a View Transition over it is slow to snapshot, so three switches, each with a long budget.
+  for (const value of ['dim', 'example', 'default']) {
+    await page.locator('#sg-theme-select').selectOption(value);
+    // The switch plays a View Transition over the lab first (DS.motion.transition, fade-through).
+    await expect(page.locator('html')).toHaveAttribute('data-sg-theme', value, { timeout: 30000 });
+    await page.waitForFunction(() => !document.documentElement.hasAttribute('data-ds-vt'), null, { timeout: 30000 });
+    expect(await placed(), value).toBe(true);
   }
 });
 
 test('a saved theme is applied before data-sg-ready', async ({ page }) => {
   await page.addInitScript(() => {
-    try { localStorage.setItem('ds-styleguide-theme', 'example'); } catch (e) { /* the assertion below fails */ }
+    try {
+      localStorage.setItem('ds-sg3-theme', JSON.stringify({ preset: 'default', contrast: false, scheme: 'auto', file: 'example' }));
+      localStorage.setItem('ds-styleguide-theme', 'example');
+    } catch (e) { /* the assertions below fail */ }
   });
   await page.goto(STYLEGUIDE);
+  await ready(page);
+  await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'default auto +example');
+  expect(await page.locator('#sg-theme-file-1').evaluate((link) => !link.disabled && !!link.sheet)).toBe(true);
+  // The Motion Lab keeps a theme select of its own (its own key).
+  await page.goto('/styleguide/motion.html');
   await ready(page);
   await expect(page.locator('html')).toHaveAttribute('data-sg-theme', 'example');
   expect(await page.locator('#sg-theme-link').evaluate((link) => !link.disabled && !!link.sheet)).toBe(true);

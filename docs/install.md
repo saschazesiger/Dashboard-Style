@@ -305,7 +305,7 @@ view shows. An engine skips the transition when the new page is revealed after i
 sooner than you think), and until then the old page stays frozen. Build the rest after the reveal, once the
 transition has finished (`pagereveal` gives `event.viewTransition`; its main-thread animations, the indicator's size
 among them, stall behind long work); the styleguide's Motion Lab does this with its demos (`startLab` in
-`styleguide/styleguide.js`).
+`styleguide/motion-lab.js`).
 
 A page with or without the drawer morphs the panel on page loads too, over `--ds-dur-slow` (within a page,
 `DS.motion.transition()` sees the width change and takes `--ds-dur-long`; a page load cannot tell).

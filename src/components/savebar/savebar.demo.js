@@ -4,7 +4,11 @@
  * the flow for a form outside a card. Registered through SG.demo()
  * (styleguide/sg-core.js). Size, density, shape and touch come from the
  * options panel around it. Tracking what changed and the fake save are what a
- * project writes itself.
+ * project writes itself. The small view sits inside the styleguide's own
+ * frame, so it keeps out of the page's View Transitions and leaves the named
+ * scroll timeline of the frame's view alone (a second --ds-view-scroll in
+ * the frame's scope left the top bar's tint without a timeline); a project
+ * has one view per frame and never needs this.
  */
 function faces(h) {
   return '<span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
@@ -33,7 +37,7 @@ SG.demo('savebar', {
   options: { sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {
-    return h.section('On a view', '<div class="ds-view" data-demo="view" style="block-size: 340px; border: 1px solid var(--ds-line); view-transition-name: none;">' +
+    return h.section('On a view', '<div class="ds-view" data-demo="view" style="block-size: 340px; border: 1px solid var(--ds-line); view-transition-name: none; scroll-timeline: none;">' +
         '<div class="ds-content"><form class="ds-form" data-demo="form">' + formFields(h, 6) + '</form></div>' +
         '<div class="ds-savebar"><div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" data-demo="bar" hidden>' +
         '<p class="ds-savebar__text" data-demo="text"></p>' + actions(h) + '</div></div></div>',

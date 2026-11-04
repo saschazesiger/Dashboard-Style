@@ -689,13 +689,15 @@ test.describe('drawer list edges (2.1)', () => {
 });
 
 test.describe('styleguide navigation', () => {
+  // The Motion Lab keeps the 2.x frame: one long page of sections, a drawer link scrolls to its section.
   test('a drawer link sets its item at once and the pill glides there once', async ({ page }) => {
-    await page.goto('/styleguide/legacy.html');
+    await page.goto('/styleguide/motion.html');
     await ready(page);
     await page.mouse.move(1, 1);
     await settle(page, { timeout: 5000 });
-    await page.locator('#sg-nav a[href="#overview"]').click();
-    await page.waitForFunction(() => document.querySelector('#sg-nav a[href="#overview"]').getAttribute('aria-current') === 'page');
+    const target = await page.locator('#sg-nav a[href^="#"]').last().getAttribute('href');
+    await page.locator('#sg-nav a[href="#lab"]').click();
+    await page.waitForFunction(() => document.querySelector('#sg-nav a[href="#lab"]').getAttribute('aria-current') === 'page');
     await settle(page, { timeout: 5000 });
     await page.evaluate(() => {
       window.sgChanges = [];
@@ -709,7 +711,7 @@ test.describe('styleguide navigation', () => {
       new MutationObserver(() => { if (pill.hasAttribute('data-glide')) window.sgGlides += 1; })
         .observe(pill, { attributeFilter: ['data-glide'] });
     });
-    await page.locator('#sg-nav a[href="#icons"]').click();
+    await page.locator(`#sg-nav a[href="${target}"]`).click();
     // The smooth scroll ends and the scroll-spy wakes up again.
     await page.waitForFunction(() => new Promise((resolve) => {
       const view = document.getElementById('main');
@@ -718,7 +720,7 @@ test.describe('styleguide navigation', () => {
     }), null, { timeout: 8000 });
     await page.waitForTimeout(400);
     await settle(page, { timeout: 5000 });
-    expect(await page.evaluate(() => window.sgChanges)).toEqual(['#icons']);
+    expect(await page.evaluate(() => window.sgChanges)).toEqual([target]);
     expect(await page.evaluate(() => window.sgGlides)).toBe(1);
   });
 });

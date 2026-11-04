@@ -59,7 +59,7 @@ to their new colour.
 <td width="50%"><a href="https://saschazesiger.github.io/Dashboard-Style/example/#/devices"><img src="docs/images/side-sheet.png" alt="The device table of the reference app with a side sheet open on one device"></a><br>📋 <b>Tables and side sheets</b>: search, filter chips, sorting, bulk selection, details next to the list.</td>
 </tr>
 <tr>
-<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html"><img src="docs/images/styleguide.png" alt="The styleguide: every button variant and state"></a><br>🧩 <b>Styleguide</b>: every component, token and icon, with a theme switcher.</td>
+<td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/index.html"><img src="docs/images/styleguide.png" alt="The styleguide: the page of the button with its options panel (size, density, shape, tone, variant, colour scheme, theme preset and file, width, contrast, touch) above its demo"></a><br>🧩 <b>Styleguide</b>: every component, token and icon, with a theme switcher.</td>
 <td><a href="https://saschazesiger.github.io/Dashboard-Style/styleguide/motion.html"><img src="docs/images/motion-lab.png" alt="The Motion Lab: the spring curve plotted as the browser plays it, and three boxes on one spring"></a><br>🎬 <b>Motion Lab</b>: every curve sampled from your browser, every choreography replayable.</td>
 </tr>
 <tr>

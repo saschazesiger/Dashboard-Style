@@ -95,8 +95,9 @@ SG.demo('shell', {
   options: { sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {
-    return h.section('The frame', frame(h),
-      'Nested groups (three levels), a group that closes, counts, an item with an action, a blocked item, a pinned foot. The menu button toggles the rail above 900px and opens the modal drawer below.') +
+    return h.section('The frame', frame(h) +
+      '<div class="sg-row"><button class="ds-btn ds-sm" type="button" aria-pressed="false" data-demo="foot-rail">The foot as a row of icons</button></div>',
+      'Nested groups (three levels), a group that closes, counts, an item with an action, a blocked item, a pinned foot (.ds-drawer__foot--rail lays it out as a row of icons, each naming itself in a tooltip). The menu button toggles the rail above 900px and opens the modal drawer below.') +
 
       h.section('Top bar parts',
         bar('<a class="ds-brand" href="#"><span class="ds-brand__name">Product</span></a><h3 class="ds-topbar__title">LAPTOP-0042</h3>' +
@@ -145,6 +146,12 @@ SG.demo('shell', {
     root.addEventListener('click', function (event) {
       var link = event.target.closest('a[href="#"]');
       if (link) event.preventDefault();
+      var footRail = event.target.closest('[data-demo="foot-rail"]');
+      if (footRail) {
+        var asRow = footRail.getAttribute('aria-pressed') !== 'true';
+        footRail.setAttribute('aria-pressed', String(asRow));
+        h.$('[data-demo="drawer"] .ds-drawer__foot', root).classList.toggle('ds-drawer__foot--rail', asRow);
+      }
       var option = event.target.closest('.ds-segmented__option');
       if (option && option.getAttribute('aria-disabled') !== 'true') {
         var name = option.hasAttribute('role') ? 'aria-checked' : 'aria-current';

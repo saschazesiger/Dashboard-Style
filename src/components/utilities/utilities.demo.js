@@ -22,7 +22,7 @@ SG.demo('utilities', {
         '<p class="ds-center">.ds-center: centred text.</p><p class="ds-num">1,284 .ds-num</p>' +
         '<p>A value and its unit: <span class="ds-nowrap">512 GB</span>.</p></div>') +
 
-      h.section('Stale', '<div data-demo="stale"><ul class="ds-plain-list" aria-busy="false" data-demo="stale-list"><li>Laptop 14, synced today</li><li>Laptop 16, synced yesterday</li></ul><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="refresh">' + h.icon('sync', 16) + 'Refresh</button></div></div>',
+      h.section('Stale', '<div data-demo="stale"><ul class="ds-plain-list" aria-busy="false" data-demo="stale-list"><li>Laptop 14, synced today</li><li>Laptop 16, synced yesterday</li></ul><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="refresh">' + h.icon('sync', 16) + 'Refresh (slow answer)</button><button class="ds-btn ds-sm" type="button" data-demo="refresh-fast">' + h.icon('sync', 16) + 'Refresh (fast answer)</button></div></div>',
         '.ds-stale dims only after the loader delay, so a fast answer never dims; the fresh values come at once.') +
 
       h.section('A pressable element of your own', '<ul class="ds-plain-list" data-demo="pressable">' +
@@ -53,14 +53,15 @@ SG.demo('utilities', {
       var kind = target.getAttribute('data-demo');
       if (kind === 'row') h.toast('Opened ' + target.textContent + '.', 'info');
       if (kind === 'fill') target.setAttribute('aria-pressed', String(target.getAttribute('aria-pressed') !== 'true'));
-      if (kind === 'refresh') {
+      // A fake request: the slow answer comes after the loader delay (200ms: the list dims), the fast one well before it.
+      if (kind === 'refresh' || kind === 'refresh-fast') {
         var list = h.$('[data-demo="stale-list"]', root);
         list.classList.add('ds-stale');
         list.setAttribute('aria-busy', 'true');
         setTimeout(function () {
           list.classList.remove('ds-stale');
           list.setAttribute('aria-busy', 'false');
-        }, h.slow(900));
+        }, h.slow(kind === 'refresh' ? 1200 : 50));
       }
     });
     root.addEventListener('keydown', function (event) {

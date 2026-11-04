@@ -8,12 +8,17 @@
 <link rel="stylesheet" href="../dist/fonts/fonts.css">
 <link rel="stylesheet" href="../dist/ds.css">
 <!-- The theme preset (a light-dark() theme of dist/themes/presets/), on two links so a new one
-     loads before the old one goes; then the theme generator's file while it is in use. -->
+     loads before the old one goes; the theme file on top of it (a shipped theme, two links for
+     "system") or a snippet; then the theme generator's file while it is in use. -->
 <link rel="stylesheet" id="sg-preset" href="../dist/themes/presets/default.css">
 <link rel="stylesheet" id="sg-preset-2" disabled>
+<link rel="stylesheet" id="sg-theme-file-1" disabled>
+<link rel="stylesheet" id="sg-theme-file-2" disabled>
+<style id="sg-theme-snippet"></style>
 <style id="sg-generated"></style>
 <script>
-  // The stored theme before the first paint (shell.js keeps it in step).
+  // The stored preset and scheme before the first paint (shell.js keeps them in step, and applies a
+  // stored theme file of its THEME_FILES once that has loaded).
   (function () {
     var t = {};
     try { t = JSON.parse(localStorage.getItem('ds-sg3-theme') || '{}') || {}; } catch (e) { t = {}; }
@@ -27,7 +32,7 @@
 <link rel="stylesheet" href="styleguide.css">
 <link rel="stylesheet" href="shell.css">
 <!-- Over http, the move to the Motion Lab and back is a cross-document View Transition and the
-     drawer's pill glides across it (as on legacy.html); the first render waits for the scripts. -->
+     drawer's pill glides across it; the first render waits for the scripts. -->
 <link rel="stylesheet" href="../dist/css/optional/view-transitions.css">
 <link rel="expect" href="#sg-rendered" blocking="render">
 </head>

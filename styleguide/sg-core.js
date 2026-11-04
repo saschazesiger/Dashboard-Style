@@ -1,10 +1,10 @@
 /*
  * sg-core.js: the demo registry of the 3.0 styleguide, with no dependency
  * on the pages that show the demos. A classic script on top of dist/ds.js,
- * so it runs from disk (file://). The styleguide (index.html), the 2.x page
- * (legacy.html) and the per-component test fixtures load it, then
- * demos.js (generated from every src/components/<n>/<n>.demo.js), which
- * registers each demo through SG.demo().
+ * so it runs from disk (file://). The styleguide (index.html) and the
+ * per-component test fixtures load it, then demos.js (generated from every
+ * src/components/<n>/<n>.demo.js), which registers each demo through
+ * SG.demo().
  *
  * ── Writing a demo (src/components/<n>/<n>.demo.js) ──────────────────
  *
@@ -32,6 +32,10 @@
  * `root` is a fresh element per render, so listeners on it go with it; a
  * function it returns runs before the next render. Behaviour that the
  * system owns (data-ds-*) needs no wiring: the page has called DS.init().
+ * A checkbox in the mixed state carries data-sg-mixed in the markup: the
+ * mixed state exists only as a property, so mount() sets it on the parsed
+ * markup before it goes into the page (set later, the box would play its
+ * dash on load in Firefox and WebKit).
  *
  * The helpers `h`, the same object for render and wire:
  *   h.icon(name, size = 20, cls)   an icon of DS.icons as markup (aria-hidden)
@@ -242,6 +246,7 @@
       box.setAttribute('data-sg-demo', name);
       var template = document.createElement('template');
       template.innerHTML = spec.render(h);
+      Array.prototype.forEach.call(template.content.querySelectorAll('input[data-sg-mixed]'), function (input) { input.indeterminate = true; });
       box.appendChild(template.content);
       stage.replaceChildren(box);
       handle.root = box;

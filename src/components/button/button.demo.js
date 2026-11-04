@@ -54,6 +54,10 @@ SG.demo('button', {
         '<button class="ds-btn" type="button" aria-pressed="true" aria-disabled="true">' + h.icon('check', 16) + 'Approved</button>' +
         '</div><p class="ds-meta" id="' + reason + '">Publish stays focusable, so it can say why: fill in the serial number first.</p>') +
 
+      h.section('Held press', '<div class="sg-row" data-demo="pressed">' + looks.map(function (look) {
+        return '<button class="ds-btn ds-btn--' + look[0] + ' ds-pressed" type="button" data-ds-ripple="off" tabindex="-1">' + look[1] + '</button>';
+      }).join('') + '</div>', 'The press as DS.ripple holds it (a static .ds-pressed): the squarer shape and the pressed layer. Press and hold a button above for the real one.') +
+
       h.section('Opens something', '<div class="sg-row">' +
         '<button class="ds-btn ds-btn--disclosure" type="button" aria-expanded="false" aria-controls="' + panel + '" data-demo="expand">' + h.icon('filter', 16) + 'Filters</button>' +
         '<button class="ds-btn" type="button" aria-haspopup="dialog" aria-expanded="true">Details (its sheet is open)</button>' +

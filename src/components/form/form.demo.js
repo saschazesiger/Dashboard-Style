@@ -115,6 +115,28 @@ function sections(h) {
     '</form>';
 }
 
+function deviceForm(h) {
+  var look = LOOKS[h.variant || 'outlined'].field;
+  return '<form class="ds-card ds-form" data-demo="device-form" onsubmit="return false"><div class="ds-form-grid">' +
+    field(h, look, 'Name', '<input class="ds-input" %ATTRS% value="LAPTOP-0042">') +
+    field(h, look, 'Type', '<select class="ds-input" %ATTRS%><option>Laptop</option><option>Desktop</option><option>Tablet</option></select>') +
+    field(h, look, 'Bought', '<input class="ds-input" %ATTRS% type="date" value="2024-03-12">') +
+    field(h, look + ' ds-field--full', 'Notes', '<textarea class="ds-input" %ATTRS% rows="3" placeholder="Anything the next person should know"></textarea>') +
+    '</div><button class="ds-btn ds-btn--text ds-add-row" type="button" data-demo="add-row">' + h.icon('plus', 16) + 'Add an accessory</button>' +
+    '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit" data-demo="save">Save</button><button class="ds-btn ds-btn--text" type="button">Discard</button><p class="ds-meta">Last saved today, 09:12</p></div></form>';
+}
+
+function rows(h) {
+  var name = h.uid('rows-name');
+  var room = h.uid('rows-room');
+  var serial = h.uid('rows-serial');
+  return '<form class="ds-form ds-form--rows" data-demo="rows" onsubmit="return false">' +
+    '<div class="ds-field"><label class="ds-field__label" for="' + name + '">Name <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="' + name + '" value="LAPTOP-0042" data-initial="LAPTOP-0042"></div>' +
+    '<div class="ds-field"><label class="ds-field__label" for="' + room + '">Room <span class="ds-field__changed ds-sr">(changed)</span></label><input class="ds-input" id="' + room + '" value="B 2.14" data-initial="B 2.14"></div>' +
+    '<div class="ds-field" role="group" aria-labelledby="' + serial + '"><span class="ds-field__label" id="' + serial + '">Serial number</span><span class="ds-field__value">5CD1234XYZ</span></div>' +
+    '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit" data-demo="rows-save">Save</button><button class="ds-btn ds-btn--text" type="reset">Discard</button></div></form>';
+}
+
 function toolbar(h) {
   var q = h.uid('q');
   var type = h.uid('type');
@@ -138,6 +160,8 @@ SG.demo('form', {
       h.section('States', states(h), 'A warning and a success colour the control and say what they mean in words; aria-invalid stays the only error.') +
       h.section('Markers, counter, changed, read value', markers(h)) +
       h.section('Checkboxes and radios', checks(h)) +
+      h.section('A form', deviceForm(h), 'A grid of fields (a full-width one for the notes), a quiet way to add a row, and the actions with what was saved last.') +
+      h.section('Editing in rows', rows(h), 'Change a field: a dot and the word "(changed)" mark it until it is saved. A value set by another system reads as text.') +
       h.section('Fieldset and form section', sections(h), 'In a narrow panel the head of a section falls above its fields.') +
       h.section('Toolbar, search and inline form', toolbar(h)) +
       h.section('Growing textarea and composer', '<textarea class="ds-input ds-input--grow" rows="1" aria-label="Note" placeholder="A note that grows with its text"></textarea>' +
@@ -176,6 +200,27 @@ SG.demo('form', {
         h.$('#' + reveal.getAttribute('aria-controls'), root).type = on ? 'text' : 'password';
       }
       if (event.target.closest('[data-demo="save"]')) h.toast('Saved.', 'success');
+      if (event.target.closest('[data-demo="add-row"]')) h.toast('Added an accessory row.', 'info');
     });
+    // Changed fields: the class follows the difference from the saved value.
+    h.$$('[data-demo="rows"]', root).forEach(function (form) {
+      var mark = function () {
+        h.$$('[data-initial]', form).forEach(function (input) { input.closest('.ds-field').classList.toggle('ds-field--changed', input.value !== input.getAttribute('data-initial')); });
+      };
+      form.addEventListener('input', mark);
+      form.addEventListener('reset', function () { setTimeout(mark); });
+      h.$('[data-demo="rows-save"]', form).addEventListener('click', function () {
+        h.$$('[data-initial]', form).forEach(function (input) { input.setAttribute('data-initial', input.value); });
+        mark();
+        h.toast('Saved.', 'success');
+      });
+    });
+    // The tint that glides from tile to tile: checking a radio changes no attribute, so the change moves it.
+    var pills = h.$$('[data-demo="tiles"]', root).map(function (group) {
+      var pill = DS.indicator.create(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+      group.addEventListener('change', function () { pill.update(); });
+      return pill;
+    });
+    return function () { pills.forEach(function (pill) { pill.destroy(); }); };
   },
 });

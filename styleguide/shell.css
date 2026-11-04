@@ -1,8 +1,9 @@
 /*
  * Layout of the 3.0 styleguide (index.html) only, sg- prefix, tokens only;
  * the components come from dist/ds.css unchanged. styleguide.css (loaded
- * before) keeps the foundation parts it shares with legacy.html: swatches,
- * type rows, spaces, shapes, icons, findings, the mark and the speed select.
+ * before) keeps the parts it shares with the Motion Lab and views.html:
+ * swatches, type rows, spaces, shapes, icons, findings, the mark and the
+ * speed select.
  */
 
 /* ── Top bar ────────────────────────────────────── */

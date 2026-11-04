@@ -150,7 +150,7 @@ its link instead), honours `?speed=` and then sets `html[data-fixture-ready]`.
 
 ### Styleguide hooks
 
-`styleguide/styleguide.js` (still a classic ES5 script, so it runs from disk) gives the tests three hooks:
+The Motion Lab's `styleguide/motion-lab.js` (a classic ES5 script, so it runs from disk) gives the tests three hooks; `styleguide/shell.js` (`index.html`) has the same three, with `data-sg-theme` as `<preset>[-contrast] <scheme>[ +<theme file>]` (its file comment lists them):
 
 | Hook | Meaning |
 |---|---|
@@ -374,13 +374,13 @@ One set of element shots (or a clip around a part, so focus rings and halos fit)
 
 | Group | Engines | Shots |
 |---|---|---|
-| styleguide sections | all three | every section (`overview` plus each `section('<id>'` of `styleguide.js`, 15), in a 1280 x 2200 viewport, so no section is cut by the scrolling view |
+| styleguide pages | all three | the overview and the foundations of `index.html` (`page-<route>.png`) and every component demo on its page (`demo-<name>.png`, the stage), in a 1280 x 6400 viewport, so nothing is cut by the scrolling view; they took over the 2.x sections of the retired `legacy.html` |
 | fixture controls | all three | the eight sections of `controls.html` at rest; 27 controls (buttons, chips, switches, check and radio cards, a table row and sort button, link button, field, search, segmented option, drawer item, a `.ds-parts` link, the `.ds-errors` summary, the clickable tile and the card link) hovered, pressed and held, and focused by the Tab key (the radio cards: only the checked one is a tab stop); nine disabled controls hovered |
 | feedback parts | all three | progress at .05, .4 and 1, waiting, the status chips and a status swapped on the live node, the alerts; indeterminate progress, the skeleton with its loading bar, the loading line and the spinners at 0 and 25 % of their loop |
 | app frame | all three | `shell.html` docked at 1000px, scrolled (hairline), with `data-drawer-hidden`; the modal drawer closed and open at 800px |
-| overlays | all three | the styleguide's dialog and side sheet at 1280px, the side sheet at 390px, two snackbars, the tooltip, the open combobox |
+| overlays | all three | the dialog and side sheet of their demos at 1280px, the side sheet at 390px, two snackbars, the tooltip, the open combobox (each opened on its component page) |
 | reset fixtures | all three | `reset.html` and `reset-layered.html` |
-| phone, themes, forced colours | Chromium | the frame, table and overlays sections at 390px; buttons, forms and cards with the `example`, `square` and `dim` presets (set through `localStorage` in `addInitScript`); buttons, forms, selection, overlays and loading with `forcedColors: 'active'` (skipped, with the reason, where the engine does not emulate it) |
+| phone, themes, forced colours | Chromium | the app frame, table and dialog demos at 390px; the button, form and card demos with the `example`, `square` and `dim` theme files (`ds-sg3-theme` set through `localStorage` in `addInitScript`); the button, form, chip, dialog and loading demos with `forcedColors: 'active'` (skipped, with the reason, where the engine does not emulate it) |
 
 Settled means `ready()`, `settle()`, the count-up tiles at their final value, the pointer parked at (1, 1), and
 every infinite loop paused at a fixed point of its cycle; the shots then use `animations: 'allow'`, because
@@ -541,8 +541,8 @@ New lab demos get their snapshots with `--update-snapshots=missing` in the conta
 
 ## Review sweeps: `review.spec.js`
 
-- **Quiet load:** from load until settled, every `transitionrun` and `animationstart` on `legacy.html` (the 2.x sections) and
-  `motion.html` must come from a source on the `QUIET` list, each with its reason: loops, loaders after their delay,
+- **Quiet load:** from load until settled, every `transitionrun` and `animationstart` on the component demos of
+  `index.html` that cover the 2.x sections (form, button, card, list, table, chip, combobox, menu, loading, shell) and `motion.html` must come from a source on the `QUIET` list, each with its reason: loops, loaders after their delay,
   the first-render stagger, scroll-driven effects, and the documented first-render entrances of content in the
   markup (a status icon, a validation message, the overlays the index shows in place). Nothing on a chip, switch,
   checkbox, radio or the drawer's pill may move on load. (It found the pill growing in from an empty track and the
@@ -554,10 +554,10 @@ New lab demos get their snapshots with `--update-snapshots=missing` in the conta
 - **Disabled:** a press (mouse down, 250ms) on every visible `:disabled` or `aria-disabled="true"` control (a chip or
   switch through its label) creates no `.ds-press-ripple`, keeps its radius and leaves its `::before` state layer as
   it was.
-- **Forced colours** (Chromium): screenshots of both pages and of the lab's Controls and Feedback sections with
+- **Forced colours** (Chromium): screenshots of those pages and of the lab's Controls and Feedback sections with
   `forcedColors: 'active'`.
 - **Page loads** (where `onpagereveal` exists: Chromium, WebKit): at a height where both drawer lists fit, the
-  drawer's "Motion Lab" link from `legacy.html` and its link on to `index.html` (the 3.0 styleguide) each run a cross-document View Transition in which
+  drawer's "Motion Lab" link from `index.html` and its link back from `motion.html` each run a cross-document View Transition in which
   `ds-drawer`, `ds-panel`, `ds-view` and `ds-indicator-nav` have groups of their own, no image of the drawer plays a
   slide (a one-sided drawer would), and the pill's group starts inside the drawer. At 1280x800 the index's list
   scrolls to its "Motion Lab" link, so the active item's pill is out of view: it gets no group and never starts

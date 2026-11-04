@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Motion Lab · Dashboard-Style</title>
-<!-- The Motion Lab: the head and frame of index.html, the demos of lab.js. Works from disk
+<!-- The Motion Lab: its frame and the demos of lab.js (motion-lab.js renders both). Works from disk
      (file://): plain links to dist/, classic scripts, no modules. -->
 <link rel="stylesheet" href="../dist/fonts/fonts.css">
 <link rel="stylesheet" href="../dist/ds.css">
@@ -17,7 +17,7 @@
      cross-document View Transition and the drawer's pill glides across it; from disk the pages just
      switch. The first render waits for the scripts at the end of <body>, which create the named pill
      (rel=expect on the element after them): WebKit reveals a page while it still parses. They keep
-     that wait short: the demos come after the reveal (startLab in styleguide.js). -->
+     that wait short: the demos come after the reveal (startLab in motion-lab.js). -->
 <link rel="stylesheet" href="../dist/css/optional/view-transitions.css">
 <link rel="expect" href="#sg-rendered" blocking="render">
 </head>
@@ -77,7 +77,7 @@
 <script src="../dist/ds.js"></script>
 <script src="lab.js"></script>
 <script src="lab-components.js"></script>
-<script src="styleguide.js"></script>
+<script src="motion-lab.js"></script>
 <div id="sg-rendered" hidden></div>
 </body>
 </html>
