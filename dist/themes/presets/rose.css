@@ -50,18 +50,27 @@
   --ds-on-primary: light-dark(#ffffff, #670024);
   --ds-accent: light-dark(#ffd9dd, #900136);
   --ds-on-accent: light-dark(#400013, #ffd9dd);
+  --ds-primary-container: light-dark(#ffd9dd, #900136);
+  --ds-on-primary-container: light-dark(#400013, #ffd9dd);
 
   /* ── Status: inks on their containers ── */
   --ds-error: light-dark(#ba1a1a, #ffb4ab);
+  --ds-on-error: light-dark(#ffffff, #690005);
   --ds-error-container: light-dark(#ffdad6, #93000a);
   --ds-on-error-container: light-dark(#93000a, #ffdad6);
   --ds-success: light-dark(#156d2f, #85d98e);
+  --ds-on-success: light-dark(#ffffff, #003913);
   --ds-success-container: light-dark(#caebc7, #00531e);
   --ds-on-success-container: light-dark(#00531e, #a1f6a8);
   --ds-warning: light-dark(#8f4e06, #ffb77c);
+  --ds-on-warning: light-dark(#ffffff, #4d2600);
   --ds-warning-container: light-dark(#ffdcc2, #6d3900);
   --ds-on-warning-container: light-dark(#6d3900, #ffdcc2);
   --ds-warning-surface: light-dark(#fff4ef, #2e2117);
+  --ds-info: light-dark(#00639b, #96cbff);
+  --ds-on-info: light-dark(#ffffff, #003353);
+  --ds-info-container: light-dark(#cee5ff, #004a76);
+  --ds-on-info-container: light-dark(#004a76, #cee5ff);
 
   /* ── Inverse: snackbars and tooltips ── */
   --ds-inverse: light-dark(#372e2f, #eedfe0);

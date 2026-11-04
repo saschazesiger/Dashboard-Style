@@ -64,7 +64,9 @@
  *
  * Touch screens: .ds-touch (on .ds-theme or any container) sets every
  * target hook to --ds-touch-target (48px) and fields to the input type
- * role. Opt in (docs/theming.md, "Touch screens"); never automatic.
+ * role; buttons take it from --ds-target-min, which core/options.css sets
+ * on .ds-touch. Opt in (docs/theming.md, "Touch screens"); never
+ * automatic.
  *
  * Hooks: --ds-pressable-radius (--ds-radius-sm), --ds-pressable-layer
  * (currentColor), --ds-kbd-border (--ds-line-2), --ds-kbd-bg (--ds-surface).
@@ -340,12 +342,11 @@
   /*
    * Touch screens (opt-in, docs/theming.md): every target at least
    * --ds-touch-target, fields at the input role (no zoom on focus in iOS).
+   * Buttons take it from --ds-target-min (core/options.css), as every
+   * component will once it is on the options model; the hooks below are
+   * those of the components not ported yet.
    */
   .ds-touch {
-    --ds-btn-height: var(--ds-touch-target);
-    --ds-btn-sm-height: var(--ds-touch-target);
-    --ds-btn-icon-size: var(--ds-touch-target);
-    --ds-btn-sm-icon-size: var(--ds-touch-target);
     --ds-input-height: var(--ds-touch-target);
     --ds-check-height: var(--ds-touch-target);
     --ds-check-sm-height: var(--ds-touch-target);

@@ -2160,29 +2160,38 @@
     /** The running busy() of each button. @type {WeakMap<Element, Promise<any>>} */
     const busyRuns = new WeakMap();
 
-    /** The timer that ends each button's success face. @type {WeakMap<Element, any>} */
+    /** The timer that ends each button's success or failed face. @type {WeakMap<Element, any>} */
     const doneTimers = new WeakMap();
 
     /** A label setLabel() keeps until its button is back at rest. @type {WeakMap<Element, string>} */
     const pendingLabels = new WeakMap();
 
-    /** Takes the success face off at once (a new busy() starts). */
+    /** Takes the success or failed face off at once (a new busy() starts). */
     function clearDone(button) {
       if (doneTimers.has(button)) {
         clearTimeout(doneTimers.get(button));
         doneTimers.delete(button);
         disown(button, 'classes', 'ds-btn--done');
+        disown(button, 'classes', 'ds-btn--failed');
       }
-      button.classList?.remove('ds-btn--done');
+      button.classList?.remove('ds-btn--done', 'ds-btn--failed');
       applyLabel(button);
     }
 
-    /** The rest face of a faces button (the .ds-btn__face that is neither --busy nor --done), or null. */
+    /** Shows an end face (.ds-btn--done or .ds-btn--failed) for the hold token, then the rest face again. */
+    function showEnd(button, name, hold) {
+      own(button, 'classes', name);
+      button.classList.add(name);
+      doneTimers.set(button, setTimeout(() => clearDone(button), motionDuration(button, hold)));
+    }
+
+    /** The rest face of a faces button (the .ds-btn__face that is neither --busy, --done nor --failed), or null. */
     function restFace(button) {
       const faces = Array.from(button.children ?? []).find((child) => child.classList?.contains('ds-btn__faces'));
       if (!faces) return null;
       return Array.from(faces.children ?? []).find((face) => face.classList?.contains('ds-btn__face')
-        && !face.classList.contains('ds-btn__face--busy') && !face.classList.contains('ds-btn__face--done')) ?? null;
+        && !face.classList.contains('ds-btn__face--busy') && !face.classList.contains('ds-btn__face--done')
+        && !face.classList.contains('ds-btn__face--failed')) ?? null;
     }
 
     /** Writes `text` into the text of `slot`, keeping its elements (an icon, the faces, the ripple layer). */
@@ -2209,7 +2218,8 @@
 
     /**
      * Sets the label of a button without dropping what it holds: the text of
-     * its rest face (the .ds-btn__face that is neither --busy nor --done) on a
+     * its rest face (the .ds-btn__face that is neither --busy, --done nor
+     * --failed) on a
      * faces button, else its own text; in either, the text of a
      * .ds-btn__label child (an adaptive button); icons and the ripple layer
      * stay. While busy() runs or the success face shows, the new label
@@ -2233,15 +2243,21 @@
      * goes and, when the button has a success face (.ds-btn__face--done in its
      * .ds-btn__faces) and `done` is not false, .ds-btn--done shows it for
      * --ds-hold-success (`done: true` on a button without one changes
-     * nothing). On failure aria-busy goes at once and the error is rethrown. A
-     * second call while the button is busy returns the running promise and
-     * does not start `work` again; a call during the success face takes it off
-     * first. Times are the computed tokens (--ds-time-scale applies).
-     * Announcing the result stays the page's job (aria-live).
+     * nothing). On failure aria-busy goes at once and the error is rethrown;
+     * when the button has a failed face (.ds-btn__face--failed, 3.0) and
+     * `failed` is not false, the busy face first stays for the loader minimum
+     * like on success, then .ds-btn--failed shows the failed face for
+     * --ds-hold-status (not blocked: a press tries again) and the error is
+     * rethrown. A second call while the button is busy returns the running
+     * promise and does not start `work` again; a call during the success or
+     * failed face takes it off first. Times are the computed tokens
+     * (--ds-time-scale applies). Announcing the result stays the page's job
+     * (aria-live).
      * @template T
      * @param {Element|null|undefined} button  a .ds-btn, best with .ds-btn__faces
      * @param {(() => T|PromiseLike<T>)|PromiseLike<T>|T} work  a function (called at once) or a promise
-     * @param {{ done?: boolean }} [options]  done: false skips the success face (default: whether the button has one)
+     * @param {{ done?: boolean, failed?: boolean }} [options]  done: false skips the success face, failed: false the
+     *   failed face (default: whether the button has one)
      * @returns {Promise<T>} the work's result, once the button is no longer busy
      */
     function busy(button, work, options = {}) {
@@ -2258,6 +2274,8 @@
       guardFor(button);
       const face = Boolean(button.querySelector?.(':scope > .ds-btn__faces > .ds-btn__face--done'));
       const done = face && (options.done ?? true);
+      const failedFace = Boolean(button.querySelector?.(':scope > .ds-btn__faces > .ds-btn__face--failed'));
+      const failed = failedFace && (options.failed ?? true);
       clearDone(button);
       // A re-render of the list around it (DS.dom.morphHtml) keeps both faces.
       own(button, 'attrs', 'aria-busy');
@@ -2274,17 +2292,21 @@
       promise = Promise.resolve(start()).then(
         (value) => settleLoader(startedAt, { element: button, delay }).then(() => {
           finish();
-          if (done) {
-            own(button, 'classes', 'ds-btn--done');
-            button.classList.add('ds-btn--done');
-            doneTimers.set(button, setTimeout(() => clearDone(button), motionDuration(button, '--ds-hold-success')));
-          } else applyLabel(button);
+          if (done) showEnd(button, 'ds-btn--done', '--ds-hold-success');
+          else applyLabel(button);
           return value;
         }),
         (error) => {
-          finish();
-          applyLabel(button);
-          throw error;
+          if (!failed) {
+            finish();
+            applyLabel(button);
+            throw error;
+          }
+          return settleLoader(startedAt, { element: button, delay }).then(() => {
+            finish();
+            showEnd(button, 'ds-btn--failed', '--ds-hold-status');
+            throw error;
+          });
         },
       );
       busyRuns.set(button, promise);

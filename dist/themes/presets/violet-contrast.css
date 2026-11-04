@@ -21,10 +21,16 @@
  *
  * Tones moved to reach a pair (role scheme: design tone -> tone):
  *   --ds-primary light: 40 -> 34.5
+ *   --ds-error light: 40 -> 37.5
+ *   --ds-success light: 40 -> 37.5
+ *   --ds-warning light: 40 -> 37.5
+ *   --ds-info light: 40 -> 37.5
  *   --ds-text dark: 90 -> 100
  *   --ds-text-2 dark: 90 -> 100
  *   --ds-accent dark: 40 -> 37.5
  *   --ds-on-accent dark: 90 -> 100
+ *   --ds-primary-container dark: 40 -> 37.5
+ *   --ds-on-primary-container dark: 90 -> 100
  *   --ds-inverse-primary dark: 40 -> 30
  *
  * Roles only: no scales, no motion tokens or hooks, never in @layer.
@@ -55,18 +61,27 @@
   --ds-on-primary: light-dark(#ffffff, #36275d);
   --ds-accent: light-dark(#cfbdfe, #5f4f88);
   --ds-on-accent: light-dark(#201047, #ffffff);
+  --ds-primary-container: light-dark(#cfbdfe, #5f4f88);
+  --ds-on-primary-container: light-dark(#201047, #ffffff);
 
   /* ── Status: inks on their containers ── */
-  --ds-error: light-dark(#ba1a1a, #ffb4ab);
+  --ds-error: light-dark(#b11215, #ffb4ab);
+  --ds-on-error: light-dark(#ffffff, #690005);
   --ds-error-container: light-dark(#ffdad6, #93000a);
   --ds-on-error-container: light-dark(#690005, #ffedea);
-  --ds-success: light-dark(#156d2f, #85d98e);
+  --ds-success: light-dark(#0a6629, #85d98e);
+  --ds-on-success: light-dark(#ffffff, #003913);
   --ds-success-container: light-dark(#caebc7, #00531e);
   --ds-on-success-container: light-dark(#003913, #c6ffc6);
-  --ds-warning: light-dark(#8f4e06, #ffb77c);
+  --ds-warning: light-dark(#874800, #ffb77c);
+  --ds-on-warning: light-dark(#ffffff, #4d2600);
   --ds-warning-container: light-dark(#ffdcc2, #6d3900);
   --ds-on-warning-container: light-dark(#4d2600, #ffede2);
   --ds-warning-surface: light-dark(#fff4ef, #2e2117);
+  --ds-info: light-dark(#005d91, #96cbff);
+  --ds-on-info: light-dark(#ffffff, #003353);
+  --ds-info-container: light-dark(#cee5ff, #004a76);
+  --ds-on-info-container: light-dark(#003353, #e8f2ff);
 
   /* ── Inverse: snackbars and tooltips ── */
   --ds-inverse: light-dark(#322f35, #e6e0e9);

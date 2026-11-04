@@ -1057,7 +1057,7 @@
 
   .ds-drawer__row > .ds-drawer__item {
     grid-area: 1 / 1 / 2 / 3;
-    padding-inline-end: calc(var(--ds-btn-sm-icon-size, var(--ds-space-8)) + var(--ds-space-2));
+    padding-inline-end: calc(max(var(--ds-target-min, 0px), var(--ds-btn-sm-icon-size, var(--ds-space-8))) + var(--ds-space-2));
   }
 
   .ds-drawer__action {

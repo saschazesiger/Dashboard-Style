@@ -85,8 +85,8 @@ export declare function refresh<T>(container: Element | null | undefined, load: 
 export declare function guard(root?: Document | ShadowRoot): Destroyable;
 /** Sets a button's label, keeping its icons and faces; while busy() runs it waits for the rest face. */
 export declare function setLabel(button: Element | null | undefined, text: string): void;
-/** Shows a button busy while `work` runs, then its done face when it has one. */
-export declare function busy<T>(button: Element | null | undefined, work: (() => T | PromiseLike<T>) | PromiseLike<T> | T, options?: { done?: boolean }): Promise<T>;
+/** Shows a button busy while `work` runs, then its done face (or, when it failed, its failed face) when it has one. */
+export declare function busy<T>(button: Element | null | undefined, work: (() => T | PromiseLike<T>) | PromiseLike<T> | T, options?: { done?: boolean, failed?: boolean }): Promise<T>;
 
 export interface CountUpHandle {
   /** Writes the final value at once. */

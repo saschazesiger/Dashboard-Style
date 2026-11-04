@@ -69,7 +69,8 @@ test('fields take the input type role under .ds-touch (no zoom on focus in iOS)'
 test('without .ds-touch nothing changes (opt-in, never automatic)', async ({ page }) => {
   await open(page, { touch: false });
   const height = await page.$eval('#btn-outlined', (el) => el.getBoundingClientRect().height);
-  expect(height).toBe(36);
+  // 3.0: the default button is 40px (size md, comfortable density; 2.x: 36px).
+  expect(height).toBe(40);
   expect(await page.$eval('#btn-sm', (el) => el.getBoundingClientRect().height)).toBe(32);
 });
 

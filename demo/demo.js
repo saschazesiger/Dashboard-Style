@@ -348,7 +348,7 @@
     const chips = [];
     if (live.query.trim()) chips.push(chip('query', '"' + live.query.trim() + '"'));
     for (const box of $$('#live-chips input:checked')) chips.push(chip('status-' + box.value, box.nextElementSibling.textContent.trim()));
-    if (chips.length) chips.push('<button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-ds-key="clear" data-clear-filters>Clear filters</button>');
+    if (chips.length) chips.push('<button class="ds-btn ds-btn--text ds-sm" type="button" data-ds-key="clear" data-clear-filters>Clear filters</button>');
     return chips.join('');
   }
 
@@ -636,7 +636,7 @@
   function alertsHtml() {
     return alerts.list.map((alert) =>
       `<div class="ds-alert${alert.kind ? ` ds-alert--${alert.kind}` : ''}" data-ds-key="${alert.id}"${alert.kind === 'error' ? ' role="alert"' : ''}>${icon(alert.glyph, 20)}` +
-      `<span class="ds-alert__text">${esc(alert.text)}</span><button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-dismiss="${alert.id}">Dismiss</button></div>`).join('');
+      `<span class="ds-alert__text">${esc(alert.text)}</span><button class="ds-btn ds-btn--text ds-sm" type="button" data-dismiss="${alert.id}">Dismiss</button></div>`).join('');
   }
   const renderAlerts = () => M.flip(alertStack, (morph) => DS.dom.morphHtml(alertStack, alertsHtml(), morph));
   DS.dom.morphHtml(alertStack, alertsHtml());

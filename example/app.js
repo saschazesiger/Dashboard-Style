@@ -146,7 +146,7 @@
      the title and lead, the actions at the end of the title's line. */
   function head(title, lead, actions = '', back = null) {
     return '<header class="ds-page-head">' +
-      (back ? `<a class="ds-btn ds-btn--text ds-btn--sm ds-page-head__back" href="${back.href}">${icon('arrowLeft', 18)}<span class="ds-sr">Back to </span>${back.label}</a>` : '') +
+      (back ? `<a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="${back.href}">${icon('arrowLeft', 18)}<span class="ds-sr">Back to </span>${back.label}</a>` : '') +
       `<div class="ds-page-head__row"><div class="ds-page-head__text"><h1 class="ds-page-head__title" tabindex="-1">${title}</h1>` +
       `<p class="ds-page-head__lead">${lead}</p></div>${actions ? `<div class="ds-page-head__actions">${actions}</div>` : ''}</div></header>`;
   }
@@ -183,11 +183,11 @@
     const list = [];
     if (c.error) {
       list.push(`<div class="ds-alert ds-alert--error" data-ds-key="alert-offline">${icon('alertCircle', 20)}<span class="ds-alert__text">${plural(c.error, 'device is', 'devices are')} offline.</span>` +
-        '<a class="ds-btn ds-btn--text ds-btn--sm" href="#/devices?status=error">Show</a></div>');
+        '<a class="ds-btn ds-btn--text ds-sm" href="#/devices?status=error">Show</a></div>');
     }
     if (!state.dismissed.has('sync')) {
       list.push(`<div class="ds-alert" data-ds-key="alert-sync">${icon('info', 20)}<span class="ds-alert__text">The nightly sync runs at 02:00. Run it now from the Sync card.</span>` +
-        '<button class="ds-btn ds-btn--text ds-btn--sm" type="button" data-dismiss="sync">Dismiss</button></div>');
+        '<button class="ds-btn ds-btn--text ds-sm" type="button" data-dismiss="sync">Dismiss</button></div>');
     }
     return list.join('');
   }
@@ -241,7 +241,7 @@
       tilesHtml() +
       '<div class="ds-grid-2">' +
         '<section class="ds-card"><div class="ds-card__row"><h2 class="ds-card__title">Sync</h2>' +
-          facesButton('ds-btn ds-btn--sm', 'Run now', 'Running', 'Done', `id="sync-run"${state.sync.running ? ' aria-busy="true"' : ''}`) + '</div>' +
+          facesButton('ds-btn ds-sm', 'Run now', 'Running', 'Done', `id="sync-run"${state.sync.running ? ' aria-busy="true"' : ''}`) + '</div>' +
           '<p class="ds-muted">Every device reports its state, its system and its disks.</p>' + progressHtml() +
           (summary ? `<p><span class="ds-parts"><span class="ds-parts__list">${summary.map((part) => `<span>${part}</span>`).join('')}</span></span></p>` : '') +
         '</section>' +
@@ -317,7 +317,7 @@
       `<td class="ds-col--secondary">${esc(device.location)}</td>` +
       `<td class="ds-num">${ago(device.lastSeen)}</td>` +
       `<td>${status(device.status)}</td>` +
-      `<td class="ds-table__actions"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-btn--sm" type="button" data-menu="${device.id}" aria-label="Actions for ${esc(device.name)}" ` +
+      `<td class="ds-table__actions"><span class="ds-hover-actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" data-menu="${device.id}" aria-label="Actions for ${esc(device.name)}" ` +
       `aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu">${icon('moreVertical', 18)}</button></span></td></tr>`;
   }
 
@@ -495,7 +495,7 @@
         `<td class="ds-num">${ago(ticket.opened)}</td></tr>` +
         `<tr class="ds-table__detail" id="${key}-detail" data-ds-key="${key}-detail"${open ? '' : ' inert'}><td colspan="7"><div class="ds-table__expand"><div class="ex-detail">` +
           `<p>${esc(ticket.text || 'No description.')}</p><div class="ex-row">` +
-          (ticket.status !== 'closed' ? facesButton('ds-btn ds-btn--sm', 'Close ticket', 'Closing', 'Closed', `data-close-ticket="${ticket.id}"`) : '') +
+          (ticket.status !== 'closed' ? facesButton('ds-btn ds-sm', 'Close ticket', 'Closing', 'Closed', `data-close-ticket="${ticket.id}"`) : '') +
           (device ? `<button class="ds-link-btn" type="button" data-device="${device.id}">Open ${esc(device.name)}</button>` : '') +
         '</div></div></div></td></tr>';
     }).join('');
@@ -504,7 +504,7 @@
   function ticketsHtml() {
     const shown = visibleTickets();
     return head('Tickets', 'Problems reported for a device. A row opens in place; a new ticket opens a dialog.',
-      `<button class="ds-btn ds-btn--primary" type="button" data-act="new-ticket">${icon('plus', 16)} New ticket</button>`, state.back) +
+      `<button class="ds-btn ds-btn--filled" type="button" data-act="new-ticket">${icon('plus', 16)} New ticket</button>`, state.back) +
       '<section class="ds-card">' +
         `<div class="ds-toolbar"><fieldset class="ds-chips" id="ticket-chips"><legend class="ds-sr">Show</legend>${
           [['open', 'Open'], ['closed', 'Closed'], ['all', 'All']].map(([value, label]) => chip('ticket-filter', value, label, state.ticketFilter === value, 'radio')).join('')}</fieldset></div>` +
@@ -772,7 +772,7 @@
       banner.id = 'offline-banner';
       DS.dom.morphHtml(banner, `<div class="ds-alert ds-alert--warning" role="status">${icon('wifiOff', 20)}` +
         '<span class="ds-alert__text">The console is offline. Figures stay as they were until it answers again.</span>' +
-        '<button class="ds-btn ds-btn--text ds-btn--sm" type="button">Retry</button></div>');
+        '<button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>');
       banner.addEventListener('click', (event) => { if (event.target.closest('button')) poll(); });
     }
     M.flip(panel, () => { if (on) panel.prepend(banner); else banner.remove(); }, { items: ':scope > *' });

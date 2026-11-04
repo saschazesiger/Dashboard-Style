@@ -37,7 +37,7 @@ and every `src/components/<name>/<name>.js`, as `manifest.json` `js` lists them)
 | `js/overlay.js` | `DS.overlay` | core (`src/js/`) | `core`, `dom`, `icons`, `motion` | [motion.md](motion.md) |
 <!-- /generated: modules -->
 
-Browsers: Safari 16.4, Chrome and Edge 111, Firefox 128 (ESR) and later. Newer features are refinements that the
+Browsers: Safari 17.5, Chrome and Edge 123, Firefox 130 and later (3.0). Newer features are refinements that the
 files name under "Progressive:"; older engines on that floor get the same page without them.
 
 Load order on a page: fonts (optional), `ds.css`, your theme, then your own styles.

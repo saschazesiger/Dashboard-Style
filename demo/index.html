@@ -72,7 +72,7 @@
                 small dependency-free script, one theme file. Everything on this page is live: press it, tab through it,
                 break it.</p>
               <div class="demo-row">
-                <a class="ds-btn ds-btn--primary" href="#press" data-icon="arrowDown">Start the tour</a>
+                <a class="ds-btn ds-btn--filled" href="#press" data-icon="arrowDown">Start the tour</a>
                 <a class="ds-btn demo-on-hero" href="../example/index.html" data-icon="laptop">Open the reference app</a>
                 <a class="ds-btn ds-btn--text demo-on-hero" href="../styleguide/index.html">Every component <span data-icon-inline="arrowRight 16"></span></a>
               </div>
@@ -99,15 +99,15 @@
               <section class="ds-card">
                 <h3 class="ds-card__title">Buttons</h3>
                 <div class="demo-row">
-                  <button class="ds-btn ds-btn--primary" type="button">Primary</button>
+                  <button class="ds-btn ds-btn--filled" type="button">Filled</button>
                   <button class="ds-btn ds-btn--tonal" type="button">Tonal</button>
                   <button class="ds-btn" type="button">Outlined</button>
                   <button class="ds-btn ds-btn--text" type="button">Text</button>
                 </div>
                 <div class="demo-row">
                   <button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" id="filter-toggle" data-icon-sm="filter">Filter</button>
-                  <button class="ds-btn ds-btn--sm" type="button" data-icon-sm="plus">Small</button>
-                  <button class="ds-btn ds-btn--primary" type="button" disabled>Disabled</button>
+                  <button class="ds-btn ds-sm" type="button" data-icon-sm="plus">Small</button>
+                  <button class="ds-btn ds-btn--filled" type="button" disabled>Disabled</button>
                   <button class="ds-btn" type="button" aria-disabled="true" data-tip="Disabled, but still focusable: a tooltip can say why">Why not?</button>
                 </div>
                 <p class="ds-muted">The filter is a toggle (<code>aria-pressed</code>). The last button stays focusable, so its tooltip can explain itself.</p>
@@ -126,7 +126,7 @@
                 <p class="ds-muted">Rest on a button: its tooltip waits half a second, the next one comes at once (warm-up). Copy link swaps its icon to a check that draws itself.</p>
                 <h3 class="ds-card__subtitle">Busy, then done</h3>
                 <div class="demo-row">
-                  <button class="ds-btn ds-btn--primary" type="button" id="save-demo">
+                  <button class="ds-btn ds-btn--filled" type="button" id="save-demo">
                     <span class="ds-btn__faces">
                       <span class="ds-btn__face">Save changes</span>
                       <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
@@ -293,7 +293,7 @@
               <section class="ds-card">
                 <div class="ds-card__row">
                   <h3 class="ds-card__title">Progress</h3>
-                  <button class="ds-btn ds-btn--sm" type="button" id="run-import">
+                  <button class="ds-btn ds-sm" type="button" id="run-import">
                     <span class="ds-btn__faces">
                       <span class="ds-btn__face">Run import</span>
                       <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Importing</span>
@@ -312,7 +312,7 @@
                 <h3 class="ds-card__subtitle">Status that changes</h3>
                 <div class="demo-row">
                   <span id="deploy-status"></span>
-                  <button class="ds-btn ds-btn--text ds-btn--sm" type="button" id="deploy">Deploy</button>
+                  <button class="ds-btn ds-btn--text ds-sm" type="button" id="deploy">Deploy</button>
                 </div>
                 <h3 class="ds-card__subtitle">Loaders</h3>
                 <div class="demo-loaders">
@@ -324,7 +324,7 @@
               <section class="ds-card">
                 <div class="ds-card__row">
                   <h3 class="ds-card__title">Alerts</h3>
-                  <button class="ds-btn ds-btn--sm" type="button" id="add-alert" data-icon-sm="plus">Add alert</button>
+                  <button class="ds-btn ds-sm" type="button" id="add-alert" data-icon-sm="plus">Add alert</button>
                 </div>
                 <div class="demo-alerts" id="alerts"></div>
                 <details class="ds-errors ds-collapsible">
@@ -385,7 +385,7 @@
                 </div>
               </details>
               <div class="ds-form-actions">
-                <button class="ds-btn ds-btn--primary" type="submit">
+                <button class="ds-btn ds-btn--filled" type="submit">
                   <span class="ds-btn__faces">
                     <span class="ds-btn__face">Add device</span>
                     <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Adding</span>
@@ -460,7 +460,7 @@
               <section class="ds-card">
                 <div class="ds-card__row">
                   <h3 class="ds-card__title">theme.css</h3>
-                  <button class="ds-btn ds-btn--sm" type="button" id="copy-theme" data-icon-sm="copy">Copy</button>
+                  <button class="ds-btn ds-sm" type="button" id="copy-theme" data-icon-sm="copy">Copy</button>
                 </div>
                 <pre class="ds-code-block" id="theme-code" tabindex="0" aria-label="theme.css"></pre>
                 <p class="ds-muted">Load it after <code>ds.css</code>. Themes set roles and component hooks, never motion: motion is one
@@ -497,10 +497,10 @@
 &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.css"&gt;
 &lt;script src="https://cdn.jsdelivr.net/gh/saschazesiger/Dashboard-Style@main/dist/ds.js"&gt;&lt;/script&gt;
 
-&lt;button class="ds-btn ds-btn--primary"&gt;Hello&lt;/button&gt;
+&lt;button class="ds-btn ds-btn--filled"&gt;Hello&lt;/button&gt;
 &lt;script&gt;DS.ripple.attach(document);&lt;/script&gt;</pre>
                 <div class="demo-row">
-                  <button class="ds-btn ds-btn--sm" type="button" id="copy-start" data-icon-sm="copy">Copy</button>
+                  <button class="ds-btn ds-sm" type="button" id="copy-start" data-icon-sm="copy">Copy</button>
                 </div>
               </section>
               <section class="ds-card">
@@ -530,7 +530,7 @@
     <p class="ds-dialog__text" id="confirm-text">They disappear from every list. You can undo it for a moment.</p>
     <div class="ds-dialog__actions">
       <button class="ds-btn ds-btn--text" type="button" id="confirm-cancel" data-close autofocus>Cancel</button>
-      <button class="ds-btn ds-btn--primary" type="button" id="confirm-delete">
+      <button class="ds-btn ds-btn--filled ds-tone-error" type="button" id="confirm-delete">
         <span class="ds-btn__faces">
           <span class="ds-btn__face">Delete devices</span>
           <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Deleting</span>

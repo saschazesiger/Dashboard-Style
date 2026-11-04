@@ -9,7 +9,7 @@
  *   node scripts/build.mjs --check   exit 1 if any of them is not what src/ builds
  *   node scripts/build.mjs --generated   print the generated files of the repository, one per line
  *
- * Sources: src/core/{tokens,base,motion,global}.css and src/core/hooks.json,
+ * Sources: src/core/{tokens,options,base,motion,global}.css and src/core/hooks.json,
  * one folder per component (src/components/<name>/: <name>.css, meta.json and
  * the optional files of COMPONENT_FILES: <name>.md, .demo.js, .js, .d.ts,
  * .requires.json, .test.js, .spec.js, .fixture.html, .lab.js, .keyframes.css),
@@ -47,7 +47,7 @@
  *                   plus DS.init, DS.get, DS.define and DS.config (DS.core's),
  *                   each copy also under DashboardStyle.versions[version];
  *                   ds.min.js without comments and indentation (stripJs)
- *   css/core/{tokens,base,motion,global}.css, css/components/<name>.css
+ *   css/core/{tokens,options,base,motion,global}.css, css/components/<name>.css
  *                   the single stylesheets, each with the layer and the
  *                   sublayer statement, so any subset in any order cascades
  *                   as ds.css does; a .min.css with its .min.css.map next
@@ -93,6 +93,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { scan, selectorList } from './tools/css-scan.mjs';
+import { isRemoved } from './tools/theme-rules.mjs';
 import { classicScript, moduleBody as wrapModule } from './tools/js-wrap.mjs';
 
 /** lightningcss, the build's one dependency (npm ci); null when it is not installed. */
@@ -240,7 +241,8 @@ function typeOf(name, value, known, seen = new Set()) {
  * `default` is the declared value (roles, scales), the component's fallback
  * (hooks) or the registered initial value; `themeable` is true for roles and
  * hooks only. `deprecated` is the version that deprecated a name still in
- * use (src/deprecations.json); removed names are not listed.
+ * use (src/deprecations.json); names removed in this version or earlier are
+ * not listed (a removal planned for a later release is still listed).
  */
 export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
   const raw = mainThemeRule(read('src/core/tokens.css'));
@@ -296,7 +298,7 @@ export function tokensJson(info, read = (path) => readText(join(ROOT, path))) {
   const known = new Map([...entries.values()].map((entry) => [entry.name, entry.default]));
   const tokens = [...entries.values()].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)).flatMap((entry) => {
     const deprecation = deprecations.find((d) => d.name === entry.name);
-    if (deprecation?.removed) return [];
+    if (isRemoved(deprecation, info.version)) return [];
     const out = {
       name: entry.name,
       layer: entry.layer,
@@ -449,14 +451,15 @@ export function withBanner(path, text, info) {
 
 /**
  * The core stylesheets (src/core/<name>.css) in cascade order: the tokens,
- * the motion keyframes and utilities, the page base, and the rules for
- * every element of .ds-theme (global.css, in ds.components, so it comes
- * right before the first component).
+ * the option classes (options.css, in ds.utilities), the motion keyframes
+ * and utilities, the page base, and the rules for every element of
+ * .ds-theme (global.css, in ds.components, so it comes right before the
+ * first component).
  */
-export const CORE = ['tokens', 'motion', 'base', 'global'];
+export const CORE = ['tokens', 'options', 'motion', 'base', 'global'];
 
 /** The core stylesheets in the order of manifest.json "core" (the order a bundle writes them; the layers decide between them). */
-const CORE_FILES = ['tokens', 'base', 'motion', 'global'];
+const CORE_FILES = ['tokens', 'options', 'base', 'motion', 'global'];
 
 /** The order statement every stylesheet starts with. */
 export const LAYERS = '@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;';

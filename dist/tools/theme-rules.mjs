@@ -45,6 +45,36 @@ export const MOTION = new RegExp(`--ds-(${MOTION_FAMILIES.join('|')})[\\w-]*\\s*
 /** Whether a custom property name is a motion token or hook. */
 export const isMotion = (name) => MOTION.test(`${name}:`);
 
+/** A version as [major, minor, patch, prerelease or null]; null when it is no x.y.z[-pre]. */
+function parseVersion(text) {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:-([\w.]+))?$/.exec(String(text ?? '').trim());
+  return match ? [Number(match[1]), Number(match[2]), Number(match[3]), match[4] ?? null] : null;
+}
+
+/** Semver order of two versions (a prerelease comes before its release): negative, 0 or positive. */
+export function compareVersions(a, b) {
+  const [x, y] = [parseVersion(a), parseVersion(b)];
+  if (!x || !y) return 0;
+  for (let i = 0; i < 3; i += 1) if (x[i] !== y[i]) return x[i] - y[i];
+  if (x[3] === y[3]) return 0;
+  if (x[3] === null) return 1;
+  if (y[3] === null) return -1;
+  return x[3] < y[3] ? -1 : 1;
+}
+
+/**
+ * Whether a deprecations.json entry is removed in `version` (the version of
+ * the copy that lists it): its `removed` version is that version or an
+ * earlier one. A removal planned for a later version (3.0.0, seen from a
+ * 3.0.0-alpha) is still a deprecation: the name works until that release.
+ * Without a version, any `removed` counts.
+ */
+export function isRemoved(entry, version) {
+  if (!entry?.removed) return false;
+  if (!version) return true;
+  return compareVersions(entry.removed, version) <= 0;
+}
+
 /** Text pairs that pass AA (4.5:1): [text, surface]. */
 export const TEXT_PAIRS = [
   ['--ds-text', '--ds-surface'],
@@ -66,6 +96,15 @@ export const TEXT_PAIRS = [
   ['--ds-on-error-container', '--ds-error-container'],
   ['--ds-on-success-container', '--ds-success-container'],
   ['--ds-on-warning-container', '--ds-warning-container'],
+  ['--ds-on-info-container', '--ds-info-container'],
+  ['--ds-on-primary-container', '--ds-primary-container'],
+  // Filled tone marks (3.0, .ds-tone-*: --ds-on-tone on --ds-tone): a count badge, the filled error button of a
+  // confirmation; the neutral tone fills with --ds-text-2.
+  ['--ds-on-error', '--ds-error'],
+  ['--ds-on-success', '--ds-success'],
+  ['--ds-on-warning', '--ds-warning'],
+  ['--ds-on-info', '--ds-info'],
+  ['--ds-surface', '--ds-text-2'],
   ['--ds-text', '--ds-warning-surface'],
   ['--ds-on-inverse', '--ds-inverse'],
   // A text button in a snackbar (the action, Undo).
@@ -100,6 +139,7 @@ export const ICON_PAIRS = [
   ['--ds-error', '--ds-surface'],
   ['--ds-success', '--ds-surface'],
   ['--ds-warning', '--ds-surface'],
+  ['--ds-info', '--ds-surface'],
   ['--ds-outline', '--ds-surface'],
   ['--ds-inverse-primary', '--ds-inverse'],
   ['--ds-focus', '--ds-surface'],

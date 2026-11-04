@@ -224,12 +224,15 @@ describe('dist/tokens.json', () => {
       '--ds-z-toast': ['scale', 'number', '60'],
       '--ds-font-body': ['role', 'font', 'var(--ds-weight-regular) 14px/20px var(--ds-font)'],
       '--ds-elev-overlay': ['role', 'shadow', 'var(--ds-elev-3)'],
-      '--ds-btn-height': ['hook', 'length', '36px'],
+      '--ds-btn-height': ['hook', 'length', '40px'],
+      // The option defaults (3.0): themeable numbers on .ds-theme; the tone colours the option classes set.
+      '--ds-density': ['role', 'number', '0'],
+      '--ds-target-min': ['role', 'length', '0px'],
+      '--ds-tone': ['internal', null, null],
       '--ds-time-scale': ['scale', 'number', '1'],
       '--ds-progress': ['runtime', 'number', '0'],
       '--ds-menu-x': ['runtime', 'length', '0px'],
       '--ds-motion-distance': ['motion-hook', null, null],
-      '--ds-btn-half': ['internal', null, null],
     };
     for (const [name, [layer, type, value]] of Object.entries(expect)) {
       const entry = byName.get(name);

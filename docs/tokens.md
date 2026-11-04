@@ -5,7 +5,7 @@ All tokens are custom properties on `.ds-theme` (never `:root`), defined in `src
 | Layer | What | Who sets it |
 |---|---|---|
 | 1. Scales | motion, spacing, state layers, layers (z) | nobody: the same in every theme |
-| 2. Roles | palette, type, radii, elevation, focus, links, layout | the default theme in `tokens.css`; a project theme overrides them |
+| 2. Roles | palette, type, radii, elevation, focus, links, layout, the option defaults ([options.md](options.md)) | the default theme in `tokens.css`; a project theme overrides them |
 | 3. Hooks | `--ds-btn-*`, `--ds-card-pad`, ... | read by one component with a fallback; set by a theme or on an element ([theming.md](theming.md#component-hooks)) |
 
 Components read roles and hooks only, never a colour, radius, font, shadow, duration or curve literal (the tests
@@ -93,10 +93,13 @@ sine): the wave and the flat fill cross-fade on the gliding share. Not generated
 | `--ds-primary-hover` / `--ds-primary-pressed` | derived: `--ds-primary` with 8% of `--ds-on-primary` / with 15% black (`#1f64d4` / `#094ab1`) | reference values for controls that cannot lay a state layer; set them only to differ |
 | `--ds-accent` / `--ds-on-accent` | `#d3e3fd` / `#041e49` | the one tint: active navigation, selected chip, tonal button, tracks, selection |
 | `--ds-on-accent-icon` | `= --ds-on-accent` | icons on the tint (empty-state disc) |
+| `--ds-primary-container` / `--ds-on-primary-container` | `#d3e3fd` / `#041e49` | the tint of the primary tone (`.ds-tone-primary`, [options.md](options.md#tone)): the same tones as the accent by default, kept on the primary hue when a theme gives the accent its own |
 | `--ds-action-ink` | `= --ds-primary` | label of outlined and text buttons |
 | `--ds-error`, `--ds-error-container`, `--ds-on-error-container` | `#b3261e`, `#f9dedc`, `#8c1d18` | errors: icon, container, text on it |
 | `--ds-success`, `--ds-success-container`, `--ds-on-success-container` | `#146c2e`, `#c4eed0`, `#0f5223` | success |
 | `--ds-warning`, `--ds-warning-container`, `--ds-on-warning-container` | `#8f4e06`, `#feefc3`, `#8f4e06` | warning chips |
+| `--ds-info`, `--ds-info-container`, `--ds-on-info-container` | `#00639b`, `#cee5ff`, `#004a76` | a neutral notice (`.ds-tone-info`): icon, container, text on it; a sky blue apart from the primary hue |
+| `--ds-on-error`, `--ds-on-success`, `--ds-on-warning`, `--ds-on-info` | `#ffffff` each | text on the full tone colour: a filled tone mark (`--ds-on-tone`), the filled error button of a destructive confirmation |
 | `--ds-warning-surface` | `#fdf6e7` | full-width warning banners (quieter than the chip) |
 | `--ds-inverse`, `--ds-on-inverse`, `--ds-inverse-primary` | `#303030`, `#f2f2f2`, `#a8c7fa` | snackbar, tooltip |
 | `--ds-scrim` | `rgba(0,0,0,.32)` | behind dialogs, sheets, the modal drawer; never blurred |
@@ -200,13 +203,29 @@ Only floating layers cast shadows; hierarchy comes from hairlines, tonal surface
 | `--ds-content-max` | 1280px | widest page content |
 | `--ds-measure` | 76ch | reading measure of leads and notes |
 | `--ds-toast-room` | 64px | room at a page's end for a two-line snackbar |
-| `--ds-touch-target` | 48px | the smallest target under `.ds-touch` (every target hook, [theming.md](theming.md#touch-screens)) |
+| `--ds-touch-target` | 48px | the smallest target under `.ds-touch` (`--ds-target-min`, and every target hook of the components not on the options model yet, [theming.md](theming.md#touch-screens)) |
+
+### Options
+
+The defaults of the option classes ([options.md](options.md)): numbers that inherit. A component computes its
+sizes from them in its own rule; no role reads them, so a class on a region changes everything inside it. A theme may
+set them (`themes/compact.css` sets `--ds-density: -2`); a region takes a class instead.
+
+| Token | Default | Use |
+|---|---|---|
+| `--ds-size-step` | 0 | -2 to 2 (`.ds-xs` to `.ds-xl`): 8px of a control's height per step, its padding and its type role (`--ds-size-font`) |
+| `--ds-density` | 0 | 0 to -3 (`.ds-density-comfortable` to `-tight`): 4px of a control's or row's height per step |
+| `--ds-shape` | 1 | 0 to 1.5 (`.ds-shape-square` to `-round`): multiplies the radius of the components on the options model, actions included (0: square buttons) |
+| `--ds-target-min` | 0px | the smallest block size of a control; `.ds-touch` sets it to `--ds-touch-target` |
 
 ## 3. Hooks and runtime properties
 
-Component hooks are listed in [theming.md](theming.md#component-hooks). Component-internal (set by the component, not a
-hook): `--ds-btn-half`, half a button's height (`--ds-btn-height`, or `--ds-btn-icon-size` on `--icon`), the
-largest radius a pill shows, so the press morph interpolates over its whole run instead of from 9999px;
+Component hooks are listed in [theming.md](theming.md#component-hooks). Set by the option classes (read them in a
+component, never set them yourself): `--ds-size-font`, the type role of the size class (`.ds-xs` caption, `.ds-sm` chip,
+`.ds-md` label, `.ds-lg` and `.ds-xl` subtitle), and the tone's colours `--ds-tone`, `--ds-on-tone`,
+`--ds-tone-container` and `--ds-on-tone-container` ([options.md](options.md#tone)). Private computed values of a
+component are named `--_<x>` (the button's `--_h`, `--_box`, `--_half`, `--_radius`, `--_pad`): never documented
+as an API, never set. Component-internal (set by the component, not a hook):
 `--ds-indicator-ease-t`, `--ds-indicator-ease-r`, `--ds-indicator-ease-b`, `--ds-indicator-ease-l`, the curve of each
 clip edge of the sliding indicator (its `data-dir` rules put the trailing edge on `--ds-ease-in-out`). Resulting
 properties (read them, never set them; set the spacing tokens instead): `--ds-content-pad-top` and

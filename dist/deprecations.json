@@ -243,6 +243,42 @@
       "deprecated": "2.0.0",
       "removed": null,
       "note": "The detach method of the handle that DS.ripple.attach() returns; the pattern finds any detach() call."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-btn--primary",
+      "pattern": "(?<![\\w-])ds-btn--primary(?![\\w-])",
+      "replacement": ".ds-btn--filled",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "The variant names of 3.0 are shared by every component (filled, tonal, outlined, text ...). Same look; an alias until 3.0 ships."
+    },
+    {
+      "kind": "class",
+      "name": ".ds-btn--sm",
+      "pattern": "(?<![\\w-])ds-btn--sm(?![\\w-])",
+      "replacement": ".ds-sm",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Sizes are option classes on the button or any ancestor (.ds-xs ... .ds-xl, docs/options.md). The alias keeps the fixed 2.x height (32px) and padding until 3.0 ships; .ds-sm is 32px at the default density and follows the density (24px under compact), and a small text button pads 8px instead of 12px."
+    },
+    {
+      "kind": "hook",
+      "name": "--ds-btn-sm-height",
+      "pattern": "(?<![\\w-])--ds-btn-sm-height(?![\\w-])",
+      "replacement": "--ds-btn-height",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Read only by the deprecated .ds-btn--sm. .ds-sm takes --ds-btn-height (the md base) less one 8px size step."
+    },
+    {
+      "kind": "hook",
+      "name": "--ds-btn-sm-icon-size",
+      "pattern": "(?<![\\w-])--ds-btn-sm-icon-size(?![\\w-])",
+      "replacement": "--ds-btn-icon-size",
+      "deprecated": "3.0.0",
+      "removed": "3.0.0",
+      "note": "Read by the deprecated .ds-btn--sm.ds-btn--icon (and the room a drawer row keeps for it). .ds-sm takes --ds-btn-icon-size less one 8px size step."
     }
   ]
 }

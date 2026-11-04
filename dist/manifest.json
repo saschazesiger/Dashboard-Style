@@ -6,12 +6,14 @@
   "core": {
     "css": [
       "css/core/tokens.css",
+      "css/core/options.css",
       "css/core/base.css",
       "css/core/motion.css",
       "css/core/global.css"
     ],
     "min": [
       "css/core/tokens.min.css",
+      "css/core/options.min.css",
       "css/core/base.min.css",
       "css/core/motion.min.css",
       "css/core/global.min.css"
@@ -24,6 +26,33 @@
       "min": "css/core/tokens.min.css",
       "classes": [
         "ds-theme"
+      ],
+      "attributes": [],
+      "keyframes": []
+    },
+    "options": {
+      "css": "css/core/options.css",
+      "min": "css/core/options.min.css",
+      "classes": [
+        "ds-density-comfortable",
+        "ds-density-compact",
+        "ds-density-dense",
+        "ds-density-tight",
+        "ds-lg",
+        "ds-md",
+        "ds-shape-default",
+        "ds-shape-round",
+        "ds-shape-soft",
+        "ds-shape-square",
+        "ds-sm",
+        "ds-tone-error",
+        "ds-tone-info",
+        "ds-tone-neutral",
+        "ds-tone-primary",
+        "ds-tone-success",
+        "ds-tone-warning",
+        "ds-xl",
+        "ds-xs"
       ],
       "attributes": [],
       "keyframes": []
@@ -214,8 +243,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 6562,
-      "gzip": 1717
+      "bytes": 6394,
+      "gzip": 1704
     },
     "scroller": {
       "css": "css/components/scroller.css",
@@ -269,9 +298,14 @@
       "classes": [
         "ds-btn",
         "ds-btn--adaptive",
+        "ds-btn--block",
         "ds-btn--disc",
         "ds-btn--disclosure",
         "ds-btn--done",
+        "ds-btn--elevated",
+        "ds-btn--failed",
+        "ds-btn--filled",
+        "ds-btn--ghost",
         "ds-btn--icon",
         "ds-btn--outlined",
         "ds-btn--primary",
@@ -282,6 +316,7 @@
         "ds-btn__face",
         "ds-btn__face--busy",
         "ds-btn__face--done",
+        "ds-btn__face--failed",
         "ds-btn__faces",
         "ds-btn__label",
         "ds-link--quiet",
@@ -301,6 +336,7 @@
         "--ds-btn-disabled-border",
         "--ds-btn-font",
         "--ds-btn-height",
+        "--ds-btn-height-exact",
         "--ds-btn-hover-border",
         "--ds-btn-hover-color",
         "--ds-btn-hover-decoration",
@@ -311,6 +347,7 @@
         "--ds-btn-quiet-color",
         "--ds-btn-radius",
         "--ds-btn-radius-pressed",
+        "--ds-btn-shadow",
         "--ds-btn-sm-height",
         "--ds-btn-sm-icon-size",
         "--ds-btn-state",
@@ -320,8 +357,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 13936,
-      "gzip": 2417
+      "bytes": 15715,
+      "gzip": 2743
     },
     "spinner": {
       "css": "css/components/spinner.css",
@@ -505,8 +542,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 10026,
-      "gzip": 2077
+      "bytes": 10216,
+      "gzip": 2120
     },
     "disclosure": {
       "css": "css/components/disclosure.css",
@@ -845,8 +882,8 @@
       ],
       "ripple": true,
       "progressive": [],
-      "bytes": 5026,
-      "gzip": 1444
+      "bytes": 5216,
+      "gzip": 1493
     },
     "table": {
       "css": "css/components/table.css",
@@ -926,8 +963,8 @@
         "scrollbar-color",
         "alt text for generated content"
       ],
-      "bytes": 26375,
-      "gzip": 4062
+      "bytes": 26738,
+      "gzip": 4107
     },
     "pagination": {
       "css": "css/components/pagination.css",
@@ -1064,8 +1101,8 @@
         "scrollbar-color",
         "field-sizing"
       ],
-      "bytes": 39547,
-      "gzip": 5854
+      "bytes": 39642,
+      "gzip": 5891
     },
     "drag": {
       "css": "css/components/drag.css",
@@ -1792,8 +1829,8 @@
         "scrollbar-color",
         "scrollbar-gutter"
       ],
-      "bytes": 30294,
-      "gzip": 5306
+      "bytes": 30325,
+      "gzip": 5322
     },
     "tabs": {
       "css": "css/components/tabs.css",
@@ -1963,8 +2000,8 @@
       "progressive": [
         "text-wrap"
       ],
-      "bytes": 6530,
-      "gzip": 1892
+      "bytes": 6625,
+      "gzip": 1938
     }
   },
   "js": {

@@ -6,9 +6,14 @@
   "classes": [
     "ds-btn",
     "ds-btn--adaptive",
+    "ds-btn--block",
     "ds-btn--disc",
     "ds-btn--disclosure",
     "ds-btn--done",
+    "ds-btn--elevated",
+    "ds-btn--failed",
+    "ds-btn--filled",
+    "ds-btn--ghost",
     "ds-btn--icon",
     "ds-btn--outlined",
     "ds-btn--primary",
@@ -19,6 +24,7 @@
     "ds-btn__face",
     "ds-btn__face--busy",
     "ds-btn__face--done",
+    "ds-btn__face--failed",
     "ds-btn__faces",
     "ds-btn__label",
     "ds-link--quiet",
@@ -38,27 +44,31 @@
   ],
   "hooks": {
     "--ds-btn-height": {
-      "default": "36px (`--sm`: `--ds-btn-sm-height`)",
-      "description": "button"
+      "default": "40px",
+      "description": "button: the base height (size md, comfortable density) that size and density steps apply to ([options.md](options.md)); other components read it to line up with a button"
+    },
+    "--ds-btn-height-exact": {
+      "default": "unset",
+      "description": "button: a fixed height that ignores size and density (never the touch minimum)"
     },
     "--ds-btn-padding-x": {
-      "default": "`--ds-space-4` (`--text`, `--sm`: `--ds-space-3`)",
-      "description": "button"
+      "default": "`--ds-space-4` (`--text`, `--ghost`, `--sm`: `--ds-space-3`)",
+      "description": "button: the base side padding, 4px more or less per size step"
     },
     "--ds-btn-padding-start": {
-      "default": "`= padding-x`; `--ds-space-3` before a leading icon",
+      "default": "`= padding-x`; before a leading icon `--ds-space-3` (4px more per size above md, never more than the end padding)",
       "description": "button"
     },
     "--ds-btn-radius": {
       "default": "`--ds-radius-action`",
-      "description": "button"
+      "description": "button (at most half the height, times `--ds-shape`)"
     },
     "--ds-btn-radius-pressed": {
       "default": "`--ds-radius-action-pressed`",
-      "description": "button while pressed (never rounder than `--ds-btn-radius`)"
+      "description": "button while pressed (times `--ds-shape`; never rounder than the rest radius)"
     },
     "--ds-btn-font": {
-      "default": "`--ds-font-label`",
+      "default": "`--ds-size-font` of the size class, else `--ds-font-label`",
       "description": "button"
     },
     "--ds-btn-bg": {
@@ -72,6 +82,10 @@
     "--ds-btn-border": {
       "default": "per variant",
       "description": "button fill, label, border colour"
+    },
+    "--ds-btn-shadow": {
+      "default": "none (`--elevated`: `--ds-elev-1`)",
+      "description": "resting elevation"
     },
     "--ds-btn-state": {
       "default": "`currentColor`",
@@ -98,7 +112,7 @@
       "description": "hover label and border"
     },
     "--ds-btn-hover-shadow": {
-      "default": "none (`--primary`: `--ds-elev-hover`)",
+      "default": "the resting shadow (`--filled`: `--ds-elev-hover`, `--elevated`: `--ds-elev-2`)",
       "description": "hover elevation"
     },
     "--ds-btn-hover-decoration": {
@@ -107,15 +121,15 @@
     },
     "--ds-btn-icon-size": {
       "default": "40px",
-      "description": "`--icon` buttons"
+      "description": "`--icon` buttons: the base size, 8px more or less per size step"
     },
     "--ds-btn-sm-height": {
       "default": "32px",
-      "description": "`.ds-btn--sm` (it sets `--ds-btn-height` from it)"
+      "description": "the fixed height of the deprecated `.ds-btn--sm` (density does not change it)"
     },
     "--ds-btn-sm-icon-size": {
       "default": "32px",
-      "description": "`.ds-btn--sm.ds-btn--icon` (it sets `--ds-btn-icon-size` from it); a `.ds-drawer__row` item keeps that much room for its action"
+      "description": "the fixed size of the deprecated `.ds-btn--sm.ds-btn--icon`; a `.ds-drawer__row` item keeps that much room for its action"
     },
     "--ds-btn-quiet-color": {
       "default": "`--ds-text-2`",

@@ -32,7 +32,7 @@
  * Besides custom properties, one rule sets color-scheme from
  * --ds-color-scheme on :where(.ds-theme), at the end of the layer.
  *
- * Baseline: Safari 16.4, Chrome/Edge 111, Firefox 128; no CSS nesting.
+ * Floor: Safari 17.5, Chrome/Edge 123, Firefox 130; no CSS nesting.
  * Every stylesheet declares the layer order and puts its rules in one of
  * them (this file in ds.tokens), so unlayered project CSS always wins.
  *
@@ -349,6 +349,12 @@
     --ds-on-primary: #ffffff;
     --ds-primary-hover: color-mix(in srgb, var(--ds-primary), var(--ds-on-primary) 8%);
     --ds-primary-pressed: color-mix(in srgb, var(--ds-primary), #000 15%);
+    /* The primary container: the tint of the primary tone (.ds-tone-primary
+       on a badge, an alert, a chip), with its text. The same tones as the
+       accent by default; a theme with an accent of its own keeps this one
+       on the primary hue. */
+    --ds-primary-container: #d3e3fd;
+    --ds-on-primary-container: #041e49;
 
     /* The one tint: active navigation, selected chips, the tonal button,
        tracks of progress, text selection. It is too light against white to
@@ -362,17 +368,28 @@
     --ds-action-ink: var(--ds-primary);
 
     /* Status: text on its container, always with an icon. The warning
-       surface is a quieter fill for full-width banners. */
+       surface is a quieter fill for full-width banners. Each tone also has
+       the text that sits on its full colour (--ds-on-error ...), for a
+       filled mark: a count badge, the filled error button of a destructive
+       confirmation (docs/options.md, "Tone"). Info is the neutral notice
+       (a sky blue apart from the primary hue). */
     --ds-error: #b3261e;
+    --ds-on-error: #ffffff;
     --ds-error-container: #f9dedc;
     --ds-on-error-container: #8c1d18;
     --ds-success: #146c2e;
+    --ds-on-success: #ffffff;
     --ds-success-container: #c4eed0;
     --ds-on-success-container: #0f5223;
     --ds-warning: #8f4e06;
+    --ds-on-warning: #ffffff;
     --ds-warning-container: #feefc3;
     --ds-on-warning-container: #8f4e06;
     --ds-warning-surface: #fdf6e7;
+    --ds-info: #00639b;
+    --ds-on-info: #ffffff;
+    --ds-info-container: #cee5ff;
+    --ds-on-info-container: #004a76;
 
     /* Inverse surfaces: snackbar, tooltip. */
     --ds-inverse: #303030;
@@ -537,7 +554,8 @@
      *   content-max    widest page content
      *   measure        reading measure of running text (leads, notes)
      *   toast-room     room kept free at a page's end for a two-line snackbar
-     *   touch-target   the smallest target under .ds-touch (utilities.css)
+     *   touch-target   the smallest target under .ds-touch (--ds-target-min,
+     *                  options.css; the target hooks of utilities.css)
      */
     --ds-topbar-height: 64px;
     --ds-drawer-width: 256px;
@@ -546,6 +564,26 @@
     --ds-measure: 76ch;
     --ds-toast-room: 64px;
     --ds-touch-target: 48px;
+
+    /* ── Options (src/core/options.css, docs/options.md) ─
+     * The defaults of the option classes: plain numbers that inherit.
+     *   size-step   -2 ... 2 (.ds-xs ... .ds-xl): 8px of a control's height
+     *               per step, its padding and its type role
+     *   density     0 ... -3 (.ds-density-*): 4px of a control's or a row's
+     *               height per step
+     *   shape       0 ... 1.5 (.ds-shape-*): multiplies every radius
+     *   target-min  the smallest block size of a control (.ds-touch sets
+     *               it to --ds-touch-target)
+     * A component computes its sizes from them in its own rule; no role
+     * here reads them (a role resolves its var() on .ds-theme, so a nested
+     * option class would change nothing; tested). A theme may set them
+     * (themes/compact.css sets the density); a nested .ds-theme starts from
+     * these values again.
+     */
+    --ds-size-step: 0;
+    --ds-density: 0;
+    --ds-shape: 1;
+    --ds-target-min: 0px;
   }
 
   /*

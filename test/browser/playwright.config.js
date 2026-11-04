@@ -118,11 +118,13 @@ export default defineConfig({
   },
   // The shared `use` above applies to every engine: no device presets, so
   // viewport, scale and user agent stay the same across projects.
-  // `fallback` is Chromium playing an engine on the browser floor: ds.css
-  // without its @supports and @starting-style blocks, no View Transitions,
-  // popover or moveBefore, and el.animate() rejecting linear() (see
-  // base-test.js). It runs the specs that import base-test.js. `perf` is
-  // Chromium for perf.spec.js alone (above).
+  // `fallback` is Chromium playing an engine on the browser floor (Safari
+  // 17.5, Chrome/Edge 123, Firefox 130): ds.css without the @supports
+  // blocks of progressive features (anchor positioning, scroll-driven
+  // animations, interpolate-size ...), CSS.supports() false for them, no
+  // View Transitions or moveBefore; linear(), @starting-style and popover
+  // stay (see base-test.js). It runs the specs that import base-test.js.
+  // `perf` is Chromium for perf.spec.js alone (above).
   //
   // The specs of the component folders run in the same projects: a second
   // project of each name (Playwright selects every project of a name, so

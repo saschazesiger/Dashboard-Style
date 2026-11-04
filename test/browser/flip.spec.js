@@ -73,7 +73,7 @@ function evenly(samples) {
 const glides = (page) => page.evaluate(() => Object.fromEntries([...document.querySelectorAll('#list > li')]
   .map((item) => [item.getAttribute('data-ds-key'), item.getAnimations().filter((animation) => animation.id === 'ds-flip').length])));
 
-test('a sort glides on translate with the spring, peaks at most 5 % past and lands', async ({ page, dsFallback }) => {
+test('a sort glides on translate with the spring, peaks at most 5 % past and lands', async ({ page }) => {
   await open(page);
   const first = page.locator('#list > li[data-ds-key="LAPTOP-0042"]');
   const from = (await first.boundingBox()).y;
@@ -94,10 +94,9 @@ test('a sort glides on translate with the spring, peaks at most 5 % past and lan
   expect(ys[0]).toBeCloseTo(from, 0);
   expectPeakAtMost(ys, 1.05, { from, to });
   expectSettles(ys, to, 0.5);
-  // The spring overshoots a little where linear() exists; the cubic fallback lands without.
+  // The spring overshoots a little (linear() is at the floor, so in every project).
   const peak = Math.max(...ys.map((y) => (y - from) / (to - from)));
-  if (dsFallback) expect(peak).toBeLessThanOrEqual(1 + 1e-3);
-  else expect(peak).toBeGreaterThan(1.005);
+  expect(peak).toBeGreaterThan(1.005);
 });
 
 test('a second sort mid-flight continues from where the item is', async ({ page }) => {

@@ -147,7 +147,7 @@ Not supported, by decision:
   `tokens.css` and theme files.
 - Project controls take the press model from `.ds-pressable`, actions that show on hover from `.ds-hover-actions`
   and touch sizes from `.ds-touch`: never a hand-built state layer, reveal or size override.
-- Plain CSS for Safari 16.4, Chrome/Edge 111 and Firefox 128 (no nesting); newer features only where they degrade
+- Plain CSS for Safari 17.5, Chrome/Edge 123 and Firefox 130 (no nesting); newer features only where they degrade
   gracefully, named under "Progressive:" in the file header.
 - Every stylesheet sits in `@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities`; themes and project
   CSS stay unlayered and win. No specificity tricks; `!important` only on a short allowlist.

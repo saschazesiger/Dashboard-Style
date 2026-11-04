@@ -82,7 +82,7 @@ test.describe('drawer', () => {
     }
   });
 
-  test('the modal drawer opens on the spring, its bleed covers the screen edge, and it closes on --ds-dur-base', async ({ page, dsFallback }) => {
+  test('the modal drawer opens on the spring, its bleed covers the screen edge, and it closes on --ds-dur-base', async ({ page }) => {
     await open(page, 'shell.html', 800);
     const drawer = page.locator('#drawer');
     const read = () => drawer.evaluate((el) => {
@@ -111,10 +111,8 @@ test.describe('drawer', () => {
     const width = frames[0].width;
     const peak = Math.max(...frames.map((frame) => frame.x));
     expect(frames[0].x).toBeLessThan(-width * 0.9);
-    // The spring passes x = 0 by at most 5 % of the width; the cubic
-    // fallback never passes.
-    if (dsFallback) expect(peak).toBeLessThanOrEqual(0.5);
-    else expect(peak).toBeGreaterThan(0.5);
+    // The spring passes x = 0 by at most 5 % of the width.
+    expect(peak).toBeGreaterThan(0.5);
     expect(peak).toBeLessThanOrEqual(width * 0.05 + 0.5);
     expect(Math.abs(frames.at(-1).x)).toBeLessThan(0.5);
     // In every frame the drawer or its bleed reaches x = 0.

@@ -395,11 +395,11 @@
      would hang into the block below a wrapped row); a chip hangs by its
      own height. */
   .ds-card__row {
-    row-gap: calc(var(--ds-space-3) + (var(--ds-btn-height, 36px) - var(--ds-card-title-line, 24px)) / 2);
+    row-gap: calc(var(--ds-space-3) + (max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)) - var(--ds-card-title-line, 24px)) / 2);
   }
 
   .ds-card__row > :not(.ds-card__title, :has(> .ds-card__title)) {
-    margin-block: calc((var(--ds-card-title-line, 24px) - var(--ds-btn-height, 36px)) / 2);
+    margin-block: calc((var(--ds-card-title-line, 24px) - max(var(--ds-target-min, 0px), calc(var(--ds-btn-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))) / 2);
   }
 
   .ds-card__row > .ds-switch,

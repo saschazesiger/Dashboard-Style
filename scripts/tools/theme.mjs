@@ -6,7 +6,7 @@
  *
  *   node tools/theme.mjs --seed '#0b57d0' [--scheme tonal|vibrant|neutral|fidelity|monochrome]
  *        [--contrast standard|medium|high] [--neutral <c>] [--accent <c>] [--error <c>]
- *        [--success <c>] [--warning <c>] [--name <name>] [--out <file>]
+ *        [--success <c>] [--warning <c>] [--info <c>] [--name <name>] [--out <file>]
  *   node tools/theme.mjs --presets [--check] [--out <dir>]
  *
  * Colours are #rgb, #rrggbb, rgb() or oklch(). Without --out the theme goes
@@ -43,8 +43,11 @@ export const CONTRAST_LEVELS = {
   high: { level: 1, text: 7, other: 4.5 },
 };
 
-/** The status seeds when none is given: today's success and warning inks; error is MCU's error palette (hue 25, chroma 84). */
-export const STATUS_DEFAULTS = { success: '#146c2e', warning: '#8f4e06' };
+/**
+ * The status seeds when none is given: today's success and warning inks, and a sky blue for info (3.0), apart
+ * from the primary hue of the default palette; error is MCU's error palette (hue 25, chroma 84).
+ */
+export const STATUS_DEFAULTS = { success: '#146c2e', warning: '#8f4e06', info: '#00639b' };
 
 /**
  * The chart series beside --ds-chart-1 (the primary): hue offsets from the
@@ -97,16 +100,25 @@ const ROLE_TABLE = [
   ['--ds-on-primary', 'primary', 100, 100, 20, 20, 'primary'],
   ['--ds-accent', 'accent', 90, 80, 30, 40, 'primary'],
   ['--ds-on-accent', 'accent', 10, 10, 90, 90, 'primary'],
+  ['--ds-primary-container', 'primary', 90, 80, 30, 40, 'primary'],
+  ['--ds-on-primary-container', 'primary', 10, 10, 90, 90, 'primary'],
   ['--ds-error', 'error', 40, 40, 80, 80, 'status'],
+  ['--ds-on-error', 'error', 100, 100, 20, 20, 'status'],
   ['--ds-error-container', 'errorWash|error', 90, 90, 30, 30, 'status'],
   ['--ds-on-error-container', 'error', 30, 20, 90, 95, 'status'],
   ['--ds-success', 'success', 40, 40, 80, 80, 'status'],
+  ['--ds-on-success', 'success', 100, 100, 20, 20, 'status'],
   ['--ds-success-container', 'successWash|success', 90, 90, 30, 30, 'status'],
   ['--ds-on-success-container', 'success', 30, 20, 90, 95, 'status'],
   ['--ds-warning', 'warning', 40, 40, 80, 80, 'status'],
+  ['--ds-on-warning', 'warning', 100, 100, 20, 20, 'status'],
   ['--ds-warning-container', 'warningWash|warning', 90, 90, 30, 30, 'status'],
   ['--ds-on-warning-container', 'warning', 30, 20, 90, 95, 'status'],
   ['--ds-warning-surface', 'warningSurface', 97, 97, 14, 14, 'status'],
+  ['--ds-info', 'info', 40, 40, 80, 80, 'status'],
+  ['--ds-on-info', 'info', 100, 100, 20, 20, 'status'],
+  ['--ds-info-container', 'infoWash|info', 90, 90, 30, 30, 'status'],
+  ['--ds-on-info-container', 'info', 30, 20, 90, 95, 'status'],
   ['--ds-inverse', 'neutral', 20, 20, 90, 90, 'inverse', true],
   ['--ds-on-inverse', 'neutral', 95, 95, 20, 20, 'inverse'],
   ['--ds-inverse-primary', 'primary', 80, 80, 40, 40, 'inverse'],
@@ -163,8 +175,8 @@ const asArgb = (value, label) => {
   return argb;
 };
 
-/** The palettes of a theme: the scheme's six, plus accent, status, the warning surface and the chart series. */
-function palettes({ seed, scheme, neutral, accent, error, success, warning }) {
+/** The palettes of a theme: the scheme's six, plus accent, status (info too), the warning surface and the chart series. */
+function palettes({ seed, scheme, neutral, accent, error, success, warning, info }) {
   const source = Hct.fromInt(seed);
   const variant = SCHEMES[scheme];
   const base = schemePalettes(variant, source);
@@ -177,6 +189,7 @@ function palettes({ seed, scheme, neutral, accent, error, success, warning }) {
     error: error === null ? base.error : fromSeed(error),
     success: fromSeed(success),
     warning: fromSeed(warning),
+    info: fromSeed(info),
   };
   if (neutral !== null) {
     // A neutral seed sets the hue and chroma of both neutral palettes.
@@ -186,7 +199,7 @@ function palettes({ seed, scheme, neutral, accent, error, success, warning }) {
   }
   // Quiet washes of the status hues: light containers (a green or yellow seed would glare at tone 90) and the
   // warning surface of full-width banners. Dark containers keep the full chroma, as the 2.x dark theme does.
-  for (const status of ['error', 'success', 'warning']) set[`${status}Wash`] = TonalPalette.fromHueAndChroma(set[status].hue, Math.min(set[status].chroma, 24));
+  for (const status of ['error', 'success', 'warning', 'info']) set[`${status}Wash`] = TonalPalette.fromHueAndChroma(set[status].hue, Math.min(set[status].chroma, 24));
   set.warningSurface = TonalPalette.fromHueAndChroma(set.warning.hue, Math.min(set.warning.chroma, 10));
   const chroma = CHART_CHROMA[variant] ?? Math.min(Math.max(source.chroma, 48), 80);
   for (const [name, offset] of Object.entries(CHART_OFFSETS)) {
@@ -264,7 +277,7 @@ const title = (name) => name.replace(/(^|[-_\s])(\w)/g, (_, gap, letter) => `${g
 /** The command that regenerates a theme, for its header. */
 function commandOf(options) {
   const parts = ['node tools/theme.mjs', `--seed '${options.seedText}'`, `--scheme ${options.scheme}`];
-  for (const key of ['neutral', 'accent', 'error', 'success', 'warning']) if (options.given[key]) parts.push(`--${key} '${options.given[key]}'`);
+  for (const key of ['neutral', 'accent', 'error', 'success', 'warning', 'info']) if (options.given[key]) parts.push(`--${key} '${options.given[key]}'`);
   if (options.contrast !== 'standard') parts.push(`--contrast ${options.contrast}`);
   parts.push(`--name ${options.name}`);
   return parts.join(' ');
@@ -275,7 +288,7 @@ const both = (light, dark) => (light === dark ? light : `light-dark(${light}, ${
 
 /**
  * A theme from a seed. Options: seed (required), neutral, accent, error,
- * success, warning (colours as text or ARGB integers), scheme (tonal,
+ * success, warning, info (colours as text or ARGB integers), scheme (tonal,
  * vibrant, neutral, fidelity or monochrome; default tonal), contrast
  * (standard, medium or high; default standard), name (default "custom").
  *
@@ -302,11 +315,12 @@ export function generateTheme(options = {}) {
     error: optional('error'),
     success: optional('success') ?? asArgb(STATUS_DEFAULTS.success, 'success'),
     warning: optional('warning') ?? asArgb(STATUS_DEFAULTS.warning, 'warning'),
+    info: optional('info') ?? asArgb(STATUS_DEFAULTS.info, 'info'),
   };
   const set = palettes(read);
   const light = solveScheme(set, 'light', levelInfo);
   const dark = solveScheme(set, 'dark', levelInfo);
-  const given = Object.fromEntries(['neutral', 'accent', 'error', 'success', 'warning'].map((key) => [key, read[key] === null || options[key] === undefined || options[key] === null || options[key] === '' ? null : hexFromArgb(read[key])]));
+  const given = Object.fromEntries(['neutral', 'accent', 'error', 'success', 'warning', 'info'].map((key) => [key, read[key] === null || options[key] === undefined || options[key] === null || options[key] === '' ? null : hexFromArgb(read[key])]));
   const info = { name, scheme, contrast: contrastName, seedText: hexFromArgb(read.seed), given };
 
   const lines = [];
@@ -408,7 +422,7 @@ export function presetFiles() {
 // ── CLI ────────────────────────────────────────────────────────────────────
 
 const USAGE = `Usage: node tools/theme.mjs --seed <colour> [--scheme ${Object.keys(SCHEMES).join('|')}] [--contrast ${Object.keys(CONTRAST_LEVELS).join('|')}]
-         [--neutral <c>] [--accent <c>] [--error <c>] [--success <c>] [--warning <c>] [--name <name>] [--out <file>]
+         [--neutral <c>] [--accent <c>] [--error <c>] [--success <c>] [--warning <c>] [--info <c>] [--name <name>] [--out <file>]
        node tools/theme.mjs --presets [--check] [--out <dir>]`;
 
 async function main(argv) {
@@ -416,7 +430,7 @@ async function main(argv) {
   const { dirname, join, resolve } = await import('node:path');
   const { fileURLToPath } = await import('node:url');
   const here = dirname(fileURLToPath(import.meta.url));
-  const VALUED = ['seed', 'neutral', 'accent', 'error', 'success', 'warning', 'scheme', 'contrast', 'name', 'out'];
+  const VALUED = ['seed', 'neutral', 'accent', 'error', 'success', 'warning', 'info', 'scheme', 'contrast', 'name', 'out'];
   const options = {};
   const flags = new Set();
   for (let i = 0; i < argv.length; i += 1) {
