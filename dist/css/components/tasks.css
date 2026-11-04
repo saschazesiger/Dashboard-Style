@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Tasks: a checklist of the steps of a job (an import, a setup, a
  * migration), each pending, running, done or failed.
@@ -6,7 +6,7 @@
  *   <div class="ds-tasks__head"><h3 class="ds-card__title">Set up LAPTOP-0042</h3><p class="ds-meta">3 of 7</p></div>
  *   <ol class="ds-tasks" aria-label="Steps">
  *     <li class="ds-tasks__item" data-status="done"><span class="ds-tasks__mark">[icon checkCircle 20]</span><span class="ds-tasks__text">Copy the image<span class="ds-sr">: done</span></span></li>
- *     <li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--sm"></span></span><span class="ds-tasks__text">Install updates<span class="ds-sr">: running</span></span></li>
+ *     <li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--ink ds-sm"></span></span><span class="ds-tasks__text">Install updates<span class="ds-sr">: running</span></span></li>
  *     <li class="ds-tasks__item" data-status="failed"><span class="ds-tasks__mark">[icon alertCircle 20]</span><span class="ds-tasks__text">Join the domain: failed, the server did not answer</span></li>
  *     <li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">Restart<span class="ds-sr">: waiting</span></span></li>
  *   </ol>
@@ -25,10 +25,19 @@
  * runs from 1 to 0 over --ds-dur-medium after --ds-dur-micro. A list
  * rendered with done steps stays still on load (a transition, not a
  * keyframe).
+ *
+ * Options (src/core/options.css, docs/options.md), on the list or any
+ * ancestor: size and density space the steps (--ds-tasks-gap, --ds-space-2,
+ * 2px per size step and per density step, at least none). They leave the
+ * body font and the 20px mark alone: the mark is a glyph on the text's first
+ * line. Shape multiplies the radius of the pending ring (half its size: round
+ * at the default, rounded corners at soft, square at square); the spinner and
+ * the check in a circle are round glyphs, no radius. A step is no target and shows its
+ * status by its own colours, so touch and tone do not apply.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   .ds-tasks__head {
@@ -47,7 +56,7 @@
 
   .ds-tasks {
     display: grid;
-    gap: var(--ds-space-2);
+    gap: max(0px, calc(var(--ds-tasks-gap, var(--ds-space-2)) + var(--ds-size-step, 0) * 2px + var(--ds-density, 0) * 2px));
     margin-inline: 0;
     margin-bottom: 0;
     padding: 0;
@@ -90,7 +99,7 @@
     width: var(--ds-space-4);
     height: var(--ds-space-4);
     border: 2px solid var(--ds-outline);
-    border-radius: 50%;
+    border-radius: min(calc(min(var(--ds-radius-action), calc(var(--ds-space-4) / 2)) * var(--ds-shape, 1)), calc(var(--ds-space-4) / 2));
   }
 
   .ds-tasks__item[data-status="running"] .ds-tasks__mark {

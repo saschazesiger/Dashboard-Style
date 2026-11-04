@@ -542,8 +542,7 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
     });
   });
 
-  // A todo until moduleAttributes() in scripts/build.mjs reads the modules of src/js too (the integrator's change, conventions section 9): remove the todo with it.
-  it('finds the indicator on a project track by its attribute alone', { todo: 'moduleAttributes() skips the modules of src/js' }, () => {
+  it('finds the indicator on a project track by its attribute alone', () => {
     withTemp((dir) => {
       const config = tempProject(dir, {
         'index.html': '<nav data-ds-indicator=\'[aria-pressed="true"]\' data-ds-indicator-class="x-pill"><button aria-pressed="true">A</button></nav>',
@@ -553,6 +552,26 @@ describe('tools/bundle.mjs on this checkout\'s dist/ (its manifest.json)', () =>
       const report = result.entries[0].report;
       assert.ok(names(report.components).includes('indicator'), 'its stylesheet: no pill without it');
       assert.ok(names(report.modules).includes('indicator'), 'its module: DS.init() makes the pill');
+    });
+  });
+
+  it('finds a core module by the attribute its define() declares, and not by one it only reads', () => {
+    withTemp((dir) => {
+      const config = tempProject(dir, {
+        'index.html': '<time data-ds-time datetime="2026-01-01T00:00:00Z"></time><button data-ds-hotkey="ctrl+k">Search</button>',
+      }, { dist: relative(dir, dist) });
+      const result = bundle({ config, write: false });
+      assert.deepEqual(result.errors, []);
+      const modules = names(result.entries[0].report.modules);
+      assert.ok(modules.includes('format'), 'data-ds-time');
+      assert.ok(modules.includes('hotkeys'), 'data-ds-hotkey');
+    });
+    withTemp((dir) => {
+      const config = tempProject(dir, { 'index.html': '<div data-ds-keep></div>' }, { dist: relative(dir, dist) });
+      const result = bundle({ config, write: false });
+      assert.deepEqual(result.errors, []);
+      const modules = names(result.entries[0].report.modules);
+      assert.ok(!modules.includes('indicator') && !modules.includes('ripple'), `data-ds-keep is the side of morphHtml: ${modules}`);
     });
   });
 });

@@ -113,11 +113,3 @@ stop of its own when nothing inside takes focus. A meter with its own figure is 
 [theming.md](theming.md).
 
 **Motion:** the "Charts" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Charts on the options model: size steps a meter, the plot and a legend key, density the plot, the shape multiplies
-  every radius, `.ds-touch` gives a column that opens its target.
-- Tones on the mark itself (`.ds-tone-*` on `.ds-meter`, `.ds-columns__col`, `.ds-legend__key`). Deprecated:
-  `.ds-meter--neutral`, `--warning`, `--error`, `.ds-columns__col--warning`, `--error`, `.ds-legend__key--neutral`,
-  `--warning`, `--error`.
-

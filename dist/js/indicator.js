@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Sliding selection indicator for segmented controls and navigation lists:
  * one element behind the items that glides to the active one instead of
@@ -48,7 +48,9 @@
  *
  * One indicator per track (2.0): a second call with the same options
  * returns the live handle (a re-run of the page's setup adds no second
- * pill); other options destroy it and make a new one. The fonts listener
+ * pill); other options destroy it and make a new one, except on a track
+ * with data-ds-indicator, whose handle is the element's controller: there
+ * the pill is replaced inside the handle, which stays valid. The fonts listener
  * (one per document) and the page-transition listeners (one set per
  * window) hold the indicators weakly, so a navigation that a re-render
  * replaced is not kept alive by them; a track out of the document places
@@ -60,9 +62,12 @@
  * a .ds-drawer__list gets .ds-drawer__list--overflow while it is taller
  * than its view.
  *
- *   const indicator = createIndicator(nav, { active: '[aria-current="page"]' });
+ *   const indicator = create(nav, { active: '[aria-current="page"]' });
  *   ...change the active item: the pill follows by itself...
  *   indicator.update();   // only needed with observe: false
+ *   indicator.get();      // the active item, or null
+ *   indicator.set(item);  // an element, a selector, or null: writes the item's state attribute
+ *   const off = indicator.on('change', (event) => event.detail.item);   // a bubbling ds:change on the track
  *
  * Across page loads: with a `name`, the span carries view-transition-name
  * ds-indicator-<name> for good, so a cross-document View Transition
@@ -84,8 +89,22 @@
  * pill is part of its parent's snapshot and switches with it on a page
  * load.
  *
- * ES2022 (Safari 16.4); a module may import from an earlier module; newer
- * APIs only behind feature detection, named under Progressive:.
+ * Options: size, density and .ds-touch change the items, and the pill
+ * follows what it measures (a resize places it at once). The shape reaches
+ * it through the radius: a component's class computes
+ * --ds-indicator-radius with --ds-shape in its own rule; a project class's
+ * plain border-radius is copied in with the shape as a live factor
+ * (adoptRadius()).
+ *
+ * Declarative: data-ds-indicator on the track (its value: the selector of
+ * the active item; empty: any item that says it is the current one),
+ * data-ds-indicator-class, -name and -reveal for the options; DS.init()
+ * makes it, DS.core.get(track, 'indicator') returns the handle create()
+ * returns for those options.
+ *
+ * ES2022 (the floor: Safari 17.5, Chrome/Edge 123, Firefox 130); a module
+ * may import from an earlier module; newer APIs only behind feature
+ * detection, named below.
  *
  * Progressive:
  * - view-transition-name (the `name` option) and the pageswap and
@@ -93,6 +112,7 @@
  *   without View Transitions the property is ignored and the pill glides
  *   as always.
  */
+import { define, emit } from './core.js';
 import { motionDuration, travelDuration } from './motion.js';
 
 /**
@@ -127,9 +147,11 @@ const MODAL_OPEN = [
 
 /**
  * The live indicator of each track, with the options it was made with: a
- * second createIndicator() for the same track and options returns it, other
+ * second create() for the same track and options returns it, other
  * options replace it (2.0).
- * @type {WeakMap<Element, { key: string, handle: { update: () => void, destroy: () => void } }>}
+ * `read` is set on a track with data-ds-indicator: it reads the options from
+ * the attributes, and the handle is the element's controller.
+ * @type {WeakMap<Element, { key: string, read: (() => object)|null, pill: object, handle: object, stops: Set<() => void>, gone: boolean }>}
  */
 const live = new WeakMap();
 
@@ -142,9 +164,6 @@ const live = new WeakMap();
  */
 const fontWatchers = new WeakMap();
 const pageWatchers = new WeakMap();
-
-/** A weak reference where the engine has them (ES2021), else a strong one. */
-const weak = (value) => (typeof WeakRef === 'function' ? new WeakRef(value) : { deref: () => value });
 
 /** Calls `method` of every watcher in `set` that is still alive; drops the dead ones. */
 function notify(set, method, event) {
@@ -167,7 +186,7 @@ function watch(registry, owner, watcher, listen) {
     entry = { set, stop: listen(set) };
     registry.set(owner, entry);
   }
-  const ref = weak(watcher);
+  const ref = new WeakRef(watcher);
   entry.set.add(ref);
   return () => {
     entry.set.delete(ref);
@@ -191,32 +210,38 @@ function rendered(item) {
   return typeof item.getClientRects !== 'function' || item.getClientRects().length > 0;
 }
 
+/** What the options of a track are compared by. */
+function optionsKey({ active, className = '', observe = true, name = '', reveal = false }) {
+  return JSON.stringify([active, className, Boolean(observe), name, Boolean(reveal)]);
+}
+
 /**
- * @param {HTMLElement} track   positioned container of the items
- * @param {{ active: string, className?: string, observe?: boolean, name?: string, reveal?: boolean }} options
- *   active     selector of the active item inside the track
- *   className  extra class for the indicator (its look is up to the component)
- *   observe    follow attribute and item changes by itself (default true)
- *   name       view-transition-name ds-indicator-<name> on the pill, so it
- *              glides across page loads (unique per page; letters, digits,
- *              - and _)
- *   reveal     scroll the track (only the track) so the active item is
- *              --ds-space-2 clear of its edges when it changes or the track
- *              resizes; a .ds-drawer__list also gets
- *              .ds-drawer__list--overflow while it is taller than its view
- *              (default false)
- *
- * A second call for the same track with the same options returns the live
- * handle; other options destroy it and make a new one.
+ * The attribute that makes `item` the active one, among those `selector`
+ * names: what the current item says, or with none the one the item carries
+ * already, else the first. Null for a selector that names none
+ * (.ds-radio:has(input:checked)): that state is the page's.
  */
-export function createIndicator(track, options) {
+function activeState(current, selector, item) {
+  const named = ACTIVE_ATTRIBUTES.filter((name) => selector.includes(`[${name}`));
+  const says = (name) => {
+    const value = current?.getAttribute(name);
+    return value && value !== 'false' ? value : null;
+  };
+  const own = named.find(says);
+  if (own) return { name: own, value: says(own) };
+  const name = named.find((other) => item?.hasAttribute(other)) ?? named[0];
+  if (!name) return null;
+  const value = selector.match(new RegExp(`\\[${name}=["']?([^"'\\]]+)`))?.[1];
+  return { name, value: value && value !== 'false' ? value : 'true' };
+}
+
+/**
+ * One pill on a track: its span, its observers and its placements. create()
+ * wraps it in the handle a page holds, so the pill can be replaced under a
+ * handle that stays valid.
+ */
+function makePill(track, options) {
   const { active, className = '', observe = true, name = '', reveal = false } = options;
-  const key = JSON.stringify([active, className, Boolean(observe), name, Boolean(reveal)]);
-  const existing = live.get(track);
-  if (existing) {
-    if (existing.key === key) return existing.handle;
-    existing.handle.destroy();
-  }
   const doc = track.ownerDocument ?? document;
   const view = doc.defaultView ?? globalThis;
   const indicator = doc.createElement('span');
@@ -238,6 +263,8 @@ export function createIndicator(track, options) {
     track.removeAttribute('data-ds-moving');
   }
 
+  /** The active item the last placement saw (undefined: none yet, so the first says nothing). */
+  let announced;
   /** The item of the last placement (null: none, or the pill is leaving). */
   let placed = /** @type {Element|null} */ (null);
   /** Where the pill rests or glides to, in track coordinates. */
@@ -250,6 +277,8 @@ export function createIndicator(track, options) {
   let generation = 0;
   let destroyed = false;
   let frame = 0;
+  /** The radius on the span is a copy of the class's border-radius (adoptRadius()). */
+  let adopted = false;
 
   const computed = () => (typeof view.getComputedStyle === 'function' ? view.getComputedStyle(indicator) : null);
 
@@ -351,19 +380,30 @@ export function createIndicator(track, options) {
   /**
    * A project class that only sets border-radius keeps its corners: at
    * rest, when no --ds-indicator-radius is set, its computed radius (capped
-   * at half the smaller side) is copied in, without a spring.
+   * at half the smaller side) is copied in, without a spring, and again at
+   * each rest, as the item's size may have changed. --ds-shape stays a live
+   * factor of the copy, so a square region squares the pill as it squares
+   * every other corner, whenever its class changes. A class that computes
+   * the shape itself sets --ds-indicator-radius, which is never touched.
    */
   function adoptRadius(rect) {
     const style = computed();
-    if (!style || style.getPropertyValue('--ds-indicator-radius').trim() !== '0px') return;
+    if (!style || (!adopted && style.getPropertyValue('--ds-indicator-radius').trim() !== '0px')) return;
     const own = String(style.borderTopLeftRadius || '').trim().split(/\s+/)[0];
     const side = Math.min(rect.right - rect.left, rect.bottom - rect.top);
     const value = parseFloat(own);
     // A percentage resolves against the smaller side (an ellipse is not a pill).
     const radius = Math.min(own.endsWith('%') ? value * side * 0.01 : value, side / 2);
-    if (!(radius > 0)) return;
+    if (!(radius > 0)) {
+      if (adopted) indicator.style.removeProperty('--ds-indicator-radius');
+      adopted = false;
+      return;
+    }
+    const copy = `calc(${px(radius)} * var(--ds-shape, 1))`;
+    adopted = true;
+    if (indicator.style.getPropertyValue('--ds-indicator-radius') === copy) return;
     indicator.style.setProperty('transition', 'none');
-    indicator.style.setProperty('--ds-indicator-radius', px(radius));
+    indicator.style.setProperty('--ds-indicator-radius', copy);
     flush();
     indicator.style.removeProperty('transition');
   }
@@ -538,7 +578,15 @@ export function createIndicator(track, options) {
     }
     // An active item inside a closed group has no pill (it comes back when the group opens).
     const found = track.querySelector(active);
-    const item = found && rendered(found) ? found : null;
+    move(found && rendered(found) ? found : null, trackRect);
+    // After the move, so a listener that calls set() starts from a placed pill.
+    if (found === announced) return;
+    const first = announced === undefined;
+    announced = found;
+    if (!first) emit(track, 'change', { item: found });
+  }
+
+  function move(item, trackRect) {
     if (!item) {
       if (placed !== null || jump) disappear();
       return;
@@ -692,9 +740,24 @@ export function createIndicator(track, options) {
   place();
   syncObserved();
 
-  const handle = {
-    /** Moves the indicator to the current active item (glides when it changed). */
-    update() {
+  return {
+    // The handle holds the pill and the pill the watcher, which the shared listeners hold only weakly.
+    watcher,
+    place,
+    get: () => track.querySelector(active),
+    set(value) {
+      const item = typeof value === 'string' ? track.querySelector(value) : value ?? null;
+      // A selector that finds nothing or an element of another track is no choice; only null clears.
+      if (value !== null && (!item || !track.contains(item))) return;
+      const current = [...track.querySelectorAll(active)];
+      if (item ? current.length === 1 && current[0] === item : !current.length) return;
+      const state = activeState(current[0], active, item);
+      if (!state) return;
+      for (const other of current) {
+        if (state.name === 'aria-current') other.removeAttribute(state.name);
+        else other.setAttribute(state.name, 'false');
+      }
+      item?.setAttribute(state.name, state.value);
       place();
     },
     destroy() {
@@ -706,12 +769,133 @@ export function createIndicator(track, options) {
       if (frame) view.cancelAnimationFrame?.(frame);
       frame = 0;
       for (const stop of unwatch) stop();
-      if (live.get(track)?.handle === handle) live.delete(track);
       indicator.remove();
       track.classList.remove('ds-has-indicator');
       track.style.removeProperty('--ds-indicator-dur');
     },
   };
-  live.set(track, { key, handle, watcher });
-  return handle;
 }
+
+/** The pill of a live entry gives way to one with other options, under the same handle. */
+function replacePill(entry, track, options, key) {
+  entry.pill.destroy();
+  entry.pill = makePill(track, options);
+  entry.key = key;
+}
+
+/** The live handle of `track` for these options, its pill replaced or a new one (see create()). */
+function openPill(track, options, read) {
+  const key = optionsKey(options);
+  const existing = live.get(track);
+  if (existing) {
+    if (read) existing.read = read;
+    if (existing.key === key) return existing.handle;
+    if (existing.read) {
+      replacePill(existing, track, options, key);
+      return existing.handle;
+    }
+    existing.handle.destroy();
+  }
+  const entry = { key, read, pill: makePill(track, options), stops: new Set(), gone: false, handle: null };
+  entry.handle = {
+    /** The active item now (also one in a closed group, which has no pill), or null. */
+    get: () => entry.pill.get(),
+    /** Makes an element or the first match of a selector the active item; null clears it. */
+    set(value) {
+      entry.pill.set(value);
+    },
+    /** Listens for ds:<type> of this track (not of a track nested in it); returns the unsubscribe. */
+    on(type, fn) {
+      if (entry.gone) return () => {};
+      const name = String(type).startsWith('ds:') ? String(type) : `ds:${type}`;
+      const listener = (event) => {
+        if (event.target === track) fn(event);
+      };
+      const stop = () => {
+        track.removeEventListener(name, listener);
+        entry.stops.delete(stop);
+      };
+      track.addEventListener(name, listener);
+      entry.stops.add(stop);
+      return stop;
+    },
+    /**
+     * Moves the indicator to the current active item (glides when it
+     * changed). With names (the core: an option attribute changed) it reads
+     * the options again and replaces the pill when they differ.
+     */
+    update(names) {
+      if (entry.gone) return;
+      if (names?.length && entry.read) {
+        const next = entry.read();
+        const nextKey = optionsKey(next);
+        if (nextKey !== entry.key) replacePill(entry, track, next, nextKey);
+        return;
+      }
+      entry.pill.place();
+    },
+    destroy() {
+      if (entry.gone) return;
+      entry.gone = true;
+      entry.pill.destroy();
+      for (const stop of [...entry.stops]) stop();
+      if (live.get(track) === entry) live.delete(track);
+    },
+  };
+  live.set(track, entry);
+  return entry.handle;
+}
+
+/**
+ * @param {HTMLElement} track   positioned container of the items
+ * @param {{ active: string, className?: string, observe?: boolean, name?: string, reveal?: boolean }} options
+ *   active     selector of the active item inside the track
+ *   className  extra class for the indicator (its look is up to the component)
+ *   observe    follow attribute and item changes by itself (default true)
+ *   name       view-transition-name ds-indicator-<name> on the pill, so it
+ *              glides across page loads (unique per page; letters, digits,
+ *              - and _)
+ *   reveal     scroll the track (only the track) so the active item is
+ *              --ds-space-2 clear of its edges when it changes or the track
+ *              resizes; a .ds-drawer__list also gets
+ *              .ds-drawer__list--overflow while it is taller than its view
+ *              (default false)
+ *
+ * A second call for the same track with the same options returns the live
+ * handle; other options destroy it and make a new one. On a track with
+ * data-ds-indicator the handle is the element's controller (DS.core.get), so
+ * other options replace the pill inside it and return the same handle.
+ */
+export function create(track, options) {
+  return openPill(track, options, null);
+}
+
+/**
+ * The 2.x name of create(), a deprecated alias until 3.0 ships.
+ * @param {HTMLElement} track
+ * @param {{ active: string, className?: string, observe?: boolean, name?: string, reveal?: boolean }} options
+ */
+export function createIndicator(track, options) {
+  return create(track, options);
+}
+
+/** Any item that says it is the current one: the active item of data-ds-indicator without a selector. */
+const ANY_ACTIVE = '[aria-current]:not([aria-current="false"]), [aria-pressed="true"], [aria-selected="true"], [aria-checked="true"]';
+
+/*
+ * The declarative path of create(): its handle is the controller. A change of
+ * an option attribute replaces the pill inside it (handle.update(names)).
+ */
+define('indicator', {
+  attribute: 'data-ds-indicator',
+  attributes: ['data-ds-indicator-class', 'data-ds-indicator-name', 'data-ds-indicator-reveal'],
+  init(el) {
+    const read = () => ({
+      active: el.getAttribute('data-ds-indicator') || ANY_ACTIVE,
+      className: el.getAttribute('data-ds-indicator-class') ?? '',
+      name: el.getAttribute('data-ds-indicator-name') ?? '',
+      reveal: el.hasAttribute('data-ds-indicator-reveal'),
+    });
+    return openPill(el, read(), read);
+  },
+});

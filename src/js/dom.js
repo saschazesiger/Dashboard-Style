@@ -973,7 +973,8 @@ function flag(element, name, on) {
  * right-to-left scroller works), --ds-scrollbar-height ('inline') or
  * --ds-scrollbar-width ('block') in px (the room of the scrollbar), and
  * --ds-table-pin-width (the width of the first cell) when it holds a
- * .ds-table--pin-first. A passive scroll listener updates once per frame,
+ * .ds-table--pin-first, --ds-table-pin-last-width (the last cell) when it holds
+ * a .ds-table--pin-last. A passive scroll listener updates once per frame,
  * one ResizeObserver per window watches the scroller and its children (a
  * MutationObserver adds the children that come and drops the ones that
  * go), so rows added or opened update the edges; when the overflow goes
@@ -996,7 +997,7 @@ export function scrollEdges(scroller, options = {}) {
   const inline = axis === 'inline';
   const bar = inline ? '--ds-scrollbar-height' : '--ds-scrollbar-width';
   for (const name of ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end']) own(scroller, 'attrs', name);
-  for (const name of [bar, '--ds-table-pin-width']) own(scroller, 'props', name);
+  for (const name of [bar, '--ds-table-pin-width', '--ds-table-pin-last-width']) own(scroller, 'props', name);
   let frame = 0;
   let overflowed = false;
   // Every element child is watched, not only the first: a list grows by new
@@ -1041,6 +1042,11 @@ export function scrollEdges(scroller, options = {}) {
     const first = pinned ? pinned.rows?.[0]?.cells?.[0] ?? pinned.querySelector('th, td') : null;
     if (first) scroller.style.setProperty('--ds-table-pin-width', `${Math.round(first.getBoundingClientRect().width * 100) / 100}px`);
     else scroller.style.removeProperty('--ds-table-pin-width');
+    const pinnedEnd = scroller.querySelector?.('.ds-table--pin-last') ?? null;
+    const row = pinnedEnd?.rows?.[0]?.cells;
+    const last = row?.length ? row[row.length - 1] : pinnedEnd ? [...pinnedEnd.querySelectorAll('th, td')].at(-1) : null;
+    if (last) scroller.style.setProperty('--ds-table-pin-last-width', `${Math.round(last.getBoundingClientRect().width * 100) / 100}px`);
+    else scroller.style.removeProperty('--ds-table-pin-last-width');
     if (overflowed && !overflow) resyncScroll(scroller);
     overflowed = overflow;
     // Without a MutationObserver, the children are synced per measure.

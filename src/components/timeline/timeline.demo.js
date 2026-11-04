@@ -6,7 +6,7 @@
  * entries are fake, as a project's would come from its data layer.
  */
 function chip(h, status) {
-  return '<span class="ds-status ds-status--' + status[0] + '">' + h.icon(status[1], 16) + '<span>' + status[2] + '</span></span>';
+  return '<span class="ds-status ds-tone-' + (status[0] === 'ok' ? 'success' : status[0]) + '">' + h.icon(status[1], 16) + '<span>' + status[2] + '</span></span>';
 }
 
 function historyHtml(h) {

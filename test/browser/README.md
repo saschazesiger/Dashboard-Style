@@ -144,7 +144,7 @@ covers the `html.ds-theme.ds-base` path.
 | `vt-view.html` | `.ds-theme` on `<html>` and a wizard in a `.ds-vt-view` without `.ds-app`; `window.fxStep(n, type)` goes to a step through `DS.motion.transition()` (`view-transitions.spec.js`) |
 
 `fixture.js` fills `[data-icon]` placeholders from `DS.icons`, wires `[data-replay]` buttons
-(`DS.motion.replay`), `[data-toggle-class]` buttons and `[data-indicator]` tracks (`DS.indicator.createIndicator`,
+(`DS.motion.replay`), `[data-toggle-class]` buttons and `[data-indicator]` tracks (`DS.indicator.create`,
 with `data-indicator-name` as its `name`, reachable as `window.fixtureIndicators`; an item with `data-fx-follow` loads
 its link instead), honours `?speed=` and then sets `html[data-fixture-ready]`.
 
@@ -547,7 +547,7 @@ New lab demos get their snapshots with `--update-snapshots=missing` in the conta
   markup (a status icon, a validation message, the overlays the index shows in place). Nothing on a chip, switch,
   checkbox, radio or the drawer's pill may move on load. (It found the pill growing in from an empty track and the
   mixed checkboxes playing their dash in Firefox and WebKit; both are fixed in the styleguide and, for the pill's
-  items, in `createIndicator()`.)
+  items, in `DS.indicator.create()`.)
 - **Hover** (engines with a hovering pointer): one element of every kind of interactive element (tag, `ds-`/`sg-`
   classes, type and role) on both pages keeps its box within 0.5px and its `translate`, `scale` and `transform`
   while the mouse rests on it (D14).

@@ -16,7 +16,20 @@ import type * as indicator from './js/indicator.js';
 import type * as dom from './js/dom.js';
 import type * as ripple from './js/ripple.js';
 import type * as icons from './js/icons.js';
+import type * as position from './js/position.js';
 import type * as overlay from './js/overlay.js';
+import type * as a11y from './js/a11y.js';
+import type * as hotkeys from './js/hotkeys.js';
+import type * as format from './js/format.js';
+import type * as store from './js/store.js';
+import type * as virtual from './js/virtual.js';
+import type * as dnd from './js/dnd.js';
+import type * as badge from './js/badge.js';
+import type * as dialog from './js/dialog.js';
+import type * as menu from './js/menu.js';
+import type * as sheet from './js/sheet.js';
+import type * as toast from './js/toast.js';
+import type * as tooltip from './js/tooltip.js';
 // /generated: modules
 
 /** What window.DS holds: the version, one namespace per module and the entry points of DS.core at the top level. */
@@ -38,7 +51,20 @@ export interface DashboardStyleApi {
   readonly dom: typeof dom;
   readonly ripple: typeof ripple;
   readonly icons: typeof icons;
+  readonly position: typeof position;
   readonly overlay: typeof overlay;
+  readonly a11y: typeof a11y;
+  readonly hotkeys: typeof hotkeys;
+  readonly format: typeof format;
+  readonly store: typeof store;
+  readonly virtual: typeof virtual;
+  readonly dnd: typeof dnd;
+  readonly badge: typeof badge;
+  readonly dialog: typeof dialog;
+  readonly menu: typeof menu;
+  readonly sheet: typeof sheet;
+  readonly toast: typeof toast;
+  readonly tooltip: typeof tooltip;
   // /generated: namespaces
 }
 

@@ -118,10 +118,3 @@ loader say nothing. Keyboard: no stop of its own. **Forced colours.** The fills 
 loading bar are left out.
 
 **Motion:** the loader and skeleton rows of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Loading: skeleton presets (`.ds-skeleton__avatar`, `__media`, `__row` with `__lines`, `__table` with `__cells` and
-  `__cells--head`, `__form` with `__field` and `__line--label`), `.ds-skeleton--pulse` beside the wave, hook
-  `--ds-skeleton-media-ratio`; size, density and shape. The spinner and the shape loader have their own sections now.
-  Changed under `themes/compact.css`: 12px of padding on `.ds-loading` and 20px on a card (2.x: 16px and 24px), since the
-  theme is density -2. A field bone and a table row read the hooks of the input and the table.

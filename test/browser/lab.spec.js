@@ -186,7 +186,9 @@ const GROUPS = ['foundations', 'utilities', 'keyframes', 'data', 'controls', 'na
 const METAS = readdirSync(resolve(ROOT, 'src/components')).filter((name) => !name.startsWith('_') && existsSync(resolve(ROOT, 'src/components', name, 'meta.json')))
   .map((name) => JSON.parse(readFileSync(resolve(ROOT, 'src/components', name, 'meta.json'), 'utf8')));
 /** The namespaces whose functions need a demo: the motion modules of src/js, then every component module. */
-const LAB_NAMESPACES = ['motion', 'dom', 'indicator', 'ripple', 'overlay', ...METAS.filter((meta) => meta.module).map((meta) => meta.name)];
+const LAB_NAMESPACES = ['motion', 'dom', 'indicator', 'ripple', 'overlay', 'dnd', 'format', 'store', 'virtual', ...METAS.filter((meta) => meta.module).map((meta) => meta.name)];
+/** A helper with no motion of its own: each of its functions on LAB_EXEMPT with one reason, so a new export has to choose. */
+const noMotion = (namespace, names, reason) => Object.fromEntries(names.map((name) => [`DS.${namespace}.${name}`, reason]));
 
 const LAB_EXEMPT = {
   // Each component's own exemptions (meta.json "labExempt"), next to its module.
@@ -203,6 +205,9 @@ const LAB_EXEMPT = {
   'DS.dom.dropzone': 'events, no motion: the dropzone demo plays the data-ds-dragover look it writes',
   'DS.overlay.announce': 'live region, no motion',
   'DS.overlay.toastRegion': 'live region, no motion',
+  ...noMotion('format', ['number', 'percent', 'currency', 'bytes', 'duration', 'list', 'plural', 'relative', 'absolute', 'clock', 'time'], 'text from Intl and a shared clock: nothing moves, a time only rewrites its text'),
+  ...noMotion('store', ['open', 'available'], 'remembered values in storage, no DOM and no motion'),
+  ...noMotion('virtual', ['create', 'sizes'], 'windowing: rows come and go off screen at once, and a row that stays never moves on screen; scroll position is the page\'s'),
   'ds-edge-fade': 'deprecated in 2.0 and unused (removed in 3.0 at the earliest): the table wrappers run ds-scroll-edge-start and ds-scroll-edge-end',
 };
 

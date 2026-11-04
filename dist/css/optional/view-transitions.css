@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Opt-in: View Transitions across page loads (multi-page apps, D15). Not
  * part of ds.css; load it after ds.css on every page of the app, with a
@@ -43,7 +43,7 @@
  *   <script src="ds.js"></script> <script src="app.js"></script>
  *   <div id="rendered" hidden></div> </body>
  *
- *   DS.indicator.createIndicator(list, { active: '[aria-current="page"]',
+ *   DS.indicator.create(list, { active: '[aria-current="page"]',
  *     className: 'ds-drawer__indicator', name: 'nav' });
  *
  * Chromium ends that wait early (console: "Did not find element expected

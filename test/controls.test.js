@@ -120,7 +120,7 @@ describe('utilities (2.0)', () => {
     assert.equal(own(css, ':is([aria-pressed="true"], [aria-checked="true"]) .ds-icon--fillable > :last-child').fill, 'currentColor');
   });
 
-  it('sets every target hook to --ds-touch-target under .ds-touch (opt-in, a role), and --ds-target-min for the options model', () => {
+  it('sets the field type role under .ds-touch (opt-in, a role), and --ds-target-min for the options model', () => {
     const touch = own(css, '.ds-touch');
     // 3.0: buttons take the touch target from --ds-target-min (core/options.css), as a minimum over size and density.
     assert.deepEqual(own(stripComments(read('src/core/options.css')), '.ds-touch'), { '--ds-target-min': 'var(--ds-touch-target)' });
@@ -135,7 +135,6 @@ describe('utilities (2.0)', () => {
     for (const file of ['src/components/utilities/utilities.css', 'src/core/base.css']) assert.doesNotMatch(stripComments(read(file)), /pointer:\s*coarse/, file);
     const theming = read('docs/theming.md');
     assert.match(theming, /## Touch screens/);
-    for (const hook of hooks) assert.ok(theming.includes(`\`${hook}\``), `docs/theming.md names ${hook}`);
   });
 });
 

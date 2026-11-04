@@ -114,10 +114,8 @@
  *                       no press and no ripple; a row's ripple reaches it
  *                       in a part of its own (DS.ripple.attach()), and it
  *                       finishes the ring of a row link in another cell.
- *                       Focus moved by the keyboard can land under it
- *                       unless the page sets --ds-table-pin-last-width to
- *                       its width (DS.dom.scrollEdges() measures only the
- *                       first column)
+ *                       DS.dom.scrollEdges() measures it, so focus moved by
+ *                       the keyboard never lands under it
  *
  * Wrappers that scroll sideways fade at the end that still has columns
  * (in a card: .ds-table--wide when the content area is narrow, every table
@@ -140,7 +138,7 @@
  * half), --ds-table-zebra
  * (--ds-surface-low), --ds-table-sticky-bg (the opaque base of sticky and
  * pinned cells and of the fill wrapper, default --ds-surface),
- * --ds-table-max-height (none), --ds-table-pin-last-width (0px),
+ * --ds-table-max-height (none),
  * --ds-table-cell-max-width (280px), --ds-table-fill-min-height
  * (240px), --ds-table-fill-max-height (none), --ds-selection-bar-height
  * (48px), --ds-scroll-fade (the fade length; in a card --ds-card-pad, 0px

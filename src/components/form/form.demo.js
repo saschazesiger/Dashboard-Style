@@ -39,7 +39,7 @@ function slots(h) {
   return '<div class="ds-form-grid ds-form-grid--2" data-demo="slots">' +
     field(h, look, 'Search devices', '<div class="ds-input-group"><span class="ds-input-group__leading" aria-hidden="true">' + h.icon('search', 18) + '</span><input class="ds-input" %ATTRS% placeholder="Name or serial"></div>') +
     field(h, look, 'Quota (GB)', '<div class="ds-input-group"><input class="ds-input" %ATTRS% inputmode="numeric" value="50"><span class="ds-input-group__suffix" aria-hidden="true">GB</span></div>') +
-    field(h, look, 'Room', '<div class="ds-input-group"><input class="ds-input" %ATTRS% value="B 2.14"><span class="ds-input-group__trailing"><span class="ds-tag ds-tag--neutral">Suggested</span></span></div>') +
+    field(h, look, 'Room', '<div class="ds-input-group"><input class="ds-input" %ATTRS% value="B 2.14"><span class="ds-input-group__trailing"><span class="ds-tag ds-tone-neutral">Suggested</span></span></div>') +
     '<div class="' + look + '"><label class="ds-field__label" for="' + reveal + '">API key</label><div class="ds-input-group"><input class="ds-input" id="' + reveal + '" type="password" value="ex_7f3a9c21" autocomplete="off">' +
     '<span class="ds-input-group__trailing"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show the key" aria-pressed="false" aria-controls="' + reveal + '" data-demo="reveal"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' + h.icon('eye', 18) + '</span><span class="ds-icon-swap__b">' + h.icon('eyeOff', 18) + '</span></span></button></span></div></div>' +
     '</div>';

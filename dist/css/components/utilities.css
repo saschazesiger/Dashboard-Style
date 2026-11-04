@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Utilities: screen-reader text and small text helpers, the press model
  * for a project element, actions that show on demand, keys, dividers,
@@ -37,7 +37,9 @@
  * the ripple's. No morph: pills are .ds-btn. Disabled, aria-disabled and
  * aria-busy show no hover or press layer, no ripple and the not-allowed
  * cursor (aria-disabled keeps the focus layer). Forced colours: no layer,
- * the ring stays.
+ * the ring stays. Options: .ds-touch makes it at least --ds-touch-target
+ * high, .ds-shape-* multiplies its radius; size, density and tone are the
+ * project element's own.
  *
  * Actions that show on demand (a row's edit button):
  *
@@ -53,7 +55,8 @@
  * (hover: none) and under .ds-touch. Opacity only: the buttons stay in the
  * tab order and the accessibility tree, and hover moves nothing.
  *
- *   <kbd class="ds-kbd">Ctrl</kbd>    a key (the code font in a hairline box)
+ *   <kbd class="ds-kbd">Ctrl</kbd>    a key (the code font in a hairline box;
+ *                                     .ds-shape-* multiplies its radius)
  *   <hr class="ds-divider">           a hairline (--inset: from --ds-space-4)
  *   <span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>
  *   <div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>
@@ -63,11 +66,10 @@
  * while an ancestor is [aria-pressed="true"] or [aria-checked="true"]
  * (fill on --ds-dur-fast); .ds-icon--filled fills it always.
  *
- * Touch screens: .ds-touch (on .ds-theme or any container) sets every
- * target hook to --ds-touch-target (48px) and fields to the input type
- * role; buttons take it from --ds-target-min, which core/options.css sets
- * on .ds-touch. Opt in (docs/theming.md, "Touch screens"); never
- * automatic.
+ * Touch screens: .ds-touch (on .ds-theme or any container) sets fields to the
+ * input type role; every component takes --ds-touch-target (48px) from
+ * --ds-target-min, which core/options.css sets on .ds-touch. Opt in
+ * (docs/theming.md, "Touch screens"); never automatic.
  *
  * Hooks: --ds-pressable-radius (--ds-radius-sm), --ds-pressable-layer
  * (currentColor), --ds-kbd-border (--ds-line-2), --ds-kbd-bg (--ds-surface).
@@ -78,7 +80,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   /* Placed at the top left of its positioned ancestor: left where it stands
@@ -161,7 +163,8 @@
     position: relative;
     /* The layer (z-index -1) stays above the fill, below the content. */
     isolation: isolate;
-    border-radius: var(--ds-pressable-radius, var(--ds-radius-sm));
+    min-height: var(--ds-target-min, 0px);
+    border-radius: calc(var(--ds-pressable-radius, var(--ds-radius-sm)) * var(--ds-shape, 1));
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     /* The ring rests (invisible) one width further out and snaps in. */
@@ -283,7 +286,7 @@
     min-width: var(--ds-space-5);
     padding: 0 var(--ds-space-1);
     border: 1px solid var(--ds-kbd-border, var(--ds-line-2));
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
     background: var(--ds-kbd-bg, var(--ds-surface));
     color: var(--ds-text-2);
     font: var(--ds-font-code);
@@ -344,24 +347,11 @@
   /*
    * Touch screens (opt-in, docs/theming.md): every target at least
    * --ds-touch-target, fields at the input role (no zoom on focus in iOS).
-   * Buttons take it from --ds-target-min (core/options.css), as every
-   * component will once it is on the options model; the hooks below are
-   * those of the components not ported yet.
+   * A component takes it from --ds-target-min (core/options.css), as a
+   * minimum over its computed height: setting its base hook here would add
+   * the size step on top.
    */
   .ds-touch {
-    --ds-input-height: var(--ds-touch-target);
-    --ds-check-height: var(--ds-touch-target);
-    --ds-check-sm-height: var(--ds-touch-target);
-    --ds-check-target: var(--ds-touch-target);
-    --ds-switch-height: var(--ds-touch-target);
-    --ds-switch-halo: var(--ds-touch-target);
-    --ds-chip-height: var(--ds-touch-target);
-    --ds-combo-option-height: var(--ds-touch-target);
-    --ds-menu-item-height: var(--ds-touch-target);
-    --ds-drawer-item-height: var(--ds-touch-target);
-    --ds-toast-close-size: var(--ds-touch-target);
-    --ds-tabs-height: var(--ds-touch-target);
-    --ds-disclosure-height: var(--ds-touch-target);
     --ds-input-font: var(--ds-font-input);
   }
 

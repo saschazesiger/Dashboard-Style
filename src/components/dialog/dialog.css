@@ -64,7 +64,7 @@
  *         <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
  *         <button class="ds-btn ds-btn--filled" type="submit">
  *           <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
- *             <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span>
+ *             <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span>
  *         </button>
  *
  * Div markup (fallback): the same tree in a div; the box takes the role.

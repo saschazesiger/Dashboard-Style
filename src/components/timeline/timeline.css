@@ -6,7 +6,7 @@
  *   <ol class="ds-timeline" role="list" aria-label="History of LAPTOP-0042">
  *     <li class="ds-timeline__group" role="presentation"><h3 class="ds-timeline__day">12 Oct 2026</h3></li>
  *     <li class="ds-timeline__item" data-ds-key="e3">
- *       <div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p><span class="ds-status ds-status--ok">...</span></div>
+ *       <div class="ds-timeline__head"><p class="ds-timeline__title">Issued</p><span class="ds-status ds-tone-success">...</span></div>
  *       <p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p>
  *       <p class="ds-timeline__text">Issued to Ada Lovelace.</p>
  *       <div class="ds-timeline__actions ds-sm"><button class="ds-btn ds-btn--text" type="button" aria-label="Edit the entry of 12 Oct 2026, 14:05">Edit</button></div>

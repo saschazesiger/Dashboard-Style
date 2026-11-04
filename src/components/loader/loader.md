@@ -31,7 +31,3 @@ turns. For a section, a sheet or the app start; a small spot keeps the [spinner]
 
 **Motion:** the loader rows of [Feedback](motion.md#feedback) in motion.md: `ds-loader-morph` and `ds-loader-turn` on
 `--ds-loop-loader`, always at their token speed.
-
-<!-- changelog -->
-- Shape loader: its own docs section; size steps of 24px from the md base. `.ds-loader--sm` and `--ds-loader-sm-size`
-  deprecated: `.ds-sm`, `--ds-loader-size`.

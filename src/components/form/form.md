@@ -207,7 +207,7 @@ document.addEventListener('keydown', (event) => {
     <span class="ds-input-group__leading" aria-hidden="true">[icon globe 18]</span>
     <span class="ds-input-group__prefix" aria-hidden="true">https://</span>
     <input class="ds-input" id="site" value="example.org">
-    <span class="ds-input-group__trailing"><span class="ds-tag ds-tag--neutral">Suggested</span></span>
+    <span class="ds-input-group__trailing"><span class="ds-tag ds-tone-neutral">Suggested</span></span>
   </div>
 </div>
 <div class="ds-field">
@@ -386,7 +386,7 @@ spring) on the checked tile, which keeps the card's ring; keyboard focus rings t
 morph (`--ds-radius-card-pressed`). For a tint that glides from tile to tile, add the indicator once:
 
 ```js
-const pill = DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+const pill = DS.indicator.create(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
 group.addEventListener('change', () => pill.update()); // checking a radio changes no attribute
 ```
 
@@ -466,15 +466,3 @@ follows, so the page's filter runs) and the next Escape closes the layer (2.0, `
 **Motion:** the check, radio, focus, validation, confirmation, changed dot, search key and radio tile rows of
 [Controls](motion.md#controls) in motion.md. A checkbox card moves as a radio card; a warning hint enters as an error
 hint does.
-
-<!-- changelog -->
-- Form: on the options model: fields, input groups, `.ds-check` rows, halos and cards compute size, density, shape and
-  touch in their own rules (`--ds-input-height` is the md, comfortable base, and `.ds-touch` no longer sets it; the
-  compact theme's field is now its density's 32px, 2.x 36px). New: `.ds-field--filled`, `.ds-field--outlined`, `.ds-input--outlined`, `.ds-input-group--filled`;
-  the slots `.ds-input-group__leading`, `__prefix`, `__suffix`, `__trailing`; `.ds-field--warning`, `.ds-field--success`,
-  `.ds-field__hint--warning`, `--ds-field-warning-color`; `aria-readonly="true"` on a select; `.ds-field__counter--over`;
-  `.ds-fieldset`; `.ds-form-section`; `.ds-check-card`, `.ds-check-cards`; an inset field holds an input group; hooks
-  `--ds-input-padding-x`, `--ds-input-weight`, `--ds-radio-padding`.
-- Deprecated, removed when 3.0 ships: `.ds-check--sm` and `--ds-check-sm-height` (`.ds-sm`, `--ds-check-height`),
-  `.ds-input-group__affix` (`.ds-input-group__prefix`, `.ds-input-group__suffix`).
-

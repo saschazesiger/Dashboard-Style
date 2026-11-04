@@ -117,7 +117,11 @@ function disown(element, kind, name) {
 /** The modal around `node`, else its theme: what stays reachable while a modal traps the page. */
 const speechHost = (node) => node.closest?.('dialog, .ds-dialog, .ds-sheet') ?? node.closest?.('.ds-theme') ?? node.ownerDocument?.body;
 
-/** The polite live region of `node`'s host, made once. */
+/**
+ * The polite live region of `node`'s host, made once. Its own, as sortable()'s:
+ * DS.a11y.announce() is the snackbar region's, and a page that drags would pull
+ * in the toast part for one line of speech.
+ */
 function regionOf(node) {
   const host = speechHost(node);
   if (!host) return null;

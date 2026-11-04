@@ -7,7 +7,7 @@ The steps of a job: an import, a setup, a migration, each step pending, running,
 <ol class="ds-tasks" aria-label="Steps">
   <li class="ds-tasks__item" data-status="done"><span class="ds-tasks__mark">[icon checkCircle 20]</span><span class="ds-tasks__text">Copy the image<span class="ds-sr">: done</span></span></li>
   <li class="ds-tasks__item" data-status="failed"><span class="ds-tasks__mark">[icon alertCircle 20]</span><span class="ds-tasks__text">Join the domain: failed, the server did not answer</span></li>
-  <li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--sm"></span></span><span class="ds-tasks__text">Install updates<span class="ds-sr">: running</span></span></li>
+  <li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--ink ds-sm"></span></span><span class="ds-tasks__text">Install updates<span class="ds-sr">: running</span></span></li>
   <li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">Restart<span class="ds-sr">: waiting</span></span></li>
 </ol>
 ```
@@ -45,8 +45,3 @@ The marks take `CanvasText`: the shape of the mark and the weight of the text ca
 `--ds-tasks-gap`: see [theming.md](theming.md).
 
 **Motion:** the "Tasks" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Tasks on the options model: size and density space the steps (hook `--ds-tasks-gap`), the shape multiplies the
-  pending ring.
-

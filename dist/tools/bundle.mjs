@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Writes a project's Dashboard-Style bundle: only the stylesheets, modules
  * and icons the project uses, without dependencies (Node 22 or later).
@@ -31,7 +31,7 @@
  * document).
  *
  * The scan reads every file as plain text: complete ds-* class names and
- * data-ds-* attributes against the manifest, DS.<module>.<export> and
+ * data-ds-* attributes (and data-tip) against the manifest, DS.<module>.<export> and
  * imports of js/<module>.js, and icon names (DS.icons.<name>,
  * icon('<name>'), data-icon / data-ds-icon="<name>", named imports of
  * js/icons.js). A class built at run time ('ds-btn--' + kind,
@@ -187,6 +187,8 @@ export function loadCopy({ dist = resolve(HERE, '..'), manifest } = {}) {
   for (const [name, component] of Object.entries(data.components)) {
     for (const cls of component.classes ?? []) note(classes, cls, name);
     for (const attribute of component.attributes ?? []) note(attributes, attribute, name);
+    // [data-tip] has no data-ds- prefix and no stylesheet names it, so neither meta.json nor the module list says it.
+    if (name === 'tooltip') note(attributes, 'data-tip', name);
     for (const frames of component.keyframes ?? []) keyframes.add(frames);
   }
   const coreCss = (data.core.css ?? []).map((path) => ({ path, text: read(path) }));
@@ -197,6 +199,9 @@ export function loadCopy({ dist = resolve(HERE, '..'), manifest } = {}) {
     for (const match of plain.matchAll(/@keyframes\s+(ds-[\w-]+)/g)) keyframes.add(match[1]);
   }
   const modules = new Map(Object.entries(data.js ?? {}));
+  // Attributes that need a module whatever they sit on ([data-ds-close] and the overlay core).
+  const moduleAttributes = new Map();
+  for (const [name, module] of modules) for (const attribute of module.attributes ?? []) note(moduleAttributes, attribute, name);
   const iconsModule = modules.get('icons');
   const iconSource = iconsModule ? read(iconsModule.file) : '';
   const glyphs = new Set(glyphNames(iconSource));
@@ -214,7 +219,7 @@ export function loadCopy({ dist = resolve(HERE, '..'), manifest } = {}) {
     }
     moduleGlyphs.set(name, used);
   }
-  return { root, manifest: data, read, classes, attributes, keyframes, coreClasses, modules, glyphs, iconSource, moduleGlyphs };
+  return { root, manifest: data, read, classes, attributes, moduleAttributes, keyframes, coreClasses, modules, glyphs, iconSource, moduleGlyphs };
 }
 
 /** The glyph exports of an icons module: `export const name = '<...>';`. */
@@ -293,12 +298,16 @@ export function scanText(text, file, copy) {
   }
 
   // Attributes, written or read through dataset.
+  const knownAttribute = (name) => copy.attributes.has(name) || copy.moduleAttributes?.has(name);
   for (const match of text.matchAll(/(?<![\w-])data-ds-[\w-]*[\w]/g)) {
-    if (copy.attributes.has(match[0])) use('attribute', match[0], match.index);
+    if (knownAttribute(match[0])) use('attribute', match[0], match.index);
+  }
+  for (const match of text.matchAll(/(?<![\w-])data-tip(?![\w-])|\bdataset\.tip\b/g)) {
+    if (knownAttribute('data-tip')) use('attribute', 'data-tip', match.index);
   }
   for (const match of text.matchAll(/\bdataset\.ds([A-Z][\w$]*)/g)) {
     const name = `data-ds${camelToKebab(match[1])}`;
-    if (copy.attributes.has(name)) use('attribute', name, match.index);
+    if (knownAttribute(name)) use('attribute', name, match.index);
   }
 
   // DS.<module>.<export>, DS.<module>['<export>'], DS.<module>[<dynamic>], const { a } = DS.<module>.
@@ -459,6 +468,7 @@ export function resolveBundle(scans, copy, { safelist = [], icons = 'auto' } = {
         for (const name of copy.classes.get(entry.name) ?? []) addComponent(name, `${where} ${entry.name}`);
       } else if (entry.kind === 'attribute') {
         for (const name of copy.attributes.get(entry.name) ?? []) addComponent(name, `${where} ${entry.name}`);
+        for (const name of copy.moduleAttributes?.get(entry.name) ?? []) addModule(name, `${where} ${entry.name}`);
       } else if (entry.kind === 'module') addModule(entry.name, `${where} ${entry.via ?? `DS.${entry.name}`}`);
       else if (entry.kind === 'export') {
         const via = entry.via ?? `DS.${entry.module}.${entry.name}`;

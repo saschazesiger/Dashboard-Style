@@ -8,7 +8,7 @@
 var LOOKS = ['line', 'contained'];
 
 var SECTIONS = [
-  { id: 'details', label: 'Details', text: 'Latitude 7440, issued to Ada Lovelace. Synced today at 09:12.' },
+  { id: 'details', label: 'Details', text: 'Laptop 14, issued to Ada Lovelace. Synced today at 09:12.' },
   { id: 'history', label: 'History', count: 3, text: 'Three changes this week: a new owner, a battery swap, a move to Building B.' },
   { id: 'reports', label: 'Reports', blocked: true, text: 'No reports yet.' },
 ];
@@ -120,7 +120,7 @@ SG.demo('tabs', {
 
     h.$$('[data-demo="tabs"]', root).forEach(function (tablist) {
       var vertical = tablist.getAttribute('data-orientation') === 'vertical';
-      handles.push(DS.indicator.createIndicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true }));
+      handles.push(DS.indicator.create(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator', reveal: true }));
       handles.push(DS.dom.roving(tablist, vertical ? { orientation: 'vertical' } : {}));
       tablist.addEventListener('click', function (event) {
         var closer = event.target.closest('.ds-tabs__close');
@@ -145,7 +145,7 @@ SG.demo('tabs', {
     });
 
     var links = h.$('[data-demo="links"]', root);
-    handles.push(DS.indicator.createIndicator(links, { active: '[aria-current="page"]', className: 'ds-tabs__indicator' }));
+    handles.push(DS.indicator.create(links, { active: '[aria-current="page"]', className: 'ds-tabs__indicator' }));
     links.addEventListener('click', function (event) {
       var link = event.target.closest('a');
       if (!link) return;

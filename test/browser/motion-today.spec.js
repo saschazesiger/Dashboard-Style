@@ -196,7 +196,7 @@ test.describe('overlays', () => {
     await expectTimeline(dialog(page), 'dialog-open', { subtree: true });
     await resume(page);
     await settle(page);
-    await act(page, click, 'body > .ds-dialog .ds-dialog__actions [data-close]');
+    await act(page, click, 'body > .ds-dialog .ds-dialog__actions [data-ds-close]');
     await expectTimeline(dialog(page), 'dialog-close', { subtree: true });
   });
 
@@ -206,7 +206,7 @@ test.describe('overlays', () => {
     await expectTimeline(sheet(page), 'sheet-open', { subtree: true });
     await resume(page);
     await settle(page);
-    await act(page, click, 'body > .ds-sheet .ds-sheet__head [data-close]');
+    await act(page, click, 'body > .ds-sheet .ds-sheet__head [data-ds-close]');
     await expectTimeline(sheet(page), 'sheet-close', { subtree: true });
   });
 

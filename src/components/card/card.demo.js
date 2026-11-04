@@ -33,7 +33,7 @@ SG.demo('card', {
     }).join('') + '</div>') +
 
       h.section('The parts of a card', '<section class="ds-card' + look(h, h.variant) + '" data-demo="parts">' +
-        '<div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><span class="ds-status ds-status--ok">' + h.icon('check', 16) + '<span>Managed</span></span></div>' +
+        '<div class="ds-card__row"><h3 class="ds-card__title">LAPTOP-0042</h3><span class="ds-status ds-tone-success">' + h.icon('check', 16) + '<span>Managed</span></span></div>' +
         '<p class="ds-muted">Issued to Ada Lovelace. <a href="#card-demo">Open the record</a> or copy the serial <code>5CD1234XYZ</code>.</p>' +
         '<h4 class="ds-card__subtitle">Sources</h4><p class="ds-muted">Directory and device management.</p>' +
         '<div class="ds-card__section"><h4 class="ds-card__subtitle">Advanced</h4><p class="ds-muted">Asset tag, purchase date and the cost centre.</p></div>' +
@@ -43,7 +43,7 @@ SG.demo('card', {
 
       h.section('Clickable', '<div class="ds-grid-2" data-demo="clickable">' +
         '<a class="ds-card ds-card--interactive' + look(h, h.variant) + '" href="#card-demo" data-demo="open" data-name="MONITOR-0007"><h3 class="ds-card__title">MONITOR-0007</h3><p class="ds-muted">A link: the whole card goes somewhere.</p></a>' +
-        '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" data-demo="open" data-name="PRINTER-0003"><span class="ds-card__row"><span class="ds-card__title">PRINTER-0003</span><span class="ds-status ds-status--warning">' + h.icon('alert', 16) + '<span>Toner low</span></span></span><span class="ds-muted">A button: hover lays a layer over it, a press turns it squarer and ripples.</span></button>' +
+        '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" data-demo="open" data-name="PRINTER-0003"><span class="ds-card__row"><span class="ds-card__title">PRINTER-0003</span><span class="ds-status ds-tone-warning">' + h.icon('alert', 16) + '<span>Toner low</span></span></span><span class="ds-muted">A button: hover lays a layer over it, a press turns it squarer and ripples.</span></button>' +
         '<div class="ds-card ds-card--interactive' + look(h, h.variant) + '"><div class="ds-card__row"><h3 class="ds-card__title"><a class="ds-card__action" href="#card-demo" data-demo="open" data-name="LAPTOP-0017">LAPTOP-0017</a></h3><button class="ds-btn ds-sm" type="button" data-demo="restart">Restart</button></div><p class="ds-muted">The title link stretches over the card; Restart stays a button of its own.</p></div>' +
         '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" disabled><span class="ds-card__title">Disabled</span><span class="ds-muted">Dimmed, with no hover, no press and no morph.</span></button>' +
         '<button class="ds-card ds-card--interactive' + look(h, h.variant) + '" type="button" aria-disabled="true"><span class="ds-card__title">Blocked</span><span class="ds-muted">aria-disabled: stays focusable, so it can say why.</span></button>' +

@@ -66,9 +66,3 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 **JS API.** `js/tooltip.js` (`DS.tooltip`): `tooltips(root)`, the same function as `DS.overlay.tooltips()`; `DS.init()` serves every root it initialises.
 
 **Motion:** the "Tooltip" and "Tooltip warm-up" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Tooltip (3.0): behaviour in `js/tooltip.js` (`DS.tooltip`), `DS.overlay.tooltips()` keeps its name. `data-tip-shortcut`
-  and `.ds-tooltip__shortcut`; shape on the radius, hook `--ds-tooltip-radius`. Placement in `js/position.js`.
-  Migration: a page that imports single files imports `js/tooltip.js` next to `js/overlay.js`.
-

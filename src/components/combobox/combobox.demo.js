@@ -142,7 +142,7 @@ SG.demo('combobox', {
         '<h3 class="ds-field__label">Nothing found</h3>' +
         '<div class="ds-combo__popup" style="position: static;"><ul class="ds-combo__list" role="listbox" aria-label="Models" hidden></ul><p class="ds-combo__status" role="status">No model matches "Tower 5"</p></div>' +
         '<h3 class="ds-field__label">Loading</h3>' +
-        '<div class="ds-combo__popup" style="position: static;"><ul class="ds-combo__list" role="listbox" aria-label="Models" aria-busy="true" hidden></ul><p class="ds-combo__status" role="status"><span class="ds-spinner ds-spinner--sm" aria-hidden="true"></span>Searching the models</p></div>') +
+        '<div class="ds-combo__popup" style="position: static;"><ul class="ds-combo__list" role="listbox" aria-label="Models" aria-busy="true" hidden></ul><p class="ds-combo__status" role="status"><span class="ds-spinner ds-spinner--ink ds-sm" aria-hidden="true"></span>Searching the models</p></div>') +
 
       h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">ArrowDown</kbd> or <kbd class="ds-kbd">ArrowUp</kbd> opens the list and moves through the options, passing headings and blocked options by; <kbd class="ds-kbd">Enter</kbd> chooses; <kbd class="ds-kbd">Escape</kbd> closes. Focus stays in the field. On the select-only button, <kbd class="ds-kbd">Space</kbd> opens and chooses too, <kbd class="ds-kbd">Home</kbd> and <kbd class="ds-kbd">End</kbd> go to the ends, and a letter jumps to the option that starts with it.</p>');
   },

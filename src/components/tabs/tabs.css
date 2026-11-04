@@ -32,7 +32,7 @@
  *     <div> panels </div>
  *   </div>
  *
- *   createIndicator(tabs, { active: '[aria-selected="true"], [aria-current="page"]', className: 'ds-tabs__indicator' })
+ *   DS.indicator.create(tabs, { active: '[aria-selected="true"], [aria-current="page"]', className: 'ds-tabs__indicator' })
  *   DS.dom.roving(tabs)   (arrow keys, Home, End; the page's click handler selects;
  *                          vertical: { orientation: 'vertical' })
  *
@@ -91,7 +91,7 @@
  *
  * Overflow: the row scrolls sideways without a scrollbar (a vertical one
  * scrolls down); DS.dom.roving() scrolls a focused tab into view, and
- * createIndicator(..., { reveal: true }) keeps the selected one in view.
+ * DS.indicator.create(..., { reveal: true }) keeps the selected one in view.
  *
  * Hooks: --ds-tabs-height (48px, size md and comfortable),
  * --ds-tabs-padding-x (--ds-space-4), --ds-tabs-font (the size's role),

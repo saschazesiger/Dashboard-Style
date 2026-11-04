@@ -107,10 +107,3 @@ does not morph. Its chevron turns 180deg with the list on the spring, like `.ds-
 the list opens and closes with the collapsible timing.
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) and [Data motion](motion.md#data-motion) in motion.md.
-
-<!-- changelog -->
-- Alert: on the options model (size and density pad it, shape rounds it, tones from the class on the alert). New
-  `.ds-alert--inline` and `.ds-alert--section`, hooks `--ds-alert-radius`, `--ds-alert-padding-block`,
-  `--ds-alert-padding-inline`. `.ds-alert--success`, `--warning`, `--error` deprecated: `.ds-tone-success`, `-warning`,
-  `-error`. The box grows to hold its button. Changed under `themes/compact.css`: the padding is 8/12px (2.x: 12/16px),
-  since the theme is density -2.

@@ -30,11 +30,24 @@ and every `src/components/<name>/<name>.js`, as `manifest.json` `js` lists them)
 |---|---|---|---|---|
 | `js/core.js` | `DS.core` | core (`src/js/`) | - | [core.md](core.md) |
 | `js/motion.js` | `DS.motion` | core (`src/js/`) | `core` | [motion.md](motion.md) |
-| `js/indicator.js` | `DS.indicator` | core (`src/js/`) | `motion` | [motion.md](motion.md) |
+| `js/indicator.js` | `DS.indicator` | core (`src/js/`) | `core`, `motion` | [motion.md](motion.md) |
 | `js/dom.js` | `DS.dom` | core (`src/js/`) | `motion` | [motion.md](motion.md) |
 | `js/ripple.js` | `DS.ripple` | core (`src/js/`) | `core`, `motion` | [motion.md](motion.md) |
 | `js/icons.js` | `DS.icons` | core (`src/js/`) | - | [icons.md](icons.md) |
-| `js/overlay.js` | `DS.overlay` | core (`src/js/`) | `core`, `dom`, `icons`, `motion` | [motion.md](motion.md) |
+| `js/position.js` | `DS.position` | core (`src/js/`) | - | [motion.md](motion.md) |
+| `js/overlay.js` | `DS.overlay` | core (`src/js/`) | `core`, `dom`, `motion`, `position` | [motion.md](motion.md) |
+| `js/a11y.js` | `DS.a11y` | core (`src/js/`) | `core`, `dom`, `motion`, `overlay` | [core.md](core.md) |
+| `js/hotkeys.js` | `DS.hotkeys` | core (`src/js/`) | `a11y`, `core`, `dom`, `overlay` | [core.md](core.md) |
+| `js/format.js` | `DS.format` | core (`src/js/`) | `core` | [core.md](core.md) |
+| `js/store.js` | `DS.store` | core (`src/js/`) | `core` | [core.md](core.md) |
+| `js/virtual.js` | `DS.virtual` | core (`src/js/`) | `core`, `dom` | [core.md](core.md) |
+| `js/dnd.js` | `DS.dnd` | core (`src/js/`) | `core`, `motion` | [core.md](core.md) |
+| `js/badge.js` | `DS.badge` | component (`src/components/badge/`) | `core`, `motion` | [components.md](components.md#badge) |
+| `js/dialog.js` | `DS.dialog` | component (`src/components/dialog/`) | `core`, `icons`, `motion`, `overlay` | [components.md](components.md#dialog) |
+| `js/menu.js` | `DS.menu` | component (`src/components/menu/`) | `core`, `motion`, `overlay` | [components.md](components.md#menu) |
+| `js/sheet.js` | `DS.sheet` | component (`src/components/sheet/`) | `core`, `overlay` | [components.md](components.md#side-sheet) |
+| `js/toast.js` | `DS.toast` | component (`src/components/toast/`) | `core`, `icons`, `motion`, `overlay`, `position` | [components.md](components.md#snackbar) |
+| `js/tooltip.js` | `DS.tooltip` | component (`src/components/tooltip/`) | `core`, `motion`, `overlay`, `position` | [components.md](components.md#tooltip) |
 <!-- /generated: modules -->
 
 Browsers: Safari 17.5, Chrome and Edge 123, Firefox 130 and later (3.0). Newer features are refinements that the

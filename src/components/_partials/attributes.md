@@ -37,4 +37,4 @@ the ones the page sets for it. The project check reads this table.
 | `data-drawer-collapsed` | the page | `.ds-app` | the docked drawer is a rail (above 900px; [App frame](#the-rail)) |
 | `data-label` | the page | `.ds-segmented__option`, `.ds-tabs__tab` | the option's text again: keeps the width of the selected weight |
 | `data-label` | the page | a cell of `.ds-table--stack` / `--stack-wide` | the label shown above the cell's content while the rows stack ([Stacked rows](#stacked-rows)) |
-| `data-status` | the page | `.ds-steps__step` | `done`: a finished step ([Steps](#steps)) |
+| `data-status` | the page | `.ds-steps__step` | `done`, `error` or `optional`: the state of a step ([Steps](#steps)) |

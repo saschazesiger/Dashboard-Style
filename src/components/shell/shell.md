@@ -85,16 +85,16 @@ its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`):
 - A drawer item may be a `<button class="ds-drawer__item">` when it shows a section in place instead of loading a
   page; it loses the browser's button look. The active one also carries `aria-current="page"`.
 - `.ds-drawer__list--overflow`: set it when the list is taller than the window, so its scrollbar stays visible;
-  `createIndicator(list, { ..., reveal: true })` sets it by itself and scrolls the list (only the list) so the
+  `DS.indicator.create(list, { ..., reveal: true })` sets it by itself and scrolls the list (only the list) so the
   current item stays clear of its edges and their shades (below).
 - Cut edges (2.1): a list longer than the drawer shades each edge that has more to show, as a menu does: a sticky
   shade of the drawer's surface (`--ds-backdrop`), `--ds-scroll-fade` long (`0px` turns it off), above the items and
   the pill, taking no room (the list keeps `--ds-space-1` above its rows and `--ds-space-6` below them). Scroll
   timelines drive it; elsewhere call `DS.dom.scrollEdges(list, { axis: 'block' })` once, whose
   `data-ds-overflow-start` / `-end` show the shades over `--ds-dur-fast` (it follows rows that come and go). An item
-  focused by the keys or revealed by `createIndicator()` lands clear of the shades (`scroll-padding-block`, as
+  focused by the keys or revealed by `DS.indicator.create()` lands clear of the shades (`scroll-padding-block`, as
   long). Hidden in forced colours.
-- Sliding pills: `DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })`
+- Sliding pills: `DS.indicator.create(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })`
   and the same on `.ds-segmented` with `className: 'ds-segmented__indicator'`. The pill follows `aria-current` and
   the size of the items by itself ([motion](motion.md#dsindicator-jsindicatorjs)); no `update()` is needed. While it
   glides, the labels change colour on its timing (`--ds-indicator-dur`): the new label turns `--ds-on-accent` as its
@@ -257,7 +257,7 @@ flush. Button options lose the browser's button look.
 ```
 
 ```js
-DS.indicator.createIndicator(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
+DS.indicator.create(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' });
 DS.dom.roving(group, { items: '.ds-segmented__option' });   // arrow keys, Home and End; a click selects
 group.addEventListener('click', (event) => {
   const option = event.target.closest('.ds-segmented__option');
@@ -421,7 +421,7 @@ ancestor. Until then they keep the fixed 2.x discs (24 and 40px).
 ```html
 <div class="ds-panel">
   <div class="ds-banner">
-    <div class="ds-alert ds-alert--warning" role="status">[icon wifiOff 20]<span class="ds-alert__text">You are offline. Changes are saved when the connection is back.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>
+    <div class="ds-alert ds-tone-warning" role="status">[icon wifiOff 20]<span class="ds-alert__text">You are offline. Changes are saved when the connection is back.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>
   </div>
   <main class="ds-view" id="main" tabindex="-1"> ... </main>
 </div>
@@ -455,20 +455,3 @@ print.
   widget never calls `followViewport()`: the host page owns the viewport.
 
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
-
-<!-- changelog -->
-- App frame (3.0): on the options model. Drawer rows and the segmented switch follow size, density, shape and touch;
-  the avatar follows size and shape; the panel, the modal drawer, the skip link and the capsule follow the shape; the
-  brand link takes `--ds-target-min`.
-- Added: nested drawer groups (`--ds-drawer-indent`), `.ds-drawer__foot--pinned`, the hooks `--ds-drawer-font`,
-  `--ds-segmented-height`, `--ds-segmented-font`.
-- Deprecated: `.ds-avatar--sm` and `.ds-avatar--lg` (`.ds-sm`, `.ds-lg`).
-- Changed: a segmented switch under `.ds-touch` is 48px high (it stayed 32px); the rail centres its items on its axis
-  (a compact row sat 4px off it); the track never goes under its option's line, so it stays a pill at every size and
-  density; a group toggle takes the size's type in the label weight, and a `data-tip` that names it on the rail; a row
-  action over a current row takes `SelectedItemText` under forced colours; `.ds-account__avatar[tabindex]` has a hit area
-  of at least `--ds-target-min`.
-- `themes/compact.css`: drawer rows take their 40px from the density; `--ds-drawer-item-height` is no longer set there,
-  and `--ds-segmented-height` is 40px, so the switch keeps its 32px. `.ds-touch` no longer sets
-  `--ds-drawer-item-height`.
-

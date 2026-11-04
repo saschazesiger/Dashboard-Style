@@ -10,7 +10,7 @@ var STEPS = ['Copy the image', 'Install updates', 'Join the domain', 'Restart'];
 function stepsHtml(h, state) {
   return STEPS.map(function (text, index) {
     var status = index < state.done ? 'done' : index === state.done ? (state.failed ? 'failed' : 'running') : 'pending';
-    var mark = status === 'done' ? h.icon('checkCircle', 20) : status === 'failed' ? h.icon('alertCircle', 20) : status === 'running' ? '<span class="ds-spinner ds-spinner--sm"></span>' : '';
+    var mark = status === 'done' ? h.icon('checkCircle', 20) : status === 'failed' ? h.icon('alertCircle', 20) : status === 'running' ? '<span class="ds-spinner ds-spinner--ink ds-sm"></span>' : '';
     var word = { done: ': done', running: ': running', pending: ': waiting' }[status];
     return '<li class="ds-tasks__item" data-status="' + status + '" data-ds-key="t' + index + '"><span class="ds-tasks__mark">' + mark + '</span><span class="ds-tasks__text">' + text +
       (status === 'failed' ? ': failed, the server did not answer' : '<span class="ds-sr">' + word + '</span>') + '</span></li>';
@@ -32,7 +32,7 @@ SG.demo('tasks', {
 
       h.section('Every status', '<ol class="ds-tasks" aria-label="Every status" data-demo="all">' +
         '<li class="ds-tasks__item" data-status="pending"><span class="ds-tasks__mark"></span><span class="ds-tasks__text">Pending: a ring<span class="ds-sr">: waiting</span></span></li>' +
-        '<li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--sm"></span></span><span class="ds-tasks__text">Running: the small spinner and the label weight<span class="ds-sr">: running</span></span></li>' +
+        '<li class="ds-tasks__item" data-status="running"><span class="ds-tasks__mark"><span class="ds-spinner ds-spinner--ink ds-sm"></span></span><span class="ds-tasks__text">Running: the small spinner and the label weight<span class="ds-sr">: running</span></span></li>' +
         '<li class="ds-tasks__item" data-status="done"><span class="ds-tasks__mark">' + h.icon('checkCircle', 20) + '</span><span class="ds-tasks__text">Done: the check in a circle<span class="ds-sr">: done</span></span></li>' +
         '<li class="ds-tasks__item" data-status="failed"><span class="ds-tasks__mark">' + h.icon('alertCircle', 20) + '</span><span class="ds-tasks__text">Join the domain: failed, the server did not answer</span></li>' +
         '</ol>') +

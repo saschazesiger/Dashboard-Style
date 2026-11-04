@@ -149,7 +149,7 @@
     }
 
     window.fxViews = {
-      indicator: DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' }),
+      indicator: DS.indicator.create(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', name: 'nav' }),
       get current() { return current; },
       get pings() { return pings; },
       /** A destination, by the drawer (fade-through) or a step (forward, back). */

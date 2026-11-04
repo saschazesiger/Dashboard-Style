@@ -68,11 +68,3 @@ Where the user is in a form of a few steps. Steps are not buttons: going back is
 - Hooks: [theming.md](theming.md#component-hooks).
 
 **Motion:** the "Steps" row of [Navigation](motion.md#navigation) in motion.md.
-
-<!-- changelog -->
-- Fixed: the connectors of a row keep their line under forced colours.
-- Fixed: in a row with hints every label keeps its width; a hint truncates with an ellipsis before the next mark.
-- Steps (3.0): on the options model (size on the mark and the type, density on a column's room, shape on the radius).
-  Added `.ds-steps--vertical`, `data-status="error"` and `"optional"`, `.ds-steps__hint`, and the hooks
-  `--ds-steps-mark-size`, `--ds-steps-font`, `--ds-steps-gap`.
-

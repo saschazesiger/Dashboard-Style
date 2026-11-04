@@ -36,8 +36,8 @@ The page's width (not the window's) decides when grids, facts and tables narrow:
   <div class="ds-page-head__row">
     <div class="ds-page-head__text">
       <h1 class="ds-page-head__title" tabindex="-1">LAPTOP-0042</h1>
-      <p class="ds-page-head__lead">Latitude 7440 · issued to Ada Lovelace</p>
-      <div class="ds-page-head__status"><span class="ds-status ds-status--ok">[icon check 16]<span>Synced</span></span></div>
+      <p class="ds-page-head__lead">Laptop 14 · issued to Ada Lovelace</p>
+      <div class="ds-page-head__status"><span class="ds-status ds-tone-success">[icon check 16]<span>Synced</span></span></div>
     </div>
     <div class="ds-page-head__actions">
       <button class="ds-btn" type="button">Retire</button>
@@ -95,7 +95,7 @@ link is at least `--ds-touch-target` high. Keyboard: each link is a tab stop.
 A page that loads, fails or is gone says so in its body; the page head stays where it can:
 
 - **Loading:** the body as a skeleton (`.ds-skeleton` with its note, [Loading](#loading)) under a `.ds-loadbar`.
-- **Failed:** a `.ds-alert--error` with the reason and a Retry button (`.ds-btn--text`) in place of the body.
+- **Failed:** a `.ds-tone-error` with the reason and a Retry button (`.ds-btn--text`) in place of the body.
 - **Gone** (deleted, no access): `.ds-empty` with a way back.
 
 The page hides its body by an attribute of its own (`hidden` on the body, `data-state` is `DS.overlay`'s); never
@@ -105,7 +105,7 @@ leave a stale body visible under the state.
 
 ```html
 <body class="ds-auth">                      <!-- in <html class="ds-theme ds-base"> -->
-  <div class="ds-auth__alert"><div class="ds-alert ds-alert--error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">The password is wrong.</span></div></div>
+  <div class="ds-auth__alert"><div class="ds-alert ds-tone-error" role="alert">[icon alertCircle 20]<span class="ds-alert__text">The password is wrong.</span></div></div>
   <section class="ds-card ds-card--elevated ds-auth__card" aria-labelledby="auth-title">
     <h1 class="ds-card__title" id="auth-title">Sign in</h1>
     <form class="ds-form"> ...fields... <div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Sign in</button></div></form>
@@ -133,9 +133,3 @@ page, never inside `.ds-app`.
 ```js
 DS.motion.transition(() => { DS.dom.morphHtml(view, renderStep(2)); return view.firstElementChild; }, { type: 'forward', focus: true });
 ```
-
-<!-- changelog -->
-- Page head (3.0): `.ds-page-head__details` and `.ds-page-head__detail`, a row of key facts; `.ds-page-head__tabs`, the
-  record's tabs as its last row.
-- Breadcrumbs (3.0): `--ds-breadcrumbs-font`, the size's type role; at least `--ds-target-min` high under `.ds-touch`.
-

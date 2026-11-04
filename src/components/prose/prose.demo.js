@@ -20,7 +20,7 @@ function article(h) {
     '<ol><li>Sign out</li><li>Hand it in</li></ol>' +
     '<blockquote><p>Devices older than four years are retired, not repaired.</p></blockquote>' +
     '<pre><code>ds-cli retire LAPTOP-0042</code></pre>' +
-    '<table><thead><tr><th>Model</th><th>Years</th></tr></thead><tbody><tr><td>Latitude 7440</td><td>4</td></tr><tr><td>ThinkPad T14</td><td>3</td></tr></tbody></table>' +
+    '<table><thead><tr><th>Model</th><th>Years</th></tr></thead><tbody><tr><td>Laptop 14</td><td>4</td></tr><tr><td>Laptop 16</td><td>3</td></tr></tbody></table>' +
     '<hr><p>Ask <mark>IT support</mark> when in doubt.</p>';
 }
 

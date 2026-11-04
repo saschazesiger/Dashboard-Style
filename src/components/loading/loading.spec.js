@@ -58,7 +58,7 @@ test('a bone reads the hook of what it stands for, as a theme sets it', async ({
   expect(await probe(page, '<div style="--ds-table-head-height: 36px"><div id="probe" class="ds-skeleton__cells ds-skeleton__cells--head"></div></div>', height)).toBe(36);
 });
 
-test('a bone is as high as the real control, at the default, under a theme\'s hook, and under compact once the owner is on the options model', async ({ page }) => {
+test('a bone is as high as the real control, at the default, under a theme\'s hook and under compact', async ({ page }) => {
   await open(page);
   const input = '<input id="probe" class="ds-input" aria-label="x">';
   const field = '<span id="probe" class="ds-skeleton__field"></span>';
@@ -71,14 +71,9 @@ test('a bone is as high as the real control, at the default, under a theme\'s ho
   };
   await compare('', 'default');
   await compare('style="--ds-input-height: 44px; --ds-table-row-height: 60px"', 'hooks');
-  // Form and table reach this branch's parent on the options model in their own
-  // branches: until then density does not move them, and the comparison waits.
-  const ported = await probe(page, `<div class="ds-density-dense">${input}</div>`, height) !== await probe(page, input, height)
-    && await probe(page, `<div class="ds-density-dense">${real}</div>`, height) !== await probe(page, real, height);
-  if (ported) {
-    await page.addStyleTag({ url: '/dist/themes/compact.css' });
-    await compare('', 'compact');
-  }
+  // Under compact the input and the row compute from the density, as the bones do.
+  await page.addStyleTag({ url: '/dist/themes/compact.css' });
+  await compare('', 'compact');
 });
 
 test('shape: a bone\'s radius times --ds-shape, at most half its height; the avatar round; a card\'s corners', async ({ page }) => {

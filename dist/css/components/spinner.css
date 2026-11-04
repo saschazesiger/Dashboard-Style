@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Spinner: the Material 3 arc, the inline loading indicator (busy buttons,
  * chips, status chips, table cells). The arc grows from 10deg to 270deg and
@@ -18,10 +18,12 @@
  * DS.motion.enter(spinner, 'delayed') is fine: the entrance plays once and
  * enter() removes its classes, so the spinner turns again.
  *
- *   .ds-spinner                on surfaces (16px)
- *   .ds-spinner--sm            inside buttons and chips (12px), takes the
+ *   .ds-spinner                on surfaces (16px at md)
+ *   .ds-spinner--ink           inside buttons and chips: the arc in the
  *                              text colour, on a faint ring of it
- *   .ds-spinner--determinate   circular progress (40px, 4px): the share
+ *   .ds-spinner--sm            deprecated: .ds-spinner--ink with .ds-sm (a
+ *                              fixed 12px until 3.0 ships)
+ *   .ds-spinner--determinate   circular progress (40px at md, 4px): the share
  *                              (--ds-progress, 0 ... 1) as an arc, a gap,
  *                              then the remaining track in --ds-accent; the
  *                              arc is wavy (--ds-progress-ring-wave) on a
@@ -34,13 +36,25 @@
  *           aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" style="--ds-progress: .4"></span>
  *   .ds-spinner--flat          with --determinate: a plain arc, no wave
  *
+ * Options (docs/options.md), computed here into --_s:
+ *   size      .ds-xs ... .ds-xl on the spinner or any ancestor: 4px per step
+ *             (never under 10px), the ring 8px per step (24 ... 56px); the
+ *             ring's width follows its size unless the hook sets one
+ *   tone      .ds-tone-* on the spinner itself: the arc in --ds-tone, a
+ *             determinate track in --ds-tone-container; an inherited tone
+ *             never recolours it. A share in a tone needs its word next to it.
+ *   density, shape, target-min: not read. A spinner is round and no target;
+ *             its size follows the size step alone.
+ *
  * Inside .ds-progress a determinate spinner reads the share of its
  * .ds-progress (the property inherits) and lands with its bar on the same
- * frame; it has no transition of its own there.
+ * frame; progress.css takes its transition away there.
  *
- * Hooks: --ds-spinner-color (the arc), --ds-spinner-track (none, or
+ * Hooks: --ds-spinner-size (16px), --ds-spinner-determinate-size (40px),
+ * the md bases; --ds-spinner-color (the arc), --ds-spinner-track (none, or
  * --ds-accent on the determinate ring), --ds-spinner-width (2px; the
- * determinate ring reads --ds-spinner-determinate-width, 4px). A project that set border-width on a spinner sets
+ * determinate ring reads --ds-spinner-determinate-width, a tenth of its
+ * size). A project that set border-width on a spinner sets
  * --ds-spinner-width instead.
  *
  * The small spinner's faint ring mixes the text colour (color-mix()).
@@ -50,31 +64,41 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   .ds-spinner {
+    --_s: max(10px, calc(var(--ds-spinner-size, 16px) + var(--ds-size-step, 0) * 4px));
     display: inline-block;
-    width: 16px;
-    height: 16px;
+    width: var(--_s);
+    height: var(--_s);
     flex-shrink: 0;
     border: 0;
     border-radius: 50%;
     background: conic-gradient(from var(--ds-spinner-start), var(--ds-spinner-color, var(--ds-primary)) 0 var(--ds-spinner-arc), var(--ds-spinner-track, transparent) 0);
     /* The ring: the inner disc is cut away, half a pixel soft for an even edge. */
-    -webkit-mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
     mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
     animation:
       ds-spinner-arc var(--ds-loop-arc) linear infinite,
       ds-spin var(--ds-loop-spin) linear infinite;
   }
 
+  /* The arc and a faint ring in the text colour. */
+  .ds-spinner--ink,
   .ds-spinner--sm {
-    width: 12px;
-    height: 12px;
-    /* The arc and a faint ring in the text colour. */
     --ds-spinner-color: currentColor;
     --ds-spinner-track: color-mix(in srgb, currentColor 22%, transparent);
+  }
+
+  /* The 2.x name keeps its fixed 12px until 3.0 ships. */
+  .ds-spinner--sm {
+    --_s: 12px;
+  }
+
+  /* A tone from the class on the spinner itself (zero weight, so the
+     forced-colours rule below still wins by order). */
+  .ds-spinner:where(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+    --ds-spinner-color: var(--ds-tone);
   }
 
   /*
@@ -87,12 +111,10 @@
    * past 360deg).
    */
   .ds-spinner--determinate {
-    --ds-spinner-width: var(--ds-spinner-determinate-width, 4px);
+    --_s: calc(var(--ds-spinner-determinate-size, 40px) + var(--ds-size-step, 0) * 8px);
+    --ds-spinner-width: var(--ds-spinner-determinate-width, calc(var(--_s) / 10));
     position: relative;
-    width: 40px;
-    height: 40px;
     background: none;
-    -webkit-mask-image: none;
     mask-image: none;
     animation: none;
     transition: --ds-progress var(--ds-dur-glide) var(--ds-ease-value);
@@ -104,8 +126,11 @@
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    -webkit-mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
     mask-image: radial-gradient(farthest-side, transparent calc(100% - var(--ds-spinner-width, 2px)), #000 calc(100% - var(--ds-spinner-width, 2px) + .5px));
+  }
+
+  .ds-spinner--determinate:where(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+    --ds-spinner-track: var(--ds-tone-container);
   }
 
   .ds-spinner--determinate::before {
@@ -120,14 +145,14 @@
     background: conic-gradient(var(--ds-spinner-color, var(--ds-primary)) 0 calc(var(--ds-progress) * 360deg), transparent 0);
   }
 
-  /* The wavy arc (--ds-progress-ring-wave: 7 waves around a 16.4px radius)
-     on a plain track at the wave's middle; --flat keeps both plain rings
-     at the edge. A short arc would be a loose tick or hook of the wave, so
+  /* The wavy arc (--ds-progress-ring-wave: 7 waves around a 16.4px radius,
+     stretched with the ring) on a plain track at the wave's middle; --flat
+     keeps both plain rings at the edge. A short arc would be a loose tick or hook of the wave, so
      up to 6% the arc is flat (a layer of the track's ring, at the wave's
      middle) and the wavy one cross-fades in by 11%, on the gliding share
      (--ds-progress-wave-start, --ds-progress-wave-ramp). */
   .ds-spinner--determinate:not(.ds-spinner--flat)::before {
-    inset: 1.6px;
+    inset: calc(var(--_s) * .04);
     background:
       conic-gradient(color-mix(in srgb, var(--ds-spinner-color, var(--ds-primary)) clamp(0%, calc(1 - var(--ds-progress) / var(--ds-progress-wave-ramp) + var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp)) * 100%, 100%), transparent) 0 calc(var(--ds-progress) * 360deg), transparent 0),
       conic-gradient(
@@ -139,18 +164,9 @@
 
   .ds-spinner--determinate:not(.ds-spinner--flat)::after {
     opacity: calc(var(--ds-progress) / var(--ds-progress-wave-ramp) - var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp));
-    -webkit-mask-image: var(--ds-progress-ring-wave);
     mask-image: var(--ds-progress-ring-wave);
-    -webkit-mask-size: 100% 100%;
     mask-size: 100% 100%;
-    -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
-  }
-
-  /* Nested, the share inherits from .ds-progress, which glides it: a second
-     transition here would trail behind the bar. */
-  .ds-progress .ds-spinner--determinate {
-    transition: none;
   }
 
   /* Forced colors drop background images: the arc and its track paint in

@@ -186,13 +186,3 @@ several values too: `--ds-input-border`, `--ds-input-bg`, `--ds-input-radius`, `
 and `data-ds-ripple` (off for a part: [Ripple](#ripple)) are described above.
 
 **Motion:** the "Combobox list" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Combobox on the options model (size, density, shape, touch, computed in `combobox.css`); the field, the toggle and
-  the options follow them. `DS.overlay` stays its opener and the 2.x markup keeps working.
-- New: group headings (`.ds-combo__group`, `.ds-combo__heading`) and option descriptions (`.ds-combo__description`),
-  the clear button (`.ds-combo__clear`), the create option (`.ds-combo__option--create`), several values
-  (`.ds-combo--multi`), a spinner row in the status line, the disabled state of toggle and clear button, hook
-  `--ds-combo-radius`.
-- Removed the `-webkit-mask-*` duplicates of the list's cut edges (the floor has `mask`).
-

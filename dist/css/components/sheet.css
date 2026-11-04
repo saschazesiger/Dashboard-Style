@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Modal side sheet (Material 3): white, rounded on its leading corners, on
  * the overlay elevation, over a plain scrim (never blurred). The panel is
@@ -16,31 +16,32 @@
  * the sheet its modal semantics.
  *
  *   <dialog class="ds-sheet" aria-labelledby="sheet-title">
- *     <div class="ds-sheet__backdrop" data-close></div>
+ *     <div class="ds-sheet__backdrop" data-ds-close></div>
  *     <section class="ds-sheet__panel"> ... (as below)
  *
  * Div markup (fallback), hidden until it opens:
  *
  *   <div class="ds-sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
- *     <div class="ds-sheet__backdrop" data-close></div>
+ *     <div class="ds-sheet__backdrop" data-ds-close></div>
  *     <section class="ds-sheet__panel [ds-sheet__panel--wide]">
  *       <div class="ds-sheet__head">
  *         <div class="ds-sheet__heading">
  *           <h2 class="ds-sheet__title" id="sheet-title">Details</h2>
  *           <p class="ds-sheet__subtitle" aria-live="polite">12 of 240 devices</p>   (optional)
  *         </div>
- *         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-close>(close)</button>
+ *         <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>(close)</button>
  *       </div>
  *       <div class="ds-sheet__body" tabindex="0"> ... </div>
  *       <div class="ds-sheet__foot">                                    (optional)
  *         <p class="ds-meta">3 filters</p>
  *         <button class="ds-btn ds-btn--text" type="button">Reset</button>
- *         <button class="ds-btn ds-btn--filled" type="button" data-close>Show 12 devices</button>
+ *         <button class="ds-btn ds-btn--filled" type="button" data-ds-close>Show 12 devices</button>
  *       </div>
  *
  * Open and close both with DS.overlay.open(sheet, { opener }) and
- * DS.overlay.close(sheet) (js/overlay.js): focus, trap, Escape, the
- * scroll lock and data-state ("closed", then "open"; "closed" again to
+ * DS.overlay.close(sheet) (js/overlay.js), or declaratively with
+ * [data-ds-open="#id"] on a button: focus, trap, Escape, the scroll lock and
+ * data-state ("closed", then "open"; "closed" again to
  * leave). The motion runs on transitions keyed on data-state, so a
  * reversal continues from the current value in every engine.
  *
@@ -92,18 +93,26 @@
  * panel ends above it (--ds-keyboard-inset, 0px without it) while the
  * scrim covers the whole window.
  *
+ * Options: density changes the padding of head, body and foot and the height
+ * of the head; shape multiplies the radius; a size class on the sheet changes
+ * only the controls inside (its width is --ds-sheet-width, or --wide).
+ *
+ * Forced colours: the transparent outline of the panel becomes its edge.
+ *
  * Hook: --ds-sheet-width (560px), --ds-sheet-width-wide (720px),
- * --ds-sheet-foot-border (1px solid --ds-line).
+ * --ds-sheet-padding (--ds-space-6), --ds-sheet-head-height (64px),
+ * --ds-sheet-radius (--ds-radius-dialog), --ds-sheet-foot-border
+ * (1px solid --ds-line).
  *
  * Print: an open sheet is not printed (it floats over the page).
  *
+ * At the floor, used directly: @starting-style and allow-discrete
+ * transitions (a native sheet driven by hand, showModal() and close() of the
+ * page without DS.overlay, plays the same transitions, also on close(); the
+ * overlay property, where the engine has it, keeps it in the top layer
+ * through every exit).
+ *
  * Progressive:
- * - @starting-style, allow-discrete transitions and the overlay property
- *   (a native sheet driven by hand, showModal() and close() of the page
- *   without DS.overlay, plays the same transitions, also on close();
- *   Chromium keeps a sheet in the top layer through every exit, DS.overlay's
- *   included): without them it enters with the keyframes and closes at
- *   once.
  * - View Transitions (while DS.motion.transition() runs, data-ds-vt on
  *   <html>, the body of an open modal sheet is named ds-sheet-body, so a
  *   record swap moves only the body; a sheet shown inline, without
@@ -119,7 +128,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   .ds-sheet {
@@ -182,7 +191,7 @@
     display: flex;
     flex-direction: column;
     padding-top: env(safe-area-inset-top);
-    border-radius: var(--ds-radius-dialog) 0 0 var(--ds-radius-dialog);
+    border-radius: calc(var(--ds-sheet-radius, var(--ds-radius-dialog)) * var(--ds-shape, 1)) 0 0 calc(var(--ds-sheet-radius, var(--ds-radius-dialog)) * var(--ds-shape, 1));
     background: var(--ds-surface-overlay);
     /* Its own ink on its own surface (a widget without .ds-base). */
     color: var(--ds-text);
@@ -271,40 +280,38 @@
      and Chromium keeps the sheet in the top layer meanwhile. Under
      DS.overlay only overlay steps: --closing keeps display, and the sheet
      must not linger, invisible, once it is done. */
-  @supports (transition-behavior: allow-discrete) {
-    dialog.ds-sheet:not([data-state]) {
-      transition:
-        display var(--ds-dur-base) allow-discrete,
-        overlay var(--ds-dur-base) allow-discrete;
-    }
+  dialog.ds-sheet:not([data-state]) {
+    transition:
+      display var(--ds-dur-base) allow-discrete,
+      overlay var(--ds-dur-base) allow-discrete;
+  }
 
-    dialog.ds-sheet[data-state] {
-      transition: overlay var(--ds-dur-base) allow-discrete;
-    }
+  dialog.ds-sheet[data-state] {
+    transition: overlay var(--ds-dur-base) allow-discrete;
+  }
 
-    dialog.ds-sheet:not([data-state]) .ds-sheet__backdrop {
-      animation: none;
-      transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
-    }
+  dialog.ds-sheet:not([data-state]) .ds-sheet__backdrop {
+    animation: none;
+    transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
 
-    dialog.ds-sheet:not([data-state]) .ds-sheet__panel {
-      animation: none;
-      transition: translate var(--ds-dur-long) var(--ds-ease-spatial);
-    }
+  dialog.ds-sheet:not([data-state]) .ds-sheet__panel {
+    animation: none;
+    transition: translate var(--ds-dur-long) var(--ds-ease-spatial);
+  }
 
-    dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__backdrop {
-      opacity: 0;
-      transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
-    }
+  dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__backdrop {
+    opacity: 0;
+    transition: opacity var(--ds-dur-base) var(--ds-ease-in-out);
+  }
 
-    dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__panel {
-      translate: var(--ds-distance-sheet) 0;
-      transition: translate var(--ds-dur-base) var(--ds-ease-exit);
-    }
+  dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__panel {
+    translate: var(--ds-distance-sheet) 0;
+    transition: translate var(--ds-dur-base) var(--ds-ease-exit);
   }
 
   /* Where the sheet enters from when showModal() shows it (a rule of its
-     own, not nested; engines without it play the keyframes). */
+     own, not nested). */
   @starting-style {
     dialog.ds-sheet[open]:not([data-state]) .ds-sheet__backdrop {
       opacity: 0;
@@ -323,8 +330,12 @@
     justify-content: space-between;
     gap: var(--ds-space-3);
     flex-shrink: 0;
-    min-height: 64px;
-    padding: var(--ds-space-3) max(var(--ds-space-3), env(safe-area-inset-right)) var(--ds-space-3) var(--ds-space-6);
+    min-height: calc(var(--ds-sheet-head-height, 64px) + var(--ds-density, 0) * 4px);
+    padding:
+      calc(var(--ds-space-3) + var(--ds-density, 0) * 2px)
+      max(var(--ds-space-3), env(safe-area-inset-right))
+      calc(var(--ds-space-3) + var(--ds-density, 0) * 2px)
+      calc(var(--ds-sheet-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
   }
 
   .ds-sheet__head::after {
@@ -408,9 +419,9 @@
     scrollbar-color: var(--ds-line-2) transparent;
     padding:
       var(--ds-space-2)
-      max(var(--ds-space-6), env(safe-area-inset-right))
+      max(calc(var(--ds-sheet-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px), env(safe-area-inset-right))
       calc(var(--ds-space-8) + env(safe-area-inset-bottom))
-      var(--ds-space-6);
+      calc(var(--ds-sheet-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
     display: flex;
     flex-direction: column;
     gap: var(--ds-space-3);
@@ -443,10 +454,10 @@
     align-items: center;
     gap: var(--ds-space-2);
     padding:
-      var(--ds-space-3)
-      max(var(--ds-space-6), env(safe-area-inset-right))
-      calc(var(--ds-space-3) + env(safe-area-inset-bottom))
-      var(--ds-space-6);
+      calc(var(--ds-space-3) + var(--ds-density, 0) * 2px)
+      max(calc(var(--ds-sheet-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px), env(safe-area-inset-right))
+      calc(var(--ds-space-3) + var(--ds-density, 0) * 2px + env(safe-area-inset-bottom))
+      calc(var(--ds-sheet-padding, var(--ds-space-6)) + var(--ds-density, 0) * 2px);
     border-top: var(--ds-sheet-foot-border, 1px solid var(--ds-line));
   }
 
@@ -543,15 +554,13 @@
     }
   }
 
-  @supports (transition-behavior: allow-discrete) {
-    @media (max-width: 600px) {
-      dialog.ds-sheet[open]:not([data-state]) .ds-sheet__panel {
-        transition: translate var(--ds-dur-long) var(--ds-ease-out);
-      }
+  @media (max-width: 600px) {
+    dialog.ds-sheet[open]:not([data-state]) .ds-sheet__panel {
+      transition: translate var(--ds-dur-long) var(--ds-ease-out);
+    }
 
-      dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__panel {
-        translate: 0 var(--ds-distance-sheet);
-      }
+    dialog.ds-sheet:not([data-state]):not([open]) .ds-sheet__panel {
+      translate: 0 var(--ds-distance-sheet);
     }
   }
 

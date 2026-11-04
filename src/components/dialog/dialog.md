@@ -73,7 +73,7 @@ needs the faces of `busy()` in its markup, as below, for its spinner.
       <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
       <button class="ds-btn ds-btn--filled" type="submit">
         <span class="ds-btn__faces"><span class="ds-btn__face">Save</span>
-          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span>
+          <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span>
       </button>
     </div>
   </form>
@@ -249,7 +249,7 @@ confirms. A prompt whose `input.required` field is left empty stays open with th
 ### Confirm by typing the name
 
 For an action that cannot be undone: an `alertdialog`, `.ds-dialog--lg`, a body with the text, a
-`.ds-alert--warning` and a field ("Type LAPTOP-0042 to confirm", `autocomplete="off"`, `spellcheck="false"`,
+`.ds-tone-warning` and a field ("Type LAPTOP-0042 to confirm", `autocomplete="off"`, `spellcheck="false"`,
 `autocapitalize="off"`, `autofocus`). The action stays `aria-disabled` with a tip until `value.trim()` equals the name;
 Enter (not while composing) runs it. While it works: `data-ds-busy` on the dialog, the field `readOnly`, Cancel
 `aria-disabled`, and `DS.motion.busy(action, work, { done: false })`. Success closes it with reason `confirm` and a
@@ -327,13 +327,3 @@ dialog that `DS.get(el, 'dialog')` serves.
 **JS API.** `js/dialog.js` (`DS.dialog`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `confirm(options)`, `alert(options)` and `prompt(options)` are also `DS.overlay.confirm()`, `alert()` and `prompt()`; `form(el, { onSubmit, errorText })` runs a form dialog's submit; `create(el)` returns the controller that `data-ds-dialog` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Scrim", "Dialog", "Nested dialog", "Dialog on a phone", "Full-screen dialog" and "Action sheet" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Dialog (3.0): behaviour in `js/dialog.js` (`DS.dialog`), `DS.overlay.confirm()`, `alert()` and `prompt()` keep their
-  names. Sizes `.ds-dialog--sm`, `--lg` and `--xl`; `--wide` is deprecated. Form dialog: `form.ds-dialog__box`,
-  `ds:submit`, `DS.dialog.form()`. Density and shape on the box. `confirm({ destructive: true })` fills its button in
-  the error tone (D10). `data-ds-open`, `data-ds-close`; `data-close` and the event `ds-close` are deprecated
-  (`ds:close`, `ds:open`). New strings `confirm`, `actionFailed` and `valueRequired`; a built dialog reads them, with
-  `ok` and `cancel`, from `DS.config({ strings })`. Migration: a page that imports single files imports `js/dialog.js`
-  next to `js/overlay.js`; without it `confirm()`, `alert()` and `prompt()` throw and `open()` of a dialog warns once.
-

@@ -31,4 +31,1123 @@
   }
   var SG_LAB = lab;
 
+  // ── components/scroller/scroller.lab.js
+  (function () {
+    /* A reel and a column: the fades on the same two numbers, the reel resting on a child. */
+    function scrollToEnd(area, axis, on) {
+      var size = axis === 'block' ? area.scrollHeight - area.clientHeight : area.scrollWidth - area.clientWidth;
+      area.scrollTo(axis === 'block' ? { top: on ? size : 0, behavior: 'smooth' } : { left: on ? size : 0, behavior: 'smooth' });
+      return new Promise(function (resolve) {
+        var left = 240;
+        (function poll() {
+          var at = axis === 'block' ? area.scrollTop : area.scrollLeft;
+          if (Math.abs(at - (on ? size : 0)) < 2 || --left <= 0) resolve();
+          else requestAnimationFrame(poll);
+        }());
+      }).then(function () { return DS.motion.settled(area, { transitions: true }); });
+    }
+
+    SG_LAB.add({
+      id: 'scroll-reel',
+      group: 'views',
+      title: 'A reel of cards',
+      note: '<code>.ds-scroll-x--reel</code>: the children in a row, the next one peeking in; a scroll rests on the start of one, and the fades of <code>.ds-scroll-x</code> follow the position.',
+      shows: ['.ds-scroll-x--reel', 'ds-scroll-edge-start', 'ds-scroll-edge-end', '--ds-dur-fast'],
+      html: '<div class="ds-scroll-x ds-scroll-x--reel" tabindex="0" role="region" aria-label="Devices">' + ['LAPTOP-0042', 'LAPTOP-0017', 'MONITOR-0007', 'PRINTER-0003', 'TABLET-0121'].map(function (name) {
+        return '<div class="ds-card"><p class="ds-card__title">' + name + '</p><p class="ds-muted">Issued, synced today.</p></div>';
+      }).join('') + '</div>',
+      height: 140,
+      setup: function (stage) { DS.dom.scrollEdges(stage.querySelector('.ds-scroll-x')); },
+      play: function (stage) {
+        var reel = stage.querySelector('.ds-scroll-x');
+        return scrollToEnd(reel, 'inline', reel.scrollLeft < 1);
+      },
+      state: function (stage) { return stage.querySelector('.ds-scroll-x').scrollLeft > 0; },
+      toggle: function (stage, on) { return scrollToEnd(stage.querySelector('.ds-scroll-x'), 'inline', on); },
+    });
+
+    SG_LAB.add({
+      id: 'scroll-y',
+      group: 'views',
+      title: 'A column that scrolls down',
+      note: '<code>.ds-scroll-y</code>: the same two numbers on the block axis, on <code>scroll(self block)</code>, or through <code>DS.dom.scrollEdges(area, { axis: \'block\' })</code>.',
+      shows: ['.ds-scroll-y', 'ds-scroll-edge-start', 'ds-scroll-edge-end', 'DS.dom.scrollEdges', '--ds-dur-fast'],
+      html: '<div class="ds-scroll-y" tabindex="0" role="region" aria-label="Activity" style="--ds-scroll-max-height:150px">' + ['Synced LAPTOP-0042.', 'Imported 12 devices.', 'TABLET-0121 is back online.', 'Exported the list as CSV.', 'Restarted PRINTER-0003.', 'Ada Lovelace signed in.', 'Nightly sync finished.', 'Grace Hopper took MONITOR-0007.', 'Synced TABLET-0121.', 'Imported 3 devices.', 'Exported the report.'].map(function (line) {
+        return '<p class="ds-muted">' + line + '</p>';
+      }).join('') + '</div>',
+      height: 170,
+      setup: function (stage) { DS.dom.scrollEdges(stage.querySelector('.ds-scroll-y'), { axis: 'block' }); },
+      play: function (stage) {
+        var area = stage.querySelector('.ds-scroll-y');
+        return scrollToEnd(area, 'block', area.scrollTop < 1);
+      },
+      state: function (stage) { return stage.querySelector('.ds-scroll-y').scrollTop > 0; },
+      toggle: function (stage, on) { return scrollToEnd(stage.querySelector('.ds-scroll-y'), 'block', on); },
+    });
+  }());
+
+  // ── components/indicator/indicator.lab.js
+  (function () {
+    /*
+     * The Motion Lab's sliding indicator on a track of buttons: the stretch and
+     * landing, the travel time by distance, an interrupted glide, a re-render
+     * that keeps the pill, and no active item. Moved from styleguide/lab.js; the
+     * build wraps this file into styleguide/lab-components.js.
+     */
+    var $ = function (selector, root) { return root.querySelector(selector); };
+    var $$ = function (selector, root) { return Array.prototype.slice.call(root.querySelectorAll(selector)); };
+
+    var TRACK = ['Day', 'Week', 'Month', 'Quarter', 'Year', 'All time'];
+    var TRACK_LONG = ['Today', 'This week', 'This month', 'This quarter', 'This year', 'All time'];
+    var trackLast = 0;
+    var trackTimer = 0;
+    var trackLong = false;
+
+    /* Markup through an inert <template>, as in lab.js. */
+    function setHtml(element, html) {
+      var template = document.createElement('template');
+      template.innerHTML = html;
+      element.replaceChildren(template.content);
+    }
+
+    function trackButtons(stage) { return $$('#sg-track > button', stage); }
+
+    function trackHtml(names) {
+      return names.map(function (name, index) {
+        return '<button class="ds-btn ds-sm" type="button" aria-pressed="' + (index === trackLast) + '" tabindex="' + (index === trackLast ? 0 : -1) + '">' + name + '</button>';
+      }).join('');
+    }
+
+    /* Moves the active item; the read-out names the distance between the
+       two items' centres and the travel time it gives. */
+    function pressTrack(stage, index) {
+      clearTimeout(trackTimer);
+      var clear = $('[data-sg="track-clear"]', stage.parentNode);
+      if (clear) clear.setAttribute('aria-pressed', 'false');
+      var buttons = trackButtons(stage);
+      var from = buttons[trackLast];
+      var to = buttons[index];
+      if (from && to && from !== to) {
+        var a = from.getBoundingClientRect();
+        var b = to.getBoundingClientRect();
+        var px = Math.abs(b.left + b.width / 2 - a.left - a.width / 2);
+        setHtml($('#sg-track-move', stage.parentNode), 'Last move: <strong class="ds-num">' + Math.abs(index - trackLast) + '</strong> ' + (Math.abs(index - trackLast) === 1 ? 'item' : 'items') +
+          ', <strong class="ds-num">' + Math.round(px) + 'px</strong> · <code>travelDuration</code> <strong class="ds-num">' + Math.round(DS.motion.travelDuration(to, px)) + 'ms</strong>');
+      }
+      buttons.forEach(function (b, i) { b.setAttribute('aria-pressed', String(i === index)); });
+      if (index >= 0) trackLast = index;
+    }
+
+    /* The pill places itself one frame after the change (its observer); then
+       its edges run as transitions. */
+    function trackSettled(stage, sg) {
+      return sg.frames(2).then(function () { return DS.motion.settled($('#sg-track > .ds-indicator', stage), { transitions: true }); });
+    }
+
+    function trackDemo(stage, action, button, sg) {
+      var count = trackButtons(stage).length;
+      if (action === 'track-hop') pressTrack(stage, trackLast + 1 < count ? trackLast + 1 : trackLast - 1);
+      if (action === 'track-jump') pressTrack(stage, trackLast < count / 2 ? count - 1 : 0);
+      if (action === 'track-interrupt') {
+        // The second target 80ms later (at the current speed), while the
+        // first glide still runs: the pill turns from where it is.
+        var far = trackLast < count / 2 ? count - 1 : 0;
+        var middle = Math.floor(count / 2);
+        pressTrack(stage, far);
+        trackTimer = setTimeout(function () { pressTrack(stage, middle); }, sg.slow(80));
+      }
+      if (action === 'track-morph') {
+        // A re-render of the whole track with other labels: the pill stays
+        // (morphHtml keeps it) and glides to the new size of its item.
+        trackLong = !trackLong;
+        DS.dom.morphHtml($('#sg-track', stage), trackHtml(trackLong ? TRACK_LONG : TRACK));
+      }
+      if (action === 'track-clear') {
+        if (button.getAttribute('aria-pressed') === 'true') {
+          pressTrack(stage, trackLast);
+        } else {
+          pressTrack(stage, -1);
+          button.setAttribute('aria-pressed', 'true');
+        }
+      }
+    }
+
+    SG_LAB.add({
+      id: 'track',
+      group: 'navigation',
+      title: 'Indicator',
+      note: 'The pill stretches toward its target (the leading edge leads, the trailing edge follows), passes it by a hair and settles on the spring; a longer jump takes longer, up to a cap (travelDuration, in the read-out). It follows aria-pressed by itself: the buttons only change the attribute. A new target mid-glide continues from where the pill is, and a re-render of the track through <code>DS.dom.morphHtml</code> keeps the pill, which glides to its item\'s new size. The track is one tab stop (<code>DS.dom.roving()</code>): the arrow keys, Home and End move the focus and press the item.',
+      shows: ['DS.indicator.create', 'DS.motion.travelDuration', 'DS.dom.morphHtml', 'DS.dom.roving', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow', '--ds-dur-micro'],
+      html: '<div class="sg-track" id="sg-track">' + trackHtml(TRACK) + '</div>',
+      after: '<p class="ds-meta sg-readout" id="sg-track-move" data-lab-readout aria-live="polite">Press an item, or hop and jump.</p>',
+      height: 120,
+      wide: true,
+      controls: '<div class="sg-row"><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-hop">Hop to the neighbour</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-jump">Jump across</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-interrupt">Interrupt (two targets 80ms apart)</button><button class="ds-btn ds-sm ds-btn--text" type="button" data-sg="track-morph">Re-render (morphHtml)</button><button class="ds-btn ds-sm ds-btn--quiet" type="button" data-sg="track-clear" aria-pressed="false">No active item</button></div>',
+      setup: function (stage, sg) {
+        var track = $('#sg-track', stage);
+        sg.indicator(track, { active: '[aria-pressed="true"]', className: 'sg-track__indicator' });
+        DS.dom.roving(track, { items: 'button' });
+        track.addEventListener('click', function (event) {
+          var button = event.target.closest('button');
+          if (button) pressTrack(stage, trackButtons(stage).indexOf(button));
+        });
+        stage.parentNode.addEventListener('click', function (event) {
+          var button = event.target.closest('[data-sg^="track-"]');
+          if (button) trackDemo(stage, button.getAttribute('data-sg'), button, sg);
+        });
+      },
+      play: function (stage, sg) {
+        trackDemo(stage, 'track-jump', null, sg);
+        return trackSettled(stage, sg);
+      },
+      state: function () { return trackLast === TRACK.length - 1; },
+      toggle: function (stage, on, sg) {
+        pressTrack(stage, on ? TRACK.length - 1 : 0);
+        return trackSettled(stage, sg);
+      },
+    });
+  }());
+
+  // ── components/loading/loading.lab.js
+  (function () {
+    /* The pulse of a skeleton: the bones breathe in place, on the loop token, instead of the wave passing over them. */
+    (function () {
+      var html = '<div class="ds-skeleton ds-skeleton--pulse" role="status" style="width:100%"><span class="ds-sr">Loading ...</span>' +
+        '<div class="ds-skeleton__row" aria-hidden="true"><span class="ds-skeleton__avatar"></span><span class="ds-skeleton__lines"><span class="ds-skeleton__line ds-skeleton__line--mid"></span><span class="ds-skeleton__line ds-skeleton__line--short"></span></span></div>' +
+        '<span class="ds-skeleton__media" style="max-width:240px" aria-hidden="true"></span></div>';
+
+      SG_LAB.add({
+        id: 'skeleton-pulse',
+        group: 'feedback',
+        title: 'Skeleton pulse',
+        note: '<code>.ds-skeleton--pulse</code>: each bone shows the highlight, its opacity breathing on <code>ds-fade-in</code>, infinite and alternate, on <code>--ds-loop-skeleton</code> and <code>--ds-ease-in-out</code>, after <code>--ds-delay-loader</code>. A loop, so Replay starts it over.',
+        shows: ['.ds-skeleton--pulse', 'ds-fade-in', '--ds-loop-skeleton', '--ds-delay-loader', '--ds-ease-in-out', '--ds-skeleton-highlight'],
+        html: html,
+        height: 240,
+        play: function (stage) {
+          stage.innerHTML = html;
+          return DS.motion.settled(stage.querySelector('.ds-skeleton'));
+        },
+      });
+    })();
+  }());
+
+  // ── components/card/card.lab.js
+  (function () {
+    /* A selectable card: the tint, the ring and the check, on --ds-dur-fast. */
+    SG_LAB.add({
+      id: 'card-selectable',
+      group: 'controls',
+      title: 'A selectable card',
+      note: 'A choice among a few cards: <code>aria-pressed</code> turns the tint on over <code>--ds-dur-fast</code>, the ring shows at once, and the mark of <code>.ds-card--selectable</code> fills with its check on the same timing. A reversal continues from the current colours.',
+      shows: ['.ds-card--selectable', '.ds-card__check', '--ds-dur-fast', '--ds-ease-in-out'],
+      html: '<button class="ds-card ds-card--interactive ds-card--selectable" type="button" aria-pressed="false" style="max-width:320px"><span class="ds-card__title">Extended</span><span class="ds-muted">Hourly sync, a year of history.</span><span class="ds-card__check" aria-hidden="true"></span></button>',
+      setup: function (stage) { stage.querySelector('.ds-card__check').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.check, 16)); },
+      height: 160,
+      play: function (stage) {
+        var card = stage.querySelector('.ds-card');
+        card.setAttribute('aria-pressed', String(card.getAttribute('aria-pressed') !== 'true'));
+        return DS.motion.settled(card, { transitions: true, subtree: true });
+      },
+      state: function (stage) { return stage.querySelector('.ds-card').getAttribute('aria-pressed') === 'true'; },
+      toggle: function (stage, on) {
+        var card = stage.querySelector('.ds-card');
+        card.setAttribute('aria-pressed', String(on));
+        return DS.motion.settled(card, { transitions: true, subtree: true });
+      },
+    });
+  }());
+
+  // ── components/disclosure/disclosure.lab.js
+  (function () {
+    /* An exclusive accordion: details[name], the one that closes plays the same motion. */
+    SG_LAB.add({
+      id: 'disclosure-accordion',
+      group: 'utilities',
+      title: 'Exclusive accordion',
+      note: 'Rows that share a <code>name</code> open one at a time, with no script: the browser closes the other row, and both play the motion of <code>.ds-collapsible</code> and the <code>.ds-chevron</code> at once.',
+      shows: ['.ds-disclosure--row', '.ds-disclosure-list', '.ds-collapsible', '.ds-chevron', '--ds-dur-medium', '--ds-dur-fast'],
+      html: '<div class="ds-disclosure-list">' + ['When does the sync run?', 'What does a lock mean?'].map(function (title, index) {
+        return '<details class="ds-collapsible ds-disclosure ds-disclosure--row" name="lab-accordion"' + (index === 0 ? ' open' : '') + '><summary><span class="ds-disclosure__title">' + title + '</span></summary><div class="ds-disclosure__body"><p class="ds-muted">Every night at 02:00; a manual run starts at once.</p></div></details>';
+      }).join('') + '</div>',
+      height: 200,
+      setup: function (stage) {
+        stage.querySelectorAll('summary').forEach(function (summary) { summary.insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.chevronDown, 20, 'ds-chevron')); });
+      },
+      play: function (stage) {
+        var rows = stage.querySelectorAll('details');
+        var next = rows[0].open ? rows[1] : rows[0];
+        next.open = true;
+        return DS.motion.settled(stage, { transitions: true, subtree: true });
+      },
+      state: function (stage) { return stage.querySelectorAll('details')[1].open; },
+      toggle: function (stage, on) {
+        stage.querySelectorAll('details')[on ? 1 : 0].open = true;
+        return DS.motion.settled(stage, { transitions: true, subtree: true });
+      },
+    });
+  }());
+
+  // ── components/table/table.lab.js
+  (function () {
+    /*
+     * The Motion Lab entries of the table: rows that glide, turn their arrow and
+     * open their details, and the bar of a bulk selection. A classic script: the
+     * build wraps it into styleguide/lab-components.js. The helpers are the lab's
+     * own (styleguide/lab.js), which keeps them private. Nothing here reads DS
+     * while the file loads, so the rows and their icons render in setup().
+     */
+    var $ = function (selector, root) { return (root || document).querySelector(selector); };
+    var $$ = function (selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); };
+    var icon = function (name, size, cls) { return DS.icons.icon(DS.icons[name], size, cls); };
+
+    function after(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, Math.max(0, ms)); });
+    }
+
+    function wait(sg, ms) { return after(sg.slow(ms)); }
+
+    /* Everything finite that still runs under the stage has ended (loops and scroll-driven animations do not count). */
+    function quiet(root, sg) {
+      var end = Date.now() + sg.slow(10000);
+      function round() {
+        var running = root.getAnimations({ subtree: true }).filter(function (animation) {
+          var timing = animation.effect && animation.effect.getComputedTiming();
+          return timing && isFinite(timing.endTime) && animation.timeline === root.ownerDocument.timeline && animation.playState === 'running';
+        });
+        if (!running.length || Date.now() > end) return undefined;
+        return Promise.race([
+          Promise.all(running.map(function (animation) { return animation.finished.catch(function () {}); })),
+          after(end - Date.now()),
+        ]).then(function () { return sg.frames(2); }).then(round);
+      }
+      return sg.frames(2).then(round);
+    }
+
+    function switchHtml(id, name) {
+      return '<label class="ds-switch"><input type="checkbox" role="switch" id="' + id + '"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">' + name + '</span>' +
+        '<span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span></label>';
+    }
+
+    var TABLE = {
+      rows: [
+        { id: 'r1', name: 'LAPTOP-0042', owner: 'Ada Lovelace', load: 32, place: 'Building A, 1st floor' },
+        { id: 'r2', name: 'LAPTOP-0043', owner: 'Alan Turing', load: 14, place: 'Building A, 2nd floor' },
+        { id: 'r3', name: 'DESKTOP-0107', owner: '', load: 93, place: 'Server room' },
+        { id: 'r4', name: 'LAPTOP-0051', owner: 'Grace Hopper', load: 78, place: 'Building B, ground floor' },
+        { id: 'r5', name: 'TABLET-0121', owner: 'Katherine Johnson', load: 47, place: 'Building B, 1st floor' },
+      ],
+      sort: 'name',
+      dir: 'ascending',
+      filter: '',
+      selected: {},
+      expanded: {},
+      feed: 0,
+    };
+
+    function tableShown() {
+      var query = TABLE.filter.trim().toLowerCase();
+      var sign = TABLE.dir === 'ascending' ? 1 : -1;
+      return TABLE.rows.filter(function (row) { return !query || (row.name + ' ' + row.owner).toLowerCase().indexOf(query) !== -1; })
+        .sort(function (a, b) { return sign * (TABLE.sort === 'load' ? a.load - b.load : a.name.localeCompare(b.name)); });
+    }
+
+    function tableHeadHtml() {
+      var sortable = function (key, text, cls) {
+        var sorted = TABLE.sort === key;
+        return '<th scope="col"' + (cls ? ' class="' + cls + '"' : '') + (sorted ? ' aria-sort="' + TABLE.dir + '"' : '') + '><button class="ds-table__sort" type="button" data-table-sort="' + key + '">' + text + (sorted ? icon('arrowUp', 16, 'ds-table__sort-arrow') : '') + '</button></th>';
+      };
+      return '<tr><th scope="col"><input type="checkbox" aria-label="Select all devices" data-table-all></th><th scope="col"><span class="ds-sr">Details</span></th>' + sortable('name', 'Device') + '<th scope="col" class="ds-col--secondary">Owner</th>' + sortable('load', 'Load', 'ds-num') + '</tr>';
+    }
+
+    function tableRowsHtml(rows) {
+      return rows.map(function (row) {
+        var open = !!TABLE.expanded[row.id];
+        return '<tr data-ds-key="' + row.id + '"><td><input type="checkbox" aria-label="Select ' + row.name + '" data-table-row' + (TABLE.selected[row.id] ? ' checked' : '') + '></td>' +
+          '<td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="' + open + '" aria-controls="sg-lab-detail-' + row.id + '" aria-label="Details of ' + row.name + '" data-table-toggle>' + icon('chevronDown', 20, 'ds-chevron') + '</button></td>' +
+          '<td class="ds-nowrap">' + row.name + '</td><td class="ds-col--secondary">' + (row.owner || '<span class="ds-muted">Not issued</span>') + '</td><td class="ds-num">' + row.load + '%</td></tr>' +
+          '<tr class="ds-table__detail" id="sg-lab-detail-' + row.id + '" data-ds-key="' + row.id + '-detail"' + (open ? '' : ' inert') + '><td colspan="5"><div class="ds-table__expand"><div><dl class="ds-facts"><div><dt>Location</dt><dd>' + row.place + '</dd></div><div><dt>Owner</dt><dd>' + (row.owner || 'Not issued') + '</dd></div></dl></div></div></td></tr>';
+      }).join('');
+    }
+
+    function tableSync(stage) {
+      var rows = tableShown();
+      var checked = rows.filter(function (row) { return TABLE.selected[row.id]; }).length;
+      var all = $('[data-table-all]', stage);
+      all.checked = rows.length > 0 && checked === rows.length;
+      all.indeterminate = checked > 0 && checked < rows.length;
+    }
+
+    /* A user's sort or filter glides at once; the live feed waits for the pointer. */
+    function tableRender(stage, live) {
+      var tbody = $('tbody', stage);
+      DS.dom.morphHtml($('thead', stage), tableHeadHtml());
+      var done = DS.motion.flip(tbody, function (options) { DS.dom.morphHtml(tbody, tableRowsHtml(tableShown()), options); }, { items: 'tr', live: !!live });
+      tableSync(stage);
+      // A table that fits again keeps no edge fade.
+      DS.motion.resyncScroll($('.ds-table-wrap', stage));
+      return done;
+    }
+
+    function tableSortBy(stage, key) {
+      TABLE.dir = TABLE.sort === key && TABLE.dir === 'ascending' ? 'descending' : 'ascending';
+      TABLE.sort = key;
+      return tableRender(stage);
+    }
+
+    SG_LAB.add({
+      id: 'table',
+      group: 'feedback',
+      title: 'Table',
+      note: 'Sort by a column or type a filter: the rows glide to their places through <code>DS.motion.flip</code> on every keystroke, and the sort arrow turns. "Select all" checks every row in the same frame. A row\'s chevron opens its details, the room on <code>--ds-ease-out</code> (a layout size), the content fading in. The live feed changes the load every 2s; sorted by load the rows reorder, but only while the mouse is not over the table.',
+      shows: ['DS.motion.flip', 'DS.dom.morphHtml', 'DS.motion.resyncScroll', '.ds-chevron', '--ds-dur-slow', '--ds-dur-medium', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-out', '--ds-ease-in'],
+      html: '<div class="ds-table-wrap"><table class="ds-table ds-table--interactive sg-lab-table"><caption class="ds-sr">Devices</caption><thead></thead><tbody></tbody></table></div>',
+      height: 420,
+      wide: true,
+      controls: '<div class="sg-row"><div class="ds-field sg-data-filter"><label class="ds-field__label" for="sg-lab-table-filter">Filter</label><input class="ds-input" id="sg-lab-table-filter" type="search" autocomplete="off" placeholder="Device or owner"></div>' + switchHtml('sg-lab-table-live', 'Live feed, sorted by load') + '</div>',
+      setup: function (stage, sg) {
+        var card = stage.parentNode;
+        DS.dom.morphHtml($('thead', stage), tableHeadHtml());
+        DS.dom.morphHtml($('tbody', stage), tableRowsHtml(tableShown()));
+        stage.addEventListener('click', function (event) {
+          var sort = event.target.closest('[data-table-sort]');
+          if (sort) tableSortBy(stage, sort.getAttribute('data-table-sort'));
+          var toggle = event.target.closest('[data-table-toggle]');
+          if (toggle) {
+            var id = toggle.closest('tr').getAttribute('data-ds-key');
+            TABLE.expanded[id] = !TABLE.expanded[id];
+            toggle.setAttribute('aria-expanded', String(TABLE.expanded[id]));
+            $('#sg-lab-detail-' + id, stage).inert = !TABLE.expanded[id];
+          }
+        });
+        stage.addEventListener('change', function (event) {
+          var input = event.target;
+          if (input.hasAttribute('data-table-all')) {
+            tableShown().forEach(function (row) { TABLE.selected[row.id] = input.checked; });
+            $$('[data-table-row]', stage).forEach(function (row) { row.checked = input.checked; });
+          }
+          if (input.hasAttribute('data-table-row')) TABLE.selected[input.closest('tr').getAttribute('data-ds-key')] = input.checked;
+          tableSync(stage);
+        });
+        $('#sg-lab-table-filter', card).addEventListener('input', function (event) {
+          TABLE.filter = event.target.value;
+          tableRender(stage);
+        });
+        $('#sg-lab-table-live', card).addEventListener('change', function (event) {
+          clearInterval(TABLE.feed);
+          TABLE.feed = 0;
+          if (!event.target.checked) return;
+          TABLE.sort = 'load';
+          TABLE.dir = 'descending';
+          TABLE.feed = setInterval(function () {
+            TABLE.rows.forEach(function (row) { if (Math.random() < 0.6) row.load = Math.max(1, Math.min(99, row.load + Math.round((Math.random() - 0.5) * 50))); });
+            tableRender(stage, true);
+          }, sg.slow(2000));
+          tableRender(stage);
+        });
+        tableSync(stage);
+      },
+      play: function (stage, sg) { return tableSortBy(stage, 'load').then(function () { return quiet(stage, sg); }); },
+    });
+
+    /* The bar of a bulk selection. */
+
+    function selectionToolbar() {
+      return '<div class="ds-action-bar"><div class="ds-search">' + icon('search', 20) + '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices"></div><p class="ds-meta">3 devices</p></div>';
+    }
+
+    function selectionBar(count) {
+      return '<div class="ds-selection-bar" role="toolbar" aria-label="Selected devices"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Clear selection" data-selection-clear>' + icon('close', 20) + '</button>' +
+        '<p class="ds-selection-bar__count" aria-live="polite">' + count + ' selected</p><div class="ds-selection-bar__actions"><button class="ds-btn ds-btn--text" type="button">' + icon('trash', 18) + 'Delete</button></div></div>';
+    }
+
+    /* The bar and the toolbar cross only when the count goes from 0 to 1 and back; the count text changes at once. */
+    function selectionSync(stage) {
+      var boxes = $$('tbody input', stage);
+      var count = boxes.filter(function (box) { return box.checked; }).length;
+      var slot = $('.ds-swap', stage);
+      var bar = $(':scope > .ds-selection-bar:not([data-ds-leaving])', slot);
+      var all = $('thead input', stage);
+      all.checked = count === boxes.length;
+      all.indeterminate = count > 0 && count < boxes.length;
+      var template = document.createElement('template');
+      if (count && !bar) {
+        template.innerHTML = selectionBar(count);
+        return DS.motion.crossfade(slot, template.content.firstElementChild);
+      }
+      if (!count && bar) {
+        template.innerHTML = selectionToolbar();
+        return DS.motion.crossfade(slot, template.content.firstElementChild);
+      }
+      if (bar) $('.ds-selection-bar__count', bar).textContent = count + ' selected';
+      return Promise.resolve();
+    }
+
+    SG_LAB.add({
+      id: 'selection-bar',
+      group: 'feedback',
+      title: 'Bulk selection bar',
+      note: 'Check a row: the <code>.ds-selection-bar</code> crosses with the toolbar in one <code>.ds-swap</code> slot (<code>DS.motion.crossfade()</code>: the bar fades in over <code>--ds-dur-fast</code>, the toolbar out over <code>--ds-dur-instant</code>), so the table never moves. More rows only change the count, at once; clearing the selection crosses back.',
+      shows: ['.ds-selection-bar', 'DS.motion.crossfade', '.ds-swap', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-in-out'],
+      html: '<div class="ds-toolbar"><div class="ds-swap"></div></div>' +
+        '<div class="ds-table-wrap"><table class="ds-table"><caption class="ds-sr">Devices to select</caption><thead><tr><th scope="col"><input type="checkbox" aria-label="Select all devices"></th><th scope="col">Device</th></tr></thead><tbody>' +
+        ['LAPTOP-0042', 'TABLET-0121', 'PRINTER-0003'].map(function (name) { return '<tr><td><input type="checkbox" aria-label="Select ' + name + '"></td><td>' + name + '</td></tr>'; }).join('') + '</tbody></table></div>',
+      height: 280,
+      setup: function (stage) {
+        DS.dom.morphHtml($('.ds-swap', stage), selectionToolbar());
+        stage.addEventListener('change', function (event) {
+          if (event.target.closest('thead')) $$('tbody input', stage).forEach(function (box) { box.checked = event.target.checked; });
+          selectionSync(stage);
+        });
+        stage.addEventListener('click', function (event) {
+          if (!event.target.closest('[data-selection-clear]')) return;
+          $$('tbody input', stage).forEach(function (box) { box.checked = false; });
+          selectionSync(stage);
+          $('thead input', stage).focus();
+        });
+      },
+      play: function (stage, sg) {
+        var boxes = $$('tbody input', stage);
+        boxes[0].checked = true;
+        return selectionSync(stage).then(function () { return wait(sg, 300); }).then(function () {
+          boxes[1].checked = true;
+          selectionSync(stage);
+          return wait(sg, 300);
+        }).then(function () {
+          boxes.forEach(function (box) { box.checked = false; });
+          return selectionSync(stage);
+        }).then(function () { return quiet(stage, sg); });
+      },
+      state: function (stage) { return Boolean($('.ds-swap > .ds-selection-bar:not([data-ds-leaving])', stage)); },
+      toggle: function (stage, on) {
+        $$('tbody input', stage).forEach(function (box, index) { box.checked = on && index === 0; });
+        return selectionSync(stage);
+      },
+    });
+  }());
+
+  // ── components/pagination/pagination.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of the pagination: a page change. The rows dim while
+     * the page loads, the range changes at once, then the old rows go at once and
+     * the new ones fade in. A classic script: the build wraps it into
+     * styleguide/lab-components.js.
+     */
+    var PAGE_SIZE = 3;
+
+    function pageRows(page) {
+      var rows = '';
+      for (var i = page * PAGE_SIZE; i < (page + 1) * PAGE_SIZE; i += 1) {
+        rows += '<tr data-ds-key="p' + i + '"><td class="ds-nowrap">LAPTOP-' + String(1000 + i * 7) + '</td><td class="ds-num">' + ((i * 37) % 100) + '%</td></tr>';
+      }
+      return rows;
+    }
+
+    function pageRange(page) {
+      return ((page * PAGE_SIZE) + 1) + '–' + ((page + 1) * PAGE_SIZE) + ' of 12';
+    }
+
+    function pageButton(to, name, glyph) {
+      return '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="' + name + '" data-page-to="' + to + '">' + DS.icons.icon(DS.icons[glyph], 20) + '</button>';
+    }
+
+    /* What a project's page change does: dim, load, render through flip(). */
+    function goToPage(stage, page, sg) {
+      var card = stage.querySelector('.ds-card');
+      var tbody = stage.querySelector('tbody');
+      var last = 3;
+      card.classList.add('ds-stale');
+      stage.querySelector('.ds-pagination__range').textContent = pageRange(page);
+      stage.setAttribute('data-page', String(page));
+      stage.querySelectorAll('[data-page-to]').forEach(function (button) {
+        var blocked = button.getAttribute('data-page-to') === 'previous' ? page === 0 : page === last;
+        if (blocked) button.setAttribute('aria-disabled', 'true');
+        else button.removeAttribute('aria-disabled');
+      });
+      return new Promise(function (resolve) { setTimeout(resolve, sg.slow(300)); }).then(function () {
+        card.classList.remove('ds-stale');
+        return DS.motion.flip(tbody, function (options) { DS.dom.morphHtml(tbody, pageRows(page), options); }, { items: 'tr' });
+      }).then(function () { return DS.motion.settled(tbody); });
+    }
+
+    SG_LAB.add({
+      id: 'pagination-page',
+      group: 'feedback',
+      title: 'Pagination: a page change',
+      note: 'Press next: the rows dim (<code>.ds-stale</code>) while the page loads and the range changes at once; then every key is new, so <code>DS.motion.flip</code> lets the old rows go at once and the new ones fade in.',
+      shows: ['DS.motion.flip', 'DS.dom.morphHtml', '.ds-stale'],
+      html: '<section class="ds-card"><div class="ds-table-wrap"><table class="ds-table"><caption class="ds-sr">Devices, in pages</caption><thead><tr><th scope="col">Device</th><th scope="col" class="ds-num">Load</th></tr></thead><tbody>' + pageRows(0) + '</tbody></table></div>' +
+        '<nav class="ds-pagination" aria-label="Pages of devices"><p class="ds-pagination__range" aria-live="polite">' + pageRange(0) + '</p><span data-page-buttons></span></nav></section>',
+      height: 320,
+      setup: function (stage, sg) {
+        var buttons = stage.querySelector('[data-page-buttons]');
+        DS.dom.morphHtml(buttons, pageButton('previous', 'Previous page', 'chevronLeft') + pageButton('next', 'Next page', 'chevronRight'));
+        buttons.style.display = 'contents';
+        stage.addEventListener('click', function (event) {
+          var button = event.target.closest('[data-page-to]');
+          if (!button || button.getAttribute('aria-disabled') === 'true') return;
+          var page = Number(stage.getAttribute('data-page') || 0);
+          goToPage(stage, page + (button.getAttribute('data-page-to') === 'next' ? 1 : -1), sg);
+        });
+        stage.querySelector('[data-page-to="previous"]').setAttribute('aria-disabled', 'true');
+      },
+      play: function (stage, sg) {
+        var page = Number(stage.getAttribute('data-page') || 0);
+        return goToPage(stage, page === 3 ? 0 : page + 1, sg);
+      },
+    });
+  }());
+
+  // ── components/badge/badge.lab.js
+  (function () {
+    /* The count badge through its controller: a count that appears pops in, one that goes pops out, the figure changes at once. */
+    SG_LAB.add({
+      id: 'badge-count',
+      group: 'feedback',
+      title: 'Badge count',
+      note: '<code>DS.badge.create()</code>: the count stops at its maximum (<code>99+</code>). A count that appears pops in, one that goes pops out on <code>DS.motion.enter</code> and <code>leave</code>; the figure itself changes at once.',
+      shows: ['DS.badge.create', '.ds-badge', '.ds-enter--pop', '.ds-leave--pop', 'ds-pop-in', 'ds-pop-out'],
+      html: '<button class="ds-btn" type="button">Inbox <span class="ds-badge" data-lab-badge></span></button>',
+      height: 120,
+      setup: function (stage) {
+        stage.badge = DS.badge.create(stage.querySelector('[data-lab-badge]'), { value: 0 });
+      },
+      play: function (stage) {
+        var el = stage.querySelector('[data-lab-badge]');
+        stage.badge = stage.badge || DS.badge.create(el, { value: 0 });
+        stage.badge.set(stage.badge.get() ? 0 : 128);
+        return DS.motion.settled(el);
+      },
+      toggle: function (stage, on) {
+        var el = stage.querySelector('[data-lab-badge]');
+        stage.badge = stage.badge || DS.badge.create(el, { value: 0 });
+        stage.badge.set(on ? 128 : 0);
+        return DS.motion.settled(el);
+      },
+      state: function (stage) {
+        return Boolean(stage.badge && stage.badge.get());
+      },
+      reset: function (stage) {
+        var el = stage.querySelector('[data-lab-badge]');
+        DS.motion.cancel(el);
+        el.hidden = false;
+        el.textContent = '';
+        stage.badge = DS.badge.create(el, { value: 0 });
+      },
+    });
+  }());
+
+  // ── components/switch/switch.lab.js
+  (function () {
+    /*
+     * The switch's motion of 3.0: the glyphs of .ds-switch--icons crossfade while
+     * they ride the handle, and the spinner of a busy switch waits for
+     * --ds-delay-loader. The 2.x rows (toggle, locked) stay in styleguide/lab.js.
+     */
+    SG_LAB.add({
+      id: 'switch-icons',
+      group: 'controls',
+      title: 'Switch with icons',
+      note: 'One glyph per state on the handle (<code>.ds-switch--icons</code>): both ride the handle on the spring and crossfade, in on <code>--ds-dur-fast</code> and out on <code>--ds-dur-instant</code>; the off handle stays at 24px.',
+      shows: ['.ds-switch--icons', '--ds-dur-fast', '--ds-dur-instant', '--ds-dur-medium', '--ds-ease-spatial'],
+      html: '<label class="ds-switch ds-switch--icons"><input type="checkbox" role="switch"><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Automatic updates</span></label>',
+      setup: function (stage) {
+        stage.querySelector('.ds-switch__track').insertAdjacentHTML('beforeend', DS.icons.icon(DS.icons.close, 16, 'ds-switch__icon ds-switch__icon--off') + DS.icons.icon(DS.icons.check, 16, 'ds-switch__icon ds-switch__icon--on'));
+      },
+      play: function (stage) {
+        var input = stage.querySelector('input');
+        input.checked = !input.checked;
+        return DS.motion.settled(stage.querySelector('.ds-switch__icon--on'), { transitions: true });
+      },
+      state: function (stage) { return stage.querySelector('input').checked; },
+      toggle: function (stage, on) {
+        stage.querySelector('input').checked = on;
+        return DS.motion.settled(stage.querySelector('.ds-switch__icon--on'), { transitions: true });
+      },
+    });
+
+    function setBusy(stage, on) {
+      var input = stage.querySelector('input');
+      if (on) {
+        input.setAttribute('aria-busy', 'true');
+        input.setAttribute('aria-disabled', 'true');
+      } else {
+        input.removeAttribute('aria-busy');
+        input.removeAttribute('aria-disabled');
+      }
+    }
+
+    SG_LAB.add({
+      id: 'switch-busy',
+      group: 'controls',
+      title: 'Busy switch',
+      note: 'While the page waits: <code>aria-busy</code> with <code>aria-disabled</code> on the input. The handle grows to hold the spinner, which fades in only after <code>--ds-delay-loader</code> on <code>--ds-dur-fast</code> and goes on <code>--ds-dur-instant</code>.',
+      shows: ['.ds-switch__spinner', '--ds-delay-loader', '--ds-dur-fast', '--ds-dur-instant'],
+      html: '<label class="ds-switch"><input type="checkbox" role="switch" checked><span class="ds-switch__track" aria-hidden="true"><span class="ds-spinner ds-switch__spinner"></span></span><span class="ds-switch__label">Remote access</span></label>',
+      // A wait that ends is not a motion that reverses: Replay starts it again.
+      reset: function (stage) { setBusy(stage, false); },
+      play: function (stage) {
+        var spinner = stage.querySelector('.ds-switch__spinner');
+        setBusy(stage, true);
+        // The spinner's own loop never settles: wait for its opacity alone.
+        return Promise.all(spinner.getAnimations().filter(function (animation) { return animation.transitionProperty === 'opacity'; }).map(function (animation) { return animation.finished.catch(function () {}); }));
+      },
+    });
+  }());
+
+  // ── components/combobox/combobox.lab.js
+  (function () {
+    /*
+     * The combobox's motion of 3.0: the press of its clear button. The list and
+     * the toggle's chevron of 2.x stay in styleguide/lab.js.
+     */
+    SG_LAB.add({
+      id: 'combobox-clear',
+      group: 'controls',
+      title: 'Combobox clear button',
+      note: 'The twin of the toggle, but in the tab order. Pressed it turns squarer to <code>--ds-radius-action-pressed</code> in <code>--ds-dur-micro</code> and springs back over <code>--ds-dur-medium</code>. Tab to it for the focus ring, which rests one width further out and snaps in on <code>--ds-dur-fast</code>.',
+      shows: ['.ds-combo__clear', '--ds-radius-action-pressed', '--ds-dur-micro', '--ds-dur-medium', '--ds-dur-fast', '--ds-ease-spatial'],
+      html: '<div class="ds-combo" style="inline-size: 280px;"><input class="ds-input ds-combo__input" role="combobox" aria-label="Model" aria-expanded="false" value="Laptop 14"><button class="ds-combo__clear" type="button" aria-label="Clear model"></button><button class="ds-combo__toggle" type="button" tabindex="-1" aria-label="Show all"></button></div>',
+      setup: function (stage) {
+        stage.querySelector('.ds-combo__clear').innerHTML = DS.icons.icon(DS.icons.close, 20);
+        stage.querySelector('.ds-combo__toggle').innerHTML = DS.icons.icon(DS.icons.chevronDown, 20);
+      },
+      play: function (stage) {
+        var clear = stage.querySelector('.ds-combo__clear');
+        clear.classList.add('ds-pressed');
+        return DS.motion.settled(clear, { transitions: true }).then(function () {
+          clear.classList.remove('ds-pressed');
+          return DS.motion.settled(clear, { transitions: true });
+        });
+      },
+    });
+  }());
+
+  // ── components/menu/menu.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.menu: a menu with descriptions and a danger item.
+     * The menu's other entries (near the bottom edge, the cut edges) sit in
+     * styleguide/lab.js, shared with the overlay table of docs/motion.md.
+     */
+    SG_LAB.add({
+      id: 'menu-rich',
+      group: 'overlays',
+      title: 'Menu through DS.menu, with descriptions',
+      note: 'It grows out of its trigger on the spring whatever its rows hold, and leaves with a quick fade; closed mid-way, it turns back from where it is.',
+      shows: ['DS.menu.open', 'DS.menu.close', '--ds-dur-medium', '--ds-dur-fast', '--ds-dur-instant', '--ds-ease-spatial'],
+      html: '<div class="sg-popup-stage"><button class="ds-btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-menu-rich" data-lab-open>Export</button>' +
+        '<div class="ds-menu" role="menu" id="sg-lab-menu-rich" aria-label="Export" hidden>' +
+        '<button class="ds-menu__item" role="menuitem" type="button"><span class="ds-menu__content"><span class="ds-menu__label">Download</span><span class="ds-menu__description">A CSV file with every column.</span></span><span class="ds-menu__shortcut">Ctrl E</span></button>' +
+        '<button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button"><span class="ds-menu__label">Delete the export</span></button></div></div>',
+      height: 200,
+      setup: function (stage) {
+        var trigger = stage.querySelector('[data-lab-open]');
+        var menu = stage.querySelector('.ds-menu');
+        trigger.addEventListener('click', function () {
+          if (menu.getAttribute('data-state') === 'open') DS.menu.close(menu);
+          else DS.menu.open(menu, { opener: trigger });
+        });
+      },
+      subject: function (stage) { return stage.querySelector('.ds-menu'); },
+      state: function (stage) { return stage.querySelector('.ds-menu').getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var menu = stage.querySelector('.ds-menu');
+        return DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.menu.close(menu); })
+          .then(function () { return DS.motion.settled(menu); });
+      },
+      toggle: function (stage, on) {
+        var menu = stage.querySelector('.ds-menu');
+        return on ? DS.menu.open(menu, { opener: stage.querySelector('[data-lab-open]') }) : DS.menu.close(menu);
+      },
+    });
+  }());
+
+  // ── components/sheet/sheet.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of DS.sheet: the wide panel. The sheet's other entries
+     * (native, div, on a phone) sit in styleguide/lab.js, shared with the overlay
+     * table of docs/motion.md.
+     */
+    var made = null;
+
+    function sheetOf() {
+      if (made) return made;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-sheet" id="sg-lab-sheet-wide" aria-labelledby="sg-lab-sheet-wide-title">' +
+        '<div class="ds-sheet__backdrop" data-ds-close></div><section class="ds-sheet__panel ds-sheet__panel--wide">' +
+        '<div class="ds-sheet__head"><h2 class="ds-sheet__title" id="sg-lab-sheet-wide-title">LAPTOP-0042</h2>' +
+        '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button></div>' +
+        '<div class="ds-sheet__body" tabindex="0"><p class="ds-muted">The record of the device goes here.</p></div></section></dialog>';
+      made = host.firstChild;
+      document.body.append(made);
+      return made;
+    }
+
+    SG_LAB.add({
+      id: 'sheet-wide',
+      group: 'overlays',
+      title: 'Side sheet through DS.sheet, the wide panel',
+      note: 'The panel slides its full width in from the edge on the spring and goes back accelerating, while the scrim fades.',
+      shows: ['DS.sheet.open', 'DS.sheet.close', '--ds-dur-long', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a wide sheet</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.sheet.open(sheetOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return sheetOf(); },
+      state: function () { return sheetOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var sheet = sheetOf();
+        return DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.sheet.close(sheet); })
+          .then(function () { return DS.motion.settled(sheet.querySelector('.ds-sheet__panel')); });
+      },
+      toggle: function (stage, on) {
+        var sheet = sheetOf();
+        return on ? DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.sheet.close(sheet);
+      },
+    });
+  }());
+
+  // ── components/dialog/dialog.lab.js
+  (function () {
+    /*
+     * The Motion Lab entry of the dialog's sizes: the same motion at every width,
+     * through DS.dialog. The dialog's other entries (native, div, nested, full
+     * screen, action sheet, busy) sit in styleguide/lab.js, shared with the
+     * overlay table of docs/motion.md.
+     */
+    var made = null;
+
+    function dialogOf() {
+      if (made) return made;
+      var host = document.createElement('div');
+      host.innerHTML = '<dialog class="ds-dialog ds-dialog--xl" id="sg-lab-dialog-xl" aria-labelledby="sg-lab-dialog-xl-title">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<h2 class="ds-dialog__title" id="sg-lab-dialog-xl-title">Archive LAPTOP-0042?</h2>' +
+        '<p class="ds-dialog__text">The widest box: it stays in the archive for a year.</p>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--filled" type="button" data-ds-close>Keep it</button></div></div></dialog>';
+      made = host.firstChild;
+      document.body.append(made);
+      return made;
+    }
+
+    SG_LAB.add({
+      id: 'dialog-sizes',
+      group: 'overlays',
+      title: 'Dialog through DS.dialog, the widest size',
+      note: 'The sizes change the width of the box, not its motion: the scrim fades while the box fades, grows and rises on the spring.',
+      shows: ['DS.dialog.open', 'DS.dialog.close', '--ds-dur-slow', '--ds-dur-base', '--ds-ease-spatial', '--ds-ease-exit'],
+      html: '<div class="sg-row"><button class="ds-btn ds-btn--tonal" type="button" data-lab-open>Open a large dialog</button></div>',
+      height: 120,
+      setup: function (stage) {
+        stage.querySelector('[data-lab-open]').addEventListener('click', function (event) {
+          DS.dialog.open(dialogOf(), { opener: event.currentTarget });
+        });
+      },
+      subject: function () { return dialogOf(); },
+      state: function () { return dialogOf().getAttribute('data-state') === 'open'; },
+      play: function (stage) {
+        var dialog = dialogOf();
+        return DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') })
+          .then(function () { return DS.dialog.close(dialog); })
+          .then(function () { return DS.motion.settled(dialog.querySelector('.ds-dialog__box')); });
+      },
+      toggle: function (stage, on) {
+        var dialog = dialogOf();
+        return on ? DS.dialog.open(dialog, { opener: stage.querySelector('[data-lab-open]') }) : DS.dialog.close(dialog);
+      },
+    });
+  }());
+
+  // ── components/shell/shell.lab.js
+  (function () {
+    /*
+     * Motion Lab: the pill across the levels of a nested drawer group. The indent
+     * is padding, so the pill keeps the row's full width and only travels; the
+     * labels change colour on its timing. The rail, the modal drawer, the switch
+     * and the drawer with a view have their demos in lab.js.
+     */
+    function row(glyph, label, current) {
+      return '<a class="ds-drawer__item" href="#navigation"' + (current ? ' aria-current="page"' : '') + '><span data-glyph="' + glyph + '"></span><span class="ds-drawer__label">' + label + '</span></a>';
+    }
+
+    function goTo(stage, last, sg) {
+      var rows = Array.from(stage.querySelectorAll('.ds-drawer__item'));
+      rows.forEach(function (item, index) {
+        if (index === (last ? rows.length - 1 : 0)) item.setAttribute('aria-current', 'page');
+        else item.removeAttribute('aria-current');
+      });
+      return sg.frames(2).then(function () { return DS.motion.settled(stage.querySelector('.ds-drawer__indicator')); });
+    }
+
+    function atLast(stage) {
+      var rows = stage.querySelectorAll('.ds-drawer__item');
+      return rows[rows.length - 1].getAttribute('aria-current') === 'page';
+    }
+
+    SG_LAB.add({
+      id: 'drawer-nested',
+      group: 'navigation',
+      title: 'Drawer: the pill across nested groups',
+      note: 'A group inside a group indents its rows by padding (<code>--ds-drawer-indent</code>), so the pill keeps the row\'s width and only travels, on the spring, its time growing with the distance.',
+      shows: ['DS.indicator.create', '.ds-drawer__indicator', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
+      html: '<div class="ds-drawer__list" style="inline-size: 256px; overflow: visible;">' +
+        '<div class="ds-drawer__group">' + row('home', 'Overview', true) +
+          '<div class="ds-drawer__group"><p class="ds-drawer__heading">Tickets</p>' + row('ticket', 'Open') +
+            '<div class="ds-drawer__group"><p class="ds-drawer__heading">Archive</p>' + row('history', 'This year') + '</div>' +
+          '</div>' +
+        '</div></div>',
+      height: 300,
+      setup: function (stage, sg) {
+        // The icons come with DS: this file loads before the lab runs, on any page.
+        stage.querySelectorAll('[data-glyph]').forEach(function (slot) {
+          slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-glyph')], 20));
+        });
+        sg.indicator(stage.querySelector('.ds-drawer__list'), { active: '[aria-current="page"]', className: 'ds-drawer__indicator' });
+        stage.addEventListener('click', function (event) { if (event.target.closest('a')) event.preventDefault(); });
+      },
+      play: function (stage, sg) { return goTo(stage, !atLast(stage), sg); },
+      reset: function (stage, sg) { return goTo(stage, false, sg); },
+      state: atLast,
+      toggle: function (stage, on, sg) { return goTo(stage, on, sg); },
+    });
+  }());
+
+  // ── components/tabs/tabs.lab.js
+  (function () {
+    /*
+     * Motion Lab: the two looks tabs gained in 3.0. The contained pill and the
+     * vertical bar are the indicator of the "tabs" demo (lab.js): the same
+     * stretch and landing, here on a pill with a radius and on the block axis.
+     */
+    var NAMES = ['Details', 'History', 'Reports'];
+
+    function row(classes, label) {
+      return '<div class="ds-tabs ' + classes + '" role="tablist" aria-label="' + label + '"' + (classes.indexOf('vertical') < 0 ? '' : ' aria-orientation="vertical"') + '>' + NAMES.map(function (name, index) {
+        return '<button class="ds-tabs__tab" role="tab" type="button" aria-selected="' + (index === 0) + '"' + (index ? ' tabindex="-1"' : '') + ' data-label="' + name + '">' + name + '</button>';
+      }).join('') + '</div>';
+    }
+
+    function goTo(stage, at, sg) {
+      stage.querySelectorAll('.ds-tabs').forEach(function (tablist) {
+        tablist.querySelectorAll('[role="tab"]').forEach(function (tab, index) {
+          tab.setAttribute('aria-selected', String(index === at));
+          tab.tabIndex = index === at ? 0 : -1;
+        });
+      });
+      return sg.frames(2).then(function () {
+        return Promise.all(Array.from(stage.querySelectorAll('.ds-tabs__indicator')).map(function (pill) { return DS.motion.settled(pill); }));
+      });
+    }
+
+    function current(stage) {
+      return Array.from(stage.querySelectorAll('.ds-tabs--contained [role="tab"]')).findIndex(function (tab) { return tab.getAttribute('aria-selected') === 'true'; });
+    }
+
+    SG_LAB.add({
+      id: 'tabs-looks',
+      group: 'navigation',
+      title: 'Tabs: contained and vertical',
+      note: 'The contained pill and the vertical bar are the same indicator as the line\'s: they stretch toward the target and land on the spring, and the labels change colour as they arrive. A new target mid-glide continues from where the indicator is.',
+      shows: ['DS.indicator.create', '.ds-tabs--contained', '.ds-tabs--vertical', '.ds-tabs__indicator', '--ds-ease-spatial', '--ds-dur-medium'],
+      html: '<div style="display: grid; gap: var(--ds-space-4); justify-items: start;">' + row('ds-tabs--contained', 'Contained') + row('ds-tabs--vertical', 'Vertical') + '</div>',
+      height: 240,
+      setup: function (stage, sg) {
+        stage.querySelectorAll('.ds-tabs').forEach(function (tablist) {
+          sg.indicator(tablist, { active: '[aria-selected="true"]', className: 'ds-tabs__indicator' });
+        });
+      },
+      play: function (stage, sg) { return goTo(stage, (current(stage) + 1) % NAMES.length, sg); },
+      reset: function (stage, sg) { return goTo(stage, 0, sg); },
+      state: function (stage) { return current(stage) === NAMES.length - 1; },
+      toggle: function (stage, on, sg) { return goTo(stage, on ? NAMES.length - 1 : 0, sg); },
+    });
+  }());
+
+  // ── components/steps/steps.lab.js
+  (function () {
+    /*
+     * Motion Lab: a column of steps moving on in place. The mark stays (a
+     * re-render through DS.dom.morphHtml patches it), so its colours glide and a
+     * new check draws itself; the connector leaving a done step turns with them.
+     */
+    var NAMES = ['Device', 'Problem', 'Contact'];
+
+    function items(current) {
+      return NAMES.map(function (label, index) {
+        var done = index < current;
+        return '<li class="ds-steps__step"' + (done ? ' data-status="done"' : '') + (index === current ? ' aria-current="step"' : '') + '>' +
+          '<span class="ds-steps__mark">' + (done ? DS.icons.icon(DS.icons.check, 16) : String(index + 1)) + '</span>' +
+          '<span class="ds-steps__label">' + label + (done ? '<span class="ds-sr">, done</span>' : '') + '</span></li>';
+      }).join('');
+    }
+
+    function goTo(stage, current, sg) {
+      DS.dom.morphHtml(stage.querySelector('.ds-steps'), items(current));
+      return sg.frames(2).then(function () {
+        return Promise.all(Array.from(stage.querySelectorAll('.ds-steps__mark')).map(function (mark) { return DS.motion.settled(mark); }));
+      });
+    }
+
+    function at(stage) {
+      return Array.from(stage.querySelectorAll('.ds-steps__step')).findIndex(function (step) { return step.getAttribute('aria-current') === 'step'; });
+    }
+
+    SG_LAB.add({
+      id: 'steps-column',
+      group: 'navigation',
+      title: 'Steps: a column moving on',
+      note: 'A step that turns done in place: the disc takes the primary colour and the check draws itself over <code>--ds-dur-medium</code>, after <code>--ds-dur-micro</code>; the connector under it turns on the same timing. A list rendered with done steps stays still on load.',
+      shows: ['DS.dom.morphHtml', '.ds-steps--vertical', '--ds-dur-medium', '--ds-dur-micro', '--ds-ease-out', '--ds-ease-in-out'],
+      html: '<ol class="ds-steps ds-steps--vertical" aria-label="Report a problem" style="inline-size: 240px;">' + items(0) + '</ol>',
+      height: 200,
+      play: function (stage, sg) { return goTo(stage, 1, sg); },
+      reset: function (stage, sg) { return goTo(stage, 0, sg); },
+      state: function (stage) { return at(stage) === 1; },
+      toggle: function (stage, on, sg) { return goTo(stage, on ? 1 : 0, sg); },
+    });
+  }());
+
+  // ── components/ripple/ripple.lab.js
+  (function () {
+    /*
+     * The Motion Lab's pointer ripple: ds-press-ripple through DS.ripple, its
+     * growth from the pointer, its fade on release, and a press that ends
+     * because an ancestor captured the pointer. Moved from styleguide/lab.js;
+     * the build wraps this file into styleguide/lab-components.js.
+     */
+    var $ = function (selector, root) { return root.querySelector(selector); };
+    var $$ = function (selector, root) { return Array.prototype.slice.call(root.querySelectorAll(selector)); };
+
+    var PRESSES = [['corner', 30, 'Corner, a click'], ['centre', 30, 'Centre, a click'], ['corner', 600, 'Corner, held'], ['centre', 600, 'Centre, held']];
+
+    /* A row of chips that scrolls when dragged: it captures the pointer, so
+       the press on the chip under it ends (DS.ripple listens for
+       gotpointercapture) and the ripple fades as on release. */
+    var DRAG_CHIPS = ['Laptops', 'Desktops', 'Tablets', 'Printers', 'Phones', 'Monitors', 'Docks'];
+
+    function after(ms) {
+      return new Promise(function (resolve) { setTimeout(resolve, Math.max(0, ms)); });
+    }
+
+    function wait(sg, ms) { return after(sg.slow(ms)); }
+
+    /** A pointer event of a mouse, as the browser sends it. */
+    function pointer(target, type, x, y) {
+      var View = target.ownerDocument.defaultView;
+      target.dispatchEvent(new View.PointerEvent(type, {
+        bubbles: true, cancelable: true, composed: true, isPrimary: true, pointerId: 1, pointerType: 'mouse',
+        button: 0, buttons: type === 'pointerdown' ? 1 : 0, clientX: x, clientY: y,
+      }));
+    }
+
+    /** A press on `host`, at its centre or near its top-left corner, released after `ms` at the current speed. */
+    function press(host, sg, at, ms) {
+      var rect = host.getBoundingClientRect();
+      var x = at === 'corner' ? rect.left + 6 : rect.left + rect.width / 2;
+      var y = at === 'corner' ? rect.top + 6 : rect.top + rect.height / 2;
+      pointer(host, 'pointerdown', x, y);
+      return wait(sg, ms).then(function () { pointer(host, 'pointerup', x, y); });
+    }
+
+    /** The finite, time-based animations running in `root` and its subtree (pseudo-elements too). */
+    function moving(root) {
+      var timeline = root.ownerDocument.timeline;
+      return root.getAnimations({ subtree: true }).filter(function (animation) {
+        var timing = animation.effect && animation.effect.getComputedTiming();
+        if (!timing || !isFinite(timing.endTime) || animation.timeline !== timeline) return false;
+        return animation.playState === 'running';
+      });
+    }
+
+    /** Resolves once nothing finite moves in `root` any more; a ceiling ends a wait that never settles. */
+    function quiet(root, sg) {
+      var end = Date.now() + sg.slow(10000);
+      function round() {
+        var running = moving(root);
+        if (!running.length || Date.now() > end) return undefined;
+        return Promise.race([
+          Promise.all(running.map(function (animation) { return animation.finished.catch(function () {}); })),
+          after(end - Date.now()),
+        ]).then(function () { return sg.frames(2); }).then(round);
+      }
+      return sg.frames(2).then(round);
+    }
+
+    /** Waits until every pointer ripple in `root` has faded and gone. */
+    function ripplesGone(root, sg) {
+      var end = Date.now() + sg.slow(6000);
+      return new Promise(function (resolve) {
+        (function check() {
+          if (!root.querySelector('.ds-press-ripple') || Date.now() > end) { resolve(); return; }
+          requestAnimationFrame(check);
+        }());
+      }).then(function () { return quiet(root, sg); });
+    }
+
+    function dragRow(row) {
+      var start = null;
+      row.addEventListener('pointerdown', function (event) {
+        start = { x: event.clientX, left: row.scrollLeft, id: event.pointerId, dragging: false };
+      });
+      row.addEventListener('pointermove', function (event) {
+        if (!start || !(event.buttons & 1)) return;
+        if (!start.dragging && Math.abs(event.clientX - start.x) > 6) {
+          start.dragging = true;
+          try { row.setPointerCapture(start.id); } catch (error) { /* a synthetic pointer: nothing to capture */ }
+        }
+        if (start.dragging) row.scrollLeft = start.left - (event.clientX - start.x);
+      });
+      var stop = function () { start = null; };
+      row.addEventListener('pointerup', stop);
+      row.addEventListener('pointercancel', stop);
+    }
+
+    /* What the browser does when the row captures a pointer, for Replay (a synthetic pointer cannot be captured). */
+    function captureBy(row) {
+      var View = row.ownerDocument.defaultView;
+      row.dispatchEvent(new View.PointerEvent('gotpointercapture', { bubbles: true, composed: true, pointerId: 1, pointerType: 'mouse', isPrimary: true }));
+    }
+
+    SG_LAB.add({
+      id: 'press-ripple',
+      group: 'keyframes',
+      title: 'Pointer ripple',
+      note: '<code>DS.ripple.attach(grid)</code>: a press grows <code>ds-press-ripple</code> from the point that was pressed, out to the farthest corner, and fades it once the press ends, never before <code>--ds-dur-instant</code>, so a 30ms click still shows the whole press. Replay presses all four at once, as a mouse would; press them yourself too. The chip row below scrolls when dragged: it captures the pointer (<code>gotpointercapture</code>), so the press on the chip ends at once, as it would on release; <code>release()</code> of the handle does the same by hand.',
+      shows: ['ds-press-ripple', 'ds-fade-out', 'DS.ripple.attach', 'release()', 'gotpointercapture', '--ds-dur-medium', '--ds-dur-base', '--ds-dur-instant', '--ds-ease-out', '--ds-ease-in-out'],
+      html: '<div class="sg-press-grid" id="sg-press-grid">' + PRESSES.map(function (item) {
+        return '<button class="ds-btn ds-btn--tonal" type="button" data-press-at="' + item[0] + '" data-press-ms="' + item[1] + '">' + item[2] + '</button>';
+      }).join('') + '</div>' +
+        '<div class="ds-chips sg-drag-row" id="sg-drag-row" role="group" aria-label="Device kinds (drag to scroll)">' + DRAG_CHIPS.map(function (name) {
+          return '<button class="ds-chip" type="button"><span class="ds-chip__body"><span class="ds-chip__label">' + name + '</span></span></button>';
+        }).join('') + '</div>',
+      height: 236,
+      setup: function (stage) {
+        DS.ripple.attach($('#sg-press-grid', stage));
+        DS.ripple.attach($('#sg-drag-row', stage));
+        dragRow($('#sg-drag-row', stage));
+      },
+      reset: function (stage) {
+        DS.ripple.attach($('#sg-drag-row', stage)).release();
+        $('#sg-drag-row', stage).scrollLeft = 0;
+      },
+      play: function (stage, sg) {
+        var hosts = $$('[data-press-at]', stage);
+        var chip = $$('#sg-drag-row .ds-chip', stage)[1];
+        var row = $('#sg-drag-row', stage);
+        var dragged = press(chip, sg, 'centre', 600);
+        var captured = wait(sg, 120).then(function () { captureBy(row); });
+        return Promise.all(hosts.map(function (host) {
+          return press(host, sg, host.getAttribute('data-press-at'), Number(host.getAttribute('data-press-ms')));
+        }).concat([dragged, captured])).then(function () { return ripplesGone(stage, sg); });
+      },
+    });
+  }());
 })(typeof globalThis !== 'undefined' ? globalThis : this);

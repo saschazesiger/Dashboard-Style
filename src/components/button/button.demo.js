@@ -17,7 +17,7 @@ var LOOKS = [
 
 function faces(h, rest, busy, done, failed) {
   return '<span class="ds-btn__faces"><span class="ds-btn__face">' + rest + '</span>' +
-    '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>' + busy + '</span>' +
+    '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>' + busy + '</span>' +
     '<span class="ds-btn__face ds-btn__face--done" aria-hidden="true">' + h.icon('check', 16) + done + '</span>' +
     '<span class="ds-btn__face ds-btn__face--failed" aria-hidden="true">' + h.icon('alertCircle', 16) + failed + '</span></span>';
 }

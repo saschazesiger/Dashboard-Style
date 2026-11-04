@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Snackbar (Material 3): the inverse surface on the overlay elevation, at
  * the bottom left of the content panel. Icon and text, never colour alone.
@@ -20,11 +20,17 @@
  *   .ds-toast--shown  runtime: toast() marks a message whose entrance has
  *                     played, so moving its region never replays it
  *
+ * Options: shape multiplies the radius. Size and density change nothing: a
+ * snackbar floats above the region it reports on and keeps one size, and its
+ * action keeps 32px at any density. The tones of a message built by hand are
+ * .ds-tone-error and .ds-tone-info, the same as --error and --info (toast()
+ * reads all four for its kind); the word always says it.
+ *
  * Any text button in a message (.ds-toast__action, or one of a message
  * built by hand) takes the inverse primary ink (--ds-toast-action-color)
  * and sits at the end, before the close button.
  *
- * DS.overlay.toast() (js/overlay.js) stacks at most three with FLIP, evicts
+ * DS.overlay.toast() (js/toast.js) stacks at most three with FLIP, evicts
  * the oldest message that would close by itself or queues one behind three
  * that stay, restarts the same message instead of stacking it, replaces a
  * message by its key, pauses the timers on hover, focus and a hidden tab,
@@ -37,7 +43,10 @@
  * usable.
  *
  * Hooks: --ds-toast-action-color (the text button's ink, default
- * --ds-inverse-primary), --ds-toast-close-size (the close button, 36px).
+ * --ds-inverse-primary), --ds-toast-close-size (the close button, 36px),
+ * --ds-toast-radius (--ds-radius-sm).
+ *
+ * Forced colours: the transparent outline of a message becomes its edge.
  *
  * Runtime properties: --ds-toast-left (the region's left edge; a page sets
  * it when the panel starts elsewhere, DS.overlay in a side sheet),
@@ -48,7 +57,8 @@
  * <html>), --ds-toast-shift and --ds-toast-shift-y (written by DS.overlay
  * only: the glide from where the region stood), and --ds-toast-reserve with
  * data-toast-reserve (the room kept for messages that stay: toast() sets
- * them on .ds-view, a hosting .ds-sheet__body or .ds-dialog; the page only
+ * them on .ds-view, a hosting .ds-sheet__body or .ds-dialog, whose own
+ * stylesheets read them; the page only
  * with `reserve: false`). data-ds-toast-room="off" (page-set, 2.1) on one
  * of those layers: it keeps no room, the others still do.
  *
@@ -64,7 +74,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   /* Physical on purpose (D9): --ds-toast-left is a script coordinate (the
@@ -134,7 +144,7 @@
     min-height: 48px;
     max-width: 100%;
     padding: var(--ds-space-3) var(--ds-space-4);
-    border-radius: var(--ds-radius-sm);
+    border-radius: calc(var(--ds-toast-radius, var(--ds-radius-sm)) * var(--ds-shape, 1));
     background: var(--ds-inverse);
     color: var(--ds-on-inverse);
     font: var(--ds-font-body);
@@ -169,8 +179,12 @@
     overflow-wrap: anywhere;
   }
 
+  /* On the inverse surface a tone shows through its icon and its word, never
+     a colour of its own, so these two take the plain ink. */
   .ds-toast--error > svg,
-  .ds-toast--info > svg {
+  .ds-toast--info > svg,
+  .ds-toast.ds-tone-error > svg,
+  .ds-toast.ds-tone-info > svg {
     color: var(--ds-on-inverse);
   }
 
@@ -200,6 +214,8 @@
   /* The shared quiet icon button (state layers for hover and press), in the
      inverse text colour; toast.css loads after button.css, so these win. */
   .ds-toast__close {
+    /* One size whatever the region's size class, as the action; only .ds-touch changes it. */
+    --ds-size-step: 0;
     --ds-btn-icon-size: var(--ds-toast-close-size, 36px);
     --ds-btn-quiet-color: var(--ds-on-inverse);
     --ds-btn-hover-color: var(--ds-on-inverse);
@@ -225,13 +241,6 @@
   .ds-view[data-toast-reserve] {
     padding-bottom: calc(env(safe-area-inset-bottom) + var(--ds-toast-reserve, 0px));
     scroll-padding-bottom: var(--ds-toast-reserve, 0px);
-  }
-
-  /* In a dialog that hosts the region: while the box would overlap the
-     stack, the dialog keeps the stack's room at its bottom, so the box
-     re-centres above it (no motion: the room comes with the message). */
-  .ds-dialog[data-toast-reserve] {
-    padding-bottom: var(--ds-toast-reserve, var(--ds-space-4));
   }
 
   /* A region with messages, only while a transition runs (see the header). */

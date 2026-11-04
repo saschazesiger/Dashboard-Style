@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Types of DS.dom (js/dom.js). Hand-written; test/build.test.js keeps the
  * declared exports and their parameters equal to the module's.
@@ -41,6 +41,12 @@ export interface RovingOptions {
 }
 /** One tab stop for a group; the arrow keys move between its items. */
 export declare function roving(container: Element | null | undefined, options?: RovingOptions): Destroyable;
+/** Whether `node` takes typed text: an editable input of a type that types, a textarea or contenteditable. */
+export declare function typesText(node: any): boolean;
+/** Takes a name as owned runtime state, counted, so morphHtml keeps it. */
+export declare function own(element: any, kind: 'attrs' | 'classes' | 'props', name: string): void;
+/** Gives up one claim of own(). */
+export declare function disown(element: any, kind: 'attrs' | 'classes' | 'props', name: string): void;
 /** The app frame follows the on-screen keyboard, also for a field in a same-origin iframe (never in an embedded widget). */
 export declare function followViewport(doc?: Document): Destroyable;
 /** A log that sticks to its end while the reader is there. */

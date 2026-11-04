@@ -780,13 +780,13 @@ describe('indicator, dom, ripple and overlay', () => {
     });
   });
 
-  it('createIndicator() marks its span data-ds-keep, so a morph of the track keeps it', (t) => {
+  it('DS.indicator.create() marks its span data-ds-keep, so a morph of the track keeps it', (t) => {
     const { h, doc } = miniDom();
     const saved = globalThis.document;
     globalThis.document = doc;
     t.after(() => { globalThis.document = saved; });
     const track = h('nav', { class: 'ds-segmented' }, h('a', { 'aria-current': 'true' }));
-    const handle = indicator.createIndicator(track, { active: '[aria-current="true"]' });
+    const handle = indicator.create(track, { active: '[aria-current="true"]' });
     const span = track.childNodes[0];
     assert.equal(span.getAttribute('data-ds-keep'), '');
     assert.equal(span.getAttribute('aria-hidden'), 'true');
@@ -979,7 +979,7 @@ const INSTANT = 'ds-indicator--instant';
 const tick = () => new Promise((resolve) => setImmediate(resolve));
 
 /**
- * A vertical track for createIndicator() on miniDom, with every browser part
+ * A vertical track for DS.indicator.create() on miniDom, with every browser part
  * indicator.js touches stubbed: rects, scroll metrics, computed style,
  * getAnimations(), both observers, frames and fonts. The track sits at
  * (10, 20) in the viewport; item i is 200 x 40 at (8, 8 + 48i) in the
@@ -1126,9 +1126,9 @@ function indicatorTrack({ count = 4, current = 0, overflow = 'visible' } = {}) {
   };
 }
 
-describe('createIndicator on a fake track', () => {
+describe('DS.indicator.create on a fake track', () => {
   const create = (env, options = {}) => {
-    const handle = indicator.createIndicator(env.track, { active: '[aria-current="page"]', ...options });
+    const handle = indicator.create(env.track, { active: '[aria-current="page"]', ...options });
     return { handle, span: env.track.childNodes[0] };
   };
   const zero = { t: 0, r: 0, b: 0, l: 0 };
@@ -1511,7 +1511,7 @@ describe('createIndicator on a fake track', () => {
     Object.assign(second, { clientLeft: 0, clientTop: 0, scrollLeft: 0, scrollTop: 0, scrollWidth: 100, scrollHeight: 30 });
     const a = create(env);
     const listener = env.listeners.get('loadingdone');
-    const b = indicator.createIndicator(second, { active: '[aria-current="page"]' });
+    const b = indicator.create(second, { active: '[aria-current="page"]' });
     assert.equal(env.listeners.get('loadingdone'), listener, 'the same listener serves both');
     a.handle.destroy();
     assert.equal(env.listeners.get('loadingdone'), listener, 'kept while one indicator follows the fonts');
@@ -2088,7 +2088,9 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     const { h, runFrames } = helperDom();
     const cell = h('th', {});
     cell.rect = { width: 120.5 };
-    const table = h('table', { class: 'ds-table ds-table--pin-first' }, h('tr', {}, cell, h('td', {})));
+    const end = h('td', {});
+    end.rect = { width: 88.25 };
+    const table = h('table', { class: 'ds-table ds-table--pin-first ds-table--pin-last' }, h('tr', {}, cell, h('td', {}), end));
     const wrap = h('div', { class: 'ds-table-wrap' }, table);
     Object.assign(wrap, { scrollWidth: 900, clientWidth: 300, offsetHeight: 212, clientHeight: 200, scrollLeft: 0 });
     wrap.computed = { borderTopWidth: '1px', borderBottomWidth: '1px' };
@@ -2098,6 +2100,7 @@ describe('DS.dom state reporters and helpers (2.0)', () => {
     assert.deepEqual(state(), ['data-ds-edges', 'data-ds-overflow-end']);
     assert.equal(wrap.style.getPropertyValue('--ds-scrollbar-height'), '10px');
     assert.equal(wrap.style.getPropertyValue('--ds-table-pin-width'), '120.5px');
+    assert.equal(wrap.style.getPropertyValue('--ds-table-pin-last-width'), '88.25px');
     wrap.scrollLeft = -300;
     wrap.dispatchEvent(new Event('scroll'));
     runFrames();

@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Linear progress (Material 3, 2024 look): a primary bar that ends at the
  * share, a gap, then the remaining track in --ds-accent with a stop dot at
@@ -24,6 +24,25 @@
  *                                reaches 3px above and below the 4px track,
  *                                and an ancestor with overflow: hidden closer
  *                                than that clips it.
+ *
+ * Where the label sits (default: under the track, as in the markup above):
+ *   .ds-progress--label-above    label over the track, detail under it
+ *   .ds-progress--label-end      label at the track's end, one row; the
+ *                                detail under the track. The track shrinks,
+ *                                the label keeps its width.
+ *
+ * Options (docs/options.md), computed here into --_t, --_wave and the radii:
+ *   size      .ds-xs ... .ds-xl on it or any ancestor: the track's thickness,
+ *             2px per step (1, 2, 4, 6, 8px); the wave's height follows, its
+ *             wavelength stays. Type stays.
+ *   density   any container: the label's distance from the track, 2px per step
+ *             (so 4px under the compact theme, density -2, on purpose)
+ *   shape     the bar's and the track's ends times --ds-shape; the stop dot
+ *             stays a dot
+ *   tone      from the class on .ds-progress itself: the bar and the stop dot
+ *             in --ds-tone, the remaining track in --ds-tone-container; an
+ *             inherited tone never recolours it, and its label says the rest
+ *   target-min: not read, progress is no target.
  *
  * The share: set --ds-progress (0 ... 1; registered as a number) on the
  * .ds-progress element, with el.style.setProperty (a strict CSP allows it).
@@ -65,20 +84,44 @@
  * aria-valuenow and set aria-valuetext ("Preparing", "Waiting"); with the
  * first share, set aria-valuenow again and remove aria-valuetext.
  *
- * Hooks: --ds-progress-gap (4px between the bar and the remaining track),
- * --ds-progress-stop (the stop dot, --ds-primary), --ds-progress-track (the
- * remaining track, --ds-accent).
+ * Hooks: --ds-progress-height (4px, the md base), --ds-progress-gap (4px
+ * between the bar and the remaining track), --ds-progress-bar (the bar,
+ * --ds-primary), --ds-progress-stop (the stop dot, --ds-primary),
+ * --ds-progress-track (the remaining track, --ds-accent).
  *
  * Print: the bar keeps its colours (print-color-adjust), so the share
  * shows on paper.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   .ds-progress {
+    --_t: max(1px, calc(var(--ds-progress-height, 4px) + var(--ds-size-step, 0) * 2px));
+    /* How far the wave reaches out of the track: 3px at the 4px track. */
+    --_wave: calc(var(--_t) * .75);
+    --_cap: min(calc(var(--ds-radius-action) * var(--ds-shape, 1)), calc(var(--_t) / 2));
+    --_box-cap: min(calc(var(--ds-radius-action) * var(--ds-shape, 1)), calc(var(--_t) / 2 + var(--_wave)));
+    /* The round start of the remaining track goes with the shape. */
+    --_nose: calc(var(--_t) / 2 * min(1, var(--ds-shape, 1)));
+    --_bar: var(--ds-progress-bar, var(--ds-primary));
+    --_track: var(--ds-progress-track, var(--ds-accent));
+    --_stop: var(--ds-progress-stop, var(--ds-primary));
     transition: --ds-progress var(--ds-dur-glide) var(--ds-ease-value);
+  }
+
+  /* A tone from the class on .ds-progress itself; a hook still wins. */
+  .ds-progress:is(.ds-tone-neutral, .ds-tone-primary, .ds-tone-info, .ds-tone-success, .ds-tone-warning, .ds-tone-error) {
+    --_bar: var(--ds-progress-bar, var(--ds-tone));
+    --_track: var(--ds-progress-track, var(--ds-tone-container));
+    --_stop: var(--ds-progress-stop, var(--ds-tone));
+  }
+
+  /* Nested, the share inherits from .ds-progress, which glides it: a second
+     transition on the ring would trail behind the bar. */
+  .ds-progress .ds-spinner--determinate {
+    transition: none;
   }
 
   /*
@@ -92,26 +135,26 @@
   /* The gradients run left to right, like the bar's clip (LTR only, D9). */
   .ds-progress__track {
     position: relative;
-    height: 4px;
+    height: var(--_t);
     overflow: visible;
     isolation: isolate;
-    border-radius: var(--ds-radius-action);
+    border-radius: var(--_cap);
     background:
-      radial-gradient(circle 2px at calc(100% - 2px) 50%, var(--ds-progress-stop, var(--ds-primary)) calc(100% - .5px), transparent),
-      radial-gradient(circle 2px at calc(var(--ds-progress) * 100% + var(--ds-progress-gap, 4px) * min(1, var(--ds-progress) * 100) + 2px) 50%, var(--ds-progress-track, var(--ds-accent)) calc(100% - .5px), transparent),
-      linear-gradient(to right, transparent calc(var(--ds-progress) * 100% + var(--ds-progress-gap, 4px) * min(1, var(--ds-progress) * 100) + 2px), var(--ds-progress-track, var(--ds-accent)) 0);
+      radial-gradient(circle calc(var(--_t) / 2) at calc(100% - var(--_t) / 2) 50%, var(--_stop) calc(100% - .5px), transparent),
+      radial-gradient(circle var(--_nose) at calc(var(--ds-progress) * 100% + var(--ds-progress-gap, 4px) * min(1, var(--ds-progress) * 100) + var(--_t) / 2) 50%, var(--_track) calc(100% - .5px), transparent),
+      linear-gradient(to right, transparent calc(var(--ds-progress) * 100% + var(--ds-progress-gap, 4px) * min(1, var(--ds-progress) * 100) + var(--_t) / 2), var(--_track) 0);
     animation:
       ds-progress-head var(--ds-loop-indeterminate) linear infinite paused,
       ds-progress-tail var(--ds-loop-indeterminate) linear infinite paused;
     transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
-  /* The bar's box: the track's width, 3px taller on both sides for the
-     wave, cut at the share with a round end. */
+  /* The bar's box: the track's width, taller on both sides for the wave
+     (3px at the 4px track), cut at the share with a round end. */
   .ds-progress__bar {
     position: absolute;
-    inset: -3px 0;
-    clip-path: inset(0 calc((1 - var(--ds-progress)) * 100%) 0 0 round var(--ds-radius-action));
+    inset: calc(-1 * var(--_wave)) 0;
+    clip-path: inset(0 calc((1 - var(--ds-progress)) * 100%) 0 0 round var(--_box-cap));
     transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
   }
 
@@ -120,7 +163,7 @@
     content: '';
     position: absolute;
     inset-inline: 0;
-    background: var(--ds-primary);
+    background: var(--_bar);
     transition: opacity var(--ds-dur-medium) var(--ds-ease-in-out);
   }
 
@@ -130,22 +173,19 @@
     top: 0;
     bottom: 0;
     opacity: calc(var(--ds-progress) / var(--ds-progress-wave-ramp) - var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp));
-    -webkit-mask-image: var(--ds-progress-wave);
     mask-image: var(--ds-progress-wave);
-    -webkit-mask-size: var(--ds-progress-wave-length) 100%;
     mask-size: var(--ds-progress-wave-length) 100%;
-    -webkit-mask-repeat: repeat-x;
     mask-repeat: repeat-x;
     animation: ds-progress-wave var(--ds-loop-wave) linear infinite;
   }
 
-  /* The flat fill, with its own clip: the box's clip rounds 5px, the 4px
-     fill needs its own 2px cap. */
+  /* The flat fill, with its own clip: the box's clip rounds the taller box,
+     the fill needs its own cap. */
   .ds-progress__bar::after {
-    top: 3px;
-    height: 4px;
-    border-radius: var(--ds-radius-action);
-    clip-path: inset(0 calc((1 - var(--ds-progress)) * 100%) 0 0 round var(--ds-radius-action));
+    top: var(--_wave);
+    height: var(--_t);
+    border-radius: var(--_cap);
+    clip-path: inset(0 calc((1 - var(--ds-progress)) * 100%) 0 0 round var(--_cap));
     opacity: calc(1 - var(--ds-progress) / var(--ds-progress-wave-ramp) + var(--ds-progress-wave-start) / var(--ds-progress-wave-ramp));
   }
 
@@ -162,7 +202,7 @@
 
   /* The classic look: the whole track behind a flat bar. */
   .ds-progress--flat .ds-progress__track {
-    background: var(--ds-progress-track, var(--ds-accent));
+    background: var(--_track);
   }
 
   .ds-progress--flat .ds-progress__bar::before {
@@ -175,7 +215,7 @@
   }
 
   /*
-   * The two indeterminate segments: each the full width of the track, 3px
+   * The two indeterminate segments: each the full width of the track,
    * taller for the wave, cut between its tail and its head (the track's
    * loops animate the four edges; they inherit). Out of that state they
    * fade out on the way (the handoff) and stay at opacity 0, their wave
@@ -185,14 +225,11 @@
   .ds-progress__track::after {
     content: '';
     position: absolute;
-    inset: -3px 0;
+    inset: calc(-1 * var(--_wave)) 0;
     z-index: -1;
-    background: var(--ds-primary);
-    -webkit-mask-image: var(--ds-progress-wave);
+    background: var(--_bar);
     mask-image: var(--ds-progress-wave);
-    -webkit-mask-size: var(--ds-progress-wave-length) 100%;
     mask-size: var(--ds-progress-wave-length) 100%;
-    -webkit-mask-repeat: repeat-x;
     mask-repeat: repeat-x;
     opacity: 0;
     animation: ds-progress-wave var(--ds-loop-wave) linear infinite paused;
@@ -200,17 +237,17 @@
   }
 
   .ds-progress__track::before {
-    clip-path: inset(0 calc(100% - var(--ds-progress-head-1)) 0 var(--ds-progress-tail-1) round var(--ds-radius-action));
+    clip-path: inset(0 calc(100% - var(--ds-progress-head-1)) 0 var(--ds-progress-tail-1) round var(--_box-cap));
   }
 
   .ds-progress__track::after {
-    clip-path: inset(0 calc(100% - var(--ds-progress-head-2)) 0 var(--ds-progress-tail-2) round var(--ds-radius-action));
+    clip-path: inset(0 calc(100% - var(--ds-progress-head-2)) 0 var(--ds-progress-tail-2) round var(--_box-cap));
   }
 
   /* Indeterminate: the whole track, no stop dot, the segments running;
      the bar waits unseen and still. */
   .ds-progress--indeterminate .ds-progress__track {
-    background: var(--ds-progress-track, var(--ds-accent));
+    background: var(--_track);
     animation-play-state: running;
   }
 
@@ -232,13 +269,12 @@
 
   .ds-progress--flat.ds-progress--indeterminate .ds-progress__track::before,
   .ds-progress--flat.ds-progress--indeterminate .ds-progress__track::after {
-    -webkit-mask-image: none;
     mask-image: none;
     inset: 0;
     animation: none;
   }
 
-  /* Waiting: the track keeps its 4px (so the label never jumps when the
+  /* Waiting: the track keeps its height (so the label never jumps when the
      wait ends) but is hidden, its loops held; it fades in when the
      modifier drops. */
   .ds-progress--waiting .ds-progress__track {
@@ -254,7 +290,7 @@
   }
 
   .ds-progress__label {
-    margin: var(--ds-space-2) 0 0;
+    margin: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px) 0 0;
     color: var(--ds-text);
     font: var(--ds-font-body);
     font-variant-numeric: tabular-nums;
@@ -270,11 +306,48 @@
     white-space: nowrap;
   }
 
+  /* Label over the track: the track moves to the second row, whatever the
+     markup's order. */
+  .ds-progress--label-above {
+    display: grid;
+  }
+
+  .ds-progress--label-above > .ds-progress__label {
+    grid-row: 1;
+    margin: 0 0 calc(var(--ds-space-2) + var(--ds-density, 0) * 2px);
+  }
+
+  .ds-progress--label-above > .ds-progress__track {
+    grid-row: 2;
+  }
+
+  .ds-progress--label-above > .ds-progress__detail {
+    margin-top: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px);
+  }
+
+  /* Label at the track's end, one row; the detail stays under the track. */
+  .ds-progress--label-end {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--ds-space-3);
+    align-items: center;
+  }
+
+  .ds-progress--label-end > .ds-progress__label {
+    margin: 0;
+  }
+
+  .ds-progress--label-end > .ds-progress__detail {
+    grid-column: 1 / -1;
+    margin-top: calc(var(--ds-space-1) + var(--ds-density, 0) * 1px);
+  }
+
   /* Forced colors drop the fills and the background images: the parts
      paint in system colours (the bar, its segments and the dot Highlight,
      the remaining track GrayText), and the track keeps an edge. */
   @media (forced-colors: active) {
     .ds-progress {
+      --ds-progress-bar: Highlight;
       --ds-progress-stop: Highlight;
       --ds-progress-track: GrayText;
     }
@@ -284,12 +357,6 @@
       outline: 1px solid CanvasText;
     }
 
-    .ds-progress__bar::before,
-    .ds-progress__bar::after,
-    .ds-progress__track::before,
-    .ds-progress__track::after {
-      background: Highlight;
-    }
   }
 
   /* Print: the bar and the track are backgrounds, which printing drops by

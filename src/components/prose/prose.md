@@ -9,7 +9,7 @@ Rendered rich text (Markdown, a help article, a release note) and blocks of code
   <ul><li>Charger</li><li>Docking station</li></ul>
   <blockquote><p>Devices older than four years are retired, not repaired.</p></blockquote>
   <pre><code>ds-cli retire LAPTOP-0042</code></pre>
-  <table><thead><tr><th>Model</th><th>Years</th></tr></thead><tbody><tr><td>Latitude 7440</td><td>4</td></tr></tbody></table>
+  <table><thead><tr><th>Model</th><th>Years</th></tr></thead><tbody><tr><td>Laptop 14</td><td>4</td></tr></tbody></table>
   <hr>
   <p>Ask <mark>IT support</mark> when in doubt.</p>
   <ul>
@@ -73,10 +73,3 @@ Accept: application/json</code></pre>
   box takes `Highlight` / `HighlightText` when checked, a `CanvasText` edge when not. Print: code blocks and tables wrap.
 - Hooks: `--ds-prose-gap`, `--ds-prose-font`, `--ds-prose-strong-weight`, `--ds-prose-radius`, `--ds-code-block-radius`
   ([theming.md](theming.md#component-hooks)).
-
-<!-- changelog -->
-- New: `.ds-prose--compact` for chat, task lists from the bare markup of a Markdown renderer, `.ds-prose__callout` and `.ds-prose__callout-title` with a tone, `.ds-prose__footnotes`; hooks `--ds-prose-radius`, `--ds-code-block-radius`.
-- Prose on the options model: density (the gap, the padding of blocks), shape (every radius). An element with a `ds-` class inside prose is no longer reached by the bare-element rules, so a component keeps its look whatever the cascade order.
-- Floor: the `-webkit-hyphens` twins are gone.
-- A callout reads its tone from its own class only, and a page class that merely contains `ds-` (`needs-review`) no longer counts as a system class.
-

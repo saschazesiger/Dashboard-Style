@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Checks a project that vendors Dashboard-Style against the project rules
  * of AGENTS.md ("Using Dashboard-Style in a project"), without
@@ -72,6 +72,7 @@ export const SYSTEM_ATTRIBUTES = [
   'data-ds-overflow-end',
   'data-ds-dragover',
   'data-ds-dragging',
+  'data-ds-virtual-gap',
   'data-ds-keyboard',
   'data-ds-savebar',
   'data-ds-savebar-rest',

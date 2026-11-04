@@ -23,7 +23,7 @@ One component for every action: a pill at the default shape, in one of a few loo
 <button class="ds-btn ds-btn--filled" type="button">                               <!-- faces: busy, done and failed -->
   <span class="ds-btn__faces">
     <span class="ds-btn__face">Save</span>
-    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+    <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span>
     <span class="ds-btn__face ds-btn__face--done" aria-hidden="true">[icon check 16]Saved</span>
     <span class="ds-btn__face ds-btn__face--failed" aria-hidden="true">[icon alertCircle 16]Not saved</span>
   </span>
@@ -44,7 +44,7 @@ label naming the consequence:
 
 ```html
 <div class="ds-dialog__actions">
-  <button class="ds-btn ds-btn--text" type="button" data-close>Cancel</button>
+  <button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>
   <button class="ds-btn ds-btn--filled ds-tone-error" type="button">Delete 3 devices</button>
 </div>
 ```

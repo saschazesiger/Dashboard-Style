@@ -128,10 +128,3 @@ system's string `close`, is its label and its tooltip).
 **JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`.
 
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Snackbar (3.0): behaviour in `js/toast.js` (`DS.toast`), `DS.overlay.toast()` and the others keep their names. Shape on
-  the radius, hook `--ds-toast-radius`. `.ds-tone-error`, `.ds-tone-info` on a message built by hand.
-  The close button's default name is the string `close` of `DS.config({ strings })`. Migration: a page that imports
-  single files imports `js/toast.js` next to `js/overlay.js`.
-

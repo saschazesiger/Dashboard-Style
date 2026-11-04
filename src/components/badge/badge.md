@@ -64,9 +64,3 @@ visible; a tone changes nothing there, so the word carries the meaning.
 **Motion.** Colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
 goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`), which the controller's `set()` does by itself; the
 number itself changes at once, and nothing plays on load ([motion.md](motion.md#a-count-badge)).
-
-<!-- changelog -->
-- Badge: on the options model (size steps it, shape rounds it, tones from the class on the badge). New `.ds-badge--dot`
-  (`--ds-badge-dot-size`) and a count with a maximum, `DS.badge` (`data-ds-badge`, `data-ds-badge-max`, `create`,
-  `format`). `.ds-badge--neutral`, `--ok`, `--warning`, `--error` deprecated: `.ds-tone-neutral`, `-success`,
-  `-warning`, `-error`.

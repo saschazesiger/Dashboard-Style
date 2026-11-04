@@ -110,11 +110,3 @@ The current page is a choice in a set: `SelectedItem` and `SelectedItemText`, wi
 | `--ds-pagination-jump-width` | 72px | the jump field |
 
 **Motion:** a page change in [Data motion](motion.md#data-motion) in motion.md.
-
-<!-- changelog -->
-- Pagination: the variants `.ds-pagination--simple` (now with a rule of its own), `.ds-pagination--numbered` and
-  `.ds-pagination--cursor`, the parts `.ds-pagination__pages`, `.ds-pagination__page`, `.ds-pagination__gap` and
-  `.ds-pagination__jump`, the hooks `--ds-pagination-current-bg`, `--ds-pagination-current-color` and
-  `--ds-pagination-jump-width`. Its fields' width comes from a grid column, not from a rule against `.ds-input`. A
-  numbered bar in a narrow content area keeps previous, the current page and next on one line.
-- A simple bar's range leads too when the content area is at most 600px wide, as in 2.x.

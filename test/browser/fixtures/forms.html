@@ -137,7 +137,7 @@
   // changes no attribute, so the change event moves it).
   (function () {
     var group = document.getElementById('tiles');
-    var pill = DS.indicator.createIndicator(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
+    var pill = DS.indicator.create(group, { active: '.ds-radio:has(input:checked)', className: 'ds-radios__indicator' });
     group.addEventListener('change', function () { pill.update(); });
   }());
   // The composer grows with its text: field-sizing where it exists (then

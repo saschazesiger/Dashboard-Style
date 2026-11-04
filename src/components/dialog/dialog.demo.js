@@ -58,7 +58,7 @@ SG.demo('dialog', {
         '<input class="ds-input" id="' + name + '" name="name" required autofocus value="LAPTOP-0042"></div></div>' +
         '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
         '<button class="ds-btn ds-btn--filled" type="submit"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
-        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span></button></div>' +
+        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span></button></div>' +
         '</form></dialog>',
         'The box is the form: Enter submits, the browser validates first, and it stays open while the save runs.') +
 
@@ -88,7 +88,7 @@ SG.demo('dialog', {
         '<p class="ds-dialog__text" id="' + busy + '-text">They disappear from every list. This cannot be undone.</p>' +
         '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Cancel</button>' +
         '<button class="ds-btn ds-btn--filled ds-tone-error" type="button" data-demo="busy-action"><span class="ds-btn__faces"><span class="ds-btn__face">Delete 3 devices</span>' +
-        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Delete 3 devices</span></span></button></div></div></dialog>',
+        '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Delete 3 devices</span></span></button></div></div></dialog>',
         'Escape, the backdrop and Cancel do nothing while the action runs.') +
 
       h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; <kbd class="ds-kbd">Enter</kbd> submits a form dialog; the arrow keys move through an action sheet.</p>');

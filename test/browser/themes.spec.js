@@ -45,6 +45,17 @@ async function openFixture(page, name, themes = []) {
   await settle(page);
 }
 
+/** A table of the system's markup, measured: head and row height, side and block padding of a cell. */
+const tableBox = (page) => page.evaluate(() => {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = '<table class="ds-table"><caption class="ds-sr">Table</caption><thead><tr><th scope="col">Head</th></tr></thead><tbody><tr><td>Cell</td></tr></tbody></table>';
+  document.querySelector('.ds-theme').append(wrap);
+  const cell = getComputedStyle(wrap.querySelector('td'));
+  const out = { head: wrap.querySelector('th').getBoundingClientRect().height, row: wrap.querySelector('td').getBoundingClientRect().height, side: cell.paddingInlineStart, block: cell.paddingBlockStart };
+  wrap.remove();
+  return out;
+});
+
 test.describe('roles', () => {
   test('derived roles resolve to the 1.x values and follow a source set on .ds-theme', async ({ page }) => {
     await openFixture(page, 'controls.html');
@@ -116,6 +127,33 @@ test.describe('shipped themes', () => {
       probe.remove();
       return [fontSize, lineHeight];
     })).toEqual(['16px', '24px']);
+  });
+
+  test('compact: 2.x table on a fine pointer, head and rows 40px with 16px beside the text; every other control from the density', async ({ page }) => {
+    await openFixture(page, 'controls.html', ['compact']);
+    expect(await tableBox(page)).toEqual({ head: 40, row: 40, side: '16px', block: '7px' });
+    // Each through the density, none through a hook of the theme.
+    expect(await page.evaluate(() => {
+      const main = document.querySelector('.ds-theme');
+      const probe = document.createElement('div');
+      probe.innerHTML = '<input class="ds-input" aria-label="x"><button class="ds-chip" type="button">x</button>';
+      main.append(probe);
+      const out = [...probe.children].map((el) => el.getBoundingClientRect().height);
+      probe.remove();
+      return out;
+    })).toEqual([32, 24]);
+  });
+
+  test.describe('compact under a finger', () => {
+    test.skip(({ browserName }) => browserName !== 'chromium', 'isMobile exists in Chromium only');
+    test.use({ hasTouch: true, isMobile: true, viewport: { width: 1000, height: 800 } });
+
+    test('the defaults come back: a head of 48px, rows of 52px, 16px beside the text', async ({ page }) => {
+      await openFixture(page, 'controls.html', ['compact']);
+      expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true);
+      const box = await tableBox(page);
+      expect([box.head, box.row, box.side]).toEqual([48, 52, '16px']);
+    });
   });
 
   test('contrast: secondary text as text, a 3px ring, solid underlines, on the default and the dark palette', async ({ page }) => {

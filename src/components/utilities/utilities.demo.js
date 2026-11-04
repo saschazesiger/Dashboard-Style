@@ -22,7 +22,7 @@ SG.demo('utilities', {
         '<p class="ds-center">.ds-center: centred text.</p><p class="ds-num">1,284 .ds-num</p>' +
         '<p>A value and its unit: <span class="ds-nowrap">512 GB</span>.</p></div>') +
 
-      h.section('Stale', '<div data-demo="stale"><ul class="ds-plain-list" aria-busy="false" data-demo="stale-list"><li>Latitude 7440, synced today</li><li>ThinkPad T14, synced yesterday</li></ul><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="refresh">' + h.icon('sync', 16) + 'Refresh</button></div></div>',
+      h.section('Stale', '<div data-demo="stale"><ul class="ds-plain-list" aria-busy="false" data-demo="stale-list"><li>Laptop 14, synced today</li><li>Laptop 16, synced yesterday</li></ul><div class="sg-row"><button class="ds-btn ds-sm" type="button" data-demo="refresh">' + h.icon('sync', 16) + 'Refresh</button></div></div>',
         '.ds-stale dims only after the loader delay, so a fast answer never dims; the fresh values come at once.') +
 
       h.section('A pressable element of your own', '<ul class="ds-plain-list" data-demo="pressable">' +

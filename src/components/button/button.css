@@ -84,7 +84,7 @@
  *   <button class="ds-btn ds-btn--filled" type="button">
  *     <span class="ds-btn__faces">
  *       <span class="ds-btn__face">Save</span>
- *       <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Saving</span>
+ *       <span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Saving</span>
  *       <span class="ds-btn__face ds-btn__face--done" aria-hidden="true">(check 16)Saved</span>
  *       <span class="ds-btn__face ds-btn__face--failed" aria-hidden="true">(alertCircle 16)Not saved</span>
  *     </span>

@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Core runtime (3.0): one shared runtime per page, the behaviour registry,
  * declarative initialisation, events and the system's own strings.
@@ -44,7 +44,7 @@
  *
  * init(root, { observe }) installs every global on the root (always the
  * action guard of motion.js and the ripple delegation of ripple.js, and
- * the tooltips of overlay.js) and initialises every matching element in
+ * the tooltips of the tooltip module) and initialises every matching element in
  * it, except inside [data-ds-managed] (a React adapter's root: the adapter
  * owns those elements; ripple, guard and tooltips still serve them, being
  * delegated). With observe (the default) one MutationObserver per root
@@ -69,7 +69,8 @@
  * Config: config({ locale, strings }) sets the page's locale (default: the
  * lang of <html>, else the browser's) and overrides the system's own few
  * texts (English by default); t(key, vars) reads one, with {name}
- * placeholders filled from vars (a string may also be a function of vars).
+ * placeholders filled from vars (a string may also be a function of vars). A
+ * change dispatches ds:config on the document, for what has text on screen.
  *
  * ES2022; the first module of MODULES (scripts/build.mjs), so every other
  * module may import from it; no DOM is touched until init() runs.
@@ -120,12 +121,37 @@ const DEFAULT_STRINGS = Object.freeze({
   optional: 'Optional',
   ok: 'OK',
   cancel: 'Cancel',
+  confirm: 'Confirm',
+  actionFailed: 'That did not work. Try again.',
+  valueRequired: 'Enter a value.',
   expand: 'Expand',
   collapse: 'Collapse',
   remove: 'Remove',
   previous: 'Previous',
   next: 'Next',
   noResults: 'No results',
+  keyCtrl: 'Ctrl',
+  keyAlt: 'Alt',
+  keyShift: 'Shift',
+  keyMeta: 'Win',
+  keyEnter: 'Enter',
+  keyEscape: 'Esc',
+  keySpace: 'Space',
+  keyTab: 'Tab',
+  keyBackspace: 'Backspace',
+  keyDelete: 'Delete',
+  keyHome: 'Home',
+  keyEnd: 'End',
+  keyPageUp: 'Page Up',
+  keyPageDown: 'Page Down',
+  hotkeysGeneral: 'General',
+  dragHint: 'Press Space to pick up. Then the arrow keys move it, Space drops it and Escape cancels.',
+  dragGrabbed: 'Picked up {label}, position {position} of {total}.',
+  dragMoved: 'Moved {label} to position {position} of {total}.',
+  dragMovedZone: 'Moved {label} to {zone}, position {position} of {total}.',
+  dragDropped: 'Dropped {label} at position {position} of {total}.',
+  dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
+  dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
 });
 
 /**
@@ -515,24 +541,35 @@ export function emit(el, type, detail, options = {}) {
 /**
  * Sets the page's locale and overrides strings (a `null` string restores
  * the default; `locale: null` the default locale), and returns the
- * settings now in force: `{ locale, strings }`.
+ * settings now in force: `{ locale, strings }`. A change dispatches a
+ * bubbling ds:config on the document with them, plus `changed`: what changed
+ * ('locale', 'strings').
  * @param {{ locale?: string|null, strings?: Record<string, string|((vars: Record<string, any>) => string)|null> }} [options]
  * @returns {{ locale: string, strings: Readonly<Record<string, any>> }}
  */
 export function config(options) {
   const settings = core.settings;
+  const doc = globalThis.document;
+  const lang = doc?.documentElement?.lang;
+  const localeNow = () => settings.locale ?? (lang || globalThis.navigator?.language || 'en');
+  const before = localeNow();
+  const changed = [];
   if (options && typeof options === 'object') {
     if ('locale' in options) settings.locale = options.locale ? String(options.locale) : null;
-    for (const [key, value] of Object.entries(options.strings ?? {})) {
+    if (localeNow() !== before) changed.push('locale');
+    const texts = Object.entries(options.strings ?? {});
+    for (const [key, value] of texts) {
       if (value === null || value === undefined) delete settings.strings[key];
       else settings.strings[key] = typeof value === 'function' ? value : String(value);
     }
+    if (texts.length) changed.push('strings');
   }
-  const lang = globalThis.document?.documentElement?.lang;
-  return Object.freeze({
-    locale: settings.locale ?? (lang || globalThis.navigator?.language || 'en'),
+  const current = Object.freeze({
+    locale: localeNow(),
     strings: Object.freeze({ ...DEFAULT_STRINGS, ...settings.strings }),
   });
+  if (changed.length && typeof doc?.dispatchEvent === 'function') emit(doc, 'config', { ...current, changed });
+  return current;
 }
 
 /**

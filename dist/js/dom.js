@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Updating rendered HTML in place, without restarting animations.
  *
@@ -733,14 +733,27 @@ export function morphHtml(target, html, options = {}) {
 
 /* ── State reporters and DOM helpers (2.0) ──────────── */
 
-/** Takes a name of `kind` as owned runtime state (motion.js keeps the same helpers; the record is shared). */
-function own(element, kind, name) {
+/**
+ * Takes a name as owned runtime state, counted, so morphHtml keeps it: `kind`
+ * is 'attrs', 'classes' or 'props' (motion.js keeps the same helpers; the
+ * record is shared).
+ * @param {any} element
+ * @param {'attrs'|'classes'|'props'} kind
+ * @param {string} name
+ */
+export function own(element, kind, name) {
   if (!element || typeof element !== 'object') return;
   const record = element[OWNED] ?? (element[OWNED] = { attrs: new Map(), classes: new Map(), props: new Map() });
   record[kind].set(name, (record[kind].get(name) ?? 0) + 1);
 }
 
-function disown(element, kind, name) {
+/**
+ * Gives up one claim of own(); morphHtml patches the name again after the last.
+ * @param {any} element
+ * @param {'attrs'|'classes'|'props'} kind
+ * @param {string} name
+ */
+export function disown(element, kind, name) {
   const map = element?.[OWNED]?.[kind];
   const count = map?.get(name) ?? 0;
   if (count > 1) map.set(name, count - 1);
@@ -961,7 +974,8 @@ function flag(element, name, on) {
  * right-to-left scroller works), --ds-scrollbar-height ('inline') or
  * --ds-scrollbar-width ('block') in px (the room of the scrollbar), and
  * --ds-table-pin-width (the width of the first cell) when it holds a
- * .ds-table--pin-first. A passive scroll listener updates once per frame,
+ * .ds-table--pin-first, --ds-table-pin-last-width (the last cell) when it holds
+ * a .ds-table--pin-last. A passive scroll listener updates once per frame,
  * one ResizeObserver per window watches the scroller and its children (a
  * MutationObserver adds the children that come and drops the ones that
  * go), so rows added or opened update the edges; when the overflow goes
@@ -984,7 +998,7 @@ export function scrollEdges(scroller, options = {}) {
   const inline = axis === 'inline';
   const bar = inline ? '--ds-scrollbar-height' : '--ds-scrollbar-width';
   for (const name of ['data-ds-edges', 'data-ds-overflow-start', 'data-ds-overflow-end']) own(scroller, 'attrs', name);
-  for (const name of [bar, '--ds-table-pin-width']) own(scroller, 'props', name);
+  for (const name of [bar, '--ds-table-pin-width', '--ds-table-pin-last-width']) own(scroller, 'props', name);
   let frame = 0;
   let overflowed = false;
   // Every element child is watched, not only the first: a list grows by new
@@ -1029,6 +1043,11 @@ export function scrollEdges(scroller, options = {}) {
     const first = pinned ? pinned.rows?.[0]?.cells?.[0] ?? pinned.querySelector('th, td') : null;
     if (first) scroller.style.setProperty('--ds-table-pin-width', `${Math.round(first.getBoundingClientRect().width * 100) / 100}px`);
     else scroller.style.removeProperty('--ds-table-pin-width');
+    const pinnedEnd = scroller.querySelector?.('.ds-table--pin-last') ?? null;
+    const row = pinnedEnd?.rows?.[0]?.cells;
+    const last = row?.length ? row[row.length - 1] : pinnedEnd ? [...pinnedEnd.querySelectorAll('th, td')].at(-1) : null;
+    if (last) scroller.style.setProperty('--ds-table-pin-last-width', `${Math.round(last.getBoundingClientRect().width * 100) / 100}px`);
+    else scroller.style.removeProperty('--ds-table-pin-last-width');
     if (overflowed && !overflow) resyncScroll(scroller);
     overflowed = overflow;
     // Without a MutationObserver, the children are synced per measure.
@@ -1301,6 +1320,20 @@ function frameDocument(frame) {
 }
 
 /**
+ * Whether `node` takes typed text: an editable input of a type that types,
+ * a textarea or contenteditable. A read-only one does not.
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function typesText(node) {
+  if (!node) return false;
+  if (node.isContentEditable) return true;
+  if (node.tagName === 'TEXTAREA') return !node.readOnly;
+  if (node.tagName !== 'INPUT') return false;
+  return !node.readOnly && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(node.type);
+}
+
+/**
  * Whether focus sits in a field that brings up a keyboard, through open
  * shadow roots and same-origin frames (an embedded editor).
  */
@@ -1315,10 +1348,7 @@ function editing(doc) {
     doc = inner;
   }
   if (!active || active === doc.body) return false;
-  if (active.isContentEditable) return true;
-  if (active.tagName === 'TEXTAREA') return !active.readOnly;
-  if (active.tagName !== 'INPUT') return false;
-  return !active.readOnly && !/^(button|checkbox|color|file|hidden|image|radio|range|reset|submit)$/i.test(active.type);
+  return typesText(active);
 }
 
 /**

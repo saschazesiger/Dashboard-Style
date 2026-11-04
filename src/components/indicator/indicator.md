@@ -78,12 +78,3 @@ never on `.ds-theme`). It is no theme hook. The one hook is the motion hook `--d
 set: [DS.indicator](motion.md#dsindicator-jsindicatorjs) in motion.md.
 
 **Motion:** the indicator row of [Navigation](motion.md#navigation) in motion.md, and "Indicator" in the Motion Lab.
-
-<!-- changelog -->
-- Indicator on the options model: the pill follows the item at any size, density and touch target; a project class's
-  `border-radius` is copied with `--ds-shape` as a live factor and again at each rest, so it follows a size change too.
-- New: `DS.indicator.create()` (`createIndicator()` is its deprecated alias until 3.0 ships) and the declarative
-  `data-ds-indicator`, with `data-ds-indicator-class`, `-name` and `-reveal`. Its controller is the handle `create()`
-  returns, which also gains `get()`, `set()` and `on()`, and a `ds:change` on the track.
-- A pill whose radius springs to 0 keeps its clip through the spring's pass below zero.
-- Forced colours hide every pill, also a project class's, not only the system's.

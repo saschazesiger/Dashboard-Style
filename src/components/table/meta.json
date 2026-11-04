@@ -95,10 +95,6 @@
       "default": "none",
       "description": "the most height of a wrapper around `.ds-table--sticky-head` or `.ds-table--sticky-foot`: set it, so the rows scroll under the sticky ones"
     },
-    "--ds-table-pin-last-width": {
-      "default": "0px",
-      "description": "the width of a `.ds-table--pin-last` column, set by the page on the wrapper: its end `scroll-padding`, so focus moved by the keyboard never lands under the column"
-    },
     "--ds-table-cell-max-width": {
       "default": "280px",
       "description": "where a cell of `.ds-table-wrap--fill` is cut with an ellipsis"

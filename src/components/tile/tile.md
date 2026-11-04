@@ -112,12 +112,3 @@ A selected tile is `Highlight` / `HighlightText`, its delta and sparkline with i
 `--ds-tile-value-line`, `--ds-tile-trend-color`, `--ds-tile-selected-bg`, `--ds-selected-ring`: see [theming.md](theming.md).
 
 **Motion:** the "Alert, tile, card" row of [Feedback](motion.md#feedback) (`countUp()`, the press morph) in motion.md.
-
-<!-- changelog -->
-- Tile on the options model: size steps the value, density the padding (hook `--ds-tile-padding`) and the gap, the shape
-  multiplies the rest and pressed radius, `.ds-touch` gives a clickable tile its target.
-- New: `.ds-tile__delta` (an arrow and a word, with a tone on it) and the `.ds-tile__trend` slot
-  (`--ds-tile-trend-color`). `.ds-columns` is a block also as a `<span>`, for a sparkline inside a clickable tile.
-- New hook `--ds-tile-value-line`: the value's line height at the md size, which the size steps scale. A line height
-  inside a theme's `--ds-font-display` no longer reaches the value: set the hook instead.
-

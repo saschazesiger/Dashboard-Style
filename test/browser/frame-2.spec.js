@@ -7,7 +7,7 @@
  * group closes and coming back, the row action (the item's room for it,
  * also under .ds-touch), the foot rail and the tap highlight; the rail
  * (data-drawer-collapsed) above 900px only, its labels readable but 1px;
- * createIndicator() idempotent and reveal scrolling only the list; the top
+ * DS.indicator.create() idempotent and reveal scrolling only the list; the top
  * bar's title, search and actions, the account capsule (its end room
  * without a sign-out button) and avatars; positioned views, the frame's
  * height from --ds-viewport-height and the bar hidden for the keyboard;
@@ -210,11 +210,11 @@ test.describe('drawer parts', () => {
     expect(items[0].label).toBeLessThanOrEqual(1);
   });
 
-  test('createIndicator() twice on the same list keeps one pill and one handle', async ({ page }) => {
+  test('DS.indicator.create() twice on the same list keeps one pill and one handle', async ({ page }) => {
     await open(page);
     const result = await page.evaluate(() => {
       const list = document.getElementById('list');
-      const again = DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
+      const again = DS.indicator.create(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
       return { same: again === window.fxDrawer, pills: list.querySelectorAll(':scope > .ds-indicator').length };
     });
     expect(result).toEqual({ same: true, pills: 1 });

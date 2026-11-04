@@ -80,11 +80,3 @@ Forced colours show no ripple (`display: none`); the host's own forced-colours r
 `--ds-ripple-color`: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press rows of [Controls](motion.md#controls) in motion.md, and "Pointer ripple" in the Motion Lab.
-
-<!-- changelog -->
-- Ripple on the options model: a host at any size, density, shape and touch target; the tab's ripple box follows the
-  shape, and it takes the inset and the radius the tab's layer computes. The rules hold in any cascade order: each
-  pressed rule leaves out the host's blocked states by itself, and every system host positions itself (only
-  `[data-ds-ripple]` is positioned by `ripple.css`).
-- `detach()` of the `DS.ripple.attach()` handle goes with 3.0.0 (`removed` set in `deprecations.json`): use `destroy()`.
-

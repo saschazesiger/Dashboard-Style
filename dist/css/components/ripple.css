@@ -1,11 +1,11 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Pointer ripple (js/ripple.js): a press grows a circle of the content
  * colour from the point that was pressed (Enter or Space: from the centre)
  * and fades it when the press ends. It is an effect, so it never
  * overshoots. Everything here applies only under .ds-ripples, which
- * DS.ripple.attach(root) puts on the root; pages without it keep the flat
- * state layer as their press feedback.
+ * DS.ripple.attach(root) or DS.init(root) puts on the root; pages that call
+ * neither keep the flat state layer as their press feedback.
  *
  *   DS.ripple.attach(document);     <html class="... ds-ripples">
  *   <button class="ds-btn">         a host
@@ -14,20 +14,22 @@
  *   </button>
  *
  * Hosts: .ds-btn, .ds-chip (the ripple goes into .ds-chip__body),
- * .ds-segmented__option, .ds-drawer__item, :is(button, a).ds-tile,
- * .ds-card--interactive, .ds-table__sort, the body rows of
+ * .ds-segmented__option, .ds-drawer__item, .ds-drawer__toggle, .ds-tabs__tab,
+ * :is(button, a).ds-tile, .ds-card--interactive, .ds-table__sort, the body rows of
  * .ds-table--interactive (a press on another link or control inside a
  * row or a <div> card is that control's own: no ripple, no .ds-pressed),
  * .ds-radio (radio cards), .ds-combo__toggle,
- * .ds-menu__item, .ds-errors summary, .ds-pressable (a project element
+ * .ds-menu__item, .ds-errors summary, .ds-disclosure > summary,
+ * .ds-list--interactive > .ds-list__item, :is(a, button).ds-kv-list__row,
+ * .ds-dropzone, :is(button, a).ds-columns__col, .ds-pressable (a project element
  * with the system's state layer, utilities.css) and [data-ds-ripple] (any element,
  * made positioned here); inline links, the switch, checkbox and radio
  * inputs (their halo is the press), combobox options and native field
  * parts have none; data-ds-ripple="off" on a host or an ancestor opts out.
- * Each host gets position: relative, and while a ripple is inside also
- * overflow: clip and isolation: isolate, all with zero specificity: a
- * ripple never escapes its host, a host's own position still wins, and a
- * host at rest looks as without .ds-ripples.
+ * A host positions itself in its own stylesheet; while a ripple is inside
+ * it also gets overflow: clip and isolation: isolate, with zero specificity:
+ * a ripple never escapes its host, and a host at rest looks as without
+ * .ds-ripples.
  *
  * .ds-press-ripple--out   the release: the ripple fades, then the script removes it
  *
@@ -36,6 +38,23 @@
  * (the distance to the farthest corner).
  *
  * Hook: --ds-ripple-color (default currentColor, the content colour).
+ *
+ * Options (src/core/options.css): the ripple has none of its own and takes
+ * every one from its host, which it fills and which clips it:
+ *   size, density, touch  the script measures the host, so the circle reaches
+ *                         the farthest corner of any box
+ *   shape                 the clip is the host's radius: at shape 0 a square
+ *                         host clips a square, and the press morph (each
+ *                         host's own rule) never makes it rounder than at
+ *                         rest. The tab's ripple box takes the inset and the
+ *                         radius of the tab's layer (below)
+ *   tone                  the default ink is the host's content colour, so a
+ *                         filled error button ripples in its on-tone colour
+ *
+ * Cascade: this file comes after every host (meta.json "order"). Its rules
+ * leave out what they must not touch by selector instead of losing to the
+ * host by specificity, so they hold when every component has a sublayer of
+ * its own (the spec plays the file in a later layer).
  *
  * The flat state layer and the ripple never stack: under .ds-ripples a
  * pressed host keeps its hover layer (devices that hover) or none (touch),
@@ -65,16 +84,21 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
-  :where(.ds-ripples :is(.ds-btn, .ds-chip__body, .ds-segmented__option, .ds-drawer__item, button.ds-tile, a.ds-tile, .ds-card--interactive, .ds-table__sort, .ds-table--interactive tbody tr:has(.ds-table__row-link), .ds-radio, .ds-combo__toggle, .ds-menu__item, .ds-errors summary, [data-ds-ripple]:not([data-ds-ripple="off"]))) {
+  /* An element of the page's that asks for a ripple. Every other host
+     positions itself in its own stylesheet (the combobox toggle absolutely):
+     this file must not decide that, whatever the cascade order. */
+  :where(.ds-ripples [data-ds-ripple]:not([data-ds-ripple="off"])) {
     position: relative;
   }
 
   /* Clipped and isolated only while a ripple is inside: at rest nothing of
-     the host changes (no clipped overflow, no other raster path). */
-  :where(.ds-ripples :has(> .ds-press-ripple)) {
+     the host changes (no clipped overflow, no other raster path). A table
+     cell only holds its row's ripple box: the row isolates, the box clips,
+     and the cell keeps its own overflow (a truncated first cell). */
+  :where(.ds-ripples :not(tr > :is(td, th)):has(> .ds-press-ripple)) {
     overflow: clip;
     isolation: isolate;
   }
@@ -115,15 +139,9 @@
   /* A row's ripple: a box over the row (its first cell, <td> or a <th>
      row header, is static, so the row places it: positioned, and in an
      interactive table transformed, which WebKit needs) that clips
-     the circle. The cell neither
-     clips nor isolates; the row is isolated instead. */
+     the circle. The row is isolated instead of the cell. */
   :where(.ds-ripples tr:has(> :is(td, th) > .ds-press-ripple)) {
     isolation: isolate;
-  }
-
-  :where(.ds-ripples tr > :is(td, th):has(> .ds-press-ripple)) {
-    overflow: visible;
-    isolation: auto;
   }
 
   .ds-ripples tr > :is(td, th) > .ds-press-ripple {
@@ -157,26 +175,28 @@
    * --ds-state-pressed (so .ds-btn--disc keeps its disc on touch, too; a
    * negative difference computes to 0). A key press on a focused host keeps
    * its focus layer (--ds-state-focus) under the ripple.
-   * :where() keeps the specificity of each component's own press rule, so
-   * a disabled host's rule still wins; a component whose press rule weighs
-   * more needs a rule of the same weight here.
+   * :where() keeps the specificity of each component's own press rule. Each
+   * rule also leaves out the host's blocked states by itself (the zero-weight
+   * :not()), so the host's own rule for them applies in any cascade order,
+   * also with this file in a later sublayer. A host that adds a blocked
+   * state adds it here too.
    */
-  :where(.ds-ripples) .ds-btn:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-btn:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"], .ds-btn--done)):is(:active, .ds-pressed)::before {
     opacity: calc(var(--ds-btn-state-pressed-opacity, var(--ds-state-pressed)) - var(--ds-state-pressed));
   }
 
   :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled, [aria-disabled="true"]) + .ds-chip__body::before,
   :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before,
-  :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))::before,
   :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"])):is(:active, .ds-pressed)::before {
     opacity: 0;
   }
 
@@ -186,26 +206,26 @@
   }
 
   @media (hover: hover) {
-    :where(.ds-ripples) .ds-btn:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    :where(.ds-ripples) .ds-btn:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"], .ds-btn--done)):is(:active, .ds-pressed)::before {
       opacity: max(var(--ds-btn-state-opacity, var(--ds-state-hover)), calc(var(--ds-btn-state-pressed-opacity, var(--ds-state-pressed)) - var(--ds-state-pressed)));
     }
 
     :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:not(:disabled, [aria-disabled="true"]) + .ds-chip__body::before,
     :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):not(:disabled, [aria-disabled="true"]):is(:active, .ds-pressed) > .ds-chip__body::before,
-    :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-combo__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"])):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover);
     }
 
-    :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))::before,
-    :where(.ds-ripples) .ds-pressable.ds-pressable--lg:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    :where(.ds-ripples) .ds-pressable.ds-pressable--lg:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"])):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover-lg);
     }
 
@@ -214,21 +234,21 @@
     }
   }
 
-  :where(.ds-ripples) .ds-btn:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-btn:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"], .ds-btn--done)):focus-visible:is(:active, .ds-pressed)::before {
     opacity: max(var(--ds-btn-state-focus-opacity, var(--ds-state-focus)), calc(var(--ds-btn-state-pressed-opacity, var(--ds-state-pressed)) - var(--ds-state-pressed)));
   }
 
   :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed) .ds-chip__input:focus-visible + .ds-chip__body::before,
   :where(.ds-ripples) .ds-chip:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(button, a):focus-visible:is(:active, .ds-pressed) > .ds-chip__body::before,
-  :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:focus-visible, :has(.ds-card__action:focus-visible)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-segmented__option:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-drawer__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, [aria-disabled="true"])):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(button, a).ds-tile:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-card--interactive:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:focus-visible, :has(.ds-card__action:focus-visible)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-table__sort:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-menu__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, [aria-disabled="true"])):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-radio:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(:where(input):focus-visible):is(:active, .ds-pressed):not(.ds-radio--disabled, :has(input:is(:disabled, [aria-disabled="true"])))::before,
   :where(.ds-ripples) .ds-errors summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-pressable:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"], [aria-busy="true"])):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);
   }
 
@@ -254,8 +274,8 @@
 
   /* Row lists, key-value rows, disclosures and chart columns (2.0): the
      same model, in blocks of their own. */
-  :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :has(.ds-list__action:is(:disabled, [aria-disabled="true"])))):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-disclosure > summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-columns__col:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
     opacity: 0;
@@ -267,15 +287,15 @@
       opacity: var(--ds-state-hover);
     }
 
-    :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-    :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :has(.ds-list__action:is(:disabled, [aria-disabled="true"])))):is(:active, .ds-pressed)::before,
+    :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before,
     :where(.ds-ripples) .ds-disclosure--row > summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover-lg);
     }
   }
 
-  :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):has(.ds-list__action:focus-visible):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) .ds-list--interactive > .ds-list__item:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :has(.ds-list__action:is(:disabled, [aria-disabled="true"])))):has(.ds-list__action:focus-visible):is(:active, .ds-pressed)::before,
+  :where(.ds-ripples) :is(a, button).ds-kv-list__row:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) .ds-disclosure > summary:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
   :where(.ds-ripples) :is(button, a).ds-columns__col:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);
@@ -285,20 +305,22 @@
    * The drawer's group toggles (a large row, like its items) and the tabs
    * (2.0): the same one-feedback rule. A tab's layer is a pill inside the
    * tab (tabs.css), so its ripple is a box over that pill that clips the
-   * circle, its ::before (like a table row's).
+   * circle, its ::before (like a table row's). It reads the tab's private
+   * --_inset and --_layer, inherited from the tab: a deliberate exception to
+   * "private to its rule" (the box is the tab's own layer again, and a public
+   * name would invite setting it), so size, density, shape and the contained
+   * look reach the press as they reach the layer. tabs.css names this reader.
+   * Here and not in tabs.css: a rule there would lose to .ds-press-ripple above
+   * once this file sits in a later sublayer.
    */
-  :where(.ds-ripples :is(.ds-drawer__toggle, .ds-tabs__tab)) {
-    position: relative;
-  }
-
   .ds-ripples .ds-tabs__tab > .ds-press-ripple {
-    top: var(--ds-space-1);
+    top: var(--_inset);
     inset-inline: 0;
-    bottom: var(--ds-space-1);
+    bottom: var(--_inset);
     width: auto;
     height: auto;
     overflow: clip;
-    border-radius: min(var(--ds-radius-action), calc(var(--ds-tabs-height, 48px) / 2 - var(--ds-space-1)));
+    border-radius: var(--_layer);
     background: none;
     animation: none;
   }
@@ -306,7 +328,7 @@
   .ds-ripples .ds-tabs__tab > .ds-press-ripple::before {
     content: '';
     position: absolute;
-    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r) - var(--ds-space-1));
+    top: calc(var(--ds-ripple-y) - var(--ds-ripple-r) - var(--_inset));
     left: calc(var(--ds-ripple-x) - var(--ds-ripple-r));
     width: calc(var(--ds-ripple-r) * 2);
     height: calc(var(--ds-ripple-r) * 2);
@@ -316,7 +338,7 @@
   }
 
   :where(.ds-ripples) .ds-drawer__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before {
     opacity: 0;
   }
 
@@ -325,13 +347,13 @@
       opacity: var(--ds-state-hover-lg);
     }
 
-    :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):is(:active, .ds-pressed)::before {
+    :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):is(:active, .ds-pressed)::before {
       opacity: var(--ds-state-hover);
     }
   }
 
   :where(.ds-ripples) .ds-drawer__toggle:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before,
-  :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *)):focus-visible:is(:active, .ds-pressed)::before {
+  :where(.ds-ripples) .ds-tabs__tab:where(:not([data-ds-ripple="off"], [data-ds-ripple="off"] *, :disabled, [aria-disabled="true"])):focus-visible:is(:active, .ds-pressed)::before {
     opacity: var(--ds-state-focus);
   }
 

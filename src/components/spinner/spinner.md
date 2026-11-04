@@ -43,7 +43,3 @@ so a status chip keeps its glyph and a ring its share.
 
 **Motion:** the loader rows of [Feedback](motion.md#feedback) in motion.md: the arc (`ds-spinner-arc`, `--ds-loop-arc`)
 and the turn (`ds-spin`, `--ds-loop-spin`) always run at their token speed.
-
-<!-- changelog -->
-- Spinner: its own docs section; size steps (`--ds-spinner-size`, `--ds-spinner-determinate-size`), tones on the
-  element. New `.ds-spinner--ink`; `.ds-spinner--sm` deprecated: `.ds-spinner--ink` with `.ds-sm`.

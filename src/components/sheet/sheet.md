@@ -115,8 +115,3 @@ While its action runs (a save in the sheet's foot), `data-ds-busy` on the sheet 
 **JS API.** `js/sheet.js` (`DS.sheet`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `create(el)` returns the controller that `data-ds-sheet` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Scrim", "Side sheet" and "Side sheet on a phone" rows of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Side sheet (3.0): `js/sheet.js` (`DS.sheet`), `data-ds-sheet`, `data-ds-open`. Density and shape on the panel; hooks
-  `--ds-sheet-padding`, `--ds-sheet-head-height`, `--ds-sheet-radius`.
-

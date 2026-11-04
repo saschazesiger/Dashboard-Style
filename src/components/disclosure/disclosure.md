@@ -51,9 +51,3 @@ A `<details>` with the system's summary: advanced settings, or an accordion whos
 
 **Motion:** `.ds-collapsible` and `.ds-chevron` in [Utilities](motion.md#utilities-css) and the press of
 [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Disclosure on the options model: size, density and touch (`--ds-target-min`; `.ds-touch` no longer sets `--ds-disclosure-height`), shape on the plain summary.
-- `details[name]` is at the floor: exclusive accordions are documented without a fallback.
-- New hooks `--ds-disclosure-radius`, `--ds-disclosure-radius-pressed`, `--ds-disclosure-font`, `--ds-disclosure-row-padding`, `--ds-disclosure-row-padding-exact`.
-

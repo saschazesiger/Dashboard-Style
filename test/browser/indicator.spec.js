@@ -319,7 +319,7 @@ test('a track styled before the script: its items take their look under the new 
     for (const button of track.children) void getComputedStyle(button).backgroundColor;
     const runs = [];
     for (const button of track.querySelectorAll('button')) button.addEventListener('transitionrun', (event) => runs.push(event.propertyName));
-    DS.indicator.createIndicator(track, { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
+    DS.indicator.create(track, { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
     const pressed = getComputedStyle(track.querySelector('[aria-pressed="true"]')).backgroundColor;
     return { animations: track.querySelector('[aria-pressed="true"]').getAnimations().map((a) => a.transitionProperty), moving: track.hasAttribute('data-ds-moving'), pressed };
   });
@@ -350,7 +350,7 @@ test('a change of aria-current moves the pill without update(); with observe: fa
   const manual = await page.evaluate(async () => {
     const track = document.getElementById('drawer-list');
     window.fixtureIndicators.forEach((handle) => handle.destroy());
-    const handle = DS.indicator.createIndicator(track, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', observe: false });
+    const handle = DS.indicator.create(track, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', observe: false });
     const indicator = track.querySelector(':scope > .ds-indicator');
     // The resize observer's first notification (a resize re-places the pill too) passes first.
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -372,7 +372,7 @@ test('DS.dom.morphHtml() keeps the pill, the next change glides by itself, and r
   await page.evaluate(() => {
     document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', '<div id="x-track" style="position: relative; display: flex; gap: 4px; width: 480px">'
       + '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button></div>');
-    window.xIndicator = DS.indicator.createIndicator(document.getElementById('x-track'), { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
+    window.xIndicator = DS.indicator.create(document.getElementById('x-track'), { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
   });
   await frames(page);
   const result = await page.evaluate(async () => {
@@ -487,7 +487,7 @@ test('a project class with only a border-radius keeps its corners', async ({ pag
       document.querySelector('.ds-theme').insertAdjacentHTML('beforeend', `<div id="${id}" style="position: relative; display: flex; width: 300px">`
         + '<button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Day</button><button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button></div>');
       const track = document.getElementById(id);
-      DS.indicator.createIndicator(track, { active: '[aria-pressed="true"]', className });
+      DS.indicator.create(track, { active: '[aria-pressed="true"]', className });
       const indicator = track.querySelector('.ds-indicator');
       return {
         radius: getComputedStyle(indicator).getPropertyValue('--ds-indicator-radius').trim(),

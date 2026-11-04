@@ -25,7 +25,7 @@
  * and are movement-only; they always pair with ds-fade-out.
  *
  * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
- * it moves with insertBefore, and by DS.indicator.createIndicator on its
+ * it moves with insertBefore, and by DS.indicator.create on its
  * track) turns transitions off in that subtree, so a keyed reorder never
  * replays an @starting-style entrance and the items under a new pill take
  * their look at once.
@@ -1221,7 +1221,7 @@
      entrances (a status icon, an error message's room) would play again on
      every sort. It carries data-ds-moving for one style flush: no
      transitions, so data changes glide and never replay an entrance.
-     DS.indicator.createIndicator() sets it on the track for the flush that
+     DS.indicator.create() sets it on the track for the flush that
      gives its items their look under the new pill. */
   :where(.ds-theme) [data-ds-moving],
   :where(.ds-theme) [data-ds-moving] * {

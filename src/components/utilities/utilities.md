@@ -94,7 +94,3 @@ Hooks: `--ds-pressable-radius`, `--ds-pressable-layer`, `--ds-kbd-border`, `--ds
 and keys are borders, so they stay.
 
 **Motion:** `.ds-stale`: the "Loading bar" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- `.ds-pressable` and `.ds-kbd` read `--ds-shape`; `.ds-pressable` takes `--ds-target-min` under `.ds-touch`.
-

@@ -68,8 +68,3 @@ Content wider or taller than its room scrolls on its own, with a fade at each en
 
 **Motion:** the scroll-linked keyframes in [Keyframes](motion.md#keyframes) and
 [Scroll-driven effects](motion.md#scroll-driven-effects) in motion.md.
-
-<!-- changelog -->
-- New: `.ds-scroll-x--reel` (a horizontal reel) and `.ds-scroll-y` (the block axis, with `scrollbar-gutter`); hooks `--ds-scroll-reel-item`, `--ds-scroll-reel-gap`, `--ds-scroll-max-height`.
-- Floor: the `-webkit-mask-*` twins are gone (Chrome and Edge have the unprefixed properties since 120).
-

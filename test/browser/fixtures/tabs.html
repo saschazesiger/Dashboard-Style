@@ -18,7 +18,7 @@
       <button class="ds-tabs__tab" role="tab" type="button" id="t-history" aria-selected="false" aria-controls="p-history" tabindex="-1" data-label="History">History</button>
       <button class="ds-tabs__tab" role="tab" type="button" id="t-reports" aria-selected="false" aria-controls="p-reports" tabindex="-1" aria-disabled="true" data-label="Reports">Reports</button>
     </div>
-    <div class="ds-tabs__panel" role="tabpanel" id="p-details" aria-labelledby="t-details" tabindex="0"><p>Latitude 7440.</p></div>
+    <div class="ds-tabs__panel" role="tabpanel" id="p-details" aria-labelledby="t-details" tabindex="0"><p>Laptop 14.</p></div>
     <div class="ds-tabs__panel" role="tabpanel" id="p-history" aria-labelledby="t-history" tabindex="0" hidden><p>A new owner.</p></div>
     <div class="ds-tabs__panel" role="tabpanel" id="p-reports" aria-labelledby="t-reports" tabindex="0" hidden><p>No reports.</p></div>
   </section>
@@ -50,7 +50,7 @@
   (function () {
     function wire(tabs) {
       var active = '[aria-selected="true"], [aria-current="page"]';
-      var handle = DS.indicator.createIndicator(tabs, { active: active, className: 'ds-tabs__indicator', reveal: true });
+      var handle = DS.indicator.create(tabs, { active: active, className: 'ds-tabs__indicator', reveal: true });
       tabs.addEventListener('click', function (event) {
         var tab = event.target.closest('.ds-tabs__tab');
         if (!tab) return;

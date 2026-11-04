@@ -126,7 +126,7 @@ Many settings, each a switch:
     <span class="ds-switch__track" aria-hidden="true"></span>
     <span class="ds-switch__label" id="mail-name">Email reports</span>
     <small class="ds-switch__hint" id="mail-hint">Every Monday at 08:00</small>
-    <span class="ds-switch__meta"><span class="ds-tag ds-tag--neutral">3 recipients</span></span>
+    <span class="ds-switch__meta"><span class="ds-tag ds-tone-neutral">3 recipients</span></span>
     <span class="ds-switch__state" aria-hidden="true"><span class="ds-switch__on">On</span><span class="ds-switch__off">Off</span></span>
   </label>
   ...
@@ -152,9 +152,3 @@ below the meta wraps under the name (under the hint when there is one).
 
 **Motion:** the switch rows of [Controls](motion.md#controls) in motion.md; the icons and the busy handle in the Motion
 Lab.
-
-<!-- changelog -->
-- Switch: on the options model: the track, row, halo and list row compute size, density, shape and touch in their own
-  rule. New: `.ds-switch--icons`, `.ds-switch__icon--on`, `.ds-switch__icon--off`; busy with `aria-busy="true"` and
-  `.ds-switch__spinner`; hooks `--ds-switch-track-height`, `--ds-switch-font`.
-

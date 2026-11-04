@@ -41,7 +41,7 @@ needs columns, sorting or bulk selection is a [Table](#table).
       <span class="ds-list__title"><a class="ds-list__action" href="/devices/42">LAPTOP-0042</a></span>
       <span class="ds-list__meta">Notebook 14 · Building A</span>
     </span>
-    <span class="ds-status ds-status--warning">[icon alert 16]<span>Warranty ends</span></span>
+    <span class="ds-status ds-tone-warning">[icon alert 16]<span>Warranty ends</span></span>
     <span class="ds-list__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="More for LAPTOP-0042">[icon moreVertical 18]</button></span>
     [icon chevronRight 20 .ds-list__chevron]
   </li>
@@ -194,14 +194,3 @@ transparent border becomes its edge, in the current row too. The sticky heading'
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) and the press of
 [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- List on the options model: `.ds-list__item` steps 8px per size and 4px per density from its 56px base, with new hooks
-  `--ds-list-padding`, `--ds-list-padding-y`, `--ds-list-radius`, `--ds-list-title-font` and `--ds-kv-list-padding`;
-  the shape multiplies its radii; `.ds-touch` gives rows and key-value rows that open their target.
-- New: `.ds-list__media` (`--round`, `--ds-list-media-size`, `--ds-list-media-radius`), `.ds-list__description`,
-  `.ds-list__aside`, `.ds-list--stacked`, `.ds-list__group` with `.ds-list__heading` (`--ds-list-group-bg`,
-  `--ds-list-group-top`).
-- Deprecated: `.ds-kv-list__icon--ok`, `--warning`, `--error`: `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error`
-  on the icon.
-

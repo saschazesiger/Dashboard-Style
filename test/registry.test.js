@@ -389,6 +389,11 @@ describe('dist/manifest.json', () => {
 
   it('keeps the attributes a core module claims off every component, also one whose module quotes them', () => {
     assert.deepEqual(manifest.js.overlay.attributes, ['data-ds-busy', 'data-ds-close', 'data-ds-open']);
+    // A core module's define() claims its own: a bundle finds the module by them, and only them (no data-ds-keep).
+    assert.deepEqual(manifest.js.indicator.attributes, ['data-ds-indicator', 'data-ds-indicator-class', 'data-ds-indicator-name', 'data-ds-indicator-reveal']);
+    assert.ok(manifest.js.hotkeys.attributes.includes('data-ds-hotkey'));
+    assert.ok(manifest.js.format.attributes.includes('data-ds-time'));
+    assert.deepEqual(manifest.js.dom.attributes, []);
     for (const [name, component] of Object.entries(manifest.components)) {
       for (const attribute of manifest.js.overlay.attributes) assert.ok(!component.attributes.includes(attribute), `${name} does not own ${attribute}`);
     }

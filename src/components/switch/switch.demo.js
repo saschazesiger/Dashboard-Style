@@ -45,9 +45,9 @@ SG.demo('switch', {
         '</div>') +
 
       h.section('List of settings', '<div class="ds-switch-list" data-demo="list">' +
-        listRow(h, 'Email reports', 'Every Monday at 08:00', '<span class="ds-tag ds-tag--neutral">3 recipients</span>', true) +
+        listRow(h, 'Email reports', 'Every Monday at 08:00', '<span class="ds-tag ds-tone-neutral">3 recipients</span>', true) +
         listRow(h, 'Push notifications', 'On this device only', '', false) +
-        listRow(h, 'A weekly digest of every device that changed its owner, its place or its warranty', 'Long names wrap', '<span class="ds-badge ds-badge--neutral">12</span>', false) +
+        listRow(h, 'A weekly digest of every device that changed its owner, its place or its warranty', 'Long names wrap', '<span class="ds-badge ds-tone-neutral">12</span>', false) +
         '</div>', 'Narrow the width in the options panel: at 560px the extras wrap under the name.') +
 
       h.section('Keyboard', '<p class="ds-muted"><kbd class="ds-kbd">Tab</kbd> reaches each switch; <kbd class="ds-kbd">Space</kbd> toggles it. A blocked, busy or locked switch keeps its ring and ignores <kbd class="ds-kbd">Space</kbd>.</p>');

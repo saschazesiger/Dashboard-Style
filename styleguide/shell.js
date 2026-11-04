@@ -245,7 +245,7 @@
   function componentHref(c) { return c.spec ? '#/components/' + c.name : 'legacy.html' + (LEGACY[c.name] ? '#' + LEGACY[c.name] : ''); }
 
   function statusTag(c) {
-    return c.spec ? '<span class="ds-tag">3.0 demo</span>' : '<span class="ds-tag ds-tag--neutral">2.x section</span>';
+    return c.spec ? '<span class="ds-tag">3.0 demo</span>' : '<span class="ds-tag ds-tone-neutral">2.x section</span>';
   }
 
   /* Overview */
@@ -322,8 +322,8 @@
   /* Component page */
   function componentPage(c) {
     var spec = c.spec;
-    var links = '<div class="sg-row sg-row--meta">' + '<span class="ds-tag ds-tag--neutral">' + icon(groupIcon(c.group), 16) + esc(groupTitle(c.group)) + '</span>' +
-      (c.tier ? '<span class="ds-tag ds-tag--neutral">Tier ' + esc(c.tier) + '</span>' : '') + (c.status ? '<span class="ds-tag ds-tag--neutral">' + esc(cap(c.status)) + '</span>' : '') + statusTag(c) +
+    var links = '<div class="sg-row sg-row--meta">' + '<span class="ds-tag ds-tone-neutral">' + icon(groupIcon(c.group), 16) + esc(groupTitle(c.group)) + '</span>' +
+      (c.tier ? '<span class="ds-tag ds-tone-neutral">Tier ' + esc(c.tier) + '</span>' : '') + (c.status ? '<span class="ds-tag ds-tone-neutral">' + esc(cap(c.status)) + '</span>' : '') + statusTag(c) +
       '<a class="ds-btn ds-btn--text ds-sm" href="../docs/components.md' + (c.docs ? '#' + c.docs : '') + '">' + icon('fileText', 16) + 'Docs</a>' +
       (LEGACY[c.name] ? '<a class="ds-btn ds-btn--text ds-sm" href="legacy.html#' + LEGACY[c.name] + '">' + icon('history', 16) + '2.x section</a>' : '') + '</div>';
     return head(esc(spec.title), esc(spec.need || c.need), links) +
@@ -735,8 +735,8 @@
   function findingsHtml(rows) {
     return '<ul class="ds-plain-list sg-findings">' + rows.map(function (row) {
       var status = row.ok
-        ? '<span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Passes</span></span>'
-        : '<span class="ds-status ds-status--error">' + icon('alert', 16) + '<span>Fails</span></span>';
+        ? '<span class="ds-status ds-tone-success">' + icon('check', 16) + '<span>Passes</span></span>'
+        : '<span class="ds-status ds-tone-error">' + icon('alert', 16) + '<span>Fails</span></span>';
       return '<li class="sg-finding" data-ok="' + row.ok + '">' + status + '<span>' + row.text + '</span></li>';
     }).join('') + '</ul>';
   }
@@ -920,7 +920,7 @@
     if (!total) return '<div class="ds-empty"><span class="ds-empty__disc" aria-hidden="true">' + icon('search', 24) + '</span><p class="ds-empty__title">Nothing matches “' + esc(q) + '”</p><p class="ds-empty__text">Try a part of a class (btn, chip), a token (primary, radius) or a need (date, upload).</p></div>';
     var block = function (title, items) {
       if (!items.length) return '';
-      return card(title + ' <span class="ds-badge ds-badge--neutral">' + items.length + '</span>', '<ul class="ds-list ds-list--interactive" aria-label="' + title + '">' + items.slice(0, RESULT_MAX).map(function (item) {
+      return card(title + ' <span class="ds-badge ds-tone-neutral">' + items.length + '</span>', '<ul class="ds-list ds-list--interactive" aria-label="' + title + '">' + items.slice(0, RESULT_MAX).map(function (item) {
         return '<li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="' + item.href + '">' + esc(item.title) + '</a></span><span class="ds-list__meta">' + esc(item.meta) + '</span></span>' + icon('chevronRight', 20, 'ds-list__chevron') + '</li>';
       }).join('') + '</ul>' + (items.length > RESULT_MAX ? '<p class="ds-meta">' + (items.length - RESULT_MAX) + ' more: narrow the search.</p>' : ''));
     };
@@ -1000,8 +1000,8 @@
     var id = 'sg-pv-' + scheme;
     return '<div class="sg-preview__body">' +
       '<div class="sg-row"><button class="ds-btn ds-btn--filled" type="button">Save</button><button class="ds-btn ds-btn--tonal" type="button">Export</button><button class="ds-btn" type="button">Cancel</button></div>' +
-      '<div class="sg-row"><span class="ds-status ds-status--ok">' + icon('check', 16) + '<span>Synced</span></span><span class="ds-status ds-status--warning">' + icon('alert', 16) + '<span>Expires soon</span></span><span class="ds-status ds-status--error">' + icon('alert', 16) + '<span>Failed</span></span></div>' +
-      '<div class="ds-card"><h3 class="ds-card__title">LAPTOP-0042</h3><p class="ds-muted">Latitude 7440 · Ada Lovelace</p>' +
+      '<div class="sg-row"><span class="ds-status ds-tone-success">' + icon('check', 16) + '<span>Synced</span></span><span class="ds-status ds-tone-warning">' + icon('alert', 16) + '<span>Expires soon</span></span><span class="ds-status ds-tone-error">' + icon('alert', 16) + '<span>Failed</span></span></div>' +
+      '<div class="ds-card"><h3 class="ds-card__title">LAPTOP-0042</h3><p class="ds-muted">Laptop 14 · Ada Lovelace</p>' +
       '<div class="ds-field"><label class="ds-field__label" for="' + id + '-f">Asset tag</label><input class="ds-input" id="' + id + '-f" value="A-1042"></div>' +
       '<label class="ds-switch"><input type="checkbox" role="switch" checked><span class="ds-switch__track" aria-hidden="true"></span><span class="ds-switch__label">Nightly sync</span></label></div>' +
       '<div class="ds-alert" role="note">' + icon('info', 20) + '<span class="ds-alert__text">Updates install tonight.</span></div>' +
@@ -1018,7 +1018,7 @@
       try {
         result = generator.generateTheme({ seed: data.seed.trim(), scheme: data.scheme, contrast: data.contrast, name: data.name.trim() || 'custom' });
       } catch (error) {
-        DS.dom.morphHtml($('#sg-theme-report', page), '<div class="ds-alert ds-alert--error" role="alert">' + icon('alertCircle', 20) + '<span class="ds-alert__text">' + esc(error.message) + '</span></div>');
+        DS.dom.morphHtml($('#sg-theme-report', page), '<div class="ds-alert ds-tone-error" role="alert">' + icon('alertCircle', 20) + '<span class="ds-alert__text">' + esc(error.message) + '</span></div>');
         return;
       }
       lastTheme = withOptions(result.css, data);
@@ -1088,7 +1088,7 @@
       var low = lowest(scheme);
       rows.push({ ok: true, text: 'APCA, advisory: the lowest text pair in ' + scheme + ' is Lc ' + Math.abs(low.apca).toFixed(1) + ' (<code>' + low.fg + '</code> on <code>' + low.bg + '</code>)' });
     });
-    var table = '<details class="ds-collapsible ds-disclosure"><summary>Every pair' + icon('chevronDown', 20, 'ds-chevron') + '</summary><div class="ds-disclosure__body"><div class="ds-table-wrap" tabindex="0" role="region" aria-label="Every pair"><table class="ds-table ds-table--dense"><thead><tr><th scope="col">Pair</th><th scope="col">Scheme</th><th scope="col" class="ds-num">Ratio</th><th scope="col" class="ds-num">Needs</th><th scope="col" class="ds-num ds-col--secondary">APCA Lc</th></tr></thead><tbody>' +
+    var table = '<details class="ds-collapsible ds-disclosure"><summary>Every pair' + icon('chevronDown', 20, 'ds-chevron') + '</summary><div class="ds-disclosure__body"><div class="ds-table-wrap" tabindex="0" role="region" aria-label="Every pair"><table class="ds-table ds-density-tight"><thead><tr><th scope="col">Pair</th><th scope="col">Scheme</th><th scope="col" class="ds-num">Ratio</th><th scope="col" class="ds-num">Needs</th><th scope="col" class="ds-num ds-col--secondary">APCA Lc</th></tr></thead><tbody>' +
       result.report.map(function (p) {
         return '<tr><td><code>' + p.fg + '</code> on <code>' + p.bg + '</code></td><td>' + p.scheme + '</td><td class="ds-num">' + p.ratio.toFixed(2) + '</td><td class="ds-num">' + p.min + '</td><td class="ds-num ds-col--secondary">' + Math.abs(p.apca).toFixed(1) + '</td></tr>';
       }).join('') + '</tbody></table></div></div></details>';

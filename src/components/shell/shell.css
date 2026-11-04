@@ -35,7 +35,7 @@
  *       [<div class="ds-drawer__foot [ds-drawer__foot--pinned] [ds-drawer__foot--rail]"> drawer items (settings, help) </div>]
  *     </nav>
  *     <div class="ds-panel">
- *       [<div class="ds-banner"> <div class="ds-alert ds-alert--warning" role="status"> ... </div> </div>]
+ *       [<div class="ds-banner"> <div class="ds-alert ds-tone-warning" role="status"> ... </div> </div>]
  *       <main class="ds-view [ds-view--fill | ds-view--fixed]" id="main" tabindex="-1"> <div class="ds-content"> <div class="ds-page"> ...
  *
  *   An avatar elsewhere: <span class="ds-avatar [ds-sm | ds-lg]" role="img" aria-label="Ada Lovelace">A</span>
@@ -100,7 +100,7 @@
  * button look, and a :disabled or aria-disabled option takes the disabled
  * model (no hover, press or morph; aria-disabled keeps its focus layer).
  * The active drawer item glides with js/indicator.js
- * (createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })),
+ * (DS.indicator.create(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator' })),
  * which follows aria-current by itself. While the pill glides, the labels
  * change colour on its timing (--ds-indicator-dur); the weight switches at
  * once, never animated. Without the indicator an item paints its own tint
@@ -404,14 +404,14 @@
    *   <nav class="ds-segmented" aria-label="Mode">
    *     <a class="ds-segmented__option" href="/a" aria-current="true" data-label="Live">Live</a><a class="ds-segmented__option" href="/b" data-label="Admin">Admin</a>
    *   </nav>
-   *   createIndicator(nav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' })
+   *   DS.indicator.create(nav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' })
    *
    *   A mode of the same page (buttons):
    *   <div class="ds-segmented" role="radiogroup" aria-label="View">
    *     <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="List">List</button>
    *     <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Map">Map</button>
    *   </div>
-   *   createIndicator(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' })
+   *   DS.indicator.create(group, { active: '[aria-checked="true"]', className: 'ds-segmented__indicator' })
    *   DS.dom.roving(group, { items: '.ds-segmented__option' })   (arrow keys)
    *
    * Selected: aria-current="true" (links), aria-checked="true" (radios) or

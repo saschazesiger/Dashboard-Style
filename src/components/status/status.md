@@ -59,9 +59,3 @@ the shape). Forced colours draw a `CanvasText` outline. `.ds-tag--neutral` is **
 `.ds-tone-neutral`. Tag = words, badge = counts ([Badge](#badge)), status chip = a state with an icon.
 
 **Motion:** the "Status chip" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Status chip and tag: on the options model (size, shape, tones from the class on the element; no density, so 24px
-  stays under `themes/compact.css`); hook
-  `--ds-status-height`. `.ds-status--ok`, `--warning`, `--error` deprecated: `.ds-tone-success`, `-warning`, `-error`.
-  `.ds-tag--neutral` deprecated: `.ds-tone-neutral`.

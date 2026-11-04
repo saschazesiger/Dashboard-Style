@@ -475,7 +475,7 @@ test.describe('fixed in P4', () => {
       <button class="ds-btn ds-btn--sm" type="button" aria-pressed="false">Week</button>
       <button class="ds-btn ds-btn--sm" type="button" aria-pressed="true">Month</button></div>`);
     await page.evaluate(() => {
-      window.xIndicator = DS.indicator.createIndicator(document.querySelector('#x-track'), { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
+      window.xIndicator = DS.indicator.create(document.querySelector('#x-track'), { active: '[aria-pressed="true"]', className: 'ds-segmented__indicator' });
     });
     const row = { track: '#x-track', item: '[aria-pressed="true"]' };
     await frames(page);

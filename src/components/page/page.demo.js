@@ -9,8 +9,8 @@ function head(h, tabs) {
     '<a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="#">' + h.icon('arrowLeft', 18) + '<span class="ds-sr">Back to </span>Devices</a>' +
     '<div class="ds-page-head__row"><div class="ds-page-head__text">' +
       '<h3 class="ds-page-head__title">LAPTOP-0042</h3>' +
-      '<p class="ds-page-head__lead">Latitude 7440 · issued to Ada Lovelace · 2 of 128</p>' +
-      '<div class="ds-page-head__status"><span class="ds-status ds-status--ok">' + h.icon('check', 16) + '<span>Synced</span></span></div>' +
+      '<p class="ds-page-head__lead">Laptop 14 · issued to Ada Lovelace · 2 of 128</p>' +
+      '<div class="ds-page-head__status"><span class="ds-status ds-tone-success">' + h.icon('check', 16) + '<span>Synced</span></span></div>' +
     '</div><div class="ds-page-head__actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--filled" type="button">Edit</button></div></div>' +
     '<dl class="ds-page-head__details">' +
       '<div class="ds-page-head__detail"><dt>Owner</dt><dd>Ada Lovelace</dd></div>' +
@@ -46,7 +46,7 @@ SG.demo('page', {
         '</div>', '.ds-grid-2 is two columns (one below 900px), .ds-stack one; a stack directly in the page keeps the page\'s rhythm, and a lone button keeps its own width.') +
 
       h.section('States', '<div class="ds-stack">' +
-        '<div class="ds-alert ds-alert--error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The device list did not load.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>' +
+        '<div class="ds-alert ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The device list did not load.</span><button class="ds-btn ds-btn--text ds-sm" type="button">Retry</button></div>' +
         '<div class="ds-empty"><p class="ds-empty__title">This device is gone</p><p class="ds-empty__text">It was deleted on Monday.</p><a class="ds-btn" href="#">Back to devices</a></div>' +
         '</div>', 'A page that fails or is gone says so in its body; the head stays where it can.') +
 
@@ -54,7 +54,7 @@ SG.demo('page', {
         'Empty parts take no room, so a page may render them before it has their content.') +
 
       h.section('Sign-in page', '<div style="overflow: hidden; border-radius: var(--ds-radius-card);"><div class="ds-auth" style="min-height: 0;">' +
-        '<div class="ds-auth__alert"><div class="ds-alert ds-alert--error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The password is wrong.</span></div></div>' +
+        '<div class="ds-auth__alert"><div class="ds-alert ds-tone-error" role="alert">' + h.icon('alertCircle', 20) + '<span class="ds-alert__text">The password is wrong.</span></div></div>' +
         '<section class="ds-card ds-card--elevated ds-auth__card" aria-label="Sign in"><h3 class="ds-card__title">Sign in</h3><form class="ds-form" data-demo="auth">' +
           '<div class="ds-field"><label class="ds-field__label" for="' + email + '">Email</label><input class="ds-input" id="' + email + '" type="email" autocomplete="off" value="ada@example.org"></div>' +
           '<div class="ds-form-actions"><button class="ds-btn ds-btn--filled" type="submit">Sign in</button></div>' +
@@ -65,7 +65,7 @@ SG.demo('page', {
 
   wire: function (root, h) {
     var nav = h.$('[data-demo="tabs"]', root);
-    var pill = DS.indicator.createIndicator(nav, { active: '[aria-current="page"]', className: 'ds-tabs__indicator' });
+    var pill = DS.indicator.create(nav, { active: '[aria-current="page"]', className: 'ds-tabs__indicator' });
     root.addEventListener('click', function (event) {
       var link = event.target.closest('a[href="#"]');
       if (link) event.preventDefault();

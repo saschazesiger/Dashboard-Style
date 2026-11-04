@@ -8,7 +8,7 @@ The history of a record, an activity feed or a thread of comments: entries on a 
   <li class="ds-timeline__item" data-ds-key="e3">
     <div class="ds-timeline__head">
       <p class="ds-timeline__title">Issued</p>
-      <span class="ds-status ds-status--ok">[icon check 16]<span>Active</span></span>
+      <span class="ds-status ds-tone-success">[icon check 16]<span>Active</span></span>
     </div>
     <p class="ds-timeline__meta"><time datetime="2026-10-12T14:05">14:05</time> · Ada Lovelace</p>
     <p class="ds-timeline__text">Issued to Ada Lovelace.</p>
@@ -115,11 +115,3 @@ its edge, and the comment box keeps its border.
 [theming.md](theming.md).
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Timeline on the options model: size steps the rail's marks, the indent and the title, density the padding (hook
-  `--ds-timeline-padding`), the shape the dot, the marker and the comment box.
-- New: `.ds-timeline--activity` (a feed of sentences, with avatars in the marker), `.ds-timeline__item--comment`
-  (`--ds-timeline-comment-bg`, `--ds-timeline-comment-radius`), `.ds-timeline__time`, and a muted entry with a marker.
-- `.ds-timeline__actions` hangs by the text button's padding at its size: put `.ds-sm` on it instead of on each button.
-

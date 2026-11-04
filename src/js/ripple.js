@@ -127,9 +127,11 @@ export const RIPPLE_HOSTS = [
   '.ds-table__sort',
   '.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link)',
   '.ds-radio',
+  '.ds-check-card:not(:has(input:is(:disabled,[aria-disabled="true"])))',
   '.ds-dropzone',
   '.ds-chip',
   '.ds-combo__toggle',
+  '.ds-combo__clear',
   '.ds-menu__item',
   ':is(button, a).ds-columns__col',
   '.ds-segmented__option',
@@ -151,6 +153,7 @@ const HOST_LINK = [
 const OWNS_INPUT = [
   '.ds-chip',
   '.ds-radio',
+  '.ds-check-card',
 ].join(', ');
 
 /** Controls whose press is their own halo, not a ripple. */

@@ -432,6 +432,13 @@ test('a checkbox card: its layer and ring on the card, no halo on the input, Spa
   await page.mouse.down();
   await expect(page.locator('#cc .ds-press-ripple')).toHaveCount(1);
   await page.mouse.up();
+  // A press on the box itself ripples the card too: the card owns its input.
+  await expect(page.locator('#cc .ds-press-ripple')).toHaveCount(0);
+  const tick = await page.locator('#cc-i').boundingBox();
+  await page.mouse.move(tick.x + tick.width / 2, tick.y + tick.height / 2);
+  await page.mouse.down();
+  await expect(page.locator('#cc .ds-press-ripple')).toHaveCount(1);
+  await page.mouse.up();
   expect((await style(page, '#cc-off')).cursor).toBe('not-allowed');
   const off = await page.locator('#cc-off').boundingBox();
   await page.mouse.move(off.x + off.width / 2, off.y + off.height / 2);

@@ -22,7 +22,7 @@ var PEOPLE = [
 var LETTERS = [['A', ['Ada Lovelace', 'Alan Turing', 'Annie Easley']], ['G', ['Grace Hopper', 'Gladys West']], ['K', ['Katherine Johnson', 'Karen Sparck Jones']]];
 
 function recordRow(h, row, current) {
-  var chip = row.status ? '<span class="ds-status ds-status--' + row.status[0] + '">' + h.icon(row.status[1], 16) + '<span>' + row.status[2] + '</span></span>' : '';
+  var chip = row.status ? '<span class="ds-status ds-tone-' + (row.status[0] === 'ok' ? 'success' : row.status[0]) + '">' + h.icon(row.status[1], 16) + '<span>' + row.status[2] + '</span></span>' : '';
   return '<li class="ds-list__item" data-ds-key="' + row.id + '">' + h.icon(row.glyph, 20, 'ds-list__icon') +
     '<span class="ds-list__text"><span class="ds-list__title"><a class="ds-list__action" href="#record" data-list-open data-name="' + row.name + '"' +
     (current ? ' aria-current="true"' : '') + (row.blocked ? ' aria-disabled="true" data-tip="Retired devices are read only"' : '') + '>' + row.name + '</a></span>' +
@@ -65,8 +65,8 @@ SG.demo('list', {
         '</ul>', '.ds-list__media takes a thumbnail, an icon or an avatar\'s initials (--round for a person). .ds-list__aside holds a short fact at the end of the row.') +
 
       h.section('Stacked', '<ul class="ds-list ds-list--stacked" aria-label="Open requests" data-demo="stacked">' +
-        personRow(h, PEOPLE[0], '<span class="ds-status ds-status--warning">' + h.icon('alert', 16) + '<span>In review</span></span>') +
-        personRow(h, PEOPLE[2], '<span class="ds-status ds-status--ok">' + h.icon('check', 16) + '<span>Done</span></span>') +
+        personRow(h, PEOPLE[0], '<span class="ds-status ds-tone-warning">' + h.icon('alert', 16) + '<span>In review</span></span>') +
+        personRow(h, PEOPLE[2], '<span class="ds-status ds-tone-success">' + h.icon('check', 16) + '<span>Done</span></span>') +
         '</ul>', 'The trailing parts go under the text at any width, for a narrow column or a side sheet.') +
 
       h.section('Sticky headings', '<div tabindex="0" role="region" aria-label="People by letter" data-demo="letters" style="max-block-size:240px;overflow:auto"><ul class="ds-list" role="list" aria-label="People">' + letterRows() + '</ul></div>',

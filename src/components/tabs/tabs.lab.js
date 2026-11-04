@@ -32,7 +32,7 @@ SG_LAB.add({
   group: 'navigation',
   title: 'Tabs: contained and vertical',
   note: 'The contained pill and the vertical bar are the same indicator as the line\'s: they stretch toward the target and land on the spring, and the labels change colour as they arrive. A new target mid-glide continues from where the indicator is.',
-  shows: ['DS.indicator.createIndicator', '.ds-tabs--contained', '.ds-tabs--vertical', '.ds-tabs__indicator', '--ds-ease-spatial', '--ds-dur-medium'],
+  shows: ['DS.indicator.create', '.ds-tabs--contained', '.ds-tabs--vertical', '.ds-tabs__indicator', '--ds-ease-spatial', '--ds-dur-medium'],
   html: '<div style="display: grid; gap: var(--ds-space-4); justify-items: start;">' + row('ds-tabs--contained', 'Contained') + row('ds-tabs--vertical', 'Vertical') + '</div>',
   height: 240,
   setup: function (stage, sg) {

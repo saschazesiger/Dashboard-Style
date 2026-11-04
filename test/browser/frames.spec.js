@@ -132,7 +132,7 @@ for (const [width, suffix] of [[1280, ''], [390, '-phone']]) {
     await frames(page, `sheet-open${suffix}`, end);
     await resume(page);
     await settle(page);
-    end = await act(page, click, 'body > .ds-sheet .ds-sheet__head [data-close]');
+    end = await act(page, click, 'body > .ds-sheet .ds-sheet__head [data-ds-close]');
     await frames(page, `sheet-close${suffix}`, end);
   });
 }
@@ -145,7 +145,7 @@ test('dialog opens and closes', async ({ page }) => {
   await frames(page, 'dialog-open', end);
   await resume(page);
   await settle(page);
-  end = await act(page, click, 'body > .ds-dialog .ds-dialog__actions [data-close]');
+  end = await act(page, click, 'body > .ds-dialog .ds-dialog__actions [data-ds-close]');
   await frames(page, 'dialog-close', end);
 });
 

@@ -167,7 +167,7 @@ test('a block-axis list with an indicator first updates its end edge as rows com
     list.id = 'grow-list';
     Object.assign(list.style, { position: 'relative', height: '160px', overflowY: 'auto', width: '240px' });
     // A fixed height, as a drawer list's: only its rows change size. As
-    // createIndicator() leaves it, the absolute indicator is the first child.
+    // DS.indicator.create() leaves it, the absolute indicator is the first child.
     list.insertAdjacentHTML('beforeend', '<span class="ds-indicator" style="position: absolute; inset-block-start: 0; block-size: 40px"></span><p style="margin: 0; block-size: 40px">Row 1</p>');
     document.querySelector('.ds-theme').append(list);
     DS.dom.scrollEdges(list, { axis: 'block' });

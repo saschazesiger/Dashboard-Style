@@ -107,7 +107,7 @@
 
   function status(kind) {
     var s = STATUS[kind];
-    return '<span class="ds-status ds-status--' + kind + '">' + icon(s[0], 16) + '<span>' + s[1] + '</span></span>';
+    return '<span class="ds-status ds-tone-' + (kind === 'ok' ? 'success' : kind) + '">' + icon(s[0], 16) + '<span>' + s[1] + '</span></span>';
   }
 
   function head(index) {

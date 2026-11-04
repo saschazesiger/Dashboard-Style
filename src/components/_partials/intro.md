@@ -65,6 +65,7 @@ component live.
 | Undo right after an action | a snackbar with `action: { label: 'Undo', onClick }` (`.ds-toast__action`, [Snackbar](#snackbar)) |
 | Say a result to screen readers without showing a message | `DS.overlay.announce(text)` ([Snackbar](#snackbar)) |
 | Unsaved edits of a view, saved or discarded together | [Save bar](#save-bar) `.ds-savebar` with `DS.overlay.savebar()` |
+| A form's actions always in reach, inside its own scroller | [Save bar](#save-bar) `.ds-savebar--inline` |
 | Records in rows and columns | [Table](#table) `.ds-table` in `.ds-table-wrap` |
 | Rows that open their record | `.ds-table--interactive` with a `.ds-table__row-link` per row ([Table](#table)) |
 | Pick several rows for one action (bulk selection) | a checkbox in each row and in the header cell; the row takes the selection colour ([Table](#table)) |

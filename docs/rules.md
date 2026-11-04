@@ -17,7 +17,8 @@ the tests in `test/`.
   uppercase "eyebrow" lines above headings, tracking 0. Figures in counts, times and tables are tabular.
 - **4px grid.** Page rhythm 20px between blocks, card rhythm 16px between children, card padding 24px (16px on
   phones).
-- **One filled button per area**, no red buttons: the main action names the consequence ("Delete 3 devices"). A
+- **One filled button per area**, no red buttons except the filled error button of a destructive confirmation, in a
+  confirm dialog or a type-to-confirm only (D10): the main action names the consequence ("Delete 3 devices"). A
   trailing "..." means a question or a choice follows.
 
 ## State and feedback

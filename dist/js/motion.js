@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Motion helpers: the JS half of motion.css.
  *
@@ -42,7 +42,8 @@
  * window, every activation (click, middle click, Enter and Space, a label
  * click, a form submission by its submitter) of a busy or done .ds-btn and
  * of an aria-disabled action inside .ds-theme, before any page listener
- * sees it; [data-ds-guard="off"] opts a control out. busy() installs it.
+ * sees it, and holds the value of an aria-disabled range, which moves without
+ * a click; [data-ds-guard="off"] opts a control out. busy() installs it.
  *
  * Views: transition() moves from one view to the next (navigation only,
  * never data): fade-through, shared axis X (forward, back) or a container
@@ -1426,6 +1427,12 @@ const GUARDED_EVENTS = ['click', 'auxclick', 'submit'];
 /** The key events a page's own handler activates an ARIA-role action on (they never arrive as clicks there). */
 const GUARDED_KEY_EVENTS = ['keydown', 'keyup'];
 
+/** What comes before a range moves: its value is noted here (a range changes on the press and on its keys, with no click). */
+const RANGE_HOLD_EVENTS = ['pointerdown', 'keydown', 'focusin'];
+
+/** What reports a range that moved. */
+const RANGE_MOVE_EVENTS = ['input', 'change'];
+
 /** Elements whose Enter and Space arrive as a click (the click guard takes them). */
 const NATIVE_ACTION = new Set(['A', 'BUTTON', 'INPUT', 'SUMMARY']);
 
@@ -1433,7 +1440,7 @@ const NATIVE_ACTION = new Set(['A', 'BUTTON', 'INPUT', 'SUMMARY']);
  * The installed guard of each document or shadow root: the target it
  * listens on, its listeners and how many holders keep it. Shared by every
  * copy on the page (DS.core.runtime), so a document has one guard.
- * @type {WeakMap<object, { target: EventTarget, holders: number, activation: (event: Event) => void, keys: (event: KeyboardEvent) => void }>}
+ * @type {WeakMap<object, { target: EventTarget, holders: number, activation: (event: Event) => void, keys: (event: KeyboardEvent) => void, rangeHold: (event: Event) => void, rangeMove: (event: Event) => void }>}
  */
 const guards = runtime.state('guard', () => new WeakMap());
 
@@ -1469,6 +1476,31 @@ function blockKeys(event) {
   event.stopImmediatePropagation();
 }
 
+/** The value each blocked range had before its last press or key. @type {WeakMap<object, string>} */
+const heldRanges = new WeakMap();
+
+/** Whether `node` is a range the guard blocks. */
+function isBlockedRange(node) {
+  return node?.tagName === 'INPUT' && node.type === 'range' && blockedAction(node) === node;
+}
+
+/** Notes the value of a blocked range before anything can move it. */
+function holdRange(event) {
+  if (event.isTrusted !== false && isBlockedRange(event.target)) heldRanges.set(event.target, event.target.value);
+}
+
+/**
+ * Puts a blocked range back in the task that moved it, so it never paints
+ * moved, and keeps the event from the page. Cancelling the press would not
+ * do: a touch needs a non-passive listener on the window, which would hold up
+ * every scroll of the page.
+ */
+function blockRangeMove(event) {
+  if (event.isTrusted === false || !isBlockedRange(event.target)) return;
+  if (heldRanges.has(event.target)) event.target.value = heldRanges.get(event.target);
+  event.stopImmediatePropagation();
+}
+
 /** Installs the guard on `root` (a document or a shadow root) once, or adds a holder. */
 function holdGuard(root) {
   const installed = guards.get(root);
@@ -1480,7 +1512,9 @@ function holdGuard(root) {
   if (typeof target?.addEventListener !== 'function') return false;
   for (const type of GUARDED_EVENTS) target.addEventListener(type, blockActivation, true);
   for (const type of GUARDED_KEY_EVENTS) target.addEventListener(type, blockKeys, true);
-  guards.set(root, { target, holders: 1, activation: blockActivation, keys: blockKeys });
+  for (const type of RANGE_HOLD_EVENTS) target.addEventListener(type, holdRange, true);
+  for (const type of RANGE_MOVE_EVENTS) target.addEventListener(type, blockRangeMove, true);
+  guards.set(root, { target, holders: 1, activation: blockActivation, keys: blockKeys, rangeHold: holdRange, rangeMove: blockRangeMove });
   return true;
 }
 
@@ -1493,6 +1527,8 @@ function releaseGuard(root) {
   // The listeners of the copy that installed it.
   for (const type of GUARDED_EVENTS) installed.target.removeEventListener(type, installed.activation, true);
   for (const type of GUARDED_KEY_EVENTS) installed.target.removeEventListener(type, installed.keys, true);
+  for (const type of RANGE_HOLD_EVENTS) installed.target.removeEventListener(type, installed.rangeHold, true);
+  for (const type of RANGE_MOVE_EVENTS) installed.target.removeEventListener(type, installed.rangeMove, true);
   guards.delete(root);
 }
 
@@ -1511,10 +1547,12 @@ function releaseGuard(root) {
  *     button, switch, checkbox, radio, tab, option, menuitem,
  *     menuitemcheckbox, menuitemradio with aria-disabled="true"),
  * and not inside [data-ds-guard="off"] (a control that explains itself on
- * click). Focus, hover and tooltips stay, so the reason still shows; a
- * region with aria-busy (a container under a loading bar) is no action and
- * stays usable. Capture-phase listeners on the root's window (a shadow
- * root: on the root), installed once per document or shadow root and
+ * click). An aria-disabled input type="range" moves without a click, on the
+ * press and on its keys: it goes back to its value at once and its input and
+ * change events never reach the page. Focus, hover and tooltips stay, so the
+ * reason still shows; a region with aria-busy (a container under a loading
+ * bar) is no action and stays usable. Capture-phase listeners on the root's
+ * window (a shadow root: on the root), installed once per document or shadow root and
  * shared by every holder: busy() installs it on its first call (for good),
  * DS.ripple.attach() while it is attached; a page that blocks actions with
  * neither calls it once at start-up.

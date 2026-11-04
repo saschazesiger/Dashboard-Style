@@ -101,7 +101,7 @@
  * never set it. --_radius and --_card-gap are private.
  *
  * Deprecated aliases until 3.0 ships: .ds-subsection (.ds-card__section),
- * .ds-more (.ds-card__more).
+ * .ds-card__more (.ds-card__more).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

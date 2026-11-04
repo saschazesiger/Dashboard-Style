@@ -352,7 +352,7 @@ element never entered it has its text at once and waits for it, so `destroy()` i
   a morph writes back is corrected before paint.
 - **Screen readers.** The text changes silently; it is never a live region. A reader reads the current text when it gets
   there.
-- **Bundles.** A bundle finds `DS.format` by the calls; for `data-ds-time` alone, safelist `module:format`.
+- **Bundles.** A bundle finds `DS.format` by the calls and by `data-ds-time`.
 
 ## `DS.store`: remembered preferences
 
@@ -540,23 +540,3 @@ if it is refused: for a "Move to ..." menu), `cancel()`, `on(type, fn)` and `des
 - **Limit.** The dragged item stays in its zone's DOM, so a zone with `overflow: auto` clips it at its edge until it
   crosses into the next zone.
 - **Forced colours.** The dragged item and the zone under it are outlined in `Highlight` (`drag.css`).
-
-<!-- changelog -->
-- New `js/a11y.js` (`DS.a11y`): `trap()`, `tabbables()`, `canTakeFocus()`, `readsKeys()`, `typeahead()`, `typeaheadMatch()`, and `roving()`,
-  `announce()` and `inert()` under this name (the functions of `DS.dom` and `DS.overlay`, which stay).
-- New `js/hotkeys.js` (`DS.hotkeys`): a registry of shortcuts per document with platform-aware combos, scopes, fields
-  left alone, overlays masking what is behind them, the data of a shortcut sheet (`list()`, `onChange()`), `format()`
-  and `data-ds-hotkey`.
-- New `DS.overlay.holdInert()` (counted inert for a modal region that is no overlay) and `DS.overlay.layerAt()` (the open
-  layer that rules at a node).
-- `DS.overlay.canFocus()`, `DS.overlay.FOCUSABLE`, `DS.overlay.typeAhead()`, `DS.dom.typesText()`, `DS.dom.own()` and
-  `DS.dom.disown()` are exported (the helpers build on them).
-- New strings: `keyCtrl`, `keyAlt`, `keyShift`, `keyMeta`, `keyEnter`, `keyEscape`, `keySpace`, `keyTab`, `keyBackspace`,
-  `keyDelete`, `keyHome`, `keyEnd`, `keyPageUp`, `keyPageDown`, `hotkeysGeneral`.
-- New core modules: `DS.format` (`number`, `percent`, `currency`, `bytes`, `duration`, `list`, `plural`, `relative`,
-  `absolute`, `clock`, `time`, and `data-ds-time` through `DS.init()`), `DS.store` (`open`, `available`), `DS.virtual`
-  (`create`, `sizes`) and `DS.dnd` (`create`). `docs/core.md`.
-- New strings: `dragHint`, `dragGrabbed`, `dragMoved`, `dragMovedZone`, `dragDropped`, `dragDroppedZone`, `dragCancelled`.
-- New attribute written by the system: `data-ds-virtual-gap`. `data-ds-dragging` and `data-ds-dragover` are also written
-  by `DS.dnd`.
-- New event: `ds:config` on the document, when `DS.core.config()` changed the locale or the strings.

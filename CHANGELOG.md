@@ -9,6 +9,313 @@ export is a major change; adding one is a minor change. Identifiers such as D7 r
 A rewrite, built on the `next` branch ([plans/3.0.md](plans/3.0.md)); `main` stays 2.x. The pre-releases carry
 `3.0.0-alpha.<n>`.
 
+### Phase 1: every component on the options model, the helpers (3.0.0-alpha.3)
+
+Every component computes size, density, shape, touch and, where it shows meaning, tone in its own rule, so **a 2.x page
+changes where those options apply**. 2.x names keep working until 3.0.0 ships, except what "Migration" names.
+
+**Migration.**
+- **Modules.** `import { toast } from 'js/overlay.js'` also needs `js/toast.js` (likewise `js/dialog.js` for `confirm`,
+  `alert` and `prompt`, `js/tooltip.js` for `tooltips`, `js/menu.js` for a menu's keys): without it the call throws an
+  error that names the file, or a menu has no keys. `ds.js` and a bundle have them.
+- **Compact.** `themes/compact.css` is now the density and two hooks: fields 32px (2.x: 36px), chips 24px (28px), cards
+  padded 20px and spaced 12px, alerts, empty states, loading and progress with tighter block padding. Table rows (40px,
+  16px beside the text), buttons, tabs, drawer rows, menu rows and the segmented switch keep their 2.x size. A theme that
+  set the removed heights itself keeps them, but they are now the base that the density steps apply to.
+- **Touch.** `.ds-touch` no longer sets component heights (`--ds-input-height`, `--ds-chip-height`, `--ds-tabs-height`
+  and the others): everything takes `--ds-target-min`. A page that read those hooks under `.ds-touch` reads the
+  computed size instead.
+- **Pinned last column.** `DS.dom.scrollEdges()` writes `--ds-table-pin-last-width`, so a page no longer sets it.
+- **Removed fallback.** `-webkit-mask-*` duplicates and other floor features (D9) went with the ports.
+
+**Tools.** `manifest.json` lists the attributes a core module's `define()` declares, so a bundle finds `DS.indicator`,
+`DS.hotkeys` and `DS.format` by `data-ds-indicator`, `data-ds-hotkey` and `data-ds-time`. `DS.core.config()` dispatches
+`ds:config` on the document when the locale or the strings changed, so a page re-renders its text there.
+`ripple.js`: a press on the box of a `.ds-check-card` ripples, as on a radio card.
+
+**By component.**
+
+*alert.*
+- Alert: on the options model (size and density pad it, shape rounds it, tones from the class on the alert). New
+  `.ds-alert--inline` and `.ds-alert--section`, hooks `--ds-alert-radius`, `--ds-alert-padding-block`,
+  `--ds-alert-padding-inline`. `.ds-alert--success`, `--warning`, `--error` deprecated: `.ds-tone-success`, `-warning`,
+  `-error`. The box grows to hold its button. Changed under `themes/compact.css`: the padding is 8/12px (2.x: 12/16px),
+  since the theme is density -2.
+
+*badge.*
+- Badge: on the options model (size steps it, shape rounds it, tones from the class on the badge). New `.ds-badge--dot`
+  (`--ds-badge-dot-size`) and a count with a maximum, `DS.badge` (`data-ds-badge`, `data-ds-badge-max`, `create`,
+  `format`). `.ds-badge--neutral`, `--ok`, `--warning`, `--error` deprecated: `.ds-tone-neutral`, `-success`,
+  `-warning`, `-error`.
+
+*card.*
+- Card on the options model: density (padding, rhythm, `--ds-card-pad`), shape (rest and pressed radius), touch (an interactive card).
+- New: `.ds-card--outlined`, `.ds-card--horizontal` with `.ds-card__media` and `.ds-card__body`, `.ds-card--selectable` with `.ds-card__check`; hooks `--ds-card-radius`, `--ds-card-radius-pressed`, `--ds-card-bg`, `--ds-card-border`, `--ds-card-filled-bg`, `--ds-card-check-size`, `--ds-card-media-size`, `--ds-card-body-min`.
+- Renamed: `.ds-subsection` to `.ds-card__section`, `.ds-more` to `.ds-card__more` (aliases until 3.0 ships).
+- The rule that runs disclosure rows to a card's edges moved here from the disclosure's stylesheet.
+- Fixed from 2.x: a disabled or `aria-disabled` clickable card now looks blocked (`--ds-disabled-*`, cursor `not-allowed`) and takes no hover shadow; an elevated clickable card keeps its shadow on hover and while pressed.
+
+*chart.*
+- Charts on the options model: size steps a meter, the plot and a legend key, density the plot, the shape multiplies
+  every radius, `.ds-touch` gives a column that opens its target.
+- Tones on the mark itself (`.ds-tone-*` on `.ds-meter`, `.ds-columns__col`, `.ds-legend__key`). Deprecated:
+  `.ds-meter--neutral`, `--warning`, `--error`, `.ds-columns__col--warning`, `--error`, `.ds-legend__key--neutral`,
+  `--warning`, `--error`.
+
+*chip.*
+- Chips: on the options model: size, density, shape, touch and tone computed in the chip's own rule. Hooks
+  `--ds-chip-padding-x`, `--ds-chip-radius`, `--ds-chip-font`. `.ds-touch` no longer sets `--ds-chip-height`, and the
+  compact theme neither: a chip there is its dense density's 24px (2.x 28px), like every control on that density.
+
+*combobox.*
+- Combobox on the options model (size, density, shape, touch, computed in `combobox.css`); the field, the toggle and
+  the options follow them. `DS.overlay` stays its opener and the 2.x markup keeps working.
+- New: group headings (`.ds-combo__group`, `.ds-combo__heading`) and option descriptions (`.ds-combo__description`),
+  the clear button (`.ds-combo__clear`), the create option (`.ds-combo__option--create`), several values
+  (`.ds-combo--multi`), a spinner row in the status line, the disabled state of toggle and clear button, hook
+  `--ds-combo-radius`.
+- Removed the `-webkit-mask-*` duplicates of the list's cut edges (the floor has `mask`).
+
+*dialog.*
+- Dialog (3.0): behaviour in `js/dialog.js` (`DS.dialog`), `DS.overlay.confirm()`, `alert()` and `prompt()` keep their
+  names. Sizes `.ds-dialog--sm`, `--lg` and `--xl`; `--wide` is deprecated. Form dialog: `form.ds-dialog__box`,
+  `ds:submit`, `DS.dialog.form()`. Density and shape on the box. `confirm({ destructive: true })` fills its button in
+  the error tone (D10). `data-ds-open`, `data-ds-close`; `data-close` and the event `ds-close` are deprecated
+  (`ds:close`, `ds:open`). New strings `confirm`, `actionFailed` and `valueRequired`; a built dialog reads them, with
+  `ok` and `cancel`, from `DS.config({ strings })`. Migration: a page that imports single files imports `js/dialog.js`
+  next to `js/overlay.js`; without it `confirm()`, `alert()` and `prompt()` throw and `open()` of a dialog warns once.
+
+*disclosure.*
+- Disclosure on the options model: size, density and touch (`--ds-target-min`; `.ds-touch` no longer sets `--ds-disclosure-height`), shape on the plain summary.
+- `details[name]` is at the floor: exclusive accordions are documented without a fallback.
+- New hooks `--ds-disclosure-radius`, `--ds-disclosure-radius-pressed`, `--ds-disclosure-font`, `--ds-disclosure-row-padding`, `--ds-disclosure-row-padding-exact`.
+
+*drag.*
+- File field and drop zone on the options model (size, density, shape, touch, computed in `drag.css`); the file field is
+  40px at the default like every field (2.x: 42px).
+- New: `.ds-dropzone--inline`, the zone's error state through `aria-invalid` on its input, hooks
+  `--ds-dropzone-padding`, `--ds-dropzone-radius`, `--ds-file-button-height`.
+
+*empty.*
+- Empty state: `--section`, `--page`, `--inline`; causes `--no-data`, `--first-use`, `--not-set-up`, `--no-results`,
+  `--no-access`, `--offline`, `--error`; a picture in `.ds-empty__media` and two actions in `.ds-empty__actions`; size,
+  density, shape and tone; hooks `--ds-empty-disc-bg`, `--ds-empty-disc-color`, `--ds-empty-padding`,
+  `--ds-empty-media-size`. Changed under `themes/compact.css`: 28px of block padding and 12px at the sides (2.x: 32px
+  and 16px), since the theme is density -2.
+
+*form.*
+- Form: on the options model: fields, input groups, `.ds-check` rows, halos and cards compute size, density, shape and
+  touch in their own rules (`--ds-input-height` is the md, comfortable base, and `.ds-touch` no longer sets it; the
+  compact theme's field is now its density's 32px, 2.x 36px). New: `.ds-field--filled`, `.ds-field--outlined`, `.ds-input--outlined`, `.ds-input-group--filled`;
+  the slots `.ds-input-group__leading`, `__prefix`, `__suffix`, `__trailing`; `.ds-field--warning`, `.ds-field--success`,
+  `.ds-field__hint--warning`, `--ds-field-warning-color`; `aria-readonly="true"` on a select; `.ds-field__counter--over`;
+  `.ds-fieldset`; `.ds-form-section`; `.ds-check-card`, `.ds-check-cards`; an inset field holds an input group; hooks
+  `--ds-input-padding-x`, `--ds-input-weight`, `--ds-radio-padding`.
+- Deprecated, removed when 3.0 ships: `.ds-check--sm` and `--ds-check-sm-height` (`.ds-sm`, `--ds-check-height`),
+  `.ds-input-group__affix` (`.ds-input-group__prefix`, `.ds-input-group__suffix`).
+
+*indicator.*
+- Indicator on the options model: the pill follows the item at any size, density and touch target; a project class's
+  `border-radius` is copied with `--ds-shape` as a live factor and again at each rest, so it follows a size change too.
+- New: `DS.indicator.create()` (`createIndicator()` is its deprecated alias until 3.0 ships) and the declarative
+  `data-ds-indicator`, with `data-ds-indicator-class`, `-name` and `-reveal`. Its controller is the handle `create()`
+  returns, which also gains `get()`, `set()` and `on()`, and a `ds:change` on the track.
+- A pill whose radius springs to 0 keeps its clip through the spring's pass below zero.
+- Forced colours hide every pill, also a project class's, not only the system's.
+
+*list.*
+- List on the options model: `.ds-list__item` steps 8px per size and 4px per density from its 56px base, with new hooks
+  `--ds-list-padding`, `--ds-list-padding-y`, `--ds-list-radius`, `--ds-list-title-font` and `--ds-kv-list-padding`;
+  the shape multiplies its radii; `.ds-touch` gives rows and key-value rows that open their target.
+- New: `.ds-list__media` (`--round`, `--ds-list-media-size`, `--ds-list-media-radius`), `.ds-list__description`,
+  `.ds-list__aside`, `.ds-list--stacked`, `.ds-list__group` with `.ds-list__heading` (`--ds-list-group-bg`,
+  `--ds-list-group-top`).
+- Deprecated: `.ds-kv-list__icon--ok`, `--warning`, `--error`: `.ds-tone-success`, `.ds-tone-warning`, `.ds-tone-error`
+  on the icon.
+
+*loader.*
+- Shape loader: its own docs section; size steps of 24px from the md base. `.ds-loader--sm` and `--ds-loader-sm-size`
+  deprecated: `.ds-sm`, `--ds-loader-size`.
+
+*loading.*
+- Loading: skeleton presets (`.ds-skeleton__avatar`, `__media`, `__row` with `__lines`, `__table` with `__cells` and
+  `__cells--head`, `__form` with `__field` and `__line--label`), `.ds-skeleton--pulse` beside the wave, hook
+  `--ds-skeleton-media-ratio`; size, density and shape. The spinner and the shape loader have their own sections now.
+  Changed under `themes/compact.css`: 12px of padding on `.ds-loading` and 20px on a card (2.x: 16px and 24px), since the
+  theme is density -2. A field bone and a table row read the hooks of the input and the table.
+
+*menu.*
+- Menu (3.0): behaviour in `js/menu.js` (`DS.menu`). `.ds-menu__content`, `.ds-menu__description`, `.ds-menu__shortcut`,
+  `.ds-menu__item--danger`, `data-ds-menu-checks`. Size, density, touch and shape on the rows and the menu; the default
+  row stays 48px. Placement in `js/position.js`. `data-ds-open` toggles a menu and opens it from its arrow keys.
+  Migration: a page that imports single files imports `js/menu.js` next to `js/overlay.js`; without it a menu opens with
+  no first focus, keys or close on an item, and `open()` warns once.
+
+*page.*
+- Page head (3.0): `.ds-page-head__details` and `.ds-page-head__detail`, a row of key facts; `.ds-page-head__tabs`, the
+  record's tabs as its last row.
+- Breadcrumbs (3.0): `--ds-breadcrumbs-font`, the size's type role; at least `--ds-target-min` high under `.ds-touch`.
+
+*pagination.*
+- Pagination: the variants `.ds-pagination--simple` (now with a rule of its own), `.ds-pagination--numbered` and
+  `.ds-pagination--cursor`, the parts `.ds-pagination__pages`, `.ds-pagination__page`, `.ds-pagination__gap` and
+  `.ds-pagination__jump`, the hooks `--ds-pagination-current-bg`, `--ds-pagination-current-color` and
+  `--ds-pagination-jump-width`. Its fields' width comes from a grid column, not from a rule against `.ds-input`. A
+  numbered bar in a narrow content area keeps previous, the current page and next on one line.
+- A simple bar's range leads too when the content area is at most 600px wide, as in 2.x.
+
+*progress.*
+- Progress: size steps of the track (`--ds-progress-height`), the label's place (`--label-above`, `--label-end`),
+  tones from the class on the element, the ends follow the shape, hook `--ds-progress-bar`.
+  Changed under `themes/compact.css`: the label sits 4px from the track (2.x: 8px), since the theme is density -2.
+
+*prose.*
+- New: `.ds-prose--compact` for chat, task lists from the bare markup of a Markdown renderer, `.ds-prose__callout` and `.ds-prose__callout-title` with a tone, `.ds-prose__footnotes`; hooks `--ds-prose-radius`, `--ds-code-block-radius`.
+- Prose on the options model: density (the gap, the padding of blocks), shape (every radius). An element with a `ds-` class inside prose is no longer reached by the bare-element rules, so a component keeps its look whatever the cascade order.
+- Floor: the `-webkit-hyphens` twins are gone.
+- A callout reads its tone from its own class only, and a page class that merely contains `ds-` (`needs-review`) no longer counts as a system class.
+
+*ripple.*
+- Ripple on the options model: a host at any size, density, shape and touch target; the tab's ripple box follows the
+  shape, and it takes the inset and the radius the tab's layer computes. The rules hold in any cascade order: each
+  pressed rule leaves out the host's blocked states by itself, and every system host positions itself (only
+  `[data-ds-ripple]` is positioned by `ripple.css`).
+- `detach()` of the `DS.ripple.attach()` handle goes with 3.0.0 (`removed` set in `deprecations.json`): use `destroy()`.
+
+*savebar.*
+- Save bar on the options model (size, density, shape, touch, computed in `savebar.css`).
+- New: `.ds-savebar--inline`, the actions of a long form outside a card in reach at every width, with
+  `.ds-savebar-scroller` and hooks `--ds-savebar-bleed` and `--ds-savebar-room`.
+- Its cascade order moved after page (`meta.json` `order`), so the room it keeps on `.ds-content` holds in the
+  component sublayers too.
+
+*scroller.*
+- New: `.ds-scroll-x--reel` (a horizontal reel) and `.ds-scroll-y` (the block axis, with `scrollbar-gutter`); hooks `--ds-scroll-reel-item`, `--ds-scroll-reel-gap`, `--ds-scroll-max-height`.
+- Floor: the `-webkit-mask-*` twins are gone (Chrome and Edge have the unprefixed properties since 120).
+
+*sheet.*
+- Side sheet (3.0): `js/sheet.js` (`DS.sheet`), `data-ds-sheet`, `data-ds-open`. Density and shape on the panel; hooks
+  `--ds-sheet-padding`, `--ds-sheet-head-height`, `--ds-sheet-radius`.
+
+*shell.*
+- App frame (3.0): on the options model. Drawer rows and the segmented switch follow size, density, shape and touch;
+  the avatar follows size and shape; the panel, the modal drawer, the skip link and the capsule follow the shape; the
+  brand link takes `--ds-target-min`.
+- Added: nested drawer groups (`--ds-drawer-indent`), `.ds-drawer__foot--pinned`, the hooks `--ds-drawer-font`,
+  `--ds-segmented-height`, `--ds-segmented-font`.
+- Deprecated: `.ds-avatar--sm` and `.ds-avatar--lg` (`.ds-sm`, `.ds-lg`).
+- Changed: a segmented switch under `.ds-touch` is 48px high (it stayed 32px); the rail centres its items on its axis
+  (a compact row sat 4px off it); the track never goes under its option's line, so it stays a pill at every size and
+  density; a group toggle takes the size's type in the label weight, and a `data-tip` that names it on the rail; a row
+  action over a current row takes `SelectedItemText` under forced colours; `.ds-account__avatar[tabindex]` has a hit area
+  of at least `--ds-target-min`.
+- `themes/compact.css`: drawer rows take their 40px from the density; `--ds-drawer-item-height` is no longer set there,
+  and `--ds-segmented-height` is 40px, so the switch keeps its 32px. `.ds-touch` no longer sets
+  `--ds-drawer-item-height`.
+
+*slider.*
+- Slider: a section of its own; on the options model: size, density, shape and touch computed in its own rule. Hooks
+  `--ds-slider-thumb-size`, `--ds-slider-track-height`.
+
+*spinner.*
+- Spinner: its own docs section; size steps (`--ds-spinner-size`, `--ds-spinner-determinate-size`), tones on the
+  element. New `.ds-spinner--ink`; `.ds-spinner--sm` deprecated: `.ds-spinner--ink` with `.ds-sm`.
+
+*status.*
+- Status chip and tag: on the options model (size, shape, tones from the class on the element; no density, so 24px
+  stays under `themes/compact.css`); hook
+  `--ds-status-height`. `.ds-status--ok`, `--warning`, `--error` deprecated: `.ds-tone-success`, `-warning`, `-error`.
+  `.ds-tag--neutral` deprecated: `.ds-tone-neutral`.
+
+*steps.*
+- Fixed: the connectors of a row keep their line under forced colours.
+- Fixed: in a row with hints every label keeps its width; a hint truncates with an ellipsis before the next mark.
+- Steps (3.0): on the options model (size on the mark and the type, density on a column's room, shape on the radius).
+  Added `.ds-steps--vertical`, `data-status="error"` and `"optional"`, `.ds-steps__hint`, and the hooks
+  `--ds-steps-mark-size`, `--ds-steps-font`, `--ds-steps-gap`.
+
+*switch.*
+- Switch: on the options model: the track, row, halo and list row compute size, density, shape and touch in their own
+  rule. New: `.ds-switch--icons`, `.ds-switch__icon--on`, `.ds-switch__icon--off`; busy with `aria-busy="true"` and
+  `.ds-switch__spinner`; hooks `--ds-switch-track-height`, `--ds-switch-font`.
+
+*table.*
+- Table on the options model: size, density and touch compute head and row height where they are used, density the
+  cells' side padding, shape the radii. New: `.ds-table--zebra`, `.ds-table--bordered`, `.ds-table--plain`,
+  `.ds-table--sticky-head`, `.ds-table--sticky-foot`, `.ds-table--pin-last`, the hooks `--ds-table-padding`,
+  `--ds-table-zebra`, `--ds-table-max-height` and `--ds-selection-bar-height`; `DS.dom.scrollEdges()` writes
+  `--ds-table-pin-last-width` for a pinned last column.
+- Deprecated: `.ds-table--dense` and `--ds-table-dense-row-height` (use `.ds-density-tight`; removed when 3.0 ships).
+- A wrapper with sticky rows is a stacking context and hands the wheel on to the page; the pinned columns' hairlines
+  show in forced colours; `--ds-table-padding` also sets the phones' side padding.
+- `DS.ripple.attach()` knows a pinned last column: a press on its own room shows no press and opens nothing, and a row's
+  ripple reaches the cell in a part of its own. A focused row link finishes its ring on the cell.
+- A wrapper that is a tab stop draws its ring outside the box when it holds sticky rows or a pinned column; the
+  `.ds-toolbar > .ds-swap` slot keeps the selection bar's height, so the table stays where it is; `.ds-table--plain`
+  keeps its row lines in forced colours.
+- Floor: no `-webkit-mask-*` twins on the table wrappers, and the alt text of a stacked cell's label is used directly.
+
+*tabs.*
+- Tabs (3.0): on the options model (size, density, shape, touch through `--ds-target-min`). Added `.ds-tabs--line`,
+  `.ds-tabs--contained`, `.ds-tabs--vertical`, `.ds-tabs__columns`, `.ds-tabs__count`, `.ds-tabs__item` with
+  `.ds-tabs__close`, and the hooks `--ds-tabs-padding-x`, `--ds-tabs-font`, `--ds-tabs-contained-bg`. Icons before the
+  label keep `data-label`'s reserved width under the text.
+- `themes/compact.css`: tabs take their 40px from the density; `--ds-tabs-height` is no longer set there. `.ds-touch` no
+  longer sets `--ds-tabs-height`. The ripple box follows the tab's computed inset and radius.
+
+*tasks.*
+- Tasks on the options model: size and density space the steps (hook `--ds-tasks-gap`), the shape multiplies the
+  pending ring.
+
+*tile.*
+- Tile on the options model: size steps the value, density the padding (hook `--ds-tile-padding`) and the gap, the shape
+  multiplies the rest and pressed radius, `.ds-touch` gives a clickable tile its target.
+- New: `.ds-tile__delta` (an arrow and a word, with a tone on it) and the `.ds-tile__trend` slot
+  (`--ds-tile-trend-color`). `.ds-columns` is a block also as a `<span>`, for a sparkline inside a clickable tile.
+- New hook `--ds-tile-value-line`: the value's line height at the md size, which the size steps scale. A line height
+  inside a theme's `--ds-font-display` no longer reaches the value: set the hook instead.
+
+*timeline.*
+- Timeline on the options model: size steps the rail's marks, the indent and the title, density the padding (hook
+  `--ds-timeline-padding`), the shape the dot, the marker and the comment box.
+- New: `.ds-timeline--activity` (a feed of sentences, with avatars in the marker), `.ds-timeline__item--comment`
+  (`--ds-timeline-comment-bg`, `--ds-timeline-comment-radius`), `.ds-timeline__time`, and a muted entry with a marker.
+- `.ds-timeline__actions` hangs by the text button's padding at its size: put `.ds-sm` on it instead of on each button.
+
+*toast.*
+- Snackbar (3.0): behaviour in `js/toast.js` (`DS.toast`), `DS.overlay.toast()` and the others keep their names. Shape on
+  the radius, hook `--ds-toast-radius`. `.ds-tone-error`, `.ds-tone-info` on a message built by hand.
+  The close button's default name is the string `close` of `DS.config({ strings })`. Migration: a page that imports
+  single files imports `js/toast.js` next to `js/overlay.js`.
+
+*tooltip.*
+- Tooltip (3.0): behaviour in `js/tooltip.js` (`DS.tooltip`), `DS.overlay.tooltips()` keeps its name. `data-tip-shortcut`
+  and `.ds-tooltip__shortcut`; shape on the radius, hook `--ds-tooltip-radius`. Placement in `js/position.js`.
+  Migration: a page that imports single files imports `js/tooltip.js` next to `js/overlay.js`.
+
+*utilities.*
+- `.ds-pressable` and `.ds-kbd` read `--ds-shape`; `.ds-pressable` takes `--ds-target-min` under `.ds-touch`.
+
+*Helpers.*
+- New `js/a11y.js` (`DS.a11y`): `trap()`, `tabbables()`, `canTakeFocus()`, `readsKeys()`, `typeahead()`, `typeaheadMatch()`, and `roving()`,
+  `announce()` and `inert()` under this name (the functions of `DS.dom` and `DS.overlay`, which stay).
+- New `js/hotkeys.js` (`DS.hotkeys`): a registry of shortcuts per document with platform-aware combos, scopes, fields
+  left alone, overlays masking what is behind them, the data of a shortcut sheet (`list()`, `onChange()`), `format()`
+  and `data-ds-hotkey`.
+- New `DS.overlay.holdInert()` (counted inert for a modal region that is no overlay) and `DS.overlay.layerAt()` (the open
+  layer that rules at a node).
+- `DS.overlay.canFocus()`, `DS.overlay.FOCUSABLE`, `DS.overlay.typeAhead()`, `DS.dom.typesText()`, `DS.dom.own()` and
+  `DS.dom.disown()` are exported (the helpers build on them).
+- New strings: `keyCtrl`, `keyAlt`, `keyShift`, `keyMeta`, `keyEnter`, `keyEscape`, `keySpace`, `keyTab`, `keyBackspace`,
+  `keyDelete`, `keyHome`, `keyEnd`, `keyPageUp`, `keyPageDown`, `hotkeysGeneral`.
+- New core modules: `DS.format` (`number`, `percent`, `currency`, `bytes`, `duration`, `list`, `plural`, `relative`,
+  `absolute`, `clock`, `time`, and `data-ds-time` through `DS.init()`), `DS.store` (`open`, `available`), `DS.virtual`
+  (`create`, `sizes`) and `DS.dnd` (`create`). `docs/core.md`.
+- New strings: `dragHint`, `dragGrabbed`, `dragMoved`, `dragMovedZone`, `dragDropped`, `dragDroppedZone`, `dragCancelled`.
+- New attribute written by the system: `data-ds-virtual-gap`. `data-ds-dragging` and `data-ds-dragover` are also written
+  by `DS.dnd`.
+- New event: `ds:config` on the document, when `DS.core.config()` changed the locale or the strings.
+
 ### Phase 1 preparation: the folder pipeline, options, styleguide (3.0.0-alpha.2)
 
 **The default button is 40px** (2.x: 36px): `.ds-sm` and the compact density keep their 32px. Everything else below

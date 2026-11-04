@@ -58,7 +58,9 @@ describe('repository', () => {
   it('names no particular project, organisation or place', () => {
     // Built from fragments, so this file passes its own check.
     const names = new RegExp(['cam' + 'pus', 'cha' + 'tbob', 'socra' + 'tes', 'sur' + 'see', '\\bi' + 'ct\\b', 'inven' + 'tar', 'mel' + 'den', '\\bb' + 'ob\\b', 'trade.go' + 'thic', 'type' + 'kit', 'arch' + 'ivo',
-      '#1a3c' + '25', '#cfdf' + 'ad'].join('|'), 'i');
+      '#1a3c' + '25', '#cfdf' + 'ad',
+      // Device brands: examples name a "Laptop 14", never a real model.
+      'lati' + 'tude', 'opti' + 'plex', 'think' + 'pad', 'think' + 'centre', 'elite' + 'book', 'pro' + 'book', 'surface (?:pro|laptop|book)', '\\bxp' + 's \\d', 'precision \\d', 'mac' + 'book', 'inspir' + 'on', 'de' + 'll\\b', 'leno' + 'vo'].join('|'), 'i');
     const offenders = ALL_FILES.filter((path) => TEXT.test(path)).filter((path) => names.test(readFileSync(join(ROOT, path), 'utf8')));
     assert.deepEqual(offenders, []);
   });
@@ -187,6 +189,7 @@ describe('repository', () => {
       ['--ds-share', 'set by the page on a slider (the value\'s share of its range, 0 to 1) and on chart marks'],
       ['--ds-scrollbar-height', 'written by DS.dom.scrollEdges() (the scrollbar strip a fade leaves opaque): runtime state, never set it'],
       ['--ds-table-pin-width', 'written by DS.dom.scrollEdges() (the width of a pinned first column): runtime state, never set it'],
+      ['--ds-table-pin-last-width', 'written by DS.dom.scrollEdges() (the width of a pinned last column): runtime state, never set it'],
     ]);
     const hooks = new Set();
     for (const file of filesIn('src/components', (path) => path.endsWith('.css'))) {
@@ -251,11 +254,11 @@ describe('repository', () => {
       const attrs = new Map([...raw.replace(/\[[^\]]*\]/g, ' ').matchAll(/([a-z][\w:-]*)(?:="([^"]*)")?/g)].map((match) => [match[1], match[2] ?? '']));
       return { tag, attrs };
     }).filter(({ attrs }) => /(^|\s)ds-/.test(attrs.get('class') ?? ''));
-    // An element by its tag and classes without modifiers; what it carries: role, tabindex, data-close and its aria-* names.
+    // An element by its tag and classes without modifiers; what it carries: role, tabindex, data-ds-close and its aria-* names.
     const key = ({ tag, attrs }) => [tag, ...attrs.get('class').split(/\s+/).filter((name) => name && !name.includes('--')).sort()].join('.');
     const carries = ({ attrs }) => [
       ...['role', 'tabindex'].filter((name) => attrs.has(name)).map((name) => `${name}="${attrs.get(name)}"`),
-      ...(attrs.has('data-close') ? ['data-close'] : []),
+      ...(attrs.has('data-ds-close') ? ['data-ds-close'] : []),
       ...[...attrs.keys()].filter((name) => name.startsWith('aria-')).sort(),
     ].join(' ');
     const CASES = [['dialog', 'Dialog'], ['sheet', 'Side sheet'], ['combobox', 'Combobox'], ['shell', 'App frame']];

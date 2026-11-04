@@ -173,6 +173,7 @@ const RUNTIME = new Set([
   '--ds-scrollbar-height',
   '--ds-scrollbar-width',
   '--ds-table-pin-width',
+  '--ds-table-pin-last-width',
   // What a component's behaviour module writes ('--ds-<name>-x' in src/components/<name>/<name>.js).
   ...jsModules().filter((file) => file.startsWith('src/components/')).flatMap((file) => [...read(file).matchAll(/['"`](--ds-[\w-]+)['"`]/g)].map((match) => match[1])),
 ]);

@@ -96,10 +96,9 @@ test('.ds-card__body keeps the card\'s rhythm: the same gaps around a subtitle a
 test('a switch in the header row hangs out of the title line, whatever its size and touch', async ({ page }) => {
   await open(page);
   const row = (cls) => `<section class="ds-card ${cls}"><div class="ds-card__row" data-row><h3 class="ds-card__title">T</h3><label class="ds-switch"><input type="checkbox"><span class="ds-switch__track"></span></label></div></section>`;
-  // .ds-sm and the density steps wait for the switch on the options model (forms-a): today its box stays 40px.
-  await add(page, row('') + row('ds-lg') + row('ds-touch'));
+  await add(page, row('') + row('ds-sm') + row('ds-lg') + row('ds-density-compact') + row('ds-density-tight') + row('ds-touch'));
   const heights = await page.$$eval('[data-row]', (list) => list.map((el) => el.getBoundingClientRect().height));
-  expect(heights).toEqual([24, 24, 24]);
+  expect(heights).toEqual([24, 24, 24, 24, 24, 24]);
 });
 
 test('hover: an elevated card keeps its shadow, a hook replaces any card\'s; a blocked card takes no hover shadow', async ({ page }) => {

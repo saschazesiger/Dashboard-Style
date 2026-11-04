@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Overlays (D18): the dialog, the side sheet, the modal drawer and the
  * popups (.ds-menu, .ds-combo__popup) open and close through one pair of
@@ -7,9 +7,9 @@
  *
  *   DS.overlay.open(dialog, { opener: button });   // a Promise: the entrance settled
  *   DS.overlay.close(dialog);                      // a Promise: hidden again
- *   DS.overlay.close(dialog, { reason: 'confirm' }); // why: the ds-close event says it
+ *   DS.overlay.close(dialog, { reason: 'confirm' }); // why: the ds:close event says it
  *   DS.overlay.topmost();                          // the top open layer, or null
- *   await DS.overlay.confirm({ title, text });     // a built dialog: true or false
+ *   await DS.overlay.confirm({ title, text });     // a built dialog: true or false (components/dialog/dialog.js)
  *
  * Kinds, recognised by class: a native <dialog class="ds-dialog | ds-sheet">
  * (showModal() is the focus trap and makes the page inert), the div
@@ -39,7 +39,7 @@
  * landmark, never <body>), make only the box or panel inert (the backdrop
  * keeps swallowing clicks, and a mousedown on it or the drawer's scrim is
  * prevented, so focus stays on the opener), set data-state="closed", send
- * ds-close ({ detail: { reason } }, bubbling, once), wait for settled(),
+ * ds:close ({ detail: { reason } }, bubbling, once), wait for settled(),
  * then hide (div: hidden; native: drop --closing), clear the box's inert
  * and .ds-dialog--nested, unlock the scroll and leave the Escape stack, in
  * one task. Popups return focus to their opener only when it was inside
@@ -47,14 +47,14 @@
  *
  * Busy: while the page sets data-ds-busy on a dialog, sheet or drawer, the
  * user's close attempts do nothing (Escape, the native cancel, a
- * [data-close] click, the backdrop and the drawer's scrim): one guard at
+ * [data-ds-close] click, the backdrop and the drawer's scrim): one guard at
  * the top of closeFrom(), before the popups inside close, so a refused
- * attempt changes nothing and sends no ds-close. close(el) and the forced
+ * attempt changes nothing and sends no ds:close. close(el) and the forced
  * closes (removed, breakpoint) still close; menus and lists ignore it.
  *
  * Dismiss guard: a backdrop or scrim click from a pointer closes only when
  * the press began on it, it is the first click (event.detail 1) and
- * --ds-delay-dismiss has passed since the open; a [data-close] click with
+ * --ds-delay-dismiss has passed since the open; a [data-ds-close] click with
  * detail > 1 never closes. click(), Enter and Space (detail 0) close at
  * once.
  *
@@ -82,7 +82,7 @@
  * whichever copy opened it. A native dialog's cancel
  * event is turned into close(), so its exit plays. Closing a dialog, sheet
  * or the drawer first closes the menus and lists open inside it and hides
- * the tooltip. [data-close] inside an overlay closes it (ignored while
+ * the tooltip. [data-ds-close] inside an overlay closes it (ignored while
  * closing); the scrim closes the modal drawer; a menu also closes on Tab
  * (focus goes back to its trigger and Tab moves on from there) and on a
  * pointerdown outside the menu and its trigger.
@@ -160,58 +160,38 @@
  * already carries the attribute (opt-in by markup). open(drawer) focuses
  * the drawer's [aria-current="page"] item when it has one.
  *
- * Promise dialogs: confirm(), alert() and prompt() build a dialog.ds-dialog
- * with DOM APIs inside the opener's .ds-theme, open it through open() and
- * remove it after its exit; the promise resolves with the answer when the
- * close starts. onConfirm runs with busy() on the confirm button and
- * data-ds-busy on the dialog; a rejection keeps it open with an error
- * snackbar (errorText) and focus back on the confirm button.
- *
- * Snackbars (D19): toast(region, content, options) builds or takes a
- * .ds-toast and shows at most TOAST_LIMIT at once; insertions and removals
- * run inside DS.motion.flip(), so the messages on screen glide while one
- * enters or fades out in place. A fourth replaces the oldest message that
- * would close by itself; behind three that stay it waits in a queue. The
- * timer (length-dependent, --ds-time-scale included) pauses while a pointer
- * is over a message, focus is in the region or the tab is hidden. The same
- * string message again restarts the one on screen; a `key` replaces a
- * message in place; an `action` (Undo) adds a text button and keeps the
- * message until it is used or closed; closeToasts() closes by kind or
- * key. Text is announced through two .ds-sr live regions next to the
- * region (announce() speaks through them without a message; the region
- * itself is never live: role and aria-live are taken off it); a focused
- * message that leaves hands focus to the next close button, else to where
- * focus came from, never to <body>. Messages that stay keep room at the end
- * of their layer (data-toast-reserve on the view, a hosting sheet's body
- * or dialog). An open dialog or side sheet takes the
- * regions of its theme in (with a sheet they glide to its panel's edge and
- * above its foot on the sheet's timing), so messages stay above its scrim,
- * usable and announced; the div trap and the modal drawer never make them
- * inert. Closing, they glide back while still inside it (above its leaving
- * scrim and panel in every engine) and go back to the page once it
- * settled. On the page they rise above a shown save bar and, on phones,
- * the open modal drawer's foot (--ds-toast-lift, gliding on both axes).
- *
- * Tooltips (D17, WCAG 1.4.13): tooltips(root) serves every [data-tip]
- * trigger in root with one tooltip per call: shown after
- * --ds-delay-tooltip on hover (mouse and pen) and at once on keyboard
- * focus, at once again within --ds-delay-tooltip-skip of the last hide
- * (warm-up; a visible one swaps text and place in place; anchored, its
- * data-placement is read again two frames later), hoverable during
- * the --ds-delay-tooltip-hide grace, hidden by Escape (only then is the key
- * the tooltip's, unless an open layer lies over its trigger: then the same
- * Escape also closes that layer), by any pointerdown and by open(); the
- * opener of an open layer shows no tip. A tip that repeats the
- * trigger's visible text shows only while that text is cut off. On touch a
- * tap shows the tip of an image or a blocked control, a long press the
- * others. A trigger that leaves the document takes its tooltip with it.
- * Like the snackbar regions, it is never made inert by the div trap or the
- * modal drawer, so a trigger inside one shows a hoverable tooltip that is
- * heard.
- *
  * Save bar: savebar(element) shows and hides a view's .ds-savebar
  * (.ds-presence), keeps the view's end and its focused element clear of
  * it and lifts the snackbars above it.
+ *
+ * Split (3.0): this file is the shared core, what every overlay needs: the
+ * stack, focus and its return, Escape order, dismiss, the scroll lock, the
+ * inert trap, the exit contract, the modal drawer (which has no folder of its
+ * own yet) and the save bar. What only one component needs lives in its
+ * folder and registers itself here through internals.use(): the keys of a
+ * menu (components/menu/menu.js), the promise dialogs, the action sheet's
+ * keys and the form dialog (components/dialog/dialog.js), the snackbars
+ * (components/toast/toast.js) and the tooltips
+ * (components/tooltip/tooltip.js). DS.overlay keeps its whole API:
+ * confirm(), toast(), tooltips() and the others below call the module that
+ * registered, and throw a message naming the file when it is not loaded
+ * (ds.js always has them; a bundle has them when the page uses them, by
+ * "exportRequires" of overlay.requires.json; ES modules import the file).
+ * A menu or dialog opened without its module still opens, but has lost its
+ * keys and more: open() warns once, with the same message.
+ * Placement is js/position.js. `internals` is what those modules read; it is
+ * no API and may change in any release.
+ *
+ * Triggers: [data-ds-open="<selector or id>"] opens that overlay on a click
+ * (with the trigger as its opener; again, or a menu's ArrowDown and ArrowUp,
+ * as a menu button does), [data-ds-close="<selector or id>"] closes it from
+ * outside and leaves the overlay around it open, [data-ds-close] without a
+ * value (or its 2.x name [data-close]) inside an overlay closes that one: one
+ * delegated listener per root of DS.init().
+ *
+ * Events: ds:open ({ opener }) once the entrance started and ds:close
+ * ({ reason }) with ds-close, its 2.x name, as soon as a close started. Both
+ * bubble.
  *
  * The constants are fallbacks only (outside a .ds-theme or without a
  * DOM): JS timing comes from the computed tokens through motionDuration(),
@@ -225,22 +205,18 @@
  * hold the drawers and snackbar regions through WeakRef (ES2021), so a
  * frame the page re-renders is not kept alive.
  *
- * ES2022 (Safari 16.4); a module may import from an earlier module (the
+ * ES2022; a module may import from an earlier module (the
  * build bundles it into dist/ds.js as DS.overlay); newer APIs only behind
  * feature detection, named under Progressive:.
  *
  * Progressive:
  * - scrollbar-gutter (CSS.supports; keeps the room of a removed page
  *   scrollbar): without it the body gets the same room as padding-right.
- * - showPopover and CSS anchor positioning (anchorName and position-area,
- *   both detected, anchor-size() too for a combobox list; the tooltip, a
- *   menu and a combobox list go into the top layer as popover="manual",
- *   anchored to their trigger): without them the script places them
- *   (--ds-tooltip-x/-y, --ds-menu-x/-y in the terms of the box they are
- *   fixed to, the list's upward flip).
- * - moveBefore (a snackbar region that moves into a dialog or side sheet
- *   keeps its running motion and focus): without it insertBefore, focus
- *   put back, the entrances already marked played (.ds-toast--shown).
+ * - CSS anchor positioning (js/position.js detects anchorName and
+ *   position-area, this file anchor-size() too for a combobox list; a menu
+ *   and a combobox list go into the top layer as popover="manual", anchored
+ *   to their trigger): without them the script places them (--ds-menu-x/-y
+ *   in the terms of the box they are fixed to, the list's upward flip).
  * - startViewTransition (through DS.motion.transition(), for `container:
  *   true`, only with .ds-theme on <html>): without it the usual entrance.
  * - focus({ focusVisible: false }) (an overlay opened or closed with the
@@ -249,10 +225,10 @@
  *   focus() focus as :focus-visible): without it that ring stays as WebKit
  *   draws it.
  */
-import { define, runtime } from './core.js';
-import { busy, flip, motionDuration, originFrom, settled, transition } from './motion.js';
+import { define, emit, runtime } from './core.js';
+import { motionDuration, originFrom, settled, transition } from './motion.js';
 import { scrollEdges, watchScrolled } from './dom.js';
-import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from './icons.js';
+import { anchorPopup, clippedBounds, dropProbe, place, pxOf, releaseAnchor, round, supportsAnchoring } from './position.js';
 
 /** How long a snackbar stays (ms) before its length adds time; --ds-time-scale stretches it. */
 export const TOAST_MS = 4000;
@@ -281,7 +257,7 @@ export const DISMISS_DELAY_MS = 300;
 export const DRAWER_QUERY = '(max-width: 900px)';
 
 /** Tabbable candidates; canFocus() filters them. */
-const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
+export const FOCUSABLE = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, audio[controls], video[controls], [contenteditable]:not([contenteditable="false"]), [tabindex]';
 
 /** The landmarks focus falls back to when an opener is gone (leave()'s rule). */
 const LANDMARK = '.ds-view[tabindex="-1"], main[tabindex="-1"], [role="main"][tabindex="-1"]';
@@ -378,6 +354,7 @@ function sharedOf(doc) {
   record.lock ??= { count: 0, saved: null };
   record.seq ??= 0;
   record.tipRoots ??= new WeakMap();
+  record.inertHolds ??= new WeakMap();
   return record;
 }
 
@@ -423,10 +400,58 @@ const managedInert = /** @type {Set<Element>} */ (new Set());
  */
 const tooltipControllers = new Set();
 
+/**
+ * Nodes inertOutside() leaves alone, like the snackbar regions: the live
+ * regions a snackbar region made (they stay heard) and the tooltips (the one
+ * a trigger inside a div dialog, side sheet or the modal drawer shows takes
+ * the pointer through the hoverable grace, and is heard).
+ */
+const neverInert = new WeakSet();
+
+/**
+ * The save bars on screen (savebar()): each lifts the snackbar regions of
+ * its theme above itself (`lift(region)`, in px).
+ * @type {Set<{ element: HTMLElement, lift: (region: Element) => number }>}
+ */
+const shownSavebars = new Set();
+
+/**
+ * The behaviours that registered (internals.use): the modules of the
+ * component folders this core calls, each once. A page without one has no
+ * such component: its calls below are optional, and the DS.overlay function
+ * it backs says which file is missing.
+ * @type {{ menu?: any, dialog?: any, toast?: any, tooltip?: any }}
+ */
+const parts = {};
+
+/** The same behaviours of the whole page, so js/overlay.js next to a ds.js or a bundle finds the ones they hold. */
+const pageParts = runtime.state('overlay-parts', () => ({}));
+
+/** The module behind a DS.overlay function that lives in a component's folder. */
+function partFor(name, fn) {
+  const found = parts[name] ?? pageParts[name];
+  if (found) return found;
+  throw new Error(`Dashboard-Style: DS.overlay.${fn}() needs the ${name} module: import js/${name}.js next to js/overlay.js, or keep ${name} in the bundle.`);
+}
+
+/** The kinds open() warned about, once each. */
+const partsWarned = new Set();
+
+/**
+ * An open() that would silently lose behaviour: a menu's keys, focus and
+ * close on an item, a dialog's action sheet keys and form. A throw would
+ * break a page that only needs the overlay to show.
+ */
+function warnMissingPart(element, kind) {
+  if (parts[kind] || partsWarned.has(kind)) return;
+  partsWarned.add(kind);
+  viewOf(element).console?.warn(`Dashboard-Style: DS.overlay.open() on a ${kind} needs the ${kind} module: import js/${kind}.js next to js/overlay.js, or keep ${kind} in the bundle.`);
+}
+
 /** Documents with the Escape and pointer listeners. */
 const listening = new WeakSet();
 
-/** Elements with their [data-close] (and scrim, cancel) listeners. */
+/** Elements with their [data-ds-close] (and scrim, cancel) listeners. */
 const wired = new WeakSet();
 
 /** Drawers with their media-change listener. */
@@ -516,8 +541,12 @@ function flushStyle(element) {
 
 /* ── Focus ──────────────────────────────────────────── */
 
-/** Whether focus() would land on the node (enabled, rendered, not inert or hidden). */
-function canFocus(node) {
+/**
+ * Whether focus() would land on the node (enabled, rendered, not inert or hidden).
+ * @param {any} node
+ * @returns {boolean}
+ */
+export function canFocus(node) {
   if (!node || node.isConnected === false || typeof node.focus !== 'function') return false;
   if (node.disabled || node.closest?.('[inert], [hidden]')) return false;
   return typeof node.getClientRects !== 'function' || node.getClientRects().length > 0;
@@ -530,18 +559,6 @@ function firstFocusable(root) {
     if (canFocus(node)) return node;
   }
   return null;
-}
-
-/** The items of a menu that take focus (aria-disabled ones too: their name is read). */
-function menuItems(menu) {
-  return [...menu.querySelectorAll('.ds-menu__item')].filter(canFocus);
-}
-
-const enabled = (item) => item.getAttribute('aria-disabled') !== 'true';
-
-/** The first enabled item of a menu. */
-function firstItem(menu) {
-  return menuItems(menu).find(enabled) ?? null;
 }
 
 /**
@@ -685,11 +702,7 @@ function focusInto(element, state, box) {
   }
   if (state.kind === 'combo') return;
   if (state.kind === 'menu') {
-    // Opened from an ArrowUp keydown (the trigger's handler is running):
-    // the last item, as in a native menu.
-    const event = /** @type {any} */ (viewOf(element)).event;
-    const last = event?.type === 'keydown' && event.key === 'ArrowUp';
-    (last ? menuItems(element).filter(enabled).at(-1) : firstItem(element))?.focus({ preventScroll: true });
+    parts.menu?.focusInto(element);
     return;
   }
   if (state.kind === 'drawer') {
@@ -730,12 +743,13 @@ function focusInto(element, state, box) {
 function inertOutside(element, stop = element.ownerDocument.body) {
   const taken = [];
   const body = element.ownerDocument.body;
+  const holds = sharedOf(element.ownerDocument).inertHolds;
   for (let node = element; node && node !== stop && node !== body;) {
     const parent = node.parentNode;
     if (!parent || parent.nodeType === 9) break;
     for (const sibling of /** @type {ParentNode} */ (parent).children) {
-      if (sibling === node || sibling.matches('.ds-scrim, .ds-toasts') || announcerNodes.has(sibling) || tooltipNodes.has(sibling)) continue;
-      if (sibling.inert && !managedInert.has(sibling)) continue;
+      if (sibling === node || sibling.matches('.ds-scrim, .ds-toasts') || neverInert.has(sibling)) continue;
+      if (sibling.inert && !managedInert.has(sibling) && !holds.has(sibling)) continue;
       taken.push(sibling);
     }
     node = parent.nodeType === 11 ? /** @type {ShadowRoot} */ (parent).host : /** @type {Element} */ (parent);
@@ -798,7 +812,7 @@ function syncInert() {
     if (wanted.has(node)) continue;
     managedInert.delete(node);
     disown(node, 'attrs', 'inert');
-    if (!closingBoxes.has(node)) node.inert = false;
+    if (!closingBoxes.has(node) && !sharedOf(node.ownerDocument).inertHolds.has(node)) node.inert = false;
   }
   for (const node of wanted) {
     // A re-render of a region the trap took (DS.dom.morphHtml) keeps it inert.
@@ -828,6 +842,46 @@ function containerOf(element) {
 function restoreInert(state) {
   state.inerted = [];
   syncInert();
+}
+
+/**
+ * Makes the elements inert until destroy(), for a modal region that is no
+ * overlay (DS.a11y.inert()). Counted per element and known to syncInert(), so
+ * holds and overlay traps compose in any order: the element stays inert until
+ * the last of them lets go, and what the page made inert itself stays inert.
+ * A re-render with morphHtml keeps it.
+ * @param {Iterable<Element>} elements
+ * @returns {{ destroy: () => void }}
+ */
+export function holdInert(elements) {
+  const nodes = [...new Set(elements)].filter((node) => node?.ownerDocument);
+  for (const node of nodes) {
+    const holds = sharedOf(node.ownerDocument).inertHolds;
+    const held = holds.get(node);
+    if (held) {
+      held.count += 1;
+      continue;
+    }
+    holds.set(node, { count: 1, pageOwn: node.inert === true && !managedInert.has(node) });
+    own(node, 'attrs', 'inert');
+    node.inert = true;
+  }
+  let done = false;
+  return {
+    destroy() {
+      if (done) return;
+      done = true;
+      for (const node of nodes) {
+        const holds = sharedOf(node.ownerDocument).inertHolds;
+        const held = holds.get(node);
+        held.count -= 1;
+        if (held.count) continue;
+        holds.delete(node);
+        disown(node, 'attrs', 'inert');
+        if (!held.pageOwn && !managedInert.has(node)) node.inert = false;
+      }
+    },
+  };
 }
 
 /* ── Scroll lock ────────────────────────────────────── */
@@ -924,15 +978,6 @@ function listen(doc) {
       return;
     }
   });
-  doc.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
-    if (event.key !== 'Tab' || event.isComposing || event.defaultPrevented) return;
-    const top = topOpen();
-    if (!top || overlays.get(top)?.kind !== 'menu' || !top.contains(activeIn(top))) return;
-    // Tab moves on from the trigger, as if the menu had not been there.
-    const opener = overlays.get(top)?.opener;
-    if (canFocus(opener)) opener.focus({ preventScroll: true });
-    closeFrom(top, 'tab');
-  }, true);
   doc.addEventListener('pointerdown', (/** @type {PointerEvent} */ event) => {
     pruneDetached();
     for (const element of [...stack].reverse()) {
@@ -942,27 +987,6 @@ function listen(doc) {
       closeFrom(element, 'outside');
     }
   }, true);
-  // A menu the script placed follows its trigger through scrolling and
-  // resizing, within one frame (an anchored one follows by itself).
-  const view = doc.defaultView ?? globalThis;
-  let frame = 0;
-  const follow = (/** @type {Event} */ event) => {
-    // A menu's own scroll moves nothing it is placed by, and placing it
-    // again (its cap lifted to measure) would clamp that scroll.
-    if (event?.type === 'scroll' && /** @type {Element} */ (event.target)?.closest?.('.ds-menu')) return;
-    if (frame || !stack.some((element) => overlays.get(element)?.kind === 'menu')) return;
-    const run = () => {
-      frame = 0;
-      for (const element of stack) {
-        const state = overlays.get(element);
-        if (state?.kind === 'menu' && state.phase !== 'closed' && !element.hasAttribute('data-anchored')) placeMenu(element, state.opener);
-      }
-    };
-    frame = typeof view.requestAnimationFrame === 'function' ? view.requestAnimationFrame(run) : 0;
-    if (!frame) run();
-  };
-  doc.addEventListener('scroll', follow, { capture: true, passive: true });
-  view.addEventListener?.('resize', follow);
 }
 
 /**
@@ -981,6 +1005,9 @@ function clearSearch(layer, event) {
   return true;
 }
 
+/** What closes the overlay around it: the attribute without a value, and its 2.x name (one with a value closes only the overlay it names). */
+const CLOSERS = '[data-ds-close=""], [data-close]';
+
 /** Close causes that the user started: refused while the overlay is busy (data-ds-busy). */
 const USER_CLOSE = new Set(['escape', 'backdrop', 'close']);
 
@@ -995,7 +1022,7 @@ function dismissable(element, state, part, event) {
   return clock() - state.shownAt >= motionDuration(element, '--ds-delay-dismiss');
 }
 
-/** [data-close] clicks, the drawer's scrim and a native dialog's cancel. */
+/** [data-ds-close] clicks, the drawer's scrim and a native dialog's cancel. */
 function wire(element, state) {
   if (wired.has(element)) return;
   wired.add(element);
@@ -1021,7 +1048,7 @@ function wire(element, state) {
   element.addEventListener('pointerdown', pressAt, true);
   element.addEventListener('click', (/** @type {MouseEvent} */ event) => {
     const target = /** @type {Element} */ (event.target);
-    const closer = target.closest?.('[data-close]');
+    const closer = target.closest?.(CLOSERS);
     if (!closer || !element.contains(closer)) return;
     // A closer inside a nested overlay belongs to that one.
     if (hostsOf(closer)[0] !== element && closer !== element) return;
@@ -1034,8 +1061,8 @@ function wire(element, state) {
     if (backdrop && !dismissable(element, own, closer, event)) return;
     closeFrom(element, backdrop ? 'backdrop' : 'close');
   });
-  if (state.kind === 'menu') wireMenu(element);
-  if (state.kind === 'dialog') wireDialogList(element);
+  if (state.kind === 'menu') parts.menu?.wire(element);
+  if (state.kind === 'dialog') parts.dialog?.wire(element);
   if (state.kind === 'drawer') {
     const scrim = element.parentElement?.querySelector(':scope > .ds-scrim');
     scrim?.addEventListener('click', (/** @type {MouseEvent} */ event) => {
@@ -1070,22 +1097,6 @@ function wire(element, state) {
 }
 
 /**
- * An action sheet's list (.ds-dialog__list): ArrowUp, ArrowDown, Home and
- * End move focus among its .ds-menu__item rows (wrapping), as in a menu.
- */
-function wireDialogList(dialog) {
-  dialog.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
-    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
-    const list = /** @type {Element} */ (event.target)?.closest?.('.ds-dialog__list');
-    if (!list || !dialog.contains(list)) return;
-    const next = arrowTarget([...list.querySelectorAll('.ds-menu__item')].filter(canFocus), event);
-    if (!next) return;
-    event.preventDefault();
-    next.focus();
-  });
-}
-
-/**
  * data-scrolled on the box or panel while a dialog or sheet body is
  * scrolled (the head's or body's hairline): DS.dom.watchScrolled() on
  * every .ds-dialog__body and .ds-sheet__body of this overlay (not of one
@@ -1110,55 +1121,22 @@ function arrowTarget(items, event) {
   return items[current < 0 ? items.length - 1 : (current - 1 + items.length) % items.length];
 }
 
-/**
- * A menu's own keys and items: ArrowUp, ArrowDown, Home and End move focus
- * (wrapping); an item's click closes the menu once its handlers ran (a
- * task later, so a handler further up the tree still sees it open).
- */
-function wireMenu(menu) {
-  // Type-ahead: the letters typed within --ds-delay-tooltip of each other.
-  let typed = '';
-  let typedAt = 0;
-  menu.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
-    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
-    const items = menuItems(menu);
-    const next = arrowTarget(items, event);
-    if (next) {
-      typed = '';
-      event.preventDefault();
-      next.focus();
-      return;
-    }
-    // A printable key; a space only within a word (alone it activates the item).
-    if (event.key.length !== 1 || (event.key === ' ' && !typed)) return;
-    const now = clock();
-    if (now - typedAt > motionDuration(menu, '--ds-delay-tooltip')) typed = '';
-    typedAt = now;
-    typed += event.key.toLowerCase();
-    const match = typeAhead(items, /** @type {Element} */ (event.target)?.closest?.('.ds-menu__item'), typed);
-    if (!match) return;
-    event.preventDefault();
-    match.focus();
-  });
-  menu.addEventListener('click', (/** @type {MouseEvent} */ event) => {
-    const item = /** @type {Element} */ (event.target)?.closest?.('.ds-menu__item');
-    if (!item || !menu.contains(item) || !enabled(item) || /** @type {any} */ (item).disabled) return;
-    const state = overlays.get(menu);
-    if (state?.phase !== 'open') return;
-    const gen = state.gen;
-    setTimeout(() => {
-      if (state.gen === gen && state.phase === 'open') closeFrom(menu, 'item');
-    });
-  });
-}
+/** What a menu item is called for type-ahead: its label part, else its text; collapsed, lower case. */
+const menuItemLabel = (item) => (item.querySelector('.ds-menu__label') ?? item).textContent.replace(/\s+/g, ' ').trim().toLowerCase();
 
 /**
  * The item the typed letters lead to: the next one after `current`
  * (wrapping) whose label starts with them; one letter typed again and
- * again cycles through the items with that letter.
+ * again cycles through the items with that letter. `label(item)` gives the
+ * lower-case label (default: a menu item's). The one matcher: menu.js and
+ * DS.a11y.typeahead() both use it.
+ * @param {Element[]} items
+ * @param {Element|null|undefined} current
+ * @param {string} typed
+ * @param {(item: Element) => string} [label]
+ * @returns {Element|null}
  */
-function typeAhead(items, current, typed) {
-  const label = (item) => (item.querySelector('.ds-menu__label') ?? item).textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+export function typeAhead(items, current, typed, label = menuItemLabel) {
   const repeated = typed.length > 1 && [...typed].every((char) => char === typed[0]);
   const start = items.indexOf(current);
   // A new search starts after the current item; a longer one may stay on it.
@@ -1173,46 +1151,6 @@ function typeAhead(items, current, typed) {
 }
 
 /* ── Popups: placement ──────────────────────────────── */
-
-/**
- * The anchor-names this module wrote, per element, with a count of users:
- * a tooltip and a popup on one trigger (an icon button with a tooltip that
- * opens a menu) share one name, which goes only once neither uses it.
- * @type {WeakMap<Element, { name: string, count: number }>}
- */
-const anchorClaims = new WeakMap();
-
-/**
- * The anchor-name to point at `element`: one this module wrote (counted),
- * the page's own (never touched; `mine` false), or a new one written
- * inline (--ds-anchor-<n>, numbered per page across every copy of ds.js).
- * @returns {{ name: string, mine: boolean }}
- */
-function claimAnchor(element, view) {
-  const held = anchorClaims.get(element);
-  if (held) {
-    held.count += 1;
-    return { name: held.name, mine: true };
-  }
-  const css = view.getComputedStyle(element).getPropertyValue('anchor-name').trim();
-  if (css && css !== 'none') return { name: css.split(',')[0].trim(), mine: false };
-  const name = `--ds-anchor-${sharedOf(element.ownerDocument).seq += 1}`;
-  /** @type {HTMLElement} */ (element).style.setProperty('anchor-name', name);
-  own(element, 'props', 'anchor-name');
-  anchorClaims.set(element, { name, count: 1 });
-  return { name, mine: true };
-}
-
-/** Lets go of a name claimAnchor() gave; the last user removes it. */
-function releaseAnchor(element) {
-  const held = element ? anchorClaims.get(element) : null;
-  if (!held) return;
-  held.count -= 1;
-  if (held.count > 0) return;
-  anchorClaims.delete(element);
-  /** @type {HTMLElement} */ (element).style.removeProperty('anchor-name');
-  disown(element, 'props', 'anchor-name');
-}
 
 /**
  * Top layer and CSS anchor positioning for a popup: popover, anchor-name
@@ -1231,27 +1169,6 @@ function popupAnchorOf(element, state) {
 }
 
 /**
- * The side of a popup `height` tall at `rect`: below when it fits there,
- * else the side with more room, and the room on that side (a popup taller
- * than it scrolls inside it instead of covering its trigger). `top` and
- * `bottom` bound the room; `near` is the gap to the trigger, `far` the one
- * kept from the bound.
- */
-function sideFor(height, rect, near, far, top, bottom) {
-  const below = bottom - far - rect.bottom - near;
-  const above = rect.top - near - top - far;
-  const up = height > below && above > below;
-  return { up, room: Math.max(0, up ? above : below) };
-}
-
-/** Caps a popup placed by the script to `room` (none when it fits). */
-function fitTo(element, height, room) {
-  const style = /** @type {HTMLElement} */ (element).style;
-  if (height > room) style.setProperty('max-height', `${round(room)}px`);
-  else style.removeProperty('max-height');
-}
-
-/**
  * Places a popup that is about to enter (laid out at rest size): anchored
  * in the top layer where the engine can (popover="manual", data-anchored,
  * an anchor-name on the anchor unless it has one), else by the script (a
@@ -1267,32 +1184,18 @@ function placePopup(element, state) {
   if (!anchor) return null;
   const view = viewOf(element);
   if (popupAnchoring(view, state.kind)) {
-    element.setAttribute('popover', 'manual');
-    element.setAttribute('data-anchored', '');
     releaseAnchor(state.anchor);
     state.anchor = null;
-    const { name, mine } = claimAnchor(anchor, view);
+    const mine = anchorPopup(/** @type {HTMLElement} */ (element), anchor, { nextName: () => nextAnchorName(element.ownerDocument), offset: pxOf(element, '--ds-space-1', 4) });
     if (mine) state.anchor = /** @type {HTMLElement} */ (anchor);
-    const style = /** @type {HTMLElement} */ (element).style;
-    style.setProperty('position-anchor', name);
-    try {
-      /** @type {HTMLElement} */ (element).showPopover();
-    } catch {
-      // Already open: it stays.
-    }
-    // The side from its full height (the CSS cap lifted to measure it);
-    // the engine then fits it to the room on that side.
-    style.setProperty('max-height', 'none');
-    const height = /** @type {HTMLElement} */ (element).offsetHeight;
-    style.removeProperty('max-height');
-    const doc = element.ownerDocument;
-    const gap = pxOf(element, '--ds-space-1', 4);
-    const { up } = sideFor(height, anchor.getBoundingClientRect(), gap, gap, 0, doc.documentElement.clientHeight || view.innerHeight);
-    if (up) element.setAttribute('data-placement', 'top');
-    else element.removeAttribute('data-placement');
   } else if (state.kind === 'menu') placeMenu(element, anchor);
   else placeList(element, anchor);
   return anchor;
+}
+
+/** The next anchor-name of a document, numbered across every copy of ds.js. */
+function nextAnchorName(doc) {
+  return `--ds-anchor-${sharedOf(doc).seq += 1}`;
 }
 
 /**
@@ -1302,71 +1205,8 @@ function placePopup(element, state) {
  * never taller than the room on its side; 8px (--ds-space-2) from the
  * viewport edges.
  */
-/** The fixed probe beside each script-placed popup, kept while it is placed (fixedOrigin()). */
-const probes = new WeakMap();
-
-/**
- * Where (0,0) of a fixed box's containing block sits in the viewport: the
- * viewport's origin, unless a host ancestor (an embedded widget's) has a
- * transform, filter, perspective, will-change or contain: layout/paint and
- * so becomes the box that fixed layers fill. A fixed probe beside
- * `element` tells, whatever transform the element itself has now, read
- * afresh on every call (a transformed host may scroll with the page). The
- * probe stays beside the popup until it is no longer placed (dropProbe()),
- * so following a scroll or a resize adds no DOM mutation per frame for the
- * page's observers; data-ds-keep keeps morphs and indicator tracks off it.
- */
-function fixedOrigin(element) {
-  const parent = element.parentNode;
-  if (!parent) return { left: 0, top: 0 };
-  let probe = probes.get(element);
-  if (!probe) {
-    probe = element.ownerDocument.createElement('div');
-    probe.setAttribute('data-ds-keep', '');
-    probe.setAttribute('aria-hidden', 'true');
-    probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;margin:0;border:0;padding:0;transform:none;translate:none;scale:none;rotate:none;animation:none;transition:none;visibility:hidden;pointer-events:none';
-    probes.set(element, probe);
-  }
-  // Re-inserted only when the popup moved (adopted into a dialog, re-rendered).
-  if (probe.parentNode !== parent || probe.nextSibling !== element) parent.insertBefore(probe, element);
-  const { left, top } = probe.getBoundingClientRect();
-  return { left, top };
-}
-
-/** Takes the probe of fixedOrigin() out once the popup is no longer placed by the script. */
-function dropProbe(element) {
-  probes.get(element)?.remove();
-  probes.delete(element);
-}
-
 function placeMenu(menu, anchor) {
-  if (!anchor || typeof anchor.getBoundingClientRect !== 'function') return;
-  const doc = menu.ownerDocument;
-  const view = viewOf(menu);
-  const rect = anchor.getBoundingClientRect();
-  const gap = pxOf(menu, '--ds-space-1', 4);
-  const edge = pxOf(menu, '--ds-space-2', 8);
-  const style = /** @type {HTMLElement} */ (menu).style;
-  style.removeProperty('max-height');
-  const width = menu.offsetWidth;
-  const height = menu.offsetHeight;
-  const viewWidth = doc.documentElement.clientWidth || view.innerWidth;
-  const viewHeight = doc.documentElement.clientHeight || view.innerHeight;
-  const rtl = view.getComputedStyle?.(anchor).direction === 'rtl';
-  const start = rtl ? rect.right - width : rect.left;
-  const flipped = rtl ? rect.left : rect.right - width;
-  const fits = (x) => x >= edge && x + width <= viewWidth - edge;
-  let x = fits(start) || !fits(flipped) ? start : flipped;
-  x = Math.max(edge, Math.min(viewWidth - width - edge, x));
-  const { up, room } = sideFor(height, rect, gap, edge, 0, viewHeight);
-  fitTo(menu, height, room);
-  const y = up ? rect.top - gap - Math.min(height, room) : rect.bottom + gap;
-  // Viewport coordinates, written in those of the box the menu is fixed to.
-  const origin = fixedOrigin(menu);
-  style.setProperty('--ds-menu-x', `${round(x - origin.left)}px`);
-  style.setProperty('--ds-menu-y', `${round(y - origin.top)}px`);
-  if (up) menu.setAttribute('data-placement', 'top');
-  else menu.removeAttribute('data-placement');
+  place(menu, anchor, { offset: pxOf(menu, '--ds-space-1', 4), padding: pxOf(menu, '--ds-space-2', 8), crossFlip: true, x: '--ds-menu-x', y: '--ds-menu-y' });
 }
 
 /**
@@ -1378,24 +1218,8 @@ function placeMenu(menu, anchor) {
  * them.
  */
 function placeList(list, anchor) {
-  const view = viewOf(list);
-  const doc = list.ownerDocument;
-  const rect = anchor.getBoundingClientRect();
   const gap = pxOf(list, '--ds-space-1', 4);
-  /** @type {HTMLElement} */ (list).style.removeProperty('max-height');
-  const height = list.offsetHeight;
-  let top = 0;
-  let bottom = doc.documentElement.clientHeight || view.innerHeight;
-  for (let node = list.parentElement; node && node !== doc.body && node !== doc.documentElement; node = node.parentElement) {
-    if (view.getComputedStyle?.(node).overflowY === 'visible') continue;
-    const box = node.getBoundingClientRect();
-    top = Math.max(top, box.top);
-    bottom = Math.min(bottom, box.bottom);
-  }
-  const { up, room } = sideFor(height, rect, gap, gap, top, bottom);
-  fitTo(list, height, room);
-  if (up) list.setAttribute('data-placement', 'top');
-  else list.removeAttribute('data-placement');
+  place(list, anchor, { offset: gap, padding: gap, shift: false, bounds: clippedBounds(list) });
 }
 
 /** Undoes placePopup() once a popup is hidden: out of the top layer, its anchor-name gone. */
@@ -1576,8 +1400,7 @@ function drawerWatchOf(view, query) {
       else if (drawer.isConnected) crossDrawer(drawer, watch.query);
     }
   };
-  if (typeof query.addEventListener === 'function') query.addEventListener('change', onChange);
-  else query.addListener?.(onChange);
+  query.addEventListener?.('change', onChange);
   return watch.drawers;
 }
 
@@ -1595,8 +1418,7 @@ if (typeof globalThis.matchMedia === 'function' && typeof globalThis.document?.q
       if (!watchedDrawers.has(drawer)) crossDrawer(drawer, query);
     }
   };
-  if (typeof query.addEventListener === 'function') query.addEventListener('change', onChange);
-  else query.addListener?.(onChange);
+  query.addEventListener?.('change', onChange);
 }
 
 /** Closes the drawer without motion (the window widened): every bit of state goes at once. */
@@ -1716,7 +1538,7 @@ function dropDetached() {
       if (kind === 'menu' || kind === 'combo') releasePopup(element, state);
       element.removeAttribute('data-state');
     }
-    if (kind === 'dialog' || kind === 'sheet') releaseToasts(element);
+    if (kind === 'dialog' || kind === 'sheet') parts.toast?.release(element);
     boxOf(element, kind).inert = false;
     element.classList.remove('ds-dialog--nested');
     // Carried out inside the host DS moved it into: back home, hidden.
@@ -1849,6 +1671,7 @@ function show(element, options, transform) {
     warned = true;
     viewOf(element).console?.warn('Dashboard-Style: DS.overlay.open() on an element outside .ds-theme. Overlays must sit inside the .ds-theme element, or they get neither the tokens nor the motion.');
   }
+  if (kind === 'menu' || kind === 'dialog') warnMissingPart(element, kind);
   for (const tip of tooltipControllers) tip.hide();
   if (state.phase === 'open') return state.opening ?? Promise.resolve();
   pruneDetached();
@@ -1927,7 +1750,7 @@ function show(element, options, transform) {
     element.classList.remove('ds-dialog--closing', 'ds-sheet--closing');
     if (!element.open) keepFocusVisibility(element, () => element.showModal());
     // The snackbars of the theme come in: into the top layer with it.
-    hostToasts(element, 'enter');
+    parts.toast?.host(element, 'enter');
   } else {
     if (/** @type {HTMLElement} */ (element).hidden) /** @type {HTMLElement} */ (element).hidden = false;
     for (const name of ['ds-dialog--hidden', 'ds-sheet--hidden']) {
@@ -1937,7 +1760,7 @@ function show(element, options, transform) {
       }
     }
     // The snackbars come in before the page turns inert, so they never are.
-    if (kind === 'dialog' || kind === 'sheet') hostToasts(element, 'enter');
+    if (kind === 'dialog' || kind === 'sheet') parts.toast?.host(element, 'enter');
     if (MODAL.has(kind) && !state.inerted.length) state.inerted = inertOutside(element, contained ? containerOf(element) : undefined);
   }
   // A lower trap may have taken this overlay (or a box around it) as a
@@ -1981,6 +1804,7 @@ function show(element, options, transform) {
     if (state.gen === gen) state.opening = null;
   });
   state.opening = entrance;
+  if (typeof viewOf(element).CustomEvent === 'function') emit(element, 'open', { opener: state.opener ?? null });
   return entrance;
 }
 
@@ -1990,7 +1814,7 @@ function show(element, options, transform) {
  * data-state="closed" plays the exit, and once it settled the overlay is
  * hidden and leaves the lock and the Escape stack. A second call during
  * the exit returns the same promise; an open() meanwhile takes it back.
- * `reason` (default 'api') is what the ds-close event says; it also closes
+ * `reason` (default 'api') is what the ds:close event says; it also closes
  * a busy overlay (data-ds-busy refuses only the user's attempts).
  * @param {Element} element
  * @param {{ reason?: string }} [options]
@@ -2037,6 +1861,28 @@ function layerOver(node) {
 }
 
 /**
+ * The open layer that rules where `node` is: the topmost open overlay, past
+ * any contained dialog `node` lies outside the container of (the page around
+ * it stays live, so a modal below one still counts). `node` may sit inside
+ * the layer it gets. Null when none rules there, or without a DOM.
+ * @param {Node|null|undefined} node
+ * @param {Document} [doc]
+ * @returns {Element|null}
+ */
+export function layerAt(node, doc = node?.ownerDocument ?? globalThis.document) {
+  if (!doc) return null;
+  pruneDetached();
+  const order = doc[SHARED]?.order ?? [];
+  for (let i = order.length - 1; i >= 0; i -= 1) {
+    const { element } = order[i];
+    if (!order[i].open()) continue;
+    if (containedDialog(element) && !composedContains(containerOf(element), node)) continue;
+    return element;
+  }
+  return null;
+}
+
+/**
  * Whether `node` opened a layer that is open now (a menu button while its
  * menu shows), in any copy of ds.js that records openers (2.1.1 and
  * later): its tooltip would sit over or beside that layer and take its
@@ -2050,273 +1896,21 @@ function opensOpenLayer(node) {
   return order.some((entry) => entry.open() && entry.opener?.() === node);
 }
 
-/* ── Promise dialogs ────────────────────────────────── */
-
-/** What a failed onConfirm says by default (never the raw error message). */
-const CONFIRM_ERROR = 'That did not work. Try again.';
-
-/** What a required prompt field left empty says by default. */
-const REQUIRED_TEXT = 'Enter a value.';
-
-/**
- * Asks with a built dialog: Cancel and a confirm button. `destructive`
- * makes it an alertdialog whose first focus is Cancel; the confirm label
- * names the consequence (there are no red buttons). `onConfirm` (async)
- * runs with busy() on the confirm button and data-ds-busy on the dialog: a
- * rejection keeps it open, shows `errorText` as an error snackbar above it
- * (in the theme's .ds-toasts region, made when the page has none, inside
- * the open dialog) and focuses the confirm button again.
- * Resolves true when it closed through the confirm button, else false.
- * @param {{ title?: string, text?: string, confirmLabel?: string, cancelLabel?: string, destructive?: boolean,
- *   opener?: Element|null, onConfirm?: () => unknown, errorText?: string }} [options]
- * @returns {Promise<boolean>}
- */
-export function confirm(options = {}) {
-  return /** @type {Promise<boolean>} */ (ask('confirm', options));
-}
-
-/**
- * Tells something with a built alertdialog and one button (`closeLabel`,
- * default "OK"); resolves once it closes.
- * @param {{ title?: string, text?: string, closeLabel?: string, opener?: Element|null }} [options]
- * @returns {Promise<void>}
- */
-export function alert(options = {}) {
-  return /** @type {Promise<void>} */ (ask('alert', options));
-}
-
-/**
- * Asks for one value with a built dialog: a field (`label`, `value`;
- * `input` sets its type, autocomplete, inputmode, required, spellcheck,
- * autocapitalize, autocorrect and enterkeyhint), Cancel and a confirm
- * button; Enter in the field confirms. A required field left
- * empty stays open with the field error `requiredText` (default "Enter a
- * value."; aria-invalid, a .ds-field__hint--error linked by
- * aria-describedby, announced assertively) until the next input.
- * `onConfirm(value)` runs as in confirm(). Resolves the value when it
- * closed through the confirm button, else null.
- * @param {{ title?: string, text?: string, label?: string, value?: string, confirmLabel?: string,
- *   cancelLabel?: string, opener?: Element|null, onConfirm?: (value: string) => unknown, errorText?: string,
- *   requiredText?: string,
- *   input?: { type?: string, autocomplete?: string, inputmode?: string, required?: boolean,
- *     spellcheck?: boolean, autocapitalize?: string, autocorrect?: string, enterkeyhint?: string } }} [options]
- * @returns {Promise<string|null>}
- */
-export function prompt(options = {}) {
-  return /** @type {Promise<string|null>} */ (ask('prompt', options));
-}
-
-/** The answer of a promise dialog that closed without its confirm button. */
-const declined = (kind) => (kind === 'confirm' ? false : kind === 'prompt' ? null : undefined);
-
-/**
- * Builds, opens and answers a promise dialog (confirm(), alert(),
- * prompt()): native <dialog> markup inside the opener's .ds-theme (else
- * the first one), DOM APIs only (no HTML strings, CSP-safe), removed once
- * its exit settled.
- */
-function ask(kind, options) {
-  const opener = options.opener ?? null;
-  const doc = opener?.ownerDocument ?? globalThis.document;
-  if (!doc?.createElement || !doc.body) return Promise.resolve(declined(kind));
-  const theme = opener?.closest?.('.ds-theme') ?? activeIn(doc.body)?.closest?.('.ds-theme') ?? doc.querySelector('.ds-theme');
-  const home = !theme || theme === doc.documentElement ? doc.body : theme;
-  const id = `ds-ask-${sharedOf(doc).seq += 1}`;
-  const make = (tag, className, text) => {
-    const node = doc.createElement(tag);
-    if (className) node.className = className;
-    if (text != null) node.textContent = String(text);
-    return node;
-  };
-  const native = typeof make('dialog').showModal === 'function';
-  const dialog = make(native ? 'dialog' : 'div', 'ds-dialog');
-  const box = make('div', 'ds-dialog__box');
-  // The modal semantics: a native dialog has them; the div markup's box takes the role.
-  const labelled = native ? dialog : box;
-  const role = kind === 'alert' || options.destructive ? 'alertdialog' : 'dialog';
-  if (native) {
-    if (role === 'alertdialog') dialog.setAttribute('role', role);
-  } else {
-    dialog.hidden = true;
-    box.setAttribute('role', role);
-    box.setAttribute('aria-modal', 'true');
-  }
-  const backdrop = make('div', 'ds-dialog__backdrop');
-  backdrop.setAttribute('data-close', '');
-  const title = make('h2', 'ds-dialog__title', options.title ?? '');
-  title.id = `${id}-title`;
-  labelled.setAttribute('aria-labelledby', title.id);
-  box.append(title);
-  if (options.text) {
-    const text = make('p', 'ds-dialog__text', options.text);
-    text.id = `${id}-text`;
-    labelled.setAttribute('aria-describedby', text.id);
-    box.append(text);
-  }
-  /** @type {HTMLInputElement|null} */
-  let field = null;
-  if (kind === 'prompt') {
-    const wrap = make('div', 'ds-field');
-    const label = make('label', 'ds-field__label', options.label ?? '');
-    field = /** @type {HTMLInputElement} */ (make('input', 'ds-input'));
-    field.id = `${id}-field`;
-    label.htmlFor = field.id;
-    const input = options.input ?? {};
-    field.type = input.type ?? 'text';
-    if (input.autocomplete) field.setAttribute('autocomplete', input.autocomplete);
-    if (input.inputmode) field.setAttribute('inputmode', input.inputmode);
-    if (input.required) field.required = true;
-    // Typing hints for a path or a code: written only when given, so the browser's defaults stay otherwise.
-    if (typeof input.spellcheck === 'boolean') field.setAttribute('spellcheck', String(input.spellcheck));
-    for (const name of ['autocapitalize', 'autocorrect', 'enterkeyhint']) {
-      if (input[name]) field.setAttribute(name, input[name]);
-    }
-    field.value = options.value ?? '';
-    field.setAttribute('autofocus', '');
-    wrap.append(label, field);
-    box.append(wrap);
-  }
-  const actions = make('div', 'ds-dialog__actions');
-  const button = (className, text) => {
-    const node = /** @type {HTMLButtonElement} */ (make('button', className, text));
-    node.type = 'button';
-    return node;
-  };
-  /** @type {HTMLButtonElement|null} */
-  let cancel = null;
-  let confirmButton;
-  if (kind === 'alert') {
-    confirmButton = button('ds-btn ds-btn--filled', options.closeLabel ?? 'OK');
-    confirmButton.setAttribute('data-close', '');
-    confirmButton.setAttribute('autofocus', '');
-    actions.append(confirmButton);
-  } else {
-    cancel = button('ds-btn ds-btn--text', options.cancelLabel ?? 'Cancel');
-    cancel.setAttribute('data-close', '');
-    // The faces of busy(): the label, and the spinner with it while onConfirm runs.
-    const label = options.confirmLabel ?? 'Confirm';
-    confirmButton = button('ds-btn ds-btn--filled');
-    const faces = make('span', 'ds-btn__faces');
-    const rest = make('span', 'ds-btn__face', label);
-    const working = make('span', 'ds-btn__face ds-btn__face--busy');
-    working.setAttribute('aria-hidden', 'true');
-    working.append(make('span', 'ds-spinner ds-spinner--sm'), doc.createTextNode(label));
-    faces.append(rest, working);
-    confirmButton.append(faces);
-    // The safe choice first in a destructive question; else the answer, or the field.
-    if (options.destructive) cancel.setAttribute('autofocus', '');
-    else if (!field) confirmButton.setAttribute('autofocus', '');
-    actions.append(cancel, confirmButton);
-  }
-  box.append(actions);
-  dialog.append(backdrop, box);
-
-  return new Promise((resolve) => {
-    dialog.addEventListener('ds-close', (event) => {
-      if (event.target !== dialog) return;
-      const reason = /** @type {CustomEvent} */ (event).detail?.reason;
-      resolve(reason === 'confirm' ? (kind === 'confirm' ? true : kind === 'prompt' ? field?.value ?? '' : undefined) : declined(kind));
-      // Gone once its exit settled (unless it opened again meanwhile).
-      Promise.resolve(overlays.get(dialog)?.closing).then(() => {
-        if (overlays.get(dialog)?.phase !== 'open') dialog.remove();
-      });
-    });
-    if (kind === 'alert') {
-      home.append(dialog);
-      open(dialog, { opener });
-      return;
-    }
-    // A required field left empty: the documented field error (an
-    // aria-invalid field described by a .ds-field__hint--error with its
-    // icon, so never colour alone), said at once since focus is already
-    // there and the description is only read on the next focus.
-    /** @type {HTMLElement|null} */
-    let hint = null;
-    const invalid = (/** @type {HTMLInputElement} */ input) => {
-      const text = String(options.requiredText ?? REQUIRED_TEXT);
-      if (!hint) {
-        hint = make('small', 'ds-field__hint ds-field__hint--error');
-        hint.id = `${id}-error`;
-        hint.append(iconElement(alertCircle, 16, undefined, doc), doc.createTextNode(text));
-        input.parentElement?.append(hint);
-      }
-      input.setAttribute('aria-invalid', 'true');
-      input.setAttribute('aria-describedby', hint.id);
-      input.focus();
-      announce(text, { assertive: true, region: regionOfTheme(doc, theme, home) });
-    };
-    // Typing takes the error away at once (the documented instant removal).
-    const valid = () => {
-      if (!field) return;
-      field.removeAttribute('aria-invalid');
-      field.removeAttribute('aria-describedby');
-      hint?.remove();
-      hint = null;
-    };
-    const attempt = async () => {
-      if (dialog.hasAttribute('data-ds-busy') || overlays.get(dialog)?.phase !== 'open') return;
-      if (field?.required && !field.value.trim()) {
-        invalid(field);
-        return;
-      }
-      valid();
-      if (typeof options.onConfirm !== 'function') {
-        close(dialog, { reason: 'confirm' });
-        return;
-      }
-      // Busy: the dialog refuses the user's closes, Cancel says it is blocked, the value stays.
-      dialog.setAttribute('data-ds-busy', '');
-      cancel?.setAttribute('aria-disabled', 'true');
-      if (field) field.readOnly = true;
-      const settle = () => {
-        dialog.removeAttribute('data-ds-busy');
-        cancel?.removeAttribute('aria-disabled');
-        if (field) field.readOnly = false;
-      };
-      try {
-        await busy(confirmButton, () => options.onConfirm(field?.value ?? undefined), { done: false });
-      } catch {
-        settle();
-        if (!dialog.isConnected) return;
-        // Above the dialog: the theme's region (made when the page has
-        // none) moves into it on first use.
-        const region = regionOfTheme(doc, theme, home);
-        if (region) toast(region, options.errorText ?? CONFIRM_ERROR, { kind: 'error' });
-        confirmButton.focus({ preventScroll: true });
-        return;
-      }
-      settle();
-      close(dialog, { reason: 'confirm' });
-    };
-    confirmButton.addEventListener('click', (/** @type {MouseEvent} */ event) => {
-      if (event.detail > 1) return;
-      attempt();
-    });
-    field?.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
-      if (event.key !== 'Enter' || event.isComposing || event.defaultPrevented) return;
-      event.preventDefault();
-      attempt();
-    });
-    field?.addEventListener('input', valid);
-    home.append(dialog);
-    open(dialog, { opener });
-  });
-}
-
 /** Tells the page why an overlay closed (once per close, after its state turned closed). */
 function announceClose(element, reason) {
   const view = viewOf(element);
   if (typeof view.CustomEvent !== 'function') return;
   element.dispatchEvent(new view.CustomEvent('ds-close', { bubbles: true, detail: { reason } }));
+  emit(element, 'close', { reason });
 }
 
 /**
  * close() by its cause, which steers focus and the busy guard: 'api' (a
- * call), 'close' ([data-close]), 'backdrop' (the backdrop or the drawer's
+ * call), 'close' ([data-ds-close]), 'backdrop' (the backdrop or the drawer's
  * scrim), 'escape', 'native' (the native dialog closed itself), 'parent'
  * (the overlay around it closes), 'item' (a menu item ran), 'tab' (a menu;
  * focus is on the trigger already) or 'outside' (a pointerdown outside a
- * menu: focus stays where the pointer puts it). `reason` is what ds-close
+ * menu: focus stays where the pointer puts it). `reason` is what ds:close
  * tells (by default the cause).
  */
 function closeFrom(element, cause, reason = cause) {
@@ -2365,7 +1959,7 @@ function closeFrom(element, cause, reason = cause) {
   if (returns) keepFocusVisibility(element, () => returnTarget(element, state)?.focus({ preventScroll: true }));
   // The snackbars glide back to their place (from a sheet, with the
   // leaving panel) and stay inside it, above its scrim, until it settled.
-  if (kind === 'dialog' || kind === 'sheet') hostToasts(element, 'exit');
+  if (kind === 'dialog' || kind === 'sheet') parts.toast?.host(element, 'exit');
 
   // 3. Only the box or panel stops taking input; the backdrop swallows clicks.
   box.inert = true;
@@ -2379,7 +1973,7 @@ function closeFrom(element, cause, reason = cause) {
     state.phase = 'closed';
     state.closing = null;
     // Back to the page before it hides; they already stand at their place.
-    if (kind === 'dialog' || kind === 'sheet') hostToasts(element, 'settle');
+    if (kind === 'dialog' || kind === 'sheet') parts.toast?.host(element, 'settle');
     if (kind !== 'drawer') {
       if (isNative(element) && MODAL.has(kind)) {
         // display: none is computed while data-state still holds; the
@@ -2407,19 +2001,11 @@ function closeFrom(element, cause, reason = cause) {
 
 /* ── Shared helpers of snackbars and tooltips ───────── */
 
-const round = (value) => Math.round(value * 100) / 100;
-
 /** Text as compared: whitespace collapsed, trimmed, lower case. */
 const normalText = (text) => String(text ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
 
 /** A monotonic clock in ms. */
 const clock = () => (typeof globalThis.performance?.now === 'function' ? globalThis.performance.now() : Date.now());
-
-/** A length token as computed on the element, in px (`fallback` outside a theme). */
-function pxOf(element, token, fallback) {
-  const value = parseFloat(viewOf(element).getComputedStyle?.(element).getPropertyValue(token) ?? '');
-  return Number.isFinite(value) ? value : fallback;
-}
 
 /** --ds-time-scale on the element (10 at ?speed=0.1); 1 outside a theme. */
 function timeScaleOf(element) {
@@ -2433,1747 +2019,6 @@ function nextFrame(doc, callback) {
   const view = doc.defaultView ?? globalThis;
   if (doc.hidden || typeof view.requestAnimationFrame !== 'function') setTimeout(callback);
   else view.requestAnimationFrame(callback);
-}
-
-/* ── Snackbars ──────────────────────────────────────── */
-
-/** Each character past TOAST_FREE_CHARS adds this much reading time (ms), up to TOAST_MAX_MS. */
-const TOAST_CHAR_MS = 50;
-
-/** A message this long or shorter takes TOAST_MS. */
-const TOAST_FREE_CHARS = 40;
-
-/** The phone width of toast.css: the region spans the width, and the open modal drawer covers its foot. */
-const PHONE_QUERY = '(max-width: 600px)';
-
-/**
- * What toast() returns for a message.
- * @typedef {{ el: HTMLElement|null, close: () => Promise<void>, closed: Promise<void> }} ToastHandle
- */
-
-/**
- * One message. `key`: a later toast() with the same key replaces it (an
- * explicit key) or restarts it (the implicit `restart:` key of a string
- * message without an action); `reserve`: it stays and keeps room in its
- * layer; `onAction`: the onClick of its action button, until used.
- * @typedef {{ el: HTMLElement, region: Element, kind: string, key: string|null, stays: boolean, reserve: boolean,
- *   assertive: boolean, text: string, timeout: number, remaining: number, timer: any, started: number,
- *   phase: 'queued'|'shown'|'leaving'|'gone', done: () => void, closed: Promise<void>,
- *   onAction: ((event: Event, handle: ToastHandle) => void)|null, handle: ToastHandle }} Toast
- */
-
-/**
- * One region: the messages on screen (oldest first) and waiting, why its
- * timers pause, where focus came from, its announcers, the scroller or
- * dialog that keeps room for its messages that stay (`reserved`, watched by
- * `observer` while held) and whether it owns its --ds-toast-lift.
- * @typedef {{ shown: Toast[], queue: Toast[], pointer: boolean, focus: boolean, origin: Element|null,
- *   polite: HTMLElement|null, assertive: HTMLElement|null, pending: Map<HTMLElement, string[]>,
- *   reserved: HTMLElement|null, observer: ResizeObserver|null, lifted: boolean }} ToastRegion
- * @type {WeakMap<Element, ToastRegion>}
- */
-const toastRegions = new WeakMap();
-
-/** The message of each .ds-toast that toast() shows. @type {WeakMap<Element, Toast>} */
-const toastEntries = new WeakMap();
-
-/** Regions with a pointer over a message (cleared by a pointerover anywhere else). */
-const pointedRegions = /** @type {Set<Element>} */ (new Set());
-
-/** Documents with the pointer watcher of pointedRegions. */
-const pointerWatched = new WeakSet();
-
-/**
- * Per document: the regions its one visibilitychange listener pauses and
- * resumes, held weakly, so a region the page dropped is not kept alive.
- * @type {WeakMap<Document, Set<WeakRef<Element>>>}
- */
-const visibilityRegions = new WeakMap();
-
-/**
- * Per .ds-app, the regions its one data-drawer-open observer lifts, held
- * weakly like visibilityRegions.
- * @type {WeakMap<Element, Set<WeakRef<Element>>>}
- */
-const drawerRegions = new WeakMap();
-
-/** The live regions announcers() made: inertOutside() leaves them alone, like the snackbar regions. */
-const announcerNodes = new WeakSet();
-
-/**
- * The tooltips tooltips() made: inertOutside() leaves them alone too, so
- * the one a trigger inside a div dialog, side sheet or the modal drawer
- * shows takes the pointer (the hoverable grace) and is heard.
- */
-const tooltipNodes = new WeakSet();
-
-/**
- * Regions that open dialogs and side sheets took in: the places each one
- * left, the latest last ({ host, parent, next, left: the inline
- * --ds-toast-left, at: the computed left in px there, leaving: the host's
- * exit runs and the region glides back inside it }).
- * @type {WeakMap<Element, Array<{ host: Element, parent: Node, next: Node|null, left: string, at: number, leaving: boolean }>>}
- */
-const toastHomes = new WeakMap();
-
-/**
- * The regions that have a toastHomes entry right now, so a close finds
- * them even when they left the document meanwhile; each with the nodes
- * that keepAway() marked (the region and its announcers).
- * @type {Map<Element, Node[]>}
- */
-const hostedRegions = new Map();
-
-/** The latest follow glide of each region (a later one supersedes it). @type {WeakMap<Element, number>} */
-const followRuns = new WeakMap();
-
-/**
- * The save bars on screen (savebar()): each lifts the snackbar regions of
- * its theme above itself (`lift(region)`, in px).
- * @type {Set<{ element: HTMLElement, lift: (region: Element) => number }>}
- */
-const shownSavebars = new Set();
-
-function regionState(region) {
-  let state = toastRegions.get(region);
-  if (!state) {
-    state = {
-      shown: [], queue: [], pointer: false, focus: false, origin: null,
-      polite: null, assertive: null, pending: new Map(),
-      reserved: null, observer: null, lifted: false,
-    };
-    toastRegions.set(region, state);
-    // The markup removed in 2.0 (role="status" aria-live="polite" on the
-    // region): the announcers speak, so a live region would read every
-    // message twice. Taken off once and owned, so a re-render of the
-    // page's markup (DS.dom.morphHtml) does not put it back.
-    for (const name of ['role', 'aria-live']) {
-      if (!region.hasAttribute(name)) continue;
-      region.removeAttribute(name);
-      own(region, 'attrs', name);
-    }
-    wireRegion(region, state);
-    hostLate(region);
-  }
-  return state;
-}
-
-/**
- * A region first used while a dialog or side sheet of its theme is open
- * (made by toastRegion() then, or rendered by the page after the open)
- * goes into each such overlay on the stack, oldest first, as if it had
- * been there at open(): else it would stay under the modal, inert, and
- * its announcers unheard. One inside a nested .ds-theme stays, as in
- * hostToasts().
- */
-function hostLate(region) {
-  const theme = region.closest?.('.ds-theme') ?? null;
-  for (const host of [...stack]) {
-    const state = overlays.get(host);
-    if (state?.phase !== 'open' || (state.kind !== 'dialog' && state.kind !== 'sheet')) continue;
-    const hostTheme = host.closest('.ds-theme');
-    if (hostTheme && hostTheme !== theme) continue;
-    followInto(region, host);
-  }
-}
-
-/** The .ds-app of a region's theme (the region sits right after it). */
-function appOf(region) {
-  const scope = region.closest?.('.ds-theme') ?? region.ownerDocument;
-  return /** @type {HTMLElement|null} */ (scope?.querySelector?.('.ds-app') ?? null);
-}
-
-const paused = (region, state) => state.pointer || state.focus || Boolean(region.ownerDocument.hidden);
-
-/** Starts (or resumes) a message's timer with the time it has left. */
-function arm(entry, region, state) {
-  if (entry.stays || entry.phase !== 'shown' || entry.timer || paused(region, state)) return;
-  entry.started = clock();
-  entry.timer = setTimeout(() => {
-    entry.timer = 0;
-    closeToast(entry);
-  }, Math.max(0, entry.remaining));
-}
-
-/** Stops a message's timer and keeps the time it has left. */
-function disarm(entry) {
-  if (!entry.timer) return;
-  clearTimeout(entry.timer);
-  entry.timer = 0;
-  entry.remaining -= clock() - entry.started;
-}
-
-function pauseToasts(state) {
-  for (const entry of state.shown) disarm(entry);
-}
-
-function resumeToasts(region, state) {
-  for (const entry of state.shown) arm(entry, region, state);
-}
-
-function unpoint(region, state) {
-  pointedRegions.delete(region);
-  if (!state.pointer) return;
-  state.pointer = false;
-  resumeToasts(region, state);
-}
-
-/**
- * The pauses (pointer, focus, a hidden tab), the close and action buttons,
- * the origin of focus and the open modal drawer (its foot lifts the
- * messages on phones), once per region. The region itself takes no
- * pointer (pointer-events: none), its messages do, and their events
- * bubble here.
- */
-function wireRegion(region, state) {
-  const doc = region.ownerDocument;
-  region.addEventListener('pointerover', (/** @type {PointerEvent} */ event) => {
-    if (state.pointer || region.contains(/** @type {Node} */ (event.relatedTarget))) return;
-    state.pointer = true;
-    pointedRegions.add(region);
-    pauseToasts(state);
-  });
-  region.addEventListener('pointerout', (/** @type {PointerEvent} */ event) => {
-    if (region.contains(/** @type {Node} */ (event.relatedTarget))) return;
-    unpoint(region, state);
-  });
-  region.addEventListener('focusin', (/** @type {FocusEvent} */ event) => {
-    const from = /** @type {Element|null} */ (event.relatedTarget);
-    if (!state.focus && from && !region.contains(from)) state.origin = from;
-    state.focus = true;
-    pauseToasts(state);
-  });
-  region.addEventListener('focusout', (/** @type {FocusEvent} */ event) => {
-    if (region.contains(/** @type {Node} */ (event.relatedTarget))) return;
-    state.focus = false;
-    resumeToasts(region, state);
-  });
-  region.addEventListener('click', (/** @type {MouseEvent} */ event) => {
-    const target = /** @type {Element} */ (event.target);
-    const button = target.closest?.('.ds-toast__close, .ds-toast__action');
-    const entry = button && region.contains(button) ? toastEntries.get(button.closest('.ds-toast')) : null;
-    if (!entry || entry.phase !== 'shown') return;
-    if (button.classList.contains('ds-toast__close')) {
-      closeToast(entry);
-      return;
-    }
-    const run = entry.onAction;
-    if (!run) return;
-    // Once: a double click never undoes twice.
-    entry.onAction = null;
-    closeToast(entry);
-    try {
-      run(event, entry.handle);
-    } catch (error) {
-      report(region, error);
-    }
-  });
-  const regions = visibilityOf(doc);
-  for (const ref of [...regions]) if (!ref.deref()) regions.delete(ref);
-  regions.add(new WeakRef(region));
-  watchPointer(doc);
-  const app = appOf(region);
-  const lifted = app ? drawerOf(app) : null;
-  if (lifted) {
-    for (const ref of [...lifted]) if (!ref.deref()) lifted.delete(ref);
-    lifted.add(new WeakRef(region));
-  }
-}
-
-/**
- * The regions that the modal drawer of `app` lifts while it opens and
- * closes (its foot on phones): one MutationObserver per .ds-app. A
- * function of its own, like visibilityOf(): an observer made inside
- * wireRegion() would keep its region alive as long as the .ds-app, also
- * after the page replaced the region. Null without MutationObserver.
- * @returns {Set<WeakRef<Element>>|null}
- */
-function drawerOf(app) {
-  let watched = drawerRegions.get(app);
-  if (watched) return watched;
-  const Observer = viewOf(app).MutationObserver;
-  if (typeof Observer !== 'function') return null;
-  const regions = /** @type {Set<WeakRef<Element>>} */ (new Set());
-  drawerRegions.set(app, regions);
-  new Observer(() => {
-    for (const ref of [...regions]) {
-      const region = ref.deref();
-      const state = region && toastRegions.get(region);
-      if (!state) regions.delete(ref);
-      else if (region.isConnected && state.shown.length) liftRegion(region);
-    }
-  }).observe(app, { attributes: true, attributeFilter: ['data-drawer-open'] });
-  return regions;
-}
-
-/**
- * A message that leaves from under a still pointer sends no pointerout to
- * the region; the next pointerover elsewhere tells. A function of its own,
- * like visibilityOf(): made inside wireRegion(), the listener would keep
- * the first region alive.
- */
-function watchPointer(doc) {
-  if (pointerWatched.has(doc)) return;
-  pointerWatched.add(doc);
-  doc.addEventListener('pointerover', (/** @type {PointerEvent} */ event) => {
-    for (const pointed of [...pointedRegions]) {
-      if (!inside(pointed, event)) unpoint(pointed, toastRegions.get(pointed));
-    }
-  }, true);
-}
-
-/**
- * The regions of `doc` that its one visibilitychange listener pauses and
- * resumes. A function of its own: a listener made inside wireRegion()
- * would share that call's scope and keep its region alive.
- * @returns {Set<WeakRef<Element>>}
- */
-function visibilityOf(doc) {
-  let watched = visibilityRegions.get(doc);
-  if (watched) return watched;
-  const regions = /** @type {Set<WeakRef<Element>>} */ (new Set());
-  visibilityRegions.set(doc, regions);
-  doc.addEventListener('visibilitychange', () => {
-    for (const ref of [...regions]) {
-      const region = ref.deref();
-      const state = region && toastRegions.get(region);
-      if (!state) regions.delete(ref);
-      else if (doc.hidden) pauseToasts(state);
-      else resumeToasts(region, state);
-    }
-  });
-  return regions;
-}
-
-/** The documented close button of a message; its label is its tooltip too. */
-function closeButton(doc, label) {
-  const button = doc.createElement('button');
-  button.className = 'ds-btn ds-btn--quiet ds-btn--icon ds-toast__close';
-  button.type = 'button';
-  button.setAttribute('aria-label', label || 'Close');
-  button.setAttribute('data-tip', label || 'Close');
-  button.append(iconElement(closeGlyph, 20, undefined, doc));
-  return button;
-}
-
-/** The documented message for a string: icon, text, the action and, when it stays, a close button. */
-function buildToast(doc, text, kind, closable, closeLabel, actionLabel) {
-  const el = doc.createElement('div');
-  el.className = kind === 'error' || kind === 'info' ? `ds-toast ds-toast--${kind}` : 'ds-toast';
-  el.append(iconElement(kind === 'error' ? alertCircle : kind === 'info' ? info : checkCircle, 20, undefined, doc));
-  const span = doc.createElement('span');
-  span.className = 'ds-toast__text';
-  span.textContent = text;
-  el.append(span);
-  if (actionLabel) {
-    const action = doc.createElement('button');
-    action.className = 'ds-btn ds-btn--text ds-sm ds-toast__action';
-    action.type = 'button';
-    action.textContent = actionLabel;
-    el.append(action);
-  }
-  if (closable) el.append(closeButton(doc, closeLabel));
-  return el;
-}
-
-/** The two announcers next to the region (created once, moved with it). */
-function announcers(region, state) {
-  // An announcer a re-render patched into a page element is no announcer
-  // any more: a new one takes its place, and the page keeps its element.
-  const live = (key) => {
-    const node = state[key];
-    return Boolean(node?.isConnected) && node.classList.contains('ds-sr') && node.getAttribute('aria-live') === key;
-  };
-  if (live('polite') && live('assertive')) return;
-  const doc = region.ownerDocument;
-  for (const key of /** @type {const} */ (['polite', 'assertive'])) {
-    if (live(key)) continue;
-    if (state[key]) announcerNodes.delete(state[key]);
-    const node = doc.createElement('div');
-    node.className = 'ds-sr';
-    node.setAttribute('aria-live', key);
-    node.setAttribute('aria-atomic', 'true');
-    // A runtime node, like a ripple: DS.dom.morphHtml of the region's
-    // parent never matches, patches or removes it.
-    node.setAttribute('data-ds-keep', '');
-    announcerNodes.add(node);
-    state[key] = node;
-  }
-  region.after(/** @type {HTMLElement} */ (state.polite), /** @type {HTMLElement} */ (state.assertive));
-}
-
-/**
- * Says a text through the region's announcer: cleared now, written on the
- * next frame, so the same text again is announced again. Texts of one
- * frame are read together.
- * @param {{ text: string, assertive: boolean }} entry
- */
-function speak(region, state, entry) {
-  if (!entry.text) return;
-  announcers(region, state);
-  const node = /** @type {HTMLElement} */ (entry.assertive ? state.assertive : state.polite);
-  const texts = state.pending.get(node);
-  if (texts) {
-    texts.push(entry.text);
-    return;
-  }
-  state.pending.set(node, [entry.text]);
-  node.textContent = '';
-  nextFrame(region.ownerDocument, () => {
-    node.textContent = (state.pending.get(node) ?? []).join('\n');
-    state.pending.delete(node);
-  });
-}
-
-/** How long a message stays (ms): longer texts get more time, capped; --ds-time-scale stretches it. */
-function toastTimeout(region, text, options) {
-  const given = typeof options.timeout === 'number' && options.timeout > 0 ? options.timeout : 0;
-  const base = given || Math.min(TOAST_MAX_MS, TOAST_MS + TOAST_CHAR_MS * Math.max(0, text.length - TOAST_FREE_CHARS));
-  return base * timeScaleOf(region);
-}
-
-/**
- * The page's snackbar region: the .ds-toasts in the theme of the first
- * .ds-app (else the first in the document). Without one it creates
- * <div class="ds-toasts"></div> right after the .ds-app (else as the last
- * child of the .ds-theme, else of <body>; a theme on <html> puts it at the
- * end of <body>, never after it). toast(null, ...), announce() and
- * savebar() use it.
- * @param {Document} [doc]
- * @returns {HTMLElement|null}
- */
-export function toastRegion(doc = globalThis.document) {
-  if (!doc?.querySelector) return null;
-  const app = doc.querySelector('.ds-app');
-  const theme = app?.closest('.ds-theme') ?? null;
-  const found = (theme && ownOf(theme, '.ds-toasts')) ?? doc.querySelector('.ds-toasts');
-  if (found) return /** @type {HTMLElement} */ (found);
-  return newRegion(doc, app, doc.querySelector('.ds-theme') ?? doc.body);
-}
-
-/** The first `selector` match inside `theme` that is its own (not inside a nested .ds-theme, an embedded widget's). */
-function ownOf(theme, selector) {
-  return [...theme.querySelectorAll(selector)].find((node) => node.closest('.ds-theme') === theme) ?? null;
-}
-
-/**
- * A new empty .ds-toasts right after `app` (else the last child of
- * `parent`, <body> for a theme on <html>, as ask() places its dialog);
- * null when it is not in the document.
- */
-function newRegion(doc, app, parent) {
-  const region = doc.createElement('div');
-  region.className = 'ds-toasts';
-  if (app) app.after(region);
-  else (parent === doc.documentElement && doc.body ? doc.body : parent)?.append(region);
-  return region.isConnected ? region : null;
-}
-
-/**
- * The snackbar region of a built dialog's theme (`home` is where the
- * dialog went: the theme, or <body> for a theme on <html>): its own
- * region, else a new one after its .ds-app, which regionState() then
- * moves into the open dialog.
- */
-function regionOfTheme(doc, theme, home) {
-  if (!theme) return toastRegion(doc);
-  return /** @type {HTMLElement|null} */ (ownOf(theme, '.ds-toasts')) ?? newRegion(doc, ownOf(theme, '.ds-app'), home);
-}
-
-/**
- * Says `text` to screen readers through the announcers of a snackbar
- * region (`region`, default toastRegion()), without showing a message:
- * polite, or assertive with `assertive: true`. The same text twice is
- * spoken twice; empty text does nothing. While a dialog or side sheet is
- * open the region (and its announcers) sit inside it, so the text is heard
- * there.
- * @param {string} text
- * @param {{ assertive?: boolean, region?: Element|null }} [options]
- */
-export function announce(text, options = {}) {
-  const value = String(text ?? '').replace(/\s+/g, ' ').trim();
-  if (!value) return;
-  const region = options.region ?? toastRegion();
-  if (!region?.ownerDocument) return;
-  speak(region, regionState(region), { text: value, assertive: options.assertive === true });
-}
-
-/**
- * Shows a snackbar in `region` (a .ds-toasts element inside the
- * .ds-theme; null: toastRegion()). `content` is a .ds-toast element or a
- * string, from which it builds the documented message: the checkCircle
- * icon (alertCircle for kind 'error', info for 'info'), the text, the
- * `action` button and, for a message that stays, a close button (an
- * element message that stays without one gets it too). At most TOAST_LIMIT
- * show at once: a further one replaces the oldest that would close by
- * itself, or waits until one closes. Errors, `persistent` messages and
- * messages with an action, another button or a link never close by
- * themselves; the others close after `timeout` ms (default 4000ms plus
- * 50ms per character past 40, at most 10000ms; all stretched by
- * --ds-time-scale), paused while a pointer is over a message, focus is in
- * the region or the tab is hidden.
- *
- * The same message again (a string without action, same kind, same
- * `persistent`, same text) restarts the one on screen (its timer, its
- * announcement) and returns its handle; `restart: false` stacks it. A
- * message with the `key` of one on screen or waiting replaces it in place
- * (the old one's `closed` resolves). Messages that stay keep room in the
- * view, a hosting sheet's body or dialog (data-toast-reserve and
- * --ds-toast-reserve), unless `reserve: false`.
- * @param {Element|null} region
- * @param {Element|string} content
- * @param {{ kind?: 'success'|'error'|'info', persistent?: boolean, timeout?: number, closeLabel?: string,
- *   action?: { label: string, onClick?: (event: Event, handle: ToastHandle) => void },
- *   key?: string, restart?: boolean, reserve?: boolean }} [options]
- * @returns {ToastHandle}
- *   close() takes it away (a waiting one leaves the queue); closed resolves once it is gone
- */
-export function toast(region, content, options = {}) {
-  const target = region ?? (content == null ? null : toastRegion());
-  const doc = target?.ownerDocument;
-  if (!doc || content == null) return { el: null, close: () => Promise.resolve(), closed: Promise.resolve() };
-  const state = regionState(target);
-  const given = typeof content === 'object' && /** @type {Element} */ (content).nodeType === 1;
-  const element = /** @type {HTMLElement} */ (given ? content : null);
-  const kind = options.kind ?? (element?.classList.contains('ds-toast--error') ? 'error' : element?.classList.contains('ds-toast--info') ? 'info' : 'success');
-  const label = !given && options.action ? String(options.action.label ?? '').trim() : '';
-  const persistent = options.persistent === true || kind === 'error' || Boolean(label);
-  const el = element ?? buildToast(doc, String(content), kind, persistent, options.closeLabel, label);
-  // A message with an action waits for it (WCAG 2.2.1).
-  const action = [...el.querySelectorAll('button, a[href]')].some((node) => !node.classList.contains('ds-toast__close'));
-  // A message that stays can always be closed.
-  if (given && persistent && !action && !el.querySelector('.ds-toast__close')) el.append(closeButton(doc, options.closeLabel));
-  const text = ((el.querySelector('.ds-toast__text') ?? el).textContent ?? '').replace(/\s+/g, ' ').trim();
-  // The announcers speak; a live message would be read twice.
-  if (/^(alert|status)$/.test(el.getAttribute('role') ?? '')) el.removeAttribute('role');
-  el.removeAttribute('aria-live');
-  const explicit = options.key != null && options.key !== '';
-  const key = explicit ? String(options.key) : !given && !label && options.restart !== false ? `restart:${kind}:${persistent}:${normalText(text)}` : null;
-  const match = key ? [...state.shown, ...state.queue].find((other) => other.key === key && (other.phase === 'shown' || other.phase === 'queued')) : null;
-  if (match && (!explicit || match.el === el)) {
-    // The same message again: nothing moves, it starts over (or keeps its place in the queue).
-    if (match.phase === 'shown') restartToast(match, target, state);
-    return match.handle;
-  }
-  const timeout = toastTimeout(target, text, options);
-  let done = () => {};
-  const closed = new Promise((resolve) => {
-    done = () => resolve(undefined);
-  });
-  const stays = persistent || action || !Number.isFinite(timeout);
-  /** @type {Toast} */
-  const entry = {
-    el, region: target, kind, key, stays, reserve: stays && options.reserve !== false, assertive: kind === 'error', text,
-    timeout, remaining: timeout, timer: 0, started: 0, phase: 'queued', done, closed,
-    onAction: label && typeof options.action?.onClick === 'function' ? options.action.onClick : null,
-    handle: /** @type {ToastHandle} */ (/** @type {unknown} */ (null)),
-  };
-  entry.handle = { el, close: () => closeToast(entry), closed };
-  toastEntries.set(el, entry);
-  if (match) replaceToast(target, state, match, entry);
-  else {
-    state.queue.push(entry);
-    updateToasts(target, state, []);
-  }
-  return entry.handle;
-}
-
-/**
- * Closes every message of `region` (default toastRegion()) on screen or
- * waiting that matches `kind` and `key` (both optional: no filter closes
- * all), as one change of the stack. Resolves once they are gone.
- * @param {Element|null} [region]
- * @param {{ kind?: 'success'|'error'|'info', key?: string }} [filter]
- * @returns {Promise<void>}
- */
-export function closeToasts(region, filter = {}) {
-  const target = region ?? toastRegion();
-  const state = target ? toastRegions.get(target) : null;
-  if (!state) return Promise.resolve();
-  const matches = (entry) => (filter.kind == null || entry.kind === filter.kind) && (filter.key == null || entry.key === String(filter.key));
-  const queued = state.queue.filter(matches);
-  const shown = state.shown.filter((entry) => entry.phase === 'shown' && matches(entry));
-  for (const entry of queued) {
-    state.queue.splice(state.queue.indexOf(entry), 1);
-    finishToast(entry);
-  }
-  if (shown.length) updateToasts(target, state, shown);
-  return Promise.all([...queued, ...shown].map((entry) => entry.closed)).then(() => undefined);
-}
-
-/** Takes a message away: a waiting one leaves the queue, a shown one leaves the stack. */
-function closeToast(entry) {
-  const state = toastRegions.get(entry.region);
-  if (!state) return entry.closed;
-  if (entry.phase === 'queued') {
-    state.queue.splice(state.queue.indexOf(entry), 1);
-    finishToast(entry);
-  } else if (entry.phase === 'shown') updateToasts(entry.region, state, [entry]);
-  return entry.closed;
-}
-
-function finishToast(entry) {
-  if (entry.phase === 'gone') return;
-  entry.phase = 'gone';
-  disarm(entry);
-  toastEntries.delete(entry.el);
-  entry.done();
-}
-
-/** The same message on screen again: its timer starts over and its text is said again; nothing moves. */
-function restartToast(entry, region, state) {
-  disarm(entry);
-  entry.remaining = entry.timeout;
-  arm(entry, region, state);
-  speak(region, state, entry);
-}
-
-/**
- * A message with the key of `old` takes its place: in the queue, its
- * slot; on screen, inside one flip() the old one fades out where it is and
- * the new one enters in its slot. Focus inside the old one moves to the
- * new one's close button.
- */
-function replaceToast(region, state, old, entry) {
-  if (old.phase === 'queued') {
-    state.queue.splice(state.queue.indexOf(old), 1, entry);
-    finishToast(old);
-    return;
-  }
-  const focused = old.el.contains(activeIn(old.el));
-  disarm(old);
-  old.phase = 'leaving';
-  state.shown.splice(state.shown.indexOf(old), 1, entry);
-  entry.phase = 'shown';
-  const moved = flip(region, (hooks) => {
-    region.insertBefore(entry.el, old.el.parentNode === region ? old.el : null);
-    const leaving = hooks.onRemove(old.el);
-    if (leaving) leaving.then(() => finishToast(old));
-    else {
-      old.el.remove();
-      finishToast(old);
-    }
-  });
-  if (focused) {
-    const button = entry.el.querySelector('.ds-toast__close');
-    if (canFocus(button)) /** @type {HTMLElement} */ (button).focus({ preventScroll: true });
-    else releaseToastFocus(old, region, state, state.shown.filter((other) => other !== entry));
-  }
-  shownNow(region, state, [entry], moved);
-}
-
-/**
- * Moves focus off a message that leaves: to the close button of the next
- * message that stays (else the one before), else to where focus came from
- * into the region, else to the view (tabindex="-1"). Never <body>.
- */
-function releaseToastFocus(entry, region, state, staying) {
-  const doc = region.ownerDocument;
-  if (!entry.el.contains(activeIn(entry.el))) return;
-  const others = staying.filter((other) => other.el.parentNode === region);
-  const after = others.filter((other) => entry.el.compareDocumentPosition(other.el) & 4);
-  const before = others.filter((other) => !after.includes(other)).reverse();
-  const buttons = [...after, ...before].map((other) => other.el.querySelector('.ds-toast__close'));
-  const origin = state.origin && !region.contains(state.origin) ? state.origin : null;
-  const view = region.closest('[tabindex="-1"]') ?? doc.querySelector(LANDMARK);
-  const target = [...buttons, origin, view].find((node) => canFocus(node) && !entry.el.contains(node));
-  target?.focus({ preventScroll: true });
-}
-
-/**
- * Brings the stack in line: `closing` leaves, waiting messages fill free
- * places or replace the oldest message that would close by itself. One
- * flip() for all of it, so the messages that stay glide to their places
- * while the new ones enter and the old ones fade out in place.
- */
-function updateToasts(region, state, closing) {
-  const next = state.shown.filter((entry) => !closing.includes(entry));
-  const added = [];
-  while (state.queue.length) {
-    if (next.length >= TOAST_LIMIT) {
-      const oldest = next.findIndex((entry) => !entry.stays);
-      if (oldest < 0) break;
-      next.splice(oldest, 1);
-    }
-    const entry = /** @type {Toast} */ (state.queue.shift());
-    next.push(entry);
-    added.push(entry);
-  }
-  const removed = state.shown.filter((entry) => !next.includes(entry));
-  const entering = added.filter((entry) => next.includes(entry));
-  // Replaced before it ever showed (several entered at once): gone at once.
-  for (const entry of added) if (!next.includes(entry)) finishToast(entry);
-  if (!removed.length && !entering.length) return;
-  for (const entry of removed) {
-    disarm(entry);
-    entry.phase = 'leaving';
-  }
-  // The first message of an empty stack enters where the region rests now
-  // (above a sheet's foot, the drawer's foot, a save bar): set at once.
-  if (!state.shown.length && entering.length) writeLift(region, liftOf(region));
-  state.shown = next;
-  for (const entry of removed) releaseToastFocus(entry, region, state, next.filter((other) => !entering.includes(other)));
-  const moved = flip(region, (hooks) => {
-    for (const entry of removed) {
-      const leaving = hooks.onRemove(entry.el);
-      if (leaving) leaving.then(() => finishToast(entry));
-      else {
-        entry.el.remove();
-        finishToast(entry);
-      }
-    }
-    for (const entry of entering) {
-      entry.phase = 'shown';
-      region.append(entry.el);
-    }
-  });
-  shownNow(region, state, entering, moved);
-}
-
-/**
- * After a change of the stack: the new messages are said and timed, their
- * entrance is marked played, and once it all settled the room for the
- * messages that stay is measured again.
- */
-function shownNow(region, state, entering, moved) {
-  const landed = entering.map((entry) => {
-    speak(region, state, entry);
-    arm(entry, region, state);
-    // Played once: a later move of the region (a side sheet) does not replay it.
-    const played = settled(entry.el);
-    played.then(() => {
-      if (entry.phase !== 'shown') return;
-      // For good: a re-render never replays the entrance.
-      own(entry.el, 'classes', 'ds-toast--shown');
-      entry.el.classList.add('ds-toast--shown');
-    });
-    return played;
-  });
-  Promise.all([moved, ...landed]).then(() => reserveRoom(region, state));
-}
-
-/* ── Room for messages that stay, and the lift ───────── */
-
-/** The open dialog or side sheet a region shows in (not one that is leaving), else null: the page. */
-function hostOf(region) {
-  const homes = toastHomes.get(region);
-  const last = homes?.[homes.length - 1];
-  return last && !last.leaving ? last.host : null;
-}
-
-/**
- * Where a region keeps room for messages that stay: a hosting dialog, a
- * hosting sheet's body, else the .ds-view of its app. A layer the page
- * marked data-ds-toast-room="off" keeps none (a fixed view that must not
- * shrink); the others still do. Read at every measure, so a toggle
- * applies on the next change of the stack.
- */
-function reserveTarget(region) {
-  const host = hostOf(region);
-  const node = /** @type {HTMLElement|null} */ (host
-    ? (host.matches('.ds-dialog') ? host : host.querySelector('.ds-sheet__body'))
-    : appOf(region)?.querySelector('.ds-view') ?? null);
-  return node?.getAttribute('data-ds-toast-room') === 'off' ? null : node;
-}
-
-/** Gives the room back: the attribute and the property toast() wrote go. */
-function releaseReserve(state) {
-  state.observer?.disconnect();
-  state.observer = null;
-  const node = state.reserved;
-  if (!node) return;
-  state.reserved = null;
-  node.removeAttribute('data-toast-reserve');
-  node.style.removeProperty('--ds-toast-reserve');
-  disown(node, 'attrs', 'data-toast-reserve');
-  disown(node, 'props', '--ds-toast-reserve');
-}
-
-/**
- * While messages that stay show, the scroller of their layer keeps room
- * for them at its end: data-toast-reserve and --ds-toast-reserve = how far
- * the highest of them reaches into it, rounded up. In a hosting dialog the
- * box makes room only while it would overlap the stack: the stack, its
- * distance from the bottom edge and --ds-space-3 (the box re-centres). A
- * focused element (or where focus came from) under the stack scrolls
- * clear. Measured after every change of the stack settled, after the
- * region moved and when the region resizes (one ResizeObserver, while
- * held).
- */
-function reserveRoom(region, state) {
-  const staying = state.shown.filter((entry) => entry.phase === 'shown' && entry.reserve && entry.el.parentNode === region);
-  const node = staying.length && region.isConnected ? reserveTarget(region) : null;
-  if (state.reserved && state.reserved !== node) releaseReserve(state);
-  if (!node) return;
-  const top = Math.min(...staying.map((entry) => entry.el.getBoundingClientRect().top));
-  let room = 0;
-  if (node.matches('.ds-dialog')) {
-    const box = node.querySelector('.ds-dialog__box') ?? node;
-    const applied = state.reserved === node ? parseFloat(node.style.getPropertyValue('--ds-toast-reserve')) || 0 : 0;
-    // Where the box would rest without the room: it re-centres by half of it.
-    if (box.getBoundingClientRect().bottom + applied / 2 <= top) {
-      releaseReserve(state);
-      return;
-    }
-    const doc = region.ownerDocument;
-    room = (doc.documentElement.clientHeight || viewOf(region).innerHeight) - top + pxOf(region, '--ds-space-3', 12);
-  } else room = node.getBoundingClientRect().bottom - top;
-  if (state.reserved !== node) {
-    own(node, 'attrs', 'data-toast-reserve');
-    own(node, 'props', '--ds-toast-reserve');
-    state.reserved = node;
-  }
-  node.setAttribute('data-toast-reserve', '');
-  node.style.setProperty('--ds-toast-reserve', `${Math.ceil(Math.max(0, room))}px`);
-  const Observer = viewOf(region).ResizeObserver;
-  if (!state.observer && typeof Observer === 'function') {
-    let first = true;
-    state.observer = new Observer(() => {
-      // The first call only reports the size it starts with.
-      if (first) first = false;
-      else reserveRoom(region, state);
-    });
-    state.observer.observe(region);
-  }
-  if (node.matches('.ds-dialog')) return;
-  for (const el of new Set([activeIn(node), state.origin])) {
-    if (!el || el === node || !node.contains(el) || typeof el.scrollIntoView !== 'function') continue;
-    if (el.getBoundingClientRect().bottom > top) el.scrollIntoView({ block: 'nearest' });
-  }
-}
-
-/**
- * How far a region rises above its resting bottom (px): above a hosting
- * side sheet's foot; on the page above the open modal drawer's foot on
- * phones and above a shown save bar of its theme.
- */
-function liftOf(region) {
-  const gap = pxOf(region, '--ds-space-2', 8);
-  const above = (node) => (node && node.offsetHeight > 0 ? node.offsetHeight + gap : 0);
-  const host = hostOf(region);
-  if (host) return host.matches('.ds-sheet') ? above(host.querySelector('.ds-sheet__foot')) : 0;
-  let lift = 0;
-  const app = appOf(region);
-  if (app?.hasAttribute('data-drawer-open') && viewOf(region).matchMedia?.(PHONE_QUERY).matches) lift = above(app.querySelector('.ds-drawer .ds-drawer__foot'));
-  const theme = region.closest('.ds-theme');
-  for (const bar of shownSavebars) if (bar.element.closest('.ds-theme') === theme) lift = Math.max(lift, bar.lift(region));
-  return lift;
-}
-
-/** Writes (or removes) a region's --ds-toast-lift, owned while set. */
-function writeLift(region, px) {
-  const state = regionState(region);
-  const style = /** @type {HTMLElement} */ (region).style;
-  if (px > 0.5) {
-    style.setProperty('--ds-toast-lift', `${round(px)}px`);
-    if (!state.lifted) own(region, 'props', '--ds-toast-lift');
-    state.lifted = true;
-  } else {
-    style.removeProperty('--ds-toast-lift');
-    if (state.lifted) disown(region, 'props', '--ds-toast-lift');
-    state.lifted = false;
-  }
-}
-
-/** The lift of a region on the page changed (a save bar, the drawer): its messages glide there. */
-function liftRegion(region) {
-  const next = liftOf(region);
-  const now = parseFloat(/** @type {HTMLElement} */ (region).style.getPropertyValue('--ds-toast-lift')) || 0;
-  if (Math.abs(next - now) < 0.5) return;
-  const state = regionState(region);
-  glideRegion(region, next > now ? 'enter' : 'exit', () => writeLift(region, next)).then(() => reserveRoom(region, state));
-}
-
-/* ── Snackbars inside an open dialog or side sheet ───── */
-
-/** Moves the region (and its announcers) before `before` in `parent`; focus inside stays. */
-function moveRegion(region, parent, before) {
-  const state = toastRegions.get(region);
-  const active = activeIn(region);
-  const refocus = active && region.contains(active) ? active : null;
-  const nodes = [region, state?.polite, state?.assertive].filter((node) => node && node.parentNode === region.parentNode);
-  const anchor = before && before.parentNode === parent ? before : null;
-  for (const node of nodes) {
-    if (typeof parent.moveBefore === 'function') {
-      try {
-        parent.moveBefore(node, anchor);
-        continue;
-      } catch {
-        // Not movable here (another document, a disconnected parent): insert.
-      }
-    }
-    parent.insertBefore(node, anchor);
-  }
-  if (refocus && activeIn(refocus) !== refocus && canFocus(refocus)) refocus.focus({ preventScroll: true });
-}
-
-/**
- * Applies `move` (a DOM move, a new --ds-toast-left or --ds-toast-lift)
- * and lets the messages glide from where they are on screen to the new
- * place on both axes, through the region's own translate transition
- * (--ds-toast-shift and --ds-toast-shift-y: set, flushed, cleared) with the
- * timing of data-follow. A region without messages just moves, without
- * measuring; one whose place does not change by half a pixel on either
- * axis (phones, a dialog) moves without a glide. Resolves once the glide
- * ended.
- * @returns {Promise<void>}
- */
-function glideRegion(region, direction, move) {
-  const style = /** @type {HTMLElement} */ (region).style;
-  const run = (followRuns.get(region) ?? 0) + 1;
-  followRuns.set(region, run);
-  // Nothing on screen to glide: it just moves, without a measurement or a
-  // style flush, so opening a div-trap overlay does not lay the page out
-  // once more before its inert changes invalidate it again.
-  if (![...region.children].some((child) => child.matches('.ds-toast:not([data-ds-leaving])'))) {
-    style.removeProperty('--ds-toast-shift');
-    style.removeProperty('--ds-toast-shift-y');
-    move();
-    region.removeAttribute('data-follow');
-    return Promise.resolve();
-  }
-  const transition = style.transition;
-  const from = region.getBoundingClientRect();
-  style.transition = 'none';
-  style.removeProperty('--ds-toast-shift');
-  style.removeProperty('--ds-toast-shift-y');
-  move();
-  const to = region.getBoundingClientRect();
-  const dx = from.left - to.left;
-  const dy = from.bottom - to.bottom;
-  if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
-    flushStyle(region);
-    style.transition = transition;
-    region.removeAttribute('data-follow');
-    return Promise.resolve();
-  }
-  style.setProperty('--ds-toast-shift', `${round(dx)}px`);
-  style.setProperty('--ds-toast-shift-y', `${round(dy)}px`);
-  flushStyle(region);
-  region.setAttribute('data-follow', direction);
-  style.transition = transition;
-  style.removeProperty('--ds-toast-shift');
-  style.removeProperty('--ds-toast-shift-y');
-  return settled(region, { transitions: true }).then(() => {
-    if (followRuns.get(region) === run) region.removeAttribute('data-follow');
-  });
-}
-
-/**
- * An opening dialog or side sheet takes in every .ds-toasts region of its
- * theme (with their announcers; not one inside a nested .ds-theme, an
- * embedded widget's), so a message shown meanwhile is above its
- * scrim and usable: in the top layer of a native one, outside the inert
- * page of the div trap. In a sheet --ds-toast-left becomes the panel's
- * resting left edge plus --ds-space-6 and --ds-toast-lift the height of
- * its foot, and the messages glide there; in a dialog the region keeps its
- * place. Closing ('exit'), each region glides back to its old place while
- * it stays inside: Chromium keeps a closing native dialog in the top
- * layer, so a region already on the page would fall under its leaving
- * scrim and panel. Once the exit settled ('settle'), it goes back to where
- * it was, with its --ds-toast-left; an open() during the exit glides it
- * back to the panel. Overlays over each other nest.
- * @param {Element} host
- * @param {'enter'|'exit'|'settle'} step
- */
-function hostToasts(host, step) {
-  const doc = host.ownerDocument;
-  const theme = host.closest('.ds-theme');
-  const scope = !theme || theme === doc.documentElement ? doc : theme;
-  // Only the regions of its own theme: one inside a nested .ds-theme (an
-  // embedded widget's) stays in its widget, under the modal like the rest of it.
-  const regions = new Set([...scope.querySelectorAll('.ds-toasts')].filter((region) => !theme || region.closest('.ds-theme') === theme));
-  // A hosted region is found even if it left the document meanwhile.
-  if (step !== 'enter') for (const region of hostedRegions.keys()) regions.add(region);
-  for (const region of regions) {
-    if (step === 'enter') followInto(region, host);
-    else if (step === 'exit') followOut(region, host);
-    else giveRegionBack(region, host);
-  }
-}
-
-/** Where a region rests inside `host`, in px: a sheet's panel edge (its layout box, whatever its translate is now) plus --ds-space-6; NaN for a dialog. */
-function hostedLeft(region, host) {
-  const panel = host.matches('.ds-sheet') ? host.querySelector('.ds-sheet__panel') : null;
-  if (!panel) return NaN;
-  return host.getBoundingClientRect().left + host.clientLeft + /** @type {HTMLElement} */ (panel).offsetLeft + pxOf(region, '--ds-space-6', 24);
-}
-
-/** After a move of the region: the room for its messages that stay follows it to the new layer. */
-function roomAfter(region, glide) {
-  const state = toastRegions.get(region);
-  if (!state) return;
-  reserveRoom(region, state);
-  glide.then(() => reserveRoom(region, state));
-}
-
-function followInto(region, host) {
-  const homes = toastHomes.get(region) ?? [];
-  const own = homes.find((home) => home.host === host);
-  if (own) {
-    // Reopened during its exit: the region is still inside, gliding back.
-    if (own.leaving) {
-      own.leaving = false;
-      const left = hostedLeft(region, host);
-      roomAfter(region, glideRegion(region, 'enter', () => {
-        if (Number.isFinite(left)) /** @type {HTMLElement} */ (region).style.setProperty('--ds-toast-left', `${round(left)}px`);
-        writeLift(region, liftOf(region));
-      }));
-    }
-    return;
-  }
-  if (host.contains(region)) return;
-  if (host.matches('.ds-sheet') && !host.querySelector('.ds-sheet__panel')) return;
-  const state = toastRegions.get(region);
-  let next = region.nextSibling;
-  while (next && (next === state?.polite || next === state?.assertive)) next = next.nextSibling;
-  // Where the region stands: a dialog keeps it (its rule beside the drawer
-  // would no longer match inside), and closing glides back to it.
-  const at = parseFloat(viewOf(region).getComputedStyle?.(region).left ?? '');
-  homes.push({ host, parent: /** @type {Node} */ (region.parentNode), next, left: /** @type {HTMLElement} */ (region).style.getPropertyValue('--ds-toast-left'), at, leaving: false });
-  toastHomes.set(region, homes);
-  // Away from home, the region and its announcers carry data-ds-keep: a
-  // re-render of the open dialog (or of the view holding it) keeps them.
-  if (!hostedRegions.has(region)) {
-    hostedRegions.set(region, [region, state?.polite, state?.assertive].filter((node) => node && node.parentNode === region.parentNode && keepAway(node)));
-  }
-  const sheetLeft = hostedLeft(region, host);
-  const left = Number.isFinite(sheetLeft) ? sheetLeft : at;
-  roomAfter(region, glideRegion(region, 'enter', () => {
-    moveRegion(region, host, null);
-    if (Number.isFinite(left)) /** @type {HTMLElement} */ (region).style.setProperty('--ds-toast-left', `${round(left)}px`);
-    // Above the sheet's foot (none in a dialog), measured now that it is in.
-    if (state) writeLift(region, liftOf(region));
-  }));
-}
-
-/** A later overlay took the region from the one at `index`: its home becomes the later one's. */
-function passHome(homes, index) {
-  const home = homes[index];
-  Object.assign(homes[index + 1], { parent: home.parent, next: home.next, left: home.left, at: home.at });
-  homes.splice(index, 1);
-}
-
-function followOut(region, host) {
-  const homes = toastHomes.get(region);
-  const index = homes ? homes.findIndex((home) => home.host === host) : -1;
-  if (!homes || index < 0) return;
-  // The region sits in a later overlay, which took it from this one: it
-  // goes back to where this one took it from (and glides there now if
-  // that overlay is leaving too).
-  if (index < homes.length - 1) {
-    passHome(homes, index);
-    if (homes[homes.length - 1].leaving) glideHome(region, homes[homes.length - 1]);
-    return;
-  }
-  homes[index].leaving = true;
-  glideHome(region, homes[index]);
-}
-
-/** Glides the region, still inside its host, to the left and the lift it has at `home`. */
-function glideHome(region, home) {
-  const lift = toastRegions.has(region) ? liftOf(region) : 0;
-  roomAfter(region, glideRegion(region, 'exit', () => {
-    if (Number.isFinite(home.at)) /** @type {HTMLElement} */ (region).style.setProperty('--ds-toast-left', `${round(home.at)}px`);
-    if (toastRegions.has(region)) writeLift(region, lift);
-  }));
-}
-
-/**
- * The regions a removed dialog or sheet took in go back to their place at
- * once (nothing to glide from: the host is gone).
- */
-function releaseToasts(host) {
-  const doc = host.ownerDocument;
-  for (const region of new Set([...host.querySelectorAll('.ds-toasts'), ...doc.querySelectorAll('.ds-toasts')])) {
-    const homes = toastHomes.get(region);
-    const index = homes ? homes.findIndex((home) => home.host === host) : -1;
-    if (index < 0) continue;
-    if (index < homes.length - 1) {
-      passHome(homes, index);
-      continue;
-    }
-    homes[index].leaving = true;
-    giveRegionBack(region, host, false);
-  }
-}
-
-function giveRegionBack(region, host, glide = true) {
-  const homes = toastHomes.get(region);
-  const index = homes ? homes.findIndex((home) => home.host === host && home.leaving) : -1;
-  if (!homes || index < 0) return;
-  // An overlay opened during the exit took the region from this one.
-  if (index < homes.length - 1) return passHome(homes, index);
-  const home = homes[index];
-  homes.pop();
-  if (!homes.length) {
-    toastHomes.delete(region);
-    for (const node of hostedRegions.get(region) ?? []) keepHome(node, true);
-    hostedRegions.delete(region);
-  }
-  const parent = home.parent.isConnected ? home.parent : host.parentNode;
-  if (!parent) return;
-  const move = () => {
-    moveRegion(region, parent, home.next);
-    const style = /** @type {HTMLElement} */ (region).style;
-    if (home.left) style.setProperty('--ds-toast-left', home.left);
-    else style.removeProperty('--ds-toast-left');
-    if (toastRegions.has(region)) writeLift(region, liftOf(region));
-  };
-  // It already stands at its place: nothing moves, unless that place
-  // changed meanwhile (a resize past the drawer's breakpoint), then it
-  // glides. The room it kept in the dialog or sheet goes with it.
-  roomAfter(region, glide ? glideRegion(region, 'exit', move) : (move(), Promise.resolve()));
-}
-/* ── Tooltips ───────────────────────────────────────── */
-
-let tooltipWarned = false;
-
-/** Top layer and CSS anchor positioning, both needed for the anchored path. */
-function supportsAnchoring(view) {
-  const proto = view.HTMLElement?.prototype ?? {};
-  return typeof proto.showPopover === 'function' && typeof view.CSS?.supports === 'function'
-    && view.CSS.supports('position-area: block-end') && 'anchorName' in view.document.documentElement.style;
-}
-
-/** A close enough accessible name: aria-labelledby, aria-label, else the text. */
-function accessibleName(node) {
-  const doc = node.ownerDocument;
-  const ids = (node.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean);
-  if (ids.length) return ids.map((id) => doc.getElementById(id)?.textContent ?? '').join(' ');
-  return node.getAttribute('aria-label') ?? node.textContent ?? '';
-}
-
-/** A tap on touch moves at most this far (px, a distance) between pointerdown and pointerup. */
-const TAP_SLOP_PX = 10;
-
-/** How many descendants of a trigger the cut-off check measures, at most. */
-const CUT_DESCENDANTS = 24;
-
-/** How many ancestors with the trigger's text the cut-off check measures (a td around a link), at most. */
-const CUT_ANCESTORS = 3;
-
-/**
- * The text a trigger shows, normalised like normalText(): its text nodes
- * that render (their parent has client rects), skipping .ds-sr,
- * [aria-hidden="true"], svg, and any element whose border box is at most
- * 1×1px (the .ds-sr declarations without the class: a collapsed adaptive
- * button's label, a rail's drawer label).
- */
-function visibleText(trigger) {
-  const doc = trigger.ownerDocument;
-  const verdicts = new Map();
-  const hidden = (element) => {
-    for (let at = element; at && at !== trigger.parentElement; at = at.parentElement) {
-      if (verdicts.has(at)) return verdicts.get(at);
-      const box = at.getBoundingClientRect?.();
-      const gone = at.matches('.ds-sr, [aria-hidden="true"], svg, svg *') || !at.getClientRects?.().length || (box && box.width <= 1 && box.height <= 1);
-      if (gone) {
-        verdicts.set(at, true);
-        return true;
-      }
-      if (at === trigger) break;
-    }
-    verdicts.set(element, false);
-    return false;
-  };
-  const walker = doc.createTreeWalker(trigger, 4);
-  const parts = [];
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const parent = node.parentElement;
-    if (parent && node.nodeValue?.trim() && !hidden(parent)) parts.push(node.nodeValue);
-  }
-  return normalText(parts.join(' '));
-}
-
-/** Whether a box clips its content: overflow other than visible and more content than room. */
-function clips(element) {
-  const style = viewOf(element).getComputedStyle?.(element);
-  if (!style || (style.overflowX === 'visible' && style.overflowY === 'visible')) return false;
-  return element.scrollWidth > element.clientWidth + 1 || element.scrollHeight > element.clientHeight + 1;
-}
-
-/**
- * Whether the tooltip of `trigger` is wanted now. A tip that differs from
- * the text the trigger shows always is (an icon button, a label hidden on
- * phones, a collapsed rail); a tip that repeats it only while that text is
- * cut off: the trigger, one of its first descendants or one of the
- * ancestors that hold just its text (a td around a link) clips it.
- * @returns {'adds'|'cut'|null} why it shows (a cut-off text is never a description), or null: not now
- */
-function tipWanted(trigger) {
-  const tip = normalText(trigger.getAttribute('data-tip'));
-  if (!tip) return null;
-  const text = visibleText(trigger);
-  if (text !== tip) return 'adds';
-  if (clips(trigger)) return 'cut';
-  const descendants = trigger.querySelectorAll('*');
-  for (let index = 0; index < descendants.length && index < CUT_DESCENDANTS; index += 1) if (clips(descendants[index])) return 'cut';
-  let at = trigger.parentElement;
-  for (let step = 0; at && step < CUT_ANCESTORS && normalText(at.textContent) === text; step += 1, at = at.parentElement) {
-    if (clips(at)) return 'cut';
-  }
-  return null;
-}
-
-function focusVisible(node) {
-  try {
-    return node.matches(':focus-visible');
-  } catch {
-    return true;
-  }
-}
-
-/**
- * Tooltips for every [data-tip] trigger inside `root` (the attribute holds
- * the text), through one set of delegated listeners and one
- * <div class="ds-tooltip" role="tooltip"> that it creates inside the
- * .ds-theme around `root` (warns once if there is none). A mouse or pen
- * that rests on a trigger shows it after --ds-delay-tooltip; keyboard
- * focus (:focus-visible) shows it at once. On touch a tap on an image
- * ([role="img"]) or a blocked control ([aria-disabled="true"]) shows it at
- * once and a second tap hides it; a long press of --ds-delay-tooltip on any
- * other trigger but a link shows it and swallows the click and the context
- * menu that follow; it stays until the next pointerdown, a scroll or
- * Escape (no timeout: WCAG 1.4.13).
- * A tip that repeats the text the trigger shows shows only while that
- * text is cut off (tipWanted()), and never describes it.
- * While one shows, or within --ds-delay-tooltip-skip of the last hide, the
- * next trigger shows at once: a visible tooltip swaps text and place in
- * place, a hidden one only fades in (data-warm). It hides after the
- * --ds-delay-tooltip-hide grace, which the pointer may use to move onto
- * it; at once on Escape (the key is then the tooltip's: the dialog under
- * it stays open), on any pointerdown, on DS.overlay.open(), when its
- * trigger scrolls out of view, and when its trigger leaves the document
- * (a MutationObserver on the root, connected only while it shows). While
- * shown, the trigger is described by it (aria-describedby), unless its
- * accessible name says the same.
- * Placement: below the trigger, above it without room; with popover and
- * anchor positioning in the top layer, else by --ds-tooltip-x/-y. A second
- * call on the same root returns the first handle (also one of another
- * copy of ds.js), and a trigger inside nested roots (a host page's
- * document and an embedded widget's root) is served by the innermost one.
- * An open shadow root works as a root too (the tooltip goes into the
- * .ds-theme inside it).
- * @param {Document|Element|ShadowRoot} [root]
- * @returns {{ destroy: () => void }}
- */
-export function tooltips(root = globalThis.document) {
-  const doc = root?.nodeType === 9 ? /** @type {Document} */ (root) : root?.ownerDocument;
-  if (!doc) return { destroy() {} };
-  const view = doc.defaultView ?? globalThis;
-  // A shadow root stays itself: its listeners see the real targets (the
-  // document sees the host), and its theme is the .ds-theme inside it,
-  // where ds.css applies.
-  const shadow = root.nodeType === 11;
-  const rootElement = root.nodeType === 9 ? doc.documentElement : /** @type {Element} */ (root);
-  // One controller per root (whichever copy of ds.js made it): a second call returns the first.
-  const roots = sharedOf(doc).tipRoots;
-  const existing = roots.get(rootElement);
-  if (existing) return existing;
-  watchModality(doc);
-  const theme = shadow ? /** @type {ShadowRoot} */ (root).querySelector('.ds-theme')
-    : rootElement.closest('.ds-theme') ?? (root.nodeType === 9 ? doc.querySelector('.ds-theme') : null);
-  if (!theme && !tooltipWarned) {
-    tooltipWarned = true;
-    view.console?.warn('Dashboard-Style: DS.overlay.tooltips() on a root outside .ds-theme. The tooltip must sit inside the .ds-theme element, or it gets neither the tokens nor the motion.');
-  }
-  const anchored = supportsAnchoring(view);
-  const home = !theme || theme === doc.documentElement ? doc.body : theme;
-
-  const tip = doc.createElement('div');
-  tip.className = 'ds-tooltip';
-  tip.setAttribute('role', 'tooltip');
-  tip.id = `ds-tooltip-${sharedOf(doc).seq += 1}`;
-  tip.hidden = true;
-  tip.setAttribute('data-state', 'closed');
-  if (anchored) {
-    tip.setAttribute('popover', 'manual');
-    tip.setAttribute('data-anchored', '');
-  }
-  tooltipNodes.add(tip);
-  // A runtime node: a re-render of the theme (DS.dom.morphHtml) keeps it.
-  tip.setAttribute('data-ds-keep', '');
-  home.append(tip);
-
-  /** @type {'hidden'|'open'|'closing'} */
-  let phase = 'hidden';
-  let trigger = /** @type {Element|null} */ (null);
-  let hovering = false;
-  let focusing = false;
-  let showTimer = /** @type {any} */ (0);
-  let hideTimer = /** @type {any} */ (0);
-  let lastHide = -Infinity;
-  let run = 0;
-  let frame = 0;
-  let ownAnchor = /** @type {HTMLElement|null} */ (null);
-  let described = /** @type {Element|null} */ (null);
-  // Touch: the press under way, whether the tooltip on screen came from
-  // touch, and the listener that swallows what a long press ends in.
-  let press = /** @type {{ trigger: Element, id: number, x: number, y: number, timer: any } | null} */ (null);
-  let touchShown = false;
-  let swallow = /** @type {((event: Event) => void) | null} */ (null);
-  // The trigger leaving the document hides the tooltip at once (connected while it shows).
-  const Observer = view.MutationObserver;
-  const watcher = typeof Observer === 'function' ? new Observer(() => {
-    if (phase !== 'hidden' && trigger && !trigger.isConnected) hideNow();
-  }) : null;
-  let watching = false;
-
-  const time = (token) => motionDuration(tip.isConnected ? tip : shadow ? theme ?? /** @type {ShadowRoot} */ (root).host : rootElement, token);
-  const contains = (node) => (root.nodeType === 9 ? doc.contains(node) : rootElement.contains(node));
-
-  /** Where the tooltip lives for a trigger: its overlay (in the top layer, never inert), else the theme. */
-  function hostFor(node) {
-    return node.closest('dialog[open], .ds-dialog:not(.ds-dialog--contained), .ds-sheet') ?? home;
-  }
-
-  /** Points the tooltip at `next`, through a name shared with a popup anchored there (claimAnchor). */
-  function anchorTo(next) {
-    if (!anchored || (ownAnchor && ownAnchor === next)) return;
-    unanchor();
-    const { name, mine } = claimAnchor(next, view);
-    if (mine) ownAnchor = /** @type {HTMLElement} */ (next);
-    tip.style.setProperty('position-anchor', name);
-  }
-
-  function unanchor() {
-    releaseAnchor(ownAnchor);
-    ownAnchor = null;
-  }
-
-  /** Marks the side the engine put an anchored tooltip on; true when that changed. */
-  function readSide(next) {
-    const box = tip.getBoundingClientRect();
-    const top = box.bottom <= next.getBoundingClientRect().top + 1;
-    if (top === tip.hasAttribute('data-placement')) return false;
-    if (top) tip.setAttribute('data-placement', 'top');
-    else tip.removeAttribute('data-placement');
-    return true;
-  }
-
-  /** Below the trigger, centred and clamped to the viewport; above it when there is no room below. */
-  function place(next) {
-    if (anchored) {
-      // The engine places it; its side sets the origin. Chromium lays a
-      // swap out with what it took from the previous anchor at the last
-      // rendering (the scroll offset of a box around it: from a trigger in
-      // a scrolled box it read "top" for a tooltip that then sits below),
-      // so the side read now is a guess, read again once two frames have
-      // rendered; the origin follows a corrected side.
-      readSide(next);
-      const mine = run;
-      nextFrame(doc, () => nextFrame(doc, () => {
-        if (mine !== run || phase !== 'open' || trigger !== next || !tip.isConnected) return;
-        if (readSide(next)) originFrom(next, tip);
-      }));
-      return;
-    }
-    const rect = next.getBoundingClientRect();
-    const gap = pxOf(tip, '--ds-space-2', 8);
-    const width = tip.offsetWidth;
-    const height = tip.offsetHeight;
-    const viewWidth = doc.documentElement.clientWidth || view.innerWidth;
-    const viewHeight = doc.documentElement.clientHeight || view.innerHeight;
-    const x = Math.max(gap, Math.min(viewWidth - width - gap, rect.left + rect.width / 2 - width / 2));
-    let y = rect.bottom + gap;
-    const above = y + height > viewHeight - gap && rect.top - gap - height >= gap;
-    if (above) y = rect.top - gap - height;
-    const origin = fixedOrigin(tip);
-    tip.style.setProperty('--ds-tooltip-x', `${round(x - origin.left)}px`);
-    tip.style.setProperty('--ds-tooltip-y', `${round(y - origin.top)}px`);
-    if (above) tip.setAttribute('data-placement', 'top');
-    else tip.removeAttribute('data-placement');
-  }
-
-  function describe(next, why) {
-    undescribe();
-    // A cut-off text read again adds nothing.
-    if (why === 'cut' || normalText(tip.textContent) === normalText(accessibleName(next))) return;
-    const ids = (next.getAttribute('aria-describedby') ?? '').split(/\s+/).filter(Boolean);
-    if (!ids.includes(tip.id)) next.setAttribute('aria-describedby', [...ids, tip.id].join(' '));
-    own(next, 'attrs', 'aria-describedby');
-    described = next;
-  }
-
-  function undescribe() {
-    if (!described) return;
-    const ids = (described.getAttribute('aria-describedby') ?? '').split(/\s+/).filter((id) => id && id !== tip.id);
-    if (ids.length) described.setAttribute('aria-describedby', ids.join(' '));
-    else described.removeAttribute('aria-describedby');
-    disown(described, 'attrs', 'aria-describedby');
-    described = null;
-  }
-
-  function cancelTimers() {
-    clearTimeout(showTimer);
-    clearTimeout(hideTimer);
-    showTimer = 0;
-    hideTimer = 0;
-  }
-
-  /** Shows the tooltip of `next` now (if it is wanted now): in place when one is visible, else from its closed state. */
-  function show(next, touch = false) {
-    cancelTimers();
-    const text = next.getAttribute('data-tip') ?? '';
-    // The opener of an open menu (or dialog) shows no tip: it would cover
-    // the layer or take the Escape that closes it.
-    const why = next.isConnected && !opensOpenLayer(next) ? tipWanted(next) : null;
-    if (!text.trim() || !why) return;
-    touchShown = touch;
-    if (watcher && !watching) {
-      watcher.observe(shadow ? /** @type {ShadowRoot} */ (root) : rootElement, { childList: true, subtree: true });
-      watching = true;
-    }
-    const host = hostFor(next);
-    const visible = phase !== 'hidden' && tip.parentNode === host;
-    const warm = !visible && clock() - lastHide < time('--ds-delay-tooltip-skip');
-    run += 1;
-    trigger = next;
-    focusing = next === activeIn(next) && focusVisible(next);
-    tip.textContent = text;
-    if (visible) {
-      // A swap (or a hide taken back): text and place change where it is,
-      // and a fade still under way turns back from its current opacity.
-      anchorTo(next);
-      place(next);
-      originFrom(next, tip);
-      tip.setAttribute('data-state', 'open');
-    } else {
-      if (tip.parentNode !== host) {
-        try {
-          if (anchored && tip.matches(':popover-open')) tip.hidePopover();
-        } catch {
-          // Not open after all.
-        }
-        host.append(tip);
-      }
-      // The closed state at rest size (data-warm), so its place and the
-      // origin at the anchor side are measured true.
-      tip.setAttribute('data-state', 'closed');
-      tip.setAttribute('data-warm', '');
-      tip.hidden = false;
-      anchorTo(next);
-      if (anchored) {
-        try {
-          tip.showPopover();
-        } catch {
-          // Already open (a fade that just ended): it stays.
-        }
-      }
-      place(next);
-      originFrom(next, tip);
-      if (!warm) {
-        // Cold: from --ds-scale-tooltip at the anchor, without a transition to it.
-        tip.style.transition = 'none';
-        tip.removeAttribute('data-warm');
-        flushStyle(tip);
-        tip.style.removeProperty('transition');
-      } else flushStyle(tip);
-      tip.setAttribute('data-state', 'open');
-    }
-    phase = 'open';
-    describe(next, why);
-  }
-
-  function unwatch() {
-    if (!watching) return;
-    watcher?.disconnect();
-    watching = false;
-  }
-
-  /** The end of an exit: hidden, out of the top layer, unanchored. */
-  function rest() {
-    phase = 'hidden';
-    trigger = null;
-    touchShown = false;
-    try {
-      if (anchored && tip.matches(':popover-open')) tip.hidePopover();
-    } catch {
-      // Not open.
-    }
-    tip.hidden = true;
-    unanchor();
-    dropProbe(tip);
-  }
-
-  /** Starts the exit: a quick fade; once it settled the tooltip is hidden. */
-  function hide() {
-    cancelTimers();
-    if (phase !== 'open') return;
-    phase = 'closing';
-    lastHide = clock();
-    undescribe();
-    unwatch();
-    const mine = ++run;
-    tip.setAttribute('data-state', 'closed');
-    settled(tip, { transitions: true }).then(() => {
-      if (mine !== run || phase !== 'closing') return;
-      rest();
-    });
-  }
-
-  /**
-   * Its trigger left the document: hidden at once, without the fade (an
-   * anchor that is gone would put it in a corner of the viewport, or leave
-   * it at the old place).
-   */
-  function hideNow() {
-    cancelTimers();
-    if (phase === 'hidden') return;
-    if (phase === 'open') lastHide = clock();
-    undescribe();
-    unwatch();
-    run += 1;
-    hovering = false;
-    focusing = false;
-    tip.style.transition = 'none';
-    tip.setAttribute('data-state', 'closed');
-    flushStyle(tip);
-    tip.style.removeProperty('transition');
-    rest();
-  }
-
-  /** Hides after the grace, unless the pointer or keyboard focus still holds it. */
-  function hideLater() {
-    clearTimeout(showTimer);
-    showTimer = 0;
-    if (hovering || focusing || phase !== 'open' || hideTimer) return;
-    hideTimer = setTimeout(() => {
-      hideTimer = 0;
-      if (!hovering && !focusing) hide();
-    }, time('--ds-delay-tooltip-hide'));
-  }
-
-  /** The trigger of `node` that this controller serves: inside nested roots, the innermost one serves it. */
-  const triggerOf = (node) => {
-    const found = /** @type {Element|null} */ (node?.closest?.('[data-tip]') ?? null);
-    if (!found || !contains(found)) return null;
-    for (let at = /** @type {Element|null} */ (found); at; at = at.parentElement) {
-      if (roots.has(at)) return at === rootElement ? found : null;
-    }
-    return found;
-  };
-
-  function onPointerOver(/** @type {PointerEvent} */ event) {
-    if (event.pointerType === 'touch') return;
-    const next = triggerOf(event.target);
-    if (!next || next.contains(/** @type {Node} */ (event.relatedTarget))) return;
-    // A tip that repeats a text that fits is not wanted: the pointer rests on nothing.
-    if (!tipWanted(next)) return;
-    hovering = true;
-    clearTimeout(hideTimer);
-    hideTimer = 0;
-    if (phase === 'open' && trigger === next) return;
-    if (phase !== 'hidden' || clock() - lastHide < time('--ds-delay-tooltip-skip')) {
-      show(next);
-      return;
-    }
-    clearTimeout(showTimer);
-    showTimer = setTimeout(() => {
-      showTimer = 0;
-      show(next);
-    }, time('--ds-delay-tooltip'));
-  }
-
-  function onPointerOut(/** @type {PointerEvent} */ event) {
-    if (event.pointerType === 'touch') return;
-    const from = triggerOf(event.target);
-    const to = /** @type {Node} */ (event.relatedTarget);
-    if (!from || from.contains(to) || tip.contains(to)) return;
-    hovering = false;
-    hideLater();
-  }
-
-  function onTipOver(/** @type {PointerEvent} */ event) {
-    if (event.pointerType === 'touch' || phase !== 'open') return;
-    // Hoverable: the pointer crossed onto the tooltip within the grace.
-    hovering = true;
-    clearTimeout(hideTimer);
-    hideTimer = 0;
-  }
-
-  function onTipOut(/** @type {PointerEvent} */ event) {
-    if (event.pointerType === 'touch') return;
-    const to = /** @type {Node} */ (event.relatedTarget);
-    if (tip.contains(to) || trigger?.contains(to)) return;
-    hovering = false;
-    hideLater();
-  }
-
-  function onFocusIn(/** @type {FocusEvent} */ event) {
-    const next = triggerOf(event.target);
-    if (!next || !focusVisible(next) || !tipWanted(next)) return;
-    hovering = false;
-    show(next);
-  }
-
-  function onFocusOut(/** @type {FocusEvent} */ event) {
-    const from = triggerOf(event.target);
-    if (!from || from !== trigger || from.contains(/** @type {Node} */ (event.relatedTarget))) return;
-    focusing = false;
-    // A focusin on another trigger right after takes over in place.
-    hideLater();
-  }
-
-  function onKeyDown(/** @type {KeyboardEvent} */ event) {
-    if (event.key !== 'Escape' || event.defaultPrevented || !escape()) return;
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  /** The element a pointer event began on, also inside an open shadow root. */
-  const origin = (/** @type {Event} */ event) => /** @type {Element} */ (event.composedPath?.()[0] ?? event.target);
-
-  /** On touch a tap shows the tip of an image or a blocked control; the others need a long press. */
-  const tapShows = (node) => node.matches('[role="img"], [aria-disabled="true"]');
-
-  function cancelPress() {
-    if (press) clearTimeout(press.timer);
-    press = null;
-  }
-
-  function unswallow() {
-    if (!swallow) return;
-    doc.removeEventListener('click', swallow, true);
-    doc.removeEventListener('contextmenu', swallow, true);
-    swallow = null;
-  }
-
-  /** A long press showed a tooltip: the click (and a context menu) it would end in never happen. */
-  function swallowNext() {
-    unswallow();
-    swallow = (/** @type {Event} */ event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (event.type === 'click') unswallow();
-    };
-    doc.addEventListener('click', swallow, true);
-    doc.addEventListener('contextmenu', swallow, true);
-  }
-
-  function onPointerDown(/** @type {PointerEvent} */ event) {
-    clearTimeout(showTimer);
-    showTimer = 0;
-    unswallow();
-    cancelPress();
-    const next = event.pointerType === 'touch' ? triggerOf(origin(event)) : null;
-    // The second tap on a trigger whose tip touch showed only hides it.
-    const hidesOwn = Boolean(next) && phase === 'open' && touchShown && trigger === next;
-    hide();
-    if (!next || hidesOwn) return;
-    press = { trigger: next, id: event.pointerId, x: event.clientX, y: event.clientY, timer: 0 };
-    if (tapShows(next) || next.matches('a[href]')) return;
-    // A long press: shown once the press held --ds-delay-tooltip (a link keeps its own long press).
-    press.timer = setTimeout(() => {
-      if (!press || press.trigger !== next) return;
-      press = null;
-      show(next, true);
-      if (phase === 'open' && trigger === next) swallowNext();
-    }, time('--ds-delay-tooltip'));
-  }
-
-  function onPointerMove(/** @type {PointerEvent} */ event) {
-    if (!press || event.pointerId !== press.id) return;
-    if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > TAP_SLOP_PX) cancelPress();
-  }
-
-  function onPointerUp(/** @type {PointerEvent} */ event) {
-    if (!press || event.pointerId !== press.id) return;
-    const next = press.trigger;
-    const near = Math.hypot(event.clientX - press.x, event.clientY - press.y) <= TAP_SLOP_PX;
-    cancelPress();
-    if (near && tapShows(next) && triggerOf(origin(event)) === next) show(next, true);
-  }
-
-  function onScroll() {
-    // A tip that touch showed goes with any scroll.
-    if (phase === 'open' && touchShown) {
-      hide();
-      return;
-    }
-    if (phase !== 'open' || frame) return;
-    const update = () => {
-      frame = 0;
-      if (phase !== 'open' || !trigger) return;
-      const rect = trigger.getBoundingClientRect();
-      const gone = !trigger.isConnected || rect.bottom <= 0 || rect.right <= 0 || rect.top >= view.innerHeight || rect.left >= view.innerWidth;
-      if (gone) hide();
-      else if (!anchored) place(trigger);
-    };
-    frame = typeof view.requestAnimationFrame === 'function' ? view.requestAnimationFrame(update) : 0;
-    if (!frame) update();
-  }
-
-  /**
-   * Escape: hides a visible tooltip and reports whether the key was its.
-   * It is not when an open layer lies over the trigger (a menu over its
-   * opener's tip): the tooltip hides and the same Escape closes the layer.
-   */
-  function escape() {
-    if (phase !== 'open') return false;
-    const under = Boolean(trigger?.isConnected && layerOver(trigger));
-    hovering = false;
-    focusing = false;
-    hide();
-    return !under;
-  }
-
-  const controller = {
-    hide() {
-      clearTimeout(showTimer);
-      showTimer = 0;
-      hide();
-    },
-    escape,
-  };
-  tooltipControllers.add(controller);
-
-  const target = /** @type {EventTarget} */ (root);
-  target.addEventListener('pointerover', onPointerOver);
-  target.addEventListener('pointerout', onPointerOut);
-  target.addEventListener('focusin', onFocusIn);
-  target.addEventListener('focusout', onFocusOut);
-  tip.addEventListener('pointerover', onTipOver);
-  tip.addEventListener('pointerout', onTipOut);
-  doc.addEventListener('keydown', onKeyDown, true);
-  doc.addEventListener('pointerdown', onPointerDown, true);
-  doc.addEventListener('pointermove', onPointerMove, { capture: true, passive: true });
-  doc.addEventListener('pointerup', onPointerUp, true);
-  doc.addEventListener('pointercancel', cancelPress, true);
-  doc.addEventListener('scroll', onScroll, { capture: true, passive: true });
-  view.addEventListener('resize', onScroll);
-
-  const handle = {
-    destroy() {
-      if (roots.get(rootElement) === handle) roots.delete(rootElement);
-      tooltipControllers.delete(controller);
-      cancelTimers();
-      if (frame && typeof view.cancelAnimationFrame === 'function') view.cancelAnimationFrame(frame);
-      target.removeEventListener('pointerover', onPointerOver);
-      target.removeEventListener('pointerout', onPointerOut);
-      target.removeEventListener('focusin', onFocusIn);
-      target.removeEventListener('focusout', onFocusOut);
-      doc.removeEventListener('keydown', onKeyDown, true);
-      doc.removeEventListener('pointerdown', onPointerDown, true);
-      doc.removeEventListener('pointermove', onPointerMove, { capture: true });
-      doc.removeEventListener('pointerup', onPointerUp, true);
-      doc.removeEventListener('pointercancel', cancelPress, true);
-      doc.removeEventListener('scroll', onScroll, { capture: true });
-      view.removeEventListener('resize', onScroll);
-      cancelPress();
-      unswallow();
-      unwatch();
-      undescribe();
-      unanchor();
-      dropProbe(tip);
-      run += 1;
-      phase = 'hidden';
-      tip.remove();
-    },
-  };
-  roots.set(rootElement, handle);
-  return handle;
 }
 
 /* ── Save bar ───────────────────────────────────────── */
@@ -4258,7 +2103,7 @@ export function savebar(element, options = {}) {
   function regions() {
     const theme = bar.closest('.ds-theme');
     const scope = theme ?? doc;
-    return [...scope.querySelectorAll('.ds-toasts')].filter((region) => (!theme || region.closest('.ds-theme') === theme) && !toastHomes.has(region));
+    return [...scope.querySelectorAll('.ds-toasts')].filter((region) => (!theme || region.closest('.ds-theme') === theme) && !parts.toast?.hosted(region));
   }
 
   function measure() {
@@ -4318,13 +2163,13 @@ export function savebar(element, options = {}) {
     measure();
     scroller?.setAttribute('data-ds-savebar', '');
     shownSavebars.add(entry);
-    for (const region of regions()) liftRegion(region);
+    for (const region of regions()) parts.toast?.lift(region);
     const Observer = view.ResizeObserver;
     if (!observer && typeof Observer === 'function') {
       observer = new Observer(() => {
         if (!shown || bar.offsetHeight === height) return;
         measure();
-        for (const region of regions()) liftRegion(region);
+        for (const region of regions()) parts.toast?.lift(region);
       });
       observer.observe(bar);
     }
@@ -4353,7 +2198,7 @@ export function savebar(element, options = {}) {
     bar.inert = true;
     bar.hidden = true;
     shownSavebars.delete(entry);
-    for (const region of regions()) liftRegion(region);
+    for (const region of regions()) parts.toast?.lift(region);
     if (scroller) {
       scroller.removeAttribute('data-ds-savebar');
       if (atEnd) startRest();
@@ -4387,7 +2232,7 @@ export function savebar(element, options = {}) {
       leaving = null;
       pending.length = 0;
       stopRest();
-      if (shownSavebars.delete(entry)) for (const region of regions()) liftRegion(region);
+      if (shownSavebars.delete(entry)) for (const region of regions()) parts.toast?.lift(region);
       bar.inert = false;
       for (const name of ['hidden', 'inert']) disown(bar, 'attrs', name);
       if (scroller) {
@@ -4408,12 +2253,214 @@ export function savebar(element, options = {}) {
   return handle;
 }
 
-/* DS.core.init() serves the tooltips of every root it initialises; a root served before keeps its own handle. */
-define('tooltips', {
+/* ── The functions of DS.overlay in the component folders ── */
+
+/**
+ * Asks with a built dialog (components/dialog/dialog.js).
+ * @param {object} [options]
+ * @returns {Promise<boolean>}
+ */
+export function confirm(options = {}) {
+  return partFor('dialog', 'confirm').confirm(options);
+}
+
+/**
+ * Tells something with a built alertdialog (components/dialog/dialog.js).
+ * @param {object} [options]
+ * @returns {Promise<void>}
+ */
+export function alert(options = {}) {
+  return partFor('dialog', 'alert').alert(options);
+}
+
+/**
+ * Asks for one value with a built dialog (components/dialog/dialog.js).
+ * @param {object} [options]
+ * @returns {Promise<string|null>}
+ */
+export function prompt(options = {}) {
+  return partFor('dialog', 'prompt').prompt(options);
+}
+
+/**
+ * The page's snackbar region (components/toast/toast.js).
+ * @param {Document} [doc]
+ * @returns {HTMLElement|null}
+ */
+export function toastRegion(doc = globalThis.document) {
+  return partFor('toast', 'toastRegion').toastRegion(doc);
+}
+
+/**
+ * Says a text to screen readers without a message (components/toast/toast.js).
+ * @param {string} text
+ * @param {{ assertive?: boolean, region?: Element|null }} [options]
+ */
+export function announce(text, options = {}) {
+  return partFor('toast', 'announce').announce(text, options);
+}
+
+/**
+ * Shows a snackbar (components/toast/toast.js).
+ * @param {Element|null} region
+ * @param {Element|string} content
+ * @param {object} [options]
+ * @returns {{ el: HTMLElement|null, close: () => Promise<void>, closed: Promise<void> }}
+ */
+export function toast(region, content, options = {}) {
+  return partFor('toast', 'toast').toast(region, content, options);
+}
+
+/**
+ * Closes snackbars by kind or key (components/toast/toast.js).
+ * @param {Element|null} [region]
+ * @param {{ kind?: 'success'|'error'|'info', key?: string }} [filter]
+ * @returns {Promise<void>}
+ */
+export function closeToasts(region, filter = {}) {
+  return partFor('toast', 'closeToasts').closeToasts(region, filter);
+}
+
+/**
+ * Tooltips for every [data-tip] inside `root` (components/tooltip/tooltip.js).
+ * @param {Document|Element|ShadowRoot} [root]
+ * @returns {{ destroy: () => void }}
+ */
+export function tooltips(root = globalThis.document) {
+  return partFor('tooltip', 'tooltips').tooltips(root);
+}
+
+/* ── Triggers and controllers ───────────────────────── */
+
+/** The overlay a trigger's value names: a selector, or an id without its #. */
+function targetOf(trigger, value) {
+  const scope = trigger.getRootNode?.() ?? trigger.ownerDocument;
+  let found = null;
+  try {
+    found = scope.querySelector(value);
+  } catch {
+    // No selector: an id.
+  }
+  return found ?? scope.getElementById?.(value) ?? null;
+}
+
+/**
+ * Whether `element` is open through this core, and not on its way out.
+ * @param {Element} element
+ * @returns {boolean}
+ */
+function isOpen(element) {
+  return overlays.get(element)?.phase === 'open';
+}
+
+/*
+ * [data-ds-open] and [data-ds-close] (see the header): one delegated
+ * listener per root of DS.core.init(). A button that opens a menu also opens
+ * it from its arrow keys, and closes it from a click; the second click of a
+ * double click toggles nothing.
+ */
+define('triggers', {
   global(root) {
-    const doc = root.nodeType === 9 ? root : root.ownerDocument;
-    const existed = Boolean(doc) && sharedOf(doc).tipRoots.has(root.nodeType === 9 ? doc.documentElement : root);
-    const handle = tooltips(root);
-    return existed ? () => {} : () => handle.destroy();
+    const onClick = (/** @type {MouseEvent} */ event) => {
+      if (event.defaultPrevented || event.detail > 1) return;
+      const trigger = /** @type {Element} */ (event.target)?.closest?.('[data-ds-open], [data-ds-close]');
+      if (!trigger) return;
+      const opens = trigger.getAttribute('data-ds-open');
+      if (opens) {
+        const target = targetOf(trigger, opens);
+        if (!target) return;
+        if (isOpen(target) && overlays.get(target)?.opener === trigger) closeFrom(target, 'close');
+        else open(target, { opener: trigger });
+        return;
+      }
+      const closes = trigger.getAttribute('data-ds-close');
+      const target = closes ? targetOf(trigger, closes) : null;
+      if (target && isOpen(target)) closeFrom(target, 'close');
+    };
+    const onKeyDown = (/** @type {KeyboardEvent} */ event) => {
+      if (event.defaultPrevented || (event.key !== 'ArrowDown' && event.key !== 'ArrowUp')) return;
+      const trigger = /** @type {Element} */ (event.target)?.closest?.('[data-ds-open]');
+      const target = trigger ? targetOf(trigger, trigger.getAttribute('data-ds-open') ?? '') : null;
+      if (!target?.matches('.ds-menu') || isOpen(target)) return;
+      event.preventDefault();
+      open(target, { opener: trigger });
+    };
+    root.addEventListener('click', onClick);
+    root.addEventListener('keydown', onKeyDown);
+    return () => {
+      root.removeEventListener('click', onClick);
+      root.removeEventListener('keydown', onKeyDown);
+    };
+  },
+});
+
+/**
+ * The controller of a dialog, side sheet or menu: get() says whether it is
+ * open, set(true|false, options) opens or closes it, on('open'|'close', fn)
+ * hears its ds: events and returns the unsubscribe.
+ * @param {Element} element
+ * @returns {{ element: Element, get: () => boolean, set: (value: boolean, options?: object) => Promise<void>, on: (type: string, fn: (event: Event) => void) => () => void, destroy: () => void }}
+ */
+function controllerOf(element) {
+  const listeners = /** @type {Array<() => void>} */ ([]);
+  return {
+    element,
+    get: () => isOpen(element),
+    set: (value, options) => (value ? open(element, options) : close(element, options)),
+    on(type, fn) {
+      const name = `ds:${type}`;
+      element.addEventListener(name, fn);
+      const off = () => element.removeEventListener(name, fn);
+      listeners.push(off);
+      return off;
+    },
+    destroy() {
+      for (const off of listeners.splice(0)) off();
+    },
+  };
+}
+
+/**
+ * What the modules of the component folders read: no API, may change in any
+ * release (see the header). use(name, part) registers one, once per copy of
+ * this module.
+ */
+export const internals = Object.freeze({
+  overlays,
+  stack,
+  tooltipControllers,
+  neverInert,
+  shownSavebars,
+  LANDMARK,
+  activeIn,
+  inside,
+  sharedOf,
+  own,
+  disown,
+  viewOf,
+  flushStyle,
+  canFocus,
+  report,
+  watchModality,
+  composedContains,
+  keepAway,
+  keepHome,
+  closeFrom,
+  layerOver,
+  opensOpenLayer,
+  arrowTarget,
+  topOpen,
+  nextAnchorName,
+  placeMenu,
+  isOpen,
+  controllerOf,
+  clock,
+  normalText,
+  timeScaleOf,
+  nextFrame,
+  part: (name) => parts[name] ?? null,
+  use(name, part) {
+    parts[name] ??= part;
+    pageParts[name] ??= part;
   },
 });

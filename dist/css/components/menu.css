@@ -1,9 +1,10 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Menu (Material 3): actions for one item or the overflow of a toolbar, on
  * the popover elevation, opened from a button. Each item is an icon and a
- * label; a checkable item shows a check when checked (aria-checked, never
- * colour alone); a divider separates groups.
+ * label, with an optional description and shortcut; a checkable item shows a
+ * check when checked (aria-checked, never colour alone); a divider separates
+ * groups.
  *
  *   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="More actions"
  *           aria-haspopup="menu" aria-expanded="false" aria-controls="row-menu">(moreVertical)</button>
@@ -24,7 +25,17 @@
  *   </div>
  *   <button class="ds-menu__item" role="menuitem" type="button">(copy) <span class="ds-menu__label">Copy link</span><span class="ds-menu__meta">Ctrl C</span></button>
  *
+ * An item with a description, a shortcut, and the danger item (its label
+ * names the consequence, so the colour is never alone):
+ *
+ *   <button class="ds-menu__item" role="menuitem" type="button">(archive)
+ *     <span class="ds-menu__content"><span class="ds-menu__label">Archive</span>
+ *       <span class="ds-menu__description">Hide it from every list.</span></span>
+ *     <span class="ds-menu__shortcut">Ctrl E</span></button>
+ *   <button class="ds-menu__item ds-menu__item--danger" role="menuitem" type="button">(trash) <span class="ds-menu__label">Delete device</span></button>
+ *
  *   DS.overlay.open(menu, { opener: button });   DS.overlay.close(menu);
+ *   <button data-ds-open="#row-menu" aria-haspopup="menu" aria-expanded="false">   the same, with its arrow keys
  *
  * DS.overlay (js/overlay.js) places it below the trigger, aligned with its
  * start edge (towards the start edge without room; above it when it does
@@ -51,7 +62,14 @@
  * turns back from where it is; without data-state (a page that toggles
  * hidden by hand) it plays ds-fade-in and ds-clip-in once.
  *
- * Items: a 48px row (--ds-menu-item-height) in the body role, a state layer in the content colour
+ * Options: a row's height is --ds-menu-item-height (48px, its md, comfortable
+ * value) plus 8px per size step and 4px per density step, never below the
+ * touch minimum (--ds-target-min); density also changes the menu's own block
+ * padding; size changes the type (the body role by default); shape multiplies
+ * the menu's radius (--ds-menu-radius). A row's side padding ignores density:
+ * it is room for its icon and label. A row is square, so shape leaves it alone.
+ *
+ * Items: a 48px row in the body role, a state layer in the content colour
  * (hover, press in --ds-dur-micro, the focus layer and an inset ring that
  * snaps in), the ripple (js/ripple.js) and no press morph (a menu row is
  * not a pill). aria-disabled items stay focusable (their name is read) but
@@ -75,17 +93,18 @@
  * Focus moved by the keys stays clear of the shades (scroll-padding).
  *
  * Forced colours: the menu keeps an edge (its transparent outline), the
- * focused item its ring, a blocked item GrayText; the edge shades go.
+ * focused item its ring, a blocked item GrayText; the edge shades go; a danger
+ * item keeps the system's text, its label says what it does.
  *
  * Print: an open menu is not printed.
  *
  * Progressive:
- * - popover and CSS anchor positioning (anchor-name on the trigger,
- *   position-anchor, position-area and position-try-fallbacks on the menu,
- *   behind @supports; DS.overlay opens the menu as popover="manual" in the
- *   top layer with data-anchored, below the trigger, flipped above or
- *   towards the start edge when there is no room): without them the
- *   script writes --ds-menu-x/-y and sets data-placement="top" above.
+ * - anchor positioning (anchor-name on the trigger, position-anchor,
+ *   position-area and position-try-fallbacks on the menu, behind @supports;
+ *   DS.overlay opens the menu in the top layer with data-anchored, below the
+ *   trigger, flipped above or towards
+ *   the start edge when there is no room): without it the script writes
+ *   --ds-menu-x/-y and sets data-placement="top" above.
  * - scrollbar-color and scrollbar-width (a thin scrollbar in a long menu):
  *   without them the platform scrollbar shows.
  * - scroll-driven animations (animation-timeline: scroll(), animation-range;
@@ -95,7 +114,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   /* Fixed, so no scrolling or clipping box cuts it off. inset, margin and
@@ -112,10 +131,10 @@
     max-width: min(280px, calc(100vw - 2 * var(--ds-space-2)));
     max-height: calc(100vh - 2 * var(--ds-space-2));
     margin: 0;
-    padding: var(--ds-space-2) 0;
+    padding: calc(var(--ds-menu-padding, var(--ds-space-2)) + var(--ds-density, 0) * 2px) 0;
     overflow-y: auto;
     border: 0;
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-menu-radius, var(--ds-radius-xs)) * var(--ds-shape, 1));
     background: var(--ds-surface-popover);
     color: var(--ds-text);
     box-shadow: var(--ds-elev-popover);
@@ -196,14 +215,14 @@
     align-items: center;
     gap: var(--ds-space-3);
     width: 100%;
-    min-height: var(--ds-menu-item-height, 48px);
+    min-height: max(var(--ds-target-min, 0px), calc(var(--ds-menu-item-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
     margin: 0;
     padding: 0 var(--ds-space-3);
     border: 0;
     border-radius: 0;
     background: transparent;
     color: var(--ds-text);
-    font: var(--ds-font-body);
+    font: var(--ds-menu-font, var(--ds-size-font, var(--ds-font-body)));
     text-align: start;
     text-decoration: none;
     cursor: pointer;
@@ -225,6 +244,21 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  /* A label with a description under it: one block that takes the free width,
+     with room above and below, since it may be taller than the row. */
+  .ds-menu__content {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    padding-block: var(--ds-space-2);
+  }
+
+  .ds-menu__description {
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    overflow-wrap: anywhere;
   }
 
   /* The check of a checkable item keeps its room when unchecked, so the
@@ -331,8 +365,32 @@
     margin-inline-start: var(--ds-space-3);
   }
 
+  /* The shortcut slot: meta type, in the same place as a meta. */
+  .ds-menu__shortcut {
+    flex-shrink: 0;
+    margin-inline-start: var(--ds-space-3);
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   .ds-menu__item[aria-disabled="true"] .ds-menu__meta,
-  .ds-menu__item:disabled .ds-menu__meta {
+  .ds-menu__item:disabled .ds-menu__meta,
+  .ds-menu__item[aria-disabled="true"] .ds-menu__shortcut,
+  .ds-menu__item:disabled .ds-menu__shortcut,
+  .ds-menu__item[aria-disabled="true"] .ds-menu__description,
+  .ds-menu__item:disabled .ds-menu__description {
+    color: inherit;
+  }
+
+  /* An action that destroys: the error ink on its label and icon, with a word
+     that names it (the label), never the colour alone. No red background. */
+  .ds-menu__item--danger {
+    color: var(--ds-menu-danger-color, var(--ds-error));
+  }
+
+  .ds-menu__item--danger svg {
     color: inherit;
   }
 

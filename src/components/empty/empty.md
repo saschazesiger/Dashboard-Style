@@ -90,10 +90,3 @@ because of a user's action takes the role of the table above. Keyboard: no stop 
 **Forced colours.** The fill of the disc goes, the icon and the words stay; the done state's disc keeps an outline.
 
 **Motion:** [Data motion](motion.md#data-motion) in motion.md.
-
-<!-- changelog -->
-- Empty state: `--section`, `--page`, `--inline`; causes `--no-data`, `--first-use`, `--not-set-up`, `--no-results`,
-  `--no-access`, `--offline`, `--error`; a picture in `.ds-empty__media` and two actions in `.ds-empty__actions`; size,
-  density, shape and tone; hooks `--ds-empty-disc-bg`, `--ds-empty-disc-color`, `--ds-empty-padding`,
-  `--ds-empty-media-size`. Changed under `themes/compact.css`: 28px of block padding and 12px at the sides (2.x: 32px
-  and 16px), since the theme is density -2.

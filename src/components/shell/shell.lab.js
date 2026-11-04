@@ -27,7 +27,7 @@ SG_LAB.add({
   group: 'navigation',
   title: 'Drawer: the pill across nested groups',
   note: 'A group inside a group indents its rows by padding (<code>--ds-drawer-indent</code>), so the pill keeps the row\'s width and only travels, on the spring, its time growing with the distance.',
-  shows: ['DS.indicator.createIndicator', '.ds-drawer__indicator', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
+  shows: ['DS.indicator.create', '.ds-drawer__indicator', '--ds-ease-spatial', '--ds-dur-medium', '--ds-dur-slow'],
   html: '<div class="ds-drawer__list" style="inline-size: 256px; overflow: visible;">' +
     '<div class="ds-drawer__group">' + row('home', 'Overview', true) +
       '<div class="ds-drawer__group"><p class="ds-drawer__heading">Tickets</p>' + row('ticket', 'Open') +

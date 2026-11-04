@@ -45,7 +45,3 @@ slider.addEventListener('input', share); share();
   ([theming.md](theming.md#component-hooks)).
 
 **Motion:** the slider row of [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Slider: a section of its own; on the options model: size, density, shape and touch computed in its own rule. Hooks
-  `--ds-slider-thumb-size`, `--ds-slider-track-height`.

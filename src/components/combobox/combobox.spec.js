@@ -43,9 +43,6 @@ test('the field, its toggle and an option at every size x density; .ds-touch as 
       for (const [density] of densities) {
         const region = document.createElement('div');
         region.className = `${density}${touch ? ' ds-touch' : ''}`;
-        // .ds-touch still sets --ds-input-height for the form.css not ported on this branch, and --ds-combo-option-height,
-        // which replaces a theme's taller option with 48px: the integrator removes both, see the test below.
-        if (touch) region.style.setProperty('--ds-input-height', '40px');
         main.append(region);
         for (const [size] of sizes) {
           region.insertAdjacentHTML('beforeend', multi.replace('${cls}', size));
@@ -106,10 +103,6 @@ test('the field, its toggle and an option at every size x density; .ds-touch as 
 });
 
 test('the real .ds-touch rule adds nothing to a step above the target', async ({ page }) => {
-  // Fails while utilities.css sets --ds-input-height under .ds-touch: touch then adds to the height (56px here). The
-  // form.css of this branch still needs that hook, so once forms-a is in the integrator drops it and
-  // --ds-combo-option-height (the same rule, which replaces a theme's taller option with 48px), and removes this line.
-  test.fail();
   await open(page);
   const heights = await page.evaluate((multi) => {
     const host = document.querySelector('#fx-component');

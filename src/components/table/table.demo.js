@@ -76,7 +76,7 @@ function rowsHtml(h, state) {
       '<td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="' + open + '" aria-controls="' + detail + '" aria-label="Details of ' + row.name + '" data-demo="toggle">' + h.icon('chevronDown', 20, 'ds-chevron') + '</button></td>' +
       '<td class="ds-nowrap"><button class="ds-link-btn ds-table__row-link" type="button" data-demo="open" data-name="' + row.name + '">' + row.name + '</button></td>' +
       '<td class="ds-col--secondary">' + row.model + '</td><td class="ds-col--secondary">' + row.owner + '</td><td class="ds-num">' + row.load + '%</td>' +
-      '<td><span class="ds-status ds-status--' + status[0] + '">' + h.icon(status[1], 16) + '<span>' + status[2] + '</span></span></td></tr>' +
+      '<td><span class="ds-status ds-tone-' + (status[0] === 'ok' ? 'success' : status[0]) + '">' + h.icon(status[1], 16) + '<span>' + status[2] + '</span></span></td></tr>' +
       '<tr class="ds-table__detail" id="' + detail + '" data-ds-key="' + row.id + '-detail"' + (open ? '' : ' inert') + '><td colspan="7"><div class="ds-table__expand"><div>' +
       '<dl class="ds-facts"><div><dt>Owner</dt><dd>' + row.owner + '</dd></div><div><dt>Model</dt><dd>' + row.model + '</dd></div><div><dt>Location</dt><dd>' + row.place + '</dd></div></dl>' +
       '</div></div></td></tr>';

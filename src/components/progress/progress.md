@@ -66,8 +66,3 @@ DS.motion.countUp(label, 30, { format: (value) => `${Math.round(value)}%` });   
 meaning. Print: the bar keeps its colours, so the share shows on paper.
 
 **Motion:** the "Progress" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Progress: size steps of the track (`--ds-progress-height`), the label's place (`--label-above`, `--label-end`),
-  tones from the class on the element, the ends follow the shape, hook `--ds-progress-bar`.
-  Changed under `themes/compact.css`: the label sits 4px from the track (2.x: 8px), since the theme is density -2.

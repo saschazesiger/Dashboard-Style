@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /**
  * Types of DS.core (js/core.js). Hand-written; test/build.test.js keeps
  * the declared exports and their parameters equal to the module's.
@@ -74,6 +74,12 @@ export interface Settings {
   readonly strings: Readonly<Record<string, Text>>;
 }
 
+/** The detail of ds:config, dispatched on the document when config() changed something. */
+export interface ConfigDetail extends Settings {
+  /** What changed: another locale in force, or strings given. */
+  readonly changed: ReadonlyArray<'locale' | 'strings'>;
+}
+
 /** The runtime of the page. */
 export declare const runtime: Runtime;
 /** Adds a behaviour by name; false when a copy loaded earlier defined it. */
@@ -86,7 +92,7 @@ export declare function init(root?: Document | Element | ShadowRoot, options?: I
 export declare function destroy(root?: Document | Element | ShadowRoot): void;
 /** Dispatches the bubbling CustomEvent `ds:<type>`; false when a listener called preventDefault(). */
 export declare function emit(el: EventTarget, type: string, detail?: unknown, options?: EmitOptions): boolean;
-/** Sets the locale and overrides strings; returns the settings in force. */
+/** Sets the locale and overrides strings; returns the settings in force. A change dispatches ds:config on the document (ConfigDetail). */
 export declare function config(options?: ConfigOptions): Settings;
 /** The system's string `key`, with {name} placeholders from `vars`. */
 export declare function t(key: string, vars?: Record<string, unknown>): string;

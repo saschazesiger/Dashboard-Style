@@ -106,8 +106,7 @@ where an inherited one would mislead (a filled button inside an error alert stay
 
 `.ds-touch` on `.ds-theme` or a container sets `--ds-target-min` to `--ds-touch-target` (48px). A control on the
 options model takes `max(var(--ds-target-min, 0px), <its computed height>)`, so touch wins over size and density;
-an icon button is as wide. The components not on the model yet take the touch target from their 2.x hooks, which
-`.ds-touch` still sets ([theming.md](theming.md#touch-screens)). Touch is never automatic: opt in when a pointer is
+an icon button is as wide ([theming.md](theming.md#touch-screens)). Touch is never automatic: opt in when a pointer is
 coarse.
 
 ## Type scale

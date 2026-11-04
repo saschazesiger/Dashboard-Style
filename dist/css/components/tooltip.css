@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Plain tooltip (Material 3): the inverse surface, the meta role, below its
  * control (above it when there is no room). It fades in and grows from
@@ -7,7 +7,7 @@
  * onto it (WCAG 1.4.13: a magnifier user can read it there); it stays open
  * meanwhile.
  *
- * DS.overlay.tooltips(root) (js/overlay.js) does everything for
+ * DS.overlay.tooltips(root) (js/tooltip.js) does everything for
  * [data-tip] triggers: it creates the one tooltip of the theme, shows it
  * after --ds-delay-tooltip on hover (mouse and pen) and at once on keyboard
  * focus, on touch after a tap on an image or a blocked control and a long
@@ -19,9 +19,19 @@
  *
  *   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">(link)</button>
  *   <td><a href="#device-42" data-tip="LAPTOP-0042-FINANCE-BACKUP">LAPTOP-0042-FINANCE-BACKUP</a></td>   only while cut off
+ *   <button class="ds-btn" type="button" data-tip="Search" data-tip-shortcut="Ctrl K">Search</button>     the shortcut slot
  *   DS.overlay.tooltips(document);
  *
  *   <div class="ds-tooltip" role="tooltip" id="..." hidden data-state="open | closed" [data-warm] [data-placement="top"] [data-anchored]>Copy link</div>
+ *
+ * Options: shape multiplies the radius. Size and density change nothing: one
+ * tooltip serves the whole theme, whatever its trigger's size. The shortcut
+ * slot, .ds-tooltip__shortcut, holds what data-tip-shortcut says, after the
+ * text.
+ *
+ * Forced colours: the transparent outline becomes its edge.
+ *
+ * Hook: --ds-tooltip-radius (--ds-radius-xs).
  *
  * Placement API: --ds-tooltip-x and --ds-tooltip-y (left and top, px) on
  * the tooltip. Inline top / left and a transform of the page still work:
@@ -39,18 +49,18 @@
  * keyframe entrance and .ds-leave still play.
  *
  * Progressive:
- * - popover and CSS anchor positioning (popover="manual" puts the tooltip
- *   into the top layer, over a modal dialog; anchor-name on the trigger,
+ * - anchor positioning (the tooltip sits in the top layer, over a modal
+ *   dialog; anchor-name on the trigger,
  *   position-anchor, position-area and position-try-fallbacks on the
  *   tooltip, behind @supports (position-area: block-end); data-anchored
- *   marks that path): without them the script writes --ds-tooltip-x/-y and
+ *   marks that path): without it the script writes --ds-tooltip-x/-y and
  *   flips the tooltip above the trigger (data-placement="top").
  *
  * Print: a tooltip is not printed.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   /* Physical on purpose (D9): --ds-tooltip-x is a script coordinate from
@@ -65,7 +75,7 @@
     width: max-content;
     max-width: min(320px, calc(100vw - 2 * var(--ds-space-2)));
     padding: var(--ds-space-1) var(--ds-space-2);
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-tooltip-radius, var(--ds-radius-xs)) * var(--ds-shape, 1));
     background: var(--ds-inverse);
     color: var(--ds-on-inverse);
     font: var(--ds-font-meta);
@@ -124,6 +134,13 @@
 
   .ds-tooltip[hidden] {
     display: none;
+  }
+
+  /* The shortcut slot: after the text, the same ink, in the code face. */
+  .ds-tooltip__shortcut {
+    margin-inline-start: var(--ds-space-2);
+    font: var(--ds-font-code);
+    white-space: nowrap;
   }
 
   /* The UA box of a popover (centred by auto margins over the whole

@@ -18,7 +18,7 @@ is a class, and the behaviour (sorting, filtering, selecting) is the page's own 
           <td class="ds-col--text"><button class="ds-link-btn" type="button">Printer on floor 2</button></td>
           <td class="ds-num">3.2</td>
           <td class="ds-col--secondary">Ada Lovelace <small>(default)</small></td>
-          <td><span class="ds-status ds-status--ok">[icon check 16]<span>OK</span></span></td>
+          <td><span class="ds-status ds-tone-success">[icon check 16]<span>OK</span></span></td>
         </tr>
       </tbody>
     </table>
@@ -101,7 +101,7 @@ moves rows only vertically, and automatic table layout re-divides the widths on 
       <td><button class="ds-btn ds-btn--quiet ds-btn--icon ds-table__toggle" type="button" aria-expanded="false" aria-controls="p2-detail"
             aria-label="Details">[icon chevronDown 20 ds-chevron]</button></td>
       <td class="ds-col--text"><a class="ds-link-btn ds-table__row-link" href="/devices/p2">Printer on floor 2</a></td>
-      <td><span class="ds-status ds-status--ok">[icon check 16]<span>OK</span></span></td>
+      <td><span class="ds-status ds-tone-success">[icon check 16]<span>OK</span></span></td>
     </tr>
     <tr class="ds-table__detail" id="p2-detail" data-ds-key="p2-detail" inert>
       <td colspan="4"><div class="ds-table__expand"><div>
@@ -319,8 +319,9 @@ opaque with the row's layers over it, a hairline at its start shows while column
 `data-ds-overflow-end` from `DS.dom.scrollEdges()`), and the wrapper drops its end fade (`--ds-table-end-fade`,
 internal). Its cell stands above the row link, so its own room opens nothing, with no pointer, no press and no ripple:
 put the row's controls there. A press on the rest of the row ripples through the cell as well, and a focused row link
-that is not in a pinned first cell finishes its ring on it. Set `--ds-table-pin-last-width` on the wrapper to its width:
-`scrollEdges()` measures only the first column, so without it focus moved by the keyboard can land under the last one.
+that is not in a pinned first cell finishes its ring on it. `DS.dom.scrollEdges()` measures the column and keeps its width
+in `--ds-table-pin-last-width` on the wrapper (written by the system, never set it), its end `scroll-padding`: focus moved
+by the keyboard never lands under it.
 
 ### Accessibility
 
@@ -328,8 +329,7 @@ that is not in a pinned first cell finishes its ring on it. Set `--ds-table-pin-
   cells, and an empty header cell gets a `.ds-sr` name. Stacked rows keep their table roles in every engine.
 - **Keyboard.** Tab reaches every control in order: sort buttons, checkboxes, toggles, row links, row actions; Enter or
   Space activates them. A wrapper whose cells hold nothing focusable takes `tabindex="0" role="region" aria-label`, and
-  the arrow keys scroll it. Focus never lands under a sticky row or a pinned first column; under a pinned last column only
-  while the page sets `--ds-table-pin-last-width`. A wrapper with sticky rows or a pinned column draws its ring outside
+  the arrow keys scroll it. Focus never lands under a sticky row or a pinned column (`DS.dom.scrollEdges()` measures them). A wrapper with sticky rows or a pinned column draws its ring outside
   its box, since those cells would paint over a ring inside it.
 - **Status** is never colour alone: selected rows keep their checkbox, sorted columns their arrow and `aria-sort`.
 
@@ -352,24 +352,8 @@ and a selected row its checkbox), and the selection bar keeps an outline.
 | `--ds-table-zebra` | `--ds-surface-low` | the even rows of `.ds-table--zebra` |
 | `--ds-table-sticky-bg` | `--ds-surface` | the base of sticky and pinned cells, the full-page wrapper |
 | `--ds-table-max-height` | none | the wrapper of a table with sticky rows |
-| `--ds-table-pin-last-width` | 0px | the wrapper's end `scroll-padding` |
 | `--ds-table-cell-max-width` | 280px | a cut cell in `.ds-table-wrap--fill` |
 | `--ds-table-fill-min-height`, `--ds-table-fill-max-height` | 240px, none | the height of `.ds-table-wrap--fill` |
 | `--ds-selection-bar-height` | 48px | the least height of `.ds-selection-bar`, which size and density step from |
 
 **Motion:** the "Table" row of [Feedback](motion.md#feedback) and [Data motion](motion.md#data-motion) in motion.md.
-
-<!-- changelog -->
-- Table on the options model: size, density and touch compute head and row height where they are used, density the
-  cells' side padding, shape the radii. New: `.ds-table--zebra`, `.ds-table--bordered`, `.ds-table--plain`,
-  `.ds-table--sticky-head`, `.ds-table--sticky-foot`, `.ds-table--pin-last`, the hooks `--ds-table-padding`,
-  `--ds-table-zebra`, `--ds-table-max-height`, `--ds-table-pin-last-width` and `--ds-selection-bar-height`.
-- Deprecated: `.ds-table--dense` and `--ds-table-dense-row-height` (use `.ds-density-tight`; removed when 3.0 ships).
-- A wrapper with sticky rows is a stacking context and hands the wheel on to the page; the pinned columns' hairlines
-  show in forced colours; `--ds-table-padding` also sets the phones' side padding.
-- `DS.ripple.attach()` knows a pinned last column: a press on its own room shows no press and opens nothing, and a row's
-  ripple reaches the cell in a part of its own. A focused row link finishes its ring on the cell.
-- A wrapper that is a tab stop draws its ring outside the box when it holds sticky rows or a pinned column; the
-  `.ds-toolbar > .ds-swap` slot keeps the selection bar's height, so the table stays where it is; `.ds-table--plain`
-  keeps its row lines in forced colours.
-- Floor: no `-webkit-mask-*` twins on the table wrappers, and the alt text of a stacked cell's label is used directly.

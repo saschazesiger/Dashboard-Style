@@ -43,7 +43,7 @@
  *
  * init(root, { observe }) installs every global on the root (always the
  * action guard of motion.js and the ripple delegation of ripple.js, and
- * the tooltips of overlay.js) and initialises every matching element in
+ * the tooltips of the tooltip module) and initialises every matching element in
  * it, except inside [data-ds-managed] (a React adapter's root: the adapter
  * owns those elements; ripple, guard and tooltips still serve them, being
  * delegated). With observe (the default) one MutationObserver per root

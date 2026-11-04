@@ -49,7 +49,7 @@ Sections of one page or record. ARIA tabs show one panel at a time; link tabs mo
 | Tone | none | | a tab states no status; a word or a `.ds-badge` in it may |
 
 ```js
-DS.indicator.createIndicator(tabs, { active: '[aria-selected="true"], [aria-current="page"]', className: 'ds-tabs__indicator', reveal: true });
+DS.indicator.create(tabs, { active: '[aria-selected="true"], [aria-current="page"]', className: 'ds-tabs__indicator', reveal: true });
 DS.dom.roving(tabs);                                   // arrow keys, Home and End move focus and select
 tabs.addEventListener('click', (event) => {
   const tab = event.target.closest('[role="tab"]');
@@ -107,12 +107,3 @@ tabs.addEventListener('click', (event) => {
 
 **Motion:** the "Tabs" row of [Navigation](motion.md#navigation) in motion.md. The contained pill and the vertical bar
 glide like the bar.
-
-<!-- changelog -->
-- Tabs (3.0): on the options model (size, density, shape, touch through `--ds-target-min`). Added `.ds-tabs--line`,
-  `.ds-tabs--contained`, `.ds-tabs--vertical`, `.ds-tabs__columns`, `.ds-tabs__count`, `.ds-tabs__item` with
-  `.ds-tabs__close`, and the hooks `--ds-tabs-padding-x`, `--ds-tabs-font`, `--ds-tabs-contained-bg`. Icons before the
-  label keep `data-label`'s reserved width under the text.
-- `themes/compact.css`: tabs take their 40px from the density; `--ds-tabs-height` is no longer set there. `.ds-touch` no
-  longer sets `--ds-tabs-height`. The ripple box follows the tab's computed inset and radius.
-

@@ -154,11 +154,3 @@ Hooks: `--ds-card-padding`, `--ds-card-padding-sm`, `--ds-card-padding-filled`, 
 resulting padding: read it, never set it.
 
 **Motion:** the press morph of [Controls](motion.md#controls) (`.ds-card--interactive`) and the "Alert, tile, card" row of [Feedback](motion.md#feedback). The mark's colours run on `--ds-dur-fast` with the card's.
-
-<!-- changelog -->
-- Card on the options model: density (padding, rhythm, `--ds-card-pad`), shape (rest and pressed radius), touch (an interactive card).
-- New: `.ds-card--outlined`, `.ds-card--horizontal` with `.ds-card__media` and `.ds-card__body`, `.ds-card--selectable` with `.ds-card__check`; hooks `--ds-card-radius`, `--ds-card-radius-pressed`, `--ds-card-bg`, `--ds-card-border`, `--ds-card-filled-bg`, `--ds-card-check-size`, `--ds-card-media-size`, `--ds-card-body-min`.
-- Renamed: `.ds-subsection` to `.ds-card__section`, `.ds-more` to `.ds-card__more` (aliases until 3.0 ships).
-- The rule that runs disclosure rows to a card's edges moved here from the disclosure's stylesheet.
-- Fixed from 2.x: a disabled or `aria-disabled` clickable card now looks blocked (`--ds-disabled-*`, cursor `not-allowed`) and takes no hover shadow; an elevated clickable card keeps its shadow on hover and while pressed.
-

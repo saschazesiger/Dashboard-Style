@@ -131,11 +131,3 @@ as in 2.x.
 **JS API.** `js/menu.js` (`DS.menu`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `create(el)` returns the controller that `data-ds-menu` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Menu" row of [Overlays](motion.md#overlays) in motion.md.
-
-<!-- changelog -->
-- Menu (3.0): behaviour in `js/menu.js` (`DS.menu`). `.ds-menu__content`, `.ds-menu__description`, `.ds-menu__shortcut`,
-  `.ds-menu__item--danger`, `data-ds-menu-checks`. Size, density, touch and shape on the rows and the menu; the default
-  row stays 48px. Placement in `js/position.js`. `data-ds-open` toggles a menu and opens it from its arrow keys.
-  Migration: a page that imports single files imports `js/menu.js` next to `js/overlay.js`; without it a menu opens with
-  no first focus, keys or close on an item, and `open()` warns once.
-

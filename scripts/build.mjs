@@ -481,7 +481,7 @@ export const GROUPS = ['actions', 'forms', 'data', 'overlays', 'navigation', 'fe
  */
 export const PROGRESSIVE_NAMES = ['linear()', '@starting-style', 'allow-discrete', 'popover', 'anchor positioning', 'View Transitions', 'scroll-driven',
   'interpolate-size', '::details-content', 'overflow-clip-margin', 'sibling-index()', 'text-wrap', 'scrollbar-color', 'scrollbar-gutter', 'field-sizing',
-  'details[name]', 'hyphenate-limit-chars', 'alt text for generated content'];
+  'details[name]', 'hyphenate-limit-chars'];
 
 /** scripts/meta-schema.json: the schema every meta.json is validated against (validateSchema). */
 export const META_SCHEMA = JSON.parse(readText(join(ROOT, 'scripts/meta-schema.json')));
@@ -1511,7 +1511,7 @@ export function moduleRequires(list = components()) {
     const path = moduleFiles(name).requires;
     const data = repoHas(path) ? JSON.parse(repoText(path)) : { requires: [], exportRequires: {} };
     const own = usedBy.get(name).filter((component) => component === name);
-    return [name, { requires: sorted([...own, ...data.requires]), exportRequires: data.exportRequires, attributes: data.attributes ?? [] }];
+    return [name, { requires: sorted([...own, ...data.requires]), exportRequires: data.exportRequires, attributes: sorted([...(data.attributes ?? []), ...(moduleFiles(name).component ? [] : moduleAttributes(name))]) }];
   }));
 }
 
@@ -1557,14 +1557,22 @@ export function verifyModuleRequires(list = components()) {
 }
 
 /**
- * The data-ds-* attributes a component's module names as string literals
- * (`attribute: 'data-ds-<name>'`). One a module claims in its "attributes"
- * stays that module's: dialog.js writes data-ds-close into a built dialog,
- * but a sheet with data-ds-close needs the overlay, not the dialog.
+ * The data-ds-* attributes that lead a bundle to a module.
+ * A component's module: every one it names as a string literal
+ * (`attribute: 'data-ds-<name>'`), on the component's manifest entry. One a
+ * module claims in its "attributes" stays that module's: dialog.js writes
+ * data-ds-close into a built dialog, but a sheet with data-ds-close needs the
+ * overlay, not the dialog.
+ * A core module (src/js): only what its define() declares, on the module's
+ * entry, so data-ds-indicator finds DS.indicator, data-ds-hotkey DS.hotkeys and
+ * data-ds-time DS.format. Not every literal: data-ds-keep is the public side of
+ * morphHtml, and a page using it needs neither the indicator nor the ripple.
  */
-function moduleAttributes(name, claimed) {
-  if (!MODULES.includes(name) || !moduleFiles(name).component) return [];
-  return [...repoText(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.has(attribute));
+function moduleAttributes(name, claimed = new Set()) {
+  if (!MODULES.includes(name)) return [];
+  const source = repoText(moduleFiles(name).source);
+  const text = moduleFiles(name).component ? source : [...source.matchAll(/^\s+attributes?:\s*(?:'[^'\n]*'|\[[^\]\n]*\])/gm)].map((match) => match[0]).join(' ');
+  return [...text.matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]).filter((attribute) => !claimed.has(attribute));
 }
 
 /** The exports and sibling imports of each module of MODULES, and the CSS it needs (moduleRequires). */

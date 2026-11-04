@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Slider (Material 3): a value on a scale (a threshold, days of history),
  * drawn on the native range input, so keyboard, forms and labels stay
@@ -22,27 +22,50 @@
  * input when it renders and on every input event; without it the track
  * shows no active part and the slider still works.
  *
+ * Options (src/core/options.css, docs/options.md), on the slider or any
+ * ancestor; each is computed here, in the slider's own rule:
+ *   size      .ds-xs ... .ds-xl: 8px of height and halo per step, 1px of track
+ *             and 4px of handle per step, the value in the size's type role
+ *   density   .ds-density-*: 4px of height and halo per step, never the
+ *             handle or the track
+ *   shape     .ds-shape-*: multiplies the radius of the track and of the
+ *             handle (round at the default, square at 0); the halo is the
+ *             handle's shadow, so it follows the handle's shape
+ *   touch     .ds-touch: at least --ds-touch-target (48px) high
+ *
  * Disabled (and aria-disabled="true"): the neutral ink for the handle and
  * the active part, no halo; the handle lays the ink over --ds-surface, so
- * it stays solid; it fades on --ds-dur-fast. Forced colours: the
+ * it stays solid; it fades on --ds-dur-fast. aria-disabled stays in the tab
+ * order, and the action guard (DS.motion.guard) holds its value: a press, a
+ * drag or a key moves nothing and no input event reaches the page. Forced
+ * colours: the
  * track in ButtonText, the handle in Highlight (GrayText when disabled).
  *
- * Hooks: --ds-slider-halo (40px).
+ * Hooks: --ds-slider-halo (40px), --ds-slider-thumb-size (20px),
+ * --ds-slider-track-height (4px). The computed values (--_box, --_thumb,
+ * --_track, --_spread and the like) are private: never set them.
  *
  * Print: track and handle keep their colours (print-color-adjust).
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 @layer ds.components {
   .ds-slider {
+    /* The options, computed here (docs/options.md); the engine's parts inherit
+       them. The input is as high as the halo, never below the touch minimum. */
+    --_box: max(var(--ds-target-min, 0px), calc(var(--ds-slider-halo, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
+    --_thumb: calc(var(--ds-slider-thumb-size, 20px) + var(--ds-size-step, 0) * 4px);
+    --_track: calc(var(--ds-slider-track-height, 4px) + var(--ds-size-step, 0) * 1px);
+    --_spread: calc((var(--_box) - var(--_thumb)) / 2);
+    --_track-radius: min(calc(var(--ds-radius-xs) * var(--ds-shape, 1)), calc(var(--_track) / 2));
+    --_thumb-radius: min(calc(var(--_thumb) / 2 * var(--ds-shape, 1)), calc(var(--_thumb) / 2));
     appearance: none;
-    -webkit-appearance: none;
     display: block;
     width: 100%;
     min-width: 0;
-    height: var(--ds-slider-halo, 40px);
+    height: var(--_box);
     margin: 0;
     padding: 0;
     background: transparent;
@@ -58,36 +81,35 @@
 
   /* The gradient runs left to right: the active part first (D9, LTR). */
   .ds-slider::-webkit-slider-runnable-track {
-    height: 4px;
-    border-radius: var(--ds-radius-xs);
+    height: var(--_track);
+    border-radius: var(--_track-radius);
     background: linear-gradient(to right, currentColor calc(var(--ds-share, 0) * 100%), var(--ds-accent) 0);
   }
 
   .ds-slider::-moz-range-track {
-    height: 4px;
-    border-radius: var(--ds-radius-xs);
+    height: var(--_track);
+    border-radius: var(--_track-radius);
     background: var(--ds-accent);
   }
 
   .ds-slider::-moz-range-progress {
-    height: 4px;
-    border-radius: var(--ds-radius-xs);
+    height: var(--_track);
+    border-radius: var(--_track-radius);
     background: currentColor;
   }
 
   /* The handle and its halo (the halo rests transparent at its full size,
      so only its colour fades). The ring rests one width further out. */
   .ds-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
     appearance: none;
     box-sizing: border-box;
-    width: 20px;
-    height: 20px;
-    margin-top: -8px;
+    width: var(--_thumb);
+    height: var(--_thumb);
+    margin-top: calc((var(--_track) - var(--_thumb)) / 2);
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--_thumb-radius);
     background: currentColor;
-    box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) transparent;
+    box-shadow: 0 0 0 var(--_spread) transparent;
     outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
@@ -97,12 +119,12 @@
 
   .ds-slider::-moz-range-thumb {
     box-sizing: border-box;
-    width: 20px;
-    height: 20px;
+    width: var(--_thumb);
+    height: var(--_thumb);
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--_thumb-radius);
     background: currentColor;
-    box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) transparent;
+    box-shadow: 0 0 0 var(--_spread) transparent;
     outline-offset: calc(var(--ds-focus-offset) + var(--ds-focus-width));
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
@@ -112,11 +134,11 @@
 
   @media (hover: hover) {
     .ds-slider:not(:disabled, [aria-disabled="true"]):hover::-webkit-slider-thumb {
-      box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) color-mix(in srgb, currentColor calc(var(--ds-state-hover) * 100%), transparent);
+      box-shadow: 0 0 0 var(--_spread) color-mix(in srgb, currentColor calc(var(--ds-state-hover) * 100%), transparent);
     }
 
     .ds-slider:not(:disabled, [aria-disabled="true"]):hover::-moz-range-thumb {
-      box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) color-mix(in srgb, currentColor calc(var(--ds-state-hover) * 100%), transparent);
+      box-shadow: 0 0 0 var(--_spread) color-mix(in srgb, currentColor calc(var(--ds-state-hover) * 100%), transparent);
     }
   }
 
@@ -125,7 +147,7 @@
   .ds-slider:focus-visible::-webkit-slider-thumb {
     outline: var(--ds-focus-outline);
     outline-offset: var(--ds-focus-offset);
-    box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
+    box-shadow: 0 0 0 var(--_spread) color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       box-shadow 0s,
@@ -135,7 +157,7 @@
   .ds-slider:focus-visible::-moz-range-thumb {
     outline: var(--ds-focus-outline);
     outline-offset: var(--ds-focus-offset);
-    box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
+    box-shadow: 0 0 0 var(--_spread) color-mix(in srgb, currentColor calc(var(--ds-state-focus) * 100%), transparent);
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       box-shadow 0s,
@@ -143,7 +165,7 @@
   }
 
   .ds-slider:not(:disabled, [aria-disabled="true"]):active::-webkit-slider-thumb {
-    box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
+    box-shadow: 0 0 0 var(--_spread) color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       box-shadow var(--ds-dur-micro) var(--ds-ease-in-out),
@@ -151,7 +173,7 @@
   }
 
   .ds-slider:not(:disabled, [aria-disabled="true"]):active::-moz-range-thumb {
-    box-shadow: 0 0 0 calc((var(--ds-slider-halo, 40px) - 20px) / 2) color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
+    box-shadow: 0 0 0 var(--_spread) color-mix(in srgb, currentColor calc(var(--ds-state-pressed) * 100%), transparent);
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       box-shadow var(--ds-dur-micro) var(--ds-ease-in-out),
@@ -182,7 +204,7 @@
     flex: none;
     min-width: var(--ds-space-10);
     color: var(--ds-text);
-    font: var(--ds-font-label);
+    font: var(--ds-size-font, var(--ds-font-label));
     font-variant-numeric: tabular-nums;
     text-align: end;
   }

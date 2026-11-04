@@ -124,13 +124,13 @@ SG.demo('shell', {
     var list = h.$('[data-demo="list"]', root);
     var menu = h.$('[data-demo="menu"]', root);
     var handles = [
-      DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true }),
+      DS.indicator.create(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true }),
       DS.dom.scrollEdges(list, { axis: 'block' }),
       DS.dom.watchScrolled(h.$('[data-demo="view"]', root), app),
     ];
     h.$$('[data-demo="segmented"]', root).forEach(function (group) {
       var buttons = group.getAttribute('data-active') === 'checked';
-      handles.push(DS.indicator.createIndicator(group, { active: buttons ? '[aria-checked="true"]' : '[aria-current="true"]', className: 'ds-segmented__indicator' }));
+      handles.push(DS.indicator.create(group, { active: buttons ? '[aria-checked="true"]' : '[aria-current="true"]', className: 'ds-segmented__indicator' }));
       if (buttons) handles.push(DS.dom.roving(group, { items: '.ds-segmented__option' }));
     });
 

@@ -11,7 +11,7 @@
  *       swaps the classes on the live node (no re-render)
  *   [data-indicator="<active selector>"] [data-indicator-class="..."]
  *   [data-indicator-name="nav"]
- *       gets a sliding indicator (DS.indicator.createIndicator, with that
+ *       gets a sliding indicator (DS.indicator.create, with that
  *       view-transition `name` when given); a click on an item makes it the
  *       active one (a link with data-fx-follow loads its page instead)
  *   ?speed=0.1 in the URL
@@ -51,7 +51,7 @@
     var active = track.getAttribute('data-indicator');
     var attribute = /^\[([\w-]+)/.exec(active)[1];
     var value = /="([^"]*)"/.exec(active)[1];
-    var indicator = DS.indicator.createIndicator(track, {
+    var indicator = DS.indicator.create(track, {
       active: active,
       className: track.getAttribute('data-indicator-class') || '',
       name: track.getAttribute('data-indicator-name') || '',

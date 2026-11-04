@@ -11,12 +11,12 @@ function panel(h, id, wide, foot) {
     '<p class="ds-sheet__subtitle">Issued to Ada Lovelace</p></div>' +
     '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + h.icon('close', 20) + '</button></div>' +
     '<div class="ds-sheet__body" tabindex="0"><dl class="ds-facts"><div><dt>Owner</dt><dd>Ada Lovelace</dd></div>' +
-    '<div><dt>Location</dt><dd>Building A, 1st floor</dd></div><div><dt>Model</dt><dd>Latitude 7440</dd></div></dl>' +
+    '<div><dt>Location</dt><dd>Building A, 1st floor</dd></div><div><dt>Model</dt><dd>Laptop 14</dd></div></dl>' +
     '<p class="ds-muted">The record of the device goes here.</p></div>' +
     (foot ? '<div class="ds-sheet__foot"><p class="ds-meta">Last saved today</p>' +
       '<button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
       '<button class="ds-btn ds-btn--filled" type="button" data-demo="save"><span class="ds-btn__faces"><span class="ds-btn__face">Save</span>' +
-      '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--sm"></span>Save</span></span></button></div>' : '') +
+      '<span class="ds-btn__face ds-btn__face--busy" aria-hidden="true"><span class="ds-spinner ds-spinner--ink ds-sm"></span>Save</span></span></button></div>' : '') +
     '</section></dialog>';
 }
 

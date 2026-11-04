@@ -107,11 +107,3 @@ shape), `--ds-savebar-bg` (`--ds-surface-popover`; in the flow `--ds-surface`), 
 `data-ds-savebar`, `data-ds-savebar-rest` and `data-toast-reserve` are the system's. Print: hidden.
 
 **Motion:** the "Save bar" row of [Feedback](motion.md#feedback) in motion.md.
-
-<!-- changelog -->
-- Save bar on the options model (size, density, shape, touch, computed in `savebar.css`).
-- New: `.ds-savebar--inline`, the actions of a long form outside a card in reach at every width, with
-  `.ds-savebar-scroller` and hooks `--ds-savebar-bleed` and `--ds-savebar-room`.
-- Its cascade order moved after page (`meta.json` `order`), so the room it keeps on `.ds-content` holds in the
-  component sublayers too.
-

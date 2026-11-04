@@ -242,7 +242,7 @@ test.describe('labels', () => {
       track.style.display = 'inline-flex';
       track.innerHTML = ['Day', 'Week', 'Month', 'Year'].map((text, index) => `<button class="ds-btn ds-btn--sm ds-btn--text" type="button" aria-pressed="${index ? 'false' : 'true'}">${text}</button>`).join('');
       document.querySelector('.ds-theme').append(track);
-      window.xToggles = DS.indicator.createIndicator(track, { active: '[aria-pressed="true"]', className: 'x-toggles__pill' });
+      window.xToggles = DS.indicator.create(track, { active: '[aria-pressed="true"]', className: 'x-toggles__pill' });
     });
     await settle(page);
     const result = await page.evaluate(() => {
@@ -290,7 +290,7 @@ test.describe('labels', () => {
       nav.setAttribute('aria-label', 'Mode');
       nav.innerHTML = ['Live', 'Reports and exports'].map((text, index) => `<a class="ds-segmented__option" href="#${index}" data-label="${text}"${index ? '' : ' aria-current="true"'}>${text}</a>`).join('');
       document.querySelector('.ds-theme').append(nav);
-      window.xLabelled = DS.indicator.createIndicator(nav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
+      window.xLabelled = DS.indicator.create(nav, { active: '[aria-current="true"]', className: 'ds-segmented__indicator' });
     });
     await settle(page);
     const widths = () => page.evaluate(() => [...document.querySelectorAll('#x-labelled, #x-labelled > a')].map((el) => el.getBoundingClientRect().width));
@@ -669,7 +669,7 @@ test.describe('drawer list edges (2.1)', () => {
       const item = list.querySelector('a[href="#site-8"]');
       item.id = 'revealed';
       item.setAttribute('aria-current', 'page');
-      DS.indicator.createIndicator(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
+      DS.indicator.create(list, { active: '[aria-current="page"]', className: 'ds-drawer__indicator', reveal: true });
     });
     await frames(page);
     await settle(page);

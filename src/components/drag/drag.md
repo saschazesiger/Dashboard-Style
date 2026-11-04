@@ -112,10 +112,3 @@ DS.motion.sortable(steps, { onChange: (order) => save(order.map((row) => row.dat
   leaves it alone, as every icon button. The row's look has no option of its own.
 
 **Motion:** `sortable()` in [DS.motion](motion.md#dsmotion-jsmotionjs); the row glides like every `flip()` item.
-
-<!-- changelog -->
-- File field and drop zone on the options model (size, density, shape, touch, computed in `drag.css`); the file field is
-  40px at the default like every field (2.x: 42px).
-- New: `.ds-dropzone--inline`, the zone's error state through `aria-invalid` on its input, hooks
-  `--ds-dropzone-padding`, `--ds-dropzone-radius`, `--ds-file-button-height`.
-

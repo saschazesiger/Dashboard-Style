@@ -1707,7 +1707,7 @@
    * keeps its ring and tint), and keyboard focus rings the tile. The check
    * pops from --ds-scale-small on the spring and fades in; it leaves faster,
    * accelerating. With the documented indicator
-   * (createIndicator(group, { active: '.ds-radio:has(input:checked)',
+   * (DS.indicator.create(group, { active: '.ds-radio:has(input:checked)',
    * className: 'ds-radios__indicator' }), and its update() on the group's
    * change event) the tint is a pill that glides from tile to tile; the
    * ring and the check change at once.

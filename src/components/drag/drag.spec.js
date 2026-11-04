@@ -34,8 +34,6 @@ test('the file field and its button at every size x density; .ds-touch as a mini
       for (const [density] of densities) {
         const region = document.createElement('div');
         region.className = `${density}${touch ? ' ds-touch' : ''}`;
-        // .ds-touch still sets this hook for the form.css that is not ported on this branch: see the test below.
-        if (touch) region.style.setProperty('--ds-input-height', '40px');
         main.append(region);
         for (const [size] of sizes) {
           region.insertAdjacentHTML('beforeend', `<input class="ds-input ${size}" type="file" aria-label="Measured">`);
@@ -63,9 +61,6 @@ test('the file field and its button at every size x density; .ds-touch as a mini
 });
 
 test('the real .ds-touch rule adds nothing to a step above the target', async ({ page }) => {
-  // Fails while utilities.css sets --ds-input-height under .ds-touch: touch then adds to the height (56px here). The
-  // form.css of this branch still needs that hook, so the integrator drops it once forms-a is in, and removes this line.
-  test.fail();
   await open(page);
   const height = await page.evaluate(() => {
     const host = document.querySelector('#fx-component');

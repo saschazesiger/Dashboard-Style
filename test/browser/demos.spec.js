@@ -114,7 +114,7 @@ test('sheet: the side sheet opens and closes', async ({ page }) => {
   const sheet = page.locator('body > .ds-sheet');
   await expect(sheet).toHaveCount(1);
   await settle(page, SETTLE);
-  await sheet.locator('.ds-form-actions [data-close]').last().click();
+  await sheet.locator('.ds-form-actions [data-ds-close]').last().click();
   await expect(sheet).toHaveCount(0, { timeout: SETTLE.timeout });
 });
 
@@ -131,7 +131,7 @@ test('dialog-div: the dialog in div markup opens on Cancel and closes', async ({
   await press(page.locator('[data-sg="dialog-div"]'));
   const dialog = page.locator('body > .ds-dialog');
   await expect(dialog).toHaveCount(1);
-  await expect(page.locator('body > .ds-dialog .ds-dialog__actions [data-close]').first()).toBeFocused();
+  await expect(page.locator('body > .ds-dialog .ds-dialog__actions [data-ds-close]').first()).toBeFocused();
   await settle(page, SETTLE);
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0, { timeout: SETTLE.timeout });
@@ -150,7 +150,7 @@ test('dialog-combo: the list at the bottom of a dialog opens, Escape closes it f
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await expect(popup).toBeHidden({ timeout: SETTLE.timeout });
-  await expect(dialog.locator('.ds-combo__input')).toHaveValue('Latitude 5430');
+  await expect(dialog.locator('.ds-combo__input')).toHaveValue('Laptop 13');
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0, { timeout: SETTLE.timeout });
 });
@@ -206,10 +206,10 @@ test('presence: the popover fades in and closes on Escape', async ({ page }) => 
 test('combo: typing filters the list, the chevron opens and closes it', async ({ page }) => {
   const input = page.locator('#f-combo');
   await press(input);
-  await page.keyboard.type('lat');
+  await page.keyboard.type('lap');
   const popup = page.locator('#selection .ds-combo__popup');
   await expect(popup).toHaveAttribute('data-state', 'open');
-  await expect(page.locator('#selection .ds-combo__status')).toHaveText('3 of 6 models');
+  await expect(page.locator('#selection .ds-combo__status')).toHaveText('4 of 6 models');
   await settle(page, SETTLE);
   await page.locator('#selection .ds-combo__toggle').click();
   await expect(input).toHaveAttribute('aria-expanded', 'false');
@@ -225,7 +225,7 @@ test('progress: the bar advances', async ({ page }) => {
 
 test('dense: the table turns dense', async ({ page }) => {
   await press(page.locator('[data-sg="dense"]'));
-  await expect(page.locator('#sg-table')).toHaveClass(/ds-table--dense/);
+  await expect(page.locator('#sg-table')).toHaveClass(/ds-density-tight/);
 });
 
 test('busy: the button saves and confirms', async ({ page }) => {
@@ -302,8 +302,8 @@ test('status-poll: the polled chip cycles running, ok, error on the kept node', 
   await holder.locator('.ds-status').evaluate((chip) => { window.sgChip = chip; });
   const toggle = page.locator('[data-sg="status-poll"]');
   await press(toggle);
-  await expect(holder.locator('.ds-status')).toHaveClass(/ds-status--ok/, WAIT);
-  await expect(holder.locator('.ds-status')).toHaveClass(/ds-status--error/, WAIT);
+  await expect(holder.locator('.ds-status')).toHaveClass(/ds-tone-success/, WAIT);
+  await expect(holder.locator('.ds-status')).toHaveClass(/ds-tone-error/, WAIT);
   await press(toggle);
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   expect(await holder.locator('.ds-status').evaluate((chip) => chip === window.sgChip)).toBe(true);

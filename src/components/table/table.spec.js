@@ -710,6 +710,34 @@ test('the selection bar crosses with a shorter toolbar in its slot: the table st
   }
 });
 
+test('focus never lands under a pinned last column: scrollEdges() measures it, at any size and under touch', async ({ page, browserName }) => {
+  test.skip(browserName === 'webkit', 'WebKit tabs to links and form controls only with the macOS setting on');
+  await open(page);
+  for (const options of ['', 'ds-lg', 'ds-touch']) {
+    await page.evaluate((classes) => {
+      document.querySelector('#fx-end')?.remove();
+      const cells = (tag, n) => Array.from({ length: n }, (_, i) => `<${tag}${tag === 'th' ? ' scope="col"' : ''}><button class="ds-btn" type="button" id="${tag}-${i}">Column ${i}</button></${tag}>`).join('');
+      document.body.insertAdjacentHTML('beforeend', `<div id="fx-end" style="inline-size: 420px"><div class="ds-table-wrap" id="end-wrap"><table class="ds-table ds-table--pin-last ${classes}" style="inline-size: 1400px">
+        <caption class="ds-sr">Pinned</caption><thead><tr>${cells('th', 8)}</tr></thead><tbody><tr>${cells('td', 8)}</tr></tbody></table></div></div>`);
+      DS.dom.scrollEdges(document.getElementById('end-wrap'));
+    }, options);
+    const name = options || 'default';
+    await expect.poll(() => page.$eval('#end-wrap', (el) => parseFloat(el.style.getPropertyValue('--ds-table-pin-last-width'))), `${name}: measured`).toBeGreaterThan(0);
+    const width = await page.$eval('#td-7', (el) => el.closest('td').getBoundingClientRect().width);
+    expect(await page.$eval('#end-wrap', (el) => parseFloat(el.style.getPropertyValue('--ds-table-pin-last-width')))).toBeCloseTo(width, 1);
+    await page.focus('#td-0');
+    for (let i = 1; i < 7; i += 1) {
+      await page.keyboard.press('Tab');
+      await expect(page.locator(`#td-${i}`), `${name}: Tab reaches it`).toBeFocused();
+      await expect.poll(() => page.evaluate((id) => {
+        const control = document.getElementById(id).getBoundingClientRect();
+        const pinned = document.getElementById('td-7').closest('td').getBoundingClientRect();
+        return control.right <= pinned.left + 1;
+      }, `td-${i}`), `${name}: column ${i} beside the pinned one`).toBe(true);
+    }
+  }
+});
+
 test('keyboard: Tab goes through every control in order and skips a closed detail; Enter and Space use them', async ({ page, browserName }) => {
   test.skip(browserName === 'webkit', 'WebKit tabs to links and form controls only with the macOS setting on');
   await open(page);

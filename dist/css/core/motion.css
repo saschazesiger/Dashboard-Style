@@ -1,4 +1,4 @@
-/*! Dashboard-Style 3.0.0-alpha.2 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
+/*! Dashboard-Style 3.0.0-alpha.3 | MIT License | https://github.com/saschazesiger/Dashboard-Style */
 /*
  * Motion: the only file with @keyframes (test/css.test.js enforces it).
  * Components either name a keyframe here directly or use the utility
@@ -26,7 +26,7 @@
  * and are movement-only; they always pair with ds-fade-out.
  *
  * [data-ds-moving] (set by DS.dom.morphHtml for one style flush on a node
- * it moves with insertBefore, and by DS.indicator.createIndicator on its
+ * it moves with insertBefore, and by DS.indicator.create on its
  * track) turns transitions off in that subtree, so a keyed reorder never
  * replays an @starting-style entrance and the items under a new pill take
  * their look at once.
@@ -60,7 +60,7 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.savebar, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page;
+@layer ds.components.utilities, ds.components.scroller, ds.components.button, ds.components.spinner, ds.components.loader, ds.components.indicator, ds.components.loading, ds.components.card, ds.components.disclosure, ds.components.tile, ds.components.list, ds.components.timeline, ds.components.tasks, ds.components.prose, ds.components.empty, ds.components.status, ds.components.alert, ds.components.table, ds.components.pagination, ds.components.form, ds.components.drag, ds.components.chip, ds.components.badge, ds.components.switch, ds.components.slider, ds.components.combobox, ds.components.menu, ds.components.progress, ds.components.chart, ds.components.sheet, ds.components.dialog, ds.components.toast, ds.components.tooltip, ds.components.shell, ds.components.tabs, ds.components.steps, ds.components.ripple, ds.components.page, ds.components.savebar;
 
 /*
  * Per-element motion hooks. No initial value: an unset hook stays
@@ -1223,7 +1223,7 @@
      entrances (a status icon, an error message's room) would play again on
      every sort. It carries data-ds-moving for one style flush: no
      transitions, so data changes glide and never replay an entrance.
-     DS.indicator.createIndicator() sets it on the track for the flush that
+     DS.indicator.create() sets it on the track for the flush that
      gives its items their look under the new pill. */
   :where(.ds-theme) [data-ds-moving],
   :where(.ds-theme) [data-ds-moving] * {

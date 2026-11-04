@@ -96,9 +96,3 @@ a suggestion (an action chip):
   (`.ds-chips:empty`) takes no room.
 
 **Motion:** the chip rows of [Controls](motion.md#controls) in motion.md.
-
-<!-- changelog -->
-- Chips: on the options model: size, density, shape, touch and tone computed in the chip's own rule. Hooks
-  `--ds-chip-padding-x`, `--ds-chip-radius`, `--ds-chip-font`. `.ds-touch` no longer sets `--ds-chip-height`, and the
-  compact theme neither: a chip there is its dense density's 24px (2.x 28px), like every control on that density.
-
