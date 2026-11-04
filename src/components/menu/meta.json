@@ -23,10 +23,15 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-menu-item-height",
-    "--ds-scroll-fade"
-  ],
+  "hooks": {
+    "--ds-menu-item-height": {
+      "default": "48px",
+      "description": "menu item (and action sheet row)"
+    },
+    "--ds-scroll-fade": {
+      "owner": "scroller"
+    }
+  },
   "keyframes": [
     "ds-clip-in",
     "ds-fade-in",
@@ -42,5 +47,8 @@
     "scroll-driven",
     "scrollbar-color"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-menu__item"
+  ]
 }

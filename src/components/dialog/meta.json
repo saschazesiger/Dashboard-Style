@@ -32,15 +32,36 @@
     "button"
   ],
   "context": [],
-  "hooks": [
-    "--ds-dialog-border",
-    "--ds-dialog-full-radius",
-    "--ds-dialog-height",
-    "--ds-dialog-scrim",
-    "--ds-dialog-shadow",
-    "--ds-dialog-width",
-    "--ds-dialog-width-wide"
-  ],
+  "hooks": {
+    "--ds-dialog-width": {
+      "default": "400px",
+      "description": "dialog"
+    },
+    "--ds-dialog-border": {
+      "default": "`1px solid transparent` (visible in forced colors)",
+      "description": "dialog edge"
+    },
+    "--ds-dialog-shadow": {
+      "default": "`--ds-elev-overlay`",
+      "description": "dialog"
+    },
+    "--ds-dialog-scrim": {
+      "default": "`--ds-scrim`",
+      "description": "the dialog's backdrop; `.ds-dialog--nested` sets it to `--ds-scrim-nested`"
+    },
+    "--ds-dialog-width-wide": {
+      "default": "560px",
+      "description": "`.ds-dialog--wide`"
+    },
+    "--ds-dialog-height": {
+      "default": "auto (capped by the window)",
+      "description": "the dialog box; a fixed height keeps a box with a filtered list from jumping"
+    },
+    "--ds-dialog-full-radius": {
+      "default": "0",
+      "description": "the box of a full-screen dialog (`.ds-dialog--full`, `--full-narrow`)"
+    }
+  },
   "keyframes": [
     "ds-drop-out",
     "ds-fade-in",

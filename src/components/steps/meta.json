@@ -15,9 +15,12 @@
   ],
   "requires": [],
   "context": [],
-  "hooks": [
-    "--ds-steps-bar-height"
-  ],
+  "hooks": {
+    "--ds-steps-bar-height": {
+      "default": "4px",
+      "description": "the segments of `.ds-steps--bar`"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],

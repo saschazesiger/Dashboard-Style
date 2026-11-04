@@ -31,21 +31,54 @@
     "switch",
     "table"
   ],
-  "hooks": [
-    "--ds-btn-height",
-    "--ds-card-hover-shadow",
-    "--ds-card-padding",
-    "--ds-card-padding-filled",
-    "--ds-card-padding-sm",
-    "--ds-card-selected-bg",
-    "--ds-card-shadow",
-    "--ds-card-title-line",
-    "--ds-chip-height",
-    "--ds-selected-ring",
-    "--ds-switch-height"
-  ],
+  "hooks": {
+    "--ds-card-padding": {
+      "default": "`--ds-space-6`",
+      "description": "card padding"
+    },
+    "--ds-card-padding-sm": {
+      "default": "`--ds-space-4`",
+      "description": "card padding at 600px and below"
+    },
+    "--ds-card-padding-filled": {
+      "default": "`--ds-space-5`",
+      "description": "`.ds-card--filled` padding"
+    },
+    "--ds-card-title-line": {
+      "default": "24px",
+      "description": "line height of `.ds-card__title`; a button, switch or chip in the header row overhangs it, a status chip, badge or tag sits on it (set it with a type role that changes the subtitle line)"
+    },
+    "--ds-card-hover-shadow": {
+      "default": "none",
+      "description": "`.ds-card--interactive` on hover (a theme may set `var(--ds-elev-hover)`); never a lift"
+    },
+    "--ds-card-selected-bg": {
+      "default": "`--ds-accent`",
+      "description": "a selected interactive card"
+    },
+    "--ds-selected-ring": {
+      "default": "`--ds-primary`",
+      "description": "the inset ring of a selected tile or card"
+    },
+    "--ds-card-shadow": {
+      "default": "`--ds-elev-1`",
+      "description": "`.ds-card--elevated`"
+    },
+    "--ds-btn-height": {
+      "owner": "button"
+    },
+    "--ds-chip-height": {
+      "owner": "chip"
+    },
+    "--ds-switch-height": {
+      "owner": "switch"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-card--interactive"
+  ]
 }

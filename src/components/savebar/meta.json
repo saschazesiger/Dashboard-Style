@@ -19,14 +19,32 @@
     "page",
     "shell"
   ],
-  "hooks": [
-    "--ds-savebar-bg",
-    "--ds-savebar-inset",
-    "--ds-savebar-min-height",
-    "--ds-savebar-offset",
-    "--ds-savebar-radius",
-    "--ds-savebar-shadow"
-  ],
+  "hooks": {
+    "--ds-savebar-offset": {
+      "default": "`--ds-space-4`",
+      "description": "save bar: distance from the view's bottom edge"
+    },
+    "--ds-savebar-inset": {
+      "default": "the page pad (`--ds-content-pad-x`)",
+      "description": "save bar: distance from the view's sides (the bar is at most `--ds-content-max` wide)"
+    },
+    "--ds-savebar-min-height": {
+      "default": "56px",
+      "description": "save bar"
+    },
+    "--ds-savebar-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "save bar"
+    },
+    "--ds-savebar-bg": {
+      "default": "`--ds-surface-popover`, `--ds-elev-overlay`",
+      "description": "save bar surface and elevation"
+    },
+    "--ds-savebar-shadow": {
+      "default": "`--ds-surface-popover`, `--ds-elev-overlay`",
+      "description": "save bar surface and elevation"
+    }
+  },
   "keyframes": [],
   "js": [
     "overlay"

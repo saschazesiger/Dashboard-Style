@@ -27,10 +27,16 @@
     "dialog",
     "shell"
   ],
-  "hooks": [
-    "--ds-toast-action-color",
-    "--ds-toast-close-size"
-  ],
+  "hooks": {
+    "--ds-toast-action-color": {
+      "default": "`--ds-inverse-primary`",
+      "description": "a text button in a snackbar (`.ds-toast__action`, Undo)"
+    },
+    "--ds-toast-close-size": {
+      "default": "36px",
+      "description": "the close button of a snackbar"
+    }
+  },
   "keyframes": [
     "ds-fade-in",
     "ds-lift-in"

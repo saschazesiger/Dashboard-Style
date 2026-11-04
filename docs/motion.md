@@ -540,6 +540,10 @@ baked in) between `generated:` markers in `motion.css`, which are never edited b
 | `ds-scroll-edge-start` / `ds-scroll-edge-end` | `--ds-scroll-edge-start` (0 → 1) / `--ds-scroll-edge-end` (1 → 0), registered numbers; scroll-linked, so both ends are named | the edge fades of a sideways scroller (`.ds-scroll-x`, the table wrappers; on the block axis the combobox list on `scroll(self block)` and the shades of a menu and of a drawer list on `scroll(nearest block)`), on its own `scroll(self inline)` timeline over `animation-range: 0 var(--ds-space-8)` and `calc(100% - var(--ds-space-8)) 100%` (no duration): the numbers scale the fade length (`--ds-scroll-fade`), so a scroller that fits fades nowhere; progressive: `animation-timeline`, elsewhere `data-ds-overflow-start` / `-end` from `DS.dom.scrollEdges()` over `--ds-dur-fast`, or the static table fade |
 | `ds-edge-fade` | `--ds-table-fade-start` (0 → `--ds-card-pad` over the first 5%) and `--ds-table-fade-end` (`--ds-card-pad` → 0 over the last 5%), registered lengths; scroll-linked, so both ends are named | **deprecated** (2.0, removed in 3.0 at the earliest) and unused: the table wrappers run `ds-scroll-edge-start` and `ds-scroll-edge-end` |
 
+<!-- generated: component keyframes (scripts/build.mjs; do not edit) -->
+No component defines keyframes of its own yet: a `<name>.keyframes.css` adds its rows here.
+<!-- /generated: component keyframes -->
+
 ```css
 .my-panel {
   animation:

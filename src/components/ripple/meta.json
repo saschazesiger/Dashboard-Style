@@ -32,14 +32,27 @@
     "tile",
     "utilities"
   ],
-  "hooks": [
-    "--ds-btn-state-focus-opacity",
-    "--ds-btn-state-opacity",
-    "--ds-btn-state-pressed-opacity",
-    "--ds-ripple-color",
-    "--ds-table-row-hover",
-    "--ds-tabs-height"
-  ],
+  "hooks": {
+    "--ds-ripple-color": {
+      "default": "`currentColor`",
+      "description": "the pointer ripple of every action ([ripple](components.md#ripple))"
+    },
+    "--ds-btn-state-focus-opacity": {
+      "owner": "button"
+    },
+    "--ds-btn-state-opacity": {
+      "owner": "button"
+    },
+    "--ds-btn-state-pressed-opacity": {
+      "owner": "button"
+    },
+    "--ds-table-row-hover": {
+      "owner": "table"
+    },
+    "--ds-tabs-height": {
+      "owner": "tabs"
+    }
+  },
   "keyframes": [
     "ds-press-ripple"
   ],
@@ -49,5 +62,8 @@
   "progressive": [
     "overflow-clip-margin"
   ],
-  "ripple": false
+  "ripple": true,
+  "rippleHosts": [
+    "[data-ds-ripple]"
+  ]
 }

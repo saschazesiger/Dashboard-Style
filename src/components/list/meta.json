@@ -43,14 +43,30 @@
     "tile",
     "utilities"
   ],
-  "hooks": [
-    "--ds-facts-label-width",
-    "--ds-list-current-bg",
-    "--ds-list-item-height",
-    "--ds-list-text-min"
-  ],
+  "hooks": {
+    "--ds-list-item-height": {
+      "default": "56px",
+      "description": "the least height of a `.ds-list` row"
+    },
+    "--ds-list-text-min": {
+      "default": "12rem",
+      "description": "the width below which a row's trailing parts (status, actions, chevron) drop to a second line"
+    },
+    "--ds-list-current-bg": {
+      "default": "`--ds-accent`",
+      "description": "the current row of a `.ds-list` (`aria-current`)"
+    },
+    "--ds-facts-label-width": {
+      "default": "36%",
+      "description": "the label column of `.ds-facts--rows`"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-list--interactive > .ds-list__item",
+    ":is(a, button).ds-kv-list__row"
+  ]
 }

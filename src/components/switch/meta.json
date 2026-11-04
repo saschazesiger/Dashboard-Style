@@ -21,13 +21,28 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-switch-disabled-handle",
-    "--ds-switch-disabled-track",
-    "--ds-switch-halo",
-    "--ds-switch-height",
-    "--ds-switch-list-row-height"
-  ],
+  "hooks": {
+    "--ds-switch-halo": {
+      "default": "40px",
+      "description": "the halo around the switch handle"
+    },
+    "--ds-switch-height": {
+      "default": "40px",
+      "description": "the smallest height of a switch row"
+    },
+    "--ds-switch-list-row-height": {
+      "default": "56px",
+      "description": "the smallest row of a `.ds-switch-list`"
+    },
+    "--ds-switch-disabled-track": {
+      "default": "`--ds-disabled-fill`, `--ds-disabled-ink`",
+      "description": "disabled switch track (and border) and off handle"
+    },
+    "--ds-switch-disabled-handle": {
+      "default": "`--ds-disabled-fill`, `--ds-disabled-ink`",
+      "description": "disabled switch track (and border) and off handle"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],

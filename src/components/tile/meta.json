@@ -17,16 +17,36 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-selected-ring",
-    "--ds-tile-min-width",
-    "--ds-tile-radius",
-    "--ds-tile-radius-pressed",
-    "--ds-tile-selected-bg",
-    "--ds-tiles-columns"
-  ],
+  "hooks": {
+    "--ds-tile-radius": {
+      "default": "`--ds-radius-lg`",
+      "description": "key-figure tile"
+    },
+    "--ds-tile-radius-pressed": {
+      "default": "`--ds-radius-md`",
+      "description": "a clickable tile while pressed (never rounder than `--ds-tile-radius`)"
+    },
+    "--ds-tile-min-width": {
+      "default": "176px",
+      "description": "the narrowest tile of a `.ds-tiles` row (fewer per row below it; one per row on a phone, 128px keeps two down to a 360px phone)"
+    },
+    "--ds-tiles-columns": {
+      "default": "4",
+      "description": "the most tiles per row (`.ds-tiles--3`: three)"
+    },
+    "--ds-tile-selected-bg": {
+      "default": "`--ds-accent`",
+      "description": "a selected tile (`aria-pressed`, `aria-checked`, `aria-selected`)"
+    },
+    "--ds-selected-ring": {
+      "owner": "card"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ":is(button, a).ds-tile"
+  ]
 }

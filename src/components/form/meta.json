@@ -72,28 +72,87 @@
     "switch",
     "table"
   ],
-  "hooks": [
-    "--ds-btn-height",
-    "--ds-check-height",
-    "--ds-check-list-max-height",
-    "--ds-check-size",
-    "--ds-check-sm-height",
-    "--ds-check-target",
-    "--ds-composer-max-height",
-    "--ds-composer-radius",
-    "--ds-field-changed-color",
-    "--ds-field-error-color",
-    "--ds-field-success-color",
-    "--ds-form-actions-bleed",
-    "--ds-form-rows-control-max",
-    "--ds-input-bg",
-    "--ds-input-border",
-    "--ds-input-focus-color",
-    "--ds-input-font",
-    "--ds-input-grow-max",
-    "--ds-input-height",
-    "--ds-input-radius"
-  ],
+  "hooks": {
+    "--ds-input-font": {
+      "default": "body; input role at 600px and below",
+      "description": "fields"
+    },
+    "--ds-check-size": {
+      "default": "18px",
+      "description": "the drawn checkbox and radio (`.ds-check`, `.ds-checkbox`, `.ds-radio-input`, radio cards, table checkboxes)"
+    },
+    "--ds-check-target": {
+      "default": "40px",
+      "description": "their halo (hover, press, focus) across"
+    },
+    "--ds-input-height": {
+      "default": "40px",
+      "description": "the minimum height of fields (`.ds-input`, the search pill), input groups and a growing textarea; the combobox toggle is that size and the field keeps room for it"
+    },
+    "--ds-check-height": {
+      "default": "40px",
+      "description": "a `.ds-check` row (one line of its label; a longer label wraps and the box stays beside its first line)"
+    },
+    "--ds-check-sm-height": {
+      "default": "32px",
+      "description": "`.ds-check--sm` (it sets `--ds-check-height` from it)"
+    },
+    "--ds-input-bg": {
+      "default": "`--ds-surface`, `--ds-outline`, `--ds-radius-field`",
+      "description": "the outlined field and the input group at rest (fill, 1px border colour, corners; the filled field's top corners)"
+    },
+    "--ds-input-border": {
+      "default": "`--ds-surface`, `--ds-outline`, `--ds-radius-field`",
+      "description": "the outlined field and the input group at rest (fill, 1px border colour, corners; the filled field's top corners)"
+    },
+    "--ds-input-radius": {
+      "default": "`--ds-surface`, `--ds-outline`, `--ds-radius-field`",
+      "description": "the outlined field and the input group at rest (fill, 1px border colour, corners; the filled field's top corners)"
+    },
+    "--ds-input-focus-color": {
+      "default": "`--ds-primary`",
+      "description": "the field's ring, the label tint while it has the focus, the filled field's bottom line, the input group and composer rings"
+    },
+    "--ds-input-grow-max": {
+      "default": "50vh",
+      "description": "the tallest a `.ds-input--grow` textarea grows before it scrolls"
+    },
+    "--ds-field-error-color": {
+      "default": "`--ds-on-error-container`, `--ds-text-2`",
+      "description": "the text of an error and a success hint (their icons stay `--ds-error`, `--ds-success`)"
+    },
+    "--ds-field-success-color": {
+      "default": "`--ds-on-error-container`, `--ds-text-2`",
+      "description": "the text of an error and a success hint (their icons stay `--ds-error`, `--ds-success`)"
+    },
+    "--ds-field-changed-color": {
+      "default": "`--ds-primary`",
+      "description": "the dot after the label of a `.ds-field--changed` (keep 3:1 on the surface)"
+    },
+    "--ds-form-rows-control-max": {
+      "default": "480px",
+      "description": "the widest control in `.ds-form--rows`"
+    },
+    "--ds-check-list-max-height": {
+      "default": "264px",
+      "description": "`.ds-check-list` scrolls on its own beyond it (`none`: every row shows)"
+    },
+    "--ds-form-actions-bleed": {
+      "default": "`--ds-content-pad-x` (in a `.ds-card`: `--ds-card-pad`)",
+      "description": "how far a `.ds-form-actions--sticky` bar bleeds on a phone: set it on a padded container of the page's own to its inline padding (it inherits)"
+    },
+    "--ds-composer-radius": {
+      "default": "`--ds-radius-2xl`",
+      "description": "the shell of `.ds-composer`"
+    },
+    "--ds-composer-max-height": {
+      "default": "220px",
+      "description": "the tallest the composer's textarea grows before it scrolls"
+    },
+    "--ds-btn-height": {
+      "owner": "button"
+    }
+  },
   "keyframes": [
     "ds-fade-in"
   ],
@@ -105,5 +164,8 @@
     "scrollbar-color",
     "field-sizing"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-radio"
+  ]
 }

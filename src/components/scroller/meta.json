@@ -14,9 +14,12 @@
   ],
   "requires": [],
   "context": [],
-  "hooks": [
-    "--ds-scroll-fade"
-  ],
+  "hooks": {
+    "--ds-scroll-fade": {
+      "default": "`--ds-space-8` (card table wrappers: `--ds-card-pad`)",
+      "description": "the length of the edge fades of `.ds-scroll-x`, the table wrappers and the cut edges of menus, combobox lists and drawer lists (2.1); `0px` turns every fade off"
+    }
+  },
   "keyframes": [
     "ds-scroll-edge-end",
     "ds-scroll-edge-start"

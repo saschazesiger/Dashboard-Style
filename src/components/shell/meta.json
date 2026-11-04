@@ -83,17 +83,42 @@
     "table",
     "tile"
   ],
-  "hooks": [
-    "--ds-account-text-max",
-    "--ds-avatar-size",
-    "--ds-btn-sm-icon-size",
-    "--ds-drawer-item-height",
-    "--ds-scroll-fade",
-    "--ds-segmented-padding-x",
-    "--ds-topbar-scrolled-bg",
-    "--ds-topbar-search-max",
-    "--ds-view-scrollbar-gutter"
-  ],
+  "hooks": {
+    "--ds-drawer-item-height": {
+      "default": "48px",
+      "description": "drawer item (its rest radius is half of it, so the press morph runs its whole way)"
+    },
+    "--ds-topbar-scrolled-bg": {
+      "default": "`--ds-surface-high`",
+      "description": "top bar while the view is scrolled (`data-scrolled`); `transparent` keeps a flat bar"
+    },
+    "--ds-view-scrollbar-gutter": {
+      "default": "`stable`",
+      "description": "the view's scrollbar gutter: `stable both-edges` (symmetric) or `auto` (no reserved room)"
+    },
+    "--ds-segmented-padding-x": {
+      "default": "`--ds-space-4`",
+      "description": "the inline padding of a segmented option (narrow switches)"
+    },
+    "--ds-topbar-search-max": {
+      "default": "720px",
+      "description": "the widest `.ds-topbar__search`"
+    },
+    "--ds-account-text-max": {
+      "default": "240px",
+      "description": "the name and email beside the avatar in `.ds-account--capsule`"
+    },
+    "--ds-avatar-size": {
+      "default": "32px (`--sm` 24px, `--lg` 40px)",
+      "description": "`.ds-avatar` and the account's avatar"
+    },
+    "--ds-btn-sm-icon-size": {
+      "owner": "button"
+    },
+    "--ds-scroll-fade": {
+      "owner": "scroller"
+    }
+  },
   "keyframes": [
     "ds-fade-in",
     "ds-scroll-edge-end",
@@ -111,5 +136,10 @@
     "scrollbar-color",
     "scrollbar-gutter"
   ],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-segmented__option",
+    ".ds-drawer__item",
+    ".ds-drawer__toggle"
+  ]
 }

@@ -13,11 +13,20 @@
   "context": [
     "loading"
   ],
-  "hooks": [
-    "--ds-loader-color",
-    "--ds-loader-size",
-    "--ds-loader-sm-size"
-  ],
+  "hooks": {
+    "--ds-loader-size": {
+      "default": "48px (`--sm`: `--ds-loader-sm-size`), `--ds-primary`",
+      "description": "the shape loader's container and its shape ([loading](components.md#loading))"
+    },
+    "--ds-loader-color": {
+      "default": "48px (`--sm`: `--ds-loader-sm-size`), `--ds-primary`",
+      "description": "the shape loader's container and its shape ([loading](components.md#loading))"
+    },
+    "--ds-loader-sm-size": {
+      "default": "24px",
+      "description": "`.ds-loader--sm`"
+    }
+  },
   "keyframes": [
     "ds-fade-in",
     "ds-loader-morph",

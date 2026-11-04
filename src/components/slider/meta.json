@@ -10,9 +10,12 @@
   "attributes": [],
   "requires": [],
   "context": [],
-  "hooks": [
-    "--ds-slider-halo"
-  ],
+  "hooks": {
+    "--ds-slider-halo": {
+      "default": "40px",
+      "description": "the halo around the slider handle (hover, press, focus), and the slider's height"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],

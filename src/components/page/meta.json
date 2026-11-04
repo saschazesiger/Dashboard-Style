@@ -31,16 +31,38 @@
     "dialog",
     "sheet"
   ],
-  "hooks": [
-    "--ds-auth-width",
-    "--ds-breadcrumbs-item-max",
-    "--ds-btn-height",
-    "--ds-btn-padding-start",
-    "--ds-page-head-text-basis",
-    "--ds-page-head-title-line",
-    "--ds-stack-gap",
-    "--ds-stack-gap-page"
-  ],
+  "hooks": {
+    "--ds-stack-gap": {
+      "default": "`--ds-space-4`, `--ds-space-5`",
+      "description": "`.ds-stack`; a stack directly in the page and `.ds-stack--page`"
+    },
+    "--ds-stack-gap-page": {
+      "default": "`--ds-space-4`, `--ds-space-5`",
+      "description": "`.ds-stack`; a stack directly in the page and `.ds-stack--page`"
+    },
+    "--ds-page-head-text-basis": {
+      "default": "320px",
+      "description": "the room the page head's title and lead take before the actions wrap under them"
+    },
+    "--ds-page-head-title-line": {
+      "default": "32px",
+      "description": "the title line the page head's actions centre on (set it with a theme that changes `--ds-font-headline`)"
+    },
+    "--ds-breadcrumbs-item-max": {
+      "default": "240px",
+      "description": "a breadcrumb item before its ellipsis"
+    },
+    "--ds-auth-width": {
+      "default": "400px",
+      "description": "the card of `.ds-auth`"
+    },
+    "--ds-btn-height": {
+      "owner": "button"
+    },
+    "--ds-btn-padding-start": {
+      "owner": "button"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [

@@ -22,25 +22,72 @@
   "context": [
     "ripple"
   ],
-  "hooks": [
-    "--ds-alert-bg",
-    "--ds-alert-color",
-    "--ds-alert-edge",
-    "--ds-alert-error-bg",
-    "--ds-alert-error-color",
-    "--ds-alert-error-icon",
-    "--ds-alert-icon",
-    "--ds-alert-success-bg",
-    "--ds-alert-success-color",
-    "--ds-alert-success-icon",
-    "--ds-alert-text-basis",
-    "--ds-alert-warning-bg",
-    "--ds-alert-warning-color",
-    "--ds-alert-warning-icon",
-    "--ds-btn-height"
-  ],
+  "hooks": {
+    "--ds-alert-bg": {
+      "default": "`--ds-surface-low`, `--ds-text`",
+      "description": "the neutral alert (kinds set them from their own hooks)"
+    },
+    "--ds-alert-color": {
+      "default": "`--ds-surface-low`, `--ds-text`",
+      "description": "the neutral alert (kinds set them from their own hooks)"
+    },
+    "--ds-alert-icon": {
+      "default": "`--ds-primary`",
+      "description": "the neutral alert's icon and edge colour"
+    },
+    "--ds-alert-edge": {
+      "default": "0",
+      "description": "the width of an alert's leading edge (`4px`: an edge in the icon colour)"
+    },
+    "--ds-alert-success-bg": {
+      "default": "`--ds-success-container`, `--ds-on-success-container`, `--ds-success`",
+      "description": "`.ds-alert--success`"
+    },
+    "--ds-alert-success-color": {
+      "default": "`--ds-success-container`, `--ds-on-success-container`, `--ds-success`",
+      "description": "`.ds-alert--success`"
+    },
+    "--ds-alert-success-icon": {
+      "default": "`--ds-success-container`, `--ds-on-success-container`, `--ds-success`",
+      "description": "`.ds-alert--success`"
+    },
+    "--ds-alert-warning-bg": {
+      "default": "`--ds-warning-surface`, `--ds-text`, `--ds-warning`",
+      "description": "`.ds-alert--warning`"
+    },
+    "--ds-alert-warning-color": {
+      "default": "`--ds-warning-surface`, `--ds-text`, `--ds-warning`",
+      "description": "`.ds-alert--warning`"
+    },
+    "--ds-alert-warning-icon": {
+      "default": "`--ds-warning-surface`, `--ds-text`, `--ds-warning`",
+      "description": "`.ds-alert--warning`"
+    },
+    "--ds-alert-error-bg": {
+      "default": "`--ds-error-container`, `--ds-on-error-container`, `--ds-error`",
+      "description": "`.ds-alert--error` (its buttons take `--ds-alert-error-color`)"
+    },
+    "--ds-alert-error-color": {
+      "default": "`--ds-error-container`, `--ds-on-error-container`, `--ds-error`",
+      "description": "`.ds-alert--error` (its buttons take `--ds-alert-error-color`)"
+    },
+    "--ds-alert-error-icon": {
+      "default": "`--ds-error-container`, `--ds-on-error-container`, `--ds-error`",
+      "description": "`.ds-alert--error` (its buttons take `--ds-alert-error-color`)"
+    },
+    "--ds-alert-text-basis": {
+      "default": "256px",
+      "description": "the narrowest text of an alert with `.ds-alert__actions` before the actions wrap"
+    },
+    "--ds-btn-height": {
+      "owner": "button"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],
-  "ripple": true
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-errors summary"
+  ]
 }

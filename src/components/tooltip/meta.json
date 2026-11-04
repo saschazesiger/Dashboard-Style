@@ -14,7 +14,7 @@
   ],
   "requires": [],
   "context": [],
-  "hooks": [],
+  "hooks": {},
   "keyframes": [
     "ds-fade-in",
     "ds-grow-in"

@@ -23,17 +23,44 @@
   ],
   "requires": [],
   "context": [],
-  "hooks": [
-    "--ds-timeline-divider-color",
-    "--ds-timeline-dot-color",
-    "--ds-timeline-dot-size",
-    "--ds-timeline-head-line",
-    "--ds-timeline-indent",
-    "--ds-timeline-line-color",
-    "--ds-timeline-line-width",
-    "--ds-timeline-marker-size",
-    "--ds-timeline-muted-color"
-  ],
+  "hooks": {
+    "--ds-timeline-indent": {
+      "default": "`--ds-space-8`",
+      "description": "how far `.ds-timeline` entries sit from the start edge (the rail and its markers live in it)"
+    },
+    "--ds-timeline-dot-size": {
+      "default": "10px, `--ds-primary`",
+      "description": "the dot of a timeline entry"
+    },
+    "--ds-timeline-dot-color": {
+      "default": "10px, `--ds-primary`",
+      "description": "the dot of a timeline entry"
+    },
+    "--ds-timeline-muted-color": {
+      "default": "`--ds-outline`",
+      "description": "the ring of a `.ds-timeline__item--muted` entry"
+    },
+    "--ds-timeline-line-width": {
+      "default": "2px, `--ds-line`",
+      "description": "the rail (and the width of a muted ring)"
+    },
+    "--ds-timeline-line-color": {
+      "default": "2px, `--ds-line`",
+      "description": "the rail (and the width of a muted ring)"
+    },
+    "--ds-timeline-divider-color": {
+      "default": "`--ds-line`",
+      "description": "the hairline between entries"
+    },
+    "--ds-timeline-marker-size": {
+      "default": "24px",
+      "description": "the disc of `.ds-timeline__marker`; the rail runs through its centre"
+    },
+    "--ds-timeline-head-line": {
+      "default": "24px",
+      "description": "the head line of an entry, on which its dot is centred (the height of a status chip)"
+    }
+  },
   "keyframes": [],
   "js": [],
   "progressive": [],

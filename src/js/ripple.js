@@ -98,27 +98,29 @@ import { MOTION_FALLBACKS, flip, guard, motionDuration, motionEasing, settled, t
 
 /** The actions that get a ripple. */
 export const RIPPLE_HOSTS = [
+  // generated: ripple hosts (scripts/build.mjs; do not edit)
+  '.ds-pressable',
   '.ds-btn',
-  '.ds-chip',
-  '.ds-segmented__option',
-  '.ds-drawer__item',
-  ':is(button, a).ds-tile',
   '.ds-card--interactive',
+  '.ds-disclosure > summary',
+  ':is(button, a).ds-tile',
+  '.ds-list--interactive > .ds-list__item',
+  ':is(a, button).ds-kv-list__row',
+  '.ds-errors summary',
   '.ds-table__sort',
   '.ds-table--interactive tbody tr:not(.ds-table__detail):has(.ds-table__row-link)',
   '.ds-radio',
+  '.ds-dropzone',
+  '.ds-chip',
   '.ds-combo__toggle',
   '.ds-menu__item',
-  '.ds-errors summary',
-  '.ds-dropzone',
-  '.ds-pressable',
+  ':is(button, a).ds-columns__col',
+  '.ds-segmented__option',
+  '.ds-drawer__item',
   '.ds-drawer__toggle',
   '.ds-tabs__tab',
   '[data-ds-ripple]',
-  '.ds-list--interactive > .ds-list__item',
-  ':is(a, button).ds-kv-list__row',
-  '.ds-disclosure > summary',
-  ':is(button, a).ds-columns__col',
+  // /generated: ripple hosts
 ].join(', ');
 
 /** The link that stands for its host (stretched over a row or a <div> card): Enter on it ripples the host. */
