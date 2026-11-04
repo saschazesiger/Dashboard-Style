@@ -8,40 +8,72 @@
  *       <span class="ds-steps__label">Device<span class="ds-sr">, done</span></span>
  *     </li>
  *     <li class="ds-steps__step" aria-current="step"><span class="ds-steps__mark">2</span><span class="ds-steps__label">Problem</span></li>
- *     <li class="ds-steps__step"><span class="ds-steps__mark">3</span><span class="ds-steps__label">Contact</span></li>
+ *     <li class="ds-steps__step" data-status="error">
+ *       <span class="ds-steps__mark">(alertCircle 16)</span>
+ *       <span class="ds-steps__label">Contact</span><span class="ds-steps__hint">Add a phone number</span>
+ *     </li>
+ *     <li class="ds-steps__step" data-status="optional">
+ *       <span class="ds-steps__mark">4</span>
+ *       <span class="ds-steps__label">Photos</span><span class="ds-steps__hint">Optional</span>
+ *     </li>
  *   </ol>
  *
+ *   A column: <ol class="ds-steps ds-steps--vertical" aria-label="Report a problem"> (the same items)
  *   A bar instead of marks: <ol class="ds-steps ds-steps--bar" aria-label="Step 2 of 3"> (the same items)
  *
- * State, set by the page: data-status="done" on a finished step (as on
- * .ds-tasks; never data-state, which DS.overlay writes on overlays) and
- * aria-current="step" on the current one; the others are upcoming.
+ * State, set by the page: data-status on a step (as on .ds-tasks; never
+ * data-state, which DS.overlay writes on overlays) and aria-current="step"
+ * on the current one; the others are upcoming.
+ *   done       a finished step
+ *   error      a step that needs attention: the error colours, an icon in
+ *              its mark and a word (.ds-steps__hint, or a .ds-sr one)
+ *   optional   an upcoming step the user may skip: a dashed ring and the
+ *              word in its .ds-steps__hint
  *
  * Marks: a 24px disc. Done: --ds-primary with a check that draws itself
  * when the step turns done in place (re-render with DS.dom.morphHtml, so
  * the mark stays): the mark's stroke-dashoffset, which the pathLength="1"
  * check inherits, runs from 1 to 0 over --ds-dur-medium after
  * --ds-dur-micro; steps rendered with done ones stay still on load (a
- * transition, not a keyframe). Current: --ds-primary
- * with --ds-on-primary figures and the label weight on its label;
- * upcoming: an --ds-outline ring in --ds-text-2. The connector after a
- * done step turns --ds-primary (colours on --ds-dur-medium). Status is
- * never colour alone: the check, the weight and aria-current. On narrow
- * pages (600px of the content and below) only the current label shows;
- * the others stay readable.
+ * transition, not a keyframe). Current: --ds-primary with --ds-on-primary
+ * figures and the label weight on its label; upcoming: an --ds-outline ring
+ * in --ds-text-2. The connector after a done step turns --ds-primary
+ * (colours on --ds-dur-medium). Status is never colour alone: the check or
+ * the icon, the word, the weight and aria-current. On narrow pages (600px
+ * of the content and below) only the current label shows, in a row; the
+ * others stay readable. .ds-steps__hint: a line of the meta role beside the
+ * label (under it in a column), in the error colour on an error step.
+ *
+ * --vertical: a column for long or wordy sequences; the connector runs from
+ * mark to mark, labels and hints wrap and all of them stay at every width.
  *
  * --bar: one segment per step, --ds-steps-bar-height high; done and
- * current segments fill with --ds-primary (a clip that glides on
- * --ds-ease-value over --ds-dur-glide), the rest is --ds-accent. Marks and
- * labels are visually hidden: the list's aria-label says where the user is.
+ * current segments fill with --ds-primary, an error segment with --ds-error
+ * (a clip that glides on --ds-ease-value over --ds-dur-glide), the rest is
+ * --ds-accent. Marks, labels and hints are visually hidden: the list's
+ * aria-label says where the user is.
+ *
+ * Options (src/core/options.css, docs/options.md), on the list or any
+ * ancestor; each is computed here, in the step's own rule:
+ *   size      .ds-xs ... .ds-xl: 4px of mark per step (16 to 32px), the type
+ *             role of the size at the regular weight
+ *   density   .ds-density-*: 2px per step off the room between the steps of
+ *             a column; the row and the marks stay
+ *   shape     .ds-shape-*: multiplies the mark's radius and the segments'
+ *   touch     none: a step is no target (a link inside one is the page's)
+ *   tone      none: a step's status is data-status, with its icon and word
  *
  * Moving between steps: DS.motion.transition(update, { type: 'forward' })
  * (or 'back').
  *
- * Hooks: --ds-steps-bar-height (4px).
+ * Hooks: --ds-steps-bar-height (4px), --ds-steps-mark-size (--ds-space-6),
+ * --ds-steps-font (the size's role), --ds-steps-gap (--ds-space-5: between
+ * the steps of a column). The computed --_mark is private: never set it.
  *
- * Forced colours: done and current marks and segments Highlight,
- * upcoming ones a CanvasText outline.
+ * Forced colours: done and current marks and segments Highlight, upcoming
+ * ones a CanvasText outline, an error mark its icon on a CanvasText ring and
+ * an error segment a CanvasText fill; connectors CanvasText, Highlight after
+ * a done step.
  *
  * Print: marks and segments keep their colours (print-color-adjust): the
  * check of a done step is drawn on its filled mark.
@@ -61,13 +93,18 @@
   }
 
   .ds-steps__step {
+    /* The options, computed here: 4px of mark per size step. */
+    --_mark: calc(var(--ds-steps-mark-size, var(--ds-space-6)) + var(--ds-size-step, 0) * 4px);
     display: flex;
     align-items: center;
     gap: var(--ds-space-2);
     flex: 0 1 auto;
     min-width: 0;
     color: var(--ds-text-2);
-    font: var(--ds-font-body);
+    font: var(--ds-steps-font, var(--ds-size-font, var(--ds-font-body)));
+    /* Every size role at the regular weight: the current label alone takes
+       the label weight (below), whatever the size. */
+    font-weight: var(--ds-weight-regular);
   }
 
   /* The connector: a hairline that takes the room between two steps. */
@@ -92,10 +129,11 @@
     display: inline-grid;
     flex: none;
     place-items: center;
-    width: var(--ds-space-6);
-    height: var(--ds-space-6);
+    width: var(--_mark);
+    height: var(--_mark);
     border: 1px solid var(--ds-outline);
-    border-radius: 50%;
+    /* A disc at the default shape and above (past 50% it stays a disc). */
+    border-radius: calc(50% * var(--ds-shape, 1));
     color: var(--ds-text-2);
     font: var(--ds-font-caption);
     font-variant-numeric: tabular-nums;
@@ -117,7 +155,14 @@
     white-space: nowrap;
   }
 
-  .ds-steps__step:is([data-status="done"], [aria-current="step"]) {
+  .ds-steps__hint {
+    flex: none;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+    white-space: nowrap;
+  }
+
+  .ds-steps__step:is([data-status="done"], [data-status="error"], [aria-current="step"]) {
     color: var(--ds-text);
   }
 
@@ -128,7 +173,24 @@
   }
 
   .ds-steps__step[aria-current="step"] > .ds-steps__label {
-    font: var(--ds-font-label);
+    font-weight: var(--ds-weight-label);
+  }
+
+  /* Needs attention: the error colours, an icon in the mark and a word. It
+     outranks the current step: the error is what the user has to see. */
+  .ds-steps__step[data-status="error"] > .ds-steps__mark {
+    border-color: var(--ds-error);
+    background: var(--ds-error);
+    color: var(--ds-on-error);
+  }
+
+  .ds-steps__step[data-status="error"] > .ds-steps__hint {
+    color: var(--ds-error);
+  }
+
+  /* May be skipped: the ring turns dashed, the hint says the word. */
+  .ds-steps__step[data-status="optional"]:not([aria-current="step"]) > .ds-steps__mark {
+    border-style: dashed;
   }
 
   .ds-steps__mark [pathLength] {
@@ -142,9 +204,10 @@
     stroke-dashoffset: 0;
   }
 
-  /* Narrow pages: the current label only, the others read but unseen. */
+  /* Narrow pages: the current label only, the others read but unseen (a
+     column has the room). */
   @container ds-content (max-width: 600px) {
-    .ds-steps__step:not([aria-current="step"]) > .ds-steps__label {
+    .ds-steps:not(.ds-steps--vertical) > .ds-steps__step:not([aria-current="step"]) > :is(.ds-steps__label, .ds-steps__hint) {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -152,6 +215,60 @@
       clip-path: inset(50%);
       white-space: nowrap;
     }
+  }
+
+  /* The column: the mark in its own column, the connector from mark to mark
+     (on the step it leaves, so it never depends on the next one), the text
+     wraps beside the mark, its first line on the mark's centre. */
+  .ds-steps--vertical {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .ds-steps--vertical > .ds-steps__step {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--_mark) minmax(0, 1fr);
+    column-gap: var(--ds-space-3);
+    align-items: start;
+    flex: none;
+    padding-block-end: calc(var(--ds-steps-gap, var(--ds-space-5)) + var(--ds-density, 0) * 2px);
+  }
+
+  .ds-steps--vertical > .ds-steps__step:last-child {
+    padding-block-end: 0;
+  }
+
+  .ds-steps--vertical > .ds-steps__step + .ds-steps__step::before {
+    content: none;
+  }
+
+  .ds-steps--vertical > .ds-steps__step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    inset-block: calc(var(--_mark) + var(--ds-space-1)) var(--ds-space-1);
+    inset-inline-start: calc(var(--_mark) / 2);
+    width: 1px;
+    background: var(--ds-line);
+    transition: background-color var(--ds-dur-medium) var(--ds-ease-in-out);
+  }
+
+  .ds-steps--vertical > .ds-steps__step[data-status="done"]:not(:last-child)::after {
+    background: var(--ds-primary);
+  }
+
+  .ds-steps--vertical .ds-steps__label {
+    grid-column: 2;
+    min-height: var(--_mark);
+    overflow: visible;
+    align-content: center;
+    white-space: normal;
+  }
+
+  .ds-steps--vertical .ds-steps__hint {
+    grid-column: 2;
+    white-space: normal;
   }
 
   /* The bar: equal segments; done and current ones fill. */
@@ -164,7 +281,7 @@
     flex: 1 1 0;
     height: var(--ds-steps-bar-height, 4px);
     overflow: hidden;
-    border-radius: var(--ds-radius-xs);
+    border-radius: calc(var(--ds-radius-xs) * var(--ds-shape, 1));
     background: var(--ds-accent);
   }
 
@@ -181,15 +298,19 @@
     transition: clip-path var(--ds-dur-glide) var(--ds-ease-value);
   }
 
-  .ds-steps--bar > .ds-steps__step:is([data-status="done"], [aria-current="step"])::after {
+  .ds-steps--bar > .ds-steps__step:is([data-status="done"], [data-status="error"], [aria-current="step"])::after {
     clip-path: inset(0);
+  }
+
+  .ds-steps--bar > .ds-steps__step[data-status="error"]::after {
+    background: var(--ds-error);
   }
 
   .ds-steps--bar .ds-steps__mark {
     display: none;
   }
 
-  .ds-steps--bar .ds-steps__label {
+  .ds-steps--bar :is(.ds-steps__label, .ds-steps__hint) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -203,11 +324,28 @@
       border-color: CanvasText;
     }
 
-    .ds-steps__step:is([data-status="done"], [aria-current="step"]) > .ds-steps__mark {
+    .ds-steps__step:is([data-status="done"], [aria-current="step"]):not([data-status="error"]) > .ds-steps__mark {
       forced-color-adjust: none;
       border-color: Highlight;
       background: Highlight;
       color: HighlightText;
+    }
+
+    .ds-steps__step[data-status="error"] > .ds-steps__mark {
+      border-color: CanvasText;
+    }
+
+    /* A hairline is a background, which forced colours would turn to Canvas;
+       after a done step it follows the done mark. */
+    .ds-steps__step + .ds-steps__step::before,
+    .ds-steps--vertical > .ds-steps__step:not(:last-child)::after {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+
+    .ds-steps__step[data-status="done"] + .ds-steps__step::before,
+    .ds-steps--vertical > .ds-steps__step[data-status="done"]:not(:last-child)::after {
+      background: Highlight;
     }
 
     .ds-steps--bar > .ds-steps__step {
@@ -218,6 +356,10 @@
     .ds-steps--bar > .ds-steps__step::after {
       forced-color-adjust: none;
       background: Highlight;
+    }
+
+    .ds-steps--bar > .ds-steps__step[data-status="error"]::after {
+      background: CanvasText;
     }
   }
 
