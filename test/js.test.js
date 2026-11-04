@@ -2742,7 +2742,8 @@ describe('classic-script build (dist/ds.js)', () => {
       assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.runtime, runtime);
       assert.notEqual(sandbox.DashboardStyle.versions['9.9.9'].core, sandbox.DS.core);
       // The behaviours of the first copy stay registered; the second copy's definitions are ignored.
-      assert.deepEqual([...runtime.state('core').specs.keys()], ['guard', 'ripple', 'tooltips']);
+      // The core's own behaviours first; a component module's definition follows them.
+      assert.deepEqual([...runtime.state('core').specs.keys()].slice(0, 3), ['guard', 'ripple', 'tooltips']);
       assert.equal(sandbox.DashboardStyle.versions['9.9.9'].core.define('guard', { global() {} }), false);
     });
 

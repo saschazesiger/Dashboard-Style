@@ -13,7 +13,7 @@ import { transform } from 'lightningcss';
 import {
   COMPONENT_FILES, CORE, CSS_TARGETS, LAYERS, META_KEYS, META_REQUIRED, META_SCHEMA, MODULES, build, componentNames, components, componentsMd, cssFacts,
   componentKeyframes, diffGenerated, generatedFiles, hooksTable, indexCss, labComponentsJs, motionCss, moduleRequires, packageInfo, replaceBlock, stripJs, sublayerStatement, validateSchema,
-  verifyComponents, verifyModuleRequires, withBanner,
+  moduleFiles, verifyComponents, verifyModuleRequires, withBanner,
 } from '../scripts/build.mjs';
 import { scan, selectorList } from '../scripts/tools/css-scan.mjs';
 import { filesIn, read, rules, stripComments } from './helpers.js';
@@ -293,7 +293,10 @@ describe('dist/manifest.json', () => {
       assert.deepEqual(Object.keys(entry), KEYS, name);
       assert.equal(entry.css, `css/components/${name}.css`);
       assert.equal(entry.min, `css/components/${name}.min.css`);
-      for (const field of ['group', 'requires', 'context', 'classes', 'attributes', 'keyframes', 'js', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
+      for (const field of ['group', 'requires', 'context', 'classes', 'keyframes', 'js', 'ripple', 'progressive']) assert.deepEqual(entry[field], meta[field], `${name}.${field}`);
+      // The attributes the stylesheet selects, plus the data-ds-* attributes its module reads (a bundle finds a behaviour by them).
+      const behaviour = meta.module ? [...read(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]) : [];
+      assert.deepEqual(entry.attributes, [...new Set([...meta.attributes, ...behaviour])].sort(), `${name}.attributes`);
       assert.deepEqual(entry.hooks, Object.keys(meta.hooks).sort(), `${name}.hooks: the names, sorted`);
       assert.equal(entry.bytes, out.get(entry.min).length, `${name}: bytes of the .min.css`);
       assert.equal(entry.gzip, gzipSync(out.get(entry.min), { level: 9 }).length, `${name}: gzip -9 of the .min.css`);
@@ -305,7 +308,7 @@ describe('dist/manifest.json', () => {
   it('lists every module of MODULES with its imports and exports', () => {
     assert.deepEqual(Object.keys(manifest.js), MODULES);
     for (const name of MODULES) {
-      const source = read(`src/js/${name}.js`);
+      const source = read(moduleFiles(name).source);
       const entry = manifest.js[name];
       assert.deepEqual(Object.keys(entry), ['file', 'types', 'imports', 'exports', 'requires', 'exportRequires']);
       assert.ok(out.has(entry.file) && out.has(entry.types), name);

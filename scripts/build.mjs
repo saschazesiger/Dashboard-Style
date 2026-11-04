@@ -7,29 +7,43 @@
  *
  *   node scripts/build.mjs           write dist/ and the generated files
  *   node scripts/build.mjs --check   exit 1 if any of them is not what src/ builds
+ *   node scripts/build.mjs --generated   print the generated files of the repository, one per line
  *
- * Sources: src/core/{tokens,base,motion,global}.css, one folder per component
- * (src/components/<name>/ holds <name>.css, meta.json, an optional
- * <name>.md and an optional <name>.demo.js), the partials of
- * docs/components.md (src/components/_partials/), src/optional/, src/js/,
- * src/types/, src/deprecations.json, fonts/, themes/ and scripts/tools/.
+ * Sources: src/core/{tokens,base,motion,global}.css and src/core/hooks.json,
+ * one folder per component (src/components/<name>/: <name>.css, meta.json and
+ * the optional files of COMPONENT_FILES: <name>.md, .demo.js, .js, .d.ts,
+ * .requires.json, .test.js, .spec.js, .fixture.html, .lab.js, .keyframes.css),
+ * the partials of docs/components.md (src/components/_partials/),
+ * src/optional/, src/js/, src/types/, src/deprecations.json, fonts/, themes/
+ * and scripts/tools/.
  *
  * Generated in the repository (committed; --check compares them too):
  *   src/index.css        the layer statement, the sublayer statement and
  *                        the @import list in meta.json "order"
  *   docs/components.md   the partials and every <name>.md in meta.json "docsOrder"
  *   styleguide/demos.js  the classic script of every <name>.demo.js (window.SG_DEMOS)
+ *   styleguide/lab-components.js  every <name>.lab.js after SG_LAB.add()
+ *   README.md            the count of its Components badge
+ *   Blocks between "generated:" markers inside hand-written files
+ *   (replaceBlock): the hooks table of docs/theming.md and the hooks of
+ *   themes/example.css (meta.json "hooks", src/core/hooks.json), the component
+ *   keyframes table of docs/motion.md (<name>.keyframes.css, "keyframeDocs"),
+ *   the module table of docs/install.md, the module imports and namespaces
+ *   of src/types/ds.d.ts (MODULES) and the list RIPPLE_HOSTS of
+ *   src/js/ripple.js (meta.json "rippleHosts").
  *
- * Every meta.json is verified against its stylesheet first (verifyComponents):
- * classes, attributes, hooks and keyframes exactly, requires, js, ripple and
- * progressive; a mismatch stops the build with the reason.
+ * Every meta.json is validated against scripts/meta-schema.json and verified
+ * against its folder and stylesheet first (verifyComponents): classes,
+ * attributes, hooks and keyframes exactly, requires, js, module, ripple,
+ * exceptions and progressive; a mismatch stops the build with the reason.
  *
  * dist/ holds everything a project needs, so it can be vendored alone:
  *   ds.css, ds.min.css   every stylesheet in cascade order (src/index.css
  *                   inlined), the layer and sublayer order declared once at
  *                   the top; the minified copy with ds.min.css.map
  *   ds.js, ds.min.js     classic script (tools/js-wrap.mjs, merge mode): window.DS =
- *                   { version, core, motion, indicator, dom, ripple, icons, overlay }
+ *                   { version, core, motion, indicator, dom, ripple, icons, overlay,
+ *                   and one namespace per component module (MODULES) }
  *                   plus DS.init, DS.get, DS.define and DS.config (DS.core's),
  *                   each copy also under DashboardStyle.versions[version];
  *                   ds.min.js without comments and indentation (stripJs)
@@ -39,9 +53,12 @@
  *                   as ds.css does; a .min.css with its .min.css.map next
  *                   to every stylesheet of css/
  *   css/index.css   the @import list of ds.css over the single stylesheets
- *   js/             the ES modules
- *   ds.d.ts, js/*.d.ts  hand-written types (src/types/): the global DS,
- *                   and each module's exports next to the module
+ *   js/             the ES modules, flat: src/js/<core>.js and every
+ *                   src/components/<name>/<name>.js, its imports rewritten
+ *                   to ./<module>.js (rewriteComponentImports)
+ *   ds.d.ts, js/*.d.ts  hand-written types (src/types/, each folder's
+ *                   <name>.d.ts): the global DS, and each module's exports
+ *                   next to the module
  *   css/optional/   opt-in stylesheets that ds.css never includes (src/optional/,
  *                   not imported by src/index.css), such as view-transitions.css
  *   css/properties.css  every top-level @property of ds.css, alone: a widget
@@ -302,8 +319,8 @@ const readText = (path) => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
 /** The core modules of src/js/, in this order (core first): DS.<name>. */
 export const CORE_MODULES = ['core', 'motion', 'indicator', 'dom', 'ripple', 'icons', 'overlay'];
 
-/** An import line of a module (one line, named bindings): the bindings, the quote and the path. */
-const IMPORT_FROM = /^(import\s*\{[^}]*\}\s*from\s*)(['"])([^'"]+)\2(\s*;?[ \t]*)$/;
+/** An import line of a module or its .d.ts (one line: named bindings, or in a .d.ts `import type` and `* as`): the head, the quote and the path. */
+const IMPORT_FROM = /^(import\s+(?:type\s+)?(?:\{[^}]*\}|\*\s+as\s+[\w$]+)\s*from\s*|import\s*\{[^}]*\}\s*from\s*)(['"])([^'"]+)\2(\s*;?[ \t]*)$/;
 
 /**
  * A component's behaviour module as dist/js/ holds it: every import of a
@@ -346,6 +363,8 @@ export function orderModules(sources) {
   const pending = new Map([...sources].map(([name, source]) => [name, moduleImports(source).filter((other) => !CORE_MODULES.includes(other))]));
   for (const [name, imports] of pending) {
     if (CORE_MODULES.includes(name)) throw new Error(`src/components/${name}/${name}.js: a component module may not take the name of the core module ${name}`);
+    // It becomes DS.<name>, and js-wrap reads a sibling as DS.<name>.<export>.
+    if (!/^[a-z][a-z0-9]*$/.test(name)) throw new Error(`src/components/${name}/${name}.js: a module's name is a JS identifier (lower case and digits, no hyphen): it becomes DS.${name}`);
     for (const other of imports) if (!pending.has(other)) throw new Error(`src/components/${name}/${name}.js imports ${other}, which is no module (src/js/ or src/components/${other}/${other}.js)`);
   }
   const order = [];
@@ -1397,6 +1416,12 @@ export function verifyModuleRequires(list = components()) {
   return problems;
 }
 
+/** The data-ds-* attributes a component's module names as string literals (`attribute: 'data-ds-<name>'`). */
+function moduleAttributes(name) {
+  if (!MODULES.includes(name) || !moduleFiles(name).component) return [];
+  return [...repoText(moduleFiles(name).source).matchAll(/['"`](data-ds-[\w-]+)['"`]/g)].map((match) => match[1]);
+}
+
 /** The exports and sibling imports of each module of MODULES, and the CSS it needs (moduleRequires). */
 function moduleFacts(list) {
   const needs = moduleRequires(list);
@@ -1459,7 +1484,8 @@ export function manifestJson(list, sizes, info) {
         requires: meta.requires,
         context: meta.context,
         classes: meta.classes,
-        attributes: facts.get(name).attributes,
+        // What the stylesheet selects, plus the behaviour attributes its module reads, so a bundle finds a behaviour by its attribute.
+        attributes: sorted([...facts.get(name).attributes, ...moduleAttributes(name)]),
         keyframes: meta.keyframes,
         js: meta.js,
         hooks: sorted(Object.keys(meta.hooks)),
@@ -1661,6 +1687,11 @@ function statSafe(path) {
 
 function main() {
   const files = generatedFiles();
+  // The generated paths alone: `git checkout -- dist $(node scripts/build.mjs --generated)` on a group branch.
+  if (process.argv.includes('--generated')) {
+    console.log([...files.keys()].join('\n'));
+    return;
+  }
   if (process.argv.includes('--check')) {
     const out = build();
     const problems = [...diffGenerated(files), ...diffDist(out)];

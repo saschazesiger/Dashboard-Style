@@ -995,7 +995,8 @@ describe('values come from tokens', () => {
 
   it('bundles every stylesheet of src/ except src/optional/', () => {
     const bundle = new Set(cssBundle());
-    assert.deepEqual(SRC_CSS.filter((file) => file !== 'src/index.css' && !file.startsWith('src/optional/') && !bundle.has(file)), []);
+    // A component's <name>.keyframes.css reaches ds.css inside motion.css (motionCss), not through an import.
+    assert.deepEqual(SRC_CSS.filter((file) => file !== 'src/index.css' && !file.startsWith('src/optional/') && !KEYFRAME_FILES.includes(file) && !bundle.has(file)), []);
     // Opt-in stylesheets: never in ds.css, shipped on their own under css/optional/.
     const optional = SRC_CSS.filter((file) => file.startsWith('src/optional/'));
     assert.ok(optional.length, 'src/optional/ holds the opt-in stylesheets');

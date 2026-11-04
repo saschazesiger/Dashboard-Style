@@ -277,7 +277,8 @@ describe('component modules (src/components/<name>/<name>.js)', () => {
   it('rewrites the imports of a component module to the flat dist/js/ layout', () => {
     const source = "import { define, emit } from '../../js/core.js';\nimport { open as openMenu } from \"../menu/menu.js\";\nexport const a = 1;\n";
     assert.equal(rewriteComponentImports(source, 'picker'), "import { define, emit } from './core.js';\nimport { open as openMenu } from \"./menu.js\";\nexport const a = 1;\n");
-    assert.equal(rewriteComponentImports("import type { Controller } from '../../types/js/core.js';".replace('import type', 'import'), 'picker'), "import { Controller } from './core.js';");
+    assert.equal(rewriteComponentImports("import type { Controller } from '../../types/js/core.js';", 'picker'), "import type { Controller } from './core.js';");
+    assert.equal(rewriteComponentImports("import type * as menu from '../menu/menu.js';", 'picker'), "import type * as menu from './menu.js';");
     assert.throws(() => rewriteComponentImports("import { x } from './x.js';", 'picker'), /import from '\.\.\/\.\.\/js\/<core>\.js' or '\.\.\/<component>\/<component>\.js' only/);
     assert.throws(() => rewriteComponentImports("import { x } from '../../js/nothing.js';", 'picker'), /no core module/);
     assert.throws(() => rewriteComponentImports("import { x } from '../menu/other.js';", 'picker'), /only, not \.\.\/menu\/other\.js/);
@@ -289,6 +290,7 @@ describe('component modules (src/components/<name>/<name>.js)', () => {
     assert.throws(() => orderModules(new Map([['a', module('b')], ['b', module('a')]])), /cycle: a, b/);
     assert.throws(() => orderModules(new Map([['a', module('zzz')]])), /imports zzz, which is no module/);
     assert.throws(() => orderModules(new Map([['ripple', module()]])), /may not take the name of the core module ripple/);
+    assert.throws(() => orderModules(new Map([['date-picker', module()]])), /a JS identifier/);
   });
 
   it('wraps a component module into the classic script like a core module (js-wrap), its imports read from DS', async () => {
