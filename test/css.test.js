@@ -1481,7 +1481,6 @@ describe('controls (1.1.0)', () => {
   /** The pills that morph: rest radius min(..., half the height), pressed radius from the role. */
   const PILLS = [
     ['src/components/shell/shell.css', '.ds-drawer__item', 'calc(var(--ds-drawer-item-height, 48px) / 2)', 'var(--ds-radius-action-pressed)'],
-    ['src/components/combobox/combobox.css', '.ds-combo__toggle', 'calc(var(--ds-input-height, 40px) / 2)', 'var(--ds-radius-action-pressed)'],
   ];
   const BLOCKED = [':disabled', '[aria-disabled="true"]', '[aria-busy="true"]'];
 
@@ -1524,6 +1523,22 @@ describe('controls (1.1.0)', () => {
     // A round icon button morphs from half its own box (the radius follows --_box).
     const icon = Object.fromEntries(declarationsOf(read(BUTTON), '.ds-btn--icon').map((entry) => [entry.property, entry.value]));
     assert.equal(icon['--_box'], 'max(var(--ds-target-min, 0px), calc(var(--ds-btn-icon-size, 40px) + var(--ds-size-step, 0) * 8px))');
+    // The combobox toggle and clear button (3.0): the same model, from the height of their field.
+    const COMBO = 'src/components/combobox/combobox.css';
+    for (const host of ['.ds-combo__toggle', '.ds-combo__clear']) {
+      const part = Object.fromEntries(declarationsAt(read(COMBO), host).map((entry) => [entry.property, entry.value]));
+      assert.equal(part['border-radius'], 'var(--_radius)', host);
+      assert.equal(part['--_half'], 'calc(var(--_box) / 2)', host);
+      assert.equal(part['--_radius'], 'min(calc(min(var(--ds-radius-action), var(--_half)) * var(--ds-shape, 1)), var(--_half))', host);
+      assert.match(part.transition, /border-radius var\(--ds-dur-medium\) var\(--ds-ease-spatial\)/, `${host}: the release springs back`);
+      const parts = pressed(COMBO, host);
+      assert.deepEqual(parts.map(({ part: name }) => /:active/.test(name) ? 'active' : 'pressed').sort(), ['active', 'pressed'], host);
+      for (const { part: name, own } of parts) {
+        for (const state of BLOCKED) assert.ok(name.includes(state), `${name}: excludes ${state}`);
+        assert.equal(own['border-radius'], 'min(calc(var(--ds-radius-action-pressed) * var(--ds-shape, 1)), var(--_radius))', name);
+        assert.match(own.transition, /border-radius var\(--ds-dur-micro\) var\(--ds-ease-out\)/, `${name}: the press goes in on --ds-dur-micro`);
+      }
+    }
     // Radio cards go to the card's pressed role, never rounder than at rest.
     const card = pressed('src/components/form/form.css', '.ds-radio');
     assert.equal(card.length, 2);
@@ -1921,10 +1936,16 @@ describe('overlays (1.3.0)', () => {
   it('sizes the combobox from the field hooks and draws blocked options and menu items in GrayText when forced (2.0)', () => {
     const combo = read('src/components/combobox/combobox.css');
     const own = (css, selector) => Object.fromEntries(declarationsAt(css, selector).map((entry) => [entry.property, entry.value]));
-    assert.equal(own(combo, '.ds-combo__input')['padding-inline-end'], 'calc(var(--ds-space-1) + var(--ds-input-height, 40px))');
-    assert.deepEqual([own(combo, '.ds-combo__toggle').width, own(combo, '.ds-combo__toggle').height], ['var(--ds-input-height, 40px)', 'var(--ds-input-height, 40px)']);
-    assert.equal(own(combo, '.ds-combo__option')['min-height'], 'var(--ds-combo-option-height, 48px)');
-    assert.equal(own(combo, '.ds-combo:not(:has(.ds-combo__toggle)) > .ds-combo__input')['padding-inline-end'], 'var(--ds-space-3)');
+    // One height for the field, its toggle and the room between them: the formula of every field (conventions, section 3).
+    assert.equal(own(combo, '.ds-combo')['--_h'], 'max(var(--ds-space-6), calc(var(--ds-input-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px))');
+    assert.equal(own(combo, '.ds-combo')['--_box'], 'max(var(--ds-target-min, 0px), var(--_h))');
+    assert.equal(own(combo, '.ds-combo')['--_end'], 'calc(var(--ds-space-1) + var(--_box))');
+    assert.equal(own(combo, '.ds-combo__input')['padding-inline-end'], 'var(--_end)');
+    assert.equal(own(combo, '.ds-combo__input')['min-height'], 'var(--_box)');
+    assert.deepEqual([own(combo, '.ds-combo__toggle').width, own(combo, '.ds-combo__toggle').height], ['var(--_box)', 'var(--_box)']);
+    assert.equal(own(combo, '.ds-combo__option')['--_h'], 'calc(var(--ds-combo-option-height, 48px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px)');
+    assert.equal(own(combo, '.ds-combo__option')['min-height'], 'max(var(--ds-target-min, 0px), var(--_h))');
+    assert.equal(own(combo, '.ds-combo:not(:has(.ds-combo__toggle))')['--_end'], 'var(--ds-space-3)');
     assert.equal(own(read('src/components/menu/menu.css'), '.ds-menu__item')['min-height'], 'var(--ds-menu-item-height, 48px)');
     for (const [file, selector] of [['src/components/menu/menu.css', '.ds-menu__item[aria-disabled="true"]'], ['src/components/combobox/combobox.css', '.ds-combo__option[aria-disabled="true"]']]) {
       const forced = forcedColorBlocks(read(file)).flatMap((block) => declarationsOf(block, selector));
@@ -2496,11 +2517,10 @@ describe('tables and scrollers (2.0)', () => {
     const menu = read('src/components/menu/menu.css');
     // The list: the .ds-scroll-x mask turned to the block axis, its scrollbar strip (--ds-scrollbar-width) opaque.
     const list = Object.fromEntries(declarationsOf(combo, '.ds-combo__list').map((entry) => [entry.property, entry.value]));
-    for (const property of ['mask-image', '-webkit-mask-image']) {
-      assert.match(list[property], /^linear-gradient\(to bottom, transparent, #000 calc\(var\(--ds-scroll-edge-start\) \* var\(--ds-scroll-fade, var\(--ds-space-8\)\)\), #000 calc\(100% - var\(--ds-scroll-edge-end\) \* var\(--ds-scroll-fade, var\(--ds-space-8\)\)\), transparent\), linear-gradient\(#000, #000\)$/, property);
-    }
+    assert.match(list['mask-image'], /^linear-gradient\(to bottom, transparent, #000 calc\(var\(--ds-scroll-edge-start\) \* var\(--ds-scroll-fade, var\(--ds-space-8\)\)\), #000 calc\(100% - var\(--ds-scroll-edge-end\) \* var\(--ds-scroll-fade, var\(--ds-space-8\)\)\), transparent\), linear-gradient\(#000, #000\)$/);
+    // The floor has mask without the prefix (Chrome 120, Safari 15.4): no duplicates to keep in step.
+    assert.deepEqual(Object.keys(list).filter((property) => property.startsWith('-webkit-mask')), []);
     assert.equal(list['mask-size'], 'calc(100% - var(--ds-scrollbar-width, 0px)) 100%, var(--ds-scrollbar-width, 0px) 100%');
-    assert.equal(list['-webkit-mask-size'], list['mask-size']);
     assert.equal(list['mask-position'], '0 0, 100% 0');
     assert.equal(list['scroll-padding-block'], 'var(--ds-scroll-fade, var(--ds-space-8))');
     assert.match(list.transition, /--ds-scroll-edge-start var\(--ds-dur-fast\) var\(--ds-ease-in-out\), --ds-scroll-edge-end var\(--ds-dur-fast\) var\(--ds-ease-in-out\)/);
