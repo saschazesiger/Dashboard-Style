@@ -1,0 +1,67 @@
+{
+  "name": "dashpanel",
+  "group": "layout",
+  "order": 420,
+  "docsOrder": 66,
+  "need": "Hold one chart, table or list of a dashboard under a title, with a menu and its loading, error and no-data states",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-dashpanel",
+    "ds-dashpanel--elevated",
+    "ds-dashpanel--filled",
+    "ds-dashpanel__actions",
+    "ds-dashpanel__body",
+    "ds-dashpanel__body--flush",
+    "ds-dashpanel__foot",
+    "ds-dashpanel__head",
+    "ds-dashpanel__heading",
+    "ds-dashpanel__subtitle",
+    "ds-dashpanel__title"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [
+    "empty",
+    "list",
+    "loading"
+  ],
+  "hooks": {
+    "--ds-dashpanel-padding": {
+      "default": "`--ds-space-4`",
+      "description": "dashboard panel: the padding, 2px less per density step"
+    },
+    "--ds-dashpanel-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "dashboard panel: the corners, times `--ds-shape`"
+    },
+    "--ds-dashpanel-bg": {
+      "default": "`--ds-surface`",
+      "description": "dashboard panel: the fill"
+    },
+    "--ds-dashpanel-border": {
+      "default": "`--ds-line`",
+      "description": "dashboard panel: the hairline"
+    },
+    "--ds-dashpanel-filled-bg": {
+      "default": "`--ds-surface-low`",
+      "description": "`.ds-dashpanel--filled`: the fill"
+    },
+    "--ds-dashpanel-shadow": {
+      "default": "`--ds-elev-1`",
+      "description": "`.ds-dashpanel--elevated`: the elevation"
+    },
+    "--ds-dashpanel-head-height": {
+      "default": "56px",
+      "description": "`.ds-dashpanel__head` at the comfortable density, 4px less per step (`.ds-touch`: at least the touch target)"
+    },
+    "--ds-dashpanel-body-min": {
+      "default": "160px",
+      "description": "`.ds-dashpanel__body`: the smallest height, so a state that replaces the content keeps its place"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [],
+  "ripple": false
+}
