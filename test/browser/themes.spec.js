@@ -107,7 +107,15 @@ test.describe('shipped themes', () => {
       return document.querySelector('#btn-outlined').getBoundingClientRect().height;
     });
     expect(touch).toBe(48);
-    expect(await page.evaluate(() => getComputedStyle(document.querySelector('.ds-theme')).getPropertyValue('--ds-font-input').trim())).toMatch(/ 16px\/24px /);
+    // Measured, not read from the role: it is a max() of 16px and the type scale since 3.0.
+    expect(await page.evaluate(() => {
+      const probe = document.createElement('span');
+      probe.style.font = 'var(--ds-font-input)';
+      document.querySelector('.ds-theme').append(probe);
+      const { fontSize, lineHeight } = getComputedStyle(probe);
+      probe.remove();
+      return [fontSize, lineHeight];
+    })).toEqual(['16px', '24px']);
   });
 
   test('contrast: secondary text as text, a 3px ring, solid underlines, on the default and the dark palette', async ({ page }) => {
