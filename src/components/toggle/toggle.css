@@ -1,0 +1,52 @@
+/*
+ * Toggle group: a set of toggle buttons (aria-pressed) where one or several
+ * are on. The buttons are .ds-btn toggles (button.css draws on and off); the
+ * group lays them out and DS.toggle keeps their state.
+ *
+ *   <div class="ds-toggle-group" role="group" aria-label="View" data-ds-toggle-group="single">
+ *     <button class="ds-btn" type="button" aria-pressed="true" value="list">(list 16) List</button>
+ *     <button class="ds-btn" type="button" aria-pressed="false" value="grid">(grid 16) Grid</button>
+ *   </div>
+ *
+ * Connected (one pill outline): add .ds-btn-group (button-group.css), which
+ * joins them and takes the gap away. A single toggle needs no group:
+ *
+ *   <button class="ds-btn ds-btn--quiet" type="button" aria-pressed="false" data-ds-toggle>Only open</button>
+ *
+ * Behaviour (DS.toggle, toggle.js): data-ds-toggle flips one button;
+ * data-ds-toggle-group="single | multiple" serves every [aria-pressed]
+ * button inside, with data-ds-toggle-group-required (single: one always on)
+ * and data-ds-value; one tab stop and the arrow keys (DS.a11y.roving).
+ *
+ * Options (docs/options.md), on the group or any ancestor:
+ *   size      the buttons' (button.css)
+ *   density   the buttons' height, and the gap: 2px less per step (8px at
+ *             the comfortable density, 2px at tight)
+ *   shape     the buttons' radius
+ *   touch     the buttons' touch minimum; the gap stays
+ *
+ * Hooks: --ds-toggle-group-gap (the gap between the toggles at the
+ * comfortable density).
+ *
+ * State is never colour alone: a toggle that is on carries aria-pressed and
+ * the tint (forced colours: Highlight, button.css); give text toggles an
+ * icon that swaps to a check (.ds-icon-swap, b shows under
+ * aria-pressed="true") and icon toggles a fillable glyph
+ * (.ds-icon--fillable).
+ *
+ * Motion: the buttons' own (the fill fades on --ds-dur-fast, the press
+ * morph); the group moves nothing.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.toggle {
+  .ds-toggle-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: max(0px, calc(var(--ds-toggle-group-gap, var(--ds-space-2)) + var(--ds-density, 0) * 2px));
+    max-inline-size: 100%;
+    vertical-align: middle;
+  }
+}
