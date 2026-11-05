@@ -193,6 +193,7 @@ components never set it (`test/tokens.test.js`).
    | tooltip (keyframes) | `--ds-dur-fast` | `--ds-dur-instant` |
    | combobox list | `--ds-dur-medium` | `--ds-dur-instant` |
    | menu | `--ds-dur-medium` | `--ds-dur-instant` |
+   | label group popup | `--ds-dur-medium` | `--ds-dur-instant` |
 
    "Keyframes" is the markup without `data-state`, opened by the page's own classes (`--closing`); `DS.overlay`
    sets `data-state` and plays transitions. The overlays' full timelines are in the [Overlays](#overlays) table,

@@ -1,0 +1,52 @@
+{
+  "name": "labelgroup",
+  "group": "feedback",
+  "order": 910,
+  "docsOrder": 142,
+  "need": "Show the tags of one item on one line, with \"+N\" for the rest and all of them in a popup",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-label-group",
+    "ds-label-group__all",
+    "ds-label-group__list",
+    "ds-label-group__more",
+    "ds-label-group__popup"
+  ],
+  "attributes": [
+    "data-anchored",
+    "data-placement",
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "status"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-label-group-gap": {
+      "default": "`--ds-space-1`",
+      "description": "the gap between the tags of a label group and its \"+N\" button"
+    },
+    "--ds-tag-height": {
+      "owner": "status"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "labelgroup"
+  ],
+  "module": true,
+  "progressive": [
+    "anchor positioning"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.labelgroup.visibleCount": "a pure function: no motion"
+  },
+  "exceptions": {
+    "physical": {
+      ".ds-label-group__popup: inset": "script coordinates: --ds-label-group-x from the left"
+    }
+  }
+}

@@ -155,6 +155,8 @@ const DEFAULT_STRINGS = Object.freeze({
   kbdOption: 'Option',
   kbdControl: 'Control',
   kbdThen: 'then',
+  labelGroupMore: '+{count} more, show all {total}',
+  labelGroupAll: 'All labels',
 });
 
 /**

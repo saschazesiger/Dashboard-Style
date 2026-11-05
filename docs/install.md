@@ -402,6 +402,8 @@ strings a script adds have an option, so a page in another language passes its o
 | `Option` | the system's string `kbdOption`: the spoken name of ⌥ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdOption } })` |
 | `Control` | the system's string `kbdControl`: the spoken name of ⌃ in a key combo (`DS.kbd`) on Apple systems | `DS.core.config({ strings: { kbdControl } })` |
 | `then` | the system's string `kbdThen`: between the steps of a key sequence read aloud (`DS.kbd`): "G then I" | `DS.core.config({ strings: { kbdThen } })` |
+| `+{count} more, show all {total}` | the name of the "+N" button of a label group (`DS.labelgroup`; it shows `+{count}`) (the system's string `labelGroupMore`) | `DS.core.config({ strings: { labelGroupMore } })` |
+| `All labels` | the name of a label group's popup when its list has none (the system's string `labelGroupAll`) | `DS.core.config({ strings: { labelGroupAll } })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
 the locale of `DS.core.config()` (`lang` on `<html>` by default): `DS.format` ([core.md](core.md#dsformat-numbers-dates-and-the-shared-clock))
