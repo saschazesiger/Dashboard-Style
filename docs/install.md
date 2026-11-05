@@ -397,6 +397,17 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Online` | the word of an online status: the label of an avatar's status dot, a group's menu item (the system's string `presenceOnline`) | `DS.core.config({ strings: { presenceOnline } })` |
+| `Away` | the same, away (the system's string `presenceAway`) | `DS.core.config({ strings: { presenceAway } })` |
+| `Busy` | the same, busy (the system's string `presenceBusy`) | `DS.core.config({ strings: { presenceBusy } })` |
+| `Offline` | the same, offline (the system's string `presenceOffline`) | `DS.core.config({ strings: { presenceOffline } })` |
+| `{name}, {status}` | the label of an avatar with a status, "Ada Lovelace, Online" (the system's string `avatarStatus`) | `DS.core.config({ strings: { avatarStatus } })` |
+| `{count} more` | the name of an avatar group's "+N" button and its menu (the system's string `avatarMore`) | `DS.core.config({ strings: { avatarMore } })` |
+| `+{count}` | the text of an avatar group's "+N" button (the system's string `avatarOverflow`) | `DS.core.config({ strings: { avatarOverflow } })` |
+| `{count} selected` | what a media grid announces after a selection from the keyboard (the system's string `mediaSelected`) | `DS.core.config({ strings: { mediaSelected } })` |
+| `Selection cleared` | what a media grid announces when nothing is selected any more (the system's string `mediaSelectionCleared`) | `DS.core.config({ strings: { mediaSelectionCleared } })` |
+| `{value} dB` | the value of a level meter in words, its `aria-valuetext` (the system's string `levelmeterValue`) | `DS.core.config({ strings: { levelmeterValue } })` |
+| `Too loud` | the note of a level meter while the level clips (the system's string `levelmeterLoud`) | `DS.core.config({ strings: { levelmeterLoud } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
