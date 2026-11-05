@@ -151,6 +151,13 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  presenceOnline: 'Online',
+  presenceAway: 'Away',
+  presenceBusy: 'Busy',
+  presenceOffline: 'Offline',
+  avatarStatus: '{name}, {status}',
+  avatarMore: '{count} more',
+  avatarOverflow: '+{count}',
 });
 
 /**
