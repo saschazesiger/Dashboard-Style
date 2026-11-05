@@ -40,7 +40,12 @@ SG.demo('utilities', {
       h.section('Keys', '<p data-demo="keys"><kbd class="ds-kbd">Ctrl</kbd> <kbd class="ds-kbd">K</kbd> opens the search.</p>') +
 
       h.section('Dividers', '<div class="ds-stack" data-demo="dividers"><hr class="ds-divider"><hr class="ds-divider ds-divider--inset">' +
-        '<div class="sg-row">Left<span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>Right<span class="ds-divider ds-divider--vertical ds-divider--inset" role="separator" aria-orientation="vertical" data-demo="divider-upright-inset"></span>Inset</div>' +
+        '<div class="ds-cluster" role="group" aria-label="Ticket actions">' +
+        '<button class="ds-btn ds-btn--quiet ds-sm" type="button">' + h.icon('pencil', 16) + 'Edit</button>' +
+        '<span class="ds-divider ds-divider--vertical" role="separator" aria-orientation="vertical"></span>' +
+        '<button class="ds-btn ds-btn--quiet ds-sm" type="button">' + h.icon('copy', 16) + 'Duplicate</button>' +
+        '<span class="ds-divider ds-divider--vertical ds-divider--inset" role="separator" aria-orientation="vertical" data-demo="divider-upright-inset"></span>' +
+        '<button class="ds-btn ds-btn--quiet ds-sm" type="button">' + h.icon('archive', 16) + 'Archive</button></div>' +
         '<div class="ds-divider ds-divider--label" role="separator"><span>Today</span></div>' +
         '<div class="ds-divider ds-divider--label ds-divider--start" role="separator" data-demo="divider-start"><span>Earlier this week</span></div>' +
         '<div class="ds-divider ds-divider--label ds-divider--end" role="separator" data-demo="divider-end"><span>Last month</span></div>' +

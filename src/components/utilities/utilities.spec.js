@@ -122,7 +122,58 @@ test('dividers: a hairline across, inset, upright and around a caption', async (
     };
   });
   expect(read).toEqual({ across: '1px', inset: '16px', upright: '1px', caption: '1px' });
-  await expect(page.locator('[data-demo="dividers"] [role="separator"]')).toHaveCount(2);
+  // Every divider that is no <hr> names its role (the demo grew from two to six in 3.0).
+  await expect(page.locator('[data-demo="dividers"] [role="separator"]')).toHaveCount(6);
+  await expect(page.locator('[data-demo="dividers"] [aria-orientation="vertical"]')).toHaveCount(3);
+});
+
+test('dividers: a caption near one end, upright inset, upright around "or", the colour hook', async ({ page }) => {
+  await open(page);
+  const read = await page.locator('[data-demo="dividers"]').evaluate((root) => {
+    const el = (name) => root.querySelector(`[data-demo="${name}"]`);
+    const width = (node, pseudo) => Math.round(parseFloat(getComputedStyle(node, pseudo).width));
+    const box = (node) => node.getBoundingClientRect();
+    const or = el('divider-vertical-label');
+    const caption = or.querySelector('span');
+    // In a toolbar row of 40px buttons, centred across: the inset divider stops 8px short of each edge.
+    root.insertAdjacentHTML('beforeend', '<div id="toolbar" style="display: flex; align-items: center"><button type="button" class="ds-btn">Edit</button><span class="ds-divider ds-divider--vertical ds-divider--inset" role="separator" aria-orientation="vertical"></span><button type="button" class="ds-btn">Delete</button></div>');
+    const row = root.querySelector('#toolbar');
+    const inset = row.querySelector('.ds-divider');
+    return {
+      startLead: width(el('divider-start'), '::before'),
+      startTail: width(el('divider-start'), '::after') > 16,
+      endTail: width(el('divider-end'), '::after'),
+      endLead: width(el('divider-end'), '::before') > 16,
+      orDirection: getComputedStyle(or).flexDirection,
+      orAbove: Math.round(parseFloat(getComputedStyle(or, '::before').height)) >= 8,
+      orLine: getComputedStyle(or, '::before').borderInlineStartWidth,
+      orOwnLine: getComputedStyle(or).borderInlineStartWidth,
+      orCaptionCentred: Math.abs((box(caption).left + box(caption).right) / 2 - (box(or).left + box(or).right) / 2) <= 1,
+      insetGap: [Math.round(box(inset).top - box(row).top), Math.round(box(row).bottom - box(inset).bottom)],
+    };
+  });
+  expect(read).toEqual({ startLead: 16, startTail: true, endTail: 16, endLead: true, orDirection: 'column', orAbove: true, orLine: '1px', orOwnLine: '0px', orCaptionCentred: true, insetGap: [8, 8] });
+  await page.locator('#toolbar').evaluate((el) => el.remove());
+  await expect(page.locator('[data-demo="divider-vertical-label"]')).toHaveAccessibleName('');
+  await expect(page.locator('[data-demo="divider-vertical-label"]')).toHaveText('or');
+  const colour = await page.locator('[data-demo="divider-start"]').evaluate((el) => {
+    el.style.setProperty('--ds-divider-color', 'rgb(1, 2, 3)');
+    return getComputedStyle(el, '::before').borderTopColor;
+  });
+  expect(colour).toBe('rgb(1, 2, 3)');
+});
+
+test('dividers in forced colours: every hairline stays', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  const lines = await page.locator('[data-demo="dividers"]').evaluate((root) => [
+    getComputedStyle(root.querySelector('hr')).borderTopStyle,
+    getComputedStyle(root.querySelector('[data-demo="divider-start"]'), '::after').borderTopStyle,
+    getComputedStyle(root.querySelector('[data-demo="divider-vertical-label"]'), '::before').borderInlineStartStyle,
+    getComputedStyle(root.querySelector('[data-demo="divider-upright-inset"]')).borderInlineStartStyle,
+  ]);
+  expect(lines).toEqual(['solid', 'solid', 'solid', 'solid']);
 });
 
 test('.ds-stale dims only after the loader delay and returns at once; .ds-sr stays read', async ({ page }) => {
