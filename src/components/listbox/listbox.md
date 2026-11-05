@@ -40,7 +40,7 @@ devices.filter('lap 14');                      // shows the matches, marks the l
 **Markup or data.** With `data-ds-listbox`, `DS.init()` takes the options of the markup (`role="option"`; the value is
 `data-value`, else the name's text; `aria-selected="true"` the first choice, or `data-ds-value`, a value or a JSON list).
 `DS.listbox.create(el, { items })` renders data instead, through `DS.dom.morphHtml`: strings, or objects with `value`,
-`label`, `description`, `meta`, `group` and `disabled`. Groups follow in the order they first appear; give a data list
+`label`, `description`, `meta`, `group` and `disabled`; each rendered option carries its value in `data-value`. Groups follow in the order they first appear; give a data list
 with groups a `div` as its listbox. From `DS.listbox.VIRTUAL_FROM` items on (100), or with `virtual: true`
 (`data-ds-listbox-virtual`), only the options near the viewport exist (`DS.virtual`): the active one always does, and
 each carries `aria-setsize` and `aria-posinset`. A windowed list has no group headings: put the group in the meta line.

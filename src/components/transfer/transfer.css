@@ -1,0 +1,96 @@
+/*
+ * Transfer list: two lists side by side, the available options and the
+ * chosen ones, with buttons that move the marked options across (dueling
+ * lists): a role's permissions, the devices of a group. Each side is a
+ * listbox of several values (DS.listbox) with an optional filter; DS.transfer
+ * (transfer.js) moves the options and keeps the value.
+ *
+ *   <div class="ds-transfer" data-ds-transfer>
+ *     <div class="ds-transfer__side" data-ds-transfer-side="source">
+ *       <span class="ds-transfer__title" id="avail">Available</span>
+ *       <input class="ds-input ds-transfer__search" type="search" aria-label="Filter available">
+ *       <div class="ds-listbox ds-transfer__list" role="listbox" aria-multiselectable="true" aria-labelledby="avail"> options </div>
+ *     </div>
+ *     <div class="ds-transfer__actions" role="group" aria-label="Move">
+ *       <button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" data-ds-transfer-add aria-label="Add the marked">(arrowRight)</button>
+ *       <button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" data-ds-transfer-remove aria-label="Remove the marked">(arrowLeft)</button>
+ *     </div>
+ *     <div class="ds-transfer__side" data-ds-transfer-side="target"> ... the chosen ... </div>
+ *   </div>
+ *
+ * Both lists take one height (--ds-transfer-list-height, 264px), so the
+ * buttons stand between them in the middle. Where the transfer is 560px
+ * wide or less (a container query on itself) the sides stack and the
+ * buttons turn a quarter (their arrows point down and up).
+ *
+ * Options (src/core/options.css, docs/options.md): the lists are listboxes
+ * and the buttons icon buttons; both compute size, density, shape and touch
+ * themselves. Here only the gaps. No tone.
+ *
+ * Forced colours: the lists are the listbox's.
+ *
+ * Hooks: --ds-transfer-list-height (264px).
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.transfer {
+  .ds-transfer {
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--ds-space-3);
+  }
+
+  /* The list sits at the bottom of its side, so both lists line up when
+     only one side has a filter. */
+  .ds-transfer__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-2);
+    min-width: 0;
+    align-self: stretch;
+  }
+
+  .ds-transfer__side > .ds-transfer__list {
+    margin-block-start: auto;
+  }
+
+  .ds-transfer__title {
+    color: var(--ds-text);
+    font: var(--ds-font-label);
+  }
+
+  .ds-transfer__search {
+    width: 100%;
+  }
+
+  .ds-transfer__list {
+    height: var(--ds-transfer-list-height, 264px);
+    max-height: none;
+  }
+
+  .ds-transfer__actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-2);
+  }
+
+  /* Narrow: one side above the other, the arrows a quarter turned. */
+  @container (max-width: 560px) {
+    .ds-transfer__actions {
+      flex-direction: row;
+      justify-content: center;
+    }
+
+    .ds-transfer__actions svg {
+      rotate: 90deg;
+    }
+
+    /* The grid cannot query its own width; its children take a row each. */
+    .ds-transfer > * {
+      grid-column: 1 / -1;
+    }
+  }
+}

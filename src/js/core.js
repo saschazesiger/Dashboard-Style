@@ -164,6 +164,7 @@ const DEFAULT_STRINGS = Object.freeze({
   tagMax: 'Up to {max} items',
   allSelected: 'All selected',
   orderPosition: 'Position {position}',
+  transferMoved: 'Moved {count} to {list}',
 });
 
 /**

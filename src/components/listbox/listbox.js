@@ -381,7 +381,7 @@ export function create(element, options = {}) {
       : `<span class="${part('name')}">${name}</span>`
         + (entry.description ? `<span class="${part('description')}">${esc(entry.description)}</span>` : '')
         + (entry.meta ? `<span class="${part('meta')}">${esc(entry.meta)}</span>` : '');
-    return `<${optionTag} class="${part('option')}${entry.className ? ` ${esc(entry.className)}` : ''}" id="${esc(id)}" data-ds-key="${esc(id)}" role="option" aria-selected="${selected.has(entry.value)}"`
+    return `<${optionTag} class="${part('option')}${entry.className ? ` ${esc(entry.className)}` : ''}" id="${esc(id)}" data-ds-key="${esc(id)}" data-value="${esc(entry.value)}" role="option" aria-selected="${selected.has(entry.value)}"`
       + `${entry.disabled ? ' aria-disabled="true"' : ''}${entry.index === active ? ' data-active=""' : ''}>${checkHtml()}${inner}</${optionTag}>`;
   }
 
