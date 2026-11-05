@@ -151,6 +151,17 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  send: 'Send',
+  stop: 'Stop',
+  removeNamed: 'Remove {name}',
+  filesAttached: 'Attached {names}',
+  fileRemoved: 'Removed {name}',
+  latest: 'Latest',
+  unreadCount: '{count} new',
+  earlierLoaded: 'Earlier messages loaded',
+  messageStopped: 'Stopped',
+  messageFailed: 'Not completed',
+  feedbackThanks: 'Thanks for the feedback',
 });
 
 /**

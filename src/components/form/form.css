@@ -68,16 +68,14 @@
  *   <div class="ds-search">(search icon)<input class="ds-input" type="search" aria-keyshortcuts="/" placeholder="Search">
  *     <kbd class="ds-kbd ds-search__key" aria-hidden="true">/</kbd></div>
  *   <textarea class="ds-input ds-input--grow" rows="1"></textarea>   (grows with its text)
- *   <div class="ds-composer"><textarea class="ds-composer__input ds-input--grow" rows="1" aria-label="Message"></textarea>
- *     <button class="ds-btn ds-btn--filled ds-btn--icon" type="submit" aria-label="Send">(send)</button></div>
  *
  * Field hooks: --ds-input-height (40px), --ds-input-padding-x (12px),
  * --ds-input-bg, --ds-input-border, --ds-input-radius,
  * --ds-input-focus-color (the ring and the label tint), --ds-input-font,
  * --ds-input-weight, --ds-input-grow-max (50vh), --ds-field-error-color,
  * --ds-field-warning-color, --ds-field-success-color,
- * --ds-field-changed-color, --ds-form-rows-control-max (480px),
- * --ds-composer-radius, --ds-composer-max-height (220px). The computed
+ * --ds-field-changed-color, --ds-form-rows-control-max (480px). The
+ * composer (.ds-composer) has a folder of its own. The computed
  * values (--_h, --_box, --_radius, --_px, --_py and the like) are private:
  * never set them.
  *
@@ -92,7 +90,7 @@
  *             the filled field, .ds-check rows, the halo); 2px of padding
  *             per step on radio and checkbox cards. Not the side padding.
  *   shape     .ds-shape-*: multiplies the radius of fields, the search pill,
- *             the composer, checkboxes, the check list and the cards, and
+ *             checkboxes, the check list and the cards, and
  *             the press morph of a card. A radio stays round.
  *   touch     .ds-touch: at least --ds-touch-target (48px) high, and field
  *             text at --ds-font-input; touch wins over size and density.
@@ -121,9 +119,9 @@
  * and its place in the tab order; DS.motion's action guard blocks its
  * click.
  *
- * Forced colours: focused fields, input groups and the composer show a
+ * Forced colours: focused fields and input groups show a
  * Highlight outline (their inset ring is a shadow, which forced colours
- * drop); the filled field and the composer keep a transparent border,
+ * drop); the filled field keeps a transparent border,
  * their edge there; a warning or success field keeps the system's edge (its
  * word says which); a disabled field or group, a disabled fieldset's legend
  * and a blocked card's title are GrayText; a selected card's edge and input
@@ -1276,76 +1274,6 @@
     box-shadow: inset 0 -1px 0 0 var(--ds-line);
   }
 
-  /*
-   * Composer: a message field with its actions (send, attach) in one
-   * filled shell. The textarea grows with its text (.ds-input--grow) up to
-   * --ds-composer-max-height; the actions stay at the bottom. The ring
-   * follows the field model on the shell: at once while focus is inside,
-   * fading back on blur.
-   */
-  .ds-composer {
-    display: flex;
-    align-items: flex-end;
-    gap: var(--ds-space-1);
-    min-width: 0;
-    padding-block: var(--ds-space-1);
-    padding-inline: var(--ds-space-4) var(--ds-space-1);
-    border: 1px solid transparent;
-    border-radius: calc(var(--ds-composer-radius, var(--ds-radius-2xl)) * var(--ds-shape, 1));
-    background: var(--ds-surface-high);
-    color: var(--ds-text);
-    transition:
-      border-color var(--ds-dur-fast) var(--ds-ease-in-out),
-      background-color var(--ds-dur-fast) var(--ds-ease-in-out),
-      box-shadow var(--ds-dur-fast) var(--ds-ease-in-out);
-  }
-
-  .ds-composer:focus-within {
-    border-color: var(--ds-input-focus-color, var(--ds-primary));
-    background: var(--ds-surface);
-    box-shadow: inset 0 0 0 1px var(--ds-input-focus-color, var(--ds-primary));
-    transition-duration: 0s;
-  }
-
-  .ds-composer > .ds-composer__input {
-    --_box: max(var(--ds-target-min, 0px), calc(var(--ds-input-height, 40px) + var(--ds-size-step, 0) * 8px + var(--ds-density, 0) * 4px));
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: var(--_box);
-    max-height: var(--ds-composer-max-height, 220px);
-    margin: 0;
-    padding: max(0px, calc((var(--_box) - 1lh) / 2)) 0;
-    border: 0;
-    background: transparent;
-    color: var(--ds-text);
-    font: var(--ds-input-font, var(--ds-size-font, var(--ds-font-body)));
-    font-weight: var(--ds-input-weight, var(--ds-weight-regular));
-    resize: none;
-  }
-
-  .ds-composer__input:focus {
-    outline: none;
-  }
-
-  /* On the tonal fill text-3 falls short of 4.5:1; text-2 keeps it. */
-  .ds-composer__input::placeholder {
-    color: var(--ds-text-2);
-    opacity: 1;
-  }
-
-  .ds-composer > .ds-btn {
-    flex: none;
-  }
-
-  @media (max-width: 600px) {
-    /* 2px more than the box asks for, around the taller line: 44px at md. */
-    .ds-composer > .ds-composer__input {
-      padding-block: max(0px, calc((var(--_box) - 1lh) / 2 + 2px));
-      font: var(--ds-input-font, var(--ds-font-input));
-      font-weight: var(--ds-input-weight, var(--ds-weight-regular));
-    }
-  }
-
   /* ── Checkbox and radio cards ─────────────────── */
 
   /* A long label wraps (also a bare text node: overflow-wrap: anywhere
@@ -2177,8 +2105,7 @@
     .ds-input[type="date"]:focus-within,
     .ds-input:is([type="datetime-local"], [type="month"], [type="week"], [type="time"]):focus-within,
     .ds-input-group:has(> .ds-input:focus),
-    .ds-field--inset:has(> .ds-input:focus, > .ds-input-group > .ds-input:focus)::before,
-    .ds-composer:focus-within {
+    .ds-field--inset:has(> .ds-input:focus, > .ds-input-group > .ds-input:focus)::before {
       outline: 2px solid Highlight;
       outline-offset: -2px;
     }

@@ -1,0 +1,94 @@
+{
+  "name": "composer",
+  "group": "forms",
+  "order": 930,
+  "docsOrder": 920,
+  "need": "Write a message: a field that grows, attachments as chips, slash commands, mentions, send and stop, drafts",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-composer",
+    "ds-composer__attachment",
+    "ds-composer__attachment-name",
+    "ds-composer__attachment-size",
+    "ds-composer__attachments",
+    "ds-composer__empty",
+    "ds-composer__input",
+    "ds-composer__option",
+    "ds-composer__option-hint",
+    "ds-composer__option-label",
+    "ds-composer__palette",
+    "ds-composer__picker"
+  ],
+  "attributes": [
+    "data-ds-dragover",
+    "data-state"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-composer-radius": {
+      "default": "`--ds-radius-2xl`",
+      "description": "the shell of `.ds-composer`, times `--ds-shape`"
+    },
+    "--ds-composer-max-height": {
+      "default": "220px",
+      "description": "the tallest the composer's textarea grows before it scrolls"
+    },
+    "--ds-composer-bg": {
+      "default": "`--ds-surface-high`",
+      "description": "the composer's fill at rest (`--ds-surface` while focus is inside)"
+    },
+    "--ds-composer-chip-height": {
+      "default": "40px",
+      "description": "an attachment chip of the composer at md, comfortable (8px per size step, 4px per density step)"
+    },
+    "--ds-composer-chip-max-width": {
+      "default": "200px",
+      "description": "the widest name of an attachment chip before its ellipsis"
+    },
+    "--ds-composer-palette-width": {
+      "default": "320px",
+      "description": "the command and mention palette (never wider than the window)"
+    },
+    "--ds-composer-palette-radius": {
+      "default": "`--ds-radius-xs`",
+      "description": "the palette's corners, times `--ds-shape`"
+    },
+    "--ds-composer-option-height": {
+      "default": "40px",
+      "description": "a palette row at md, comfortable (8px per size step, 4px per density step)"
+    },
+    "--ds-input-height": {
+      "owner": "form"
+    },
+    "--ds-input-focus-color": {
+      "owner": "form"
+    },
+    "--ds-input-font": {
+      "owner": "form"
+    },
+    "--ds-input-weight": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "composer"
+  ],
+  "module": true,
+  "progressive": [
+    "field-sizing"
+  ],
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-composer__palette: inset": "script coordinates: --ds-composer-palette-x from the left of the viewport"
+    },
+    "ripple": {
+      ".ds-composer__option": "focus stays in the field and a press inserts the option and closes the palette; the state layer is the feedback"
+    }
+  }
+}

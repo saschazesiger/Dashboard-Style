@@ -3,7 +3,7 @@
   "group": "forms",
   "order": 290,
   "docsOrder": 200,
-  "need": "Collect input: labelled fields in three looks, slots, states, checks and cards, form sections, filters, action bars and a composer",
+  "need": "Collect input: labelled fields in three looks, slots, states, checks and cards, form sections, filters and action bars",
   "tier": 1,
   "status": "stable",
   "classes": [
@@ -18,8 +18,6 @@
     "ds-check-list",
     "ds-check__count",
     "ds-checkbox",
-    "ds-composer",
-    "ds-composer__input",
     "ds-field",
     "ds-field--changed",
     "ds-field--filled",
@@ -152,7 +150,7 @@
     },
     "--ds-input-focus-color": {
       "default": "`--ds-primary`",
-      "description": "the field's ring, the label tint while it has the focus, the filled field's bottom line, the input group and composer rings"
+      "description": "the field's ring, the label tint while it has the focus, the filled field's bottom line and the input group ring (the composer reads it too)"
     },
     "--ds-input-grow-max": {
       "default": "50vh",
@@ -185,14 +183,6 @@
     "--ds-form-actions-bleed": {
       "default": "`--ds-content-pad-x` (in a `.ds-card`: `--ds-card-pad`)",
       "description": "how far a `.ds-form-actions--sticky` bar bleeds on a phone: set it on a padded container of the page's own to its inline padding (it inherits)"
-    },
-    "--ds-composer-radius": {
-      "default": "`--ds-radius-2xl`",
-      "description": "the shell of `.ds-composer`"
-    },
-    "--ds-composer-max-height": {
-      "default": "220px",
-      "description": "the tallest the composer's textarea grows before it scrolls"
     },
     "--ds-btn-height": {
       "owner": "button"
