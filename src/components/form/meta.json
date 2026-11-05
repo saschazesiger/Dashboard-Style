@@ -84,6 +84,7 @@
     "ds-radios__indicator",
     "ds-search",
     "ds-search__key",
+    "ds-select",
     "ds-toolbar"
   ],
   "attributes": [
@@ -202,12 +203,18 @@
     },
     "--ds-selection-bar-height": {
       "owner": "table"
+    },
+    "--ds-menu-item-height": {
+      "owner": "menu"
     }
   },
   "keyframes": [
     "ds-fade-in"
   ],
-  "js": [],
+  "js": [
+    "form"
+  ],
+  "module": true,
   "progressive": [
     "interpolate-size",
     "text-wrap",
@@ -219,6 +226,10 @@
     ".ds-radio",
     ".ds-check-card:not(:has(input:is(:disabled,[aria-disabled=\"true\"])))"
   ],
+  "labExempt": {
+    "DS.form.count": "a pure function: no motion",
+    "DS.form.counter": "a counter's figures change at once: no motion"
+  },
   "exceptions": {
     "ripple": {
       ".ds-check": "a checkbox row: the input's halo is the press",
@@ -245,6 +256,9 @@
         ".ds-field__hint--error": "the room of a validation message opens to auto on --ds-ease-out (D29), only where interpolate-size exists",
         ".ds-field__hint--success": "the room of a confirmation under a field opens like a validation message's (D29), only where interpolate-size exists",
         ".ds-field__hint--warning": "the room of a warning under a field opens like a validation message's (D29), only where interpolate-size exists"
+      },
+      "rotate": {
+        "select.ds-select::picker-icon": "the customizable select's chevron turns while its list is open, as every disclosure chevron (only where appearance: base-select exists)"
       }
     }
   }

@@ -161,9 +161,40 @@ radios and their cards, fieldsets and form sections, filters and an action bar. 
 - `.ds-field__optional` marks the few optional fields (the recommended way); where most fields are optional, mark
   the required ones with an `aria-hidden` `.ds-field__required` asterisk and `required` on the input (screen readers
   announce that).
-- `.ds-field__foot` puts the hint and a `.ds-field__counter` in one row (the counter at the end, tabular). The counter
-  is `aria-hidden` and the page updates it on `input`; near the limit the page announces what is left once. Past the
-  limit it takes `.ds-field__counter--over` (the figures say it, the error ink repeats it).
+- `.ds-field__foot` puts the hint and a `.ds-field__counter` in one row (the counter at the end, tabular). Past the
+  limit it takes `.ds-field__counter--over` (the figures say it, the error ink repeats it). `data-ds-counter` on the
+  input or textarea lets `DS.form` keep it (below); a page may also write it itself.
+
+**Counter (`DS.form`, 3.0).** `data-ds-counter` on the input or textarea: the limit is `maxlength`, else
+`data-ds-counter-max` (a soft limit: typing past it is allowed and shows). The counter is the field's
+`.ds-field__counter`, or the element whose id `data-ds-counter` names.
+
+```html
+<textarea class="ds-input" id="note" maxlength="200" data-ds-counter aria-describedby="note-hint"></textarea>
+<div class="ds-field__foot">
+  <small class="ds-field__hint" id="note-hint">Shown to the next person.</small>
+  <span class="ds-field__counter" aria-hidden="true"></span>
+</div>
+```
+
+- It reads "14 / 200" in the locale's digits (without a limit, "14"), counting what `maxlength` counts (UTF-16 code
+  units, so an emoji is 2), and takes `.ds-field__counter--over` past a soft limit.
+- The counter stays `aria-hidden`: a reader is told once when the text comes near the limit (at most
+  `data-ds-counter-warn` characters left, default a tenth of the limit, at least 5: "8 characters left") and once when
+  it goes past it ("3 characters too many"), never on each key (the strings `charactersLeft`, `charactersLeftOne`,
+  `charactersOver`, `charactersOverOne`).
+- `ds:change` with `{ length, max, remaining, over }` goes out on the field when the length changes. A form `reset`
+  counts again.
+
+```js
+const note = DS.form.counter(textarea);    // or DS.core.get(textarea, 'counter')
+note.get();                                // { length: 14, max: 200, remaining: 186, over: false }
+note.set('Dock in room B 2.14');
+DS.form.count('Dock in room B', 200);      // the same count, without a field
+```
+
+`DS.form.counter` returns the controller the attribute path makes (`get`, `set`, `on`, `update`, `destroy`);
+`DS.form.count` is the count behind it.
 
 **Search key**
 
@@ -402,8 +433,30 @@ group.addEventListener('change', () => pill.update()); // checking a radio chang
 ```
 
 - `.ds-input--grow` starts one row tall (`--ds-input-height`) and grows with its text up to `--ds-input-grow-max`
-  (50vh), then scrolls. Where `field-sizing: content` is missing, call `DS.dom.autosize(textarea)` once; its height
-  then follows the text through the CSSOM (never animated).
+  (50vh), then scrolls. Where `field-sizing: content` is missing, `DS.dom.autosize(textarea)` sets the height through
+  the CSSOM (never animated); since 3.0 `DS.init()` does it for every `textarea.ds-input--grow` (the behaviour
+  `autosize` of `DS.form`), so the page calls nothing. Where `field-sizing` exists it steps aside.
+
+**Customizable select (`.ds-select`, progressive).**
+
+```html
+<select class="ds-input ds-select" id="kind">
+  <button><selectedcontent></selectedcontent></button>
+  <option value="laptop">[icon laptop 20]Laptop</option>
+  <option value="monitor">[icon monitor 20]Monitor</option>
+</select>
+```
+
+- Where `appearance: base-select` exists, the list opens as the engine's own picker on the menu's surface
+  (`--ds-surface-popover`, `--ds-elev-popover`, the corners of `--ds-radius-xs` times the shape), rows of the menu's
+  height (`--ds-menu-item-height` at every size and density, at least the touch target), a check before the chosen row
+  and its label weight, the hover and focus layers of every row; an option may hold an icon or a second line, and
+  `<selectedcontent>` shows the chosen one in the field. The chevron turns while it is open (`--ds-dur-medium` on the
+  spring); the list fades in on `--ds-dur-fast` and out on `--ds-dur-instant`.
+- Elsewhere it is the styled native select (the triangle, the platform's list); the `<button>` and
+  `<selectedcontent>` are ignored, and the option's icon is not shown. Keys, type-ahead, the value, `required` and
+  `:user-invalid` are the engine's either way.
+- Forced colours: the chosen row is `SelectedItem`, the focused one has a `CanvasText` ring, the list keeps an edge.
 - `.ds-composer`: a filled shell (`--ds-composer-radius`) with the textarea and its actions, which stay at the
   bottom while the text grows (up to `--ds-composer-max-height`, 220px). The ring follows the field model on the
   shell: at once while the focus is inside, fading back on blur. Forced colours: the shell keeps a transparent border
@@ -466,3 +519,12 @@ follows, so the page's filter runs) and the next Escape closes the layer (2.0, `
 **Motion:** the check, radio, focus, validation, confirmation, changed dot, search key and radio tile rows of
 [Controls](motion.md#controls) in motion.md. A checkbox card moves as a radio card; a warning hint enters as an error
 hint does.
+
+<!-- changelog
+- Form: `DS.form` (3.0), the module of the field. `data-ds-counter` keeps a `.ds-field__counter` ("14 / 200", the
+  `--over` class past a soft `data-ds-counter-max`) and says once that the limit is near or passed (strings
+  `charactersLeft`, `charactersLeftOne`, `charactersOver`, `charactersOverOne`); `DS.form.counter()`,
+  `DS.form.count()`. Every `textarea.ds-input--grow` grows by itself where `field-sizing` is missing (the behaviour
+  `autosize`). `.ds-select`: a customizable select where `appearance: base-select` exists (the menu's surface and rows,
+  a check, rich options, `<selectedcontent>`), the styled native select elsewhere.
+-->

@@ -175,6 +175,10 @@ const DEFAULT_STRINGS = Object.freeze({
   errorSummaryMany: 'There are {count} problems',
   otpDigit: 'Digit {index} of {count}',
   otpCharacter: 'Character {index} of {count}',
+  charactersLeft: '{count} characters left',
+  charactersLeftOne: '1 character left',
+  charactersOver: '{count} characters too many',
+  charactersOverOne: '1 character too many',
 });
 
 /**

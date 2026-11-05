@@ -419,6 +419,12 @@ strings a script adds have an option, so a page in another language passes its o
 | `Type {name} to confirm` | the label of a type-to-confirm field (`DS.typeconfirm`; the system's string `typeToConfirm`) | `DS.core.config({ strings: { typeToConfirm } })` |
 | `There is 1 problem` | the title of an error summary with one problem (`DS.errorsummary`; the system's string `errorSummaryOne`) | `DS.core.config({ strings: { errorSummaryOne } })` |
 | `There are {count} problems` | its title with more (the system's string `errorSummaryMany`) | `DS.core.config({ strings: { errorSummaryMany } })` |
+| `Digit {index} of {count}` | the name of a cell of a numeric code field without one of its own (`DS.otp`; the system's string `otpDigit`) | `DS.core.config({ strings: { otpDigit } })` |
+| `Character {index} of {count}` | the same on an alphanumeric code field (the system's string `otpCharacter`) | `DS.core.config({ strings: { otpCharacter } })` |
+| `{count} characters left` | what a field with a character counter says once it comes near its limit (`DS.form`, `data-ds-counter`; the system's string `charactersLeft`, the plural form `other`) | `DS.core.config({ strings: { charactersLeft } })` |
+| `1 character left` | the same for one (the system's string `charactersLeftOne`, the form `one`) | `DS.core.config({ strings: { charactersLeftOne } })` |
+| `{count} characters too many` | what it says once the text goes past a soft limit (the system's string `charactersOver`) | `DS.core.config({ strings: { charactersOver } })` |
+| `1 character too many` | the same for one (the system's string `charactersOverOne`) | `DS.core.config({ strings: { charactersOverOne } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
