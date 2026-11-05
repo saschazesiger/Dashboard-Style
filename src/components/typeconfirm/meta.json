@@ -1,0 +1,36 @@
+{
+  "name": "typeconfirm",
+  "group": "forms",
+  "order": 298,
+  "docsOrder": 207,
+  "need": "Guard a destructive action: the person types the name of what goes before the red button works",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-typeconfirm",
+    "ds-typeconfirm__confirm",
+    "ds-typeconfirm__error",
+    "ds-typeconfirm__input",
+    "ds-typeconfirm__label",
+    "ds-typeconfirm__name"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "dialog",
+    "form"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "typeconfirm"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.typeconfirm.create": "the button unblocks at once; the dialog's motion is DS.overlay's and the busy face DS.motion.busy's",
+    "DS.typeconfirm.matches": "a pure function: no motion"
+  }
+}
