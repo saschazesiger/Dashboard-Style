@@ -48,7 +48,7 @@ import { config, define, emit, t } from '../../js/core.js';
 import { clock } from '../../js/format.js';
 import { open as openStore } from '../../js/store.js';
 import { announce } from '../../js/a11y.js';
-import { iconElement, clock as clockIcon, chevronDown, refresh as refreshIcon } from '../../js/icons.js';
+import { iconElement, alertCircle, clock as clockIcon, chevronDown, refresh as refreshIcon } from '../../js/icons.js';
 import { weekInfo } from '../calendar/calendar.js';
 import { create as createField, toInstant } from '../datefield/datefield.js';
 import { create as createPicker } from '../picker/picker.js';
@@ -266,8 +266,8 @@ export function create(root, options = {}) {
   const fromLabel = make('span', 'ds-timerange__field-label', { id: `${id}-from` });
   const fromEl = make('div', 'ds-datefield ds-datefield--block', { 'aria-labelledby': `${id}-from` });
   const toLabel = make('span', 'ds-timerange__field-label', { id: `${id}-to` });
-  const toEl = make('div', 'ds-datefield ds-datefield--block', { 'aria-labelledby': `${id}-to` });
-  const error = make('p', 'ds-timerange__error', { role: 'alert' });
+  const toEl = make('div', 'ds-datefield ds-datefield--block', { 'aria-labelledby': `${id}-to`, 'aria-describedby': `${id}-error` });
+  const error = make('p', 'ds-timerange__error', { role: 'alert', id: `${id}-error` });
   const apply = make('button', 'ds-btn ds-btn--filled ds-timerange__apply', { type: 'button' });
   const recentHead = make('p', 'ds-picker__heading', { id: `${id}-recent` });
   const recent = make('div', 'ds-picker__presets', { role: 'group', 'aria-labelledby': `${id}-recent` });
@@ -440,7 +440,8 @@ export function create(root, options = {}) {
       return;
     }
     if (start >= end) {
-      error.textContent = t('rangeOrder');
+      // An icon and the words: never the colour alone.
+      error.replaceChildren(iconNode(alertCircle, 16), doc.createTextNode(t('rangeOrder')));
       toField.update({ invalid: true });
       return;
     }

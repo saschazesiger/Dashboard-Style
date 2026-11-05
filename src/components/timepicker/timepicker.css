@@ -34,7 +34,6 @@
  *
  * Forced colours: the chosen row is SelectedItem / SelectedItemText, the
  * active one carries a Highlight ring (CanvasText on the chosen one).
-
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;

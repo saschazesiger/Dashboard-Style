@@ -36,6 +36,10 @@
   "module": true,
   "progressive": [],
   "ripple": false,
+  "labExempt": {
+    "DS.timepicker.times": "pure date math or text from Intl: no DOM, no motion",
+    "DS.timepicker.list": "a listbox in place: its active row's layer is a state layer, nothing moves; the time picker demo plays it in its popover"
+  },
   "exceptions": {
     "ripple": {
       ".ds-timepicker__option": "a click picks the time and closes the popover; the active row's layer is the feedback"

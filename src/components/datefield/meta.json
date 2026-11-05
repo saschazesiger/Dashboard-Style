@@ -60,5 +60,13 @@
   ],
   "module": true,
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "labExempt": {
+    "DS.datefield.hourCycle": "pure date math or text from Intl: no DOM, no motion",
+    "DS.datefield.layout": "pure date math or text from Intl: no DOM, no motion",
+    "DS.datefield.zoneName": "pure date math or text from Intl: no DOM, no motion",
+    "DS.datefield.toInstant": "pure date math or text from Intl: no DOM, no motion",
+    "DS.datefield.typeDigit": "pure date math or text from Intl: no DOM, no motion",
+    "DS.datefield.create": "a field typed in place: its colours change on --ds-dur-fast, nothing moves"
+  }
 }

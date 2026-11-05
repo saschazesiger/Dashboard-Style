@@ -307,6 +307,8 @@ const CONTINUITY = {
   'dialog-sizes': { in: 'doc', sel: '#sg-lab-dialog-xl .ds-dialog__box', props: ['opacity', 'scale.x'] },
   'sheet-wide': { in: 'doc', sel: '#sg-lab-sheet-wide .ds-sheet__panel', props: ['translate.x'] },
   'menu-rich': { in: 'stage', sel: '#sg-lab-menu-rich', props: ['opacity'] },
+  'picker-popover': { in: 'stage', sel: '.ds-picker__popover', props: ['opacity'] },
+  'timerange-open': { in: 'stage', sel: '.ds-timerange__chevron', props: ['rotate'] },
   sheet: { in: 'doc', sel: '#sg-lab-sheet .ds-sheet__panel', props: ['translate.x'] },
   'sheet-div': { in: 'doc', sel: '#sg-lab-sheet-div .ds-sheet__panel', props: ['translate.x'] },
   'dialog-full': { in: 'doc', sel: '#sg-lab-dialog-full .ds-dialog__box', props: ['opacity', 'translate.y'] },

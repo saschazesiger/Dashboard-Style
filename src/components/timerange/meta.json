@@ -48,6 +48,13 @@
   "module": true,
   "progressive": [],
   "ripple": false,
+  "labExempt": {
+    "DS.timerange.parse": "values and text: no DOM, no motion",
+    "DS.timerange.resolve": "values and text: no DOM, no motion",
+    "DS.timerange.spanMs": "values and text: no DOM, no motion",
+    "DS.timerange.label": "values and text: no DOM, no motion",
+    "DS.timerange.query": "values and text: no DOM, no motion"
+  },
   "exceptions": {
     "ripple": {
       ".ds-timerange__select": "a native select cannot hold a ripple; the platform's menu is its feedback"

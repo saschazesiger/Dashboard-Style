@@ -309,7 +309,7 @@ export function create(element, options = {}) {
   const doc = element.ownerDocument;
   const id = `ds-field-${serial += 1}`;
   /** @type {any} */
-  const state = { options: { type: 'date', ...readOptions(element), ...options }, values: new Map(), typed: { key: '', text: '' }, last: '' };
+  const state = { options: { type: 'date', ...readOptions(element), ...options }, values: new Map(), typed: { key: '', text: '' }, advanced: '', last: '' };
 
   const type = () => state.options.type;
   const locale = () => localeOf(state.options.locale);
@@ -527,9 +527,14 @@ export function create(element, options = {}) {
     for (const fn of listeners.get(type) ?? []) fn(detail);
   }
 
-  /** Paints, and sends ds:change when the value changed. */
+  /**
+   * Paints, and sends ds:change when the value changed. Not while a part is
+   * being typed (the "2" of "2027"): the value counts once the part is done,
+   * left, or the field loses focus.
+   */
   function changed(notify = true) {
     const { text, valid } = paint();
+    if (notify && state.typed.key) return;
     if (text === state.last) return;
     state.last = text;
     if (notify) fire('change', { value: text, valid });
@@ -619,6 +624,11 @@ export function create(element, options = {}) {
         continue;
       }
       if (!/\d/.test(char)) {
+        // A separator right after the part before moved on by itself ("3/" in a month) is that move.
+        if (state.advanced === key) {
+          state.advanced = '';
+          continue;
+        }
         // A separator moves on, once something was typed.
         if (/[\s/.,:\-–]/.test(char) && (state.typed.key === key || state.values.get(key) !== undefined)) {
           settleTyping();
@@ -627,6 +637,7 @@ export function create(element, options = {}) {
         }
         continue;
       }
+      state.advanced = '';
       const [min, max] = bounds(name, groupValues(group), cycle());
       const typed = state.typed.key === key ? state.typed.text : '';
       const result = typeDigit({ min, max, typed, digit: char, size: name === 'year' ? 4 : 2 });
@@ -635,7 +646,7 @@ export function create(element, options = {}) {
       if (result.done) {
         settleTyping();
         changed();
-        moveFocus(segment, 1);
+        if (moveFocus(segment, 1)) state.advanced = /** @type {Element} */ (doc.activeElement)?.getAttribute?.('data-segment') ?? '';
       } else changed();
     }
   }
@@ -689,6 +700,7 @@ export function create(element, options = {}) {
     const rtl = /** @type {HTMLElement} */ (segment).matches(':dir(rtl)');
     const name = segment.getAttribute('data-segment').split('.').pop();
     const editable = !blocked() && !readOnly();
+    if (event.key.length > 1) state.advanced = '';
     switch (event.key) {
       case 'ArrowUp':
       case 'ArrowDown':
@@ -752,6 +764,7 @@ export function create(element, options = {}) {
   }, { signal });
   element.addEventListener('focusout', (/** @type {FocusEvent} */ event) => {
     const segment = segmentOf(event.target);
+    if (segment && state.advanced === segment.getAttribute('data-segment')) state.advanced = '';
     if (!segment || state.typed.key !== segment.getAttribute('data-segment')) return;
     settleTyping();
     changed();

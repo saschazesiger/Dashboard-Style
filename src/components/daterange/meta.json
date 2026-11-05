@@ -28,5 +28,9 @@
   ],
   "module": true,
   "progressive": [],
-  "ripple": false
+  "ripple": false,
+  "labExempt": {
+    "DS.daterange.resolve": "pure date math or text from Intl: no DOM, no motion",
+    "DS.daterange.presetLabel": "pure date math or text from Intl: no DOM, no motion"
+  }
 }

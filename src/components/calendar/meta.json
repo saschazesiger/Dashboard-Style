@@ -69,5 +69,19 @@
   "ripple": true,
   "rippleHosts": [
     ".ds-calendar__day"
-  ]
+  ],
+  "labExempt": {
+    "DS.calendar.daysIn": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.parse": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.iso": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.today": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.add": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.compare": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.weekInfo": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.weekNumber": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.grid": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.available": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.label": "pure date math or text from Intl: no DOM, no motion",
+    "DS.calendar.rangeLabel": "pure date math or text from Intl: no DOM, no motion"
+  }
 }

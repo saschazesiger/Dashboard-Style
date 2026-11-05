@@ -64,7 +64,6 @@
  * SelectedItemText, the ends of a range carry a CanvasText ring inside the
  * fill, the preview a dashed edge, today keeps its ring (a border), a
  * blocked day is GrayText, and a focused chosen day a CanvasText ring.
-
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
