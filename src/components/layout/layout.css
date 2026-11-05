@@ -127,10 +127,13 @@
     min-width: 0;
   }
 
+  /* The basis is the narrowest main: side, gap and main fit on one line
+     only while main gets --ds-split-min; the growth goes almost all to
+     main. No min-width carries it, so a component that sets one on the
+     same element (a .ds-stack main) changes nothing. */
   .ds-split__main {
-    flex-grow: 999;
-    flex-basis: 0;
-    min-inline-size: min(100%, var(--ds-split-min, 50%));
+    flex: 999 1 min(100%, var(--ds-split-min, 50%));
+    min-width: 0;
   }
 
   /* ── Switcher: equal parts in a row or a column ── */

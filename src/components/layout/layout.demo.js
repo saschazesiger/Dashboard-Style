@@ -56,7 +56,7 @@ SG.demo('layout', {
 
       h.section('Frame', '<div class="ds-grid" data-demo="frames" style="--ds-grid-min: 9rem">' +
         [['', '16 / 9 (default)'], ['ds-frame--4-3', '4 / 3'], ['ds-frame--square', 'square'], ['ds-frame--3-4', '3 / 4'], ['ds-frame--21-9', '21 / 9']].map(function (entry) {
-          return '<figure class="ds-stack" style="--ds-stack-gap: var(--ds-space-2); margin: 0"><div class="ds-frame ' + entry[0] + '" data-demo="frame">' + h.icon('image', 32) + '</div><figcaption class="ds-meta">' + entry[1] + '</figcaption></figure>';
+          return '<figure class="ds-stack" style="--ds-stack-gap: var(--ds-space-2); margin: 0; align-self: start"><div class="ds-frame ' + entry[0] + '" data-demo="frame">' + h.icon('image', 32) + '</div><figcaption class="ds-meta">' + entry[1] + '</figcaption></figure>';
         }).join('') +
         '</div>', 'Crops an img, video, iframe, canvas or picture to its ratio; anything else is centred. Shape multiplies its radius.') +
 

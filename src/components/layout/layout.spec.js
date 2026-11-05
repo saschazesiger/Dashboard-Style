@@ -102,6 +102,10 @@ test('split: the side keeps --ds-split-side beside main, and both stack once mai
   await add(page, markup(500, 'style="--ds-split-side: 10rem; --ds-split-min: 40%"'));
   expect((await rect(page, '#main')).y).toBe((await rect(page, '#side')).y);
   expect((await rect(page, '#side')).width).toBeLessThanOrEqual(161);
+  // A main that is also a .ds-stack (a later component that sets min-width: 0) still stacks on a phone.
+  await add(page, `<div style="inline-size: 340px"><div class="ds-split"><div class="ds-split__side" id="side" ${BOX}>Filters</div><div class="ds-split__main ds-stack" id="main"><div ${BOX}>Results</div></div></div></div>`);
+  expect((await rect(page, '#main')).width).toBe(340);
+  expect((await rect(page, '#main')).y).toBeGreaterThan((await rect(page, '#side')).y);
 });
 
 test('switcher: one row of equal parts from --ds-switcher-at up, else one column; five parts always stack', async ({ page }) => {
