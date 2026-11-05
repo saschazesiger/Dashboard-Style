@@ -326,6 +326,11 @@ const CONTINUITY = {
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
   charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
+  'bar-list-share': { in: 'stage', sel: '.ds-bar-list__item:nth-child(2)', props: ['--ds-share'] },
+  'category-bar-share': { in: 'stage', sel: '.ds-category-bar__part', props: ['--ds-share'] },
+  'meter-share': { in: 'stage', sel: '.ds-gauge', props: ['--ds-share'] },
+  'image-load': { in: 'stage', sel: '.ds-image__frame > img', props: ['opacity'] },
+  'labelgroup-popup': { in: 'stage', sel: '.ds-label-group__popup', props: ['opacity'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
