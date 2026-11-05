@@ -397,6 +397,32 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Done` | the outcome of `DS.toast.promise()` and of a progress toast's `done()` without a text of their own (the system's string `done`) | `DS.core.config({ strings: { done } })` |
+| `Open the command palette` | the description of the palette's shortcut in `DS.hotkeys.list()` and the shortcut sheet (the system's string `commandOpen`) | `DS.core.config({ strings: { commandOpen } })` |
+| `Recent` | the group of recently run commands of a `DS.command` palette (the system's string `commandRecent`) | `DS.core.config({ strings: { commandRecent } })` |
+| `{count} results` | what a `DS.command` palette announces after a search (the system's string `commandResults`) | `DS.core.config({ strings: { commandResults } })` |
+| `1 result` | the same for one result (the system's string `commandResultOne`) | `DS.core.config({ strings: { commandResultOne } })` |
+| `No results for "{query}"` | the empty state of a `DS.command` palette (the system's string `commandEmpty`) | `DS.core.config({ strings: { commandEmpty } })` |
+| `Some results could not be loaded.` | what a `DS.command` palette shows and announces when a provider fails (the system's string `commandFailed`) | `DS.core.config({ strings: { commandFailed } })` |
+| `Back to {page}` | the name of the back button of a nested page of a `DS.command` palette (the system's string `commandBack`) | `DS.core.config({ strings: { commandBack } })` |
+| `Show the keyboard shortcuts` | the description of the shortcut sheet's own shortcut (`?`) in `DS.hotkeys.list()` (the system's string `shortcutsOpen`) | `DS.core.config({ strings: { shortcutsOpen } })` |
+| `Everywhere` | the heading of the global shortcuts in a `DS.shortcuts` sheet (the system's string `shortcutsGlobal`) | `DS.core.config({ strings: { shortcutsGlobal } })` |
+| `Not available here` | the note on a shortcut whose scope is not active in a `DS.shortcuts` sheet (the system's string `shortcutsOff`) | `DS.core.config({ strings: { shortcutsOff } })` |
+| `or` | between two combos of one shortcut in a `DS.shortcuts` sheet (the system's string `shortcutsOr`) | `DS.core.config({ strings: { shortcutsOr } })` |
+| `No keyboard shortcuts here.` | the empty state of a `DS.shortcuts` sheet (the system's string `shortcutsEmpty`) | `DS.core.config({ strings: { shortcutsEmpty } })` |
+| `{label}, {count} unread` | the name of a notification bell with unread notifications (the system's string `notificationsCount`) | `DS.core.config({ strings: { notificationsCount } })` |
+| `Unread` | the word before an unread notification of a `DS.notifications` centre (the system's string `notificationsUnread`) | `DS.core.config({ strings: { notificationsUnread } })` |
+| `Mark as read` | the per-item action of an unread notification (the system's string `notificationsMarkRead`) | `DS.core.config({ strings: { notificationsMarkRead } })` |
+| `Mark as unread` | the per-item action of a read notification (the system's string `notificationsMarkUnread`) | `DS.core.config({ strings: { notificationsMarkUnread } })` |
+| `All notifications marked as read.` | what "Mark all read" of a `DS.notifications` centre announces (the system's string `notificationsAllRead`) | `DS.core.config({ strings: { notificationsAllRead } })` |
+| `New notification: {title}` | what a `DS.notifications` centre announces when one notification arrives (the system's string `notificationsArrived`) | `DS.core.config({ strings: { notificationsArrived } })` |
+| `{count} new notifications` | the same when several arrive at once (the system's string `notificationsArrivedMany`) | `DS.core.config({ strings: { notificationsArrivedMany } })` |
+| `Today` | a day group of a `DS.notifications` centre (the system's string `notificationsToday`) | `DS.core.config({ strings: { notificationsToday } })` |
+| `Yesterday` | a day group of a `DS.notifications` centre (the system's string `notificationsYesterday`) | `DS.core.config({ strings: { notificationsYesterday } })` |
+| `Earlier` | the day group of older notifications (the system's string `notificationsEarlier`) | `DS.core.config({ strings: { notificationsEarlier } })` |
+| `No notifications` | the empty state of a `DS.notifications` centre (the system's string `notificationsEmpty`) | `DS.core.config({ strings: { notificationsEmpty } })` |
+| `{count} unread` | the unread count in the head of a `DS.notifications` centre (the system's string `notificationsUnreadCount`) | `DS.core.config({ strings: { notificationsUnreadCount } })` |
+| `Show {count} more` | the button that shows the banners of a `DS.banner` stack beyond the first (the system's string `bannerMore`) | `DS.core.config({ strings: { bannerMore } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
