@@ -3,7 +3,7 @@
   "group": "navigation",
   "order": 330,
   "docsOrder": 20,
-  "need": "Lay out a page: its head, breadcrumbs, columns of cards, and a sign-in page",
+  "need": "Lay out a page: its head (sticky and condensing, actions that fold into More), breadcrumbs, columns of cards, and a sign-in page",
   "tier": 1,
   "status": "stable",
   "classes": [
@@ -15,11 +15,13 @@
     "ds-grid-2",
     "ds-page",
     "ds-page-head",
+    "ds-page-head--sticky",
     "ds-page-head__actions",
     "ds-page-head__back",
     "ds-page-head__detail",
     "ds-page-head__details",
     "ds-page-head__lead",
+    "ds-page-head__more",
     "ds-page-head__row",
     "ds-page-head__status",
     "ds-page-head__tabs",
@@ -28,7 +30,9 @@
     "ds-stack",
     "ds-stack--page"
   ],
-  "attributes": [],
+  "attributes": [
+    "data-scrolled"
+  ],
   "requires": [
     "button",
     "form"
@@ -56,6 +60,14 @@
       "default": "32px",
       "description": "the title line the page head's actions centre on (set it with a theme that changes `--ds-font-headline`)"
     },
+    "--ds-page-head-top": {
+      "default": "0px",
+      "description": "where a sticky page head (`.ds-page-head--sticky`) stops below the top of its scroller (the height of a bar that sticks above it)"
+    },
+    "--ds-page-head-bg": {
+      "default": "`--ds-backdrop`",
+      "description": "the ground under a sticky page head, so the content scrolls away under it"
+    },
     "--ds-breadcrumbs-item-max": {
       "default": "240px",
       "description": "a breadcrumb item before its ellipsis"
@@ -75,10 +87,20 @@
       "owner": "button"
     }
   },
-  "keyframes": [],
-  "js": [],
+  "keyframes": [
+    "ds-scroll-fade"
+  ],
+  "js": [
+    "menu",
+    "page"
+  ],
+  "module": true,
   "progressive": [
+    "scroll-driven",
     "text-wrap"
   ],
-  "ripple": false
+  "ripple": false,
+  "labExempt": {
+    "DS.page.fold": "arithmetic of the folding actions (which ones stay in the row), no motion of its own"
+  }
 }

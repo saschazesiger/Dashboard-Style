@@ -19,7 +19,8 @@ async function open(page) {
   await settle(page);
 }
 
-const HEAD = '.ds-page-head:has(.ds-page-head__details dd)';
+// The record's head of the first section (the sticky and the folding heads below have the same parts).
+const HEAD = '.ds-page-head:not(.ds-page-head--sticky, [data-ds-page-head]):has(.ds-page-head__details dd)';
 
 test('the head\'s actions centre on the title line at every size and density', async ({ page }) => {
   await open(page);
@@ -91,7 +92,7 @@ test('the tabs row is the head\'s last row, with its indicator on the current li
   });
   expect(geometry.last).toBe(true);
   expect(geometry.gap).toBe(4 + 12);
-  const links = page.getByRole('navigation', { name: 'LAPTOP-0042' }).getByRole('link');
+  const links = page.getByRole('navigation', { name: 'LAPTOP-0042' }).first().getByRole('link');
   await expect(links).toHaveCount(3);
   await links.nth(1).click();
   await expect(links.nth(1)).toHaveAttribute('aria-current', 'page');
@@ -151,7 +152,7 @@ test('breadcrumbs: type by size at any ancestor, the touch minimum, the parent a
 
 test('keyboard and names: the back link reads its target, breadcrumbs are stops with the link ring, the page is marked', async ({ page }) => {
   await open(page);
-  await expect(page.getByRole('link', { name: 'Back to Devices', exact: true })).toHaveCount(1);
+  await expect(page.getByRole('region', { name: 'A record\'s head' }).getByRole('link', { name: 'Back to Devices', exact: true })).toHaveCount(1);
   const nav = page.getByRole('navigation', { name: 'Breadcrumb' });
   await expect(nav.getByRole('link', { name: 'LAPTOP-0042' })).toHaveAttribute('aria-current', 'page');
   const first = nav.getByRole('link').first();
@@ -176,4 +177,150 @@ test('forced colours: the breadcrumb chevrons paint in CanvasText', async ({ pag
     return { text, chevron: getComputedStyle(document.querySelector('.ds-breadcrumbs li + li'), '::before').backgroundColor };
   });
   expect(colours.chevron).toBe(colours.text);
+});
+
+test('a sticky head condenses once its fold has scrolled past, keeps the content in place, and unfolds at the top', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page);
+  const box = page.locator('[data-demo="sticky-box"]');
+  const head = box.locator('.ds-page-head');
+  await expect(head).not.toHaveAttribute('data-scrolled');
+  await page.evaluate(() => {
+    window.__condensed = [];
+    document.addEventListener('ds:change', (event) => { if (event.target.matches('.ds-page-head')) window.__condensed.push(event.detail.condensed); });
+  });
+  const card = box.locator('.ds-card').nth(1);
+  // A little scroll: still whole (what folds has not scrolled past yet).
+  await box.evaluate((el) => { el.scrollTop = 20; });
+  await page.waitForTimeout(100);
+  await expect(head).not.toHaveAttribute('data-scrolled');
+  // Far enough: condensed, and the card did not move on screen by the change.
+  await box.evaluate((el) => { el.scrollTop = 400; });
+  await expect(head).toHaveAttribute('data-scrolled', '');
+  const look = await head.evaluate((el) => ({
+    lead: getComputedStyle(el.querySelector('.ds-page-head__lead')).display,
+    details: getComputedStyle(el.querySelector('.ds-page-head__details')).display,
+    back: getComputedStyle(el.querySelector('.ds-page-head__back')).display,
+    title: parseFloat(getComputedStyle(el.querySelector('.ds-page-head__title')).fontSize),
+    tabs: getComputedStyle(el.querySelector('.ds-page-head__tabs')).display,
+    stuck: Math.round(el.getBoundingClientRect().top - el.parentElement.getBoundingClientRect().top),
+    line: getComputedStyle(el, '::after').opacity,
+  }));
+  expect(look).toMatchObject({ lead: 'none', details: 'none', back: 'none', tabs: 'block', stuck: 1 });
+  expect(look.title).toBeLessThan(28);
+  await expect.poll(() => head.evaluate((el) => getComputedStyle(el, '::after').opacity)).toBe('1');
+  // The content stays in place while the head changes: scroll by a step and the card moves by that step only.
+  const before = await card.evaluate((el) => el.getBoundingClientRect().top);
+  await box.evaluate((el) => { el.scrollTop -= 10; });
+  await page.waitForTimeout(100);
+  const after = await card.evaluate((el) => el.getBoundingClientRect().top);
+  expect(Math.round(after - before)).toBe(10);
+  // Back at the top: whole again, and the first card under it where it started.
+  await box.evaluate((el) => { el.scrollTop = 0; });
+  await expect(head).not.toHaveAttribute('data-scrolled');
+  await page.waitForTimeout(100);
+  expect(await box.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  await box.evaluate((el) => { el.scrollTop = 0; });
+  await page.waitForTimeout(100);
+  await expect(head).not.toHaveAttribute('data-scrolled');
+  expect(await page.evaluate(() => window.__condensed)).toEqual([true, false]);
+});
+
+test('the condensing keeps the content where it was: no jump at the moment the head folds', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page);
+  const box = page.locator('[data-demo="sticky-box"]');
+  const head = box.locator('.ds-page-head');
+  const card = box.locator('.ds-card').nth(2);
+  // Step down a few px at a time; at each step the card moves by the step, the fold included.
+  let last = await card.evaluate((el) => el.getBoundingClientRect().top);
+  let folded = false;
+  for (let step = 0; step < 60 && !folded; step += 1) {
+    await box.evaluate((el) => { el.scrollTop += 8; });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const top = await card.evaluate((el) => el.getBoundingClientRect().top);
+    expect(Math.abs(last - top - 8), `step ${step}`).toBeLessThanOrEqual(1);
+    last = top;
+    folded = await head.evaluate((el) => el.hasAttribute('data-scrolled'));
+  }
+  expect(folded).toBe(true);
+});
+
+test('actions fold into More by the row\'s width: the first ones first, the filled one last; the menu presses them', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await open(page);
+  const head = page.locator('[data-demo="folding"]');
+  const more = head.locator('.ds-page-head__more');
+  await expect(more).toBeVisible();
+  await expect(more).toHaveAccessibleName('More actions');
+  await expect(head.getByRole('button', { name: 'Duplicate' })).toBeHidden();
+  await expect(head.getByRole('button', { name: 'Edit' })).toBeVisible();
+  const fits = await head.evaluate((el) => {
+    const row = el.querySelector('.ds-page-head__row').getBoundingClientRect();
+    return [...el.querySelectorAll('.ds-page-head__actions > :not([hidden])')].every((part) => part.getBoundingClientRect().right <= row.right + 0.5);
+  });
+  expect(fits).toBe(true);
+
+  await focusByKeyboard(page, more);
+  await page.keyboard.press('Enter');
+  const menu = page.getByRole('menu', { name: 'More actions' });
+  await expect(menu).toBeVisible();
+  const items = menu.getByRole('menuitem');
+  const names = await items.allTextContents();
+  expect(names[0]).toBe('Duplicate');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(more).toBeFocused();
+
+  // An item presses its action.
+  await page.evaluate(() => {
+    window.__pressed = 0;
+    document.querySelector('[data-demo="folding"] .ds-page-head__actions > button').addEventListener('click', () => { window.__pressed += 1; });
+  });
+  await more.click();
+  await menu.getByRole('menuitem', { name: 'Duplicate' }).click();
+  await expect(menu).toBeHidden();
+  expect(await page.evaluate(() => window.__pressed)).toBe(1);
+
+  // Narrower: more fold, Edit (filled) stays; blocked stays blocked in the menu.
+  await head.evaluate((el) => { el.parentElement.style.inlineSize = '200px'; });
+  await expect(head.getByRole('button', { name: 'Retire' })).toBeHidden();
+  await expect(head.getByRole('button', { name: 'Edit' })).toBeVisible();
+  await more.click();
+  await expect(menu.getByRole('menuitem', { name: 'Retire' })).toHaveAttribute('aria-disabled', 'true');
+  await expect(menu.getByRole('menuitem', { name: 'Export' })).toHaveAttribute('href', '#');
+  await page.keyboard.press('Escape');
+
+  // Wide: everything back, More gone.
+  await head.evaluate((el) => { el.parentElement.style.inlineSize = '1000px'; });
+  await expect(more).toBeHidden();
+  await expect(head.getByRole('button', { name: 'Duplicate' })).toBeVisible();
+});
+
+test('touch: the More button is a finger\'s target; a phone keeps every action reachable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await open(page);
+  const head = page.locator('[data-demo="sticky"]');
+  await head.evaluate((el) => el.classList.add('ds-touch'));
+  const more = head.locator('.ds-page-head__more');
+  await expect(more).toBeVisible();
+  expect(await more.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(48);
+  const right = await head.evaluate((el) => Math.max(...[...el.querySelectorAll('.ds-page-head__actions > :not([hidden])')].map((part) => part.getBoundingClientRect().right)));
+  expect(right).toBeLessThanOrEqual(390);
+});
+
+test('forced colours: the hairline under a sticky head is CanvasText', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'forced colours are emulated in Chromium only');
+  await page.emulateMedia({ forcedColors: 'active' });
+  await open(page);
+  const colours = await page.locator('[data-demo="sticky"]').evaluate((el) => {
+    const probe = document.createElement('span');
+    probe.style.forcedColorAdjust = 'none';
+    probe.style.backgroundColor = 'CanvasText';
+    document.body.append(probe);
+    const want = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return { want, got: getComputedStyle(el, '::after').backgroundColor };
+  });
+  expect(colours.got).toBe(colours.want);
 });
