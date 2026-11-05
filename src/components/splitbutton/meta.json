@@ -1,0 +1,37 @@
+{
+  "name": "splitbutton",
+  "group": "actions",
+  "order": 550,
+  "docsOrder": 55,
+  "need": "Offer one main action with its variants or related actions in a menu, as one pill with two targets",
+  "tier": 1,
+  "status": "stable",
+  "classes": [
+    "ds-split-btn",
+    "ds-split-btn__action",
+    "ds-split-btn__label",
+    "ds-split-btn__toggle"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "button-group",
+    "menu"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "menu",
+    "menubutton",
+    "overlay",
+    "splitbutton"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.splitbutton.create": "events only: the menu's entrance is DS.menubutton's and DS.menu's (Motion Lab), the press the button group's",
+    "DS.splitbutton.partsOf": "a lookup, no motion"
+  }
+}
