@@ -221,6 +221,13 @@
     margin-inline-start: auto;
   }
 
+  /* After a row of tabs that may scroll, a hairline keeps the word apart
+     from a tab cut at the row's end. */
+  .ds-tabs + .ds-code__lang {
+    padding-inline-start: var(--ds-space-2);
+    border-inline-start: 1px solid var(--ds-line);
+  }
+
   .ds-code__lang + .ds-code__actions {
     margin-inline-start: 0;
   }

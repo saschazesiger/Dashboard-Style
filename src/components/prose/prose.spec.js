@@ -2,8 +2,8 @@
  * Prose and code on the options model (3.0), on their demo: density (the gap
  * and the padding of blocks, the text stays), shape (every radius), the
  * compact mode for chat, task lists from a renderer's bare markup, callouts
- * in each tone with their word, footnotes, the code block's keyboard and
- * names; a component inside prose keeps its look; forced colours. Runs in
+ * in each tone with their word, footnotes with their links, heading
+ * anchors, inline code, kbd and mark, the code block's keyboard and names; a component inside prose keeps its look; forced colours. Runs in
  * the `fallback` project too.
  */
 import { test, expect } from '../../../test/browser/base-test.js';
@@ -244,6 +244,84 @@ test('footnotes: the meta role under a hairline', async ({ page }) => {
   expect(await notes.evaluate((el) => [getComputedStyle(el).fontSize, getComputedStyle(el).borderTopStyle])).toEqual(['12px', 'solid']);
 });
 
+test('footnotes: a small figure that leaves the line alone, described by the hidden heading; each note links back', async ({ page }) => {
+  await open(page);
+  const demo = page.locator('[data-demo="footnotes"]');
+  const ref = demo.locator('.ds-prose__fnref > a').first();
+  await expect(ref).toHaveAccessibleName('1');
+  await expect(ref).toHaveAccessibleDescription('Footnotes');
+  // The reference leaves the line height alone: the paragraph is as tall as one without it.
+  const [withRef, plain] = await demo.locator('p').first().evaluate((p) => {
+    const twin = p.cloneNode(true);
+    twin.querySelectorAll('sup').forEach((sup) => sup.remove());
+    p.after(twin);
+    const heights = [p.getBoundingClientRect().height, twin.getBoundingClientRect().height];
+    twin.remove();
+    return heights;
+  });
+  expect(withRef).toBe(plain);
+  await expect(demo.locator('.ds-prose__footnotes')).toHaveAccessibleName('Footnotes');
+  const back = demo.locator('.ds-prose__fnback').first();
+  await expect(back).toHaveAccessibleName('Back to reference 1');
+  expect(await back.locator('svg').getAttribute('aria-hidden')).toBe('true');
+  // Keyboard: the reference and the link back take the ring.
+  await focusByKeyboard(page, ref);
+  await settle(page);
+  expect(await ref.evaluate((el) => [el.matches(':focus-visible'), getComputedStyle(el).outlineStyle])).toEqual([true, 'solid']);
+  // The note jumped to takes the tint (:target).
+  const note = demo.locator('.ds-prose__footnotes li').first();
+  const before = await note.evaluate((el) => getComputedStyle(el).backgroundColor);
+  await note.evaluate((el) => { location.hash = el.id; });
+  await expect.poll(() => note.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(before);
+  await page.evaluate(() => history.replaceState(null, '', location.pathname + location.search));
+});
+
+test('heading anchors: the heading\'s text names the link, the icon shows on focus and hover; the heading\'s look stays', async ({ page }) => {
+  await open(page);
+  const heading = page.locator('[data-demo="anchors"] h2').first();
+  const link = heading.locator('.ds-prose__anchor');
+  await expect(link).toHaveAccessibleName('Before you start');
+  await expect(page.getByRole('heading', { name: 'Before you start' }).first()).toBeVisible();
+  expect(await link.getAttribute('href')).toBe(`#${await heading.getAttribute('id')}`);
+  const look = await link.evaluate((el) => [getComputedStyle(el).color === getComputedStyle(el.parentElement).color, getComputedStyle(el).textDecorationLine]);
+  expect(look).toEqual([true, 'none']);
+  const icon = link.locator('svg');
+  expect(await icon.getAttribute('aria-hidden')).toBe('true');
+  expect(await icon.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+  await focusByKeyboard(page, link);
+  await settle(page);
+  expect(await icon.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  expect(await link.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('solid');
+  await page.evaluate(() => document.activeElement?.blur());
+  await settle(page);
+  expect(await icon.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
+  const hover = await page.evaluate(() => matchMedia('(hover: hover)').matches);
+  if (hover) {
+    await heading.hover();
+    await settle(page);
+    expect(await icon.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  }
+});
+
+test('inline code, kbd and mark: a chip, a key in a hairline box, the tint; shape scales their radius', async ({ page }) => {
+  await open(page);
+  const demo = page.locator('[data-demo="inline"]');
+  const style = (selector) => demo.locator(selector).first().evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { bg: cs.backgroundColor, border: cs.borderTopStyle, radius: parseFloat(cs.borderTopLeftRadius), family: cs.fontFamily, color: cs.color };
+  });
+  const [code, kbd, mark, text] = [await style('code'), await style('kbd'), await style('mark'), await style('p')];
+  expect(code.bg).not.toBe('rgba(0, 0, 0, 0)');
+  expect(kbd.border).toBe('solid');
+  expect(kbd.family).toBe(code.family);
+  expect(mark.bg).not.toBe('rgba(0, 0, 0, 0)');
+  expect(mark.color).not.toBe(mark.bg);
+  await demo.evaluate((el) => el.classList.add('ds-shape-square'));
+  expect((await style('kbd')).radius).toBe(0);
+  expect((await style('mark')).radius).toBe(0);
+  await demo.evaluate((el) => el.classList.remove('ds-shape-square'));
+});
+
 test('a component inside prose keeps its look, in a callout too; a bare link takes the callout\'s ink', async ({ page }) => {
   await open(page);
   await add(page, `<div class="ds-prose">
@@ -342,4 +420,16 @@ test('forced colours: quotes, callouts and code keep an edge; a checked box High
   });
   const checked = page.locator('[data-demo="tasks"] input').first();
   expect(await checked.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(system);
+  // A mark takes Mark / MarkText, a kbd keeps its border.
+  const markColour = await page.evaluate(() => {
+    const el = document.createElement('span');
+    el.style.forcedColorAdjust = 'none';
+    el.style.backgroundColor = 'Mark';
+    document.body.append(el);
+    const colour = getComputedStyle(el).backgroundColor;
+    el.remove();
+    return colour;
+  });
+  expect(await page.locator('[data-demo="inline"] mark').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(markColour);
+  expect(await page.locator('[data-demo="inline"] kbd').first().evaluate((el) => getComputedStyle(el).borderTopStyle)).toBe('solid');
 });
