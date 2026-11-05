@@ -1,0 +1,38 @@
+{
+  "name": "expandable",
+  "group": "content",
+  "order": 880,
+  "docsOrder": 207,
+  "need": "Show the first lines of a long text with a Show more button that reveals the rest",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-expandable",
+    "ds-expandable__text",
+    "ds-expandable__toggle"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-expandable-lines": {
+      "default": "3",
+      "description": "`.ds-expandable`: how many lines show while it is closed"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "expandable"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.expandable.create": "opens and closes at once: a clamp has no height to glide between",
+    "DS.expandable.overflows": "a pure function: no motion"
+  }
+}
