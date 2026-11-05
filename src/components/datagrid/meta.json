@@ -1,0 +1,86 @@
+{
+  "name": "datagrid",
+  "group": "data",
+  "order": 450,
+  "docsOrder": 175,
+  "need": "Work through many records: sort by several columns, choose and resize columns, select across pages, edit in place, export",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-datagrid",
+    "ds-datagrid__actions",
+    "ds-datagrid__chevron",
+    "ds-datagrid__count",
+    "ds-datagrid__editable",
+    "ds-datagrid__editing",
+    "ds-datagrid__editor",
+    "ds-datagrid__every",
+    "ds-datagrid__field",
+    "ds-datagrid__grip",
+    "ds-datagrid__group",
+    "ds-datagrid__label",
+    "ds-datagrid__message",
+    "ds-datagrid__point",
+    "ds-datagrid__rank",
+    "ds-datagrid__resize",
+    "ds-datagrid__select",
+    "ds-datagrid__state",
+    "ds-datagrid__toggle",
+    "ds-datagrid__tree",
+    "ds-datagrid__twist",
+    "ds-datagrid__twist-room"
+  ],
+  "attributes": [
+    "data-ds-datagrid-dir",
+    "data-ds-datagrid-layout",
+    "data-ds-datagrid-resizing",
+    "data-ds-dragging"
+  ],
+  "requires": [
+    "button",
+    "drag",
+    "empty",
+    "form",
+    "loader",
+    "loading",
+    "menu",
+    "table",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-datagrid-indent": {
+      "default": "`--ds-space-6`",
+      "description": "the indent of one level of tree rows in a `.ds-datagrid`"
+    },
+    "--ds-datagrid-group-bg": {
+      "default": "`--ds-surface-low`",
+      "description": "the head row of a row group in a `.ds-datagrid`"
+    },
+    "--ds-table-sticky-bg": {
+      "owner": "table"
+    },
+    "--ds-btn-icon-size": {
+      "owner": "button"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "datagrid"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.datagrid.query": "the client pipeline as data: no DOM, no motion",
+    "DS.datagrid.csv": "text out: no DOM, no motion",
+    "DS.datagrid.summary": "a figure out: no DOM, no motion"
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-datagrid__chevron": "disclosure chevrons: the twist of a tree row or a row group turns 90deg on the spring as it opens"
+      }
+    }
+  }
+}
