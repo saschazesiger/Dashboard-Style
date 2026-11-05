@@ -8,7 +8,7 @@
 var TICKETS = ['Battery swelling', 'Screen flickers', 'No network after update', 'Keyboard key stuck', 'Fan noise', 'Sync fails with a certificate error',
   'Dock not detected', 'Printer offline', 'Camera blurry', 'Disk almost full', 'Licence expired', 'Charger missing'];
 var BOARD_DEVICES = ['LAPTOP-0042', 'LAPTOP-0017', 'MONITOR-0007', 'DESKTOP-0003'];
-var BOARD_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue'];
+var BOARD_DAYS = ['Mon 2', 'Tue 3', 'Wed 4', 'Thu 5', 'Fri 6', 'Sat 7', 'Sun 8', 'Mon 9', 'Tue 10', 'Wed 11', 'Thu 12', 'Fri 13', 'Sat 14', 'Sun 15'];
 
 SG.demo('sticky', {
   title: 'Sticky',
@@ -23,8 +23,9 @@ SG.demo('sticky', {
     var listId = h.uid('tickets');
     var list = '<div data-demo="list" tabindex="0" role="region" aria-labelledby="' + listId + '" style="' + scroller + '; scroll-padding-block: 4rem">' +
       '<header class="ds-sticky ds-sticky--head ds-cluster ds-cluster--between" data-demo="head" style="' + pad + '"><h3 class="ds-card__title" id="' + listId + '">Tickets</h3><span class="ds-meta">12 open</span></header>' +
-      '<ul class="ds-list">' + TICKETS.map(function (title, index) {
-        return '<li class="ds-list__item">' + h.icon('ticket', 20, 'ds-list__icon') + '<span class="ds-list__text"><span class="ds-list__title">' + (1040 + index) + ' · ' + title + '</span><span class="ds-list__meta">Opened by Ada Lovelace</span></span></li>';
+      '<ul class="ds-plain-list" data-demo="rows">' + TICKETS.map(function (title, index) {
+        return '<li class="ds-cluster ds-cluster--nowrap" style="padding: var(--ds-space-3) var(--ds-space-4); border-block-start: 1px solid var(--ds-line)">' + h.icon('ticket', 20) +
+          '<span class="ds-stack" style="--ds-stack-gap: 0"><span>' + (1040 + index) + ' · ' + title + '</span><span class="ds-meta">Opened by Ada Lovelace</span></span></li>';
       }).join('') + '</ul>' +
       '<footer class="ds-sticky ds-sticky--foot ds-cluster ds-cluster--end" data-demo="foot" style="' + pad + '"><span class="ds-meta ds-push">3 selected</span><button class="ds-btn ds-sm" type="button">Assign</button><button class="ds-btn ds-btn--filled ds-sm" type="button">Close tickets</button></footer>' +
       '</div>';
