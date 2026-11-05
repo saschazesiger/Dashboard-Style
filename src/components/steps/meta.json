@@ -3,19 +3,22 @@
   "group": "navigation",
   "order": 360,
   "docsOrder": 40,
-  "need": "Show where the user is in a form of a few steps: done, current, upcoming, optional or in error, in a row, a column or a bar",
+  "need": "Show where the user is in a few steps or a pipeline: done, current, upcoming, optional or in error, in a row, a column, a bar or a stage path, steps to go back to",
   "tier": 1,
   "status": "stable",
   "classes": [
     "ds-steps",
     "ds-steps--bar",
+    "ds-steps--path",
     "ds-steps--vertical",
     "ds-steps__hint",
     "ds-steps__label",
+    "ds-steps__link",
     "ds-steps__mark",
     "ds-steps__step"
   ],
   "attributes": [
+    "data-ds-ripple",
     "data-status"
   ],
   "requires": [],
@@ -36,10 +39,23 @@
     "--ds-steps-gap": {
       "default": "`--ds-space-5`",
       "description": "the room between the steps of `.ds-steps--vertical` (2px per density step)"
+    },
+    "--ds-steps-path-height": {
+      "default": "40px",
+      "description": "a stage of `.ds-steps--path` at size md and comfortable (8px per size step, 4px per density step)"
     }
   },
   "keyframes": [],
-  "js": [],
+  "js": [
+    "steps"
+  ],
+  "module": true,
   "progressive": [],
-  "ripple": false
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-steps__link"
+  ],
+  "labExempt": {
+    "DS.steps.position": "the position a step announces, no motion of its own"
+  }
 }

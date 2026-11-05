@@ -403,6 +403,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Back to top` | the name of a back-to-top button that has no text of its own (`data-ds-backtop`) (the system's string `backToTop`) | `DS.core.config({ strings: { backToTop } })` |
 | `Editing {label}` | what `DS.object` announces when a section of an object page turns into its form (the system's string `editing`) | `DS.core.config({ strings: { editing } })` |
 | `{label} saved` | what `DS.object` announces when a section's form is saved (the system's string `saved`) | `DS.core.config({ strings: { saved } })` |
+| `Step {position} of {total}: {label}` | what `DS.steps` announces when the current step changes (the system's string `stepOf`) | `DS.core.config({ strings: { stepOf } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

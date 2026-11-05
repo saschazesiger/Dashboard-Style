@@ -157,6 +157,7 @@ const DEFAULT_STRINGS = Object.freeze({
   backToTop: 'Back to top',
   editing: 'Editing {label}',
   saved: '{label} saved',
+  stepOf: 'Step {position} of {total}: {label}',
 });
 
 /**
