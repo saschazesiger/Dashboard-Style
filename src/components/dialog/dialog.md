@@ -42,6 +42,8 @@ sheet and a menu too. `data-close` is the **deprecated** 2.x name of `data-ds-cl
 | Full screen | `.ds-dialog--full`; `.ds-dialog--full-narrow` | the dialog | the box fills the window; `--full-narrow` only at 600px and below |
 | Action sheet | `.ds-dialog--bottom` | the dialog | the box sits at the bottom edge |
 | Contained | `.ds-dialog--contained` | the dialog, div markup | it covers its positioned container |
+| Scroll outside | `.ds-dialog--scroll-outside` | the dialog | the window scrolls the whole box, which keeps its content's height; without it only `.ds-dialog__body` scrolls (scroll inside) |
+| Non-modal | `.ds-dialog__box--modeless` | the box alone, without the frame | floats at the end of the window over a page that stays usable ([below](#non-modal-dialog)) |
 | Density | `.ds-density-*` | the dialog or any ancestor | the box's padding and the gap of its parts (2px per step), the full-screen head's height (4px per step) |
 | Shape | `.ds-shape-*` | the dialog or any ancestor | multiplies the box's radius |
 | Touch | `.ds-touch` | the dialog or any ancestor | reaches the controls inside; the box itself has no target |
@@ -168,6 +170,69 @@ search.addEventListener('input', () => {
 `DS.motion.enter(body, 'swap')`, focus the second step's primary action and announce the step (a `.ds-sr` live
 region, or a snackbar); remove the height once the second step settled.
 
+### Scroll inside or outside
+
+By default a box taller than the window keeps its title and actions and scrolls only its `.ds-dialog__body` (scroll
+inside). `.ds-dialog--scroll-outside` lets the window scroll the whole box instead (scroll outside): the box keeps its
+content's height and sits at the top of the frame with `--ds-space-8` above and below, the frame scrolls (a thin
+scrollbar, contained, so the page under it never scrolls), the scrim stays still. Use it for a long read (terms, a
+change log) where the actions belong after the text.
+
+```html
+<dialog class="ds-dialog ds-dialog--lg ds-dialog--scroll-outside" aria-labelledby="terms-title">
+  <div class="ds-dialog__backdrop" data-ds-close></div>
+  <div class="ds-dialog__box">
+    <h2 class="ds-dialog__title" id="terms-title">Terms of the service contract</h2>
+    <div class="ds-dialog__body"> ... long text ... </div>
+    <div class="ds-dialog__actions"> ... </div>
+  </div>
+</dialog>
+```
+
+### Stacked dialogs
+
+A dialog may open from inside another (a confirmation from a form dialog, a picker from a full-screen dialog): each
+open goes on the overlay stack. The upper one takes input while the lower one stays inert, its scrim is the lighter
+`--ds-scrim-nested` (`.ds-dialog--nested`, set by `DS.overlay`), Escape closes only the top one, and focus goes back to
+the control in the lower dialog that opened it. Over a native dialog, the upper one (native or div) moves inside it
+while it shows. Keep it to two levels; a flow with more steps is a [tearsheet](#tearsheet).
+
+```html
+<dialog class="ds-dialog ds-dialog--lg" id="edit" aria-labelledby="edit-title"> ...
+  <button class="ds-btn ds-btn--text" type="button" data-ds-open="#discard">Discard changes</button> ...
+</dialog>
+<dialog class="ds-dialog ds-dialog--sm" id="discard" role="alertdialog" aria-labelledby="discard-title"> ... </dialog>
+```
+
+### Non-modal dialog
+
+`.ds-dialog__box--modeless` is the box alone, without the frame and the backdrop: it floats at the end of the window,
+`--ds-dialog-modeless-inset` from its edges, on `--ds-z-popover`, and the page under it stays usable (a running export,
+a compose window, a short form beside the record). It takes `role="dialog"` without `aria-modal`, a name, and `hidden`
+until it opens.
+
+```html
+<button class="ds-btn" type="button" data-ds-open="#export" aria-haspopup="dialog" aria-expanded="false">Export</button>
+<section class="ds-dialog__box ds-dialog__box--modeless" id="export" role="dialog" aria-labelledby="export-title" hidden>
+  <div class="ds-dialog__head">
+    <h2 class="ds-dialog__title" id="export-title">Export devices</h2>
+    <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>[icon close 20]</button>
+  </div>
+  <div class="ds-dialog__body"> ... </div>
+  <div class="ds-dialog__actions"> ... </div>
+</section>
+```
+
+- `DS.overlay.open(box, { opener })` (or `data-ds-open`) opens it as a non-modal layer: no trap, nothing inert, no
+  scroll lock. `DS.init()` installs what moves focus into it once it opened (`autofocus`, else its first focusable
+  control, else the box) and watches its body's scroll for the hairline.
+- Tab leaves it for the page and comes back as to any region. Escape closes it while it is the top layer (a menu
+  opened inside it closes first); `[data-ds-close]` closes it; focus goes back to the opener when it was inside.
+- Motion: it fades and grows from `--ds-scale-enter` while it rises `--ds-distance-md` on the spring over
+  `--ds-dur-slow`, from an origin towards its opener; it leaves the same way in `--ds-dur-base`, accelerating. At 600px
+  and below it sits `--ds-space-2` from the edges and decelerates instead of springing.
+- Forced colours: its transparent border becomes its edge, as for the modal box.
+
 ### Full screen and the action sheet
 
 `.ds-dialog--full` fills the window (no padding around the box, radius `--ds-dialog-full-radius`, 0; safe areas on
@@ -233,6 +298,27 @@ const ok = await DS.overlay.confirm({
 const name = await DS.overlay.prompt({ title: 'Rename', label: 'Name', value: device.name, opener: button });
 await DS.overlay.alert({ title: 'Export ready', text: 'The file is in your downloads.', opener: button });
 ```
+
+`lines` (a list of strings: the items it concerns, in a `.ds-dialog__lines` list) and `facts` (`[term, value]` pairs, a
+`.ds-dialog__facts` list) show what the question is about under its text, in `confirm()`, `alert()` and `prompt()`:
+
+```js
+await DS.overlay.confirm({
+  title: 'Archive 2 devices?', text: 'They leave every list but stay in the archive.',
+  lines: ['LAPTOP-0042', 'LAPTOP-0043'], confirmLabel: 'Archive devices', opener: button,
+});
+await DS.dialog.alert({ title: 'Ticket closed', facts: [['Ticket', '#1042'], ['Closed by', 'Ada Lovelace']], opener: button });
+```
+
+What they build, under the text (write the same in a dialog of your own):
+
+```html
+<ul class="ds-dialog__lines"><li>LAPTOP-0042</li><li>LAPTOP-0043</li></ul>
+<dl class="ds-dialog__facts"><div><dt>Ticket</dt><dd>#1042</dd></div> ... </dl>
+```
+
+The presets: neutral (`confirm()`), destructive (`confirm({ destructive: true })`), an alert (`alert()`), one value
+(`prompt()`) and type-to-confirm (the pattern below).
 
 `destructive: true` makes it an `alertdialog` whose first focus is Cancel, and its confirm button filled in the error
 tone (`.ds-btn--filled.ds-tone-error`, D10: the one red button, and only here and in the type-to-confirm pattern); the
@@ -321,9 +407,16 @@ Android Back can still force a native close (it follows with reason `escape`); n
 
 `--ds-dialog-width`, `--ds-dialog-width-sm`, `--ds-dialog-width-lg`, `--ds-dialog-width-xl`, `--ds-dialog-padding`,
 `--ds-dialog-radius`, `--ds-dialog-head-height`, `--ds-dialog-height`, `--ds-dialog-border`, `--ds-dialog-shadow`,
-`--ds-dialog-scrim`, `--ds-dialog-full-radius` ([theming.md](theming.md#component-hooks)). `data-ds-dialog` marks a
+`--ds-dialog-scrim`, `--ds-dialog-full-radius`, `--ds-dialog-modeless-inset` ([theming.md](theming.md#component-hooks)). `data-ds-dialog` marks a
 dialog that `DS.get(el, 'dialog')` serves.
 
 **JS API.** `js/dialog.js` (`DS.dialog`): `open(el, options)` and `close(el, options)` are `DS.overlay.open()` and `close()`; `confirm(options)`, `alert(options)` and `prompt(options)` are also `DS.overlay.confirm()`, `alert()` and `prompt()`; `form(el, { onSubmit, errorText })` runs a form dialog's submit; `create(el)` returns the controller that `data-ds-dialog` makes (`get()`, `set(value, options)`, `on(type, fn)`, `destroy()`).
 
 **Motion:** the "Scrim", "Dialog", "Nested dialog", "Dialog on a phone", "Full-screen dialog" and "Action sheet" rows of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog
+- Dialog: `.ds-dialog--scroll-outside` (the window scrolls the whole box; the body scrolling inside stays the default),
+  a non-modal box `.ds-dialog__box--modeless` (no frame or scrim, the page stays usable; DS.overlay's non-modal layer,
+  focus moved in by `DS.dialog` once it opened; hook `--ds-dialog-modeless-inset`), and `lines` and `facts` on
+  `confirm()`, `alert()` and `prompt()` (`.ds-dialog__lines`, `.ds-dialog__facts`). Stacked dialogs documented.
+-->

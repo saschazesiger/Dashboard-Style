@@ -52,6 +52,22 @@
  *       <div class="ds-dialog__list">
  *         <button class="ds-menu__item" type="button">(pencil) <span class="ds-menu__label">Edit</span></button>
  *
+ * Non-modal (3.0): the box alone, no frame and no backdrop, floating at
+ * the end of the window; the page stays usable. DS.overlay opens it as a
+ * non-modal layer (no trap, no inert, no scroll lock); DS.dialog moves focus
+ * in when it opens.
+ *
+ *   <section class="ds-dialog__box ds-dialog__box--modeless" role="dialog" aria-labelledby="m-title" hidden>
+ *     <div class="ds-dialog__head">
+ *       <h2 class="ds-dialog__title" id="m-title">Export running</h2>
+ *       <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>(close)</button>
+ *     </div>
+ *     <div class="ds-dialog__body"> ... </div>
+ *
+ * What a question is about (confirm({ lines, facts })):
+ * <ul class="ds-dialog__lines"><li>LAPTOP-0042</li> ...</ul> and
+ * <dl class="ds-dialog__facts"><div><dt>Ticket</dt><dd>#1042</dd></div> ...</dl>.
+ *
  * Form dialog: the box is the <form>, so Enter submits and the browser's
  * validation runs; DS.dialog (js/dialog.js) sends ds:submit and closes it.
  *
@@ -115,6 +131,9 @@
  *                          leaves dropping back in --ds-dur-base
  *   .ds-dialog--full-narrow  the same at 600px and below, a normal dialog
  *                          above
+ *   .ds-dialog--scroll-outside  the window scrolls the whole box, which
+ *                          keeps its content's height (a long read):
+ *                          the frame scrolls, the scrim stays
  *   .ds-dialog--bottom     the action sheet: the box sits at the bottom edge
  *                          and rises its full height (--ds-distance-sheet)
  *                          on the spring over --ds-dur-long with the fade;
@@ -167,7 +186,8 @@
  * --ds-dialog-border (an invisible hairline that forced colors paint, so
  * the dialog keeps its edge once shadow and scrim are gone; the full
  * screen dialog needs none), --ds-dialog-shadow, --ds-dialog-scrim
- * (--ds-scrim).
+ * (--ds-scrim), --ds-dialog-modeless-inset (--ds-space-4, phones
+ * --ds-space-2: the gap of a non-modal box to the window's edges).
  *
  * Print: an open dialog is not printed (it is not the page).
  *
@@ -831,8 +851,147 @@
     }
   }
 
+  /* Scroll outside (3.0): the window scrolls the whole box, which keeps
+     its content's height (a long read, a form that should scroll as one
+     page). The frame is the scroller; the box sits at its top with the
+     frame's padding around it, never cut by the window. */
+  .ds-dialog--scroll-outside,
+  dialog.ds-dialog--scroll-outside {
+    place-items: start center;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ds-line-2) transparent;
+  }
+
+  .ds-dialog--scroll-outside .ds-dialog__box {
+    max-height: none;
+    overflow: visible;
+    margin-block: var(--ds-space-8);
+  }
+
+  .ds-dialog--scroll-outside .ds-dialog__box:has(> .ds-dialog__body) {
+    display: grid;
+  }
+
+  .ds-dialog--scroll-outside .ds-dialog__body {
+    overflow: visible;
+  }
+
+  /* The backdrop stays put while the frame scrolls under it. */
+  .ds-dialog--scroll-outside .ds-dialog__backdrop {
+    position: fixed;
+  }
+
+  /* A list of what the question is about (the devices a delete takes):
+     confirm({ lines }). */
+  .ds-dialog__lines {
+    margin: 0;
+    padding-inline-start: var(--ds-space-5);
+    color: var(--ds-text);
+    font: var(--ds-font-body);
+  }
+
+  .ds-dialog__lines > li + li {
+    margin-top: var(--ds-space-1);
+  }
+
+  /* The facts of a record a question is about (confirm({ facts })): the
+     term in a column, the value beside it, hairlines between. */
+  .ds-dialog__facts {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    margin: 0;
+    font: var(--ds-font-body);
+  }
+
+  .ds-dialog__facts > div {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-column: 1 / -1;
+    column-gap: var(--ds-space-4);
+    padding-block: var(--ds-space-2);
+    border-top: 1px solid var(--ds-line);
+  }
+
+  .ds-dialog__facts > div:first-child {
+    border-top: 0;
+  }
+
+  .ds-dialog__facts dt {
+    color: var(--ds-text-2);
+  }
+
+  .ds-dialog__facts dd {
+    margin: 0;
+    color: var(--ds-text);
+    overflow-wrap: anywhere;
+  }
+
+  /* Non-modal (3.0): the box alone, without a frame or scrim, floating at
+     the end of the window above the page, which stays usable (a compose
+     window, a running task). DS.overlay opens it as a non-modal layer: no
+     trap, no inert, no scroll lock; Escape closes it while it is the top
+     layer and focus goes back to the opener when it was inside. */
+  .ds-dialog__box--modeless {
+    --_inset: var(--ds-dialog-modeless-inset, var(--ds-space-4));
+    position: fixed;
+    inset-block-end: calc(var(--_inset) + var(--ds-keyboard-inset, 0px));
+    inset-inline-end: var(--_inset);
+    z-index: var(--ds-z-popover);
+    width: min(var(--ds-dialog-width, 400px), calc(100% - 2 * var(--_inset)));
+    max-height: calc(100dvh - 2 * var(--_inset) - var(--ds-keyboard-inset, 0px));
+    margin: 0;
+  }
+
+  .ds-dialog__box[hidden],
+  .ds-dialog__box--modeless[hidden] {
+    display: none;
+  }
+
+  .ds-dialog__box--modeless[data-state] {
+    transform-origin: var(--ds-motion-origin, 100% 100%);
+    transition:
+      opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+      scale var(--ds-dur-slow) var(--ds-ease-spatial),
+      translate var(--ds-dur-slow) var(--ds-ease-spatial);
+  }
+
+  .ds-dialog__box--modeless[data-state="closed"] {
+    opacity: 0;
+    scale: var(--ds-scale-enter);
+    translate: 0 var(--ds-distance-md);
+    pointer-events: none;
+    transition:
+      opacity var(--ds-dur-base) var(--ds-ease-in-out),
+      scale var(--ds-dur-base) var(--ds-ease-exit),
+      translate var(--ds-dur-base) var(--ds-ease-exit);
+  }
+
+  /* By hand, without data-state: the entrance of the state path. */
+  .ds-dialog__box--modeless:not([data-state]) {
+    --ds-motion-distance: var(--ds-distance-md);
+    animation:
+      ds-fade-in var(--ds-dur-medium) var(--ds-ease-in-out) backwards,
+      ds-grow-in var(--ds-dur-medium) var(--ds-ease-spatial) backwards;
+  }
+
+  @media (max-width: 600px) {
+    .ds-dialog__box--modeless {
+      --_inset: var(--ds-dialog-modeless-inset, var(--ds-space-2));
+    }
+
+    .ds-dialog__box--modeless[data-state="open"] {
+      transition:
+        opacity var(--ds-dur-fast) var(--ds-ease-in-out),
+        scale var(--ds-dur-slow) var(--ds-ease-out),
+        translate var(--ds-dur-slow) var(--ds-ease-out);
+    }
+  }
+
   @media print {
-    .ds-dialog {
+    .ds-dialog,
+    .ds-dialog__box--modeless {
       display: none;
     }
   }

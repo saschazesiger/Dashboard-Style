@@ -462,3 +462,92 @@ test('forced colours: the box keeps its edge; the error tone becomes a system pa
   expect([styles.buttonFace, styles.canvas, 'rgba(0, 0, 0, 0)'], 'the error fill is gone').toContain(styles.background);
   await page.keyboard.press('Escape');
 });
+
+test('non-modal: the box floats at the end, the page stays usable, focus moves in; Escape closes it and focus goes back', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await open(page);
+  const trigger = page.getByRole('button', { name: 'Export devices' });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  const box = page.getByRole('dialog', { name: 'Export devices' });
+  await expect(box).toHaveAttribute('data-state', 'open');
+  await settle(page);
+  await expect(box).not.toHaveAttribute('aria-modal', 'true');
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  expect(await page.evaluate(() => document.querySelectorAll('[inert]').length), 'nothing inert').toBe(0);
+  expect(await page.evaluate(() => document.body.classList.contains('ds-no-scroll')), 'no scroll lock').toBe(false);
+  await expect(box.getByRole('button', { name: 'Close' }), 'focus moved in').toBeFocused();
+  const rect = await box.boundingBox();
+  expect(rect.x + rect.width).toBeCloseTo(1280 - 16, 0);
+  expect(rect.y + rect.height).toBeCloseTo(800 - 16, 0);
+  expect(rect.width).toBeCloseTo(400, 0);
+  // The page under it takes a click.
+  await page.getByRole('button', { name: 'Confirm', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Archive 3 devices?' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await expect(box, 'the modal closed first, the non-modal stays').toHaveAttribute('data-state', 'open');
+  await box.getByRole('button', { name: 'Close' }).focus();
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await expect(box).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('scroll outside: the frame scrolls the whole box, which keeps its height; the actions come after the text', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 });
+  await open(page);
+  await page.getByRole('button', { name: 'Read the terms' }).click();
+  await settle(page);
+  const seen = await page.evaluate(() => {
+    const dialog = document.querySelector('[data-demo="outside"]');
+    const box = dialog.querySelector('.ds-dialog__box');
+    const body = dialog.querySelector('.ds-dialog__body');
+    return { boxHeight: box.getBoundingClientRect().height, scrollHeight: dialog.scrollHeight, client: dialog.clientHeight, bodyScrolls: body.scrollHeight > body.clientHeight + 1, overflow: getComputedStyle(dialog).overflowY };
+  });
+  expect(seen.boxHeight).toBeGreaterThan(600);
+  expect(seen.scrollHeight).toBeGreaterThan(seen.client);
+  expect(seen.bodyScrolls).toBe(false);
+  expect(seen.overflow).toBe('auto');
+  await page.keyboard.press('Escape');
+});
+
+test('stacked dialogs: the lower stays open and inert under a lighter scrim; Escape closes the top only; focus back into the lower', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Edit LAPTOP-0042' }).click();
+  const lower = page.locator('[data-demo="stack-a"]');
+  await expect(lower).toHaveAttribute('data-state', 'open');
+  const opener = lower.getByRole('button', { name: 'Discard changes' });
+  await opener.click();
+  const upper = page.getByRole('alertdialog', { name: 'Discard your changes?' });
+  await expect(upper).toBeVisible();
+  await settle(page);
+  await expect(page.locator('[data-demo="stack-b"]')).toHaveClass(/ds-dialog--nested/);
+  await expect(upper.getByRole('button', { name: 'Keep editing' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await expect(upper).toBeHidden();
+  await expect(lower).toHaveAttribute('data-state', 'open');
+  await expect(opener).toBeFocused();
+  await opener.click();
+  await settle(page);
+  await upper.getByRole('button', { name: 'Discard' }).click();
+  await settle(page);
+  await expect(upper).toBeHidden();
+  await expect(lower, 'data-ds-close="#id" closed the lower one too').toBeHidden();
+});
+
+test('lines and facts: what a built question is about', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'With lines' }).click();
+  const confirm = page.getByRole('dialog', { name: 'Archive 2 devices?' });
+  await expect(confirm.locator('.ds-dialog__lines li')).toHaveText(['LAPTOP-0042', 'LAPTOP-0043']);
+  await page.keyboard.press('Escape');
+  await settle(page);
+  await page.getByRole('button', { name: 'With facts' }).click();
+  const alert = page.getByRole('alertdialog', { name: 'Ticket closed' });
+  await expect(alert.locator('.ds-dialog__facts dt')).toHaveText(['Ticket', 'Device', 'Closed by']);
+  await expect(alert.locator('.ds-dialog__facts dd').last()).toHaveText('Ada Lovelace');
+  await page.keyboard.press('Escape');
+});

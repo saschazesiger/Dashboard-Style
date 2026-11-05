@@ -37,6 +37,10 @@ SG.demo('dialog', {
     var name = h.uid('name');
     var busy = h.uid('busy');
     var typed = h.uid('type');
+    var outside = h.uid('outside');
+    var stackA = h.uid('stack-a');
+    var stackB = h.uid('stack-b');
+    var modeless = h.uid('modeless');
     var sizeIds = sizes.map(function (size) { return h.uid('size-' + size[0]); });
     return h.section('Sizes', '<div class="sg-row" data-demo="sizes">' + sizes.map(function (size, index) {
       return '<button class="ds-btn" type="button" data-ds-open="#' + sizeIds[index] + '">' + size[1] + '</button>';
@@ -48,7 +52,9 @@ SG.demo('dialog', {
         '<button class="ds-btn" type="button" data-demo="confirm">Confirm</button>' +
         '<button class="ds-btn" type="button" data-demo="destructive">Destructive</button>' +
         '<button class="ds-btn" type="button" data-demo="alert">Alert</button>' +
-        '<button class="ds-btn" type="button" data-demo="prompt">Prompt</button></div>',
+        '<button class="ds-btn" type="button" data-demo="prompt">Prompt</button>' +
+        '<button class="ds-btn" type="button" data-demo="lines">With lines</button>' +
+        '<button class="ds-btn" type="button" data-demo="facts">With facts</button></div>',
         'A destructive confirmation is the one place a filled button is red; its label names the consequence.') +
 
       h.section('Form', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + form + '">Rename the device</button></div>' +
@@ -113,6 +119,44 @@ SG.demo('dialog', {
         '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button">Cancel</button><button class="ds-btn ds-btn--filled" type="button">Notify 2 people</button></div></div></div></div>',
         'Div markup covers its positioned container instead of the window (a dialog inside an embedded widget), shown here in place: only the body scrolls, title and actions stay.') +
 
+      h.section('Scroll inside or outside', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + outside + '">Read the terms</button></div>' +
+        '<dialog class="ds-dialog ds-dialog--lg ds-dialog--scroll-outside" id="' + outside + '" aria-labelledby="' + outside + '-title" data-demo="outside">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<h2 class="ds-dialog__title" id="' + outside + '-title">Terms of the service contract</h2><div class="ds-dialog__body">' +
+        ['Scope', 'Response times', 'Spare parts', 'Loan devices', 'Data on returned devices', 'Ending the contract'].map(function (title, index) {
+          return '<h3 class="ds-dialog__text"><strong>' + (index + 1) + '. ' + title + '</strong></h3><p class="ds-dialog__text">Every device listed in the contract is covered from the day it is issued until it is returned. A ticket opened on a working day is answered within four working hours; a device that cannot be repaired on site is replaced by a loan device of the same class until the repair is done.</p>';
+        }).join('') + '</div>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Close</button>' +
+        '<button class="ds-btn ds-btn--filled" type="button" data-ds-close>Accept the terms</button></div></div></dialog>',
+        'The window scrolls the whole box and the actions come after the text. Without the modifier only the body scrolls and title and actions stay (the Form and Large examples).') +
+
+      h.section('Stacked', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + stackA + '">Edit LAPTOP-0042</button></div>' +
+        '<dialog class="ds-dialog ds-dialog--lg" id="' + stackA + '" aria-labelledby="' + stackA + '-title" data-demo="stack-a">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<h2 class="ds-dialog__title" id="' + stackA + '-title">Edit LAPTOP-0042</h2>' +
+        '<div class="ds-dialog__body"><div class="ds-field"><label class="ds-field__label" for="' + stackA + '-owner">Owner</label>' +
+        '<input class="ds-input" id="' + stackA + '-owner" value="Ada Lovelace"></div></div>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-open="#' + stackB + '">Discard changes</button>' +
+        '<button class="ds-btn ds-btn--filled" type="button" data-ds-close>Save</button></div></div></dialog>' +
+        '<dialog class="ds-dialog ds-dialog--sm" id="' + stackB + '" role="alertdialog" aria-labelledby="' + stackB + '-title" aria-describedby="' + stackB + '-text" data-demo="stack-b">' +
+        '<div class="ds-dialog__backdrop" data-ds-close></div><div class="ds-dialog__box">' +
+        '<h2 class="ds-dialog__title" id="' + stackB + '-title">Discard your changes?</h2>' +
+        '<p class="ds-dialog__text" id="' + stackB + '-text">The owner goes back to Ada Lovelace.</p>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close autofocus>Keep editing</button>' +
+        '<button class="ds-btn ds-btn--filled" type="button" data-ds-close="#' + stackA + '" data-demo="stack-discard">Discard</button></div></div></dialog>',
+        'A dialog opened from another: the lower one stays inert under a lighter scrim, Escape closes only the top one and focus goes back to the button in the lower dialog.') +
+
+      h.section('Non-modal', '<div class="sg-row"><button class="ds-btn" type="button" data-ds-open="#' + modeless + '" aria-haspopup="dialog" aria-expanded="false">Export devices</button></div>' +
+        '<section class="ds-dialog__box ds-dialog__box--modeless" id="' + modeless + '" role="dialog" aria-labelledby="' + modeless + '-title" hidden data-demo="modeless">' +
+        '<div class="ds-dialog__head"><h2 class="ds-dialog__title" id="' + modeless + '-title">Export devices</h2>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Close" data-ds-close>' + h.icon('close', 20) + '</button></div>' +
+        '<div class="ds-dialog__body"><div class="ds-radios" role="radiogroup" aria-label="Format">' +
+        '<label class="ds-radio"><input type="radio" name="' + modeless + '-format" value="csv" checked><span><strong>CSV</strong></span></label>' +
+        '<label class="ds-radio"><input type="radio" name="' + modeless + '-format" value="sheet"><span><strong>Spreadsheet</strong></span></label></div></div>' +
+        '<div class="ds-dialog__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-close>Cancel</button>' +
+        '<button class="ds-btn ds-btn--filled" type="button" data-ds-close data-demo="modeless-run">Export 240 devices</button></div></section>',
+        'No scrim and nothing inert: the page stays usable while it shows. Escape closes it while it is the top layer, and focus goes back to the button.') +
+
       h.section('Keyboard', '<p class="ds-muted">Focus moves in at once and <kbd class="ds-kbd">Tab</kbd> stays inside; <kbd class="ds-kbd">Escape</kbd> closes and focus is back on the button; <kbd class="ds-kbd">Enter</kbd> submits a form dialog; the arrow keys move through an action sheet.</p>');
   },
 
@@ -138,6 +182,15 @@ SG.demo('dialog', {
     on('alert', function (button) {
       DS.overlay.alert({ title: 'Export ready', text: 'The file is in your downloads.', opener: button });
     });
+    on('lines', function (button) {
+      DS.overlay.confirm({ title: 'Archive 2 devices?', text: 'They leave every list but stay in the archive for a year.', lines: ['LAPTOP-0042', 'LAPTOP-0043'], confirmLabel: 'Archive devices', opener: button })
+        .then(function (yes) { if (yes) h.toast('Archived 2 devices.'); });
+    });
+    on('facts', function (button) {
+      DS.dialog.alert({ title: 'Ticket closed', text: 'The person who opened it gets an email.', facts: [['Ticket', '#1042'], ['Device', 'LAPTOP-0042'], ['Closed by', 'Ada Lovelace']], opener: button });
+    });
+    on('modeless-run', function () { h.toast('Exporting 240 devices.'); });
+    on('stack-discard', function () { h.toast('Changes discarded.'); });
     on('prompt', function (button) {
       DS.overlay.prompt({ title: 'Rename', label: 'Name', value: 'LAPTOP-0042', input: { required: true }, opener: button })
         .then(function (value) { if (value) h.toast('Renamed to ' + value + '.'); });
@@ -188,6 +241,8 @@ SG.demo('dialog', {
       });
     });
     return function () {
+      var box = h.$('[data-demo="modeless"]', root);
+      if (box && box.getAttribute('data-state') === 'open') DS.overlay.close(box);
       for (const open of root.querySelectorAll('dialog[open]')) open.close();
     };
   },
