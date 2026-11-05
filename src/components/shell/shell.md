@@ -101,9 +101,23 @@ its roles (`--ds-topbar-height`, `--ds-drawer-width`, `--ds-drawer-rail-width`):
   pill arrives, the old one fades back. The weight switches at once. Without the script the active item paints its
   own tint, and tint and label change in one frame.
 - `data-label` on a segmented option (its text again) reserves the width of the heavier current weight, so the
-  switch keeps its width when the current option changes. The option then stacks its content and the reserved copy
-  in a column, so use it on an option whose content is its text (or wrap icon and text in one element); without it
-  the switch behaves as before.
+  switch keeps its width when the current option changes: the copy lies under the text without height, and an icon
+  keeps its own column; without it the switch behaves as before.
+- Icons and counts on a segmented option: an icon (`svg`, 16 to 20) before the label, a count after it
+  (`.ds-segmented__count`: tabular figures in the meta role, the option's colour, read with the label through a
+  `.ds-sr` separator), `--ds-space-2` between the parts. An option that is only an icon is named by `aria-label` (with
+  `data-tip` for the pointer) and takes half the side padding. Sizes, density, shape and touch apply as above.
+
+  ```html
+  <div class="ds-segmented" role="radiogroup" aria-label="Tickets">
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" data-label="Open">[icon inbox 18]Open<span class="ds-segmented__count"><span class="ds-sr">, </span>12</span></button>
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" data-label="Waiting">[icon clock 18]Waiting<span class="ds-segmented__count"><span class="ds-sr">, </span>3</span></button>
+  </div>
+  <div class="ds-segmented" role="radiogroup" aria-label="View">
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="true" aria-label="List" data-tip="List">[icon list 18]</button>
+    <button class="ds-segmented__option" type="button" role="radio" aria-checked="false" tabindex="-1" aria-label="Map" data-tip="Map">[icon map 18]</button>
+  </div>
+  ```
 - One tab stop for a set (2.0): tabs, segmented options that are buttons and toggle buttons in a track take
   `DS.dom.roving(container, { items })` ([motion](motion.md#dsdom-jsdomjs)): Tab reaches the current item only, the
   arrow keys, Home and End move between the items and (by default) press the one they reach, so your click handler
@@ -455,3 +469,8 @@ print.
   widget never calls `followViewport()`: the host page owns the viewport.
 
 **Motion:** the [Navigation](motion.md#navigation) table (indicator, drawer, modal drawer, segmented, top bar) and [Views](motion.md#views) in motion.md.
+
+<!-- changelog
+- Segmented switch: icons and counts (`.ds-segmented__count`) on an option, icon-only options with half the side
+  padding; `data-label` now reserves the heavier width in a grid, so an icon keeps its column.
+-->

@@ -112,6 +112,18 @@ SG.demo('shell', {
         '<div class="ds-segmented" role="radiogroup" aria-label="View" data-demo="segmented" data-active="checked">' + radio('List', true) + radio('Chart', false) + radio('Map', false, true) + '</div></div>',
         'Links in a nav move between modes; buttons (role="radio") change the view of one page, one tab stop with the arrow keys. Map is aria-disabled: it keeps its focus and says why.') +
 
+      h.section('Segmented with icons and counts',
+        '<div class="sg-row"><div class="ds-segmented" role="radiogroup" aria-label="Tickets" data-demo="segmented" data-active="checked">' +
+          [['inbox', 'Open', 12], ['clock', 'Waiting', 3]].map(function (entry, index) {
+            return '<button class="ds-segmented__option" type="button" role="radio" aria-checked="' + (index === 0) + '"' + (index ? ' tabindex="-1"' : '') + ' data-label="' + entry[1] + '">' + h.icon(entry[0], 18) + entry[1] +
+              (entry[2] ? '<span class="ds-segmented__count"><span class="ds-sr">, </span>' + entry[2] + '</span>' : '') + '</button>';
+          }).join('') + '</div>' +
+        '<div class="ds-segmented" role="radiogroup" aria-label="Layout" data-demo="segmented" data-active="checked">' +
+          [['list', 'List'], ['layoutGrid', 'Grid'], ['map', 'Map']].map(function (entry, index) {
+            return '<button class="ds-segmented__option" type="button" role="radio" aria-checked="' + (index === 0) + '"' + (index ? ' tabindex="-1"' : '') + ' aria-label="' + entry[1] + '" data-tip="' + entry[1] + '">' + h.icon(entry[0], 18) + '</button>';
+          }).join('') + '</div></div>',
+        'An icon before the label and a count after it, read with the label; an option that is only an icon is named by aria-label and shows a tooltip. The options panel changes the size, density and shape.') +
+
       h.section('Avatar',
         '<div class="sg-row" style="align-items: center;">' +
           ['ds-xs', 'ds-sm', 'ds-md', 'ds-lg', 'ds-xl'].map(function (size) { return '<span class="ds-avatar ' + size + '" role="img" aria-label="Ada Lovelace">A</span>'; }).join('') +

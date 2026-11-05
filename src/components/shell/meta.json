@@ -45,6 +45,7 @@
     "ds-panel",
     "ds-scrim",
     "ds-segmented",
+    "ds-segmented__count",
     "ds-segmented__indicator",
     "ds-segmented__option",
     "ds-skip",
