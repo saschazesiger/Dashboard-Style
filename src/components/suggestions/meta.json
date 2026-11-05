@@ -1,0 +1,40 @@
+{
+  "name": "suggestions",
+  "group": "actions",
+  "order": 960,
+  "docsOrder": 950,
+  "need": "Offer follow-up prompts: a row of chips that scrolls sideways and drags, or wraps; a press fills or sends the composer",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-suggestions",
+    "ds-suggestions--wrap"
+  ],
+  "attributes": [
+    "data-ds-overflow-end",
+    "data-ds-overflow-start",
+    "data-state"
+  ],
+  "requires": [
+    "chip",
+    "scroller"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-suggestions-gap": {
+      "default": "`--ds-space-2`",
+      "description": "the room between suggestion chips (2px less per density step)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "suggestions"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.suggestions.create": "a drag follows the pointer 1:1 and a press fills the composer: no motion of its own",
+    "DS.suggestions.items": "a pure function: no motion"
+  }
+}

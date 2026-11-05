@@ -1,0 +1,55 @@
+{
+  "name": "ailabel",
+  "group": "content",
+  "order": 980,
+  "docsOrder": 970,
+  "need": "Mark content a model generated, with an icon and a word, and a toggletip that explains it",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-ailabel",
+    "ds-ailabel--icon",
+    "ds-ailabel--outlined",
+    "ds-ailabel--plain",
+    "ds-ailabel__tip",
+    "ds-ailabel__title"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-ailabel-height": {
+      "default": "24px",
+      "description": "the label at md (4px per size step, 2px less per density step)"
+    },
+    "--ds-ailabel-bg": {
+      "default": "`--ds-primary-container`",
+      "description": "the tonal label's fill"
+    },
+    "--ds-ailabel-color": {
+      "default": "`--ds-on-primary-container`",
+      "description": "the tonal label's icon and word"
+    },
+    "--ds-ailabel-tip-width": {
+      "default": "320px",
+      "description": "the widest the explainer grows (never wider than the window)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "ailabel"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "exceptions": {
+    "physical": {
+      ".ds-ailabel__tip: inset": "script coordinates: --ds-ailabel-x from the left of the viewport"
+    },
+    "ripple": {
+      ".ds-ailabel": "a label-sized toggle inside a line of text, like an inline link: the state layer is the feedback"
+    }
+  }
+}

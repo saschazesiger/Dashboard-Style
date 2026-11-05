@@ -1,0 +1,48 @@
+{
+  "name": "transcript",
+  "group": "content",
+  "order": 950,
+  "docsOrder": 940,
+  "need": "Scroll a conversation: stick to the end, a \"Latest\" jump with the count of new messages, day separators, load earlier messages in place",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-transcript",
+    "ds-transcript__day",
+    "ds-transcript__earlier",
+    "ds-transcript__latest",
+    "ds-transcript__list",
+    "ds-transcript__unread"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "message",
+    "scroller"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-transcript-max-width": {
+      "default": "768px",
+      "description": "the widest the column of messages grows; it stays centred"
+    },
+    "--ds-transcript-gap": {
+      "default": "24px",
+      "description": "the room between messages and days (4px less per density step)"
+    },
+    "--ds-transcript-pad": {
+      "default": "`--ds-space-4`",
+      "description": "the padding around the column of messages (2px less per density step)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "transcript"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.transcript.day": "a pure function: no motion"
+  }
+}

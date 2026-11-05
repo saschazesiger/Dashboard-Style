@@ -397,6 +397,17 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Send` | the name and tooltip of a composer's submit button when its markup has no `aria-label` (the system's string `send`) | `DS.core.config({ strings: { send } })` |
+| `Stop` | the name and tooltip of a composer's submit button while a reply runs (`DS.composer`, busy) (the system's string `stop`) | `DS.core.config({ strings: { stop } })` |
+| `Remove {name}` | the name of the remove button of a composer's attachment chip (the system's string `removeNamed`) | `DS.core.config({ strings: { removeNamed } })` |
+| `Attached {names}` | what a composer announces when files are attached (the system's string `filesAttached`) | `DS.core.config({ strings: { filesAttached } })` |
+| `Removed {name}` | what a composer announces when an attachment is removed (the system's string `fileRemoved`) | `DS.core.config({ strings: { fileRemoved } })` |
+| `Latest` | the label of the "Latest" pill a transcript writes when its markup has none (the system's string `latest`) | `DS.core.config({ strings: { latest } })` |
+| `{count} new` | the count of messages that arrived while the reader of a transcript scrolled up (the system's string `unreadCount`) | `DS.core.config({ strings: { unreadCount } })` |
+| `Earlier messages loaded` | what a transcript announces once earlier messages loaded (the system's string `earlierLoaded`) | `DS.core.config({ strings: { earlierLoaded } })` |
+| `Stopped` | the note of a message stopped before its end (`DS.message`, partial) (the system's string `messageStopped`) | `DS.core.config({ strings: { messageStopped } })` |
+| `Not completed` | the note of a failed message without an error text of the page's (the system's string `messageFailed`) | `DS.core.config({ strings: { messageFailed } })` |
+| `Thanks for the feedback` | what a feedback pair announces and shows once feedback is given (the system's string `feedbackThanks`) | `DS.core.config({ strings: { feedbackThanks } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

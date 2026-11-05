@@ -1,0 +1,72 @@
+{
+  "name": "message",
+  "group": "content",
+  "order": 940,
+  "docsOrder": 930,
+  "need": "Show one turn of a conversation: user, assistant, system or tool, streaming, stopped or failed, with copy, retry, edit and feedback",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-message",
+    "ds-message--assistant",
+    "ds-message--system",
+    "ds-message--tool",
+    "ds-message--user",
+    "ds-message__author",
+    "ds-message__avatar",
+    "ds-message__content",
+    "ds-message__footer",
+    "ds-message__head",
+    "ds-message__main",
+    "ds-message__note",
+    "ds-message__time"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-message-avatar-size": {
+      "default": "32px",
+      "description": "the round avatar slot at md (8px per size step)"
+    },
+    "--ds-message-gap": {
+      "default": "`--ds-space-2`",
+      "description": "the room between a message's head, content, note and footer (2px less per density step)"
+    },
+    "--ds-message-user-bg": {
+      "default": "`--ds-surface-high`",
+      "description": "the bubble of the user's own message"
+    },
+    "--ds-message-user-color": {
+      "default": "`--ds-text`",
+      "description": "the text in the user's bubble"
+    },
+    "--ds-message-user-max": {
+      "default": "80%",
+      "description": "the widest the user's bubble grows, of the message's width"
+    },
+    "--ds-message-radius": {
+      "default": "`--ds-radius-xl`",
+      "description": "the user's bubble (the tool frame takes half), times `--ds-shape`"
+    },
+    "--ds-message-tool-bg": {
+      "default": "`--ds-surface-low`",
+      "description": "the frame of a tool result"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "message"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.message.create": "states and events: the text that streams in is the motion; the copy swap is .ds-icon-swap's (button)",
+    "DS.message.state": "a pure function: no motion"
+  }
+}

@@ -60,7 +60,8 @@ attribute (no behaviour) or with it (Enter sends, the button blocks while empty)
   `ds:stop`; Enter does not send meanwhile. With nothing to send the button is `aria-disabled="true"`.
 - **Commands and mentions**: a `.ds-composer__palette` (`role="listbox"`, `aria-label`, `popover="manual"`, `hidden`)
   per trigger character in `data-ds-composer-trigger`: `/` counts at the very start of the message, any other trigger
-  (`@`, `#`) at the start or after a space. Typing it opens the palette at the caret, above it (below without room);
+  (`@`, `#`) at the start or after a space. Typing it opens the palette at the caret, above it (below without room; `--ds-composer-palette-x` and
+  `--ds-composer-palette-y` are the script's coordinates, never set them);
   the text after the trigger filters the `.ds-composer__option` rows by their label (`data-label`, else
   `.ds-composer__option-label`). `data-ds-composer-filter="off"` on a palette leaves filtering to the page, which
   renders the options on `ds:query` (`{ trigger, query }`, also sent while the module filters). `.ds-composer__empty`
