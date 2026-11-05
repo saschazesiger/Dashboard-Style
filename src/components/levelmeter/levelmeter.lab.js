@@ -36,13 +36,6 @@
       return new Promise(function (resolve) { requestAnimationFrame(function () { requestAnimationFrame(resolve); }); })
         .then(function () { meter.set(0); return rest(stage, 0); });
     },
-    toggle: function (stage, on) {
-      meterOf(stage).set(on ? 0.7 : 0);
-      return rest(stage, on ? 0.7 : 0);
-    },
-    state: function (stage) {
-      return meterOf(stage).get().level > 0;
-    },
     reset: function (stage) {
       meterOf(stage).set(0);
       return rest(stage, 0);

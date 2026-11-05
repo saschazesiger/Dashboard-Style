@@ -1,4 +1,4 @@
-/* A presence that changes: the dot glides its colours on --ds-dur-medium, its shape and the word change at once. */
+/* A presence that changes (Replay turns it online or busy): the dot glides its colours on --ds-dur-medium, its shape and the word change at once. A CSS transition, so a change mid-way turns back from where it is. */
 (function () {
   function to(stage, on) {
     var label = stage.querySelector('[data-lab-presence]');
@@ -18,12 +18,6 @@
     height: 120,
     play: function (stage) {
       return to(stage, !stage.querySelector('.ds-presence-dot--busy'));
-    },
-    toggle: function (stage, on) {
-      return to(stage, on);
-    },
-    state: function (stage) {
-      return Boolean(stage.querySelector('.ds-presence-dot--busy'));
     },
     reset: function (stage) {
       return to(stage, false);
