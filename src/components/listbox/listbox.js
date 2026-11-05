@@ -517,6 +517,31 @@ export function create(element, options = {}) {
       focusEl.setAttribute('aria-activedescendant', el.id);
       if (scroll && !windowed) reveal(el);
     }
+    if (scroll && windowed) keepInView(index, 3);
+  }
+
+  /*
+   * A windowed jump lands on estimated heights: the rows it renders are
+   * measured afterwards, and when they differ (descriptions that wrap, a
+   * font that arrives) the active option can end up outside the box. For a
+   * few frames, while the measurements settle, bring it back.
+   */
+  let viewFrame = 0;
+  function keepInView(index, frames) {
+    const view = doc.defaultView;
+    if (!view) return;
+    view.cancelAnimationFrame(viewFrame);
+    viewFrame = view.requestAnimationFrame(() => {
+      if (destroyed || active !== index || !windowed || !scroller.isConnected || scroller.clientHeight === 0) return;
+      const el = entries[index]?.el;
+      const box = scroller.getBoundingClientRect();
+      const rect = el?.isConnected ? el.getBoundingClientRect() : null;
+      if (!rect || (rect.height <= box.height && (rect.top < box.top - 1 || rect.bottom > box.bottom + 1))) {
+        windowed.scrollTo(visible.indexOf(index));
+        setActive(index, { scroll: false });
+      }
+      if (frames > 1) keepInView(index, frames - 1);
+    });
   }
 
   const usable = (index) => !entries[index]?.disabled;
@@ -801,6 +826,7 @@ export function create(element, options = {}) {
     destroy() {
       if (destroyed) return;
       destroyed = true;
+      doc.defaultView?.cancelAnimationFrame(viewFrame);
       abort.abort();
       controllers.delete(element);
       windowed?.destroy();
