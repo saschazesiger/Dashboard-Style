@@ -1,0 +1,134 @@
+/*
+ * Ordered choice: a multi-select whose order matters (the columns of a
+ * table, the order of fallbacks, priorities). Every option is a row with a
+ * grip and a checkbox; the checked ones count, in the order of the rows,
+ * and each shows its place. DS.orderedchoice (orderedchoice.js) moves the
+ * rows by drag and by keys (DS.dnd) and keeps the places.
+ *
+ *   <ol class="ds-orderedchoice" data-ds-orderedchoice aria-label="Columns">
+ *     <li class="ds-orderedchoice__item">
+ *       <button class="ds-btn ds-btn--quiet ds-btn--icon ds-grip" type="button" aria-label="Move Name">(grip 20)</button>
+ *       <label class="ds-check"><input type="checkbox" value="name" checked><span>Name</span></label>
+ *       <span class="ds-orderedchoice__rank"></span>
+ *     </li> ...
+ *   </ol>
+ *
+ * The rows stand on hairlines in an outlined box (as form.css's check
+ * list). A checked row's label takes the label weight and its place shows
+ * at the end in a .ds-orderedchoice__rank disc (a number and, for a screen
+ * reader, "Position 2"); an unchecked row shows none. The row being moved
+ * is drag.css's ([data-ds-dragging]: raised, the dragged state layer).
+ * .ds-orderedchoice__status (written by the module) says why no more can be
+ * checked at the maximum.
+ *
+ * Options (src/core/options.css, docs/options.md), on the list or any
+ * ancestor: the checkbox rows compute size, density and touch themselves;
+ * here the row's block padding takes 2px per density step (never below 0)
+ * and the rank disc 4px per size step; shape multiplies the radii of the
+ * box and the disc. No tone.
+ *
+ * Motion: rows glide to their new places (DS.dnd through DS.motion.flip);
+ * the rank disc fades in and out over --ds-dur-fast.
+ *
+ * Forced colours: the box keeps its border; the rank disc keeps an edge in
+ * CanvasText; the moved row is drag.css's Highlight outline.
+ *
+ * Hooks: --ds-orderedchoice-radius (--ds-radius-card). The private
+ * --_rank is computed here: never set it.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.orderedchoice {
+  .ds-orderedchoice {
+    position: relative;
+    display: grid;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--ds-line);
+    border-radius: calc(var(--ds-orderedchoice-radius, var(--ds-radius-card)) * var(--ds-shape, 1));
+    background: var(--ds-surface);
+    list-style: none;
+  }
+
+  .ds-orderedchoice__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-2);
+    min-width: 0;
+    padding-block: max(0px, calc(var(--ds-space-1) + var(--ds-density, 0) * 2px));
+    padding-inline: var(--ds-space-1) var(--ds-space-4);
+    background: var(--ds-surface);
+  }
+
+  .ds-orderedchoice__item + .ds-orderedchoice__item {
+    border-block-start: 1px solid var(--ds-line);
+  }
+
+  .ds-orderedchoice__item:first-child {
+    border-start-start-radius: inherit;
+    border-start-end-radius: inherit;
+  }
+
+  .ds-orderedchoice__item:last-child {
+    border-end-start-radius: inherit;
+    border-end-end-radius: inherit;
+  }
+
+  /* The label takes the room; a long one wraps. */
+  .ds-orderedchoice__item > .ds-check {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ds-orderedchoice__item:has(> .ds-check > input:checked) > .ds-check {
+    font-weight: var(--ds-weight-label);
+  }
+
+  /* The place of a checked row: a disc with its number. */
+  .ds-orderedchoice__rank {
+    --_rank: calc(var(--ds-space-6) + var(--ds-size-step, 0) * 4px);
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--_rank);
+    height: var(--_rank);
+    padding-inline: var(--ds-space-1);
+    box-sizing: border-box;
+    border-radius: calc(var(--_rank) / 2 * var(--ds-shape, 1));
+    background: var(--ds-accent);
+    color: var(--ds-on-accent);
+    font: var(--ds-font-caption);
+    font-weight: var(--ds-weight-label);
+    font-variant-numeric: tabular-nums;
+    opacity: 1;
+    transition: opacity var(--ds-dur-fast) var(--ds-ease-in-out);
+  }
+
+  .ds-orderedchoice__rank:empty {
+    opacity: 0;
+    transition-duration: var(--ds-dur-instant);
+  }
+
+  .ds-orderedchoice__status {
+    margin: var(--ds-space-1) 0 0;
+    color: var(--ds-text-2);
+    font: var(--ds-font-meta);
+  }
+
+  .ds-orderedchoice__status:empty {
+    display: none;
+  }
+
+  @media (forced-colors: active) {
+    .ds-orderedchoice {
+      border-color: CanvasText;
+    }
+
+    .ds-orderedchoice__rank {
+      border: 1px solid CanvasText;
+    }
+  }
+}

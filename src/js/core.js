@@ -163,6 +163,7 @@ const DEFAULT_STRINGS = Object.freeze({
   tagInvalid: '{label} is not valid',
   tagMax: 'Up to {max} items',
   allSelected: 'All selected',
+  orderPosition: 'Position {position}',
 });
 
 /**

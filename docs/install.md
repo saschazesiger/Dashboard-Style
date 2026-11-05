@@ -375,6 +375,7 @@ strings a script adds have an option, so a page in another language passes its o
 | `Previous` | the system's string `previous` | `DS.core.config({ strings: { previous } })` |
 | `Next` | the system's string `next` | `DS.core.config({ strings: { next } })` |
 | `No results` | the system's string `noResults` | `DS.core.config({ strings: { noResults } })` |
+| `Position {position}` | the place of a checked row of an ordered choice, for a screen reader (the system's string `orderPosition`) | `DS.core.config({ strings: { orderPosition } })` |
 | `Create “{text}”` | the last option of a creatable combobox or tag list (`DS.combobox`) (the system's string `createOption`) | `DS.core.config({ strings: { createOption } })` |
 | `1 result` | the status line of a filtered combobox or select panel, one match (the system's string `resultsOne`) | `DS.core.config({ strings: { resultsOne } })` |
 | `{count} results` | the same, several matches (the system's string `resultsOther`) | `DS.core.config({ strings: { resultsOther } })` |
