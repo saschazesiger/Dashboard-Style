@@ -23,16 +23,17 @@ SG.demo('orderedchoice', {
   options: { sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {
-    return '<div class="ds-form-grid ds-form-grid--2">' +
+    // Each section in a cell of its own, so a short one keeps its lead under its title.
+    return '<div class="ds-form-grid ds-form-grid--2"><div>' +
       h.section('Columns of the device table', '<div class="ds-form"><div class="ds-field"><span class="ds-field__label" id="' + h.uid('oc') + '">Columns, up to 5</span>' +
         ocList(h, 'Columns', OC_COLUMNS, ' data-ds-orderedchoice-max="5" data-demo="columns"') +
         '<p class="ds-field__hint" data-demo-out>Name, Status, Owner</p></div></div>',
-        'The checked columns show their place. At five the others wait.') +
-      h.section('Fallback printers', '<div class="ds-form" style="max-inline-size: 320px;"><div class="ds-field"><span class="ds-field__label">Print on the first that answers</span>' +
-        ocList(h, 'Fallback printers', [['p1', 'Second floor, by the kitchen', true], ['p2', 'Lab', true], ['p3', 'Front desk', false], ['p4', 'Archive (out of service)', false, true]]) +
+        'The checked columns show their place. At five the others wait.') + '</div><div>' +
+      h.section('Fallback printers', '<div class="ds-form" style="max-inline-size: 260px;"><div class="ds-field"><span class="ds-field__label">Print on the first that answers</span>' +
+        ocList(h, 'Fallback printers', [['p1', 'Second floor, by the kitchen on the left', true], ['p2', 'Lab', true], ['p3', 'Front desk', false], ['p4', 'Archive (out of service)', false, true]]) +
         '</div></div>',
         'Long names wrap; a box the page disabled stays disabled.') +
-      '</div>';
+      '</div></div>';
   },
 
   wire: function (root, h) {

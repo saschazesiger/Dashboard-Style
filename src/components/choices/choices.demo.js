@@ -21,7 +21,8 @@ SG.demo('choices', {
   render: function (h) {
     var short = h.uid('choices');
     var long = h.uid('choices');
-    return '<div class="ds-form-grid ds-form-grid--2">' +
+    // Each section in a cell of its own, so a short one keeps its lead under its title.
+    return '<div class="ds-form-grid ds-form-grid--2"><div>' +
       h.section('Select all', '<fieldset class="ds-field"><legend class="ds-field__label">Notify by</legend>' +
         '<div class="ds-choices" data-ds-choices data-demo="short">' +
         '<div class="ds-choices__tools"><label class="ds-check"><input type="checkbox" data-ds-choices-all><span>All channels</span></label><span class="ds-choices__count"></span></div>' +
@@ -29,13 +30,13 @@ SG.demo('choices', {
         chRow(h, 'channel', 'Email', true) + chRow(h, 'channel', 'Chat', false) + chRow(h, 'channel', 'Text message', true) + chRow(h, 'channel', 'Phone call', false, ' disabled') +
         '</div></div></fieldset>' +
         '<p class="ds-field__hint" data-demo-out="short">Email, Text message</p>',
-        'Some checked: the box shows a dash. Phone call cannot change, so "all" leaves it out.') +
+        'Some checked: the box shows a dash. Phone call cannot change, so "all" leaves it out.') + '</div><div>' +
       h.section('Without tools', '<fieldset class="ds-field"><legend class="ds-field__label">Status</legend>' +
         '<div class="ds-choices" data-ds-choices><div class="ds-choices__list">' +
         chRow(h, 'status', 'Active', true) + chRow(h, 'status', 'In storage', false) + chRow(h, 'status', 'Retired', false, ' aria-disabled="true"') +
         '</div></div></fieldset>',
         'A list alone: the checked rows take the label weight.') +
-      '</div>' +
+      '</div></div>' +
       h.section('A long set: filter, columns, scrolling', '<fieldset class="ds-field"><legend class="ds-field__label">Sites</legend>' +
         '<div class="ds-choices ds-choices--columns ds-choices--scroll" data-ds-choices data-demo="long">' +
         '<div class="ds-choices__tools"><input class="ds-input ds-choices__search" type="search" aria-label="Filter sites" placeholder="Filter sites" aria-controls="' + long + '">' +

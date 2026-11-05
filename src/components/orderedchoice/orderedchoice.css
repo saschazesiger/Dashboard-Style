@@ -76,6 +76,11 @@
     border-end-end-radius: inherit;
   }
 
+  /* The grip keeps its size beside a long label. */
+  .ds-orderedchoice__item > .ds-grip {
+    flex: none;
+  }
+
   /* The label takes the room; a long one wraps. */
   .ds-orderedchoice__item > .ds-check {
     flex: 1 1 auto;
