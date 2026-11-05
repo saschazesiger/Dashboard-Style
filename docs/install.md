@@ -397,6 +397,15 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Copy code` | the name of the copy button of a code block that `DS.markdown` writes (the system's string `copyCode`) | `DS.core.config({ strings: { copyCode } })` |
+| `Wrap lines` | the name of a code block's wrap toggle without one of its own (`DS.code`; the system's string `wrapLines`) | `DS.core.config({ strings: { wrapLines } })` |
+| `Footnotes` | the hidden heading of the footnotes `DS.markdown` writes (the system's string `footnotes`) | `DS.core.config({ strings: { footnotes } })` |
+| `Back to reference {number}` | the name of a footnote's link back (`DS.markdown`; the system's string `footnoteBack`) | `DS.core.config({ strings: { footnoteBack } })` |
+| `Note` | the word of a `[!NOTE]` callout (`DS.markdown`; the system's string `calloutNote`) | `DS.core.config({ strings: { calloutNote } })` |
+| `Tip` | the word of a `[!TIP]` callout (`DS.markdown`; the system's string `calloutTip`) | `DS.core.config({ strings: { calloutTip } })` |
+| `Important` | the word of an `[!IMPORTANT]` callout (`DS.markdown`; the system's string `calloutImportant`) | `DS.core.config({ strings: { calloutImportant } })` |
+| `Warning` | the word of a `[!WARNING]` callout (`DS.markdown`; the system's string `calloutWarning`) | `DS.core.config({ strings: { calloutWarning } })` |
+| `Caution` | the word of a `[!CAUTION]` callout (`DS.markdown`; the system's string `calloutCaution`) | `DS.core.config({ strings: { calloutCaution } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

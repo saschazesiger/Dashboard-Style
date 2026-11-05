@@ -151,6 +151,15 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  copyCode: 'Copy code',
+  wrapLines: 'Wrap lines',
+  footnotes: 'Footnotes',
+  footnoteBack: 'Back to reference {number}',
+  calloutNote: 'Note',
+  calloutTip: 'Tip',
+  calloutImportant: 'Important',
+  calloutWarning: 'Warning',
+  calloutCaution: 'Caution',
 });
 
 /**

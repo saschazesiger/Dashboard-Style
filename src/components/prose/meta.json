@@ -3,21 +3,26 @@
   "group": "content",
   "order": 200,
   "docsOrder": 120,
-  "need": "Show rendered rich text and blocks of code, with task lists, callouts and a compact mode for chat",
+  "need": "Show rendered rich text, with task lists, callouts, footnotes, heading anchors and a compact mode for chat",
   "tier": 1,
   "status": "stable",
   "classes": [
-    "ds-code-block",
-    "ds-code-block--wrap",
     "ds-prose",
     "ds-prose--compact",
     "ds-prose--dense",
+    "ds-prose__anchor",
     "ds-prose__callout",
     "ds-prose__callout-title",
+    "ds-prose__fnback",
+    "ds-prose__fnref",
     "ds-prose__footnotes"
   ],
-  "attributes": [],
-  "requires": [],
+  "attributes": [
+    "data-align"
+  ],
+  "requires": [
+    "code"
+  ],
   "context": [],
   "hooks": {
     "--ds-prose-gap": {
@@ -35,10 +40,6 @@
     "--ds-prose-radius": {
       "default": "`--ds-radius-card`",
       "description": "quotes and callouts (times `--ds-shape`)"
-    },
-    "--ds-code-block-radius": {
-      "default": "`--ds-radius-card`",
-      "description": "`.ds-code-block` and a `pre` in prose (times `--ds-shape`)"
     }
   },
   "keyframes": [],
@@ -48,5 +49,11 @@
     "scrollbar-color",
     "hyphenate-limit-chars"
   ],
-  "ripple": false
+  "ripple": false,
+  "exceptions": {
+    "ripple": {
+      ".ds-prose__anchor": "a heading's text as an inline link to itself: links in text are the exception to ripple and morph (D11)",
+      ".ds-prose__fnback": "an inline text link at the end of a footnote: links in text are the exception to ripple and morph"
+    }
+  }
 }
