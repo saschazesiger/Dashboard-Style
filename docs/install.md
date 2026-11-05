@@ -397,6 +397,12 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `More tabs` | the name of the More button and menu of a row of tabs that overflows (`data-ds-tabs-overflow`) (the system's string `moreTabs`) | `DS.core.config({ strings: { moreTabs } })` |
+| `{label} closed` | what `DS.tabs` announces when a tab closes (the system's string `tabClosed`) | `DS.core.config({ strings: { tabClosed } })` |
+| `More actions` | the name of the More button and menu that a page head's actions fold into (`data-ds-page-head`) (the system's string `moreActions`) | `DS.core.config({ strings: { moreActions } })` |
+| `Back to top` | the name of a back-to-top button that has no text of its own (`data-ds-backtop`) (the system's string `backToTop`) | `DS.core.config({ strings: { backToTop } })` |
+| `Editing {label}` | what `DS.object` announces when a section of an object page turns into its form (the system's string `editing`) | `DS.core.config({ strings: { editing } })` |
+| `{label} saved` | what `DS.object` announces when a section's form is saved (the system's string `saved`) | `DS.core.config({ strings: { saved } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

@@ -151,6 +151,12 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  moreTabs: 'More tabs',
+  tabClosed: '{label} closed',
+  moreActions: 'More actions',
+  backToTop: 'Back to top',
+  editing: 'Editing {label}',
+  saved: '{label} saved',
 });
 
 /**

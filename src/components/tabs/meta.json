@@ -3,7 +3,7 @@
   "group": "navigation",
   "order": 350,
   "docsOrder": 30,
-  "need": "Switch between the sections of one page or record: line or contained, across or down, with counts, icons and tabs that close",
+  "need": "Switch between the sections of one page or record: line or contained, across or down, with counts, icons, tabs that close or are added, and a More menu for the tabs that do not fit",
   "tier": 1,
   "status": "stable",
   "classes": [
@@ -13,11 +13,14 @@
     "ds-tabs--flush",
     "ds-tabs--line",
     "ds-tabs--vertical",
+    "ds-tabs__add",
+    "ds-tabs__bar",
     "ds-tabs__close",
     "ds-tabs__columns",
     "ds-tabs__count",
     "ds-tabs__indicator",
     "ds-tabs__item",
+    "ds-tabs__more",
     "ds-tabs__panel",
     "ds-tabs__tab"
   ],
@@ -25,7 +28,8 @@
     "data-label"
   ],
   "requires": [
-    "button"
+    "button",
+    "menu"
   ],
   "context": [
     "badge",
@@ -68,8 +72,10 @@
   },
   "keyframes": [],
   "js": [
-    "indicator"
+    "indicator",
+    "tabs"
   ],
+  "module": true,
   "progressive": [
     "scrollbar-color"
   ],
@@ -77,6 +83,9 @@
   "rippleHosts": [
     ".ds-tabs__tab"
   ],
+  "labExempt": {
+    "DS.tabs.fit": "arithmetic of the overflow (which tabs stay in the row), no motion of its own"
+  },
   "exceptions": {
     "physical": {
       ".ds-tabs--vertical:not(.ds-tabs--contained) > .ds-tabs__indicator: background": "the bar at the end of a vertical row: a background position has no logical form, and the system does not mirror (D4)"

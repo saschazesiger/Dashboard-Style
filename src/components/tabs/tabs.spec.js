@@ -376,3 +376,140 @@ test('the ripple box lies over the layer: a line tab inset, a contained tab flus
   await settle(page);
   expect(await measure(contained)).toEqual({ top: 0, bottom: 0, height: 40, hostHeight: 40, radius: 0 });
 });
+
+test('overflow: the tabs that do not fit fold into More, its menu lists them with their counts, a choice selects and keeps the selected tab in the row', async ({ page }) => {
+  await open(page);
+  const bar = page.locator('.ds-tabs__bar').filter({ has: page.locator('[aria-label="Queues"]') });
+  const row = bar.locator('[role="tablist"]');
+  const more = bar.locator('.ds-tabs__more');
+  // Wide enough: nothing folds and More stays away.
+  await bar.evaluate((el) => { el.style.inlineSize = '1200px'; });
+  await expect(more).toBeHidden();
+  await expect(row.locator('[role="tab"]:visible')).toHaveCount(8);
+  // Narrow: the bar's own width decides (a ResizeObserver), not the window's.
+  await bar.evaluate((el) => { el.style.inlineSize = '360px'; });
+  await expect(more).toBeVisible();
+  await expect(more).toHaveAccessibleName('More tabs');
+  await expect(more).toHaveAttribute('aria-haspopup', 'menu');
+  const shown = await row.locator('[role="tab"]:visible').count();
+  expect(shown).toBeGreaterThan(0);
+  expect(shown).toBeLessThan(8);
+  const fits = await bar.evaluate((el) => {
+    const list = el.querySelector('[role="tablist"]');
+    const button = el.querySelector('.ds-tabs__more');
+    return { row: list.scrollWidth <= list.clientWidth + 1, inside: button.getBoundingClientRect().right <= el.getBoundingClientRect().right + 0.5 };
+  });
+  expect(fits).toEqual({ row: true, inside: true });
+
+  // The menu: one item per folded tab, its count read with it; DS.overlay opens it and Escape returns the focus.
+  await focusByKeyboard(page, more);
+  await page.keyboard.press('Enter');
+  const menu = page.getByRole('menu', { name: 'More tabs' });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole('menuitem')).toHaveCount(8 - shown);
+  await expect(menu.getByRole('menuitem', { name: /^Closed/ })).toContainText('140');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(more).toBeFocused();
+
+  // A choice selects its tab: it comes into the row (an earlier one folds instead), takes the focus and shows its panel.
+  await more.click();
+  await menu.getByRole('menuitem', { name: /^Closed/ }).click();
+  await expect(menu).toBeHidden();
+  const closed = row.getByRole('tab', { name: /^Closed/ });
+  await expect(closed).toBeVisible();
+  await expect(closed).toHaveAttribute('aria-selected', 'true');
+  await expect(closed).toBeFocused();
+  await expect(page.locator(`#${await closed.getAttribute('aria-controls')}`)).toBeVisible();
+  await expect(row.getByRole('tab', { name: /^Open/ })).toBeVisible();
+  // Wide again: every tab comes back, More goes.
+  await bar.evaluate((el) => { el.style.inlineSize = '1200px'; });
+  await expect(more).toBeHidden();
+  await expect(row.locator('[role="tab"]:visible')).toHaveCount(8);
+});
+
+test('adding: the add button sends ds:add, add() writes a tab that closes, selects it and moves the focus', async ({ page }) => {
+  await open(page);
+  const bar = page.locator('.ds-tabs__bar').filter({ has: page.locator('[aria-label="Drafts"]') });
+  const row = bar.getByRole('tablist');
+  const add = bar.getByRole('button', { name: 'New report' });
+  await expect(add).toBeVisible();
+  const events = await page.evaluate(() => {
+    window.__adds = 0;
+    document.addEventListener('ds:add', () => { window.__adds += 1; });
+  });
+  expect(events).toBeUndefined();
+  await add.click();
+  expect(await page.evaluate(() => window.__adds)).toBe(1);
+  await expect(row.getByRole('tab')).toHaveCount(3);
+  const added = row.getByRole('tab').nth(2);
+  await expect(added).toHaveAttribute('aria-selected', 'true');
+  await expect(added).toBeFocused();
+  await expect(added).toHaveAttribute('aria-keyshortcuts', 'Delete');
+  const panel = page.locator(`#${await added.getAttribute('aria-controls')}`);
+  await expect(panel).toBeVisible();
+  await expect(panel).toHaveAttribute('role', 'tabpanel');
+  await expect(panel).toHaveAttribute('aria-labelledby', await added.getAttribute('id'));
+  // Delete closes it again; the neighbour takes the selection and a screen reader hears it.
+  await page.keyboard.press('Delete');
+  await expect(row.getByRole('tab')).toHaveCount(2);
+  await expect(row.getByRole('tab').nth(1)).toBeFocused();
+  await expect(page.locator('[aria-live]').filter({ hasText: /closed$/ })).toHaveCount(1);
+});
+
+test('the behaviour: ds:change with first, panels kept alive (fields and scroll), manual activation, get/set, destroy', async ({ page }) => {
+  await open(page);
+  const result = await page.evaluate(async () => {
+    const host = document.createElement('div');
+    host.innerHTML = '<div class="ds-tabs" role="tablist" aria-label="Kept" data-ds-tabs data-ds-tabs-activate="manual">' +
+      '<button class="ds-tabs__tab" role="tab" type="button" id="k-a" aria-selected="true" aria-controls="k-pa" data-label="One">One</button>' +
+      '<button class="ds-tabs__tab" role="tab" type="button" id="k-b" aria-selected="false" aria-controls="k-pb" data-label="Two">Two</button></div>' +
+      '<div class="ds-tabs__panel" role="tabpanel" id="k-pa" aria-labelledby="k-a" tabindex="0"><input id="k-field" aria-label="Note"></div>' +
+      '<div class="ds-tabs__panel" role="tabpanel" id="k-pb" aria-labelledby="k-b" tabindex="0">Two</div>';
+    document.querySelector('#fx-component').append(host);
+    DS.init(host);
+    const list = host.querySelector('[role="tablist"]');
+    const tabs = DS.get(list, 'tabs');
+    const changes = [];
+    list.addEventListener('ds:change', (event) => changes.push([event.detail.value, event.detail.first]));
+    host.querySelector('#k-field').value = 'kept';
+    tabs.set('k-b');
+    const hidden = host.querySelector('#k-pa').hidden;
+    tabs.set('k-a');
+    tabs.set('k-b');
+    const value = host.querySelector('#k-field').value;
+    // Manual: the arrow keys move the focus, Enter selects.
+    host.querySelector('#k-b').focus();
+    host.querySelector('#k-b').dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    const focused = document.activeElement.id;
+    const stillSelected = tabs.get();
+    tabs.destroy();
+    tabs.destroy();
+    return { changes, hidden, value, focused, stillSelected };
+  });
+  expect(result.changes).toEqual([['k-b', true], ['k-a', false], ['k-b', false]]);
+  expect(result.hidden).toBe(true);
+  expect(result.value).toBe('kept');
+  expect(result.focused).toBe('k-a');
+  expect(result.stillSelected).toBe('k-b');
+});
+
+test('narrow phone: the More menu keeps the row inside 360px, add and More stay reachable, touch targets hold', async ({ page }) => {
+  await open(page, 390);
+  const bar = page.locator('.ds-tabs__bar').filter({ has: page.locator('[aria-label="Drafts"]') });
+  // Enough drafts to overflow on a phone.
+  for (let index = 0; index < 4; index += 1) await bar.getByRole('button', { name: 'New report' }).click();
+  await bar.evaluate((el) => el.classList.add('ds-touch'));
+  const more = bar.locator('.ds-tabs__more');
+  await expect(more).toBeVisible();
+  const box = await bar.evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    const parts = [...el.querySelectorAll('.ds-tabs__more, .ds-tabs__add')].map((part) => part.getBoundingClientRect());
+    return { right: rect.right, width: document.documentElement.clientWidth, parts: parts.map((part) => ({ right: part.right, height: part.height })) };
+  });
+  expect(box.right).toBeLessThanOrEqual(box.width);
+  for (const part of box.parts) {
+    expect(part.right).toBeLessThanOrEqual(box.right + 0.5);
+    expect(part.height).toBeGreaterThanOrEqual(48);
+  }
+});
