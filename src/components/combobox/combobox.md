@@ -251,5 +251,5 @@ and `data-ds-ripple` (off for a part: [Ripple](#ripple)) are described above.
   markup, through the list engine of `DS.listbox`: fuzzy filter with scoring and `.ds-combo__match`, an async `source`
   with debounce, abort and a loading state, creatable (`ds:create`), clearable, several values with chips, nothing
   found, windowed long lists, select-only keys. A page's own script keeps working without the attribute.
-- Combobox: `combobox.css` registers `--ds-scroll-edge-start` and `--ds-scroll-edge-end` itself, so the list's cut edges
-  fade when the single file is linked without `scroller.css`.
+- Combobox: `--ds-scroll-edge-start` and `--ds-scroll-edge-end` are registered once in `tokens.css` (no longer in
+  `scroller.css`), so the list's cut edges fade when `combobox.css` is linked without `scroller.css`.

@@ -802,3 +802,13 @@ test('by the system: Tab closes without choosing, Alt+ArrowDown opens without mo
   await expect(input).toHaveAttribute('aria-expanded', 'false');
   await expect(input).toHaveValue('');
 });
+
+test('single files: combobox.css without scroller.css still has the registered edge numbers of its fade', async ({ page, baseURL }) => {
+  // tokens.css registers --ds-scroll-edge-start and -end (once, for every set of single files): a registered
+  // <number> computes to its canonical form, an unregistered one would keep the text as written.
+  const sheets = ['core/tokens.css', 'components/form.css', 'components/combobox.css'].map((file) => `<link rel="stylesheet" href="${baseURL}/dist/css/${file}">`).join('');
+  await page.setContent(`<!doctype html>${sheets}<div class="ds-theme"><div class="ds-combo__list" style="--ds-scroll-edge-start: 0.50; --ds-scroll-edge-end: 1.0"></div></div>`, { waitUntil: 'load' });
+  const values = await page.$eval('.ds-combo__list', (el) => [getComputedStyle(el).getPropertyValue('--ds-scroll-edge-start').trim(), getComputedStyle(el).getPropertyValue('--ds-scroll-edge-end').trim()]);
+  expect(values).toEqual(['0.5', '1']);
+  expect(await page.$$eval('link', (links) => links.map((link) => link.href).some((href) => href.includes('scroller')))).toBe(false);
+});
