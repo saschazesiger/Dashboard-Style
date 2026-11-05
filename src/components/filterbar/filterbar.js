@@ -87,6 +87,9 @@ function controlsIn(roots) {
   return out;
 }
 
+/** The value of a checkbox or radio: 'on' without a value attribute, '' for value="" (an "Any" radio). */
+const checkValue = (node) => (node.value !== '' ? node.value : node.getAttribute('value') === '' ? '' : 'on');
+
 const kindOf = (node) => (node.tagName === 'SELECT' ? 'select' : node.type === 'checkbox' || node.type === 'radio' ? node.type : 'text');
 const boundOf = (node) => {
   const bound = node.getAttribute('data-ds-filter-bound');
@@ -108,7 +111,7 @@ function readControls(controls) {
       continue;
     }
     let values = [];
-    if (kind === 'checkbox' || kind === 'radio') values = node.checked ? [node.value || 'on'] : [];
+    if (kind === 'checkbox' || kind === 'radio') values = node.checked && checkValue(node) !== '' ? [checkValue(node)] : [];
     else if (kind === 'select') values = [...node.selectedOptions].map((option) => option.value).filter((value) => value !== '');
     else if (clean(node.value)) values = [node.value.trim()];
     if (values.length) (out[name] ??= []).push(...values);
@@ -145,7 +148,8 @@ function writeControls(controls, filters) {
       after = node.value;
     } else if (kind === 'checkbox' || kind === 'radio') {
       before = node.checked;
-      node.checked = values.includes(node.value || 'on');
+      // An "Any" radio (value="") is the one checked while its filter is empty.
+      node.checked = values.length ? values.includes(checkValue(node)) : checkValue(node) === '' && kind === 'radio';
       after = node.checked;
     } else if (kind === 'select') {
       before = [...node.selectedOptions].map((option) => option.value).join('\n');
@@ -240,7 +244,7 @@ function appliedOf(controls) {
       continue;
     }
     if (kind === 'checkbox' || kind === 'radio') {
-      if (node.checked && (node.value || 'on')) push(node.value || 'on', clean(textOf(labelOf(node))) || node.value);
+      if (node.checked && checkValue(node) !== '') push(checkValue(node), clean(textOf(labelOf(node))) || checkValue(node));
     } else if (kind === 'select') {
       for (const option of node.selectedOptions) if (option.value !== '') push(option.value, clean(option.textContent));
     } else if (clean(node.value)) push(node.value.trim(), node.value.trim());

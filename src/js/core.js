@@ -178,6 +178,11 @@ const DEFAULT_STRINGS = Object.freeze({
   rangeFrom: 'from {min}',
   rangeTo: 'up to {max}',
   rangeBetween: '{min} to {max}',
+  facetShowAll: 'Show all {count}',
+  facetShowFewer: 'Show fewer',
+  facetNoMatch: 'No match for “{query}”',
+  facetMatchesOne: '{count} match',
+  facetMatchesOther: '{count} matches',
 });
 
 /**

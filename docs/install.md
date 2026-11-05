@@ -424,6 +424,11 @@ strings a script adds have an option, so a page in another language passes its o
 | `from {min}` | a range filter with only a lower bound, on its chip (the system's string `rangeFrom`) | `DS.core.config({ strings: { rangeFrom } })` |
 | `up to {max}` | a range filter with only an upper bound, on its chip (the system's string `rangeTo`) | `DS.core.config({ strings: { rangeTo } })` |
 | `{min} to {max}` | a range filter with both bounds, on its chip (the system's string `rangeBetween`) | `DS.core.config({ strings: { rangeBetween } })` |
+| `Show all {count}` | the button after the first options of a facet with a limit in `DS.facets` (the system's string `facetShowAll`) | `DS.core.config({ strings: { facetShowAll } })` |
+| `Show fewer` | the same button while every option shows (the system's string `facetShowFewer`) | `DS.core.config({ strings: { facetShowFewer } })` |
+| `No match for “{query}”` | the line, and the announcement, of a facet search in `DS.facets` that matches no option (the system's string `facetNoMatch`) | `DS.core.config({ strings: { facetNoMatch } })` |
+| `{count} match` | what `DS.facets` announces once typing in a facet search pauses, one (the system's string `facetMatchesOne`) | `DS.core.config({ strings: { facetMatchesOne } })` |
+| `{count} matches` | the same, other numbers (the system's string `facetMatchesOther`) | `DS.core.config({ strings: { facetMatchesOther } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

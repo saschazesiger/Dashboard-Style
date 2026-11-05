@@ -98,6 +98,20 @@ describe('DS.filterbar.write', () => {
   });
 });
 
+describe('an "Any" radio (value="")', () => {
+  it('holds no filter, and is the one checked again once its filter is empty', () => {
+    const any = control({ type: 'radio', name: 'seen', value: '', checked: true, attrs: { value: '' } });
+    const day = control({ type: 'radio', name: 'seen', value: '24h' });
+    const nodes = [any, day];
+    assert.deepEqual(read(root(nodes)), {});
+    write(root(nodes), { seen: ['24h'] });
+    assert.deepEqual([any.checked, day.checked], [false, true]);
+    assert.deepEqual(read(root(nodes)), { seen: ['24h'] });
+    write(root(nodes), {});
+    assert.deepEqual([any.checked, day.checked], [true, false]);
+  });
+});
+
 describe('DS.filterbar registration', () => {
   it('registers data-ds-filterbar and watches its sheet option', () => {
     const spec = runtime.state('core').specs.get('filterbar');

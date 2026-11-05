@@ -1,0 +1,84 @@
+{
+  "name": "facets",
+  "group": "data",
+  "order": 430,
+  "docsOrder": 184,
+  "need": "Filter a list from a panel of facets beside it: options with counts, a search inside long facets, ranges, applied chips and Clear all; a side sheet on phones",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-facet",
+    "ds-facet--scroll",
+    "ds-facet__dash",
+    "ds-facet__empty",
+    "ds-facet__more",
+    "ds-facet__options",
+    "ds-facet__range",
+    "ds-facet__search",
+    "ds-facet__title",
+    "ds-facets",
+    "ds-facets-layout",
+    "ds-facets-layout__main",
+    "ds-facets__applied",
+    "ds-facets__badge",
+    "ds-facets__chips",
+    "ds-facets__clear",
+    "ds-facets__count",
+    "ds-facets__head",
+    "ds-facets__results",
+    "ds-facets__title",
+    "ds-facets__toggle"
+  ],
+  "attributes": [
+    "data-folded"
+  ],
+  "requires": [
+    "badge",
+    "button",
+    "chip",
+    "form",
+    "sheet"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-facets-width": {
+      "default": "280px",
+      "description": "the width of a facet panel beside its list (it grows to the row when it wraps)"
+    },
+    "--ds-facets-main-min": {
+      "default": "50%",
+      "description": "the least share of the row the list beside a facet panel keeps; the panel folds behind its Filters button when both do not fit"
+    },
+    "--ds-facets-gap": {
+      "default": "`--ds-space-6`",
+      "description": "the gap between a facet panel and its list at size md and the comfortable density: 4px per size step, 2px per density step"
+    },
+    "--ds-facet-max-height": {
+      "default": "264px",
+      "description": "the height after which the options of a `.ds-facet--scroll` facet scroll"
+    },
+    "--ds-check-target": {
+      "owner": "form"
+    },
+    "--ds-check-size": {
+      "owner": "form"
+    },
+    "--ds-input-height": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "facets"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.facets.create": "options show and hide at once; its chips are input chips and its sheet the side sheet's motion",
+    "DS.facets.foldText": "a pure function of text: no motion",
+    "DS.facets.visible": "a pure function of the options: no motion"
+  }
+}
