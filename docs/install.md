@@ -397,6 +397,28 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Added` | the hidden word of an added line of `DS.diff` (the system's string `diffAdded`) | `DS.core.config({ strings: { diffAdded } })` |
+| `Removed` | the hidden word of a removed line of `DS.diff` (the system's string `diffRemoved`) | `DS.core.config({ strings: { diffRemoved } })` |
+| `{added} added, {removed} removed` | the counts of a file of `DS.diff` for screen readers (the system's string `diffStats`) | `DS.core.config({ strings: { diffStats } })` |
+| `New file` | the status of an added file of `DS.diff` (the system's string `diffFileAdded`) | `DS.core.config({ strings: { diffFileAdded } })` |
+| `Deleted` | the status of a deleted file of `DS.diff` (the system's string `diffFileDeleted`) | `DS.core.config({ strings: { diffFileDeleted } })` |
+| `Renamed` | the status of a renamed file of `DS.diff` (the system's string `diffFileRenamed`) | `DS.core.config({ strings: { diffFileRenamed } })` |
+| `Copied` | the status of a copied file of `DS.diff` (the system's string `diffFileCopied`) | `DS.core.config({ strings: { diffFileCopied } })` |
+| `Binary` | the status of a binary file of `DS.diff` (the system's string `diffFileBinary`) | `DS.core.config({ strings: { diffFileBinary } })` |
+| `Binary file, not shown` | the body of a binary file of `DS.diff` (the system's string `diffBinary`) | `DS.core.config({ strings: { diffBinary } })` |
+| `No changes` | what `DS.diff` shows for a file without hunks or text without a file (the system's string `diffNoChanges`) | `DS.core.config({ strings: { diffNoChanges } })` |
+| `Untitled` | the name of a file of `DS.diff` without a path (the system's string `diffUntitled`) | `DS.core.config({ strings: { diffUntitled } })` |
+| `No newline at end of file` | the note after the last line of a file of `DS.diff` (the system's string `diffNoNewline`) | `DS.core.config({ strings: { diffNoNewline } })` |
+| `Show 1 unchanged line` | the fold of one line of `DS.diff` (the system's string `diffExpandOne`) | `DS.core.config({ strings: { diffExpandOne } })` |
+| `Show {count} unchanged lines` | the fold of several lines of `DS.diff` (the system's string `diffExpand`) | `DS.core.config({ strings: { diffExpand } })` |
+| `1 more line shown` | what `DS.diff` announces when a fold of one line opens (the system's string `diffShownOne`) | `DS.core.config({ strings: { diffShownOne } })` |
+| `{count} more lines shown` | what `DS.diff` announces when a fold opens (the system's string `diffShown`) | `DS.core.config({ strings: { diffShown } })` |
+| `Old line` | a column header of `DS.diff` for screen readers (the system's string `diffOldLine`) | `DS.core.config({ strings: { diffOldLine } })` |
+| `New line` | a column header of `DS.diff` for screen readers (the system's string `diffNewLine`) | `DS.core.config({ strings: { diffNewLine } })` |
+| `Change` | a column header of `DS.diff` for screen readers (the system's string `diffChange`) | `DS.core.config({ strings: { diffChange } })` |
+| `Code` | a column header of the unified view of `DS.diff` for screen readers (the system's string `diffCode`) | `DS.core.config({ strings: { diffCode } })` |
+| `Before` | a column header of the split view of `DS.diff` for screen readers (the system's string `diffOldCode`) | `DS.core.config({ strings: { diffOldCode } })` |
+| `After` | a column header of the split view of `DS.diff` for screen readers (the system's string `diffNewCode`) | `DS.core.config({ strings: { diffNewCode } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
