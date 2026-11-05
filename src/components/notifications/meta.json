@@ -1,0 +1,79 @@
+{
+  "name": "notifications",
+  "group": "overlays",
+  "order": 5050,
+  "docsOrder": 275,
+  "need": "Collect what happened for someone: a bell with the unread count and a sheet of notifications to read, act on and mark read",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-notifications",
+    "ds-notifications__actions",
+    "ds-notifications__bar",
+    "ds-notifications__bell",
+    "ds-notifications__content",
+    "ds-notifications__dot",
+    "ds-notifications__empty",
+    "ds-notifications__feed",
+    "ds-notifications__group",
+    "ds-notifications__heading",
+    "ds-notifications__icon",
+    "ds-notifications__item",
+    "ds-notifications__link",
+    "ds-notifications__list",
+    "ds-notifications__meta",
+    "ds-notifications__text",
+    "ds-notifications__title",
+    "ds-notifications__toggle"
+  ],
+  "attributes": [
+    "data-unread"
+  ],
+  "requires": [
+    "badge",
+    "button",
+    "empty",
+    "sheet",
+    "switch",
+    "toast",
+    "utilities"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-notifications-icon-size": {
+      "default": "40px",
+      "description": "a notification's icon disc at md"
+    },
+    "--ds-notifications-item-padding": {
+      "default": "12px",
+      "description": "a notification row's block padding at md and the comfortable density"
+    },
+    "--ds-notifications-dot-size": {
+      "default": "8px",
+      "description": "the unread dot of a notification"
+    },
+    "--ds-sheet-padding": {
+      "owner": "sheet"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "badge",
+    "format",
+    "notifications",
+    "overlay",
+    "toast"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.notifications.dayOf": "a day of a date: no motion",
+    "DS.notifications.groupByDay": "groups data: no motion"
+  },
+  "exceptions": {
+    "ripple": {
+      ".ds-notifications__link": "the title's text link: inline text links are the exception to ripple and morph"
+    }
+  }
+}
