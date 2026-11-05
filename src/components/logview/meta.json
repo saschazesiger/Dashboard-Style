@@ -1,0 +1,130 @@
+{
+  "name": "logview",
+  "group": "content",
+  "order": 1320,
+  "docsOrder": 127,
+  "need": "Read a long or live log: levels, colours, filter, search, follow the end, copy lines",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-logview",
+    "ds-logview__ansi",
+    "ds-logview__bar",
+    "ds-logview__chip",
+    "ds-logview__count",
+    "ds-logview__empty",
+    "ds-logview__filters",
+    "ds-logview__find",
+    "ds-logview__found",
+    "ds-logview__glyph",
+    "ds-logview__level",
+    "ds-logview__levels",
+    "ds-logview__line",
+    "ds-logview__lines",
+    "ds-logview__match",
+    "ds-logview__match--current",
+    "ds-logview__num",
+    "ds-logview__scroller",
+    "ds-logview__search",
+    "ds-logview__source",
+    "ds-logview__tally",
+    "ds-logview__text",
+    "ds-logview__time",
+    "ds-logview__tools",
+    "ds-logview__word"
+  ],
+  "attributes": [
+    "data-bg",
+    "data-fg",
+    "data-level",
+    "data-sgr",
+    "data-time",
+    "data-wrap"
+  ],
+  "requires": [
+    "button",
+    "chip",
+    "form",
+    "scroller"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-logview-height": {
+      "default": "400px",
+      "description": "log viewer: the height of the view (the bar and the lines)"
+    },
+    "--ds-logview-bg": {
+      "default": "`--ds-code-bg`",
+      "description": "log viewer: the ground of the lines"
+    },
+    "--ds-logview-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "log viewer: the frame's corners at the default shape"
+    },
+    "--ds-logview-font": {
+      "default": "`--ds-font-code`",
+      "description": "log viewer: the lines"
+    },
+    "--ds-logview-error-bg": {
+      "default": "`--ds-error-container` at 45%",
+      "description": "log viewer: a fatal or error line (and the lines that continue it)"
+    },
+    "--ds-logview-warn-bg": {
+      "default": "`--ds-warning-container` at 45%",
+      "description": "log viewer: a warning line"
+    },
+    "--ds-logview-match": {
+      "default": "`--ds-warning-container`",
+      "description": "log viewer: a search match"
+    },
+    "--ds-logview-match-current": {
+      "default": "`--ds-warning`",
+      "description": "log viewer: the current search match"
+    },
+    "--ds-logview-black": {
+      "default": "`--ds-text-2`",
+      "description": "log viewer: ANSI black (30, 90; a background at 20%)"
+    },
+    "--ds-logview-red": {
+      "default": "`--ds-error`",
+      "description": "log viewer: ANSI red (31, 91)"
+    },
+    "--ds-logview-green": {
+      "default": "`--ds-success`",
+      "description": "log viewer: ANSI green (32, 92)"
+    },
+    "--ds-logview-yellow": {
+      "default": "`--ds-warning`",
+      "description": "log viewer: ANSI yellow (33, 93)"
+    },
+    "--ds-logview-blue": {
+      "default": "`--ds-primary`",
+      "description": "log viewer: ANSI blue (34, 94)"
+    },
+    "--ds-logview-magenta": {
+      "default": "`--ds-error` and `--ds-primary` half and half",
+      "description": "log viewer: ANSI magenta (35, 95)"
+    },
+    "--ds-logview-cyan": {
+      "default": "`--ds-info` and `--ds-success` half and half",
+      "description": "log viewer: ANSI cyan (36, 96)"
+    },
+    "--ds-logview-white": {
+      "default": "`--ds-text`",
+      "description": "log viewer: ANSI white (37, 97)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "logview"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.logview.parse": "a pure function: no motion",
+    "DS.logview.ansi": "a pure function: no motion"
+  }
+}

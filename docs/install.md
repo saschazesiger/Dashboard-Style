@@ -419,6 +419,36 @@ strings a script adds have an option, so a page in another language passes its o
 | `Code` | a column header of the unified view of `DS.diff` for screen readers (the system's string `diffCode`) | `DS.core.config({ strings: { diffCode } })` |
 | `Before` | a column header of the split view of `DS.diff` for screen readers (the system's string `diffOldCode`) | `DS.core.config({ strings: { diffOldCode } })` |
 | `After` | a column header of the split view of `DS.diff` for screen readers (the system's string `diffNewCode`) | `DS.core.config({ strings: { diffNewCode } })` |
+| `Log` | the name of the lines of `DS.logview` when the view has no `aria-label` (the system's string `logName`) | `DS.core.config({ strings: { logName } })` |
+| `Fatal` | the word of a fatal line and its filter chip in `DS.logview` (the system's string `logFatal`) | `DS.core.config({ strings: { logFatal } })` |
+| `Error` | the word of an error line and its filter chip in `DS.logview` (the system's string `logError`) | `DS.core.config({ strings: { logError } })` |
+| `Warning` | the word of a warning line and its filter chip in `DS.logview` (the system's string `logWarn`) | `DS.core.config({ strings: { logWarn } })` |
+| `Info` | the word of an info line and its filter chip in `DS.logview` (the system's string `logInfo`) | `DS.core.config({ strings: { logInfo } })` |
+| `Debug` | the word of a debug line and its filter chip in `DS.logview` (the system's string `logDebug`) | `DS.core.config({ strings: { logDebug } })` |
+| `Trace` | the word of a trace line and its filter chip in `DS.logview` (the system's string `logTrace`) | `DS.core.config({ strings: { logTrace } })` |
+| `Levels` | the name of the level filter of `DS.logview` (the system's string `logLevels`) | `DS.core.config({ strings: { logLevels } })` |
+| `Search the log` | the name of the search field of `DS.logview` (the system's string `logSearch`) | `DS.core.config({ strings: { logSearch } })` |
+| `Search` | the placeholder of the search field of `DS.logview` (the system's string `logSearchPlaceholder`) | `DS.core.config({ strings: { logSearchPlaceholder } })` |
+| `Previous match` | the button that goes to the previous match in `DS.logview` (the system's string `logPrevious`) | `DS.core.config({ strings: { logPrevious } })` |
+| `Next match` | the button that goes to the next match in `DS.logview` (the system's string `logNext`) | `DS.core.config({ strings: { logNext } })` |
+| `{index} of {count}` | the place of the current match of `DS.logview` (the system's string `logMatch`) | `DS.core.config({ strings: { logMatch } })` |
+| `1 match` | the count of one match of `DS.logview` (the system's string `logMatchesOne`) | `DS.core.config({ strings: { logMatchesOne } })` |
+| `{count} matches` | the count of the matches of `DS.logview` (the system's string `logMatches`) | `DS.core.config({ strings: { logMatches } })` |
+| `Only matching lines` | the toggle that hides the lines without a match in `DS.logview` (the system's string `logOnlyMatches`) | `DS.core.config({ strings: { logOnlyMatches } })` |
+| `Wrap lines` | the wrap toggle of `DS.logview` (the system's string `logWrap`) | `DS.core.config({ strings: { logWrap } })` |
+| `Timestamps` | the timestamp toggle of `DS.logview` (the system's string `logTimestamps`) | `DS.core.config({ strings: { logTimestamps } })` |
+| `Copy line` | the copy button of `DS.logview` with one line or none selected (the system's string `logCopyLine`) | `DS.core.config({ strings: { logCopyLine } })` |
+| `Copy {count} lines` | the copy button of `DS.logview` with several lines selected (the system's string `logCopyLines`) | `DS.core.config({ strings: { logCopyLines } })` |
+| `Copied 1 line` | what `DS.logview` announces after copying one line (the system's string `logCopiedOne`) | `DS.core.config({ strings: { logCopiedOne } })` |
+| `Copied {count} lines` | what `DS.logview` announces after copying lines (the system's string `logCopied`) | `DS.core.config({ strings: { logCopied } })` |
+| `{count} lines selected` | what `DS.logview` announces after Ctrl+A (the system's string `logSelected`) | `DS.core.config({ strings: { logSelected } })` |
+| `1 line` | the count of one line of `DS.logview` (the system's string `logLinesOne`) | `DS.core.config({ strings: { logLinesOne } })` |
+| `{count} lines` | the count of the lines of `DS.logview` (the system's string `logLines`) | `DS.core.config({ strings: { logLines } })` |
+| `{shown} of {count} lines` | the count of `DS.logview` while a filter hides lines (the system's string `logShown`) | `DS.core.config({ strings: { logShown } })` |
+| `No lines yet` | what an empty `DS.logview` shows (the system's string `logEmpty`) | `DS.core.config({ strings: { logEmpty } })` |
+| `No line matches the filters` | what `DS.logview` shows when the filters hide every line (the system's string `logNoneShown`) | `DS.core.config({ strings: { logNoneShown } })` |
+| `Latest` | the pill of `DS.logview` that goes back to the newest line (the system's string `logLatest`) | `DS.core.config({ strings: { logLatest } })` |
+| `Following new lines` | what `DS.logview` announces when the pill takes the reader back to the end (the system's string `logFollowing`) | `DS.core.config({ strings: { logFollowing } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
