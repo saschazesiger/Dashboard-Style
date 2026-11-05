@@ -8,6 +8,7 @@
   "status": "stable",
   "classes": [
     "ds-badge",
+    "ds-badge--corner",
     "ds-badge--dot",
     "ds-badge--error",
     "ds-badge--neutral",

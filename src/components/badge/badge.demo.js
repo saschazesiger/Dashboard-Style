@@ -45,6 +45,13 @@ SG.demo('badge', {
 
       dots +
 
+      h.section('On an icon button\'s corner', '<div class="sg-row" data-demo="corner">' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Notifications, 3 new" data-tip="Notifications">' + h.icon('bell', 20) + '<span class="ds-badge ds-badge--corner ds-tone-error" aria-hidden="true">3</span></button>' +
+        '<button class="ds-btn ds-btn--tonal ds-btn--icon" type="button" aria-label="Tickets, 12 open" data-tip="Tickets">' + h.icon('ticket', 20) + '<span class="ds-badge ds-badge--corner" aria-hidden="true">9+</span></button>' +
+        '<button class="ds-btn ds-btn--outlined ds-btn--icon" type="button" aria-label="Messages, new ones" data-tip="Messages">' + h.icon('mail', 20) + '<span class="ds-badge ds-badge--corner ds-badge--dot" aria-hidden="true"></span></button>' +
+        '<button class="ds-btn ds-btn--filled ds-btn--icon" type="button" aria-label="Updates, new ones" data-tip="Updates">' + h.icon('download', 20) + '<span class="ds-badge ds-badge--corner ds-badge--dot ds-tone-error" aria-hidden="true"></span></button>' +
+        '</div><p class="ds-muted">Press one: the ripple clips itself to the button, so the badge over the corner stays whole. The button\'s name says the count; the badge is aria-hidden.</p>') +
+
       h.section('States of the host', '<div class="sg-row">' +
         '<button class="ds-btn" type="button" disabled>Disabled <span class="ds-badge ds-tone-error">2</span></button>' +
         '<button class="ds-btn" type="button" aria-disabled="true">Blocked <span class="ds-badge">3</span></button>' +

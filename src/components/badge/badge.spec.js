@@ -201,3 +201,73 @@ test('forced colours: Canvas and CanvasText with an outline, so a dot stays visi
     return colour;
   }));
 });
+
+test('on an icon button\'s corner: over the top end corner, a press on it, also where it hangs over, presses the host', async ({ page }) => {
+  await open(page);
+  const host = page.locator('#fx-component [data-demo="corner"] .ds-btn').first();
+  const corner = host.locator('.ds-badge--corner');
+  const hostBox = await host.boundingBox();
+  const badgeBox = await corner.boundingBox();
+  const border = await host.evaluate((el) => el.clientTop);
+  // A quarter of its 20px height over the top and the end edge of the padding box (LTR).
+  expect(Math.round(badgeBox.y - hostBox.y - border)).toBe(-5);
+  expect(Math.round(badgeBox.x + badgeBox.width - (hostBox.x + hostBox.width - border))).toBe(5);
+  await expect(host).toHaveAccessibleName('Notifications, 3 new');
+  // A click on the part of the badge outside the button is the button's.
+  await host.evaluate((el) => {
+    el.dataset.clicks = '0';
+    el.addEventListener('click', () => { el.dataset.clicks = String(Number(el.dataset.clicks) + 1); });
+  });
+  const x = badgeBox.x + badgeBox.width / 2;
+  const y = badgeBox.y + 3;
+  expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('.ds-btn')?.getAttribute('aria-label'), { x, y })).toBe('Notifications, 3 new');
+  await page.mouse.click(x, y);
+  await expect(host).toHaveAttribute('data-clicks', '1');
+});
+
+test('a press keeps a host with a corner badge unclipped; its ripple clips itself with the host\'s radius; other hosts clip as before', async ({ page }) => {
+  await open(page);
+  const host = page.locator('#fx-component [data-demo="corner"] .ds-btn').first();
+  const hostBox = await host.boundingBox();
+  await page.mouse.move(hostBox.x + hostBox.width / 2, hostBox.y + hostBox.height / 2);
+  await page.mouse.down();
+  await expect(host.locator(':scope > .ds-press-ripple')).toHaveCount(1);
+  const during = await host.evaluate((el) => {
+    const ripple = el.querySelector(':scope > .ds-press-ripple');
+    const own = getComputedStyle(el);
+    const box = getComputedStyle(ripple);
+    const rect = ripple.getBoundingClientRect();
+    const hostRect = el.getBoundingClientRect();
+    return {
+      hostOverflow: own.overflowX,
+      isolation: own.isolation,
+      boxOverflow: box.overflowX,
+      radius: box.borderTopLeftRadius === own.borderTopLeftRadius,
+      fits: Math.abs(rect.width - el.clientWidth) < 1 && Math.abs(rect.height - el.clientHeight) < 1 && Math.abs(rect.left - hostRect.left - el.clientLeft) < 1,
+      circle: getComputedStyle(ripple, '::before').borderTopLeftRadius,
+      badge: getComputedStyle(el.querySelector('.ds-badge--corner')).visibility,
+    };
+  });
+  await page.mouse.up();
+  expect(during).toEqual({ hostOverflow: 'visible', isolation: 'isolate', boxOverflow: 'clip', radius: true, fits: true, circle: '50%', badge: 'visible' });
+  const plain = page.locator('#fx-component button', { hasText: 'Inbox' }).first();
+  const plainBox = await plain.boundingBox();
+  await page.mouse.move(plainBox.x + 8, plainBox.y + plainBox.height / 2);
+  await page.mouse.down();
+  await expect(plain.locator(':scope > .ds-press-ripple')).toHaveCount(1);
+  expect(await plain.evaluate((el) => getComputedStyle(el).overflowX)).toBe('clip');
+  await page.mouse.up();
+});
+
+test('the corner dot sits inside the corner, on the edge of a round host; the badge is hidden from assistive tech', async ({ page }) => {
+  await open(page);
+  const host = page.locator('#fx-component [data-demo="corner"] .ds-btn').nth(2);
+  const dot = host.locator('.ds-badge--corner');
+  const hostBox = await host.boundingBox();
+  const dotBox = await dot.boundingBox();
+  const border = await host.evaluate((el) => el.clientTop);
+  expect(Math.round(dotBox.y - hostBox.y - border)).toBe(2);
+  expect(Math.round(hostBox.x + hostBox.width - border - (dotBox.x + dotBox.width))).toBe(2);
+  await expect(host).toHaveAccessibleName('Messages, new ones');
+  await expect(dot).toHaveAttribute('aria-hidden', 'true');
+});

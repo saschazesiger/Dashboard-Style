@@ -31,7 +31,7 @@ ripples.release(host);                        // end a running press by hand (no
   link (`.ds-brand`: the home link in the top bar is identity, not a control, so like a link in text it has no state
   layer, ripple or morph) and the skip link (`.ds-skip`: keyboard-only, shown while focused; its focus ring is the
   feedback). Each host positions itself in its own stylesheet (`[data-ds-ripple]` is made `position: relative`
-  with zero specificity), and it is clipped and isolated while a ripple is inside (at rest a host looks as without `.ds-ripples`). Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
+  with zero specificity), and it is clipped and isolated while a ripple is inside (at rest a host looks as without `.ds-ripples`). A host that holds a [corner badge](#badge) (`> .ds-badge--corner`, an icon button with a count) is isolated but never clipped, so the badge over its edge stays whole: its ripple clips itself, a box over the host with the host's radius (it follows the press morph) and the circle as its `::before`, as a tab's or a table row's ripple. Disabled, `aria-disabled`, `aria-busy` and `.ds-btn--done` hosts (a chip or radio card
   whose input is disabled, also by its `<fieldset>`, or `.ds-radio--disabled`) get no ripple, and neither does a press with a pointer button other than the primary one (a right or middle click) or from a non-primary pointer (a second finger).
 - The ripple is `<span class="ds-press-ripple" aria-hidden="true" data-ds-keep>` with the runtime properties
   `--ds-ripple-x`, `--ds-ripple-y` (its centre) and `--ds-ripple-r` (the distance to the farthest corner). It
@@ -80,3 +80,6 @@ Forced colours show no ripple (`display: none`); the host's own forced-colours r
 `--ds-ripple-color`: [theming.md](theming.md#component-hooks).
 
 **Motion:** the press rows of [Controls](motion.md#controls) in motion.md, and "Pointer ripple" in the Motion Lab.
+
+<!-- changelog -->
+- Ripple: a host that holds a `.ds-badge--corner` is isolated but no longer clipped while it ripples; its ripple clips itself (a box over the host with the host's radius, the circle as its `::before`), as a tab's and a table row's did. Every other host clips as before.

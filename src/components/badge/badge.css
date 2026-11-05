@@ -52,10 +52,18 @@
  * --ds-badge-radius (--ds-radius-action, never above half the size),
  * --ds-badge-bg (a dot: --ds-primary), --ds-badge-color.
  *
- * Not here yet: the corner of an icon button (plans/3.0.md, catalogue and
- * "reopened"). Every ripple host clips while a ripple is inside, so a badge
- * on the corner would be cut (plans/after-2.0.md); each ripple has to clip
- * itself first, a change across every host.
+ * On an icon button's corner (.ds-badge--corner, a direct child of a
+ * positioned host such as .ds-btn--icon or an avatar):
+ *
+ *   <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Notifications, 3 new">
+ *     (bell 20)<span class="ds-badge ds-badge--corner ds-tone-error" aria-hidden="true">3</span></button>
+ *
+ * It hangs a quarter of its height over the top end corner (a dot sits
+ * inside the corner, on the edge of a round host); a press on it is the
+ * host's, which it belongs to. A ripple host clips while a ripple is inside, which
+ * would cut it: a host that holds one keeps no clip and its ripple clips
+ * itself instead (ripple.css). The host's name says the count: the badge is
+ * aria-hidden.
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
@@ -159,6 +167,23 @@
   :is(.ds-btn:disabled, .ds-btn[aria-disabled="true"]:not([aria-busy="true"]), .ds-chip__input:is(:disabled, [aria-disabled="true"]) + .ds-chip__body, :is(button, a).ds-chip:is(:disabled, [aria-disabled="true"])) .ds-badge {
     background: var(--ds-disabled-fill, var(--ds-badge-bg, var(--_fill)));
     color: var(--ds-disabled-ink, var(--ds-badge-color, var(--ds-on-accent)));
+  }
+
+  /* On the corner of its host (an icon button, an avatar, any positioned
+     element that holds it as a direct child): out of the flow, over the top
+     end corner, a quarter of its height outside. A dot sits inside the
+     corner, on the edge of a round host. A press on it is the host's (it
+     is the host's child, also where it hangs over). The host never clips while it
+     ripples (ripple.css), so the badge stays whole. */
+  .ds-badge--corner {
+    position: absolute;
+    inset-block-start: calc(var(--_h) / -4);
+    inset-inline-end: calc(var(--_h) / -4);
+  }
+
+  .ds-badge--corner.ds-badge--dot {
+    inset-block-start: calc(var(--_h) / 4);
+    inset-inline-end: calc(var(--_h) / 4);
   }
 
   @media (forced-colors: active) {

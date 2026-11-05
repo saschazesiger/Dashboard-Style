@@ -35,8 +35,24 @@ A count or a dot on a button, chip, tab or drawer item:
 - A dot without a tone on a filled button takes the fill's ink (`--ds-on-primary`), where primary would vanish.
 - Hooks: `--ds-badge-size`, `--ds-badge-dot-size`, `--ds-badge-radius`, `--ds-badge-bg`, `--ds-badge-color`
   ([theming.md](theming.md#component-hooks)).
-- A badge on an icon button's corner is not available yet: every ripple host clips while a ripple is inside. Put the
-  count next to the label of a button instead.
+
+**On an icon button's corner.** `.ds-badge--corner`, a direct child of the icon button (or of an avatar, or any
+positioned element), hangs a quarter of its height over the top end corner; a dot sits inside the corner, on the edge
+of a round host. A press on it presses the host, also where it hangs over the edge. The host's name carries the count, so the
+badge is `aria-hidden`:
+
+```html
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Notifications, 3 new" data-tip="Notifications">
+  [icon bell 20]<span class="ds-badge ds-badge--corner ds-tone-error" aria-hidden="true">3</span>
+</button>
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Messages, new ones">
+  [icon mail 20]<span class="ds-badge ds-badge--corner ds-badge--dot" aria-hidden="true"></span>
+</button>
+```
+
+A ripple host clips while a ripple is inside, which would cut the badge: a host that holds a `.ds-badge--corner` keeps
+no clip, and its ripple clips itself instead (a box over the host with the host's radius, following the press morph;
+[ripple](#ripple)). Keep the count short (`data-ds-badge-max="9"` gives `9+`) so it does not cover the icon.
 
 **A count with a maximum.** `data-ds-badge` holds the count and `data-ds-badge-max` the largest figure (default 99):
 past it the badge shows `99+`, at zero or below nothing, so it takes no room. `DS.init()` finds them, and a change of
@@ -64,3 +80,6 @@ visible; a tone changes nothing there, so the word carries the meaning.
 **Motion.** Colours glide on `--ds-dur-fast`. A count that appears pops in (`DS.motion.enter(badge, 'pop')`), one that
 goes pops out (`DS.motion.leave(badge, 'pop', { then: 'hide' })`), which the controller's `set()` does by itself; the
 number itself changes at once, and nothing plays on load ([motion.md](motion.md#a-count-badge)).
+
+<!-- changelog -->
+- Badge: `.ds-badge--corner` puts a count or a dot on the corner of an icon button (or an avatar, any positioned host); the host's ripple clips itself instead of the host, so the badge stays whole (catalogue D, reopened from after-2.0).
