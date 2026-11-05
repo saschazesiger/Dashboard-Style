@@ -31,7 +31,7 @@ async function make(page, { attributes = '', around = '' } = {}) {
         <div class="ds-field"><label class="ds-field__label" for="t-skip">Search</label><input class="ds-input" id="t-skip" name="q" data-ds-unsaved-ignore></div>
       </form></div>
       <div class="ds-savebar"><div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
-        <p class="ds-savebar__text" data-ds-unsaved-count></p><div class="ds-savebar__actions">
+        <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p><div class="ds-savebar__actions">
         <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
         <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>Save</button></div></div></div></div>
       <nav data-ds-unsaved-link><a href="#left" data-test-link>Devices</a></nav>`;

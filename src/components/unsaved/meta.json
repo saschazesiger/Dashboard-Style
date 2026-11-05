@@ -6,10 +6,10 @@
   "need": "Keep a form's edits from getting lost: a save bar while something changed, Ctrl+S, a warning before leaving",
   "tier": 1,
   "status": "beta",
-  "classes": [],
-  "attributes": [
-    "data-ds-unsaved-count"
+  "classes": [
+    "ds-unsaved__count"
   ],
+  "attributes": [],
   "requires": [
     "button",
     "form",

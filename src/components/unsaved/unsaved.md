@@ -16,7 +16,7 @@ Keeps a form's edits from getting lost: it knows what changed, shows it in a [Sa
   </div>
   <div class="ds-savebar">
     <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
-      <p class="ds-savebar__text" data-ds-unsaved-count></p>
+      <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>
       <div class="ds-savebar__actions">
         <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
         <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save><span class="ds-btn__faces"> ... </span></button>
@@ -39,7 +39,7 @@ const guard = DS.get(form, 'unsaved');                                  // or DS
   Buttons and fields with `data-ds-unsaved-ignore` stay out; hidden inputs count. A change undone by hand is no change.
   `check()` compares again after a script set a value.
 - **Shown.** The number of changed fields (a radio group counts once) goes into every `[data-ds-unsaved-count]` of the
-  form and its bar ("2 unsaved changes", tabular figures). The `.ds-field` of a changed control takes Form's
+  form and its bar ("2 unsaved changes"; with `.ds-unsaved__count`, in tabular figures, so it keeps its width). The `.ds-field` of a changed control takes Form's
   `.ds-field--changed` (a dot after the label, "(changed)" in the label's name; the guard adds the
   `.ds-field__changed` word where the label has none); `data-ds-unsaved-marks="off"` leaves the fields alone.
 - **The save bar** shows through `DS.overlay.savebar()` while something is changed and hides once nothing is. It is

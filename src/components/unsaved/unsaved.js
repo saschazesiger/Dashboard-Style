@@ -7,7 +7,7 @@
  *   <form class="ds-form" data-ds-unsaved data-ds-unsaved-savebar="#device-bar"> (fields) </form>
  *   <div class="ds-savebar" id="device-bar">
  *     <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
- *       <p class="ds-savebar__text" data-ds-unsaved-count></p>
+ *       <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>
  *       <div class="ds-savebar__actions">
  *         <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
  *         <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>(faces)</button></div></div></div>

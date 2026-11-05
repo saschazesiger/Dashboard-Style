@@ -51,8 +51,10 @@ markup has none) and, with `data-ds-query-name`, a hidden input with the text fo
   the suggestions, or says that there are none. The option `values(key, typed)` may return a key's values, or a promise
   of them, as the person types (the list is `aria-busy` meanwhile; a late answer to an older text is dropped).
 - **Tokens.** Choosing a value, Space after a complete filter, or Enter turns the typed text into tokens (free words join
-  the free text there is, one phrase). A token reads `Status: open`, `Priority ≥ 2`, `Status ≠ closed`; its name says it
-  in words ("Remove filter Priority at least 2"), its description how to edit it.
+  the free text there is, one phrase). A token reads `Status: open`, `Priority ≥ 2`, `Status ≠ closed`: the key
+  (`.ds-query__key`, at the label weight, with the colon for "is"), the operator (`.ds-query__op`) and the value
+  (`.ds-query__value`), all hidden from screen readers; its name says it in words ("Remove filter Priority at least
+  2"), its description how to edit it.
 - **Saved queries.** `.ds-query__save` (`aria-disabled` while there are no tokens) asks for a name (`DS.overlay.prompt()`)
   and keeps the query in [DS.store](core.md#dsstore-remembered-preferences) (namespace `query`, the key
   `data-ds-query-store`; without it, for this page only). The list shows them while the field is empty: choosing one

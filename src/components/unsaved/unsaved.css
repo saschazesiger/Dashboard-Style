@@ -10,13 +10,14 @@
  *       <input class="ds-input" id="name" name="name" value="LAPTOP-0042"></div> ... </form>
  *   <div class="ds-savebar" id="device-bar">
  *     <div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>
- *       <p class="ds-savebar__text" data-ds-unsaved-count></p>        (written: "2 unsaved changes")
+ *       <p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>        (written: "2 unsaved changes")
  *       <div class="ds-savebar__actions">
  *         <button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>
  *         <button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>(Button's faces)</button>
  *   <nav data-ds-unsaved-link> (links that ask before they leave unsaved changes) </nav>
  *
- * The count keeps its width while it changes (tabular figures).
+ * The count (.ds-unsaved__count, on the element of data-ds-unsaved-count)
+ * keeps its width while it changes (tabular figures).
  *
  * Options (src/core/options.css, docs/options.md): the guard draws
  * nothing of its own. Size, density, shape and touch are the Save bar's,
@@ -36,7 +37,7 @@
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
 @layer ds.components.unsaved {
-  [data-ds-unsaved-count] {
+  .ds-unsaved__count {
     font-variant-numeric: tabular-nums;
   }
 }

@@ -47,7 +47,7 @@ SG.demo('unsaved', {
         '<label class="ds-check"><input type="checkbox" name="alerts" checked><span>Send alerts to the owner</span></label>' +
         '</form></div>' +
         '<div class="ds-savebar" id="' + bar + '"><div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden>' +
-        '<p class="ds-savebar__text" data-ds-unsaved-count></p><div class="ds-savebar__actions">' +
+        '<p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p><div class="ds-savebar__actions">' +
         '<button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button>' +
         '<button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>' + unsavedFaces(h) + '</button></div></div></div></div>',
       'Change a field: its label shows a dot, and the bar rises with the count. Change it back and the bar goes. Save, or Ctrl+S (Command+S) from a field, saves; every third save fails, and the changes stay. "Go to devices" asks first while something is unsaved.') +

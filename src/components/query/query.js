@@ -437,11 +437,11 @@ function controller(el, options, signal) {
 
   const setActive = (at) => {
     active = at;
-    const options = list ? [...list.querySelectorAll('.ds-combo__option')] : [];
-    options.forEach((option, index) => option.toggleAttribute('data-active', index === at));
-    if (at >= 0 && options[at]) {
-      input.setAttribute('aria-activedescendant', options[at].id);
-      options[at].scrollIntoView({ block: 'nearest' });
+    const rows = list ? [...list.querySelectorAll('.ds-combo__option')] : [];
+    rows.forEach((option, index) => option.toggleAttribute('data-active', index === at));
+    if (at >= 0 && rows[at]) {
+      input.setAttribute('aria-activedescendant', rows[at].id);
+      rows[at].scrollIntoView({ block: 'nearest' });
       const item = items[at];
       if (status && item?.group === 'saved') status.textContent = t('querySavedHint');
     } else input.removeAttribute('aria-activedescendant');

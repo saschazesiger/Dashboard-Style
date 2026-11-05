@@ -22,7 +22,7 @@ SG_LAB.add({
   html: '<div class="ds-view" style="block-size: 240px; inline-size: min(100%, 520px); border: 1px solid var(--ds-line); view-transition-name: none; scroll-timeline: none;">' +
     '<div class="ds-content"><form class="ds-form" aria-label="Device"><div class="ds-field"><label class="ds-field__label" for="lab-unsaved-owner">Owner <span class="ds-field__changed ds-sr">(changed)</span></label>' +
     '<input class="ds-input" id="lab-unsaved-owner" name="owner" value="Ada Lovelace"></div></form></div>' +
-    '<div class="ds-savebar"><div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden><p class="ds-savebar__text" data-ds-unsaved-count></p>' +
+    '<div class="ds-savebar"><div class="ds-savebar__bar ds-presence" role="region" aria-label="Unsaved changes" hidden><p class="ds-savebar__text ds-unsaved__count" data-ds-unsaved-count></p>' +
     '<div class="ds-savebar__actions"><button class="ds-btn ds-btn--text" type="button" data-ds-unsaved-discard>Discard</button><button class="ds-btn ds-btn--filled" type="button" data-ds-unsaved-save>Save</button></div></div></div></div>',
   height: 260,
   setup: function (stage) {
