@@ -423,8 +423,9 @@ export function create(root, options = {}) {
   panel.addEventListener('click', (event) => {
     const button = /** @type {Element} */ (event.target)?.closest?.('.ds-picker__preset');
     if (!button) return;
-    change({ from: button.getAttribute('data-from'), to: button.getAttribute('data-to') });
+    // Closed first, so focus goes back to the trigger before the lists are written again.
     picker.close('select');
+    change({ from: button.getAttribute('data-from'), to: button.getAttribute('data-to') });
   }, { signal });
 
   apply.addEventListener('click', () => {
@@ -446,8 +447,8 @@ export function create(root, options = {}) {
       return;
     }
     // Absolute: an instant with its offset (UTC), readable in an address.
-    change({ from: start.toISOString().replace(/\.000Z$/, 'Z'), to: end.toISOString().replace(/\.000Z$/, 'Z') });
     picker.close('select');
+    change({ from: start.toISOString().replace(/\.000Z$/, 'Z'), to: end.toISOString().replace(/\.000Z$/, 'Z') });
   }, { signal });
 
   // A field typed again is judged again.

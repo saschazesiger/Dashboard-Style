@@ -140,10 +140,12 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    block-size: var(--_box);
+    /* Never under its line and border, as a button: they line up at every size. */
+    block-size: max(var(--_box), calc(1lh + 2px));
     border: 1px solid var(--ds-line-2);
     border-radius: var(--_radius);
     color: var(--ds-action-ink);
+    font: var(--ds-size-font, var(--ds-font-label));
     transition:
       background-color var(--ds-dur-fast) var(--ds-ease-in-out),
       border-color var(--ds-dur-fast) var(--ds-ease-in-out),

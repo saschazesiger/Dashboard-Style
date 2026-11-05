@@ -195,11 +195,13 @@ export function create(root, options = {}) {
       picker?.close('select');
       return;
     }
-    const date = iso(today());
+    // Today and now in the field's zone (a wall time there), else locally.
+    const timeZone = settings.zone && settings.zone !== 'local' ? settings.zone : undefined;
+    const date = iso(today({ timeZone }));
     if (datetime) {
-      const moment = new Date();
-      const time = `${String(moment.getHours()).padStart(2, '0')}:${String(moment.getMinutes()).padStart(2, '0')}`;
-      field.set(`${date}T${time}`, { emit: true });
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone, hourCycle: 'h23', hour: '2-digit', minute: '2-digit' }).formatToParts(new Date());
+      const part = (type) => (parts.find((entry) => entry.type === type)?.value ?? '00').replace(/^24$/, '00');
+      field.set(`${date}T${part('hour')}:${part('minute')}`, { emit: true });
     } else field.set(date, { emit: true });
     picker?.close('select');
   });
