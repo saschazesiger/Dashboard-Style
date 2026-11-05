@@ -14,13 +14,19 @@
     "ds-sheet__foot",
     "ds-sheet__head",
     "ds-sheet__heading",
+    "ds-sheet__layout",
+    "ds-sheet__main",
     "ds-sheet__panel",
+    "ds-sheet__panel--inspector",
+    "ds-sheet__panel--push",
     "ds-sheet__panel--wide",
+    "ds-sheet__resize",
     "ds-sheet__subtitle",
     "ds-sheet__title"
   ],
   "attributes": [
     "data-ds-vt",
+    "data-resizing",
     "data-scrolled",
     "data-state",
     "data-toast-reserve"
@@ -54,6 +60,14 @@
     "--ds-sheet-radius": {
       "default": "`--ds-radius-dialog`",
       "description": "the panel's leading corners at the default shape"
+    },
+    "--ds-sheet-docked-width": {
+      "default": "400px",
+      "description": "a docked panel (`.ds-sheet__panel--push`, `--inspector`); the whole width of its layout at 480px and below"
+    },
+    "--ds-sheet-docked-border": {
+      "default": "`1px solid var(--ds-line)`",
+      "description": "the hairline between a docked panel and the content beside it"
     }
   },
   "keyframes": [
@@ -77,12 +91,17 @@
   ],
   "ripple": false,
   "labExempt": {
-    "DS.sheet.create": "events only, no motion"
+    "DS.sheet.create": "events only, no motion",
+    "DS.sheet.resizable": "the width follows the pointer or steps with a key: no motion of its own",
+    "DS.sheet.clampWidth": "a pure function: no motion",
+    "DS.sheet.dragWidth": "a pure function: no motion"
   },
   "exceptions": {
     "physical": {
       ".ds-sheet__panel: border-radius": "the side sheet slides in from the right edge: its open side is the left",
-      ".ds-sheet__panel::after: left": "the bleed beyond the right edge covers the slide's overshoot"
+      ".ds-sheet__panel::after: left": "the bleed beyond the right edge covers the slide's overshoot",
+      ".ds-sheet .ds-sheet__resize: left": "the modal sheet slides in from the right edge: its separator sits on the panel's left edge in every direction",
+      ".ds-sheet .ds-sheet__resize: right": "the same separator: the logical start inset of the docked panels is taken back"
     }
   },
   "motionExceptions": {

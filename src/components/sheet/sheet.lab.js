@@ -44,3 +44,32 @@ SG_LAB.add({
     return on ? DS.sheet.open(sheet, { opener: stage.querySelector('[data-lab-open]') }) : DS.sheet.close(sheet);
   },
 });
+
+/* A docked panel: the content beside it narrows while its width opens. */
+SG_LAB.add({
+  id: 'sheet-push',
+  group: 'overlays',
+  title: 'Docked side sheet: push',
+  note: 'No scrim: the list narrows while the panel\'s width opens from 0 on --ds-ease-out (a size that pushes never overshoots), its parts uncovered from the end; it gives the width back in --ds-dur-base, accelerating.',
+  shows: ['.ds-sheet__panel--push', '.ds-sheet__panel--inspector', '.ds-sheet__layout', '--ds-dur-long', '--ds-dur-base', '--ds-ease-out', '--ds-ease-exit'],
+  html: '<div class="ds-sheet__layout" style="block-size:200px;border:1px solid var(--ds-line);border-radius:var(--ds-radius-card);overflow:hidden">' +
+    '<div class="ds-sheet__main"><ul class="ds-list"><li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0042</span><span class="ds-list__meta">Ada Lovelace</span></span></li>' +
+    '<li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0043</span><span class="ds-list__meta">Alan Turing</span></span></li></ul></div>' +
+    '<section class="ds-sheet__panel ds-sheet__panel--push" id="sg-lab-sheet-push" aria-labelledby="sg-lab-sheet-push-title" hidden data-lab-panel>' +
+    '<div class="ds-sheet__head"><h2 class="ds-sheet__title" id="sg-lab-sheet-push-title">Filters</h2></div>' +
+    '<div class="ds-sheet__body"><p class="ds-muted">Laptops, tablets</p></div></section></div>',
+  height: 220,
+  wide: true,
+  subject: function (stage) { return stage.querySelector('[data-lab-panel]'); },
+  state: function (stage) { return stage.querySelector('[data-lab-panel]').getAttribute('data-state') === 'open'; },
+  play: function (stage) {
+    var panel = stage.querySelector('[data-lab-panel]');
+    return DS.sheet.open(panel)
+      .then(function () { return DS.sheet.close(panel); })
+      .then(function () { return DS.motion.settled(panel); });
+  },
+  toggle: function (stage, on) {
+    var panel = stage.querySelector('[data-lab-panel]');
+    return on ? DS.sheet.open(panel) : DS.sheet.close(panel);
+  },
+});
