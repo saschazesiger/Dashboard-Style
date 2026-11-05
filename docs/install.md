@@ -397,6 +397,16 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Show as table` | the label of the table view toggle of `DS.chart.create()` (the system's string `chartTableView`) | `DS.core.config({ strings: { chartTableView } })` |
+| `Arrow keys move along the points, Up and Down through the series, Home and End go to the ends.` | what the plot of a `DS.chart` describes (`aria-describedby`) (the system's string `chartKeys`) | `DS.core.config({ strings: { chartKeys } })` |
+| `Arrow keys move through the slices, Home and End go to the ends.` | the same for a donut, pie or ring (the system's string `chartKeysSlices`) | `DS.core.config({ strings: { chartKeysSlices } })` |
+| `{x}: {values}` | what a `DS.chart` announces when the keyboard moves to a point (the system's string `chartPoint`) | `DS.core.config({ strings: { chartPoint } })` |
+| `{name}: from {first} to {last}, lowest {min}, highest {max}` | the name of a `DS.chart` sparkline (the system's string `chartSummary`) | `DS.core.config({ strings: { chartSummary } })` |
+| `Total` | the sum in a stacked chart's tooltip and under a donut's figure (the system's string `chartTotal`) | `DS.core.config({ strings: { chartTotal } })` |
+| `Other` | the slice of a donut or pie that holds the fifth slice and later (the system's string `chartOther`) | `DS.core.config({ strings: { chartOther } })` |
+| `{series} shown` | what a `DS.chart` announces when a series shows again (the system's string `chartShown`) | `DS.core.config({ strings: { chartShown } })` |
+| `{series} hidden` | what a `DS.chart` announces when a series is hidden (the system's string `chartHidden`) | `DS.core.config({ strings: { chartHidden } })` |
+| `No data` | what a `DS.chart` without a value shows and is named (the system's string `chartEmpty`) | `DS.core.config({ strings: { chartEmpty } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow
