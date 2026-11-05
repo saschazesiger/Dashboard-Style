@@ -397,6 +397,11 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `{count} token` | one token in `DS.thinking` (and `DS.thinking.tokensText()`), `{count}` compact (the system's string `tokensOne`) | `DS.core.config({ strings: { tokensOne } })` |
+| `{count} tokens` | the same, several tokens: `1.2K tokens` (the system's string `tokensOther`) | `DS.core.config({ strings: { tokensOther } })` |
+| `Thinking` | the summary of a running `DS.reasoning` whose page wrote none (the system's string `reasoningRunning`) | `DS.core.config({ strings: { reasoningRunning } })` |
+| `Thought for {time}` | the summary of a finished `DS.reasoning` whose page wrote none, `{time}` narrow: `12s` (the system's string `reasoningDone`) | `DS.core.config({ strings: { reasoningDone } })` |
+| `{name}: {status}` | what `DS.toolcall` announces when a call ends, from the call's name and its status word (the system's string `toolStatus`) | `DS.core.config({ strings: { toolStatus } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

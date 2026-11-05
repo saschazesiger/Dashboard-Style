@@ -1,0 +1,51 @@
+{
+  "name": "thinking",
+  "group": "feedback",
+  "order": 4320,
+  "docsOrder": 716,
+  "need": "Show what an assistant or agent is doing while it works: the step, the thought, the time and the tokens",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-thinking",
+    "ds-thinking__icon",
+    "ds-thinking__meta",
+    "ds-thinking__step",
+    "ds-thinking__thought",
+    "ds-thinking__time",
+    "ds-thinking__tokens"
+  ],
+  "attributes": [],
+  "requires": [
+    "shimmer",
+    "wheel"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-thinking-font": {
+      "default": "`--ds-size-font`, else `--ds-font-label`",
+      "description": "`.ds-thinking__step`: the type of the step"
+    },
+    "--ds-thinking-gap": {
+      "default": "`--ds-space-2`",
+      "description": "`.ds-thinking`: the room between its parts, the base the density applies to (2px per step)"
+    },
+    "--ds-thinking-icon-color": {
+      "default": "`--ds-primary`",
+      "description": "`.ds-thinking__icon`"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "thinking"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.thinking.sinceOf": "a pure function: parsing, no motion",
+    "DS.thinking.elapsedText": "a pure function: formatting, no motion",
+    "DS.thinking.isoDuration": "a pure function: formatting, no motion",
+    "DS.thinking.tokensText": "a pure function: formatting, no motion"
+  }
+}

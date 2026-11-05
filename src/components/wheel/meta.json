@@ -1,8 +1,8 @@
 {
   "name": "wheel",
   "group": "feedback",
-  "order": 410,
-  "docsOrder": 612,
+  "order": 4310,
+  "docsOrder": 712,
   "need": "Say what is running right now in one line that changes often, without a spinner",
   "tier": 1,
   "status": "beta",

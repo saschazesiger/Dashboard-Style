@@ -1,8 +1,8 @@
 {
   "name": "shimmer",
   "group": "feedback",
-  "order": 400,
-  "docsOrder": 614,
+  "order": 4300,
+  "docsOrder": 714,
   "need": "Show that work is going on, on the words of a status line, with nothing beside them",
   "tier": 1,
   "status": "beta",
