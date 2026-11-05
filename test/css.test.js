@@ -382,6 +382,8 @@ const RATIOS = [
   ['tooltip (keyframes)', [['src/components/tooltip/tooltip.css', '.ds-tooltip:not([data-state])', ['animation']]], [['src/components/tooltip/tooltip.css', '.ds-tooltip:not([data-state])', ['--ds-leave-duration']]]],
   ['combobox list', [['src/components/combobox/combobox.css', '.ds-combo__popup[data-state]', ['transition']]], [['src/components/combobox/combobox.css', '.ds-combo__popup[data-state="closed"]', ['transition']]]],
   ['menu', [['src/components/menu/menu.css', '.ds-menu[data-state]', ['transition']]], [['src/components/menu/menu.css', '.ds-menu[data-state="closed"]', ['transition']]]],
+  ['tearsheet (DS.overlay)', [['src/components/tearsheet/tearsheet.css', '.ds-tearsheet[data-state] .ds-dialog__box', ['transition']]], [['src/components/tearsheet/tearsheet.css', '.ds-tearsheet[data-state="closed"] .ds-dialog__box', ['transition']]]],
+  ['loading overlay', [['src/components/loadingoverlay/loadingoverlay.css', '.ds-loadingoverlay[data-state="open"]', ['transition']]], [['src/components/loadingoverlay/loadingoverlay.css', '.ds-loadingoverlay[data-state]', ['transition']]]],
 ];
 /**
  * Old/new pairs outside the ratio, each with its reason (the test checks
