@@ -1,0 +1,7 @@
+{
+  "requires": ["highlight", "prose"],
+  "exportRequires": {
+    "create": ["button", "code", "utilities"],
+    "render": ["button", "code", "utilities"]
+  }
+}

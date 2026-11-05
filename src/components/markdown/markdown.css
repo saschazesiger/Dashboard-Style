@@ -1,0 +1,22 @@
+/*
+ * Markdown (DS.markdown, markdown.js): the renderer writes bare markup for
+ * .ds-prose, so this file holds only the moment before it runs. An element
+ * with data-ds-markdown shows its source with the line breaks kept until
+ * DS.markdown renders it (data-state="rendered"), so the text reads where
+ * the module is missing or late.
+ *
+ *   <div class="ds-prose" data-ds-markdown>## Notes ...</div>
+ *   <div class="ds-prose" data-ds-markdown><script type="text/markdown">## Notes ...</script></div>
+ *
+ * Options: none of its own; the prose around it takes them.
+ *
+ * Forced colours, motion: nothing of its own.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.markdown {
+  :where(.ds-theme) [data-ds-markdown]:not([data-state="rendered"]) {
+    white-space: pre-line;
+  }
+}
