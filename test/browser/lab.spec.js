@@ -326,6 +326,9 @@ const CONTINUITY = {
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
   charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
+  'command-open': { in: 'doc', sel: '#sg-lab-command .ds-dialog__box', props: ['opacity', 'scale.x'] },
+  'shortcuts-open': { in: 'doc', sel: '#sg-lab-shortcuts .ds-dialog__box', props: ['opacity', 'scale.x'] },
+  'notifications-arrive': { in: 'doc', sel: '#sg-lab-notifications .ds-sheet__panel', props: ['translate.x'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -348,6 +351,8 @@ const CONTINUITY_EXEMPT = {
   'scroll-reel': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-y': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-x': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
+  'banner-priority': 'each toggle shows or hides the waiting messages in the DOM and flip() glides the view from where it is painted, so its translate restarts from a new layout place (as sortable)',
+  'toast-stack': 'each toggle sets data-expanded and flip() glides every message from where it is painted, so its translate restarts from a new layout place (as sortable)',
 };
 
 /**
@@ -372,6 +377,7 @@ const LONG_RUNS = {
   'live-check': { ms: 12000, reason: 'clears the field, then shows the error 200ms later and turns it into a confirmation 400ms after that' },
   views: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
   wizard: { ms: 12000, reason: 'a View Transition in a frame: it plays on pseudo-elements whose duration the timeline cannot read' },
+  'toast-promise': { ms: 12000, reason: 'moves a progress bar twice 300-400ms apart, ends both messages about 1.2s in, holds the outcomes 600ms and closes them (each step a timer, the messages outside the stage)' },
 };
 
 /**
