@@ -8,10 +8,13 @@ SG_LAB.add({
   html: '<div class="ds-field"><label class="ds-field__label" for="lab-pw">New password</label>' +
     '<div class="ds-input-group"><input class="ds-input" id="lab-pw" type="password" autocomplete="off" aria-describedby="lab-pw-meter">' +
     '<span class="ds-input-group__trailing"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-sm" type="button" aria-label="Show password" aria-pressed="false"><span class="ds-icon-swap"><span class="ds-icon-swap__a">' +
-    DS.icons.icon(DS.icons.eye, 18) + '</span><span class="ds-icon-swap__b">' + DS.icons.icon(DS.icons.eyeOff, 18) + '</span></span></button></span></div>' +
+    '</span><span class="ds-icon-swap__b"></span></span></button></span></div>' +
     '<div class="ds-password__meter" id="lab-pw-meter"><span class="ds-password__bars" aria-hidden="true"><span></span><span></span><span></span><span></span></span><span class="ds-password__strength"></span></div></div>',
   height: 140,
+  // The icons come in at setup: DS is not there yet when this file registers.
   setup: function (stage) {
+    stage.querySelector('.ds-icon-swap__a').innerHTML = DS.icons.icon(DS.icons.eye, 18);
+    stage.querySelector('.ds-icon-swap__b').innerHTML = DS.icons.icon(DS.icons.eyeOff, 18);
     stage.pw = DS.password.create(stage.querySelector('.ds-field'));
   },
   play: function (stage) {

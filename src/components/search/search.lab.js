@@ -5,12 +5,15 @@ SG_LAB.add({
   title: 'Search: recent searches',
   note: '<code>DS.search.create()</code>: in an empty field the recent searches open under the pill as a combobox list (<code>DS.overlay</code>: a fade on <code>--ds-dur-fast</code>, the clip and the scale on <code>--ds-ease-spatial</code>), and close with a fade.',
   shows: ['DS.search.create', '.ds-search__popup', '.ds-search__clear', '--ds-ease-spatial'],
-  html: '<div class="ds-search" data-ds-search-recent="sg-lab">' + DS.icons.icon(DS.icons.search, 20) +
+  // The icons come in at setup: DS is not there yet when this file registers.
+  html: '<div class="ds-search" data-ds-search-recent="sg-lab">' +
     '<input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices" autocomplete="off">' +
-    '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-search__clear" type="button" hidden>' + DS.icons.icon(DS.icons.close, 18) + '</button></div>',
+    '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-search__clear" type="button" hidden></button></div>',
   height: 280,
   setup: function (stage) {
     var root = stage.querySelector('.ds-search');
+    root.insertAdjacentHTML('afterbegin', DS.icons.icon(DS.icons.search, 20));
+    root.querySelector('.ds-search__clear').innerHTML = DS.icons.icon(DS.icons.close, 18);
     stage.search = DS.search.create(root);
     ['laptop', 'router', 'printer'].reverse().forEach(function (value) { stage.search.remember(value); });
   },
