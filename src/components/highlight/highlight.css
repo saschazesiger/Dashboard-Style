@@ -1,0 +1,97 @@
+/*
+ * Syntax highlighting (D13): the tokens DS.highlight writes, each a span
+ * coloured by a code role. Text-level: it styles nothing but the token
+ * spans, so it works in a .ds-code-block, a pre in .ds-prose, a code
+ * block of DS.code or any element of the page.
+ *
+ *   <pre class="ds-code-block"><code data-ds-highlight="json">{ "id": 42 }</code></pre>
+ *   (DS.highlight writes) <span class="ds-highlight__property">"id"</span>: <span class="ds-highlight__number">42</span>
+ *
+ * Kinds and the role each reads (a theme sets the roles, never a token
+ * class):
+ *   keyword                 --ds-code-keyword
+ *   string, regex           --ds-code-string
+ *   number, constant        --ds-code-number   (true, null, a hex colour)
+ *   comment                 --ds-code-comment
+ *   function, tag           --ds-code-function (a call, a definition, an
+ *                                               HTML or XML tag name)
+ *   type                    --ds-code-type     (a class, a built-in type, a
+ *                                               CSS class or id selector)
+ *   property, attribute,    --ds-code-property (an object key, a CSS
+ *   variable                                    property, an attribute, $VAR)
+ *   meta                    --ds-code-meta     (a decorator, a doctype, a
+ *                                               shell prompt, diff headers)
+ *   inserted, deleted       --ds-code-inserted, --ds-code-deleted (diff
+ *                                               lines; their + and - stay,
+ *                                               so a change never rests on
+ *                                               the colour)
+ *   punctuation             --ds-text-2
+ *   operator                the text colour
+ * Every role reaches 4.5:1 on --ds-code-bg in the light and the dark
+ * scheme, 7:1 under themes/contrast.css. Until a theme declares the code
+ * roles, each falls back to the closest role of the palette.
+ *
+ * Options: none. The tokens keep the size, weight and font of the code
+ * around them (.ds-code-block's code role); size, density, shape and tone
+ * are the block's.
+ *
+ * Forced colours: every token takes the text colour (the system's), so the
+ * code reads as plain text; diff lines keep their + and -.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.highlight {
+  .ds-highlight__keyword {
+    color: var(--ds-code-keyword, var(--ds-primary));
+  }
+
+  .ds-highlight__string,
+  .ds-highlight__regex {
+    color: var(--ds-code-string, var(--ds-success));
+  }
+
+  .ds-highlight__number,
+  .ds-highlight__constant {
+    color: var(--ds-code-number, var(--ds-warning));
+  }
+
+  .ds-highlight__comment {
+    color: var(--ds-code-comment, var(--ds-text-2));
+  }
+
+  .ds-highlight__function,
+  .ds-highlight__tag {
+    color: var(--ds-code-function, var(--ds-info));
+  }
+
+  .ds-highlight__type {
+    color: var(--ds-code-type, var(--ds-on-info-container));
+  }
+
+  .ds-highlight__property,
+  .ds-highlight__attribute,
+  .ds-highlight__variable {
+    color: var(--ds-code-property, var(--ds-on-error-container));
+  }
+
+  .ds-highlight__meta {
+    color: var(--ds-code-meta, var(--ds-text-2));
+  }
+
+  .ds-highlight__inserted {
+    color: var(--ds-code-inserted, var(--ds-success));
+  }
+
+  .ds-highlight__deleted {
+    color: var(--ds-code-deleted, var(--ds-error));
+  }
+
+  .ds-highlight__punctuation {
+    color: var(--ds-text-2);
+  }
+
+  .ds-highlight__operator {
+    color: inherit;
+  }
+}
