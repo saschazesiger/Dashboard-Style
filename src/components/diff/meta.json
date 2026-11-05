@@ -1,0 +1,103 @@
+{
+  "name": "diff",
+  "group": "content",
+  "order": 1310,
+  "docsOrder": 126,
+  "need": "Show what changed in files: unified or side by side, with word marks and folded context",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-diff",
+    "ds-diff--wrap",
+    "ds-diff__arrow",
+    "ds-diff__body",
+    "ds-diff__code",
+    "ds-diff__cols",
+    "ds-diff__count",
+    "ds-diff__empty",
+    "ds-diff__expand",
+    "ds-diff__file",
+    "ds-diff__files",
+    "ds-diff__fold",
+    "ds-diff__head",
+    "ds-diff__hunk",
+    "ds-diff__hunk-head",
+    "ds-diff__line",
+    "ds-diff__name",
+    "ds-diff__note",
+    "ds-diff__num",
+    "ds-diff__path",
+    "ds-diff__path--old",
+    "ds-diff__range",
+    "ds-diff__section",
+    "ds-diff__sign",
+    "ds-diff__source",
+    "ds-diff__stat",
+    "ds-diff__status",
+    "ds-diff__table",
+    "ds-diff__toggle",
+    "ds-diff__word"
+  ],
+  "attributes": [
+    "data-kind",
+    "data-view"
+  ],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-diff-bg": {
+      "default": "`--ds-code-bg`",
+      "description": "the ground of a file's lines and of the source before the script runs"
+    },
+    "--ds-diff-add-bg": {
+      "default": "`--ds-success-container` mixed 45% into the ground",
+      "description": "an added line"
+    },
+    "--ds-diff-del-bg": {
+      "default": "`--ds-error-container` mixed 45% into the ground",
+      "description": "a removed line"
+    },
+    "--ds-diff-add-word": {
+      "default": "`--ds-success-container` with 16% of `--ds-on-success-container`",
+      "description": "a word that changed in an added line"
+    },
+    "--ds-diff-del-word": {
+      "default": "`--ds-error-container` with 16% of `--ds-on-error-container`",
+      "description": "a word that changed in a removed line"
+    },
+    "--ds-diff-hunk-bg": {
+      "default": "`--ds-info-container` mixed 45% into the ground",
+      "description": "a hunk header row (`@@ -1,5 +1,6 @@`)"
+    },
+    "--ds-diff-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "a file block's corners at the default shape"
+    },
+    "--ds-diff-font": {
+      "default": "`--ds-font-code`",
+      "description": "the lines and the file names"
+    },
+    "--ds-diff-sticky-top": {
+      "default": "0px",
+      "description": "where a file header sticks: the height of a fixed bar above the view"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "diff"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": false,
+  "labExempt": {
+    "DS.diff.create": "renders at once: no motion (a fold opens in one step)",
+    "DS.diff.parse": "a pure function: no motion",
+    "DS.diff.words": "a pure function: no motion",
+    "DS.diff.rows": "a pure function: no motion",
+    "DS.diff.highlighter": "renders again at once: no motion"
+  }
+}
