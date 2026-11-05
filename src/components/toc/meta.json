@@ -1,0 +1,74 @@
+{
+  "name": "toc",
+  "group": "navigation",
+  "order": 1300,
+  "docsOrder": 42,
+  "need": "Jump between the sections of a long page and see which one is being read: a table of contents beside the content or a bar of anchors over it, sticky",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-toc",
+    "ds-toc--bar",
+    "ds-toc--sticky",
+    "ds-toc__count",
+    "ds-toc__indicator",
+    "ds-toc__link",
+    "ds-toc__list",
+    "ds-toc__title"
+  ],
+  "attributes": [
+    "data-ds-ripple"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-toc-height": {
+      "default": "32px",
+      "description": "a link of the column at size md and comfortable (8px per size step, 4px per density step)"
+    },
+    "--ds-toc-bar-height": {
+      "default": "48px",
+      "description": "a link of `.ds-toc--bar` at size md and comfortable, as high as a tab"
+    },
+    "--ds-toc-padding-x": {
+      "default": "`--ds-space-3`",
+      "description": "a link's side padding at size md (4px per size step; a bar's link `--ds-space-1` more)"
+    },
+    "--ds-toc-font": {
+      "default": "the size's role, `--ds-font-label`",
+      "description": "the type of a link (always at the regular weight; the current one takes the label weight)"
+    },
+    "--ds-toc-indicator-width": {
+      "default": "3px, `--ds-primary`",
+      "description": "the bar of the current link: on the column's line, under the link in a bar"
+    },
+    "--ds-toc-indicator-color": {
+      "default": "3px, `--ds-primary`",
+      "description": "the bar of the current link: on the column's line, under the link in a bar"
+    },
+    "--ds-toc-top": {
+      "default": "`--ds-space-4`",
+      "description": "where a sticky column stops below the top of its scroller"
+    },
+    "--ds-toc-bg": {
+      "default": "`--ds-backdrop`",
+      "description": "the ground under a sticky bar, so the content scrolls away under it"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "indicator",
+    "toc"
+  ],
+  "module": true,
+  "progressive": [
+    "scrollbar-color"
+  ],
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-toc__link"
+  ],
+  "labExempt": {
+    "DS.toc.current": "arithmetic of the scroll-spy (which section is current), no motion of its own"
+  }
+}
