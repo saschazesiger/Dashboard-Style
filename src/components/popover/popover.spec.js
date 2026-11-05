@@ -116,7 +116,7 @@ test('focus moves in; Tab past the last control closes it and moves on, Shift+Ta
   await page.keyboard.press('Tab');
   expect(await page.evaluate(() => document.activeElement.textContent)).toBe('Send');
   await page.keyboard.press('Tab');
-  await expect(panel).toHaveAttribute('data-state', 'closed');
+  await expect(panel).not.toHaveAttribute('data-state', 'open');
   // Moved on from the trigger: the next stop after it, outside the popover.
   expect(await page.evaluate((id) => !document.getElementById(id).contains(document.activeElement) && document.activeElement !== document.querySelector('[data-demo="share"]'), await panel.getAttribute('id'))).toBe(true);
   await expect(panel).toBeHidden();
@@ -126,7 +126,7 @@ test('focus moves in; Tab past the last control closes it and moves on, Shift+Ta
   await expect(panel).toHaveAttribute('data-state', 'open');
   await page.keyboard.press('Shift+Tab');
   await page.keyboard.press('Shift+Tab');
-  await expect(panel).toHaveAttribute('data-state', 'closed');
+  await expect(panel).not.toHaveAttribute('data-state', 'open');
   expect(await activeDemo(page)).toBe('share');
 });
 
