@@ -1,0 +1,51 @@
+{
+  "name": "object",
+  "group": "navigation",
+  "order": 1320,
+  "docsOrder": 46,
+  "need": "Show one record on one page: a head with its key facts, section anchors, and an edit mode that turns sections into inline forms",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-object",
+    "ds-object__edit",
+    "ds-object__form",
+    "ds-object__head",
+    "ds-object__section",
+    "ds-object__title",
+    "ds-object__view"
+  ],
+  "attributes": [
+    "data-editing",
+    "data-scrolled"
+  ],
+  "requires": [
+    "button",
+    "card",
+    "form",
+    "page",
+    "toc"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-object-gap": {
+      "default": "`--ds-space-5`",
+      "description": "the room between the parts of an object page (the head, the bar of anchors, the sections)"
+    },
+    "--ds-page-head-top": {
+      "owner": "page"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "object",
+    "page",
+    "toc"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.object.values": "turns a form's entries into an object for ds:save, no motion of its own"
+  }
+}
