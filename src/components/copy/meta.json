@@ -1,0 +1,44 @@
+{
+  "name": "copy",
+  "group": "actions",
+  "order": 560,
+  "docsOrder": 56,
+  "need": "Copy a value, a key or a link with one press, and say that it worked",
+  "tier": 1,
+  "status": "stable",
+  "classes": [
+    "ds-copy",
+    "ds-copy--field",
+    "ds-copy__done",
+    "ds-copy__value"
+  ],
+  "attributes": [],
+  "requires": [
+    "button"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-copy-font": {
+      "default": "`--ds-font-code`",
+      "description": "copy: the type of `.ds-copy__value`"
+    },
+    "--ds-copy-field-bg": {
+      "default": "`--ds-surface-low`",
+      "description": "copy: the fill of `.ds-copy--field`, the read-only field look"
+    },
+    "--ds-input-height": {
+      "owner": "form"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "copy"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.copy.copy": "writes the clipboard; the feedback after it is DS.copy.create's (Motion Lab)",
+    "DS.copy.textOf": "a lookup, no motion"
+  }
+}
