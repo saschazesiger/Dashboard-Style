@@ -151,6 +151,16 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  chartTableView: 'Show as table',
+  chartKeys: 'Arrow keys move along the points, Up and Down through the series, Home and End go to the ends.',
+  chartKeysSlices: 'Arrow keys move through the slices, Home and End go to the ends.',
+  chartPoint: '{x}: {values}',
+  chartSummary: '{name}: from {first} to {last}, lowest {min}, highest {max}',
+  chartTotal: 'Total',
+  chartOther: 'Other',
+  chartShown: '{series} shown',
+  chartHidden: '{series} hidden',
+  chartEmpty: 'No data',
 });
 
 /**
