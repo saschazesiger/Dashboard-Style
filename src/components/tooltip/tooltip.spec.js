@@ -2,7 +2,8 @@
  * The tooltip on the options model (3.0): the shape on its radius, one size
  * whatever the density and size around its trigger, the shortcut slot, the
  * keyboard, names and forced colours, and that DS.tooltip and DS.overlay serve
- * one root with one handle. The 2.x behaviour stays in
+ * one root with one handle; data-tip-placement on each side (flipped without
+ * room) and data-tip-delay. The 2.x behaviour stays in
  * test/browser/toast-tooltip.spec.js and tooltip-touch.spec.js. Runs in the
  * `fallback` project too (the script's placement).
  */
@@ -94,6 +95,58 @@ test('DS.tooltip and DS.overlay serve one root with one handle; DS.init served t
   await open(page);
   expect(await page.evaluate(() => DS.tooltip.tooltips(document) === DS.overlay.tooltips(document))).toBe(true);
   expect(await page.locator('.ds-tooltip').count()).toBe(1);
+});
+
+test('data-tip-placement puts it on each side of its trigger, flipped to the opposite side without room', async ({ page }) => {
+  await open(page);
+  for (const side of ['top', 'end', 'bottom', 'start']) {
+    const trigger = page.locator(`[data-demo="side-${side}"]`);
+    await focusByKeyboard(page, trigger);
+    await expect(tip(page)).toBeVisible();
+    await settle(page);
+    const where = await page.evaluate((demo) => {
+      const a = document.querySelector(`[data-demo="${demo}"]`).getBoundingClientRect();
+      const b = document.querySelector('.ds-tooltip').getBoundingClientRect();
+      if (b.bottom <= a.top + 1) return 'top';
+      if (b.top >= a.bottom - 1) return 'bottom';
+      if (b.right <= a.left + 1) return 'start';
+      if (b.left >= a.right - 1) return 'end';
+      return 'over';
+    }, `side-${side}`);
+    expect(where, side).toBe(side);
+    expect(await tip(page).getAttribute('data-placement'), side).toBe(side === 'bottom' ? null : side);
+    await page.keyboard.press('Escape');
+    await expect(tip(page)).toBeHidden();
+  }
+  // A trigger at the start edge of the window that asks for "start": the tip goes after it.
+  await page.evaluate(() => {
+    document.body.insertAdjacentHTML('beforeend', '<button class="ds-btn" type="button" id="edge" data-tip="At the edge" data-tip-placement="start" style="position:fixed;left:0;top:300px">Edge</button>');
+  });
+  await focusByKeyboard(page, page.locator('#edge'));
+  await expect(tip(page)).toBeVisible();
+  await settle(page);
+  await expect(tip(page)).toHaveAttribute('data-placement', 'end');
+});
+
+test('data-tip-delay: none shows on hover at once, long waits twice the delay; focus always shows it at once', async ({ page }) => {
+  await open(page);
+  const timing = await page.evaluate(() => ({ delay: DS.motion.motionDuration(document.querySelector('.ds-theme'), '--ds-delay-tooltip') }));
+  await page.locator('[data-demo="delay-none"]').hover();
+  await expect(tip(page)).toBeVisible({ timeout: timing.delay / 2 });
+  await expect(tip(page)).toHaveText('Shows at once');
+  await page.mouse.move(1, 1);
+  await expect(tip(page)).toBeHidden();
+  // Past the skip window, so no warm-up shows the next one at once.
+  await page.waitForTimeout(timing.delay);
+  await page.locator('[data-demo="delay-long"]').hover();
+  await page.waitForTimeout(timing.delay * 1.4);
+  await expect(tip(page)).toBeHidden();
+  await expect(tip(page)).toBeVisible({ timeout: timing.delay * 2 });
+  await expect(tip(page)).toHaveText('Shows after a longer rest');
+  await page.mouse.move(1, 1);
+  await expect(tip(page)).toBeHidden();
+  await focusByKeyboard(page, page.locator('[data-demo="delay-long"]'));
+  await expect(tip(page)).toBeVisible({ timeout: timing.delay / 2 });
 });
 
 test('forced colours: it keeps its edge', async ({ page, browserName }) => {

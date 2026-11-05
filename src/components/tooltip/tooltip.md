@@ -5,7 +5,9 @@ A short text that names an icon button or explains a control, on hover and on fo
 ```html
 <button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Copy link" data-tip="Copy link">[icon link 20]</button>
 <td><a href="#device-42" data-tip="LAPTOP-0042-FINANCE-BACKUP">LAPTOP-0042-FINANCE-BACKUP</a></td>   <!-- shows only while cut off -->
-<button class="ds-btn" type="button" data-tip="Search the list" data-tip-shortcut="Ctrl K">Search</button>   <!-- the shortcut slot -->
+<button class="ds-btn" type="button" data-tip="Search the list" data-tip-shortcut="Ctrl K" aria-keyshortcuts="Control+K">Search</button>   <!-- the shortcut slot -->
+<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Zoom in" data-tip="Zoom in"
+        data-tip-placement="end" data-tip-delay="short">[icon plus 20]</button>   <!-- beside it, sooner -->
 ```
 
 ```js
@@ -14,7 +16,9 @@ const tips = DS.overlay.tooltips(document);   // one call per page (or per root 
 
 | Option | Where it applies | Effect |
 |---|---|---|
-| `data-tip-shortcut` | the trigger | the shortcut slot: `.ds-tooltip__shortcut` after the text, in the code face; the tip then shows also when its text repeats the trigger's |
+| `data-tip-shortcut` | the trigger | the shortcut slot: `.ds-tooltip__shortcut` after the text, in the code face; the tip then shows also when its text repeats the trigger's. Say the same keys to a screen reader with `aria-keyshortcuts` on the trigger |
+| `data-tip-placement="bottom \| top \| start \| end"` | the trigger | the side of the trigger (default `bottom`); on the other side when it does not fit there and fits there |
+| `data-tip-delay="none \| short \| long"` | the trigger | how long a mouse or pen rests before it shows: `none` at once (a chart's points), `short` `--ds-delay-tooltip-skip`, `long` twice `--ds-delay-tooltip`; default `--ds-delay-tooltip`. Keyboard focus always shows it at once |
 | `.ds-shape-*` | the theme | multiplies the radius (`--ds-tooltip-radius`) |
 | Size, density, tone | none | one tooltip serves the whole theme, whatever its trigger's size, and it shows no status |
 
@@ -47,11 +51,12 @@ handle; a trigger inside nested roots (a host page's `document` and a widget's r
   The opener of an open layer (a menu button while its menu shows) shows no tip at all (2.1.1).
 - **Description.** While it shows, the trigger gets `aria-describedby` pointing at it, unless the trigger's accessible
   name already says the same (an icon button whose `aria-label` equals the tip is not described twice).
-- **Placement.** Below the trigger and centred on it, above it when there is no room, 8px from the viewport edges.
-  Where popover and CSS anchor positioning exist, the tooltip is a `popover="manual"` in the top layer, anchored to
-  the trigger (`data-anchored`); elsewhere the script writes `--ds-tooltip-x` and `--ds-tooltip-y` and sets
-  `data-placement="top"` above. It fades in and grows from `--ds-scale-tooltip` at the side of the trigger, and
-  leaves with a quick fade.
+- **Placement.** Below the trigger and centred on it (or on the side `data-tip-placement` asks for, written on the
+  tooltip as `data-side`), on the opposite side when there is no room, 8px from the viewport edges. Where popover
+  and CSS anchor positioning exist, the tooltip is a `popover="manual"` in the top layer, anchored to the trigger
+  (`data-anchored`); elsewhere the script writes `--ds-tooltip-x` and `--ds-tooltip-y`. `data-placement` says the
+  side it took (`top`, `start`, `end`; none below). It fades in and grows from `--ds-scale-tooltip` at the side of
+  the trigger, and leaves with a quick fade.
 - On a [switch](#switch) the `data-tip` goes on its input, which covers the track.
 
 Placing a `.ds-tooltip` yourself: set `--ds-tooltip-x` and `--ds-tooltip-y` (or `top` and `left`) on it, remove
@@ -66,3 +71,12 @@ a script that keeps a `transform: translate(Xpx, Ypx)` also sets `transform-orig
 **JS API.** `js/tooltip.js` (`DS.tooltip`): `tooltips(root)`, the same function as `DS.overlay.tooltips()`; `DS.init()` serves every root it initialises.
 
 **Motion:** the "Tooltip" and "Tooltip warm-up" rows of [Overlays](motion.md#overlays) in motion.md.
+
+For a help text with a title, a link or anything to click, use a [toggletip](#toggletip) (on a click or tap) or a
+hover card ([popover](#popover), `data-ds-popover-trigger="hover"`): a tooltip holds text only and never takes focus.
+
+<!-- changelog
+- Tooltip: `data-tip-placement` (bottom, top, start, end; the tooltip carries the asked side as `data-side`, and
+  `data-placement` now also says `start` and `end`) and `data-tip-delay` (none, short, long) on the trigger. The
+  shortcut slot (`data-tip-shortcut`) is documented with `aria-keyshortcuts`.
+-->

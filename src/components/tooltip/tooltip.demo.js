@@ -16,7 +16,19 @@ SG.demo('tooltip', {
         return '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="' + entry[1] + '" data-tip="' + entry[1] + '">' + h.icon(entry[0], 20) + '</button>';
       }).join('') + '</div>', 'Rest on one: its tooltip comes after a moment. The next ones show at once and swap in place.') +
 
-      h.section('With a shortcut', '<div class="sg-row"><button class="ds-btn" type="button" data-tip="Search the list" data-tip-shortcut="Ctrl K" data-demo="shortcut">' + h.icon('search', 16) + 'Search</button></div>') +
+      h.section('With a shortcut', '<div class="sg-row"><button class="ds-btn" type="button" data-tip="Search the list" data-tip-shortcut="Ctrl K" aria-keyshortcuts="Control+K" data-demo="shortcut">' + h.icon('search', 16) + 'Search</button></div>') +
+
+      h.section('Placement', '<div class="sg-row" role="toolbar" aria-label="Zoom">' +
+        [['top', 'chevronUp', 'Placed above'], ['end', 'chevronRight', 'Placed after'], ['bottom', 'chevronDown', 'Placed below'], ['start', 'chevronLeft', 'Placed before']].map(function (entry) {
+          return '<button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="' + entry[2] + '" data-tip="' + entry[2] + '" data-tip-placement="' + entry[0] + '" data-demo="side-' + entry[0] + '">' + h.icon(entry[1], 20) + '</button>';
+        }).join('') + '</div>', 'data-tip-placement on the trigger: bottom (the default), top, start or end; without room it takes the opposite side.') +
+
+      h.section('Delay', '<div class="sg-row">' +
+        '<button class="ds-btn" type="button" data-tip="Shows at once" data-tip-delay="none" data-demo="delay-none">None</button>' +
+        '<button class="ds-btn" type="button" data-tip="Shows sooner" data-tip-delay="short" data-demo="delay-short">Short</button>' +
+        '<button class="ds-btn" type="button" data-tip="Shows after the usual moment" data-demo="delay-default">Default</button>' +
+        '<button class="ds-btn" type="button" data-tip="Shows after a longer rest" data-tip-delay="long" data-demo="delay-long">Long</button></div>',
+        'data-tip-delay sets how long a mouse rests before the tip shows; keyboard focus always shows it at once.') +
 
       h.section('States', '<div class="sg-row"><button class="ds-btn ds-btn--filled" type="button" aria-disabled="true" data-tip="Fill in the serial number first" data-demo="blocked">Publish</button>' +
         '<span role="img" aria-label="Online" data-tip="Online since 09:12" data-demo="image">' + h.icon('checkCircle', 20) + '</span></div>',
