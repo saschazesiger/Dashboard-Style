@@ -93,7 +93,13 @@ SG.demo('menu', {
           return '<div class="ds-list__item ds-pressable ds-pressable--inset" role="listitem" tabindex="0" data-ds-contextmenu="#' + context + '" data-device="' + name + '" aria-describedby="' + context + '-hint">' +
             h.icon(name.indexOf('PRINTER') === 0 ? 'printer' : 'laptop', 20) + '<span>' + name + '</span></div>';
         }).join('') + '</div>' +
-        '<p class="ds-muted" id="' + context + '-hint">Right-click a row, press and hold it, or focus it and press Shift+F10.</p>' +
+        '<div class="ds-tiles" role="list" aria-label="Device groups" data-demo="tiles" style="margin-top:var(--ds-space-3)">' +
+        [['Laptops', '42', 'LAPTOP group'], ['Printers', '7', 'PRINTER group']].map(function (entry) {
+          return '<div class="ds-tile" role="listitem" tabindex="0" data-ds-contextmenu="#' + context + '" data-device="' + entry[2] + '" aria-describedby="' + context + '-hint">' +
+            '<p class="ds-tile__label">' + h.icon(entry[0] === 'Printers' ? 'printer' : 'laptop', 16) + '<span>' + entry[0] + '</span></p>' +
+            '<p class="ds-tile__value">' + entry[1] + '</p></div>';
+        }).join('') + '</div>' +
+        '<p class="ds-muted" id="' + context + '-hint">Right-click a row or a tile, press and hold it, or focus it and press Shift+F10.</p>' +
         '<div class="ds-menu" role="menu" id="' + context + '" aria-label="Device actions" hidden data-demo="context-menu">' +
         '<p class="ds-menu__heading" data-row-name>Device</p>' +
         item(h, 'pencil', 'Rename', '', ' data-act="Renamed"') + item(h, 'copy', 'Duplicate', '', ' data-act="Duplicated"') +

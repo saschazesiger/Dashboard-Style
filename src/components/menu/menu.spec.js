@@ -487,6 +487,24 @@ test('context menu: Shift+F10 and the ContextMenu key open it under the focused 
   await expect(menu).toBeHidden();
 });
 
+test('context menu: a tile opens it too, on a right click and on Shift+F10', async ({ page }) => {
+  await open(page);
+  const tile = page.locator('[data-demo="tiles"] [data-ds-contextmenu]').last();
+  const menu = page.locator('[data-demo="context-menu"]');
+  await tile.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await tile.click({ button: 'right' });
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  await expect(menu.locator('[data-row-name]')).toHaveText('PRINTER group');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+  await expect(tile).toBeFocused();
+  await page.keyboard.press('Shift+F10');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  expect(await focused(page)).toBe('Rename');
+  await page.keyboard.press('Escape');
+  await expect(menu).toBeHidden();
+});
+
 test('context menu: a long press on a touch screen opens it at the finger, and the click it ends in never comes', async ({ page, browserName }) => {
   test.skip(browserName === 'firefox', 'Firefox has no touch events in Playwright without hasTouch');
   await open(page);
