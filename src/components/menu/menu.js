@@ -54,7 +54,7 @@
  * progressive feature of its own.
  */
 import { define, emit, t } from '../../js/core.js';
-import { motionDuration, originFrom } from '../../js/motion.js';
+import { motionDuration, originFrom, settled } from '../../js/motion.js';
 import { computePlacement, place, pxOf, releaseAnchor, round, viewportBounds } from '../../js/position.js';
 import { announce } from '../../js/a11y.js';
 import { internals, open as openOverlay, close as closeOverlay, typeAhead } from '../../js/overlay.js';
@@ -334,6 +334,14 @@ function openSub(item, mode) {
   focusMode.set(sub, mode);
   openOverlay(sub, { opener: item });
   enterCustom(sub);
+  // A parent opened a moment ago is still growing, so its item's box is
+  // scaled: once the parent rests, the submenu goes beside the item's
+  // final box (a few pixels; it is still entering itself).
+  if (menu.getAnimations?.().some((animation) => animation.playState === 'running')) {
+    settled(menu, { transitions: true }).then(() => {
+      if (custom.get(sub)?.anchor === item && isOpen(sub)) placeCustom(sub);
+    });
+  }
 }
 
 /** Search: hides what does not match `query`, shows the empty row when nothing does. */
@@ -655,7 +663,8 @@ define('contextmenu', {
     if (!doc) return () => {};
     let press = /** @type {{ target: Element, id: number, x: number, y: number, timer: any } | null} */ (null);
     let swallow = /** @type {((event: Event) => void) | null} */ (null);
-    let opened = 0;
+    // When the last menu opened here (performance.now()); none yet.
+    let opened = -Infinity;
     const targetOf = (/** @type {Event} */ event) => /** @type {Element|null} */ (/** @type {Element} */ (event.composedPath?.()[0] ?? event.target)?.closest?.('[data-ds-contextmenu]') ?? null);
     /** Opens the menu of `target` at a point, or under it (the keyboard). */
     const show = (target, point) => {
