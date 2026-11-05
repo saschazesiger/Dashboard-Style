@@ -9,9 +9,12 @@
   "classes": [
     "ds-inlineedit",
     "ds-inlineedit__actions",
+    "ds-inlineedit__cancel",
     "ds-inlineedit__edit",
     "ds-inlineedit__error",
     "ds-inlineedit__form",
+    "ds-inlineedit__input",
+    "ds-inlineedit__save",
     "ds-inlineedit__value",
     "ds-inlineedit__view"
   ],

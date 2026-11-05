@@ -86,7 +86,7 @@
     min-width: 0;
   }
 
-  .ds-inlineedit__form > :is(input, textarea, select) {
+  .ds-inlineedit__input {
     flex: 1 1 var(--ds-inlineedit-field-min, 12rem);
     width: auto;
     min-width: 0;
@@ -97,6 +97,11 @@
     flex: none;
     align-items: center;
     gap: var(--ds-space-1);
+  }
+
+  .ds-inlineedit__save,
+  .ds-inlineedit__cancel {
+    flex: none;
   }
 
   /* Which part shows: the view until the script says edit. */
