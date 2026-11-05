@@ -879,7 +879,10 @@
       display: flex;
       align-items: center;
       gap: var(--ds-space-2);
-      padding-right: var(--_px);
+      /* The engine's chevron sits in the flow: both ends take the field's
+         padding again (both sides, so the physical room of the triangle
+         rule goes in either direction). */
+      padding-inline: var(--_px);
       background-image: none;
     }
 

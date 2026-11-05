@@ -19,7 +19,7 @@
  *   <div class="ds-input-group ds-number ds-number--split" data-ds-number data-ds-number-min="1">
  *     <input class="ds-input" ...>
  *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-number__step ds-number__down" ...>
- *     <button class="... ds-number__up" ...></div>
+ *     <button class="ds-btn ds-btn--quiet ds-btn--icon ds-number__step ds-number__up" ...></div>
  *
  * Currency and unit: data-ds-number-currency="EUR" or -unit="gigabyte" on
  * the group, with an empty .ds-input-group__prefix and __suffix: DS.number
