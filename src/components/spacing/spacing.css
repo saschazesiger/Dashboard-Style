@@ -1,0 +1,113 @@
+/*
+ * Spacing: the gap of a flex or grid container and, for the rare case, a
+ * top margin, both on the space scale (--ds-space-1 ... --ds-space-12, a
+ * 4px grid). Space between parts is the container's gap; a margin is
+ * only for what a container cannot give (one block set apart in flowing
+ * text, an item pushed to the end of a column).
+ *
+ *   <div class="ds-stack ds-gap-2">...</div>        8px between the parts
+ *   <div class="ds-cluster ds-gap-6">...</div>
+ *   <p class="ds-mt-4">...</p>                       16px above
+ *   <div class="ds-mt-auto">...</div>                pushed to the end of a column
+ *
+ *   .ds-gap-0, -1, -2, -3, -4, -5, -6, -8, -10, -12   gap: --ds-space-<n> (0: none)
+ *   .ds-mt-0, -1, -2, -3, -4, -5, -6, -8, -10, -12    margin-block-start: --ds-space-<n>
+ *   .ds-mt-auto                                       margin-block-start: auto
+ *
+ * They come after every component in the cascade, so they set the gap of
+ * a stack, a cluster, a card's rows or a form row whatever the component
+ * gives it. An exact step: density does not change it (the primitives'
+ * own default gaps follow density, layout.css).
+ *
+ * Options: none read.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.spacing {
+  .ds-gap-0 {
+    gap: 0px;
+  }
+
+  .ds-gap-1 {
+    gap: var(--ds-space-1);
+  }
+
+  .ds-gap-2 {
+    gap: var(--ds-space-2);
+  }
+
+  .ds-gap-3 {
+    gap: var(--ds-space-3);
+  }
+
+  .ds-gap-4 {
+    gap: var(--ds-space-4);
+  }
+
+  .ds-gap-5 {
+    gap: var(--ds-space-5);
+  }
+
+  .ds-gap-6 {
+    gap: var(--ds-space-6);
+  }
+
+  .ds-gap-8 {
+    gap: var(--ds-space-8);
+  }
+
+  .ds-gap-10 {
+    gap: var(--ds-space-10);
+  }
+
+  .ds-gap-12 {
+    gap: var(--ds-space-12);
+  }
+
+  .ds-mt-0 {
+    margin-block-start: 0px;
+  }
+
+  .ds-mt-1 {
+    margin-block-start: var(--ds-space-1);
+  }
+
+  .ds-mt-2 {
+    margin-block-start: var(--ds-space-2);
+  }
+
+  .ds-mt-3 {
+    margin-block-start: var(--ds-space-3);
+  }
+
+  .ds-mt-4 {
+    margin-block-start: var(--ds-space-4);
+  }
+
+  .ds-mt-5 {
+    margin-block-start: var(--ds-space-5);
+  }
+
+  .ds-mt-6 {
+    margin-block-start: var(--ds-space-6);
+  }
+
+  .ds-mt-8 {
+    margin-block-start: var(--ds-space-8);
+  }
+
+  .ds-mt-10 {
+    margin-block-start: var(--ds-space-10);
+  }
+
+  .ds-mt-12 {
+    margin-block-start: var(--ds-space-12);
+  }
+
+  /* In a flex column the auto margin takes the free space: this block and
+     what follows go to the end (a card's links at its foot). */
+  .ds-mt-auto {
+    margin-block-start: auto;
+  }
+}
