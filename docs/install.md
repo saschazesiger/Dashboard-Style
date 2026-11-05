@@ -437,6 +437,17 @@ strings a script adds have an option, so a page in another language passes its o
 | `Edit` | the text of that button (the system's string `wizardEditShort`) | `DS.core.config({ strings: { wizardEditShort } })` |
 | `Yes` | a ticked lone checkbox in the summary of `DS.wizard` (the system's string `wizardYes`) | `DS.core.config({ strings: { wizardYes } })` |
 | `No` | a lone checkbox left empty in the summary of `DS.wizard` (the system's string `wizardNo`) | `DS.core.config({ strings: { wizardNo } })` |
+| `1 unsaved change` | the text of `[data-ds-unsaved-count]` for one change in `DS.unsaved` (the system's string `unsavedOne`) | `DS.core.config({ strings: { unsavedOne } })` |
+| `{count} unsaved changes` | the same, for several (the system's string `unsavedMany`) | `DS.core.config({ strings: { unsavedMany } })` |
+| `Save changes` | the shortcut sheet's line for the save shortcut of `DS.unsaved` (the system's string `unsavedSaveKey`) | `DS.core.config({ strings: { unsavedSaveKey } })` |
+| `Changes saved.` | what `DS.unsaved` announces after a save (the system's string `unsavedSaved`) | `DS.core.config({ strings: { unsavedSaved } })` |
+| `Not saved. Your changes are still here.` | what `DS.unsaved` announces when a save failed (the system's string `unsavedFailed`) | `DS.core.config({ strings: { unsavedFailed } })` |
+| `Changes discarded.` | what `DS.unsaved` announces after a discard (the system's string `unsavedDiscarded`) | `DS.core.config({ strings: { unsavedDiscarded } })` |
+| `Leave without saving?` | the title of the dialog of `DS.unsaved.navigate()` (the system's string `unsavedLeaveTitle`) | `DS.core.config({ strings: { unsavedLeaveTitle } })` |
+| `Your unsaved changes will be lost.` | its text (the system's string `unsavedLeaveText`) | `DS.core.config({ strings: { unsavedLeaveText } })` |
+| `Discard changes` | its confirm button (the system's string `unsavedLeave`) | `DS.core.config({ strings: { unsavedLeave } })` |
+| `Keep editing` | its cancel button (the system's string `unsavedStay`) | `DS.core.config({ strings: { unsavedStay } })` |
+| `(changed)` | the word `DS.unsaved` adds to a changed field's label for screen readers, where the label has no `.ds-field__changed` (the system's string `unsavedChangedWord`) | `DS.core.config({ strings: { unsavedChangedWord } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

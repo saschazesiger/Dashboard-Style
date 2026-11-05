@@ -191,6 +191,17 @@ const DEFAULT_STRINGS = Object.freeze({
   wizardEditShort: 'Edit',
   wizardYes: 'Yes',
   wizardNo: 'No',
+  unsavedOne: '1 unsaved change',
+  unsavedMany: '{count} unsaved changes',
+  unsavedSaveKey: 'Save changes',
+  unsavedSaved: 'Changes saved.',
+  unsavedFailed: 'Not saved. Your changes are still here.',
+  unsavedDiscarded: 'Changes discarded.',
+  unsavedLeaveTitle: 'Leave without saving?',
+  unsavedLeaveText: 'Your unsaved changes will be lost.',
+  unsavedLeave: 'Discard changes',
+  unsavedStay: 'Keep editing',
+  unsavedChangedWord: '(changed)',
 });
 
 /**
