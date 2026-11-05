@@ -1,0 +1,38 @@
+{
+  "name": "text",
+  "group": "layout",
+  "order": 410,
+  "docsOrder": 358,
+  "need": "Cut, clamp, break or keep text, set it in the code family or tabular figures, balance a heading",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-balance",
+    "ds-break",
+    "ds-clamp",
+    "ds-clamp-1",
+    "ds-clamp-2",
+    "ds-clamp-3",
+    "ds-clamp-4",
+    "ds-clamp-5",
+    "ds-mono",
+    "ds-pretty",
+    "ds-tabular",
+    "ds-truncate"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-clamp-lines": {
+      "default": "`2`",
+      "description": "the number of lines `.ds-clamp` shows before its ellipsis"
+    }
+  },
+  "keyframes": [],
+  "js": [],
+  "progressive": [
+    "text-wrap"
+  ],
+  "ripple": false
+}
