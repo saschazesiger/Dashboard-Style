@@ -1,0 +1,59 @@
+{
+  "name": "auditlog",
+  "group": "data",
+  "order": 620,
+  "docsOrder": 101,
+  "need": "Show who changed what and when, with the old and new values, filtered and grouped by day",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-auditlog",
+    "ds-auditlog__change",
+    "ds-auditlog__count",
+    "ds-auditlog__diff",
+    "ds-auditlog__filters",
+    "ds-auditlog__new",
+    "ds-auditlog__none",
+    "ds-auditlog__old",
+    "ds-auditlog__source"
+  ],
+  "attributes": [],
+  "requires": [
+    "status",
+    "timeline",
+    "utilities"
+  ],
+  "context": [
+    "form"
+  ],
+  "hooks": {
+    "--ds-auditlog-field-width": {
+      "default": "10rem",
+      "description": "the field column of a `.ds-auditlog__diff`"
+    },
+    "--ds-auditlog-old-bg": {
+      "default": "`--ds-error-container`",
+      "description": "the old value of a change (`.ds-auditlog__old`, struck through)"
+    },
+    "--ds-auditlog-new-bg": {
+      "default": "`--ds-success-container`",
+      "description": "the new value of a change (`.ds-auditlog__new`, underlined)"
+    },
+    "--ds-auditlog-diff-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "the corners of a `.ds-auditlog__diff` (times `--ds-shape`)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "auditlog"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.auditlog.changes": "a pure function: no motion",
+    "DS.auditlog.group": "a pure function: no motion",
+    "DS.auditlog.matches": "a pure function: no motion"
+  }
+}

@@ -42,12 +42,16 @@ and every `src/components/<name>/<name>.js`, as `manifest.json` `js` lists them)
 | `js/store.js` | `DS.store` | core (`src/js/`) | `core` | [core.md](core.md) |
 | `js/virtual.js` | `DS.virtual` | core (`src/js/`) | `core`, `dom` | [core.md](core.md) |
 | `js/dnd.js` | `DS.dnd` | core (`src/js/`) | `core`, `motion` | [core.md](core.md) |
+| `js/auditlog.js` | `DS.auditlog` | component (`src/components/auditlog/`) | `a11y`, `core`, `dom`, `format`, `icons`, `motion` | [components.md](components.md#audit-log) |
 | `js/badge.js` | `DS.badge` | component (`src/components/badge/`) | `core`, `motion` | [components.md](components.md#badge) |
 | `js/dialog.js` | `DS.dialog` | component (`src/components/dialog/`) | `core`, `icons`, `motion`, `overlay` | [components.md](components.md#dialog) |
+| `js/list.js` | `DS.list` | component (`src/components/list/`) | `a11y`, `core`, `dnd`, `icons`, `motion`, `virtual` | [components.md](components.md#lists) |
 | `js/menu.js` | `DS.menu` | component (`src/components/menu/`) | `core`, `motion`, `overlay` | [components.md](components.md#menu) |
 | `js/sheet.js` | `DS.sheet` | component (`src/components/sheet/`) | `core`, `overlay` | [components.md](components.md#side-sheet) |
 | `js/toast.js` | `DS.toast` | component (`src/components/toast/`) | `core`, `icons`, `motion`, `overlay`, `position` | [components.md](components.md#snackbar) |
 | `js/tooltip.js` | `DS.tooltip` | component (`src/components/tooltip/`) | `core`, `motion`, `overlay`, `position` | [components.md](components.md#tooltip) |
+| `js/tree.js` | `DS.tree` | component (`src/components/tree/`) | `a11y`, `core`, `dnd`, `dom`, `icons`, `motion` | [components.md](components.md#tree-view) |
+| `js/jsonview.js` | `DS.jsonview` | component (`src/components/jsonview/`) | `a11y`, `core`, `format`, `icons`, `motion`, `tree` | [components.md](components.md#json-viewer) |
 <!-- /generated: modules -->
 
 Browsers: Safari 17.5, Chrome and Edge 123, Firefox 130 and later (3.0). Newer features are refinements that the
@@ -420,6 +424,18 @@ strings a script adds have an option, so a page in another language passes its o
 | `{count} items` | the size of an array in `DS.jsonview` (the system's string `jsonItems`) | `DS.core.config({ strings: { jsonItems } })` |
 | `Not valid JSON: line {line}, column {column}.` | what `DS.jsonview` shows for text that is no JSON (the system's string `jsonInvalid`) | `DS.core.config({ strings: { jsonInvalid } })` |
 | `Search` | the placeholder of the search field of `DS.jsonview` (the system's string `jsonFind`) | `DS.core.config({ strings: { jsonFind } })` |
+| `Copy {label}` | the name of a copy button that `DS.list` writes after a value of a `.ds-facts` list (the system's string `factsCopy`) | `DS.core.config({ strings: { factsCopy } })` |
+| `Move {label}` | the accessible name of the drag handle `DS.list` writes into a reorderable row (the system's string `listMove`) | `DS.core.config({ strings: { listMove } })` |
+| `{count} selected` | what `DS.list` announces after a range or "select all" (the system's string `listSelected`) | `DS.core.config({ strings: { listSelected } })` |
+| `Today` | the day heading of today in `DS.auditlog` (the system's string `auditlogToday`) | `DS.core.config({ strings: { auditlogToday } })` |
+| `Yesterday` | the day heading of yesterday in `DS.auditlog` (the system's string `auditlogYesterday`) | `DS.core.config({ strings: { auditlogYesterday } })` |
+| `No date` | the heading of the entries of `DS.auditlog` without a valid time (the system's string `auditlogUndated`) | `DS.core.config({ strings: { auditlogUndated } })` |
+| `Before:` | the hidden word before the old value of a change in `DS.auditlog` (the system's string `auditlogBefore`) | `DS.core.config({ strings: { auditlogBefore } })` |
+| `After:` | the hidden word before the new value of a change in `DS.auditlog` (the system's string `auditlogAfter`) | `DS.core.config({ strings: { auditlogAfter } })` |
+| `Not set` | a value of a change in `DS.auditlog` that was not set, before or after (the system's string `auditlogNotSet`) | `DS.core.config({ strings: { auditlogNotSet } })` |
+| `{count} event` | the count of `DS.auditlog` for one entry, no filter set (the system's string `auditlogEvent`) | `DS.core.config({ strings: { auditlogEvent } })` |
+| `{count} events` | the count of `DS.auditlog`, no filter set (the system's string `auditlogEvents`) | `DS.core.config({ strings: { auditlogEvents } })` |
+| `{shown} of {total} events` | the count of `DS.auditlog` while a filter is set, shown and announced (the system's string `auditlogFiltered`) | `DS.core.config({ strings: { auditlogFiltered } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

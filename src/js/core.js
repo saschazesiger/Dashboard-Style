@@ -177,6 +177,15 @@ const DEFAULT_STRINGS = Object.freeze({
   listMove: 'Move {label}',
   listSelected: '{count} selected',
   factsCopy: 'Copy {label}',
+  auditlogToday: 'Today',
+  auditlogYesterday: 'Yesterday',
+  auditlogUndated: 'No date',
+  auditlogBefore: 'Before:',
+  auditlogAfter: 'After:',
+  auditlogNotSet: 'Not set',
+  auditlogEvent: '{count} event',
+  auditlogEvents: '{count} events',
+  auditlogFiltered: '{shown} of {total} events',
 });
 
 /**
