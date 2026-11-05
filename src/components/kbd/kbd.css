@@ -1,0 +1,57 @@
+/*
+ * Key combos: a shortcut as the keys of this platform, one .ds-kbd (the
+ * key of utilities.css) per key, written by DS.kbd from data-ds-kbd.
+ *
+ *   <kbd class="ds-kbd-combo" data-ds-kbd="mod+shift+k"></kbd>
+ *     becomes, on Apple systems:
+ *   <kbd class="ds-kbd-combo" data-ds-kbd="mod+shift+k">
+ *     <span class="ds-kbd-combo__keys" aria-hidden="true"><span class="ds-kbd-combo__combo">
+ *       <kbd class="ds-kbd">⇧</kbd><kbd class="ds-kbd">⌘</kbd><kbd class="ds-kbd">K</kbd></span></span>
+ *     <span class="ds-sr">Shift Command K</span></kbd>
+ *
+ *   .ds-kbd-combo__keys   the keys, hidden from assistive technology (the
+ *                         .ds-sr text says them in words)
+ *   .ds-kbd-combo__combo  one combo's keys, on one line
+ *   .ds-kbd-combo__plus   "+" between two keys, where the platform
+ *                         writes it (not on Apple systems)
+ *   .ds-kbd-combo__then   "then" between the combos of a sequence
+ *
+ * The keys sit on one line and never break inside a combo; a sequence may
+ * wrap between its combos. In a menu item's meta or a tooltip the combo
+ * takes the type of where it stands, the keys keep the code font.
+ *
+ * Options: none read; a key keeps the size of utilities.css (.ds-shape-*
+ * multiplies its radius there). Forced colours: the keys keep their edge
+ * (a border), the separators the text colour.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.kbd {
+  .ds-kbd-combo {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ds-space-1);
+    font: inherit;
+    vertical-align: baseline;
+  }
+
+  .ds-kbd-combo__keys {
+    display: contents;
+  }
+
+  .ds-kbd-combo__plus,
+  .ds-kbd-combo__then {
+    color: var(--ds-text-2);
+    font: var(--ds-font-caption);
+  }
+
+  /* A combo stays on one line; only a sequence wraps, between its combos. */
+  .ds-kbd-combo__combo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-1);
+    white-space: nowrap;
+  }
+}
