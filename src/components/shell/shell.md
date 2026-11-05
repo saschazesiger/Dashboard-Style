@@ -402,19 +402,8 @@ menu.addEventListener('click', () => {
 
 ### Avatar
 
-```html
-<span class="ds-avatar" role="img" aria-label="Ada Lovelace">A</span>                      <!-- the initial -->
-<span class="ds-avatar ds-sm" aria-hidden="true">A</span> Ada Lovelace                      <!-- next to the name -->
-<img class="ds-avatar" src="/people/ada.jpg" alt="">                                        <!-- a picture -->
-```
-
-A disc on the tint (`--ds-accent` / `--ds-on-accent`) of `--ds-avatar-size` (32px at size md, 8px per size step: `.ds-xs`
-16, `.ds-sm` 24, `.ds-lg` 40, `.ds-xl` 48px), the initial in the size's role, a picture covering it. The shape multiplies
-its radius (square at `.ds-shape-square`). `.ds-account__avatar` is the same disc. No status dot: a status goes next to
-the name as a word. Forced colours keep its edge.
-
-`.ds-avatar--sm` and `.ds-avatar--lg` are **deprecated** (3.0, removed when 3.0 ships): `.ds-sm` and `.ds-lg`, also on any
-ancestor. Until then they keep the fixed 2.x discs (24 and 40px).
+The account's avatar and an avatar anywhere else are [Avatar](#avatar) (`.ds-avatar`); `.ds-account__avatar` is the same
+disc, sized by `--ds-avatar-size`.
 
 ### A message for the whole app
 

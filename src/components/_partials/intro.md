@@ -15,7 +15,7 @@ component live.
 | Switch a mode on the same page (list or map, day or week) | `.ds-segmented` with button options (`role="radio"`, `aria-checked`) in a page toolbar ([App frame](#app-frame)) |
 | Many destinations in the drawer: groups that close, counts, a way back up, actions at the end of an item, a narrow rail | `.ds-drawer__group` as `<details>` with `.ds-drawer__toggle`, `.ds-drawer__count`, `.ds-drawer__back`, `.ds-drawer__row`, `data-drawer-collapsed` ([App frame](#app-frame)) |
 | The page's title, search or actions in the top bar | `.ds-topbar__title`, `.ds-topbar__search`, `.ds-topbar__actions` ([App frame](#app-frame)) |
-| Who is signed in | `.ds-account` in the top bar, or the outlined `.ds-account--capsule`; a person anywhere else: `.ds-avatar` ([App frame](#app-frame)) |
+| Who is signed in | `.ds-account` in the top bar, or the outlined `.ds-account--capsule`; a person anywhere else: `.ds-avatar` ([Avatar](#avatar)), with name, role and status: `.ds-persona` ([Persona](#persona)) |
 | A message for the whole app (offline, maintenance) | `.ds-banner` with a `.ds-alert`, above the view ([App frame](#app-frame)) |
 | A full-page table, or a view that never scrolls (a chat, a terminal) | `.ds-view--fill`, `.ds-view--fixed` ([App frame](#app-frame)) |
 | Page title, lead and the column layout of cards | [Page](#page): `.ds-page-head`, `.ds-stack` (one column), `.ds-grid-2` (two) |

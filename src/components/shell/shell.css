@@ -38,8 +38,7 @@
  *       [<div class="ds-banner"> <div class="ds-alert ds-tone-warning" role="status"> ... </div> </div>]
  *       <main class="ds-view [ds-view--fill | ds-view--fixed]" id="main" tabindex="-1"> <div class="ds-content"> <div class="ds-page"> ...
  *
- *   An avatar elsewhere: <span class="ds-avatar [ds-sm | ds-lg]" role="img" aria-label="Ada Lovelace">A</span>
- *   or <img class="ds-avatar" src="..." alt=""> next to the name.
+ *   An avatar elsewhere: .ds-avatar (avatar.css).
  *
  * State attributes on .ds-app, set by the page's script:
  *   data-drawer-open    the modal drawer is open (at 900px and below)
@@ -63,14 +62,14 @@
  *   size      .ds-xs ... .ds-xl: a drawer row and a segmented switch 8px per
  *             step, a segmented option's side padding 4px per step, the
  *             type role of the size at the regular weight (only the current
- *             row or option is heavier); an avatar 8px per step (16 to 48px)
- *             and the size's role
+ *             row or option is heavier); the account's avatar 8px per
+ *             step (16 to 48px) and the size's role
  *   density   .ds-density-*: a drawer row and a segmented switch 4px per
  *             step; not their side padding, not the type
  *   shape     .ds-shape-*: multiplies the radius of the rows and the pill
  *             (rest and pressed), the segmented track and its press clip,
  *             the skip link, the account capsule, the panel's top corners,
- *             the modal drawer's open side and the avatar
+ *             the modal drawer's open side and the account's avatar
  *   touch     .ds-touch: drawer rows, the segmented switch, the skip link
  *             and the brand link are at least --ds-target-min; the menu
  *             button's box moves the bar's padding and the modal drawer's
@@ -127,7 +126,8 @@
  * --ds-view-scrollbar-gutter (stable; stable both-edges, or auto),
  * --ds-segmented-padding-x (--ds-space-4: the inline padding of an
  * option), --ds-topbar-search-max (720px), --ds-account-text-max
- * (240px), --ds-avatar-size (32px). Layout role: --ds-drawer-rail-width.
+ * (240px); read: --ds-avatar-size (avatar.css). Layout role:
+ * --ds-drawer-rail-width.
  *
  * Drawer parts: .ds-drawer__back (a way up, between head and list, with a
  * hairline under it; above 900px the docked drawer's back item hides the
@@ -161,10 +161,9 @@
  * width (the only carrier of the name: role="img", aria-label, data-tip),
  * the text aria-hidden (at most --ds-account-text-max, hidden below
  * 720px), .ds-account__divider and a text button; without the button
- * (none, or hidden) the capsule ends with its start's room. .ds-avatar
- * (32px, --ds-avatar-size; .ds-sm 24px, .ds-lg 40px) is the same disc
- * anywhere. Its --sm and --lg, the 2.x sizes, are deprecated aliases until
- * 3.0 ships.
+ * (none, or hidden) the capsule ends with its start's room. The account's
+ * avatar is the disc of .ds-avatar (avatar.css: 32px, --ds-avatar-size;
+ * .ds-sm 24px, .ds-lg 40px).
  *
  * .ds-banner: a message for the whole app, the first child of .ds-panel
  * above the view, holding one .ds-alert (role="status", or role="alert"
@@ -726,13 +725,12 @@
   }
 
   /*
-   * Avatar: the initial (or a picture) on the tint, a disc. The account's
-   * avatar is the same disc (both selectors), shown only where it stands in
-   * for the text. Narrow windows show the initial instead of name and
-   * email: the avatar then names them itself (aria-label) and shows them in
-   * its tooltip on hover, keyboard focus or a tap (data-tip). No status dot.
+   * The account's avatar: the disc of .ds-avatar (avatar.css, the same
+   * size formula), shown only where it stands in for the text. Narrow
+   * windows show the initial instead of name and email: the avatar then
+   * names them itself (aria-label) and shows them in its tooltip on hover,
+   * keyboard focus or a tap (data-tip). No status dot.
    */
-  .ds-avatar,
   .ds-account__avatar {
     --_size: calc(var(--ds-avatar-size, 32px) + var(--ds-size-step, 0) * 8px);
     flex-shrink: 0;
@@ -747,11 +745,6 @@
     font: var(--ds-size-font, var(--ds-font-label));
     object-fit: cover;
     user-select: none;
-  }
-
-  .ds-avatar {
-    display: inline-grid;
-    vertical-align: middle;
   }
 
   .ds-account__avatar {
@@ -774,20 +767,6 @@
     content: '';
     position: absolute;
     inset: min(0px, calc((var(--_size) - var(--ds-target-min, 0px)) / 2));
-  }
-
-  /* The 2.x sizes, deprecated aliases of .ds-sm and .ds-lg until 3.0 ships:
-     the fixed 24px and 40px disc, whatever size surrounds them. */
-  .ds-avatar--sm {
-    --ds-avatar-size: var(--ds-space-6);
-    --ds-size-step: 0;
-    font: var(--ds-font-caption);
-  }
-
-  .ds-avatar--lg {
-    --ds-avatar-size: var(--ds-space-10);
-    --ds-size-step: 0;
-    font: var(--ds-font-subtitle);
   }
 
   /*
@@ -2039,7 +2018,6 @@
     }
 
     /* The disc keeps its edge where its fill is gone. */
-    .ds-avatar,
     .ds-account__avatar {
       outline: 1px solid transparent;
     }
