@@ -397,6 +397,14 @@ strings a script adds have an option, so a page in another language passes its o
 | `Dropped {label} at position {position} of {total}.` | what `DS.dnd.create()` announces on a drop (the system's string `dragDropped`) | `DS.core.config({ strings: { dragDropped } })` |
 | `Dropped {label} in {zone}, position {position} of {total}.` | the same, with several named zones (the system's string `dragDroppedZone`) | `DS.core.config({ strings: { dragDroppedZone } })` |
 | `Cancelled. {label} is back at position {position} of {total}.` | what `DS.dnd.create()` announces on a cancel (the system's string `dragCancelled`) | `DS.core.config({ strings: { dragCancelled } })` |
+| `Move {label}` | the accessible name of the drag handle of a `.ds-tree` row (the system's string `treeMove`) | `DS.core.config({ strings: { treeMove } })` |
+| `Before {target}, in {parent}.` | what a keyboard drag of `DS.tree` announces at a place before a row (the system's string `treeMoveBefore`) | `DS.core.config({ strings: { treeMoveBefore } })` |
+| `After {target}, in {parent}.` | the same, after a row (the system's string `treeMoveAfter`) | `DS.core.config({ strings: { treeMoveAfter } })` |
+| `Into {target}.` | the same, into a folder (the system's string `treeMoveInside`) | `DS.core.config({ strings: { treeMoveInside } })` |
+| `Moved {label} to {parent}, position {position} of {total}.` | what `DS.tree` announces on a drop (the system's string `treeDropped`) | `DS.core.config({ strings: { treeDropped } })` |
+| `Loaded {label}.` | what `DS.tree` announces when lazy children arrive (the system's string `treeLoaded`) | `DS.core.config({ strings: { treeLoaded } })` |
+| `Could not load {label}.` | what `DS.tree` announces when lazy children fail (the system's string `treeLoadFailed`) | `DS.core.config({ strings: { treeLoadFailed } })` |
+| `Could not load` | the word in the row of a folder whose children failed (the system's string `treeError`) | `DS.core.config({ strings: { treeError } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

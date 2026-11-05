@@ -151,6 +151,14 @@ const DEFAULT_STRINGS = Object.freeze({
   dragDropped: 'Dropped {label} at position {position} of {total}.',
   dragDroppedZone: 'Dropped {label} in {zone}, position {position} of {total}.',
   dragCancelled: 'Cancelled. {label} is back at position {position} of {total}.',
+  treeMove: 'Move {label}',
+  treeMoveBefore: 'Before {target}, in {parent}.',
+  treeMoveAfter: 'After {target}, in {parent}.',
+  treeMoveInside: 'Into {target}.',
+  treeDropped: 'Moved {label} to {parent}, position {position} of {total}.',
+  treeLoaded: 'Loaded {label}.',
+  treeLoadFailed: 'Could not load {label}.',
+  treeError: 'Could not load',
 });
 
 /**

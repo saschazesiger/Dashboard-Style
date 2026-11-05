@@ -1,0 +1,96 @@
+{
+  "name": "tree",
+  "group": "data",
+  "order": 600,
+  "docsOrder": 95,
+  "need": "Show a hierarchy that opens and closes: folders, groups, nested records; pick one or check many",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-tree",
+    "ds-tree__actions",
+    "ds-tree__check",
+    "ds-tree__error",
+    "ds-tree__grip",
+    "ds-tree__group",
+    "ds-tree__icon",
+    "ds-tree__item",
+    "ds-tree__label",
+    "ds-tree__meta",
+    "ds-tree__row",
+    "ds-tree__spinner",
+    "ds-tree__toggle"
+  ],
+  "attributes": [
+    "data-ds-dragging",
+    "data-ds-ripple",
+    "data-ds-tree-drop"
+  ],
+  "requires": [
+    "spinner"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-tree-row-height": {
+      "default": "40px",
+      "description": "a `.ds-tree` row: the base height (size md, comfortable density) that size and density steps apply to"
+    },
+    "--ds-tree-padding": {
+      "default": "`--ds-space-2`",
+      "description": "the side padding of a tree row, 2px per density step"
+    },
+    "--ds-tree-indent": {
+      "default": "20px",
+      "description": "how far each level of a tree sits in, 4px per size step"
+    },
+    "--ds-tree-toggle-size": {
+      "default": "24px",
+      "description": "the chevron's box at the start of a folder's row (a leaf keeps its room), 4px per size step"
+    },
+    "--ds-tree-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "the corners of a tree row (times `--ds-shape`)"
+    },
+    "--ds-tree-selected-bg": {
+      "default": "`--ds-accent`",
+      "description": "the chosen row of a tree (`aria-selected=\"true\"`)"
+    },
+    "--ds-tree-guide": {
+      "default": "`--ds-line`",
+      "description": "the hairline that runs down a folder's children, below its chevron"
+    },
+    "--ds-tree-drop-color": {
+      "default": "`--ds-primary`",
+      "description": "the line or frame that marks where a dragged item would drop"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "a11y",
+    "dnd",
+    "tree"
+  ],
+  "module": true,
+  "progressive": [
+    "interpolate-size",
+    "overflow-clip-margin"
+  ],
+  "ripple": true,
+  "rippleHosts": [
+    ".ds-tree__item:not([aria-disabled=\"true\"]) > .ds-tree__row"
+  ],
+  "labExempt": {
+    "DS.tree.checkState": "a pure function: no motion"
+  },
+  "motionExceptions": {
+    "transition": {
+      "rotate": {
+        ".ds-tree__toggle > svg": "a disclosure chevron: the folder's chevron turns a quarter on the spring as it opens"
+      },
+      "height": {
+        ".ds-tree__group": "a folder's children open to auto on --ds-ease-out, as .ds-collapsible (D29), only where interpolate-size exists",
+        ".ds-tree__item[aria-expanded=\"false\"] > .ds-tree__group": "a folder's children close (0) on --ds-ease-in, as .ds-collapsible, only where interpolate-size exists"
+      }
+    }
+  }
+}
