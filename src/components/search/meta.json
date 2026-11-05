@@ -1,7 +1,7 @@
 {
   "name": "search",
   "group": "forms",
-  "order": 316,
+  "order": 670,
   "docsOrder": 205,
   "need": "Search a page or a list: a shortcut to reach it, clear it, see how many results, come back to recent searches",
   "tier": 1,

@@ -1,7 +1,7 @@
 {
   "name": "inlineedit",
   "group": "forms",
-  "order": 297,
+  "order": 640,
   "docsOrder": 206,
   "need": "Change one value where it is shown: text that turns into a field, saved with Enter, left with Escape",
   "tier": 1,

@@ -1,7 +1,7 @@
 {
   "name": "number",
   "group": "forms",
-  "order": 292,
+  "order": 600,
   "docsOrder": 201,
   "need": "Enter a number, an amount or a quantity with a unit: steppers, limits and the locale's way of writing it",
   "tier": 1,

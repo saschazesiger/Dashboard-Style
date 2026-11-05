@@ -1,7 +1,7 @@
 {
   "name": "password",
   "group": "forms",
-  "order": 293,
+  "order": 610,
   "docsOrder": 202,
   "need": "Enter or choose a password: show it, see how strong it is, notice Caps Lock",
   "tier": 1,

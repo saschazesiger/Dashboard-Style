@@ -1,7 +1,7 @@
 {
   "name": "otp",
   "group": "forms",
-  "order": 295,
+  "order": 630,
   "docsOrder": 204,
   "need": "Enter a one-time code or a PIN: one cell per character, paste and autofill the whole code",
   "tier": 1,
