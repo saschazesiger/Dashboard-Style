@@ -1,0 +1,57 @@
+{
+  "name": "bottomsheet",
+  "group": "overlays",
+  "order": 1130,
+  "docsOrder": 262,
+  "need": "Show a short task or details from the bottom edge on a phone, with heights to rest at and a drag to dismiss",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-bottomsheet",
+    "ds-bottomsheet__handle",
+    "ds-bottomsheet__panel"
+  ],
+  "attributes": [
+    "data-detents",
+    "data-dragging",
+    "data-state"
+  ],
+  "requires": [
+    "sheet"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-bottomsheet-width": {
+      "default": "640px",
+      "description": "bottom sheet: the panel at most, centred on a wider screen"
+    },
+    "--ds-bottomsheet-gap": {
+      "default": "`--ds-space-12`",
+      "description": "bottom sheet: the room above the panel at its full height"
+    },
+    "--ds-bottomsheet-radius": {
+      "default": "`--ds-radius-dialog`",
+      "description": "bottom sheet: the panel's top corners at the default shape"
+    }
+  },
+  "keyframes": [
+    "ds-drop-out",
+    "ds-lift-in"
+  ],
+  "js": [
+    "bottomsheet"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.bottomsheet.create": "events only: the detents and the drag are shown in the entry bottomsheet-open",
+    "DS.bottomsheet.parseDetents": "a pure function: no motion",
+    "DS.bottomsheet.settleDetent": "a pure function: no motion"
+  },
+  "motionExceptions": {
+    "exitUnpaired": {
+      ".ds-bottomsheet.ds-sheet--closing:not([data-state]) .ds-bottomsheet__panel": "the opaque bottom sheet drops its full height off the screen, as the side sheet slides its width (D16)"
+    }
+  }
+}
