@@ -22,10 +22,12 @@ SG_LAB.add({
     '<label class="ds-sort__label" for="sg-lab-sort-field">Sort by</label>' +
     '<select class="ds-input ds-sort__field" id="sg-lab-sort-field"><option value="name" data-ds-sort-type="text">Name</option>' +
     '<option value="seen" data-ds-sort-type="date">Last seen</option></select>' +
-    '<button class="ds-btn ds-btn--quiet ds-sort__order" type="button">' + DS.icons.icon(DS.icons.arrowUp, 20, 'ds-sort__arrow') +
+    '<button class="ds-btn ds-btn--quiet ds-sort__order" type="button">' +
     '<span class="ds-sr">Order: </span><span class="ds-sort__words"><span class="ds-sort__word"></span><span class="ds-sort__word"></span></span></button></div>',
   height: 96,
   setup: function (stage) {
+    // The arrow comes from DS.icons, which the lab loads before it renders the stage.
+    stage.querySelector('.ds-sort__order').insertAdjacentHTML('afterbegin', DS.icons.icon(DS.icons.arrowUp, 20, 'ds-sort__arrow'));
     sortOf(stage);
   },
   subject: function (stage) { return stage.querySelector('.ds-sort__arrow'); },
