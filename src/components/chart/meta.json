@@ -7,6 +7,85 @@
   "tier": 1,
   "status": "stable",
   "classes": [
+    "ds-chart",
+    "ds-chart--bar",
+    "ds-chart--bargauge",
+    "ds-chart--donut",
+    "ds-chart--empty",
+    "ds-chart--gauge",
+    "ds-chart--patterns",
+    "ds-chart--pie",
+    "ds-chart--ring",
+    "ds-chart--sparkline",
+    "ds-chart--stacked",
+    "ds-chart__area",
+    "ds-chart__axis-title",
+    "ds-chart__band",
+    "ds-chart__band--on",
+    "ds-chart__bar",
+    "ds-chart__bar--down",
+    "ds-chart__bar--inner",
+    "ds-chart__bar--on",
+    "ds-chart__baseline",
+    "ds-chart__caption",
+    "ds-chart__centre",
+    "ds-chart__cursor",
+    "ds-chart__cursor--on",
+    "ds-chart__dot",
+    "ds-chart__empty",
+    "ds-chart__figure",
+    "ds-chart__frame",
+    "ds-chart__gridline",
+    "ds-chart__hint",
+    "ds-chart__key",
+    "ds-chart__key-name",
+    "ds-chart__key-value",
+    "ds-chart__legend",
+    "ds-chart__line",
+    "ds-chart__lines",
+    "ds-chart__marker",
+    "ds-chart__pattern-ground",
+    "ds-chart__pattern-ink",
+    "ds-chart__probe",
+    "ds-chart__row",
+    "ds-chart__row-bar",
+    "ds-chart__row-head",
+    "ds-chart__row-label",
+    "ds-chart__row-status",
+    "ds-chart__row-value",
+    "ds-chart__rows",
+    "ds-chart__rule",
+    "ds-chart__rule-label",
+    "ds-chart__series",
+    "ds-chart__series--dim",
+    "ds-chart__series--other",
+    "ds-chart__series--s2",
+    "ds-chart__series--s3",
+    "ds-chart__series--s4",
+    "ds-chart__slice",
+    "ds-chart__slice--active",
+    "ds-chart__svg",
+    "ds-chart__swatch",
+    "ds-chart__swatch-fill",
+    "ds-chart__swatch-line",
+    "ds-chart__swatch-marker",
+    "ds-chart__table",
+    "ds-chart__table-caption",
+    "ds-chart__tick",
+    "ds-chart__tick--category",
+    "ds-chart__tip",
+    "ds-chart__tip-gap",
+    "ds-chart__tip-key",
+    "ds-chart__tip-key-bar",
+    "ds-chart__tip-name",
+    "ds-chart__tip-row",
+    "ds-chart__tip-title",
+    "ds-chart__tip-value",
+    "ds-chart__tools",
+    "ds-chart__track",
+    "ds-chart__value-arc",
+    "ds-chart__zone",
+    "ds-chart__zone-arc",
     "ds-columns",
     "ds-columns--grouped",
     "ds-columns--mini",
@@ -37,7 +116,10 @@
     "ds-meter--neutral",
     "ds-meter--warning"
   ],
-  "attributes": [],
+  "attributes": [
+    "data-ds-ripple",
+    "data-state"
+  ],
   "requires": [],
   "context": [],
   "hooks": {
@@ -76,13 +158,89 @@
     "--ds-chart-forced-ink": {
       "default": "`CanvasText`",
       "description": "the fills of columns and legend keys in forced colours; a component that lays them on a system fill of its own sets it"
+    },
+    "--ds-chart-height": {
+      "default": "240px",
+      "description": "the plot of a line, area, column, bar or combo `.ds-chart` at size md, comfortable density: 40px per size step, 16px per density step; 3/4 of it under 480px of chart width"
+    },
+    "--ds-chart-radial-height": {
+      "default": "200px",
+      "description": "the plot of a donut, pie or ring: 24px per size step, 8px per density step"
+    },
+    "--ds-chart-gauge-height": {
+      "default": "160px",
+      "description": "the plot of a gauge: 24px per size step, 8px per density step"
+    },
+    "--ds-chart-spark-height": {
+      "default": "32px",
+      "description": "a sparkline (it lines up with a figure; no size or density)"
+    },
+    "--ds-chart-bar": {
+      "default": "24px",
+      "description": "the widest bar of a column or bar chart, 4px per size step (a narrow band gives less)"
+    },
+    "--ds-chart-radius": {
+      "default": "`--ds-radius-xs`",
+      "description": "the rounded data end of a bar (times `--ds-shape`); the frame's focus ring"
+    },
+    "--ds-chart-stroke": {
+      "default": "2px",
+      "description": "the line of a line, area or sparkline"
+    },
+    "--ds-chart-marker": {
+      "default": "8px",
+      "description": "a point's marker (circle, square, triangle, diamond by series), 2px per size step"
+    },
+    "--ds-chart-grid": {
+      "default": "`--ds-line`",
+      "description": "the gridlines"
+    },
+    "--ds-chart-area-opacity": {
+      "default": "`--ds-state-dragged`",
+      "description": "the wash of an area under its line"
+    },
+    "--ds-chart-stack-opacity": {
+      "default": "`--ds-state-stale`",
+      "description": "the fill of a stacked area"
+    },
+    "--ds-chart-dash-2": {
+      "default": "`8px 4px`",
+      "description": "the dash of the line of series 2 (`none`: solid)"
+    },
+    "--ds-chart-dash-3": {
+      "default": "`2px 4px`",
+      "description": "the dash of the line of series 3"
+    },
+    "--ds-chart-dash-4": {
+      "default": "`12px 4px 2px 4px`",
+      "description": "the dash of the line of series 4"
     }
   },
   "keyframes": [],
-  "js": [],
+  "js": [
+    "chart"
+  ],
+  "module": true,
   "progressive": [],
   "ripple": true,
   "rippleHosts": [
-    ":is(button, a).ds-columns__col"
-  ]
+    ":is(button, a).ds-columns__col",
+    ".ds-chart__key"
+  ],
+  "labExempt": {
+    "DS.chart.ticks": "a pure function of the chart engine: no motion",
+    "DS.chart.timeTicks": "a pure function of the chart engine: no motion",
+    "DS.chart.scale": "a pure function of the chart engine: no motion",
+    "DS.chart.path": "a pure function of the chart engine: no motion",
+    "DS.chart.stack": "a pure function of the chart engine: no motion",
+    "DS.chart.nearest": "a pure function of the chart engine: no motion",
+    "DS.chart.parse": "a pure function of the chart engine: no motion",
+    "DS.chart.layout": "a pure function of the chart engine: no motion"
+  },
+  "exceptions": {
+    "physical": {
+      ".ds-chart__centre: left": "SVG coordinates: the module writes the centre of the arcs from the left of the plot, which is drawn left to right in every direction",
+      ".ds-chart__tip: left": "SVG coordinates: the tooltip follows the cursor from the left of the plot, which is drawn left to right in every direction"
+    }
+  }
 }
