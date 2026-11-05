@@ -100,6 +100,12 @@ test('the bar sticks at the top of its scroller, scrolls sideways without a scro
   await page.locator('[data-demo="bar-box"]').evaluate((el) => { el.scrollTop = el.scrollHeight; });
   await expect(current(row)).toHaveText('Notes');
   await settle(page);
+  // The reveal is a smooth scroll of the list, which may still run after the marks settle.
+  await expect.poll(() => row.evaluate((el) => {
+    const link = el.querySelector('[aria-current="location"]').getBoundingClientRect();
+    const rect = el.querySelector('.ds-toc__list').getBoundingClientRect();
+    return link.left >= rect.left - 1 && link.right <= rect.right + 1;
+  })).toBe(true);
   const look = await row.evaluate((el) => {
     const box = el.closest('[data-demo]').getBoundingClientRect();
     const list = el.querySelector('.ds-toc__list');

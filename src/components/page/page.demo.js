@@ -51,8 +51,8 @@ SG.demo('page', {
         }).join('') + '</div></div>',
         'Scroll inside the box: once the way back, the lead, the status and the key facts have scrolled past, the head condenses (data-scrolled) and keeps the title, the actions and the tabs; the content stays where it was. The hairline fades in with the scroll.') +
 
-      h.section('Actions that fold', '<div style="inline-size: min(100%, 360px);">' + head(h, false, '" data-ds-page-head data-demo="folding', many(h)) + '</div>',
-        'In a narrow row the actions that do not fit go into More, the first ones first and the filled one last. A blocked action stays blocked in the menu. The row is 360px wide here, as on a phone.') +
+      h.section('Actions that fold', '<div style="inline-size: min(100%, 360px); container: ds-content / inline-size;">' + head(h, false, '" data-ds-page-head data-demo="folding', many(h)) + '</div>',
+        'In a narrow row the actions that do not fit go into More, the first ones first and the filled one last. A blocked action stays blocked in the menu. The row is 360px wide here and a content container, as on a phone.') +
 
       h.section('A plain head', '<header class="ds-page-head"><h3 class="ds-page-head__title">Devices</h3><p class="ds-page-head__lead">Every laptop and desktop, synced nightly.</p></header>') +
 
