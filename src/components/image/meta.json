@@ -1,0 +1,45 @@
+{
+  "name": "image",
+  "group": "content",
+  "order": 920,
+  "docsOrder": 125,
+  "need": "Show a picture in a frame of a fixed shape, cropped or fitted, lazy, with words where it fails and a caption",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-image",
+    "ds-image--contain",
+    "ds-image--photo",
+    "ds-image--square",
+    "ds-image--wide",
+    "ds-image__caption",
+    "ds-image__fallback",
+    "ds-image__frame"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-image-ratio": {
+      "default": "unset",
+      "description": "the shape of `.ds-image__frame` (`16 / 9`); unset: the picture's own, or the modifier's"
+    },
+    "--ds-image-radius": {
+      "default": "`--ds-radius-sm`",
+      "description": "the corners of `.ds-image__frame`, times `--ds-shape`"
+    },
+    "--ds-image-bg": {
+      "default": "`--ds-surface-high`",
+      "description": "the tint behind a picture: while it loads, around a fitted one, under the fallback"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "image"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false
+}
