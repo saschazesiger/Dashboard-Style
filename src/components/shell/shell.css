@@ -2162,7 +2162,9 @@
     justify-content: center;
     gap: var(--ds-space-1);
     min-height: max(var(--ds-target-min, 0px), var(--_h));
-    padding: var(--ds-space-2) var(--ds-space-1);
+    /* Density takes its 4px off the padding too, so the content never
+       holds the app taller than the step. */
+    padding: calc(var(--ds-space-2) + var(--ds-density, 0) * 2px) var(--ds-space-1);
     border-radius: calc(var(--ds-radius-sm) * var(--ds-shape, 1));
     font: var(--ds-launcher-font, var(--ds-size-font, var(--ds-font-body)));
     font-weight: var(--ds-weight-regular);

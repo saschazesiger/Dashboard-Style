@@ -115,7 +115,7 @@ SG_LAB.add({
   title: 'Top bar: the app launcher',
   note: 'The app switcher is a menu laid out as a grid: it grows out of its button like every menu (<code>DS.shell.launcher(menu).set(true)</code> opens it), and the arrow keys move in two dimensions over it. The current app keeps its tinted disc and the label weight.',
   shows: ['DS.shell.launcher', '.ds-launcher', '.ds-launcher__app', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
-  html: '<div class="sg-popup-stage" style="display: flex; justify-content: center;"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Apps" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-launcher" data-lab-apps><span data-glyph="apps"></span></button>' +
+  html: '<div style="display: flex; justify-content: center; align-items: flex-start; align-self: start; inline-size: 100%; min-block-size: 248px; padding-block-start: var(--ds-space-2);"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Apps" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-launcher" data-lab-apps><span data-glyph="apps"></span></button>' +
     '<div class="ds-menu ds-launcher" role="menu" id="sg-lab-launcher" aria-label="Apps" hidden>' +
       app('laptop', 'Devices', true) + app('ticket', 'Tickets') + app('users', 'People') + app('barChart', 'Reports') + app('calendar', 'Schedule') + app('mail', 'Mail') +
     '</div></div>',
@@ -144,13 +144,13 @@ SG_LAB.add({
   title: 'Top bar: the account menu',
   note: 'The avatar opens a menu with the name and email at its head, the theme switch and sign out. It moves as every menu does; choosing a theme changes the colours at once, nothing moves.',
   shows: ['.ds-account__trigger', '.ds-account__menu', '.ds-account__head', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-instant'],
-  html: '<div class="sg-popup-stage ds-account" style="display: flex; justify-content: center;"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-account" data-lab-account><span class="ds-account__avatar" aria-hidden="true">A</span></button>' +
+  html: '<div class="ds-account" style="justify-content: center; align-items: flex-start; align-self: start; inline-size: 100%; min-block-size: 248px; margin: 0; padding-block-start: var(--ds-space-2);"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-account" data-lab-account><span class="ds-account__avatar" aria-hidden="true">A</span></button>' +
     '<div class="ds-menu ds-account__menu" role="menu" id="sg-lab-account" aria-labelledby="sg-lab-account-head" hidden>' +
       '<div class="ds-account__head" id="sg-lab-account-head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>' +
       '<div class="ds-menu__divider" role="separator"></div>' +
       '<button class="ds-menu__item" role="menuitem" type="button"><span data-glyph="logout"></span><span class="ds-menu__label">Sign out</span></button>' +
     '</div></div>',
-  height: 260,
+  height: 280,
   setup: function (stage) {
     glyphs(stage);
     var menu = stage.querySelector('.ds-account__menu');

@@ -46,7 +46,6 @@ and every `src/components/<name>/<name>.js`, as `manifest.json` `js` lists them)
 | `js/dialog.js` | `DS.dialog` | component (`src/components/dialog/`) | `core`, `icons`, `motion`, `overlay` | [components.md](components.md#dialog) |
 | `js/menu.js` | `DS.menu` | component (`src/components/menu/`) | `core`, `motion`, `overlay` | [components.md](components.md#menu) |
 | `js/sheet.js` | `DS.sheet` | component (`src/components/sheet/`) | `core`, `overlay` | [components.md](components.md#side-sheet) |
-| `js/shell.js` | `DS.shell` | component (`src/components/shell/`) | `a11y`, `core`, `dom`, `format`, `icons`, `indicator`, `menu`, `motion`, `overlay`, `store` | [components.md](components.md#app-frame) |
 | `js/toast.js` | `DS.toast` | component (`src/components/toast/`) | `core`, `icons`, `motion`, `overlay`, `position` | [components.md](components.md#snackbar) |
 | `js/tooltip.js` | `DS.tooltip` | component (`src/components/tooltip/`) | `core`, `motion`, `overlay`, `position` | [components.md](components.md#tooltip) |
 <!-- /generated: modules -->

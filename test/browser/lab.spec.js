@@ -326,6 +326,9 @@ const CONTINUITY = {
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
   charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
+  'shell-search-sheet': { in: 'stage', sel: '[data-lab-sheet]', props: ['opacity', 'translate.y'] },
+  'shell-launcher': { in: 'stage', sel: '#sg-lab-launcher', props: ['opacity'] },
+  'shell-account': { in: 'stage', sel: '#sg-lab-account', props: ['opacity'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */

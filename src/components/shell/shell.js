@@ -451,7 +451,9 @@ function navDrawer(nav, options, signal) {
         event.preventDefault();
         filter('');
       } else if (event.key === 'ArrowDown') {
-        const first = stops()[0];
+        // The first match: an item of the list (not a group toggle around it, not the way back above it).
+        const all = stops();
+        const first = (query && all.find((node) => list.contains(node) && node.matches('.ds-drawer__item'))) || all.find((node) => list.contains(node)) || all[0];
         if (first) {
           event.preventDefault();
           /** @type {HTMLElement} */ (first).focus();
