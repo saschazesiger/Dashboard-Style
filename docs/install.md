@@ -448,6 +448,42 @@ strings a script adds have an option, so a page in another language passes its o
 | `Discard changes` | its confirm button (the system's string `unsavedLeave`) | `DS.core.config({ strings: { unsavedLeave } })` |
 | `Keep editing` | its cancel button (the system's string `unsavedStay`) | `DS.core.config({ strings: { unsavedStay } })` |
 | `(changed)` | the word `DS.unsaved` adds to a changed field's label for screen readers, where the label has no `.ds-field__changed` (the system's string `unsavedChangedWord`) | `DS.core.config({ strings: { unsavedChangedWord } })` |
+| `is` | the operator of a filter of `DS.query` ("Status is open") (the system's string `queryIs`) | `DS.core.config({ strings: { queryIs } })` |
+| `is not` | the same, negated (`-status:closed`) (the system's string `queryNot`) | `DS.core.config({ strings: { queryNot } })` |
+| `over` | the same, `key:>n` (the system's string `queryGt`) | `DS.core.config({ strings: { queryGt } })` |
+| `at least` | the same, `key:>=n` (the system's string `queryGte`) | `DS.core.config({ strings: { queryGte } })` |
+| `under` | the same, `key:<n` (the system's string `queryLt`) | `DS.core.config({ strings: { queryLt } })` |
+| `at most` | the same, `key:<=n` (the system's string `queryLte`) | `DS.core.config({ strings: { queryLte } })` |
+| `or` | between the values of one filter of `DS.query` (the system's string `queryOr`) | `DS.core.config({ strings: { queryOr } })` |
+| `Text` | the name of the free text of `DS.query` ("Text printer") (the system's string `queryText`) | `DS.core.config({ strings: { queryText } })` |
+| `Remove filter` | the hidden start of a token's name in `DS.query` (the system's string `queryRemove`) | `DS.core.config({ strings: { queryRemove } })` |
+| `Backspace or Delete removes it, F2 edits it.` | the description of every token of `DS.query` (the system's string `queryTokenHint`) | `DS.core.config({ strings: { queryTokenHint } })` |
+| `(not a known filter)` | the reason in the name of a token of `DS.query` whose key the page did not name (the system's string `queryUnknownKey`) | `DS.core.config({ strings: { queryUnknownKey } })` |
+| `(this filter does not compare)` | the same, for an operator its key does not take (the system's string `queryBadOp`) | `DS.core.config({ strings: { queryBadOp } })` |
+| `(not a valid value)` | the same, for a value outside its key's list, or no number or date (the system's string `queryBadValue`) | `DS.core.config({ strings: { queryBadValue } })` |
+| `Suggestions` | the name of the list of `DS.query` (the system's string `querySuggestions`) | `DS.core.config({ strings: { querySuggestions } })` |
+| `Filter by` | the heading of the keys in that list (the system's string `queryKeys`) | `DS.core.config({ strings: { queryKeys } })` |
+| `Compare` | the heading of the operators in that list (the system's string `queryOperators`) | `DS.core.config({ strings: { queryOperators } })` |
+| `Saved queries` | the heading of the saved queries in that list (the system's string `querySaved`) | `DS.core.config({ strings: { querySaved } })` |
+| `Search` | the heading of the free-text choice in that list (the system's string `querySearch`) | `DS.core.config({ strings: { querySearch } })` |
+| `Search for "{text}"` | the free-text choice in that list (the system's string `querySearchFor`) | `DS.core.config({ strings: { querySearchFor } })` |
+| `1 suggestion` | the status line of that list for one entry (the system's string `queryOne`) | `DS.core.config({ strings: { queryOne } })` |
+| `{count} suggestions` | the same, for several (the system's string `queryMany`) | `DS.core.config({ strings: { queryMany } })` |
+| `No suggestions` | the same, for none (the system's string `queryNoMatch`) | `DS.core.config({ strings: { queryNoMatch } })` |
+| `Not a known filter` | the same, after a key the page did not name (the system's string `queryUnknown`) | `DS.core.config({ strings: { queryUnknown } })` |
+| `Enter applies this saved query, Delete removes it.` | the status line while a saved query is active (the system's string `querySavedHint`) | `DS.core.config({ strings: { querySavedHint } })` |
+| `Added filter {label}.` | what `DS.query` announces for a new token (the system's string `queryAdded`) | `DS.core.config({ strings: { queryAdded } })` |
+| `Removed filter {label}.` | what `DS.query` announces for a removed token (the system's string `queryRemoved`) | `DS.core.config({ strings: { queryRemoved } })` |
+| `Editing filter {label}.` | what `DS.query` announces when a token goes back into the field (the system's string `queryEditing`) | `DS.core.config({ strings: { queryEditing } })` |
+| `Cleared the query.` | what `DS.query` announces after its clear button (the system's string `queryCleared`) | `DS.core.config({ strings: { queryCleared } })` |
+| `Applied {name}.` | what `DS.query` announces after a saved query was chosen (the system's string `queryApplied`) | `DS.core.config({ strings: { queryApplied } })` |
+| `Clear the query` | the name of the clear button of `DS.query` (the system's string `queryClear`) | `DS.core.config({ strings: { queryClear } })` |
+| `Save this query` | the name of `.ds-query__save` (the system's string `querySave`) | `DS.core.config({ strings: { querySave } })` |
+| `Save the query` | the title of the dialog of `.ds-query__save` (the system's string `querySaveTitle`) | `DS.core.config({ strings: { querySaveTitle } })` |
+| `Name` | the field of that dialog (the system's string `querySaveName`) | `DS.core.config({ strings: { querySaveName } })` |
+| `Save` | its confirm button (the system's string `querySaveConfirm`) | `DS.core.config({ strings: { querySaveConfirm } })` |
+| `Saved the query as {name}.` | what `DS.query` announces after a save (the system's string `querySavedAs`) | `DS.core.config({ strings: { querySavedAs } })` |
+| `Removed the saved query {name}.` | what `DS.query` announces after Delete on a saved query (the system's string `querySavedRemoved`) | `DS.core.config({ strings: { querySavedRemoved } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

@@ -1,0 +1,44 @@
+{
+  "name": "query",
+  "group": "forms",
+  "order": 440,
+  "docsOrder": 336,
+  "need": "Filter with a typed query of tokens such as status:open, with suggestions, operators and saved queries",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-query",
+    "ds-query__box",
+    "ds-query__icon",
+    "ds-query__input",
+    "ds-query__key",
+    "ds-query__op",
+    "ds-query__row",
+    "ds-query__save",
+    "ds-query__tokens",
+    "ds-query__value"
+  ],
+  "attributes": [],
+  "requires": [
+    "button",
+    "chip",
+    "combobox",
+    "form"
+  ],
+  "context": [],
+  "hooks": {},
+  "keyframes": [],
+  "js": [
+    "query"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.query.create": "the list is Combobox's, whose Motion Lab entry shows it; a token comes and goes at once",
+    "DS.query.parse": "a pure function: no motion",
+    "DS.query.stringify": "a pure function: no motion",
+    "DS.query.toQuery": "a pure function: no motion",
+    "DS.query.suggest": "a pure function: no motion"
+  }
+}

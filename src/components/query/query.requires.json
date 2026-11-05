@@ -1,0 +1,6 @@
+{
+  "requires": ["button", "chip", "combobox", "form"],
+  "exportRequires": {
+    "create": ["dialog", "spinner", "toast", "utilities"]
+  }
+}
