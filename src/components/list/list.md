@@ -108,7 +108,60 @@ needs columns, sorting or bulk selection is a [Table](#table).
   opaque fill (`--ds-list-group-bg`), while its rows pass under it; `--ds-list-group-top` when a sticky page head
   stands above it. When focus moves up, the controls of its rows stop below the heading, never under it. `role="list"`
   keeps the list semantics in Safari; the heading's item is `role="presentation"`.
-  Below 12 rows a letter heading rarely helps; for thousands of rows wait for the virtual list.
+  Below 12 rows a letter heading rarely helps; for thousands of rows use a virtual list (below).
+
+### Selectable, reorderable and virtual rows
+
+`DS.list` (`js/list.js`) adds what a page would otherwise write for each list:
+
+```html
+<input class="ds-checkbox" type="checkbox" aria-label="Select all devices" aria-controls="devices" data-ds-list-all>
+<ul class="ds-list" id="devices" aria-label="Devices" data-ds-list data-ds-list-select="multiple" data-ds-list-reorder>
+  <li class="ds-list__item" data-ds-key="d42">
+    <input class="ds-checkbox ds-list__check" type="checkbox" aria-label="Select LAPTOP-0042">
+    <span class="ds-list__text"><span class="ds-list__title">LAPTOP-0042</span><span class="ds-list__meta">Notebook 14</span></span>
+  </li>
+</ul>
+
+<ul class="ds-list ds-list--scroll" aria-label="All devices" id="all"></ul>
+```
+
+```js
+const all = DS.list.create(document.querySelector('#all'), {
+  select: 'multiple',
+  virtual: { count: devices.length, estimate: 56, key: (i) => devices[i].id, render: (i) => rowHtml(devices[i]) },
+});
+all.on('change', ({ keys }) => bar.show(keys.length));
+```
+
+- **Select** (`data-ds-list-select="multiple"` or `"single"`): a `.ds-list__check` (a `.ds-checkbox`, or a radio with one
+  `name` for single) at the start of each row, named for its row. A checked row takes `--ds-list-selected-bg`
+  (`--ds-accent`) and keeps its box, so the state is never the colour alone. `Shift` and a click on a box checks or clears
+  every row from the last box clicked. In a list without `.ds-list__action`, a press anywhere on a row (not on one of its
+  controls) toggles its box, with the hover layer. A checkbox with `data-ds-list-all` and `aria-controls` naming the
+  list's `id` checks or clears all rows and shows mixed for some. After a range or all, the announcer says "12 selected".
+  The controller holds the keys (`data-ds-key`, else the box's `value`), so a morph or a window that renders the rows again
+  brings them back checked. `ds:change` `{ keys, key, checked }` tells the page.
+- **Reorder** (`data-ds-list-reorder`): each row gets a grip (`.ds-list__grip`, a quiet icon button named "Move
+  LAPTOP-0042") at its start, and `DS.dnd` moves the row by pointer and by keys (`Space` lifts, the arrows move, `Space`
+  drops, `Escape` cancels), with announcements. The page saves on `ds:drop` (`{ item, from, to }`, `to.index` ready for
+  `splice()`).
+- **Virtual** (`create(el, { virtual })`): `DS.virtual` keeps only the rows near the viewport: `count`, `render(index)`
+  (one `li.ds-list__item` with its `data-ds-key`, escaped), `key(index)` (for the selection), `estimate` and the other
+  options of [`DS.virtual.create`](core.md#dsvirtual-windowed-lists-and-rows). `.ds-list--scroll` makes the list its own
+  scroller, at most `--ds-list-max-height` (24rem) high; `virtual.scroller` names another. One tab stop, the active row
+  (an inset ring while it has the focus); `↑` `↓` `Home` `End` `PageUp` `PageDown` move it, `Tab` reaches its controls,
+  `Space` toggles its box. Rows get `aria-setsize` and `aria-posinset`. Reorder is not offered on a virtual list.
+
+| Export | What |
+|---|---|
+| `create(el, options)` | a list from the page (`select`, `reorder`, `virtual`), or new options for one `DS.init()` made |
+| `facts(el)` | the copy buttons of a `.ds-facts` (what `data-ds-facts-copy` does) |
+| `rangeKeys(keys, anchor, target)` | the keys from `anchor` to `target`, both included |
+| `allState(checked, total)` | `'true'`, `'false'` or `'mixed'` for a "select all" box |
+
+The list controller: `get()` (multiple: the checked keys; single: the key or `null`), `set(keys)`, `on(type, fn)`,
+`window()` (the `DS.virtual` controller), `configure(options)`, `update()`, `destroy()`.
 
 ### Key-value rows that open, bars, facts in rows and the lock
 
@@ -124,6 +177,15 @@ needs columns, sorting or bulk selection is a [Table](#table).
 <ul class="ds-kv-list ds-kv-list--bars">
   <li><span>Disk</span><strong>78%, high</strong><span class="ds-meter ds-tone-warning" aria-hidden="true"></span></li>
 </ul>
+
+<dl class="ds-facts ds-facts--grid ds-facts--bordered" data-ds-facts-copy>
+  <div><dt>Serial</dt><dd>5CD1234XYZ</dd></div>
+  <div><dt>Model</dt><dd>Notebook 14</dd></div>
+  <div class="ds-facts__wide"><dt>Location</dt><dd>Building A, 1st floor, room 101</dd></div>
+  <div class="ds-facts__full"><dt>Notes</dt><dd data-ds-facts-nocopy>Issued with a second charger.</dd></div>
+</dl>
+
+<dl class="ds-facts ds-facts--stacked"> ... </dl>
 
 <dl class="ds-facts ds-facts--rows">
   <div><dt>Owner</dt><dd>Ada Lovelace <span class="ds-lock" role="img" aria-label="Set by the directory sync" data-tip="Set by the directory sync">[icon lock 16]</span></dd></div>
@@ -147,6 +209,17 @@ needs columns, sorting or bulk selection is a [Table](#table).
 - `.ds-facts--rows`: each fact on a row of its own, the label in a column of `--ds-facts-label-width` (36%) in the
   body font, hairlines between; under 520px of content (or in a window of 600px and less) the label goes above its
   value.
+- `.ds-facts--stacked`: one fact under the other, each label above its value (a narrow column, a side sheet).
+- `.ds-facts--grid`: the columns of `.ds-facts`, and facts that span: `.ds-facts__wide` two columns, `.ds-facts__full`
+  the whole row (a description, an address). The grid measures itself, so where only one column fits a wide fact takes
+  that one.
+- `.ds-facts--bordered`: each fact in a cell with hairlines between and a frame around (corners
+  `--ds-facts-radius`, times `--ds-shape`); with `--rows` a framed table of label and value.
+- `data-ds-facts-copy` on the `dl`: `DS.list` writes a `.ds-facts__copy` button (a quiet icon button named "Copy
+  Owner") after each value; `data-ds-facts-nocopy` on a `dd` leaves it out. It copies the value's text (without the
+  lock), or the `dd`'s `data-ds-facts-value`, shows a check for `--ds-hold-status`, the announcer says "Copied" and
+  `ds:copy` `{ text, label }` tells the page. The button shows on the fact under the pointer or in use, and always
+  where there is no hover.
 - `.ds-lock` marks a value another system sets: the `lock` glyph, the reason in `aria-label` and `data-tip`. It is
   not an action and takes no `tabindex` (a tap shows the tip); name the reason once per card in a `.ds-meta` line.
   A locked value is text, never a disabled field ([rules.md](rules.md#state-and-feedback)).
@@ -164,6 +237,7 @@ On the list or any ancestor; each is computed in the component's own rule ([opti
 | | | `.ds-facts`, `.ds-plain-list` | the row gap 2px per step; facts above tiles also their column gap, as the tiles' |
 | Shape | `.ds-shape-*` | `.ds-list`, `.ds-list__media`, `.ds-kv-list__row` | multiplies the radius (a square list has square rows; a round media has rounded corners at `.ds-shape-soft`, square ones at `.ds-shape-square`) |
 | Touch | `.ds-touch` | `.ds-list__item`, `:is(a, button).ds-kv-list__row` | at least `--ds-touch-target` high; touch wins over size and density |
+| | | `.ds-facts--bordered` | its cells' padding 4px per size step and 2px per density step, as key-value rows |
 | Tone | `.ds-tone-*` | `.ds-kv-list__icon` | the icon's colour, from the class on the icon itself; always with a `.ds-sr` word |
 
 A two-line row grows with its text and its padding, so the height of a row is a minimum. Its small menu button keeps
@@ -171,8 +245,10 @@ its own `.ds-sm`.
 
 ### Behaviour, keyboard and names
 
-- The page wires what a row opens. Selectable and reorderable rows arrive with the list module of a later phase;
-  today use a [Table](#table) for bulk selection and `DS.motion.flip` for a reorder that the page drives.
+- The page wires what a row opens. Selection, reorder and the window come from `DS.list` (above); a list that needs
+  columns or sorting is a [Table](#table).
+- A row's box is named for its row ("Select LAPTOP-0042"), the grip by its action ("Move LAPTOP-0042"), a copy button by
+  its label ("Copy Owner").
 - `Tab` reaches a row's `.ds-list__action`, then its other controls; `Enter` opens the record, and `Space` presses it
   when it is a button. The row shows an inset ring and the focus layer while its action has keyboard focus. A key-value
   row that opens is a link or a button of its own.
@@ -183,14 +259,25 @@ its own `.ds-sm`.
 ### Forced colours
 
 The current row is `SelectedItem` / `SelectedItemText`, with a `CanvasText` ring when focused, and its other controls,
-chips and media take the system colours again on `Canvas`. A blocked key-value row is `GrayText`. The media's
+chips and media take the system colours again on `Canvas`. A blocked key-value row is `GrayText`. A checked row shows
+its box in the system colours (the tint gives way); the grip and the copy buttons are buttons. A row that holds the
+focus in a virtual list rings in the system's focus colour. The media's
 transparent border becomes its edge, in the current row too. The sticky heading's fill stays opaque.
 
 ### Hooks
 
 `--ds-list-item-height`, `--ds-list-padding`, `--ds-list-padding-y`, `--ds-list-radius`, `--ds-list-title-font`,
 `--ds-list-media-size`, `--ds-list-media-radius`, `--ds-list-text-min`, `--ds-list-current-bg`, `--ds-list-group-bg`,
-`--ds-list-group-top`, `--ds-kv-list-padding`, `--ds-facts-label-width`: see [theming.md](theming.md).
+`--ds-list-group-top`, `--ds-list-selected-bg`, `--ds-list-max-height`, `--ds-kv-list-padding`, `--ds-facts-label-width`,
+`--ds-facts-radius`: see [theming.md](theming.md).
 
 **Motion:** the "Row list, timeline" row of [Feedback](motion.md#feedback) and the press of
 [Controls](motion.md#controls) in motion.md.
+
+<!-- changelog -->
+- Lists: `DS.list` (`data-ds-list`): selectable rows (`data-ds-list-select`, `.ds-list__check`, shift ranges, a
+  "select all" box with `data-ds-list-all`, `--ds-list-selected-bg`), reorderable rows (`data-ds-list-reorder`,
+  `.ds-list__grip`, through `DS.dnd`) and a virtual list (`create(el, { virtual })`, `.ds-list--scroll`,
+  `--ds-list-max-height`). Facts: `.ds-facts--stacked`, `.ds-facts--grid` with `.ds-facts__wide` and `.ds-facts__full`,
+  `.ds-facts--bordered` (`--ds-facts-radius`) and copy per value (`data-ds-facts-copy`, `.ds-facts__copy`). New strings
+  `listMove`, `listSelected`, `factsCopy`.

@@ -45,11 +45,30 @@ function letterRows() {
   }).join('');
 }
 
+var TICKETS = [
+  { id: 't41', title: 'Replace the fan', meta: '#41 · LAPTOP-0042' },
+  { id: 't42', title: 'Second dock for the lab', meta: '#42 · Ada Lovelace' },
+  { id: 't43', title: 'Printer offline on floor 2', meta: '#43 · PRINTER-0003' },
+  { id: 't44', title: 'New badge reader', meta: '#44 · Building B', blocked: true },
+  { id: 't45', title: 'Return TABLET-0121', meta: '#45 · Alan Turing' }
+];
+
+function selectRow(h, ticket, type) {
+  return '<li class="ds-list__item" data-ds-key="' + ticket.id + '"><input class="' + (type === 'radio' ? 'ds-radio-input' : 'ds-checkbox') + ' ds-list__check" type="' + type + '"' +
+    (type === 'radio' ? ' name="' + h.uid('owner') + '"' : '') + ' value="' + ticket.id + '" aria-label="Select ' + h.esc(ticket.title) + '"' + (ticket.blocked ? ' disabled' : '') + '>' +
+    '<span class="ds-list__text"><span class="ds-list__title">' + h.esc(ticket.title) + '</span><span class="ds-list__meta">' + h.esc(ticket.meta) + (ticket.blocked ? ' · closed' : '') + '</span></span></li>';
+}
+
+function virtualDevice(index) {
+  var n = String(index + 1).padStart(4, '0');
+  return { id: 'v' + n, name: 'DEVICE-' + n, meta: ['Notebook 14', 'Display 27', 'Printer', 'Tablet 11'][index % 4] + ' · Building ' + 'ABCD'.charAt(index % 4) };
+}
+
 SG.demo('list', {
   title: 'Lists',
   group: 'data',
   need: 'Show label and value pairs, short record lists or runs of small counts',
-  lead: 'Records in rows that open, with media, a description and a fact at the end; label and value rows, bars and facts. A row is 56px at the default size and density, and every option steps from there. Selectable and reorderable rows come with a later module.',
+  lead: 'Records in rows that open, with media, a description and a fact at the end; rows chosen by a box, moved by a grip or windowed by the thousand; label and value rows, bars and facts that copy. A row is 56px at the default size and density, and every option steps from there.',
   options: { sizes: true, density: true, shape: true, tones: false },
 
   render: function (h) {
@@ -72,6 +91,24 @@ SG.demo('list', {
       h.section('Sticky headings', '<div tabindex="0" role="region" aria-label="People by letter" data-demo="letters" style="max-block-size:240px;overflow:auto"><ul class="ds-list" role="list" aria-label="People">' + letterRows() + '</ul></div>',
         'A .ds-list__group row stays at the top of the nearest scroller while its rows pass under it. Scroll the box.') +
 
+      h.section('Selectable', (function () {
+        var id = h.uid('tickets');
+        return '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:var(--ds-space-4)"><label class="ds-check"><input type="checkbox" aria-controls="' + id + '" data-ds-list-all data-demo="all"> Select all</label>' +
+          '<span class="ds-muted" data-demo="picked" aria-live="polite">None selected</span></div>' +
+          '<ul class="ds-list" id="' + id + '" aria-label="Open tickets" data-ds-list data-ds-list-select="multiple" data-demo="select">' + TICKETS.map(function (ticket) { return selectRow(h, ticket, 'checkbox'); }).join('') + '</ul>';
+      })() +
+        '<h4 class="ds-meta">One owner</h4><ul class="ds-list" aria-label="Owner" data-ds-list data-ds-list-select="single" data-demo="single">' + TICKETS.slice(0, 3).map(function (ticket) { return selectRow(h, ticket, 'radio'); }).join('') + '</ul>',
+        'A press anywhere on a row toggles its box; Shift and a click checks the rows between. "Select all" shows mixed for some; the closed ticket stays as it is. Radios choose one.') +
+
+      h.section('Reorder', '<ul class="ds-list" aria-label="Rollout order" data-ds-list data-ds-list-reorder data-demo="reorder-list">' +
+        ['Building A', 'Building B', 'Lab', 'Storage'].map(function (name, index) {
+          return '<li class="ds-list__item" data-ds-key="o' + index + '">' + h.icon('building', 20, 'ds-list__icon') + '<span class="ds-list__text"><span class="ds-list__title">' + name + '</span><span class="ds-list__meta">Wave ' + (index + 1) + '</span></span></li>';
+        }).join('') + '</ul>',
+        'Drag a grip, or Tab to it, press Space, move with the arrow keys and press Space again. The page saves on ds:drop.') +
+
+      h.section('Virtual', '<p class="ds-muted" data-demo="virtual-out" aria-live="polite">5,000 devices, 0 selected</p><ul class="ds-list ds-list--scroll" aria-label="All devices" data-demo="virtual"></ul>',
+        'DS.list.create(el, { select, virtual }): only the rows near the viewport exist. One tab stop: the arrow keys, Home, End and Page keys move it, Space checks the row.') +
+
       h.section('Key-value rows', '<div class="ds-grid-2">' + h.card('Rows that open', '<ul class="ds-kv-list ds-kv-list--interactive" data-demo="kv">' +
         '<li><a class="ds-kv-list__row" href="#owner" data-list-kv data-name="Ada Lovelace"><span>Owner</span><strong>Ada Lovelace</strong></a></li>' +
         '<li><button class="ds-kv-list__row" type="button" data-list-kv data-name="the open tickets"><span>Tickets</span><strong>3 open</strong></button></li>' +
@@ -92,6 +129,14 @@ SG.demo('list', {
         h.card('Facts in rows', '<dl class="ds-facts ds-facts--rows"><div><dt>Owner</dt><dd>Ada Lovelace<span class="ds-lock" role="img" aria-label="Set by the directory sync" data-tip="Set by the directory sync">' + h.icon('lock', 16) + '</span></dd></div>' +
         '<div><dt>Location</dt><dd>Building A, 1st floor</dd></div><div><dt>Notes</dt><dd>Docking station at the desk by the window.</dd></div></dl>' +
         '<p class="ds-meta">Values with a lock come from the directory sync: change them there.</p>') + '</div>') +
+
+      h.section('Description lists', '<dl class="ds-facts ds-facts--grid ds-facts--bordered" data-ds-facts-copy data-demo="grid">' +
+        '<div><dt>Serial</dt><dd>5CD1234XYZ</dd></div><div><dt>Model</dt><dd>Notebook 14</dd></div><div><dt>Asset tag</dt><dd>IT-004211</dd></div>' +
+        '<div class="ds-facts__wide"><dt>Location</dt><dd>Building A, 1st floor, room 101</dd></div><div><dt>Owner</dt><dd>Ada Lovelace</dd></div>' +
+        '<div class="ds-facts__full"><dt>Notes</dt><dd data-ds-facts-nocopy>Issued with a second charger; the dock stays at the desk by the window.</dd></div></dl>' +
+        '<div class="ds-grid-2" style="margin-top:var(--ds-space-4)">' + h.card('Stacked', '<dl class="ds-facts ds-facts--stacked"><div><dt>Owner</dt><dd>Ada Lovelace</dd></div><div><dt>Team</dt><dd>Research</dd></div><div><dt>Since</dt><dd>12 Oct 2026</dd></div></dl>') +
+        h.card('Rows, bordered, copy', '<dl class="ds-facts ds-facts--rows ds-facts--bordered" data-ds-facts-copy><div><dt>Hostname</dt><dd>laptop-0042.example.test</dd></div><div><dt>MAC</dt><dd>00:1B:44:11:3A:B7</dd></div><div><dt>IP</dt><dd>10.20.4.17</dd></div></dl>') + '</div>',
+        'A grid whose facts span (.ds-facts__wide, .ds-facts__full; one column where only one fits), bordered cells, stacked facts, and a copy button per value (data-ds-facts-copy): it shows on the fact under the pointer or in use.') +
 
       h.section('Empty', '<ul class="ds-list" aria-label="No devices"></ul><p class="ds-muted">An empty list takes no room: show an empty state instead.</p>') +
 
@@ -125,7 +170,37 @@ SG.demo('list', {
         render();
       }
     };
+    var picked = h.$('[data-demo="picked"]', root);
+    var onChange = function (event) {
+      if (event.target.getAttribute('data-demo') === 'select' && picked) picked.textContent = event.detail.keys.length ? event.detail.keys.length + ' selected' : 'None selected';
+      if (event.target.getAttribute('data-demo') === 'virtual') h.$('[data-demo="virtual-out"]', root).textContent = '5,000 devices, ' + event.detail.keys.length + ' selected';
+    };
+    var onDrop = function (event) {
+      h.toast('Moved ' + event.detail.item.querySelector('.ds-list__title').textContent + ' to place ' + (event.detail.to.index + 1) + '.', 'success');
+    };
+    var onCopy = function (event) { h.toast('Copied ' + event.detail.label + '.', 'success'); };
+    window.DS.list.create(h.$('[data-demo="virtual"]', root), {
+      select: 'multiple',
+      virtual: {
+        count: 5000,
+        estimate: 56,
+        key: function (index) { return virtualDevice(index).id; },
+        render: function (index) {
+          var device = virtualDevice(index);
+          return '<li class="ds-list__item" data-ds-key="' + device.id + '"><input class="ds-checkbox ds-list__check" type="checkbox" aria-label="Select ' + device.name + '">' +
+            '<span class="ds-list__text"><span class="ds-list__title">' + device.name + '</span><span class="ds-list__meta">' + device.meta + '</span></span></li>';
+        }
+      }
+    });
     root.addEventListener('click', onClick);
-    return function () { root.removeEventListener('click', onClick); };
+    root.addEventListener('ds:change', onChange);
+    root.addEventListener('ds:drop', onDrop);
+    root.addEventListener('ds:copy', onCopy);
+    return function () {
+      root.removeEventListener('click', onClick);
+      root.removeEventListener('ds:change', onChange);
+      root.removeEventListener('ds:drop', onDrop);
+      root.removeEventListener('ds:copy', onCopy);
+    };
   }
 });

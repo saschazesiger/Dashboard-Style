@@ -174,6 +174,9 @@ const DEFAULT_STRINGS = Object.freeze({
   jsonItem: '{count} item',
   jsonItems: '{count} items',
   jsonInvalid: 'Not valid JSON: line {line}, column {column}.',
+  listMove: 'Move {label}',
+  listSelected: '{count} selected',
+  factsCopy: 'Copy {label}',
 });
 
 /**
