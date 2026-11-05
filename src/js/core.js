@@ -158,6 +158,8 @@ const DEFAULT_STRINGS = Object.freeze({
   avatarStatus: '{name}, {status}',
   avatarMore: '{count} more',
   avatarOverflow: '+{count}',
+  mediaSelected: '{count} selected',
+  mediaSelectionCleared: 'Selection cleared',
 });
 
 /**

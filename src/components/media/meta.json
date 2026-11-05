@@ -1,0 +1,83 @@
+{
+  "name": "media",
+  "group": "data",
+  "order": 4840,
+  "docsOrder": 158,
+  "need": "Show files, photos or recordings as thumbnails in a grid that can be opened, selected and acted on",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-media",
+    "ds-media--bare",
+    "ds-media--square",
+    "ds-media--wide",
+    "ds-media-grid",
+    "ds-media__actions",
+    "ds-media__check",
+    "ds-media__meta",
+    "ds-media__open",
+    "ds-media__select",
+    "ds-media__tag",
+    "ds-media__thumb",
+    "ds-media__title"
+  ],
+  "attributes": [],
+  "requires": [
+    "form"
+  ],
+  "context": [
+    "utilities"
+  ],
+  "hooks": {
+    "--ds-media-min": {
+      "default": "128px",
+      "description": "the narrowest column of `.ds-media-grid` at md, 32px more or less per size step"
+    },
+    "--ds-media-gap": {
+      "default": "`--ds-space-4`",
+      "description": "the gap of `.ds-media-grid` at the comfortable density, 4px less per density step"
+    },
+    "--ds-media-radius": {
+      "default": "`--ds-radius-card`",
+      "description": "a media card's corners, times `--ds-shape`"
+    },
+    "--ds-media-border": {
+      "default": "`--ds-line`",
+      "description": "a media card's edge"
+    },
+    "--ds-media-bg": {
+      "default": "`--ds-surface`",
+      "description": "a media card's fill"
+    },
+    "--ds-media-ratio": {
+      "default": "4 / 3",
+      "description": "the picture of a media card (`--square` 1 / 1, `--wide` 16 / 9)"
+    },
+    "--ds-media-selected-bg": {
+      "default": "`--ds-accent`",
+      "description": "a selected media card's fill (its checkbox checked)"
+    },
+    "--ds-selected-ring": {
+      "owner": "card"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "media"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.media.between": "a pure function of a list: no motion",
+    "DS.media.create": "focus, keys and checkboxes: the selection's colours change on --ds-dur-fast like any selected card, nothing moves"
+  },
+  "exceptions": {
+    "focus": {
+      ".ds-media__open": "the card draws the ring around itself (.ds-media:has(> .ds-media__open:focus-visible)); the open control, a line of text inside it, draws none"
+    },
+    "ripple": {
+      ".ds-media__open": "the open control is a line of text whose stretched ::after is the card's hit area and state layer; a ripple host clips to its own box, which would cut the ripple to the title"
+    }
+  }
+}
