@@ -112,19 +112,83 @@ system's string `close`, is its label and its tooltip).
   page: `transition()` lifts the name of a further one, which then crossfades with the page.
 - `.ds-toast--info` uses the plain text colour for its icon, like `--error`. `.ds-toast--shown` is runtime state:
   `toast()` marks a message whose entrance has played, so a region that moves never replays it.
-- Hooks: `--ds-toast-action-color`, `--ds-toast-close-size` (the close button, 36px), `--ds-toast-radius`
-  ([theming.md](theming.md#component-hooks)).
+- Hooks: `--ds-toast-action-color`, `--ds-toast-close-size` (the close button, 36px), `--ds-toast-radius`,
+  `--ds-toast-stack-width` (a stacking region, 400px) ([theming.md](theming.md#component-hooks)).
 - **Removed in 2.0:** the region with `role="status" aria-live="polite"` and `role="alert"` on messages (`toast()` now
   takes the attributes off and announces once: use `<div class="ds-toasts"></div>`); showing messages by hand with
   `setTimeout(() => DS.motion.leave(toast), 4000)` (`toast()` times them); the hand recipe that moved messages into a
   side sheet with a page-set `--ds-toast-shift` (`DS.overlay.open(sheet)` moves and glides the region).
 
+### Waiting, progress and the stack (3.0)
+
+```js
+DS.toast.promise(null, save(record), { pending: 'Saving LAPTOP-0042', success: 'Saved LAPTOP-0042.', error: (reason) => reason.message });
+const upload = DS.toast.progress(null, 'Uploading 3 files', { value: 0 });
+upload.set(0.4);                        // the bar glides, the share shows at the end
+upload.set(0.8, 'Uploading the last file');
+upload.done('3 files uploaded.');      // or upload.fail('The upload stopped.')
+```
+
+```html
+<div class="ds-toasts ds-toasts--stack" data-ds-toast-limit="5"></div>
+```
+
+What `promise()` and `progress()` build (the close button as on any message that stays):
+
+```html
+<div class="ds-toast" aria-busy="true"><span class="ds-spinner ds-toast__spinner" aria-hidden="true"></span>
+  <span class="ds-toast__text">Saving LAPTOP-0042</span> (close button)</div>
+<div class="ds-toast ds-toast--progress">
+  <div class="ds-toast__body"><span class="ds-toast__text" id="t1">Uploading 3 files</span>
+    <div class="ds-progress ds-progress--flat"><div class="ds-progress__track" role="progressbar" aria-labelledby="t1"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="40"><div class="ds-progress__bar"></div></div></div></div>
+  <span class="ds-toast__value" aria-hidden="true">40%</span> (close button)</div>
+```
+
+- **Promise toast.** `promise(region, work, options)` shows a message with a spinner (`.ds-toast__spinner`, in the
+  icon's place) and the `pending` text (default the system's string `loading`) while `work` runs (a promise, or a
+  function that returns one; what it throws counts as a failure). It stays and has the close button. When the work
+  ends, the same message turns, in place, into the `success` text (default the system's string `done`; it then closes
+  by itself on the usual timer, or stays with `persistent: true`) or the `error` text (default `actionFailed`; it
+  stays and is announced at once). `success` and `error` may be functions of the value or the reason; one that
+  returns nothing (`null`, `false`, `''`) closes the message instead. A message the person closed while the work ran
+  still announces how it ended. The other options are those of `toast()` (`key`, `timeout`, `closeLabel`,
+  `reserve`). It returns the message's handle; the work's own promise stays the page's to await.
+- **Progress toast.** `progress(region, text, options)` shows `text` over a flat [progress bar](#progress)
+  (`.ds-toast--progress`, `.ds-toast__body`), named by the text, with the share at the end of the row
+  (`.ds-toast__value`, through `DS.format.percent`, hidden from assistive tech since the bar says it). `value` (0 to
+  1, or `null`: not known yet, the bar runs) is the first share. The handle adds `set(value, text)` (the bar glides;
+  a new text replaces the old one; neither is spoken, so a fast upload does not chatter), `done(text, { timeout,
+  persistent })` and `fail(text)`, which end it in place as `promise()` does.
+- **Queue.** `data-ds-toast-limit="1"` to `"5"` on a region sets how many messages show at once (default 3,
+  `TOAST_LIMIT`); the others wait in order, as before.
+- **Stack.** `.ds-toasts--stack` on the region keeps its messages one behind the other: the newest in front, at most
+  two edges of the older ones showing above it (`--ds-toast-front`, the front's height, is written by `toast.js`).
+  The stack is `--ds-toast-stack-width` wide (400px; the full width on phones). Focus inside the region (Tab reaches
+  every message's buttons) or a click on a message expands it into the list (`data-expanded`, written by `toast.js`):
+  the messages glide apart (`DS.motion.flip()`), and the timers pause while it is open. Hover never expands it. It
+  collapses when focus leaves the region (with no pointer over it), on a press outside and once one message is left.
+  A collapsed stack hides the content of the messages behind the front, but they stay announced as they arrive; a
+  message on its way out (`data-ds-leaving`, written by `DS.motion.leave()`) no longer counts as one of the edges.
+- **Above every modal.** Waiting, progress and stacked messages are messages like the others: they move into an
+  open dialog or sheet with their region, stay usable and are announced there.
+
 ### Keyboard and forced colours
 
 - Keyboard: a message's buttons are in the tab order, where the region sits; focus inside pauses its timer. It never
   takes focus by itself, and an error is announced, not focused.
-- Forced colours: a message's transparent outline becomes its edge.
+- Keyboard on a stack: focus entering the region expands it, so every message and its buttons are reachable; it
+  collapses when focus leaves.
+- Forced colours: a message's transparent outline becomes its edge; a waiting message's spinner and a progress
+  message's bar take `Highlight` (the track `GrayText`).
 
-**JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`.
+**JS API.** `js/toast.js` (`DS.toast`): `toast(region, content, options)`, `closeToasts(region, filter)`, `announce(text, options)` and `toastRegion(doc)`, the same functions as under `DS.overlay`; and (3.0) `promise(region, work, options)` and `progress(region, text, options)`, above.
 
 **Motion:** the "Snackbar" row of [Overlays](motion.md#overlays) in motion.md.
+
+<!-- changelog -->
+- Snackbar (3.0): `DS.toast.promise()` (a waiting message with a spinner that turns into its outcome in place) and
+  `DS.toast.progress()` (a message with a progress bar: `set()`, `done()`, `fail()`); `.ds-toasts--stack`, a
+  collapsed stack that expands on focus or a click (never on hover), with the hook `--ds-toast-stack-width`;
+  `data-ds-toast-limit` on a region (1 to 5 messages at once). New classes `.ds-toast--progress`, `.ds-toast__body`,
+  `.ds-toast__spinner`, `.ds-toast__value`; the system's string `done`.

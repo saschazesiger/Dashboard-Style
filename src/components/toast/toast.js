@@ -26,6 +26,21 @@
  * settled. On the page they rise above a shown save bar and, on phones,
  * the open modal drawer's foot (--ds-toast-lift, gliding on both axes).
  *
+ * 3.0: data-ds-toast-limit on the region sets how many show at once (1 to
+ * 5, default TOAST_LIMIT); the others wait in the queue. A region with
+ * .ds-toasts--stack collapses its messages into a stack, the newest in
+ * front and the others peeking above it (--ds-toast-front, written here,
+ * is the front's height), and expands it (data-expanded) on focus inside
+ * or a click on a message, never on hover; it collapses when focus leaves
+ * it (the pointer elsewhere), on a press outside and once one message is
+ * left.
+ * Expanded, its timers pause. promise(region, work, texts) shows a pending
+ * message with a spinner that turns into the success message (it closes
+ * by itself) or the error (it stays) in place; progress(region, text)
+ * shows a message with a progress bar whose handle sets the share and
+ * ends it the same way (done(), fail()). A message the user closed while
+ * its work ran still says how it ended.
+ *
  * Progressive:
  * - moveBefore (a snackbar region that moves into a dialog or side sheet
  *   keeps its running motion and focus): without it insertBefore, focus
@@ -34,6 +49,8 @@
 import { t } from '../../js/core.js';
 import { flip, settled } from '../../js/motion.js';
 import { alertCircle, checkCircle, close as closeGlyph, iconElement, info } from '../../js/icons.js';
+import { progress as setShare } from '../../js/dom.js';
+import { percent } from '../../js/format.js';
 import { pxOf, round } from '../../js/position.js';
 import { internals, TOAST_LIMIT, TOAST_MAX_MS, TOAST_MS } from '../../js/overlay.js';
 
@@ -71,9 +88,11 @@ const PHONE_QUERY = '(max-width: 600px)';
  * timers pause, where focus came from, its announcers, the scroller or
  * dialog that keeps room for its messages that stay (`reserved`, watched by
  * `observer` while held) and whether it owns its --ds-toast-lift.
+ * `expanded`: a .ds-toasts--stack region shows its messages one under the
+ * other (data-expanded), and its timers pause meanwhile.
  * @typedef {{ shown: Toast[], queue: Toast[], pointer: boolean, focus: boolean, origin: Element|null,
  *   polite: HTMLElement|null, assertive: HTMLElement|null, pending: Map<HTMLElement, string[]>,
- *   reserved: HTMLElement|null, observer: ResizeObserver|null, lifted: boolean }} ToastRegion
+ *   reserved: HTMLElement|null, observer: ResizeObserver|null, lifted: boolean, expanded: boolean }} ToastRegion
  * @type {WeakMap<Element, ToastRegion>}
  */
 const toastRegions = new WeakMap();
@@ -127,7 +146,7 @@ function regionState(region) {
     state = {
       shown: [], queue: [], pointer: false, focus: false, origin: null,
       polite: null, assertive: null, pending: new Map(),
-      reserved: null, observer: null, lifted: false,
+      reserved: null, observer: null, lifted: false, expanded: false,
     };
     toastRegions.set(region, state);
     // The markup removed in 2.0 (role="status" aria-live="polite" on the
@@ -170,7 +189,16 @@ function appOf(region) {
   return /** @type {HTMLElement|null} */ (scope?.querySelector?.('.ds-app') ?? null);
 }
 
-const paused = (region, state) => state.pointer || state.focus || Boolean(region.ownerDocument.hidden);
+const paused = (region, state) => state.pointer || state.focus || state.expanded || Boolean(region.ownerDocument.hidden);
+
+/** The most messages that show at once: data-ds-toast-limit on the region (1 to 5), else TOAST_LIMIT. */
+function limitOf(region) {
+  const given = Number.parseInt(region.getAttribute?.('data-ds-toast-limit') ?? '', 10);
+  return Number.isInteger(given) ? Math.min(5, Math.max(1, given)) : TOAST_LIMIT;
+}
+
+/** Whether the region collapses its messages into a stack. */
+const stacks = (region) => Boolean(region.classList?.contains('ds-toasts--stack'));
 
 /** Starts (or resumes) a message's timer with the time it has left. */
 function arm(entry, region, state) {
@@ -229,14 +257,22 @@ function wireRegion(region, state) {
     if (!state.focus && from && !region.contains(from)) state.origin = from;
     state.focus = true;
     pauseToasts(state);
+    // A stack opens for the keyboard: every message is reachable and readable.
+    expandStack(region, state, true);
   });
   region.addEventListener('focusout', (/** @type {FocusEvent} */ event) => {
     if (region.contains(/** @type {Node} */ (event.relatedTarget))) return;
     state.focus = false;
+    if (!state.pointer) expandStack(region, state, false);
     resumeToasts(region, state);
   });
   region.addEventListener('click', (/** @type {MouseEvent} */ event) => {
     const target = /** @type {Element} */ (event.target);
+    // A click on the collapsed stack (not on a control of the front message) opens it; hover never does.
+    if (!state.expanded && stacks(region) && target.closest?.('.ds-toast') && !target.closest('button, a[href], input, select, textarea')) {
+      expandStack(region, state, true);
+      return;
+    }
     const button = target.closest?.('.ds-toast__close, .ds-toast__action');
     const entry = button && region.contains(button) ? toastEntries.get(button.closest('.ds-toast')) : null;
     if (!entry || entry.phase !== 'shown') return;
@@ -259,6 +295,7 @@ function wireRegion(region, state) {
   for (const ref of [...regions]) if (!ref.deref()) regions.delete(ref);
   regions.add(new WeakRef(region));
   watchPointer(doc);
+  watchPresses(doc);
   const app = appOf(region);
   const lifted = app ? drawerOf(app) : null;
   if (lifted) {
@@ -307,6 +344,67 @@ function watchPointer(doc) {
       if (!inside(pointed, event)) unpoint(pointed, toastRegions.get(pointed));
     }
   }, true);
+}
+
+/** Documents with the press watcher that collapses open stacks. */
+const pressWatched = new WeakSet();
+
+/** Regions whose stack is expanded, for the press watcher. */
+const expandedRegions = /** @type {Set<Element>} */ (new Set());
+
+/**
+ * A press outside an expanded stack collapses it. A function of its own,
+ * like watchPointer(): made inside wireRegion(), the listener would keep
+ * the first region alive.
+ */
+function watchPresses(doc) {
+  if (pressWatched.has(doc)) return;
+  pressWatched.add(doc);
+  doc.addEventListener('pointerdown', (/** @type {PointerEvent} */ event) => {
+    for (const region of [...expandedRegions]) {
+      const state = toastRegions.get(region);
+      if (!state || !region.isConnected) expandedRegions.delete(region);
+      else if (!inside(region, event)) expandStack(region, state, false);
+    }
+  }, true);
+}
+
+/**
+ * Opens (`on`) or collapses a .ds-toasts--stack region: data-expanded,
+ * through flip(), so the messages glide between the stack and the list.
+ * Expanded, the timers pause; a stack of one message stays collapsed.
+ */
+function expandStack(region, state, on) {
+  const next = on && stacks(region) && state.shown.filter((entry) => entry.phase === 'shown').length > 1;
+  if (next === state.expanded) return;
+  state.expanded = next;
+  if (next) expandedRegions.add(region);
+  else expandedRegions.delete(region);
+  flip(region, () => {
+    region.toggleAttribute('data-expanded', next);
+    stackFront(region, state);
+  }).then(() => reserveRoom(region, state));
+  if (next) pauseToasts(state);
+  else resumeToasts(region, state);
+}
+
+/**
+ * The front message's height on a stacking region (--ds-toast-front, a
+ * runtime property): the messages behind it take that height while the
+ * stack is collapsed, so only their edges show above it.
+ */
+function stackFront(region, state) {
+  const style = /** @type {HTMLElement} */ (region).style;
+  if (!stacks(region)) {
+    if (style.getPropertyValue('--ds-toast-front')) style.removeProperty('--ds-toast-front');
+    return;
+  }
+  const front = [...state.shown].reverse().find((entry) => entry.phase === 'shown' && entry.el.parentNode === region);
+  if (!front) {
+    style.removeProperty('--ds-toast-front');
+    return;
+  }
+  style.setProperty('--ds-toast-front', `${Math.ceil(/** @type {HTMLElement} */ (front.el).offsetHeight)}px`);
 }
 
 /**
@@ -589,6 +687,221 @@ export function closeToasts(region, filter = {}) {
   return Promise.all([...queued, ...shown].map((entry) => entry.closed)).then(() => undefined);
 }
 
+/**
+ * A text for an outcome: a string, or a function of the value (or the
+ * reason) that returns one; nothing (null, false, '') means no message.
+ */
+function outcomeText(given, value) {
+  const text = typeof given === 'function' ? given(value) : given;
+  return text == null || text === false ? '' : String(text).replace(/\s+/g, ' ').trim();
+}
+
+/** A message that waits for work: the spinner (and for progress the bar under the text), no timer. */
+function buildPending(doc, text, bar) {
+  const el = doc.createElement('div');
+  el.className = bar ? 'ds-toast ds-toast--progress' : 'ds-toast';
+  const spinner = doc.createElement('span');
+  spinner.className = 'ds-spinner ds-toast__spinner';
+  spinner.setAttribute('aria-hidden', 'true');
+  const span = doc.createElement('span');
+  span.className = 'ds-toast__text';
+  span.textContent = text;
+  if (!bar) {
+    el.append(spinner, span);
+    return el;
+  }
+  // The text over the bar; the bar is a progressbar named by the text.
+  const body = doc.createElement('div');
+  body.className = 'ds-toast__body';
+  const meter = doc.createElement('div');
+  meter.className = 'ds-progress ds-progress--flat';
+  const track = doc.createElement('div');
+  track.className = 'ds-progress__track';
+  track.setAttribute('role', 'progressbar');
+  track.setAttribute('aria-valuemin', '0');
+  track.setAttribute('aria-valuemax', '100');
+  const fill = doc.createElement('div');
+  fill.className = 'ds-progress__bar';
+  track.append(fill);
+  meter.append(track);
+  body.append(span, meter);
+  const value = doc.createElement('span');
+  value.className = 'ds-toast__value';
+  value.setAttribute('aria-hidden', 'true');
+  el.append(body, value);
+  return el;
+}
+
+/**
+ * Turns a waiting message into its outcome in place: the icon and the word
+ * of `kind`, the text; the spinner and the bar go. A success closes by
+ * itself from now on (its timer starts), an error stays and is announced
+ * at once. A message the user already closed only says it. An empty text
+ * closes it.
+ */
+function settleToast(entry, kind, text, options = {}) {
+  const { el, region } = entry;
+  const state = toastRegions.get(region);
+  if (!state) return;
+  if (entry.phase === 'gone' || entry.phase === 'leaving') {
+    if (text) speak(region, state, { text, assertive: kind === 'error' });
+    return;
+  }
+  if (!text) {
+    closeToast(entry);
+    return;
+  }
+  const doc = el.ownerDocument;
+  const change = () => {
+    const glyph = iconElement(kind === 'error' ? alertCircle : kind === 'info' ? info : checkCircle, 20, undefined, doc);
+    const old = el.querySelector(':scope > .ds-toast__spinner, :scope > svg');
+    if (old) old.replaceWith(glyph);
+    else el.prepend(glyph);
+    const span = el.querySelector('.ds-toast__text');
+    if (span) {
+      span.textContent = text;
+      span.removeAttribute('id');
+      // Out of the body that held the bar, into the row.
+      if (span.parentElement !== el) el.querySelector(':scope > .ds-toast__body')?.replaceWith(span);
+    }
+    el.querySelector(':scope > .ds-toast__value')?.remove();
+    el.classList.remove('ds-toast--progress', 'ds-toast--error', 'ds-toast--info');
+    if (kind === 'error' || kind === 'info') el.classList.add(`ds-toast--${kind}`);
+    el.removeAttribute('aria-busy');
+  };
+  if (entry.phase === 'shown' && el.parentNode === region) {
+    flip(region, () => {
+      change();
+      stackFront(region, state);
+    }).then(() => reserveRoom(region, state));
+  } else change();
+  entry.kind = kind;
+  entry.text = text;
+  entry.assertive = kind === 'error';
+  entry.stays = kind === 'error' || options.persistent === true;
+  entry.reserve = entry.stays && options.reserve !== false;
+  disarm(entry);
+  entry.timeout = toastTimeout(region, text, options);
+  entry.remaining = entry.timeout;
+  if (entry.phase === 'shown') {
+    speak(region, state, entry);
+    arm(entry, region, state);
+  }
+}
+
+/**
+ * Shows a message while `work` (a promise, or a function that returns
+ * one) runs: a spinner and the `pending` text (default the string
+ * `loading`); it stays until the work ends. Then, in place, the `success`
+ * text (a string or a function of the value, default the string `done`;
+ * it closes by itself) or the `error` text (a string or a function of the
+ * reason, default the string `actionFailed`; it stays and is announced at
+ * once). An empty outcome (null, false, '') closes the message. Closed by
+ * the user meanwhile, it still says the outcome. The other options are
+ * those of toast() (`key`, `timeout`, `closeLabel`, `reserve`, and
+ * `persistent` for the success). Returns the message's handle; the work's
+ * own promise is the page's to await.
+ * @param {Element|null} region
+ * @param {Promise<unknown>|(() => Promise<unknown>|unknown)} work
+ * @param {{ pending?: string, success?: string|((value: unknown) => string|null|false)|null|false,
+ *   error?: string|((reason: unknown) => string|null|false)|null|false, timeout?: number, closeLabel?: string,
+ *   key?: string, reserve?: boolean, persistent?: boolean }} [options]
+ * @returns {ToastHandle}
+ */
+export function promise(region, work, options = {}) {
+  const target = region ?? toastRegion();
+  const doc = target?.ownerDocument;
+  let running;
+  try {
+    running = Promise.resolve(typeof work === 'function' ? work() : work);
+  } catch (error) {
+    running = Promise.reject(error);
+  }
+  if (!doc) {
+    running.catch(() => {});
+    return { el: null, close: () => Promise.resolve(), closed: Promise.resolve() };
+  }
+  const el = buildPending(doc, outcomeText(options.pending, undefined) || t('loading'), false);
+  el.setAttribute('aria-busy', 'true');
+  const handle = toast(target, el, { ...options, kind: 'info', persistent: true, restart: false });
+  const entry = toastEntries.get(el);
+  if (!entry) return handle;
+  // Waiting is no kind of its own: no icon of a kind, no assertive speech.
+  entry.kind = 'pending';
+  running.then(
+    (value) => settleToast(entry, 'success', outcomeText(options.success === undefined ? t('done') : options.success, value), options),
+    (reason) => settleToast(entry, 'error', outcomeText(options.error === undefined ? t('actionFailed') : options.error, reason), options),
+  );
+  return handle;
+}
+
+/** Numbers the ids of progress messages (their bar is named by their text). */
+let progressCount = 0;
+
+/**
+ * Shows a message with a progress bar: `text` over the bar, the share at
+ * its end. `value` (0 to 1; null or none: not known yet, the bar runs) is
+ * the first share. It stays until done() (the success text, default the
+ * string `done`; it then closes by itself) or fail() (the error text,
+ * default the string `actionFailed`; it stays), each in place. set(value,
+ * text) moves the bar (it glides) and may change the text; neither is
+ * spoken: the bar's role says it to whoever reads it, and the outcome is
+ * announced. The other options are those of toast().
+ * @param {Element|null} region
+ * @param {string} text
+ * @param {{ value?: number|null, timeout?: number, closeLabel?: string, key?: string, reserve?: boolean }} [options]
+ * @returns {ToastHandle & { set: (value: number|null, text?: string) => void,
+ *   done: (text?: string, options?: { timeout?: number, persistent?: boolean }) => void, fail: (text?: string) => void }}
+ */
+export function progress(region, text, options = {}) {
+  const target = region ?? toastRegion();
+  const doc = target?.ownerDocument;
+  const idle = { el: null, close: () => Promise.resolve(), closed: Promise.resolve(), set() {}, done() {}, fail() {} };
+  if (!doc) return idle;
+  const el = buildPending(doc, String(text ?? '').replace(/\s+/g, ' ').trim(), true);
+  const span = /** @type {HTMLElement} */ (el.querySelector('.ds-toast__text'));
+  const track = /** @type {HTMLElement} */ (el.querySelector('.ds-progress__track'));
+  const figure = /** @type {HTMLElement} */ (el.querySelector('.ds-toast__value'));
+  const meter = /** @type {HTMLElement} */ (el.querySelector('.ds-progress'));
+  progressCount += 1;
+  span.id = `ds-toast-progress-${progressCount}`;
+  track.setAttribute('aria-labelledby', span.id);
+  const show = (share) => {
+    const known = typeof share === 'number' && Number.isFinite(share);
+    const clamped = known ? Math.min(1, Math.max(0, share)) : null;
+    setShare(meter, clamped);
+    figure.textContent = clamped === null ? '' : percent(clamped, { maximumFractionDigits: 0 });
+  };
+  show(options.value ?? null);
+  const handle = toast(target, el, { ...options, kind: 'info', persistent: true, restart: false });
+  const entry = toastEntries.get(el);
+  if (!entry) return { ...idle, ...handle };
+  entry.kind = 'pending';
+  let ended = false;
+  return {
+    ...handle,
+    set(share, next) {
+      if (ended) return;
+      show(share);
+      if (typeof next === 'string' && next.trim()) {
+        span.textContent = next.replace(/\s+/g, ' ').trim();
+        entry.text = span.textContent;
+      }
+    },
+    done(next, more = {}) {
+      if (ended) return;
+      ended = true;
+      setShare(meter, 1);
+      settleToast(entry, 'success', outcomeText(next ?? t('done'), undefined), { ...options, ...more });
+    },
+    fail(next) {
+      if (ended) return;
+      ended = true;
+      settleToast(entry, 'error', outcomeText(next ?? t('actionFailed'), undefined), options);
+    },
+  };
+}
+
 /** Takes a message away: a waiting one leaves the queue, a shown one leaves the stack. */
 function closeToast(entry) {
   const state = toastRegions.get(entry.region);
@@ -677,8 +990,9 @@ function releaseToastFocus(entry, region, state, staying) {
 function updateToasts(region, state, closing) {
   const next = state.shown.filter((entry) => !closing.includes(entry));
   const added = [];
+  const limit = limitOf(region);
   while (state.queue.length) {
-    if (next.length >= TOAST_LIMIT) {
+    if (next.length >= limit) {
       const oldest = next.findIndex((entry) => !entry.stays);
       if (oldest < 0) break;
       next.splice(oldest, 1);
@@ -714,7 +1028,10 @@ function updateToasts(region, state, closing) {
       entry.phase = 'shown';
       region.append(entry.el);
     }
+    stackFront(region, state);
   });
+  // One message left: the stack has nothing to open.
+  if (state.expanded && next.length < 2) expandStack(region, state, false);
   shownNow(region, state, entering, moved);
 }
 

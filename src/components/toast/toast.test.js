@@ -37,3 +37,20 @@ describe('DS.overlay without its component modules', () => {
     assert.throws(() => overlay.tooltips(), /js\/tooltip\.js/, 'the others still say so');
   });
 });
+
+describe('DS.toast.promise() and progress() without a DOM', () => {
+  it('return a handle that does nothing, and leave no unhandled rejection', async () => {
+    const toast = await import('./toast.js');
+    const waiting = toast.promise(null, Promise.reject(new Error('offline')));
+    assert.equal(waiting.el, null);
+    await waiting.close();
+    const thrown = toast.promise(null, () => { throw new Error('at once'); });
+    assert.equal(thrown.el, null);
+    const upload = toast.progress(null, 'Uploading');
+    assert.equal(upload.el, null);
+    for (const name of ['set', 'done', 'fail', 'close']) assert.equal(typeof upload[name], 'function', name);
+    upload.set(0.5);
+    upload.done();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+});

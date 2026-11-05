@@ -3,6 +3,8 @@
   "exportRequires": {
     "announce": ["toast", "utilities"],
     "closeToasts": ["toast"],
+    "progress": ["button", "progress", "spinner", "toast", "utilities"],
+    "promise": ["button", "spinner", "toast", "utilities"],
     "toast": ["button", "toast", "utilities"],
     "toastRegion": ["toast", "utilities"]
   }
