@@ -161,7 +161,7 @@ test('an image that fails shows an icon and words; the list without a gallery go
 
 test('the phone: the viewer fills the window, the arrows over the image, touch-sized thumbnails under .ds-touch', async ({ page }) => {
   await open(page, 390);
-  await page.evaluate(() => document.querySelector('#fx-component').classList.add('ds-touch'));
+  await page.evaluate(() => document.querySelector('#fx-component > div').classList.add('ds-touch'));
   await page.locator('[data-demo="gallery"] .ds-lightbox__item').first().click();
   const box = viewer(page);
   await settle(page);
