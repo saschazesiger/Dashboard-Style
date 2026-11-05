@@ -1,0 +1,87 @@
+/*
+ * Container presets: three widths a region can have, as classes that
+ * query the nearest container instead of the window, so a part of the
+ * page reacts to the room it has (a side sheet, a card, the page beside
+ * an open drawer).
+ *
+ *   <section class="ds-container">                   a container (inline size)
+ *     <span class="ds-hide-compact">Last synced 09:12</span>
+ *     <button class="ds-btn ds-only-compact" type="button">More</button>
+ *     <div class="ds-cluster ds-stack-compact">actions ...</div>
+ *   </section>
+ *
+ * The sizes (Material 3 window classes, applied to the container):
+ *   compact    narrower than 600px (a phone, a side sheet, a narrow card)
+ *   medium     600px to 839px
+ *   expanded   840px and wider
+ *
+ *   .ds-hide-compact, .ds-hide-medium, .ds-hide-expanded   hidden at that size
+ *   .ds-only-compact, .ds-only-medium, .ds-only-expanded   shown at that size only
+ *   .ds-stack-compact   a flex row that turns into a column of full-width
+ *                       items at the compact size (a form's or a head's
+ *                       actions on a phone)
+ *
+ * Hide below or above a size by combining two: below expanded is
+ * .ds-hide-compact.ds-hide-medium, above compact
+ * .ds-hide-medium.ds-hide-expanded.
+ *
+ * The nearest container decides: a .ds-container, the page's content
+ * (.ds-content, the styleguide stage) or a component that is one. With no
+ * container around, no query matches: every element shows and nothing
+ * stacks. .ds-container takes inline-size containment: its width no
+ * longer follows its content, so it is a block, or a flex or grid item
+ * with a width of its own.
+ *
+ * Hiding is display: none with !important, as the hidden attribute is:
+ * the element leaves the layout and the accessibility tree, whatever
+ * display a component gives it. Keep a name or an action that only one
+ * size shows reachable at the others (an icon button's label, a "More"
+ * menu).
+ *
+ * Options: none read; these classes have no look.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.container {
+  .ds-container {
+    container-type: inline-size;
+  }
+
+  /* One rule per size: what hides at it. */
+  @container (width < 600px) {
+    .ds-hide-compact,
+    .ds-only-medium,
+    .ds-only-expanded {
+      display: none !important;
+    }
+
+    .ds-stack-compact {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: stretch;
+    }
+
+    /* Full width in the column: an auto margin would pull the item to one
+       side instead. */
+    .ds-stack-compact > .ds-push {
+      margin-inline-start: 0;
+    }
+  }
+
+  @container (600px <= width < 840px) {
+    .ds-hide-medium,
+    .ds-only-compact,
+    .ds-only-expanded {
+      display: none !important;
+    }
+  }
+
+  @container (width >= 840px) {
+    .ds-hide-expanded,
+    .ds-only-compact,
+    .ds-only-medium {
+      display: none !important;
+    }
+  }
+}
