@@ -73,9 +73,6 @@
     "DS.media.create": "focus, keys and checkboxes: the selection's colours change on --ds-dur-fast like any selected card, nothing moves"
   },
   "exceptions": {
-    "focus": {
-      ".ds-media__open": "the card draws the ring around itself (.ds-media:has(> .ds-media__open:focus-visible)); the open control, a line of text inside it, draws none"
-    },
     "ripple": {
       ".ds-media__open": "the open control is a line of text whose stretched ::after is the card's hit area and state layer; a ripple host clips to its own box, which would cut the ripple to the title"
     }

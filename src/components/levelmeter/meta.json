@@ -1,0 +1,62 @@
+{
+  "name": "levelmeter",
+  "group": "feedback",
+  "order": 4850,
+  "docsOrder": 315,
+  "need": "Show the live level of a microphone, with a peak and a word when it is too loud",
+  "tier": 2,
+  "status": "beta",
+  "classes": [
+    "ds-levelmeter",
+    "ds-levelmeter--segmented",
+    "ds-levelmeter--vertical",
+    "ds-levelmeter__fill",
+    "ds-levelmeter__label",
+    "ds-levelmeter__note",
+    "ds-levelmeter__peak",
+    "ds-levelmeter__track"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-levelmeter-height": {
+      "default": "6px",
+      "description": "a level meter's thickness at md, 2px more or less per size step"
+    },
+    "--ds-levelmeter-fill": {
+      "default": "`--ds-primary` (a tone on `.ds-levelmeter`: `--ds-tone`; loud: `--ds-error`)",
+      "description": "the level and the peak mark"
+    },
+    "--ds-levelmeter-track": {
+      "default": "`--ds-accent` (a tone: `--ds-tone-container`)",
+      "description": "the empty track"
+    },
+    "--ds-levelmeter-segment": {
+      "default": "6px",
+      "description": "one segment of `.ds-levelmeter--segmented` (the gap is 2px)"
+    },
+    "--ds-levelmeter-length": {
+      "default": "96px",
+      "description": "the height of `.ds-levelmeter--vertical`"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "levelmeter"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.levelmeter.level": "a pure function of a block of samples: no motion",
+    "DS.levelmeter.decibels": "a pure function of a level: no motion"
+  },
+  "exceptions": {
+    "physical": {
+      ".ds-levelmeter--segmented > .ds-levelmeter__track: mask": "gradient direction: a meter fills left to right, as its scale from the start does"
+    }
+  }
+}

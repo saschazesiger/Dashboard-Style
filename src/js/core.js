@@ -160,6 +160,8 @@ const DEFAULT_STRINGS = Object.freeze({
   avatarOverflow: '+{count}',
   mediaSelected: '{count} selected',
   mediaSelectionCleared: 'Selection cleared',
+  levelmeterValue: '{value} dB',
+  levelmeterLoud: 'Too loud',
 });
 
 /**
