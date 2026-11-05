@@ -23,7 +23,7 @@ the toggle where a wide screen does not.
 |---|---|---|
 | Block | `.ds-expandable` | the text and its toggle; `data-ds-expandable` (`"open"` starts open) |
 | Text | `.ds-expandable__text` | the text, clamped while closed |
-| Toggle | `.ds-expandable__toggle` | added by the module: an inline text link ([`.ds-link-btn`](#buttons)) |
+| Toggle | `.ds-expandable__toggle` | added by the module: an inline text link ([`.ds-link-btn`](#button)) |
 
 ### JS API
 

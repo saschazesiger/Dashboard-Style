@@ -5,7 +5,7 @@
  *
  *   <span class="ds-truncate" data-ds-truncate="end">Replace the toner of every printer on floor 2</span>
  *   <span class="ds-truncate" data-ds-truncate="middle">inventory-export-2026-11-04-final.csv</span>
- *   <a class="ds-truncate" data-ds-truncate="start" href="...">/devices/north/floor-2/printer-7</a>
+ *   <a href="..."><span class="ds-truncate" data-ds-truncate="start">/devices/north/floor-2/printer-7</span></a>
  *
  *   .ds-truncate          one line, at most as wide as its container; the
  *                         end is cut by text-overflow, the start and the
