@@ -85,10 +85,12 @@
   }
 
   /* A select as wide as its longest field, at least the hook; never wider
-     than the row. */
+     than the row. The least width is a length, not min(100%, …): a
+     percentage counts as nothing in the control's max-content width, so a
+     flex row would size it too narrow and wrap the order button. */
   .ds-sort__field {
     inline-size: auto;
-    min-inline-size: min(100%, var(--ds-sort-field-width, 160px));
+    min-inline-size: var(--ds-sort-field-width, 160px);
     max-inline-size: 100%;
   }
 
