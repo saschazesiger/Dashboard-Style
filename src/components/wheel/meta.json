@@ -1,0 +1,36 @@
+{
+  "name": "wheel",
+  "group": "feedback",
+  "order": 410,
+  "docsOrder": 612,
+  "need": "Say what is running right now in one line that changes often, without a spinner",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-wheel",
+    "ds-wheel__line"
+  ],
+  "attributes": [],
+  "requires": [],
+  "context": [],
+  "hooks": {
+    "--ds-wheel-fade": {
+      "default": "`--ds-space-3`",
+      "description": "`.ds-wheel`: the soft edge above and below the slot, given back by a negative margin"
+    },
+    "--ds-wheel-travel": {
+      "default": "100%",
+      "description": "`.ds-wheel`: how far a line glides as it goes or comes (one line, its own height)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "wheel"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.wheel.turnAt": "a pure function: the hold's arithmetic, no motion"
+  }
+}

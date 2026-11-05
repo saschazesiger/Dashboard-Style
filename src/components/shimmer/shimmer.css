@@ -1,0 +1,78 @@
+/*
+ * Shimmer: "something is at work" on the text itself (an assistant's
+ * "Thinking", a job's "Running npm test"): a soft glint that travels over
+ * the words, left to right, a pass and a pause, and nothing else on the
+ * line moves (plans/wheel-and-shimmer.md).
+ *
+ *   <span class="ds-shimmer" data-shimmer="Running npm test">Running npm test</span>
+ *   <span class="ds-wheel__line ds-shimmer" data-shimmer="Thinking">Thinking</span>   a wheel line (wheel.css)
+ *
+ * data-shimmer is the text as it reads (the same words and spaces), in one
+ * weight (a bold word in a regular line is wider than its copy). The wave
+ * is a copy of the text on top (::after), in the line's own type, so it
+ * lies on the letters and is cut with the same ellipsis.
+ * The copy's alternative text is empty (content: attr() / ""), so the
+ * accessible name stays the text's own.
+ *
+ * Look: the copy in --ds-shimmer-glint (white in every theme: over dark
+ * text a faint sheen passing, over light text in the dark theme a soft
+ * glint), shown through a horizontal mask only in a soft band: transparent
+ * to 32%, --ds-shimmer-peak at 50% (its alpha is the glint's strength at
+ * the crest: 55% of the text, a sheen in the background, never wiping the
+ * words out), transparent from 68% of a tile --ds-shimmer-length (480px)
+ * long, repeated along the line.
+ *
+ * Motion: the tile travels one --ds-shimmer-length per --ds-loop-shimmer
+ * (4.55s, the shape loader's round; until the token lands it runs on
+ * --ds-loop-loader, the same value), linear, on the progress wave's
+ * keyframe (ds-progress-wave, which moves the mask by
+ * --ds-progress-wave-length, set here to the tile): about 105px/s, so a
+ * short text sees one slow pass and a pause. The mask is the only repaint.
+ * Remove the class (or data-shimmer) when the work ends: the glint goes at
+ * once, the text stays.
+ *
+ * Options: none. It takes the type and colour of its text; size, density,
+ * shape and tone have nothing to act on.
+ *
+ * Hooks: --ds-shimmer-length (480px, one tile: the band and the pause after
+ * it). Roles: --ds-shimmer-glint, --ds-shimmer-peak (meta.json "roles").
+ *
+ * Forced colours: the copy is left out (content: none); the text stays.
+ */
+
+@layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
+
+@layer ds.components.shimmer {
+  .ds-shimmer {
+    position: relative;
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    vertical-align: bottom;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ds-shimmer[data-shimmer]::after {
+    --ds-progress-wave-length: var(--ds-shimmer-length, 480px);
+    content: attr(data-shimmer) / "";
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--ds-shimmer-glint, light-dark(var(--ds-surface), var(--ds-on-primary-container)));
+    pointer-events: none;
+    mask-image: linear-gradient(90deg, transparent 0 32%, var(--ds-shimmer-peak, color-mix(in srgb, var(--ds-text) 55%, transparent)) 50%, transparent 68% 100%);
+    mask-size: var(--ds-shimmer-length, 480px) 100%;
+    mask-repeat: repeat-x;
+    animation: ds-progress-wave var(--ds-loop-loader) linear infinite;
+  }
+
+  @media (forced-colors: active) {
+    .ds-shimmer[data-shimmer]::after {
+      content: none;
+    }
+  }
+}
