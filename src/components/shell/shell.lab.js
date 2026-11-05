@@ -48,3 +48,121 @@ SG_LAB.add({
   state: atLast,
   toggle: function (stage, on, sg) { return goTo(stage, on, sg); },
 });
+
+/*
+ * The top bar's layers: the phone search sheet, the app launcher and the
+ * account menu. Each opens and closes through DS.overlay, so a close mid-way
+ * turns back from where it is.
+ */
+function glyphs(stage) {
+  stage.querySelectorAll('[data-glyph]').forEach(function (slot) {
+    slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-glyph')], Number(slot.getAttribute('data-size') || 20)));
+  });
+}
+
+function opened(el) { return el.getAttribute('data-state') === 'open'; }
+
+function layerTo(el, on, opener) {
+  if (on) return opened(el) ? Promise.resolve() : DS.overlay.open(el, { opener: opener });
+  return el.hasAttribute('data-state') ? DS.overlay.close(el) : Promise.resolve();
+}
+
+function hold(sg) { return new Promise(function (resolve) { setTimeout(resolve, sg.slow(400)); }); }
+
+/* The sheet is fixed to the window in a page; layout containment makes the
+   stage its window here, a phone's width. The breakpoint and the inert page
+   around it are DS.shell.searchSheet()'s (labExempt): the lab plays the motion. */
+SG_LAB.add({
+  id: 'shell-search-sheet',
+  group: 'overlays',
+  title: 'Top bar: the phone search sheet',
+  note: 'At 720px and below the top bar\'s search is a sheet over the whole frame: it fades in while it slides down by <code>--ds-distance-md</code> on the spring over <code>--ds-dur-medium</code>, and leaves faster (<code>--ds-dur-fast</code>, accelerating). <code>data-state</code> drives it, so a close mid-way turns back from where it is.',
+  shows: ['.ds-topbar__search', '.ds-topbar__search-open', '.ds-topbar__search-back', '.ds-topbar__results', 'DS.overlay.open', 'DS.overlay.close', '--ds-dur-medium', '--ds-dur-fast', '--ds-distance-md', '--ds-ease-spatial', '--ds-ease-in'],
+  html: '<div style="position: relative; contain: layout paint; inline-size: 360px; max-inline-size: 100%; block-size: 300px; margin-inline: auto; overflow: hidden; border-radius: var(--ds-radius-card); background: var(--ds-backdrop);">' +
+    '<div class="ds-topbar" style="padding-inline: var(--ds-space-4) var(--ds-space-2);"><span class="ds-brand"><span class="ds-brand__name">Product</span></span>' +
+      '<div class="ds-topbar__search" data-lab-sheet hidden>' +
+        '<button class="ds-btn ds-btn--quiet ds-btn--icon ds-topbar__search-back" type="button" aria-label="Close search" data-ds-close><span data-glyph="arrowLeft"></span></button>' +
+        '<div class="ds-search"><span data-glyph="search"></span><input class="ds-input" type="search" aria-label="Search devices" placeholder="Search devices" value="lap"></div>' +
+        '<div class="ds-topbar__results"><ul class="ds-list" aria-label="Devices"><li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0042</span></span></li><li class="ds-list__item"><span class="ds-list__text"><span class="ds-list__title">LAPTOP-0017</span></span></li></ul></div>' +
+      '</div>' +
+      '<div class="ds-topbar__actions"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Search" data-lab-open><span data-glyph="search"></span></button></div>' +
+    '</div></div>',
+  height: 320,
+  setup: function (stage) {
+    glyphs(stage);
+    var sheet = stage.querySelector('[data-lab-sheet]');
+    var opener = stage.querySelector('[data-lab-open]');
+    opener.addEventListener('click', function () { layerTo(sheet, !opened(sheet), opener); });
+  },
+  subject: function (stage) { return stage.querySelector('[data-lab-sheet]'); },
+  play: function (stage, sg) {
+    var sheet = stage.querySelector('[data-lab-sheet]');
+    var opener = stage.querySelector('[data-lab-open]');
+    return layerTo(sheet, true, opener).then(function () { return hold(sg); }).then(function () { return layerTo(sheet, false); });
+  },
+  state: function (stage) { return opened(stage.querySelector('[data-lab-sheet]')); },
+  toggle: function (stage, on) { return layerTo(stage.querySelector('[data-lab-sheet]'), on, stage.querySelector('[data-lab-open]')); },
+});
+
+function app(glyph, label, current) {
+  return '<a class="ds-menu__item ds-launcher__app" role="menuitem" href="#overlays"' + (current ? ' aria-current="true"' : '') + '>' +
+    '<span class="ds-launcher__icon"><span data-glyph="' + glyph + '" data-size="24"></span></span><span class="ds-launcher__label">' + label + '</span></a>';
+}
+
+SG_LAB.add({
+  id: 'shell-launcher',
+  group: 'overlays',
+  title: 'Top bar: the app launcher',
+  note: 'The app switcher is a menu laid out as a grid: it grows out of its button like every menu (<code>DS.shell.launcher(menu).set(true)</code> opens it), and the arrow keys move in two dimensions over it. The current app keeps its tinted disc and the label weight.',
+  shows: ['DS.shell.launcher', '.ds-launcher', '.ds-launcher__app', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-instant', '--ds-ease-spatial'],
+  html: '<div class="sg-popup-stage" style="display: flex; justify-content: center;"><button class="ds-btn ds-btn--quiet ds-btn--icon" type="button" aria-label="Apps" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-launcher" data-lab-apps><span data-glyph="apps"></span></button>' +
+    '<div class="ds-menu ds-launcher" role="menu" id="sg-lab-launcher" aria-label="Apps" hidden>' +
+      app('laptop', 'Devices', true) + app('ticket', 'Tickets') + app('users', 'People') + app('barChart', 'Reports') + app('calendar', 'Schedule') + app('mail', 'Mail') +
+    '</div></div>',
+  height: 300,
+  setup: function (stage) {
+    glyphs(stage);
+    var menu = stage.querySelector('.ds-launcher');
+    var trigger = stage.querySelector('[data-lab-apps]');
+    stage.__launcher = DS.shell.launcher(menu);
+    trigger.addEventListener('click', function () { layerTo(menu, !opened(menu), trigger); });
+    menu.addEventListener('click', function (event) { if (event.target.closest('a')) event.preventDefault(); });
+  },
+  subject: function (stage) { return stage.querySelector('.ds-launcher'); },
+  play: function (stage, sg) {
+    var menu = stage.querySelector('.ds-launcher');
+    var trigger = stage.querySelector('[data-lab-apps]');
+    return layerTo(menu, true, trigger).then(function () { return hold(sg); }).then(function () { return layerTo(menu, false); });
+  },
+  state: function (stage) { return opened(stage.querySelector('.ds-launcher')); },
+  toggle: function (stage, on) { return layerTo(stage.querySelector('.ds-launcher'), on, stage.querySelector('[data-lab-apps]')); },
+});
+
+SG_LAB.add({
+  id: 'shell-account',
+  group: 'overlays',
+  title: 'Top bar: the account menu',
+  note: 'The avatar opens a menu with the name and email at its head, the theme switch and sign out. It moves as every menu does; choosing a theme changes the colours at once, nothing moves.',
+  shows: ['.ds-account__trigger', '.ds-account__menu', '.ds-account__head', '--ds-scale-popup', '--ds-dur-medium', '--ds-dur-instant'],
+  html: '<div class="sg-popup-stage ds-account" style="display: flex; justify-content: center;"><button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger" type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="sg-lab-account" data-lab-account><span class="ds-account__avatar" aria-hidden="true">A</span></button>' +
+    '<div class="ds-menu ds-account__menu" role="menu" id="sg-lab-account" aria-labelledby="sg-lab-account-head" hidden>' +
+      '<div class="ds-account__head" id="sg-lab-account-head" aria-hidden="true"><span class="ds-account__avatar ds-lg">A</span><div class="ds-account__name">Ada Lovelace</div><div class="ds-account__email">ada@example.org</div></div>' +
+      '<div class="ds-menu__divider" role="separator"></div>' +
+      '<button class="ds-menu__item" role="menuitem" type="button"><span data-glyph="logout"></span><span class="ds-menu__label">Sign out</span></button>' +
+    '</div></div>',
+  height: 260,
+  setup: function (stage) {
+    glyphs(stage);
+    var menu = stage.querySelector('.ds-account__menu');
+    var trigger = stage.querySelector('[data-lab-account]');
+    trigger.addEventListener('click', function () { layerTo(menu, !opened(menu), trigger); });
+  },
+  subject: function (stage) { return stage.querySelector('.ds-account__menu'); },
+  play: function (stage, sg) {
+    var menu = stage.querySelector('.ds-account__menu');
+    var trigger = stage.querySelector('[data-lab-account]');
+    return layerTo(menu, true, trigger).then(function () { return hold(sg); }).then(function () { return layerTo(menu, false); });
+  },
+  state: function (stage) { return opened(stage.querySelector('.ds-account__menu')); },
+  toggle: function (stage, on) { return layerTo(stage.querySelector('.ds-account__menu'), on, stage.querySelector('[data-lab-account]')); },
+});

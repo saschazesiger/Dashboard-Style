@@ -56,7 +56,9 @@
  * aria-checked) set data-ds-scheme on the .ds-theme around it (auto removes
  * it; data-ds-scheme-switch-target names another) and the media of a dark
  * theme link (data-ds-scheme-switch-link), remembered under the key
- * (default "scheme"), in step across switches and tabs. ds:change ({ value }).
+ * (default "scheme"; data-ds-scheme-switch-remember="off": not stored), in
+ * step across switches, tabs and the page pinning the theme itself.
+ * ds:change ({ value }).
  *
  * Breadcrumbs (data-ds-breadcrumbs): when the trail is wider than its
  * nav, the middle crumbs go into a menu behind a "more" button after the
@@ -581,6 +583,14 @@ function sheet(el, options, signal) {
   }, on);
   el.addEventListener('ds:open', (event) => { if (event.target === el) engage(); }, on);
   el.addEventListener('ds:close', (event) => { if (event.target === el) release(); }, on);
+  // Escape clears a filled field first (DS.overlay closes the sheet on the next one).
+  el.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
+    const field = /** @type {HTMLInputElement} */ (event.target);
+    if (event.key !== 'Escape' || !still || event.defaultPrevented || field.localName !== 'input' || !field.value) return;
+    event.preventDefault();
+    field.value = '';
+    field.dispatchEvent(new (viewOf(el).Event)('input', { bubbles: true }));
+  }, on);
   // Tab goes round inside the open sheet (the button behind it stays reachable for the focus return only).
   el.addEventListener('keydown', (/** @type {KeyboardEvent} */ event) => {
     if (event.key !== 'Tab' || !still || event.defaultPrevented) return;

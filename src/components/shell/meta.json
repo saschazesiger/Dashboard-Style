@@ -221,8 +221,8 @@
   "labExempt": {
     "DS.shell.create": "wires the menu button, the rail and the modal drawer, whose motion the lab.js entries 'rail' and 'modal-drawer' play",
     "DS.shell.drawer": "remembered groups, the filter and the arrow keys: the groups open and close on .ds-collapsible ('drawer-group' in lab.js); a filtered item takes no room at once",
-    "DS.shell.searchSheet": "the phone breakpoint, inertness and focus around the sheet, whose motion the entry 'topbar-search-sheet' plays through DS.overlay",
-    "DS.shell.schemeSwitch": "a choice of colour scheme: the colours change at once, nothing moves",
+    "DS.shell.searchSheet": "the phone breakpoint, inertness and focus around the sheet; its motion is .ds-topbar__search's through DS.overlay, which the entry 'shell-search-sheet' plays",
+    "DS.shell.schemeSwitch": "a choice of colour scheme: the colours change at once, nothing moves (its menu is 'shell-account')",
     "DS.shell.setScheme": "a choice of colour scheme: the colours change at once, nothing moves",
     "DS.shell.breadcrumbs": "folds crumbs into a menu at once; the menu's motion is the menu's ('menu' in lab.js)",
     "DS.shell.fitCrumbs": "a pure function: no motion",

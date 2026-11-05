@@ -13,7 +13,17 @@
  *       <a class="ds-brand" href="/">[mark] <span class="ds-brand__name">Product</span></a>
  *       [<h1 class="ds-topbar__title">Page</h1>]   (instead of a page head on small screens)
  *       [<div class="ds-topbar__search"> <div class="ds-search"> ... </div> </div>]   (hidden below 720px)
+ *       (3.0, DS.shell: <div class="ds-topbar__search" data-ds-search-sheet> [.ds-topbar__search-back] .ds-search
+ *        [<div class="ds-topbar__results">] </div>, a sheet below 720px opened by .ds-topbar__search-open)
  *       [<div class="ds-topbar__actions"> icon buttons, each with data-tip </div>]
+ *       (the app switcher: an icon button and <div class="ds-menu ds-launcher" role="menu" aria-label="Apps" data-ds-launcher>
+ *        <a class="ds-menu__item ds-launcher__app" role="menuitem"> <span class="ds-launcher__icon">(icon)</span>
+ *        <span class="ds-launcher__label">Devices</span> </a> ... </div>; the bell: an icon button with a
+ *        .ds-badge--dot inside)
+ *       (the account menu: <div class="ds-account"> <button class="ds-btn ds-btn--quiet ds-btn--icon ds-account__trigger"
+ *        type="button" aria-label="Account: Ada Lovelace" aria-haspopup="menu" aria-expanded="false" aria-controls="account">
+ *        <span class="ds-account__avatar" aria-hidden="true">A</span></button> <div class="ds-menu ds-account__menu" role="menu" id="account" aria-labelledby="account-head">
+ *        <div class="ds-account__head" id="account-head" aria-hidden="true"> avatar, name, email </div> [data-ds-scheme-switch group] sign out </div></div>)
  *       <div class="ds-account"> <div class="ds-account__text"> <div class="ds-account__name"> <div class="ds-account__email"> </div>
  *         <span class="ds-account__avatar" role="img" aria-label="..." tabindex="0" data-tip="...">A</span> <button class="ds-btn ds-btn--text" type="button">Sign out</button>
  *       (.ds-account--capsule: avatar, text aria-hidden, <span class="ds-account__divider"></span>, the sign-out button)
@@ -127,7 +137,11 @@
  * --ds-view-scrollbar-gutter (stable; stable both-edges, or auto),
  * --ds-segmented-padding-x (--ds-space-4: the inline padding of an
  * option), --ds-topbar-search-max (720px), --ds-account-text-max
- * (240px), --ds-avatar-size (32px). Layout role: --ds-drawer-rail-width.
+ * (240px), --ds-avatar-size (32px), --ds-account-menu-width (280px),
+ * --ds-launcher-columns (3), --ds-launcher-app-width (96px),
+ * --ds-launcher-app-height (88px at md, comfortable), --ds-launcher-icon-size
+ * (40px at md), --ds-launcher-font (the size's role). Layout role:
+ * --ds-drawer-rail-width.
  *
  * Drawer parts: .ds-drawer__back (a way up, between head and list, with a
  * hairline under it; above 900px the docked drawer's back item hides the
