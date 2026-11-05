@@ -136,8 +136,13 @@ function controller(el) {
   if (!counter && latest) {
     counter = doc.createElement('span');
     counter.className = 'ds-transcript__unread';
-    latest.append(counter);
-    cleanups.push(() => counter.remove());
+    // A space, so the name reads "Latest 3 new".
+    const space = doc.createTextNode(' ');
+    latest.append(space, counter);
+    cleanups.push(() => {
+      space.remove();
+      counter.remove();
+    });
   }
 
   /* ── Live region politeness ── */

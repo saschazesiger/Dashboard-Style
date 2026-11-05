@@ -13,7 +13,7 @@
  *     </div>
  *     <div class="ds-jump"><div class="ds-presence" hidden>
  *       <button class="ds-btn ds-btn--tonal ds-transcript__latest" type="button">(arrowDown 20)
- *         <span>Latest</span><span class="ds-transcript__unread"></span></button></div></div>
+ *         <span>Latest</span> <span class="ds-transcript__unread"></span></button></div></div>
  *   </div>
  *
  * The page gives it a block size (a flex child of a column that holds the

@@ -249,8 +249,7 @@ function controller(el, options, ctx) {
   const usable = (option) => !option.hidden && option.getAttribute('aria-disabled') !== 'true';
 
   function activate(option) {
-    if (active === option) return;
-    active?.setAttribute('aria-selected', 'false');
+    if (active && active !== option) active.setAttribute('aria-selected', 'false');
     active = option;
     if (!textarea) return;
     if (option) {
@@ -281,7 +280,6 @@ function controller(el, options, ctx) {
       palette.append(none);
     }
     if (none) /** @type {HTMLElement} */ (none).hidden = Boolean(first);
-    active = null;
     activate(current ?? first);
   }
 

@@ -326,6 +326,8 @@ const CONTINUITY = {
   'radio-tiles': { in: 'stage', sel: '.ds-radio:nth-of-type(2) .ds-radio__mark svg', props: ['opacity', 'scale.x'] },
   charts: { in: 'stage', sel: '.ds-meter', props: ['--ds-share'] },
   'selection-bar': { in: 'stage', sel: '.ds-selection-bar', props: ['opacity'] },
+  'composer-palette': { in: 'stage', sel: '.ds-composer__palette', props: ['opacity', 'scale.x'] },
+  'ailabel-tip': { in: 'stage', sel: '.ds-ailabel__tip', props: ['opacity', 'scale.x'] },
 };
 
 /** Reversible demos whose reversal is not read from one element's computed style, each with its reason. */
@@ -348,6 +350,8 @@ const CONTINUITY_EXEMPT = {
   'scroll-reel': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-y': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
   'scroll-x': 'scroll-driven: the edge fades follow the scroll position the demo sets, not time',
+  'composer-attachments': 'each toggle adds a new chip or removes it (DS.motion.enter / leave, pop): another element each time, not one value turning back',
+  'transcript-latest': 'each toggle scrolls the log and appends a message or sticks to the end; the pill is a .ds-presence (motion.css), whose own demo checks its continuity',
 };
 
 /**

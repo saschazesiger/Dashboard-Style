@@ -83,6 +83,9 @@
     "field-sizing"
   ],
   "ripple": false,
+  "labExempt": {
+    "DS.composer.query": "a pure function: no motion"
+  },
   "exceptions": {
     "physical": {
       ".ds-composer__palette: inset": "script coordinates: --ds-composer-palette-x from the left of the viewport"

@@ -17,7 +17,7 @@ screen.
   </div>
   <!-- optional: the module writes this pill when the markup has none -->
   <div class="ds-jump"><div class="ds-presence" hidden>
-    <button class="ds-btn ds-btn--tonal ds-transcript__latest" type="button">[icon arrowDown 20]<span>Latest</span><span class="ds-transcript__unread"></span></button>
+    <button class="ds-btn ds-btn--tonal ds-transcript__latest" type="button">[icon arrowDown 20]<span>Latest</span> <span class="ds-transcript__unread"></span></button>
   </div></div>
 </div>
 <form class="ds-composer" data-ds-composer>...</form>
