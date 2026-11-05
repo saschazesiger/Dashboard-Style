@@ -52,19 +52,6 @@
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
 
-/* The two ends of the fade (as in scroller.css, which may not be loaded). */
-@property --ds-scroll-edge-start {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-
-@property --ds-scroll-edge-end {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-
 @layer ds.components.choices {
   .ds-choices {
     display: grid;
@@ -159,8 +146,8 @@
     color: inherit;
     font-weight: var(--ds-weight-label);
     text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+    text-decoration-thickness: var(--ds-link-underline-thickness);
+    text-underline-offset: var(--ds-link-underline-offset);
   }
 
   .ds-choices__empty {

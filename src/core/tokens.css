@@ -5,8 +5,9 @@
  * inside a foreign page (an embedded widget) without touching that page's
  * variables. A full app puts class="ds-theme" on <html>. The exceptions
  * are the @property registrations at the top level: --ds-time-scale, the
- * runtime properties the loading indicators animate (below it) and the
- * share of a chart mark (--ds-share).
+ * runtime properties the loading indicators animate (below it), the
+ * share of a chart mark (--ds-share) and the ends of a cut edge's fade
+ * (--ds-scroll-edge-start, --ds-scroll-edge-end).
  *
  * Three layers:
  *   1. Scales: motion, spacing, state layers, layers (z), radius scale.
@@ -127,6 +128,26 @@
 @property --ds-share {
   syntax: '<number>';
   inherits: true;
+  initial-value: 0;
+}
+
+/*
+ * The two ends of a cut edge's fade (0 ... 1), as numbers: the scroller,
+ * the combobox list, the listbox and the choice list mask their scrolling
+ * box with them. Registered here, once, so they interpolate (the
+ * scroll-linked keyframes and the attribute transitions) in whatever set
+ * of single files a page links; they do not inherit, so a scroller inside
+ * a scroller keeps its own.
+ */
+@property --ds-scroll-edge-start {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --ds-scroll-edge-end {
+  syntax: '<number>';
+  inherits: false;
   initial-value: 0;
 }
 

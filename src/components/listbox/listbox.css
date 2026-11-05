@@ -52,8 +52,8 @@
  *
  * Cut edges: the box fades each edge with more to show over
  * --ds-scroll-fade (the combobox list's mask on the registered numbers
- * --ds-scroll-edge-start and -end, registered here too, so the single file
- * works without scroller.css); DS.listbox attaches DS.dom.scrollEdges() on
+ * --ds-scroll-edge-start and -end, registered in tokens.css, so the single
+ * file works without scroller.css); DS.listbox attaches DS.dom.scrollEdges() on
  * the block axis, whose data-ds-overflow-start and -end set them (gliding
  * over --ds-dur-fast once it measured, data-ds-edges).
  *
@@ -73,19 +73,6 @@
  */
 
 @layer ds.tokens, ds.base, ds.components, ds.motion, ds.utilities;
-
-/* The two ends of the fade (as in scroller.css, which may not be loaded). */
-@property --ds-scroll-edge-start {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-
-@property --ds-scroll-edge-end {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
 
 @layer ds.components.listbox {
   .ds-listbox {
@@ -295,8 +282,8 @@
     color: inherit;
     font-weight: var(--ds-weight-label);
     text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
+    text-decoration-thickness: var(--ds-link-underline-thickness);
+    text-underline-offset: var(--ds-link-underline-offset);
   }
 
   /* One choice: the check at the end, there only on the chosen option. */
@@ -382,7 +369,7 @@
     }
 
     .ds-listbox[tabindex]:not(:focus) .ds-listbox__option[data-active] {
-      outline: 0;
+      outline: none;
     }
 
     .ds-listbox__option[aria-selected="true"] {

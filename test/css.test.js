@@ -382,6 +382,7 @@ const RATIOS = [
   ['tooltip (keyframes)', [['src/components/tooltip/tooltip.css', '.ds-tooltip:not([data-state])', ['animation']]], [['src/components/tooltip/tooltip.css', '.ds-tooltip:not([data-state])', ['--ds-leave-duration']]]],
   ['combobox list', [['src/components/combobox/combobox.css', '.ds-combo__popup[data-state]', ['transition']]], [['src/components/combobox/combobox.css', '.ds-combo__popup[data-state="closed"]', ['transition']]]],
   ['menu', [['src/components/menu/menu.css', '.ds-menu[data-state]', ['transition']]], [['src/components/menu/menu.css', '.ds-menu[data-state="closed"]', ['transition']]]],
+  ['select panel', [['src/components/selectpanel/selectpanel.css', '.ds-selectpanel__panel[data-state]', ['transition']]], [['src/components/selectpanel/selectpanel.css', '.ds-selectpanel__panel[data-state="closed"]', ['transition']]]],
 ];
 /**
  * Old/new pairs outside the ratio, each with its reason (the test checks
@@ -417,7 +418,7 @@ const CONTROL_RATIOS = [
 ];
 const resolveDuration = (candidates) => candidates.map(([file, selector, properties, only]) => longest(file, selector, properties, only)).find((time) => time !== undefined);
 /** The popups of the ratio table: they may exit in --ds-dur-instant (motion-2.md). */
-const POPUPS = ['src/components/tooltip/tooltip.css', 'src/components/combobox/combobox.css', 'src/components/menu/menu.css'];
+const POPUPS = ['src/components/tooltip/tooltip.css', 'src/components/combobox/combobox.css', 'src/components/menu/menu.css', 'src/components/selectpanel/selectpanel.css'];
 
 describe('motion in CSS', () => {
   it('defines @keyframes only in motion.css and the components\' <name>.keyframes.css, each name once', () => {
@@ -2184,7 +2185,7 @@ describe('view transitions and scroll-driven effects (1.5.0)', () => {
       assert.deepEqual(Object.keys(stops), ['from', 'to'], name);
       assert.deepEqual([stops.from, stops.to].map((list) => list.map((entry) => `${entry.property}: ${entry.value}`)), [[`${property}: ${from}`], [`${property}: ${to}`]], name);
       assert.ok(REGISTERED.has(property), `${property} is registered`);
-      assert.match(stripComments(read('src/components/scroller/scroller.css')), new RegExp(`@property ${property} \\{\\s*syntax: '<number>';\\s*inherits: false;\\s*initial-value: 0;`), property);
+      assert.match(stripComments(read('src/core/tokens.css')), new RegExp(`@property ${property} \\{\\s*syntax: '<number>';\\s*inherits: false;\\s*initial-value: 0;`), property);
     }
     // Every user of the edge numbers runs both on its own scroll (inline; the combobox list block), over the documented ranges.
     const shades = new Set(['.ds-menu::before', '.ds-menu::after', '.ds-drawer__list::before', '.ds-drawer__list::after']);
