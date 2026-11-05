@@ -160,6 +160,13 @@ const DEFAULT_STRINGS = Object.freeze({
   sortAscendingDate: 'Oldest first',
   sortDescendingDate: 'Newest first',
   sortAnnounce: 'Sorted by {field}, {direction}',
+  loadMoreStatus: 'Showing {loaded} of {total}',
+  loadMoreStatusOpen: 'Showing {loaded}',
+  loadMoreDone: 'All {total} shown',
+  loadMoreLoaded: 'Loaded {count} more.',
+  loadMoreLoading: 'Loading more',
+  loadMoreFailed: 'Could not load more.',
+  tryAgain: 'Try again',
 });
 
 /**

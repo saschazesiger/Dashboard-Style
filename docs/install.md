@@ -406,6 +406,13 @@ strings a script adds have an option, so a page in another language passes its o
 | `Oldest first` | the ascending order of a date field in `DS.sort` (the system's string `sortAscendingDate`) | `DS.core.config({ strings: { sortAscendingDate } })` |
 | `Newest first` | the same, descending (the system's string `sortDescendingDate`) | `DS.core.config({ strings: { sortDescendingDate } })` |
 | `Sorted by {field}, {direction}` | what `DS.sort` announces after the user changed the sort (the system's string `sortAnnounce`) | `DS.core.config({ strings: { sortAnnounce } })` |
+| `Showing {loaded} of {total}` | the status of `DS.loadmore` (the system's string `loadMoreStatus`) | `DS.core.config({ strings: { loadMoreStatus } })` |
+| `Showing {loaded}` | the same, without a total (the system's string `loadMoreStatusOpen`) | `DS.core.config({ strings: { loadMoreStatusOpen } })` |
+| `All {total} shown` | the status of `DS.loadmore` once everything shows (the system's string `loadMoreDone`) | `DS.core.config({ strings: { loadMoreDone } })` |
+| `Loaded {count} more.` | what `DS.loadmore` announces after a load, before the status (the system's string `loadMoreLoaded`) | `DS.core.config({ strings: { loadMoreLoaded } })` |
+| `Loading more` | what `DS.loadmore` announces when its sentinel starts a load (the system's string `loadMoreLoading`) | `DS.core.config({ strings: { loadMoreLoading } })` |
+| `Could not load more.` | the status and announcement of a failed load in `DS.loadmore` (the system's string `loadMoreFailed`) | `DS.core.config({ strings: { loadMoreFailed } })` |
+| `Try again` | the label of the button of `DS.loadmore` after a failed load (the system's string `tryAgain`) | `DS.core.config({ strings: { tryAgain } })` |
 | `Moved to position ${index} of ${count}` | what a keyboard or pointer move of `DS.motion.sortable()` announces | `DS.motion.sortable(list, { announce: (index, count) => text })` |
 
 A test fails on a quoted UI string in `src/js/` without an option and a row here. Numbers and dates follow

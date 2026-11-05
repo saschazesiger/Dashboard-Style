@@ -1,0 +1,45 @@
+{
+  "name": "loadmore",
+  "group": "data",
+  "order": 400,
+  "docsOrder": 181,
+  "need": "Grow a long list by pages: a Load more button, or an infinite scroll that stops for the footer",
+  "tier": 1,
+  "status": "beta",
+  "classes": [
+    "ds-loadmore",
+    "ds-loadmore--inline",
+    "ds-loadmore__button",
+    "ds-loadmore__icon",
+    "ds-loadmore__status",
+    "ds-loadmore__text"
+  ],
+  "attributes": [
+    "data-state"
+  ],
+  "requires": [
+    "button",
+    "spinner"
+  ],
+  "context": [],
+  "hooks": {
+    "--ds-loadmore-padding": {
+      "default": "`--ds-space-4`",
+      "description": "the block padding of `.ds-loadmore` (and the side padding of `--inline`) at the comfortable density; 2px per density step"
+    },
+    "--ds-loadmore-error-color": {
+      "default": "`--ds-error`",
+      "description": "the status of a load that failed (with the alert icon and the words)"
+    }
+  },
+  "keyframes": [],
+  "js": [
+    "loadmore"
+  ],
+  "module": true,
+  "progressive": [],
+  "ripple": false,
+  "labExempt": {
+    "DS.loadmore.statusText": "a pure function: no motion"
+  }
+}
