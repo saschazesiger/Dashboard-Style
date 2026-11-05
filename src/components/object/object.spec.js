@@ -19,7 +19,7 @@ async function open(page, width = 1280) {
   await settle(page);
 }
 
-const article = (page) => page.getByRole('article', { name: 'LAPTOP-0042' });
+const article = (page) => page.locator('.ds-object').filter({ has: page.getByRole('heading', { name: 'LAPTOP-0042' }) }).first();
 const section = (page, name) => article(page).getByRole('region', { name });
 
 test('a section turns into its form: the focus goes to its first field, a screen reader hears it, Save brings the view back with the values', async ({ page }) => {
@@ -103,6 +103,7 @@ test('edit mode: Edit in the head turns every section into its form, Save all an
   await expect(cancel).toBeHidden();
   await edit.click();
   await expect(article(page)).toHaveAttribute('data-editing', '');
+  await expect(page.locator('[aria-live]').filter({ hasText: 'Editing LAPTOP-0042' })).toHaveCount(1);
   for (const name of ['General', 'Owner', 'Network']) await expect(section(page, name)).toHaveAttribute('data-editing', '');
   await expect(edit).toBeHidden();
   await expect(saveAll).toBeVisible();

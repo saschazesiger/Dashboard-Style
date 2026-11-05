@@ -36,7 +36,7 @@ var SCROLL_BOX = 'block-size: 440px; overflow-y: auto; border: 1px solid var(--d
 SG.demo('page', {
   title: 'Page',
   group: 'navigation',
-  need: 'Lay out a page: its head, breadcrumbs, columns of cards, and a sign-in page',
+  need: 'Lay out a page: its head (sticky and condensing, actions that fold into More), breadcrumbs, columns of cards, and a sign-in page',
   lead: 'The padded content area, one page of cards and its head. The options panel reaches the controls inside; the page\'s own rhythm and padding are layout.',
   options: { sizes: true, density: true, shape: true, tones: false },
 

@@ -4,7 +4,7 @@
  * cards; an edit mode turns a section, or all of them, into its inline-edit
  * form (object.js).
  *
- *   <article class="ds-object" aria-labelledby="obj-title" data-ds-object>
+ *   <div class="ds-object" data-ds-object>
  *     <header class="ds-page-head ds-page-head--sticky" data-ds-page-head>
  *       ... <h1 class="ds-page-head__title" id="obj-title" tabindex="-1">LAPTOP-0042</h1> ...
  *       <div class="ds-page-head__actions">
@@ -25,11 +25,11 @@
  *         <div class="ds-form-actions"><button class="ds-btn" type="button" data-ds-object-cancel>Cancel</button><button class="ds-btn ds-btn--filled" type="submit">Save</button></div>
  *       </form>
  *     </section>
- *   </article>
+ *   </div>
  *
  * Layout: a column of --ds-object-gap (--ds-space-5). The head and the bar
  * stick one under the other: the module writes the head's height as
- * --ds-object-head and the bar's as --ds-object-bar on the article (runtime
+ * --ds-object-head and the bar's as --ds-object-bar on the .ds-object (runtime
  * properties: never set them), the bar sticks at --ds-object-head, and a
  * section's scroll-margin-top keeps its title clear of both when a jump
  * scrolls to it.
@@ -41,7 +41,7 @@
  * and .ds-object__form (the two faces; the module owns their hidden).
  *
  * State, written by the module: data-editing on a section that shows its
- * form, and on the article while every section does (edit mode).
+ * form, and on the .ds-object while every section does (edit mode).
  *
  * Options: size, density, shape and tone reach the controls and the cards
  * inside (each computes its own); the object page's own rhythm is layout.

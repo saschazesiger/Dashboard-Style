@@ -4,11 +4,18 @@
  * the hairline under it fades in with the scroll (or over --ds-dur-fast
  * where scroll timelines are missing).
  */
+/* The icons go in at setup: the entries are built before ds.js has run. */
+function glyphs(stage) {
+  stage.querySelectorAll('[data-lab-glyph]').forEach(function (slot) {
+    slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-lab-glyph')], Number(slot.getAttribute('data-size'))));
+  });
+}
+
 function pageHeadMarkup() {
   var cards = '';
   for (var index = 0; index < 6; index += 1) cards += '<div class="ds-card" style="min-block-size: 80px;"><p class="ds-muted" style="margin: 0;">Card ' + (index + 1) + '</p></div>';
   return '<div data-lab="page-head" style="block-size: 260px; inline-size: 420px; overflow-y: auto; padding: 0 var(--ds-space-3) var(--ds-space-3); background: var(--ds-backdrop);">' +
-    '<header class="ds-page-head ds-page-head--sticky"><a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="#">' + DS.icons.icon(DS.icons.arrowLeft, 18) + 'Devices</a>' +
+    '<header class="ds-page-head ds-page-head--sticky"><a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="#"><span data-lab-glyph="arrowLeft" data-size="18"></span>Devices</a>' +
     '<div class="ds-page-head__row"><div class="ds-page-head__text"><h3 class="ds-page-head__title">LAPTOP-0042</h3><p class="ds-page-head__lead">Laptop 14 · Ada Lovelace</p></div>' +
     '<div class="ds-page-head__actions"><button class="ds-btn" type="button">Retire</button><button class="ds-btn ds-btn--filled" type="button">Edit</button></div></div>' +
     '<dl class="ds-page-head__details"><div class="ds-page-head__detail"><dt>Site</dt><dd>Building B</dd></div><div class="ds-page-head__detail"><dt>Last sync</dt><dd>Today, 09:12</dd></div></dl></header>' +
@@ -25,6 +32,7 @@ SG_LAB.add({
   height: 280,
   wide: true,
   setup: function (stage) {
+    glyphs(stage);
     stage.dsPage = DS.page.create(stage.querySelector('.ds-page-head'));
   },
   play: function (stage, sg) {

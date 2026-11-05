@@ -2,10 +2,10 @@
  * Object page (DS.object): the edit mode of one record's page, and the band
  * of its sticky head and section anchors.
  *
- *   <article class="ds-object" aria-labelledby="obj-title" data-ds-object> head, bar, sections </article>
- *   const record = DS.object.create(article);
+ *   <div class="ds-object" data-ds-object> head, bar, sections </div>
+ *   const record = DS.object.create(el);
  *   record.get();  record.set(['general']);  record.edit('network');  record.done('network');
- *   article.addEventListener('ds:save', (event) => { event.preventDefault(); save(event.detail.values).then(() => record.done(event.detail.section)); });
+ *   el.addEventListener('ds:save', (event) => { event.preventDefault(); save(event.detail.values).then(() => record.done(event.detail.section)); });
  *
  * Sections (.ds-object__section) have two faces: .ds-object__view and
  * .ds-object__form (a <form>). The module owns their `hidden` and the
@@ -14,7 +14,7 @@
  *   form: the view hides, the form enters (DS.motion.enter(form, 'swap')),
  *   the focus goes to its first field and a screen reader hears "Editing
  *   <title>". One outside the sections (in the head) turns every section
- *   into its form (edit mode, data-editing on the article); then the
+ *   into its form (edit mode, data-editing on the .ds-object); then the
  *   [data-ds-object-save] and [data-ds-object-cancel] buttons outside the
  *   sections show and the edit button hides (owned `hidden`).
  * - Submitting a section's form (its submit button, Enter in a field)
@@ -28,15 +28,15 @@
  *   popup in it is open), sends ds:cancel ({ section, id, form }); unless
  *   cancelled, the form resets and the view comes back. Outside the
  *   sections it cancels every section that edits.
- * The band: the head's height and the bar's go on the article as
+ * The band: the head's height and the bar's go on the .ds-object as
  * --ds-object-head and --ds-object-bar (runtime properties, a
  * ResizeObserver), so the bar sticks under the head and a jump lands below
  * both.
  *
  * Owned state (DS.dom.morphHtml keeps it): hidden on the faces and on the
  * edit, save and cancel buttons outside the sections, data-editing on the
- * sections and the article. Events: ds:edit ({ section, id }), ds:save,
- * ds:cancel and ds:change ({ editing }: the ids that edit) on the article
+ * sections and the .ds-object. Events: ds:edit ({ section, id }), ds:save,
+ * ds:cancel and ds:change ({ editing }: the ids that edit) on the .ds-object
  * (ds:save and ds:cancel on the section, bubbling).
  *
  * ES2022. Progressive: none.
@@ -94,6 +94,12 @@ function controller(article, signal) {
     const id = section.getAttribute('aria-labelledby');
     const title = (id && doc.getElementById(id)) || section.querySelector('.ds-object__title');
     return title?.textContent.trim() ?? '';
+  };
+  /** The record's name: its own label, else the title of its page head (never a section's title). */
+  const objectTitle = () => {
+    const id = article.getAttribute('aria-labelledby');
+    const title = (id && doc.getElementById(id)) || outside('.ds-page-head__title')[0];
+    return article.getAttribute('aria-label') || title?.textContent.trim() || '';
   };
   const editing = (section) => section.hasAttribute('data-editing');
   /** The controls outside the sections: the object-wide edit, save and cancel. */
@@ -162,7 +168,7 @@ function controller(article, signal) {
       if (face(section, true, index === 0)) changed = true;
     });
     if (!changed) return false;
-    announce(t('editing', { label: target === null ? titleOf(article) || article.getAttribute('aria-label') || '' : titleOf(list[0]) }));
+    announce(t('editing', { label: target === null ? objectTitle() : titleOf(list[0]) }));
     syncMode();
     return true;
   };

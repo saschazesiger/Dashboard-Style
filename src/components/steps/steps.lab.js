@@ -44,13 +44,20 @@ SG_LAB.add({
  * their fill and ink on --ds-dur-medium; the page sets data-status, the
  * module aria-current.
  */
+/* The icons go in at setup: the entries are built before ds.js has run. */
+function glyphs(stage) {
+  stage.querySelectorAll('[data-lab-glyph]').forEach(function (slot) {
+    slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-lab-glyph')], Number(slot.getAttribute('data-size'))));
+  });
+}
+
 var STAGE_NAMES = ['New', 'Triaged', 'In progress', 'Resolved'];
 
 function stages(current) {
   return STAGE_NAMES.map(function (label, index) {
     var done = index < current;
     return '<li class="ds-steps__step"' + (done ? ' data-status="done"' : '') + (index === current ? ' aria-current="step"' : '') + '>' +
-      '<span class="ds-steps__mark">' + (done ? DS.icons.icon(DS.icons.check, 16) : String(index + 1)) + '</span>' +
+      '<span class="ds-steps__mark">' + (done ? '<span data-lab-glyph="check" data-size="16"></span>' : String(index + 1)) + '</span>' +
       '<span class="ds-steps__label">' + label + '</span></li>';
   }).join('');
 }
@@ -76,6 +83,7 @@ SG_LAB.add({
   html: '<ol class="ds-steps ds-steps--path" aria-label="Ticket stages" style="inline-size: 420px;">' + stages(1) + '</ol>',
   height: 120,
   setup: function (stage) {
+    glyphs(stage);
     stage.dsSteps = DS.steps.create(stage.querySelector('.ds-steps'));
   },
   play: function (stage, sg) { return moveStage(stage, 2, sg); },

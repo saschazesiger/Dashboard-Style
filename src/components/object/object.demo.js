@@ -40,7 +40,7 @@ SG.demo('object', {
   render: function (h) {
     var ids = { general: h.uid('obj-general'), owner: h.uid('obj-owner'), network: h.uid('obj-network') };
     var heading = h.uid('obj-title');
-    return h.section('A device', '<div style="' + BOX + '" data-demo="box"><article class="ds-object" aria-labelledby="' + heading + '" data-ds-object>' +
+    return h.section('A device', '<div style="' + BOX + '" data-demo="box"><div class="ds-object" data-ds-object>' +
         '<header class="ds-page-head ds-page-head--sticky" data-ds-page-head>' +
           '<a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="#">' + h.icon('arrowLeft', 18) + '<span class="ds-sr">Back to </span>Devices</a>' +
           '<div class="ds-page-head__row"><div class="ds-page-head__text"><h3 class="ds-page-head__title" id="' + heading + '" tabindex="-1">LAPTOP-0042</h3>' +
@@ -53,7 +53,7 @@ SG.demo('object', {
         '<nav class="ds-toc ds-toc--bar ds-toc--sticky" aria-label="Sections" data-ds-toc data-ds-toc-hash="off"><ol class="ds-toc__list">' +
           ['general', 'owner', 'network'].map(function (key) { return '<li><a class="ds-toc__link" href="#' + ids[key] + '">' + TITLES[key] + '</a></li>'; }).join('') + '</ol></nav>' +
         section(h, ids, 'general') + section(h, ids, 'owner') + section(h, ids, 'network') +
-        '</article></div>',
+        '</div></div>',
         'Edit in a section turns that section into its form; Edit in the head turns all of them, and Save all and Cancel take its place. Save validates (every field is required here), the view comes back with the new values and a screen reader hears it.') +
 
       h.section('Keyboard', '<p class="ds-muted">Edit moves the focus to the first field; <kbd class="ds-kbd">Enter</kbd> in a field saves, <kbd class="ds-kbd">Escape</kbd> cancels, and the focus returns to the section\'s Edit. The anchors are links: <kbd class="ds-kbd">Enter</kbd> jumps to a section and moves the focus there.</p>');
@@ -63,8 +63,8 @@ SG.demo('object', {
     // The page saves: a short wait as a server would take, then done(); the view shows the new values.
     root.addEventListener('ds:save', function (event) {
       var detail = event.detail;
-      var article = event.target.closest('.ds-object');
-      var record = DS.get(article, 'object');
+      var el = event.target.closest('.ds-object');
+      var record = DS.get(el, 'object');
       if (!record) return;
       event.preventDefault();
       var submit = h.$('[type="submit"]', detail.form);

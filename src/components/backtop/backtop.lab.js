@@ -2,11 +2,18 @@
  * Motion Lab: back to top. The button scales in once the box is scrolled
  * down and out again at the top; toggled fast, it continues from where it is.
  */
+/* The icons go in at setup: the entries are built before ds.js has run. */
+function glyphs(stage) {
+  stage.querySelectorAll('[data-lab-glyph]').forEach(function (slot) {
+    slot.replaceWith(DS.icons.iconElement(DS.icons[slot.getAttribute('data-lab-glyph')], Number(slot.getAttribute('data-size'))));
+  });
+}
+
 function backtopMarkup() {
   var rows = '';
   for (var index = 0; index < 24; index += 1) rows += '<p style="margin: 0; padding-block: var(--ds-space-2);">Event ' + (index + 1) + '</p>';
   return '<div data-lab="backtop" style="block-size: 200px; inline-size: 320px; overflow-y: auto; padding: 0 var(--ds-space-3) var(--ds-space-3); border: 1px solid var(--ds-line);">' + rows +
-    '<button class="ds-btn ds-btn--elevated ds-btn--icon ds-backtop" type="button" hidden>' + DS.icons.icon(DS.icons.arrowUp, 20) + '</button></div>';
+    '<button class="ds-btn ds-btn--elevated ds-btn--icon ds-backtop" type="button" hidden><span data-lab-glyph="arrowUp" data-size="20"></span></button></div>';
 }
 
 SG_LAB.add({
@@ -18,6 +25,7 @@ SG_LAB.add({
   html: backtopMarkup(),
   height: 220,
   setup: function (stage) {
+    glyphs(stage);
     stage.dsBacktop = DS.backtop.create(stage.querySelector('.ds-backtop'), { after: 80 });
   },
   play: function (stage) {

@@ -4,7 +4,7 @@ One record on one page: the [page head](#page) with its key facts, the section a
 bar) under it, and the sections as cards; an edit mode turns a section, or every section, into its inline-edit form.
 
 ```html
-<article class="ds-object" aria-labelledby="obj-title" data-ds-object>
+<div class="ds-object" data-ds-object>
   <header class="ds-page-head ds-page-head--sticky" data-ds-page-head>
     <a class="ds-btn ds-btn--text ds-sm ds-page-head__back" href="/devices">[icon arrowLeft 18]<span class="ds-sr">Back to </span>Devices</a>
     <div class="ds-page-head__row">
@@ -39,7 +39,7 @@ bar) under it, and the sections as cards; an edit mode turns a section, or every
     </form>
   </section>
   ...
-</article>
+</div>
 ```
 
 | Part | What |
@@ -54,19 +54,19 @@ bar) under it, and the sections as cards; an edit mode turns a section, or every
 
 Options: size, density, shape and tone reach the controls and cards inside (each computes its own); the object page's
 own rhythm is layout. The head and the bar stick one under the other: the module writes the head's height as
-`--ds-object-head` and the bar's as `--ds-object-bar` on the article (runtime properties: read, never set). Status in
+`--ds-object-head` and the bar's as `--ds-object-bar` on the `.ds-object` (runtime properties: read, never set). Status in
 the head (a `.ds-status` in `.ds-page-head__status`) carries its icon and word.
 
 ### Behaviour: `data-ds-object`
 
-`data-ds-object` on the article (`DS.init()` finds it; `DS.object.create(article)` is the imperative path, with the same
+`data-ds-object` on the `.ds-object` (`DS.init()` finds it; `DS.object.create(el)` is the imperative path, with the same
 controller):
 
 - **Edit a section.** A `[data-ds-object-edit]` button in a section turns it into its form: the view hides, the form
   enters (`DS.motion.enter(form, 'swap')`), the focus goes to its first field, a screen reader hears "Editing General"
   (the string `editing`), and the section takes `data-editing`.
 - **Edit mode.** A `[data-ds-object-edit]` button outside the sections (in the head) turns every section into its form;
-  the article takes `data-editing`, that button hides and the `[data-ds-object-save]` and `[data-ds-object-cancel]`
+  the `.ds-object` takes `data-editing`, that button hides and the `[data-ds-object-save]` and `[data-ds-object-cancel]`
   buttons outside the sections show (the module owns their `hidden`; render them `hidden`).
 - **Save.** Submitting a section's form (its submit button, Enter in a field) sends `ds:save` on the section:
   `{ section, id, form, values }` (`values`: the form's entries, a repeated name as a list). Unless a listener cancels
@@ -77,17 +77,17 @@ controller):
 - **Cancel.** `[data-ds-object-cancel]` in a section, or Escape in its form (unless a popup in it is open), sends
   `ds:cancel` (`{ section, id, form }`); unless cancelled (unsaved changes the page wants confirmed), the form resets
   and the view comes back. Outside the sections it cancels every section that edits.
-- `ds:edit` (cancelable) on the section before it turns; `ds:change` (`{ editing }`, the ids that edit) on the article.
+- `ds:edit` (cancelable) on the section before it turns; `ds:change` (`{ editing }`, the ids that edit) on the `.ds-object`.
 
-The controller (`DS.get(article, 'object')`, or what `create()` returns): `get()` (the ids of the sections that edit),
+The controller (`DS.get(el, 'object')`, or what `create()` returns): `get()` (the ids of the sections that edit),
 `set(ids)` (`true` for all, `false` for none), `edit(section)`, `save(section)`, `cancel(section)` (no argument: every
 section), `done(section)`, `on(type, fn)` and `destroy()`. `DS.object.values(entries)` is the mapping of a form's
 entries alone.
 
 What the module writes is owned state (`DS.dom.morphHtml` keeps it): `hidden` on the faces and on the buttons outside
-the sections, `data-editing` on the sections and the article.
+the sections, `data-editing` on the sections and the `.ds-object`.
 
-- Keyboard and names: the article is named by the title (`aria-labelledby`), each section by its own title; the edit
+- Keyboard and names: the record is the page's `h1` (the head's title), each section a region named by its own title; the edit
   action of a section is described by it (`aria-describedby`), so it reads "Edit, General". Entering the form moves the
   focus to its first field, leaving it back to the edit action; Escape cancels. The anchors are links (Tab), the head's
   actions and the More menu as in [Page](#page).
