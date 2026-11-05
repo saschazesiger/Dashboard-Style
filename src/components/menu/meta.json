@@ -9,18 +9,22 @@
   "classes": [
     "ds-menu",
     "ds-menu__check",
+    "ds-menu__chevron",
     "ds-menu__content",
     "ds-menu__description",
     "ds-menu__divider",
+    "ds-menu__empty",
     "ds-menu__heading",
     "ds-menu__item",
     "ds-menu__item--danger",
     "ds-menu__label",
     "ds-menu__meta",
+    "ds-menu__search",
     "ds-menu__shortcut"
   ],
   "attributes": [
     "data-anchored",
+    "data-ds-contextmenu",
     "data-ds-overflow-end",
     "data-ds-overflow-start",
     "data-placement",
